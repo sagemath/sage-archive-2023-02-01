@@ -21,7 +21,6 @@ import glob
 import os
 import socket
 import site
-import pkgconfig
 from . import version
 
 opj = os.path.join
@@ -134,8 +133,6 @@ except AttributeError:  # in case of use inside virtualenv
 _add_variable_or_fallback('SITE_PACKAGES',   sitepackages_dirs)
 
 _add_variable_or_fallback('SAGE_LIB',        SITE_PACKAGES[0])
-
-_add_variable_or_fallback('SAGE_CYTHONIZED', opj('$SAGE_ROOT', 'src', 'build', 'cythonized'))
 
 # Used by sage/misc/package.py.  Should be SAGE_SRC_ROOT in VPATH.
 _add_variable_or_fallback('SAGE_PKGS', opj('$SAGE_ROOT', 'build', 'pkgs'))
@@ -264,8 +261,6 @@ def sage_include_directories(use_sources=False):
     if use_sources :
         include_directories.extend([SAGE_SRC,
                                     opj(SAGE_SRC, 'sage', 'ext')])
-        include_directories.extend([SAGE_CYTHONIZED,
-                                    opj(SAGE_CYTHONIZED, 'sage', 'ext')])
     else:
         include_directories.extend([SAGE_LIB,
                                     opj(SAGE_LIB, 'sage', 'ext')])
@@ -285,66 +280,38 @@ def cython_aliases():
         {...}
         sage: sorted(cython_aliases().keys())
         ['FFLASFFPACK_CFLAGS',
+         'FFLASFFPACK_INCDIR',
          'FFLASFFPACK_LIBDIR',
          'FFLASFFPACK_LIBRARIES',
          'GIVARO_CFLAGS',
+         'GIVARO_INCDIR',
          'GIVARO_LIBDIR',
          'GIVARO_LIBRARIES',
+         'GSL_CFLAGS',
          'GSL_INCDIR',
          'GSL_LIBDIR',
          'GSL_LIBRARIES',
          'LINBOX_CFLAGS',
+         'LINBOX_INCDIR',
          'LINBOX_LIBDIR',
          'LINBOX_LIBRARIES',
          'SINGULAR_CFLAGS',
+         'SINGULAR_INCDIR',
          'SINGULAR_LIBDIR',
          'SINGULAR_LIBRARIES']
     """
+    import pkgconfig
 
-    # FFLAS-FFPACK
-    fflas_ffpack_pc = pkgconfig.parse('fflas-ffpack')
-    fflas_ffpack_libs = fflas_ffpack_pc['libraries']
-    fflas_ffpack_library_dirs = fflas_ffpack_pc['library_dirs']
-    fflas_ffpack_cflags = pkgconfig.cflags('fflas-ffpack').split()
+    aliases = {}
 
-    # Givaro
-    givaro_pc = pkgconfig.parse('givaro')
-    givaro_libs = givaro_pc['libraries']
-    givaro_library_dirs = givaro_pc['library_dirs']
-    givaro_cflags = pkgconfig.cflags('givaro').split()
+    for lib in ['fflas-ffpack', 'givaro', 'gsl', 'linbox', 'Singular']:
+        var = lib.upper().replace("-", "") + "_"
+        aliases[var + "CFLAGS"] = pkgconfig.cflags(lib).split()
+        pc = pkgconfig.parse(lib)
+        # INCDIR should be redundant because the -I options are also
+        # passed in CFLAGS
+        aliases[var + "INCDIR"] = pc['include_dirs']
+        aliases[var + "LIBDIR"] = pc['library_dirs']
+        aliases[var + "LIBRARIES"] = pc['libraries']
 
-    # GNU Scientific Library
-    gsl_pc = pkgconfig.parse('gsl')
-    gsl_libs = gsl_pc['libraries']
-    gsl_library_dirs = gsl_pc['library_dirs']
-    gsl_include_dirs = gsl_pc['include_dirs']
-
-    # LinBox
-    linbox_pc = pkgconfig.parse('linbox')
-    linbox_libs = linbox_pc['libraries']
-    linbox_library_dirs = linbox_pc['library_dirs']
-    linbox_cflags = pkgconfig.cflags('linbox').split()
-
-    # Singular
-    singular_pc = pkgconfig.parse('Singular')
-    singular_libs = singular_pc['libraries']
-    singular_library_dirs = singular_pc['library_dirs']
-    singular_cflags = pkgconfig.cflags('Singular').split()
-
-    return dict(
-        FFLASFFPACK_CFLAGS=fflas_ffpack_cflags,
-        FFLASFFPACK_LIBRARIES=fflas_ffpack_libs,
-        FFLASFFPACK_LIBDIR=fflas_ffpack_library_dirs,
-        GIVARO_CFLAGS=givaro_cflags,
-        GIVARO_LIBRARIES=givaro_libs,
-        GIVARO_LIBDIR=givaro_library_dirs,
-        GSL_LIBRARIES=gsl_libs,
-        GSL_LIBDIR=gsl_library_dirs,
-        GSL_INCDIR=gsl_include_dirs,
-        LINBOX_CFLAGS=linbox_cflags,
-        LINBOX_LIBRARIES=linbox_libs,
-        LINBOX_LIBDIR=linbox_library_dirs,
-        SINGULAR_CFLAGS=singular_cflags,
-        SINGULAR_LIBRARIES=singular_libs,
-        SINGULAR_LIBDIR=singular_library_dirs
-    )
+    return aliases

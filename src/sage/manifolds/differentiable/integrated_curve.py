@@ -94,6 +94,7 @@ from sage.manifolds.differentiable.tangent_vector import TangentVector
 from sage.calculus.interpolation import Spline
 from sage.misc.decorators import options
 from sage.misc.functional import numerical_approx
+from sage.arith.srange import srange
 
 class IntegratedCurve(DifferentiableCurve):
     r"""
@@ -203,8 +204,7 @@ class IntegratedCurve(DifferentiableCurve):
         sage: sol = c.solve(step=0.2,
         ....:         parameters_values={B_0:1, m:1, q:1, L:10, T:1},
         ....:         solution_key='carac time 1', verbose=True)
-        Performing 4th order Runge-Kutta integration with Maxima by
-         default...
+        Performing numerical integration with method 'rk4_maxima'...
         Numerical integration completed.
         <BLANKLINE>
         Checking all points are in the chart domain...
@@ -866,16 +866,18 @@ class IntegratedCurve(DifferentiableCurve):
 
         return tuple(coords_sol_expr)
 
-    def solve(self, step=None, method=None, solution_key=None,
+    def solve(self, step=None, method='rk4_maxima', solution_key=None,
               parameters_values=None, verbose=False):
         r"""
         Integrate the curve numerically over the domain of integration.
 
         INPUT:
 
-        - ``step`` -- (default: ``0.1``) step of integration
-        - ``method`` -- (default: ``None``) numerical scheme to use for
-          the integration of the curve; algorithms available are:
+        - ``step`` -- (default: ``None``) step of integration; default
+          value is a hundredth of the domain of integration if none is
+          provided
+        - ``method`` -- (default: ``'rk4_maxima'``) numerical scheme to
+          use for the integration of the curve; algorithms available are:
 
           * ``'rk4_maxima'`` - 4th order classical Runge-Kutta, which
             makes use of Maxima's dynamics package via Sage solver
@@ -895,7 +897,7 @@ class IntegratedCurve(DifferentiableCurve):
           * ``'rk4imp'`` - implicit 4th order Runge-Kutta at Gaussian points
           * ``'gear1'`` - `M=1` implicit Gear
           * ``'gear2'`` - `M=2` implicit Gear
-          * ``'bsimp'`` - implicit Burlisch-Stoer (requires Jacobian)
+          * ``'bsimp'`` - implicit Bulirsch-Stoer (requires Jacobian)
 
         - ``solution_key`` -- (default: ``None``) key which the
           resulting numerical solution will be associated to; a default
@@ -938,8 +940,7 @@ class IntegratedCurve(DifferentiableCurve):
             sage: sol = c.solve(
             ....:        parameters_values={B_0:1, m:1, q:1, L:10, T:1},
             ....:        verbose=True)
-            Performing 4th order Runge-Kutta integration with Maxima by
-             default...
+            Performing numerical integration with method 'rk4_maxima'...
             Resulting list of points will be associated with the key
              'rk4_maxima' by default.
             Numerical integration completed.
@@ -959,11 +960,9 @@ class IntegratedCurve(DifferentiableCurve):
 
         from sage.symbolic.ring import SR
 
-        if method is None:
-            method = 'rk4_maxima'
-            if verbose:
-                print("Performing 4th order Runge-Kutta integration " +
-                      "with Maxima by default...")
+        if verbose:
+            print("Performing numerical integration with method '" +
+                  method + "'...")
 
         if solution_key is None:
             solution_key = method
@@ -1064,6 +1063,8 @@ class IntegratedCurve(DifferentiableCurve):
 
         if step is None:
             step = (t_max - t_min) / 100
+
+        step = numerical_approx(step)
 
         initial_pt_coords = [numerical_approx(coord) for coord
                              in initial_pt_coords]
@@ -1220,9 +1221,7 @@ class IntegratedCurve(DifferentiableCurve):
                         return jac
                     T.jacobian = jacobian
 
-                T.ode_solve(jacobian=jacobian, y_0=y_0, t_span=t_span)
-            else:
-                T.ode_solve(y_0=y_0, t_span=t_span)
+            T.ode_solve(y_0=y_0, t_span=t_span)
 
             sol0 = T.solution
             sol = []

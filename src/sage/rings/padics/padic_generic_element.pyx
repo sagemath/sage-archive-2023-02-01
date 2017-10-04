@@ -299,6 +299,10 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: R = Zp(7,4,'capped-rel','series'); a = R(1/3); a
             5 + 4*7 + 4*7^2 + 4*7^3 + O(7^4)
             sage: a[0] #indirect doctest
+            doctest:warning
+            ...
+            DeprecationWarning: __getitem__ is changing to match the behavior of number fields. Please use expansion instead.
+            See http://trac.sagemath.org/14825 for details.
             5
             sage: a[1]
             4
@@ -327,7 +331,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: b[3]
             Traceback (most recent call last):
             ...
-            IndexError: list index out of range
+            PrecisionError
             sage: b[-2]
             0
 
@@ -362,26 +366,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             :meth:`sage.rings.padics.local_generic_element.LocalGenericElement.slice`
         """
-        if isinstance(n, slice):
-            return self.slice(n.start, n.stop, n.step)
-        if self.parent().f() == 1:
-            zero = Integer(0)
-        else:
-            zero = []
-        if n < self.valuation():
-            return zero
-        if n >= self.precision_absolute():
-            raise IndexError("list index out of range")
-
-        if self.parent().is_field():
-            n -= self.valuation()
-
-        # trailing coefficients which are zero are not stored in self.list() -
-        # we catch an IndexError to check for this.
-        try:
-            return self.list()[n]
-        except IndexError:
-            return zero
+        from sage.misc.superseded import deprecation
+        deprecation(14825, "__getitem__ is changing to match the behavior of number fields. Please use expansion instead.")
+        return self.expansion(n)
 
     def __invert__(self):
         r"""
@@ -817,11 +804,21 @@ cdef class pAdicGenericElement(LocalGenericElement):
             Traceback (most recent call last):
             ...
             ValueError: The p-adic gamma function only works on elements of Zp
+
+        TESTS:
+
+        We check that :trac:`23784` is resolved::
+
+            sage: Zp(5)(0).gamma()
+            1 + O(5^20)
         """
         if self.valuation() < 0:
             raise ValueError('The p-adic gamma function only works '
                              'on elements of Zp')
         parent = self.parent()
+        if self.precision_absolute() is infinity:
+            # Have to deal with exact zeros separately
+            return parent(1)
         if algorithm == 'pari':
             return parent(self.__pari__().gamma())
         elif algorithm == 'sage':
@@ -1602,6 +1599,30 @@ cdef class pAdicGenericElement(LocalGenericElement):
             p = self.parent().prime()
             return Rational(p**self.valuation() * self.unit_part().lift())
 
+    def _number_field_(self, K):
+        r"""
+        Return an element of K approximating this p-adic number.
+
+        INPUT:
+
+        - ``K`` -- a number field
+
+        EXAMPLES::
+
+            sage: R.<a> = Zq(125)
+            sage: K = R.exact_field()
+            sage: a._number_field_(K)
+            a
+        """
+        Kbase = K.base_ring()
+        if K.defining_polynomial() != self.parent().defining_polynomial(exact=True):
+            # Might convert to K's base ring.
+            return Kbase(self)
+        L = [Kbase(c) for c in self.polynomial().list()]
+        if len(L) < K.degree():
+            L += [Kbase(0)] * (K.degree() - len(L))
+        return K(L)
+
     def _log_generic(self, aprec, mina=0):
         r"""
         Return ``\log(self)`` for ``self`` equal to 1 in the residue field
@@ -2057,7 +2078,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: R = ZpFM(2, prec=5)
             sage: R(180).log(p_branch=0) == R(30).log(p_branch=0) + R(6).log(p_branch=0)
-            False            
+            False
 
         Check that log is the inverse of exp::
 
@@ -2155,7 +2176,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         - Julian Rueth (2013-02-14): Added doctests, some changes for
           capped-absolute implementations.
 
-        - Xavier Caruso (2017-06): Added binary splitting type algorithms 
+        - Xavier Caruso (2017-06): Added binary splitting type algorithms
           over Qp
 
         """

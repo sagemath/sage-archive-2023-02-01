@@ -54,10 +54,9 @@ TESTS::
     running ._test_new() . . . pass
     running ._test_pickling() . . . pass
 
-TODO:
+.. TODO::
 
-- wrap ``mzd_slice_t``
-
+    Wrap ``mzd_slice_t``.
 
 REFERENCES:
 

@@ -335,7 +335,7 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             if not arg0:
                 from sage.algebras.lie_algebras.abelian import AbelianLieAlgebra
                 return AbelianLieAlgebra(R, names, index_set)
-            elif isinstance(arg0.keys()[0], (list,tuple)):
+            elif isinstance(next(iter(arg0.keys())), (list, tuple)):
                 # We assume it is some structure coefficients
                 arg1, arg0 = arg0, arg1
 
@@ -523,10 +523,10 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
           coefficient ring ``self.base_ring()``
 
         - ``coerce`` -- a boolean (default: ``False``), whether to coerce the
-          ``coeff``s to the coefficient ring
+          ``coeff`` to the coefficient ring
 
         - ``remove_zeros`` -- a boolean (default: ``True``), if some
-          ``coeff``s may be zero and should therefore be removed
+          ``coeff`` may be zero and should therefore be removed
 
         EXAMPLES::
 

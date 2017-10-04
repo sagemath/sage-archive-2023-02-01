@@ -493,7 +493,8 @@ class PrincipalClusterAlgebraElement(ClusterAlgebraElement):
         components = self.homogeneous_components()
         if len(components) != 1:
             raise ValueError("this element is not homogeneous")
-        return components.keys()[0]
+        k, = components.keys()
+        return k
 
     def F_polynomial(self):
         r"""
@@ -1211,9 +1212,9 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-        sage: A = ClusterAlgebra(['A', 2]); A   # indirect doctest
-        A Cluster Algebra with cluster variables x0, x1 and no coefficients
-         over Integer Ring
+            sage: A = ClusterAlgebra(['A', 2]); A   # indirect doctest
+            A Cluster Algebra with cluster variables x0, x1 and no coefficients
+            over Integer Ring
         """
         Q = ClusterQuiver(data)
         for key in kwargs:

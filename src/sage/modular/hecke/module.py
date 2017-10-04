@@ -297,11 +297,7 @@ class HeckeModule_generic(sage.modules.module.Module):
             sage: A.is_anemic()
             True
         """
-        try:
-            return self.__anemic_hecke_algebra
-        except AttributeError:
-            self.__anemic_hecke_algebra = algebra.AnemicHeckeAlgebra(self)
-            return self.__anemic_hecke_algebra
+        return algebra.AnemicHeckeAlgebra(self)
 
     def character(self):
         r"""
@@ -346,11 +342,7 @@ class HeckeModule_generic(sage.modules.module.Module):
             sage: A.hecke_algebra() == B.hecke_algebra()
             False
         """
-        try:
-            return self.__hecke_algebra
-        except AttributeError:
-            self.__hecke_algebra = algebra.HeckeAlgebra(self)
-            return self.__hecke_algebra
+        return algebra.HeckeAlgebra(self)
 
     def is_zero(self):
         """
@@ -757,8 +749,8 @@ class HeckeModule_free_module(HeckeModule_generic):
 
     def ambient_hecke_module(self):
         r"""
-        Return the ambient module associated to this module. As this is an
-        abstract base class, return NotImplementedError.
+        Return the ambient module associated to this module. As this is
+        an abstract base class, raise NotImplementedError.
 
         EXAMPLES::
 
@@ -1673,23 +1665,18 @@ class HeckeModule_free_module(HeckeModule_generic):
         -  ``alpha`` - name of generate for eigenvalue field
 
 
-        EXAMPLES: These computations use pseudo-random numbers, so we set
-        the seed for reproducible testing.
+        EXAMPLES:
 
-        ::
+        The outputs of the following tests are very unstable. The algorithms
+        are randomized and depend on cached results. A slight change in the
+        sequence of pseudo-random numbers or a modification in caching is
+        likely to modify the results. We reset the random number generator and
+        clear some caches for reproducibility::
 
             sage: set_random_seed(0)
-
-        The computations also use cached results from other computations,
-        so we clear the caches for reproducible testing.
-
-        ::
-
             sage: ModularSymbols_clear_cache()
 
-        We compute eigenvalues for newforms of level 62.
-
-        ::
+        We compute eigenvalues for newforms of level 62::
 
             sage: M = ModularSymbols(62,2,sign=-1)
             sage: S = M.cuspidal_submodule().new_submodule()

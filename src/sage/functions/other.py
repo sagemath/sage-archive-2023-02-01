@@ -2383,6 +2383,12 @@ class Function_conjugate(GinacFunction):
             sage: conjugate(a*sqrt(-2)*sqrt(-3))
             conjugate(sqrt(-2))*conjugate(sqrt(-3))*conjugate(a)
 
+        Check that sums are handled correctly::
+
+            sage: y = var('y', domain='real')
+            sage: conjugate(y + I)
+            y - I
+
         Test pickling::
 
             sage: loads(dumps(conjugate))
@@ -2579,4 +2585,95 @@ class Function_limit(BuiltinFunction):
                 latex(to), dir_str, latex(ex))
 
 symbolic_limit = Function_limit()
+
+
+class Function_cases(GinacFunction):
+    """
+    Formal function holding ``(condition, expression)`` pairs.
+
+    Numbers are considered conditions with zero being ``False``.
+    A true condition marks a default value. The function is not
+    evaluated as long as it contains a relation that cannot be
+    decided by Pynac.
+
+    EXAMPLES::
+
+        sage: ex = cases([(x==0, pi), (True, 0)]); ex
+        cases(((x == 0, pi), (1, 0)))
+        sage: ex.subs(x==0)
+        pi
+        sage: ex.subs(x==2)
+        0
+        sage: ex + 1
+        cases(((x == 0, pi), (1, 0))) + 1
+        sage: _.subs(x==0)
+        pi + 1
+
+    The first encountered default is used, as well as the first relation
+    that can be trivially decided::
+
+        sage: cases(((True, pi), (True, 0)))
+        pi
+
+        sage: _ = var('y')
+        sage: ex = cases(((x==0, pi), (y==1, 0))); ex
+        cases(((x == 0, pi), (y == 1, 0)))
+        sage: ex.subs(x==0)
+        pi
+        sage: ex.subs(x==0, y==1)
+        pi
+    """
+    def __init__(self):
+        """
+        EXAMPLES::
+
+            sage: loads(dumps(cases))
+            cases
+        """
+        GinacFunction.__init__(self, "cases")
+
+    def __call__(self, l, **kwargs):
+        """
+        EXAMPLES::
+
+            sage: ex = cases([(x==0, pi), (True, 0)]); ex
+            cases(((x == 0, pi), (1, 0)))
+
+        TESTS::
+
+            sage: cases()
+            Traceback (most recent call last):
+            ...
+            TypeError: __call__() takes exactly 2 arguments (1 given)
+            
+            sage: cases(x)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: cases argument not a sequence
+        """
+        return GinacFunction.__call__(self,
+                SR._force_pyobject(l), **kwargs)
+
+    def _print_latex_(self, l, **kwargs):
+        r"""
+        EXAMPLES::
+
+            sage: ex = cases([(x==0, pi), (True, 0)]); ex
+            cases(((x == 0, pi), (1, 0)))
+            sage: latex(ex)
+            \begin{cases}{\pi} & {x = 0}\\{0} & {1}\end{cases}
+        """
+        if not isinstance(l, (list, tuple)):
+            raise ValueError("cases() argument must be a list")
+        str = r"\begin{cases}"
+        for pair in l:
+            left = None
+            if (isinstance(pair, tuple)):
+                right,left = pair
+            else:
+                right = pair
+            str += r"{%s} & {%s}\\" % (latex(left), latex(right))
+        print(str[:-2] + r"\end{cases}")
+
+cases = Function_cases()
 

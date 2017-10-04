@@ -168,7 +168,7 @@ use, that is to which category it belongs::
 
     sage: G = GL(2,ZZ)
     sage: G.category()
-    Category of groups
+    Category of infinite groups
 
 In fact a group is a semigroup, and Sage knows about this::
 
@@ -180,10 +180,10 @@ In fact a group is a semigroup, and Sage knows about this::
 Altogether, our group gets algorithms from a bunch of bookshelves::
 
     sage: G.categories()
-    [Category of groups, Category of monoids, Category of semigroups,
+    [Category of infinite groups, Category of groups, Category of monoids,
      ...,
      Category of magmas,
-     Category of sets, ...]
+     Category of infinite sets, ...]
 
 Those can be viewed graphically::
 

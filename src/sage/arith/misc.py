@@ -4204,8 +4204,8 @@ def falling_factorial(x, a):
     Check that :trac:`16770` is fixed::
 
         sage: d = var('d')
-        sage: type(falling_factorial(d, 0))
-        <type 'sage.symbolic.expression.Expression'>
+        sage: parent(falling_factorial(d, 0))
+        Symbolic Ring
 
     Check that :trac:`20075` is fixed::
 
@@ -4299,8 +4299,8 @@ def rising_factorial(x, a):
     Check that :trac:`16770` is fixed::
 
         sage: d = var('d')
-        sage: type(rising_factorial(d, 0))
-        <type 'sage.symbolic.expression.Expression'>
+        sage: parent(rising_factorial(d, 0))
+        Symbolic Ring
 
     Check that :trac:`20075` is fixed::
 

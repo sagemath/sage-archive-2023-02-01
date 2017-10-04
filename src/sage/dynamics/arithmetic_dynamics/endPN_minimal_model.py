@@ -9,14 +9,7 @@ AUTHORS:
 - Brian Stout, Ben Hutz (Nov 2013): Modified code to use projective
   morphism functionality so that it can be included in Sage.
 
-REFERENCES:
-
-.. [Bruin-Molnar] \N. Bruin and A. Molnar, *Minimal models for rational
-   functions in a dynamical setting*, 
-   LMS Journal of Computation and Mathematics, Volume 15 (2012), pp 400-417.
-
-.. [Molnar] \A. Molnar, *Fractional Linear Minimal Models of Rational Functions*,
-   M.Sc. Thesis.
+REFERENCES: [BM2012]_, [Mol2015]_
 """
 
 #*****************************************************************************
@@ -29,8 +22,6 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.categories.homset import End
-from copy import copy
 from sage.matrix.constructor import matrix
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.rings.integer_ring import ZZ
@@ -50,23 +41,21 @@ def bCheck(c, v, p, b):
 
     INPUT:
 
-    - ``c`` -- a list of polynomials in `b`. See v for their use.
+    - ``c`` -- a list of polynomials in `b`. See v for their use
 
     - ``v`` -- a list of rational numbers, where we are considering the inequalities
-           `ord_p(c[i]) > v[i]`.
+           `ord_p(c[i]) > v[i]`
 
-    - ``p`` -- a prime.
+    - ``p`` -- a prime
 
-    - ``b`` -- local variable.
+    - ``b`` -- local variable
 
-    OUTPUT:
-
-    - ``bval`` -- Integer, lower bound in Theorem 3.3.5
+    OUTPUT: ``bval`` -- Integer, lower bound in Theorem 3.3.5
 
     EXAMPLES::
 
         sage: R.<b> = PolynomialRing(QQ)
-        sage: from sage.schemes.projective.endPN_minimal_model import bCheck
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_minimal_model import bCheck
         sage: bCheck(11664*b^2 + 70227*b + 76059, 15/2, 3, b)
         -1
     """
@@ -91,24 +80,24 @@ def scale(c,v,p):
 
     INPUT:
 
-    - ``c`` -- an integer polynomial.
+    - ``c`` -- an integer polynomial
 
-    - ``v`` -- an integer - the bound on the exponent from blift.
+    - ``v`` -- an integer - the bound on the exponent from blift
 
-    - ``p`` -- a prime.
+    - ``p`` -- a prime
 
     OUTPUT:
 
-    - Boolean -- the new exponent bound is 0 or negative.
+    - boolean -- the new exponent bound is 0 or negative
 
-    - the scaled integer polynomial.
+    - the scaled integer polynomial
 
-    - an integer the new exponent bound.
+    - an integer the new exponent bound
 
     EXAMPLES::
 
         sage: R.<b> = PolynomialRing(QQ)
-        sage: from sage.schemes.projective.endPN_minimal_model import scale
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_minimal_model import scale
         sage: scale(24*b^3 + 108*b^2 + 162*b + 81, 1, 3)
         [False, 8*b^3 + 36*b^2 + 54*b + 27, 0]
     """
@@ -132,22 +121,22 @@ def blift(LF, Li, p, S=None):
 
     INPUT:
 
-    - ``LF`` -- a list of integer polynomials in one variable (the normalized coefficients).
+    - ``LF`` -- a list of integer polynomials in one variable (the normalized coefficients)
 
-    - ``Li`` -- an integer, the bound on coefficients.
+    - ``Li`` -- an integer, the bound on coefficients
 
-    - ``p`` -- a prime.
+    - ``p`` -- a prime
 
     OUTPUT:
 
-    - Boolean -- whether or not the lift is successful.
+    - boolean -- whether or not the lift is successful
 
-    - integer -- the lift.
+    - integer -- the lift
 
     EXAMPLES::
 
         sage: R.<b> = PolynomialRing(QQ)
-        sage: from sage.schemes.projective.endPN_minimal_model import blift
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_minimal_model import blift
         sage: blift([8*b^3 + 12*b^2 + 6*b + 1, 48*b^2 + 483*b + 117, 72*b + 1341, -24*b^2 + 411*b + 99, -144*b + 1233, -216*b], 2, 3)
         (True, 4)
     """
@@ -194,42 +183,41 @@ def affine_minimal(vp, return_transformation=False, D=None, quick=False):
 
     INPUT:
 
-    - ``vp`` -- scheme morphism on the projective line.
+    - ``vp`` -- dyanmical system on the projective line
 
     - ``D`` -- a list of primes, in case one only wants to check minimality
-               at those specific primes.
+               at those specific primes
 
-    - ``return_transformation`` -- a boolean value, default value True. This
+    - ``return_transformation`` -- (default: False) a boolean value, default value True. This
       signals a return of the ``PGL_2`` transformation to conjugate ``vp`` to
-      the calculated minimal model. default: False.
+      the calculated minimal model
 
     - ``quick`` -- a boolean value. If true the algorithm terminates once
       algorithm determines F/G is not minimal, otherwise algorithm only
-      terminates once a minimal model has been found.
+      terminates once a minimal model has been found
 
     OUTPUT:
 
-    - ``newvp`` -- scheme morphism on the projective line.
+    - ``newvp`` -- dynamical system on the projective line
 
-    - ``conj`` -- linear fractional transformation which conjugates ``vp`` to ``newvp``.
+    - ``conj`` -- linear fractional transformation which conjugates ``vp`` to ``newvp``
 
     EXAMPLES::
 
         sage: PS.<X,Y> = ProjectiveSpace(QQ, 1)
-        sage: H = Hom(PS,PS)
-        sage: vp = H([X^2 + 9*Y^2, X*Y])
-        sage: from sage.schemes.projective.endPN_minimal_model import affine_minimal
+        sage: vp = DynamicalSystem_projective([X^2 + 9*Y^2, X*Y])
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_minimal_model import affine_minimal
         sage: affine_minimal(vp, True)
         (
-        Scheme endomorphism of Projective Space of dimension 1 over Rational
-        Field
-          Defn: Defined on coordinates by sending (X : Y) to
-                (X^2 + Y^2 : X*Y)
+        Dynamical System of Projective Space of dimension 1 over Rational Field
+              Defn: Defined on coordinates by sending (X : Y) to
+                    (X^2 + Y^2 : X*Y)
         ,
         [3 0]
         [0 1]
         )
     """
+    from sage.dynamics.arithmetic_dynamics.affine_ds import DynamicalSystem_affine
     BR = vp.domain().base_ring()
     conj = matrix(BR,2,2,1)
     flag = True
@@ -262,8 +250,7 @@ def affine_minimal(vp, return_transformation=False, D=None, quick=False):
     H = F-z*minG
     d1 = F.degree()
     A = AffineSpace(BR,1,H.parent().variable_name())
-    end_ring = End(A)
-    ubRes = end_ring([H/minG]).homogenize(1).resultant()
+    ubRes = DynamicalSystem_affine([H/minG], domain=A).homogenize(1).resultant()
     #Set the primes to check minimality at, if not already prescribed
     if D is None:
         D = ZZ(Res).prime_divisors()
@@ -316,29 +303,28 @@ def Min(Fun, p, ubRes, conj):
 
     INPUT:
 
-    - ``Fun`` -- a projective space morphisms.
+    - ``Fun`` -- a dynamical systems on projective space
 
-    - ``p`` - a prime.
+    - ``p`` - a prime
 
-    - ``ubRes`` -- integer, the upper bound needed for Th. 3.3.3 in [Molnar]_.
+    - ``ubRes`` -- integer, the upper bound needed for Th. 3.3.3 in [Molnar]_
 
-    - ``conj`` -- a 2x2 matrix keeping track of the conjugation.
+    - ``conj`` -- a 2x2 matrix keeping track of the conjugation
 
     OUTPUT:
 
-    - Boolean -- ``True`` if ``Fun`` is minimal at ``p``, ``False`` otherwise.
+    - boolean -- ``True`` if ``Fun`` is minimal at ``p``, ``False`` otherwise
 
-    - a projective morphism minimal at ``p``.
+    - a dynamical system on projective space minimal at ``p``
 
     EXAMPLES::
 
         sage: P.<x,y> = ProjectiveSpace(QQ, 1)
-        sage: H = End(P)
-        sage: f = H([149*x^2 + 39*x*y + y^2, -8*x^2 + 137*x*y + 33*y^2])
-        sage: from sage.schemes.projective.endPN_minimal_model import Min
+        sage: f = DynamicalSystem_projective([149*x^2 + 39*x*y + y^2, -8*x^2 + 137*x*y + 33*y^2])
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_minimal_model import Min
         sage: Min(f, 3, -27000000, matrix(QQ,[[1, 0],[0, 1]]))
         (
-        Scheme endomorphism of Projective Space of dimension 1 over Rational
+        Dynamical System of Projective Space of dimension 1 over Rational
         Field
           Defn: Defined on coordinates by sending (x : y) to
                 (181*x^2 + 313*x*y + 81*y^2 : -24*x^2 + 73*x*y + 151*y^2)

@@ -159,14 +159,25 @@ class Polyhedron_base(Element):
 
         See :mod:`sage.misc.sage_input` for details.
 
+        .. TODO::
+
+            Add the option `preparse` to the method.
+
         EXAMPLES::
 
-            sage: P = Polyhedron([(1,0), (0,1)], rays=[(1,1)])
+            sage: P = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]], backend='ppl')
             sage: sage_input(P)
-            Polyhedron(base_ring=ZZ, rays=[(1, 1)], vertices=[(0, 1), (1, 0)])
+            Polyhedron(backend='ppl', base_ring=ZZ, rays=[(1, 1)], vertices=[(0, 1), (1, 0)])
+            sage: P = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]], backend='normaliz') # optional - pynormaliz
+            sage: sage_input(P)                                                                    # optional - pynormaliz
+            Polyhedron(backend='normaliz', base_ring=ZZ, rays=[(1, 1)], vertices=[(0, 1), (1, 0)])
+            sage: P = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]], backend='polymake') # optional - polymake
+            sage: sage_input(P)                                                                    # optional - polymake
+            Polyhedron(backend='polymake', base_ring=QQ, rays=[(QQ(1), QQ(1))], vertices=[(QQ(1), QQ(0)), (QQ(0), QQ(1))])
        """
         kwds = dict()
         kwds['base_ring'] = sib(self.base_ring())
+        kwds['backend'] = sib(self.backend())
         if self.n_vertices() > 0:
             kwds['vertices'] = [sib(tuple(v)) for v in self.vertices()]
         if self.n_rays() > 0:
@@ -1145,7 +1156,7 @@ class Polyhedron_base(Element):
 
             sage: p = polytopes.cube()
             sage: p.to_linear_program()
-            Mixed Integer Program  ( maximization, 3 variables, 6 constraints )
+            Linear Program (no objective, 3 variables, 6 constraints)
             sage: lp, x = p.to_linear_program(return_variable=True)
             sage: lp.set_objective(2*x[0] + 1*x[1] + 39*x[2])
             sage: lp.solve()
@@ -2112,6 +2123,39 @@ class Polyhedron_base(Element):
             True
         """
         return self.parent().base_ring()
+
+    def backend(self):
+        """
+        Return the backend used.
+
+        OUTPUT:
+
+        The name of the backend used for computations. It will be one of
+        the following backends:
+
+         * ``ppl`` the Parma Polyhedra Library
+
+         * ``cdd`` CDD
+
+         * ``normaliz`` normaliz
+
+         * ``polymake`` polymake
+
+         * ``field`` a generic Sage implementation
+
+        EXAMPLES::
+
+            sage: triangle = Polyhedron(vertices = [[1, 0], [0, 1], [1, 1]])
+            sage: triangle.backend()
+            'ppl'
+            sage: D = polytopes.dodecahedron()
+            sage: D.backend()
+            'field'
+            sage: P = Polyhedron([[1.23]])
+            sage: P.backend()
+            'cdd'
+        """
+        return self.parent().backend()
 
     field = deprecated_function_alias(22551, base_ring)
 
@@ -4281,15 +4325,21 @@ class Polyhedron_base(Element):
             raise PackageNotFoundError('latte_int')
 
     @cached_method
-    def volume(self, engine='auto', **kwds):
+    def volume(self, measure='ambient', engine='auto', **kwds):
         """
         Return the volume of the polytope.
 
         INPUT:
 
+        - ``measure`` -- string. The measure to use. Allowed values are:
+
+          * ``ambient`` (default): Lebesgue measure of ambient space (volume)
+          * ``induced``: Lebesgue measure of the affine hull (relative volume)
+          * ``induced_rational``: Scaling of the Lebesgue measure for rational polytopes
+
         - ``engine`` -- string. The backend to use. Allowed values are:
 
-          * ``'auto'`` (default): see :meth:`triangulate`.
+          * ``'auto'`` (default): choose engine according to measure
           * ``'internal'``: see :meth:`triangulate`.
           * ``'TOPCOM'``: see :meth:`triangulate`.
           * ``'lrs'``: use David Avis's lrs program (optional).
@@ -4330,30 +4380,125 @@ class Polyhedron_base(Element):
 
             sage: polytopes.icosahedron().volume()
             5/12*sqrt5 + 5/4
-            sage: numerical_approx(_)
+            sage: numerical_approx(_) # abs tol 1e9
             2.18169499062491
 
-        Different engines may have different ideas on the definition
-        of volume of a lower-dimensional object::
+        When considering lower-dimensional polytopes, we can ask for the
+        ambient (full-dimensional), the induced measure (of the affine
+        hull) or, in the case of lattice polytopes, for the induced rational measure.
+        This is controlled by the parameter `measure`. Different engines
+        may have different ideas on the definition of volume of a
+        lower-dimensional object::
 
-            sage: I = Polyhedron([(0,0), (1,1)])
-            sage: I.volume()
+            sage: P = Polyhedron([[0, 0], [1, 1]])
+            sage: P.volume()
             0
-            sage: I.volume(engine='lrs') #optional - lrslib
-            1.0
-            sage: I.volume(engine='latte') # optional - latte_int
+            sage: P.volume(measure='induced')
+            sqrt(2)
+            sage: P.volume(measure='induced_rational') # optional -- latte_int
             1
+
+            sage: S = polytopes.regular_polygon(6); S
+            A 2-dimensional polyhedron in AA^2 defined as the convex hull of 6 vertices
+            sage: edge = S.faces(1)[2].as_polyhedron()
+            sage: edge.vertices()
+            (A vertex at (0.866025403784439?, 1/2), A vertex at (0, 1))
+            sage: edge.volume()
+            0
+            sage: edge.volume(measure='induced')
+            1
+
+            sage: Dexact = polytopes.dodecahedron()
+            sage: v = Dexact.faces(2)[0].as_polyhedron().volume(measure='induced', engine='internal'); v
+            -80*(55*sqrt(5) - 123)/sqrt(-6368*sqrt(5) + 14240)
+            sage: v = Dexact.faces(2)[4].as_polyhedron().volume(measure='induced', engine='internal'); v
+            -80*(55*sqrt(5) - 123)/sqrt(-6368*sqrt(5) + 14240)
+            sage: RDF(v)    # abs tol 1e-9
+            1.53406271079044
+
+            sage: Dinexact = polytopes.dodecahedron(exact=False)
+            sage: w = Dinexact.faces(2)[0].as_polyhedron().volume(measure='induced', engine='internal'); RDF(w) # abs tol 1e-9
+            1.534062710738235
+
+            sage: [polytopes.simplex(d).volume(measure='induced') for d in range(1,5)] == [sqrt(d+1)/factorial(d) for d in range(1,5)]
+            True
+
+            sage: I = Polyhedron([[-3, 0], [0, 9]])
+            sage: I.volume(measure='induced')
+            3*sqrt(10)
+            sage: I.volume(measure='induced_rational') # optional -- latte_int
+            3
+
+            sage: T = Polyhedron([[3, 0, 0], [0, 4, 0], [0, 0, 5]])
+            sage: T.volume(measure='induced')
+            1/2*sqrt(769)
+            sage: T.volume(measure='induced_rational') # optional -- latte_int
+            1/2
+
+            sage: Q = Polyhedron(vertices=[(0, 0, 1, 1), (0, 1, 1, 0), (1, 1, 0, 0)])
+            sage: Q.volume(measure='induced')
+            1
+            sage: Q.volume(measure='induced_rational') # optional -- latte_int
+            1/2
+
+        The volume of a full-dimensional unbounded polyhedron is infinity::
+
+            sage: P = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]])
+            sage: P.volume()
+            +Infinity
+
+        The volume of a non full-dimensional unbounded polyhedron depends on the measure used::
+
+            sage: P = Polyhedron(ieqs = [[1,1,1],[-1,-1,-1],[3,1,0]]); P
+            A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 1 ray
+            sage: P.volume()
+            0
+            sage: P.volume(measure='induced')
+            +Infinity
+            sage: P.volume(measure='ambient')
+            0
+            sage: P.volume(measure='induced_rational')
+            +Infinity
         """
-        if engine == 'lrs':
-            return self._volume_lrs(**kwds)
-        elif engine == 'latte':
+        if measure == 'induced_rational' and engine not in ['auto', 'latte']:
+            raise TypeError("The induced rational measure can only be computed with the engine set to `auto` or `latte`")
+        if engine == 'auto' and measure == 'induced_rational':
+            engine = 'latte'
+
+        if measure == 'ambient':
+            if self.dim() < self.ambient_dim():
+                return self.base_ring().zero()
+            if engine == 'lrs':
+                return self._volume_lrs(**kwds)
+            elif engine == 'latte':
+                return self._volume_latte(**kwds)
+            # if the polyhedron is unbounded, return infinity
+            if not self.is_compact():
+                from sage.rings.infinity import infinity
+                return infinity
+            triangulation = self.triangulate(engine=engine, **kwds)
+            pc = triangulation.point_configuration()
+            return sum([pc.volume(simplex) for simplex in triangulation]) / ZZ(self.dim()).factorial()
+        elif measure == 'induced':
+            # if polyhedron is actually full-dimensional, return volume with ambient measure
+            if self.dim() == self.ambient_dim():
+                return self.volume(measure='ambient', engine=engine, **kwds)
+            # if the polyhedron is unbounded, return infinity
+            if not self.is_compact():
+                from sage.rings.infinity import infinity
+                return infinity
+            # use an orthogonal transformation, which preserves volume up to a factor provided by the transformation matrix
+            A, b = self.affine_hull(orthogonal=True, as_affine_map=True)
+            Adet = (A.matrix().transpose() * A.matrix()).det()
+            return self.affine_hull(orthogonal=True).volume(measure='ambient', engine=engine, **kwds) / sqrt(Adet)
+        elif measure == 'induced_rational':
+            if self.dim() < self.ambient_dim() and engine != 'latte':
+                raise TypeError("The induced rational measure can only be computed with the engine set to `auto` or `latte`")
+            # if the polyhedron is unbounded, return infinity
+            if not self.is_compact():
+                from sage.rings.infinity import infinity
+                return infinity
             return self._volume_latte(**kwds)
-        dim = self.dim()
-        if dim < self.ambient_dim():
-            return self.base_ring().zero()
-        triangulation = self.triangulate(engine=engine, **kwds)
-        pc = triangulation.point_configuration()
-        return sum([ pc.volume(simplex) for simplex in triangulation ]) / ZZ(dim).factorial()
 
     def integrate(self, polynomial, **kwds):
         r"""

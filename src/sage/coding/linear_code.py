@@ -218,7 +218,7 @@ from sage.modules.free_module_element import vector
 from sage.arith.all import GCD, rising_factorial, binomial
 from sage.groups.all import SymmetricGroup
 from sage.misc.all import prod
-from sage.misc.functional import log, is_even
+from sage.misc.functional import is_even
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.structure.parent import Parent
@@ -1977,7 +1977,7 @@ class AbstractLinearCode(Module):
         F = self.base_ring()
         q = F.order()
         q0 = F0.order()
-        a = log(q,q0)  # test if F/F0 is a field extension
+        a = q.log(q0)  # test if F/F0 is a field extension
         if not isinstance(a, Integer):
             raise ValueError("Base field must be an extension of given field %s"%F0)
         n = len(G.columns())
@@ -2069,7 +2069,6 @@ class AbstractLinearCode(Module):
         # then the implementation here must also be changed so that
         # list(self)[i] and self[i] both return the same element.
 
-        from sage.rings.padics.factory import Zp
         F = self.base_ring()
         maxindex = F.order()**self.dimension()-1
         if i < 0 or i > maxindex:
@@ -2084,8 +2083,7 @@ class AbstractLinearCode(Module):
         A = [a ** k for k in range(m)]
         G = self.generator_matrix()
         N = self.dimension()*F.degree() # the total length of p-adic vector
-        Z = Zp(p, N)
-        ivec = Z(i).padded_list(N)
+        ivec = Integer(i).digits(p, padto=N)
 
         codeword = 0
         row = 0

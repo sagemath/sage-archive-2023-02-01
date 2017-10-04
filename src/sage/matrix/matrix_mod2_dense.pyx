@@ -79,14 +79,14 @@ TESTS::
     [1 1 0]
     [0 0 1]
 
-TODO:
+.. TODO::
 
-- make LinBox frontend and use it
+    - make LinBox frontend and use it
 
-    - charpoly ?
-    - minpoly ?
+        - charpoly ?
+        - minpoly ?
 
-- make Matrix_modn_frontend and use it (?)
+    - make Matrix_modn_frontend and use it (?)
 """
 
 #*****************************************************************************
@@ -111,7 +111,6 @@ from sage.structure.element cimport (Matrix, Vector,
                                      ModuleElement, Element)
 from sage.modules.free_module_element cimport FreeModuleElement
 from sage.libs.gmp.random cimport *
-from sage.misc.functional import log
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.misc.misc import verbose, get_verbose, cputime
 from sage.modules.free_module import VectorSpace

@@ -65,7 +65,7 @@ def _base_ring_to_fraction_field(S):
     - ``Q`` -- the skew polynomial ring over the fraction field of
       ``S.base_ring``.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.rings.polynomial.skew_polynomial_ring import _base_ring_to_fraction_field
         sage: R.<t> = ZZ[]

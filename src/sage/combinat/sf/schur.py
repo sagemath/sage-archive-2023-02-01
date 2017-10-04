@@ -20,7 +20,6 @@ from __future__ import absolute_import
 from six.moves import zip
 
 from . import classical
-import sage.libs.symmetrica.all as symmetrica
 import sage.libs.lrcalc.lrcalc as lrcalc
 from sage.rings.all import ZZ, QQ, Integer
 

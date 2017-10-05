@@ -128,6 +128,12 @@ class Rings(CategoryWithAxiom):
                 sage: f.is_injective()
                 True
 
+            A coercion to the fraction field is injective::
+
+                sage: R = ZpFM(3)
+                sage: R.fraction_field().coerce_map_from(R).is_injective()
+                True
+
             """
             if self.domain().is_zero():
                 return True
@@ -154,6 +160,10 @@ class Rings(CategoryWithAxiom):
                         from sage.categories.number_fields import NumberFields
                         if self.domain().fraction_field() in NumberFields():
                             return True
+
+            if self._is_coercion:
+                if self.domain().fraction_field() is self.codomain():
+                    return True
 
             if self.domain().cardinality() > self.codomain().cardinality():
                 return False

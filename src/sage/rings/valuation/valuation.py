@@ -999,13 +999,14 @@ class DiscreteValuation(DiscretePseudoValuation):
 
         In this case, ``f`` factors into degrees 1, 2, and 5 over a totally ramified extension::
 
-            sage: R = Zp(5, 50)
+            sage: R = Zp(5)
             sage: S.<w> = R[]
             sage: R.<w> = R.extension(w^3 + 5)
             sage: S.<x> = R[]
             sage: f = (x^3 + 5)*(x^5 + w) + 625
             sage: v = R.valuation()
             sage: v.montes_factorization(f, assume_squarefree=True, required_precision=0)
+            ((1 + O(w^60))*x + 4*w + O(w^60)) * ((1 + O(w^60))*x^2 + (w + O(w^60))*x + w^2 + O(w^60)) * ((1 + O(w^60))*x^5 + w + O(w^60))
 
         REFERENCES:
 

@@ -1346,8 +1346,9 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         - ``F`` -- an element of the :meth:`residue_ring`
 
         - ``report_coefficients`` -- whether to return the coefficients of the
-          :meth:`~sage.rings.valuation.developing_valuation.DevelopingValuation.phi`-adic expansion or the actual polynomial (default:
-          ``False``, i.e., return the polynomial)
+          :meth:`~sage.rings.valuation.developing_valuation.DevelopingValuation.phi`-adic
+          expansion or the actual polynomial (default: ``False``, i.e., return
+          the polynomial)
 
         OUTPUT:
 
@@ -1429,6 +1430,8 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
 
         # now we undo the factors of Q^i (the if else is necessary to handle the case when mu is infinity, i.e., when _Q_reciprocal() is undefined)
         coeffs = [ (c if i == 0 else c*self._Q_reciprocal(i)).map_coefficients(_lift_to_maximal_precision) for i,c in enumerate(coeffs) ]
+        # reduce the coefficients mod phi; the part that exceeds phi has no effect on the reduction of the coefficient
+        coeffs = [ self.coefficients(c).next() for c in coeffs ]
 
         if report_coefficients:
             return coeffs
@@ -1514,9 +1517,9 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         coefficients = self.lift(F, report_coefficients=True)[:-1]
         coefficients = [c*self._Q(F.degree()) for i,c in enumerate(coefficients)] + [self.domain().one()]
         if len(coefficients) >= 2:
-            # After reduction modulo phi, the second-highest coefficient could spill over into the
-            # highest coefficient (which is a constant one) so we need to mod it
-            # away.
+            # In the phi-adic development, the second-highest coefficient could
+            # spill over into the highest coefficient (which is a constant one)
+            # so we need to mod it away.
             # This can not happen for other coefficients because self._Q() has
             # degree at most the degree of phi.
             coefficients[-2] %= self.phi()

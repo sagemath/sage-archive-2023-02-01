@@ -1411,6 +1411,9 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         valuation = w(g)
         g = w.simplify(g, error=valuation, force=True, phiadic=True)
 
+        if g in self.domain():
+            return self.domain()(g)
+
         nonfraction_valuation = self.restriction(nonfractions)
         # if this fails then there is no equivalent polynomial in the domain of this valuation
         ret = g.map_coefficients(

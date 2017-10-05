@@ -990,11 +990,12 @@ class DiscreteValuation(DiscretePseudoValuation):
 
         In this example, ``f`` factors as three factors of degree 50 over an unramified extension::
 
-            sage: R.<u> = ZqFM(125, 500)
+            sage: R.<u> = ZqFM(125)
             sage: S.<x> = R[]
             sage: f = (x^6+2)^25 + 5
             sage: v = R.valuation()
-            sage: v.montes_factorization(f)
+            sage: v.montes_factorization(f, assume_squarefree=True, required_precision=0)
+            ((1 + O(5^20))*x^50 + (3*5 + O(5^20))*x^45 + (5 + O(5^20))*x^40 + (5 + O(5^20))*x^30 + (3 + 4*5 + O(5^20))*x^25 + (3*5 + O(5^20))*x^20 + (2*5 + O(5^20))*x^10 + (3*5 + O(5^20))*x^5 + (4*5 + O(5^20))*x + 3 + 5 + O(5^20)) * ((1 + O(5^20))*x^50 + (2*5 + O(5^20))*x^45 + (5 + O(5^20))*x^40 + (5 + O(5^20))*x^30 + (2 + O(5^20))*x^25 + (3*5 + O(5^20))*x^20 + (2*5 + O(5^20))*x^10 + (2*5 + O(5^20))*x^5 + (5 + O(5^20))*x + 3 + 5 + O(5^20)) * ((1 + O(5^20))*x^50 + (3*5 + O(5^20))*x^40 + (3*5 + O(5^20))*x^30 + (4*5 + O(5^20))*x^20 + (5 + O(5^20))*x^10 + 3 + 5 + O(5^20))
 
         In this case, ``f`` factors into degrees 1, 2, and 5 over a totally ramified extension::
 
@@ -1003,7 +1004,8 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: R.<w> = R.extension(w^3 + 5)
             sage: S.<x> = R[]
             sage: f = (x^3 + 5)*(x^5 + w) + 625
-            sage: v.montes_factorization(f)
+            sage: v = R.valuation()
+            sage: v.montes_factorization(f, assume_squarefree=True, required_precision=0)
 
         REFERENCES:
 

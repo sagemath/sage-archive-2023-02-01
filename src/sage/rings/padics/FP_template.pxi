@@ -97,8 +97,7 @@ cdef class FPElement(pAdicTemplateElement):
         - ``x`` -- data defining a `p`-adic element: int, long,
           Integer, Rational, other `p`-adic element...
 
-        - ``val`` -- the valuation of the resulting element (unused;
-          for compatibility with other `p`-adic precision modes)
+        - ``val`` -- the valuation of the resulting element
 
         - ``xprec -- an inherent precision of ``x`` (unused; for
           compatibility with other `p`-adic precision modes)
@@ -138,6 +137,7 @@ cdef class FPElement(pAdicTemplateElement):
                 ccopy(self.unit, (<FPElement>x).unit, self.prime_pow)
             else:
                 cconv(self.unit, x, self.prime_pow.prec_cap, val, self.prime_pow)
+            self._normalize()
 
     cdef int _set_exact_zero(self) except -1:
         """

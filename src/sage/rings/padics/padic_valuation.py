@@ -735,7 +735,7 @@ class pAdicValuation_base(DiscreteValuation):
             sage: M.<b> = L.extension(x^2 + 1)
             sage: w = v.extension(L).extension(M)
             sage: w(w.uniformizer())
-            1/2
+            1/4
 
         """
         if self.domain() is ring:
@@ -1302,8 +1302,19 @@ class pAdicFromLimitValuation(FiniteExtensionFromLimitValuation, pAdicValuation_
             sage: v._to_base_domain(I)
             x
 
+        TESTS:
+
+        Check that this also works for relative extensions::
+
+            sage: v = QQ.valuation(2)
+            sage: L.<a> = NumberField(x^2 + 2)
+            sage: M.<b> = L.extension(x^2 + 1)
+            sage: w = v.extension(L).extension(M)
+            sage: w._to_base_domain(b)
+            x
+
         """
-        polynomial = f.polynomial() if hasattr(f,'polynomial') else f.lift()
+        polynomial = f.lift()
         return polynomial(self._base_valuation.domain().gen())
 
     def _from_base_domain(self, f):

@@ -706,6 +706,8 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: f = x^4 + 234
             sage: v.mac_lane_approximants(f) # is_squarefree() not implemented in this ring
             sage: v.mac_lane_approximants(f, assume_squarefree=True)
+            [[ Gauss valuation induced by 3-adic valuation, v((1 + O(3^7))*x + (0 + O(3^7))) = 1/2, v((1 + O(3^7))*x^2 + (0 + O(3^7))*x + (6 + O(3^7))) = 2 ],
+             [ Gauss valuation induced by 3-adic valuation, v((1 + O(3^7))*x + (0 + O(3^7))) = 1/2, v((1 + O(3^7))*x^2 + (0 + O(3^7))*x + (3 + O(3^7))) = 4 ]]
 
         ::
 

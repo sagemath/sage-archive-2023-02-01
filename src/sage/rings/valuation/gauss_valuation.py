@@ -724,7 +724,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
         """
         return self._base_valuation._relative_size(f[0])
 
-    def simplify(self, f, error=None, force=False, size_heuristic_bound=32, effective_degree=None):
+    def simplify(self, f, error=None, force=False, size_heuristic_bound=32, effective_degree=None, phiadic=True):
         r"""
         Return a simplified version of ``f``.
 
@@ -750,6 +750,9 @@ class GaussValuation_generic(NonFinalInductiveValuation):
           factor by which the coefficients need to shrink to perform an actual
           simplification (default: 32)
 
+        - ``phiadic`` -- whether to simplify in the `x`-adic expansion; the
+          parameter is ignored as no other simplification is implemented
+
         EXAMPLES::
 
             sage: R.<u> = Qq(4, 5)
@@ -770,7 +773,8 @@ class GaussValuation_generic(NonFinalInductiveValuation):
             return f
 
         if error is None:
-            error = self.upper_bound(f)
+            # if the caller was sure that we should simplify, then we should try to do the best simplification possible
+            error = self(f) if force else self.uppper_bound(f)
 
         return f.map_coefficients(lambda c: self._base_valuation.simplify(c, error=error, force=force))
 

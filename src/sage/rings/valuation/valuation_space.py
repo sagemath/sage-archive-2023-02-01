@@ -991,6 +991,47 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             """
             return self(x)
 
+        def inverse(self, x, precision):
+            r"""
+            Return an approximate inverse of ``x``.
+
+            The element returned is such that the product differs from 1 by an
+            element of valuation at least ``precision``.
+
+            INPUT:
+
+            - ``x`` -- an element in the domain of this valuation
+
+            - ``precision`` -- a rational or infinity
+
+            EXAMPLES::
+
+                sage: v = ZZ.valuation(2)
+                sage: x = 3
+                sage: y = v.inverse(3, 2); y
+                3
+                sage: x*y - 1
+                8
+
+            This might not be possible for elements of positive valuation::
+
+                sage: v.inverse(2, 2)
+                Traceback (most recent call last):
+                ...
+                ValueError: element has no approximate inverse in this ring
+
+            Of course this always works over fields::
+
+                sage: v = QQ.valuation(2)
+                sage: v.inverse(2, 2)
+                1/2
+
+            """
+            try:
+                return x.inverse_of_unit()
+            except:
+                raise NotImplementedError("can not compute approximate inverse with respect to this valuation")
+
         def _relative_size(self, x):
             r"""
             Return an estimate on the coefficient size of ``x``.
@@ -1555,6 +1596,33 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             from trivial_valuation import TrivialPseudoValuation, TrivialValuation
             tester.assertLessEqual(TrivialValuation(self.domain()), self)
             tester.assertGreaterEqual(TrivialPseudoValuation(self.domain()), self)
+
+        def _test_inverse(self, **options):
+            r"""
+            Check the correctness of :meth:`inverse`.
+
+            TESTS::
+
+                sage: v = QQ.valuation(5)
+                sage: v._test_inverse()
+
+            """
+            tester = self._tester(**options)
+
+            for x in tester.some_elements(self.domain().some_elements()):
+                from sage.rings.all import infinity
+                for prec in (0, 1, 42, infinity):
+                    try:
+                        y = self.inverse(x, prec)
+                    except ValueError, NotImplementedError:
+                        tester.assertNotEqual(self(x), 0)
+                        tester.assertFalse(x.is_unit())
+                        continue
+                    
+                    tester.assertTrue(y.parent() is self.domain())
+                    if self.domain().is_exact():
+                        tester.assertGreaterEqual(self(x*y - 1), prec)
+
 
 from sage.categories.action import Action
 class ScaleAction(Action):

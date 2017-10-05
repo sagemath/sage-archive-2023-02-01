@@ -15,13 +15,14 @@ EXAMPLES::
     sage: Zp(11).valuation()
     11-adic valuation
 
-These valuations can then, e.g., be used to compute factorizations in the
-completion of a ring::
+These valuations can then, e.g., be used to compute approximate factorizations
+in the completion of a ring::
 
     sage: v = ZZ.valuation(2)
     sage: R.<x> = ZZ[]
     sage: f = x^5 + x^4 + x^3 + x^2 + x - 1
-    sage: v.montes_factorization(f)
+    sage: v.montes_factorization(f, required_precision=20)
+    (x + 676027) * (x^4 + 372550*x^3 + 464863*x^2 + 385052*x + 297869)
 
 AUTHORS:
 
@@ -1207,6 +1208,55 @@ class pAdicValuation_int(pAdicValuation_base):
             except ArithmeticError:pass
         
         return self.domain()(reduced.lift())
+
+    def inverse(self, x, precision):
+        r"""
+        Return an approximate inverse of ``x``.
+
+        The element returned is such that the product differs from 1 by an
+        element of valuation at least ``precision``.
+
+        INPUT:
+
+        - ``x`` -- an element in the domain of this valuation
+
+        - ``precision`` -- a rational or infinity
+
+        EXAMPLES::
+
+            sage: v = ZZ.valuation(2)
+            sage: x = 3
+            sage: y = v.inverse(3, 2); y
+            3
+            sage: x*y - 1
+            8
+
+        This might not be possible for elements of positive valuation::
+
+            sage: v.inverse(2, 2)
+            Traceback (most recent call last):
+            ...
+            ValueError: element has no approximate inverse in this ring
+
+        Unless the precision is very small::
+
+            sage: v.inverse(2, 0)
+            1
+
+        """
+        if not x.is_zero():
+            y = ~x
+            if y in self.domain():
+                return y
+        if precision <= 0:
+            return self.domain().one()
+
+        from sage.rings.all import infinity
+        if self(x) > 0 or precision is infinity:
+            raise ValueError("element has no approximate inverse in this ring")
+        
+        from sage.rings.all import ZpFM
+        return self.domain()(~ZpFM(self.p(), precision.ceil())(x))
 
 
 class pAdicFromLimitValuation(FiniteExtensionFromLimitValuation, pAdicValuation_base):

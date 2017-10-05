@@ -1199,10 +1199,11 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             return Factorization([], unit=f, sort=False)
 
         if not self.domain().base_ring().is_field():
-            domain = self.domain().change_ring(self.domain().base_ring().fraction_field())
+            nonfractions = self.domain().base_ring()
+            domain = self.domain().change_ring(nonfractions.fraction_field())
             v = self.extension(domain)
             ret = v.equivalence_decomposition(v.domain()(f))
-            return Factorization([(g.change_ring(self.domain().base_ring()),e) for g,e in ret], unit=ret.unit().change_ring(self.domain().base_ring()), sort=False)
+            return Factorization([(self._eliminate_denominators(g), e) for (g,e) in ret], unit=self._eliminate_denominators(ret.unit()))
 
         valuation, phi_divides, F = self._equivalence_reduction(f, coefficients=coefficients, valuations=valuations, degree_bound=degree_bound)
         F = F.factor()
@@ -1231,7 +1232,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             for g,e in F:
                 v_g = self(g)
                 unit *= self._pow(self.equivalence_unit(-v_g, reciprocal=True), e, error=-v_g*e, effective_degree=0)
-            unit = self.simplify(unit)
+            unit = self.simplify(unit, effective_degree=0)
 
         if phi_divides:
             for i,(g,e) in enumerate(F):
@@ -1359,6 +1360,93 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             (1 + O(2^10))*x^2 + (1 + O(2^10))*x + u + O(2^10)
 
         """
+
+    def _eliminate_denominators(self, f):
+        r"""
+        Return a polynomial in the domain of this valuation that
+        :meth:`is_equivalent` to ``f``.
+
+        INPUT:
+
+        - ``f`` -- a polynomial with coefficients in the fraction field of the
+          base ring of the domain of this valuation.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: v = GaussValuation(R, ZZ.valuation(2))
+            sage: v._eliminate_denominators(x/3)
+            x
+
+        In general such a polynomial may not exist::
+
+            sage: w = v.augmentation(x, 1)
+            sage: w._eliminate_denominators(x/2)
+            Traceback (most recent call last):
+            ...
+            ValueError: element has no approximate inverse in this ring
+
+        In general it exists iff the coefficients of minimal valuation in the
+        `\phi`-adic expansion of ``f`` do not have denominators of positive
+        valuation and if the same is true for these coefficients in their
+        expansion; at least if the coefficient ring's residue ring is already a
+        field::
+
+            sage: w._eliminate_denominators(x^3/2 + x)
+            x
+
+        """
+        if f in self.domain():
+            return self.domain()(f)
+
+        nonfractions = self.domain().base_ring()
+        fractions = nonfractions.fraction_field()
+
+        extended_domain = self.domain().change_ring(fractions)
+
+        g = extended_domain.coerce(f)
+        
+        w = self.extension(extended_domain)
+        # drop coefficients whose valuation is not minimal (recursively)
+        valuation = w(g)
+        g = w.simplify(g, error=valuation, force=True, phiadic=True)
+
+        nonfraction_valuation = self.restriction(nonfractions)
+        # if this fails then there is no equivalent polynomial in the domain of this valuation
+        ret = g.map_coefficients(
+                lambda c: c.numerator()*nonfraction_valuation.inverse(c.denominator(),
+                        valuation + nonfraction_valuation(c.denominator()) - nonfraction_valuation(c.numerator()) + nonfraction_valuation.value_group().gen()),
+                nonfractions)
+        assert w.is_equivalent(f, ret)
+        return ret
+
+
+    def _test_eliminate_denominators(self, **options):
+        r"""
+        Test the correctness of :meth:`_eliminate_denominators`.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: v = GaussValuation(R, ZZ.valuation(2))
+            sage: v._test_eliminate_denominators()
+
+        """
+        tester = self._tester(**options)
+
+        nonfractions = self.domain().base_ring()
+        fractions = nonfractions.fraction_field()
+        extended_domain = self.domain().change_ring(fractions)
+        w = self.extension(extended_domain)
+
+        S = tester.some_elements(w.domain().some_elements())
+        for f in S:
+            try:
+                g = self._eliminate_denominators(f)
+            except ValueError:
+                continue
+            tester.assertTrue(g.parent() is self.domain())
+            tester.assertTrue(w.is_equivalent(f, g))
 
     def _test_lift_to_key(self, **options):
         r"""

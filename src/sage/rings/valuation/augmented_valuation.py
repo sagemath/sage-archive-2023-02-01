@@ -1712,7 +1712,7 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
                         lowest_valuation = ret
                 yield ret
 
-    def simplify(self, f, error=None, force=False, effective_degree=None, size_heuristic_bound=32):
+    def simplify(self, f, error=None, force=False, effective_degree=None, size_heuristic_bound=32, phiadic=False):
         r"""
         Return a simplified version of ``f``.
 
@@ -1739,6 +1739,11 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
           factor by which the coefficients need to shrink to perform an actual
           simplification (default: 32)
 
+        - ``phiadic`` -- whether to simplify the coefficients in the
+          `\phi`-adic expansion recursively. This tends to be slower and
+          sometimes leads to very huge coefficients in the `x`-adic
+          expansion (default: ``False``.)
+
         EXAMPLES::
 
             sage: R.<u> = Qq(4, 5)
@@ -1760,9 +1765,15 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
             return f
 
         if error is None:
-            error = self.upper_bound(f)
+            # if the caller was sure that we should simplify, then we should try to do the best simplification possible
+            error = self(f) if force else self.upper_bound(f)
 
-        return self._base_valuation.simplify(f, error=error, force=force)
+        if phiadic:
+            coefficients = list(self.coefficients(f))
+            valuations = list(self.valuations(f, coefficients=coefficients))
+            return self.domain().change_ring(self.domain())([0 if valuations[i] > error else self._base_valuation.simplify(c, error=error-i*self._mu, force=force, phiadic=True) for (i,c) in enumerate(coefficients)])(self.phi())
+        else:
+            return self._base_valuation.simplify(f, error=error, force=force)
 
     def lower_bound(self, f):
         r"""

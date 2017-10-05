@@ -202,11 +202,10 @@ class DevelopingValuation(DiscretePseudoValuation):
         if f.degree() < self.phi().degree():
             yield f
         elif self.phi().degree() == 1:
-            from itertools import imap
             if self.phi() != domain.gen() or not domain.is_exact():
                 f = f(domain.gen() - self.phi()[0])
-            for c in imap(domain, f.coefficients(sparse=False)):
-                yield c
+            for c in f.coefficients(sparse=False):
+                yield domain(c)
         else:
             while f.degree() >= 0:
                 f,r = self._quo_rem(f)

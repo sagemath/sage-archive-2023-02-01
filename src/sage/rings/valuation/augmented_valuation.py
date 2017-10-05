@@ -1002,7 +1002,7 @@ class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
                 return self.residue_ring().zero()
 
         if coefficients is None:
-            constant_term = self.coefficients(f).next()
+            constant_term = next(self.coefficients(f))
         else:
             constant_term = coefficients[0]
         constant_term_reduced = self._base_valuation.reduce(constant_term)
@@ -1431,7 +1431,7 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         # now we undo the factors of Q^i (the if else is necessary to handle the case when mu is infinity, i.e., when _Q_reciprocal() is undefined)
         coeffs = [ (c if i == 0 else c*self._Q_reciprocal(i)).map_coefficients(_lift_to_maximal_precision) for i,c in enumerate(coeffs) ]
         # reduce the coefficients mod phi; the part that exceeds phi has no effect on the reduction of the coefficient
-        coeffs = [ self.coefficients(c).next() for c in coeffs ]
+        coeffs = [ next(self.coefficients(c)) for c in coeffs ]
 
         if report_coefficients:
             return coeffs
@@ -2011,7 +2011,7 @@ class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValua
         if coefficients is not None:
             constant_coefficient = coefficients[0]
         else:
-            constant_coefficient = self.coefficients(f).next()
+            constant_coefficient = next(self.coefficients(f))
         yield self._base_valuation(constant_coefficient)
         for i in range(num_infty_coefficients):
             yield infinity
@@ -2056,7 +2056,7 @@ class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValua
         if error is infinity:
             return f
 
-        return self.domain()(self._base_valuation.simplify(self.coefficients(f).next(), error, force=force))
+        return self.domain()(self._base_valuation.simplify(next(self.coefficients(f)), error, force=force))
 
     def lower_bound(self, f):
         r"""
@@ -2075,7 +2075,7 @@ class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValua
             +Infinity
 
         """
-        return self._base_valuation.lower_bound(self.coefficients(f).next())
+        return self._base_valuation.lower_bound(next(self.coefficients(f)))
 
     def upper_bound(self, f):
         r"""
@@ -2094,4 +2094,4 @@ class InfiniteAugmentedValuation(FinalAugmentedValuation, InfiniteInductiveValua
             +Infinity
 
         """
-        return self._base_valuation.upper_bound(self.coefficients(f).next())
+        return self._base_valuation.upper_bound(next(self.coefficients(f)))

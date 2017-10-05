@@ -175,7 +175,7 @@ class InductiveValuation(DevelopingValuation):
                 raise ValueError("f must be an equivalence unit but %r is not"%(f,))
 
         if coefficients is None:
-            e0 = self.coefficients(f).next()
+            e0 = next(self.coefficients(f))
         else:
             e0 = coefficients[0]
         
@@ -1030,10 +1030,10 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         valuation = min(valuations)
 
         R = self.equivalence_unit(-valuation)
-        R = self.coefficients(R).next()
+        R = next(self.coefficients(R))
         fR_valuations = [v-valuation for v in valuations]
         from sage.rings.all import infinity
-        fR_coefficients = [self.coefficients(c*R).next() if v is not infinity and v == 0 else 0 for c,v in zip(coefficients,fR_valuations)]
+        fR_coefficients = [next(self.coefficients(c*R)) if v is not infinity and v == 0 else 0 for c,v in zip(coefficients,fR_valuations)]
 
         return valuation, phi_divides, self.reduce(f*R, check=False, degree_bound=degree_bound, coefficients=fR_coefficients, valuations=fR_valuations)
 

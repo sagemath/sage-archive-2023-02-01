@@ -454,7 +454,8 @@ cdef class ring_wrapper_Py(object):
 
     def __cmp__(ring_wrapper_Py left, ring_wrapper_Py right):
         """
-        Compare ``left`` and ``right`` so that instances can be used as dictionary keys.
+        Compare ``left`` and ``right`` so that instances can be used
+        as dictionary keys.
 
         INPUT:
 
@@ -469,8 +470,8 @@ cdef class ring_wrapper_Py(object):
 
             sage: from sage.libs.singular.ring import ring_wrapper_Py
             sage: t = ring_wrapper_Py()
-            sage: t.__cmp__(t)
-            0
+            sage: t == t
+            True
         """
         if left._ring < right._ring:
             return -1

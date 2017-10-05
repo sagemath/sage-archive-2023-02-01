@@ -978,7 +978,7 @@ cdef class LaurentSeries(AlgebraElement):
 
     cpdef _richcmp_(self, right_r, int op):
         r"""
-        Comparison of self and right.
+        Comparison of ``self`` and ``right``.
 
         We say two approximate Laurent series are equal, if they agree for
         all coefficients up to the *minimum* of the precisions of each.
@@ -987,7 +987,7 @@ cdef class LaurentSeries(AlgebraElement):
         but consistent with the idea that the variable of a Laurent
         series is considered to be "very small".
 
-        See power_series_ring_element.__cmp__() for more
+        See :meth:`power_series_ring_element._richcmp_` for more
         information.
 
         EXAMPLES::

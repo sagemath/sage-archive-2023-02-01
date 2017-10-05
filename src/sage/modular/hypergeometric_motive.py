@@ -253,7 +253,7 @@ def alpha_to_cyclotomic(alpha):
 
     The output represent a product of cyclotomic polynomials with exactly
     the given roots. Note that the multiplicity of `r/s` in the list
-    must be independent of `r`; otherwise, a ValueError will be raised.
+    must be independent of `r`; otherwise, a ``ValueError`` will be raised.
 
     This is the inverse of :func:`cyclotomic_to_alpha`.
 
@@ -386,7 +386,7 @@ def gamma_list_to_cyclotomic(galist):
 
 class HypergeometricData(object):
     def __init__(self, cyclotomic=None, alpha_beta=None, gamma_list=None):
-        """
+        r"""
         Creation of hypergeometric motives.
 
         INPUT:
@@ -538,7 +538,7 @@ class HypergeometricData(object):
         return HypergeometricData(gamma_list=[x / d for x in g])
 
     def zigzag(self, x, flip_beta=False):
-        """
+        r"""
         Count ``alpha``'s at most ``x`` minus ``beta``'s at most ``x``.
 
         This function is used to compute the weight and the Hodge numbers.

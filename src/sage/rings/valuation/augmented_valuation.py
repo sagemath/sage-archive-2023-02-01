@@ -261,7 +261,7 @@ class AugmentedValuation_base(InductiveValuation):
 
     - ``v`` -- a :class:`~sage.rings.valuation.inductive_valuation.InductiveValuation` on a polynomial ring
 
-    - ``phi`` -- a :meth:`key polynomial <sage.rings.valuation.augmented_valuation.NonFinalFiniteAugmentedValuation.is_key>` over ``v``
+    - ``phi`` -- a :meth:`key polynomial <sage.rings.valuation.inductive_valuation.NonFinalInductiveValuation.is_key>` over ``v``
 
     - ``mu`` -- a rational number such that ``mu > v(phi)`` or ``infinity``
 
@@ -1205,7 +1205,7 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
 
         ALGORITHM:
 
-        We follow the algorithm given in the proof of Theorem 12.1 of [Mac1936]_:
+        We follow the algorithm given in the proof of Theorem 12.1 of [Mac1936I]_:
         If ``f`` has positive valuation, the reduction is simply zero.
         Otherwise, let `f=\sum f_i\phi^i` be the expansion of `f`, as computed
         by
@@ -1463,7 +1463,7 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
 
         ALGORITHM:
 
-        We follow the algorithm described in Theorem 13.1 [Mac1936]_ which, after
+        We follow the algorithm described in Theorem 13.1 [Mac1936I]_ which, after
         a :meth:`lift` of ``F``, essentially shifts the valuations of all terms
         in the `\phi`-adic expansion up and then kills the leading coefficient.
 

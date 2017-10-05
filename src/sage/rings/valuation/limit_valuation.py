@@ -202,7 +202,7 @@ class LimitValuation_generic(DiscretePseudoValuation):
 
     def reduce(self, f, check=True):
         r"""
-        Return the reduction of ``f`` as an element of :meth:`residue_ring`.
+        Return the reduction of ``f`` as an element of the :meth:`~sage.rings.valuation.valuation_space.DiscretePseudoValuationSpace.ElementMethods.residue_ring`.
 
         INPUT:
 
@@ -420,7 +420,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
 
     def lift(self, F):
         r"""
-        Return a lift of ``F`` from the :meth:`residue_ring` to the domain of
+        Return a lift of ``F`` from the :meth:`~sage.rings.valuation.valuation_space.DiscretePseudoValuationSpace.ElementMethods.residue_ring` to the domain of
         this valuatiion.
 
         EXAMPLES::

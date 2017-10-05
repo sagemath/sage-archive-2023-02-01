@@ -187,7 +187,7 @@ class MappedValuation_base(DiscretePseudoValuation):
 
     def reduce(self, f):
         r"""
-        Return the reduction of ``f`` in the :meth:`residue_field` of this valuation.
+        Return the reduction of ``f`` in the :meth:`~sage.rings.valuation.valuation_space.DiscretePseudoValuationSpace.ElementMethods.residue_field` of this valuation.
 
         EXAMPLES::
 

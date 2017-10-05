@@ -172,7 +172,7 @@ class FunctionFieldValuationFactory(UniqueFactory):
         sage: v(x - 1)
         1
 
-    See :meth:`function_field.FunctionField.valuation` for further examples.
+    See :meth:`sage.rings.function_field.function_field.FunctionField.valuation` for further examples.
 
     """
     def create_key_and_extra_args(self, domain, prime):

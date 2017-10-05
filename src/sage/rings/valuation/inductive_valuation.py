@@ -212,7 +212,7 @@ class InductiveValuation(DevelopingValuation):
     @cached_method
     def mu(self):
         r"""
-        Return the valuation of :meth:`phi`.
+        Return the valuation of :meth:`~sage.rings.valuation.developing_valuation.DevelopingValuation.phi`.
 
         EXAMPLES::
 

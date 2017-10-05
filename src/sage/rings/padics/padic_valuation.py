@@ -450,7 +450,7 @@ class pAdicValuation_base(DiscreteValuation):
 
         OUTPUT:
 
-        An element of the :meth:`residue_field`.
+        An element of the :meth:`~sage.rings.valuation.valuation_space.DiscretePseudoValuationSpace.ElementMethods.residue_field`.
 
         EXAMPLES::
 
@@ -472,7 +472,7 @@ class pAdicValuation_base(DiscreteValuation):
 
         INPUT:
 
-        - ``x`` -- an element of the :meth:`residue_field`
+        - ``x`` -- an element of the :meth:`~sage.rings.valuation.valuation_space.DiscretePseudoValuationSpace.ElementMethods.residue_field`
 
         EXAMPLES::
 
@@ -583,7 +583,7 @@ class pAdicValuation_base(DiscreteValuation):
 
         ALGORITHM:
 
-        This is a simplified version of :meth:`mac_lane_approximants`.
+        This is a simplified version of :meth:`sage.rings.valuation.valuation.DiscreteValuation.mac_lane_approximants`.
 
         EXAMPLES::
 
@@ -846,7 +846,7 @@ class pAdicValuation_padic(pAdicValuation_base):
 
         OUTPUT:
 
-        An element of the :meth:`residue_field`.
+        An element of the :meth:`~sage.rings.valuation.valuation_space.DiscretePseudoValuationSpace.ElementMethods.residue_field`.
 
         EXAMPLES::
 
@@ -860,12 +860,12 @@ class pAdicValuation_padic(pAdicValuation_base):
 
     def lift(self, x):
         """
-        Lift ``x`` from the :meth:`residue_field` to the :meth:`domain` of this
+        Lift ``x`` from the :meth:`~sage.rings.valuation.valuation_space.DiscretePseudoValuationSpace.ElementMethods.residue_field` to the domain of this
         valuation.
 
         INPUT:
 
-        - ``x`` -- an element of the :meth:`residue_field`
+        - ``x`` -- an element of the residue field of this valuation
 
         EXAMPLES::
 
@@ -898,7 +898,7 @@ class pAdicValuation_padic(pAdicValuation_base):
 
         INPUT:
 
-        - ``v`` -- an element of the :meth:`value_semigroup` of this valuation
+        - ``v`` -- an element of the :meth:`pAdicValuation_base.value_semigroup` of this valuation
 
         EXAMPLES::
 

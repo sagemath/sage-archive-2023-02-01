@@ -266,3 +266,81 @@ def sage_include_directories(use_sources=False):
                                     opj(SAGE_LIB, 'sage', 'ext')])
 
     return include_directories
+
+
+def cython_aliases():
+    """
+    Return the aliases for compiling Cython code. These aliases are
+    macros which can occur in ``# distutils`` headers.
+
+    EXAMPLES::
+
+        sage: from sage.env import cython_aliases
+        sage: cython_aliases()
+        {...}
+        sage: sorted(cython_aliases().keys())
+        ['FFLASFFPACK_CFLAGS',
+         'FFLASFFPACK_LIBDIR',
+         'FFLASFFPACK_LIBRARIES',
+         'GIVARO_CFLAGS',
+         'GIVARO_LIBDIR',
+         'GIVARO_LIBRARIES',
+         'GSL_INCDIR',
+         'GSL_LIBDIR',
+         'GSL_LIBRARIES',
+         'LINBOX_CFLAGS',
+         'LINBOX_LIBDIR',
+         'LINBOX_LIBRARIES',
+         'SINGULAR_CFLAGS',
+         'SINGULAR_LIBDIR',
+         'SINGULAR_LIBRARIES']
+    """
+    import pkgconfig
+
+    # FFLAS-FFPACK
+    fflas_ffpack_pc = pkgconfig.parse('fflas-ffpack')
+    fflas_ffpack_libs = fflas_ffpack_pc['libraries']
+    fflas_ffpack_library_dirs = fflas_ffpack_pc['library_dirs']
+    fflas_ffpack_cflags = pkgconfig.cflags('fflas-ffpack').split()
+
+    # Givaro
+    givaro_pc = pkgconfig.parse('givaro')
+    givaro_libs = givaro_pc['libraries']
+    givaro_library_dirs = givaro_pc['library_dirs']
+    givaro_cflags = pkgconfig.cflags('givaro').split()
+
+    # GNU Scientific Library
+    gsl_pc = pkgconfig.parse('gsl')
+    gsl_libs = gsl_pc['libraries']
+    gsl_library_dirs = gsl_pc['library_dirs']
+    gsl_include_dirs = gsl_pc['include_dirs']
+
+    # LinBox
+    linbox_pc = pkgconfig.parse('linbox')
+    linbox_libs = linbox_pc['libraries']
+    linbox_library_dirs = linbox_pc['library_dirs']
+    linbox_cflags = pkgconfig.cflags('linbox').split()
+
+    # Singular
+    singular_pc = pkgconfig.parse('Singular')
+    singular_libs = singular_pc['libraries']
+    singular_library_dirs = singular_pc['library_dirs']
+    singular_cflags = pkgconfig.cflags('Singular').split()
+
+    return dict(
+        FFLASFFPACK_CFLAGS=fflas_ffpack_cflags,
+        FFLASFFPACK_LIBRARIES=fflas_ffpack_libs,
+        FFLASFFPACK_LIBDIR=fflas_ffpack_library_dirs,
+        GIVARO_CFLAGS=givaro_cflags,
+        GIVARO_LIBRARIES=givaro_libs,
+        GIVARO_LIBDIR=givaro_library_dirs,
+        GSL_LIBRARIES=gsl_libs,
+        GSL_LIBDIR=gsl_library_dirs,
+        GSL_INCDIR=gsl_include_dirs,
+        LINBOX_CFLAGS=linbox_cflags,
+        LINBOX_LIBRARIES=linbox_libs,
+        LINBOX_LIBDIR=linbox_library_dirs,
+        SINGULAR_CFLAGS=singular_cflags,
+        SINGULAR_LIBRARIES=singular_libs,
+        SINGULAR_LIBDIR=singular_library_dirs
+    )

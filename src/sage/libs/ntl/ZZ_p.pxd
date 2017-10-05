@@ -6,7 +6,7 @@ cdef extern from "ccobject.h":
     void ZZ_p_from_str "_from_str<ZZ_p>"(ZZ_p_c* dest, char* s)
     object ZZ_p_to_PyString "_to_PyString<ZZ_p>"(ZZ_p_c *x)
 
-cdef extern from "sage/libs/ntl/ntlwrap.cpp":
+cdef extern from "ntlwrap.cpp":
     char* ZZ_p_to_str(ZZ_p_c* x)
     void ZZ_p_add "add"( ZZ_p_c x, ZZ_p_c a, ZZ_p_c b)
     void ZZ_p_sub "sub"( ZZ_p_c x, ZZ_p_c a, ZZ_p_c b)

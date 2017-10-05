@@ -5,7 +5,7 @@ cdef extern from "ccobject.h":
     object vec_GF2_to_PyString "_to_PyString<vec_GF2>"(vec_GF2_c *x)
     void vec_GF2_swap "swap"(vec_GF2_c x, vec_GF2_c y)
 
-cdef extern from "sage/libs/ntl/ntlwrap.cpp":
+cdef extern from "ntlwrap.cpp":
     int vec_GF2_IsZero "IsZero"(vec_GF2_c x)
 
     void vec_GF2_append_GF2 "append"(vec_GF2_c v, GF2_c a)

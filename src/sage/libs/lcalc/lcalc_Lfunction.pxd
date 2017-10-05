@@ -2,8 +2,7 @@
 # C++ standard: https://trac.sagemath.org/ticket/23341
 # distutils: extra_compile_args = -std=gnu++98
 
-cdef extern from "sage/libs/lcalc/lcalc_sage.h":
-
+cdef extern from "lcalc_sage.h":
     ctypedef struct doublevec "std::vector<double>":
         int (*size)()
         double ind "operator[]"(int i)

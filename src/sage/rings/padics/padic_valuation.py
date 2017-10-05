@@ -724,6 +724,9 @@ class pAdicValuation_base(DiscreteValuation):
             sage: R.<x> = QQ[]
             sage: L.<a> = NumberField(x^4 + 2*x^3 + 2*x^2 + 8)
             sage: QQ.valuation(2).extensions(L)
+            Traceback (most recent call last):
+            ...
+            ValueError: The valuation [ Gauss valuation induced by 2-adic valuation, v(x) = 1/2 ] does not approximate a unique extension of 2-adic valuation with respect to x^4 + 2*x^3 + 2*x^2 + 8
 
         A case where the extension was incorrect at some point::
 

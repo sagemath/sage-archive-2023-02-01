@@ -261,7 +261,7 @@ class DevelopingValuation(DiscretePseudoValuation):
         r"""
         Evaluate this valuation at ``f``.
 
-        INPUT::
+        INPUT:
 
         - ``f`` -- a polynomial in the domain of this valuation
 

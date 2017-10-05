@@ -1063,7 +1063,7 @@ class pAdicValuation_int(pAdicValuation_base):
         """
         Evaluate this valuation at ``x``.
 
-        INPUT::
+        INPUT:
 
         - ``x`` --  an element in the domain of this valuation
 

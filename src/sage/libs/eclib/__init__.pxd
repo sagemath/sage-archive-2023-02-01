@@ -6,6 +6,8 @@
 # in a specific order. That explains the various empty
 # "cdef extern from" blocks below.
 
+from libcpp.map cimport map
+
 cdef extern from "eclib/vector.h":
     ctypedef int scalar
 
@@ -18,6 +20,9 @@ cdef extern from "eclib/xmod.h":
 cdef extern from "eclib/svector.h":
     cdef cppclass svec:
         vec as_vec()
+        scalar elem(int) const
+        map[int,scalar].iterator begin()
+        map[int,scalar].iterator end()
 
 cdef extern from "eclib/matrix.h":
     cdef cppclass mat:

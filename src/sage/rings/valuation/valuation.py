@@ -704,18 +704,17 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: S.<x> = R[]
             sage: v = R.valuation()
             sage: f = x^4 + 234
-            sage: v.mac_lane_approximants(f) # is_squarefree() not implemented in this ring
-            sage: v.mac_lane_approximants(f, assume_squarefree=True)
-            [[ Gauss valuation induced by 3-adic valuation, v((1 + O(3^7))*x + (0 + O(3^7))) = 1/2, v((1 + O(3^7))*x^2 + (0 + O(3^7))*x + (6 + O(3^7))) = 2 ],
-             [ Gauss valuation induced by 3-adic valuation, v((1 + O(3^7))*x + (0 + O(3^7))) = 1/2, v((1 + O(3^7))*x^2 + (0 + O(3^7))*x + (3 + O(3^7))) = 4 ]]
+            sage: len(v.mac_lane_approximants(f, assume_squarefree=True)) # is_squarefree() is not properly implemented yet
+            2
 
         ::
 
-            sage: R = ZpFM(2, 500, print_mode='terse')
+            sage: R = ZpFM(2, 50, print_mode='terse')
             sage: S.<x> = R[]
+            sage: f = (x^32 + 16)*(x^32 + 16 + 2^16*x^2) + 2^34
             sage: v = R.valuation()
-            sage: v.mac_lane_approximants(f) # is_squarefree() is not yet implemented on this ring
-            sage: v.mac_lane_approximants(f, assume_squarefree=True)
+            sage: len(v.mac_lane_approximants(f, assume_squarefree=True)) # is_squarefree() is not properly implemented yet
+            2
 
         A case that triggered an assertion at some point::
 

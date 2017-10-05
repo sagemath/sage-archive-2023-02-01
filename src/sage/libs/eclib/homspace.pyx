@@ -274,13 +274,13 @@ cdef class ModularSymbols:
         d = {}
         sig_on()
         cdef smat M = self.H.s_heckeop(p, dual, verbose)
-        for i from 1 <= i <= n:
+        sig_off()
+        for i in range(1,n+1):
             sv = M.row(i)
             v = sv.as_vec()
-            for j from 1 <= j <= n:
+            for j in range(1,n+1):
                 if v[j]:
                     d[(i-1, j-1)] = v[j]
-        sig_off()
         MS = MatrixSpace(base_ring, n, sparse=True)
         # The next step is the bottleneck.
         ans = MS(entries=d)

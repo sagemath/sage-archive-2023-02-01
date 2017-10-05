@@ -11,7 +11,7 @@ cdef extern from "eclib/vector.h":
 
     cdef cppclass vec:
         scalar operator[](long)
-      
+
 cdef extern from "eclib/xmod.h":
     cdef const int DEFAULT_MODULUS
 
@@ -20,8 +20,6 @@ cdef extern from "eclib/svector.h":
         vec as_vec()
 
 cdef extern from "eclib/matrix.h":
-    ctypedef int scalar
-
     cdef cppclass mat:
         mat()
         mat(mat m)
@@ -34,8 +32,6 @@ cdef extern from "eclib/matrix.h":
     mat addscalar(mat M, scalar)
 
 cdef extern from "eclib/smatrix.h":
-    ctypedef int scalar
-
     cdef cppclass smat:
         smat()
         smat(smat m)

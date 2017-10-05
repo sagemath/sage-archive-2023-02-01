@@ -2856,12 +2856,9 @@ class SimplicialComplex(Parent, GenericCellComplex):
         """
         from sage.parallel.decorate import parallel
 
-        if ncpus == 0:
-            import os
-            try:
-                ncpus = int(os.environ['SAGE_NUM_THREADS'])
-            except KeyError:
-                ncpus = 1
+        if not ncpus:
+            from sage.parallel.ncpus import ncpus as get_ncpus
+            ncpus = get_ncpus()
 
         facs = [ x for x in self.face_iterator() ]
         n = len(facs)

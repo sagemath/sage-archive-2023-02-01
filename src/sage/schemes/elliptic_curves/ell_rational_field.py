@@ -174,13 +174,18 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             [True, True]
 
         """
-        self.__np = {}
-        self.__gens = {}
-        self.__rank = None  # tuple (rank, proven)
-        self.__regulator = {}
+        # Cached values for the generators, rank and regulator.
+        # The format is a tuple (value, proven). "proven" is a boolean
+        # which says whether or not the value was proven.
+        self.__gens = None
+        self.__rank = None
+        self.__regulator = None
+
+        # Other cached values
         self.__generalized_modular_degree = {}
         self.__generalized_congruence_number = {}
         self._isoclass = {}
+
         EllipticCurve_number_field.__init__(self, Q, ainvs)
 
         if 'conductor' in kwds:
@@ -196,7 +201,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         if 'rank' in kwds:
             self._set_rank(kwds['rank'])
         if 'regulator' in kwds:
-            self.__regulator[True] = kwds['regulator']
+            self.__regulator = (kwds['regulator'], True)
         if 'torsion_order' in kwds:
             self._set_torsion_order(kwds['torsion_order'])
 
@@ -332,9 +337,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.gens()
             [(-2 : 3 : 1), (-1 : 3 : 1), (0 : 2 : 1)]
         """
-        self.__gens = {}
-        self.__gens[True] = [self.point(x, check=True) for x in gens]
-        self.__gens[True].sort()
+        gens = sorted(self.point(x, check=True) for x in gens)
+        self.__gens = (gens, True)
 
     def lmfdb_page(self):
         r"""
@@ -859,9 +863,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                         first_limit, second_limit,
                         n_aux, second_descent)
         if C.certain():
-            self.__gens[True] = [self.point(x, check=True) for x in C.gens()]
-            self.__gens[True].sort()
-            self.__rank = (Integer(len(self.__gens[True])), True)
+            gens = sorted(self.point(x, check=True) for x in C.gens())
+            self.__gens = (gens, True)
+            self.__rank = (Integer(len(gens)), True)
         return C.certain()
 
     ####################################################################
@@ -1923,8 +1927,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 print("Rank determined successfully, saturating...")
             gens = self.saturation(pts)[0]
             if len(gens) == rank_low_bd:
-                self.__gens[True] = gens
-                self.__gens[True].sort()
+                self.__gens = (gens, True)
             self.__rank = (Integer(rank_low_bd), True)
 
         return rank_low_bd, two_selmer_rank, pts
@@ -2181,13 +2184,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         Return generators for the Mordell-Weil group E(Q) *modulo*
         torsion.
 
-        .. warning::
-
-           If the program fails to give a provably correct result, it
-           prints a warning message, but does not raise an
-           exception. Use :meth:`~gens_certain` to find out if this
-           warning message was printed.
-
         INPUT:
 
         - ``proof`` -- bool or None (default None), see
@@ -2225,6 +2221,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         - ``generators`` - list of generators for the Mordell-Weil
            group modulo torsion
 
+        .. NOTE::
+
+           If you call this with ``proof=False``, then you can use the
+           :meth:`~gens_certain` method to find out afterwards
+           whether the generators were proved.
+
         IMPLEMENTATION: Uses Cremona's mwrank C library.
 
         EXAMPLES::
@@ -2254,20 +2256,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             proof = bool(proof)
 
         # If the gens are already cached, return them:
-        try:
-            return list(self.__gens[proof])  # return copy so not changed
-        except KeyError:
-            if proof is False and True in self.__gens:
-                return list(self.__gens[True])
+        if self.__gens:
+            gens, proven = self.__gens
+            if proven or not proof:
+                return list(gens)  # Return a copy
 
-        # At this point, self.__gens[True] does not exist, and in case
-        # proof is False, self.__gens[False] does not exist either.
-
-        result, proved = self._compute_gens(proof, **kwds)
-        self.__gens[proved] = result
-        self.__rank = (Integer(len(result)), proved)
-        self._known_points = result
-        return list(result)
+        gens, proved = self._compute_gens(proof, **kwds)
+        self.__gens = (gens, proved)
+        self.__rank = (Integer(len(gens)), proved)
+        self._known_points = gens
+        return list(gens)
 
     def _compute_gens(self, proof,
                       verbose=False,
@@ -2415,8 +2413,18 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             [(0 : -1 : 1)]
             sage: E.gens_certain()
             True
+
+        TESTS::
+
+            sage: E = EllipticCurve([2, 4, 6, 8, 10])
+            sage: E.gens_certain()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: no generators have been computed yet
         """
-        return True in self.__gens
+        if not self.__gens:
+            raise RuntimeError("no generators have been computed yet")
+        return self.__gens[1]
 
     def ngens(self, proof=None):
         """
@@ -2447,26 +2455,20 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         return len(self.gens(proof = proof))
 
-    def regulator(self, use_database=True, proof=None, precision=None,
-                        descent_second_limit=12, verbose=False):
+    def regulator(self, proof=None, precision=53, **kwds):
         r"""
         Return the regulator of this curve, which must be defined over `\QQ`.
 
         INPUT:
 
-        -  ``use_database`` -- bool (default: ``False``), if ``True``,
-           try to look up the generators in the Cremona database.
-
         -  ``proof`` -- bool or ``None`` (default: ``None``, see
            proof.[tab] or sage.structure.proof). Note that results from
            databases are considered proof = True
 
-        -  ``precision`` -- int or ``None`` (default: ``None``): the
-           precision in bits of the result (default real precision if None)
+        -  ``precision`` -- (int, default 53): the precision in bits of
+           the result
 
-        -  ``descent_second_limit`` -- (default: 12)- used in 2-descent
-
-        -  ``verbose`` -- whether to print mwrank's verbose output
+        -  ``**kwds`` -- passed to :meth:`gens()` method
 
         EXAMPLES::
 
@@ -2486,11 +2488,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: EllipticCurve([0, 0, 1, -79, 342]).regulator(proof=False)  # long time (6s on sage.math, 2011)
             14.790527570131...
         """
-        if precision is None:
-            RR = rings.RealField()
-            precision = RR.precision()
-        else:
-            RR = rings.RealField(precision)
+        R = rings.RealField(precision)
 
         if proof is None:
             from sage.structure.proof.proof import get_flag
@@ -2499,29 +2497,23 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             proof = bool(proof)
 
         # We return a cached value if it exists and has sufficient precision:
-        try:
-            reg = self.__regulator[proof]
-            if reg.parent().precision() >= precision:
-                return RR(reg)
-            else: # Found regulator value but precision is too low
-                pass
-        except KeyError:
-            if proof is False and True in self.__regulator:
-                reg = self.__regulator[True]
-                if reg.parent().precision() >= precision:
-                    return RR(reg)
-                else: # Found regulator value but precision is too low
+        if self.__regulator:
+            reg, proven = self.__regulator
+            if proven or not proof:
+                # Coerce to the target field R. This will fail if the
+                # precision was too low.
+                try:
+                    return R.coerce(reg)
+                except TypeError:
                     pass
 
-        # Next we find the gens, taking them from the database if they
-        # are there and use_database is True, else computing them:
+        G = self.gens(proof=proof, **kwds)
 
-        G = self.gens(proof=proof, use_database=use_database, descent_second_limit=descent_second_limit, verbose=verbose)
-
-        # Finally compute the regulator of the generators found:
-
-        self.__regulator[proof] = self.regulator_of_points(G,precision=precision)
-        return self.__regulator[proof]
+        # Compute the regulator of the generators found:
+        reg = self.regulator_of_points(G, precision=precision)
+        self.__regulator = (reg, self.gens_certain())
+        assert reg.parent() is R
+        return reg
 
     def saturation(self, points, verbose=False, max_prime=0, odd_primes_only=False):
         """

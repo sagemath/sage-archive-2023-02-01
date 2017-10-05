@@ -108,9 +108,9 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
         sage: for i in range(10): G.add_cycle(list(range(100*i, 100*i+3)))
         sage: from sage.graphs.generic_graph_pyx import spring_layout_fast
         sage: pos = spring_layout_fast(G)
-        sage: pos[0]   # abs tol 0.03
+        sage: pos[0]   # abs tol 0.1
         [0.00..., 0.03...]
-        sage: pos[902] # abs tol 0.03
+        sage: pos[902] # abs tol 0.1
         [-0.48..., -0.10...]
         sage: len(pos) == G.order()
         True
@@ -129,9 +129,9 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
         sage: for i in range(10): G.add_cycle(list(range(100*i, 100*i+3)))
         sage: from sage.graphs.generic_graph_pyx import spring_layout_fast
         sage: pos = spring_layout_fast(G, by_component = True)
-        sage: pos[0]   # abs tol 0.03
+        sage: pos[0]   # abs tol 0.1
         [2.21..., -0.00...]
-        sage: pos[902] # abs tol 0.03
+        sage: pos[902] # abs tol 0.1
         [3.07..., 0.86...]
         sage: len(pos) == G.order()
         True

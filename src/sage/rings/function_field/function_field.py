@@ -584,7 +584,7 @@ class FunctionField(Field):
           or a valuation on another function field together with information
           for isomorphisms to and from that function field
 
-        EXAMPLES::
+        EXAMPLES:
         
         We create a valuation that correspond to a finite rational place of a function
         field::

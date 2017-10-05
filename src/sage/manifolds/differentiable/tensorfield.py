@@ -319,10 +319,14 @@ class TensorField(ModuleElement):
     and the union of the domains of eU and eV being whole manifold::
 
         sage: t.display(eV)  # long time
-        t = (u^4 - 4*u^3*v + 10*u^2*v^2 + 4*u*v^3 + v^4)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) du*du
-         - 4*(u^3*v + 2*u^2*v^2 - u*v^3)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) du*dv
-         + 2*(u^4 - 2*u^3*v - 2*u^2*v^2 + 2*u*v^3 + v^4)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) dv*du
-         + (3*u^4 + 4*u^3*v - 2*u^2*v^2 - 4*u*v^3 + 3*v^4)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) dv*dv
+        t = (u**4 - 4*u**3*v + 10*u**2*v**2 + 4*u*v**3 + v**4)/(u**8 +
+        4*u**6*v**2 + 6*u**4*v**4 + 4*u**2*v**6 + v**8) du*du -
+        4*u*v*(u**2 + 2*u*v - v**2)/(u**8 + 4*u**6*v**2 + 6*u**4*v**4
+        + 4*u**2*v**6 + v**8) du*dv + 2*(u**4 - 2*u**3*v - 2*u**2*v**2
+        + 2*u*v**3 + v**4)/(u**8 + 4*u**6*v**2 + 6*u**4*v**4 +
+        4*u**2*v**6 + v**8) dv*du + (3*u**4 + 4*u**3*v - 2*u**2*v**2 -
+        4*u*v**3 + 3*v**4)/(u**8 + 4*u**6*v**2 + 6*u**4*v**4 +
+        4*u**2*v**6 + v**8) dv*dv
 
     Let us consider two vector fields, `a` and `b`, on `S^2`::
 
@@ -344,8 +348,8 @@ class TensorField(ModuleElement):
         Scalar field t(a,b) on the 2-dimensional differentiable manifold S^2
         sage: f.display()  # long time
         t(a,b): S^2 --> R
-        on U: (x, y) |--> -2*x*y - y^2 - 3*x
-        on V: (u, v) |--> -(3*u^3 + (3*u + 1)*v^2 + 2*u*v)/(u^4 + 2*u^2*v^2 + v^4)
+        on U: (x, y) |--> -2*x*y - 3*x - y**2
+        on V: (u, v) |--> -(3*u**3 + 3*u*v**2 + 2*u*v + v**2)/(u**4 + 2*u**2*v**2 + v**4)
 
     The vectors can be defined only on subsets of `S^2`, the domain of the
     result is then the common subset::
@@ -355,15 +359,15 @@ class TensorField(ModuleElement):
          differentiable manifold S^2
         sage: s.display()  # long time
         t(a,b): U --> R
-           (x, y) |--> -2*x*y - y^2 - 3*x
-        on W: (u, v) |--> -(3*u^3 + (3*u + 1)*v^2 + 2*u*v)/(u^4 + 2*u^2*v^2 + v^4)
+            (x, y) |--> -2*x*y - 3*x - y**2
+        on W: (u, v) |--> -(3*u**3 + 2*u*v + v**2*(3*u + 1))/(u**4 + 2*u**2*v**2 + v**4)
         sage: s = t(a.restrict(U), b.restrict(W)) ; s  # long time
         Scalar field t(a,b) on the Open subset W of the 2-dimensional
          differentiable manifold S^2
         sage: s.display()  # long time
         t(a,b): W --> R
-           (x, y) |--> -2*x*y - y^2 - 3*x
-           (u, v) |--> -(3*u^3 + (3*u + 1)*v^2 + 2*u*v)/(u^4 + 2*u^2*v^2 + v^4)
+           (x, y) |--> -2*x*y - 3*x - y**2
+           (u, v) |--> -(3*u**3 + 2*u*v + v**2*(3*u + 1))/(u**4 + 2*u**2*v**2 + v**4)
 
     The tensor itself can be defined only on some open subset of `S^2`,
     yielding a result whose domain is this subset::
@@ -373,8 +377,8 @@ class TensorField(ModuleElement):
          differentiable manifold S^2
         sage: s.display()  # long time
         t(a,b): V --> R
-           (u, v) |--> -(3*u^3 + (3*u + 1)*v^2 + 2*u*v)/(u^4 + 2*u^2*v^2 + v^4)
-        on W: (x, y) |--> -2*x*y - y^2 - 3*x
+           (u, v) |--> -(3*u**3 + 3*u*v**2 + 2*u*v + v**2)/(u**4 + 2*u**2*v**2 + v**4)
+        on W: (x, y) |--> -2*x*y - 3*x - y**2
 
     Tests regarding the multiplication by a scalar field::
 

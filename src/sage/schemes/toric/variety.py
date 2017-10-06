@@ -1856,7 +1856,7 @@ class ToricVariety_field(AmbientSpace):
         OUTPUT:
 
         - :class:`subscheme of a toric variety
-          <sage.schemes.generic.algebraic_scheme.AlgebraicScheme_subscheme_toric>`.
+          <sage.schemes.toric.toric_subscheme.AlgebraicScheme_subscheme_toric>`.
 
         EXAMPLES:
 
@@ -1889,7 +1889,7 @@ class ToricVariety_field(AmbientSpace):
               To:   Spectrum of Rational Field
               Defn: Structure map
         """
-        from sage.schemes.generic.algebraic_scheme import \
+        from sage.schemes.toric.toric_subscheme import\
             AlgebraicScheme_subscheme_toric, AlgebraicScheme_subscheme_affine_toric
         if self.is_affine():
             return AlgebraicScheme_subscheme_affine_toric(self, polynomials)
@@ -2650,7 +2650,7 @@ class ToricVariety_field(AmbientSpace):
         OUTPUT:
 
         A :class:`affine algebraic subscheme
-        <sage.schemes.generic.algebraic_scheme.AlgebraicScheme_subscheme_affine>`
+        <sage.schemes.affine.affine_subscheme.AlgebraicScheme_subscheme_affine>`
         corresponding to the patch `\mathop{Spec}(\sigma^\vee \cap M)`
         associated to the cone `\sigma`.
 

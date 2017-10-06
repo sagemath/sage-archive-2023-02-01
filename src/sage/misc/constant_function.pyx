@@ -44,12 +44,12 @@ cdef class ConstantFunction(SageObject):
     Also, in the long run, the information that this function is
     constant could be used by some algorithms.
 
-    TODO:
+    .. TODO::
 
-    - Should constant functions have unique representation?
-    - Should the number of arguments be specified in the input?
-    - Should this go into ``sage.categories.maps``?
-      Then what should be the parent (e.g. for ``lambda x: True``)?
+        - Should constant functions have unique representation?
+        - Should the number of arguments be specified in the input?
+        - Should this go into ``sage.categories.maps``?
+          Then what should be the parent (e.g. for ``lambda x: True``)?
 
     TESTS:
 

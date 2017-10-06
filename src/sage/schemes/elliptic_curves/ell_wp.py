@@ -259,7 +259,7 @@ def compute_wp_fast(k, A, B, m):
 
      - ``k`` - the base field of the curve
      - ``A`` - and
-     - ``B`` - as the coeffients of the short Weierstrass model `y^2 = x^3 +Ax +B`, and
+     - ``B`` - as the coefficients of the short Weierstrass model `y^2 = x^3 +Ax +B`, and
      - ``m`` - the precision to which the function is computed to.
 
     OUTPUT:

@@ -42,13 +42,24 @@ class TorsionQuadraticModuleElement(FGP_Element):
         a rational number which is a representative of the equivalence
         class of <self,other> modulo <A,B> over `\Z`.
         """
-        return self.parent().value_group()(self.lift() * other.lift())
+        return self.parent().value_module()(self.lift() * other.lift())
 
     def inner_product(self, other):
+        """
+        Return the inner product of this element with the other element.
+        
+        Input:
+        
+        -- ``other`` an element of the same torsion quadratic module.
+        
+        Output:
+        
+        -- an element of `\Q/n\Z` with `n=` 
+        """
         return self * other
 
     def q(self):
-        return self.parent().value_group_qform()(self.lift() * self.lift())
+        return self.parent().value_module_qf()(self.lift() * self.lift())
 
     def quadratic_product(self):
         r"""
@@ -80,7 +91,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         sage: T = TorsionQuadraticModule(V, 5*V)
         sage: T
         Finite quadratic module V/W over Integer Ring with invariants (5, 5, 5).
-        Gram matrix:
+        Gram matrix of the quadratic form:
         [1 0 0]
         [0 1 0]
         [0 0 1]
@@ -116,23 +127,43 @@ class TorsionQuadraticModule(FGP_Module_class):
                 raise ValueError, "The modulus must divide <V,W>."
             self._modulus = modulus
 
-    def value_group(self):
-        # Value group of inner product
+    def value_module(self):
+        """
+        This is where the inner product takes values.
+        
+        Returns `\Q/m\Z` with `m= <V,W>`.
+        """
         return QmodnZ(self._modulus)
 
-    def value_group_qform(self):
-        # Value group of quadratic form
+    def value_module_qf(self):
+        """
+        This is where the torsion quadratic form takes values.
+        
+        Returns `\Q/2m\Z` with `m= <V,W>`.
+        """
         return QmodnZ(2 * self._modulus)
 
     def gens(self):
+        """
+        Return generators of this module.
+        
+        There is no assumption on the generators except that they generate the module.
+        
+        Examples::
+        
+            sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
+            sage: V = FreeModule(ZZ,3)
+            sage: T = TorsionQuadraticModule(V, 5*V)
+            sage: T.gens()
+        """
         return self._gens
 
     def _repr_(self):
         r"""
-        Print representation.
+        The print representation of this TorsionQuadraticModule.
         """
         return ("Finite quadratic module V/W over %s with invariants %s.\n"%(self.base_ring(),self.invariants()) +
-            "Gram matrix:\n%r" %self.gram_matrix_quadratic())
+            "Gram matrix of the quadratic form with values in %r:\n%r" %(self.value_module_qf(),self.gram_matrix_quadratic()))
 
     def _module_constructor(self, V, W, check=True):
         r"""
@@ -148,13 +179,24 @@ class TorsionQuadraticModule(FGP_Module_class):
 
         OUTPUT:
 
-        The quotient ``V/W``.
+        The quotient ``V/W`` as TorsionQuadraticModule.
 
         EXAMPLES::
+            sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
+            sage: V = span([[1/2,1,1],[3/2,2,1],[0,0,1]],ZZ); W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2])
+            sage: Q = TorsionQuadraticModule(V,W); Q
+            Finite quadratic module V/W over Integer Ring with invariants (4, 12).
+            Gram matrix of the quadratic form with values in Q/(1/2)Z:
+            [0 0]
+            [0 0]
+            sage: Q._module_constructor(V,W)
+            Finite quadratic module V/W over Integer Ring with invariants (4, 12).
+            Gram matrix of the quadratic form with values in Q/(1/2)Z:
+            [0 0]
+            [0 0]
 
-            sage: 
         """
-        return TorsionQuadraticModule(V, W, check)
+        return TorsionQuadraticModule(V, W, check=check)
 
     def submodule(self, x):
         r"""
@@ -165,10 +207,16 @@ class TorsionQuadraticModule(FGP_Module_class):
         INPUT:
 
         - ``x`` -- list, tuple, or FGP module
-
+        
+        Examples::
+        
+            sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
+            sage: V = FreeQuadraticModule(ZZ,3,matrix.identity(3)*5)
+            sage: T = TorsionQuadraticModule((1/5)*V, V)
+            sage: T.submodule(T.gens()[:2])
         """
         T = FGP_Module_class.submodule(self, x)
-        T._modulus = self._modulus # is this necessary?
+        T._modulus = self._modulus # is this necessary? Yes the modulus might change.
         return T
 
     def gram_matrix_bilinear(self):
@@ -183,7 +231,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         G = matrix.zero(Q, n)
         for i in range(n):
             for j in range(i+1):
-                G[i,j] = G[j,i] = gens[i] * gens[j]
+                G[i,j] = G[j,i] = (gens[i] * gens[j]).lift()
         return G
 
     def gram_matrix_quadratic(self):
@@ -198,8 +246,8 @@ class TorsionQuadraticModule(FGP_Module_class):
         G = matrix.zero(Q, n)
         for i in range(n):
             for j in range(i):
-                G[i,j] = G[j,i] = gens[i] * gens[j]
-            G[i,i] = gens[i].q()
+                G[i,j] = G[j,i] = (gens[i] * gens[j]).lift()
+            G[i,i] = gens[i].q().lift()
         return G
 
     def orthogonal_submodule_to(self, S):
@@ -213,24 +261,28 @@ class TorsionQuadraticModule(FGP_Module_class):
         if not S.is_submodule(self):
              raise ValueError, "S must be a submodule of this module."
 
+        #We compute all elements x of the ambient vector space 
+        #which satisfy <x,S.V()> in s ZZ
+        #Then we intersect with T.V() and reduce modulo T.W()
+        
         n = self.V().rank()
         m = S.V().rank()
         B = self.V().basis_matrix()
         basis_S = S.V().basis_matrix()
         s = self._modulus
-
+        
+        #The equation is easier to solve in smith_form. 
+        #Do you know a more elegant way?
         M = B*self.V().inner_product_matrix()*basis_S.transpose() / s
         M, d = M._clear_denom()
         D, U, V = M.smith_form()
         D = D / d
-
         X = matrix.identity(self.base_ring().fraction_field(), n)
         for i in range(m):
             if D[i,i] != 0:
                 X[i,i] = 1 / D[i,i]
         X = X * U * B
+        #
         orth = self.V().span(X.rows()).intersection(self.V())
         orth = self.submodule(orth.gens())
-
         return orth
-

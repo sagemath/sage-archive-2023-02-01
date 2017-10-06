@@ -3793,7 +3793,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             raise ArithmeticError("Support of 0 not defined.")
         return sage.arith.all.prime_factors(self)
 
-    def coprime_integers(self, m, algorithm = None):
+    def coprime_integers(self, m):
         """
         Return the positive integers `< m` that are coprime to
         this integer.

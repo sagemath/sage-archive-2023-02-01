@@ -411,7 +411,7 @@ class pAdicValuation_base(DiscreteValuation):
 
         sage: TestSuite(ZZ.valuation(3)).run() # long time
         sage: TestSuite(QQ.valuation(5)).run() # long time
-        sage: TestSuite(Zp(5).valuation(5)).run() # long time
+        sage: TestSuite(Zp(5).valuation()).run() # long time
 
     """
     def __init__(self, parent, p):

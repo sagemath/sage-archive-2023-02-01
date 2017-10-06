@@ -4,6 +4,7 @@ from __future__ import absolute_import, print_function
 from cysignals.signals cimport sig_on, sig_off
 from cython.operator cimport dereference as deref
 from cython.operator cimport preincrement as inc
+from libcpp.map cimport map
 
 from ..eclib cimport vec, svec, mat, smat
 from .mat cimport MatrixFactory
@@ -273,7 +274,6 @@ cdef class ModularSymbols:
         cdef long j=0
         cdef vec v
         cdef svec sv
-        cdef map[int, scalar].iterator iter
         d = {}
         sig_on()
         cdef smat M = self.H.s_heckeop(p, dual, verbose)
@@ -282,12 +282,8 @@ cdef class ModularSymbols:
             sv = M.row(i+1)
             iter = sv.begin()
             while iter != sv.end():
-                d[(i,deref(iter).first-1)] = deref(iter).second-1
+                d[(i,deref(iter).first-1)] = deref(iter).second
                 inc(iter)
-#            v = sv.as_vec()
-#            for j in range(1,n+1):
-#                if v[j]:
-#                    d[(i-1, j-1)] = v[j]
         MS = MatrixSpace(base_ring, n, sparse=True)
         # The next step is the bottleneck.
         ans = MS(entries=d)

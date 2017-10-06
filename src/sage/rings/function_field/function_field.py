@@ -586,8 +586,8 @@ class FunctionField(Field):
 
         EXAMPLES:
         
-        We create a valuation that correspond to a finite rational place of a function
-        field::
+        We create valuations that correspond to finite rational places of a
+        function field::
 
             sage: K.<x> = FunctionField(QQ)
             sage: v = K.valuation(1); v

@@ -1418,7 +1418,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             for x in tester.some_elements(self.domain().some_elements()):
                 if self(x) < 0:
-                    with tester.assertRaises(ValueError):
+                    with tester.assertRaises((ValueError, ArithmeticError)):
                         self.reduce(x)
                     continue
                 if self(x) == 0:

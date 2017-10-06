@@ -62,23 +62,6 @@ SINGULAR %s
     f.close()
 
 
-def remove_files(path, remove_extensions):
-    """
-    Walk the tree starting at ``path``, and remove all files with
-    extensions in ``remove_extensions``.
-    The extensions in ``remove_extensions`` should start with a period, i.e.,
-    e.g. use ``remove_files(path, ('.pyc', '.pyo'))``.
-    """
-    for root, dirs, files in os.walk(path):
-        for file in files:
-            filename = os.path.join(root, file)
-            if os.path.splitext(filename)[1] in remove_extensions:
-                try:
-                    os.unlink(filename)
-                except OSError as msg:
-                    print(msg)
-
-
 def sage_relocate():
     """
     High-level function which calls various functions to handle
@@ -89,10 +72,6 @@ def sage_relocate():
     once should be equivalent to executing them once.
     """
     write_config_files()
-
-    # Compiled python files need to be regenerated, so we remove them:
-    for dir in glob.glob(os.path.join(SAGE_LOCAL, 'lib', 'python*')):
-        remove_files(dir, remove_extensions=('.pyc', '.pyo'))
 
     # Write the new location file as last thing in this script,
     # so that it only gets written if there were no exceptions.

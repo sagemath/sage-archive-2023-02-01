@@ -257,32 +257,34 @@ class TorsionQuadraticModule(FGP_Module_class):
         INPUT:
 
         - ``S`` -- a submodule
+        sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
+        sage: V = FreeModule(ZZ,10)
+        sage: T = TorsionQuadraticModule(V,3*V)
+        sage: S = T.submodule(T.gens()[:5])
+        sage: O = T.orthogonal_submodule_to(S)
+        sage: O
+        Finite quadratic module V/W over Integer Ring with invariants (3, 3, 3, 3, 3).
+        Gram matrix of the quadratic form with values in Q/6Z:
+        [1 0 0 0 0]
+        [0 1 0 0 0]
+        [0 0 1 0 0]
+        [0 0 0 1 0]
+        [0 0 0 0 1]
+        sage: O + S
+        sage: O.V() + S.V() == T.V()
+        True
         """
         if not S.is_submodule(self):
              raise ValueError, "S must be a submodule of this module."
 
-        #We compute all elements x of the ambient vector space 
-        #which satisfy <x,S.V()> in s ZZ
-        #Then we intersect with T.V() and reduce modulo T.W()
+
+        G = self.V().inner_product_matrix()
+        T = self.V().basis_matrix()
+        S = S.V().basis_matrix()
+        m = self._modulus
         
-        n = self.V().rank()
-        m = S.V().rank()
-        B = self.V().basis_matrix()
-        basis_S = S.V().basis_matrix()
-        s = self._modulus
-        
-        #The equation is easier to solve in smith_form. 
-        #Do you know a more elegant way?
-        M = B*self.V().inner_product_matrix()*basis_S.transpose() / s
-        M, d = M._clear_denom()
-        D, U, V = M.smith_form()
-        D = D / d
-        X = matrix.identity(self.base_ring().fraction_field(), n)
-        for i in range(m):
-            if D[i,i] != 0:
-                X[i,i] = 1 / D[i,i]
-        X = X * U * B
-        #
-        orth = self.V().span(X.rows()).intersection(self.V())
-        orth = self.submodule(orth.gens())
-        return orth
+        Y = (T*G*S.transpose())
+        integral = Y.inverse()*T
+        orthogonal = m * integral
+        orthogonal = self.submodule(orthogonal.rows())
+        return orthogonal

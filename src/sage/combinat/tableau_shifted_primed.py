@@ -1674,8 +1674,6 @@ class SPTCrystal(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: SPTCrystal()
-            Crystal of Shifted Primed Tableaux of type A_2 of shape (4, 2)
             sage: SPTCrystal(n=2, shape=[4,2])
             Crystal of Shifted Primed Tableaux of type A_2 of shape (4, 2)
             sage: SPTCrystal([4,2], rank=2)
@@ -1684,7 +1682,10 @@ class SPTCrystal(UniqueRepresentation, Parent):
             Crystal of Shifted Primed Tableaux of type A_5 of shape (4, 2)
 
         TESTS::
-
+            sage: SPTCrystal()
+            Traceback (most recent call last):
+            ...
+            ValueError: shape argument is not specified
             sage: SPTCrystal([4,4], 3)
             Traceback (most recent call last):
             ...
@@ -1717,8 +1718,7 @@ class SPTCrystal(UniqueRepresentation, Parent):
                             isinstance(args[1], (list, tuple, Partition))):
                         shape = tuple(args[1])
         if shape is None:
-            shape = (4, 2)
-            n = 2
+            raise ValueError('shape argument is not specified')
         if n is None:
             n = sum(shape)-1
 
@@ -1763,7 +1763,7 @@ class ShiftedPrimedTableauxCrystal(SPTCrystal):
 
         TEST::
 
-            sage: SPTCrystal()
+            sage: SPTCrystal([4,2], 2)
             Crystal of Shifted Primed Tableaux of type A_2 of shape (4, 2)
         """
         return ("Crystal of Shifted Primed Tableaux of type A_%s of shape "

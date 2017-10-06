@@ -1258,6 +1258,9 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             S = self.domain().some_elements()
             from itertools import product
             for x,y in tester.some_elements(product(S,S)):
+                from sage.rings.all import infinity
+                if set([self(x), self(y)]) == set([infinity, -infinity]):
+                    continue
                 tester.assertEqual(self(x*y),self(x)+self(y))
 
         def _test_no_infinite_units(self, **options):

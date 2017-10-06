@@ -38,9 +38,9 @@ The libSINGULAR interface was implemented by
 
 - Volker Braun (2011-06): Major cleanup, refcount singular rings, bugfixes.
 
-TODO:
+.. TODO::
 
-- implement Real, Complex coefficient rings via libSINGULAR
+    Implement Real, Complex coefficient rings via libSINGULAR
 
 EXAMPLES:
 

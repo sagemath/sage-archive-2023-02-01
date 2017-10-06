@@ -232,8 +232,8 @@ cdef class Morphism(Map):
                 if self(x) != x:
                     return False
             return True
-        except (AttributeError, NotImplementedError):
-            return NotImplementedError
+        except AttributeError:
+            raise NotImplementedError
 
     def pushforward(self, I):
         raise NotImplementedError

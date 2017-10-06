@@ -33,7 +33,7 @@ from six import add_metaclass
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 from sage.schemes.affine.affine_space import is_AffineSpace
-from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_affine
+from sage.schemes.affine.affine_subscheme import AlgebraicScheme_subscheme_affine
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class DynamicalSystem(SchemeMorphism_polynomial):

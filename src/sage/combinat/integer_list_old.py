@@ -1160,8 +1160,8 @@ class IntegerListsLex(Parent):
         Default brute force implementation of count by iteration
         through all the objects.
 
-        Note that this skips the call to ``_element_constructor``, unlike
-        the default implementation.
+        Note that this skips the call to ``_element_constructor_``,
+        unlike the default implementation.
 
         .. TODO::
 

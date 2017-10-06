@@ -27,8 +27,9 @@ Affine Schemes
    :maxdepth: 2
 
    sage/schemes/affine/affine_space
-   sage/schemes/affine/affine_point
    sage/schemes/affine/affine_morphism
+   sage/schemes/affine/affine_point
+   sage/schemes/affine/affine_subscheme
    sage/schemes/affine/affine_rational_point
    sage/schemes/affine/affine_homset
 
@@ -39,8 +40,9 @@ Projective Schemes
    :maxdepth: 2
 
    sage/schemes/projective/projective_space
-   sage/schemes/projective/projective_point
    sage/schemes/projective/projective_morphism
+   sage/schemes/projective/projective_point
+   sage/schemes/projective/projective_subscheme
    sage/schemes/projective/projective_rational_point
    sage/schemes/projective/projective_homset
 
@@ -68,6 +70,7 @@ Toric Varieties
    sage/schemes/toric/chow_group
    sage/schemes/toric/ideal
    sage/schemes/toric/morphism
+   sage/schemes/toric/toric_subscheme
    sage/schemes/toric/weierstrass
    sage/schemes/toric/weierstrass_covering
    sage/schemes/toric/weierstrass_higher

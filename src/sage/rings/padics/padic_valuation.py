@@ -1258,8 +1258,8 @@ class pAdicValuation_int(pAdicValuation_base):
         if self(x) > 0 or precision is infinity:
             raise ValueError("element has no approximate inverse in this ring")
         
-        from sage.rings.all import ZpFM, ZZ
-        return self.domain()(~ZpFM(self.p(), ZZ(precision).ceil())(x))
+        from sage.rings.all import ZZ, QQ
+        return self.domain()(ZZ(x).inverse_mod(self.p() ** QQ(precision).ceil()))
 
 
 class pAdicFromLimitValuation(FiniteExtensionFromLimitValuation, pAdicValuation_base):

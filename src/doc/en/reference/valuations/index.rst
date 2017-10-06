@@ -1,6 +1,8 @@
 Discrete Valuations and Discrete Pseudo-Valuations
 ==================================================
 
+.. linkall
+
 High-Level Interface
 --------------------
 Valuations can be defined conveniently on some Sage rings such as p-adic rings
@@ -18,7 +20,7 @@ the valuation of a rational prime::
 They are normalized such that the rational prime has valuation 1::
 
     sage: K.<a> = NumberField(x^2 + x + 1)
-    sage: K.valuation(2)
+    sage: v = K.valuation(2)
     sage: v(1024)
     10
 
@@ -26,8 +28,11 @@ If there are multiple valuations over a prime, they can be obtained by
 extending a valuation from a smaller ring::
 
     sage: K.<a> = NumberField(x^2 + x + 1)
-    sage: v = K.valuation(7)
-    sage: w,ww = v.extensions(K)
+    sage: K.valuation(7)
+    Traceback (most recent call last):
+    ...
+    ValueError: The valuation Gauss valuation induced by 7-adic valuation does not approximate a unique extension of 7-adic valuation with respect to x^2 + x + 1
+    sage: w,ww = QQ.valuation(7).extensions(K)
     sage: w(a + 3), ww(a + 3)
     (1, 0)
     sage: w(a + 5), ww(a + 5)
@@ -63,7 +68,7 @@ Valuations can also be extended from smaller function fields::
     sage: R.<y> = K[]
     sage: L.<y> = K.extension(y^2 - x)
     sage: v.extensions(L)
-    [ (x - 4)-adic valuation, v(y - 2) = 1 ]-adic valuation,
+    [[ (x - 4)-adic valuation, v(y - 2) = 1 ]-adic valuation,
      [ (x - 4)-adic valuation, v(y + 2) = 1 ]-adic valuation]
 
 Low-Level Interface
@@ -130,7 +135,7 @@ The terms of this infinite sequence are computed on demand::
     sage: ww(y - 1/4*x - 1)
     2
     sage: ww._base_valuation._approximation
-    [ Gauss valuation induced by (x - 4)-adic valuation, v(y - 1/4*x - 1) = 2 ]
+    [ Gauss valuation induced by (x - 4)-adic valuation, v(y + 1/64*x^2 - 3/8*x - 3/4) = 3 ]
 
 Non-classical valuations
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -156,7 +161,7 @@ polynomial G, approximations to the limit valuation which send G to infinity::
     sage: v = QQ.valuation(2)
     sage: R.<x> = QQ[]
     sage: f = x^5 + 3*x^4 + 5*x^3 + 8*x^2 + 6*x + 12
-    sage: v.mac_lane_approximants(f)
+    sage: v.mac_lane_approximants(f) # random output (order may vary)
     [[ Gauss valuation induced by 2-adic valuation, v(x^2 + x + 1) = 3 ],
      [ Gauss valuation induced by 2-adic valuation, v(x) = 1/2 ],
      [ Gauss valuation induced by 2-adic valuation, v(x) = 1 ]]
@@ -165,7 +170,7 @@ From these approximants one can already see the residual degrees and
 ramification indices of the corresponding extensions. The approximants can be
 pushed to arbitrary precision, corresponding to a factorization of ``f``::
 
-    sage: v.mac_lane_approximants(f, required_precision=10)
+    sage: v.mac_lane_approximants(f, required_precision=10) # random output
     [[ Gauss valuation induced by 2-adic valuation, v(x^2 + 193*x + 13/21) = 10 ],
      [ Gauss valuation induced by 2-adic valuation, v(x + 86) = 10 ],
      [ Gauss valuation induced by 2-adic valuation, v(x) = 1/2, v(x^2 + 36/11*x + 2/17) = 11 ]]

@@ -208,15 +208,9 @@ class DiffForm(TensorField):
     Same tests with ``sympy``::
 
         sage: M.set_calculus_method('sympy')
-        sage: U = M.open_subset('U') ; V = M.open_subset('V')
-        sage: M.declare_union(U,V)   # M is the union of U and V
-        sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
-
-        sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y), intersection_name='W',
-        ....:                                restrictions1= x>0, restrictions2= u+v>0)
-        sage: uv_to_xy = xy_to_uv.inverse()
-        sage: W = U.intersection(V)
-        sage: eU = c_xy.frame() ; eV = c_uv.frame()
+        sage: U.set_calculus_method('sympy')
+        sage: V.set_calculus_method('sympy')
+        sage: W.set_calculus_method('sympy')
         sage: a = M.diff_form(2, name='a') ; a
         2-form a on the 2-dimensional differentiable manifold M
         sage: a.parent()
@@ -231,7 +225,7 @@ class DiffForm(TensorField):
         sage: a.display(eU)
         a = x*(y**2 + 2) dx/\dy
         sage: a.display(eV)
-        a = (-u**3/16 + u**2*v/16 + u*v**2/16 - u/2 - v**3/16 - v/2) du/\dv
+        a = (-u**3/16 + u*v**2/16 - u/2 - v**3/16 + v*(u**2 - 8)/16) du/\dv
 
     A 1-form on ``M``::
 

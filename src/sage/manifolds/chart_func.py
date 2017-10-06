@@ -6,21 +6,21 @@ In the context of a topological manifold `M` over a topological field
 to `K`.
 In other words, for any defined calculus method, a chart function is a
 `K`-valued function of the coordinates associated to some chart.
-This function can be expressed in different calculus methods
-(for the moment only the symbolic: ``Maxima`` and ``Sympy``). The
-current method is used to carry out calculcations.
+This function can be expressed in terms of different calculus methods:
 
+- Sage's default symbolic engine (Pynac/Maxima), implemented via the
+  symbolic ring ``SR``
+- SymPy engine, denoted ``sympy`` hereafter
 
 AUTHORS:
 
 - Marco Mancini (2017) : initial version
-- Eric Gourgoulhon (2015) : The class defined here is a generalization
-  of the class :class:``~sage.manifolds.coord_funct_symb``.
+- Eric Gourgoulhon (2015) : for a previous class implementing only SR
+  calculus (CoordFunctionSymb)
 
 
 """
 #*****************************************************************************
-#       Copyright (C) 2017 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2017 Marco Mancini <marco.mancini@obspm.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -43,10 +43,7 @@ from sage.structure.sage_object import SageObject
 
 class ChartFunction(AlgebraElement):
     r"""
-    Chart function with multiple representations.
-    A function of the coordinate on a chart can be represented by
-    different calculus methods (only symbolic for the
-    moment, numeric has to be implemented).
+    Chart function with multiple symbolic representations.
 
     If `(U, \varphi)` is a chart on a topological manifold `M` of
     dimension `n` over a topological field `K`,  a *chart function*
@@ -60,10 +57,16 @@ class ChartFunction(AlgebraElement):
         \end{array}
 
     where `V` is the codomain of `\varphi`. In other words, `f` is a
-    `K`-valued function of the
-    coordinates associated to the chart `(U, \varphi)`.
+    `K`-valued function of the coordinates associated to the chart
+    `(U, \varphi)`.
 
-    `f` can be represented by ``SR`` (``Maxima``) or ``sympy``.
+    The chart function `f` can be represented by expressions pertaining to
+    different calculus methods:
+
+    - ``SR`` (Sage default calculus engine)
+    - ``sympy`` (SymPy)
+
+    See :meth:`~sage.manifolds.chart_func.ChartFunction.expr` for details.
 
     """
 
@@ -187,7 +190,7 @@ class ChartFunction(AlgebraElement):
                                  name=name, latex_name=latex_name)
 
 
-    def expr(self,method=None):
+    def expr(self, method=None):
         r"""
         Get expression from ``self`` with a particular method.
 

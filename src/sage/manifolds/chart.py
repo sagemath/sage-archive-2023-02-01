@@ -633,7 +633,8 @@ class Chart(UniqueRepresentation, SageObject):
             coordinates = ""
             for coord in self._xx:
                 coordinates += repr(coord) + ' '
-            res = type(self)(subset, coordinates)
+            res = type(self)(subset, coordinates,
+                             calc_method=self._calc_method._current)
             res._restrictions.extend(self._restrictions)
             # The coordinate restrictions are added to the result chart and
             # possibly transformed into coordinate bounds:
@@ -1832,7 +1833,8 @@ class RealChart(Chart):
             coordinates = ""
             for coord in self._xx:
                 coordinates += repr(coord) + ' '
-            res = type(self)(subset, coordinates)
+            res = type(self)(subset, coordinates,
+                             calc_method=self._calc_method._current)
             res._bounds = self._bounds
             res._restrictions.extend(self._restrictions)
             # The coordinate restrictions are added to the result chart and

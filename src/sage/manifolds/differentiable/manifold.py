@@ -821,6 +821,7 @@ class DifferentiableManifold(TopologicalManifold):
                                    diff_degree=self._diff_degree,
                                    latex_name=latex_name,
                                    start_index=self._sindex)
+        resu._calculus_method = self._calculus_method
         resu._supersets.update(self._supersets)
         for sd in self._supersets:
             sd._subsets.add(resu)

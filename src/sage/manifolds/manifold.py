@@ -589,6 +589,9 @@ class TopologicalManifold(ManifoldSubset):
         self._zero_scalar_field = self._scalar_field_algebra.zero()
         # The unit scalar field:
         self._one_scalar_field = self._scalar_field_algebra.one()
+        # The current calculus method on the manifold
+        #   (to be changed by set_calculus_method)
+        self._calculus_method = 'SR'
 
     def _repr_(self):
         r"""
@@ -868,6 +871,7 @@ class TopologicalManifold(ManifoldSubset):
                                    self._structure, ambient=self._manifold,
                                    latex_name=latex_name,
                                    start_index=self._sindex)
+        resu._calculus_method = self._calculus_method
         resu._supersets.update(self._supersets)
         for sd in self._supersets:
             sd._subsets.add(resu)
@@ -1422,6 +1426,9 @@ class TopologicalManifold(ManifoldSubset):
           ``coordinates`` is not provided; it must then be a tuple containing
           the coordinate symbols (this is guaranteed if the shortcut operator
           ``<,>`` is used)
+        - ``calc_method`` -- (default: ``None``) the calculus method to be
+          used on this chart; if ``None``, the current calculus method defined
+          on the manifold is used.
 
         The coordinates declared in the string ``coordinates`` are
         separated by ``' '`` (whitespace) and each coordinate has at most three
@@ -1510,7 +1517,10 @@ class TopologicalManifold(ManifoldSubset):
         especially regarding the coordinates ranges and restrictions.
 
         """
-        return self._structure.chart(self, coordinates=coordinates, names=names, calc_method=calc_method)
+        if calc_method is None:
+            calc_method = self._calculus_method
+        return self._structure.chart(self, coordinates=coordinates,
+                                     names=names, calc_method=calc_method)
 
     def is_open(self):
         """
@@ -2174,7 +2184,7 @@ class TopologicalManifold(ManifoldSubset):
             <class 'sympy.core.add.Add'>
 
         """
-
+        self._calculus_method = method
         for chart in self._atlas :
             chart.set_calculus_method(method)
 

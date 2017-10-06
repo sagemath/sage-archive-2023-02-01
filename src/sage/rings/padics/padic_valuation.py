@@ -1250,7 +1250,7 @@ class pAdicValuation_int(pAdicValuation_base):
         if not x.is_zero():
             y = ~x
             if y in self.domain():
-                return y
+                return self.domain()(y)
         if precision <= 0:
             return self.domain().one()
 
@@ -1258,8 +1258,8 @@ class pAdicValuation_int(pAdicValuation_base):
         if self(x) > 0 or precision is infinity:
             raise ValueError("element has no approximate inverse in this ring")
         
-        from sage.rings.all import ZpFM
-        return self.domain()(~ZpFM(self.p(), precision.ceil())(x))
+        from sage.rings.all import ZpFM, ZZ
+        return self.domain()(~ZpFM(self.p(), ZZ(precision).ceil())(x))
 
 
 class pAdicFromLimitValuation(FiniteExtensionFromLimitValuation, pAdicValuation_base):

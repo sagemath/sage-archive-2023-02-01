@@ -1617,7 +1617,8 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                     except NotImplementedError:
                         continue
                     except ValueError:
-                        tester.assertNotEqual(self(x), 0)
+                        if prec is not infinity:
+                            tester.assertNotEqual(self(x), 0)
                         tester.assertFalse(x.is_unit())
                         continue
                     

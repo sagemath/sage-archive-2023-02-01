@@ -331,6 +331,7 @@ from __future__ import absolute_import
 
 from cpython.object cimport Py_EQ, Py_NE
 
+from sage.structure.richcmp cimport rich_to_bool, richcmp
 from sage.structure.sage_object cimport SageObject
 from itertools import combinations, permutations, product
 from .set_system cimport SetSystem
@@ -3556,27 +3557,16 @@ cdef class Matroid(SageObject):
             sage: M1 == M3  # indirect doctest
             True
         """
-        from . import basis_matroid
         if op not in [Py_EQ, Py_NE]:
             return NotImplemented
-        if left.__class__ != right.__class__:
+        if type(left) is not type(right):
             return NotImplemented
-        # The above test can be tricked. One could:
-        # * spoof the __class__ attribute
-        # * call the method with two things that are not Matroid instances, as in
-        #   sage.matroids.matroid.Matroid.__richcmp__(p, q, 2)
-        # Non-abstract subclasses should just call isinstance on both left and right.
         if hash(left) != hash(right):
-            if op == Py_EQ:
-                return False
-            if op == Py_NE:
-                return True
+            return rich_to_bool(op, 1)
 
-        res = (basis_matroid.BasisMatroid(left) == basis_matroid.BasisMatroid(right))   # Default implementation
-        if op == Py_EQ:
-            return res
-        if op == Py_NE:
-            return not res
+        # Default implementation: use BasisMatroid
+        from .basis_matroid import BasisMatroid
+        return richcmp(BasisMatroid(left), BasisMatroid(right), op)
 
     # Minors and duality
 

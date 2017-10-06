@@ -1755,7 +1755,7 @@ cdef class Crystal_of_letters_type_E6_element_dual(LetterTuple):
             sage: b.lift()
             (-6,)
         """
-        # Because a generators are not supported and the element constuctor
+        # Because a generators are not supported and the element constructor
         #  being a cached method can't take lists as input, we have to make a
         #  tuple from a list
         return self._parent._ambient(tuple([-i for i in self.value]))
@@ -1778,7 +1778,7 @@ cdef class Crystal_of_letters_type_E6_element_dual(LetterTuple):
         """
         if p is None:
             return None
-        # Because a generators are not supported and the element constuctor
+        # Because a generators are not supported and the element constructor
         #  being a cached method can't take lists as input, we have to make a
         #  tuple from a list
         return self._parent._element_constructor_(tuple([-i for i in p.value]))

@@ -1212,7 +1212,7 @@ class HyperplaneArrangementElement(Element):
             assert row[pivot] == 1
             echelon_pivots.append(pivot)
             hyperplanes = [h - h.A()[pivot] * H(row, 0) for h in hyperplanes]
-        # eliminate the pivot'ed coodinates
+        # eliminate the pivot'ed coordinates
         restricted = []
         for h in hyperplanes:
             A = h.A()
@@ -2966,7 +2966,7 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
             sage: L._element_constructor_([[0, 1, 0], [0, 0, 1]])
             Arrangement <y | x>
 
-            sage: L._element_constructor(polytopes.hypercube(2))
+            sage: L._element_constructor_(polytopes.hypercube(2))
             Arrangement <-x + 1 | -y + 1 | y + 1 | x + 1>
 
             sage: L(x, x, warn_duplicates=True)

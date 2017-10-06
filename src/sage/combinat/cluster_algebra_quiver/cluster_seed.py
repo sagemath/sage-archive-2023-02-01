@@ -5125,18 +5125,18 @@ def _multi_concatenate(l1, l2):
     
     EXAMPLES::
 
-    sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import _multi_concatenate
+        sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import _multi_concatenate
 
-    sage: _multi_concatenate([[0,1,2]],[3,4,5])
-    [[0, 1, 2, 3], [0, 1, 2, 4], [0, 1, 2, 5]]
+        sage: _multi_concatenate([[0,1,2]],[3,4,5])
+        [[0, 1, 2, 3], [0, 1, 2, 4], [0, 1, 2, 5]]
 
-    sage: _multi_concatenate([[0,1,2],[3,4,5]],[6,7,8])
-    [[0, 1, 2, 6],
-    [0, 1, 2, 7],
-    [0, 1, 2, 8],
-    [3, 4, 5, 6],
-    [3, 4, 5, 7],
-    [3, 4, 5, 8]]   
+        sage: _multi_concatenate([[0,1,2],[3,4,5]],[6,7,8])
+        [[0, 1, 2, 6],
+        [0, 1, 2, 7],
+        [0, 1, 2, 8],
+        [3, 4, 5, 6],
+        [3, 4, 5, 7],
+        [3, 4, 5, 8]]   
     """
     plist = []
     for i in l1:

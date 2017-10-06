@@ -81,9 +81,9 @@ Internally, all the above is backed by the algorithms described in
 ``K.valuation(x - 4)`` to the field `L` above to outline how this works
 internally.
 
-First, the valuation on `K` is induced by a valuation on `\QQ[x]`. To construct
-this valuation, we start from the trivial valuation on `\QQ` and consider its
-induced Gauss valuation on `\QQ[x]`, i.e., the valuation that assigns to a
+First, the valuation on `K` is induced by a valuation on `\Q[x]`. To construct
+this valuation, we start from the trivial valuation on `\Q` and consider its
+induced Gauss valuation on `\Q[x]`, i.e., the valuation that assigns to a
 polynomial the minimum of the coefficient valuations::
 
     sage: R.<x> = QQ[]

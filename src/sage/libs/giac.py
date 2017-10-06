@@ -113,6 +113,7 @@ def local_giacsettings(func):
         True
         sage: gp<gporig, gt-gtorig  # optional - giacpy_sage
         (True, 2)
+        sage: giacsettings.threads = gtorig  # optional - giacpy_sage
 
     """
     from sage.misc.decorators import sage_wraps

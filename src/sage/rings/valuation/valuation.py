@@ -961,7 +961,9 @@ class DiscreteValuation(DiscretePseudoValuation):
         ALGORITHM:
 
         We compute :meth:`mac_lane_approximants` with ``required_precision``.
-        The key polynomials approximate factors of ``G``.
+        The key polynomials approximate factors of ``G``. This can be very
+        slow unless ``required_precision`` is set to zero. Single factor
+        lifting could improve this significantly.
 
         EXAMPLES::
 
@@ -990,7 +992,8 @@ class DiscreteValuation(DiscretePseudoValuation):
 
         Some examples that Sebastian Pauli used in a talk at Sage Days 87.
 
-        In this example, ``f`` factors as three factors of degree 50 over an unramified extension::
+        In this example, ``f`` factors as three factors of degree 50 over an
+        unramified extension::
 
             sage: R.<u> = ZqFM(125)
             sage: S.<x> = R[]
@@ -1000,7 +1003,6 @@ class DiscreteValuation(DiscretePseudoValuation):
             [((1 + O(5^20))*x^50 + (2*5 + O(5^20))*x^45 + (5 + O(5^20))*x^40 + (5 + O(5^20))*x^30 + (2 + O(5^20))*x^25 + (3*5 + O(5^20))*x^20 + (2*5 + O(5^20))*x^10 + (2*5 + O(5^20))*x^5 + (5 + O(5^20))*x + 3 + 5 + O(5^20), 1),
             ((1 + O(5^20))*x^50 + (3*5 + O(5^20))*x^40 + (3*5 + O(5^20))*x^30 + (4*5 + O(5^20))*x^20 + (5 + O(5^20))*x^10 + 3 + 5 + O(5^20), 1),
             ((1 + O(5^20))*x^50 + (3*5 + O(5^20))*x^45 + (5 + O(5^20))*x^40 + (5 + O(5^20))*x^30 + (3 + 4*5 + O(5^20))*x^25 + (3*5 + O(5^20))*x^20 + (2*5 + O(5^20))*x^10 + (3*5 + O(5^20))*x^5 + (4*5 + O(5^20))*x + 3 + 5 + O(5^20), 1)]
-
 
         In this case, ``f`` factors into degrees 1, 2, and 5 over a totally ramified extension::
 

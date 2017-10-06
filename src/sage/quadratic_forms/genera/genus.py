@@ -273,14 +273,15 @@ def canonical_2_adic_trains(genus_symbol_quintuple_list, compartments=None):
     is defined to be a maximal interval of Jordan components so that
     at least one of each adjacent pair (allowing zero-dimensional
     Jordan components) is (scaled) of type I (i.e. odd).
-    Note that an interval of length one respects this condition as there is no pair in this interval. Especially, every Jordan component is part of a train.
-    
+    Note that an interval of length one respects this condition as
+    there is no pair in this interval.
+    In particular, every Jordan component is part of a train.
 
     INPUT:
 
-    - genus_symbol_quintuple_list -- a quintuple of integers (with certain
+    - ``genus_symbol_quintuple_list`` -- a quintuple of integers (with certain
       restrictions).
-    - compartments -- this argument is ignored
+    - ``compartments`` -- this argument is deprecated
 
     OUTPUT:
 
@@ -301,9 +302,9 @@ def canonical_2_adic_trains(genus_symbol_quintuple_list, compartments=None):
         sage: A = Matrix(ZZ, 2, 2, [1,0,0,2])
         sage: G2 = LocalGenusSymbol(A, 2); G2
         Genus symbol at 2 : [[0, 1, 1, 1, 1], [1, 1, 1, 1, 1]]
-        sage: canonical_2_adic_compartments(G2.symbol_tuple_list())
+        sage: canonical_2_adic_trains(G2.symbol_tuple_list())
         [[0, 1]]
-        
+
         sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
         sage: G2 = LocalGenusSymbol(A, 2); G2
         Genus symbol at 2 : [[1, 2, 3, 1, 4], [2, 1, 1, 1, 1], [3, 1, 1, 1, 1]]
@@ -322,50 +323,55 @@ def canonical_2_adic_trains(genus_symbol_quintuple_list, compartments=None):
 
     .. NOTE::
 
-        See Conway-Sloane 3rd edition, pp. 381-382 for definitions and examples.
+        See [Co1999]_, pp. 381-382 for definitions and examples.
 
     """
-    #Ignore the compartments argument for backwards compatibility
-    
-    #avoid a special case for the end of symbol
-    #if a jordan component has rank zero it is considered even. 
-    symbol = genus_symbol_quintuple_list
-    symbol.append([symbol[-1][0]+1,0,1,0,0]) #We have just modified the input globally!
-    #Hence, we have to remove the last entry of symbol at the end.
+    if compartments is not None:
+        from sage.misc.superseded import deprecation
+        deprecation(23955, "the compartments keyword has been deprecated")
 
-    trains = []
-    new_train = [0]
-    for i in range(1,len(symbol)-1):
-        if symbol[i][0]-symbol[i-1][0] > 1:
-            #the train ends here since there is a gap of at least 2
-            trains.append(new_train)
-            #create a new train starting at i
-            new_train = [i]
-        else:
-            if symbol[i-1][0] == symbol[i][0]-1:
-                left_neighbor = symbol[i-1][3]
-            else:
-                left_neighbor = 0
-        
-            if symbol[i+1][0] == symbol[i][0]+1:
-                right_neighbor = symbol[i+1][3]
-            else:
-                right_neighbor = 0
-            
-            if left_neighbor == 1 or symbol[i]==1 or right_neighbor==1:
-                #there is an odd jordan block adjacent to this jordan block
-                #the train continues
-                new_train.append(i)
-            else:
-                #the train ends
+    #avoid a special case for the end of symbol
+    #if a jordan component has rank zero it is considered even.
+    symbol = genus_symbol_quintuple_list
+    symbol.append([symbol[-1][0]+1, 0, 1, 0, 0]) #We have just modified the input globally!
+    #Hence, we have to remove the last entry of symbol at the end.
+    try:
+
+        trains = []
+        new_train = [0]
+        for i in range(1,len(symbol)-1):
+            prev, cur, next = symbol[i-1:i+2]
+            if cur[0] - prev[0] > 1:
+                #the train ends here since there is a gap of at least 2
                 trains.append(new_train)
                 #create a new train starting at i
                 new_train = [i]
-    #the last train was never added.
-    trains.append(new_train)
-    #revert the input list to its original state
-    symbol.pop()
-    return trains
+            else:
+                if prev[0] == cur[0] - 1:
+                    left_neighbor = prev[3]
+                else:
+                    left_neighbor = 0
+
+                if next[0] == cur[0] + 1:
+                    right_neighbor = next[3]
+                else:
+                    right_neighbor = 0
+
+                if left_neighbor == 1 or cur[3] == 1 or right_neighbor==1:
+                    #there is an odd jordan block adjacent to this jordan block
+                    #the train continues
+                    new_train.append(i)
+                else:
+                    #the train ends
+                    trains.append(new_train)
+                    #create a new train starting at i
+                    new_train = [i]
+        #the last train was never added.
+        trains.append(new_train)
+        return trains
+    finally:
+        #revert the input list to its original state
+        symbol.pop()
 
 
 

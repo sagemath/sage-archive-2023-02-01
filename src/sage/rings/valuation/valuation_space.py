@@ -1614,7 +1614,9 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 for prec in (0, 1, 42, infinity):
                     try:
                         y = self.inverse(x, prec)
-                    except (ValueError, NotImplementedError):
+                    except NotImplementedError:
+                        continue
+                    except ValueError:
                         tester.assertNotEqual(self(x), 0)
                         tester.assertFalse(x.is_unit())
                         continue

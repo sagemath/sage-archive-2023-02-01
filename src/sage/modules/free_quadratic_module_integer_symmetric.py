@@ -361,7 +361,8 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             raise ValueError("M must have the same ambient vector space as this lattice.")
 
         K = (self.inner_product_matrix() * M.basis_matrix().transpose()).kernel()
-        K.base_extend(QQ)
+        K = self.span( K.basis() )
+        K = K.base_extend(QQ)
         return self.sublattice(self.intersection(K).basis())
 
     def sublattice(self, basis):

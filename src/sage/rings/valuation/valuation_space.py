@@ -1174,6 +1174,8 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 if s >= 0:
                     self(y) >= self(x)
                 if self.domain().is_exact():
+                    # the shift here sometimes fails if elements implement
+                    # __floordiv__ incorrectly, see #23971
                     x == self.shift(y, -s)
 
         def _test_scale(self, **options):

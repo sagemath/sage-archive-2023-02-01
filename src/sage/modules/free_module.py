@@ -4410,16 +4410,13 @@ class FreeModule_ambient(FreeModule_generic):
             if lx == rx:
                 #We do not want to create an inner product matrix in memory if
                 #self and other use the dot product
-                if self._inner_product_is_dot_product()==True and other._inner_product_is_dot_product()==True:
+                if self._inner_product_is_dot_product() and other._inner_product_is_dot_product():
                     return rich_to_bool(op, 0)
                 else:
                     #this only affects free_quadratic_modules
                     lx = self.inner_product_matrix()
                     rx = other.inner_product_matrix()
-                    if lx != rx:
-                        return richcmp_not_equal(lx,rx,op)
-                    else:
-                        return rich_to_bool(op,0)
+                    return richcmp(lx,rx,op)
             try:
                 if self.base_ring().is_subring(other.base_ring()):
                     return rich_to_bool(op, -1)

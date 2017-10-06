@@ -4416,7 +4416,10 @@ class FreeModule_ambient(FreeModule_generic):
                     #this only affects free_quadratic_modules
                     lx = self.inner_product_matrix()
                     rx = other.inner_product_matrix()
-                    return richcmp_not_equal(lx,rx,op)
+                    if lx != rx:
+                        return richcmp_not_equal(lx,rx,op)
+                    else:
+                        return rich_to_bool(op,0)
             try:
                 if self.base_ring().is_subring(other.base_ring()):
                     return rich_to_bool(op, -1)

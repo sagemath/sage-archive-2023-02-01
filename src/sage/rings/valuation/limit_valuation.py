@@ -411,7 +411,8 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
         if is_PolynomialRing(ring) and self.domain().base_ring().is_subring(ring.base_ring()):
             if self.domain().base_ring().fraction_field() is ring.base_ring():
-                return [LimitValuation(self._initial_approximation.change_domain(ring), self._G.change_ring(ring.base_ring()))]
+                return [LimitValuation(self._initial_approximation.change_domain(ring),
+                        self._G.change_ring(ring.base_ring()))]
             else:
                 # we need to recompute the mac lane approximants over this base
                 # ring because it could split differently
@@ -522,7 +523,12 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             # an infinite valuation can not be improved further
             return
 
-        approximations = self._approximation.mac_lane_step(self._G, assume_squarefree=True, assume_equivalence_irreducible=True, check=False, principal_part_bound=1 if self._approximation.E()*self._approximation.F() == self._approximation.phi().degree() else None, report_degree_bounds_and_caches=True)
+        approximations = self._approximation.mac_lane_step(self._G,
+                          assume_squarefree=True,
+                          assume_equivalence_irreducible=True,
+                          check=False,
+                          principal_part_bound=1 if self._approximation.E()*self._approximation.F() == self._approximation.phi().degree() else None,
+                          report_degree_bounds_and_caches=True)
         assert(len(approximations)==1)
         self._approximation, _, _, self._next_coefficients, self._next_valuations = approximations[0]
 
@@ -704,7 +710,8 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
                 # If the valuations are comparable, they must approximate the
                 # same factor of G (see the documentation of LimitValuation:
                 # the approximation must *uniquely* single out a valuation.)
-                return self._initial_approximation >= other._initial_approximation or self._initial_approximation <= other._initial_approximation
+                return (self._initial_approximation >= other._initial_approximation
+                        or self._initial_approximation <= other._initial_approximation)
 
         return super(MacLaneLimitValuation, self)._ge_(other)
 

@@ -771,7 +771,12 @@ class DiscreteValuation(DiscretePseudoValuation):
             new_leafs = []
             if node.forced_leaf:
                 return new_leafs
-            augmentations = node.valuation.mac_lane_step(G, report_degree_bounds_and_caches=True, coefficients=node.coefficients, valuations=node.valuations, check=False, principal_part_bound=node.principal_part_bound)
+            augmentations = node.valuation.mac_lane_step(G,
+                             report_degree_bounds_and_caches=True,
+                             coefficients=node.coefficients,
+                             valuations=node.valuations,
+                             check=False,
+                             principal_part_bound=node.principal_part_bound)
             for w, bound, principal_part_bound, coefficients, valuations in augmentations:
                 ef = bound == w.E()*w.F()
                 new_leafs.append(MacLaneApproximantNode(w, node, ef, principal_part_bound, coefficients, valuations))

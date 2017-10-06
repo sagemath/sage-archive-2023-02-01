@@ -1307,7 +1307,10 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         coefficients = coefficients[::tau]
 
         # recursively reduce the f_i Q^{i tau}
-        C = [self._base_valuation.reduce(c, check=False)(self._residue_field_generator()) if valuations[i] is not infinity else self._base_valuation.residue_ring().zero() for i,c in enumerate(coefficients)]
+        C = [self._base_valuation.reduce(c, check=False)(self._residue_field_generator())
+             if valuations[i] is not infinity
+             else self._base_valuation.residue_ring().zero()
+             for i,c in enumerate(coefficients)]
 
         # reduce the Q'^i phi^i
         return self.residue_ring()(C)
@@ -1424,12 +1427,14 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
         # in the last step of reduce, the f_iQ^i are reduced, and evaluated at
         # the generator of the residue field
         # here, we undo this:
-        coeffs = [ R0(c if self.psi().degree()==1 else list(c._vector_() if hasattr(c, '_vector_') else c.list())) for c in F.coefficients(sparse=False) ]
+        coeffs = [ R0(c if self.psi().degree()==1 else list(c._vector_() if hasattr(c, '_vector_') else c.list()))
+                   for c in F.coefficients(sparse=False) ]
         coeffs = [ self._base_valuation.lift(c) for c in coeffs ]
         # now the coefficients correspond to the expansion with (f_iQ^i)(Q^{-1} phi)^i
 
         # now we undo the factors of Q^i (the if else is necessary to handle the case when mu is infinity, i.e., when _Q_reciprocal() is undefined)
-        coeffs = [ (c if i == 0 else c*self._Q_reciprocal(i)).map_coefficients(_lift_to_maximal_precision) for i,c in enumerate(coeffs) ]
+        coeffs = [ (c if i == 0 else c*self._Q_reciprocal(i)).map_coefficients(_lift_to_maximal_precision)
+                   for i,c in enumerate(coeffs) ]
         # reduce the coefficients mod phi; the part that exceeds phi has no effect on the reduction of the coefficient
         coeffs = [ next(self.coefficients(c)) for c in coeffs ]
 
@@ -1774,7 +1779,10 @@ class FiniteAugmentedValuation(AugmentedValuation_base, FiniteInductiveValuation
         if phiadic:
             coefficients = list(self.coefficients(f))
             valuations = list(self.valuations(f, coefficients=coefficients))
-            return self.domain().change_ring(self.domain())([0 if valuations[i] > error else self._base_valuation.simplify(c, error=error-i*self._mu, force=force, phiadic=True) for (i,c) in enumerate(coefficients)])(self.phi())
+            return self.domain().change_ring(self.domain())([
+                    0 if valuations[i] > error
+                    else self._base_valuation.simplify(c, error=error-i*self._mu, force=force, phiadic=True) 
+                    for (i,c) in enumerate(coefficients)])(self.phi())
         else:
             return self._base_valuation.simplify(f, error=error, force=force)
 

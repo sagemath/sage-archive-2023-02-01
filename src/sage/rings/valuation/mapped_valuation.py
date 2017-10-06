@@ -369,7 +369,8 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
             True
 
         """
-        return isinstance(other, FiniteExtensionFromInfiniteValuation) and self._base_valuation == other._base_valuation
+        return (isinstance(other, FiniteExtensionFromInfiniteValuation)
+                and self._base_valuation == other._base_valuation)
 
     def restriction(self, ring):
         r"""

@@ -816,7 +816,8 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                 for i, slope in enumerate(slopes):
                     verbose("Slope = %s"%slope, level=12)
                     new_mu = old_mu - slope
-                    new_valuations = [val - (j*slope if slope is not -infinity else (0 if j == 0 else -infinity)) for j,val in enumerate(w_valuations)]
+                    new_valuations = [val - (j*slope if slope is not -infinity else (0 if j == 0 else -infinity))
+                                      for j,val in enumerate(w_valuations)]
                     base = self
                     if phi.degree() == base.phi().degree():
                         # very frequently, the degree of the key polynomials
@@ -1033,7 +1034,8 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         R = next(self.coefficients(R))
         fR_valuations = [v-valuation for v in valuations]
         from sage.rings.all import infinity
-        fR_coefficients = [next(self.coefficients(c*R)) if v is not infinity and v == 0 else 0 for c,v in zip(coefficients,fR_valuations)]
+        fR_coefficients = [next(self.coefficients(c*R)) if v is not infinity and v == 0 else 0
+                           for c,v in zip(coefficients,fR_valuations)]
 
         return valuation, phi_divides, self.reduce(f*R, check=False, degree_bound=degree_bound, coefficients=fR_coefficients, valuations=fR_valuations)
 
@@ -1203,7 +1205,8 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             domain = self.domain().change_ring(nonfractions.fraction_field())
             v = self.extension(domain)
             ret = v.equivalence_decomposition(v.domain()(f))
-            return Factorization([(self._eliminate_denominators(g), e) for (g,e) in ret], unit=self._eliminate_denominators(ret.unit()))
+            return Factorization([(self._eliminate_denominators(g), e)
+                                  for (g,e) in ret], unit=self._eliminate_denominators(ret.unit()))
 
         valuation, phi_divides, F = self._equivalence_reduction(f, coefficients=coefficients, valuations=valuations, degree_bound=degree_bound)
         F = F.factor()
@@ -1418,7 +1421,10 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         # if this fails then there is no equivalent polynomial in the domain of this valuation
         ret = g.map_coefficients(
                 lambda c: c.numerator()*nonfraction_valuation.inverse(c.denominator(),
-                        valuation + nonfraction_valuation(c.denominator()) - nonfraction_valuation(c.numerator()) + nonfraction_valuation.value_group().gen()),
+                        valuation
+                        + nonfraction_valuation(c.denominator())
+                        - nonfraction_valuation(c.numerator())
+                        + nonfraction_valuation.value_group().gen()),
                 nonfractions)
         assert w.is_equivalent(f, ret)
         return ret

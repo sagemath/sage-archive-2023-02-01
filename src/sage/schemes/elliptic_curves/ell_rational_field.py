@@ -176,7 +176,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         self.__np = {}
         self.__gens = {}
-        self.__rank = {}
+        self.__rank = None  # tuple (rank, proven)
         self.__regulator = {}
         self.__generalized_modular_degree = {}
         self.__generalized_congruence_number = {}
@@ -215,12 +215,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E._set_rank(99)  # bogus value -- not checked
             sage: E.rank()         # returns bogus cached value
             99
-            sage: E._EllipticCurve_rational_field__rank={} # undo the damage
+            sage: E._EllipticCurve_rational_field__rank = None # undo the damage
             sage: E.rank()         # the correct rank
             1
         """
-        self.__rank = {}
-        self.__rank[True] = Integer(r)
+        self.__rank = (Integer(r), True)
 
     def _set_torsion_order(self, t):
         """
@@ -862,7 +861,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         if C.certain():
             self.__gens[True] = [self.point(x, check=True) for x in C.gens()]
             self.__gens[True].sort()
-            self.__rank[True] = len(self.__gens[True])
+            self.__rank = (Integer(len(self.__gens[True])), True)
         return C.certain()
 
     ####################################################################
@@ -1926,7 +1925,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             if len(gens) == rank_low_bd:
                 self.__gens[True] = gens
                 self.__gens[True].sort()
-            self.__rank[True] = rank_low_bd
+            self.__rank = (Integer(rank_low_bd), True)
 
         return rank_low_bd, two_selmer_rank, pts
 
@@ -1981,10 +1980,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         E = magma(self)
         return Integer(E.ThreeSelmerGroup(MethodForFinalStep = magma('"%s"'%algorithm)).Ngens())
 
-    def rank(self, use_database=False, verbose=False,
-                   only_use_mwrank=True,
-                   algorithm='mwrank_lib',
-                   proof=None):
+    def rank(self, use_database=True, verbose=False,
+             only_use_mwrank=True,
+             algorithm='mwrank_lib',
+             proof=None):
         """
         Return the rank of this elliptic curve, assuming no conjectures.
 
@@ -1993,9 +1992,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         INPUT:
 
-
-        -  ``use_database (bool)`` - (default: ``False``), if
-           ``True``, try to look up the regulator in the Cremona database.
+        -  ``use_database (bool)`` -- (default: ``True``), if
+           ``True``, try to look up the rank in the Cremona database.
 
         -  ``verbose`` - (default: ``False``), if specified changes
            the verbosity of mwrank computations.
@@ -2013,12 +2011,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
            proof.elliptic_curve or sage.structure.proof). Note that results
            obtained from databases are considered proof = True
 
-
-        OUTPUT:
-
-
-        -  ``rank (int)`` - the rank of the elliptic curve.
-
+        OUTPUT: the rank of the elliptic curve as :class:`Integer`
 
         IMPLEMENTATION: Uses L-functions, mwrank, and databases.
 
@@ -2057,33 +2050,60 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: EllipticCurve([1,0,0,0,37455]).rank(proof=True)
             Traceback (most recent call last):
             ...
-            RuntimeError: Rank not provably correct.
+            RuntimeError: rank not provably correct (lower bound: 0)
+
+        TESTS::
+
+            sage: EllipticCurve([1,10000]).rank(algorithm="garbage")
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown algorithm 'garbage'
+
+        Since :trac:`23962`, the default is to use the Cremona
+        database. We also check that the result is cached correctly::
+
+            sage: E = EllipticCurve([-517, -4528])  # 1888b1
+            sage: E.rank(use_database=False)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: rank not provably correct (lower bound: 0)
+            sage: E._EllipticCurve_rational_field__rank
+            (0, False)
+            sage: E.rank()
+            0
+            sage: E._EllipticCurve_rational_field__rank
+            (0, True)
         """
         if proof is None:
             from sage.structure.proof.proof import get_flag
             proof = get_flag(proof, "elliptic_curve")
         else:
             proof = bool(proof)
-        try:
-            return self.__rank[proof]
-        except KeyError:
-            if proof is False and True in self.__rank:
-                return self.__rank[True]
+
+        if self.__rank:
+            rank, proven = self.__rank
+            if proven or not proof:
+                return rank
+
         if use_database:
             try:
-                self.__rank[True] = self.database_attributes()['rank']
-                return self.__rank[True]
+                rank = Integer(self.database_attributes()['rank'])
             except LookupError:
                 # curve not in database, or rank not known
                 pass
+            else:
+                self.__rank = (rank, True)
+                return rank
+
         if not only_use_mwrank:
             # Try zero sum rank bound first; if this is 0 or 1 it's the
             # true rank
             rank_bound = self.analytic_rank_upper_bound()
             if rank_bound <= 1:
                 misc.verbose("rank %s due to zero sum bound and parity"%rank_bound)
-                self.__rank[proof] = rank_bound
-                return self.__rank[proof]
+                rank = Integer(rank_bound)
+                self.__rank = (rank, proof)
+                return rank
             # Next try evaluate the L-function or its derivative at the
             # central point
             N = self.conductor()
@@ -2092,14 +2112,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 L, err = self.lseries().at1(prec)
                 if abs(L) > err + R(0.0001):  # definitely doesn't vanish
                     misc.verbose("rank 0 because L(E,1)=%s"%L)
-                    self.__rank[proof] = 0
-                    return self.__rank[proof]
+                    rank = Integer(0)
+                    self.__rank = (rank, proof)
+                    return rank
             else:
                 Lprime, err = self.lseries().deriv_at1(prec)
                 if abs(Lprime) > err + R(0.0001):  # definitely doesn't vanish
                     misc.verbose("rank 1 because L'(E,1)=%s"%Lprime)
-                    self.__rank[proof] = 1
-                    return self.__rank[proof]
+                    rank = Integer(1)
+                    self.__rank = (rank, proof)
+                    return rank
 
         if algorithm == 'mwrank_lib':
             misc.verbose("using mwrank lib")
@@ -2107,35 +2129,36 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             else: E = self.integral_model()
             C = E.mwrank_curve()
             C.set_verbose(verbose)
-            r = C.rank()
-            if C.certain():
-                proof = True
-            else:
+            rank = Integer(C.rank())
+            proven = C.certain()
+            self.__rank = (rank, proven)
+            if not proven:
                 if proof:
-                    print("Unable to compute the rank with certainty (lower bound=%s)." % C.rank())
+                    print("Unable to compute the rank with certainty (lower bound=%s)." % rank)
                     print("This could be because Sha(E/Q)[2] is nontrivial.")
                     print("Try calling something like two_descent(second_limit=13) on the")
                     print("curve then trying this command again.  You could also try rank")
                     print("with only_use_mwrank=False.")
                     del E.__mwrank_curve
-                    raise RuntimeError('Rank not provably correct.')
+                    raise RuntimeError('rank not provably correct (lower bound: {})'.format(rank))
                 else:
                     misc.verbose("Warning -- rank not proven correct", level=1)
-            self.__rank[proof] = r
-        elif algorithm == 'mwrank_shell':
+            return rank
+
+        if algorithm == 'mwrank_shell':
             misc.verbose("using mwrank shell")
             X = self.mwrank()
             if 'determined unconditionally' not in X or 'only a lower bound of' in X:
                 if proof:
                     X= "".join(X.split("\n")[-4:-2])
                     print(X)
-                    raise RuntimeError('Rank not provably correct.')
+                    raise RuntimeError('rank not provably correct')
                 else:
                     misc.verbose("Warning -- rank not proven correct", level=1)
 
                 s = "lower bound of"
                 X = X[X.rfind(s)+len(s)+1:]
-                r = Integer(X.split()[0])
+                rank = Integer(X.split()[0])
             else:
                 if proof is False:
                     proof = True #since we actually provably found the rank
@@ -2147,10 +2170,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                     if i == -1:
                         raise RuntimeError("%s\nbug -- tried to find 'Rank =' or 'found points of rank' in mwrank output but couldn't."%X)
                 j = i + X[i:].find('\n')
-                r = Integer(X[i+len(match)+1:j])
-            self.__rank[proof] = r
+                rank = Integer(X[i+len(match)+1:j])
+            self.__rank = (rank, proof)
+            return rank
 
-        return self.__rank[proof]
+        raise ValueError("unknown algorithm {!r}".format(algorithm))
 
     def gens(self, proof=None, **kwds):
         """
@@ -2241,7 +2265,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         result, proved = self._compute_gens(proof, **kwds)
         self.__gens[proved] = result
-        self.__rank[proved] = len(result)
+        self.__rank = (Integer(len(result)), proved)
         self._known_points = result
         return list(result)
 
@@ -2838,7 +2862,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             points = self.saturation(points, verbose=verbose)[0]
         return points
 
-
     def selmer_rank(self):
         """
         The rank of the 2-Selmer group of the curve.
@@ -2886,7 +2909,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             self.__selmer_rank = C.selmer_rank()
             return self.__selmer_rank
 
-
     def rank_bound(self):
         """
         Upper bound on the rank of the curve, computed using
@@ -2920,7 +2942,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             C = self.mwrank_curve()
             self.__rank_bound = C.rank_bound()
             return self.__rank_bound
-
 
     def an(self, n):
         """

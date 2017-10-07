@@ -369,7 +369,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
         sage: E.rank()
         1
         sage: E._EllipticCurve_rational_field__rank
-        {True: 1}
+        (1, True)
         sage: E.analytic_rank = lambda : 0
         sage: E.prove_BSD()
         Traceback (most recent call last):

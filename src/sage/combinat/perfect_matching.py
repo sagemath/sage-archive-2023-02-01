@@ -295,7 +295,7 @@ class PerfectMatching(ElementWrapper):
             sage: M in set(PerfectMatchings(4))
             True
         """
-        return sum(hash(a) + hash(b) for a, b in self.value)
+        return hash(tuple(sorted(tuple(sorted(p)) for p in m)))
 
     def __eq__(self, other):
         r"""

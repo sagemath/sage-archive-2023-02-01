@@ -56,6 +56,9 @@ from .number_field_element_quadratic import OrderElement_quadratic
 
 from sage.rings.monomials import monomials
 
+from sage.arith.misc import kronecker_symbol
+from sage.misc.misc_c import prod
+
 
 def is_NumberFieldOrder(R):
     r"""
@@ -783,16 +786,37 @@ class Order(IntegralDomain):
             1
             sage: QQ[sqrt(-23)].maximal_order().class_number()
             3
+            sage: ZZ[120*sqrt(-23)].class_number()
+            288
 
-        Note that non-maximal orders aren't supported yet::
+        Note that non-maximal orders are only supported in quadratic imaginary fields::
 
             sage: ZZ[3*sqrt(-3)].class_number()
+            3
+            sage: ZZ[3*sqrt(3)].class_number()
             Traceback (most recent call last):
             ...
-            NotImplementedError: computation of class numbers of non-maximal orders is not implemented
+            NotImplementedError: computation of class numbers of non-maximal orders not in quadratic imaginary fields is not implemented
+
+        REFERENCES::
+
+        The formula for non-maximal orders in quadratic imaginary fields comes from
+        Theorem 7.24 of [Cox2011].
+
+        - [Cox2011] David Cox, Prims of the Form x^2 + ny^2.
+
         """
         if not self.is_maximal():
-            raise NotImplementedError("computation of class numbers of non-maximal orders is not implemented")
+            K = self.number_field()
+            D = K.discriminant()
+            if D > 0 or K.degree() != 2:
+                raise NotImplementedError("computation of class numbers of non-maximal orders not in quadratic imaginary fields is not implemented")
+            h = K.class_number(proof=proof)
+            f = ZZ(self.index_in(K.ring_of_integers()))
+            omega = K.number_of_roots_of_unity()
+            units_index = omega/2 if f > 1 else 1
+            n = h * f / units_index * prod(1 - kronecker_symbol(D,p)/p for p in f.prime_divisors())
+            return ZZ(n)
         return self.number_field().class_number(proof=proof)
 
     def class_group(self, proof=None, names='c'):

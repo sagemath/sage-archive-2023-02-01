@@ -7919,7 +7919,7 @@ class GenericGraph(GenericGraph_pyx):
         if constraint_generation:
 
             p = MixedIntegerLinearProgram(constraint_generation = True,
-                                          maximization = False)
+                                          maximization = False, solver = solver)
 
             # A variable for each vertex
             b = p.new_variable(binary = True)

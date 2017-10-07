@@ -186,8 +186,8 @@ class PerfectMatching(ElementWrapper):
                                  "there are some repetitions" % p)
         # Second case: p is a permutation or a list of integers, we have to
         # check if it is a fix-point-free involution.
-        elif ((isinstance(p, list) and
-               all(((isinstance(x, Integer) or isinstance(x, int)) for x in p)))
+        elif (isinstance(p, list) and
+              all(isinstance(x, (int, Integer)) for x in p)
               or isinstance(p, Permutation)):
             p = Permutation(p)
             n = len(p)
@@ -283,8 +283,19 @@ class PerfectMatching(ElementWrapper):
             sage: n = PerfectMatching([3,8,1,7,6,5,4,2])
             sage: hash(n) #indirect doctest #random
             8097274995140737937
+
+        Check that :trac:`23982` is fixed::
+
+            sage: M = PerfectMatching([(2, 3), (4, 1)]); M
+            [(2, 3), (4, 1)]
+            sage: M in PerfectMatchings(4)
+            True
+            sage: set(PerfectMatchings(4))
+            {[(1, 2), (3, 4)], [(1, 3), (2, 4)], [(1, 4), (2, 3)]}
+            sage: M in set(PerfectMatchings(4))
+            True
         """
-        return hash(tuple(self.value))
+        return sum(hash(a) + hash(b) for a, b in self.value)
 
     def __eq__(self, other):
         r"""
@@ -888,11 +899,8 @@ class PerfectMatchings(UniqueRepresentation, Parent):
             sage: PerfectMatchings._parse_input(['a','b','c','e'])
             {'a', 'c', 'b', 'e'}
         """
-        # if the argument is a python int n, we replace it by the list [1 .. n]
-        if isinstance(objects, int):
-            objects = list(range(1, objects + 1))
-        # same thing if the argument is a sage integer.
-        elif isinstance(objects, Integer):
+        # if the argument is an integer n, we replace it with the list [1 .. n]
+        if isinstance(objects, (int, Integer)):
             objects = list(range(1, objects + 1))
         # Finally, if it is iterable, we return the corresponding set.
         # Note that it is important to return a hashable object here (in
@@ -922,7 +930,7 @@ class PerfectMatchings(UniqueRepresentation, Parent):
             sage: N is M
             True
         """
-        #we call the constructor of an other class, which will
+        #we call the constructor of another class, which will
         #    - check if the object has already been constructed (so the
         # second argument, i.e. the output of _parse_input, must be hashable)
         #    - look for a place in memory and call the __init__ function

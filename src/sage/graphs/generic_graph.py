@@ -7925,7 +7925,6 @@ class GenericGraph(GenericGraph_pyx):
             b = p.new_variable(binary = True)
 
             # Variables are binary, and their coefficient in the objective is 1
-
             p.set_objective(p.sum( b[v] for v in self))
 
             p.solve(log = verbose)
@@ -7934,8 +7933,7 @@ class GenericGraph(GenericGraph_pyx):
             while True:
 
                 # Building the graph without the vertices removed by the LP
-                h = self.subgraph(vertices =
-                                  [v for v in self if p.get_values(b[v]) == 0])
+                h = self.subgraph([v for v in self if p.get_values(b[v]) == 0])
 
                 # Is the graph acyclic ?
                 if self.is_directed():
@@ -7947,13 +7945,20 @@ class GenericGraph(GenericGraph_pyx):
                 if isok:
                     break
 
-                if verbose:
-                    print("Adding a constraint on circuit: ", certificate)
-
                 # There is a circuit left. Let's add the corresponding
                 # constraint !
+                while not isok:
+                    
+                    p.add_constraint(p.sum(b[v] for v in certificate), min = 1)
+                    if verbose:
+                        print("Adding a constraint on circuit: ", certificate)
 
-                p.add_constraint(p.sum(b[v] for v in certificate), min = 1)
+                    # Let's search for a vertex disjoint circuit, if any
+                    h.delete_vertices(certificate)
+                    if self.is_directed():
+                        isok, certificate = h.is_directed_acyclic(certificate = True)
+                    else:
+                        isok, certificate = h.is_forest(certificate = True)
 
                 obj = p.solve(log = verbose)
 

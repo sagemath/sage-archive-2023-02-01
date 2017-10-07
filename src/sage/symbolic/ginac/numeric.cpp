@@ -3822,6 +3822,7 @@ const numeric numeric::mod(const numeric &b) const {
                                 return v._long % b.v._long;
                         if (b.t == MPZ)
                                 return to_bigint().mod(b);
+                        throw std::runtime_error("unsupported type in numeric::md");
                 case MPZ:
                         if (b.t == LONG)
                                 return mod(b.to_bigint());
@@ -3832,6 +3833,7 @@ const numeric numeric::mod(const numeric &b) const {
                                 mpz_mod(bigint, v._bigint, b.v._bigint);
                                 return bigint;
                         }
+                        throw std::runtime_error("unsupported type in numeric::md");
                 case MPQ:
                 case PYOBJECT:
                 {
@@ -3853,6 +3855,7 @@ const numeric numeric::irem(const numeric &b) const {
                                 return std::remainder(v._long, b.v._long);
                         if (b.t == MPZ)
                                 return to_bigint().irem(b);
+                        throw std::runtime_error("unsupported type in numeric::irem");
                 case MPZ:
                         if (b.t == LONG)
                                 return irem(b.to_bigint());
@@ -3863,6 +3866,7 @@ const numeric numeric::irem(const numeric &b) const {
                                 mpz_fdiv_r(bigint, v._bigint, b.v._bigint);
                                 return bigint;
                         }
+                        throw std::runtime_error("unsupported type in numeric::irem");
                 case MPQ:
                 case PYOBJECT:
                 {
@@ -3880,6 +3884,7 @@ const numeric numeric::iquo(const numeric &b) const {
                                 return v._long / b.v._long;
                         if (b.t == MPZ)
                                 return to_bigint().iquo(b);
+                        throw std::runtime_error("unsupported type in numeric::iquo");
                 case MPZ:
                         if (b.t == LONG) {
                                 mpz_t bigint;
@@ -3896,6 +3901,7 @@ const numeric numeric::iquo(const numeric &b) const {
                                 mpz_fdiv_q(bigint, v._bigint, b.v._bigint);
                                 return bigint;
                         }
+                        throw std::runtime_error("unsupported type in numeric::iquo");
                 case MPQ:
                 case PYOBJECT:
                 default:
@@ -3914,6 +3920,7 @@ const numeric numeric::iquo(const numeric &b, numeric& r) const {
                         }
                         if (b.t == MPZ)
                                 return to_bigint().iquo(b, r);
+                        throw std::runtime_error("unsupported type in numeric::iquo");
                 case MPZ:
                         if (b.t == LONG) {
                                 mpz_t bigint;
@@ -3932,6 +3939,7 @@ const numeric numeric::iquo(const numeric &b, numeric& r) const {
                                 r = numeric(tmp);
                                 return bigint;
                         }
+                        throw std::runtime_error("unsupported type in numeric::iquo");
                 case MPQ:
                 case PYOBJECT:
                 default:
@@ -4038,6 +4046,7 @@ const numeric numeric::lcm(const numeric &b) const
                         }
                         if (b.t == MPZ)
                                 return to_bigint().lcm(b);
+                        throw std::runtime_error("unsupported type in numeric::lcm");
                 case MPZ:
                         if (b.t == LONG)
                                 return lcm(b.to_bigint());
@@ -4047,6 +4056,7 @@ const numeric numeric::lcm(const numeric &b) const
                                 mpz_lcm(bigint, v._bigint, b.v._bigint);
                                 return bigint;
                         }
+                        throw std::runtime_error("unsupported type in numeric::lcm");
                 case MPQ:
                 case PYOBJECT:
                 {

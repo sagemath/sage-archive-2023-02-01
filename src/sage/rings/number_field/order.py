@@ -798,12 +798,10 @@ class Order(IntegralDomain):
             ...
             NotImplementedError: computation of class numbers of non-maximal orders not in quadratic imaginary fields is not implemented
 
-        REFERENCES::
+        .. NOTE::
 
-        The formula for non-maximal orders in quadratic imaginary fields comes from
-        Theorem 7.24 of [Cox2011].
-
-        - [Cox2011] David Cox, Prims of the Form x^2 + ny^2.
+            The formula for non-maximal orders in quadratic imaginary fields comes from
+            Theorem 7.24 of [Cox2013]_.
 
         """
         if not self.is_maximal():

@@ -10,11 +10,6 @@ over 25 years of hard work.
 
 eclib is licensed GPL v2+.
 
-== Maintainers ==
-
- * William Stein
- * John Cremona
-
 == Upstream Contact ==
 
  * Author: John Cremona

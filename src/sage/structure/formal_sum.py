@@ -63,6 +63,7 @@ TESTS::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import sage.misc.misc
 import operator
@@ -70,11 +71,13 @@ import sage.misc.latex
 
 from sage.modules.module import Module
 from sage.structure.element import ModuleElement
+from sage.structure.richcmp import richcmp
 from sage.rings.integer_ring import ZZ
 from sage.structure.parent import Parent
 from sage.structure.coerce import LeftModuleAction, RightModuleAction
 from sage.categories.action import PrecomposedAction
 from sage.structure.unique_representation import UniqueRepresentation
+
 
 class FormalSum(ModuleElement):
     """
@@ -140,7 +143,7 @@ class FormalSum(ModuleElement):
         """
         EXAMPLES::
 
-            sage: for z in FormalSum([(1,2), (5, 1000), (-3, 7)]): print z
+            sage: for z in FormalSum([(1,2), (5, 1000), (-3, 7)]): print(z)
             (1, 2)
             (-3, 7)
             (5, 1000)
@@ -184,7 +187,7 @@ class FormalSum(ModuleElement):
             sage: a._repr_()    # random
             '2/3 - 3*4/5 + 7*2'
         """
-        return sage.misc.misc.repr_lincomb([t,c] for c,t in self)
+        return sage.misc.misc.repr_lincomb([t, c] for c, t in self)
 
     def _latex_(self):
         """
@@ -194,19 +197,21 @@ class FormalSum(ModuleElement):
             5\cdot \frac{8}{9} + 2 - 3\cdot 7
         """
         symbols = [z[1] for z in self]
-        coeffs= [z[0] for z in self]
+        coeffs = [z[0] for z in self]
         return sage.misc.latex.repr_lincomb(symbols, coeffs)
         # TODO: finish merging sage.misc.latex.repr_lincomb and
         # sage.misc.misc.repr_lincomb and use instead:
         # return sage.misc.misc.repr_lincomb([[t,c] for c,t in self], is_latex=True)
 
-    def __cmp__(left, right):
+    def _richcmp_(left, right, op):
         """
         Compare ``left`` and ``right``.
 
         INPUT:
 
-        - ``right`` -- a :class:`FormalSum` with the same parent.
+        - ``right`` -- a :class:`FormalSum` with the same parent
+
+        - ``op`` -- a comparison operator
 
         EXAMPLES::
 
@@ -214,18 +219,15 @@ class FormalSum(ModuleElement):
             3 + 2*5
             sage: b = FormalSum([(1,3),(2,7)]); b
             3 + 2*7
-            sage: abs(cmp(a,b))          # indirect test
-            1
+            sage: a != b
+            True
             sage: a_QQ = FormalSum([(1,3),(2,5)],parent=FormalSums(QQ))
-            sage: abs(cmp(a,a_QQ))       # a is coerced into FormalSums(QQ)
-            0
-            sage: abs(cmp(a,0))          # 0 is coerced into a.parent()(0)
-            1
-            sage: abs(cmp(a,'string'))   # will NOT evaluate via this method
-            1
+            sage: a == a_QQ       # a is coerced into FormalSums(QQ)
+            True
+            sage: a == 0          # 0 is coerced into a.parent()(0)
+            False
         """
-        # if necessary, left and right have already been coerced to the same parent()
-        return cmp(left._data, right._data)
+        return richcmp(left._data, right._data, op)
 
     def _neg_(self):
         """
@@ -263,7 +265,7 @@ class FormalSum(ModuleElement):
         """
         return self.__class__([(s*c, x) for (c, x) in self], check=False, parent=self.parent())
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         EXAMPLES::
 
@@ -274,12 +276,14 @@ class FormalSum(ModuleElement):
             sage: bool(FormalSums(QQ)(1))
             True
         """
-        if len(self._data) == 0:
+        if not len(self._data):
             return False
         for c, _ in self._data:
             if not c.is_zero():
                 return True
         return False
+
+    __nonzero__ = __bool__
 
     def reduce(self):
         """
@@ -381,8 +385,6 @@ class FormalSums(UniqueRepresentation, Module):
             P = x.parent()
             if P is self:
                 return x
-            elif P == self:
-                return self.element_class(x._data, check=False, reduce=False, parent=self)
             else:
                 x = x._data
         if isinstance(x, list):
@@ -396,14 +398,14 @@ class FormalSums(UniqueRepresentation, Module):
         r"""
         Return whether there is a coercion from ``X``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: FormalSums(QQ).has_coerce_map_from( FormalSums(ZZ) )   # indirect test
             True
 
             sage: FormalSums(ZZ).get_action(QQ)   # indirect test
             Right scalar multiplication by Rational Field on Abelian Group of all Formal Finite Sums over Rational Field
-            with precomposition on left by Conversion map:
+            with precomposition on left by Coercion map:
               From: Abelian Group of all Formal Finite Sums over Integer Ring
               To:   Abelian Group of all Formal Finite Sums over Rational Field
         """
@@ -438,7 +440,7 @@ class FormalSums(UniqueRepresentation, Module):
 
             sage: A = FormalSums(ZZ);  A.get_action(QQ)
             Right scalar multiplication by Rational Field on Abelian Group of all Formal Finite Sums over Rational Field
-            with precomposition on left by Conversion map:
+            with precomposition on left by Coercion map:
               From: Abelian Group of all Formal Finite Sums over Integer Ring
               To:   Abelian Group of all Formal Finite Sums over Rational Field
             sage: A = FormalSums(QQ);  A.get_action(ZZ)

@@ -10,11 +10,6 @@ Richard McKelvey at the California Institute of Technology.
 
 GPL v2+
 
-== SPKG Maintainers ==
-
-* James Campbell
-* Vince Knight
-
 == Upstream Contact ==
 
 * Website: http://www.gambit-project.org/

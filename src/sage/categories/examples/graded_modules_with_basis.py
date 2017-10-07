@@ -9,6 +9,7 @@ Examples of graded modules with basis
 #*****************************************************************************
 
 from sage.categories.graded_modules_with_basis import GradedModulesWithBasis
+from sage.categories.filtered_modules_with_basis import FilteredModulesWithBasis
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.partition import Partitions
 
@@ -20,7 +21,7 @@ class GradedPartitionModule(CombinatorialFreeModule):
 
     INPUT:
 
-    - ``R`` - base ring
+    - ``R`` -- base ring
 
     The implementation involves the following:
 
@@ -76,10 +77,10 @@ class GradedPartitionModule(CombinatorialFreeModule):
           'P[4, 3]'
 
     - There is a class for elements, which inherits from
-      :class:`CombinatorialFreeModuleElement
-      <sage.combinat.free_module.CombinatorialFreeModuleElement>`.  An
-      element is determined by a dictionary whose keys are partitions and whose
-      corresponding values are the coefficients.  The class implements
+      :class:`IndexedFreeModuleElement
+      <sage.modules.with_basis.indexed_element.IndexedFreeModuleElement>`.
+      An element is determined by a dictionary whose keys are partitions and
+      whose corresponding values are the coefficients.  The class implements
       two things: an :meth:`is_homogeneous
       <GradedModules.Element.is_homogeneous>` method and a
       :meth:`degree <GradedModules.Element.degree>` method.
@@ -106,7 +107,7 @@ class GradedPartitionModule(CombinatorialFreeModule):
 
     # FIXME: this is currently required, because the implementation of ``basis``
     # in CombinatorialFreeModule overrides that of GradedModulesWithBasis
-    basis = GradedModulesWithBasis.ParentMethods.__dict__['basis']
+    basis = FilteredModulesWithBasis.ParentMethods.__dict__['basis']
 
     # This could be a default implementation
     def degree_on_basis(self, t):

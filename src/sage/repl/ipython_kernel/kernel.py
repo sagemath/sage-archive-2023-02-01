@@ -1,8 +1,8 @@
 """
 The Sage ZMQ Kernel
 
-Version of the IPython kernel when running Sage inside the IPython
-notebook or remote IPython sessions.
+Version of the Jupyter kernel when running Sage inside the Jupyter
+notebook or remote Jupyter sessions.
 """
 
 #*****************************************************************************
@@ -15,19 +15,19 @@ notebook or remote IPython sessions.
 #*****************************************************************************
 
 import sys
-from IPython.kernel.zmq.ipkernel import IPythonKernel
-from IPython.kernel.zmq.zmqshell import ZMQInteractiveShell
-from IPython.utils.traitlets import Type
+from ipykernel.ipkernel import IPythonKernel
+from ipykernel.zmqshell import ZMQInteractiveShell
+from traitlets import Type
 
-from sage.env import SAGE_VERSION, SAGE_EXTCODE, SAGE_DOC
+from sage.env import SAGE_VERSION
 from sage.repl.interpreter import SageNotebookInteractiveShell
-from sage.repl.ipython_extension import SageCustomizations
+from sage.repl.ipython_extension import SageJupyterCustomizations
 
 class SageZMQInteractiveShell(SageNotebookInteractiveShell, ZMQInteractiveShell):
     pass
 
 
-class SageKernel(IPythonKernel):    
+class SageKernel(IPythonKernel):
     implementation = 'sage'
     implementation_version = SAGE_VERSION
 
@@ -35,11 +35,11 @@ class SageKernel(IPythonKernel):
 
     def __init__(self, **kwds):
         """
-        The Sage IPython Kernel
+        The Sage Jupyter Kernel
 
         INPUT:
 
-        See the IPython documentation
+        See the Jupyter documentation
 
         EXAMPLES::
 
@@ -48,14 +48,14 @@ class SageKernel(IPythonKernel):
             <sage.repl.ipython_kernel.kernel.SageKernel object at 0x...>
         """
         super(SageKernel, self).__init__(**kwds)
-        SageCustomizations(self.shell)
+        SageJupyterCustomizations(self.shell)
 
     @property
     def banner(self):
         r"""
         The Sage Banner
-        
-        The value of this property is displayed in the IPython
+
+        The value of this property is displayed in the Jupyter
         notebook.
 
         OUTPUT:
@@ -67,7 +67,7 @@ class SageKernel(IPythonKernel):
             sage: from sage.repl.ipython_kernel.kernel import SageKernel
             sage: sk = SageKernel.__new__(SageKernel)
             sage: sk.banner
-            '\xe2\x94\x8c\xe2...SageMath Version...'
+            '...SageMath version...'
         """
         from sage.misc.banner import banner_text
         return banner_text()
@@ -75,11 +75,16 @@ class SageKernel(IPythonKernel):
     @property
     def help_links(self):
         r"""
-        Help in the IPython Notebook
-        
+        Help in the Jupyter Notebook
+
         OUTPUT:
 
-        See the IPython documentation.
+        See the Jupyter documentation.
+
+        .. NOTE::
+
+            Urls starting with "kernelspecs" are prepended by the
+            browser with the appropriate path.
 
         EXAMPLES::
 
@@ -87,16 +92,16 @@ class SageKernel(IPythonKernel):
             sage: sk = SageKernel.__new__(SageKernel)
             sage: sk.help_links
             [{'text': 'Sage Documentation',
-              'url': '/kernelspecs/sage_.../doc/index.html'},
+              'url': 'kernelspecs/sagemath/doc/index.html'},
              ...]
         """
         from sage.repl.ipython_kernel.install import SageKernelSpec
         identifier = SageKernelSpec.identifier()
-        kernel_url = lambda x: '/kernelspecs/{0}/{1}'.format(identifier, x)
+        kernel_url = lambda x: 'kernelspecs/{0}/{1}'.format(identifier, x)
         return [
             {
                 'text': 'Sage Documentation',
-                'url': kernel_url('doc/index.html')
+                'url': kernel_url('doc/index.html'),
             },
             {
                 'text': 'Sage Tutorial',
@@ -119,7 +124,7 @@ class SageKernel(IPythonKernel):
                 'url': kernel_url('doc/reference/index.html'),
             },
             {
-                'text': 'Developers Guide',
+                'text': "Developer's Guide",
                 'url': kernel_url('doc/developer/index.html'),
             },
             {
@@ -159,3 +164,23 @@ class SageKernel(IPythonKernel):
                 'url': "http://help.github.com/articles/github-flavored-markdown",
             },
         ]
+
+    def pre_handler_hook(self):
+        """
+        Restore the signal handlers to their default values at Sage
+        startup, saving the old handler at the ``saved_sigint_handler``
+        attribute. This is needed because Jupyter needs to change the
+        ``SIGINT`` handler.
+
+        See :trac:`19135`.
+
+        TESTS::
+
+            sage: from sage.repl.ipython_kernel.kernel import SageKernel
+            sage: k = SageKernel.__new__(SageKernel)
+            sage: k.pre_handler_hook()
+            sage: k.saved_sigint_handler
+            <cyfunction python_check_interrupt at ...>
+        """
+        from cysignals import init_cysignals
+        self.saved_sigint_handler = init_cysignals()

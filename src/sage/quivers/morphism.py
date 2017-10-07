@@ -146,7 +146,7 @@ class QuiverRepHom(CallMorphism):
             sage: Proj.hom(im, Simp).is_surjective()
             True
 
-        TESTS::
+        ::
 
             sage: Q = DiGraph({1:{2:['a']}}).path_semigroup()
             sage: H1 = Q.P(GF(3), 2).Hom(Q.S(GF(3), 2))
@@ -271,9 +271,9 @@ class QuiverRepHom(CallMorphism):
         for v in self._quiver:
             if v in maps_dict:
                 if is_Map(maps_dict[v]):
-                    if hasattr(maps_dict[v], 'matrix'):
+                    try:
                         m = maps_dict[v].matrix()
-                    else:
+                    except (AttributeError, ValueError):
                         gens_images = [codomain._spaces[v].coordinate_vector(maps_dict[v](x))
                                        for x in domain._spaces[v].gens()]
                         m = Matrix(self._base_ring, domain_dims[v], codomain_dims[v], gens_images)
@@ -304,7 +304,7 @@ class QuiverRepHom(CallMorphism):
             sage: S.hom(M) # indirect doctest
             Homomorphism of representations of Multi-digraph on 3 vertices
         """
-        return "Homomorphism of representations of " + self._quiver.__repr__()
+        return "Homomorphism of representations of " + repr(self._quiver)
 
     def _call_(self, x):
         """
@@ -1253,7 +1253,7 @@ class QuiverRepHom(CallMorphism):
 
     def scalar_mult(self, scalar):
         r"""
-        Return the result of the scalar multiplcation ``scalar * self``,
+        Return the result of the scalar multiplication ``scalar * self``,
         where ``scalar`` is an element of the base ring `k`.
 
         EXAMPLES::

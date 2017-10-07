@@ -12,10 +12,6 @@ programs that require cryptographic functions.
 Mostly dedicated to the public domain, with some files covered by the
 Python 2.2 license.
 
-== SPKG Maintainers ==
-
- * Minh Van Nguyen <nguyenminh2@gmail.com>
-
 == Upstream Contact ==
 
  * Website: www.pycrypto.org

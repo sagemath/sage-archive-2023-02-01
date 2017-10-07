@@ -539,26 +539,11 @@ static CYTHON_INLINE struct ZZ_pX ZZ_pE_to_ZZ_pX(struct ZZ_pE x)
 
 //////// mat_ZZ //////////
 
-static CYTHON_INLINE void mat_ZZ_SetDims(mat_ZZ* mZZ, long nrows, long ncols){
-    mZZ->SetDims(nrows, ncols);
-}
-
 static CYTHON_INLINE mat_ZZ* mat_ZZ_pow(const mat_ZZ* x, long e)
 {
     mat_ZZ *z = new mat_ZZ();
     NTL::power(*z, *x, e);
     return z;
-}
-
-static CYTHON_INLINE long mat_ZZ_nrows(const mat_ZZ* x)
-{
-    return x->NumRows();
-}
-
-
-static CYTHON_INLINE long mat_ZZ_ncols(const mat_ZZ* x)
-{
-    return x->NumCols();
 }
 
 static CYTHON_INLINE void mat_ZZ_setitem(mat_ZZ* x, int i, int j, const struct ZZ* z)
@@ -606,20 +591,6 @@ static CYTHON_INLINE struct ZZX* mat_ZZ_charpoly(const mat_ZZ* A)
     return f;
 }
 
-/**
- * GF2EContext
- */
-
-static CYTHON_INLINE GF2EContext* GF2EContext_construct(void *mem, const GF2X *p)
-{
-    return new(mem) GF2EContext(*p);
-}
-
-static CYTHON_INLINE GF2EContext* GF2EContext_new(const GF2X *p)
-{
-    return new GF2EContext(*p);
-}
-
 static CYTHON_INLINE void mat_GF2E_setitem(mat_GF2E* x, int i, int j, const struct GF2E* z)
 {
     (*x)[i][j] = *z;
@@ -628,25 +599,6 @@ static CYTHON_INLINE void mat_GF2E_setitem(mat_GF2E* x, int i, int j, const stru
 static CYTHON_INLINE void mat_GF2_setitem(mat_GF2* x, int i, int j, const struct GF2* z)
 {
     (*x)[i][j] = *z;
-}
-
-/**
- * ZZ_pContext
- */
-
-static CYTHON_INLINE ZZ_pContext* ZZ_pContext_new(ZZ *p)
-{
-    return new ZZ_pContext(*p);
-}
-
-static CYTHON_INLINE ZZ_pContext* ZZ_pContext_construct(void *mem, ZZ *p)
-{
-    return new(mem) ZZ_pContext(*p);
-}
-
-static CYTHON_INLINE void ZZ_pContext_restore(ZZ_pContext *ctx)
-{
-    ctx->restore();
 }
 
 // Functions for using ZZ_pX's for p-adic extensions
@@ -877,44 +829,6 @@ static void ZZ_pX_InvMod_newton_ram(struct ZZ_pX &x, const struct ZZ_pX &a, cons
     }
     delete minusa;
     delete xn;
-}
-
-/**
- * ZZ_pEContext
- */
-
-static CYTHON_INLINE ZZ_pEContext* ZZ_pEContext_new(ZZ_pX *f)
-{
-    return new ZZ_pEContext(*f);
-}
-
-static CYTHON_INLINE ZZ_pEContext* ZZ_pEContext_construct(void *mem, ZZ_pX *f)
-{
-    return new(mem) ZZ_pEContext(*f);
-}
-
-static CYTHON_INLINE void ZZ_pEContext_restore(ZZ_pEContext *ctx)
-{
-    ctx->restore();
-}
-
-/**
- * zz_pContext
- */
-
-static CYTHON_INLINE zz_pContext* zz_pContext_new(long p)
-{
-    return new zz_pContext(p);
-}
-
-static CYTHON_INLINE zz_pContext* zz_pContext_construct(void *mem, long p)
-{
-    return new(mem) zz_pContext(p);
-}
-
-static CYTHON_INLINE void zz_pContext_restore(zz_pContext *ctx)
-{
-    ctx->restore();
 }
 
 #endif  /* #ifdef __cplusplus */

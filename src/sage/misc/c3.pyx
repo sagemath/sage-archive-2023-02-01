@@ -9,14 +9,16 @@ AUTHOR:
 
 - Simon King (2011-11): initial version.
 """
-#*****************************************************************************
-#  Copyright (C) 2011    Simon King <simon.king@uni-jena.de>
-#
-#  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
 
-include "sage/ext/python.pxi"
+#*****************************************************************************
+#       Copyright (C) 2011 Simon King <simon.king@uni-jena.de>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 cpdef list C3_algorithm(object start, str bases, str attribute, bint proper):
     """

@@ -31,12 +31,13 @@ TESTS::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from six.moves import range
 import sage.modular.cusps as cusps
 from sage.modular.modsym.apply import apply_to_monomial
 from sage.modular.modsym.manin_symbol import ManinSymbol
 from sage.structure.sage_object import SageObject
 import sage.structure.formal_sum as formal_sum
+from sage.structure.richcmp import richcmp_method, richcmp
 from sage.rings.integer_ring import ZZ
 from sage.misc.latex import latex
 
@@ -44,6 +45,8 @@ _C = cusps.Cusps
 
 X, Y = ZZ['X,Y'].gens()
 
+
+@richcmp_method
 class ModularSymbol(SageObject):
     r"""
     The modular symbol `X^i\cdot Y^{k-2-i}\cdot \{\alpha, \beta\}`.
@@ -117,7 +120,7 @@ class ModularSymbol(SageObject):
         return [self.__alpha, self.__beta][j]
 
     def _latex_(self):
-        """
+        r"""
         Return Latex representation of this modular symbol.
 
         EXAMPLES::
@@ -134,9 +137,9 @@ class ModularSymbol(SageObject):
         return "%s\\left\\{%s, %s\\right\\}"%(polypart,
                   latex(self.__alpha), latex(self.__beta))
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
-        Compare self to other.
+        Compare ``self`` to ``other``.
 
         EXAMPLES::
 
@@ -155,9 +158,10 @@ class ModularSymbol(SageObject):
             True
         """
         if not isinstance(other, ModularSymbol):
-            return cmp(type(self), type(other))
-        return cmp((self.__space,-self.__i,self.__alpha,self.__beta),
-                   (other.__space,-other.__i,other.__alpha,other.__beta))
+            return NotImplemented
+        return richcmp((self.__space, -self.__i, self.__alpha, self.__beta),
+                       (other.__space,-other.__i,other.__alpha,other.__beta),
+                       op)
 
     def space(self):
         """
@@ -268,7 +272,7 @@ class ModularSymbol(SageObject):
 
         The action of `g` on symbols is by
 
-        .. math::
+        .. MATH::
 
            P(X,Y)\{\alpha, \beta\} \mapsto  P(dX-bY, -cx+aY) \{g(\alpha), g(\beta)\}.
 
@@ -334,7 +338,7 @@ class ModularSymbol(SageObject):
         v = [(0,1), (1,0)]
         if not alpha.is_infinity():
             cf = alpha._rational_().continued_fraction()
-            v.extend((cf.p(k),cf.q(k)) for k in xrange(len(cf)))
+            v.extend((cf.p(k),cf.q(k)) for k in range(len(cf)))
         sign = 1
         z = formal_sum.FormalSum(0)
         for j in range(1,len(v)):

@@ -182,7 +182,7 @@ Yes, you can output some of your results into LaTeX.
 
     sage: M = MatrixSpace(RealField(),3,3)
     sage: A = M([1,2,3, 4,5,6, 7,8,9])
-    sage: print latex(A)
+    sage: print(latex(A))
     \left(\begin{array}{rrr}
         1.00000000000000 & 2.00000000000000 & 3.00000000000000 \\
         4.00000000000000 & 5.00000000000000 & 6.00000000000000 \\
@@ -206,7 +206,7 @@ is also available:
     sage: x = PolynomialRing(QQ,3, 'x').gens()
     sage: f = x[0] + x[1] - 2*x[1]*x[2]
     sage: h = f /(x[1] + x[2])
-    sage: print latex(h)
+    sage: print(latex(h))
     \frac{-2 x_{1} x_{2} + x_{0} + x_{1}}{x_{1} + x_{2}}
 
 Sage and other computer algebra systems
@@ -228,7 +228,7 @@ Command-line Sage help
 If you know only part of the name of a Sage command and want to
 know where it occurs in Sage, a new option for 0.10.11 has been
 added to make it easier to hunt it down. Just type
-``sage -grep <string>`` to find all occurences of ``<string>`` in the
+``sage -grep <string>`` to find all occurrences of ``<string>`` in the
 Sage source code. For example,
 
 ::
@@ -301,8 +301,8 @@ directory of Sage) with the following content:
 
 ::
 
-    print "Hello World"
-    print 2^3
+    print("Hello World")
+    print(2^3)
 
 .. index:: load into Sage
 
@@ -394,7 +394,7 @@ use an editor to read the code itself.
 ===========================
 
 Sage has many special functions (see the reference
-manual at http://sagemath.org/doc/reference/functions/),
+manual at http://doc.sagemath.org/html/en/reference/functions/),
 and most of them can be
 manipulated symbolically. Where this is not implemented,
 it is possible that other symbolic packages have the

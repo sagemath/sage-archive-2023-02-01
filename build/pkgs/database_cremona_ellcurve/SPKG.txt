@@ -10,10 +10,6 @@ This is an optional package, not included by default.
 == License ==
 Public Domain
 
-== SPKG Maintainers ==
- * R. Andrew Ohana
- * John Cremona
-
 == Dependencies ==
 None
 

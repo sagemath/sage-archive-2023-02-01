@@ -6,7 +6,7 @@ AUTHORS:
 - Volker Braun, Jeroen Demeyer (2012-10-18): move these functions here
   from sage/misc/misc.py and make them secure, see :trac:`13579`.
 
-- Jeroen Demeyer (2013-03-17): add class:`atomic_write`,
+- Jeroen Demeyer (2013-03-17): add :class:`atomic_write`,
   see :trac:`14292`.
 """
 
@@ -19,7 +19,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 import os
 import tempfile
@@ -35,7 +35,7 @@ def delete_tmpfiles():
     separate session of Sage::
 
         sage: from sage.tests.cmdline import test_executable
-        sage: child_SAGE_TMP, err, ret = test_executable(["sage", "-c", "print SAGE_TMP"])
+        sage: child_SAGE_TMP, err, ret = test_executable(["sage", "-c", "print(SAGE_TMP)"])
         sage: err, ret
         ('', 0)
         sage: os.path.exists(child_SAGE_TMP)  # indirect doctest
@@ -150,7 +150,7 @@ def tmp_filename(name="tmp_", ext=""):
 def graphics_filename(ext='.png'):
     """
     Deprecated SageNB graphics filename
-    
+
     You should just use :meth:`tmp_filename`.
 
     When run from the Sage notebook, return the next available canonical
@@ -171,7 +171,7 @@ def graphics_filename(ext='.png'):
     EXAMPLES::
 
         sage: from sage.misc.temporary_file import graphics_filename
-        sage: print graphics_filename()  # random, typical filename for sagenb
+        sage: print(graphics_filename())  # random, typical filename for sagenb
         sage0.png
 
     TESTS:
@@ -185,21 +185,8 @@ def graphics_filename(ext='.png'):
         True
         sage: fn.endswith('.jpeg')
         True
-
-    Historically, it was also possible to omit the dot. This has been
-    changed in :trac:`16640` but it will still work for now::
-
-        sage: fn = graphics_filename("jpeg")
-        doctest:...: DeprecationWarning: extension must now include the dot
-        See http://trac.sagemath.org/16640 for details.
-        sage: fn.endswith('.jpeg')
-        True
     """
     import sage.plot.plot
-    from sage.misc.superseded import deprecation
-    if ext[0] not in '.-':
-        deprecation(16640, "extension must now include the dot")
-        ext = '.' + ext
     if sage.plot.plot.EMBEDDED_MODE:
         # Don't use this unsafe function except in the notebook, #15515
         i = 0
@@ -208,6 +195,7 @@ def graphics_filename(ext='.png'):
         filename = 'sage%d%s'%(i,ext)
         return filename
     else:
+        from sage.misc.superseded import deprecation
         deprecation(17234,'use tmp_filename instead')
         return tmp_filename(ext=ext)
 
@@ -248,9 +236,9 @@ class atomic_write:
 
         sage: from sage.misc.temporary_file import atomic_write
         sage: target_file = tmp_filename()
-        sage: open(target_file, "w").write("Old contents")
+        sage: _ = open(target_file, "w").write("Old contents")
         sage: with atomic_write(target_file) as f:
-        ....:     f.write("New contents")
+        ....:     _ = f.write("New contents")
         ....:     f.flush()
         ....:     open(target_file, "r").read()
         'Old contents'
@@ -262,10 +250,10 @@ class atomic_write:
 
         sage: from sage.misc.temporary_file import atomic_write
         sage: target_file = tmp_filename()
-        sage: open(target_file, "w").write("Old contents")
+        sage: _ = open(target_file, "w").write("Old contents")
         sage: with atomic_write(target_file) as f:
         ....:     f.close()
-        ....:     open(f.name, "w").write("Newer contents")
+        ....:     _ = open(f.name, "w").write("Newer contents")
         sage: open(target_file, "r").read()
         'Newer contents'
 
@@ -273,7 +261,7 @@ class atomic_write:
     not touched::
 
         sage: with atomic_write(target_file) as f:
-        ....:     f.write("Newest contents")
+        ....:     _ = f.write("Newest contents")
         ....:     raise RuntimeError
         Traceback (most recent call last):
         ...
@@ -287,14 +275,14 @@ class atomic_write:
 
         sage: target_file = tmp_filename()
         sage: with atomic_write(target_file, append=True) as f:
-        ....:     f.write("Hello")
+        ....:     _ = f.write("Hello")
         sage: with atomic_write(target_file, append=True) as f:
-        ....:     f.write(" World")
+        ....:     _ = f.write(" World")
         sage: open(target_file, "r").read()
         'Hello World'
         sage: with atomic_write(target_file, append=True) as f:
         ....:     f.seek(0)
-        ....:     f.write("HELLO")
+        ....:     _ = f.write("HELLO")
         sage: open(target_file, "r").read()
         'HELLO World'
 
@@ -304,7 +292,7 @@ class atomic_write:
         sage: link_to_target = os.path.join(tmp_dir(), "templink")
         sage: os.symlink(target_file, link_to_target)
         sage: with atomic_write(link_to_target) as f:
-        ....:     f.write("Newest contents")
+        ....:     _ = f.write("Newest contents")
         sage: open(target_file, "r").read()
         'Newest contents'
 
@@ -326,11 +314,11 @@ class atomic_write:
     Test writing twice to the same target file. The outermost ``with``
     "wins"::
 
-        sage: open(target_file, "w").write(">>> ")
+        sage: _ = open(target_file, "w").write(">>> ")
         sage: with atomic_write(target_file, append=True) as f, \
         ....:          atomic_write(target_file, append=True) as g:
-        ....:     f.write("AAA"); f.close()
-        ....:     g.write("BBB"); g.close()
+        ....:     _ = f.write("AAA"); f.close()
+        ....:     _ = g.write("BBB"); g.close()
         sage: open(target_file, "r").read()
         '>>> AAA'
     """
@@ -342,9 +330,9 @@ class atomic_write:
             sage: link_to_target = os.path.join(tmp_dir(), "templink")
             sage: os.symlink("/foobar", link_to_target)
             sage: aw = atomic_write(link_to_target)
-            sage: print aw.target
+            sage: print(aw.target)
             /foobar
-            sage: print aw.tmpdir
+            sage: print(aw.tmpdir)
             /
         """
         self.target = os.path.realpath(target_filename)

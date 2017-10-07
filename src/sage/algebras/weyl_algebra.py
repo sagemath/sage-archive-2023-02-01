@@ -7,28 +7,32 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#  Copyright (C) 2013 Travis Scrimshaw <tscrim at ucdavis.edu>
+#       Copyright (C) 2013 Travis Scrimshaw <tscrim at ucdavis.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.latex import latex
-from sage.structure.element import AlgebraElement, get_coercion_model
+from sage.structure.richcmp import richcmp
+from sage.structure.element import AlgebraElement
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.element import have_same_parent
 from copy import copy
-import operator
 from sage.categories.rings import Rings
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.sets.family import Family
-from sage.combinat.dict_addition import dict_addition, dict_linear_combination
-from sage.combinat.free_module import _divide_if_possible
+import sage.data_structures.blas_dict as blas
 from sage.rings.ring import Algebra
 from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
 from sage.rings.polynomial.multi_polynomial_ring_generic import MPolynomialRing_generic
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
+import six
+
 
 def repr_from_monomials(monomials, term_repr, use_latex=False):
     r"""
@@ -209,43 +213,40 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
             sage: x0,x1,x2,dx0,dx1,dx2 = W.gens()
             sage: latex( ((x0^3-x2)*dx0 + dx1)^2 )
             \frac{\partial^{2}}{\partial x_{1}^{2}}
-             + 2 \frac{\partial^{2}}{\partial x_{0}\partial x_{1}}
-             - 2 \frac{\partial^{2}}{\partial x_{0}\partial x_{1}}
-             + \frac{\partial^{2}}{\partial x_{0}^{2}}
-             - 2 \frac{\partial^{2}}{\partial x_{0}^{2}}
-             + \frac{\partial^{2}}{\partial x_{0}^{2}}
-             + 3 \frac{\partial}{\partial x_{0}}
-             - 3 \frac{\partial}{\partial x_{0}}
+             + 2 x_{0}^{3} \frac{\partial^{2}}{\partial x_{0} \partial x_{1}}
+             - 2 x_{2} \frac{\partial^{2}}{\partial x_{0} \partial x_{1}}
+             + x_{0}^{6} \frac{\partial^{2}}{\partial x_{0}^{2}}
+             - 2 x_{0}^{3} x_{2} \frac{\partial^{2}}{\partial x_{0}^{2}}
+             + x_{2}^{2} \frac{\partial^{2}}{\partial x_{0}^{2}}
+             + 3 x_{0}^{5} \frac{\partial}{\partial x_{0}}
+             - 3 x_{0}^{2} x_{2} \frac{\partial}{\partial x_{0}}
         """
         def term(m):
-            # Variable part
             R = self.parent()._poly_ring
-            ret = repr( R.sum(R.gen(i)**e for i,e in enumerate(m[0])) )
-            # Differential part
-            m = m[1]
-            total = sum(m)
-            if total == 0:
+            exp = lambda e: '^{{{}}}'.format(e) if e > 1 else ''
+            def half_term(mon, polynomial):
+                total = sum(mon)
+                if total == 0:
+                    return '1'
+                ret = ' '.join('{}{}'.format(latex(R.gen(i)), exp(power)) if polynomial
+                               else '\\partial {}{}'.format(latex(R.gen(i)), exp(power))
+                               for i,power in enumerate(mon) if power > 0)
+                if not polynomial:
+                    return '\\frac{{\\partial{}}}{{{}}}'.format(exp(total), ret)
                 return ret
-            ret += ' '
-            if total == 1:
-                ret = '\\frac{\\partial}{'
+            p = half_term(m[0], True)
+            d = half_term(m[1], False)
+            if p == '1': # No polynomial part
+                return d
+            elif d == '1': # No differential part
+                return p
             else:
-                ret = '\\frac{\\partial^{' + repr(total) + '}}{'
-            for i, power in enumerate(m):
-                if power == 0:
-                    continue
-                name = R.gen(i)
-                if power == 1:
-                    ret += '\\partial {0}'.format(latex(name))
-                else:
-                    ret += '\\partial {0}^{{{1}}}'.format(latex(name), power)
-            return ret + '}'
+                return p + ' ' + d
         return repr_from_monomials(self.list(), term, True)
 
-    # Copied from CombinatorialFreeModuleElement
-    def __eq__(self, other):
+    def _richcmp_(self, other, op):
         """
-        Check equality.
+        Rich comparison for equal parents.
 
         TESTS::
 
@@ -264,20 +265,6 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
             False
             sage: W(x^3 - y*z) == x^3 - y*z
             True
-        """
-        if have_same_parent(self, other):
-            return self.__monomials == other.__monomials
-        try:
-            return get_coercion_model().bin_op(self, other, operator.eq)
-        except TypeError:
-            return False
-
-    def __ne__(self, rhs):
-        """
-        Check inequality.
-
-        TESTS::
-
             sage: W.<x,y,z> = DifferentialWeylAlgebra(QQ)
             sage: dx,dy,dz = W.differentials()
             sage: dx != dy
@@ -285,7 +272,7 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
             sage: W.one() != 1
             False
         """
-        return not self.__eq__(rhs)
+        return richcmp(self.__monomials, other.__monomials, op)
 
     def __neg__(self):
         """
@@ -298,7 +285,7 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
             sage: dy - (3*x - z)*dx
             dy + z*dx - 3*x*dx
         """
-        return self.__class__(self.parent(), {m:-c for m,c in self.__monomials.iteritems()})
+        return self.__class__(self.parent(), {m:-c for m,c in six.iteritems(self.__monomials)})
 
     def _add_(self, other):
         """
@@ -312,11 +299,11 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
             dx*dy + dz + x^3 - 2
         """
         F = self.parent()
-        return self.__class__(F, dict_addition([self.__monomials, other.__monomials]))
+        return self.__class__(F, blas.add(self.__monomials, other.__monomials))
 
         d = copy(self.__monomials)
         zero = self.parent().base_ring().zero()
-        for m,c in other.__monomials.iteritems():
+        for m,c in six.iteritems(other.__monomials):
             d[m] = d.get(m, zero) + c
             if d[m] == zero:
                 del d[m]
@@ -402,9 +389,38 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
         M = self.__monomials
         return self.__class__(self.parent(), {t: M[t]*other for t in M})
 
+    def monomial_coefficients(self, copy=True):
+        """
+        Return a dictionary which has the basis keys in the support
+        of ``self`` as keys and their corresponding coefficients
+        as values.
+
+        INPUT:
+
+        - ``copy`` -- (default: ``True``) if ``self`` is internally
+          represented by a dictionary ``d``, then make a copy of ``d``;
+          if ``False``, then this can cause undesired behavior by
+          mutating ``d``
+
+        EXAMPLES::
+
+            sage: W.<x,y,z> = DifferentialWeylAlgebra(QQ)
+            sage: dx,dy,dz = W.differentials()
+            sage: elt = (dy - (3*x - z)*dx)
+            sage: sorted(elt.monomial_coefficients().items())
+            [(((0, 0, 0), (0, 1, 0)), 1),
+             (((0, 0, 1), (1, 0, 0)), 1),
+             (((1, 0, 0), (1, 0, 0)), -3)]
+        """
+        if copy:
+            return dict(self.__monomials)
+        return self.__monomials
+
     def __iter__(self):
         """
         Return an iterator of ``self``.
+
+        This is the iterator of ``self.list()``.
 
         EXAMPLES::
 
@@ -421,6 +437,11 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
         """
         Return ``self`` as a list.
 
+        This list consists of pairs `(m, c)`, where `m` is a pair of
+        tuples indexing a basis element of ``self``, and `c` is the
+        coordinate of ``self`` corresponding to this basis element.
+        (Only nonzero coordinates are shown.)
+
         EXAMPLES::
 
             sage: W.<x,y,z> = DifferentialWeylAlgebra(QQ)
@@ -434,9 +455,26 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
         return sorted(self.__monomials.items(),
                       key=lambda x: (-sum(x[0][1]), x[0][1], -sum(x[0][0]), x[0][0]) )
 
+    def support(self):
+        """
+        Return the support of ``self``.
+
+        EXAMPLES::
+
+            sage: W.<x,y,z> = DifferentialWeylAlgebra(QQ)
+            sage: dx,dy,dz = W.differentials()
+            sage: elt = dy - (3*x - z)*dx + 1
+            sage: elt.support()
+            [((0, 0, 0), (0, 1, 0)),
+             ((1, 0, 0), (1, 0, 0)),
+             ((0, 0, 0), (0, 0, 0)),
+             ((0, 0, 1), (1, 0, 0))]
+        """
+        return self.__monomials.keys()
+
     # This is essentially copied from
     #   sage.combinat.free_module.CombinatorialFreeModuleElement
-    def __div__(self, x, self_on_left=False):
+    def __truediv__(self, x):
         """
         Division by coefficients.
 
@@ -455,14 +493,14 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
         if F.base_ring().is_field():
             x = F.base_ring()( x )
             x_inv = x**-1
-            if self_on_left:
-                D = dict_linear_combination( [ ( D, x_inv ) ], factor_on_left=False )
-            else:
-                D = dict_linear_combination( [ ( D, x_inv ) ] )
+            D = blas.linear_combination( [ ( D, x_inv ) ] )
 
             return self.__class__(F, D)
 
-        return self.__class__(F, {t: _divide_if_possible(D[t], x) for t in D})
+        return self.__class__(F, {t: D[t]._divide_if_possible(x) for t in D})
+
+    __div__ = __truediv__
+
 
 class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
     r"""
@@ -527,6 +565,11 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
 
         sage: W.<a,b> = DifferentialWeylAlgebra(QQ); W
         Differential Weyl algebra of polynomials in a, b over Rational Field
+
+    .. TODO::
+
+        Implement the :meth:`graded_algebra` as a polynomial ring once
+        they are considered to be graded rings (algebras).
     """
     @staticmethod
     def __classcall__(cls, R, names=None):
@@ -567,7 +610,12 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
             raise ValueError("variable names cannot differ by a leading 'd'")
         # TODO: Make this into a filtered algebra under the natural grading of
         #   x_i and dx_i have degree 1
-        Algebra.__init__(self, R, names, category=AlgebrasWithBasis(R).NoZeroDivisors())
+        # Filtered is not included because it is a supercategory of super
+        if R.is_field():
+            cat = AlgebrasWithBasis(R).NoZeroDivisors().Super()
+        else:
+            cat = AlgebrasWithBasis(R).Super()
+        Algebra.__init__(self, R, names, category=cat)
 
     def _repr_(self):
         r"""
@@ -611,7 +659,7 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
             return self.element_class(self, {i: R(c) for i,c in x if R(c) != zero})
         x = self._poly_ring(x)
         return self.element_class(self, {(tuple(m), t): c
-                                         for m,c in x.dict().iteritems()})
+                                         for m,c in six.iteritems(x.dict())})
 
     def _coerce_map_from_(self, R):
         """
@@ -661,6 +709,24 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
                      and self.base_ring().has_coerce_map_from(R.base_ring()) )
         return super(DifferentialWeylAlgebra, self)._coerce_map_from_(R)
 
+    def degree_on_basis(self, i):
+        """
+        Return the degree of the basis element indexed by ``i``.
+
+        EXAMPLES::
+
+            sage: W.<a,b> = DifferentialWeylAlgebra(QQ)
+            sage: W.degree_on_basis( ((1, 3, 2), (0, 1, 3)) )
+            10
+
+            sage: W.<x,y,z> = DifferentialWeylAlgebra(QQ)
+            sage: dx,dy,dz = W.differentials()
+            sage: elt = y*dy - (3*x - z)*dx
+            sage: elt.degree()
+            2
+        """
+        return sum(i[0]) + sum(i[1])
+
     def polynomial_ring(self):
         """
         Return the associated polynomial ring of ``self``.
@@ -693,13 +759,20 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
             sage: [next(it) for i in range(20)]
             [1, x, y, dx, dy, x^2, x*y, x*dx, x*dy, y^2, y*dx, y*dy,
              dx^2, dx*dy, dy^2, x^3, x^2*y, x^2*dx, x^2*dy, x*y^2]
+            sage: dx, dy = W.differentials()
+            sage: (dx*x).monomials()
+            [1, x*dx]
+            sage: B[(x*y).support()[0]]
+            x*y
+            sage: sorted((dx*x).monomial_coefficients().items())
+            [(((0, 0), (0, 0)), 1), (((1, 0), (1, 0)), 1)]
         """
         n = self._n
-        # TODO in #17927: use IntegerVectors(length=2*n)
-        from sage.combinat.integer_list import IntegerListsNN
-        I = IntegerListsNN(length=n*2)
+        from sage.combinat.integer_lists.nn import IntegerListsNN
+        elt_map = lambda u : (tuple(u[:n]), tuple(u[n:]))
+        I = IntegerListsNN(length=2*n, element_constructor=elt_map)
         one = self.base_ring().one()
-        f = lambda x: self.element_class(self, {(tuple(x[:n]),tuple(x[n:])): one})
+        f = lambda x: self.element_class(self, {(x[0], x[1]): one})
         return Family(I, f, name="basis map")
 
     @cached_method

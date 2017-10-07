@@ -2,6 +2,8 @@
 .. Aug 21 20:15:55 2008. You can adapt this file completely to your
 .. liking, but it should at least contain the root `toctree` directive.
 
+.. _thematic-tutorials:
+
 Welcome to the Sage Thematic Tutorials!
 =======================================
 
@@ -56,6 +58,7 @@ Algebra
 
 * :ref:`group_theory`
 * :ref:`lie`
+* :ref:`sage.modules.tutorial_free_modules`
 
 Number Theory
 -------------
@@ -78,6 +81,7 @@ Combinatorics
 
 * :ref:`sage.combinat.tutorial`
 * :ref:`coding_theory`
+* :ref:`structures_in_coding_theory`
 
 Algebraic Combinatorics
 -----------------------
@@ -94,7 +98,7 @@ Parents/Elements, Categories and algebraic structures
 * :ref:`coercion_and_categories`
 * :ref:`sage.categories.primer`
 * :ref:`sage.categories.tutorial`
-
+* :ref:`tutorial-implementing-algebraic-structures`
 
 Numerical computations
 ----------------------

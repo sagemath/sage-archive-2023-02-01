@@ -93,8 +93,8 @@ class ObjectReprABC(object):
             'Error: ObjectReprABC.__call__ is abstract'
         """
         from sage.repl.display.pretty_print import SagePrettyPrinter
-        import StringIO
-        stream = StringIO.StringIO()
+        from six import StringIO
+        stream = StringIO()
         p = SagePrettyPrinter(stream, 79, '\n')
         ok = self(obj, p, False)
         if ok:
@@ -119,8 +119,7 @@ class SomeIPythonRepr(ObjectReprABC):
         .. automethod:: __call__
         """
         type_repr = _type_pprinters.copy()
-        del type_repr[types.TypeType]
-        del type_repr[types.ClassType]
+        del type_repr[type]
         del type_repr[types.BuiltinFunctionType]
         del type_repr[types.FunctionType]
         del type_repr[str]
@@ -210,7 +209,7 @@ class LargeMatrixHelpRepr(ObjectReprABC):
         if obj.nrows() < max_rows and obj.ncols() < max_cols:
             return False
         p.text(
-            str(obj) + " (use the '.str()' method to see the entries)"
+            repr(obj) + " (use the '.str()' method to see the entries)"
         )
         return True
 
@@ -317,11 +316,36 @@ class TallListRepr(ObjectReprABC):
             sage: format_list = TallListRepr().format_string
             sage: format_list([1, 2, identity_matrix(2)])
             '[\n      [1 0]\n1, 2, [0 1]\n]'
+
+        Check that :trac:`18743` is fixed::
+
+            sage: class Foo(object):
+            ....:     def __repr__(self):
+            ....:         return '''BBB    AA   RRR
+            ....: B  B  A  A  R  R
+            ....: BBB   AAAA  RRR
+            ....: B  B  A  A  R  R
+            ....: BBB   A  A  R   R'''
+            ....:     def _repr_option(self, key):
+            ....:         return key == 'ascii_art'
+            sage: F = Foo()
+            sage: [F, F]
+            [
+            BBB    AA   RRR    BBB    AA   RRR  
+            B  B  A  A  R  R   B  B  A  A  R  R 
+            BBB   AAAA  RRR    BBB   AAAA  RRR  
+            B  B  A  A  R  R   B  B  A  A  R  R 
+            BBB   A  A  R   R, BBB   A  A  R   R
+            ]
         """
         if not (isinstance(obj, (tuple, list)) and len(obj) > 0):
             return False
         ascii_art_repr = False
         for o in obj:
+            try:
+                ascii_art_repr = ascii_art_repr or o._repr_option('ascii_art')
+            except (AttributeError, TypeError):
+                pass
             try:
                 ascii_art_repr = ascii_art_repr or o.parent()._repr_option('element_ascii_art')
             except (AttributeError, TypeError):

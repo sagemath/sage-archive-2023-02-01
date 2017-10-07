@@ -54,7 +54,7 @@ divisor representing a divisor class::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 from sage.libs.gmp.mpq cimport *
 
@@ -82,7 +82,7 @@ def is_ToricRationalDivisorClass(x):
     EXAMPLES::
 
         sage: from sage.schemes.toric.divisor_class import (
-        ...     is_ToricRationalDivisorClass)
+        ....:   is_ToricRationalDivisorClass)
         sage: is_ToricRationalDivisorClass(1)
         False
         sage: dP6 = toric_varieties.dP6()
@@ -137,12 +137,6 @@ cdef class ToricRationalDivisorClass(Vector_rational_dense):
         """
         return (_ToricRationalDivisorClass_unpickle_v1,
                 (self._parent, list(self), self._degree, self._is_mutable))
-
-    cdef _new_c(self):
-        cdef ToricRationalDivisorClass y
-        y = ToricRationalDivisorClass.__new__(ToricRationalDivisorClass)
-        y._init(self._degree, self._parent)
-        return y
 
     cpdef _act_on_(self, other, bint self_on_left):
         """
@@ -209,7 +203,7 @@ cdef class ToricRationalDivisorClass(Vector_rational_dense):
         # Now let the standard framework work...
         return Vector_rational_dense._act_on_(self, other, self_on_left)
 
-    cpdef Element _dot_product_(self, Vector right):
+    cpdef _dot_product_(self, Vector right):
         r"""
         Raise a ``TypeError`` exception.
 
@@ -248,7 +242,7 @@ cdef class ToricRationalDivisorClass(Vector_rational_dense):
         TESTS::
 
             sage: D = toric_varieties.dP6().divisor(0).divisor_class()
-            sage: print D._latex_()
+            sage: print(D._latex_())
             \left[ 1, 0, 0, 0 \right]_{\mathop{Cl}_{\QQ}\left(\mathbb{P}_{\Delta^{2}_{9}}\right)}
         """
         return r"\left[ %s \right]_{%s}" % (
@@ -325,18 +319,18 @@ def _ToricRationalDivisorClass_unpickle_v1(parent, entries,
         sage: loads(dumps(D))   # indirect test
         Divisor class [1, -2, 3, -4]
         sage: from sage.schemes.toric.divisor_class import (
-        ...       _ToricRationalDivisorClass_unpickle_v1)
+        ....:     _ToricRationalDivisorClass_unpickle_v1)
         sage: _ToricRationalDivisorClass_unpickle_v1(
-        ...      Cl, [1, -2, 3, -4], 4, True)
+        ....:    Cl, [1, -2, 3, -4], 4, True)
         Divisor class [1, -2, 3, -4]
     """
     cdef ToricRationalDivisorClass v
     v = ToricRationalDivisorClass.__new__(ToricRationalDivisorClass)
     v._init(degree, parent)
     cdef Rational z
+    cdef Py_ssize_t i
     for i from 0 <= i < degree:
         z = Rational(entries[i])
-        mpq_init(v._entries[i])
         mpq_set(v._entries[i], z.value)
     v._is_mutable = is_mutable
     return v

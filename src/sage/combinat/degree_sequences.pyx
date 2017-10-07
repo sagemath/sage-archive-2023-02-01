@@ -20,7 +20,7 @@ With the object ``DegreeSequences(n)``, one can :
     * List all the possible degree sequences of length `n`::
 
         sage: for seq in DegreeSequences(4):
-        ...       print seq
+        ....:     print(seq)
         [0, 0, 0, 0]
         [1, 1, 0, 0]
         [2, 1, 1, 0]
@@ -48,8 +48,9 @@ Definitions
 
 A sequence of integers `d_1,...,d_n` is said to be a *degree sequence* (or
 *graphic* sequence) if there exists a graph in which vertex `i` is of degree
-`d_i`. It is often required to be *non-increasing*, i.e. that `d_1 \geq ... \geq
-d_n`.
+`d_i`. It is often required to be *non-increasing*, i.e. that
+`d_1 \geq ... \geq d_n`. Finding a graph with given degree sequence is
+known as *graph realization problem*.
 
 An integer sequence need not necessarily be a degree sequence. Indeed, in a
 degree sequence of length `n` no integer can be larger than `n-1` -- the degree
@@ -224,9 +225,9 @@ The sequences produced by random graphs *are* degree sequences::
     sage: n = 30
     sage: DS = DegreeSequences(30)
     sage: for i in range(10):
-    ...      g = graphs.RandomGNP(n,.2)
-    ...      if not g.degree_sequence() in DS:
-    ...          print "Something is very wrong !"
+    ....:     g = graphs.RandomGNP(n,.2)
+    ....:     if not g.degree_sequence() in DS:
+    ....:         print("Something is very wrong !")
 
 Checking that we indeed enumerate *all* the degree sequences for `n=5`::
 
@@ -263,9 +264,10 @@ Checking the consistency of enumeration and test::
 
 
 from libc.string cimport memset
+from cysignals.memory cimport check_calloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
+
 from sage.rings.integer cimport Integer
-include 'sage/ext/stdsage.pxi'
-include "sage/ext/interrupt.pxi"
 
 
 cdef unsigned char * seq
@@ -283,14 +285,24 @@ class DegreeSequences:
         information, please refer to the documentation of the
         :mod:`DegreeSequence<sage.combinat.degree_sequences>` module.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: DegreeSequences(8)
             Degree sequences on 8 elements
             sage: [3,3,2,2,2,2,2,2] in DegreeSequences(8)
             True
 
+        TESTS:
+
+        :trac:`21824`::
+
+            sage: DegreeSequences(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: The input parameter must be >= 0.
         """
+        if n < 0:
+            raise ValueError("The input parameter must be >= 0.")
         self._n = n
 
     def __contains__(self, seq):
@@ -298,7 +310,7 @@ class DegreeSequences:
         Checks whether a given integer sequence is the degree sequence
         of a graph on `n` elements
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: [3,3,2,2,2,2,2,2] in DegreeSequences(8)
             True
@@ -309,6 +321,17 @@ class DegreeSequences:
 
             sage: [2,2,2,2,1,1,1] in DegreeSequences(7)
             False
+
+        :trac:`21824`::
+
+            sage: [d for d in DegreeSequences(0)]
+            [[]]
+            sage: [d for d in DegreeSequences(1)]
+            [[0]]
+            sage: [d for d in DegreeSequences(3)]
+            [[0, 0, 0], [1, 1, 0], [2, 1, 1], [2, 2, 2]]
+            sage: [d for d in DegreeSequences(1)]
+            [[0]]
         """
         cdef int n = self._n
         if len(seq)!=n:
@@ -353,7 +376,7 @@ class DegreeSequences:
         """
         Representing the element
 
-        TEST::
+        TESTS::
 
             sage: DegreeSequences(6)
             Degree sequences on 6 elements
@@ -367,22 +390,19 @@ class DegreeSequences:
         TODO: THIS SHOULD BE UPDATED AS SOON AS THE YIELD KEYWORD APPEARS IN
         CYTHON. See comment in the class' documentation.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: DS = DegreeSequences(6)
             sage: all(seq in DS for seq in DS)
             True
         """
-
-        init(self._n)
-        return iter(sequences)
+        return iter( init(self._n) )
 
     def __dealloc__():
         """
         Freeing the memory
         """
-        if seq != NULL:
-            sage_free(seq)
+        sig_free(seq)
 
 cdef init(int n):
     """
@@ -397,10 +417,7 @@ cdef init(int n):
     elif n == 1:
         return [[0]]
 
-    sig_on()
-    seq = <unsigned char *> sage_malloc((n+1)*sizeof(unsigned char))
-    memset(seq,0,(n+1)*sizeof(unsigned char))
-    sig_off()
+    seq = <unsigned char *>check_calloc(n + 1, sizeof(unsigned char))
 
     # We begin with one vertex of degree 0
     seq[0] = 1
@@ -408,7 +425,7 @@ cdef init(int n):
     N = n
     sequences = []
     enum(1,0)
-    sage_free(seq)
+    sig_free(seq)
     return sequences
 
 cdef inline add_seq():

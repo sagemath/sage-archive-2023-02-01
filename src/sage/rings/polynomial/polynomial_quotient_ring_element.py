@@ -74,17 +74,24 @@ AUTHORS:
 - William Stein
 """
 
-###########################################################################
+#*****************************************************************************
 #       Copyright (C) 2005, 2007 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-###########################################################################
+#*****************************************************************************
+from six.moves import range
 
-import sage.rings.commutative_ring_element as commutative_ring_element
+from sage.structure.element import CommutativeRingElement
+from sage.structure.richcmp import richcmp
 import sage.rings.number_field.number_field_rel as number_field_rel
 import sage.rings.polynomial.polynomial_singular_interface as polynomial_singular_interface
 
-class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_singular_repr,commutative_ring_element.CommutativeRingElement):
+
+class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_singular_repr, CommutativeRingElement):
     """
     Element of a quotient of a polynomial ring.
 
@@ -118,7 +125,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
         from sage.rings.polynomial.polynomial_quotient_ring import PolynomialQuotientRing_generic
         from sage.rings.polynomial.polynomial_element import Polynomial
 
-        commutative_ring_element.CommutativeRingElement.__init__(self, parent)
+        CommutativeRingElement.__init__(self, parent)
         if check:
             if not isinstance(parent, PolynomialQuotientRing_generic):
                 raise TypeError("parent must be a polynomial quotient ring")
@@ -151,7 +158,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
         return self._polynomial._im_gens_(codomain, im_gens)
 
     def __hash__(self):
-        return self._polynomial.__hash__()
+        return hash(self._polynomial)
 
     def __reduce__(self):
         """
@@ -190,7 +197,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
         """
         return self._polynomial._latex_(self.parent().variable_name())
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Pari representation of this quotient element.
 
@@ -202,7 +209,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             sage: pari(xb)^10
             Mod(0, x^10)
         """
-        return self._polynomial._pari_().Mod(self.parent().modulus()._pari_())
+        return self._polynomial.__pari__().Mod(self.parent().modulus())
 
     ##################################################
     # Arithmetic
@@ -271,16 +278,21 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
     def __neg__(self):
         return self.__class__(self.parent(), -self._polynomial)
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         Compare this element with something else, where equality testing
         coerces the object on the right, if possible (and necessary).
 
         EXAMPLES:
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: S.<a> = R.quotient(x^3-2)
+            sage: (a^2 - 4) / (a+2) == a - 2
+            True
+            sage: a^2 - 4 == a
+            False
         """
-        return cmp(self._polynomial, other._polynomial)
-
-
+        return richcmp(self._polynomial, other._polynomial, op)
 
     def __getitem__(self, n):
         return self._polynomial[n]
@@ -366,7 +378,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
 
         TESTS:
 
-        An element is not invertable if the base ring is not a field
+        An element is not invertible if the base ring is not a field
         (see :trac:`13303`)::
 
             sage: Z16x.<x> = Integers(16)[]
@@ -586,9 +598,9 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
     def __iter__(self):
         return iter(self.list())
 
-    def list(self):
+    def list(self, copy=True):
         """
-        Return list of the elements of self, of length the same as the
+        Return list of the elements of ``self``, of length the same as the
         degree of the quotient polynomial ring.
 
         EXAMPLES::
@@ -600,7 +612,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             sage: (a^10).list()
             [300, -35, -134]
         """
-        v = self._polynomial.list()
+        v = self._polynomial.list(copy=False)
         R = self.parent()
         n = R.degree()
         return v + [R.base_ring()(0)]*(n - len(v))
@@ -630,7 +642,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             x = R.gen()
             a = R(1)
             d = R.degree()
-            for _ in xrange(d):
+            for _ in range(d):
                 v += (a*self).list()
                 a *= x
             S = R.base_ring()

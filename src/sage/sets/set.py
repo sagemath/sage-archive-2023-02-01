@@ -35,16 +35,58 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from six import integer_types
 
+from sage.misc.latex import latex
+from sage.misc.prandom import choice
+from sage.misc.misc import is_iterator
+
+from sage.structure.category_object import CategoryObject
 from sage.structure.element import Element
 from sage.structure.parent import Parent, Set_generic
-from sage.misc.latex import latex
-import sage.rings.infinity
-from sage.misc.misc import is_iterator
+from sage.structure.richcmp import richcmp_method, richcmp, rich_to_bool
+
 from sage.categories.sets_cat import Sets
 from sage.categories.enumerated_sets import EnumeratedSets
 
-def Set(X=frozenset()):
+import sage.rings.infinity
+
+
+def has_finite_length(obj):
+    """
+    Return ``True`` if ``obj`` is known to have finite length.
+
+    This is mainly meant for pure Python types, so we do not call any
+    Sage-specific methods.
+
+    EXAMPLES::
+
+        sage: from sage.sets.set import has_finite_length
+        sage: has_finite_length(tuple(range(10)))
+        True
+        sage: has_finite_length(list(range(10)))
+        True
+        sage: has_finite_length(set(range(10)))
+        True
+        sage: has_finite_length(iter(range(10)))
+        False
+        sage: has_finite_length(GF(17^127))
+        True
+        sage: has_finite_length(ZZ)
+        False
+    """
+    try:
+        len(obj)
+    except OverflowError:
+        return True
+    except Exception:
+        return False
+    else:
+        return True
+
+
+def Set(X=[]):
     r"""
     Create the underlying set of ``X``.
 
@@ -95,11 +137,15 @@ def Set(X=frozenset()):
         sage: 5 in X
         False
 
-    Set also accepts iterators, but be careful to only give *finite* sets.
+    Set also accepts iterators, but be careful to only give *finite*
+    sets::
 
-    ::
-
-        sage: list(Set(iter([1, 2, 3, 4, 5])))
+        sage: from six.moves import range
+        sage: sorted(Set(range(1,6)))
+        [1, 2, 3, 4, 5]
+        sage: sorted(Set(list(range(1,6))))
+        [1, 2, 3, 4, 5]
+        sage: sorted(Set(iter(range(1,6))))
         [1, 2, 3, 4, 5]
 
     We can also create sets from different types::
@@ -107,12 +153,20 @@ def Set(X=frozenset()):
         sage: sorted(Set([Sequence([3,1], immutable=True), 5, QQ, Partition([3,1,1])]), key=str)
         [5, Rational Field, [3, 1, 1], [3, 1]]
 
-    However each of the objects must be hashable::
+    Sets with unhashable objects work, but with less functionality::
 
-        sage: Set([QQ, [3, 1], 5])
+        sage: A = Set([QQ, (3, 1), 5])  # hashable
+        sage: sorted(A.list(), key=repr)
+        [(3, 1), 5, Rational Field]
+        sage: type(A)
+        <class 'sage.sets.set.Set_object_enumerated_with_category'>
+        sage: B = Set([QQ, [3, 1], 5])  # unhashable
+        sage: sorted(B.list(), key=repr)
         Traceback (most recent call last):
         ...
-        TypeError: unhashable type: 'list'
+        AttributeError: 'Set_object_with_category' object has no attribute 'list'
+        sage: type(B)
+        <class 'sage.sets.set.Set_object_with_category'>
 
     TESTS::
 
@@ -132,24 +186,24 @@ def Set(X=frozenset()):
         sage: Set()
         {}
     """
-    if is_Set(X):
-        return X
+    if isinstance(X, CategoryObject):
+        if is_Set(X):
+            return X
+        elif X in Sets().Finite():
+            return Set_object_enumerated(X)
+        else:
+            return Set_object(X)
 
     if isinstance(X, Element):
         raise TypeError("Element has no defined underlying set")
-    elif isinstance(X, (list, tuple, set, frozenset)):
-        return Set_object_enumerated(frozenset(X))
+
     try:
-        if X.is_finite():
-            return Set_object_enumerated(X)
-    except AttributeError:
-        pass
-    if is_iterator(X):
-        # Note we are risking an infinite loop here,
-        # but this is the way Python behaves too: try
-        # sage: set(an iterator which does not terminate)
-        return Set_object_enumerated(list(X))
-    return Set_object(X)
+        X = frozenset(X)
+    except TypeError:
+        return Set_object(X)
+    else:
+        return Set_object_enumerated(X)
+
 
 def is_Set(x):
     """
@@ -172,6 +226,7 @@ def is_Set(x):
     """
     return isinstance(x, Set_generic)
 
+@richcmp_method
 class Set_object(Set_generic):
     r"""
     A set attached to an almost arbitrary object.
@@ -199,7 +254,7 @@ class Set_object(Set_generic):
         sage: 1 == Set([0]), Set([0]) == 1
         (False, False)
     """
-    def __init__(self, X):
+    def __init__(self, X, category=None):
         """
         Create a Set_object
 
@@ -210,6 +265,8 @@ class Set_object(Set_generic):
 
             sage: type(Set(QQ))
             <class 'sage.sets.set.Set_object_with_category'>
+            sage: Set(QQ).category()
+            Category of sets
 
         TESTS::
 
@@ -221,10 +278,13 @@ class Set_object(Set_generic):
             and 'Integer Ring'
         """
         from sage.rings.integer import is_Integer
-        if isinstance(X, (int,long)) or is_Integer(X):
+        if isinstance(X, integer_types) or is_Integer(X):
             # The coercion model will try to call Set_object(0)
             raise ValueError('underlying object cannot be an integer')
-        Parent.__init__(self, category=Sets())
+
+        if category is None:
+            category = Sets()
+        Parent.__init__(self, category=category)
         self.__object = X
 
     def __hash__(self):
@@ -255,9 +315,9 @@ class Set_object(Set_generic):
 
         ::
 
-            sage: print latex(Primes())
+            sage: print(latex(Primes()))
             \text{\texttt{Set{ }of{ }all{ }prime{ }numbers:{ }2,{ }3,{ }5,{ }7,{ }...}}
-            sage: print latex(Set([1,1,1,5,6]))
+            sage: print(latex(Set([1,1,1,5,6])))
             \left\{1, 5, 6\right\}
         """
         return latex(self.__object)
@@ -275,7 +335,7 @@ class Set_object(Set_generic):
             sage: X
             { integers }
         """
-        return "Set of elements of %s"%self.__object
+        return "Set of elements of " + repr(self.__object)
 
     def __iter__(self):
         """
@@ -294,7 +354,7 @@ class Set_object(Set_generic):
             sage: next(I)
             2
         """
-        return self.__object.__iter__()
+        return iter(self.__object)
 
     an_element = EnumeratedSets.ParentMethods.__dict__['_an_element_from_iterator']
 
@@ -333,13 +393,13 @@ class Set_object(Set_generic):
         """
         return x in self.__object
 
-    def __cmp__(self, right):
+    def __richcmp__(self, right, op):
         r"""
         Compare ``self`` and ``right``.
 
-        If right is not a :class:`Set_object` compare types.  If ``right`` is
-        also a :class:`Set_object`, returns comparison on the underlying
-        objects.
+        If ``right`` is not a :class:`Set_object`, return ``NotImplemented``.
+        If ``right`` is also a :class:`Set_object`, returns comparison
+        on the underlying objects.
 
         .. NOTE::
 
@@ -364,8 +424,8 @@ class Set_object(Set_generic):
             True or False
         """
         if not isinstance(right, Set_object):
-            return cmp(type(self), type(right))
-        return cmp(self.__object, right.__object)
+            return NotImplemented
+        return richcmp(self.__object, right.__object, op)
 
     def union(self, X):
         """
@@ -560,11 +620,8 @@ class Set_object(Set_generic):
             sage: Set(GF(5^2,'a')).cardinality()
             25
         """
-        try:
-            if not self.is_finite():
-                return sage.rings.infinity.infinity
-        except (AttributeError, NotImplementedError):
-            pass
+        if not self.is_finite():
+            return sage.rings.infinity.infinity
 
         if self is not self.__object:
             try:
@@ -613,7 +670,7 @@ class Set_object(Set_generic):
             sage: Set(QQ).is_empty()
             False
         """
-        return not self.__nonzero__()
+        return not self
 
     def is_finite(self):
         """
@@ -630,10 +687,13 @@ class Set_object(Set_generic):
             sage: Set([1,'a',ZZ]).is_finite()
             True
         """
-        if isinstance(self.__object, (set, frozenset, tuple, list)):
-            return True
+        obj = self.__object
+        try:
+            is_finite = obj.is_finite
+        except AttributeError:
+            return has_finite_length(obj)
         else:
-            return self.__object.is_finite()
+            return is_finite()
 
     def object(self):
         """
@@ -667,23 +727,41 @@ class Set_object(Set_generic):
         from sage.combinat.subset import Subsets
         return Subsets(self,size)
 
+
 class Set_object_enumerated(Set_object):
     """
     A finite enumerated set.
     """
     def __init__(self, X):
-        """
+        r"""
         Initialize ``self``.
 
         EXAMPLES::
 
             sage: S = Set(GF(19)); S
             {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18}
-            sage: print latex(S)
+            sage: S.category()
+            Category of finite sets
+            sage: print(latex(S))
             \left\{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18\right\}
             sage: TestSuite(S).run()
         """
-        Set_object.__init__(self, X)
+        Set_object.__init__(self, X, category=Sets().Finite())
+
+    def random_element(self):
+        r"""
+        Return a random element in this set.
+
+        EXAMPLES::
+
+            sage: Set([1,2,3]).random_element() # random
+            2
+        """
+        try:
+            return self.object().random_element()
+        except AttributeError:
+            # TODO: this very slow!
+            return choice(self.list())
 
     def is_finite(self):
         r"""
@@ -773,7 +851,7 @@ class Set_object_enumerated(Set_object):
             sage: X.list()
             [0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1]
             sage: type(X.list())
-            <type 'list'>
+            <... 'list'>
 
         .. TODO::
 
@@ -801,7 +879,7 @@ class Set_object_enumerated(Set_object):
             sage: X.set()
             {0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1}
             sage: type(X.set())
-            <type 'set'>
+            <... 'set'>
             sage: type(X)
             <class 'sage.sets.set.Set_object_enumerated_with_category'>
         """
@@ -829,7 +907,7 @@ class Set_object_enumerated(Set_object):
             -1390224788            # 32-bit
              561411537695332972    # 64-bit
             sage: type(s)
-            <type 'frozenset'>
+            <... 'frozenset'>
         """
         return frozenset(self.object())
 
@@ -845,7 +923,7 @@ class Set_object_enumerated(Set_object):
         """
         return hash(self.frozenset())
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         Compare the sets ``self`` and ``other``.
 
@@ -859,12 +937,11 @@ class Set_object_enumerated(Set_object):
             sage: Set(QQ) == Set(ZZ)
             False
         """
-        if isinstance(other, Set_object_enumerated):
-            if self.set() == other.set():
-                return 0
-            return -1
-        else:
-            return Set_object.__cmp__(self, other)
+        if not isinstance(other, Set_object_enumerated):
+            return NotImplemented
+        if self.set() == other.set():
+            return rich_to_bool(op, 0)
+        return rich_to_bool(op, -1)
 
     def issubset(self, other):
         r"""
@@ -1132,7 +1209,7 @@ class Set_object_union(Set_object_binary):
         """
         return self._X.is_finite() and self._Y.is_finite()
 
-    def __cmp__(self, right):
+    def __richcmp__(self, right, op):
         r"""
         Try to compare ``self`` and ``right``.
 
@@ -1161,13 +1238,13 @@ class Set_object_union(Set_object_binary):
             False
         """
         if not is_Set(right):
-            return -1
+            return rich_to_bool(op, -1)
         if not isinstance(right, Set_object_union):
-            return -1
+            return rich_to_bool(op, -1)
         if self._X == right._X and self._Y == right._Y or \
            self._X == right._Y and self._Y == right._X:
-            return 0
-        return -1
+            return rich_to_bool(op, 0)
+        return rich_to_bool(op, -1)
 
     def __iter__(self):
         """
@@ -1266,7 +1343,7 @@ class Set_object_intersection(Set_object_binary):
             return True
         raise NotImplementedError
 
-    def __cmp__(self, right):
+    def __richcmp__(self, right, op):
         r"""
         Try to compare ``self`` and ``right``.
 
@@ -1295,13 +1372,13 @@ class Set_object_intersection(Set_object_binary):
             False
         """
         if not is_Set(right):
-            return -1
+            return rich_to_bool(op, -1)
         if not isinstance(right, Set_object_intersection):
-            return -1
+            return rich_to_bool(op, -1)
         if self._X == right._X and self._Y == right._Y or \
            self._X == right._Y and self._Y == right._X:
-            return 0
-        return -1
+            return rich_to_bool(op, 0)
+        return rich_to_bool(op, -1)
 
     def __iter__(self):
         """
@@ -1408,7 +1485,7 @@ class Set_object_difference(Set_object_binary):
             return False
         raise NotImplementedError
 
-    def __cmp__(self, right):
+    def __richcmp__(self, right, op):
         r"""
         Try to compare ``self`` and ``right``.
 
@@ -1441,12 +1518,12 @@ class Set_object_difference(Set_object_binary):
             True
         """
         if not is_Set(right):
-            return -1
+            return rich_to_bool(op, -1)
         if not isinstance(right, Set_object_difference):
-            return -1
-        if self._X == right._X and self._Y == right._Y: 
-            return 0
-        return -1
+            return rich_to_bool(op, -1)
+        if self._X == right._X and self._Y == right._Y:
+            return rich_to_bool(op, 0)
+        return rich_to_bool(op, -1)
 
     def __iter__(self):
         """
@@ -1545,7 +1622,7 @@ class Set_object_symmetric_difference(Set_object_binary):
             return False
         raise NotImplementedError
 
-    def __cmp__(self, right):
+    def __richcmp__(self, right, op):
         r"""
         Try to compare ``self`` and ``right``.
 
@@ -1568,13 +1645,13 @@ class Set_object_symmetric_difference(Set_object_binary):
 
         """
         if not is_Set(right):
-            return -1
+            return rich_to_bool(op, -1)
         if not isinstance(right, Set_object_symmetric_difference):
-            return -1
+            return rich_to_bool(op, -1)
         if self._X == right._X and self._Y == right._Y or \
            self._X == right._Y and self._Y == right._X:
-            return 0
-        return -1
+            return rich_to_bool(op, 0)
+        return rich_to_bool(op, -1)
 
     def __iter__(self):
         """

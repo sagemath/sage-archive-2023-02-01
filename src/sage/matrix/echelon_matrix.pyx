@@ -9,6 +9,7 @@ Echelon matrices over finite fields.
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.matrix.matrix0 cimport Matrix
 
@@ -33,14 +34,26 @@ def reduced_echelon_matrix_iterator(K, k, n, bint sparse=False, bint copy=True, 
     - ``set_immutable`` -- boolean. If set to ``True`` then the output matrices
       are immutable. This option automatically turns ``copy`` into ``True``.
 
+
+    .. NOTE::
+
+        We ensure that the iteration order is so that all matrices with given
+        pivot columns are generated consecutively. Furthermore, the order in
+        which the pivot columns appear is lexicographic.
+
+        It would be faster to generate the pivots columns following a Gray code.
+        There would be only one pivot changing at a time, avoiding the possibly
+        expensive ``m0.__copy__()``. However that would modify the generation
+        order some functions depend upon.
+
     EXAMPLES::
 
         sage: from sage.matrix.echelon_matrix import reduced_echelon_matrix_iterator
         sage: it = reduced_echelon_matrix_iterator(GF(2),2,3)
         sage: for m in it:
-        ....:     print m
-        ....:     print m.pivots()
-        ....:     print "*******"
+        ....:     print(m)
+        ....:     print(m.pivots())
+        ....:     print("*******")
         [1 0 0]
         [0 1 0]
         (0, 1)
@@ -111,8 +124,6 @@ def reduced_echelon_matrix_iterator(K, k, n, bint sparse=False, bint copy=True, 
     K1 = K.one()
 
     # First, we select which columns will be pivots:
-    # TODO: it would be much faster with a Gray code (only one pivot changing at
-    # a time) and would avoid the m0.__copy__()
     for pivots in combinations(range(n),k):
         m = m0.__copy__()
         free_positions = []
@@ -124,8 +135,6 @@ def reduced_echelon_matrix_iterator(K, k, n, bint sparse=False, bint copy=True, 
 
         # Next, we fill in those entries that are not
         # determined by the echelon form alone:
-        # TODO: it would be much faster with a Gray code (only one entry
-        # changing at a time)
         num_free_pos = len(free_positions)
         for v in product(Klist, repeat=num_free_pos):
             for i in range(num_free_pos):

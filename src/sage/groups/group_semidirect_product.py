@@ -45,8 +45,8 @@ class GroupSemidirectProductElement(CartesianProduct.Element):
 
         g = self.cartesian_projection(0)
         h = self.cartesian_projection(1)
-        gstr = wrapper(par._prefix0, g.__repr__())
-        hstr = wrapper(par._prefix1, h.__repr__())
+        gstr = wrapper(par._prefix0, repr(g))
+        hstr = wrapper(par._prefix1, repr(h))
         if par._print_tuple:
             return "(%s, %s)"%(gstr,hstr)
 

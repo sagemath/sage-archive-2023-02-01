@@ -10,11 +10,14 @@
 
 from sage.structure.sage_object import SageObject
 from sage.interfaces.maxima import MaximaFunctionElement
+from sage.docs.instancedoc import instancedoc
 
+
+@instancedoc
 class MaximaFunctionElementWrapper(MaximaFunctionElement):
     def __call__(self, *args, **kwds):
         """
-        Returns a Sage expression instead of a Maxima pexpect interface element.
+        Return a Sage expression instead of a Maxima pexpect interface element.
 
         EXAMPLES::
 
@@ -22,8 +25,8 @@ class MaximaFunctionElementWrapper(MaximaFunctionElement):
             cos(x)^2 + sin(x)^2
             sage: res = t.maxima_methods().trigsimp(); res
             1
-            sage: type(res)
-            <type 'sage.symbolic.expression.Expression'>
+            sage: parent(res)
+            Symbolic Ring
         """
         return super(MaximaFunctionElementWrapper, self).__call__(*args,
                 **kwds).sage()
@@ -84,8 +87,10 @@ class MaximaWrapper(SageObject):
         """
         if self._maxima_exp is None:
             self._maxima_exp = self._exp._maxima_()
-        if s == 'trait_names' or s[:1] == '_':
+        if s[0] == '_':
             return getattr(self._maxima_exp, s)
+        if s == 'trait_names':  # SageNB backward compatibility
+            return self._maxima_()._tab_completion
         else:
             # add a wrapper function which converts the result back to
             # a Sage expression

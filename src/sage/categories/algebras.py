@@ -109,8 +109,12 @@ class Algebras(CategoryWithAxiom_over_base_ring):
             return self & SemisimpleAlgebras(self.base_ring())
 
     Commutative = LazyImport('sage.categories.commutative_algebras', 'CommutativeAlgebras', at_startup=True)
+    Filtered    = LazyImport('sage.categories.filtered_algebras',    'FilteredAlgebras')
     Graded      = LazyImport('sage.categories.graded_algebras',      'GradedAlgebras')
-    WithBasis   = LazyImport('sage.categories.algebras_with_basis',  'AlgebrasWithBasis')
+    Super       = LazyImport('sage.categories.super_algebras',       'SuperAlgebras')
+    # at_startup currently needed for MatrixSpace, see #22955 (e.g., comment:20)
+    WithBasis   = LazyImport('sage.categories.algebras_with_basis',  'AlgebrasWithBasis',
+                             at_startup=True)
     #if/when Semisimple becomes an axiom
     Semisimple  = LazyImport('sage.categories.semisimple_algebras',  'SemisimpleAlgebras')
 
@@ -166,7 +170,7 @@ class Algebras(CategoryWithAxiom_over_base_ring):
 
     class CartesianProducts(CartesianProductsCategory):
         """
-        The category of algebras constructed as cartesian products of algebras
+        The category of algebras constructed as Cartesian products of algebras
 
         This construction gives the direct product of algebras. See
         discussion on:
@@ -176,7 +180,7 @@ class Algebras(CategoryWithAxiom_over_base_ring):
         """
         def extra_super_categories(self):
             """
-            A cartesian product of algebras is endowed with a natural
+            A Cartesian product of algebras is endowed with a natural
             algebra structure.
 
             EXAMPLES::

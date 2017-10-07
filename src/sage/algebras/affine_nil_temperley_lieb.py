@@ -17,11 +17,7 @@ from sage.misc.cachefunc import cached_method
 
 class AffineNilTemperleyLiebTypeA(CombinatorialFreeModule):
     r"""
-    Constructs the affine nilTemperley Lieb algebra of type `A_{n-1}^{(1)}` as used in [P2005].
-
-    REFERENCES:
-
-        .. [P2005] A. Postnikov, Affine approach to quantum Schubert calculus, Duke Math. J. 128 (2005) 473-509
+    Constructs the affine nilTemperley Lieb algebra of type `A_{n-1}^{(1)}` as used in [Pos2005]_.
 
     INPUT:
 
@@ -41,7 +37,7 @@ class AffineNilTemperleyLiebTypeA(CombinatorialFreeModule):
         sage: a[0]*a[3]*a[0]
         0
         sage: A.an_element()
-        2*a0 + 3*a0*a1 + 1 + a0*a1*a2*a3
+        2*a0 + 1 + 3*a1 + a0*a1*a2*a3
     """
 
     def __init__(self, n, R = ZZ, prefix = 'a'):

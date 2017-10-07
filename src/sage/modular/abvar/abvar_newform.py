@@ -7,6 +7,7 @@ TESTS::
     sage: loads(dumps(A)) == A
     True
 """
+from __future__ import absolute_import
 
 
 ###########################################################################
@@ -23,8 +24,8 @@ from sage.modular.modform.element import Newform
 from sage.modular.arithgroup.all import is_Gamma0, is_Gamma1, is_GammaH
 
 
-from abvar import ModularAbelianVariety_modsym_abstract
-import homspace
+from .abvar import ModularAbelianVariety_modsym_abstract
+from . import homspace
 
 class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
     """
@@ -43,9 +44,16 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
             sage: f = CuspForms(37).newforms('a')[0]
             sage: f.abelian_variety()
             Newform abelian subvariety 37a of dimension 1 of J0(37)
+
+            sage: AbelianVariety(Newforms(1, 12)[0])
+            Traceback (most recent call last):
+            ...
+            TypeError: f must have weight 2
         """
         if not isinstance(f, Newform):
             raise TypeError("f must be a newform")
+        if f.weight() != 2:
+            raise TypeError("f must have weight 2")
         self.__f = f
         self._is_hecke_stable = True
         K = f.qexp().base_ring()

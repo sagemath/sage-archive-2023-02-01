@@ -4,7 +4,7 @@ Reporting doctest results
 This module determines how doctest results are reported to the user.
 
 It also computes the exit status in the ``error_status`` attribute of
-:class:DocTestReporter. This is a bitwise OR of the following bits:
+:class:`DocTestReporter`. This is a bitwise OR of the following bits:
 
 - 1: Doctest failure
 - 2: Bad command line syntax or invalid options
@@ -32,9 +32,10 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
-
-import sys, signal
+import sys
+import signal
 from sage.structure.sage_object import SageObject
 from sage.doctest.util import count_noun
 from sage.doctest.sources import DictAsObject
@@ -131,13 +132,13 @@ class DocTestReporter(SageObject):
             sage: FDS = FileDocTestSource(filename,DD)
             sage: DC = DocTestController(DD, [filename])
             sage: DTR = DocTestReporter(DC)
-            sage: print DTR.report_head(FDS)
+            sage: print(DTR.report_head(FDS))
             sage -t .../sage/doctest/reporting.py
 
         The same with various options::
 
             sage: DD.long = True
-            sage: print DTR.report_head(FDS)
+            sage: print(DTR.report_head(FDS))
             sage -t --long .../sage/doctest/reporting.py
         """
         cmd = "sage -t"
@@ -299,6 +300,28 @@ class DocTestReporter(SageObject):
             Traceback (most recent call last):
             ...
             AttributeError: 'NoneType' object has no attribute 'basename'
+
+        The only-errors mode does not output anything on success::
+
+            sage: DD = DocTestDefaults(only_errors=True)
+            sage: FDS = FileDocTestSource(filename, DD)
+            sage: DC = DocTestController(DD, [filename])
+            sage: DTR = DocTestReporter(DC)
+            sage: doctests, extras = FDS.create_doctests(globals())
+            sage: runner = SageDocTestRunner(SageOutputChecker(), verbose=False, sage_options=DD, optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)
+            sage: Timer().start().stop().annotate(runner)
+            sage: D = DictAsObject({'err':None})
+            sage: runner.update_results(D)
+            0
+            sage: DTR.report(FDS, False, 0, (sum([len(t.examples) for t in doctests]), D), "Good tests")
+
+        However, failures are still output in the errors-only mode::
+
+            sage: runner.failures = 1
+            sage: runner.update_results(D)
+            1
+            sage: DTR.report(FDS, False, 0, (sum([len(t.examples) for t in doctests]), D), "Failed test")
+                [... tests, 1 failure, ... s]
         """
         log = self.controller.log
         process_name = 'process (pid={0})'.format(pid) if pid else 'process'
@@ -307,13 +330,11 @@ class DocTestReporter(SageObject):
             stats = self.stats
             basename = source.basename
             cmd = self.report_head(source)
-
             try:
                 ntests, result_dict = results
             except (TypeError, ValueError):
                 ntests = 0
                 result_dict = DictAsObject(dict(err='badresult'))
-
             if timeout:
                 fail_msg = "Timed out"
                 if ntests > 0:
@@ -322,7 +343,9 @@ class DocTestReporter(SageObject):
                     fail_msg += " (with error after interrupt)"
                 elif return_code < 0:
                     sig = -return_code
-                    if sig == signal.SIGKILL:
+                    if sig == signal.SIGQUIT:
+                        pass  # and interrupt succeeded
+                    elif sig == signal.SIGKILL:
                         fail_msg += " (and interrupt failed)"
                     else:
                         fail_msg += " (with %s after interrupt)"%signal_name(sig)
@@ -440,8 +463,9 @@ class DocTestReporter(SageObject):
                                         else:
                                             log("    %s not run"%(count_noun(nskipped, tag + " test")))
                             if untested:
-                                log ("    %s skipped"%(count_noun(untested, "%stest"%("other " if seen_other else ""))))
-                    log("    [%s, %s%.2f s]" % (count_noun(ntests, "test"), "%s, "%(count_noun(f, "failure")) if f else "", wall))
+                                log("    %s skipped"%(count_noun(untested, "%stest"%("other " if seen_other else ""))))
+                    if not (self.controller.options.only_errors and not f):
+                        log("    [%s, %s%.2f s]" % (count_noun(ntests, "test"), "%s, "%(count_noun(f, "failure")) if f else "", wall))
             self.sources_completed += 1
 
         except Exception:
@@ -451,7 +475,7 @@ class DocTestReporter(SageObject):
 
     def finalize(self):
         """
-        Print out the postcript that summarizes the doctests that were run.
+        Print out the postscript that summarizes the doctests that were run.
 
         EXAMPLES:
 

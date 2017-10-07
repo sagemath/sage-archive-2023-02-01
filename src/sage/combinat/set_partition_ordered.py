@@ -24,8 +24,9 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import add_metaclass
 
-from sage.rings.arith import factorial
+from sage.arith.all import factorial
 import sage.rings.integer
 from sage.sets.set import Set, is_Set
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -41,6 +42,7 @@ import sage.combinat.permutation as permutation
 from functools import reduce
 
 
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class OrderedSetPartition(ClonableArray):
     """
     An ordered partition of a set.
@@ -126,8 +128,6 @@ class OrderedSetPartition(ClonableArray):
 
     :wikipedia:`Ordered_partition_of_a_set`
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, parts):
         """
@@ -308,7 +308,7 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
         TESTS::
 
             sage: OS = OrderedSetPartitions([1,2,3,4])
-            sage: all([sp in OS for sp in OS])
+            sage: all(sp in OS for sp in OS)
             True
         """
         #x must be a list
@@ -409,7 +409,7 @@ class OrderedSetPartitions_sn(OrderedSetPartitions):
         TESTS::
 
             sage: OS = OrderedSetPartitions([1,2,3,4], 2)
-            sage: all([sp in OS for sp in OS])
+            sage: all(sp in OS for sp in OS)
             True
             sage: OS.cardinality()
             14
@@ -494,7 +494,7 @@ class OrderedSetPartitions_scomp(OrderedSetPartitions):
         TESTS::
 
             sage: OS = OrderedSetPartitions([1,2,3,4], [2,1,1])
-            sage: all([ sp in OS for sp in OS])
+            sage: all(sp in OS for sp in OS)
             True
             sage: OS.cardinality()
             12

@@ -86,7 +86,7 @@ previous and ongoing work of many authors of included components.
 A list of (some) direct contributors can be found on the
 `Sage Development Map <http://www.sagemath.org/development-map.html>`_
 and the history of changes can be found in the high-level
-`changelog <http://www.sagemath.org/mirror/src/changelog.txt>`_. Refer
+`changelogs <http://www.sagemath.org/changelogs/>`_. Refer
 to the
 `acknowledgment page <http://www.sagemath.org/development-ack.html>`_
 of the Sage website for an up-to-date list of financial and
@@ -188,7 +188,7 @@ functionalities are made possible through FOSS projects such as
   theory.
 * `Maxima <http://maxima.sourceforge.net>`_ --- system for symbolic
   and numerical computation.
-* `mpmath <http://code.google.com/p/mpmath>`_ --- a pure-Python
+* `mpmath <https://github.com/fredrik-johansson/mpmath>`_ --- a pure-Python
   library for multiprecision floating-point arithmetic.
 * `NumPy <http://numpy.scipy.org>`_ --- numerical linear algebra and
   other numerical computing capabilities for Python.
@@ -312,22 +312,21 @@ page on the Sage website. Each release of Sage comes with the full
 documentation that makes up the Sage standard documentation. If you
 have downloaded a binary Sage release, the HTML version of the
 corresponding documentation comes pre-built and can be found under the
-directory
-``SAGE_ROOT/src/doc/output/html/``. During the compilation
-of Sage from source, the HTML version of the documentation is also
-built in the process. To build the HTML version of the documentation,
-issue the following command from ``SAGE_ROOT``::
+directory ``SAGE_ROOT/local/share/doc/sage/html/``.
+During the compilation of Sage from source, the HTML version of the
+documentation is also built in the process. To build the HTML version
+of the documentation, issue the following command from ``SAGE_ROOT``::
 
-    $ ./sage -docbuild --no-pdf-links all html
+    $ ./sage --docbuild --no-pdf-links all html
 
 Building the PDF version requires that your system has a working LaTeX
 installation. To build the PDF version of the documentation, issue the
 following command from ``SAGE_ROOT``::
 
-    $ ./sage -docbuild all pdf
+    $ ./sage --docbuild all pdf
 
 For more command line options, refer to the output of any of the
 following commands::
 
-    $ ./sage -help
-    $ ./sage -advanced
+    $ ./sage --help
+    $ ./sage --advanced

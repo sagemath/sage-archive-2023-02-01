@@ -21,7 +21,7 @@ The goal of this module is to provide generic support for covariant
 functorial constructions. In particular, given some parents `A`, `B`,
 ..., in respective categories `Cat_A`, `Cat_B`, ..., it provides tools
 for calculating the best known category for the parent
-`F(A,B,...)`. For examples, knowing that cartesian products of
+`F(A,B,...)`. For examples, knowing that Cartesian products of
 semigroups (resp. monoids, groups) have a semigroup (resp. monoid,
 group) structure, and given a group `B` and two monoids `A` and `C` it
 can calculate that `A \times B \times C` is naturally endowed with a
@@ -51,7 +51,7 @@ from sage.structure.dynamic_class import DynamicMetaclass
 
 class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
     r"""
-    An abstract class for construction functors `F` (eg `F` = cartesian
+    An abstract class for construction functors `F` (eg `F` = Cartesian
     product, tensor product, `\QQ`-algebra, ...) such that:
 
      - Each category `Cat` (eg `Cat=` ``Groups()``) can provide a category
@@ -201,7 +201,7 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
         """
         return "The %s functorial construction"%self._functor_name
 
-    def __call__(self, args):
+    def __call__(self, args, **kwargs):
         """
         Functorial construction application
 
@@ -220,7 +220,7 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
         args = tuple(args) # a bit brute force; let's see if this becomes a bottleneck later
         assert(all( hasattr(arg, self._functor_name) for arg in args))
         assert(len(args) > 0)
-        return getattr(args[0], self._functor_name)(*args[1:])
+        return getattr(args[0], self._functor_name)(*args[1:], **kwargs)
 
 class FunctorialConstructionCategory(Category): # Should this be CategoryWithBase?
     """
@@ -260,6 +260,18 @@ class FunctorialConstructionCategory(Category): # Should this be CategoryWithBas
             sage: F = GradedAlgebrasWithBasis
             sage: F._foo = F._base_category_class[0]
             sage: F._foo
+            Traceback (most recent call last):
+            ...
+            AssertionError: base category class for <...AlgebrasWithBasis'>
+             mismatch; expected <...Algebras'>,
+             got <...GradedAlgebrasWithBasis'>
+
+        We note that because ``Algebras.WithBasis`` is not lazily imported
+        on startup (see :trac:`22955`), the test fails at a different
+        point in the code. However, if this import becomes lazy again, then
+        the following error will be generated and can replace the above::
+
+            sage: F._foo  # not tested
             Traceback (most recent call last):
             ...
             ValueError: could not infer axiom for the nested class

@@ -1,4 +1,4 @@
-$(INST)/$(SETUPTOOLS) $(INST)/$(CYTHON)
+$(PYTHON) cython | setuptools pip
 
 ----------
 All lines of this file are ignored except the first.

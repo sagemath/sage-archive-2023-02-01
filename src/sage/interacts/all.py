@@ -17,9 +17,9 @@ AUTHORS:
 #*****************************************************************************
 
 
-import calculus
-import geometry
-import statistics
-import fractals
-import algebra
-from library import demo
+from . import calculus
+from . import geometry
+from . import statistics
+from . import fractals
+from . import algebra
+from .library import demo

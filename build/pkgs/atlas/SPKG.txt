@@ -2,18 +2,11 @@
 
 == Description ==
 
-This spkg builds ATLAS for Sage. It is build per default on Linux and
-Solaris, but should also work on OSX and Cygwin.
+This spkg builds ATLAS for Sage.
 
 == License ==
 
 3-clause BSD
-
-== SPKG Maintainers ==
-
- * David Kirkby
- * William Stein
- * Volker Braun
 
 == Upstream Contact ==
 

@@ -21,10 +21,6 @@ Maxima is distributed under the GNU General Public License, with some
 export restrictions from the U.S. Department of Energy. See the file
 COPYING.
 
-== SPKG Maintainers ==
-
- * TBD
-
 == Upstream Contact ==
 
  * The Maxima mailing list - see http://maxima.sourceforge.net/maximalist.html

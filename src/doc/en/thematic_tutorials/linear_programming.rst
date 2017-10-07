@@ -319,7 +319,7 @@ the matching, which is a linear constraint. We will be solving:
 
 .. MATH::
     \text{Max: } & \sum_{e \in E(G)} m_e\\
-    \text{Such that: } & \forall v, \sum_{e \in E(G) \atop v \sim e} m_e \leq 1
+    \text{Such that: } & \forall v, \sum_{\substack{e \in E(G) \\ v \sim e}} m_e \leq 1
 
 Let us write the Sage code of this MILP::
 
@@ -353,7 +353,7 @@ Let us write the Sage code of this MILP::
 ::
 
     sage: matching = p.get_values(matching)
-    sage: [e for e,b in matching.iteritems() if b == 1]  # not tested
+    sage: [e for e, b in matching.items() if b == 1]  # not tested
     [(0, 1), (6, 9), (2, 7), (3, 4), (5, 8)]
 
 
@@ -385,7 +385,7 @@ following LP
 
 .. MATH::
     \text{Max: } & \sum_{sv \in G} f_{sv}\\
-    \text{Such that: } & \forall v \in G, {v \neq s \atop v \neq t}, \sum_{vu \in G} f_{vu} - \sum_{uv \in G} f_{uv} = 0\\
+    \text{Such that: } & \forall v \in G, {\substack{v \neq s \\ v \neq t}}, \sum_{vu \in G} f_{vu} - \sum_{uv \in G} f_{uv} = 0\\
     & \forall uv \in G, f_{uv} \leq 1\\
 
 We will solve the flow problem on an orientation of Chvatal's
@@ -446,7 +446,8 @@ following libraries are currently supported:
   `COIN-OR <http://www.coin-or.org/>`_
 
   Provided under the open source license CPL, but incompatible with
-  GPL. CBC can be installed through the command ``install_package("cbc")``.
+  GPL. CBC can be installed using the shell command
+  ``sage -i cbc sagelib``.
 
 * `CPLEX
   <http://www-01.ibm.com/software/integration/optimization/cplex/>`_:
@@ -535,6 +536,6 @@ create symbolic links to these files in the appropriate directories:
 ** be precisely as indicated. If the names differ, Sage will not notice that**
 **the files are present**
 
-Once this is done, Sage is to be asked to notice the changes by calling::
+Once this is done, Sage is to be asked to notice the changes by running::
 
-    sage -b
+    make

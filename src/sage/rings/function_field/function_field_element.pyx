@@ -22,9 +22,12 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
 
 from sage.structure.element cimport FieldElement, RingElement, ModuleElement, Element
+from sage.misc.cachefunc import cached_method
+from sage.structure.richcmp cimport richcmp, richcmp_not_equal
+
 
 def is_FunctionFieldElement(x):
     """
@@ -39,7 +42,7 @@ def is_FunctionFieldElement(x):
         False
     """
     if isinstance(x, FunctionFieldElement): return True
-    from function_field import is_FunctionField
+    from .function_field import is_FunctionField
     return is_FunctionField(x.parent())
 
 def make_FunctionFieldElement(parent, element_class, representing_element):
@@ -87,7 +90,7 @@ cdef class FunctionFieldElement(FieldElement):
         x._parent = self._parent
         return x
 
-    def _pari_(self):
+    def __pari__(self):
         r"""
         Coerce this element to PARI.
 
@@ -101,7 +104,7 @@ cdef class FunctionFieldElement(FieldElement):
             sage: K.<a> = FunctionField(QQ)
             sage: R.<b> = K[]
             sage: L.<b> = K.extension(b^2-a)
-            sage: b._pari_()
+            sage: b.__pari__()
             Traceback (most recent call last):
             ...
             NotImplementedError: PARI does not support general function field elements.
@@ -123,10 +126,16 @@ cdef class FunctionFieldElement(FieldElement):
         """
         return self._x._latex_()
 
-    def matrix(self):
+    @cached_method
+    def matrix(self, base=None):
         r"""
-        Return the matrix of multiplication by self, interpreting self as an element
-        of a vector space over its base field.
+        Return the matrix of multiplication by this element, interpreting this
+        element as an element of a vector space over ``base``.
+
+        INPUT:
+
+        - ``base`` -- a function field (default: ``None``), if ``None``, then
+          the matrix is formed over the base field of this function field.
 
         EXAMPLES:
 
@@ -151,18 +160,29 @@ cdef class FunctionFieldElement(FieldElement):
         An example in a relative extension, where neither function
         field is rational::
 
-            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
-            sage: M.<T> = L[]; Z.<alpha> = L.extension(T^3 - y^2*T + x)
+            sage: M.<T> = L[]
+            sage: Z.<alpha> = L.extension(T^3 - y^2*T + x)
             sage: alpha.matrix()
             [          0           1           0]
             [          0           0           1]
             [         -x x*y - 4*x^3           0]
+            sage: alpha.matrix(K)
+            [           0            0            1            0            0            0]
+            [           0            0            0            1            0            0]
+            [           0            0            0            0            1            0]
+            [           0            0            0            0            0            1]
+            [          -x            0       -4*x^3            x            0            0]
+            [           0           -x       -4*x^4 -4*x^3 + x^2            0            0]
+            sage: alpha.matrix(Z)
+            [alpha]
 
         We show that this matrix does indeed work as expected when making a
         vector space from a function field::
 
-            sage: K.<x>=FunctionField(QQ)
+            sage: K.<x> = FunctionField(QQ)
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^5 - (x^3 + 2*x*y + 1/x))
             sage: V, from_V, to_V = L.vector_space()
@@ -173,23 +193,17 @@ cdef class FunctionFieldElement(FieldElement):
             sage: y5 == y4y
             True
         """
-        if self._matrix is None:
-            # Multiply each power of field generator on the left by this
-            # element; make matrix whose rows are the coefficients of the
-            # result, and transpose.
-            K = self.parent()
-            v = []
-            x = K.gen()
-            a = K(1)
-            d = K.degree()
-            for n in range(d):
-                v += (a*self).list()
-                a *= x
-            k = K.base_ring()
-            import sage.matrix.matrix_space
-            M = sage.matrix.matrix_space.MatrixSpace(k, d)
-            self._matrix = M(v)
-        return self._matrix
+        # multiply each element of the vector space isomorphic to the parent
+        # with this element; make matrix whose rows are the coefficients of the
+        # result, and transpose
+        V, f, t = self.parent().vector_space(base)
+        rows = [ t(self*f(b)) for b in V.basis() ]
+        from sage.matrix.matrix_space import MatrixSpace
+        MS = MatrixSpace(V.base_field(), V.dimension())
+        ret = MS(rows)
+        ret.transpose()
+        ret.set_immutable()
+        return ret
 
     def trace(self):
         """
@@ -331,7 +345,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
             sage: f.element()
             1/x^2*y + x/(x^2 + 1)
             sage: type(f.element())
-            <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field'>
+            <class 'sage.rings.polynomial.polynomial_ring.PolynomialRing_field_with_category.element_class'>
         """
         return self._x
 
@@ -361,22 +375,33 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         """
         return not not self._x
 
-    cpdef int _cmp_(self, Element other) except -2:
+    def __hash__(self):
+        """
+        TESTS::
+
+            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
+            sage: len({hash(y^i+x^j) for i in [-2..2] for j in [-2..2]}) == 25
+            True
+        """
+        return hash(self._x)
+
+    cpdef _richcmp_(self, other, int op):
         """
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
-            sage: cmp(L(0), 0)
-            0
-            sage: cmp(y, L(2)) != 0
+            sage: L(0) == 0
+            True
+            sage: y != L(2)
             True
         """
         cdef FunctionFieldElement left = <FunctionFieldElement>self
         cdef FunctionFieldElement right = <FunctionFieldElement>other
-        return cmp(left._x, right._x)
+        return richcmp(left._x, right._x, op)
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         EXAMPLES::
 
@@ -393,7 +418,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         res._x = self._x + (<FunctionFieldElement>right)._x
         return res
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         EXAMPLES::
 
@@ -408,7 +433,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         res._x = self._x - (<FunctionFieldElement>right)._x
         return res
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         EXAMPLES::
 
@@ -421,7 +446,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         res._x = (self._x * (<FunctionFieldElement>right)._x) % self._parent.polynomial()
         return res
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         EXAMPLES::
 
@@ -448,7 +473,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
             1
         """
         if self.is_zero():
-            raise ZeroDivisionError, "Cannot invert 0"
+            raise ZeroDivisionError("Cannot invert 0")
         P = self._parent
         return P(self._x.xgcd(P._polynomial)[1])
 
@@ -490,18 +515,18 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         FieldElement.__init__(self, parent)
         self._x = x
 
-    def _pari_(self):
+    def __pari__(self):
         r"""
         Coerce this element to PARI.
 
         EXAMPLES::
 
             sage: K.<a> = FunctionField(QQ)
-            sage: ((a+1)/(a-1))._pari_()
+            sage: ((a+1)/(a-1)).__pari__()
             (a + 1)/(a - 1)
 
         """
-        return self.element()._pari_()
+        return self.element().__pari__()
 
     def element(self):
         """
@@ -563,24 +588,43 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         """
         return not not self._x
 
-    cpdef int _cmp_(self, Element other) except -2:
+    def __hash__(self):
+        """
+        TESTS:
+
+        It would be nice if the following would produce a list of
+        15 distinct hashes::
+
+            sage: K.<t> = FunctionField(QQ)
+            sage: len({hash(t^i+t^j) for i in [-2..2] for j in [i..2]})
+            10
+        """
+        return hash(self._x)
+
+    cpdef _richcmp_(self, other, int op):
         """
         EXAMPLES::
 
             sage: K.<t> = FunctionField(QQ)
-            sage: cmp(t, 0)
-            1
-            sage: cmp(t, t^2)
-            -1
+            sage: t > 0
+            True
+            sage: t < t^2
+            True
         """
-        cdef int c = cmp(type(self), type(other))
-        if c: return c
-        cdef FunctionFieldElement left = <FunctionFieldElement>self
-        cdef FunctionFieldElement right = <FunctionFieldElement>other
-        c = cmp(left._parent, right._parent)
-        return c or cmp(left._x, right._x)
+        cdef FunctionFieldElement left
+        cdef FunctionFieldElement right
+        try:
+            left = <FunctionFieldElement?>self
+            right = <FunctionFieldElement?>other
+            lp = left._parent
+            rp = right._parent
+            if lp != rp:
+                return richcmp_not_equal(lp, rp, op)
+            return richcmp(left._x, right._x, op)
+        except TypeError:
+            return NotImplemented
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         EXAMPLES::
 
@@ -592,7 +636,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         res._x = self._x + (<FunctionFieldElement>right)._x
         return res
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         EXAMPLES::
 
@@ -604,7 +648,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         res._x = self._x - (<FunctionFieldElement>right)._x
         return res
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         EXAMPLES::
 
@@ -616,7 +660,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         res._x = self._x * (<FunctionFieldElement>right)._x
         return res
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         EXAMPLES::
 

@@ -9,11 +9,6 @@ undirected graph.
 
 GPL 3
 
-== SPKG Maintainers ==
-
-Jernej Azarija (azi.stdout@gmail.com)
-Nathann Cohen  (nathann.cohen@gmail.com)
-
 == Upstream Contact ==
 
 MCQD is currently being maintained by Janez Konc.

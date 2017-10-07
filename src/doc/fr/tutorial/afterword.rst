@@ -89,7 +89,7 @@ Aussi, Sage se comporte différemment de Python à plusieurs égards.
    exclusif n'est que rarement utilisé. Par commodité, Sage prétraite
    chaque ligne de commande avant de la transmettre
    à Python, en remplaçant par exemple les apparitions de ``^``
-   (en-dehors des chaînes de caractères) par des ``**``:
+   (en dehors des chaînes de caractères) par des ``**``:
 
    ::
 
@@ -113,12 +113,11 @@ Aussi, Sage se comporte différemment de Python à plusieurs égards.
         10
 
 -  **Division entière :** L'expression Python ``2/3`` ne se comporte pas
-   de la manière à laquelle s'attendraient des mathématiciens. En Python, si
+   de la manière à laquelle s'attendraient des mathématiciens. En Python 2, si
    ``m`` et ``n`` sont de type int, alors ``m/n`` est aussi de type int, c'est
-   le quotient entier de ``m`` par ``n``. Par conséquent, ``2/3=0``. Il
-   y a eu dans la communauté Python des débats sur une éventuelle
-   modification du langage de sorte que ``2/3`` renvoie un flottant
-   ``0.6666...`` et que ce soit ``2//3`` qui renvoie ``0``.
+   le quotient entier de ``m`` par ``n``. Par conséquent, ``2/3=0``. Ce
+   comportement est différent en Python 3, où ``2/3`` renvoie un flottant
+   ``0.6666...`` et c'est ``2//3`` qui renvoie ``0``.
 
    Dans l'interpréteur Sage, nous réglons cela en encapsulant
    automatiquement les entiers litéraux par ``Integer( )`` et en faisant
@@ -133,7 +132,7 @@ Aussi, Sage se comporte différemment de Python à plusieurs égards.
        Rational Field
        sage: 2//3
        0
-       sage: int(2)/int(3)
+       sage: int(2)/int(3)   # optional - python2
        0
 
 -  **Entiers longs :** Python possède nativement un support pour les entiers de
@@ -161,7 +160,7 @@ faut taper ``sage -python setup.py install``.)
 Comment puis-je contribuer ?
 ============================
 
-Si vous souhaitez contribuer au developpement de Sage, votre aide sera grandement
+Si vous souhaitez contribuer au développement de Sage, votre aide sera grandement
 appréciée ! Cela peut aller de contributions substantielles en code au
 signalement de bogues en passant par l'enrichissement de la documentation.
 
@@ -169,7 +168,7 @@ Parcourez la page web de Sage pour y trouver les informations pour les
 développeurs. Entre autres choses, vous trouverez une longue liste de
 projets en lien avec Sage rangés par priorité et catégorie. Le Guide du
 développeur Sage (`Sage Developer's Guide
-<http://www.sagemath.org/doc/developer/>`_) contient également des
+<http://doc.sagemath.org/html/en/developer/>`_) contient également des
 informations utiles. Vous pouvez aussi faire un tour sur le groupe
 Google ``sage-devel``.
 
@@ -196,4 +195,3 @@ discussion plus approfondie de ce point.
 Si vous venez de lire d'une traite ce tutoriel et que vous avez une idée du temps qu'il vous a fallu pour le parcourir, merci de nous le faire savoir sur le groupe Google ``sage-devel``.
 
 Amusez-vous bien avec Sage !
-

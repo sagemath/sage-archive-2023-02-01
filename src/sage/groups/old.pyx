@@ -16,6 +16,7 @@ Base class for groups
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 doc="""
 Base class for all groups
@@ -23,7 +24,7 @@ Base class for all groups
 
 import random
 
-from   sage.rings.infinity import infinity
+from sage.rings.infinity import infinity
 import sage.rings.integer_ring
 
 cdef class Group(sage.structure.parent_gens.ParentWithGens):
@@ -47,7 +48,7 @@ cdef class Group(sage.structure.parent_gens.ParentWithGens):
             ...
             AssertionError: Category of commutative additive groups is not a subcategory of Category of groups
 
-         Check for #8119::
+         Check for :trac:`8119`::
 
             sage: G = SymmetricGroup(2)
             sage: h = hash(G)
@@ -120,7 +121,7 @@ cdef class Group(sage.structure.parent_gens.ParentWithGens):
         (Note for developers: Derived classes should override is_abelian, not
         is_commutative.)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: SL(2, 7).is_commutative()
             False

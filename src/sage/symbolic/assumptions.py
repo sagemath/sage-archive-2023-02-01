@@ -1,5 +1,68 @@
 """
 Assumptions
+
+The ``GenericDeclaration`` class provides assumptions about a symbol or
+function in verbal form. Such assumptions can be made using the :func:`assume`
+function in this module, which also can take any relation of symbolic
+expressions as argument. Use :func:`forget` to clear all assumptions.
+Creating a variable with a specific domain is equivalent with making an
+assumption about it.
+
+There is only rudimentary support for consistency and satisfiability checking
+in Sage. Assumptions are used both in Maxima and Pynac to support or refine
+some computations. In the following we show how to make and query assumptions.
+Please see the respective modules for more practical examples.
+
+EXAMPLES:
+
+The default domain of a symbolic variable is the complex plane::
+
+    sage: var('x')
+    x
+    sage: x.is_real()
+    False
+    sage: assume(x,'real')
+    sage: x.is_real()
+    True
+    sage: forget()
+    sage: x.is_real()
+    False
+
+Here is the list of acceptable features::
+
+    sage: maxima('features')
+    [integer,noninteger,even,odd,rational,irrational,real,imaginary,complex,analytic,increasing,decreasing,oddfun,evenfun,posfun,constant,commutative,lassociative,rassociative,symmetric,antisymmetric,integervalued]
+
+Set positive domain using a relation::
+
+    sage: assume(x>0)
+    sage: x.is_positive()
+    True
+    sage: x.is_real()
+    True
+    sage: assumptions()
+    [x > 0]
+
+Assumptions also affect operations that do not use Maxima::
+
+    sage: forget()
+    sage: assume(x, 'even')
+    sage: assume(x, 'real')
+    sage: (-1)^x
+    1
+    sage: (-gamma(pi))^x
+    gamma(pi)^x
+    sage: binomial(2*x, x).is_integer()
+    True
+
+Assumptions are added and in some cases checked for consistency::
+
+    sage: assume(x>0)
+    sage: assume(x<0)
+    Traceback (most recent call last):
+    ...
+    ValueError: Assumption is inconsistent
+    sage: forget()
 """
 from sage.structure.sage_object import SageObject
 from sage.rings.all import ZZ, QQ, RR, CC
@@ -11,8 +74,8 @@ class GenericDeclaration(SageObject):
     """
     This class represents generic assumptions, such as a variable being
     an integer or a function being increasing. It passes such
-    information to maxima's declare (wrapped in a context so it is able
-    to forget).
+    information to Maxima's declare (wrapped in a context so it is able
+    to forget) and to Pynac.
 
     INPUT:
 
@@ -28,8 +91,6 @@ class GenericDeclaration(SageObject):
         sage: decl = GenericDeclaration(x, 'integer')
         sage: decl.assume()
         sage: sin(x*pi)
-        sin(pi*x)
-        sage: sin(x*pi).simplify()
         0
         sage: decl.forget()
         sage: sin(x*pi)
@@ -64,8 +125,6 @@ class GenericDeclaration(SageObject):
             sage: decl = GenericDeclaration(x, 'integer')
             sage: decl.assume()
             sage: sin(x*pi)
-            sin(pi*x)
-            sage: sin(x*pi).simplify()
             0
             sage: decl.forget()
             sage: sin(x*pi)
@@ -90,8 +149,10 @@ class GenericDeclaration(SageObject):
         """
         return "%s is %s" % (self._var, self._assumption)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
+        Check whether ``self`` and ``other`` are equal.
+
         TESTS::
 
             sage: from sage.symbolic.assumptions import GenericDeclaration as GDecl
@@ -104,11 +165,28 @@ class GenericDeclaration(SageObject):
             sage: GDecl(x, 'integer') == GDecl(y, 'integer')
             False
         """
-        if isinstance(self, GenericDeclaration) and isinstance(other, GenericDeclaration):
-            return cmp((self._var, self._assumption),
-                       (other._var, other._assumption))
-        else:
-            return cmp(type(self), type(other))
+        if not isinstance(other, GenericDeclaration):
+            return False
+        return (bool(self._var == other._var) and
+                self._assumption == other._assumption)
+
+    def __ne__(self, other):
+        """
+        Check whether ``self`` and ``other`` are not equal.
+
+        TESTS::
+
+            sage: from sage.symbolic.assumptions import GenericDeclaration as GDecl
+            sage: var('y')
+            y
+            sage: GDecl(x, 'integer') != GDecl(x, 'integer')
+            False
+            sage: GDecl(x, 'integer') != GDecl(x, 'rational')
+            True
+            sage: GDecl(x, 'integer') != GDecl(y, 'integer')
+            True
+        """
+        return not self == other
 
     def has(self, arg):
         """
@@ -131,7 +209,7 @@ class GenericDeclaration(SageObject):
         """
         Make this assumption.
 
-        TEST::
+        TESTS::
 
             sage: from sage.symbolic.assumptions import GenericDeclaration
             sage: decl = GenericDeclaration(x, 'even')
@@ -164,13 +242,14 @@ class GenericDeclaration(SageObject):
 
         if not self in _assumptions:
             maxima.activate(self._context)
+            self._var.decl_assume(self._assumption)
             _assumptions.append(self)
 
     def forget(self):
         """
         Forget this assumption.
 
-        TEST::
+        TESTS::
 
             sage: from sage.symbolic.assumptions import GenericDeclaration
             sage: decl = GenericDeclaration(x, 'odd')
@@ -183,6 +262,7 @@ class GenericDeclaration(SageObject):
             sage: cos(x*pi).simplify()
             cos(pi*x)
         """
+        self._var.decl_forget(self._assumption)
         from sage.calculus.calculus import maxima
         if self._context is not None:
             try:
@@ -372,8 +452,6 @@ def assume(*args):
     Simplifying certain well-known identities works as well::
 
         sage: sin(n*pi)
-        sin(pi*n)
-        sage: sin(n*pi).simplify()
         0
         sage: forget()
         sage: sin(n*pi).simplify()
@@ -439,6 +517,26 @@ def assume(*args):
         sin(pi*n)
         sage: sin(m*pi).simplify()
         sin(pi*m)
+
+    Check that positive integers can be created (:trac:`20132`)
+
+        sage: forget()
+        sage: x = SR.var('x', domain='positive')
+        sage: assume(x, 'integer')
+        sage: x.is_positive() and x.is_integer()
+        True
+
+        sage: forget()
+        sage: x = SR.var('x', domain='integer')
+        sage: assume(x > 0)
+        sage: x.is_positive() and x.is_integer()
+        True
+
+        sage: forget()
+        sage: assume(x, "integer")
+        sage: assume(x > 0)
+        sage: x.is_positive() and x.is_integer()
+        True
     """
     for x in preprocess_assumptions(args):
         if isinstance(x, (tuple, list)):
@@ -466,10 +564,11 @@ def forget(*args):
 
     We define and forget multiple assumptions::
 
+        sage: forget()
         sage: var('x,y,z')
         (x, y, z)
         sage: assume(x>0, y>0, z == 1, y>0)
-        sage: list(sorted(assumptions(), lambda x,y:cmp(str(x),str(y))))
+        sage: sorted(assumptions(), key=lambda x:str(x))
         [x > 0, y > 0, z == 1]
         sage: forget(x>0, z==1)
         sage: assumptions()
@@ -527,7 +626,7 @@ def assumptions(*args):
         []
         sage: assume(x > y)
         sage: assume(z > w)
-        sage: list(sorted(assumptions(), lambda x,y:cmp(str(x),str(y))))
+        sage: sorted(assumptions(), key=lambda x: str(x))
         [x > y, z > w]
         sage: forget()
         sage: assumptions()

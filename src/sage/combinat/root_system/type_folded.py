@@ -19,6 +19,9 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.sets.family import Family
 from sage.combinat.root_system.cartan_type import CartanType
 
+import six
+
+
 class CartanTypeFolded(UniqueRepresentation, SageObject):
     r"""
     A Cartan type realized from a (Dynkin) diagram folding.
@@ -150,7 +153,7 @@ class CartanTypeFolded(UniqueRepresentation, SageObject):
 
     - :wikipedia:`Dynkin_diagram#Folding`
 
-    .. [OSShimo03] M. Okado, A. Schilling, M. Shimozono.
+    .. [OSShimo03] \M. Okado, A. Schilling, M. Shimozono.
        "Virtual crystals and fermionic formulas for type `D_{n+1}^{(2)}`,
        `A_{2n}^{(2)}`, and `C_n^{(1)}`". Representation Theory. **7** (2003).
        101-163. :doi:`10.1.1.192.2095`, :arxiv:`0810.5067`.
@@ -178,7 +181,7 @@ class CartanTypeFolded(UniqueRepresentation, SageObject):
         if isinstance(orbit, dict):
             i_set = cartan_type.index_set()
             orb = [None]*len(i_set)
-            for k,v in orbit.iteritems():
+            for k,v in six.iteritems(orbit):
                 orb[i_set.index(k)] = tuple(v)
             orbit = tuple(orb)
         else:

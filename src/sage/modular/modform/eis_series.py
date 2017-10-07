@@ -2,29 +2,26 @@
 """
 Eisenstein Series
 """
-
-#########################################################################
-#       Copyright (C) 2004--2006 William Stein <wstein@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2004-2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#########################################################################
+#*****************************************************************************
+from __future__ import absolute_import
+from six import integer_types
 
 import sage.misc.all as misc
-
 import sage.modular.dirichlet as dirichlet
-
 from sage.modular.arithgroup.congroup_gammaH import GammaH_class
-
-from sage.rings.all import Integer
-
-from sage.rings.all import (bernoulli, CyclotomicField,
-                            ZZ, QQ, Integer, divisors,
-                            LCM, is_squarefree)
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.all import Integer, CyclotomicField, ZZ, QQ, Integer
+from sage.arith.all import bernoulli, divisors, is_squarefree, lcm
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.power_series_ring import PowerSeriesRing
-from eis_series_cython import eisenstein_series_poly, Ek_ZZ
+from .eis_series_cython import eisenstein_series_poly, Ek_ZZ
 
 def eisenstein_series_qexp(k, prec = 10, K=QQ, var='q', normalization='linear'):
     r"""
@@ -187,7 +184,7 @@ def __common_minimal_basering(chi, psi):
     """
     chi = chi.minimize_base_ring()
     psi = psi.minimize_base_ring()
-    n = LCM(chi.base_ring().zeta().multiplicative_order(),\
+    n = lcm(chi.base_ring().zeta().multiplicative_order(),
                   psi.base_ring().zeta().multiplicative_order())
     if n <= 2:
         K = QQ
@@ -297,7 +294,7 @@ def __find_eisen_chars_gammaH(N, H, k):
     Find all triples `(\psi_1, \psi_2, t)` that give rise to an Eisenstein series of weight `k` on
     `\Gamma_H(N)`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: pars =  sage.modular.modform.eis_series.__find_eisen_chars_gammaH(15, [2], 5)
         sage: [(x[0].values_on_gens(), x[1].values_on_gens(), x[2]) for x in pars]
@@ -492,10 +489,9 @@ def compute_eisenstein_params(character, k):
         sage: len(sage.modular.modform.eis_series.compute_eisenstein_params(GammaH(15, [4]), 3))
         8
     """
-    if isinstance(character, (int,long,Integer)):
+    if isinstance(character, integer_types + (Integer,)):
         return __find_eisen_chars_gamma1(character, k)
     elif isinstance(character, GammaH_class):
         return __find_eisen_chars_gammaH(character.level(), character._generators_for_H(), k)
     else:
         return __find_eisen_chars(character, k)
-

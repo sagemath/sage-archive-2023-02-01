@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 die () {
     echo >&2 "$@"
     exit 1
@@ -9,7 +7,9 @@ die () {
 
 cd src
 
-export LDFLAGS="-L$SAGE_LOCAL/lib $LDFLAGS"
+# Use newer version of config.guess and config.sub (see Trac #23710)
+cp "$SAGE_ROOT"/config/config.* .
+
 export CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
 ./configure --prefix="$SAGE_LOCAL" ||
     die "configuring ccache failed"

@@ -12,18 +12,17 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-include "sage/ext/interrupt.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 import weakref
 
-from sage.rings.integer_ring import IntegerRing
-
-ZZ_sage = IntegerRing()
+from sage.rings.integer cimport Integer
 
 
-cdef class ntl_ZZ_pContext_class:
+
+cdef class ntl_ZZ_pContext_class(object):
     def __init__(self, ntl_ZZ v):
         """
         EXAMPLES:
@@ -47,12 +46,9 @@ cdef class ntl_ZZ_pContext_class:
         pass
 
     def __cinit__(self, ntl_ZZ v):
-        ZZ_pContext_construct_ZZ(&self.x, &(<ntl_ZZ>v).x)
+        self.x = ZZ_pContext_c(v.x)
         self.p = v
         self.p_bits = self.p._integer_().nbits()
-
-    def __dealloc__(self):
-        ZZ_pContext_destruct(&self.x)
 
     def __reduce__(self):
         """
@@ -93,7 +89,7 @@ cdef class ntl_ZZ_pContext_class:
             sage: c.modulus() == 10^30
             True
         """
-        return ZZ_sage(self.p)
+        return Integer(self.p)
 
 
     def restore(self):
@@ -111,7 +107,7 @@ cdef class ntl_ZZ_pContext_class:
     cdef void restore_c(self):
         self.x.restore()
 
-cdef class ntl_ZZ_pContext_factory:
+cdef class ntl_ZZ_pContext_factory(object):
     def __init__(self):
         self.context_dict = {}
 
@@ -144,5 +140,5 @@ def ntl_ZZ_pContext( v ):
     """
     v = ntl_ZZ(v)
     if (v < ntl_ZZ(2)):
-        raise ValueError, "%s is not a valid modulus."%v
+        raise ValueError("%s is not a valid modulus." % v)
     return (<ntl_ZZ_pContext_factory>ZZ_pContext_factory).make_c(v)

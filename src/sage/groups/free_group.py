@@ -227,6 +227,17 @@ class FreeGroupElement(ElementLibGAP):
             x = AbstractWordTietzeWord(l, parent._gap_gens())
         ElementLibGAP.__init__(self, parent, x)
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: G.<a,b> = FreeGroup()
+            sage: hash(a*b*b*~a)
+            -485698212495963022 # 64-bit
+            -1876767630         # 32-bit
+        """
+        return hash(self.Tietze())
+
     def _latex_(self):
         """
         Return a LaTeX representation
@@ -307,7 +318,7 @@ class FreeGroupElement(ElementLibGAP):
         TESTS::
 
             sage: type(a.Tietze())
-            <type 'tuple'>
+            <... 'tuple'>
             sage: type(a.Tietze()[0])
             <type 'sage.rings.integer.Integer'>
         """
@@ -374,19 +385,17 @@ class FreeGroupElement(ElementLibGAP):
         If ``im_gens`` are provided, the result lives in the
         algebra where ``im_gens`` live.
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: G = FreeGroup(5)
             sage: G.inject_variables()
             Defining x0, x1, x2, x3, x4
             sage: (~x0*x1*x0*x2*~x0).fox_derivative(x0)
-            -B[x0^-1] + B[x0^-1*x1] - B[x0^-1*x1*x0*x2*x0^-1]
+            -x0^-1 + x0^-1*x1 - x0^-1*x1*x0*x2*x0^-1
             sage: (~x0*x1*x0*x2*~x0).fox_derivative(x1)
-            B[x0^-1]
+            x0^-1
             sage: (~x0*x1*x0*x2*~x0).fox_derivative(x2)
-            B[x0^-1*x1*x0]
+            x0^-1*x1*x0
             sage: (~x0*x1*x0*x2*~x0).fox_derivative(x3)
             0
 
@@ -396,7 +405,7 @@ class FreeGroupElement(ElementLibGAP):
             sage: F=FreeGroup(3)
             sage: a=F([2,1,3,-1,2])
             sage: a.fox_derivative(F([1]))
-            B[x1] - B[x1*x0*x2*x0^-1]
+            x1 - x1*x0*x2*x0^-1
             sage: R.<t>=LaurentPolynomialRing(ZZ)
             sage: a.fox_derivative(F([1]),[t,t,t])
             t - t^2
@@ -560,7 +569,7 @@ def FreeGroup(n=None, names='x', index_set=None, abelian=False, **kwds):
 
     INPUT:
 
-    - ``n`` -- integer or ``None`` (default). The nnumber of
+    - ``n`` -- integer or ``None`` (default). The number of
       generators. If not specified the ``names`` are counted.
 
     - ``names`` -- string or list/tuple/iterable of strings (default:
@@ -627,8 +636,8 @@ def FreeGroup(n=None, names='x', index_set=None, abelian=False, **kwds):
         else:
             names = list(names)
             n = len(names)
-    from sage.structure.parent import normalize_names
-    names = tuple(normalize_names(n, names))
+    from sage.structure.category_object import normalize_names
+    names = normalize_names(n, names)
     if index_set is not None or abelian:
         if abelian:
             from sage.groups.indexed_free_group import IndexedFreeAbelianGroup
@@ -846,7 +855,7 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
         `i_1 \dots i_j`, such that the abelianization of the
         group is isomorphic to
 
-        .. math::
+        .. MATH::
 
             \ZZ / (i_1) \times \dots \times \ZZ / (i_j)
 
@@ -904,4 +913,4 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
         from sage.groups.finitely_presented import FinitelyPresentedGroup
         return FinitelyPresentedGroup(self, tuple(map(self, relations) ) )
 
-    __div__ = quotient
+    __truediv__ = quotient

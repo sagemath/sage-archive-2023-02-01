@@ -4,7 +4,7 @@ SAT-Solvers via DIMACS Files
 Sage supports calling SAT solvers using the popular DIMACS format. This module implements
 infrastructure to make it easy to add new such interfaces and some example interfaces.
 
-Currently, interfaces to **RSat** [RS]_ and **Glucose** [GL]_ are included by default.
+Currently, interfaces to **RSat** and **Glucose** are included by default.
 
 .. note::
 
@@ -122,7 +122,7 @@ class DIMACS(SatSolver):
 
         - ``decision`` - accepted for compatibility with other solvers, ignored.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.dimacs import DIMACS
             sage: solver = DIMACS()
@@ -136,7 +136,7 @@ class DIMACS(SatSolver):
         """
         Return the number of variables.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.dimacs import DIMACS
             sage: solver = DIMACS()
@@ -163,7 +163,7 @@ class DIMACS(SatSolver):
             than the number of variables generated so far, then new
             variables are created automatically.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.dimacs import DIMACS
             sage: solver = DIMACS()
@@ -194,7 +194,7 @@ class DIMACS(SatSolver):
         - ``filename`` - if ``None`` default filename specified at initialization is used for
           writing to (default: ``None``)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.dimacs import DIMACS
             sage: fn = tmp_filename()
@@ -202,7 +202,7 @@ class DIMACS(SatSolver):
             sage: solver.add_clause( (1, -2 , 3) )
             sage: _ = solver.write()
             sage: for line in open(fn).readlines():
-            ...      print line,
+            ....:     print(line)
             p cnf 3 1
             1 -2 3 0
 
@@ -212,7 +212,7 @@ class DIMACS(SatSolver):
             sage: solver.add_clause( (1, -2 , 3) )
             sage: _ = solver.write(fn)
             sage: for line in open(fn).readlines():
-            ...      print line,
+            ....:      print(line)
             p cnf 3 1
             1 -2 3 0
         """
@@ -252,7 +252,7 @@ class DIMACS(SatSolver):
             If ``filename`` points to a writable file, then the list of original
             clauses is written to that file in DIMACS format.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.dimacs import DIMACS
             sage: fn = tmp_filename()
@@ -263,7 +263,7 @@ class DIMACS(SatSolver):
 
             sage: solver.add_clause( (1, 2, -3) )
             sage: solver.clauses(fn)
-            sage: print open(fn).read()
+            sage: print(open(fn).read())
             p cnf 3 2
             1 2 3 0
             1 2 -3 0
@@ -306,14 +306,14 @@ class DIMACS(SatSolver):
 
         - ``nlits -- the number of literals appearing in ``clauses``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.dimacs import DIMACS
             sage: fn = tmp_filename()
             sage: solver = DIMACS()
             sage: solver.add_clause( (1, 2, -3) )
             sage: DIMACS.render_dimacs(solver.clauses(), fn, solver.nvars())
-            sage: print open(fn).read()
+            sage: print(open(fn).read())
             p cnf 3 1
             1 2 -3 0
             <BLANKLINE>
@@ -321,7 +321,7 @@ class DIMACS(SatSolver):
         This is equivalent to::
 
             sage: solver.clauses(fn)
-            sage: print open(fn).read()
+            sage: print(open(fn).read())
             p cnf 3 1
             1 2 -3 0
             <BLANKLINE>
@@ -329,7 +329,7 @@ class DIMACS(SatSolver):
         This function also accepts a "simple" format::
 
             sage: DIMACS.render_dimacs([ (1,2), (1,2,-3) ], fn, 3)
-            sage: print open(fn).read()
+            sage: print(open(fn).read())
             p cnf 3 2
             1 2 0
             1 2 -3 0
@@ -401,7 +401,7 @@ class DIMACS(SatSolver):
             while process.poll() is None:
                 for line in iter(process.stdout.readline,''):
                     if get_verbose() or self._verbosity:
-                        print line,
+                        print(line)
                         sys.stdout.flush()
                     self._output.append(line)
                 sleep(0.1)
@@ -437,7 +437,7 @@ class RSat(DIMACS):
 
         - If this instance is UNSAT: ``False``
 
-        EXAMPLE::
+        EXAMPLES::
 
            sage: from sage.sat.boolean_polynomials import solve as solve_sat
            sage: F,s = mq.SR(1,1,1,4,gf2=True,polybori=True).polynomial_system()
@@ -484,7 +484,7 @@ class Glucose(DIMACS):
 
         - If this instance is UNSAT: ``False``
 
-        EXAMPLE::
+        EXAMPLES::
 
            sage: from sage.sat.boolean_polynomials import solve as solve_sat
            sage: F,s = mq.SR(1,1,1,4,gf2=True,polybori=True).polynomial_system()

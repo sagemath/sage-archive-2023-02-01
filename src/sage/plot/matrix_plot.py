@@ -1,7 +1,6 @@
 """
 Matrix Plots
 """
-
 #*****************************************************************************
 #       Copyright (C) 2006 Alex Clemesha <clemesha@gmail.com>,
 #                          William Stein <wstein@gmail.com>,
@@ -18,9 +17,13 @@ Matrix Plots
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+from six import iteritems
+
 from sage.plot.primitive import GraphicPrimitive
 from sage.misc.decorators import options, suboptions
 from sage.plot.colors import get_cmap
+
 
 class MatrixPlot(GraphicPrimitive):
     """
@@ -113,8 +116,8 @@ class MatrixPlot(GraphicPrimitive):
 
         # center the matrix so that, for example, the square representing the
         # (0,0) entry is centered on the origin.
-        for k,v in limits.iteritems():
-            limits[k]-=0.5
+        for k, v in iteritems(limits):
+            limits[k] -= 0.5
         return limits
 
     def _allowed_options(self):
@@ -190,7 +193,7 @@ class MatrixPlot(GraphicPrimitive):
                 colstyle=dict()
 
             # Make line objects for subdivisions
-            from line import line2d
+            from .line import line2d
             lim=self.get_minmax_data()
             # First draw horizontal lines representing row subdivisions
             for y in rowsub:
@@ -233,18 +236,24 @@ class MatrixPlot(GraphicPrimitive):
 
 @suboptions('colorbar', orientation='vertical', format=None)
 @suboptions('subdivision',boundaries=None, style=None)
-@options(aspect_ratio=1, axes=False, cmap='gray', colorbar=False,
+@options(aspect_ratio=1, axes=False, cmap='Greys', colorbar=False,
          frame=True, marker='.', norm=None, origin='upper',
          subdivisions=False, ticks_integer=True, vmin=None, vmax=None)
 def matrix_plot(mat, **options):
     r"""
     A plot of a given matrix or 2D array.
 
+    If the matrix is sparse, colors only indicate whether an element is
+    nonzero or zero, so the plot represents the sparsity pattern of the
+    matrix.
+
     If the matrix is dense, each matrix element is given a different
     color value depending on its relative size compared to the other
-    elements in the matrix.  If the matrix is sparse, colors only
-    indicate whether an element is nonzero or zero, so the plot
-    represents the sparsity pattern of the matrix.
+    elements in the matrix.
+
+    The default is for the lowest number to be black and the highest
+    number to be white in a greyscale pattern; see the information about
+    normalizing below. To reverse this, use ``cmap='Greys'``.
 
     The tick marks drawn on the frame axes denote the row numbers
     (vertical ticks) and the column numbers (horizontal ticks) of the
@@ -257,11 +266,14 @@ def matrix_plot(mat, **options):
     The following input must all be passed in as named parameters, if
     default not used:
 
-    - ``cmap`` - a colormap (default: 'gray'), the name of
-      a predefined colormap, a list of colors,
-      or an instance of a matplotlib Colormap.
-      Type: ``import matplotlib.cm; matplotlib.cm.datad.keys()``
-      for available colormap names.
+    - ``cmap`` - a colormap (default: 'Greys'), the name of a predefined
+      colormap, a list of colors, or an instance of a matplotlib Colormap.
+
+      The list of predefined color maps can be visualized in `matplotlib's
+      documentation
+      <http://matplotlib.org/examples/color/colormaps_reference.html>`__. You
+      can also type ``import matplotlib.cm; matplotlib.cm.datad.keys()`` to list
+      their names.
 
     - ``colorbar`` -- boolean (default: False) Show a colorbar or not (dense matrices only).
 
@@ -398,7 +410,7 @@ def matrix_plot(mat, **options):
 
     Here we plot a random sparse matrix::
 
-        sage: sparse = matrix(dict([((randint(0, 10), randint(0, 10)), 1) for i in xrange(100)]))
+        sage: sparse = matrix(dict([((randint(0, 10), randint(0, 10)), 1) for i in range(100)]))
         sage: matrix_plot(sparse)
         Graphics object consisting of 1 graphics primitive
 

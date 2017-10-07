@@ -33,7 +33,7 @@ When you do arithmetic with::
 
 TESTS:
 
-The arguments in the definition must be symbolic variables #10747::
+The arguments in the definition must be symbolic variables (:trac:`10747`)::
 
     sage: f(1)=2
     Traceback (most recent call last):
@@ -61,7 +61,8 @@ The arguments in the definition must be symbolic variables #10747::
     SyntaxError: can't assign to function call
 """
 
-from sage.symbolic.ring import SymbolicRing, SR, ParentWithBase
+from sage.structure.parent_base import ParentWithBase
+from sage.symbolic.ring import SymbolicRing, SR
 from sage.categories.pushout import ConstructionFunctor
 
 #########################################################################################
@@ -279,37 +280,15 @@ class CallableSymbolicExpressionRing_class(SymbolicRing):
             sage: f(x) = 1
             sage: f*e
             x |--> e
+
+        TESTS::
+
+            sage: TestSuite(f.parent()).run()
         """
         self._arguments = arguments
-        ParentWithBase.__init__(self, SR)
+        SymbolicRing.__init__(self, SR)
         self._populate_coercion_lists_(coerce_list=[SR])
-
-    def __hash__(self):
-        """
-        EXAMPLES::
-
-            sage: f(x,y) = x + y
-            sage: hash(f.parent()) #random
-            -8878119762643067638
-        """
-        return hash(('CallableSymbolicExpressionRing', self._arguments))
-
-    def __cmp__(self, other):
-        """
-        EXAMPLES::
-
-            sage: f(x) = x+1
-            sage: g(y) = y+1
-            sage: h(x) = x^2
-            sage: f.parent() == g.parent()
-            False
-            sage: f.parent() == h.parent()
-            True
-        """
-        if self.__class__ != other.__class__:
-            return cmp(self.__class__, other.__class__)
-        else:
-            return cmp(self._arguments, other._arguments)
+        self.symbols = SR.symbols  # Use the same list of symbols as SR
 
     def _coerce_map_from_(self, R):
         """
@@ -484,6 +463,8 @@ class CallableSymbolicExpressionRing_class(SymbolicRing):
         d.update(kwds)
         return SR(_the_element.substitute(**d))
 
+    # __reduce__ gets replaced by the CallableSymbolicExpressionRingFactory
+    __reduce__ = object.__reduce__
 
 
 from sage.structure.factory import UniqueFactory

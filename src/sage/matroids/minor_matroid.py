@@ -63,6 +63,7 @@ AUTHORS:
 Methods
 =======
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2013 Rudi Pendavingh <rudi.pendavingh@gmail.com>
 #       Copyright (C) 2013 Michael Welsh <michael@welsh.co.nz>
@@ -74,18 +75,18 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from matroid import Matroid
-from utilities import sanitize_contractions_deletions, setprint_s
+from .matroid import Matroid
+from .utilities import sanitize_contractions_deletions, setprint_s
 
 
 class MinorMatroid(Matroid):
     r"""
     Minor of a matroid.
 
-    For some matroid representations it can be computationally expensive to
-    derive an explicit representation of a minor. This class wraps around any
-    matroid to provide an abstract minor. It also serves as default implemen-
-    tation.
+    For some matroid representations, it can be computationally
+    expensive to derive an explicit representation of a minor. This
+    class wraps around any matroid to provide an abstract minor. It
+    also serves as default implementation.
 
     Return a minor.
 
@@ -457,7 +458,7 @@ class MinorMatroid(Matroid):
             sage: M1 != M3
             False
         """
-        return not self.__eq__(other)
+        return not self == other
 
     # Copying, loading, saving:
 

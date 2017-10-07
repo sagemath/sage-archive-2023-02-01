@@ -7,7 +7,7 @@ Integer Sequences::
     sage: s = oeis([1,3,19,211]); s                  # optional - internet
     0: A000275: Coefficients of a Bessel function (reciprocal of J_0(z)); also pairs of permutations with rise/rise forbidden.
     sage: s[0].programs() # optional - internet
-    0: (PARI) a(n)=if(n<0,0,n!^2*4^n*polcoeff(1/besselj(0,x+x*O(x^(2*n))),2*n)) /* _Michael Somos_, May 17 2004 */
+    0: (PARI) {a(n) = if( n<0, 0, n!^2 * 4^n * polcoeff( 1 / besselj(0, x + x * O(x^(2*n))), 2*n))}; /* _Michael Somos_, May 17 2004 */
 
 Combinatorial objects::
 
@@ -27,7 +27,7 @@ Combinatorial objects::
 
 Constructions and Species::
 
-    sage: for (p, s) in CartesianProduct(P, S): print p, s # not tested
+    sage: for (p, s) in cartesian_product([P,S]): print((p, s)) # not tested
     sage: DisjointUnionEnumeratedSets(Family(lambda n: IntegerVectors(n, 3), NonNegativeIntegers))  # not tested
 
 Words::
@@ -58,9 +58,7 @@ Polytopes::
 
 :mod:`Symmetric functions and combinatorial Hopf algebras <sage.combinat.algebraic_combinatorics>`::
 
-    sage: Sym = SymmetricFunctions(QQ); Sym.inject_shorthands()
-    ...
-    doctest:...: RuntimeWarning: redefining global value `e`
+    sage: Sym = SymmetricFunctions(QQ); Sym.inject_shorthands(verbose=False)
     sage: m( ( h[2,1] * (1 + 3 * p[2,1]) ) + s[2](s[3]) )
     3*m[1, 1, 1] + ... + 10*m[5, 1] + 4*m[6]
 

@@ -30,15 +30,6 @@ interface.
  *    derived from this software without specific prior written permission.
 
 
-== SPKG Maintainers ==
-
- * Volker Braun
- * Marshall Hampton
- * David Kirkby
- * Mike Hansen
- * Andrzej Giniewicz
-
-
 == Upstream Contact ==
 
 http://jedi.ks.uiuc.edu/~johns/raytracer/

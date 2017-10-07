@@ -1,3 +1,4 @@
+# cython: binding=True
 r"""
 Comparability and permutation graphs
 
@@ -35,7 +36,7 @@ edge between any two elements that are comparable. Co-comparability graph are
 complements of such graphs, i.e. graphs built from a poset by adding an edge
 between any two incomparable elements.
 
-For more information on comparablity graphs, see the :wikipedia:`corresponding
+For more information on comparability graphs, see the :wikipedia:`corresponding
 wikipedia page <Comparability_graph>`
 
 **Permutation graphs**
@@ -210,9 +211,9 @@ Methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import print_function
 
-include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+from cysignals.memory cimport sig_free
 
 from copy import copy
 
@@ -247,7 +248,7 @@ def greedy_is_comparability(g, no_certificate = False, equivalence_class = False
     - If the graph is *not* a comparability graph, this method returns ``False``
       or ``(False, odd_cycle)`` according to the value of ``no_certificate``.
 
-    EXAMPLE:
+    EXAMPLES:
 
     The Petersen Graph is not transitively orientable::
 
@@ -345,7 +346,7 @@ def greedy_is_comparability_with_certificate(g, certificate = False):
       `G`, and a *no* certificates is an odd cycle of sequentially forcing
       edges.
 
-    EXAMPLE:
+    EXAMPLES:
 
     The 5-cycle or the Petersen Graph are not transitively orientable::
 
@@ -413,7 +414,7 @@ def is_comparability_MILP(g, certificate = False):
     - ``certificate`` (boolean) -- whether to return a certificate for
       yes instances. This method can not return negative certificates.
 
-    EXAMPLE:
+    EXAMPLES:
 
     The 5-cycle or the Petersen Graph are not transitively orientable::
 
@@ -458,8 +459,8 @@ def is_comparability_MILP(g, certificate = False):
                     p.add_constraint(o[u,v] + o[vv,u] - o[vv,v] <= 1)
                     p.add_constraint(o[u,vv] + o[v,u] - o[v,vv] <= 1)
 
-                # If there is no edge there there are only two
-                # orientation possible (see the module's documentation
+                # If there is no edge, there are only two
+                # orientations possible (see the module's documentation
                 # about edges which imply each other)
                 else:
                     p.add_constraint(o[u,v] + o[vv,u] <= 1)
@@ -518,7 +519,7 @@ def is_comparability(g, algorithm = "greedy", certificate = False, check = True)
       yes-certificates are indeed transitive. As it is very quick
       compared to the rest of the operation, it is enabled by default.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.comparability import is_comparability
         sage: g = graphs.PetersenGraph()
@@ -602,7 +603,7 @@ def is_permutation(g, algorithm = "greedy", certificate = False, check = True):
         through a call to :meth:`Permutation.show
         <sage.combinat.permutation.Permutation.show>`.
 
-    EXAMPLE:
+    EXAMPLES:
 
     A permutation realizing the bull graph::
 
@@ -627,31 +628,31 @@ def is_permutation(g, algorithm = "greedy", certificate = False, check = True):
 
        sage: from sage.graphs.comparability import is_permutation
        sage: for i in range(20):
-       ...       p = Permutations(10).random_element()
-       ...       g1 = graphs.PermutationGraph(p)
-       ...       isit, certif = is_permutation(g1, certificate = True)
-       ...       if not isit:
-       ...          print "Something is wrong here !!"
-       ...          break
-       ...       g2 = graphs.PermutationGraph(*certif)
-       ...       if not g1.is_isomorphic(g2):
-       ...          print "Something is wrong here !!"
-       ...          break
+       ....:     p = Permutations(10).random_element()
+       ....:     g1 = graphs.PermutationGraph(p)
+       ....:     isit, certif = is_permutation(g1, certificate = True)
+       ....:     if not isit:
+       ....:        print("Something is wrong here !!")
+       ....:        break
+       ....:     g2 = graphs.PermutationGraph(*certif)
+       ....:     if not g1.is_isomorphic(g2):
+       ....:        print("Something is wrong here !!")
+       ....:        break
 
     Then with MILP::
 
        sage: from sage.graphs.comparability import is_permutation
        sage: for i in range(20):
-       ...       p = Permutations(10).random_element()
-       ...       g1 = graphs.PermutationGraph(p)
-       ...       isit, certif = is_permutation(g1, algorithm = "MILP", certificate = True)
-       ...       if not isit:
-       ...          print "Something is wrong here !!"
-       ...          break
-       ...       g2 = graphs.PermutationGraph(*certif)
-       ...       if not g1.is_isomorphic(g2):
-       ...          print "Something is wrong here !!"
-       ...          break
+       ....:     p = Permutations(10).random_element()
+       ....:     g1 = graphs.PermutationGraph(p)
+       ....:     isit, certif = is_permutation(g1, algorithm = "MILP", certificate = True)
+       ....:     if not isit:
+       ....:        print("Something is wrong here !!")
+       ....:        break
+       ....:     g2 = graphs.PermutationGraph(*certif)
+       ....:     if not g1.is_isomorphic(g2):
+       ....:        print("Something is wrong here !!")
+       ....:        break
 
     """
     from sage.graphs.comparability import is_comparability
@@ -712,7 +713,7 @@ def is_transitive(g, certificate = False):
         or yield a pair of vertices `uv` such that there exists a `uv`-path in
         `G` but `uv\not\in G`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: digraphs.Circuit(4).is_transitive()
         False
@@ -745,7 +746,7 @@ def is_transitive(g, certificate = False):
         for i in range(n):
             if ((c_distances[i] != <unsigned short> -1) and
                 (c_distances[i] > 1)):
-                sage_free(distances)
+                sig_free(distances)
                 if certificate:
 
                     return int_to_vertex[j], int_to_vertex[i]
@@ -754,5 +755,5 @@ def is_transitive(g, certificate = False):
 
         c_distances += n
 
-    sage_free(distances)
+    sig_free(distances)
     return True

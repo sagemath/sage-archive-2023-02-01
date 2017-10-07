@@ -7,6 +7,7 @@ AUTHORS:
 
 - David Roe
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2008 David Roe <roed.math@gmail.com>
@@ -19,7 +20,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from padic_extension_generic import pAdicExtensionGeneric
+from .padic_extension_generic import pAdicExtensionGeneric
+from .misc import precprint
 from sage.rings.infinity import infinity
 from sage.misc.latex import latex
 from sage.rings.integer import Integer
@@ -48,12 +50,12 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
             sage: S.<x> = A[]
             sage: B.<t> = A.ext(x^2+7)
             sage: B #indirect doctest
-            Eisenstein Extension of 7-adic Ring with capped relative precision 10 in t defined by (1 + O(7^10))*x^2 + (O(7^11))*x + (7 + O(7^11))
+            Eisenstein Extension in t defined by x^2 + 7 with capped relative precision 20 over 7-adic Ring
         """
         if do_latex:
-            return "Eisenstein Extension of %s in %s defined by %s"%(latex(self.ground_ring()), self.latex_name(), latex(self.modulus()))
+            return "Eisenstein Extension in %s defined by %s over %s"%(self.latex_name(), latex(self.defining_polynomial(exact=True)), latex(self.ground_ring()))
         else:
-            return "Eisenstein Extension of %s in %s defined by %s"%(self.ground_ring(), self.variable_name(), self.modulus())
+            return "Eisenstein Extension in %s defined by %s %s over %s-adic %s"%(self.variable_name(), self.defining_polynomial(exact=True), precprint(self._prec_type(), self.precision_cap(), self.variable_name()), self.prime(), "Field" if self.is_field() else "Ring")
 
     def ramification_index(self, K = None):
         """
@@ -64,12 +66,12 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
         valuation map on K in the image of the valuation map on self
         (both normalized so that the valuation of p is 1).
 
-        INPUTS:
+        INPUT:
 
         - self -- an Eisenstein extension
         - K -- a subring of self (default None -> self.ground_ring())
 
-        OUTPUTS:
+        OUTPUT:
 
         - The ramification index of the extension self/K
 
@@ -97,12 +99,12 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
         fields induced by this extensions.  Since Eisenstein
         extensions are totally ramified, this will be 1 for K=None.
 
-        INPUTS:
+        INPUT:
 
         - self -- an Eisenstein extension
         - K -- a subring of self (default None -> self.ground_ring())
 
-        OUTPUTS:
+        OUTPUT:
 
         - The degree of the induced extensions of residue fields.
 

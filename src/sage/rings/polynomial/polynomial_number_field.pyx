@@ -68,8 +68,9 @@ We can also construct polynomials over relative number fields::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-from polynomial_element_generic import Polynomial_generic_dense_field
+from .polynomial_element_generic import Polynomial_generic_dense_field
 from sage.rings.rational_field import QQ
 from sage.structure.element import coerce_binop
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -102,10 +103,12 @@ class Polynomial_absolute_number_field_dense(Polynomial_generic_dense_field):
 
         EXAMPLES::
 
-            sage: f = QQ[I][x].random_element()
-            sage: type(f)
-            <class 'sage.rings.polynomial.polynomial_number_field.Polynomial_absolute_number_field_dense'>
-            sage: a = QQ[I][x](x)
+            sage: P.<x> = QQ[I][]
+            sage: f = P.random_element()
+            sage: from sage.rings.polynomial.polynomial_number_field import Polynomial_absolute_number_field_dense
+            sage: isinstance(f, Polynomial_absolute_number_field_dense)
+            True
+            sage: a = P(x)
             sage: a.is_gen()
             True
         """
@@ -235,8 +238,9 @@ class Polynomial_relative_number_field_dense(Polynomial_generic_dense_field):
         EXAMPLES::
 
             sage: f = NumberField([x^2-2, x^2-3], 'a')['x'].random_element()
-            sage: type(f)
-            <class 'sage.rings.polynomial.polynomial_number_field.Polynomial_relative_number_field_dense'>
+            sage: from sage.rings.polynomial.polynomial_number_field import Polynomial_relative_number_field_dense
+            sage: isinstance(f, Polynomial_relative_number_field_dense)
+            True
         """
         Polynomial_generic_dense_field.__init__(self, parent, x, check, is_gen, construct)
 

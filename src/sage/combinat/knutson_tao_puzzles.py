@@ -37,7 +37,6 @@ The code was tested afterwards by Liz Beazley and Ed Richmond.
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.combinat.free_module import CombinatorialFreeModule
 from sage.plot.graphics import Graphics
 from sage.plot.polygon import polygon
 from sage.plot.line import line
@@ -45,11 +44,9 @@ from sage.plot.text import text
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.finite_rings.integer_mod_ring import Integers
 from sage.plot.plot import graphics_array
-from sage.combinat.words.word import Word
 from sage.misc.cachefunc import cached_method
-from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.combinat.skew_tableau import SkewTableau
+
 
 class PuzzlePiece(object):
     r"""
@@ -599,7 +596,7 @@ class PuzzlePieces(object):
             sage: hash(x) == hash(x)
             True
         """
-        return hash((type(self), self.__repr__()))
+        return hash((type(self), repr(self)))
 
     def add_piece(self, piece, rotations=120):
         r"""
@@ -835,7 +832,7 @@ def K_grassmannian_pieces():
 
     REFERENCES:
 
-    .. [Buch00] A. Buch, A Littlewood-Richardson rule for the K-theory of Grassmannians, :arXiv:`math.AG/0004137`
+    .. [Buch00] \A. Buch, A Littlewood-Richardson rule for the K-theory of Grassmannians, :arXiv:`math.AG/0004137`
 
     EXAMPLES::
 
@@ -858,7 +855,7 @@ def H_two_step_pieces():
 
     REFERENCES:
 
-    .. [BuchKreschTamvakis03] A. Buch, A. Kresch, H. Tamvakis, Gromov-Witten invariants on Grassmannian, :arXiv:`math/0306388`
+    .. [BuchKreschTamvakis03] \A. Buch, A. Kresch, H. Tamvakis, Gromov-Witten invariants on Grassmannian, :arXiv:`math/0306388`
 
     EXAMPLES::
 
@@ -887,7 +884,7 @@ def HT_two_step_pieces():
 
     REFERENCES:
 
-    .. [CoskunVakil06] I. Coskun, R. Vakil, Geometric positivity in the cohomology of homogeneous spaces
+    .. [CoskunVakil06] \I. Coskun, R. Vakil, Geometric positivity in the cohomology of homogeneous spaces
        and generalized Schubert calculus, :arXiv:`math/0610538`
 
     EXAMPLES::
@@ -932,7 +929,7 @@ def BK_pieces(max_letter):
 
     REFERENCES:
 
-    .. [KnutsonPurbhoo10] A. Knutson, K. Purbhoo, Product and puzzle formulae
+    .. [KnutsonPurbhoo10] \A. Knutson, K. Purbhoo, Product and puzzle formulae
        for `GL_n` Belkale-Kumar coefficients, :arXiv:`1008.4979`
 
     EXAMPLES::
@@ -1272,15 +1269,15 @@ class PuzzleFilling(object):
 
             sage: ps = KnutsonTaoPuzzleSolver(H_grassmannian_pieces())
             sage: solns = ps('0101', '0101')
-            sage: view(solns[0], viewer='pdf', tightpage=True)  # not tested
+            sage: view(solns[0], viewer='pdf')  # not tested
 
             sage: ps = KnutsonTaoPuzzleSolver(HT_two_step_pieces())
             sage: solns = ps(list('10212'), list('12012'))
-            sage: view(solns[0], viewer='pdf', tightpage=True)  # not tested
+            sage: view(solns[0], viewer='pdf')  # not tested
 
             sage: ps = KnutsonTaoPuzzleSolver(K_grassmannian_pieces())
             sage: solns = ps('0101', '0101')
-            sage: view(solns[0], viewer='pdf', tightpage=True)  # not tested
+            sage: view(solns[0], viewer='pdf')  # not tested
 
         """
         from collections import defaultdict
@@ -1459,7 +1456,7 @@ class KnutsonTaoPuzzleSolver(UniqueRepresentation):
         sage: latex.extra_preamble(r'''\usepackage{tikz}''')
         sage: ps = KnutsonTaoPuzzleSolver('H')
         sage: solns = ps('0101', '0101')
-        sage: view(solns[0], viewer='pdf', tightpage=True)  # not tested
+        sage: view(solns[0], viewer='pdf')  # not tested
 
 
     Below are examples of using each of the currently supported puzzles.

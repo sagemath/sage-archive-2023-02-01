@@ -8,27 +8,23 @@ AUTHORS:
 
 """
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2014 Simon Spicer <mlungu@uw.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
+from __future__ import print_function, absolute_import
 
 from sage.structure.sage_object cimport SageObject
 from sage.rings.integer_ring import ZZ
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 from sage.rings.infinity import PlusInfinity
-from sage.rings.arith import prime_powers
+from sage.arith.all import prime_powers, next_prime
 from sage.functions.log import log, exp
 from sage.functions.other import real, imag
 from sage.symbolic.constants import pi, euler_gamma
@@ -161,7 +157,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         """
         # Computed at initialization
-        if include_euler_gamma==False:
+        if not include_euler_gamma:
             return self._C1
         else:
             return self._C0
@@ -197,7 +193,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             sage: E = EllipticCurve("11a")
             sage: Z = LFunctionZeroSum(E)
             sage: cnlist = Z.cnlist(11)
-            sage: for n in range(12): print(n,cnlist[n]) # tol 1.0e-13
+            sage: for n in range(12): print((n, cnlist[n])) # tol 1.0e-13
             (0, 0.0)
             (1, 0.0)
             (2, 0.6931471805599453)
@@ -213,9 +209,9 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         """
         if not python_floats:
-            return [self.cn(i) for i in xrange(n+1)]
+            return [self.cn(i) for i in xrange(n + 1)]
         else:
-            return [float(self.cn(i)) for i in xrange(n+1)]
+            return [float(self.cn(i)) for i in xrange(n + 1)]
 
     def digamma(self, s, include_constant_term=True):
         r"""
@@ -270,7 +266,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             try:
                 z = ZZ(s)
                 return PlusInfinity()
-            except:
+            except Exception:
                 pass
 
         if imag(s)==0:
@@ -768,7 +764,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         n = int(1)
 
         # TO DO: Error analysis to make sure this bound is good enough to
-        # avoid non-negligible trucation error
+        # avoid non-negligible truncation error
         while n < expt:
             cn  = self.cn(n)
             if cn != 0:
@@ -1029,7 +1025,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
             sage: E = EllipticCurve("11a")
             sage: Z = LFunctionZeroSum(E)
-            sage: for n in range(12): print(n,Z.cn(n)) # tol 1.0e-13
+            sage: for n in range(12): print((n, Z.cn(n))) # tol 1.0e-13
             (0, 0.0)
             (1, 0.0)
             (2, 0.6931471805599453)
@@ -1159,11 +1155,11 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
             sage: E = EllipticCurve("37a")
             sage: Z = LFunctionZeroSum(E)
-            sage: print(E.rank(),Z._zerosum_sincsquared_fast(Delta=1)) # tol 1.0e-13
+            sage: print((E.rank(),Z._zerosum_sincsquared_fast(Delta=1))) # tol 1.0e-13
             (1, 1.0103840698356263)
             sage: E = EllipticCurve("121a")
             sage: Z = LFunctionZeroSum(E);
-            sage: print(E.rank(),Z._zerosum_sincsquared_fast(Delta=1.5)) # tol 1.0e-13
+            sage: print((E.rank(),Z._zerosum_sincsquared_fast(Delta=1.5))) # tol 1.0e-13
             (0, 0.0104712060086507)
 
         """
@@ -1232,7 +1228,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             if n<expt:
                 y += self._sincsquared_summand_1(n, t, ap, p, logp, thetap,
                                                  sqrtp, logq, thetaq, sqrtq, z)
-        # Now iterate only only over those n that are 1 or 5 mod 6
+        # Now iterate only over those n that are 1 or 5 mod 6
         n = 11
         # First: those n that are <= sqrt(bound)
         bound1 = c_exp(t/2)
@@ -1318,7 +1314,6 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         # General case for n > 480
         else:
             from sage.rings.finite_rings.integer_mod import mod
-            from sage.rings.arith import next_prime
 
             modulus,p = 2,2
             small_primes,residue_list = [2],[1]
@@ -1552,7 +1547,8 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         specified by max_Delta. This computation can be run on curves with
         very large conductor (so long as the conductor is known or quickly
         computable) when Delta is not too large (see below).
-        Uses Bober's rank bounding method as described in [Bob-13].
+
+        Uses Bober's rank bounding method as described in [Bob2013]_.
 
         INPUT:
 
@@ -1571,7 +1567,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
           - If True, the computation is first run with small and then
             successively larger Delta values up to max_Delta. If at any
-            point the computed bound is 0 (or 1 when when root_number is -1
+            point the computed bound is 0 (or 1 when root_number is -1
             or True), the computation halts and that value is returned;
             otherwise the minimum of the computed bounds is returned.
           - If False, the computation is run a single time with
@@ -1656,8 +1652,8 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
             sage: for r in range(9):
             ....:     E = elliptic_curves.rank(r)[0]
-            ....:     print(r,E.analytic_rank_upper_bound(max_Delta=1,
-            ....:     adaptive=False,root_number="ignore"))
+            ....:     print((r, E.analytic_rank_upper_bound(max_Delta=1,
+            ....:     adaptive=False,root_number="ignore")))
             ....:
             (0, 0)
             (1, 1)
@@ -1734,12 +1730,6 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             sage: Z.analytic_rank_upper_bound(max_Delta=2.37,adaptive=False, # long time
             ....: root_number=1,bad_primes=bad_primes,ncpus=2)               # long time
             32
-
-        REFERENCES:
-
-        .. [Bob-13] J.W. Bober. Conditionally bounding analytic ranks of elliptic curves.
-           ANTS 10. http://msp.org/obs/2013/1-1/obs-v1-n1-p07-s.pdf
-
         """
         #Helper function: compute zero sum and apply parity if not False
         def run_computation(Delta):

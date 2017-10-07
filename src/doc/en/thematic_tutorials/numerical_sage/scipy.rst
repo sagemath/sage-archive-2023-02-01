@@ -104,8 +104,8 @@ We could plot the solution if we wanted by doing
 
 ::
 
-    sage: p=[point((x[i],y[i][0])) for i in range(len(x))]
-    sage: plot(p).show()
+    sage: pts = [(x[i],y[i][0]) for i in range(len(x))]
+    sage: point2d(pts).show()
 
 Optimization
 ------------

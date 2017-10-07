@@ -1,6 +1,7 @@
 r"""
 Graph editor
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #      Copyright (C) 2009   Radoslav Kirov
 #
@@ -17,11 +18,11 @@ Graph editor
 #*****************************************************************************
 import sys
 
-from graph_generators import graphs
+from .graph_generators import graphs
 from sage.misc.html import html
 
 import sagenb.notebook.interact
-from sagenb.misc.support import EMBEDDED_MODE
+from sage.server.support import EMBEDDED_MODE
 
 
 def graph_to_js(g):

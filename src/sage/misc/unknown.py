@@ -5,9 +5,12 @@ AUTHORS:
 
 - Florent Hivert (2010): initial version.
 """
+from __future__ import print_function
 
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
+
+
 class UnknownClass(UniqueRepresentation, SageObject):
     """
     TESTS::
@@ -21,25 +24,27 @@ class UnknownClass(UniqueRepresentation, SageObject):
         EXAMPLES::
 
             sage: l = [False, Unknown, True]
-            sage: for a in l: print ([a and b for b in l])
+            sage: for a in l: print([a and b for b in l])
             [False, False, False]
             [Unknown, Unknown, Unknown]
             [False, Unknown, True]
 
-            sage: for a in l: print ([a or b  for b in l])
+            sage: for a in l: print([a or b  for b in l])
             [False, Unknown, True]
             [False, Unknown, True]
             [True, True, True]
 
-        ..warning:: Unless PEP 335 is accepted, in the following cases,
-        ``and``, ``not`` and ``or`` return a somewhat wrong value::
+        .. WARNING::
 
-            sage: not Unknown         # should return Unknown
-            True
-            sage: Unknown and False   # should return False
-            Unknown
-            sage: Unknown or False    # should return Unknown
-            False
+            Unless PEP 335 is accepted, in the following cases,
+            ``and``, ``not`` and ``or`` return a somewhat wrong value::
+
+                sage: not Unknown         # should return Unknown
+                True
+                sage: Unknown and False   # should return False
+                Unknown
+                sage: Unknown or False    # should return Unknown
+                False
         """
 
     def _repr_(self):
@@ -51,7 +56,7 @@ class UnknownClass(UniqueRepresentation, SageObject):
         """
         return "Unknown"
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         When evaluated in a boolean context ``Unknown()`` is evalutated into
         ``False``.
@@ -65,11 +70,15 @@ class UnknownClass(UniqueRepresentation, SageObject):
         """
         return False
 
+    __nonzero__ = __bool__
+
     def __and__(self, other):
         """
         The ``and`` logical connector.
 
-        ..warning:: This is not used by ``and`` unless PEP 335 is accepted.
+        .. WARNING::
+
+            This is not used by ``and`` unless PEP 335 is accepted.
 
         EXAMPLES::
 
@@ -92,7 +101,9 @@ class UnknownClass(UniqueRepresentation, SageObject):
         """
         The ``or`` logical connector.
 
-        ..warning:: This is not used by ``or`` unless PEP 335 is accepted.
+        .. WARNING::
+
+            This is not used by ``or`` unless PEP 335 is accepted.
 
         EXAMPLES::
 
@@ -115,7 +126,9 @@ class UnknownClass(UniqueRepresentation, SageObject):
         """
         The ``not`` logical connector.
 
-        ..warning:: This is not used by ``not`` unless PEP 335 is accepted.
+        .. WARNING::
+
+            This is not used by ``not`` unless PEP 335 is accepted.
 
         EXAMPLES::
 
@@ -136,12 +149,12 @@ class UnknownClass(UniqueRepresentation, SageObject):
         EXAMPLES::
 
             sage: l = [False, Unknown, True]
-            sage: for a in l: print ([a < b for b in l])
+            sage: for a in l: print([a < b for b in l])
             [False, True, True]
             [False, False, True]
             [False, False, False]
 
-            sage: for a in l: print ([a <= b for b in l])
+            sage: for a in l: print([a <= b for b in l])
             [True, True, True]
             [False, True, True]
             [False, False, True]

@@ -23,23 +23,31 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
+
+from sage.misc.prandom import sample
+from sage.misc.misc import some_tuples
+from copy import copy
 
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from sage.categories.fields import Fields
 from sage.rings.infinity import infinity
-from local_generic import LocalGeneric
+from .local_generic import LocalGeneric
 from sage.rings.ring import PrincipalIdealDomain
 from sage.rings.integer import Integer
 from sage.rings.padics.padic_printing import pAdicPrinter
 from sage.rings.padics.precision_error import PrecisionError
 from sage.misc.cachefunc import cached_method
+from sage.structure.richcmp import richcmp_not_equal
+
 
 class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
     def __init__(self, base, p, prec, print_mode, names, element_class, category=None):
         """
         Initialization.
 
-        INPUTS::
+        INPUT:
 
             - base -- Base ring.
             - p -- prime
@@ -56,6 +64,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
                 category = Fields()
             else:
                 category = PrincipalIdealDomains()
+        category = category.Metric().Complete()
         LocalGeneric.__init__(self, base, prec, names, element_class, category)
         self._printer = pAdicPrinter(self, print_mode)
 
@@ -67,11 +76,18 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         EXAMPLES::
 
-            sage: Zp(2).some_elements()
-            [0, 1 + O(2^20), 2 + O(2^21)]
-
+            sage: Zp(2,4).some_elements()
+            [0, 1 + O(2^4), 2 + O(2^5), 1 + 2^2 + 2^3 + O(2^4), 2 + 2^2 + 2^3 + 2^4 + O(2^5)]
         """
-        return [self.zero(), self.one(), self(self.prime())]
+        p = self(self.prime())
+        a = self.gen()
+        one = self.one()
+        L = [self.zero(), one, p, (one+p+p).inverse_of_unit(), p-p**2]
+        if a != p:
+            L.extend([a, (one + a + p).inverse_of_unit()])
+        if self.is_field():
+            L.extend([~(p-p-a),p**(-20)])
+        return L
 
     def _modified_print_mode(self, print_mode):
         """
@@ -79,7 +95,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         print options but modified by the options in the dictionary
         print_mode.
 
-        INPUTS::
+        INPUT:
 
             - print_mode -- dictionary with keys in ['mode', 'pos', 'ram_name', 'unram_name', 'var_name', 'max_ram_terms', 'max_unram_terms', 'max_terse_terms', 'sep', 'alphabet']
 
@@ -93,7 +109,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             print_mode = {}
         elif isinstance(print_mode, str):
             print_mode = {'mode': print_mode}
-        for option in ['mode', 'pos', 'ram_name', 'unram_name', 'var_name', 'max_ram_terms', 'max_unram_terms', 'max_terse_terms', 'sep', 'alphabet']:
+        for option in ['mode', 'pos', 'ram_name', 'unram_name', 'var_name', 'max_ram_terms', 'max_unram_terms', 'max_terse_terms', 'sep', 'alphabet', 'show_prec']:
             if option not in print_mode:
                 print_mode[option] = self._printer.dict()[option]
         return print_mode
@@ -130,9 +146,9 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         """
         return [self.gen()]
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
-        Returns 0 if self == other, and 1 or -1 otherwise.
+        Return 0 if self == other, and 1 or -1 otherwise.
 
         We consider two p-adic rings or fields to be equal if they are
         equal mathematically, and also have the same precision cap and
@@ -150,25 +166,20 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: R is S
             True
         """
-        c = cmp(type(self), type(other))
-        if c != 0:
-            return c
-        if self.prime() < other.prime():
-            return -1
-        elif self.prime() > other.prime():
-            return 1
-        try:
-            if self.halting_parameter() < other.halting_parameter():
-                return -1
-            elif self.halting_parameter() > other.halting_parameter():
-                return 1
-        except AttributeError:
-            pass
-        if self.precision_cap() < other.precision_cap():
-            return -1
-        elif self.precision_cap() > other.precision_cap():
-            return 1
-        return self._printer.cmp_modes(other._printer)
+        if not isinstance(other, pAdicGeneric):
+            return NotImplemented
+
+        lx = self.prime()
+        rx = other.prime()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        lx = self.precision_cap()
+        rx = other.precision_cap()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        return self._printer.richcmp_modes(other._printer, op)
 
     #def ngens(self):
     #    return 1
@@ -270,15 +281,11 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
     def residue_characteristic(self):
         """
-        Returns the prime, i.e., the characteristic of the residue field.
-
-        INPUT:
-
-            self -- a p-adic ring
+        Return the prime, i.e., the characteristic of the residue field.
 
         OUTPUT:
 
-            integer -- the characteristic of the residue field
+        integer -- the characteristic of the residue field
 
         EXAMPLES::
 
@@ -307,7 +314,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: k
             Finite Field of size 3
         """
-        from sage.rings.finite_rings.constructor import GF
+        from sage.rings.finite_rings.finite_field_constructor import GF
         return GF(self.prime())
 
     def residue_field(self):
@@ -393,16 +400,26 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: b^125 == b
             True
 
+        We check that :trac:`23736` is resolved::
+
+            sage: R.teichmuller(GF(5)(2))
+            2 + 5 + 2*5^2 + 5^3 + 3*5^4 + O(5^5)
+
         AUTHORS:
 
         - Initial version: David Roe
         - Quadratic time version: Kiran Kedlaya <kedlaya@math.mit.edu> (3/27/07)
         """
-        if prec is None:
-            prec = self.precision_cap()
-        else:
-            prec = min(Integer(prec), self.precision_cap())
-        ans = self(x, prec)
+        ans = self(x) if prec is None else self(x, prec)
+        # Since teichmuller representatives are defined at infinite precision,
+        # we can lift to precision prec, as long as the absolute precision of ans is positive.
+        if ans.precision_absolute() <= 0:
+            raise ValueError("Not enough precision to determine Teichmuller representative")
+        if ans.valuation() > 0:
+            return self(0) if prec is None else self(0, prec)
+        ans = ans.lift_to_precision(prec)
+        if ans is x:
+            ans = copy(ans)
         ans._teichmuller_set_unsafe()
         return ans
 
@@ -424,11 +441,19 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: R.teichmuller_system()
             [1 + O(3^5), 242 + O(3^5)]
 
+        Check that :trac:`20457` is fixed::
+
+            sage: F.<a> = Qq(5^2,6)
+            sage: F.teichmuller_system()[3]
+            (2*a + 2) + (4*a + 1)*5 + 4*5^2 + (2*a + 1)*5^3 + (4*a + 1)*5^4 + (2*a + 3)*5^5 + O(5^6)
+
         NOTES:
 
         Should this return 0 as well?
         """
-        return [self.teichmuller(i.lift()) for i in self.residue_class_field() if i != 0]
+        R = self.residue_class_field()
+        prec = self.precision_cap()
+        return [self.teichmuller(self(i).lift_to_precision(prec)) for i in R if i != 0]
 
 #     def different(self):
 #         raise NotImplementedError
@@ -451,7 +476,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 #         """
 #         raise NotImplementedError
 
-    def extension(self, modulus, prec = None, names = None, print_mode = None, halt = None, **kwds):
+    def extension(self, modulus, prec = None, names = None, print_mode = None, implementation='FLINT', **kwds):
         """
         Create an extension of this p-adic ring.
 
@@ -460,12 +485,12 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: k = Qp(5)
             sage: R.<x> = k[]
             sage: l.<w> = k.extension(x^2-5); l
-            Eisenstein Extension of 5-adic Field with capped relative precision 20 in w defined by (1 + O(5^20))*x^2 + (O(5^21))*x + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + 4*5^10 + 4*5^11 + 4*5^12 + 4*5^13 + 4*5^14 + 4*5^15 + 4*5^16 + 4*5^17 + 4*5^18 + 4*5^19 + 4*5^20 + O(5^21))
+            Eisenstein Extension in w defined by x^2 - 5 with capped relative precision 40 over 5-adic Field
 
             sage: F = list(Qp(19)['x'](cyclotomic_polynomial(5)).factor())[0][0]
             sage: L = Qp(19).extension(F, names='a')
             sage: L
-            Unramified Extension of 19-adic Field with capped relative precision 20 in a defined by (1 + O(19^20))*x^2 + (5 + 2*19 + 10*19^2 + 14*19^3 + 7*19^4 + 13*19^5 + 5*19^6 + 12*19^7 + 8*19^8 + 4*19^9 + 14*19^10 + 6*19^11 + 5*19^12 + 13*19^13 + 16*19^14 + 4*19^15 + 17*19^16 + 8*19^18 + 4*19^19 + O(19^20))*x + (1 + O(19^20))
+            Unramified Extension in a defined by x^2 + 8751674996211859573806383*x + 1 with capped relative precision 20 over 19-adic Field
         """
         from sage.rings.padics.factory import ExtensionFactory
         if print_mode is None:
@@ -490,7 +515,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
                         print_mode[option] = kwds[option]
                     else:
                         print_mode[option] = self._printer.dict()[option]
-        return ExtensionFactory(base=self, premodulus=modulus, prec=prec, halt=halt, names=names, check = True, **print_mode)
+        return ExtensionFactory(base=self, modulus=modulus, prec=prec, names=names, check = True, implementation=implementation, **print_mode)
 
     def _test_add(self, **options):
         """
@@ -498,7 +523,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         INPUT:
 
-         - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
 
         EXAMPLES::
 
@@ -518,20 +543,17 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             tester.assertEqual(y.precision_absolute(),x.precision_absolute())
             tester.assertEqual(y.precision_relative(),x.precision_relative())
 
-        from sage.combinat.cartesian_product import CartesianProduct
-        elements = CartesianProduct(elements, elements)
-        if len(elements) > tester._max_runs:
-            from random import sample
-            elements = sample(elements, tester._max_runs)
-        for x,y in elements:
+        for x,y in some_tuples(elements, 2, tester._max_runs):
             z = x + y
             tester.assertIs(z.parent(), self)
-            tester.assertEqual(z.precision_absolute(), min(x.precision_absolute(), y.precision_absolute()))
+            zprec = min(x.precision_absolute(), y.precision_absolute())
+            if not self.is_floating_point():
+                tester.assertEqual(z.precision_absolute(), zprec)
             tester.assertGreaterEqual(z.valuation(), min(x.valuation(),y.valuation()))
             if x.valuation() != y.valuation():
                 tester.assertEqual(z.valuation(), min(x.valuation(),y.valuation()))
-            tester.assertEqual(z - x, y)
-            tester.assertEqual(z - y, x)
+            tester.assert_(y.is_equal_to(z-x,zprec))
+            tester.assert_(x.is_equal_to(z-y,zprec))
 
     def _test_sub(self, **options):
         """
@@ -539,7 +561,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         INPUT:
 
-         - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
 
         EXAMPLES::
 
@@ -552,27 +574,24 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         """
         tester = self._tester(**options)
 
-        elements = tester.some_elements()
+        elements = list(tester.some_elements())
         for x in elements:
             y = x - self.zero()
             tester.assertEqual(y, x)
             tester.assertEqual(y.precision_absolute(), x.precision_absolute())
             tester.assertEqual(y.precision_relative(), x.precision_relative())
 
-        from sage.combinat.cartesian_product import CartesianProduct
-        elements = CartesianProduct(elements, elements)
-        if len(elements) > tester._max_runs:
-            from random import sample
-            elements = sample(elements, tester._max_runs)
-        for x,y in elements:
+        for x,y in some_tuples(elements, 2, tester._max_runs):
             z = x - y
             tester.assertIs(z.parent(), self)
-            tester.assertEqual(z.precision_absolute(), min(x.precision_absolute(), y.precision_absolute()))
+            zprec = min(x.precision_absolute(), y.precision_absolute())
+            if not self.is_floating_point():
+                tester.assertEqual(z.precision_absolute(), zprec)
             tester.assertGreaterEqual(z.valuation(), min(x.valuation(),y.valuation()))
             if x.valuation() != y.valuation():
                 tester.assertEqual(z.valuation(), min(x.valuation(),y.valuation()))
-            tester.assertEqual(z - x, -y)
-            tester.assertEqual(z + y, x)
+            tester.assert_((-y).is_equal_to(z - x,zprec))
+            tester.assert_(x.is_equal_to(z + y,zprec))
 
     def _test_invert(self, **options):
         """
@@ -580,7 +599,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         INPUT:
 
-         - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
 
         EXAMPLES::
 
@@ -601,13 +620,16 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
                 tester.assertFalse(x.is_unit())
                 if not self.is_fixed_mod(): tester.assertTrue(x.is_zero())
             else:
-                e = y * x
-
-                tester.assertFalse(x.is_zero())
-                tester.assertIs(y.parent(), self if self.is_fixed_mod() else self.fraction_field())
-                tester.assertTrue(e.is_one())
-                tester.assertEqual(e.precision_relative(), x.precision_relative())
-                tester.assertEqual(y.valuation(), -x.valuation())
+                try:
+                    e = y * x
+                except ZeroDivisionError:
+                    tester.assertTrue(self.is_floating_point() and (x.is_zero() or y.is_zero()))
+                else:
+                    tester.assertFalse(x.is_zero())
+                    tester.assertIs(y.parent(), self if self.is_fixed_mod() else self.fraction_field())
+                    tester.assertTrue(e.is_one())
+                    tester.assertEqual(e.precision_relative(), x.precision_relative())
+                    tester.assertEqual(y.valuation(), -x.valuation())
 
     def _test_mul(self, **options):
         """
@@ -615,7 +637,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         INPUT:
 
-         - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
 
         EXAMPLES::
 
@@ -628,15 +650,14 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         """
         tester = self._tester(**options)
 
-        from sage.combinat.cartesian_product import CartesianProduct
-        elements = CartesianProduct(tester.some_elements(), tester.some_elements())
-        if len(elements) > tester._max_runs:
-            from random import sample
-            elements = sample(elements, tester._max_runs)
-        for x,y in elements:
+        elements = list(tester.some_elements())
+        for x,y in some_tuples(elements, 2, tester._max_runs):
             z = x * y
             tester.assertIs(z.parent(), self)
-            tester.assertLessEqual(z.precision_relative(), min(x.precision_relative(), y.precision_relative()))
+            if self.is_capped_relative() or self.is_floating_point():
+                tester.assertEqual(z.precision_relative(), min(x.precision_relative(), y.precision_relative()))
+            else:
+                tester.assertLessEqual(z.precision_relative(), min(x.precision_relative(), y.precision_relative()))
             if not z.is_zero():
                 tester.assertEqual(z.valuation(), x.valuation() + y.valuation())
 
@@ -646,7 +667,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         INPUT:
 
-         - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
 
         EXAMPLES::
 
@@ -659,22 +680,24 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         """
         tester = self._tester(**options)
 
-        from sage.combinat.cartesian_product import CartesianProduct
-        elements = CartesianProduct(tester.some_elements(), tester.some_elements())
-        if len(elements) > tester._max_runs:
-            from random import sample
-            elements = sample(elements, tester._max_runs)
-        for x,y in elements:
+        elements = list(tester.some_elements())
+        for x,y in some_tuples(elements, 2, tester._max_runs):
             try:
                 z = x / y
             except (ZeroDivisionError, PrecisionError, ValueError):
                 if self.is_fixed_mod(): tester.assertFalse(y.is_unit())
                 else: tester.assertTrue(y.is_zero())
             else:
-                tester.assertFalse(y.is_zero())
-                tester.assertIs(z.parent(), self if self.is_fixed_mod() else self.fraction_field())
-                tester.assertEqual(z.precision_relative(), min(x.precision_relative(), y.precision_relative()))
-                tester.assertEqual(z.valuation(), x.valuation() - y.valuation())
+                try:
+                    xx = z*y
+                except ZeroDivisionError:
+                    tester.assertTrue(self.is_floating_point() and (z.is_zero() or y.is_zero()))
+                else:
+                    tester.assertFalse(y.is_zero())
+                    tester.assertIs(z.parent(), self if self.is_fixed_mod() else self.fraction_field())
+                    tester.assertEqual(z.precision_relative(), min(x.precision_relative(), y.precision_relative()))
+                    tester.assertEqual(z.valuation(), x.valuation() - y.valuation())
+                    tester.assertEqual(xx, x)
 
     def _test_neg(self, **options):
         """
@@ -682,7 +705,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         INPUT:
 
-         - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
 
         EXAMPLES::
 
@@ -702,6 +725,109 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             tester.assertEqual(x.precision_relative(),y.precision_relative())
             tester.assertEqual(x.is_zero(),y.is_zero())
             tester.assertEqual(x.is_unit(),y.is_unit())
+
+    def _test_log(self, **options):
+        """
+        Test the log operator on elements of this ring.
+
+        INPUT:
+
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+
+        EXAMPLES::
+
+            sage: Zp(3)._test_log()
+
+        .. SEEALSO::
+
+            :class:`TestSuite`
+        """
+        tester = self._tester(**options)
+        for x in tester.some_elements():
+            if x.is_zero(): continue
+            l = x.log(p_branch=0)
+            tester.assertIs(l.parent(), self)
+            tester.assertGreater(l.valuation(), 0)
+            if self.is_capped_absolute() or self.is_capped_relative():
+                tester.assertEqual(x.precision_relative(), l.precision_absolute())
+
+        if self.is_capped_absolute() or self.is_capped_relative():
+            # In the fixed modulus setting, rounding errors may occur
+            elements = list(tester.some_elements())
+            for x, y, b in some_tuples(elements, 3, tester._max_runs):
+                if x.is_zero() or y.is_zero(): continue
+                r1 = x.log(pi_branch=b) + y.log(pi_branch=b)
+                r2 = (x*y).log(pi_branch=b)
+                tester.assertEqual(r1, r2)
+
+            p = self.prime()
+            for x in tester.some_elements():
+                if x.is_zero(): continue
+                if p == 2:
+                    a = 4 * x.unit_part()
+                else:
+                    a = p * x.unit_part()
+                b = a.exp().log()
+                c = (1+a).log().exp()
+                tester.assertEqual(a, b)
+                tester.assertEqual(1+a, c)
+
+    def _test_teichmuller(self, **options):
+        """
+        Test Teichmuller lifts.
+
+        INPUT:
+
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+
+        EXAMPLES::
+
+            sage: Zp(3)._test_teichmuller()
+
+        .. SEEALSO::
+
+            :class:`TestSuite`
+        """
+        tester = self._tester(**options)
+
+        for x in tester.some_elements():
+            try:
+                y = self.teichmuller(x)
+            except ValueError:
+                tester.assertTrue(x.valuation() < 0 or x.precision_absolute()==0)
+            else:
+                try:
+                    tester.assertEqual(x.residue(), y.residue())
+                except (NotImplementedError, AttributeError):
+                    pass
+                tester.assertEqual(y**self.residue_field().order(), y)
+
+    def _test_convert_residue_field(self, **options):
+        r"""
+        Test that conversion of residue field elements back to this ring works.
+
+        INPUT:
+
+         - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+
+        EXAMPLES::
+
+            sage: Zp(3)._test_convert_residue_field()
+
+        .. SEEALSO::
+
+            :class:`TestSuite`
+        """
+        tester = self._tester(**options)
+
+        for x in tester.some_elements():
+            if x.valuation() < 0:
+                continue
+            if x.precision_absolute() <= 0:
+                continue
+            y = x.residue()
+            z = self(y)
+            tester.assertEqual(z.residue(), y)
 
     @cached_method
     def _log_unit_part_p(self):
@@ -733,45 +859,10 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         """
         return self(self.prime()).unit_part().log()
 
-    @cached_method
-    def _exp_p(self):
-        """
-        Compute the exponential of `p`.
-
-        This is a helper method for
-        :meth:`sage.rings.padics.padic_generic_element.pAdicGenericElement.exp`.
-
-        TESTS::
-
-            sage: R = Qp(3, 5)
-            sage: R._exp_p()
-            1 + 3 + 3^2 + 2*3^3 + 2*3^4 + O(3^5)
-
-            sage: S.<x> = ZZ[]
-            sage: W.<pi> = R.extension(x^3-3)
-            sage: W._exp_p()
-            1 + pi^3 + pi^6 + 2*pi^9 + 2*pi^12 + O(pi^15)
-            sage: R._exp_p() == W._exp_p()
-            True
-
-            sage: W.<pi> = R.extension(x^3-3*x-3)
-            sage: W._exp_p()
-            1 + pi^3 + 2*pi^4 + pi^5 + pi^7 + pi^9 + pi^10 + 2*pi^11 + pi^12 + pi^13 + 2*pi^14 + O(pi^15)
-            sage: R._exp_p() == W._exp_p()
-            True
-
-        """
-        p = self.prime()
-        if p == 2:
-            # the exponential of 2 does not exists, so we compute the
-            # exponential of 4 instead.
-            p = 4
-        return self(p)._exp(self.precision_cap())
-
     def frobenius_endomorphism(self, n=1):
         """
         INPUT:
-                     
+
         -  ``n`` -- an integer (default: 1)
 
         OUTPUT:
@@ -783,28 +874,28 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
             sage: K.<a> = Qq(3^5)
             sage: Frob = K.frobenius_endomorphism(); Frob
-            Frobenius endomorphism on Unramified Extension of 3-adic Field ... lifting a |--> a^3 on the residue field
+            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^3 on the residue field
             sage: Frob(a) == a.frobenius()
             True
 
-        We can specify a power:: 
+        We can specify a power::
 
             sage: K.frobenius_endomorphism(2)
-            Frobenius endomorphism on Unramified Extension of 3-adic Field ... lifting a |--> a^(3^2) on the residue field
+            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^(3^2) on the residue field
 
         The result is simplified if possible::
 
             sage: K.frobenius_endomorphism(6)
-            Frobenius endomorphism on Unramified Extension of 3-adic Field ... lifting a |--> a^3 on the residue field
+            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^3 on the residue field
             sage: K.frobenius_endomorphism(5)
-            Identity endomorphism of Unramified Extension of 3-adic Field ...
+            Identity endomorphism of Unramified Extension ...
 
         Comparisons work::
 
             sage: K.frobenius_endomorphism(6) == Frob
             True
         """
-        from morphism import FrobeniusEndomorphism_padics
+        from .morphism import FrobeniusEndomorphism_padics
         return FrobeniusEndomorphism_padics(self, n)
 
     def _test_elements_eq_transitive(self, **options):
@@ -837,13 +928,12 @@ def local_print_mode(obj, print_options, pos = None, ram_name = None):
         sage: R(45)
         4*5 + 5^2 + O(5^21)
         sage: with local_print_mode(R, 'val-unit'):
-        ...       print R(45)
-        ...
+        ....:     print(R(45))
         5 * 9 + O(5^21)
 
-    NOTES::
+    .. NOTE::
 
-        For more documentation see localvars in parent_gens.pyx
+        For more documentation see ``localvars`` in parent_gens.pyx
     """
     if isinstance(print_options, str):
         print_options = {'mode': print_options}

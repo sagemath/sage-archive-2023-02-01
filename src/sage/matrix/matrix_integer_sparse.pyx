@@ -14,36 +14,41 @@ TESTS::
     []
 """
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
 
-include 'sage/modules/binary_search.pxi'
-include 'sage/modules/vector_integer_sparse_h.pxi'
-include 'sage/modules/vector_integer_sparse_c.pxi'
-include 'sage/modules/vector_modn_sparse_h.pxi'
-include 'sage/modules/vector_modn_sparse_c.pxi'
+from __future__ import absolute_import
+
+from cysignals.memory cimport check_calloc, sig_free
+from collections import Iterator, Sequence
+        
+from sage.data_structures.binary_search cimport *
+from sage.modules.vector_integer_sparse cimport *
+from sage.modules.vector_modn_sparse cimport *
+
 from cpython.sequence cimport *
-
-include 'sage/ext/stdsage.pxi'
 
 from sage.libs.gmp.mpz cimport *
 from sage.rings.integer cimport Integer
-from matrix cimport Matrix
+from .matrix cimport Matrix
 
-from matrix_modn_sparse cimport Matrix_modn_sparse
+from .matrix_modn_sparse cimport Matrix_modn_sparse
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 
-import matrix_space
+import sage.matrix.matrix_space as matrix_space
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 
 
-cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
+cdef class Matrix_integer_sparse(Matrix_sparse):
 
     ########################################################################
     # LEVEL 1 functionality
@@ -57,11 +62,9 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
     def __cinit__(self, parent, entries, copy, coerce):
         self._initialized = False
         # set the parent, nrows, ncols, etc.
-        matrix_sparse.Matrix_sparse.__init__(self, parent)
+        Matrix_sparse.__init__(self, parent)
 
-        self._matrix = <mpz_vector*> sage_malloc(parent.nrows()*sizeof(mpz_vector))
-        if self._matrix == NULL:
-            raise MemoryError("error allocating sparse matrix")
+        self._matrix = <mpz_vector*>check_calloc(parent.nrows(), sizeof(mpz_vector))
 
         # initialize the rows
         for i from 0 <= i < parent.nrows():
@@ -74,7 +77,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         if self._initialized:
             for i from 0 <= i < self._nrows:
                 mpz_vector_clear(&self._matrix[i])
-        sage_free(self._matrix)
+        sig_free(self._matrix)
 
     def __init__(self, parent, entries, copy, coerce):
         """
@@ -105,7 +108,8 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         cdef PyObject** X
 
         # fill in entries in the dict case
-        if entries is None: return
+        if entries is None:
+            return
         if isinstance(entries, dict):
             R = self.base_ring()
             for ij, x in entries.iteritems():
@@ -116,7 +120,9 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
                         raise IndexError("invalid entries list")
                     mpz_vector_set_entry(&self._matrix[i], j, z.value)
 
-        elif isinstance(entries, list):
+        elif isinstance(entries, (Iterator, Sequence)):
+            if not isinstance(entries, (list, tuple)):
+                entries = list(entries)
 
             # Dense input format -- fill in entries
             if len(entries) != self._nrows * self._ncols:
@@ -175,7 +181,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
     ########################################################################
     # def _pickle(self):
     # def _unpickle(self, data, int version):   # use version >= 0
-    # cpdef ModuleElement _add_(self, ModuleElement right):
+    # cpdef _add_(self, right):
     # cdef _mul_(self, Matrix right):
     # cpdef int _cmp_(self, Matrix right) except -2:
     # def __neg__(self):
@@ -184,7 +190,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
     # def _multiply_classical(left, matrix.Matrix _right):
     # def _list(self):
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         EXAMPLES::
 
@@ -206,7 +212,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
             mpz_vector_scalar_multiply(M_row, self_row, _x.value)
         return M
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         cdef Py_ssize_t i, j
         cdef mpz_vector *self_row
         cdef mpz_vector *M_row
@@ -221,7 +227,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         mpz_clear(mul)
         return M
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         cdef Py_ssize_t i, j
         cdef mpz_vector *self_row
         cdef mpz_vector *M_row
@@ -272,7 +278,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
 
         It is safe to change the resulting list (unless you give the option copy=False).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Matrix(ZZ, [[0,0,0,1,0,0,0,0],[0,1,0,0,0,0,1,0]], sparse=True); M
             [0 0 0 1 0 0 0 0]
@@ -304,7 +310,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
 
         It is safe to change the resulting list (unless you give the option copy=False).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Matrix(ZZ, [[0,0,0,1,0,0,0,0],[0,1,0,0,0,0,1,0]], sparse=True); M
             [0 0 0 1 0 0 0 0]
@@ -381,9 +387,9 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
             [  7   2   2   3]
             [  4   3   4 5/7]
 
-        TEST:
+        TESTS:
 
-        Check that ticket #9345 is fixed::
+        Check that :trac:`9345` is fixed::
 
             sage: A = random_matrix(ZZ, 3, 3, sparse = True)
             sage: A.rational_reconstruction(0)
@@ -391,8 +397,8 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
             ...
             ZeroDivisionError: The modulus cannot be zero
         """
-        import misc
-        return misc.matrix_integer_sparse_rational_reconstruction(self, N)
+        from .misc import matrix_integer_sparse_rational_reconstruction
+        return matrix_integer_sparse_rational_reconstruction(self, N)
 
     def _right_kernel_matrix(self, **kwds):
         r"""
@@ -423,10 +429,10 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         EXAMPLES::
 
             sage: A = matrix(ZZ, [[4, 7, 9, 7, 5, 0],
-            ...                   [1, 0, 5, 8, 9, 1],
-            ...                   [0, 1, 0, 1, 9, 7],
-            ...                   [4, 7, 6, 5, 1, 4]],
-            ...              sparse = True)
+            ....:                 [1, 0, 5, 8, 9, 1],
+            ....:                 [0, 1, 0, 1, 9, 7],
+            ....:                 [4, 7, 6, 5, 1, 4]],
+            ....:            sparse = True)
 
             sage: result = A._right_kernel_matrix(algorithm='pari')
             sage: result[0]
@@ -537,7 +543,9 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
             sage: M.elementary_divisors()
             [1, 1, 6]
 
-        ..SEEALSO:: :meth:`smith_form`
+        .. SEEALSO::
+
+            :meth:`smith_form`
         """
         return self.dense_matrix().elementary_divisors(algorithm=algorithm)
 
@@ -600,10 +608,10 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
             [0 2]
             [0 0]
 
-        The examples above show that Trac ticket #10626 has been implemented.
+        The examples above show that :trac:`10626` has been implemented.
 
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`elementary_divisors`
         """

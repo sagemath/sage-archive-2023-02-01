@@ -9,10 +9,6 @@ Includes two databases:
    http://sage.math.washington.edu/cremona/INDEX.html
  * William Stein's database of interesting curves
 
-== SPKG Maintainers ==
-
- * R. Andrew Ohana <andrew.ohana@gmail.com>
-
 == Upstream Contact ==
 
 === cremona_mini ===

@@ -1,4 +1,8 @@
-from matroid cimport Matroid
+from __future__ import absolute_import
+
+from .matroid cimport Matroid
+
+
 cdef class MatroidUnion(Matroid):
     r"""
     Matroid Union.
@@ -94,7 +98,7 @@ cdef class MatroidUnion(Matroid):
                 d[x]=set()
             d[x].add(i)
         part_matroid = PartitionMatroid([[(i,x) for i in d[x]] for x in d])
-        return len(sum_matroid.intersection(part_matroid))
+        return len(sum_matroid._intersection_unweighted(part_matroid))
 
     def _repr_(self):
         """
@@ -253,10 +257,13 @@ cdef class PartitionMatroid(Matroid):
             Traceback (most recent call last):
             ...
             ValueError: not an iterator of disjoint sets
+            sage: PartitionMatroid([])
+            Partition Matroid of rank 0 on 0 elements
         """
         P2 = map(set,list(partition))
-        if len(set.union(*P2)) != sum(map(len,P2)):
-            raise ValueError("not an iterator of disjoint sets")
+        if P2:
+            if len(set.union(*P2)) != sum(map(len,P2)):
+                raise ValueError("not an iterator of disjoint sets")
         self.p = {}
         for i in range(len(P2)):
             for j in P2[i]:

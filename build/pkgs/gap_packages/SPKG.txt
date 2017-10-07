@@ -5,13 +5,6 @@
 Several "official" and "undeposited" GAP packages available from
 http://www.gap-system.org/Packages/packages.html
 
-== SPKG Maintainers ==
-
- * William Stein
- * Robert Miller
- * David Joyner
- * Dmitrii Pasechnik
-
 == Upstream Contact ==
 
  * Dmitrii Pasechnik, dimpase@gmail.com

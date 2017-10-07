@@ -7,6 +7,7 @@ AUTHORS:
 
 - John Cremona (2008-01): EllipticCurve(j) fixed for all cases
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -22,18 +23,17 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import string_types, integer_types
 
-import six
 import sage.rings.all as rings
 
 from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 from sage.rings.rational_field import is_RationalField
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.number_field.number_field import is_NumberField
 from sage.rings.polynomial.multi_polynomial_element import is_MPolynomial
 from sage.rings.ring import is_Ring
-from sage.rings.ring_element import is_RingElement
 
 from sage.categories.fields import Fields
 _Fields = Fields()
@@ -52,7 +52,7 @@ class EllipticCurveFactory(UniqueFactory):
     In Sage, an elliptic curve is always specified by
     (the coefficients of) a long Weierstrass equation
 
-    .. math::
+    .. MATH::
 
         y^2 + a_1 xy + a_3 y = x^3 + a_2 x^2 + a_4 x + a_6.
 
@@ -219,7 +219,7 @@ class EllipticCurveFactory(UniqueFactory):
         Elliptic Curve defined by y^2 = x^3 + x + 1 over Multivariate Polynomial Ring in u, v
         over Integer Ring
 
-    We create a curve and a point over QQbar (see #6879)::
+    We create a curve and a point over ``QQbar`` (see :trac:`6879`)::
 
         sage: E = EllipticCurve(QQbar,[0,1])
         sage: E(0)
@@ -359,7 +359,7 @@ class EllipticCurveFactory(UniqueFactory):
         same base ring and Weierstrass equation; the data in
         ``extra_args`` do not influence comparison of elliptic curves.
         A consequence of this is that passing keyword arguments only
-        works when constructing an elliptic curve the first time:
+        works when constructing an elliptic curve the first time::
 
             sage: E = EllipticCurve('433a1', gens=[[-1, 1], [3, 4]])
             sage: E.gens()
@@ -403,7 +403,7 @@ class EllipticCurveFactory(UniqueFactory):
             else:
                 x = coefficients_from_cubic(x, y, morphism=False)
 
-        if isinstance(x, six.string_types):
+        if isinstance(x, string_types):
             # Interpret x as a Cremona or LMFDB label.
             from sage.databases.cremona import CremonaDatabase
             x, data = CremonaDatabase().coefficients_and_data(x)
@@ -421,7 +421,7 @@ class EllipticCurveFactory(UniqueFactory):
 
         if R is None:
             R = Sequence(x).universe()
-            if R in (rings.ZZ, int, long):
+            if R in (rings.ZZ,) + integer_types:
                 R = rings.QQ
 
         return (R, tuple(R(a) for a in x)), kwds
@@ -446,21 +446,21 @@ class EllipticCurveFactory(UniqueFactory):
         R, x = key
 
         if R is rings.QQ:
-            from ell_rational_field import EllipticCurve_rational_field
+            from .ell_rational_field import EllipticCurve_rational_field
             return EllipticCurve_rational_field(x, **kwds)
         elif is_NumberField(R):
-            from ell_number_field import EllipticCurve_number_field
+            from .ell_number_field import EllipticCurve_number_field
             return EllipticCurve_number_field(R, x)
         elif rings.is_pAdicField(R):
-            from ell_padic_field import EllipticCurve_padic_field
+            from .ell_padic_field import EllipticCurve_padic_field
             return EllipticCurve_padic_field(R, x)
         elif is_FiniteField(R) or (is_IntegerModRing(R) and R.characteristic().is_prime()):
-            from ell_finite_field import EllipticCurve_finite_field
+            from .ell_finite_field import EllipticCurve_finite_field
             return EllipticCurve_finite_field(R, x)
         elif R in _Fields:
-            from ell_field import EllipticCurve_field
+            from .ell_field import EllipticCurve_field
             return EllipticCurve_field(R, x)
-        from ell_generic import EllipticCurve_generic
+        from .ell_generic import EllipticCurve_generic
         return EllipticCurve_generic(R, x)
 
 
@@ -1009,7 +1009,7 @@ def chord_and_tangent(F, P):
 
         sage: F(p2)
         0
-        sage: map(type, p2)
+        sage: list(map(type, p2))
         [<type 'sage.rings.rational.Rational'>,
          <type 'sage.rings.rational.Rational'>,
          <type 'sage.rings.rational.Rational'>]
@@ -1103,10 +1103,11 @@ def projective_point(p):
         sage: projective_point([F(4), F(8), F(2)])
         [4, 8, 2]
     """
-    from sage.rings.integer import GCD_list, LCM_list
+    from sage.rings.integer import GCD_list
+    from sage.arith.functions import LCM_list
     try:
         p_gcd = GCD_list([x.numerator() for x in p])
-        p_lcm = LCM_list([x.denominator() for x in p])
+        p_lcm = LCM_list(x.denominator() for x in p)
     except AttributeError:
         return p
     scale = p_lcm / p_gcd
@@ -1264,5 +1265,5 @@ def EllipticCurves_with_good_reduction_outside_S(S=[], proof=None, verbose=False
         3^5,
         2^6 * 3^2]
     """
-    from ell_egros import (egros_from_jlist, egros_get_j)
+    from .ell_egros import (egros_from_jlist, egros_get_j)
     return egros_from_jlist(egros_get_j(S, proof=proof, verbose=verbose), S)

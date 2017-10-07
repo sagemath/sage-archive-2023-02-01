@@ -17,13 +17,13 @@ vector space of dimension equal to the number of cusps for `G`. The embedding
 takes `[P, u/v]` to `P(u,v)\cdot [(u,v)]`. We represent the basis vectors by
 pairs `[(u,v)]` with u, v coprime. On `B_k(G)`, we have the relations
 
-.. math::
+.. MATH::
 
      [\gamma \cdot (u,v)] = [(u,v)]
 
 for all `\gamma \in G` and
 
-.. math::
+.. MATH::
 
      [(\lambda u, \lambda v)] = \operatorname{sign}(\lambda)^k [(u,v)]
 
@@ -79,28 +79,20 @@ REFERENCES:
 """
 
 #*****************************************************************************
-#       Sage: System for Algebra and Geometry Experimentation
-#
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-__doc_exclude = ['repr_lincomb', 'QQ']
+from __future__ import absolute_import
+from six.moves import range
 
-# Python imports
-
-# Sage imports
-from   sage.misc.misc import repr_lincomb
+from sage.misc.misc import repr_lincomb
+from sage.structure.richcmp import richcmp_method, richcmp
 
 import sage.modules.free_module as free_module
 from sage.modules.free_module_element import is_FreeModuleElement
@@ -112,10 +104,10 @@ import sage.modular.hecke.all as hecke
 from sage.modular.modsym.manin_symbol import ManinSymbol
 
 import sage.rings.all as rings
-import sage.rings.arith as arith
+import sage.arith.all as arith
 
-import ambient
-import element
+
+from . import element
 
 
 class BoundarySpaceElement(hecke.HeckeModuleElement):
@@ -285,6 +277,7 @@ class BoundarySpaceElement(hecke.HeckeModuleElement):
         return self*(-1)
 
 
+@richcmp_method
 class BoundarySpace(hecke.HeckeModule_generic):
     def __init__(self,
                  group = arithgroup.Gamma0(1),
@@ -338,9 +331,9 @@ class BoundarySpace(hecke.HeckeModule_generic):
         self._is_zero = []
         hecke.HeckeModule_generic.__init__(self, base_ring, group.level())
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B2 = ModularSymbols(11, 2).boundary_space()
             sage: B4 = ModularSymbols(11, 4).boundary_space()
@@ -350,9 +343,11 @@ class BoundarySpace(hecke.HeckeModule_generic):
             False
         """
         if type(self) is not type(other):
-            return cmp(type(self), type(other))
-        else:
-            return cmp( (self.group(), self.weight(), self.character()), (other.group(), other.weight(), other.character()) )
+            return NotImplemented
+
+        return richcmp((self.group(), self.weight(), self.character()),
+                       (other.group(), other.weight(), other.character()),
+                       op)
 
     def _known_cusps(self):
         """
@@ -557,6 +552,7 @@ class BoundarySpace(hecke.HeckeModule_generic):
             ...
             TypeError: Coercion of 7 (of type <type 'sage.rings.integer.Integer'>) into Space of Boundary Modular Symbols for Congruence Subgroup Gamma0(15) of weight 2 and over Rational Field not (yet) defined.
         """
+        from .ambient import ModularSymbolsAmbient
         if isinstance(x, int) and x == 0:
             return BoundarySpaceElement(self, {})
 
@@ -568,7 +564,7 @@ class BoundarySpace(hecke.HeckeModule_generic):
 
         elif element.is_ModularSymbolsElement(x):
             M = x.parent()
-            if not isinstance(M, ambient.ModularSymbolsAmbient):
+            if not isinstance(M, ModularSymbolsAmbient):
                 raise TypeError("x (=%s) must be an element of a space of modular symbols of type ModularSymbolsAmbient"%x)
             if M.level() != self.level():
                 raise TypeError("x (=%s) must have level %s but has level %s"%(
@@ -579,7 +575,7 @@ class BoundarySpace(hecke.HeckeModule_generic):
             return sum([c*self._coerce_in_manin_symbol(v) for c, v in S])
 
         elif is_FreeModuleElement(x):
-            y = dict([(i,x[i]) for i in xrange(len(x))])
+            y = dict([(i,x[i]) for i in range(len(x))])
             return BoundarySpaceElement(self, y)
 
         raise TypeError("Coercion of %s (of type %s) into %s not (yet) defined."%(x, type(x), self))
@@ -616,7 +612,7 @@ class BoundarySpace(hecke.HeckeModule_generic):
         """
         g = self._known_gens
         N = self.level()
-        for i in xrange(len(g)):
+        for i in range(len(g)):
             if self._is_equiv(cusp, g[i]):
                 return i
         return -1
@@ -858,7 +854,7 @@ class BoundarySpace_wtk_g1(BoundarySpace):
         """
         g = self._known_gens
         N = self.level()
-        for i in xrange(len(g)):
+        for i in range(len(g)):
             t, eps = self._is_equiv(cusp, g[i])
             if t:
                 return i, eps
@@ -1057,7 +1053,7 @@ class BoundarySpace_wtk_gamma_h(BoundarySpace):
         """
         g = self._known_gens
         N = self.level()
-        for i in xrange(len(g)):
+        for i in range(len(g)):
             t, eps = self._is_equiv(cusp, g[i])
             if t:
                 return i, eps
@@ -1283,7 +1279,7 @@ class BoundarySpace_wtk_eps(BoundarySpace):
         """
         g = self._known_gens
         N = self.level()
-        for i in xrange(len(g)):
+        for i in range(len(g)):
             t, s = self._is_equiv(cusp, g[i])
             if t:
                 return i, self.__eps(s)

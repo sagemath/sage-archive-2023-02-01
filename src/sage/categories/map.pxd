@@ -2,6 +2,8 @@ from sage.structure.parent cimport Parent
 from sage.structure.element cimport Element
 
 cdef class Map(Element):
+    cdef object __weakref__
+
     cdef public int _coerce_cost # a rough measure of the cost of using this morphism in the coercion system.
                           # 10 by default, 100 if a DefaultCoercionMorphism, 10000 if inexact.
 
@@ -18,7 +20,7 @@ cdef class Map(Element):
     cdef object _category_for  # category in which this is a morphism
 
     cdef public _repr_type_str
-
+    cdef public bint _is_coercion
 
 cdef class Section(Map):
     cdef Map _inverse

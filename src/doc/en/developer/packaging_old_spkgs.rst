@@ -5,8 +5,14 @@ Packaging Old-Style SPKGs
 =========================
 
 This chapter explains old-style spkgs; It applies only to legacy
-optional spkgs and experimental spkgs. See :ref:`chapter-packaging`
-for the modern way of packaging third-party software.
+optional spkgs and experimental spkgs.
+
+.. WARNING::
+
+    Old-style packages are **deprecated**, it is strongly
+    suggested that you make a new-style package instead.
+    See :ref:`chapter-packaging`
+    for the modern way of packaging third-party software.
 
 
 Creating an Old-Style SPKG
@@ -167,10 +173,6 @@ package. In this script, you may make the following assumptions:
 - The environment variable ``SAGE_LOCAL`` points to the
   ``SAGE_ROOT/local`` directory of the Sage installation.
 
-- The environment variables ``LD_LIBRARY_PATH`` and
-  ``DYLD_LIBRARY_PATH`` both have ``SAGE_ROOT/local/lib`` at the
-  front.
-
 The ``spkg-install`` script should copy your files to the appropriate
 place after doing any build that is necessary.  Here is a template::
 
@@ -311,7 +313,7 @@ review, it might be included into the core Sage library, or it might
 become an optional download from the Sage website, so anybody can
 automatically install it by typing ``sage -p mypackage-version.spkg``.
 
-.. note::
+.. NOTE::
 
    For any spkg:
 
@@ -323,7 +325,7 @@ automatically install it by typing ``sage -p mypackage-version.spkg``.
 
    .. _trac ticket #299: http://trac.sagemath.org/sage_trac/ticket/299
 
-.. note::
+.. NOTE::
 
     External Magma code goes in ``SAGE_ROOT/src/ext/magma/user``, so
     if you want to redistribute Magma code with Sage as a package that

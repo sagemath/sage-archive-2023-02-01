@@ -8,10 +8,6 @@ This is a table of number fields with bounded ramification and degree ≤6.
 
 GPLv2+
 
-== SPKG Maintainers ==
-
-* Sagemath developers
-
 == Upstream Contact ==
 
 sage-devel@googlegroups.com

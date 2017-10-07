@@ -12,12 +12,10 @@ cardinality).
 In the following code, sets are represented as integers, where the ith bit is
 set if element i belongs to the set.
 """
-
-include 'sage/ext/stdsage.pxi'
-include 'sage/ext/cdefs.pxi'
-include 'sage/ext/interrupt.pxi'
+from __future__ import print_function
 
 from libc.stdint cimport uint8_t
+from cysignals.memory cimport check_allocarray, check_calloc, sig_free
 
 cdef class FastDigraph:
 
@@ -32,11 +30,7 @@ cdef class FastDigraph:
             raise OverflowError("Too many vertices. This structure can only encode digraphs on at most %i vertices"%(8*sizeof(int)))
 
         self.n = D.order()
-        self.graph = NULL
-
-        self.graph = <int *> sage_malloc(self.n*sizeof(int))
-
-        memset(self.graph, 0, self.n * sizeof(int))
+        self.graph = <int *>check_calloc(self.n, sizeof(int))
 
         cdef int i, j
         cdef int tmp
@@ -61,7 +55,7 @@ cdef class FastDigraph:
                     tmp |= 1 << vertices_to_int[v]
                 self.graph[vertices_to_int[u]] = tmp
 
-        self.degree = <int *> sage_malloc(self.n*sizeof(int))
+        self.degree = <int *>check_allocarray(self.n, sizeof(int))
         for i in range(self.n):
             self.degree[i] = popcount32(self.graph[i])
 
@@ -69,9 +63,8 @@ cdef class FastDigraph:
         r"""
         Destructor.
         """
-        if self.graph != NULL:
-            sage_free(self.graph)
-        sage_free(self.degree)
+        sig_free(self.graph)
+        sig_free(self.degree)
 
     def print_adjacency_matrix(self):
         r"""
@@ -80,8 +73,8 @@ cdef class FastDigraph:
         cdef int i,j
         for 0<= i<self.n:
             for 0<= j <self.n:
-                print ((self.graph[i]>>j)&1),
-            print ""
+                print(((self.graph[i]>>j)&1), end="")
+            print("")
 
 cdef inline int compute_out_neighborhood_cardinality(FastDigraph g, int S):
     r"""
@@ -121,7 +114,7 @@ def test_popcount():
    """
    Correction test for popcount32.
 
-   EXAMPLE::
+   EXAMPLES::
 
        sage: from sage.graphs.graph_decompositions.fast_digraph import test_popcount
        sage: test_popcount() # not tested
@@ -130,9 +123,9 @@ def test_popcount():
    # While the last 32 bits of i are not equal to 0
    while (i & ((1<<32) - 1)) :
        if popcount32(i) != slow_popcount32(i):
-           print "Error for i = ", str(i)
-           print "Result with popcount32 : "+str(popcount32(i))
-           print "Result with slow_popcount32 : "+str(slow_popcount32(i))
+           print("Error for i = ", str(i))
+           print("Result with popcount32 : " + str(popcount32(i)))
+           print("Result with slow_popcount32 : " + str(slow_popcount32(i)))
        i += 1
 
 

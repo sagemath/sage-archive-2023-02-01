@@ -32,7 +32,6 @@ from sage.matrix.matrix import is_Matrix
 from sage.graphs.digraph import DiGraph
 from sage.combinat.root_system.cartan_type import CartanType, CartanType_abstract
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
-from sage.misc.superseded import deprecated_function_alias
 
 def DynkinDiagram(*args, **kwds):
     r"""
@@ -56,10 +55,10 @@ def DynkinDiagram(*args, **kwds):
     in Bourbaki and Wikipedia's Dynkin diagram (:wikipedia:`Dynkin_diagram`).
     That is for `i \neq j`::
 
-       i <--k-- j <==> a_ij = -k
-                  <==> -scalar(coroot[i], root[j]) = k
-                  <==> multiple arrows point from the longer root
-                       to the shorter one
+        i <--k-- j <==> a_ij = -k
+                   <==> -scalar(coroot[i], root[j]) = k
+                   <==> multiple arrows point from the longer root
+                        to the shorter one
 
     For example, in type `C_2`, we have::
 
@@ -247,7 +246,8 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
     Implementation note: if a Cartan type is given, then the nodes
     are initialized from the index set of this Cartan type.
     """
-    def __init__(self, t=None, index_set=None, **options):
+    def __init__(self, t=None, index_set=None, odd_isotropic_roots=[],
+                 **options):
         """
         Initialize ``self``.
 
@@ -259,13 +259,16 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
         if isinstance(t, DiGraph):
             if isinstance(t, DynkinDiagram_class):
                 self._cartan_type = t._cartan_type
+                self._odd_isotropic_roots = tuple(odd_isotropic_roots)
             else:
                 self._cartan_type = None
+                self._odd_isotropic_roots = ()
             DiGraph.__init__(self, data=t, **options)
             return
 
         DiGraph.__init__(self, **options)
         self._cartan_type = t
+        self._odd_isotropic_roots = tuple(odd_isotropic_roots)
         if index_set is not None:
             self.add_vertices(index_set)
         elif t is not None:
@@ -515,7 +518,7 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             sage: D.dual().edges()
             []
         """
-        result = DynkinDiagram_class(None)
+        result = DynkinDiagram_class(None, odd_isotropic_roots=self._odd_isotropic_roots)
         result.add_vertices(self.vertices())
         for source, target, label in self.edges():
             result.add_edge(target, source, label)
@@ -537,6 +540,14 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             O---O=<=O
             1   2   3
             C3
+
+            sage: D = DynkinDiagram(['A', [1,2]])
+            sage: Dp = D.relabel({-1:4, 0:-3, 1:3, 2:2}); Dp
+            O---X---O---O
+            4   -3  3   2
+            A1|2 relabelled by {0: -3, 1: 3, 2: 2, -1: 4}
+            sage: Dp.odd_isotropic_roots()
+            (-3,)
         """
         if inplace:
             DiGraph.relabel(self, relabelling, inplace, **kwds)
@@ -546,6 +557,10 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             #   relabel default behavior is to do so in place, and if not
             #   then it recurses on itself with no argument for inplace
             G = self.copy().relabel(relabelling, inplace=True, **kwds)
+        if isinstance(relabelling, dict):
+            relabelling = relabelling.__getitem__
+        new_odds = [relabelling(i) for i in self._odd_isotropic_roots]
+        G._odd_isotropic_roots = tuple(new_odds)
         if self._cartan_type is not None:
             G._cartan_type = self._cartan_type.relabel(relabelling)
         return G
@@ -564,9 +579,7 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             0   1   2   3
             BC3~
             sage: D.subtype([1,2,3])
-            O---O=<=O
-            1   2   3
-            C3
+            Dynkin diagram of rank 3
         """
         return self.cartan_matrix().subtype(index_set).dynkin_diagram()
 
@@ -610,8 +623,18 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
 
             sage: CartanType(['F',4]).dynkin_diagram().is_irreducible()
             True
+            sage: CM = CartanMatrix([[2,-6],[-4,2]])
+            sage: CM.dynkin_diagram().is_irreducible()
+            True
+            sage: CartanType("A2xB3").dynkin_diagram().is_irreducible()
+            False
+            sage: CM = CartanMatrix([[2,-6,0],[-4,2,0],[0,0,2]])
+            sage: CM.dynkin_diagram().is_irreducible()
+            False
         """
-        return self._cartan_type.is_irreducible()
+        if self._cartan_type is not None:
+            return self._cartan_type.is_irreducible()
+        return self.connected_components_number() == 1
 
     def is_crystallographic(self):
         """
@@ -626,14 +649,10 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
 
         TESTS::
 
-            sage: CartanType(['G',2]).dynkin_diagram().is_crystalographic()
-            doctest:...: DeprecationWarning: is_crystalographic is deprecated. Please use is_crystallographic instead.
-            See http://trac.sagemath.org/14673 for details.
+            sage: CartanType(['G',2]).dynkin_diagram().is_crystallographic()
             True
         """
         return True
-
-    is_crystalographic = deprecated_function_alias(14673, is_crystallographic)
 
     def symmetrizer(self):
         """
@@ -665,16 +684,31 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
         """
         return self.cartan_matrix().symmetrizer()
 
+    def odd_isotropic_roots(self):
+        """
+        Return the odd isotropic roots of ``self``.
+
+        EXAMPLES::
+
+            sage: g = DynkinDiagram(['A',4])
+            sage: g.odd_isotropic_roots()
+            ()
+            sage: g = DynkinDiagram(['A',[4,3]])
+            sage: g.odd_isotropic_roots()
+            (0,)
+        """
+        return self._odd_isotropic_roots
+
     def __getitem__(self, i):
         r"""
         With a tuple (i,j) as argument, returns the scalar product
-        `\langle
-                \alpha^\vee_i, \alpha_j\rangle`.
+        `\langle \alpha^\vee_i, \alpha_j\rangle`.
 
-        Otherwise, behaves as the usual DiGraph.__getitem__
+        Otherwise, behaves as the usual ``DiGraph.__getitem__``
 
-        EXAMPLES: We use the `C_4` Dynkin diagram as a cartan
-        matrix::
+        EXAMPLES:
+
+        We use the `C_4` Dynkin diagram as a Cartan matrix::
 
             sage: g = DynkinDiagram(['C',4])
             sage: matrix([[g[i,j] for j in range(1,5)] for i in range(1,5)])
@@ -692,6 +726,8 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             return DiGraph.__getitem__(self,i)
         [i,j] = i
         if i == j:
+            if i in self._odd_isotropic_roots:
+                return 0
             return 2
         elif self.has_edge(j, i):
             return -self.edge_label(j, i)
@@ -710,7 +746,8 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             sage: [ (i,a) for (i,a) in g.column(3) ]
             [(3, 2), (2, -1), (4, -2)]
         """
-        return [(j,2)] + [(i,-m) for (j1, i, m) in self.outgoing_edges(j)]
+        val = 2 if j not in self._odd_isotropic_roots else 0
+        return [(j,val)] + [(i,-m) for (j1, i, m) in self.outgoing_edges(j)]
 
     def row(self, i):
         """
@@ -724,7 +761,8 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             sage: [ (i,a) for (i,a) in g.row(3) ]
             [(3, 2), (2, -1), (4, -2)]
         """
-        return [(i,2)] + [(j,-m) for (j, i1, m) in self.incoming_edges(i)]
+        val = 2 if i not in self._odd_isotropic_roots else 0
+        return [(i,val)] + [(j,-m) for (j, i1, m) in self.incoming_edges(i)]
 
 def precheck(t, letter=None, length=None, affine=None, n_ge=None, n=None):
     """

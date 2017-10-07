@@ -2,7 +2,7 @@
 """
 Enumerate Points of a Toric Variety
 
-The classes here are not meant to be instatiated manually. Instead,
+The classes here are not meant to be instantiated manually. Instead,
 you should always use the methods of the :class:`point set
 <sage.schemes.toric.homset.SchemeHomset_points_toric_field>` of the
 variety.
@@ -33,15 +33,14 @@ EXAMPLES::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
-
-
+import itertools
 from copy import copy
 
-from sage.combinat.cartesian_product import CartesianProduct
 from sage.misc.all import powerset, prod
 from sage.misc.cachefunc import cached_method
-from sage.rings.arith import gcd
+from sage.arith.all import gcd
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.parallel.decorate import parallel
 
@@ -220,7 +219,7 @@ class NaiveFinitePointEnumerator(object):
         units = self.units()
         result = []
         ker = self.rays().matrix().integer_kernel().matrix()
-        for phases in CartesianProduct(*([units] * ker.nrows())):
+        for phases in itertools.product(units, repeat=ker.nrows()):
             phases = tuple(prod(mu**exponent for mu, exponent in zip(phases, column))
                            for column in ker.columns())
             result.append(phases)
@@ -288,9 +287,10 @@ class NaiveFinitePointEnumerator(object):
         if len(tors) == 0:  # optimization for smooth fans
             return free
         result = set(free)
-        for f, t in CartesianProduct(free, tors):
-            phases = tuple(x*y for x, y in zip(f, t))
-            result.add(phases)
+        for f in free:
+            for t in tors:
+                phases = tuple(x*y for x, y in zip(f, t))
+                result.add(phases)
         return tuple(sorted(result))
 
     def orbit(self, point):
@@ -332,7 +332,7 @@ class NaiveFinitePointEnumerator(object):
 
             sage: ne = toric_varieties.dP6(base_ring=GF(11)).point_set()._naive_enumerator()
             sage: for cone in ne.cone_iter(): 
-            ....:     print cone.ambient_ray_indices()
+            ....:     print(cone.ambient_ray_indices())
             (0, 1)
             (1, 2)
             (2, 3)
@@ -390,7 +390,7 @@ class NaiveFinitePointEnumerator(object):
             patch = copy(big_torus)
             for i in cone.ambient_ray_indices():
                 patch[i] = [zero]
-            for p in CartesianProduct(*patch):
+            for p in itertools.product(*patch):
                 yield tuple(p)
 
     def __iter__(self):
@@ -405,7 +405,7 @@ class NaiveFinitePointEnumerator(object):
 
         Iterator over points.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: ni = toric_varieties.P2(base_ring=GF(2)).point_set()._naive_enumerator()
             sage: list(ni)
@@ -607,7 +607,7 @@ class FiniteFieldPointEnumerator(NaiveFinitePointEnumerator):
             sage: F.<a> = GF(5^2)
             sage: point_set = toric_varieties.P2_123(base_ring=F).point_set()
             sage: ffe = point_set._finite_field_enumerator()
-            sage: powers = range(24)
+            sage: powers = list(range(24))
             sage: ffe.exp(powers)
             (1, a, a + 3, 4*a + 3, 2*a + 2, 4*a + 1, 2, 2*a, 2*a + 1, 3*a + 1, 
              4*a + 4, 3*a + 2, 4, 4*a, 4*a + 2, a + 2, 3*a + 3, a + 4, 3, 3*a, 
@@ -634,7 +634,7 @@ class FiniteFieldPointEnumerator(NaiveFinitePointEnumerator):
             sage: ffe = point_set._finite_field_enumerator()
             sage: ffe.rescalings()
             ((1, 1, 1), (1, 4, 4), (4, 2, 3), (4, 3, 2))
-            sage: map(ffe.log, ffe.rescalings())
+            sage: list(map(ffe.log, ffe.rescalings()))
             [(0, 0, 0), (0, 2, 2), (2, 1, 3), (2, 3, 1)]
             sage: ffe.rescaling_log_generators()
             ((2, 3, 1),)
@@ -707,7 +707,7 @@ class FiniteFieldPointEnumerator(NaiveFinitePointEnumerator):
 
         Iterator over points.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: point_set = toric_varieties.P2(base_ring=GF(2)).point_set()
             sage: ffe = point_set._finite_field_enumerator()
@@ -881,10 +881,10 @@ class FiniteFieldSubschemePointEnumerator(NaiveSubschemePointEnumerator):
             sage: ffe.solutions_serial([s^2-1, s^6-s^2], [range(6)])
             <generator object solutions_serial at 0x...>
             sage: list(_)
-            [[0], [3]]
+            [(0,), (3,)]
         """
-        from sage.combinat.cartesian_product import CartesianProduct
-        for log_t in CartesianProduct(*log_range):
+        from itertools import product
+        for log_t in product(*log_range):
             t = self.ambient.exp(log_t)
             if all(poly(t) == 0 for poly in inhomogeneous_equations):
                 yield log_t
@@ -909,7 +909,7 @@ class FiniteFieldSubschemePointEnumerator(NaiveSubschemePointEnumerator):
             sage: ffe.solutions([s^2-1, s^6-s^2], [range(6)])
             <generator object solutions at 0x...>
             sage: sorted(_)
-            [[0], [3]]
+            [(0,), (3,)]
         """
         # Do simple cases in one process (this includes most doctests)
         if len(log_range) <= 2:

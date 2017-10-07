@@ -30,12 +30,12 @@ Combinatorial Hopf Algebras
 - :ref:`sage.combinat.ncsf_qsym`
 - :ref:`sage.combinat.schubert_polynomial`
 - :ref:`sage.combinat.ncsym`
+- :ref:`sage.combinat.grossman_larson_algebras`
 
 Groups and Algebras
 -------------------
 
-.. TODO:: add link to the catalog of algebras when it exists
-
+- :ref:`Catalog of algebras <sage.algebras.catalog>`
 - :ref:`Groups <sage.groups.groups_catalog>`
 - :class:`SymmetricGroup`, :class:`CoxeterGroup`, :class:`WeylGroup`
 - :class:`~sage.combinat.diagram_algebras.PartitionAlgebra`
@@ -61,5 +61,7 @@ Combinatorial Representation Theory
 Operads and their algebras
 --------------------------
 
+- :ref:`sage.combinat.free_dendriform_algebra`
 - :ref:`sage.combinat.free_prelie_algebra`
+- :ref:`sage.algebras.free_zinbiel_algebra`
 """

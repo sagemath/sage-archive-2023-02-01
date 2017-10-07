@@ -306,11 +306,11 @@ Finally, you can use Sage's GAP interface as well to compute
 
 ::
 
-    sage: print gap.eval("A := [[1,2,3],[4,5,6],[7,8,9]]")
+    sage: print(gap.eval("A := [[1,2,3],[4,5,6],[7,8,9]]"))
     [ [ 1, 2, 3 ], [ 4, 5, 6 ], [ 7, 8, 9 ] ]
-    sage: print gap.eval("v := Eigenvectors( Rationals,A)")
+    sage: print(gap.eval("v := Eigenvectors( Rationals,A)"))
     [ [ 1, -2, 1 ] ]
-    sage: print gap.eval("lambda := Eigenvalues( Rationals,A)")
+    sage: print(gap.eval("lambda := Eigenvalues( Rationals,A)"))
     [ 0 ]
 
 .. _section-rref:
@@ -417,18 +417,13 @@ Using maxima, you can easily solve linear equations:
     (a, b, c)
     sage: eqn = [a+b*c==1, b-a*c==0, a+b==5]
     sage: s = solve(eqn, a,b,c); s
-    [[a == (25*I*sqrt(79) + 25)/(6*I*sqrt(79) - 34),
-      b == (5*I*sqrt(79) + 5)/(I*sqrt(79) + 11),
-      c == 1/10*I*sqrt(79) + 1/10],
-     [a == (25*I*sqrt(79) - 25)/(6*I*sqrt(79) + 34),
-      b == (5*I*sqrt(79) - 5)/(I*sqrt(79) - 11),
-      c == -1/10*I*sqrt(79) + 1/10]]
+    [[a == -1/4*I*sqrt(79) + 11/4, b == 1/4*I*sqrt(79) + 9/4, c == 1/10*I*sqrt(79) + 1/10], [a == 1/4*I*sqrt(79) + 11/4, b == -1/4*I*sqrt(79) + 9/4, c == -1/10*I*sqrt(79) + 1/10]]
 
 You can even nicely typeset the solution in LaTeX:
 
 ::
 
-    sage.: print latex(s)
+    sage.: print(latex(s))
     ...
 
 To have the above appear onscreen via xdvi, type ``view(s)``.

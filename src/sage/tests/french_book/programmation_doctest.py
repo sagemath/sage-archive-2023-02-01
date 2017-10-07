@@ -59,7 +59,7 @@ Sage example in ./programmation.tex, line 237::
 Sage example in ./programmation.tex, line 276::
 
   sage: for k in [1..5]:
-  ....:    print 7*k  # bloc qui contient une seule instruction
+  ....:    print(7*k)  # bloc qui contient une seule instruction
   7
   14
   21
@@ -256,28 +256,28 @@ Sage example in ./programmation.tex, line 1243::
 
 Sage example in ./programmation.tex, line 1257::
 
-  sage: print 2^2, 3^3, 4^4 ; print 5^5, 6^6
+  sage: print 2^2, 3^3, 4^4 ; print 5^5, 6^6  # not tested - python2
   4 27 256
   3125 46656
 
 Sage example in ./programmation.tex, line 1265::
 
-  sage: for k in [1..10]: print '+', k,
+  sage: for k in [1..10]: print '+', k,  # not tested - python2
   + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10
 
 Sage example in ./programmation.tex, line 1273::
 
-  sage: print 10, 0.5 ; print 10+0.5 ; print 10.0, 5
+  sage: print 10, 0.5 ; print(10+0.5) ; print 10.0, 5  # not tested - python2
   10 0.500000000000000
   10.5000000000000
   10.0000000000000 5
-  sage: print 10+0, 5 ; print str(10)+str(0.5)
+  sage: print 10+0, 5 ; print(str(10)+str(0.5))  # not tested - python2
   10 5
   100.500000000000000
 
 Sage example in ./programmation.tex, line 1294::
 
-  sage: for k in [1..6]: print '%2d^4 = %4d' % (k, k^4)
+  sage: for k in [1..6]: print('%2d^4 = %4d' % (k, k^4))
    1^4 =    1
    2^4 =   16
    3^4 =   81
@@ -394,7 +394,7 @@ Sage example in ./programmation.tex, line 1562::
 
 Sage example in ./programmation.tex, line 1571::
 
-  sage: map(lambda n:2*n+1, [0..15])
+  sage: list(map(lambda n:2*n+1, [0..15]))
   [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31]
   sage: [2*n+1 for n in [0..15]]
   [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31]
@@ -476,7 +476,7 @@ Sage example in ./programmation.tex, line 1740::
   sage: x = var('x')
   sage: factor(diff(x*exp(x), [x, x]))
   (x + 2)*e^x
-  sage: map(lambda n: factor(diff(x*exp(x), n*[x])), [0..6])
+  sage: list(map(lambda n: factor(diff(x*exp(x), n*[x])), [0..6]))
   [x*e^x, (x + 1)*e^x, (x + 2)*e^x, (x + 3)*e^x, (x + 4)*e^x,
   (x + 5)*e^x, (x + 6)*e^x]
   sage: [factor (diff (x*exp(x), n*[x])) for n in [0..6]]
@@ -508,7 +508,7 @@ Sage example in ./programmation.tex, line 1835::
 
   sage: L = [[2, 2, 5], [2, 3, 4], [3, 2, 4], [3, 3, 3],\
   ....: [1, 1, 2], [1, 2, 7]]
-  sage: L.sort (cmp = alpha) ; L
+  sage: L.sort (cmp = alpha) ; L    # optional - python2
   [[1, 1, 2], [1, 2, 7], [2, 2, 5], [2, 3, 4], [3, 2, 4], [3, 3, 3]]
 
 Sage example in ./programmation.tex, line 1856::
@@ -582,7 +582,7 @@ Sage example in ./programmation.tex, line 2001::
 
   sage: S = 'Ceci est une chaîne de caractères.'; S
   'Ceci est une cha\xc3\xaene de caract\xc3\xa8res.'
-  sage: print S
+  sage: print(S)
   Ceci est une chaîne de caractères.
 
 Sage example in ./programmation.tex, line 2026::
@@ -633,9 +633,9 @@ Sage example in ./programmation.tex, line 2214::
 Sage example in ./programmation.tex, line 2221::
 
   sage: L1 = [0..4]; L2 = [5..9]
-  sage: zip(L1, L2)
+  sage: list(zip(L1, L2))
   [(0, 5), (1, 6), (2, 7), (3, 8), (4, 9)]
-  sage: map(lambda x, y:(x, y), L1, L2)
+  sage: list(map(lambda x, y:(x, y), L1, L2))
   [(0, 5), (1, 6), (2, 7), (3, 8), (4, 9)]
 
 Sage example in ./programmation.tex, line 2238::
@@ -695,7 +695,7 @@ Sage example in ./programmation.tex, line 2354::
 
   sage: D = {'a0':'b0', 'a1':'b1', 'a2':'b2', 'a3':'b0',\
   ....: 'a4':'b3', 'a5':'b3'}
-  sage: E  = Set(D.keys()) ; Imf = Set(D.values())
+  sage: E  = Set(D) ; Imf = Set(D.values())
   sage: Imf == Set(map (lambda t:D[t], E))     # est équivalent
   True
 

@@ -65,7 +65,7 @@ struct vertices_order
 };
 
 
-// simplical complex, data compressed by vertices_to_simplex
+// simplicial complex, data compressed by vertices_to_simplex
 class compact_simplices: public std::vector<simplex>
 {
  private:

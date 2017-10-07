@@ -9,10 +9,6 @@ interfaces with trac over XMLRPC.
 
 GPLv3+
 
-== SPKG Maintainers ==
-
-* Volker Braun
-
 == Upstream Contact ==
 
 https://github.com/sagemath/git-trac-command

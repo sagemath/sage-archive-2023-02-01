@@ -16,7 +16,8 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
+from six import integer_types
 
 import sage.rings.polynomial.polynomial_element as polynomial_element
 import sage.rings.polynomial.multi_polynomial_element as multi_polynomial_element
@@ -26,7 +27,7 @@ import sage.rings.rational as rational
 
 import sage.libs.pari.all as pari
 
-import element_ext_pari
+from . import element_ext_pari
 
 from sage.rings.finite_rings.finite_field_base import FiniteField as FiniteField_generic
 
@@ -83,7 +84,7 @@ class FiniteField_ext_pari(FiniteField_generic):
     The following is a native Python set::
 
         sage: set(k)
-        {0, 1, 2, a, 2*a, a + 1, 2*a + 1, a + 2, 2*a + 2}
+        {0, 1, a, a + 1, a + 2, 2, 2*a, 2*a + 1, 2*a + 2}
 
     And the following is a Sage set::
 
@@ -176,7 +177,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         deprecation(17297, 'The "pari_mod" finite field implementation is deprecated')
 
         if element_ext_pari.dynamic_FiniteField_ext_pariElement is None: element_ext_pari._late_import()
-        from constructor import FiniteField as GF
+        from .finite_field_constructor import FiniteField as GF
         q = integer.Integer(q)
         if q < 2:
             raise ArithmeticError("q must be a prime power")
@@ -193,7 +194,6 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         FiniteField_generic.__init__(self, base_ring, name, normalize=True)
 
-        self._kwargs = {}
         self.__char = p
         self.__pari_one = pari.pari(1).Mod(self.__char)
         self.__degree = n
@@ -205,7 +205,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             deprecation(16930, "constructing a FiniteField_ext_pari without giving a polynomial as modulus is deprecated, use the more general FiniteField constructor instead")
 
         if modulus is None or modulus == "default":
-            from conway_polynomials import exists_conway_polynomial
+            from .conway_polynomials import exists_conway_polynomial
             if exists_conway_polynomial(self.__char, self.__degree):
                 modulus = "conway"
             else:
@@ -213,7 +213,7 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         if isinstance(modulus,str):
             if modulus == "conway":
-                from conway_polynomials import conway_polynomial
+                from .conway_polynomials import conway_polynomial
                 modulus = conway_polynomial(self.__char, self.__degree)
             elif modulus == "random":
                 # The following is fast/deterministic, but has serious problems since
@@ -475,7 +475,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             except (ValueError, IndexError, TypeError):
                 raise TypeError("no coercion defined")
 
-        if isinstance(x, (int, long, integer.Integer, rational.Rational,
+        if isinstance(x, integer_types + (integer.Integer, rational.Rational,
                           pari.pari_gen, list)):
 
             return element_ext_pari.FiniteField_ext_pariElement(self, x)

@@ -1,0 +1,2 @@
+cd src
+$PIP_INSTALL .

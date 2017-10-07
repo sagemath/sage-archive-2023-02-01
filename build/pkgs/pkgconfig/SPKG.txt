@@ -9,10 +9,6 @@ line tool.
 
 MIT License
 
-== SPKG Maintainers ==
-
-* Volker Braun
-
 == Upstream Contact ==
 
 https://github.com/matze/pkgconfig

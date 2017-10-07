@@ -3,7 +3,7 @@ Abstract SAT Solver
 
 All SAT solvers must inherit from this class.
 
-.. note::
+.. NOTE::
 
     Our SAT solver interfaces are 1-based, i.e., literals start at
     1. This is consistent with the popular DIMACS format for SAT
@@ -14,13 +14,14 @@ AUTHORS:
 
 - Martin Albrecht (2012): first version
 """
+from __future__ import absolute_import
 
 cdef class SatSolver:
     def __cinit__(self, *args, **kwds):
         """
         Constuct a new SATSolver.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.satsolver import SatSolver
             sage: solver = SatSolver()
@@ -33,9 +34,9 @@ cdef class SatSolver:
 
         INPUT:
 
-        - ``decision`` - is this variable a deicison variable?
+        - ``decision`` - is this variable a decision variable?
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.satsolver import SatSolver
             sage: solver = SatSolver()
@@ -50,7 +51,7 @@ cdef class SatSolver:
         """
         Return the number of variables.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.satsolver import SatSolver
             sage: solver = SatSolver()
@@ -69,13 +70,13 @@ cdef class SatSolver:
 
         - ``lits`` - a tuple of integers != 0
 
-        .. note::
+        .. NOTE::
 
             If any element ``e`` in ``lits`` has ``abs(e)`` greater
             than the number of variables generated so far, then new
             variables are created automatically.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.satsolver import SatSolver
             sage: solver = SatSolver()
@@ -110,7 +111,7 @@ cdef class SatSolver:
 
         - ``filename`` - The name of a file as a string or a file object
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from six import StringIO # for python 2/3 support
             sage: file_object = StringIO("c A sample .cnf file.\np cnf 3 2\n1 -3 0\n2 3 -1 0 ")
@@ -154,7 +155,7 @@ cdef class SatSolver:
         - If the solver was interrupted before deciding satisfiability
           ``None``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.satsolver import SatSolver
             sage: solver = SatSolver()
@@ -170,7 +171,7 @@ cdef class SatSolver:
         Return conflict clause if this instance is UNSAT and the last
         call used assumptions.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.satsolver import SatSolver
             sage: solver = SatSolver()
@@ -189,7 +190,7 @@ cdef class SatSolver:
 
         - ``unitary_only`` - return only unitary learnt clauses (default: ``False``)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.satsolver import SatSolver
             sage: solver = SatSolver()
@@ -209,10 +210,10 @@ cdef class SatSolver:
         """
         TESTS::
 
-        sage: from sage.sat.solvers.satsolver import SatSolver
-        sage: solver = SatSolver()
-        sage: solver
-        a generic SAT solver (don't use me, inherit from me)
+            sage: from sage.sat.solvers.satsolver import SatSolver
+            sage: solver = SatSolver()
+            sage: solver
+            a generic SAT solver (don't use me, inherit from me)
         """
         return "a generic SAT solver (don't use me, inherit from me)"
 
@@ -235,7 +236,7 @@ cdef class SatSolver:
             clauses is written to that file in DIMACS format.
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.satsolver import SatSolver
             sage: solver = SatSolver()
@@ -248,7 +249,7 @@ cdef class SatSolver:
 
     def __getattr__(self, name):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.satsolver import SatSolver
             sage: solver = SatSolver()
@@ -266,7 +267,7 @@ cdef class SatSolver:
         """
         Allow alias to appear in tab completion.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.satsolver import SatSolver
             sage: solver = SatSolver()
@@ -274,4 +275,57 @@ cdef class SatSolver:
             ['gens']
         """
         return ["gens"]
+
+def SAT(solver=None, *args, **kwds):
+    r"""
+    Return a :class:`SatSolver` instance.
+
+    Through this class, one can define and solve `SAT
+    <https://en.wikipedia.org/wiki/Boolean_satisfiability_problem>`__ problems.
+
+    INPUT:
+
+    - ``solver`` (string) -- select a solver. Admissible values are:
+
+        - ``"cryptominisat"`` -- note that the cryptominisat package must be
+          installed.
+
+        - ``"LP"`` -- use :class:`~sage.sat.solvers.sat_lp.SatLP` to solve the
+          SAT instance.
+
+        - ``None`` (default) -- use CryptoMiniSat if available, and a LP solver
+          otherwise.
+
+    EXAMPLES::
+
+        sage: SAT(solver="LP")
+        an ILP-based SAT Solver
+
+    TESTS::
+
+        sage: SAT(solver="Wouhouuuuuu")
+        Traceback (most recent call last):
+        ...
+        ValueError: Solver 'Wouhouuuuuu' is not available
+
+    Forcing CryptoMiniSat::
+
+        sage: SAT(solver="cryptominisat") # optional - cryptominisat
+        CryptoMiniSat solver: 0 variables, 0 clauses.
+    """
+    if solver is None:
+        import pkgutil
+        if pkgutil.find_loader('pycryptosat') is None:
+            solver = "LP"
+        else:
+            solver = "cryptominisat"
+
+    if solver == 'cryptominisat':
+        from sage.sat.solvers.cryptominisat import CryptoMiniSat
+        return CryptoMiniSat(*args, **kwds)
+    elif solver == "LP":
+        from .sat_lp import SatLP
+        return SatLP()
+    else:
+        raise ValueError("Solver '{}' is not available".format(solver))
 

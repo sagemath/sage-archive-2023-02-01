@@ -88,10 +88,17 @@ We also have support for ``RR``::
     sage: timeit('fc_wilk_rr(30.0)') # random, long time
     625 loops, best of 3: 13 us per loop
 
+For ``CC``::
+
+    sage: fc_wilk_cc = fast_callable(wilk, vars=[x], domain=CC)
+    sage: timeit('fc_wilk_cc(30.0)') # random, long time
+    625 loops, best of 3: 23 us per loop
+
+
 And support for ``CDF``::
 
-    sage: fc_wilk_rr = fast_callable(wilk, vars=[x], domain=CDF)
-    sage: timeit('fc_wilk_rr(30.0)') # random, long time
+    sage: fc_wilk_cdf = fast_callable(wilk, vars=[x], domain=CDF)
+    sage: timeit('fc_wilk_cdf(30.0)') # random, long time
     625 loops, best of 3: 10.2 us per loop
 
 Currently, :func:`fast_callable` can accept two kinds of objects:
@@ -292,14 +299,16 @@ AUTHOR:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
 
 
 import operator
 from copy import copy
 from sage.rings.real_mpfr cimport RealField_class, RealNumber
+from sage.rings.complex_field import ComplexField_class
 from sage.structure.element cimport Element
 from sage.rings.all import RDF, CDF
+from sage.libs.mpfr cimport mpfr_t, mpfr_ptr, mpfr_init2, mpfr_set, GMP_RNDN
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.structure.element import parent
@@ -395,7 +404,7 @@ def fast_callable(x, domain=None, vars=None,
     Check that fast_callable also works for symbolic functions with evaluation
     functions::
 
-        sage: def evalf_func(self, x, y, parent): return parent(x*y) if parent != None else x*y
+        sage: def evalf_func(self, x, y, parent): return parent(x*y) if parent is not None else x*y
         sage: x,y = var('x,y')
         sage: f = function('f', evalf_func=evalf_func)
         sage: fc = fast_callable(f(x, y), vars=[x, y])
@@ -404,7 +413,7 @@ def fast_callable(x, domain=None, vars=None,
 
     And also when there are complex values involved::
 
-        sage: def evalf_func(self, x, y, parent): return parent(I*x*y) if parent != None else I*x*y
+        sage: def evalf_func(self, x, y, parent): return parent(I*x*y) if parent is not None else I*x*y
         sage: g = function('g', evalf_func=evalf_func)
         sage: fc = fast_callable(g(x, y), vars=[x, y])
         sage: fc(3, 4)
@@ -446,7 +455,7 @@ def fast_callable(x, domain=None, vars=None,
                         from sage.misc.superseded import deprecation
                         deprecation(5413, "Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)")
                     else:
-                        raise ValueError, "List of variables must be specified for symbolic expressions"
+                        raise ValueError("List of variables must be specified for symbolic expressions")
             from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
             from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
             if is_PolynomialRing(x.parent()) or is_MPolynomialRing(x.parent()):
@@ -462,6 +471,14 @@ def fast_callable(x, domain=None, vars=None,
         str = InstructionStream(sage.ext.interpreters.wrapper_rr.metadata,
                                 len(vars),
                                 domain)
+
+    elif isinstance(domain, ComplexField_class):
+        import sage.ext.interpreters.wrapper_cc
+        builder = sage.ext.interpreters.wrapper_cc.Wrapper_cc
+        str = InstructionStream(sage.ext.interpreters.wrapper_cc.metadata,
+                                len(vars),
+                                domain)
+
     elif domain == RDF or domain is float:
         import sage.ext.interpreters.wrapper_rdf
         builder = sage.ext.interpreters.wrapper_rdf.Wrapper_rdf
@@ -678,7 +695,7 @@ cdef class ExpressionTreeBuilder:
         try:
             ind = self._vars.index(var_name)
         except ValueError:
-            raise ValueError, "Variable '%s' not found" % var_name
+            raise ValueError("Variable '%s' not found" % var_name)
         return ExpressionVariable(self, ind)
 
     def _var_number(self, n):
@@ -700,7 +717,7 @@ cdef class ExpressionTreeBuilder:
         """
         if 0 <= n < len(self._vars):
             return ExpressionVariable(self, n)
-        raise ValueError, "Variable number %d out of range" % n
+        raise ValueError("Variable number %d out of range" % n)
 
     def call(self, fn, *args):
         r"""
@@ -757,7 +774,12 @@ cdef class ExpressionTreeBuilder:
 cdef op_add = operator.add
 cdef op_sub = operator.sub
 cdef op_mul = operator.mul
-cdef op_div = operator.div
+cdef op_div
+try:
+    op_div = operator.div
+except AttributeError:
+    op_div = object()  # Unique object not equal to anything else
+cdef op_truediv = operator.truediv
 cdef op_floordiv = operator.floordiv
 cdef op_pow = operator.pow
 cdef op_neg = operator.neg
@@ -889,6 +911,28 @@ cdef class Expression:
             mul(1, v_0)
         """
         return _expression_binop_helper(s, o, op_mul)
+
+    def __truediv__(s, o):
+        r"""
+        Compute a quotient of two Expressions.
+
+        EXAMPLES::
+
+            sage: from sage.ext.fast_callable import ExpressionTreeBuilder
+            sage: etb = ExpressionTreeBuilder(vars=(x,))
+            sage: x = etb(x)
+            sage: x/x
+            div(v_0, v_0)
+            sage: x/1
+            div(v_0, 1)
+            sage: 1/x
+            div(1, v_0)
+            sage: x.__truediv__(1)
+            div(v_0, 1)
+            sage: x.__rtruediv__(1)
+            div(1, v_0)
+        """
+        return _expression_binop_helper(s, o, op_truediv)
 
     def __div__(s, o):
         r"""
@@ -1612,7 +1656,7 @@ cpdef dict get_builtin_functions():
         sage: from sage.ext.fast_callable import get_builtin_functions
         sage: builtins = get_builtin_functions()
         sage: sorted(list(builtins.values()))
-        ['abs', 'abs', 'acos', 'acosh', 'add', 'asin', 'asinh', 'atan', 'atanh', 'ceil', 'cos', 'cosh', 'cot', 'csc', 'div', 'exp', 'floor', 'floordiv', 'inv', 'log', 'mul', 'neg', 'pow', 'sec', 'sin', 'sinh', 'sqrt', 'sub', 'tan', 'tanh']
+        ['abs', 'abs', 'acos', 'acosh', 'add', 'asin', 'asinh', 'atan', 'atanh', 'ceil', 'cos', 'cosh', 'cot', 'csc', 'div', 'div', 'exp', 'floor', 'floordiv', 'inv', 'log', 'mul', 'neg', 'pow', 'sec', 'sin', 'sinh', 'sqrt', 'sub', 'tan', 'tanh']
         sage: builtins[sin]
         'sin'
         sage: builtins[ln]
@@ -1624,15 +1668,16 @@ cpdef dict get_builtin_functions():
     if builtin_functions is not None:
         return builtin_functions
     builtin_functions = {
-        operator.add: 'add',
-        operator.sub: 'sub',
-        operator.mul: 'mul',
-        operator.div: 'div',
-        operator.floordiv: 'floordiv',
-        operator.abs: 'abs',
-        operator.neg: 'neg',
-        operator.inv: 'inv',
-        operator.pow: 'pow',
+        op_add: 'add',
+        op_sub: 'sub',
+        op_mul: 'mul',
+        op_div: 'div',
+        op_truediv: 'div',
+        op_floordiv: 'floordiv',
+        op_abs: 'abs',
+        op_neg: 'neg',
+        op_inv: 'inv',
+        op_pow: 'pow',
         }
     # not handled: atan2, log2, log10
     import sage.functions.all as func_all
@@ -1682,8 +1727,8 @@ cpdef generate_code(Expression expr, InstructionStream stream):
         sage: def my_sin(x): return sin(x)
         sage: def my_norm(x, y): return x*x + y*y
         sage: def my_sqrt(x):
-        ...       if x < 0: raise ValueError, "sqrt of negative number"
-        ...       return sqrt(x, extend=False)
+        ....:     if x < 0: raise ValueError("sqrt of negative number")
+        ....:     return sqrt(x, extend=False)
         sage: fc = fast_callable(expr, domain=RealField(130))
         sage: fc(0)
         3.1415926535897932384626433832795028842
@@ -1815,10 +1860,11 @@ cpdef generate_code(Expression expr, InstructionStream stream):
         sage: base^expo
         1.00000095367477
 
-    Make sure we don't overflow the stack with highly nested expressions (#11766)::
+    Make sure we do not overflow the stack with highly nested expressions
+    (:trac:`11766`)::
 
         sage: R.<x> = CC[]
-        sage: f = R(range(100000))
+        sage: f = R(list(range(100000)))
         sage: ff = fast_callable(f)
         sage: f(0.5)
         2.00000000000000
@@ -1862,7 +1908,7 @@ cpdef generate_code(Expression expr, InstructionStream stream):
             if stream.has_instr('py_call'):
                 stream.instr('py_call', fn, len(ecall._arguments))
             else:
-                raise ValueError, "Unhandled function %s in generate_code" % fn
+                raise ValueError("Unhandled function %s in generate_code" % fn)
         elif isinstance(expr, ExpressionIPow):
             base = expr.base()
             exponent = expr.exponent()
@@ -1881,7 +1927,7 @@ cpdef generate_code(Expression expr, InstructionStream stream):
             else:
                 stream.instr('py_call', IntegerPowerFunction(exponent), 1)
         else:
-            raise ValueError, "Unhandled expression kind %s in generate_code" % type(expr)
+            raise ValueError("Unhandled expression kind %s in generate_code" % type(expr))
 
 cdef class InterpreterMetadata  # forward declaration
 
@@ -1920,7 +1966,7 @@ cdef class InstructionStream:
         r"""
         Initialize an InstructionStream.
 
-        INPUTS:
+        INPUT:
 
         - metadata - The metadata_by_opname from a wrapper module
 

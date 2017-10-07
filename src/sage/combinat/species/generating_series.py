@@ -57,24 +57,31 @@ weighted degree where each variable x_i has weight i.
     p[1, 1, 1] + p[2, 1]
     sage: s[4]
     p[1, 1, 1, 1] + p[2, 1, 1] + p[2, 2]
+
+REFERENCES:
+
+.. [BLL] \F. Bergeron, G. Labelle, and P. Leroux.
+   "Combinatorial species and tree-like structures".
+   Encyclopedia of Mathematics and its Applications, vol. 67, Cambridge Univ. Press. 1998.
+.. [BLL-Intro] Francois Bergeron, Gilbert Labelle, and Pierre Leroux.
+   "Introduction to the Theory of Species of Structures", March 14, 2008.
 """
+from __future__ import absolute_import
+
 #*****************************************************************************
-#       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
+#       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from series import LazyPowerSeriesRing, LazyPowerSeries
-from stream import Stream, _integers_from
-from sage.rings.all import Integer, moebius, lcm, divisors, RationalField
+
+from .series import LazyPowerSeriesRing, LazyPowerSeries
+from .stream import Stream, _integers_from
+from sage.rings.all import Integer, RationalField
+from sage.arith.all import moebius, gcd, lcm, divisors
 from sage.combinat.partition import Partition, Partitions
 from functools import partial
 from sage.combinat.sf.sf import SymmetricFunctions
@@ -86,7 +93,7 @@ def OrdinaryGeneratingSeriesRing(R):
     """
     Return the ring of ordinary generating series over ``R``.
 
-    Note that is is just a
+    Note that it is just a
     :class:`LazyPowerSeriesRing` whose elements have
     some extra methods.
 
@@ -100,7 +107,9 @@ def OrdinaryGeneratingSeriesRing(R):
         sage: R([1]).counts(4)
         [1, 1, 1, 1]
 
-    TESTS: We test to make sure that caching works.
+    TESTS:
+
+    We test to make sure that caching works.
 
     ::
 
@@ -159,7 +168,7 @@ def ExponentialGeneratingSeriesRing(R):
     """
     Return the ring of exponential generating series over ``R``.
 
-    Note that is is just a
+    Note that it is just a
     :class:`LazyPowerSeriesRing` whose elements have
     some extra methods.
 
@@ -173,7 +182,9 @@ def ExponentialGeneratingSeriesRing(R):
         sage: R([1]).counts(4)
         [1, 1, 2, 6]
 
-    TESTS: We test to make sure that caching works.
+    TESTS:
+
+    We test to make sure that caching works.
 
     ::
 
@@ -234,7 +245,7 @@ class ExponentialGeneratingSeries(LazyPowerSeries):
         `g = \sum_{n=0}^{\infty} g_n \frac{x^n}{n!}`, then
         functorial composition `f \Box g` is defined as
 
-        .. math::
+        .. MATH::
 
              f \Box g = \sum_{n=0}^{\infty} f_{g_n} \frac{x^n}{n!}
 
@@ -327,7 +338,7 @@ def CycleIndexSeriesRing(R):
     difficult to implement in Sage, as it would be an element
     of a power series ring in infinitely many variables.
 
-    Note that is is just a :class:`LazyPowerSeriesRing` (whose base
+    Note that it is just a :class:`LazyPowerSeriesRing` (whose base
     ring is `\Lambda`) whose elements have some extra methods.
 
     EXAMPLES::
@@ -339,7 +350,9 @@ def CycleIndexSeriesRing(R):
         ....:                        # meaningful.
         [1, 1, 1, 1]
 
-    TESTS: We test to make sure that caching works.
+    TESTS:
+
+    We test to make sure that caching works.
 
     ::
 
@@ -425,13 +438,13 @@ class CycleIndexSeries(LazyPowerSeries):
 
         If
 
-        .. math::
+        .. MATH::
 
            f = \sum_{n=0}^{\infty} f_n(p_1, p_2, p_3, \ldots ),
 
         then the stretch `g` of `f` by `k` is
 
-        .. math::
+        .. MATH::
 
            g = \sum_{n=0}^{\infty} f_n(p_k, p_{2k}, p_{3k}, \ldots ).
 
@@ -593,12 +606,11 @@ class CycleIndexSeries(LazyPowerSeries):
 
         REFERENCES:
 
-        .. [BLL] F. Bergeron, G. Labelle, and P. Leroux.
-           "Combinatorial species and tree-like structures".
-           Encyclopedia of Mathematics and its Applications, vol. 67, Cambridge Univ. Press. 1998.
-        .. [BLL-Intro] Francois Bergeron, Gilbert Labelle, and Pierre Leroux.
-           "Introduction to the Theory of Species of Structures", March 14, 2008.
-           http://bergeron.math.uqam.ca/Site/bergeron_anglais_files/livre_combinatoire.pdf
+        [BLL]_
+
+        [BLL-Intro]_
+
+        http://bergeron.math.uqam.ca/Site/bergeron_anglais_files/livre_combinatoire.pdf
 
         AUTHORS:
 
@@ -633,7 +645,7 @@ class CycleIndexSeries(LazyPowerSeries):
 
         It can be shown (as in section 2.2 of [BLL]_) that there is a corresponding operation on cycle indices:
 
-        .. math::
+        .. MATH::
 
             Z_{F} \Box Z_{G} = \sum_{n \geq 0} \frac{1}{n!} \sum_{\sigma \in \mathfrak{S}_{n}} \operatorname{fix} F[ (G[\sigma])_{1}, (G[\sigma])_{2}, \dots ] \, p_{1}^{\sigma_{1}} p_{2}^{\sigma_{2}} \dots.
 
@@ -741,12 +753,11 @@ class CycleIndexSeries(LazyPowerSeries):
 
         REFERENCES:
 
-        .. [MM] M. Maia and M. Mendez. "On the arithmetic product of combinatorial species".
+        .. [MM] \M. Maia and M. Mendez. "On the arithmetic product of combinatorial species".
            Discrete Mathematics, vol. 308, issue 23, 2008, pp. 5407-5427.
            :arXiv:`math/0503436v2`.
 
         """
-        from sage.rings.arith import gcd, lcm, divisors
         from itertools import product, repeat, chain
 
         p = self.base_ring()
@@ -762,10 +773,9 @@ class CycleIndexSeries(LazyPowerSeries):
             # `\\gcd (a, b)`` parts of size `\\lcm (a, b)` to `l_1 \\boxtimes l_2`. If `l_1` and `l_2`
             # are partitions of integers `n` and `m`, respectively, then `l_1 \\boxtimes l_2` is a
             # partition of `nm`.
-            term_iterable = chain.from_iterable( repeat(lcm(pair), times=gcd(pair)) for pair in product(l1, l2) )
-            term_list = sorted(term_iterable, reverse=True)
-            res = Partition(term_list)
-            return res
+            term_iterable = chain.from_iterable(repeat(lcm(pair), gcd(pair))
+                                                for pair in product(l1, l2))
+            return Partition(sorted(term_iterable, reverse=True))
 
         # We then extend this to an operation on symmetric functions as per eq. (52) of [MM]_.
         # (Maia and Mendez, in [MM]_, are talking about polynomials instead of symmetric
@@ -1254,7 +1264,7 @@ def _exp_gen(R = RationalField()):
 
         sage: from sage.combinat.species.generating_series import _exp_gen
         sage: g = _exp_gen()
-        sage: [g.next() for i in range(4)]
+        sage: [next(g) for i in range(4)]
         [p[], p[1], 1/2*p[1, 1] + 1/2*p[2], 1/6*p[1, 1, 1] + 1/2*p[2, 1] + 1/3*p[3]]
     """
     return (_exp_term(i, R) for i in _integers_from(0))
@@ -1266,7 +1276,7 @@ def ExponentialCycleIndexSeries(R = RationalField()):
 
     This cycle index satisfies
 
-    .. math::
+    .. MATH::
 
         Z_{E} = \\sum_{n \\geq 0} \\sum_{\\lambda \\vdash n} \\frac{p_{\\lambda}}{z_{\\lambda}}.
 
@@ -1313,7 +1323,7 @@ def _cl_gen (R = RationalField()):
 
         sage: from sage.combinat.species.generating_series import _cl_gen
         sage: g = _cl_gen()
-        sage: [g.next() for i in range(4)]
+        sage: [next(g) for i in range(4)]
         [0, p[1], -1/2*p[1, 1] - 1/2*p[2], 1/3*p[1, 1, 1] - 1/3*p[3]]
     """
     return (_cl_term(i, R) for i in _integers_from(0))
@@ -1345,9 +1355,7 @@ def LogarithmCycleIndexSeries(R = RationalField()):
 
     REFERENCES:
 
-    .. [BLL] F. Bergeron, G. Labelle, and P. Leroux. "Combinatorial species and tree-like structures". Encyclopedia of Mathematics and its Applications, vol. 67, Cambridge Univ. Press. 1998.
-
-    .. [Labelle] G. Labelle. "New combinatorial computational methods arising from pseudo-singletons." DMTCS Proceedings 1, 2008.
+    .. [Labelle] \G. Labelle. "New combinatorial computational methods arising from pseudo-singletons." DMTCS Proceedings 1, 2008.
     """
     CIS = CycleIndexSeriesRing(R)
     return CIS(_cl_gen(R))

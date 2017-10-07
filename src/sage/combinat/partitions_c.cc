@@ -127,7 +127,7 @@ const bool debug = false;                                       // If true, outp
 const bool debug_precision = false;                             // If true, output information that might be useful for
                                                                 // debugging the precision setting code.
 
-const bool debugs = false;                                      // If true, output informaiton that might be useful for
+const bool debugs = false;                                      // If true, output information that might be useful for
                                                                 // debugging the various s() functions.
 const bool debugf = false;                                      // Same for the f() functions.
 const bool debuga = false;                                      // Same for the a() functions.
@@ -179,7 +179,7 @@ const long double ld_pi = 3.141592653589793238462643L;
 const double d_pi = ld_pi;
 
 // Third, the rounding mode for mpfr.
-const mp_rnd_t round_mode = GMP_RNDN;
+const mpfr_rnd_t round_mode = MPFR_RNDN;
 
 /*****************************************************************************
  *
@@ -368,7 +368,7 @@ int grab_last_digits(char * output, int n, mpfr_t x) {
     char * temp;
     mp_exp_t e;
 
-    temp = mpfr_get_str(NULL, &e, 10, 0, x, GMP_RNDN);
+    temp = mpfr_get_str(NULL, &e, 10, 0, x, MPFR_RNDN);
 
     int retval;
 
@@ -649,7 +649,7 @@ void initialize_constants(unsigned int prec, unsigned int n) {
     //
     // NOTE: Calls to this function must be paired with calls to clear_constants()
     static bool init = false;
-    mp_prec_t p = prec;
+    mpfr_prec_t p = prec;
 
     mpfr_init2(mp_one_over_12,p); mpfr_init2(mp_one_over_24,p); mpfr_init2(mp_sqrt2,p); mpfr_init2(mp_sqrt3,p); mpfr_init2(mp_pi,p);
     mpfr_init2(mp_A,p); mpfr_init2(mp_B,p); mpfr_init2(mp_C,p); mpfr_init2(mp_D,p); mpfr_init2(fourth, p); mpfr_init2(half, p);
@@ -1270,7 +1270,7 @@ void cospi (mpfr_t res,
         //       and tt to tempc1
 
 
-        mp_rnd_t r = round_mode;
+        mpfr_rnd_t r = round_mode;
 
 
     mpfr_div_2ui (tempc1, x, 1, r);

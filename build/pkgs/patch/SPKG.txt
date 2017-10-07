@@ -17,10 +17,6 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
-== SPKG Maintainers ==
-
-David Kirkby. david.kirkby@onetel.net
-
 == Upstream Contact ==
 
 Main web site: http://savannah.gnu.org/projects/patch/

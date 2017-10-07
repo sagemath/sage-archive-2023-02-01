@@ -65,7 +65,7 @@ upper half plane::
     sage: L.normalised_basis()
     (-1.37588604166076 - 2.58560946624443*I, -2.10339907847356 + 0.428378776460622*I)
 
-We test that bug #8415 (caused by a PARI bug fixed in v2.3.5) is OK::
+We test that bug :trac:`8415` (caused by a PARI bug fixed in v2.3.5) is OK::
 
     sage: E = EllipticCurve('37a')
     sage: K.<a> = QuadraticField(-7)
@@ -79,7 +79,7 @@ We test that bug #8415 (caused by a PARI bug fixed in v2.3.5) is OK::
 
 REFERENCES:
 
-.. [CT] J. E. Cremona and T. Thongjunthug, The Complex AGM, periods of
+.. [CT] \J. E. Cremona and T. Thongjunthug, The Complex AGM, periods of
    elliptic curves over $\CC$ and complex elliptic logarithms.
    Journal of Number Theory Volume 133, Issue 8, August 2013, pages
    2813-2841.
@@ -111,6 +111,48 @@ from sage.rings.number_field.number_field import refine_embedding
 from sage.rings.infinity import Infinity
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
 from sage.misc.cachefunc import cached_method
+from sage.structure.richcmp import richcmp_method, richcmp, richcmp_not_equal
+from sage.libs.all import pari
+
+
+# Do we need to work around the PARI ellwp() bug?
+_ellwp_factor2 = None
+
+def _ellwp_flag1(lattice, z):
+    """
+    Evaluate the Weierstrass P function attached to the lattice
+    ``lattice`` and its derivative at ``z``.
+
+    This calls the PARI function ``ellwp(..., flag=1)``, working around
+    a bug in PARI versions <= 2.9.3 where the derivative is a factor 2
+    too small.
+
+    OUTPUT: ``(P(z), P'(z))``
+
+    TESTS::
+
+        sage: from sage.schemes.elliptic_curves.period_lattice import _ellwp_flag1
+        sage: E = EllipticCurve([0, 1])
+        sage: _ellwp_flag1(E, E((0,1)).elliptic_logarithm())
+        (-7.718602... E-30, 2.00000000000000)
+    """
+    global _ellwp_factor2
+    if _ellwp_factor2 is None:
+        # Check whether our PARI/GP version is buggy or not. This
+        # computation should return 1.0, but in older PARI versions it
+        # returns 0.5
+        d = float(pari("my(E=ellinit([0,1/4]));ellwp(E,ellpointtoz(E,[0,1/2]),1)[2]"))
+        if d == 1.0:
+            _ellwp_factor2 = False
+        elif d == 0.5:
+            _ellwp_factor2 = True
+        else:
+            raise AssertionError("unexpected result from ellwp() test: {}".format(d))
+    x, y = pari.ellwp(lattice, z, 1)
+    if _ellwp_factor2:
+        return (x, 2*y)
+    else:
+        return (x, y)
 
 
 class PeriodLattice(FreeModule_generic_pid):
@@ -119,6 +161,8 @@ class PeriodLattice(FreeModule_generic_pid):
     """
     pass
 
+
+@richcmp_method
 class PeriodLattice_ell(PeriodLattice):
     r"""
     The class for the period lattice of an elliptic curve.
@@ -137,7 +181,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         - ``E`` -- an elliptic curve
 
-        - ``embedding`` (defult: ``None``) -- an embedding of the base
+        - ``embedding`` (default: ``None``) -- an embedding of the base
           field `K` of ``E`` into a real or complex field.  If
           ``None``:
 
@@ -257,7 +301,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         PeriodLattice.__init__(self, base_ring=ZZ, rank=2, degree=1, sparse=False)
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
         Comparison function for period lattices
 
@@ -270,13 +314,17 @@ class PeriodLattice_ell(PeriodLattice):
             sage: L1,L2,L3 = [PeriodLattice_ell(E,e) for e in embs]
             sage: L1 < L2 < L3
             True
-
         """
-        if not isinstance(other, PeriodLattice_ell): return -1
-        t = cmp(self.E, other.E)
-        if t: return t
+        if not isinstance(other, PeriodLattice_ell):
+            return NotImplemented
+
+        lx = self.E
+        rx = other.E
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
         a = self.E.base_field().gen()
-        return cmp(self.embedding(a), other.embedding(a))
+        return richcmp(self.embedding(a), other.embedding(a), op)
 
     def __repr__(self):
         """
@@ -397,7 +445,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: E.period_lattice().basis()
             (2.99345864623196, 2.45138938198679*I)
 
-        This shows that the issue reported at trac \#3954 is fixed::
+        This shows that the issue reported at :trac:`3954` is fixed::
 
             sage: E = EllipticCurve('37a')
             sage: b1 = E.period_lattice().basis(prec=30)
@@ -405,7 +453,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: b1 == b2
             True
 
-        This shows that the issue reported at trac \#4064 is fixed::
+        This shows that the issue reported at :trac:`4064` is fixed::
 
             sage: E = EllipticCurve('37a')
             sage: E.period_lattice().basis(prec=30)[0].parent()
@@ -592,12 +640,12 @@ class PeriodLattice_ell(PeriodLattice):
 
         if algorithm=='pari':
             if self.E.base_field() is QQ:
-                periods = self.E.pari_curve().omega(prec).python()
+                periods = self.E.pari_curve().omega(prec).sage()
                 return (R(periods[0]), C(periods[1]))
 
             from sage.libs.pari.all import pari
             E_pari = pari([R(self.embedding(ai).real()) for ai in self.E.a_invariants()]).ellinit()
-            periods = E_pari.omega(prec).python()
+            periods = E_pari.omega(prec).sage()
             return (R(periods[0]), C(periods[1]))
 
         if algorithm!='sage':
@@ -901,7 +949,7 @@ class PeriodLattice_ell(PeriodLattice):
             [ 3.81452977217854509 0.000000000000000000]
             [ 1.90726488608927255  1.34047785962440202]
 
-        See \#4388::
+        See :trac:`4388`::
 
             sage: L = EllipticCurve('11a1').period_lattice()
             sage: L.basis_matrix()
@@ -986,10 +1034,10 @@ class PeriodLattice_ell(PeriodLattice):
            documentation for ellsigma is very vague.  Also this is
            only implemented for curves defined over `\QQ`.
 
-        TODO:
+        .. TODO::
 
-        This function does not use any of the PeriodLattice functions
-        and so should be moved to ell_rational_field.
+            This function does not use any of the PeriodLattice functions
+            and so should be moved to ell_rational_field.
 
         EXAMPLES::
 
@@ -1051,7 +1099,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: abs(x1.real())+abs(x2.real())<1e-14
             True
             sage: x1.imag(),x2.imag(),x3
-            (-1.122462048309373?, 1.122462048309373?, -1)
+            (-1.122462048309373?, 1.122462048309373?, -1.000000000000000?)
 
         ::
 
@@ -1088,7 +1136,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         When ``rounding`` is 'floor', returns a tuple of integers
         `n_1`, `n_2` which are the integer parts to the `x`, `y`
-        defined above. These are used in :meth:``.reduce``
+        defined above. These are used in :meth:`.reduce`
 
         EXAMPLES::
 
@@ -1235,7 +1283,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         (complex number) The elliptic logarithm of the point `(xP,yP)`
         with respect to this period lattice.  If `E` is the elliptic
-        curve and `\sigma:K\to\CC` the embedding, the the returned
+        curve and `\sigma:K\to\CC` the embedding, the returned
         value `z` is such that `z\pmod{L}` maps to `(xP,yP)=\sigma(P)`
         under the standard Weierstrass isomorphism from `\CC/L` to
         `\sigma(E)`.  If ``reduce`` is ``True``, the output is reduced
@@ -1429,7 +1477,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         (complex number) The elliptic logarithm of the point `P` with
         respect to this period lattice.  If `E` is the elliptic curve
-        and `\sigma:K\to\CC` the embedding, the the returned value `z`
+        and `\sigma:K\to\CC` the embedding, the returned value `z`
         is such that `z\pmod{L}` maps to `\sigma(P)` under the
         standard Weierstrass isomorphism from `\CC/L` to `\sigma(E)`.
         If ``reduce`` is ``True``, the output is reduced so that it is
@@ -1557,7 +1605,9 @@ class PeriodLattice_ell(PeriodLattice):
             sage: L.coordinates(L.elliptic_logarithm(E(e3,0)))
             (0.500000000000000, 0.000000000000000)
 
-        TESTS (see #10026 and #11767)::
+        TESTS:
+
+        See :trac:`10026` and :trac:`11767`::
 
             sage: K.<w> = QuadraticField(2)
             sage: E = EllipticCurve([ 0, -1, 1, -3*w -4, 3*w + 4 ])
@@ -1565,7 +1615,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: P,Q = T[2]
             sage: embs = K.embeddings(CC)
             sage: Lambda = E.period_lattice(embs[0])
-            sage: Lambda.elliptic_logarithm(P,100)
+            sage: Lambda.elliptic_logarithm(P+3*Q, 100)
             4.7100131126199672766973600998
             sage: R.<x> = QQ[]
             sage: K.<a> = NumberField(x^2 + x + 5)
@@ -1641,7 +1691,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: _.curve()
             Elliptic Curve defined by y^2 + 1.00000000000000*x*y + 1.00000000000000*y = x^3 + 1.00000000000000*x^2 - 8.00000000000000*x + 6.00000000000000 over Real Field with 53 bits of precision
             sage: L.elliptic_exponential(z,to_curve=False)
-            (1.41666666666667, -1.00000000000000)
+            (1.41666666666667, -2.00000000000000)
             sage: z = L(P,prec=201); z
             1.17044757240089592298992188482371493504472561677451007994189
             sage: L.elliptic_exponential(z)
@@ -1679,7 +1729,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: [embs[2](c) for c in Q]
             [0.259921049894873, -0.587401051968200, 1.00000000000000]
 
-        Test to show that #8820 is fixed::
+        Test to show that :trac:`8820` is fixed::
 
             sage: E = EllipticCurve('37a')
             sage: K.<a> = QuadraticField(-5)
@@ -1687,7 +1737,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: L.elliptic_exponential(CDF(.1,.1))
             (0.0000142854026029... - 49.9960001066650*I : 249.520141250950 + 250.019855549131*I : 1.00000000000000)
             sage: L.elliptic_exponential(CDF(.1,.1), to_curve=False)
-            (0.0000142854026029... - 49.9960001066650*I, 250.020141250950 + 250.019855549131*I)
+            (0.0000142854026029447 - 49.9960001066650*I, 500.040282501900 + 500.039711098263*I)
 
         `z=0` is treated as a special case::
 
@@ -1708,7 +1758,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: P.parent()
             Abelian group of points on Elliptic Curve defined by y^2 + 1.00000000000000*y = x^3 + (-1.00000000000000)*x over Complex Field with 53 bits of precision
 
-        Very small `z` are handled properly (see #8820)::
+        Very small `z` are handled properly (see :trac:`8820`)::
 
             sage: K.<a> = QuadraticField(-1)
             sage: E = EllipticCurve([0,0,0,a,0])
@@ -1769,10 +1819,8 @@ class PeriodLattice_ell(PeriodLattice):
         # So we force the results back into the real/complex fields of
         # the same precision as the input.
 
-        from sage.libs.all import pari
-
-        x,y = pari(self.basis(prec=prec)).ellwp(pari(z),flag=1)
-        x,y = [C(t) for t in (x,y)]
+        x, y = _ellwp_flag1(self.basis(prec=prec), z)
+        x, y = [C(t) for t in (x,y)]
 
         if self.real_flag and z_is_real:
             x = x.real()
@@ -1781,8 +1829,8 @@ class PeriodLattice_ell(PeriodLattice):
         if to_curve:
             a1,a2,a3,a4,a6 = [self.embedding(a) for a in self.E.ainvs()]
             b2 = self.embedding(self.E.b2())
-            x = x - (b2/12)
-            y = y - (a1*x+a3)/2
+            x = x - b2 / 12
+            y = (y - (a1 * x + a3)) / 2
             K = x.parent()
             EK = EllipticCurve(K,[a1,a2,a3,a4,a6])
             return EK.point((x,y,K(1)), check=False)

@@ -25,6 +25,7 @@ strict superset of :mod:`~sage.typeset.ascii_art`.
 from sage.typeset.character_art import CharacterArt
 from sage.typeset.character_art_factory import CharacterArtFactory
 import sage.typeset.symbols as symbol
+from six import text_type
 
 
 class UnicodeArt(CharacterArt):
@@ -49,11 +50,11 @@ class UnicodeArt(CharacterArt):
          π⋅x
         ℯ
     """
-    _string_type = unicode
+    _string_type = text_type
 
 
 _unicode_art_factory = CharacterArtFactory(
-    UnicodeArt, unicode, '_unicode_art_',
+    UnicodeArt, text_type, '_unicode_art_',
     (symbol.unicode_left_parenthesis, symbol.unicode_right_parenthesis),
     (symbol.unicode_left_square_bracket, symbol.unicode_right_square_bracket),
     (symbol.unicode_left_curly_brace, symbol.unicode_right_curly_brace),
@@ -86,10 +87,9 @@ def unicode_art(*obj, **kwds):
 
         sage: unicode_art(integral(exp(sqrt(x))/(x+pi), x))
             ⌠
-            ⎮    ___
-            ⎮  ╲╱ x
-            ⎮ ℯ
-            ⎮ ────── dx
+            ⎮   √x
+            ⎮  ℯ
+            ⎮ ───── dx
             ⎮ x + π
             ⌡
         sage: ident = lambda n: identity_matrix(ZZ, n)
@@ -116,14 +116,10 @@ def unicode_art(*obj, **kwds):
     """
     separator = kwds.pop('sep', empty_unicode_art)
     if kwds:
-        raise ValueError('unknown keyword arguments: {0}'.format(kwds.keys()))
+        raise ValueError('unknown keyword arguments: {0}'.format(list(kwds)))
     if len(obj) == 1:
         return _unicode_art_factory.build(obj[0])
     if not isinstance(separator, UnicodeArt):
         separator = _unicode_art_factory.build(separator)
     obj = map(_unicode_art_factory.build, obj)
     return _unicode_art_factory.concatenate(obj, separator, empty_unicode_art)
-
-
-
-

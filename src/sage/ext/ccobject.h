@@ -78,12 +78,6 @@ void Delete(T* mem){
 }
 
 template <class T>
-bool _equal(T lhs, T rhs)
-{
-    return lhs == rhs;
-}
-
-template <class T>
 void _from_str(T* dest, const char* src){
   std::istringstream out(src);
   out >> *dest;
@@ -104,6 +98,17 @@ PyObject* _to_PyString(const T *x)
   // using PyString_FromString truncates the output if whitespace is
   // encountered so we use Py_BuildValue and specify the length
   return Py_BuildValue("s#",instr.c_str(), instr.size());
+}
+
+/* Arrays */
+template <class T>
+static inline T* Allocate_array(size_t n){
+  return new T[n];
+}
+
+template <class T>
+static inline void Delete_array(T* v){
+  delete[] v;
 }
 
 #endif

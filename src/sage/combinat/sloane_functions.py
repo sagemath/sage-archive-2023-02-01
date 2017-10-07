@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Functions that compute some of the sequences in Sloane's tables
 
@@ -28,7 +29,7 @@ The input must be a positive integer::
     sage: a(1/3)
     Traceback (most recent call last):
     ...
-    TypeError: input must be an int, long, or Integer
+    TypeError: input must be an int or Integer
 
 You can also change how a sequence prints::
 
@@ -54,7 +55,7 @@ We agree with the online database::
     ....:     L = max(2, len(online_list) // 2)
     ....:     sage_list = sloane.__getattribute__(t).list(L)
     ....:     if online_list[:L] != sage_list:
-    ....:         print t, 'seems wrong'
+    ....:         print('{} seems wrong'.format(t))
 
 .. SEEALSO::
 
@@ -103,7 +104,8 @@ AUTHORS:
 # 3. Type "sage -br" to rebuild Sage, then fire up the notebook and
 #    try out your new sequence.  Click the text button to get a version
 #    of your session that you then include as a docstring.
-#    You can check your results with the entries of the OEIS:
+#    You can check your results with the entries of the OEIS::
+
 #       sage: seq = oeis(45) ; seq
 #       A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
 #       sage: seq.first_terms()[:12]
@@ -121,13 +123,16 @@ AUTHORS:
 ########################################################################
 
 # just used for handy .load, .save, etc.
+from __future__ import print_function, absolute_import
+from six.moves import range
+from six import integer_types
 
 import inspect
 from sage.structure.sage_object import SageObject
-from sage.misc.misc import srange
+from sage.arith.srange import srange
 from sage.rings.integer_ring import ZZ
 from sage.functions.all import prime_pi
-import partition
+from . import partition
 from sage.rings.integer import Integer as Integer_class
 
 Integer = ZZ
@@ -166,18 +171,29 @@ class SloaneSequence(SageObject):
         """
         raise NotImplementedError
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         EXAMPLES::
 
-            sage: cmp(sloane.A000007,sloane.A000045) == 0
+            sage: sloane.A000007 == sloane.A000045
             False
-            sage: cmp(sloane.A000007,sloane.A000007) == 0
+            sage: sloane.A000007 == sloane.A000007
             True
         """
         if not isinstance(other, SloaneSequence):
-            return cmp(type(self), type(other))
-        return cmp(repr(self), repr(other))
+            return False
+        return repr(self) == repr(other)
+
+    def __ne__(self, other):
+        """
+        EXAMPLES::
+
+            sage: sloane.A000007 != sloane.A000045
+            True
+            sage: sloane.A000007 != sloane.A000007
+            False
+        """
+        return not self.__eq__(other)
 
     def _sage_src_(self):
         """
@@ -201,7 +217,7 @@ class SloaneSequence(SageObject):
             sage: sloane.A000007('a')
             Traceback (most recent call last):
             ...
-            TypeError: input must be an int, long, or Integer
+            TypeError: input must be an int or Integer
             sage: sloane.A000007(-1)
             Traceback (most recent call last):
             ...
@@ -211,8 +227,8 @@ class SloaneSequence(SageObject):
             ...
             ValueError: input n (=0) must be a positive integer
         """
-        if not isinstance(n, (int, long, Integer_class)):
-            raise TypeError("input must be an int, long, or Integer")
+        if not isinstance(n, integer_types + (Integer_class,)):
+            raise TypeError("input must be an int or Integer")
         m = ZZ(n)
         if m < self.offset:
             if self.offset == 1:
@@ -293,14 +309,14 @@ class SloaneSequence(SageObject):
         # The dirty work of generating indices is left to a range list
         # This could be slow but in practice seems fine
         # NOTE: n is a SLICE, not an index
-        return [ self(i) for i in range(0, LENGTH)[n] if i >= self.offset ]
+        return [self(i) for i in list(range(LENGTH))[n] if i >= self.offset]
 
 ########################################################################
 # II. Actual implementations of Sloane sequences.
 ########################################################################
 
 # You may have to import more here when defining new sequences
-import sage.rings.arith as arith
+import sage.arith.all as arith
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.rational_field import QQ
 from sage.combinat import combinat
@@ -369,10 +385,9 @@ class A000001(SloaneSequence):
         if n <= 50:
             return self._small[n-1]
         try:
-            return Integer(gap.gap.eval('NumberSmallGroups(%s)'%n))
+            return Integer(gap.gap.eval('NumberSmallGroups(%s)' % n))
         except Exception:  # help, don't know what to do here? Jaap
-            print "Install database_gap first. See optional packages"
-
+            print("Install database_gap first. See optional packages.")
 
 
 class A000027(SloaneSequence):
@@ -844,7 +859,7 @@ class A003418(SloaneSequence):
             sage: a(20.0)
             Traceback (most recent call last):
             ...
-            TypeError: input must be an int, long, or Integer
+            TypeError: input must be an int or Integer
 
         AUTHOR:
 
@@ -878,7 +893,7 @@ class A007318(SloaneSequence):
     def __init__(self):
         r"""
         Pascal's triangle read by rows:
-        `C(n,k) = {n \choose k} = \frac {n!} {(k!(n-k)!)}`,
+        `C(n,k) = \binom{n}{k} = \frac {n!} {(k!(n-k)!)}`,
         `0 \le k \le n`.
 
         INPUT:
@@ -1062,7 +1077,7 @@ class A008277(SloaneSequence):
             sage: a(4.0)
             Traceback (most recent call last):
             ...
-            TypeError: input must be an int, long, or Integer
+            TypeError: input must be an int or Integer
             sage: a.list(15)
             [1, 1, 1, 1, 3, 1, 1, 7, 6, 1, 1, 15, 25, 10, 1]
 
@@ -1229,7 +1244,7 @@ class A000010(SloaneSequence):
             sage: a(1/3)
             Traceback (most recent call last):
             ...
-            TypeError: input must be an int, long, or Integer
+            TypeError: input must be an int or Integer
 
         AUTHORS:
 
@@ -1335,7 +1350,7 @@ class A005843(SloaneSequence):
             sage: a(0.0)
             Traceback (most recent call last):
             ...
-            TypeError: input must be an int, long, or Integer
+            TypeError: input must be an int or Integer
             sage: a(1)
             2
             sage: a(2)
@@ -1395,7 +1410,7 @@ class A000035(SloaneSequence):
             sage: a(0.0)
             Traceback (most recent call last):
             ...
-            TypeError: input must be an int, long, or Integer
+            TypeError: input must be an int or Integer
             sage: a(1)
             1
             sage: a(2)
@@ -1767,7 +1782,7 @@ class A000326(SloaneSequence):
             sage: a(1/3)
             Traceback (most recent call last):
             ...
-            TypeError: input must be an int, long, or Integer
+            TypeError: input must be an int or Integer
 
         AUTHORS:
 
@@ -4117,7 +4132,7 @@ class A000045(SloaneSequence):
             sage: a(1/3)
             Traceback (most recent call last):
             ...
-            TypeError: input must be an int, long, or Integer
+            TypeError: input must be an int or Integer
 
         AUTHORS:
 
@@ -4194,20 +4209,17 @@ class A000108(SloaneSequence):
     def __init__(self):
         r"""
         Catalan numbers:
-        `C_n = \frac{{{2n}\choose{n}}}{n+1} = \frac {(2n)!}{n!(n+1)!}`.
+        `C_n = \frac{\binom{2n}{n}}{n+1} = \frac{(2n)!}{n!(n+1)!}`.
+
         Also called Segner numbers.
 
         INPUT:
 
-
         -  ``n`` - non negative integer
-
 
         OUTPUT:
 
-
         -  ``integer`` - function value
-
 
         EXAMPLES::
 
@@ -4562,7 +4574,7 @@ class A000583(SloaneSequence):
             sage: a(0.0)
             Traceback (most recent call last):
             ...
-            TypeError: input must be an int, long, or Integer
+            TypeError: input must be an int or Integer
             sage: a(1)
             1
             sage: a(2)
@@ -5119,7 +5131,7 @@ class A000984(SloaneSequence):
     def __init__(self):
         r"""
         Central binomial coefficients:
-        `2n \choose n = \frac {(2n)!} {(n!)^2}`.
+        `\binom{2n}{n} = \frac {(2n)!} {(n!)^2}`.
 
         INPUT:
 
@@ -5174,7 +5186,7 @@ class A001405(SloaneSequence):
     def __init__(self):
         r"""
         Central binomial coefficients:
-        `n \choose \lfloor \frac {n}{ 2} \rfloor`.
+        `\binom{n}{\lfloor \frac {n}{ 2} \rfloor}`.
 
         INPUT:
 
@@ -5230,7 +5242,7 @@ class A000292(SloaneSequence):
     def __init__(self):
         r"""
         Tetrahedral (or pyramidal) numbers:
-        `{n+2} \choose 3 = n(n+1)(n+2)/6`.
+        `\binom{n+2}{3} = n(n+1)(n+2)/6`.
 
         INPUT:
 
@@ -6363,7 +6375,7 @@ class A000203(SloaneSequence):
             sage: a(1/3)
             Traceback (most recent call last):
             ...
-            TypeError: input must be an int, long, or Integer
+            TypeError: input must be an int or Integer
 
         AUTHORS:
 
@@ -6451,7 +6463,7 @@ class A001157(SloaneSequence):
 class A008683(SloaneSequence):
     def __init__(self):
         r"""
-        Moebius function `\mu(n)`.
+        Möbius function `\mu(n)`.
 
         INPUT:
 
@@ -6577,19 +6589,15 @@ class A000204(SloaneSequence):
 class A000217(SloaneSequence):
     def __init__(self):
         r"""
-        Triangular numbers: `a(n) = {n+1} \choose 2) = n(n+1)/2`.
+        Triangular numbers: `a(n) = \binom{n+1}{2} = n(n+1)/2`.
 
         INPUT:
 
-
         -  ``n`` - non negative integer
-
 
         OUTPUT:
 
-
         -  ``integer`` - function value
-
 
         EXAMPLES::
 
@@ -9134,7 +9142,7 @@ class A111774(SloaneSequence):
             sage: a(1/3)
             Traceback (most recent call last):
             ...
-            TypeError: input must be an int, long, or Integer
+            TypeError: input must be an int or Integer
 
         AUTHORS:
 
@@ -9311,7 +9319,7 @@ class A111775(SloaneSequence):
             sage: a(1/3)
             Traceback (most recent call last):
             ...
-            TypeError: input must be an int, long, or Integer
+            TypeError: input must be an int or Integer
 
         AUTHORS:
 
@@ -9476,7 +9484,7 @@ class A000110(ExponentialNumbers):
         Let `S(n, k)` denote the Stirling number of the second
         kind. Then
 
-        .. math::
+        .. MATH::
 
             B_n = \sum{k=0}^{n} S(n, k) .
 
@@ -9536,7 +9544,7 @@ class A000587(ExponentialNumbers):
         Let `S(n, k)` denote the Stirling number of the second
         kind. Then
 
-        .. math::
+        .. MATH::
 
             C_n = \sum{k=0}^{n} (-1)^k S(n, k) .
 
@@ -9701,7 +9709,7 @@ class Sloane(SageObject):
         EXAMPLES::
 
             sage: type(sloane.trait_names())
-            <type 'list'>
+            <... 'list'>
         """
         try:
             return self.__trait_names
@@ -9723,6 +9731,15 @@ class Sloane(SageObject):
             Traceback (most recent call last):
             ...
             AttributeError: dog
+
+        ::
+
+            sage: sloane.__repr__
+            <method-wrapper '__repr__' of Sloane object at 0x...>
+            sage: sloane.__name__
+            Traceback (most recent call last):
+            ...
+            AttributeError: __name__
         """
         try:
             return SageObject.__getattribute__(self, name)
@@ -9733,7 +9750,7 @@ class Sloane(SageObject):
                 seq = f()
                 setattr(self, name, seq)
                 return seq
-            except AttributeError:
+            except (AttributeError, TypeError):
                 raise AttributeError(name)
 
 sloane = Sloane()

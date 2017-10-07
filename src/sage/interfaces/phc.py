@@ -30,6 +30,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import os
 import re
@@ -81,7 +82,7 @@ def get_solution_dicts(output_file_contents, input_ring, get_failures = True):
         # sol_number = int(output_list[solution_line+1].split(' ')[0])
     for i in range(solution_line + 1,len(output_list)):
         if output_list[i].count('the solution for t') == 1:
-            if output_list[i-3].count('success') > 0 or get_failures == True:
+            if output_list[i-3].count('success') > 0 or get_failures:
                 temp_dict = {}
                 for j in range(1,var_number+1):
                     rawsplit = output_list[i+j].split(': ')[1].split(' ')
@@ -442,12 +443,12 @@ class PHC:
         # Get the input polynomial text
         input = self._input_file(polys)
         if verbose:
-            print "Writing the input file to %s"%input_filename
+            print("Writing the input file to %s" % input_filename)
         open(input_filename, 'w').write(input)
 
         if verbose:
-            print "The following file will be the input polynomial file to phc."
-            print input
+            print("The following file will be the input polynomial file to phc.")
+            print(input)
 
         # Create a phc process
         child_phc = pexpect.spawn(command_list[0])
@@ -457,12 +458,12 @@ class PHC:
         child_phc.sendline(output_filename)
         for command_string in command_list[1:]:
             if verbose:
-                print command_string
+                print(command_string)
             child_phc.sendline(command_string)
         child_phc.expect('results')
         read_stuff = child_phc.read()
         if verbose:
-            print read_stuff
+            print(read_stuff)
         child_phc.close()
         if not os.path.exists(output_filename):
             raise RuntimeError("The output file does not exist; something went wrong running phc.")
@@ -589,7 +590,8 @@ class PHC:
                         steps_dicts.append(temp_dict)
                     # check if its the end of a solution
                     if end_test.find('Length of path') != -1:
-                        if verbose: print "recording sol"
+                        if verbose:
+                            print("recording sol")
                         if steps_dicts != []:
                             solutions_dicts.append(steps_dicts)
                         steps_dicts = []
@@ -763,7 +765,8 @@ class PHC:
         for a_line in out_lines:
             # the two conditions below are necessary because of changes in output format
             if a_line.find('The mixed volume equals :') == 0 or a_line.find('common mixed volume :') == 0:
-                if verbose: print 'found line: ' +  a_line
+                if verbose:
+                    print('found line: ' +  a_line)
                 mixed_vol = Integer(a_line.split(':')[1])
                 break
 
@@ -821,12 +824,12 @@ class PHC:
         # Get the input polynomial text
         input = self._input_file(polys)
         if verbose:
-            print "Writing the input file to %s"%input_filename
+            print("Writing the input file to %s" % input_filename)
         open(input_filename, 'w').write(input)
 
         if verbose:
-            print "The following file will be the input polynomial file to phc."
-            print input
+            print("The following file will be the input polynomial file to phc.")
+            print(input)
 
         # Create a phc process
         child_phc = pexpect.spawn('phc')
@@ -843,13 +846,13 @@ class PHC:
         child_phc.sendline('0')
         if verbose:
             phc_dialog = child_phc.read(size = 40)
-            print phc_dialog
+            print(phc_dialog)
         child_phc.sendline('n')
         child_phc.sendline('0')
         if verbose:
             child_phc.expect('CURRENT CONTINUATION')
             phc_dialog = child_phc.read(size = 40)
-            print phc_dialog
+            print(phc_dialog)
         child_phc.sendline('0')
         if path_track_file is None:
             child_phc.sendline('0')
@@ -858,7 +861,7 @@ class PHC:
         child_phc.expect('results')
         dots = child_phc.read()
         if verbose:
-            print "should be . : " + dots
+            print("should be . : " + dots)
 
         #close down the process:
         child_phc.close()
@@ -909,19 +912,19 @@ class PHC:
         # Get the input polynomial text
         input = self._input_file(polys)
         if verbose:
-            print "Writing the input file to %s"%input_filename
+            print("Writing the input file to %s" % input_filename)
         open(input_filename, 'w').write(input)
 
         if verbose:
-            print "The following file will be the input polynomial file to phc."
-            print input
+            print("The following file will be the input polynomial file to phc.")
+            print(input)
 
         # Create the phc command line>
         cmd = 'phc -b %s %s'%(input_filename, output_filename)
 
         if verbose:
-            print "The phc command line is:"
-            print cmd
+            print("The phc command line is:")
+            print(cmd)
 
         # Do it -- make the system call.
         e = os.system(cmd)
@@ -930,7 +933,7 @@ class PHC:
         if e:
             from sage.misc.sage_ostools import have_program
             if not have_program('phc'):
-                print os.system('which phc') + '  PHC needs to be installed and in your path'
+                print(os.system('which phc') + '  PHC needs to be installed and in your path')
                 raise RuntimeError
             # todo -- why? etc.
             raise RuntimeError(open(log_filename).read() + "\nError running phc.")

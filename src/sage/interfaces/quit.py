@@ -1,7 +1,7 @@
 """
 Quitting interfaces
 """
-
+from __future__ import print_function
 
 ################################################################################
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
@@ -29,7 +29,7 @@ def expect_quitall(verbose=False):
         sage: gp('a')
         a
         sage: sage.interfaces.quit.expect_quitall(verbose=True)
-        Exiting PARI/GP interpreter with PID ... running .../local/bin/gp --fast --emacs --quiet --stacksize 10000000
+        Exiting PARI/GP interpreter with PID ... running .../bin/gp --fast --emacs --quiet --stacksize 10000000
     """
     for P in expect_objects:
         R = P()
@@ -72,7 +72,7 @@ def kill_spawned_jobs(verbose=False):
         pid = L[:i].strip()
         try:
             if verbose:
-                print "Killing spawned job %s" % pid
+                print("Killing spawned job %s" % pid)
             os.killpg(int(pid), 9)
         except OSError:
             pass
@@ -82,7 +82,7 @@ def is_running(pid):
     Return True if and only if there is a process with id pid running.
     """
     try:
-        os.kill(int(pid),0)
+        os.kill(int(pid), 0)
         return True
     except (OSError, ValueError):
         return False
@@ -101,9 +101,9 @@ def invalidate_all():
         (2, 3)
         sage: sage.interfaces.quit.invalidate_all()
         sage: a
-        <repr(<sage.interfaces.maxima.MaximaElement at 0x...>) failed: ValueError: The maxima session in which this object was defined is no longer running.>
+        (invalid Maxima object -- The maxima session in which this object was defined is no longer running.)
         sage: b
-        <repr(<sage.interfaces.gp.GpElement at 0x...>) failed: ValueError: The pari session in which this object was defined is no longer running.>
+        (invalid PARI/GP interpreter object -- The pari session in which this object was defined is no longer running.)
 
     However the maxima and gp sessions should still work out, though with their state reset:
 

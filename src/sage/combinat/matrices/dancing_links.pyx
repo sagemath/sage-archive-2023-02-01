@@ -12,25 +12,19 @@ Dancing Links internal pyx code
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
-
-include 'sage/ext/interrupt.pxi'
-
-from sage.structure.sage_object cimport rich_to_bool
-
+from cpython.object cimport PyObject_RichCompare
 from libcpp.vector cimport vector
+from cysignals.signals cimport sig_on, sig_off
 
 cdef extern from "dancing_links_c.h":
-    ctypedef struct dancing_links:
+    cdef cppclass dancing_links:
         vector[int] solution
         int number_of_columns()
         void add_rows(vector[vector[int]] rows)
         int search()
-        void freemem()
 
-cdef extern from "ccobject.h":
-    dancing_links* dancing_links_construct "Construct<dancing_links>"(void *mem)
-    void dancing_links_destruct "Destruct<dancing_links>"(dancing_links *mem)
 
 cdef class dancing_linksWrapper:
     r"""
@@ -64,13 +58,6 @@ cdef class dancing_linksWrapper:
             <type 'sage.combinat.matrices.dancing_links.dancing_linksWrapper'>
         """
         self._init_rows(rows)
-
-    def __cinit__(self):
-        dancing_links_construct(&self._x)
-
-    def __dealloc__(self):
-        self._x.freemem()
-        dancing_links_destruct(&self._x)
 
     def __repr__(self):
         """
@@ -138,7 +125,7 @@ cdef class dancing_linksWrapper:
             sage: X == Y
             0
         """
-        return rich_to_bool(op, cmp(left._rows, right._rows))
+        return PyObject_RichCompare(left._rows, right._rows, op)
 
     def _init_rows(self, rows):
         """
@@ -156,7 +143,7 @@ cdef class dancing_linksWrapper:
             sage: rows+= [[1]]
             sage: rows+= [[3]]
             sage: x = dlx_solver(rows)
-            sage: print x.search()
+            sage: print(x.search())
             1
 
         The following example would crash in Sage's debug version
@@ -200,9 +187,9 @@ cdef class dancing_linksWrapper:
             sage: rows+= [[1]]
             sage: rows+= [[3]]
             sage: x = dlx_solver(rows)
-            sage: print x.search()
+            sage: print(x.search())
             1
-            sage: print x.get_solution()
+            sage: print(x.get_solution())
             [3, 0]
         """
         cdef size_t i
@@ -227,9 +214,9 @@ cdef class dancing_linksWrapper:
             sage: rows+= [[1]]
             sage: rows+= [[3]]
             sage: x = dlx_solver(rows)
-            sage: print x.search()
+            sage: print(x.search())
             1
-            sage: print x.get_solution()
+            sage: print(x.get_solution())
             [3, 0]
 
         TESTS:
@@ -285,7 +272,7 @@ cdef class dancing_linksWrapper:
             [[0, 1], [2, 3], [4, 5]]
 
         After the split each subproblem has the same number of columns and
-        rows as the orginal one::
+        rows as the original one::
 
             sage: D = d.split(0)
             sage: D
@@ -339,7 +326,7 @@ cdef class dancing_linksWrapper:
         - ``column`` -- integer (default: ``0``), the column used to split
           the problem
 
-        OUPUT:
+        OUTPUT:
 
             iterator of tuples (row number, number of solutions)
 
@@ -354,7 +341,7 @@ cdef class dancing_linksWrapper:
         ::
 
             sage: S = Subsets(range(5))
-            sage: rows = map(list, S)
+            sage: rows = [list(x) for x in S]
             sage: d = dlx_solver(rows)
             sage: d.number_of_solutions()
             52
@@ -363,10 +350,11 @@ cdef class dancing_linksWrapper:
         """
         D = self.split(column)
         from sage.parallel.decorate import parallel
+
         @parallel(ncpus=ncpus)
         def nb_sol(i):
             return dlx_solver(D[i]).number_of_solutions()
-        K = sorted(D.keys())
+        K = sorted(D)
         for ((args, kwds), val) in nb_sol(K):
             yield args[0], val
 
@@ -383,9 +371,9 @@ cdef class dancing_linksWrapper:
         - ``column`` -- integer (default: ``0``), the column used to split
           the problem (ignored if ``ncpus`` is ``1``)
 
-        OUPUT:
+        OUTPUT:
 
-            integer
+        integer
 
         EXAMPLES::
 
@@ -431,15 +419,15 @@ def dlx_solver(rows):
         sage: rows+= [[1]]
         sage: rows+= [[3]]
         sage: x = dlx_solver(rows)
-        sage: print x.search()
+        sage: print(x.search())
         1
-        sage: print x.get_solution()
+        sage: print(x.get_solution())
         [3, 0]
-        sage: print x.search()
+        sage: print(x.search())
         1
-        sage: print x.get_solution()
+        sage: print(x.get_solution())
         [3, 1, 2]
-        sage: print x.search()
+        sage: print(x.search())
         0
     """
     return dancing_linksWrapper(rows)
@@ -458,8 +446,8 @@ def make_dlxwrapper(s):
         sage: from sage.combinat.matrices.dancing_links import make_dlxwrapper
         sage: rows = [[0,1,2]]
         sage: x = make_dlxwrapper(dumps(rows))
-        sage: print x.__str__()
+        sage: print(x.__str__())
         Dancing links solver for 3 columns and 1 rows
     """
-    from sage.all import loads
+    from sage.structure.sage_object import loads
     return dancing_linksWrapper(loads(s))

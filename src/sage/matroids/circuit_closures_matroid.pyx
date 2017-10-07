@@ -65,12 +65,17 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from matroid cimport Matroid
-from set_system cimport SetSystem
-from utilities import setprint_s
+from __future__ import absolute_import
+
+from sage.structure.richcmp cimport rich_to_bool, richcmp
+from .matroid cimport Matroid
+from .set_system cimport SetSystem
+from .utilities import setprint_s
+from cpython.object cimport Py_EQ, Py_NE
+
 
 cdef class CircuitClosuresMatroid(Matroid):
-    """
+    r"""
     A general matroid `M` is characterized by its rank `r(M)` and the set of
     pairs
 
@@ -78,7 +83,7 @@ cdef class CircuitClosuresMatroid(Matroid):
 
     As each independent set of size `k` is in at most one closure(`C`) of rank
     `k`, and each closure(`C`) of rank `k` contains at least `k + 1`
-    independent sets of size `k`, there are at most `{n \choose k}/(k + 1)`
+    independent sets of size `k`, there are at most `\binom{n}{k}/(k + 1)`
     such closures-of-circuits of rank `k`. Each closure(`C`) takes `O(n)` bits
     to store, giving an upper bound of `O(2^n)` on the space complexity of the
     entire matroid.
@@ -156,7 +161,7 @@ cdef class CircuitClosuresMatroid(Matroid):
         else:
             self._groundset = frozenset(groundset)
             self._circuit_closures = {}
-            for k in circuit_closures.iterkeys():
+            for k in circuit_closures:
                 self._circuit_closures[k] = frozenset([frozenset(X) for X in circuit_closures[k]])
         self._matroid_rank = self.rank(self._groundset)
 
@@ -355,7 +360,7 @@ cdef class CircuitClosuresMatroid(Matroid):
         """
         return self._circuit_closures
 
-    cpdef _is_isomorphic(self, other):
+    cpdef _is_isomorphic(self, other, certificate=False):
         """
         Test if ``self`` is isomorphic to ``other``.
 
@@ -363,11 +368,17 @@ cdef class CircuitClosuresMatroid(Matroid):
 
         INPUT:
 
-        - ``other`` -- A matroid.
+        - ``other`` -- A matroid,
+        - optional parameter ``certificate`` -- Boolean.
 
         OUTPUT:
 
-        Boolean.
+        Boolean,
+        and, if certificate = True, a dictionary giving the isomorphism or None
+
+        .. NOTE::
+
+            Internal version that does no input checking.
 
         EXAMPLES::
 
@@ -376,12 +387,19 @@ cdef class CircuitClosuresMatroid(Matroid):
             sage: M2 = matroids.CompleteGraphic(4)
             sage: M1._is_isomorphic(M2)
             True
+            sage: M1._is_isomorphic(M2, certificate=True)
+            (True, {0: 0, 1: 1, 2: 2, 3: 3, 4: 5, 5: 4})
             sage: M1 = CircuitClosuresMatroid(matroids.named_matroids.Fano())
             sage: M2 = matroids.named_matroids.NonFano()
             sage: M1._is_isomorphic(M2)
             False
+            sage: M1._is_isomorphic(M2, certificate=True)
+            (False, None)
+
 
         """
+        if certificate:
+            return self._is_isomorphic(other), self._isomorphism(other)
         N = CircuitClosuresMatroid(other)
         if sorted(self._circuit_closures.keys()) != sorted(N._circuit_closures.keys()):
             return False
@@ -460,24 +478,17 @@ cdef class CircuitClosuresMatroid(Matroid):
             False
         """
         cdef CircuitClosuresMatroid lt, rt
-        if op in [0, 1, 4, 5]:  # <, <=, >, >=
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
-        if not isinstance(left, CircuitClosuresMatroid) or not isinstance(right, CircuitClosuresMatroid):
+        if type(left) is not type(right):
             return NotImplemented
         lt = <CircuitClosuresMatroid> left
         rt = <CircuitClosuresMatroid> right
-        if op == 2:  # ==
-            res = True
-        if op == 3:  # !=
-            res = False
-        # res gets inverted if matroids are deemed different.
         if lt.groundset() != rt.groundset():
-            return not res
+            return rich_to_bool(op, 1)
         if lt.full_rank() != rt.full_rank():
-            return not res
-        if lt._circuit_closures == rt._circuit_closures:
-            return res
-        return not res
+            return rich_to_bool(op, 1)
+        return richcmp(lt._circuit_closures, rt._circuit_closures, op)
 
     # COPYING, LOADING, SAVING
 

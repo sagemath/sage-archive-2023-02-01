@@ -15,10 +15,6 @@ high precision is a major design goal.
 LGPLv3+ for the code and GFDLv1.3+ (with no invariant sections)
 for the documentation.
 
-== SPKG Maintainers ==
-
- * Jeroen Demeyer
-
 == Upstream Contact ==
 
 The MPC website is located at http://www.multiprecision.org/mpc .

@@ -270,7 +270,7 @@ class Point(GraphicPrimitive_xydata):
         #method does not interpret it as a list of 3 floating
         #point color specifications when there are
         #three points. This is mentioned in the matplotlib 0.98
-        #documentation and fixes \#2076
+        #documentation and fixes #2076
         from matplotlib.colors import rgb2hex
         c = rgb2hex(to_mpl_color(options['rgbcolor']))
 
@@ -459,6 +459,10 @@ def point2d(points, **options):
         sage: point([CC(I), CC(I+1), CC(2+2*I)], pointsize=100)
         Graphics object consisting of 1 graphics primitive
 
+    TESTS::
+
+       sage: point2d(iter([]))
+       Graphics object consisting of 0 graphics primitives
     """
     from sage.plot.plot import xydata_from_point_list
     from sage.plot.all import Graphics

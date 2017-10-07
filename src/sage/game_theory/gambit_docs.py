@@ -107,7 +107,7 @@ If we solve this with the ``LCP`` solver we get the expected Nash equilibrium::
     Out[14]: [<NashProfile for '': [0.5, 0.5, 0.5, 0.5]>]
 
 Note that the above examples only show how to build and find equilibria for
-two player strategic form games. Gambit supports mulitple player games as well
+two player strategic form games. Gambit supports multiple player games as well
 as extensive form games: for more details see http://www.gambit-project.org/.
 
 If one really wants to use gambit directly in Sage (without using the

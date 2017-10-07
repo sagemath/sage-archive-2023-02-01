@@ -9,10 +9,6 @@ The file d3.min.js will be placed into the ${SAGE_SHARE}/d3js/ directory.
 
 BSD 3-Clause License
 
-== SPKG Maintainers ==
-
-* Thierry Monteil
-
 == Upstream Contact ==
 
 Author: Mike Bostock (http://bost.ocks.org/mike/)

@@ -51,11 +51,14 @@ Methods
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
+from six.moves import range
 
 from copy import copy
 from sage.combinat.matrices.dlxcpp import DLXCPP
 from sage.plot.colors import rainbow
-from graph_generators import GraphGenerators
+from .graph_generators import GraphGenerators
 
 
 def all_graph_colorings(G,n,count_only=False, hex_colors=False, vertex_color_dict=False):
@@ -75,7 +78,7 @@ def all_graph_colorings(G,n,count_only=False, hex_colors=False, vertex_color_dic
        for each coloring
 
     * `hex_colors` -- (default: ``False``) when set to ``False``, it labels
-      the colors [0,1,..,``n``-1], otherwise it uses the RGB Hex labeling
+      the colors [0,1,.., ``n`` - 1], otherwise it uses the RGB Hex labeling
 
     * `vertex_color_dict` -- (default: ``False``) when set to ``True``, it
       returns a dictionary {vertex:color}, otherwise it returns a dictionary
@@ -125,40 +128,40 @@ def all_graph_colorings(G,n,count_only=False, hex_colors=False, vertex_color_dic
         sage: G = Graph({0:[1,2,3],1:[2]})
         sage: n = 0
         sage: for C in all_graph_colorings(G,3,hex_colors=True):
-        ...       parts = [C[k] for k in C]
-        ...       for P in parts:
-        ...           l = len(P)
-        ...           for i in range(l):
-        ...               for j in range(i+1,l):
-        ...                   if G.has_edge(P[i],P[j]):
-        ...                       raise RuntimeError, "Coloring Failed."
-        ...       n+=1
-        sage: print "G has %s 3-colorings."%n
+        ....:     parts = [C[k] for k in C]
+        ....:     for P in parts:
+        ....:         l = len(P)
+        ....:         for i in range(l):
+        ....:             for j in range(i+1,l):
+        ....:                 if G.has_edge(P[i],P[j]):
+        ....:                     raise RuntimeError("Coloring Failed.")
+        ....:     n+=1
+        sage: print("G has %s 3-colorings." % n)
         G has 12 3-colorings.
 
 
     TESTS::
 
         sage: G = Graph({0:[1,2,3],1:[2]})
-        sage: for C in all_graph_colorings(G,0): print C
-        sage: for C in all_graph_colorings(G,-1): print C
+        sage: for C in all_graph_colorings(G,0): print(C)
+        sage: for C in all_graph_colorings(G,-1): print(C)
         Traceback (most recent call last):
         ...
         ValueError: n must be non-negative.
         sage: G = Graph({0:[1],1:[2]})
-        sage: for c in all_graph_colorings(G,2, vertex_color_dict = True): print c
+        sage: for c in all_graph_colorings(G,2, vertex_color_dict = True): print(c)
         {0: 0, 1: 1, 2: 0}
         {0: 1, 1: 0, 2: 1}
-        sage: for c in all_graph_colorings(G,2,hex_colors = True): print c
+        sage: for c in all_graph_colorings(G,2,hex_colors = True): print(c)
         {'#00ffff': [1], '#ff0000': [0, 2]}
         {'#ff0000': [1], '#00ffff': [0, 2]}
-        sage: for c in all_graph_colorings(G,2,hex_colors=True,vertex_color_dict = True): print c
+        sage: for c in all_graph_colorings(G,2,hex_colors=True,vertex_color_dict = True): print(c)
         {0: '#ff0000', 1: '#00ffff', 2: '#ff0000'}
         {0: '#00ffff', 1: '#ff0000', 2: '#00ffff'}
-        sage: for c in all_graph_colorings(G, 2, vertex_color_dict = True): print c
+        sage: for c in all_graph_colorings(G, 2, vertex_color_dict = True): print(c)
         {0: 0, 1: 1, 2: 0}
         {0: 1, 1: 0, 2: 1}
-        sage: for c in all_graph_colorings(G, 2, count_only=True, vertex_color_dict = True): print c
+        sage: for c in all_graph_colorings(G, 2, count_only=True, vertex_color_dict = True): print(c)
         1
         1
     """
@@ -174,7 +177,7 @@ def all_graph_colorings(G,n,count_only=False, hex_colors=False, vertex_color_dic
     nE=len(E)
 
     ones = []
-    N = xrange(n)
+    N = range(n)
     Vd= {}
     colormap = {}
     k = 0
@@ -258,7 +261,7 @@ def first_coloring(G, n=0, hex_colors=False):
     """
     G._scream_if_not_simple(allow_multiple_edges=True)
     o = G.order()
-    for m in xrange(n, o + 1):
+    for m in range(n, o + 1):
         for C in all_graph_colorings(G, m, hex_colors=True):
             if hex_colors:
                 return C
@@ -374,7 +377,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
       <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
     - ``verbose`` -- integer (default: ``0``). Sets the level of
-       verbosity. Set to 0 by default, which means quiet.
+      verbosity. Set to 0 by default, which means quiet.
 
 
     OUTPUT:
@@ -391,7 +394,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
     - If ``k`` is set and ``value_only=True``, test whether the graph is
       `k`-colorable, and return ``True`` or ``False`` accordingly.
 
-    EXAMPLE::
+    EXAMPLES::
 
        sage: from sage.graphs.graph_coloring import vertex_coloring
        sage: g = graphs.PetersenGraph()
@@ -451,7 +454,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
             elif hex_colors:
                 return dict([(color, []) for color in rainbow(k)])
             else:
-                return [[] for i in xrange(k)]
+                return [[] for i in range(k)]
         # Is the graph connected?
         # This is not so stupid, as the graph could be disconnected
         # by the test of degeneracy (as previously).
@@ -473,8 +476,8 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
                 if tmp is False:
                     return False
                 colorings.append(tmp)
-            value = [[] for color in xrange(k)]
-            for color in xrange(k):
+            value = [[] for color in range(k)]
+            for color in range(k):
                 for component in colorings:
                     value[color].extend(component[color])
             if hex_colors:
@@ -527,7 +530,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
 
         # adjacent vertices have different colors
         for (u, v) in g.edge_iterator(labels=None):
-            for i in xrange(k):
+            for i in range(k):
                 p.add_constraint(color[u,i] + color[v,i], max=1)
 
         # The first vertex is colored with 1. It costs nothing to say
@@ -545,10 +548,10 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
 
         color = p.get_values(color)
         # builds the color classes
-        classes = [[] for i in xrange(k)]
+        classes = [[] for i in range(k)]
 
         for v in g.vertices():
-            for i in xrange(k):
+            for i in range(k):
                 if color[v,i] == 1:
                     classes[i].append(v)
                     break
@@ -583,7 +586,7 @@ def grundy_coloring(g, k, value_only = True, solver = None, verbose = 0):
     colored with `j`. This can define a Linear Program, which is used
     here to compute the Grundy number of a graph.
 
-    .. NOTE:
+    .. NOTE::
 
        This method computes a grundy coloring using at *MOST* `k`
        colors. If this method returns a value equal to `k`, it can not
@@ -812,7 +815,7 @@ def b_coloring(g, k, value_only = True, solver = None, verbose = 0):
 
     deg = g.degree()
     deg.sort(reverse = True)
-    for i in xrange(g.order()):
+    for i in range(g.order()):
         if deg[i] < i:
             break
     if i != (g.order() - 1):
@@ -841,7 +844,7 @@ def b_coloring(g, k, value_only = True, solver = None, verbose = 0):
 
     # Each vertex is in exactly one class
     for v in g.vertices():
-        p.add_constraint(p.sum(color[v,i] for i in xrange(k)), min=1, max=1)
+        p.add_constraint(p.sum(color[v,i] for i in range(k)), min=1, max=1)
 
     # Adjacent vertices have distinct colors
     for (u, v) in g.edge_iterator(labels=None):
@@ -910,11 +913,9 @@ def b_coloring(g, k, value_only = True, solver = None, verbose = 0):
 
     return obj, coloring
 
-def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver = None,verbose = 0):
+def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver=None, verbose=0):
     r"""
-    Properly colors the edges of a graph. See the URL
-    http://en.wikipedia.org/wiki/Edge_coloring for further details on
-    edge coloring.
+    Compute chromatic index and edge colorings.
 
     INPUT:
 
@@ -950,7 +951,7 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver = 
       <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
     - ``verbose`` -- integer (default: ``0``). Sets the level of
-       verbosity. Set to 0 by default, which means quiet.
+      verbosity. Set to 0 by default, which means quiet.
 
     OUTPUT:
 
@@ -978,87 +979,158 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver = 
        can sometimes be much faster, and it is a bad idea to compute
        the whole coloring if you do not need it !
 
-    EXAMPLE::
+    .. SEEALSO::
+
+        - :wikipedia:`Edge_coloring` for further details on edge coloring
+        - :meth:`~Graph.chromatic_index`
+        - :meth:`~Graph.fractional_chromatic_index`
+        - :meth:`~Graph.chromatic_number`
+        - :meth:`sage.graphs.graph_coloring.vertex_coloring`
+
+    EXAMPLES:
+
+    The Petersen graph has chromatic index 4::
 
        sage: from sage.graphs.graph_coloring import edge_coloring
        sage: g = graphs.PetersenGraph()
-       sage: edge_coloring(g, value_only=True)
+       sage: edge_coloring(g, value_only=True, solver='GLPK')
        4
+       sage: edge_coloring(g, value_only=False, solver='GLPK')
+       [[(0, 1), (2, 3), (4, 9), (5, 7)],
+        [(0, 4), (1, 2), (3, 8), (6, 9)],
+        [(1, 6), (5, 8), (7, 9)],
+        [(0, 5), (2, 7), (3, 4), (6, 8)]]
+       sage: edge_coloring(g, value_only=False, hex_colors=True, solver='GLPK')
+       {'#00ffff': [(1, 6), (5, 8), (7, 9)],
+        '#7f00ff': [(0, 5), (2, 7), (3, 4), (6, 8)],
+        '#7fff00': [(0, 4), (1, 2), (3, 8), (6, 9)],
+        '#ff0000': [(0, 1), (2, 3), (4, 9), (5, 7)]}
 
     Complete graphs are colored using the linear-time round-robin coloring::
 
        sage: from sage.graphs.graph_coloring import edge_coloring
        sage: len(edge_coloring(graphs.CompleteGraph(20)))
        19
+
+    The chromatic index of a non connected graph is the maximum over
+    its connected components::
+
+       sage: g = graphs.CompleteGraph(4) + graphs.CompleteGraph(10)
+       sage: edge_coloring(g, value_only=True)
+       9
+
+    TESTS:
+
+    Graph without edge::
+
+       sage: g = Graph(2)
+       sage: edge_coloring(g)
+       []
+       sage: edge_coloring(g, value_only=True)
+       0
+       sage: edge_coloring(g, hex_colors=True)
+       {}
     """
     g._scream_if_not_simple()
     from sage.numerical.mip import MixedIntegerLinearProgram
     from sage.plot.colors import rainbow
     from sage.numerical.mip import MIPSolverException
 
-    if g.is_clique():
+    if g.order() == 0 or g.size() == 0:
         if value_only:
-            return g.order()-1 if g.order() % 2 == 0 else g.order()
-        vertices = g.vertices()
-        r = round_robin(g.order())
-        classes = [[] for v in g]
-        if g.order() % 2 == 0 and not vizing:
-            classes.pop()
-        for (u, v, c) in r.edge_iterator():
-            classes[c].append((vertices[u], vertices[v]))
-        if hex_colors:
-            return dict(zip(rainbow(len(classes)), classes))
-        else:
-            return classes
+            return 0
+        return dict() if hex_colors else list()
 
-    if value_only and g.is_overfull():
-        return max(g.degree())+1
-
-    p = MixedIntegerLinearProgram(maximization=True, solver = solver)
-    color = p.new_variable(binary = True)
-    obj = {}
-    k = max(g.degree())
-    # reorders the edge if necessary...
-    R = lambda x: x if (x[0] <= x[1]) else (x[1], x[0])
-    # Vizing's coloring uses Delta + 1 colors
     if vizing:
         value_only = False
-        k += 1
-    #  A vertex can not have two incident edges with the same color.
-    [p.add_constraint(
-            p.sum([color[R(e),i] for e in g.edges_incident(v, labels=False)]), max=1)
-                for v in g.vertex_iterator()
-                    for i in xrange(k)]
-    # an edge must have a color
-    [p.add_constraint(p.sum([color[R(e),i] for i in xrange(k)]), max=1, min=1)
-         for e in g.edge_iterator(labels=False)]
-    # anything is good as an objective value as long as it is satisfiable
-    e = next(g.edge_iterator(labels=False))
-    p.set_objective(color[R(e),0])
-    try:
+
+    def R(u, v):
+        """
+        Helper method to maintain an ordering
+        """
+        if u < v:
+            return u, v
+        return v, u
+
+    # The chromatic index of g is the maximum value over its connected
+    # components, and the edge coloring is the union of the edge
+    # coloring of its connected components
+    L = [g] if g.is_connected() else g.connected_components_subgraphs()
+    chi, classes = 0, []
+    for h in L:
+
+        if h.size() == 0:
+            continue
+
+        # We get the vertex of maximum degree and its degree
+        Delta,X = max((d, v) for v,d in h.degree_iterator(labels=True))
+
         if value_only:
-            p.solve(objective_only=True, log=verbose)
-        else:
-            chi = p.solve(log=verbose)
-    except MIPSolverException:
+            if Delta+1 <= chi:
+                continue
+            if h.is_overfull():
+                chi = max(chi, Delta+1)
+                continue
+
+        if h.is_clique():
+            if value_only:
+                chi = max(chi, h.order()-1 if h.order() % 2 == 0 else h.order())
+                continue
+            vertices = h.vertices()
+            r = round_robin(h.order())
+            # create missing color classes, if any
+            for i in range(len(classes), max(r.edge_labels())+1):
+                classes.append([])
+            # add edges to classes
+            for u, v, c in r.edge_iterator():
+                classes[c].append(R(vertices[u], vertices[v]))
+            continue
+
+        # Vizing's coloring uses Delta + 1 colors. Otherwise, we try both.
+        values = [Delta+1] if vizing else [Delta, Delta+1]
+
+        for k in values:
+            p = MixedIntegerLinearProgram(maximization=True, solver=solver)
+            color = p.new_variable(binary=True)
+            # A vertex can not have two incident edges with the same color.
+            for v in h.vertex_iterator():
+                for i in range(k):
+                    p.add_constraint(p.sum(color[R(u,v),i] for u in h.neighbor_iterator(v)) <= 1)
+            # Nn edge must have a color
+            for u,v in h.edge_iterator(labels=False):
+                p.add_constraint(p.sum(color[R(u,v),i] for i in range(k)) == 1)
+            # We color the edges of the vertex of maximum degree
+            for i,v in enumerate(h.neighbors(X)):
+                p.add_constraint( color[R(v,X),i] == 1 )
+            try:
+                p.solve(objective_only=value_only, log=verbose)
+                break
+            except MIPSolverException:
+                if k == Delta+1:
+                    raise RuntimeError("Something is wrong! Certainly a problem in the"
+                                           " algorithm... please contact sage-devel@googlegroups.com")
+                # The coloring fails with Delta colors
+                if value_only:
+                    k = k + 1
+                    break
+
         if value_only:
-            return k + 1
+            chi = max(chi, k)
         else:
-            # if the coloring with Delta colors fails, tries Delta + 1
-            return edge_coloring(g,
-                                 vizing=True,
-                                 hex_colors=hex_colors,
-                                 verbose=verbose,
-                                 solver = solver)
+            # create missing color classes, if any
+            for i in range(len(classes), k):
+                classes.append([])
+            # add edges to color classes
+            color = p.get_values(color)
+            for u,v in h.edge_iterator(labels=False):
+                e = R(u,v)
+                for i in range(k):
+                    if color[e,i] == 1:
+                        classes[i].append(e)
+                        break
+
     if value_only:
-        return k
-    # Builds the color classes
-    color = p.get_values(color)
-    classes = [[] for i in xrange(k)]
-    [classes[i].append(e)
-         for e in g.edge_iterator(labels=False)
-             for i in xrange(k)
-                 if color[R(e),i] == 1]
+        return chi
     # if needed, builds a dictionary from the color classes adding colors
     if hex_colors:
         return dict(zip(rainbow(len(classes)), classes))
@@ -1122,9 +1194,9 @@ def round_robin(n):
     mod = lambda x, y: x - y*(x // y)
     if n % 2 == 0:
         g = GraphGenerators().CompleteGraph(n)
-        for i in xrange(n - 1):
+        for i in range(n - 1):
             g.set_edge_label(n - 1, i, i)
-            for j in xrange(1, (n - 1) // 2 + 1):
+            for j in range(1, (n - 1) // 2 + 1):
                 g.set_edge_label(mod(i - j, n - 1), mod(i + j, n - 1), i)
         return g
     else:
@@ -1149,34 +1221,34 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
 
     - ``hex_colors`` (boolean)
 
-        - If ``hex_colors = True``, the function returns a
-          dictionary associating to each color a list
-          of edges (meant as an argument to the ``edge_colors``
-          keyword of the ``plot`` method).
+      - If ``hex_colors = True``, the function returns a
+        dictionary associating to each color a list
+        of edges (meant as an argument to the ``edge_colors``
+        keyword of the ``plot`` method).
 
-        - If ``hex_colors = False`` (default value), returns
-          a list of graphs corresponding to each color class.
+      - If ``hex_colors = False`` (default value), returns
+        a list of graphs corresponding to each color class.
 
     - ``value_only`` (boolean)
 
-        - If ``value_only = True``, only returns the linear
-          arboricity as an integer value.
+      - If ``value_only = True``, only returns the linear
+        arboricity as an integer value.
 
-        - If ``value_only = False``, returns the color classes
-          according to the value of ``hex_colors``
+      - If ``value_only = False``, returns the color classes
+        according to the value of ``hex_colors``
 
     - ``plus_one`` (integer) -- whether to use `\lceil \frac {\Delta(G)} 2
       \rceil` or `\lceil \frac {\Delta(G)+1} 2 \rceil` colors.
 
-        - If ``0``, computes a decomposition of `G` into `\lceil \frac
-          {\Delta(G)} 2 \rceil` forests of paths
+      - If ``0``, computes a decomposition of `G` into `\lceil \frac
+        {\Delta(G)} 2 \rceil` forests of paths
 
-        - If ``1``, computes a decomposition of `G` into `\lceil \frac
-          {\Delta(G)+1} 2 \rceil` colors, which is the conjectured general
-          bound.
+      - If ``1``, computes a decomposition of `G` into `\lceil \frac
+        {\Delta(G)+1} 2 \rceil` colors, which is the conjectured general
+        bound.
 
-        - If ``plus_one = None`` (default), computes a decomposition using the
-          least possible number of colors.
+      - If ``plus_one = None`` (default), computes a decomposition using the
+        least possible number of colors.
 
     - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver to
       be used. If set to ``None``, the default one is used. For more information
@@ -1186,7 +1258,7 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
       <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
     - ``verbose`` -- integer (default: ``0``). Sets the level of verbosity. Set
-       to 0 by default, which means quiet.
+      to 0 by default, which means quiet.
 
     ALGORITHM:
 
@@ -1196,7 +1268,7 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
 
     NP-Hard
 
-    EXAMPLE:
+    EXAMPLES:
 
     Obviously, a square grid has a linear arboricity of 2, as
     the set of horizontal lines and the set of vertical lines
@@ -1304,12 +1376,14 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
 
     if hex_colors:
         answer = [[] for i in range(k)]
-        add = lambda (u,v),i : answer[i].append((u,v))
+        def add(uv, i):
+            return answer[i].append(uv)
     else:
         gg = copy(g)
         gg.delete_edges(g.edges())
         answer = [copy(gg) for i in range(k)]
-        add = lambda (u,v),i : answer[i].add_edge((u,v))
+        def add(uv, i):
+            return answer[i].add_edge(uv)
 
     for i in range(k):
         for u,v in g.edges(labels=None):
@@ -1384,13 +1458,13 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = N
       <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
     - ``verbose`` -- integer (default: ``0``). Sets the level of
-       verbosity. Set to 0 by default, which means quiet.
+      verbosity. Set to 0 by default, which means quiet.
 
     ALGORITHM:
 
     Linear Programming
 
-    EXAMPLE:
+    EXAMPLES:
 
     The complete graph on 8 vertices can not be acyclically
     edge-colored with less `\Delta+1` colors, but it can be
@@ -1509,12 +1583,14 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = N
 
     if hex_colors:
         answer = [[] for i in range(k)]
-        add = lambda (u,v),i : answer[i].append((u,v))
+        def add(uv, i):
+            return answer[i].append(uv)
     else:
         gg = copy(g)
         gg.delete_edges(g.edges())
         answer = [copy(gg) for i in range(k)]
-        add = lambda (u,v),i : answer[i].add_edge((u,v))
+        def add(uv, i):
+            return answer[i].add_edge(uv)
 
     for i in range(k):
         for u,v in g.edges(labels=None):

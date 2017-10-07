@@ -64,6 +64,7 @@ will result in improved running times::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 
 cdef class FiniteZZsubmodule_iterator:
@@ -181,7 +182,7 @@ cdef class FiniteZZsubmodule_iterator:
 
     def __iter__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modules.finite_submodule_iter import FiniteZZsubmodule_iterator
             sage: F.<x,y,z> = FreeAlgebra(GF(3),3)
@@ -201,8 +202,8 @@ cdef class FiniteZZsubmodule_iterator:
             sage: iter = FiniteZZsubmodule_iterator([x,y], [3,3])
             sage: next(iter) #indirect doctest
             0
-            sage: print next(iter), next(iter), next(iter) #indirect doctest
-            x 2*x y
+            sage: next(iter), next(iter), next(iter) #indirect doctest
+            (x, 2*x, y)
         """
         if self._basis_length == 1:
             if self._count < self._order:
@@ -440,7 +441,7 @@ cdef class FiniteFieldsubspace_projPoint_iterator:
 
     def __iter__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modules.finite_submodule_iter import FiniteFieldsubspace_projPoint_iterator
             sage: A = MatrixSpace(GF(3), 10,10).one()

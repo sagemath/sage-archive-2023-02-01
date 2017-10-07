@@ -130,12 +130,13 @@ AUTHOR:
 
 - Paul Graham: Respect global verbosity settings (:trac:`16228`)
 
-.. TODO:
+.. TODO::
 
     - clean up trianglefactory stuff
 """
+from __future__ import absolute_import
 
-from tri_plot import Triangle, SmoothTriangle, TriangleFactory, TrianglePlot
+from .tri_plot import Triangle, SmoothTriangle, TriangleFactory, TrianglePlot
 
 from sage.interfaces.tachyon import tachyon_rt
 
@@ -754,7 +755,7 @@ class Tachyon(WithEqualityById, SageObject):
             sage: t.sphere((0,-1,1), 1, 'mirror')
             sage: t.sphere((2,-1,1), 0.5, 'mirror')
             sage: t.sphere((2,1,1), 0.5, 'mirror')
-            sage: show(t)  # known bug (:trac:`7232`)
+            sage: show(t)  # known bug (trac #7232)
         """
         if texfunc and not isinstance(texfunc, Texfunc):
             texfunc = self.texfunc(int(texfunc), imagefile=imagefile)

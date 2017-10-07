@@ -66,6 +66,7 @@ TESTS::
     sage: type(m)
     <class 'sage.modular.modform.ambient_eps.ModularFormsAmbient_eps_with_category'>
 """
+from __future__ import absolute_import
 
 #########################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -80,13 +81,15 @@ import sage.rings.all as rings
 import sage.modular.arithgroup.all as arithgroup
 import sage.modular.dirichlet as dirichlet
 import sage.modular.modsym.modsym as modsym
+from sage.misc.cachefunc import cached_method
 
-import ambient
-import ambient_R
-import cuspidal_submodule
-import eisenstein_submodule
+from .ambient import ModularFormsAmbient
 
-class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
+from . import ambient_R
+from . import cuspidal_submodule
+from . import eisenstein_submodule
+
+class ModularFormsAmbient_eps(ModularFormsAmbient):
     """
     A space of modular forms with character.
     """
@@ -124,7 +127,7 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
             raise ValueError("the base ring must have characteristic 0.")
         group = arithgroup.Gamma1(character.modulus())
         base_ring = character.base_ring()
-        ambient.ModularFormsAmbient.__init__(self, group, weight, base_ring, character)
+        ModularFormsAmbient.__init__(self, group, weight, base_ring, character)
 
     def _repr_(self):
         """
@@ -193,6 +196,7 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
             return self
         return ambient_R.ModularFormsAmbient_R(self, base_ring = base_ring)
 
+    @cached_method(key=lambda self,sign: rings.Integer(sign)) # convert sign to an Integer before looking this up in the cache
     def modular_symbols(self, sign=0):
         """
         Return corresponding space of modular symbols with given sign.
@@ -213,18 +217,10 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
             ValueError: sign must be -1, 0, or 1
         """
         sign = rings.Integer(sign)
-        try:
-            return self.__modsym[sign]
-        except AttributeError:
-            self.__modsym = {}
-        except KeyError:
-            pass
-        self.__modsym[sign] = modsym.ModularSymbols(\
-            self.character(),
-            weight = self.weight(),
-            sign = sign,
-            base_ring = self.base_ring())
-        return self.__modsym[sign]
+        return modsym.ModularSymbols(self.character(),
+                                     weight = self.weight(),
+                                     sign = sign,
+                                     base_ring = self.base_ring())
 
     def eisenstein_submodule(self):
         """
@@ -265,7 +261,7 @@ class ModularFormsAmbient_eps(ambient.ModularFormsAmbient):
             sage: M.hecke_module_of_level(30)
             Modular Forms space of dimension 16, character [-1, 1] and weight 3 over Rational Field
         """
-        import constructor
+        from . import constructor
         if N % self.level() == 0:
             return constructor.ModularForms(self.character().extend(N), self.weight(), self.base_ring(), prec=self.prec())
         elif self.level() % N == 0:

@@ -78,6 +78,7 @@ import sage.rings.all as rings
 from sage.arith.all import is_prime
 
 from sage.structure.sequence import Sequence
+from sage.misc.cachefunc import cached_method
 
 
 
@@ -305,6 +306,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
         """
         return True
 
+    @cached_method(key=lambda self, sign: rings.Integer(sign)) # convert sign to an Integer before looking this up in the cache
     def modular_symbols(self, sign=0):
         """
         Return the corresponding space of modular symbols with the given
@@ -326,18 +328,10 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             Modular Symbols space of dimension 3 for Gamma_0(1) of weight 12 with sign 0 over Rational Field
         """
         sign = rings.Integer(sign)
-        try:
-            return self.__modular_symbols[sign]
-        except AttributeError:
-            self.__modular_symbols = {}
-        except KeyError:
-            pass
-        M = modsym.ModularSymbols(group = self.group(),
-                                  weight = self.weight(),
-                                  sign = sign,
-                                  base_ring = self.base_ring())
-        self.__modular_symbols[sign] = M
-        return M
+        return modsym.ModularSymbols(group = self.group(),
+                                     weight = self.weight(),
+                                     sign = sign,
+                                     base_ring = self.base_ring())
 
     def module(self):
         """
@@ -509,6 +503,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             self.__eisenstein_submodule = eisenstein_submodule.EisensteinSubmodule(self)
         return self.__eisenstein_submodule
 
+    @cached_method(key=lambda self, p: (rings.Integer(p) if p is not None else p)) # convert p to an Integer before looking this up in the cache
     def new_submodule(self, p=None):
         """
         Return the new or `p`-new submodule of this ambient
@@ -558,19 +553,11 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             ...
             NotImplementedError
         """
-        try:
-            return self.__new_submodule[p]
-        except AttributeError:
-           self.__new_submodule = {}
-        except KeyError:
-           pass
         if not p is None:
             p = rings.Integer(p)
             if not p.is_prime():
                raise ValueError("p (=%s) must be a prime or None."%p)
-        M = self.cuspidal_submodule().new_submodule(p) + self.eisenstein_submodule().new_submodule(p)
-        self.__new_submodule[p] = M
-        return M
+        return self.cuspidal_submodule().new_submodule(p) + self.eisenstein_submodule().new_submodule(p)
 
     def _q_expansion(self, element, prec):
         r"""

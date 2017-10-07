@@ -74,9 +74,9 @@ AUTHORS:
   __floordiv__, __mod__, __iter__, __len__; stripped extra
   leading space and trailing newline from output.
 
-TODO:
+.. TODO::
 
-- get rid of all numbers in output, e.g., in ideal function below.
+    Get rid of all numbers in output, e.g., in ideal function below.
 """
 
 #*****************************************************************************

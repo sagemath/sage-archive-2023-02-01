@@ -254,7 +254,8 @@ def list_of_subfunctions(root, only_local_functions=True):
                    local_filter(f,name))                 # possibly filter imported functions
                   }
 
-    return functions.keys(),functions
+    return list(functions.keys()), functions
+
 
 def gen_thematic_rest_table_index(root,additional_categories=None,only_local_functions=True):
     r"""

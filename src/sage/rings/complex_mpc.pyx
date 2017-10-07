@@ -1856,7 +1856,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
 
     def csc(self):
         """
-        Return the cosecent of this complex number.
+        Return the cosecant of this complex number.
 
         EXAMPLES::
 
@@ -1868,7 +1868,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
 
     def csch(self):
         """
-        Return the hyperbolic cosecent of this complex number.
+        Return the hyperbolic cosecant of this complex number.
 
         EXAMPLES::
 

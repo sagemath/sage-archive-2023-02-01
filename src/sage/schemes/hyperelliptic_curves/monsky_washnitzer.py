@@ -1759,7 +1759,7 @@ def matrix_of_frobenius_hyperelliptic(Q, p=None, prec=None, M=None):
 
     - ``prec`` -- (optional) `p`-adic precision of the coefficient ring
 
-    - ``M`` -- (optional) adjusted `p`-adic precision of the coefficint ring
+    - ``M`` -- (optional) adjusted `p`-adic precision of the coefficient ring
 
     OUTPUT:
 

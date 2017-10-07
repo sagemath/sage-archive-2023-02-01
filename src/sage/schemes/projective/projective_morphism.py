@@ -315,7 +315,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         """
         from sage.schemes.projective.projective_point import SchemeMorphism_point_projective_ring
         if check:
-            from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
+            from sage.schemes.projective.projective_subscheme import AlgebraicScheme_subscheme_projective
             if isinstance(x, SchemeMorphism_point_projective_ring):
                 if self.domain() != x.codomain():
                     try:
@@ -542,7 +542,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: type(f.as_dynamical_system())
             <class 'sage.dynamics.arithmetic_dynamics.projective_ds.DynamicalSystem_projective_finite_field'>
         """
-        if not self.domain() == self.codomain():
+        if not self.is_endomorphism():
             raise TypeError("must be an endomorphism")
         from sage.dynamics.arithmetic_dynamics.projective_ds import DynamicalSystem_projective
         from sage.dynamics.arithmetic_dynamics.projective_ds import DynamicalSystem_projective_field
@@ -1476,7 +1476,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         OUTPUT: an ideal in the coordinate ring of the domain of this map.
 
-        Examples::
+        EXAMPLES::
 
             sage: R.<x> = PolynomialRing(QQ)
             sage: K.<w> = NumberField(x^2+11)
@@ -1888,7 +1888,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         if k <= 0:
             raise ValueError("k (=%s) must be a positive integer"%(k))
         #first check if subscheme
-        from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
+        from sage.schemes.projective.projective_subscheme import AlgebraicScheme_subscheme_projective
         if isinstance(Q, AlgebraicScheme_subscheme_projective):
             return(Q.preimage(self, k))
 

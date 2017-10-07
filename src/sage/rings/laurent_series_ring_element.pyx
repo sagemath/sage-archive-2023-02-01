@@ -1396,6 +1396,13 @@ cdef class LaurentSeries(AlgebraElement):
             Traceback (most recent call last):
             ...
             ValueError: Can only substitute elements of positive valuation
+
+        Test for :trac:`23928`::
+
+            sage: R.<x> = PowerSeriesRing(QQ, implementation='pari')
+            sage: f = LaurentSeries(R, x).add_bigoh(7)
+            sage: f(x)
+            x + O(x^7)
             """
         if len(kwds) >= 1:
             name = self.parent().variable_name()
@@ -1423,7 +1430,7 @@ cdef class LaurentSeries(AlgebraElement):
         if isinstance(x[0], tuple):
             x = x[0]
 
-        return self.__u(x)*(x[0]**self.__n)
+        return self.__u(*x)*(x[0]**self.__n)
 
 def make_element_from_parent(parent, *args):
     return parent(*args)

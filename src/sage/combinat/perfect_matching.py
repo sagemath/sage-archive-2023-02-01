@@ -295,7 +295,7 @@ class PerfectMatching(ElementWrapper):
             sage: M in set(PerfectMatchings(4))
             True
         """
-        return hash(tuple(sorted(tuple(sorted(p)) for p in m)))
+        return hash(tuple(sorted(tuple(sorted(p)) for p in self.value)))
 
     def __eq__(self, other):
         r"""
@@ -823,8 +823,8 @@ class PerfectMatching(ElementWrapper):
 
     def to_non_crossing_set_partition(self):
         r"""
-        Returns the noncrossing set partition (on half as many elements) 
-        corresponding to the perfect matching if the perfect matching is 
+        Returns the noncrossing set partition (on half as many elements)
+        corresponding to the perfect matching if the perfect matching is
         noncrossing, and otherwise gives an error.
 
         OUTPUT:
@@ -842,7 +842,7 @@ class PerfectMatching(ElementWrapper):
             sage: PerfectMatching([]).to_non_crossing_set_partition()
             {}
         """
-        from sage.combinat.set_partition import SetPartition        
+        from sage.combinat.set_partition import SetPartition
         if not self.is_non_crossing():
             raise ValueError("matching must be non-crossing")
         else:

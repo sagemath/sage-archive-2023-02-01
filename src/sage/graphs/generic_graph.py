@@ -7768,9 +7768,9 @@ class GenericGraph(GenericGraph_pyx):
         else:
             raise ValueError("``algorithm`` (%s) should be 'tsp' or 'backtrack'."%(algorithm))
 
-    def feedback_vertex_set(self, value_only=False, solver=None, verbose=0, constraint_generation = True):
+    def feedback_vertex_set(self, value_only=False, solver=None, verbose=0, constraint_generation=True):
         r"""
-        Computes the minimum feedback vertex set of a (di)graph.
+        Return the minimum feedback vertex set of a (di)graph.
 
         The minimum feedback vertex set of a (di)graph is a set of vertices that
         intersect all of its cycles.  Equivalently, a minimum feedback vertex
@@ -7930,11 +7930,10 @@ class GenericGraph(GenericGraph_pyx):
 
             p.solve(log = verbose)
 
-            # For as long as we do not break because the digraph is
-            # acyclic....
+            # For as long as we do not break because the digraph is acyclic....
             while True:
 
-                # Building the graph without the edges removed by the LP
+                # Building the graph without the vertices removed by the LP
                 h = self.subgraph(vertices =
                                   [v for v in self if p.get_values(b[v]) == 0])
 
@@ -7963,7 +7962,7 @@ class GenericGraph(GenericGraph_pyx):
 
             else:
 
-                # listing the edges contained in the MFVS
+                # Listing the vertices contained in the MFVS
                 return [v for v in self if p.get_values(b[v]) == 1]
 
         else:

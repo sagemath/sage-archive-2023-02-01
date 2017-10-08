@@ -750,13 +750,17 @@ class SympyConverter(Converter):
             sage: s = SympyConverter()
             sage: s.relation(x == 3, operator.eq)
             Eq(x, 3)
+            sage: s.relation(x != pi, operator.ne)
+            Ne(x, pi)
             sage: s.relation(x > 0, operator.gt)
             x > 0
         """
         import operator
-        from sympy import Eq
+        from sympy import Eq, Ne
         if op == operator.eq:
             return Eq(self(ex.lhs()), self(ex.rhs()))
+        elif op == operator.ne:
+            return Ne(self(ex.lhs()), self(ex.rhs()))
         else:
             return op(self(ex.lhs()), self(ex.rhs()))
 

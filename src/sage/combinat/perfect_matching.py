@@ -246,6 +246,8 @@ class PerfectMatching(SetPartition):
 
     def conjugate_by_permutation(self, p):
         r"""
+        This is deprecated. Use :meth:`apply_permutation` instead.
+
         Returns the conjugate of the perfect matching ``self`` by the
         permutation ``p`` of the ground set.
 
@@ -253,6 +255,9 @@ class PerfectMatching(SetPartition):
 
             sage: m = PerfectMatching([(1,4),(2,6),(3,5)])
             sage: m.conjugate_by_permutation(Permutation([4,1,5,6,3,2]))
+            doctest:...: DeprecationWarning: conjugate_by_permutation is deprecated; use apply_permutation instead
+            See http://trac.sagemath.org/23982 for details.
+
             [(1, 2), (3, 5), (4, 6)]
 
         TESTS::
@@ -260,11 +265,11 @@ class PerfectMatching(SetPartition):
             sage: PerfectMatching([]).conjugate_by_permutation(Permutation([]))
             []
 
-        ..TODO::
-
-            This really belongs to :class:`SetPartition`!
         """
-        return self.parent()([tuple(map(Permutation(p), t)) for t in self])
+        from sage.misc.superseded import deprecation
+        deprecation(23982, "conjugate_by_permutation is deprecated; use apply_permutation instead")
+
+        return self.apply_permutation(p)
 
     def loops_iterator(self, other=None):
         r"""
@@ -691,27 +696,6 @@ class PerfectMatching(SetPartition):
         for a, b in self:
             G.add_edge((a, b))
         return G
-
-    @combinatorial_map(name='to permutation')
-    def to_permutation(self):
-        r"""
-        Returns the permutation corresponding to the perfect matching.
-
-        OUTPUT:
-
-            The realization of ``self`` as a permutation.
-
-        EXAMPLES::
-
-            sage: PerfectMatching([[1,3], [4,2]]).to_permutation()
-            [3, 4, 1, 2]
-            sage: PerfectMatching([[1,4], [3,2]]).to_permutation()
-            [4, 3, 2, 1]
-            sage: PerfectMatching([]).to_permutation()
-            []
-        """
-        from sage.combinat.permutation import Permutation
-        return Permutation([(a,b) for a,b in self])
 
     def to_non_crossing_set_partition(self):
         r"""

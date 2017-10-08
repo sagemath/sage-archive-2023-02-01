@@ -750,19 +750,17 @@ class SympyConverter(Converter):
             sage: s = SympyConverter()
             sage: s.relation(x == 3, operator.eq)
             Eq(x, 3)
+            sage: s.relation(pi < 3, operator.lt)
+            pi < 3
             sage: s.relation(x != pi, operator.ne)
             Ne(x, pi)
             sage: s.relation(x > 0, operator.gt)
             x > 0
         """
-        import operator
-        from sympy import Eq, Ne
-        if op == operator.eq:
-            return Eq(self(ex.lhs()), self(ex.rhs()))
-        elif op == operator.ne:
-            return Ne(self(ex.lhs()), self(ex.rhs()))
-        else:
-            return op(self(ex.lhs()), self(ex.rhs()))
+        from operator import eq, ne, gt, lt, ge, le
+        from sympy import Eq, Ne, Gt, Lt, Ge, Le
+        ops = {eq : Eq, ne : Ne, gt : Gt, lt : Lt, ge : Ge, le : Le}
+        return ops.get(op)(self(ex.lhs()), self(ex.rhs()), evaluate=False)
 
     def composition(self, ex, operator):
         """

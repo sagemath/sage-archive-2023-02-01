@@ -1130,7 +1130,7 @@ class DiffCoordChange(CoordChange):
         Each element of the Jacobian matrix is a coordinate function::
 
             sage: parent(X_to_Y.jacobian()[0,0])
-            Ring of coordinate functions on Chart (M, (x, y))
+            Ring of chart functions on Chart (M, (x, y))
 
         """
         return self._jacobian  # has been computed in __init__
@@ -1165,7 +1165,7 @@ class DiffCoordChange(CoordChange):
         The Jacobian determinant is a coordinate function::
 
             sage: parent(X_to_Y.jacobian_det())
-            Ring of coordinate functions on Chart (M, (x, y))
+            Ring of chart functions on Chart (M, (x, y))
 
         """
         return self._transf.jacobian_det()

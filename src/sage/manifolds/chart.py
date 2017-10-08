@@ -904,7 +904,7 @@ class Chart(UniqueRepresentation, SageObject):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: X.function_ring()
-            Ring of coordinate functions on Chart (M, (x, y))
+            Ring of chart functions on Chart (M, (x, y))
         """
 
         return ChartFunctionRing(self)

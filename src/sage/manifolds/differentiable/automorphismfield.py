@@ -1052,7 +1052,7 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
                     chart = self._domain._def_chart #!# to be improved
                 try:
                     mat_self = matrix(
-                              [[self.comp(frame)[i, j, chart].expr()
+                              [[self.comp(frame)[i, j, chart].expr('SR')
                               for j in range(si, nsi)] for i in range(si, nsi)])
                 except (KeyError, ValueError):
                     continue
@@ -1061,7 +1061,7 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
                                   output_formatter=fmodule._output_formatter)
                 for i in range(si, nsi):
                     for j in range(si, nsi):
-                        val = chart.simplify(mat_inv[i-si,j-si])
+                        val = chart.simplify(mat_inv[i-si,j-si], method='SR')
                         cinv[i, j] = {chart: val}
                 self._inverse._components[frame] = cinv
         return self._inverse

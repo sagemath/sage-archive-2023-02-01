@@ -29,23 +29,22 @@ from sage.manifolds.utilities import (simplify_chain_real,
 from sage.misc.latex import latex
 import sympy
 
-
-
-# conversion functions
+# Conversion functions
 def _SR_to_Sympy(expression):
     r"""
-    Convert an expression from SR to ``sympy``. In the case that the
+    Convert an expression from ``SR`` to ``sympy``. In the case that the
     expression is yet a ``sympy`` expression then it is returned
 
     INPUT:
 
-    - ``expression`` -- SR or ``sympy`` symbolic expression
+    - ``expression`` -- ``SR`` or ``sympy`` symbolic expression
 
     OUTPUT:
 
     - ``expression`` -- ``sympy`` symbolic expression
 
     EXAMPLES::
+
         sage: from sage.manifolds.calculus_method import _SR_to_Sympy
         sage: a = x^2+sin(x)^2; a
         x^2 + sin(x)^2
@@ -56,11 +55,10 @@ def _SR_to_Sympy(expression):
         sage: type(b)
         <class 'sympy.core.add.Add'>
 
-        The conversion of a ``sympy`` expression is not converted::
+    The conversion of a ``sympy`` expression is not converted::
 
         sage: _SR_to_Sympy(b) == b
         True
-
 
     """
     from sympy.core.function import FunctionClass
@@ -68,14 +66,12 @@ def _SR_to_Sympy(expression):
     # I have not found an elegant way to do that (MMancini)
     if isinstance(type(expression),FunctionClass):
             return expression
-
     return SR(expression)._sympy_()
-
 
 def _Sympy_to_SR(expression):
     r"""
-    Convert an expression from ``sympy`` to SR. In the case that the
-    expression is yet a SR expression then it is returned
+    Convert an expression from ``sympy`` to ``SR``. In the case that the
+    expression is yet a ``SR`` expression then it is returned
 
     INPUT:
 
@@ -117,17 +113,16 @@ def _Sympy_to_SR(expression):
 
 class CalculusMethod(SageObject):
     r"""
-    Calculus method used in manifolds.
-    The class store the possible calculus methods and permits to
+    Calculus method used on manifolds.
+    The class stores the possible calculus methods and permits to
     select some basic operations working on them.
     For the moment, only two calculus methods are implemented:
 
-    - ``Maxima``, indicated with ``SR`` (Symbolic Ring)
-
-    - ``Sympy``, indicated with ``sympy``.
+    - Sage's symbolic engine (Pynac/Maxima), implemented via the
+      symbolic ring ``SR``
+    - SymPy engine, denoted ``sympy`` hereafter
 
     The current method is pointed out by `*`.
-
 
     EXAMPLES::
 
@@ -143,14 +138,10 @@ class CalculusMethod(SageObject):
          - sympy (*)
         sage: calc_mth.reset()
 
-
-
     """
     _default = 'SR'  # default symbolic method
     _methods = ('SR','sympy') # implemented methods
     _tranf = {'SR':  _Sympy_to_SR,'sympy' : _SR_to_Sympy} # translators
-
-
 
     def __init__(self, current=None, bf_type='complex'):
         r"""
@@ -162,8 +153,8 @@ class CalculusMethod(SageObject):
 
         - ``bf_type`` -- base field (default: `complex`)
 
-
         TESTS::
+
             sage: from sage.manifolds.calculus_method import CalculusMethod
             sage: calc_mth = CalculusMethod(bf_type='complex')
             sage: calc_mth._repr_()
@@ -176,26 +167,18 @@ class CalculusMethod(SageObject):
              - sympy (*)
             sage: calc_mth.reset()
 
-
         """
-
         self._current = self._default if current is None else current
-
         self._simplify_dict = {}
-
-        # initiliazation of the dict for simplifications
+        # initialization of the dict for simplifications
         if bf_type == 'real':
             self._simplify_dict['sympy'] = simplify_chain_real_sympy
             self._simplify_dict['SR'] = simplify_chain_real
         else:
             self._simplify_dict['sympy'] = simplify_chain_generic_sympy
             self._simplify_dict['SR'] = simplify_chain_generic
-
         self._bf_type = bf_type
-
         self._latex_dict = {'sympy': sympy.latex, 'SR': latex}
-
-
 
     def simplify(self, expression, method=None):
         r"""
@@ -235,8 +218,8 @@ class CalculusMethod(SageObject):
             x^2 + 1
 
         """
-
-        if method is None : method = self._current
+        if method is None:
+            method = self._current
         return self._simplify_dict[method](expression)
 
     def is_trivial_zero(self, expression, method=None):
@@ -254,7 +237,6 @@ class CalculusMethod(SageObject):
 
         - ``True`` is expression is trivially zero, ``False`` elsewhere.
 
-
         EXAMPLES::
 
             sage: from sage.manifolds.calculus_method import CalculusMethod
@@ -266,10 +248,9 @@ class CalculusMethod(SageObject):
             sage: calc_mth.is_trivial_zero(f)
             False
 
-
         """
-
-        if method is None : method = self._current
+        if method is None:
+            method = self._current
         if method == 'SR':
             return expression.is_trivial_zero()
         elif method == 'sympy':
@@ -278,7 +259,6 @@ class CalculusMethod(SageObject):
                 return True
             else:
                 False
-
 
     def set(self,method):
         r"""
@@ -296,8 +276,8 @@ class CalculusMethod(SageObject):
              - SR (default)
              - sympy (*)
             sage: calc_mth.reset()
-        """
 
+        """
         self._test(method)
         self._current = method
 
@@ -316,18 +296,16 @@ class CalculusMethod(SageObject):
             sage: calc_mth._test('lala')
             Traceback (most recent call last):
             ...
-            NotImplementedError: method lala not implemented yet.
+            NotImplementedError: method lala not implemented yet
 
         """
-
         if method not in self._methods:
-            raise NotImplementedError("method "+method+" not " +
-                                  "implemented yet.")
+            raise NotImplementedError("method " + method + " not " +
+                                      "implemented yet")
 
     def reset(self):
         r"""
         Set the current symbolic method to default one.
-
 
         EXAMPLES::
 

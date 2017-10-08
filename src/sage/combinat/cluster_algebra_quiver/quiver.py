@@ -606,7 +606,7 @@ class ClusterQuiver(SageObject):
                 raise ValueError("The given mark is not a vertex of self.")
         else:
 
-            # Parititon out the green vertices
+            # Partition out the green vertices
             for i in greens:
                 if i in nlist:
                     nlist.remove(i)

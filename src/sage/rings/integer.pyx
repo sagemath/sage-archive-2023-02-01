@@ -4940,12 +4940,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def is_pseudoprime(self):
         r"""
-        Test whether self is a pseudoprime
+        Test whether ``self`` is a pseudoprime.
 
         This uses PARI's Baillie-PSW probabilistic primality
         test. Currently, there are no known pseudoprimes for
-        Baille-PSW that are not actually prime. However it is
+        Baillie-PSW that are not actually prime. However it is
         conjectured that there are infinitely many.
+
+        See :wikipedia:`Baillie-PSW_primality_test`
 
         EXAMPLES::
 

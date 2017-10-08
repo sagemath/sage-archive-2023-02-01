@@ -921,7 +921,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         - Original algorithm written by Elliot Wells [WELLS]_
 
-        - Wells' Algortithm implemented as part of GSOC 2017 by Rebecca Lauren Miller and Paul Fili
+        - Wells' Algorithm implemented as part of GSOC 2017 by Rebecca Lauren Miller and Paul Fili
 
 
         EXAMPLES::

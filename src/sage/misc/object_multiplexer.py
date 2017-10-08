@@ -59,8 +59,8 @@ class MultiplexFunction:
 
 class Multiplex:
     """
-    Obbject for a list of children such that function calls on this
-    new objects implies that the same function is called on all
+    Object for a list of children such that function calls on this
+    new object implies that the same function is called on all
     children.
     """
     def __init__(self, *args):

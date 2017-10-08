@@ -1155,7 +1155,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         #polynomial ring in just the plucker coordinates
         T2 = PolynomialRing(R.base_ring(), tvars)
         alp = T.hom(tvars + (N*(d+1) +N)*[0], T2)
-        #get the degress of the reduced generators of CH
+        #get the degrees of the reduced generators of CH
         degs = [u.degree() for u in reduced]
         mind = max(degs)
         #need the smallest degree form that did not reduce to 0

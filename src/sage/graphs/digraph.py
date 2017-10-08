@@ -1551,31 +1551,29 @@ class DiGraph(GenericGraph):
         ########################################
         if constraint_generation:
 
-            p = MixedIntegerLinearProgram(constraint_generation = True,
-                                          maximization = False)
+            p = MixedIntegerLinearProgram(constraint_generation=True,
+                                          maximization=False, solver=solver)
 
             # An variable for each edge
-            b = p.new_variable(binary = True)
+            b = p.new_variable(binary=True)
 
             # Variables are binary, and their coefficient in the objective is 1
 
-            p.set_objective( p.sum( b[u,v]
-                                  for u,v in self.edges(labels = False)))
+            p.set_objective( p.sum( b[u,v] for u,v in self.edges(labels=False)))
 
-            p.solve(log = verbose)
+            p.solve(log=verbose)
 
-            # For as long as we do not break because the digraph is
-            # acyclic....
+            # For as long as we do not break because the digraph is acyclic....
             while True:
 
                 # Building the graph without the edges removed by the LP
                 h = DiGraph()
-                for u,v in self.edges(labels = False):
+                for u,v in self.edges(labels=False):
                     if p.get_values(b[u,v]) < .5:
                         h.add_edge(u,v)
 
                 # Is the digraph acyclic ?
-                isok, certificate = h.is_directed_acyclic(certificate = True)
+                isok, certificate = h.is_directed_acyclic(certificate=True)
 
                 # If so, we are done !
                 if isok:
@@ -1590,9 +1588,9 @@ class DiGraph(GenericGraph):
                 p.add_constraint(
                     p.sum( b[u,v] for u,v in
                          zip(certificate, certificate[1:] + [certificate[0]])),
-                    min = 1)
+                    min=1)
 
-                obj = p.solve(log = verbose)
+                obj = p.solve(log=verbose)
 
             if value_only:
                 return Integer(round(obj))
@@ -1600,36 +1598,36 @@ class DiGraph(GenericGraph):
             else:
 
                 # listing the edges contained in the MFAS
-                return [(u,v) for u,v in self.edges(labels = False)
+                return [(u,v) for u,v in self.edges(labels=False)
                         if p.get_values(b[u,v]) > .5]
 
         ######################################
         # Ordering-based MILP Implementation #
         ######################################
         else:
-            p=MixedIntegerLinearProgram(maximization=False, solver=solver)
+            p = MixedIntegerLinearProgram(maximization=False, solver=solver)
 
-            b=p.new_variable(binary=True)
-            d=p.new_variable(integer=True, nonnegative=True)
+            b = p.new_variable(binary=True)
+            d = p.new_variable(integer=True, nonnegative=True)
 
-            n=self.order()
+            n = self.order()
 
-            for (u,v) in self.edges(labels=None):
-                p.add_constraint(d[u]-d[v]+n*(b[(u,v)]),min=1)
+            for u,v in self.edges(labels=None):
+                p.add_constraint(d[u] - d[v] + n * b[u,v], min=1)
 
             for v in self:
                 p.add_constraint(d[v] <= n)
 
-            p.set_objective(p.sum([b[(u,v)] for (u,v) in self.edges(labels=None)]))
+            p.set_objective(p.sum(b[u,v] for u,v in self.edges(labels=None)))
 
             if value_only:
                 return Integer(round(p.solve(objective_only=True, log=verbose)))
             else:
                 p.solve(log=verbose)
 
-                b_sol=p.get_values(b)
+                b_sol = p.get_values(b)
 
-                return [(u,v) for (u,v) in self.edges(labels=None) if b_sol[(u,v)]==1]
+                return [(u,v) for u,v in self.edges(labels=None) if b_sol[u,v]==1]
 
     ### Construction
 

@@ -184,6 +184,13 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             ValueError: this is not a binary tree
             sage: all(BinaryTree(repr(bt)) == bt for i in range(6) for bt in BinaryTrees(i))
             True
+
+        Check that :trac:`23961` is fixed::
+
+            sage: BinaryTree(1/2)
+            Traceback (most recent call last):
+            ...
+            ValueError: this is not a binary tree
         """
         if isinstance(children, str):  # if the input is the repr of a binary tree
             children = children.replace(".", "None")

@@ -741,6 +741,25 @@ class SympyConverter(Converter):
         import sympy
         return sympy.symbols(repr(ex))
 
+    def relation(self, ex, op):
+        """
+        EXAMPLES::
+
+            sage: import operator
+            sage: from sage.symbolic.expression_conversions import SympyConverter
+            sage: s = SympyConverter()
+            sage: s.relation(x == 3, operator.eq)
+            Eq(x, 3)
+            sage: s.relation(x > 0, operator.gt)
+            x > 0
+        """
+        import operator
+        from sympy import Eq
+        if op == operator.eq:
+            return Eq(self(ex.lhs()), self(ex.rhs()))
+        else:
+            return op(self(ex.lhs()), self(ex.rhs()))
+
     def composition(self, ex, operator):
         """
         EXAMPLES::

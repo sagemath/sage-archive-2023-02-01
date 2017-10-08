@@ -317,10 +317,10 @@ bool useries_can_handle(ex the_ex, const symbol& s)
         if (ok) {
                 ex nd = the_ex.numer_denom();
                 try {
-                        long nhdeg = nd.op(0).degree(s).to_long();
-                        long nldeg = nd.op(0).ldegree(s).to_long();
-                        long dhdeg = nd.op(1).degree(s).to_long();
-                        long dldeg = nd.op(1).ldegree(s).to_long();
+                        (void) nd.op(0).degree(s).to_long();
+                        (void) nd.op(0).ldegree(s).to_long();
+                        (void) nd.op(1).degree(s).to_long();
+                        (void) nd.op(1).ldegree(s).to_long();
                 }
                 catch (conversion_error) {
                         throw std::runtime_error("exponent too big");

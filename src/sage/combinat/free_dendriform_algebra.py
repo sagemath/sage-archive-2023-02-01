@@ -913,7 +913,7 @@ class DendriformFunctor(ConstructionFunctor):
             sage: S = algebras.FreeDendriform(QQ, 'zt')
             sage: z,t = S.gens()
             sage: x + t
-            B[t[]] + B[x[]]
+            B[t[., .]] + B[x[., .]]
             sage: parent(x + t)
             Free Dendriform algebra on 4 generators ['z', 't', 'x', 'y'] over Rational Field
         """

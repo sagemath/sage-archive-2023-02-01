@@ -199,8 +199,13 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
               children.parent() == parent):
             children = list(children)
         else:
-            children = [x if (x.__class__ is self.__class__ and  x.parent() == parent)
-                        else self.__class__(parent, x, check=check) for x in children]
+            children = list(children)
+            if children and len(children) != 2:
+                raise ValueError('this is not a binary tree')
+            children = [x if (x.__class__ is self.__class__ and
+                              x.parent() == parent)
+                        else self.__class__(parent, x, check=check)
+                        for x in children]
         ClonableArray.__init__(self, parent, children, check=check)
 
     def check(self):

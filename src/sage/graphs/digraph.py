@@ -1543,10 +1543,10 @@ class DiGraph(GenericGraph):
         Loops are part of the feedback edge set (:trac:`23989`)::
 
             sage: D = digraphs.DeBruijn(2,2)
-            sage: D.loops()
-            [('11', '11', '1'), ('00', '00', '0')]
+            sage: D.loops(labels=None)
+            [('11', '11'), ('00', '00')]
             sage: FAS = D.feedback_edge_set(value_only=False)
-            sage: all(l in FAS for l in D.loops())
+            sage: all(l in FAS for l in D.loops(labels=None))
             True
             sage: FAS2 =  D.feedback_edge_set(value_only=False, constraint_generation=False)
             sage: len(FAS) == len(FAS2)
@@ -1585,7 +1585,7 @@ class DiGraph(GenericGraph):
             if value_only:
                 return FAS + self.number_of_loops()
             else:
-                return FAS + self.loops()
+                return FAS + self.loops(labels=None)
 
         if not self.is_strongly_connected():
             # If the digraph is not strongly connected, we solve the problem on

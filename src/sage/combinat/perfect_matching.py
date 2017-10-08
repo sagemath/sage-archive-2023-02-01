@@ -10,18 +10,19 @@ and also [CM]_):
 AUTHOR:
 
     - Valentin Feray, 2010 : initial version
+    - Martin Rubey, 2017: inherit from SetPartition
 
 EXAMPLES:
 
     Create a perfect matching::
 
         sage: m = PerfectMatching([('a','e'),('b','c'),('d','f')]);m
-        [('a', 'e'), ('b', 'c'), ('d', 'f')]
+        [('a', 'e'), ('c', 'b'), ('d', 'f')]
 
     Count its crossings, if the ground set is totally ordered::
 
         sage: n = PerfectMatching([3,8,1,7,6,5,4,2]); n
-        [(1, 3), (2, 8), (4, 7), (5, 6)]
+        [(1, 3), (8, 2), (4, 7), (5, 6)]
         sage: n.number_of_crossings()
         1
 
@@ -55,24 +56,21 @@ from __future__ import division, print_function
 from six.moves import range
 from six import add_metaclass
 
-from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-from sage.structure.element_wrapper import ElementWrapper
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
-from sage.misc.flatten import flatten
 from sage.combinat.permutation import Permutation
-from sage.sets.set import Set
-from sage.combinat.partition import Partition
+from sage.sets.set import Set, is_Set
 from sage.misc.misc_c import prod
-from sage.matrix.constructor import Matrix
+from sage.matrix.constructor import matrix
 from sage.combinat.combinatorial_map import combinatorial_map
+from sage.combinat.set_partition import SetPartition, SetPartitions
+from sage.combinat.partition import Partition
+from sage.rings.infinity import infinity
 
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class PerfectMatching(ElementWrapper):
+class PerfectMatching(SetPartition):
     r"""
     Class of perfect matching.
 
@@ -80,9 +78,9 @@ class PerfectMatching(ElementWrapper):
     fixed point-free involution as follows::
 
         sage: m = PerfectMatching([('a','e'),('b','c'),('d','f')]);m
-        [('a', 'e'), ('b', 'c'), ('d', 'f')]
+        [('a', 'e'), ('c', 'b'), ('d', 'f')]
         sage: n = PerfectMatching([3,8,1,7,6,5,4,2]);n
-        [(1, 3), (2, 8), (4, 7), (5, 6)]
+        [(1, 3), (8, 2), (4, 7), (5, 6)]
         sage: isinstance(m,PerfectMatching)
         True
 
@@ -105,15 +103,11 @@ class PerfectMatching(ElementWrapper):
         sage: m.parent()
         Set of perfect matchings of {}
     """
-    #the data structure of the element is a list (accessible via x.value)
-    wrapped_class = list
-    __lt__ = ElementWrapper._lt_by_value
-    #During the creation of the instance of the class, the function
-    #__classcall_private__ will be called instead of __init__ directly.
-
     @staticmethod
-    def __classcall_private__(cls, p):
-        r"""
+    def __classcall_private__(cls, parts, check=True):
+        """
+        Create a perfect matching from ``parts`` with the appropriate parent.
+
         This function tries to recognize the input (it can be either a list or
         a tuple of pairs, or a fix-point free involution given as a list or as
         a permutation), constructs the parent (enumerated set of
@@ -123,11 +117,11 @@ class PerfectMatching(ElementWrapper):
         EXAMPLES::
 
             sage: m = PerfectMatching([('a','e'),('b','c'),('d','f')]);m
-            [('a', 'e'), ('b', 'c'), ('d', 'f')]
-            sage: isinstance(m,PerfectMatching)
+            [('a', 'e'), ('c', 'b'), ('d', 'f')]
+            sage: isinstance(m, PerfectMatching)
             True
             sage: n = PerfectMatching([3, 8, 1, 7, 6, 5, 4, 2]);n
-            [(1, 3), (2, 8), (4, 7), (5, 6)]
+            [(1, 3), (8, 2), (4, 7), (5, 6)]
             sage: n.parent()
             Set of perfect matchings of {1, 2, 3, 4, 5, 6, 7, 8}
             sage: PerfectMatching([(1, 4), (2, 3), (5, 6)]).is_non_crossing()
@@ -170,61 +164,18 @@ class PerfectMatching(ElementWrapper):
              ...
              ValueError: The permutation p (= [4, 2, 1, 3]) is not a fixed point free involution
         """
-        # we have to extract from the argument p the set of objects of the
-        # matching and the list of pairs.
-        # First case: p is a list (resp tuple) of lists (resp tuple).
-        if (isinstance(p, list) or isinstance(p, tuple)) and (
-                all(isinstance(x, list) or isinstance(x, tuple) for x in p)):
-            objects = Set(flatten(p))
-            data = [tuple(_) for _ in p]
-            #check if the data are correct
-            if not all(len(t) == 2 for t in data):
-                raise ValueError("%s is not a valid perfect matching:\n"
-                                 "all elements of the list must be pairs" % p)
-            if len(objects) < 2*len(data):
-                raise ValueError("%s is not a valid perfect matching:\n"
-                                 "there are some repetitions" % p)
-        # Second case: p is a permutation or a list of integers, we have to
-        # check if it is a fix-point-free involution.
-        elif (isinstance(p, list) and
-              all(isinstance(x, (int, Integer)) for x in p)
-              or isinstance(p, Permutation)):
-            p = Permutation(p)
-            n = len(p)
-            if not(p.cycle_type() == [2 for i in range(n//2)]):
+        if ((isinstance(parts, list) and
+             all((isinstance(x, (int, Integer)) for x in parts)))
+            or isinstance(parts, Permutation)):
+            s = Permutation(parts)
+            if not all(e == 2 for e in s.cycle_type()):
                 raise ValueError("The permutation p (= %s) is not a "
-                                 "fixed point free involution" % p)
-            objects = Set(range(1, n + 1))
-            data = p.to_cycles()
-        # Third case: p is already a perfect matching, we return p directly
-        elif isinstance(p, PerfectMatching):
-            return p
-        else:
-            raise ValueError("cannot convert p (= %s) to a PerfectMatching" % p)
-        # Finally, we create the parent and the element using the element
-        # class of the parent. Note: as this function is private, when we
-        # create an object via parent.element_class(...), __init__ is directly
-        # executed and we do not have an infinite loop.
-        return PerfectMatchings(objects)(data)
+                                 "fixed point free involution" % s)
+            parts = s.to_cycles()
 
-    def __iter__(self):
-        r"""
-        Iterate over the edges of the matching ``self``.
-
-        The edges are yielded as 2-tuples. Neither the elements of these
-        tuples nor the tuples are necessarily sorted in any predictable
-        way.
-
-        EXAMPLES::
-
-            sage: list(PerfectMatching([('a','e'),('b','c'),('d','f')]))
-            [('a', 'e'), ('b', 'c'), ('d', 'f')]
-            sage: list(PerfectMatchings(2)[0])
-            [(1, 2)]
-            sage: list(PerfectMatching([3,8,1,7,6,5,4,2]))
-            [(1, 3), (2, 8), (4, 7), (5, 6)]
-        """
-        return iter(self.value)
+        base_set = reduce(lambda x,y: x.union(y), map(Set, parts), Set([]))
+        P = PerfectMatchings(base_set)
+        return P.element_class(P, parts, check=check)
 
     def _repr_(self):
         r"""
@@ -233,11 +184,11 @@ class PerfectMatching(ElementWrapper):
         EXAMPLES::
 
             sage: m = PerfectMatching([('a','e'),('b','c'),('d','f')]);m
-            [('a', 'e'), ('b', 'c'), ('d', 'f')]
+            [('a', 'e'), ('c', 'b'), ('d', 'f')]
             sage: n = PerfectMatching([3,8,1,7,6,5,4,2]);n
-            [(1, 3), (2, 8), (4, 7), (5, 6)]
+            [(1, 3), (8, 2), (4, 7), (5, 6)]
         """
-        return '%s' % self.value
+        return str([(a,b) for a,b in self])
 
     def _latex_(self):
         r"""
@@ -260,6 +211,11 @@ class PerfectMatching(ElementWrapper):
             \begin{tikzpicture}
             ...
             \end{tikzpicture}
+
+        ..TODO::
+
+            This should probably call the latex method of
+            :class:`SetPartition` with appropriate defaults.
         """
         G = self.to_graph()
         G.set_pos(G.layout_circular())
@@ -268,68 +224,6 @@ class PerfectMatching(ElementWrapper):
             edge_thickness=0.04,
         )
         return G._latex_()
-
-    def __hash__(self):
-        r"""
-        Returns the hash of ``self`` using the tupled value.
-
-        EXAMPLES::
-
-            sage: m = PerfectMatching([('a','e'),('b','c'),('d','f')])
-            sage: m.__hash__() #random
-            1053935254331348997
-            sage: hash(m) #indirect doctest #random
-
-            sage: n = PerfectMatching([3,8,1,7,6,5,4,2])
-            sage: hash(n) #indirect doctest #random
-            8097274995140737937
-
-        Check that :trac:`23982` is fixed::
-
-            sage: M = PerfectMatching([(2, 3), (4, 1)]); M
-            [(2, 3), (4, 1)]
-            sage: M in PerfectMatchings(4)
-            True
-            sage: set(PerfectMatchings(4))
-            {[(1, 2), (3, 4)], [(1, 3), (2, 4)], [(1, 4), (2, 3)]}
-            sage: M in set(PerfectMatchings(4))
-            True
-        """
-        return hash(tuple(sorted(tuple(sorted(p)) for p in self.value)))
-
-    def __eq__(self, other):
-        r"""
-        Compares two perfect matchings
-
-        EXAMPLES::
-
-            sage: m = PerfectMatching([('a','e'),('b','c'),('d','f')])
-            sage: n = PerfectMatching([('c','b'),('d','f'),('e','a')])
-            sage: n == m
-            True
-            sage: n == PerfectMatching([('a','b'),('d','f'),('e','c')])
-            False
-
-        """
-        try:
-            if other.parent() != self.parent():
-                return False
-        except AttributeError:
-            return False
-        return Set([Set(_) for _ in self.value]) == Set([Set(_) for _ in other.value])
-
-    def size(self):
-        r"""
-
-        Returns the size of the perfect matching ``self``, i.e. the number of
-        elements in the ground set.
-
-        EXAMPLES::
-
-            sage: m = PerfectMatching([(-3, 1), (2, 4), (-2, 7)]); m.size()
-            6
-        """
-        return 2*len(self.value)
 
     def partner(self, x):
         r"""
@@ -343,11 +237,11 @@ class PerfectMatching(ElementWrapper):
             sage: n.partner('c')
             'b'
         """
-        for i in range(self.size()):
-            if self.value[i][0] == x:
-                return self.value[i][1]
-            if self.value[i][1] == x:
-                return self.value[i][0]
+        for a, b in self:
+            if a == x:
+                return b
+            if b == x:
+                return a
         raise ValueError("%s in not an element of the %s" % (x, self))
 
     def conjugate_by_permutation(self, p):
@@ -359,14 +253,18 @@ class PerfectMatching(ElementWrapper):
 
             sage: m = PerfectMatching([(1,4),(2,6),(3,5)])
             sage: m.conjugate_by_permutation(Permutation([4,1,5,6,3,2]))
-            [(4, 6), (1, 2), (5, 3)]
+            [(1, 2), (3, 5), (4, 6)]
 
         TESTS::
 
             sage: PerfectMatching([]).conjugate_by_permutation(Permutation([]))
             []
+
+        ..TODO::
+
+            This really belongs to :class:`SetPartition`!
         """
-        return self.parent()([tuple(map(p, t)) for t in self.value])
+        return self.parent()([tuple(map(Permutation(p), t)) for t in self])
 
     def loops_iterator(self, other=None):
         r"""
@@ -400,9 +298,9 @@ class PerfectMatching(ElementWrapper):
         elif self.parent() != other.parent():
             s = "%s is not a matching of the ground set of %s" % (other, self)
             raise ValueError(s)
-        remain = flatten(self.value)
+        remain = self.base_set().set()
         while len(remain) > 0:
-            a = remain.pop(0)
+            a = remain.pop()
             b = self.partner(a)
             remain.remove(b)
             loop = [a, b]
@@ -519,28 +417,25 @@ class PerfectMatching(ElementWrapper):
         EXAMPLES::
 
             sage: n = PerfectMatching([3,8,1,7,6,5,4,2]); n
-            [(1, 3), (2, 8), (4, 7), (5, 6)]
+            [(1, 3), (8, 2), (4, 7), (5, 6)]
             sage: it = n.crossings_iterator();
             sage: next(it)
-            ((1, 3), (2, 8))
+            ((1, 3), (8, 2))
             sage: next(it)
             Traceback (most recent call last):
             ...
             StopIteration
         """
-        x = self.value[:]
-        if len(x) == 0:
-            return
-        (i, j) = x.pop(0)
-        for (a, b) in x:
-            # if (i<a<j<b) or (i<b<j<a) or (j<a<i<b) or (j<b<i<a) or (
-            #        a<i<b<j) or (a<j<b<i) or (b<i<a<j) or (b<j<a<i):
-            labij = sorted([a, b, i, j])
-            posij = sorted([labij.index(i), labij.index(j)])
-            if posij == [0, 2] or posij == [1, 3]:
-                yield ((i, j), (a, b))
-        for cr in PerfectMatchings(flatten(x))(x).crossings_iterator():
-            yield cr
+        x = list(self)
+        while x:
+            (i, j) = x.pop(0)
+            for (a, b) in x:
+                # if (i<a<j<b) or (i<b<j<a) or (j<a<i<b) or (j<b<i<a) or (
+                #        a<i<b<j) or (a<j<b<i) or (b<i<a<j) or (b<j<a<i):
+                labij = sorted([a, b, i, j])
+                posij = sorted([labij.index(i), labij.index(j)])
+                if posij == [0, 2] or posij == [1, 3]:
+                    yield ((i, j), (a, b))
 
     def crossings(self):
         r"""
@@ -559,9 +454,9 @@ class PerfectMatching(ElementWrapper):
         EXAMPLES::
 
             sage: n = PerfectMatching([3,8,1,7,6,5,4,2]); n
-            [(1, 3), (2, 8), (4, 7), (5, 6)]
+            [(1, 3), (8, 2), (4, 7), (5, 6)]
             sage: n.crossings()
-            [((1, 3), (2, 8))]
+            [((1, 3), (8, 2))]
 
         TESTS::
 
@@ -586,7 +481,7 @@ class PerfectMatching(ElementWrapper):
         EXAMPLES::
 
             sage: n = PerfectMatching([3,8,1,7,6,5,4,2]); n
-            [(1, 3), (2, 8), (4, 7), (5, 6)]
+            [(1, 3), (8, 2), (4, 7), (5, 6)]
             sage: n.number_of_crossings()
             1
         """
@@ -612,7 +507,7 @@ class PerfectMatching(ElementWrapper):
         EXAMPLES::
 
             sage: n = PerfectMatching([3,8,1,7,6,5,4,2]); n
-            [(1, 3), (2, 8), (4, 7), (5, 6)]
+            [(1, 3), (8, 2), (4, 7), (5, 6)]
             sage: n.is_non_crossing()
             False
             sage: PerfectMatching([(1, 4), (2, 3), (5, 6)]).is_non_crossing()
@@ -653,19 +548,16 @@ class PerfectMatching(ElementWrapper):
             ...
             StopIteration
         """
-        x = self.value[:]
-        if len(x) == 0:
-            return
-        (i, j) = x.pop(0)
-        for (a, b) in x:
-            # if (i<a<j<b) or (i<b<j<a) or (j<a<i<b) or (j<b<i<a) or (
-            #        a<i<b<j) or (a<j<b<i) or (b<i<a<j) or (b<j<a<i):
-            labij = sorted([a, b, i, j])
-            posij = sorted([labij.index(i), labij.index(j)])
-            if posij == [0, 3] or posij == [1, 2]:
-                yield ((i, j), (a, b))
-        for nest in PerfectMatchings(flatten(x))(x).nestings_iterator():
-            yield nest
+        x = list(self)
+        while x:
+            (i, j) = x.pop(0)
+            for (a, b) in x:
+                # if (i<a<j<b) or (i<b<j<a) or (j<a<i<b) or (j<b<i<a) or (
+                #        a<i<b<j) or (a<j<b<i) or (b<i<a<j) or (b<j<a<i):
+                labij = sorted([a, b, i, j])
+                posij = sorted([labij.index(i), labij.index(j)])
+                if posij == [0, 3] or posij == [1, 2]:
+                    yield ((i, j), (a, b))
 
     def nestings(self):
         r"""
@@ -688,9 +580,9 @@ class PerfectMatching(ElementWrapper):
             [((1, 6), (3, 5)), ((2, 7), (3, 5))]
 
             sage: n = PerfectMatching([3,8,1,7,6,5,4,2]); n
-            [(1, 3), (2, 8), (4, 7), (5, 6)]
+            [(1, 3), (8, 2), (4, 7), (5, 6)]
             sage: n.nestings()
-            [((2, 8), (4, 7)), ((2, 8), (5, 6)), ((4, 7), (5, 6))]
+            [((8, 2), (4, 7)), ((8, 2), (5, 6)), ((4, 7), (5, 6))]
 
         TESTS::
 
@@ -715,7 +607,7 @@ class PerfectMatching(ElementWrapper):
         EXAMPLES::
 
             sage: n = PerfectMatching([3,8,1,7,6,5,4,2]); n
-            [(1, 3), (2, 8), (4, 7), (5, 6)]
+            [(1, 3), (8, 2), (4, 7), (5, 6)]
             sage: n.number_of_nestings()
             3
         """
@@ -741,7 +633,7 @@ class PerfectMatching(ElementWrapper):
         EXAMPLES::
 
             sage: n = PerfectMatching([3,8,1,7,6,5,4,2]); n
-            [(1, 3), (2, 8), (4, 7), (5, 6)]
+            [(1, 3), (8, 2), (4, 7), (5, 6)]
             sage: n.is_non_nesting()
             False
             sage: PerfectMatching([(1, 3), (2, 5), (4, 6)]).is_non_nesting()
@@ -796,7 +688,7 @@ class PerfectMatching(ElementWrapper):
         """
         from sage.graphs.graph import Graph
         G = Graph()
-        for a, b in self.value:
+        for a, b in self:
             G.add_edge((a, b))
         return G
 
@@ -819,7 +711,7 @@ class PerfectMatching(ElementWrapper):
             []
         """
         from sage.combinat.permutation import Permutation
-        return Permutation(self.value)
+        return Permutation([(a,b) for a,b in self])
 
     def to_non_crossing_set_partition(self):
         r"""
@@ -851,8 +743,7 @@ class PerfectMatching(ElementWrapper):
                                  for i in range(len(perm) // 2)])
         return SetPartition(perm2.cycle_tuples())
 
-
-class PerfectMatchings(UniqueRepresentation, Parent):
+class PerfectMatchings(SetPartitions):
     r"""
     Class of perfect matchings of a ground set. At the creation, the set
     can be given as any iterable object. If the argument is an integer `n`, it
@@ -872,7 +763,7 @@ class PerfectMatchings(UniqueRepresentation, Parent):
         105
         sage: M = PerfectMatchings(('a', 'e', 'b', 'f', 'c', 'd'))
         sage: M.an_element()
-        [('a', 'b'), ('f', 'e'), ('c', 'd')]
+        [('a', 'b'), ('c', 'd'), ('e', 'f')]
         sage: all(PerfectMatchings(i).an_element() in PerfectMatchings(i)
         ....:      for i in range(2,11,2))
         True
@@ -886,105 +777,109 @@ class PerfectMatchings(UniqueRepresentation, Parent):
     """
 
     @staticmethod
-    def _parse_input(objects):
-        r"""
-        This function tries to recognize the argument and to transform into a
-        set. It is not meant to be called manually, but only as the first of
-        the creation of an enumerated set of ``PerfectMatchings``.
-
-        EXAMPLES::
-
-            sage: PerfectMatchings._parse_input(4)
-            {1, 2, 3, 4}
-            sage: PerfectMatchings._parse_input(['a','b','c','e'])
-            {'a', 'c', 'b', 'e'}
+    def __classcall_private__(cls, s):
         """
-        # if the argument is an integer n, we replace it with the list [1 .. n]
-        if isinstance(objects, (int, Integer)):
-            objects = list(range(1, objects + 1))
-        # Finally, if it is iterable, we return the corresponding set.
-        # Note that it is important to return a hashable object here (in
-        # particular, NOT A LIST), see comment below.
-        if not hasattr(objects, '__iter__'):
-            raise ValueError("do not know how to construct a set of matchings from %s (it must be iterable)")
-        return Set(objects)
-
-    @staticmethod
-    def __classcall__(cls, objects):
-        r"""
-        This function is called automatically when the user want to
-        create an enumerated set of PerfectMatchings.
+        Normalize input to ensure a unique representation.
 
         EXAMPLES::
 
-            sage: M = PerfectMatchings(6);M
-            Set of perfect matchings of {1, 2, 3, 4, 5, 6}
-            sage: PerfectMatchings([-1, -3, 1, 2])
-            Set of perfect matchings of {1, 2, -3, -1}
-
-        If one has already created a set of perfect matchings of the same set,
-        it does not create a new object, but returns the already existing
-        one::
-
-            sage: N = PerfectMatchings((2, 3, 5, 4, 1, 6))
-            sage: N is M
+            sage: S = PerfectMatchings(4)
+            sage: T = PerfectMatchings([1,2,3,4])
+            sage: S is T
             True
         """
-        #we call the constructor of another class, which will
-        #    - check if the object has already been constructed (so the
-        # second argument, i.e. the output of _parse_input, must be hashable)
-        #    - look for a place in memory and call the __init__ function
-        return super(PerfectMatchings, cls).__classcall__(
-            cls, cls._parse_input(objects))
+        if isinstance(s, (int, Integer)):
+            s = frozenset(range(1, s+1))
+        else:
+            try:
+                if s.cardinality() == infinity:
+                    raise ValueError("The set must be finite")
+            except AttributeError:
+                pass
+            s = frozenset(s)
+        return super(PerfectMatchings, cls).__classcall__(cls, s)
 
-    def __init__(self, objects):
-        r"""
-        See :meth:`__classcall__`
+    def _element_constructor_(self, s, check=True):
+        """
+        Construct an element of ``self`` from ``s``.
 
-        TESTS::
+        INPUT:
+
+        - ``s`` -- a set of sets
+
+        EXAMPLES::
+
+            sage: S = PerfectMatchings(4)
+            sage: elt = S([[1,3],[2,4]]); elt
+            [(1, 3), (2, 4)]
+            sage: S = PerfectMatchings([])
+            sage: S([])
+            []
+        """
+        if isinstance(s, PerfectMatching):
+            if isinstance(s.parent(), PerfectMatchings):
+                return self.element_class(self, list(s), check=check)
+            raise ValueError("cannot convert %s into an element of %s"%(s, self))
+
+        return self.element_class(self, s, check=check)
+
+    def __init__(self, s):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
 
             sage: M = PerfectMatchings(6)
             sage: TestSuite(M).run()
+            sage: PerfectMatchings(0).list()
+            [[]]
+            sage: PerfectMatchings([]).list()
+            [[]]
         """
-        self._objects = objects
+        self._set = s
         Parent.__init__(self, category=FiniteEnumeratedSets())
 
     def _repr_(self):
-        r"""
-        Returns a description of ``self``.
+        """
+        Return a description of ``self``.
 
-        EXAMPLES::
+        TESTS::
 
             sage: PerfectMatchings([-1, -3, 1, 2])
             Set of perfect matchings of {1, 2, -3, -1}
         """
-        return "Set of perfect matchings of %s" % self._objects
+        return "Set of perfect matchings of %s"%(Set(self._set))
 
     def __iter__(self):
-        r"""
-        Returns an iterator for the elements of ``self``.
+        """
+        Iterate over ``self``.
 
         EXAMPLES::
 
             sage: PerfectMatchings(4).list()
             [[(1, 2), (3, 4)], [(1, 3), (2, 4)], [(1, 4), (2, 3)]]
         """
-        if len(self._objects) == 0:
-            yield self([])
-        elif len(self._objects) == 1:
-            pass
-        else:
-            l = list(self._objects)
-            a = l.pop(0)
-            for i in range(len(l)):
-                obj_rest = l[:]
-                b = obj_rest.pop(i)
-                for p in PerfectMatchings(obj_rest):
-                    yield self([(a, b)]+p.value)
+        def iter_aux(s):
+            n = len(s)
+            if n == 0:
+                yield []
+            elif n == 1:
+                pass
+            else:
+                a = s[0]
+                for i in range(1, n):
+                    b = s[i]
+                    for p in iter_aux(s[1:i] + s[i+1:]):
+                        yield [(a, b)]+p
+
+
+        for p in iter_aux(list(self._set)):
+            yield self.element_class(self, p)
 
     def __contains__(self, x):
-        r"""
-        Tests if ``x`` is an element of ``self``.
+        """
+        Test if ``x`` is an element of ``self``.
+
 
         EXAMPLES::
 
@@ -1007,17 +902,48 @@ class PerfectMatchings(UniqueRepresentation, Parent):
             sage: [('a', 'b'), ('a', 'c')] in PerfectMatchings(
             ....:      ('a', 'b', 'c', 'd'))
             False
+
+        TESTS::
+
+            sage: SA = PerfectMatchings([1,2,3,7])
+            sage: Set([Set([1,2]),Set([3,7])]) in SA
+            True
+            sage: Set([Set([1,2]),Set([2,3])]) in SA
+            False
+            sage: Set([]) in SA
+            False
         """
-        if not isinstance(x, PerfectMatching):
-            try:
-                x = PerfectMatching(x)
-            except ValueError:
-                return False
-        return x.parent() is self
+        if not all(len(p) == 2 for p in x):
+            return False
+
+        base_set = reduce(lambda x,y: x.union(y), map(Set, x), Set([]))
+        return len(base_set) == 2*len(x) and base_set == Set(self._set)
+
+    def base_set(self):
+        """
+        Return the base set of ``self``.
+
+        EXAMPLES::
+
+            sage: PerfectMatchings(3).base_set()
+            {1, 2, 3}
+        """
+        return Set(self._set)
+
+    def base_set_cardinality(self):
+        """
+        Return the cardinality of the base set of ``self``.
+
+        EXAMPLES::
+
+            sage: PerfectMatchings(3).base_set_cardinality()
+            3
+        """
+        return len(self._set)
 
     def cardinality(self):
-        r"""
-        Returns the cardinality of the set of perfect matching ``self``
+        """
+        Return the cardinality of the set of perfect matchings ``self``.
 
         This is `1*3*5*...*(2n-1)`, where `2n` is the size of the ground set.
 
@@ -1025,8 +951,15 @@ class PerfectMatchings(UniqueRepresentation, Parent):
 
             sage: PerfectMatchings(8).cardinality()
             105
+            sage: PerfectMatchings([1,2,3,4]).cardinality()
+            3
+            sage: PerfectMatchings(3).cardinality()
+            0
+            sage: PerfectMatchings([]).cardinality()
+            1
+
         """
-        n = len(self._objects)
+        n = len(self._set)
         if n % 2 == 1:
             return 0
         else:
@@ -1036,11 +969,15 @@ class PerfectMatchings(UniqueRepresentation, Parent):
         r"""
         Returns a random element of self.
 
+        ..TODO::
+
+            This really belongs to :class:`SetPartition`!
+
         EXAMPLES::
 
             sage: M = PerfectMatchings(('a', 'e', 'b', 'f', 'c', 'd'))
             sage: M.an_element()
-            [('a', 'b'), ('f', 'e'), ('c', 'd')]
+            [('a', 'b'), ('c', 'd'), ('e', 'f')]
             sage: all(PerfectMatchings(2*i).an_element() in PerfectMatchings(2*i)
             ....:      for i in range(2,11,2))
             True
@@ -1053,7 +990,7 @@ class PerfectMatchings(UniqueRepresentation, Parent):
             ValueError: there is no perfect matching on an odd number of elements
 
         """
-        n = len(self._objects)
+        n = len(self._set)
 
         if n % 2 == 1:
             raise ValueError("there is no perfect matching on an odd number of elements")
@@ -1062,8 +999,8 @@ class PerfectMatchings(UniqueRepresentation, Parent):
 
         from sage.combinat.permutation import Permutations
         p = Permutations(n).random_element()
-
-        return self([(self._objects[p[2*i]-1], self._objects[p[2*i+1]-1]) for i in range(k)])
+        l = list(self._set)
+        return self([(l[p[2*i]-1], l[p[2*i+1]-1]) for i in range(k)])
 
     an_element = random_element
 
@@ -1084,7 +1021,7 @@ class PerfectMatchings(UniqueRepresentation, Parent):
             [   -1 N + 1    -1]
             [   -1    -1 N + 1]
         """
-        G = Matrix([[N**(p1.number_of_loops(p2)) for p1 in self]
+        G = matrix([[N**(p1.number_of_loops(p2)) for p1 in self]
                     for p2 in self])
         return G**(-1)
 

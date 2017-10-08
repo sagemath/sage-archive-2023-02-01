@@ -1564,6 +1564,13 @@ class DiGraph(GenericGraph):
             10
             sage: dcycle.feedback_edge_set(value_only=True, constraint_generation=False)
             10
+
+        Strongly connected components are well handled (:trac:`23989`)::
+
+            sage: g = digraphs.Circuit(3) * 2
+            sage: g.add_edge(0, 3)
+            sage: g.feedback_edge_set(value_only=True)
+            2
         """
         # It would be a pity to start a LP if the digraph is already acyclic
         if self.is_directed_acyclic():
@@ -1579,6 +1586,21 @@ class DiGraph(GenericGraph):
                 return FAS + self.number_of_loops()
             else:
                 return FAS + self.loops()
+
+        if not self.is_strongly_connected():
+            # If the digraph is not strongly connected, we solve the problem on
+            # each of its strongly connected components
+
+            FAS = 0 if value_only else []
+
+            for h in self.strongly_connected_components_subgraphs():
+                if value_only:
+                    FAS += h.feedback_edge_set(constraint_generation=constraint_generation,
+                                                value_only=True, solver=solver, verbose=verbose)
+                else:
+                    FAS.extend( h.feedback_edge_set(constraint_generation=constraint_generation,
+                                                    value_only=False, solver=solver, verbose=verbose) )
+            return FAS
 
 
         from sage.numerical.mip import MixedIntegerLinearProgram

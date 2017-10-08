@@ -732,13 +732,8 @@ class FunctionFieldHasseDerivation_global(FunctionFieldHasseDerivation):
         return self._field(coeffs)
 
 class FunctionFieldIsomorphism(Morphism):
-<<<<<<< HEAD
-    r"""
-    A base class for isomorphisms involving function fields.
-=======
     """
     Base class for isomorphisms between function fields and vector spaces.
->>>>>>> function_fields_trac22982
 
     EXAMPLES::
 
@@ -841,7 +836,6 @@ class FunctionFieldIsomorphism(Morphism):
         """
         return hash((self.domain(), self.codomain()))
 
-
 class MapVectorSpaceToFunctionField(FunctionFieldIsomorphism):
     """
     Isomorphism from a vector space to a function field.
@@ -918,8 +912,6 @@ class MapVectorSpaceToFunctionField(FunctionFieldIsomorphism):
         ret = sum([c*b for (c,b) in zip(coefficients,basis)])
         return self._K(ret)
 
-<<<<<<< HEAD
-=======
     def domain(self):
         """
         Return the vector space which is the domain of the isomorphism.
@@ -948,7 +940,6 @@ class MapVectorSpaceToFunctionField(FunctionFieldIsomorphism):
         """
         return self._K
 
->>>>>>> function_fields_trac22982
 class MapFunctionFieldToVectorSpace(FunctionFieldIsomorphism):
     """
     Isomorphism from a function field to a vector space.
@@ -1224,7 +1215,6 @@ class FunctionFieldConversionToConstantBaseField(Map):
         """
         return x.parent()._to_constant_base_field(x)
 
-<<<<<<< HEAD
 class FunctionFieldToFractionField(FunctionFieldIsomorphism):
     r"""
     Isomorphism from rational function field to the isomorphic fraction
@@ -1345,7 +1335,7 @@ class FractionFieldToFunctionField(FunctionFieldIsomorphism):
         from sage.categories.all import Hom
         parent = Hom(self.codomain(), self.domain())
         return parent.__make_element_class__(FunctionFieldToFractionField)(parent)
-=======
+
 class FunctionFieldCompletion(Map):
     """
     Base class of completions on function fields.
@@ -1615,4 +1605,3 @@ class FunctionFieldLinearMap(SetMorphism):
         s += "\n  From: {}".format(self.domain())
         s += "\n  To:   {}".format(self.codomain())
         return s
->>>>>>> function_fields_trac22982

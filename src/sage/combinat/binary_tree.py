@@ -185,7 +185,13 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             sage: all(BinaryTree(repr(bt)) == bt for i in range(6) for bt in BinaryTrees(i))
             True
 
-        Check that :trac:`23961` is fixed::
+        `\QQ` (or any number field) has a ``list()`` method that
+        returns itself as a `\QQ`-vector represented as a list.
+        Before :trac:`23961`, this would cause an infinite recursion
+        because `\QQ` elements give a list of length 1. For more
+        details, see :trac:`23961`. We test that constructing
+        binary trees from elements from `\QQ` terminates with
+        an appropriate error::
 
             sage: BinaryTree(1/2)
             Traceback (most recent call last):

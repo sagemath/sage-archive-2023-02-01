@@ -1539,10 +1539,34 @@ class DiGraph(GenericGraph):
             ....:     if x != y:
             ....:         print("Oh my, oh my !")
             ....:         break
+
+        Loops are part of the feedback edge set (:trac:`23989`)::
+
+            sage: D = digraphs.DeBruijn(2,2)
+            sage: D.loops()
+            [('11', '11', '1'), ('00', '00', '0')]
+            sage: FAS = D.feedback_edge_set(value_only=False)
+            sage: all(l in FAS for l in D.loops())
+            True
+            sage: FAS2 =  D.feedback_edge_set(value_only=False, constraint_generation=False)
+            sage: len(FAS) == len(FAS2)
+            True
         """
         # It would be a pity to start a LP if the digraph is already acyclic
         if self.is_directed_acyclic():
             return 0 if value_only else []
+
+        if self.has_loops():
+            # We solve the problem on a copy without loops of the digraph
+            D = DiGraph(self.edges(), multiedges=self.allows_multiple_edges(), loops=True)
+            D.allow_loops(False)
+            FAS = D.feedback_edge_set(constraint_generation=constraint_generation,
+                                          value_only=value_only, solver=solver, verbose=verbose)
+            if value_only:
+                return FAS + self.number_of_loops()
+            else:
+                return FAS + self.loops()
+
 
         from sage.numerical.mip import MixedIntegerLinearProgram
 

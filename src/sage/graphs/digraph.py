@@ -1551,6 +1551,19 @@ class DiGraph(GenericGraph):
             sage: FAS2 =  D.feedback_edge_set(value_only=False, constraint_generation=False)
             sage: len(FAS) == len(FAS2)
             True
+
+        Check that multi-edges are properly taken into account::
+
+            sage: cycle = graphs.CycleGraph(5)
+            sage: dcycle = DiGraph(cycle)
+            sage: dcycle.feedback_edge_set(value_only=True)
+            5
+            sage: dcycle.allow_multiple_edges(True)
+            sage: dcycle.add_edges(dcycle.edges())
+            sage: dcycle.feedback_edge_set(value_only=True)
+            10
+            sage: dcycle.feedback_edge_set(value_only=True, constraint_generation=False)
+            10
         """
         # It would be a pity to start a LP if the digraph is already acyclic
         if self.is_directed_acyclic():

@@ -7976,7 +7976,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def is_weil_polynomial(self, return_q=False):
         r"""
-        Return ``True`` if this is a Weil polynomial.
+        Return True if this is a Weil polynomial.
 
         This polynomial must have rational or integer coefficients.
 
@@ -7984,9 +7984,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         - ``self`` -- polynomial with rational or integer coefficients
 
-            - return_q`` -- (default ``False``), if ``True`` return a pair
-            bool,q)`` where q is the prime power with respect to which this is q-Weil,
-            or the pair ``(bool,0)`` otherwise.
+        - ``return_q`` -- (default ``False``) if True, return a second value `q`
+            which is the prime power with respect to which this is `q`-Weil,
+            or 0 if there is no such value.
 
         EXAMPLES::
 

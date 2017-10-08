@@ -1579,16 +1579,19 @@ class DiGraph(GenericGraph):
                 if isok:
                     break
 
-                if verbose:
-                    print("Adding a constraint on circuit : {}".format(certificate))
-
                 # There is a circuit left. Let's add the corresponding
                 # constraint !
+                while not isok:
 
-                p.add_constraint(
-                    p.sum( b[u,v] for u,v in
-                         zip(certificate, certificate[1:] + [certificate[0]])),
-                    min=1)
+                    if verbose:
+                        print("Adding a constraint on circuit : {}".format(certificate))
+
+                    edges = zip(certificate, certificate[1:] + [certificate[0]])
+                    p.add_constraint( p.sum( b[u,v] for u,v in edges), min=1)
+
+                    # Is there another edge disjoint circuit ?
+                    h.delete_edges(edges)
+                    isok, certificate = h.is_directed_acyclic(certificate=True)
 
                 obj = p.solve(log=verbose)
 
@@ -1596,7 +1599,6 @@ class DiGraph(GenericGraph):
                 return Integer(round(obj))
 
             else:
-
                 # listing the edges contained in the MFAS
                 return [(u,v) for u,v in self.edges(labels=False)
                         if p.get_values(b[u,v]) > .5]

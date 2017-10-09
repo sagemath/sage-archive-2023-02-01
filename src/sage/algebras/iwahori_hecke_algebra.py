@@ -538,9 +538,11 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
     def _bar_on_coefficients(self, c):
         r"""
         Given a Laurent polynomial ``c`` return the Laurent polynomial obtained
-        by applying the (generic) bar involution to `c``. This is the ring
-        homomorphism of Laurent polynomial in `ZZ[u,u^{-1},v,v^{-1}]` which
-        sends `u` to `u^{-1}` and `v` to `v^{-1}.
+        by applying the (generic) bar involution to ``c`` .
+
+        This is the ring homomorphism of Laurent polynomials in
+        `\ZZ[u,u^{-1},v,v^{-1}]` which sends `u` to `u^{-1}` and `v`
+        to `v^{-1}.
 
         EXAMPLES::
 
@@ -2397,9 +2399,11 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
     def _bar_on_coefficients(self, c):
         r"""
         Given a Laurent polynomial ``c`` return the Laurent polynomial obtained
-        by applying the (generic) bar involution to `c``. This is the ring
-        homomorphism of Laurent polynomial in `ZZ[u,u^{-1},v,v^{-1}]` which
-        sends `u` to `u^{-1}` and `v` to `v^{-1}.
+        by applying the (generic) bar involution to ``c`` .
+
+        This is the ring homomorphism of Laurent polynomials in
+        `\ZZ[u,u^{-1},v,v^{-1}]` which sends `u` to `u^{-1}` and `v`
+        to `v^{-1}.
 
         EXAMPLES::
 

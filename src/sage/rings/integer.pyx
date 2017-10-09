@@ -465,6 +465,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         -10380104371593008048799446356441519384
         sage: Integer(pari('Pol([-3])'))
         -3
+
+    .. automethod:: __pow__
     """
 
     def __cinit__(self):
@@ -1960,6 +1962,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             sage: 0^0
             1
+
+        See also `<http://www.faqs.org/faqs/sci-math-faq/0to0/>`_ and
+        `<https://math.stackexchange.com/questions/11150/zero-to-the-zero-power-is-00-1>`_.
 
         The base need not be an integer (it can be a builtin Python type).
 
@@ -4282,6 +4287,34 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return self
 
+    def trunc(self):
+        """
+        Round this number to the nearest integer, which is self since
+        self is an integer.
+
+        EXAMPLES::
+
+            sage: n = 6
+            sage: n.trunc()
+            6
+        """
+        return self
+
+    def round(Integer self, mode="away"):
+        """
+        Returns the nearest integer to ``self``, which is self since
+        self is an integer.
+
+        EXAMPLES:
+
+        This example addresses :trac:`23502`::
+
+            sage: n = 6
+            sage: n.round()
+            6
+        """
+        return self
+
     def real(self):
         """
         Returns the real part of self, which is self.
@@ -6091,11 +6124,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         TESTS::
 
-            sage: 1 << (2^60)
+            sage: 1 << (2^60)                                        # optional - mpir
             Traceback (most recent call last):
             ...
-            MemoryError: failed to allocate ... bytes   # 64-bit
-            OverflowError: ...                          # 32-bit
+            MemoryError: failed to allocate ... bytes                # 64-bit
+            OverflowError: Python int too large to convert to C long # 32-bit
+
+            sage: 1 << (2^60)                                        # optional - gmp
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Aborted                                    # 64-bit
+            OverflowError: Python int too large to convert to C long # 32-bit
         """
         cdef long n
 
@@ -6835,7 +6874,7 @@ cdef class int_to_Z(Morphism):
     already of the correct type which may have undesirable results::
 
         sage: f.domain()
-        Set of Python objects of type 'int'
+        Set of Python objects of class 'int'
         sage: f(1/3)
         0
         sage: f(1.7)
@@ -6857,7 +6896,7 @@ cdef class int_to_Z(Morphism):
 
             sage: f = ZZ.coerce_map_from(int)
             sage: f.parent()
-            Set of Morphisms from Set of Python objects of type 'int' to Integer Ring in Category of sets
+            Set of Morphisms from Set of Python objects of class 'int' to Integer Ring in Category of sets
         """
         import sage.categories.homset
         from sage.structure.parent import Set_PythonType
@@ -6893,7 +6932,7 @@ cdef class int_to_Z(Morphism):
             sage: f = ZZ.coerce_map_from(int)
             sage: print(f)
             Native morphism:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Integer Ring
         """
         return "Native"
@@ -6904,7 +6943,7 @@ cdef class long_to_Z(Morphism):
 
         sage: f = ZZ.coerce_map_from(long); f
         Native morphism:
-          From: Set of Python objects of type 'long'
+          From: Set of Python objects of class 'long'
           To:   Integer Ring
         sage: f(1rL)
         1

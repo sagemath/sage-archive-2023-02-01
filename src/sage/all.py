@@ -327,3 +327,20 @@ warnings.filterwarnings('default',
 
 # From now on it is ok to resolve lazy imports
 sage.misc.lazy_import.finish_startup()
+
+def sage_globals():
+    r"""
+    Return the Sage namespace.
+
+    EXAMPLES::
+
+        sage: 'log' in sage_globals()
+        True
+        sage: 'MatrixSpace' in sage_globals()
+        True
+        sage: 'Permutations' in sage_globals()
+        True
+        sage: 'TheWholeUniverse' in sage_globals()
+        False
+    """
+    return globals()

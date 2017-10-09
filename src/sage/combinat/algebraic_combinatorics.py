@@ -30,6 +30,7 @@ Combinatorial Hopf Algebras
 - :ref:`sage.combinat.ncsf_qsym`
 - :ref:`sage.combinat.schubert_polynomial`
 - :ref:`sage.combinat.ncsym`
+- :ref:`sage.combinat.grossman_larson_algebras`
 
 Groups and Algebras
 -------------------

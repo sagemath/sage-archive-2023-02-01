@@ -66,6 +66,7 @@ Comprehensive Module list
     sage/combinat/crystals/highest_weight_crystals
     sage/combinat/crystals/induced_structure
     sage/combinat/crystals/infinity_crystals
+    sage/combinat/crystals/kac_modules
     sage/combinat/crystals/kirillov_reshetikhin
     sage/combinat/crystals/kyoto_path_model
     sage/combinat/crystals/letters
@@ -126,6 +127,7 @@ Comprehensive Module list
     sage/combinat/graph_path
     sage/combinat/gray_codes
     sage/combinat/growth
+    sage/combinat/grossman_larson_algebras
     sage/combinat/hall_polynomial
     sage/combinat/integer_lists/base
     sage/combinat/integer_lists/lists

@@ -371,7 +371,7 @@ class FiniteMeetSemilattice(FinitePoset):
 
         EXAMPLES:
 
-        The pseudocompelement's pseudocomplement is not always the original
+        The pseudocomplement's pseudocomplement is not always the original
         element::
 
             sage: L = LatticePoset({1: [2, 3], 2: [4], 3: [5], 4: [6], 5: [6]})

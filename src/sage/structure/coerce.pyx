@@ -80,10 +80,14 @@ from cpython.object cimport (PyObject, PyTypeObject,
 from cpython.weakref cimport PyWeakref_GET_OBJECT, PyWeakref_NewRef
 from libc.string cimport strncmp
 
-cdef add, sub, mul, div, truediv, iadd, isub, imul, idiv
+cdef add, sub, mul, div, truediv, isub, imul
 import operator
 cdef dict operator_dict = operator.__dict__
-from operator import add, sub, mul, div, truediv, iadd, isub, imul, idiv
+from operator import add, sub, mul, truediv, isub, imul
+try:
+    from operator import div
+except ImportError:
+    div = object()  # Unique object not equal to anything else
 
 from .richcmp cimport rich_to_bool
 from .sage_object cimport SageObject
@@ -667,7 +671,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm.explain(QQ, int)
             Coercion on right operand via
                 Native morphism:
-                  From: Set of Python objects of type 'int'
+                  From: Set of Python objects of class 'int'
                   To:   Rational Field
             Arithmetic performed after coercions.
             Result lives in Rational Field
@@ -712,17 +716,16 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: parent(QQ(1) + float(1))
             <... 'float'>
 
-
         Special care is taken to deal with division::
 
-            sage: cm.explain(ZZ, ZZ, operator.div)
+            sage: cm.explain(ZZ, ZZ, operator.truediv)
             Identical parents, arithmetic performed immediately.
             Result lives in Rational Field
             Rational Field
 
             sage: ZZx = ZZ['x']
             sage: QQx = QQ['x']
-            sage: cm.explain(ZZx, QQx, operator.div)
+            sage: cm.explain(ZZx, QQx, operator.truediv)
             Coercion on left operand via
                 Ring morphism:
                   From: Univariate Polynomial Ring in x over Integer Ring
@@ -735,16 +738,16 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             Result lives in Fraction Field of Univariate Polynomial Ring in x over Rational Field
             Fraction Field of Univariate Polynomial Ring in x over Rational Field
 
-            sage: cm.explain(int, ZZ, operator.div)
+            sage: cm.explain(int, ZZ, operator.truediv)
             Coercion on left operand via
                 Native morphism:
-                  From: Set of Python objects of type 'int'
+                  From: Set of Python objects of class 'int'
                   To:   Integer Ring
             Arithmetic performed after coercions.
             Result lives in Rational Field
             Rational Field
 
-            sage: cm.explain(ZZx, ZZ, operator.div)
+            sage: cm.explain(ZZx, ZZ, operator.truediv)
             Action discovered.
                 Right inverse action by Rational Field on Univariate Polynomial Ring in x over Integer Ring
                 with precomposition on right by Natural morphism:
@@ -759,6 +762,21 @@ cdef class CoercionModel_cache_maps(CoercionModel):
            in sync with the :meth:`bin_op` and
            :meth:`canonical_coercion` which are kept separate for
            maximal efficiency.
+
+        TESTS:
+
+        In Python 2, ``operator.div`` still works::
+
+            sage: from six import PY2
+            sage: div = getattr(operator, "div" if PY2 else "truediv")
+            sage: cm.explain(ZZx, ZZ, div)
+            Action discovered.
+                Right inverse action by Rational Field on Univariate Polynomial Ring in x over Integer Ring
+                with precomposition on right by Natural morphism:
+                  From: Integer Ring
+                  To:   Rational Field
+            Result lives in Univariate Polynomial Ring in x over Rational Field
+            Univariate Polynomial Ring in x over Rational Field
         """
         all, res = self.analyse(xp, yp, op)
         indent = " "*4
@@ -797,8 +815,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: f(100)
             2
         """
-        if op is truediv:
-            op = div
+        if op is div:
+            op = truediv
         self._exceptions_cleared = False
         res = None
         if not isinstance(xp, type) and not isinstance(xp, Parent):
@@ -809,7 +827,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         all = []
         if xp is yp:
             all.append("Identical parents, arithmetic performed immediately." % xp)
-            if op is div and isinstance(xp, Parent):
+            if op is truediv and isinstance(xp, Parent):
                 xp = self.division_parent(xp)
             return all, xp
         if xp == yp:
@@ -838,7 +856,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                     raise RuntimeError("BUG in coercion model: codomains not equal!", x_mor, y_mor)
                 res = y_mor.codomain()
             all.append("Arithmetic performed after coercions.")
-            if op is div and isinstance(res, Parent):
+            if op is truediv and isinstance(res, Parent):
                 res = self.division_parent(res)
             return all, res
 
@@ -848,7 +866,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 mor = mor.__copy__()
                 all.append("Coercion on numeric left operand via")
                 all.append(mor)
-                if op is div and isinstance(yp, Parent):
+                if op is truediv and isinstance(yp, Parent):
                     yp = self.division_parent(yp)
                 return all, yp
             all.append("Left operand is numeric, will attempt coercion in both directions.")
@@ -861,7 +879,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 mor = mor.__copy__()
                 all.append("Coercion on numeric right operand via")
                 all.append(mor)
-                if op is div and isinstance(xp, Parent):
+                if op is truediv and isinstance(xp, Parent):
                     xp = self.division_parent(xp)
                 return all, xp
             all.append("Right operand is numeric, will attempt coercion in both directions.")
@@ -1578,10 +1596,10 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm.get_action(QQx, int, operator.mul)
             Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Rational Field
             with precomposition on right by Native morphism:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Integer Ring
 
-            sage: A = cm.get_action(QQx, ZZ, operator.div); A
+            sage: A = cm.get_action(QQx, ZZ, operator.truediv); A
             Right inverse action by Rational Field on Univariate Polynomial Ring in x over Rational Field
             with precomposition on right by Natural morphism:
               From: Integer Ring
@@ -1590,6 +1608,17 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: A(x+10, 5)
             1/5*x + 2
 
+        TESTS:
+
+        In Python 2, ``operator.div`` still works::
+
+            sage: from six import PY2
+            sage: div = getattr(operator, "div" if PY2 else "truediv")
+            sage: cm.get_action(QQx, ZZ, div)
+            Right inverse action by Rational Field on Univariate Polynomial Ring in x over Rational Field
+            with precomposition on right by Natural morphism:
+              From: Integer Ring
+              To:   Rational Field
         """
         try:
             return self._action_maps.get(R, S, op)
@@ -1693,7 +1722,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm.discover_action(P, int, operator.mul)
             Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Integer Ring
             with precomposition on right by Native morphism:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Integer Ring
 
         If op in an inplace operation, look for the non-inplace action::
@@ -1703,7 +1732,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         If op is division, look for action on right by inverse::
 
-            sage: cm.discover_action(P, ZZ, operator.div)
+            sage: cm.discover_action(P, ZZ, operator.truediv)
             Right inverse action by Rational Field on Univariate Polynomial Ring in x over Integer Ring
             with precomposition on right by Natural morphism:
               From: Integer Ring
@@ -1712,12 +1741,12 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         Check that :trac:`17740` is fixed::
 
             sage: R = GF(5)['x']
-            sage: cm.discover_action(R, ZZ, operator.div)
+            sage: cm.discover_action(R, ZZ, operator.truediv)
             Right inverse action by Finite Field of size 5 on Univariate Polynomial Ring in x over Finite Field of size 5
             with precomposition on right by Natural morphism:
               From: Integer Ring
               To:   Finite Field of size 5
-            sage: cm.bin_op(R.gen(), 7, operator.div).parent()
+            sage: cm.bin_op(R.gen(), 7, operator.truediv).parent()
             Univariate Polynomial Ring in x over Finite Field of size 5
 
         Check that :trac:`18221` is fixed::
@@ -1725,14 +1754,26 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: F.<x> = FreeAlgebra(QQ)
             sage: x / 2
             1/2*x
-            sage: cm.discover_action(F, ZZ, operator.div)
+            sage: cm.discover_action(F, ZZ, operator.truediv)
+            Right inverse action by Rational Field on Free Algebra on 1 generators (x,) over Rational Field
+            with precomposition on right by Natural morphism:
+              From: Integer Ring
+              To:   Rational Field
+
+        TESTS:
+
+        In Python 2, ``operator.div`` still works::
+
+            sage: from six import PY2
+            sage: div = getattr(operator, "div" if PY2 else "truediv")
+            sage: cm.discover_action(F, ZZ, div)
             Right inverse action by Rational Field on Free Algebra on 1 generators (x,) over Rational Field
             with precomposition on right by Natural morphism:
               From: Integer Ring
               To:   Rational Field
         """
-        if op is truediv:
-            op = div
+        if op is div:
+            op = truediv
 
         if isinstance(R, Parent):
             action = (<Parent>R).get_action(S, op, True, r, s)
@@ -1777,7 +1818,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             except KeyError:
                 self._record_exception()
 
-        if op is div:
+        if op is truediv:
             # Division on right is the same acting on right by inverse, if it is so defined.
             right_mul = None
             try:

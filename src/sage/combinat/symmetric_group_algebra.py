@@ -861,26 +861,6 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
                 dct[p_ret] += coeff
         return RSm._from_dict(dct)
 
-#     def _coerce_start(self, x):
-#         """
-#         Coerce things into the symmetric group algebra.
-
-#         EXAMPLES::
-
-#             sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
-#             sage: QS3._coerce_start([])
-#             [1, 2, 3]
-#             sage: QS3._coerce_start([2,1])
-#             [2, 1, 3]
-#             sage: _.parent()
-#             Symmetric group algebra of order 3 over Rational Field
-#         """
-#         if x == []:
-#             return self( self._one )
-#         if len(x) < self.n and x in permutation.Permutations():
-#             return self( list(x) + range(len(x)+1, self.n+1) )
-#         raise TypeError
-
     def cpis(self):
         """
         Return a list of the centrally primitive idempotents of

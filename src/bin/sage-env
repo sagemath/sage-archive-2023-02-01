@@ -414,24 +414,6 @@ if [ "$SAGE_STARTUP_FILE" = "" ]; then
     export SAGE_STARTUP_FILE
 fi
 
-if [ -z "$IPYTHONDIR" ]; then
-    # We hardcode a version number in the directory name. The idea is
-    # that we keep using the same version number as long as that is
-    # possible. Only when some future IPython version really requires
-    # a new structure for the $IPYTHONDIR should this version number be
-    # changed to the new IPython version.
-    export IPYTHONDIR="$DOT_SAGE/ipython-5.0.0"
-fi
-
-if [ -z "$JUPYTER_CONFIG_DIR" ]; then
-    # We hardcode a version number in the directory name. The idea is
-    # that we keep using the same version number as long as that is
-    # possible. Only when some future Jupyter version really requires
-    # a new structure for the $JUPYTER_CONFIG_DIR should this version
-    # number be changed to the new jupyter_core version.
-    export JUPYTER_CONFIG_DIR="$DOT_SAGE/jupyter-4.1"
-fi
-
 if [ "$PYTHON_EGG_CACHE" = "" ]; then
     PYTHON_EGG_CACHE="$DOT_SAGE/.python-eggs"
     export PYTHON_EGG_CACHE
@@ -458,17 +440,31 @@ fi
 LDFLAGS="-L$SAGE_LOCAL/lib -Wl,-rpath,$SAGE_LOCAL/lib $LDFLAGS"
 export LDFLAGS
 
-# Use a matplotlib config directory specific to Sage and specific to
-# the version number of matplotlib, by setting the environment
-# variable MPLCONFIGDIR. Note that we can't find the version number by
-# importing matplotlib, because that could create matplotlib's standard
-# config directory. So we use pkg_resources.
-"$SAGE_LOCAL/bin/python" -c 'import pkg_resources; pkg_resources.get_distribution("matplotlib").version' 2>/dev/null
-if [ $? -eq 0 ]; then
-    MPLVERSION=`"$SAGE_LOCAL/bin/python" -c 'import pkg_resources; print (pkg_resources.get_distribution("matplotlib").version)'`
-    MPLCONFIGDIR="$DOT_SAGE/matplotlib-$MPLVERSION"
-    export MPLCONFIGDIR
-    # The directory is created when Sage starts (see sage.misc.misc).
+if [ -z "$IPYTHONDIR" ]; then
+    # We hardcode a version number in the directory name. The idea is
+    # that we keep using the same version number as long as that is
+    # possible. Only when some future IPython version really requires
+    # a new structure for the $IPYTHONDIR should this version number be
+    # changed to the new IPython version.
+    export IPYTHONDIR="$DOT_SAGE/ipython-5.0.0"
+fi
+
+if [ -z "$JUPYTER_CONFIG_DIR" ]; then
+    # We hardcode a version number in the directory name. The idea is
+    # that we keep using the same version number as long as that is
+    # possible. Only when some future Jupyter version really requires
+    # a new structure for the $JUPYTER_CONFIG_DIR should this version
+    # number be changed to the new jupyter_core version.
+    export JUPYTER_CONFIG_DIR="$DOT_SAGE/jupyter-4.1"
+fi
+
+if [ -z "$MPLCONFIGDIR" ]; then
+    # We hardcode a version number in the directory name. The idea is
+    # that we keep using the same version number as long as that is
+    # possible. Only when some future Matplotlib version really requires
+    # a new structure for the $MPLCONFIGDIR should this version
+    # number be changed to the new matplotlib version.
+    export MPLCONFIGDIR="$DOT_SAGE/matplotlib-1.5.1"
 fi
 
 # Make sure that a system-wide R installation does not interfere

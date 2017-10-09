@@ -27,43 +27,11 @@ lapack_libs = lapack_pc['libraries']
 lapack_library_dirs = lapack_pc['library_dirs']
 lapack_include_dirs = lapack_pc['include_dirs']
 
-# FFLAS-FFPACK
-fflas_ffpack_pc = pkgconfig.parse('fflas-ffpack')
-fflas_ffpack_libs = fflas_ffpack_pc['libraries']
-fflas_ffpack_library_dirs = fflas_ffpack_pc['library_dirs']
-fflas_ffpack_cflags = pkgconfig.cflags('fflas-ffpack').split()
-
-# Givaro
-givaro_pc = pkgconfig.parse('givaro')
-givaro_libs = givaro_pc['libraries']
-givaro_library_dirs = givaro_pc['library_dirs']
-givaro_cflags = pkgconfig.cflags('givaro').split()
-
-# GNU Scientific Library
-# The default gslcblas is removed in the gsl spkg - not need to remove it.
-# The above cblas should already be in the list thanks to #20646
-gsl_pc = pkgconfig.parse('gsl')
-gsl_libs = gsl_pc['libraries']
-gsl_library_dirs = gsl_pc['library_dirs']
-gsl_include_dirs = gsl_pc['include_dirs']
-
 # GD image library
 gd_pc = pkgconfig.parse('gdlib')
 gd_libs = gd_pc['libraries']
 gd_library_dirs = gd_pc['library_dirs']
 gd_include_dirs = gd_pc['include_dirs']
-
-# LinBox
-linbox_pc = pkgconfig.parse('linbox')
-linbox_libs = linbox_pc['libraries']
-linbox_library_dirs = linbox_pc['library_dirs']
-linbox_cflags = pkgconfig.cflags('linbox').split()
-
-# Singular
-singular_pc = pkgconfig.parse('Singular')
-singular_libs = singular_pc['libraries']
-singular_library_dirs = singular_pc['library_dirs']
-singular_cflags = pkgconfig.cflags('Singular').split()
 
 # PNG image library
 png_pc = pkgconfig.parse('libpng')
@@ -76,29 +44,6 @@ zlib_pc = pkgconfig.parse('zlib')
 zlib_libs = zlib_pc['libraries']
 zlib_library_dirs = zlib_pc['library_dirs']
 zlib_include_dirs = zlib_pc['include_dirs']
-
-
-#########################################################
-### Commonly used definitions and aliases
-#########################################################
-
-aliases = dict(
-    FFLASFFPACK_CFLAGS=fflas_ffpack_cflags,
-    FFLASFFPACK_LIBRARIES=fflas_ffpack_libs,
-    FFLASFFPACK_LIBDIR=fflas_ffpack_library_dirs,
-    GIVARO_CFLAGS=givaro_cflags,
-    GIVARO_LIBRARIES=givaro_libs,
-    GIVARO_LIBDIR=givaro_library_dirs,
-    GSL_LIBRARIES=gsl_libs,
-    GSL_LIBDIR=gsl_library_dirs,
-    GSL_INCDIR=gsl_include_dirs,
-    LINBOX_CFLAGS=linbox_cflags,
-    LINBOX_LIBRARIES=linbox_libs,
-    LINBOX_LIBDIR=linbox_library_dirs,
-    SINGULAR_CFLAGS=singular_cflags,
-    SINGULAR_LIBRARIES=singular_libs,
-    SINGULAR_LIBDIR=singular_library_dirs
-)
 
 #########################################################
 ### M4RI flags
@@ -128,9 +73,12 @@ except ValueError:
 # listed here will be added at the end of the list (without changing
 # their relative order). There is one exception: stdc++ is always put
 # at the very end of the list.
-library_order_list = singular_libs + [
+from sage.env import cython_aliases
+aliases = cython_aliases()
+
+library_order_list = aliases["SINGULAR_LIBRARIES"] + [
     "ec", "ecm",
-] + linbox_libs + fflas_ffpack_libs + gsl_libs + [
+] + aliases["LINBOX_LIBRARIES"] + aliases["FFLASFFPACK_LIBRARIES"] + aliases["GSL_LIBRARIES"] + [
     "pari", "flint", "ratpoints", "ecl", "glpk", "ppl",
     "arb", "mpfi", "mpfr", "mpc", "gmp", "gmpxx",
     "brial",
@@ -279,11 +227,12 @@ ext_modules = [
     ## sage.dynamics
     ##
     ################################
-    
+
+    Extension('sage.dynamics.arithmetic_dynamics.projective_ds_helper',
+              sources = ['sage/dynamics/arithmetic_dynamics/projective_ds_helper.pyx']),
 
     Extension('sage.dynamics.complex_dynamics.mandel_julia_helper',
                 sources = ['sage/dynamics/complex_dynamics/mandel_julia_helper.pyx']),
-
 
     ################################
     ##
@@ -602,6 +551,11 @@ ext_modules = [
     Extension('sage.libs.lrcalc.lrcalc',
               sources = ["sage/libs/lrcalc/lrcalc.pyx"]),
 
+    OptionalExtension("sage.libs.meataxe",
+              sources = ['sage/libs/meataxe.pyx'],
+              libraries = ['mtx'],
+              package = 'meataxe'),
+
     Extension('*', ['sage/libs/pari/*.pyx']),
 
     Extension('sage.libs.ppl',
@@ -875,14 +829,14 @@ ext_modules = [
     Extension('sage.matrix.matrix_modn_dense_float',
               sources = ['sage/matrix/matrix_modn_dense_float.pyx'],
               language="c++",
-              libraries = linbox_libs + cblas_libs,
+              libraries = cblas_libs,
               library_dirs = cblas_library_dirs,
               include_dirs = cblas_include_dirs),
 
     Extension('sage.matrix.matrix_modn_dense_double',
               sources = ['sage/matrix/matrix_modn_dense_double.pyx'],
               language="c++",
-              libraries = linbox_libs + cblas_libs,
+              libraries = cblas_libs,
               library_dirs = cblas_library_dirs,
               include_dirs = cblas_include_dirs,
               extra_compile_args = ["-D_XPG6"]),
@@ -1633,9 +1587,6 @@ ext_modules = [
               language = 'c++',
               include_dirs = ['sage/libs/ntl/',
                               'sage/schemes/hyperelliptic_curves/hypellfrob/']),
-
-    Extension('sage.schemes.projective.projective_morphism_helper',
-              sources = ['sage/schemes/projective/projective_morphism_helper.pyx']),
 
     Extension('sage.schemes.toric.divisor_class',
               sources = ['sage/schemes/toric/divisor_class.pyx']),

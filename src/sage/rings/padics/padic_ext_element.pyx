@@ -21,6 +21,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from sage.rings.padics.pow_computer cimport PowComputer_class
 from sage.rings.integer import Integer
@@ -370,7 +371,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
         if R.e() != 1:
             raise NotImplementedError("Frobenius automorphism only implemented for unramified extensions")
         if self.is_zero(): return self
-        L = self.teichmuller_list()
+        L = self.teichmuller_expansion()
         ppow = R.uniformizer_pow(self.valuation())
         if arithmetic:
             exp = R.prime()
@@ -478,7 +479,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
         if absprec < 0:
             raise ValueError("cannot reduce modulo a negative power of the uniformizer.")
         if absprec > self.precision_absolute():
-            from precision_error import PrecisionError
+            from .precision_error import PrecisionError
             raise PrecisionError("not enough precision known in order to compute residue.")
         if self.valuation() < 0:
             raise ValueError("element must have non-negative valuation in order to compute residue.")
@@ -487,6 +488,6 @@ cdef class pAdicExtElement(pAdicGenericElement):
             from sage.rings.finite_rings.integer_mod import Mod
             return Mod(0,1)
         elif absprec == 1:
-            return self.parent().residue_field()(self[0])
+            return self.parent().residue_field()(self.expansion(0))
         else:
             raise NotImplementedError("residue() not implemented in extensions for absprec larger than one.")

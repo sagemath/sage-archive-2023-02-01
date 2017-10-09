@@ -393,7 +393,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     sage: B.one()
                     B[word: ] # B[word: ] # B[word: ]
                 """
-                # FIXME: this method should be conditionaly defined,
+                # FIXME: this method should be conditionally defined,
                 # so that B.one_basis returns NotImplemented if not
                 # all modules provide one_basis
                 if all(hasattr(module, "one_basis") for module in self._sets):

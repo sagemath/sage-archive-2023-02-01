@@ -967,15 +967,15 @@ Here are some of the more commonly used variables affecting the build process:
   An entry ``package-name`` means to run the test suite for the named package
   regardless of the setting of :envvar:`SAGE_CHECK`.
   An entry ``!package-name`` means to skip its test suite.
-  So if this is set to ``mpir,!python``, then always run the test suite for
-  MPIR, but always skip the test suite for Python.
+  So if this is set to ``mpir,!python2``, then always run the test suite for
+  MPIR, but always skip the test suite for Python 2.
 
   .. note::
 
-     As of this writing (April 2013, Sage 5.8), the test suite for the Python
-     spkg fails on most platforms.
+     As of this writing (September 2017, Sage 8.1), the test suites for the
+     Python 2 and 3 spkgs fail on most platforms.
      So when this variable is empty or unset, Sage uses a default of
-     ``!python``.
+     ``!python2,!python3``.
 
 - :envvar:`SAGE64` - if set to ``yes``, then build a 64-bit binary on platforms
   which default to 32-bit, even though they can build 64-bit binaries.
@@ -1312,15 +1312,6 @@ Sage uses the following environment variables when it runs:
   run a web browser, but if this doesn't seem to work on your machine, set this
   variable to the appropriate command.
 
-Sage overrides the user's settings of the following variables:
-
-- :envvar:`MPLCONFIGDIR` - ordinarily, this variable lets the user set their
-  matplotlib config directory.
-  Due to incompatibilities in the contents of this directory among different
-  versions of matplotlib, Sage overrides the user's setting, defining it
-  instead to be :file:`$DOT_SAGE/matplotlib-VER`, with ``VER`` replaced by the
-  current matplotlib version number.
-
 Variables dealing with doctesting:
 
 - :envvar:`SAGE_TIMEOUT` - used for Sage's doctesting: the number of seconds
@@ -1441,4 +1432,4 @@ the directory where you want to install Sage.
 
 
 
-**This page was last updated in February 2017 (Sage 7.6).**
+**This page was last updated in September 2017 (Sage 8.1).**

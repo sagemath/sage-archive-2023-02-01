@@ -1981,6 +1981,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: H == G
             True
 
+        TESTS:
+
         The following doctest verifies that :trac:`4888` is fixed::
 
             sage: G = DiGraph({0:{}, 1:{0:1}, 2:{0:1}}, weighted = True,sparse=True)
@@ -1988,7 +1990,6 @@ class GenericGraph(GenericGraph_pyx):
             [0 0 0]
             [1 0 0]
             [1 0 0]
-
         """
         if self.has_multiple_edges():
             raise NotImplementedError("don't know how to represent weights for a multigraph")
@@ -2870,6 +2871,8 @@ class GenericGraph(GenericGraph_pyx):
             Graph on 10 vertices
             sage: G.name()
             ''
+
+        TESTS:
 
         Name of an immutable graph :trac:`15681` ::
 
@@ -4221,6 +4224,8 @@ class GenericGraph(GenericGraph_pyx):
             False
             sage: k.vertices()
             [0, 1, 2, 3, 4]
+
+        TESTS:
 
         :trac:`18045`::
 
@@ -15204,6 +15209,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: sorted(ug.all_paths(0,3))
             [[0, 1, 3], [0, 2, 3], [0, 3]]
 
+        TESTS:
+
         Starting and ending at the same vertex (see :trac:`13006`)::
 
             sage: graphs.CompleteGraph(4).all_paths(2,2)
@@ -19683,6 +19690,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: g._keys_for_vertices()
             <function get_label at ...>
 
+        TESTS:
+
         We check that :trac:`21916` is fixed::
 
             sage: g = graphs.PetersenGraph()
@@ -20735,9 +20744,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: P.delete_vertices([0,1])
             sage: P.relabel()
 
-        The attributes are properly updated too
-
-        ::
+        The attributes are properly updated too::
 
             sage: G = graphs.PathGraph(5)
             sage: G.set_vertices({0: 'before', 1: 'delete', 2: 'after'})
@@ -21913,14 +21920,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.canonical_label(edge_labels=True, certificate=True)
             (Graph on 5 vertices, {0: 4, 1: 3, 2: 0, 3: 1, 4: 2})
 
-        Check for immutable graphs (:trac:`16602`)::
-
-            sage: G = Graph([[1, 2], [2, 3]], immutable=True)
-            sage: C = G.canonical_label(); C
-            Graph on 3 vertices
-            sage: C.vertices()
-            [0, 1, 2]
-
         Canonical forms can be computed by bliss as well::
 
             sage: G = graphs.CubeGraph(6)                                       # optional - bliss
@@ -21937,6 +21936,14 @@ class GenericGraph(GenericGraph_pyx):
             doctest:...: DeprecationWarning: use the option 'certificate' instead of 'certify'
             See http://trac.sagemath.org/21111 for details.
             (Graph on 2 vertices, {'a': 0, 'b': 1})
+
+        Check for immutable graphs (:trac:`16602`)::
+
+            sage: G = Graph([[1, 2], [2, 3]], immutable=True)
+            sage: C = G.canonical_label(); C
+            Graph on 3 vertices
+            sage: C.vertices()
+            [0, 1, 2]
         """
         try:
             from sage.graphs.bliss import canonical_form
@@ -22331,6 +22338,8 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
         [[[0, 1, 2, 3], [4], [5]]]
         sage: G.edges()
         [(0, 4, None), (1, 4, None), (1, 5, None), (2, 3, None), (2, 5, None)]
+
+    TESTS:
 
     Ensure that :trac:`14108` is fixed::
 

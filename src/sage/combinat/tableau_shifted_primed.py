@@ -1166,6 +1166,13 @@ class ShiftedPrimedTableaux_all(ShiftedPrimedTableaux):
 class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
     """
     Shifted Primed Tableaux of a fixed shape.
+
+    TESTS::
+
+        sage: ShiftedPrimedTableaux([4,3,1], max_elt=4)
+        Shifted Primed Tableaux of shape [4, 3, 1] and maximum element 4
+        sage: ShiftedPrimedTableaux([4,3,1], max_elt=4).cardinality()
+        384
     """
     Element = ShiftedPrimedTableau
 
@@ -1176,6 +1183,9 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
         If ``max_elt`` is specified, a finite set with entries smaller
         or equal to ``max_elt``.
 
+        TEST::
+
+            sage: TestSuite( ShiftedPrimedTableaux([4,2,1], max_elt=4)).run()
         """
         Parent.__init__(self, category=FiniteEnumeratedSets())
         self._max_elt = max_elt
@@ -1342,6 +1352,13 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
 class ShiftedPrimedTableaux_weight(ShiftedPrimedTableaux):
     """
     Shifted Primed Tableaux of fixed weight.
+
+    TESTS::
+
+        sage: ShiftedPrimedTableaux((2,3,1))
+        Shifted Primed Tableaux of weight (2, 3, 1)
+        sage: ShiftedPrimedTableaux((2,3,1)).cardinality()
+        17
     """
     Element = ShiftedPrimedTableau
 
@@ -1433,6 +1450,13 @@ class ShiftedPrimedTableaux_weight(ShiftedPrimedTableaux):
 class ShiftedPrimedTableaux_weight_shape(ShiftedPrimedTableaux):
     """
     Shifted Primed Tableaux of the fixed weight and shape.
+
+    TESTS::
+
+        sage: ShiftedPrimedTableaux((2,3,2),[4,2,1])
+        Shifted Primed Tableaux of weight (2, 3, 2) and shape [4, 2, 1]
+        sage: ShiftedPrimedTableaux((2,3,2), [4,2,1]).cardinality()
+        4
     """
     Element = ShiftedPrimedTableau
 
@@ -1440,6 +1464,10 @@ class ShiftedPrimedTableaux_weight_shape(ShiftedPrimedTableaux):
         """
         Initialize the class of Shifted Primed Tableaux of the given weight
         and shape.
+
+        TEST::
+
+            sage: TestSuite( ShiftedPrimedTableaux((3,2,1)) ).run()
         """
         Parent.__init__(self, category=FiniteEnumeratedSets())
         self._weight = weight
@@ -1711,6 +1739,11 @@ def add_strip(sub_tab, full_tab, length):
     """
     Helper function used in the algorithm to generate all Shifted Primed
     Tableaux of the fixed weight and shape.
+
+    TEST::
+
+        sage: list(ShiftedPrimedTableaux([3,1],(2,2)))
+        [[(1.0, 1.0, 2.0), (2.0,)], [(1.0, 1.0, 1.5), (2.0,)]]
     """
     if sum(sub_tab)+length > sum(full_tab):
         raise ValueError("strip does not fit")

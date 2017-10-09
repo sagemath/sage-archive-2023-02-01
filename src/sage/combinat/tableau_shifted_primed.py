@@ -190,14 +190,14 @@ class ShiftedPrimedTableau(ClonableArray):
             return False
         return (list(self) == list(Tab))
 
-    def to_matrix(self):
+    def _to_matrix(self):
         """
         Return a 2-dimensional numpy.array representation of a shifted tableau
 
         EXAMPLE::
 
             sage: t = ShiftedPrimedTableau([[1,'2p',2,2],[2,'3p'],[3]])
-            sage: mat = t.to_matrix()
+            sage: mat = t._to_matrix()
             sage: mat
             array([[ 1. ,  1.5,  2. ,  2. ],
                    [ 0. ,  2. ,  2.5,  0. ],
@@ -568,7 +568,7 @@ class ShiftedPrimedTableau(ClonableArray):
         weight = tuple([flat.count(i+1) for i in range(max_ind)])
         return tuple(weight)
 
-    def reading_word_with_positions(self):
+    def _reading_word_with_positions(self):
         """
         Return the reading word of ``self`` together with positions of the
         corresponding letters in ``self``.
@@ -588,12 +588,12 @@ class ShiftedPrimedTableau(ClonableArray):
         EXAMPLE::
 
             sage: t = ShiftedPrimedTableau([[1,'2p',2,2],[2,'3p']])
-            sage: t.reading_word_with_positions()
+            sage: t._reading_word_with_positions()
             [((1, 2), 3), ((0, 1), 2), ((1, 1), 2), ((0, 0), 1),
             ((0, 2), 2), ((0, 3), 2)]
 
         """
-        mat = self.to_matrix()
+        mat = self._to_matrix()
         list_with_positions = []
         for (i, j), x in np.ndenumerate(mat[:, ::-1].T):
             if int(x) != x:
@@ -625,7 +625,7 @@ class ShiftedPrimedTableau(ClonableArray):
             sage: t.reading_word()
             [3, 2, 2, 1, 2, 2]
         """
-        return [tup[1] for tup in self.reading_word_with_positions()]
+        return [tup[1] for tup in self._reading_word_with_positions()]
 
     def f(self, ind):
         """
@@ -667,9 +667,9 @@ class ShiftedPrimedTableau(ClonableArray):
         if self is None:
             return None
 
-        T = self.to_matrix()
+        T = self._to_matrix()
 
-        read_word = self.reading_word_with_positions()
+        read_word = self._reading_word_with_positions()
         read_word = [num
                      for num in read_word
                      if num[1] == ind or num[1] == ind+1]
@@ -765,9 +765,9 @@ class ShiftedPrimedTableau(ClonableArray):
         """
         if self is None:
             return None
-        T = self.to_matrix()
+        T = self._to_matrix()
 
-        read_word = self.reading_word_with_positions()
+        read_word = self._reading_word_with_positions()
         read_word = [num
                      for num in read_word
                      if num[1] == ind or num[1] == ind+1]
@@ -1582,7 +1582,7 @@ class ShiftedPrimedTableauxCrystal(UniqueRepresentation, Parent):
 
     EXAMPLES::
 
-        sage: SPTC = SPTCrystal([3,2], 2)
+        sage: SPTC = crystals.ShiftedPrimedTableaux([3,2], 2)
         sage: T = SPTC.module_generators[-1]
         sage: T
         [(1.0, 1.0, 1.5), (2.0, 2.5)]
@@ -1602,27 +1602,27 @@ class ShiftedPrimedTableauxCrystal(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: ShiftedPrimedTableauxCrystal(n=2, shape=[4,2])
+            sage: crystals.ShiftedPrimedTableaux(n=2, shape=[4,2])
             Crystal of Shifted Primed Tableaux of type A_2 of shape (4, 2)
-            sage: ShiftedPrimedTableauxCrystal([4,2], rank=2)
+            sage: crystals.ShiftedPrimedTableaux([4,2], rank=2)
             Crystal of Shifted Primed Tableaux of type A_2 of shape (4, 2)
-            sage: ShiftedPrimedTableauxCrystal([4,2])
+            sage: crystals.ShiftedPrimedTableaux([4,2])
             Crystal of Shifted Primed Tableaux of type A_5 of shape (4, 2)
 
         TESTS::
-            sage: ShiftedPrimedTableauxCrystal()
+            sage: crystals.ShiftedPrimedTableaux()
             Traceback (most recent call last):
             ...
-            ValueError: shape argument is not specified
-            sage: ShiftedPrimedTableauxCrystal([4,4], 3)
+            ValueError: shape argument must be specified
+            sage: crystals.ShiftedPrimedTableaux([4,4], 3)
             Traceback (most recent call last):
             ...
             ValueError: shape [4, 4] is not a strict partition
-            sage: ShiftedPrimedTableauxCrystal([3,2,1], 1)
+            sage: crystals.ShiftedPrimedTableaux([3,2,1], 1)
             Traceback (most recent call last):
             ...
             ValueError: invalid crystal rank
-            sage: ShiftedPrimedTableauxCrystal([3,2,1])
+            sage: crystals.ShiftedPrimedTableaux([3,2,1])
             Crystal of Shifted Primed Tableaux of type A_5 of shape (3, 2, 1)
         """
 
@@ -1646,7 +1646,7 @@ class ShiftedPrimedTableauxCrystal(UniqueRepresentation, Parent):
                             isinstance(args[1], (list, tuple, Partition))):
                         shape = tuple(args[1])
         if shape is None:
-            raise ValueError('shape argument is not specified')
+            raise ValueError('shape argument must be specified')
         if n is None:
             n = sum(shape)-1
 
@@ -1674,7 +1674,7 @@ class SPTCrystal(ShiftedPrimedTableauxCrystal):
 
         TESTS::
 
-            sage: SPTC = SPTCrystal([4,2], 2)
+            sage: SPTC = crystals.ShiftedPrimedTableaux([4,2], 2)
             sage: SPTC._cartan_type
             ['A', 2]
             sage: len(SPTC.module_generators)
@@ -1696,7 +1696,7 @@ class SPTCrystal(ShiftedPrimedTableauxCrystal):
 
         TEST::
 
-            sage: ShiftedPrimedTableauxCrystal([4,2], 2)
+            sage: crystals.ShiftedPrimedTableaux([4,2], 2)
             Crystal of Shifted Primed Tableaux of type A_2 of shape (4, 2)
         """
         return ("Crystal of Shifted Primed Tableaux of type A_%s of shape "

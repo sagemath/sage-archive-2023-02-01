@@ -1616,8 +1616,9 @@ class DiGraph(GenericGraph):
             # An variable for each edge
             b = p.new_variable(binary=True)
 
-            # Variables are binary, and their coefficient in the objective is 1
-
+            # Variables are binary, and their coefficient in the objective is
+            # the number of occurence of the corresponding edge, so 1 if the
+            # graph is simple
             p.set_objective( p.sum( b[u,v] for u,v in self.edges(labels=False)))
 
             p.solve(log=verbose)

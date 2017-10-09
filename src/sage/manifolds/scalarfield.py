@@ -15,6 +15,7 @@ AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2013-2015): initial version
 - Travis Scrimshaw (2016): review tweaks
+- Marco Mancini (2017): SymPy as an optional symbolic engine, alternative to SR
 
 REFERENCES:
 
@@ -27,6 +28,7 @@ REFERENCES:
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
 #       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
+#       Copyright (C) 2017 Marco Mancini <marco.mancini@obspm.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -209,7 +211,7 @@ class ScalarField(CommutativeAlgebraElement):
 
     The method :meth:`coord_function` returns instead a function of the
     chart coordinates, i.e. an instance of
-    :class:`~sage.manifolds.chart_func.CoordFunction`::
+    :class:`~sage.manifolds.chart_func.ChartFunction`::
 
         sage: f.coord_function(c_uv)
         (u^2 + v^2)/(u^2 + v^2 + 1)
@@ -598,69 +600,43 @@ class ScalarField(CommutativeAlgebraElement):
         on W: (u, v) |--> (u^2 + v^2)/v
 
 
-    Same tests with ``sympy``::
+    .. RUBRIC:: Examples with SymPy as the symbolic engine
+
+    From now on, we ask that all symbolic calculus on manifold `M` is
+    performed by SymPy::
 
         sage: M.set_calculus_method('sympy')
-        sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-        ....:                                intersection_name='W',
-        ....:                                restrictions1= x^2+y^2!=0,
-        ....:                                restrictions2= u^2+v^2!=0)
-        sage: uv_to_xy = xy_to_uv.inverse()
+
+    We define `f` as above::
+
         sage: f = M.scalar_field({c_xy: 1/(1+x^2+y^2), c_uv: (u^2+v^2)/(1+u^2+v^2)},
         ....:                    name='f') ; f
         Scalar field f on the 2-dimensional topological manifold M
-        sage: f.display()
+        sage: f.display()  # notice the SymPy display of exponents
         f: M --> R
         on U: (x, y) |--> 1/(x**2 + y**2 + 1)
         on V: (u, v) |--> (u**2 + v**2)/(u**2 + v**2 + 1)
         sage: type(f.coord_function(c_xy).expr())
         <class 'sympy.core.power.Pow'>
 
-    For scalar fields defined by a single coordinate expression, the latter
-    can be passed instead of the dictionary over the charts::
+    The scalar field `g` defined on `U`::
 
-        sage: g = U.scalar_field(x*y, chart=c_xy, name='g') ; g
-        Scalar field g on the Open subset U of the 2-dimensional topological
-         manifold M
-
-    The above is indeed equivalent to::
-
-        sage: g = U.scalar_field({c_xy: x*y}, name='g') ; g
-        Scalar field g on the Open subset U of the 2-dimensional topological
-         manifold M
-
-    Since ``c_xy`` is the default chart of ``U``, the argument ``chart`` can
-    be skipped::
-
-        sage: g = U.scalar_field(x*y, name='g') ; g
-        Scalar field g on the Open subset U of the 2-dimensional topological
-         manifold M
-
-    The scalar field `g` is defined on `U` and has an expression in terms of
-    the coordinates `(u,v)` on `W=U\cap V`::
-
-        sage: g.display()
+        sage: g = U.scalar_field({c_xy: x*y}, name='g')
+        sage: g.display() # again notice the SymPy display of exponents
         g: U --> R
            (x, y) |--> x*y
         on W: (u, v) |--> u*v/(u**4 + 2*u**2*v**2 + v**4)
 
-    Scalar fields on `M` can also be declared with a single chart::
+    Definition on a single chart and subsequent completion::
 
-        sage: f = M.scalar_field(1/(1+x^2+y^2), chart=c_xy, name='f') ; f
-        Scalar field f on the 2-dimensional topological manifold M
-
-    Their definition must then be completed by providing the expressions on
-    other charts, via the method :meth:`add_expr`, to get a global cover of
-    the manifold::
-
+        sage: f = M.scalar_field(1/(1+x^2+y^2), chart=c_xy, name='f')
         sage: f.add_expr((u^2+v^2)/(1+u^2+v^2), chart=c_uv)
         sage: f.display()
         f: M --> R
         on U: (x, y) |--> 1/(x**2 + y**2 + 1)
         on V: (u, v) |--> (u**2 + v**2)/(u**2 + v**2 + 1)
 
-    We can even first declare the scalar field without any coordinate
-    expression and provide them subsequently::
+    Defintion without any coordinate expression and subsequent completion::
 
         sage: f = M.scalar_field(name='f')
         sage: f.add_expr(1/(1+x^2+y^2), chart=c_xy)
@@ -670,19 +646,16 @@ class ScalarField(CommutativeAlgebraElement):
         on U: (x, y) |--> 1/(x**2 + y**2 + 1)
         on V: (u, v) |--> (u**2 + v**2)/(u**2 + v**2 + 1)
 
-    We may also use the method :meth:`add_expr_by_continuation` to complete
-    the coordinate definition using the analytic continuation from domains in
-    which charts overlap::
+    Use of :meth:`add_expr_by_continuation`::
 
-        sage: f = M.scalar_field(1/(1+x^2+y^2), chart=c_xy, name='f') ; f
-        Scalar field f on the 2-dimensional topological manifold M
+        sage: f = M.scalar_field(1/(1+x^2+y^2), chart=c_xy, name='f')
         sage: f.add_expr_by_continuation(c_uv, U.intersection(V))
         sage: f.display()
         f: M --> R
         on U: (x, y) |--> 1/(x**2 + y**2 + 1)
         on V: (u, v) |--> (u**2 + v**2)/(u**2 + v**2 + 1)
 
-    A scalar field can also be defined by some unspecified function of the
+    A scalar field defined by some unspecified function of the
     coordinates::
 
         sage: h = U.scalar_field(function('H')(x, y), name='h') ; h
@@ -693,18 +666,8 @@ class ScalarField(CommutativeAlgebraElement):
            (x, y) |--> H(x, y)
         on W: (u, v) |--> H(u/(u**2 + v**2), v/(u**2 + v**2))
 
-    We may use the argument ``latex_name`` to specify the LaTeX symbol denoting
-    the scalar field if the latter is different from ``name``::
-
-        sage: latex(f)
-        f
-        sage: f = M.scalar_field({c_xy: 1/(1+x^2+y^2), c_uv: (u^2+v^2)/(1+u^2+v^2)},
-        ....:                    name='f', latex_name=r'\mathcal{F}')
-        sage: latex(f)
-        \mathcal{F}
-
     The coordinate expression in a given chart is obtained via the method
-    :meth:`expr`, which returns a symbolic expression::
+    :meth:`expr`, which in the present context, returns a SymPy object::
 
         sage: f.expr(c_uv)
         (u**2 + v**2)/(u**2 + v**2 + 1)
@@ -713,7 +676,7 @@ class ScalarField(CommutativeAlgebraElement):
 
     The method :meth:`coord_function` returns instead a function of the
     chart coordinates, i.e. an instance of
-    :class:`~sage.manifolds.chart_func.CoordFunction`::
+    :class:`~sage.manifolds.chart_func.ChartFunction`::
 
         sage: f.coord_function(c_uv)
         (u**2 + v**2)/(u**2 + v**2 + 1)
@@ -721,10 +684,6 @@ class ScalarField(CommutativeAlgebraElement):
         <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category.element_class'>
         sage: f.coord_function(c_uv).display()
         (u, v) |--> (u**2 + v**2)/(u**2 + v**2 + 1)
-        sage: f.display()
-        f: M --> R
-        on U: (x, y) |--> 1/(x**2 + y**2 + 1)
-        on V: (u, v) |--> (u**2 + v**2)/(u**2 + v**2 + 1)
 
     The value returned by the method :meth:`expr` is actually the coordinate
     expression of the chart function::
@@ -732,34 +691,34 @@ class ScalarField(CommutativeAlgebraElement):
         sage: f.expr(c_uv) is f.coord_function(c_uv).expr()
         True
 
-    A constant scalar field is declared by setting the argument ``chart`` to
-    ``'all'``::
+    We may ask for the ``SR`` representation of the coordinate function::
 
-        sage: c = M.scalar_field(2, chart='all', name='c') ; c
-        Scalar field c on the 2-dimensional topological manifold M
+        sage: f.coord_function(c_uv).expr('SR')
+        (u^2 + v^2)/(u^2 + v^2 + 1)
+
+    A constant scalar field with SymPy representation::
+
+        sage: c = M.constant_scalar_field(2, name='c')
         sage: c.display()
         c: M --> R
         on U: (x, y) |--> 2
         on V: (u, v) |--> 2
-
-    A shortcut is to use the method
-    :meth:`~sage.manifolds.manifold.TopologicalManifold.constant_scalar_field`::
-
-        sage: c == M.constant_scalar_field(2)
-        True
+        sage: type(c.expr(c_xy))
+        <class 'sympy.core.numbers.Integer'>
 
     The constant value can be some unspecified parameter::
 
         sage: var('a')
         a
-        sage: c = M.constant_scalar_field(a, name='c') ; c
-        Scalar field c on the 2-dimensional topological manifold M
+        sage: c = M.constant_scalar_field(a, name='c')
         sage: c.display()
         c: M --> R
         on U: (x, y) |--> a
         on V: (u, v) |--> a
+        sage: type(c.expr(c_xy))
+        <class 'sympy.core.symbol.Symbol'>
 
-    A special case of constant field is the zero scalar field::
+    The zero scalar field::
 
         sage: zer = M.constant_scalar_field(0) ; zer
         Scalar field zero on the 2-dimensional topological manifold M
@@ -767,22 +726,12 @@ class ScalarField(CommutativeAlgebraElement):
         zero: M --> R
         on U: (x, y) |--> 0
         on V: (u, v) |--> 0
-
-    It can be obtained directly by means of the function
-    :meth:`~sage.manifolds.manifold.TopologicalManifold.zero_scalar_field`::
-
+        sage: type(zer.expr(c_xy))
+        <class 'sympy.core.numbers.Zero'>
         sage: zer is M.zero_scalar_field()
         True
 
-    A third way is to get it as the zero element of the algebra `C^0(M)`
-    of scalar fields on `M` (see below)::
-
-        sage: zer is M.scalar_field_algebra().zero()
-        True
-
-    By definition, a scalar field acts on the manifold's points, sending
-    them to elements of the manifold's base field (real numbers in the
-    present case)::
+    Action of scalar fields on manifold's points::
 
         sage: N = M.point((0,0), chart=c_uv) # the North pole
         sage: S = M.point((0,0), chart=c_xy) # the South pole
@@ -844,7 +793,7 @@ class ScalarField(CommutativeAlgebraElement):
         on U: (x, y) |--> tan(1/(x**2 + y**2 + 1))
         on V: (u, v) |--> tan((u**2 + v**2)/(u**2 + v**2 + 1))
 
-    .. RUBRIC:: Arithmetics of scalar fields
+    .. RUBRIC:: Arithmetics of scalar fields with SymPy
 
     Scalar fields on `M` (resp. `U`) belong to the algebra `C^0(M)`
     (resp. `C^0(U)`)::
@@ -941,25 +890,9 @@ class ScalarField(CommutativeAlgebraElement):
         (x, y) |--> (x**3*y + x*y**3 + x*y + 1)/(x**2 + y**2 + 1)
         on W: (u, v) |--> (u**6 + 3*u**4*v**2 + u**3*v + 3*u**2*v**4 + u*v**3 + u*v + v**6)/(u**6 + 3*u**4*v**2 + u**4 + 3*u**2*v**4 + 2*u**2*v**2 + v**6 + v**4)
 
-
     The operation actually performed is `f|_U + g`::
 
         sage: s == f.restrict(U) + g
-        True
-
-    In Sage framework, the addition of `f` and `g` is permitted because
-    there is a *coercion* of the parent of `f`, namely `C^0(M)`, to
-    the parent of `g`, namely `C^0(U)` (see
-    :class:`~sage.manifolds.scalarfield_algebra.ScalarFieldAlgebra`)::
-
-        sage: CM = M.scalar_field_algebra()
-        sage: CU = U.scalar_field_algebra()
-        sage: CU.has_coerce_map_from(CM)
-        True
-
-    The coercion map is nothing but the restriction to domain `U`::
-
-        sage: CU.coerce(f) == f.restrict(U)
         True
 
     Since the algebra `C^0(M)` is a vector space over `\RR`, scalar fields
@@ -1151,7 +1084,6 @@ class ScalarField(CommutativeAlgebraElement):
                     if isinstance(expression, ChartFunction):
                         self._express[chart] = expression
                     else:
-                        a = chart.function(expression)
                         self._express[chart] = chart.function(expression)
             elif isinstance(coord_expression, ChartFunction):
                 self._express[coord_expression.chart()] = coord_expression
@@ -1925,7 +1857,7 @@ class ScalarField(CommutativeAlgebraElement):
             Helper function for :meth:`display`.
             """
             try:
-                expression = self.coord_function(chart).expr()
+                expression = self.coord_function(chart)
                 coords = chart[:]
                 if len(coords) == 1:
                     coords = coords[0]

@@ -916,7 +916,7 @@ class Crystals(Category_singleton):
             EXAMPLES::
 
                 sage: C = crystals.Letters(['A', 5])
-                sage: C.latex_file('/tmp/test.tex')  # optional - dot2tex graphviz
+                sage: C.latex_file('/tmp/test.tex')
             """
             header = r"""\documentclass{article}
             \usepackage[x11names, rgb]{xcolor}
@@ -946,14 +946,14 @@ class Crystals(Category_singleton):
             EXAMPLES::
 
                 sage: T = crystals.Tableaux(['A',2],shape=[1])
-                sage: T._latex_()  # optional - dot2tex graphviz
+                sage: T._latex_()
                 '...tikzpicture...'
                 sage: view(T) # optional - dot2tex graphviz, not tested (opens external window)
 
             One can for example also color the edges using the following options::
 
                 sage: T = crystals.Tableaux(['A',2],shape=[1])
-                sage: T._latex_(color_by_label = {0:"black", 1:"red", 2:"blue"})   #optional - dot2tex graphviz
+                sage: T._latex_(color_by_label={0:"black", 1:"red", 2:"blue"})
                 '...tikzpicture...'
             """
             G = self.digraph()

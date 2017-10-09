@@ -18,12 +18,6 @@ if [ "$SAGE64" = "yes" ]; then
     export CFLAGS="-m64 $CFLAGS"
 fi
 
-CONFIGURE_FLAGS="--enable-large-config"
-if [ "$UNAME" = "CYGWIN" ]; then
-    # See https://trac.sagemath.org/ticket/22694
-    CONFIGURE_FLAGS="$CONFIGURE_FLAGS --enable-threads=posix --enable-handle-fork"
-fi
-
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" $CONFIGURE_FLAGS
 
 if [ $? -ne 0 ]; then

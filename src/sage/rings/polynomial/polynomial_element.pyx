@@ -7984,7 +7984,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         - ``self`` -- polynomial with rational or integer coefficients
 
-        - ``return_q`` -- (default ``False``) if True, return a second value `q`
+        - ``return_q`` -- (default ``False``) if ``True``, return a second value `q`
             which is the prime power with respect to which this is `q`-Weil,
             or 0 if there is no such value.
 

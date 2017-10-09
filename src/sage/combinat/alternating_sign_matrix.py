@@ -865,7 +865,7 @@ class AlternatingSignMatrix(Element):
         elif algorithm == 'link_pattern':
             from sage.combinat.perfect_matching import PerfectMatching
             from sage.combinat.dyck_word import DyckWords
-            p = PerfectMatching(self.link_pattern()).to_non_crossing_set_partition()
+            p = PerfectMatching(self.link_pattern()).to_noncrossing_set_partition()
             asm = self.to_matrix()
             n = asm.nrows()
             d = DyckWords(n)

@@ -10,19 +10,20 @@ and also [CM]_):
 AUTHOR:
 
     - Valentin Feray, 2010 : initial version
-    - Martin Rubey, 2017: inherit from SetPartition
+    - Martin Rubey, 2017: inherit from SetPartition, move crossings
+      and nestings to SetPartition
 
 EXAMPLES:
 
     Create a perfect matching::
 
         sage: m = PerfectMatching([('a','e'),('b','c'),('d','f')]);m
-        [('a', 'e'), ('c', 'b'), ('d', 'f')]
+        [('a', 'e'), ('b', 'c'), ('d', 'f')]
 
     Count its crossings, if the ground set is totally ordered::
 
         sage: n = PerfectMatching([3,8,1,7,6,5,4,2]); n
-        [(1, 3), (8, 2), (4, 7), (5, 6)]
+        [(1, 3), (2, 8), (4, 7), (5, 6)]
         sage: n.number_of_crossings()
         1
 
@@ -60,13 +61,12 @@ from sage.structure.parent import Parent
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
-from sage.combinat.permutation import Permutation
-from sage.sets.set import Set, is_Set
+from sage.combinat.permutation import Permutation, Permutations
+from sage.sets.set import Set
+from sage.combinat.partition import Partition
 from sage.misc.misc_c import prod
 from sage.matrix.constructor import matrix
-from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.set_partition import SetPartition, SetPartitions
-from sage.combinat.partition import Partition
 from sage.rings.infinity import infinity
 
 
@@ -78,9 +78,9 @@ class PerfectMatching(SetPartition):
     fixed point-free involution as follows::
 
         sage: m = PerfectMatching([('a','e'),('b','c'),('d','f')]);m
-        [('a', 'e'), ('c', 'b'), ('d', 'f')]
+        [('a', 'e'), ('b', 'c'), ('d', 'f')]
         sage: n = PerfectMatching([3,8,1,7,6,5,4,2]);n
-        [(1, 3), (8, 2), (4, 7), (5, 6)]
+        [(1, 3), (2, 8), (4, 7), (5, 6)]
         sage: isinstance(m,PerfectMatching)
         True
 
@@ -88,12 +88,12 @@ class PerfectMatching(SetPartition):
     automatically created::
 
         sage: n.parent()
-        Set of perfect matchings of {1, 2, 3, 4, 5, 6, 7, 8}
+        Perfect matchings of {1, 2, 3, 4, 5, 6, 7, 8}
 
     If the ground set is ordered, one can, for example, ask if the matching is
     non crossing::
 
-        sage: PerfectMatching([(1, 4), (2, 3), (5, 6)]).is_non_crossing()
+        sage: PerfectMatching([(1, 4), (2, 3), (5, 6)]).is_noncrossing()
         True
 
     TESTS::
@@ -101,7 +101,7 @@ class PerfectMatching(SetPartition):
         sage: m = PerfectMatching([]); m
         []
         sage: m.parent()
-        Set of perfect matchings of {}
+        Perfect matchings of {}
     """
     @staticmethod
     def __classcall_private__(cls, parts, check=True):
@@ -117,14 +117,14 @@ class PerfectMatching(SetPartition):
         EXAMPLES::
 
             sage: m = PerfectMatching([('a','e'),('b','c'),('d','f')]);m
-            [('a', 'e'), ('c', 'b'), ('d', 'f')]
+            [('a', 'e'), ('b', 'c'), ('d', 'f')]
             sage: isinstance(m, PerfectMatching)
             True
             sage: n = PerfectMatching([3, 8, 1, 7, 6, 5, 4, 2]);n
-            [(1, 3), (8, 2), (4, 7), (5, 6)]
+            [(1, 3), (2, 8), (4, 7), (5, 6)]
             sage: n.parent()
-            Set of perfect matchings of {1, 2, 3, 4, 5, 6, 7, 8}
-            sage: PerfectMatching([(1, 4), (2, 3), (5, 6)]).is_non_crossing()
+            Perfect matchings of {1, 2, 3, 4, 5, 6, 7, 8}
+            sage: PerfectMatching([(1, 4), (2, 3), (5, 6)]).is_noncrossing()
             True
 
         The function checks that the given list or permutation is a valid perfect
@@ -134,7 +134,7 @@ class PerfectMatching(SetPartition):
             sage: PerfectMatching([(1, 2, 3), (4, 5)])
             Traceback (most recent call last):
             ...
-            ValueError: [(1, 2, 3), (4, 5)] is not a valid perfect matching: all elements of the list must be pairs
+            ValueError: [(1, 2, 3), (4, 5)] is not an element of Perfect matchings of {1, 2, 3, 4, 5}
 
         If you know your datas are in a good format, use directly
         ``PerfectMatchings(objects)(data)``.
@@ -152,13 +152,13 @@ class PerfectMatching(SetPartition):
              sage: PerfectMatching([(1,2,3)])
              Traceback (most recent call last):
              ...
-             ValueError: [(1, 2, 3)] is not a valid perfect matching:
-             all elements of the list must be pairs
+             ValueError: [(1, 2, 3)] is not an element of Perfect matchings of {1, 2, 3}
+
              sage: PerfectMatching([(1,1)])
              Traceback (most recent call last):
              ...
-             ValueError: [(1, 1)] is not a valid perfect matching:
-             there are some repetitions
+             ValueError: [(1)] is not an element of Perfect matchings of {1}
+
              sage: PerfectMatching(Permutation([4,2,1,3]))
              Traceback (most recent call last):
              ...
@@ -173,7 +173,12 @@ class PerfectMatching(SetPartition):
                                  "fixed point free involution" % s)
             parts = s.to_cycles()
 
-        base_set = reduce(lambda x,y: x.union(y), map(Set, parts), Set([]))
+        try:
+            parts = map(Set, parts)
+        except TypeError:
+            raise ValueError("cannot convert p (= %s) to a PerfectMatching"%parts)
+
+        base_set = Set([e for p in parts for e in p])
         P = PerfectMatchings(base_set)
         return P.element_class(P, parts, check=check)
 
@@ -184,11 +189,11 @@ class PerfectMatching(SetPartition):
         EXAMPLES::
 
             sage: m = PerfectMatching([('a','e'),('b','c'),('d','f')]);m
-            [('a', 'e'), ('c', 'b'), ('d', 'f')]
+            [('a', 'e'), ('b', 'c'), ('d', 'f')]
             sage: n = PerfectMatching([3,8,1,7,6,5,4,2]);n
-            [(1, 3), (8, 2), (4, 7), (5, 6)]
+            [(1, 3), (2, 8), (4, 7), (5, 6)]
         """
-        return str([(a,b) for a,b in self])
+        return '[' + ', '.join(('(' + repr(sorted(x))[1:-1] + ')' for x in self)) + ']'
 
     def _latex_(self):
         r"""
@@ -225,6 +230,21 @@ class PerfectMatching(SetPartition):
         )
         return G._latex_()
 
+    def standardization(self):
+        """
+        Return the standardization of ``self``.
+
+        See :meth:`SetPartition.standardization` for details.
+
+        EXAMPLES::
+
+            sage: n = PerfectMatching([('c','b'),('d','f'),('e','a')])
+            sage: n.standardization()
+            [(1, 5), (2, 3), (4, 6)]
+
+        """
+        return PerfectMatchings(2*len(self))(SetPartition.standardization(self))
+
     def partner(self, x):
         r"""
         Returns the element in the same pair than ``x`` in the matching ``self``.
@@ -243,33 +263,6 @@ class PerfectMatching(SetPartition):
             if b == x:
                 return a
         raise ValueError("%s in not an element of the %s" % (x, self))
-
-    def conjugate_by_permutation(self, p):
-        r"""
-        This is deprecated. Use :meth:`apply_permutation` instead.
-
-        Returns the conjugate of the perfect matching ``self`` by the
-        permutation ``p`` of the ground set.
-
-        EXAMPLES::
-
-            sage: m = PerfectMatching([(1,4),(2,6),(3,5)])
-            sage: m.conjugate_by_permutation(Permutation([4,1,5,6,3,2]))
-            doctest:...: DeprecationWarning: conjugate_by_permutation is deprecated; use apply_permutation instead
-            See http://trac.sagemath.org/23982 for details.
-
-            [(1, 2), (3, 5), (4, 6)]
-
-        TESTS::
-
-            sage: PerfectMatching([]).conjugate_by_permutation(Permutation([]))
-            []
-
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(23982, "conjugate_by_permutation is deprecated; use apply_permutation instead")
-
-        return self.apply_permutation(p)
 
     def loops_iterator(self, other=None):
         r"""
@@ -405,253 +398,6 @@ class PerfectMatching(SetPartition):
             c += one
         return c
 
-    def crossings_iterator(self):
-        r"""
-        INPUT:
-
-            A perfect matching on a *totally ordered* ground set.
-
-        OUTPUT:
-
-            We place the element of a ground set and draw the perfect matching
-            by linking the elements of the same pair in the upper
-            half-plane. This function returns an iterator over the pairs of
-            crossing lines (as a line correspond to a pair, the iterator
-            produces pairs of pairs).
-
-        EXAMPLES::
-
-            sage: n = PerfectMatching([3,8,1,7,6,5,4,2]); n
-            [(1, 3), (8, 2), (4, 7), (5, 6)]
-            sage: it = n.crossings_iterator();
-            sage: next(it)
-            ((1, 3), (8, 2))
-            sage: next(it)
-            Traceback (most recent call last):
-            ...
-            StopIteration
-        """
-        x = list(self)
-        while x:
-            (i, j) = x.pop(0)
-            for (a, b) in x:
-                # if (i<a<j<b) or (i<b<j<a) or (j<a<i<b) or (j<b<i<a) or (
-                #        a<i<b<j) or (a<j<b<i) or (b<i<a<j) or (b<j<a<i):
-                labij = sorted([a, b, i, j])
-                posij = sorted([labij.index(i), labij.index(j)])
-                if posij == [0, 2] or posij == [1, 3]:
-                    yield ((i, j), (a, b))
-
-    def crossings(self):
-        r"""
-        INPUT:
-
-            A perfect matching on a *totally ordered* ground set.
-
-        OUTPUT:
-
-            We place the element of a ground set and draw the perfect matching
-            by linking the elements of the same pair in the upper
-            half-plane. This function returns the list of the pairs of
-            crossing lines (as a line correspond to a pair, it returns a list
-            of pairs of pairs).
-
-        EXAMPLES::
-
-            sage: n = PerfectMatching([3,8,1,7,6,5,4,2]); n
-            [(1, 3), (8, 2), (4, 7), (5, 6)]
-            sage: n.crossings()
-            [((1, 3), (8, 2))]
-
-        TESTS::
-
-            sage: m = PerfectMatching([]); m.crossings()
-            []
-        """
-        return list(self.crossings_iterator())
-
-    def number_of_crossings(self):
-        r"""
-        INPUT:
-
-            A perfect matching on a *totally ordered* ground set.
-
-        OUTPUT:
-
-            We place the element of a ground set and draw the perfect matching
-            by linking the elements of the same pair in the upper
-            half-plane. This function returns the number the pairs of crossing
-            lines.
-
-        EXAMPLES::
-
-            sage: n = PerfectMatching([3,8,1,7,6,5,4,2]); n
-            [(1, 3), (8, 2), (4, 7), (5, 6)]
-            sage: n.number_of_crossings()
-            1
-        """
-        c = Integer(0)
-        one = Integer(1)
-        for _ in self.crossings_iterator():
-            c += one
-        return c
-
-    def is_non_crossing(self):
-        r"""
-        INPUT:
-
-            A perfect matching on a *totally ordered* ground set.
-
-        OUTPUT:
-
-            We place the element of a ground set and draw the perfect matching
-            by linking the elements of the same pair in the upper
-            half-plane. This function returns ``True`` if the picture obtained
-            this way has no crossings.
-
-        EXAMPLES::
-
-            sage: n = PerfectMatching([3,8,1,7,6,5,4,2]); n
-            [(1, 3), (8, 2), (4, 7), (5, 6)]
-            sage: n.is_non_crossing()
-            False
-            sage: PerfectMatching([(1, 4), (2, 3), (5, 6)]).is_non_crossing()
-            True
-        """
-        it = self.crossings_iterator()
-        try:
-            next(it)
-        except StopIteration:
-            return True
-        else:
-            return False
-
-    def nestings_iterator(self):
-        r"""
-        INPUT:
-
-            A perfect matching on a *totally ordered* ground set.
-
-        OUTPUT:
-
-            We place the element of a ground set and draw the perfect matching
-            by linking the elements of the same pair in the upper
-            half-plane. This function returns an iterator over the pairs of
-            nesting lines (as a line correspond to a pair, the iterator
-            produces pairs of pairs).
-
-        EXAMPLES::
-
-            sage: n = PerfectMatching([(1, 6), (2, 7), (3, 5), (4, 8)])
-            sage: it = n.nestings_iterator();
-            sage: next(it)
-            ((1, 6), (3, 5))
-            sage: next(it)
-            ((2, 7), (3, 5))
-            sage: next(it)
-            Traceback (most recent call last):
-            ...
-            StopIteration
-        """
-        x = list(self)
-        while x:
-            (i, j) = x.pop(0)
-            for (a, b) in x:
-                # if (i<a<j<b) or (i<b<j<a) or (j<a<i<b) or (j<b<i<a) or (
-                #        a<i<b<j) or (a<j<b<i) or (b<i<a<j) or (b<j<a<i):
-                labij = sorted([a, b, i, j])
-                posij = sorted([labij.index(i), labij.index(j)])
-                if posij == [0, 3] or posij == [1, 2]:
-                    yield ((i, j), (a, b))
-
-    def nestings(self):
-        r"""
-        INPUT:
-
-            A perfect matching on a *totally ordered* ground set.
-
-        OUTPUT:
-
-            We place the element of a ground set and draw the perfect matching
-            by linking the elements of the same pair in the upper
-            half-plane. This function returns the list of the pairs of
-            nesting lines (as a line correspond to a pair, it returns a list
-            of pairs of pairs).
-
-        EXAMPLES::
-
-            sage: m = PerfectMatching([(1, 6), (2, 7), (3, 5), (4, 8)])
-            sage: m.nestings()
-            [((1, 6), (3, 5)), ((2, 7), (3, 5))]
-
-            sage: n = PerfectMatching([3,8,1,7,6,5,4,2]); n
-            [(1, 3), (8, 2), (4, 7), (5, 6)]
-            sage: n.nestings()
-            [((8, 2), (4, 7)), ((8, 2), (5, 6)), ((4, 7), (5, 6))]
-
-        TESTS::
-
-            sage: m = PerfectMatching([]); m.nestings()
-            []
-        """
-        return list(self.nestings_iterator())
-
-    def number_of_nestings(self):
-        r"""
-        INPUT:
-
-            A perfect matching on a *totally ordered* ground set.
-
-        OUTPUT:
-
-            We place the element of a ground set and draw the perfect matching
-            by linking the elements of the same pair in the upper
-            half-plane. This function returns the number the pairs of nesting
-            lines.
-
-        EXAMPLES::
-
-            sage: n = PerfectMatching([3,8,1,7,6,5,4,2]); n
-            [(1, 3), (8, 2), (4, 7), (5, 6)]
-            sage: n.number_of_nestings()
-            3
-        """
-        c = Integer(0)
-        one = Integer(1)
-        for _ in self.nestings_iterator():
-            c += one
-        return c
-
-    def is_non_nesting(self):
-        r"""
-        INPUT:
-
-            A perfect matching on a *totally ordered* ground set.
-
-        OUTPUT:
-
-            We place the element of a ground set and draw the perfect matching
-            by linking the elements of the same pair in the upper
-            half-plane. This function returns ``True`` if the picture obtained
-            this way has no nestings.
-
-        EXAMPLES::
-
-            sage: n = PerfectMatching([3,8,1,7,6,5,4,2]); n
-            [(1, 3), (8, 2), (4, 7), (5, 6)]
-            sage: n.is_non_nesting()
-            False
-            sage: PerfectMatching([(1, 3), (2, 5), (4, 6)]).is_non_nesting()
-            True
-        """
-        it = self.nestings_iterator()
-        try:
-            next(it)
-        except StopIteration:
-            return True
-        else:
-            return False
-
     def Weingarten_function(self, d, other=None):
         r"""
         Returns the Weingarten function of two pairings.
@@ -697,7 +443,7 @@ class PerfectMatching(SetPartition):
             G.add_edge((a, b))
         return G
 
-    def to_non_crossing_set_partition(self):
+    def to_noncrossing_set_partition(self):
         r"""
         Returns the noncrossing set partition (on half as many elements)
         corresponding to the perfect matching if the perfect matching is
@@ -709,23 +455,28 @@ class PerfectMatching(SetPartition):
 
         EXAMPLES::
 
-            sage: PerfectMatching([[1,3], [4,2]]).to_non_crossing_set_partition()
+            sage: PerfectMatching([[1,3], [4,2]]).to_noncrossing_set_partition()
             Traceback (most recent call last):
             ...
             ValueError: matching must be non-crossing
-            sage: PerfectMatching([[1,4], [3,2]]).to_non_crossing_set_partition()
+            sage: PerfectMatching([[1,4], [3,2]]).to_noncrossing_set_partition()
             {{1, 2}}
-            sage: PerfectMatching([]).to_non_crossing_set_partition()
+            sage: PerfectMatching([]).to_noncrossing_set_partition()
             {}
         """
-        from sage.combinat.set_partition import SetPartition
-        if not self.is_non_crossing():
+        if not self.is_noncrossing():
             raise ValueError("matching must be non-crossing")
         else:
             perm = self.to_permutation()
             perm2 = Permutation([perm[2 * i] // 2
                                  for i in range(len(perm) // 2)])
         return SetPartition(perm2.cycle_tuples())
+
+    from sage.misc.superseded import deprecated_function_alias
+    to_non_crossing_set_partition = deprecated_function_alias(23982, to_noncrossing_set_partition)
+    is_non_crossing = deprecated_function_alias(23982, SetPartition.is_noncrossing)
+    is_non_nesting = deprecated_function_alias(23982, SetPartition.is_nonnesting)
+    conjugate_by_permutation = deprecated_function_alias(23982, SetPartition.apply_permutation)
 
 class PerfectMatchings(SetPartitions):
     r"""
@@ -734,9 +485,9 @@ class PerfectMatchings(SetPartitions):
     will be transformed into `[1 .. n]`::
 
         sage: M = PerfectMatchings(6);M
-        Set of perfect matchings of {1, 2, 3, 4, 5, 6}
+        Perfect matchings of {1, 2, 3, 4, 5, 6}
         sage: PerfectMatchings([-1, -3, 1, 2])
-        Set of perfect matchings of {1, 2, -3, -1}
+        Perfect matchings of {1, 2, -3, -1}
 
     One can ask for the list, the cardinality or an element of a set of
     perfect matching::
@@ -747,7 +498,7 @@ class PerfectMatchings(SetPartitions):
         105
         sage: M = PerfectMatchings(('a', 'e', 'b', 'f', 'c', 'd'))
         sage: M.an_element()
-        [('a', 'b'), ('c', 'd'), ('e', 'f')]
+        [('a', 'c'), ('b', 'e'), ('d', 'f')]
         sage: all(PerfectMatchings(i).an_element() in PerfectMatchings(i)
         ....:      for i in range(2,11,2))
         True
@@ -830,9 +581,9 @@ class PerfectMatchings(SetPartitions):
         TESTS::
 
             sage: PerfectMatchings([-1, -3, 1, 2])
-            Set of perfect matchings of {1, 2, -3, -1}
+            Perfect matchings of {1, 2, -3, -1}
         """
-        return "Set of perfect matchings of %s"%(Set(self._set))
+        return "Perfect matchings of %s"%(Set(self._set))
 
     def __iter__(self):
         """
@@ -900,7 +651,7 @@ class PerfectMatchings(SetPartitions):
         if not all(len(p) == 2 for p in x):
             return False
 
-        base_set = reduce(lambda x,y: x.union(y), map(Set, x), Set([]))
+        base_set = Set([e for p in x for e in p])
         return len(base_set) == 2*len(x) and base_set == Set(self._set)
 
     def base_set(self):
@@ -951,20 +702,13 @@ class PerfectMatchings(SetPartitions):
 
     def random_element(self):
         r"""
-        Returns a random element of self.
-
-        ..TODO::
-
-            This really belongs to :class:`SetPartition`!
+        Return a random element of self.
 
         EXAMPLES::
 
             sage: M = PerfectMatchings(('a', 'e', 'b', 'f', 'c', 'd'))
-            sage: M.an_element()
+            sage: M.random_element()
             [('a', 'b'), ('c', 'd'), ('e', 'f')]
-            sage: all(PerfectMatchings(2*i).an_element() in PerfectMatchings(2*i)
-            ....:      for i in range(2,11,2))
-            True
 
         TESTS::
 
@@ -980,13 +724,9 @@ class PerfectMatchings(SetPartitions):
             raise ValueError("there is no perfect matching on an odd number of elements")
 
         k = n//2
-
-        from sage.combinat.permutation import Permutations
         p = Permutations(n).random_element()
         l = list(self._set)
         return self([(l[p[2*i]-1], l[p[2*i+1]-1]) for i in range(k)])
-
-    an_element = random_element
 
     @cached_method
     def Weingarten_matrix(self, N):

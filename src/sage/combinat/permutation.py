@@ -4721,7 +4721,7 @@ class Permutation(CombinatorialElement):
         if n % 2 == 1:
             raise ValueError("%s is a permutation of odd size and has no coset-type"%self)
         S = PerfectMatchings(n)([(2*i+1,2*i+2) for i in range(n//2)])
-        return S.loop_type(S.conjugate_by_permutation(self))
+        return S.loop_type(S.apply_permutation(self))
 
     #####################
     # Binary operations #

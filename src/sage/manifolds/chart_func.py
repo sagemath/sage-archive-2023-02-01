@@ -274,6 +274,8 @@ class ChartFunction(AlgebraElement):
         sage: f
         u(x, y)*v(x, y)
 
+    .. automethod:: __call__
+
     """
     def __init__(self, parent, expression=None, calc_method=None ):
         r"""
@@ -309,10 +311,12 @@ class ChartFunction(AlgebraElement):
 
         """
         AlgebraElement.__init__(self, parent)
-        self._nc = len(parent._chart[:])
+        self._chart = parent._chart
+        self._nc = len(self._chart[:])
         self._express = {}
         # set the calculation method managing
         self._calc_method = parent._chart._calc_method
+        self._simplify = self._calc_method.simplify
         if expression is not None :
             if calc_method is None :
                 calc_method = self._calc_method._current
@@ -341,7 +345,7 @@ class ChartFunction(AlgebraElement):
             True
 
         """
-        return self.parent()._chart
+        return self._chart
 
 
     def scalar_field(self, name=None, latex_name=None):
@@ -378,11 +382,10 @@ class ChartFunction(AlgebraElement):
             True
 
         """
-        alg = self.parent()._chart.domain().scalar_field_algebra()
+        alg = self._chart.domain().scalar_field_algebra()
         return alg.element_class(alg,
-                                 coord_expression={self.parent()._chart: self},
+                                 coord_expression={self._chart: self},
                                  name=name, latex_name=latex_name)
-
 
     def expr(self, method=None):
         r"""
@@ -482,42 +485,6 @@ class ChartFunction(AlgebraElement):
                     pass
             raise ValueError("no expression found for converting to {}".format(
                                                                        method))
-
-    def _simplify(self, expression=None):
-        r"""
-        Return a simplified expression from ``self`` or from the input with a
-        particular method.
-
-        INPUT:
-
-        - ``expression`` -- a symbolic expression (default: ``None``)
-
-        OUTPUT:
-
-        - a :class:`Sage symbolic expression <sage.symbolic.expression.Expression>`
-          if ``calc_method`` is ``'SR'``
-        - a SymPy object if ``calc_method`` is ``'sympy'``
-
-        TESTS::
-
-            sage: M = Manifold(2, 'M', structure='topological')
-            sage: X.<x,y> = M.chart()
-            sage: f = X.function(x^2+sin(x)^2+cos(x)^2)
-            sage: f.display()
-            (x, y) |--> x^2 + cos(x)^2 + sin(x)^2
-            sage: a = f._simplify(); a
-            x^2 + 1
-
-        Note that the method :meth:`_simplify` does not simplify the
-        class members ::
-            sage: f._express
-            {'SR': x^2 + cos(x)^2 + sin(x)^2}
-
-        """
-        if expression is None:
-            expression = self.expr()
-        return self._calc_method.simplify(expression)
-
     def set_expr(self, calc_method, expression):
         r"""
         Add an expression in a particular calculus method  ``self``.
@@ -576,7 +543,7 @@ class ChartFunction(AlgebraElement):
         """
         curr = self._calc_method._current
         if (curr == 'SR' and
-            self.parent()._chart.manifold().options.textbook_output):
+            self._chart.manifold().options.textbook_output):
             return str(ExpressionNice(self.expr(curr)))
         else:
             return str(self.expr(curr))
@@ -598,7 +565,7 @@ class ChartFunction(AlgebraElement):
         """
         curr = self._calc_method._current
         if (curr == 'SR' and
-            self.parent()._chart.manifold().options.textbook_output):
+            self._chart.manifold().options.textbook_output):
             out_expr = ExpressionNice(self._express[curr])
         else:
             out_expr = self._express[curr]
@@ -640,12 +607,12 @@ class ChartFunction(AlgebraElement):
         curr = self._calc_method._current
         expr = self.expr(curr)
         if (curr == 'SR' and
-            self.parent()._chart.manifold().options.textbook_output):
+            self._chart.manifold().options.textbook_output):
             expr = ExpressionNice(expr)
         latex_func = self._calc_method._latex_dict[curr]
-        resu_txt = str(self.parent()._chart[:]) + ' |--> ' + \
+        resu_txt = str(self._chart[:]) + ' |--> ' + \
                    str(expr)
-        resu_latex = latex_func(self.parent()._chart[:]) + r' \mapsto ' + \
+        resu_latex = latex_func(self._chart[:]) + r' \mapsto ' + \
                      latex_func(expr)
         return FormattedExpansion(resu_txt, resu_latex)
 
@@ -667,7 +634,7 @@ class ChartFunction(AlgebraElement):
         - the value `f(x^1, \ldots, x^n)`, where `f` is the current
           chart function
 
-        TESTS::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
@@ -687,18 +654,45 @@ class ChartFunction(AlgebraElement):
             sage: f.__call__(pi, 1/2)
             1
 
+        With SymPy::
+
+            sage: X.set_calculus_method('sympy')
+            sage: f(-2,3)
+            -sin(6)
+            sage: type(f(-2,3))
+            <class 'sympy.core.mul.Mul'>
+            sage: f(a,b)
+            sin(a*b)
+            sage: type(f(a,b))
+            sin
+            sage: type(f(pi,1))
+            <class 'sympy.core.numbers.Zero'>
+            sage: f(pi, 1/2)
+            1
+            sage: type(f(pi, 1/2))
+            <class 'sympy.core.numbers.One'>
+
         """
         if len(coords) != self._nc:
             raise ValueError("bad number of coordinates")
-        substitutions = dict(zip(self.parent()._chart._xx, coords))
-        resu = self.expr('SR').subs(substitutions)
+        calc = self._calc_method
+        curr = calc._current
+        if curr == 'SR':
+            xx = self._chart._xx
+            co = [calc._tranf['SR'](c) for c in coords]
+        elif curr == 'sympy':
+            xx = [x._sympy_() for x in self._chart._xx]
+            co = [calc._tranf['sympy'](c) for c in coords]
+        substitutions = dict(zip(xx, co))
+#         print("self._express: {}".format(self._express))
+        resu = self.expr(curr).subs(substitutions)
         if 'simplify' in options:
             if options['simplify']:
-                return self._calc_method.simplify(resu, method='SR')
+                return calc.simplify(resu, method=curr)
             else:
                 return resu
         else:
-            return self._calc_method.simplify(resu, method='SR')
+            return calc.simplify(resu, method=curr)
 
     def __bool__(self):
         r"""
@@ -908,17 +902,17 @@ class ChartFunction(AlgebraElement):
             # the list of partial derivatives has to be updated
             self._der = [type(self)(self.parent(),
                                     self._simplify(loc_diff(self.expr(), xx)))
-                         for xx in self.parent()._chart[:]]
+                         for xx in self._chart[:]]
         if isinstance(coord, (int, Integer)):
             # NB: for efficiency, we access directly to the "private" attributes
             # of other classes. A more conventional OOP writing would be
-            # coordsi = coord - self.parent()._chart.domain().start_index()
-            coordsi = coord - self.parent()._chart._domain._sindex
+            # coordsi = coord - self._chart.domain().start_index()
+            coordsi = coord - self._chart._domain._sindex
             if coordsi < 0 or coordsi >= self._nc:
                 raise ValueError("coordinate index out of range")
             return self._der[coordsi]
         else:
-            return self._der[self.parent()._chart[:].index(coord)]
+            return self._der[self._chart[:].index(coord)]
 
     def __eq__(self, other):
         r"""
@@ -2207,7 +2201,8 @@ class ChartFunction(AlgebraElement):
             -x
 
         """
-        self._express[self._calc_method._current] = self._simplify()
+        curr = self._calc_method._current
+        self._express[curr] = self._simplify(self.expr(curr))
         self._del_derived()
         return self
 
@@ -2464,12 +2459,9 @@ class ChartFunctionRing(Parent, UniqueRepresentation):
             sage: FR._coerce_map_from_(RR)
             True
 
-        .. TODO::
-            There is a problem with coercion with rationals
-
         """
-        from sage.rings.all import RR, ZZ
-        if other is SR or other is ZZ or other is RR:
+        from sage.rings.all import RR, ZZ, QQ
+        if other is SR or other is ZZ or other is RR or other is QQ:
             return True
         return False
 

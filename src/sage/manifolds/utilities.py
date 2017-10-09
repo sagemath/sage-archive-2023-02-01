@@ -123,29 +123,33 @@ def simplify_sqrt_real(expr):
     for i, pos in enumerate(pos_sqrts):
         # radcan is called on each sqrt:
         x = SR(the_sqrts[i])
-        argum = x.operands()[0] # the argument of sqrt
-        den = argum.denominator()
-        if not (den == 1):  # the argument of sqrt is a fraction
-            # NB: after #19312 (integrated in Sage 6.10.beta7), the above
-            # cannot be written as
-            #    if den != 1!:
-            num = argum.numerator()
-            if num < 0 or den < 0:
-                x = sqrt(-num) / sqrt(-den)  # new equivalent expression for x
-        simpl = SR(x._maxima_().radcan())
-        if str(simpl)[:5] == 'sqrt(' or str(simpl)[:7] == '1/sqrt(':
-            # no further simplification seems possible:
-            ssimpl = str(simpl)
+        operands = x.operands()
+        if not operands:  # the above SR operation performed the simplification
+            ssimpl = str(x)
         else:
-            # the absolute value of radcan's output is taken, the call to
-            # simplify() taking into account possible assumptions regarding the
-            # sign of simpl:
-            ssimpl = str(abs(simpl).simplify())
-        # search for abs(1/sqrt(...)) term to simplify it into 1/sqrt(...):
-        pstart = ssimpl.find('abs(1/sqrt(')
-        if pstart != -1: pstart = ssimpl.find('abs(1/sqrt(')
-        if pstart != -1:
-            ssimpl = ssimpl[:pstart] + ssimpl[pstart+3:] # getting rid of 'abs'
+            argum = x.operands()[0] # the argument of sqrt
+            den = argum.denominator()
+            if not (den == 1):  # the argument of sqrt is a fraction
+                # NB: after #19312 (integrated in Sage 6.10.beta7), the above
+                # cannot be written as
+                #    if den != 1:
+                num = argum.numerator()
+                if num < 0 or den < 0:
+                    x = sqrt(-num) / sqrt(-den)  # new equivalent expression for x
+            simpl = SR(x._maxima_().radcan())
+            if str(simpl)[:5] == 'sqrt(' or str(simpl)[:7] == '1/sqrt(':
+                # no further simplification seems possible:
+                ssimpl = str(simpl)
+            else:
+                # the absolute value of radcan's output is taken, the call to
+                # simplify() taking into account possible assumptions regarding the
+                # sign of simpl:
+                ssimpl = str(abs(simpl).simplify())
+            # search for abs(1/sqrt(...)) term to simplify it into 1/sqrt(...):
+            pstart = ssimpl.find('abs(1/sqrt(')
+            if pstart != -1: pstart = ssimpl.find('abs(1/sqrt(')
+            if pstart != -1:
+                ssimpl = ssimpl[:pstart] + ssimpl[pstart+3:] # getting rid of 'abs'
         new_expr += sexpr[pos0:pos] + '(' + ssimpl + ')'
         pos0 = pos_after[i]
     new_expr += sexpr[pos0:]
@@ -541,8 +545,10 @@ def simplify_chain_real_sympy(expr):
     """
     expr = expr.combsimp()
     expr = expr.trigsimp()
-    expr = simplify_sqrt_real(expr)
-    expr = simplify_abs_trig(expr)
+    if 'sqrt(' in str(expr):
+        expr = simplify_sqrt_real(expr)._sympy_()
+    if 'Abs(sin(' in str(expr):
+        expr = simplify_abs_trig(expr)._sympy_()
     expr = expr.expand()
     expr = expr.simplify()
     return expr

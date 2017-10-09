@@ -1077,7 +1077,7 @@ class ScalarField(CommutativeAlgebraElement):
         sage: s.display()
         U --> R
         (x, y) |--> x**2 + x*y - y
-        on W: (u, v) |--> -(-u**2 + v**3 + v*(u**2 - u))/(u**4 + 2*u**2*v**2 + v**4)
+        on W: (u, v) |--> -(u**2*v - u**2 - u*v + v**3)/(u**4 + 2*u**2*v**2 + v**4)
 
     ::
 
@@ -1104,9 +1104,7 @@ class ScalarField(CommutativeAlgebraElement):
         sage: s.display()
         U --> R
         (x, y) |--> 1/y
-        on W: (u, v) |--> (u**2 + v**2)/v
-
-
+        on W: (u, v) |--> u**2/v + v
 
     The test suite is passed::
 

@@ -339,7 +339,8 @@ class TensorField(ModuleElement):
         sage: b[eU,:] = [y,-1]
         sage: b.add_comp_by_continuation(eV, W, chart=c_uv)
         sage: b.display(eV)
-        b = (v**3*(2*u + 1) + v*(2*u**3 - u**2))/(u**2 + v**2) d/du - (u**4 + 2*u*v**2 - v**4)/(u**2 + v**2) d/dv
+        b = v*(2*u**3 - u**2 + 2*u*v**2 + v**2)/(u**2 + v**2) d/du
+            - (u**4 + 2*u*v**2 - v**4)/(u**2 + v**2) d/dv
 
     As a tensor field of type `(0,2)`, `t` acts on the pair `(a,b)`,
     resulting in a scalar field::
@@ -359,15 +360,15 @@ class TensorField(ModuleElement):
          differentiable manifold S^2
         sage: s.display()  # long time
         t(a,b): U --> R
-            (x, y) |--> -2*x*y - 3*x - y**2
-        on W: (u, v) |--> -(3*u**3 + 2*u*v + v**2*(3*u + 1))/(u**4 + 2*u**2*v**2 + v**4)
+           (x, y) |--> -2*x*y - 3*x - y**2
+        on W: (u, v) |--> -(3*u**3 + 3*u*v**2 + 2*u*v + v**2)/(u**4 + 2*u**2*v**2 + v**4)
         sage: s = t(a.restrict(U), b.restrict(W)) ; s  # long time
         Scalar field t(a,b) on the Open subset W of the 2-dimensional
          differentiable manifold S^2
         sage: s.display()  # long time
         t(a,b): W --> R
            (x, y) |--> -2*x*y - 3*x - y**2
-           (u, v) |--> -(3*u**3 + 2*u*v + v**2*(3*u + 1))/(u**4 + 2*u**2*v**2 + v**4)
+           (u, v) |--> -(3*u**3 + 3*u*v**2 + 2*u*v + v**2)/(u**4 + 2*u**2*v**2 + v**4)
 
     The tensor itself can be defined only on some open subset of `S^2`,
     yielding a result whose domain is this subset::

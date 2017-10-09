@@ -483,7 +483,7 @@ class ChartFunction(AlgebraElement):
             raise ValueError("no expression found for converting to {}".format(
                                                                        method))
 
-    def _simplify(self, expression=None, calc_method=None):
+    def _simplify(self, expression=None):
         r"""
         Return a simplified expression from ``self`` or from the input with a
         particular method.
@@ -491,8 +491,6 @@ class ChartFunction(AlgebraElement):
         INPUT:
 
         - ``expression`` -- a symbolic expression (default: ``None``)
-
-        - ``calc_method`` -- the used calculus method (default: ``None``)
 
         OUTPUT:
 
@@ -509,23 +507,16 @@ class ChartFunction(AlgebraElement):
             (x, y) |--> x^2 + cos(x)^2 + sin(x)^2
             sage: a = f._simplify(); a
             x^2 + 1
-            sage: type(a)
-            <type 'sage.symbolic.expression.Expression'>
-            sage: b = f._simplify(calc_method='sympy'); b
-            x**2 + 1
-            sage: type(b)
-            <class 'sympy.core.add.Add'>
 
         Note that the method :meth:`_simplify` does not simplify the
         class members ::
             sage: f._express
-            {'SR': x^2 + cos(x)^2 + sin(x)^2,
-             'sympy': x**2 + sin(x)**2 + cos(x)**2}
+            {'SR': x^2 + cos(x)^2 + sin(x)^2}
 
         """
         if expression is None:
-            expression = self.expr(method=calc_method)
-        return self._calc_method.simplify(expression, method=calc_method)
+            expression = self.expr()
+        return self._calc_method.simplify(expression)
 
     def set_expr(self, calc_method, expression):
         r"""
@@ -703,11 +694,11 @@ class ChartFunction(AlgebraElement):
         resu = self.expr('SR').subs(substitutions)
         if 'simplify' in options:
             if options['simplify']:
-                return self._simplify(resu, calc_method='SR')
+                return self._calc_method.simplify(resu, method='SR')
             else:
                 return resu
         else:
-            return self._simplify(resu, calc_method='SR')
+            return self._calc_method.simplify(resu, method='SR')
 
     def __bool__(self):
         r"""
@@ -3044,5 +3035,5 @@ class MultiCoordFunction(SageObject):
                             for j in range(self._nc)])
         det = mat_expr.det() # the unsimplified determinant
         func = self._functions[0]
-        return type(func)(func.parent(), func._simplify(det, calc_method='SR'),
+        return type(func)(func.parent(), func._calc_method.simplify(det, method='SR'),
                           calc_method=self._chart._calc_method._current)

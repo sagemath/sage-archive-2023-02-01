@@ -77,7 +77,7 @@ def column_Log(SUK, iota, U, prec=None):
 
     The log vector as a list of real numbers
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.rings.number_field.S_unit_solver import column_Log
         sage: K.<xi> = NumberField(x^3-3)
@@ -111,7 +111,7 @@ def c3_func(SUK, prec=None):
 
     The constant ``c3``, as a real number
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.rings.number_field.S_unit_solver import c3_func
         sage: K.<xi> = NumberField(x^3-3)
@@ -206,7 +206,7 @@ def beta_k(betas_and_ns):
 
     The pair ``[beta_k,v(beta_k)]``, where ``beta_k`` is an element of ``K`` and ``val_v(beta_k)`` is a integer
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.rings.number_field.S_unit_solver import beta_k
         sage: K.<xi> = NumberField(x^3-3)
@@ -243,7 +243,7 @@ def mus(SUK,v):
 
     A list ``[mus]`` where each ``mu`` is an element of ``K``
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.rings.number_field.S_unit_solver import mus
         sage: K.<xi> = NumberField(x^3-3)
@@ -281,7 +281,7 @@ def possible_mu0s(SUK,v):
 
     A list ``[mu0s]`` where each ``mu0`` is an element of ``K``
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.rings.number_field.S_unit_solver import possible_mu0s
         sage: K.<xi> = NumberField(x^3-3)
@@ -335,7 +335,7 @@ def c8_c9_func(SUK, v, A, prec=None):
 
     The constants ``c8`` and ``c9``, as real numbers
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.rings.number_field.S_unit_solver import c8_c9_func
         sage: K.<xi> = NumberField(x^3-3)

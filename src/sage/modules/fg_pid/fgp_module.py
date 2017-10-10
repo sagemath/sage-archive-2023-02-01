@@ -1555,7 +1555,7 @@ class FGP_Module_class(Module):
 
     def _pushout_(self,T):
         """
-        Return the pushout (V1 + V2) / (W1 + W2)
+        Return the pushout `(V1 + V2) / (W1 + W2)`
         
         INPUT:
         
@@ -1563,9 +1563,10 @@ class FGP_Module_class(Module):
         
         OUTPUT:
         
-        The FGP_Module which contains the sums of elements of self and T.
+        The FGP_Module which contains the sums of elements of this module and `T`.
         
         EXAMPLES::
+        
             sage: W=ZZ^2
             sage: A1 = W.submodule([[1,0]])
             sage: A2 = W.submodule([[0,1]])
@@ -1574,8 +1575,9 @@ class FGP_Module_class(Module):
             sage: T1 = A1/B1
             sage: T2 = A2/B2
             sage: T1._pushout_(T2)
-            sage: a1=T1.an_element();a2=T2.an_element()
-            sage: a1+a2
+            sage: t1=T1.an_element()
+            sage: t2=T2.an_element()
+            sage: t1+t2
             (1, 1)
         """
         if not isinstance(T,FGP_Module_class):

@@ -236,14 +236,14 @@ def Hom(X, Y, category=None, check=True):
         sage: U1 = FreeModule(ZZ,2)
         sage: U2 = FreeModule(ZZ,2,inner_product_matrix=matrix([[1,0],[0,-1]]))
         sage: U1 == U2, U1 is U2
-        (True, False)
+        (False, False)
         sage: V = ZZ^3
         sage: H1 = Hom(U1, V); H2 = Hom(U2, V)
         sage: H1 == H2, H1 is H2
-        (True, False)
+        (False, False)
         sage: H1 = Hom(V, U1); H2 = Hom(V, U2)
         sage: H1 == H2, H1 is H2
-        (True, False)
+        (False, False)
 
     Since :trac:`11900`, the meet of the categories of the given arguments is
     used to determine the default category of the homset. This can also be a

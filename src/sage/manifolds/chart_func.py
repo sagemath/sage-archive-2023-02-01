@@ -893,16 +893,17 @@ class ChartFunction(AlgebraElement):
         from sage.calculus.functional import diff
         from sage.rings.integer import Integer
         if self._der is None:
-            # depending on the calc_method use different derivative
+            # the list of partial derivatives has to be updated
             curr = self._calc_method._current
             if curr == 'SR' :
-                loc_diff = diff
+                self._der = [type(self)(self.parent(),
+                             self._simplify(diff(self.expr(), xx)))
+                             for xx in self._chart[:]]
             elif curr == 'sympy' :
-                loc_diff = sympy.diff
-            # the list of partial derivatives has to be updated
-            self._der = [type(self)(self.parent(),
-                                    self._simplify(loc_diff(self.expr(), xx)))
-                         for xx in self._chart[:]]
+                self._der = [type(self)(self.parent(),
+                             self._simplify(sympy.diff(self.expr(),
+                                                       xx._sympy_())))
+                             for xx in self._chart[:]]
         if isinstance(coord, (int, Integer)):
             # NB: for efficiency, we access directly to the "private" attributes
             # of other classes. A more conventional OOP writing would be

@@ -61,11 +61,9 @@ def _SR_to_Sympy(expression):
         True
 
     """
-    from sympy.core.function import FunctionClass
-    # first test if expression is yet Sympy
-    # I have not found an elegant way to do that (MMancini)
-    if isinstance(type(expression),FunctionClass):
-            return expression
+    # Nothing to do if expression is already a SymPy object:
+    if 'sympy.' in str(type(type(expression))):
+        return expression
     return SR(expression)._sympy_()
 
 def _Sympy_to_SR(expression):

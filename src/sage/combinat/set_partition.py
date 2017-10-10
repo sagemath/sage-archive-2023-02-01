@@ -823,7 +823,7 @@ class SetPartition(ClonableArray):
         EXAMPLES::
 
             sage: p = SetPartition([[1,4],[2,5,7],[3,6]])
-            sage: p.crossings_iterator().next()
+            sage: next(p.crossings_iterator())
             ((1, 4), (2, 5))
 
         TESTS::

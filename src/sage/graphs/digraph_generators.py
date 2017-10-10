@@ -112,34 +112,35 @@ class DiGraphGenerators():
     INPUT:
 
 
-    -  ``vertices`` - natural number
+    - ``vertices`` - natural number or ``None`` to infinitely generate
+      bigger and bigger digraphs.
 
-    -  ``property`` - any property to be tested on digraphs
-       before generation.
+    - ``property`` - any property to be tested on digraphs
+      before generation.
 
-    -  ``augment`` - choices:
+    - ``augment`` - choices:
 
-    -  ``'vertices'`` - augments by adding a vertex, and
-       edges incident to that vertex. In this case, all digraphs on up to
-       n=vertices are generated. If for any digraph G satisfying the
-       property, every subgraph, obtained from G by deleting one vertex
-       and only edges incident to that vertex, satisfies the property,
-       then this will generate all digraphs with that property. If this
-       does not hold, then all the digraphs generated will satisfy the
-       property, but there will be some missing.
+      - ``'vertices'`` - augments by adding a vertex, and
+        edges incident to that vertex. In this case, all digraphs on *up to*
+        n=vertices are generated. If for any digraph G satisfying the
+        property, every subgraph, obtained from G by deleting one vertex
+        and only edges incident to that vertex, satisfies the property,
+        then this will generate all digraphs with that property. If this
+        does not hold, then all the digraphs generated will satisfy the
+        property, but there will be some missing.
 
-    -  ``'edges'`` - augments a fixed number of vertices by
-       adding one edge In this case, all digraphs on exactly n=vertices
-       are generated. If for any graph G satisfying the property, every
-       subgraph, obtained from G by deleting one edge but not the vertices
-       incident to that edge, satisfies the property, then this will
-       generate all digraphs with that property. If this does not hold,
-       then all the digraphs generated will satisfy the property, but
-       there will be some missing.
+      - ``'edges'`` - augments a fixed number of vertices by
+        adding one edge In this case, all digraphs on *exactly* n=vertices
+        are generated. If for any graph G satisfying the property, every
+        subgraph, obtained from G by deleting one edge but not the vertices
+        incident to that edge, satisfies the property, then this will
+        generate all digraphs with that property. If this does not hold,
+        then all the digraphs generated will satisfy the property, but
+        there will be some missing.
 
-    -  ``implementation`` - which underlying implementation to use (see DiGraph?)
+    - ``implementation`` - which underlying implementation to use (see DiGraph?)
 
-    -  ``sparse`` - ignored if implementation is not ``c_graph``
+    - ``sparse`` - ignored if implementation is not ``c_graph``
 
     EXAMPLES: Print digraphs on 2 or less vertices.
 
@@ -1381,44 +1382,53 @@ class DiGraphGenerators():
 #   DiGraph Iterators
 ################################################################################
 
-    def __call__(self, vertices, property=lambda x: True, augment='edges', size=None, implementation='c_graph', sparse=True):
+    def __call__(self, vertices=None, property=lambda x: True, augment='edges',
+                 size=None, implementation='c_graph', sparse=True, copy=True):
         """
         Accesses the generator of isomorphism class representatives.
         Iterates over distinct, exhaustive representatives.
 
         INPUT:
 
+        - ``vertices`` - natural number or ``None`` to generate all digraphs
 
-        -  ``vertices`` - natural number
+        - ``property`` - any property to be tested on digraphs
+          before generation.
 
-        -  ``property`` - any property to be tested on digraphs
-           before generation.
+        - ``augment`` - choices:
 
-        -  ``augment`` - choices:
+          - ``'vertices'`` - augments by adding a vertex, and
+            edges incident to that vertex. In this case, all digraphs on up to
+            n=vertices are generated. If for any digraph G satisfying the
+            property, every subgraph, obtained from G by deleting one vertex
+            and only edges incident to that vertex, satisfies the property,
+            then this will generate all digraphs with that property. If this
+            does not hold, then all the digraphs generated will satisfy the
+            property, but there will be some missing.
 
-        -  ``'vertices'`` - augments by adding a vertex, and
-           edges incident to that vertex. In this case, all digraphs on up to
-           n=vertices are generated. If for any digraph G satisfying the
-           property, every subgraph, obtained from G by deleting one vertex
-           and only edges incident to that vertex, satisfies the property,
-           then this will generate all digraphs with that property. If this
-           does not hold, then all the digraphs generated will satisfy the
-           property, but there will be some missing.
-
-        -  ``'edges'`` - augments a fixed number of vertices by
-           adding one edge In this case, all digraphs on exactly n=vertices
-           are generated. If for any graph G satisfying the property, every
-           subgraph, obtained from G by deleting one edge but not the vertices
-           incident to that edge, satisfies the property, then this will
-           generate all digraphs with that property. If this does not hold,
-           then all the digraphs generated will satisfy the property, but
-           there will be some missing.
+          - ``'edges'`` - augments a fixed number of vertices by
+             adding one edge In this case, all digraphs on exactly n=vertices
+            are generated. If for any graph G satisfying the property, every
+            subgraph, obtained from G by deleting one edge but not the vertices
+            incident to that edge, satisfies the property, then this will
+            generate all digraphs with that property. If this does not hold,
+            then all the digraphs generated will satisfy the property, but
+            there will be some missing.
 
         -  ``implementation`` - which underlying implementation to use (see DiGraph?)
 
         -  ``sparse`` - ignored if implementation is not ``c_graph``
 
-        EXAMPLES: Print digraphs on 2 or less vertices.
+        - ``copy`` (boolean) -- If set to ``True`` (default)
+          this method makes copies of the digraphs before returning
+          them. If set to ``False`` the method returns the digraph it
+          is working on. The second alternative is faster, but modifying
+          any of the digraph instances returned by the method may break
+          the function's behaviour, as it is using these digraphs to
+          compute the next ones: only use ``copy = False`` when
+          you stick to *reading* the digraphs returned.
+
+      EXAMPLES: Print digraphs on 2 or less vertices.
 
         ::
 
@@ -1454,17 +1464,30 @@ class DiGraphGenerators():
           Journal of Algorithms Volume 26, Issue 2, February 1998,
           pages 306-324.
         """
+        from copy import copy as copyfun
         if size is not None:
             extra_property = lambda x: x.size() == size
         else:
             extra_property = lambda x: True
         if augment == 'vertices':
+            if vertices is None:
+                raise NotImplementedError
+
             from sage.graphs.graph_generators import canaug_traverse_vert
             g = DiGraph(implementation=implementation, sparse=sparse)
             for gg in canaug_traverse_vert(g, [], vertices, property, dig=True, implementation=implementation, sparse=sparse):
                 if extra_property(gg):
-                    yield gg
+                    yield copyfun(gg) if copy else gg
+
         elif augment == 'edges':
+
+            if vertices is None:
+                vertices = 0
+                while True:
+                    for g in self(vertices, implementation=implementation, sparse=sparse, copy=copy):
+                        yield g
+                    vertices += 1
+
             from sage.graphs.graph_generators import canaug_traverse_edge
             g = DiGraph(vertices, implementation=implementation, sparse=sparse)
             gens = []
@@ -1475,7 +1498,7 @@ class DiGraphGenerators():
                 gens.append(gen)
             for gg in canaug_traverse_edge(g, gens, property, dig=True, implementation=implementation, sparse=sparse):
                 if extra_property(gg):
-                    yield gg
+                    yield copyfun(gg) if copy else gg
         else:
             raise NotImplementedError()
 

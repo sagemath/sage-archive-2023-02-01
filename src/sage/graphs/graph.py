@@ -7875,24 +7875,24 @@ class Graph(GenericGraph):
 
 
 _additional_categories = {
-    Graph.is_long_hole_free         : "Graph properties",
-    Graph.is_long_antihole_free     : "Graph properties",
-    Graph.is_weakly_chordal         : "Graph properties",
-    Graph.is_asteroidal_triple_free : "Graph properties",
-    Graph.chromatic_polynomial      : "Algorithmically hard stuff",
-    Graph.rank_decomposition        : "Algorithmically hard stuff",
-    Graph.pathwidth                 : "Algorithmically hard stuff",
-    Graph.matching_polynomial       : "Algorithmically hard stuff",
-    Graph.cliques_maximum           : "Clique-related methods",
-    Graph.random_spanning_tree      : "Connectivity, orientations, trees",
-    Graph.is_cartesian_product      : "Graph properties",
-    Graph.is_distance_regular       : "Graph properties",
-    Graph.is_strongly_regular       : "Graph properties",
-    Graph.is_line_graph             : "Graph properties",
-    Graph.is_partial_cube           : "Graph properties",
-    Graph.tutte_polynomial          : "Algorithmically hard stuff",
-    Graph.lovasz_theta              : "Leftovers",
-    Graph.strong_orientations_iterator : "Orientations"
+    "is_long_hole_free"         : "Graph properties",
+    "is_long_antihole_free"     : "Graph properties",
+    "is_weakly_chordal"         : "Graph properties",
+    "is_asteroidal_triple_free" : "Graph properties",
+    "chromatic_polynomial"      : "Algorithmically hard stuff",
+    "rank_decomposition"        : "Algorithmically hard stuff",
+    "pathwidth"                 : "Algorithmically hard stuff",
+    "matching_polynomial"       : "Algorithmically hard stuff",
+    "all_max_cliques"           : "Clique-related methods",
+    "random_spanning_tree"      : "Connectivity, orientations, trees",
+    "is_cartesian_product"      : "Graph properties",
+    "is_distance_regular"       : "Graph properties",
+    "is_strongly_regular"       : "Graph properties",
+    "is_line_graph"             : "Graph properties",
+    "is_partial_cube"           : "Graph properties",
+    "tutte_polynomial"          : "Algorithmically hard stuff",
+    "lovasz_theta"              : "Leftovers",
+    "strong_orientations_iterator" : "Connectivity, orientations, trees"
     }
 
 __doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))

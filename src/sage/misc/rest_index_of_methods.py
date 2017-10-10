@@ -288,10 +288,19 @@ def gen_thematic_rest_table_index(root,additional_categories=None,only_local_fun
     functions,names = list_of_subfunctions(root,only_local_functions=only_local_functions)
     theme_to_function = defaultdict(list)
     for f in functions:
-        theme_to_function[getattr(f,"doc_index",additional_categories.get(f,"Unsorted"))].append(f)
+        if hasattr(f, 'doc_index'):
+            doc_ind = f.doc_index
+        else:
+            try:
+                doc_ind = additional_categories.get(f.__func__.__name__,
+                                                    "Unsorted")
+            except AttributeError:
+                doc_ind = "Unsorted"
+        theme_to_function[doc_ind].append(f)
     s = ["**"+theme+"**\n\n"+gen_rest_table_index(list_of_functions,names=names)
          for theme, list_of_functions in sorted(theme_to_function.items())]
     return "\n\n".join(s)
+
 
 def doc_index(name):
     r"""

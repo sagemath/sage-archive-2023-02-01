@@ -62,7 +62,7 @@ def _SR_to_Sympy(expression):
 
     """
     # Nothing to do if expression is already a SymPy object:
-    if 'sympy.' in str(type(type(expression))):
+    if type(expression) in  sympy.core.all_classes:
         return expression
     return SR(expression)._sympy_()
 

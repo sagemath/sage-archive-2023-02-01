@@ -823,8 +823,8 @@ class ScalarField(CommutativeAlgebraElement):
         Scalar field f-c on the 2-dimensional topological manifold M
         sage: s.display()
         f-c: M --> R
-        on U: (x, y) |--> -(a*x**2 + a*y**2 + a - 1)/(x**2 + y**2 + 1)
-        on V: (u, v) |--> -(a*u**2 + a*v**2 + a - u**2 - v**2)/(u**2 + v**2 + 1)
+        on U: (x, y) |--> (-a*x**2 - a*y**2 - a + 1)/(x**2 + y**2 + 1)
+        on V: (u, v) |--> (-a*u**2 - a*v**2 - a + u**2 + v**2)/(u**2 + v**2 + 1)
 
     Some tests::
 
@@ -1010,7 +1010,8 @@ class ScalarField(CommutativeAlgebraElement):
         sage: s.display()
         U --> R
         (x, y) |--> x**2 + x*y - y
-        on W: (u, v) |--> -(u**2*v - u**2 - u*v + v**3)/(u**4 + 2*u**2*v**2 + v**4)
+        on W: (u, v) |--> (-u**2*v + u**2 + u*v - v**3)/(u**4 + 2*u**2*v**2 + v**4)
+
 
     ::
 

@@ -320,8 +320,8 @@ class TensorField(ModuleElement):
 
         sage: t.display(eV)  # long time
         t = (u**4 - 4*u**3*v + 10*u**2*v**2 + 4*u*v**3 + v**4)/(u**8 +
-        4*u**6*v**2 + 6*u**4*v**4 + 4*u**2*v**6 + v**8) du*du -
-        4*u*v*(u**2 + 2*u*v - v**2)/(u**8 + 4*u**6*v**2 + 6*u**4*v**4
+        4*u**6*v**2 + 6*u**4*v**4 + 4*u**2*v**6 + v**8) du*du +
+        4*u*v*(-u**2 - 2*u*v + v**2)/(u**8 + 4*u**6*v**2 + 6*u**4*v**4
         + 4*u**2*v**6 + v**8) du*dv + 2*(u**4 - 2*u**3*v - 2*u**2*v**2
         + 2*u*v**3 + v**4)/(u**8 + 4*u**6*v**2 + 6*u**4*v**4 +
         4*u**2*v**6 + v**8) dv*du + (3*u**4 + 4*u**3*v - 2*u**2*v**2 -
@@ -340,7 +340,7 @@ class TensorField(ModuleElement):
         sage: b.add_comp_by_continuation(eV, W, chart=c_uv)
         sage: b.display(eV)
         b = v*(2*u**3 - u**2 + 2*u*v**2 + v**2)/(u**2 + v**2) d/du
-            - (u**4 + 2*u*v**2 - v**4)/(u**2 + v**2) d/dv
+            + (-u**4 - 2*u*v**2 + v**4)/(u**2 + v**2) d/dv
 
     As a tensor field of type `(0,2)`, `t` acts on the pair `(a,b)`,
     resulting in a scalar field::

@@ -84,4 +84,9 @@ sdh_make_install() {
 }
 
 
+sdh_pip_install() {
+    sage-pip-install "$@"
+}
+
+
 set +o allexport

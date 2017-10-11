@@ -6,4 +6,4 @@ fi
 
 cd src/
 
-$PIP_INSTALL .
+sdh_pip_install .

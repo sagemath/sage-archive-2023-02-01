@@ -237,11 +237,11 @@ Python-based packages
 The best way to install a Python-based package is to use pip, in which
 case the ``spkg-install`` script might just consist of ::
 
-    cd src && $PIP_INSTALL .
+    cd src && sdh_pip_install .
 
-Where ``$PIP_INSTALL`` is a variable provided by Sage that points to the
-correct ``pip`` for the Python used by Sage, and includes some default flags
-needed for correct installation into Sage.
+Where ``sdh_pip_install`` is a function provided by ``sage-dist-helpers`` that
+points to the correct ``pip`` for the Python used by Sage, and includes some
+default flags needed for correct installation into Sage.
 
 If pip will not work but a command like ``python setup.py install``
 will, then the ``spkg-install`` script should call ``sage-python23``

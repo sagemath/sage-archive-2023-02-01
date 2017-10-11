@@ -48,7 +48,27 @@
 set -o allexport
 
 
-sdh_die () {
+# Utility function to get the terminal width in columns
+# Returns 80 by default if nothing else works
+_sdh_cols() {
+    local cols="${COLUMNS:-$(tput cols 2>/dev/null)}"
+    if [ "$?" -ne 0 -o -z "$cols" ]; then
+        # If we can't get the terminal width any other way just default to 90
+        cols=80
+    fi
+    echo $cols
+}
+
+
+# Utility function to print a terminal-width horizonal rule using the given
+# character (or '-' by default)
+_sdh_hr() {
+    local char="${1:--}"
+    printf '%*s\n' $(_sdh_cols) '' | tr ' ' "${char}"
+}
+
+
+sdh_die() {
     local ret=$?
     local msg
     if [ $# -gt 0 ]; then
@@ -58,9 +78,9 @@ sdh_die () {
     fi
 
     if [ $ret -ne 0 ]; then
-        echo >&2 "************************************************************"
-        echo >&2 "$msg"
-        echo >&2 "************************************************************"
+        _sdh_hr >&2 '*'
+        echo "$msg" | fmt -w $(_sdh_cols)
+        _sdh_hr >&2 '*'
         exit $ret
     fi
 }

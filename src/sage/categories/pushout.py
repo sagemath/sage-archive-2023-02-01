@@ -2226,7 +2226,14 @@ class SubspaceFunctor(ConstructionFunctor):
 
 class QuotientModuleFunctor(ConstructionFunctor):
     """
-    Constructing a subspace of an ambient free module, given by a basis.
+    Construct the quotient of two submodule functors.
+    
+    Input:
+    
+    - ``cover`` -- a SubModuleFunctor or VectorFunctor
+    - ``relations` -- a SubModuleFunctor or VectorFunctor
+    
+    We assume that relations defines a submodule of cover
 
     NOTE:
 
@@ -2238,24 +2245,30 @@ class QuotientModuleFunctor(ConstructionFunctor):
     """
     rank = 11 # ranking of functor, not rank of module
 
-    # The subspace construction returns an object admitting a coercion
-    # map into the original, not vice versa.
-    #coercion_reversed = True?????
-
     def __init__(self, cover, relations):
         """
-        INPUT:
-
-        ``cover``: a subspace functor.
-        ``relations``: a subspace functor which defines a subspace of ``cover``.
+        initialization of the functor
 
         TESTS::
 
         """
         #I have no idea what this does.
         Functor.__init__(self, CommutativeAdditiveGroups(), CommutativeAdditiveGroups())
-        self.cover = cover
-        self.relations = relations
+        def vector_to_subSpace(F):
+            #Turn F into a SubspaceFunctor if it is ambient.
+            #or return F if not
+            if isinstance(F, VectorFunctor):
+                from sage.rings.integer_ring import ZZ
+                from sage.modules.free_module import FreeModule
+                n = F.n
+                basis = FreeModule(ZZ,n).basis()
+                F = SubspaceFunctor(basis)
+            if isinstance(F, SubspaceFunctor):
+                return F
+            else:
+                raise ValueError("Cover and relations must be vector or subspace functors")
+        self.cover = vector_to_subSpace(cover)
+        self.relations = vector_to_subSpace(relations)
         
 
     def _apply_functor(self, ambient):
@@ -2270,6 +2283,7 @@ class QuotientModuleFunctor(ConstructionFunctor):
             sage: D=B/C
             sage: F=D.construction()[0]
             sage: D==F(D.construction()[1])
+            True
         """
         V = self.cover(ambient)
         W = self.relations(ambient)
@@ -2278,18 +2292,17 @@ class QuotientModuleFunctor(ConstructionFunctor):
     def _apply_functor_to_morphism(self, f):
         """
         This is not implemented yet.
-
-        TESTS::
         """
         raise NotImplementedError("Can not create morphisms of quotient modules yet")
 
     def __eq__(self, other):
         """
         The quotient functor is equal if the two defining subspace functors are. 
+        
+        EXA
         """
         if not isinstance(other, QuotientModuleFunctor):
             return False
-
         return self.cover == other.cover and self.relations == other.relations
 
 
@@ -2299,7 +2312,7 @@ class QuotientModuleFunctor(ConstructionFunctor):
 
         EXAMPLES::
 
-            sage: F1 = (GF(5)^3).span([(1,2,3),(4,5,6)]).construction()[0]
+            sage: F1 = ((ZZ^3)/(2*ZZ^3)).construction()[0]
             sage: F1 != loads(dumps(F1))
             False
         """
@@ -2308,14 +2321,34 @@ class QuotientModuleFunctor(ConstructionFunctor):
     def merge(self, other):
         """
         Two Quotient Module Functors are merged into another quotient functor.
-
+        
+        EXAMPLES::
+            
+            sage: A = ZZ^3
+            sage: A1 = A.submodule([A.0])
+            sage: A2 = A.submodule([A.1, 2*A.0])
+            sage: B1 = A.submodule([])
+            sage: B2 = A.submodule([2*A.0])
+            sage: Q1 = A1/B1
+            sage: Q2 = A2/B2
+            sage: F1 = Q1.construction()[0]
+            sage: F2 = Q2.construction()[0]
+            sage: F3 = F1.merge(F2)
+            sage: q1 = Q1.an_element()
+            sage: q1
+            (1)
+            sage: q2 = Q2.an_element()
+            sage: q2
+            (1)
+            sage: q3 = q1 + q2
+            sage: q3
+            (1, 1)
+            sage: q3.parent() == F3(Q1.construction()[1])
+            True
         """
         if isinstance(other, QuotientModuleFunctor):
-            # in order to remove linear dependencies, and in
-            # order to test compatibility of the base rings,
-            # we try to construct a sample submodule
             sum_cover = self.cover.merge(other.cover)
-            sum_relations =self.relations.merge(other.relations)
+            sum_relations = self.relations.merge(other.relations)
             return(QuotientModuleFunctor(sum_cover, sum_relations))
         
         

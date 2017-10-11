@@ -1574,10 +1574,10 @@ class FGP_Module_class(Module):
         """
         from sage.categories.pushout import QuotientModuleFunctor
         #We do not want Vector functors rather subspace functors.
-        if self.cover().is_ambient():
-            cover = self.cover().span(self.cover().gens())
-        if self.relations().is_ambient():
-            rels = self.relations().span(self.relations().gens())
+        #if self.cover().is_ambient():
+        #    cover = self.cover().span(self.cover().gens())
+        #if self.relations().is_ambient():
+        #    rels = self.relations().span(self.relations().gens())
         Fcover = self.cover().construction()[0]
         Frels = self.relations().construction()[0]
         return QuotientModuleFunctor(Fcover,Frels),self.cover().ambient_module()

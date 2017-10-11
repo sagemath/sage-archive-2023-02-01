@@ -1553,19 +1553,12 @@ class FGP_Module_class(Module):
             b = V(a) * B
             yield self(b)
 
-    def _pushout_(self,T):
+    def construction(self):
         """
-        Return the pushout `(V1 + V2) / (W1 + W2)`
+        Return the construction functor blabla
         
-        INPUT:
         
-        - ``T`` -- an FGP_Module living in the same ambient vector space
-        
-        OUTPUT:
-        
-        The FGP_Module which contains the sums of elements of this module and `T`.
-        
-        EXAMPLES::
+        TESTS::
         
             sage: W=ZZ^2
             sage: A1 = W.submodule([[1,0]])
@@ -1574,19 +1567,20 @@ class FGP_Module_class(Module):
             sage: B2 = W.submodule([[0,2]])
             sage: T1 = A1/B1
             sage: T2 = A2/B2
-            sage: T1._pushout_(T2)
             sage: t1=T1.an_element()
             sage: t2=T2.an_element()
             sage: t1+t2
             (1, 1)
         """
-        if not isinstance(T,FGP_Module_class):
-            return None
-        if not self.V().ambient_vector_space()==T.V().ambient_vector_space():
-            return None
-        V = self.V() + T.V()
-        W = self.W() + T.W()
-        return self._module_constructor(V,W)
+        from sage.categories.pushout import QuotientModuleFunctor
+        #We do not want Vector functors rather subspace functors.
+        if self.cover().is_ambient():
+            cover = self.cover().span(self.cover().gens())
+        if self.relations().is_ambient():
+            rels = self.relations().span(self.relations().gens())
+        Fcover = self.cover().construction()[0]
+        Frels = self.relations().construction()[0]
+        return QuotientModuleFunctor(Fcover,Frels),self.cover().ambient_module()
         
             
             

@@ -2224,6 +2224,101 @@ class SubspaceFunctor(ConstructionFunctor):
         else:
             return None
 
+class QuotientModuleFunctor(ConstructionFunctor):
+    """
+    Constructing a subspace of an ambient free module, given by a basis.
+
+    NOTE:
+
+    This construction functor keeps track of two basises. It can only be applied
+    to free modules into which both basis coerces.
+
+    EXAMPLES::
+
+    """
+    rank = 11 # ranking of functor, not rank of module
+
+    # The subspace construction returns an object admitting a coercion
+    # map into the original, not vice versa.
+    #coercion_reversed = True?????
+
+    def __init__(self, cover, relations):
+        """
+        INPUT:
+
+        ``cover``: a subspace functor.
+        ``relations``: a subspace functor which defines a subspace of ``cover``.
+
+        TESTS::
+
+        """
+        #I have no idea what this does.
+        Functor.__init__(self, CommutativeAdditiveGroups(), CommutativeAdditiveGroups())
+        self.cover = cover
+        self.relations = relations
+        
+
+    def _apply_functor(self, ambient):
+        """
+        Apply the functor to an object of ``self``'s domain.
+
+        TESTS::
+
+            sage: A=ZZ^3
+            sage: B=2*A 
+            sage: C=4*A
+            sage: D=B/C
+            sage: F=D.construction()[0]
+            sage: D==F(D.construction()[1])
+        """
+        V = self.cover(ambient)
+        W = self.relations(ambient)
+        return V.quotient(W, check=False)
+
+    def _apply_functor_to_morphism(self, f):
+        """
+        This is not implemented yet.
+
+        TESTS::
+        """
+        raise NotImplementedError("Can not create morphisms of quotient modules yet")
+
+    def __eq__(self, other):
+        """
+        The quotient functor is equal if the two defining subspace functors are. 
+        """
+        if not isinstance(other, QuotientModuleFunctor):
+            return False
+
+        return self.cover == other.cover and self.relations == other.relations
+
+
+    def __ne__(self, other):
+        """
+        Check whether ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: F1 = (GF(5)^3).span([(1,2,3),(4,5,6)]).construction()[0]
+            sage: F1 != loads(dumps(F1))
+            False
+        """
+        return not (self == other)
+
+    def merge(self, other):
+        """
+        Two Quotient Module Functors are merged into another quotient functor.
+
+        """
+        if isinstance(other, QuotientModuleFunctor):
+            # in order to remove linear dependencies, and in
+            # order to test compatibility of the base rings,
+            # we try to construct a sample submodule
+            sum_cover = self.cover.merge(other.cover)
+            sum_relations =self.relations.merge(other.relations)
+            return(QuotientModuleFunctor(sum_cover, sum_relations))
+        
+        
 class FractionField(ConstructionFunctor):
     """
     Construction functor for fraction fields.

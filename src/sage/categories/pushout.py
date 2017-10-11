@@ -2241,7 +2241,17 @@ class QuotientModuleFunctor(ConstructionFunctor):
     to free modules into which both basis coerces.
 
     EXAMPLES::
-
+    
+        sage: A = ZZ^2 
+        sage: B = 2*ZZ^2
+        sage: Q = A/B
+        sage: F = Q.construction()[0]
+        sage: F
+        QuotientModuleFunctor
+        sage: F(B) == Q
+        True
+        sage: F(B.ambient_module()) == Q
+        True
     """
     rank = 11 # ranking of functor, not rank of module
 
@@ -2250,7 +2260,14 @@ class QuotientModuleFunctor(ConstructionFunctor):
         initialization of the functor
 
         TESTS::
-
+        
+            sage: from sage.categories.pushout import QuotientModuleFunctor
+            sage: A = ZZ^2 
+            sage: B = 2*ZZ^2
+            sage: FA = A.construction()[0]
+            sage: FB = B.construction()[0]
+            sage: QuotientModuleFunctor(FA,FB)
+            QuotientModuleFunctor
         """
         #I have no idea what this does.
         Functor.__init__(self, CommutativeAdditiveGroups(), CommutativeAdditiveGroups())
@@ -2299,7 +2316,11 @@ class QuotientModuleFunctor(ConstructionFunctor):
         """
         The quotient functor is equal if the two defining subspace functors are. 
         
-        EXA
+        EXAMPLES::
+        
+            sage: F1 = ((ZZ^3)/(2*ZZ^3)).construction()[0]
+            sage: F1 != loads(dumps(F1))
+            False
         """
         if not isinstance(other, QuotientModuleFunctor):
             return False

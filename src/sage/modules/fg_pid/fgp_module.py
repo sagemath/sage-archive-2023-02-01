@@ -1555,8 +1555,7 @@ class FGP_Module_class(Module):
 
     def construction(self):
         """
-        Return the construction functor blabla
-        
+        The construction functor and ambient module for self.
         
         TESTS::
         

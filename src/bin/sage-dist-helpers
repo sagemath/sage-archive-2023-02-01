@@ -30,6 +30,12 @@
 #
 #    Runs `$SAGE_SUDO $MAKE install`.  Additional arguments to `make` may be
 #    given as arguments.
+#
+# - sdh_pip_install [...]
+#
+#    Runs `pip install` with the given arguments, as well as additional
+#    default arguments used for installing packages into Sage with pip.
+#    Currently this is just a wrapper around the `sage-pip-install` command.
 
 set -o allexport
 

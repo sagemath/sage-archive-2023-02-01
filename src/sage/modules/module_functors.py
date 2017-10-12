@@ -11,9 +11,14 @@
 ##############################################################
 # Construction functor for quotient modules
 ##############################################################
+"""
 AUTHOR:
     - Travis Scrimshaw, 2017
-    
+"""
+
+from sage.categories.pushout import ConstructionFunctor
+from sage.categories.modules import Modules
+
 class QuotientModuleFunctor(ConstructionFunctor):
     r"""
     Construct the quotient of a module by a submodule.
@@ -73,7 +78,7 @@ class QuotientModuleFunctor(ConstructionFunctor):
 
         TESTS::
 
-            sage: from sage.modules.fg_pid.fgp_module import QuotientModuleFunctor
+            sage: from sage.modules.module_functors import QuotientModuleFunctor
             sage: B = (2/3)*ZZ^2
             sage: F = QuotientModuleFunctor(B)
             sage: TestSuite(F).run()

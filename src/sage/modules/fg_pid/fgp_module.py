@@ -1695,14 +1695,16 @@ class QuotientModuleFunctor(ConstructionFunctor):
         QuotientModuleFunctor
         sage: F(A) == Q
         True
+        
+    The modules are constructed from the cover not the ambient module::
+    
         sage: F(B.ambient_module()) == Q
-        True
+        False
 
     We can construct quotients from different modules::
 
-        sage: F((1/2)ZZ^2)
-        Finitely generated module V/W over Integer Ring with invariants (2, 2)
-        sage: F(2*ZZ^2)
+        sage: F((1/2)*ZZ^2)
+        Finitely generated module V/W over Integer Ring with invariants (4, 4)
         sage: F(ZZ^2)
         Finitely generated module V/W over Integer Ring with invariants (2, 2)
         sage: F(2*ZZ^2)

@@ -1,5 +1,14 @@
+"""
+Module Functors
+
+AUTHORS:
+
+- Travis Scrimshaw (2017-10): Initial implementation of
+  :class:`QuotientModuleFunctor`
+"""
+
 #*****************************************************************************
-#       Copyright (C) Travis Scrimshaw 
+#       Copyright (C) 2017 Travis Scrimshaw <tcscrims at gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -11,10 +20,6 @@
 ##############################################################
 # Construction functor for quotient modules
 ##############################################################
-"""
-AUTHOR:
-    - Travis Scrimshaw, 2017
-"""
 
 from sage.categories.pushout import ConstructionFunctor
 from sage.categories.modules import Modules
@@ -174,6 +179,12 @@ class QuotientModuleFunctor(ConstructionFunctor):
             sage: q3 = Q1.an_element() + Q2.an_element()
             sage: q3.parent() == F3(A1 + A2)
             True
+
+            sage: G = A1.construction()[0]; G
+            SubspaceFunctor
+            sage: F1.merge(G)
+            sage: F2.merge(G)
         """
         if isinstance(other, QuotientModuleFunctor):
             return QuotientModuleFunctor(self._relations + other._relations)
+

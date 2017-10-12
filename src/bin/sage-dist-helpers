@@ -79,7 +79,7 @@ sdh_die() {
 
     if [ $ret -ne 0 ]; then
         _sdh_hr >&2 '*'
-        echo "$msg" | fmt -w $(_sdh_cols)
+        echo "$msg" | fmt -s -w $(_sdh_cols)
         _sdh_hr >&2 '*'
         exit $ret
     fi

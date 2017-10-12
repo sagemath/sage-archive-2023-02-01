@@ -1673,7 +1673,7 @@ class FGP_Module_class(Module):
 
 class QuotientModuleFunctor(ConstructionFunctor):
     r"""
-    Construct the quotient of two submodule functors.
+    Construct the quotient of a module by a submodule.
 
     INPUT:
 
@@ -1687,7 +1687,7 @@ class QuotientModuleFunctor(ConstructionFunctor):
 
     EXAMPLES::
 
-        sage: A = ZZ^2
+        sage: A = (1/2)*ZZ^2
         sage: B = 2*ZZ^2
         sage: Q = A / B
         sage: F = Q.construction()[0]
@@ -1698,8 +1698,11 @@ class QuotientModuleFunctor(ConstructionFunctor):
         sage: F(B.ambient_module()) == Q
         True
 
-    We can construct quotients from different ambient spaces::
+    We can construct quotients from different modules::
 
+        sage: F((1/2)ZZ^2)
+        Finitely generated module V/W over Integer Ring with invariants (2, 2)
+        sage: F(2*ZZ^2)
         sage: F(ZZ^2)
         Finitely generated module V/W over Integer Ring with invariants (2, 2)
         sage: F(2*ZZ^2)
@@ -1726,7 +1729,7 @@ class QuotientModuleFunctor(ConstructionFunctor):
         TESTS::
 
             sage: from sage.modules.fg_pid.fgp_module import QuotientModuleFunctor
-            sage: B = 2*ZZ^2
+            sage: B = (2/3)*ZZ^2
             sage: F = QuotientModuleFunctor(B)
             sage: TestSuite(F).run()
         """

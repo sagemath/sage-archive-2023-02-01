@@ -1180,7 +1180,7 @@ cdef class Expression(CommutativeRingElement):
             -3.00000000000000
             sage: cos(I)._eval_self(RR)
             1.54308063481524
-            sage: float(cos(I))
+            sage: float(cos(I))  # abs tol 1e-15
             1.5430806348152437
 
         TESTS::

@@ -6,7 +6,7 @@ fi
 
 cd src
 
-sdh_pip_install .
+$PIP_INSTALL .
 
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing dot2tex."

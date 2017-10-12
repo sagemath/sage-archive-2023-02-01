@@ -88,11 +88,10 @@ sdh_die() {
 
 sdh_check_vars() {
     while [ -n "$1" ]; do
-        if [ -z "$(eval "echo "\${${1}+isset}"")" ]; then
-            echo >&2 "${1} undefined ... exiting"
-            echo >&2 "Maybe run 'sage --sh'?"
-            exit 1
-        fi
+        [ -n "$(eval "echo "\${${1}+isset}"")" ] || sdh_die << _EOF_
+${1} undefined ... exiting
+Maybe run 'sage --sh'?
+_EOF_
         shift
     done
 }

@@ -91,7 +91,13 @@ sdh_make_install() {
 
 
 sdh_pip_install() {
-    sage-pip-install "$@"
+    local ret
+    $SAGE_SUDO sage-pip-install "$@"
+    ret=$?
+    if [ $ret -ne 0 ]; then
+        echo >&2 "Error installing $PKG_NAME"
+        exit $ret
+    fi
 }
 
 

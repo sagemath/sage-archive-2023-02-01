@@ -1907,6 +1907,7 @@ class Graph(GenericGraph):
             sage: graphs.CycleGraph(5).is_cograph()  # Self-complemented
             False
         """
+        self._scream_if_not_simple()
         if self.order() < 4:
             return True
         if self.density()*2 > 1:

@@ -1884,6 +1884,39 @@ class Graph(GenericGraph):
         return all(self.is_clique(vertices=block) for block in B)
 
     @doc_index("Graph properties")
+    def is_cograph(self):
+        """
+        Test whether the graph is cograph.
+
+        A cograph is defined recursively: the single-vertex graph is
+        cograph, complement of cograph is cograph, and disjoint union
+        of two cographs is cograph. There are many other
+        characterizations, see :wikipedia:`Cograph`.
+
+        EXAMPLES::
+
+            sage: graphs.HouseXGraph().is_cograph()
+            True
+            sage: graphs.HouseGraph().is_cograph()
+            False
+
+        TESTS::
+
+            sage: [graphs.PathGraph(i).is_cograph() for i in range(6)]
+            [True, True, True, True, False, False]
+            sage: graphs.CycleGraph(5).is_cograph()  # Self-complemented
+            False
+        """
+        if self.order() < 4:
+            return True
+        if self.density()*2 > 1:
+            return self.complement().is_cograph()
+        if not self.is_connected():
+            return all(part.is_cograph() for part in self.connected_components_subgraphs())
+        P4 = Graph({0: [1], 1: [2], 2: [3]})
+        return self.subgraph_search(P4, induced=True) is None
+
+    @doc_index("Graph properties")
     def is_apex(self):
         """
         Test if the graph is apex.
@@ -7113,7 +7146,7 @@ class Graph(GenericGraph):
 
         if self.order() == 0:
             return tuple()
-        
+
         D = modular_decomposition(self)
 
         id_label = dict(enumerate(self.vertices()))

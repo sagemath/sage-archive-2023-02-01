@@ -109,7 +109,11 @@ if __name__ == "__main__":
             try:
                 resource.setrlimit(resource.RLIMIT_AS, (memlimit, hard))
             except ValueError:
-                pass
+                if sys.platform != 'cygwin':
+                    # RLIMIT_AS is not currently supported on Cygwin so
+                    # this will probably fail there:
+                    # https://trac.sagemath.org/ticket/23979
+                    raise
 
     # Limit the number of OMP threads to 2 to save system resources
     # See Trac #23892

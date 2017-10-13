@@ -358,9 +358,9 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         cdef Py_ssize_t i, j, len_v, len_w
         cdef Matrix_generic_sparse other
         other = <Matrix_generic_sparse> _other
-        cdef list v = self._entries.items()
+        cdef list v = list(self._entries.items())
         v.sort()
-        cdef list w = other._entries.items()
+        cdef list w = list(other._entries.items())
         w.sort()
         s = {}
         i = 0  # pointer into self

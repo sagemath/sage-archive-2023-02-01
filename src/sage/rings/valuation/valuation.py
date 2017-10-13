@@ -151,38 +151,6 @@ class DiscretePseudoValuation(Morphism):
         """
         return id(self)
 
-    def _cmp_(self, other):
-        r"""
-        Compare this element to ``other``.
-
-        Since there is no reasonable total order on valuations, this method
-        just throws an exception.
-
-        EXAMPLES:
-
-        However, comparison with the operators ``>`` and ``<`` might still work
-        when they can fall back to the implementation through ``>=`` and
-        ``<=``::
-
-            sage: v = QQ.valuation(2)
-            sage: v > v
-            False
-
-        Note that this does not affect comparison of valuations which do not
-        coerce into a common parent. This is by design in Sage, see
-        :meth:`sage.structure.element.Element.__cmp__`. When the valuations do
-        not coerce into a common parent, a rather random comparison of ``id``
-        happens::
-
-            sage: w = valuations.TrivialValuation(GF(2))
-            sage: w < v # random output
-            True
-            sage: v < w # random output
-            False
-
-        """
-        raise NotImplementedError("No total order for these valuations")
-
     def _richcmp_(self, other, op):
         r"""
         Compare this element to ``other``.

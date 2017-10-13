@@ -20,4 +20,4 @@ from __future__ import absolute_import
 
 from .lie_algebra import LieAlgebra
 #from kac_moody import KacMoodyAlgebra
-from .import examples as lie_algebras
+from . import examples as lie_algebras

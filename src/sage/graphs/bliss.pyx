@@ -30,7 +30,6 @@ AUTHORS:
 from cpython cimport PyObject
 from libc.limits cimport LONG_MAX
 
-from sage.misc.decorators import rename_keyword
 
 cdef extern from "bliss/graph.hh" namespace "bliss":
 

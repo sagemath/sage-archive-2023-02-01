@@ -431,7 +431,6 @@ from sage.graphs.digraph import DiGraph
 from sage.graphs.independent_sets import IndependentSets
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.misc.rest_index_of_methods import doc_index, gen_thematic_rest_table_index
-from sage.misc.decorators import rename_keyword
 
 class Graph(GenericGraph):
     r"""

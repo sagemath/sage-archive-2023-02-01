@@ -328,7 +328,6 @@ from sage.rings.rational import Rational
 from .generic_graph_pyx import GenericGraph_pyx, spring_layout_fast
 from sage.graphs.dot2tex_utils import assert_have_dot2tex
 from sage.misc.superseded import deprecation, deprecated_function_alias
-from sage.misc.decorators import rename_keyword
 
 class GenericGraph(GenericGraph_pyx):
     """
@@ -21522,7 +21521,6 @@ class GenericGraph(GenericGraph_pyx):
         except EmptySetError:
             return False
 
-    @rename_keyword(deprecation=21111, certify='certificate')
     def is_isomorphic(self, other, certificate=False, verbosity=0, edge_labels=False):
         r"""
         Tests for isomorphism between self and other.
@@ -21816,7 +21814,6 @@ class GenericGraph(GenericGraph_pyx):
                     isom_trans[v] = other_vertices[isom[G_to[v]]]
             return True, isom_trans
 
-    @rename_keyword(deprecation=21111, certify='certificate')
     def canonical_label(self, partition=None, certificate=False, verbosity=0,
                         edge_labels=False,algorithm=None,return_graph=True):
         """Return a graph on `\{0,1,...,n-1\}` ( ``n = self.order()`` ) which

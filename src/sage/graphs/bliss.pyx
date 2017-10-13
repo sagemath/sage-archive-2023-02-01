@@ -223,7 +223,6 @@ def automorphism_group(G, partition=None):
 cdef void empty_hook(void *user_param , unsigned int n, const unsigned int *aut):
     return
 
-@rename_keyword(deprecation=21111, certify='certificate')
 def canonical_form(G, partition=None, return_graph=False, certificate=False):
     """
     Return a canonical label of ``G``
@@ -273,9 +272,7 @@ def canonical_form(G, partition=None, return_graph=False, certificate=False):
         True
 
         sage: g = Graph({1: [2]})
-        sage: g_ = canonical_form(g, return_graph=True, certify=True)    # optional - bliss
-        doctest...: DeprecationWarning: use the option 'certificate' instead of 'certify'
-        See http://trac.sagemath.org/21111 for details.
+        sage: g_ = canonical_form(g, return_graph=True, certificate=True)    # optional - bliss
         sage: 0 in g_[0]                                                 # optional - bliss
         True
     """

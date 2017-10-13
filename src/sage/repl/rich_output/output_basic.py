@@ -40,7 +40,7 @@ To create new types of output, you must create your own subclass of
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from six import text_type
 
 from sage.structure.sage_object import SageObject
 from sage.repl.rich_output.buffer import OutputBuffer
@@ -119,7 +119,7 @@ class OutputPlainText(OutputBase):
         """
         # Internally, all buffers store bytes. Strings/Unicode is always utf-8
         # encoded.
-        if isinstance(plain_text, unicode):
+        if isinstance(plain_text, text_type):
             plain_text = plain_text.encode('utf-8')
         self.text = OutputBuffer(plain_text)
 
@@ -252,7 +252,7 @@ class OutputUnicodeArt(OutputBase):
         """
         # Internally, all buffers store bytes. Unicode is always utf-8
         # encoded.
-        if isinstance(unicode_art, unicode):
+        if isinstance(unicode_art, text_type):
             unicode_art = unicode_art.encode('utf-8')
         self.unicode_art = OutputBuffer(unicode_art)
 

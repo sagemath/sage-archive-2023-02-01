@@ -905,7 +905,7 @@ class CoxeterMatrix(CoxeterType):
 
     def is_crystallographic(self):
         """
-        Return wether ``self`` is crystallographic.
+        Return whether ``self`` is crystallographic.
 
         A Coxeter matrix is crystallographic if all non-diagonal entries
         are either 2, 4, or 6.
@@ -923,7 +923,7 @@ class CoxeterMatrix(CoxeterType):
 
     def is_irreducible(self):
         """
-        Return wether ``self`` is irreducible.
+        Return whether ``self`` is irreducible.
 
         A Coxeter matrix is irreducible if the Coxeter graph is connected.
 

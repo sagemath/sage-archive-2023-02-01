@@ -84,6 +84,7 @@ graphs. Here is what they can do
     :meth:`~DiGraph.is_directed_acyclic` | Returns whether the digraph is acyclic or not.
     :meth:`~DiGraph.is_transitive` | Returns whether the digraph is transitive or not.
     :meth:`~DiGraph.is_aperiodic` | Returns whether the digraph is aperiodic or not.
+    :meth:`~DiGraph.is_tournament` | Check whether self is a tournament
     :meth:`~DiGraph.period` | Returns the period of the digraph.
     :meth:`~DiGraph.level_sets` | Returns the level set decomposition of the digraph.
     :meth:`~DiGraph.topological_sort_generator` | Returns a list of all topological sorts of the digraph if it is acyclic
@@ -3768,6 +3769,37 @@ class DiGraph(GenericGraph):
             eqs.append(eq)
 
         return Polyhedron(ieqs=ineqs, eqns=eqs)
+
+    def is_tournament(self):
+        r"""
+        Check whether self is a tournament
+
+        A tournament is a digraph in which each pair of distinct vertices is
+        connected by a single arc. See :wikipedia:`Tournament_(graph_theory)`.
+
+        EXAMPLES::
+
+            sage: g = digraphs.TransitiveTournament(5)
+            sage: g.is_tournament()
+            True
+            sage: u,v = next(g.edge_iterator(labels=False))
+            sage: g.add_edge(v, u)
+            sage: g.is_tournament()
+            False
+            sage: g.add_edges([(u, v), (v, u)])
+            sage: g.is_tournament()
+            False
+        """
+        self._scream_if_not_simple()
+
+        if self.size() != self.order() * (self.order() - 1) // 2:
+            return False
+
+        import itertools
+        for u,v in itertools.combinations(self.vertices(), 2):
+            if not self.has_edge(u, v) != self.has_edge(v, u):
+                return False
+        return True
 
     # Aliases to functions defined in other modules
     from sage.graphs.comparability import is_transitive

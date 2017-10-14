@@ -3792,9 +3792,9 @@ class DiGraph(GenericGraph):
 
         .. SEEALSO::
 
-          - :wikipedia:`Tournament_(graph_theory)`
-          - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.RandomTournament`
-          - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.TransitiveTournament`
+            - :wikipedia:`Tournament_(graph_theory)`
+            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.RandomTournament`
+            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.TransitiveTournament`
         """
         self._scream_if_not_simple()
 

@@ -1828,19 +1828,19 @@ def PaleyGraph(q):
         sage: graphs.PaleyGraph(6)
         Traceback (most recent call last):
         ...
-        ValueError: Parameter q must be a prime power
+        ValueError: parameter q must be a prime power
         sage: graphs.PaleyGraph(3)
         Traceback (most recent call last):
         ...
-        ValueError: Parameter q must be congruent to 1 mod 4
+        ValueError: parameter q must be congruent to 1 mod 4
     """
     from sage.rings.finite_rings.integer_mod import mod
     from sage.rings.finite_rings.finite_field_constructor import FiniteField
     from sage.arith.all import is_prime_power
     if not is_prime_power(q):
-        raise ValueError("Parameter q must be a prime power")
+        raise ValueError("parameter q must be a prime power")
     if not mod(q, 4) == 1:
-        raise ValueError("Parameter q must be congruent to 1 mod 4")
+        raise ValueError("parameter q must be congruent to 1 mod 4")
     g = Graph([FiniteField(q,'a'), lambda i,j: (i-j).is_square()],
                   loops=False, name="Paley graph with parameter {}".format(q))
     return g

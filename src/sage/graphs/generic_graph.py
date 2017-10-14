@@ -183,6 +183,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.is_independent_set` | Test whether a set of vertices is an independent set
     :meth:`~GenericGraph.is_transitively_reduced` | Test whether the digraph is transitively reduced.
     :meth:`~GenericGraph.is_equitable` | Check whether the given partition is equitable with respect to self.
+    :meth:`~GenericGraph.is_self_complementary` | Check whether self is self-complementary
 
 **Traversals:**
 
@@ -22188,6 +22189,63 @@ class GenericGraph(GenericGraph_pyx):
             return tuple(out)
         else:
             return c
+
+    def is_self_complementary(self):
+        r"""
+        Check whether self is self-complementary
+
+        A (di)graph is self-complementary if it is isomorphic to its (di)graph
+        complement. For instance, the path graph `P_4` and the cycle graph `C_5`
+        are self-complementary.
+
+        .. SEEALSO::
+
+          - :wikipedia:`Self-complementary_graph`
+          - :oeis:`A000171` for the numbers of self-complementary graphs of order `n`
+          - :oeis:`A003086` for the numbers of self-complementary digraphs of order `n`.
+
+        EXAMPLES:
+
+        The only self-complementary path graph is `P_4`::
+
+            sage: for n in range(2, 10):
+            ....:     if graphs.PathGraph(n).is_self_complementary():
+            ....:         print(n)
+            4
+
+        The only self-complementary directed path is `P_2`::
+
+            sage: for n in range(2, 10):
+            ....:     if digraphs.Path(n).is_self_complementary():
+            ....:         print(n)
+            2
+
+        Every Paley graph is self-complementary::
+
+            sage: G = graphs.PaleyGraph(9)
+            sage: G.is_self_complementary()
+            True
+        """
+        self._scream_if_not_simple()
+
+        if self.order() < 2:
+            return True
+
+        # A self-complementary graph has half the number of possible edges
+        b = self.order() * (self.order() - 1) / (1 if self.is_directed() else 2)
+        if b % 2 or b != 2 * self.size():
+            return False
+
+        # A self-complementary (di)graph must be connected
+        if not self.is_connected():
+            return False
+
+        # A self-complementary graph of order >= 4 has diameter 2 or 3
+        if not self.is_directed() and self.diameter() > 3:
+            return False
+
+        return self.is_isomorphic(self.complement())
+
 
     # Aliases to functions defined in other modules
     from sage.graphs.distances_all_pairs import distances_distribution

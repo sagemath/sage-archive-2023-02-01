@@ -27,6 +27,7 @@ build by typing ``digraphs.`` in Sage and then hitting tab.
     :meth:`~DiGraphGenerators.GeneralizedDeBruijn` | Returns the generalized de Bruijn digraph of order `n` and degree `d`.
     :meth:`~DiGraphGenerators.ImaseItoh`           | Returns the digraph of Imase and Itoh of order `n` and degree `d`.
     :meth:`~DiGraphGenerators.Kautz`               | Returns the Kautz digraph of degree `d` and diameter `D`.
+    :meth:`~DiGraphGenerators.Paley`               | Return a Paley digraph on `q` vertices
     :meth:`~DiGraphGenerators.Path`                | Returns a directed path on `n` vertices.
     :meth:`~DiGraphGenerators.RandomDirectedGNC`   | Returns a random GNC (growing network with copying) digraph with `n` vertices.
     :meth:`~DiGraphGenerators.RandomDirectedGNM`   | Returns a random labelled digraph on `n` nodes and `m` arcs.
@@ -332,6 +333,44 @@ class DiGraphGenerators():
             g.add_path(list(range(n)))
 
         g.set_pos({i:(i,0) for i in range(n)})
+        return g
+
+    def Paley(q):
+        r"""
+        Return a Paley digraph on `q` vertices
+
+        Parameter `q` must be the power of a prime number and congruent to 3 mod
+        4.
+
+        .. SEEALSO::
+
+          - :wikipedia:`Paley_graph`
+          - :meth:`~GraphGenerators.PaleyGraph`
+
+        EXAMPLES:
+
+        A Paley digraph has `n * (n-1) / 2` edges, its underlying graph is a
+        clique, and so it is a tournament::
+
+            sage: g = digraphs.Paley(7); g
+            Paley digraph with parameter 7: Graph on 7 vertices
+            sage: g.size() == g.order() * (g.order() - 1) / 2
+            True
+            sage: g.to_undirected().is_clique()
+            True
+
+        A Paley digraph is always self-complementary::
+
+            sage: g.complement().is_isomorphic(g)
+            True
+        """
+        from sage.rings.finite_rings.integer_mod import mod
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField
+        from sage.arith.all import is_prime_power
+        assert is_prime_power(q), "Parameter q must be a prime power"
+        assert mod(q, 4)==3, "Parameter q must be congruent to 3 mod 4"
+        g = DiGraph([FiniteField(q,'a'), lambda i,j: (i!=j) and (j-i).is_square()],
+                    loops=False, name="Paley digraph with parameter {}".format(q))
         return g
 
     def TransitiveTournament(self, n):

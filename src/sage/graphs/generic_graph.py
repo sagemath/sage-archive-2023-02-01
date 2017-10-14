@@ -183,7 +183,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.is_independent_set` | Test whether a set of vertices is an independent set
     :meth:`~GenericGraph.is_transitively_reduced` | Test whether the digraph is transitively reduced.
     :meth:`~GenericGraph.is_equitable` | Check whether the given partition is equitable with respect to self.
-    :meth:`~GenericGraph.is_self_complementary` | Check whether self is self-complementary
+    :meth:`~GenericGraph.is_self_complementary` | Check whether the graph is self-complementary.
 
 **Traversals:**
 
@@ -22192,27 +22192,33 @@ class GenericGraph(GenericGraph_pyx):
 
     def is_self_complementary(self):
         r"""
-        Check whether self is self-complementary
+        Check whether the graph is self-complementary.
 
         A (di)graph is self-complementary if it is isomorphic to its (di)graph
         complement. For instance, the path graph `P_4` and the cycle graph `C_5`
         are self-complementary.
 
+        .. SEEALSO::
+
+            - :wikipedia:`Self-complementary_graph`
+            - :oeis:`A000171` for the numbers of self-complementary graphs of order `n`
+            - :oeis:`A003086` for the numbers of self-complementary digraphs of order `n`.
+
         EXAMPLES:
 
         The only self-complementary path graph is `P_4`::
 
-            sage: for n in range(2, 10):
-            ....:     if graphs.PathGraph(n).is_self_complementary():
-            ....:         print(n)
-            4
+            sage: graphs.PathGraph(4).is_self_complementary()
+            True
+            sage: graphs.PathGraph(5).is_self_complementary()
+            False
 
         The only self-complementary directed path is `P_2`::
 
-            sage: for n in range(2, 10):
-            ....:     if digraphs.Path(n).is_self_complementary():
-            ....:         print(n)
-            2
+            sage: digraphs.Path(2).is_self_complementary()
+            True
+            sage: digraphs.Path(3).is_self_complementary()
+            False
 
         Every Paley graph is self-complementary::
 
@@ -22220,11 +22226,44 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.is_self_complementary()
             True
 
-        .. SEEALSO::
+        TESTS:
 
-          - :wikipedia:`Self-complementary_graph`
-          - :oeis:`A000171` for the numbers of self-complementary graphs of order `n`
-          - :oeis:`A003086` for the numbers of self-complementary digraphs of order `n`.
+        Trivial graphs and digraphs::
+
+            sage: Graph(0).is_self_complementary()
+            True
+            sage: Graph(1).is_self_complementary()
+            True
+            sage: DiGraph(0).is_self_complementary()
+            True
+            sage: DiGraph(1).is_self_complementary()
+            True
+
+        Graph with the right number of edges that is not self-complementary::
+
+            sage: G = graphs.CompleteGraph(6)
+            sage: G.add_path([0, 6, 7, 8])
+            sage: G.size() == G.order() * (G.order() - 1) // 4
+            True
+            sage: G.is_self_complementary()
+            False
+
+        The (di)graph must be simple::
+
+            sage: Graph(loops=True, multiedges=True).is_self_complementary()
+            Traceback (most recent call last):
+            ...
+            ValueError: This method is not known to work on graphs with
+            multiedges/loops. Perhaps this method can be updated to handle them,
+            but in the meantime if you want to use it please disallow
+            multiedges/loops using allow_multiple_edges() and allow_loops().
+            sage: DiGraph(loops=True, multiedges=True).is_self_complementary()
+            Traceback (most recent call last):
+            ...
+            ValueError: This method is not known to work on graphs with
+            multiedges/loops. Perhaps this method can be updated to handle them,
+            but in the meantime if you want to use it please disallow
+            multiedges/loops using allow_multiple_edges() and allow_loops().
         """
         self._scream_if_not_simple()
 

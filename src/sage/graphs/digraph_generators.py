@@ -27,7 +27,7 @@ build by typing ``digraphs.`` in Sage and then hitting tab.
     :meth:`~DiGraphGenerators.GeneralizedDeBruijn` | Returns the generalized de Bruijn digraph of order `n` and degree `d`.
     :meth:`~DiGraphGenerators.ImaseItoh`           | Returns the digraph of Imase and Itoh of order `n` and degree `d`.
     :meth:`~DiGraphGenerators.Kautz`               | Returns the Kautz digraph of degree `d` and diameter `D`.
-    :meth:`~DiGraphGenerators.Paley`               | Return a Paley digraph on `q` vertices
+    :meth:`~DiGraphGenerators.Paley`               | Return a Paley digraph on `q` vertices.
     :meth:`~DiGraphGenerators.Path`                | Returns a directed path on `n` vertices.
     :meth:`~DiGraphGenerators.RandomDirectedGNC`   | Returns a random GNC (growing network with copying) digraph with `n` vertices.
     :meth:`~DiGraphGenerators.RandomDirectedGNM`   | Returns a random labelled digraph on `n` nodes and `m` arcs.
@@ -337,7 +337,7 @@ class DiGraphGenerators():
 
     def Paley(self, q):
         r"""
-        Return a Paley digraph on `q` vertices
+        Return a Paley digraph on `q` vertices.
 
         Parameter `q` must be the power of a prime number and congruent to 3 mod
         4.
@@ -363,12 +363,27 @@ class DiGraphGenerators():
 
             sage: g.complement().is_isomorphic(g)
             True
+
+        TESTS:
+
+        Wrong parameter::
+
+            sage: digraphs.Paley(6)
+            Traceback (most recent call last):
+            ...
+            ValueError: Parameter q must be a prime power
+            sage: digraphs.Paley(5)
+            Traceback (most recent call last):
+            ...
+            ValueError: Parameter q must be congruent to 3 mod 4
         """
         from sage.rings.finite_rings.integer_mod import mod
         from sage.rings.finite_rings.finite_field_constructor import FiniteField
         from sage.arith.all import is_prime_power
-        assert is_prime_power(q), "Parameter q must be a prime power"
-        assert mod(q, 4)==3, "Parameter q must be congruent to 3 mod 4"
+        if not is_prime_power(q):
+            raise ValueError("Parameter q must be a prime power")
+        if not mod(q, 4) == 3:
+            raise ValueError("Parameter q must be congruent to 3 mod 4")
         g = DiGraph([FiniteField(q,'a'), lambda i,j: (i!=j) and (j-i).is_square()],
                     loops=False, name="Paley digraph with parameter {}".format(q))
         return g

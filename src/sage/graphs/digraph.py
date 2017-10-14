@@ -84,7 +84,7 @@ graphs. Here is what they can do
     :meth:`~DiGraph.is_directed_acyclic` | Returns whether the digraph is acyclic or not.
     :meth:`~DiGraph.is_transitive` | Returns whether the digraph is transitive or not.
     :meth:`~DiGraph.is_aperiodic` | Returns whether the digraph is aperiodic or not.
-    :meth:`~DiGraph.is_tournament` | Check whether self is a tournament
+    :meth:`~DiGraph.is_tournament` | Check whether the digraph is a tournament.
     :meth:`~DiGraph.period` | Returns the period of the digraph.
     :meth:`~DiGraph.level_sets` | Returns the level set decomposition of the digraph.
     :meth:`~DiGraph.topological_sort_generator` | Returns a list of all topological sorts of the digraph if it is acyclic
@@ -3772,16 +3772,10 @@ class DiGraph(GenericGraph):
 
     def is_tournament(self):
         r"""
-        Check whether self is a tournament
+        Check whether the digraph is a tournament.
 
         A tournament is a digraph in which each pair of distinct vertices is
         connected by a single arc.
-
-        .. SEEALSO::
-
-          - :wikipedia:`Tournament_(graph_theory)`
-          - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.RandomTournament`
-          - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.TransitiveTournament`
 
         EXAMPLES::
 
@@ -3795,6 +3789,12 @@ class DiGraph(GenericGraph):
             sage: g.add_edges([(u, v), (v, u)])
             sage: g.is_tournament()
             False
+
+        .. SEEALSO::
+
+          - :wikipedia:`Tournament_(graph_theory)`
+          - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.RandomTournament`
+          - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.TransitiveTournament`
         """
         self._scream_if_not_simple()
 

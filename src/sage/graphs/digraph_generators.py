@@ -346,13 +346,6 @@ class DiGraphGenerators():
 
         - ``n`` (integer) -- number of vertices in the tournament.
 
-        .. SEEALSO::
-
-            - :wikipedia:`Tournament_(graph_theory)`
-            - :meth:`~sage.graphs.digraph.DiGraph.is_tournament`
-            - :meth:`~sage.graphs.digraph.DiGraph.is_transitive`
-            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.RandomTournament`
-
         EXAMPLES::
 
             sage: g = digraphs.TransitiveTournament(5)
@@ -362,6 +355,13 @@ class DiGraphGenerators():
             10
             sage: g.automorphism_group().cardinality()
             1
+
+        .. SEEALSO::
+
+            - :wikipedia:`Tournament_(graph_theory)`
+            - :meth:`~sage.graphs.digraph.DiGraph.is_tournament`
+            - :meth:`~sage.graphs.digraph.DiGraph.is_transitive`
+            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.RandomTournament`
 
         TESTS::
 
@@ -395,14 +395,6 @@ class DiGraphGenerators():
 
         - ``n`` (integer) -- number of vertices.
 
-        .. SEEALSO::
-
-            - :wikipedia:`Tournament_(graph_theory)`
-            - :meth:`~sage.graphs.digraph.DiGraph.is_tournament`
-            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.TransitiveTournament`
-            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.Complete`
-            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.RandomSemiComplete`
-
         EXAMPLES::
 
             sage: T = digraphs.RandomTournament(10); T
@@ -415,6 +407,14 @@ class DiGraphGenerators():
             Traceback (most recent call last):
             ...
             ValueError: The number of vertices cannot be strictly negative!
+
+        .. SEEALSO::
+
+            - :wikipedia:`Tournament_(graph_theory)`
+            - :meth:`~sage.graphs.digraph.DiGraph.is_tournament`
+            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.TransitiveTournament`
+            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.Complete`
+            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.RandomSemiComplete`
         """
         from sage.misc.prandom import random
         g = DiGraph(n)

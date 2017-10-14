@@ -335,7 +335,7 @@ class DiGraphGenerators():
         g.set_pos({i:(i,0) for i in range(n)})
         return g
 
-    def Paley(q):
+    def Paley(self, q):
         r"""
         Return a Paley digraph on `q` vertices
 
@@ -353,7 +353,7 @@ class DiGraphGenerators():
         clique, and so it is a tournament::
 
             sage: g = digraphs.Paley(7); g
-            Paley digraph with parameter 7: Graph on 7 vertices
+            Paley digraph with parameter 7: Digraph on 7 vertices
             sage: g.size() == g.order() * (g.order() - 1) / 2
             True
             sage: g.to_undirected().is_clique()

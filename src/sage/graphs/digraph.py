@@ -3775,11 +3775,17 @@ class DiGraph(GenericGraph):
         Check whether self is a tournament
 
         A tournament is a digraph in which each pair of distinct vertices is
-        connected by a single arc. See :wikipedia:`Tournament_(graph_theory)`.
+        connected by a single arc.
+
+        .. SEEALSO::
+
+          - :wikipedia:`Tournament_(graph_theory)`
+          - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.RandomTournament`
+          - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.TransitiveTournament`
 
         EXAMPLES::
 
-            sage: g = digraphs.TransitiveTournament(5)
+            sage: g = digraphs.RandomTournament(6)
             sage: g.is_tournament()
             True
             sage: u,v = next(g.edge_iterator(labels=False))

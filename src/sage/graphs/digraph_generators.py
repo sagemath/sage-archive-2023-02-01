@@ -346,6 +346,13 @@ class DiGraphGenerators():
 
         - ``n`` (integer) -- number of vertices in the tournament.
 
+        .. SEEALSO::
+
+            - :wikipedia:`Tournament_(graph_theory)`
+            - :meth:`~sage.graphs.digraph.DiGraph.is_tournament`
+            - :meth:`~sage.graphs.digraph.DiGraph.is_transitive`
+            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.RandomTournament`
+
         EXAMPLES::
 
             sage: g = digraphs.TransitiveTournament(5)
@@ -384,16 +391,16 @@ class DiGraphGenerators():
         `i` to `j` with probability `1/2`, otherwise it has an edge
         from `j` to `i`.
 
-        See :wikipedia:`Tournament_(graph_theory)`
-
         INPUT:
 
         - ``n`` (integer) -- number of vertices.
 
         .. SEEALSO::
 
+            - :wikipedia:`Tournament_(graph_theory)`
+            - :meth:`~sage.graphs.digraph.DiGraph.is_tournament`
+            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.TransitiveTournament`
             - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.Complete`
-
             - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.RandomSemiComplete`
 
         EXAMPLES::
@@ -401,6 +408,8 @@ class DiGraphGenerators():
             sage: T = digraphs.RandomTournament(10); T
             Random Tournament: Digraph on 10 vertices
             sage: T.size() == binomial(10, 2)
+            True
+            sage: T.is_tournament()
             True
             sage: digraphs.RandomTournament(-1)
             Traceback (most recent call last):

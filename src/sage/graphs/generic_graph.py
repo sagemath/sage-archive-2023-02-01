@@ -22198,12 +22198,6 @@ class GenericGraph(GenericGraph_pyx):
         complement. For instance, the path graph `P_4` and the cycle graph `C_5`
         are self-complementary.
 
-        .. SEEALSO::
-
-          - :wikipedia:`Self-complementary_graph`
-          - :oeis:`A000171` for the numbers of self-complementary graphs of order `n`
-          - :oeis:`A003086` for the numbers of self-complementary digraphs of order `n`.
-
         EXAMPLES:
 
         The only self-complementary path graph is `P_4`::
@@ -22225,6 +22219,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = graphs.PaleyGraph(9)
             sage: G.is_self_complementary()
             True
+
+        .. SEEALSO::
+
+          - :wikipedia:`Self-complementary_graph`
+          - :oeis:`A000171` for the numbers of self-complementary graphs of order `n`
+          - :oeis:`A003086` for the numbers of self-complementary digraphs of order `n`.
         """
         self._scream_if_not_simple()
 

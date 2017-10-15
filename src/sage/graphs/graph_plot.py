@@ -600,6 +600,11 @@ class GraphPlot(SageObject):
             ....:         vn = vector(((x-(vx[v0]+vx[v1])/2.),y-(vy[v0]+vy[v1])/2.)).norm()
             ....:         assert vn < tol
 
+        Ticket :trac:`24051` is fixed::
+
+            sage: G = Graph([(0,1), (0,1)], multiedges=True)
+            sage: G.plot(edge_colors={"red":[(1,0)]})
+            Graphics object consisting of 5 graphics primitives
         """
         for arg in edge_options:
             self._options[arg] = edge_options[arg]
@@ -635,7 +640,23 @@ class GraphPlot(SageObject):
         if self._options['color_by_label'] or isinstance(self._options['edge_colors'], dict):
             if self._options['color_by_label']:
                 edge_colors = self._graph._color_by_label(format=self._options['color_by_label'])
-            else: edge_colors = self._options['edge_colors']
+            else:
+                edge_colors = self._options['edge_colors']
+
+                if not self._graph.is_directed():
+                    # Make sure the edge labeling is the same as in the graph
+                    # (trac #24051)
+                    for color in edge_colors:
+                        tmp = []
+                        for edge in edge_colors[color]:
+                            if not self._graph.has_edge(edge):
+                                continue
+                            if not (edge[0],edge[1]) in self._graph.edges_incident(edge[0], labels=0):
+                                tmp.append( (edge[1],edge[0]) if len(edge) < 3 else (edge[1],edge[0],edge[2]) )
+                            else:
+                                tmp.append( edge )
+                        edge_colors[color] = tmp
+
             edges_drawn = []
             for color in edge_colors:
                 for edge in edge_colors[color]:

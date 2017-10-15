@@ -42,7 +42,7 @@ from sage.combinat.root_system.dynkin_diagram import DynkinDiagram_class
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.arith import binomial
+from sage.arith.misc import binomial
 from sage.sets.family import Family
 
 class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):

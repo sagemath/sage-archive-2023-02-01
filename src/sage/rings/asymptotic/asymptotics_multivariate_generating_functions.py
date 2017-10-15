@@ -2164,7 +2164,7 @@ class FractionWithFactoredDenominator(RingElement):
         from sage.misc.mrange import xmrange
         from sage.modules.free_module_element import vector
         from sage.rings.all import CC
-        from sage.rings.arith import binomial
+        from sage.arith.misc import binomial
         from sage.rings.rational_field import QQ
         from sage.symbolic.constants import pi
         from sage.symbolic.relation import solve

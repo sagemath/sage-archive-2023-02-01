@@ -684,6 +684,10 @@ class SympyConverter(Converter):
         x + I
 
     """
+    def __init__(self):
+        from sage.interfaces.sympy import sympy_init
+        sympy_init()
+
     def pyobject(self, ex, obj):
         """
         EXAMPLES::

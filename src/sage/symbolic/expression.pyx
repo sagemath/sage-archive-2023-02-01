@@ -11615,7 +11615,6 @@ cdef class Expression(CommutativeRingElement):
             http://docs.sympy.org/latest/modules/solvers/diophantine.html
         """
         from sympy.solvers.diophantine import diophantine
-        from sympy import sympify
 
         if not isinstance(solution_dict, bool):
             raise AttributeError("please use a tuple or list for several variables.")
@@ -11623,7 +11622,7 @@ cdef class Expression(CommutativeRingElement):
             ex = self.lhs() - self.rhs()
         else:
             ex = self
-        sympy_ex = sympify(ex)
+        sympy_ex = ex._sympy_()
         solutions = diophantine(sympy_ex)
         if isinstance(solutions, (set)):
             solutions = list(solutions)

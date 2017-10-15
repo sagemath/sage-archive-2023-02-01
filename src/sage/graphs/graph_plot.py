@@ -677,8 +677,7 @@ class GraphPlot(SageObject):
             for edge in self._graph.edge_iterator():
                 if (edge[0],edge[1],edge[2]) not in edges_drawn and \
                     ( self._graph.is_directed() or
-                          ( not self._graph.is_directed() and
-                                (edge[1],edge[0],edge[2]) not in edges_drawn)
+                      (edge[1],edge[0],edge[2]) not in edges_drawn
                     ):
                     key = tuple(sorted([edge[0],edge[1]]))
                     if key == (edge[0],edge[1]): head = 1

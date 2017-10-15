@@ -344,8 +344,8 @@ class DiGraphGenerators():
 
         .. SEEALSO::
 
-          - :wikipedia:`Paley_graph`
-          - :meth:`~GraphGenerators.PaleyGraph`
+            - :wikipedia:`Paley_graph`
+            - :meth:`~sage.graphs.graph_generators.GraphGenerators.PaleyGraph`
 
         EXAMPLES:
 

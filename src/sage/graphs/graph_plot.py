@@ -642,21 +642,6 @@ class GraphPlot(SageObject):
                 edge_colors = self._graph._color_by_label(format=self._options['color_by_label'])
             else:
                 edge_colors = self._options['edge_colors']
-
-                if not self._graph.is_directed():
-                    # Make sure the edge labeling is the same as in the graph
-                    # (trac #24051)
-                    for color in edge_colors:
-                        tmp = []
-                        for edge in edge_colors[color]:
-                            if not self._graph.has_edge(edge):
-                                continue
-                            if not (edge[0],edge[1]) in self._graph.edges_incident(edge[0], labels=0):
-                                tmp.append( (edge[1],edge[0]) if len(edge) < 3 else (edge[1],edge[0],edge[2]) )
-                            else:
-                                tmp.append( edge )
-                        edge_colors[color] = tmp
-
             edges_drawn = []
             for color in edge_colors:
                 for edge in edge_colors[color]:
@@ -690,7 +675,11 @@ class GraphPlot(SageObject):
 
             # Add unspecified edges (default color black set in DEFAULT_PLOT_OPTIONS)
             for edge in self._graph.edge_iterator():
-                if (edge[0],edge[1],edge[2]) not in edges_drawn:
+                if (edge[0],edge[1],edge[2]) not in edges_drawn and \
+                    ( self._graph.is_directed() or
+                          ( not self._graph.is_directed() and
+                                (edge[1],edge[0],edge[2]) not in edges_drawn)
+                    ):
                     key = tuple(sorted([edge[0],edge[1]]))
                     if key == (edge[0],edge[1]): head = 1
                     else: head = 0

@@ -39,6 +39,8 @@ class ShiftedPrimedTableau(ClonableArray):
         sage: t = ShiftedPrimedTableau([[1,"2p",2.5,3],[0,2,2.5]])
         sage: t[1]
         (2.0, 2.5)
+        sage: ShiftedPrimedTableau([["2p",2,3],["2p","3p"],[2]], skew=[2,1])
+        [(1.5, 2.0, 3.0), (1.5, 2.5), (2.0,)] skewed by [2, 1]
 
     TEST::
 
@@ -65,7 +67,9 @@ class ShiftedPrimedTableau(ClonableArray):
             sage: S = ShiftedPrimedTableaux(shape=[4,2])
             sage: t == S(data)
             True
-
+            sage: t = ShiftedPrimedTableau([["2p",2,3],["2p"],skew=[2,1])
+            sage: t.parent()
+            Shifted Primed Tableaux skewed by [2, 1]
         """
 
         if (isinstance(T, cls) and T._skew == skew):
@@ -185,6 +189,8 @@ class ShiftedPrimedTableau(ClonableArray):
             sage: t == ShiftedPrimedTableaux([2])([1,1.5])
             True
         """
+        if isinstance(other, ShiftedPrimedTableau):
+            return (self._skew == other._skew and list(self) == list(other))
         try:
             Tab = ShiftedPrimedTableau(other)
         except ValueError:
@@ -221,11 +227,13 @@ class ShiftedPrimedTableau(ClonableArray):
         """
         Check that ``self`` is a valid primed tableaux.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: T = ShiftedPrimedTableaux([4,2])
             sage: t = T([[1,'2p',2,2],[2,'3p']])
             sage: t.check()
+            sage: s = ShiftedPrimedTableau([["2p",2,3],["2p"]],skew=[2,1])
+            sage: s.check()
         """
         skew = self._skew + [0]*(len(self)-len(self._skew))
         if not all(self._skew[i] > self._skew[i+1]
@@ -264,11 +272,13 @@ class ShiftedPrimedTableau(ClonableArray):
         Represent Shifted Primed Tableau as a list of rows,
         rows are represented as tuples of half-integers.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: t = ShiftedPrimedTableau([[1,'2p',2,2],[2,'3p']])
             sage: t
             [(1.0, 1.5, 2.0, 2.0), (2.0, 2.5)]
+            sage: ShiftedPrimedTableau([["2p",2,3],["2p"]],skew=[2,1])
+            [(1.5, 2.0, 3.0), (1.5,)] skewed by [2, 1]
         """
         if self._skew == []:
             return repr([tuple(_) for _ in self])
@@ -279,11 +289,14 @@ class ShiftedPrimedTableau(ClonableArray):
         """
         Return a nested list of strings representing the elements.
 
-        TEST::
+        TESTS::
 
             sage: t = ShiftedPrimedTableau([[1,'2p',2,2],[2,'3p']])
             sage: t._repr_tab()
             [[' 1 ', " 2'", ' 2 ', ' 2 '], [' 2 ', " 3'"]]
+            sage: s = ShiftedPrimedTableau([["2p",2,3],["2p"]],skew=[2,1])
+            sage: s._repr_tab()
+            [[' . ', ' . ', " 2'", ' 2 ', ' 3 '], [' . ', " 2'"]]
         """
         skew = self._skew + [0]*(len(self)-len(self._skew))
         max_len = len(str(self.max_element()))+1
@@ -308,13 +321,16 @@ class ShiftedPrimedTableau(ClonableArray):
 
             sage: t = ShiftedPrimedTableau([[1,'2p',2,2],[2,'3p']])
             sage: print(t._repr_diagram())
-            1  2' 2  2
-               2  3'
+             1  2' 2  2
+                2  3'
             sage: t = ShiftedPrimedTableau([[10,'11p',11,11],[11,'12']])
             sage: print(t._repr_diagram())
-            10  11' 11  11
-                11  12
-
+             10  11' 11  11
+                 11  12
+            sage: s = ShiftedPrimedTableau([["2p",2,3],["2p"]],skew=[2,1])
+            sage: print(s._repr_diagram())
+             .  .  2' 2  3
+                .  2'
         """
         max_len = len(str(self.max_element()))+2
         return "\n".join([" "*max_len*i + "".join(_)
@@ -324,13 +340,20 @@ class ShiftedPrimedTableau(ClonableArray):
         """
         Return ASCII representaion of a tableau.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ascii_art(ShiftedPrimedTableau([[1,'2p',2,2],[2,'3p']]))
             +---+---+---+---+
             | 1 | 2'| 2 | 2 |
             +---+---+---+---+
                 | 2 | 3'|
+                +---+---+
+            sage: s = ShiftedPrimedTableau([["2p",2,3],["2p"]],skew=[2,1])
+            sage: ascii_art(s)
+            +---+---+---+---+---+
+            | . | . | 2'| 2 | 3 |
+            +---+---+---+---+---+
+                | . | 2'|
                 +---+---+
 
         TEST::
@@ -353,6 +376,13 @@ class ShiftedPrimedTableau(ClonableArray):
             │ 1 │ 2'│ 2 │ 2 │
             └───┼───┼───┼───┘
                 │ 2 │ 3'│
+                └───┴───┘
+            sage: s = ShiftedPrimedTableau([["2p",2,3],["2p"]],skew=[2,1])
+            sage: unicode_art(s)
+            ┌───┬───┬───┬───┬───┐
+            │ . │ . │ 2'│ 2 │ 3 │
+            └───┼───┼───┼───┴───┘
+                │ . │ 2'│
                 └───┴───┘
 
         TEST::
@@ -393,7 +423,13 @@ class ShiftedPrimedTableau(ClonableArray):
             +----+----+----+----+
                  |  2 | 30'|
                  +----+----+
-
+            sage: s = ShiftedPrimedTableau([["2p",2,10],["2p"]],skew=[2,1])
+            sage: print(s._ascii_art_table(unicode=True))
+            ┌────┬────┬────┬────┬────┐
+            │  . │  . │  2'│  2 │ 10 │
+            └────┼────┼────┼────┴────┘
+                 │  . │  2'│
+                 └────┴────┘
         """
         if unicode:
             import unicodedata
@@ -458,6 +494,9 @@ class ShiftedPrimedTableau(ClonableArray):
             sage: t.pp()
             10  11' 11  11
                 11  12
+            sage: s = ShiftedPrimedTableau([["2p",2,3],["2p"]],skew=[2,1])
+             .  .  2' 2  3
+                .  2'
         """
         print(self._repr_diagram())
 
@@ -506,6 +545,9 @@ class ShiftedPrimedTableau(ClonableArray):
             sage: t = ShiftedPrimedTableau([[1,'2p',2,2],[2,'3p']])
             sage: t.shape()
             [4, 2]
+            sage: s = ShiftedPrimedTableau([["2p",2,3],["2p"]],skew=[2,1])
+            sage: s.shape()
+            [5, 2]
         """
         return ([len(self[i])+self._skew[i]
                  for i in range(len(self._skew))] +
@@ -537,6 +579,9 @@ class ShiftedPrimedTableau(ClonableArray):
             IndexError: invalid cell
             sage: t((1,1))
             2.5
+            sage: s = ShiftedPrimedTableau([["2p",2,3],["2p"]],skew=[2,1])
+            sage: s(0,2)
+            1.5
         """
 
         try:
@@ -953,21 +998,22 @@ class ShiftedPrimedTableaux(UniqueRepresentation, Parent):
             Traceback (most recent call last):
             ...
             ValueError: invalid argument for weight or shape
-
             sage: ShiftedPrimedTableaux(weight=(2,2,2), shape=[3,2])
             Traceback (most recent call last):
             ...
             ValueError: weight and shape are incompatible
-
             sage: ShiftedPrimedTableaux([[1]])
             Traceback (most recent call last):
             ...
             ValueError: invalid shape argument
-
             sage: ShiftedPrimedTableaux(weight=(2,2,2), max_element=2)
             Traceback (most recent call last):
             ...
             ValueError: maximum element is incompatible with the weight
+            sage: ShiftedPrimedTableaux(shape=[4,1],skew=[3,2])
+            Traceback (most recent call last):
+            ...
+            ValueError: skew shape must be inside the given tableau shape
         """
         weight = None
         shape = None
@@ -1162,7 +1208,7 @@ class ShiftedPrimedTableaux_all(ShiftedPrimedTableaux):
             return self.element_class(self, T, skew=self._skew)
         except ValueError:
             raise ValueError(
-                "{} is not an element of {}".format(T,self))
+                "{} is not an element of {}".format(T, self))
 
     def __contains__(self, T):
         """

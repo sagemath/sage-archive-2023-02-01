@@ -73,8 +73,7 @@ class ShiftedPrimedTableau(ClonableArray):
 
         return ShiftedPrimedTableaux(skew=skew)(T)
 
-
-def __init__(self, parent, T, skew=[]):
+    def __init__(self, parent, T, skew=[]):
         r"""
         Initialize a shifted tableau.
 
@@ -208,8 +207,12 @@ def __init__(self, parent, T, skew=[]):
             True
         """
         array = []
-        m = len(self[0])
-        for i in range(len(self)):
+        m = self.shape()[0]
+        for i in range(len(self._skew)):
+            array.append([0]*(i+self._skew[i])
+                         + list(self[i])
+                         + [0]*(m-i-self._skew[i]-len(self[i])))
+        for i in range(len(self._skew), len(self)):
             array.append([0]*i + list(self[i]) + [0]*(m-i-len(self[i])))
         array = np.array(array, dtype='float')
         return array
@@ -224,16 +227,25 @@ def __init__(self, parent, T, skew=[]):
             sage: t = T([[1,'2p',2,2],[2,'3p']])
             sage: t.check()
         """
-        if not all(len(self[i]) > len(self[i+1]) for i in range(len(self)-1)):
+        skew = self._skew + [0]*(len(self)-len(self._skew))
+        if not all(self._skew[i] > self._skew[i+1]
+                   for i in range(len(self._skew)-1)):
+            raise ValueError('skew shape must be a strict partition')
+        if not all(len(self[i]) + skew[i] > len(self[i+1]) + skew[i+1]
+                   for i in range(len(self)-1)):
             raise ValueError('shape must be a strict partition')
         for i, row in enumerate(self):
             if i > 0:
-                if not all(val > self[i-1][j+1]
-                           for j, val in enumerate(row) if int(val) == val):
+                if not all(val > self[i-1][j+1-skew[i-1]+skew[i]]
+                           for j, val in enumerate(row)
+                           if int(val) == val
+                           if j+1 >= skew[i-1]-skew[i]):
                     raise ValueError(
                         'column is not strictly increasing in non-primes')
-                if not all(val >= self[i-1][j+1]
-                           for j, val in enumerate(row) if int(val) != val):
+                if not all(val >= self[i-1][j+1-skew[i-1]+skew[i]]
+                           for j, val in enumerate(row)
+                           if int(val) != val
+                           if j+1 >= skew[i-1]-skew[i]):
                     raise ValueError(
                         'column is not weakly increasing in primes')
             if not all(row[j] <= row[j+1]
@@ -242,7 +254,9 @@ def __init__(self, parent, T, skew=[]):
             if not all(row[j] < row[j+1]
                        for j in range(len(row)-1) if int(row[j]) != row[j]):
                 raise ValueError('row is not strictly increasing in primes')
-        if not all(int(row[0]) == row[0] for row in self):
+        if not all(int(row[0]) == row[0]
+                   for i, row in enumerate(self)
+                   if skew[i] == 0):
             raise ValueError('diagonal elements must be non-primes')
 
     def _repr_(self):
@@ -256,7 +270,10 @@ def __init__(self, parent, T, skew=[]):
             sage: t
             [(1.0, 1.5, 2.0, 2.0), (2.0, 2.5)]
         """
-        return repr([tuple(_) for _ in self])
+        if self._skew == []:
+            return repr([tuple(_) for _ in self])
+        return (repr([tuple(_) for _ in self]) +
+                " skewed by {}".format(self._skew))
 
     def _repr_tab(self):
         """
@@ -268,10 +285,11 @@ def __init__(self, parent, T, skew=[]):
             sage: t._repr_tab()
             [[' 1 ', " 2'", ' 2 ', ' 2 '], [' 2 ', " 3'"]]
         """
+        skew = self._skew + [0]*(len(self)-len(self._skew))
         max_len = len(str(self.max_element()))+1
         string_tab = []
         for i, row in enumerate(self):
-            string_row = []
+            string_row = [' '*(max_len-1) + '. ']*(skew[i])
             for val in row:
                 if int(val) == val:
                     string_row.append(' '*(max_len-len(str(int(val))))
@@ -299,20 +317,8 @@ def __init__(self, parent, T, skew=[]):
 
         """
         max_len = len(str(self.max_element()))+2
-        string_list = ""
-        for i, row in enumerate(self):
-            string_list += ' '
-            string_list += ' ' * i * (max_len)
-            for val in row:
-                if int(val) == val:
-                    string_list += (str(int(val))
-                                    + ' ' * (max_len-len(str(int(val)))))
-                else:
-                    string_list += (str(int(val+.5)) + "'"
-                                    + ' '*(max_len-1 - len(str(int(val+.5)))))
-            string_list += '\n'
-        string_list = string_list[:-2]
-        return string_list
+        return "\n".join([" "*max_len*i + "".join(_)
+                          for i, _ in enumerate(self._repr_tab())])
 
     def _ascii_art_(self):
         """
@@ -471,15 +477,7 @@ def __init__(self, parent, T, skew=[]):
             }
         """
         from sage.combinat.output import tex_from_array
-        L = list()
-        for i, row in enumerate(self):
-            num_list = [None]*i
-            for let in row:
-                if int(let) == let:
-                    num_list.append(int(let))
-                else:
-                    num_list.append(str(int(let+0.5))+"'")
-            L.append(num_list)
+        L = [[None]*i + row for i, row in enumerate(self._repr_tab())]
         return tex_from_array(L)
 
     def max_element(self):
@@ -509,7 +507,10 @@ def __init__(self, parent, T, skew=[]):
             sage: t.shape()
             [4, 2]
         """
-        return ([len(row) for row in self])
+        return ([len(self[i])+self._skew[i]
+                 for i in range(len(self._skew))] +
+                [len(self[i])
+                 for i in range(len(self._skew), len(self))])
 
     def __call__(self, *cell):
         """
@@ -542,9 +543,9 @@ def __init__(self, parent, T, skew=[]):
             i, j = cell
         except ValueError:
             i, j = cell[0]
-
+        skew = self._skew[i] if i < len(self._skew) else 0
         try:
-            return self[i][j]
+            return self[i][j-skew]
         except IndexError:
             raise IndexError("invalid cell")
 
@@ -595,6 +596,8 @@ def __init__(self, parent, T, skew=[]):
             ((0, 2), 2), ((0, 3), 2)]
 
         """
+        if self._skew != []:
+            raise NotImplementedError('skew tableau must be empty')
         mat = self.to_matrix()
         list_with_positions = []
         for (i, j), x in np.ndenumerate(mat[:, ::-1].T):
@@ -627,6 +630,8 @@ def __init__(self, parent, T, skew=[]):
             sage: t.reading_word()
             [3, 2, 2, 1, 2, 2]
         """
+        if self._skew != []:
+            raise NotImplementedError('skew tableau must be empty')
         return [tup[1] for tup in self.reading_word_with_positions()]
 
     def f(self, ind):
@@ -668,7 +673,8 @@ def __init__(self, parent, T, skew=[]):
         """
         if self is None:
             return None
-
+        if self._skew != []:
+            raise NotImplementedError('skew tableau must be empty')
         T = self.to_matrix()
 
         read_word = self.reading_word_with_positions()
@@ -767,6 +773,8 @@ def __init__(self, parent, T, skew=[]):
         """
         if self is None:
             return None
+        if self._skew != []:
+            raise NotImplementedError('skew tableau must be empty')
         T = self.to_matrix()
 
         read_word = self.reading_word_with_positions()
@@ -825,78 +833,6 @@ def __init__(self, parent, T, skew=[]):
 
         return(ShiftedPrimedTableau(T))
 
-    def epsilon(self, i):
-        r"""
-        Compute the value of the crystal function `\epsilon_i` applied to
-        a shifted primed tableau ``self``.
-
-        The function `\epsilon_i` is defined to be the maximal number
-        of operators `e_i` one can apply to ``self`` before vanishing
-        into ``None``.
-
-        INPUT:
-
-        - ``self`` -- shifted primed tableau
-        - ``ind`` -- index of the function `\epsilon_i` associated with a
-        crystal operator `e_i`.
-
-        OUTPUT:
-
-        Value of the function `\epsilon_i`.
-
-        EXAMPLES::
-
-            sage: t = ShiftedPrimedTableau([(1.0, 1.0, 1.0, 1.5, 2.5),
-            ....: (2.0, 2.5, 3.0, 3.0), (3.0, 4.0)])
-            sage: t.epsilon(2)
-            3
-            sage: s = t.e(2).e(2).e(2)
-            sage: s.epsilon(2)
-            0
-        """
-        b = self
-        count = -1
-        while b is not None:
-            b = b.e(i)
-            count += 1
-        return count
-
-    def phi(self, i):
-        r"""
-        Compute value of the crystal function `\phi_i` applied to a
-        shifted primed tableau ``self``.
-
-        The function `\phi_i` is defined to be the maximal number of
-        operators `f_i` one can apply to ``self`` before vanishing
-        into ``None``.
-
-        INPUT:
-
-        - ``self`` -- shifted primed tableau
-        - ``ind`` -- index of the function `\epsilon_i` associated with a
-        crystal operator `f_i`.
-
-        OUTPUT:
-
-        Value of the function `\epsilon_i`.
-
-        EXAMPLES::
-
-            sage: t = ShiftedPrimedTableau([(1.0, 1.0, 1.0, 1.5, 2.0),
-            ....: (2.0, 2.0, 2.0, 2.5), (3.0, 4.0)])
-            sage: t.phi(2)
-            3
-            sage: s = t.f(2).f(2).f(2)
-            sage: s.phi(2)
-            0
-        """
-        b = self
-        count = -1
-        while b is not None:
-            b = b.f(i)
-            count += 1
-        return count
-
     def is_highest_weight(self):
         """
         Check wether the shifted primed tableau ``self`` is a highest weight
@@ -918,6 +854,8 @@ def __init__(self, parent, T, skew=[]):
             True
 
         """
+        if self._skew != []:
+            raise NotImplementedError('skew tableau must be empty')
         read_w = self.reading_word()
         count = {}
         for l in read_w[::-1]:
@@ -1190,9 +1128,9 @@ class ShiftedPrimedTableaux_all(ShiftedPrimedTableaux):
             sage: ShiftedPrimedTableaux()
             Shifted Primed Tableaux
         """
-        if self._skew==[]:
+        if self._skew == []:
             return "Shifted Primed Tableaux"
-        return "Shifted Primed Tableaux Skewed by {}".format(self._skew)
+        return "Shifted Primed Tableaux skewed by {}".format(self._skew)
 
     def _element_constructor_(self, T):
         """
@@ -1224,7 +1162,7 @@ class ShiftedPrimedTableaux_all(ShiftedPrimedTableaux):
             return self.element_class(self, T, skew=self._skew)
         except ValueError:
             raise ValueError(
-                "{} is not an element of Shifted Primed Tableaux".format(T))
+                "{} is not an element of {}".format(T,self))
 
     def __contains__(self, T):
         """
@@ -1248,7 +1186,7 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
     """
     Element = ShiftedPrimedTableau
 
-    def __init__(self, shape, max_elt, skew = []):
+    def __init__(self, shape, max_elt, skew=[]):
         """
         Initialize the class of Shifted Primed Tableaux of a given shape.
 
@@ -1277,13 +1215,13 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
                 "Shifted Primed Tableaux of shape {} and maximum element {}"
                 .format(self._shape, self._max_elt))
         if self._max_elt is None and self._skew != []:
-            return ("Shifted Primed Tableaux skewed by {} of shape {}"
-                    .format(self.skew, self._shape))
+            return ("Shifted Primed Tableaux of shape {} skewed by {}"
+                    .format(self._shape, self._skew))
         if self._max_elt is not None and self._skew != []:
             return (
-                "Shifted Primed Tableaux skewed by {}".format(self._skew)
-                + " of shape {} and maximum element {}"
-                .format(self._shape, self._max_elt))
+                "Shifted Primed Tableaux of shape {} and maximum element {}"
+                .format(self._shape, self._max_elt) +
+                "skewed by {}".format(self._skew))
 
     def __contains__(self, T):
         """
@@ -1334,7 +1272,7 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
             Tab = self.element_class(self, T, skew=self._skew)
         except ValueError:
             raise ValueError(
-                "{} is not an element of Shifted Primed Tableaux".format(T))
+                "{} is not an element of {}".format(T,self))
 
         if self._max_elt is None:
             if Tab.shape() == self._shape:
@@ -1462,8 +1400,8 @@ class ShiftedPrimedTableaux_weight(ShiftedPrimedTableaux):
         """
         if self._skew == []:
             return "Shifted Primed Tableaux of weight {}".format(self._weight)
-        return "Shifted Primed Tableaux Skewed by {} of weight {}".format(
-            self._skew, self._weight)
+        return ("Shifted Primed Tableaux of weight {} skewed by {}"
+                .format(self._weight, self._skew))
 
     def __contains__(self, T):
         """
@@ -1502,7 +1440,7 @@ class ShiftedPrimedTableaux_weight(ShiftedPrimedTableaux):
             Tab = self.element_class(self, T, skew=self._skew)
         except ValueError:
             raise ValueError(
-                "{} is not an element of Shifted Primed Tableaux".format(T))
+                "{} is not an element of {}".format(T,self))
         if Tab.weight() == self._weight:
             return Tab
         raise ValueError("{} is not an element of {}".format(T, self))
@@ -1525,7 +1463,8 @@ class ShiftedPrimedTableaux_weight(ShiftedPrimedTableaux):
         return (tab for shape_ in Partitions(sum(self._weight))
                 if all(shape_[i] > shape_[i+1] for i in range(len(shape_)-1))
                 for tab in ShiftedPrimedTableaux(shape=shape_,
-                                                 weight=self._weight))
+                                                 weight=self._weight,
+                                                 skew=self._skew))
 
 
 class ShiftedPrimedTableaux_weight_shape(ShiftedPrimedTableaux):
@@ -1534,7 +1473,7 @@ class ShiftedPrimedTableaux_weight_shape(ShiftedPrimedTableaux):
     """
     Element = ShiftedPrimedTableau
 
-    def __init__(self, weight, shape):
+    def __init__(self, weight, shape, skew=[]):
         """
         Initialize the class of Shifted Primed Tableaux of the given weight
         and shape.
@@ -1542,6 +1481,7 @@ class ShiftedPrimedTableaux_weight_shape(ShiftedPrimedTableaux):
         Parent.__init__(self, category=FiniteEnumeratedSets())
         self._weight = weight
         self._shape = shape
+        self._skew = skew
 
     def _repr_(self):
         """
@@ -1552,9 +1492,13 @@ class ShiftedPrimedTableaux_weight_shape(ShiftedPrimedTableaux):
             sage: ShiftedPrimedTableaux([3,2,1],(4,2))
             Shifted Primed Tableaux of weight (4, 2) and shape [3, 2, 1]
         """
+        if self._skew == []:
+            return (
+                "Shifted Primed Tableaux of weight {} and shape {}"
+                .format(self._weight, self._shape))
         return (
-            "Shifted Primed Tableaux of weight {} and shape {}" .format(
-                self._weight, self._shape))
+            "Shifted Primed Tableaux of weight {} and shape {} skewed by {}"
+            .format(self._weight, self._shape, self._skew))
 
     def __contains__(self, T):
         """
@@ -1565,7 +1509,7 @@ class ShiftedPrimedTableaux_weight_shape(ShiftedPrimedTableaux):
             True
         """
         try:
-            Tab = self.element_class(self, T)
+            Tab = self.element_class(self, T, skew=self._skew)
         except ValueError:
             return False
 
@@ -1592,7 +1536,7 @@ class ShiftedPrimedTableaux_weight_shape(ShiftedPrimedTableaux):
             Tab = self.element_class(self, T, skew=self._skew)
         except ValueError:
             raise ValueError(
-                "{} is not an element of Shifted Primed Tableaux".format(T))
+                "{} is not an element of {}".format(T,self))
 
         if Tab.shape() == self._shape and Tab.weight() == self._weight:
             return Tab

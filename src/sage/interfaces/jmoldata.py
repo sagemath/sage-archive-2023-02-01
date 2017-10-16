@@ -24,6 +24,7 @@ from sage.structure.sage_object import SageObject
 
 from sage.env import SAGE_LOCAL
 from sage.misc.temporary_file import tmp_filename
+from sage.cpython.string import bytes_to_str
 
 import subprocess
 import os
@@ -60,7 +61,7 @@ class JmolData(SageObject):
             <... 'bool'>
         """
         try:
-            version = subprocess.check_output(['java', '-version'], stderr=subprocess.STDOUT)
+            version = bytes_to_str(subprocess.check_output(['java', '-version'], stderr=subprocess.STDOUT))
         except (subprocess.CalledProcessError, OSError):
             return False
 
@@ -140,7 +141,7 @@ class JmolData(SageObject):
             sage: if sys.platform == 'cygwin':
             ....:     from subprocess import check_output, STDOUT
             ....:     archive_native = check_output(['cygpath', '-w', archive_native],
-            ....:                                   stderr=STDOUT).rstrip()
+            ....:                                   stderr=STDOUT).decode('utf-8').rstrip()
             sage: script = 'set defaultdirectory "{0}"\n script SCRIPT\n'.format(archive_native)
             sage: testfile = os.path.join(SAGE_TMP, "testimage.png")
             sage: JData.export_image(targetfile=testfile, datafile=script, image_type="PNG") # optional -- java
@@ -153,12 +154,12 @@ class JmolData(SageObject):
         import sys
         if sys.platform == 'cygwin':
             jmolpath      = subprocess.check_output(['cygpath', '-w', jmolpath],
-                                                    stderr=subprocess.STDOUT).rstrip()
+                                                    stderr=subprocess.STDOUT).decode('utf-8').rstrip()
             target_native = subprocess.check_output(['cygpath', '-w', target_native],
-                                                    stderr=subprocess.STDOUT).rstrip()
+                                                    stderr=subprocess.STDOUT).decode('utf-8').rstrip()
             if (datafile_cmd != 'script'):
                 datafile  = subprocess.check_output(['cygpath', '-w', datafile],
-                                                    stderr=subprocess.STDOUT).rstrip()
+                                                    stderr=subprocess.STDOUT).decode('utf-8').rstrip()
         launchscript = ""
         if (datafile_cmd!='script'):
             launchscript = "load "

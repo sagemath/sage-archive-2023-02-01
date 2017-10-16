@@ -179,8 +179,6 @@ import sage.rings.integer
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from sage.misc.randstate import current_randstate
 from sage.structure.sequence import Sequence
-from sage.structure.richcmp import (richcmp_method, rich_to_bool, richcmp,
-                                    richcmp_not_equal, revop)
 
 from sage.misc.cachefunc import cached_method
 
@@ -4180,7 +4178,6 @@ class FreeModule_generic_field(FreeModule_generic_pid):
 #
 ###############################################################################
 
-@richcmp_method
 class FreeModule_ambient(FreeModule_generic):
     """
     Ambient free module over a commutative ring.
@@ -5103,7 +5100,6 @@ class FreeModule_ambient_field(FreeModule_generic_field, FreeModule_ambient_pid)
 #
 ###############################################################################
 
-@richcmp_method
 class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
     r"""
     Construct a submodule of a free module over PID with a distinguished basis.

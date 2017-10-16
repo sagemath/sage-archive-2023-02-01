@@ -3489,11 +3489,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: Eint2.is_local_integral_model(2)
             True
         """
-        if len(p)==1: p=p[0]
-        if isinstance(p,(tuple,list)):
-            return misc.forall(p, lambda x : self.is_local_integral_model(x))[0]
+        if len(p) == 1:
+            p = p[0]
+        if isinstance(p, (tuple, list)):
+            return all(self.is_local_integral_model(x) for x in p)
         assert p.is_prime(), "p must be prime in is_local_integral_model()"
-        return misc.forall(self.ainvs(), lambda x : x.valuation(p) >= 0)[0]
+        return all(x.valuation(p) >= 0 for x in self.ainvs())
 
     def local_integral_model(self,p):
         r"""

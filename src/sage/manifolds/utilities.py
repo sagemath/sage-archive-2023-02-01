@@ -479,7 +479,7 @@ def simplify_chain_generic_sympy(expr):
     """
 
     expr = expr.combsimp()
-    expr = expr.trigsimp()
+    #expr = expr.trigsimp()
     expr = expr.expand()
     expr = expr.simplify()
     return expr
@@ -544,7 +544,7 @@ def simplify_chain_real_sympy(expr):
 
     """
     expr = expr.combsimp()
-    expr = expr.trigsimp()
+    #expr = expr.trigsimp()
     if 'sqrt(' in str(expr):
         expr = simplify_sqrt_real(expr)._sympy_()
     if 'Abs(sin(' in str(expr):

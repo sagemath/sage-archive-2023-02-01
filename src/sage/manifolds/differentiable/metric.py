@@ -2260,7 +2260,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
                 for chart in dom.top_charts():
                     try:
                         gmat = matrix(
-                                  [[self.comp(frame)[i, j, chart].expr()
+                                  [[self.comp(frame)[i, j, chart].expr('SR')
                                   for j in range(si, nsi)] for i in range(si, nsi)])
                         gmat_inv = gmat.inverse()
                     except (KeyError, ValueError):

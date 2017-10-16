@@ -1442,8 +1442,8 @@ cdef class Expression(CommutativeRingElement):
             <class 'sympy.core.numbers.Pi'>
 
         """
-        from sage.symbolic.expression_conversions import sympy
-        return sympy(self)
+        from sage.symbolic.expression_conversions import sympy_converter
+        return sympy_converter(self)
 
     def _algebraic_(self, field):
         """

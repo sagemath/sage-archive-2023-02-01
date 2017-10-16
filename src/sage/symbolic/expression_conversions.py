@@ -837,7 +837,7 @@ class SympyConverter(Converter):
         return f_sympy.diff(*sympy_arg)
 
 
-sympy = SympyConverter()
+sympy_converter = SympyConverter()
 
 #############
 # Algebraic #

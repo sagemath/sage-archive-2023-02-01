@@ -109,7 +109,7 @@ Some examples in the group of points of an elliptic curve over a finite field:
 
 from copy import copy
 
-import sage.misc.all as misc
+from sage.misc.all import prod
 import sage.rings.integer_ring as integer_ring
 import sage.rings.integer
 from sage.arith.srange import xsrange
@@ -1156,7 +1156,7 @@ def order_from_multiple(P, m, plist=None, factorization=None, check=True,
             L2 = L[k:]
             # recursive calls
             o1 = _order_from_multiple_helper(
-                multiple(Q, misc.prod([p**e for p,e in L2]), operation),
+                multiple(Q, prod([p**e for p,e in L2]), operation),
                 L1,
                 sum_left)
             o2 = _order_from_multiple_helper(

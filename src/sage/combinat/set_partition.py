@@ -53,7 +53,6 @@ from sage.combinat.partition import Partition, Partitions
 from sage.combinat.set_partition_ordered import OrderedSetPartitions
 from sage.combinat.combinat import bell_number, stirling_number2
 from sage.combinat.permutation import Permutation
-from functools import reduce
 from sage.functions.other import factorial
 from sage.misc.prandom import random, randint
 from sage.probability.probability_distribution import GeneralDiscreteDistribution
@@ -799,7 +798,6 @@ class SetPartition(ClonableArray):
             sage: m = PerfectMatching([(1,4),(2,6),(3,5)])
             sage: m.apply_permutation(Permutation([4,1,5,6,3,2]))
             [(1, 2), (3, 5), (4, 6)]
-
         """
         return self.__class__(self.parent(), [Set(map(p, B)) for B in self])
 
@@ -807,18 +805,14 @@ class SetPartition(ClonableArray):
         r"""
         Return the crossing arcs of a set partition on a totally ordered set.
 
-        INPUT:
-
-            A set partition on a totally ordered ground set.
-
         OUTPUT:
 
-            We place the elements of the ground set in order on a
-            line and draw the set partition by linking consecutive
-            elements of each block in the upper half-plane. This
-            function returns an iterator over the pairs of crossing
-            lines (as a line correspond to a pair, the iterator
-            produces pairs of pairs).
+        We place the elements of the ground set in order on a
+        line and draw the set partition by linking consecutive
+        elements of each block in the upper half-plane. This
+        function returns an iterator over the pairs of crossing
+        lines (as a line correspond to a pair, the iterator
+        produces pairs of pairs).
 
         EXAMPLES::
 
@@ -844,18 +838,14 @@ class SetPartition(ClonableArray):
         r"""
         Return the crossing arcs of a set partition on a totally ordered set.
 
-        INPUT:
-
-            A set partition on a totally ordered ground set.
-
         OUTPUT:
 
-            We place the elements of the ground set in order on a
-            line and draw the set partition by linking consecutive
-            elements of each block in the upper half-plane. This
-            function returns a list of the pairs of crossing lines
-            (as a line correspond to a pair, it returns a list of
-            pairs of pairs).
+        We place the elements of the ground set in order on a
+        line and draw the set partition by linking consecutive
+        elements of each block in the upper half-plane. This
+        function returns a list of the pairs of crossing lines
+        (as a line correspond to a pair, it returns a list of
+        pairs of pairs).
 
         EXAMPLES::
 
@@ -874,16 +864,12 @@ class SetPartition(ClonableArray):
         r"""
         Return the number of crossings.
 
-        INPUT:
-
-            A set partition on a totally ordered ground set.
-
         OUTPUT:
 
-            We place the elements of the ground set in order on a
-            line and draw the set partition by linking consecutive
-            elements of each block in the upper half-plane. This
-            function returns the number the pairs of crossing lines.
+        We place the elements of the ground set in order on a
+        line and draw the set partition by linking consecutive
+        elements of each block in the upper half-plane. This
+        function returns the number the pairs of crossing lines.
 
         EXAMPLES::
 
@@ -896,27 +882,19 @@ class SetPartition(ClonableArray):
             sage: n.number_of_crossings()
             1
         """
-        c = Integer(0)
-        one = Integer(1)
-        for _ in self.crossings_iterator():
-            c += one
-        return c
+        return Integer( len(list(self.crossings_iterator())) )
 
     def is_noncrossing(self):
         r"""
         Check if ``self`` is noncrossing.
 
-        INPUT:
-
-            A set partition on a totally ordered ground set.
-
         OUTPUT:
 
-            We place the elements of the ground set in order on a
-            line and draw the set partition by linking consecutive
-            elements of each block in the upper half-plane.  This
-            function returns ``True`` if the picture obtained this
-            way has no crossings.
+        We place the elements of the ground set in order on a
+        line and draw the set partition by linking consecutive
+        elements of each block in the upper half-plane.  This
+        function returns ``True`` if the picture obtained this
+        way has no crossings.
 
         EXAMPLES::
 
@@ -936,23 +914,20 @@ class SetPartition(ClonableArray):
             next(it)
         except StopIteration:
             return True
-        else:
-            return False
+        return False
 
     def nestings_iterator(self):
         r"""
-        INPUT:
-
-            A perfect matching on a *totally ordered* ground set.
+        Iterate over the nestings of ``self``.
 
         OUTPUT:
 
-            We place the elements of the ground set in order on a
-            line and draw the set partition by linking consecutive
-            elements of each block in the upper half-plane. This
-            function returns an iterator over the pairs of nesting
-            lines (as a line correspond to a pair, the iterator
-            produces pairs of pairs).
+        We place the elements of the ground set in order on a
+        line and draw the set partition by linking consecutive
+        elements of each block in the upper half-plane. This
+        function returns an iterator over the pairs of nesting
+        lines (as a line correspond to a pair, the iterator
+        produces pairs of pairs).
 
         EXAMPLES::
 
@@ -978,18 +953,16 @@ class SetPartition(ClonableArray):
 
     def nestings(self):
         r"""
-        INPUT:
-
-            A perfect matching on a *totally ordered* ground set.
+        Return the nestings of ``self``.
 
         OUTPUT:
 
-            We place the elements of the ground set in order on a
-            line and draw the set partition by linking consecutive
-            elements of each block in the upper half-plane. This
-            function returns the list of the pairs of nesting lines
-            (as a line correspond to a pair, it returns a list of
-            pairs of pairs).
+        We place the elements of the ground set in order on a
+        line and draw the set partition by linking consecutive
+        elements of each block in the upper half-plane. This
+        function returns the list of the pairs of nesting lines
+        (as a line correspond to a pair, it returns a list of
+        pairs of pairs).
 
         EXAMPLES::
 
@@ -1011,16 +984,14 @@ class SetPartition(ClonableArray):
 
     def number_of_nestings(self):
         r"""
-        INPUT:
-
-            A set partition on a *totally ordered* ground set.
+        Return the number of nestings of ``self``.
 
         OUTPUT:
 
-            We place the elements of the ground set in order on a
-            line and draw the set partition by linking consecutive
-            elements of each block in the upper half-plane. This
-            function returns the number the pairs of nesting lines.
+        We place the elements of the ground set in order on a
+        line and draw the set partition by linking consecutive
+        elements of each block in the upper half-plane. This
+        function returns the number the pairs of nesting lines.
 
         EXAMPLES::
 
@@ -1037,17 +1008,15 @@ class SetPartition(ClonableArray):
 
     def is_nonnesting(self):
         r"""
-        INPUT:
-
-            A set partition on a *totally ordered* ground set.
+        Return if ``self`` is nonnesting or not.
 
         OUTPUT:
 
-            We place the elements of the ground set in order on a
-            line and draw the set partition by linking consecutive
-            elements of each block in the upper half-plane. This
-            function returns ``True`` if the picture obtained this
-            way has no nestings.
+        We place the elements of the ground set in order on a
+        line and draw the set partition by linking consecutive
+        elements of each block in the upper half-plane. This
+        function returns ``True`` if the picture obtained this
+        way has no nestings.
 
         EXAMPLES::
 
@@ -1063,8 +1032,7 @@ class SetPartition(ClonableArray):
             next(it)
         except StopIteration:
             return True
-        else:
-            return False
+        return False
 
     def is_atomic(self):
         """
@@ -1486,7 +1454,6 @@ class SetPartition(ClonableArray):
         from sage.plot.point import point
         from sage.plot.text import text
         from sage.plot.arc import arc
-        from sage.functions.other import sqrt
         from sage.symbolic.constants import pi
         from sage.functions.trig import tan, sin
         from sage.functions.generalized import sgn
@@ -1653,35 +1620,11 @@ class SetPartitions(UniqueRepresentation, Parent):
         """
         if isinstance(s, SetPartition):
             if isinstance(s.parent(), SetPartitions):
-                return self.element_class(self, list(s), check=check)
+                return self.element_class(self, s, check=check)
             raise ValueError("cannot convert %s into an element of %s"%(s, self))
         return self.element_class(self, s, check=check)
 
     Element = SetPartition
-
-    def _an_element_(self):
-        """
-        Return a generic element.
-
-        EXAMPLES::
-
-            sage: S = SetPartitions(('a', 'e', 'b', 'f', 'c', 'd'))
-            sage: S.an_element()
-            {{'a', 'b', 'c', 'd', 'e', 'f'}}
-
-            sage: S = SetPartitions(('a', 'e', 'b', 'f', 'c', 'd'), 3)
-            sage: S.an_element()
-            {{'a'}, {'b', 'd', 'e', 'f'}, {'c'}}
-
-            sage: S = PerfectMatchings(('a', 'e', 'b', 'f', 'c', 'd'))
-            sage: S.an_element()
-            [('a', 'c'), ('b', 'e'), ('d', 'f')]
-
-            sage: all(PerfectMatchings(2*i).an_element() in PerfectMatchings(2*i)
-            ....:      for i in range(2,11,2))
-            True
-        """
-        return self.first()
 
     def _iterator_part(self, part):
         """
@@ -2217,7 +2160,7 @@ class SetPartitions_setn(SetPartitions_set):
 
     def random_element(self):
         r"""
-        Return a random set partition.
+        Return a random set partition of ``self``.
 
         See https://mathoverflow.net/questions/141999.
 
@@ -2226,7 +2169,6 @@ class SetPartitions_setn(SetPartitions_set):
             sage: S = SetPartitions(10, 4)
             sage: S.random_element()
             {{1, 2, 4, 6, 9, 10}, {3}, {5, 7}, {8}}
-
         """
         def re(N, k):
             if N == 0:
@@ -2370,3 +2312,4 @@ def cyclic_permutations_of_set_partition_iterator(set_part):
         for right in cyclic_permutations_of_set_partition_iterator(set_part[1:]):
             for perm in CyclicPermutations(set_part[0]):
                 yield [perm] + right
+

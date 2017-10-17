@@ -37,6 +37,7 @@ from six.moves import range
 import itertools
 import time
 from operator import pos
+from itertools import islice
 from sage.structure.sage_object import SageObject
 from copy import copy
 from sage.rings.all import QQ, infinity, factor
@@ -47,7 +48,6 @@ from sage.sets.all import Set
 from sage.graphs.digraph import DiGraph
 from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import QuiverMutationType_Irreducible, QuiverMutationType_Reducible
 from sage.combinat.cluster_algebra_quiver.mutation_type import is_mutation_finite
-from sage.misc.misc import exists
 from random import randint
 from sage.misc.all import prod
 from sage.matrix.all import identity_matrix
@@ -179,8 +179,6 @@ class ClusterSeed(SageObject):
             sage: S = ClusterSeed(['A',4])
             sage: TestSuite(S).run()
         """
-        from sage.matrix.matrix import Matrix
-
         #initialize a null state ClusterSeed object so all tests run and fail as appropriate.
         # numerous doctests if this null state is not first initialized.
         self._n = 0
@@ -348,8 +346,8 @@ class ClusterSeed(SageObject):
                 self._init_vars = copy(xs)
                 self._init_vars.update(ys)
 
-            self._init_exch = dict(self._init_vars.items()[:self._n])
-            self._U = PolynomialRing(QQ,['y%s'%i for i in range(self._n)])
+            self._init_exch = dict(islice(self._init_vars.items(), self._n))
+            self._U = PolynomialRing(QQ,['y%s' % i for i in range(self._n)])
             self._F = dict([(i,self._U(1)) for i in self._init_exch.values()])
             self._R = PolynomialRing(QQ,[val for val in self._init_vars.values()])
             self._y = dict([ (self._U.gen(j),prod([self._R.gen(i)**self._M[i,j] for i in range(self._n,self._n+self._m)])) for j in range(self._n)])
@@ -653,8 +651,8 @@ class ClusterSeed(SageObject):
                 if self._G == matrix.identity(self._n): # If we are at the root
                     if not self._use_g_vec:
                         self.use_g_vectors(True)
-                    self._init_exch = dict(self._init_vars.items()[:self._n])
-                    self._U = PolynomialRing(QQ,['y%s'%i for i in range(self._n)])
+                    self._init_exch = dict(islice(self._init_vars.items(), self._n))
+                    self._U = PolynomialRing(QQ,['y%s' % i for i in range(self._n)])
                     self._F = dict([(i,self._U(1)) for i in self._init_exch.values()])
                     self._R = PolynomialRing(QQ,[val for val in self._init_vars.values()])
                     self._y = dict([ (self._U.gen(j),prod([self._R.gen(i)**self._M[i,j] for i in range(self._n,self._n+self._m)])) for j in range(self._n)])
@@ -5127,18 +5125,18 @@ def _multi_concatenate(l1, l2):
     
     EXAMPLES::
 
-    sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import _multi_concatenate
+        sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import _multi_concatenate
 
-    sage: _multi_concatenate([[0,1,2]],[3,4,5])
-    [[0, 1, 2, 3], [0, 1, 2, 4], [0, 1, 2, 5]]
+        sage: _multi_concatenate([[0,1,2]],[3,4,5])
+        [[0, 1, 2, 3], [0, 1, 2, 4], [0, 1, 2, 5]]
 
-    sage: _multi_concatenate([[0,1,2],[3,4,5]],[6,7,8])
-    [[0, 1, 2, 6],
-    [0, 1, 2, 7],
-    [0, 1, 2, 8],
-    [3, 4, 5, 6],
-    [3, 4, 5, 7],
-    [3, 4, 5, 8]]   
+        sage: _multi_concatenate([[0,1,2],[3,4,5]],[6,7,8])
+        [[0, 1, 2, 6],
+        [0, 1, 2, 7],
+        [0, 1, 2, 8],
+        [3, 4, 5, 6],
+        [3, 4, 5, 7],
+        [3, 4, 5, 8]]   
     """
     plist = []
     for i in l1:

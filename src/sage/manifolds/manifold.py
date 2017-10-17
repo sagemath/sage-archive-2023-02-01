@@ -722,7 +722,7 @@ class TopologicalManifold(ManifoldSubset):
                         break
                 else:
                     # A generic element with specific coordinates could not be
-                    # automatically generated, due to too complex cooordinate
+                    # automatically generated, due to too complex coordinate
                     # conditions. An element without any coordinate set is
                     # returned instead:
                     return self.element_class(self)

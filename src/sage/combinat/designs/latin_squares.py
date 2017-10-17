@@ -103,9 +103,9 @@ Comparison with the results from the Handbook of Combinatorial Designs (2ed)
     560|
     580|
 
-TODO:
+.. TODO::
 
-* Look at [ColDin01]_.
+    Look at [ColDin01]_.
 
 REFERENCES:
 
@@ -353,7 +353,6 @@ def mutually_orthogonal_latin_squares(k,n, partitions = False, check = True, exi
     """
     from sage.combinat.designs.orthogonal_arrays import orthogonal_array
     from sage.matrix.constructor import Matrix
-    from sage.arith.all import factor
     from .database import MOLS_constructions
 
     # Is k is None we find the largest available

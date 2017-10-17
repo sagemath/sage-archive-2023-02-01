@@ -266,3 +266,52 @@ def sage_include_directories(use_sources=False):
                                     opj(SAGE_LIB, 'sage', 'ext')])
 
     return include_directories
+
+
+def cython_aliases():
+    """
+    Return the aliases for compiling Cython code. These aliases are
+    macros which can occur in ``# distutils`` headers.
+
+    EXAMPLES::
+
+        sage: from sage.env import cython_aliases
+        sage: cython_aliases()
+        {...}
+        sage: sorted(cython_aliases().keys())
+        ['FFLASFFPACK_CFLAGS',
+         'FFLASFFPACK_INCDIR',
+         'FFLASFFPACK_LIBDIR',
+         'FFLASFFPACK_LIBRARIES',
+         'GIVARO_CFLAGS',
+         'GIVARO_INCDIR',
+         'GIVARO_LIBDIR',
+         'GIVARO_LIBRARIES',
+         'GSL_CFLAGS',
+         'GSL_INCDIR',
+         'GSL_LIBDIR',
+         'GSL_LIBRARIES',
+         'LINBOX_CFLAGS',
+         'LINBOX_INCDIR',
+         'LINBOX_LIBDIR',
+         'LINBOX_LIBRARIES',
+         'SINGULAR_CFLAGS',
+         'SINGULAR_INCDIR',
+         'SINGULAR_LIBDIR',
+         'SINGULAR_LIBRARIES']
+    """
+    import pkgconfig
+
+    aliases = {}
+
+    for lib in ['fflas-ffpack', 'givaro', 'gsl', 'linbox', 'Singular']:
+        var = lib.upper().replace("-", "") + "_"
+        aliases[var + "CFLAGS"] = pkgconfig.cflags(lib).split()
+        pc = pkgconfig.parse(lib)
+        # INCDIR should be redundant because the -I options are also
+        # passed in CFLAGS
+        aliases[var + "INCDIR"] = pc['include_dirs']
+        aliases[var + "LIBDIR"] = pc['library_dirs']
+        aliases[var + "LIBRARIES"] = pc['libraries']
+
+    return aliases

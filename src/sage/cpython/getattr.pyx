@@ -194,7 +194,7 @@ cpdef getattr_from_other_class(self, cls, name):
         sage: "__weakref__" in dir(A)
         True
         sage: "__weakref__" in dir(1)
-        True
+        False
         sage: 1.__weakref__
         Traceback (most recent call last):
         ...

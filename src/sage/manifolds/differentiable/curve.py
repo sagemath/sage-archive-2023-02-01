@@ -433,8 +433,8 @@ class DifferentiableCurve(DiffMap):
         if (canon_chart, codom._def_chart) in self._coord_expression:
             chart_pair = (canon_chart, codom._def_chart)
         else:
-            chart_pair = self._coord_expression.keys()[0]  # a chart is picked
-                                                           # at random
+            chart_pair = next(iter(self._coord_expression.keys()))
+            # a chart is picked at random
         coord_functions = self._coord_expression[chart_pair]._functions
         n = codom._dim
         dict_subs = {canon_coord: t}

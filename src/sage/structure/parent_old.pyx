@@ -109,10 +109,10 @@ cdef class Parent(parent.Parent):
 
             sage: QQ['q,t'].coerce_map_from(int)
             Composite map:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Multivariate Polynomial Ring in q, t over Rational Field
               Defn:   Native morphism:
-                      From: Set of Python objects of type 'int'
+                      From: Set of Python objects of class 'int'
                       To:   Rational Field
                     then
                       Polynomial base injection morphism:

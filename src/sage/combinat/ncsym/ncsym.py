@@ -27,7 +27,6 @@ from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.ncsym.bases import NCSymBases, MultiplicativeNCSymBases, NCSymBasis_abstract
 from sage.combinat.set_partition import SetPartitions
 from sage.combinat.set_partition_ordered import OrderedSetPartitions
-from sage.combinat.subset import Subsets
 from sage.combinat.posets.posets import Poset
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.matrix.matrix_space import MatrixSpace

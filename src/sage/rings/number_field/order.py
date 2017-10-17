@@ -56,8 +56,7 @@ from .number_field_element_quadratic import OrderElement_quadratic
 
 from sage.rings.monomials import monomials
 
-from sage.arith.misc import kronecker_symbol
-from sage.misc.misc_c import prod
+from sage.libs.pari.all import pari
 
 
 def is_NumberFieldOrder(R):
@@ -789,32 +788,23 @@ class Order(IntegralDomain):
             sage: ZZ[120*sqrt(-23)].class_number()
             288
 
-        Note that non-maximal orders are only supported in quadratic imaginary fields::
+        Note that non-maximal orders are only supported in quadratic fields::
 
-            sage: ZZ[3*sqrt(-3)].class_number()
-            3
-            sage: ZZ[3*sqrt(3)].class_number()
+            sage: ZZ[120*sqrt(-23)].class_number()
+            288
+            sage: ZZ[100*sqrt(3)].class_number()
+            4
+            sage: ZZ[11*2^(1/3)].class_number()
             Traceback (most recent call last):
             ...
-            NotImplementedError: computation of class numbers of non-maximal orders not in quadratic imaginary fields is not implemented
-
-        .. NOTE::
-
-            The formula for non-maximal orders in quadratic imaginary fields comes from
-            Theorem 7.24 of [Cox2013]_.
+            NotImplementedError: computation of class numbers of non-maximal orders not in quadratic fields is not implemented
 
         """
         if not self.is_maximal():
             K = self.number_field()
-            D = K.discriminant()
-            if D > 0 or K.degree() != 2:
-                raise NotImplementedError("computation of class numbers of non-maximal orders not in quadratic imaginary fields is not implemented")
-            h = K.class_number(proof=proof)
-            f = ZZ(self.index_in(K.ring_of_integers()))
-            omega = K.number_of_roots_of_unity()
-            units_index = omega/2 if f > 1 else 1
-            n = h * f / units_index * prod(1 - kronecker_symbol(D,p)/p for p in f.prime_divisors())
-            return ZZ(n)
+            if K.degree() != 2:
+                raise NotImplementedError("computation of class numbers of non-maximal orders not in quadratic fields is not implemented")
+            return ZZ(pari.qfbclassno(self.discriminant()))
         return self.number_field().class_number(proof=proof)
 
     def class_group(self, proof=None, names='c'):

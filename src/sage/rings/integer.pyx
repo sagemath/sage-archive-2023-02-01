@@ -3843,10 +3843,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_set(slf.value, self.value)
         while True:
             p = slf.trial_division(mlong, mpz_get_si(p.value)+1)
-            ilong = plong = mpz_get_ui(p.value)
-            if plong >= mlong:
+            if mpz_cmp_si(p, mlong) >= 0:
                 # p is larger than m, so no more primes are needed.
                 break
+            sig_on()
+            ilong = plong = mpz_get_ui(p.value)
             while ilong < mlong:
                 # Set bits in sieve at each multiple of p
                 mpz_setbit(sieve.value, ilong)
@@ -3855,6 +3856,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             mpz_divexact_ui(slf.value, slf.value, plong)
             while mpz_divisible_ui_p(slf.value, plong):
                 mpz_divexact_ui(slf.value, slf.value, plong)
+            sig_off()
             # If we have found all factors, we break
             if mpz_cmp_ui(slf.value, 1) == 0:
                 break

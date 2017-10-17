@@ -2681,7 +2681,7 @@ class Function_cases(GinacFunction):
         EXAMPLES::
 
             sage: ex = cases(((x<0, pi), (x==1, 1), (True, 0)))
-            sage: assert ex == ex._sympy()._sage_()
+            sage: assert ex == ex._sympy_()._sage_()
         """
         from sage.symbolic.ring import SR
         from sympy import Piecewise as pw

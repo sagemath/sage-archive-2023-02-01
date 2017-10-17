@@ -170,12 +170,6 @@ base(ring_singleton::instance(), ring_singleton::instance(),
      PolynomialVector()) { }
 
 
-template <class T>
-PyObject* preallocated_to_PyString(const DefaultRinged<T> *wrapped) {
-  return _to_PyString<T>(wrapped) ;
-}
-
-
 template <class Type>
 class PBWrappedPtr:
   public boost::shared_ptr<Type> {

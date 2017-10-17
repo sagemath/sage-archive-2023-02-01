@@ -27,6 +27,7 @@ AUTHORS:
 #*****************************************************************************
 
 from cysignals.signals cimport sig_on, sig_off
+from sage.ext.cplusplus cimport ccrepr
 
 include 'misc.pxi'
 include 'decl.pxi'
@@ -145,7 +146,7 @@ cdef class ntl_mat_GF2(object):
             [0 1 1 0]
             ]
         """
-        return mat_GF2_to_PyString(&self.x)
+        return ccrepr(self.x)
 
     def __mul__(ntl_mat_GF2 self, other):
         """

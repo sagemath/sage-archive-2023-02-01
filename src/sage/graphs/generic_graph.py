@@ -18355,10 +18355,10 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = digraphs.ButterflyGraph(1)
             sage: g.layout()
-            {('0', 0): [2.22..., 0.832...],
-             ('0', 1): [0.833..., 0.543...],
-             ('1', 0): [1.12..., -0.830...],
-             ('1', 1): [2.50..., -0.545...]}
+            {('0', 0): [2.69..., 0.43...],
+             ('0', 1): [1.35..., 0.86...],
+             ('1', 0): [0.89..., -0.42...],
+             ('1', 1): [2.26..., -0.87...]}
 
             sage: g.layout(layout="acyclic_dummy", save_pos=True)
             {('0', 0): [0.3..., 0],
@@ -18367,10 +18367,10 @@ class GenericGraph(GenericGraph_pyx):
              ('1', 1): [0.6..., 1]}
 
             sage: g.layout(dim = 3)
-            {('0', 0): [2.02..., 0.528..., 0.343...],
-             ('0', 1): [1.61..., 0.260..., -0.927...],
-             ('1', 0): [0.674..., -0.528..., -0.343...],
-             ('1', 1): [1.07..., -0.260..., 0.927...]}
+            {('0', 0): [0.68..., 0.50..., -0.24...],
+             ('0', 1): [1.02..., -0.02..., 0.93...],
+             ('1', 0): [2.06..., -0.49..., 0.23...],
+             ('1', 1): [1.74..., 0.01..., -0.92...]}
 
         Here is the list of all the available layout options::
 
@@ -18448,12 +18448,12 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = graphs.LadderGraph(3) #TODO!!!!
             sage: g.layout_spring()
-            {0: [1.28..., -0.94...],
-             1: [1.57..., -0.10...],
-             2: [1.83..., 0.74...],
-             3: [0.53..., -0.75...],
-             4: [0.79..., 0.10...],
-             5: [1.08..., 0.94...]}
+            {0: [0.73..., -0.29...],
+             1: [1.37..., 0.30...],
+             2: [2.08..., 0.89...],
+             3: [1.23..., -0.83...],
+             4: [1.88..., -0.30...],
+             5: [2.53..., 0.22...]}
             sage: g = graphs.LadderGraph(7)
             sage: g.plot(layout = "spring")
             Graphics object consisting of 34 graphics primitives
@@ -18461,13 +18461,6 @@ class GenericGraph(GenericGraph_pyx):
         return spring_layout_fast(self, by_component = by_component, **options)
 
     layout_default = layout_spring
-
-#     if not isinstance(graph.get_pos(), dict):
-#         if graph.is_planar():
-#             graph.set_planar_positions()
-#         else:
-#             import sage.graphs.generic_graph_pyx as ggp
-#             graph.set_pos(ggp.spring_layout_fast_split(graph, iterations=1000))
 
     def layout_ranked(self, heights = None, dim = 2, spring = False, **options):
         """

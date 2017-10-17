@@ -186,6 +186,7 @@ from __future__ import print_function, absolute_import
 from cpython.object cimport Py_EQ, Py_NE
 from cysignals.memory cimport sig_malloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
+from sage.ext.cplusplus cimport ccrepr
 
 import operator
 
@@ -2297,7 +2298,7 @@ cdef class BooleanMonomial(MonoidElement):
             sage: M(x*y)
             x*y
         """
-        return PBMonom_to_str(&self._pbmonom)
+        return ccrepr(self._pbmonom)
 
     def _eval(self, d):
         """
@@ -2947,7 +2948,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: repr(a+b+z^2+1) # indirect doctest
             'a + b + z + 1'
         """
-        return PBPoly_to_str(&self._pbpoly)
+        return ccrepr(self._pbpoly)
 
     def _repr_with_changed_varnames(self, varnames):
         r"""
@@ -2987,7 +2988,7 @@ cdef class BooleanPolynomial(MPolynomial):
             for i from 0 <= i < N:
                 P._pbring.setVariableName(i, orig_varnames[i])
             raise TypeError("varnames has entries with wrong type.")
-        s = PBPoly_to_str(&self._pbpoly)
+        s = ccrepr(self._pbpoly)
         for i from 0 <= i < N:
             P._pbring.setVariableName(i, orig_varnames[i])
         return s
@@ -5405,7 +5406,7 @@ cdef class BooleSet:
             sage: repr(BS) # indirect doctest
             '{}'
         """
-        return PBSet_to_str(&self._pbset)
+        return ccrepr(self._pbset)
 
     def set(self):
         """

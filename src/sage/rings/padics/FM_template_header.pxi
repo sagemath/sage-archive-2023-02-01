@@ -41,3 +41,9 @@ cdef class pAdicConvert_FM_ZZ(RingMap):
 cdef class pAdicConvert_QQ_FM(Morphism):
     cdef FMElement _zero
     cdef RingMap _section
+# There should also be a pAdicConvert_CA_QQ for extension rings....
+cdef class pAdicCoercion_FM_frac_field(RingHomomorphism):
+    cdef FPElement _zero
+    cdef Morphism _section
+cdef class pAdicConvert_FM_frac_field(Morphism):
+    cdef FMElement _zero

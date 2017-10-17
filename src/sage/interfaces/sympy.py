@@ -630,7 +630,7 @@ def sympy_init():
         return
 
     from sympy import Mul, Pow, Symbol
-    from sympy.core.function import (Function, Derivative)
+    from sympy.core.function import (Function, AppliedUndef, Derivative)
     from sympy.core.numbers import (Float, Integer, Rational, Infinity,
             NegativeInfinity, ComplexInfinity, Exp1, Pi, GoldenRatio,
             EulerGamma, Catalan, ImaginaryUnit)
@@ -671,6 +671,7 @@ def sympy_init():
     Pow._sage_ = _sympysage_pow
     Symbol._sage_ = _sympysage_symbol
     Function._sage_ = _sympysage_function
+    AppliedUndef._sage_ = _sympysage_function
     Integral._sage_ = _sympysage_integral
     Derivative._sage_ = _sympysage_derivative
     Order._sage_ = _sympysage_order
@@ -845,7 +846,7 @@ def test_all():
         assert f(x,y)._sympy_() == sf(sx, sy)
         assert f(x,y) == sf(sx, sy)._sage_()
         assert f._sympy_() == sf
-        #assert f == sf._sage_()
+        assert f == sf._sage_()
 
     test_basics()
     test_complex()

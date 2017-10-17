@@ -428,15 +428,12 @@ class RationalField(Singleton, number_field_base.NumberField):
 
     def __truediv__(self, I):
         """
-        Dividing one ring by another is not supported because there is no good
-        way to specify generator names.
+        Form the quotient by an integral ideal.
 
         EXAMPLES::
 
             sage: QQ / ZZ
-            Traceback (most recent call last):
-            ...
-            TypeError: Use self.quo(I) or self.quotient(I) to construct the quotient ring.
+            Q/Z
         """
         from sage.rings.ideal import Ideal_generic
         from sage.groups.additive_abelian.qmodnz import QmodnZ

@@ -85,5 +85,15 @@ cdef class InheritComparisonMetaclass(type):
             inherit_comparison(t, b)
         super(InheritComparisonMetaclass, self).__init__(*args)
 
-class InheritComparisonClasscallMetaclass(InheritComparisonMetaclass, ClasscallMetaclass):
-    pass
+
+class InheritComparisonClasscallMetaclass(ClasscallMetaclass, InheritComparisonMetaclass):
+    """
+    Combine :class:`ClasscallMetaclass` with
+    :class:`InheritComparisonMetaclass`.
+
+    TESTS::
+
+        sage: from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass as M
+        sage: M.__new__(M, "myclass", (object,), {})
+        <class '__main__.myclass'>
+    """

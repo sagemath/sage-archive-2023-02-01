@@ -36,6 +36,7 @@ from __future__ import absolute_import, print_function
 
 from cysignals.memory cimport sig_free
 from cysignals.signals cimport sig_on, sig_off
+from sage.ext.cplusplus cimport ccrepr
 
 include "sage/libs/ntl/decl.pxi"
 
@@ -381,10 +382,10 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             if sign:
                 if sign > 0:
                     sign_str = '+'
-                    coeff_str = ZZ_to_PyString(&self.__poly.rep.elts()[i])
+                    coeff_str = ccrepr(self.__poly.rep.elts()[i])
                 else:
                     sign_str = '-'
-                    coeff_str = ZZ_to_PyString(&self.__poly.rep.elts()[i])[1:]
+                    coeff_str = ccrepr(self.__poly.rep.elts()[i])[1:]
                 if i > 0:
                     if coeff_str == '1':
                         coeff_str = ''

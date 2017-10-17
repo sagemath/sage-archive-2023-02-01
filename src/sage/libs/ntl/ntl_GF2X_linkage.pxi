@@ -71,7 +71,6 @@ cdef object celement_repr(GF2X_c *e, long parent):
         sage: x
         x
     """
-    #return GF2X_to_PyString(e)
     raise NotImplementedError
 
 cdef inline int celement_set(GF2X_c* res, GF2X_c* a, long parent) except -2:

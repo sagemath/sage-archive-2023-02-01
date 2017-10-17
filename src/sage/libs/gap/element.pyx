@@ -466,6 +466,29 @@ cdef class GapElement(RingElement):
         """
         return self.deepcopy(0)
 
+    def __contains__(self, other):
+        r"""
+        TESTS::
+
+            sage: libgap(1) in libgap.eval('Integers')
+            True
+            sage: 1 in libgap.eval('Integers')
+            True
+
+            sage: 3 in libgap([1,5,3,2])
+            True
+            sage: -5 in libgap([1,5,3,2])
+            False
+
+            sage: libgap.eval('Integers') in libgap(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: libGAP: Error, no method found! Error, no 1st choice method found for `in' on 2 arguments
+        """
+        from sage.libs.gap.libgap import libgap
+        GAP_IN = libgap.eval(r'\in')
+        return GAP_IN(other, self).sage()
+
     cpdef _type_number(self):
         """
         Return the GAP internal type number.

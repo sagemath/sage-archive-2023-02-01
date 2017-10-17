@@ -425,6 +425,37 @@ def _sympysage_kronecker_delta(self):
     from sage.functions.generalized import kronecker_delta
     return kronecker_delta(self.args[0]._sage_(), self.args[1]._sage_())
 
+def _sympysage_ceiling(self):
+    """
+    EXAMPLES::
+
+        sage: from sympy import Symbol, ceiling
+        sage: assert ceil(x)._sympy_() == ceiling(Symbol('x'))
+        sage: assert ceil(x) == ceiling(Symbol('x'))._sage_()
+        sage: integrate(ceil(x), x, 0, infinity, algorithm='sympy')
+        integrate(ceil(x), x, 0, +Infinity)
+    """
+    from sage.functions.other import ceil
+    return ceil(self.args[0]._sage_())
+
+def _sympysage_piecewise(self):
+    """
+    EXAMPLES::
+
+        sage: from sympy import Symbol, pi as spi, Eq, Lt, Piecewise
+        sage: sx = Symbol('x')
+        sage: sp = Piecewise((spi, Lt(sx,0)), (1, Eq(sx,1)), (0, True))
+        sage: ex = cases(((x<0, pi), (x==1, 1), (True, 0)))
+        sage: assert ex._sympy_() == sp
+        sage: assert ex == sp._sage_()
+
+        sage: _ = var('y, z')
+        sage: (x^y - z).integrate(y, algorithm="sympy")
+        -y*z + cases(((log(x) == 0, y), (1, x^y/log(x))))
+    """
+    from sage.functions.other import cases
+    return cases([(p.cond._sage_(),p.expr._sage_()) for p in self.args])
+
 def _sympysage_besselj(self):
     """
     EXAMPLES::
@@ -550,6 +581,29 @@ def _sympysage_relational(self):
     ops = {Eq : eq, Ne : ne, Gt : gt, Lt : lt, Ge : ge, Le : le}
     return ops.get(self.func)(self.lhs._sage_(), self.rhs._sage_())
 
+def _sympysage_false(self):
+    """
+    EXAMPLES::
+
+        sage: from sympy.logic.boolalg import BooleanFalse
+        sage: assert SR(False)._sympy_() == BooleanFalse()      # known bug
+        sage: assert SR(False) == BooleanFalse()._sage_()
+    """
+    from sage.symbolic.ring import SR
+    return SR(False)
+
+def _sympysage_true(self):
+    """
+    EXAMPLES::
+
+        sage: from sympy.logic.boolalg import BooleanTrue
+        sage: assert SR(True)._sympy_() == BooleanTrue()      # known bug
+        sage: assert SR(True) == BooleanTrue()._sage_()
+    """
+    from sage.symbolic.ring import SR
+    return SR(True)
+
+
 #------------------------------------------------------------------
 from sage.repl.ipython_extension import run_once
 
@@ -576,7 +630,7 @@ def sympy_init():
         return
 
     from sympy import Mul, Pow, Symbol
-    from sympy.core.function import (Function, Derivative)
+    from sympy.core.function import (Function, AppliedUndef, Derivative)
     from sympy.core.numbers import (Float, Integer, Rational, Infinity,
             NegativeInfinity, ComplexInfinity, Exp1, Pi, GoldenRatio,
             EulerGamma, Catalan, ImaginaryUnit)
@@ -585,6 +639,7 @@ def sympy_init():
     from sympy.functions.combinatorial.factorials import (RisingFactorial,
             FallingFactorial)
     from sympy.functions.elementary.complexes import (re, im, Abs)
+    from sympy.functions.elementary.integers import ceiling
     from sympy.functions.elementary.piecewise import Piecewise
     from sympy.functions.special.bessel import (besselj, bessely, besseli, besselk)
     from sympy.functions.special.delta_functions import (DiracDelta, Heaviside)
@@ -594,6 +649,7 @@ def sympy_init():
     from sympy.functions.special.hyper import hyper
     from sympy.functions.special.spherical_harmonics import Ynm
     from sympy.functions.special.tensor_functions import KroneckerDelta
+    from sympy.logic.boolalg import BooleanTrue, BooleanFalse
     from sympy.integrals.integrals import Integral
     from sympy.series.order import Order
 
@@ -615,6 +671,7 @@ def sympy_init():
     Pow._sage_ = _sympysage_pow
     Symbol._sage_ = _sympysage_symbol
     Function._sage_ = _sympysage_function
+    AppliedUndef._sage_ = _sympysage_function
     Integral._sage_ = _sympysage_integral
     Derivative._sage_ = _sympysage_derivative
     Order._sage_ = _sympysage_order
@@ -627,6 +684,7 @@ def sympy_init():
     hyper._sage_ = _sympysage_hyp
     elliptic_k._sage_ = _sympysage_elliptic_k
     KroneckerDelta._sage_ = _sympysage_kronecker_delta
+    Piecewise._sage_ = _sympysage_piecewise
     besselj._sage_ = _sympysage_besselj
     bessely._sage_ = _sympysage_bessely
     besseli._sage_ = _sympysage_besseli
@@ -635,6 +693,9 @@ def sympy_init():
     re._sage_ = _sympysage_re
     im._sage_ = _sympysage_im
     Abs._sage_ = _sympysage_abs
+    BooleanFalse._sage_ = _sympysage_false
+    BooleanTrue._sage_ = _sympysage_true
+    ceiling._sage_ = _sympysage_ceiling
 
 def check_expression(expr, var_symbols, only_from_sympy=False):
     """
@@ -785,7 +846,7 @@ def test_all():
         assert f(x,y)._sympy_() == sf(sx, sy)
         assert f(x,y) == sf(sx, sy)._sage_()
         assert f._sympy_() == sf
-        #assert f == sf._sage_()
+        assert f == sf._sage_()
 
     test_basics()
     test_complex()

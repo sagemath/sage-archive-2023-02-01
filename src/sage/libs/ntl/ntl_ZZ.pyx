@@ -15,6 +15,7 @@
 from __future__ import print_function
 
 from cysignals.signals cimport sig_on, sig_off
+from sage.ext.cplusplus cimport ccrepr, ccreadstr
 
 include 'misc.pxi'
 include 'decl.pxi'
@@ -95,9 +96,7 @@ cdef class ntl_ZZ(object):
                     (v[1:-1].isdigit() or (len(v) <= 2)) and \
                     (v[-1].isdigit() or (v[-1].lower() in ['l','r']))):
                raise ValueError("invalid integer: %s" % v)
-            sig_on()
-            ZZ_from_str(&self.x, v)
-            sig_off()
+            ccreadstr(self.x, v)
 
     def __repr__(self):
         """
@@ -107,7 +106,7 @@ cdef class ntl_ZZ(object):
             sage: ntl.ZZ(5).__repr__()
             '5'
         """
-        return ZZ_to_PyString(&self.x)
+        return ccrepr(self.x)
 
     def __reduce__(self):
         """

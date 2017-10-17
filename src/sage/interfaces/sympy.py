@@ -432,6 +432,8 @@ def _sympysage_ceiling(self):
         sage: from sympy import Symbol, ceiling
         sage: assert ceil(x)._sympy_() == ceiling(Symbol('x'))
         sage: assert ceil(x) == ceiling(Symbol('x'))._sage_()
+        sage: integrate(ceil(x), x, 0, infinity, algorithm='sympy')
+        integrate(ceil(x), x, 0, +Infinity)
     """
     from sage.functions.other import ceil
     return ceil(self.args[0]._sage_())

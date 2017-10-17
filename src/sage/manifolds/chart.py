@@ -2863,10 +2863,7 @@ class CoordChange(SageObject):
                                                             for i in range(n1)]
             for transf in x2_to_x1:
                 try:
-                    if self._domain.base_field_type() == 'real':
-                        transf = simplify_chain_real(transf)
-                    else:
-                        transf = simplify_chain_generic(transf)
+                    transf = self.simplify(transf)
                 except AttributeError:
                     pass
         else:
@@ -2879,10 +2876,7 @@ class CoordChange(SageObject):
                 x2_to_x1 = [sol[x1[i]].subs(substitutions) for i in range(n1)]
                 for transf in x2_to_x1:
                     try:
-                        if self._domain.base_field_type() == 'real':
-                            transf = simplify_chain_real(transf)
-                        else:
-                            transf = simplify_chain_generic(transf)
+                        transf = self.simplify(transf)
                     except AttributeError:
                         pass
                 if self._chart1.valid_coordinates(*x2_to_x1):
@@ -2959,9 +2953,9 @@ class CoordChange(SageObject):
             x2 = self._chart2._xx
             n1 = len(x1)
             for i in range(n1):
-                print("  {} == {}".format(x1[i], self._inverse(*(self(*x1)))[i]))
+                print("  {} == {}".format(x1[i], self._chart1.simplify(self._inverse(*(self(*x1)))[i])))
             for i in range(n1):
-                print("  {} == {}".format(x2[i], self(*(self._inverse(*x2)))[i]))
+                print("  {} == {}".format(x2[i], self._chart1.simplify(self(*(self._inverse(*x2)))[i])))
 
     def __mul__(self, other):
         r"""

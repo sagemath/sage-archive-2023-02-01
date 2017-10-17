@@ -136,6 +136,28 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
         #coercion base.
         return self._res_field
 
+    def residue_ring(self, n):
+        """
+        Return the quotient of the ring of integers by the nth power of its maximal ideal.
+
+        EXAMPLES::
+
+            sage: R.<a> = Zq(125)
+            sage: R.residue_ring(1)
+            Finite Field in a0 of size 5^3
+
+        The following requires implementing more general Artinian rings::
+
+            sage: R.residue_ring(2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        if n == 1:
+            return self._res_field
+        else:
+            raise NotImplementedError
+
     def discriminant(self, K=None):
         """
         Returns the discriminant of self over the subring K.

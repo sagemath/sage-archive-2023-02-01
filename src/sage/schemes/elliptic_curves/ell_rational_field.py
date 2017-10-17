@@ -89,8 +89,7 @@ from sage.rings.all import (
     IntegerRing, RealField,
     ComplexField, RationalField)
 
-import sage.misc.all as misc
-from sage.misc.all import verbose
+from sage.misc.all import verbose, prod, forall
 
 from sage.functions.log import log
 
@@ -385,7 +384,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             raise ArithmeticError("p must be prime")
         if self.is_integral():
             return True
-        return bool(misc.mul([x.valuation(p) >= 0 for x in self.ainvs()]))
+        return all(x.valuation(p) >= 0 for x in self.ainvs())
 
     def is_integral(self):
         """
@@ -407,7 +406,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             return self.__is_integral
         except AttributeError:
             one = Integer(1)
-            self.__is_integral = bool(misc.mul([x.denominator() == 1 for x in self.ainvs()]))
+            self.__is_integral =all(x.denominator() == 1 for x in self.ainvs())
             return self.__is_integral
 
 
@@ -736,7 +735,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         try:
             return self.__database_curve
         except AttributeError:
-            misc.verbose("Looking up %s in the database."%self)
+            verbose("Looking up %s in the database."%self)
             D = sage.databases.cremona.CremonaDatabase()
             ainvs = list(self.minimal_model().ainvs())
             try:
@@ -857,7 +856,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             True
 
         """
-        misc.verbose("Calling mwrank C++ library.")
+        verbose("Calling mwrank C++ library.")
         C = self.mwrank_curve()
         C.two_descent(verbose, selmer_only,
                         first_limit, second_limit,
@@ -2103,7 +2102,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             # true rank
             rank_bound = self.analytic_rank_upper_bound()
             if rank_bound <= 1:
-                misc.verbose("rank %s due to zero sum bound and parity"%rank_bound)
+                verbose("rank %s due to zero sum bound and parity"%rank_bound)
                 rank = Integer(rank_bound)
                 self.__rank = (rank, proof)
                 return rank
@@ -2114,20 +2113,20 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             if self.root_number() == 1:
                 L, err = self.lseries().at1(prec)
                 if abs(L) > err + R(0.0001):  # definitely doesn't vanish
-                    misc.verbose("rank 0 because L(E,1)=%s"%L)
+                    verbose("rank 0 because L(E,1)=%s" % L)
                     rank = Integer(0)
                     self.__rank = (rank, proof)
                     return rank
             else:
                 Lprime, err = self.lseries().deriv_at1(prec)
                 if abs(Lprime) > err + R(0.0001):  # definitely doesn't vanish
-                    misc.verbose("rank 1 because L'(E,1)=%s"%Lprime)
+                    verbose("rank 1 because L'(E,1)=%s" % Lprime)
                     rank = Integer(1)
                     self.__rank = (rank, proof)
                     return rank
 
         if algorithm == 'mwrank_lib':
-            misc.verbose("using mwrank lib")
+            verbose("using mwrank lib")
             if self.is_integral(): E = self
             else: E = self.integral_model()
             C = E.mwrank_curve()
@@ -2145,7 +2144,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                     del E.__mwrank_curve
                     raise RuntimeError('rank not provably correct (lower bound: {})'.format(rank))
                 else:
-                    misc.verbose("Warning -- rank not proven correct", level=1)
+                    verbose("Warning -- rank not proven correct", level=1)
             return rank
 
         if algorithm == 'mwrank_shell':
@@ -2157,7 +2156,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                     print(X)
                     raise RuntimeError('rank not provably correct')
                 else:
-                    misc.verbose("Warning -- rank not proven correct", level=1)
+                    verbose("Warning -- rank not proven correct", level=1)
 
                 s = "lower bound of"
                 X = X[X.rfind(s)+len(s)+1:]
@@ -2319,31 +2318,31 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         if not only_use_mwrank:
             try:
-                misc.verbose("Trying to compute rank.")
+                verbose("Trying to compute rank.")
                 r = self.rank(only_use_mwrank = False)
-                misc.verbose("Got r = %s."%r)
+                verbose("Got r = %s."%r)
                 if r == 0:
-                    misc.verbose("Rank = 0, so done.")
+                    verbose("Rank = 0, so done.")
                     return [], True
                 if r == 1 and rank1_search:
-                    misc.verbose("Rank = 1, so using direct search.")
+                    verbose("Rank = 1, so using direct search.")
                     h = 6
                     while h <= rank1_search:
-                        misc.verbose("Trying direct search up to height %s"%h)
+                        verbose("Trying direct search up to height %s"%h)
                         G = self.point_search(h, verbose)
                         G = [P for P in G if P.order() == oo]
                         if len(G) > 0:
-                            misc.verbose("Direct search succeeded.")
+                            verbose("Direct search succeeded.")
                             G, _, _ = self.saturation(G, verbose=verbose)
-                            misc.verbose("Computed saturation.")
+                            verbose("Computed saturation.")
                             return G, True
                         h += 2
-                    misc.verbose("Direct search FAILED.")
+                    verbose("Direct search FAILED.")
             except RuntimeError:
                 pass
         # end if (not_use_mwrank)
         if algorithm == "mwrank_lib":
-            misc.verbose("Calling mwrank C++ library.")
+            verbose("Calling mwrank C++ library.")
             if not self.is_integral():
                 xterm = 1; yterm = 1
                 ai = self.a_invariants()
@@ -2381,13 +2380,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             # all for gens() and just use the library. This is in
             # progress (see trac #1949).
             X = self.mwrank('-p 100 -S '+str(sat_bound))
-            misc.verbose("Calling mwrank shell.")
+            verbose("Calling mwrank shell.")
             if not 'The rank and full Mordell-Weil basis have been determined unconditionally' in X:
                 msg = 'Generators not provably computed.'
                 if proof:
                     raise RuntimeError('%s\n%s'%(X,msg))
                 else:
-                    misc.verbose("Warning -- %s"%msg, level=1)
+                    verbose("Warning -- %s"%msg, level=1)
                 proved = False
             else:
                 proved = True
@@ -6041,7 +6040,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         c8 = max(e*h_E,max(mod_h_list))
         c9 = e/c7.sqrt() * min(c9_help_list)
         n=r+1
-        c10 = R(2 * 10**(8+7*n) * R((2/e)**(2 * n**2)) * (n+1)**(4 * n**2 + 10 * n) * log(c9)**(-2*n - 1) * misc.prod(mod_h_list))
+        c10 = R(2 * 10**(8+7*n) * R((2/e)**(2 * n**2)) * (n+1)**(4 * n**2 + 10 * n) * log(c9)**(-2*n - 1) * prod(mod_h_list))
 
         top = Z(128) #arbitrary first upper bound
         bottom = Z(0)
@@ -6524,9 +6523,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 # denom_maxpa is a list of pairs (d,q) where d runs
                 # through possible denominators, and q=p^a is the
                 # maximum prime power divisor of d:
-                denom_maxpa = [(misc.prod(tmp),max(tmp)) for tmp in cartesian_product_iterator(p_pow_alpha)]
+                denom_maxpa = [(prod(tmp),max(tmp)) for tmp in cartesian_product_iterator(p_pow_alpha)]
 #               The maximum denominator is this (not used):
-#                denom = [misc.prod([pp[-1] for pp in p_pow_alpha],1)]
+#                denom = [prod([pp[-1] for pp in p_pow_alpha],1)]
                 for de,maxpa in denom_maxpa:
                     n_max = (abs_bound*de).ceil()
                     n_min = maxpa*de
@@ -7036,7 +7035,6 @@ def elliptic_curve_congruence_graph(curves):
     from sage.graphs.graph import Graph
     from sage.arith.all import lcm, prime_divisors
     from sage.rings.fast_arith import prime_range
-    from sage.misc.all import prod
     G = Graph()
     G.add_vertices([curve.cremona_label() for curve in curves])
     n = len(curves)

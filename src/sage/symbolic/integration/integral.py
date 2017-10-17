@@ -505,10 +505,8 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         sage: _ = var('y, z')
         sage: (x^y - z).integrate(y)
         -y*z + x^y/log(x)
-        sage: (x^y - z).integrate(y, algorithm="sympy")  # see Trac #14694
-        Traceback (most recent call last):
-        ...
-        AttributeError: 'ExprCondPair' object has no attribute '_sage_'
+        sage: (x^y - z).integrate(y, algorithm="sympy")
+        -y*z + cases(((log(x) == 0, y), (1, x^y/log(x))))
 
     We integrate the above function in Maple now::
 

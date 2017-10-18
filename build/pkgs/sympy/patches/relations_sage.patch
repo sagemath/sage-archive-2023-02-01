@@ -1,0 +1,50 @@
+diff --git a/sympy/core/relational.py b/sympy/core/relational.py
+index 306682968..cd2b3f1ee 100644
+--- a/sympy/core/relational.py
++++ b/sympy/core/relational.py
+@@ -235,6 +235,11 @@ def as_set(self):
+ 
+         return solve_univariate_inequality(self, sym, relational=False)
+ 
++    def _sage_(self):
++       from operator import eq, ne, gt, lt, ge, le
++       ops = {Eq : eq, Ne : ne, Gt : gt, Lt : lt, Ge : ge, Le : le}
++       return ops.get(self.func)(self.lhs._sage_(), self.rhs._sage_())
++
+ 
+ Rel = Relational
+ 
+diff --git a/sympy/external/tests/test_sage.py b/sympy/external/tests/test_sage.py
+index ed41d42c8..65e6bede2 100644
+--- a/sympy/external/tests/test_sage.py
++++ b/sympy/external/tests/test_sage.py
+@@ -233,6 +233,21 @@ def test_abstract_function():
+     # invexpr = sexpr._sympy_()
+     # assert invexpr == expr, "inverse coversion %r is not correct " % invexpr
+ 
++def test_relational():
++    x = sympy.symbols('x')
++    sx = sage.var('x')
++    assert sympy.sympify(sx == 0) == sympy.Eq(x, 0)
++    assert (sx == 0) == sage.SR(sympy.Eq(x, 0))
++    assert sympy.sympify(sx != 0) == sympy.Ne(x, 0)
++    assert (sx != 0) == sage.SR(sympy.Ne(x, 0))
++    assert sympy.sympify(sx >= 0) == sympy.Ge(x, 0)
++    assert (sx >= 0) == sage.SR(sympy.Ge(x, 0))
++    assert sympy.sympify(sx <= 0) == sympy.Le(x, 0)
++    assert (sx <= 0) == sage.SR(sympy.Le(x, 0))
++    assert sympy.sympify(sx > 0) == sympy.Gt(x, 0)
++    assert (sx > 0) == sage.SR(sympy.Gt(x, 0))
++    assert sympy.sympify(sx < 0) == sympy.Lt(x, 0)
++    assert (sx < 0) == sage.SR(sympy.Lt(x, 0))
+ 
+ 
+ # This string contains Sage doctests, that execute all the functions above.
+@@ -258,6 +273,7 @@ def test_abstract_function():
+     sage: test_integral()
+     sage: test_undefined_function()
+     sage  test_abstract_function()
++    sage: test_relational()
+ 
+ Sage has no symbolic Lucas function at the moment::
+ 

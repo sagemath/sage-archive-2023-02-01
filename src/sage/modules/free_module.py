@@ -181,7 +181,7 @@ from sage.misc.randstate import current_randstate
 from sage.structure.sequence import Sequence
 
 from sage.misc.cachefunc import cached_method
-
+from sage.misc.flatten import flatten
 from warnings import warn
 
 ###############################################################################
@@ -1098,10 +1098,11 @@ done from the right side.""")
             # Not all free modules have an ambient_vector_space.
             pass        
         try:
-            M = other.basis_matrix().solve_left(self.basis_matrix())
+            M=[list(other.basis_matrix().solve_left(self.basis_matrix()[i])) for i in range(self.rank())]
         except ValueError:
             return False
-        return all(x in S for x in M.list())
+        return all(x in S for x in flatten(M))
+  
 
     def __le__(self,other):
         r"""
@@ -1132,7 +1133,7 @@ done from the right side.""")
             True
             sage: C^3 <= Z^3
             False
-
+                
         Comparison with a sub-module::
             
             sage: A = QQ^3
@@ -1153,7 +1154,27 @@ done from the right side.""")
             sage: L2 <= L1
             True
             sage: L1 <= L2
-            False    
+            False   
+            
+        More exotical comparisons:: 
+        
+            sage: R1=ZZ[sqrt(2)]
+            sage: F1=R1^3
+            sage: V1=F1.span([[sqrt(2),sqrt(2),0]])
+            sage: F2=ZZ^3
+            sage: V2=F2.span([[2,2,0]])
+            sage: V2<=V1
+            True
+            sage: V1<=V2
+            False
+            sage: R2=GF(5)[x]
+            sage: F3=R2^3
+            sage: V3=F3.span([[x^5-1,1+x+x^2+x^3+x^4,0]])
+            sage: W3=F3.span([[1,1,0],[0,4,0]])
+            sage: V3<=W3
+            True
+            sage: W3<=V3
+            False
         """
         return self.is_submodule(other)
         
@@ -1213,15 +1234,15 @@ done from the right side.""")
             R = self.base_ring()
             S = other.base_ring()
             if R!=S:
-                return True
+                return True   
             try:
-                M2 = self.basis_matrix().solve_left(other.basis_matrix())          
+                M2=[list(self.basis_matrix().solve_left(other.basis_matrix()[i])) for i in range(self.rank())]
             except ValueError:
                 return True
-            return not all(y in R for y in M2.list()) 
-        else:
-                return False    
-        
+            return not all(y in R for y in flatten(M2))
+        else: 
+            return False
+
     def __ge__(self,other):
         r"""
         Return ``True`` if ``self`` contain ``other``.
@@ -1359,15 +1380,15 @@ done from the right side.""")
         if R != S:
             return False
         try:
-            M1 = other.basis_matrix().solve_left(self.basis_matrix())          
+            M1=[list(other.basis_matrix().solve_left(self.basis_matrix()[i])) for i in range(self.rank())]      
         except ValueError:
             return False
-        if all(x in S for x in M1.list()): 
+        if all(x in S for x in flatten(M1)): 
             try:
-                M2 = self.basis_matrix().solve_left(other.basis_matrix())
+                M2=[list(self.basis_matrix().solve_left(other.basis_matrix()[i])) for i in range(other.rank())]
             except ValueError:
                 return False
-            return all(y in R for y in M2.list())
+            return all(y in R for y in flatten(M2))
         else:
             return False
      

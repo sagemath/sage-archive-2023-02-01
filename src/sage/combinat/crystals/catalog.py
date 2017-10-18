@@ -32,6 +32,8 @@ This is a catalog of crystals that are currently implemented in Sage:
   <sage.combinat.crystals.littelmann_path.CrystalOfProjectedLevelZeroLSPaths>`
 * :class:`RiggedConfigurations
   <sage.combinat.rigged_configurations.rc_crystal.CrystalOfRiggedConfigurations>`
+* :class:`ShiftedPrimedTableaux
+<sage.combinat.tableaux_shifted_primed.ShiftedPrimedTableauxCrystal>`
 * :class:`Spins <sage.combinat.crystals.spins.CrystalOfSpins>`
 * :class:`SpinsPlus <sage.combinat.crystals.spins.CrystalOfSpinsPlus>`
 * :class:`SpinsMinus <sage.combinat.crystals.spins.CrystalOfSpinsMinus>`
@@ -75,6 +77,7 @@ from .monomial_crystals import CrystalOfNakajimaMonomials as NakajimaMonomials
 from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import TensorProductOfKirillovReshetikhinTableaux
 from sage.combinat.crystals.kirillov_reshetikhin import KirillovReshetikhinCrystal as KirillovReshetikhin
 from sage.combinat.rigged_configurations.rc_crystal import CrystalOfRiggedConfigurations as RiggedConfigurations
+from sage.combinat.tableau_shifted_primed import ShiftedPrimedTableauxCrystal as ShiftedPrimedTableaux
 
 from sage.combinat.crystals.induced_structure import InducedCrystal as Induced
 

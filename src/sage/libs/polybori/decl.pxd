@@ -1,4 +1,5 @@
 # distutils: language = c++
+# distutils: extra_compile_args = -std=c++11
 
 cdef extern from "pb_wrap.h":
     ctypedef struct std_string "std::string":

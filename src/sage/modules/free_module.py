@@ -756,9 +756,6 @@ done from the right side.""")
         self.__degree = degree
         self.__is_sparse = sparse
         self._gram_matrix = None
-
-    def __eq__(self,other):
-        return self is other
     
     def construction(self):
         """

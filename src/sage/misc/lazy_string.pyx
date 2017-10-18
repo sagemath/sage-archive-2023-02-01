@@ -336,7 +336,7 @@ cdef class _LazyString(object):
         Test :trac:`24046`::
 
             sage: from sage.misc.misc import SAGE_TMP
-            sage: tmp = os.path.join(str(SAGE_TMP), 'hello')
+            sage: tmp = os.path.join(SAGE_TMP), 'hello')
             sage: _ = os.path.exists(tmp)
         """
         return str(self)

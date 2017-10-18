@@ -4675,7 +4675,7 @@ class SandpileDivisor(dict):
             sage: F <= D
             False
         """
-        return all(self[v] <= other[v]for v in self._vertices)
+        return all(self[v] <= other[v] for v in self._vertices)
 
     def __lt__(self, other):
         r"""
@@ -4702,7 +4702,7 @@ class SandpileDivisor(dict):
             sage: E < D
             False
         """
-        return self<=other and self!=other
+        return self <= other and self != other
 
     def __ge__(self, other):
         r"""
@@ -4761,7 +4761,7 @@ class SandpileDivisor(dict):
             sage: D > E
             False
         """
-        return self>=other and self!=other
+        return self >= other and self != other
 
     def sandpile(self):
         r"""

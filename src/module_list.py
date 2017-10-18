@@ -369,11 +369,6 @@ ext_modules = [
               libraries = ['bliss'],
               package = 'bliss'),
 
-    OptionalExtension('sage.graphs.modular_decomposition',
-              sources = ['sage/graphs/modular_decomposition.pyx'],
-              libraries = ['modulardecomposition'],
-              package = 'modular_decomposition'),
-
     Extension('sage.graphs.planarity',
               sources = ['sage/graphs/planarity.pyx'],
               libraries=['planarity']),

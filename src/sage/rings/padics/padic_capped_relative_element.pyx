@@ -226,7 +226,7 @@ cdef class pAdicCappedRelativeElement(CRElement):
             [&=...] PADIC(lg=5):... (precp=0,valp=5):... ... ... ...
                 p : [&=...] INT(lg=3):... (+,lgefint=3):... ... 
               p^l : [&=...] INT(lg=3):... (+,lgefint=3):... ... 
-                I : [&=...] INT(lg=2):... (0,lgefint=2):... 
+                I : gen_0
         """
         if exactzero(self.ordp):
             return pari.zero()
@@ -582,4 +582,11 @@ def base_p_list(Integer n, bint pos, PowComputer_class prime_pow):
     """
     if mpz_sgn(n.value) < 0:
         raise ValueError("n must be nonnegative")
-    return clist(n.value, prime_pow.prec_cap, pos, prime_pow)
+    cdef expansion_mode mode = simple_mode if pos else smallest_mode
+    # We need a p-adic element to feed to ExpansionIter before resetting its curvalue
+    from sage.rings.padics.all import Zp
+    p = prime_pow.prime
+    dummy = Zp(p)(0)
+    cdef ExpansionIter expansion = ExpansionIter(dummy, n.exact_log(p) + 2, mode)
+    mpz_set(expansion.curvalue, n.value)
+    return trim_zeros(list(expansion))

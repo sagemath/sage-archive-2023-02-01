@@ -122,10 +122,16 @@ class Rings(CategoryWithAxiom):
                           From: Integer Ring
                           To:   Fraction Field of Univariate Polynomial Ring in x over Rational Field
                         then
-                          Coercion map:
+                          Isomorphism morphism:
                           From: Fraction Field of Univariate Polynomial Ring in x over Rational Field
                           To:   Rational function field in x over Rational Field
                 sage: f.is_injective()
+                True
+
+            A coercion to the fraction field is injective::
+
+                sage: R = ZpFM(3)
+                sage: R.fraction_field().coerce_map_from(R).is_injective()
                 True
 
             """
@@ -154,6 +160,15 @@ class Rings(CategoryWithAxiom):
                         from sage.categories.number_fields import NumberFields
                         if self.domain().fraction_field() in NumberFields():
                             return True
+
+            if self._is_coercion:
+                try:
+                    K = self.domain().fraction_field()
+                except (TypeError, AttributeError, ValueError):
+                    pass
+                else:
+                    if K is self.codomain():
+                        return True
 
             if self.domain().cardinality() > self.codomain().cardinality():
                 return False

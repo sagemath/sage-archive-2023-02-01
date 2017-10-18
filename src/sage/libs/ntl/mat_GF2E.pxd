@@ -1,7 +1,7 @@
 from .types cimport mat_GF2E_c, vec_GF2E_c, GF2E_c
 
 
-cdef extern from "sage/libs/ntl/ntlwrap.cpp":
+cdef extern from "ntlwrap.cpp":
     void mat_GF2E_add "add"( mat_GF2E_c x, mat_GF2E_c a, mat_GF2E_c b)
     void mat_GF2E_sub "sub"( mat_GF2E_c x, mat_GF2E_c a, mat_GF2E_c b)
     void mat_GF2E_mul "mul"( mat_GF2E_c x, mat_GF2E_c a, mat_GF2E_c b)

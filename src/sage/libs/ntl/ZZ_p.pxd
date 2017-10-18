@@ -3,7 +3,7 @@
 from .types cimport ZZ_c, ZZ_p_c
 
 
-cdef extern from "sage/libs/ntl/ntlwrap.cpp":
+cdef extern from "ntlwrap.cpp":
     char* ZZ_p_to_str(ZZ_p_c* x)
     void ZZ_p_add "add"( ZZ_p_c x, ZZ_p_c a, ZZ_p_c b)
     void ZZ_p_sub "sub"( ZZ_p_c x, ZZ_p_c a, ZZ_p_c b)

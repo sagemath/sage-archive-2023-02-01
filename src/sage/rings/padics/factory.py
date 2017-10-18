@@ -1081,6 +1081,14 @@ def Qq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
         sage: Qq(125.factor(), names="alpha") is R
         True
 
+    Check that :trac:`18606` is resolved::
+
+        sage: x = QQ['x'].gen()
+        sage: F = Qp(5,20)
+        sage: K0 = F.extension(x^2-F(13),names = 'g')
+        sage: K1 = F.extension(x^2-13,names = 'g')
+        sage: K0 is K1
+        True
     """
     if is_Element(q):
         F = Integer(q).factor()

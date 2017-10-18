@@ -1,7 +1,7 @@
 from .types cimport GF2EX_c
 
 
-cdef extern from "sage/libs/ntl/ntlwrap.cpp":
+cdef extern from "ntlwrap.cpp":
     void GF2EX_add "add"( GF2EX_c x, GF2EX_c a, GF2EX_c b)
     void GF2EX_sub "sub"( GF2EX_c x, GF2EX_c a, GF2EX_c b)
     void GF2EX_mul "mul"( GF2EX_c x, GF2EX_c a, GF2EX_c b)

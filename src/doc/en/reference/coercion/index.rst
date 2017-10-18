@@ -91,7 +91,7 @@ to be able to reason with them, so their type is used instead::
     <... 'int'>
 
 In fact, under the hood, a special kind of parent "The set of all
-Python objects of type T" is used in these cases.
+Python objects of class T" is used in these cases.
 
 Note that parents are **not** always as tight as possible.
 
@@ -277,19 +277,19 @@ copy should be used instead (unless one knows what one is doing)::
     sage: QQ._internal_coerce_map_from(int)
     (map internal to coercion system -- copy before use)
     Native morphism:
-      From: Set of Python objects of type 'int'
+      From: Set of Python objects of class 'int'
       To:   Rational Field
     sage: copy(QQ._internal_coerce_map_from(int))
     Native morphism:
-     From: Set of Python objects of type 'int'
-     To:   Rational Field
+      From: Set of Python objects of class 'int'
+      To:   Rational Field
 
 Note that the user-visible method (without underscore) automates this copy::
 
     sage: copy(QQ.coerce_map_from(int))
     Native morphism:
-     From: Set of Python objects of type 'int'
-     To:   Rational Field
+      From: Set of Python objects of class 'int'
+      To:   Rational Field
 
 ::
 

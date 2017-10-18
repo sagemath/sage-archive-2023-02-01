@@ -4,7 +4,7 @@ Groupes finis, groupes abéliens
 Sage permet de faire des calculs avec des groupes de permutation, des
 groupes classiques finis (tels que  :math:`SU(n,q)`), des groupes finis
 de matrices (avec vos propres générateurs) et des groupes abéliens (même
-infinis). La plupart de ces fonctionalités est implémentée par une
+infinis). La plupart de ces fonctionnalités est implémentée par une
 interface vers GAP.
 
 Par exemple, pour créer un groupe de permutation, il suffit de donner

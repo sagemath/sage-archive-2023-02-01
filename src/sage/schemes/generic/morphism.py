@@ -677,7 +677,7 @@ class SchemeMorphism_structure_map(SchemeMorphism):
     """
     def __init__(self, parent, codomain=None):
         """
-        The Python constuctor.
+        The Python constructor.
 
         See :class:`SchemeMorphism_structure_map` for details.
 
@@ -750,7 +750,7 @@ class SchemeMorphism_spec(SchemeMorphism):
     """
     def __init__(self, parent, phi, check=True):
         """
-        The Python constuctor.
+        The Python constructor.
 
         See :class:`SchemeMorphism_structure_map` for details.
 

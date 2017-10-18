@@ -105,6 +105,7 @@ from sage.misc.all import (latex,
 from sage.structure.category_object import normalize_names
 from sage.arith.all import gcd, binomial
 from sage.combinat.integer_vector import IntegerVectors
+from sage.combinat.integer_vector_weighted import WeightedIntegerVectors
 from sage.combinat.permutation import Permutation
 from sage.combinat.tuple import Tuples
 from sage.combinat.tuple import UnorderedTuples
@@ -928,7 +929,7 @@ class ProjectiveSpace_ring(AmbientSpace):
             "_test_elements_eq_symmetric", "_test_elements_eq_transitive",\
             "_test_elements_neq"])
         """
-        from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
+        from sage.schemes.projective.projective_subscheme import AlgebraicScheme_subscheme_projective
         return AlgebraicScheme_subscheme_projective(self, X)
 
     def affine_patch(self, i, AA=None):
@@ -1150,6 +1151,75 @@ class ProjectiveSpace_ring(AmbientSpace):
         A = self.affine_patch(1)
         f = A.chebyshev_polynomial(n, kind)
         return f.homogenize(1)
+
+    def veronese_embedding(self, d, CS=None, order='lex'):
+        r"""
+        Return the degree ``d`` Veronese embedding from this projective space.
+
+        INPUT:
+
+        - ``d`` -- a positive integer.
+
+        - ``CS`` -- a projective ambient space to embed into. If this projective space has dimension `N`, the
+          dimension of ``CS`` must be `\binom{N + d}{d} - 1`. This is constructed if not specified. Default:
+          ``None``.
+
+        - ``order`` -- a monomial order to use to arrange the monomials defining the embedding. The monomials
+          will be arranged from greatest to least with respect to this order. Default: ``'lex'``.
+
+        OUTPUT:
+
+        - a scheme morphism from this projective space to ``CS``.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: vd = P.veronese_embedding(4, order='invlex')
+            sage: vd
+            Scheme morphism:
+              From: Projective Space of dimension 1 over Rational Field
+              To:   Projective Space of dimension 4 over Rational Field
+              Defn: Defined on coordinates by sending (x : y) to
+                    (y^4 : x*y^3 : x^2*y^2 : x^3*y : x^4)
+
+        Veronese surface::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: Q.<q,r,s,t,u,v> = ProjectiveSpace(QQ, 5)
+            sage: vd = P.veronese_embedding(2, Q)
+            sage: vd
+            Scheme morphism:
+              From: Projective Space of dimension 2 over Rational Field
+              To:   Projective Space of dimension 5 over Rational Field
+              Defn: Defined on coordinates by sending (x : y : z) to
+                    (x^2 : x*y : x*z : y^2 : y*z : z^2)
+            sage: vd(P.subscheme([]))
+            Closed subscheme of Projective Space of dimension 5 over Rational Field
+            defined by:
+              -u^2 + t*v,
+              -s*u + r*v,
+              -s*t + r*u,
+              -s^2 + q*v,
+              -r*s + q*u,
+              -r^2 + q*t
+        """
+        d = ZZ(d)
+        if d <= 0:
+            raise ValueError("(=%s) must be a positive integer"%d)
+        N = self.dimension()
+        # construct codomain space if not given
+        if CS is None:
+            CS = ProjectiveSpace(self.base_ring(), binomial(N + d, d) - 1)
+        else:
+            if not is_ProjectiveSpace(CS):
+                raise TypeError("(=%s) must be a projective space"%CS)
+            if CS.dimension() != binomial(N + d, d) - 1:
+                raise TypeError("(=%s) has the wrong dimension to serve as the codomain space"%CS)
+
+        R = self.coordinate_ring().change_ring(order=order)
+        monomials = sorted([R({tuple(v) : 1}) for v in WeightedIntegerVectors(d, [1] * (N + 1))])
+        monomials.reverse() # order the monomials greatest to least via the given monomial order
+        return Hom(self, CS)(monomials)
 
 class ProjectiveSpace_field(ProjectiveSpace_ring):
     def _point_homset(self, *args, **kwds):
@@ -1527,8 +1597,8 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
         INPUT:
 
-        - ``F`` -- a polynomial, or a list or tuple of polynomials in the coorinate ring
-          of this projective space.
+        - ``F`` -- a polynomial, or a list or tuple of polynomials in
+          the coordinate ring of this projective space.
 
         EXAMPLES::
 

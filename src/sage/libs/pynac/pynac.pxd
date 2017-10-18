@@ -7,7 +7,7 @@ Declarations for pynac, a Python frontend for ginac
 
 Check that we can externally cimport this (:trac:`18825`)::
 
-    sage: cython(  # long time
+    sage: cython(  # long time; random compiler warnings
     ....: '''
     ....: #clang c++
     ....: #clib pynac
@@ -34,7 +34,7 @@ from libcpp.pair cimport pair
 from libcpp.string cimport string as stdstring
 from sage.libs.gmp.types cimport mpz_t, mpq_t, mpz_ptr, mpq_ptr
 
-cdef extern from "sage/libs/pynac/wrap.h":
+cdef extern from "pynac_wrap.h":
     void ginac_pyinit_Integer(object)
     void ginac_pyinit_Float(object)
     void ginac_pyinit_I(object)
@@ -118,7 +118,7 @@ cdef extern from "sage/libs/pynac/wrap.h":
         bint has(GEx pattern)         except +
         GEx subs(GEx expr)            except +
         GEx subs_map "subs" (GExMap map, unsigned options) except +
-        GEx coeff(GEx expr, int n)    except +
+        GEx coeff(GEx expr, GEx n)    except +
         GEx lcoeff(GEx expr)          except +
         GEx tcoeff(GEx expr)          except +
         void coefficients(GEx s, vector[pair[GEx,GEx]]) except +

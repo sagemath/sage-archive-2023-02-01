@@ -4,7 +4,7 @@ from .types cimport (ZZ_c, ZZ_p_c, ZZ_pContext_c, ZZ_pE_c, vec_ZZ_p_c,
         vec_ZZ_pE_c, ZZ_pEX_c, ZZ_pEX_Modulus_c)
 
 
-cdef extern from "sage/libs/ntl/ntlwrap.cpp":
+cdef extern from "ntlwrap.cpp":
     long ZZ_pEX_IsZero "IsZero"(ZZ_pEX_c a)
     long ZZ_pEX_IsOne "IsOne"(ZZ_pEX_c a)
 

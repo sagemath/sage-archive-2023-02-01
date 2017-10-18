@@ -7,7 +7,7 @@ cdef extern from "ccobject.h":
     void ZZX_swap "swap"(ZZX_c x, ZZX_c y)
 
 
-cdef extern from "sage/libs/ntl/ntlwrap.cpp":
+cdef extern from "ntlwrap.cpp":
     ctypedef struct pair_ZZX_long_c "pair_ZZX_long":
         ZZX_c a
         long b

@@ -278,13 +278,16 @@ def installed_packages(exclude_pip=True):
 
     .. SEEALSO::
 
-        :func:`list_packages`
+        :func:`sage.misc.package.list_packages`
     """
     from sage.env import SAGE_SPKG_INST
-    installed = dict(pkgname_split(pkgname) for pkgname in os.listdir(SAGE_SPKG_INST))
+    installed = {}
     if not exclude_pip:
         installed.update(pip_installed_packages())
+    # Sage packages should override pip packages (Trac #23997)
+    installed.update(pkgname_split(pkgname) for pkgname in os.listdir(SAGE_SPKG_INST))
     return installed
+
 
 def is_package_installed(package, exclude_pip=True):
     """
@@ -321,8 +324,6 @@ def is_package_installed(package, exclude_pip=True):
 
 def package_versions(package_type, local=False):
     r"""
-    DEPRECATED: use :func:`list_packages`
-
     Return version information for each Sage package.
 
     INPUT:
@@ -341,6 +342,8 @@ def package_versions(package_type, local=False):
     that directory.  If ``local`` is ``False``, then Sage's servers are
     queried for package information.
 
+    .. SEEALSO:: :func:`sage.misc.package.list_packages`
+
     EXAMPLES::
 
         sage: std = package_versions('standard', local=True)
@@ -353,8 +356,6 @@ def package_versions(package_type, local=False):
 
 def standard_packages():
     """
-    DEPRECATED: use :func:`list_packages`
-
     Return two lists. The first contains the installed and the second
     contains the not-installed standard packages that are available
     from the Sage repository.
@@ -367,6 +368,8 @@ def standard_packages():
 
     Run ``sage -i package_name`` from a shell to install a given
     package or ``sage -f package_name`` to re-install it.
+
+    .. SEEALSO:: :func:`sage.misc.package.list_packages`
 
     EXAMPLES::
 
@@ -381,8 +384,6 @@ def standard_packages():
 
 def optional_packages():
     """
-    DEPRECATED: use :func:`list_packages`
-
     Return two lists. The first contains the installed and the second
     contains the not-installed optional packages that are available
     from the Sage repository.
@@ -395,6 +396,8 @@ def optional_packages():
 
     Run ``sage -i package_name`` from a shell to install a given
     package or ``sage -f package_name`` to re-install it.
+
+    .. SEEALSO:: :func:`sage.misc.package.list_packages`
 
     EXAMPLES::
 
@@ -418,8 +421,6 @@ def optional_packages():
 
 def experimental_packages():
     """
-    DEPRECATED: use :func:`list_packages`
-
     Return two lists. The first contains the installed and the second
     contains the not-installed experimental packages that are available
     from the Sage repository.
@@ -432,6 +433,8 @@ def experimental_packages():
 
     Run ``sage -i package_name`` from a shell to install a given
     package or ``sage -f package_name`` to re-install it.
+
+    .. SEEALSO:: :func:`sage.misc.package.list_packages`
 
     EXAMPLES::
 

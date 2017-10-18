@@ -7768,9 +7768,9 @@ class GenericGraph(GenericGraph_pyx):
         else:
             raise ValueError("``algorithm`` (%s) should be 'tsp' or 'backtrack'."%(algorithm))
 
-    def feedback_vertex_set(self, value_only=False, solver=None, verbose=0, constraint_generation = True):
+    def feedback_vertex_set(self, value_only=False, solver=None, verbose=0, constraint_generation=True):
         r"""
-        Computes the minimum feedback vertex set of a (di)graph.
+        Return the minimum feedback vertex set of a (di)graph.
 
         The minimum feedback vertex set of a (di)graph is a set of vertices that
         intersect all of its cycles.  Equivalently, a minimum feedback vertex
@@ -7885,16 +7885,16 @@ class GenericGraph(GenericGraph_pyx):
         Comparing with/without constraint generation::
 
             sage: g = digraphs.RandomDirectedGNP(10,.3)
-            sage: x = g.feedback_vertex_set(value_only = True)
-            sage: y = g.feedback_vertex_set(value_only = True,
-            ....:          constraint_generation = False)
+            sage: x = g.feedback_vertex_set(value_only=True)
+            sage: y = g.feedback_vertex_set(value_only=True,
+            ....:          constraint_generation=False)
             sage: x == y
             True
 
         Bad algorithm::
 
             sage: g = graphs.PetersenGraph()
-            sage: g.feedback_vertex_set(constraint_generation = False)
+            sage: g.feedback_vertex_set(constraint_generation=False)
             Traceback (most recent call last):
             ...
             ValueError: The only implementation available for undirected graphs is with constraint_generation set to True.
@@ -7918,52 +7918,56 @@ class GenericGraph(GenericGraph_pyx):
         ########################################
         if constraint_generation:
 
-            p = MixedIntegerLinearProgram(constraint_generation = True,
-                                          maximization = False)
+            p = MixedIntegerLinearProgram(constraint_generation=True,
+                                          maximization=False, solver=solver)
 
             # A variable for each vertex
-            b = p.new_variable(binary = True)
+            b = p.new_variable(binary=True)
 
             # Variables are binary, and their coefficient in the objective is 1
-
             p.set_objective(p.sum( b[v] for v in self))
 
-            p.solve(log = verbose)
+            p.solve(log=verbose)
 
-            # For as long as we do not break because the digraph is
-            # acyclic....
+            # For as long as we do not break because the digraph is acyclic....
             while True:
 
-                # Building the graph without the edges removed by the LP
-                h = self.subgraph(vertices =
-                                  [v for v in self if p.get_values(b[v]) == 0])
+                # Building the graph without the vertices removed by the LP
+                h = self.subgraph([v for v in self if p.get_values(b[v]) == 0])
 
                 # Is the graph acyclic ?
                 if self.is_directed():
-                    isok, certificate = h.is_directed_acyclic(certificate = True)
+                    isok, certificate = h.is_directed_acyclic(certificate=True)
                 else:
-                    isok, certificate = h.is_forest(certificate = True)
+                    isok, certificate = h.is_forest(certificate=True)
 
                 # If so, we are done !
                 if isok:
                     break
 
-                if verbose:
-                    print("Adding a constraint on circuit: ", certificate)
-
                 # There is a circuit left. Let's add the corresponding
                 # constraint !
+                while not isok:
+                    
+                    p.add_constraint(p.sum(b[v] for v in certificate), min=1)
+                    if verbose:
+                        print("Adding a constraint on circuit: ", certificate)
 
-                p.add_constraint(p.sum(b[v] for v in certificate), min = 1)
+                    # Let's search for a vertex disjoint circuit, if any
+                    h.delete_vertices(certificate)
+                    if self.is_directed():
+                        isok, certificate = h.is_directed_acyclic(certificate=True)
+                    else:
+                        isok, certificate = h.is_forest(certificate=True)
 
-                obj = p.solve(log = verbose)
+                obj = p.solve(log=verbose)
 
             if value_only:
                 return obj
 
             else:
 
-                # listing the edges contained in the MFVS
+                # Listing the vertices contained in the MFVS
                 return [v for v in self if p.get_values(b[v]) == 1]
 
         else:
@@ -7972,7 +7976,7 @@ class GenericGraph(GenericGraph_pyx):
         # Ordering-based MILP Implementation #
         ######################################
 
-            p = MixedIntegerLinearProgram(maximization = False, solver = solver)
+            p = MixedIntegerLinearProgram(maximization=False, solver=solver)
 
             b = p.new_variable(binary=True)
             d = p.new_variable(integer=True, nonnegative=True)
@@ -7980,7 +7984,7 @@ class GenericGraph(GenericGraph_pyx):
 
             # The removed vertices cover all the back arcs ( third condition )
             for (u,v) in self.edges(labels = None):
-                p.add_constraint(d[u]-d[v]+n*(b[u]+b[v]), min = 1)
+                p.add_constraint(d[u]-d[v]+n*(b[u]+b[v]), min=1)
 
             for u in self:
                 p.add_constraint(d[u], max = n)
@@ -7988,7 +7992,7 @@ class GenericGraph(GenericGraph_pyx):
             p.set_objective(p.sum([b[v] for v in self]))
 
             if value_only:
-                return Integer(round(p.solve(objective_only = True, log = verbose)))
+                return Integer(round(p.solve(objective_only=True, log=verbose)))
             else:
                 p.solve(log=verbose)
                 b_sol = p.get_values(b)

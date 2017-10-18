@@ -757,6 +757,9 @@ done from the right side.""")
         self.__is_sparse = sparse
         self._gram_matrix = None
 
+    def __eq__(self,other):
+        return self is other
+    
     def construction(self):
         """
         The construction functor and base ring for self.
@@ -4618,7 +4621,7 @@ class FreeModule_ambient(FreeModule_generic):
             [ 0  0  1 -1]
         """
         return self.basis_matrix()
-           
+
     def _repr_(self):
         """
         The printing representation of self.

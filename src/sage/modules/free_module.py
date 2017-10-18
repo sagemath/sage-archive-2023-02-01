@@ -756,7 +756,7 @@ done from the right side.""")
         self.__degree = degree
         self.__is_sparse = sparse
         self._gram_matrix = None
-    
+
     def construction(self):
         """
         The construction functor and base ring for self.
@@ -1098,19 +1098,46 @@ done from the right side.""")
             # Not all free modules have an ambient_vector_space.
             pass        
         try:
-            M=[list(other.basis_matrix().solve_left(self.basis_matrix()[i])) for i in range(self.rank())]
+            M=[list(other.basis_matrix().solve_left(self.basis_matrix()[i])) for i in range(self.basis_matrix().nrows())]
         except ValueError:
             return False
         return all(x in S for x in flatten(M))
   
+    def is_contained(self,other):
+        r"""
+        Return ``True`` if ``self`` is contained in ``other``.
 
+        See :meth:`is_submodule`.
+
+       
+        EXAMPLES::
+
+            sage: M = FreeModule(ZZ,3)
+            sage: V = M.ambient_vector_space()
+            sage: X = V.span([[1/2,1/2,0],[1/2,0,1/2]], ZZ)
+            sage: Y = V.span([[1,1,1]], ZZ)
+            sage: N = X + Y
+            sage: M.is_contained(X)
+            False
+            sage: M.is_contained(Y)
+            False
+            sage: Y.is_contained(M)
+            True
+            sage: N.is_contained(M)
+            False
+            sage: M.is_contained(N)
+            True
+        """
+        return self.is_submodule(other) 
+    
+    
     def __le__(self,other):
         r"""
         Return ``True`` if ``self`` is contained in ``other``.
 
         See :meth:`is_submodule`.
 
-        EXAMPLES:
+        EXAMPLES::
 
         We compare rank three free modules over the integers and
         rationals::
@@ -1176,7 +1203,7 @@ done from the right side.""")
             sage: W3<=V3
             False
         """
-        return self.is_submodule(other)
+        return self.is_contained(other)
         
     def __lt__(self,other):
         r"""
@@ -1184,7 +1211,7 @@ done from the right side.""")
 
         See :meth:`is_submodule`.
 
-        EXAMPLES:
+        EXAMPLES::
 
         We compare rank three free modules over the integers and
         rationals::
@@ -1236,7 +1263,7 @@ done from the right side.""")
             if R!=S:
                 return True   
             try:
-                M2=[list(self.basis_matrix().solve_left(other.basis_matrix()[i])) for i in range(self.rank())]
+                M2=[list(self.basis_matrix().solve_left(other.basis_matrix()[i])) for i in range(other.basis_matrix().nrows())]
             except ValueError:
                 return True
             return not all(y in R for y in flatten(M2))
@@ -1249,7 +1276,7 @@ done from the right side.""")
 
         See :meth:`is_submodule`.
 
-        EXAMPLES:
+        EXAMPLES::
 
         We compare rank three free modules over the integers and
         rationals::
@@ -1293,7 +1320,7 @@ done from the right side.""")
 
         See :meth:`is_submodule`.
 
-        EXAMPLES:
+        EXAMPLES::
 
         We compare rank three free modules over the integers and
         rationals::
@@ -1337,7 +1364,7 @@ done from the right side.""")
 
         See :meth:`is_submodule`.
 
-        EXAMPLES:
+        EXAMPLES::
 
         We compare rank three free modules over the integers and
         rationals::
@@ -1368,28 +1395,25 @@ done from the right side.""")
             False
             sage: L1 == L2
             False    
-        """
+        """ 
+        if not isinstance(other, FreeModule_generic):
+            return False
         if self is other:
             return True
-        if not isinstance(other, FreeModule_generic):
-            return False     
         if other.rank() != self.rank():
             return False
-        R = self.base_ring()
-        S = other.base_ring()
-        if R != S:
-            return False
-        try:
-            M1=[list(other.basis_matrix().solve_left(self.basis_matrix()[i])) for i in range(self.rank())]      
-        except ValueError:
-            return False
-        if all(x in S for x in flatten(M1)): 
-            try:
-                M2=[list(self.basis_matrix().solve_left(other.basis_matrix()[i])) for i in range(other.rank())]
-            except ValueError:
-                return False
-            return all(y in R for y in flatten(M2))
-        else:
+        if self.is_contained(other):
+            R = self.base_ring()
+            S = other.base_ring()
+            if R!=S:
+                return False   
+            else:
+                try:
+                    M2=[list(self.basis_matrix().solve_left(other.basis_matrix()[i])) for i in range(other.basis_matrix().nrows())]
+                except ValueError:
+                    return False
+                return all(y in R for y in flatten(M2))
+        else: 
             return False
      
     def __ne__(self,other):
@@ -1398,7 +1422,7 @@ done from the right side.""")
 
         See :meth:`is_submodule`.
 
-        EXAMPLES:
+        EXAMPLES::
 
         We compare rank three free modules over the integers and
         rationals::
@@ -4370,7 +4394,6 @@ class FreeModule_generic_field(FreeModule_generic_pid):
 
             sage: A = GF(5)^2; B = A.span([[1,3]]); A / B
             Vector space quotient V/W of dimension 1 over Finite Field of size 5 where
-            V: Vector space of dimension 2 over Finite Field of size 5
             W: Vector space of degree 2 and dimension 1 over Finite Field of size 5
             Basis matrix:
             [1 3]
@@ -4639,7 +4662,7 @@ class FreeModule_ambient(FreeModule_generic):
             [ 0  0  1 -1]
         """
         return self.basis_matrix()
-
+           
     def _repr_(self):
         """
         The printing representation of self.

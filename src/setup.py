@@ -64,7 +64,7 @@ from sage.env import *
 ### the same directory as this file
 #########################################################
 
-from module_list import ext_modules, library_order, aliases
+from module_list import ext_modules, library_order
 from sage_setup.find import find_extra_files
 
 #########################################################
@@ -358,7 +358,7 @@ class sage_build_cython(Command):
             nthreads=self.parallel,
             build_dir=self.build_dir,
             force=self.force,
-            aliases=aliases,
+            aliases=cython_aliases(),
             compiler_directives=self.cython_directives,
             compile_time_env={'PY_VERSION_HEX':sys.hexversion},
             create_extension=self.create_extension,

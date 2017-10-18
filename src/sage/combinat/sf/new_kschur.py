@@ -1018,7 +1018,6 @@ class kSchur(CombinatorialFreeModule):
     _repr_term = KBoundedSubspaceBases.ParentMethods._repr_term.__func__
     _convert_map_from_ = KBoundedSubspaceBases.ParentMethods._convert_map_from_.__func__
     _element_constructor_ = KBoundedSubspaceBases.ParentMethods._element_constructor_.__func__
-    _element_constructor = _element_constructor_
 
     def _repr_(self):
         """
@@ -1276,7 +1275,6 @@ class kSplit(CombinatorialFreeModule):
     _convert_map_from_ =\
             KBoundedSubspaceBases.ParentMethods._convert_map_from_.__func__
     _element_constructor_ = KBoundedSubspaceBases.ParentMethods._element_constructor_.__func__
-    _element_constructor = _element_constructor_
 
     def _repr_(self):
         r"""
@@ -1392,7 +1390,6 @@ class kHomogeneous(CombinatorialFreeModule):
     _convert_map_from_ =\
             KBoundedSubspaceBases.ParentMethods._convert_map_from_.__func__
     _element_constructor_ = KBoundedSubspaceBases.ParentMethods._element_constructor_.__func__
-    _element_constructor = _element_constructor_
 
     def _repr_(self):
         """
@@ -1469,7 +1466,6 @@ class K_kSchur(CombinatorialFreeModule):
     __getitem__ = KBoundedSubspaceBases.ParentMethods.__getitem__.__func__
     _repr_term = KBoundedSubspaceBases.ParentMethods._repr_term.__func__
     _element_constructor_ = KBoundedSubspaceBases.ParentMethods._element_constructor_.__func__
-    _element_constructor = _element_constructor_
 
     def _repr_(self):
         r"""

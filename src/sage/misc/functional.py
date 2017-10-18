@@ -983,7 +983,7 @@ def log(x, b=None):
         4
         sage: log(3.)
         1.09861228866811
-        sage: log(float(3))
+        sage: log(float(3))  # abs tol 1e-15
         1.0986122886681098
     """
     deprecation(19444, 'use .log() or log() from sage.functions.log instead')
@@ -1497,6 +1497,10 @@ def round(x, ndigits=0):
         sage: round(b)
         5
 
+    This example addresses :trac:`23502`::
+
+        sage: n = round(6); type(n)
+        <type 'sage.rings.integer.Integer'>
 
     Since we use floating-point with a limited range, some roundings can't
     be performed::

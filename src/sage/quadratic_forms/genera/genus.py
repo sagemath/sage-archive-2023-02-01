@@ -17,7 +17,7 @@ from sage.rings.integer_ring import IntegerRing
 from sage.rings.rational_field import RationalField
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
-
+import copy
 
 def Genus(A):
     r"""
@@ -101,6 +101,14 @@ def is_GlobalGenus(G):
         sage: G = Genus(A)
         sage: is_GlobalGenus(G)
         True
+      
+        sage: from sage.quadratic_forms.genera.genus import Genus,is_GlobalGenus
+        sage: G=Genus(matrix.diagonal([2,2,2,2]))
+        sage: G._local_symbols[0]._symbol=[[0,2,3,0,0],[1,2,5,1,0]]
+        sage: G._representative=None
+        sage: is_GlobalGenus(G)
+        False
+ 
     """
     D = G.determinant()
     r, s = G.signature_pair_of_matrix()
@@ -179,10 +187,10 @@ def is_2_adic_genus(genus_symbol_quintuple_list):
             if s[3] == 0 or s[2] != s[4]:
                 return False
         if s[1] == 2 and s[3] == 1:
-            if s[2] in (1,-1):
+            if s[2]%8 in (1,7):
                if not s[4] in (0,2,6):
                   return False
-            if s[2] in (3,-3):
+            if s[2]%8 in (3,5):
                if not s[4] in (2,4,6):
                   return False
         if (s[1] - s[4])% 2 == 1:
@@ -423,6 +431,8 @@ def canonical_2_adic_reduction(genus_symbol_quintuple_list):
 
         Add an example where sign walking occurs!
     """
+    # Protect the input from unwanted modification
+    genus_symbol_quintuple_list = copy.deepcopy(genus_symbol_quintuple_list)
     canonical_symbol = genus_symbol_quintuple_list
     # Canonical determinants:
     for i in range(len(genus_symbol_quintuple_list)):
@@ -1597,7 +1607,17 @@ class GenusSymbol_global_ring(object):
 
             sage: GS2 == GS2
             True
-
+            
+        TESTS::
+        
+            sage: D4=QuadraticForm(Matrix(ZZ,4,4,[2,0,0,-1,0,2,0,-1,0,0,2,-1,-1,-1,-1,2]))
+            sage: G=D4.global_genus_symbol()
+            sage: sage.quadratic_forms.genera.genus.is_GlobalGenus(G)
+            True
+            sage: G==deepcopy(G)
+            True
+            sage: sage.quadratic_forms.genera.genus.is_GlobalGenus(G)
+            True
         """
         if self is other:
             return True

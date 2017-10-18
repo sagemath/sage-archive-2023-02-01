@@ -14,6 +14,8 @@ The symbolic ring
 #*****************************************************************************
 from __future__ import absolute_import
 
+from sage.ext.cplusplus cimport ccrepr
+
 from sage.libs.pynac.pynac cimport *
 
 from sage.rings.integer cimport Integer
@@ -881,7 +883,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: SR._repr_element_(x+2)
             'x + 2'
         """
-        return GEx_to_str(&x._gobj)
+        return ccrepr(x._gobj)
 
     def _latex_element_(self, Expression x):
         """

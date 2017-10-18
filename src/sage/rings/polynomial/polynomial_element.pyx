@@ -24,6 +24,8 @@ AUTHORS:
 
 -  Edgar Costa (2017-07): Added rational reconstruction.
 
+-  Kiran Kedlaya (2017-09): Added reciprocal transform, trace polynomial.
+
 TESTS::
 
     sage: R.<x> = ZZ[]
@@ -1652,15 +1654,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         Returns the square of this polynomial.
 
-        TODO:
+        .. TODO::
 
-        - This is just a placeholder; for now it just uses ordinary
-          multiplication. But generally speaking, squaring is faster than
-          ordinary multiplication, and it's frequently used, so subclasses
-          may choose to provide a specialised squaring routine.
+            - This is just a placeholder; for now it just uses ordinary
+              multiplication. But generally speaking, squaring is faster than
+              ordinary multiplication, and it's frequently used, so subclasses
+              may choose to provide a specialised squaring routine.
 
-        - Perhaps this even belongs at a lower level? RingElement or
-          something?
+            - Perhaps this even belongs at a lower level? RingElement or
+              something?
 
         AUTHORS:
 
@@ -3994,9 +3996,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: factor(x)
             x
             sage: factor(x^2 - q^2)
-            (-1) * (-x + q) * (x + q)
+            (x - q) * (x + q)
             sage: factor(x^2 - q^-2)
-            (1/q^2) * (q*x - 1) * (q*x + 1)
+            (x - 1/q) * (x + 1/q)
 
             sage: P.<a,b,c> = PolynomialRing(ZZ)
             sage: R.<x> = PolynomialRing(FractionField(P))
@@ -5064,9 +5066,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: a.coefficients()
             []
         """
-        if a:
-            return self.__class__(P,[a], check=False) #P._element_constructor(a, check=False)
-        return self.__class__(P,[], check=False)
+        t = type(self)
+        return t(P, [a] if a else [], check=False)
 
     def is_monic(self):
         """
@@ -7844,6 +7845,131 @@ cdef class Polynomial(CommutativeAlgebraElement):
             False
         """
         return self.all_roots_in_interval()
+
+    def reciprocal_transform(self, R=1, q=1):
+        r"""
+        Transform a general polynomial into a self-reciprocal polynomial.
+
+        The input `Q` and output `P` satisfy the relation
+
+        .. MATH::
+
+            P(x) = Q(x + q/x) x^{\deg(Q)} R(x).
+
+        In this relation, `Q` has all roots in the real interval 
+        `[-2\sqrt{q}, 2\sqrt{q}]` if and only if `P` has all roots on the
+        circle `|x| = \sqrt{q}` and `R` divides `x^2-q`.
+
+        .. SEEALSO::
+
+            The inverse operation is :meth:`trace_polynomial`.
+
+        INPUT:
+
+        - ``R`` -- polynomial
+        - ``q`` -- scalar (default: `1`)
+
+        EXAMPLES::
+
+            sage: pol.<x> = PolynomialRing(Rationals())
+            sage: u = x^2+x-1
+            sage: u.reciprocal_transform()
+            x^4 + x^3 + x^2 + x + 1
+            sage: u.reciprocal_transform(R=x-1)
+            x^5 - 1
+            sage: u.reciprocal_transform(q=3)
+            x^4 + x^3 + 5*x^2 + 3*x + 9
+        """
+        S = self.parent()
+        x = S.gen()
+        return S(x**(self.degree()) * self(x + q/x)) * R
+
+    def trace_polynomial(self):
+        r"""
+        Compute the trace polynomial and cofactor.
+
+        The input `P` and output `Q` satisfy the relation
+
+        .. MATH::
+
+            P(x) = Q(x + q/x) x^{\deg(Q)} R(x).
+
+        In this relation, `Q` has all roots in the real interval
+        `[-2\sqrt{q}, 2\sqrt{q}]` if and only if `P` has all roots on the
+        circle `|x| = \sqrt{q}` and `R` divides `x^2-q`.  We thus require
+        that the base ring of this polynomial have a coercion to the real
+        numbers.
+
+        .. SEEALSO::
+
+            The inverse operation is :meth:`reciprocal_transform`.
+
+        OUTPUT:
+
+        - ``Q`` -- trace polynomial
+        - ``R`` -- cofactor
+        - ``q`` -- scaling factor
+
+        EXAMPLES::
+
+            sage: pol.<x> = PolynomialRing(Rationals())
+            sage: u = x^5 - 1; u.trace_polynomial()
+            (x^2 + x - 1, x - 1, 1)
+            sage: u = x^4 + x^3 + 5*x^2 + 3*x + 9
+            sage: u.trace_polynomial()
+            (x^2 + x - 1, 1, 3)
+
+        We check that this function works for rings
+        that have a coercion to the reals::
+
+            sage: K.<a> = NumberField(x^2-2,embedding=1.4)
+            sage: u = x^4 + a*x^3 + 3*x^2 + 2*a*x + 4
+            sage: u.trace_polynomial()
+            (x^2 + a*x - 1, 1, 2)
+            sage: (u*(x^2-2)).trace_polynomial()
+            (x^2 + a*x - 1, x^2 - 2, 2)
+            sage: (u*(x^2-2)^2).trace_polynomial()
+            (x^4 + a*x^3 - 9*x^2 - 8*a*x + 8, 1, 2)
+            sage: (u*(x^2-2)^3).trace_polynomial()
+            (x^4 + a*x^3 - 9*x^2 - 8*a*x + 8, x^2 - 2, 2)
+            sage: u = x^4 + a*x^3 + 3*x^2 + 4*a*x + 16
+            sage: u.trace_polynomial()
+            (x^2 + a*x - 5, 1, 4)
+            sage: (u*(x-2)).trace_polynomial()
+            (x^2 + a*x - 5, x - 2, 4)
+            sage: (u*(x+2)).trace_polynomial()
+            (x^2 + a*x - 5, x + 2, 4)
+         """
+        S = self.parent()
+        A = S.base_ring()
+        x = S.gen()
+        if self[0] == 0:
+            raise ValueError("Polynomial not self-reciprocal")
+        d = self.degree()
+        sg = (self[0]/self[d]).sign()
+        try:
+            q = A(abs(self[0]/self[d])**(2/d))
+        except (TypeError, ValueError):
+            raise ValueError("Polynomial not self-reciprocal")
+        for i in range(d/2+1):
+            if self[d-i] != sg*self[i]/q**(d/2-i):
+                raise ValueError("Polynomial not self-reciprocal")
+        Q = self
+        if sg == -1 and Q.degree() % 2 == 0:
+            cofactor = x**2 - q
+        elif sg == -1:
+            cofactor = x - q.sqrt()
+        elif Q.degree() % 2 == 1:
+            cofactor = x + q.sqrt()
+        else:
+            cofactor = S(1)
+        Q //= cofactor
+        coeffs = []
+        m = Q.degree() // 2
+        for i in reversed(range(m+1)):
+            coeffs.insert(0, Q.leading_coefficient())
+            Q = (Q % (x**2 + q)**i) // x
+        return S(coeffs), cofactor, q
 
     def variable_name(self):
         """

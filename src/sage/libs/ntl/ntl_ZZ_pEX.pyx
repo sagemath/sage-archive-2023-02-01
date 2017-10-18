@@ -23,6 +23,7 @@ AUTHORS:
 from __future__ import division, absolute_import, print_function
 
 from cysignals.signals cimport sig_on, sig_off
+from sage.ext.cplusplus cimport ccrepr
 
 include 'misc.pxi'
 include 'decl.pxi'
@@ -160,8 +161,7 @@ cdef class ntl_ZZ_pEX(object):
         [[3 2] [1 2] [1 2]]
         """
         self.c.restore_c()
-        return ZZ_pEX_to_PyString(&self.x)
-        #return string_delete(ZZ_pEX_to_str(&self.x))
+        return ccrepr(self.x)
 
     def __copy__(self):
         """

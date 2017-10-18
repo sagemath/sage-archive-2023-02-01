@@ -543,11 +543,17 @@ class Partition(CombinatorialElement):
             CombinatorialElement.__init__(self, parent, mu._list)
             return
 
-        elif len(mu)==0 or (all(mu[i] in NN and mu[i]>=mu[i+1] for i in range(len(mu)-1)) \
+        elif not mu:
+            CombinatorialElement.__init__(self, parent, mu)
+
+        elif (all(mu[i] in NN and mu[i] >= mu[i+1] for i in range(len(mu)-1))
                 and mu[-1] in NN):
-            if 0 in mu:
+            if mu[-1] == 0: # From the above checks, the last value must be == 0 or > 0
                 # strip all trailing zeros
-                CombinatorialElement.__init__(self, parent, mu[:mu.index(0)])
+                temp = len(mu) - 1
+                while temp > 0 and mu[temp-1] == 0:
+                    temp -= 1
+                CombinatorialElement.__init__(self, parent, mu[:temp])
             else:
                 CombinatorialElement.__init__(self, parent, mu)
 
@@ -4214,17 +4220,6 @@ class Partition(CombinatorialElement):
             [3, 2, 2, 1, 1, 1, 1, 1, 1]
         """
         return Partition(self.k_skew(k).conjugate().row_lengths())
-
-#    def parent(self):
-#        """
-#        Returns the combinatorial class of partitions of ``sum(self)``.
-#
-#        EXAMPLES::
-#
-#            sage: Partition([3,2,1]).parent()
-#            Partitions of the integer 6
-#        """
-#        return Partitions(sum(self[:]))
 
     def arms_legs_coeff(self, i, j):
         r"""

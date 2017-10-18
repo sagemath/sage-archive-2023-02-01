@@ -2279,6 +2279,8 @@ class FinitePoset(UniqueRepresentation, Parent):
         else:
             chain_pairs = [(m, n)]
 
+        if chain_pairs:
+            closure = self._hasse_diagram.transitive_closure()
         for m, n in chain_pairs:
             try:
                 m, n = Integer(m), Integer(n)
@@ -2287,7 +2289,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             if m < 1 or n < 1:
                 raise ValueError("%s and %s must be positive integers." % (m, n))
             twochains = digraphs.TransitiveTournament(m) + digraphs.TransitiveTournament(n)
-            if self._hasse_diagram.transitive_closure().subgraph_search(twochains, induced=True) is not None:
+            if closure.subgraph_search(twochains, induced=True) is not None:
                 return False
         return True
 

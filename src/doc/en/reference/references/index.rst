@@ -1154,6 +1154,10 @@ REFERENCES:
              Introduction to Mathematical
              Cryptography*. Springer, 2008.
 
+.. [HPS2017] Graham Hawkes, Kirill Paramonov, and Anne Schilling.
+             *Crystal analysis of type* `C` *Stanley symmetric functions*.
+             Preprint, :arxiv:`1704.00889`.
+
 .. [HOLM2016] Tristan Holmes and \J. \B. Nation,
               *Inflation of finite lattices along all-or-nothing sets*.
               http://www.math.hawaii.edu/~jb/inflation.pdf

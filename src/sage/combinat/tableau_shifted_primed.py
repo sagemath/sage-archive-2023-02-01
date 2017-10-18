@@ -1,20 +1,40 @@
-from six import add_metaclass
-import numpy as np
+# -*- coding: utf-8 -*-
+"""
+Shifted primed tableaux
 
-from sage.combinat.partition import Partition, Partitions, OrderedPartitions
+AUTHORS:
+
+- Kirill Paramonov (2017-08-18): initial implementation
+"""
+
+#*****************************************************************************
+#       Copyright (C) 2017 Kirill Paramonov <kbparamonov at ucdavis.edu>,
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+from __future__ import print_function, absolute_import
+from six import add_metaclass
+
+from sage.combinat.partition import Partition, Partitions, _Partitions, OrderedPartitions
 from sage.combinat.integer_vector import IntegerVectors
 from sage.rings.integer import Integer
 
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
+from sage.misc.lazy_attribute import lazy_attribute
 
 from sage.structure.list_clone import ClonableArray
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 
-# Imports for the crystal
-
+from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.classical_crystals import ClassicalCrystals
+from sage.categories.sets_cat import Sets
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.combinat.root_system.cartan_type import CartanType
 
 
@@ -121,6 +141,8 @@ class ShiftedPrimedTableau(ClonableArray):
         else:
             t_ = T
 
+        # FIXME: Remove numpy imports!!!
+        import numpy as np
         if not all(isinstance(row, (list, tuple, np.ndarray)) for row in t_):
             t_ = [t_]
 
@@ -220,6 +242,7 @@ class ShiftedPrimedTableau(ClonableArray):
                          + [0]*(m-i-self._skew[i]-len(self[i])))
         for i in range(sk_len, len(self)):
             array.append([0]*i + list(self[i]) + [0]*(m-i-len(self[i])))
+        import numpy as np
         array = np.array(array, dtype='float')
         return array
 
@@ -593,7 +616,6 @@ class ShiftedPrimedTableau(ClonableArray):
             sage: s(0,2)
             1.5
         """
-
         try:
             i, j = cell
         except ValueError:
@@ -653,12 +675,12 @@ class ShiftedPrimedTableau(ClonableArray):
             sage: t._reading_word_with_positions()
             [((1, 2), 3), ((0, 1), 2), ((1, 1), 2), ((0, 0), 1),
             ((0, 2), 2), ((0, 3), 2)]
-
         """
         if self._skew is not None:
             raise NotImplementedError('skew tableau must be empty')
         mat = self._to_matrix()
         list_with_positions = []
+        import numpy as np
         for (i, j), x in np.ndenumerate(mat[:, ::-1].T):
             if int(x) != x:
                 list_with_positions.append(((j, mat.shape[1]-i-1), int(x+0.5)))
@@ -697,9 +719,9 @@ class ShiftedPrimedTableau(ClonableArray):
     def f(self, ind):
         """
         Compute the action of the crystal operator `f_i` on a Shifted Primed
-        Tableau using cases from the paper [GPS.17].
+        Tableau using cases from the paper [HPS2017]_.
 
-        INPUT::
+        INPUT:
 
         - ``ind`` -- index of the crystal operator `f_i`
 
@@ -746,6 +768,8 @@ class ShiftedPrimedTableau(ClonableArray):
         element_to_change = None
         count = 0
 
+        import numpy as np
+
         for element in read_word:
             if element[1] == ind+1:
                 count += 1
@@ -765,10 +789,8 @@ class ShiftedPrimedTableau(ClonableArray):
         h, l = T.shape
 
         if (c+1 == l or T[r, c+1] >= ind+1 or T[r, c+1] < 1):
-
             (tp_r, tp_c) = (r, c)
             while True:
-
                 if (tp_r+1 == h or
                         T[tp_r+1, tp_c] > ind+1 or
                         T[tp_r+1, tp_c] < 1):
@@ -799,7 +821,7 @@ class ShiftedPrimedTableau(ClonableArray):
         if r > c:
             T = T.T - .5
 
-        return(ShiftedPrimedTableau(T))
+        return self.parent()(T) # FIXME: Generically this is not true
 
     def e(self, ind):
         """
@@ -846,6 +868,7 @@ class ShiftedPrimedTableau(ClonableArray):
 
         element_to_change = None
         count = 0
+        import numpy as np
 
         for element in read_word[::-1]:
             if element[1] == ind:
@@ -893,7 +916,7 @@ class ShiftedPrimedTableau(ClonableArray):
         if r > c:
             T = T.T - .5
 
-        return(ShiftedPrimedTableau(T))
+        return self.parent()(T) # FIXME: Generically this is not true
 
     def is_highest_weight(self):
         """
@@ -1248,16 +1271,44 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
     """
     Shifted Primed Tableaux of a fixed shape.
 
-    TESTS::
+    Shifted prime tableaux admit a type `A_n` classical crystal structure
+    with highest weights corresponding to a given shape.
+
+    The list of module generators consists of all elements of the
+    crystal with nonincreasing weight.
+
+    Crystal is constructed following operations described in [HPS17]_.
+
+    EXAMPLES::
 
         sage: ShiftedPrimedTableaux([4,3,1], max_elt=4)
         Shifted Primed Tableaux of shape [4, 3, 1] and maximum element 4
         sage: ShiftedPrimedTableaux([4,3,1], max_elt=4).cardinality()
         384
+
+    We compute some of the crystal structure::
+
+        sage: SPTC = crystals.ShiftedPrimedTableaux([3,2], 3)
+        sage: T = SPTC.module_generators[-1]
+        sage: T
+        [(1.0, 1.0, 1.5), (2.0, 2.5)]
+        sage: T.f(2)
+        [(1.0, 1.0, 2.5), (2.0, 2.5)]
+        sage: len(SPTC.module_generators)
+        7
+        sage: SPTC[0]
+        [(1.0, 1.0, 1.0), (2.0, 2.0)]
+        sage: SPTC.cardinality()
+        24
     """
+    @staticmethod
+    def __classcall_private__(cls, shape, max_elt=None, skew=None):
+        shape = _Partitions(shape)
+        return super(ShiftedPrimedTableaux_shape, cls).__classcall__(cls, shape, max_elt, skew)
+
     Element = ShiftedPrimedTableau
 
-    def __init__(self, shape, max_elt, skew=None):
+    def __init__(self, shape, max_elt, skew):
         """
         Initialize the class of Shifted Primed Tableaux of a given shape.
 
@@ -1266,9 +1317,23 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
 
         TESTS::
 
-            sage: TestSuite( ShiftedPrimedTableaux([4,2,1], max_elt=4)).run()
+            sage: TestSuite(ShiftedPrimedTableaux([4,2,1], max_elt=4)).run()
         """
-        Parent.__init__(self, category=FiniteEnumeratedSets())
+        # Determine the correct category
+        if max_elt is None:
+            if skew is None:
+                category = RegularCrystals().Infinite()
+                self._cartan_type = CartanType(['A+oo'])
+            else:
+                category = Sets().Infinite()
+        else:
+            if skew is None:
+                category = ClassicalCrystals()
+                self._cartan_type = CartanType(['A', max_elt-1])
+            else:
+                category = Sets().Finite()
+
+        ShiftedPrimedTableaux.__init__(self, category=category)
         self._max_elt = max_elt
         self._shape = shape
         self._skew = skew
@@ -1282,20 +1347,12 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
             sage: ShiftedPrimedTableaux([3,2,1])
             Shifted Primed Tableaux of shape [3, 2, 1]
         """
-        if self._max_elt is None and self._skew is None:
-            return "Shifted Primed Tableaux of shape {}".format(self._shape)
-        if self._max_elt is not None and self._skew is None:
-            return (
-                "Shifted Primed Tableaux of shape {} and maximum element {}"
-                .format(self._shape, self._max_elt))
-        if self._max_elt is None and self._skew is not None:
-            return ("Shifted Primed Tableaux of shape {} skewed by {}"
-                    .format(self._shape, self._skew))
-        if self._max_elt is not None and self._skew is not None:
-            return (
-                "Shifted Primed Tableaux of shape {} and maximum element {}"
-                .format(self._shape, self._max_elt) +
-                "skewed by {}".format(self._skew))
+        base = "Shifted Primed Tableaux of shape {}".format(self._shape)
+        if self._max_elt is not None:
+            base += " and maximum element {}".format(self._max_elt)
+        if self._skew is not None:
+            base += " skewed by {}".format(self._shape, self._skew)
+        return base
 
     def __contains__(self, T):
         """
@@ -1338,9 +1395,8 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
             Traceback (most recent call last):
             ...
             ValueError: [1, 1] is not an element of Shifted Primed Tableaux
-            of shape [3]
+             of shape [3]
         """
-
         try:
             Tab = self.element_class(self, T, skew=self._skew)
         except ValueError:
@@ -1355,6 +1411,15 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
                     Tab.max_element() <= self._max_elt):
                 return Tab
         raise ValueError("{} is not an element of {}".format(T, self))
+
+    @lazy_attribute
+    def module_generators(self):
+        """
+        Return the generators of ``self`` as a crystal.
+        """
+        if self._skew is not None:
+            raise NotImplementedError("only for non-skew shapes")
+        return tuple(self.list_decreasing_weight())
 
     def shape(self):
         """
@@ -1399,7 +1464,7 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
             weight_n = tuple([w-1 for w in weight])
             for tab in ShiftedPrimedTableaux(shape=self._shape,
                                              weight=weight_n):
-                yield (tab)
+                yield self(tab)
 
     def list_decreasing_weight(self):
         """
@@ -1418,10 +1483,9 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
             max_element = sum(self._shape)
         else:
             max_element = self._max_elt
-        for weight in Partition(self._shape).dominated_partitions(
-                rows=max_element):
-            list_dw.extend(list(ShiftedPrimedTableaux(weight=tuple(weight),
-                                                      shape=self._shape)))
+        for weight in Partition(self._shape).dominated_partitions(rows=max_element):
+            list_dw.extend([self(T) for T in ShiftedPrimedTableaux(weight=tuple(weight),
+                                                                   shape=self._shape)])
         return list_dw
 
     def list_highest_weight(self):
@@ -1682,157 +1746,6 @@ class ShiftedPrimedTableaux_weight_shape(ShiftedPrimedTableaux):
         for tab in tab_list_new:
             yield(ShiftedPrimedTableau(tab))
 
-
-###########
-# Crystal #
-###########
-
-
-class ShiftedPrimedTableauxCrystal(UniqueRepresentation, Parent):
-    r"""
-    The class of crystals generated by Shifted Primed Tableaux of fixed shape.
-
-    INPUT:
-
-    -``n`` or ``rank`` -- a nonnegative integer
-    -``shape`` -- a strictly decreasing partition of length at most ``n`` plus
-    one
-
-    This constructs a classical crystal of type `A_n` with highest weights
-    corresponding to a given shape.
-
-    If ``n`` is not given, the rank of the crystal is assumed to be the size of
-    the partition ``shape`` minus one.
-
-    The list of module generators consists of all elements of the crystal with
-    nonincreasing weight.
-
-    Crystal is constructed following operations described in [HPS17]_.
-
-    .. SEEALSO::
-
-        :class:`ShiftedPrimedTableaux`
-        :class:`ShiftedPrimedTableau`
-
-    EXAMPLES::
-
-        sage: SPTC = crystals.ShiftedPrimedTableaux([3,2], 2)
-        sage: T = SPTC.module_generators[-1]
-        sage: T
-        [(1.0, 1.0, 1.5), (2.0, 2.5)]
-        sage: T.f(2)
-        [(1.0, 1.0, 2.5), (2.0, 2.5)]
-        sage: len(SPTC.module_generators)
-        7
-        sage: SPTC[0]
-        [(1.0, 1.0, 1.0), (2.0, 2.0)]
-        sage: SPTC.cardinality()
-        24
-    """
-    @staticmethod
-    def __classcall_private__(cls, *args, **kwargs):
-        """
-        Normalize the input.
-
-        EXAMPLES::
-
-            sage: crystals.ShiftedPrimedTableaux(n=2, shape=[4,2])
-            Crystal of Shifted Primed Tableaux of type A_2 of shape (4, 2)
-            sage: crystals.ShiftedPrimedTableaux([4,2], rank=2)
-            Crystal of Shifted Primed Tableaux of type A_2 of shape (4, 2)
-            sage: crystals.ShiftedPrimedTableaux([4,2])
-            Crystal of Shifted Primed Tableaux of type A_5 of shape (4, 2)
-
-        TESTS::
-            sage: crystals.ShiftedPrimedTableaux()
-            Traceback (most recent call last):
-            ...
-            ValueError: shape argument must be specified
-            sage: crystals.ShiftedPrimedTableaux([4,4], 3)
-            Traceback (most recent call last):
-            ...
-            ValueError: shape [4, 4] is not a strict partition
-            sage: crystals.ShiftedPrimedTableaux([3,2,1], 1)
-            Traceback (most recent call last):
-            ...
-            ValueError: invalid crystal rank
-            sage: crystals.ShiftedPrimedTableaux([3,2,1])
-            Crystal of Shifted Primed Tableaux of type A_5 of shape (3, 2, 1)
-        """
-        shape = None
-        n = None
-        if 'shape' in kwargs:
-            shape = tuple(kwargs['shape'])
-        if 'rank' in kwargs:
-            n = int(kwargs['rank'])
-        if 'n' in kwargs:
-            n = int(kwargs['n'])
-        if args:
-            if isinstance(args[0], (list, tuple, Partition)):
-                shape = tuple(args[0])
-                if len(args) > 1 and isinstance(args[1], (int, Integer)):
-                    n = args[1]
-            else:
-                if isinstance(args[0], (int, Integer)):
-                    n = args[0]
-                    if (len(args) > 1 and
-                            isinstance(args[1], (list, tuple, Partition))):
-                        shape = tuple(args[1])
-        if shape is None:
-            raise ValueError('shape argument must be specified')
-        if n is None:
-            n = sum(shape)-1
-
-        if n+1 < len(shape):
-            raise ValueError('invalid crystal rank')
-        return SPTCrystal(shape=shape, n=n)
-
-
-class SPTCrystal(ShiftedPrimedTableauxCrystal):
-    """
-    A factory class generating a classical crystal of Shifted Primed Tableaux.
-
-    INPUT:
-
-    -``n``-- a nonnegative integer
-    -``shape``-- a strictly decreasing partition of length at most ``n`` plus
-    one
-    """
-    Element = ShiftedPrimedTableau
-
-    def __init__(self, shape, n):
-        """
-        Initialize the crystal of Shifted Primed Tableaux.
-
-        TESTS::
-
-            sage: SPTC = crystals.ShiftedPrimedTableaux([4,2], 2)
-            sage: SPTC._cartan_type
-            ['A', 2]
-            sage: len(SPTC.module_generators)
-            21
-            sage: TestSuite(SPTC).run()
-        """
-        if shape is None or n is None:
-            raise ValueError('shape and n must be specified')
-        Parent.__init__(self, category=ClassicalCrystals())
-        self.n = n
-        self._shape = shape
-        self._cartan_type = CartanType(['A', n])
-        T = ShiftedPrimedTableaux(shape=shape, max_element=n+1, skew=None)
-        self.module_generators = tuple(T.list_decreasing_weight())
-
-    def _repr_(self):
-        """
-        Return a string representation of ``self``.
-
-        TESTS::
-
-            sage: crystals.ShiftedPrimedTableaux([4,2], 2)
-            Crystal of Shifted Primed Tableaux of type A_2 of shape (4, 2)
-        """
-        return ("Crystal of Shifted Primed Tableaux of type A_%s of shape "
-                % (self.n) + str(self._shape))
 
 ####################
 # Helper functions #

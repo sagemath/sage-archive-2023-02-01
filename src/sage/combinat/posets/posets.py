@@ -2275,9 +2275,9 @@ class FinitePoset(UniqueRepresentation, Parent):
                 raise TypeError("%s is not a tuple of tuples." % str(tuple(m)))
             if not all(len(chain_pair) is 2 for chain_pair in chain_pairs):
                 raise ValueError("%r is not a tuple of length-2 tuples." % str(tuple(m)))
-            chain_pairs = sorted(chain_pair, key=min)
+            chain_pairs = sorted(chain_pairs, key=min)
         else:
-            chain_pairs = [m, n]
+            chain_pairs = [(m, n)]
 
         for m, n in chain_pairs:
             try:

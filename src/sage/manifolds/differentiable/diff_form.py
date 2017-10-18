@@ -216,7 +216,7 @@ class DiffForm(TensorField):
         sage: a = M.diff_form(2, name='a') ; a
         2-form a on the 2-dimensional differentiable manifold M
         sage: a.parent()
-        Module /\^2(M) of 2-forms on the 2-dimensional differentiable
+        Module Omega^2(M) of 2-forms on the 2-dimensional differentiable
          manifold M
         sage: a.degree()
         2
@@ -234,7 +234,7 @@ class DiffForm(TensorField):
         sage: a = M.one_form('a') ; a
         1-form a on the 2-dimensional differentiable manifold M
         sage: a.parent()
-        Module /\^1(M) of 1-forms on the 2-dimensional differentiable
+        Module Omega^1(M) of 1-forms on the 2-dimensional differentiable
          manifold M
         sage: a.degree()
         1

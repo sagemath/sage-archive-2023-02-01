@@ -2440,17 +2440,20 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: (R + 1)^R
             Traceback (most recent call last):
             ...
-            TypeError
+            TypeError: R is neither an integer nor a rational
             sage: 2^R
             Traceback (most recent call last):
             ...
-            TypeError
+            TypeError: R is neither an integer nor a rational
         """
         if type(exp) is not Integer:
             try:
                 exp = Integer(exp)
             except TypeError:
-                n = Rational(exp)
+                try:
+                    n = Rational(exp)
+                except TypeError:
+                    raise TypeError("{} is neither an integer nor a rational".format(exp))
                 num = n.numerator()
                 den = n.denominator()
 

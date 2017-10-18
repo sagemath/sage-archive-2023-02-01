@@ -324,6 +324,23 @@ cdef class _LazyString(object):
         """
         return str(self.val())
 
+    def __fspath__(self):
+        """
+        Return the file system representation of ``self``, assuming that
+        ``self`` is a path.
+
+        This is for Python 3 compatibility: see :trac:`24046`, and also
+        https://www.python.org/dev/peps/pep-0519/ and
+        https://docs.python.org/3/library/os.html#os.fspath
+
+        Test :trac:`24046`::
+
+            sage: from sage.misc.misc import SAGE_TMP
+            sage: tmp = os.path.join(str(SAGE_TMP), 'hello')
+            sage: _ = os.path.exists(tmp)
+        """
+        return str(self)
+
     def __unicode__(self):
         """
         EXAMPLES::

@@ -1539,10 +1539,69 @@ class DiGraph(GenericGraph):
             ....:     if x != y:
             ....:         print("Oh my, oh my !")
             ....:         break
+
+        Loops are part of the feedback edge set (:trac:`23989`)::
+
+            sage: D = digraphs.DeBruijn(2,2)
+            sage: D.loops(labels=None)
+            [('11', '11'), ('00', '00')]
+            sage: FAS = D.feedback_edge_set(value_only=False)
+            sage: all(l in FAS for l in D.loops(labels=None))
+            True
+            sage: FAS2 =  D.feedback_edge_set(value_only=False, constraint_generation=False)
+            sage: len(FAS) == len(FAS2)
+            True
+
+        Check that multi-edges are properly taken into account::
+
+            sage: cycle = graphs.CycleGraph(5)
+            sage: dcycle = DiGraph(cycle)
+            sage: dcycle.feedback_edge_set(value_only=True)
+            5
+            sage: dcycle.allow_multiple_edges(True)
+            sage: dcycle.add_edges(dcycle.edges())
+            sage: dcycle.feedback_edge_set(value_only=True)
+            10
+            sage: dcycle.feedback_edge_set(value_only=True, constraint_generation=False)
+            10
+
+        Strongly connected components are well handled (:trac:`23989`)::
+
+            sage: g = digraphs.Circuit(3) * 2
+            sage: g.add_edge(0, 3)
+            sage: g.feedback_edge_set(value_only=True)
+            2
         """
         # It would be a pity to start a LP if the digraph is already acyclic
         if self.is_directed_acyclic():
             return 0 if value_only else []
+
+        if self.has_loops():
+            # We solve the problem on a copy without loops of the digraph
+            D = DiGraph(self.edges(), multiedges=self.allows_multiple_edges(), loops=True)
+            D.allow_loops(False)
+            FAS = D.feedback_edge_set(constraint_generation=constraint_generation,
+                                          value_only=value_only, solver=solver, verbose=verbose)
+            if value_only:
+                return FAS + self.number_of_loops()
+            else:
+                return FAS + self.loops(labels=None)
+
+        if not self.is_strongly_connected():
+            # If the digraph is not strongly connected, we solve the problem on
+            # each of its strongly connected components
+
+            FAS = 0 if value_only else []
+
+            for h in self.strongly_connected_components_subgraphs():
+                if value_only:
+                    FAS += h.feedback_edge_set(constraint_generation=constraint_generation,
+                                                value_only=True, solver=solver, verbose=verbose)
+                else:
+                    FAS.extend( h.feedback_edge_set(constraint_generation=constraint_generation,
+                                                    value_only=False, solver=solver, verbose=verbose) )
+            return FAS
+
 
         from sage.numerical.mip import MixedIntegerLinearProgram
 
@@ -1551,85 +1610,86 @@ class DiGraph(GenericGraph):
         ########################################
         if constraint_generation:
 
-            p = MixedIntegerLinearProgram(constraint_generation = True,
-                                          maximization = False)
+            p = MixedIntegerLinearProgram(constraint_generation=True,
+                                          maximization=False, solver=solver)
 
             # An variable for each edge
-            b = p.new_variable(binary = True)
+            b = p.new_variable(binary=True)
 
-            # Variables are binary, and their coefficient in the objective is 1
+            # Variables are binary, and their coefficient in the objective is
+            # the number of occurence of the corresponding edge, so 1 if the
+            # graph is simple
+            p.set_objective( p.sum( b[u,v] for u,v in self.edges(labels=False)))
 
-            p.set_objective( p.sum( b[u,v]
-                                  for u,v in self.edges(labels = False)))
+            p.solve(log=verbose)
 
-            p.solve(log = verbose)
-
-            # For as long as we do not break because the digraph is
-            # acyclic....
+            # For as long as we do not break because the digraph is acyclic....
             while True:
 
                 # Building the graph without the edges removed by the LP
                 h = DiGraph()
-                for u,v in self.edges(labels = False):
+                for u,v in self.edges(labels=False):
                     if p.get_values(b[u,v]) < .5:
                         h.add_edge(u,v)
 
                 # Is the digraph acyclic ?
-                isok, certificate = h.is_directed_acyclic(certificate = True)
+                isok, certificate = h.is_directed_acyclic(certificate=True)
 
                 # If so, we are done !
                 if isok:
                     break
 
-                if verbose:
-                    print("Adding a constraint on circuit : {}".format(certificate))
-
                 # There is a circuit left. Let's add the corresponding
                 # constraint !
+                while not isok:
 
-                p.add_constraint(
-                    p.sum( b[u,v] for u,v in
-                         zip(certificate, certificate[1:] + [certificate[0]])),
-                    min = 1)
+                    if verbose:
+                        print("Adding a constraint on circuit : {}".format(certificate))
 
-                obj = p.solve(log = verbose)
+                    edges = zip(certificate, certificate[1:] + [certificate[0]])
+                    p.add_constraint( p.sum( b[u,v] for u,v in edges), min=1)
+
+                    # Is there another edge disjoint circuit ?
+                    h.delete_edges(edges)
+                    isok, certificate = h.is_directed_acyclic(certificate=True)
+
+                obj = p.solve(log=verbose)
 
             if value_only:
                 return Integer(round(obj))
 
             else:
-
                 # listing the edges contained in the MFAS
-                return [(u,v) for u,v in self.edges(labels = False)
+                return [(u,v) for u,v in self.edges(labels=False)
                         if p.get_values(b[u,v]) > .5]
 
         ######################################
         # Ordering-based MILP Implementation #
         ######################################
         else:
-            p=MixedIntegerLinearProgram(maximization=False, solver=solver)
+            p = MixedIntegerLinearProgram(maximization=False, solver=solver)
 
-            b=p.new_variable(binary=True)
-            d=p.new_variable(integer=True, nonnegative=True)
+            b = p.new_variable(binary=True)
+            d = p.new_variable(integer=True, nonnegative=True)
 
-            n=self.order()
+            n = self.order()
 
-            for (u,v) in self.edges(labels=None):
-                p.add_constraint(d[u]-d[v]+n*(b[(u,v)]),min=1)
+            for u,v in self.edges(labels=None):
+                p.add_constraint(d[u] - d[v] + n * b[u,v], min=1)
 
             for v in self:
                 p.add_constraint(d[v] <= n)
 
-            p.set_objective(p.sum([b[(u,v)] for (u,v) in self.edges(labels=None)]))
+            p.set_objective(p.sum(b[u,v] for u,v in self.edges(labels=None)))
 
             if value_only:
                 return Integer(round(p.solve(objective_only=True, log=verbose)))
             else:
                 p.solve(log=verbose)
 
-                b_sol=p.get_values(b)
+                b_sol = p.get_values(b)
 
-                return [(u,v) for (u,v) in self.edges(labels=None) if b_sol[(u,v)]==1]
+                return [(u,v) for u,v in self.edges(labels=None) if b_sol[u,v]==1]
 
     ### Construction
 

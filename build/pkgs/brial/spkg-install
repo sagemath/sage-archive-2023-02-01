@@ -26,7 +26,8 @@ export PYTHON=sage-python23
 ./configure \
     --prefix="$SAGE_LOCAL" \
     --libdir="$SAGE_LOCAL/lib" \
-    --enable-shared --disable-static
+    --enable-shared --disable-static \
+    --with-boost-unit-test-framework=no
 if [ $? -ne 0 ]; then
     echo "Error configuring BRiAl"
     exit 1

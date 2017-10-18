@@ -2440,20 +2440,17 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: (R + 1)^R
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion from Multivariate Polynomial
-            Ring in R, S over Integer Ring to Rational Field
+            TypeError
             sage: 2^R
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion from Multivariate Polynomial
-            Ring in R, S over Integer Ring to Rational Field
+            TypeError
         """
         if type(exp) is not Integer:
             try:
                 exp = Integer(exp)
             except TypeError:
-                from sage.rings.rational_field import QQ
-                n = QQ.coerce(exp)
+                n = Rational(exp)
                 num = n.numerator()
                 den = n.denominator()
 

@@ -641,17 +641,17 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
           raise ZeroDivisionError
 
         if not coeff:
-          coeff = self.base_ring()(1)
+          coeff = self.base_ring().one()
         else:
-          coeff = self.base_ring()(f.dict().values()[0] /  g.dict().values()[0])
+          coeff = self.base_ring()(next(itervalues(f.dict())) /  next(itervalues(g.dict())))
 
-        f = f.dict().keys()[0]
-        g = g.dict().keys()[0]
+        f = next(iterkeys(f.dict())
+        g = next(iterkeys(g.dict())
 
         res = f.esub(g)
 
-        return MPolynomial_polydict(self, PolyDict({res:coeff},\
-                                                   force_int_exponents=False, \
+        return MPolynomial_polydict(self, PolyDict({res:coeff},
+                                                   force_int_exponents=False,
                                                    force_etuples=False))
 
     def monomial_lcm(self, f, g):

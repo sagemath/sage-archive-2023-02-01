@@ -41,8 +41,8 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-
 from __future__ import print_function
+from six import itervalues
 
 from sage.rings.integer import Integer
 from sage.structure.element import ModuleElement
@@ -1781,7 +1781,7 @@ class TensorField(ModuleElement):
         resu_rst = {}
         for dom in self._common_subdomains(other):
             resu_rst[dom] = self._restrictions[dom] + other._restrictions[dom]
-        some_rst = resu_rst.values()[0]
+        some_rst = next(itervalues(resu_rst))
         resu_sym = some_rst._sym
         resu_antisym = some_rst._antisym
         resu = self._vmodule.tensor(self._tensor_type, sym=resu_sym,
@@ -1844,7 +1844,7 @@ class TensorField(ModuleElement):
         resu_rst = {}
         for dom in self._common_subdomains(other):
             resu_rst[dom] = self._restrictions[dom] - other._restrictions[dom]
-        some_rst = resu_rst.values()[0]
+        some_rst = next(itervalues(resu_rst))
         resu_sym = some_rst._sym
         resu_antisym = some_rst._antisym
         resu = self._vmodule.tensor(self._tensor_type, sym=resu_sym,

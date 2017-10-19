@@ -2,52 +2,141 @@ from sage.rings.all import Zp
 from sage.matrix.constructor import Matrix
 from copy import copy
 from sage.rings.finite_rings.integer_mod import mod
-def diagonalize_p_adic(G,prime,precision=None):
+def jordan_p_adic(G,prime,precision=None,normalize=True):
     """
-    Diagonalize a symmetric matrix over a p-adic field 
+    Return the p-adic Jordan form of a symmetric matrix.
     
-    Input:
+    Let `p` be odd and `u` be the smallest non-square modulo `p`.
+    The Jordan form is a diagonal matrix with diagonal entries either `p^n` or `u*p^n`.
+    
+    If `p=2` is even, then the Jordan form consists of 
+    1 x 1 blocks of the form
+    `0`, `[2^n]`, `[3*2^n]`, `[5*2^n]`, `[7*2^n]`
+    or of 2 x 2 blocks of the form
+    [2 1]           [0 1]
+    [1 2] * 2^n or  [1 0] * 2^n
+    In any case the entries are ordered by their valuation.
+    
+    INPUT:
     
         -- ``G`` - symmetric n x n matrix in `\QQ`
         -- ``p`` - prime number
         -- ``precision`` - defining precision if not set the minimal possible is taken.
-    Output:
+        -- ``ǹormalize```- bool (default: `True`)
     
-        - ``D`` the diagonalized matrix
-        - ``U`` transformation matrix, i.e, D = U * G * U^T
+    OUTPUT:
+    
+        - ``D`` the jordand matrix over `Qp`
+        - ``U`` transformation matrix `Qp`, i.e, D = U * G * U^T
     
     EXAMPLES::
     
-        sage: 
+        sage: from sage.quadratic_forms.genera.p_adi c_jordan_blocks import jordan_p_adic
+        sage: D4 = Matrix(ZZ,4,[2,-1,-1,-1,-1,2,0,0,-1,0,2,0,-1,0,0,2])
+        sage: D4
+        [ 2 -1 -1 -1]
+        [-1  2  0  0]
+        [-1  0  2  0]
+        [-1  0  0  2]
+        sage: D, U = jordan_p_adic(D4,2)
+        sage: D            
+        [  2 + O(2^5)   1 + O(2^5)       O(2^5)       O(2^5)]
+        [  1 + O(2^5)   2 + O(2^5)       O(2^5)       O(2^5)]
+        [      O(2^5)       O(2^5) 2^2 + O(2^5)   2 + O(2^5)]
+        [      O(2^5)       O(2^5)   2 + O(2^5) 2^2 + O(2^5)]
+
+
+
+
+        sage: D == U * D4 * U.T
+        True
+        sage: A4 = Matrix(ZZ,4,[2, -1, 0, 0, -1, 2, -1, 0, 0, -1, 2, -1, 0, 0, -1, 2])
+        sage: A4
+        [ 2 -1  0  0]
+        [-1  2 -1  0]
+        [ 0 -1  2 -1]
+        [ 0  0 -1  2]
+        sage: D, U = jordan_p_adic(A4,2)
+        sage: D        
+        [2 + O(2^3) 1 + O(2^3)     O(2^3)     O(2^3)]
+        [1 + O(2^3) 2 + O(2^3)     O(2^3)     O(2^3)]
+        [    O(2^3)     O(2^3)     O(2^3) 1 + O(2^3)]
+        [    O(2^3)     O(2^3) 1 + O(2^3)     O(2^3)]
+
+
+    We can handle degenerate forms as well::
+        
+        sage: A4_extended = Matrix(ZZ,5,[2, -1, 0, 0, -1, -1, 2, -1, 0, 0, 0, -1, 2, -1, 0, 0, 0, -1, 2, -1, -1, 0, 0, -1, 2])
+        sage: D, U = jordan_p_adic(A4_extended,5)
+        sage: D
+            [2 + O(5^8)     O(5^8)     O(5^8)     O(5^8)     O(5^8)]
+            [    O(5^8) 1 + O(5^8)     O(5^8)     O(5^8)     O(5^8)]
+            [    O(5^8)     O(5^8) 2 + O(5^8)     O(5^8)     O(5^8)]
+            [    O(5^8)     O(5^8)     O(5^8) 5 + O(5^8)     O(5^8)]
+            [    O(5^8)     O(5^8)     O(5^8)     O(5^8)     O(5^8)]
+
+        
+    Rational matrices as no problem as well::
+    
+        sage: A4dual = A4.inverse()
+        sage: D, U = jordan_p_adic(A4dual,5)
+        sage: D
+    
+    TESTS::
+        
+        sage: Z = Matrix(ZZ,0,[])
+        sage: jordan_p_adic(Z,3)
+        ([], [])
+        sage: Z = matrix.zero(10)
+        sage: jordan_p_adic(Z,3)[0] == 0
+        True
     """
     #this calculation is local. Thus we can do it over the p-adics
     p = prime
     denom = G.denominator()
     G = G*denom
+    
+    if G.det() != 0:
+        min_precision = G.det().valuation(p) + 3 #we have to calculate at least mod 8 for things to make sense.
+    else:
+        #the non-degenerate part
+        B = G.row_space().basis_matrix()
+        GG = B*G*B.T
+        #we have to calculate at least mod 8 for things to make sense.
+        min_precision = GG.det().valuation(p) + 3 
     if precision == None:
-        precision = G.det().valuation(p) + 10
-    R = Zp(p, prec = precision, type = 'fixed-mod', print_mode = 'digits')
+        precision = min_precision
+    precision = max(precision,min_precision)
+    
+    R = Zp(p, prec = precision, type = 'fixed-mod', print_mode = 'series')
     G = G.change_ring(R)
     D = copy(G)
     n = G.ncols()
-    
+    #The trivial case
+    if n == 0:
+        return G.parent().zero(),G.parent().zero()
     #transformation matrix
     U = Matrix.identity(R,n)
     
     if(p == 2):
-        D, U = _diagonalize_2_adic(G)
+        D, U = _jordan_2_adic(G)
         assert U*G*U.T == Matrix.block_diagonal(collect_small_blocks(D))
     else:
-        D, U = _diagonalize_odd_adic(G)
+        D, U = _jordan_odd_adic(G)
         assert D == Matrix.diagonal(D.diagonal())
     assert U.determinant().valuation()==0
-    D, U1 = _normalize_blocks(D)
-    U = U1 * U
+    if normalize:
+        D, U1 = _normalize_blocks(D)
+        U = U1 * U
     assert U*G*U.T == Matrix.block_diagonal(collect_small_blocks(D))
-    return D, U
+    return D/denom, U
 
-def _diagonalize_odd_adic(G):
+def _jordan_odd_adic(G):
     """
+    Return the Jordan decomposition over an odd prime.
+    
+    INPUT:
+        -- a symmetric matrix over the `p`-adic s 
     """
     R = G.base_ring()
     D = copy(G)
@@ -90,11 +179,11 @@ def _diagonalize_odd_adic(G):
             D[:,row] += D[:,col]
     return D, U
 
-def _diagonalize_2_adic(G):
+def _jordan_2_adic(G):
     """
     Diagonalize a symmetric matrix over the 2-adics
     
-    (This method is called implicitly in diagonalize_p_adic(G,prime) )
+    (This method is called implicitly in jordan_p_adic(G,prime) )
     
     Input:
 
@@ -102,7 +191,7 @@ def _diagonalize_2_adic(G):
     
     Output:
 
-        - ``D`` the diagonalized matrix
+        - ``D`` the jordand matrix
         - ``U`` transformation matrix i.e D = U * G * U^T
     
     Example:
@@ -210,11 +299,13 @@ def _get_small_block_indices(G):
 def collect_small_blocks(G):
     """
     """
-    L = _get_small_block_indices(G)
-    G.subdivide(L,L)
+    D = copy(G)
+    L = _get_small_block_indices(D)
+    D.subdivide(L,L)
     blocks = []
     for i in range(len(L)+1):
-        blocks.append(G.subdivision(i,i))
+        block = copy(D.subdivision(i,i))
+        blocks.append(block)
     return blocks
 
 def get_jordan_blocks():
@@ -237,21 +328,22 @@ def _normalize_blocks(G):
         v = _min_nonsquare(p)
         v = R(v)
         for i in range(n):
-            d = D[i,i].unit_part()
-            if d.is_square():
-                D[i,i] = 1
-                U[i,:] *= d.inverse_of_unit().sqrt()
-            else:
-                D[i,i] = v
-                U[i,:] *= (v*d.inverse_of_unit()).sqrt()
+            if D[i,i]!=0:
+                d = D[i,i].unit_part()
+                if d.is_square():
+                    D[i,i] = 1
+                    U[i,:] *= d.inverse_of_unit().sqrt()
+                else:
+                    D[i,i] = v
+                    U[i,:] *= (v*d.inverse_of_unit()).sqrt()
     else:
         #squareclasses 1,3,5,7 modulo 8
         for i in range(n):
             d = D[i,i].unit_part()
             if d != 0:
-                v = R(d.mod(8))
-                D[i,i] = v*2**D[i,i].valuation()
+                v = R(mod(d,8))
                 U[i,:] *= (v*d.inverse_of_unit()).sqrt()
+        D = U * G * U.T
         for i in range(n-1):
             b = D[i,i+1]
             if b !=0: #there is a 2 x 2 block here
@@ -268,106 +360,135 @@ def _normalize_2x2(G):
     INPUT:
     
         --  ``G`` - a 2 by 2 matrix over Zp with ``type = 'fixed-mod'`` of the form
-            [2a  b]
-            [ b 2c]
-            with b of smallest valuation
+            `[2a  b]`
+            `[ b 2c]*2^n`
+            with b of valuation 1
     OUTPUT:
     
-        -- either 2^k * [0 1]
-                        [1 0]
-                        
-        -- or     2^k * [2 1]
-                        [1 2]
+        --  a unimodular `2 x 2` matrix `U` over `Zp` with 
+            `U * G *U.transpose() is 
+            either 
+                `[0 1]`
+                `[1 0]`
+            or
+                `[2 1]`
+                `[1 2]`
     
     EXAMPLES::
-        sage: from sage.quadratic_forms.genera.p_adic_jordan_block import _normalize_2x2
+        sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import         _normalize_2x2
         sage: R = Zp(2, prec = 10, type = 'fixed-mod', print_mode = 'digits')
         sage: G = Matrix(R,2,[-17*2,3,3,23*2])
-        sage: _normalize_2x2(G)
+        sage: U =_normalize_2x2(G)
+        sage: U*G*U.T
+        [...0000000010 ...0000000001]
+        [...0000000001 ...0000000010]
+
         sage: G = Matrix(R,2,[-17*4,3,3,23*2])
-        sage: _normalize_2x2(G)
+        sage: U = _normalize_2x2(G)
+        sage: U*G*U.T
+        [            0 ...0000000001]
+        [...0000000001             0]
+
         sage: G = Matrix(R,2,[-17*2,3,3,23*2])
-        sage: _normalize_2x2(8*G)
-    
+        sage: U = _normalize_2x2(8*G)
+        sage: U*G*U.T
+        [...1110000010 ...1010000001]
+        [...1010000001 ...1110000010]
+
+        
     TESTS::
     
-        sage: from sage.quadratic_forms.genera.p_adic_jordan_block import _normalize_2x2
-        sage: R = Zp(2, prec = 10, type = 'fixed-mod', print_mode = 'digits')
+        sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import _normalize_2x2
+        sage: R = Zp(2, prec = 10, type = 'fixed-mod')
         sage: ref1 = Matrix(R,2,[2,1,1,2])
         sage: ref2 = Matrix(R,2,[0,1,1,0])
         sage: N = _normalize_2x2(G)
-        sage: (N == ref1) or (N == ref2)
+        sage: (N*G*N.T == ref1) or (N*G*N.T == ref2)
         True
     """
     
-    T = copy(G.parent().identity_matrix())
-    D = copy(G)
-    B = G.base_ring()
+    U = copy(G.parent().identity_matrix())
+    R = G.base_ring()
     from sage.rings.all import PolynomialRing
-    R = PolynomialRing(B,'x')
-    x = R.gen()
+    P = PolynomialRing(R,'x')
+    x = P.gen()
     
     #The input is an even! block
-    assert G[0,0].valuation() > G[1,0].valuation(), G
-    assert G[1,1].valuation() > G[1,0].valuation()
+    if  (G[0,0].valuation() < G[1,0].valuation()) or (G[1,1].valuation() < G[1,0].valuation()):
+            raise ValueError("Not a valid 2x2 block.")
+    scale = 2**G[0,1].valuation()
+    D = Matrix(R,2,2,[d//scale for d in G.list()])
+    #now D is of the form
+    #[2a b ]
+    #[b  2c]
+    #where b has valuation 1.
+    G = copy(D)
     
-    #Make sure G[1,1] has the smallest possible valuation.
-    if G[0,0].valuation()<G[1,1].valuation():
-        T.swap_rows(0,1)
-        D.swap_rows(0,1)
+    #Make sure G[1,1] has valuation 1.
+    Dtemp=copy(D)
+    if D[1,1].valuation() > D[0,0].valuation():
+        U.swap_columns(0,1)
         D.swap_columns(0,1)
-    if D[1,1].valuation() > D[0,1].valuation()+1:
-        T[1,:] += T[0,:]
-        D = T*G*T.transpose()
-    scale = 2**D[0,1].valuation()
-
-    if mod(D.det().unit_part(),8) == 3:
-        #transform it to 2^k *
+        D.swap_rows(0,1)
+    if D[1,1].valuation() != 1:
+        #this works because
+        #D[0,0] has valuation at least 2
+        U[1,:] += U[0,:]
+        D = U*G*U.transpose()
+    assert D[1,1].valuation()==1
+    
+    if mod(D.det(),8) == 3:
+        #in this case we can transform D to
         # 2 1
         # 1 2
+        
         #Find a point of norm 2
         #solve: 2 == D[1,1]*x^2 + 2*D[1,0]*x + D[0,0]
-        a = D[1,1]; b = 2*D[1,0]; c = (D[0,0]-2*scale);
-        if a.valuation()>c.valuation():
-            t=a
-            a=c
-            c=t
-            T.swap_rows(0,1)
-            D.swap_rows(0,1)
-            D.swap_columns(0,1)
-        pol = (a*x**2 + b*x + c)//(2*scale)
+        pol = (D[1,1]*x**2 + 2*D[1,0]*x + D[0,0]-2)//2
+        #somehow else pari can get a hickup see `trac`:#24065
+        pol = pol//pol.leading_coefficient() 
         sol = pol.roots()[0][0]
-        T[0,1] = sol
-        D = T*G*T.transpose()
-        #both should pair with value 1
-        T[1,:] *= D[1,0].unit_part().inverse_of_unit()
-        D = T*G*T.transpose()
-        #solve: v*D*v == 2 with v as below
+        U[0,1] = sol
+        D = U*G*U.transpose()
+        
+        #make D[0,1] = 1
+        U[1,:] *= D[1,0].inverse_of_unit()
+        D = U*G*U.transpose()
+        
+        #solve: v*D*v == 2 with v = (x,-2*x+1)
         from sage.modules.free_module_element import vector
-        v = vector([x,-2*x+1])
-        pol = (v*D*v-2)//(2*scale)
-        sol = pol.roots()[0][0]
-        T[1,:] = sol * T[0,:] + (- 2*sol+1)*T[1,:]
-        D = T*G*T.transpose()
-        assert D == scale*Matrix(G.parent(),2,2,[2,1,1,2]), "D1 \n %r" %D
-    elif mod(D.det().unit_part(),8) == 7:
-        #transform it to 2^k *
+        if D[1,1]!=2:
+            v = vector([x,-2*x+1])
+            pol = (v*D*v-2)//2
+            #somehow else pari can get a hickup `trac`:#24065
+            pol = pol//pol.leading_coefficient() 
+            sol = pol.roots()[0][0]
+            U[1,:] = sol * U[0,:] + (- 2*sol+1)*U[1,:]
+            D = U*G*U.transpose()
+        assert D == Matrix(G.parent(),2,2,[2,1,1,2]), "D1 \n %r" %D
+    elif mod(D.det(),8) == 7:
+        #in this case we can transform D to
         # 0 1
         # 1 0
-        #solve: 0 == D[1,1]*x^2 + 2*D[1,0]*x + D[0,0]
+        
         #Find a point representing 0
         #solve: 0 == D[1,1]*x^2 + 2*D[1,0]*x + D[0,0]
-        sol = (D[1,1]*x**2 + 2*D[1,0]*x + D[0,0]).roots()[0][0]
-        T[0,:] += sol*T[1,:]
-        D = T*G*T.transpose()
+        pol = (D[1,1]*x**2 + 2*D[1,0]*x + D[0,0])//2
+        #somehow else pari can get a hickup, see  `trac`:#24065
+        pol = pol//pol.leading_coefficient() 
+        sol = pol.roots()[0][0]
+        U[0,:] += sol*U[1,:]
+        D = U*G*U.transpose()
+        
         #make the second basis vector have 0 square as well.
-        T[1,:] = T[1,:] - D[1,1]//(2*D[0,1])* T[0,:]
-        D = T*G*T.transpose()
-        #both should pair with value 1
-        T[0,:] *= D[1,0].unit_part().inverse_of_unit()
-        D = T*G*T.transpose()
-        assert D == scale*Matrix(G.parent(),2,2,[0,1,1,0]), "D2 \n %r" %D
-    return T
+        U[1,:] = U[1,:] - D[1,1]//(2*D[0,1])* U[0,:]
+        D = U*G*U.transpose()
+        
+        #rescale to get D[0,1] = 1
+        U[0,:] *= D[1,0].inverse_of_unit()
+        D = U*G*U.transpose()
+        assert D == Matrix(G.parent(),2,2,[0,1,1,0]), "D2 \n %r" %D
+    return U
         
 def _find_min_p(G,cnt):
     """
@@ -386,14 +507,23 @@ def _find_min_p(G,cnt):
     
     EXAMPLES::
     
-        sage: from sage.quadratic_forms.genera.p_adic_jordan_block import _find_min_p
+        sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import _find_min_p
+        sage: G = matrix(Qp(2),3,3,[4,0,1,0,4,2,1,2,1])
+        sage: G    
+        [2^2 + O(2^22)             0   1 + O(2^20)]
+        [            0 2^2 + O(2^22)   2 + O(2^21)]
+        [  1 + O(2^20)   2 + O(2^21)   1 + O(2^20)]
+
+        sage: _find_min_p(G,0)
+        (0, 2, 2)        
+        
         sage: G = matrix(Qp(3),3,3,[4,0,1,0,4,2,1,2,1])
         sage: G
         [1 + 3 + O(3^20)               0     1 + O(3^20)]
         [              0 1 + 3 + O(3^20)     2 + O(3^20)]
         [    1 + O(3^20)     2 + O(3^20)     1 + O(3^20)]
-        sage: _find_min_p(G,2,0)
-        (0,3,3)
+        sage: _find_min_p(G,0)
+        (0, 2, 2)
     
     """
     n = G.ncols()
@@ -415,7 +545,7 @@ def _find_min_p(G,cnt):
 
 def _min_nonsquare(prime):
     """
-    Calculate minimal nonsquare in `\FF_p`
+    Return minimal nonsquare in `\FF_p`
     
     Input:
 

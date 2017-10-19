@@ -23,11 +23,13 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from six import itervalues
 
 from sage.rings.integer import Integer
 from sage.categories.morphism import Morphism
 from sage.categories.homset import Hom
 from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
+
 
 class FiniteRankFreeModuleMorphism(Morphism):
     r"""

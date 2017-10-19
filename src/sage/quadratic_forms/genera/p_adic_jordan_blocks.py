@@ -99,7 +99,7 @@ def jordan_p_adic(G,prime,precision=None,normalize=True):
     G = G*denom
     
     if G.det() != 0:
-        min_precision = G.det().valuation(p) + 3 #we have to calculate at least mod 8 for things to make sense.
+        min_precision = G.det().valuation(p) + 3 #we have to calculate at least mod 8 for 2-adic things to make sense.
     else:
         #the non-degenerate part
         B = G.row_space().basis_matrix()
@@ -138,7 +138,34 @@ def _jordan_odd_adic(G):
     Return the Jordan decomposition over an odd prime.
     
     INPUT:
-        -- a symmetric matrix over the `p`-adic s 
+    
+        -- a symmetric matrix over ``Zp`` of type ``'fixed-mod'``
+    
+    OUTPUT:
+    
+        -- ``D`` - a diagonal matrix
+        -- ``U`` - a unimodular matrix such that ``D = U*G*U.T``
+        
+    EXAMPLES::
+        
+        sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import _jordan_odd_adic
+        sage: R = Zp(3,prec=2,print_mode='series')
+        sage: A4 = Matrix(R,4,[2, -1, 0, 0, -1, 2, -1, 0, 0, -1, 2, -1, 0, 0, -1, 2])
+        sage: A4
+        [      2 + O(3^2) 2 + 2*3 + O(3^2)                0                0]
+        [2 + 2*3 + O(3^2)       2 + O(3^2) 2 + 2*3 + O(3^2)                0]
+        [               0 2 + 2*3 + O(3^2)       2 + O(3^2) 2 + 2*3 + O(3^2)]
+        [               0                0 2 + 2*3 + O(3^2)       2 + O(3^2)]
+        sage: D, U = _jordan_odd_adic(A4)
+        sage: D.change_ring(ZZ) #just for pretty printing.
+        [2 0 0 0]
+        [0 2 0 0]
+        [0 0 1 0]
+        [0 0 0 8]
+        sage: D == U*A4*U.T
+        True
+        sage: U.determinant().valuation() == 0
+        True
     """
     R = G.base_ring()
     D = copy(G)

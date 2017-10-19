@@ -3796,7 +3796,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     def coprime_integers(self, m):
         """
         Return the positive integers `< m` that are coprime to
-        self.
+        this integer.
 
         EXAMPLES::
 
@@ -3816,15 +3816,52 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         - Naqi Jaffery (2006-01-24): examples
 
-        ALGORITHM: Naive - compute lots of GCD's. If this isn't good enough
-        for you, please code something better and submit a patch.
+        - David Roe (2017-10-02): Now uses sieving for larger inputs
+
+        ALGORITHM:
+
+        Create an integer with `m` bits and set bits at every multiple
+        of a prime `p` that divides this integer and is less than `m`.
+        Then return a list of integers corresponding to the unset bits.
         """
-        # TODO -- make VASTLY faster
-        v = []
-        for n in range(1,m):
-            if self.gcd(n) == 1:
-                v.append(Integer(n))
-        return v
+        cdef Integer sieve, p, slf, mInteger = Integer(m)
+        if mpz_cmp_ui(mInteger.value, 1) <= 0:
+            return []
+        if mpz_sgn(self.value) == 0:
+            return [one]
+        if mpz_fits_slong_p(mInteger.value) == 0:
+            raise ValueError("m is too large")
+        cdef long mlong = mpz_get_si(mInteger.value)
+        cdef unsigned long ilong, plong
+        if (mpz_cmpabs(self.value, mInteger.value) >= 0 and
+            (mpz_sgn(self.value) > 0 and self.is_prime() or
+             mpz_sgn(self.value) < 0 and (-self).is_prime())):
+            return [Integer(ilong) for ilong in range(1, mlong)]
+        sieve = PY_NEW(Integer)
+        p = one
+        slf = PY_NEW(Integer)
+        mpz_set(slf.value, self.value)
+        while True:
+            p = slf.trial_division(mlong, mpz_get_si(p.value)+1)
+            if mpz_cmp_si(p, mlong) >= 0:
+                # p is larger than m, so no more primes are needed.
+                break
+            sig_on()
+            ilong = plong = mpz_get_ui(p.value)
+            while ilong < mlong:
+                # Set bits in sieve at each multiple of p
+                mpz_setbit(sieve.value, ilong)
+                ilong += plong
+            # Now divide by p until no ps remain
+            mpz_divexact_ui(slf.value, slf.value, plong)
+            while mpz_divisible_ui_p(slf.value, plong):
+                mpz_divexact_ui(slf.value, slf.value, plong)
+            sig_off()
+            # If we have found all factors, we break
+            if mpz_cmp_ui(slf.value, 1) == 0:
+                break
+        return [Integer(ilong) for ilong in range(1, mlong)
+                if mpz_tstbit(sieve.value, ilong) == 0]
 
     def divides(self, n):
         """

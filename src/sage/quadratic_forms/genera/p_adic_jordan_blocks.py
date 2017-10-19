@@ -31,7 +31,7 @@ def jordan_p_adic(G,prime,precision=None,normalize=True):
     
     EXAMPLES::
     
-        sage: from sage.quadratic_forms.genera.p_adi c_jordan_blocks import jordan_p_adic
+        sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import jordan_p_adic
         sage: D4 = Matrix(ZZ,4,[2,-1,-1,-1,-1,2,0,0,-1,0,2,0,-1,0,0,2])
         sage: D4
         [ 2 -1 -1 -1]
@@ -40,11 +40,10 @@ def jordan_p_adic(G,prime,precision=None,normalize=True):
         [-1  0  0  2]
         sage: D, U = jordan_p_adic(D4,2)
         sage: D            
-        [  2 + O(2^5)   1 + O(2^5)       O(2^5)       O(2^5)]
-        [  1 + O(2^5)   2 + O(2^5)       O(2^5)       O(2^5)]
-        [      O(2^5)       O(2^5) 2^2 + O(2^5)   2 + O(2^5)]
-        [      O(2^5)       O(2^5)   2 + O(2^5) 2^2 + O(2^5)]
-
+        [  2   1   0   0]
+        [  1   2   0   0]
+        [  0   0 2^2   2]
+        [  0   0   2 2^2]
 
 
 
@@ -58,10 +57,10 @@ def jordan_p_adic(G,prime,precision=None,normalize=True):
         [ 0  0 -1  2]
         sage: D, U = jordan_p_adic(A4,2)
         sage: D        
-        [2 + O(2^3) 1 + O(2^3)     O(2^3)     O(2^3)]
-        [1 + O(2^3) 2 + O(2^3)     O(2^3)     O(2^3)]
-        [    O(2^3)     O(2^3)     O(2^3) 1 + O(2^3)]
-        [    O(2^3)     O(2^3) 1 + O(2^3)     O(2^3)]
+        [2 1 0 0]
+        [1 2 0 0]
+        [0 0 0 1]
+        [0 0 1 0]
 
 
     We can handle degenerate forms as well::
@@ -69,19 +68,22 @@ def jordan_p_adic(G,prime,precision=None,normalize=True):
         sage: A4_extended = Matrix(ZZ,5,[2, -1, 0, 0, -1, -1, 2, -1, 0, 0, 0, -1, 2, -1, 0, 0, 0, -1, 2, -1, -1, 0, 0, -1, 2])
         sage: D, U = jordan_p_adic(A4_extended,5)
         sage: D
-            [2 + O(5^8)     O(5^8)     O(5^8)     O(5^8)     O(5^8)]
-            [    O(5^8) 1 + O(5^8)     O(5^8)     O(5^8)     O(5^8)]
-            [    O(5^8)     O(5^8) 2 + O(5^8)     O(5^8)     O(5^8)]
-            [    O(5^8)     O(5^8)     O(5^8) 5 + O(5^8)     O(5^8)]
-            [    O(5^8)     O(5^8)     O(5^8)     O(5^8)     O(5^8)]
-
+            [2 0 0 0 0]
+            [0 1 0 0 0]
+            [0 0 2 0 0]
+            [0 0 0 5 0]
+            [0 0 0 0 0]
         
     Rational matrices as no problem as well::
     
         sage: A4dual = A4.inverse()
         sage: D, U = jordan_p_adic(A4dual,5)
         sage: D
-    
+        [5^-1    0    0    0]
+        [   0    2    0    0]
+        [   0    0    1    0]
+        [   0    0    0    2]
+        
     TESTS::
         
         sage: Z = Matrix(ZZ,0,[])

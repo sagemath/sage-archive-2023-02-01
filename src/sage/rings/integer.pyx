@@ -3843,7 +3843,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_set(slf.value, self.value)
         while True:
             p = slf.trial_division(mlong, mpz_get_si(p.value)+1)
-            if mpz_cmp_si(p, mlong) >= 0:
+            if mpz_cmp_si(p.value, mlong) >= 0:
                 # p is larger than m, so no more primes are needed.
                 break
             sig_on()

@@ -3812,6 +3812,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n = 99; n.coprime_integers(99)
             [1, 2, 4, 5, 7, 8, 10, 13, 14, 16, 17, 19, 20, 23, 25, 26, 28, 29, 31, 32, 34, 35, 37, 38, 40, 41, 43, 46, 47, 49, 50, 52, 53, 56, 58, 59, 61, 62, 64, 65, 67, 68, 70, 71, 73, 74, 76, 79, 80, 82, 83, 85, 86, 89, 91, 92, 94, 95, 97, 98]
 
+        TESTS::
+
+            sage: for n in srange(-6,7):
+            ....:     for m in range(1,abs(n)+3):
+            ....:         assert n.coprime_integers(m) == [k for k in srange(1,m) if gcd(k,n) == 1]
+
         AUTHORS:
 
         - Naqi Jaffery (2006-01-24): examples
@@ -3833,6 +3839,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             raise ValueError("m is too large")
         cdef long mlong = mpz_get_si(mInteger.value)
         cdef unsigned long ilong, plong
+        if mpz_cmpabs_ui(self.value, 1) == 0:
+            return [Integer(ilong) for ilong in range(1, mlong)]
         if (mpz_cmpabs(self.value, mInteger.value) >= 0 and
             (mpz_sgn(self.value) > 0 and self.is_prime() or
              mpz_sgn(self.value) < 0 and (-self).is_prime())):
@@ -3858,7 +3866,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 mpz_divexact_ui(slf.value, slf.value, plong)
             sig_off()
             # If we have found all factors, we break
-            if mpz_cmp_ui(slf.value, 1) == 0:
+            if mpz_cmpabs_ui(slf.value, 1) == 0:
                 break
         return [Integer(ilong) for ilong in range(1, mlong)
                 if mpz_tstbit(sieve.value, ilong) == 0]

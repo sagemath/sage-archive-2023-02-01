@@ -60,7 +60,7 @@ def cython_compile(code,
         Need to create a clever caching system so code only gets
         compiled once.
     """
-    tmpfile = tmp_filename(ext=".spyx")
+    tmpfile = tmp_filename(ext=".pyx")
     open(tmpfile,'w').write(code)
     cython_import_all(tmpfile, get_globals(),
                       verbose=verbose, compile_message=compile_message,

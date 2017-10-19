@@ -2953,7 +2953,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
         INPUT:
 
-        - ``R`` - (default: ``None``) PolynomialRing
+        - ``R`` - (default: ``None``) a univariate Laurent polynomial ring
 
         If this polynomial is not in at most one variable, then a
         ``ValueError`` exception is raised.  The new polynomial is over
@@ -2992,13 +2992,14 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
         elif len(v) == 1:
             x = v[0]
             i = self._parent.gens().index(x)
+            x = str(x)
         else:
             x = 'x'
             i = 0
 
         #construct ring if none
         if R is None:
-            R = LaurentPolynomialRing(self.base_ring(),x)
+            R = LaurentPolynomialRing(self.base_ring(), x)
 
         return R(dict((m[i],c) for m,c in self.dict().items()))
 

@@ -284,11 +284,18 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
         sage: Q3 < V
         False
 
-    Beware: currently, the inner_product_matrix is not part of the comparison::
+    The inner_product_matrix is part of the comparison::
     
         sage: Q3zero = FreeQuadraticModule(QQ,3,matrix.zero(3))
         sage: Q3zero == Q3
-        True
+        False
+        
+    We test that :trac:`23915` is fixed::
+        
+        sage: M1 = FreeQuadraticModule(ZZ,1,matrix.identity(1))
+        sage: M2 = FreeQuadraticModule(ZZ,1,matrix.identity(1)*2)
+        sage: M1 == M2
+        False
     """
     def __init__(self, base_ring, rank, degree, inner_product_matrix, sparse=False):
         """
@@ -803,6 +810,7 @@ class FreeQuadraticModule_ambient(
 
             sage: FreeModule(ZZ, 4)
             Ambient free module of rank 4 over the principal ideal domain Integer Ring
+        
         """
         free_module.FreeModule_ambient.__init__(self, base_ring=base_ring, rank=rank, sparse=sparse)
         #self._FreeQuadraticModule_generic_inner_product_matrix = inner_product_matrix

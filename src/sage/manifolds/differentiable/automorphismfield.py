@@ -66,7 +66,7 @@ class AutomorphismField(TensorField):
 
     INPUT:
 
-    - ``vector_field_module`` -- module `\mathcal{X}(U,\Phi)` of vector
+    - ``vector_field_module`` -- module `\mathfrak{X}(U,\Phi)` of vector
       fields along `U` with values on `M` via the map `\Phi`
     - ``name`` -- (default: ``None``) name given to the field
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the field;
@@ -785,7 +785,7 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
 
     INPUT:
 
-    - ``vector_field_module`` -- free module `\mathcal{X}(U,\Phi)` of vector
+    - ``vector_field_module`` -- free module `\mathfrak{X}(U,\Phi)` of vector
       fields along `U` with values on `M` via the map `\Phi`
     - ``name`` -- (default: ``None``) name given to the field
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the field;

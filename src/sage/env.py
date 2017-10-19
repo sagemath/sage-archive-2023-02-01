@@ -71,8 +71,8 @@ def _add_variable_or_fallback(key, fallback, force=False):
     Test that :trac:`23758` has been resolved::
 
         sage: sage.env._add_variable_or_fallback('SAGE_BA', '---hello---')
-        sage: sage.env._add_variable_or_fallback('TEMP', '$SAGE_BAR')
-        sage: sage.env.SAGE_ENV['TEMP']
+        sage: sage.env._add_variable_or_fallback('SAGE_QUX', '$SAGE_BAR')
+        sage: sage.env.SAGE_ENV['SAGE_QUX']
         '---foo---'
     """
     global SAGE_ENV

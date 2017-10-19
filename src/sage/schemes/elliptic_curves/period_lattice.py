@@ -115,46 +115,6 @@ from sage.structure.richcmp import richcmp_method, richcmp, richcmp_not_equal
 from sage.libs.all import pari
 
 
-# Do we need to work around the PARI ellwp() bug?
-_ellwp_factor2 = None
-
-def _ellwp_flag1(lattice, z):
-    """
-    Evaluate the Weierstrass P function attached to the lattice
-    ``lattice`` and its derivative at ``z``.
-
-    This calls the PARI function ``ellwp(..., flag=1)``, working around
-    a bug in PARI versions <= 2.9.3 where the derivative is a factor 2
-    too small.
-
-    OUTPUT: ``(P(z), P'(z))``
-
-    TESTS::
-
-        sage: from sage.schemes.elliptic_curves.period_lattice import _ellwp_flag1
-        sage: E = EllipticCurve([0, 1])
-        sage: _ellwp_flag1(E, E((0,1)).elliptic_logarithm())
-        (-7.718602... E-30, 2.00000000000000)
-    """
-    global _ellwp_factor2
-    if _ellwp_factor2 is None:
-        # Check whether our PARI/GP version is buggy or not. This
-        # computation should return 1.0, but in older PARI versions it
-        # returns 0.5
-        d = float(pari("my(E=ellinit([0,1/4]));ellwp(E,ellpointtoz(E,[0,1/2]),1)[2]"))
-        if d == 1.0:
-            _ellwp_factor2 = False
-        elif d == 0.5:
-            _ellwp_factor2 = True
-        else:
-            raise AssertionError("unexpected result from ellwp() test: {}".format(d))
-    x, y = pari.ellwp(lattice, z, 1)
-    if _ellwp_factor2:
-        return (x, 2*y)
-    else:
-        return (x, y)
-
-
 class PeriodLattice(FreeModule_generic_pid):
     """
     The class for the period lattice of an algebraic variety.
@@ -643,7 +603,6 @@ class PeriodLattice_ell(PeriodLattice):
                 periods = self.E.pari_curve().omega(prec).sage()
                 return (R(periods[0]), C(periods[1]))
 
-            from sage.libs.pari.all import pari
             E_pari = pari([R(self.embedding(ai).real()) for ai in self.E.a_invariants()]).ellinit()
             periods = E_pari.omega(prec).sage()
             return (R(periods[0]), C(periods[1]))
@@ -1819,7 +1778,7 @@ class PeriodLattice_ell(PeriodLattice):
         # So we force the results back into the real/complex fields of
         # the same precision as the input.
 
-        x, y = _ellwp_flag1(self.basis(prec=prec), z)
+        x, y = pari(self.basis(prec=prec)).ellwp(z, flag=1)
         x, y = [C(t) for t in (x,y)]
 
         if self.real_flag and z_is_real:

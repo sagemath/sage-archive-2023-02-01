@@ -145,7 +145,7 @@ class p_iter_fork(object):
             sage: L = list(Polygen([QQ]))
             sage: L
             [(((Rational Field,), {}),
-              "INVALID DATA ('__init__() takes at most 2 positional arguments (4 given)', <type 'sage.rings.integer.Integer'>, (Univariate Polynomial Ring in x over Rational Field, [0, 1], False, True))")]
+              'INVALID DATA __init__() takes at most 2 positional arguments (4 given)')]
 
         Fix the unpickling::
 

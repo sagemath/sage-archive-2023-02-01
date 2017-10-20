@@ -357,6 +357,13 @@ class DiGraphGenerators():
             sage: g.automorphism_group().cardinality()
             1
 
+        .. SEEALSO::
+
+            - :wikipedia:`Tournament_(graph_theory)`
+            - :meth:`~sage.graphs.digraph.DiGraph.is_tournament`
+            - :meth:`~sage.graphs.digraph.DiGraph.is_transitive`
+            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.RandomTournament`
+
         TESTS::
 
             sage: digraphs.TransitiveTournament(-1)
@@ -385,17 +392,9 @@ class DiGraphGenerators():
         `i` to `j` with probability `1/2`, otherwise it has an edge
         from `j` to `i`.
 
-        See :wikipedia:`Tournament_(graph_theory)`
-
         INPUT:
 
         - ``n`` (integer) -- number of vertices.
-
-        .. SEEALSO::
-
-            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.Complete`
-
-            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.RandomSemiComplete`
 
         EXAMPLES::
 
@@ -403,10 +402,20 @@ class DiGraphGenerators():
             Random Tournament: Digraph on 10 vertices
             sage: T.size() == binomial(10, 2)
             True
+            sage: T.is_tournament()
+            True
             sage: digraphs.RandomTournament(-1)
             Traceback (most recent call last):
             ...
             ValueError: The number of vertices cannot be strictly negative!
+
+        .. SEEALSO::
+
+            - :wikipedia:`Tournament_(graph_theory)`
+            - :meth:`~sage.graphs.digraph.DiGraph.is_tournament`
+            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.TransitiveTournament`
+            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.Complete`
+            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.RandomSemiComplete`
         """
         from sage.misc.prandom import random
         g = DiGraph(n)

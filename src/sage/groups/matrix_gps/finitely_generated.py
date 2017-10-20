@@ -59,7 +59,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 from __future__ import print_function
-from six import itervalues
 
 from sage.groups.group import Group
 from sage.rings.all import ZZ
@@ -939,7 +938,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             P = PolynomialRing(R, variable)
             t = P.gen()
             #it is possible the character is over a larger cyclotomic field
-            K = next(itervalues(chi)).parent()
+            K = next(iter(chi.values())).parent()
             if K.degree() != 1:
                 if R.degree() != 1:
                     L = K.composite_fields(R)[0]
@@ -1168,7 +1167,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             F /= self.order()
             return F
         #non-trivial character case
-        K = next(itervalues(chi)).parent()
+        K = next(iter(chi.values())).parent()
         if R.characteristic() == 0:
             #extend base_ring to compositum
             if C == QQbar or K == QQbar or R == QQbar:

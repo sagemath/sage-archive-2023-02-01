@@ -154,8 +154,8 @@ class AbstractLanguage(Parent):
 
         if (alphabet.cardinality() == Infinity or
             (alphabet.cardinality() < 36 and
-             all(alphabet.unrank(i) > alphabet.unrank(j) for
-                 i in range(min(36, alphabet.cardinality()))
+             all(alphabet.unrank(i) > alphabet.unrank(j)
+                 for i in range(min(36, alphabet.cardinality()))
                  for j in range(i)))):
             self.cmp_letters = cmp  # deprecated
             self.sortkey_letters = self._sortkey_trivial

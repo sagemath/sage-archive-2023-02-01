@@ -644,8 +644,8 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
         else:
           coeff = self.base_ring()(next(itervalues(f.dict())) /  next(itervalues(g.dict())))
 
-        f = next(iterkeys(f.dict())
-        g = next(iterkeys(g.dict())
+        f = next(iterkeys(f.dict()))
+        g = next(iterkeys(g.dict()))
 
         res = f.esub(g)
 

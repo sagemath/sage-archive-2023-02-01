@@ -144,7 +144,7 @@ Functions and classes
 #*****************************************************************************
 from __future__ import absolute_import
 from six.moves import range
-from six import iteritems, add_metaclass, itervalues
+from six import iteritems, add_metaclass
 
 from sage.interfaces.all import maxima
 from sage.rings.all import ZZ, QQ, Integer, infinity
@@ -1293,7 +1293,7 @@ class CombinatorialElement(CombinatorialObject, Element):
         if len(args) == 1 and not kwds:
             L = args[0]
         elif len(kwds) == 1 and not args:
-            L = next(itervalues(kwds))
+            L, = kwds.values()
         else:
             raise TypeError("__init__() takes exactly 2 arguments ({} given)".format(1+len(args)+len(kwds)))
         super(CombinatorialElement, self).__init__(L)

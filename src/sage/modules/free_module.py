@@ -179,7 +179,6 @@ import sage.rings.integer
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from sage.misc.randstate import current_randstate
 from sage.structure.sequence import Sequence
-from sage.structure.richcmp import (richcmp_method,richcmp_by_eq_and_lt)
 
 
 from sage.misc.cachefunc import cached_method

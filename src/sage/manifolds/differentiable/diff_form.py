@@ -225,7 +225,7 @@ class DiffForm(TensorField):
         sage: a[eU,0,1] = x*y^2 + 2*x
         sage: a.add_comp_by_continuation(eV, W, c_uv)
         sage: a.display(eU)
-        a = x*(y**2 + 2) dx/\dy
+        a = (x*y**2 + 2*x) dx/\dy
         sage: a.display(eV)
         a = (-u**3/16 + u**2*v/16 + u*v**2/16 - u/2 - v**3/16 - v/2) du/\dv
 

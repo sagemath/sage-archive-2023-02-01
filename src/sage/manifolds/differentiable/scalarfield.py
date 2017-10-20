@@ -476,7 +476,7 @@ class DiffScalarField(ScalarField):
         sage: s.display()
         M --> R
         on U: (x, y) |--> a/(x^2 + y^2 + 1)
-        on V: (u, v) |--> (a*u^2 + a*v^2)/(u^2 + v^2 + 1)
+        on V: (u, v) |--> (u^2 + v^2)*a/(u^2 + v^2 + 1)
 
     However, if the symbolic variable is a chart coordinate, the multiplication
     is performed only in the corresponding chart::
@@ -490,7 +490,7 @@ class DiffScalarField(ScalarField):
         Scalar field on the 2-dimensional differentiable manifold M
         sage: s.display()
         M --> R
-        on V: (u, v) |--> (u^3 + u*v^2)/(u^2 + v^2 + 1)
+        on V: (u, v) |--> (u^2 + v^2)*u/(u^2 + v^2 + 1)
 
     Some tests::
 

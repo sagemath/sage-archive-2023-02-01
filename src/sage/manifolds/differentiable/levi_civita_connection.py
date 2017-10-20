@@ -720,7 +720,7 @@ class LeviCivitaConnection(AffineConnection):
             sage: g[0,0], g[1,1] = -(1-2*m/r), 1/(1-2*m/r)
             sage: g[2,2], g[3,3] = r^2, (r*sin(th))^2
             sage: g.display()
-            g = (2*m - r)/r dt*dt - r/(2*m - r) dr*dr + r^2 dth*dth + r^2*sin(th)^2 dph*dph
+            g = (2*m/r - 1) dt*dt - 1/(2*m/r - 1) dr*dr + r^2 dth*dth + r^2*sin(th)^2 dph*dph
             sage: nab = g.connection() ; nab
             Levi-Civita connection nabla_g associated with the Lorentzian
              metric g on the 4-dimensional differentiable manifold M

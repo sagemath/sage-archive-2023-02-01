@@ -967,8 +967,8 @@ class Chart(UniqueRepresentation, SageObject):
             sin(6)
 
         """
-
-        return self.function_ring()(expression,calc_method=calc_method)
+        parent = self.function_ring()
+        return parent.element_class(parent,expression,calc_method=calc_method)
 
     def zero_function(self):
         r"""

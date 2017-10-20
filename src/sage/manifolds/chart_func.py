@@ -969,7 +969,7 @@ class ChartFunction(AlgebraElement):
                     method = self._calc_method._current
                 else :
                     method = list(self._express)[0] # pick a random method
-                other.expr(method)
+                #other.expr(method)
                 return bool(other.expr(method) == self.expr(method))
         else:
             return bool(self.expr(self._calc_method._current) == other)
@@ -1276,9 +1276,9 @@ class ChartFunction(AlgebraElement):
             2
             sage: f = X.function(x+y)
             sage: (f * pi).display()
-            (x, y) |--> pi*x + pi*y
+            (x, y) |--> pi*(x + y)
             sage: (x * f).display()
-            (x, y) |--> x^2 + x*y
+            (x, y) |--> (x + y)*x
 
         The same test with SymPy::
 
@@ -1290,8 +1290,9 @@ class ChartFunction(AlgebraElement):
             x*(x + y)
 
         """
+        curr = self._calc_method._current
         try:
-            other = self._calc_method._tranf(other)
+            other = self._calc_method._tranf[curr](other)
         except (TypeError, ValueError):
             return
         return type(self)(self.parent(), other * self.expr())
@@ -1311,7 +1312,7 @@ class ChartFunction(AlgebraElement):
             sage: (f * 2).display()
             (x, y) |--> 2*x + 2*y
             sage: (f * pi).display()
-            (x, y) |--> pi*x + pi*y
+            (x, y) |--> pi*(x + y)
 
         The same test with SymPy::
 
@@ -1325,7 +1326,7 @@ class ChartFunction(AlgebraElement):
         """
         curr = self._calc_method._current
         try:
-            other = self._calc_method._tranf(other)
+            other = self._calc_method._tranf[curr](other)
         except (TypeError, ValueError):
             return
         return type(self)(self.parent(), self.expr() * other)
@@ -2437,11 +2438,6 @@ class ChartFunctionRing(Parent, UniqueRepresentation):
             sage: f
             sin(x*y)
             sage: f.parent() is FR
-            True
-            sage: g = FR(x+y^2, calc_method='sympy')
-            sage: g
-            y^2 + x
-            sage: g.parent() is FR
             True
 
         """

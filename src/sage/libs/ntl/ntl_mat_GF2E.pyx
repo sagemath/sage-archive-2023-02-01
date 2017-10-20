@@ -25,6 +25,7 @@
 from __future__ import absolute_import
 
 from cysignals.signals cimport sig_on, sig_off
+from sage.ext.cplusplus cimport ccrepr
 
 include 'misc.pxi'
 include 'decl.pxi'
@@ -188,7 +189,7 @@ cdef class ntl_mat_GF2E(object):
             '[[[] [1]]\n[[] [1]]\n]'
         """
         self.c.restore_c()
-        return mat_GF2E_to_PyString(&self.x)
+        return ccrepr(self.x)
 
     def __mul__(ntl_mat_GF2E self, other):
         """

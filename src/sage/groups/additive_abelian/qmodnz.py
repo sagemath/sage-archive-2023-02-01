@@ -13,7 +13,7 @@ You can create random elements::
     sage: [G.random_element() for _ in range(4)]
     [15/16, 0, 1/2, 139/190]
 
-There is an iterator over the (infinitly many) elements::
+There is an iterator over the (infinitely many) elements::
 
     sage: import itertools
     sage: list(itertools.islice(G, 10))
@@ -33,7 +33,6 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.all import ZZ, QQ
 from sage.categories.commutative_additive_groups import CommutativeAdditiveGroups
-from sage.arith import srange
 from .qmodnz_element import QmodnZ_Element
 
 class QmodnZ(Parent, UniqueRepresentation):
@@ -88,7 +87,7 @@ class QmodnZ(Parent, UniqueRepresentation):
             sage: TestSuite(G).run()
         """
         self.n = QQ(n).abs()
-        category = CommutativeAdditiveGroups().Topological().Infinite()
+        category = CommutativeAdditiveGroups().Infinite()
         Parent.__init__(self, base=ZZ, category=category)
         self._populate_coercion_lists_(coerce_list=[QQ])
 
@@ -114,6 +113,36 @@ class QmodnZ(Parent, UniqueRepresentation):
             return "Q/%sZ"%(self.n)
         else:
             return "Q/(%s)Z"%(self.n)
+
+    def _coerce_map_from_(self, S):
+        r"""
+        Coercion from a parent ``S``.
+
+        There is a coercion from ``S`` if ``S`` has a coerce map to `\Q`
+        or if `S = \Q/m\Z` for `m` a multiple of `n`.
+
+        TESTS::
+
+            sage: G2 = QQ/(2*ZZ)
+            sage: G3 = QQ/(3*ZZ)
+            sage: G4 = QQ/(4*ZZ)
+            sage: G2.has_coerce_map_from(QQ)
+            True
+            sage: G2.has_coerce_map_from(ZZ)
+            True
+            sage: G2.has_coerce_map_from(ZZ['x'])
+            False
+            sage: G2.has_coerce_map_from(G3)
+            False
+            sage: G2.has_coerce_map_from(G4)
+            True
+            sage: G4.has_coerce_map_from(G2)
+            False
+        """
+        if QQ.has_coerce_map_from(S):
+            return True
+        if isinstance(S, QmodnZ) and (S.n / self.n in ZZ):
+            return True
 
     #TODO: Disallow order comparisons between different Q/nZ's
     # e.g., sage: QmodnZ(10/3) > QmodnZ(5/3)
@@ -189,7 +218,7 @@ class QmodnZ(Parent, UniqueRepresentation):
 
         EXAMPLES:
 
-            The first 19 elements of Q/5Z::
+            The first 19 elements of `\Q/5\Z`::
 
             sage: import itertools
             sage: list(itertools.islice(QQ/(5*ZZ),19))

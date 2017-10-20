@@ -281,10 +281,13 @@ def installed_packages(exclude_pip=True):
         :func:`sage.misc.package.list_packages`
     """
     from sage.env import SAGE_SPKG_INST
-    installed = dict(pkgname_split(pkgname) for pkgname in os.listdir(SAGE_SPKG_INST))
+    installed = {}
     if not exclude_pip:
         installed.update(pip_installed_packages())
+    # Sage packages should override pip packages (Trac #23997)
+    installed.update(pkgname_split(pkgname) for pkgname in os.listdir(SAGE_SPKG_INST))
     return installed
+
 
 def is_package_installed(package, exclude_pip=True):
     """

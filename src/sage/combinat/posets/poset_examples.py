@@ -35,6 +35,7 @@ The infinite set of all posets can be used to find minimal examples::
     :meth:`~Posets.IntegerCompositions` | Return the poset of integer compositions of `n`.
     :meth:`~Posets.IntegerPartitions` | Return the poset of integer partitions of ``n``.
     :meth:`~Posets.IntegerPartitionsDominanceOrder` | Return the lattice of integer partitions on the integer `n` ordered by dominance.
+    :meth:`~Posets.NoncrossingPartitions` | Return the poset of noncrossing partitions of a finite Coxeter group ``W``.
     :meth:`~Posets.PentagonPoset` | Return the Pentagon poset.
     :meth:`~Posets.RandomLattice` | Return a random lattice on `n` elements.
     :meth:`~Posets.RandomPoset` | Return a random poset on `n` elements.
@@ -1156,6 +1157,27 @@ class Posets(object):
             element_labels = {s: tuple(s.reduced_word()) for s in W}
             return Poset({s: s.absolute_covers() for s in W}, element_labels)
         return Poset({s: s.absolute_covers() for s in W})
+
+    @staticmethod
+    def NoncrossingPartitions(W):
+        """
+        Return the lattice of noncrossing partitions.
+
+        INPUT:
+
+        - ``W`` -- a finite Coxeter group or a Weyl group
+
+        EXAMPLES::
+
+            sage: W = CoxeterGroup(['A', 3])
+            sage: posets.NoncrossingPartitions(W)
+            Finite lattice containing 14 elements
+
+            sage: W = WeylGroup(['B', 2], prefix='s')
+            sage: posets.NoncrossingPartitions(W)
+            Finite lattice containing 6 elements
+        """
+        return W.noncrossing_partition_lattice()
 
     @staticmethod
     def SymmetricGroupAbsoluteOrderPoset(n, labels="permutations"):

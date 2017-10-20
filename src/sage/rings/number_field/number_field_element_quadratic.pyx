@@ -747,7 +747,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
             sage: K1 = NumberField(x^2 - 2, 'a', embedding=RR(1.4))
             sage: K2 = NumberField(x^2 - 2, 'a', embedding=RR(-1.4))
-            sage: for _ in range(500):
+            sage: for _ in range(500):  # long time
             ....:     for K in K1, K2:
             ....:         a = K.random_element()
             ....:         b = K.random_element()
@@ -762,7 +762,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
             sage: K1 = NumberField(x^2 + 2, 'a', embedding=CC(0,1))
             sage: K2 = NumberField(x^2 + 2, 'a', embedding=CC(0,-1))
-            sage: for _ in range(500):
+            sage: for _ in range(500):  # long time
             ....:     for K in K1, K2:
             ....:         a = K.random_element()
             ....:         b = K.random_element()
@@ -1825,10 +1825,9 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         else:
             return NumberFieldElement.norm(self, K)
 
-
     def is_integral(self):
         r"""
-        Returns whether this element is an algebraic integer.
+        Return whether this element is an algebraic integer.
 
         TESTS::
 
@@ -1839,11 +1838,11 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             True
             sage: K(1/2).is_integral()
             False
-            sage: K(a/2).is_integral()
+            sage: (a/2).is_integral()
             False
-            sage: K((a+1)/2).is_integral()
+            sage: ((a+1)/2).is_integral()
             False
-            sage: K(a/3).is_integral()
+            sage: ((a+1)/3).is_integral()
             False
 
             sage: K.<a> = QuadraticField(-3)
@@ -1853,15 +1852,33 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             True
             sage: K(1/2).is_integral()
             False
-            sage: K(a/2).is_integral()
+            sage: (a/2).is_integral()
             False
             sage: ((a+1)/2).is_integral()
             True
+            sage: ((a+1)/3).is_integral()
+            False
+
+        This works for order elements too, see :trac:`24077`::
+
+            sage: O.<w> = EisensteinIntegers()
+            sage: w.is_integral()
+            True
+            sage: for _ in range(20):
+            ....:     assert O.random_element().is_integral()
         """
         if mpz_cmp_ui(self.denom, 1) == 0:
             return True
-        else:
-            return self.norm().denom() == 1 and self.trace().denom() == 1
+
+        # Check for an element of the form x + y sqrt(D) where x and y
+        # are half-integers.
+        if mpz_even_p(self.a) or mpz_even_p(self.b):
+            return False
+        if mpz_cmp_ui(self.denom, 2) != 0:
+            return False
+        # Numbers with half-integral components are integral only for
+        # D = 1 mod 4
+        return mpz_fdiv_ui(self.D.value, 4) == 1
 
     def charpoly(self, var='x'):
         r"""

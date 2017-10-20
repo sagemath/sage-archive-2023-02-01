@@ -379,6 +379,46 @@ class TorsionQuadraticModule(FGP_Module_class):
     def orthogonal_gens(self, normalize = True):
         """
         Return a free quadratic module such that its generators are mutually orthogonal for `p != 2` or have block size at most `2`.
+        
+        If normalize is True, then the generators are further normalized.
+        Namely the new gram matrix is in Jordan form:
+        
+        Let `p` be odd and `u` be the smallest non-square modulo `p`.
+        The Jordan form is a diagonal matrix with diagonal entries either `p^n` or `u*p^n`.
+    
+        If `p=2` is even, then the Jordan form consists of 
+        1 x 1 blocks of the form
+        `0`, `[2^n]`, `[3*2^n]`, `[5*2^n]`, `[7*2^n]`
+        or of 2 x 2 blocks of the form
+        [2 1]           [0 1]
+        [1 2] * 2^n or  [1 0] * 2^n
+        In any case the entries are ordered by their valuation.
+        
+        EXAMPLES::
+        
+            sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
+            sage: D4_gram = Matrix(ZZ,4,4,[2,0,0,-1,0,2,0,-1,0,0,2,-1,-1,-1,-1,2])
+            sage: D4 = FreeQuadraticModule(ZZ,4,D4_gram)
+            sage: D4dual = D4.span(D4_gram.inverse())
+            sage: T = TorsionQuadraticModule((1/6)*D4dual,D4)
+            sage: T
+            Finite quadratic module V/W over Integer Ring with invariants (6, 6, 12, 12).
+            Gram matrix of the quadratic form with values in Q/(1/3)Z:
+            [1/18 5/36    0    0]
+            [5/36 1/18 5/36 5/36]
+            [   0 5/36 1/36 1/72]
+            [   0 5/36 1/72 1/36]
+            sage: T.orthogonal_gens()
+            Finite quadratic module V/W over Integer Ring with invariants (6, 6, 12, 12).
+            Gram matrix of the quadratic form with values in Q/(1/3)Z:
+            [1/12 1/24    0    0    0    0    0    0]
+            [1/24 1/12    0    0    0    0    0    0]
+            [   0    0  1/6 1/12    0    0    0    0]
+            [   0    0 1/12  1/6    0    0    0    0]
+            [   0    0    0    0  2/9    0    0    0]
+            [   0    0    0    0    0  2/9    0    0]
+            [   0    0    0    0    0    0  1/9    0]
+            [   0    0    0    0    0    0    0  1/9]
         """
         gens = []
         from sage.quadratic_forms.genera.p_adic_jordan_blocks import jordan_p_adic
@@ -392,12 +432,11 @@ class TorsionQuadraticModule(FGP_Module_class):
             U = U.change_ring(ZZ)
             gens_p = []
             for i in range(n):
-                g = self.zero()
+                g = self.V().zero()
                 for j in range(n):
-                    g += self.gens()[j]*U[i,j]
+                    g += D_p.gens()[j].lift()*U[i,j]
                 gens_p.append(g)
             gens += gens_p
-            
         return self.submodule_with_gens(gens)
         
     def primary_part(self,m):
@@ -416,6 +455,12 @@ class TorsionQuadraticModule(FGP_Module_class):
         
             sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
             sage: T = TorsionQuadraticModule((1/6)*ZZ^3,ZZ^3)
+            sage: T
+            Finite quadratic module V/W over Integer Ring with invariants (6, 6, 6).
+            Gram matrix of the quadratic form with values in Q/(1/3)Z:
+            [1/36    0    0]
+            [   0 1/36    0]
+            [   0    0 1/36]
             sage: T.primary_part(2)
             Finite quadratic module V/W over Integer Ring with invariants (2, 2, 2).
             Gram matrix of the quadratic form with values in Q/(1/3)Z:
@@ -446,6 +491,12 @@ class TorsionQuadraticModule(FGP_Module_class):
             sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
             sage: V = FreeQuadraticModule(ZZ,3,matrix.identity(3)*5)
             sage: T = TorsionQuadraticModule((1/5)*V, V)
+            sage: T
+            Finite quadratic module V/W over Integer Ring with invariants (5, 5, 5).
+            Gram matrix of the quadratic form with values in Q/Z:
+            [1/5   0   0]
+            [  0 1/5   0]
+            [  0   0 1/5]
             sage: T.submodule(T.gens()[:2])
             Finite quadratic module V/W over Integer Ring with invariants (5, 5).
             Gram matrix of the quadratic form with values in Q/Z:
@@ -454,6 +505,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         """
         T = FGP_Module_class.submodule(self, x)
         T._modulus = self._modulus # is this necessary? Yes else the modulus might increase.
+        T._modulus_qf = self._modulus_qf
         return T
 
     

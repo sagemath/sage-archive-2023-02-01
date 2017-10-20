@@ -19,15 +19,15 @@ def jordan_p_adic(G,prime,precision=None,normalize=True):
     
     INPUT:
     
-        -- ``G`` - symmetric n x n matrix in `\QQ`
-        -- ``p`` - prime number
-        -- ``precision`` - defining precision if not set the minimal possible is taken.
-        -- ``ǹormalize```- bool (default: `True`)
+        - ``G`` -- symmetric n x n matrix in `\QQ`
+        - ``p`` -- prime number
+        - ``precision`` -- defining precision if not set the minimal possible is taken.
+        - ``ǹormalize```-- bool (default: `True`)
     
     OUTPUT:
     
-        - ``D`` the jordand matrix over `Qp`
-        - ``U`` transformation matrix `Qp`, i.e, D = U * G * U^T
+        - ``D`` -- the jordand matrix over `Qp`
+        - ``U`` -- transformation matrix `Qp`, i.e, D = U * G * U^T
     
     EXAMPLES::
     
@@ -128,7 +128,7 @@ def jordan_p_adic(G,prime,precision=None,normalize=True):
         assert D == Matrix.diagonal(D.diagonal())
     assert U.determinant().valuation()==0
     if normalize:
-        D, U1 = _normalize_blocks(D)
+        D, U1 = _normalize(D)
         U = U1 * U
     assert U*G*U.T == Matrix.block_diagonal(collect_small_blocks(D))
     return D/denom, U
@@ -143,8 +143,8 @@ def _jordan_odd_adic(G):
     
     OUTPUT:
     
-        -- ``D`` - a diagonal matrix
-        -- ``U`` - a unimodular matrix such that ``D = U*G*U.T``
+        - ``D`` -- a diagonal matrix
+        - ``U`` -- a unimodular matrix such that ``D = U*G*U.T``
         
     EXAMPLES::
         
@@ -212,22 +212,46 @@ def _jordan_2_adic(G):
     """
     Diagonalize a symmetric matrix over the 2-adics
     
-    (This method is called implicitly in jordan_p_adic(G,prime) )
+    Note that if the precision is too low this method fails.
+    The method is only tested for input over `Zp` of`'type=fixed-mod'`.
     
     Input:
 
-        - ``G`` symmetric nxn matrix in `\Qp`
+        - ``G`` -- symmetric `n` x `n` matrix in `Zp`
     
     Output:
 
-        - ``D`` the jordand matrix
-        - ``U`` transformation matrix i.e D = U * G * U^T
+        - ``D`` -- the jordand matrix
+        - ``U`` -- transformation matrix i.e `D = U * G * U^T`
+    
+    The matrix ``D`` is a block diagonal matrix consisting of 1 x 1 and 2 x 2 blocks.
+    The 2 x 2 blocks are of the form
+    `[2a  b]`
+    `[ b 2c] * 2^k`
+    with `b` of valuation `0`.
     
     Example:
-
-        sage: G = matrix(QQ,3,3,[1,0,1,0,2,1,1,1,3])
-
     
+        sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import _jordan_2_adic
+        sage: R = Zp(2,prec=3,print_mode='series')
+        sage: A4 = Matrix(R,4,[2, -1, 0, 0, -1, 2, -1, 0, 0, -1, 2, -1, 0, 0, -1, 2])
+        sage: A4.change_ring(ZZ) # for pretty printing
+        [2 7 0 0]
+        [7 2 7 0]
+        [0 7 2 7]
+        [0 0 7 2]
+
+        sage: D, U = _jordan_2_adic(A4)
+        sage: D.change_ring(ZZ) #just for pretty printing.
+        [ 2  7  0  0]
+        [ 7  2  0  0]
+        [ 0  0 12  7]
+        [ 0  0  7  2]
+
+        sage: D == U*A4*U.T
+        True
+        sage: U.determinant().valuation() == 0
+        True
     """
     R = G.base_ring()
     D = copy(G)
@@ -311,6 +335,22 @@ def _jordan_2_adic(G):
 
 def _get_small_block_indices(G):
     """
+    Return the indices of the blocks.
+    
+    For internal use in :meth:`collect_small_blocks`
+    
+    INPUT:
+    
+        - ``G`` -- a block_diagonal matrix consisting of `1 x 1` and `2 x 2` blocks
+    
+    EXAMPLES::
+    
+        sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import _get_small_block_indices
+        sage: A = Matrix([1])
+        sage: B = Matrix(ZZ,2,[2,1,1,2])
+        sage: G = Matrix.block_diagonal([A,B,B,A,A,B,A,B])
+        sage: _get_small_block_indices(G)
+        [1, 3, 5, 6, 7, 9, 10]
     """
     L = []
     n = G.ncols()
@@ -327,6 +367,20 @@ def _get_small_block_indices(G):
 
 def collect_small_blocks(G):
     """
+    Return the blocks as list.
+    
+    INPUT:
+    
+        - ``G`` -- a block_diagonal matrix consisting of `1 x 1` and `2 x 2` blocks
+        
+    EXAMPLES::
+        sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import collect_small_blocks
+        sage: A = Matrix([1])
+        sage: B = Matrix(ZZ,2,[2,1,1,2])
+        sage: L = [A,B,B,A,A,B,A,B]
+        sage: G = Matrix.block_diagonal(L)
+        sage: L == collect_small_blocks(G)
+        True
     """
     D = copy(G)
     L = _get_small_block_indices(D)
@@ -337,14 +391,7 @@ def collect_small_blocks(G):
         blocks.append(block)
     return blocks
 
-def get_jordan_blocks():
-    """
-    """
-    pass
-    
-
-
-def _normalize_blocks(G):
+def _normalize(G):
     """
     """
     R = G.base_ring()
@@ -388,13 +435,13 @@ def _normalize_2x2(G):
     
     INPUT:
     
-        --  ``G`` - a 2 by 2 matrix over Zp with ``type = 'fixed-mod'`` of the form
+        -  ``G`` - a 2 by 2 matrix over Zp with ``type = 'fixed-mod'`` of the form
             `[2a  b]`
             `[ b 2c]*2^n`
             with b of valuation 1
     OUTPUT:
     
-        --  a unimodular `2 x 2` matrix `U` over `Zp` with 
+        -  a unimodular `2 x 2` matrix `U` over `Zp` with 
             `U * G *U.transpose() is 
             either 
                 `[0 1]`
@@ -518,21 +565,21 @@ def _normalize_2x2(G):
         D = U*G*U.transpose()
         assert D == Matrix(G.parent(),2,2,[0,1,1,0]), "D2 \n %r" %D
     return U
-        
+
 def _find_min_p(G,cnt):
     """
     Find the smallest valuation and prefer diagonal entries.
     
     Input:
 
-        -- ``G`` - symmetric n x n matrix in `\Qp`
-        -- ``cnt`` - start search from this index
+        - ``G`` -- symmetric n x n matrix in `\Qp`
+        - ``cnt`` -- start search from this index
     
     Output:
 
-        - ``min`` minimal valuation
-        - ``min_i`` row of the minimal valuation
-        - ``min_j`` column of the minimal valuation
+        - ``min`` -- minimal valuation
+        - ``min_i`` -- row of the minimal valuation
+        - ``min_j`` -- column of the minimal valuation
     
     EXAMPLES::
     
@@ -574,16 +621,26 @@ def _find_min_p(G,cnt):
 
 def _min_nonsquare(prime):
     """
-    Return minimal nonsquare in `\FF_p`
+    Return the minimal nonsquare modulo the prime
     
     Input:
 
-        - ``p`` prime number for `\Qp`
+        - ``p`` -- prime number for `\Qp`
     
     Output:
     
-        - ``a`` minimal nonsquare
-
+        - ``a`` -- minimal nonsquare as element of ZZ.
+    
+    EXAMPLES::
+    
+        sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import _min_nonsquare
+        sage: _min_nonsquare(2)
+        sage: _min_nonsquare(3)
+        2
+        sage: _min_nonsquare(5)
+        2
+        sage: _min_nonsquare(7)
+        3
     """
     from sage.rings.all import GF
     R = GF(prime)

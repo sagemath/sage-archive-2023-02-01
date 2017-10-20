@@ -328,7 +328,6 @@ from sage.rings.rational import Rational
 from .generic_graph_pyx import GenericGraph_pyx, spring_layout_fast
 from sage.graphs.dot2tex_utils import assert_have_dot2tex
 from sage.misc.superseded import deprecation, deprecated_function_alias
-from sage.misc.decorators import rename_keyword
 
 class GenericGraph(GenericGraph_pyx):
     """
@@ -5968,7 +5967,6 @@ class GenericGraph(GenericGraph_pyx):
 
         return classes
 
-    @rename_keyword(deprecation=19550, method='algorithm')
     def edge_cut(self, s, t, value_only=True, use_edge_labels=False, vertices=False, algorithm="FF", solver=None, verbose=0):
         r"""
         Return a minimum edge cut between vertices `s` and `t`.
@@ -7999,7 +7997,6 @@ class GenericGraph(GenericGraph_pyx):
 
                 return [v for v in self if b_sol[v] == 1]
 
-    @rename_keyword(deprecation=19550, method='algorithm')
     def flow(self, x, y, value_only=True, integer=False, use_edge_labels=True, vertex_bound=False, algorithm = None, solver=None, verbose=0):
         r"""
         Returns a maximum flow in the graph from ``x`` to ``y``
@@ -8788,7 +8785,6 @@ class GenericGraph(GenericGraph_pyx):
         except EmptySetError:
             raise EmptySetError("The disjoint routed paths do not exist.")
 
-    @rename_keyword(deprecation=19550, method='algorithm')
     def edge_disjoint_paths(self, s, t, algorithm = "FF"):
         r"""
         Returns a list of edge-disjoint paths between two
@@ -21522,7 +21518,6 @@ class GenericGraph(GenericGraph_pyx):
         except EmptySetError:
             return False
 
-    @rename_keyword(deprecation=21111, certify='certificate')
     def is_isomorphic(self, other, certificate=False, verbosity=0, edge_labels=False):
         r"""
         Tests for isomorphism between self and other.
@@ -21729,15 +21724,6 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g.is_isomorphic(h, certificate=True)
             (True, None)
-
-        Deprecation from :trac:`21111`::
-
-            sage: G = DiGraph({'a':['b']})
-            sage: H = DiGraph({0:[1]})
-            sage: G.is_isomorphic(H, certify=True)
-            doctest:...: DeprecationWarning: use the option 'certificate' instead of 'certify'
-            See http://trac.sagemath.org/21111 for details.
-            (True, {'a': 0, 'b': 1})
         """
 
         if self.order() == other.order() == 0:
@@ -21816,7 +21802,6 @@ class GenericGraph(GenericGraph_pyx):
                     isom_trans[v] = other_vertices[isom[G_to[v]]]
             return True, isom_trans
 
-    @rename_keyword(deprecation=21111, certify='certificate')
     def canonical_label(self, partition=None, certificate=False, verbosity=0,
                         edge_labels=False,algorithm=None,return_graph=True):
         """Return a graph on `\{0,1,...,n-1\}` ( ``n = self.order()`` ) which
@@ -21930,9 +21915,7 @@ class GenericGraph(GenericGraph_pyx):
         TESTS::
 
             sage: G = Graph({'a': ['b']})
-            sage: G.canonical_label(algorithm='sage', certify=True)
-            doctest:...: DeprecationWarning: use the option 'certificate' instead of 'certify'
-            See http://trac.sagemath.org/21111 for details.
+            sage: G.canonical_label(algorithm='sage', certificate=True)
             (Graph on 2 vertices, {'a': 0, 'b': 1})
         """
         try:

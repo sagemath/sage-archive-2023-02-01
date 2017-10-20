@@ -1818,7 +1818,7 @@ def PaleyGraph(q):
 
     A Paley graph is always self-complementary::
 
-        sage: G.complement().is_isomorphic(G)
+        sage: G.is_self_complementary()
         True
     """
     from sage.rings.finite_rings.integer_mod import mod

@@ -382,7 +382,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         
         INPUT:
         
-        - ``m`` - an integer
+        - ``m`` -- an integer
         
         OUTPUT:
         
@@ -431,6 +431,48 @@ class TorsionQuadraticModule(FGP_Module_class):
         T = FGP_Module_class.submodule(self, x)
         T._modulus = self._modulus # is this necessary? Yes else the modulus might increase.
         T._modulus_qf = self._modulus_qf
+        return T
+    
+    def submodule_with_gens(self,gens):
+        """
+        Return a submodule with generators given by ``gens``.
+    
+        There is no further assumption on the generators.
+    
+        INPUT:
+    
+        - ``gens`` -- a list of generators which coerce into this module.
+    
+        OUTPUT:
+    
+        A submodule with the specified generators.
+    
+        EXAMPLES::
+    
+            sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
+            sage: V = FreeQuadraticModule(ZZ,3,matrix.identity(3)*10)
+            sage: T = TorsionQuadraticModule((1/10)*V, V)
+            sage: new_gens = [2*T.0,5*T.0]
+            sage: T.submodule_with_gens(new_gens)
+            Finite quadratic module V/W over Integer Ring with invariants (10,).
+            Gram matrix of the quadratic form with values in Q/2Z:
+            [2/5   0]
+            [  0 1/2]
+
+        They do not need to be independent::
+    
+            sage: new_gens = [T.0,2*T.1,T.0,T.1,]
+            sage: T.submodule_with_gens(new_gens)
+            Finite quadratic module V/W over Integer Ring with invariants (10, 10).
+            Gram matrix of the quadratic form with values in Q/2Z:
+            [1/10    0 1/10    0]
+            [   0  2/5    0  1/5]
+            [1/10    0 1/10    0]
+            [   0  1/5    0 1/10]
+
+        """
+        T = self.submodule(gens)
+        T._gens = [self(v) for v in gens]
         return T
     
     def value_module(self):

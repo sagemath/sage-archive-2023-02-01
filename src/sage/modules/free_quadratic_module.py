@@ -555,57 +555,6 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
         A = self.inner_product_matrix()
         D = sage.matrix.constructor.diagonal_matrix([ A[i,i] for i in range(A.nrows()) ])
         return A == D
-        
-    def is_contained(self,other):
-        r"""
-        Return ``True`` if ``self`` is a submodule of ``other`` and the inner product is preserved.
-
-        It overrides the method for the free modules, asking also for the same inner product matrix.
-        This method is used by comparison operators.
-       
-        EXAMPLES::
-
-        We compare free modules and free quadratic modules::
-         
-            sage: M1 = FreeQuadraticModule(ZZ,2,inner_product_matrix=1)
-            sage: M1 is FreeModule(ZZ,2,inner_product_matrix=1)
-            True
-            sage: M1.inner_product_matrix()
-            [1 0]
-            [0 1]
-            sage: M1 == ZZ^2
-            True
-            sage: M1 is ZZ^2
-            False
-            
-        We compare free quadratic modules with a different inner product::
-            
-            sage: V1 = FreeQuadraticModule(QQ,2,inner_product_matrix=1)
-            sage: V2 = FreeQuadraticModule(QQ,2,inner_product_matrix=[[-1,0],[0,1]])
-            sage: V1.is_submodule(V2)
-            True
-            sage: V1.is_contained(V2)
-            False
-            sage: V1 == V2
-            False
-            
-       We compare isomorphic free quadratic submodules embedded in a different way::   
-     
-            sage: F = FreeQuadraticModule(RR,3,inner_product_matrix=2)
-            sage: W1 = F.submodule([[0,1,1]])
-            sage: W2 = F.span([[1,1,0]])
-            sage: W1.gram_matrix() == W2.gram_matrix()
-            True
-            sage: W1 == W2
-            False            
-        """
-        if not (isinstance(self, FreeQuadraticModule_generic) and isinstance(other, FreeQuadraticModule_generic)):
-            return self.is_submodule(other)
-        else:
-            if self.inner_product_matrix()==other.inner_product_matrix() and self.is_submodule(other):
-                return True
-            else:
-                return False 
 
 class FreeQuadraticModule_generic_pid(
     free_module.FreeModule_generic_pid, FreeQuadraticModule_generic):
@@ -1239,8 +1188,9 @@ class FreeQuadraticModule_submodule_with_basis_pid(
         False
 
     We compare a `\ZZ`-module to the one-dimensional space above::
-
-        sage: V = span([[5,6,7]], ZZ).scale(1/11);
+    
+        sage: V = A.span([[5,6,7]])
+        sage: V = V.change_ring(ZZ).scale(1/11);
         sage: V < M
         True
         sage: M < V

@@ -213,30 +213,6 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
             return False
         return (self.V(), self.W()) == (other.V(), other.W())
 
-    def __ne__(self, other):
-        """
-        Check not-equality of ``self`` and ``other``.
-
-        EXAMPLES:
-
-        We create three quotient spaces and compare them::
-
-            sage: A = QQ^2
-            sage: V = A.span_of_basis([[1,0], [1,1]])
-            sage: W0 = V.span([V.1, V.0])
-            sage: W1 = V.span([V.1])
-            sage: W2 = V.span([V.1])
-            sage: Q0 = V/W0
-            sage: Q1 = V/W1
-            sage: Q2 = V/W2
-
-            sage: Q0 != Q1
-            True
-            sage: Q1 != Q2
-            False
-        """
-        return not (self == other)
-
     def _element_constructor_(self, x):
         """
         Convert an element into this quotient space `V/W` if there is

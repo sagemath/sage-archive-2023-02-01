@@ -938,7 +938,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             P = PolynomialRing(R, variable)
             t = P.gen()
             #it is possible the character is over a larger cyclotomic field
-            K = next(iter(chi.values())).parent()
+            K = chi.values()[0].parent()
             if K.degree() != 1:
                 if R.degree() != 1:
                     L = K.composite_fields(R)[0]
@@ -1167,7 +1167,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             F /= self.order()
             return F
         #non-trivial character case
-        K = next(iter(chi.values())).parent()
+        K = chi.values()[0].parent()
         if R.characteristic() == 0:
             #extend base_ring to compositum
             if C == QQbar or K == QQbar or R == QQbar:

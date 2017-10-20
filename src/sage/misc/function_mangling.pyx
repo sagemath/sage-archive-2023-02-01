@@ -313,6 +313,5 @@ cdef class ArgumentFixer:
             else:
                 val = defaults[name]
             Largs.append(val)
-        cdef list Items = kwargs.items()
-        Items.sort()
+        cdef list Items = sorted(kwargs.items())
         return tuple(Largs), tuple(Items)

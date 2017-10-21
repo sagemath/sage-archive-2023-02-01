@@ -41,7 +41,7 @@ Different operations with cusps over a number field:
     sage: alpha.ideal()
     Fractional ideal (7, a + 3)
     sage: alpha.ABmatrix()
-    [a + 10, -3*a + 1, 7, -2*a]
+    [a + 10, 2*a + 6, 7, a + 5]
     sage: alpha.apply([0, 1, -1,0])
     Cusp [7: -a - 10] of Number Field in a with defining polynomial x^2 + 5
 

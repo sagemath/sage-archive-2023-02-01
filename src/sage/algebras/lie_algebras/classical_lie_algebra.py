@@ -921,7 +921,7 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
     @staticmethod
     def __classcall_private__(cls, R, cartan_type):
         """
-        Normalize ``self`` to ensure a unique represntation.
+        Normalize ``self`` to ensure a unique representation.
 
         TESTS::
 

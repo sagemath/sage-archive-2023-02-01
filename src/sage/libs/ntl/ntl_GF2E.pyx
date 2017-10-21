@@ -16,6 +16,8 @@
 
 from __future__ import absolute_import, division
 
+from sage.ext.cplusplus cimport ccrepr
+
 include 'misc.pxi'
 include 'decl.pxi'
 
@@ -187,7 +189,7 @@ cdef class ntl_GF2E(object):
             [1 1 0 1]
         """
         self.c.restore_c()
-        return GF2E_to_PyString(&self.x)
+        return ccrepr(self.x)
 
     def __copy__(self):
         """

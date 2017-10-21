@@ -1006,7 +1006,7 @@ class BrandtModule_class(AmbientHeckeModule):
 
         dictionary
 
-        EXAMPLES::
+        EXAMPLES:
 
         In this example the theta series determine the ideal classes::
 

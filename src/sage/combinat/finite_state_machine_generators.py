@@ -1256,9 +1256,11 @@ class TransducerGenerators(object):
 
         def convert_output(output):
             for ring in output_rings:
-                if output in ring:
+                try:
                     return ring(output)
-            return(output)
+                except (ValueError,TypeError):
+                    pass
+            return output
 
         def to_list(output):
             if output == 0:

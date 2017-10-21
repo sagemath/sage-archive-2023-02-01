@@ -236,9 +236,8 @@ class FreeQuasisymmetricFunctions(CombinatorialFreeModule):
         r"""
         Return the `\succ` product of two permutations.
 
-        This is the sum over all possible ways to identify the rightmost path
-        in `x` and the leftmost path in `y`, with the additional condition
-        that the root vertex of the result comes from `y`.
+        This is the shifted shuffle of `x` and `y` with the additional condition
+        that the first letter of the result comes from `y`.
 
         The usual symbol for this operation is `\succ`.
 
@@ -280,10 +279,8 @@ class FreeQuasisymmetricFunctions(CombinatorialFreeModule):
         r"""
         Return the `\succ` product.
 
-        This is the sum over all possible ways of identifying the
-        rightmost path in `x` and the leftmost path in `y`, with the
-        additional condition that the root vertex of the result comes
-        from `y`.
+        This is the shifted shuffle of `x` and `y` with the additional condition
+        that the first letter of the result comes from `y`.
 
         The usual symbol for this operation is `\succ`.
 
@@ -307,10 +304,8 @@ class FreeQuasisymmetricFunctions(CombinatorialFreeModule):
         r"""
         Return the `\prec` product of two permutations.
 
-        This is the sum over all possible ways of identifying the
-        rightmost path in `x` and the leftmost path in `y`, with the
-        additional condition that the root vertex of the result comes
-        from `x`.
+        This is the shifted shuffle of `x` and `y` with the additional condition
+        that the first letter of the result comes from `x`.
 
         The usual symbol for this operation is `\prec`.
 
@@ -351,9 +346,8 @@ class FreeQuasisymmetricFunctions(CombinatorialFreeModule):
         r"""
         Return the `\prec` product.
 
-        This is the sum over all possible ways to identify the rightmost path
-        in `x` and the leftmost path in `y`, with the additional condition
-        that the root vertex of the result comes from `x`.
+        This is the shifted shuffle of `x` and `y` with the additional condition
+        that the first letter of the result comes from `x`.
 
         The usual symbol for this operation is `\prec`.
 

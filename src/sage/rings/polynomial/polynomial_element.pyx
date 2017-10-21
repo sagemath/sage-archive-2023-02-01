@@ -9037,6 +9037,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             :meth:`is_cyclotomic_product`
             :meth:`cyclotomic_part`
+            :meth:`has_cyclotomic_factor`
 
         INPUT:
 
@@ -9208,6 +9209,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             :meth:`is_cyclotomic`
             :meth:`cyclotomic_part`
+            :meth:`has_cyclotomic_factor`
 
         EXAMPLES::
 
@@ -9242,14 +9244,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return bool(self.__pari__().poliscycloprod())
 
     def cyclotomic_part(self):
-        """
+        r"""
         Return the product of the irreducible factors of this polynomial
         which are cyclotomic polynomials.
+
+        The algorithm assumes that the polynomial has rational coefficients.
 
         .. SEEALSO::
 
             :meth:`is_cyclotomic`
             :meth:`is_cyclotomic_product`
+            :meth:`has_cyclotomic_factor`
 
         EXAMPLES::
 
@@ -9311,6 +9316,62 @@ cdef class Polynomial(CommutativeAlgebraElement):
             t0 = R(list(t1)[::2])
             i += 1
         return(ans // ans.leading_coefficient())
+
+    def has_cyclotomic_factor(self):
+        r"""
+        Return True if the given polynomial has a nontrivial cyclotomic factor.
+
+        The algorithm assumes that the polynomial has rational coefficients.
+
+        If the polynomial is known to be irreducible, it may be slightly more
+        efficient to call `is_cyclotomic` instead.
+
+        .. SEEALSO::
+
+            :meth:`is_cyclotomic`
+            :meth:`is_cyclotomic_product`
+            :meth:`cyclotomic_part`
+
+        EXAMPLES::
+
+            sage: pol.<x> = PolynomialRing(Rationals())
+            sage: u = x^5-1; u.has_cyclotomic_factor()
+            True
+            sage: u = x^5-2; u.has_cyclotomic_factor()
+            False
+            sage: u = pol(cyclotomic_polynomial(7)) * pol.random_element() #random
+            sage: u.has_cyclotomic_factor()
+            True
+        """
+        if not QQ.has_coerce_map_from(self.base_ring()):
+            raise NotImplementedError("coefficients not rational")
+        polRing = self.parent()
+        x = polRing.gen()
+
+        pol1 = self
+        # First, while pol1 has a nontrivial even factor, replace
+        # that factor with the polynomials whose roots are the squares of
+        # the roots of that factor. This replaces any roots of unity of order
+        # divisible by 4 with roots of unity of order not divisible by 4.
+
+        pol2 = pol1.gcd(pol1(-x))
+        while not pol2.is_constant():
+            pol1 = (pol1 // pol2) * polRing(pol2.list()[::2])
+            pol2 = pol1.gcd(pol1(-x))
+
+        # Next, replace pol1 with the polynomial whose roots are the
+        # squares of pol1. This replaces any roots of unity of even order
+        # with roots of unity of odd order.
+        pol1 = polRing((pol1*pol1(-x)).list()[::2])
+
+        # Finally, find the largest factor of pol1 whose roots are
+        # stable under squaring. This factor is constant if and only if
+        # the original polynomial has no cyclotomic factor.
+        while True:
+            if pol1.is_constant(): return(False)
+            pol2 = pol1.gcd(polRing((pol1*pol1(-x)).list()[::2]))
+            if pol1.degree() == pol2.degree(): return(True)
+            pol1 = pol2
 
     def homogenize(self, var='h'):
         r"""

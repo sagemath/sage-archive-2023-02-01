@@ -26,6 +26,8 @@ AUTHORS:
 
 -  Kiran Kedlaya (2017-09): Added reciprocal transform, trace polynomial.
 
+-  David Zureick-Brown (2017-09): Added is_weil_polynomial.
+
 TESTS::
 
     sage: R.<x> = ZZ[]
@@ -7970,6 +7972,61 @@ cdef class Polynomial(CommutativeAlgebraElement):
             coeffs.insert(0, Q.leading_coefficient())
             Q = (Q % (x**2 + q)**i) // x
         return S(coeffs), cofactor, q
+
+    def is_weil_polynomial(self, return_q=False):
+        r"""
+        Return True if this is a Weil polynomial.
+
+        This polynomial must have rational or integer coefficients.
+
+        INPUT:
+
+        - ``self`` -- polynomial with rational or integer coefficients
+
+        - ``return_q`` -- (default ``False``) if ``True``, return a second value `q`
+            which is the prime power with respect to which this is `q`-Weil,
+            or 0 if there is no such value.
+
+        EXAMPLES::
+
+            sage: polRing.<x> = PolynomialRing(Rationals())
+            sage: P0 = x^4 + 5*x^3 + 15*x^2 + 25*x + 25
+            sage: P1 = x^4 + 25*x^3 + 15*x^2 + 5*x + 25
+            sage: P2 = x^4 + 5*x^3 + 25*x^2 + 25*x + 25
+            sage: P0.is_weil_polynomial(return_q=True)
+            (True, 5)
+            sage: P0.is_weil_polynomial(return_q=False)
+            True
+            sage: P1.is_weil_polynomial(return_q=True)
+            (False, 0)
+            sage: P1.is_weil_polynomial(return_q=False)
+            False
+            sage: P2.is_weil_polynomial()
+            False
+
+        AUTHORS:
+
+        David Zureick-Brown (2017-10-01)
+        """
+        from sage.rings.rational_field import QQ
+        if not QQ.has_coerce_map_from(self.base_ring()):
+            raise NotImplementedError
+        polRing = self.parent()
+        x = polRing.gen()
+        # the following is the polynomial whose roots are the squares
+        # of the roots of self.
+        Q = polRing(list(self(x)*self(-x))[::2])
+        try:
+            Q, _, q = Q.trace_polynomial()
+        except ValueError:
+            b = False
+        else:
+            b = Q.all_roots_in_interval(-2*q.sqrt(), 2*q.sqrt())
+        if return_q:
+            return (b, ZZ(q.sqrt())) if b else (b, 0)
+        else:
+            return b
+
 
     def variable_name(self):
         """

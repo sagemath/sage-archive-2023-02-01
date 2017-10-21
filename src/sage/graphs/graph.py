@@ -4702,9 +4702,9 @@ class Graph(GenericGraph):
             return False
 
     @doc_index("Leftovers")
-    def fractional_chromatic_index(self, solver = None, verbose_constraints = 0, verbose = 0):
+    def fractional_chromatic_index(self, solver="PPL", verbose_constraints=False, verbose=0):
         r"""
-        Computes the fractional chromatic index of ``self``
+        Return the fractional chromatic index of the graph.
 
         The fractional chromatic index is a relaxed version of edge-coloring. An
         edge coloring of a graph being actually a covering of its edges into the
@@ -4733,7 +4733,7 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+        - ``solver`` -- (default: ``"PPL"``) Specify a Linear Program (LP)
           solver to be used. If set to ``None``, the default one is used. For
           more information on LP solvers and which default solver is used, see
           the method
@@ -4743,13 +4743,17 @@ class Graph(GenericGraph):
 
           .. NOTE::
 
-              If you want exact results, i.e. a rational number, use
-              ``solver="PPL"``. This may be slower, though.
+              The default solver used here is ``"PPL"`` which provides exact
+              results, i.e. a rational number, although this may be slower that
+              using other solvers. Be aware that this method may loop endlessly
+              when using some non exact solvers on 32-bits computers as
+              reported in :trac:`23658` and :trac:`23798`.
 
-        - ``verbose_constraints`` -- whether to display which constraints are
-          being generated.
+        - ``verbose_constraints`` -- boolean (default: ``False``) whether to
+          display which constraints are being generated.
 
-        - ``verbose`` -- level of verbosity required from the LP solver
+        - ``verbose`` -- integer (default: `0`) level of verbosity required from
+          the LP solver
 
         EXAMPLES:
 
@@ -4757,16 +4761,11 @@ class Graph(GenericGraph):
 
             sage: g = graphs.CycleGraph(5)
             sage: g.fractional_chromatic_index()
-            2.5
-
-        With PPL::
-
-            sage: g.fractional_chromatic_index(solver="PPL")
             5/2
 
         TESTS:
 
-        Ticket :trac:`23658` is fixed::
+        Tickets :trac:`23658` and :trac:`23798` are fixed::
 
             sage: g = graphs.PetersenGraph()
             sage: g.fractional_chromatic_index(solver='GLPK')  # known bug (#23798)
@@ -4797,21 +4796,21 @@ class Graph(GenericGraph):
 
         #
         # Initialize LP for fractional chromatic number
-        p = MixedIntegerLinearProgram(solver=solver, constraint_generation = True)
+        p = MixedIntegerLinearProgram(solver=solver, constraint_generation=True)
 
         # One variable per edge
         r = p.new_variable(nonnegative=True)
         R = lambda x,y : r[x,y] if x<y else r[y,x]
 
         # We want to maximize the sum of weights on the edges
-        p.set_objective( p.sum( R(u,v) for u,v in self.edges(labels = False)))
+        p.set_objective( p.sum( R(u,v) for u,v in self.edge_iterator(labels=False)))
 
         # Each edge being by itself a matching, its weight can not be more than
         # 1
-        for u,v in self.edges(labels = False):
+        for u,v in self.edge_iterator(labels=False):
             p.add_constraint( R(u,v), max = 1)
 
-        obj = p.solve(log = verbose)
+        obj = p.solve(log=verbose)
 
         while True:
 
@@ -4819,17 +4818,17 @@ class Graph(GenericGraph):
             M.set_objective( M.sum( p.get_values(R(u,v)) * B(u,v) for u,v in self.edge_iterator(labels=0) ) )
 
             # If the maximum matching has weight at most 1, we are done !
-            if M.solve(log = verbose) <= 1:
+            if M.solve(log=verbose) <= 1:
                 break
 
             # Otherwise, we add a new constraint
             matching = [(u,v) for u,v in self.edge_iterator(labels=0) if M.get_values(B(u,v)) == 1]
-            p.add_constraint( p.sum( R(u,v) for u,v in matching), max = 1)
+            p.add_constraint( p.sum( R(u,v) for u,v in matching), max=1)
             if verbose_constraints:
                 print("Adding a constraint on matching : {}".format(matching))
 
             # And solve again
-            obj = p.solve(log = verbose)
+            obj = p.solve(log=verbose)
 
         # Accomplished !
         return obj

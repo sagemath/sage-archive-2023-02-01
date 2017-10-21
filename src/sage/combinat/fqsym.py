@@ -30,7 +30,12 @@ class FreeQuasisymmetricFunctions(CombinatorialFreeModule):
     r"""
     The free quasi-symmetric functions.
 
-    Quasi-symmetric functions form an associative algebra, where the associative
+    Free quasi-symmetric functions form a Hopf algebra over
+    the vector space spanned by the disjoint union of all symmetric
+    groups. This Hopf algebra was introduced in [MR]_. 
+
+    As an associative algebra, it has the richer structure of
+    a dendriform algebra. This means that the associative
     product `*` is decomposed as a sum of two binary operations
 
     .. MATH::
@@ -51,14 +56,12 @@ class FreeQuasisymmetricFunctions(CombinatorialFreeModule):
 
         (x * y) \succ z = x \succ (y \succ z).
 
-    The free quasi-symmetric functions on a given set `E` have an explicit
+    The free quasi-symmetric functions have an explicit
     description using permutations, just as the free
     associative algebra can be described using words. The underlying
-    vector space has a basis indexed by finite binary trees endowed
-    with a map from their vertices to `E`. In this basis, the
-    associative product of two (decorated) binary trees `S * T` is the
-    sum over all possible ways of identifying (glueing) the rightmost path in
-    `S` and the leftmost path in `T`.
+    vector space has a basis `F` indexed by permutations. In this basis, the
+    associative product of two permutations `S * T` is the
+    shifted shuffle.
 
     The decomposition of the associative product as the sum of two
     binary operations `\succ` and
@@ -100,7 +103,8 @@ class FreeQuasisymmetricFunctions(CombinatorialFreeModule):
 
     REFERENCES:
 
-    - ?
+    - [MR]_
+    - [LodayRonco]_
     """
     @staticmethod
     def __classcall_private__(cls, R):
@@ -460,7 +464,7 @@ class FreeQuasisymmetricFunctions(CombinatorialFreeModule):
             sage: z.parent() is F
             True
 
-        However, `\GF{7}` does not coerce to `\ZZ`, so free quasisymmetric
+        However, `\GF{7}` does not coerce to `\ZZ`, so free quasi-symmetric
         functions over `\GF{7}` does not coerce to the same algebra over `\ZZ`::
 
             sage: G.coerce(y)
@@ -485,7 +489,7 @@ class FreeQuasisymmetricFunctions(CombinatorialFreeModule):
             sage: F.has_coerce_map_from(PolynomialRing(ZZ, 3, 'x,y,z'))
             False
         """
-        # free quasisymmetric functions in the same variables
+        # free quasi-symmetric functions in the same variables
         # over any base that coerces in:
         if isinstance(R, FreeQuasisymmetricFunctions):
             if self.base_ring().has_coerce_map_from(R.base_ring()):

@@ -1,8 +1,16 @@
 r"""
+Finite `\\ZZ`-modules with with bilinear and quadratic forms.
+
+Something!
 
 AUTHORS:
 
 - Simon Brandhorst (2017-09): First created
+
+TESTS::
+
+    sage: T = TorsionQuadraticModule(ZZ^3,6*ZZ^3)
+    sage: TestSuite(T).run()
 """
 
 #*****************************************************************************
@@ -26,12 +34,11 @@ from sage.matrix.constructor import matrix
 
 
 class TorsionQuadraticModuleElement(FGP_Element):
-    """
+    r"""
     An element of a torsion quadratic module.
     
     TESTS::
 
-        sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
         sage: T = TorsionQuadraticModule(ZZ^3,6*ZZ^3)
         sage: loads(dumps(T)) == T
         True
@@ -40,6 +47,26 @@ class TorsionQuadraticModuleElement(FGP_Element):
         True    
     """
     def __init__(self, parent, x, check=DEBUG):
+        """
+        constructor
+        
+        INPUT:
+
+        - ``parent`` -- parent module M
+
+        - ``x`` -- element of M.V()
+
+        - ``check`` -- (default: True) if True, verify that x in M.V()
+
+        EXAMPLES::
+
+            sage: V = span([[1/2,1,1],[3/2,2,1],[0,0,1]],ZZ); W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2])
+            sage: Q = TorsionQuadraticModule(V,W)
+            sage: x = Q(V.0-V.1); type(x)
+            <class 'sage.modules.torsion_quadratic_module.TorsionQuadraticModule_with_category.element_class'>
+            sage: isinstance(x,sage.modules.torsion_quadratic_module.TorsionQuadraticModuleElement)
+            True
+    """
         FGP_Element.__init__(self,parent=parent,x=x, check=check)
 
     def _mul_(self, other):
@@ -48,11 +75,10 @@ class TorsionQuadraticModuleElement(FGP_Element):
 
         OUTPUT:
         
-        -- an element of `\Q/m\Z` with `m\Z=b(V,W)` 
+        -- an element of `\\QQ /m \\ZZ` with `m \\ZZ = b(V,W)` 
         
         EXAMPLES::
-        
-            sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
+
             sage: V = (1/2)*ZZ^2; W = ZZ^2
             sage: T = TorsionQuadraticModule(V,W)
             sage: x = T.0 
@@ -65,7 +91,7 @@ class TorsionQuadraticModuleElement(FGP_Element):
         return self.parent().value_module()(self.lift().inner_product(other.lift()))
 
     def inner_product(self, other):
-        """
+        r"""
         Return the inner product of this element with the other element.
         
         Input:
@@ -74,11 +100,10 @@ class TorsionQuadraticModuleElement(FGP_Element):
         
         Output:
         
-        -- an element of `\Q/m\Z` with `m\Z = <V,W>` 
+        -- an element of `\\QQ /m \\ZZ` with `m \\ZZ = <V,W>` 
 
         EXAMPLES::
-        
-            sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
+    
             sage: V = (1/2)*ZZ^2; W = ZZ^2
             sage: T = TorsionQuadraticModule(V,W)
             sage: x = T.0 
@@ -96,11 +121,10 @@ class TorsionQuadraticModuleElement(FGP_Element):
 
         OUTPUT:
 
-        -- an element of `\Q/n\Z`
+        -- an element of `\\QQ /n \\ZZ`
         
         EXAMPLES::
-        
-            sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
+    
             sage: W = FreeQuadraticModule(ZZ,2,2*matrix.identity(2))
             sage: V = (1/2)*W
             sage: T = TorsionQuadraticModule(V,W)
@@ -125,11 +149,10 @@ class TorsionQuadraticModuleElement(FGP_Element):
 
         OUTPUT:
 
-        -- an element of `\Q/n\Z` where `n\Z= <V,W> +\Z \{ <w,w> | w \in W \}`
+        -- an element of `\\QQ /n \\ZZ` where `n \\ZZ= <V,W> +\\ZZ \\{ <w,w> | w \\in W \\}`
 
         EXAMPLES::
-        
-            sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
+    
             sage: W = FreeQuadraticModule(ZZ,2,2*matrix.identity(2))
             sage: V = (1/2)*W
             sage: T = TorsionQuadraticModule(V,W)
@@ -144,26 +167,27 @@ class TorsionQuadraticModuleElement(FGP_Element):
             1/2
             sage: (x*x).parent()
             Q/Z
-        
-        
+    
         """
         return self.q()
 
 class TorsionQuadraticModule(FGP_Module_class):
     r"""
-    Let `V` be a symmetric FreeQuadraticModule and `W\subseteq V` a submodule of the same rank as `V`. The quotient `V/W` is a TorsionQuadraticModule. It inherits a bilinear form `b` and a quadratic form `q`.
-    ..MATH::
+    Finite quotients with a bilinear and a quadratic form.
     
-    `b: V \times V \rightarrow \Q /m\Z \mbox{ where } m\Z = <V,W> and b(x,y) = <x,y> + m\Z.
-    `q: V \rightarrow \Q/n\Z` where `n\Z= <V,W> +\Z \{ <w,w> | w \in W \}`.
+    Let `V` be a symmetric FreeQuadraticModule and `W\\subseteq V` a submodule of the same rank as `V`. The quotient `V/W` is a TorsionQuadraticModule. It inherits a bilinear form `b` and a quadratic form `q`.
+    
+    `b: V x V --> \\QQ /m \\ZZ`  where  `m \\ZZ = <V,W> and b(x,y) = <x,y> + m \\ZZ`
+    
+    `q: V --> \\QQ /n \\ZZ` where `n \\ZZ= <V,W> +\\ZZ \\{ <w,w> | w \\in W \\}`
 
     INPUT:
 
     - ``V`` -- a FreeModule with a symmetric inner_product_matrix
     - ``W`` -- a submodule of V of the same rank as V
     - ``check`` -- bool (default: True)
-    - ``modulus`` -- a rational number dividing `m` (default: m). The inner product `b` is defined in `\Q / modulus\Z`
-    - ``modulus_qf`` -- a rational number divinding `n`(default: n). The quadratic form `q` is defined in `\Q / modulus_qf\Z`.
+    - ``modulus`` -- a rational number dividing `m` (default: ``m``). The inner product `b` is defined in `\\QQ / modulus\\ZZ`
+    - ``modulus_qf`` -- a rational number divinding `n`(default: ``n``). The quadratic form `q` is defined in `\\QQ /` ``modulus_qf`` `\\ZZ`.
 
     EXAMPLES::
 
@@ -203,7 +227,7 @@ class TorsionQuadraticModule(FGP_Module_class):
 
         #The inner inner_product of two elements `b(v1+W,v2+W)` is defined `mod <V,W>`
         self._modulus = gcd([x.inner_product(y) for x in V.gens() for y in W.gens()])
-        #The quadratic_product of an element `q(v+W)` is defined `\mod 2<V,W> + ZZ\{ <w,w> | w in w\}`
+        #The quadratic_product of an element `q(v+W)` is defined `\\mod 2<V,W> + ZZ\\{ <w,w> | w in w\\}`
         norm = gcd(self.W().gram_matrix().diagonal())
         self._modulus_qf = gcd(norm, 2 * self._modulus)
         
@@ -242,8 +266,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         The quotient ``V/W`` as TorsionQuadraticModule.
 
         EXAMPLES::
-        
-            sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
+    
             sage: V = span([[1/2,1,1],[3/2,2,1],[0,0,1]],ZZ); W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2])
             sage: Q = TorsionQuadraticModule(V,W); Q
             Finite quadratic module V/W over Integer Ring with invariants (4, 12).
@@ -263,13 +286,13 @@ class TorsionQuadraticModule(FGP_Module_class):
         The gram matrix with respect to the generators
 
         OUTPUT: 
+
             a rational matrix G with `G_{i,j}` given by the inner product 
             of the `i`-th and `j`-th generator. Its entries are only well defined
-            `\mod <V,W>`
+            `\\mod <V,W>`
         
         EXAMPLES::
-        
-            sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
+    
             sage: V = FreeQuadraticModule(ZZ,3,matrix.identity(3)*5)
             sage: T = TorsionQuadraticModule((1/5)*V, V)
             sage: T.gram_matrix_bilinear()
@@ -295,8 +318,7 @@ class TorsionQuadraticModule(FGP_Module_class):
             a rational matrix Gq with Gq[i,j]=<gens[i],gens[j]> and G[i,i] = gens[i].q()
 
         EXAMPLES::
-        
-            sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
+
             sage: D4_gram = Matrix(ZZ,4,4,[2,0,0,-1,0,2,0,-1,0,0,2,-1,-1,-1,-1,2])
             sage: D4 = FreeQuadraticModule(ZZ,4,D4_gram)
             sage: D4dual = D4.span(D4_gram.inverse())
@@ -325,9 +347,9 @@ class TorsionQuadraticModule(FGP_Module_class):
         
         There is no assumption on the generators except that they generate the module.
         
-        Examples::
+        EXAMPLES::
         
-            sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
+    
             sage: V = FreeModule(ZZ,3)
             sage: T = TorsionQuadraticModule(V, 5*V)
             sage: T.gens()
@@ -345,21 +367,20 @@ class TorsionQuadraticModule(FGP_Module_class):
         
         EXAMPLES::
         
-        sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
-        sage: V = FreeModule(ZZ,10)
-        sage: T = TorsionQuadraticModule(V,3*V)
-        sage: S = T.submodule(T.gens()[:5])
-        sage: O = T.orthogonal_submodule_to(S)
-        sage: O
-        Finite quadratic module V/W over Integer Ring with invariants (3, 3, 3, 3, 3).
-        Gram matrix of the quadratic form with values in Q/3Z:
-        [1 0 0 0 0]
-        [0 1 0 0 0]
-        [0 0 1 0 0]
-        [0 0 0 1 0]
-        [0 0 0 0 1]
-        sage: O.V() + S.V() == T.V()
-        True
+            sage: V = FreeModule(ZZ,10)
+            sage: T = TorsionQuadraticModule(V,3*V)
+            sage: S = T.submodule(T.gens()[:5])
+            sage: O = T.orthogonal_submodule_to(S)
+            sage: O
+            Finite quadratic module V/W over Integer Ring with invariants (3, 3, 3, 3, 3).
+            Gram matrix of the quadratic form with values in Q/3Z:
+            [1 0 0 0 0]
+            [0 1 0 0 0]
+            [0 0 1 0 0]
+            [0 0 0 1 0]
+            [0 0 0 0 1]
+            sage: O.V() + S.V() == T.V()
+            True
         """
         if not isinstance(S,TorsionQuadraticModule):
             S = self.submodule(S)
@@ -386,7 +407,7 @@ class TorsionQuadraticModule(FGP_Module_class):
     
     def primary_part(self,m):
         """
-        Return the m-primary part of this torsion quadraticm module as a submodule.
+        Return the m-primary part of this torsion quadratic module as a submodule.
         
         INPUT:
         
@@ -398,7 +419,6 @@ class TorsionQuadraticModule(FGP_Module_class):
         
         EXAMPLES::
         
-            sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
             sage: T = TorsionQuadraticModule((1/6)*ZZ^3,ZZ^3)
             sage: T.primary_part(2)
             Finite quadratic module V/W over Integer Ring with invariants (2, 2, 2).
@@ -408,6 +428,7 @@ class TorsionQuadraticModule(FGP_Module_class):
             [  0   0 1/4]
     
         TESTS::
+        
             sage: T==T.primary_part(T.annihilator().gen())
             True
         """
@@ -427,7 +448,6 @@ class TorsionQuadraticModule(FGP_Module_class):
         
         EXAMPLES::
         
-            sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
             sage: V = FreeQuadraticModule(ZZ,3,matrix.identity(3)*5)
             sage: T = TorsionQuadraticModule((1/5)*V, V)
             sage: T.submodule(T.gens()[:2])
@@ -457,7 +477,6 @@ class TorsionQuadraticModule(FGP_Module_class):
     
         EXAMPLES::
     
-            sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
             sage: V = FreeQuadraticModule(ZZ,3,matrix.identity(3)*10)
             sage: T = TorsionQuadraticModule((1/10)*V, V)
             sage: new_gens = [2*T.0,5*T.0]
@@ -485,7 +504,7 @@ class TorsionQuadraticModule(FGP_Module_class):
     
     def value_module(self):
         """
-        Return `\Q/m\Z` with `m= <V,W>`.
+        Return `\\QQ/m\\ZZ` with `m= <V,W>`.
 
         This is where the inner product takes values.
         
@@ -507,13 +526,12 @@ class TorsionQuadraticModule(FGP_Module_class):
 
     def value_module_qf(self):
         """
-        Return `\Q/n\Z` with `n\Z= <V,W> +\Z \{ <w,w> | w \in W \}`.
+        Return `\\QQ/n\\ZZ` with `n\\ZZ= <V,W> +\\ZZ \\{ <w,w> | w \\in W \\}`.
 
         This is where the torsion quadratic form takes values.
         
         EXAMPLES::
         
-            sage: from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice
             sage: A2 = Matrix(ZZ,2,2,[2,-1,-1,2])
             sage: L = IntegralLattice(2*A2)
             sage: D = L.discriminant_group()

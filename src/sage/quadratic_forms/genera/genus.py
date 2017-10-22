@@ -1051,9 +1051,9 @@ class Genus_Symbol_p_adic_ring(object):
     
     def _latex_(self):
         """
-        The latex representation of this local genus symbol
+        The LaTeX representation of this local genus symbol.
         
-        TESTS::
+        EXAMPLES::
         
             sage: from sage.quadratic_forms.genera.genus import Genus_Symbol_p_adic_ring
             sage: symbol = [[0, 4, -1, 0, 0],[1, 2, 1, 1, 2],[2, 1, 1, 1, 1],[4, 4, 1, 0, 0],[5, 1, 1, 1, 1]]

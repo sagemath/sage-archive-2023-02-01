@@ -1,8 +1,6 @@
 r"""
 Finite `\\ZZ`-modules with with bilinear and quadratic forms.
 
-Something!
-
 AUTHORS:
 
 - Simon Brandhorst (2017-09): First created

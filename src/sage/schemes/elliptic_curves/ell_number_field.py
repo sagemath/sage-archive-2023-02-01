@@ -527,11 +527,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         INPUT:
 
-        - points - either a list of points, which must be on this
+        - points -- either a list of points, which must be on this
           curve, or (default) None, in which case self.gens() will be
           used.
 
-        - precision - number of bits of precision of result
+        - precision -- number of bits of precision of result
           (default: None, for default RealField precision)
 
         EXAMPLES::

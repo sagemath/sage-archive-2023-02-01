@@ -4746,8 +4746,8 @@ class Graph(GenericGraph):
               The default solver used here is ``"PPL"`` which provides exact
               results, i.e. a rational number, although this may be slower that
               using other solvers. Be aware that this method may loop endlessly
-              when using some non exact solvers on 32-bits computers as
-              reported in :trac:`23658` and :trac:`23798`.
+              when using some non exact solvers as reported in :trac:`23658` and
+              :trac:`23798`.
 
         - ``verbose_constraints`` -- boolean (default: ``False``) whether to
           display which constraints are being generated.
@@ -4765,7 +4765,7 @@ class Graph(GenericGraph):
 
         TESTS:
 
-        Tickets :trac:`23658` and :trac:`23798` are fixed::
+        Issue reported in :trac:`23658` and :trac:`23798` with non exact solvers::
 
             sage: g = graphs.PetersenGraph()
             sage: g.fractional_chromatic_index(solver='GLPK')  # known bug (#23798)

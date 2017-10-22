@@ -1053,7 +1053,7 @@ class Genus_Symbol_p_adic_ring(object):
         """
         The latex representation of this local genus symbol
         
-        TESTS::
+        EXAMPLES::
         
             sage: from sage.quadratic_forms.genera.genus import Genus_Symbol_p_adic_ring
             sage: symbol = [[0, 4, -1, 0, 0],[1, 2, 1, 1, 2],[2, 1, 1, 1, 1],[4, 4, 1, 0, 0],[5, 1, 1, 1, 1]]
@@ -1687,6 +1687,13 @@ class GenusSymbol_global_ring(object):
     def _latex_(self):
         """
         The Latex representation of this lattice.
+        
+        EXAMPLES::
+        
+            sage: D4=QuadraticForm(Matrix(ZZ,4,4,[2,0,0,-1,0,2,0,-1,0,0,2,-1,-1,-1,-1,2]))
+            sage: G=D4.global_genus_symbol()
+            sage: G._latex_()
+            '\\mbox{Genus of}\\\\\\left(\\begin{array}{rrrr}\n2 & 0 & 0 & -1 \\\\\n0 & 2 & 0 & -1 \\\\\n0 & 0 & 2 & -1 \\\\\n-1 & -1 & -1 & 2\n\\end{array}\\right)\\\\\\\\\\mbox{Genus symbol at } 2\\mbox{: }1^{-2}  :2^{-2} '
         """
         local_symbols = ""
         for s in self._local_symbols:

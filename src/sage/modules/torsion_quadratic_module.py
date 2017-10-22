@@ -341,7 +341,7 @@ class TorsionQuadraticModule(FGP_Module_class):
 
         INPUT:
 
-        - ``S`` -- a submodule
+        - ``S`` -- a submodule, list, or tuple of generators
         
         EXAMPLES::
         
@@ -361,8 +361,11 @@ class TorsionQuadraticModule(FGP_Module_class):
         sage: O.V() + S.V() == T.V()
         True
         """
-        if not S.is_submodule(self):
-             raise ValueError, "S must be a submodule of this module."
+        if not isinstance(S,TorsionQuadraticModule):
+            S = self.submodule(S)
+        else:
+            if not S.is_submodule(self):
+                raise ValueError, "S must be a submodule of this module."
 
 
         G = self.V().inner_product_matrix()
@@ -371,9 +374,14 @@ class TorsionQuadraticModule(FGP_Module_class):
         m = self._modulus
         
         Y = (T*G*S.transpose())
+        #elements of the ambient module which pair integrally with self.V()
         integral = Y.inverse()*T
+        #Element of the ambient module which pair in mZZ with self.V()
         orthogonal = m * integral
-        orthogonal = self.submodule(orthogonal.rows())
+        orthogonal = self.V().submodule(orthogonal.rows())
+        #we have to make sure we get a submodule
+        orthogonal = orthogonal.intersection(self.V())
+        orthogonal = self.submodule(orthogonal)
         return orthogonal
     
     def primary_part(self,m):

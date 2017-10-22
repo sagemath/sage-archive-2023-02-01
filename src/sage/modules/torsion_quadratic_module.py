@@ -378,7 +378,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         integral = Y.inverse()*T
         #Element of the ambient module which pair in mZZ with self.V()
         orthogonal = m * integral
-        orthogonal = self.V().submodule(orthogonal.rows())
+        orthogonal = self.V().span(orthogonal.rows())
         #we have to make sure we get a submodule
         orthogonal = orthogonal.intersection(self.V())
         orthogonal = self.submodule(orthogonal)

@@ -765,7 +765,7 @@ def binpacking(items,maximum=1,k=None):
     the least number of bins such that all the items can be put in the
     bins, while keeping sure that each bin contains a weight of at most `K` ?
 
-    For more informations : http://en.wikipedia.org/wiki/Bin_packing_problem
+    For more informations, see :wikipedia:`Bin_packing_problem`
 
     Two version of this problem are solved by this algorithm :
          * Is it possible to put the given items in `L` bins ?

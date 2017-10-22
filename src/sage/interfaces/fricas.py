@@ -235,7 +235,7 @@ class FriCAS(ExtraTabCompletion, Expect):
     """
     Interface to a FriCAS interpreter.
     """
-    def __init__(self, name='fricas', command='fricas -nox -noclef',
+    def __init__(self, name='fricas', command='fricas -nosman',
                  script_subdirectory=None, logfile=None,
                  server=None, server_tmpdir=None):
         """
@@ -294,7 +294,7 @@ class FriCAS(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: fricas._quit_string()                                         # optional - fricas
-            ')quit\r'
+            ')quit'
             sage: a = FriCAS()                                                  # optional - fricas
             sage: a.is_running()                                                # optional - fricas
             False
@@ -309,17 +309,11 @@ class FriCAS(ExtraTabCompletion, Expect):
 
             sage: import psutil                                                 # optional - fricas
             sage: p = fricas.pid(); pr = psutil.Process(p); pr                  # optional - fricas
-            <psutil.Process(pid=..., name='sman') at ...>
+            <psutil.Process(pid=..., name='AXIOMsys') at ...>
             sage: pr.children()                                                 # optional - fricas
-            [<psutil.Process(pid=..., name='AXIOMsys') at ...>,
-             <psutil.Process(pid=..., name='session') at ...>,
-             <psutil.Process(pid=..., name='spadclient') at ...>,
-             <psutil.Process(pid=..., name='sman') at ...>]
-            sage: fricas.quit()                                                 # optional - fricas
-            sage: pr.is_running()                                               # optional - fricas, random
-            False
+            []
         """
-        return ')quit\r'
+        return ')quit'
 
     def _commands(self):
         """
@@ -337,7 +331,7 @@ class FriCAS(ExtraTabCompletion, Expect):
             True
         """
         output = self.eval(")what operations", reformat=False)
-        m = re.search(FRICAS_WHAT_OPERATIONS_STRING + "\r\n(.*)\r\n\|startKeyedMsg\|", output, flags = re.DOTALL)
+        m = re.search(FRICAS_WHAT_OPERATIONS_STRING + "\n(.*)\n\|startKeyedMsg\|", output, flags = re.DOTALL)
         l = m.groups()[0].split()
         return l
 
@@ -504,10 +498,10 @@ class FriCAS(ExtraTabCompletion, Expect):
 
         """
         # otherwise there might be a message
-        m = re.search("\|startKeyedMsg\|\r\n(.*)\r\n\|endOfKeyedMsg\|\r", output, flags = re.DOTALL)
+        m = re.search("\|startKeyedMsg\|\n(.*)\n\|endOfKeyedMsg\|", output, flags = re.DOTALL)
         if m:
-            replacements = [('|startKeyedMsg|\r\n', ''),
-                            ('|endOfKeyedMsg|\r', '')]
+            replacements = [('|startKeyedMsg|\n', ''),
+                            ('|endOfKeyedMsg|', '')]
             for old, new in replacements:
                 output = output.replace(old, new)
             raise RuntimeError("An error occurred when FriCAS evaluated '%s':\n%s" % (line, output))
@@ -540,7 +534,7 @@ class FriCAS(ExtraTabCompletion, Expect):
 
     def get(self, var):
         r"""
- Get the string representation of the value (more precisely, the
+        Get the string representation of the value (more precisely, the
         OutputForm) of a variable or expression in FriCAS.
 
         If FriCAS cannot evaluate `var` an error is raised.
@@ -552,22 +546,22 @@ class FriCAS(ExtraTabCompletion, Expect):
             '2'
             sage: a = fricas('(1 + sqrt(2))^5')                                 # optional - fricas
             sage: fricas.get(a.name())                                          # optional - fricas
-            '    +-+\r\n29 \\|2  + 41'
+            '    +-+\n29 \\|2  + 41'
             sage: fricas.get('(1 + sqrt(2))^5')                                 # optional - fricas
-            '    +-+\r\n29 \\|2  + 41'
+            '    +-+\n29 \\|2  + 41'
             sage: fricas.new('(1 + sqrt(2))^5')                                 # optional - fricas
                 +-+
             29 \|2  + 41
         """
         output = self.eval(str(var), reformat=False)
         # if there is AlgebraOutput we ask no more
-        m = re.search("\|startAlgebraOutput\|\r\n(.*)\r\n\|endOfAlgebraOutput\|\r", output, flags = re.DOTALL)
+        m = re.search("\|startAlgebraOutput\|\n(.*)\n\|endOfAlgebraOutput\|", output, flags = re.DOTALL)
         if m:
-            lines = m.groups()[0].split("\r\n")
+            lines = m.groups()[0].split("\n")
             if max(len(line) for line in lines) < FRICAS_LINE_LENGTH:
-                return "\r\n".join(line[FRICAS_SINGLE_LINE_START:] for line in lines)
+                return "\n".join(line[FRICAS_SINGLE_LINE_START:] for line in lines)
             else:
-                return "\r\n".join(line[FRICAS_MULTI_LINE_START:] for line in lines)
+                return "\n".join(line[FRICAS_MULTI_LINE_START:] for line in lines)
 
         self._check_errors(var, output)
 
@@ -591,7 +585,7 @@ class FriCAS(ExtraTabCompletion, Expect):
             True
 
         """
-        return self.get(str(var)).replace("\r\n", "")[1:-1]
+        return self.get(str(var)).replace("\n", "")[1:-1]
 
     def get_integer(self, var):
         """
@@ -619,7 +613,7 @@ class FriCAS(ExtraTabCompletion, Expect):
             sage: fricas.get_boolean('(1=2)::Boolean') == False                 # optional - fricas
             True
         """
-        return self.get(str(var)).replace("\r\n", "") == "true"
+        return self.get(str(var)).replace("\n", "") == "true"
 
     def get_unparsed_InputForm(self, var):
         """
@@ -758,11 +752,15 @@ class FriCAS(ExtraTabCompletion, Expect):
                              synchronize=synchronize, locals=locals,
                              allow_use_file=allow_use_file, split_lines=split_lines,
                              **kwds)
+        # we remove carriage returns (\r) to make parsing easier
+        # they are sent depending on how fricas was invoked:
+        # on linux, "fricas -nox -noclef" sends "\r\n" and "fricas -nosman" sends "\n"
+        output = output.replace('\r', '')
         if reformat:
-            replacements = [('|startAlgebraOutput|\r\n', ''),
-                            ('|endOfAlgebraOutput|\r', ''),
-                            ('|startKeyedMsg|\r\n', ''),
-                            ('|endOfKeyedMsg|\r', '')]
+            replacements = [('|startAlgebraOutput|\n', ''),
+                            ('|endOfAlgebraOutput|', ''),
+                            ('|startKeyedMsg|\n', ''),
+                            ('|endOfKeyedMsg|', '')]
             for old, new in replacements:
                 output = output.replace(old, new)
 
@@ -973,7 +971,7 @@ class FriCASElement(ExpectElement):
             \left[ \begin{array}{cc} 1 & 2 \\ 3 & 4 \end{array}  \right]
 
             sage: latex(fricas("integrate(sin(x+1/x),x)"))                      # optional - fricas
-            \int ^{\displaystyle x} {{\sin \left( {{{{{ \%A} ^{2}}+1} \over  \%A}} \right)} \  {d \%A}}
+            \int ^{\displaystyle x} {{\sin \left( {{{{{ \%O} ^{2}}+1} \over  \%O}} \right)} \  {d \%O}}
         """
         replacements = [('\sp ', '^'),
                         ('\sp{', '^{'),

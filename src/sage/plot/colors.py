@@ -447,7 +447,7 @@ class Color(object):
 
         OUTPUT:
 
-        - boolean - False
+        - boolean -- False
 
         EXAMPLES::
 
@@ -473,7 +473,7 @@ class Color(object):
 
         OUTPUT:
 
-        - boolean - False
+        - boolean -- False
 
         EXAMPLES::
 
@@ -497,7 +497,7 @@ class Color(object):
 
         OUTPUT:
 
-        - boolean - True if the two colors are the same, False if different
+        - boolean -- True if the two colors are the same, False if different
 
         EXAMPLES::
 
@@ -526,7 +526,7 @@ class Color(object):
 
         OUTPUT:
 
-        - boolean - True if the two colors are different,
+        - boolean -- True if the two colors are different,
             False if they're the same
 
         EXAMPLES::
@@ -554,7 +554,7 @@ class Color(object):
 
         OUTPUT:
 
-        - boolean - False
+        - boolean -- False
 
         EXAMPLES::
 
@@ -580,7 +580,7 @@ class Color(object):
 
         OUTPUT:
 
-        - boolean - False
+        - boolean -- False
 
         EXAMPLES::
 

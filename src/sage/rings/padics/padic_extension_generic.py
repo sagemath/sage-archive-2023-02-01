@@ -20,7 +20,7 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from .padic_generic import pAdicGeneric
+from .padic_generic import pAdicGeneric, ResidueLiftingMap
 from .padic_base_generic import pAdicBaseGeneric
 from sage.rings.number_field.number_field_base import NumberField
 from sage.rings.number_field.order import Order
@@ -136,6 +136,10 @@ class pAdicExtensionGeneric(pAdicGeneric):
                 cat = Fields()
             else:
                 cat = SetsWithPartialMaps()
+        else:
+            k = self.residue_field()
+            if R is k:
+                return ResidueLiftingMap._create_(R, self)
         if cat is not None:
             H = Hom(R, self, cat)
             return H.__make_element_class__(DefPolyConversion)(H)
@@ -500,7 +504,7 @@ class DefPolyConversion(Morphism):
             sage: S.<x> = ZZ[]
             sage: W.<w> = Zp(3).extension(x^4 + 9*x^2 + 3*x - 3)
             sage: z = W.random_element()
-            sage: repr(W.change(print_mode='digits')(z, absprec=8))
+            sage: repr(W.change(print_mode='digits')(z, absprec=8)) # indirect doctest
             '...20010120'
         """
         S = self.codomain()

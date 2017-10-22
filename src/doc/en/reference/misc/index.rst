@@ -50,7 +50,6 @@ Lists and Iteration, etc.
    sage/misc/converting_dict
    sage/misc/flatten
    sage/misc/search
-   sage/misc/sage_itertools
    sage/misc/mrange
    sage/misc/multireplace
    sage/misc/map_threaded

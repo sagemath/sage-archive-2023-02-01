@@ -91,7 +91,7 @@ from .ell_generic import is_EllipticCurve
 from .ell_point import EllipticCurvePoint_number_field
 from .constructor import EllipticCurve
 from sage.rings.all import PolynomialRing, ZZ, QQ, RealField, Integer
-from sage.misc.all import cached_method, verbose, forall, prod, union, flatten
+from sage.misc.all import cached_method, verbose, prod, union, flatten
 from six import reraise as raise_
 
 class EllipticCurve_number_field(EllipticCurve_field):
@@ -527,11 +527,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         INPUT:
 
-        - points - either a list of points, which must be on this
+        - points -- either a list of points, which must be on this
           curve, or (default) None, in which case self.gens() will be
           used.
 
-        - precision - number of bits of precision of result
+        - precision -- number of bits of precision of result
           (default: None, for default RealField precision)
 
         EXAMPLES::
@@ -722,10 +722,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: Emin.is_local_integral_model(P1,P2)
             True
         """
-        if len(P) == 1: P=P[0]
-        if isinstance(P,(tuple,list)):
-            return forall(P, lambda x : self.is_local_integral_model(x))[0]
-        return forall(self.ainvs(), lambda x : x.valuation(P) >= 0)[0]
+        if len(P) == 1:
+            P = P[0]
+        if isinstance(P, (tuple, list)):
+            return all(self.is_local_integral_model(x) for x in P)
+        return all(x.valuation(P) >= 0 for x in self.ainvs())
 
     def local_integral_model(self,*P):
         r"""
@@ -761,7 +762,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
     def is_global_integral_model(self):
         r"""
-        Return true iff self is integral at all primes.
+        Return whether ``self`` is integral at all primes.
 
         EXAMPLES::
 
@@ -772,7 +773,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: Emin.is_global_integral_model()
             True
         """
-        return forall(self.a_invariants(), lambda x : x.is_integral())[0]
+        return all(x.is_integral() for x in self.a_invariants())
 
     def global_integral_model(self):
         r"""

@@ -429,7 +429,7 @@ class PSModularSymbolElement(ModuleElement):
 
         OUTPUT:
 
-        - self - self | [1,0,0,-1]
+        - self -- self | [1,0,0,-1]
 
         EXAMPLES::
 

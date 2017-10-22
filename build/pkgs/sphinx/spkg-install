@@ -19,7 +19,7 @@ cd src
 
 # Install new version
 echo "Installing Sphinx..."
-$PIP_INSTALL .
+sdh_pip_install .
 success 'Error installing Sphinx'
 echo
 

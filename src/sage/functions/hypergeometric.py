@@ -859,8 +859,8 @@ def closed_form(hyp):
                             (T - exp(z) * U))
 
         if p == 2 and q == 1:
-            R12 = QQ('1/2')
-            R32 = QQ('3/2')
+            R12 = QQ((1, 2))
+            R32 = QQ((3, 2))
 
             def _2f1(a, b, c, z):
                 """

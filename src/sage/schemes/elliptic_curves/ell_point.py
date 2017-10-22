@@ -2886,7 +2886,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: Q.non_archimedean_local_height(K.ideal(1-2*i))
             0
             sage: Q.non_archimedean_local_height()
-            1/2*log(16)
+            2*log(2)
 
         An example over the rational numbers::
 

@@ -840,10 +840,10 @@ def discrete_log_lambda(a, base, bounds, operation='*', hash_function=hash):
 
     INPUT:
 
-    - a - a group element
-    - base - a group element
-    - bounds - a couple (lb,ub) representing the range where we look for a logarithm
-    - operation - string: '+', '*' or 'other'
+    - a -- a group element
+    - base -- a group element
+    - bounds -- a couple (lb,ub) representing the range where we look for a logarithm
+    - operation -- string: '+', '*' or 'other'
     - hash_function -- having an efficient hash function is critical for this algorithm
 
     OUTPUT: Returns an integer `n` such that `a=base^n` (or `a=n*base`)

@@ -1,1 +1,1 @@
-cd src && $PIP_INSTALL .
+cd src && sdh_pip_install .

@@ -102,7 +102,7 @@ $(STARTED): $(STANDARD_PACKAGES)
 #
 # This consists of packages which are required for the Sage build system.
 ###############################################################################
-base: $(inst_bzip2) $(inst_patch) $(inst_pkgconf)
+base: $(inst_patch) $(inst_pkgconf)
 
 ###############################################################################
 # Building normal packages

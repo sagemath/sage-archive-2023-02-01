@@ -427,6 +427,16 @@ class Gamma1_class(GammaH_class):
             [0, 0, 1, 0, 3, 0, 5, 0, 7, 0]
             sage: [Gamma1(9).dimension_cusp_forms(k, eps^2) for k in [1..10]]
             [0, 0, 0, 2, 0, 4, 0, 6, 0, 8]
+
+        In weight 1 this will return 0 in a few small cases, and otherwise give a NotImplementedError::
+
+            sage: chi = [u for u in DirichletGroup(40) if u(-1) == -1 and u(21) == 1][0]
+            sage: Gamma1(40).dimension_cusp_forms(1, chi)
+            0
+            sage: Gamma1(40).dimension_cusp_forms(1)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Computation of dimensions of weight 1 cusp forms spaces not implemented in general
         """
         from .all import Gamma0
 
@@ -450,7 +460,8 @@ class Gamma1_class(GammaH_class):
 
         if k == 1:
             try:
-                n = self.dimension_cusp_forms(1)
+                # see if we can rule out cusp forms existing
+                n = GammaH_constructor(self.level(), eps.kernel()).dimension_cusp_forms(1)
                 if n == 0:
                     return ZZ(0)
                 else: # never happens at present

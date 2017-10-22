@@ -8379,13 +8379,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.nowhere_zero_flow().edges()
             [(0, 0, 1), (0, 0, 1)]
             sage: g = Graph([(0, 0), (0, 1), (0, 1)], loops=True, multiedges=True)
-            sage: g.nowhere_zero_flow().edges()
+            sage: g.nowhere_zero_flow(k=2).edges()
             [(0, 0, 1), (0, 1, 1), (1, 0, 1)]
             sage: g = DiGraph([(0, 0), (0, 0)], loops=True, multiedges=True)
             sage: g.nowhere_zero_flow().edges()
             [(0, 0, 1), (0, 0, 1)]
             sage: g = DiGraph([(0, 0), (0, 1), (0, 1)], loops=True, multiedges=True)
-            sage: g.nowhere_zero_flow().edges()
+            sage: g.nowhere_zero_flow(k=2).edges()
             [(0, 0, 1), (0, 1, -1), (0, 1, 1)]
 
         Multiple connected components::

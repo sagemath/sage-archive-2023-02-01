@@ -1051,7 +1051,7 @@ class Genus_Symbol_p_adic_ring(object):
     
     def _latex_(self):
         """
-        The latex representation of this local genus symbol
+        The LaTeX representation of this local genus symbol.
         
         EXAMPLES::
         

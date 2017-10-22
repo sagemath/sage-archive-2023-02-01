@@ -2,7 +2,7 @@ r"""
 
 AUTHORS:
 
-- Simon Brandhorst (2017-09): First created (based on free_module.py)
+- Simon Brandhorst (2017-09): First created
 """
 
 #*****************************************************************************

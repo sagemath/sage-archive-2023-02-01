@@ -2671,7 +2671,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         and also `w \cdot \hat{v} = w \times v` for all vectors `w`.
         The basis vectors are assumed to be orthonormal.
 
-        .. _hat operator: http://en.wikipedia.org/wiki/Hat_operator#Cross_product
+        .. _hat operator: :wikipedia:`Hat_operator#Cross_product`
 
         OUTPUT:
 

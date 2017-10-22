@@ -414,7 +414,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 
 
     def __repr__(self):
-        """
+        r"""
         Return string representation of this discrete hidden Markov model.
 
         EXAMPLES::

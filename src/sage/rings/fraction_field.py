@@ -853,6 +853,70 @@ class FractionField_1poly_field(FractionField_generic):
         """
         return 1
 
+    def _factor_univariate_polynomial(self, f):
+        r"""
+        Return the factorization of ``f`` over this field.
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(9)
+            sage: K = k['t'].fraction_field()
+            sage: R.<x> = K[]
+            sage: f = x^3 + a
+            sage: f.factor()
+            (x + 2*a + 1)^3
+
+        """
+        # The default implementation would try to convert this element to singular and factor there.
+        # This fails silently over some base fields, see #23642, so we convert
+        # to the function field and factor there.
+        return f.change_ring(self.function_field()).factor().base_change(f.parent())
+
+    def function_field(self):
+        r"""
+        Return the isomorphic function field.
+
+        EXAMPLES::
+
+            sage: R.<t> = GF(5)[]
+            sage: K = R.fraction_field()
+            sage: K.function_field()
+            Rational function field in t over Finite Field of size 5
+
+        .. SEEALSO::
+
+            :meth:`sage.rings.function_field.RationalFunctionField.field`
+
+        """
+        from sage.rings.all import FunctionField
+        return FunctionField(self.base_ring(), names=self.variable_name())
+
+    def _coerce_map_from_(self, R):
+        r"""
+        Return a coerce map from ``R`` to this field.
+
+        EXAMPLES::
+
+            sage: R.<t> = GF(5)[]
+            sage: K = R.fraction_field()
+            sage: L = K.function_field()
+            sage: f = K.coerce_map_from(L); f # indirect doctest
+            Isomorphism morphism:
+              From: Rational function field in t over Finite Field of size 5
+              To:   Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 5
+            sage: f(~L.gen())
+            1/t
+
+        """
+        from sage.rings.function_field.function_field import is_RationalFunctionField
+        if is_RationalFunctionField(R) and self.variable_name() == R.variable_name() and self.base_ring() is R.constant_base_field():
+            from sage.categories.all import Hom
+            parent = Hom(R, self)
+            from sage.rings.function_field.maps import FunctionFieldToFractionField
+            return parent.__make_element_class__(FunctionFieldToFractionField)(parent)
+
+        return super(FractionField_1poly_field, self)._coerce_map_from_(R)
+
 
 class FractionFieldEmbedding(DefaultConvertMap_unique):
     r"""

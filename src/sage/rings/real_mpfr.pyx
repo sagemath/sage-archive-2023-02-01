@@ -686,7 +686,7 @@ cdef class RealField_class(sage.rings.ring.Field):
             1.31820409343094e1204
             sage: RR.coerce_map_from(float)
             Generic map:
-              From: Set of Python objects of type 'float'
+              From: Set of Python objects of class 'float'
               To:   Real Field with 53 bits of precision
 
         TESTS::

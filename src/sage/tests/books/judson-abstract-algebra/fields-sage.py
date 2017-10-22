@@ -274,10 +274,12 @@ r"""
 ~~~~~~~~~~~~~~~~~~~~~~ ::
 
     sage: r1.as_number_field_element()
-    (Number Field in a with defining polynomial y^4 + y^2 - 1, a, Ring morphism:
-        From: Number Field in a with defining polynomial y^4 + y^2 - 1
-        To:   Algebraic Real Field
-        Defn: a |--> -0.7861513777574233?)
+    (Number Field in a with defining polynomial y^4 - y^2 - 1,
+     a^3 - a,
+     Ring morphism:
+       From: Number Field in a with defining polynomial y^4 - y^2 - 1
+       To:   Algebraic Real Field
+       Defn: a |--> -1.272019649514069?)
 
 ~~~~~~~~~~~~~~~~~~~~~~ ::
 

@@ -20,7 +20,6 @@ from __future__ import print_function
 
 from sage.numerical.mip import MIPSolverException
 from .generic_backend cimport GenericBackend
-from cvxopt import solvers
 from copy import copy
 
 

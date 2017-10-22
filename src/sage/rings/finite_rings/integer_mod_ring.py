@@ -1201,7 +1201,7 @@ In the latter case, please inform the developers.""".format(self.order()))
             14
             sage: f = R.coerce_map_from(int); f
             Native morphism:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Ring of integers modulo 15
             sage: f(-1r)
             14

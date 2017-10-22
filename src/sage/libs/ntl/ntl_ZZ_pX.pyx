@@ -16,6 +16,7 @@
 from __future__ import absolute_import, division, print_function
 
 from cysignals.signals cimport sig_on, sig_off
+from sage.ext.cplusplus cimport ccrepr, ccreadstr
 
 include 'misc.pxi'
 include 'decl.pxi'
@@ -102,9 +103,7 @@ cdef class ntl_ZZ_pX(object):
                 ZZ_pX_SetCoeff(self.x, i, cc.x)
         elif v is not None:
             s = str(v).replace(',',' ').replace('L','')
-            sig_on()
-            ZZ_pX_from_str(&self.x, s)
-            sig_off()
+            ccreadstr(self.x, s)
 
     def __cinit__(self, v=None, modulus=None):
         #################### WARNING ###################
@@ -160,11 +159,7 @@ cdef class ntl_ZZ_pX(object):
             '[1 0 3]'
         """
         self.c.restore_c()
-        #cdef char* s = ZZ_pX_repr(&self.x)
-        #t = str(s)
-        #sig_free(s)
-        return ZZ_pX_to_PyString(&self.x)
-        #return t
+        return ccrepr(self.x)
 
     def __copy__(self):
         """

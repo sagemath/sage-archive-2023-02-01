@@ -523,10 +523,10 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
           coefficient ring ``self.base_ring()``
 
         - ``coerce`` -- a boolean (default: ``False``), whether to coerce the
-          ``coeff``s to the coefficient ring
+          ``coeff`` to the coefficient ring
 
         - ``remove_zeros`` -- a boolean (default: ``True``), if some
-          ``coeff``s may be zero and should therefore be removed
+          ``coeff`` may be zero and should therefore be removed
 
         EXAMPLES::
 

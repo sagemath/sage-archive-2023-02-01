@@ -95,11 +95,11 @@ class Posets(object):
 
     EXAMPLES::
 
-        sage: Posets.BooleanLattice(3)
+        sage: posets.BooleanLattice(3)
         Finite lattice containing 8 elements
-        sage: Posets.ChainPoset(3)
+        sage: posets.ChainPoset(3)
         Finite lattice containing 3 elements
-        sage: Posets.RandomPoset(17,.15)
+        sage: posets.RandomPoset(17,.15)
         Finite poset containing 17 elements
 
     The category of all posets::
@@ -157,7 +157,7 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: Posets.BooleanLattice(5)
+            sage: posets.BooleanLattice(5)
             Finite lattice containing 32 elements
         """
         try:
@@ -190,7 +190,7 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: C = Posets.ChainPoset(6); C
+            sage: C = posets.ChainPoset(6); C
             Finite lattice containing 6 elements
             sage: C.linear_extension()
             [0, 1, 2, 3, 4, 5]
@@ -204,13 +204,13 @@ class Posets(object):
 
         Check that :trac:`8422` is solved::
 
-            sage: Posets.ChainPoset(0)
+            sage: posets.ChainPoset(0)
             Finite lattice containing 0 elements
-            sage: C = Posets.ChainPoset(1); C
+            sage: C = posets.ChainPoset(1); C
             Finite lattice containing 1 elements
             sage: C.cover_relations()
             []
-            sage: C = Posets.ChainPoset(2); C
+            sage: C = posets.ChainPoset(2); C
             Finite lattice containing 2 elements
             sage: C.cover_relations()
             [[0, 1]]
@@ -243,7 +243,7 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: A = Posets.AntichainPoset(6); A
+            sage: A = posets.AntichainPoset(6); A
             Finite poset containing 6 elements
 
         TESTS::
@@ -257,13 +257,13 @@ class Posets(object):
 
         Check that :trac:`8422` is solved::
 
-            sage: Posets.AntichainPoset(0)
+            sage: posets.AntichainPoset(0)
             Finite poset containing 0 elements
-            sage: C = Posets.AntichainPoset(1); C
+            sage: C = posets.AntichainPoset(1); C
             Finite poset containing 1 elements
             sage: C.cover_relations()
             []
-            sage: C = Posets.AntichainPoset(2); C
+            sage: C = posets.AntichainPoset(2); C
             Finite poset containing 2 elements
             sage: C.cover_relations()
             []
@@ -290,7 +290,7 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: P = Posets.PentagonPoset(); P
+            sage: P = posets.PentagonPoset(); P
             Finite lattice containing 5 elements
             sage: P.cover_relations()
             [[0, 1], [0, 2], [1, 4], [2, 3], [3, 4]]
@@ -307,7 +307,7 @@ class Posets(object):
 
             sage: P.is_distributive()
             False
-            sage: Posets.DiamondPoset(5).is_distributive()
+            sage: posets.DiamondPoset(5).is_distributive()
             False
         """
         return LatticePoset([[1,2],[4],[3],[4],[]], facade=facade)
@@ -328,7 +328,7 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: Posets.DiamondPoset(7)
+            sage: posets.DiamondPoset(7)
             Finite lattice containing 7 elements
         """
         try:
@@ -365,7 +365,7 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: Posets.Crown(3)
+            sage: posets.Crown(3)
             Finite poset containing 6 elements
         """
         try:
@@ -397,17 +397,17 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: P = Posets.DivisorLattice(12)
+            sage: P = posets.DivisorLattice(12)
             sage: sorted(P.cover_relations())
             [[1, 2], [1, 3], [2, 4], [2, 6], [3, 6], [4, 12], [6, 12]]
 
-            sage: P = Posets.DivisorLattice(10, facade=False)
+            sage: P = posets.DivisorLattice(10, facade=False)
             sage: P(2) < P(5)
             False
 
         TESTS::
 
-            sage: Posets.DivisorLattice(1)
+            sage: posets.DivisorLattice(1)
             Finite lattice containing 1 elements with distinguished linear extension
         """
         from sage.arith.misc import divisors, is_prime
@@ -435,7 +435,7 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: P = Posets.IntegerCompositions(7); P
+            sage: P = posets.IntegerCompositions(7); P
             Finite poset containing 64 elements
             sage: len(P.cover_relations())
             192
@@ -457,7 +457,7 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: P = Posets.IntegerPartitions(7); P
+            sage: P = posets.IntegerPartitions(7); P
             Finite poset containing 15 elements
             sage: len(P.cover_relations())
             28
@@ -495,7 +495,7 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: P = Posets.RestrictedIntegerPartitions(7); P
+            sage: P = posets.RestrictedIntegerPartitions(7); P
             Finite poset containing 15 elements
             sage: len(P.cover_relations())
             17
@@ -539,7 +539,7 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: P = Posets.IntegerPartitionsDominanceOrder(6); P
+            sage: P = posets.IntegerPartitionsDominanceOrder(6); P
             Finite lattice containing 11 elements
             sage: P.cover_relations()
             [[[1, 1, 1, 1, 1, 1], [2, 1, 1, 1, 1]],
@@ -583,7 +583,7 @@ class Posets(object):
         EXAMPLES::
 
             sage: set_random_seed(0)  # Results are reproducible
-            sage: P = Posets.RandomPoset(5, 0.3)
+            sage: P = posets.RandomPoset(5, 0.3)
             sage: P.cover_relations()
             [[5, 4], [4, 2], [1, 2]]
 
@@ -591,27 +591,27 @@ class Posets(object):
 
         TESTS::
 
-            sage: Posets.RandomPoset('junk', 0.5)
+            sage: posets.RandomPoset('junk', 0.5)
             Traceback (most recent call last):
             ...
             TypeError: number of elements must be an integer, not junk
 
-            sage: Posets.RandomPoset(-6, 0.5)
+            sage: posets.RandomPoset(-6, 0.5)
             Traceback (most recent call last):
             ...
             ValueError: number of elements must be non-negative, not -6
 
-            sage: Posets.RandomPoset(6, 'garbage')
+            sage: posets.RandomPoset(6, 'garbage')
             Traceback (most recent call last):
             ...
             TypeError: probability must be a real number, not garbage
 
-            sage: Posets.RandomPoset(6, -0.5)
+            sage: posets.RandomPoset(6, -0.5)
             Traceback (most recent call last):
             ...
             ValueError: probability must be between 0 and 1, not -0.5
 
-            sage: Posets.RandomPoset(0, 0.5)
+            sage: posets.RandomPoset(0, 0.5)
             Finite poset containing 0 elements
         """
         from sage.misc.prandom import random
@@ -676,11 +676,11 @@ class Posets(object):
         EXAMPLES::
 
             sage: set_random_seed(0)  # Results are reproducible
-            sage: L = Posets.RandomLattice(8, 0.995); L
+            sage: L = posets.RandomLattice(8, 0.995); L
             Finite lattice containing 8 elements
             sage: L.cover_relations()
             [[7, 6], [7, 3], [7, 1], ..., [5, 4], [2, 4], [1, 4], [0, 4]]
-            sage: L = Posets.RandomLattice(10, 0, properties=['dismantlable'])
+            sage: L = posets.RandomLattice(10, 0, properties=['dismantlable'])
             sage: L.is_dismantlable()
             True
 
@@ -688,32 +688,32 @@ class Posets(object):
 
         TESTS::
 
-            sage: Posets.RandomLattice('junk', 0.5)
+            sage: posets.RandomLattice('junk', 0.5)
             Traceback (most recent call last):
             ...
             TypeError: number of elements must be an integer, not junk
 
-            sage: Posets.RandomLattice(-6, 0.5)
+            sage: posets.RandomLattice(-6, 0.5)
             Traceback (most recent call last):
             ...
             ValueError: number of elements must be non-negative, not -6
 
-            sage: Posets.RandomLattice(6, 'garbage')
+            sage: posets.RandomLattice(6, 'garbage')
             Traceback (most recent call last):
             ...
             TypeError: probability must be a real number, not garbage
 
-            sage: Posets.RandomLattice(6, -0.5)
+            sage: posets.RandomLattice(6, -0.5)
             Traceback (most recent call last):
             ...
             ValueError: probability must be a positive real number and below 1, not -0.5
 
-            sage: Posets.RandomLattice(10, 0.5, properties=['junk'])
+            sage: posets.RandomLattice(10, 0.5, properties=['junk'])
             Traceback (most recent call last):
             ...
             ValueError: unknown value junk for 'properties'
 
-            sage: Posets.RandomLattice(0, 0.5)
+            sage: posets.RandomLattice(0, 0.5)
             Finite lattice containing 0 elements
         """
         from copy import copy
@@ -734,7 +734,7 @@ class Posets(object):
         if properties is None:
             # Basic case, no special properties for lattice asked.
             if n <= 3:
-                return Posets.ChainPoset(n)
+                return posets.ChainPoset(n)
             covers = _random_lattice(n, p)
             covers_dict = {i:covers[i] for i in range(n)}
             D = DiGraph(covers_dict)
@@ -753,7 +753,7 @@ class Posets(object):
 
         if n <= 3:
             # Change this, if property='complemented' is added
-            return Posets.ChainPoset(n)
+            return posets.ChainPoset(n)
 
         # Handling properties: planar => dismantlable, stone => distributive
         if 'planar' in properties:
@@ -802,7 +802,7 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: Posets.SetPartitions(4)
+            sage: posets.SetPartitions(4)
             Finite lattice containing 15 elements
         """
         from sage.rings.semirings.non_negative_integer_semiring import NN
@@ -842,19 +842,19 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: Posets.SSTPoset([2,1])
+            sage: posets.SSTPoset([2,1])
             Finite poset containing 8 elements
 
-            sage: Posets.SSTPoset([2,1],4)
+            sage: posets.SSTPoset([2,1],4)
             Finite poset containing 20 elements
 
-            sage: Posets.SSTPoset([2,1],2).cover_relations()
+            sage: posets.SSTPoset([2,1],2).cover_relations()
             [[[[1, 1], [2]], [[1, 2], [2]]]]
 
-            sage: Posets.SSTPoset([3,2]).bottom()  # long time (6s on sage.math, 2012)
+            sage: posets.SSTPoset([3,2]).bottom()  # long time (6s on sage.math, 2012)
             [[1, 1, 1], [2, 2]]
 
-            sage: Posets.SSTPoset([3,2],4).maximal_elements()
+            sage: posets.SSTPoset([3,2],4).maximal_elements()
             [[[3, 3, 4], [4, 4]]]
         """
         from sage.combinat.tableau import SemistandardTableaux
@@ -902,7 +902,7 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: A = Posets.StandardExample(3); A
+            sage: A = posets.StandardExample(3); A
             Finite poset containing 6 elements
             sage: A.dimension()
             3
@@ -914,12 +914,12 @@ class Posets(object):
 
         TESTS::
 
-            sage: A = Posets.StandardExample(10); A
+            sage: A = posets.StandardExample(10); A
             Finite poset containing 20 elements
             sage: len(A.cover_relations())
             90
 
-            sage: P = Posets.StandardExample(5, facade=False)
+            sage: P = posets.StandardExample(5, facade=False)
             sage: P(4) < P(3), P(4) > P(3)
             (False, False)
         """
@@ -940,7 +940,7 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: Posets.SymmetricGroupBruhatOrderPoset(4)
+            sage: posets.SymmetricGroupBruhatOrderPoset(4)
             Finite poset containing 24 elements
         """
         if n < 10:
@@ -969,8 +969,8 @@ class Posets(object):
         Any interval is rank symmetric if and only if it avoids these
         permutations::
 
-            sage: P1 = Posets.SymmetricGroupBruhatIntervalPoset([1,2,3,4], [3,4,1,2])
-            sage: P2 = Posets.SymmetricGroupBruhatIntervalPoset([1,2,3,4], [4,2,3,1])
+            sage: P1 = posets.SymmetricGroupBruhatIntervalPoset([1,2,3,4], [3,4,1,2])
+            sage: P2 = posets.SymmetricGroupBruhatIntervalPoset([1,2,3,4], [4,2,3,1])
             sage: ranks1 = [P1.rank(v) for v in P1]
             sage: ranks2 = [P2.rank(v) for v in P2]
             sage: [ranks1.count(i) for i in uniq(ranks1)]
@@ -1010,7 +1010,7 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: Posets.SymmetricGroupWeakOrderPoset(4)
+            sage: posets.SymmetricGroupWeakOrderPoset(4)
             Finite poset containing 24 elements
         """
         if n < 10 and labels == "permutations":
@@ -1070,16 +1070,16 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: Posets.TetrahedralPoset(4,'green','red','yellow','silver','blue','orange')
+            sage: posets.TetrahedralPoset(4,'green','red','yellow','silver','blue','orange')
             Finite poset containing 10 elements
 
-            sage: Posets.TetrahedralPoset(4,'green','red','yellow','silver','blue','orange', labels='integers')
+            sage: posets.TetrahedralPoset(4,'green','red','yellow','silver','blue','orange', labels='integers')
             Finite poset containing 10 elements
 
             sage: A = AlternatingSignMatrices(3)
             sage: p = A.lattice()
             sage: ji = p.join_irreducibles_poset()
-            sage: tet = Posets.TetrahedralPoset(3, 'green','yellow','blue','orange')
+            sage: tet = posets.TetrahedralPoset(3, 'green','yellow','blue','orange')
             sage: ji.is_isomorphic(tet)
             True
         """
@@ -1146,11 +1146,11 @@ class Posets(object):
         EXAMPLES::
 
             sage: W = CoxeterGroup(['B', 3])
-            sage: Posets.CoxeterGroupAbsoluteOrderPoset(W)
+            sage: posets.CoxeterGroupAbsoluteOrderPoset(W)
             Finite poset containing 48 elements
 
             sage: W = WeylGroup(['B', 2], prefix='s')
-            sage: Posets.CoxeterGroupAbsoluteOrderPoset(W, False)
+            sage: posets.CoxeterGroupAbsoluteOrderPoset(W, False)
             Finite poset containing 8 elements
         """
         if use_reduced_words:
@@ -1200,11 +1200,11 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: Posets.SymmetricGroupAbsoluteOrderPoset(4)
+            sage: posets.SymmetricGroupAbsoluteOrderPoset(4)
             Finite poset containing 24 elements
-            sage: Posets.SymmetricGroupAbsoluteOrderPoset(3, labels="cycles")
+            sage: posets.SymmetricGroupAbsoluteOrderPoset(3, labels="cycles")
             Finite poset containing 6 elements
-            sage: Posets.SymmetricGroupAbsoluteOrderPoset(3, labels="reduced_words")
+            sage: posets.SymmetricGroupAbsoluteOrderPoset(3, labels="reduced_words")
             Finite poset containing 6 elements
         """
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
@@ -1242,7 +1242,7 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: P = Posets.UpDownPoset(7, 2); P
+            sage: P = posets.UpDownPoset(7, 2); P
             Finite poset containing 7 elements
             sage: sorted(P.cover_relations())
             [[0, 1], [1, 2], [3, 2], [3, 4], [4, 5], [6, 5]]
@@ -1254,7 +1254,7 @@ class Posets(object):
 
         TESTS::
 
-            sage: P = Posets.UpDownPoset(0); P
+            sage: P = posets.UpDownPoset(0); P
             Finite poset containing 0 elements
         """
         try:
@@ -1285,7 +1285,7 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: P = Posets.YoungDiagramPoset(Partition([2,2])); P
+            sage: P = posets.YoungDiagramPoset(Partition([2,2])); P
             Finite meet-semilattice containing 4 elements
             sage: P.cover_relations()
             [[(0, 0), (0, 1)], [(0, 0), (1, 0)], [(0, 1), (1, 1)], [(1, 0),
@@ -1315,7 +1315,7 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: P = Posets.YoungsLattice(3); P
+            sage: P = posets.YoungsLattice(3); P
             Finite meet-semilattice containing 7 elements
             sage: P.cover_relations()
             [[[], [1]],
@@ -1343,7 +1343,7 @@ class Posets(object):
 
         EXAMPLES::
 
-            sage: P = Posets.YoungsLatticePrincipalOrderIdeal(Partition([2,2]))
+            sage: P = posets.YoungsLatticePrincipalOrderIdeal(Partition([2,2]))
             sage: P
             Finite lattice containing 6 elements
             sage: P.cover_relations()
@@ -1384,7 +1384,7 @@ class Posets(object):
 # Following are helper functions for random lattice generation.
 # There is no parameter checking, 0, 1, ..., n may or may not be a
 # linear extension, exact output type may vary, etc. Direct use is
-# discouraged. Use by Posets.RandomLattice(..., properties=[...]).
+# discouraged. Use by posets.RandomLattice(..., properties=[...]).
 
 
 def _random_lattice(n, p):

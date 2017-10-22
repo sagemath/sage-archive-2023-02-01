@@ -443,9 +443,9 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
 
             sage: Poset().linear_extensions().cardinality()
             1
-            sage: Posets.ChainPoset(1).linear_extensions().cardinality()
+            sage: posets.ChainPoset(1).linear_extensions().cardinality()
             1
-            sage: Posets.BooleanLattice(4).linear_extensions().cardinality()
+            sage: posets.BooleanLattice(4).linear_extensions().cardinality()
             1680384
         """
         from sage.rings.integer import Integer

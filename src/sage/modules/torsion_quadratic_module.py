@@ -381,7 +381,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         orthogonal = self.V().span(orthogonal.rows())
         #we have to make sure we get a submodule
         orthogonal = orthogonal.intersection(self.V())
-        orthogonal = self.submodule(orthogonal)
+        orthogonal = self.submodule(orthogonal.gens())
         return orthogonal
     
     def primary_part(self,m):

@@ -334,7 +334,7 @@ def line_graph(self, labels=True):
          ((1, 3, None), (3, 4, None), None),
          ((2, 3, None), (3, 4, None), None)]
 
-    Tests:
+    TESTS:
 
     :trac:`13787`::
 

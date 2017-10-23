@@ -89,17 +89,28 @@ cdef class Matrix_double_dense(Matrix_dense):
         sage: m^(-1)        # rel tol 1e-15
         [-1.9999999999999996  0.9999999999999998]
         [ 1.4999999999999998 -0.4999999999999999]
-    """
 
-    ########################################################################
-    # LEVEL 1 functionality
-    #   * __cinit__
-    #   * __dealloc__
-    #   * __init__
-    #   * set_unsafe
-    #   * get_unsafe
-    #   * __hash__       -- always simple
-    ########################################################################
+    TESTS:
+
+    Test hashing::
+
+        sage: A = matrix(RDF,3,range(1,10))
+        sage: hash(A)
+        Traceback (most recent call last):
+        ...
+        TypeError: mutable matrices are unhashable
+        sage: A.set_immutable()
+        sage: hash(A)
+        88
+        sage: A = matrix(CDF,3,range(1,10))
+        sage: hash(A)
+        Traceback (most recent call last):
+        ...
+        TypeError: mutable matrices are unhashable
+        sage: A.set_immutable()
+        sage: hash(A)
+        88
+    """
     def __cinit__(self, parent, entries, copy, coerce):
         """
         Set up a new matrix
@@ -126,35 +137,6 @@ cdef class Matrix_double_dense(Matrix_dense):
         dims[1] = self._ncols
         self._matrix_numpy = cnumpy.PyArray_SimpleNew(2, dims, self._numpy_dtypeint)
         return
-
-    def __dealloc__(self):
-        """ Deallocate any memory that was initialized."""
-        return
-
-    def __hash__(self):
-        """
-        Hash this matrix if it's immutable.
-
-        EXAMPLES::
-
-            sage: A = matrix(RDF,3,range(1,10))
-            sage: hash(A)
-            Traceback (most recent call last):
-            ...
-            TypeError: mutable matrices are unhashable
-            sage: A.set_immutable()
-            sage: hash(A)
-            88
-            sage: A = matrix(CDF,3,range(1,10))
-            sage: hash(A)
-            Traceback (most recent call last):
-            ...
-            TypeError: mutable matrices are unhashable
-            sage: A.set_immutable()
-            sage: hash(A)
-            88
-        """
-        return self._hash()
 
     def LU_valid(self):
         r"""

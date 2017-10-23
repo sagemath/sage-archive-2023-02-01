@@ -6124,9 +6124,10 @@ class Polyhedron_base(Element):
 
 			Check that :trac:`24047` is fixed::
 
-            sage: P = Polyhedron([[0,0], [-1,0]]); P
-            A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
-            sage: A, b = P.affine_hull(as_affine_map=True, orthonormal=True, extend=True)
+			sage: P1 = Polyhedron(vertices=([[-1, 1], [0, -1], [0, 0], [-1, -1]]))
+			sage: P2 = Polyhedron(vertices=[[1, 1], [1, -1], [0, -1], [0, 0]])
+			sage: P = P1.intersection(P2)
+			sage: A, b = P.affine_hull(as_affine_map=True, orthonormal=True, extend=True)
 
             sage: Polyhedron([(2,3,4)]).affine_hull()
             A 0-dimensional polyhedron in ZZ^0 defined as the convex hull of 1 vertex

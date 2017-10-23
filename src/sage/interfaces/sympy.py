@@ -249,6 +249,10 @@ def _sympysage_function(self):
         sage: F = Function('f')
         sage: assert f(x)._sympy_() == F(x)
         sage: assert f(x) == F(x)._sage_()
+        sage: assert f(x+3)._sympy_() == F(x+3)
+        sage: assert f(x+3) == F(x+3)._sage_()
+        sage: assert (3*f(x))._sympy_() == 3*F(x)
+        sage: assert 3*f(x) == (3*F(x))._sage_()
 
     Test that functions unknown to Sage raise an exception::
 

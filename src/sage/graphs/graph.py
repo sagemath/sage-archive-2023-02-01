@@ -1885,7 +1885,7 @@ class Graph(GenericGraph):
     @doc_index("Graph properties")
     def is_cograph(self):
         """
-        Test whether the graph is cograph.
+        Check whether the graph is cograph.
 
         A cograph is defined recursively: the single-vertex graph is
         cograph, complement of cograph is cograph, and disjoint union
@@ -1899,6 +1899,12 @@ class Graph(GenericGraph):
             sage: graphs.HouseGraph().is_cograph()
             False
 
+        .. TODO::
+
+            Implement faster recognition algorithm, as for instance
+            the linear time recognition algorithm using LexBFS proposed
+            in [Bre2008]_.
+
         TESTS::
 
             sage: [graphs.PathGraph(i).is_cograph() for i in range(6)]
@@ -1906,6 +1912,10 @@ class Graph(GenericGraph):
             sage: graphs.CycleGraph(5).is_cograph()  # Self-complemented
             False
         """
+        # A cograph has no 4-vertex path as an induced subgraph.
+        # We will first try to "decompose" graph by complements and
+        # split to connected components, and use fairly slow
+        # subgraph search if that fails.
         self._scream_if_not_simple()
         if self.order() < 4:
             return True

@@ -148,7 +148,8 @@ cdef class Matrix(Matrix1):
         If self is a matrix `A`, then this function returns a
         vector or matrix `X` such that `X A = B`. If
         `B` is a vector then `X` is a vector and if
-        `B` is a matrix, then `X` is a matrix.
+        `B` is a matrix, then `X` is a matrix. 
+        If the number of columns on the left and right hand sides is different it raises the error message 'number of columns                    of self must equal number of columns of B'
 
         INPUT:
 
@@ -157,7 +158,7 @@ cdef class Matrix(Matrix1):
 
         -  ``check`` - bool (default: True) - if False and self
            is nonsquare, may not raise an error message even if there is no
-           solution. This is faster but more dangerous.
+           solution. This is faster but more dangerous. 
 
 
         EXAMPLES::
@@ -167,6 +168,13 @@ cdef class Matrix(Matrix1):
             sage: X = A.solve_left(B)
             sage: X*A == B
             True
+
+            sage: M = matrix([(3,-1,0,0),(1,1,-2,0),(0,0,0,-3)])
+            sage: B = matrix(QQ,3,1, [0,0,-1])
+            sage: M.solve_left(B)
+            Traceback (most recent call last):
+            ...
+            ValueError: number of columns of self must equal number of columns of B
 
         TESTS::
 
@@ -184,11 +192,26 @@ cdef class Matrix(Matrix1):
             sage: X * A == B
             True
 
+            sage: M = matrix([(3,-1,0,0),(1,1,-2,0),(0,0,0,-3)])
+            sage: B = matrix(QQ,3,1, [0,0,-1])
+            sage: M.solve_left(B)
+            Traceback (most recent call last):
+            ...
+            ValueError: number of columns of self must equal number of columns of B
+
+
         """
+        from string import replace
         if is_Vector(B):
-            return self.transpose().solve_right(B, check=check)
+            try:
+                return self.transpose().solve_right(B, check=check)
+            except ValueError as e:
+                raise ValueError(replace(str(e), 'row', 'column'))
         else:
-            return self.transpose().solve_right(B.transpose(), check=check).transpose()
+            try:
+                return self.transpose().solve_right(B.transpose(), check=check).transpose()
+            except ValueError as e:
+                raise ValueError(replace(str(e), 'row', 'column'))
 
     def solve_right(self, B, check=True):
         r"""

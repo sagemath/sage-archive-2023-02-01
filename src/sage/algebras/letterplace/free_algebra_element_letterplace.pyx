@@ -651,11 +651,11 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
 
         The twosided reduction of this element by the argument.
 
-        NOTE:
+        .. NOTE::
 
-        This may not be the normal form of this element, unless
-        the argument is a twosided Groebner basis up to the degree
-        of this element.
+            This may not be the normal form of this element, unless
+            the argument is a twosided Groebner basis up to the degree
+            of this element.
 
         EXAMPLES::
 
@@ -663,7 +663,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
             sage: I = F*[x*y+y*z,x^2+x*y-y*x-y^2]*F
             sage: p = y^2*z*y^2+y*z*y*z*y
 
-        We compute the letterplace version of the Groebneer basis
+        We compute the letterplace version of the Groebner basis
         of `I` with degree bound 4::
 
             sage: G = F._reductor_(I.groebner_basis(4).gens(),4)

@@ -49,7 +49,7 @@ fi
 # Next, install the Python module
 #
 
-cd sage-brial && $PIP_INSTALL .
+cd sage-brial && sdh_pip_install .
 if [ $? -ne 0 ]; then
     echo "Error installing BRiAl Python module"
     exit 1

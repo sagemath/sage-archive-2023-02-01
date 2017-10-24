@@ -235,7 +235,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
                 x = x.lift()
             else:
                 raise TypeError("cannot coerce from the given integer mod ring (not a power of the same prime)")
-        elif x in parent.residue_field():
+        elif x in parent.residue_field() and x.parent().is_finite():
             # Should only reach here if x is not in F_p
             z = parent.gen()
             poly = x.polynomial().list()

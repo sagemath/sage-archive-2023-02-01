@@ -3,8 +3,7 @@ Blum-Goldwasser Probabilistic Encryption
 
 The Blum-Goldwasser probabilistic public-key encryption scheme. This scheme
 was originally described in [BG1985]_. See also section 8.7.2
-of [MvOV1996]_ and the
-`Wikipedia article <http://en.wikipedia.org/wiki/Blum-Goldwasser_cryptosystem>`_
+of [MvOV1996]_ and the :wikipedia:`Blum-Goldwasser_cryptosystem`
 on this scheme.
 
 AUTHORS:

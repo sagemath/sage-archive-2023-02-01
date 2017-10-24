@@ -2567,7 +2567,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             unitary = T._is_lower_triangular(tol)
             if unitary:
                 for 0 <= i < self._nrows:
-                    if numpy.absolute(numpy.absolute(T.get_unsafe(i,i)) - 1) > tol:
+                    if abs(abs(T.get_unsafe(i,i)) - 1) > tol:
                         unitary = False
                         break
         elif algorithm == 'naive':
@@ -2576,11 +2576,11 @@ cdef class Matrix_double_dense(Matrix_dense):
             for i from 0 <= i < self._nrows:
                 # off-diagonal, since P is Hermitian
                 for j from 0 <= j < i:
-                    if numpy.absolute(P.get_unsafe(i,j)) > tol:
+                    if abs(P.get_unsafe(i,j)) > tol:
                         unitary = False
                         break
                 # at diagonal
-                if numpy.absolute(P.get_unsafe(i,i)-1) > tol:
+                if abs(P.get_unsafe(i,i) - 1) > tol:
                     unitary = False
                 if not unitary:
                     break
@@ -2619,7 +2619,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         cdef Py_ssize_t i, j
         for i in range(self._nrows):
             for j in range(i+1, self._ncols):
-                if numpy.absolute(self.get_unsafe(i,j)) > tol:
+                if abs(self.get_unsafe(i,j)) > tol:
                     return False
         return True
 
@@ -2777,14 +2777,14 @@ cdef class Matrix_double_dense(Matrix_dense):
             hermitian = T._is_lower_triangular(tol)
             if hermitian:
                 for i in range(T._nrows):
-                    if numpy.absolute(numpy.imag(T.get_unsafe(i,i))) > tol:
+                    if abs(T.get_unsafe(i,i).imag()) > tol:
                         hermitian = False
                         break
         elif algorithm == 'naive':
             hermitian = True
             for i in range(self._nrows):
                 for j in range(i+1):
-                    if numpy.absolute(self.get_unsafe(i,j) - self.get_unsafe(j,i).conjugate()) > tol:
+                    if abs(self.get_unsafe(i,j) - self.get_unsafe(j,i).conjugate()) > tol:
                         hermitian = False
                         break
                 if not hermitian:
@@ -2976,7 +2976,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             # two products are Hermitian, need only check lower triangle
             for i in range(self._nrows):
                 for j in range(i+1):
-                    if numpy.absolute(left.get_unsafe(i,j) - right.get_unsafe(i,j)) > tol:
+                    if abs(left.get_unsafe(i,j) - right.get_unsafe(i,j)) > tol:
                         normal = False
                         break
                 if not normal:

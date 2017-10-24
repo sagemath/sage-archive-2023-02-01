@@ -597,6 +597,9 @@ REFERENCES:
             MOG. *Computational group theory*, ed. M. Atkinson,
             Academic Press, 1984.
 
+.. [Co1999] John Conway, Neil Sloan. *Sphere Packings, Lattices and Groups*,
+            Springer Verlag 1999.
+
 .. [Coh1993] Henri Cohen. A Course in Computational Number
              Theory. Graduate Texts in Mathematics 138. Springer, 1993.
 

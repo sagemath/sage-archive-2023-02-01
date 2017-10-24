@@ -672,6 +672,7 @@ class DocTestController(SageObject):
                                               "--work-tree=" + SAGE_ROOT,
                                               "status",
                                               "--porcelain"])
+            change = change.decode('utf-8')
             for line in change.split("\n"):
                 if not line:
                     continue
@@ -1135,6 +1136,7 @@ class DocTestController(SageObject):
                                                       "rev-parse",
                                                       "--abbrev-ref",
                                                       "HEAD"])
+                    branch = branch.decode('utf-8')
                     self.log("Git branch: " + branch, end="")
                 except subprocess.CalledProcessError:
                     pass

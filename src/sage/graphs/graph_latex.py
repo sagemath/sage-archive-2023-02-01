@@ -1201,7 +1201,7 @@ class GraphLatex(SageObject):
 
         INPUT:
 
-         - kwds - any number of option/value pairs to set many graph latex
+         - kwds -- any number of option/value pairs to set many graph latex
            options at once (a variable number, in any order). Existing
            values are overwritten, new values are added.  Existing
            values can be cleared by setting the value to ``None``.

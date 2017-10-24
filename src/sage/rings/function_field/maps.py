@@ -838,9 +838,8 @@ class FractionFieldToFunctionField(FunctionFieldIsomorphism):
             sage: f = L.coerce_map_from(K)
             sage: f(~K.gen())
             1/x
-
         """
-        return self.codomain()._element_constructor(f)
+        return self.codomain()._element_constructor_(f)
 
     def section(self):
         r"""

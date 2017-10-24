@@ -3015,7 +3015,7 @@ class SuzukiGroup(PermutationGroup_unique):
 
         REFERENCES:
 
-        -  http://en.wikipedia.org/wiki/Group_of_Lie_type\#Suzuki-Ree_groups
+        -  :wikipedia:`Group_of_Lie_type\#Suzuki-Ree_groups`
         """
         q = Integer(q)
         t = valuation(q, 2)

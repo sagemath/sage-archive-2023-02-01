@@ -115,7 +115,7 @@ from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.libs.ppl import (C_Polyhedron, Generator_System, Linear_Expression,
                            point as PPL_point)
 from sage.matrix.constructor import matrix
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 from sage.misc.all import cached_method, flatten, tmp_filename
 from sage.misc.superseded import deprecated_function_alias
 from sage.modules.all import vector

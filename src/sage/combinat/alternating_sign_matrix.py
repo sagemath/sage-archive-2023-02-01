@@ -155,9 +155,9 @@ class AlternatingSignMatrix(Element):
         TESTS::
 
             sage: A = AlternatingSignMatrices(3)
-            sage: elt = A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
+            sage: elt = A([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
             sage: hash(elt)
-            12
+            1
         """
         return hash(self._matrix)
 

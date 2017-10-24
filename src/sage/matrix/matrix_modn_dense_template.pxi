@@ -598,15 +598,16 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             sage: M = random_matrix(GF(7), 10, 10)
             sage: M.set_immutable()
             sage: hash(M)
-            143
+            -5724333594806680561  # 64-bit
+            -1581874161           # 32-bit
             sage: MZ = M.change_ring(ZZ)
             sage: MZ.set_immutable()
-            sage: hash(MZ)
-            143
+            sage: hash(MZ) == hash(M)
+            True
             sage: MS = M.sparse_matrix()
             sage: MS.set_immutable()
-            sage: hash(MS)
-            143
+            sage: hash(MS) == hash(M)
+            True
 
         TESTS::
 

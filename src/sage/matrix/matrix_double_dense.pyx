@@ -94,22 +94,24 @@ cdef class Matrix_double_dense(Matrix_dense):
 
     Test hashing::
 
-        sage: A = matrix(RDF,3,range(1,10))
+        sage: A = matrix(RDF, 3, range(1,10))
         sage: hash(A)
         Traceback (most recent call last):
         ...
         TypeError: mutable matrices are unhashable
         sage: A.set_immutable()
         sage: hash(A)
-        88
-        sage: A = matrix(CDF,3,range(1,10))
+        6694819972852100501  # 64-bit
+        1829383573           # 32-bit
+        sage: A = matrix(CDF, 3, range(1,10))
         sage: hash(A)
         Traceback (most recent call last):
         ...
         TypeError: mutable matrices are unhashable
         sage: A.set_immutable()
         sage: hash(A)
-        88
+        6694819972852100501  # 64-bit
+        1829383573           # 32-bit
     """
     def __cinit__(self, parent, entries, copy, coerce):
         """

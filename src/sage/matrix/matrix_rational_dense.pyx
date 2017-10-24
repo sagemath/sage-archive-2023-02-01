@@ -49,7 +49,8 @@ Test hashing::
     TypeError: mutable matrices are unhashable
     sage: m.set_immutable()
     sage: hash(m)
-    -13
+    2212268000387745777  # 64-bit
+    1997752305           # 32-bit
 """
 
 #*****************************************************************************

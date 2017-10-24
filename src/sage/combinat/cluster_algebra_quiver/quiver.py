@@ -494,7 +494,8 @@ class ClusterQuiver(SageObject):
 
             sage: Q = ClusterQuiver(['A',5])
             sage: hash(Q)  # indirect doctest
-            16
+            7654921743699262111  # 64-bit
+            -1264862561          # 32-bit
         """
         return hash(self._M)
 

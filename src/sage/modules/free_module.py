@@ -1133,7 +1133,15 @@ done from the right side.""")
                 return False
         from sage.modules.quotient_module import FreeModule_ambient_field_quotient
         if isinstance(other, FreeModule_ambient_field_quotient):
-            return False
+            #if the relations agree we continue with the covers.
+            if isinstance(self, FreeModule_ambient_field_quotient):
+                if other.relations()!=self.relations():
+                    return False
+                self = self.cover()
+            else:
+                if other.relations()!= 0:
+                    return False
+            other = other.cover()
         lx = isinstance(self, FreeModule_ambient)
         rx = isinstance(other, FreeModule_ambient)
         if lx and rx:
@@ -1496,11 +1504,36 @@ done from the right side.""")
             (1/2, 1, 3/2, 2)
             sage: vector(ZZ['x']['y'],[1,2,3,4]) * QQ(1/2)
             (1/2, 1, 3/2, 2)
+            
+        TESTS::
+            
+            M = QQ^3 / [[1,2,3]]
+            V = QQ^2
+            V.is_submodule(M)
+            False
+            
+            sage: M1 = QQ^3 / [[1,2,3]]
+            sage: V1 = span(QQ,[(1,0,0)])+ M1.relations()
+            sage: M2 = V1 / M1.relations()
+            sage: M2.is_submodule(M1)
+            True
         """
         if self is other:
             return True
         if not isinstance(other, FreeModule_generic):
             return False
+        from sage.modules.quotient_module import FreeModule_ambient_field_quotient
+        if isinstance(other, FreeModule_ambient_field_quotient):
+            #if the relations agree we continue with the covers.
+            if isinstance(self, FreeModule_ambient_field_quotient):
+                if other.relations()!=self.relations():
+                    return False
+                self = self.cover()
+            else:
+                if other.relations()!= 0:
+                    return False
+            other = other.cover()
+
         if other.rank() < self.rank():
             return False
         if other.degree() != self.degree():

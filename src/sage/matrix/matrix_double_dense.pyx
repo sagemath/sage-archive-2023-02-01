@@ -48,7 +48,7 @@ from __future__ import absolute_import
 
 import math
 from collections import Iterator, Sequence
-        
+
 import sage.rings.real_double
 import sage.rings.complex_double
 
@@ -1134,7 +1134,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             [ 0.0  1.0  2.0  3.0]
             [ 8.0  9.0 10.0 11.0]
             [ 4.0  5.0  6.0  7.0]
-            sage: L*U # rel tol 2e-16 
+            sage: L*U # rel tol 2e-16
             [12.0 13.0 14.0 15.0]
             [ 0.0  1.0  2.0  3.0]
             [ 8.0  9.0 10.0 11.0]
@@ -1541,6 +1541,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             (-1.9999999999999782, [(1.0, 0.40000000000000335, 0.6000000000000039, 0.2000000000000051)], 1)
             sage: spectrum[3]  # tol 1e-13
             (-1.0000000000000018, [(1.0, 0.9999999999999568, 1.9999999999998794, 1.9999999999998472)], 1)
+
         """
         if not self.is_square():
             raise ArithmeticError("self must be a square matrix")
@@ -1553,7 +1554,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         v,eig = scipy.linalg.eig(self._matrix_numpy, right=False, left=True)
         # scipy puts eigenvectors in columns, we will extract from rows
         eig = matrix(eig.T)
-        return [(sage.rings.complex_double.CDF(v[i]), [eig[i]], 1) for i in range(len(v))]
+        return [(sage.rings.complex_double.CDF(v[i]), [eig[i].conjugate()], 1) for i in range(len(v))]
 
     eigenvectors_left = left_eigenvectors
 

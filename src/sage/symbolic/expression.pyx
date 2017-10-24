@@ -9110,6 +9110,15 @@ cdef class Expression(CommutativeRingElement):
             sage: (e + c/a - b*c^2/(a^2*(b*c/a-d)) + c*d/(a*(b*c/a-d))).normalize()
             e
 
+        Check that :trac:`23861` is fixed::
+
+            sage: (x^(2*pi) + x^(-2*pi) - 2).normalize()
+            (x^(4*pi) - 2*x^(2*pi) + 1)/x^(2*pi)
+            sage: (e^2 + e^(-2) - 2).normalize()
+            (e^4 - 2*e^2 + 1)/e^2
+            sage: (e^(2*pi) - e^(-2*pi)).normalize()
+            (e^(4*pi) - 1)/e^(2*pi)
+
         ALGORITHM: Uses GiNaC.
 
         """

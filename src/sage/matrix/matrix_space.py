@@ -41,7 +41,6 @@ import types
 import operator
 
 # Sage matrix imports
-from . import matrix
 from . import matrix_generic_dense
 from . import matrix_generic_sparse
 
@@ -63,6 +62,7 @@ from . import matrix_mpolynomial_dense
 from sage.misc.superseded import deprecation
 import sage.structure.coerce
 import sage.structure.parent_gens as parent_gens
+from sage.structure.element import is_Matrix
 from sage.structure.unique_representation import UniqueRepresentation
 import sage.rings.integer as integer
 import sage.rings.number_field.all
@@ -692,7 +692,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             [0 2 0]
             [0 0 2]
         """
-        if isinstance(x, matrix.Matrix):
+        if is_Matrix(x):
             if self.is_sparse() and x.is_dense():
                 raise TypeError("cannot coerce dense matrix into sparse space for arithmetic")
             if x.nrows() == self.nrows() and x.ncols() == self.ncols():
@@ -1499,7 +1499,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         if isinstance(x, (int, integer.Integer)) and x == 1:
             return self.identity_matrix().__copy__()
         m, n, sparse = self.__nrows, self.__ncols, self.__is_sparse
-        if matrix.is_Matrix(x):
+        if is_Matrix(x):
             if x.parent() is self:
                 if x.is_immutable():
                     return x

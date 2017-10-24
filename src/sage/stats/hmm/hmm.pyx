@@ -37,7 +37,7 @@ from libc.math cimport log
 from cysignals.signals cimport sig_on, sig_off
 
 from sage.finance.time_series cimport TimeSeries
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 from sage.matrix.all import matrix
 from sage.misc.randstate cimport current_randstate, randstate
 from cpython.object cimport PyObject_RichCompare

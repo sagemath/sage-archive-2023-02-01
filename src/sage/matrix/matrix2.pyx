@@ -10711,7 +10711,7 @@ cdef class Matrix(Matrix1):
 
         - Rob Beezer (2011-03-15, 2015-05-25)
         """
-        from sage.matrix.matrix import is_Matrix
+        from sage.structure.element import is_Matrix
 
         if not is_Matrix(other):
             raise TypeError('similarity requires a matrix as an argument, not {0}'.format(other))

@@ -3222,7 +3222,7 @@ cdef class MIPVariable(Element):
             sage: m * v
             (1.0, 3.0)*x_0 + (2.0, 4.0)*x_1
         """
-        from sage.matrix.matrix import is_Matrix
+        from sage.structure.element import is_Matrix
         if is_Matrix(mat):
             return self._matrix_rmul_impl(mat) if self_on_left else self._matrix_lmul_impl(mat)
 

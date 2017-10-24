@@ -4,7 +4,7 @@ List Plots
 from __future__ import absolute_import
 from six.moves import range
 
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 from sage.matrix.all import matrix
 from sage.rings.all import RDF
 

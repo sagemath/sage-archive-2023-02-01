@@ -99,12 +99,11 @@ cdef class FPElement(pAdicTemplateElement):
 
         - ``val`` -- the valuation of the resulting element
 
-        - ``xprec -- an inherent precision of ``x`` (unused; for
-          compatibility with other `p`-adic precision modes)
+        - ``xprec -- an inherent precision of ``x``, if ``val``
+          is larger then the result will be zero.
 
-        - ``absprec`` -- an absolute precision cap for this element
-          (unused; for compatibility with other `p`-adic precision
-          modes)
+        - ``absprec`` -- an absolute precision cap for this element,
+          if ``val`` is larger then the result will be zero.
 
         - ``relprec`` -- a relative precision cap for this element
           (unused; for compatibility with other `p`-adic precision
@@ -125,9 +124,16 @@ cdef class FPElement(pAdicTemplateElement):
             True
             sage: R(5) - R(5)
             0
+
+        We check that :trac:`23966` is resolved::
+
+            sage: R = ZpFM(2)
+            sage: K = R.fraction_field()
+            sage: K(R.zero())
+            0
         """
         cconstruct(self.unit, self.prime_pow)
-        if very_pos_val(val):
+        if val >= xprec or val >= absprec:
             self._set_exact_zero()
         elif very_neg_val(val):
             self._set_infinity()
@@ -137,7 +143,6 @@ cdef class FPElement(pAdicTemplateElement):
                 ccopy(self.unit, (<FPElement>x).unit, self.prime_pow)
             else:
                 cconv(self.unit, x, self.prime_pow.prec_cap, val, self.prime_pow)
-            self._normalize()
 
     cdef int _set_exact_zero(self) except -1:
         """

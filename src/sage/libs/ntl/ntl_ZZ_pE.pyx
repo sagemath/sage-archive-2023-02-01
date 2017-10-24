@@ -16,6 +16,7 @@
 from __future__ import absolute_import, print_function
 
 from cysignals.signals cimport sig_on, sig_off
+from sage.ext.cplusplus cimport ccrepr, ccreadstr
 
 include 'misc.pxi'
 include 'decl.pxi'
@@ -126,8 +127,7 @@ cdef class ntl_ZZ_pE(object):
                 (<Integer>v)._to_ZZ(&temp)
                 self.x = ZZ_to_ZZ_pE(temp)
             else:
-                v = str(v)
-                ZZ_pE_from_str(&self.x, <bytes?>v)
+                ccreadstr(self.x, str(v))
 
     def __cinit__(ntl_ZZ_pE self, v=None, modulus=None):
         #################### WARNING ###################
@@ -171,11 +171,8 @@ cdef class ntl_ZZ_pE(object):
         return self.c
 
     def __repr__(self):
-        #return self.get_as_ZZ_pX().__repr__()
         self.c.restore_c()
-        #sig_on()
-        return ZZ_pE_to_PyString(&self.x)
-        #return string_delete(ans)
+        return ccrepr(self.x)
 
     def __richcmp__(ntl_ZZ_pE self, other, int op):
         r"""

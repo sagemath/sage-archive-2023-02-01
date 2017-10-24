@@ -18,9 +18,7 @@ from six.moves import range
 from sage.graphs.graph import Graph
 from sage.misc.randstate import current_randstate
 from sage.misc.prandom import randint
-from sage.misc.decorators import rename_keyword
 
-@rename_keyword(deprecation=19559 , method='algorithm')
 def RandomGNP(n, p, seed=None, fast=True, algorithm='Sage'):
     r"""
     Returns a random graph on `n` nodes. Each edge is inserted independently

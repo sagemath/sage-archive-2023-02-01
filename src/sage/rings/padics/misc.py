@@ -125,8 +125,8 @@ def gauss_sum(a, p, f, prec=20, factored=False):
     R = Zp(p, prec)
     digits = list(Zp(p)(a).expansion())
     n = len(digits)
-    digits = digits + [0] * (f - n)
     s = sum(digits)
+    digits = digits + [0] * (f - n)
     out = R(-1)
     for i in range(f):
         a_i = R.sum(digits[k] * p**((i + k) % f) for k in range(f))

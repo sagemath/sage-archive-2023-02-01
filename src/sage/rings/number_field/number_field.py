@@ -3775,7 +3775,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: k.<a> = NumberField(x^4 - 3/2*x + 5/3); k
             Number Field in a with defining polynomial x^4 - 3/2*x + 5/3
             sage: k.pari_nf()
-            [y^4 - 324*y + 2160, [0, 2], 48918708, 216, ..., [1, y, 1/36*y^3 + 1/6*y^2 - 7, 1/6*y^2], [1, 0, 0, 252; 0, 1, 0, 0; 0, 0, 0, 36; 0, 0, 6, -36], [1, 0, 0, 0, 0, 0, -18, 42, 0, -18, -46, -60, 0, 42, -60, -60; 0, 1, 0, 0, 1, 0, 2, 0, 0, 2, -11, -1, 0, 0, -1, 9; 0, 0, 1, 0, 0, 0, 6, 6, 1, 6, -5, 0, 0, 6, 0, 0; 0, 0, 0, 1, 0, 6, -6, -6, 0, -6, -1, 2, 1, -6, 2, 0]]
+            [y^4 - 324*y + 2160, [0, 2], 48918708, 216, ..., [36, 36*y, y^3 + 6*y^2 - 252, 6*y^2], [1, 0, 0, 252; 0, 1, 0, 0; 0, 0, 0, 36; 0, 0, 6, -36], [1, 0, 0, 0, 0, 0, -18, 42, 0, -18, -46, -60, 0, 42, -60, -60; 0, 1, 0, 0, 1, 0, 2, 0, 0, 2, -11, -1, 0, 0, -1, 9; 0, 0, 1, 0, 0, 0, 6, 6, 1, 6, -5, 0, 0, 6, 0, 0; 0, 0, 0, 1, 0, 6, -6, -6, 0, -6, -1, 2, 1, -6, 2, 0]]
             sage: pari(k)
             [y^4 - 324*y + 2160, [0, 2], 48918708, 216, ...]
             sage: gp(k)
@@ -7442,7 +7442,7 @@ class NumberField_absolute(NumberField_generic):
             Number Field in b with defining polynomial x^8 + 40*x^6 + 352*x^4 + 960*x^2 + 576
             sage: L = K.optimized_subfields(name='b')
             sage: L[0][0]
-            Number Field in b0 with defining polynomial x - 1
+            Number Field in b0 with defining polynomial x
             sage: L[1][0]
             Number Field in b1 with defining polynomial x^2 - 3*x + 3
             sage: [z[0] for z in L]          # random -- since algorithm is random
@@ -7486,10 +7486,10 @@ class NumberField_absolute(NumberField_generic):
             sage: K.<a> = NumberField(2*x^4 + 6*x^2 + 1/2)
             sage: K.optimized_subfields()
             [
-            (Number Field in a0 with defining polynomial x - 1, Ring morphism:
-              From: Number Field in a0 with defining polynomial x - 1
+            (Number Field in a0 with defining polynomial x, Ring morphism:
+              From: Number Field in a0 with defining polynomial x
               To:   Number Field in a with defining polynomial 2*x^4 + 6*x^2 + 1/2
-              Defn: 1 |--> 1, None),
+              Defn: 0 |--> 0, None),
             (Number Field in a1 with defining polynomial x^2 - 2*x + 2, Ring morphism:
               From: Number Field in a1 with defining polynomial x^2 - 2*x + 2
               To:   Number Field in a with defining polynomial 2*x^4 + 6*x^2 + 1/2

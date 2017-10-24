@@ -1887,7 +1887,7 @@ class VectorFunctor(ConstructionFunctor):
 
     def __eq__(self, other):
         """
-        Only the rank of the to-be-created modules is compared, *not* the inner product matrix.
+        The rank and the inner product matrix are compared.
 
         TESTS::
 
@@ -1895,16 +1895,14 @@ class VectorFunctor(ConstructionFunctor):
             sage: F1 = VectorFunctor(3, inner_product_matrix = Matrix(3,3,range(9)))
             sage: F2 = (ZZ^3).construction()[0]
             sage: F1 == F2
-            True
+            False
             sage: F1(QQ) == F2(QQ)
-            True
-            sage: F1(QQ).inner_product_matrix() == F2(QQ).inner_product_matrix()
             False
             sage: F1 == loads(dumps(F1))
             True
         """
         if isinstance(other, VectorFunctor):
-            return self.n == other.n
+            return (self.n == other.n and self.inner_product_matrix==other.inner_product_matrix)
         return False
 
     def __ne__(self, other):
@@ -1917,9 +1915,9 @@ class VectorFunctor(ConstructionFunctor):
             sage: F1 = VectorFunctor(3, inner_product_matrix = Matrix(3,3,range(9)))
             sage: F2 = (ZZ^3).construction()[0]
             sage: F1 != F2
-            False
+            True
             sage: F1(QQ) != F2(QQ)
-            False
+            True
             sage: F1 != loads(dumps(F1))
             False
         """
@@ -1927,7 +1925,7 @@ class VectorFunctor(ConstructionFunctor):
 
     def merge(self, other):
         """
-        Two constructors of free modules merge, if the module ranks coincide. If both
+        Two constructors of free modules merge, if the module ranks and the inner products coincide. If both
         have explicitly given inner product matrices, they must coincide as well.
 
         EXAMPLES:
@@ -1976,7 +1974,7 @@ class VectorFunctor(ConstructionFunctor):
             [6 7 8]'
 
         """
-        if self != other:
+        if not isinstance(other, VectorFunctor):
             return None
         if self.inner_product_matrix is None:
             return VectorFunctor(self.n, self.is_sparse and other.is_sparse, other.inner_product_matrix)

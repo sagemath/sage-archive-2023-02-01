@@ -310,20 +310,24 @@ def _write_started_file():
     O.close()
 
 
+import warnings
+warnings.filters.remove(('ignore', None, DeprecationWarning, None, 0))
+# Ignore all deprecations from IPython etc.
+warnings.filterwarnings('ignore',
+    module='.*(IPython|ipykernel|jupyter_client|jupyter_core|nbformat|notebook|ipywidgets|storemagic)')
+# Ignore warnings due to matplotlib-1.5 together with numpy-1.13
+warnings.filterwarnings('ignore', module='matplotlib[.]contour|numpy[.]ma[.]core')
+# However, be sure to keep OUR deprecation warnings
+warnings.filterwarnings('default',
+    '[\s\S]*See http://trac.sagemath.org/[0-9]* for details.')
+
+
 # Set a new random number seed as the very last thing
 # (so that printing initial_seed() and using that seed
 # in set_random_seed() will result in the same sequence you got at
 # Sage startup).
 set_random_seed()
 
-import warnings
-warnings.filters.remove(('ignore', None, DeprecationWarning, None, 0))
-# Ignore all deprecations from IPython etc.
-warnings.filterwarnings('ignore',
-    module='.*(IPython|ipykernel|jupyter_client|jupyter_core|nbformat|notebook|ipywidgets|storemagic)')
-# but not those that have OUR deprecation warnings
-warnings.filterwarnings('default',
-    '[\s\S]*See http://trac.sagemath.org/[0-9]* for details.')
 
 # From now on it is ok to resolve lazy imports
 sage.misc.lazy_import.finish_startup()

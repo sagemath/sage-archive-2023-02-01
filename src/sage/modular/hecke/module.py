@@ -508,13 +508,6 @@ class HeckeModule_free_module(HeckeModule_generic):
         HeckeModule_generic.__init__(self, base_ring, level, category=category)
         self.__weight = weight
 
-#    def __cmp__(self, other):
-#        if not isinstance(other, HeckeModule_free_module):
-#            return -1
-#        c = HeckeModule_generic.__cmp__(self, other)
-#        if c: return c
-#        return cmp(self.__weight, other.__weight)
-
 #    def __contains__(self, x):
 #        r"""
 #        Return True if x is an element of self.

@@ -162,8 +162,13 @@ class Rings(CategoryWithAxiom):
                             return True
 
             if self._is_coercion:
-                if self.domain().fraction_field() is self.codomain():
-                    return True
+                try:
+                    K = self.domain().fraction_field()
+                except (TypeError, AttributeError, ValueError):
+                    pass
+                else:
+                    if K is self.codomain():
+                        return True
 
             if self.domain().cardinality() > self.codomain().cardinality():
                 return False

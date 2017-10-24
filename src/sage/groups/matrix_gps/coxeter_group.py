@@ -256,9 +256,9 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
         We check that :trac:`16630` is fixed::
 
             sage: CoxeterGroup(['D',4], base_ring=QQ).category()
-            Category of finite coxeter groups
+            Category of finite irreducible coxeter groups
             sage: CoxeterGroup(['H',4], base_ring=QQbar).category()
-            Category of finite coxeter groups
+            Category of finite irreducible coxeter groups
             sage: F = CoxeterGroups().Finite()
             sage: all(CoxeterGroup([letter,i]) in F
             ....:     for i in range(2,5) for letter in ['A','B','D'])
@@ -266,9 +266,9 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
             sage: all(CoxeterGroup(['E',i]) in F for i in range(6,9))
             True
             sage: CoxeterGroup(['F',4]).category()
-            Category of finite coxeter groups
+            Category of finite irreducible coxeter groups
             sage: CoxeterGroup(['G',2]).category()
-            Category of finite coxeter groups
+            Category of finite irreducible coxeter groups
             sage: all(CoxeterGroup(['H',i]) in F for i in range(3,5))
             True
             sage: all(CoxeterGroup(['I',i]) in F for i in range(2,5))
@@ -318,6 +318,8 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
             category = category.Finite()
         else:
             category = category.Infinite()
+        if self._matrix.is_irreducible():
+            category = category.Irreducible()
         self._index_set_inverse = {i: ii for ii,i in enumerate(self._matrix.index_set())}
         FinitelyGeneratedMatrixGroup_generic.__init__(self, ZZ(n), base_ring,
                                                       gens, category=category)

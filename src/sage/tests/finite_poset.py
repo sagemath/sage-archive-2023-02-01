@@ -95,7 +95,7 @@ def test_attrcall(name, L):
     EXAMPLES::
 
         sage: from sage.tests.finite_poset import test_attrcall
-        sage: N5 = Posets.PentagonPoset()
+        sage: N5 = posets.PentagonPoset()
         sage: N5.is_modular() == test_attrcall('is_modular', N5)
         True
         sage: N5.is_constructible_by_doublings('convex') == test_attrcall('is_doubling_convex', N5)
@@ -140,7 +140,7 @@ def test_finite_lattice(L):
     EXAMPLES::
 
         sage: from sage.tests.finite_poset import test_finite_lattice
-        sage: L = Posets.RandomLattice(10, 0.98)
+        sage: L = posets.RandomLattice(10, 0.98)
         sage: test_finite_lattice(L) is None  # Long time
         True
     """

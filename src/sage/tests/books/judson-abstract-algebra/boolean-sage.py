@@ -71,18 +71,18 @@ r"""
 
 ~~~~~~~~~~~~~~~~~~~~~~ ::
 
-    sage: Q = Posets.PentagonPoset()
+    sage: Q = posets.PentagonPoset()
     sage: Q.plot()   # not tested
     
 
 ~~~~~~~~~~~~~~~~~~~~~~ ::
 
-    sage: S = Posets.BooleanLattice(4)
+    sage: S = posets.BooleanLattice(4)
     sage: S.plot()   # not tested
 
 ~~~~~~~~~~~~~~~~~~~~~~ ::
 
-    sage: T = Posets.RandomPoset(20,0.05)
+    sage: T = posets.RandomPoset(20,0.05)
     sage: T.plot()   # not tested
 
 ~~~~~~~~~~~~~~~~~~~~~~ ::
@@ -176,7 +176,7 @@ r"""
 
 ~~~~~~~~~~~~~~~~~~~~~~ ::
 
-    sage: P = Posets.AntichainPoset(8)
+    sage: P = posets.AntichainPoset(8)
     sage: P.is_lattice()
     False
 
@@ -189,7 +189,7 @@ r"""
 
 ~~~~~~~~~~~~~~~~~~~~~~ ::
 
-    sage: CP = Posets.IntegerCompositions(5)
+    sage: CP = posets.IntegerCompositions(5)
     sage: C = LatticePoset(CP)
     sage: C.plot()   # not tested
 

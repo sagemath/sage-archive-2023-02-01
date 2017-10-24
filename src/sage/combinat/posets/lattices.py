@@ -192,7 +192,7 @@ def MeetSemilattice(data=None, *args, **options):
         ...
         LatticeError: no meet for e and d
     """
-    if isinstance(data, FiniteMeetSemilattice) and len(args) == 0 and len(options) == 0:
+    if isinstance(data, FiniteMeetSemilattice) and not args and not options:
         return data
     P = Poset(data, *args, **options)
     try:
@@ -447,7 +447,7 @@ def JoinSemilattice(data=None, *args, **options):
         ...
         LatticeError: no join for b and c
     """
-    if isinstance(data, FiniteJoinSemilattice) and len(args) == 0 and len(options) == 0:
+    if isinstance(data, FiniteJoinSemilattice) and not args and not options:
         return data
     P = Poset(data, *args, **options)
     try:
@@ -660,7 +660,7 @@ def LatticePoset(data=None, *args, **options):
         Integer Ring
         sage: TestSuite(L).run(skip = ['_test_an_element']) # is_parent_of is not yet implemented
     """
-    if isinstance(data, FiniteLatticePoset) and len(args) == 0 and len(options) == 0:
+    if isinstance(data, FiniteLatticePoset) and not args and not options:
         return data
     P = Poset(data, *args, **options)
     if P.cardinality() != 0:

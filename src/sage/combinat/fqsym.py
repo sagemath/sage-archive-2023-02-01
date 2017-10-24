@@ -30,17 +30,49 @@ class FreeQuasisymmetricFunctions(CombinatorialFreeModule):
     r"""
     The free quasi-symmetric functions.
 
-    Free quasi-symmetric functions form a Hopf algebra over
-    the vector space spanned by the disjoint union of all symmetric
-    groups. This Hopf algebra was introduced in [MR]_. 
+    The Hopf algebra `FQSym` of free quasi-symmetric functions
+    over a commutative ring `R` is the free `R`-module with basis
+    indexed by all permutations (i.e., the indexing set is
+    the disjoint union of all symmetric groups).
+    Its product is determined by the shifted shuffles of two
+    permutations, whereas its coproduct is given by splitting
+    a permutation (regarded as a word) into two (at every
+    possible point) and standardizing the two pieces.
+    This Hopf algebra was introduced in [MR]_.
 
-    As an associative algebra, it has the richer structure of
-    a dendriform algebra. This means that the associative
+    In more detail:
+    For each `n \geq 0`, consider the symmetric group `S_n`.
+    Let `S` be the disjoint union of the `S_n` over all
+    `n \geq 0`.
+    Then, `FQSym` is the free `R`-module with basis
+    `(F_w)_{w \in S}`.
+    This `R`-module is graded, with the `n`-th graded
+    component being spanned by all `F_w` for `w \in S_n`.
+    A multiplication is defined on `FQSym` as follows:
+    For any two permutations `u \in S_k` and `v \in S_l`,
+    we set
+
+    .. MATH::
+
+        F_u F_v = \sum F_w ,
+
+    where the sum is over all shuffles of `u` with `v[k]`.
+    Here, the permutations `u` and `v` are regarded as words
+    (by writing them in one-line notation), and `v[k]` means
+    the word obtained from `v` by increasing each letter by
+    `k` (for example, `(1,4,2,3)[5] = (6,9,7,8)`); and the
+    shuffles `w` are translated back into permutations.
+    This defines an associative multiplication on `FQSym`;
+    its unity is `F_e`, where `e` is the identity
+    permutation in `S_0`.
+
+    As an associative algebra, `FQSym` has the richer structure
+    of a dendriform algebra. This means that the associative
     product `*` is decomposed as a sum of two binary operations
 
     .. MATH::
 
-        x * y = x \succ y + x \prec y
+        x y = x \succ y + x \prec y
 
     that satisfy the axioms:
 
@@ -50,25 +82,38 @@ class FreeQuasisymmetricFunctions(CombinatorialFreeModule):
 
     .. MATH::
 
-        (x \prec y) \prec z = x \prec (y * z).
+        (x \prec y) \prec z = x \prec (y z),
 
     .. MATH::
 
-        (x * y) \succ z = x \succ (y \succ z).
+        (x y) \succ z = x \succ (y \succ z).
 
-    The free quasi-symmetric functions have an explicit
-    description using permutations, just as the free
-    associative algebra can be described using words. The underlying
-    vector space has a basis `F` indexed by permutations. In this basis, the
-    associative product of two permutations `S * T` is the
-    shifted shuffle.
+    These two binary operations are defined similarly to the
+    (associative) product above: We set
 
-    The decomposition of the associative product as the sum of two
-    binary operations `\succ` and
-    `\prec` is made by separating the terms according to the origin of
-    the first letter. For `x \succ y`, one keeps the terms where the
-    first letter comes from `y`, whereas for `x \prec y` one keeps the terms
-    where the first letter comes from `x`.
+    .. MATH::
+
+        F_u \prec F_v = \sum F_w ,
+
+    where the sum is now over all shuffles of `u` with `v[k]`
+    whose first letter is taken from `u` (rather than from
+    `v[k]`). Similarly,
+
+    .. MATH::
+
+        F_u \succ F_v = \sum F_w ,
+
+    where the sum is over all remaining shuffles of `u` with
+    `v[k]`.
+
+    .. TODO::
+
+        Explain what `1 \prec 1` and `1 \succ 1` are.
+
+    .. TODO::
+
+        Doctest all 6 possibilities involving `1` on one
+        side of a `\prec` or `\succ`.
 
     .. NOTE::
 
@@ -82,12 +127,12 @@ class FreeQuasisymmetricFunctions(CombinatorialFreeModule):
         sage: (x * y) * z
         F[[1, 2, 3, 4, 6, 5]] + ...
 
-    The free quasi-symmetric functions product is associative::
+    The product of `FQSym` is associative::
 
         sage: x * (y * z) == (x * y) * z
         True
 
-    The associative product decomposes in two parts::
+    The associative product decomposes into two parts::
 
         sage: x * y == F.prec(x, y) + F.succ(x, y)
         True

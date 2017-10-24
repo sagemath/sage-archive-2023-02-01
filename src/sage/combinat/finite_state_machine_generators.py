@@ -1297,7 +1297,10 @@ class TransducerGenerators(object):
                              % (polynomial_left,))
 
         [r, base_power_K] = list(polynomial_left)
-        K = log(base_power_K, base=base)
+        try:
+            K = log(base_power_K, base=base)
+        except RuntimeError:
+            K = 1
         try:
             K = K.simplify()
         except AttributeError:

@@ -31,6 +31,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     # Implementation of hash function
     cdef long _hash_(self) except -1
+    cdef void get_hash_constants(self, long C[5])
 
     # Cache
     cdef public object _cache
@@ -60,8 +61,3 @@ cdef class Matrix(sage.structure.element.Matrix):
     cdef add_multiple_of_column_c(self, Py_ssize_t i, Py_ssize_t j, s, Py_ssize_t row_start)
     cdef rescale_row_c(self, Py_ssize_t i, s, Py_ssize_t start_col)
     cdef rescale_col_c(self, Py_ssize_t i, s, Py_ssize_t start_row)
-
-
-
-
-

@@ -3,10 +3,6 @@
 """
 This script runs the given command under a file lock (similar to the flock
 command on some systems).
-
-The command may also be a Python module in which case it is run in the same
-Python interpreter as this script (a small optimization to avoid restarting the
-Python interpreter).
 """
 
 # This is originally motivated by pip, but has since been generalized.  We

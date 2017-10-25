@@ -843,7 +843,7 @@ if [ -d "$SAGE_DESTDIR" ]; then
         exit 1
     fi
 
-    # Generate installed filed list
+    # Generate installed file manifest
     FILE_LIST=""
     FIRST=1
     IFS=$'\n'

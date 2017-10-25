@@ -331,7 +331,7 @@ class SageMagics(Magics):
         Cython cell magic
 
         This is syntactic sugar on the
-        :func:`~sage.misc.cython_c.cython` function.
+        :func:`~sage.misc.cython.cython_compile` function.
 
         INPUT:
 
@@ -354,7 +354,7 @@ class SageMagics(Magics):
             ....: ''')
             ....: shell.run_cell('f()')
         """
-        from sage.misc.cython_c import cython_compile
+        from sage.misc.cython import cython_compile
         return cython_compile(cell)
 
     @cell_magic

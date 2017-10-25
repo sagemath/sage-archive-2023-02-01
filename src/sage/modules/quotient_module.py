@@ -69,6 +69,22 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
         sage: Z = V.quotient(W)
         sage: Z == U
         True
+        
+        We create three quotient spaces and compare them::
+
+            sage: A = QQ^2
+            sage: V = A.span_of_basis([[1,0], [1,1]])
+            sage: W0 = V.span([V.1, V.0])
+            sage: W1 = V.span([V.1])
+            sage: W2 = V.span([V.1])
+            sage: Q0 = V/W0
+            sage: Q1 = V/W1
+            sage: Q2 = V/W2
+
+            sage: Q0 == Q1
+            False
+            sage: Q1 == Q2
+            True
 
     TESTS::
 
@@ -181,37 +197,6 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
             -5856620741060301410  # 64-bit
         """
         return self.__hash
-
-    def __eq__(self, other):
-        """
-        Compare ``self`` and ``other``.
-
-        If ``other`` is not a quotient of vector spaces, return ``False``.
-
-        If it is, return comparison of the pair `(V, W)` so that ``self`` is
-        `V/W` for each of ``self`` and ``other``.
-
-        EXAMPLES:
-
-        We create three quotient spaces and compare them::
-
-            sage: A = QQ^2
-            sage: V = A.span_of_basis([[1,0], [1,1]])
-            sage: W0 = V.span([V.1, V.0])
-            sage: W1 = V.span([V.1])
-            sage: W2 = V.span([V.1])
-            sage: Q0 = V/W0
-            sage: Q1 = V/W1
-            sage: Q2 = V/W2
-
-            sage: Q0 == Q1
-            False
-            sage: Q1 == Q2
-            True
-        """
-        if not isinstance(other, FreeModule_ambient_field_quotient):
-            return False
-        return (self.V(), self.W()) == (other.V(), other.W())
 
     def _element_constructor_(self, x):
         """

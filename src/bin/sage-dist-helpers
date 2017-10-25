@@ -11,6 +11,15 @@
 #
 #        command || sdh_die "Command failed"
 #
+#    This function can also (if not given any arguments) read the error message
+#    from stdin.  In particular this is useful in conjunction with a heredoc to
+#    write multi-line error messages:
+#
+#        command || sdh_die << _EOF_
+#        Command failed.
+#        Reason given.
+#        _EOF_
+#
 # - sdh_check_vars [VARIABLE ...]
 #
 #    Check that one or more variables are defined and non-empty, and exit with
@@ -53,7 +62,7 @@ set -o allexport
 _sdh_cols() {
     local cols="${COLUMNS:-$(tput cols 2>/dev/null)}"
     if [ "$?" -ne 0 -o -z "$cols" ]; then
-        # If we can't get the terminal width any other way just default to 90
+        # If we can't get the terminal width any other way just default to 80
         cols=80
     fi
     echo $cols

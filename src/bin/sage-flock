@@ -85,9 +85,9 @@ def main(argv=None):
 
         print("Waiting for {0} lock to run {1} ... ".format(
             kind, ' '.join(pipes.quote(arg) for arg in command)), end='',
-            file=sys.stderr)
+            file=sys.stderr, flush=True)
         fcntl.flock(lock, locktype)
-        print("ok", file=sys.stderr)
+        print("ok", file=sys.stderr, flush=True)
 
     os.execvp(command[0], command)
 

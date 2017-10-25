@@ -73,7 +73,7 @@ class TorsionQuadraticModuleElement(FGP_Element):
 
         OUTPUT:
         
-        -- an element of `\\QQ /m \\ZZ` with `m \\ZZ = b(V,W)` 
+        - an element of `\\QQ /m \\ZZ` with `m \\ZZ = b(V,W)` 
         
         EXAMPLES::
 
@@ -94,11 +94,11 @@ class TorsionQuadraticModuleElement(FGP_Element):
         
         Input:
         
-        -- ``other`` an element of the same torsion quadratic module.
+        - ``other`` an element of the same torsion quadratic module.
         
         Output:
         
-        -- an element of `\\QQ /m \\ZZ` with `m \\ZZ = (V,W)` 
+        - an element of `\\QQ /m \\ZZ` with `m \\ZZ = (V,W)` 
 
         EXAMPLES::
     
@@ -119,7 +119,7 @@ class TorsionQuadraticModuleElement(FGP_Element):
 
         OUTPUT:
 
-        -- an element of `\\QQ /n \\ZZ`
+        - an element of `\\QQ /n \\ZZ`
         
         EXAMPLES::
     
@@ -147,7 +147,7 @@ class TorsionQuadraticModuleElement(FGP_Element):
 
         OUTPUT:
 
-        -- an element of `\\QQ /n \\ZZ` where `n \\ZZ= 2(V,W) +\\ZZ \\{ (w,w) | w \\in W \\}`
+        - an element of `\\QQ /n \\ZZ` where `n \\ZZ= 2(V,W) +\\ZZ \\{ (w,w) | w \\in W \\}`
 
         EXAMPLES::
     
@@ -285,9 +285,9 @@ class TorsionQuadraticModule(FGP_Module_class):
 
         OUTPUT: 
 
-            a rational matrix G with `G_{i,j}` given by the inner product 
-            of the `i`-th and `j`-th generator. Its entries are only well defined
-            `\\mod (V,W)`
+        a rational matrix G with `G_{i,j}` given by the inner product 
+        of the `i`-th and `j`-th generator. Its entries are only well defined
+        `\\mod (V,W)`
         
         EXAMPLES::
     
@@ -313,7 +313,7 @@ class TorsionQuadraticModule(FGP_Module_class):
 
         OUTPUT: 
         
-            a rational matrix ``Gq`` with ``Gq[i,j] = gens[i]*gens[j]`` and ``G[i,i] = gens[i].q()``
+            - a rational matrix ``Gq`` with ``Gq[i,j] = gens[i]*gens[j]`` and ``G[i,i] = gens[i].q()``
 
         EXAMPLES::
 

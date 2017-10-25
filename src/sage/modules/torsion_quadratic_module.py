@@ -184,8 +184,8 @@ class TorsionQuadraticModule(FGP_Module_class):
     - ``V`` -- a FreeModule with a symmetric inner_product_matrix
     - ``W`` -- a submodule of V of the same rank as V
     - ``check`` -- bool (default: True)
-    - ``modulus`` -- a rational number dividing `m` (default: ``m``). The inner product `b` is defined in `\\QQ / modulus\\ZZ`
-    - ``modulus_qf`` -- a rational number dividing `n`(default: ``n``). The quadratic form `q` is defined in `\\QQ /` ``modulus_qf`` `\\ZZ`.
+    - ``modulus`` -- a rational number dividing `m` (default: `m`). The inner product `b` is defined in `\\QQ /` ``modulus`` `\\ZZ`
+    - ``modulus_qf`` -- a rational number dividing `n` (default: `n`). The quadratic form `q` is defined in `\\QQ /` ``modulus_qf`` `\\ZZ`.
 
     EXAMPLES::
 

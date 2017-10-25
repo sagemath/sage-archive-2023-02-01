@@ -5,8 +5,8 @@
 #
 # - sdh_die MESSAGE
 #
-#    If the last command run exited with an error, exit the build script
-#    with the error code of the last command, and print an error message.
+#    Exit the build script with the error code of the last command if it was
+#    non-zero, or with 1 otherwise, and print an error message.
 #    Typically used like:
 #
 #        command || sdh_die "Command failed"
@@ -80,18 +80,23 @@ _sdh_hr() {
 sdh_die() {
     local ret=$?
     local msg
+
+    if [ $ret -ne 0 ]; then
+        # Always return non-zero, but if the last command run returned non-zero
+        # then return its exact error code
+        ret=1
+    fi
+
     if [ $# -gt 0 ]; then
         msg="$*"
     else
         msg="$(cat -)"
     fi
 
-    if [ $ret -ne 0 ]; then
-        _sdh_hr >&2 '*'
-        echo "$msg" | fmt -s -w $(_sdh_cols) >&2
-        _sdh_hr >&2 '*'
-        exit $ret
-    fi
+    _sdh_hr >&2 '*'
+    echo "$msg" | fmt -s -w $(_sdh_cols) >&2
+    _sdh_hr >&2 '*'
+    exit $ret
 }
 
 

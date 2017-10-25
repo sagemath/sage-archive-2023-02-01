@@ -6038,6 +6038,12 @@ cdef class Matrix(Matrix1):
             (0, 0, 1)
             ], 1)]
 
+        TESTS:
+        ::
+            sage: A = Matrix([[0, 1], [-1,0]])
+            sage: A.eigenvectors_right()
+            [(-1*I, [(1, -1*I)], 1), (1*I, [(1, 1*I)], 1)]
+
         """
         x = self.fetch('eigenvectors_left')
         if not x is None:

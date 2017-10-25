@@ -591,8 +591,7 @@ class IntegerVectors(Parent):
 
     .. SEEALSO::
     
-        :mod: `sage.combinat.integer_lists.invlex.IntegerListsLex`.
-
+        :class: `sage.combinat.integer_lists.invlex.IntegerListsLex`.
     """
     @staticmethod
     def __classcall_private__(cls, n=None, k=None, **kwargs):

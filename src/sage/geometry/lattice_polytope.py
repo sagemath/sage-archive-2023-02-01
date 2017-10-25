@@ -560,7 +560,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             False
         """
         return self._contains(point)
-    
+
     def __eq__(self, other):
         r"""
         Compare ``self`` with ``other``.
@@ -755,8 +755,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             constants = (constants[1], constants[0])
         self.is_reflexive.set_cache(all(c == 1 for c in constants))
         if self.is_reflexive():
-            polar = LatticePolytope(
-                normals, compute_vertices=False, lattice=N)
+            polar = LatticePolytope(normals, compute_vertices=False, lattice=N)
             polar.dim.set_cache(self.dim())
             polar.is_reflexive.set_cache(True)
             polar._polar = self
@@ -798,20 +797,17 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         INPUT:
 
-        - ``point`` -- anything. An attempt will be made to convert it into a
-          single element of the ambient space of ``self``. If it fails,
-          ``False`` is returned;
+        - ``point`` -- an attempt will be made to convert it into a
+          single element of the ambient space of ``self``; if it fails,
+          ``False`` is returned
 
-        - ``region`` -- string. Can be either 'whole polytope' (default),
-          'interior', or 'relative interior'.
+        - ``region`` -- string; can be either ``'whole polytope'`` (default),
+          ``'interior'``, or ``'relative interior'``
 
         OUTPUT:
 
         - ``True`` if ``point`` is contained in the specified ``region`` of
-          ``self``, ``False`` otherwise.
-
-        Raises a ``ValueError`` if ``region`` is not one of the
-        three allowed values.
+          ``self``, ``False`` otherwise
 
         TESTS::
 
@@ -822,9 +818,9 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         try:
             point = _ambient_space_point(self, point)
         except TypeError as ex:
-            if str(ex).endswith("have incompatible lattices!"):
+            if str(ex).endswith("have incompatible lattices"):
                 warnings.warn("you have checked if a cone contains a point "
-                              "from an incompatible lattice, this is False!",
+                              "from an incompatible lattice, this is False",
                               stacklevel=3)
             return False
 
@@ -1666,14 +1662,14 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         INPUT:
 
-        - anything. An attempt will be made to convert all arguments into a
-          single element of the ambient space of ``self``. If it fails,
-          ``False`` will be returned.
+        - an attempt will be made to convert all arguments into a
+          single element of the ambient space of ``self``; if it fails,
+          ``False`` will be returned
 
         OUTPUT:
 
         - ``True`` if the given point is contained in ``self``, ``False``
-          otherwise.
+          otherwise
 
         EXAMPLES::
 
@@ -1697,8 +1693,9 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         r"""
         Return the dimension of this polytope.
 
-        EXAMPLES: We create a 3-dimensional octahedron and check its
-        dimension::
+        EXAMPLES:
+
+        We create a 3-dimensional octahedron and check its dimension::
 
             sage: o = lattice_polytope.cross_polytope(3)
             sage: o.dim()
@@ -1763,9 +1760,9 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             [0 2 2 0 1]
             sage: p.distances((1/2, 3, 0))
             (9/2, -3/2, -5/2, 7/2)
-            
+
         This point is not even in the affine subspace of the polytope::
-        
+
             sage: p.distances((1, 1, 1))
             (3, 1, -1, 1)
         """
@@ -2121,24 +2118,24 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
     def facet_constant(self, i):
         r"""
         Return the constant in the ``i``-th facet inequality of this polytope.
-        
-        This is equivalent to ``facet_constants()[i]``
+
+        This is equivalent to ``facet_constants()[i]``.
 
         INPUT:
 
-        - ``i`` - integer, the index of the facet
+        - ``i`` -- integer; the index of the facet
 
         OUTPUT:
 
         - integer -- the constant in the ``i``-th facet inequality.
 
         .. SEEALSO::
-        
+
             :meth:`facet_constants`,
             :meth:`facet_normal`,
             :meth:`facet_normals`,
             :meth:`facets`.
-        
+
         EXAMPLES::
 
             sage: o = lattice_polytope.cross_polytope(3)
@@ -2158,15 +2155,15 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         OUTPUT:
 
-        - an integer vector.
+        - an integer vector
 
         .. SEEALSO::
-        
+
             :meth:`facet_constant`,
             :meth:`facet_normal`,
             :meth:`facet_normals`,
             :meth:`facets`.
-        
+
         EXAMPLES:
 
         For reflexive polytopes all constants are 1::
@@ -2207,23 +2204,23 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         r"""
         Return the inner normal to the ``i``-th facet of this polytope.
 
-        This is equivalent to ``facet_normals()[i]``
+        This is equivalent to ``facet_normals()[i]``.
 
         INPUT:
 
-        - ``i`` -- integer, the index of the facet
+        - ``i`` -- integer; the index of the facet
 
         OUTPUT:
 
         - a vector
-        
+
         .. SEEALSO::
-        
+
             :meth:`facet_constant`,
             :meth:`facet_constants`,
             :meth:`facet_normals`,
             :meth:`facets`.
-        
+
         EXAMPLES::
 
             sage: o = lattice_polytope.cross_polytope(3)
@@ -2247,12 +2244,12 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
           :meth:`dual_lattice` of ``self``.
 
         .. SEEALSO::
-        
+
             :meth:`facet_constant`,
             :meth:`facet_constants`,
             :meth:`facet_normal`,
             :meth:`facets`.
-        
+
         EXAMPLES:
 
         Normals to facets of an octahedron are vertices of a cube::

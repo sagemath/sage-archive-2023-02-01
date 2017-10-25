@@ -510,16 +510,16 @@ def _ambient_space_point(body, data):
     Try to convert ``data`` to a point of the ambient space of ``body``.
 
     INPUT:
-    
-    - ``body`` -- a cone, fan, or lattice polytope with ``lattice()`` method.
 
-    - ``data`` -- anything.
+    - ``body`` -- a cone, fan, or lattice polytope with ``lattice()`` method
+
+    - ``data`` -- anything
 
     OUTPUT:
 
     - integral, rational or numeric point of the ambient space of ``body``
       if ``data`` were successfully interpreted in such a way, otherwise a
-      ``TypeError`` exception is raised.
+      ``TypeError`` exception is raised
 
     TESTS::
 
@@ -531,7 +531,7 @@ def _ambient_space_point(body, data):
         Traceback (most recent call last):
         ...
         TypeError: the point M(1, 1) and
-        2-d cone in 2-d lattice N have incompatible lattices!
+         2-d cone in 2-d lattice N have incompatible lattices
         sage: _ambient_space_point(c, [1,1/3])
         (1, 1/3)
         sage: _ambient_space_point(c, [1/2,1/sqrt(3)])
@@ -540,7 +540,7 @@ def _ambient_space_point(body, data):
         Traceback (most recent call last):
         ...
         TypeError: [1, 1, 3] does not represent a valid point
-        in the ambient space of 2-d cone in 2-d lattice N!
+         in the ambient space of 2-d cone in 2-d lattice N
     """
     L = body.lattice()
     try: # to make a lattice element...
@@ -549,7 +549,7 @@ def _ambient_space_point(body, data):
         # Special treatment for toric lattice elements
         if is_ToricLattice(parent(data)):
             raise TypeError("the point %s and %s have incompatible "
-                            "lattices!" % (data, body))
+                            "lattices" % (data, body))
     try: # ... or an exact point...
         return L.base_extend(QQ)(data)
     except TypeError:
@@ -560,7 +560,7 @@ def _ambient_space_point(body, data):
         pass
     # Raise TypeError with our own message
     raise TypeError("%s does not represent a valid point in the ambient "
-                    "space of %s!" % (data, body))
+                    "space of %s" % (data, body))
 
 
 def integral_length(v):
@@ -569,9 +569,11 @@ def integral_length(v):
 
     INPUT:
 
-    -  ``v`` - any object which can be converted to a list of rationals
+    - ``v`` -- any object which can be converted to a list of rationals
 
-    OUTPUT: Rational number ``r`` such that ``v = r u``, where ``u`` is the
+    OUTPUT:
+
+    Rational number `r`` such that ``v = r * u``, where ``u`` is the
     primitive integral vector in the direction of ``v``.
 
     EXAMPLES::

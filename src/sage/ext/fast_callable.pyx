@@ -1970,7 +1970,7 @@ cdef class InstructionStream:
 
         - metadata -- The metadata_by_opname from a wrapper module
 
-        - n_args - The number of arguments accessible by the generated code
+        - n_args -- The number of arguments accessible by the generated code
           (this is just passed to the wrapper class)
 
         - domain -- The domain of interpretation (this is just passed to the

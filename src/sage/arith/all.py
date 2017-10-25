@@ -20,7 +20,7 @@ from .misc import (algdep, bernoulli, is_prime, is_prime_power,
     fundamental_discriminant, squarefree_divisors,
     Sigma, radical, Euler_Phi, binomial_coefficients, jacobi_symbol,
     Moebius, dedekind_sum,
-    prime_factors, prime_range, valuation)
+    prime_factors, prime_range, valuation, S_hilbert_symbol)
 
 from .functions import lcm
 LCM = lcm

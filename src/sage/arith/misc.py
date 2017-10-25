@@ -19,7 +19,7 @@ from six import integer_types
 
 import math
 
-from sage.misc.misc import powerset
+from sage.misc.misc import powerset, get_verbose
 from sage.misc.misc_c import prod
 
 from sage.libs.pari.all import pari
@@ -4008,6 +4008,242 @@ def hilbert_symbol(a, b, p, algorithm="pari"):
     else:
         raise ValueError("Algorithm %s not defined"%algorithm)
 
+def S_hilbert_symbol(S,b):
+    """
+    Returns an integer that has a negative Hilbert symbol with respect
+    to a given rational number and a given set of primes.
+
+    The function is algorithm 3.4.1 in Markus Kirschmer's "Definite quadratic
+    and hermitian forms with small class number." It finds an integer a that
+    has a negative Hilbert symbol with respect to a given rational number
+    and set of primes.
+
+    INPUT:
+
+    - ``S`` - a list of rational primes including the infinite place as -1.
+
+    - ``b`` - a non-zero rational number whihch is a non-square locally
+              at every prime in S.
+
+    OUTPUT:
+
+    - An integer that has negative Hilbert symbol (*,b)_p for
+      every p in ``S``.
+
+    EXAMPLES::
+
+    These examples show possible error messages.
+
+        sage: S_hilbert_symbol(5,-2)
+        Traceback (most recent call last):
+        ...
+        TypeError: First argument must be a list
+
+    ::
+
+        sage: S_hilbert_symbol([1,3],0)
+        Traceback (most recent call last):
+        ...
+        ValueError: Second argument must be nonzero
+
+    ::
+
+        sage: S_hilbert_symbol([-1,3,5],2)
+        Traceback (most recent call last):
+        ...
+        ValueError: The list should be of even cardinality
+
+    ::
+
+        sage: S_hilbert_symbol([1,3],2)
+        Traceback (most recent call last):
+        ...
+        ValueError: All entries in list must be prime or -1 for
+        infinite place
+
+    ::
+
+        sage: S_hilbert_symbol([5,7],2)
+        Traceback (most recent call last):
+        ...
+        ValueError: Second argument must be a nonsquare with
+        respect to every finite prime in the list
+
+    ::
+
+        sage: S_hilbert_symbol([1,3],sqrt(2))
+        Traceback (most recent call last):
+        ...
+        TypeError: Second argument must be a rational number
+
+    ::
+
+        sage: S_hilbert_symbol([-1,3],2)
+        Traceback (most recent call last):
+        ...
+        ValueError: If infinite place is in the list, second argument
+        must be negative
+
+    These are working examples.
+
+        sage: S_hilbert_symbol([-1,5,3,2,7,11,13,23],-10/7)
+        -9867
+
+    In the following examples, the value -1 is being added into the
+    list of relevant primes at a different point in the algorithm.
+    To see this use set_verbose(1) or set_verbose(2).
+
+        sage: S_hilbert_symbol([3,5],-7)
+        15
+        sage: S_hilbert_symbol([3,5],2)
+        15
+
+    ::
+
+        sage: S_hilbert_symbol([-1,5,3,2,7,11,13,23],-10/7)
+        -9867
+
+    AUTHORS:
+
+    - Juanita Duque, Anna Haensch, Manami Roy, Sandi Rudzinski (10-24-2017)
+
+    """
+    from copy import deepcopy
+    from sage.misc.misc import get_verbose
+    from sage.rings.rational_field import QQ
+    from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
+    from sage.rings.rational import Rational
+    from sage.rings.padics.factory import Qp
+    from sage.modules.free_module import VectorSpace
+    from sage.modules.free_module_element import vector
+    from sage.matrix.constructor import matrix
+
+    #-1 is used for the infinite place
+    infty = -1
+    #Error-checking code
+    if not type(S) is list:
+        raise TypeError( "First argument must be a list")
+    if not b in QQ:
+        raise TypeError("Second argument must be a rational number")
+    if b == 0:
+        raise ValueError("Second argument must be nonzero")
+    if len(S) % 2 != 0:
+        raise ValueError("The list should be of even cardinality")
+    for p in S:
+        if p != infty:
+            if not is_prime(p):
+                err = "All entries in list must be prime"
+                err = err + " or -1 for infinite place"
+                raise ValueError(err)
+            R = Qp(p)
+            if R(b).is_square():
+                err = "Second argument must be a nonsquare with respect"
+                err = err + " to every finite prime in the list"
+                raise ValueError(err)
+        elif b > 0:
+            err = "If infinite place is in the list, "
+            err = err + "second argument must be negative"
+            raise ValueError(err)
+
+    #L is the list of primes that we need to consider, b must have
+    #nonzero valuation for each prime in L, this is the set S'
+    #in Kirschmer's algorithm
+    L = [];
+    bFactor = QQ(b).factor()
+    for i in range(len(bFactor)):
+        if bFactor[i][0] not in S:
+            L.append(bFactor[i][0])
+    #We must also consider 2 to be in L
+    if 2 not in L and 2 not in S:
+        L.append(2)
+    #This adds the infinite place to L
+    if b < 0 and infty not in S:
+        L.append(infty)
+    #Printing more information if get_verbose() is greater than zero
+    #if get_verbose() > 0:
+    #    print "You have chosen the following list of primes "
+    #    print repr(S)
+    #    print "The set S' from the algorithm is ", L, "\n"
+
+    P = S+L
+    #This constructs the vector v in the algorithm. This is the vector
+    #that we are searching for. It represents the case when the Hilbert
+    #symbol is negative for all primes in S and positive
+    #at all primes in S'
+    v = []
+    for i in range(len(S)):
+        v.append(1)
+    for i in range(len(L)):
+        v.append(0)
+
+    #if get_verbose() > 0:
+    #    print "We get the following vector v from in the algorithm "
+    #    print "(we changed -1-> 1, 1-> 0): ", v
+    #    print "---------------------------------- "
+
+    #a will be the output of the algorithm
+    a = 1
+    #We will search through all the primes
+    q = 1
+    notfound = True
+    while notfound:
+        q = next_prime(q)
+        #Only look at this prime if it is not in our list
+        if q not in P:
+            #Setup
+            Pq = deepcopy(P)
+            Pq.append(q)
+            H = []
+            HH = []
+            PP = []
+            #-1 may be in the list as the infinite place, here it
+            #represents the generator of the group of units of
+            #the integers
+            if -1 not in Pq:
+                Pq.append(-1)
+            #Compute the map phi of Hilbert symbols at all the primes
+            #in S and S'
+            #For technical reasons, a Hilbert symbol of -1 is
+            #respresented as 1 and a Hilbert symbol of 1
+            #is represented as 0
+            for j in Pq:
+                Hj = []
+                for i in P:
+                    h = hilbert_symbol(j,b,i)
+                    if h == 1:
+                        Hj.append(0)
+                    else:
+                        Hj.append(1)
+                PP.append(j)
+                HH.append(Hj)
+            H.append(HH)
+            H.append(PP)
+            #if get_verbose() > 0:
+            #    print "In the following list, the first list is"
+            #    print "[\phi(g1),...\phi(gf)] and "
+            #    print "second list is [g1,..gf] from the algorithm"
+            #    print H
+
+            #The algorithm terminates when the vector v is in the
+            #subspace of V generated by the image of the phi map
+            #on the set of generators
+            V = VectorSpace(GF(2), len(P))
+            M = matrix(GF(2), H[0])
+            W = V.subspace(H[0])
+            vv = vector(GF(2), v)
+            if vv in W:
+                notfound = False
+    #if get_verbose() > 0:
+    #    print "The step 9 of the algorithm is satisfied i.e., "
+    #    print "v is in our subspace\n"
+    l = (M.transpose()).solve_right(vv)
+    for i in range(len(l)):
+        if l[i] == 1:
+            a = a * H[1][i]
+    #if get_verbose() > 0:
+    #    print "Our final output of the algorithm for prime ", q
+    #    print " is ", a
+    return  a
 
 def hilbert_conductor(a, b):
     """

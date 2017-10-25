@@ -10,9 +10,6 @@ command on some systems).
 # to race conditions. This script runs pip under a lock.  For details, see
 # https://trac.sagemath.org/ticket/21672
 
-from __future__ import print_function
-
-
 import argparse
 import fcntl
 import os
@@ -83,11 +80,12 @@ def main(argv=None):
         else:
             kind = "exclusive"
 
-        print("Waiting for {0} lock to run {1} ... ".format(
-            kind, ' '.join(pipes.quote(arg) for arg in command)), end='',
-            file=sys.stderr, flush=True)
+        sys.stderr.write("Waiting for {0} lock to run {1} ... ".format(
+            kind, ' '.join(pipes.quote(arg) for arg in command)))
+        sys.stderr.flush()
         fcntl.flock(lock, locktype)
-        print("ok", file=sys.stderr, flush=True)
+        sys.stderr.write("ok\n")
+        sys.stderr.flush()
 
     os.execvp(command[0], command)
 

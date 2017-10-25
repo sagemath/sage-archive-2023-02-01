@@ -21,6 +21,7 @@
 #      SAGE_ROOT      -- root directory of sage install
 #      SAGE_LOCAL     -- $SAGE_ROOT/local
 #      SAGE_DISTFILES -- directory that stores upstream tarballs
+#      SAGE_DESTDIR   -- temporary root the package will be installed to
 #      PKG_BASE       -- the base name of the package itself (e.g. 'patch')
 #      PKG_VER        -- the version number of the package
 #      PKG_NAME       -- $PKG_BASE-$PKG_VER
@@ -804,6 +805,10 @@ export rsync_proxy=$http_proxy
 # Actually install
 ##################################################################
 
+# Set the $SAGE_DESTDIR variable to be passed to the spkg-install
+# script (the script itself could set this, but better to standardize
+# this in one place)
+export SAGE_DESTDIR="$(pwd)/inst"
 
 if [ -f spkg-build ]; then
     # Package has both spkg-build and spkg-install; execute the latter with SAGE_SUDO
@@ -826,6 +831,42 @@ else
     fi
 fi
 
+# All spkgs should eventually support this, but fall back on old behavior in
+# case DESTDIR=$SAGE_DESTDIR installation was not used
+echo "Copying package files from temporary location $SAGE_DESTDIR to $SAGE_LOCAL"
+if [ -d "$SAGE_DESTDIR" ]; then
+    PREFIX="${SAGE_DESTDIR}${SAGE_LOCAL%/}/"
+
+    rm -f "$PREFIX"lib/*.la
+    if [ $? -ne 0 ]; then
+        error_msg "Error deleting unnecessary libtool archive files"
+        exit 1
+    fi
+
+    # Generate installed filed list
+    FILE_LIST=""
+    FIRST=1
+    IFS=$'\n'
+    for filename in $(find "$PREFIX" -type f -o -type l | sort); do
+        filename="${filename#$PREFIX}"
+        if [ $FIRST -eq 1 ]; then
+            FILE_LIST="\"$filename\""
+            FIRST=0
+        else
+            FILE_LIST="${FILE_LIST},"$'\n        '"\"${filename}\""
+        fi
+        # Copy file from the temp install path into $SAGE_LOCAL
+        if [ ! -d "$SAGE_LOCAL/$(dirname "$filename")" ]; then
+            mkdir -p "$SAGE_LOCAL/$(dirname "$filename")"
+        fi
+        cp -a "$PREFIX$filename" "${SAGE_LOCAL%/}/$filename"
+        if [ $? -ne 0 ]; then
+            error_msg "Error copying files for $PKG_BASE."
+            exit 1
+        fi
+    done
+fi
+
 if [ "$UNAME" = "CYGWIN" ]; then
     # Rebase after installing each package--in case any packages load this
     # package at build time we need to ensure during the build that no binaries
@@ -834,7 +875,11 @@ if [ "$UNAME" = "CYGWIN" ]; then
         sage-rebase.sh "$SAGE_LOCAL" 2>/dev/null
 fi
 
-echo "Successfully installed $PKG_NAME"
+
+# Note: spkg-check tests are run after the package has been copied into
+# SAGE_LOCAL.  It might make more sense to run the tests before, but the
+# spkg-check scripts were written before use of DESTDIR installs, and so
+# fail in many cases.  This might be good to change later.
 
 if [ "$SAGE_CHECK" = "yes" ]; then
     if [ -f spkg-check ]; then
@@ -851,11 +896,6 @@ if [ "$SAGE_CHECK" = "yes" ]; then
     fi
 fi
 
-rm -f "$SAGE_LOCAL"/lib/*.la
-if [ $? -ne 0 ]; then
-    error_msg "Error deleting unnecessary libtool archive files"
-    exit 1
-fi
 
 # Mark that the new package has been installed (and tested, if
 # applicable).
@@ -867,9 +907,15 @@ cat > "$PKG_NAME_INSTALLED" << __EOF__
     "install_date": "$(date)",
     "system_uname": "$(uname -a)",
     "sage_version": "$(cat "${SAGE_ROOT}/VERSION.txt")",
-    "test_result": "$TEST_SUITE_RESULT"
+    "test_result": "$TEST_SUITE_RESULT",
+    "files": [
+        $FILE_LIST
+    ]
 }
 __EOF__
+
+
+echo "Successfully installed $PKG_NAME"
 
 
 ##################################################################

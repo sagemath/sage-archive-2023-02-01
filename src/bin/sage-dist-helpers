@@ -45,8 +45,9 @@
 #
 # - sdh_make_install [...]
 #
-#    Runs `$SAGE_SUDO $MAKE install`.  Additional arguments to `make` may be
-#    given as arguments.
+#    Runs `$SAGE_SUDO $MAKE install` with DESTDIR correctly set to a temporary
+#    install directory, for staged installations.  Additional arguments to
+#    `make` may be given as arguments.
 #
 # - sdh_pip_install [...]
 #
@@ -131,7 +132,7 @@ sdh_make() {
 
 sdh_make_install() {
     echo "Installing $PKG_NAME"
-    $SAGE_SUDO ${MAKE:-make} install "$@" || \
+    $SAGE_SUDO ${MAKE:-make} install DESTDIR="$SAGE_DESTDIR" "$@" || \
         sdh_die "Error installing $PKG_NAME"
 }
 

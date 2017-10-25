@@ -409,6 +409,13 @@ AC_CACHE_CHECK([for curl], [ac_cv_path_CURL], [
 # Check header files
 ###############################################################################
 
+# If (lib)curl is installed, we need to check for the curl header
+# file, too.
+if test $need_to_install_curl = no;
+then
+    AC_CHECK_HEADER([curl/curl.h],[],[need_to_install_curl=yes; ac_cv_path_CURL=no])
+fi
+
 # complex.h is one that might not exist on older systems.
 AC_LANG(C++)
 AC_CHECK_HEADER([complex.h],[],[

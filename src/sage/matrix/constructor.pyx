@@ -559,11 +559,6 @@ class MatrixFactory(object):
         sage: matrix(A, ring=QQ)
         [0 1]
         [2 3]
-        sage: matrix(A, QQ)
-        doctest:...: DeprecationWarning: when constructing a matrix, the ring must be the first argument
-        See http://trac.sagemath.org/20015 for details.
-        [0 1]
-        [2 3]
 
     A redundant ``ring`` argument::
 
@@ -600,12 +595,6 @@ class MatrixFactory(object):
     """
     def __call__(self, *Args, ring=None, nrows=None, ncols=None, sparse=None):
         cdef list args = list(Args)
-
-        # Check for deprecated (matrixable object, ring) argument
-        if len(args) == 2 and hasattr(args[0], '_matrix_'):
-            from sage.misc.superseded import deprecation
-            deprecation(20015, "when constructing a matrix, the ring must be the first argument")
-            args = [args[1], args[0]]
 
         # ring argument
         if ring is None and args and is_Ring(args[0]):

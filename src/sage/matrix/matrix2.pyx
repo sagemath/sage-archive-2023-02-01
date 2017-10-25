@@ -148,8 +148,7 @@ cdef class Matrix(Matrix1):
         If self is a matrix `A`, then this function returns a
         vector or matrix `X` such that `X A = B`. If
         `B` is a vector then `X` is a vector and if
-        `B` is a matrix, then `X` is a matrix. 
-        If the number of columns on the left and right hand sides is different it raises the error message 'number of columns                    of self must equal number of columns of B'
+        `B` is a matrix, then `X` is a matrix.
 
         INPUT:
 
@@ -158,7 +157,7 @@ cdef class Matrix(Matrix1):
 
         -  ``check`` - bool (default: True) - if False and self
            is nonsquare, may not raise an error message even if there is no
-           solution. This is faster but more dangerous. 
+           solution. This is faster but more dangerous.
 
 
         EXAMPLES::

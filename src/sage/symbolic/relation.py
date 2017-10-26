@@ -695,7 +695,7 @@ def solve(f, *args, **kwds):
     be implicitly an integer (hence the ``z``)::
 
         sage: solve([cos(x)*sin(x) == 1/2, x+y == 0],x,y)
-        [[x == 1/4*pi + pi*z79, y == -1/4*pi - pi*z79]]
+        [[x == 1/4*pi + pi*z..., y == -1/4*pi - pi*z...]]
 
     Expressions which are not equations are assumed to be set equal
     to zero, as with `x` in the following example::
@@ -791,7 +791,10 @@ def solve(f, *args, **kwds):
         sage: solve([a+b+a*b == 1], a)
         Traceback (most recent call last):
         ...
-        TypeError: The first argument to solve() should be a symbolic expression or a list of symbolic expressions, cannot handle <... 'bool'>
+        TypeError: a is not a valid variable.
+        sage: a,b = var('a,b')
+        sage: solve([a+b+a*b == 1], a)
+        [a == -(b - 1)/(b + 1)]
         sage: solve([a, b], (1, a))
         Traceback (most recent call last):
         ...
@@ -799,7 +802,7 @@ def solve(f, *args, **kwds):
         sage: solve([x == 1], (1, a))
         Traceback (most recent call last):
         ...
-        TypeError: (1, a) are not valid variables.
+        TypeError: 1 is not a valid variable.
 
     Test that the original version of a system in the French Sage book
     now works (:trac:`14306`)::
@@ -809,10 +812,155 @@ def solve(f, *args, **kwds):
         sage: solve([x^2 * y * z == 18, x * y^3 * z == 24, x * y * z^4 == 6], x, y, z)
         [[x == 3, y == 2, z == 1], [x == (1.337215067... - 2.685489874...*I), y == (-1.700434271... + 1.052864325...*I), z == (0.9324722294... - 0.3612416661...*I)], ...]
     """
-    from sage.symbolic.expression import is_Expression
+    from sage.symbolic.ring import is_SymbolicVariable
+    from sage.symbolic.expression import Expression, is_Expression
+    explicit_solutions = kwds.get('explicit_solutions', None)
+    multiplicities = kwds.get('multiplicities', None)
+    to_poly_solve = kwds.get('to_poly_solve', None)
+    solution_dict = kwds.get('solution_dict', False)
+    
+    if len(args) > 1:
+        x = args
+    else:
+        x = args[0]
+    if isinstance(x, (list, tuple)):
+        for i in x:
+            if not isinstance(i, Expression):
+                raise TypeError("%s is not a valid variable." % repr(i))
+    elif x is None:
+        vars = f.variables()
+        if len(vars) == 0:
+            if multiplicities:
+                return [], []
+            else:
+                return []
+        x = vars[0]
+    elif not isinstance(x, Expression):
+        raise TypeError("%s is not a valid variable." % repr(x))
+
     if is_Expression(f): # f is a single expression
-        ans = f.solve(*args,**kwds)
-        return ans
+        if f.is_relational():
+            if f.operator() is not operator.eq:
+                try:
+                    return(solve_ineq(f)) # trying solve_ineq_univar
+                except Exception:
+                    pass
+                try:
+                    return(solve_ineq([f])) # trying solve_ineq_fourier
+                except Exception:
+                    raise NotImplementedError("solving only implemented for equalities and few special inequalities, see solve_ineq")
+            ex = f
+        else:
+            ex = (f == 0)
+
+        if multiplicities and to_poly_solve:
+            raise NotImplementedError("to_poly_solve does not return multiplicities")
+        # check if all variables are assumed integer;
+        # if so, we have a Diophantine
+        def has_integer_assumption(v):
+            from sage.symbolic.assumptions import assumptions, GenericDeclaration
+            alist = assumptions()
+            return any(isinstance(a, GenericDeclaration) and a.has(v) and
+                       a._assumption in ['even','odd','integer','integervalued']
+                for a in alist)
+        if len(ex.variables()) and all(has_integer_assumption(var) for var in ex.variables()):
+            return f.solve_diophantine(x, solution_dict=solution_dict)
+
+        # from here on, maxima is used for solution
+        m = ex._maxima_()
+        P = m.parent()
+        if explicit_solutions:
+            P.eval('solveexplicit: true') # switches Maxima to looking for only explicit solutions
+        try:
+            if to_poly_solve != 'force':
+                s = m.solve(x).str()
+            else: # omit Maxima's solve command
+                s = str([])
+        except TypeError as mess: # if Maxima's solve has an error, we catch it
+            if "Error executing code in Maxima" in str(mess):
+                s = str([])
+            else:
+                raise
+        if explicit_solutions:
+            P.eval('solveexplicit: false') # switches Maxima back to default
+
+        if s == 'all':
+            if solution_dict:
+                ans = [ {x: f.parent().var('r1')} ]
+            else:
+                ans = [x == f.parent().var('r1')]
+            if multiplicities:
+                return ans,[]
+            else:
+                return ans
+
+        X = string_to_list_of_solutions(s) # our initial list of solutions
+
+        if multiplicities: # to_poly_solve does not return multiplicities, so in this case we end here
+            if len(X) == 0:
+                return X, []
+            else:
+                ret_multiplicities = [int(e) for e in str(P.get('multiplicities'))[1:-1].split(',')]
+
+        ########################################################
+        # Maxima's to_poly_solver package converts difficult   #
+        # equations to (quasi)-polynomial systems and uses     #
+        # Maxima's algsys function to try to solve them.       #
+        # This allows a much larger range of solved equations, #
+        # but also allows for the possibility of approximate   #
+        # solutions being returned.                            #
+        ########################################################
+        if to_poly_solve:
+            if len(X) == 0:
+                # Maxima's solve gave no solutions
+                solutions_so_far = [ex]
+                ignore_exceptions = True
+            else:
+                solutions_so_far = X
+                ignore_exceptions = False
+            X = []
+            for eq in solutions_so_far:
+                if eq.lhs().is_symbol() and (eq.lhs() == x) and (x not in eq.rhs().variables()):
+                    X.append(eq)
+                    continue
+                try:
+                    m = eq._maxima_()
+                    s = m.to_poly_solve(x, options='algexact:true')
+                    T = string_to_list_of_solutions(repr(s))
+                    X.extend([t[0] for t in T])
+                except TypeError as mess:
+                    if ignore_exceptions:
+                        continue
+                    elif "Error executing code in Maxima" in str(mess) or \
+                         "unable to make sense of Maxima expression" in \
+                         str(mess):
+                        if not explicit_solutions:
+                            X.append(eq) # we keep this implicit solution
+                    else:
+                        raise
+
+        # make sure all the assumptions are satisfied
+        from sage.symbolic.assumptions import assumptions
+        to_check = assumptions()
+        if to_check:
+            for ix, soln in reversed(list(enumerate(X))):
+                if soln.lhs().is_symbol():
+                    if any([a.contradicts(soln) for a in to_check]):
+                        del X[ix]
+                        if multiplicities:
+                            del ret_multiplicities[ix]
+                        continue
+
+        if solution_dict:
+            if isinstance(x, (list, tuple)):
+                X = [{sol.left():sol.right() for sol in b} for b in X]
+            else:
+                X = [dict([[sol.left(),sol.right()]]) for sol in X]
+
+        if multiplicities:
+            return X, ret_multiplicities
+        else:
+            return X
 
     if not isinstance(f, (list, tuple)):
         raise TypeError("The first argument must be a symbolic expression or a list of symbolic expressions.")
@@ -821,21 +969,20 @@ def solve(f, *args, **kwds):
         # f is a list with a single element
         if is_Expression(f[0]):
             # if its a symbolic expression call solve method of this expression
-            return f[0].solve(*args,**kwds)
+            return solve(f[0], *args, **kwds)
         # otherwise complain
         raise TypeError("The first argument to solve() should be a symbolic "
                         "expression or a list of symbolic expressions, "
                         "cannot handle %s"%repr(type(f[0])))
 
     # f is a list of such expressions or equations
-    from sage.symbolic.ring import is_SymbolicVariable
 
     if len(args)==0:
         raise TypeError("Please input variables to solve for.")
-    if is_SymbolicVariable(args[0]):
+    if is_SymbolicVariable(x):
         variables = args
     else:
-        variables = tuple(args[0])
+        variables = tuple(x)
 
     for v in variables:
         if not is_SymbolicVariable(v):
@@ -878,7 +1025,7 @@ def solve(f, *args, **kwds):
     sol_list = string_to_list_of_solutions(repr(s))
 
     # Relaxed form suggested by Mike Hansen (#8553):
-    if kwds.get('solution_dict', False):
+    if kwds.get('solution_dict', None):
         if len(sol_list)==0: # fixes IndexError on empty solution list (#8553)
             return []
         if isinstance(sol_list[0], list):

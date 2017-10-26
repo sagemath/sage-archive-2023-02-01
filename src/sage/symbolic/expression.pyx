@@ -3833,6 +3833,21 @@ cdef class Expression(CommutativeRingElement):
             sage: x^sin(x)^cos(y)
             x^(sin(x)^cos(y))
 
+        Immediate simplifications are applied::
+
+            sage: x = SR.symbol('x', domain='real')
+            sage: (x^3)^(1/3)
+            (x^3)^(1/3)
+            sage: (x^4)^(1/4)
+            abs(x)
+            sage: (x^8)^(1/4)
+            x^2
+            sage: (x^-4)^(1/4)
+            1/abs(x)
+            sage: (x^-8)^(1/4)
+            x^(-2)
+            sage: forget()
+
         TESTS::
 
             sage: (Mod(2,7)*x^2 + Mod(2,7))^7
@@ -7845,6 +7860,33 @@ cdef class Expression(CommutativeRingElement):
             sqrt(x^2 + y^2)
             sage: (x^2).sqrt()
             sqrt(x^2)
+
+        Immediate simplifications are applied::
+
+            sage: sqrt(x^2)
+            sqrt(x^2)
+            sage: x = SR.symbol('x', domain='real')
+            sage: sqrt(x^2)
+            abs(x)
+            sage: forget()
+            sage: assume(x<0)
+            sage: sqrt(x^2)
+            -x
+            sage: sqrt(x^4)
+            x^2
+            sage: forget()
+            sage: x = SR.symbol('x', domain='real')
+            sage: sqrt(x^4)
+            x^2
+            sage: sqrt(sin(x)^2)
+            abs(sin(x))
+            sage: sqrt((x+1)^2)
+            abs(x + 1)
+            sage: forget()
+            sage: assume(x<0)
+            sage: sqrt((x-1)^2)
+            -x + 1
+            sage: forget()
 
         Using the ``hold`` parameter it is possible to prevent automatic
         evaluation::

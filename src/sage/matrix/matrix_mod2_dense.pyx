@@ -102,7 +102,7 @@ TESTS::
 from __future__ import absolute_import
 
 from cysignals.memory cimport check_malloc, sig_free
-from cysignals.signals cimport sig_check, sig_on, sig_off
+from cysignals.signals cimport sig_check, sig_on, sig_str, sig_off
 
 from collections import Iterator, Sequence
 cimport sage.matrix.matrix_dense as matrix_dense
@@ -134,26 +134,15 @@ cdef extern from "gd.h":
     void gdImageFilledRectangle(gdImagePtr im, int x1, int y1, int x2, int y2, int color)
     void gdFree(void *m)
 
-## from sage.libs.linbox.linbox cimport Linbox_mod2_dense
-## cdef Linbox_mod2_dense linbox
-## linbox = Linbox_mod2_dense()
 
-cdef object called
-
-cdef void init_m4ri():
-    global called
-    if called is None:
-        m4ri_build_all_codes()
-        called = True
-
-init_m4ri()
+# Construct global Gray code tables
+m4ri_build_all_codes()
 
 def free_m4ri():
     """
     Free global Gray code tables.
     """
     m4ri_destroy_all_codes()
-
 
 
 cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
@@ -184,15 +173,42 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [0 1 0]
             [0 0 1]
 
+        TESTS:
+
         See :trac:`10858`::
 
             sage: matrix(GF(2),0,[]) * vector(GF(2),0,[])
             ()
+
+        Large matrices fail gracefully::
+
+            sage: MatrixSpace(GF(2), 2^30)(1)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: matrix allocation failed
+            sage: MatrixSpace(GF(2), 1, 2^40).zero()
+            Traceback (most recent call last):
+            ...
+            OverflowError: ...
+            sage: MatrixSpace(GF(2), 2^40, 1).zero()
+            Traceback (most recent call last):
+            ...
+            OverflowError: ...
         """
         matrix_dense.Matrix_dense.__init__(self, parent)
 
-        if alloc:
-            self._entries = mzd_init(self._nrows, self._ncols)
+        # m4ri assumes that nrows and ncols are of type rci_t:
+        # check for overflow
+        cdef rci_t rci_nrows = self._nrows
+        cdef rci_t rci_ncols = self._ncols
+        if <Py_ssize_t>(rci_nrows) != self._nrows:
+            raise OverflowError(f"matrices with {self._nrows} rows over {parent.base()} are not supported")
+        if <Py_ssize_t>(rci_ncols) != self._ncols:
+            raise OverflowError(f"matrices with {self._ncols} columns over {parent.base()} are not supported")
+
+        sig_str("matrix allocation failed")
+        self._entries = mzd_init(self._nrows, self._ncols)
+        sig_off()
 
         # cache elements
         self._zero = self._base_ring(0)
@@ -650,6 +666,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if not self.ncols():
             return VS.zero()
         cdef Vector_mod2_dense c = Vector_mod2_dense.__new__(Vector_mod2_dense)
+        sig_str("matrix allocation failed")
         c._init(self._nrows, VS)
         c._entries = mzd_init(1, self._nrows)
         if c._entries.nrows and c._entries.ncols:
@@ -657,6 +674,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             _mzd_mul_naive(tmp, self._entries, (<Vector_mod2_dense>v)._entries, 0)
             mzd_transpose(c._entries, tmp)
             mzd_free(tmp)
+        sig_off()
         return c
 
     cdef _matrix_times_matrix_(self, Matrix right):

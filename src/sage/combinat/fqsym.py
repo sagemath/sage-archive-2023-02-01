@@ -17,12 +17,10 @@ Frédéric Chapoton (2017)
 
 from sage.categories.hopf_algebras import HopfAlgebras
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.combinat.words.alphabet import Alphabet
 from sage.combinat.permutation import Permutations, Permutation
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from sage.categories.rings import Rings
-from sage.sets.family import Family
 from sage.combinat.words.word import Word
 
 
@@ -202,7 +200,8 @@ class FreeQuasisymmetricFunctions(CombinatorialFreeModule):
         Return the degree of a permutation in
         the algebra of free quasi-symmetric functions.
 
-        This is the length.
+        This is the size of the permutation (i.e., the `n`
+        for which the permutation belongs to `S_n`).
 
         EXAMPLES::
 
@@ -275,7 +274,8 @@ class FreeQuasisymmetricFunctions(CombinatorialFreeModule):
             F[[1, 2]] + F[[2, 1]]
         """
         n = len(x)
-        return self.sum(self.basis()[u] for u in x.shifted_shuffle(y))
+        basis = self.basis()
+        return self.sum(basis[u] for u in x.shifted_shuffle(y))
 
     def succ_product_on_basis(self, x, y):
         r"""
@@ -296,6 +296,11 @@ class FreeQuasisymmetricFunctions(CombinatorialFreeModule):
             sage: x = Permutation([1,2])
             sage: A.succ_product_on_basis(x, x)
             F[[3, 1, 2, 4]] + F[[3, 1, 4, 2]] + F[[3, 4, 1, 2]]
+            sage: y = Permutation([])
+            sage: A.succ_product_on_basis(x, y) == 0
+            True
+            sage: A.succ_product_on_basis(y, x) == A(x)
+            True
 
         TESTS::
 
@@ -310,13 +315,15 @@ class FreeQuasisymmetricFunctions(CombinatorialFreeModule):
                 raise ValueError("products | < | and | > | are "
                                  "not defined")
             else:
-                return []
+                return self.zero()
+        basis = self.basis()
         if not x:
-            return [y]
-        K = self.basis().keys()
+            return basis[y]
+        K = basis.keys()
         n = len(x)
         shy = Word([a + n for a in y])
-        return self.sum(self.basis()[K([shy[0]] + list(u))]
+        shy0 = shy[0]
+        return self.sum(basis[K([shy0] + list(u))]
                         for u in Word(x).shuffle(Word(shy[1:])))
 
     @lazy_attribute
@@ -339,6 +346,11 @@ class FreeQuasisymmetricFunctions(CombinatorialFreeModule):
             sage: x = A([1])
             sage: A.succ(x, x)
             F[[2, 1]]
+            sage: y = A([3,1,2])
+            sage: A.succ(x, y)
+            F[[4, 1, 2, 3]] + F[[4, 2, 1, 3]] + F[[4, 2, 3, 1]]
+            sage: A.succ(y, x)
+            F[[4, 3, 1, 2]]
         """
         suc = self.succ_product_on_basis
         return self._module_morphism(self._module_morphism(suc, position=0,
@@ -364,6 +376,11 @@ class FreeQuasisymmetricFunctions(CombinatorialFreeModule):
             sage: x = Permutation([1,2])
             sage: A.prec_product_on_basis(x, x)
             F[[1, 2, 3, 4]] + F[[1, 3, 2, 4]] + F[[1, 3, 4, 2]]
+            sage: y = Permutation([])
+            sage: A.prec_product_on_basis(x, y) == A(x)
+            True
+            sage: A.prec_product_on_basis(y, x) == 0
+            True
 
         TESTS::
 
@@ -377,13 +394,15 @@ class FreeQuasisymmetricFunctions(CombinatorialFreeModule):
             raise ValueError("quasi-symmetric products | < | and | > | are "
                              "not defined")
         if not x:
-            return []
+            return self.zero()
+        basis = self.basis()
+        K = basis.keys()
         if not y:
-            return [x]
-        K = self.basis().keys()
+            return K[x]
         n = len(x)
         shy = Word([a + n for a in y])
-        return self.sum(self.basis()[K([x[0]] + list(u))]
+        x0 = x[0]
+        return self.sum(basis[K([x0] + list(u))]
                         for u in Word(x[1:]).shuffle(shy))
 
     @lazy_attribute
@@ -406,6 +425,13 @@ class FreeQuasisymmetricFunctions(CombinatorialFreeModule):
             sage: x = A([2,1])
             sage: A.prec(x, x)
             F[[2, 1, 4, 3]] + F[[2, 4, 1, 3]] + F[[2, 4, 3, 1]]
+            sage: y = A([2,1,3])
+            sage: A.prec(x, y)
+            F[[2, 1, 4, 3, 5]] + F[[2, 4, 1, 3, 5]] + F[[2, 4, 3, 1, 5]]
+             + F[[2, 4, 3, 5, 1]]
+            sage: A.prec(y, x)
+            F[[2, 5, 4, 1, 3]] + F[[2, 5, 1, 4, 3]] + F[[2, 5, 1, 3, 4]]
+             + F[[2, 1, 5, 4, 3]] + F[[2, 1, 5, 3, 4]] + F[[2, 1, 3, 5, 4]]
         """
         pre = self.prec_product_on_basis
         return self._module_morphism(self._module_morphism(pre, position=0,

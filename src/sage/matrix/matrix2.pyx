@@ -168,6 +168,13 @@ cdef class Matrix(Matrix1):
             sage: X*A == B
             True
 
+            sage: M = matrix([(3,-1,0,0),(1,1,-2,0),(0,0,0,-3)])
+            sage: B = matrix(QQ,3,1, [0,0,-1])
+            sage: M.solve_left(B)
+            Traceback (most recent call last):
+            ...
+            ValueError: number of columns of self must equal number of columns of B
+
         TESTS::
 
             sage: A = matrix(QQ,4,2, [0, -1, 1, 0, -2, 2, 1, 0])
@@ -184,11 +191,26 @@ cdef class Matrix(Matrix1):
             sage: X * A == B
             True
 
+            sage: M = matrix([(3,-1,0,0),(1,1,-2,0),(0,0,0,-3)])
+            sage: B = matrix(QQ,3,1, [0,0,-1])
+            sage: M.solve_left(B)
+            Traceback (most recent call last):
+            ...
+            ValueError: number of columns of self must equal number of columns of B
+
+
         """
+        from string import replace
         if is_Vector(B):
-            return self.transpose().solve_right(B, check=check)
+            try:
+                return self.transpose().solve_right(B, check=check)
+            except ValueError as e:
+                raise ValueError(replace(str(e), 'row', 'column'))
         else:
-            return self.transpose().solve_right(B.transpose(), check=check).transpose()
+            try:
+                return self.transpose().solve_right(B.transpose(), check=check).transpose()
+            except ValueError as e:
+                raise ValueError(replace(str(e), 'row', 'column'))
 
     def solve_right(self, B, check=True):
         r"""

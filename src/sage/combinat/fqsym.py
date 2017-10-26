@@ -396,9 +396,9 @@ class FreeQuasisymmetricFunctions(CombinatorialFreeModule):
         if not x:
             return self.zero()
         basis = self.basis()
-        K = basis.keys()
         if not y:
-            return K[x]
+            return basis[x]
+        K = basis.keys()
         n = len(x)
         shy = Word([a + n for a in y])
         x0 = x[0]
@@ -430,8 +430,8 @@ class FreeQuasisymmetricFunctions(CombinatorialFreeModule):
             F[[2, 1, 4, 3, 5]] + F[[2, 4, 1, 3, 5]] + F[[2, 4, 3, 1, 5]]
              + F[[2, 4, 3, 5, 1]]
             sage: A.prec(y, x)
-            F[[2, 5, 4, 1, 3]] + F[[2, 5, 1, 4, 3]] + F[[2, 5, 1, 3, 4]]
-             + F[[2, 1, 5, 4, 3]] + F[[2, 1, 5, 3, 4]] + F[[2, 1, 3, 5, 4]]
+            F[[2, 1, 3, 5, 4]] + F[[2, 1, 5, 3, 4]] + F[[2, 1, 5, 4, 3]]
+             + F[[2, 5, 1, 3, 4]] + F[[2, 5, 1, 4, 3]] + F[[2, 5, 4, 1, 3]]
         """
         pre = self.prec_product_on_basis
         return self._module_morphism(self._module_morphism(pre, position=0,

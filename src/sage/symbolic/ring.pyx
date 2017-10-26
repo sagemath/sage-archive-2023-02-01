@@ -262,12 +262,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: SR._coerce_(RIF(pi))
             3.141592653589794?
 
-        A number modulo 7::
-
-            sage: a = SR(Mod(3,7)); a
-            3
-            sage: a^2
-            2
+        The complex number `I`::
 
             sage: si = SR.coerce(I)
             sage: si^2
@@ -300,14 +295,6 @@ cdef class SymbolicRing(CommutativeRing):
             sage: t.operator(), t.operands()
             (<function mul_vararg at 0x...>, [x^5, log(y), 3])
 
-        Check that :trac:`20162` is fixed::
-
-            sage: k.<a> = GF(9)
-            sage: SR(a).is_real()
-            False
-            sage: SR(a).is_positive()
-            False
-
         We get a sensible error message if conversion fails::
 
             sage: SR(int)
@@ -332,6 +319,15 @@ cdef class SymbolicRing(CommutativeRing):
             False
             sage: sin(x).subs(x=complex('NaN'))
             sin(NaN)
+
+        Check that :trac:`24072` is solved::
+
+            sage: x = polygen(GF(3))
+            sage: a = SR.var('a')
+            sage: (2*x + 1) * a
+            Traceback (most recent call last):
+            ...
+            TypeError: positive characteristic not allowed in symbolic computations
         """
         cdef GEx exp
         if is_Expression(x):
@@ -374,6 +370,8 @@ cdef class SymbolicRing(CommutativeRing):
         elif x is unsigned_infinity:
             return new_Expression_from_GEx(self, g_UnsignedInfinity)
         elif isinstance(x, (RingElement, Matrix)):
+            if x.parent().characteristic():
+                raise TypeError('positive characteristic not allowed in symbolic computations')
             exp = x
         elif isinstance(x, Factorization):
             from sage.misc.all import prod

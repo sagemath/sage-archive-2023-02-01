@@ -603,16 +603,10 @@ cdef class Expression(CommutativeRingElement):
             sage: repr(x+y)
             'x + y'
 
-        TESTS::
+        TESTS:
 
-            # printing of modular number equal to -1 as coefficient
-            sage: k.<a> = GF(9); k(2)*x
-            2*x
+        Rational functions::
 
-            sage: (x+1)*Mod(6,7)
-            6*x + 6
-
-            #printing rational functions
             sage: x/y
             x/y
             sage: x/2/y
@@ -672,9 +666,6 @@ cdef class Expression(CommutativeRingElement):
             (2/3)^(2/3)
             sage: (-x)^(1/4)
             (-x)^(1/4)
-            sage: k.<a> = GF(9)
-            sage: SR(a+1)^x
-            (a + 1)^x
 
         Check if :trac:`7876` is fixed::
 
@@ -941,9 +932,6 @@ cdef class Expression(CommutativeRingElement):
             \left(\frac{2}{3}\right)^{\frac{2}{3}}
             sage: latex((-x)^(1/4))
             \left(-x\right)^{\frac{1}{4}}
-            sage: k.<a> = GF(9)
-            sage: latex(SR(a+1)^x)
-            \left(a + 1\right)^{x}
 
         More powers (:trac:`7406`)::
 
@@ -969,8 +957,6 @@ cdef class Expression(CommutativeRingElement):
 
             sage: latex(6.5/x)
             \frac{6.50000000000000}{x}
-            sage: latex(Mod(2,7)/x)
-            \frac{2}{x}
 
         Check if we avoid extra parenthesis in rational functions (:trac:`8688`)::
 
@@ -3243,10 +3229,6 @@ cdef class Expression(CommutativeRingElement):
             ...
             TypeError: incompatible relations
 
-            sage: a = 1000 + 300*x + x^3 + 30*x^2
-            sage: a*Mod(1,7)
-            x^3 + 2*x^2 + 6*x + 6
-
             sage: var('z')
             z
             sage: 3*(x+y)/z
@@ -3310,88 +3292,19 @@ cdef class Expression(CommutativeRingElement):
             Infinity
 
         Check if we are returning informative error messages in case of
-        nonsensical arithmetic :trac:`13739`::
+        nonsensical arithmetic (:trac:`10960`:, :trac:`13739` and
+        :trac:`24072`)::
 
-            sage: t = GF(5)(3)
-            sage: u = GF(7)(4)
-            sage: var('y')
-            y
-            sage: e = t*x + u*y
-            sage: t*e
+            sage: GF(5)(3) * SR.var('x')
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for *: 'Finite Field
-            of size 7' and 'Finite Field of size 5'
+            TypeError: unsupported operand parent(s) for *: 'Finite Field of size 5' and 'Symbolic Ring'
 
-        The same issue (with a different test case) was reported in
-        :trac:`10960`::
-
-            sage: K.<b> = FiniteField(9)
-            sage: i*b
+            sage: b = polygen(FiniteField(9), 'b')
+            sage: SR('I') * b
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for *: 'Number Field
-            in I with defining polynomial x^2 + 1' and 'Finite Field in b of
-            size 3^2'
-
-        Check if multiplication works when content is in `F_{2^k}`,
-        examples from :trac:`13107`::
-
-            sage: var('c1,c2,c3,r1,r2')
-            (c1, c2, c3, r1, r2)
-            sage: ff.<z> = GF(2**8, 'z')
-            sage: ex = -(c1 + r2 - c2*r1)/c3
-            sage: ex.substitute(r1=z, r2=z)
-            -(c1 + z*c2 + z)/c3
-
-        Note the content cannot be computed because of nonsensical
-        arithmetic::
-
-            sage: num = ex.op[0].subs({r1: z, r2: z}); num
-            -c1 + z*c2 + z
-            sage: num.leading_coefficient(c1)
-            -1
-            sage: num.content(c1)
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported operand parent(s) for *: 'Finite Field in z of size 2^8' and 'Rational Field'
-
-        The leading coefficient is a negative number. The normalization process
-        tries to convert it to a positive number and extract the content, by
-        multiplying by ``-1/c``.  However, the content is in a field of
-        characteristic 2, so negating it does not change the leading
-        coefficient.
-
-        Another example where there is no problem::
-
-            sage: ex = -(r2 - c2*r1)/c3
-            sage: num = ex.op[0].subs({r1: z, r2: z}); num
-            z*c2 + z
-            sage: num.leading_coefficient(c2)
-            z
-            sage: num.content(c2)
-            1
-            sage: num.content(c2).pyobject().parent()
-            Finite Field in z of size 2^8
-
-        Since the leading coefficient is not negative, no normalization is
-        performed.
-
-        The leading coefficient of the expression depends on the order of the
-        variables, which is chosen to be lexicographic in Sage. Hence, using
-        different variable names may change behavior and hide the bug. To cover
-        these cases we test with different variable names::
-
-            sage: var('a,b')
-            (a, b)
-            sage: ex = -(c1 + b - c2*a)/c3
-            sage: ex.substitute(a=z, b=z)
-            -(c1 + z*c2 + z)/c3
-            sage: var('x1,x2,x3')
-            (x1, x2, x3)
-            sage: ex = -(x1 + r2 - x2*r1)/x3
-            sage: ex.substitute(a=z, b=z)
-            (r1*x2 - r2 - x1)/x3
+            TypeError: positive characteristic not allowed in symbolic computations
 
         Check that :trac:`18360` is fixed::
 
@@ -3851,7 +3764,9 @@ cdef class Expression(CommutativeRingElement):
         TESTS::
 
             sage: (Mod(2,7)*x^2 + Mod(2,7))^7
-            (2*x^2 + 2)^7
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for *: 'Ring of integers modulo 7' and 'Symbolic Ring'
 
         The leading coefficient in the result above is 1 since::
 

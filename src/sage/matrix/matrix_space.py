@@ -355,6 +355,19 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         else:
             return self.base_ring().cardinality() ** (self.__nrows * self.__ncols)
 
+    def characteristic(self):
+        r"""
+        Return the characteristic.
+
+        EXAMPLES::
+
+            sage: MatrixSpace(ZZ, 2).characteristic()
+            0
+            sage: MatrixSpace(GF(9), 0).characteristic()
+            3
+        """
+        return self.base_ring().characteristic()
+
     def full_category_initialisation(self):
         """
         Make full use of the category framework.

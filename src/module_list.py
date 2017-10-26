@@ -136,6 +136,8 @@ ext_modules = [
 
     Extension('*', sources = ['sage/algebras/letterplace/*.pyx']),
 
+    Extension('*', sources = ['sage/algebras/finite_dimensional_algebras/*.pyx']),
+
     Extension('sage.algebras.quatalg.quaternion_algebra_cython',
                sources = ['sage/algebras/quatalg/quaternion_algebra_cython.pyx'],
                language='c++',

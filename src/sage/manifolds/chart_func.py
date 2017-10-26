@@ -3022,8 +3022,8 @@ class MultiCoordFunction(SageObject):
         if self._nf != self._nc:
             raise ValueError("the Jacobian matrix is not a square matrix")
         mat = self.jacobian()
-        # The computation is performed in SR:
-        mat_expr = matrix([[mat[i,j].expr('SR') for i in range(self._nc)]
+        # TODO: do the computation without the 'SR' enforcement
+        mat_expr = matrix([[mat[i,j].expr(method='SR') for i in range(self._nc)]
                             for j in range(self._nc)])
         det = mat_expr.det() # the unsimplified determinant
         func = self._functions[0]

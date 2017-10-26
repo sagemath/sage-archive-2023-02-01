@@ -1044,15 +1044,15 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
             si = fmodule._sindex ; nsi = fmodule._rank + si
             self._inverse = fmodule.automorphism(name=inv_name,
                                                  latex_name=inv_latex_name)
-
             for frame in self._components:
                 if isinstance(frame, CoordFrame):
                     chart = frame._chart
                 else:
                     chart = self._domain._def_chart #!# to be improved
                 try:
+                    # TODO: do the computation without the 'SR' enforcement
                     mat_self = matrix(
-                              [[self.comp(frame)[i, j, chart].expr('SR')
+                              [[self.comp(frame)[i, j, chart].expr(method='SR')
                               for j in range(si, nsi)] for i in range(si, nsi)])
                 except (KeyError, ValueError):
                     continue

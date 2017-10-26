@@ -4782,6 +4782,26 @@ class LinearCodeSyndromeDecoder(Decoder):
              (2, 0, 0, 0): (2, 0, 0, 0, 0, 0, 0, 0),
              (2, 1, 0, 1): (0, 0, 0, 0, 0, 2, 0, 0),
              (2, 1, 1, 0): (0, 0, 0, 2, 0, 0, 0, 0)}
+
+        TESTS:
+
+        Check that :trac:`24114` is fixed::
+
+            sage: R.<x> = PolynomialRing(GF(3))
+            sage: f = x^2 + x + 2
+            sage: K.<a> = f.root_field()
+            sage: H = Matrix(K,[[1,2,1],[2*a+1,a,1]])
+            sage: C = codes.from_parity_check_matrix(H)
+            sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
+            sage: D.syndrome_table()         
+             {(0, 0): (0, 0, 0),
+              (0, 1): (0, 1, 0),
+              (0, 2): (0, 2, 0),
+              (0, a): (0, a, 0),
+             ...
+              (2*a + 2, 2*a): (0, 0, 2),
+              (2*a + 2, 2*a + 1): (2*a + 2, 2*a + 1, 0),
+              (2*a + 2, 2*a + 2): (2*a + 2, 2*a + 2, 0)}
         """
         t = self._maximum_error_weight
         self._code_covering_radius = None
@@ -4793,7 +4813,7 @@ class LinearCodeSyndromeDecoder(Decoder):
         k = C.dimension()
         H = C.parity_check_matrix()
         F = C.base_ring()
-        l = copy(F.list())
+        l = list(F)
         zero = F.zero()
         #Builds a list of generators of all error positions for all
         #possible error weights

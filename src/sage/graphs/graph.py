@@ -1831,7 +1831,7 @@ class Graph(GenericGraph):
         """
         if not self.is_connected() or not self.is_circular_planar():
             return False
-        cutverts = self.blocks_and_cut_vertices()[1]
+        cutverts = frozenset(self.blocks_and_cut_vertices()[1])
         for v in self:
             if self.degree(v) >= 3 and v not in cutverts:
                 return False

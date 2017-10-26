@@ -684,6 +684,10 @@ class SympyConverter(Converter):
         x + I
 
     """
+    def __init__(self):
+        from sage.interfaces.sympy import sympy_init
+        sympy_init()
+
     def pyobject(self, ex, obj):
         """
         EXAMPLES::
@@ -833,7 +837,7 @@ class SympyConverter(Converter):
         return f_sympy.diff(*sympy_arg)
 
 
-sympy = SympyConverter()
+sympy_converter = SympyConverter()
 
 #############
 # Algebraic #

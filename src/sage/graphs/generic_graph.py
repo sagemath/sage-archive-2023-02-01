@@ -13101,7 +13101,7 @@ class GenericGraph(GenericGraph_pyx):
         From this embedding, we can clearly build an interval graph
         isomorphic to the previous one::
 
-            sage: g2 = graphs.IntervalGraph(list(d.values()))
+            sage: g2 = graphs.IntervalGraph(d.values())
             sage: g2.is_isomorphic(g)
             True
 

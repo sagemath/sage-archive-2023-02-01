@@ -635,14 +635,14 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
         from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
 
         if not f:
-          return f
+            return f
         if not g:
-          raise ZeroDivisionError
+            raise ZeroDivisionError
 
         if not coeff:
-          coeff = self.base_ring().one()
+            coeff = self.base_ring().one()
         else:
-          coeff = self.base_ring()(next(itervalues(f.dict())) /  next(itervalues(g.dict())))
+            coeff = self.base_ring()(next(itervalues(f.dict())) /  next(itervalues(g.dict())))
 
         f = next(iterkeys(f.dict()))
         g = next(iterkeys(g.dict()))
@@ -806,8 +806,8 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
         b = b.dict().keys()[0]
 
         for i in b.common_nonzero_positions(a):
-          if b[i] - a[i] < 0:
-            return False
+            if b[i] - a[i] < 0:
+                return False
         return True
 
     def monomial_pairwise_prime(self, h, g):
@@ -888,14 +888,14 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
         def addwithcarry(tempvector, maxvector, pos):
             if tempvector[pos] < maxvector[pos]:
-              tempvector[pos] += 1
+                tempvector[pos] += 1
             else:
-              tempvector[pos] = 0
-              tempvector = addwithcarry(tempvector, maxvector, pos + 1)
+                tempvector[pos] = 0
+                tempvector = addwithcarry(tempvector, maxvector, pos + 1)
             return tempvector
 
         if not t.is_monomial():
-          raise TypeError("only monomials are supported")
+            raise TypeError("only monomials are supported")
 
         R = self
         one = self.base_ring()(1)
@@ -908,8 +908,8 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
         pos = 0
 
         while tempvector != maxvector:
-          tempvector = addwithcarry(list(tempvector) , maxvector, pos)
-          M.append(R(PolyDict({ETuple(tempvector):one}, \
+            tempvector = addwithcarry(list(tempvector) , maxvector, pos)
+            M.append(R(PolyDict({ETuple(tempvector):one}, \
                               force_int_exponents=False,force_etuples=False)))
         return M
 

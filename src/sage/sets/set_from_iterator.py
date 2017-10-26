@@ -710,7 +710,7 @@ class EnumeratedSetFromIterator_function_decorator(Decorator):
         else: # potential global options
             if args == ():
                 assert len(kwds.keys()) == 1
-                f = kwds.values()[0]
+                f, = kwds.values()
             else:
                 assert len(args) == 1
                 f = args[0]

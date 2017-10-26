@@ -103,12 +103,12 @@ cdef class Matrix_sparse(matrix.Matrix):
             A.subdivide(*self.subdivisions())
         return A
 
-    def __hash__(self):
+    cdef long _hash_(self) except -1:
         """
         Return the hash of this matrix.
 
-        Equal matrices should have equal hashes, even if one is sparse and
-        the other is dense.
+        Equal matrices should have equal hashes, even if one is sparse
+        and the other is dense.
 
         EXAMPLES::
 
@@ -136,15 +136,6 @@ cdef class Matrix_sparse(matrix.Matrix):
             sage: hash(A) == hash(B)
             True
         """
-        return self._hash()
-
-    cdef long _hash(self) except -1:
-        x = self.fetch('hash')
-        if not x is None: return x
-
-        if not self._is_immutable:
-            raise TypeError("mutable matrices are unhashable")
-
         v = self._dict()
         cdef long i, h
         h = 0
@@ -157,9 +148,9 @@ cdef class Matrix_sparse(matrix.Matrix):
                 PyInt_AS_LONG(<object>PyTuple_GET_ITEM(ij,1))
 
             h = h ^ (i*PyObject_Hash(x))
-        if h == -1: h = -2
 
-        self.cache('hash', h)
+        if h == -1:
+            return -2
         return h
 
     def _multiply_classical(Matrix_sparse left, Matrix_sparse right):

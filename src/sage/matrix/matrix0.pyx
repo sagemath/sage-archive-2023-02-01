@@ -91,6 +91,9 @@ cdef class Matrix(sage.structure.element.Matrix):
         [1]
         [2]
     """
+    def __cinit__(self):
+        self.hash = -1
+
     def __init__(self, parent):
         """
         The initialization routine of the ``Matrix`` base class ensures
@@ -312,17 +315,17 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         EXAMPLES::
 
-            sage: m=Matrix(QQ,2,range(0,4))
+            sage: m = Matrix(QQ, 2, range(4))
             sage: m._clear_cache()
-
         """
         self.clear_cache()
 
-    cdef clear_cache(self):
+    cdef void clear_cache(self):
         """
         Clear the properties cache.
         """
         self._cache = None
+        self.hash = -1
 
     cdef fetch(self, key):
         """
@@ -4322,9 +4325,6 @@ cdef class Matrix(sage.structure.element.Matrix):
         self.cache('rank', r)
         return r
 
-    cdef _set_pivots(self, X):
-        self.cache('pivots', X)
-
     def nonpivots(self):
         """
         Return the list of i such that the i-th column of self is NOT a
@@ -5376,20 +5376,15 @@ cdef class Matrix(sage.structure.element.Matrix):
     # Comparison
     ###################################################
     def __hash__(self):
-        """
-        Return the hash of this (immutable) matrix
+        if not self._is_immutable:
+            raise TypeError("mutable matrices are unhashable")
+        if self.hash != -1:
+            return self.hash
+        cdef long h = self._hash_()
+        self.hash = h
+        return h
 
-        EXAMPLES::
-
-            sage: m=matrix(QQ,2,[1,2,3,4])
-            sage: m.set_immutable()
-            sage: m.__hash__()
-            8
-
-        """
-        return self._hash()
-
-    cdef long _hash(self) except -1:
+    cdef long _hash_(self) except -1:
         raise NotImplementedError
 
     cpdef int _cmp_(left, right) except -2:

@@ -7643,7 +7643,7 @@ cdef class Matrix(Matrix1):
 
         from . import strassen
         pivots = strassen.strassen_echelon(self.matrix_window(), cutoff)
-        self._set_pivots(pivots)
+        self.cache('pivots', pivots)
         verbose('done with strassen', tm)
 
     cpdef matrix_window(self, Py_ssize_t row=0, Py_ssize_t col=0,

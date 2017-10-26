@@ -90,7 +90,9 @@ class FinitePosets(CategoryWithAxiom):
             return (self.cardinality() == 0 or
                      (self.has_bottom() and self.is_join_semilattice()))
 
-        def is_selfdual(self):
+        from sage.misc.superseded import deprecated_function_alias
+        is_self_dual = deprecated_function_alias(is_selfdual, 24048)
+        def is_self_dual(self):
             r"""
             Return whether the poset is *self-dual*.
 
@@ -99,22 +101,23 @@ class FinitePosets(CategoryWithAxiom):
             EXAMPLES::
 
                 sage: P = Poset({1: [3, 4], 2: [3, 4]})
-                sage: P.is_selfdual()
+                sage: P.is_self_dual()
                 True
 
                 sage: P = Poset({1: [2, 3]})
-                sage: P.is_selfdual()
+                sage: P.is_self_dual()
                 False
 
             TESTS::
 
                 sage: P = Poset()
-                sage: P.is_selfdual()
+                sage: P.is_self_dual()
                 True
 
             .. SEEALSO::
 
                 - Stronger properties: :meth:`~sage.combinat.posets.lattices.FiniteLatticePoset.is_orthocomplemented` (for lattices)
+                - Other: :meth:`~sage.combinat.posets.posets.FinitePoset.dual`
             """
             # Two quick checks before full isomorphic test.
             if sorted(self._hasse_diagram.in_degree()) != sorted(self._hasse_diagram.out_degree()):

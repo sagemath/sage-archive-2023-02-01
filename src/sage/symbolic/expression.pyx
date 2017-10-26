@@ -6946,6 +6946,11 @@ cdef class Expression(CommutativeRingElement):
             sage: d = e.diff(x)
             sage: gcd(d,e) / (u^4*z^2) in QQ
             True
+
+        Check that :trac:`23793` is fixed::
+ 
+            sage: gcd(I + I*x, x^2 - 1)
+            x + 1
         """
         cdef Expression r = self.coerce_in(b)
         cdef GEx x

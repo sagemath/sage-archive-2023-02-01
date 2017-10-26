@@ -317,6 +317,7 @@ cdef extern from "pynac_wrap.h":
             bint) except +
     GEx g_hold2_wrapper "HOLD2" (GEx (GEx, GEx) except+, GEx ex, GEx ex,
             bint) except +
+    void g_set_state "GiNaC::set_state" (stdstring & s, bint b) except +
 
     GSymbol ginac_symbol "GiNaC::symbol" (char* s, char* t, unsigned d) except +
     GSymbol ginac_new_symbol "GiNaC::symbol" () except +

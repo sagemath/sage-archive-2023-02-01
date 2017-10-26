@@ -81,7 +81,7 @@ sdh_die() {
     local ret=$?
     local msg
 
-    if [ $ret -ne 0 ]; then
+    if [ $ret -eq 0 ]; then
         # Always return non-zero, but if the last command run returned non-zero
         # then return its exact error code
         ret=1

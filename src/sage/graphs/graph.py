@@ -1799,6 +1799,45 @@ class Graph(GenericGraph):
                     return (False, cycle)
 
     @doc_index("Graph properties")
+    def is_cactus(self):
+        """
+        Check whether the graph is cactus graph.
+
+        A graph is called *cactus graph* if it is connected and every pair of
+        simple cycles have at most one common vertex.
+
+        There are other definitions, see :wikipedia:`Cactus_graph`.
+
+        EXAMPLES::
+
+            sage: c6 = graphs.CycleGraph(6)
+            sage: naphthalene = c6 + c6
+            sage: naphthalene.is_cactus()  # Not connected
+            False
+            sage: naphthalene.merge_vertices([0, 6])
+            sage: naphthalene.is_cactus()
+            True
+            sage: naphthalene.merge_vertices([1, 7])
+            sage: naphthalene.is_cactus()
+            False
+
+        TESTS::
+
+            sage: all(graphs.PathGraph(i).is_cactus() for i in range(5))
+            True
+
+            sage: Graph('Fli@?').is_cactus()
+            False
+        """
+        if not self.is_connected() or not self.is_circular_planar():
+            return False
+        cutverts = self.blocks_and_cut_vertices()[1]
+        for v in self:
+            if self.degree(v) >= 3 and v not in cutverts:
+                return False
+        return True
+
+    @doc_index("Graph properties")
     def is_biconnected(self):
         """
         Test if the graph is biconnected.

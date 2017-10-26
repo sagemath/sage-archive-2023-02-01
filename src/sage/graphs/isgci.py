@@ -1063,6 +1063,7 @@ graph_classes.Bipartite = GraphClass("Bipartite", "gc_69", recognition_function 
 graph_classes.Block = GraphClass("Block", "gc_93", recognition_function = lambda x:x.is_block_graph())
 graph_classes.Chordal = GraphClass("Chordal", "gc_32", recognition_function = lambda x:x.is_chordal())
 graph_classes.ClawFree = GraphClass("Claw-free", "gc_62")
+graph_classes.CoGraph = GraphClass("CoGraph", "gc_151", recognition_function = lambda x:x.is_cograph())
 graph_classes.Comparability = GraphClass("Comparability", "gc_72", recognition_function = lambda x: __import__('sage').graphs.comparability.is_comparability)
 graph_classes.Gallai = GraphClass("Gallai", "gc_73")
 graph_classes.Grid = GraphClass("Grid", "gc_464")

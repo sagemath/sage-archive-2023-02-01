@@ -90,8 +90,6 @@ class FinitePosets(CategoryWithAxiom):
             return (self.cardinality() == 0 or
                      (self.has_bottom() and self.is_join_semilattice()))
 
-        from sage.misc.superseded import deprecated_function_alias
-        is_self_dual = deprecated_function_alias(is_selfdual, 24048)
         def is_self_dual(self):
             r"""
             Return whether the poset is *self-dual*.
@@ -128,6 +126,9 @@ class FinitePosets(CategoryWithAxiom):
             if levels_orig != levels_dual:
                 return False
             return self._hasse_diagram.is_isomorphic(dual_poset_hasse)
+
+        from sage.misc.superseded import deprecated_function_alias
+        is_selfdual = deprecated_function_alias(24048, is_self_dual)
 
 
         ##########################################################################

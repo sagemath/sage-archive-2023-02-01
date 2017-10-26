@@ -2162,7 +2162,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         .. SEEALSO::
 
             - Weaker properties: :meth:`is_complemented`,
-              :meth:`~sage.categories.finite_posets.FinitePosets.ParentMethods.is_selfdual`
+              :meth:`~sage.categories.finite_posets.FinitePosets.ParentMethods.is_self_dual`
 
         TESTS::
 

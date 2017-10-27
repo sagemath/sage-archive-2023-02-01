@@ -976,6 +976,22 @@ class ContinuousMap(Morphism):
             on U: (x, y) |--> (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1), (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
             on V: (u, v) |--> (X, Y, Z) = (2*u/(u^2 + v^2 + 1), 2*v/(u^2 + v^2 + 1), -(u^2 + v^2 - 1)/(u^2 + v^2 + 1))
 
+        Display when SymPy is the symbolic engine::
+
+            sage: M.set_calculus_method('sympy')
+            sage: N.set_calculus_method('sympy')
+            sage: Phi.display(c_xy, c_cart)
+            Phi: S^2 --> R^3
+            on U: (x, y) |--> (X, Y, Z) = (2*x/(x**2 + y**2 + 1),
+             2*y/(x**2 + y**2 + 1), (x**2 + y**2 - 1)/(x**2 + y**2 + 1))
+            sage: latex(Phi.display(c_xy, c_cart))
+            \begin{array}{llcl} \Phi:& S^2 & \longrightarrow & \RR^3
+             \\ \mbox{on}\ U : & \left(x, y\right) & \longmapsto
+             & \left(X, Y, Z\right) = \left(\frac{2 x}{x^{2} + y^{2} + 1},
+               \frac{2 y}{x^{2} + y^{2} + 1},
+               \frac{x^{2} + y^{2} - 1}{x^{2} + y^{2} + 1}\right)
+             \end{array}
+
         """
         from sage.misc.latex import latex
         from sage.tensor.modules.format_utilities import FormattedExpansion
@@ -986,7 +1002,8 @@ class ContinuousMap(Morphism):
             """
             from sage.misc.latex import latex
             try:
-                expression = self.expr(chart1, chart2)
+                coord_func = self.coord_functions(chart1, chart2)
+                expression = coord_func.expr()
                 coords1 = chart1[:]
                 if len(coords1) == 1:
                     coords1 = coords1[0]
@@ -1005,21 +1022,21 @@ class ContinuousMap(Morphism):
                 if chart2 == chart1:
                     if len(expression) == 1:
                         result._txt += repr(expression[0]) + "\n"
-                        result._latex += latex(expression[0]) + r"\\"
+                        result._latex += latex(coord_func[0]) + r"\\"
                     else:
                         result._txt += repr(expression) + "\n"
-                        result._latex += latex(expression) + r"\\"
+                        result._latex += latex(coord_func) + r"\\"
                 else:
                     if len(expression) == 1:
                         result._txt += repr(coords2[0]) + " = " + \
                                       repr(expression[0]) + "\n"
                         result._latex += latex(coords2[0]) + " = " + \
-                                        latex(expression[0]) + r"\\"
+                                        latex(coord_func[0]) + r"\\"
                     else:
                         result._txt += repr(coords2) + " = " + \
                                       repr(expression) + "\n"
                         result._latex += latex(coords2) + " = " + \
-                                        latex(expression) + r"\\"
+                                        latex(coord_func) + r"\\"
             except (TypeError, ValueError):
                 pass
 

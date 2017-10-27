@@ -603,7 +603,6 @@ class ChartFunction(AlgebraElement):
 
         """
         from sage.tensor.modules.format_utilities import FormattedExpansion
-        from sage.misc.latex import latex
         curr = self._calc_method._current
         expr = self.expr(curr)
         if (curr == 'SR' and
@@ -684,7 +683,6 @@ class ChartFunction(AlgebraElement):
             xx = [x._sympy_() for x in self._chart._xx]
             co = [calc._tranf['sympy'](c) for c in coords]
         substitutions = dict(zip(xx, co))
-#         print("self._express: {}".format(self._express))
         resu = self.expr(curr).subs(substitutions)
         if 'simplify' in options:
             if options['simplify']:

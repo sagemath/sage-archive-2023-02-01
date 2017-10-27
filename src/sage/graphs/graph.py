@@ -1810,6 +1810,10 @@ class Graph(GenericGraph):
 
         EXAMPLES::
 
+            sage: g = Graph({1: [2], 2: [3, 4], 3: [4, 5, 6, 7], 8: [3, 5], 9: [6, 7]})
+            sage: g.is_cactus()
+            True
+
             sage: c6 = graphs.CycleGraph(6)
             sage: naphthalene = c6 + c6
             sage: naphthalene.is_cactus()  # Not connected
@@ -1829,6 +1833,7 @@ class Graph(GenericGraph):
             sage: Graph('Fli@?').is_cactus()
             False
         """
+        self._scream_if_not_simple()
         if not self.is_connected() or not self.is_circular_planar():
             return False
         cutverts = frozenset(self.blocks_and_cut_vertices()[1])

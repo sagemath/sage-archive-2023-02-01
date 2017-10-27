@@ -582,7 +582,7 @@ class Components(SageObject):
         """
         result = self._new_instance()
         for ind, val in self._comp.items():
-            if hasattr(val, 'copy'):
+            if isinstance(val, SageObject) and hasattr(val, 'copy'):
                 result._comp[ind] = val.copy()
             else:
                 result._comp[ind] = val

@@ -37,6 +37,7 @@ Modules
 
    sage/modules/finite_submodule_iter
    sage/modules/free_quadratic_module
+   sage/modules/free_quadratic_module_integer_symmetric
    sage/modules/misc
    sage/modules/quotient_module
 

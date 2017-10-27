@@ -1561,7 +1561,7 @@ class NumberField_relative(NumberField_generic):
             sage: L._pari_relative_structure()
             (x^2 + Mod(-y, y^2 + 1),
              Mod(Mod(1/2*y - 1/2, y^2 + 1)*x, x^2 + Mod(-y, y^2 + 1)),
-             Mod(Mod(-y - 1, y^2 + 1)*x, x^2 + Mod(-1/2, y^2 + 1)))
+             Mod(Mod(-y - 1, y^2 + 1)*x, Mod(1, y^2 + 1)*x^2 + Mod(-1/2, y^2 + 1)))
 
         An example where both fields are defined by non-integral or
         non-monic polynomials::
@@ -1571,7 +1571,7 @@ class NumberField_relative(NumberField_generic):
             sage: L._pari_relative_structure()
             (x^2 + Mod(y, y^2 + 2)*x + 1,
              Mod(Mod(-1/3*y, y^2 + 2)*x + Mod(1/3, y^2 + 2), x^2 + Mod(y, y^2 + 2)*x + 1),
-             Mod(Mod(3/2*y, y^2 + 2)*x + Mod(-1/2*y, y^2 + 2), x^2 + Mod(-1/3, y^2 + 2)))
+             Mod(Mod(3/2*y, y^2 + 2)*x + Mod(-1/2*y, y^2 + 2), Mod(1, y^2 + 2)*x^2 + Mod(-1/3, y^2 + 2)))
 
         Note that in the last example, the *absolute* defining
         polynomials is the same for Sage and PARI, even though this is
@@ -2326,7 +2326,7 @@ class NumberField_relative(NumberField_generic):
         - ``type`` - ``'pari'`` or ``'gap'``: type of object to return -- a
           wrapper around a Pari or Gap transitive group object.         -
 
-        - algorithm - 'pari', 'kash', 'magma' (default: 'pari', except when
+        - algorithm -- 'pari', 'kash', 'magma' (default: 'pari', except when
           the degree is >= 12 when 'kash' is tried)
 
         At present much less functionality is available for Galois groups of

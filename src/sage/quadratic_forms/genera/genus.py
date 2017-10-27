@@ -17,7 +17,7 @@ from sage.rings.integer_ring import IntegerRing
 from sage.rings.rational_field import RationalField
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
-
+import copy
 
 def Genus(A):
     r"""
@@ -101,6 +101,14 @@ def is_GlobalGenus(G):
         sage: G = Genus(A)
         sage: is_GlobalGenus(G)
         True
+      
+        sage: from sage.quadratic_forms.genera.genus import Genus,is_GlobalGenus
+        sage: G=Genus(matrix.diagonal([2,2,2,2]))
+        sage: G._local_symbols[0]._symbol=[[0,2,3,0,0],[1,2,5,1,0]]
+        sage: G._representative=None
+        sage: is_GlobalGenus(G)
+        False
+ 
     """
     D = G.determinant()
     r, s = G.signature_pair_of_matrix()
@@ -179,10 +187,10 @@ def is_2_adic_genus(genus_symbol_quintuple_list):
             if s[3] == 0 or s[2] != s[4]:
                 return False
         if s[1] == 2 and s[3] == 1:
-            if s[2] in (1,-1):
+            if s[2]%8 in (1,7):
                if not s[4] in (0,2,6):
                   return False
-            if s[2] in (3,-3):
+            if s[2]%8 in (3,5):
                if not s[4] in (2,4,6):
                   return False
         if (s[1] - s[4])% 2 == 1:
@@ -273,12 +281,15 @@ def canonical_2_adic_trains(genus_symbol_quintuple_list, compartments=None):
     is defined to be a maximal interval of Jordan components so that
     at least one of each adjacent pair (allowing zero-dimensional
     Jordan components) is (scaled) of type I (i.e. odd).
+    Note that an interval of length one respects this condition as
+    there is no pair in this interval.
+    In particular, every Jordan component is part of a train.
 
     INPUT:
 
-    - genus_symbol_quintuple_list -- a quintuple of integers (with certain
+    - ``genus_symbol_quintuple_list`` -- a quintuple of integers (with certain
       restrictions).
-    - compartments -- a list of lists of distinct integers (optional)
+    - ``compartments`` -- this argument is deprecated
 
     OUTPUT:
 
@@ -293,76 +304,82 @@ def canonical_2_adic_trains(genus_symbol_quintuple_list, compartments=None):
         sage: A = Matrix(ZZ, 2, 2, [1,1,1,2])
         sage: G2 = LocalGenusSymbol(A, 2); G2
         Genus symbol at 2 : [[0, 2, 1, 1, 2]]
-        sage: c = canonical_2_adic_compartments(G2.symbol_tuple_list()); c
-        [[0]]
-        sage: canonical_2_adic_trains(G2.symbol_tuple_list(), c)
+        sage: canonical_2_adic_trains(G2.symbol_tuple_list())
         [[0]]
 
         sage: A = Matrix(ZZ, 2, 2, [1,0,0,2])
         sage: G2 = LocalGenusSymbol(A, 2); G2
         Genus symbol at 2 : [[0, 1, 1, 1, 1], [1, 1, 1, 1, 1]]
-        sage: c = canonical_2_adic_compartments(G2.symbol_tuple_list()); c
-        [[0, 1]]
-        sage: canonical_2_adic_trains(G2.symbol_tuple_list(), c)
-        [[0, 1]]
         sage: canonical_2_adic_trains(G2.symbol_tuple_list())
         [[0, 1]]
 
         sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
         sage: G2 = LocalGenusSymbol(A, 2); G2
         Genus symbol at 2 : [[1, 2, 3, 1, 4], [2, 1, 1, 1, 1], [3, 1, 1, 1, 1]]
-        sage: c = canonical_2_adic_compartments(G2.symbol_tuple_list()); c
-        [[0, 1, 2]]
         sage: canonical_2_adic_trains(G2.symbol_tuple_list())
         [[0, 1, 2]]
 
         sage: A = Matrix(ZZ, 2, 2, [2,1,1,2])
         sage: G2 = LocalGenusSymbol(A, 2); G2
         Genus symbol at 2 : [[0, 2, 3, 0, 0]]
-        sage: c = canonical_2_adic_compartments(G2.symbol_tuple_list()); c   ## No compartments here!
-        []
         sage: canonical_2_adic_trains(G2.symbol_tuple_list())
-        []
+        [[0]]
+        sage: symbol = [[0, 1,  1, 1, 1],[1, 2, -1, 0, 0],[2, 1,  1, 1, 1],[3, 1,  1, 1, 1],[4, 1,  1, 1, 1],[5, 2, -1, 0, 0],[7, 1,  1, 1, 1],[10, 1, 1, 1, 1],[11, 1, 1, 1, 1],[12, 1, 1, 1, 1]]
+        sage: canonical_2_adic_trains(symbol)
+        [[0, 1, 2, 3, 4, 5], [6], [7, 8, 9]]
+
 
     .. NOTE::
 
-        See Conway-Sloane 3rd edition, pp. 381-382 for definitions and examples.
+        See [Co1999]_, pp. 381-382 for definitions and examples.
 
-    .. TODO::
-
-        Add a non-trivial example in the doctest here!
     """
-    ## Recompute compartments if none are passed.
-    if compartments is None:
-        compartments = canonical_2_adic_compartments(genus_symbol_quintuple_list)
+    if compartments is not None:
+        from sage.misc.superseded import deprecation
+        deprecation(23955, "the compartments keyword has been deprecated")
 
+    #avoid a special case for the end of symbol
+    #if a jordan component has rank zero it is considered even.
     symbol = genus_symbol_quintuple_list
-    trains = []
-    i = 0
-    while i < len(compartments):
-        flag = True
-        train = [ ]
-        while flag:
-            ci = compartments[i]
-            j = ci[0]
-            if j == 0 or symbol[j-1][0] != symbol[j][0] - 1:
-                train += ci
+    symbol.append([symbol[-1][0]+1, 0, 1, 0, 0]) #We have just modified the input globally!
+    #Hence, we have to remove the last entry of symbol at the end.
+    try:
+
+        trains = []
+        new_train = [0]
+        for i in range(1,len(symbol)-1):
+            prev, cur, next = symbol[i-1:i+2]
+            if cur[0] - prev[0] > 1:
+                #the train ends here since there is a gap of at least 2
+                trains.append(new_train)
+                #create a new train starting at i
+                new_train = [i]
             else:
-                train += [j-1] + ci
-            act = ci[len(ci)-1]+1
-            if i+1 < len(compartments):
-                ci_plus = compartments[i+1]
-            else:
-                if act < len(symbol) and symbol[act][0] == symbol[act-1][0] +1:
-                    train += [act]
-                flag = False
-            if flag and symbol[ci[len(ci)-1]][0]+2 != symbol[ci_plus[0]][0]:
-                if act != ci_plus[0] and symbol[act][0] == symbol[act-1][0] +1:
-                    train += [act]
-                flag = False
-            i += 1
-        trains.append(train)
-    return trains
+                if prev[0] == cur[0] - 1:
+                    left_neighbor = prev[3]
+                else:
+                    left_neighbor = 0
+
+                if next[0] == cur[0] + 1:
+                    right_neighbor = next[3]
+                else:
+                    right_neighbor = 0
+
+                if left_neighbor == 1 or cur[3] == 1 or right_neighbor==1:
+                    #there is an odd jordan block adjacent to this jordan block
+                    #the train continues
+                    new_train.append(i)
+                else:
+                    #the train ends
+                    trains.append(new_train)
+                    #create a new train starting at i
+                    new_train = [i]
+        #the last train was never added.
+        trains.append(new_train)
+        return trains
+    finally:
+        #revert the input list to its original state
+        symbol.pop()
 
 
 
@@ -423,6 +440,8 @@ def canonical_2_adic_reduction(genus_symbol_quintuple_list):
 
         Add an example where sign walking occurs!
     """
+    # Protect the input from unwanted modification
+    genus_symbol_quintuple_list = copy.deepcopy(genus_symbol_quintuple_list)
     canonical_symbol = genus_symbol_quintuple_list
     # Canonical determinants:
     for i in range(len(genus_symbol_quintuple_list)):
@@ -440,7 +459,7 @@ def canonical_2_adic_reduction(genus_symbol_quintuple_list):
         genus_symbol_quintuple_list[compart[0]][4] = oddity
     #print "End oddity fusion:", canonical_symbol
     # Sign walking:
-    trains = canonical_2_adic_trains(genus_symbol_quintuple_list, compartments)
+    trains = canonical_2_adic_trains(genus_symbol_quintuple_list)
     for train in trains:
         t = len(train)
         for i in range(t-1):
@@ -1449,8 +1468,7 @@ class Genus_Symbol_p_adic_ring(object):
         if self._prime != 2:
             raise TypeError("trains() only makes sense when the prime of the p_adic_Genus_Symbol is p=2")
         symbol = self._symbol
-        compartments = canonical_2_adic_compartments(symbol)
-        return canonical_2_adic_trains(symbol, compartments)
+        return canonical_2_adic_trains(symbol)
 
 
     def compartments(self):
@@ -1597,7 +1615,17 @@ class GenusSymbol_global_ring(object):
 
             sage: GS2 == GS2
             True
-
+            
+        TESTS::
+        
+            sage: D4=QuadraticForm(Matrix(ZZ,4,4,[2,0,0,-1,0,2,0,-1,0,0,2,-1,-1,-1,-1,2]))
+            sage: G=D4.global_genus_symbol()
+            sage: sage.quadratic_forms.genera.genus.is_GlobalGenus(G)
+            True
+            sage: G==deepcopy(G)
+            True
+            sage: sage.quadratic_forms.genera.genus.is_GlobalGenus(G)
+            True
         """
         if self is other:
             return True

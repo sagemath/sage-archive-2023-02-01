@@ -20,7 +20,7 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from .padic_generic import pAdicGeneric
+from .padic_generic import pAdicGeneric, ResidueLiftingMap
 from .padic_base_generic import pAdicBaseGeneric
 from sage.rings.number_field.number_field_base import NumberField
 from sage.rings.number_field.order import Order
@@ -90,6 +90,8 @@ class pAdicExtensionGeneric(pAdicGeneric):
                 from sage.rings.padics.qadic_flint_CR import pAdicCoercion_CR_frac_field as coerce_map
             elif R._prec_type() == 'floating-point':
                 from sage.rings.padics.qadic_flint_FP import pAdicCoercion_FP_frac_field as coerce_map
+            elif R._prec_type() == 'fixed-mod':
+                from sage.rings.padics.qadic_flint_FM import pAdicCoercion_FM_frac_field as coerce_map
             return coerce_map(R, self)
 
     def _convert_map_from_(self, R):
@@ -134,6 +136,10 @@ class pAdicExtensionGeneric(pAdicGeneric):
                 cat = Fields()
             else:
                 cat = SetsWithPartialMaps()
+        else:
+            k = self.residue_field()
+            if R is k:
+                return ResidueLiftingMap._create_(R, self)
         if cat is not None:
             H = Hom(R, self, cat)
             return H.__make_element_class__(DefPolyConversion)(H)
@@ -400,67 +406,6 @@ class pAdicExtensionGeneric(pAdicGeneric):
                     implementation=self._implementation),
                 self.base_ring())
 
-    def fraction_field(self, print_mode=None):
-        r"""
-        Returns the fraction field of this extension, which is just
-        the extension of base.fraction_field() determined by the
-        same polynomial.
-
-        INPUT:
-
-        - print_mode -- a dictionary containing print options.
-          Defaults to the same options as this ring.
-
-        OUTPUT:
-
-        - the fraction field of self.
-
-        EXAMPLES::
-
-            sage: U.<a> = Zq(17^4, 6, print_mode='val-unit', print_max_terse_terms=3)
-            sage: U.fraction_field()
-            Unramified Extension in a defined by x^4 + 7*x^2 + 10*x + 3 with capped relative precision 6 over 17-adic Field
-            sage: U.fraction_field({"pos":False}) == U.fraction_field()
-            False
-        """
-        if self.is_field() and print_mode is None:
-            return self
-        if print_mode is None:
-            return self.change(field=True)
-        else:
-            return self.change(field=True, **print_mode)
-
-    def integer_ring(self, print_mode=None):
-        r"""
-        Returns the ring of integers of self, which is just the
-        extension of base.integer_ring() determined by the same
-        polynomial.
-
-        INPUT:
-
-            - print_mode -- a dictionary containing print options.
-              Defaults to the same options as this ring.
-
-        OUTPUT:
-
-            - the ring of elements of self with nonnegative valuation.
-
-        EXAMPLES::
-
-            sage: U.<a> = Qq(17^4, 6, print_mode='val-unit', print_max_terse_terms=3)
-            sage: U.integer_ring()
-            Unramified Extension in a defined by x^4 + 7*x^2 + 10*x + 3 with capped relative precision 6 over 17-adic Ring
-            sage: U.fraction_field({"pos":False}) == U.fraction_field()
-            False
-        """
-        #Currently does not support fields with non integral defining polynomials.  This should change when the padic_general_extension framework gets worked out.
-        if not self.is_field() and print_mode is None:
-            return self
-        if print_mode is None:
-            return self.change(field=False)
-        else:
-            return self.change(field=False, **print_mode)
-
     #def hasGNB(self):
     #    raise NotImplementedError
 
@@ -559,7 +504,7 @@ class DefPolyConversion(Morphism):
             sage: S.<x> = ZZ[]
             sage: W.<w> = Zp(3).extension(x^4 + 9*x^2 + 3*x - 3)
             sage: z = W.random_element()
-            sage: repr(W.change(print_mode='digits')(z, absprec=8))
+            sage: repr(W.change(print_mode='digits')(z, absprec=8)) # indirect doctest
             '...20010120'
         """
         S = self.codomain()

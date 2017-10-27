@@ -1869,7 +1869,7 @@ cdef class RealBall(RingElement):
         EXAMPLES::
 
             sage: RBF(0).union(1).endpoints()
-            (0.000000000000000, 1.00000000000000)
+            (-9.31322574615479e-10, 1.00000000093133)
         """
         cdef RealBall my_other = self._parent.coerce(other)
         cdef RealBall res = self._new()
@@ -3421,7 +3421,7 @@ cdef class RealBall(RingElement):
             sage: RBF(-1).zeta(1)
             [-0.0833333333333333 +/- 4.26e-17]
             sage: RBF(-1).zeta(2)
-            [-1.083333333333333 +/- 4.08e-16]
+            [-1.083333333333333 +/- 4.96e-16]
         """
         cdef RealBall a_ball
         cdef RealBall res = self._new()
@@ -3458,7 +3458,7 @@ cdef class RealBall(RingElement):
         TESTS::
 
             sage: RBF(1/3).polylog(2r)
-            [0.36621322997706 +/- 4.62e-15]
+            [0.366213229977063 +/- 5.85e-16]
         """
         cdef RealBall s_as_ball
         cdef Integer s_as_Integer

@@ -56,6 +56,8 @@ from .number_field_element_quadratic import OrderElement_quadratic
 
 from sage.rings.monomials import monomials
 
+from sage.libs.pari.all import pari
+
 
 def is_NumberFieldOrder(R):
     r"""
@@ -783,16 +785,26 @@ class Order(IntegralDomain):
             1
             sage: QQ[sqrt(-23)].maximal_order().class_number()
             3
+            sage: ZZ[120*sqrt(-23)].class_number()
+            288
 
-        Note that non-maximal orders aren't supported yet::
+        Note that non-maximal orders are only supported in quadratic fields::
 
-            sage: ZZ[3*sqrt(-3)].class_number()
+            sage: ZZ[120*sqrt(-23)].class_number()
+            288
+            sage: ZZ[100*sqrt(3)].class_number()
+            4
+            sage: ZZ[11*2^(1/3)].class_number()
             Traceback (most recent call last):
             ...
-            NotImplementedError: computation of class numbers of non-maximal orders is not implemented
+            NotImplementedError: computation of class numbers of non-maximal orders not in quadratic fields is not implemented
+
         """
         if not self.is_maximal():
-            raise NotImplementedError("computation of class numbers of non-maximal orders is not implemented")
+            K = self.number_field()
+            if K.degree() != 2:
+                raise NotImplementedError("computation of class numbers of non-maximal orders not in quadratic fields is not implemented")
+            return ZZ(pari.qfbclassno(self.discriminant()))
         return self.number_field().class_number(proof=proof)
 
     def class_group(self, proof=None, names='c'):

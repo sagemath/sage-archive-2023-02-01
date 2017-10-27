@@ -2358,7 +2358,7 @@ cdef class Matrix(Matrix1):
 
         OUTPUT:
 
-        - polynomial - the characteristic polynomial of ``self``
+        - polynomial -- the characteristic polynomial of ``self``
 
         EXAMPLES:
 
@@ -8833,7 +8833,7 @@ cdef class Matrix(Matrix1):
 
         OUTPUT:
 
-        - matrix - the adjoint of self
+        - matrix -- the adjoint of self
 
         EXAMPLES:
 
@@ -13226,8 +13226,7 @@ cdef class Matrix(Matrix1):
            integers of number fields of large degree).
 
 
-        ALGORITHM: Lifted wholesale from
-        http://en.wikipedia.org/wiki/Smith_normal_form
+        ALGORITHM: Lifted wholesale from :wikipedia:`Smith_normal_form`
 
         .. SEEALSO::
 

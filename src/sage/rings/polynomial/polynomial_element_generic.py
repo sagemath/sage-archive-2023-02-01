@@ -670,7 +670,7 @@ class Polynomial_generic_sparse(Polynomial):
             sage: for _ in range(100):
             ....:     pd = Rd.random_element()
             ....:     qd = Rd.random_element()
-            ....:     assert cmp(pd,qd) == cmp(Rs(pd), Rs(qd))
+            ....:     assert bool(pd < qd) == bool(Rs(pd) < Rs(qd))
         """
         d1 = self.degree()
         d2 = other.degree()

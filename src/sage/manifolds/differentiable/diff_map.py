@@ -708,7 +708,7 @@ class DiffMap(ContinuousMap):
 
         - the functions `J_{ij}` as a double array, `J_{ij}` being
           the element ``[i][j]`` represented by a
-          :class:`~sage.manifolds.coord_func.CoordFunction`
+          :class:`~sage.manifolds.chart_func.ChartFunction`
 
         To get symbolic expressions, use the method
         :meth:`jacobian_matrix` instead.

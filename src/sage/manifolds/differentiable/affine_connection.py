@@ -156,9 +156,8 @@ class AffineConnection(SageObject):
     :class:`~sage.manifolds.differentiable.tensorfield.TensorField` for the
     documentation. In particular, the square brackets return the connection
     coefficients as instances of
-    :class:`~sage.manifolds.coord_func.CoordFunction` (of the subclass
-    :class:`~sage.manifolds.coord_func_symb.CoordFunctionSymb` in the current
-    example), while the double square brackets return a scalar field::
+    :class:`~sage.manifolds.chart_func.ChartFunction`,
+    while the double square brackets return a scalar field::
 
         sage: nab[1,1,2]
         x^2
@@ -930,7 +929,7 @@ class AffineConnection(SageObject):
 
         - the connection coefficient corresponding to the specified frame and
           indices, as an instance of
-          :class:`~sage.manifolds.coord_func.CoordFunction`
+          :class:`~sage.manifolds.chart_func.ChartFunction`
           (or the list of all connection coefficients if ``args==[:]`` or
           ``args=[frame,:]``).
 

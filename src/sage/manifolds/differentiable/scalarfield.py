@@ -212,7 +212,7 @@ class DiffScalarField(ScalarField):
 
     The method :meth:`~sage.manifolds.scalarfield.ScalarField.coord_function`
     returns instead a function of the chart coordinates, i.e. an instance of
-    :class:`~sage.manifolds.coord_func.CoordFunction`::
+    :class:`~sage.manifolds.chart_func.ChartFunction`::
 
         sage: f.coord_function(c_uv)
         (u^2 + v^2)/(u^2 + v^2 + 1)

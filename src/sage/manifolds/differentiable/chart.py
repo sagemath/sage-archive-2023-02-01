@@ -1113,7 +1113,7 @@ class DiffCoordChange(CoordChange):
 
         - Jacobian matrix `J`, the elements `J_{ij}` of which being
           coordinate functions
-          (cf. :class:`~sage.manifolds.coord_func.CoordFunction`)
+          (cf. :class:`~sage.manifolds.chart_func.ChartFunction`)
 
         EXAMPLES:
 
@@ -1147,7 +1147,7 @@ class DiffCoordChange(CoordChange):
 
         - determinant of the Jacobian matrix `J` as a coordinate
           function
-          (cf. :class:`~sage.manifolds.coord_func.CoordFunction`)
+          (cf. :class:`~sage.manifolds.chart_func.ChartFunction`)
 
         EXAMPLES:
 

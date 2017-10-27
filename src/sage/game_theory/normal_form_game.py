@@ -211,13 +211,16 @@ time spent in prison)::
     sage: prisoners_dilemma.obtain_nash(algorithm='enumeration', maximization=False)
     [[(0, 1), (0, 1)]]
 
-When obtaining Nash equilibrium the following algorithms are currently available:
+When obtaining Nash equilibrium the following algorithms are
+currently available:
 
-* ``'lp-*'``: A solver for constant-sum 2 player games using linear programming. This contructs a
-  `:mod:MixedIntegerLinearProgram <sage.numerical.MILP>` using the solver which was passed in as
-  part of the algorithm string to solve the linear programming representation of the game, for
-  instance, ``'lp-glpk'`` would make use of the ``GLPK`` solver, while ``'lp-gambit'`` would make
-  use of the gambit implementation of this method.
+* ``'lp-*'``: A solver for constant sum 2 player games using linear
+  programming. This contructs a
+ `:mod:MixedIntegerLinearProgram <sage.numerical.MILP>` using the
+  solver which was passed in as part of the algorithm string to solve
+  the linear programming representation of the game, for instance,
+  ``'lp-glpk'`` would make use of the ``GLPK`` solver, while
+  ``'lp-gambit'`` would make use of the gambit implementation of this method.
 
 * ``'lrs'``: Reverse search vertex enumeration for 2 player games. This
   algorithm uses the optional 'lrslib' package. To install it, type
@@ -565,7 +568,6 @@ Here is an example with the trivial game where all payoffs are 0::
     (
     [0 0 0]  [0 0 0]
     [0 0 0]  [0 0 0]
-    [0 0 0], [0 0 0]
     )
     sage: g.obtain_nash(algorithm='enumeration')
     [[(0, 0, 1), (0, 0, 1)], [(0, 0, 1), (0, 1, 0)], [(0, 0, 1), (1, 0, 0)],
@@ -965,11 +967,11 @@ class NormalFormGame(SageObject, MutableMapping):
 
         INPUT:
 
-        - ``as_integer`` - Boolean value which states whether the gambit representation should have
-          the payoffs represented as integers or decimals.
+        - ``as_integer`` -- boolean; whether the gambit representation
+          should have the payoffs represented as integers or decimals
 
-        - ``maximization`` - Whether a player is trying to maximize their
-          utility or minimize it.
+        - ``maximization`` -- boolean; whether a player is trying to
+          maximize their utility or minimize it
 
         TESTS::
 
@@ -1012,6 +1014,7 @@ class NormalFormGame(SageObject, MutableMapping):
             1 2 3 4
             <BLANKLINE>
 
+        ::
 
             sage: A = matrix([[2, 1], [1, 2.5]])
             sage: B = matrix([[3, 2], [5.5, 4]])
@@ -1051,7 +1054,8 @@ class NormalFormGame(SageObject, MutableMapping):
             }
             1 2 3 4
             <BLANKLINE>
-           
+
+        ::
 
             sage: threegame = NormalFormGame() # optional - gambit
             sage: threegame.add_player(2) # optional - gambit
@@ -1550,10 +1554,12 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g.obtain_nash(algorithm='enumeration')
             [[(0, 1/3, 2/3), (1/3, 2/3)], [(4/5, 1/5, 0), (2/3, 1/3)], [(1, 0, 0), (1, 0)]]
 
-        Of the algorithms implemented, only ``'lrs'`` and ``'enumeration'`` are guaranteed to find
-        all Nash equilibria in a game. The solver for constant-sum games only ever finds one Nash
-        equilibrium. Although it is possible for the ``'LCP'`` solver to find all Nash equilibria
-        in some instances, there are instances where it won't be able to find all Nash equilibria.::
+        Of the algorithms implemented, only ``'lrs'`` and ``'enumeration'``
+        are guaranteed to find all Nash equilibria in a game. The solver for
+        constant sum games only ever finds one Nash equilibrium. Although it
+        is possible for the ``'LCP'`` solver to find all Nash equilibria
+        in some instances, there are instances where it will not be able to
+        find all Nash equilibria.::
 
             sage: A = matrix(2, 2)
             sage: gg = NormalFormGame([A])
@@ -1741,7 +1747,8 @@ class NormalFormGame(SageObject, MutableMapping):
 
     def _solve_gambit_LP(self, maximization=True):
         r"""
-        Solves a constant sum NormalFormGame using Gambit's LP implementation
+        Solve a constant sum :class:`NormalFormGame` using Gambit's
+        LP implementation.
 
         EXAMPLES::
 
@@ -1768,16 +1775,17 @@ class NormalFormGame(SageObject, MutableMapping):
 
     def _solve_LP(self, solver='glpk', maximization=True):
         r"""
-        Solves a constant sum NormalFormGame using the specified LP solver.
+        Solves a constant sum :class:`NormalFormGame` using
+        the specified LP solver.
 
         INPUT:
 
-        - ``solver`` - the solver to be used to solve the LP.
+        - ``solver`` -- the solver to be used to solve the LP:
 
-          * ``'gambit'`` - This uses the solver included within the gambit library to
-            create and solve the LP.
+          * ``'gambit'`` - his uses the solver included within the gambit
+            library to create and solve the LP
 
-          * For further possible values see :class:`MixedIntegerLinearProgram`
+          * for further possible values, see :class:`MixedIntegerLinearProgram`
 
         EXAMPLES::
 

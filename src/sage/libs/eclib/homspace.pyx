@@ -217,8 +217,8 @@ cdef class ModularSymbols:
     def sparse_hecke_matrix(self, long p, dual=False, verbose=False, base_ring=ZZ):
         """
         Return the matrix of the ``p``-th Hecke operator acting on
-        this space of modular symbols as a sparse Sage matrix over 
-        ``base_ring``. This is more memory-efficient than creating a 
+        this space of modular symbols as a sparse Sage matrix over
+        ``base_ring``. This is more memory-efficient than creating a
         Cremona matrix and then applying sage_matrix_over_ZZ with sparse=True.
 
         The result of this command is not cached.
@@ -263,16 +263,14 @@ cdef class ModularSymbols:
             True
 
         This concerns an issue reported on :trac:`21303`::
+
             sage: C = CremonaModularSymbols(45, cuspidal=True,sign=-1)
             sage: T2a = C.hecke_matrix(2).sage_matrix_over_ZZ()
             sage: T2b = C.sparse_hecke_matrix(2)
             sage: print(T2a == T2b)
             True
         """
-        cdef long n = self.dimension()
-        cdef long i=0
-        cdef long j=0
-        cdef vec v
+        cdef long i, n = self.dimension()
         cdef svec sv
         d = {}
         sig_on()
@@ -288,4 +286,4 @@ cdef class ModularSymbols:
         # The next step is the bottleneck.
         ans = MS(entries=d)
         return ans
-        
+

@@ -8,33 +8,33 @@ Here, lattices have an ambient quadratic space `\QQ^n` and a distinguished basis
 
 EXAMPLES::
     
-        sage: IntegralLattice(Matrix(ZZ,2,2,[0,1,1,0]))
-        Lattice of degree 2 and rank 2 over Integer Ring
-        Basis matrix:
-        [1 0]
-        [0 1]
-        Inner product matrix:
-        [0 1]
-        [1 0]
+    sage: IntegralLattice(Matrix(ZZ,2,2,[0,1,1,0]))
+    Lattice of degree 2 and rank 2 over Integer Ring
+    Basis matrix:
+    [1 0]
+    [0 1]
+    Inner product matrix:
+    [0 1]
+    [1 0]
 
 A lattice can be defined by an inner product matrix of the ambient space and a basis::
         
-        sage: G = matrix.identity(3)
-        sage: basis = [[1,-1,0],[0,1,-1]]
-        sage: L = IntegralLattice(G,basis)
-        sage: L
-        Lattice of degree 3 and rank 2 over Integer Ring
-        Basis matrix:
-        [ 1 -1  0]
-        [ 0  1 -1]
-        Inner product matrix:
-        [1 0 0]
-        [0 1 0]
-        [0 0 1]
-
-        sage: L.gram_matrix()
-        [ 2 -1]
-        [-1  2]
+    sage: G = matrix.identity(3)
+    sage: basis = [[1,-1,0],[0,1,-1]]
+    sage: L = IntegralLattice(G,basis)
+    sage: L
+    Lattice of degree 3 and rank 2 over Integer Ring
+    Basis matrix:
+    [ 1 -1  0]
+    [ 0  1 -1]
+    Inner product matrix:
+    [1 0 0]
+    [0 1 0]
+    [0 0 1]
+        
+    sage: L.gram_matrix()
+    [ 2 -1]
+    [-1  2]
 
 AUTHORS:
 

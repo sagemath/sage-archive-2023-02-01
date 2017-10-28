@@ -13,6 +13,10 @@ in Sage. Assumptions are used both in Maxima and Pynac to support or refine
 some computations. In the following we show how to make and query assumptions.
 Please see the respective modules for more practical examples.
 
+In addition to the global :func:`assumptions()` database, :func:`assuming()`
+creates reusable, stackable context managers allowing for temporary
+updates of the database for evaluation of a (block of) statements.
+
 EXAMPLES:
 
 The default domain of a symbolic variable is the complex plane::
@@ -708,3 +712,93 @@ def _forget_all():
     for x in _assumptions[:]: # need to do this because x.forget() removes x from _assumptions
         x.forget()
     _assumptions = []
+
+class assuming:
+    """
+    Temporarily modify assumptions.
+    
+    Create a context manager in which temporary assumptions are added
+    (or substituted) to the current assumptions set.
+
+    The set of possible assumptions and declarations  is the same as for 
+    :func:`assume`.
+
+    This can be useful in interactive mode to discover the assumptions
+    necessary to a given integration, or the exact solution to a system of
+    equations.
+
+    It can also be used to explore the branches of a :func:`cases()` expression.
+
+    As with :func:`assume`, it is an error to add an assumption either redundant
+    or inconsistent with the current assumption set (unless ``replace=True`` is
+    used) :
+
+        | sage: assume(x > 0)
+        | sage: with assuming(x > -1): "I won't see this..."
+        | ...
+        | ValueError: Assumption is redundant
+
+        | sage: assume(x > 0)
+        | sage: with assuming(x < -1): "I won't see this..."
+        | ...
+        | ValueError: Assumption is inconsistent
+
+    INPUT:
+
+    - ``*args`` -- assumptions (same format as for :func:assume()).
+
+    - ``replace`` -- a boolean (default : ``False``).
+        Specifies whether the new assumptions are added to (default)
+        or replace (if ``replace=True``) the current assumption set.
+
+    OUTPUT:
+
+    A context manager useable in a in a ``with`` statement (see examples).
+
+    EXAMPLES:
+
+    Basic functionality : inside a :func:`with assuming:` block, Sage uses the
+    updated assumptions database. After exit, the original database is
+    restored. ::
+
+        sage: var("x")
+        x
+        sage: forget(assumptions())
+        sage: solve(x^2 == 4,x)
+        [x == -2, x == 2]
+        sage: with assuming(x > 0):
+        ....:     solve(x^2 == 4,x)
+        ....:     
+        [x == 2]
+        sage: assumptions()
+        []
+
+    This functionality can be used to check that Sage's default integrator
+    (Maxima's, that is), sometimes nitpicks for naught. ::
+
+        sage: var("y, k, theta", domain="positive")
+        (y, k, theta)
+        sage: dgamma(y, k, theta) = y^(k - 1)*e^(-y/theta) / (theta^k * gamma(k))
+        sage: try: integrate(dgamma(y, k, theta), y, 0, oo)
+        ....: except ValueError: "Got a \"ValueError\" exception"
+        ....: 
+        'Got a "ValueError" exception'
+        sage: with assuming(k,"noninteger"): integrate(dgamma(y, k, theta), y, 0, oo)
+        1
+        sage: with assuming(k,"integer"): integrate(dgamma(y, k, theta), y, 0, oo)
+        1
+
+    """
+    def __init__(self,*args, **kwds):
+        self.replace=kwds.pop("replace",False)
+        self.Ass=args
+    def __enter__(self):
+        if self.replace:
+            self.OldAss=assumptions()
+            forget(assumptions())
+        assume(self.Ass)
+    def __exit__(self, *args, **kwds):
+        if self.replace:
+            forget(assumptions())
+            assume(self.OldAss)
+        else: forget(self.Ass)

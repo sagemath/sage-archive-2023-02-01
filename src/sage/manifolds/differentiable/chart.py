@@ -72,6 +72,15 @@ class DiffChart(Chart):
       ``coordinates`` is not provided; it must then be a tuple containing
       the coordinate symbols (this is guaranteed if the shortcut operator
       ``<,>`` is used).
+    - ``calc_method`` -- (default: ``None``) string defining the calculus
+      method for computations involving coordinates of the chart; must be
+      one of
+
+      - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
+      - ``'sympy'``: SymPy
+      - ``None``: the default of
+        :class:`~sage.manifolds.calculus_method.CalculusMethod` will be
+        used
 
     EXAMPLES:
 
@@ -255,7 +264,8 @@ class DiffChart(Chart):
             sage: TestSuite(X).run()
 
         """
-        Chart.__init__(self, domain, coordinates=coordinates, names=names, calc_method=calc_method)
+        Chart.__init__(self, domain, coordinates=coordinates, names=names,
+                       calc_method=calc_method)
         # Construction of the coordinate frame associated to the chart:
         self._frame = CoordFrame(self)
         self._coframe = self._frame._coframe
@@ -645,7 +655,6 @@ class DiffChart(Chart):
 
 
 
-
 #*****************************************************************************
 
 class RealDiffChart(DiffChart, RealChart):
@@ -693,6 +702,15 @@ class RealDiffChart(DiffChart, RealChart):
       ``coordinates`` is not provided; it must then be a tuple containing
       the coordinate symbols (this is guaranteed if the shortcut operator
       ``<,>`` is used).
+    - ``calc_method`` -- (default: ``None``) string defining the calculus
+      method for computations involving coordinates of the chart; must be
+      one of
+
+      - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
+      - ``'sympy'``: SymPy
+      - ``None``: the default of
+        :class:`~sage.manifolds.calculus_method.CalculusMethod` will be
+        used
 
     EXAMPLES:
 
@@ -907,7 +925,8 @@ class RealDiffChart(DiffChart, RealChart):
             sage: TestSuite(X).run()
 
         """
-        RealChart.__init__(self, domain, coordinates=coordinates, names=names, calc_method = calc_method)
+        RealChart.__init__(self, domain, coordinates=coordinates, names=names,
+                           calc_method = calc_method)
         # Construction of the coordinate frame associated to the chart:
         self._frame = CoordFrame(self)
         self._coframe = self._frame._coframe

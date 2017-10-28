@@ -69,6 +69,15 @@ class Chart(UniqueRepresentation, SageObject):
       ``coordinates`` is not provided; it must then be a tuple containing
       the coordinate symbols (this is guaranteed if the shortcut operator
       ``<,>`` is used)
+    - ``calc_method`` -- (default: ``None``) string defining the calculus
+      method for computations involving coordinates of the chart; must be
+      one of
+
+      - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
+      - ``'sympy'``: SymPy
+      - ``None``: the default of
+        :class:`~sage.manifolds.calculus_method.CalculusMethod` will be
+        used
 
     The string ``coordinates`` has the space ``' '`` as a separator and each
     item has at most two fields, separated by a colon (``:``):
@@ -266,11 +275,10 @@ class Chart(UniqueRepresentation, SageObject):
             coordinates = coordinates[:-1]
         self._manifold = domain.manifold()
         self._domain = domain
-
+        # Handling of calculus methods available on this chart:
         self._calc_method = CalculusMethod(current=calc_method,
-                                           bf_type=self.manifold().base_field_type())
+                             base_field_type=self.manifold().base_field_type())
         self.simplify = self._calc_method.simplify
-
         # Treatment of the coordinates:
         if ' ' in coordinates:
             coord_list = coordinates.split()
@@ -909,7 +917,7 @@ class Chart(UniqueRepresentation, SageObject):
 
         return ChartFunctionRing(self)
 
-    def function(self, expression,calc_method=None):
+    def function(self, expression, calc_method=None):
         r"""
         Define a coordinate function to the base field.
 
@@ -926,29 +934,27 @@ class Chart(UniqueRepresentation, SageObject):
         where `V` is the chart codomain and `(x^1, \ldots, x^n)` are the
         chart coordinates.
 
-        The coordinate function can be either a symbolic one or a numerical
-        one, depending on the parameter ``expression`` (see below).
-
         See :class:`~sage.manifolds.chart_func.ChartFunction`
         for a complete documentation.
 
         INPUT:
 
-        - ``expression`` -- material defining the coordinate function; it can
-          be either:
+        - ``expression`` -- a symbolic expression involving the chart
+          coordinates, to represent `f(x^1,\ldots, x^n)`
 
-          - a symbolic expression involving the chart coordinates, to represent
-            `f(x^1,\ldots, x^n)`
-          - a string representing the name of a file where the data
-            to construct a numerical coordinate function is stored
+        - ``calc_method`` -- string (default: ``None``): the calculus method
+          with respect to which the internal expression of the function must be
+          initialized from ``expression``; one of
+
+          - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
+          - ``'sympy'``: SymPy
+          - ``None``: the chart current calculus method is assumed
 
         OUTPUT:
 
-        - instance of a subclass of the base class
+        - instance of
           :class:`~sage.manifolds.chart_func.ChartFunction`
-          representing the coordinate function `f`; this is
-          :class:`~sage.manifolds.chart_func.ChartFunctionSymb` if
-          if  ``expression`` is a symbolic expression.
+          representing the coordinate function `f`
 
         EXAMPLES:
 
@@ -966,9 +972,21 @@ class Chart(UniqueRepresentation, SageObject):
             sage: f(2,3)
             sin(6)
 
+        Using SymPy for the internal representation of the function (dictionary
+        ``_express``)::
+
+            sage: g = X.function(x^2 + x*cos(y), calc_method='sympy')
+            sage: g._express
+            {'sympy': x**2 + x*cos(y)}
+
+        On the contrary, for ``f``, only the ``SR`` part has been initialized::
+
+            sage: f._express
+            {'SR': sin(x*y)}
+
         """
         parent = self.function_ring()
-        return parent.element_class(parent,expression,calc_method=calc_method)
+        return parent.element_class(parent, expression, calc_method=calc_method)
 
     def zero_function(self):
         r"""
@@ -1078,36 +1096,53 @@ class Chart(UniqueRepresentation, SageObject):
         """
         return self.function_ring().one()
 
-    def set_calculus_method(self,method):
+    def set_calculus_method(self, method):
         r"""
-        Set the calculus method to use for computations on the chart.
+        Set the calculus method for computations involving coordinates of
+        this chart.
 
         INPUT:
 
-        - ``method`` -- calculus method
+        - ``method`` -- string; one of
 
-        EXAMPLES::
+          - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
+          - ``'sympy'``: SymPy
+
+        EXAMPLES:
+
+        The default calculus method relies on Sage's Symbolic Ring::
 
             sage: M = Manifold(3, 'M', structure='topological')
-            sage: U = M.open_subset('U')
-            sage: c_xyz.<x,y,z> = U.chart()
-            sage: f = U.scalar_field(sin(x)*cos(y) + z, name='F'); f
-            Scalar field F on the Open subset U of the 3-dimensional topological manifold M
-
-            sage: type(f.coord_function(c_xyz).expr())
+            sage: X.<x,y,z> = M.chart()
+            sage: f = X.function(sin(x)*cos(y) + z^2)
+            sage: f.expr()
+            z^2 + cos(y)*sin(x)
+            sage: type(f.expr())
             <type 'sage.symbolic.expression.Expression'>
+            sage: parent(f.expr())
+            Symbolic Ring
+            sage: f.display()
+            (x, y, z) |--> z^2 + cos(y)*sin(x)
 
-        The calculus method is changed::
-            sage: c_xyz.set_calculus_method('sympy')
+        Changing to SymPy::
 
-            sage: g = U.scalar_field(sin(x) + y - z, name='G'); g
-            Scalar field G on the Open subset U of the 3-dimensional topological manifold M
-
-            sage: type(g.coord_function(c_xyz).expr())
+            sage: X.set_calculus_method('sympy')
+            sage: f.expr()
+            z**2 + sin(x)*cos(y)
+            sage: type(f.expr())
             <class 'sympy.core.add.Add'>
+            sage: parent(f.expr())
+            <class 'sympy.core.add.Add'>
+            sage: f.display()
+            (x, y, z) |--> z**2 + sin(x)*cos(y)
+
+        Changing back to the Symbolic Ring::
+
+            sage: X.set_calculus_method('SR')
+            sage: f.display()
+            (x, y, z) |--> z^2 + cos(y)*sin(x)
 
         """
-
         self._calc_method.set(method)
 
     def multifunction(self, *expressions):
@@ -1192,6 +1227,15 @@ class RealChart(Chart):
       ``coordinates`` is not provided; it must then be a tuple containing
       the coordinate symbols (this is guaranteed if the shortcut operator
       ``<,>`` is used)
+    - ``calc_method`` -- (default: ``None``) string defining the calculus
+      method for computations involving coordinates of the chart; must be
+      one of
+
+      - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
+      - ``'sympy'``: SymPy
+      - ``None``: the default of
+        :class:`~sage.manifolds.calculus_method.CalculusMethod` will be
+        used
 
     The string ``coordinates`` has the space ``' '`` as a separator and each
     item has at most three fields, separated by a colon (``:``):
@@ -1416,7 +1460,8 @@ class RealChart(Chart):
             sage: TestSuite(X).run()
 
         """
-        Chart.__init__(self, domain, coordinates=coordinates, names=names, calc_method=calc_method)
+        Chart.__init__(self, domain, coordinates=coordinates, names=names,
+                       calc_method=calc_method)
 
     def _init_coordinates(self, coord_list):
         r"""

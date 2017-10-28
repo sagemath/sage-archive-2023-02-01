@@ -1426,9 +1426,13 @@ class TopologicalManifold(ManifoldSubset):
           ``coordinates`` is not provided; it must then be a tuple containing
           the coordinate symbols (this is guaranteed if the shortcut operator
           ``<,>`` is used)
-        - ``calc_method`` -- (default: ``None``) the calculus method to be
-          used on this chart; if ``None``, the current calculus method defined
-          on the manifold is used.
+        - ``calc_method`` -- (default: ``None``) string defining the calculus
+          method to be used on this chart; must be one of
+
+          - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
+          - ``'sympy'``: SymPy
+          - ``None``: the current calculus method defined on the manifold is
+            used (cf. :meth:`set_calculus_method`)
 
         The coordinates declared in the string ``coordinates`` are
         separated by ``' '`` (whitespace) and each coordinate has at most three
@@ -2154,34 +2158,56 @@ class TopologicalManifold(ManifoldSubset):
         """
         return Hom(self, self).one()
 
-    def set_calculus_method(self,method):
+    def set_calculus_method(self, method):
         r"""
-        Set the calculus method to use for computations.
-        It is changed for all the chart defined on the manifolds.
+        Set the calculus method to be used for coordinate computations on this
+        manifold.
+
+        The provided method is transmitted to all coordinate charts defined on
+        the manifold.
 
         INPUT:
 
-        - ``method`` -- calculus method
+        - ``method`` -- string specifying the method to be used for
+          coordinate computations on this manifold; one of
 
-        EXAMPLES::
+          - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
+          - ``'sympy'``: SymPy
+
+        The default calculus method relies on Sage's Symbolic Ring::
 
             sage: M = Manifold(3, 'M', structure='topological')
-            sage: U = M.open_subset('U')
-            sage: c_xyz.<x,y,z> = U.chart()
-            sage: f = U.scalar_field(sin(x)*cos(y) + z, name='F'); f
-            Scalar field F on the Open subset U of the 3-dimensional topological manifold M
-
-            sage: type(f.coord_function(c_xyz).expr())
+            sage: X.<x,y,z> = M.chart()
+            sage: f = M.scalar_field(sin(x)*cos(y) + z^2, name='F')
+            sage: f.expr()
+            z^2 + cos(y)*sin(x)
+            sage: type(f.expr())
             <type 'sage.symbolic.expression.Expression'>
+            sage: parent(f.expr())
+            Symbolic Ring
+            sage: f.display()
+            F: M --> R
+               (x, y, z) |--> z^2 + cos(y)*sin(x)
 
-        The calculus method is changed::
-            sage: c_xyz.set_calculus_method('sympy')
+        Changing to SymPy::
 
-            sage: g = U.scalar_field(sin(x) + y - z, name='G'); g
-            Scalar field G on the Open subset U of the 3-dimensional topological manifold M
-
-            sage: type(g.coord_function(c_xyz).expr())
+            sage: M.set_calculus_method('sympy')
+            sage: f.expr()
+            z**2 + sin(x)*cos(y)
+            sage: type(f.expr())
             <class 'sympy.core.add.Add'>
+            sage: parent(f.expr())
+            <class 'sympy.core.add.Add'>
+            sage: f.display()
+            F: M --> R
+               (x, y, z) |--> z**2 + sin(x)*cos(y)
+
+        Changing back to the Symbolic Ring::
+
+            sage: M.set_calculus_method('SR')
+            sage: f.display()
+            F: M --> R
+               (x, y, z) |--> z^2 + cos(y)*sin(x)
 
         """
         self._calculus_method = method

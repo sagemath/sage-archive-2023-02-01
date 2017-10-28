@@ -61,7 +61,7 @@ class ChartFunction(AlgebraElement):
     The chart function `f` can be represented by expressions pertaining to
     different calculus methods; the currently implemented ones are
 
-    - ``Pynac`` (+ ``Maxima`` for simplifications) (Sage default calculus
+    - ``Pynac`` (+ ``Maxima`` for simplifications) (Sage's default calculus
       engine)
     - ``SymPy``
 
@@ -76,7 +76,13 @@ class ChartFunction(AlgebraElement):
       `f(x^1, \ldots, x^n)`, where `(x^1, \ldots, x^n)` are the
       coordinates of the chart `(U, \varphi)`
 
-    - ``calc_method`` -- (default: ``None``) the used calculus method
+    - ``calc_method`` -- string (default: ``None``): the calculus method with
+      respect to which the internal expression of ``self`` must be initialized
+      from ``expression``; one of
+
+      - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
+      - ``'sympy'``: SymPy
+      - ``None``: the chart current calculus method is assumed
 
     EXAMPLES:
 
@@ -277,7 +283,7 @@ class ChartFunction(AlgebraElement):
     .. automethod:: __call__
 
     """
-    def __init__(self, parent, expression=None, calc_method=None ):
+    def __init__(self, parent, expression=None, calc_method=None):
         r"""
         Initialize ``self``.
 
@@ -317,8 +323,8 @@ class ChartFunction(AlgebraElement):
         # set the calculation method managing
         self._calc_method = parent._chart._calc_method
         self._simplify = self._calc_method.simplify
-        if expression is not None :
-            if calc_method is None :
+        if expression is not None:
+            if calc_method is None:
                 calc_method = self._calc_method._current
             self._express[calc_method] = self._calc_method._tranf[calc_method](
                                                                     expression)
@@ -397,7 +403,7 @@ class ChartFunction(AlgebraElement):
         - ``method`` -- string (default: ``None``): the calculus method which
           the returned expression belongs to; one of
 
-          - ``'SR'``: Sage default symbolic engine (Symbolic Ring)
+          - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
           - ``'sympy'``: SymPy
           - ``None``: the chart current calculus method is assumed
 
@@ -969,9 +975,9 @@ class ChartFunction(AlgebraElement):
                     method = list(self._express)[0] # pick a random method
                 #other.expr(method)
                 if method == 'sympy':
-                    return bool(sympy.simplify(other.expr(method) - self.expr(method)) == 0)
+                    return bool(sympy.simplify(other.expr(method)
+                                - self.expr(method)) == 0)
                 return bool(other.expr(method) == self.expr(method))
-
         else:
             return bool(self.expr(self._calc_method._current) == other)
 
@@ -2117,9 +2123,9 @@ class ChartFunction(AlgebraElement):
 
     def simplify(self):
         r"""
-        Simplify the chart expression of ``self``.
+        Simplify the coordinate expression of ``self``.
 
-        For details about the employed chain of simplifications for the 'SR'
+        For details about the employed chain of simplifications for the ``SR``
         calculus method, see
         :func:`~sage.manifolds.utilities.simplify_chain_real` for chart
         functions on real manifolds and
@@ -2128,15 +2134,15 @@ class ChartFunction(AlgebraElement):
 
         OUTPUT:
 
-        - ``self`` with its expression simplified
+        - ``self`` with its coordinate expression simplified
 
         EXAMPLES:
 
-        Simplification of a 2-dimension chart function::
+        Simplification of a chart function on a 2-dimensional manifold::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
-            sage: f = X.function(cos(x)^2+sin(x)^2 + sqrt(x^2))
+            sage: f = X.function(cos(x)^2 + sin(x)^2 + sqrt(x^2))
             sage: f.display()
             (x, y) |--> cos(x)^2 + sin(x)^2 + abs(x)
             sage: f.simplify()
@@ -2149,59 +2155,65 @@ class ChartFunction(AlgebraElement):
 
         Another example::
 
-            sage: f = X.function((x^2-1)/(x+1))
-            sage: f
+            sage: f = X.function((x^2-1)/(x+1)); f
             (x^2 - 1)/(x + 1)
             sage: f.simplify()
             x - 1
 
         Examples taking into account the declared range of a coordinate::
 
-            sage: M =  Manifold(2, 'M_1', structure='topological')
-            sage: X.<x,y> = M.chart('x:(0,+oo) y')
-            sage: f = X.function(sqrt(x^2))
-            sage: f
-            x
-
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart('x:(1,+oo) y')
+            sage: f = X.function(sqrt(x^2-2*x+1)); f
+            sqrt(x^2 - 2*x + 1)
             sage: f.simplify()
-            x
+            x - 1
 
         ::
 
             sage: forget()  # to clear the previous assumption on x
-            sage: M =  Manifold(2, 'M_2', structure='topological')
+            sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart('x:(-oo,0) y')
-            sage: f = X.function(sqrt(x^2))
-            sage: f
-            -x
+            sage: f = X.function(sqrt(x^2-2*x+1)); f
+            sqrt(x^2 - 2*x + 1)
+            sage: f.simplify()
+            -x + 1
 
         The same tests with SymPy::
 
             sage: forget()  # to clear the previous assumption on x
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart(calc_method='sympy')
-            sage: f = X.function(cos(x)^2+sin(x)^2 + sqrt(x^2))
+            sage: f = X.function(cos(x)^2 + sin(x)^2 + sqrt(x^2)); f
+            sin(x)**2 + cos(x)**2 + Abs(x)
             sage: f.simplify()
             Abs(x) + 1
 
-            sage: f = X.function((x^2-1)/(x+1))
-            sage: f
+        ::
+
+            sage: f = X.function((x^2-1)/(x+1)); f
             (x**2 - 1)/(x + 1)
             sage: f.simplify()
             x - 1
 
-            sage: M =  Manifold(2, 'M_1', structure='topological')
-            sage: X.<x,y> = M.chart('x:(0,+oo) y',calc_method='sympy')
-            sage: f = X.function(sqrt(x^2))
-            sage: f
-            x
+        ::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart('x:(1,+oo) y', calc_method='sympy')
+            sage: f = X.function(sqrt(x^2-2*x+1)); f
+            sqrt(x**2 - 2*x + 1)
+            sage: f.simplify()
+            x - 1
+
+        ::
 
             sage: forget()  # to clear the previous assumption on x
-            sage: M =  Manifold(2, 'M_2', structure='topological')
-            sage: X.<x,y> = M.chart('x:(-oo,0) y',calc_method='sympy')
-            sage: f = X.function(sqrt(x^2))
-            sage: f
-            -x
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart('x:(-oo,0) y', calc_method='sympy')
+            sage: f = X.function(sqrt(x^2-2*x+1)); f
+            sqrt(x**2 - 2*x + 1)
+            sage: f.simplify()
+            -x + 1
 
         """
         curr = self._calc_method._current
@@ -2704,7 +2716,7 @@ class MultiCoordFunction(SageObject):
         - ``method`` -- string (default: ``None``): the calculus method which
           the returned expressions belong to; one of
 
-          - ``'SR'``: Sage default symbolic engine (Symbolic Ring)
+          - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
           - ``'sympy'``: SymPy
           - ``None``: the chart current calculus method is assumed
 

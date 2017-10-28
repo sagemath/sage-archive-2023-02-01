@@ -13,7 +13,7 @@ in Sage. Assumptions are used both in Maxima and Pynac to support or refine
 some computations. In the following we show how to make and query assumptions.
 Please see the respective modules for more practical examples.
 
-In addition to the global :func:`assumptions()` database, :func:`assuming()`
+In addition to the global :func:`assumptions` database, :func:`assuming`
 creates reusable, stackable context managers allowing for temporary
 updates of the database for evaluation of a (block of) statements.
 
@@ -731,17 +731,7 @@ class assuming:
 
     As with :func:`assume`, it is an error to add an assumption either redundant
     or inconsistent with the current assumption set (unless ``replace=True`` is
-    used) :
-
-        | sage: assume(x > 0)
-        | sage: with assuming(x > -1): "I won't see this..."
-        | ...
-        | ValueError: Assumption is redundant
-
-        | sage: assume(x > 0)
-        | sage: with assuming(x < -1): "I won't see this..."
-        | ...
-        | ValueError: Assumption is inconsistent
+    used). See examples.
 
     INPUT:
 
@@ -776,17 +766,37 @@ class assuming:
     This functionality can be used to check that Sage's default integrator
     (Maxima's, that is), sometimes nitpicks for naught. ::
 
-        sage: var("y, k, theta", domain="positive")
+        sage: var("y,k,theta", domain="positive")
         (y, k, theta)
-        sage: dgamma(y, k, theta) = y^(k - 1)*e^(-y/theta) / (theta^k * gamma(k))
-        sage: try: integrate(dgamma(y, k, theta), y, 0, oo)
-        ....: except ValueError: "Got a \"ValueError\" exception"
-        ....: 
-        'Got a "ValueError" exception'
-        sage: with assuming(k,"noninteger"): integrate(dgamma(y, k, theta), y, 0, oo)
+        sage: dgamma(y, k, theta)=y^(k - 1) * e^(-y/theta) / (theta^k * gamma(k))
+        sage: integrate(dgamma(y, k, theta), y, 0, oo)
+        Traceback (most recent call last):
+        ...
+        ValueError: Computation failed since Maxima requested additional constraints; using the 'assume' command before evaluation *may* help (example of legal syntax is 'assume(k>0)', see `assume?` for more details)
+        Is k an integer?
+        
+        sage: with assuming(k,"noninteger"):
+        ....:     integrate(dgamma(y, k, theta), y, 0, oo)
+        ....:
         1
-        sage: with assuming(k,"integer"): integrate(dgamma(y, k, theta), y, 0, oo)
+        sage: with assuming(k,"integer"):
+        ....:     integrate(dgamma(y, k, theta), y, 0, oo)
+        ....:
         1
+
+    As mentioned above, it is an error to try to introduce redundant or
+    inconsistent assumptions. ::
+
+        sage: assume(x > 0)
+        sage: with assuming(x > -1): "I won't see this"
+        Traceback (most recent call last):
+        ...
+        ValueError: Assumption is redundant
+        
+        sage: with assuming(x < -1): "I won't see this"
+        Traceback (most recent call last):
+        ...
+        ValueError: Assumption is inconsistent
 
     """
     def __init__(self,*args, **kwds):
@@ -801,4 +811,5 @@ class assuming:
         if self.replace:
             forget(assumptions())
             assume(self.OldAss)
-        else: forget(self.Ass)
+        else:
+            if len(self.Ass)>0: forget(self.Ass)

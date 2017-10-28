@@ -1834,13 +1834,22 @@ class Graph(GenericGraph):
             False
         """
         self._scream_if_not_simple()
-        if not self.is_connected() or not self.is_circular_planar():
+
+        # Special cases
+        if self.order() < 4:
+            return True
+
+        # Every cactus graph is outerplanar, and outerplanar
+        # graphs have limited number of edges.
+        if self.size() > self.order()*2-3:
             return False
-        cutverts = frozenset(self.blocks_and_cut_vertices()[1])
-        for v in self:
-            if self.degree(v) >= 3 and v not in cutverts:
-                return False
-        return True
+
+        if not self.is_connected():
+            return False
+
+        # the number of faces is 1 plus the number of blocks of order > 2
+        B = self.blocks_and_cut_vertices()[0]
+        return len(self.faces()) == sum(1 for b in B if len(b) > 2) + 1
 
     @doc_index("Graph properties")
     def is_biconnected(self):

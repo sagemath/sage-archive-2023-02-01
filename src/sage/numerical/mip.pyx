@@ -3176,9 +3176,9 @@ cdef class MIPVariable(SageObject):
         """
         return self._p
 
-    def __mul__(self, m):
+    def __mul__(left, right):
         """
-        Multiply ``self`` with ``m``.
+        Multiply ``left`` with ``right``.
 
         EXAMPLES::
 
@@ -3190,14 +3190,14 @@ cdef class MIPVariable(SageObject):
             sage: m * v
             (1.0, 3.0)*x_0 + (2.0, 4.0)*x_1
         """
-        if isinstance(self, MIPVariable):
-            if not is_Matrix(m):
-                raise TypeError("can only multiply with matrices")
-            return (<MIPVariable> self)._matrix_rmul_impl(m)
+        if isinstance(left, MIPVariable):
+            if not is_Matrix(right):
+                return NotImplemented
+            return (<MIPVariable> left)._matrix_rmul_impl(right)
         else:
-            if not is_Matrix(self):
-                raise TypeError("can only multiply with matrices")
-            return (<MIPVariable> m)._matrix_lmul_impl(self)
+            if not is_Matrix(left):
+                return NotImplemented
+            return (<MIPVariable> right)._matrix_lmul_impl(left)
 
     cdef _matrix_rmul_impl(self, m):
         """

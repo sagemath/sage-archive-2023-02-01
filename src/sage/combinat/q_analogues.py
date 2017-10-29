@@ -501,7 +501,19 @@ def q_pochhammer(n, a, q=None):
 
         (a; q)_n = \prod_{k=0}^{n-1} (1 - aq^k)
 
-    with `(a; q)_0 = 1` for all `a, q`.
+    with `(a; q)_0 = 1` for all `a, q` and `n \in \NN`.
+    By using the identity
+
+    .. MATH::
+
+        (a; q)_n = \frac{(a; q)_{\infty}}{(aq^n; q)_{\infty}},
+
+    we can extend the definition to `n < 0` by
+
+    .. MATH::
+
+        (a; q)_n = \frac{1}{(aq^n; q)_{-n}}
+        = \prod_{k=1}^{-n} \frac{1}{1 - a/q^k}.
 
     EXAMPLES::
 
@@ -518,8 +530,8 @@ def q_pochhammer(n, a, q=None):
         q^10 - q^9 - q^8 + 2*q^5 - q^2 - q + 1
         sage: q_pochhammer(4, q^2)
         q^14 - q^12 - q^11 - q^10 + q^8 + 2*q^7 + q^6 - q^4 - q^3 - q^2 + 1
-        sage: q_pochhammer(-4, q)
-        1/(q^10 - q^9 - q^8 + 2*q^5 - q^2 - q + 1)
+        sage: q_pochhammer(-3, q)
+        1/(-q^9 + q^7 + q^6 + q^5 - q^4 - q^3 - q^2 + 1)
 
     TESTS::
 
@@ -541,7 +553,7 @@ def q_pochhammer(n, a, q=None):
     R = q.parent()
     one = R.one()
     if n < 0:
-        return R.prod(one / (one - a/q**-k) for k in range(-n))
+        return R.prod(one / (one - a/q**-k) for k in range(1,-n+1))
     return R.prod((one - a*q**k) for k in range(n))
 
 @cached_function

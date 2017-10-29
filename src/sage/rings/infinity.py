@@ -581,7 +581,7 @@ class UnsignedInfinityRing_class(Singleton, Ring):
             sage: UnsignedInfinityRing(3) == UnsignedInfinityRing(-19.5)
             True
         """
-        Parent.__init__(self, self, names=('oo',), normalize=False)
+        Ring.__init__(self, self, names=('oo',), normalize=False)
 
     def ngens(self):
         """
@@ -994,7 +994,7 @@ class InfinityRing_class(Singleton, Ring):
             sage: InfinityRing == UnsignedInfinityRing
             False
         """
-        Parent.__init__(self, self, names=('oo',), normalize=False)
+        Ring.__init__(self, self, names=('oo',), normalize=False)
 
     def fraction_field(self):
         """

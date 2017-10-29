@@ -2352,6 +2352,9 @@ REFERENCES:
             *Analysis of the DVB Common Scrambling Algorithm*; in
             IFIP TC-6 TC-11, (2005).
 
+.. [WZY2015] WenLing Wu, Lei Zhang, and XiaoLi Yu, *The DBlock family of block ciphers*;
+             in Science China Information Sciences, (2015), pp. 1-14.
+
 .. _ref-X:
 
 **X**

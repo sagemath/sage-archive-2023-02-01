@@ -2674,5 +2674,25 @@ class Function_cases(GinacFunction):
             str += r"{%s} & {%s}\\" % (latex(left), latex(right))
         print(str[:-2] + r"\end{cases}")
 
+    def _sympy_(self, l):
+        """
+        Convert this cases expression to its SymPy equivalent.
+
+        EXAMPLES::
+
+            sage: ex = cases(((x<0, pi), (x==1, 1), (True, 0)))
+            sage: assert ex == ex._sympy_()._sage_()
+        """
+        from sage.symbolic.ring import SR
+        from sympy import Piecewise as pw
+        args = []
+        for tup in l.operands():
+            cond,expr = tup.operands()
+            if SR(cond).is_numeric():
+                args.append((SR(expr)._sympy_(), bool(SR(cond)._sympy_())))
+            else:
+                args.append((SR(expr)._sympy_(), SR(cond)._sympy_()))
+        return pw(*args)
+
 cases = Function_cases()
 

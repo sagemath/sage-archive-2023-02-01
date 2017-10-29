@@ -602,7 +602,7 @@ class ScalarField(CommutativeAlgebraElement):
 
     .. RUBRIC:: Examples with SymPy as the symbolic engine
 
-    From now on, we ask that all symbolic calculus on manifold `M` is
+    From now on, we ask that all symbolic calculus on manifold `M` are
     performed by SymPy::
 
         sage: M.set_calculus_method('sympy')
@@ -1544,7 +1544,6 @@ class ScalarField(CommutativeAlgebraElement):
                     new_expr = self._express[known_chart].expr()
                     self._express[chart] = chart.function(new_expr)
                     return self._express[chart]
-
             # If this point is reached, the expression must be computed
             # from that in the chart from_chart, by means of a
             # change-of-coordinates formula:
@@ -1567,15 +1566,12 @@ class ScalarField(CommutativeAlgebraElement):
                 if not found:
                     raise ValueError("no starting chart could be found to " +
                                      "compute the expression in the {}".format(chart))
-
             change = self._domain._coord_changes[(chart, from_chart)]
-
             # old coordinates expressed in terms of the new ones:
             coords = [ change._transf._functions[i].expr()
                        for i in range(self._manifold.dim()) ]
             new_expr = self._express[from_chart](*coords)
             self._express[chart] = chart.function(new_expr)
-
             self._del_derived()
         return self._express[chart]
 
@@ -1902,7 +1898,6 @@ class ScalarField(CommutativeAlgebraElement):
         result._latex = r"\begin{array}{llcl} " + symbol + r"&" + \
                         latex(self._domain) + r"& \longrightarrow & " + \
                         field_latex_name + r" \\"
-
         if chart is None:
             for ch in self._domain._top_charts:
                 _display_expression(self, ch, result)

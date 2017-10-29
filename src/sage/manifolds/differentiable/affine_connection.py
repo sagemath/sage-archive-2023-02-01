@@ -293,20 +293,11 @@ class AffineConnection(SageObject):
         sage: nab.restrict(U)(a.restrict(V)) == da.restrict(W)
         True
 
-    Same tests with ``sympy``::
+    Same examples with SymPy as the engine for symbolic calculus::
 
         sage: M.set_calculus_method('sympy')
-
         sage: nab = M.affine_connection('nabla', r'\nabla')
-
-    The connection is first defined on the open subset U by means of its
-    coefficients w.r.t. the frame eU (the manifold's default frame)::
-
         sage: nab[0,0,0], nab[1,0,1] = x, x*y
-
-    The coefficients w.r.t the frame eV are deduced by continuation of the
-    coefficients w.r.t. the frame eVW on the open subset `W=U\cap V`::
-
         sage: for i in M.irange():
         ....:     for j in M.irange():
         ....:         for k in M.irange():
@@ -338,7 +329,6 @@ class AffineConnection(SageObject):
          manifold M
         sage: da.display(eU)
         nabla(a) = -x*y d/dx*dx - d/dx*dy + d/dy*dx - x*y**2 d/dy*dy
-
         sage: da.display(eV)
         nabla(a) = (-u**3/16 + u**2*v/16 - u**2/8 + u*v**2/16 - v**3/16 + v**2/8) d/du*du
          + (u**3/16 - u**2*v/16 - u**2/8 - u*v**2/16 + v**3/16 + v**2/8 + 1) d/du*dv

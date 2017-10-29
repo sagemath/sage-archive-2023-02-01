@@ -207,21 +207,16 @@ class DiffForm(TensorField):
         1/2*u^2*v du - 1/2*u^3 dv
 
 
-    Same tests with ``sympy``::
+    .. RUBRIC:: Examples with SymPy as the symbolic engine
+
+    From now on, we ask that all symbolic calculus on manifold `M` are
+    performed by SymPy::
 
         sage: M.set_calculus_method('sympy')
-        sage: U.set_calculus_method('sympy')
-        sage: V.set_calculus_method('sympy')
-        sage: W.set_calculus_method('sympy')
-        sage: a = M.diff_form(2, name='a') ; a
-        2-form a on the 2-dimensional differentiable manifold M
-        sage: a.parent()
-        Module Omega^2(M) of 2-forms on the 2-dimensional differentiable
-         manifold M
-        sage: a.degree()
-        2
 
-    Setting the components of ``a``::
+    We define a 2-form `a` as above::
+
+        sage: a = M.diff_form(2, name='a')
         sage: a[eU,0,1] = x*y^2 + 2*x
         sage: a.add_comp_by_continuation(eV, W, c_uv)
         sage: a.display(eU)
@@ -231,16 +226,7 @@ class DiffForm(TensorField):
 
     A 1-form on ``M``::
 
-        sage: a = M.one_form('a') ; a
-        1-form a on the 2-dimensional differentiable manifold M
-        sage: a.parent()
-        Module Omega^1(M) of 1-forms on the 2-dimensional differentiable
-         manifold M
-        sage: a.degree()
-        1
-
-    Setting the components of the 1-form in a consistent way::
-
+        sage: a = M.one_form('a')
         sage: a[eU,:] = [-y, x]
         sage: a.add_comp_by_continuation(eV, W, c_uv)
         sage: a.display(eU)
@@ -248,10 +234,9 @@ class DiffForm(TensorField):
         sage: a.display(eV)
         a = v/2 du - u/2 dv
 
-    The exterior derivative of the 1-form is a 2-form::
+    The exterior derivative of ``a``::
 
-        sage: da = a.exterior_derivative() ; da
-        2-form da on the 2-dimensional differentiable manifold M
+        sage: da = a.exterior_derivative()
         sage: da.display(eU)
         da = 2 dx/\dy
         sage: da.display(eV)
@@ -263,34 +248,30 @@ class DiffForm(TensorField):
         sage: b[eU,:] = [1+x*y, x^2]
         sage: b.add_comp_by_continuation(eV, W, c_uv)
 
-    Adding two 1-forms results in another 1-form::
+    Adding two 1-forms::
 
-        sage: s = a + b ; s
-        1-form a+b on the 2-dimensional differentiable manifold M
+        sage: s = a + b
         sage: s.display(eU)
         a+b = (x*y - y + 1) dx + x*(x + 1) dy
         sage: s.display(eV)
         a+b = (u**2/4 + u*v/4 + v/2 + 1/2) du + (-u*v/4 - u/2 - v**2/4 + 1/2) dv
 
-    The exterior product of two 1-forms is a 2-form::
+    The exterior product of two 1-forms::
 
-        sage: s = a.wedge(b) ; s
-        2-form a/\b on the 2-dimensional differentiable manifold M
+        sage: s = a.wedge(b)
         sage: s.display(eU)
         a/\b = -x*(2*x*y + 1) dx/\dy
         sage: s.display(eV)
         a/\b = (u**3/8 + u**2*v/8 - u*v**2/8 + u/4 - v**3/8 + v/4) du/\dv
 
-    Multiplying a 1-form by a scalar field results in another 1-form::
+    Multiplying a 1-form by a scalar field::
 
         sage: f = M.scalar_field({c_xy: (x+y)^2, c_uv: u^2}, name='f')
-        sage: s = f*a ; s
-        1-form on the 2-dimensional differentiable manifold M
+        sage: s = f*a
         sage: s.display(eU)
         -y*(x**2 + 2*x*y + y**2) dx + x*(x**2 + 2*x*y + y**2) dy
         sage: s.display(eV)
         u**2*v/2 du - u**3/2 dv
-
 
     """
     def __init__(self, vector_field_module, degree, name=None, latex_name=None):

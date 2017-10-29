@@ -735,7 +735,7 @@ class assuming:
 
     INPUT:
 
-    - ``*args`` -- assumptions (same format as for :func:assume()).
+    - ``*args`` -- assumptions (same format as for :func:`assume`).
 
     - ``replace`` -- a boolean (default : ``False``).
         Specifies whether the new assumptions are added to (default)
@@ -743,7 +743,7 @@ class assuming:
 
     OUTPUT:
 
-    A context manager useable in a in a ``with`` statement (see examples).
+    A context manager useable in a ``with`` statement (see examples).
 
     EXAMPLES:
 
@@ -763,9 +763,9 @@ class assuming:
         sage: assumptions()
         []
 
-    The local assumptions can be stacked. we can use this functionality
-    can be used to discover the assumptions necessary to a given calculation
-    (and by yhe way, to check that Sage's default integrator
+    The local assumptions can be stacked. We can use this functionality to
+    discover incrementally the assumptions necessary to a given calculation
+    (and by the way, to check that Sage's default integrator
     (Maxima's, that is), sometimes nitpicks for naught). ::
 
         sage: var("y,k,theta")
@@ -824,6 +824,7 @@ class assuming:
         """
         self.replace=kwds.pop("replace",False)
         self.Ass=args
+        
     def __enter__(self):
         """
         EXAMPLES::
@@ -844,6 +845,7 @@ class assuming:
             self.OldAss=assumptions()
             forget(assumptions())
         assume(self.Ass)
+        
     def __exit__(self, *args, **kwds):
         """
         EXAMPLES::

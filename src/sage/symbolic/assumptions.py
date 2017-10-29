@@ -763,25 +763,36 @@ class assuming:
         sage: assumptions()
         []
 
-    This functionality can be used to check that Sage's default integrator
-    (Maxima's, that is), sometimes nitpicks for naught. ::
+    The local assumptions can be stacked. we can use this functionality
+    can be used to discover the assumptions necessary to a given calculation
+    (and by yhe way, to check that Sage's default integrator
+    (Maxima's, that is), sometimes nitpicks for naught). ::
 
-        sage: var("y,k,theta", domain="positive")
+        sage: var("y,k,theta")
         (y, k, theta)
-        sage: dgamma(y, k, theta)=y^(k - 1) * e^(-y/theta) / (theta^k * gamma(k))
-        sage: integrate(dgamma(y, k, theta), y, 0, oo)
+        sage: dgamma(y,k,theta)=y^(k-1)*e^(-y/theta)/(theta^k*gamma(k))
+        sage: integrate(dgamma(y,k,theta),y,0,oo)
+        Traceback (most recent call last):
+        ...
+        ValueError: Computation failed since Maxima requested additional constraints; using the 'assume' command before evaluation *may* help (example of legal syntax is 'assume(theta>0)', see `assume?` for more details)
+        Is theta positive or negative?
+        sage: a1=assuming(theta>0)
+        sage: with a1:integrate(dgamma(y,k,theta),y,0,oo)
+        Traceback (most recent call last):
+        ...
+        ValueError: Computation failed since Maxima requested additional constraints; using the 'assume' command before evaluation *may* help (example of legal syntax is 'assume(k>0)', see `assume?` for more details)
+        Is k positive, negative or zero?
+        sage: a2=assuming(k>0)
+        sage: with a1,a2:integrate(dgamma(y,k,theta),y,0,oo)
         Traceback (most recent call last):
         ...
         ValueError: Computation failed since Maxima requested additional constraints; using the 'assume' command before evaluation *may* help (example of legal syntax is 'assume(k>0)', see `assume?` for more details)
         Is k an integer?
-        
-        sage: with assuming(k,"noninteger"):
-        ....:     integrate(dgamma(y, k, theta), y, 0, oo)
-        ....:
+        sage: a3=assuming(k,"noninteger")
+        sage: with a1,a2,a3:integrate(dgamma(y,k,theta),y,0,oo)
         1
-        sage: with assuming(k,"integer"):
-        ....:     integrate(dgamma(y, k, theta), y, 0, oo)
-        ....:
+        sage: a4=assuming(k,"integer")
+        sage: with a1,a2,a4:integrate(dgamma(y,k,theta),y,0,oo)
         1
 
     As mentioned above, it is an error to try to introduce redundant or

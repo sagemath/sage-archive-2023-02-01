@@ -1014,6 +1014,15 @@ def solve(f, *args, **kwds):
     elif not isinstance(x, Expression):
         raise TypeError("%s is not a valid variable." % repr(x))
 
+    if isinstance(f, (list, tuple)) and len(f)==1:
+        # f is a list with a single element
+        if is_Expression(f[0]):
+            f = f[0]
+        else:
+            raise TypeError("The first argument to solve() should be a"
+                    "symbolic expression or a list of symbolic expressions, "
+                    "cannot handle %s"%repr(type(f)))
+
     if is_Expression(f): # f is a single expression
         if f.is_relational():
             if f.operator() is not operator.eq:
@@ -1140,16 +1149,6 @@ def solve(f, *args, **kwds):
 
     if not isinstance(f, (list, tuple)):
         raise TypeError("The first argument must be a symbolic expression or a list of symbolic expressions.")
-
-    if len(f)==1:
-        # f is a list with a single element
-        if is_Expression(f[0]):
-            # if its a symbolic expression call solve method of this expression
-            return solve(f[0], *args, **kwds)
-        # otherwise complain
-        raise TypeError("The first argument to solve() should be a symbolic "
-                        "expression or a list of symbolic expressions, "
-                        "cannot handle %s"%repr(type(f[0])))
 
     # f is a list of such expressions or equations
 

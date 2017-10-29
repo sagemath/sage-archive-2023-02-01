@@ -260,7 +260,7 @@ Note that if no algorithm argument is passed then the default will be
 selected according to the following order (if the corresponding package is
 installed):
 
-1. ``'lp'`` (if the game is constant-sum; uses the solver choosen by Sage)
+1. ``'lp'`` (if the game is constant-sum; uses the solver chosen by Sage)
 2. ``'lrs'`` (requires 'lrslib')
 3. ``'enumeration'``
 

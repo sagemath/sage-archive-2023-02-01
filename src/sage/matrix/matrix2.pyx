@@ -6196,14 +6196,20 @@ cdef class Matrix(Matrix1):
             [ 0.8978787322617111 0.27843403682172374 -0.3410106586182631]
             [ 0.4082482904638625 -0.8164965809277263 0.40824829046386324]
 
-        ::
-            sage: A = Matrix(CDF,[[I,0],[0,1]])
+        The following example shows that :trac:`20439` has been resolved::
+
+            sage: A = matrix(CDF, [[-2.53634347567,  2.04801738686, -0.0, -62.166145304],
+            ....:                  [ 0.7, -0.6, 0.0, 0.0],
+            ....:                  [0.547271128842, 0.0, -0.3015, -21.7532081652],
+            ....:                  [0.0, 0.0, 0.3, -0.4]])
             sage: D, P = A.eigenmatrix_left()
             sage: (P*A - D*P).norm()<10^(-2)
             True
 
-        ::
-            sage: A = matrix(CDF, [[-2.53634347567,  2.04801738686, -0.0, -62.166145304], [ 0.7, -0.6, 0.0, 0.0], [0.547271128842, 0.0, -0.3015, -21.7532081652], [0.0, 0.0, 0.3, -0.4]])
+        The following example shows that the fix for :trac:`20439` (conjugating
+        eigenvectors rather than eigenvalues) is the correct one::
+
+            sage: A = Matrix(CDF,[[I,0],[0,1]])
             sage: D, P = A.eigenmatrix_left()
             sage: (P*A - D*P).norm()<10^(-2)
             True
@@ -6298,17 +6304,24 @@ cdef class Matrix(Matrix1):
             [ 0.5057744759005657 0.10420578771917821 -0.8164965809277261]
             [ 0.8467851345188293 -0.5912880876735089  0.4082482904638632]
 
-        ::
+        The following example shows that :trac:`20439` has been resolved::
+
+            sage: A = matrix(CDF, [[-2.53634347567,  2.04801738686, -0.0, -62.166145304],
+            ....:                  [ 0.7, -0.6, 0.0, 0.0],
+            ....:                  [0.547271128842, 0.0, -0.3015, -21.7532081652],
+            ....:                  [0.0, 0.0, 0.3, -0.4]])
+            sage: D, P = A.eigenmatrix_right()
+            sage: (A*P - P*D).norm()<10^(-2)
+            True
+
+        The following example shows that the fix for :trac:`20439` (conjugating
+        eigenvectors rather than eigenvalues) is the correct one::
+
             sage: A = Matrix(CDF,[[I,0],[0,1]])
             sage: D, P = A.eigenmatrix_right()
             sage: (A*P - P*D).norm()<10^(-2)
             True
 
-        ::
-            sage: A = matrix(CDF, [[-2.53634347567,  2.04801738686, -0.0, -62.166145304], [ 0.7, -0.6, 0.0, 0.0], [0.547271128842, 0.0, -0.3015, -21.7532081652], [0.0, 0.0, 0.3, -0.4]])
-            sage: D, P = A.eigenmatrix_right()
-            sage: (A*P - P*D).norm()<10^(-2)
-            True
         """
         D,P = self.transpose().eigenmatrix_left()
         return D,P.transpose()

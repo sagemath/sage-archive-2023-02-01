@@ -1542,6 +1542,32 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: spectrum[3]  # tol 1e-13
             (-1.0000000000000018, [(1.0, 0.9999999999999568, 1.9999999999998794, 1.9999999999998472)], 1)
 
+        TESTS:
+
+        The following example shows that :trac:`20439` has been resolved::
+
+            sage: A = matrix(CDF, [[-2.53634347567,  2.04801738686, -0.0, -62.166145304],
+            ....:                  [ 0.7, -0.6, 0.0, 0.0],
+            ....:                  [0.547271128842, 0.0, -0.3015, -21.7532081652],
+            ....:                  [0.0, 0.0, 0.3, -0.4]])
+            sage: spectrum = A.left_eigenvectors()
+            sage: for i in range(A.dimensions()[0]):
+            ....:     (Matrix(spectrum[i][1])*(A - spectrum[i][0]*identity_matrix(A.dimensions()[0]))).norm()<10^(-2)
+            True
+            True
+            True
+            True
+
+        The following example shows that the fix for :trac:`20439` (conjugating
+        eigenvectors rather than eigenvalues) is the correct one::
+
+            sage: A = Matrix(CDF,[[I,0],[0,1]])
+            sage: spectrum = A.left_eigenvectors()
+            sage: for i in range(len(spectrum)):
+            ....:   spectrum[i][1][0]=matrix(CDF, spectrum[i][1]).echelon_form()[0]
+            sage: spectrum
+            [(1.0*I, [(1.0, 0.0)], 1), (1.0, [(0.0, 1.0)], 1)]
+
         """
         if not self.is_square():
             raise ArithmeticError("self must be a square matrix")
@@ -1603,6 +1629,32 @@ cdef class Matrix_double_dense(Matrix_dense):
             (-1.9999999999999483, [(1.0, -0.2000000000000063, 1.0000000000000173, 0.20000000000000498)], 1)
             sage: spectrum[3]  # tol 1e-13
             (-1.0000000000000406, [(1.0, -0.49999999999996264, 1.9999999999998617, 0.499999999999958)], 1)
+
+        TESTS:
+
+        The following example shows that :trac:`20439` has been resolved::
+
+            sage: A = matrix(CDF, [[-2.53634347567,  2.04801738686, -0.0, -62.166145304],
+            ....:                  [ 0.7, -0.6, 0.0, 0.0],
+            ....:                  [0.547271128842, 0.0, -0.3015, -21.7532081652],
+            ....:                  [0.0, 0.0, 0.3, -0.4]])
+            sage: spectrum = A.right_eigenvectors()
+            sage: for i in range(A.dimensions()[0]):
+            ....:     ((A - spectrum[i][0]*identity_matrix(A.dimensions()[0]))*Matrix(spectrum[i][1]).transpose()).norm()<10^(-2)
+            True
+            True
+            True
+            True
+
+        The following example shows that the fix for :trac:`20439` (conjugating
+        eigenvectors rather than eigenvalues) is the correct one::
+
+            sage: A = Matrix(CDF,[[I,0],[0,1]])
+            sage: spectrum = A.right_eigenvectors()
+            sage: for i in range(len(spectrum)):
+            ....:   spectrum[i][1][0]=matrix(CDF, spectrum[i][1]).echelon_form()[0]
+            sage: spectrum
+            [(1.0*I, [(1.0, 0.0)], 1), (1.0, [(0.0, 1.0)], 1)]
         """
         if not self.is_square():
             raise ArithmeticError("self must be a square matrix")

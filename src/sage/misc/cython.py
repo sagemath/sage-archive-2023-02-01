@@ -24,6 +24,8 @@ import re
 import shutil
 import pkgconfig
 
+from textwrap import dedent
+
 from sage.env import (SAGE_LOCAL, SAGE_SRC, cython_aliases,
         sage_include_directories)
 from sage.misc.misc import SPYX_TMP, sage_makedirs
@@ -487,22 +489,31 @@ def cython(filename, verbose=0, compile_message=False,
                     extra_compile_args=extra_args,
                     language=language)
 
+    orig_cwd = os.getcwd()
     try:
+        # Change directories to target_dir so that Cython produces the correct
+        # relative path; https://trac.sagemath.org/ticket/24097
+        os.chdir(target_dir)
         ext, = cythonize([ext],
                          aliases=cython_aliases(),
                          include_path=includes,
                          quiet=not verbose)
     except CompileError:
-        msg = "Error converting {} to C".format(filename)
         # Check for names in old_pxi_names
+        note = ''
         for pxd, names in old_pxi_names.items():
             for name in names:
                 if re.search(r"\b{}\b".format(name), preparsed):
-                    msg += '\nNOTE: Sage no longer automatically includes the deprecated files\n' \
-                       '"cdefs.pxi", "signals.pxi" and "stdsage.pxi" in Cython files.\n' \
-                       'You can fix your code by adding "from %s cimport %s".' % \
-                       (pxd, name)
-        raise RuntimeError(msg)
+                    note += dedent(
+                        """
+                        NOTE: Sage no longer automatically includes the deprecated files
+                        "cdefs.pxi", "signals.pxi" and "stdsage.pxi" in Cython files.
+                        You can fix your code by adding "from {} cimport {}".
+                        """.format(pxd, name))
+        raise RuntimeError("Error converting {} to C".format(filename) +
+                           note)
+    finally:
+        os.chdir(orig_cwd)
 
     if create_local_c_file:
         shutil.copy(os.path.join(target_dir, ext.sources[0]),

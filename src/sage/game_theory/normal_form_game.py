@@ -2,22 +2,24 @@ r"""
 Normal form games with N players.
 
 This module implements a class for normal form games (strategic form games)
-[NN2007]_. At present the following algorithms are implemented to compute equilibria
-of these games:
+[NN2007]_. At present the following algorithms are implemented to
+compute equilibria of these games:
 
- * ``'enumeration'`` - An implementation of the support enumeration algorithm built in Sage.
+ * ``'enumeration'`` - An implementation of the support enumeration
+   algorithm built in Sage.
 
- * ``'lcp'`` - An interface with the 'gambit' solver's implementation of the Lemke-Howson algorithm.
+ * ``'LCP'`` - An interface with the 'gambit' solver's implementation
+   of the Lemke-Howson algorithm.
 
- * ``'lp-*'`` - A built-in Sage implementation (with a gambit alternative) of a zero-sum game solver
-   using Linear Programming. Note, ``'*'`` should be replaced with either ``'gambit'`` or any valid
-   MILP solver such as ``'PPL'`` or ``'GLPK'`` etc.
+ * ``'lp'`` - A built-in Sage implementation (with a gambit alternative)
+   of a zero-sum game solver using linear programming. See
+   :class:`MixedIntegerLinearProgram` for more on MILP solvers in Sage.
 
  * ``'lrs'`` - A solver interfacing with the 'lrslib' library.
 
-The architecture for the class is based on the gambit architecture to ensure an easy transition
-between gambit and Sage.  At present the algorithms for the computation of equilibria
-only solve 2 player games.
+The architecture for the class is based on the gambit architecture to
+ensure an easy transition between gambit and Sage.  At present the
+algorithms for the computation of equilibria only solve 2 player games.
 
 A very simple and well known example of normal form game is referred
 to as the 'Battle of the Sexes' in which two players Amy and Bob
@@ -214,13 +216,12 @@ time spent in prison)::
 When obtaining Nash equilibrium the following algorithms are
 currently available:
 
-* ``'lp-*'``: A solver for constant sum 2 player games using linear
+* ``'lp'``: A solver for constant sum 2 player games using linear
   programming. This contructs a
   :mod:`MixedIntegerLinearProgram <sage.numerical.MILP>` using the
-  solver which was passed in as part of the algorithm string to solve
-  the linear programming representation of the game, for instance,
-  ``'lp-glpk'`` would make use of the ``GLPK`` solver, while
-  ``'lp-gambit'`` would make use of the gambit implementation of this method.
+  solver which was passed in with ``solver`` to solve the linear
+  programming representation of the game. See
+  :class:`MixedIntegerLinearProgram` for more on MILP solvers in Sage.
 
 * ``'lrs'``: Reverse search vertex enumeration for 2 player games. This
   algorithm uses the optional 'lrslib' package. To install it, type
@@ -248,9 +249,9 @@ Below we show how the these algorithms are called::
     [[(1/2, 1/2), (1/2, 1/2)]]
     sage: matching_pennies.obtain_nash(algorithm='LCP')  # optional - gambit
     [[(0.5, 0.5), (0.5, 0.5)]]
-    sage: matching_pennies.obtain_nash(algorithm='lp-PPL')
+    sage: matching_pennies.obtain_nash(algorithm='lp', solver='PPL')
     [[(1/2, 1/2), (1/2, 1/2)]]
-    sage: matching_pennies.obtain_nash(algorithm='lp-gambit') # optional - gambit
+    sage: matching_pennies.obtain_nash(algorithm='lp', solver='gambit') # optional - gambit
     [[(0.5, 0.5), (0.5, 0.5)]]
     sage: matching_pennies.obtain_nash(algorithm='enumeration')
     [[(1/2, 1/2), (1/2, 1/2)]]
@@ -259,7 +260,7 @@ Note that if no algorithm argument is passed then the default will be
 selected according to the following order (if the corresponding package is
 installed):
 
-1. ``lp-GLPK`` (if the game is constant-sum)
+1. ``'lp'`` (if the game is constant-sum; uses the solver choosen by Sage)
 2. ``'lrs'`` (requires 'lrslib')
 3. ``'enumeration'``
 
@@ -1343,7 +1344,7 @@ class NormalFormGame(SageObject, MutableMapping):
             results.append(all(type(i) is not bool for i in profile))
         return all(results)
 
-    def obtain_nash(self, algorithm=False, maximization=True):
+    def obtain_nash(self, algorithm=False, maximization=True, solver=None):
         r"""
         A function to return the Nash equilibrium for the game.
         Optional arguments can be used to specify the algorithm used.
@@ -1363,12 +1364,9 @@ class NormalFormGame(SageObject, MutableMapping):
             that the output differs from the other algorithms: floats are
             returned.
 
-          * ``'lp-*'`` - This algorithm is only suited for 2 player constant sum games.
-            This input starts of with 'lp-' followed by the LP solver to be used to solve
-            the game. For example, to make use of the GLPK solver, one would use the string
-            ``'lp-glpk'``. This pattern applies for all solvers within Sage (see
-            :class:`MixedIntegerLinearProgram`). In order to use the gambit's implementation the
-            string ``'lp-gambit'`` should be used.
+          * ``'lp'`` - This algorithm is only suited for 2 player
+            constant sum games. Uses MILP solver determined by the
+            ``solver`` argument.
 
           * ``'enumeration'`` - This is a very inefficient
             algorithm (in essence a brute force approach).
@@ -1409,14 +1407,19 @@ class NormalFormGame(SageObject, MutableMapping):
 
                 \sum_{j\in S(\rho_1)}{\rho_2}_j = 1
 
-        - ``maximization`` -- Whether a player is trying to maximize their
-          utility or minimize it.
+        - ``maximization`` -- (default: ``True``) whether a player is
+          trying to maximize their utility or minimize it:
 
-          * When set to ``True`` (default) it is assumed that players
-            aim to maximise their utility.
+          * When set to ``True`` it is assumed that players aim to
+            maximise their utility.
 
           * When set to ``False`` it is assumed that players aim to
             minimise their utility.
+
+        - ``solver`` -- (optional) see :class:`MixedIntegerLinearProgram`
+          for more information on the MILP solvers in Sage, may also
+          be ``'gambit'`` to use the MILP solver included with the gamibt
+          library
 
         EXAMPLES:
 
@@ -1491,39 +1494,39 @@ class NormalFormGame(SageObject, MutableMapping):
 
             sage: A = matrix.identity(2)
             sage: cg = NormalFormGame([A])
-            sage: cg.obtain_nash(algorithm='lp-glpk')
+            sage: cg.obtain_nash(algorithm='lp', solver='glpk')
             [[(0.5, 0.5), (0.5, 0.5)]]
-            sage: cg.obtain_nash(algorithm='lp-Coin') # optional - cbc
+            sage: cg.obtain_nash(algorithm='lp' solver='Coin') # optional - cbc
             [[(0.5, 0.5), (0.5, 0.5)]]
-            sage: cg.obtain_nash(algorithm='lp-PPL')
+            sage: cg.obtain_nash(algorithm='lp', solver='PPL')
             [[(1/2, 1/2), (1/2, 1/2)]]
-            sage: cg.obtain_nash(algorithm='lp-gambit') # optional - gambit
+            sage: cg.obtain_nash(algorithm='lp', solver='gambit') # optional - gambit
             [[(0.5, 0.5), (0.5, 0.5)]]
             sage: A = matrix([[2, 1], [1, 3]])
             sage: cg = NormalFormGame([A])
-            sage: ne = cg.obtain_nash(algorithm='lp-glpk')
+            sage: ne = cg.obtain_nash(algorithm='lp', solver='glpk')
             sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne]
             [[[0.666667, 0.333333], [0.666667, 0.333333]]]
-            sage: ne = cg.obtain_nash(algorithm='lp-Coin') # optional - cbc
+            sage: ne = cg.obtain_nash(algorithm='lp', solver='Coin') # optional - cbc
             sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne] # optional - cbc
             [[[0.666667, 0.333333], [0.666667, 0.333333]]]
-            sage: cg.obtain_nash(algorithm='lp-PPL')
+            sage: cg.obtain_nash(algorithm='lp', solver='PPL')
             [[(2/3, 1/3), (2/3, 1/3)]]
-            sage: ne = cg.obtain_nash(algorithm='lp-gambit') # optional - gambit
+            sage: ne = cg.obtain_nash(algorithm='lp', solver='gambit') # optional - gambit
             sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne] # optional - gambit
             [[[0.666667, 0.333333], [0.666667, 0.333333]]]
             sage: A = matrix([[1, 2, 1], [1, 1, 2], [2, 1, 1]])
             sage: B = matrix([[2, 1, 2], [2, 2, 1], [1, 2, 2]])
             sage: cg = NormalFormGame([A, B])
-            sage: ne = cg.obtain_nash(algorithm='lp-glpk')
+            sage: ne = cg.obtain_nash(algorithm='lp', solver='glpk')
             sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne]
             [[[0.333333, 0.333333, 0.333333], [0.333333, 0.333333, 0.333333]]]
-            sage: ne = cg.obtain_nash(algorithm='lp-Coin') # optional - cbc
+            sage: ne = cg.obtain_nash(algorithm='lp', solver='Coin') # optional - cbc
             sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne] # optional - cbc
             [[[0.333333, 0.333333, 0.333333], [0.333333, 0.333333, 0.333333]]]
-            sage: cg.obtain_nash(algorithm='lp-PPL')
+            sage: cg.obtain_nash(algorithm='lp', solver='PPL')
             [[(1/3, 1/3, 1/3), (1/3, 1/3, 1/3)]]
-            sage: ne = cg.obtain_nash(algorithm='lp-gambit') # optional - gambit
+            sage: ne = cg.obtain_nash(algorithm='lp', solver='gambit') # optional - gambit
             sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne] # optional - gambit
             [[[0.333333, 0.333333, 0.333333], [0.333333, 0.333333, 0.333333]]]
             sage: A = matrix([[160, 205, 44],
@@ -1531,14 +1534,14 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [201, 204, 50],
             ....:             [120, 207, 49]])
             sage: cg = NormalFormGame([A])
-            sage: cg.obtain_nash(algorithm='lp-PPL')
+            sage: cg.obtain_nash(algorithm='lp', solver='PPL')
             [[(0, 0, 1, 0), (0, 0, 1)]]
 
         Running the constant-sum solver on a game which isn't a constant sum game
         generates a ``ValueError``::
 
             sage: cg = NormalFormGame([A, A])
-            sage: cg.obtain_nash(algorithm='lp-glpk')
+            sage: cg.obtain_nash(algorithm='lp', solver='glpk')
             Traceback (most recent call last):
             ...
             ValueError: Input game needs to be a two player constant sum game
@@ -1568,7 +1571,7 @@ class NormalFormGame(SageObject, MutableMapping):
             [[(0, 1), (0, 1)], [(0, 1), (1, 0)], [(1, 0), (0, 1)], [(1, 0), (1, 0)]]
             sage: gg.obtain_nash(algorithm='lrs') # optional - lrs
             [[(0, 1), (0, 1)], [(0, 1), (1, 0)], [(1, 0), (0, 1)], [(1, 0), (1, 0)]]
-            sage: gg.obtain_nash(algorithm='lp-glpk')
+            sage: gg.obtain_nash(algorithm='lp', solver='glpk')
             [[(1.0, 0.0), (1.0, 0.0)]]
             sage: gg.obtain_nash(algorithm='LCP') # optional - gambit
             [[(1.0, 0.0), (1.0, 0.0)]]
@@ -1576,7 +1579,7 @@ class NormalFormGame(SageObject, MutableMapping):
             [[(0, 1), (0, 1)], [(0, 1), (1, 0)], [(1, 0), (0, 1)], [(1, 0), (1, 0)]]
             sage: gg.obtain_nash(algorithm='lrs', maximization=False) # optional - lrs
             [[(0, 1), (0, 1)], [(0, 1), (1, 0)], [(1, 0), (0, 1)], [(1, 0), (1, 0)]]
-            sage: gg.obtain_nash(algorithm='lp-glpk', maximization=False)
+            sage: gg.obtain_nash(algorithm='lp', solver='glpk', maximization=False)
             [[(1.0, 0.0), (1.0, 0.0)]]
             sage: gg.obtain_nash(algorithm='LCP', maximization=False) # optional - gambit
             [[(1.0, 0.0), (1.0, 0.0)]]
@@ -1614,8 +1617,8 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g.obtain_nash(algorithm="invalid")
             Traceback (most recent call last):
             ...
-            ValueError: 'solver' should be set to 'enumeration', 'LCP', 'lp-<MILP-solver>' or 'lrs'
-            sage: g.obtain_nash(algorithm="lp-invalid")
+            ValueError: 'algorithm' should be set to 'enumeration', 'LCP', 'lp' or 'lrs'
+            sage: g.obtain_nash(algorithm="lp", solver="invalid")
             Traceback (most recent call last):
             ...
             ValueError: 'solver' should be set to 'GLPK', ..., None
@@ -1633,7 +1636,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         if not algorithm:
             if self.is_constant_sum():
-                algorithm = "lp-glpk"
+                algorithm = "lp"
             elif is_package_installed('lrslib'):
                 algorithm = "lrs"
             else:
@@ -1650,13 +1653,13 @@ class NormalFormGame(SageObject, MutableMapping):
                 raise PackageNotFoundError("gambit")
             return self._solve_LCP(maximization)
 
-        if algorithm.startswith('lp-'):
-            return self._solve_LP(solver=algorithm[3:], maximization=maximization)
+        if algorithm.startswith('lp'):
+            return self._solve_LP(solver=solver, maximization=maximization)
 
         if algorithm == "enumeration":
             return self._solve_enumeration(maximization)
 
-        raise ValueError("'solver' should be set to 'enumeration', 'LCP', 'lp-<MILP-solver>' or 'lrs'")
+        raise ValueError("'algorithm' should be set to 'enumeration', 'LCP', 'lp' or 'lrs'")
 
     def _solve_lrs(self, maximization=True):
         r"""

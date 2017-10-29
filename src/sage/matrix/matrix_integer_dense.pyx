@@ -187,14 +187,15 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
     Test hashing::
 
-        sage: a = Matrix(ZZ,2,[1,2,3,4])
+        sage: a = Matrix(ZZ, 2, [1,2,3,4])
         sage: hash(a)
         Traceback (most recent call last):
         ...
         TypeError: mutable matrices are unhashable
         sage: a.set_immutable()
         sage: hash(a)
-        8
+        1846857684291126914  # 64-bit
+        1591707266           # 32-bit
     """
     def __cinit__(self, parent, entries, coerce, copy):
         """

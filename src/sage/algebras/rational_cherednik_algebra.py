@@ -395,14 +395,29 @@ class RationalCherednikAlgebra(CombinatorialFreeModule):
             sage: k = QQ['c,t']
             sage: R = algebras.RationalCherednik(['A',3], k.gen(0), k.gen(1))
             sage: R._product_coroot_root(1, 1)
-            ((1, 2*t), (s1*s2*s3*s2*s1, 1/2*c), (s2*s3*s2, 1/2*c),
-             (s1*s2*s1, 1/2*c), (s1, 2*c), (s3, 0), (s2, 1/2*c))
+            ((1, 2*t),
+             (s2, 1/2*c),
+             (s3, 0),
+             (s1*s2*s3*s2*s1, 1/2*c),
+             (s2*s3*s2, 1/2*c),
+             (s1, 2*c),
+             (s1*s2*s1, 1/2*c))
             sage: R._product_coroot_root(1, 2)
-            ((1, -t), (s1*s2*s3*s2*s1, 0), (s2*s3*s2, -1/2*c),
-             (s1*s2*s1, 1/2*c), (s1, -c), (s3, 0), (s2, -c))
+            ((1, -t),
+             (s2, -c),
+             (s3, 0),
+             (s1*s2*s3*s2*s1, 0),
+             (s2*s3*s2, -1/2*c),
+             (s1, -c),
+             (s1*s2*s1, 1/2*c))
             sage: R._product_coroot_root(1, 3)
-            ((1, 0), (s1*s2*s3*s2*s1, 1/2*c), (s2*s3*s2, -1/2*c),
-             (s1*s2*s1, -1/2*c), (s1, 0), (s3, 0), (s2, 1/2*c))
+            ((1, 0),
+             (s2, 1/2*c),
+             (s3, 0),
+             (s1*s2*s3*s2*s1, 1/2*c),
+             (s2*s3*s2, -1/2*c),
+             (s1, 0),
+             (s1*s2*s1, -1/2*c))
         """
         Q = RootSystem(self._cartan_type).root_lattice()
         ac = Q.simple_coroot(i)

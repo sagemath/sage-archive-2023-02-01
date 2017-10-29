@@ -51,8 +51,8 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
         TypeError: mutable matrices are unhashable
         sage: A.set_immutable()
         sage: hash(A)
-        139810359923177032   # 64-bit
-        388232776            # 32-bit
+        6226886770042072326  # 64-bit
+        -1594888954          # 32-bit
     """
     def __init__(self, parent, entries, copy, coerce):
         r"""

@@ -216,7 +216,7 @@ currently available:
 
 * ``'lp-*'``: A solver for constant sum 2 player games using linear
   programming. This contructs a
- `:mod:MixedIntegerLinearProgram <sage.numerical.MILP>` using the
+  :mod:`MixedIntegerLinearProgram <sage.numerical.MILP>` using the
   solver which was passed in as part of the algorithm string to solve
   the linear programming representation of the game, for instance,
   ``'lp-glpk'`` would make use of the ``GLPK`` solver, while
@@ -568,6 +568,7 @@ Here is an example with the trivial game where all payoffs are 0::
     (
     [0 0 0]  [0 0 0]
     [0 0 0]  [0 0 0]
+    [0 0 0], [0 0 0]
     )
     sage: g.obtain_nash(algorithm='enumeration')
     [[(0, 0, 1), (0, 0, 1)], [(0, 0, 1), (0, 1, 0)], [(0, 0, 1), (1, 0, 0)],

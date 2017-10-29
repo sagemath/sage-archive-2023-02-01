@@ -461,8 +461,6 @@ def test_relation_maxima(relation):
         sage: assume(d<R)
         sage: assumptions()
         [K > 0, K is noninteger, R > 0, R < 1, d < R]
-    
-
     """
     m = relation._maxima_()
 
@@ -621,24 +619,20 @@ def solve(f, *args, **kwds):
         0.000 , 1.00
 
     Whenever possible, answers will be symbolic, but with systems of
-    equations, at times approximations will be given, due to the
-    underlying algorithm in Maxima::
+    equations, at times approximations will be given by Maxima, due to the
+    underlying algorithm::
 
         sage: sols = solve([x^3==y,y^2==x],[x,y]); sols[-1], sols[0]
         ([x == 0, y == 0], [x == (0.3090169943749475 + 0.9510565162951535*I), y == (-0.8090169943749475 - 0.5877852522924731*I)])
         sage: sols[0][0].rhs().pyobject().parent()
         Complex Double Field
 
-    If ``f`` is only one equation or expression, we use the solve method
-    for symbolic expressions, which defaults to exact answers only::
-
         sage: solve([y^6==y],y)
         [y == 1/4*sqrt(5) + 1/4*I*sqrt(2*sqrt(5) + 10) - 1/4, y == -1/4*sqrt(5) + 1/4*I*sqrt(-2*sqrt(5) + 10) - 1/4, y == -1/4*sqrt(5) - 1/4*I*sqrt(-2*sqrt(5) + 10) - 1/4, y == 1/4*sqrt(5) - 1/4*I*sqrt(2*sqrt(5) + 10) - 1/4, y == 1, y == 0]
         sage: solve( [y^6 == y], y)==solve( y^6 == y, y)
         True
 
-    Here we demonstrate very basic use of the optional keywords for
-    a single expression to be solved::
+    Here we demonstrate very basic use of the optional keywords::
 
         sage: ((x^2-1)^2).solve(x)
         [x == -1, x == 1]
@@ -652,14 +646,6 @@ def solve(f, *args, **kwds):
         [abs(abs(x - 1) - 1) == 10]
         sage: solve(abs(1-abs(1-x)) == 10, x, to_poly_solve=True)
         [x == -10, x == 12]
-
-    .. note::
-
-        For more details about solving a single equation, see
-        the documentation for the single-expression
-        :meth:`~sage.symbolic.expression.Expression.solve`.
-
-    ::
 
         sage: from sage.symbolic.expression import Expression
         sage: Expression.solve(x^2==1,x)
@@ -688,12 +674,21 @@ def solve(f, *args, **kwds):
     a new variable.  In the following example, ``r1`` is a real free
     variable (because of the ``r``)::
 
+        sage: forget()
+        sage: x, y = var('x,y')
         sage: solve([x+y == 3, 2*x+2*y == 6],x,y)
         [[x == -r1 + 3, y == r1]]
+
+        sage: var('b, c')
+        (b, c)
+        sage: solve((b-1)*(c-1), [b,c])
+        [[b == 1, c == r...], [b == r..., c == 1]]
 
     Especially with trigonometric functions, the dummy variable may
     be implicitly an integer (hence the ``z``)::
 
+        sage: solve( sin(x)==cos(x), x, to_poly_solve=True)
+        [x == 1/4*pi + pi*z...]
         sage: solve([cos(x)*sin(x) == 1/2, x+y == 0],x,y)
         [[x == 1/4*pi + pi*z..., y == -1/4*pi - pi*z...]]
 
@@ -734,10 +729,101 @@ def solve(f, *args, **kwds):
         sage: solve(sys,[s,j])
         [[s == 1, j == 0], [s == g/b, j == (b - g)*m/(b*g)]]
 
+        sage: z = var('z')
+        sage: solve((x-z)^2==2, x)
+        [x == z - sqrt(2), x == z + sqrt(2)]
+
     Inequalities can be also solved::
 
         sage: solve(x^2>8,x)
         [[x < -2*sqrt(2)], [x > 2*sqrt(2)]]
+        sage: x,y=var('x,y'); (ln(x)-ln(y)>0).solve(x)
+        [[log(x) - log(y) > 0]]
+        sage: x,y=var('x,y'); (ln(x)>ln(y)).solve(x)  # random
+        [[0 < y, y < x, 0 < x]]
+        [[y < x, 0 < y]]
+
+    A simple example to show the use of the keyword
+    ``multiplicities``::
+
+        sage: ((x^2-1)^2).solve(x)
+        [x == -1, x == 1]
+        sage: ((x^2-1)^2).solve(x,multiplicities=True)
+        ([x == -1, x == 1], [2, 2])
+        sage: ((x^2-1)^2).solve(x,multiplicities=True,to_poly_solve=True)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: to_poly_solve does not return multiplicities
+
+    Here is how the ``explicit_solutions`` keyword functions::
+
+        sage: solve(sin(x)==x,x)
+        [x == sin(x)]
+        sage: solve(sin(x)==x,x,explicit_solutions=True)
+        []
+        sage: solve(x*sin(x)==x^2,x)
+        [x == 0, x == sin(x)]
+        sage: solve(x*sin(x)==x^2,x,explicit_solutions=True)
+        [x == 0]
+
+    The following examples show the use of the keyword ``to_poly_solve``::
+
+        sage: solve(abs(1-abs(1-x)) == 10, x)
+        [abs(abs(x - 1) - 1) == 10]
+        sage: solve(abs(1-abs(1-x)) == 10, x, to_poly_solve=True)
+        [x == -10, x == 12]
+
+        sage: var('Q')
+        Q
+        sage: solve(Q*sqrt(Q^2 + 2) - 1, Q)
+        [Q == 1/sqrt(Q^2 + 2)]
+
+    The following example is a regression in Maxima 5.39.0.
+    It used to be possible to get one more solution here,
+    namely 1/sqrt(sqrt(2) + 1), see
+    https://sourceforge.net/p/maxima/bugs/3276/::
+
+        sage: solve(Q*sqrt(Q^2 + 2) - 1, Q, to_poly_solve=True)
+        [Q == -sqrt(-sqrt(2) - 1)]
+
+    An effort is made to only return solutions that satisfy the current assumptions::
+
+        sage: solve(x^2==4, x)
+        [x == -2, x == 2]
+        sage: assume(x<0)
+        sage: solve(x^2==4, x)
+        [x == -2]
+        sage: solve((x^2-4)^2 == 0, x, multiplicities=True)
+        ([x == -2], [2])
+        sage: solve(x^2==2, x)
+        [x == -sqrt(2)]
+        sage: z = var('z')
+        sage: solve(x^2==2-z, x)
+        [x == -sqrt(-z + 2)]
+        sage: assume(x, 'rational')
+        sage: solve(x^2 == 2, x)
+        []
+
+    In some cases it may be worthwhile to directly use ``to_poly_solve``
+    if one suspects some answers are being missed::
+
+        sage: forget()
+        sage: solve(cos(x)==0, x)
+        [x == 1/2*pi]
+        sage: solve(cos(x)==0, x, to_poly_solve=True)
+        [x == 1/2*pi]
+        sage: solve(cos(x)==0, x, to_poly_solve='force')
+        [x == 1/2*pi + pi*z...]
+
+    The same may also apply if a returned unsolved expression has a
+    denominator, but the original one did not::
+
+        sage: solve(cos(x) * sin(x) == 1/2, x, to_poly_solve=True)
+        [sin(x) == 1/2/cos(x)]
+        sage: solve(cos(x) * sin(x) == 1/2, x, to_poly_solve=True, explicit_solutions=True)
+        [x == 1/4*pi + pi*z...]
+        sage: solve(cos(x) * sin(x) == 1/2, x, to_poly_solve='force')
+        [x == 1/4*pi + pi*z...]
 
     We use ``use_grobner`` in Maxima if no solution is obtained from
     Maxima's ``to_poly_solve``::
@@ -745,6 +831,15 @@ def solve(f, *args, **kwds):
        sage: x,y=var('x y'); c1(x,y)=(x-5)^2+y^2-16; c2(x,y)=(y-3)^2+x^2-9
        sage: solve([c1(x,y),c2(x,y)],[x,y])
        [[x == -9/68*sqrt(55) + 135/68, y == -15/68*sqrt(55) + 123/68], [x == 9/68*sqrt(55) + 135/68, y == 15/68*sqrt(55) + 123/68]]
+
+    We use SymPy for Diophantine equations, see ``Expression.solve_diophantine`` ::
+
+        sage: assume(x, 'integer')
+        sage: assume(z, 'integer')
+        sage: solve((x-z)^2==2, x)
+        []
+
+        sage: forget()
 
     TESTS::
 
@@ -803,6 +898,10 @@ def solve(f, *args, **kwds):
         Traceback (most recent call last):
         ...
         TypeError: 1 is not a valid variable.
+        sage: x.solve((1,2))
+        Traceback (most recent call last):
+        ...
+        TypeError: 1 is not a valid variable.
 
     Test that the original version of a system in the French Sage book
     now works (:trac:`14306`)::
@@ -811,6 +910,83 @@ def solve(f, *args, **kwds):
         (y, z)
         sage: solve([x^2 * y * z == 18, x * y^3 * z == 24, x * y * z^4 == 6], x, y, z)
         [[x == 3, y == 2, z == 1], [x == (1.337215067... - 2.685489874...*I), y == (-1.700434271... + 1.052864325...*I), z == (0.9324722294... - 0.3612416661...*I)], ...]
+
+    :trac:`7325` (solving inequalities)::
+
+        sage: (x^2>1).solve(x)
+        [[x < -1], [x > 1]]
+
+    Catch error message from Maxima::
+
+        sage: solve(acot(x),x)
+        []
+
+    ::
+
+        sage: solve(acot(x),x,to_poly_solve=True)
+        []
+
+    :trac:`7491` fixed::
+
+        sage: y=var('y')
+        sage: solve(y==y,y)
+        [y == r1]
+        sage: solve(y==y,y,multiplicities=True)
+        ([y == r1], [])
+
+        sage: from sage.symbolic.assumptions import GenericDeclaration
+        sage: GenericDeclaration(x, 'rational').assume()
+        sage: solve(x^2 == 2, x)
+        []
+        sage: forget()
+
+    :trac:`8390` fixed::
+
+        sage: solve(sin(x)==1/2,x)
+        [x == 1/6*pi]
+
+    ::
+
+        sage: solve(sin(x)==1/2,x,to_poly_solve=True)
+        [x == 1/6*pi]
+
+    ::
+
+        sage: solve(sin(x)==1/2, x, to_poly_solve='force')
+        [x == 5/6*pi + 2*pi*z..., x == 1/6*pi + 2*pi*z...]
+
+    :trac:`11618` fixed::
+
+        sage: g(x)=0
+        sage: solve(g(x)==0,x,solution_dict=True)
+        [{x: r1}]
+
+    :trac:`13286` fixed::
+
+        sage: solve([x-4], [x])
+        [x == 4]
+
+
+    :trac:`17128`: fixed::
+
+        sage: var('x,y')
+        (x, y)
+        sage: f = x+y
+        sage: sol = f.solve([x, y], solution_dict=True)
+        sage: sol[0].get(x) + sol[0].get(y)
+        0
+
+    :trac:`16651` fixed::
+
+        sage: (x^7-x-1).solve(x, to_poly_solve=True)     # abs tol 1e-6
+        [x == 1.11277569705,
+         x == (-0.363623519329 - 0.952561195261*I),
+         x == (0.617093477784 - 0.900864951949*I),
+         x == (-0.809857800594 - 0.262869645851*I),
+         x == (-0.809857800594 + 0.262869645851*I),
+         x == (0.617093477784 + 0.900864951949*I),
+         x == (-0.363623519329 + 0.952561195261*I)]
+
     """
     from sage.symbolic.ring import is_SymbolicVariable
     from sage.symbolic.expression import Expression, is_Expression

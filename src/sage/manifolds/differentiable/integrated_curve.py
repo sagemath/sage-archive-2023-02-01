@@ -1318,15 +1318,13 @@ class IntegratedCurve(DifferentiableCurve):
             sage: sol_mute = c.solution()
             sage: sol_mute == sol
             True
-
         """
-
         if solution_key is None:
             if 'rk4_maxima' in self._solutions:
                 solution_key = 'rk4_maxima'
             else:
-                solution_key = self._solutions.keys()[0] # will raise
-                # error if self._solutions empty
+                solution_key = list(self._solutions.keys())[0]
+                # will raise an error if self._solutions is empty
             if verbose:
                 print("Returning the numerical solution associated " +
                       "with the key '{}' ".format(solution_key) +
@@ -1412,12 +1410,11 @@ class IntegratedCurve(DifferentiableCurve):
              erased).
 
         """
-
         if solution_key is None:
             if 'rk4_maxima' in self._solutions:
                 solution_key = 'rk4_maxima'
             else:
-                solution_key = self._solutions.keys()[0] # will raise
+                solution_key = list(self._solutions.keys())[0] # will raise
                 # error if self._solutions empty
             if verbose:
                 print("Interpolating the numerical solution " +
@@ -1519,7 +1516,7 @@ class IntegratedCurve(DifferentiableCurve):
             if 'cubic spline' in self._interpolations:
                 interpolation_key = 'cubic spline'
             else:
-                interpolation_key = self._interpolations.keys()[0]#will
+                interpolation_key = list(self._interpolations.keys())[0]#will
                 # raise error if self._interpolations empty
             if verbose:
                 print("Returning the interpolation associated with " +
@@ -1587,7 +1584,7 @@ class IntegratedCurve(DifferentiableCurve):
             if 'cubic spline' in self._interpolations:
                 interpolation_key = 'cubic spline'
             else:
-                interpolation_key = self._interpolations.keys()[0]#will
+                interpolation_key = list(self._interpolations.keys())[0]#will
                 # raise error if self._interpolations empty
             if verbose:
                 print("Evaluating point coordinates from the " +
@@ -1678,7 +1675,7 @@ class IntegratedCurve(DifferentiableCurve):
                 interpolation_key = 'cubic spline'
             else:
                 # will raise error if self._interpolations empty
-                interpolation_key = self._interpolations.keys()[0]
+                interpolation_key = list(self._interpolations.keys())[0]
             if verbose:
                 print("Evaluating tangent vector components from the " +
                       "interpolation associated with the key " +
@@ -1812,7 +1809,7 @@ class IntegratedCurve(DifferentiableCurve):
             if 'cubic spline' in self._interpolations:
                 interpolation_key = 'cubic spline'
             else:
-                interpolation_key = self._interpolations.keys()[0]#will
+                interpolation_key = list(self._interpolations.keys())[0]#will
                 # raise error if self._interpolations empty
             if verbose:
                 print("Plotting from the interpolation associated " +

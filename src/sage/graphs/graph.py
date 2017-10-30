@@ -1086,9 +1086,10 @@ class Graph(GenericGraph):
             (not data[1] or callable(getattr(data[1][0],"__iter__",None)))):
             format = "vertices_and_edges"
 
-        if format is None and isinstance(data,dict):
-            keys = data.keys()
-            if len(keys) == 0: format = 'dict_of_dicts'
+        if format is None and isinstance(data, dict):
+            keys = list(data.keys())
+            if not keys:
+                format = 'dict_of_dicts'
             else:
                 if isinstance(data[keys[0]], list):
                     format = 'dict_of_lists'

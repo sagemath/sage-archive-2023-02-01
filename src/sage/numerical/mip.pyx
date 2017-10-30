@@ -3186,7 +3186,7 @@ cdef class MIPVariable(Element):
         for i, row in enumerate(m.rows()):
             x = self[i]
             assert len(x.dict()) == 1
-            x_index = x.dict().keys()[0]
+            x_index, = x.dict().keys()
             result[x_index] = row
         from sage.modules.free_module import FreeModule
         V = FreeModule(self._p.base_ring(), m.ncols())
@@ -3201,7 +3201,7 @@ cdef class MIPVariable(Element):
         for i, col in enumerate(m.columns()):
             x = self[i]
             assert len(x.dict()) == 1
-            x_index = x.dict().keys()[0]
+            x_index, = x.dict().keys()
             result[x_index] = col
         from sage.modules.free_module import FreeModule
         V = FreeModule(self._p.base_ring(), m.nrows())

@@ -1334,7 +1334,6 @@ cdef class SDPVariable(Element):
         result = dict()
         for i, row in enumerate(m.rows()):
             x = self[i]
-            assert len(x.dict()) == 1
             x_index, = x.dict().keys()
             result[x_index] = row
         from sage.modules.free_module import FreeModule
@@ -1349,7 +1348,6 @@ cdef class SDPVariable(Element):
         result = dict()
         for i, col in enumerate(m.columns()):
             x = self[i]
-            assert len(x.dict()) == 1
             x_index, = x.dict().keys()
             result[x_index] = col
         from sage.modules.free_module import FreeModule

@@ -1254,7 +1254,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         #construct list
         lookup = [int(0),] * len(next(iter(monomial_coefficients)))
         coefficients = []
-        for degree in range( 0 , max(m[var_idx] for m in monomial_coefficients.keys())+1 ):
+        for degree in range(max(m[var_idx]
+                                for m in monomial_coefficients.keys()) + 1):
             lookup[var_idx] = int(degree)
             try:
                 coefficients.append( monomial_coefficients[ polydict.ETuple(lookup) ] ) #if we find something, add the coefficient
@@ -2009,7 +2010,7 @@ def degree_lowest_rational_function(r,x):
     r = F(r)
     if r == 0:
         return (0, F(0))
-    L = list(x.dict().keys())[0]
+    L = next(iter(x.dict()))
     for ix in range(len(L)):
         if L[ix] != 0:
             break

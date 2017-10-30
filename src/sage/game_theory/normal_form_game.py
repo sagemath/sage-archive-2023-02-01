@@ -1360,9 +1360,7 @@ class NormalFormGame(SageObject, MutableMapping):
             See the lrs web site (http://cgm.cs.mcgill.ca/~avis/C/lrs.html).
 
           * ``'LCP'`` - This algorithm is only suited for 2 player games.
-            See the gambit web site (http://gambit.sourceforge.net/). Note
-            that the output differs from the other algorithms: floats are
-            returned.
+            See the gambit web site (http://gambit.sourceforge.net/).
 
           * ``'lp'`` - This algorithm is only suited for 2 player
             constant sum games. Uses MILP solver determined by the
@@ -1418,8 +1416,9 @@ class NormalFormGame(SageObject, MutableMapping):
 
         - ``solver`` -- (optional) see :class:`MixedIntegerLinearProgram`
           for more information on the MILP solvers in Sage, may also
-          be ``'gambit'`` to use the MILP solver included with the gamibt
-          library
+          be ``'gambit'`` to use the MILP solver included with the gambit
+          library. Note that ``None`` means to use the default Sage LP solver,
+          normally GLPK.
 
         EXAMPLES:
 
@@ -1490,13 +1489,13 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: fivegame.obtain_nash(algorithm='LCP') # optional - gambit
             [[(1.0, 0.0, 0.0, 0.0, 0.0), (0.0, 1.0, 0.0, 0.0, 0.0)]]
 
-        Here are some examples of constant-sum games::
+        Here are some examples of finding Nash equilibria for constant-sum games::
 
             sage: A = matrix.identity(2)
             sage: cg = NormalFormGame([A])
-            sage: cg.obtain_nash(algorithm='lp', solver='glpk')
+            sage: cg.obtain_nash(algorithm='lp')
             [[(0.5, 0.5), (0.5, 0.5)]]
-            sage: cg.obtain_nash(algorithm='lp' solver='Coin') # optional - cbc
+            sage: cg.obtain_nash(algorithm='lp', solver='Coin') # optional - cbc
             [[(0.5, 0.5), (0.5, 0.5)]]
             sage: cg.obtain_nash(algorithm='lp', solver='PPL')
             [[(1/2, 1/2), (1/2, 1/2)]]

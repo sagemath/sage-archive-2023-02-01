@@ -224,7 +224,7 @@ class ClusterSeed(SageObject):
             user_labels = [tuple(x) if isinstance(x, list) else x for x in user_labels]
         elif isinstance(user_labels, dict):
             values = [tuple(user_labels[x]) if isinstance(user_labels[x], list) else user_labels[x] for x in user_labels]
-            keys = list(user_labels.keys())
+            keys = list(user_labels)
             user_labels = {keys[i]: v for i, v in enumerate(values)}
 
         # constructs a cluster seed from a cluster seed

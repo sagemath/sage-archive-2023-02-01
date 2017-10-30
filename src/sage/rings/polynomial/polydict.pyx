@@ -748,7 +748,7 @@ cdef class PolyDict:
         if len(self.__repn) == 0:
             v = {(0):one}
         else:
-            v = {ETuple({}, len(list(self.__repn.keys())[0])):one}
+            v = {ETuple({}, len(next(iter(self.__repn)))): one}
         return PolyDict(v, self.__zero, force_int_exponents=False, force_etuples=False)
 
     def __pow__(PolyDict self, n, ignored):

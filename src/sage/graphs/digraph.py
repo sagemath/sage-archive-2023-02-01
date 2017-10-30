@@ -622,7 +622,7 @@ class DiGraph(GenericGraph):
             format = "vertices_and_edges"
 
         if format is None and isinstance(data, dict):
-            keys = list(data.keys())
+            keys = list(data)
             if not keys:
                 format = 'dict_of_dicts'
             else:

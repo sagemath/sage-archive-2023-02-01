@@ -114,6 +114,17 @@ Substitution into relations::
     sage: eq.substitute({a:x, x:1})
     x + 1 == sin(1/x)
 
+You can even substitute multivariable and matrix
+expressions::
+
+    sage: x,y = var('x, y')
+    sage: M = Matrix([[x+1,y],[x^2,y^3]]); M
+    [x + 1     y]
+    [  x^2   y^3]
+    sage: M.substitute({x:0,y:1})
+    [1 1]
+    [0 1]
+
 Solving
 -------
 
@@ -135,6 +146,24 @@ We can solve equations::
     Traceback (most recent call last):
     ...
     TypeError: 5 is not a valid variable.
+
+We can also solve equations involving matrices. The following
+example defines a multivariable function ``f(x,y)``, then solves
+for where the partial derivatives with respect to ``x``
+and ``y`` are zero. Then it substitutes one of the solutions
+into the Hessian matrix ``H`` for ``f``::
+
+    sage: f(x,y) = x^2*y+y^2+y
+    sage: solutions = solve(list(f.diff()),[x,y],solution_dict=True)
+    sage: solutions == [{x: -I, y: 0}, {x: I, y: 0}, {x: 0, y: -1/2}]
+    True
+    sage: H = f.diff(2) # Hessian matrix
+    sage: H.subs(solutions[2])
+    [(x, y) |--> -1  (x, y) |--> 0]
+    [ (x, y) |--> 0  (x, y) |--> 2]
+    sage: H(x,y).subs(solutions[2])
+    [-1  0]
+    [ 0  2]
 
 We illustrate finding multiplicities of solutions::
 

@@ -9,9 +9,9 @@ Check that we can externally cimport this (:trac:`18825`)::
 
     sage: cython(  # long time; random compiler warnings
     ....: '''
-    ....: #clang c++
-    ....: #clib pynac
-    ....: #cargs --std=c++11
+    ....: # distutils: language = c++
+    ....: # distutils: libraries = pynac
+    ....: # distutils: extra_compile_args = --std=c++11
     ....: cimport sage.libs.pynac.pynac
     ....: ''')
 """

@@ -14,7 +14,7 @@ Eisenstein Series
 from __future__ import absolute_import
 from six import integer_types
 
-import sage.misc.all as misc
+from sage.misc.all import verbose, cputime
 import sage.modular.dirichlet as dirichlet
 from sage.modular.arithgroup.congroup_gammaH import GammaH_class
 from sage.rings.all import Integer, CyclotomicField, ZZ, QQ, Integer
@@ -259,7 +259,7 @@ def __find_eisen_chars(character, k):
     K = G.base_ring()
     C = {}
 
-    t0 = misc.cputime()
+    t0 = cputime()
 
     for e in G:
         m = Integer(e.conductor())
@@ -268,11 +268,11 @@ def __find_eisen_chars(character, k):
         else:
             C[m] = [e]
 
-    misc.verbose("Enumeration with conductors.",t0)
+    verbose("Enumeration with conductors.", t0)
 
     params = []
     for L in divisors(N):
-        misc.verbose("divisor %s"%L)
+        verbose("divisor %s" % L)
         if L not in C:
             continue
         GL = C[L]

@@ -5272,11 +5272,11 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         if not self.is_square():
             raise ArithmeticError("self must be a square matrix")
-        if self.nrows()==0:
+        if self.nrows() == 0:
             return self
 
         A = self.augment(self.parent().identity_matrix())
-        B = A.echelon_form()
+        A.echelonize()
 
         # Now we want to make sure that B is of the form [I|X], in
         # which case X is the inverse of self. We can simply look at
@@ -5298,13 +5298,13 @@ cdef class Matrix(sage.structure.element.Matrix):
         # behavior.
 
         if self.base_ring().is_exact():
-            if B[self._nrows-1, self._ncols-1] != 1:
+            if A[self._nrows-1, self._ncols-1] != 1:
                 raise ZeroDivisionError("input matrix must be nonsingular")
         else:
-            if not B[self._nrows-1, self._ncols-1]:
+            if not A[self._nrows-1, self._ncols-1]:
                 raise ZeroDivisionError("input matrix must be nonsingular")
 
-        return B.matrix_from_columns(list(xrange(self._ncols, 2 * self._ncols)))
+        return A.matrix_from_columns(list(xrange(self._ncols, 2 * self._ncols)))
 
     def __pos__(self):
         """

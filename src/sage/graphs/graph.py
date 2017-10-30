@@ -1799,6 +1799,59 @@ class Graph(GenericGraph):
                     return (False, cycle)
 
     @doc_index("Graph properties")
+    def is_cactus(self):
+        """
+        Check whether the graph is cactus graph.
+
+        A graph is called *cactus graph* if it is connected and every pair of
+        simple cycles have at most one common vertex.
+
+        There are other definitions, see :wikipedia:`Cactus_graph`.
+
+        EXAMPLES::
+
+            sage: g = Graph({1: [2], 2: [3, 4], 3: [4, 5, 6, 7], 8: [3, 5], 9: [6, 7]})
+            sage: g.is_cactus()
+            True
+
+            sage: c6 = graphs.CycleGraph(6)
+            sage: naphthalene = c6 + c6
+            sage: naphthalene.is_cactus()  # Not connected
+            False
+            sage: naphthalene.merge_vertices([0, 6])
+            sage: naphthalene.is_cactus()
+            True
+            sage: naphthalene.merge_vertices([1, 7])
+            sage: naphthalene.is_cactus()
+            False
+
+        TESTS::
+
+            sage: all(graphs.PathGraph(i).is_cactus() for i in range(5))
+            True
+
+            sage: Graph('Fli@?').is_cactus()
+            False
+        """
+        self._scream_if_not_simple()
+
+        # Special cases
+        if self.order() < 4:
+            return True
+
+        # Every cactus graph is outerplanar, and outerplanar
+        # graphs have limited number of edges.
+        if self.size() > self.order()*2-3:
+            return False
+
+        if not self.is_connected():
+            return False
+
+        # the number of faces is 1 plus the number of blocks of order > 2
+        B = self.blocks_and_cut_vertices()[0]
+        return len(self.faces()) == sum(1 for b in B if len(b) > 2) + 1
+
+    @doc_index("Graph properties")
     def is_biconnected(self):
         """
         Test if the graph is biconnected.

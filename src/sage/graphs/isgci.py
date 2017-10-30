@@ -1061,6 +1061,7 @@ graph_classes.Biconnected = GraphClass("Biconnected", "gc_771", recognition_func
 graph_classes.BinaryTrees = GraphClass("BinaryTrees", "gc_847")
 graph_classes.Bipartite = GraphClass("Bipartite", "gc_69", recognition_function = lambda x:x.is_bipartite())
 graph_classes.Block = GraphClass("Block", "gc_93", recognition_function = lambda x:x.is_block_graph())
+graph_classes.Cactus = GraphClass("Cactus", "gc_108", recognition_function = lambda x:x.is_cactus())
 graph_classes.Chordal = GraphClass("Chordal", "gc_32", recognition_function = lambda x:x.is_chordal())
 graph_classes.ClawFree = GraphClass("Claw-free", "gc_62")
 graph_classes.CoGraph = GraphClass("CoGraph", "gc_151", recognition_function = lambda x:x.is_cograph())

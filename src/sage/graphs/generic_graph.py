@@ -21926,34 +21926,31 @@ class GenericGraph(GenericGraph_pyx):
             sage: C.vertices()
             [0, 1, 2]
         """
-        try:
+        # Check parameter combinations
+        if algorithm and algorithm not in ['sage', 'bliss']:
+            raise ValueError("'algorithm' must be equal to 'bliss', 'sage', or None")
+        has_multiedges = self.has_multiple_edges()
+        if has_multiedges and algorithm == 'bliss':  # See trac #21704
+            raise NotImplementedError("algorithm 'bliss' can not be used for graph with multiedges")
+
+        # Check bliss if explicitly requested, raise if not found.
+        if algorithm == 'bliss':
             from sage.graphs.bliss import canonical_form
-            have_bliss = True
-        except ImportError:
-            have_bliss = False
 
-        # See trac #21704
-        if self.has_multiple_edges():
-            if algorithm == 'bliss':
-                raise NotImplementedError("algorithm 'bliss' can not be used for graph with multiedges")
-            have_bliss = False
+        # By default use bliss when possible
+        if algorithm is None:
+            algorithm = 'sage'
+            if not has_multiedges:
+                try:
+                    from sage.graphs.bliss import canonical_form
+                    algorithm = 'bliss'
+                except ImportError:
+                    pass
 
-        if (algorithm == 'bliss'           or  # explicit request; or
-            (algorithm is None             and # default choice
-             have_bliss and
-             not edge_labels)):
-            if edge_labels:
-                raise ValueError("bliss cannot be used when edge_labels is True")
-            if not have_bliss:
-                from sage.misc.package import PackageNotFoundError
-                raise PackageNotFoundError("bliss")
-
+        if algorithm == 'bliss':
             return canonical_form(self, partition, return_graph, certificate)
 
-        if (algorithm is not None and
-            algorithm != "sage"):
-            raise ValueError("'algorithm' must be equal to 'bliss', 'sage', or None")
-
+        # algorithm == 'sage':
         from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
 
         dig = (self.has_loops() or self._directed)

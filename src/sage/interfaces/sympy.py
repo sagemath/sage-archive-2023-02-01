@@ -425,6 +425,19 @@ def _sympysage_kronecker_delta(self):
     from sage.functions.generalized import kronecker_delta
     return kronecker_delta(self.args[0]._sage_(), self.args[1]._sage_())
 
+def _sympysage_ceiling(self):
+    """
+    EXAMPLES::
+
+        sage: from sympy import Symbol, ceiling
+        sage: assert ceil(x)._sympy_() == ceiling(Symbol('x'))
+        sage: assert ceil(x) == ceiling(Symbol('x'))._sage_()
+        sage: integrate(ceil(x), x, 0, infinity, algorithm='sympy')
+        integrate(ceil(x), x, 0, +Infinity)
+    """
+    from sage.functions.other import ceil
+    return ceil(self.args[0]._sage_())
+
 def _sympysage_piecewise(self):
     """
     EXAMPLES::
@@ -626,6 +639,7 @@ def sympy_init():
     from sympy.functions.combinatorial.factorials import (RisingFactorial,
             FallingFactorial)
     from sympy.functions.elementary.complexes import (re, im, Abs)
+    from sympy.functions.elementary.integers import ceiling
     from sympy.functions.elementary.piecewise import Piecewise
     from sympy.functions.special.bessel import (besselj, bessely, besseli, besselk)
     from sympy.functions.special.delta_functions import (DiracDelta, Heaviside)
@@ -680,6 +694,7 @@ def sympy_init():
     Abs._sage_ = _sympysage_abs
     BooleanFalse._sage_ = _sympysage_false
     BooleanTrue._sage_ = _sympysage_true
+    ceiling._sage_ = _sympysage_ceiling
 
 def check_expression(expr, var_symbols, only_from_sympy=False):
     """

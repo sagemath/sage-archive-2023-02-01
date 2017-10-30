@@ -211,7 +211,7 @@ class ClusterQuiver(SageObject):
             sage: TestSuite(Q).run()
         """
         from sage.combinat.cluster_algebra_quiver.cluster_seed import ClusterSeed
-        from sage.matrix.matrix import Matrix
+        from sage.structure.element import is_Matrix
 
         if isinstance(user_labels, list):
             user_labels = [tuple(x) if isinstance(x, list) else x for x in user_labels]
@@ -327,7 +327,7 @@ class ClusterQuiver(SageObject):
             self._description = data._description
 
         # constructs a quiver from a matrix
-        elif isinstance(data, Matrix):
+        elif is_Matrix(data):
             if not _principal_part(data).is_skew_symmetrizable( positive=True ):
                 raise ValueError('The principal part of the matrix data must be skew-symmetrizable.')
 

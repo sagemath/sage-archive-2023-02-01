@@ -237,9 +237,10 @@ from __future__ import print_function
 
 from copy import copy
 from sage.structure.parent cimport Parent
+from sage.structure.element cimport Element
+from sage.structure.element import is_Matrix
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecation
-from sage.matrix.matrix import is_Matrix
 
 cdef class MixedIntegerLinearProgram(SageObject):
     r"""

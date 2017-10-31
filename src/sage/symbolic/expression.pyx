@@ -11295,7 +11295,7 @@ cdef class Expression(CommutativeRingElement):
         else:
             return [ rt for rt, mul in rt_muls ]
 
-    def solve(self, x, multiplicities=False, solution_dict=False, explicit_solutions=False, to_poly_solve=False):
+    def solve(self, x, multiplicities=False, solution_dict=False, explicit_solutions=False, to_poly_solve=False, algorithm=None, domain=None):
         r"""
         Analytically solve the equation ``self == 0`` or a univariate
         inequality for the variable `x`.
@@ -11346,7 +11346,9 @@ cdef class Expression(CommutativeRingElement):
         return solve(self, x, multiplicities=multiplicities,
                               solution_dict=solution_dict,
                               explicit_solutions=explicit_solutions,
-                              to_poly_solve=to_poly_solve)
+                              to_poly_solve=to_poly_solve,
+                              algorithm=algorithm,
+                              domain=domain)
 
     def solve_diophantine(self, x=None, solution_dict=False):
         """

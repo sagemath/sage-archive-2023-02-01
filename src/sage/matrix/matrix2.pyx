@@ -6203,7 +6203,7 @@ cdef class Matrix(Matrix1):
             ....:                  [0.547271128842, 0.0, -0.3015, -21.7532081652],
             ....:                  [0.0, 0.0, 0.3, -0.4]])
             sage: D, P = A.eigenmatrix_left()
-            sage: (P*A - D*P).norm()<10^(-2)
+            sage: (P*A - D*P).norm() < 10^(-2)
             True
 
         The following example shows that the fix for :trac:`20439` (conjugating
@@ -6211,7 +6211,7 @@ cdef class Matrix(Matrix1):
 
             sage: A = Matrix(CDF,[[I,0],[0,1]])
             sage: D, P = A.eigenmatrix_left()
-            sage: (P*A - D*P).norm()<10^(-2)
+            sage: (P*A - D*P).norm() < 10^(-2)
             True
         """
         from sage.misc.flatten import flatten
@@ -6311,7 +6311,7 @@ cdef class Matrix(Matrix1):
             ....:                  [0.547271128842, 0.0, -0.3015, -21.7532081652],
             ....:                  [0.0, 0.0, 0.3, -0.4]])
             sage: D, P = A.eigenmatrix_right()
-            sage: (A*P - P*D).norm()<10^(-2)
+            sage: (A*P - P*D).norm() < 10^(-2)
             True
 
         The following example shows that the fix for :trac:`20439` (conjugating
@@ -6319,7 +6319,7 @@ cdef class Matrix(Matrix1):
 
             sage: A = Matrix(CDF,[[I,0],[0,1]])
             sage: D, P = A.eigenmatrix_right()
-            sage: (A*P - P*D).norm()<10^(-2)
+            sage: (A*P - P*D).norm() < 10^(-2)
             True
 
         """

@@ -10,11 +10,16 @@ command on some systems).
 # to race conditions. This script runs pip under a lock.  For details, see
 # https://trac.sagemath.org/ticket/21672
 
-import argparse
 import fcntl
 import os
 import pipes
 import sys
+
+# Note that argparse is not part of Python 2.6, so we bundle it
+try:
+    import argparse
+except ImportError:
+    from sage_bootstrap.compat import argparse
 
 
 class FileType(argparse.FileType):

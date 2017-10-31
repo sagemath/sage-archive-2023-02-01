@@ -399,7 +399,7 @@ fi
 # Only install curl (and libcurl) if we cannot find version 7.22 or
 # later, since that is what R needs.
 need_to_install_curl=no
-AC_CACHE_CHECK([for curl], [ac_cv_path_CURL], [
+AC_CACHE_CHECK([for curl 7.22], [ac_cv_path_CURL], [
     AC_PATH_PROGS_FEATURE_CHECK(CURL, [curl],
     [${ac_path_CURL}-config --checkfor 7.22 >/dev/null 2>/dev/null && ac_cv_path_CURL=${ac_path_CURL}],
     [need_to_install_curl=yes; ac_cv_path_CURL=no])])
@@ -413,7 +413,7 @@ AC_CACHE_CHECK([for curl], [ac_cv_path_CURL], [
 # file, too.
 if test $need_to_install_curl = no;
 then
-    AC_CHECK_HEADER([curl/curl.h],[],[need_to_install_curl=yes; ac_cv_path_CURL=no])
+    AC_CHECK_HEADER([curl/curl.h], [], [need_to_install_curl=yes])
 fi
 
 # complex.h is one that might not exist on older systems.

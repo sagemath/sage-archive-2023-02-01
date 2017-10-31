@@ -1532,7 +1532,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             [ -2.0   7.0   6.0  13.0]
             sage: spectrum = m.left_eigenvectors()
             sage: for i in range(len(spectrum)):
-            ....:   spectrum[i][1][0]=matrix(RDF, spectrum[i][1]).echelon_form()[0]
+            ....:     spectrum[i][1][0]=matrix(RDF, spectrum[i][1]).echelon_form()[0]
             sage: spectrum[0]  # tol 1e-13
             (2.0000000000000675, [(1.0, 1.0000000000000138, 1.0000000000000147, 1.0000000000000309)], 1)
             sage: spectrum[1]  # tol 1e-13
@@ -1551,11 +1551,8 @@ cdef class Matrix_double_dense(Matrix_dense):
             ....:                  [0.547271128842, 0.0, -0.3015, -21.7532081652],
             ....:                  [0.0, 0.0, 0.3, -0.4]])
             sage: spectrum = A.left_eigenvectors()
-            sage: for i in range(A.dimensions()[0]):
-            ....:     (Matrix(spectrum[i][1])*(A - spectrum[i][0]*identity_matrix(A.dimensions()[0]))).norm()<10^(-2)
-            True
-            True
-            True
+            sage: all((Matrix(spectrum[i][1])*(A - spectrum[i][0])).norm() < 10^(-2)
+            ....:     for i in range(A.nrows()))
             True
 
         The following example shows that the fix for :trac:`20439` (conjugating
@@ -1639,11 +1636,8 @@ cdef class Matrix_double_dense(Matrix_dense):
             ....:                  [0.547271128842, 0.0, -0.3015, -21.7532081652],
             ....:                  [0.0, 0.0, 0.3, -0.4]])
             sage: spectrum = A.right_eigenvectors()
-            sage: for i in range(A.dimensions()[0]):
-            ....:     ((A - spectrum[i][0]*identity_matrix(A.dimensions()[0]))*Matrix(spectrum[i][1]).transpose()).norm()<10^(-2)
-            True
-            True
-            True
+            sage: all(((A - spectrum[i][0]) * Matrix(spectrum[i][1]).transpose()).norm() < 10^(-2)
+            ....:     for i in range(A.nrows()))
             True
 
         The following example shows that the fix for :trac:`20439` (conjugating
@@ -1652,7 +1646,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A = Matrix(CDF,[[I,0],[0,1]])
             sage: spectrum = A.right_eigenvectors()
             sage: for i in range(len(spectrum)):
-            ....:   spectrum[i][1][0]=matrix(CDF, spectrum[i][1]).echelon_form()[0]
+            ....:     spectrum[i][1][0]=matrix(CDF, spectrum[i][1]).echelon_form()[0]
             sage: spectrum
             [(1.0*I, [(1.0, 0.0)], 1), (1.0, [(0.0, 1.0)], 1)]
         """

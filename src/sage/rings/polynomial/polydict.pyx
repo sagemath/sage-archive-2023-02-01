@@ -970,7 +970,7 @@ cdef class ETuple:
             self._length = length
             self._nonzero = len(data)
             self._data = <int*>sig_malloc(sizeof(int)*self._nonzero*2)
-            nz_elts = sorted(data.iteritems())
+            nz_elts = sorted(data.items())
             ind = 0
             for index, exp in nz_elts:
                 self._data[2*ind] = index

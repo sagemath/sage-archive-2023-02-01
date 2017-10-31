@@ -707,12 +707,10 @@ cdef class CategoryObject(SageObject):
     # i.e., just define __dict__ as an attribute and all this code gets generated.
     #################################################################################
     def __getstate__(self):
-        d = []
         try:
-            d = list(self.__dict__.copy().iteritems()) # so we can add elements
+            d = self.__dict__.copy()  # so we can add elements
         except AttributeError:
-            pass
-        d = dict(d)
+            d = {}
         d['_category'] = self._category
         d['_base'] = self._base
         d['_names'] = self._names

@@ -406,33 +406,28 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
     - Robert Bradshaw
     """
-
-    def __init__(self, lookup_dict_size=127, lookup_dict_threshold=.75):
+    def __init__(self, *args, **kwds):
         """
-        INPUT:
-
-        - ``lookup_dict_size`` - initial size of the coercion hashtables
-
-        - ``lookup_dict_threshold`` - maximal density of the coercion
-          hashtables before forcing a re-hash
-
         EXAMPLES::
 
             sage: from sage.structure.coerce import CoercionModel_cache_maps
-            sage: cm = CoercionModel_cache_maps(4, .95)
+            sage: cm = CoercionModel_cache_maps()
             sage: K = NumberField(x^2-2, 'a')
             sage: A = cm.get_action(ZZ, K, operator.mul)
             sage: f, g = cm.coercion_maps(QQ, int)
             sage: f, g = cm.coercion_maps(ZZ, int)
 
-        .. NOTE::
+        TESTS::
 
-            In practice 4 would be a really bad number to choose, but
-            it makes the hashing deterministic.
+            sage: cm = CoercionModel_cache_maps(4, .95)
+            doctest:...: DeprecationWarning: the 'lookup_dict_size' argument is deprecated
+            See http://trac.sagemath.org/24135 for details.
+            doctest:...: DeprecationWarning: the 'lookup_dict_threshold' argument is deprecated
+            See http://trac.sagemath.org/24135 for details.
         """
-        self.reset_cache(lookup_dict_size, lookup_dict_threshold)
+        self.reset_cache(*args, **kwds)
 
-    def reset_cache(self, lookup_dict_size=127, lookup_dict_threshold=.75):
+    def reset_cache(self, lookup_dict_size=None, lookup_dict_threshold=None):
         """
         Clear the coercion cache.
 
@@ -450,14 +445,20 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm.get_cache()
             ({}, {})
         """
+        if lookup_dict_size is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(24135, "the 'lookup_dict_size' argument is deprecated")
+        if lookup_dict_threshold is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(24135, "the 'lookup_dict_threshold' argument is deprecated")
         # This MUST be a mapping of tuples, where each
         # tuple contains at least two elements that are either
         # None or of type Map.
-        self._coercion_maps = TripleDict(lookup_dict_size, threshold=lookup_dict_threshold)
+        self._coercion_maps = TripleDict()
         # This MUST be a mapping to actions.
-        self._action_maps = TripleDict(lookup_dict_size, threshold=lookup_dict_threshold)
+        self._action_maps = TripleDict()
         # This is a mapping from Parents to Parents, storing the result of division in the given parent.
-        self._division_parents = TripleDict(lookup_dict_size, threshold=lookup_dict_threshold)
+        self._division_parents = TripleDict()
 
     def get_cache(self):
         """
@@ -521,8 +522,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: act(1/5, x+10)
             1/5*x + 2
         """
-        return dict([((S, R), mors) for (S, R, op), mors in self._coercion_maps.iteritems()]), \
-               dict(self._action_maps.iteritems())
+        d1 = {(S, R): mors for (S, R, op), mors in self._coercion_maps.items()}
+        d2 = self._action_maps.copy()
+        return d1, d2
 
     def record_exceptions(self, bint value=True):
         r"""

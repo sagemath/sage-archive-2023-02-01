@@ -856,7 +856,7 @@ def prepare_dict(w):
 
     INPUT:
 
-    - ``w`` - dict
+    - ``w`` -- dict
 
     OUTPUT:
 
@@ -867,10 +867,10 @@ def prepare_dict(w):
         sage: sage.matrix.constructor.prepare_dict({(0,1):2, (4,10):Mod(1,7)})
         ({(0, 1): 2, (4, 10): 1}, Ring of integers modulo 7)
     """
-    Z = w.items()
+    Z = list(w.items())
     X = [x for _, x in Z]
     entries, ring = prepare(X)
-    return dict([(Z[i][0],entries[i]) for i in range(len(entries))]), ring
+    return {Z[i][0]: ent for i, ent in enumerate(entries)}, ring
 
 
 def nrows_from_dict(d):

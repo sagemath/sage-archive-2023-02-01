@@ -456,7 +456,7 @@ class GraphPlot(SageObject):
                                                             clip=False)
                                                      for center in self._pos.values()]
             else:
-                self._plot_components['vertices'] = scatter_plot(self._pos.values(),
+                self._plot_components['vertices'] = scatter_plot(list(self._pos.values()),
                                                                  clip=False, **voptions)
         else:
             # Color list must be ordered:

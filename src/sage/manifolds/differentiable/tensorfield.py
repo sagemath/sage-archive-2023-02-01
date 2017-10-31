@@ -185,7 +185,7 @@ class TensorField(ModuleElement):
         sage: t.add_comp_by_continuation(eV, W, chart=c_uv)  # long time
 
     At this stage, `t` is fully defined, having components in frames eU and eV
-    and the union of the domains of eU and eV being whole manifold::
+    and the union of the domains of eU and eV being the whole manifold::
 
         sage: t.display(eV)  # long time
         t = (u^4 - 4*u^3*v + 10*u^2*v^2 + 4*u*v^3 + v^4)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) du*du
@@ -265,68 +265,38 @@ class TensorField(ModuleElement):
         sage: s.restrict(U) == f.restrict(U) * t.restrict(U)
         True
 
+    .. RUBRIC:: Same examples with SymPy as the symbolic engine
 
-    Same tests with ``sympy``::
+    From now on, we ask that all symbolic calculus on manifold `M` are
+    performed by SymPy::
 
         sage: M.set_calculus_method('sympy')
-        sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-        ....:                 intersection_name='W', restrictions1= x^2+y^2!=0,
-        ....:                 restrictions2= u^2+v^2!=0)
-        sage: uv_to_xy = xy_to_uv.inverse()
-        sage: W = U.intersection(V)
-        sage: t = M.tensor_field(0,2, name='t') ; t
-        Tensor field t of type (0,2) on the 2-dimensional differentiable
-         manifold S^2
-        sage: t.parent()
-        Module T^(0,2)(S^2) of type-(0,2) tensors fields on the 2-dimensional
-         differentiable manifold S^2
-        sage: t.parent().category()
-        Category of modules over Algebra of differentiable scalar fields on the
-         2-dimensional differentiable manifold S^2
 
-    The parent of `t` is not a free module, for the sphere `S^2` is not
-    parallelizable::
+    We define the tensor `t` as above::
 
-        sage: isinstance(t.parent(), FiniteRankFreeModule)
-        False
-
-    To fully define `t`, we have to specify its components in some vector
-    frames defined on subsets of `S^2`; let us start by the open subset `U`::
-
-        sage: eU = c_xy.frame()
+        sage: t = M.tensor_field(0,2, name='t')
         sage: t[eU,:] = [[1,0], [-2,3]]
         sage: t.display(eU)
         t = dx*dx - 2 dy*dx + 3 dy*dy
-
-    To set the components of `t` on `V` consistently, we copy the expressions
-    of the components in the common subset `W`::
-
-        sage: eV = c_uv.frame()
-        sage: eVW = eV.restrict(W)
-        sage: c_uvW = c_uv.restrict(W)
-        sage: t[eV,0,0] = t[eVW,0,0,c_uvW].expr()  # long time
-        sage: t[eV,0,1] = t[eVW,0,1,c_uvW].expr()  # long time
-        sage: t[eV,1,0] = t[eVW,1,0,c_uvW].expr()  # long time
-        sage: t[eV,1,1] = t[eVW,1,1,c_uvW].expr()  # long time
-
-    Actually, the above operation can by performed in a single line by means
-    of the method
-    :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.add_comp_by_continuation`::
-
         sage: t.add_comp_by_continuation(eV, W, chart=c_uv)  # long time
-
-    At this stage, `t` is fully defined, having components in frames eU and eV
-    and the union of the domains of eU and eV being whole manifold::
-
         sage: t.display(eV)  # long time
         t = (u**4 - 4*u**3*v + 10*u**2*v**2 + 4*u*v**3 + v**4)/(u**8 +
-        4*u**6*v**2 + 6*u**4*v**4 + 4*u**2*v**6 + v**8) du*du +
-        4*u*v*(-u**2 - 2*u*v + v**2)/(u**8 + 4*u**6*v**2 + 6*u**4*v**4
-        + 4*u**2*v**6 + v**8) du*dv + 2*(u**4 - 2*u**3*v - 2*u**2*v**2
-        + 2*u*v**3 + v**4)/(u**8 + 4*u**6*v**2 + 6*u**4*v**4 +
-        4*u**2*v**6 + v**8) dv*du + (3*u**4 + 4*u**3*v - 2*u**2*v**2 -
-        4*u*v**3 + 3*v**4)/(u**8 + 4*u**6*v**2 + 6*u**4*v**4 +
-        4*u**2*v**6 + v**8) dv*dv
+         4*u**6*v**2 + 6*u**4*v**4 + 4*u**2*v**6 + v**8) du*du +
+         4*u*v*(-u**2 - 2*u*v + v**2)/(u**8 + 4*u**6*v**2 + 6*u**4*v**4
+         + 4*u**2*v**6 + v**8) du*dv + 2*(u**4 - 2*u**3*v - 2*u**2*v**2
+         + 2*u*v**3 + v**4)/(u**8 + 4*u**6*v**2 + 6*u**4*v**4 +
+         4*u**2*v**6 + v**8) dv*du + (3*u**4 + 4*u**3*v - 2*u**2*v**2 -
+         4*u*v**3 + 3*v**4)/(u**8 + 4*u**6*v**2 + 6*u**4*v**4 +
+         4*u**2*v**6 + v**8) dv*dv
+
+    The default coordinate representations of tensor components are now
+    SymPy objects::
+
+        sage: t[eV,1,1,c_uv].expr()
+        (3*u**4 + 4*u**3*v - 2*u**2*v**2 - 4*u*v**3 + 3*v**4)/(u**8 +
+         4*u**6*v**2 + 6*u**4*v**4 + 4*u**2*v**6 + v**8)
+        sage: type(t[eV,1,1,c_uv].expr())
+        <class 'sympy.core.mul.Mul'>
 
     Let us consider two vector fields, `a` and `b`, on `S^2`::
 
@@ -345,8 +315,7 @@ class TensorField(ModuleElement):
     As a tensor field of type `(0,2)`, `t` acts on the pair `(a,b)`,
     resulting in a scalar field::
 
-        sage: f = t(a,b); f
-        Scalar field t(a,b) on the 2-dimensional differentiable manifold S^2
+        sage: f = t(a,b)
         sage: f.display()  # long time
         t(a,b): S^2 --> R
         on U: (x, y) |--> -2*x*y - 3*x - y**2
@@ -355,16 +324,12 @@ class TensorField(ModuleElement):
     The vectors can be defined only on subsets of `S^2`, the domain of the
     result is then the common subset::
 
-        sage: s = t(a.restrict(U), b) ; s  # long time
-        Scalar field t(a,b) on the Open subset U of the 2-dimensional
-         differentiable manifold S^2
+        sage: s = t(a.restrict(U), b)
         sage: s.display()  # long time
         t(a,b): U --> R
            (x, y) |--> -2*x*y - 3*x - y**2
         on W: (u, v) |--> -(3*u**3 + 3*u*v**2 + 2*u*v + v**2)/(u**4 + 2*u**2*v**2 + v**4)
-        sage: s = t(a.restrict(U), b.restrict(W)) ; s  # long time
-        Scalar field t(a,b) on the Open subset W of the 2-dimensional
-         differentiable manifold S^2
+        sage: s = t(a.restrict(U), b.restrict(W))  # long time
         sage: s.display()  # long time
         t(a,b): W --> R
            (x, y) |--> -2*x*y - 3*x - y**2
@@ -373,9 +338,7 @@ class TensorField(ModuleElement):
     The tensor itself can be defined only on some open subset of `S^2`,
     yielding a result whose domain is this subset::
 
-        sage: s = t.restrict(V)(a,b); s  # long time
-        Scalar field t(a,b) on the Open subset V of the 2-dimensional
-         differentiable manifold S^2
+        sage: s = t.restrict(V)(a,b)  # long time
         sage: s.display()  # long time
         t(a,b): V --> R
            (u, v) |--> -(3*u**3 + 3*u*v**2 + 2*u*v + v**2)/(u**4 + 2*u**2*v**2 + v**4)
@@ -385,18 +348,12 @@ class TensorField(ModuleElement):
 
         sage: f = M.scalar_field({c_xy: 1/(1+x^2+y^2),
         ....:                     c_uv: (u^2 + v^2)/(u^2 + v^2 + 1)}, name='f')
-        sage: t.parent().base_ring() is f.parent()
-        True
-        sage: s = f*t; s  # long time
-        Tensor field of type (0,2) on the 2-dimensional differentiable
-         manifold S^2
+        sage: s = f*t # long time
         sage: s[[0,0]] == f*t[[0,0]]  # long time
         True
         sage: s.restrict(U) == f.restrict(U) * t.restrict(U)  # long time
         True
-        sage: s = f*t.restrict(U); s
-        Tensor field of type (0,2) on the Open subset U of the 2-dimensional
-         differentiable manifold S^2
+        sage: s = f*t.restrict(U)
         sage: s.restrict(U) == f.restrict(U) * t.restrict(U)
         True
 
@@ -1346,7 +1303,6 @@ class TensorField(ModuleElement):
             t = -u^3*v/(v + 1) h_0*h^1 - u*v h_1*h^1
 
         """
-
         if basis is None:
             if self._vmodule._dest_map.is_identity():
                 basis = self._domain._def_frame
@@ -1355,7 +1311,6 @@ class TensorField(ModuleElement):
                     try:
                         return rst.display()
                     except ValueError:
-                        raise
                         pass
             if basis is None:  # should be "is still None" ;-)
                 raise ValueError("a frame must be provided for the display")
@@ -2142,7 +2097,8 @@ class TensorField(ModuleElement):
             sage: s == 2*a
             True
 
-       Test changing calculus method::
+       Test with SymPy as calculus engine::
+
             sage: M.set_calculus_method('sympy')
             sage: f.add_expr_by_continuation(c_uv, U.intersection(V))
             sage: s = a.__mul__(f); s
@@ -2155,10 +2111,8 @@ class TensorField(ModuleElement):
             u**2/8 - u*v**2/8 + v**2/8) d/du*dv + (u**2*v/8 + u**2/8 -
             v**3/8 - v**2/8) d/dv*du + (u**2*v/8 - u**2/8 - v**3/8 +
             v**2/8) d/dv*dv
-
             sage: s == f*a
             True
-
 
         """
         if not isinstance(other, TensorField):
@@ -3265,6 +3219,7 @@ class TensorField(ModuleElement):
         if not isinstance(pos, (int, Integer)):
             raise TypeError("the argument 'pos' must be an integer")
         if pos<n_con or pos>self._tensor_rank-1:
+            print("pos = {}".format(pos))
             raise ValueError("position out of range")
         return self.contract(pos, metric.inverse(), 0)
 
@@ -3410,5 +3365,6 @@ class TensorField(ModuleElement):
         if not isinstance(pos, (int, Integer)):
             raise TypeError("the argument 'pos' must be an integer")
         if pos<0 or pos>=n_con:
+            print("pos = {}".format(pos))
             raise ValueError("position out of range")
         return metric.contract(1, self, pos)

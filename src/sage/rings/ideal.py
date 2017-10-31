@@ -1254,9 +1254,9 @@ class Ideal_principal(Ideal_generic):
 
         Comparison with non-principal ideal::
 
-            sage: P.<x, y> = PolynomialRing(ZZ)
-            sage: I = P.ideal(x^2)
-            sage: J = [x, y^2 + x*y]*P
+            sage: R.<x> = ZZ[]
+            sage: I = R.ideal([x^3 + 4*x - 1, x + 6])
+            sage: J = [x^2] * R
             sage: I > J  # indirect doctest
             True
             sage: J < I  # indirect doctest
@@ -1278,8 +1278,13 @@ class Ideal_principal(Ideal_generic):
         if not isinstance(other, Ideal_generic):
             other = self.ring().ideal(other)
 
-        if not other.is_principal():
-            return rich_to_bool(op, -1)
+        try:
+            if not other.is_principal():
+                return rich_to_bool(op, -1)
+        except NotImplementedError:
+            # If we do not know if the other is principal or not, then we
+            #   fallback to the generic implementation
+            return Ideal_generic._richcmp_(self, other, op)
 
         if self.is_zero():
             if not other.is_zero():

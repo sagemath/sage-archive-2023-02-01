@@ -184,6 +184,19 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             ValueError: this is not a binary tree
             sage: all(BinaryTree(repr(bt)) == bt for i in range(6) for bt in BinaryTrees(i))
             True
+
+        `\QQ` (or any number field) has a ``list()`` method that
+        returns itself as a `\QQ`-vector represented as a list.
+        Before :trac:`23961`, this would cause an infinite recursion
+        because `\QQ` elements give a list of length 1. For more
+        details, see :trac:`23961`. We test that constructing
+        binary trees from elements from `\QQ` terminates with
+        an appropriate error::
+
+            sage: BinaryTree(1/2)
+            Traceback (most recent call last):
+            ...
+            ValueError: this is not a binary tree
         """
         if isinstance(children, str):  # if the input is the repr of a binary tree
             children = children.replace(".", "None")
@@ -199,8 +212,13 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
               children.parent() == parent):
             children = list(children)
         else:
-            children = [x if (x.__class__ is self.__class__ and  x.parent() == parent)
-                        else self.__class__(parent, x, check=check) for x in children]
+            children = list(children)
+            if children and len(children) != 2:
+                raise ValueError('this is not a binary tree')
+            children = [x if (x.__class__ is self.__class__ and
+                              x.parent() == parent)
+                        else self.__class__(parent, x, check=check)
+                        for x in children]
         ClonableArray.__init__(self, parent, children, check=check)
 
     def check(self):

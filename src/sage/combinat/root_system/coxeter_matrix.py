@@ -905,7 +905,7 @@ class CoxeterMatrix(CoxeterType):
 
     def is_crystallographic(self):
         """
-        Return if ``self`` is crystallographic.
+        Return whether ``self`` is crystallographic.
 
         A Coxeter matrix is crystallographic if all non-diagonal entries
         are either 2, 4, or 6.
@@ -920,6 +920,21 @@ class CoxeterMatrix(CoxeterType):
         # We include 1 in this list to account for the diagonal
         L = [1, 2, 3, 4, 6]
         return all(x in L for row in self for x in row)
+
+    def is_irreducible(self):
+        """
+        Return whether ``self`` is irreducible.
+
+        A Coxeter matrix is irreducible if the Coxeter graph is connected.
+
+        EXAMPLES::
+
+            sage: CoxeterMatrix([['F',4],['A',1]]).is_irreducible()
+            False
+            sage: CoxeterMatrix(['H',3]).is_irreducible()
+            True
+        """
+        return self.coxeter_graph().is_connected()
 
     def is_finite(self):
         """

@@ -1000,7 +1000,7 @@ cdef class BooleanFunction(SageObject):
 
         INPUT:
 
-        - annihilator - a Boolean (default: False), if True, returns also an annihilator of minimal degree.
+        - annihilator -- a Boolean (default: False), if True, returns also an annihilator of minimal degree.
 
         EXAMPLES::
 

@@ -3286,11 +3286,8 @@ cdef class Expression(CommutativeRingElement):
             -1
             sage: b = -x*A; c = b*b; c
             1/4*x^2*(sqrt(5) + I*sqrt(2*sqrt(5) + 10) - 1)
-
-        Products of non integer powers of exp are not simplified::
-
             sage: exp(x)^I*exp(z)^(2.5)
-            (e^x)^I*(e^z)^2.50000000000000
+            e^(I*x + 2.50000000000000*z)
 
         ::
 
@@ -3347,17 +3344,17 @@ cdef class Expression(CommutativeRingElement):
             sage: ex.substitute(r1=z, r2=z)
             -(c1 + z*c2 + z)/c3
 
-        Note the content and the leading coefficient of the numerator after
-        the substitution::
+        Note the content cannot be computed because of nonsensical
+        arithmetic::
 
             sage: num = ex.op[0].subs({r1: z, r2: z}); num
             -c1 + z*c2 + z
             sage: num.leading_coefficient(c1)
             -1
             sage: num.content(c1)
-            1
-            sage: num.content(c1).pyobject().parent()
-            Integer Ring
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for *: 'Finite Field in z of size 2^8' and 'Rational Field'
 
         The leading coefficient is a negative number. The normalization process
         tries to convert it to a positive number and extract the content, by
@@ -3964,7 +3961,7 @@ cdef class Expression(CommutativeRingElement):
             sage: 0^1.0
             0.000000000000000
             sage: exp(x)^1.0
-            (e^x)^1.00000000000000
+            e^(1.00000000000000*x)
 
         Check that :trac:`23921` is resolved::
 
@@ -6416,7 +6413,8 @@ cdef class Expression(CommutativeRingElement):
         cdef Expression ss = self.coerce_in(s)
         sig_on()
         try:
-            return self._gobj.ldegree(ss._gobj)
+            return new_Expression_from_GEx(self._parent,
+                                     GEx(self._gobj.ldegree(ss._gobj)))
         finally:
             sig_off()
 
@@ -6446,7 +6444,8 @@ cdef class Expression(CommutativeRingElement):
         cdef Expression ss = self.coerce_in(s)
         sig_on()
         try:
-            return self._gobj.degree(ss._gobj)
+            return new_Expression_from_GEx(self._parent,
+                                     GEx(self._gobj.degree(ss._gobj)))
         finally:
             sig_off()
 
@@ -7318,12 +7317,12 @@ cdef class Expression(CommutativeRingElement):
             sage: f.collect(z)
             (x^2*y^2 + 4)*z^2 + 4*x*y + 20*y^2 + (x + 21*y)*z
 
-        Sometimes, we do have to call :meth:`expand()` on the
-        expression first to achieve the desired result::
+        The terms are collected, whether the expression
+        is expanded or not::
 
             sage: f = (x + y)*(x - z)
             sage: f.collect(x)
-            x^2 + x*y - x*z - y*z
+            x^2 + x*(y - z) - y*z
             sage: f.expand().collect(x)
             x^2 + x*(y - z) - y*z
 
@@ -10597,9 +10596,9 @@ cdef class Expression(CommutativeRingElement):
         ``x*log(9)`` is contracted only if ``algorithm`` is ``'all'``::
 
             sage: (x*log(9)).simplify_log()
-            x*log(9)
+            2*x*log(3)
             sage: (x*log(9)).simplify_log('all')
-            log(9^x)
+            log(3^(2*x))
 
         TESTS:
 
@@ -10714,7 +10713,7 @@ cdef class Expression(CommutativeRingElement):
         To expand also log(3/4) use ``algorithm='all'``::
 
             sage: (log(3/4*x^pi)).log_expand('all')
-            pi*log(x) - log(4) + log(3)
+            pi*log(x) + log(3) - 2*log(2)
 
         To expand only the power use ``algorithm='powers'``.::
 
@@ -10737,7 +10736,7 @@ cdef class Expression(CommutativeRingElement):
             pi*log(x) + log(3/4)
 
             sage: (log(3/4*x^pi)).log_expand('all')
-            pi*log(x) - log(4) + log(3)
+            pi*log(x) + log(3) - 2*log(2)
 
             sage: (log(3/4*x^pi)).log_expand()
             pi*log(x) + log(3/4)

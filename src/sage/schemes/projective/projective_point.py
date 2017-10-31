@@ -1255,7 +1255,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         OUTPUT:
 
-        - boolean - ``True`` if preperiodic.
+        - boolean -- ``True`` if preperiodic.
 
         - if return_period is ``True``, then ``(0,0)`` if wandering, and ``(m,n)``
             if preperiod ``m`` and period ``n``.

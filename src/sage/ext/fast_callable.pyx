@@ -1968,12 +1968,12 @@ cdef class InstructionStream:
 
         INPUT:
 
-        - metadata - The metadata_by_opname from a wrapper module
+        - metadata -- The metadata_by_opname from a wrapper module
 
         - n_args - The number of arguments accessible by the generated code
           (this is just passed to the wrapper class)
 
-        - domain - The domain of interpretation (this is just passed to the
+        - domain -- The domain of interpretation (this is just passed to the
           wrapper class)
 
         EXAMPLES::

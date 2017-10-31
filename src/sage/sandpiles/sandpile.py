@@ -334,7 +334,7 @@ from sage.probability.probability_distribution import GeneralDiscreteDistributio
 from sage.homology.simplicial_complex import SimplicialComplex
 from sage.interfaces.singular import singular
 from sage.matrix.constructor import matrix, identity_matrix
-from sage.misc.all import prod, det, forall, tmp_filename, random, randint, exists, denominator
+from sage.misc.all import prod, det, tmp_filename, random, randint, exists, denominator
 from sage.arith.srange import xsrange
 from sage.modules.free_module_element import vector
 from sage.plot.colors import rainbow
@@ -3301,7 +3301,7 @@ class SandpileConfig(dict):
             sage: e <= c
             False
         """
-        return forall(self._vertices, lambda v: self[v]<=other[v])[0]
+        return all(self[v] <= other[v] for v in self._vertices)
 
     def __lt__(self, other):
         r"""
@@ -3360,7 +3360,7 @@ class SandpileConfig(dict):
             sage: c >= e
             False
         """
-        return forall(self._vertices, lambda v: self[v]>=other[v])[0]
+        return all(self[v] >= other[v] for v in self._vertices)
 
     def __gt__(self, other):
         r"""
@@ -4675,7 +4675,7 @@ class SandpileDivisor(dict):
             sage: F <= D
             False
         """
-        return forall(self._vertices, lambda v: self[v]<=other[v])[0]
+        return all(self[v] <= other[v] for v in self._vertices)
 
     def __lt__(self, other):
         r"""
@@ -4702,7 +4702,7 @@ class SandpileDivisor(dict):
             sage: E < D
             False
         """
-        return self<=other and self!=other
+        return self <= other and self != other
 
     def __ge__(self, other):
         r"""
@@ -4734,7 +4734,7 @@ class SandpileDivisor(dict):
             sage: D >= F
             False
         """
-        return forall(self._vertices, lambda v: self[v]>=other[v])[0]
+        return all(self[v] >= other[v] for v in self._vertices)
 
     def __gt__(self, other):
         r"""
@@ -4761,7 +4761,7 @@ class SandpileDivisor(dict):
             sage: D > E
             False
         """
-        return self>=other and self!=other
+        return self >= other and self != other
 
     def sandpile(self):
         r"""
@@ -6595,9 +6595,10 @@ def admissible_partitions(S, k):
         G = Graph(S)
     result = []
     for p in SetPartitions(v, k):
-        if forall(p, lambda x : G.subgraph(list(x)).is_connected())[0]:
+        if all(G.subgraph(list(x)).is_connected() for x in p):
             result.append(p)
     return result
+
 
 def partition_sandpile(S, p):
     r"""

@@ -9020,8 +9020,7 @@ class A109814(SloaneSequence):
 
     .. SEEALSO::
 
-        * `Wikipedia article on polite numbers
-          <http://en.wikipedia.org/wiki/Polite_number>`_.
+        * :wikipedia:`Polite_number`
 
         * `An exercise sheet (with answers) about sums of
           consecutive integers

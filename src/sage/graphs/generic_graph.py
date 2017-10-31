@@ -21932,6 +21932,8 @@ class GenericGraph(GenericGraph_pyx):
         has_multiedges = self.has_multiple_edges()
         if has_multiedges and algorithm == 'bliss':  # See trac #21704
             raise NotImplementedError("algorithm 'bliss' can not be used for graph with multiedges")
+        if edge_labels and algorithm == 'bliss':
+            raise NotImplementedError("algorithm 'bliss' can not be used when edge_labels=True")
 
         # Check bliss if explicitly requested, raise if not found.
         if algorithm == 'bliss':
@@ -21940,7 +21942,7 @@ class GenericGraph(GenericGraph_pyx):
         # By default use bliss when possible
         if algorithm is None:
             algorithm = 'sage'
-            if not has_multiedges:
+            if not has_multiedges and not edge_labels:
                 try:
                     from sage.graphs.bliss import canonical_form
                     algorithm = 'bliss'

@@ -5304,7 +5304,21 @@ cdef class Matrix(sage.structure.element.Matrix):
             if not A[self._nrows-1, self._ncols-1]:
                 raise ZeroDivisionError("input matrix must be nonsingular")
 
+        if self.is_sparse():
+            return self.build_inverse_from_augmented_sparse(A)
+
         return A.matrix_from_columns(list(xrange(self._ncols, 2 * self._ncols)))
+
+    cdef build_inverse_from_augmented_sparse(self, A):
+        # We can directly use the dict entries of A
+        cdef Py_ssize_t i, nrows
+        cdef dict data = <dict> A._dict()
+        nrows = self._nrows
+        # We can modify data because A is local to this function
+        for i in range(nrows):
+            del data[i,i]
+        data = {(r,c-nrows): data[r,c] for (r,c) in data}
+        return self._parent(data)
 
     def __pos__(self):
         """

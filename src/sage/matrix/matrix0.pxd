@@ -60,7 +60,8 @@ cdef class Matrix(sage.structure.element.Matrix):
     cdef rescale_row_c(self, Py_ssize_t i, s, Py_ssize_t start_col)
     cdef rescale_col_c(self, Py_ssize_t i, s, Py_ssize_t start_row)
 
-
+    # Helper function for inverse of sparse matrices
+    cdef build_inverse_from_augmented_sparse(self, A)
 
 
 

@@ -4700,7 +4700,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: A(2) < A(1)
             True
 
-        .. SEEALSO:: :meth:`~sage.categories.finite_posets.FinitePosets.ParentMethods.is_selfdual`
+        .. SEEALSO:: :meth:`~sage.categories.finite_posets.FinitePosets.ParentMethods.is_self_dual`
 
         TESTS::
 

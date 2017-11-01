@@ -27,7 +27,7 @@ implications = {
  'meet_distributive': ['join_semidistributive', 'lower_semimodular'],
  'meet_semidistributive': ['pseudocomplemented'],
  'modular': ['upper_semimodular', 'lower_semimodular', 'supersolvable'],
- 'orthocomplemented': ['selfdual', 'complemented'],
+ 'orthocomplemented': ['self_dual', 'complemented'],
  'planar': ['dismantlable'],
  'relatively_complemented': ['sectionally_complemented', 'cosectionally_complemented', 'isoform'],
  'sectionally_complemented': ['complemented', 'atomic', 'regular'],

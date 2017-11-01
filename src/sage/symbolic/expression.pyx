@@ -1455,8 +1455,8 @@ cdef class Expression(CommutativeRingElement):
             <class 'sympy.core.numbers.Pi'>
 
         """
-        from sage.symbolic.expression_conversions import sympy
-        return sympy(self)
+        from sage.symbolic.expression_conversions import sympy_converter
+        return sympy_converter(self)
 
     def _algebraic_(self, field):
         """
@@ -11699,7 +11699,7 @@ cdef class Expression(CommutativeRingElement):
             sage: solve_diophantine(x^2 - 9)
             [-3, 3]
             sage: sorted(solve_diophantine(x^2 + y^2 == 25))
-            [(-4, -3), (-4, 3), (0, -5), (0, 5), (4, -3), (4, 3)]
+            [(-5, 0), (-4, -3), (-4, 3), (-3, -4), (-3, 4), (0, -5)...
 
         The function is used when ``solve()`` is called with all variables
         assumed integer::
@@ -11739,7 +11739,7 @@ cdef class Expression(CommutativeRingElement):
             sage: sol = solve_diophantine(x^2 - 2*y^2 == 1); sol
             [(-sqrt(2)*(2*sqrt(2) + 3)^t + sqrt(2)*(-2*sqrt(2) + 3)^t - 3/2*(2*sqrt(2) + 3)^t - 3/2*(-2*sqrt(2) + 3)^t,...
             sage: [(sol[1][0].subs(t=t).simplify_full(),sol[1][1].subs(t=t).simplify_full()) for t in range(-1,5)]
-            [(1, 0), (3, 2), (17, 12), (99, 70), (577, 408), (3363, 2378)]
+            [(1, 0), (3, -2), (17, -12), (99, -70), (577, -408), (3363, -2378)]
 
         TESTS::
 
@@ -11752,8 +11752,8 @@ cdef class Expression(CommutativeRingElement):
 
             http://docs.sympy.org/latest/modules/solvers/diophantine.html
         """
+        from sage.symbolic.ring import SR
         from sympy.solvers.diophantine import diophantine
-        from sympy import sympify
 
         if not isinstance(solution_dict, bool):
             raise AttributeError("please use a tuple or list for several variables.")
@@ -11761,7 +11761,7 @@ cdef class Expression(CommutativeRingElement):
             ex = self.lhs() - self.rhs()
         else:
             ex = self
-        sympy_ex = sympify(ex)
+        sympy_ex = ex._sympy_()
         solutions = diophantine(sympy_ex)
         if isinstance(solutions, (set)):
             solutions = list(solutions)
@@ -11769,9 +11769,9 @@ cdef class Expression(CommutativeRingElement):
         if len(solutions) == 0:
             return []
         if not isinstance(solutions[0], tuple):
-            solutions = [sol._sage_() for sol in solutions]
+            solutions = [SR(sol) for sol in solutions]
         else:
-            solutions = [tuple(s._sage_() for s in sol) for sol in solutions]
+            solutions = [tuple(SR(s) for s in sol) for sol in solutions]
         if x is None:
             wanted_vars = ex.variables()
             var_idx = list(xrange(len(ex.variables())))
@@ -12776,10 +12776,10 @@ def solve_diophantine(f,  *args, **kwds):
         sage: solve_diophantine(a^2-3*b^2+1)
         []
         sage: solve_diophantine(a^2-3*b^2+2)
-        [(1/2*sqrt(3)*(sqrt(3) + 2)^t - 1/2*sqrt(3)*(-sqrt(3) + 2)^t + 1/2*(sqrt(3) + 2)^t + 1/2*(-sqrt(3) + 2)^t,
-          1/6*sqrt(3)*(sqrt(3) + 2)^t - 1/6*sqrt(3)*(-sqrt(3) + 2)^t + 1/2*(sqrt(3) + 2)^t + 1/2*(-sqrt(3) + 2)^t),
-         (-1/2*sqrt(3)*(sqrt(3) + 2)^t + 1/2*sqrt(3)*(-sqrt(3) + 2)^t - 1/2*(sqrt(3) + 2)^t - 1/2*(-sqrt(3) + 2)^t,
-          -1/6*sqrt(3)*(sqrt(3) + 2)^t + 1/6*sqrt(3)*(-sqrt(3) + 2)^t - 1/2*(sqrt(3) + 2)^t - 1/2*(-sqrt(3) + 2)^t)]
+        [(-1/2*sqrt(3)*(sqrt(3) + 2)^t + 1/2*sqrt(3)*(-sqrt(3) + 2)^t - 1/2*(sqrt(3) + 2)^t - 1/2*(-sqrt(3) + 2)^t,
+          -1/6*sqrt(3)*(sqrt(3) + 2)^t + 1/6*sqrt(3)*(-sqrt(3) + 2)^t - 1/2*(sqrt(3) + 2)^t - 1/2*(-sqrt(3) + 2)^t),
+        (1/2*sqrt(3)*(sqrt(3) + 2)^t - 1/2*sqrt(3)*(-sqrt(3) + 2)^t + 1/2*(sqrt(3) + 2)^t + 1/2*(-sqrt(3) + 2)^t,
+          1/6*sqrt(3)*(sqrt(3) + 2)^t - 1/6*sqrt(3)*(-sqrt(3) + 2)^t + 1/2*(sqrt(3) + 2)^t + 1/2*(-sqrt(3) + 2)^t)]
     """
     from sage.symbolic.ring import SR
 

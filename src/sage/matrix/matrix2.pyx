@@ -3129,19 +3129,32 @@ cdef class Matrix(Matrix1):
         E = self.echelon_form(*args, **kwds)
         pivots = E.pivots()
         pivots_set = set(pivots)
-        R = self.base_ring()
-        zero = R(0)
-        one = R(1)
-        basis = []
-        for i in xrange(self._ncols):
-            if not (i in pivots_set):
-                v = [zero]*self._ncols
-                v[i] = one
-                for r in range(len(pivots)):
-                    v[pivots[r]] = -E[r,i]
-                basis.append(v)
+        zero = self.base_ring().zero()
+        one = self.base_ring().one()
+        MS = self.matrix_space(self._ncols-len(pivots), self._ncols)
+        cdef Py_ssize_t i, r, cur_row
+        if self.is_sparse():
+            entries = {}
+            cur_row = 0
+            for i in xrange(self._ncols):
+                if i not in pivots_set:
+                    entries[cur_row,i] = one
+                    for r,p in enumerate(pivots):
+                        entries[cur_row, p] = -E[r,i]
+                    cur_row += 1
+            M = MS(entries, copy=False, coerce=False)
+        else:
+            basis = []
+            for i in xrange(self._ncols):
+                if i not in pivots_set:
+                    v = [zero]*self._ncols
+                    v[i] = one
+                    for r,p in enumerate(pivots):
+                        v[p] = -E[r,i]
+                    basis.append(v)
+            M = MS(basis, coerce=False)
         tm = verbose("done computing right kernel matrix over an arbitrary field for %sx%s matrix" % (self.nrows(), self.ncols()),level=1,t=tm)
-        return 'pivot-generic', MatrixSpace(R, len(basis), self._ncols)(basis)
+        return 'pivot-generic', M
 
     def _right_kernel_matrix_over_domain(self):
         r"""
@@ -3156,7 +3169,7 @@ cdef class Matrix(Matrix1):
         Second item is a matrix whose rows are a basis for the right kernel,
         over the field, as computed by general Python code.
 
-        .. warning::
+        .. WARNING::
 
             This routine uses Smith normal form, which can fail
             if the domain is not a principal ideal domain.  Since we do
@@ -3200,9 +3213,10 @@ cdef class Matrix(Matrix1):
         tm = verbose("computing right kernel matrix over a domain for %sx%s matrix" % (self.nrows(), self.ncols()),level=1)
         d, u, v = self.smith_form()
         basis = []
-        for i in xrange(self.ncols()):
-            if (i >= self.nrows()) or d[i][i] == 0:
-                basis.append( v.column(i).list() )
+        cdef Py_ssize_t i, nrows = self._nrows
+        for i in xrange(self._ncols):
+            if i >= nrows or d[i,i] == 0:
+                basis.append( v.column(i) )
         verbose("done computing right kernel matrix over a domain for %sx%s matrix" % (self.nrows(), self.ncols()),level=1,t=tm)
         return 'computed-smith-form', self.new_matrix(nrows=len(basis), ncols=self._ncols, entries=basis)
 

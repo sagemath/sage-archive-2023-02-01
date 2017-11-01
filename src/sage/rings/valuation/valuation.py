@@ -500,19 +500,19 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: F = y^21 + x*y^20 + (x^3 + x + 1)*y^18 + (x^3 + 1)*y^17 + (x^4 + x)*y^16 + (x^7 + x^6 + x^3 + x + 1)*y^15 + x^7*y^14 + (x^8 + x^7 + x^6 + x^4 + x^3 + 1)*y^13 + (x^9 + x^8 + x^4 + 1)*y^12 + (x^11 + x^9 + x^8 + x^5 + x^4 + x^3 + x^2)*y^11 + (x^12 + x^9 + x^8 + x^7 + x^5 + x^3 + x + 1)*y^10 + (x^14 + x^13 + x^10 + x^9 + x^8 + x^7 + x^6 + x^3 + x^2 + 1)*y^9 + (x^13 + x^9 + x^8 + x^6 + x^4 + x^3 + x)*y^8 + (x^16 + x^15 + x^13 + x^12 + x^11 + x^7 + x^3 + x)*y^7 + (x^17 + x^16 + x^13 + x^9 + x^8 + x)*y^6 + (x^17 + x^16 + x^12 + x^7 + x^5 + x^2 + x + 1)*y^5 + (x^19 + x^16 + x^15 + x^12 + x^6 + x^5 + x^3 + 1)*y^4 + (x^18 + x^15 + x^12 + x^10 + x^9 + x^7 + x^4 + x)*y^3 + (x^22 + x^21 + x^20 + x^18 + x^13 + x^12 + x^9 + x^8 + x^7 + x^5 + x^4 + x^3)*y^2 + (x^23 + x^22 + x^20 + x^17 + x^15 + x^14 + x^12 + x^9)*y + x^25 + x^23 + x^19 + x^17 + x^15 + x^13 + x^11 + x^5
             sage: x = K._ring.gen()
             sage: v0 = K.valuation(GaussValuation(K._ring, valuations.TrivialValuation(k)).augmentation(x,1))
-            sage: sorted(v0.mac_lane_approximants(F, assume_squarefree=True), key=str) # assumes squarefree for speed
+            sage: v0.mac_lane_approximants(F, assume_squarefree=True) # assumes squarefree for speed
             [[ Gauss valuation induced by (x)-adic valuation, v(y + x + 1) = 3/2 ],
              [ Gauss valuation induced by (x)-adic valuation, v(y) = 1 ],
              [ Gauss valuation induced by (x)-adic valuation, v(y) = 4/3 ],
              [ Gauss valuation induced by (x)-adic valuation, v(y^15 + y^13 + y^12 + y^10 + y^9 + y^8 + y^4 + y^3 + y^2 + y + 1) = 1 ]]
             sage: v0 = K.valuation(GaussValuation(K._ring, valuations.TrivialValuation(k)).augmentation(x+1,1))
-            sage: sorted(v0.mac_lane_approximants(F, assume_squarefree=True), key=str) # assumes squarefree for speed
+            sage: v0.mac_lane_approximants(F, assume_squarefree=True) # assumes squarefree for speed
             [[ Gauss valuation induced by (x + 1)-adic valuation, v(y + x^2 + 1) = 7/2 ],
              [ Gauss valuation induced by (x + 1)-adic valuation, v(y) = 3/4 ],
              [ Gauss valuation induced by (x + 1)-adic valuation, v(y) = 7/2 ],
              [ Gauss valuation induced by (x + 1)-adic valuation, v(y^13 + y^12 + y^10 + y^7 + y^6 + y^3 + 1) = 1 ]]
             sage: v0 = valuations.FunctionFieldValuation(K, GaussValuation(K._ring, valuations.TrivialValuation(k)).augmentation(x^3+x^2+1,1))
-            sage: sorted(v0.mac_lane_approximants(F, assume_squarefree=True), key=str) # assumes squarefree for speed
+            sage: v0.mac_lane_approximants(F, assume_squarefree=True) # assumes squarefree for speed
             [[ Gauss valuation induced by (x^3 + x^2 + 1)-adic valuation, v(y + x^3 + x^2 + x) = 2, v(y^2 + (x^6 + x^4 + 1)*y + x^14 + x^10 + x^9 + x^8 + x^5 + x^4 + x^3 + x^2 + x) = 5 ],
              [ Gauss valuation induced by (x^3 + x^2 + 1)-adic valuation, v(y^2 + (x^2 + x)*y + 1) = 1 ],
              [ Gauss valuation induced by (x^3 + x^2 + 1)-adic valuation, v(y^3 + (x + 1)*y^2 + (x + 1)*y + x^2 + x + 1) = 1 ],
@@ -528,7 +528,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: v0 = GaussValuation(K._ring, QQ.valuation(3))
             sage: v1 = v0.augmentation(K._ring.gen(),1/3)
             sage: mu0 = valuations.FunctionFieldValuation(K, v1)
-            sage: sorted(mu0.mac_lane_approximants(F), key=str)
+            sage: mu0.mac_lane_approximants(F)
             [[ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by 3-adic valuation, v(x) = 1/3 ], v(y + 2*x) = 2/3 ],
              [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by 3-adic valuation, v(x) = 1/3 ], v(y + x) = 2/3 ]]
 
@@ -573,7 +573,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: v0.mac_lane_approximants(G)
             [[ Gauss valuation induced by 5-adic valuation, v(x + 2) = 1 ],
              [ Gauss valuation induced by 5-adic valuation, v(x + 3) = 1 ]]
-            sage: sorted(v0.mac_lane_approximants(G, required_precision = 10), key=str)
+            sage: v0.mac_lane_approximants(G, required_precision = 10)
             [[ Gauss valuation induced by 5-adic valuation, v(x + 3626068) = 10 ],
              [ Gauss valuation induced by 5-adic valuation, v(x + 6139557) = 10 ]]
 
@@ -585,10 +585,10 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: v = k.valuation()
             sage: R.<x>=k[]
             sage: G = x^2 + 1
-            sage: v1,v2 = v.mac_lane_approximants(G); sorted([v1,v2], key=str)
+            sage: v1,v2 = v.mac_lane_approximants(G); v1,v2
             [[ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + O(5^4))) = 1 ],
              [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (3 + O(5^4))) = 1 ]]
-            sage: w1, w2 = v.mac_lane_approximants(G, required_precision = 2); sorted([w1,w2], key=str)
+            sage: w1, w2 = v.mac_lane_approximants(G, required_precision = 2); w1,w2
             [[ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + 5 + O(5^4))) = 2 ],
              [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (3 + 3*5 + O(5^4))) = 2 ]]
 
@@ -601,7 +601,7 @@ class DiscreteValuation(DiscretePseudoValuation):
 
         In this example, the process stops with a factorization of `x^2 + 1`::
 
-            sage: sorted(v.mac_lane_approximants(G, required_precision=infinity), key=str)
+            sage: v.mac_lane_approximants(G, required_precision=infinity)
             [[ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + 5 + 2*5^2 + 5^3 + O(5^4))) = +Infinity ],
              [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4))) = +Infinity ]]
 
@@ -613,7 +613,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: G = x^2 + 1
             sage: v.mac_lane_approximants(G)
             [[ Gauss valuation induced by 5-adic valuation, v(x + 2) = 1 ], [ Gauss valuation induced by 5-adic valuation, v(x + 3) = 1 ]]
-            sage: sorted(v.mac_lane_approximants(G, required_precision=5), key=str)
+            sage: v.mac_lane_approximants(G, required_precision=5)
             [[ Gauss valuation induced by 5-adic valuation, v(x + 1068) = 6 ],
              [ Gauss valuation induced by 5-adic valuation, v(x + 2057) = 5 ]]
 
@@ -650,7 +650,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: vK(theta) 
             1/3
             sage: G=Delta.change_ring(K) 
-            sage: sorted(vK.mac_lane_approximants(G), key=str) # long time
+            sage: vK.mac_lane_approximants(G)
             [[ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 2*x^2 + 1/2*theta^4 + theta^3 + 5*theta + 1) = 5/3 ],
              [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 2*x^2 + 3/2*theta^4 + theta^3 + 5*theta + 1) = 5/3 ],
              [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 2*x^2 + theta^4 + theta^3 + 1) = 5/3 ]]
@@ -782,8 +782,19 @@ class DiscreteValuation(DiscretePseudoValuation):
             if v in leafs:
                 leafs.remove(v)
 
+        # The order of the leafs is not predictable in parallel mode and in
+        # serial mode it depends on the hash functions and so on the underlying
+        # archictecture (32/64 bit). There is no natural ordering on these
+        # valuations but it is very convenient for doctesting to return them in
+        # some stable order, so we just order them by their string
+        # representation which should be very fast.
+        try:
+            ret = sorted(leafs, key=lambda v: str(v))
+        except:
+            # if for some reason the valuation can not be printed, we leave them unsorted
+            ret = list(leafs)
 
-        return list(leafs)
+        return ret
 
     @cached_method
     def _pow(self, x, e, error):
@@ -972,7 +983,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: S.<x> = R[]
             sage: f = (x^6+2)^25 + 5
             sage: v = R.valuation()
-            sage: sorted(v.montes_factorization(f, assume_squarefree=True, required_precision=0), key=str)
+            sage: v.montes_factorization(f, assume_squarefree=True, required_precision=0)
             [((1 + O(5^20))*x^50 + (2*5 + O(5^20))*x^45 + (5 + O(5^20))*x^40 + (5 + O(5^20))*x^30 + (2 + O(5^20))*x^25 + (3*5 + O(5^20))*x^20 + (2*5 + O(5^20))*x^10 + (2*5 + O(5^20))*x^5 + (5 + O(5^20))*x + 3 + 5 + O(5^20), 1),
             ((1 + O(5^20))*x^50 + (3*5 + O(5^20))*x^40 + (3*5 + O(5^20))*x^30 + (4*5 + O(5^20))*x^20 + (5 + O(5^20))*x^10 + 3 + 5 + O(5^20), 1),
             ((1 + O(5^20))*x^50 + (3*5 + O(5^20))*x^45 + (5 + O(5^20))*x^40 + (5 + O(5^20))*x^30 + (3 + 4*5 + O(5^20))*x^25 + (3*5 + O(5^20))*x^20 + (2*5 + O(5^20))*x^10 + (3*5 + O(5^20))*x^5 + (4*5 + O(5^20))*x + 3 + 5 + O(5^20), 1)]
@@ -985,7 +996,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: S.<x> = R[]
             sage: f = (x^3 + 5)*(x^5 + w) + 625
             sage: v = R.valuation()
-            sage: sorted(v.montes_factorization(f, assume_squarefree=True, required_precision=0), key=str)
+            sage: v.montes_factorization(f, assume_squarefree=True, required_precision=0)
             [((1 + O(w^60))*x + 4*w + O(w^60), 1),
              ((1 + O(w^60))*x^2 + (w + O(w^60))*x + w^2 + O(w^60), 1),
              ((1 + O(w^60))*x^5 + w + O(w^60), 1)]

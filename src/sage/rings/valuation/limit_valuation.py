@@ -471,7 +471,6 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             sage: vK = K.valuation(2)
             sage: f = (x^2 + 7) * (x^2 + 9)
             sage: V = vK.mac_lane_approximants(f, require_incomparability=True)
-            sage: V = sorted(V, key=str)
 
             sage: w = valuations.LimitValuation(V[0], f)
             sage: w((x^2 + 7) * (x + 3))
@@ -681,7 +680,6 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             sage: F = (x^2 + 7) * (x^2 + 9)
             sage: G = (x^2 + 7)
             sage: V = QQ.valuation(2).mac_lane_approximants(F, require_incomparability=True)
-            sage: V = sorted(V, key=str)
             sage: valuations.LimitValuation(V[0], F) >= valuations.LimitValuation(V[1], F)
             False
             sage: valuations.LimitValuation(V[1], F) >= valuations.LimitValuation(V[1], G)

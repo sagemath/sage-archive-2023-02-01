@@ -100,7 +100,7 @@ class Sudoku(SageObject):
         * matrix - a square Sage matrix over `\ZZ`
         * string - a string where each character is an entry of
           the puzzle. For two-digit entries, a = 10, b = 11, etc.
-    - verify_input - default = ``True``, use ``False`` if you know the input is valid
+    - verify_input -- default = ``True``, use ``False`` if you know the input is valid
 
     EXAMPLES::
 
@@ -722,7 +722,7 @@ class Sudoku(SageObject):
 
         INPUT:
 
-        - count_only - boolean, default = False.
+        - count_only -- boolean, default = False.
           If set to ``True`` the generator returned as output will
           simply generate ``None`` for each solution, so the
           calling routine can count these.

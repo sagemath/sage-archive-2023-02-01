@@ -246,8 +246,8 @@ class FinitePosets(CategoryWithAxiom):
 
             Base cases::
 
-                sage: P = Posets.ChainPoset(2)
-                sage: Q = Posets.AntichainPoset(2)
+                sage: P = posets.ChainPoset(2)
+                sage: Q = posets.AntichainPoset(2)
                 sage: f = lambda x: 1-x
                 sage: P.is_poset_morphism(f, P)
                 False
@@ -666,7 +666,7 @@ class FinitePosets(CategoryWithAxiom):
 
             Another poset::
 
-                sage: P = Posets.SSTPoset([2,1])
+                sage: P = posets.SSTPoset([2,1])
                 sage: lext = sorted(P)
                 sage: l = P.birational_free_labelling(linear_extension=lext, addvars="ohai")
                 sage: l
@@ -687,7 +687,7 @@ class FinitePosets(CategoryWithAxiom):
             The ``linear_extension`` keyword does not have to be given an
             actual linear extension::
 
-                sage: P = Posets.ChainPoset(2).product(Posets.ChainPoset(3))
+                sage: P = posets.ChainPoset(2).product(posets.ChainPoset(3))
                 sage: P
                 Finite lattice containing 6 elements
                 sage: lex = [(1,0),(0,0),(1,1),(0,1),(1,2),(0,2)]
@@ -949,7 +949,7 @@ class FinitePosets(CategoryWithAxiom):
             We turn to more interesting posets. Here is the `6`-element
             poset arising from the weak order on `S_3`::
 
-                sage: P = Posets.SymmetricGroupWeakOrderPoset(3)
+                sage: P = posets.SymmetricGroupWeakOrderPoset(3)
                 sage: sorted(list(P))
                 ['123', '132', '213', '231', '312', '321']
                 sage: t = (TT, {'123': TT(4), '132': TT(2), '213': TT(3), '231': TT(1), '321': TT(1), '312': TT(2)}, TT(7), TT(1))
@@ -1073,7 +1073,7 @@ class FinitePosets(CategoryWithAxiom):
 
             EXAMPLES::
 
-                sage: P = Posets.SymmetricGroupBruhatOrderPoset(3)
+                sage: P = posets.SymmetricGroupBruhatOrderPoset(3)
                 sage: sorted(list(P))
                 ['123', '132', '213', '231', '312', '321']
                 sage: TT = TropicalSemiring(ZZ)
@@ -1165,7 +1165,7 @@ class FinitePosets(CategoryWithAxiom):
             `[n] \times [m]` gives back `f`. Let us check this::
 
                 sage: def test_rectangle_periodicity(n, m, k):
-                ....:     P = Posets.ChainPoset(n).product(Posets.ChainPoset(m))
+                ....:     P = posets.ChainPoset(n).product(posets.ChainPoset(m))
                 ....:     t0 = P.birational_free_labelling(P)
                 ....:     t = t0
                 ....:     for i in range(k):
@@ -1185,7 +1185,7 @@ class FinitePosets(CategoryWithAxiom):
             semiring::
 
                 sage: def test_rectangle_periodicity_tropical(n, m, k):
-                ....:     P = Posets.ChainPoset(n).product(Posets.ChainPoset(m))
+                ....:     P = posets.ChainPoset(n).product(posets.ChainPoset(m))
                 ....:     TT = TropicalSemiring(ZZ)
                 ....:     t0 = (TT, {v: TT(floor(random()*100)) for v in P}, TT(0), TT(124))
                 ....:     t = t0
@@ -1209,7 +1209,7 @@ class FinitePosets(CategoryWithAxiom):
             rowmotion, and `r` denotes :meth:`classical rowmotion <rowmotion>`
             on `J(P)`. An example::
 
-                sage: P = Posets.IntegerPartitions(5)
+                sage: P = posets.IntegerPartitions(5)
                 sage: TT = TropicalSemiring(ZZ)
                 sage: def indicator_labelling(I):
                 ....:     # send order ideal `I` to a `T`-labelling of `P`.
@@ -1721,7 +1721,7 @@ class FinitePosets(CategoryWithAxiom):
 
             EXAMPLES::
 
-                sage: P = Posets.PentagonPoset()
+                sage: P = posets.PentagonPoset()
                 sage: P.cover_relations()
                 [[0, 1], [0, 2], [1, 4], [2, 3], [3, 4]]
                 sage: J = P.order_ideals_lattice(); J
@@ -1738,7 +1738,7 @@ class FinitePosets(CategoryWithAxiom):
 
             TESTS::
 
-                sage: J = Posets.DiamondPoset(4, facade = True).order_ideals_lattice(); J
+                sage: J = posets.DiamondPoset(4, facade = True).order_ideals_lattice(); J
                 Finite lattice containing 6 elements
                 sage: list(J)
                 [{}, {0}, {0, 2}, {0, 1}, {0, 1, 2}, {0, 1, 2, 3}]
@@ -1778,7 +1778,7 @@ class FinitePosets(CategoryWithAxiom):
 
             EXAMPLES::
 
-                sage: A = Posets.PentagonPoset().antichains(); A
+                sage: A = posets.PentagonPoset().antichains(); A
                 Set of antichains of Finite lattice containing 5 elements
                 sage: list(A)
                 [[], [0], [1], [1, 2], [1, 3], [2], [3], [4]]

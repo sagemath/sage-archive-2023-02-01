@@ -4238,7 +4238,7 @@ class GenericGraph(GenericGraph_pyx):
 
         :trac:`19193`::
 
-            sage: Posets.BooleanLattice(3).cover_relations_graph().is_planar()
+            sage: posets.BooleanLattice(3).cover_relations_graph().is_planar()
             True
         """
         if self.has_multiple_edges() or self.has_loops():

@@ -295,7 +295,7 @@ class FiniteMeetSemilattice(FinitePoset):
         Using list of elements as an argument. Meet of empty list is
         the bottom element::
 
-            sage: B4=Posets.BooleanLattice(4)
+            sage: B4=posets.BooleanLattice(4)
             sage: B4.meet([3,5,6])
             0
             sage: B4.meet([])
@@ -551,7 +551,7 @@ class FiniteJoinSemilattice(FinitePoset):
         Using list of elements as an argument. Join of empty list is
         the bottom element::
 
-            sage: B4=Posets.BooleanLattice(4)
+            sage: B4=posets.BooleanLattice(4)
             sage: B4.join([2,4,8])
             14
             sage: B4.join([])
@@ -841,7 +841,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         TESTS::
 
-            sage: all(Posets.ChainPoset(i).neutral_elements() == list(range(i))
+            sage: all(posets.ChainPoset(i).neutral_elements() == list(range(i))
             ....:     for i in range(4))
             True
 
@@ -1171,7 +1171,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         TESTS::
 
-            sage: [Posets.ChainPoset(i).is_distributive() for i in range(3)]
+            sage: [posets.ChainPoset(i).is_distributive() for i in range(3)]
             [True, True, True]
         """
         from sage.graphs.digraph import DiGraph
@@ -1470,7 +1470,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         TESTS::
 
-            sage: [Posets.ChainPoset(i).is_complemented() for i in range(5)]
+            sage: [posets.ChainPoset(i).is_complemented() for i in range(5)]
             [True, True, True, False, False]
         """
         e = self._hasse_diagram.is_complemented()
@@ -1534,7 +1534,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         TESTS::
 
-            sage: [Posets.ChainPoset(i).is_cosectionally_complemented() for i in range(5)]
+            sage: [posets.ChainPoset(i).is_cosectionally_complemented() for i in range(5)]
             [True, True, True, False, False]
         """
         # Quick check: every sectionally complemented lattice is atomic.
@@ -1617,7 +1617,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         TESTS::
 
-            sage: [Posets.ChainPoset(i).is_relatively_complemented() for
+            sage: [posets.ChainPoset(i).is_relatively_complemented() for
             ....:  i in range(5)]
             [True, True, True, False, False]
 
@@ -1729,7 +1729,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         TESTS::
 
-            sage: [Posets.ChainPoset(i).is_sectionally_complemented() for i in range(5)]
+            sage: [posets.ChainPoset(i).is_sectionally_complemented() for i in range(5)]
             [True, True, True, False, False]
         """
         # Quick check: every sectionally complemented lattice is atomic.
@@ -2095,7 +2095,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             [[1, 3], [1, 4], [3, 12], [4, 12]]
 
             sage: T4 = posets.TamariLattice(4)
-            sage: T4.skeleton().is_isomorphic(Posets.BooleanLattice(3))
+            sage: T4.skeleton().is_isomorphic(posets.BooleanLattice(3))
             True
 
         .. SEEALSO:: :meth:`sage.combinat.posets.lattices.FiniteMeetSemilattice.pseudocomplement`.
@@ -2170,7 +2170,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         TESTS::
 
-            sage: [Posets.ChainPoset(i).is_orthocomplemented() for i in range(4)]
+            sage: [posets.ChainPoset(i).is_orthocomplemented() for i in range(4)]
             [True, True, True, False]
         """
         it = self._hasse_diagram.orthocomplementations_iterator()
@@ -2473,7 +2473,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         TESTS::
 
-            sage: all(Posets.ChainPoset(i).is_modular() for i in range(4))
+            sage: all(posets.ChainPoset(i).is_modular() for i in range(4))
             True
 
             sage: L = LatticePoset({1:[2,3],2:[4,5],3:[5,6],4:[7],5:[7],6:[7]})
@@ -2599,7 +2599,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         TESTS::
 
-            sage: all(Posets.ChainPoset(i).is_upper_semimodular() for i in range(5))
+            sage: all(posets.ChainPoset(i).is_upper_semimodular() for i in range(5))
             True
         """
         nonmodular = self._hasse_diagram.find_nonsemimodular_pair(upper=True)
@@ -2899,7 +2899,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         TESTS::
 
-            sage: [Posets.ChainPoset(i).vertical_decomposition(elements_only=True)
+            sage: [posets.ChainPoset(i).vertical_decomposition(elements_only=True)
             ....:     for i in range(5)]
             [[], [], [], [1], [1, 2]]
         """
@@ -2965,7 +2965,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         TESTS::
 
-            sage: [Posets.ChainPoset(i).is_vertically_decomposable() for i in
+            sage: [posets.ChainPoset(i).is_vertically_decomposable() for i in
             ....:  range(5)]
             [False, False, False, True, True]
         """
@@ -3115,7 +3115,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         `n`-element chain has `2^n` sublattices (also tests empty lattice)::
 
-            sage: [len(Posets.ChainPoset(n).sublattices()) for n in range(4)]
+            sage: [len(posets.ChainPoset(n).sublattices()) for n in range(4)]
             [1, 2, 4, 8]
         """
         return [LatticePoset(self.subposet(map(self._vertex_to_element, elms)))
@@ -3163,7 +3163,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
             sage: C3 = posets.ChainPoset(3)
             sage: sll = C3.sublattices_lattice(labels='integer')
-            sage: sll.is_isomorphic(Posets.BooleanLattice(3))
+            sage: sll.is_isomorphic(posets.BooleanLattice(3))
             True
         """
         if labels not in ['lattice', 'tuple', 'integer']:
@@ -3681,7 +3681,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         TESTS::
 
-            sage: [Posets.ChainPoset(i).is_subdirectly_reducible() for i in range(5)]
+            sage: [posets.ChainPoset(i).is_subdirectly_reducible() for i in range(5)]
             [False, False, False, True, True]
         """
         H = self._hasse_diagram
@@ -4013,7 +4013,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         TESTS::
 
-            sage: [Posets.ChainPoset(i).is_isoform() for i in range(5)]
+            sage: [posets.ChainPoset(i).is_isoform() for i in range(5)]
             [True, True, True, False, False]
 
             sage: posets.DiamondPoset(5).is_isoform()  # Simple, so trivially isoform
@@ -4079,7 +4079,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         TESTS::
 
-            sage: [Posets.ChainPoset(i).is_uniform() for i in range(5)]
+            sage: [posets.ChainPoset(i).is_uniform() for i in range(5)]
             [True, True, True, False, False]
 
             sage: posets.DiamondPoset(5).is_uniform()  # Simple, so trivially uniform
@@ -4146,7 +4146,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         TESTS::
 
-            sage: [Posets.ChainPoset(i).is_regular() for i in range(5)]
+            sage: [posets.ChainPoset(i).is_regular() for i in range(5)]
             [True, True, True, False, False]
         """
         H = self._hasse_diagram
@@ -4215,7 +4215,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         TESTS::
 
-            sage: [Posets.ChainPoset(i).is_simple() for i in range(5)]
+            sage: [posets.ChainPoset(i).is_simple() for i in range(5)]
             [True, True, True, False, False]
         """
         from sage.combinat.set_partition import SetPartition
@@ -4248,7 +4248,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: Ldecomp = L.subdirect_decomposition()
             sage: [fac.cardinality() for fac in Ldecomp]
             [2, 5, 7]
-            sage: Ldecomp[1].is_isomorphic(Posets.PentagonPoset())
+            sage: Ldecomp[1].is_isomorphic(posets.PentagonPoset())
             True
 
         TESTS::
@@ -4422,7 +4422,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: B3 = posets.BooleanLattice(3)
             sage: c = B3.congruence([[0,1]])
             sage: B2 = B3.quotient(c, labels='integer')
-            sage: B2.is_isomorphic(Posets.BooleanLattice(2))
+            sage: B2.is_isomorphic(posets.BooleanLattice(2))
             True
 
         .. SEEALSO:: :meth:`congruence`
@@ -4493,7 +4493,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
             sage: C4 = posets.ChainPoset(4)
             sage: CL = C4.congruences_lattice(labels='integer')
-            sage: CL.is_isomorphic(Posets.BooleanLattice(3))
+            sage: CL.is_isomorphic(posets.BooleanLattice(3))
             True
 
         TESTS::

@@ -1086,13 +1086,14 @@ class Graph(GenericGraph):
             (not data[1] or callable(getattr(data[1][0],"__iter__",None)))):
             format = "vertices_and_edges"
 
-        if format is None and isinstance(data,dict):
-            keys = data.keys()
-            if len(keys) == 0: format = 'dict_of_dicts'
+        if format is None and isinstance(data, dict):
+            if not data:
+                format = 'dict_of_dicts'
             else:
-                if isinstance(data[keys[0]], list):
+                val = next(iter(data.values()))
+                if isinstance(val, list):
                     format = 'dict_of_lists'
-                elif isinstance(data[keys[0]], dict):
+                elif isinstance(val, dict):
                     format = 'dict_of_dicts'
         if format is None and hasattr(data, 'adj'):
             import networkx

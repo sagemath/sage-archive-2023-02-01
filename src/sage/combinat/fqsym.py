@@ -253,6 +253,8 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
                 F[1]
                 sage: R(x+4*y)
                 F[1] + 4*F[2, 1]
+                sage: R(1)
+                F[]
 
                 sage: D = algebras.FQSYM(ZZ).F()
                 sage: X, Y, Z = D([1]), D([2,1]), D([3,2,1])
@@ -268,6 +270,14 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
             """
             if isinstance(x, (list, tuple, PermutationGroupElement)):
                 x = Permutation(x)
+            try:
+                P = x.parent()
+                if isinstance(P, FreeQuasisymmetricFunctions.F):
+                    if P is self:
+                        return x
+                    return self.element_class(self, x.monomial_coefficients())
+            except AttributeError:
+                pass
             return CombinatorialFreeModule._element_constructor_(self, x)
 
         def degree_on_basis(self, t):

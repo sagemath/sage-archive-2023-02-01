@@ -637,6 +637,74 @@ class FQSymBases(Category_realization_of_parent):
             """
             return self.base_ring().is_zero()
 
+        def _coerce_map_from_(self, R):
+            r"""
+            Return ``True`` if there is a coercion from ``R`` into ``self``
+            and ``False`` otherwise.
+
+            The things that coerce into ``self`` are
+
+            - free quasi-symmetric functions over a base with
+              a coercion map into ``self.base_ring()``
+
+            EXAMPLES::
+
+                sage: F = algebras.FQSYM(GF(7)).F(); F
+                Free Quasi-symmetric functions over Finite Field of size 7 in the F basis
+
+            Elements of the free quasi-symmetric functions canonically coerce in::
+
+                sage: x, y, z = F([1]), F([2,1]), F([1,3,2])
+                sage: F.coerce(x+y) == x+y
+                True
+
+            The free quasi-symmetric functions over `\ZZ` coerces in,
+            since `\ZZ` coerces to `\GF{7}`::
+
+                sage: G = algebras.FQSYM(ZZ).F()
+                sage: Gx, Gy = G([1]), G([2,1])
+                sage: z = F.coerce(Gx+Gy); z
+                F[1] + F[2, 1]
+                sage: z.parent() is F
+                True
+
+            However, `\GF{7}` does not coerce to `\ZZ`, so free quasi-symmetric
+            functions over `\GF{7}` does not coerce to the same algebra over `\ZZ`::
+
+                sage: G.coerce(y)
+                Traceback (most recent call last):
+                ...
+                TypeError: no canonical coercion from Free Quasi-symmetric functions
+                over Finite Field of size 7 in the F basis to
+                Free Quasi-symmetric functions over Integer Ring in the F basis
+
+            TESTS::
+
+                sage: F = algebras.FQSYM(ZZ).F()
+                sage: G = algebras.FQSYM(QQ).F()
+                sage: F._coerce_map_from_(G)
+                False
+                sage: G._coerce_map_from_(F)
+                True
+                sage: F._coerce_map_from_(QQ)
+                False
+                sage: G._coerce_map_from_(QQ)
+                True
+                sage: F.has_coerce_map_from(PolynomialRing(ZZ, 3, 'x,y,z'))
+                False
+            """
+            # free quasi-symmetric functions in the same variables
+            # over any base that coerces in:
+            if R in FQSymBases:
+                if R.realization_of() == self.realization_of():
+                    return True
+                if type(self) == type(R):
+                    if self.base_ring().has_coerce_map_from(R.base_ring()):
+                        return True
+            if self.base_ring().has_coerce_map_from(R):
+                return True
+            return super(self, type(self))._coerce_map_from_(R)
+
         @lazy_attribute
         def to_symmetric_group_algebra(self):
             """

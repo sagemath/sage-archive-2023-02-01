@@ -30,6 +30,100 @@ from sage.misc.cachefunc import cached_method
 from sage.categories.rings import Rings
 from sage.combinat.words.word import Word
 
+class FQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
+    """
+    Abstract base class for bases of FQSym.
+
+    This must define two attributes:
+
+    - ``_prefix`` -- the basis prefix
+    - ``_basis_name`` -- the name of the basis and must match one
+      of the names that the basis can be constructed from FQSym
+    """
+    def __init__(self, alg):
+        r"""
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: TestSuite(algebras.FQSYM(QQ).F()).run()
+        """
+        CombinatorialFreeModule.__init__(self, alg.base_ring(),
+                                         Permutations(),
+                                         category=FQSymBases(alg),
+                                         bracket="", prefix=self._prefix)
+
+    def _coerce_map_from_(self, R):
+        r"""
+        Return ``True`` if there is a coercion from ``R`` into ``self``
+        and ``False`` otherwise.
+
+        The things that coerce into ``self`` are
+
+        - free quasi-symmetric functions over a base with
+          a coercion map into ``self.base_ring()``
+
+        EXAMPLES::
+
+            sage: F = algebras.FQSYM(GF(7)).F(); F
+            Free Quasi-symmetric functions over Finite Field of size 7 in the F basis
+
+        Elements of the free quasi-symmetric functions canonically coerce in::
+
+            sage: x, y, z = F([1]), F([2,1]), F([1,3,2])
+            sage: F.coerce(x+y) == x+y
+            True
+
+        The free quasi-symmetric functions over `\ZZ` coerces in,
+        since `\ZZ` coerces to `\GF{7}`::
+
+            sage: G = algebras.FQSYM(ZZ).F()
+            sage: Gx, Gy = G([1]), G([2,1])
+            sage: z = F.coerce(Gx+Gy); z
+            F[1] + F[2, 1]
+            sage: z.parent() is F
+            True
+
+        However, `\GF{7}` does not coerce to `\ZZ`, so free quasi-symmetric
+        functions over `\GF{7}` does not coerce to the same algebra over `\ZZ`::
+
+            sage: G.coerce(y)
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Free Quasi-symmetric functions
+             over Finite Field of size 7 in the F basis to
+             Free Quasi-symmetric functions over Integer Ring in the F basis
+
+        TESTS::
+
+            sage: F = algebras.FQSYM(ZZ).F()
+            sage: G = algebras.FQSYM(QQ).F()
+            sage: F.has_coerce_map_from(G)
+            False
+            sage: G.has_coerce_map_from(F)
+            True
+            sage: F.has_coerce_map_from(QQ)
+            False
+            sage: G.has_coerce_map_from(QQ)
+            True
+            sage: F.has_coerce_map_from(PolynomialRing(ZZ, 3, 'x,y,z'))
+            False
+        """
+        # free quasi-symmetric functions in the same variables
+        # over any base that coerces in:
+        if isinstance(R, FQSymBasis_abstract):
+            if R.realization_of() == self.realization_of():
+                return True
+            if not self.base_ring().has_coerce_map_from(R.base_ring()):
+                return False
+            if self._basis_name == R._basis_name: # The same basis
+                def coerce_base_ring(self, x):
+                    return self._from_dict(x.monomial_coefficients())
+                return coerce_base_ring
+            # Otherwise lift that basis up and then coerce over
+            target = getattr(self.realization_of(), R._basis_name)()
+            return self._coerce_map_via([target], R)
+        return super(FQSymBasis_abstract, self)._coerce_map_from_(R)
 
 class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
     r"""
@@ -197,50 +291,17 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
         """
         return self.F()
 
-    class F(CombinatorialFreeModule, BindableClass):
+    class F(FQSymBasis_abstract):
+        """
+        The F-basis of `FQSym`.
 
-        def __init__(self, alg, prefix="F"):
-            r"""
-            The F-basis of `FQSym`.
+        This is the basis `(F_w)`, with `w` ranging over all
+        permutations. See the documentation of :class:`FQSym`
+        for details.
+        """
+        _prefix = "F"
+        _basis_name = "F"
 
-            This is the basis `(F_w)`, with `w` ranging over all
-            permutations. See the documentation of :class:`FQSym`
-            for details.
-
-            EXAMPLES::
-
-                sage: TestSuite(algebras.FQSYM(QQ).F()).run()
-            """
-            self._prefix = prefix
-            self._basis_name = "F"
-            CombinatorialFreeModule.__init__(self, alg.base_ring(),
-                                             Permutations(),
-                                             category = FQSymBases(alg),
-                                             bracket="", prefix=prefix)
-
-            # Change of basis: none yet.
-
-        def __getitem__(self, p):
-            """
-            Return the basis element indexed by ``p``.
-
-            INPUT:
-
-            - ``p`` -- a permutation
-
-            EXAMPLES::
-
-                sage: R = algebras.FQSYM(QQ).F()
-                sage: R[[1, 3, 2]]
-                F[1, 3, 2]
-                sage: R[Permutation([1, 3, 2])]
-                F[1, 3, 2]
-                sage: R[SymmetricGroup(4)(Permutation([1,3,4,2]))]
-                F[1, 3, 4, 2]
-            """
-            return self.monomial(Permutation(p))
-
-        # after this line : coercion
         def _element_constructor_(self, x):
             r"""
             Convert ``x`` into ``self``.
@@ -349,7 +410,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
             .. SEEALSO::
 
-                - :meth:`succ_product_on_basis`, :meth:`prec_product_on_basis`
+                :meth:`succ_product_on_basis`, :meth:`prec_product_on_basis`
 
             EXAMPLES::
 
@@ -397,8 +458,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
             """
             if not y:
                 if not x:
-                    raise ValueError("products | < | and | > | are "
-                                     "not defined")
+                    raise ValueError("products | < | and | > | are not defined")
                 else:
                     return self.zero()
             basis = self.basis()
@@ -411,37 +471,6 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
             return self.sum(basis[K([shy0] + list(u))]
                             for u in Word(x).shuffle(Word(shy[1:])))
 
-        @lazy_attribute
-        def succ(self):
-            r"""
-            Return the `\succ` product.
-
-            This is the shifted shuffle of `x` and `y` with the additional condition
-            that the first letter of the result comes from `y`.
-
-            The usual symbol for this operation is `\succ`.
-
-            .. SEEALSO::
-
-                :meth:`product`, :meth:`prec`, :meth:`over`, :meth:`under`
-
-            EXAMPLES::
-
-                sage: A = algebras.FQSYM(QQ).F()
-                sage: x = A([1])
-                sage: A.succ(x, x)
-                F[2, 1]
-                sage: y = A([3,1,2])
-                sage: A.succ(x, y)
-                F[4, 1, 2, 3] + F[4, 2, 1, 3] + F[4, 2, 3, 1]
-                sage: A.succ(y, x)
-                F[4, 3, 1, 2]
-            """
-            suc = self.succ_product_on_basis
-            return self._module_morphism(self._module_morphism(suc, position=0,
-                                                               codomain=self),
-                                         position=1)
-
         def prec_product_on_basis(self, x, y):
             r"""
             Return the `\prec` product of two permutations.
@@ -453,7 +482,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
             .. SEEALSO::
 
-                - :meth:`product_on_basis`, :meth:`succ_product_on_basis`
+                :meth:`product_on_basis`, :meth:`succ_product_on_basis`
 
             EXAMPLES::
 
@@ -473,11 +502,10 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
                 sage: A.prec_product_on_basis(u, u)
                 Traceback (most recent call last):
                 ...
-                ValueError: quasi-symmetric products | < | and | > | are not defined
+                ValueError: products | < | and | > | are not defined
             """
             if not x and not y:
-                raise ValueError("quasi-symmetric products | < | and | > | are "
-                                 "not defined")
+                raise ValueError("products | < | and | > | are not defined")
             if not x:
                 return self.zero()
             basis = self.basis()
@@ -489,39 +517,6 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
             x0 = x[0]
             return self.sum(basis[K([x0] + list(u))]
                             for u in Word(x[1:]).shuffle(shy))
-
-        @lazy_attribute
-        def prec(self):
-            r"""
-            Return the `\prec` product.
-
-            This is the shifted shuffle of `x` and `y` with the additional condition
-            that the first letter of the result comes from `x`.
-
-            The usual symbol for this operation is `\prec`.
-
-            .. SEEALSO::
-
-                :meth:`product`, :meth:`succ`, :meth:`over`, :meth:`under`
-
-            EXAMPLES::
-
-                sage: A = algebras.FQSYM(QQ).F()
-                sage: x = A([2,1])
-                sage: A.prec(x, x)
-                F[2, 1, 4, 3] + F[2, 4, 1, 3] + F[2, 4, 3, 1]
-                sage: y = A([2,1,3])
-                sage: A.prec(x, y)
-                F[2, 1, 4, 3, 5] + F[2, 4, 1, 3, 5] + F[2, 4, 3, 1, 5]
-                 + F[2, 4, 3, 5, 1]
-                sage: A.prec(y, x)
-                F[2, 1, 3, 5, 4] + F[2, 1, 5, 3, 4] + F[2, 1, 5, 4, 3]
-                 + F[2, 5, 1, 3, 4] + F[2, 5, 1, 4, 3] + F[2, 5, 4, 1, 3]
-            """
-            pre = self.prec_product_on_basis
-            return self._module_morphism(self._module_morphism(pre, position=0,
-                                                               codomain=self),
-                                         position=1)
 
         def coproduct_on_basis(self, x):
             r"""
@@ -613,7 +608,27 @@ class FQSymBases(Category_realization_of_parent):
             """
             return "{} in the {} basis".format(self.realization_of(), self._basis_name)
 
-        def is_field(self, proof = True):
+        def __getitem__(self, p):
+            """
+            Return the basis element indexed by ``p``.
+
+            INPUT:
+
+            - ``p`` -- a permutation
+
+            EXAMPLES::
+
+                sage: R = algebras.FQSYM(QQ).F()
+                sage: R[[1, 3, 2]]
+                F[1, 3, 2]
+                sage: R[Permutation([1, 3, 2])]
+                F[1, 3, 2]
+                sage: R[SymmetricGroup(4)(Permutation([1,3,4,2]))]
+                F[1, 3, 4, 2]
+            """
+            return self.monomial(Permutation(p))
+
+        def is_field(self, proof=True):
             """
             Return whether this `FQSym` is a field.
 
@@ -637,73 +652,69 @@ class FQSymBases(Category_realization_of_parent):
             """
             return self.base_ring().is_zero()
 
-        def _coerce_map_from_(self, R):
+        @lazy_attribute
+        def succ(self):
             r"""
-            Return ``True`` if there is a coercion from ``R`` into ``self``
-            and ``False`` otherwise.
+            Return the `\succ` product.
 
-            The things that coerce into ``self`` are
+            This is the shifted shuffle of `x` and `y` with the additional condition
+            that the first letter of the result comes from `y`.
 
-            - free quasi-symmetric functions over a base with
-              a coercion map into ``self.base_ring()``
+            The usual symbol for this operation is `\succ`.
+
+            .. SEEALSO::
+
+                :meth:`product`, :meth:`prec`, :meth:`over`, :meth:`under`
 
             EXAMPLES::
 
-                sage: F = algebras.FQSYM(GF(7)).F(); F
-                Free Quasi-symmetric functions over Finite Field of size 7 in the F basis
-
-            Elements of the free quasi-symmetric functions canonically coerce in::
-
-                sage: x, y, z = F([1]), F([2,1]), F([1,3,2])
-                sage: F.coerce(x+y) == x+y
-                True
-
-            The free quasi-symmetric functions over `\ZZ` coerces in,
-            since `\ZZ` coerces to `\GF{7}`::
-
-                sage: G = algebras.FQSYM(ZZ).F()
-                sage: Gx, Gy = G([1]), G([2,1])
-                sage: z = F.coerce(Gx+Gy); z
-                F[1] + F[2, 1]
-                sage: z.parent() is F
-                True
-
-            However, `\GF{7}` does not coerce to `\ZZ`, so free quasi-symmetric
-            functions over `\GF{7}` does not coerce to the same algebra over `\ZZ`::
-
-                sage: G.coerce(y)
-                Traceback (most recent call last):
-                ...
-                TypeError: no canonical coercion from Free Quasi-symmetric functions
-                over Finite Field of size 7 in the F basis to
-                Free Quasi-symmetric functions over Integer Ring in the F basis
-
-            TESTS::
-
-                sage: F = algebras.FQSYM(ZZ).F()
-                sage: G = algebras.FQSYM(QQ).F()
-                sage: F._coerce_map_from_(G)
-                False
-                sage: G._coerce_map_from_(F)
-                True
-                sage: F._coerce_map_from_(QQ)
-                False
-                sage: G._coerce_map_from_(QQ)
-                True
-                sage: F.has_coerce_map_from(PolynomialRing(ZZ, 3, 'x,y,z'))
-                False
+                sage: A = algebras.FQSYM(QQ).F()
+                sage: x = A([1])
+                sage: A.succ(x, x)
+                F[2, 1]
+                sage: y = A([3,1,2])
+                sage: A.succ(x, y)
+                F[4, 1, 2, 3] + F[4, 2, 1, 3] + F[4, 2, 3, 1]
+                sage: A.succ(y, x)
+                F[4, 3, 1, 2]
             """
-            # free quasi-symmetric functions in the same variables
-            # over any base that coerces in:
-            if R in FQSymBases:
-                if R.realization_of() == self.realization_of():
-                    return True
-                if type(self) == type(R):
-                    if self.base_ring().has_coerce_map_from(R.base_ring()):
-                        return True
-            if self.base_ring().has_coerce_map_from(R):
-                return True
-            return super(self, type(self))._coerce_map_from_(R)
+            suc = self.succ_product_on_basis
+            return self._module_morphism(self._module_morphism(suc, position=0,
+                                                               codomain=self),
+                                         position=1)
+
+        @lazy_attribute
+        def prec(self):
+            r"""
+            Return the `\prec` product.
+
+            This is the shifted shuffle of `x` and `y` with the additional condition
+            that the first letter of the result comes from `x`.
+
+            The usual symbol for this operation is `\prec`.
+
+            .. SEEALSO::
+
+                :meth:`product`, :meth:`succ`, :meth:`over`, :meth:`under`
+
+            EXAMPLES::
+
+                sage: A = algebras.FQSYM(QQ).F()
+                sage: x = A([2,1])
+                sage: A.prec(x, x)
+                F[2, 1, 4, 3] + F[2, 4, 1, 3] + F[2, 4, 3, 1]
+                sage: y = A([2,1,3])
+                sage: A.prec(x, y)
+                F[2, 1, 4, 3, 5] + F[2, 4, 1, 3, 5] + F[2, 4, 3, 1, 5]
+                 + F[2, 4, 3, 5, 1]
+                sage: A.prec(y, x)
+                F[2, 1, 3, 5, 4] + F[2, 1, 5, 3, 4] + F[2, 1, 5, 4, 3]
+                 + F[2, 5, 1, 3, 4] + F[2, 5, 1, 4, 3] + F[2, 5, 4, 1, 3]
+            """
+            pre = self.prec_product_on_basis
+            return self._module_morphism(self._module_morphism(pre, position=0,
+                                                               codomain=self),
+                                         position=1)
 
         @lazy_attribute
         def to_symmetric_group_algebra(self):

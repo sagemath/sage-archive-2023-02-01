@@ -25,10 +25,8 @@ from sage.categories.realizations import Realizations, Category_realization_of_p
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.permutation import Permutations, Permutation
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
-from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.cachefunc import cached_method
-from sage.categories.rings import Rings
 from sage.combinat.words.word import Word
+from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
 
 class FQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
     """
@@ -716,56 +714,52 @@ class FQSymBases(Category_realization_of_parent):
                                                                codomain=self),
                                          position=1)
 
-        @lazy_attribute
-        def to_symmetric_group_algebra(self):
+        def from_symmetric_group_algebra(self, x):
             """
-            Morphism from ``self`` to the symmetric group algebra.
+            Return the element of `FQSym` corresponding to the element
+            `x` of a symmetric group algebra.
 
             EXAMPLES::
 
-                sage: D = DescentAlgebra(QQ, 4).D()
-                sage: D.to_symmetric_group_algebra(D[1,3])
-                [2, 1, 4, 3] + [3, 1, 4, 2] + [3, 2, 4, 1] + [4, 1, 3, 2] + [4, 2, 3, 1]
-                sage: B = DescentAlgebra(QQ, 4).B()
-                sage: B.to_symmetric_group_algebra(B[1,2,1])
-                [1, 2, 3, 4] + [1, 2, 4, 3] + [1, 3, 4, 2] + [2, 1, 3, 4]
-                 + [2, 1, 4, 3] + [2, 3, 4, 1] + [3, 1, 2, 4] + [3, 1, 4, 2]
-                 + [3, 2, 4, 1] + [4, 1, 2, 3] + [4, 1, 3, 2] + [4, 2, 3, 1]
+                sage: A = algebras.FQSYM(QQ).F()
+                sage: SGA4 = SymmetricGroupAlgebra(QQ, 4)
+                sage: x = SGA4([1,3,2,4]) + 5/2 * SGA4([1,2,4,3])
+                sage: A.from_symmetric_group_algebra(x)
+                5/2*F[1, 2, 4, 3] + F[1, 3, 2, 4]
+                sage: A.from_symmetric_group_algebra(SGA4.zero())
+                0
             """
-            SGA = SymmetricGroupAlgebra(self.base_ring(), self.realization_of()._n)
-            return self.module_morphism(self.to_symmetric_group_algebra_on_basis,
-                                        codomain=SGA)
-
-        def to_symmetric_group_algebra_on_basis(self, S):
-            """
-            Return the basis element index by ``S`` as a linear combination
-            of basis elements in the symmetric group algebra.
-
-            EXAMPLES::
-
-                sage: B = DescentAlgebra(QQ, 3).B()
-                sage: [B.to_symmetric_group_algebra_on_basis(c)
-                ....:  for c in Compositions(3)]
-                [[1, 2, 3] + [1, 3, 2] + [2, 1, 3]
-                  + [2, 3, 1] + [3, 1, 2] + [3, 2, 1],
-                 [1, 2, 3] + [2, 1, 3] + [3, 1, 2],
-                 [1, 2, 3] + [1, 3, 2] + [2, 3, 1],
-                 [1, 2, 3]]
-                sage: I = DescentAlgebra(QQ, 3).I()
-                sage: [I.to_symmetric_group_algebra_on_basis(c)
-                ....:  for c in Compositions(3)]
-                [[1, 2, 3] + [1, 3, 2] + [2, 1, 3] + [2, 3, 1]
-                  + [3, 1, 2] + [3, 2, 1],
-                 1/2*[1, 2, 3] - 1/2*[1, 3, 2] + 1/2*[2, 1, 3]
-                  - 1/2*[2, 3, 1] + 1/2*[3, 1, 2] - 1/2*[3, 2, 1],
-                 1/2*[1, 2, 3] + 1/2*[1, 3, 2] - 1/2*[2, 1, 3]
-                  + 1/2*[2, 3, 1] - 1/2*[3, 1, 2] - 1/2*[3, 2, 1],
-                 1/3*[1, 2, 3] - 1/6*[1, 3, 2] - 1/6*[2, 1, 3]
-                  - 1/6*[2, 3, 1] - 1/6*[3, 1, 2] + 1/3*[3, 2, 1]]
-            """
-            D = self.realization_of().D()
-            return D.to_symmetric_group_algebra(D(self[S]))
+            return self._from_dict({Permutation(key): c for (key, c) in x})
 
     class ElementMethods:
-        pass
+        def to_symmetric_group_algebra(self, n=None):
+            """
+            Return the element of a symmetric group algebra
+            corresponding to the element ``self`` of `FQSym`.
 
+            This is well-defined only if ``self`` is homogeneous.
+            The optional parameter `n` can be used to specify
+            the order of the symmetric group algebra (it is
+            otherwise inferred from `x`, but this inference fails
+            if `x = 0`).
+
+            EXAMPLES::
+
+                sage: A = algebras.FQSYM(QQ).F()
+                sage: x = A([1,3,2,4]) + 5/2 * A([1,2,4,3])
+                sage: x.to_symmetric_group_algebra()
+                5/2*[1, 2, 4, 3] + [1, 3, 2, 4]
+                sage: x.to_symmetric_group_algebra(n=4)
+                5/2*[1, 2, 4, 3] + [1, 3, 2, 4]
+                sage: a = A.zero().to_symmetric_group_algebra(n=4); a
+                0
+                sage: parent(a)
+                Symmetric group algebra of order 4 over Rational Field
+
+            """
+            if n is None:
+                for key, c in self:
+                    n = len(key)
+                    break
+            SGA = SymmetricGroupAlgebra(self.base_ring(), n)
+            return SGA._from_dict({Permutations(n)(key): c for (key, c) in self})

@@ -136,6 +136,8 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
     a permutation (regarded as a word) into two (at every
     possible point) and standardizing the two pieces.
     This Hopf algebra was introduced in [MR]_.
+    See [GriRei16]_ (Chapter 8) for a treatment using modern
+    notations.
 
     In more detail:
     For each `n \geq 0`, consider the symmetric group `S_n`.
@@ -247,6 +249,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
     - [MR]_
     - [LodayRonco]_
+    - [GriRei16]_
     """
 
     def __init__(self, R):

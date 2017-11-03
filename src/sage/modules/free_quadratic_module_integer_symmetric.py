@@ -9,10 +9,13 @@
 #*****************************************************************************
 
 from sage.rings.integer_ring import ZZ
+from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ
 from sage.modules.free_quadratic_module import FreeQuadraticModule_submodule_with_basis_pid, FreeQuadraticModule
 from sage.matrix.constructor import matrix
+from sage.matrix.matrix import is_Matrix
 from sage.arith.misc import gcd
+from sage.combinat.root_system.cartan_matrix import CartanMatrix
 
 ###############################################################################
 #
@@ -20,7 +23,7 @@ from sage.arith.misc import gcd
 #
 ###############################################################################
 
-def IntegralLattice(inner_product_matrix, basis=None):
+def IntegralLattice(*args, **kwds):
     r"""
     Return the integral lattice spanned by ``basis`` in the ambient space.
 
@@ -29,12 +32,16 @@ def IntegralLattice(inner_product_matrix, basis=None):
     Here, lattices have an ambient quadratic space `\Q^n` and a distinguished basis.
 
     INPUT:
-
-    - ``inner_product_matrix`` -- a symmetric matrix over the rationals
-
-    - ``basis`` -- a list of elements of ambient or a matrix
-
-    Output:
+    
+    The input can be one of the following:
+    
+    - An inner product matrix and a basis:
+        - ``inner_product_matrix`` -- a symmetric matrix over the rationals
+        - ``basis`` -- a list of elements of ambient or a matrix
+    - The dimension for euclidian lattices
+    - A letter for the type of lattice and the dimension    
+    
+    OUTPUT:
 
     A lattice in the ambient space defined by the inner_product_matrix.
     Unless specified, the basis of the lattice is the standard basis.
@@ -51,6 +58,62 @@ def IntegralLattice(inner_product_matrix, basis=None):
         [0 1]
         [1 0]
 
+    We can define easily an euclidian lattice just by its dimension::
+
+        sage: IntegralLattice(3)
+        Lattice of degree 3 and rank 3 over Integer Ring
+        Basis matrix:
+        [1 0 0]
+        [0 1 0]
+        [0 0 1]
+        Inner product matrix:
+        [1 0 0]
+        [0 1 0]
+        [0 0 1]    
+    
+    We use "U" or "H" for defining an hyperbolic lattice::
+
+        sage: L1 = IntegralLattice("U")
+        sage: L1
+        Lattice of degree 2 and rank 2 over Integer Ring
+        Basis matrix:
+        [1 0]
+        [0 1]
+        Inner product matrix:
+        [0 1]
+        [1 0]
+        sage: L1 == IntegralLattice("H")
+        True
+
+    We can define a root lattice (see :meth:`sage.combinat.root_system.cartan_matrix`)::
+
+        sage: IntegralLattice("E",7)
+        Lattice of degree 7 and rank 7 over Integer Ring
+        Basis matrix:
+        [1 0 0 0 0 0 0]
+        [0 1 0 0 0 0 0]
+        [0 0 1 0 0 0 0]
+        [0 0 0 1 0 0 0]
+        [0 0 0 0 1 0 0]
+        [0 0 0 0 0 1 0]
+        [0 0 0 0 0 0 1]
+        Inner product matrix:
+        [ 2  0 -1  0  0  0  0]
+        [ 0  2  0 -1  0  0  0]
+        [-1  0  2 -1  0  0  0]
+        [ 0 -1 -1  2 -1  0  0]
+        [ 0  0  0 -1  2 -1  0]
+        [ 0  0  0  0 -1  2 -1]
+        [ 0  0  0  0  0 -1  2]
+        sage: IntegralLattice("A",2)
+        Lattice of degree 2 and rank 2 over Integer Ring
+        Basis matrix:
+        [1 0]
+        [0 1]
+        Inner product matrix:
+        [ 2 -1]
+        [-1  2]
+
     We can specify a basis as well::
 
         sage: IntegralLattice(Matrix(ZZ,2,2,[0,1,1,0]),basis=[vector([1,1])])
@@ -60,7 +123,50 @@ def IntegralLattice(inner_product_matrix, basis=None):
         Inner product matrix:
         [0 1]
         [1 0]
+        sage: IntegralLattice("A",3,[[1,1,1]])
+        Lattice of degree 3 and rank 1 over Integer Ring
+        Basis matrix:
+        [1 1 1]
+        Inner product matrix:
+        [ 2 -1  0]
+        [-1  2 -1]
+        [ 0 -1  2]
+        sage: IntegralLattice(4,[[1,1,1,1]])
+        Lattice of degree 4 and rank 1 over Integer Ring
+        Basis matrix:
+        [1 1 1 1]
+        Inner product matrix:
+        [1 0 0 0]
+        [0 1 0 0]
+        [0 0 1 0]
+        [0 0 0 1]
+
     """
+    arg0 = args[0]
+    basis = None
+    if "basis" in kwds:
+            basis = tuple(kwds["basis"])
+    if is_Matrix(arg0): 
+        inner_product_matrix = arg0
+        if len(args) == 2:
+            basis = args[1]
+    elif isinstance(arg0, Integer):
+        inner_product_matrix = matrix.identity(ZZ,arg0)
+        if len(args) == 2:
+            basis = args[1]
+    elif arg0 == "U" or arg0 == "H":
+        inner_product_matrix = matrix([[0,1],[1,0]])
+        if len(args) == 2:
+            basis = args[1]
+    elif isinstance(arg0, str):
+        try: 
+            n = args[1]
+        except:
+            ValueError("Dimension of the lattice not specified")
+        inner_product_matrix = CartanMatrix([arg0,n])
+        if len(args) == 3:
+            basis = args[2]
+
     if basis is None:
         basis = matrix.identity(ZZ, inner_product_matrix.ncols())
     if inner_product_matrix != inner_product_matrix.transpose():

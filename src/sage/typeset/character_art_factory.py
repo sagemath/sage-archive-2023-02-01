@@ -116,6 +116,8 @@ class CharacterArtFactory(SageObject):
             if baseline is not None:
                 obj._baseline = baseline
             return obj
+        if isinstance(obj, SageObject):
+            return self.build_from_magic_method(obj, baseline)
         if baseline is None:
             baseline = 0
         if isinstance(obj, (tuple, list, dict, set)):
@@ -127,8 +129,6 @@ class CharacterArtFactory(SageObject):
                 return self.build_list(obj, baseline)
             else:
                 return self.build_set(obj, baseline)
-        elif isinstance(obj, SageObject):
-            return self.build_from_magic_method(obj, baseline)
         else:
             return self.build_from_string(obj, baseline)
 
@@ -141,10 +141,14 @@ class CharacterArtFactory(SageObject):
         Character art instance.
 
         EXAMPLES::
+
+            sage: from sage.typeset.ascii_art import _ascii_art_factory as factory
+            sage: str(factory.build_empty())
+            ''
         """
         return self.art_type.empty()
 
-    def build_from_magic_method(self, obj, baseline=0):
+    def build_from_magic_method(self, obj, baseline=None):
         """
         Return the character art object created by the object's magic method
 
@@ -163,7 +167,8 @@ class CharacterArtFactory(SageObject):
         """
         magic_method = getattr(obj, self.magic_method_name)
         ret = magic_method()
-        ret._baseline = baseline
+        if baseline is not None:
+            ret._baseline = baseline
         return ret
 
     def build_from_string(self, obj, baseline=0):
@@ -429,8 +434,8 @@ class CharacterArtFactory(SageObject):
 
             sage: from sage.typeset.ascii_art import _ascii_art_factory as factory
             sage: d = {'sep': '2', 'baseline': 5}
-            ('2', 5, 0)
             sage: factory.parse_keywords(d)
+            ('2', 5, None)
             sage: d
             {}
 
@@ -438,7 +443,7 @@ class CharacterArtFactory(SageObject):
 
             sage: d = {'foo': '2', 'baseline': 5}
             sage: factory.parse_keywords(d)
-            (, 5, 0)
+            (, 5, None)
             sage: d
             {'foo': '2'}
 
@@ -454,5 +459,5 @@ class CharacterArtFactory(SageObject):
             sep = kwds.pop("separator", empty)
         elif "separator" in kwds:
             raise ValueError("cannot specify both 'sep' and 'separator'")
-        return sep, kwds.pop("baseline", 0), kwds.pop("sep_baseline", 0)
+        return sep, kwds.pop("baseline", None), kwds.pop("sep_baseline", None)
 

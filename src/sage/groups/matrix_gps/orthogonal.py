@@ -66,12 +66,14 @@ AUTHORS:
 - William Stein (2006-12-09): rewrite
 
 - Volker Braun (2013-1) port to new Parent, libGAP, extreme refactoring.
+
+- Simon Brandhorst (2017-9) added OrthogonalMatrixGroup_with_gap
 """
 
 #*****************************************************************************
 #       Copyright (C) 2006 David Joyner and William Stein
 #       Copyright (C) 2013 Volker Braun <vbraun.name@gmail.com>
-#
+#       Copyright (C) 2017 Simon Brandhorst <sbrandhorst@web.de>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
@@ -82,7 +84,7 @@ from sage.misc.latex import latex
 from sage.misc.cachefunc import cached_method
 from sage.groups.matrix_gps.named_group import (
     normalize_args_vectorspace, NamedMatrixGroup_generic, NamedMatrixGroup_gap )
-
+from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGroup_gap
 
 
 def normalize_args_e(degree, ring, e):
@@ -352,7 +354,6 @@ class OrthogonalMatrixGroup_generic(NamedMatrixGroup_generic):
             raise TypeError('matrix must be orthogonal with respect to the invariant form')
         # TODO: check that quadratic form is preserved in characteristic two
 
-
 class OrthogonalMatrixGroup_gap(OrthogonalMatrixGroup_generic, NamedMatrixGroup_gap):
 
     @cached_method
@@ -448,5 +449,150 @@ class OrthogonalMatrixGroup_gap(OrthogonalMatrixGroup_generic, NamedMatrixGroup_
         m.set_immutable()
         return m
 
+class OrthogonalMatrixGroup_with_gap(FinitelyGeneratedMatrixGroup_gap):
+    """
+    A base class for Orthogonal matrix groups with a gap backend.
+    
+    It remembers the bilinear form.
+    The difference to `OrthogonalMatrixGroup_gap` is that our groups do not have 
+    a specific name.
+    
+    INPUT:
 
+        - ``degree`` -- integer, the degree (matrix size) of the
+          matrix group
 
+        - ``base_ring`` -- ring, the base ring of the matrices
+        
+        - ``gens`` -- a list of matrices over the base ring
+        
+        - -``invariant_bilinear_form`` -- a symmetric matrix
+        
+        -``category`` -- (default:``None``) a category of groups
+    
+        -``check`` -- bool (default: ``True``) - check if the generators
+        preserve the bilinear form
+        
+    EXAMPLES::
+    
+        sage: from sage.groups.matrix_gps.orthogonal import OrthogonalMatrixGroup_with_gap
+        sage: bil = Matrix(ZZ,2,[3,2,2,3])
+        sage: gens = [-Matrix(ZZ,2,[0,1,1,0])]
+        sage: O = OrthogonalMatrixGroup_with_gap(2,ZZ,gens,bil)
+        sage: O
+        Orthogonal group over Integer Ring with 1 generators (
+        [ 0 -1]
+        [-1  0]
+        )
+        sage: O.order()
+        2
+
+    Infinite groups are O.K. too::
+    
+        sage: bil = Matrix(ZZ,4,[0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0])
+        sage: f = Matrix(ZZ,4,[0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, -1, 1, 1, 1])
+        sage: O = OrthogonalMatrixGroup_with_gap(2,ZZ,[f],bil)
+        sage: O.cardinality()
+        +Infinity
+    """
+    
+    def __init__(self, degree, base_ring, gens, invariant_bilinear_form, category=None, check=True):
+        """
+        Initialization 
+            
+        EXAMPLES::
+        
+            sage: from sage.groups.matrix_gps.orthogonal import OrthogonalMatrixGroup_with_gap
+            sage: bil = Matrix(ZZ,2,[3,2,2,3])
+            sage: gens = [-Matrix(ZZ,2,[0,1,1,0])]
+            sage: O = OrthogonalMatrixGroup_with_gap(2,ZZ,gens,bil)
+            sage: TestSuite(O).run()
+        """
+        from copy import copy
+        G = copy(invariant_bilinear_form)
+        G.set_immutable()
+        self._invariant_bilinear_form = G
+        
+        if check:
+            for f in gens:
+                if f*G*f.T != G:
+                    raise ValueError("The generators must preserve the bilinear form.")
+        
+        if len(gens) == 0: #handle the trivial group
+            gens = [G.parent().identity_matrix()]
+        
+        from sage.libs.gap.libgap import libgap
+        gap_gens = [libgap(matrix_gen) for matrix_gen in gens]
+        gap_group = libgap.Group(gap_gens)
+        FinitelyGeneratedMatrixGroup_gap.__init__(self,degree, base_ring, gap_group, category=category)
+
+    def _repr_(self):
+        """
+        Return a string representation.
+
+        OUTPUT:
+
+            - a string
+
+        EXAMPLES::
+            sage: from sage.groups.matrix_gps.orthogonal import OrthogonalMatrixGroup_with_gap
+            sage: bil = Matrix(ZZ,2,[3,2,2,3])
+            sage: gens = [-Matrix(ZZ,2,[0,1,1,0])]
+            sage: O = OrthogonalMatrixGroup_with_gap(2,ZZ,gens,bil)
+            sage: O
+            Orthogonal group over Integer Ring with 1 generators (
+            [ 0 -1]
+            [-1  0]
+            )
+        """
+        if self.ngens() > 5:
+            return 'Orthogonal group over {0} with {1} generators'.format(
+                self.base_ring(), self.ngens())
+        else:
+            from sage.repl.display.util import format_list
+            return 'Orthogonal group over {0} with {1} generators {2}'.format(
+                self.base_ring(), self.ngens(), format_list(self.gens()))
+
+    def invariant_bilinear_form(self):
+        """
+        Return the symmetric bilinear form preserved by the orthogonal
+        group.
+
+        OUTPUT:
+
+            - the matrix defining the bilinear form
+
+        EXAMPLES::
+        sage: from sage.groups.matrix_gps.orthogonal import OrthogonalMatrixGroup_with_gap
+        sage: bil = Matrix(ZZ,2,[3,2,2,3])
+        sage: gens = [-Matrix(ZZ,2,[0,1,1,0])]
+        sage: O = OrthogonalMatrixGroup_with_gap(2,ZZ,gens,bil)
+        sage: O.invariant_bilinear_form()
+        [3 2]
+        [2 3]
+
+        """
+        return self._invariant_bilinear_form
+
+    def _check_matrix(self, x, *args):
+        """
+        Check whether the matrix ``x`` preserves the bilinear form.
+
+        See :meth:`~sage.groups.matrix_gps.matrix_group._check_matrix`
+        for details.
+
+        EXAMPLES::
+
+            sage: from sage.groups.matrix_gps.orthogonal import OrthogonalMatrixGroup_with_gap
+            sage: bil = Matrix(ZZ,2,[3,2,2,3])
+            sage: gens = [-Matrix(ZZ,2,[0,1,1,0])]
+            sage: O = OrthogonalMatrixGroup_with_gap(2,ZZ,gens,bil)
+            sage: g = matrix.identity(2)*2
+            sage: O(g)
+            Traceback (most recent call last):
+            ...
+            TypeError: matrix must be orthogonal with respect to the invariant form
+        """
+        F = self.invariant_bilinear_form()
+        if x * F * x.transpose() != F:
+            raise TypeError('matrix must be orthogonal with respect to the invariant form')

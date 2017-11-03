@@ -21812,42 +21812,33 @@ class GenericGraph(GenericGraph_pyx):
 
     def canonical_label(self, partition=None, certificate=False, verbosity=0,
                         edge_labels=False,algorithm=None,return_graph=True):
-        """Return a graph on `\{0,1,...,n-1\}` ( ``n = self.order()`` ) which
+        """
+        Return the canonical graph.
 
-        - is isomorphic to self,
-
-        - is invariant in the isomorphism class.
-
-        In other words, given two graphs ``G`` and ``H`` which are isomorphic,
-        suppose ``G_c`` and ``H_c`` are the graphs returned by
-        ``canonical_label``. Then the following hold:
-
-        - ``G_c == H_c``
-
-        - ``G_c.adjacency_matrix() == H_c.adjacency_matrix()``
-
-        - ``G_c.graph6_string() == H_c.graph6_string()``
+        A canonical graph is the representative graph of an isomorphism
+        class by some canonization function $c$. If $G$ and $H$ are graphs,
+        then $G \cong G_c$, and $G_c == H_c$ if and only if $G \cong H$.
 
         INPUT:
 
-        -  ``partition`` - if given, the canonical label with
-           respect to this set partition will be computed. The default is the unit
-           set partition.
+        - ``partition`` - if given, the canonical label with respect
+          to this set partition will be computed. The default is the unit
+          set partition.
 
-        -  ``certificate`` - if True, a dictionary mapping from the
-           (di)graph to its canonical label will be given.
+        - ``certificate`` - if True, a dictionary mapping from the
+          (di)graph to its canonical label will be given.
 
-        -  ``verbosity`` - gets passed to nice: prints helpful
-           output.
+        - ``verbosity`` - gets passed to nice: prints helpful
+          output.
 
-        -  ``edge_labels`` - default False, otherwise allows
-           only permutations respecting edge labels.
+        - ``edge_labels`` - default False, otherwise allows
+          only permutations respecting edge labels.
 
         - ``algorithm`` - If ``algorithm = "bliss"`` the automorphism group is
           computed using the optional package bliss
           (http://www.tcs.tkk.fi/Software/bliss/index.html). Setting it to
-          "sage" uses Sage's implementation. If set to ``None`` (default), bliss
-          is used when available.
+          "sage" uses Sage's implementation. If set to ``None`` (default),
+          bliss is used when available.
 
             .. NOTE::
 
@@ -21950,6 +21941,11 @@ class GenericGraph(GenericGraph_pyx):
                     pass
 
         if algorithm == 'bliss':
+            if return_graph:
+                vert_dict = canonical_form(self, partition, certificate=True)[1]
+                if not certificate:
+                    return self.relabel(vert_dict, inplace=False)
+                return (self.relabel(vert_dict), vert_dict)
             return canonical_form(self, partition, return_graph, certificate)
 
         # algorithm == 'sage':

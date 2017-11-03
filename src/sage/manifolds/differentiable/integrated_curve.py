@@ -2,7 +2,7 @@
 r"""
 Integrated Curves and Geodesics in Manifolds
 
-Given a differentiable manifold `M`, an *integrated curve* curve in `M`
+Given a differentiable manifold `M`, an *integrated curve* in `M`
 is a differentiable curve constructed as a solution to a system of
 second order differential equations.
 

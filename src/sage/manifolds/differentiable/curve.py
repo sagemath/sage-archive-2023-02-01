@@ -1,7 +1,7 @@
 r"""
 Curves in Manifolds
 
-Given a differentiable manifold `M`, a *differentiable curve* curve in
+Given a differentiable manifold `M`, a *differentiable curve* in
 `M` is a differentiable mapping
 
 .. MATH::

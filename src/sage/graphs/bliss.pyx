@@ -234,11 +234,11 @@ def canonical_form(G, partition=None, return_graph=False, certificate=False):
 
     - ``G`` -- A graph or digraph.
 
-    - ``partition`` -- A partition of the vertices of ``G`` into color classes.
+    - ``partition`` -- A partition of the vertices of `G` into color classes.
       Defaults to ``None``.
 
     - ``return_graph`` -- If set to ``True``, ``canonical_form`` returns the
-      canonical graph of G. Otherwise, it returns its set of edges.
+      canonical graph of `G`. Otherwise, it returns its set of edges.
 
     - ``certificate`` -- If set to ``True`` returns the labeling of G into a
       canonical graph.

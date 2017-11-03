@@ -789,7 +789,7 @@ class DiscreteValuation(DiscretePseudoValuation):
         # some stable order, so we just order them by their string
         # representation which should be very fast.
         try:
-            ret = sorted(leafs, key=lambda v: str(v))
+            ret = sorted(leafs, key=str)
         except Exception:
             # if for some reason the valuation can not be printed, we leave them unsorted
             ret = list(leafs)

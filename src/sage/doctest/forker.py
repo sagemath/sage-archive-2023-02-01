@@ -630,7 +630,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             TestResults(failed=0, attempted=4)
         """
         self.setters = {}
-        randstate.set_random_seed(long(0))
+        randstate.set_random_seed(0)
         warnings.showwarning = showwarning_with_traceback
         self.running_doctest_digest = hashlib.md5()
         self.test = test

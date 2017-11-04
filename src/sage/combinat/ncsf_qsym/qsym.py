@@ -3631,7 +3631,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             (\Psi_I, \Psi_J) = z_I \delta_{I,J},
 
-        where `z_I = 1^{m-1} m_1! 2^{m_2} m_2! \cdots` with `m_i` being the
+        where `z_I = 1^{m_1} m_1! 2^{m_2} m_2! \cdots` with `m_i` being the
         multiplicity of `i` in the composition `I`. Therefore, we call these
         the *quasi-symmetric power sums of the first kind*.
 
@@ -3639,13 +3639,12 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
         .. MATH::
 
-            \Psi_I = \sum_{J \succ I} z_I / \pi_{I,J} M_I,
+            \Psi_I = \sum_{J \succ I} z_I / \pi_{I,J} M_J,
 
         where `\pi_{I,J}` is as defined in [NCSF]_.
 
-        The `\Psi`-basis is a basis only when the base ring is a
-        `\QQ`-algebra (although the `\Psi_I` can be defined over
-        any base ring).
+        The `\Psi`-basis is well-defined only when the base ring is a
+        `\QQ`-algebra.
 
         EXAMPLES::
 
@@ -3809,7 +3808,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             (\Phi_I, \Phi_J) = z_I \delta_{I,J},
 
-        where `z_I = 1^{m-1} m_1! 2^{m_2} m_2! \cdots` with `m_i` being the
+        where `z_I = 1^{m_1} m_1! 2^{m_2} m_2! \cdots` with `m_i` being the
         multiplicity of `i` in the composition `I`. Therefore, we call these
         the *quasi-symmetric power sums of the second kind*.
 
@@ -3817,13 +3816,12 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
         .. MATH::
 
-            \Phi_I = \sum_{J \succ I} z_I / sp_{I,J} M_I,
+            \Phi_I = \sum_{J \succ I} z_I / sp_{I,J} M_J,
 
         where `sp_{I,J}` is as defined in [NCSF]_.
 
-        The `\Phi`-basis is a basis only when the base ring is a
-        `\QQ`-algebra (although the `\Phi_I` can be defined over
-        any base ring).
+        The `\Phi`-basis is well-defined only when the base ring is a
+        `\QQ`-algebra.
 
         EXAMPLES::
 

@@ -16,6 +16,7 @@ from sage.matrix.constructor import matrix
 from sage.matrix.matrix import is_Matrix
 from sage.arith.misc import gcd
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
+from sage.combinat.root_system.cartan_type import CartanType
 
 ###############################################################################
 #
@@ -33,13 +34,13 @@ def IntegralLattice(*args, **kwds):
 
     INPUT:
     
-    The input can be one of the following:
+    The input is a descriptor of the lattice and a basis (optional). The descriptor could be in 
+    the following forms:
     
-    - An inner product matrix and a basis:
-        - ``inner_product_matrix`` -- a symmetric matrix over the rationals
-        - ``basis`` -- a list of elements of ambient or a matrix
-    - The dimension for euclidian lattices
-    - A letter for the type of lattice and the dimension    
+    - A symmetric matrix over the rationals
+    - An integer giving the dimension for euclidian lattices
+    - A root lattice in the ``CartanType`` format  
+    - "U" or "H" for hyperbolic lattices  
     
     OUTPUT:
 
@@ -113,6 +114,28 @@ def IntegralLattice(*args, **kwds):
         Inner product matrix:
         [ 2 -1]
         [-1  2]
+        sage: IntegralLattice("D3")
+        Lattice of degree 3 and rank 3 over Integer Ring
+        Basis matrix:
+        [1 0 0]
+        [0 1 0]
+        [0 0 1]
+        Inner product matrix:
+        [ 2 -1 -1]
+        [-1  2  0]
+        [-1  0  2]
+        sage: IntegralLattice(["D",4])
+        Lattice of degree 4 and rank 4 over Integer Ring
+        Basis matrix:
+        [1 0 0 0]
+        [0 1 0 0]
+        [0 0 1 0]
+        [0 0 0 1]
+        Inner product matrix:
+        [ 2 -1  0  0]
+        [-1  2 -1 -1]
+        [ 0 -1  2  0]
+        [ 0 -1  0  2]
 
     We can specify a basis as well::
 
@@ -140,33 +163,32 @@ def IntegralLattice(*args, **kwds):
         [0 1 0 0]
         [0 0 1 0]
         [0 0 0 1]
-
+        sage: IntegralLattice("A2",[[1,1]])
+        Lattice of degree 2 and rank 1 over Integer Ring
+        Basis matrix:
+        [1 1]
+        Inner product matrix:
+        [ 2 -1]
+        [-1  2]
     """
     arg0 = args[0]
+    last_arg = args[-1]
     basis = None
     if "basis" in kwds:
-            basis = tuple(kwds["basis"])
+        basis = tuple(kwds["basis"])
+    if len(args) >= 2 and isinstance(last_arg, list):
+        basis = last_arg
+        args = args[0:-1]        
     if is_Matrix(arg0): 
-        inner_product_matrix = arg0
-        if len(args) == 2:
-            basis = args[1]
+        inner_product_matrix = arg0     
     elif isinstance(arg0, Integer):
         inner_product_matrix = matrix.identity(ZZ,arg0)
         if len(args) == 2:
             basis = args[1]
     elif arg0 == "U" or arg0 == "H":
         inner_product_matrix = matrix([[0,1],[1,0]])
-        if len(args) == 2:
-            basis = args[1]
-    elif isinstance(arg0, str):
-        try: 
-            n = args[1]
-        except:
-            ValueError("Dimension of the lattice not specified")
-        inner_product_matrix = CartanMatrix([arg0,n])
-        if len(args) == 3:
-            basis = args[2]
-
+    else: 
+        inner_product_matrix = CartanMatrix(CartanType(args))        
     if basis is None:
         basis = matrix.identity(ZZ, inner_product_matrix.ncols())
     if inner_product_matrix != inner_product_matrix.transpose():

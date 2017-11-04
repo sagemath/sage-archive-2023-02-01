@@ -160,7 +160,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.automorphism_group` | Return the largest subgroup of the automorphism group of the (di)graph whose orbit partition is finer than the partition given.
     :meth:`~GenericGraph.is_vertex_transitive` | Return whether the automorphism group of self is transitive within the partition provided
     :meth:`~GenericGraph.is_isomorphic` | Test for isomorphism between self and other.
-    :meth:`~GenericGraph.canonical_label` | Return the unique graph on `\{0,1,...,n-1\}` ( ``n = self.order()`` ) which 1) is isomorphic to self 2) is invariant in the isomorphism class.
+    :meth:`~GenericGraph.canonical_label` | Return the canonically labeled graph.
     :meth:`~GenericGraph.is_cayley` | Check whether the graph is a Cayley graph.
 
 **Graph properties:**
@@ -21913,7 +21913,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g_bliss = g.canonical_label(algorithm='bliss')  # optional - bliss
             sage: g_sage.edges(labels=False)
             [(0, 3), (1, 2)]
-            sage: g_bliss.edges(labels=False)
+            sage: g_bliss.edges(labels=False)  # optional - bliss
             [(0, 1), (2, 3)]
 
         TESTS::

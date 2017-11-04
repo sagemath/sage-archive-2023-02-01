@@ -1235,15 +1235,16 @@ class ResidueLiftingMap(Morphism):
             sage: f(7, 5) # indirect doctest
             1 + 2 + 2^2 + O(2^5)
         """
-        R = self.codomain()
         if args:
             args = (min(args[0], self._n),) + args[1:]
         else:
             kwds['absprec'] = min(kwds.get('absprec', self._n), self._n)
-        if R.degree() == 1:
-            return R.element_class(R, x, *args, **kwds)
+        R = self.codomain()
+        A = R.base_ring()
+        if R is A:
+            return R._element_constructor_(x, *args, **kwds) # fall back on common_conversion code
         elif R.f() == 1:
-            return R([x], *args, **kwds)
+            return R([A(x)])
         elif R.e() == 1:
             return R(x.polynomial().list(), *args, **kwds)
         else:

@@ -56,16 +56,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
         print_mode['var_name'] = names[0]
         names = names[0]
         pAdicGeneric.__init__(self, R, R.prime(), prec, print_mode, names, element_class)
-        self._populate_coercion_lists_(coerce_list=[R], element_constructor=element_class)
-
-#     def __reduce__(self):
-#         """
-#         For pickling.
-
-#         This function is provided because prime_pow needs to be set before _printer, so the standard unpickling fails.
-#         """
-#         from sage.rings.padics.factory import ExtensionFactory
-#         return ExtensionFactory, (self.base_ring(), self._exact_modulus, self.precision_cap(), self.print_mode(), None, self.variable_name())
+        self._populate_coercion_lists_(element_constructor=element_class)
 
     def _coerce_map_from_(self, R):
         """
@@ -81,7 +72,9 @@ class pAdicExtensionGeneric(pAdicGeneric):
             w + w^5 + O(w^10)
         """
         # Far more functionality needs to be added here later.
-        if isinstance(R, pAdicExtensionGeneric) and R.fraction_field() is self:
+        if R is self.base_ring():
+            return True
+        elif isinstance(R, pAdicExtensionGeneric) and R.fraction_field() is self:
             if self._implementation == 'NTL':
                 return True
             elif R._prec_type() == 'capped-abs':

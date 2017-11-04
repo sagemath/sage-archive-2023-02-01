@@ -1201,6 +1201,14 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             TypeError: The PPL backend only supports rational data.
+
+        Test that equations are handled correctly (:trac:`24154`)::
+
+            sage: p = Polyhedron(vertices=[[19]])
+            sage: lp, x = p.to_linear_program(return_variable=True)
+            sage: lp.set_objective(x[0])
+            sage: lp.solve()
+            19
         """
         if base_ring is None:
             base_ring = self.base_ring()
@@ -1215,7 +1223,7 @@ class Polyhedron_base(Element):
 
         for eqn in self.equations_list():
             b = -eqn.pop(0)
-            p.add_constraint(p.sum([x[i]*eqn[i] for i in range(len(eqn))]) == -b)
+            p.add_constraint(p.sum([x[i]*eqn[i] for i in range(len(eqn))]) == b)
 
         if return_variable:
             return p, x

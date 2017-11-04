@@ -70,6 +70,11 @@ ext_table['u', pAdicRingFloatingPoint] = UnramifiedExtensionRingFloatingPoint
 ext_table['u', pAdicFieldFloatingPoint] = UnramifiedExtensionFieldFloatingPoint
 #ext_table['u', pAdicRingLazy] = UnramifiedExtensionRingLazy
 ext_table['re', pAdicRingFixedMod] = RelativeRamifiedExtensionRingFixedMod
+ext_table['re', pAdicRingCappedAbsolute] = RelativeRamifiedExtensionRingCappedAbsolute
+ext_table['re', pAdicRingCappedRelative] = RelativeRamifiedExtensionRingCappedRelative
+ext_table['re', pAdicFieldCappedRelative] = RelativeRamifiedExtensionFieldCappedRelative
+ext_table['re', pAdicRingFloatingPoint] = RelativeRamifiedExtensionRingFloatingPoint
+ext_table['re', pAdicFieldFloatingPoint] = RelativeRamifiedExtensionFieldFloatingPoint
 
 def _default_show_prec(type, print_mode):
     """

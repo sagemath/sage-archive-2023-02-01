@@ -1430,6 +1430,12 @@ ext_modules = [
 
     Extension('sage.rings.padics.relative_ramified_FM',
               sources = ['sage/rings/padics/relative_ramified_FM.pyx']),
+    Extension('sage.rings.padics.relative_ramified_CA',
+              sources = ['sage/rings/padics/relative_ramified_CA.pyx']),
+    Extension('sage.rings.padics.relative_ramified_CR',
+              sources = ['sage/rings/padics/relative_ramified_CR.pyx']),
+    Extension('sage.rings.padics.relative_ramified_FP',
+              sources = ['sage/rings/padics/relative_ramified_FP.pyx']),
 
     ################################
     ##

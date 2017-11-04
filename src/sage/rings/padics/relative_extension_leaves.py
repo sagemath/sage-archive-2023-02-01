@@ -14,23 +14,13 @@ Relative extensions of `p`-adic rings
 
 from sage.categories.morphism import Morphism
 from sage.categories.homset import Hom
-from .generic_nodes import pAdicFixedModRingGeneric
+from .generic_nodes import pAdicFixedModRingGeneric, pAdicCappedAbsoluteRingGeneric, pAdicCappedRelativeRingGeneric, pAdicCappedRelativeFieldGeneric, pAdicFloatingPointRingGeneric, pAdicFloatingPointFieldGeneric
 from .eisenstein_extension_generic import EisensteinExtensionGeneric
 from .relative_ramified_FM import RelativeRamifiedFixedModElement
+from .relative_ramified_CA import RelativeRamifiedCappedAbsoluteElement
+from .relative_ramified_CR import RelativeRamifiedCappedRelativeElement
+from .relative_ramified_CP import RelativeRamifiedFloatingPointElement
 from .pow_computer_relative import PowComputer_relative_maker
-
-class RelativeRamifiedExtensionRingFixedMod(EisensteinExtensionGeneric, pAdicFixedModRingGeneric):
-    def __init__(self, exact_modulus, approx_modulus, prec, print_mode, shift_seed, names, implementation):
-        self._exact_modulus = exact_modulus
-        unram_prec = (prec + approx_modulus.degree() - 1) // approx_modulus.degree()
-        KFP = approx_modulus.base_ring().change(type='floating-point')
-        self.prime_pow = PowComputer_relative_maker(approx_modulus.base_ring().prime(), max(min(unram_prec - 1, 30), 1), unram_prec, prec, False, exact_modulus.change_ring(KFP), shift_seed.change_ring(KFP), 'fixed-mod')
-        self._implementation = 'Polynomial'
-        EisensteinExtensionGeneric.__init__(self, approx_modulus, prec, print_mode, names, RelativeRamifiedFixedModElement)
-        from .relative_ramified_FM import pAdicCoercion_ZZ_FM, pAdicConvert_QQ_FM
-        self.register_coercion(pAdicCoercion_ZZ_FM(self))
-        self.register_coercion(pAdicRelativeBaseringInjection(approx_modulus.base_ring(), self))
-        self.register_conversion(pAdicConvert_QQ_FM(self))
 
 class pAdicRelativeBaseringInjection(Morphism):
     def __init__(self, R, S):
@@ -45,3 +35,82 @@ class pAdicRelativeBaseringInjection(Morphism):
 
     def _call_with_extra_args(self, x, args=(), kwds={}):
         return self.codomain()([x], *args, **kwds)
+
+class RelativeRamifiedExtensionRingFixedMod(EisensteinExtensionGeneric, pAdicFixedModRingGeneric):
+    def __init__(self, exact_modulus, approx_modulus, prec, print_mode, shift_seed, names, implementation):
+        self._exact_modulus = exact_modulus
+        unram_prec = (prec + approx_modulus.degree() - 1) // approx_modulus.degree()
+        KFP = approx_modulus.base_ring().change(type='floating-point')
+        self.prime_pow = PowComputer_relative_maker(approx_modulus.base_ring().prime(), max(min(unram_prec - 1, 30), 1), unram_prec, prec, False, exact_modulus.change_ring(KFP), shift_seed.change_ring(KFP), 'fixed-mod')
+        self._implementation = 'Polynomial'
+        EisensteinExtensionGeneric.__init__(self, approx_modulus, prec, print_mode, names, RelativeRamifiedFixedModElement)
+        from .relative_ramified_FM import pAdicCoercion_ZZ_FM, pAdicConvert_QQ_FM
+        self.register_coercion(pAdicCoercion_ZZ_FM(self))
+        self.register_coercion(pAdicRelativeBaseringInjection(approx_modulus.base_ring(), self))
+        self.register_conversion(pAdicConvert_QQ_FM(self))
+
+class RelativeRamifiedExtensionRingCappedAbsolute(EisensteinExtensionGeneric, pAdicCappedAbsoluteRingGeneric):
+    def __init__(self, exact_modulus, approx_modulus, prec, print_mode, shift_seed, names, implementation):
+        self._exact_modulus = exact_modulus
+        unram_prec = (prec + approx_modulus.degree() - 1) // approx_modulus.degree()
+        KFP = approx_modulus.base_ring().change(type='floating-point')
+        self.prime_pow = PowComputer_relative_maker(approx_modulus.base_ring().prime(), max(min(unram_prec - 1, 30), 1), unram_prec, prec, False, exact_modulus.change_ring(KFP), shift_seed.change_ring(KFP), 'capped-abs')
+        self._implementation = 'Polynomial'
+        EisensteinExtensionGeneric.__init__(self, approx_modulus, prec, print_mode, names, RelativeRamifiedCappedAbsoluteElement)
+        from .relative_ramified_CA import pAdicCoercion_ZZ_CA, pAdicConvert_QQ_CA
+        self.register_coercion(pAdicCoercion_ZZ_CA(self))
+        self.register_coercion(pAdicRelativeBaseringInjection(approx_modulus.base_ring(), self))
+        self.register_conversion(pAdicConvert_QQ_CA(self))
+
+class RelativeRamifiedExtensionRingCappedRelative(EisensteinExtensionGeneric, pAdicCappedRelativeRingGeneric):
+    def __init__(self, exact_modulus, approx_modulus, prec, print_mode, shift_seed, names, implementation):
+        self._exact_modulus = exact_modulus
+        unram_prec = (prec + approx_modulus.degree() - 1) // approx_modulus.degree()
+        KFP = approx_modulus.base_ring().change(type='floating-point')
+        self.prime_pow = PowComputer_relative_maker(approx_modulus.base_ring().prime(), max(min(unram_prec - 1, 30), 1), unram_prec, prec, False, exact_modulus.change_ring(KFP), shift_seed.change_ring(KFP), 'capped-rel')
+        self._implementation = 'Polynomial'
+        EisensteinExtensionGeneric.__init__(self, approx_modulus, prec, print_mode, names, RelativeRamifiedCappedRelativeElement)
+        from .relative_ramified_CR import pAdicCoercion_ZZ_CR, pAdicConvert_QQ_CR
+        self.register_coercion(pAdicCoercion_ZZ_CR(self))
+        self.register_coercion(pAdicRelativeBaseringInjection(approx_modulus.base_ring(), self))
+        self.register_conversion(pAdicConvert_QQ_CR(self))
+
+class RelativeRamifiedExtensionFieldCappedRelative(EisensteinExtensionGeneric, pAdicCappedRelativeFieldGeneric):
+    def __init__(self, exact_modulus, approx_modulus, prec, print_mode, shift_seed, names, implementation):
+        self._exact_modulus = exact_modulus
+        unram_prec = (prec + approx_modulus.degree() - 1) // approx_modulus.degree()
+        KFP = approx_modulus.base_ring().change(type='floating-point')
+        self.prime_pow = PowComputer_relative_maker(approx_modulus.base_ring().prime(), max(min(unram_prec - 1, 30), 1), unram_prec, prec, False, exact_modulus.change_ring(KFP), shift_seed.change_ring(KFP), 'capped-rel')
+        self._implementation = 'Polynomial'
+        EisensteinExtensionGeneric.__init__(self, approx_modulus, prec, print_mode, names, RelativeRamifiedCappedRelativeElement)
+        from .relative_ramified_CR import pAdicCoercion_ZZ_CR, pAdicCoercion_QQ_CR
+        self.register_coercion(pAdicCoercion_ZZ_CR(self))
+        self.register_coercion(pAdicRelativeBaseringInjection(approx_modulus.base_ring(), self))
+        self.register_coercion(pAdicCoercion_QQ_CR(self))
+
+class RelativeRamifiedExtensionRingFloatingPoint(EisensteinExtensionGeneric, pAdicFloatingPointRingGeneric):
+    def __init__(self, exact_modulus, approx_modulus, prec, print_mode, shift_seed, names, implementation):
+        self._exact_modulus = exact_modulus
+        unram_prec = (prec + approx_modulus.degree() - 1) // approx_modulus.degree()
+        KFP = approx_modulus.base_ring()
+        self.prime_pow = PowComputer_relative_maker(approx_modulus.base_ring().prime(), max(min(unram_prec - 1, 30), 1), unram_prec, prec, False, exact_modulus.change_ring(KFP), shift_seed.change_ring(KFP), 'capped-rel')
+        self._implementation = 'Polynomial'
+        EisensteinExtensionGeneric.__init__(self, approx_modulus, prec, print_mode, names, RelativeRamifiedFloatingPointElement)
+        from .relative_ramified_FP import pAdicCoercion_ZZ_FP, pAdicConvert_QQ_FP
+        self.register_coercion(pAdicCoercion_ZZ_FP(self))
+        self.register_coercion(pAdicRelativeBaseringInjection(approx_modulus.base_ring(), self))
+        self.register_conversion(pAdicConvert_QQ_FP(self))
+
+class RelativeRamifiedExtensionFieldFloatingPoint(EisensteinExtensionGeneric, pAdicFloatingPointFieldGeneric):
+    def __init__(self, exact_modulus, approx_modulus, prec, print_mode, shift_seed, names, implementation):
+        self._exact_modulus = exact_modulus
+        unram_prec = (prec + approx_modulus.degree() - 1) // approx_modulus.degree()
+        KFP = approx_modulus.base_ring()
+        self.prime_pow = PowComputer_relative_maker(approx_modulus.base_ring().prime(), max(min(unram_prec - 1, 30), 1), unram_prec, prec, False, exact_modulus.change_ring(KFP), shift_seed.change_ring(KFP), 'capped-rel')
+        self._implementation = 'Polynomial'
+        EisensteinExtensionGeneric.__init__(self, approx_modulus, prec, print_mode, names, RelativeRamifiedFloatingPointElement)
+        from .relative_ramified_FP import pAdicCoercion_ZZ_FP, pAdicCoercion_QQ_FP
+        self.register_coercion(pAdicCoercion_ZZ_FP(self))
+        self.register_coercion(pAdicRelativeBaseringInjection(approx_modulus.base_ring(), self))
+        self.register_coercion(pAdicCoercion_QQ_FP(self))
+

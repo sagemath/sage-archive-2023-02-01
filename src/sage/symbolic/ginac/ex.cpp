@@ -536,7 +536,10 @@ static bool match_monom(const ex& term, const symbol& symb,
                                 numeric ee = ex_to<numeric>(mterm.op(1));
                                 if (ee.is_integer() and ee.to_int() > 1) {
                                         expairvec tmpvec;
-                                        expand(term).coefficients(symb, tmpvec);
+                                        ex e = expand(term);
+                                        if (not is_exactly_a<add>(e))
+                                                return false;
+                                        e.coefficients(symb, tmpvec);
                                         for (const auto& pair : tmpvec)
                                                 vec.push_back(std::make_pair(pair.first.subs(map),
                                                         pair.second.subs(map)));

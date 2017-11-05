@@ -273,66 +273,67 @@ cdef inline int cpow(celement out, celement a, mpz_t n, long prec, PowComputer_ 
         # we should probably not creduce that frequently to increase the performance
         creduce(out, out, prec, prime_pow)
 
-# The element is filled in for zero in the output of clist if necessary.
+# The element is filled in for zero in the p-adic expansion if necessary.
 # This WON'T work if the absolute inertia degree is 1.
-_list_zero = []
+_expansion_zero = []
 
-cdef clist(celement a, long prec, bint pos, PowComputer_ prime_pow):
-    r"""
-    Return a list of digits in the series expansion.
-
-    This function is used in printing, and expresses ``a`` as a series
-    in the standard uniformizer `\pi`.  Note that for extension
-    elements, the coefficients in the series could be lists themselves.
-
-    INPUT:
-
-    - ``a`` -- a ``celement`` for which to determine the list expansion
-
-    - ``prec`` -- a ``long``, the number of digits desired
-
-    - ``pos`` -- if ``True``, then representatives in the range 0…p-1 are used;
-      otherwise, in the range `-\lfloor p/2\rlfloor … \lceil p/2\rceil`
-
-    - ``prime_pow`` -- a ``PowComputer`` for the ring
-
-    OUTPUT:
-
-    A list of p-adic digits `[a_0, a_1, \ldots]` so that `a = a_0 + a_1\pi +
-    \cdots` modulo `\pi^\mathrm{prec}`
-
-    """
+# the expansion_mode enum is defined in padic_template_element_header.pxi
+cdef inline cexpansion_next(celement value, expansion_mode mode, long curpower, PowComputer_ prime_pow):
+    if mode == teichmuller_mode: raise NotImplementedError
     # This is not very efficient, but there's no clear better way.
     # We assume this is only called on two-step extensions (for more general
     # extensions, convert to the absolute field).
-    R = a.base_ring()
+    S = value.parent()
+    R = value.base_ring()
+    p = R.prime()
     if R.degree() == 1:
         raise NotImplementedError("Absolute extensions using Sage polynomials not completely supported")
     if R.base_ring().degree() != 1:
-        raise TypeError("clist only allowed on towers of height 2")
-    cdef long j
+        raise TypeError("cexpansion only allowed on towers of height 2")
     ans = []
-    p = a.base_ring().prime()
     p2 = (p-1)//2
-    ccopy(prime_pow.tmp_clist, a, prime_pow)
-    for j in range(prec):
-        # the following is specific to the ramified over unramified case.
-        const_term = prime_pow.tmp_clist[0]
-        if const_term._is_exact_zero():
-            term = []
-        else:
-            flint_rep = const_term._flint_rep_abs()[0]
-            term = [c % p for c in flint_rep.list()]
-            while term and not term[-1]:
-                del term[-1]
-            if not pos:
-                term = [c - p if c > p2 else c for c in term]
-        ans.append(term)
-        if j != prec-1:
-            cshift(prime_pow.tmp_clist, prime_pow.tmp_clist, -1, prec-j, prime_pow, False)
-        if not prime_pow.tmp_clist:
-            break
-    return ans
+    # the following is specific to the ramified over unramified case.
+    const_term = value[0]
+    if const_term._is_exact_zero():
+        term = []
+    else:
+        #flint_rep = const_term._flint_rep_abs()[0]
+        #print flint_rep
+        #term = [c % p for c in flint_rep.list()]
+        term = []
+        while term and not term[-1]:
+            del term[-1]
+        if mode == smallest_mode:
+            term = [c - p if c > p2 else c for c in term]
+            value.__coeffs[0] -= R(term)
+    cshift(value, value, -1, curpower, prime_pow, False)
+    return term
+
+cdef inline cexpansion_getitem(celement value, long m, PowComputer_ prime_pow):
+    """
+    Return the `m`th `p`-adic digit in the ``simple_mode`` expansion.
+
+    INPUT:
+
+    - ``value`` -- the `p`-adic element whose expansion is desired.
+    - ``m`` -- a non-negative integer: which entry in the `p`-adic expansion to return.
+    - ``prime_pow`` -- A ``PowComputer`` holding `p`-adic data.
+    """
+    if m > 0:
+        tmp = value.parent()(0)
+        cshift(tmp, value, -m, 1, prime_pow, False)
+    else:
+        tmp = value
+    const_term = tmp[0]
+    if const_term._is_exact_zero():
+        return []
+    else:
+        flint_rep = const_term._flint_rep_abs()[0]
+        p = value.base_ring().prime()
+        term = [c % p for c in flint_rep.list()]
+        while term and not term[-1]:
+            del term[-1]
+        return term
 
 cdef int cteichmuller(celement out, celement value, long prec, PowComputer_ prime_pow) except -1:
     r"""

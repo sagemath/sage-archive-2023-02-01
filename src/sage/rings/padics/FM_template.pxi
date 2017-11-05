@@ -1395,9 +1395,7 @@ cdef class pAdicConvert_FM_frac_field(Morphism):
         _process_args_and_kwds(&aprec, &rprec, args, kwds, True, ans.prime_pow)
         if rprec < aprec - x.ordp:
             aprec = x.ordp + rprec
-        sig_on()
         cshift(ans.value, x.unit, x.ordp, aprec, ans.prime_pow, x.ordp > 0)
-        sig_off()
         return ans
 
     cdef dict _extra_slots(self, dict _slots):

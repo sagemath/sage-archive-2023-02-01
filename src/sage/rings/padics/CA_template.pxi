@@ -1594,9 +1594,7 @@ cdef class pAdicConvert_CA_frac_field(Morphism):
         if x.ordp >= ans.absprec:
             csetzero(ans.value, ans.prime_pow)
         else:
-            sig_on()
             cshift(ans.value, x.unit, x.ordp, ans.absprec, ans.prime_pow, reduce)
-            sig_off()
         return ans
 
     cdef dict _extra_slots(self, dict _slots):

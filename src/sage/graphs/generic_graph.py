@@ -21819,6 +21819,8 @@ class GenericGraph(GenericGraph_pyx):
         class by some canonization function `c`. If `G` and `H` are graphs,
         then `G \cong c(G)`, and `c(G) == c(H)` if and only if `G \cong H`.
 
+        See :wikipedia:`Graph_canonization`.
+
         INPUT:
 
         - ``partition`` -- if given, the canonical label with respect

@@ -5419,13 +5419,11 @@ class Graph(GenericGraph):
         return self.copy()
 
     @doc_index("Basic methods")
-    def join(self, other, verbose_relabel=None, labels="pairs", immutable=None):
+    def join(self, other, labels="pairs", immutable=None):
         """
         Returns the join of ``self`` and ``other``.
 
         INPUT:
-
-        - ``verbose_relabel`` - deprecated.
 
         - ``labels`` - (defaults to 'pairs') If set to 'pairs', each
           element ``v`` in the first graph will be named ``(0,v)`` and
@@ -5473,13 +5471,6 @@ class Graph(GenericGraph):
             sage: J.edges()
             [(0, 3, None), (0, 4, None), (1, 3, None), (1, 4, None), (2, 3, None), (2, 4, None)]
         """
-        if verbose_relabel is not None:
-            deprecation(17053, "Instead of verbose_relabel=True/False use labels='pairs'/'integers'.")
-            if verbose_relabel is True:
-                labels="pairs"
-            if verbose_relabel is False:
-                labels="integers"
-
         G = self.disjoint_union(other, labels=labels, immutable=False)
         if labels=="integers":
             G.add_edges((u,v) for u in range(self.order())

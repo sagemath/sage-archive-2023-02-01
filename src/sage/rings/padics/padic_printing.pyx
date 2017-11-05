@@ -1185,7 +1185,12 @@ cdef class pAdicPrinter_class(SageObject):
                 # since elt was not supposed to be zero, this should give a non-empty list.
                 if len(L) == 0:
                     raise RuntimeError("repr_spec called on zero")
-                if elt.parent().f() > 1: # unramified part to the extension
+                R = elt.parent()
+                f = R.f()
+                while R.degree() != 1:
+                    R = R.base_ring()
+                    f *= R.f()
+                if f > 1: # unramified part to the extension
                     if self.unram_name is None:
                         raise RuntimeError("need to have specified a name for the unramified variable")
                     L, ellipsis = self._truncate_list(L, self.max_ram_terms, [])

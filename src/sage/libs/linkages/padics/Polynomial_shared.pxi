@@ -34,6 +34,8 @@ from sage.ext.stdsage cimport PY_NEW
 from copy import copy
 from sage.rings.padics.common_conversion cimport cconv_mpz_t_out_shared, cconv_mpz_t_shared, cconv_mpq_t_out_shared, cconv_mpq_t_shared, cconv_shared
 
+DEF CELEMENT_IS_PY_OBJECT = True
+
 cdef inline int cconstruct(celement value, PowComputer_ prime_pow) except -1:
     r"""
     Construct a new element.

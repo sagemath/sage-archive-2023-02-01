@@ -75,6 +75,9 @@ cdef class CAElement(pAdicTemplateElement):
             sage: a = R(25/9, absprec = 5, relprec = 4); a #indirect doctest
             4*5^2 + 2*5^3 + O(5^5)
         """
+        IF CELEMENT_IS_PY_OBJECT:
+            polyt = type(self.prime_pow.modulus)
+            self.value = <celement>polyt.__new__(polyt)
         cconstruct(self.value, self.prime_pow)
         cdef long rprec = comb_prec(relprec, self.prime_pow.ram_prec_cap)
         cdef long aprec = comb_prec(absprec, min(self.prime_pow.ram_prec_cap, xprec))
@@ -96,11 +99,19 @@ cdef class CAElement(pAdicTemplateElement):
 
             sage: R = ZpCA(5); R(6,5) * R(7,8) #indirect doctest
             2 + 3*5 + 5^2 + O(5^5)
+
+            sage: R.<a> = ZqCA(25)
+            sage: S.<x> = ZZ[]
+            sage: W.<w> = R.ext(x^2 - 5)
+            sage: w * (w+1) #indirect doctest
         """
         cdef type t = type(self)
         cdef CAElement ans = t.__new__(t)
         ans._parent = self._parent
         ans.prime_pow = self.prime_pow
+        IF CELEMENT_IS_PY_OBJECT:
+            polyt = type(self.prime_pow.modulus)
+            ans.value = <celement>polyt.__new__(polyt)
         cconstruct(ans.value, ans.prime_pow)
         return ans
 
@@ -1680,6 +1691,9 @@ def unpickle_cae_v2(cls, parent, value, absprec):
     cdef CAElement ans = cls.__new__(cls)
     ans._parent = parent
     ans.prime_pow = <PowComputer_?>parent.prime_pow
+    IF CELEMENT_IS_PY_OBJECT:
+        polyt = type(ans.prime_pow.modulus)
+        ans.value = <celement>polyt.__new__(polyt)
     cconstruct(ans.value, ans.prime_pow)
     cunpickle(ans.value, value, ans.prime_pow)
     ans.absprec = absprec

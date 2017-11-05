@@ -33,6 +33,8 @@ from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_poly cimport *
 
+DEF CELEMENT_IS_PY_OBJECT = False
+
 cdef inline int cconstruct(celement value, PowComputer_ prime_pow) except -1:
     """
     Construct a new element.

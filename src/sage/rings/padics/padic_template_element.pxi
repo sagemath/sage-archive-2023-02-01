@@ -998,6 +998,10 @@ cdef class ExpansionIter(object):
             R = elt.parent()
             self.tracks_prec = R.is_capped_relative() or R.is_capped_absolute()
             self.teich_ring = R.maximal_unramified_subextension().integer_ring()
+        IF CELEMENT_IS_PY_OBJECT:
+            polyt = type(elt.prime_pow.modulus)
+            self.tmp = <celement>polyt.__new__(polyt)
+            self.curvalue = <celement>polyt.__new__(polyt)
         cconstruct(self.tmp, elt.prime_pow)
         cconstruct(self.curvalue, elt.prime_pow)
         elt._get_unit(self.curvalue)
@@ -1115,6 +1119,9 @@ cdef class ExpansionIterable(object):
             5-adic expansion of 3 + 4*5 + 4*5^2 + 2*5^3 + O(5^4)
         """
         self.elt = elt
+        IF CELEMENT_IS_PY_OBJECT:
+            polyt = type(elt.prime_pow.modulus)
+            self.tmp = <celement>polyt.__new__(polyt)
         cconstruct(self.tmp, elt.prime_pow)
         self.prec = prec
         self.val_shift = val_shift

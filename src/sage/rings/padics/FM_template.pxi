@@ -80,6 +80,9 @@ cdef class FMElement(pAdicTemplateElement):
             sage: a = R(25/9); a #indirect doctest
             4*5^2 + 2*5^3 + O(5^5)
         """
+        IF CELEMENT_IS_PY_OBJECT:
+            polyt = type(self.prime_pow.modulus)
+            self.value = <celement>polyt.__new__(polyt)
         cconstruct(self.value, self.prime_pow)
         if isinstance(x,FMElement) and x.parent() is self.parent():
             cshift(self.value, (<FMElement>x).value, 0, 0, self.prime_pow, False)
@@ -99,6 +102,9 @@ cdef class FMElement(pAdicTemplateElement):
         cdef FMElement ans = t.__new__(t)
         ans._parent = self._parent
         ans.prime_pow = self.prime_pow
+        IF CELEMENT_IS_PY_OBJECT:
+            polyt = type(self.prime_pow.modulus)
+            ans.value = <celement>polyt.__new__(polyt)
         cconstruct(ans.value, ans.prime_pow)
         return ans
 
@@ -1470,6 +1476,9 @@ def unpickle_fme_v2(cls, parent, value):
     cdef FMElement ans = cls.__new__(cls)
     ans._parent = parent
     ans.prime_pow = <PowComputer_?>parent.prime_pow
+    IF CELEMENT_IS_PY_OBJECT:
+        polyt = type(ans.prime_pow.modulus)
+        ans.value = <celement>polyt.__new__(polyt)
     cconstruct(ans.value, ans.prime_pow)
     cunpickle(ans.value, value, ans.prime_pow)
     return ans

@@ -132,6 +132,9 @@ cdef class FPElement(pAdicTemplateElement):
             sage: K(R.zero())
             0
         """
+        IF CELEMENT_IS_PY_OBJECT:
+            polyt = type(self.prime_pow.modulus)
+            self.unit = <celement>polyt.__new__(polyt)
         cconstruct(self.unit, self.prime_pow)
         if val >= xprec or val >= absprec:
             self._set_exact_zero()
@@ -176,11 +179,19 @@ cdef class FPElement(pAdicTemplateElement):
 
             sage: R = ZpFP(5); R(6) * R(7) #indirect doctest
             2 + 3*5 + 5^2
+
+            sage: R.<a> = ZqFP(25)
+            sage: S.<x> = ZZ[]
+            sage: W.<w> = R.ext(x^2 - 5)
+            sage: w * (w+1) #indirect doctest
         """
         cdef type t = type(self)
         cdef FPElement ans = t.__new__(t)
         ans._parent = self._parent
         ans.prime_pow = self.prime_pow
+        IF CELEMENT_IS_PY_OBJECT:
+            polyt = type(self.prime_pow.modulus)
+            ans.unit = <celement>polyt.__new__(polyt)
         cconstruct(ans.unit, ans.prime_pow)
         return ans
 
@@ -2026,6 +2037,9 @@ def unpickle_fpe_v2(cls, parent, unit, ordp):
     cdef FPElement ans = cls.__new__(cls)
     ans._parent = parent
     ans.prime_pow = <PowComputer_?>parent.prime_pow
+    IF CELEMENT_IS_PY_OBJECT:
+        polyt = type(ans.prime_pow.modulus)
+        ans.unit = <celement>polyt.__new__(polyt)
     cconstruct(ans.unit, ans.prime_pow)
     cunpickle(ans.unit, unit, ans.prime_pow)
     ans.ordp = ordp

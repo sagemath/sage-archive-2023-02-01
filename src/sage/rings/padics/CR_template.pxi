@@ -132,6 +132,9 @@ cdef class CRElement(pAdicTemplateElement):
             sage: R(S(17, 5)) #indirect doctest
             2 + 3*5 + O(5^5)
         """
+        IF CELEMENT_IS_PY_OBJECT:
+            polyt = type(self.prime_pow.modulus)
+            self.unit = <celement>polyt.__new__(polyt)
         cconstruct(self.unit, self.prime_pow)
         cdef long rprec = comb_prec(relprec, self.prime_pow.ram_prec_cap)
         cdef long aprec = comb_prec(absprec, xprec)
@@ -182,11 +185,20 @@ cdef class CRElement(pAdicTemplateElement):
             sage: R = Zp(5)
             sage: R(6,5) * R(7,8) #indirect doctest
             2 + 3*5 + 5^2 + O(5^5)
+
+            sage: R.<a> = ZqCR(25)
+            sage: S.<x> = ZZ[]
+            sage: W.<w> = R.ext(x^2 - 5)
+            sage: w * (w+1) #indirect doctest
         """
         cdef type t = type(self)
+        cdef type polyt
         cdef CRElement ans = t.__new__(t)
         ans._parent = self._parent
         ans.prime_pow = self.prime_pow
+        IF CELEMENT_IS_PY_OBJECT:
+            polyt = type(self.prime_pow.modulus)
+            ans.unit = <celement>polyt.__new__(polyt)
         cconstruct(ans.unit, ans.prime_pow)
         return ans
 
@@ -2430,6 +2442,9 @@ def unpickle_cre_v2(cls, parent, unit, ordp, relprec):
     cdef CRElement ans = cls.__new__(cls)
     ans._parent = parent
     ans.prime_pow = <PowComputer_?>parent.prime_pow
+    IF CELEMENT_IS_PY_OBJECT:
+        polyt = type(ans.prime_pow.modulus)
+        ans.unit = <celement>polyt.__new__(polyt)
     cconstruct(ans.unit, ans.prime_pow)
     cunpickle(ans.unit, unit, ans.prime_pow)
     ans.ordp = ordp

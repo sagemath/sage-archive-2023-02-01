@@ -78,13 +78,25 @@ class pAdicExtensionGeneric(pAdicGeneric):
             if self._implementation == 'NTL':
                 return True
             elif R._prec_type() == 'capped-abs':
-                from sage.rings.padics.qadic_flint_CA import pAdicCoercion_CA_frac_field as coerce_map
+                if R.f() > 1:
+                    from sage.rings.padics.qadic_flint_CA import pAdicCoercion_CA_frac_field as coerce_map
+                else:
+                    from sage.rings.padics.relative_ramified_CA import pAdicCoercion_CA_frac_field as coerce_map
             elif R._prec_type() == 'capped-rel':
-                from sage.rings.padics.qadic_flint_CR import pAdicCoercion_CR_frac_field as coerce_map
+                if R.f() > 1:
+                    from sage.rings.padics.qadic_flint_CR import pAdicCoercion_CR_frac_field as coerce_map
+                else:
+                    from sage.rings.padics.relative_ramified_CR import pAdicCoercion_CR_frac_field as coerce_map
             elif R._prec_type() == 'floating-point':
-                from sage.rings.padics.qadic_flint_FP import pAdicCoercion_FP_frac_field as coerce_map
+                if R.f() > 1:
+                    from sage.rings.padics.qadic_flint_FP import pAdicCoercion_FP_frac_field as coerce_map
+                else:
+                    from sage.rings.padics.relative_ramified_FP import pAdicCoercion_FP_frac_field as coerce_map
             elif R._prec_type() == 'fixed-mod':
-                from sage.rings.padics.qadic_flint_FM import pAdicCoercion_FM_frac_field as coerce_map
+                if R.f() > 1:
+                    from sage.rings.padics.qadic_flint_FM import pAdicCoercion_FM_frac_field as coerce_map
+                else:
+                    from sage.rings.padics.relative_ramified_FM import pAdicCoercion_FM_frac_field as coerce_map
             return coerce_map(R, self)
 
     def _convert_map_from_(self, R):

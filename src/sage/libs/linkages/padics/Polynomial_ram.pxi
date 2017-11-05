@@ -297,10 +297,8 @@ cdef inline cexpansion_next(celement value, expansion_mode mode, long curpower, 
     if const_term._is_exact_zero():
         term = []
     else:
-        #flint_rep = const_term._flint_rep_abs()[0]
-        #print flint_rep
-        #term = [c % p for c in flint_rep.list()]
-        term = []
+        flint_rep = const_term._flint_rep_abs()[0]
+        term = [c % p for c in flint_rep.list()]
         while term and not term[-1]:
             del term[-1]
         if mode == smallest_mode:

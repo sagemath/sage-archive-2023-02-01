@@ -17496,14 +17496,11 @@ class GenericGraph(GenericGraph_pyx):
             g = g.copy(immutable=True)
         return g
 
-    def disjoint_union(self, other, verbose_relabel=None, labels="pairs",
-                             immutable=None):
+    def disjoint_union(self, other, labels="pairs", immutable=None):
         """
         Return the disjoint union of self and other.
 
         INPUT:
-
-        - ``verbose_relabel`` - deprecated.
 
         - ``labels`` - (defaults to 'pairs') If set to 'pairs', each
           element ``v`` in the first graph will be named ``(0,v)`` and
@@ -17551,13 +17548,6 @@ class GenericGraph(GenericGraph_pyx):
         """
         if (self._directed and not other._directed) or (not self._directed and other._directed):
             raise TypeError('both arguments must be of the same class')
-
-        if verbose_relabel is not None:
-            deprecation(17053, "Instead of verbose_relabel=True/False use labels='pairs'/'integers'.")
-            if verbose_relabel:
-                labels="pairs"
-            if not verbose_relabel:
-                labels="integers"
 
         if labels not in ['pairs', 'integers']:
             raise ValueError("Parameter labels must be either 'pairs' or 'integers'.")

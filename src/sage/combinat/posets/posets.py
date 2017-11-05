@@ -1971,8 +1971,6 @@ class FinitePoset(UniqueRepresentation, Parent):
         from sage.graphs.graph import Graph
         return Graph(self.hasse_diagram(), immutable=True)
 
-    to_graph = deprecated_function_alias(17449, cover_relations_graph)
-
     def cover_relations_iterator(self):
         """
         Return an iterator over the cover relations of the poset.

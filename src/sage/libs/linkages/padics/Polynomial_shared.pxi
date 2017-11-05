@@ -382,7 +382,7 @@ cdef int cconv(celement out, x, long prec, long valshift, PowComputer_ prime_pow
     """
     out.__coeffs = (<celement?>prime_pow.poly_ring(x)).__coeffs
     creduce(out, out, prec, prime_pow)
-    cshift(out, out, valshift, prec, prime_pow, True)
+    cshift(out, out, -valshift, prec, prime_pow, True)
 
 cdef inline long cconv_mpz_t(celement out, mpz_t x, long prec, bint absolute, PowComputer_ prime_pow) except -2:
     r"""
@@ -447,7 +447,7 @@ cdef inline int cconv_mpz_t_out(mpz_t out, celement x, long valshift, long prec,
     cdef Integer n
 
     if valshift:
-        cshift(prime_pow.powhelper_cconv_out, x, valshift, prec, prime_pow, True)
+        cshift(prime_pow.powhelper_cconv_out, x, -valshift, prec, prime_pow, True)
     else:
         prime_pow.powhelper_cconv_out = x
 
@@ -521,7 +521,7 @@ cdef inline int cconv_mpq_t_out(mpq_t out, celement x, long valshift, long prec,
     cdef Rational c
 
     if valshift:
-        cshift(prime_pow.powhelper_cconv_out, x, valshift, prec, prime_pow, True)
+        cshift(prime_pow.powhelper_cconv_out, x, -valshift, prec, prime_pow, True)
     else:
         prime_pow.powhelper_cconv_out = x
 

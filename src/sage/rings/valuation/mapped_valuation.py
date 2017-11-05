@@ -526,8 +526,8 @@ class FiniteExtensionFromLimitValuation(FiniteExtensionFromInfiniteValuation):
         sage: L.<y> = K.extension(y^2 - x)
         sage: v = K.valuation(1)
         sage: w = v.extensions(L); w
-        [[ (x - 1)-adic valuation, v(y - 1) = 1 ]-adic valuation,
-         [ (x - 1)-adic valuation, v(y + 1) = 1 ]-adic valuation]
+        [[ (x - 1)-adic valuation, v(y + 1) = 1 ]-adic valuation,
+         [ (x - 1)-adic valuation, v(y - 1) = 1 ]-adic valuation]
 
     TESTS::
 

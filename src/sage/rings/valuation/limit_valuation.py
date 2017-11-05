@@ -277,7 +277,7 @@ class LimitValuation_generic(DiscretePseudoValuation):
         for some values (note that 1341-1337 is a square)::
 
             sage: v = K.valuation(1341)
-            sage: w = v.extensions(L)[0]
+            sage: w = v.extensions(L)[1]
             sage: u = w._base_valuation
             sage: u._approximation
             [ Gauss valuation induced by (x - 1341)-adic valuation, v(y - 2) = 1 ]
@@ -431,7 +431,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             sage: L.<y> = K.extension(y^4 - x^2 - 2*x - 1)
 
             sage: v = K.valuation(1)
-            sage: w = v.extensions(L)[0]; w
+            sage: w = v.extensions(L)[1]; w
             [ (x - 1)-adic valuation, v(y^2 - 2) = 1 ]-adic valuation
             sage: s = w.reduce(y); s
             u1

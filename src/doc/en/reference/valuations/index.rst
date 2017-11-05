@@ -68,8 +68,8 @@ Valuations can also be extended from smaller function fields::
     sage: R.<y> = K[]
     sage: L.<y> = K.extension(y^2 - x)
     sage: v.extensions(L)
-    [[ (x - 4)-adic valuation, v(y - 2) = 1 ]-adic valuation,
-     [ (x - 4)-adic valuation, v(y + 2) = 1 ]-adic valuation]
+    [[ (x - 4)-adic valuation, v(y + 2) = 1 ]-adic valuation,
+     [ (x - 4)-adic valuation, v(y - 2) = 1 ]-adic valuation]
 
 Low-Level Interface
 -------------------

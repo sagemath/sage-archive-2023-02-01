@@ -586,11 +586,11 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: R.<x>=k[]
             sage: G = x^2 + 1
             sage: v1,v2 = v.mac_lane_approximants(G); v1,v2
-            [[ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + O(5^4))) = 1 ],
-             [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (3 + O(5^4))) = 1 ]]
+            ([ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + O(5^4))) = 1 ],
+             [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (3 + O(5^4))) = 1 ])
             sage: w1, w2 = v.mac_lane_approximants(G, required_precision = 2); w1,w2
-            [[ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + 5 + O(5^4))) = 2 ],
-             [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (3 + 3*5 + O(5^4))) = 2 ]]
+            ([ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + 5 + O(5^4))) = 2 ],
+             [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (3 + 3*5 + O(5^4))) = 2 ])
 
         Note how the latter give a better approximation to the factors of `x^2 + 1`::
 
@@ -984,9 +984,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: f = (x^6+2)^25 + 5
             sage: v = R.valuation()
             sage: v.montes_factorization(f, assume_squarefree=True, required_precision=0)
-            [((1 + O(5^20))*x^50 + (2*5 + O(5^20))*x^45 + (5 + O(5^20))*x^40 + (5 + O(5^20))*x^30 + (2 + O(5^20))*x^25 + (3*5 + O(5^20))*x^20 + (2*5 + O(5^20))*x^10 + (2*5 + O(5^20))*x^5 + (5 + O(5^20))*x + 3 + 5 + O(5^20), 1),
-            ((1 + O(5^20))*x^50 + (3*5 + O(5^20))*x^40 + (3*5 + O(5^20))*x^30 + (4*5 + O(5^20))*x^20 + (5 + O(5^20))*x^10 + 3 + 5 + O(5^20), 1),
-            ((1 + O(5^20))*x^50 + (3*5 + O(5^20))*x^45 + (5 + O(5^20))*x^40 + (5 + O(5^20))*x^30 + (3 + 4*5 + O(5^20))*x^25 + (3*5 + O(5^20))*x^20 + (2*5 + O(5^20))*x^10 + (3*5 + O(5^20))*x^5 + (4*5 + O(5^20))*x + 3 + 5 + O(5^20), 1)]
+            ((1 + O(5^20))*x^50 + (2*5 + O(5^20))*x^45 + (5 + O(5^20))*x^40 + (5 + O(5^20))*x^30 + (2 + O(5^20))*x^25 + (3*5 + O(5^20))*x^20 + (2*5 + O(5^20))*x^10 + (2*5 + O(5^20))*x^5 + (5 + O(5^20))*x + 3 + 5 + O(5^20)) * ((1 + O(5^20))*x^50 + (3*5 + O(5^20))*x^45 + (5 + O(5^20))*x^40 + (5 + O(5^20))*x^30 + (3 + 4*5 + O(5^20))*x^25 + (3*5 + O(5^20))*x^20 + (2*5 + O(5^20))*x^10 + (3*5 + O(5^20))*x^5 + (4*5 + O(5^20))*x + 3 + 5 + O(5^20)) * ((1 + O(5^20))*x^50 + (3*5 + O(5^20))*x^40 + (3*5 + O(5^20))*x^30 + (4*5 + O(5^20))*x^20 + (5 + O(5^20))*x^10 + 3 + 5 + O(5^20))
 
         In this case, ``f`` factors into degrees 1, 2, and 5 over a totally ramified extension::
 
@@ -997,9 +995,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: f = (x^3 + 5)*(x^5 + w) + 625
             sage: v = R.valuation()
             sage: v.montes_factorization(f, assume_squarefree=True, required_precision=0)
-            [((1 + O(w^60))*x + 4*w + O(w^60), 1),
-             ((1 + O(w^60))*x^2 + (w + O(w^60))*x + w^2 + O(w^60), 1),
-             ((1 + O(w^60))*x^5 + w + O(w^60), 1)]
+            ((1 + O(w^60))*x + 4*w + O(w^60)) * ((1 + O(w^60))*x^2 + (w + O(w^60))*x + w^2 + O(w^60)) * ((1 + O(w^60))*x^5 + w + O(w^60))
 
         REFERENCES:
 

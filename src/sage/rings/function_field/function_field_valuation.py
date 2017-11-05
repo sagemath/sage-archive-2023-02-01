@@ -35,8 +35,8 @@ extensions::
     sage: R.<y> = K[]
     sage: L.<y> = K.extension(y^2 - x)
     sage: w = v.extensions(L); w
-    [[ (x - 1)-adic valuation, v(y - 1) = 1 ]-adic valuation,
-     [ (x - 1)-adic valuation, v(y + 1) = 1 ]-adic valuation]
+    [[ (x - 1)-adic valuation, v(y + 1) = 1 ]-adic valuation,
+     [ (x - 1)-adic valuation, v(y - 1) = 1 ]-adic valuation]
 
 TESTS:
 
@@ -722,7 +722,7 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
         if self(f) > 0:
             return self.residue_field().zero()
         if self(f) < 0:
-            raise ValueError
+            raise ValueError("can not reduce element of negative valuation")
 
         base = self._base_valuation
 
@@ -1222,8 +1222,8 @@ class FunctionFieldExtensionMappedValuation(FunctionFieldMappedValuation_base):
             sage: L.<y> = K.extension(y^2 - 1/x^2 - 1)
             sage: v = K.valuation(1/x)
             sage: w = v.extensions(L); w
-            [[ Valuation at the infinite place, v(y - 1) = 2 ]-adic valuation,
-             [ Valuation at the infinite place, v(y + 1) = 2 ]-adic valuation]
+            [[ Valuation at the infinite place, v(y + 1) = 2 ]-adic valuation,
+             [ Valuation at the infinite place, v(y - 1) = 2 ]-adic valuation]
 
         """
         assert(self.domain().base() is not self.domain())

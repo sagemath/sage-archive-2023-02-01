@@ -59,10 +59,10 @@ cdef inline bint creduce(celement out, celement a, long prec, PowComputer_ prime
     if break_pt > len(out.__coeffs):
         break_pt = len(out.__coeffs)
     for i in range(break_pt):
-        out.__coeffs[i] %= prime_pow.base_ring.uniformizer_pow(coeff_prec)
+        out.__coeffs[i] = out.__coeffs[i].add_bigoh(coeff_prec)
     coeff_prec -= 1
     for i in range(break_pt, len(out.__coeffs)):
-        out.__coeffs[i] %= prime_pow.base_ring.uniformizer_pow(coeff_prec)
+        out.__coeffs[i] = out.__coeffs[i].add_bigoh(coeff_prec)
     out.__normalize()
     return out == 0
 

@@ -19,7 +19,7 @@ from .eisenstein_extension_generic import EisensteinExtensionGeneric
 from .relative_ramified_FM import RelativeRamifiedFixedModElement
 from .relative_ramified_CA import RelativeRamifiedCappedAbsoluteElement
 from .relative_ramified_CR import RelativeRamifiedCappedRelativeElement
-from .relative_ramified_CP import RelativeRamifiedFloatingPointElement
+from .relative_ramified_FP import RelativeRamifiedFloatingPointElement
 from .pow_computer_relative import PowComputer_relative_maker
 
 class pAdicRelativeBaseringInjection(Morphism):

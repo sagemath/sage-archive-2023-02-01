@@ -48,7 +48,7 @@ cdef class RelativeRamifiedFloatingPointElement(FPElement):
             sage: loads(dumps(w)) == w
             True
         """
-        return unpickle_cre_rel_v2, (self.__class__, self.parent(), cpickle(self.unit, self.prime_pow), self.ordp)
+        return unpickle_fpe_rel_v2, (self.__class__, self.parent(), cpickle(self.unit, self.prime_pow), self.ordp)
 
     def _poly_rep(self):
         return self.unit

@@ -40,7 +40,7 @@ class RelativeRamifiedExtensionRingFixedMod(EisensteinExtensionGeneric, pAdicFix
     def __init__(self, exact_modulus, approx_modulus, prec, print_mode, shift_seed, names, implementation):
         self._exact_modulus = exact_modulus
         unram_prec = (prec + approx_modulus.degree() - 1) // approx_modulus.degree()
-        KFP = approx_modulus.base_ring().change(type='floating-point')
+        KFP = approx_modulus.base_ring().change(field=False, type='floating-point')
         self.prime_pow = PowComputer_relative_maker(approx_modulus.base_ring().prime(), max(min(unram_prec - 1, 30), 1), unram_prec, prec, False, exact_modulus.change_ring(KFP), shift_seed.change_ring(KFP), 'fixed-mod')
         self._implementation = 'Polynomial'
         EisensteinExtensionGeneric.__init__(self, approx_modulus, prec, print_mode, names, RelativeRamifiedFixedModElement)
@@ -53,7 +53,7 @@ class RelativeRamifiedExtensionRingCappedAbsolute(EisensteinExtensionGeneric, pA
     def __init__(self, exact_modulus, approx_modulus, prec, print_mode, shift_seed, names, implementation):
         self._exact_modulus = exact_modulus
         unram_prec = (prec + approx_modulus.degree() - 1) // approx_modulus.degree()
-        KFP = approx_modulus.base_ring().change(type='floating-point')
+        KFP = approx_modulus.base_ring().change(field=False, type='floating-point')
         self.prime_pow = PowComputer_relative_maker(approx_modulus.base_ring().prime(), max(min(unram_prec - 1, 30), 1), unram_prec, prec, False, exact_modulus.change_ring(KFP), shift_seed.change_ring(KFP), 'capped-abs')
         self._implementation = 'Polynomial'
         EisensteinExtensionGeneric.__init__(self, approx_modulus, prec, print_mode, names, RelativeRamifiedCappedAbsoluteElement)
@@ -66,7 +66,7 @@ class RelativeRamifiedExtensionRingCappedRelative(EisensteinExtensionGeneric, pA
     def __init__(self, exact_modulus, approx_modulus, prec, print_mode, shift_seed, names, implementation):
         self._exact_modulus = exact_modulus
         unram_prec = (prec + approx_modulus.degree() - 1) // approx_modulus.degree()
-        KFP = approx_modulus.base_ring().change(type='floating-point')
+        KFP = approx_modulus.base_ring().change(field=False, type='floating-point')
         self.prime_pow = PowComputer_relative_maker(approx_modulus.base_ring().prime(), max(min(unram_prec - 1, 30), 1), unram_prec, prec, False, exact_modulus.change_ring(KFP), shift_seed.change_ring(KFP), 'capped-rel')
         self._implementation = 'Polynomial'
         EisensteinExtensionGeneric.__init__(self, approx_modulus, prec, print_mode, names, RelativeRamifiedCappedRelativeElement)
@@ -79,7 +79,7 @@ class RelativeRamifiedExtensionFieldCappedRelative(EisensteinExtensionGeneric, p
     def __init__(self, exact_modulus, approx_modulus, prec, print_mode, shift_seed, names, implementation):
         self._exact_modulus = exact_modulus
         unram_prec = (prec + approx_modulus.degree() - 1) // approx_modulus.degree()
-        KFP = approx_modulus.base_ring().change(type='floating-point')
+        KFP = approx_modulus.base_ring().change(field=False, type='floating-point')
         self.prime_pow = PowComputer_relative_maker(approx_modulus.base_ring().prime(), max(min(unram_prec - 1, 30), 1), unram_prec, prec, False, exact_modulus.change_ring(KFP), shift_seed.change_ring(KFP), 'capped-rel')
         self._implementation = 'Polynomial'
         EisensteinExtensionGeneric.__init__(self, approx_modulus, prec, print_mode, names, RelativeRamifiedCappedRelativeElement)
@@ -92,7 +92,7 @@ class RelativeRamifiedExtensionRingFloatingPoint(EisensteinExtensionGeneric, pAd
     def __init__(self, exact_modulus, approx_modulus, prec, print_mode, shift_seed, names, implementation):
         self._exact_modulus = exact_modulus
         unram_prec = (prec + approx_modulus.degree() - 1) // approx_modulus.degree()
-        KFP = approx_modulus.base_ring()
+        KFP = approx_modulus.base_ring().change(field=False)
         self.prime_pow = PowComputer_relative_maker(approx_modulus.base_ring().prime(), max(min(unram_prec - 1, 30), 1), unram_prec, prec, False, exact_modulus.change_ring(KFP), shift_seed.change_ring(KFP), 'capped-rel')
         self._implementation = 'Polynomial'
         EisensteinExtensionGeneric.__init__(self, approx_modulus, prec, print_mode, names, RelativeRamifiedFloatingPointElement)
@@ -105,7 +105,7 @@ class RelativeRamifiedExtensionFieldFloatingPoint(EisensteinExtensionGeneric, pA
     def __init__(self, exact_modulus, approx_modulus, prec, print_mode, shift_seed, names, implementation):
         self._exact_modulus = exact_modulus
         unram_prec = (prec + approx_modulus.degree() - 1) // approx_modulus.degree()
-        KFP = approx_modulus.base_ring()
+        KFP = approx_modulus.base_ring().change(field=False)
         self.prime_pow = PowComputer_relative_maker(approx_modulus.base_ring().prime(), max(min(unram_prec - 1, 30), 1), unram_prec, prec, False, exact_modulus.change_ring(KFP), shift_seed.change_ring(KFP), 'capped-rel')
         self._implementation = 'Polynomial'
         EisensteinExtensionGeneric.__init__(self, approx_modulus, prec, print_mode, names, RelativeRamifiedFloatingPointElement)

@@ -1,14 +1,18 @@
 r"""
-Finitely generated `\ZZ`-modules with non-degenerate integral symmetric bilinear form.
+Finitely generated `\ZZ`-modules with non-degenerate integral
+symmetric bilinear form.
 
-An integral lattice is a finitely generated free abelian group `L \cong \ZZ^r` equipped
-with a non-degenerate, symmetric bilinear form `L \times L \colon \rightarrow \ZZ`.
+An integral lattice is a finitely generated free abelian group
+`L \cong \ZZ^r` equipped with a non-degenerate, symmetric bilinear
+form `L \times L \colon \rightarrow \ZZ`.
 
-Here, lattices have an ambient quadratic space `\QQ^n` and a distinguished basis.
+Here, lattices have an ambient quadratic space `\QQ^n` and
+a distinguished basis.
 
 EXAMPLES::
-    
-    sage: IntegralLattice(Matrix(ZZ,2,2,[0,1,1,0]))
+
+    sage: M = Matrix(ZZ, [[0,1], [1,0]])
+    sage: IntegralLattice(M)
     Lattice of degree 2 and rank 2 over Integer Ring
     Basis matrix:
     [1 0]
@@ -17,8 +21,9 @@ EXAMPLES::
     [0 1]
     [1 0]
 
-A lattice can be defined by an inner product matrix of the ambient space and a basis::
-        
+A lattice can be defined by an inner product matrix of the
+ambient space and a basis::
+
     sage: G = matrix.identity(3)
     sage: basis = [[1,-1,0],[0,1,-1]]
     sage: L = IntegralLattice(G,basis)
@@ -31,7 +36,7 @@ A lattice can be defined by an inner product matrix of the ambient space and a b
     [1 0 0]
     [0 1 0]
     [0 0 1]
-        
+
     sage: L.gram_matrix()
     [ 2 -1]
     [-1  2]

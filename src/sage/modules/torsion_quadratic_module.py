@@ -191,7 +191,7 @@ class TorsionQuadraticModule(FGP_Module_class):
 
         if modulus is not None:
             if check:
-                # The inner product of two elements `b(v1+W,v2+W)` is defined `mod (V,W)`
+                # The inner product of two elements `b(v1+W,v2+W)` is defined `mod b(V,W)`
                 num = gcd([x.inner_product(y) for x in V.gens()
                            for y in W.gens()])
                 if num / modulus not in self.base_ring():
@@ -506,7 +506,7 @@ class TorsionQuadraticModule(FGP_Module_class):
 
     def value_module(self):
         r"""
-        Return `\QQ / m\ZZ` with `m = (V, W)`.
+        Return `\QQ / m\ZZ` with `m = b(V, W)`.
 
         This is where the inner product takes values.
 
@@ -527,7 +527,7 @@ class TorsionQuadraticModule(FGP_Module_class):
 
     def value_module_qf(self):
         r"""
-        Return `\QQ / n\ZZ` with `n\ZZ = (V,W) + \ZZ \{ (w,w) | w \in W \}`.
+        Return `\QQ / n\ZZ` with `n\ZZ = b(V,W) + \ZZ \{ (w,w) | w \in W \}`.
 
         This is where the torsion quadratic form takes values.
 

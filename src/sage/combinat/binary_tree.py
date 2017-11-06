@@ -1445,7 +1445,11 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         EXAMPLES::
 
             sage: [t._tamari_sorting_tuple() for t in BinaryTrees(3)]
-            [(3, 3, 3), (2, 3, 3), (1, 3, 3), (2, 2, 3), (1, 2, 3)]
+            [((3, 3, 3), 3),
+            ((3, 2, 3), 3),
+            ((1, 3, 3), 3),
+            ((2, 2, 3), 3),
+            ((1, 2, 3), 3)]
 
         REFERENCES:
 

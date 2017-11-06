@@ -33,8 +33,25 @@ class pAdicRelativeBaseringInjection(Morphism):
     def _call_(self, x):
         return self.codomain()([x])
 
-    def _call_with_extra_args(self, x, args=(), kwds={}):
+    def _call_with_args(self, x, args=(), kwds={}):
         return self.codomain()([x], *args, **kwds)
+
+    def section(self):
+        return pAdicRelativeBaseringSection(S, R)
+
+class pAdicRelativeBaseringSection(Morphism):
+    def __init__(self, S, R):
+        from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
+        Morphism.__init__(self, Hom(S, R, SetsWithPartialMaps()))
+
+    def _call_(self, x):
+        f = x.polynomial()
+        if f.degree() > 0:
+            raise ValueError("Element not contained in base ring")
+        return f[0]
+
+    def _call_with_args(self, x, args=(), kwds={}):
+        return self.codomain()(self._call_(x), *args, **kwds)
 
 class RelativeRamifiedExtensionRingFixedMod(EisensteinExtensionGeneric, pAdicFixedModRingGeneric):
     def __init__(self, exact_modulus, approx_modulus, prec, print_mode, shift_seed, names, implementation):

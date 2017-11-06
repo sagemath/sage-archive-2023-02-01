@@ -619,7 +619,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         """
         return self.Monomial()
 
-    _shorthands = tuple(['M', 'F', 'E', 'dI', 'QS'])
+    _shorthands = tuple(['M', 'F', 'E', 'dI', 'QS', 'Phi', 'Psi'])
 
     def dual(self):
         r"""
@@ -3619,27 +3619,27 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             new_factors = sorted(I_factors + J_factors, reverse=True)
             return self.monomial(self._indices(flatten(new_factors)))
 
-    class Psi(CombinatorialFreeModule, BindableClass):
+    class psi(CombinatorialFreeModule, BindableClass):
         r"""
-        The Hopf algebra of quasi-symmetric functions in the `\Psi` basis.
+        The Hopf algebra of quasi-symmetric functions in the `\psi` basis.
 
-        The `\Psi` basis is defined as a rescaled Hopf dual of the `\Psi`
+        The `\psi` basis is defined as a rescaled Hopf dual of the `\Psi`
         basis of the non-commutative symmetric functions (see Section 3.1
         of [BDHMN2017]_), where the pairing is
 
         .. MATH::
 
-            (\Psi_I, \Psi_J) = z_I \delta_{I,J},
+            (\psi_I, \Psi_J) = z_I \delta_{I,J},
 
         where `z_I = 1^{m_1} m_1! 2^{m_2} m_2! \cdots` with `m_i` being the
         multiplicity of `i` in the composition `I`. Therefore, we call these
         the *quasi-symmetric power sums of the first kind*.
 
-        Using the duality, we can directly define the `\Psi` basis by
+        Using the duality, we can directly define the `\psi` basis by
 
         .. MATH::
 
-            \Psi_I = \sum_{J \succ I} z_I / \pi_{I,J} M_J,
+            \psi_I = \sum_{J \succ I} z_I / \pi_{I,J} M_J,
 
         where `\pi_{I,J}` is as defined in [NCSF]_.
 
@@ -3649,15 +3649,15 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: QSym = QuasiSymmetricFunctions(QQ)
-            sage: Psi = QSym.Psi(); Psi
-            Quasisymmetric functions over the Rational Field in the Psi basis
-            sage: Psi.an_element()
-            2*Psi[] + 2*Psi[1] + 3*Psi[1, 1]
+            sage: psi = QSym.psi(); psi
+            Quasisymmetric functions over the Rational Field in the psi basis
+            sage: psi.an_element()
+            2*psi[] + 2*psi[1] + 3*psi[1, 1]
 
-        Checking the equivalent definition of `\Psi_n`::
+        Checking the equivalent definition of `\psi_n`::
 
             sage: def test_psi(n):
-            ....:     psi = QuasiSymmetricFunctions(QQ).Psi()
+            ....:     psi = QuasiSymmetricFunctions(QQ).psi()
             ....:     Psi = NonCommutativeSymmetricFunctions(QQ).Psi()
             ....:     M = matrix([[psi[I].duality_pairing(Psi[J])
             ....:                  for I in Compositions(n)]
@@ -3673,22 +3673,22 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: Psi = QuasiSymmetricFunctions(QQ).Psi()
-                sage: TestSuite(Psi).run()
+                sage: psi = QuasiSymmetricFunctions(QQ).psi()
+                sage: TestSuite(psi).run()
 
             TESTS::
 
-                sage: Psi = QuasiSymmetricFunctions(QQ).Psi()
+                sage: psi = QuasiSymmetricFunctions(QQ).psi()
                 sage: M = QuasiSymmetricFunctions(QQ).M()
-                sage: all(Psi(M(Psi[c])) == Psi[c] for n in range(5)
+                sage: all(psi(M(psi[c])) == psi[c] for n in range(5)
                 ....:     for c in Compositions(n))
                 True
-                sage: all(M(Psi(M[c])) == M[c] for n in range(5)
+                sage: all(M(psi(M[c])) == M[c] for n in range(5)
                 ....:     for c in Compositions(n))
                 True
             """
             CombinatorialFreeModule.__init__(self, QSym.base_ring(), Compositions(),
-                                             prefix='Psi', bracket=False,
+                                             prefix='psi', bracket=False,
                                              category=QSym.Bases())
 
             category = self.realization_of()._category
@@ -3703,7 +3703,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         def _from_Monomial_on_basis(self, I):
             r"""
             Expand a Monomial basis element indexed by ``I`` in the
-            `\Psi` basis.
+            `\psi` basis.
 
             INPUT:
 
@@ -3711,14 +3711,14 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             OUTPUT:
 
-            - a quasi-symmetric function in the `\Psi` basis
+            - a quasi-symmetric function in the `\psi` basis
 
             TESTS::
 
-                sage: Psi = QuasiSymmetricFunctions(QQ).Psi()
+                sage: psi = QuasiSymmetricFunctions(QQ).psi()
                 sage: I = Composition([2, 3, 2])
-                sage: Psi._from_Monomial_on_basis(I)
-                1/2*Psi[2, 3, 2] - 2/5*Psi[2, 5] - 3/5*Psi[5, 2] + 2/7*Psi[7]
+                sage: psi._from_Monomial_on_basis(I)
+                1/2*psi[2, 3, 2] - 2/5*psi[2, 5] - 3/5*psi[5, 2] + 2/7*psi[7]
             """
             R = self.base_ring()
             minus_one = -R.one()
@@ -3728,7 +3728,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
         def _to_Monomial_on_basis(self, I):
             r"""
-            Expand a `\Psi` basis element indexed by ``I`` in the
+            Expand a `\psi` basis element indexed by ``I`` in the
             Monomial basis.
 
             INPUT:
@@ -3741,9 +3741,9 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             TESTS::
 
-                sage: Psi = QuasiSymmetricFunctions(QQ).Psi()
+                sage: psi = QuasiSymmetricFunctions(QQ).psi()
                 sage: I = Composition([2, 3, 2])
-                sage: Psi._to_Monomial_on_basis(I)
+                sage: psi._to_Monomial_on_basis(I)
                 2*M[2, 3, 2] + 4/5*M[2, 5] + 6/5*M[5, 2] + 12/35*M[7]
             """
             R = self.base_ring()
@@ -3751,90 +3751,45 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             Monomial = self.realization_of().Monomial()
             return Monomial._from_dict({J: z / coeff_pi(I,J) for J in I.fatter()})
 
-        def dual(self):
-            r"""
-            Return the dual basis to the `\Psi` basis.
-
-            .. NOTE::
-
-                These are dual up to a rescaling of `\Phi_I` by `z_I`.
-
-            OUTPUT:
-
-            The `\Psi` basis of the non-commutative symmetric functions.
-
-            EXAMPLES::
-
-                sage: Psi = QuasiSymmetricFunctions(QQ).Psi()
-                sage: Psi.dual()
-                Non-Commutative Symmetric Functions over the Rational Field in the Psi basis
-            """
-            return self.realization_of().dual().Psi()
-
-        def duality_pairing(self, x, y):
-            r"""
-            The duality pairing between elements of `QSym` and elements
-            of `NSym`.
-
-            This uses the *scaled* duality between the `\Psi` basis
-            of `NSym`.
-
-            INPUT:
-
-            - ``x`` -- an element of ``self``
-            - ``y`` -- an element in the dual basis of ``self``
-
-            EXAMPLES::
-
-                sage: psi = QuasiSymmetricFunctions(QQ).Psi()
-                sage: Psi = NonCommutativeSymmetricFunctions(QQ).Psi()
-                sage: psi.duality_pairing(psi[1,2,1], Psi[1,2,1])
-                4
-            """
-            x = self(x)
-            y = self.dual()(y)
-            return self.base_ring().sum(coeff * I.to_partition().centralizer_size() * y[I]
-                                        for (I, coeff) in x)
-
-    class Phi(CombinatorialFreeModule, BindableClass):
+    class phi(CombinatorialFreeModule, BindableClass):
         r"""
-        The Hopf algebra of quasi-symmetric functions in the `\Phi` basis.
+        The Hopf algebra of quasi-symmetric functions in the `\phi` basis.
 
-        The `\Phi` basis is defined as a rescaled Hopf dual of the `\Phi`
+        The `\phi` basis is defined as a rescaled Hopf dual of the `\Phi`
         basis of the non-commutative symmetric functions (see Section 3.1
         of [BDHMN2017]_), where the pairing is
 
         .. MATH::
 
-            (\Phi_I, \Phi_J) = z_I \delta_{I,J},
+            (\phi_I, \Phi_J) = z_I \delta_{I,J},
 
         where `z_I = 1^{m_1} m_1! 2^{m_2} m_2! \cdots` with `m_i` being the
         multiplicity of `i` in the composition `I`. Therefore, we call these
         the *quasi-symmetric power sums of the second kind*.
 
-        Using the duality, we can directly define the `\Phi` basis by
+        Using the duality, we can directly define the `\phi^*` basis by
 
         .. MATH::
 
-            \Phi_I = \sum_{J \succ I} z_I / sp_{I,J} M_J,
+            \phi_I = \sum_{J \succ I} z_I / sp_{I,J} M_J,
 
         where `sp_{I,J}` is as defined in [NCSF]_.
 
-        The `\Phi`-basis is well-defined only when the base ring is a
+        The `\phi`-basis is well-defined only when the base ring is a
         `\QQ`-algebra.
 
         EXAMPLES::
 
             sage: QSym = QuasiSymmetricFunctions(QQ)
-            sage: Phi = QSym.Phi(); Phi
-            Quasisymmetric functions over the Rational Field in the Phi basis
-            sage: Phi.an_element()
-            2*Phi[] + 2*Phi[1] + 3*Phi[1, 1]
+            sage: phi = QSym.phi(); phi
+            Quasisymmetric functions over the Rational Field in the phi basis
+            sage: phi.an_element()
+            2*phi[] + 2*phi[1] + 3*phi[1, 1]
 
-        Checking the equivalent definition of `\Phi_n`::
+        Checking the equivalent definition of `\phi_n`::
 
             sage: def test_phi(n):
-            ....:     phi = QuasiSymmetricFunctions(QQ).Phi()
+            ....:     phi = QuasiSymmetricFunctions(QQ).phi()
             ....:     Phi = NonCommutativeSymmetricFunctions(QQ).Phi()
             ....:     M = matrix([[phi[I].duality_pairing(Phi[J])
             ....:                  for I in Compositions(n)]
@@ -3850,22 +3805,22 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: Phi = QuasiSymmetricFunctions(QQ).Phi()
-                sage: TestSuite(Phi).run()
+                sage: phi = QuasiSymmetricFunctions(QQ).phi()
+                sage: TestSuite(phi).run()
 
             TESTS::
 
-                sage: Phi = QuasiSymmetricFunctions(QQ).Phi()
+                sage: phi = QuasiSymmetricFunctions(QQ).phi()
                 sage: M = QuasiSymmetricFunctions(QQ).M()
-                sage: all(Phi(M(Phi[c])) == Phi[c] for n in range(5)
+                sage: all(phi(M(phi[c])) == phi[c] for n in range(5)
                 ....:     for c in Compositions(n))
                 True
-                sage: all(M(Phi(M[c])) == M[c] for n in range(5)
+                sage: all(M(phi(M[c])) == M[c] for n in range(5)
                 ....:     for c in Compositions(n))
                 True
             """
             CombinatorialFreeModule.__init__(self, QSym.base_ring(), Compositions(),
-                                             prefix='Phi', bracket=False,
+                                             prefix='phi', bracket=False,
                                              category=QSym.Bases())
 
             category = self.realization_of()._category
@@ -3892,10 +3847,10 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             TESTS::
 
-                sage: Phi = QuasiSymmetricFunctions(QQ).Phi()
+                sage: phi = QuasiSymmetricFunctions(QQ).phi()
                 sage: I = Composition([3, 2, 2])
-                sage: Phi._from_Monomial_on_basis(I)
-                1/2*Phi[3, 2, 2] - 1/2*Phi[3, 4] - 1/2*Phi[5, 2] + 1/3*Phi[7]
+                sage: phi._from_Monomial_on_basis(I)
+                1/2*phi[3, 2, 2] - 1/2*phi[3, 4] - 1/2*phi[5, 2] + 1/3*phi[7]
             """
             R = self.base_ring()
             minus_one = -R.one()
@@ -3905,7 +3860,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
         def _to_Monomial_on_basis(self, I):
             r"""
-            Expand a `\Psi` basis element indexed by ``I`` in the
+            Expand a `\phi` basis element indexed by ``I`` in the
             Monomial basis.
 
             INPUT:
@@ -3918,58 +3873,13 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             TESTS::
 
-                sage: Phi = QuasiSymmetricFunctions(QQ).Phi()
+                sage: phi = QuasiSymmetricFunctions(QQ).phi()
                 sage: I = Composition([3, 2, 2])
-                sage: Phi._to_Monomial_on_basis(I)
+                sage: phi._to_Monomial_on_basis(I)
                 2*M[3, 2, 2] + M[3, 4] + M[5, 2] + 1/3*M[7]
             """
             R = self.base_ring()
             z = R(I.to_partition().centralizer_size())
             Monomial = self.realization_of().Monomial()
             return Monomial._from_dict({J: z / coeff_sp(I,J) for J in I.fatter()})
-
-        def dual(self):
-            r"""
-            Return the dual basis to the `\Phi` basis.
-
-            .. NOTE::
-
-                These are dual up to a rescaling of `\Phi_I` by `z_I`.
-
-            OUTPUT:
-
-            The `\Psi` basis of the non-commutative symmetric functions.
-
-            EXAMPLES::
-
-                sage: Phi = QuasiSymmetricFunctions(QQ).Phi()
-                sage: Phi.dual()
-                Non-Commutative Symmetric Functions over the Rational Field in the Phi basis
-            """
-            return self.realization_of().dual().Phi()
-
-        def duality_pairing(self, x, y):
-            r"""
-            The duality pairing between elements of `QSym` and elements
-            of `NSym`.
-
-            This uses the *scaled* duality between the `\Phi` basis
-            of `NSym`.
-
-            INPUT:
-
-            - ``x`` -- an element of ``self``
-            - ``y`` -- an element in the dual basis of ``self``
-
-            EXAMPLES::
-
-                sage: phi = QuasiSymmetricFunctions(QQ).Phi()
-                sage: Phi = NonCommutativeSymmetricFunctions(QQ).Phi()
-                sage: phi.duality_pairing(phi[1,2,1], Phi[1,2,1])
-                4
-            """
-            x = self(x)
-            y = self.dual()(y)
-            return self.base_ring().sum(coeff * I.to_partition().centralizer_size() * y[I]
-                                        for (I, coeff) in x)
 

@@ -3656,53 +3656,6 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             return complete.sum_of_terms( ((J, minus_one**(len(J)+1)*coeff_lp(J,[n]))
                         for J in Compositions(n)), distinct=True )
 
-        def dual(self):
-            r"""
-            Return the dual basis to the `\Psi` basis of the non-commutative
-            symmetric functions.
-
-            OUTPUT:
-
-            The `\Psi` basis of the quasi-symmetric functions.
-
-            .. NOTE::
-
-                These are dual up to a rescaling of `\Psi_{\alpha}`
-                by `z_{\alpha}`.
-
-            EXAMPLES::
-
-                sage: Psi = NonCommutativeSymmetricFunctions(QQ).Psi()
-                sage: Psi.dual()
-                Quasisymmetric functions over the Rational Field in the Psi basis
-            """
-            return self.realization_of().dual().Psi()
-
-        def duality_pairing(self, x, y):
-            r"""
-            The duality pairing between elements of `NSym` and elements
-            of `QSym`.
-
-            This uses the *scaled* duality between the `\Psi` basis
-            of `QSym`.
-
-            INPUT:
-
-            - ``x`` -- an element of ``self``
-            - ``y`` -- an element in the dual basis of ``self``
-
-            EXAMPLES::
-
-                sage: Psi = NonCommutativeSymmetricFunctions(QQ).Psi()
-                sage: psi = QuasiSymmetricFunctions(QQ).Psi()
-                sage: Psi.duality_pairing(Psi[1,2,1], psi[1,2,1])
-                4
-            """
-            x = self(x)
-            y = self.dual()(y)
-            return self.base_ring().sum(coeff * I.to_partition().centralizer_size() * y[I]
-                                        for (I, coeff) in x)
-
         def internal_product_on_basis_by_bracketing(self, I, J):
             r"""
             The internal product of two elements of the Psi basis.
@@ -4143,53 +4096,6 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             return complete.sum_of_terms( ( (J, minus_one**(len(J)+1) * n / coeff_ell(J,[n]))
                                             for J in Compositions(n) ),
                                           distinct=True )
-
-        def dual(self):
-            r"""
-            Return the dual basis to the `\Psi` basis of the non-commutative
-            symmetric functions.
-
-            OUTPUT:
-
-            The `\Phi` basis of the quasi-symmetric functions.
-
-            .. NOTE::
-
-                These are dual up to a rescaling of `\Phi_{\alpha}`
-                by `z_{\alpha}`.
-
-            EXAMPLES::
-
-                sage: Phi = NonCommutativeSymmetricFunctions(QQ).Phi()
-                sage: Phi.dual()
-                Quasisymmetric functions over the Rational Field in the Phi basis
-            """
-            return self.realization_of().dual().Phi()
-
-        def duality_pairing(self, x, y):
-            r"""
-            The duality pairing between elements of `NSym` and elements
-            of `QSym`.
-
-            This uses the *scaled* duality between the `\Phi` basis
-            of `QSym`.
-
-            INPUT:
-
-            - ``x`` -- an element of ``self``
-            - ``y`` -- an element in the dual basis of ``self``
-
-            EXAMPLES::
-
-                sage: Phi = NonCommutativeSymmetricFunctions(QQ).Phi()
-                sage: phi = QuasiSymmetricFunctions(QQ).Phi()
-                sage: Phi.duality_pairing(Phi[1,2,1], phi[1,2,1])
-                4
-            """
-            x = self(x)
-            y = self.dual()(y)
-            return self.base_ring().sum(coeff * I.to_partition().centralizer_size() * y[I]
-                                        for (I, coeff) in x)
 
         class Element(CombinatorialFreeModule.Element):
 

@@ -1836,14 +1836,14 @@ class Partition(CombinatorialElement):
         sum2 = 0
         min_length = min(len(p1), len(p2))
         if min_length == 0:
-            return len(p1) >= len(p2)
+            return not p2 # equivalent to len(p1) >= len(p2) = 0
 
         for i in range(min_length):
             sum1 += p1[i]
             sum2 += p2[i]
             if sum2 > sum1:
                 return False
-        return bool(sum(p1) >= sum(p2))
+        return sum(p1) >= sum(p2)
 
     def cells(self):
         """

@@ -619,7 +619,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         """
         return self.Monomial()
 
-    _shorthands = tuple(['M', 'F', 'E', 'dI', 'QS', 'Phi', 'Psi'])
+    _shorthands = tuple(['M', 'F', 'E', 'dI', 'QS', 'phi', 'psi'])
 
     def dual(self):
         r"""
@@ -3643,7 +3643,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
         where `\pi_{I,J}` is as defined in [NCSF]_.
 
-        The `\Psi`-basis is well-defined only when the base ring is a
+        The `\psi`-basis is well-defined only when the base ring is a
         `\QQ`-algebra.
 
         EXAMPLES::
@@ -3835,7 +3835,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         def _from_Monomial_on_basis(self, I):
             r"""
             Expand a Monomial basis element indexed by ``I`` in the
-            `\Phi` basis.
+            `\phi` basis.
 
             INPUT:
 
@@ -3843,7 +3843,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             OUTPUT:
 
-            - a quasi-symmetric function in the `\Psi` basis
+            - a quasi-symmetric function in the `\psi` basis
 
             TESTS::
 

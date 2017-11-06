@@ -92,8 +92,7 @@ specify one less variable::
 
 REFERENCES:
 
-..  [WpInvariantTheory]
-    http://en.wikipedia.org/wiki/Glossary_of_invariant_theory
+.. [WpInvariantTheory] :wikipedia:`Glossary_of_invariant_theory`
 """
 
 #*****************************************************************************
@@ -3102,8 +3101,7 @@ can then be queried for invariant and covariants. For example,
 
         REFERENCES:
 
-        ..  [WpBinaryForm]
-            http://en.wikipedia.org/wiki/Invariant_of_a_binary_form
+        ..  [WpBinaryForm] :wikipedia:`Invariant_of_a_binary_form`
 
         EXAMPLES::
 
@@ -3242,8 +3240,7 @@ can then be queried for invariant and covariants. For example,
 
         REFERENCES:
 
-        ..  [WpTernaryCubic]
-            http://en.wikipedia.org/wiki/Ternary_cubic
+        .. [WpTernaryCubic] :wikipedia:`Ternary_cubic`
 
         INPUT:
 

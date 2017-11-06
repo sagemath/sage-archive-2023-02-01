@@ -1811,23 +1811,38 @@ def PaleyGraph(q):
 
     EXAMPLES::
 
-        sage: G=graphs.PaleyGraph(9);G
+        sage: G = graphs.PaleyGraph(9); G
         Paley graph with parameter 9: Graph on 9 vertices
         sage: G.is_regular()
         True
 
     A Paley graph is always self-complementary::
 
-        sage: G.complement().is_isomorphic(G)
+        sage: G.is_self_complementary()
         True
+
+    TESTS:
+
+    Wrong parameter::
+
+        sage: graphs.PaleyGraph(6)
+        Traceback (most recent call last):
+        ...
+        ValueError: parameter q must be a prime power
+        sage: graphs.PaleyGraph(3)
+        Traceback (most recent call last):
+        ...
+        ValueError: parameter q must be congruent to 1 mod 4
     """
     from sage.rings.finite_rings.integer_mod import mod
     from sage.rings.finite_rings.finite_field_constructor import FiniteField
     from sage.arith.all import is_prime_power
-    assert is_prime_power(q), "Parameter q must be a prime power"
-    assert mod(q,4)==1, "Parameter q must be congruent to 1 mod 4"
+    if not is_prime_power(q):
+        raise ValueError("parameter q must be a prime power")
+    if not mod(q, 4) == 1:
+        raise ValueError("parameter q must be congruent to 1 mod 4")
     g = Graph([FiniteField(q,'a'), lambda i,j: (i-j).is_square()],
-    loops=False, name = "Paley graph with parameter %d"%q)
+                  loops=False, name="Paley graph with parameter {}".format(q))
     return g
 
 def PasechnikGraph(n):

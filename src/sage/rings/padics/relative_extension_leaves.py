@@ -37,7 +37,7 @@ class pAdicRelativeBaseringInjection(Morphism):
         return self.codomain()([x], *args, **kwds)
 
     def section(self):
-        return pAdicRelativeBaseringSection(S, R)
+        return pAdicRelativeBaseringSection(self.codomain(), self.domain())
 
 class pAdicRelativeBaseringSection(Morphism):
     def __init__(self, S, R):

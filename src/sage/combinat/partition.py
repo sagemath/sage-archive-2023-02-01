@@ -2782,12 +2782,13 @@ class Partition(CombinatorialElement):
             sage: Partition([3,2,1]).dominated_partitions(rows=3)
             [[3, 2, 1], [2, 2, 2]]
         """
-        #Naive implementation
-        res = [x for x in Partitions_n(self.size()) if self.dominates(x)]
+        #Naive implementation because iteration is so fast
+        n = sum(self)
+        P = Partitions_n(n)
         if rows:
-            return [x for x in res if len(x) <= rows]
+            return [P(x) for x in ZS1_iterator_nk(n, rows) if self.dominates(x)]
         else:
-            return res
+            return [P(x) for x in ZS1_iterator(n) if self.dominates(x)]
 
     def contains(self, x):
         """

@@ -1394,11 +1394,11 @@ class RealSet(UniqueRepresentation, Parent):
         i = self._intervals[0]
         if isinstance(i.lower(), AnInfinity):
             if isinstance(i.upper(), AnInfinity):
-                return ZZ(0)
+                return ZZ.zero()
             else:
-                return i.upper()-1
+                return i.upper() - 1
         if isinstance(i.upper(), AnInfinity):
-            return i.lower()+1
+            return i.lower() + 1
         if i.lower_closed():
             return i.lower()
         if i.upper_closed():

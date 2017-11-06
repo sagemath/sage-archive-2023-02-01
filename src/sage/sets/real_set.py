@@ -1381,10 +1381,24 @@ class RealSet(UniqueRepresentation, Parent):
             1
             sage: RealSet(0, 1).an_element()
             1/2
+            sage: RealSet(-oo,+oo).an_element()
+            0
+            sage: RealSet(-oo,7).an_element()
+            6
+            sage: RealSet(7,+oo).an_element()
+            8
         """
+        from sage.rings.infinity import AnInfinity
         if len(self._intervals) == 0:
             raise ValueError('set is empty')
         i = self._intervals[0]
+        if isinstance(i.lower(), AnInfinity):
+            if isinstance(i.upper(), AnInfinity):
+                return ZZ(0)
+            else:
+                return i.upper()-1
+        if isinstance(i.upper(), AnInfinity):
+            return i.lower()+1
         if i.lower_closed():
             return i.lower()
         if i.upper_closed():

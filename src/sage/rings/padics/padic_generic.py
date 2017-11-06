@@ -1216,8 +1216,13 @@ class ResidueLiftingMap(Morphism):
             O(3^4)
         """
         R = self.codomain()
-        if R.degree() == 1:
+        A = R.base_ring()
+        if A is R:
             return R.element_class(R, x, self._n)
+        elif A.degree() != 1: # two step extension
+            if self._n > 1:
+                raise NotImplementedError
+            return R(A(x), self._n)
         elif R.f() == 1:
             return R([x], self._n)
         elif R.e() == 1:

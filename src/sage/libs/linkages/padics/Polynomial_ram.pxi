@@ -53,7 +53,11 @@ cdef inline bint creduce(celement out, celement a, long prec, PowComputer_ prime
     ``True`` if the reduction is zero, ``False`` otherwise
 
     """
-    out.__coeffs = (<celement?>(a % prime_pow.modulus)).__coeffs
+    cdef celement ared = a % prime_pow.modulus
+    if ared is a and out is not a:
+        out.__coeffs = ared.__coeffs[:]
+    else:
+        out.__coeffs = ared.__coeffs
     cdef long coeff_prec = prec / prime_pow.e + 1
     cdef long break_pt = prec % prime_pow.e
     if break_pt > len(out.__coeffs):
@@ -353,3 +357,24 @@ cdef int cteichmuller(celement out, celement value, long prec, PowComputer_ prim
         out.__coeffs = []
     else:
         out.__coeffs = [value[0].parent().teichmuller(value[0])]
+
+cdef list ccoefficients(celement x, long valshift, long prec, PowComputer_ prime_pow):
+    """
+    Return a list of coefficients, as elements that can be converted into the base ring.
+
+    INPUT:
+
+    - ``x`` -- a ``celement`` giving the underlying `p`-adic element, or possibly its unit part.
+    - ``valshift`` -- a long giving the power of the uniformizer to shift `x` by.
+    - ``prec`` -- a long, the (relative) precision desired, used in rational reconstruction
+    - ``prime_pow`` -- the Powcomputer of the ring
+    """
+    if valshift == 0:
+        return x.list()
+    elif valshift > 0:
+        cshift(prime_pow.tmp_ccoeffs, x, valshift, valshift+prec, prime_pow, True)
+        return prime_pow.tmp_ccoeffs.list()
+    else:
+        prime_pow.tmp_ccoeffs_frac = x.change_ring(x.base_ring().fraction_field())
+        cshift(prime_pow.tmp_ccoeffs_frac, prime_pow.tmp_ccoeffs_frac, valshift, valshift+prec, prime_pow, True)
+        return prime_pow.tmp_ccoeffs_frac.list()

@@ -350,19 +350,6 @@ cdef inline long chash(celement a, long ordp, long prec, PowComputer_ prime_pow)
 
     return hash((a._cache_key(), ordp, prec))
 
-cdef list ccoefficients(celement x, long valshift, long prec, PowComputer_ prime_pow):
-    """
-    Return a list of coefficients, as elements that can be converted into the base ring.
-
-    INPUT:
-
-    - ``x`` -- a ``celement`` giving the underlying `p`-adic element, or possibly its unit part.
-    - ``valshift`` -- a long giving the power of the uniformizer to shift `x` by.
-    - ``prec`` -- a long, the (relative) precision desired, used in rational reconstruction
-    - ``prime_pow`` -- the Powcomputer of the ring
-    """
-    return x.list()
-
 cdef int cconv(celement out, x, long prec, long valshift, PowComputer_ prime_pow) except -2:
     r"""
     Convert ``x`` to a `p`-adic element and store it in ``out``.

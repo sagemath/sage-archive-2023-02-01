@@ -369,6 +369,23 @@ def _sympysage_lgamma(self):
     from sage.functions.other import log_gamma
     return log_gamma(self.args[0]._sage_())
 
+def _sympysage_polygamma(self):
+    """
+    EXAMPLES::
+
+        sage: from sympy import Symbol, polygamma as pg
+        sage: _ = var('x, y')
+        sage: pgxy = pg(Symbol('x'), Symbol('y'))
+        sage: assert psi(x)._sympy_() == pg(0, Symbol('x'))
+        sage: assert psi(x) == pg(0, Symbol('x'))._sage_()
+        sage: assert psi(x,y)._sympy_() == pgxy
+        sage: assert psi(x,y) == pgxy._sage_()
+        sage: integrate(psi(x), x, algorithm='sympy')
+        integrate(psi(x), x)
+    """
+    from sage.functions.other import psi
+    return psi(self.args[0]._sage_(),self.args[1]._sage_())
+
 def _sympysage_dirac_delta(self):
     """
     EXAMPLES::
@@ -663,7 +680,7 @@ def sympy_init():
     from sympy.functions.special.delta_functions import (DiracDelta, Heaviside)
     from sympy.functions.special.error_functions import expint
     from sympy.functions.special.elliptic_integrals import elliptic_k
-    from sympy.functions.special.gamma_functions import loggamma
+    from sympy.functions.special.gamma_functions import loggamma, polygamma
     from sympy.functions.special.hyper import hyper
     from sympy.functions.special.spherical_harmonics import Ynm
     from sympy.functions.special.tensor_functions import KroneckerDelta
@@ -697,6 +714,7 @@ def sympy_init():
     RisingFactorial._sage_ = _sympysage_rf
     FallingFactorial._sage_ = _sympysage_ff
     loggamma._sage_ = _sympysage_lgamma
+    polygamma._sage_ = _sympysage_polygamma
     DiracDelta._sage_ = _sympysage_dirac_delta
     Heaviside._sage_ = _sympysage_heaviside
     expint._sage_ = _sympysage_expint

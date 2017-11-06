@@ -80,6 +80,13 @@ class TorsionQuadraticModuleElement(FGP_Element):
             (1, 0)
             sage: x*y
             1/4
+        
+        The inner product has further aliases::
+        
+            sage: x.inner_product(y)
+            1/4
+            sage: x.b(y)
+            1/4
         """
         value_module = self.parent().value_module()
         return value_module( self.lift().inner_product(other.lift()) )

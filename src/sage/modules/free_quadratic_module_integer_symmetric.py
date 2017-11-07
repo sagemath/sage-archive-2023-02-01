@@ -153,7 +153,6 @@ def IntegralLattice(*args, **kwds):
         [ 2 -1]
         [-1  2]
 
-
     We use "U" or "H" for defining a hyperbolic lattice::
 
         sage: L1 = IntegralLattice("U")

@@ -25,7 +25,7 @@ ambient space and a basis::
 
     sage: G = matrix.identity(3)
     sage: basis = [[1,-1,0], [0,1,-1]]
-    sage: L = IntegralLattice(G,basis)
+    sage: L = IntegralLattice(G, basis)
     sage: L
     Lattice of degree 3 and rank 2 over Integer Ring
     Basis matrix:
@@ -63,7 +63,6 @@ from sage.matrix.constructor import matrix
 from sage.matrix.matrix import is_Matrix
 from sage.arith.misc import gcd
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
-from sage.combinat.root_system.cartan_type import CartanType
 
 ###############################################################################
 #
@@ -71,27 +70,30 @@ from sage.combinat.root_system.cartan_type import CartanType
 #
 ###############################################################################
 
-def IntegralLattice(*args, **kwds):
+def IntegralLattice(data, basis=None):
     r"""
     Return the integral lattice spanned by ``basis`` in the ambient space.
 
-    A lattice is a finitely generated free abelian group `L \cong \ZZ^r` equipped
-    with a non-degenerate, symmetric bilinear form `L \times L \colon \rightarrow \ZZ`.
-    Here, lattices have an ambient quadratic space `\QQ^n` and a distinguished basis.
+    A lattice is a finitely generated free abelian group `L \cong \ZZ^r`
+    equipped with a non-degenerate, symmetric bilinear form
+    `L \times L \colon \rightarrow \ZZ`. Here, lattices have an
+    ambient quadratic space `\QQ^n` and a distinguished basis.
 
     INPUT:
 
-    The input is a descriptor of the lattice and a basis (optional). 
-    The descriptor can be in the following forms:
+    The input is a descriptor of the lattice and a (optional) basis.
+    - ``data`` -- can be one of the following:
 
-    - a symmetric matrix over the rationals -- the inner product matrix
-    - an integer -- the dimension for a euclidian lattice
-    - a list ``["A", n]`` or ``["D", n]`` or ``["E", n]`` 
-      with ``n`` an integer -- for a root lattice
-    - a string -- for example ``"A2"``, ``"D4"``, ``"D8"``, ``"E6"``
-    - a string -- ``"U"`` or ``"H"`` for hyperbolic lattices 
-    - a basis (optional) -- a matrix whose rows form a basis of the lattice, 
-      or a list of module elements forming a basis. 
+      * a symmetric matrix over the rationals -- the inner product matrix
+      * an integer -- the dimension for a euclidian lattice
+      * a symmetric Cartan type or anything recognized by
+        :class:`CartanMatrix` (see also
+        :mod:`Cartan types <sage.combinat.root_system.cartan_type>`)
+        -- for a root lattice
+      * the string ``"U"`` or ``"H"`` -- for hyperbolic lattices
+
+    - ``basis`` -- (optional) a matrix whose rows form a basis of the
+      lattice,  or a list of module elements forming a basis
 
     OUTPUT:
 
@@ -113,15 +115,14 @@ def IntegralLattice(*args, **kwds):
     A basis can be specified too::
 
         sage: IntegralLattice(H5, Matrix([1,1]))
-        Lattice of degree 2 and rank 2 over Integer Ring
+        Lattice of degree 2 and rank 1 over Integer Ring
         Basis matrix:
-        [1 0]
-        [0 1]
+        [1 1]
         Inner product matrix:
         [ 2  1]
         [ 1 -2]
 
-    We can define a euclidian lattice just by its dimension::
+    We can define a Euclidian lattice just by its dimension::
 
         sage: IntegralLattice(3)
         Lattice of degree 3 and rank 3 over Integer Ring
@@ -134,10 +135,10 @@ def IntegralLattice(*args, **kwds):
         [0 1 0]
         [0 0 1]
 
-    Here is an example of the A2 root lattice in euclidian space::
-    
+    Here is an example of the `A_2` root lattice in Euclidian space::
+
         sage: basis = Matrix([[1,-1,0], [0,1,-1]])
-        sage: A2 = IntegralLattice(3,basis)
+        sage: A2 = IntegralLattice(3, basis)
         sage: A2
         Lattice of degree 3 and rank 2 over Integer Ring
         Basis matrix:
@@ -151,7 +152,7 @@ def IntegralLattice(*args, **kwds):
         [ 2 -1]
         [-1  2]
 
-    We use "U" or "H" for defining a hyperbolic lattice::
+    We use ``"U"`` or ``"H"`` for defining a hyperbolic lattice::
 
         sage: L1 = IntegralLattice("U")
         sage: L1
@@ -165,10 +166,11 @@ def IntegralLattice(*args, **kwds):
         sage: L1 == IntegralLattice("H")
         True
 
-    We can construct root lattices by specifying their type 
-    (see :meth:`sage.combinat.root_system.cartan_matrix`)::
+    We can construct root lattices by specifying their type
+    (see :mod:`Cartan types <sage.combinat.root_system.cartan_type>`
+    and :class:`CartanMatrix`)::
 
-        sage: IntegralLattice("E", 7)
+        sage: IntegralLattice(["E", 7])
         Lattice of degree 7 and rank 7 over Integer Ring
         Basis matrix:
         [1 0 0 0 0 0 0]
@@ -186,7 +188,7 @@ def IntegralLattice(*args, **kwds):
         [ 0  0  0 -1  2 -1  0]
         [ 0  0  0  0 -1  2 -1]
         [ 0  0  0  0  0 -1  2]
-        sage: IntegralLattice("A", 2)
+        sage: IntegralLattice(["A", 2])
         Lattice of degree 2 and rank 2 over Integer Ring
         Basis matrix:
         [1 0]
@@ -228,7 +230,7 @@ def IntegralLattice(*args, **kwds):
         Inner product matrix:
         [0 1]
         [1 0]
-        sage: IntegralLattice("A", 3, [[1,1,1]])
+        sage: IntegralLattice(["A", 3], [[1,1,1]])
         Lattice of degree 3 and rank 1 over Integer Ring
         Basis matrix:
         [1 1 1]
@@ -252,39 +254,39 @@ def IntegralLattice(*args, **kwds):
         Inner product matrix:
         [ 2 -1]
         [-1  2]
+
+    TESTS::
+
+        sage: IntegralLattice(["A", 1, 1])
+        Traceback (most recent call last):
+        ...
+        ValueError: lattices must be nondegenerate; use FreeQuadraticModule instead
+        sage: IntegralLattice(["D", 3, 1])
+        Traceback (most recent call last):
+        ...
+        ValueError: lattices must be nondegenerate; use FreeQuadraticModule instead
     """
-    arg0 = args[0]
-    last_arg = args[-1]
-    basis = None
-    if "basis" in kwds:
-        basis = tuple(kwds["basis"])
-    if len(args) >= 2 and isinstance(last_arg, list):
-        basis = last_arg
-        args = args[0:-1]        
-    if is_Matrix(arg0): 
-        inner_product_matrix = arg0     
-    elif isinstance(arg0, Integer):
-        inner_product_matrix = matrix.identity(ZZ, arg0)
-        if len(args) == 2:
-            basis = args[1]
-    elif arg0 == "U" or arg0 == "H":
+    if is_Matrix(data):
+        inner_product_matrix = data
+    elif isinstance(data, Integer):
+        inner_product_matrix = matrix.identity(ZZ, data)
+    elif data == "U" or data == "H":
         inner_product_matrix = matrix([[0,1],[1,0]])
-    else: 
-        inner_product_matrix = CartanMatrix(CartanType(args))        
+    else:
+        inner_product_matrix = CartanMatrix(data)
     if basis is None:
         basis = matrix.identity(ZZ, inner_product_matrix.ncols())
     if inner_product_matrix != inner_product_matrix.transpose():
-        raise ValueError("Argument inner_product_matrix must be symmetric\n%s" 
+        raise ValueError("the inner product matrix must be symmetric\n%s"
                          % inner_product_matrix)
 
-    A = FreeQuadraticModule(ZZ, 
+    A = FreeQuadraticModule(ZZ,
                             inner_product_matrix.ncols(),
                             inner_product_matrix=inner_product_matrix)
-    return FreeQuadraticModule_integer_symmetric(
-                                    ambient=A,
-                                    basis=basis,
-                                    inner_product_matrix=inner_product_matrix,
-                                    already_echelonized=False)
+    return FreeQuadraticModule_integer_symmetric(ambient=A,
+                                                 basis=basis,
+                                                 inner_product_matrix=inner_product_matrix,
+                                                 already_echelonized=False)
 
 ###############################################################################
 #
@@ -313,7 +315,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         [0 1]
         [1 0]
     """
-    def __init__(self, ambient, basis, inner_product_matrix, 
+    def __init__(self, ambient, basis, inner_product_matrix,
                  check=True, already_echelonized=False):
         r"""
         Create the integral lattice spanned by ``basis`` in the ambient space.
@@ -324,19 +326,19 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             sage: TestSuite(L).run()
         """
         FreeQuadraticModule_submodule_with_basis_pid.__init__(
-                                        self, 
-                                        ambient, 
-                                        basis, 
-                                        inner_product_matrix, 
+                                        self,
+                                        ambient,
+                                        basis,
+                                        inner_product_matrix,
                                         check=check,
                                         already_echelonized=already_echelonized)
         if self.determinant() == 0:
-            raise ValueError("Lattices must be nondegenerate. "
-                            "Use FreeQuadraticModule instead")
+            raise ValueError("lattices must be nondegenerate; "
+                            "use FreeQuadraticModule instead")
         if self.gram_matrix().base_ring() is not ZZ:
             if self.gram_matrix().denominator() != 1:
-                raise ValueError("Lattices must be integral. " 
-                            "Use FreeQuadraticModule instead")
+                raise ValueError("lattices must be integral; "
+                            "use FreeQuadraticModule instead")
 
     def _repr_(self):
         r"""
@@ -518,11 +520,10 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         basis = self.basis_matrix().augment(smzero).stack(
                             mszero.augment(M.basis_matrix()))
         ipm = ambient.inner_product_matrix()
-        return FreeQuadraticModule_integer_symmetric(
-            ambient=ambient, 
-            basis=basis, 
-            inner_product_matrix=ipm, 
-            already_echelonized=False)
+        return FreeQuadraticModule_integer_symmetric(ambient=ambient,
+                                                     basis=basis,
+                                                     inner_product_matrix=ipm,
+                                                     already_echelonized=False)
 
     def is_primitive(self, M):
         r"""
@@ -561,7 +562,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         INPUT:
 
         - ``M`` -- a module in the same ambient space or
-                   a list of elements of the ambient space
+          a list of elements of the ambient space
 
         EXAMPLES::
 
@@ -588,12 +589,12 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         from sage.modules.free_module import FreeModule_generic
         if not isinstance(M,FreeModule_generic):
             M = self.span(M)
-        elif M.ambient_vector_space()!=self.ambient_vector_space():
+        elif M.ambient_vector_space() != self.ambient_vector_space():
             raise ValueError("M must have the same "
-                             "ambient vector space as this lattice.")
+                             "ambient vector space as this lattice")
 
         K = (self.inner_product_matrix() * M.basis_matrix().transpose()).kernel()
-        K = self.span( K.basis() )
+        K = self.span(K.basis())
         K = K.base_extend(QQ)
         return self.sublattice(self.intersection(K).basis())
 
@@ -619,19 +620,19 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             sage: U.sublattice([vector([1,-1])/2])
             Traceback (most recent call last):
             ...
-            ValueError: Lattices must be integral. Use FreeQuadraticModule instead
+            ValueError: lattices must be integral; use FreeQuadraticModule instead
             sage: S.sublattice([vector([1,-1])])
             Traceback (most recent call last):
             ...
-            ValueError: Argument basis (= [(1, -1)]) does not span a submodule of this lattice
+            ValueError: the basis (= [(1, -1)]) does not span a submodule
         """
         M = FreeQuadraticModule_integer_symmetric(
             ambient=self.ambient_module(), basis=basis,
             inner_product_matrix=self.inner_product_matrix(),
             already_echelonized=False)
         if not M.is_submodule(self):
-            raise ValueError("Argument basis (= %s) does not span " 
-                             "a submodule of this lattice" % basis)
+            raise ValueError("the basis (= %s) does not span "
+                             "a submodule" % basis)
         return M
 
     def overlattice(self, gens):
@@ -640,7 +641,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         INPUT:
 
-        - ``gens`` -- a list of elements of this lattice, or a rational matrix
+        - ``gens`` -- a list of elements or a rational matrix
 
         EXAMPLES::
 
@@ -669,3 +670,4 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         """
         from sage.quadratic_forms.genera.genus import Genus
         return Genus(self.gram_matrix())
+

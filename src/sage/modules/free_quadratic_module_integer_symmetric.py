@@ -33,15 +33,20 @@ def IntegralLattice(*args, **kwds):
     Here, lattices have an ambient quadratic space `\Q^n` and a distinguished basis.
 
     INPUT:
-    
-    The input is a descriptor of the lattice and a basis (optional). The descriptor could be in 
-    the following forms:
-    
-    - A symmetric matrix over the rationals
-    - An integer giving the dimension for euclidian lattices
-    - A root lattice in the ``CartanType`` format  
-    - "U" or "H" for hyperbolic lattices  
-    
+
+    The input is a descriptor of the lattice and a basis (optional). 
+    The descriptor can be in the following forms:
+
+    - a symmetric matrix over the rationals -- the inner product matrix
+    - an integer -- the dimension for a euclidian lattice
+    - a list ``["A",n]`` or ``["D",n]`` or ``["E",n]`` 
+    with ``n`` an integer -- for a root lattice
+    - a string -- for example ``"A2"``, ``"D4"``, ``"D8"``, ``"E6"``
+    - a string -- ``"U"`` or ``"H"`` for hyperbolic lattices 
+
+    - a basis (optional) -- a matrix whose rows form a basis of the lattice, 
+    or a list of module elements forming a basis. 
+
     OUTPUT:
 
     A lattice in the ambient space defined by the inner_product_matrix.
@@ -70,8 +75,8 @@ def IntegralLattice(*args, **kwds):
         Inner product matrix:
         [1 0 0]
         [0 1 0]
-        [0 0 1]    
-    
+        [0 0 1]
+
     We use "U" or "H" for defining an hyperbolic lattice::
 
         sage: L1 = IntegralLattice("U")

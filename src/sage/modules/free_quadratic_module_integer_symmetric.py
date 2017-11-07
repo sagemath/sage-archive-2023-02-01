@@ -102,16 +102,28 @@ def IntegralLattice(*args, **kwds):
 
     EXAMPLES::
 
-        sage: IntegralLattice(Matrix(ZZ,2,2,[0,1,1,0]))
+        sage: H5 = Matrix(ZZ,2,[2,1,1,-2])
+        sage: IntegralLattice(H5)
         Lattice of degree 2 and rank 2 over Integer Ring
         Basis matrix:
         [1 0]
         [0 1]
         Inner product matrix:
-        [0 1]
-        [1 0]
+        [ 2  1]
+        [ 1 -2]
 
-    We can define easily an euclidian lattice just by its dimension::
+    A basis can be specified too::
+
+        sage: IntegralLattice(H5, Matrix([1,1]))
+        Lattice of degree 2 and rank 2 over Integer Ring
+        Basis matrix:
+        [1 0]
+        [0 1]
+        Inner product matrix:
+        [ 2  1]
+        [ 1 -2]
+
+    We can define a euclidian lattice just by its dimension::
 
         sage: IntegralLattice(3)
         Lattice of degree 3 and rank 3 over Integer Ring
@@ -124,7 +136,25 @@ def IntegralLattice(*args, **kwds):
         [0 1 0]
         [0 0 1]
 
-    We use "U" or "H" for defining an hyperbolic lattice::
+    Here is an example of the A2 root lattice in euclidian space::
+    
+        sage: basis = Matrix([[1,-1,0],[0,1,-1]])
+        sage: A2 = IntegralLattice(3,basis)
+        sage: A2
+        Lattice of degree 3 and rank 2 over Integer Ring
+        Basis matrix:
+        [ 1 -1  0]
+        [ 0  1 -1]
+        Inner product matrix:
+        [1 0 0]
+        [0 1 0]
+        [0 0 1]
+        sage: A2.gram_matrix()
+        [ 2 -1]
+        [-1  2]
+
+
+    We use "U" or "H" for defining a hyperbolic lattice::
 
         sage: L1 = IntegralLattice("U")
         sage: L1
@@ -138,7 +168,8 @@ def IntegralLattice(*args, **kwds):
         sage: L1 == IntegralLattice("H")
         True
 
-    We can define a root lattice (see :meth:`sage.combinat.root_system.cartan_matrix`)::
+    We can construct root lattices by specifying their type 
+    (see :meth:`sage.combinat.root_system.cartan_matrix`)::
 
         sage: IntegralLattice("E",7)
         Lattice of degree 7 and rank 7 over Integer Ring
@@ -191,7 +222,9 @@ def IntegralLattice(*args, **kwds):
 
     We can specify a basis as well::
 
-        sage: IntegralLattice(Matrix(ZZ,2,2,[0,1,1,0]),basis=[vector([1,1])])
+        sage: G = Matrix(ZZ,2,2,[0,1,1,0])
+        sage: B = [vector([1,1])]
+        sage: IntegralLattice(G,basis=B)
         Lattice of degree 2 and rank 1 over Integer Ring
         Basis matrix:
         [1 1]
@@ -272,7 +305,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
     EXAMPLES::
 
-        sage: IntegralLattice(Matrix(ZZ,2,2,[0,1,1,0]),basis=[vector([1,1])])
+        sage: IntegralLattice("U",basis=[vector([1,1])])
         Lattice of degree 2 and rank 1 over Integer Ring
         Basis matrix:
         [1 1]
@@ -286,7 +319,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         TESTS::
 
-            sage: L = IntegralLattice(Matrix(ZZ,2,2,[0,1,1,0]))
+            sage: L = IntegralLattice("U")
             sage: TestSuite(L).run()
         """
         FreeQuadraticModule_submodule_with_basis_pid.__init__(self, ambient, basis, inner_product_matrix, check=check, already_echelonized=already_echelonized)
@@ -302,7 +335,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         EXAMPLES::
 
-            sage: A2 = IntegralLattice(matrix(ZZ,2,2,[2,-1,-1,2]))
+            sage: A2 = IntegralLattice("A2")
             sage: A2
             Lattice of degree 2 and rank 2 over Integer Ring
             Basis matrix:
@@ -330,10 +363,11 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         EXAMPLES::
 
-            sage: L = IntegralLattice(Matrix(ZZ,2,2,[-1,1,1,2]))
+            sage: G = Matrix(ZZ,2,2,[-1,1,1,2])
+            sage: L = IntegralLattice(G)
             sage: L.is_even()
             False
-            sage: L = IntegralLattice(Matrix(ZZ,2,2,[2,-1,-1,2]))
+            sage: L = IntegralLattice("A2")
             sage: L.is_even()
             True
         """
@@ -351,7 +385,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         EXAMPLES::
 
-            sage: L = IntegralLattice(Matrix(ZZ,2,2,[2,-1,-1,2]))
+            sage: L = IntegralLattice("A2")
             sage: Ldual=L.dual_lattice()
             sage: Ldual
             Free module of degree 2 and rank 2 over Integer Ring
@@ -399,7 +433,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         TESTS::
 
-            sage: L = IntegralLattice(Matrix(ZZ,2,2,[0,1,1,0]))
+            sage: L = IntegralLattice("H")
             sage: L.discriminant_group()
             Finite quadratic module over Integer Ring with invariants ()
             Gram matrix of the quadratic form with values in Q/2Z:
@@ -420,7 +454,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         EXAMPLES::
 
-            sage: U = IntegralLattice(Matrix(ZZ,2,2,[0,1,1,0]))
+            sage: U = IntegralLattice("U")
             sage: U.signature()
             0
         """
@@ -437,7 +471,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         EXAMPLES::
 
 
-            sage: A2 = IntegralLattice(Matrix(ZZ,2,2,[2,-1,-1,2]))
+            sage: A2 = IntegralLattice("A2")
             sage: A2.signature_pair()
             (2, 0)
         """
@@ -454,7 +488,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         EXAMPLES::
 
-            sage: A = IntegralLattice(matrix([1]))
+            sage: A = IntegralLattice(1)
             sage: A.direct_sum(A)
             Lattice of degree 2 and rank 2 over Integer Ring
             Basis matrix:
@@ -487,7 +521,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         EXAMPLES::
 
-            sage: U = IntegralLattice(Matrix(ZZ,2,2,[0,1,1,0]))
+            sage: U = IntegralLattice("U")
             sage: L1 = U.span([vector([1,1])])
             sage: L2 = U.span([vector([1,-1])])
             sage: U.is_primitive(L1)
@@ -515,7 +549,8 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         EXAMPLES::
 
-            sage: L = IntegralLattice(Matrix(ZZ,2,2,[2,1,1,-2]))
+            sage: H5 = Matrix(ZZ,2,[2,1,1,-2])
+            sage: L = IntegralLattice(H5)
             sage: S = L.span([vector([1,1])])
             sage: L.orthogonal_complement(S)
             Lattice of degree 2 and rank 1 over Integer Ring
@@ -525,7 +560,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             [ 2  1]
             [ 1 -2]
 
-            sage: L = IntegralLattice(matrix.identity(2))
+            sage: L = IntegralLattice(2)
             sage: L.orthogonal_complement([vector(ZZ,[1,0])])
             Lattice of degree 2 and rank 1 over Integer Ring
             Basis matrix:
@@ -555,7 +590,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         EXAMPLES::
 
-            sage: U = IntegralLattice(Matrix(ZZ,2,2,[0,1,1,0]))
+            sage: U = IntegralLattice("U")
             sage: S = U.sublattice([vector([1,1])])
             sage: S
             Lattice of degree 2 and rank 1 over Integer Ring
@@ -610,7 +645,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         EXAMPLES::
 
-            sage: L = IntegralLattice(Matrix(ZZ,2,2,[0,1,1,0]))
+            sage: L = IntegralLattice("U")
             sage: L.genus()
             Genus of [0 1]
             [1 0]

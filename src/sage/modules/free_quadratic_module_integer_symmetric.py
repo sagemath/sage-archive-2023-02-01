@@ -25,7 +25,7 @@ A lattice can be defined by an inner product matrix of the
 ambient space and a basis::
 
     sage: G = matrix.identity(3)
-    sage: basis = [[1,-1,0],[0,1,-1]]
+    sage: basis = [[1,-1,0], [0,1,-1]]
     sage: L = IntegralLattice(G,basis)
     sage: L
     Lattice of degree 3 and rank 2 over Integer Ring
@@ -87,13 +87,12 @@ def IntegralLattice(*args, **kwds):
 
     - a symmetric matrix over the rationals -- the inner product matrix
     - an integer -- the dimension for a euclidian lattice
-    - a list ``["A",n]`` or ``["D",n]`` or ``["E",n]`` 
-    with ``n`` an integer -- for a root lattice
+    - a list ``["A", n]`` or ``["D", n]`` or ``["E", n]`` 
+      with ``n`` an integer -- for a root lattice
     - a string -- for example ``"A2"``, ``"D4"``, ``"D8"``, ``"E6"``
     - a string -- ``"U"`` or ``"H"`` for hyperbolic lattices 
-
     - a basis (optional) -- a matrix whose rows form a basis of the lattice, 
-    or a list of module elements forming a basis. 
+      or a list of module elements forming a basis. 
 
     OUTPUT:
 
@@ -102,7 +101,7 @@ def IntegralLattice(*args, **kwds):
 
     EXAMPLES::
 
-        sage: H5 = Matrix(ZZ,2,[2,1,1,-2])
+        sage: H5 = Matrix(ZZ, 2, [2,1,1,-2])
         sage: IntegralLattice(H5)
         Lattice of degree 2 and rank 2 over Integer Ring
         Basis matrix:
@@ -138,7 +137,7 @@ def IntegralLattice(*args, **kwds):
 
     Here is an example of the A2 root lattice in euclidian space::
     
-        sage: basis = Matrix([[1,-1,0],[0,1,-1]])
+        sage: basis = Matrix([[1,-1,0], [0,1,-1]])
         sage: A2 = IntegralLattice(3,basis)
         sage: A2
         Lattice of degree 3 and rank 2 over Integer Ring
@@ -170,7 +169,7 @@ def IntegralLattice(*args, **kwds):
     We can construct root lattices by specifying their type 
     (see :meth:`sage.combinat.root_system.cartan_matrix`)::
 
-        sage: IntegralLattice("E",7)
+        sage: IntegralLattice("E", 7)
         Lattice of degree 7 and rank 7 over Integer Ring
         Basis matrix:
         [1 0 0 0 0 0 0]
@@ -188,7 +187,7 @@ def IntegralLattice(*args, **kwds):
         [ 0  0  0 -1  2 -1  0]
         [ 0  0  0  0 -1  2 -1]
         [ 0  0  0  0  0 -1  2]
-        sage: IntegralLattice("A",2)
+        sage: IntegralLattice("A", 2)
         Lattice of degree 2 and rank 2 over Integer Ring
         Basis matrix:
         [1 0]
@@ -206,7 +205,7 @@ def IntegralLattice(*args, **kwds):
         [ 2 -1 -1]
         [-1  2  0]
         [-1  0  2]
-        sage: IntegralLattice(["D",4])
+        sage: IntegralLattice(["D", 4])
         Lattice of degree 4 and rank 4 over Integer Ring
         Basis matrix:
         [1 0 0 0]
@@ -221,16 +220,16 @@ def IntegralLattice(*args, **kwds):
 
     We can specify a basis as well::
 
-        sage: G = Matrix(ZZ,2,2,[0,1,1,0])
+        sage: G = Matrix(ZZ, 2, [0,1,1,0])
         sage: B = [vector([1,1])]
-        sage: IntegralLattice(G,basis=B)
+        sage: IntegralLattice(G, basis=B)
         Lattice of degree 2 and rank 1 over Integer Ring
         Basis matrix:
         [1 1]
         Inner product matrix:
         [0 1]
         [1 0]
-        sage: IntegralLattice("A",3,[[1,1,1]])
+        sage: IntegralLattice("A", 3, [[1,1,1]])
         Lattice of degree 3 and rank 1 over Integer Ring
         Basis matrix:
         [1 1 1]
@@ -238,7 +237,7 @@ def IntegralLattice(*args, **kwds):
         [ 2 -1  0]
         [-1  2 -1]
         [ 0 -1  2]
-        sage: IntegralLattice(4,[[1,1,1,1]])
+        sage: IntegralLattice(4, [[1,1,1,1]])
         Lattice of degree 4 and rank 1 over Integer Ring
         Basis matrix:
         [1 1 1 1]
@@ -247,7 +246,7 @@ def IntegralLattice(*args, **kwds):
         [0 1 0 0]
         [0 0 1 0]
         [0 0 0 1]
-        sage: IntegralLattice("A2",[[1,1]])
+        sage: IntegralLattice("A2", [[1,1]])
         Lattice of degree 2 and rank 1 over Integer Ring
         Basis matrix:
         [1 1]
@@ -302,9 +301,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
     INPUT:
 
     - ``ambient`` -- an ambient free quadratic module
-
     - ``basis`` -- a list of elements of ambient or a matrix
-
     - ``inner_product_matrix`` -- a symmetric matrix over the rationals
 
     EXAMPLES::

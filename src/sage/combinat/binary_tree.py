@@ -1461,7 +1461,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         u1, n1 = t1._tamari_sorting_tuple()
         u2, n2 = t2._tamari_sorting_tuple()
         n = n1 + 1 + n2
-        return (u1 + (n,) + tuple(k + n1 + 1 for k in u2), n)
+        return (u1 + (n,) + tuple(n1 + 1 + k for k in u2), n)
 
     @combinatorial_map(name="To 312 avoiding permutation")
     def to_312_avoiding_permutation(self):

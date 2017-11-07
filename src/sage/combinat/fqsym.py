@@ -4,10 +4,12 @@ Free Quasi-symmetric functions
 
 AUTHORS:
 
-Frédéric Chapoton (2017)
+- Frédéric Chapoton, Darij Grinberg (2017)
 """
+
 # ****************************************************************************
 #       Copyright (C) 2010-2015 Frédéric Chapoton <chapoton@unistra.fr>,
+#       Copyright (C) 2017      Darij Grinberg <dgrinber at umn.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -44,7 +46,7 @@ class FQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
 
         EXAMPLES::
 
-            sage: TestSuite(algebras.FQSYM(QQ).F()).run()
+            sage: TestSuite(algebras.FQSym(QQ).F()).run()
         """
         CombinatorialFreeModule.__init__(self, alg.base_ring(),
                                          Permutations(),
@@ -63,7 +65,7 @@ class FQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
 
         EXAMPLES::
 
-            sage: F = algebras.FQSYM(GF(7)).F(); F
+            sage: F = algebras.FQSym(GF(7)).F(); F
             Free Quasi-symmetric functions over Finite Field of size 7 in the F basis
 
         Elements of the free quasi-symmetric functions canonically coerce in::
@@ -75,15 +77,16 @@ class FQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
         The free quasi-symmetric functions over `\ZZ` coerces in,
         since `\ZZ` coerces to `\GF{7}`::
 
-            sage: G = algebras.FQSYM(ZZ).F()
+            sage: G = algebras.FQSym(ZZ).F()
             sage: Gx, Gy = G([1]), G([2,1])
             sage: z = F.coerce(Gx+Gy); z
             F[1] + F[2, 1]
             sage: z.parent() is F
             True
 
-        However, `\GF{7}` does not coerce to `\ZZ`, so free quasi-symmetric
-        functions over `\GF{7}` does not coerce to the same algebra over `\ZZ`::
+        However, `\GF{7}` does not coerce to `\ZZ`, so free
+        quasi-symmetric functions over `\GF{7}` does not coerce
+        to the same algebra over `\ZZ`::
 
             sage: G.coerce(y)
             Traceback (most recent call last):
@@ -94,8 +97,8 @@ class FQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
 
         TESTS::
 
-            sage: F = algebras.FQSYM(ZZ).F()
-            sage: G = algebras.FQSYM(QQ).F()
+            sage: F = algebras.FQSym(ZZ).F()
+            sage: G = algebras.FQSym(QQ).F()
             sage: F.has_coerce_map_from(G)
             False
             sage: G.has_coerce_map_from(F)
@@ -167,7 +170,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
     As an associative algebra, `FQSym` has the richer structure
     of a dendriform algebra. This means that the associative
-    product `*` is decomposed as a sum of two binary operations
+    product ``*`` is decomposed as a sum of two binary operations
 
     .. MATH::
 
@@ -216,12 +219,12 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
     .. NOTE::
 
-        The usual binary operator `*` is used for the
+        The usual binary operator ``*`` is used for the
         associative product.
 
     EXAMPLES::
 
-        sage: F = algebras.FQSYM(ZZ).F()
+        sage: F = algebras.FQSym(ZZ).F()
         sage: x,y,z = F([1]), F([1,2]), F([1,3,2])
         sage: (x * y) * z
         F[1, 2, 3, 4, 6, 5] + ...
@@ -245,6 +248,11 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
         sage: F.succ(x * y, z) == F.succ(x, F.succ(y, z))
         True
 
+    `FQSym` is also known as the Malvenuto-Reutenauer algebra::
+
+        sage: algebras.MalvenutoReutenauer(ZZ)
+        Free Quasi-symmetric functions over Integer Ring
+
     REFERENCES:
 
     - [MR]_
@@ -258,11 +266,11 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: A = algebras.FQSYM(QQ); A
+            sage: A = algebras.FQSym(QQ); A
             Free Quasi-symmetric functions over Rational Field
             sage: TestSuite(A).run()  # long time (3s)
 
-            sage: F = algebras.FQSYM(QQ)
+            sage: F = algebras.FQSym(QQ)
             sage: TestSuite(F).run() # long time (3s)
         """
         self._category = HopfAlgebras(R).WithBasis().Graded().Connected()
@@ -274,7 +282,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: algebras.FQSYM(QQ)  # indirect doctest
+            sage: algebras.FQSym(QQ)  # indirect doctest
             Free Quasi-symmetric functions over Rational Field
         """
         s = "Free Quasi-symmetric functions over {}"
@@ -286,7 +294,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: FQSym = algebras.FQSYM(QQ)
+            sage: FQSym = algebras.FQSym(QQ)
             sage: FQSym.a_realization()
             Free Quasi-symmetric functions over Rational Field in the F basis
         """
@@ -299,6 +307,12 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
         This is the basis `(F_w)`, with `w` ranging over all
         permutations. See the documentation of :class:`FQSym`
         for details.
+
+        EXAMPLES::
+
+            sage: FQSym = algebras.FQSym(QQ)
+            sage: FQSym.F()
+            Free Quasi-symmetric functions over Rational Field in the F basis
         """
         _prefix = "F"
         _basis_name = "F"
@@ -309,7 +323,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: R = algebras.FQSYM(QQ).F()
+                sage: R = algebras.FQSym(QQ).F()
                 sage: x, y, z = R([1]), R([2,1]), R([3,2,1])
                 sage: R(x)
                 F[1]
@@ -318,7 +332,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
                 sage: R(1)
                 F[]
 
-                sage: D = algebras.FQSYM(ZZ).F()
+                sage: D = algebras.FQSym(ZZ).F()
                 sage: X, Y, Z = D([1]), D([2,1]), D([3,2,1])
                 sage: R(X-Y).parent()
                 Free Quasi-symmetric functions over Rational Field in the F basis
@@ -352,7 +366,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: A = algebras.FQSYM(QQ).F()
+                sage: A = algebras.FQSym(QQ).F()
                 sage: u = Permutation([2,1])
                 sage: A.degree_on_basis(u)
                 2
@@ -366,7 +380,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: A = algebras.FQSYM(QQ).F()
+                sage: A = algebras.FQSym(QQ).F()
                 sage: A.an_element()
                 F[1] + 2*F[1, 2] + 2*F[2, 1]
             """
@@ -379,7 +393,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: A = algebras.FQSYM(QQ).F()
+                sage: A = algebras.FQSym(QQ).F()
                 sage: A.some_elements()
                 [F[], F[1], F[1, 2] + F[2, 1],
                  F[] + F[1, 2] + F[2, 1]]
@@ -396,7 +410,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: A = algebras.FQSYM(QQ).F()
+                sage: A = algebras.FQSym(QQ).F()
                 sage: A.one_basis()
                 []
             """
@@ -415,7 +429,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: A = algebras.FQSYM(QQ).F()
+                sage: A = algebras.FQSym(QQ).F()
                 sage: x = Permutation([1])
                 sage: A.product_on_basis(x, x)
                 F[1, 2] + F[2, 1]
@@ -428,8 +442,8 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
             r"""
             Return the `\succ` product of two permutations.
 
-            This is the shifted shuffle of `x` and `y` with the additional condition
-            that the first letter of the result comes from `y`.
+            This is the shifted shuffle of `x` and `y` with the additional
+            condition that the first letter of the result comes from `y`.
 
             The usual symbol for this operation is `\succ`.
 
@@ -439,7 +453,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: A = algebras.FQSYM(QQ).F()
+                sage: A = algebras.FQSym(QQ).F()
                 sage: x = Permutation([1,2])
                 sage: A.succ_product_on_basis(x, x)
                 F[3, 1, 2, 4] + F[3, 1, 4, 2] + F[3, 4, 1, 2]
@@ -476,8 +490,8 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
             r"""
             Return the `\prec` product of two permutations.
 
-            This is the shifted shuffle of `x` and `y` with the additional condition
-            that the first letter of the result comes from `x`.
+            This is the shifted shuffle of `x` and `y` with the additional
+            condition that the first letter of the result comes from `x`.
 
             The usual symbol for this operation is `\prec`.
 
@@ -487,7 +501,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: A = algebras.FQSYM(QQ).F()
+                sage: A = algebras.FQSym(QQ).F()
                 sage: x = Permutation([1,2])
                 sage: A.prec_product_on_basis(x, x)
                 F[1, 2, 3, 4] + F[1, 3, 2, 4] + F[1, 3, 4, 2]
@@ -525,7 +539,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: A = algebras.FQSYM(QQ).F()
+                sage: A = algebras.FQSym(QQ).F()
                 sage: x = A([1])
                 sage: ascii_art(A.coproduct(A.one()))  # indirect doctest
                 1 # 1
@@ -534,7 +548,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
                 1 # F    + F    # 1
                      [1]    [1]
 
-                sage: A = algebras.FQSYM(QQ).F()
+                sage: A = algebras.FQSym(QQ).F()
                 sage: x, y, z = A([1]), A([2,1]), A([3,2,1])
                 sage: A.coproduct(z)
                 F[] # F[3, 2, 1] + F[1] # F[2, 1] + F[2, 1] # F[1]
@@ -561,7 +575,7 @@ class FQSymBases(Category_realization_of_parent):
         TESTS::
 
             sage: from sage.combinat.fqsym import FQSymBases
-            sage: FQSym = algebras.FQSYM(ZZ)
+            sage: FQSym = algebras.FQSym(ZZ)
             sage: bases = FQSymBases(FQSym)
             sage: FQSym.F() in bases
             True
@@ -575,7 +589,7 @@ class FQSymBases(Category_realization_of_parent):
         EXAMPLES::
 
             sage: from sage.combinat.fqsym import FQSymBases
-            sage: FQSym = algebras.FQSYM(ZZ)
+            sage: FQSym = algebras.FQSym(ZZ)
             sage: FQSymBases(FQSym)
             Category of bases of Free Quasi-symmetric functions over Integer Ring
         """
@@ -588,7 +602,7 @@ class FQSymBases(Category_realization_of_parent):
         EXAMPLES::
 
             sage: from sage.combinat.fqsym import FQSymBases
-            sage: FQSym = algebras.FQSYM(ZZ)
+            sage: FQSym = algebras.FQSym(ZZ)
             sage: bases = FQSymBases(FQSym)
             sage: bases.super_categories()
             [Category of graded connected hopf algebras with basis over Integer Ring,
@@ -603,7 +617,7 @@ class FQSymBases(Category_realization_of_parent):
 
             EXAMPLES::
 
-                sage: FQSym = algebras.FQSYM(ZZ)
+                sage: FQSym = algebras.FQSym(ZZ)
                 sage: FQSym.F()
                 Free Quasi-symmetric functions over Integer Ring in the F basis
             """
@@ -619,7 +633,7 @@ class FQSymBases(Category_realization_of_parent):
 
             EXAMPLES::
 
-                sage: R = algebras.FQSYM(QQ).F()
+                sage: R = algebras.FQSym(QQ).F()
                 sage: R[[1, 3, 2]]
                 F[1, 3, 2]
                 sage: R[Permutation([1, 3, 2])]
@@ -635,7 +649,7 @@ class FQSymBases(Category_realization_of_parent):
 
             EXAMPLES::
 
-                sage: F = algebras.FQSYM(QQ).F()
+                sage: F = algebras.FQSym(QQ).F()
                 sage: F.is_field()
                 False
             """
@@ -647,7 +661,7 @@ class FQSymBases(Category_realization_of_parent):
 
             EXAMPLES::
 
-                sage: F = algebras.FQSYM(ZZ).F()
+                sage: F = algebras.FQSym(ZZ).F()
                 sage: F.is_commutative()
                 False
             """
@@ -658,8 +672,8 @@ class FQSymBases(Category_realization_of_parent):
             r"""
             Return the `\succ` product.
 
-            This is the shifted shuffle of `x` and `y` with the additional condition
-            that the first letter of the result comes from `y`.
+            This is the shifted shuffle of `x` and `y` with the additional
+            condition that the first letter of the result comes from `y`.
 
             The usual symbol for this operation is `\succ`.
 
@@ -669,7 +683,7 @@ class FQSymBases(Category_realization_of_parent):
 
             EXAMPLES::
 
-                sage: A = algebras.FQSYM(QQ).F()
+                sage: A = algebras.FQSym(QQ).F()
                 sage: x = A([1])
                 sage: A.succ(x, x)
                 F[2, 1]
@@ -689,8 +703,8 @@ class FQSymBases(Category_realization_of_parent):
             r"""
             Return the `\prec` product.
 
-            This is the shifted shuffle of `x` and `y` with the additional condition
-            that the first letter of the result comes from `x`.
+            This is the shifted shuffle of `x` and `y` with the additional
+            condition that the first letter of the result comes from `x`.
 
             The usual symbol for this operation is `\prec`.
 
@@ -700,7 +714,7 @@ class FQSymBases(Category_realization_of_parent):
 
             EXAMPLES::
 
-                sage: A = algebras.FQSYM(QQ).F()
+                sage: A = algebras.FQSym(QQ).F()
                 sage: x = A([2,1])
                 sage: A.prec(x, x)
                 F[2, 1, 4, 3] + F[2, 4, 1, 3] + F[2, 4, 3, 1]
@@ -724,7 +738,7 @@ class FQSymBases(Category_realization_of_parent):
 
             EXAMPLES::
 
-                sage: A = algebras.FQSYM(QQ).F()
+                sage: A = algebras.FQSym(QQ).F()
                 sage: SGA4 = SymmetricGroupAlgebra(QQ, 4)
                 sage: x = SGA4([1,3,2,4]) + 5/2 * SGA4([1,2,4,3])
                 sage: A.from_symmetric_group_algebra(x)
@@ -740,29 +754,38 @@ class FQSymBases(Category_realization_of_parent):
             Return the element of a symmetric group algebra
             corresponding to the element ``self`` of `FQSym`.
 
-            This is well-defined only if ``self`` is homogeneous.
-            The optional parameter `n` can be used to specify
-            the order of the symmetric group algebra (it is
-            otherwise inferred from `x`, but this inference fails
-            if `x = 0`).
+            INPUT:
+
+            - ``n`` -- integer (default: the maximal degree of ``self``);
+              the rank of the target symmetric group algebra
 
             EXAMPLES::
 
-                sage: A = algebras.FQSYM(QQ).F()
+                sage: A = algebras.FQSym(QQ).F()
                 sage: x = A([1,3,2,4]) + 5/2 * A([1,2,4,3])
                 sage: x.to_symmetric_group_algebra()
                 5/2*[1, 2, 4, 3] + [1, 3, 2, 4]
-                sage: x.to_symmetric_group_algebra(n=4)
-                5/2*[1, 2, 4, 3] + [1, 3, 2, 4]
-                sage: a = A.zero().to_symmetric_group_algebra(n=4); a
+                sage: x.to_symmetric_group_algebra(n=7)
+                5/2*[1, 2, 4, 3, 5, 6, 7] + [1, 3, 2, 4, 5, 6, 7]
+                sage: a = A.zero().to_symmetric_group_algebra(); a
                 0
                 sage: parent(a)
-                Symmetric group algebra of order 4 over Rational Field
+                Symmetric group algebra of order 0 over Rational Field
 
+                sage: y = A([1,3,2,4]) + 5/2 * A([2,1])
+                sage: y.to_symmetric_group_algebra()
+                [1, 3, 2, 4] + 5/2*[2, 1, 3, 4]
+                sage: y.to_symmetric_group_algebra(6)
+                [1, 3, 2, 4, 5, 6] + 5/2*[2, 1, 3, 4, 5, 6]
             """
+            if not self:
+                return SymmetricGroupAlgebra(self.base_ring(), 0).zero()
+            m = self.maximal_degree()
             if n is None:
-                for key, c in self:
-                    n = len(key)
-                    break
+                n = m
+            elif n < m:
+                raise ValueError("cannot define a module embedding")
+
             SGA = SymmetricGroupAlgebra(self.base_ring(), n)
             return SGA._from_dict({Permutations(n)(key): c for (key, c) in self})
+

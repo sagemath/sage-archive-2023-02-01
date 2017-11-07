@@ -2218,8 +2218,10 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             ....:         if not S.tamari_lequal(T):
             ....:             print("FAILURE")
         """
-        self_word = self._tamari_sorting_tuple()[0]
-        t2_word = t2._tamari_sorting_tuple()[0]
+        self_word, n1 = self._tamari_sorting_tuple()
+        t2_word, n2 = t2._tamari_sorting_tuple()
+        if n1 != n2:
+            return False
         return all(x <= y for x, y in zip(self_word, t2_word))
 
     def tamari_greater(self):

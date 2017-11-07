@@ -266,7 +266,7 @@ def IntegralLattice(*args, **kwds):
     if is_Matrix(arg0): 
         inner_product_matrix = arg0     
     elif isinstance(arg0, Integer):
-        inner_product_matrix = matrix.identity(ZZ,arg0)
+        inner_product_matrix = matrix.identity(ZZ, arg0)
         if len(args) == 2:
             basis = args[1]
     elif arg0 == "U" or arg0 == "H":
@@ -278,11 +278,14 @@ def IntegralLattice(*args, **kwds):
     if inner_product_matrix != inner_product_matrix.transpose():
         raise ValueError("Argument inner_product_matrix must be symmetric\n%s" % inner_product_matrix)
 
-    A = FreeQuadraticModule(ZZ, inner_product_matrix.ncols(),
+    A = FreeQuadraticModule(ZZ, 
+                            inner_product_matrix.ncols(),
                             inner_product_matrix=inner_product_matrix)
-    return FreeQuadraticModule_integer_symmetric(ambient=A, basis=basis,
-                                                 inner_product_matrix=inner_product_matrix,
-                                                 already_echelonized=False)
+    return FreeQuadraticModule_integer_symmetric(
+                                    ambient=A,
+                                    basis=basis,
+                                    inner_product_matrix=inner_product_matrix,
+                                    already_echelonized=False)
 
 ###############################################################################
 #
@@ -292,7 +295,8 @@ def IntegralLattice(*args, **kwds):
 
 class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_basis_pid):
     r"""
-    This class represents non-degenerate, integral, symmetric free quadratic `\ZZ`-modules.
+    This class represents non-degenerate, integral,
+    symmetric free quadratic `\ZZ`-modules.
 
     INPUT:
 
@@ -312,7 +316,8 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         [0 1]
         [1 0]
     """
-    def __init__(self, ambient, basis, inner_product_matrix, check=True, already_echelonized=False):
+    def __init__(self, ambient, basis, inner_product_matrix, 
+                 check=True, already_echelonized=False):
         r"""
         Create the integral lattice spanned by ``basis`` in the ambient space.
 
@@ -321,12 +326,20 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             sage: L = IntegralLattice("U")
             sage: TestSuite(L).run()
         """
-        FreeQuadraticModule_submodule_with_basis_pid.__init__(self, ambient, basis, inner_product_matrix, check=check, already_echelonized=already_echelonized)
+        FreeQuadraticModule_submodule_with_basis_pid.__init__(
+                                        self, 
+                                        ambient, 
+                                        basis, 
+                                        inner_product_matrix, 
+                                        check=check,
+                                        already_echelonized=already_echelonized)
         if self.determinant() == 0:
-            raise ValueError("Lattices must be nondegenerate. Use FreeQuadraticModule instead")
+            raise ValueError("Lattices must be nondegenerate. 
+                            Use FreeQuadraticModule instead")
         if self.gram_matrix().base_ring() is not ZZ:
             if self.gram_matrix().denominator() != 1:
-                raise ValueError("Lattices must be integral. Use FreeQuadraticModule instead")
+                raise ValueError("Lattices must be integral. 
+                            Use FreeQuadraticModule instead")
 
     def _repr_(self):
         r"""
@@ -498,14 +511,20 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             [-+-]
             [0|1]
         """
-        IM = matrix.block_diagonal([self.inner_product_matrix(), M.inner_product_matrix()])
-        ambient = FreeQuadraticModule(ZZ, self.degree() + M.degree(), inner_product_matrix=IM)
+        IM = matrix.block_diagonal([self.inner_product_matrix(),
+                                    M.inner_product_matrix()])
+        ambient = FreeQuadraticModule(ZZ, self.degree() + M.degree(),
+                                    inner_product_matrix=IM)
         smzero = matrix.zero(self.rank(), M.degree())
         mszero = matrix.zero(M.rank(), self.degree())
-        basis = self.basis_matrix().augment(smzero).stack(mszero.augment(M.basis_matrix()))
+        basis = self.basis_matrix().augment(smzero).stack(
+                            mszero.augment(M.basis_matrix()))
         ipm = ambient.inner_product_matrix()
         return FreeQuadraticModule_integer_symmetric(
-            ambient=ambient, basis=basis, inner_product_matrix=ipm, already_echelonized=False)
+            ambient=ambient, 
+            basis=basis, 
+            inner_product_matrix=ipm, 
+            already_echelonized=False)
 
     def is_primitive(self, M):
         r"""
@@ -613,7 +632,8 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             inner_product_matrix=self.inner_product_matrix(),
             already_echelonized=False)
         if not M.is_submodule(self):
-            raise ValueError("Argument basis (= %s) does not span a submodule of this lattice" % basis)
+            raise ValueError("Argument basis (= %s) does not span 
+                             a submodule of this lattice" % basis)
         return M
 
     def overlattice(self, gens):

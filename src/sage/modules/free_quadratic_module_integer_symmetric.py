@@ -1,6 +1,5 @@
 r"""
-Finitely generated `\ZZ`-modules with non-degenerate integral
-symmetric bilinear form.
+Integral lattices
 
 An integral lattice is a finitely generated free abelian group
 `L \cong \ZZ^r` equipped with a non-degenerate, symmetric bilinear
@@ -391,7 +390,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         .. MATH::
 
-            L^\vee = \{x \in L \otimes \QQ : \langle x, l \rangle \forall y \in L \}.
+            L^\vee = \{x \in L \otimes \QQ :  (x, l) \in \ZZ \; \forall l \in L \}.
 
         EXAMPLES::
 

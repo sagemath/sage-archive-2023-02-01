@@ -779,12 +779,14 @@ class FQSymBases(Category_realization_of_parent):
                 [1, 3, 2, 4, 5, 6] + 5/2*[2, 1, 3, 4, 5, 6]
             """
             if not self:
-                return SymmetricGroupAlgebra(self.base_ring(), 0).zero()
+                if n is None:
+                    n = 0
+                return SymmetricGroupAlgebra(self.base_ring(), n).zero()
             m = self.maximal_degree()
             if n is None:
                 n = m
             elif n < m:
-                raise ValueError("cannot define a module embedding")
+                raise ValueError("n must be at least the maximal degree")
 
             SGA = SymmetricGroupAlgebra(self.base_ring(), n)
             return SGA._from_dict({Permutations(n)(key): c for (key, c) in self})

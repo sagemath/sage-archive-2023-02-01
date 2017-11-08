@@ -648,10 +648,28 @@ class RealSet(UniqueRepresentation, Parent):
             [-1, +oo)
             sage: RealSet(x > oo)
             {}
+            sage: RealSet(x >= oo)
+            {}
+            sage: RealSet(x <= -oo)
+            {}
+            sage: RealSet(x < oo)
+            (-oo, +oo)
+            sage: RealSet(x > -oo)
+            (-oo, +oo)
+            sage: RealSet(x != oo)
+            (-oo, +oo)
+            sage: RealSet(x <= oo)
+            Traceback (most recent call last):
+            ...
+            ValueError: interval cannot be closed at +oo
             sage: RealSet(x == oo)
             Traceback (most recent call last):
             ...
             ValueError: interval cannot be closed at +oo
+            sage: RealSet(x >= -oo)
+            Traceback (most recent call last):
+            ...
+            ValueError: interval cannot be closed at -oo
 
         TESTS::
 
@@ -688,6 +706,10 @@ class RealSet(UniqueRepresentation, Parent):
                     Internal helper function.
                     """
                     oo = infinity
+                    try:
+                        val = val.pyobject()
+                    except AttributeError:
+                        pass
                     val = RLF(val)
                     if op == eq:
                         return [InternalRealInterval(val, True, val, True)]

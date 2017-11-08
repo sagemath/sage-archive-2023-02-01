@@ -3653,6 +3653,11 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             Quasisymmetric functions over the Rational Field in the psi basis
             sage: psi.an_element()
             2*psi[] + 2*psi[1] + 3*psi[1, 1]
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: psi(p[2,2,1])
+            psi[1, 2, 2] + psi[2, 1, 2] + psi[2, 2, 1]
+            sage: all(sum(psi(list(al)) for al in Permutations(la))==psi(p(la)) for la in Partitions(6))
+            True
 
         Checking the equivalent definition of `\psi_n`::
 
@@ -3785,6 +3790,11 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             Quasisymmetric functions over the Rational Field in the phi basis
             sage: phi.an_element()
             2*phi[] + 2*phi[1] + 3*phi[1, 1]
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: phi(p[2,2,1])
+            phi[1, 2, 2] + phi[2, 1, 2] + phi[2, 2, 1]
+            sage: all(sum(phi(list(al)) for al in Permutations(la))==phi(p(la)) for la in Partitions(6))
+            True
 
         Checking the equivalent definition of `\phi_n`::
 

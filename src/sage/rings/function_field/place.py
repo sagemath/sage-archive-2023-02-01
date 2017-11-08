@@ -768,7 +768,7 @@ class FunctionFieldPlace_global(FunctionFieldPlace):
         return self.valuation_ring().residue_field(name=name)
 
     @cached_method
-    def _residue_field(self, name=None):
+    def _residue_field_old(self, name=None):
         """
         Return the residue field of the place along with the functions
         mapping from and to it.
@@ -962,6 +962,205 @@ class FunctionFieldPlace_global(FunctionFieldPlace):
             e = (to_V(f)*C).list()
             if deg > 1:
                 return K(e)
+            else: # len(e) == 1
+                return K(e[0])
+
+        return K, from_K, to_K
+
+    @cached_method
+    def _residue_field(self):
+        """
+        Return the residue field of the place along with the functions
+        mapping from and to it.
+
+        INPUT:
+
+        - ``name`` -- string; name of the generator of the residue field
+
+        If name is not given, it defaults to ``'a'``.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: p = L.places_finite()[0]
+            sage: k,fr_k,to_k = p._residue_field()
+            sage: k
+            Finite Field of size 2
+            sage: [fr_k(e) for e in k]
+            [0, 1]
+
+            sage: K.<x> = FunctionField(GF(9)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + Y - x^4)
+            sage: p = L.places()[-1]
+            sage: p.residue_field()
+            (Finite Field in z2 of size 3^2, Ring morphism:
+               From: Finite Field in z2 of size 3^2
+               To:   Valuation ring at Place (x + 1, y + 2*z2), Ring morphism:
+               From: Valuation ring at Place (x + 1, y + 2*z2)
+               To:   Finite Field in z2 of size 3^2)
+        """
+        F = self._field
+        prime = self.prime_ideal()
+
+        if self.is_infinite_place():
+            _F, from_F, to_F  = F._inversion_isomorphism()
+            _prime = prime._ideal
+            _place = _prime.place()
+
+            K, _from_K, _to_K = _place._residue_field(name=name)
+
+            from_K = lambda e: from_F(_from_K(e))
+            to_K = lambda f: _to_K(to_F(f))
+            return K, from_K, to_K
+
+        O = F.maximal_order()
+        Obasis = O.basis()
+
+        M = prime.hnf()
+        R = M.base_ring() # univariate polynomial ring
+        n = M.nrows() # extension degree of the function field
+
+        degs = [M[i,i].degree() for i in range(n)]
+        deg = sum(degs) # degree of the place
+
+        # Step 1: construct a vector space representing the residue field
+        k = F.constant_base_field()
+        V = k**deg
+
+        def to_V(e):
+            """
+            An example to show the idea: Suppose that
+
+                    [x 0 0]
+                M = [0 1 0] and v = (x^10, x^7 + x^3, x^7 + x^4 + x^3 + 1)
+                    [1 0 1]
+
+            Then to_V(e) = [1]
+            """
+            v = O._coordinate_vector(e)
+            vec = []
+            for i in reversed(range(n)):
+                q,r = v[i].quo_rem(M[i,i])
+                v -= q * M[i]
+                for j in range(degs[i]):
+                    vec.append(r[j])
+            return vector(vec)
+
+        def fr_V(vec): # to_O
+            vec = vec.list()
+            pos = 0
+            e = F(0)
+            for i in reversed(range(n)):
+                if degs[i] == 0: continue
+                else:
+                    end = pos + degs[i]
+                    e += R(vec[pos:end]) * Obasis[i]
+                    pos = end
+            return e
+
+        # Step 2: find a generator of the residue field
+        def candidates():
+            # Trial 1: this suffices for places obtained from Kummers' theorem
+
+            # Note that a = O._kummer_gen is a simple generator of O/prime over
+            # o/p. If b is a simple generator of o/p over the constant base field
+            # k, then the set a + k * b contains a simple generator of O/prime
+            # over k (as there are finite number of intermediate fields).
+            a = O._kummer_gen
+            if a is not None:
+                K,fr_K,_ = self.place_below().residue_field()
+                b = fr_K(K.gen())
+                for c in reversed(k.list()):
+                    yield a + c * b
+
+            # Trial 2: basis elements of the maximal order
+            for gen in reversed(Obasis):
+                yield gen
+
+            import itertools
+
+            # Trial 3: exhaustive search in O using only polynomials
+            # with coefficients 0 or 1
+            for d in range(deg):
+                G = itertools.product(itertools.product([0,1],repeat=d+1), repeat=n)
+                for g in G:
+                    gen = sum([R(c1)*c2 for c1,c2 in zip(g, Obasis)])
+                    yield gen
+
+            # Trial 4: exhaustive search in O using all polynomials
+            for d in range(deg):
+                G = itertools.product(R.polynomials(max_degree=d), repeat=n)
+                for g in G:
+                    # discard duplicate cases
+                    if max(c.degree() for c in g) != d: continue
+                    for j in range(n):
+                        if g[j] != 0: break
+                    if g[j].leading_coefficient() != 1: continue
+
+                    gen = sum([c1*c2 for c1,c2 in zip(g, Obasis)])
+                    yield gen
+
+        for gen in candidates():
+            g = F.one()
+            m = []
+            for i in range(deg):
+                m.append(to_V(g))
+                g *= gen
+            mat = matrix(m)
+            if mat.rank() == deg:
+                break
+
+        # Step 3: compute the minimal polynomial of g
+        min_poly = R((-mat.solve_left(to_V(g))).list() + [1])
+
+        if deg > 1:
+            # Step 4: construct the finite field
+            K = k.extension(deg)
+            alpha = min_poly.roots(K)[0][0]
+            W, from_W, to_W = K.vector_space_over(k, basis=[alpha**i for i in range(deg)])
+
+            # Step 5: compute the matrix of change of basis
+            C = mat.inverse()
+
+            # Step 6: construct an isomorphism
+            def from_K(e):
+                return fr_V(to_W(e) * mat)
+        else: # deg == 1
+            # Step 4: construct the finite field
+            K = k
+
+            # Step 5: compute the matrix of change of basis
+            C = mat.inverse()
+
+            # Step 6: construct an isomorphism
+            def from_K(e):
+                return fr_V(vector([e]) * mat)
+
+        p = prime.prime_below().gen().numerator()
+        beta = prime._beta
+        alpha = ~p * sum(c1*c2 for c1,c2 in zip(beta, O.basis()))
+        alpha_powered_by_ramification_index = alpha ** prime._ramification_index
+
+        def to_K(f):
+            if not f in O:
+                den = O.coordinate_vector(f).denominator()
+                num = den * f
+
+                # s powered by the valuation of den at the prime
+                alpha_power = alpha_powered_by_ramification_index ** den.valuation(p)
+                rn = num * alpha_power # in O
+                rd = den * alpha_power # in O but not in prime
+
+                # Note that rn is not in O if and only if f is
+                # not in the valuation ring. Hence f is in the
+                # valuation ring if and only if this procedure
+                # does not fall into an infinite loop.
+                return to_K(rn) / to_K(rd)
+
+            e = (to_V(f)*C)
+            if deg > 1:
+                return from_W(e)
             else: # len(e) == 1
                 return K(e[0])
 

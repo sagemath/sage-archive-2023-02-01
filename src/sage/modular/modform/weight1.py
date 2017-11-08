@@ -24,8 +24,8 @@ def modular_ratio_space(chi):
     level N and character chi such that f * E is a holomorphic cusp form for
     every Eisenstein series E of weight 1 and character 1/chi.
 
-    Elements are returned as q-expansions up to precision R+1, where R is the
-    weight 3 Sturm bound.
+    Elements are returned as q-expansions up to precision R, where R is one
+    greater than the weight 3 Sturm bound.
 
     EXAMPLES::
 
@@ -115,12 +115,12 @@ def hecke_stable_subspace(chi, aux_prime=ZZ(2)):
     chi = chi.minimize_base_ring()
     K = chi.base_ring()
 
-    # Auxilliary prime for Hecke stability method
+    # Auxiliary prime for Hecke stability method
     l = aux_prime 
     while l.divides(N): l = l.next_prime()
     verbose("Auxilliary prime: %s" % l, level=1)
 
-    # Compute working precision.
+    # Compute working precision
     R = l*Gamma0(N).sturm_bound(l + 2)
 
     t=verbose("Computing modular ratio space", level=1)

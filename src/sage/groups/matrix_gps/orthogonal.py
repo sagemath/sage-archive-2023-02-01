@@ -460,18 +460,18 @@ class OrthogonalMatrixGroup_with_gap(FinitelyGeneratedMatrixGroup_gap):
     INPUT:
 
         - ``degree`` -- integer, the degree (matrix size) of the
-          matrix group
+           matrix group
 
         - ``base_ring`` -- ring, the base ring of the matrices
-        
+
         - ``gens`` -- a list of matrices over the base ring
-        
-        - -``invariant_bilinear_form`` -- a symmetric matrix
-        
-        -``category`` -- (default:``None``) a category of groups
-    
-        -``check`` -- bool (default: ``True``) - check if the generators
-        preserve the bilinear form
+
+        - ``invariant_bilinear_form`` -- a symmetric matrix
+
+        - ``category`` -- (default:``None``) a category of groups
+
+        - ``check`` -- bool (default: ``True``) - check if the generators
+          preserve the bilinear form
         
     EXAMPLES::
     
@@ -496,7 +496,9 @@ class OrthogonalMatrixGroup_with_gap(FinitelyGeneratedMatrixGroup_gap):
         +Infinity
     """
     
-    def __init__(self, degree, base_ring, gens, invariant_bilinear_form, category=None, check=True):
+    def __init__(self, degree, base_ring,
+                 gens, invariant_bilinear_form, 
+                 category=None, check=True):
         """
         Initialization 
             
@@ -512,19 +514,20 @@ class OrthogonalMatrixGroup_with_gap(FinitelyGeneratedMatrixGroup_gap):
         G = copy(invariant_bilinear_form)
         G.set_immutable()
         self._invariant_bilinear_form = G
-        
         if check:
             for f in gens:
-                if f*G*f.T != G:
-                    raise ValueError("The generators must preserve the bilinear form.")
-        
-        if len(gens) == 0: #handle the trivial group
+                self._check_matrix(f)
+        if len(gens) == 0:    # handle the trivial group
             gens = [G.parent().identity_matrix()]
-        
         from sage.libs.gap.libgap import libgap
         gap_gens = [libgap(matrix_gen) for matrix_gen in gens]
         gap_group = libgap.Group(gap_gens)
-        FinitelyGeneratedMatrixGroup_gap.__init__(self,degree, base_ring, gap_group, category=category)
+        FinitelyGeneratedMatrixGroup_gap.__init__(self,
+                                                  degree,
+                                                  base_ring,
+                                                  gap_group,
+                                                  category=category)
+
 
     def _repr_(self):
         """

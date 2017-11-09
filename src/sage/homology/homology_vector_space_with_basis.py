@@ -30,7 +30,7 @@ from __future__ import absolute_import
 from sage.misc.cachefunc import cached_method
 from sage.categories.algebras import Algebras
 from sage.categories.modules import Modules
-from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
+from sage.combinat.free_module import CombinatorialFreeModule
 from sage.sets.family import Family
 from .simplicial_complex import SimplicialComplex
 from .simplicial_set import SimplicialSet_arbitrary
@@ -375,7 +375,7 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
                                          cochains=self._cohomology)
         return chains.from_vector(vec)
 
-    class Element(CombinatorialFreeModuleElement):
+    class Element(CombinatorialFreeModule.Element):
         def to_cycle(self):
             r"""
             (Co)cycle representative of this homogeneous (co)homology class.
@@ -753,7 +753,7 @@ class CohomologyRing(HomologyVectorSpaceWithBasis):
                 d[index] = coeff
                 deg_comp[index[0]] = d
 
-            # Do the square on each graded componenet of ``self``.
+            # Do the square on each graded component of ``self``.
             for j in deg_comp:
                 # Make it into an actual element
                 m = j + i

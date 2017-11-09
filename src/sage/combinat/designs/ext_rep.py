@@ -473,7 +473,7 @@ def dump_to_tmpfile(s):
     """
     Utility function to dump a string to a temporary file.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs import ext_rep
         sage: file_loc = ext_rep.dump_to_tmpfile("boo")

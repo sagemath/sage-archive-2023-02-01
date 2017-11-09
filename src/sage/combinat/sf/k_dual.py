@@ -592,12 +592,12 @@ class KBoundedQuotientBases(Category_realization_of_parent):
             if isinstance(c, Partition):
                 assert len(rest) == 0
             else:
-                if len(rest) > 0 or isinstance(c,(int,Integer)):
-                    c = self._kbounded_partitions.element_class(self._kbounded_partitions, [c]+list(rest))
+                if len(rest) or isinstance(c, (int, Integer)):
+                    c = self._kbounded_partitions.element_class(self._kbounded_partitions, [c] + list(rest))
                 else:
                     c = self._kbounded_partitions.element_class(self._kbounded_partitions, list(c))
-            if len(c) != 0 and c[0] > self.k:
-                raise ValueError("Partition is not %d-bounded"%self.k)
+            if c and c[0] > self.k:
+                raise ValueError("Partition is not %d-bounded" % self.k)
             return self.monomial(c)
 
         def _repr_term(self, c):
@@ -920,7 +920,7 @@ class KBoundedQuotientBasis(CombinatorialFreeModule):
     __getitem__ = KBoundedQuotientBases.ParentMethods.__getitem__.__func__
     _repr_term = KBoundedQuotientBases.ParentMethods._repr_term.__func__
     _element_constructor_ = KBoundedQuotientBases.ParentMethods._element_constructor_.__func__
-    _element_constructor = _element_constructor_
+
 
 class kMonomial(KBoundedQuotientBasis):
     r"""

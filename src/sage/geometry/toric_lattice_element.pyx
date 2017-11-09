@@ -101,7 +101,7 @@ from sage.modules.vector_integer_dense cimport Vector_integer_dense
 from sage.structure.coerce_exceptions import CoercionException
 from sage.structure.element cimport Element, Vector
 from sage.rings.integer cimport Integer
-from sage.structure.sage_object cimport richcmp_not_equal, richcmp
+from sage.structure.richcmp cimport richcmp_not_equal, richcmp
 
 
 def is_ToricLatticeElement(x):

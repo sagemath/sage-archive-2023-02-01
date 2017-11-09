@@ -1,3 +1,4 @@
+# cython: binding=True
 r"""
 Static dense graphs
 
@@ -238,7 +239,7 @@ def triangles_count(G):
 
     - ``G``-- a simple graph
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.base.static_dense_graph import triangles_count
         sage: triangles_count(graphs.PetersenGraph())

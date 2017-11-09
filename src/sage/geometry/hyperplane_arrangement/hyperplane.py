@@ -118,7 +118,7 @@ class Hyperplane(LinearExpression):
     """
     A hyperplane.
 
-    You shoud always use :class:`AmbientVectorSpace` to construct
+    You should always use :class:`AmbientVectorSpace` to construct
     instances of this class.
 
     INPUT:

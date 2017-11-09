@@ -37,7 +37,7 @@ category of toric varieties and toric morphisms.
 .. note::
 
     Do not create the toric morphisms (or any morphism of schemes)
-    directly from the the ``SchemeMorphism...`` classes. Instead, use the
+    directly from the ``SchemeMorphism...`` classes. Instead, use the
     :meth:`~sage.schemes.generic.scheme.hom` method common to all
     algebraic schemes to create new homomorphisms.
 
@@ -375,7 +375,7 @@ from six import iteritems
 # https://groups.google.com/d/msg/sage-devel/qF4yU6Vdmao/wQlNrneSmWAJ
 from sage.categories.morphism import Morphism
 
-from sage.structure.sage_object import richcmp_not_equal, richcmp
+from sage.structure.richcmp import richcmp_not_equal, richcmp
 
 from sage.structure.sequence import Sequence
 from sage.rings.all import ZZ

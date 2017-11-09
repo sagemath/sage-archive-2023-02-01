@@ -273,7 +273,7 @@ class Face(SageObject):
             sage: f.type()
             3
 
-        TEST:
+        TESTS:
 
         We test that types can be given by an int (see :trac:`10699`)::
 
@@ -593,7 +593,7 @@ class Patch(SageObject):
             sage: P
             Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*, [(0, 0, 0), 3]*]
 
-        TEST:
+        TESTS:
 
         We test that colors are not anymore mixed up between
         Patches (see :trac:`11255`)::
@@ -670,7 +670,7 @@ class Patch(SageObject):
             sage: hash(P)      #random
             -4839605361791007520
 
-        TEST:
+        TESTS:
 
         We test that two equal patches have the same hash (see :trac:`11255`)::
 
@@ -1009,11 +1009,11 @@ class Patch(SageObject):
         -  ``cmap`` - color map (default: ``'Set1'``). It can be one of the
            following :
 
-           - string - A coloring map. For available coloring map names type:
+           - string -- A coloring map. For available coloring map names type:
              ``sorted(colormaps)``
-           - list - a list of colors to assign cyclically to the faces.
+           - list -- a list of colors to assign cyclically to the faces.
              A list of a single color colors all the faces with the same color.
-           - dict - a dict of face types mapped to colors, to color the
+           - dict -- a dict of face types mapped to colors, to color the
              faces according to their type.
            - ``{}``, the empty dict - shorcut for
              ``{1:'red', 2:'green', 3:'blue'}``.
@@ -1484,7 +1484,7 @@ class E1Star(SageObject):
             sage: E(P, iterations=4)
             Patch of 31 faces
 
-        TEST:
+        TESTS:
 
         We test that iterations=0 works (see :trac:`10699`)::
 

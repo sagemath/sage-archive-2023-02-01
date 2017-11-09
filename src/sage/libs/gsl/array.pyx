@@ -2,7 +2,7 @@
 GSL arrays
 """
 
-include "cysignals/memory.pxi"
+from cysignals.memory cimport sig_malloc, sig_free
 
 cdef class GSLDoubleArray:
     """

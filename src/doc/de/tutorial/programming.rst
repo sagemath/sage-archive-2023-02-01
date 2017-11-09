@@ -194,8 +194,6 @@ PATH-Umgebungsvariable enthalten sein. Falls das das obige Skript
 
     bash $ ./factor 2006
     2 * 17 * 59
-    bash $ ./factor "32*x^5-1"
-    (2*x - 1) * (16*x^4 + 8*x^3 + 4*x^2 + 2*x + 1)
 
 Datentypen
 ==========
@@ -476,7 +474,7 @@ Daten umwandeln:
 
 ::
 
-    sage: d.items()
+    sage: list(d.items())
     [(1, 5), ('sage', 17), (Integer Ring, Finite Field of size 7)]
 
 Eine häufig vorkommende Ausdrucksweise ist über einem Paar in einem
@@ -485,7 +483,7 @@ Dictionary zu iterieren:
 ::
 
     sage: d = {2:4, 4:16, 3:9}
-    sage: [a*b for a, b in d.iteritems()]
+    sage: [a*b for a, b in d.items()]
     [8, 27, 64]
 
 Ein Dictionary ist ungeordnet, wie die letzte Ausgabe verdeutlicht.

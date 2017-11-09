@@ -357,19 +357,6 @@ class Constant(object):
         """
         return self._domain
 
-    def __lt__(self, other):
-        """
-        Perform float comparison with constant.
-
-        EXAMPLES::
-
-            sage: cmp(pi, 0)
-            1
-            sage: cmp(pi, SR(0))
-            1
-        """
-        return self.__float__() < other
-
     def expression(self):
         """
         Returns an expression for this constant.

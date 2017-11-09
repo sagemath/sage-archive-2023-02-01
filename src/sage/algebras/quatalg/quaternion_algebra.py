@@ -31,8 +31,9 @@ Pickling test::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six.moves import zip
+from six import integer_types
 
 from sage.arith.all import (hilbert_conductor_inverse, hilbert_conductor,
         factor, gcd, lcm, kronecker_symbol, valuation)
@@ -48,6 +49,7 @@ from sage.rings.infinity import infinity
 from sage.rings.number_field.number_field import is_NumberField
 from sage.structure.category_object import normalize_names
 from sage.structure.parent_gens import ParentWithGens
+from sage.structure.parent import Parent
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import diagonal_matrix, matrix
 from sage.structure.sequence import Sequence
@@ -65,7 +67,9 @@ from sage.modular.modsym.p1list import P1List
 
 from sage.misc.cachefunc import cached_method
 
+from sage.categories.rings import Rings
 from sage.categories.fields import Fields
+from sage.categories.algebras import Algebras
 _Fields = Fields()
 
 ########################################################
@@ -216,7 +220,7 @@ class QuaternionAlgebraFactory(UniqueFactory):
             for a in [arg0,arg1]:
                 if is_RingElement(a):
                     L.append(a)
-                elif isinstance(a, int) or isinstance(a, long):
+                elif isinstance(a, integer_types):
                     L.append(Integer(a))
                 elif isinstance(a, float):
                     L.append(RR(a))
@@ -598,6 +602,8 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
             sage: Q(-3/5)
             -3/5
 
+            sage: TestSuite(Q).run()
+
         The base ring must be a field::
 
             sage: Q.<ii,jj,kk> = QuaternionAlgebra(ZZ,-5,-19)
@@ -605,7 +611,7 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
             ...
             TypeError: base ring of quaternion algebra must be a field
         """
-        ParentWithGens.__init__(self, base_ring, names=names)
+        ParentWithGens.__init__(self, base_ring, names=names, category=Algebras(base_ring).Division())
         self._a = a
         self._b = b
         if base_ring not in _Fields:
@@ -781,8 +787,8 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
                 # for e_n to become p-saturated we still need to sort by
                 # ascending valuation of the quadratic form
                 lst = sorted(zip(e_n, [f[m][1].mod(2) for m in range(4)]),
-                             key = itemgetter(1))
-                e_n = list(zip(*lst)[0])
+                             key=itemgetter(1))
+                e_n = list(next(zip(*lst)))
 
                 # Final step: Enlarge the basis at p
                 if p != 2:
@@ -918,7 +924,7 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
 
             sage: Q.<i,j,k> = QuaternionAlgebra(QQ,-5,-2)
             sage: type(Q)
-            <class 'sage.algebras.quatalg.quaternion_algebra.QuaternionAlgebra_ab'>
+            <class 'sage.algebras.quatalg.quaternion_algebra.QuaternionAlgebra_ab_with_category'>
             sage: Q._repr_()
             'Quaternion Algebra (-5, -2) with base ring Rational Field'
             sage: Q
@@ -1256,7 +1262,7 @@ class QuaternionOrder(Algebra):
         sage: QuaternionAlgebra(-1,-7).maximal_order()
         Order of Quaternion Algebra (-1, -7) with base ring Rational Field with basis (1/2 + 1/2*j, 1/2*i + 1/2*k, j, k)
         sage: type(QuaternionAlgebra(-1,-7).maximal_order())
-        <class 'sage.algebras.quatalg.quaternion_algebra.QuaternionOrder'>
+        <class 'sage.algebras.quatalg.quaternion_algebra.QuaternionOrder_with_category'>
     """
     def __init__(self, A, basis, check=True):
         """
@@ -1279,7 +1285,7 @@ class QuaternionOrder(Algebra):
             sage: R = sage.algebras.quatalg.quaternion_algebra.QuaternionOrder(A, [1,2*i,2*j,2*k]); R
             Order of Quaternion Algebra (-3, -5) with base ring Rational Field with basis (1, 2*i, 2*j, 2*k)
             sage: type(R)
-            <class 'sage.algebras.quatalg.quaternion_algebra.QuaternionOrder'>
+            <class 'sage.algebras.quatalg.quaternion_algebra.QuaternionOrder_with_category'>
 
             Over QQ and number fields it is checked whether the given
             basis actually gives a an order (as a module over the maximal order):
@@ -1306,6 +1312,10 @@ class QuaternionOrder(Algebra):
             Traceback (most recent call last):
             ...
             ValueError: given lattice must be a ring
+
+        TESTS::
+
+            sage: TestSuite(R).run()
         """
         if check:
             # right data type
@@ -1361,7 +1371,7 @@ class QuaternionOrder(Algebra):
 
         self.__basis = basis
         self.__quaternion_algebra = A
-        ParentWithGens.__init__(self, ZZ, names=None)
+        Parent.__init__(self, base=ZZ, facade=(A,), category=Algebras(ZZ))
 
     def gens(self):
         """

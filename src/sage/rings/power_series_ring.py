@@ -113,6 +113,7 @@ TESTS::
 
 """
 from __future__ import absolute_import
+from six import integer_types
 
 from . import power_series_poly
 from . import power_series_mpoly
@@ -340,7 +341,8 @@ def PowerSeriesRing(base_ring, name=None, arg2=None, names=None,
     if arg2 is None and num_gens is not None:
         arg2 = names
         names = num_gens
-    if isinstance(arg2, str) and isinstance(names, (int,long,integer.Integer)):
+    if (isinstance(arg2, str) and
+            isinstance(names, integer_types + (integer.Integer,))):
         return _multi_variate(base_ring, num_gens=names, names=arg2,
                      order=order, default_prec=default_prec, sparse=sparse)
 
@@ -359,13 +361,13 @@ def PowerSeriesRing(base_ring, name=None, arg2=None, names=None,
     ## so no warning for now.
     ##
     # from sage.misc.superseded import deprecation
-    # if isinstance(name, (int,long,integer.Integer)) or isinstance(arg2,(int,long,integer.Integer)):
+    # if isinstance(name, (int,integer.Integer)) or isinstance(arg2,(int,integer.Integer)):
     #     deprecation(trac_number, "This behavior of PowerSeriesRing is being deprecated in favor of constructing multivariate power series rings. (See Trac ticket #1956.)")
 
 
     # the following is the original, univariate-only code
 
-    if isinstance(name, (int,long,integer.Integer)):
+    if isinstance(name, integer_types + (integer.Integer,)):
         default_prec = name
     if not names is None:
         name = names
@@ -560,7 +562,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
                                                        _CommutativeRings))
         Nonexact.__init__(self, default_prec)
         if self.Element is PowerSeries_pari:
-            self.__generator = self.element_class(self, R.gen()._pari_())
+            self.__generator = self.element_class(self, R.gen().__pari__())
         else:
             self.__generator = self.element_class(self, R.gen(), is_gen=True)
 
@@ -810,7 +812,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
         the univariate polynomial ring with respect to the indeterminate
         (to a given precision).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R = PowerSeriesRing(ZZ, 'x')
             sage: c, S = R.construction(); S
@@ -897,7 +899,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
         This gets called implicitly when one constructs a ring homomorphism
         from a power series ring.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = RationalField(); R.<t>=PowerSeriesRing(S)
             sage: f = R.hom([0])
@@ -1109,7 +1111,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
             2 - t - 5*t^2 + t^3 + O(t^4)
 
 
-        Further arguments are passed to the underlying base ring (:trac:`#9481`)::
+        Further arguments are passed to the underlying base ring (:trac:`9481`)::
 
             sage: SZ = PowerSeriesRing(ZZ,'v')
             sage: SQ = PowerSeriesRing(QQ,'v')
@@ -1128,42 +1130,6 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
         if prec is None:
             prec = self.default_prec()
         return self(self.__poly_ring.random_element(prec-1, *args, **kwds), prec)
-
-    def __cmp__(self, other):
-        """
-        Compare this power series ring to something else.
-
-        Power series rings are considered equal if the base ring, variable
-        names, and default truncation precision are the same.
-
-        First the base rings are compared, then the variable names, then
-        the default precision.
-
-        EXAMPLES::
-
-            sage: R.<t> = PowerSeriesRing(ZZ)
-            sage: S.<t> = PowerSeriesRing(ZZ)
-            sage: R is S
-            True
-            sage: R == S
-            True
-            sage: S.<t> = PowerSeriesRing(ZZ, default_prec=10)
-            sage: R == S
-            False
-            sage: PowerSeriesRing(QQ,'t') == PowerSeriesRing(ZZ,'t')
-            False
-            sage: PowerSeriesRing(QQ,'t') == 5
-            False
-        """
-        if not isinstance(other, PowerSeriesRing_generic):
-            return -1
-        c = cmp(self.base_ring(), other.base_ring())
-        if c: return c
-        c = cmp(self.variable_name(), other.variable_name())
-        if c: return c
-        c = cmp(self.default_prec(), other.default_prec())
-        if c: return c
-        return 0
 
     def __contains__(self, x):
         """

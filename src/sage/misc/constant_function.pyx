@@ -1,13 +1,19 @@
 r"""
 Constant functions
 """
+
 #*****************************************************************************
-#  Copyright (C) 2009    Nicolas M. Thiery <nthiery at users.sf.net>
+#       Copyright (C) 2009 Nicolas M. Thiery <nthiery at users.sf.net>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#******************************************************************************
-from sage.structure.sage_object cimport SageObject, richcmp
+#*****************************************************************************
+
+from sage.structure.richcmp cimport richcmp
+from sage.structure.sage_object cimport SageObject
 
 
 cdef class ConstantFunction(SageObject):
@@ -38,12 +44,12 @@ cdef class ConstantFunction(SageObject):
     Also, in the long run, the information that this function is
     constant could be used by some algorithms.
 
-    TODO:
+    .. TODO::
 
-    - Should constant functions have unique representation?
-    - Should the number of arguments be specified in the input?
-    - Should this go into ``sage.categories.maps``?
-      Then what should be the parent (e.g. for ``lambda x: True``)?
+        - Should constant functions have unique representation?
+        - Should the number of arguments be specified in the input?
+        - Should this go into ``sage.categories.maps``?
+          Then what should be the parent (e.g. for ``lambda x: True``)?
 
     TESTS:
 

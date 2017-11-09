@@ -212,8 +212,6 @@ de como usá-lo:
 
     bash $ ./factor 2006
     2 * 17 * 59
-    bash $ ./factor "32*x^5-1"
-    (2*x - 1) * (16*x^4 + 8*x^3 + 4*x^2 + 2*x + 1)
 
 Tipo de Dados
 =============
@@ -486,7 +484,7 @@ dados:
 
 ::
 
-    sage: d.items()
+    sage: list(d.items())
     [(1, 5), ('sage', 17), (Integer Ring, Finite Field of size 7)]
 
 É comum iterar sobre os pares em um dicionário:
@@ -494,7 +492,7 @@ dados:
 :: 
 
     sage: d = {2:4, 3:9, 4:16}
-    sage: [a*b for a, b in d.iteritems()]
+    sage: [a*b for a, b in d.items()]
     [8, 27, 64]
 
 Um dicionário não possui ordem, como o exemplo acima mostra.

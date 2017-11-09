@@ -50,8 +50,6 @@ TESTS::
     (Multivariate Polynomial Ring in x, y, z over Finite Field of size 5,
     (x, y, z))
 """
-from __future__ import absolute_import
-
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -61,8 +59,9 @@ from __future__ import absolute_import
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 from six.moves import range
-from six import iteritems
+from six import iteritems, iterkeys, itervalues
 
 from sage.rings.ring import IntegralDomain
 import sage.rings.fraction_field_element as fraction_field_element
@@ -166,12 +165,34 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
         from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
         return MPolynomial_polydict
 
-    def __cmp__(left, right):
+    def __eq__(left, right):
+        """
+        Check whether ``left`` is equal to ``right``.
+
+        EXAMPLES::
+
+            sage: R = PolynomialRing(Integers(10), 'x', 4)
+            sage: loads(R.dumps()) == R
+            True
+        """
         if not is_MPolynomialRing(right):
-            return cmp(type(left),type(right))
-        else:
-            return cmp((left.base_ring(), left.ngens(), left.variable_names(), left.term_order()),
-                       (right.base_ring(), right.ngens(), right.variable_names(), right.term_order()))
+            return False
+        return ((left.base_ring(), left.ngens(),
+                left.variable_names(), left.term_order()) ==
+                (right.base_ring(), right.ngens(),
+                 right.variable_names(), right.term_order()))
+
+    def __ne__(self , other):
+        """
+        Check whether ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: R = PolynomialRing(Integers(8), 'x', 3)
+            sage: loads(R.dumps()) != R
+            False
+        """
+        return not (self == other)
 
     def __call__(self, x, check=True):
         """
@@ -553,7 +574,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
         OUTPUT: monomial.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
             sage: P.<x,y,z> = MPolynomialRing_polydict_domain(QQ, 3, order='degrevlex')
@@ -614,22 +635,22 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
         from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
 
         if not f:
-          return f
+            return f
         if not g:
-          raise ZeroDivisionError
+            raise ZeroDivisionError
 
         if not coeff:
-          coeff = self.base_ring()(1)
+            coeff = self.base_ring().one()
         else:
-          coeff = self.base_ring()(f.dict().values()[0] /  g.dict().values()[0])
+            coeff = self.base_ring()(next(itervalues(f.dict())) /  next(itervalues(g.dict())))
 
-        f = f.dict().keys()[0]
-        g = g.dict().keys()[0]
+        f = next(iterkeys(f.dict()))
+        g = next(iterkeys(g.dict()))
 
         res = f.esub(g)
 
-        return MPolynomial_polydict(self, PolyDict({res:coeff},\
-                                                   force_int_exponents=False, \
+        return MPolynomial_polydict(self, PolyDict({res:coeff},
+                                                   force_int_exponents=False,
                                                    force_etuples=False))
 
     def monomial_lcm(self, f, g):
@@ -644,7 +665,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
         OUTPUT: monomial.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
             sage: P.<x,y,z> = MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
@@ -785,8 +806,8 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
         b = b.dict().keys()[0]
 
         for i in b.common_nonzero_positions(a):
-          if b[i] - a[i] < 0:
-            return False
+            if b[i] - a[i] < 0:
+                return False
         return True
 
     def monomial_pairwise_prime(self, h, g):
@@ -855,7 +876,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
         OUTPUT: a list of monomials.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
             sage: P.<x,y,z> = MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
@@ -867,14 +888,14 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
         def addwithcarry(tempvector, maxvector, pos):
             if tempvector[pos] < maxvector[pos]:
-              tempvector[pos] += 1
+                tempvector[pos] += 1
             else:
-              tempvector[pos] = 0
-              tempvector = addwithcarry(tempvector, maxvector, pos + 1)
+                tempvector[pos] = 0
+                tempvector = addwithcarry(tempvector, maxvector, pos + 1)
             return tempvector
 
         if not t.is_monomial():
-          raise TypeError("only monomials are supported")
+            raise TypeError("only monomials are supported")
 
         R = self
         one = self.base_ring()(1)
@@ -887,8 +908,8 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
         pos = 0
 
         while tempvector != maxvector:
-          tempvector = addwithcarry(list(tempvector) , maxvector, pos)
-          M.append(R(PolyDict({ETuple(tempvector):one}, \
+            tempvector = addwithcarry(list(tempvector) , maxvector, pos)
+            M.append(R(PolyDict({ETuple(tempvector):one}, \
                               force_int_exponents=False,force_etuples=False)))
         return M
 

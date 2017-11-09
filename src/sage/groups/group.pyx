@@ -16,6 +16,7 @@ Base class for groups
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 import random
 
@@ -142,7 +143,7 @@ cdef class Group(Parent):
         (Note for developers: Derived classes should override is_abelian, not
         is_commutative.)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: SL(2, 7).is_commutative()
             False

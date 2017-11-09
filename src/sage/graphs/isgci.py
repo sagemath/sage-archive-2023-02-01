@@ -149,6 +149,21 @@ Predefined classes
    * - Class
      - Related methods
 
+   * - Apex
+
+     - :meth:`~Graph.is_apex()`,
+       :meth:`~Graph.apex_vertices()`
+
+   * - AT_free
+
+     - :meth:`~Graph.is_asteroidal_triple_free`
+
+   * - Biconnected
+
+     - :meth:`~Graph.is_biconnected`,
+       :meth:`~GenericGraph.blocks_and_cut_vertices`,
+       :meth:`~GenericGraph.blocks_and_cuts_tree`
+
    * - BinaryTrees
 
      - :meth:`~sage.graphs.graph_generators.GraphGenerators.BalancedTree`,
@@ -161,7 +176,9 @@ Predefined classes
 
    * - Block
 
-     - :meth:`~sage.graphs.generic_graph.GenericGraph.blocks_and_cut_vertices`
+     - :meth:`~sage.graphs.graph.Graph.is_block_graph`,
+       :meth:`~sage.graphs.generic_graph.GenericGraph.blocks_and_cut_vertices`,
+       :meth:`~sage.graphs.graph_generators.GraphGenerators.RandomBlockGraph`
 
    * - Chordal
 
@@ -325,7 +342,7 @@ Information for developpers
   Note that the digraph is only built if necessary (for instance if
   the user tries to compare two classes).
 
-.. todo::
+.. TODO::
 
     Technical things:
 
@@ -335,7 +352,7 @@ Information for developpers
     * Implement a proper search method for the classes not listed in
       :obj:`graph_classes <GraphClasses>`
 
-      .. seealso: :func:`sage.graphs.isgci.show_all`.
+      .. SEEALSO:: :func:`sage.graphs.isgci.show_all`.
 
     * Some of the graph classes appearing in :obj:`graph_classes
       <GraphClasses>` already have a recognition
@@ -394,7 +411,7 @@ class GraphClass(SageObject, CachedRepresentation):
     An instance of this class represents a Graph Class, matching some entry in
     the ISGCI database.
 
-    EXAMPLE:
+    EXAMPLES:
 
     Testing the inclusion of two classes::
 
@@ -405,7 +422,7 @@ class GraphClass(SageObject, CachedRepresentation):
         sage: Chordal <= Trees
         Unknown
 
-    TEST::
+    TESTS::
 
         sage: Trees >= Chordal
         Unknown
@@ -421,10 +438,10 @@ class GraphClass(SageObject, CachedRepresentation):
         - ``gc_id`` -- the ISGCI class ID
 
         - ``recognition_function`` -- a function of one argument `g`, which
-          return boolan answers to the question : *does ``g`` belong to the
+          return boolean answers to the question : *does ``g`` belong to the
           class represented by ``gc_id`` ?*
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: graph_classes.Chordal  # indirect doctest
             Chordal graphs
@@ -439,7 +456,7 @@ class GraphClass(SageObject, CachedRepresentation):
         r"""
         Returns a short description of the class
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: graph_classes.Chordal  # indirect doctest
             Chordal graphs
@@ -450,7 +467,7 @@ class GraphClass(SageObject, CachedRepresentation):
         r"""
         Returns the class' ID hash
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: hash(graph_classes.Chordal) == hash(graph_classes.Chordal)
             True
@@ -461,7 +478,7 @@ class GraphClass(SageObject, CachedRepresentation):
         r"""
         <= operator
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: graph_classes.Chordal <= graph_classes.Tree
             Unknown
@@ -472,7 +489,7 @@ class GraphClass(SageObject, CachedRepresentation):
         r"""
         >= operator
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: graph_classes.Chordal >= graph_classes.Tree
             True
@@ -488,7 +505,7 @@ class GraphClass(SageObject, CachedRepresentation):
         r"""
         == operator
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: graph_classes.Chordal == graph_classes.Tree
             Unknown
@@ -499,7 +516,7 @@ class GraphClass(SageObject, CachedRepresentation):
         r"""
         >, !=, and < operators
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: graph_classes.Chordal > graph_classes.Tree
             Traceback (most recent call last):
@@ -606,7 +623,7 @@ class GraphClass(SageObject, CachedRepresentation):
         r"""
         Prints the information of ISGCI about the current class.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: graph_classes.Chordal.description()
             Class of graphs : Chordal
@@ -666,11 +683,11 @@ class GraphClasses(UniqueRepresentation):
 
         - ``id`` (string) -- the desired class' ID
 
-        .. seealso:
+        .. SEEALSO::
 
             :meth:`~sage.graphs.isgci.GraphClasses.show_all`
 
-        EXAMPLE:
+        EXAMPLES:
 
         With an existing id::
 
@@ -800,7 +817,7 @@ class GraphClasses(UniqueRepresentation):
         r"""
         Downloads the current version of the ISGCI db
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: graph_classes._download_db() # Not tested -- requires internet
         """
@@ -834,7 +851,7 @@ class GraphClasses(UniqueRepresentation):
         - ``directory`` -- the name of the directory containing the latest
           version of the database.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.env import GRAPHS_DATA_DIR
             sage: graph_classes._parse_db(GRAPHS_DATA_DIR)
@@ -884,7 +901,7 @@ class GraphClasses(UniqueRepresentation):
         sufficient, the XML file are saved instead in the user's directory (in
         the SAGE_DB folder).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: graph_classes.update_db() # Not tested -- requires internet
         """
@@ -915,7 +932,7 @@ class GraphClasses(UniqueRepresentation):
             This method returns the data contained in the most recent ISGCI database
             present on the computer. See :meth:`update_db` to update the latter.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: graph_classes._get_ISGCI()  # long time (4s on sage.math, 2012)
         """
@@ -945,7 +962,7 @@ class GraphClasses(UniqueRepresentation):
         r"""
         Prints all graph classes stored in ISGCI
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: graph_classes.show_all()
             id        | name                                     | type                 | smallgraph
@@ -1010,7 +1027,7 @@ def _XML_to_dict(root):
 
     A dictionary representing the XML data.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: graph_classes.Perfect.description() # indirect doctest
         Class of graphs : Perfect
@@ -1043,9 +1060,11 @@ graph_classes.AT_free = GraphClass("AT-free", "gc_61", recognition_function = la
 graph_classes.Biconnected = GraphClass("Biconnected", "gc_771", recognition_function = lambda x:x.is_biconnected())
 graph_classes.BinaryTrees = GraphClass("BinaryTrees", "gc_847")
 graph_classes.Bipartite = GraphClass("Bipartite", "gc_69", recognition_function = lambda x:x.is_bipartite())
-graph_classes.Block = GraphClass("Block", "gc_93")
+graph_classes.Block = GraphClass("Block", "gc_93", recognition_function = lambda x:x.is_block_graph())
+graph_classes.Cactus = GraphClass("Cactus", "gc_108", recognition_function = lambda x:x.is_cactus())
 graph_classes.Chordal = GraphClass("Chordal", "gc_32", recognition_function = lambda x:x.is_chordal())
 graph_classes.ClawFree = GraphClass("Claw-free", "gc_62")
+graph_classes.CoGraph = GraphClass("CoGraph", "gc_151", recognition_function = lambda x:x.is_cograph())
 graph_classes.Comparability = GraphClass("Comparability", "gc_72", recognition_function = lambda x: __import__('sage').graphs.comparability.is_comparability)
 graph_classes.Gallai = GraphClass("Gallai", "gc_73")
 graph_classes.Grid = GraphClass("Grid", "gc_464")

@@ -35,23 +35,25 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
     Test comparisons::
 
         sage: A = random_matrix(Integers(25)['x'],2)
-        sage: cmp(A,A)
-        0
-        sage: cmp(A,A+1)
-        -1
-        sage: cmp(A+1,A)
-        1
+        sage: A == A
+        True
+        sage: A < A + 1
+        True
+        sage: A+1 < A
+        False
+
+    Test hashing::
+
+        sage: A = random_matrix(Integers(25)['x'], 2)
+        sage: hash(A)
+        Traceback (most recent call last):
+        ...
+        TypeError: mutable matrices are unhashable
+        sage: A.set_immutable()
+        sage: hash(A)
+        6226886770042072326  # 64-bit
+        -1594888954          # 32-bit
     """
-    ########################################################################
-    # LEVEL 1 functionality
-    # 0 * __cinit__   (not needed)
-    # x * __init__
-    # 0 * __dealloc__   (not needed)
-    # x * set_unsafe
-    # x * get_unsafe
-    # x * def _pickle
-    # x * def _unpickle
-    ########################################################################
     def __init__(self, parent, entries, copy, coerce):
         r"""
         See :class:`Matrix_generic_dense` for documentation.
@@ -146,6 +148,19 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         return self._entries[i*self._ncols + j]
 
+
+    def _reverse_unsafe(self):
+        r"""
+        TESTS::
+
+            sage: m = matrix(ZZ['x,y'], 2, 3, range(6))
+            sage: m._reverse_unsafe()
+            sage: m
+            [5 4 3]
+            [2 1 0]
+        """
+        self._entries.reverse()
+
     def _pickle(self):
         """
         EXAMPLES:
@@ -168,21 +183,6 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
             self._entries = data
         else:
             raise RuntimeError("unknown matrix version")
-
-    def __hash__(self):
-        """
-        EXAMPLES:
-            sage: A = random_matrix(Integers(25)['x'],2)
-            sage: hash(A)
-            Traceback (most recent call last):
-            ...
-            TypeError: mutable matrices are unhashable
-            sage: A.set_immutable()
-            sage: hash(A)
-            139665060168050560   # 64-bit
-            -623270016           # 32-bit
-        """
-        return self._hash()
 
     ########################################################################
     # LEVEL 2 functionality

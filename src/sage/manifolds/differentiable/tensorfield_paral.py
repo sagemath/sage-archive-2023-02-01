@@ -162,7 +162,7 @@ the operator ``[:]``::
     [x + y     0]
     [    y  -3*x]
 
-To avoid any insconstency between the various components, the method
+To avoid any inconsistency between the various components, the method
 :meth:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal.set_comp`
 clears the components in other frames.
 To keep the other components, one must use the method
@@ -342,7 +342,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
     INPUT:
 
-    - ``vector_field_module`` -- free module `\mathcal{X}(U,\Phi)` of vector
+    - ``vector_field_module`` -- free module `\mathfrak{X}(U,\Phi)` of vector
       fields along `U` associated with the map `\Phi: U \rightarrow M` (cf.
       :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldFreeModule`)
     - ``tensor_type`` -- pair `(k,l)` with `k` being the contravariant rank
@@ -417,7 +417,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         [ 0  0  0]
         [ 0  0  0]
 
-    To avoid any insconstency between the various components, the method
+    To avoid any inconsistency between the various components, the method
     :meth:`set_comp` deletes the components in other frames.
     Accordingly, the components in the frame ``e`` have been deleted::
 
@@ -661,7 +661,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         r"""
         Initialize the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
@@ -683,7 +683,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         - ``del_restrictions`` -- (default: ``True``) determines whether the
           restrictions of ``self`` to subdomains are deleted
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
@@ -790,7 +790,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         for assignment.
 
         The components with respect to other frames on the same domain are
-        kept. To delete them them, use the method :meth:`set_comp` instead.
+        kept. To delete them, use the method :meth:`set_comp` instead.
 
         INPUT:
 
@@ -853,7 +853,13 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         if basis._domain == self._domain:
             # Adding components on the tensor field domain:
-            return FreeModuleTensor.add_comp(self, basis=basis)
+            # We perform a backup of the restrictions, since
+            # they are deleted by FreeModuleTensor.add_comp (which
+            # invokes del_derived()), and restore them afterwards
+            restrictions_save = self._restrictions.copy()
+            comp = FreeModuleTensor.add_comp(self, basis=basis)
+            self._restrictions = restrictions_save
+            return comp
 
         # Adding components on a subdomain:
         #
@@ -960,7 +966,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: c.display(Y.frame(), Y)
             c = (u + 1) d/du + u*v d/dv
 
-        There is no common ccordinate frame::
+        There is no common coordinate frame::
 
             sage: a._common_coord_frame(c)
 
@@ -1342,30 +1348,30 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
                 raise ValueError("the argument 'dest_map' is not compatible " +
                                  "with the ambient domain of " +
                                  "the {}".format(self))
-            #!# First one tries to derive the restriction from a tighter domain:
-            #for dom, rst in self._restrictions.items():
-            #    if subdomain.is_subset(dom):
-            #        self._restrictions[subdomain] = rst.restrict(subdomain)
-            #        break
+            # First one tries to derive the restriction from a tighter domain:
+            for dom, rst in self._restrictions.items():
+                if subdomain.is_subset(dom):
+                    self._restrictions[subdomain] = rst.restrict(subdomain)
+                    break
             # If this fails, the restriction is created from scratch:
-            #else:
-            smodule = subdomain.vector_field_module(dest_map=dest_map)
-            resu = smodule.tensor(self._tensor_type, name=self._name,
-                                  latex_name=self._latex_name, sym=self._sym,
-                                  antisym=self._antisym,
-                                  specific_type=type(self))
-            for frame in self._components:
-                for sframe in subdomain._covering_frames:
-                    if sframe in frame._subframes:
-                        comp_store = self._components[frame]._comp
-                        scomp = resu._new_comp(sframe)
-                        scomp_store = scomp._comp
-                        # the components of the restriction are evaluated
-                        # index by index:
-                        for ind, value in comp_store.items():
-                            scomp_store[ind] = value.restrict(subdomain)
-                        resu._components[sframe] = scomp
-            self._restrictions[subdomain] = resu
+            else:
+                smodule = subdomain.vector_field_module(dest_map=dest_map)
+                resu = smodule.tensor(self._tensor_type, name=self._name,
+                                      latex_name=self._latex_name, sym=self._sym,
+                                      antisym=self._antisym,
+                                      specific_type=type(self))
+                for frame in self._components:
+                    for sframe in subdomain._covering_frames:
+                        if sframe in frame._subframes:
+                            comp_store = self._components[frame]._comp
+                            scomp = resu._new_comp(sframe)
+                            scomp_store = scomp._comp
+                            # the components of the restriction are evaluated
+                            # index by index:
+                            for ind, value in comp_store.items():
+                                scomp_store[ind] = value.restrict(subdomain)
+                            resu._components[sframe] = scomp
+                self._restrictions[subdomain] = resu
         return self._restrictions[subdomain]
 
     def __call__(self, *args):

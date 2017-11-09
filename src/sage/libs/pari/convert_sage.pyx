@@ -14,10 +14,10 @@ Convert PARI objects to Sage types
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.libs.cypari2.types cimport (GEN, typ, t_INT, t_FRAC, t_REAL, t_COMPLEX,
+from cypari2.types cimport (GEN, typ, t_INT, t_FRAC, t_REAL, t_COMPLEX,
    t_INTMOD, t_PADIC, t_INFINITY, t_VEC, t_COL, t_VECSMALL, t_MAT, lg, precp)
-from sage.libs.cypari2.pari_instance cimport prec_words_to_bits
-from sage.libs.cypari2.paridecl cimport gel, inf_get_sign
+from cypari2.pari_instance cimport prec_words_to_bits
+from cypari2.paridecl cimport gel, inf_get_sign
 
 cpdef gen_to_sage(Gen z, locals=None):
     """
@@ -44,7 +44,7 @@ cpdef gen_to_sage(Gen z, locals=None):
     - a :class:`~sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic`
       or a :class:`~sage.rings.complex_number.ComplexNumber` if ``z`` is a complex
       number (type ``t_COMPLEX``). The former is used when the real and imaginary parts are
-      integers or rationals and the latter when they are floation point numbers. In that
+      integers or rationals and the latter when they are floating point numbers. In that
       case The precision will be the maximal precision of the real and imaginary parts.
 
     - a Python list if ``z`` is a vector or a list (type ``t_VEC``, ``t_COL``)

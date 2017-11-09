@@ -1,6 +1,7 @@
 import sys, os, sphinx
 from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, THEBE_DIR
 from datetime import date
+from six import iteritems
 
 # If your extensions are in another directory, add it here.
 sys.path.append(os.path.join(SAGE_SRC, "sage_setup", "docbuild", "ext"))
@@ -231,7 +232,7 @@ if (os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'no'
                          for i in ('docs', 'README*', 'test',
                                    'unpacked', 'LICENSE')]
 else:
-     extensions.append('sphinx.ext.pngmath')
+     extensions.append('sphinx.ext.imgmath')
 
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
@@ -307,6 +308,7 @@ latex_elements['preamble'] = r"""
 \usepackage{amssymb}
 \usepackage{textcomp}
 \usepackage{mathrsfs}
+\usepackage{iftex}
 
 % Only declare unicode characters when compiling with pdftex; E.g. japanese
 % tutorial does not use pdftex
@@ -510,7 +512,7 @@ def check_nested_class_picklability(app, what, name, obj, skip, options):
         # Check picklability of nested classes.  Adapted from
         # sage.misc.nested_class.modify_for_nested_pickle.
         module = sys.modules[obj.__module__]
-        for (nm, v) in obj.__dict__.iteritems():
+        for (nm, v) in iteritems(obj.__dict__):
             if (isinstance(v, type) and
                 v.__name__ == nm and
                 v.__module__ == module.__name__ and
@@ -518,7 +520,7 @@ def check_nested_class_picklability(app, what, name, obj, skip, options):
                 v.__module__ not in skip_picklability_check_modules):
                 # OK, probably this is an *unpicklable* nested class.
                 app.warn('Pickling of nested class %r is probably broken. '
-                         'Please set __metaclass__ of the parent class to '
+                         'Please set the metaclass of the parent class to '
                          'sage.misc.nested_class.NestedClassMetaclass.' % (
                         v.__module__ + '.' + name + '.' + nm))
 

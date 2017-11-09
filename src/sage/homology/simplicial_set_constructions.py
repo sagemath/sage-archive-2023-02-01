@@ -83,7 +83,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from .simplicial_set import AbstractSimplex, \
     SimplicialSet_arbitrary, SimplicialSet_finite, \
     standardize_degeneracies, face_degeneracies
-from .simplicial_set_examples import Empty
+from .simplicial_set_examples import Empty, Point
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.categories.simplicial_sets', 'SimplicialSets')
@@ -1157,7 +1157,7 @@ class PushoutOfSimplicialSets(SimplicialSet_arbitrary, UniqueRepresentation):
         simplex comes from a single `Y_i`, it inherits its
         name. Otherwise it must come from a simplex (or several) in
         `X`, and then it inherits one of those names, and it should be
-        the first alphabetically. For examnple, if vertices `v`, `w`,
+        the first alphabetically. For example, if vertices `v`, `w`,
         and `z` in `X` are glued together, then the resulting vertex
         in the pushout will be called `v`.
 
@@ -1979,7 +1979,7 @@ class WedgeOfSimplicialSets(PushoutOfSimplicialSets, Factors):
         - ``factors`` -- a list or tuple of simplicial sets
 
         Return the wedge of the simplicial sets in ``factors``: the
-        wedge sum `X \vee Y` is the formed by taking the disjoint
+        wedge sum `X \vee Y` is formed by taking the disjoint
         union of `X` and `Y` and identifying their base points. In
         this construction, the new base point is renamed '*'.
 
@@ -2072,6 +2072,8 @@ class WedgeOfSimplicialSets_finite(WedgeOfSimplicialSets, PushoutOfSimplicialSet
 
         - ``factors`` -- a tuple of simplicial sets
 
+        If there are no factors, a point is returned.
+
         See :class:`WedgeOfSimplicialSets` for more information.
 
         EXAMPLES::
@@ -2083,10 +2085,14 @@ class WedgeOfSimplicialSets_finite(WedgeOfSimplicialSets, PushoutOfSimplicialSet
             ...
             ValueError: the simplicial sets must be pointed
         """
-        if any(not space.is_pointed() for space in factors):
-            raise ValueError('the simplicial sets must be pointed')
-        PushoutOfSimplicialSets_finite.__init__(self, [space.base_point_map()
-                                                for space in factors])
+        if not factors:
+            # An empty wedge is a point, constructed as a pushout.
+            PushoutOfSimplicialSets_finite.__init__(self, [Point().identity()])
+        else:
+            if any(not space.is_pointed() for space in factors):
+                raise ValueError('the simplicial sets must be pointed')
+            PushoutOfSimplicialSets_finite.__init__(self, [space.base_point_map()
+                                                           for space in factors])
         self.base_point().rename('*')
         self._factors = factors
 
@@ -2145,10 +2151,16 @@ class DisjointUnionOfSimplicialSets(PushoutOfSimplicialSets, Factors):
         TESTS::
 
             sage: from sage.homology.simplicial_set_constructions import DisjointUnionOfSimplicialSets
+            sage: from sage.homology.simplicial_set_examples import Empty
             sage: S2 = simplicial_sets.Sphere(2)
             sage: DisjointUnionOfSimplicialSets([S2, S2]) == DisjointUnionOfSimplicialSets((S2, S2))
             True
+            sage: DisjointUnionOfSimplicialSets([S2, Empty(), S2, Empty()]) == DisjointUnionOfSimplicialSets((S2, S2))
+            True
         """
+        if factors:
+            # Discard any empty factors.
+            factors = [F for F in factors if F != Empty()]
         if factors:
             return super(DisjointUnionOfSimplicialSets, cls).__classcall__(cls, factors=tuple(factors))
         return super(DisjointUnionOfSimplicialSets, cls).__classcall__(cls)
@@ -2161,9 +2173,10 @@ class DisjointUnionOfSimplicialSets(PushoutOfSimplicialSets, Factors):
 
         - ``factors`` -- a list or tuple of simplicial sets
 
-        Return the disjoint union of the simplicial sets in
-        ``factors``.  The disjoint union comes equipped with a map
-        from each factor, as long as all of the factors are finite.
+        Discard any factors which are empty and return the disjoint
+        union of the remaining simplicial sets in ``factors``.  The
+        disjoint union comes equipped with a map from each factor, as
+        long as all of the factors are finite.
 
         EXAMPLES::
 
@@ -2268,17 +2281,24 @@ class DisjointUnionOfSimplicialSets_finite(DisjointUnionOfSimplicialSets,
 
         Return the disjoint union of the simplicial sets in
         ``factors``.  The disjoint union comes equipped with a map
-        from each factor.
+        from each factor. If there are no factors, this returns the
+        empty simplicial set.
 
         EXAMPLES::
 
             sage: from sage.homology.simplicial_set_constructions import DisjointUnionOfSimplicialSets_finite
+            sage: from sage.homology.simplicial_set_examples import Empty
             sage: S = simplicial_sets.Sphere(4)
             sage: DisjointUnionOfSimplicialSets_finite((S,S,S))
             Disjoint union: (S^4 u S^4 u S^4)
+            sage: DisjointUnionOfSimplicialSets_finite([Empty(), Empty()]) == Empty()
+            True
         """
-        PushoutOfSimplicialSets_finite.__init__(self, [space._map_from_empty_set()
-                                                       for space in factors])
+        if not factors:
+            PushoutOfSimplicialSets_finite.__init__(self)
+        else:
+            PushoutOfSimplicialSets_finite.__init__(self, [space._map_from_empty_set()
+                                                           for space in factors])
         self._factors = factors
 
     def inclusion_map(self, i):

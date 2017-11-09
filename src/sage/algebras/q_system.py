@@ -22,7 +22,6 @@ from sage.categories.algebras import Algebras
 from sage.categories.realizations import Realizations, Category_realization_of_parent
 from sage.rings.all import ZZ, QQ
 from sage.rings.infinity import infinity
-from sage.rings.arith import LCM
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.sets.family import Family
 from sage.sets.positive_integers import PositiveIntegers

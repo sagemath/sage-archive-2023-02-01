@@ -95,7 +95,7 @@ matters. For example::
     (0, -27/4)
 
 This allows you to work with either homogeneous or inhomogeneous
-variables. For exmple, here is the del Pezzo surface of degree 8::
+variables. For example, here is the del Pezzo surface of degree 8::
 
     sage: dP8 = toric_varieties.dP8()
     sage: dP8.inject_variables()
@@ -268,8 +268,7 @@ def Newton_polytope_vars_coeffs(polynomial, variables):
 
     OUTPUT:
 
-    A tuple containing of the affine span of the Netwton polytope and
-    a dictionary with keys the integral values of the Newton polytope
+    A dictionary with keys the integral values of the Newton polytope
     and values the corresponding coefficient of ``polynomial``.
 
     EXAMPLES::

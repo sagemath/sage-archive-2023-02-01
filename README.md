@@ -327,7 +327,7 @@ SAGE_ROOT                 Root directory (sage-x.y.z in Sage tarball)
 |       ...
 |       └── zn_poly-0.9.p11.log
 ├── Makefile              Running "make" uses this file
-├── README.txt            This file
+├── README.md             This file
 ├── sage                  Script to start Sage
 ├── src                   All of Sage source (not third-party packages)
 |   ├── bin               Scripts that Sage uses internally
@@ -377,20 +377,10 @@ do.
 
          sage --sdist
 
-2. To make a binary distribution with your currently installed packages,  
-   type:
+   The result is placed in the directory "$SAGE_ROOT/dist/".
 
-         sage --bdist
-
-3. To make a binary that will run on the widest range of target  
-   machines, set the SAGE_FAT_BINARY environment variable to "yes"  
-   before building Sage:  
-
-         export SAGE_FAT_BINARY="yes"
-         make distclean && make
-         ./sage --bdist
-
-In all cases, the result is placed in the directory "$SAGE_ROOT/dist/".  
+2. To make a binary distribution with your currently installed packages,
+   visit https://github.com/sagemath/binary-pkg
 
 
 Changes to Included Software

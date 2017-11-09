@@ -23,9 +23,10 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
+
 from sage.libs.gsl.all cimport *
 from sage.ext.fast_eval cimport FastDoubleFunc
 

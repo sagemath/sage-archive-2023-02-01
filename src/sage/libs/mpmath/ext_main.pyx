@@ -5,15 +5,26 @@ Implements mpf and mpc types, with binary operations and support
 for interaction with other types. Also implements the main
 context class, and related utilities.
 """
-from __future__ import print_function
 
-include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+from __future__ import absolute_import, print_function
+
 from cpython.int cimport *
 from cpython.long cimport *
 from cpython.float cimport *
 from cpython.complex cimport *
 from cpython.number cimport *
+
+from cysignals.signals cimport sig_on, sig_off
+
+from sage.ext.stdsage cimport PY_NEW
 
 from sage.libs.gmp.all cimport *
 from sage.rings.integer cimport Integer
@@ -842,9 +853,9 @@ cdef class Context:
 
     def fdot(ctx, A, B=None, bint conjugate=False):
         r"""
-        Computes the dot product of the iterables `A` and `B`,
+        Compute the dot product of the iterables `A` and `B`,
 
-        .. math ::
+        .. MATH::
 
             \sum_{k=0} A_k B_k.
 
@@ -853,7 +864,7 @@ cdef class Context:
 
         The elements are automatically converted to mpmath numbers.
 
-        TESTS ::
+        TESTS::
 
             sage: from mpmath import mp, fdot
             sage: mp.dps = 15; mp.pretty = False

@@ -22,7 +22,7 @@ This unit acts exactly like a symbolic variable::
 Units have additional information in their docstring::
 
     sage: # You would type: units.force.dyne?
-    sage: print(units.force.dyne._sage_doc_())
+    sage: print(units.force.dyne.__doc__)
     CGS unit for force defined to be gram*centimeter/second^2.
     Equal to 10^-5 newtons.
 
@@ -97,6 +97,7 @@ import six
 from .ring import SR
 from .expression import Expression
 from sage.interfaces.tab_completion import ExtraTabCompletion
+from sage.docs.instancedoc import instancedoc
 
 ###############################################################################
 # Unit conversions dictionary.
@@ -984,6 +985,8 @@ def unit_derivations_expr(v):
         unit_derivations[v] = Z
     return Z
 
+
+@instancedoc
 class UnitExpression(Expression):
     """
     A symbolic unit.
@@ -1001,13 +1004,13 @@ class UnitExpression(Expression):
         sage: type(loads(dumps(acre)))
         <class 'sage.symbolic.units.UnitExpression'>
     """
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         Return docstring for this unit.
 
         EXAMPLES::
 
-            sage: print(units.area.acre._sage_doc_())
+            sage: print(units.area.acre.__doc__)
             Defined to be 10 square chains or 4840 square yards.
             Approximately equal to 4046.856 square meters.
         """
@@ -1041,10 +1044,10 @@ class Units(ExtraTabCompletion):
     """
     A collection of units of some type.
 
-        EXAMPLES::
+    EXAMPLES::
 
-            sage: units.power
-            Collection of units of power: cheval_vapeur horsepower watt
+        sage: units.power
+        Collection of units of power: cheval_vapeur horsepower watt
     """
     def __init__(self, data, name=''):
         """
@@ -1089,9 +1092,10 @@ class Units(ExtraTabCompletion):
         self.__data = state[1]
         self.__units = {}
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
-        Compare two collections of units, or a collection of units with some other object.
+        Compare two collections of units, or a collection of units
+        with some other object.
 
         EXAMPLES::
 
@@ -1103,9 +1107,24 @@ class Units(ExtraTabCompletion):
             False
         """
         if not isinstance(other, Units):
-            return cmp(type(self), type(other))
-        return cmp((self.__name, self.__data), (other.__name, other.__data))
+            return False
+        return (self.__name, self.__data) == (other.__name, other.__data)
 
+    def __ne__(self, other):
+        """
+        Test for unequality.
+
+        EXAMPLES::
+
+            sage: units.length != 5
+            True
+            sage: units.length != units.length
+            False
+            sage: units.length != units.mass
+            True
+        """
+        return not (self == other)
+    
     def _tab_completion(self):
         """
         Return tab completions.

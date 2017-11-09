@@ -574,9 +574,10 @@ class Func_chebyshev_T(ChebyshevFunction):
             chebyshev_t(_SAGE_VAR_n,chebyshev_t(_SAGE_VAR_n,_SAGE_VAR_x))
         """
         ChebyshevFunction.__init__(self, 'chebyshev_T', nargs=2,
-                                     conversions=dict(maxima='chebyshev_t',
-                                                      mathematica='ChebyshevT',
-                                                      sympy='chebyshevt'))
+                                   conversions=dict(maxima='chebyshev_t',
+                                                    mathematica='ChebyshevT',
+                                                    sympy='chebyshevt',
+                                                    giac='tchebyshev1'))
 
     def _latex_(self):
         r"""
@@ -883,9 +884,10 @@ class Func_chebyshev_U(ChebyshevFunction):
             chebyshev_u(_SAGE_VAR_n,_SAGE_VAR_x)
         """
         ChebyshevFunction.__init__(self, 'chebyshev_U', nargs=2,
-                                     conversions=dict(maxima='chebyshev_u',
-                                                      mathematica='ChebyshevU',
-                                                      sympy='chebyshevu'))
+                                   conversions=dict(maxima='chebyshev_u',
+                                                    mathematica='ChebyshevU',
+                                                    sympy='chebyshevu',
+                                                    giac='tchebyshev2'))
 
     def _latex_(self):
         r"""
@@ -1142,9 +1144,11 @@ class Func_legendre_P(BuiltinFunction):
             sage: loads(dumps(legendre_P))
             legendre_P
         """
-        BuiltinFunction.__init__(self, "legendre_P", nargs=2, latex_name=r"P",
-                conversions={'maxima':'legendre_p', 'mathematica':'LegendreP',
-                    'maple':'LegendreP'})
+        BuiltinFunction.__init__(self, 'legendre_P', nargs=2, latex_name=r"P",
+                                 conversions={'maxima':'legendre_p',
+                                              'mathematica':'LegendreP',
+                                              'maple':'LegendreP',
+                                              'giac':'legendre'})
 
     def _eval_(self, n, x, *args, **kwds):
         r"""
@@ -1662,7 +1666,7 @@ class Func_assoc_legendre_Q(BuiltinFunction):
         EXAMPLES::
 
             sage: gen_legendre_Q(2,1,3)
-            -1/4*sqrt(-2)*(-36*I*pi + 36*log(4) - 36*log(2) - 25)
+            -1/4*sqrt(-2)*(-36*I*pi + 36*log(2) - 25)
         """
         ret = self._eval_special_values_(n, m, x)
         if ret is not None:
@@ -1922,7 +1926,7 @@ class Func_jacobi_P(OrthogonalFunction):
         from sage.functions.other import gamma
         s = sum(binomial(n,m) * gamma(a+b+n+m+1) / gamma(a+m+1) * ((x-1)/2)**m for m in range(n+1))
         r = gamma(a+n+1) / factorial(n) / gamma(n+a+b+1) * s
-        return r.to_gamma().gamma_normalize()
+        return r.to_gamma().gamma_normalize().normalize()
 
     def _evalf_(self, n, a, b, x, **kwds):
         """
@@ -1942,7 +1946,7 @@ class Func_jacobi_P(OrthogonalFunction):
         prec = the_parent.precision()
         BF = CBF(prec+5)
         ret = BF(x).jacobi_P(BF(n), BF(a), BF(b))
-        return the_parent(ret)
+        return SR(ret)._eval_self(the_parent)
 
 jacobi_P = Func_jacobi_P()
 

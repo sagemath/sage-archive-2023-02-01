@@ -539,11 +539,17 @@ class Partition(CombinatorialElement):
             CombinatorialElement.__init__(self, parent, mu._list)
             return
 
-        elif len(mu)==0 or (all(mu[i] in NN and mu[i]>=mu[i+1] for i in range(len(mu)-1)) \
+        elif not mu:
+            CombinatorialElement.__init__(self, parent, mu)
+
+        elif (all(mu[i] in NN and mu[i] >= mu[i+1] for i in range(len(mu)-1))
                 and mu[-1] in NN):
-            if 0 in mu:
+            if mu[-1] == 0: # From the above checks, the last value must be == 0 or > 0
                 # strip all trailing zeros
-                CombinatorialElement.__init__(self, parent, mu[:mu.index(0)])
+                temp = len(mu) - 1
+                while temp > 0 and mu[temp-1] == 0:
+                    temp -= 1
+                CombinatorialElement.__init__(self, parent, mu[:temp])
             else:
                 CombinatorialElement.__init__(self, parent, mu)
 
@@ -802,7 +808,7 @@ class Partition(CombinatorialElement):
         This method exists only for compatibility with
         :class:`PartitionTuples`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Partition([4,3,2]).level()
             1
@@ -1249,7 +1255,7 @@ class Partition(CombinatorialElement):
         """
         Return the :class:`standard tableaux<StandardTableaux>` of this shape.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Partition([3,2,2,1]).standard_tableaux()
             Standard tableaux of shape [3, 2, 2, 1]
@@ -2197,7 +2203,7 @@ class Partition(CombinatorialElement):
         entered in order from top to bottom and then left to right down the
         columns of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Partition([3,2]).initial_column_tableau()
             [[1, 3, 5], [2, 4]]
@@ -2401,7 +2407,7 @@ class Partition(CombinatorialElement):
             sage: Partition([2,2]).young_subgroup_generators()
             [1, 3]
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             :meth:`young_subgroup`
         """
@@ -2475,7 +2481,7 @@ class Partition(CombinatorialElement):
         Therefore,  the Gram determinant of `S(5,3)` when the Hecke parameter
         `q` is "generic" is
 
-        ..MATH::
+        .. MATH::
 
             q^N \Phi_2(q)^{28} \Phi_3(q)^{15} \Phi_4(q)^8 \Phi_5(q)^{13}
 
@@ -3288,7 +3294,7 @@ class Partition(CombinatorialElement):
 
         The defect of a partition is given by 
 
-        .. MATH: 
+        .. MATH::
 
             \text{defect}(\beta) = (\Lambda, \beta) - \tfrac12(\beta, \beta)
 
@@ -4211,17 +4217,6 @@ class Partition(CombinatorialElement):
         """
         return Partition(self.k_skew(k).conjugate().row_lengths())
 
-#    def parent(self):
-#        """
-#        Returns the combinatorial class of partitions of ``sum(self)``.
-#
-#        EXAMPLES::
-#
-#            sage: Partition([3,2,1]).parent()
-#            Partitions of the integer 6
-#        """
-#        return Partitions(sum(self[:]))
-
     def arms_legs_coeff(self, i, j):
         r"""
         This is a statistic on a cell `c = (i,j)` in the diagram of partition
@@ -4589,7 +4584,7 @@ class Partition(CombinatorialElement):
         """
         return self.dimension()**2/factorial(self.size())
 
-    def outline(self, variable=var("x")):
+    def outline(self, variable=None):
         r"""
         Return the outline of the partition ``self``.
 
@@ -4620,6 +4615,8 @@ class Partition(CombinatorialElement):
             sage: integrate(Partition([1]).outline()-abs(x),(x,-10,10))
             2
         """
+        if variable is None:
+            variable = var('x')
         outside_contents = [self.content(*c) for c in self.outside_corners()]
         inside_contents = [self.content(*c) for c in self.corners()]
         return sum(abs(variable+c) for c in outside_contents)\

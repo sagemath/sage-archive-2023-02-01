@@ -41,6 +41,8 @@ Check that sphinx is not imported at Sage start-up::
 
 from __future__ import print_function
 from __future__ import absolute_import
+from six import string_types
+
 import os, re, sys
 import pydoc
 from sage.misc.temporary_file import tmp_dir
@@ -54,7 +56,7 @@ from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC
 # should instead by taken care of by MathJax -- and nonmath, which
 # should be done always.
 
-# Math substititions: don't forget the leading backslash '\\'. These
+# Math substitutions: don't forget the leading backslash '\\'. These
 # are done using regular expressions, so it works best to also make
 # the strings raw: r'\\blah'.
 math_substitutes = [
@@ -596,16 +598,16 @@ def format(s, embedded=False):
         "   Returns ...  Todo: add tests as in combinat::rankers\n"
 
     In the following use case, the ``nodetex`` directive would have been ignored prior
-    to #11815::
+    to :trac:`11815`::
 
         sage: cython_code = ["def testfunc(x):",
-        ... "    '''",
-        ... "    nodetex",
-        ... "    This is a doc string with raw latex",
-        ... "",
-        ... "    `x \\geq y`",
-        ... "    '''",
-        ... "    return -x"]
+        ....: "    '''",
+        ....: "    nodetex",
+        ....: "    This is a doc string with raw latex",
+        ....: "",
+        ....: "    `x \\geq y`",
+        ....: "    '''",
+        ....: "    return -x"]
         sage: cython('\n'.join(cython_code))
         sage: from sage.misc.sageinspect import sage_getdoc
         sage: print(sage_getdoc(testfunc))
@@ -635,7 +637,7 @@ def format(s, embedded=False):
         ...
 
     """
-    if not isinstance(s, str):
+    if not isinstance(s, string_types):
         raise TypeError("s must be a string")
 
     # Leading empty lines must be removed, since we search for directives
@@ -717,7 +719,7 @@ def format_src(s):
         sage: format_src('<<<Sq>>>')[5:15]
         'Sq(*nums):'
     """
-    if not isinstance(s, str):
+    if not isinstance(s, string_types):
         raise TypeError("s must be a string")
     docs = set([])
     import sage.all
@@ -1576,13 +1578,7 @@ def help(module=None):
         Welcome to Sage ...
     """
     if not module is None:
-        if hasattr(module, '_sage_doc_'):
-            from sage.misc.sageinspect import sage_getdef, _sage_getdoc_unformatted
-            docstr = 'Help on ' + str(module) + '\n'
-            docstr += 'Definition: ' + module.__name__ + sage_getdef(module) + '\n'
-            pydoc.pager(docstr + _sage_getdoc_unformatted(module))
-        else:
-            python_help(module)
+        python_help(module)
     else:
         print("""Welcome to Sage {}!
 

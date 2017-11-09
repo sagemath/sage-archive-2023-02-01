@@ -48,7 +48,7 @@ from sage.libs.m4ri cimport *
 cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
     cdef _new_c(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: VS = VectorSpace(GF(2),3)
             sage: VS([0,0,1])
@@ -63,7 +63,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
 
     cdef bint is_dense_c(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: VS = VectorSpace(GF(2),3)
             sage: VS([0,0,1]).is_dense()
@@ -73,7 +73,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
 
     cdef bint is_sparse_c(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: VS = VectorSpace(GF(2),3)
             sage: VS([0,0,1]).is_sparse()
@@ -83,7 +83,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
 
     def __copy__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: VS = VectorSpace(GF(2),10^4)
             sage: v = VS.random_element()
@@ -102,7 +102,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
 
     cdef _init(self, Py_ssize_t degree, parent):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: VS = VectorSpace(GF(2),3)
             sage: VS([0,0,1])
@@ -119,7 +119,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
 
     def __cinit__(self, parent=None, x=None, coerce=True, copy=True):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: VS = VectorSpace(GF(2),3)
             sage: VS((0,0,1/3))
@@ -134,7 +134,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
 
     def __init__(self, parent, x, coerce=True, copy=True):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: VS = VectorSpace(GF(2),3)
             sage: VS((0,0,1/3))
@@ -210,7 +210,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
 
     def __dealloc__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
         sage: VS = VectorSpace(GF(2),10^3)
         sage: import gc
@@ -283,7 +283,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
 
     def __reduce__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: VS = VectorSpace(GF(2),10^4)
             sage: e = VS.random_element()
@@ -294,7 +294,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
 
     cpdef _add_(self, right):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: VS = VectorSpace(GF(2),10)
             sage: e = VS([0,0,1,1,0,0,1,1,0,0])
@@ -309,7 +309,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
 
     cpdef _sub_(self, right):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: VS = VectorSpace(GF(2),10)
             sage: e = VS([0,0,1,1,0,0,1,1,0,0])
@@ -386,7 +386,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
 
     cpdef _pairwise_product_(self, Vector right):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: VS = VectorSpace(GF(2),10)
             sage: e = VS.random_element(); e
@@ -404,7 +404,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             z._entries.rows[0][i] = (self._entries.rows[0][i] & r._entries.rows[0][i])
         return z
 
-    cpdef _lmul_(self, RingElement left):
+    cpdef _lmul_(self, Element left):
         """
         EXAMPLES::
 
@@ -439,7 +439,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
 
     cpdef _neg_(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: VS = VectorSpace(GF(2),10)
             sage: e = VS.random_element()
@@ -456,7 +456,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
 
         - ``copy`` - always ``True``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: VS = VectorSpace(GF(2),10)
             sage: e = VS.random_element(); e
@@ -477,7 +477,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
 
 def unpickle_v0(parent, entries, degree, is_mutable):
     """
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.modules.vector_mod2_dense import unpickle_v0
         sage: VS = VectorSpace(GF(2),10)

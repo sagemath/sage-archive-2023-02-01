@@ -52,7 +52,7 @@ class NumberFieldIsomorphism(Map):
     A base class for various isomorphisms between number fields and
     vector spaces.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: K.<a> = NumberField(x^4 + 3*x + 1)
         sage: V, fr, to = K.vector_space()
@@ -61,7 +61,7 @@ class NumberFieldIsomorphism(Map):
     """
     def _repr_type(self):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^4 + 3*x + 1)
             sage: V, fr, to = K.vector_space()
@@ -72,7 +72,7 @@ class NumberFieldIsomorphism(Map):
 
     def is_injective(self):
         r"""
-         EXAMPLE::
+         EXAMPLES::
 
              sage: K.<a> = NumberField(x^4 + 3*x + 1)
              sage: V, fr, to = K.vector_space()
@@ -83,7 +83,7 @@ class NumberFieldIsomorphism(Map):
 
     def is_surjective(self):
         r"""
-         EXAMPLE::
+         EXAMPLES::
 
              sage: K.<a> = NumberField(x^4 + 3*x + 1)
              sage: V, fr, to = K.vector_space()
@@ -182,7 +182,7 @@ class MapNumberFieldToVectorSpace(Map):
     A class for the isomorphism from an absolute number field to its underlying
     `\QQ`-vector space.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: L.<a> = NumberField(x^3 - x + 1)
         sage: V, fr, to = L.vector_space()
@@ -193,7 +193,7 @@ class MapNumberFieldToVectorSpace(Map):
         r"""
         Standard initialisation function.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: L.<a> = NumberField(x^3 - x + 1)
             sage: L.vector_space()[2] # indirect doctest
@@ -205,7 +205,7 @@ class MapNumberFieldToVectorSpace(Map):
 
     def _repr_type(self):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: L.<a, b> = NumberField([x^2 + 1, x^2 - 3])
             sage: V, fr, to = L.relative_vector_space()
@@ -216,7 +216,7 @@ class MapNumberFieldToVectorSpace(Map):
 
     def _call_(self, x):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: L.<a> = NumberField(x^3 - x + 1)
             sage: V, _, to = L.vector_space()
@@ -259,7 +259,7 @@ class MapRelativeVectorSpaceToRelativeNumberField(NumberFieldIsomorphism):
     def __init__(self, V, K):
         r"""
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a, b> = NumberField([x^2 + 1, x^2 - 2])
             sage: V, _, to = K.relative_vector_space(); to # indirect doctest
@@ -271,7 +271,7 @@ class MapRelativeVectorSpaceToRelativeNumberField(NumberFieldIsomorphism):
 
     def _call_(self, v):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: L.<b> = NumberField(x^4 + 3*x^2 + 1)
             sage: K = L.relativize(L.subfields(2)[0][1], 'a')
@@ -285,7 +285,7 @@ class MapRelativeVectorSpaceToRelativeNumberField(NumberFieldIsomorphism):
         # Convert v to a PARI polynomial in x with coefficients that
         # are polynomials in y.
         _, to_B = B.structure()
-        h = pari([to_B(a)._pari_('y') for a in v]).Polrev()
+        h = pari([to_B(a).__pari__('y') for a in v]).Polrev()
         # Rewrite the polynomial in terms of an absolute generator for
         # the relative number field.
         g = K._pari_rnfeq()._eltreltoabs(h)
@@ -293,7 +293,7 @@ class MapRelativeVectorSpaceToRelativeNumberField(NumberFieldIsomorphism):
 
 class MapRelativeNumberFieldToRelativeVectorSpace(NumberFieldIsomorphism):
     r"""
-    EXAMPLE::
+    EXAMPLES::
 
         sage: K.<a, b> = NumberField([x^3 - x + 1, x^2 + 23])
         sage: V, fr, to = K.relative_vector_space()
@@ -303,7 +303,7 @@ class MapRelativeNumberFieldToRelativeVectorSpace(NumberFieldIsomorphism):
 
     def __init__(self, K, V):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: L.<b> = NumberField(x^4 + 3*x^2 + 1)
             sage: K = L.relativize(L.subfields(2)[0][1], 'a')
@@ -366,7 +366,7 @@ class NameChangeMap(NumberFieldIsomorphism):
     A map between two isomorphic number fields with the same defining
     polynomial but different variable names.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: K.<a> = NumberField(x^2 - 3)
         sage: L.<b> = K.change_names()
@@ -384,7 +384,7 @@ class NameChangeMap(NumberFieldIsomorphism):
     """
     def __init__(self, K, L):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a, b> = NumberField([x^2 - 3, x^2 + 7])
             sage: L.<c, d> = K.change_names()
@@ -399,7 +399,7 @@ class NameChangeMap(NumberFieldIsomorphism):
 
     def _repr_type(self):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^2 - 3)
             sage: L.<b> = K.change_names()
@@ -411,7 +411,7 @@ class NameChangeMap(NumberFieldIsomorphism):
 
     def _call_(self, x):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a, b> = NumberField([x^2 - 3, x^2 + 7])
             sage: L.<c, d> = K.change_names()
@@ -472,7 +472,7 @@ class MapRelativeToAbsoluteNumberField(NumberFieldIsomorphism):
 
     def __init__(self, R, A):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: L.<a, b> = NumberField([x^2 + 3, x^2 + 5])
             sage: K.<c> = L.absolute_field()
@@ -487,7 +487,7 @@ class MapRelativeToAbsoluteNumberField(NumberFieldIsomorphism):
 
     def _call_(self, x):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: L.<a, b> = NumberField([x^2 + 3, x^2 + 5])
             sage: K.<c> = L.absolute_field()
@@ -505,7 +505,7 @@ class MapAbsoluteToRelativeNumberField(NumberFieldIsomorphism):
     """
     def __init__(self, A, R):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: L.<a, b> = NumberField([x^2 + 3, x^2 + 5])
             sage: K.<c> = L.absolute_field()
@@ -517,7 +517,7 @@ class MapAbsoluteToRelativeNumberField(NumberFieldIsomorphism):
 
     def _call_(self, x):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: L.<a, b> = NumberField([x^2 + 3, x^2 + 5])
             sage: K.<c> = L.absolute_field()

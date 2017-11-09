@@ -194,8 +194,6 @@ suivant :
 
     bash $ ./factor 2006
     2 * 17 * 59
-    bash $ ./factor "32*x^5-1"
-    (2*x - 1) * (16*x^4 + 8*x^3 + 4*x^2 + 2*x + 1)
 
 Types de données
 ================
@@ -472,7 +470,7 @@ contenant les mêmes données :
 
 ::
 
-    sage: d.items()
+    sage: list(d.items())
     [(1, 5), ('sage', 17), (Integer Ring, Finite Field of size 7)]
 
 Le parcours itératifs des paires d'un dictionnaire est un idiome de
@@ -481,7 +479,7 @@ programmation fréquent :
 ::
 
     sage: d = {2:4, 3:9, 4:16}
-    sage: [a*b for a, b in d.iteritems()]
+    sage: [a*b for a, b in d.items()]
     [8, 27, 64]
 
 Comme le montre la dernière sortie ci-dessus, un dictionnaire stocke ses

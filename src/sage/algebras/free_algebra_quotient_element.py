@@ -21,11 +21,12 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import integer_types
 
 from sage.misc.misc import repr_lincomb
 from sage.structure.element import RingElement, AlgebraElement
 from sage.structure.parent_gens import localvars
-from sage.structure.sage_object import richcmp
+from sage.structure.richcmp import richcmp
 from sage.rings.integer import Integer
 from sage.modules.free_module_element import FreeModuleElement
 from sage.monoids.free_monoid_element import FreeMonoidElement
@@ -78,7 +79,7 @@ class FreeAlgebraQuotientElement(AlgebraElement):
         if isinstance(x, FreeAlgebraQuotientElement) and x.parent() == Q:
             self.__vector = Q.module()(x.vector())
             return
-        if isinstance(x, (int, long, Integer)):
+        if isinstance(x, (Integer,) + integer_types):
             self.__vector = Q.module().gen(0) * x
             return
         elif isinstance(x, FreeModuleElement) and x.parent() is Q.module():
@@ -92,7 +93,7 @@ class FreeAlgebraQuotientElement(AlgebraElement):
         F = A.monoid()
         B = A.monomial_basis()
 
-        if isinstance(x, (int, long, Integer)):
+        if isinstance(x, (Integer,) +  integer_types):
             self.__vector = x*M.gen(0)
         elif isinstance(x, RingElement) and not isinstance(x, AlgebraElement) and x in R:
             self.__vector = x * M.gen(0)

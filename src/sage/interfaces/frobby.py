@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Interface to Frobby for fast computations on monomial ideals.
 
@@ -130,10 +131,10 @@ class Frobby:
 
     def hilbert(self, monomial_ideal):
         r"""
-        Computes the multigraded Hilbert-Poincare series of the input
+        Computes the multigraded Hilbert-Poincaré series of the input
         ideal. Use the -univariate option to get the univariate series.
 
-        The Hilbert-Poincare series of a monomial ideal is the sum of all
+        The Hilbert-Poincaré series of a monomial ideal is the sum of all
         monomials not in the ideal. This sum can be written as a (finite)
         rational function with $(x_1-1)(x_2-1)...(x_n-1)$ in the denominator,
         assuming the variables of the ring are $x_1,x2,...,x_n$. This action

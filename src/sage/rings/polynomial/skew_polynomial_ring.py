@@ -2,7 +2,7 @@ r"""
 Skew Univariate Polynomial Rings
 
 This module provides the
-:class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general``,
+:class:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general`,
 which constructs a general dense univariate skew polynomials over commutative
 base rings with automorphisms over the base rings. This is usual accessed only
 indirectly through the constructor
@@ -65,7 +65,7 @@ def _base_ring_to_fraction_field(S):
     - ``Q`` -- the skew polynomial ring over the fraction field of
       ``S.base_ring``.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.rings.polynomial.skew_polynomial_ring import _base_ring_to_fraction_field
         sage: R.<t> = ZZ[]
@@ -545,7 +545,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
 
         OUTPUT:
 
-        ``self`` with variable name name changed to ``var``.
+        ``self`` with variable name changed to ``var``.
 
         EXAMPLES::
 

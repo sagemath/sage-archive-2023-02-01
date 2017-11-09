@@ -22,12 +22,12 @@ AUTHORS:
 
 from __future__ import absolute_import, division, print_function
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.libs.gmp.all cimport *
 
-from sage.libs.cypari2.paridecl cimport *
-from sage.libs.cypari2.stack cimport new_gen
+from cypari2.paridecl cimport *
+from cypari2.stack cimport new_gen
 
 cdef Gen new_gen_from_mpz_t(mpz_t value):
     """
@@ -171,7 +171,7 @@ cdef Gen rational_matrix(mpq_t** B, long nr, long nc):
 
     EXAMPLES::
 
-        sage: matrix(QQ,2,[1..6])._pari_()   # indirect doctest
+        sage: matrix(QQ,2,[1..6]).__pari__()   # indirect doctest
         [1, 2, 3; 4, 5, 6]
     """
     sig_on()

@@ -55,6 +55,7 @@ import sage.categories.morphism
 import sage.categories.homset
 import sage.matrix.all as matrix
 from sage.structure.all import Sequence, parent
+from sage.structure.richcmp import richcmp
 
 def is_MatrixMorphism(x):
     """
@@ -95,21 +96,20 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             raise TypeError("parent must be a Hom space")
         sage.categories.morphism.Morphism.__init__(self, parent)
 
-    def _cmp_(self, other):
+    def _richcmp_(self, other, op):
         """
         Compare two matrix morphisms.
 
         EXAMPLES::
 
-            sage: V = ZZ^2; phi = V.hom([3*V.0, 2*V.1])
+            sage: V = ZZ^2
+            sage: phi = V.hom([3*V.0, 2*V.1])
             sage: phi == 3
             False
             sage: phi == phi
             True
         """
-        return cmp(self.matrix(), other.matrix())
-
-    __cmp__ = _cmp_
+        return richcmp(self.matrix(), other.matrix(), op)
 
     def _call_(self, x):
         """
@@ -936,7 +936,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             sage: phi.is_identity()
             True
 
-        TEST::
+        TESTS::
 
             sage: V = QQ^10
             sage: H = Hom(V, V)
@@ -980,7 +980,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             sage: phi.is_zero()
             False
 
-        TEST::
+        TESTS::
 
             sage: V = QQ^10
             sage: W = QQ^3
@@ -1065,7 +1065,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             sage: phi.is_equal_function(zeta)
             False
 
-        TEST::
+        TESTS::
 
             sage: H = Hom(ZZ^2, ZZ^2)
             sage: phi = H(matrix(ZZ, 2, range(4)))
@@ -1354,7 +1354,7 @@ class MatrixMorphism(MatrixMorphism_abstract):
         """
         Tell whether ``self`` is injective.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: V1 = QQ^2
             sage: V2 = QQ^3

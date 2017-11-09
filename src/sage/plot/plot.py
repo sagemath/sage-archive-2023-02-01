@@ -555,9 +555,9 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 from six.moves import range
+from six import iteritems
 
 import os
 from functools import reduce
@@ -1709,6 +1709,7 @@ def plot(funcs, *args, **kwds):
     Ghostscript be installed::
 
         sage: plot(x, typeset='type1') # optional - latex
+        Graphics object consisting of 1 graphics primitive
 
     A example with excluded values::
 
@@ -2179,7 +2180,7 @@ def _plot(funcs, xrange, parametric=False,
                     linestyle_entry = default_line_styles[i]
             elif linestyle_temp == 'automatic':
                 linestyle_entry = default_line_styles[i]
-            elif linestyle_temp == None:
+            elif linestyle_temp is None:
                 linestyle_entry = 'solid'
             else:
                 linestyle_entry = linestyle_temp
@@ -2222,7 +2223,7 @@ def _plot(funcs, xrange, parametric=False,
     exclude = options.pop('exclude')
     if exclude is not None:
         from sage.symbolic.expression import Expression
-        if isinstance(exclude, Expression) and exclude.is_relational() == True:
+        if isinstance(exclude, Expression) and exclude.is_relational():
             if len(exclude.variables()) > 1:
                 raise ValueError('exclude has to be an equation of only one variable')
             v = exclude.variables()[0]
@@ -2343,7 +2344,7 @@ def _plot(funcs, xrange, parametric=False,
 
     detect_poles = options.pop('detect_poles', False)
     legend_label = options.pop('legend_label', None)
-    if excluded_points or detect_poles != False:
+    if excluded_points or detect_poles:
         start_index = 0
         # setup for pole detection
         from sage.rings.all import RDF
@@ -2364,7 +2365,7 @@ def _plot(funcs, xrange, parametric=False,
             x1, y1 = exclude_data[i+1]
 
             # detect poles
-            if (not (polar or parametric)) and detect_poles != False \
+            if (not (polar or parametric)) and detect_poles \
                and ((y1 > 0 and y0 < 0) or (y1 < 0 and y0 > 0)):
                 # calculate the slope of the line segment
                 dy = abs(y1-y0)
@@ -2970,9 +2971,9 @@ def list_plot(data, plotjoined=False, **kwargs):
                     "and 'y' against each other, use 'list_plot(list(zip(x,y)))'.")
     if isinstance(data, dict):
         if plotjoined:
-            list_data = sorted(list(data.iteritems()))
+            list_data = sorted(list(iteritems(data)))
         else:
-            list_data = list(data.iteritems())
+            list_data = list(iteritems(data))
         return list_plot(list_data, plotjoined=plotjoined, **kwargs)
     try:
         from sage.rings.all import RDF
@@ -3042,7 +3043,7 @@ def plot_loglog(funcs, *args, **kwds):
         sage: plot_loglog(exp, (1,10), base=2.1) # long time # with base 2.1 on both axes
         Graphics object consisting of 1 graphics primitive
 
-    .. PLOT ::
+    .. PLOT::
 
         g = plot_loglog(exp, (1,10), base=2.1) # long time # with base 2.1 on both axes
         sphinx_plot(g)
@@ -3411,7 +3412,7 @@ def graphics_array(array, nrows=None, ncols=None):
        if necessary. If only one is specified, the other is chosen
        automatically.
 
-    EXAMPLE: Make some plots of `\sin` functions::
+    EXAMPLES: Make some plots of `\sin` functions::
 
         sage: f(x) = sin(x)
         sage: g(x) = sin(2*x)

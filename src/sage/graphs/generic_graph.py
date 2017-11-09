@@ -5376,7 +5376,8 @@ class GenericGraph(GenericGraph_pyx):
         to `u`.
 
         The resulting graph is a tree, with the additional characteristic
-        property that the distance between two leaves is even.
+        property that the distance between two leaves is even. When ``self`` is
+        not connected, the resulting graph is a forest.
 
         When ``self`` is biconnected, the tree is reduced to a single node of
         type `B`.
@@ -5407,6 +5408,14 @@ class GenericGraph(GenericGraph_pyx):
             sage: T = graphs.PetersenGraph().blocks_and_cuts_tree()
             sage: T.vertices()
             [('B', (0, 1, 2, 3, 4, 5, 6, 7, 8, 9))]
+
+        TESTS:
+
+        When ``self`` is not connected, the resulting graph is a forest (:trac:`24163`)::
+
+            sage: T = Graph(2).blocks_and_cuts_tree()
+            sage: T.is_forest()
+            True
 
         REFERENCES:
 

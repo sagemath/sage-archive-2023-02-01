@@ -27,7 +27,7 @@ implications = {
  'meet_distributive': ['join_semidistributive', 'lower_semimodular'],
  'meet_semidistributive': ['pseudocomplemented'],
  'modular': ['upper_semimodular', 'lower_semimodular', 'supersolvable'],
- 'orthocomplemented': ['selfdual', 'complemented'],
+ 'orthocomplemented': ['self_dual', 'complemented'],
  'planar': ['dismantlable'],
  'relatively_complemented': ['sectionally_complemented', 'cosectionally_complemented', 'isoform'],
  'sectionally_complemented': ['complemented', 'atomic', 'regular'],
@@ -95,7 +95,7 @@ def test_attrcall(name, L):
     EXAMPLES::
 
         sage: from sage.tests.finite_poset import test_attrcall
-        sage: N5 = Posets.PentagonPoset()
+        sage: N5 = posets.PentagonPoset()
         sage: N5.is_modular() == test_attrcall('is_modular', N5)
         True
         sage: N5.is_constructible_by_doublings('convex') == test_attrcall('is_doubling_convex', N5)
@@ -140,7 +140,7 @@ def test_finite_lattice(L):
     EXAMPLES::
 
         sage: from sage.tests.finite_poset import test_finite_lattice
-        sage: L = Posets.RandomLattice(10, 0.98)
+        sage: L = posets.RandomLattice(10, 0.98)
         sage: test_finite_lattice(L) is None  # Long time
         True
     """

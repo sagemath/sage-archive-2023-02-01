@@ -239,7 +239,8 @@ import copy
 from sage.structure.richcmp import richcmp_method, richcmp
 from sage.combinat.combination import Combinations
 from sage.combinat.posets.posets import FinitePoset
-from sage.geometry.cone import (Cone,
+from sage.geometry.cone import (_ambient_space_point,
+                                Cone,
                                 ConvexRationalPolyhedralCone,
                                 IntegralRayCollection,
                                 is_Cone,
@@ -1549,7 +1550,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             point = args
 
         try:
-            point = self._ambient_space_point(point)
+            point = _ambient_space_point(self, point)
         except TypeError as ex:
             if str(ex).endswith("have incompatible lattices!"):
                 warnings.warn("you have checked if a fan contains a point "
@@ -1941,10 +1942,10 @@ class RationalPolyhedralFan(IntegralRayCollection,
         except TypeError:
             # Got points (hopefully)
             try:
-                points = [self._ambient_space_point(_) for _ in points]
+                points = [_ambient_space_point(self, p) for p in points]
             except TypeError:
                 if len(points) == 1:
-                    points = [self._ambient_space_point(_) for _ in points[0]]
+                    points = [_ambient_space_point(self, p) for p in points[0]]
                 else:
                     raise
             # If we are still here, points are good

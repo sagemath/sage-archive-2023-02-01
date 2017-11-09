@@ -21,7 +21,6 @@ from sage.misc.lazy_import import LazyImport, lazy_import
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
-from sage.misc.sage_itertools import max_cmp, min_cmp
 from sage.categories.homsets import HomsetsCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.tensor import tensor, TensorProductsCategory
@@ -1582,7 +1581,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: f.leading_support()
                 [3]
             """
-            return max_cmp(self.support(), *args, **kwds)
+            return max(self.support(), *args, **kwds)
 
         def leading_item(self, *args, **kwds):
             r"""
@@ -1728,7 +1727,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: f.trailing_support()
                 [1]
             """
-            return min_cmp(self.support(), *args, **kwds)
+            return min(self.support(), *args, **kwds)
 
         def trailing_item(self, *args, **kwds):
             r"""

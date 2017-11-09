@@ -305,9 +305,7 @@ class Singleton(WithEqualityById, metaclass=ClasscallMetaclass):
         sage: loads(dumps(c))
         Traceback (most recent call last):
         ...
-        AssertionError: (("<class '__main__.D'> is not a direct
-        subclass of <class 'sage.misc.fast_methods.Singleton'>",),
-        <class '__main__.D'>, ())
+        AssertionError: <class '__main__.D'> is not a direct subclass of <class 'sage.misc.fast_methods.Singleton'>
     """
     @staticmethod
     def __classcall__(cls):

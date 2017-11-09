@@ -17,6 +17,7 @@
 from __future__ import absolute_import, division
 
 from cysignals.signals cimport sig_on, sig_off
+from sage.ext.cplusplus cimport ccrepr, ccreadstr
 
 include 'misc.pxi'
 include 'decl.pxi'
@@ -153,10 +154,8 @@ cdef class ntl_GF2X(object):
         elif isinstance(x, FiniteField_ntl_gf2eElement):
             x = x.polynomial().list()
         s = str(x).replace(","," ")
-        sig_on()
         # TODO: this is very slow, but we wait until somebody complains
-        GF2X_from_str(&self.x, s)
-        sig_off()
+        ccreadstr(self.x, s)
 
     def __reduce__(self):
         """
@@ -178,7 +177,7 @@ cdef class ntl_GF2X(object):
             sage: ntl.GF2X(ntl.ZZ_pX([1,1,3],2)).__repr__()
             '[1 1 1]'
         """
-        return GF2X_to_PyString(&self.x)
+        return ccrepr(self.x)
 
     def __mul__(ntl_GF2X self, other):
         """
@@ -478,7 +477,7 @@ cdef class ntl_GF2X(object):
         """
         cdef long _hex = GF2XHexOutput_c[0]
         GF2XHexOutput_c[0] = 0
-        s = GF2X_to_PyString(&self.x)
+        s = ccrepr(self.x)
         GF2XHexOutput_c[0] = _hex
         return s
 
@@ -501,7 +500,7 @@ cdef class ntl_GF2X(object):
         """
         cdef long _hex = GF2XHexOutput_c[0]
         GF2XHexOutput_c[0] = 1
-        s = GF2X_to_PyString(&self.x)
+        s = ccrepr(self.x)
         GF2XHexOutput_c[0] = _hex
         return s
 

@@ -71,7 +71,7 @@ class OperationTable(SageObject):
 
     EXAMPLES:
 
-    In it's most basic use, the table needs a structure and an operation::
+    In its most basic use, the table needs a structure and an operation::
 
         sage: from sage.matrix.operation_table import OperationTable
         sage: G=SymmetricGroup(3)
@@ -349,10 +349,10 @@ class OperationTable(SageObject):
         ...
         TypeError: elements () and () of Cyclic group of order 4 as a permutation group are incompatible with operation: <built-in function xor>
 
-    TODO:
+    .. TODO::
 
-    Provide color and grayscale graphical representations of tables.
-    See commented-out stubs in source code.
+        Provide color and grayscale graphical representations of tables.
+        See commented-out stubs in source code.
 
     AUTHOR:
 
@@ -550,7 +550,7 @@ class OperationTable(SageObject):
         Returns the element of the table, given the elements indexing its position.
 
         INPUT:
-        - pair - two elements of the structure
+        - pair -- two elements of the structure
 
         OUTPUT:
         The element of the structure computed by the operation for

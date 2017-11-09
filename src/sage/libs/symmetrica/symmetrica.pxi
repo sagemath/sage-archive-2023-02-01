@@ -53,7 +53,7 @@ cdef extern from 'symmetrica/macro.h':
         HOMSYM = 13
         SCHUBERT = 14
         INTEGERVECTOR = 15
-        INEGER_VECTOR = 15
+        INTEGER_VECTOR = 15
         INT_VECTOR = 15
         INTVECTOR = 15
         KOSTKA = 16

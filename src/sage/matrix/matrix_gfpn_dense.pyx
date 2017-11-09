@@ -26,21 +26,15 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
+from __future__ import print_function, absolute_import, division
 
 from cysignals.memory cimport check_realloc, check_malloc, sig_free
 from cpython.bytes cimport PyBytes_AsString, PyBytes_FromStringAndSize
 from cysignals.signals cimport sig_on, sig_off, sig_check
 
-## Define an environment variable that enables MeatAxe to find
-## its multiplication tables.
-
-from sage.env import DOT_SAGE
 import os
-cdef extern from "Python.h":
-    object PyString_FromStringAndSize(char *s, Py_ssize_t len)
-    char* PyString_AsString(object string)
-MtxLibDir = PyString_AsString(os.path.join(DOT_SAGE,'meataxe'))
+
+meataxe_init()
 
 ####################
 #
@@ -58,7 +52,6 @@ from sage.misc.randstate cimport randstate
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.structure.element cimport Element, ModuleElement, RingElement, Matrix
 
-from libc.stdlib cimport free
 from libc.string cimport memset, memcpy
 
 cimport sage.matrix.matrix0
@@ -68,8 +61,6 @@ cimport sage.matrix.matrix0
 # auxiliary functions
 #
 ####################
-import sys
-from libc.string cimport memcpy
 
 # Fast conversion from field to int and int to field
 cdef class FieldConverter_class:
@@ -260,36 +251,6 @@ cdef FieldConverter_class FieldConverter(field):
         return _converter_cache.setdefault(field, FieldConverter_class(field))
 
 ######################################
-## Error handling for MeatAxe, to prevent immediate exit of the program
-
-cdef dict ErrMsg = {
-    "Not enough memory": MemoryError,
-    "Time limit exceeded": RuntimeError,
-    "Division by zero": ZeroDivisionError,
-    "Bad file format": IOError,
-    "Bad argument": ValueError,
-    "Argument out of range": IndexError,
-
-    "Matrix not in echelon form": ValueError,
-    "Matrix not square": ArithmeticError,
-    "Incompatible objects": TypeError,
-
-    "Bad syntax, try `-help'": SyntaxError,
-    "Bad usage of option, try `-help'": ValueError,
-    "Bad number of arguments, try `-help'": ValueError,
-
-    "Not a matrix": TypeError,
-    "Not a permutation": TypeError
-}
-
-from cpython.exc cimport PyErr_SetObject
-
-cdef void ErrorHandler(MtxErrorRecord_t *err):
-    PyErr_SetObject(ErrMsg.get(err.Text, SystemError), "{} in file {} (line {})".format(err.Text, err.FileInfo.BaseName, err.LineNo))
-
-MtxSetErrorHandler(ErrorHandler)
-
-######################################
 ##
 ## Wrapper for MeatAxe matrices
 ##
@@ -403,7 +364,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
                 sage: Matrix_gfpn_dense('foobarNONEXISTING_FILE')       # optional: meataxe
                 Traceback (most recent call last):
                 ...
-                SystemError: .../foobarNONEXISTING_FILE: No such file or directory in file os.c (line 254)
+                OSError: .../foobarNONEXISTING_FILE: No such file or directory in file os.c (line 254)
                 sage: Matrix_gfpn_dense('')                             # optional: meataxe
                 Traceback (most recent call last):
                 ...
@@ -463,9 +424,10 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
                 raise ValueError("Cannot initialise non-square matrix from {}".format(data))
             f = FfFromInt(self._converter.field_to_int(self._coerce_element(data)))
             x = self.Data.Data
-            for j from 0 <= j < self.Data.Noc:
+            for j in range(self.Data.Noc):
                 FfInsert(x,j,f)
                 FfStepPtr(&x)
+                sig_check()
             return
 
         x = self.Data.Data
@@ -486,6 +448,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
                 dt_i = dt[i]
                 for j in range(nc):
                     FfInsert(x, j, FfFromInt(self._converter.field_to_int(self._coerce_element(dt_i[j]))))
+                    sig_check()
                 FfStepPtr(&(x))
         else:
             # It is supposed to be a flat list of all entries, sorted by rows
@@ -494,6 +457,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
                 for j in range(nc):
                     bla = self._converter.field_to_int(self._coerce_element(dtnext()))
                     FfInsert(x, j, FfFromInt(bla))
+                    sig_check()
                 FfStepPtr(&(x))
 
     cdef Matrix_gfpn_dense _new(self, Py_ssize_t nrows, Py_ssize_t ncols):
@@ -573,6 +537,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             x = d
             for i in range(self.Data.Nor):
                 memcpy(x, p, FfCurrentRowSizeIo)
+                sig_check()
                 x += FfCurrentRowSizeIo
                 FfStepPtr(&p)
             pickle_str = PyBytes_FromStringAndSize(d, pickle_size)
@@ -862,7 +827,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
                 raise TypeError("Second index must be an integer")
             if j >= self.Data.Nor:
                 raise IndexError("Index out of range")
-            for k from i < k <= j:
+            for k in range(i, j):
                 FfStepPtr(&(p)) # This is only called after MatGetPtr, hence, after FfSetNoc.
                 L.extend([FfToInt(FfExtract(p,l)) for l in range(self.Data.Noc)])
         return L
@@ -891,12 +856,11 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             raise IndexError("Matrix is empty")
         cdef PTR p
         p = self.Data.Data
-        sig_on()
-        for i from 1<=i<self.Data.Nor:
+        for i in range(1, self.Data.Nor):
             x.extend([self._converter.int_to_field(FfToInt(FfExtract(p,j))) for j in range(self.Data.Noc)])
             FfStepPtr(&(p))
+            sig_check()
         x.extend([self._converter.int_to_field(FfToInt(FfExtract(p,j))) for j in range(self.Data.Noc)])
-        sig_off()
         self.cache('list', x)
         return x
 
@@ -1329,7 +1293,9 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         cdef Matrix_gfpn_dense OUT = self._new(self._ncols, self._nrows)
         OUT._is_immutable = False
         OUT._cache = {}
+        sig_on()
         OUT.Data = MatTransposed(self.Data)
+        sig_off()
         return OUT
 
     def order(self):
@@ -1354,7 +1320,9 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             raise ValueError("The matrix must not be empty")
         if self.Data.Nor != self.Data.Noc:
             raise ValueError("only defined for square matrices")
+        sig_on()
         o = MatOrder(self.Data)
+        sig_off()
         if o == -1:
             raise ArithmeticError("order too large")
         else:
@@ -1519,7 +1487,9 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             self.cache('rank', 0)
             self.cache('pivots', ())
             return self
+        sig_on()
         MatEchelonize(self.Data)
+        sig_off()
         self._cache = {}
         # Now, self.Data is in semi-echelon form.
         r = self.Data.Nor
@@ -1529,7 +1499,6 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         self.cache('rank', r)
         # Next, we do permutations to achieve the reduced echelon form,
         # if requested.
-        sig_on()
         if reduced:
             pivs = [(self.Data.PivotTable[i],i) for i in range(r)]
             pivs.sort()
@@ -1542,25 +1511,28 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
                     dest = self.Data.Data+FfCurrentRowSize*i
                     memcpy(dest, old+FfCurrentRowSize*j, FfCurrentRowSize)
                     self.Data.PivotTable[i] = pos
-                free(old)
+                    sig_check()
+                sig_free(old)
                 self.Data.Nor = self._nrows
             # Now, the pivot columns are strictly increasing.
             # We now normalize each row, and annulate everything
             # above the pivot (currently, we only know that the matrix
             # is zero below the pivots).
-            for i from 0 <= i < r:
+            for i in range(r):
                 src = MatGetPtr(self.Data, i)
                 piv = FfExtract(src, self.Data.PivotTable[i])
                 assert piv!=FF_ZERO
                 if piv != FF_ONE:
                     FfMulRow(src, mtx_tmultinv[piv])
-                for j from 0 <= j < i:
+                sig_check()
+                for j in range(i):
                     dest = MatGetPtr(self.Data, j)
                     piv = FfExtract(dest, self.Data.PivotTable[i])
                     if piv != FF_ONE:
                         FfAddMulRow(dest, src, mtx_taddinv[piv])
                     else:
                         FfSubRow(dest, src)
+                    sig_check()
         elif self.Data.Nor < self._nrows:
             # Some rows may have vanished. In SageMath, we
             # want that the number of rows does not change,
@@ -1568,7 +1540,6 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             self.Data.Data = <PTR>check_realloc(self.Data.Data, FfCurrentRowSize*self._nrows)
             memset(self.Data.Data + FfCurrentRowSize*self.Data.Nor, FF_ZERO, FfCurrentRowSize*(self._nrows-self.Data.Nor))
             self.Data.Nor = self._nrows
-        sig_off()
         self.cache('pivots', tuple(self.Data.PivotTable[i] for i in range(r)))
         self.cache('in_echelon_form',True)
 

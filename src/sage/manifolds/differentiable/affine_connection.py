@@ -42,7 +42,7 @@ class AffineConnection(SageObject):
     or `K=\CC`), let `C^\infty(M)` be the algebra of smooth functions
     `M\rightarrow K` (cf.
     :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`)
-    and let `\mathcal{X}(M)` be the `C^\infty(M)`-module of vector fields on
+    and let `\mathfrak{X}(M)` be the `C^\infty(M)`-module of vector fields on
     `M` (cf.
     :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldModule`).
     An *affine connection* on `M` is an operator
@@ -50,14 +50,14 @@ class AffineConnection(SageObject):
     .. MATH::
 
         \begin{array}{cccc}
-        \nabla: & \mathcal{X}(M)\times \mathcal{X}(M) & \longrightarrow &
-                 \mathcal{X}(M) \\
+        \nabla: & \mathfrak{X}(M)\times \mathfrak{X}(M) & \longrightarrow &
+                 \mathfrak{X}(M) \\
                 & (u,v) & \longmapsto & \nabla_u v
         \end{array}
 
     that
 
-    - is `K`-bilinear, i.e. is bilinear when considering `\mathcal{X}(M)` as a
+    - is `K`-bilinear, i.e. is bilinear when considering `\mathfrak{X}(M)` as a
       vector space over `K`
     - is `C^\infty(M)`-linear w.r.t. the first argument:
       `\forall f\in C^\infty(M),\ \nabla_{fu} v = f\nabla_u v`
@@ -83,13 +83,13 @@ class AffineConnection(SageObject):
 
     .. MATH::
 
-        \forall u \in\mathcal{X}(M), \   \nabla_u v = \nabla v(., u)
+        \forall u \in\mathfrak{X}(M), \   \nabla_u v = \nabla v(., u)
 
     More generally for any tensor field `t\in T^{(k,l)}(M)`, we have
 
     .. MATH::
 
-        \forall u \in\mathcal{X}(M), \   \nabla_u t = \nabla t(\ldots, u)
+        \forall u \in\mathfrak{X}(M), \   \nabla_u t = \nabla t(\ldots, u)
 
 
     .. NOTE::
@@ -634,7 +634,7 @@ class AffineConnection(SageObject):
         Return the connection coefficients in a given frame for assignment.
 
         See method :meth:`coef` for details about the definition of the
-        connection coefficents.
+        connection coefficients.
 
         The connection coefficients with respect to other frames are deleted,
         in order to avoid any inconsistency. To keep them, use the method
@@ -726,7 +726,7 @@ class AffineConnection(SageObject):
         keeping the coefficients in other frames.
 
         See method :meth:`coef` for details about the definition of the
-        connection coefficents.
+        connection coefficients.
 
         To delete the connection coefficients in other frames, use the method
         :meth:`set_coef` instead.

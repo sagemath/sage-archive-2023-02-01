@@ -49,6 +49,41 @@ For a Cython ``cdef class``, a decorator cannot be used. Instead, call
     sage: Y().__doc__
     'Instance docstring'
 
+One can still add a custom ``__doc__`` attribute on a particular
+instance::
+
+    sage: obj = X()
+    sage: obj.__doc__ = "Very special doc"
+    sage: print(obj.__doc__)
+    Very special doc
+
+This normally does not work on extension types::
+
+    sage: Y().__doc__ = "Very special doc"
+    Traceback (most recent call last):
+    ...
+    AttributeError: attribute '__doc__' of 'Y' objects is not writable
+
+This is an example involving a metaclass, where the instances are
+classes. In this case, the ``_instancedoc_`` from the metaclass is only
+used if the instance of the metaclass (the class) does not have a
+docstring::
+
+    sage: @instancedoc
+    ....: class Meta(type):
+    ....:     "Metaclass doc"
+    ....:     def _instancedoc_(self):
+    ....:         return "Docstring for {}".format(self)
+    sage: from six import with_metaclass
+    sage: class T(with_metaclass(Meta, object)):
+    ....:     pass
+    sage: print(T.__doc__)
+    Docstring for <class '__main__.T'>
+    sage: class U(with_metaclass(Meta, object)):
+    ....:     "Special doc for U"
+    sage: print(U.__doc__)
+    Special doc for U
+
 TESTS:
 
 Check that inheritance works (after passing the subclass to
@@ -105,6 +140,9 @@ cdef class InstanceDocDescriptor:
 
     - ``instancedoc`` -- (method) documentation for an instance
 
+    - ``attr`` -- (string, default ``__doc__``) attribute name to use
+      for custom docstring on the instance.
+
     EXAMPLES::
 
         sage: from sage.docs.instancedoc import InstanceDocDescriptor
@@ -117,11 +155,22 @@ cdef class InstanceDocDescriptor:
         'Class doc'
         sage: Z().__doc__
         'Instance doc'
+
+    We can still override the ``__doc__`` attribute of the instance::
+
+        sage: obj = Z()
+        sage: obj.__doc__ = "Custom doc"
+        sage: obj.__doc__
+        'Custom doc'
+        sage: del obj.__doc__
+        sage: obj.__doc__
+        'Instance doc'
     """
     cdef classdoc
     cdef instancedoc
+    cdef attr
 
-    def __init__(self, classdoc, instancedoc):
+    def __init__(self, classdoc, instancedoc, attr="__doc__"):
         """
         TESTS::
 
@@ -131,6 +180,7 @@ cdef class InstanceDocDescriptor:
         """
         self.classdoc = classdoc
         self.instancedoc = instancedoc
+        self.attr = intern(attr)
 
     def __get__(self, obj, typ):
         """
@@ -147,8 +197,82 @@ cdef class InstanceDocDescriptor:
         """
         if obj is None:
             return self.classdoc
+
+        # First, try the attribute self.attr (typically __doc__)
+        # on the instance
+        try:
+            objdict = obj.__dict__
+        except AttributeError:
+            pass
         else:
-            return self.instancedoc(obj)
+            doc = objdict.get(self.attr)
+            if doc is not None:
+                return doc
+
+        return self.instancedoc(obj)
+
+    def __set__(self, obj, value):
+        """
+        TESTS::
+
+            sage: from sage.docs.instancedoc import InstanceDocDescriptor
+            sage: def instancedoc(self):
+            ....:     return "Doc for {!r}".format(self)
+            sage: descr = InstanceDocDescriptor("Class doc", instancedoc)
+            sage: class X(object): pass
+            sage: obj = X()
+            sage: descr.__set__(obj, "Custom doc")
+            sage: obj.__doc__
+            'Custom doc'
+
+            sage: descr.__set__([], "Custom doc")
+            Traceback (most recent call last):
+            ...
+            AttributeError: attribute '__doc__' of 'list' objects is not writable
+            sage: descr.__set__(object, "Custom doc")
+            Traceback (most recent call last):
+            ...
+            AttributeError: attribute '__doc__' of 'type' objects is not writable
+        """
+        try:
+            obj.__dict__[self.attr] = value
+        except (AttributeError, TypeError):
+            raise AttributeError(f"attribute '{self.attr}' of '{type(obj).__name__}' objects is not writable")
+
+    def __delete__(self, obj):
+        """
+        TESTS::
+
+            sage: from sage.docs.instancedoc import InstanceDocDescriptor
+            sage: def instancedoc(self):
+            ....:     return "Doc for {!r}".format(self)
+            sage: descr = InstanceDocDescriptor("Class doc", instancedoc)
+            sage: class X(object): pass
+            sage: obj = X()
+            sage: obj.__doc__ = "Custom doc"
+            sage: descr.__delete__(obj)
+            sage: print(obj.__doc__)
+            None
+            sage: descr.__delete__(obj)
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'X' object has no attribute '__doc__'
+
+            sage: descr.__delete__([])
+            Traceback (most recent call last):
+            ...
+            AttributeError: attribute '__doc__' of 'list' objects is not writable
+            sage: descr.__delete__(object)
+            Traceback (most recent call last):
+            ...
+            AttributeError: attribute '__doc__' of 'type' objects is not writable
+        """
+        try:
+            del obj.__dict__[self.attr]
+        except (AttributeError, TypeError):
+            raise AttributeError(f"attribute '{self.attr}' of '{type(obj).__name__}' objects is not writable")
+        except KeyError:
+            raise AttributeError(f"'{type(obj).__name__}' object has no attribute '{self.attr}'")
 
 
 def instancedoc(cls):

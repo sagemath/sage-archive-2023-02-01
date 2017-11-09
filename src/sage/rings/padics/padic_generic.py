@@ -28,8 +28,11 @@ from __future__ import absolute_import
 
 from sage.misc.prandom import sample
 from sage.misc.misc import some_tuples
+from copy import copy
 
+from sage.structure.richcmp import richcmp
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
+from sage.categories.morphism import Morphism
 from sage.categories.fields import Fields
 from sage.rings.infinity import infinity
 from .local_generic import LocalGeneric
@@ -337,6 +340,19 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         """
         return self.residue_class_field()
 
+    def residue_ring(self, n):
+        """
+        Returns the quotient of the ring of integers by the nth power of the maximal ideal.
+
+        EXAMPLES::
+
+            sage: R = Zp(11)
+            sage: R.residue_ring(3)
+            Ring of integers modulo 1331
+        """
+        from sage.rings.finite_rings.integer_mod_ring import Zmod
+        return Zmod(self.prime()**n)
+
     def residue_system(self):
         """
         Returns a list of elements representing all the residue classes.
@@ -356,6 +372,84 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             [O(3^5), 1 + O(3^5), 2 + O(3^5)]
         """
         return [self(i) for i in self.residue_class_field()]
+
+    def fraction_field(self, print_mode=None):
+        r"""
+        Returns the fraction field of this ring or field.
+
+        For `\ZZ_p`, this is the `p`-adic field with the same options,
+        and for extensions, it is just the extension of the fraction
+        field of the base determined by the same polynomial.
+
+        The fraction field of a capped absolute ring is capped relative,
+        and that of a fixed modulus ring is floating point.
+
+        INPUT:
+
+        - ``print_mode`` -- a dictionary containing print options.
+          Defaults to the same options as this ring.
+
+        OUTPUT:
+
+        - the fraction field of this ring.
+
+        EXAMPLES::
+
+            sage: R = Zp(5, print_mode='digits')
+            sage: K = R.fraction_field(); repr(K(1/3))[3:]
+            '31313131313131313132'
+            sage: L = R.fraction_field({'max_ram_terms':4}); repr(L(1/3))[3:]
+            '3132'
+            sage: U.<a> = Zq(17^4, 6, print_mode='val-unit', print_max_terse_terms=3)
+            sage: U.fraction_field()
+            Unramified Extension in a defined by x^4 + 7*x^2 + 10*x + 3 with capped relative precision 6 over 17-adic Field
+            sage: U.fraction_field({"pos":False}) == U.fraction_field()
+            False
+        """
+        if self.is_field() and print_mode is None:
+            return self
+        if print_mode is None:
+            return self.change(field=True)
+        else:
+            return self.change(field=True, **print_mode)
+
+    def integer_ring(self, print_mode=None):
+        r"""
+        Returns the ring of integers of this ring or field.
+
+        For `\QQ_p`, this is the `p`-adic ring with the same options,
+        and for extensions, it is just the extension of the ring
+        of integers of the base determined by the same polynomial.
+
+        INPUT:
+
+        - ``print_mode`` -- a dictionary containing print options.
+          Defaults to the same options as this ring.
+
+        OUTPUT:
+
+        - the ring of elements of this field with nonnegative valuation.
+
+        EXAMPLES::
+
+            sage: K = Qp(5, print_mode='digits')
+            sage: R = K.integer_ring(); repr(R(1/3))[3:]
+            '31313131313131313132'
+            sage: S = K.integer_ring({'max_ram_terms':4}); repr(S(1/3))[3:]
+            '3132'
+            sage: U.<a> = Qq(17^4, 6, print_mode='val-unit', print_max_terse_terms=3)
+            sage: U.integer_ring()
+            Unramified Extension in a defined by x^4 + 7*x^2 + 10*x + 3 with capped relative precision 6 over 17-adic Ring
+            sage: U.fraction_field({"pos":False}) == U.fraction_field()
+            False
+        """
+        #Currently does not support fields with non integral defining polynomials.  This should change when the padic_general_extension framework gets worked out.
+        if not self.is_field() and print_mode is None:
+            return self
+        if print_mode is None:
+            return self.change(field=False)
+        else:
+            return self.change(field=False, **print_mode)
 
     def teichmuller(self, x, prec = None):
         r"""
@@ -399,16 +493,26 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: b^125 == b
             True
 
+        We check that :trac:`23736` is resolved::
+
+            sage: R.teichmuller(GF(5)(2))
+            2 + 5 + 2*5^2 + 5^3 + 3*5^4 + O(5^5)
+
         AUTHORS:
 
         - Initial version: David Roe
         - Quadratic time version: Kiran Kedlaya <kedlaya@math.mit.edu> (3/27/07)
         """
-        if prec is None:
-            prec = self.precision_cap()
-        else:
-            prec = min(Integer(prec), self.precision_cap())
-        ans = self(x, prec)
+        ans = self(x) if prec is None else self(x, prec)
+        # Since teichmuller representatives are defined at infinite precision,
+        # we can lift to precision prec, as long as the absolute precision of ans is positive.
+        if ans.precision_absolute() <= 0:
+            raise ValueError("Not enough precision to determine Teichmuller representative")
+        if ans.valuation() > 0:
+            return self(0) if prec is None else self(0, prec)
+        ans = ans.lift_to_precision(prec)
+        if ans is x:
+            ans = copy(ans)
         ans._teichmuller_set_unsafe()
         return ans
 
@@ -905,6 +1009,274 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         """
         pass
+
+class ResidueReductionMap(Morphism):
+    """
+    Reduction map from a p-adic ring or field to its residue field or ring.
+
+    These maps must be created using the :meth:`_create_` method in order
+    to support categories correctly.
+
+    EXAMPLES::
+
+        sage: from sage.rings.padics.padic_generic import ResidueReductionMap
+        sage: R.<a> = Zq(125); k = R.residue_field()
+        sage: f = ResidueReductionMap._create_(R, k); f
+        Reduction morphism:
+          From: Unramified Extension in a defined by x^3 + 3*x + 3 with capped relative precision 20 over 5-adic Ring
+          To:   Finite Field in a0 of size 5^3
+    """
+    @staticmethod
+    def _create_(R, k):
+        """
+        Initialization.  We have to implement this as a static method
+        in order to call ``__make_element_class__``.
+
+        INPUT:
+
+        - ``R`` -- a `p`-adic ring or field.
+        - ``k`` -- the residue field of ``R``, or a residue ring of ``R``.
+
+        EXAMPLES::
+
+            sage: f = Zmod(49).convert_map_from(Zp(7))
+            sage: TestSuite(f).run()
+            sage: K.<a> = Qq(125); k = K.residue_field(); f = k.convert_map_from(K)
+            sage: TestSuite(f).run()
+        """
+        if R.is_field():
+            from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
+            cat = SetsWithPartialMaps()
+        else:
+            from sage.categories.rings import Rings
+            cat = Rings()
+        from sage.categories.homset import Hom
+        kfield = R.residue_field()
+        N = k.cardinality()
+        q = kfield.cardinality()
+        n = N.exact_log(q)
+        if N != q**n:
+            raise RuntimeError("N must be a power of q")
+        H = Hom(R, k, cat)
+        f = H.__make_element_class__(ResidueReductionMap)(H)
+        f._n = n
+        if kfield is k:
+            f._field = True
+        else:
+            f._field = False
+        return f
+
+    def is_surjective(self):
+        """
+        The reduction map is surjective.
+
+        EXAMPLES::
+
+            sage: GF(7).convert_map_from(Qp(7)).is_surjective()
+            True
+        """
+        return True
+
+    def is_injective(self):
+        """
+        The reduction map is far from injective.
+
+        EXAMPLES::
+
+            sage: GF(5).convert_map_from(ZpCA(5)).is_injective()
+            False
+        """
+        return False
+
+    def _call_(self, x):
+        """
+        Evaluate this morphism.
+
+        EXAMPLES::
+
+            sage: R.<a> = Zq(125); k = R.residue_field()
+            sage: f = k.convert_map_from(R)
+            sage: f(15)
+            0
+            sage: f(1/(1+a))
+            a0^2 + 4*a0 + 4
+
+            sage: Zmod(121).convert_map_from(Qp(11))(3/11)
+            Traceback (most recent call last):
+            ...
+            ValueError: element must have non-negative valuation in order to compute residue.
+        """
+        return x.residue(self._n, field=self._field, check_prec=self._field)
+
+    def section(self):
+        """
+        Returns the section from the residue ring or field
+        back to the p-adic ring or field.
+
+        EXAMPLES::
+
+            sage: GF(3).convert_map_from(Zp(3)).section()
+            Lifting morphism:
+              From: Finite Field of size 3
+              To:   3-adic Ring with capped relative precision 20
+        """
+        return ResidueLiftingMap._create_(self.codomain(), self.domain())
+
+    def _repr_type(self):
+        """
+        Type of morphism, for printing.
+
+        EXAMPLES::
+
+            sage: GF(3).convert_map_from(Zp(3))._repr_type()
+            'Reduction'
+        """
+        return "Reduction"
+
+    def _richcmp_(self, other, op):
+        r"""
+        Compare this element to ``other`` with respect to ``op``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.padics.padic_generic import ResidueReductionMap
+            sage: f = ResidueReductionMap._create_(Zp(3), GF(3))
+            sage: g = ResidueReductionMap._create_(Zp(3), GF(3))
+            sage: f is g
+            False
+            sage: f == g
+            True
+        """
+        if type(self) != type(other):
+            return NotImplemented
+        return richcmp((self.domain(), self.codomain()), (other.domain(), other.codomain()), op)
+
+# A class for the Teichmuller lift would also be reasonable....
+
+class ResidueLiftingMap(Morphism):
+    """
+    Lifting map to a p-adic ring or field from its residue field or ring.
+
+    These maps must be created using the :meth:`_create_` method in order
+    to support categories correctly.
+
+    EXAMPLES::
+
+        sage: from sage.rings.padics.padic_generic import ResidueLiftingMap
+        sage: R.<a> = Zq(125); k = R.residue_field()
+        sage: f = ResidueLiftingMap._create_(k, R); f
+        Lifting morphism:
+          From: Finite Field in a0 of size 5^3
+          To:   Unramified Extension in a defined by x^3 + 3*x + 3 with capped relative precision 20 over 5-adic Ring
+    """
+    @staticmethod
+    def _create_(k, R):
+        """
+        Initialization.  We have to implement this as a static method
+        in order to call ``__make_element_class__``.
+
+        INPUT:
+
+        - ``k`` -- the residue field of ``R``, or a residue ring of ``R``.
+        - ``R`` -- a `p`-adic ring or field.
+
+        EXAMPLES::
+
+            sage: f = Zp(3).convert_map_from(Zmod(81))
+            sage: TestSuite(f).run()
+        """
+        from sage.categories.sets_cat import Sets
+        from sage.categories.homset import Hom
+        kfield = R.residue_field()
+        N = k.cardinality()
+        q = kfield.cardinality()
+        n = N.exact_log(q)
+        if N != q**n:
+            raise RuntimeError("N must be a power of q")
+        H = Hom(k, R, Sets())
+        f = H.__make_element_class__(ResidueLiftingMap)(H)
+        f._n = n
+        return f
+
+    def _call_(self, x):
+        """
+        Evaluate this morphism.
+
+        EXAMPLES::
+
+            sage: R.<a> = Zq(27); k = R.residue_field(); a0 = k.gen()
+            sage: f = R.convert_map_from(k); f
+            Lifting morphism:
+              From: Finite Field in a0 of size 3^3
+              To:   Unramified Extension in a defined by x^3 + 2*x + 1 with capped relative precision 20 over 3-adic Ring
+            sage: f(a0 + 1)
+            (a + 1) + O(3)
+
+            sage: Zp(3)(Zmod(81)(0))
+            O(3^4)
+        """
+        R = self.codomain()
+        if R.degree() == 1:
+            return R.element_class(R, x, self._n)
+        elif R.f() == 1:
+            return R([x], self._n)
+        elif R.e() == 1:
+            return R(x.polynomial().list(), self._n)
+        else:
+            raise NotImplementedError
+
+    def _call_with_args(self, x, args=(), kwds={}):
+        """
+        Evaluate this morphism with extra arguments.
+
+        EXAMPLES::
+
+            sage: f = Zp(2).convert_map_from(Zmod(128))
+            sage: f(7, 5) # indirect doctest
+            1 + 2 + 2^2 + O(2^5)
+        """
+        R = self.codomain()
+        if args:
+            args = (min(args[0], self._n),) + args[1:]
+        else:
+            kwds['absprec'] = min(kwds.get('absprec', self._n), self._n)
+        if R.degree() == 1:
+            return R.element_class(R, x, *args, **kwds)
+        elif R.f() == 1:
+            return R([x], *args, **kwds)
+        elif R.e() == 1:
+            return R(x.polynomial().list(), *args, **kwds)
+        else:
+            raise NotImplementedError
+
+    def _repr_type(self):
+        """
+        Type of morphism, for printing.
+
+        EXAMPLES::
+
+            sage: Zp(3).convert_map_from(GF(3))._repr_type()
+            'Lifting'
+        """
+        return "Lifting"
+
+    def _richcmp_(self, other, op):
+        r"""
+        Compare this element to ``other`` with respect to ``op``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.padics.padic_generic import ResidueLiftingMap
+            sage: f = ResidueLiftingMap._create_(GF(3), Zp(3))
+            sage: g = ResidueLiftingMap._create_(GF(3), Zp(3))
+            sage: f is g
+            False
+            sage: f == g
+            True
+        """
+        if type(self) != type(other):
+            return NotImplemented
+        return richcmp((self.domain(), self.codomain()), (other.domain(), other.codomain()), op)
 
 def local_print_mode(obj, print_options, pos = None, ram_name = None):
     r"""

@@ -127,15 +127,14 @@ You can get at the underlying ntl representation::
     sage: y._ntl_rep_abs()
     ([5 95367431640505 25 95367431640560 5], 0)
 
-NOTES:
+.. NOTE::
 
-If you get an error 'internal error: can't grow this
-_ntl_gbigint,' it indicates that moduli are being mixed
-inappropriately somewhere.
+    If you get an error ``internal error: can't grow this _ntl_gbigint,``
+    it indicates that moduli are being mixed inappropriately somewhere.
 
-For example, when calling a function with a ZZ_pX_c as an
-argument, it copies.  If the modulus is not set to the modulus of
-the ZZ_pX_c, you can get errors.
+    For example, when calling a function with a ``ZZ_pX_c`` as an
+    argument, it copies.  If the modulus is not
+    set to the modulus of the ``ZZ_pX_c``, you can get errors.
 
 AUTHORS:
 
@@ -183,6 +182,7 @@ from sage.rings.padics.precision_error import PrecisionError
 from sage.rings.padics.pow_computer_ext cimport PowComputer_ZZ_pX
 from sage.rings.padics.pow_computer_ext cimport PowComputer_ZZ_pX_small_Eis
 from sage.rings.padics.pow_computer_ext cimport PowComputer_ZZ_pX_big_Eis
+from sage.misc.superseded import deprecated_function_alias, deprecation
 
 cdef object infinity
 from sage.rings.infinity import infinity
@@ -359,7 +359,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             x = tmp_Int
         elif isinstance(x, (int, long)):
             x = Integer(x)
-        elif x in parent.residue_field():
+        elif x in parent.residue_field() and x.parent().is_finite():
             # Should only reach here if x is not in F_p
             z = parent.gen()
             poly = x.polynomial().list()
@@ -1684,6 +1684,34 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         """
         return self._ntl_rep(), Integer(0)
 
+    def polynomial(self, var='x'):
+        """
+        Returns a polynomial over the base ring that yields this element
+        when evaluated at the generator of the parent.
+
+        INPUT:
+
+        - ``var`` -- string, the variable name for the polynomial
+
+        EXAMPLES::
+
+            sage: S.<x> = ZZ[]
+            sage: W.<w> = ZpCA(5).extension(x^2 - 5)
+            sage: (w + W(5, 7)).polynomial()
+            (1 + O(5^3))*x + (5 + O(5^4))
+        """
+        R = self.base_ring()
+        S = R[var]
+        if self.is_zero():
+            return S([])
+        e = self.parent().e()
+        L = [Integer(c) for c in self._ntl_rep().list()]
+        if e == 1:
+            L = [R(c, self.absprec) for c in L]
+        else:
+            L = [R(c, (self.absprec - i - 1) // e + 1) for i, c in enumerate(L)]
+        return S(L)
+
     cdef ZZ_p_c _const_term(self):
         """
         Returns the constant term of ``self.value``.
@@ -1783,7 +1811,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         ZZ_pX_conv_modulus(ans.value, self.value, self.prime_pow.get_context_capdiv(aprec).x)
         return ans
 
-    def list(self, lift_mode = 'simple'):
+    def expansion(self, n = None, lift_mode = 'simple'):
         """
         Returns a list giving a series representation of ``self``.
 
@@ -1806,6 +1834,11 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
           representatives and such that ``self`` is the sum of that
           list times powers of the uniformizer.
 
+        INPUT:
+
+        - ``n`` -- integer (default ``None``).  If given, returns the corresponding
+          entry in the expansion.
+
         EXAMPLES::
 
             sage: R = ZpCA(5,5)
@@ -1814,9 +1847,9 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             sage: W.<w> = R.ext(f)
             sage: y = W(775, 19); y
             w^10 + 4*w^12 + 2*w^14 + w^15 + 2*w^16 + 4*w^17 + w^18 + O(w^19)
-            sage: (y>>9).list()
+            sage: (y>>9).expansion()
             [0, 1, 0, 4, 0, 2, 1, 2, 4, 1]
-            sage: (y>>9).list('smallest')
+            sage: (y>>9).expansion(lift_mode='smallest')
             [0, 1, 0, -1, 0, 2, 1, 2, 0, 1]
             sage: w^10 - w^12 + 2*w^14 + w^15 + 2*w^16 + w^18 + O(w^19)
             w^10 + 4*w^12 + 2*w^14 + w^15 + 2*w^16 + 4*w^17 + w^18 + O(w^19)
@@ -1824,35 +1857,58 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             sage: A.<a> = R.ext(g)
             sage: y = 75 + 45*a + 1200*a^2; y
             4*a*5 + (3*a^2 + a + 3)*5^2 + 4*a^2*5^3 + a^2*5^4 + O(5^5)
-            sage: y.list()
+            sage: E = y.expansion(); E
+            5-adic expansion of 4*a*5 + (3*a^2 + a + 3)*5^2 + 4*a^2*5^3 + a^2*5^4 + O(5^5)
+            sage: list(E)
             [[], [0, 4], [3, 1, 3], [0, 0, 4], [0, 0, 1]]
-            sage: y.list('smallest')
+            sage: list(y.expansion(lift_mode='smallest'))
             [[], [0, -1], [-2, 2, -2], [1], [0, 0, 2]]
             sage: 5*((-2*5 + 25) + (-1 + 2*5)*a + (-2*5 + 2*125)*a^2)
             4*a*5 + (3*a^2 + a + 3)*5^2 + 4*a^2*5^3 + a^2*5^4 + O(5^5)
-            sage: W(0).list()
-            [0]
-            sage: A(0,4).list()
+            sage: W(0).expansion()
+            []
+            sage: list(A(0,4).expansion())
             []
         """
+        if lift_mode == 'teichmuller':
+            zero = self.parent()(0)
+        elif self.prime_pow.e == 1:
+            zero = []
+        else:
+            zero = Integer(0)
+        if n in ('simple', 'smallest', 'teichmuller'):
+            deprecation(14825, "Interface to expansion has changed; first argument now n")
+            lift_mode = n
+            n = None
+        elif isinstance(n, slice):
+            return self.slice(n.start, n.stop, n.step)
+        elif n is not None:
+            if self.is_zero():
+                return zero
+            elif n >= self.absprec:
+                raise PrecisionError
+        if self.is_zero():
+            return []
         if lift_mode == 'simple':
-            ulist = self.ext_p_list(1)
+            ulist = self.ext_p_list(pos=True)
         elif lift_mode == 'smallest':
-            ulist = self.ext_p_list(0)
+            ulist = self.ext_p_list(pos=False)
         elif lift_mode == 'teichmuller':
-            ulist = self.teichmuller_list()
+            if n is None:
+                ulist = self.teichmuller_expansion()
+            else:
+                return self.teichmuller_expansion(n)
         else:
             raise ValueError("lift mode must be one of 'simple', 'smallest' or 'teichmuller'")
         ordp = self.valuation()
-        if self.is_zero():
-            ordp = 1
-        if lift_mode == 'teichmuller':
-            zero = self._new_c(0)
-            return [zero]*ordp + ulist
-        elif self.prime_pow.e == 1:
-            return [[]] * ordp + ulist
-        else:
-            return [Integer(0)] * ordp + ulist
+        if n is not None:
+            try:
+                return ulist[n - ordp]
+            except IndexError:
+                return zero
+        return [zero] * ordp + ulist
+
+    list = deprecated_function_alias(14825, expansion)
 
     def matrix_mod_pn(self):
         """
@@ -1935,7 +1991,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
 #         """
 #         raise NotImplementedError
 
-    def teichmuller_list(self):
+    def teichmuller_expansion(self, n = None):
         r"""
         Returns a list [`a_0`, `a_1`,..., `a_n`] such that
 
@@ -1945,42 +2001,62 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         - if `a_i \ne 0`, the absolute precision of `a_i` is
           ``self.precision_relative() - i``
 
+        INPUT:
+
+        - ``n`` -- integer (default ``None``).  If given, returns the corresponding
+          entry in the expansion.
+
         EXAMPLES::
 
             sage: R.<a> = Zq(5^4,4)
-            sage: L = a.teichmuller_list(); L
+            sage: E = a.teichmuller_expansion(); E
+            5-adic expansion of a + O(5^4) (teichmuller)
+            sage: list(E)
             [a + (2*a^3 + 2*a^2 + 3*a + 4)*5 + (4*a^3 + 3*a^2 + 3*a + 2)*5^2 + (4*a^2 + 2*a + 2)*5^3 + O(5^4), (3*a^3 + 3*a^2 + 2*a + 1) + (a^3 + 4*a^2 + 1)*5 + (a^2 + 4*a + 4)*5^2 + O(5^3), (4*a^3 + 2*a^2 + a + 1) + (2*a^3 + 2*a^2 + 2*a + 4)*5 + O(5^2), (a^3 + a^2 + a + 4) + O(5)]
-            sage: sum([5^i*L[i] for i in range(4)])
+            sage: sum([c * 5^i for i, c in enumerate(E)])
             a + O(5^4)
-            sage: all([L[i]^625 == L[i] for i in range(4)])
+            sage: all([c^625 == c for c in E])
             True
 
             sage: S.<x> = ZZ[]
             sage: f = x^3 - 98*x + 7
             sage: W.<w> = ZpCA(7,3).ext(f)
-            sage: b = (1+w)^5; L = b.teichmuller_list(); L
+            sage: b = (1+w)^5; L = b.teichmuller_expansion(); L
             [1 + O(w^9), 5 + 5*w^3 + w^6 + 4*w^7 + O(w^8), 3 + 3*w^3 + O(w^7), 3 + 3*w^3 + O(w^6), O(w^5), 4 + 5*w^3 + O(w^4), 3 + O(w^3), 6 + O(w^2), 6 + O(w)]
             sage: sum([w^i*L[i] for i in range(9)]) == b
             True
             sage: all([L[i]^(7^3) == L[i] for i in range(9)])
             True
 
-            sage: L = W(3).teichmuller_list(); L
+            sage: L = W(3).teichmuller_expansion(); L
             [3 + 3*w^3 + w^7 + O(w^9), O(w^8), O(w^7), 4 + 5*w^3 + O(w^6), O(w^5), O(w^4), 3 + O(w^3), 6 + O(w^2)]
             sage: sum([w^i*L[i] for i in range(len(L))])
             3 + O(w^9)
         """
-        L = []
-        cdef long rp = self.absprec - self.valuation_c()
-        if rp == 0:
-            return L
+        cdef long ordp = self.valuation_c()
+        cdef long rp = self.absprec - ordp
+        cdef long goal
+        if n is not None: goal = self.absprec - n
+        cdef pAdicZZpXCAElement v
+        if n is None:
+            L = []
+            if rp == 0:
+                return L
+        elif n < ordp:
+            return self.parent()(0)
+        elif n >= self.absprec:
+            raise PrecisionError
+        else:
+            v = self._new_c(rp)
         cdef pAdicZZpXCAElement u = self.unit_part()
         if u is self: u = self.__copy__()
-        cdef pAdicZZpXCAElement v
         while not ZZ_pX_IsZero(u.value):
             v = self._new_c(rp)
             self.prime_pow.teichmuller_set_c(&v.value, &u.value, rp)
-            L.append(v)
+            if n is None:
+                L.append(v)
+            elif rp == goal:
+                return v
             if rp == 1: break
             ZZ_pX_sub(u.value, u.value, v.value)
             rp -= 1
@@ -1988,8 +2064,12 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
                 ZZ_pX_right_pshift(u.value, u.value, self.prime_pow.pow_ZZ_tmp(1)[0], self.prime_pow.get_context(rp).x)
             else:
                 self.prime_pow.eis_shift_capdiv(&u.value, &u.value, 1, rp)
-        return L
+        if n is None:
+            return L
+        else:
+            return self.parent()(0, rp)
 
+    teichmuller_list = deprecated_function_alias(14825, teichmuller_expansion)
 
     def _teichmuller_set_unsafe(self):
         """

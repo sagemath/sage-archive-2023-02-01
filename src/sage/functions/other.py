@@ -471,7 +471,7 @@ class Function_Order(GinacFunction):
                 conversions=dict(sympy='O'),
                 latex_name=r"\mathcal{O}")
 
-Function_Order()
+Order = Function_Order()
 
 class Function_frac(BuiltinFunction):
     def __init__(self):
@@ -994,8 +994,7 @@ class Function_gamma_inc_lower(BuiltinFunction):
 
         Interfaces to other software::
 
-            sage: import sympy
-            sage: sympy.sympify(gamma_inc_lower(x,x))
+            sage: gamma_inc_lower(x,x)._sympy_()
             lowergamma(x, x)
             sage: maxima(gamma_inc_lower(x,x))
             gamma_greek(_SAGE_VAR_x,_SAGE_VAR_x)
@@ -1500,7 +1499,7 @@ class Function_factorial(GinacFunction):
 
             sage: RBF=RealBallField(53)
             sage: factorial(RBF(4.2))
-            [32.5780960503313 +/- 6.71e-14]
+            [32.5780960503313 +/- 6.72e-14]
 
         Test pickling::
 
@@ -2585,4 +2584,115 @@ class Function_limit(BuiltinFunction):
                 latex(to), dir_str, latex(ex))
 
 symbolic_limit = Function_limit()
+
+
+class Function_cases(GinacFunction):
+    """
+    Formal function holding ``(condition, expression)`` pairs.
+
+    Numbers are considered conditions with zero being ``False``.
+    A true condition marks a default value. The function is not
+    evaluated as long as it contains a relation that cannot be
+    decided by Pynac.
+
+    EXAMPLES::
+
+        sage: ex = cases([(x==0, pi), (True, 0)]); ex
+        cases(((x == 0, pi), (1, 0)))
+        sage: ex.subs(x==0)
+        pi
+        sage: ex.subs(x==2)
+        0
+        sage: ex + 1
+        cases(((x == 0, pi), (1, 0))) + 1
+        sage: _.subs(x==0)
+        pi + 1
+
+    The first encountered default is used, as well as the first relation
+    that can be trivially decided::
+
+        sage: cases(((True, pi), (True, 0)))
+        pi
+
+        sage: _ = var('y')
+        sage: ex = cases(((x==0, pi), (y==1, 0))); ex
+        cases(((x == 0, pi), (y == 1, 0)))
+        sage: ex.subs(x==0)
+        pi
+        sage: ex.subs(x==0, y==1)
+        pi
+    """
+    def __init__(self):
+        """
+        EXAMPLES::
+
+            sage: loads(dumps(cases))
+            cases
+        """
+        GinacFunction.__init__(self, "cases")
+
+    def __call__(self, l, **kwargs):
+        """
+        EXAMPLES::
+
+            sage: ex = cases([(x==0, pi), (True, 0)]); ex
+            cases(((x == 0, pi), (1, 0)))
+
+        TESTS::
+
+            sage: cases()
+            Traceback (most recent call last):
+            ...
+            TypeError: __call__() takes exactly 2 arguments (1 given)
+            
+            sage: cases(x)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: cases argument not a sequence
+        """
+        return GinacFunction.__call__(self,
+                SR._force_pyobject(l), **kwargs)
+
+    def _print_latex_(self, l, **kwargs):
+        r"""
+        EXAMPLES::
+
+            sage: ex = cases([(x==0, pi), (True, 0)]); ex
+            cases(((x == 0, pi), (1, 0)))
+            sage: latex(ex)
+            \begin{cases}{\pi} & {x = 0}\\{0} & {1}\end{cases}
+        """
+        if not isinstance(l, (list, tuple)):
+            raise ValueError("cases() argument must be a list")
+        str = r"\begin{cases}"
+        for pair in l:
+            left = None
+            if (isinstance(pair, tuple)):
+                right,left = pair
+            else:
+                right = pair
+            str += r"{%s} & {%s}\\" % (latex(left), latex(right))
+        print(str[:-2] + r"\end{cases}")
+
+    def _sympy_(self, l):
+        """
+        Convert this cases expression to its SymPy equivalent.
+
+        EXAMPLES::
+
+            sage: ex = cases(((x<0, pi), (x==1, 1), (True, 0)))
+            sage: assert ex == ex._sympy_()._sage_()
+        """
+        from sage.symbolic.ring import SR
+        from sympy import Piecewise as pw
+        args = []
+        for tup in l.operands():
+            cond,expr = tup.operands()
+            if SR(cond).is_numeric():
+                args.append((SR(expr)._sympy_(), bool(SR(cond)._sympy_())))
+            else:
+                args.append((SR(expr)._sympy_(), SR(cond)._sympy_()))
+        return pw(*args)
+
+cases = Function_cases()
 

@@ -502,24 +502,6 @@ cdef class SageObject:
         else:
             return s
 
-    def db(self, name, compress=True):
-        r"""
-        Dumps self into the Sage database.  Use db(name) by itself to
-        reload.
-
-        The database directory is ``$HOME/.sage/db``
-
-        TESTS::
-
-            sage: SageObject().db("Test")
-            doctest:... DeprecationWarning: db() is deprecated.
-            See http://trac.sagemath.org/2536 for details.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(2536, 'db() is deprecated.')
-        from sage.misc.all import SAGE_DB
-        return self.dump('%s/%s'%(SAGE_DB,name), compress=compress)
-
     #############################################################################
     # Category theory / structure
     #############################################################################

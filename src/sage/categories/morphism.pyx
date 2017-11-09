@@ -170,7 +170,7 @@ cdef class Morphism(Map):
             sage: L = CyclotomicField(132)
             sage: phi = L._internal_coerce_map_from(K)
             sage: phi.category()
-            Category of homsets of unital magmas and additive unital additive magmas
+            Category of homsets of number fields
         """
         # Should it be Category of elements of ...?
         return self.parent().category()
@@ -232,8 +232,8 @@ cdef class Morphism(Map):
                 if self(x) != x:
                     return False
             return True
-        except (AttributeError, NotImplementedError):
-            return NotImplementedError
+        except AttributeError:
+            raise NotImplementedError
 
     def pushforward(self, I):
         raise NotImplementedError

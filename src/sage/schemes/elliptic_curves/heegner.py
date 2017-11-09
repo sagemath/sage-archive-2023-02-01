@@ -3150,9 +3150,8 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             Heegner point of discriminant -7 on elliptic curve of conductor 37
             sage: P = y.kolyvagin_point(); P
             Kolyvagin point of discriminant -7 on elliptic curve of conductor 37
-            sage: PP = P.numerical_approx() # approximately (0 : 0 : 1)
-            sage: all([c.abs() < 1e-15 for c in PP.xy()])
-            True
+            sage: P.numerical_approx()  # abs tol 1e-15
+            (-3.36910401903861e-16 - 2.22076195576076e-16*I : 3.33066907387547e-16 + 2.22076195576075e-16*I : 1.00000000000000)
         """
         return KolyvaginPoint(self)
 
@@ -3250,8 +3249,8 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
 
             sage: E = EllipticCurve('37a'); P = E.heegner_point(-7); P
             Heegner point of discriminant -7 on elliptic curve of conductor 37
-            sage: all([c.abs()< 1e-15 for c in P.numerical_approx().xy()])
-            True
+            sage: P.numerical_approx()  # abs tol 1e-15
+            (-3.36910401903861e-16 - 2.22076195576076e-16*I : 3.33066907387547e-16 + 2.22076195576075e-16*I : 1.00000000000000)
             sage: P.numerical_approx(10)  # expect random digits
             (0.0030 - 0.0028*I : -0.0030 + 0.0028*I : 1.0)
             sage: P.numerical_approx(100)[0]  # expect random digits
@@ -6619,7 +6618,7 @@ def heegner_index(self, D,  min_p=2, prec=5, descent_second_limit=12, verbose_mw
     which can be used to fine tune the 2-descent used to compute
     the regulator of the twist::
 
-        sage: E = EllipticCurve([0, 0, 1, -34874, -2506691])
+        sage: E = EllipticCurve([1,-1,0,-1228,-16267])
         sage: E.heegner_index(-8)
         Traceback (most recent call last):
         ...
@@ -6628,7 +6627,7 @@ def heegner_index(self, D,  min_p=2, prec=5, descent_second_limit=12, verbose_mw
     However when we search higher, we find the points we need::
 
         sage: E.heegner_index(-8, descent_second_limit=16, check_rank=False)
-        1.00000?
+        2.00000?
 
 
     Two higher rank examples (of ranks 2 and 3)::

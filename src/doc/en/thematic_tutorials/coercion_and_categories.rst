@@ -464,7 +464,7 @@ And indeed, ``MS2`` has *more* methods than ``MS1``::
 
     sage: import inspect
     sage: len([s for s in dir(MS1) if inspect.ismethod(getattr(MS1,s,None))])
-    78
+    79
     sage: len([s for s in dir(MS2) if inspect.ismethod(getattr(MS2,s,None))])
     118
 
@@ -1552,6 +1552,7 @@ Here are the tests that form the test suite of quotient fields::
      '_test_elements_eq_transitive',
      '_test_elements_neq',
      '_test_euclidean_degree',
+     '_test_fraction_field',
      '_test_gcd_vs_xgcd',
      '_test_one', '_test_prod',
      '_test_quo_rem',
@@ -1606,6 +1607,7 @@ Let us see what tests are actually performed::
     running ._test_elements_neq() . . . pass
     running ._test_eq() . . . pass
     running ._test_euclidean_degree() . . . pass
+    running ._test_fraction_field() . . . pass
     running ._test_gcd_vs_xgcd() . . . pass
     running ._test_new() . . . pass
     running ._test_not_implemented_methods() . . . pass
@@ -1778,6 +1780,7 @@ interesting.
     running ._test_elements_neq() . . . pass
     running ._test_eq() . . . pass
     running ._test_euclidean_degree() . . . pass
+    running ._test_fraction_field() . . . pass
     running ._test_gcd_vs_xgcd() . . . pass
     running ._test_new() . . . pass
     running ._test_not_implemented_methods() . . . pass

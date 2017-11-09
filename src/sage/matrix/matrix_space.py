@@ -82,6 +82,9 @@ from sage.categories.enumerated_sets import EnumeratedSets
 _Rings = Rings()
 _Fields = Fields()
 
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.groups.matrix_gps.group_element', 'is_MatrixGroupElement', at_startup=True)
+lazy_import('sage.modular.arithgroup.arithgroup_element', 'ArithmeticSubgroupElement', at_startup=True)
 
 def is_MatrixSpace(x):
     """
@@ -135,11 +138,11 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         sage: MatrixSpace(ZZ, 1, 2^63)
         Traceback (most recent call last):
         ...
-        ValueError: number of rows and columns may be at most...
+        OverflowError: number of rows and columns may be at most...
         sage: MatrixSpace(ZZ, 2^100, 10)
         Traceback (most recent call last):
         ...
-        ValueError: number of rows and columns may be at most...
+        OverflowError: number of rows and columns may be at most...
     """
     _no_generic_basering_coercion = True
 
@@ -293,7 +296,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             raise ArithmeticError("ncols must be nonnegative")
 
         if nrows > sys.maxsize or ncols > sys.maxsize:
-            raise ValueError("number of rows and columns may be at most %s" % sys.maxsize)
+            raise OverflowError("number of rows and columns may be at most %s" % sys.maxsize)
 
         self.__nrows = nrows
         self.__is_sparse = sparse
@@ -351,6 +354,19 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             return ZZ.one()
         else:
             return self.base_ring().cardinality() ** (self.__nrows * self.__ncols)
+
+    def characteristic(self):
+        r"""
+        Return the characteristic.
+
+        EXAMPLES::
+
+            sage: MatrixSpace(ZZ, 2).characteristic()
+            0
+            sage: MatrixSpace(GF(9), 0).characteristic()
+            3
+        """
+        return self.base_ring().characteristic()
 
     def full_category_initialisation(self):
         """
@@ -696,8 +712,6 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                 if self.base_ring().has_coerce_map_from(x.base_ring()):
                     return self(x)
                 raise TypeError("no canonical coercion")
-        from sage.groups.matrix_gps.group_element import is_MatrixGroupElement
-        from sage.modular.arithgroup.arithgroup_element import ArithmeticSubgroupElement
         if ((is_MatrixGroupElement(x) or isinstance(x, ArithmeticSubgroupElement))
             and self.base_ring().has_coerce_map_from(x.base_ring())):
             return self(x)
@@ -1515,10 +1529,6 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                 else:
                     raise ValueError("a matrix from %s cannot be converted to "
                                      "a matrix in %s!" % (x.parent(), self))
-        from sage.groups.matrix_gps.group_element import \
-            is_MatrixGroupElement
-        from sage.modular.arithgroup.arithgroup_element import \
-            ArithmeticSubgroupElement
         if is_MatrixGroupElement(x) or isinstance(x, ArithmeticSubgroupElement):
             return self(x.matrix(), copy=False)
         if isinstance(x, (types.GeneratorType,)):

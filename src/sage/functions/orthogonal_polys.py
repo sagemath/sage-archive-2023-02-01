@@ -1666,7 +1666,7 @@ class Func_assoc_legendre_Q(BuiltinFunction):
         EXAMPLES::
 
             sage: gen_legendre_Q(2,1,3)
-            -1/4*sqrt(-2)*(-36*I*pi + 36*log(4) - 36*log(2) - 25)
+            -1/4*sqrt(-2)*(-36*I*pi + 36*log(2) - 25)
         """
         ret = self._eval_special_values_(n, m, x)
         if ret is not None:

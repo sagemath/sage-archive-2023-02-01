@@ -1889,7 +1889,7 @@ class CoxeterGroups(Category_singleton):
 
             - side -- 'left' or 'right'  (default: 'right')
             - positive -- a boolean (default: False)
-            - index_set - a list of indices or None
+            - index_set -- a list of indices or None
 
             OUTPUT: a list
 
@@ -2294,7 +2294,7 @@ class CoxeterGroups(Category_singleton):
             INPUT:
 
             - side -- 'left' or 'right' (default: 'right')
-            - index_set - a list of indices or None
+            - index_set -- a list of indices or None
 
             OUTPUT: a list
 
@@ -2329,7 +2329,7 @@ class CoxeterGroups(Category_singleton):
             INPUT:
 
             - side -- 'left' or 'right' (default: 'right')
-            - index_set - a list of indices or None
+            - index_set -- a list of indices or None
 
             OUTPUT: a list
 

@@ -804,15 +804,14 @@ cdef int py_get_parent_char(o) except -1:
     """
     TESTS:
 
-    We check that :trac:`21187` is resolved::
+    :trac:`24072` fixes the workaround provided in :trac:`21187`::
 
         sage: p = next_prime(2^100)
         sage: R.<y> = FiniteField(p)[]
         sage: y = SR(y)
-        sage: x + y
-        x + y
-        sage: p * y
-        0
+        Traceback (most recent call last):
+        ...
+        TypeError: positive characteristic not allowed in symbolic computations
     """
     if not isinstance(o, Element):
         return 0

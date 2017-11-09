@@ -464,7 +464,7 @@ And indeed, ``MS2`` has *more* methods than ``MS1``::
 
     sage: import inspect
     sage: len([s for s in dir(MS1) if inspect.ismethod(getattr(MS1,s,None))])
-    78
+    79
     sage: len([s for s in dir(MS2) if inspect.ismethod(getattr(MS2,s,None))])
     118
 

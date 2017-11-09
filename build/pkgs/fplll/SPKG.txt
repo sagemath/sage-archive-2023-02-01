@@ -2,7 +2,9 @@
 
 == Description ==
 
-fplll contains implementations of several lattice algorithms. The implementation relies on floating-point orthogonalization, and LLL is central to the code, hence the name.
+fplll contains implementations of several lattice algorithms. The
+implementation relies on floating-point orthogonalization, and LLL is
+central to the code, hence the name.
 
 Website: https://github.com/fplll/fplll
 

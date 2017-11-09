@@ -573,10 +573,6 @@ class FiniteFieldFactory(UniqueFactory):
                     modulus = R.irreducible_element(n)
                 if isinstance(modulus, str):
                     # A string specifies an algorithm to find a suitable modulus.
-                    if modulus == "default":
-                        from sage.misc.superseded import deprecation
-                        deprecation(16983, "the modulus 'default' is deprecated, use modulus=None instead (which is the default)")
-                        modulus = None
                     modulus = R.irreducible_element(n, algorithm=modulus)
                 else:
                     if sage.rings.polynomial.polynomial_element.is_Polynomial(modulus):

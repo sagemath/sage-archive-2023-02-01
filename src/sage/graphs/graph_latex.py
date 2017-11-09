@@ -1225,7 +1225,7 @@ class GraphLatex(SageObject):
 
         INPUT:
 
-        - option_name - the name of an option
+        - option_name -- the name of an option
 
         OUTPUT:
 

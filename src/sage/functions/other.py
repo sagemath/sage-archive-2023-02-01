@@ -2317,6 +2317,22 @@ class Function_elementof(BuiltinFunction):
         """
         BuiltinFunction.__init__(self, "element_of", nargs=2)
 
+    def _eval_(self, x, s):
+        """
+        EXAMPLES::
+
+            sage: from sage.functions.other import element_of
+            sage: element_of(x, SR(RealSet(-oo, oo)))
+            element_of(x, (-oo, +oo))
+            sage: element_of(x, 0)
+            Traceback (most recent call last):
+            ...
+            ValueError: not a set: 0
+        """
+        from sage.sets.set import is_Set
+        if not is_Set(s):
+            raise ValueError("not a set: {}".format(s))
+
     def _latex_(self):
         r"""
         EXAMPLES::

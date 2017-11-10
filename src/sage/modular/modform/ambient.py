@@ -86,8 +86,6 @@ from . import eisenstein_submodule
 from . import eis_series
 from . import space
 from . import submodule
-from . import weight1
-
 
 class ModularFormsAmbient(space.ModularFormsSpace,
                           hecke.AmbientHeckeModule):
@@ -562,7 +560,10 @@ class ModularFormsAmbient(space.ModularFormsSpace,
     def _dim_cuspidal(self):
         """
         Return the dimension of the cuspidal subspace of this ambient
-        modular forms space, computed using a dimension formula.
+        modular forms space. For weights `k \ge 2` this is computed using a
+        dimension formula. For weight 1, it will trigger a computation of a
+        basis of `q`-expansions using Schaeffer's algorithm, unless this space
+        is a space of Eisenstein forms only, in which case we just return 0.
 
         EXAMPLES::
 
@@ -572,16 +573,19 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             1
             sage: m = ModularForms(DirichletGroup(389,CyclotomicField(4)).0,3); m._dim_cuspidal()
             64
+            sage: m = ModularForms(GammaH(31, [7]), 1)
+            sage: m._dim_cuspidal()
+            1
+            sage: m = ModularForms(GammaH(31, [7]), 1, eis_only=True)
+            sage: m._dim_cuspidal()
+            0
         """
         if self._eis_only:
             return 0
         if arithgroup.is_Gamma1(self.group()) and self.character() is not None:
-            if self.weight() != 1:
-                return self.group().dimension_cusp_forms(self.weight(), self.character())
-            else:
-                return weight1.dimension_cusp_forms(self.character())
+            return self.group().dimension_cusp_forms(self.weight(), self.character())
         else:
-           return self.group().dimension_cusp_forms(self.weight())
+            return self.group().dimension_cusp_forms(self.weight())
 
     @cached_method
     def _dim_eisenstein(self):
@@ -759,7 +763,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             sage: M._compute_hecke_matrix(6)
             [ 2  0]
             [ 0 12]
-        
+
         Check that :trac:`22780` is fixed::
 
             sage: M = ModularForms(1, 12)

@@ -293,11 +293,11 @@ cdef int c_p1_normalize_llong(int N, int u, int v,
         0
         sage: (7*24) % 90
         78
-        
+
     TESTS:
-    
+
     This test reflects :trac:`20932`::
-    
+
         sage: N = 3*61379
         sage: import sage.modular.modsym.p1list as p1list
         sage: p1 = p1list.P1List(N) # not tested -- too long

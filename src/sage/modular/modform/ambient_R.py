@@ -127,7 +127,7 @@ class ModularFormsAmbient_R(ambient.ModularFormsAmbient):
             lst = [R(f) for f in newB]
             return [f/f[f.valuation()] for f in lst]
         else:
-            # this returns a basis of q-expansions, without guaranteeing that 
+            # this returns a basis of q-expansions, without guaranteeing that
             # the first vectors form a basis of the cuspidal subspace
             # TODO: bring this in line with the other cases
             # simply using the above code fails because free modules over

@@ -432,10 +432,16 @@ class sage_build_cython(Command):
                 have_std_flag = True
             cflags.append(flag)
         if not have_std_flag:  # See Trac #23919
-            if cplusplus:
-                cflags.append("-std=c++11")
+            if sys.platform == 'cygwin':
+                if cplusplus:
+                    cflags.append("-std=gnu++11")
+                else:
+                    cflags.append("-std=gnu99")
             else:
-                cflags.append("-std=c99")
+                if cplusplus:
+                    cflags.append("-std=c++11")
+                else:
+                    cflags.append("-std=c99")
         cflags = extra_compile_args + cflags
         kwds['extra_compile_args'] = stable_uniq(cflags)
 

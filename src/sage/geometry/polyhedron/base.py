@@ -6145,7 +6145,7 @@ class Polyhedron_base(Element):
             # translate 0th vertex to the origin
             Q = self.translation(-vector(self.vertices()[0]))
             v = next((_ for _ in Q.vertices() if _.vector() == Q.ambient_space().zero()), None)
-            # finding the zero in Q; checking that we really Q really has a vertex zero
+            # finding the zero in Q; checking that Q actually has a vertex zero
             assert v.vector() == Q.ambient_space().zero()
             # choose as an affine basis the neighbors of the origin vertex in Q
             M = matrix(self.base_ring(), self.dim(), self.ambient_dim(), [list(w) for w in itertools.islice(v.neighbors(), self.dim())])

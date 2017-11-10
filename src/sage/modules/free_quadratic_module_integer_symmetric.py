@@ -548,15 +548,13 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
                 raise NotImplementedError(
                     "currently, we can only compute generators "
                     "for orthogonal groups over definite lattices.")
-        if is_finite == None:
-            is_finite = False
         deg = self.degree()
         base = self.ambient_vector_space().base_ring()
         inv_bil = self.inner_product_matrix()
         if is_finite:
             cat = Groups().Finite()
         else:
-            cat = Groups().Infinite()
+            cat = None
         G = OrthogonalMatrixGroup_with_gap(deg, base, gens, inv_bil, category=cat)
         return(G)
 

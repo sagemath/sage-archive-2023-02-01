@@ -280,16 +280,31 @@ cdef libGAP_Obj gap_eval(str gap_string) except? NULL:
                        ^
         sage: libgap.eval('1+1')   # testing that we have successfully recovered
         2
+
+    TESTS:
+
+    Check that we fail gracefully if this is called within
+    ``libgap_enter()``::
+
+        sage: cython('''
+        ....: # distutils: libraries = gap
+        ....: from sage.libs.gap.gap_includes cimport libgap_enter
+        ....: libgap_enter()
+        ....: ''')
+        sage: libgap.eval('1+1')
+        Traceback (most recent call last):
+        ...
+        ValueError: libGAP: Entered a critical block twice
     """
     initialize()
     cdef libGAP_ExecStatus status
 
     cmd = gap_string + ';\n'
     try:
-        libgap_enter()
-        libgap_start_interaction(cmd)
         try:
             sig_on()
+            libgap_enter()
+            libgap_start_interaction(cmd)
             status = libGAP_ReadEvalCommand(libGAP_BottomLVars, NULL)
             if status != libGAP_STATUS_END:
                 libgap_call_error_handler()

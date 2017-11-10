@@ -129,15 +129,6 @@ cdef Linbox_modn_sparse linbox
 linbox = Linbox_modn_sparse()
 
 cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
-
-    ########################################################################
-    # LEVEL 1 functionality
-    # x * __cinit__
-    # x * __dealloc__
-    # x * __init__
-    # x * set_unsafe
-    # x * get_unsafe
-    ########################################################################
     def __cinit__(self, parent, entries, copy, coerce):
         matrix.Matrix.__init__(self, parent)
 
@@ -243,10 +234,6 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         IntegerMod_abstract.__init__(n, self._base_ring)
         n.ivalue = get_entry(&self.rows[i], j)
         return n
-
-    def __hash__(self):
-        return self._hash()
-
 
     ########################################################################
     # LEVEL 2 functionality

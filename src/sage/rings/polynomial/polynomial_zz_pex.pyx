@@ -228,25 +228,15 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
 
         TESTS:
 
-        The following was fixed at :trac:`10475`::
+        The work around provided in :trac:`10475` is superseeded by :trac:`24072`::
 
             sage: F.<x> = GF(4)
             sage: P.<y> = F[]
             sage: p = y^4 + x*y^3 + y^2 + (x + 1)*y + x + 1
-            sage: SR(p)      #indirect doctest
-            y^4 + x*y^3 + y^2 + (x + 1)*y + x + 1
-            sage: p(2)
-            x + 1
-            sage: p(y=2)
-            x + 1
-            sage: p(3,y=2)
+            sage: SR(p)
             Traceback (most recent call last):
             ...
-            TypeError: <type 'sage.rings.polynomial.polynomial_zz_pex.Polynomial_ZZ_pEX'>__call__() takes exactly 1 argument
-            sage: p(x=2)
-            Traceback (most recent call last):
-            ...
-            TypeError: <type 'sage.rings.polynomial.polynomial_zz_pex.Polynomial_ZZ_pEX'>__call__() accepts no named argument except 'y'
+            TypeError: positive characteristic not allowed in symbolic computations
 
         Check that polynomial evaluation works when using logarithmic
         representation of finite field elements (:trac:`16383`)::

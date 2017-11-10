@@ -43,7 +43,7 @@ from sagenb.notebook.interact import (interact,
                                       checkbox)
 from sage.plot.colors import Color
 from sage.repl.image import Image
-from sage.functions.log import function_log as log
+from sage.functions.log import (log, logb)
 from sage.rings.rational_field import QQ
 from sage.rings.all import CC
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -234,7 +234,7 @@ def external_ray(theta, **kwds):
     sharpness = kwds.get("S", 10)
     radial_parameter = kwds.get("R", 100)
     precision = kwds.get("prec", 300)
-    precision = max(precision, -log(pixel_width * 0.001, 2).round() + 10)
+    precision = max(precision, -logb(pixel_width * 0.001, 2).round() + 10)
     ray_color = kwds.get("ray_color", [255]*3)
     image = kwds.get("image", None)
     if image is None:

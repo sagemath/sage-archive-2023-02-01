@@ -307,6 +307,10 @@ cdef class PolyDict:
 
     def monomial_coefficient(PolyDict self, mon):
         """
+        INPUT:
+
+        a PolyDict with a single key
+
         EXAMPLES::
 
             sage: from sage.rings.polynomial.polydict import PolyDict
@@ -314,7 +318,7 @@ cdef class PolyDict:
             sage: f.monomial_coefficient(PolyDict({(2,1):1}).dict())
             4
         """
-        K = mon.keys()[0]
+        K, = mon.keys()
         if K not in self.__repn:
             return 0
         return self.__repn[K]
@@ -368,7 +372,7 @@ cdef class PolyDict:
         polynomial, then the coefficient is the sum T/mon where the
         sum is over terms T in f that are exactly divisible by mon.
         """
-        K = mon.keys()[0]
+        K, = mon.keys()
         nz = K.nonzero_positions()  # set([i for i in range(len(K)) if K[i] != 0])
         ans = {}
         for S in self.__repn.keys():
@@ -744,7 +748,7 @@ cdef class PolyDict:
         if len(self.__repn) == 0:
             v = {(0):one}
         else:
-            v = {ETuple({}, len(self.__repn.keys()[0])):one}
+            v = {ETuple({}, len(next(iter(self.__repn)))): one}
         return PolyDict(v, self.__zero, force_int_exponents=False, force_etuples=False)
 
     def __pow__(PolyDict self, n, ignored):

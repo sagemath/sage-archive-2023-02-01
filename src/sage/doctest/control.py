@@ -316,9 +316,6 @@ class DocTestController(SageObject):
 
         if isinstance(options.optional, six.string_types):
             s = options.optional.lower()
-            if s == 'true':
-                sage.misc.superseded.deprecation(18558, "Use --optional=all instead of --optional=true")
-                s = "all"
             options.optional = set(s.split(','))
             if "all" in options.optional:
                 # Special case to run all optional tests
@@ -945,11 +942,6 @@ class DocTestController(SageObject):
             sage: DC._optional_tags_string()
             'sage'
             sage: DC = DocTestController(DocTestDefaults(optional="all,and,some,more"), [])
-            sage: DC._optional_tags_string()
-            'all'
-            sage: DC = DocTestController(DocTestDefaults(optional="true"), [])
-            doctest:...: DeprecationWarning: Use --optional=all instead of --optional=true
-            See http://trac.sagemath.org/18558 for details.
             sage: DC._optional_tags_string()
             'all'
             sage: DC = DocTestController(DocTestDefaults(optional="sage,openssl"), [])

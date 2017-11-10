@@ -491,5 +491,5 @@ class SchemeMorphism_point_affine_finite_field(SchemeMorphism_point_affine_field
         deprecation(23479, "use f.orbit_structure(P, n) instead")
         try:
             return f.orbit_structure(self)
-        except AttrbuteError:
+        except AttributeError:
             raise TypeError("map must be a dynamical system")

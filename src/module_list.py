@@ -136,6 +136,8 @@ ext_modules = [
 
     Extension('*', sources = ['sage/algebras/letterplace/*.pyx']),
 
+    Extension('*', sources = ['sage/algebras/finite_dimensional_algebras/*.pyx']),
+
     Extension('sage.algebras.quatalg.quaternion_algebra_cython',
                sources = ['sage/algebras/quatalg/quaternion_algebra_cython.pyx'],
                language='c++',
@@ -257,8 +259,7 @@ ext_modules = [
     ################################
 
     Extension('sage.functions.prime_pi',
-        sources = ['sage/functions/prime_pi.pyx'],
-        extra_compile_args = ['-std=c99']),
+        sources = ['sage/functions/prime_pi.pyx']),
 
     ################################
     ##
@@ -355,8 +356,7 @@ ext_modules = [
               sources = ['sage/graphs/weakly_chordal.pyx']),
 
     Extension('sage.graphs.matchpoly',
-              sources = ['sage/graphs/matchpoly.pyx'],
-              extra_compile_args = ['-std=c99']),
+              sources = ['sage/graphs/matchpoly.pyx']),
 
     OptionalExtension("sage.graphs.mcqd",
               ["sage/graphs/mcqd.pyx"],
@@ -421,29 +421,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('*', ['sage/groups/*.pyx']),
-
-    Extension('sage.groups.semimonomial_transformations.semimonomial_transformation',
-              sources = ['sage/groups/semimonomial_transformations/semimonomial_transformation.pyx']),
-    Extension('sage.groups.matrix_gps.group_element',
-              sources = ['sage/groups/matrix_gps/group_element.pyx']),
-
-    ###################################
-    ##
-    ## sage.groups.perm_gps
-    ##
-    ###################################
-
-    Extension('sage.groups.perm_gps.permgroup_element',
-              sources = ['sage/groups/perm_gps/permgroup_element.pyx']),
-
-    Extension('*',
-              sources = ['sage/groups/perm_gps/partn_ref/*.pyx'],
-              extra_compile_args = ['-std=c99']),
-
-    Extension('sage.groups.perm_gps.partn_ref2.refinement_generic',
-              sources = ['sage/groups/perm_gps/partn_ref2/refinement_generic.pyx'],
-              extra_compile_args=["-std=c99"]),
+    Extension('*', ['sage/groups/**/*.pyx']),
 
     ################################
     ##
@@ -494,15 +472,15 @@ ext_modules = [
 
     Extension('sage.libs.flint.flint',
               sources = ["sage/libs/flint/flint.pyx"],
-              extra_compile_args = ["-std=c99", "-D_XPG6"]),
+              extra_compile_args = ["-D_XPG6"]),
 
     Extension('sage.libs.flint.fmpz_poly',
               sources = ["sage/libs/flint/fmpz_poly.pyx"],
-              extra_compile_args = ["-std=c99", "-D_XPG6"]),
+              extra_compile_args = ["-D_XPG6"]),
 
     Extension('sage.libs.flint.arith',
               sources = ["sage/libs/flint/arith.pyx"],
-              extra_compile_args = ["-std=c99", "-D_XPG6"]),
+              extra_compile_args = ["-D_XPG6"]),
 
     Extension("sage.libs.glpk.error",
              ["sage/libs/glpk/error.pyx"]),
@@ -810,7 +788,7 @@ ext_modules = [
               libraries = m4ri_libs + gd_libs + png_libs + zlib_libs,
               library_dirs = m4ri_library_dirs + gd_library_dirs + png_library_dirs + zlib_library_dirs,
               include_dirs = m4ri_include_dirs + gd_include_dirs + png_include_dirs + zlib_include_dirs,
-              extra_compile_args = ['-std=c99'] + m4ri_extra_compile_args,
+              extra_compile_args = m4ri_extra_compile_args,
               depends = [SAGE_INC + "/png.h", SAGE_INC + "/m4ri/m4ri.h"]),
 
     Extension('sage.matrix.matrix_gf2e_dense',
@@ -819,7 +797,7 @@ ext_modules = [
               library_dirs = m4ri_library_dirs,
               include_dirs = m4ri_include_dirs,
               depends = [SAGE_INC + "/m4rie/m4rie.h"],
-              extra_compile_args = ['-std=c99'] + m4ri_extra_compile_args),
+              extra_compile_args = m4ri_extra_compile_args),
 
     Extension('sage.matrix.matrix_modn_dense_float',
               sources = ['sage/matrix/matrix_modn_dense_float.pyx'],
@@ -847,7 +825,7 @@ ext_modules = [
 
     Extension('sage.matrix.matrix_rational_dense',
               sources = ['sage/matrix/matrix_rational_dense.pyx'],
-              extra_compile_args = ["-std=c99", "-D_XPG6"] + m4ri_extra_compile_args,
+              extra_compile_args = ["-D_XPG6"] + m4ri_extra_compile_args,
               libraries = ['iml', 'ntl', 'm'] + cblas_libs,
               library_dirs = cblas_library_dirs,
               include_dirs = cblas_include_dirs,
@@ -920,15 +898,14 @@ ext_modules = [
               sources = ['sage/modular/arithgroup/arithgroup_element.pyx']),
 
     Extension('sage.modular.modform.eis_series_cython',
-              sources = ['sage/modular/modform/eis_series_cython.pyx'],
-              extra_compile_args = ['-std=c99']),
+              sources = ['sage/modular/modform/eis_series_cython.pyx']),
 
     Extension('sage.modular.modform.l_series_gross_zagier_coeffs',
               sources = ['sage/modular/modform/l_series_gross_zagier_coeffs.pyx']),
 
     Extension('sage.modular.modsym.apply',
               sources = ['sage/modular/modsym/apply.pyx'],
-              extra_compile_args=["-std=c99", "-D_XPG6"]),
+              extra_compile_args=["-D_XPG6"]),
 
     Extension('sage.modular.modsym.manin_symbol',
               sources = ['sage/modular/modsym/manin_symbol.pyx']),
@@ -938,7 +915,7 @@ ext_modules = [
 
     Extension('sage.modular.modsym.heilbronn',
               sources = ['sage/modular/modsym/heilbronn.pyx'],
-              extra_compile_args=["-std=c99", "-D_XPG6"]),
+              extra_compile_args=["-D_XPG6"]),
 
     Extension('sage.modular.modsym.p1list',
               sources = ['sage/modular/modsym/p1list.pyx']),
@@ -946,7 +923,7 @@ ext_modules = [
     Extension('sage.modular.pollack_stevens.dist',
               sources = ['sage/modular/pollack_stevens/dist.pyx'],
               libraries = ["gmp", "zn_poly"],
-              extra_compile_args=['-std=c99', '-D_XPG6']),
+              extra_compile_args = ["-D_XPG6"]),
 
     ################################
     ##
@@ -982,7 +959,6 @@ ext_modules = [
               sources = ['sage/modules/vector_integer_dense.pyx']),
 
     Extension('sage.modules.vector_modn_dense',
-              extra_compile_args = ['-std=c99'],
               sources = ['sage/modules/vector_modn_dense.pyx']),
 
     Extension('sage.modules.vector_mod2_dense',
@@ -990,7 +966,7 @@ ext_modules = [
               libraries = m4ri_libs + gd_libs + png_libs,
               library_dirs = m4ri_library_dirs + gd_library_dirs + png_library_dirs,
               include_dirs = m4ri_include_dirs + gd_include_dirs + png_include_dirs,
-              extra_compile_args = ['-std=c99'] + m4ri_extra_compile_args,
+              extra_compile_args = m4ri_extra_compile_args,
               depends = [SAGE_INC + "/png.h", SAGE_INC + "/m4ri/m4ri.h"]),
 
     Extension('sage.modules.vector_rational_dense',
@@ -1086,28 +1062,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.plot.complex_plot',
-              sources = ['sage/plot/complex_plot.pyx']),
-
-    Extension('sage.plot.plot3d.base',
-              sources = ['sage/plot/plot3d/base.pyx'],
-              extra_compile_args=["-std=c99"]),
-
-    Extension('sage.plot.plot3d.implicit_surface',
-              sources = ['sage/plot/plot3d/implicit_surface.pyx']),
-
-    Extension('sage.plot.plot3d.index_face_set',
-              sources = ['sage/plot/plot3d/index_face_set.pyx'],
-              extra_compile_args=["-std=c99"]),
-
-    Extension('sage.plot.plot3d.parametric_surface',
-              sources = ['sage/plot/plot3d/parametric_surface.pyx']),
-
-    Extension('sage.plot.plot3d.shapes',
-              sources = ['sage/plot/plot3d/shapes.pyx']),
-
-    Extension('sage.plot.plot3d.transform',
-              sources = ['sage/plot/plot3d/transform.pyx']),
+    Extension('*', ['sage/plot/**/*.pyx']),
 
     ################################
     ##
@@ -1168,7 +1123,7 @@ ext_modules = [
 
     Extension('sage.rings.complex_double',
               sources = ['sage/rings/complex_double.pyx'],
-              extra_compile_args=["-std=c99", "-D_XPG6"],
+              extra_compile_args = ["-D_XPG6"],
               libraries = ['m']),
 
     Extension('sage.rings.complex_interval',
@@ -1564,7 +1519,6 @@ ext_modules = [
 
     Extension('sage.schemes.elliptic_curves.descent_two_isogeny',
               sources = ['sage/schemes/elliptic_curves/descent_two_isogeny.pyx'],
-              extra_compile_args=["-std=c99"],
               libraries = ['ratpoints']),
 
     Extension('sage.schemes.elliptic_curves.period_lattice_region',
@@ -1592,15 +1546,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.sets.disjoint_set',
-              sources = ['sage/sets/disjoint_set.pyx'],
-              extra_compile_args = ['-std=c99']),
-
-    Extension('sage.sets.finite_set_map_cy',
-              sources=['sage/sets/finite_set_map_cy.pyx']),
-
-    Extension('sage.sets.recursively_enumerated_set',
-              sources = ['sage/sets/recursively_enumerated_set.pyx']),
+    Extension('*', ['sage/sets/*.pyx']),
 
     ################################
     ##
@@ -1618,8 +1564,7 @@ ext_modules = [
               sources = ['sage/stats/hmm/hmm.pyx']),
 
     Extension('sage.stats.hmm.chmm',
-              sources = ['sage/stats/hmm/chmm.pyx'],
-              extra_compile_args=["-std=c99"]),
+              sources = ['sage/stats/hmm/chmm.pyx']),
 
     Extension('sage.stats.intlist',
               sources = ['sage/stats/intlist.pyx']),
@@ -1628,8 +1573,7 @@ ext_modules = [
               sources = ['sage/stats/distributions/discrete_gaussian_integer.pyx', 'sage/stats/distributions/dgs_gauss_mp.c', 'sage/stats/distributions/dgs_gauss_dp.c', 'sage/stats/distributions/dgs_bern.c'],
               depends = ['sage/stats/distributions/dgs_gauss.h', 'sage/stats/distributions/dgs_bern.h', 'sage/stats/distributions/dgs_misc.h'],
               libraries = ['mpfr'],
-              extra_compile_args=["-std=c99", "-D_XOPEN_SOURCE=600"],
-          ),
+              extra_compile_args = ["-D_XOPEN_SOURCE=600"]),
 
     ################################
     ##

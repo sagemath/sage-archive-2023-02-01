@@ -3,7 +3,7 @@ Zariski-Van Kampen method implementation
 
 This file contains functions to compute the fundamental group of
 the complement of a curve in the complex affine or projective plane,
-using Zariski-Van Kampen approach. It deppends on the package sirocco.
+using Zariski-Van Kampen approach. It depends on the package ``sirocco``.
 
 The current implementation allows to compute a presentation of the
 fundamental group of curves over the rationals or number fields with

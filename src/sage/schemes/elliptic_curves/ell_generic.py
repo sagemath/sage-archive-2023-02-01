@@ -677,7 +677,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
         D = b*b + 4*fx
         return D.is_square()
 
-    def lift_x(self, x, all=False):
+    def lift_x(self, x, all=False, extend=False):
         r"""
         Returns one or all points with given `x`-coordinate.
 
@@ -688,6 +688,25 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
         - ``all`` (bool, default False) -- if True, return a (possibly
           empty) list of all points; if False, return just one point,
           or raise a ValueError if there are none.
+
+        - ``extend`` (bool or string, default False) --
+
+          - if ``False``, we require `x` to be convertible into the
+            base ring.
+
+          - If 'y', then we still require `x` to be convertible into
+            the base_ring, but if the associated `y`-coordinates are
+            not, then the point(s) returned will have as parent the
+            curve base-extended to a quadratic extension.
+
+          - If 'x', then we do not require `x` to be convertible into
+            the base_ring, only that the curve can be base-extended to
+            the parent of `x`.
+
+          - If 'xy', then the base will extended first to include `x`,
+            if necessary and possible, and then to include the
+            `y`-coordinates, and the point(s) returned will have as
+            parent the base-extended-curve.
 
         .. note::
 
@@ -711,10 +730,18 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             ...
             ValueError: No point with x-coordinate 3 on Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
 
-        However, there are two such points in `E(\RR)`::
+        We can use the ``extend`` parameter to make the necessary quadratic extension::
+
+            sage: P = E.lift_x(3, extend='y'); P
+            (3 : y : 1)
+            sage: P.curve()
+            Elliptic Curve defined by y^2 + y = x^3 + (-1)*x over Number Field in y with defining polynomial y^2 + y - 24
+
+        Or we can extend scalars.  There are two such points in `E(\RR)`::
 
             sage: E.change_ring(RR).lift_x(3, all=True)
-            [(3.00000000000000 : 4.42442890089805 : 1.00000000000000), (3.00000000000000 : -5.42442890089805 : 1.00000000000000)]
+            [(3.00000000000000 : 4.42442890089805 : 1.00000000000000),
+             (3.00000000000000 : -5.42442890089805 : 1.00000000000000)]
 
         And of course it always works in `E(\CC)`::
 
@@ -723,9 +750,23 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: E.change_ring(CC).lift_x(.5)
             (0.500000000000000 : -0.500000000000000 + 0.353553390593274*I : 1.00000000000000)
 
+
+        In this example we start with a curve defined over `\QQ`
+        which has no rational points with `x=0`, but using
+        ``extend = 'y'`` we can construct such a point over a quadratic
+        field::
+
+            sage: E = EllipticCurve([0,0,0,0,2]); E
+            Elliptic Curve defined by y^2 = x^3 + 2 over Rational Field
+            sage: P = E.lift_x(0, extend='y'); P
+            (0 : y : 1)
+            sage: P.curve()
+            Elliptic Curve defined by y^2 = x^3 + 2 over Number Field in y with defining polynomial y^2 - 2
+
+
         We can perform these operations over finite fields too::
 
-            sage: E = E.change_ring(GF(17)); E
+            sage: E = EllipticCurve('37a').change_ring(GF(17)); E
             Elliptic Curve defined by y^2 + y = x^3 + 16*x over Finite Field of size 17
             sage: E.lift_x(7)
             (7 : 11 : 1)
@@ -740,22 +781,46 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: E.lift_x(10, all=True)
             [(10 : 8 : 1)]
 
-        We can lift over more exotic rings too::
+        We can lift over more exotic rings too. If the supplied x
+        value is in an extension of the base, use ``extend='x'``, and
+        note that the point returned is on the base-extended curve::
 
-            sage: E = EllipticCurve('37a');
-            sage: E.lift_x(pAdicField(17, 5)(6))
+            sage: E = EllipticCurve('37a')
+            sage: P = E.lift_x(pAdicField(17, 5)(6), extend='x'); P
             (6 + O(17^5) : 2 + 16*17 + 16*17^2 + 16*17^3 + 16*17^4 + O(17^5) : 1 + O(17^5))
+            sage: P.curve()
+            Elliptic Curve defined by y^2 + (1+O(17^5))*y = x^3 + (16+16*17+16*17^2+16*17^3+16*17^4+O(17^5))*x over 17-adic Field with capped relative precision 5
             sage: K.<t> = PowerSeriesRing(QQ, 't', 5)
-            sage: E.lift_x(1+t)
+            sage: P = E.lift_x(1+t, extend='x'); P
             (1 + t : 2*t - t^2 + 5*t^3 - 21*t^4 + O(t^5) : 1)
             sage: K.<a> = GF(16)
-            sage: E = E.change_ring(K)
-            sage: E.lift_x(a^3)
+            sage: P = E.change_ring(K).lift_x(a^3); P
             (a^3 : a^3 + a : 1)
+            sage: P.curve()
+            Elliptic Curve defined by y^2 + y = x^3 + x over Finite Field in a of size 2^4
+
+        Finally we can extend the field of definition both to include the supplied `x` value and also the associated `y` value(s)::
+
+            sage: E = EllipticCurve([0,0,0,0,2]); E
+            Elliptic Curve defined by y^2 = x^3 + 2 over Rational Field
+            sage: x = polygen(QQ)
+            sage: P = E.lift_x(x, extend='xy'); P
+            (x : y : 1)
+
+        This point is a generic point on E::
+
+            sage: P.curve()
+            Elliptic Curve defined by y^2 = x^3 + 2 over Univariate Quotient Polynomial Ring in y over Fraction Field of Univariate Polynomial Ring in x over Rational Field with modulus y^2 - x^3 - 2
+            sage: -P
+            (x : -y : 1)
+            sage: 2*P
+            ((1/4*x^4 - 4*x)/(x^3 + 2) : ((-1/8*x^6 - 5*x^3 + 4)/(-x^6 - 4*x^3 - 4))*y : 1)
+
 
         AUTHOR:
 
         - Robert Bradshaw (2007-04-24)
+        - John Cremona (2017-11-10)
 
         TESTS::
 
@@ -765,38 +830,79 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: E.lift_x(7, all=True)
             [(7 : 3 : 1), (7 : 14 : 1)]
         """
-        a1, a2, a3, a4, a6 = self.ainvs()
-        f = ((x + a2) * x + a4) * x + a6
         K = self.base_ring()
-        x += K(0)
-        one = x.parent()(1)
-        if a1.is_zero() and a3.is_zero():
-            if f.is_square():
-                if all:
-                    ys = f.sqrt(all=True)
-                    return [self.point([x, y, one], check=False) for y in ys]
-                else:
-                    return self.point([x, f.sqrt(), one], check=False)
+        L = x.parent()
+        E = self
+
+        # Check that the x-coordinate is in K and extend otherwise if this has been requested:
+        phi =  K.coerce_map_from(L)
+        if phi:
+            x = phi(x)
+            L = K
         else:
-            b = (a1*x + a3)
-            D = b*b + 4*f
-            if K.characteristic() == 2:
-                R = PolynomialRing(K, 'y')
-                F = R([-f,b,1])
-                ys = F.roots(multiplicities=False)
-                if all:
-                    return [self.point([x, y, one], check=False) for y in ys]
-                elif len(ys) > 0:
-                    return self.point([x, ys[0], one], check=False)
-            elif D.is_square():
-                if all:
-                    return [self.point([x, (-b+d)/2, one], check=False) for d in D.sqrt(all=True)]
+            if extend in [False, 'y']:
+                raise TypeError("no coercion exists from {} to {}, and neither extend='x' nor extend='xy' was specified".format(L,K))
+            else:
+                if L.coerce_map_from(K):
+                    E = E.change_ring(L)
+                    L = E.base_ring()
+                    x = L(x)
                 else:
-                    return self.point([x, (-b+D.sqrt())/2, one], check=False)
+                    raise TypeError("Unable to base-change from {} to {}".format(K,L))
+
+        # Now E is defined over L, possibly an extension of K, and x is in L
+
+        a1, a2, a3, a4, a6 = E.ainvs()
+        b = (a1*x + a3)
+        f = ((x + a2) * x + a4) * x + a6
+
+        # If possible find the associated y coorindates in L:
+
+        if K.characteristic()==2:
+            R = PolynomialRing(L, 'y')
+            F = R([-f,b,1])
+            ys = F.roots(L, multiplicities=False)
+        else:
+            D = b*b+4*f
+            ys = []
+            if D.is_square(): # avoid automatic creation of sqrts
+                ys = [(-b+d)/2 for d in D.sqrt(all = True)]
+
+        # Return the point(s) if any:
+
+        if ys:
+            one = L.one()
+            if all:
+                return [E.point([x, y, one], check=False) for y in ys]
+            else:
+                return E.point([x, ys[0], one], check=False)
+
+        # otherwise if the additional extension was not requested return the empty list or raise an error:
+
+        if not extend in ['y','xy']:
+            if all:
+                return []
+            else:
+                raise ValueError("No point with x-coordinate %s on %s"%(x, self))
+
+        # Now make the extension needed to contain the y-coordinates:
+
+        if K.characteristic()!=2: # else we already defined F
+            R = PolynomialRing(L, 'y')
+            F = R([-f,b,1])
+        M = L.fraction_field().extension(F, 'y')
+        EM = E.change_ring(M)
+        y1 = M.gen()
+        y2 = -b-y1
+        if y2==y1:
+            ys = [y1]
+        else:
+            ys = [y1,y2]
+        one = M.one()
         if all:
-            return []
+            return [EM.point([x, y, one], check=False) for y in ys]
         else:
-            raise ValueError("No point with x-coordinate %s on %s"%(x, self))
+            return EM.point([x, ys[0], one], check=False)
 
     def _point_homset(self, *args, **kwds):
         r"""

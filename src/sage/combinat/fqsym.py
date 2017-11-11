@@ -273,7 +273,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
             sage: F = algebras.FQSym(QQ)
             sage: TestSuite(F).run() # long time (3s)
         """
-        self._category = HopfAlgebras(R).WithBasis().Graded().Connected()
+        self._category = HopfAlgebras(R).Graded().Connected()
         Parent.__init__(self, base=R, category=self._category.WithRealizations())
 
     def _repr_(self):
@@ -608,7 +608,8 @@ class FQSymBases(Category_realization_of_parent):
             [Category of graded connected hopf algebras with basis over Integer Ring,
              Category of realizations of Free Quasi-symmetric functions over Integer Ring]
         """
-        return [self.base()._category, Realizations(self.base())]
+        return [self.base()._category.WithBasis().Graded(),
+                Realizations(self.base())]
 
     class ParentMethods:
         def _repr_(self):

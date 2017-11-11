@@ -67,6 +67,10 @@ def function_factory(name, nargs=0, latex_name=None, conversions=None,
             """
             return "'%s"%self.name()
 
+        def _sympy_(self):
+            from sympy import Function
+            return Function(self.name())
+
         def __reduce__(self):
             """
             EXAMPLES::

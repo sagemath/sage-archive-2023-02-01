@@ -1073,7 +1073,7 @@ cdef class FiniteField(Field):
                       and hasattr(self, '_prefix') and hasattr(R, '_prefix')):
                     return R.hom((self.gen() ** ((self.order() - 1)//(R.order() - 1)),))
 
-    def _convert_map_from_(self, R):
+    cpdef _convert_map_from_(self, R):
         """
         Conversion from p-adic fields.
 

@@ -70,7 +70,7 @@ def setup_glpk_error_handler():
     TESTS::
 
         sage: cython('''
-        ....: #clib glpk z gmp
+        ....: # distutils: libraries = glpk z gmp
         ....: from cysignals.signals cimport sig_on, sig_off
         ....: from sage.libs.glpk.env cimport glp_term_out
         ....:

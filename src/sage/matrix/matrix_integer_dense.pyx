@@ -182,18 +182,21 @@ cdef class Matrix_integer_dense(Matrix_dense):
         Traceback (most recent call last):
         ...
         TypeError: nonzero scalar matrix must be square
-    """
-    ########################################################################
-    # LEVEL 1 functionality
-    # x * __cinit__
-    # x * __dealloc__
-    # x * __init__
-    # x * set_unsafe
-    # x * get_unsafe
-    # x * def _pickle
-    # x * def _unpickle
-    ########################################################################
 
+    TESTS:
+
+    Test hashing::
+
+        sage: a = Matrix(ZZ, 2, [1,2,3,4])
+        sage: hash(a)
+        Traceback (most recent call last):
+        ...
+        TypeError: mutable matrices are unhashable
+        sage: a.set_immutable()
+        sage: hash(a)
+        1846857684291126914  # 64-bit
+        1591707266           # 32-bit
+    """
     def __cinit__(self, parent, entries, coerce, copy):
         """
         Create and allocate memory for the matrix. Does not actually
@@ -228,28 +231,6 @@ cdef class Matrix_integer_dense(Matrix_dense):
         sig_str("FLINT exception")
         fmpz_mat_init(self._matrix, self._nrows, self._ncols)
         sig_off()
-
-    def __hash__(self):
-        r"""
-        Returns hash of self.
-
-        self must be immutable.
-
-        EXAMPLES::
-
-            sage: a = Matrix(ZZ,2,[1,2,3,4])
-            sage: hash(a)
-            Traceback (most recent call last):
-            ...
-            TypeError: mutable matrices are unhashable
-
-        ::
-
-            sage: a.set_immutable()
-            sage: hash(a)
-            8
-        """
-        return self._hash()
 
     def __dealloc__(self):
         """

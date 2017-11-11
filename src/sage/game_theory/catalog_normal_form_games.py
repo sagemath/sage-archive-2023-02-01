@@ -591,7 +591,7 @@ def MatchingPennies():
         ....:     (0, 0): [1, -1], (1, 1): [1, -1]}
         sage: g == d
         True
-        sage: g.obtain_nash()
+        sage: g.obtain_nash('enumeration')
         [[(1/2, 1/2), (1/2, 1/2)]]
     """
     from sage.matrix.constructor import matrix
@@ -636,7 +636,7 @@ def RPS():
         ....:      (2, 2): [0, 0], (1, 0): [1, -1], (0, 2): [1, -1]}
         sage: g == d
         True
-        sage: g.obtain_nash()
+        sage: g.obtain_nash('enumeration')
         [[(1/3, 1/3, 1/3), (1/3, 1/3, 1/3)]]
     """
     from sage.matrix.constructor import matrix
@@ -700,7 +700,7 @@ def RPSLS():
         ....:      (0, 2): [1, -1]}
         sage: g == d
         True
-        sage: g.obtain_nash()
+        sage: g.obtain_nash('enumeration')
         [[(1/5, 1/5, 1/5, 1/5, 1/5), (1/5, 1/5, 1/5, 1/5, 1/5)]]
     """
     from sage.matrix.constructor import matrix

@@ -1502,6 +1502,7 @@ done from the right side.""")
         else:
             if self.inner_product_matrix() != other.inner_product_matrix():
                 return False
+        # self and other lie in a common ambient space.
         R = self.base_ring()
         S = other.base_ring()
         if R != S:
@@ -1509,9 +1510,12 @@ done from the right side.""")
                 if not R.is_subring(S):
                     return False
             except NotImplementedError:
-                return False
+                if not R.fraction_field().is_subring(S):
+                    raise NotImplementedError("could not determine if %s is a "
+                                              "subring of %s" %(R, S))
+        # now R is a subring of S
         try:
-            M=[list(other.basis_matrix().solve_left(self.basis_matrix()[i])) for i in range(self.basis_matrix().nrows())]
+            M = [list(other.basis_matrix().solve_left(self.basis_matrix()[i])) for i in range(self.basis_matrix().nrows())]
         except ValueError:
             return False
         from sage.misc.flatten import flatten

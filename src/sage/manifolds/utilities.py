@@ -7,7 +7,7 @@ and display of symbolic expressions.
 AUTHORS:
 
 - Michal Bejger (2015) : class :class:`ExpressionNice`
-- Eric Gourgoulhon (2015) : simplification functions
+- Eric Gourgoulhon (2015, 2017) : simplification functions
 - Travis Scrimshaw (2016): review tweaks
 
 """
@@ -15,7 +15,7 @@ AUTHORS:
 #******************************************************************************
 #
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
-#       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
+#       Copyright (C) 2015, 2017 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -28,6 +28,166 @@ AUTHORS:
 from __future__ import division
 
 from sage.symbolic.expression import Expression
+from sage.symbolic.operators import FDerivativeOperator
+from sage.calculus.calculus import symbolic_expression_from_string
+from sage.calculus.functional import derivative
+from sage.calculus.var import function
+
+def _find_closing_parenthesis(sexpr, start, open_symbol='(', close_symbol=')'):
+    r"""
+    Helper function for locating a closing parenthesis in a string.
+
+    INPUT:
+
+    - ``sexpr`` -- a string, representing some symbolic expression
+    - ``start`` -- an integer, must be 1 + the index in ``sexpr`` of the
+      opening parenthesis
+    - ``open_symbol`` -- (default: '(') symbol of the opening parenthesis
+    - ``close_symbol`` -- (default: ')') symbol of the closing parenthesis
+
+    OUTPUT:
+
+    - 1 + the index in ``sexpr`` of the closing parenthesis corresponding
+      to the opening parenthesis located at the index ``start-1``
+
+    EXAMPLES::
+
+        sage: from sage.manifolds.utilities import _find_closing_parenthesis
+        sage: _find_closing_parenthesis('cos(x+y)', 4)
+        8
+        sage: s = '((x+y)^2 + 1)^3'
+        sage: _find_closing_parenthesis(s, 1)
+        13
+        sage: s[12:]
+        ')^3'
+        sage: _find_closing_parenthesis(s, 2)
+        6
+        sage: s[5:]
+        ')^2 + 1)^3'
+        sage: _find_closing_parenthesis('[[x+y]^2 + 1]^3', 1,
+        ....:                           open_symbol='[', close_symbol=']')
+        13
+
+    """
+    parenth = 1
+    while parenth != 0:
+        if sexpr[start] == open_symbol:
+            parenth += 1
+        if sexpr[start] == close_symbol:
+            parenth -= 1
+        start += 1
+    return start
+
+def symbolic_from_string(sexpr):
+    r"""
+    Return a symbolic expression from a string.
+
+    This function differs from
+    :func:`sage.calculus.calculus.symbolic_expression_from_string`
+    in so far as it is capable to treat the string representation of
+    derivatives of symbolic functions (see examples below).
+
+    INPUT:
+
+    - ``sexpr`` -- a string
+
+    OUTPUT:
+
+    - instance of :class:`~sage.symbolic.expression.Expression`, the string
+      representation of which is (equivalent to) ``sexpr``
+
+    EXAMPLES::
+
+        sage: from sage.manifolds.utilities import symbolic_from_string
+        sage: s = 'cos(x)^2 + 2*x^3 - sqrt(x)'
+        sage: a = symbolic_from_string(s); a
+        2*x^3 + cos(x)^2 - sqrt(x)
+        sage: type(a)
+        <type 'sage.symbolic.expression.Expression'>
+        sage: bool(symbolic_from_string(str(a)) == a)
+        True
+
+    ``symbolic_from_string`` deals correctly with derivatives::
+
+        sage: y = var('y')
+        sage: symbolic_from_string('diff((x+y)^2, x, y)')
+        2
+        sage: foo = function('foo'); g = function('g')
+        sage: a = diff(foo(g(x)), x, 2); a
+        D[0, 0](foo)(g(x))*diff(g(x), x)^2 + D[0](foo)(g(x))*diff(g(x), x, x)
+        sage: a1 = symbolic_from_string(str(a)); a1
+        D[0, 0](foo)(g(x))*diff(g(x), x)^2 + D[0](foo)(g(x))*diff(g(x), x, x)
+        sage: bool(a1 == a)
+        True
+
+    On the contrary, both
+    :func:`~sage.calculus.calculus.symbolic_expression_from_string` and the
+    element constructor of the Symbolic Ring fail on these examples::
+
+        sage: from sage.calculus.calculus import symbolic_expression_from_string
+        sage: symbolic_expression_from_string('diff((x+y)^2, x, y)')
+        diff((x + y)^2, x, y)
+        sage: simplify(_)
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to convert y to an integer
+        sage: SR('diff((x+y)^2, x, y)')
+        diff((x + y)^2, x, y)
+        sage: simplify(_)
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to convert y to an integer
+
+    ::
+
+        sage: symbolic_expression_from_string(str(a))
+        Traceback (most recent call last):
+        ...
+        SyntaxError: Malformed expression
+        sage: SR(str(a))
+        Traceback (most recent call last):
+        ...
+        TypeError: Malformed expression: D[ !!! 0, 0](foo)(g(x))*diff(g(x), x)^2 + D[0](foo)(g(x))*diff(g(x), x, x)
+
+    """
+    # Search for derivatives denoted by symbols D[...]
+    Dderivatives = {}
+    if 'D[' in sexpr:
+        pos_max = len(sexpr) - 6
+        pos = 0
+        while pos < pos_max:
+            if sexpr[pos:pos+2] == 'D[':
+                start_ind = pos+2 # position of first derivation index
+                end_ind = sexpr.find(']', start_ind)
+                # The derivation indices, as a list of integers:
+                der_ind = map(int, sexpr[start_ind:end_ind].split(','))
+                start_name = end_ind + 2 # pos. of first letter of function name
+                end_name = sexpr.find(')', start_name)
+                fname = sexpr[start_name:end_name] # function name
+                # Construction of DD_...f to replace D[...](f):
+                der_name = 'DD'
+                for i in der_ind:
+                    der_name += '_' + str(i)
+                der_name += fname
+                if der_name not in Dderivatives:
+                    string_der = sexpr[pos:end_name+1] # the string D[...](f)
+                    Dderivatives[der_name] = (string_der,
+                                              FDerivativeOperator(function(fname),
+                                                                  der_ind))
+                pos = end_name + 1
+            else:
+                pos += 1
+        # Replacement of all D[...](f) by DD_...f in the string sexpr
+        for der_name, der in Dderivatives.items():
+            sexpr = sexpr.replace(der[0], der_name)
+    # Construction of the symbolic expression from the string
+    #   NB: the keyword argument syms is necessary for a proper treatment of
+    #       diff symbols
+    expr = symbolic_expression_from_string(sexpr, syms={'diff': derivative})
+    # Restoring the derivatives denoted by D[...]:
+    for der_name, der in Dderivatives.items():
+        expr = expr.substitute_function(function(der_name), der[1])
+    return expr
 
 def simplify_sqrt_real(expr):
     r"""
@@ -60,7 +220,7 @@ def simplify_sqrt_real(expr):
         -x
         sage: sqrt(x^2-2*x+1).canonicalize_radical() # wrong output
         x - 1
-        sage: ( sqrt(x^2) + sqrt(x^2-2*x+1) ).canonicalize_radical()
+        sage: ( sqrt(x^2) + sqrt(x^2-2*x+1) ).canonicalize_radical() # wrong output
         -1
 
     Simplification of nested ``sqrt``'s::
@@ -80,6 +240,17 @@ def simplify_sqrt_real(expr):
         sage: (sqrt(x^2 + sqrt(4*x^2) + 1)).canonicalize_radical()
         x - 1
 
+    TESTS:
+
+    Simplification of expressions involving some symbolic derivatives::
+
+        sage: f = function('f')
+        sage: simplify_sqrt_real( diff(f(x), x)*sqrt(x^2) )  # x<0 (see above)
+        -x*diff(f(x), x)
+        sage: g = function('g')
+        sage: simplify_sqrt_real( sqrt(x^3*diff(f(g(x)), x)^2) )
+        (-x)^(3/2)*abs(D[0](f)(g(x)))*abs(diff(g(x), x))
+
     """
     from sage.symbolic.ring import SR
     from sage.functions.other import sqrt
@@ -87,10 +258,6 @@ def simplify_sqrt_real(expr):
     sexpr = str(expr)
     if 'sqrt(' not in sexpr:  # no sqrt to simplify
         return expr
-    if ('D[' in sexpr) or ('diff(' in sexpr):
-        return expr    #!# the code below is not capable of simplifying
-                       # expressions with symbolic derivatives denoted
-                       # by Pynac symbols of the type D[0] or diff(...)
     # Lists to store the positions of all the top-level sqrt's in sexpr:
     pos_sqrts = []  # position of first character, i.e. 's' of 'sqrt(...)'
     pos_after = []  # position of character immediately after 'sqrt(...)'
@@ -100,59 +267,58 @@ def simplify_sqrt_real(expr):
     while pos < pos_max:
         if sexpr[pos:pos+5] == 'sqrt(':
             pos_sqrts.append(pos)
-            parenth = 1
-            scan = pos+5
-            while parenth != 0:
-                if sexpr[scan] == '(': parenth += 1
-                if sexpr[scan] == ')': parenth -= 1
-                scan += 1
-            the_sqrts.append( sexpr[pos:scan] )
-            pos_after.append(scan)
-            pos = scan
+            pos_end = _find_closing_parenthesis(sexpr, pos+5)
+            the_sqrts.append( sexpr[pos:pos_end] )
+            pos_after.append(pos_end)
+            pos = pos_end
         else:
             pos += 1
     # 2/ Search for sub-sqrt's:
     for i in range(len(the_sqrts)):
         argum = the_sqrts[i][5:-1]  # the sqrt argument
         if 'sqrt(' in argum:
-            simpl = simplify_sqrt_real(SR(argum))
+            simpl = simplify_sqrt_real(symbolic_from_string(argum))
             the_sqrts[i] = 'sqrt(' + str(simpl) + ')'
     # 3/ Simplifications of the sqrt's
     new_expr = ""    # will contain the result
     pos0 = 0
     for i, pos in enumerate(pos_sqrts):
         # radcan is called on each sqrt:
-        x = SR(the_sqrts[i])
-        argum = x.operands()[0] # the argument of sqrt
-        den = argum.denominator()
-        if not (den == 1):  # the argument of sqrt is a fraction
-            # NB: after #19312 (integrated in Sage 6.10.beta7), the above
-            # cannot be written as
-            #    if den != 1!:
-            num = argum.numerator()
-            if num < 0 or den < 0:
-                x = sqrt(-num) / sqrt(-den)  # new equivalent expression for x
-        simpl = SR(x._maxima_().radcan())
-        if str(simpl)[:5] == 'sqrt(' or str(simpl)[:7] == '1/sqrt(':
-            # no further simplification seems possible:
-            ssimpl = str(simpl)
+        x = symbolic_from_string(the_sqrts[i])
+        operands = x.operands()
+        if not operands:  # the above operation performed the simplification
+            ssimpl = str(x)
         else:
-            # the absolute value of radcan's output is taken, the call to
-            # simplify() taking into account possible assumptions regarding the
-            # sign of simpl:
-            ssimpl = str(abs(simpl).simplify())
-        # search for abs(1/sqrt(...)) term to simplify it into 1/sqrt(...):
-        pstart = ssimpl.find('abs(1/sqrt(')
-        if pstart != -1:
-            ssimpl = ssimpl[:pstart] + ssimpl[pstart+3:] # getting rid of 'abs'
+            argum = operands[0] # the argument of sqrt
+            den = argum.denominator()
+            if not (den == 1):  # the argument of sqrt is a fraction
+                # NB: after #19312 (integrated in Sage 6.10.beta7), the above
+                # cannot be written as
+                #    if den != 1:
+                num = argum.numerator()
+                if num < 0 or den < 0:
+                    x = sqrt(-num) / sqrt(-den)  # new equivalent expression for x
+            simpl = SR(x._maxima_().radcan())
+            if str(simpl)[:5] == 'sqrt(' or str(simpl)[:7] == '1/sqrt(':
+                # no further simplification seems possible:
+                ssimpl = str(simpl)
+            else:
+                # the absolute value of radcan's output is taken, the call to
+                # simplify() taking into account possible assumptions regarding the
+                # sign of simpl:
+                ssimpl = str(abs(simpl).simplify())
+            # search for abs(1/sqrt(...)) term to simplify it into 1/sqrt(...):
+            pstart = ssimpl.find('abs(1/sqrt(')
+            if pstart != -1:
+                ssimpl = ssimpl[:pstart] + ssimpl[pstart+3:] # getting rid of 'abs'
         new_expr += sexpr[pos0:pos] + '(' + ssimpl + ')'
         pos0 = pos_after[i]
     new_expr += sexpr[pos0:]
-    return SR(new_expr)
+    return symbolic_from_string(new_expr)
 
 def simplify_abs_trig(expr):
     r"""
-    Simplify ``abs(sin(...))`` in symbolic expressions.
+    Simplify ``abs(sin(...))`` and ``abs(cos(...))`` in symbolic expressions.
 
     EXAMPLES::
 
@@ -197,58 +363,113 @@ def simplify_abs_trig(expr):
         sage: simplify_abs_trig( abs(sin(4*z)) )  # must not simplify
         abs(sin(-4*z))
 
+    Simplification of ``abs(cos(...))``::
+
+        sage: forget()
+        sage: M = Manifold(3, 'M', structure='topological')
+        sage: X.<x,y,z> = M.chart(r'x y:(0,pi/2) z:(pi/4,3*pi/4)')
+        sage: X.coord_range()
+        x: (-oo, +oo); y: (0, 1/2*pi); z: (1/4*pi, 3/4*pi)
+        sage: simplify_abs_trig( abs(cos(x)) + abs(cos(y)) + abs(cos(2*z)) )
+        abs(cos(x)) + cos(y) - cos(2*z)
+
+    Additional tests::
+
+        sage: simplify_abs_trig(abs(cos(y-pi/2)))  # shall simplify
+        cos(-1/2*pi + y)
+        sage: simplify_abs_trig(abs(cos(y+pi/2)))  # shall simplify
+        -cos(1/2*pi + y)
+        sage: simplify_abs_trig(abs(cos(y-pi)))  # must not simplify
+        abs(cos(-pi + y))
+        sage: simplify_abs_trig(abs(cos(2*y)))  # must not simplify
+        abs(cos(2*y))
+        sage: simplify_abs_trig(abs(cos(y/2)) * abs(sin(z)))  # shall simplify
+        cos(1/2*y)*sin(z)
+
+    TESTS:
+
+    Simplification of expressions involving some symbolic derivatives::
+
+        sage: f = function('f')
+        sage: s = abs(cos(x)) + abs(cos(y))*diff(f(x),x) + abs(cos(2*z))
+        sage: simplify_abs_trig(s)
+        cos(y)*diff(f(x), x) + abs(cos(x)) - cos(2*z)
+        sage: s = abs(sin(x))*diff(f(x),x).subs(x=y^2) + abs(cos(y))
+        sage: simplify_abs_trig(s)
+        abs(sin(x))*D[0](f)(y^2) + cos(y)
+
     """
-    from sage.symbolic.ring import SR
     from sage.symbolic.constants import pi
     sexpr = str(expr)
-    if 'abs(sin(' not in sexpr:  # nothing to simplify
+    if 'abs(sin(' not in sexpr and 'abs(cos(' not in sexpr:  # nothing to simplify
         return expr
-    if ('D[' in sexpr) or ('diff(' in sexpr):
-        return expr    #!# the code below is not capable of simplifying
-                       # expressions with symbolic derivatives denoted
-                       # by Pynac symbols of the type D[0] or diff(...)
-    tp = []
-    val = []
-    for pos in range(len(sexpr)):
-        if sexpr[pos:pos+8] == 'abs(sin(':
-            # finding the end of abs argument:
-            scan = pos+4 # start of abs
-            parenth = 1
-            while parenth != 0:
-                if sexpr[scan] == '(': parenth += 1
-                if sexpr[scan] == ')': parenth -= 1
-                scan += 1
-            pos_abs_end = scan
-            # finding the end of sin argument:
-            scan = pos+8 # start of sin
-            parenth = 1
-            while parenth != 0:
-                if sexpr[scan] == '(': parenth += 1
-                if sexpr[scan] == ')': parenth -= 1
-                scan += 1
-            pos_sin_end = scan
-            # if the abs contains only the sinus, the simplification can be tried:
-            if pos_sin_end == pos_abs_end-1:
-                tp.append(pos)
-                val.append( sexpr[pos:pos_abs_end] )
-    simp = []
-    for v in val:
-        # argument of the sinus:
-        sx = v[8:-2]
-        x = SR(sx)
-        if x>=0 and x<=pi:
-            simp.append('sin(' + sx + ')')
-        elif x>=-pi and x<=0:
-            simp.append('(-sin(' + sx + '))')
-        else:
-            simp.append(v)  # no simplification is applicable
-    nexpr = ""
-    pos0 = 0
-    for i, pos in enumerate(tp):
-        nexpr += sexpr[pos0:pos] + simp[i]
-        pos0 = pos + len(val[i])
-    nexpr += sexpr[pos0:]
-    return SR(nexpr)
+    # abs(sin(...)) simplification
+    if 'abs(sin(' in sexpr:
+        tp = []
+        val = []
+        for pos in range(len(sexpr)):
+            if sexpr[pos:pos+8] == 'abs(sin(':
+                # end of abs argument (which starts at pos+4):
+                pos_abs_end = _find_closing_parenthesis(sexpr, pos+4)
+                # end of sin argument (which starts at pos+8):
+                pos_sin_end = _find_closing_parenthesis(sexpr, pos+8)
+                # if the abs contains only the sinus, the simplification can
+                # be tried:
+                if pos_sin_end == pos_abs_end-1:
+                    tp.append(pos)
+                    val.append( sexpr[pos:pos_abs_end] )
+        simp = []
+        for v in val:
+            # argument of the sinus:
+            sx = v[8:-2]
+            x = symbolic_from_string(sx)
+            if x>=0 and x<=pi:
+                simp.append('sin(' + sx + ')')
+            elif x>=-pi and x<=0:
+                simp.append('(-sin(' + sx + '))')
+            else:
+                simp.append(v)  # no simplification is applicable
+        nexpr = ""
+        pos0 = 0
+        for i, pos in enumerate(tp):
+            nexpr += sexpr[pos0:pos] + simp[i]
+            pos0 = pos + len(val[i])
+        nexpr += sexpr[pos0:]
+        sexpr = nexpr
+    # abs(cos(...)) simplification
+    if 'abs(cos(' in sexpr:
+        tp = []
+        val = []
+        for pos in range(len(sexpr)):
+            if sexpr[pos:pos+8] == 'abs(cos(':
+                # end of abs argument (which starts at pos+4):
+                pos_abs_end = _find_closing_parenthesis(sexpr, pos+4)
+                # end of cos argument (which starts at pos+8):
+                pos_cos_end = _find_closing_parenthesis(sexpr, pos+8)
+                # if the abs contains only the cosine, the simplification can
+                # be tried:
+                if pos_cos_end == pos_abs_end-1:
+                    tp.append(pos)
+                    val.append( sexpr[pos:pos_abs_end] )
+        simp = []
+        for v in val:
+            # argument of the cosine:
+            sx = v[8:-2]
+            x = symbolic_from_string(sx)
+            if x>=-pi/2 and x<=pi/2:
+                simp.append('cos(' + sx + ')')
+            elif x>=pi/2 and x<=3*pi/2:
+                simp.append('(-cos(' + sx + '))')
+            else:
+                simp.append(v)  # no simplification is applicable
+        nexpr = ""
+        pos0 = 0
+        for i, pos in enumerate(tp):
+            nexpr += sexpr[pos0:pos] + simp[i]
+            pos0 = pos + len(val[i])
+        nexpr += sexpr[pos0:]
+        sexpr = nexpr
+    return symbolic_from_string(sexpr)
 
 
 def simplify_chain_real(expr):
@@ -416,8 +637,6 @@ def simplify_chain_generic(expr):
     expr = expr.simplify_rational()
     expr = expr.expand_sum()
     return expr
-
-
 
 #******************************************************************************
 

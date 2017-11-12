@@ -1284,13 +1284,18 @@ class ImplicitSuffixTree(SageObject):
 
     def LZ_decomposition(self):
         r"""
-        Return the Lempel-Ziv decomposition of ``self.word()`` in the form of a
-        list ``iB`` of index such that the blocks of the decomposition are
-        ``self.word()[iB[k]:iB[k+1]]``
+        Return a list of index of the begining of the block of the Lempel-Ziv
+        decomposition of ``self.word``
 
-        The *Lempel-Ziv decomposition* is the factorisation `u_1...u_k` of a word
-        `w=x_1...x_n` such that `u_i` is the longest prefix of `u_i...u_k` that has an
-        occurence starting before `u_i` or a letter if this prefix is empty.
+        The *Lempel-Ziv decomposition* is the factorisation `u_1...u_k` of a
+        word `w=x_1...x_n` such that `u_i` is the longest prefix of `u_i...u_k`
+        that has an occurence starting before `u_i` or a letter if this prefix
+        is empty.
+
+        OUTPUT:
+
+        Return a list ``iB`` of index such that the blocks of the decomposition
+        are ``self.word()[iB[k]:iB[k+1]]``
 
         EXAMPLES::
 

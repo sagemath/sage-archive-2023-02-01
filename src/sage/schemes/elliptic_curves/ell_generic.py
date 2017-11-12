@@ -848,7 +848,17 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
                     L = E.base_ring()
                     x = L(x)
                 else:
-                    raise TypeError("Unable to base-change from {} to {}".format(K,L))
+                    try:
+                        from sage.categories.pushout import pushout
+                        from sage.structure.coerce_exceptions import CoercionException
+                        M = pushout(K,L)
+                        eKM = M.coerce_map_from(K)
+                        eLM = M.coerce_map_from(L)
+                        E = E.change_ring(eKM)
+                        x = eLM(x)
+                        L = M
+                    except CoercionException:
+                        raise TypeError("Unable to construct a pushout of {} and {}".format(K,L))
 
         # Now E is defined over L, possibly an extension of K, and x is in L
 

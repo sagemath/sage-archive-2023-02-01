@@ -27,7 +27,8 @@ from sage.functions.exp_integral import Ei
 from sage.libs.mpmath import utils as mpmath_utils
 from sage.arith.all import binomial as arith_binomial
 
-one_half = ~SR(2)
+one_half = SR.one() / SR(2)
+
 
 class Function_abs(GinacFunction):
     def __init__(self):

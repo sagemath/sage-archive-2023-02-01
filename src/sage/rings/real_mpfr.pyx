@@ -2014,16 +2014,16 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: RR(-1/3).hex()
+            sage: hex(RR(-1/3))
             '-0x5.5555555555554p-4'
-            sage: Reals(100)(123.456e789).hex()
+            sage: hex(Reals(100)(123.456e789))
             '0xf.721008e90630c8da88f44dd2p+2624'
-            sage: (-0.).hex()
+            sage: hex((-0.))
             '-0x0p+0'
 
         ::
 
-            sage: [(a.hex(), float(a).hex()) for a in [.5, 1., 2., 16.]]
+            sage: [(hex(a), float(a).hex()) for a in [.5, 1., 2., 16.]]
             [('0x8p-4', '0x1.0000000000000p-1'),
             ('0x1p+0', '0x1.0000000000000p+0'),
             ('0x2p+0', '0x1.0000000000000p+1'),
@@ -2031,7 +2031,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         Special values::
 
-            sage: [RR(s).hex() for s in ['+inf', '-inf', 'nan']]
+            sage: [hex(RR(s)) for s in ['+inf', '-inf', 'nan']]
             ['inf', '-inf', 'nan']
         """
         cdef char *s
@@ -2044,8 +2044,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
         t = str(s)
         mpfr_free_str(s)
         return t
-
-    hex = __hex__
 
     def __copy__(self):
         """

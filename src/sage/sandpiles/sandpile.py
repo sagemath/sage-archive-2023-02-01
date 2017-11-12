@@ -313,7 +313,7 @@ Working with sandpile divisors::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, division
 from six.moves import zip, range
 
 from collections import Counter
@@ -2240,7 +2240,7 @@ class Sandpile(DiGraph):
             else:
                 raise SyntaxError(state)
         if distrib is None:  # default = uniform distribution
-            distrib = [1/n]*n
+            distrib = [QQ.one() / n] * n
         X = GeneralDiscreteDistribution(distrib)
         if isinstance(st,SandpileConfig):
             while True:
@@ -2276,9 +2276,9 @@ class Sandpile(DiGraph):
             sage: '_stationary_density' in s.__dict__
             True
         """
-        if self.name()=='Complete sandpile graph':
+        if self.name() == 'Complete sandpile graph':
             n = Integer(self.num_verts())
-            self._stationary_density =  (n + 1/n + sum([falling_factorial(n,i)/n**i for i in range(1,n+1)]) - 3)/2
+            self._stationary_density =  (n + QQ.one() / n + sum(falling_factorial(n,i)/n**i for i in range(1,n+1)) - 3)/2
         elif self.is_undirected() and '_h_vector' not in self.__dict__:
             t = Graph(self).tutte_polynomial().subs(x=1)
             myR = PolynomialRing(QQ,'y')
@@ -3795,7 +3795,7 @@ class SandpileConfig(dict):
         ind = self._sandpile._sink_ind
         n = self._sandpile.num_verts()
         if distrib is None:  # default = uniform distribution on nonsink vertices
-            distrib = [1/(n-1)]*(n-1)
+            distrib = [QQ.one() / (n - 1)] * (n - 1)
         if len(distrib)==n-1: # prob. dist. on nonsink vertices
             X = GeneralDiscreteDistribution(distrib)
             V = self._sandpile.nonsink_vertices()
@@ -5118,7 +5118,7 @@ class SandpileDivisor(dict):
         V = S.vertices()
         n = S.num_verts()
         if distrib is None:  # default = uniform distribution
-            distrib = [1/n]*n
+            distrib = [QQ.one() / n] * n
         X = GeneralDiscreteDistribution(distrib)
         while not E.is_alive():
             E = E.stabilize()
@@ -5922,7 +5922,7 @@ class SandpileDivisor(dict):
         V = S.vertices()
         if distrib is None:  # default = uniform distribution
             n = S.num_verts()
-            distrib = [1/n]*n
+            distrib = [QQ.one() / n] * n
         X = GeneralDiscreteDistribution(distrib)
         i = X.get_random_element()
         D[V[i]] += 1

@@ -2265,7 +2265,7 @@ class FiniteWord_class(Word_class):
         - ``x``, ``y`` -- positions in ``self``
 
         EXAMPLES::
-            
+
             sage: w = Word('0011001')
             sage: w.longest_backward_extension(6, 2)
             3
@@ -4766,12 +4766,12 @@ class FiniteWord_class(Word_class):
         Return the Crochemore factorization of ``self`` as an ordered list of
         factors.
 
-        The *Crochemore factorization* of a finite word `w` is the unique
-        factorization: `(x_1, x_2, \ldots, x_n)` of `w` with each `x_i`
-        satisfying either:
-        C1. `x_i` is a letter that does not appear in `u = x_1\ldots x_{i-1}`;
-        C2. `x_i` is the longest prefix of `v = x_i\ldots x_n` that also
-        has an occurrence beginning within `u = x_1\ldots x_{i-1}`. See [1].
+        The *Crochemore factorization* or the *Lempel-Ziv decomposition* of a
+        finite word `w` is the unique factorization: `(x_1, x_2, \ldots, x_n)`
+        of `w` with each `x_i` satisfying either: C1. `x_i` is a letter that
+        does not appear in `u = x_1\ldots x_{i-1}`; C2. `x_i` is the longest
+        prefix of `v = x_i\ldots x_n` that also has an occurrence beginning
+        within `u = x_1\ldots x_{i-1}`. See [1].
 
         EXAMPLES::
 
@@ -4801,16 +4801,7 @@ class FiniteWord_class(Word_class):
         c = Factorization([self[cuts[i]:cuts[i+1]] for i in range(len(cuts)-1)])
         return c
 
-    def LZ_decomposition(self):
-        r"""
-        Alias for ``crochemore_factorization``
-
-        EXAMPLES::
-
-            sage: Word('aabbaa').LZ_decomposition()
-            (a, a, b, b, aa)
-        """
-        return self.crochemore_factorization()
+    LZ_decomposition = crochemore_factorization
 
     def evaluation_dict(self):
         r"""
@@ -7039,16 +7030,16 @@ class FiniteWord_class(Word_class):
         r"""
         Return ``True`` if ``self`` is a Christoffel word, and ``False`` otherwise.
 
-        The *Christoffel word* of slope `p/q` is obtained from the Cayley 
-        graph of `\ZZ/(p+q)\ZZ` with generator `q` as follows. If `u 
-        \rightarrow v` is an edge in the Cayley graph, then, `v = u + p 
-        \mod{p+q}`. Let `a`,`b` be the alphabet of `w`. Label the edge 
-        `u \rightarrow v` by `a` if `u < v` and `b` otherwise. The Christoffel 
-        word is the word obtained by reading the edge labels along the cycle 
+        The *Christoffel word* of slope `p/q` is obtained from the Cayley
+        graph of `\ZZ/(p+q)\ZZ` with generator `q` as follows. If `u
+        \rightarrow v` is an edge in the Cayley graph, then, `v = u + p
+        \mod{p+q}`. Let `a`,`b` be the alphabet of `w`. Label the edge
+        `u \rightarrow v` by `a` if `u < v` and `b` otherwise. The Christoffel
+        word is the word obtained by reading the edge labels along the cycle
         beginning from `0`.
 
-        Equivalently, `w` is a Christoffel word iff `w` is a symmetric 
-        non-empty word and `w[1:n-1]` is a palindrome. 
+        Equivalently, `w` is a Christoffel word iff `w` is a symmetric
+        non-empty word and `w[1:n-1]` is a palindrome.
 
         See for instance [1]_ and [2]_.
 
@@ -7058,7 +7049,7 @@ class FiniteWord_class(Word_class):
 
         OUTPUT:
 
-        boolean -- ``True`` if ``self`` is a Christoffel word, 
+        boolean -- ``True`` if ``self`` is a Christoffel word,
         ``False`` otherwise.
 
         EXAMPLES::
@@ -7089,11 +7080,11 @@ class FiniteWord_class(Word_class):
 
         .. [1]  Jean Berstel. Sturmian and episturmian words (a survey of
             some recent results). In S. Bozapalidis and G. Rahonis, editors,
-            CAI 2007,volume 4728 of Lecture Notes in Computer Science, 
+            CAI 2007,volume 4728 of Lecture Notes in Computer Science,
             pages 23-47. Springer-Verlag, 2007.
         .. [2] \J. Berstel, A. Lauve, C. R., F. Saliola, Combinatorics on
-            words: Christoffel words and repetitions in words, CRM Monograph 
-            Series, 27. American Mathematical Society, Providence, RI, 2009. 
+            words: Christoffel words and repetitions in words, CRM Monograph
+            Series, 27. American Mathematical Society, Providence, RI, 2009.
             xii+147 pp. ISBN: 978-0-8218-4480-9
 
         """

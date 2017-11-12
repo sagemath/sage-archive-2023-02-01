@@ -1225,14 +1225,10 @@ cdef class FiniteField(Field):
                     pass
         else:
             E = Field.extension(self, modulus, name=name, embedding=embedding)
-        if not map:
+        if map:
+            return (E, E.coerce_map_from(self))
+        else:
             return E
-        # Use the canonical map if it exists.
-        f = E.coerce_map_from(self)
-        if f is None:
-            from sage.categories.homset import Hom
-            f = Hom(self, E).an_element()
-        return (E, f)
 
     def subfields(self, degree=0, name=None):
         """

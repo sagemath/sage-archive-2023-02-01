@@ -5589,6 +5589,22 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             [-1, -1/2*t^5 + 1/2*t^4 + 3*t^3 - 3/2*t^2 - 4*t - 1/2, t, 1/2*t^5 + 1/2*t^4 - 4*t^3 - 5/2*t^2 + 7*t + 1/2, 1/2*t^5 - 1/2*t^4 - 2*t^3 + 3/2*t^2 - 1/2, 1/2*t^5 - 1/2*t^4 - 3*t^3 + 5/2*t^2 + 4*t - 5/2]
             sage: CyclotomicField(12).reduced_basis()
             [1, zeta12^2, zeta12, zeta12^3]
+
+        TESTS:
+
+        See (:trac:`10017`)::
+
+            sage: x = polygen(QQ)
+            sage: k = NumberField(x^6 + 2218926655879913714112*x^4 - 32507675650290949030789018433536*x^3 + 4923635504174417014460581055002374467948544*x^2 - 3666074010564497464129951249279114076897746988630016*x + 264187244046129768986806800244258952598300346857154900812365824,'a')
+            sage: new_basis = k.reduced_basis()
+            sage: [c.minpoly() for c in new_basis]
+            [x - 1,
+             x^6 + 3*x^5 + 258*x^4 + 511*x^3 + 3564*x^2 + 3309*x + 2347,
+             x^6 - 24*x^5 + 6126*x^4 - 312664*x^3 + 5407566*x^2 - 33643572*x + 95921443,
+             x^6 + 18*x^5 + 3366*x^4 + 82008*x^3 + 886962*x^2 - 840726*x + 5521647,
+             x^6 + 27*x^5 + 9579*x^4 + 623358*x^3 + 5060091*x^2 - 139224285*x + 880944177,
+             x^6 - 72*x^5 + 65286*x^4 - 10762768*x^3 + 473072922*x^2 - 2502686322*x + 54227921641]
+
         """
         if self.is_totally_real():
             try:
@@ -5619,7 +5635,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         else:
             M = self.Minkowski_embedding(self.integral_basis(), prec=prec)
             T = pari(M).qflll().sage()
-            self.__reduced_basis = [ self(v.list()) for v in T.columns() ]
+            ZK = self.ring_of_integers()
+            self.__reduced_basis = [ ZK(v.list()) for v in T.columns() ]
             if prec is None:
                 ## this is the default choice for Minkowski_embedding
                 self.__reduced_basis_prec = 53

@@ -7954,6 +7954,7 @@ _additional_categories = {
     "pathwidth"                 : "Algorithmically hard stuff",
     "matching_polynomial"       : "Algorithmically hard stuff",
     "all_max_cliques"           : "Clique-related methods",
+    "cliques_maximum"           : "Clique-related methods",
     "random_spanning_tree"      : "Connectivity, orientations, trees",
     "is_cartesian_product"      : "Graph properties",
     "is_distance_regular"       : "Graph properties",

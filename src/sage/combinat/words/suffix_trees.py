@@ -1306,18 +1306,18 @@ class ImplicitSuffixTree(SageObject):
             ('implicit', (9, 10), 2)
             sage: T._count_and_skip(0, (1, 4))
             ('explicit', 7)
+            sage: T._count_and_skip(0, (8, 10))
+            ('implicit', (2, 7), 1)
         """
-        if i == j: #We're done reading the factor
-            return ('explicit', node)
-        transition = self._find_transition(node, self._letters[i])
-        child = transition[1]
-        if transition[0][1] == None: #The child is a leaf
-            edge_length = len(self.word()) - transition[0][0] + 1
-        else:
-            edge_length = transition[0][1] - transition[0][0] + 1
-        if edge_length > j - i: #The reading stop on this edge
-            return ('implicit', (node, child), j - i)
-        return self._count_and_skip(child, (i + edge_length, j))
+        trans = self._find_transition(node, self._letters[i])
+        while (trans[0][1] != None and trans[0][1] - trans[0][0] + 1 <= j - i):
+            node = trans[1]
+            i += trans[0][1] - trans[0][0] + 1
+            if i == j:
+                return ('explicit', node)
+            else:
+                trans = self._find_transition(node, self._letters[i])
+        return ('implicit', (node, trans[1]), j - i)
 
     def suffix_walk(self, (edge, l)):
         r"""

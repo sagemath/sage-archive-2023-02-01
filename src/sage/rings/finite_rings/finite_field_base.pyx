@@ -1214,8 +1214,12 @@ cdef class FiniteField(Field):
                     E = Field.extension(self, modulus, name=name, embedding=embedding)
         elif isinstance(modulus, (int, Integer)):
             E = GF(self.order()**modulus, name=name, **kwds)
-            if not (hasattr(E, '_prefix') and hasattr(self, '_prefix')):
-                try: # to register a coercion (embedding of self to E)
+            if E is self:
+                pass # coercion map (identity map) is automatically found
+            elif hasattr(E, '_prefix') and hasattr(self, '_prefix'):
+                pass # coercion map is automatically found
+            else:
+                try: # to register a coercion map (embedding of self to E)
                     if self.is_conway(): # and E is Conway
                         alpha = E.gen()**((E.order()-1)//(self.order()-1))
                     else:

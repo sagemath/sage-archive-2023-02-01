@@ -1219,11 +1219,11 @@ cdef class FiniteField(Field):
             elif hasattr(E, '_prefix') and hasattr(self, '_prefix'):
                 pass # coercion map is automatically found
             else:
+                if self.is_conway(): # and E is Conway
+                    alpha = E.gen()**((E.order()-1)//(self.order()-1))
+                else:
+                    alpha = self.modulus().roots(E)[0][0]
                 try: # to register a coercion map (embedding of self to E)
-                    if self.is_conway(): # and E is Conway
-                        alpha = E.gen()**((E.order()-1)//(self.order()-1))
-                    else:
-                        alpha = self.modulus().roots(E)[0][0]
                     E.register_coercion(self.hom([alpha], codomain=E, check=False))
                 except AssertionError: # coercion already exists
                     pass

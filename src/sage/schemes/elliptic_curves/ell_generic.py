@@ -881,7 +881,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             if all:
                 return []
             else:
-                raise ValueError("No point with x-coordinate {} on {}"%(x, self))
+                raise ValueError("No point with x-coordinate {} on {}".format(x, self))
 
         # Now make the extension needed to contain the y-coordinates:
 

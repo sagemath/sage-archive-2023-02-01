@@ -683,30 +683,28 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
 
         INPUT:
 
-        - ``x`` -- an element of the base ring of the curve.
+        - ``x`` -- an element of the base ring of the curve, or of an extension.
 
         - ``all`` (bool, default False) -- if True, return a (possibly
           empty) list of all points; if False, return just one point,
           or raise a ValueError if there are none.
 
-        - ``extend`` (bool or string, default False) --
+        - ``extend`` (bool, default False) --
 
-          - if ``False``, we require `x` to be convertible into the
-            base ring.
+          - if ``False``, extend the base if necessary and possible to
+            include `x`, and only return point(s) defined over this
+            ring, or raise an error when there are none with this
+            `x`-coordinate;
 
-          - If 'y', then we still require `x` to be convertible into
-            the base_ring, but if the associated `y`-coordinates are
-            not, then the point(s) returned will have as parent the
-            curve base-extended to a quadratic extension.
+          - If ``True``, the base ring will be extended if necessary
+            to contain the `y`-coordinates of the point(s) with this
+            `x`-coordinate, in addition to a possible base change to
+            include `x`.
 
-          - If 'x', then we do not require `x` to be convertible into
-            the base_ring, only that the curve can be base-extended to
-            the parent of `x`.
+        OUTPUT:
 
-          - If 'xy', then the base will extended first to include `x`,
-            if necessary and possible, and then to include the
-            `y`-coordinates, and the point(s) returned will have as
-            parent the base-extended-curve.
+        A point or list of up to 2 points on this curve, or a
+        base-change of this curve to a larger ring.
 
         .. note::
 
@@ -730,9 +728,12 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             ...
             ValueError: No point with x-coordinate 3 on Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
 
-        We can use the ``extend`` parameter to make the necessary quadratic extension::
+        We can use the ``extend`` parameter to make the necessary
+        quadratic extension.  Note that in such cases the returned
+        point is a point on a new curve object, the result of changing
+        the base ring to the parent of `x`::
 
-            sage: P = E.lift_x(3, extend='y'); P
+            sage: P = E.lift_x(3, extend=True); P
             (3 : y : 1)
             sage: P.curve()
             Elliptic Curve defined by y^2 + y = x^3 + (-1)*x over Number Field in y with defining polynomial y^2 + y - 24
@@ -753,12 +754,12 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
 
         In this example we start with a curve defined over `\QQ`
         which has no rational points with `x=0`, but using
-        ``extend = 'y'`` we can construct such a point over a quadratic
+        ``extend = True`` we can construct such a point over a quadratic
         field::
 
             sage: E = EllipticCurve([0,0,0,0,2]); E
             Elliptic Curve defined by y^2 = x^3 + 2 over Rational Field
-            sage: P = E.lift_x(0, extend='y'); P
+            sage: P = E.lift_x(0, extend=True); P
             (0 : y : 1)
             sage: P.curve()
             Elliptic Curve defined by y^2 = x^3 + 2 over Number Field in y with defining polynomial y^2 - 2
@@ -782,16 +783,16 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             [(10 : 8 : 1)]
 
         We can lift over more exotic rings too. If the supplied x
-        value is in an extension of the base, use ``extend='x'``, and
-        note that the point returned is on the base-extended curve::
+        value is in an extension of the base, note that the point
+        returned is on the base-extended curve::
 
             sage: E = EllipticCurve('37a')
-            sage: P = E.lift_x(pAdicField(17, 5)(6), extend='x'); P
+            sage: P = E.lift_x(pAdicField(17, 5)(6)); P
             (6 + O(17^5) : 2 + 16*17 + 16*17^2 + 16*17^3 + 16*17^4 + O(17^5) : 1 + O(17^5))
             sage: P.curve()
             Elliptic Curve defined by y^2 + (1+O(17^5))*y = x^3 + (16+16*17+16*17^2+16*17^3+16*17^4+O(17^5))*x over 17-adic Field with capped relative precision 5
             sage: K.<t> = PowerSeriesRing(QQ, 't', 5)
-            sage: P = E.lift_x(1+t, extend='x'); P
+            sage: P = E.lift_x(1+t); P
             (1 + t : 2*t - t^2 + 5*t^3 - 21*t^4 + O(t^5) : 1)
             sage: K.<a> = GF(16)
             sage: P = E.change_ring(K).lift_x(a^3); P
@@ -799,12 +800,12 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: P.curve()
             Elliptic Curve defined by y^2 + y = x^3 + x over Finite Field in a of size 2^4
 
-        Finally we can extend the field of definition both to include the supplied `x` value and also the associated `y` value(s)::
+        We can extend the base field to include the associated `y` value(s)::
 
             sage: E = EllipticCurve([0,0,0,0,2]); E
             Elliptic Curve defined by y^2 = x^3 + 2 over Rational Field
             sage: x = polygen(QQ)
-            sage: P = E.lift_x(x, extend='xy'); P
+            sage: P = E.lift_x(x, extend=True); P
             (x : y : 1)
 
         This point is a generic point on E::
@@ -834,31 +835,18 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
         L = x.parent()
         E = self
 
-        # Check that the x-coordinate is in K and extend otherwise if this has been requested:
+        # Check that the x-coordinate is in K and extend otherwise if possible:
         phi =  K.coerce_map_from(L)
         if phi:
             x = phi(x)
-            L = K
+            L = K # new parent of x
         else:
-            if extend in [False, 'y']:
-                raise TypeError("no coercion exists from {} to {}, and neither extend='x' nor extend='xy' was specified".format(L,K))
+            if L.coerce_map_from(K):
+                E = E.change_ring(L)
+                L = E.base_ring()
+                x = L(x)
             else:
-                if L.coerce_map_from(K):
-                    E = E.change_ring(L)
-                    L = E.base_ring()
-                    x = L(x)
-                else:
-                    try:
-                        from sage.categories.pushout import pushout
-                        from sage.structure.coerce_exceptions import CoercionException
-                        M = pushout(K,L)
-                        eKM = M.coerce_map_from(K)
-                        eLM = M.coerce_map_from(L)
-                        E = E.change_ring(eKM)
-                        x = eLM(x)
-                        L = M
-                    except CoercionException:
-                        raise TypeError("Unable to construct a pushout of {} and {}".format(K,L))
+                raise TypeError("Unable to construct a point with x in {} over {}".format(L,K))
 
         # Now E is defined over L, possibly an extension of K, and x is in L
 
@@ -889,11 +877,11 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
 
         # otherwise if the additional extension was not requested return the empty list or raise an error:
 
-        if not extend in ['y','xy']:
+        if not extend:
             if all:
                 return []
             else:
-                raise ValueError("No point with x-coordinate %s on %s"%(x, self))
+                raise ValueError("No point with x-coordinate {} on {}"%(x, self))
 
         # Now make the extension needed to contain the y-coordinates:
 

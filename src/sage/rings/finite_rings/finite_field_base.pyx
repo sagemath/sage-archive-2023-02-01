@@ -37,6 +37,7 @@ from sage.structure.sage_object import register_unpickle_override
 from sage.misc.cachefunc import cached_method
 from sage.misc.prandom import randrange
 
+
 # Copied from sage.misc.fast_methods, used in __hash__() below.
 cdef int SIZEOF_VOID_P_SHIFT = 8*sizeof(void *) - 4
 
@@ -999,6 +1000,109 @@ cdef class FiniteField(Field):
             V = sage.modules.all.VectorSpace(self.prime_subfield(),self.degree())
             self.__vector_space = V
             return V
+
+    def vector_space_over(self, subfield, basis=None):
+        """
+        Return the vector space over the subfield isomorphic to this
+        finite field as a vector space, along with the isomorphisms.
+
+        INPUT:
+
+        - ``subfield`` -- a subfield of the finite field
+
+        - ``basis`` -- a basis of the finite field as a vector space
+          over the subfield. If not given, one is chosen automatically.
+
+        The ``basis`` maps to the standard basis of the vector space
+        by the isomorphism.
+
+        OUTPUT:
+
+        - vector space over the subfield, isomorphic to the finite field
+
+        - an isomorphism from the vector space to the finite field
+
+        - the inverse isomorphism to the vector space from the finite field
+
+        EXAMPLES::
+
+            sage: E = GF(16)
+            sage: F = GF(4)
+            sage: V, from_V, to_V = E.vector_space_over(F)
+            sage: V
+            Vector space of dimension 2 over Finite Field in z2 of size 2^2
+            sage: to_V(E.gen())
+            (0, 1)
+            sage: all(from_V(to_V(e)) == e for e in E)
+            True
+            sage: all(to_V(e1 + e2) == to_V(e1) + to_V(e2) for e1 in E for e2 in E)
+            True
+            sage: all(to_V(c * e) == c * to_V(e) for e in E for c in F)
+            True
+
+            sage: basis = [E.gen(), E.gen() + 1]
+            sage: W, from_W, to_W = E.vector_space_over(F, basis)
+            sage: all(from_W(to_W(e)) == e for e in E)
+            True
+            sage: all(to_W(c * e) == c * to_W(e) for e in E for c in F)
+            True
+            sage: all(to_W(e1 + e2) == to_W(e1) + to_W(e2) for e1 in E for e2 in E)
+            True
+            sage: to_W(basis[0]); to_W(basis[1])
+            (1, 0)
+            (0, 1)
+
+        """
+        if not subfield.is_subring(self):
+            raise ValueError("{} is not a subfield".format(subfield))
+
+        from sage.modules.all import vector
+        from sage.matrix.all import matrix
+        from .maps_finite_field import (
+            MorphismVectorSpaceToFiniteField, MorphismFiniteFieldToVectorSpace)
+
+        E = self
+        F = subfield
+
+        alpha = E.gen()
+        beta = F.gen()
+
+        s = E.degree() // F.degree()
+
+        if basis is None:
+            basis = [alpha**i for i in range(s)] # of E over F
+
+        F_basis = [beta**i for i in range(F.degree())]
+
+        # E_basis_alpha is the implicit basis of E over the prime subfield
+        E_basis_beta = [F_basis[i] * basis[j] for j in range(s) for i in range(F.degree())]
+
+        C = matrix([E_basis_beta[i]._vector_() for i in range(E.degree())])
+        Cinv = C.inverse()
+
+        def to_V(e):
+            w = e._vector_() * Cinv
+            if F.degree() > 1:
+                return vector(F, [F(w[i*F.degree():(i+1)*F.degree()]) for i in range(s)])
+            else:
+                return w
+
+        def from_V(v):
+            w = []
+            for i in range(s):
+                w.extend(v[i]._vector_())
+            w = vector(w)
+            e = w * C
+            if E.degree() > 1:
+                return E(e)
+            else:
+                return e[0]
+
+        V = F**s
+        phi = MorphismVectorSpaceToFiniteField(V, self, from_V)
+        psi = MorphismFiniteFieldToVectorSpace(self, V, to_V)
+
+        return V, phi, psi
 
     cpdef _coerce_map_from_(self, R):
         r"""

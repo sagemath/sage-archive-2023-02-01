@@ -36,8 +36,8 @@ extensions can only be approximated::
 
     sage: v = K.valuation(1)
     sage: w = v.extensions(L); w
-    [[ (x - 1)-adic valuation, v(y - 1) = 1 ]-adic valuation,
-     [ (x - 1)-adic valuation, v(y + 1) = 1 ]-adic valuation]
+    [[ (x - 1)-adic valuation, v(y + 1) = 1 ]-adic valuation,
+     [ (x - 1)-adic valuation, v(y - 1) = 1 ]-adic valuation]
 
 The same phenomenon can be observed for valuations on number fields::
 

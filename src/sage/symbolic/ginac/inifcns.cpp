@@ -38,6 +38,7 @@
 
 #include <vector>
 #include <stdexcept>
+#include <string>
 #include <sstream>
 
 namespace GiNaC {
@@ -865,4 +866,32 @@ REGISTER_FUNCTION(cases, eval_func(cases_eval).
                        conjugate_func(cases_conjugate).
                        real_part_func(cases_real_part).
                        imag_part_func(cases_imag_part));
+
+static std::string ex_to_str(const ex& e) {
+        std::stringstream tstream;
+        print_context c(tstream);
+        e.print(c);
+        return tstream.str();
+}
+
+static ex set_of_all_eval(const ex& arg1, const ex& arg2)
+{
+        if (is_exactly_a<function>(arg2)) {
+                std::string name = ex_to<function>(arg2).get_name();
+                if (not (name == "element_of"))
+                        throw std::runtime_error(std::string("not a set membership statement: ") + ex_to_str(arg2));
+                return set_of_all(arg1, arg2).hold();
+        }
+        if (not is_exactly_a<exprseq>(arg2))
+                throw std::runtime_error(std::string("not a set membership statement: ") + ex_to_str(arg2));
+        for (auto item : arg2) {
+                if (not is_exactly_a<function>(item)
+                    or not (ex_to<function>(item).get_name() == "element_of"))
+                        throw std::runtime_error(std::string("not a set membership statement: ") + ex_to_str(item));
+        }
+        return set_of_all(arg1, arg2).hold();
+}
+
+REGISTER_FUNCTION(set_of_all, eval_func(set_of_all_eval));
+
 } // namespace GiNaC

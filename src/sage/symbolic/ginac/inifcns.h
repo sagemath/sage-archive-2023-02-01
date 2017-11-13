@@ -251,6 +251,9 @@ DECLARE_FUNCTION_1P(Order)
 /** Formal piecewise function */
 DECLARE_FUNCTION_1P(cases)
 
+/** Formal set-of-all function */
+DECLARE_FUNCTION_2P(set_of_all)
+
 ex lsolve(const ex &eqns, const ex &symbols, unsigned options = solve_algo::automatic);
 
 /** Find a real root of real-valued function f(x) numerically within a given

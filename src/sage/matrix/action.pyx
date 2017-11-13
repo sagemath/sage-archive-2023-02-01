@@ -148,14 +148,16 @@ cdef class MatrixMatrixAction(MatrixMulAction):
             sage: M3 = MatrixSpace(ZZ, 2, sparse=True)
             sage: M = [M1, M2, M3]
 
+            sage: coercions = ''
             sage: for i in range(3):
             ....:     for j in range(3):
             ....:         try:
             ....:             s = M[i].an_element() * M[j].an_element()
-            ....:             print('X', end='')
+            ....:             coercions += 'X'
             ....:         except TypeError:
-            ....:             print(' ', end='')
-            ....:     print()
+            ....:             coercions += ' '
+            ....:     coercions += '\n'
+            sage: print(coercions)
             X X
              X
             X X

@@ -1007,11 +1007,15 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: M2 = MatrixSpace(ZZ, 3, implementation='generic')
             sage: M3 = MatrixSpace(ZZ, 3, sparse=True)
             sage: M = [M1, M2, M3]
+            sage: mult = ''
             sage: for i in range(3):
             ....:     for j in range(3):
-            ....:         if M[i].has_coerce_map_from(M[j]): print('X', end='')
-            ....:         else: print(' ', end='')
-            ....:     print()
+            ....:         if M[i].has_coerce_map_from(M[j]):
+            ....:             mult += 'X'
+            ....:         else:
+            ....:             mult += ' '
+            ....:     mult += '\n'
+            sage: print(mult)
             X X
              X
               X

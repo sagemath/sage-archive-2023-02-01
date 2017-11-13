@@ -667,7 +667,7 @@ ex add::lead_coeff() const {
 ex add::combine_fractions() const
 {
         epvector rseq;
-        exmap map;
+        exmap fmap;
         ex oc = overall_coeff;
         for (const auto& pair : seq) {
                 const ex &e = recombine_pair_to_ex(pair);
@@ -675,11 +675,11 @@ ex add::combine_fractions() const
                         const power& p = ex_to<power>(e);
                         const ex& eexp = p.op(1);
                         if (eexp.info(info_flags::negative)) {
-                                auto it = map.find(p);
-                                if (it != map.end())
+                                auto it = fmap.find(p);
+                                if (it != fmap.end())
                                         it->second += _ex1;
                                 else
-                                        map[p] = _ex1;
+                                        fmap[p] = _ex1;
                         }
                         else
                                 rseq.push_back(pair);
@@ -695,13 +695,13 @@ ex add::combine_fractions() const
                         }
                         if (not denseq.empty()) {
                                 mul den(denseq);
-                                auto it = map.find(den);
-                                mul coeff(coseq, ex_to<numeric>(pair.coeff));
-                                if (it != map.end()) {
-                                        it->second += coeff;
+                                auto it = fmap.find(den);
+                                mul tcoeff(coseq, ex_to<numeric>(pair.coeff));
+                                if (it != fmap.end()) {
+                                        it->second += tcoeff;
                                 }
                                 else
-                                        map[den] = coeff;
+                                        fmap[den] = tcoeff;
                         }
                         else
                                 rseq.push_back(pair);
@@ -709,7 +709,7 @@ ex add::combine_fractions() const
                 else
                         rseq.push_back(pair);
         }
-        for (const auto& t : map)
+        for (const auto& t : fmap)
                 rseq.push_back(split_ex_to_pair(mul(t.first, t.second)));
         add rex(rseq);
         return add(rex, oc);

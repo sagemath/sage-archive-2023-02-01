@@ -187,7 +187,7 @@ static void transform_powers(power_ocvector_map& pomap)
 }
 
 // Convert to Singular polynomial over QQ, filling replacement dicts
-const CanonicalForm ex::to_canonical(ex_int_map& map,
+const CanonicalForm ex::to_canonical(ex_int_map& amap,
                 power_ocvector_map& pomap,
                 exvector& revmap) const
 {
@@ -196,23 +196,23 @@ const CanonicalForm ex::to_canonical(ex_int_map& map,
                 const add& a = ex_to<add>(*this);
                 CanonicalForm p(0);
                 for (const auto& termex : a.seq) {
-                        p = p + a.recombine_pair_to_ex(termex).to_canonical(map, pomap, revmap);
+                        p = p + a.recombine_pair_to_ex(termex).to_canonical(amap, pomap, revmap);
                 }
-                p = p + num2canonical(a.overall_coeff, map, revmap);
+                p = p + num2canonical(a.overall_coeff, amap, revmap);
                 return p;
         }
         else if (is_exactly_a<numeric>(*this))
         {
-                return num2canonical(ex_to<numeric>(*this), map, revmap);
+                return num2canonical(ex_to<numeric>(*this), amap, revmap);
         }
         else if (is_exactly_a<mul>(*this))
         {
                 const mul& m = ex_to<mul>(*this);
-                CanonicalForm p = num2canonical(*_num1_p, map, revmap);
+                CanonicalForm p = num2canonical(*_num1_p, amap, revmap);
                 for (const auto& termex : m.seq) {
-                        p = p * m.recombine_pair_to_ex(termex).to_canonical(map, pomap, revmap);
+                        p = p * m.recombine_pair_to_ex(termex).to_canonical(amap, pomap, revmap);
                 }
-                CanonicalForm oc = num2canonical(m.overall_coeff, map, revmap);
+                CanonicalForm oc = num2canonical(m.overall_coeff, amap, revmap);
                 p = p * oc;
                 return p;
         }
@@ -225,7 +225,7 @@ const CanonicalForm ex::to_canonical(ex_int_map& map,
                                 CanonicalForm var;
                                 power_ocvector_map::iterator it;
                                 numeric n;
-                                var = replace_with_symbol(pow.basis, map, revmap);
+                                var = replace_with_symbol(pow.basis, amap, revmap);
                                 it = pomap.find(pow.basis);
                                 if (it == pomap.end())
                                         throw std::runtime_error("can't happen in ex::to_canonical");
@@ -257,7 +257,7 @@ const CanonicalForm ex::to_canonical(ex_int_map& map,
                         if (it == pomap.end())
                                 throw std::runtime_error("can't happen in ex::to_canonical");
                         CanonicalForm var = replace_with_symbol(it->first,
-                                                            map, revmap);
+                                                            amap, revmap);
                         numeric n = oc.div(it->second[0]);
                         ex b = it->first.subs(symbol_E == exp(1));
                         revmap[var.level()-1] = GiNaC::power(b, it->second[0]);
@@ -268,10 +268,10 @@ const CanonicalForm ex::to_canonical(ex_int_map& map,
                                 throw std::runtime_error("exponent too big");
                         }
                 }
-                return replace_with_symbol(*this, map, revmap);
+                return replace_with_symbol(*this, amap, revmap);
         }
 
-        return replace_with_symbol(*this, map, revmap);
+        return replace_with_symbol(*this, amap, revmap);
 }
 
 static numeric can2num(const CanonicalForm& f)

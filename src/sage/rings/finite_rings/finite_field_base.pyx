@@ -983,52 +983,42 @@ cdef class FiniteField(Field):
             else:
                 return PolynomialRing(GF(self.characteristic()), variable_name)
 
-    def vector_space(self):
-        """
-        Return the vector space over the prime subfield isomorphic
-        to this finite field as a vector space.
-
-        EXAMPLES::
-
-            sage: GF(27,'a').vector_space()
-            Vector space of dimension 3 over Finite Field of size 3
-        """
-        if self.__vector_space is not None:
-            return self.__vector_space
-        else:
-            import sage.modules.all
-            V = sage.modules.all.VectorSpace(self.prime_subfield(),self.degree())
-            self.__vector_space = V
-            return V
-
-    def vector_space_over(self, subfield, basis=None):
+    def vector_space(self, subfield=None, basis=None, map=False):
         """
         Return the vector space over the subfield isomorphic to this
         finite field as a vector space, along with the isomorphisms.
 
         INPUT:
 
-        - ``subfield`` -- a subfield of the finite field
+        - ``subfield`` -- a subfield of the finite field. If not given,
+          the prime subfield is assumed.
 
         - ``basis`` -- a basis of the finite field as a vector space
           over the subfield. If not given, one is chosen automatically.
 
-        The ``basis`` maps to the standard basis of the vector space
-        by the isomorphism.
+        - ``map`` -- boolean (default: ``False``); if ``True``, isomophisms
+          from and to the vector space are also returned.
 
-        OUTPUT:
+        The ``basis`` maps to the standard basis of the vector space
+        by the isomorphisms.
+
+        OUTPUT: if ``map`` is ``False``,
 
         - vector space over the subfield, isomorphic to the finite field
 
-        - an isomorphism from the vector space to the finite field
+        and if ``map`` is ``True``, then also
+
+        - an isomorphism fromhe vector space to the finite field
 
         - the inverse isomorphism to the vector space from the finite field
 
         EXAMPLES::
 
+            sage: GF(27,'a').vector_space()
+            Vector space of dimension 3 over Finite Field of size 3
             sage: E = GF(16)
             sage: F = GF(4)
-            sage: V, from_V, to_V = E.vector_space_over(F)
+            sage: V, from_V, to_V = E.vector_space(F, map=True)
             sage: V
             Vector space of dimension 2 over Finite Field in z2 of size 2^2
             sage: to_V(E.gen())
@@ -1041,7 +1031,7 @@ cdef class FiniteField(Field):
             True
 
             sage: basis = [E.gen(), E.gen() + 1]
-            sage: W, from_W, to_W = E.vector_space_over(F, basis)
+            sage: W, from_W, to_W = E.vector_space(F, basis, map=True)
             sage: all(from_W(to_W(e)) == e for e in E)
             True
             sage: all(to_W(c * e) == c * to_W(e) for e in E for c in F)
@@ -1053,8 +1043,22 @@ cdef class FiniteField(Field):
             (0, 1)
 
         """
-        if not subfield.is_subring(self):
+        from sage.modules.all import VectorSpace
+
+        if subfield is None:
+            subfield = self.prime_subfield()
+            s = self.degree()
+            if self.__vector_space is None:
+                self.__vector_space = VectorSpace(subfield, s)
+            V = self.__vector_space
+        elif subfield.is_subring(self):
+            s = self.degree() // subfield.degree()
+            V = VectorSpace(subfield, s)
+        else:
             raise ValueError("{} is not a subfield".format(subfield))
+
+        if map is False: # shortcut
+            return V
 
         from sage.modules.all import vector
         from sage.matrix.all import matrix
@@ -1066,8 +1070,6 @@ cdef class FiniteField(Field):
 
         alpha = E.gen()
         beta = F.gen()
-
-        s = E.degree() // F.degree()
 
         if basis is None:
             basis = [alpha**i for i in range(s)] # of E over F
@@ -1098,7 +1100,6 @@ cdef class FiniteField(Field):
             else:
                 return e[0]
 
-        V = F**s
         phi = MorphismVectorSpaceToFiniteField(V, self, from_V)
         psi = MorphismFiniteFieldToVectorSpace(self, V, to_V)
 

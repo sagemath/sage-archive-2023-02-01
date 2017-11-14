@@ -738,9 +738,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         constants = []
         for c in self._PPL().minimized_constraints():
             if c.is_inequality():
-                n = N.zero_vector()
-                for i, coef in enumerate(c.coefficients()):
-                    n[i] = coef
+                n = N.element_class(N, c.coefficients())
                 n.set_immutable()
                 normals.append(n)
                 constants.append(c.inhomogeneous_term())
@@ -3678,6 +3676,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         """
         if not hasattr(self, "_points"):
             M = self.lattice()
+            nv = self.nvertices()
             self._points = points = self._vertices
             if self.dim() == 1:
                 v = points[1] - points[0]
@@ -3691,17 +3690,19 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                         current.set_immutable()
                         points.append(current)
             if self.dim() > 1:
-                m = self._embed(read_palp_matrix(
-                        self.poly_x("p", reduce_dimension=True)))
-                if m.ncols() > self.nvertices():
-                    points = list(points)
-                    for j in range(self.nvertices(), m.ncols()):
-                        current = M.zero_vector()
-                        for i in range(M.rank()):
-                            current[i] = m[i, j]
-                        current.set_immutable()
-                        points.append(current)
-            if len(points) > self.nvertices():
+                result = self.poly_x("p", reduce_dimension=True)
+                if self.dim() == self.lattice_dim():
+                    points = read_palp_point_collection(StringIO(result), M)
+                else:
+                    m = self._embed(read_palp_matrix(result))
+                    if m.ncols() > nv:
+                        points = list(points)
+                        for j in range(nv, m.ncols()):
+                            current = M.element_class(
+                                M, [m[i, j] for i in range(M.rank())])
+                            current.set_immutable()
+                            points.append(current)
+            if len(points) > nv:
                 self._points = PointCollection(points, M)
         if args or kwds:
             return self._points(*args, **kwds)
@@ -5321,9 +5322,8 @@ def all_points(polytopes):
             else:
                 points = list(p.vertices())
                 for j in range(nv, m.ncols()):
-                    current = M.zero_vector()
-                    for i in range(M.rank()):
-                        current[i] = m[i, j]
+                    current = M.element_class(
+                        M, [m[i, j] for i in range(M.rank())])
                     current.set_immutable()
                     points.append(current)
                 p._points = PointCollection(points, M)

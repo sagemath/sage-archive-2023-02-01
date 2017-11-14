@@ -804,15 +804,14 @@ cdef int py_get_parent_char(o) except -1:
     """
     TESTS:
 
-    We check that :trac:`21187` is resolved::
+    :trac:`24072` fixes the workaround provided in :trac:`21187`::
 
         sage: p = next_prime(2^100)
         sage: R.<y> = FiniteField(p)[]
         sage: y = SR(y)
-        sage: x + y
-        x + y
-        sage: p * y
-        0
+        Traceback (most recent call last):
+        ...
+        TypeError: positive characteristic not allowed in symbolic computations
     """
     if not isinstance(o, Element):
         return 0
@@ -1815,7 +1814,7 @@ cdef py_atan2(x, y):
         sage: atan2(CC(I), CC(I+1))
         0.553574358897045 + 0.402359478108525*I
         sage: atan2(CBF(I), CBF(I+1))
-        [0.55357435889705 +/- 5.75e-15] + [0.40235947810852 +/- 6.01e-15]*I
+        [0.55357435889705 +/- 5.58e-15] + [0.402359478108525 +/- 7.11e-16]*I
 
     Check that :trac:`23776` is fixed and RDF input gives real output::
 

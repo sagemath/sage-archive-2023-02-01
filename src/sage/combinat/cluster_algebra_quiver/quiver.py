@@ -494,7 +494,8 @@ class ClusterQuiver(SageObject):
 
             sage: Q = ClusterQuiver(['A',5])
             sage: hash(Q)  # indirect doctest
-            16
+            7654921743699262111  # 64-bit
+            -1264862561          # 32-bit
         """
         return hash(self._M)
 
@@ -606,7 +607,7 @@ class ClusterQuiver(SageObject):
                 raise ValueError("The given mark is not a vertex of self.")
         else:
 
-            # Parititon out the green vertices
+            # Partition out the green vertices
             for i in greens:
                 if i in nlist:
                     nlist.remove(i)

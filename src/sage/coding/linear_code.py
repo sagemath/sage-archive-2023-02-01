@@ -2069,7 +2069,6 @@ class AbstractLinearCode(Module):
         # then the implementation here must also be changed so that
         # list(self)[i] and self[i] both return the same element.
 
-        from sage.rings.padics.factory import Zp
         F = self.base_ring()
         maxindex = F.order()**self.dimension()-1
         if i < 0 or i > maxindex:
@@ -2084,8 +2083,7 @@ class AbstractLinearCode(Module):
         A = [a ** k for k in range(m)]
         G = self.generator_matrix()
         N = self.dimension()*F.degree() # the total length of p-adic vector
-        Z = Zp(p, N)
-        ivec = Z(i).padded_list(N)
+        ivec = Integer(i).digits(p, padto=N)
 
         codeword = 0
         row = 0
@@ -4784,6 +4782,26 @@ class LinearCodeSyndromeDecoder(Decoder):
              (2, 0, 0, 0): (2, 0, 0, 0, 0, 0, 0, 0),
              (2, 1, 0, 1): (0, 0, 0, 0, 0, 2, 0, 0),
              (2, 1, 1, 0): (0, 0, 0, 2, 0, 0, 0, 0)}
+
+        TESTS:
+
+        Check that :trac:`24114` is fixed::
+
+            sage: R.<x> = PolynomialRing(GF(3))
+            sage: f = x^2 + x + 2
+            sage: K.<a> = f.root_field()
+            sage: H = Matrix(K,[[1,2,1],[2*a+1,a,1]])
+            sage: C = codes.from_parity_check_matrix(H)
+            sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
+            sage: D.syndrome_table()         
+             {(0, 0): (0, 0, 0),
+              (0, 1): (0, 1, 0),
+              (0, 2): (0, 2, 0),
+              (0, a): (0, a, 0),
+             ...
+              (2*a + 2, 2*a): (0, 0, 2),
+              (2*a + 2, 2*a + 1): (2*a + 2, 2*a + 1, 0),
+              (2*a + 2, 2*a + 2): (2*a + 2, 2*a + 2, 0)}
         """
         t = self._maximum_error_weight
         self._code_covering_radius = None
@@ -4795,7 +4813,7 @@ class LinearCodeSyndromeDecoder(Decoder):
         k = C.dimension()
         H = C.parity_check_matrix()
         F = C.base_ring()
-        l = copy(F.list())
+        l = list(F)
         zero = F.zero()
         #Builds a list of generators of all error positions for all
         #possible error weights

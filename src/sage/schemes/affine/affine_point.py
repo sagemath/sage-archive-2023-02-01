@@ -75,9 +75,16 @@ class SchemeMorphism_point_affine(SchemeMorphism_point):
             (1, 2, 3)
         """
         SchemeMorphism.__init__(self, X)
-        if is_SchemeMorphism(v):
-            v = list(v)
         if check:
+            from sage.rings.ring import CommutativeRing
+            if is_SchemeMorphism(v):
+                v = list(v)
+            else:
+                try:
+                    if isinstance(v.parent(), CommutativeRing):
+                        v = [v]
+                except AttributeError:
+                    pass
             # Verify that there are the right number of coords
             d = self.codomain().ambient_space().ngens()
             if len(v) != d:
@@ -484,5 +491,5 @@ class SchemeMorphism_point_affine_finite_field(SchemeMorphism_point_affine_field
         deprecation(23479, "use f.orbit_structure(P, n) instead")
         try:
             return f.orbit_structure(self)
-        except AttrbuteError:
+        except AttributeError:
             raise TypeError("map must be a dynamical system")

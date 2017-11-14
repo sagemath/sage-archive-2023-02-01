@@ -40,7 +40,7 @@ from operator import pos
 from itertools import islice
 from sage.structure.sage_object import SageObject
 from copy import copy
-from sage.rings.all import QQ, infinity, factor
+from sage.rings.all import QQ, infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.all import FractionField, PolynomialRing
 from sage.rings.fraction_field_element import FractionFieldElement
@@ -224,7 +224,8 @@ class ClusterSeed(SageObject):
             user_labels = [tuple(x) if isinstance(x, list) else x for x in user_labels]
         elif isinstance(user_labels, dict):
             values = [tuple(user_labels[x]) if isinstance(user_labels[x], list) else user_labels[x] for x in user_labels]
-            user_labels = {user_labels.keys()[i]: values[i] for i in range(len(values))}
+            keys = list(user_labels)
+            user_labels = {keys[i]: v for i, v in enumerate(values)}
 
         # constructs a cluster seed from a cluster seed
         if isinstance(data, ClusterSeed):
@@ -5125,18 +5126,18 @@ def _multi_concatenate(l1, l2):
     
     EXAMPLES::
 
-    sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import _multi_concatenate
+        sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import _multi_concatenate
 
-    sage: _multi_concatenate([[0,1,2]],[3,4,5])
-    [[0, 1, 2, 3], [0, 1, 2, 4], [0, 1, 2, 5]]
+        sage: _multi_concatenate([[0,1,2]],[3,4,5])
+        [[0, 1, 2, 3], [0, 1, 2, 4], [0, 1, 2, 5]]
 
-    sage: _multi_concatenate([[0,1,2],[3,4,5]],[6,7,8])
-    [[0, 1, 2, 6],
-    [0, 1, 2, 7],
-    [0, 1, 2, 8],
-    [3, 4, 5, 6],
-    [3, 4, 5, 7],
-    [3, 4, 5, 8]]   
+        sage: _multi_concatenate([[0,1,2],[3,4,5]],[6,7,8])
+        [[0, 1, 2, 6],
+        [0, 1, 2, 7],
+        [0, 1, 2, 8],
+        [3, 4, 5, 6],
+        [3, 4, 5, 7],
+        [3, 4, 5, 8]]   
     """
     plist = []
     for i in l1:

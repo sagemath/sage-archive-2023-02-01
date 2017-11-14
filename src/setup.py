@@ -64,7 +64,7 @@ from sage.env import *
 ### the same directory as this file
 #########################################################
 
-from module_list import ext_modules, library_order, aliases
+from module_list import ext_modules, library_order
 from sage_setup.find import find_extra_files
 
 #########################################################
@@ -358,7 +358,7 @@ class sage_build_cython(Command):
             nthreads=self.parallel,
             build_dir=self.build_dir,
             force=self.force,
-            aliases=aliases,
+            aliases=cython_aliases(),
             compiler_directives=self.cython_directives,
             compile_time_env={'PY_VERSION_HEX':sys.hexversion},
             create_extension=self.create_extension,
@@ -399,15 +399,18 @@ class sage_build_cython(Command):
 
         - Add some default compile/link args and directories
 
+        - Choose C99 standard for C code and C++11 for C++ code
+
         - Drop -std=c99 and similar from C++ extensions
 
         - Ensure that each flag, library, ... is listed at most once
         """
         lang = kwds.get('language', 'c')
+        cplusplus = (lang == "c++")
 
         # Libraries: add stdc++ if needed and sort them
         libs = kwds.get('libraries', [])
-        if lang == 'c++':
+        if cplusplus:
             libs = libs + ['stdc++']
         kwds['libraries'] = sorted(set(libs),
                 key=lambda lib: library_order.get(lib, 0))
@@ -421,11 +424,18 @@ class sage_build_cython(Command):
 
         # Process extra_compile_args
         cflags = []
+        have_std_flag = False
         for flag in kwds.get('extra_compile_args', []):
-            if lang == "c++":
-                if flag.startswith("-std=") and "++" not in flag:
+            if flag.startswith("-std="):
+                if cplusplus and "++" not in flag:
                     continue  # Skip -std=c99 and similar for C++
+                have_std_flag = True
             cflags.append(flag)
+        if not have_std_flag:  # See Trac #23919
+            if cplusplus:
+                cflags.append("-std=c++11")
+            else:
+                cflags.append("-std=c99")
         cflags = extra_compile_args + cflags
         kwds['extra_compile_args'] = stable_uniq(cflags)
 

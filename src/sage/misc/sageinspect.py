@@ -201,9 +201,22 @@ def _extract_embedded_position(docstring):
        sage: _extract_embedded_position(inspect.getdoc(var))[1][-21:]
        'sage/calculus/var.pyx'
 
+    TESTS:
+
     The following has been fixed in :trac:`13916`::
 
         sage: cython('''cpdef test_funct(x,y): return''')
+        sage: print(open(_extract_embedded_position(inspect.getdoc(test_funct))[1]).read())
+        cpdef test_funct(x,y): return
+
+    Ensure that the embedded filename of the compiled function is correct.  In
+    particular it should be relative to ``SPYX_TMP`` in order for certain
+    docmentation functions to work properly.  See :trac:`24097`::
+
+        sage: from sage.env import DOT_SAGE
+        sage: from sage.misc.sage_ostools import restore_cwd
+        sage: with restore_cwd(DOT_SAGE):
+        ....:     cython('''cpdef test_funct(x,y): return''')
         sage: print(open(_extract_embedded_position(inspect.getdoc(test_funct))[1]).read())
         cpdef test_funct(x,y): return
 
@@ -222,10 +235,25 @@ def _extract_embedded_position(docstring):
         return None
 
     raw_filename = res.group('FILENAME')
-    filename = os.path.join(SAGE_SRC, raw_filename)
-    if not os.path.isfile(filename):
+    filename = raw_filename
+
+    if not os.path.isabs(filename):
+        # Try some common path prefixes for Cython modules built by/for Sage
+        # 1) Module in the sage src tree
+        # 2) Module compiled by Sage's inline cython() compiler
         from sage.misc.misc import SPYX_TMP
-        filename = os.path.join(SPYX_TMP, '_'.join(raw_filename.split('_')[:-1]), raw_filename)
+        try_filenames = [
+            os.path.join(SAGE_SRC, raw_filename),
+            os.path.join(SPYX_TMP, '_'.join(raw_filename.split('_')[:-1]),
+                         raw_filename)
+        ]
+        for try_filename in try_filenames:
+            if os.path.exists(try_filename):
+                filename = try_filename
+                break
+        # Otherwise we keep the relative path and just hope it's relative to
+        # the cwd; otherwise there's no way to be sure.
+
     lineno = int(res.group('LINENO'))
     original = res.group('ORIGINAL')
     return (original, filename, lineno)

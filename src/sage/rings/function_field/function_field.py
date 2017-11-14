@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Function Fields
 
@@ -7,7 +8,7 @@ AUTHORS:
 
 - Robert Bradshaw (2010-05-30): added is_finite()
 
-- Julian Rueth (2011-06-08, 2011-09-14, 2014-06-23, 2014-06-24, 2016-11-13):
+- Julian Rüth (2011-06-08, 2011-09-14, 2014-06-23, 2014-06-24, 2016-11-13):
   fixed hom(), extension(); use @cached_method; added derivation(); added
   support for relative vector spaces; fixed conversion to base fields
 
@@ -77,7 +78,7 @@ from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
 #       Copyright (C) 2010 Robert Bradshaw <robertwb@math.washington.edu>
-#       Copyright (C) 2011-2016 Julian Rueth <julian.rueth@gmail.com>
+#       Copyright (C) 2011-2017 Julian Rüth <julian.rueth@gmail.com>
 #       Copyright (C) 2011 Maarten Derickx <m.derickx.student@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -688,7 +689,6 @@ class FunctionField_polymod(FunctionField):
         if not isinstance(base_field, FunctionField):
             raise TypeError("polynomial must be over a FunctionField")
         self._element_class = element_class
-        self._element_init_pass_parent = False
         self._base_field = base_field
         self._polynomial = polynomial
 
@@ -2035,17 +2035,22 @@ class RationalFunctionField(FunctionField):
         if not constant_field.is_field():
             raise TypeError("constant_field must be a field")
         self._element_class = element_class
-        self._element_init_pass_parent = False
         self._constant_field = constant_field
         FunctionField.__init__(self, self, names=names, category = category)
         R = constant_field[names[0]]
         self._hash = hash((constant_field, names))
         self._ring = R
+
         self._field = R.fraction_field()
-        self._populate_coercion_lists_(coerce_list=[self._field])
+        from sage.categories.all import Hom
+        hom = Hom(self._field, self)
+        from .maps import FractionFieldToFunctionField
+        self.register_coercion(hom.__make_element_class__(FractionFieldToFunctionField)(hom.domain(), hom.codomain()))
+
         from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
         from sage.categories.morphism import SetMorphism
         R.register_conversion(SetMorphism(self.Hom(R, SetsWithPartialMaps()), self._to_polynomial))
+
         self._gen = self(R.gen())
 
     def __reduce__(self):
@@ -2483,6 +2488,11 @@ class RationalFunctionField(FunctionField):
             sage: K.<t> = FunctionField(GF(7))
             sage: K.field()
             Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 7
+
+        .. SEEALSO::
+
+            :meth:`sage.rings.fraction_field.FractionField_1poly_field.function_field`
+
         """
         return self._field
 

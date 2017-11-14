@@ -90,7 +90,7 @@ attribute ``__cached_methods`` of type ``<dict>``. Since
 :trac:`11115`, this is the case for all classes inheriting from
 :class:`~sage.structure.parent.Parent`. See below for a more explicit
 example. By :trac:`12951`, cached methods of extension classes can
-be defined by simply using the decorater. However, an indirect
+be defined by simply using the decorator. However, an indirect
 approach is still needed for cpdef methods::
 
     sage: cython_code = ['cpdef test_meth(self,x):',
@@ -1086,28 +1086,6 @@ cdef class CachedFunction(object):
         except TypeError:  # k is not hashable
             k = dict_key(k)
             return self.cache[k]
-
-    def get_cache(self):
-        """
-        Returns the cache dictionary.
-
-        This method is deprecated, you can just access the ``cache``
-        attribute instead.
-
-        EXAMPLES::
-
-            sage: g = CachedFunction(number_of_partitions)
-            sage: a = g(5)
-            sage: g.get_cache()
-            doctest:...: DeprecationWarning: The .get_cache() method is deprecated, use the .cache attribute instead.
-            See http://trac.sagemath.org/19694 for details.
-            {((5, 'default'), ()): 7}
-            sage: g.cache
-            {((5, 'default'), ()): 7}
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(19694, "The .get_cache() method is deprecated, use the .cache attribute instead.")
-        return self.cache
 
     def is_in_cache(self, *args, **kwds):
         """

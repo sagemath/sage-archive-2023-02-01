@@ -29,6 +29,7 @@ from __future__ import absolute_import
 
 from six.moves.builtins import min as python_min
 from six.moves.builtins import max as python_max
+from six.moves.builtins import range, zip
 from sage.rings.infinity import infinity
 
 def gauss_sum(a, p, f, prec=20, factored=False):
@@ -122,10 +123,10 @@ def gauss_sum(a, p, f, prec=20, factored=False):
     from sage.rings.all import PolynomialRing
     a = a % (p**f - 1)
     R = Zp(p, prec)
-    digits = Zp(p)(a).list(start_val=0)
+    digits = list(Zp(p)(a).expansion())
     n = len(digits)
-    digits = digits + [0] * (f - n)
     s = sum(digits)
+    digits = digits + [0] * (f - n)
     out = R(-1)
     for i in range(f):
         a_i = R.sum(digits[k] * p**((i + k) % f) for k in range(f))
@@ -201,3 +202,45 @@ def precprint(prec_type, prec_cap, p):
              'floating-point':'with floating precision %s'%prec_cap,
              'fixed-mod':'of fixed modulus %s^%s'%(p, prec_cap)}
     return precD[prec_type]
+
+def trim_zeros(L):
+    r"""
+    Strips trailing zeros/empty lists from a list.
+
+    EXAMPLES::
+
+        sage: from sage.rings.padics.misc import trim_zeros
+        sage: trim_zeros([1,0,1,0])
+        [1, 0, 1]
+        sage: trim_zeros([[1],[],[2],[],[]])
+        [[1], [], [2]]
+        sage: trim_zeros([[],[]])
+        []
+        sage: trim_zeros([])
+        []
+
+    Zeros are also trimmed from nested lists (one deep):
+
+        sage: trim_zeros([[1,0]])
+        [[1]]
+        sage: trim_zeros([[0],[1]])
+        [[], [1]]
+    """
+    strip_trailing = True
+    n = len(L)
+    for i, c in zip(reversed(range(len(L))), reversed(L)):
+        if strip_trailing and (c == 0 or c == []):
+            n = i
+        elif isinstance(c, list):
+            strip_trailing = False
+            m = len(c)
+            # strip trailing zeros from the sublists
+            for j, d in zip(reversed(range(len(c))), reversed(c)):
+                if d == 0:
+                    m = j
+                else:
+                    break
+            L[i] = c[:m]
+        else:
+            break
+    return L[:n]

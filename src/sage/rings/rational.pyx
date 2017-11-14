@@ -3075,11 +3075,11 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: (124/345).log(5,100)
             -0.63578895682825611710391773754
             sage: log(QQ(125))
-            log(125)
+            3*log(5)
             sage: log(QQ(125), 5)
             3
             sage: log(QQ(125), 3)
-            log(125)/log(3)
+            3*log(5)/log(3)
             sage: QQ(8).log(1/2)
             -3
             sage: (1/8).log(1/2)
@@ -4102,7 +4102,7 @@ cdef class int_to_Q(Morphism):
 
             sage: sage.rings.rational.int_to_Q()
             Native morphism:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Rational Field
         """
         from . import rational_field

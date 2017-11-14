@@ -344,9 +344,9 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
 
         .. WARNING::
 
-        If ``self`` is an infinite union and if the answer is
-        logically False, this will loop forever and never answer
-        ``False``. Therefore, a warning is issued.
+            If ``self`` is an infinite union and if the answer is
+            logically False, this will loop forever and never answer
+            ``False``. Therefore, a warning is issued.
 
         EXAMPLES::
 

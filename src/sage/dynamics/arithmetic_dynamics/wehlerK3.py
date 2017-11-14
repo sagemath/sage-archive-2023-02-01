@@ -42,7 +42,8 @@ from sage.rings.padics.factory import Qp
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import RealField
-from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme, AlgebraicScheme_subscheme_product_projective
+from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
+from sage.schemes.product_projective.subscheme import AlgebraicScheme_subscheme_product_projective
 from sage.schemes.product_projective.space import ProductProjectiveSpaces
 from copy import copy
 

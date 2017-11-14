@@ -260,7 +260,8 @@ from .backtrack import GenericBacktracker
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.rsk import RSK, RSK_inverse
 from sage.combinat.permutation_cython import (left_action_product,
-             right_action_product, left_action_same_n, right_action_same_n)
+             right_action_product, left_action_same_n, right_action_same_n,
+             map_to_list, next_perm)
 
 class Permutation(CombinatorialElement):
     r"""
@@ -4721,7 +4722,7 @@ class Permutation(CombinatorialElement):
         if n % 2 == 1:
             raise ValueError("%s is a permutation of odd size and has no coset-type"%self)
         S = PerfectMatchings(n)([(2*i+1,2*i+2) for i in range(n//2)])
-        return S.loop_type(S.conjugate_by_permutation(self))
+        return S.loop_type(S.apply_permutation(self))
 
     #####################
     # Binary operations #
@@ -5419,8 +5420,7 @@ class Permutations_mset(Permutations):
 
     def __iter__(self):
         r"""
-        Algorithm based on:
-        http://marknelson.us/2002/03/01/next-permutation/
+        Iterate over ``self``.
 
         EXAMPLES::
 
@@ -5435,50 +5435,18 @@ class Permutations_mset(Permutations):
             [[]]
         """
         mset = self.mset
-        n = len(self.mset)
-        lmset = list(mset)
-        mset_list = sorted((lmset.index(x) for x in lmset))
+        n = len(mset)
+        from array import array
+        mset_list = array('I', sorted(mset.index(x) for x in mset))
 
-        yield self.element_class(self, [lmset[x] for x in mset_list])
+        yield self.element_class(self, map_to_list(mset_list, mset, n), check=False)
 
         if n <= 1:
             return
 
-        while True:
-            one = n - 2
-            two = n - 1
-            j   = n - 1
-
-            #starting from the end, find the first o such that
-            #mset_list[o] < mset_list[o+1]
-            while two > 0 and mset_list[one] >= mset_list[two]:
-                one -= 1
-                two -= 1
-
-            if two == 0:
-                return
-
-            #starting from the end, find the first j such that
-            #mset_list[j] > mset_list[one]
-            while mset_list[j] <= mset_list[one]:
-                j -= 1
-
-            #Swap positions one and j
-            t = mset_list[one]
-            mset_list[one] = mset_list[j]
-            mset_list[j] = t
-
-            #Reverse the list between two and last
-            i = int((n - two)/2)-1
-            #mset_list = mset_list[:two] + [x for x in reversed(mset_list[two:])]
-            while i >= 0:
-                t = mset_list[ i + two ]
-                mset_list[ i + two ] = mset_list[n-1 - i]
-                mset_list[n-1 - i] = t
-                i -= 1
-
+        while next_perm(mset_list):
             #Yield the permutation
-            yield self.element_class(self, [lmset[x] for x in  mset_list])
+            yield self.element_class(self, map_to_list(mset_list, mset, n), check=False)
 
     def cardinality(self):
         """
@@ -7714,7 +7682,7 @@ def permutohedron_lequal(p1, p2, side="right"):
 ############
 from sage.combinat.words.finite_word import evaluation_dict
 
-def to_standard(p, cmp=None, key=None):
+def to_standard(p, key=None):
     r"""
     Return a standard permutation corresponding to the iterable ``p``.
 
@@ -7723,11 +7691,6 @@ def to_standard(p, cmp=None, key=None):
     - ``p`` -- an iterable
     - ``key`` -- (optional) a comparison key for the element
       ``x`` of ``p``
-    - ``cmp`` -- (optional, deprecated) a comparison function for the
-      two elements ``x`` and ``y`` of ``p`` (return an integer
-      according to the outcome)
-
-    Using ``cmp`` is no longer allowed in Python3 and should be avoided.
 
     EXAMPLES::
 
@@ -7770,20 +7733,9 @@ def to_standard(p, cmp=None, key=None):
         sage: p = list(Words(100, 1000).random_element())
         sage: std(p) == permutation.to_standard(p)
         True
-
-    Deprecation of ``cmp`` in favor of ``key``::
-
-        sage: permutation.to_standard([5,8,2,5], cmp=lambda x,y: (x<y)-(x>y))
-        doctest:warning...:
-        DeprecationWarning: do not use 'cmp' but rather 'key' for comparison
-        See http://trac.sagemath.org/21435 for details.
-        [2, 1, 4, 3]
     """
-    if cmp is not None:
-       from sage.misc.superseded import deprecation
-       deprecation(21435, "do not use 'cmp' but rather 'key' for comparison")
     ev_dict = evaluation_dict(p)
-    ordered_alphabet = sorted(ev_dict, cmp=cmp, key=key)
+    ordered_alphabet = sorted(ev_dict, key=key)
     offset = 0
     for k in ordered_alphabet:
         temp = ev_dict[k]

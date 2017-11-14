@@ -111,9 +111,11 @@ cdef object numpy_double_interface = {'typestr': '=f8'}
 
 from libc.math cimport ldexp
 from sage.libs.gmp.all cimport *
-from gmpy2 cimport MPQ, MPQ_Object, GMPy_MPQ_From_mpq, import_gmpy2, \
-    MPZ_Check, MPQ_Check, MPZ, MPZ_Object
-import_gmpy2()
+
+IF HAVE_GMPY2:
+    cimport gmpy2
+    gmpy2.import_gmpy2()
+
 
 cdef class Rational(sage.structure.element.FieldElement)
 
@@ -430,14 +432,14 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     Conversions from gmpy2::
 
-        sage: from gmpy2 import *
-        sage: QQ(mpq('3/4'))
+        sage: from gmpy2 import *  # optional - gmpy2
+        sage: QQ(mpq('3/4'))       # optional - gmpy2
         3/4
-        sage: QQ(mpz(42))
+        sage: QQ(mpz(42))          # optional - gmpy2
         42
-        sage: Rational(mpq(2/3))
+        sage: Rational(mpq(2/3))   # optional - gmpy2
         2/3
-        sage: Rational(mpz(5))
+        sage: Rational(mpz(5))     # optional - gmpy2
         5
     """
     def __cinit__(self):
@@ -475,8 +477,8 @@ cdef class Rational(sage.structure.element.FieldElement):
             2/3
             sage: a.__init__('-h/3ki', 32); a
             -17/3730
-            sage: from gmpy2 import mpq
-            sage: a.__init__(mpq('3/5')); a
+            sage: from gmpy2 import mpq      # optional - gmpy2
+            sage: a.__init__(mpq('3/5')); a  # optional - gmpy2
             3/5
 
         TESTS:
@@ -524,24 +526,6 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         if self.denominator() == 1:
             return int(self)
-        raise TypeError("rational is not an integer")
-
-    def __mpz__(self):
-        """
-        Return a gmpy2 ``mpz`` if this Rational is an integer.
-
-        EXAMPLES::
-            sage: q = Rational(6/2)
-            sage: q.__mpz__()
-            mpz(3)
-            sage: q = Rational(1/4)
-            sage: q.__mpz__()
-            Traceback (most recent call last):
-            ...
-            TypeError: rational is not an integer
-        """
-        if self.denominator() == 1:
-            return self.numerator().__mpz__()
         raise TypeError("rational is not an integer")
 
     def _reduce_set(self, s):
@@ -677,11 +661,11 @@ cdef class Rational(sage.structure.element.FieldElement):
             mpz_set(mpq_numref(self.value), (<integer.Integer> integer.Integer(x.numerator)).value)
             mpz_set(mpq_denref(self.value), (<integer.Integer> integer.Integer(x.denominator)).value)
 
-        elif MPQ_Check(<PyObject *> x):
-            mpq_set(self.value, MPQ(<MPQ_Object *> x))
+        elif HAVE_GMPY2 and type(x) is gmpy2.mpq:
+            mpq_set(self.value, (<gmpy2.mpq>x).q)
 
-        elif MPZ_Check(<PyObject *> x):
-            mpq_set_z(self.value, MPZ(<MPZ_Object *> x))
+        elif HAVE_GMPY2 and type(x) is gmpy2.mpz:
+            mpq_set_z(self.value, (<gmpy2.mpz>x).z)
 
         else:
             raise TypeError("unable to convert {!r} to a rational".format(x))
@@ -985,6 +969,32 @@ cdef class Rational(sage.structure.element.FieldElement):
         import sympy
         return sympy.Rational(int(self.numerator()), int(self.denominator()))
 
+    def __mpz__(self):
+        """
+        Return a gmpy2 ``mpz`` if this Rational is an integer.
+
+        EXAMPLES::
+
+            sage: q = 6/2
+            sage: q.__mpz__()  # optional - gmpy2
+            mpz(3)
+            sage: q = 1/4
+            sage: q.__mpz__()  # optional - gmpy2
+            Traceback (most recent call last):
+            ...
+            TypeError: rational is not an integer
+
+        TESTS::
+
+            sage: QQ().__mpz__(); raise NotImplementedError("gmpy2 is not installed")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: gmpy2 is not installed
+        """
+        if self.denominator() != 1:
+            raise TypeError("rational is not an integer")
+        return self.numerator().__mpz__()
+
     def __mpq__(self):
         """
         Convert Sage ``Rational`` to gmpy2 ``Rational``.
@@ -992,15 +1002,23 @@ cdef class Rational(sage.structure.element.FieldElement):
         EXAMPLES::
 
             sage: r = 5/3
-            sage: r.__mpq__()
+            sage: r.__mpq__()            # optional - gmpy2
             mpq(5,3)
-            sage: from gmpy2 import mpq
-            sage: r=3/4
-            sage: mpq(r)
-            mpq(3,4)
+            sage: from gmpy2 import mpq  # optional - gmpy2
+            sage: mpq(r)                 # optional - gmpy2
+            mpq(5,3)
 
+        TESTS::
+
+            sage: r.__mpq__(); raise NotImplementedError("gmpy2 is not installed")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: gmpy2 is not installed
         """
-        return GMPy_MPQ_From_mpq(self.value)
+        IF HAVE_GMPY2:
+            return gmpy2.GMPy_MPQ_From_mpq(self.value)
+        ELSE:
+            raise NotImplementedError("gmpy2 is not installed")
 
     def _magma_init_(self, magma):
         """

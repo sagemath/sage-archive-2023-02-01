@@ -190,8 +190,10 @@ from sage.structure.element import coerce_binop
 
 from sage.libs.gmp.binop cimport mpq_add_z, mpq_mul_z, mpq_div_zz
 
-from gmpy2 cimport MPZ, MPZ_Object, GMPy_MPZ_From_mpz, import_gmpy2, MPZ_Check
-import_gmpy2()
+IF HAVE_GMPY2:
+    cimport gmpy2
+    gmpy2.import_gmpy2()
+
 
 cdef extern from *:
     int unlikely(int) nogil  # Defined by Cython
@@ -474,8 +476,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     Conversion from gmpy2::
 
-        sage: from gmpy2 import mpz
-        sage: Integer(mpz(3))
+        sage: from gmpy2 import mpz  # optional - gmpy2
+        sage: Integer(mpz(3))        # optional - gmpy2
         3
 
     .. automethod:: __pow__
@@ -534,8 +536,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             0
             sage: ZZ('+10')
             10
-            sage: from gmpy2 import mpz
-            sage: ZZ(mpz(42))
+            sage: from gmpy2 import mpz  # optional - gmpy2
+            sage: ZZ(mpz(42))            # optional - gmpy2
             42
 
         ::
@@ -732,8 +734,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     if isinstance(x, numpy.integer):
                         mpz_set_pylong(self.value, x.__long__())
                         return
-                elif MPZ_Check(<PyObject *>x):
-                    mpz_set(self.value, MPZ(<MPZ_Object *> x))
+
+                elif HAVE_GMPY2 and type(x) is gmpy2.mpz:
+                    mpz_set(self.value, (<gmpy2.mpz>x).z)
                     return
 
                 raise TypeError("unable to coerce %s to an integer" % type(x))
@@ -1064,14 +1067,23 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         EXAMPLES::
 
             sage: a = 5
-            sage: a.__mpz__()
+            sage: a.__mpz__()            # optional - gmpy2
             mpz(5)
-            sage: from gmpy2 import mpz
-            sage: sz = ZZ(42)
-            sage: mpz(sz)
-            mpz(42)
+            sage: from gmpy2 import mpz  # optional - gmpy2
+            sage: mpz(a)                 # optional - gmpy2
+            mpz(5)
+
+        TESTS::
+
+            sage: a.__mpz__(); raise NotImplementedError("gmpy2 is not installed")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: gmpy2 is not installed
         """
-        return GMPy_MPZ_From_mpz(self.value)
+        IF HAVE_GMPY2:
+            return gmpy2.GMPy_MPZ_From_mpz(self.value)
+        ELSE:
+            raise NotImplementedError("gmpy2 is not installed")
 
     def str(self, int base=10):
         r"""

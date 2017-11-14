@@ -71,7 +71,9 @@ from sage.structure.coerce cimport is_numpy_type
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.richcmp cimport rich_to_bool
 from sage.arith.constants cimport *
-from gmpy2 import mpfr
+
+IF HAVE_GMPY2:
+    cimport gmpy2
 
 
 def is_RealDoubleField(x):
@@ -709,12 +711,12 @@ cdef class RealDoubleElement(FieldElement):
 
         TESTS::
 
-            sage: from gmpy2 import mpz, mpq, mpfr
-            sage: RDF(mpz(42))
+            sage: from gmpy2 import *  # optional - gmpy2
+            sage: RDF(mpz(42))         # optional - gmpy2
             42.0
-            sage: RDF(mpq(3/4))
+            sage: RDF(mpq(3/4))        # optional - gmpy2
             0.75
-            sage: RDF(mpq('4.1'))
+            sage: RDF(mpq('4.1'))      # optional - gmpy2
             4.1
         """
         self._value = float(x)
@@ -938,13 +940,23 @@ cdef class RealDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: RDF(42.2).__mpfr__()
+            sage: RDF(42.2).__mpfr__()    # optional - gmpy2
             mpfr('42.200000000000003')
-            sage: from gmpy2 import mpfr
-            sage: mpfr(RDF(5.1))
+            sage: from gmpy2 import mpfr  # optional - gmpy2
+            sage: mpfr(RDF(5.1))          # optional - gmpy2
             mpfr('5.0999999999999996')
+
+        TESTS::
+
+            sage: RDF().__mpfr__(); raise NotImplementedError("gmpy2 is not installed")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: gmpy2 is not installed
         """
-        return mpfr(self._value)
+        IF HAVE_GMPY2:
+            return gmpy2.mpfr(self._value)
+        ELSE:
+            raise NotImplementedError("gmpy2 is not installed")
 
     def _interface_init_(self, I=None):
         """

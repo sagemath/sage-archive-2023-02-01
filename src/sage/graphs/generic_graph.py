@@ -311,6 +311,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.subgraph_search_iterator` | Return an iterator over the labelled copies of ``G`` in ``self``.
     :meth:`~GenericGraph.characteristic_polynomial` | Return the characteristic polynomial of the adjacency matrix of the (di)graph.
     :meth:`~GenericGraph.genus` | Return the minimal genus of the graph.
+    :meth:`~GenericGraph.crossing_number` | Return the minimun number of edge crossings needed to draw the graph.
 
 Methods
 -------
@@ -4122,7 +4123,8 @@ class GenericGraph(GenericGraph_pyx):
 
         .. SEEALSO::
 
-          - :meth:`~Graph.is_apex`
+          - "Almost planar graph": :meth:`~Graph.is_apex`
+          - "Measuring non-planarity": :meth:`~genus`, :meth:`~crossing_number`
           - :meth:`planar_dual`
           - :meth:`faces`
 
@@ -4648,7 +4650,8 @@ class GenericGraph(GenericGraph_pyx):
 
         The genus of a compact surface is the number of handles it
         has. The genus of a graph is the minimal genus of the surface
-        it can be embedded into.
+        it can be embedded into. It can be seen as a measure of non-planarity;
+        a planar graph has genus zero.
 
         Note - This function uses Euler's formula and thus it is necessary
         to consider only connected graphs.
@@ -4858,6 +4861,102 @@ class GenericGraph(GenericGraph_pyx):
                     return g
                 else:
                     return genus.simple_connected_graph_genus(G, set_embedding = False, check=False, minimal=minimal)
+
+    def crossing_number(self):
+        """
+        Return the crossing number of the graph.
+
+        The crossing number of a graph is the minimun number of
+        edge crossings needed to draw the graph on a plane. It can
+        be seen as a measure of non-planarity; a planar graph has
+        crossing number zero.
+
+        See :wikipedia:`Crossing_number` for more information.
+
+        EXAMPLES::
+
+            sage: P = graphs.PetersenGraph()
+            sage: P.crossing_number()
+            2
+
+        ALGORITHM:
+
+        This is slow brute force implementation: for every `k` pairs of
+        edges try adding a new vertex for a crossing point for them. If
+        the result is not planar in any of those, try `k+1` pairs.
+
+        Computing the crossing number is NP-hard problem.
+
+        TESTS::
+
+            sage: E = graphs.EmptyGraph()
+            sage: E.crossing_number()
+            0
+
+            sage: C4 = graphs.CompleteGraph(4)  # Planar
+            sage: C4.crossing_number()
+            0
+
+            sage: C5x2 = graphs.CompleteGraph(5) * 2
+            sage: C5x2.crossing_number()  # Check non-connected graph
+            2
+
+        Test the "un-splitting edges" optimization::
+
+            sage: g = graphs.CompleteGraph(4)
+            sage: g.subdivide_edges(g.edges(), 1)
+            sage: g.add_edge(0, g.add_vertex())
+            sage: g.crossing_number()
+            0
+
+            sage: g = graphs.CompleteGraph(5)
+            sage: g.subdivide_edges(g.edges(), 1)
+            sage: g.add_edge(0, g.add_vertex())
+            sage: g.crossing_number()
+            1
+        """
+        from sage.combinat.subset import Subsets
+
+        self._scream_if_not_simple()
+
+        # Optimization one: the crossing number if the sum of crossing
+        # numbers of connected components.
+        if not self.is_connected():
+            return sum(part.crossing_number() for part in
+                       self.connected_components_subgraphs())
+
+        # Optimization two: Splitting an edge or adding a vertex of
+        # degree one does not increase the crossing number, so
+        # reversedly we can remove those.
+        G = self.subgraph([v for v in self if self.degree(v) > 1])
+        while True:
+            for v in G:
+                if G.degree(v) == 2:
+                    G.add_edge(G.neighbors(v))
+                    G.delete_vertex(v)
+                    break
+            else:
+                break
+
+        edgepairs = Subsets(G.edges(labels=False, sort=False), 2)
+        edgepairs = [x for x in edgepairs if x[0][0] not in [x[1][0], x[1][1]] and
+                     x[0][1] not in [x[1][0], x[1][1]]]
+
+        k = 0
+        while True:
+            for edges in Subsets(edgepairs, k):
+                g = copy(G)
+                for pair in edges:
+                    g.delete_edges(pair)
+                for edge in edges:
+                    v = g.add_vertex()
+                    g.add_edge(edge[0][0], v)
+                    g.add_edge(v, edge[0][1])
+                    g.add_edge(edge[1][0], v)
+                    g.add_edge(v, edge[1][1])
+                if g.is_planar():
+                    return k
+            k += 1
 
     def faces(self, embedding = None):
         """

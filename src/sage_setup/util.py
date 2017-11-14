@@ -29,3 +29,24 @@ def stable_uniq(L):
     for pos, item in enumerate(L):
         D[item] = pos  # Store the last position where an item appears
     return sorted(D, key=lambda item: D[item])
+
+
+def have_module(name):
+    """
+    Check whether a Python module named ``name`` is installed.
+
+    EXAMPLES::
+
+        sage: from sage_setup.util import have_module
+        sage: have_module("itertools")
+        True
+        sage: have_module("sage.rings.integer")
+        True
+        sage: have_module("no.such.module")
+        False
+    """
+    try:
+        __import__(name)
+        return True
+    except ImportError:
+        return False

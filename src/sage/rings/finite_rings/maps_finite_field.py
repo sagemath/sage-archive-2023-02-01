@@ -36,7 +36,7 @@ class FiniteFieldIsomorphism(SetMorphism):
 
             sage: E = GF(16)
             sage: F = GF(4)
-            sage: V, phi, psi = E.vector_space_over(E)
+            sage: V, phi, psi = E.vector_space(E, map=True)
             sage: phi
             Isomorphism:
               From: Vector space of dimension 1 over Finite Field in z4 of size 2^4
@@ -54,7 +54,7 @@ class FiniteFieldIsomorphism(SetMorphism):
 
             sage: E = GF(9)
             sage: F = GF(3)
-            sage: V, phi, psi = E.vector_space_over(E)
+            sage: V, phi, psi = E.vector_space(E, map=True)
             sage: phi.is_injective()
             True
         """
@@ -66,7 +66,7 @@ class FiniteFieldIsomorphism(SetMorphism):
 
             sage: E = GF(9)
             sage: F = GF(3)
-            sage: V, phi, psi = E.vector_space_over(E)
+            sage: V, phi, psi = E.vector_space(E, map=True)
             sage: phi.is_surjective()
             True
         """
@@ -93,7 +93,7 @@ class MorphismVectorSpaceToFiniteField(FiniteFieldIsomorphism):
 
             sage: E = GF(16)
             sage: F = GF(4)
-            sage: V, phi, psi = E.vector_space_over(E)
+            sage: V, phi, psi = E.vector_space(E, map=True)
             sage: phi
             Isomorphism:
               From: Vector space of dimension 1 over Finite Field in z4 of size 2^4
@@ -122,7 +122,7 @@ class MorphismFiniteFieldToVectorSpace(FiniteFieldIsomorphism):
 
             sage: E = GF(16)
             sage: F = GF(4)
-            sage: V, phi, psi = E.vector_space_over(E)
+            sage: V, phi, psi = E.vector_space(E, map=True)
             sage: psi
             Isomorphism:
               From: Finite Field in z4 of size 2^4

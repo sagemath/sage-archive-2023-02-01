@@ -529,8 +529,8 @@ factored_b:
         On(SW_RATIONAL);
         setCharacteristic(0);
         power_ocvector_map pomap;
-        ex aa = a.subs(exp(wild()) == pow(symbol_E, wild()));
-        ex bb = b.subs(exp(wild()) == pow(symbol_E, wild()));
+        ex aa = a.subs(exp(wild()) == pow(symbol_E, wild())).expand();
+        ex bb = b.subs(exp(wild()) == pow(symbol_E, wild())).expand();
         aa.collect_powers(pomap);
         bb.collect_powers(pomap);
 //        Log(pomap,"pomap");

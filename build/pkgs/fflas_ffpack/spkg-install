@@ -74,7 +74,7 @@ fi
     --with-default="$SAGE_LOCAL" \
     --with-blas-libs="$LINBOX_BLAS" \
     "$LINBOX_BLAS_CFLAGS" \
-    --enable-optimization --disable-static --enable-precompilation \
+    --disable-static --enable-precompilation \
     --disable-openmp $FFLAS_FFPACK_CONFIGURE
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring fflas-ffpack"
@@ -84,6 +84,12 @@ fi
 $MAKE
 if [ $? -ne 0 ]; then
     echo >&2 "Error building fflas-ffpack"
+    exit 1
+fi
+
+$MAKE autotune
+if [ $? -ne 0 ]; then
+    echo >&2 "Error tuning fflas-ffpack"
     exit 1
 fi
 

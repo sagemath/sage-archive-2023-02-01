@@ -3658,6 +3658,9 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             psi[1, 2, 2] + psi[2, 1, 2] + psi[2, 2, 1]
             sage: all(sum(psi(list(al)) for al in Permutations(la))==psi(p(la)) for la in Partitions(6))
             True
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: psi(p[3,2,2])
+            psi[2, 2, 3] + psi[2, 3, 2] + psi[3, 2, 2]
 
         Checking the equivalent definition of `\psi_n`::
 
@@ -3772,7 +3775,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         multiplicity of `i` in the composition `I`. Therefore, we call these
         the *quasi-symmetric power sums of the second kind*.
 
-        Using the duality, we can directly define the `\phi^*` basis by
+        Using the duality, we can directly define the `\phi` basis by
 
         .. MATH::
 
@@ -3795,6 +3798,9 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             phi[1, 2, 2] + phi[2, 1, 2] + phi[2, 2, 1]
             sage: all(sum(phi(list(al)) for al in Permutations(la))==phi(p(la)) for la in Partitions(6))
             True
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: phi(p[3,2,2])
+            phi[2, 2, 3] + phi[2, 3, 2] + phi[3, 2, 2]
 
         Checking the equivalent definition of `\phi_n`::
 

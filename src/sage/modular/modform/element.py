@@ -1178,6 +1178,168 @@ class ModularForm_abstract(ModuleElement):
         k = self.weight()
         return (ZZ(k - 1).factorial() / 2**(2*k - 1) / pi**(k+1)) * L(k).real_part()
 
+    def _q_expansion_bound(self, eps):
+        r"""
+        This function takes as input a modular form, ``self`` and a
+        Dirichlet character ``eps`` and returns an integer bound such
+        that if ``self`` and its twist by ``eps`` have the same
+        q-expansion up to this bound, then they are equal.
+
+        The bound is taken from [Mu1997]_. See also [Shi1971]_, Proposition
+        3.64.
+
+        INPUT:
+
+        - ``eps`` -- a Dirichlet character
+
+        OUTPUT:
+
+        A positive integer.
+
+        EXAMPLES:
+
+        Here is an example that can easily be checked by hand. ::
+
+            sage: M = ModularForms(Gamma0(11), 2)
+            sage: C = M.cuspidal_submodule()
+            sage: f = C.gens()[0]
+            sage: F = CyclotomicField(5)
+            sage: D = DirichletGroup(11, F)
+            sage: eps = D.gens()[0]
+            sage: f._q_expansion_bound(eps)
+            22
+
+        The level of `self` does not have to be related to the conductor
+        of eps. ::
+
+            sage: M = ModularForms(Gamma0(1), 12)
+            sage: C = M.cuspidal_submodule()
+            sage: Delta = C.gens()[0]
+            sage: F = CyclotomicField(12)
+            sage: D = DirichletGroup(13, F)
+            sage: eps = D.gens()[0]
+            sage: Delta._q_expansion_bound(eps)
+            182
+        """
+        chi = self.character()
+        M = lcm([self.level(), eps.conductor()**2,
+                 chi.conductor() * eps.conductor()])
+        y = QQ(self.weight()) / QQ(12) * M
+        for p in M.prime_divisors():
+            y *= (1 + 1/QQ(p))
+        return y.ceil()
+
+    @cached_method
+    def has_cm(self):
+        r"""
+        Return whether the modular form ``self`` has complex multiplication.
+
+        OUTPUT:
+
+        Boolean
+
+        .. SEEALSO::
+
+            - :meth:`cm_discriminant` (to return the CM field)
+            - :meth:`sage.schemes.elliptic_curves.ell_rational_field.has_cm`
+
+        EXAMPLES::
+
+            sage: G = DirichletGroup(21); eps = G.0 * G.1
+            sage: Newforms(eps, 2)[0].has_cm()
+            True
+
+        This example illustrates what happens when
+        candidate_characters(self) is the empty list. ::
+
+            sage: M = ModularForms(Gamma0(1), 12)
+            sage: C = M.cuspidal_submodule()
+            sage: Delta = C.gens()[0]
+            sage: Delta.has_cm()
+            False
+
+        We now compare the function has_cm between elliptic curves and
+        their associated modular forms. ::
+
+            sage: E = EllipticCurve([-1, 0])
+            sage: f = E.modular_form()
+            sage: f.has_cm()
+            True
+            sage: E.has_cm() == f.has_cm()
+            True
+
+        Here is a non-cm example coming from elliptic curves. ::
+
+            sage: E = EllipticCurve('11a')
+            sage: f = E.modular_form()
+            sage: f.has_cm()
+            False
+            sage: E.has_cm() == f.has_cm()
+            True
+        """
+        N = self.level()
+        M = self.character().conductor()
+
+        for p in N.prime_factors():
+            if M % p and N.valuation(p) == 1:
+                verbose("Form is Steinberg at %s, cannot be CM" % p, level=1)
+                return False
+        cand_chars = [(x, self._q_expansion_bound(x)) for x in DirichletGroup(N, QQ) if x.is_odd()]
+        
+        verbose("Conductors of candidate characters: %s" % (", ".join(str(x[0].conductor()) for x in cand_chars)), level=1)
+        verbose("Qexp bounds: %s" % (", ".join(str(x[1]) for x in cand_chars)), level=1)
+        # If there are no candidate characters, then `self` cannot have CM.
+        if not cand_chars:
+            return False
+
+        # Test each prime and discard characters for which eps(p) != 1 when f[p] != 0.
+        p = ZZ(2)
+        while p <= min(B for (eps, B) in cand_chars):
+            verbose("Checking p = %s (%s candidate characters left))" % (p, len(cand_chars)), level=1)
+            # We only have to test the CM condition at primes that do not
+            # divide the level of self.
+            if not self.level() % p: 
+                p = p.next_prime()
+                continue
+
+            # Evaluating characters is cheap, while computing f[p] is
+            # expensive, so if eps(p) = 1 for all p, then we don't bother to
+            # compute f[p].
+            cand_chars = [(eps, B) for (eps, B) in cand_chars if (eps(p) == 1 or self[p] == 0)] 
+            
+            if len(cand_chars) == 0:
+                # f doesn't have CM
+                return False
+
+            # go on to next prime
+            p = p.next_prime()
+
+        B0 = min(B for (eps, B) in cand_chars)
+        C = [eps for (eps, B) in cand_chars if B == B0]
+        if len(C) > 1: 
+            # can't happen (except in weight 1, which isn't implemented yet
+            # anyway)
+            raise ArithmeticError("Got multiple characters in has_cm")
+        self.__cm_char = C[0].primitive_character()
+        return True
+    
+    def cm_discriminant(self):
+        r"""
+        Return the discriminant of the CM field associated to this form. An
+        error will be raised if the form isn't of CM type.
+
+        EXAMPLE::
+
+            sage: Newforms(49, 2)[0].cm_discriminant()
+            -7
+            sage: CuspForms(1, 12).gen(0).cm_discriminant()
+            Traceback (most recent call last):
+            ...
+            ValueError: Not a CM form
+        """
+        if not self.has_cm(): raise ValueError("Not a CM form")
+        return -self.__cm_char.conductor()
+
 class Newform(ModularForm_abstract):
     def __init__(self, parent, component, names, check=True):
         r"""
@@ -2251,143 +2413,6 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
         S = PowerSeriesRing(R, 'q')
         f_twist = S([self[i] * chi(i) for i in range(bound)], prec=bound)
         return M(f_twist)
-
-    def _q_expansion_bound(self, eps):
-        r"""
-        This function takes as input a modular form, ``self`` and a
-        Dirichlet character ``eps`` and returns an integer bound such
-        that if ``self`` and its twist by ``eps`` have the same
-        q-expansion up to this bound, then they are equal.
-
-        The bound is taken from [Murty]_. See [Shimura]_, Proposition 3.64.
-
-        INPUT:
-
-        - ``eps`` -- a Dirichlet character
-
-        OUTPUT:
-
-        A positive integer.
-
-        EXAMPLES:
-
-        Here is an example that can easily be checked by hand. ::
-
-            sage: M = ModularForms(Gamma0(11), 2)
-            sage: C = M.cuspidal_submodule()
-            sage: f = C.gens()[0]
-            sage: F = CyclotomicField(5)
-            sage: D = DirichletGroup(11, F)
-            sage: eps = D.gens()[0]
-            sage: f._q_expansion_bound(eps)
-            22
-
-        The level of `self` does not have to be related to the conductor
-        of eps. ::
-
-            sage: M = ModularForms(Gamma0(1), 12)
-            sage: C = M.cuspidal_submodule()
-            sage: Delta = C.gens()[0]
-            sage: F = CyclotomicField(12)
-            sage: D = DirichletGroup(13, F)
-            sage: eps = D.gens()[0]
-            sage: Delta._q_expansion_bound(eps)
-            182
-
-        REFERENCES:
-
-        .. [Murty] Murty, M. Ram
-            "Congruences between modular forms, in Analytic Number Theory", (ed. Y. Motohashi), London Mathematical Society Lecture Notes 247 (1997) 313-320, Cambridge University Press.
-
-        .. [Shimura] Shimura, Goro
-            "Introduction to the arithmetic theory of automorphic functions", (Princeton University Press, Princeton, 1971).
-        """
-        chi = self.character()
-        M = lcm([self.level(), eps.conductor()**2,
-                 chi.conductor() * eps.conductor()])
-        y = (float(self.weight()) / float(12)) * M
-        for p in prime_range(M + 1):
-            if (M % p == 0):
-                y = y * (1 + float(1/p))
-        return ceil(y)
-
-    def has_cm(self):
-        r"""
-        Return whether the modular form ``self`` has complex multiplication.
-
-        OUTPUT:
-
-        Boolean
-
-        .. SEEALSO::
-
-            :meth:`sage.schemes.elliptic_curves.ell_rational_field.has_cm`
-
-        EXAMPLES:
-
-        This example illustrates what happens when
-        candidate_characters(self) is the empty list. ::
-
-            sage: M = ModularForms(Gamma0(1), 12)
-            sage: C = M.cuspidal_submodule()
-            sage: Delta = C.gens()[0]
-            sage: Delta.has_cm()
-            False
-
-        We now compare the function has_cm between elliptic curves and
-        their associated modular forms. ::
-
-            sage: E = EllipticCurve([-1, 0])
-            sage: f = E.modular_form()
-            sage: f.has_cm()
-            True
-            sage: E.has_cm() == f.has_cm()
-            True
-
-        Here is a non-cm example coming from elliptic curves. ::
-
-            sage: E = EllipticCurve('11a')
-            sage: f = E.modular_form()
-            sage: f.has_cm()
-            False
-            sage: E.has_cm() == f.has_cm()
-            True
-
-        .. NOTE::
-
-            This can be quite slow when the level of ``self`` becomes
-            large (in the hundreds).
-        """
-        N = self.level()
-        K = CyclotomicField(euler_phi(N))
-        cand_chars = [x for x in DirichletGroup(N, K) if x.order() == 2 and
-                      x.is_odd() and N % (x.conductor() ** 2) == 0]
-
-        failed_chars = []
-
-        # If there are no candidate characters, then `self` cannot have CM.
-        if not cand_chars:
-            return False
-
-        # Test each candidate character to see if self has CM by that character.
-        for eps in cand_chars:
-            bound = self._q_expansion_bound(eps)
-            # calculate the Fourier coefficients of self up to bound
-            coeffs = self.coefficients(bound)
-            # We only have to test the CM condition at primes up to
-            # bound that do not divide the level of self.
-            for j in prime_range(1, bound):
-                if self.level() % j:
-                    if not coeffs[j - 1] == eps(j) * coeffs[j - 1]:
-                        failed_chars.append(eps)
-                        break
-            if eps not in failed_chars:
-                # In this case eps is the CM character for self
-                return True
-        # If the function has not returned anything by this point then
-        # we have shown that self does not have CM by any of the
-        # candidate characters. So self cannot have CM.
-        return False
 
 
 class ModularFormElement_elliptic_curve(ModularFormElement):

@@ -76,19 +76,23 @@ cdef extern from "givaro/zring.h":
         ctypedef GivaroInteger Element
 
 
-cdef extern from "givaro/givpoly1.h":
-    ## template < typename T, typename A=std::allocator<T> >
-    ## class givvector : public __GIV_STANDARD_VECTOR<T,A>
-    cdef cppclass givvector "Givaro::givvector" [T,ALLOCATOR=*]:
-        T& operator[](size_t i)
+cdef extern from "linbox/polynomial/dense-polynomial.h":
+    ## template<class Field>
+    ## class DensePolynomial : public Givaro::Poly1FactorDom<Field, Givaro::Dense>::Element
+    cdef cppclass LinBoxIntegerDensePolynomial "LinBox::DensePolynomial<Givaro::ZRing<Givaro::Integer> >":
+        ctypedef GivaroIntegerRing BaseRing
+        ctypedef GivaroInteger BaseRingElement
+        LinBoxIntegerDensePolynomial(BaseRing &F)
+        LinBoxIntegerDensePolynomial(BaseRing &F, size_t s)
+        BaseRingElement& operator[](size_t i)
         size_t size()
 
-cdef extern from "linbox/ring/givaro-polynomial.h":
-    ## template <class Domain, class StorageTag= Givaro::Dense>
-    ## class GivPolynomialRing : public Givaro::Poly1FactorDom< Domain,StorageTag>
-    cdef cppclass LinBoxIntegerPolynomialRing "LinBox::GivPolynomialRing<Givaro::ZRing<Givaro::Integer>, Givaro::Dense>":
-        ctypedef givvector[GivaroInteger] Element
-        ctypedef givvector[GivaroInteger] Polynomial
+cdef extern from "linbox/ring/polynomial-ring.h":
+    ## template <class BaseRing, class StorageTag= Givaro::Dense>
+    ##	class PolynomialRing : public Givaro::Poly1FactorDom<BaseRing,StorageTag>
+    cdef cppclass LinBoxIntegerPolynomialRing "LinBox::PolynomialRing<Givaro::ZRing<Givaro::Integer>, Givaro::Dense>":
+        ctypedef LinBoxIntegerDensePolynomial Element
+        ctypedef LinBoxIntegerDensePolynomial Polynomial
 
 cdef extern from "linbox/matrix/matrix-domain.h":
     ## template <class Field_ >
@@ -190,7 +194,7 @@ cdef void linbox_fmpz_mat_mul(fmpz_mat_t C, fmpz_mat_t A, fmpz_mat_t B):
 cdef void linbox_fmpz_mat_charpoly(fmpz_poly_t cp, fmpz_mat_t A):
     cdef GivaroIntegerRing ZZ
     cdef LinBoxIntegerDenseMatrix * LBA
-    cdef LinBoxIntegerPolynomialRing.Element m_A
+    cdef LinBoxIntegerDensePolynomial * m_A
 
     # FIXME: bug in LinBox
     # see https://github.com/linbox-team/linbox/issues/51
@@ -200,17 +204,19 @@ cdef void linbox_fmpz_mat_charpoly(fmpz_poly_t cp, fmpz_mat_t A):
 
     LBA = new LinBoxIntegerDenseMatrix(ZZ, fmpz_mat_nrows(A), fmpz_mat_ncols(A))
     fmpz_mat_get_linbox(LBA[0], A)
-    LinBoxIntegerDense_charpoly(m_A, LBA[0])
-    fmpz_poly_set_linbox(cp, m_A)
+    m_A = new LinBoxIntegerDensePolynomial(ZZ, fmpz_mat_nrows(A))
+    LinBoxIntegerDense_charpoly(m_A[0], LBA[0])
+    fmpz_poly_set_linbox(cp, m_A[0])
 
     del LBA
+    del m_A
 
 
 # set mp to the minimal polynomial of A
 cdef void linbox_fmpz_mat_minpoly(fmpz_poly_t mp, fmpz_mat_t A):
     cdef GivaroIntegerRing ZZ
     cdef LinBoxIntegerDenseMatrix * LBA
-    cdef LinBoxIntegerPolynomialRing.Element m_A
+    cdef LinBoxIntegerDensePolynomial * m_A
 
     # FIXME: bug in LinBox
     # see https://github.com/linbox-team/linbox/issues/51
@@ -219,11 +225,13 @@ cdef void linbox_fmpz_mat_minpoly(fmpz_poly_t mp, fmpz_mat_t A):
         return
 
     LBA = new LinBoxIntegerDenseMatrix(ZZ, fmpz_mat_nrows(A), fmpz_mat_ncols(A))
+    m_A = new LinBoxIntegerDensePolynomial(ZZ)
     fmpz_mat_get_linbox(LBA[0], A)
-    LinBoxIntegerDense_minpoly(m_A, LBA[0])
-    fmpz_poly_set_linbox(mp, m_A)
+    LinBoxIntegerDense_minpoly(m_A[0], LBA[0])
+    fmpz_poly_set_linbox(mp, m_A[0])
 
     del LBA
+    del m_A
 
 
 # return the rank of A

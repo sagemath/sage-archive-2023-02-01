@@ -306,23 +306,15 @@ cdef inline linbox_minpoly(celement modulus, Py_ssize_t nrows, celement* entries
     cdef Py_ssize_t i
     cdef ModField *F = new ModField(<long>modulus)
     cdef vector[ModFieldElement] *minP = new vector[ModFieldElement]()
-    cdef ModFieldElement *X = <ModFieldElement*>check_allocarray(nrows * (nrows+1), sizeof(ModFieldElement))
-    cdef size_t *P = <size_t*>check_allocarray(nrows, sizeof(size_t))
-
-    cdef celement *cpy = linbox_copy(modulus, entries, nrows, nrows)
 
     if nrows*nrows > 1000: sig_on()
-    Mod_MinPoly(F[0], minP[0], nrows, <ModFieldElement*>cpy, nrows, X, nrows, P)
+    Mod_MinPoly(F[0], minP[0], nrows, <ModFieldElement*>entries, nrows)
     if nrows*nrows > 1000: sig_off()
-
-    sig_free(cpy)
 
     l = []
     for i in range(minP.size()):
         l.append( <celement>minP.at(i) )
 
-    sig_free(P)
-    sig_free(X)
     del F
     return l
 
@@ -332,27 +324,23 @@ cdef inline linbox_charpoly(celement modulus, Py_ssize_t nrows, celement* entrie
     """
     cdef Py_ssize_t i
     cdef ModField *F = new ModField(<long>modulus)
-    cdef std_list[vector[ModFieldElement]] P_list
-    P_list.clear()
+    cdef ModDensePolyRing * R = new ModDensePolyRing(F[0])
+    cdef ModDensePoly  P
 
     cdef celement *cpy = linbox_copy(modulus, entries, nrows, nrows)
 
     if nrows*nrows > 1000: sig_on()
-    Mod_CharPoly(F[0], P_list, nrows, <ModFieldElement*>cpy, nrows)
+    Mod_CharPoly(R[0], P, nrows, <ModFieldElement*>cpy, nrows)
     if nrows*nrows > 1000: sig_off()
 
     sig_free(cpy)
 
-    cdef vector[ModFieldElement] tmp
     l = []
-    while P_list.size():
-        l.append([])
-        tmp = P_list.front()
-        for i in range(tmp.size()):
-            l[-1].append(<celement>tmp.at(i))
-        P_list.pop_front()
+    for i in range(P.size()):
+        l.append(<celement>P[i])
 
     del F
+    del R
     return l
 
 
@@ -1731,9 +1719,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         R = self._base_ring[var]
         # call linbox for charpoly
         v = linbox_charpoly(self.p, self._nrows, self._entries)
-        r = R(1)
-        for e in v:
-            r *= R(e)
+        r = R(v)
         return r
 
     def echelonize(self, algorithm="linbox", **kwds):

@@ -60,12 +60,9 @@ cdef inline bint creduce(celement out, celement a, long prec, PowComputer_ prime
         out.__coeffs = ared.__coeffs
     cdef long coeff_prec = prec / prime_pow.e + 1
     cdef long break_pt = prec % prime_pow.e
-    if break_pt > len(out.__coeffs):
-        break_pt = len(out.__coeffs)
-    for i in range(break_pt):
-        out.__coeffs[i] = out.__coeffs[i].add_bigoh(coeff_prec)
-    coeff_prec -= 1
-    for i in range(break_pt, len(out.__coeffs)):
+    for i in range(len(out.__coeffs)):
+        if i == break_pt:
+            coeff_prec -= 1
         out.__coeffs[i] = out.__coeffs[i].add_bigoh(coeff_prec)
     out.__normalize()
     return out == 0
@@ -287,7 +284,6 @@ cdef inline cexpansion_next(celement value, expansion_mode mode, long curpower, 
     # This is not very efficient, but there's no clear better way.
     # We assume this is only called on two-step extensions (for more general
     # extensions, convert to the absolute field).
-    S = value.parent()
     R = value.base_ring()
     p = R.prime()
     if R.degree() == 1:
@@ -307,7 +303,7 @@ cdef inline cexpansion_next(celement value, expansion_mode mode, long curpower, 
             del term[-1]
         if mode == smallest_mode:
             term = [c - p if c > p2 else c for c in term]
-            value.__coeffs[0] -= R(term)
+        value.__coeffs[0] -= R(term)
     cshift(value, value, -1, curpower, prime_pow, False)
     return term
 
@@ -321,21 +317,39 @@ cdef inline cexpansion_getitem(celement value, long m, PowComputer_ prime_pow):
     - ``m`` -- a non-negative integer: which entry in the `p`-adic expansion to return.
     - ``prime_pow`` -- A ``PowComputer`` holding `p`-adic data.
     """
-    if m > 0:
-        tmp = value.parent()(0)
-        cshift(tmp, value, -m, 1, prime_pow, False)
-    else:
+    R = value.base_ring()
+    p = R.prime()
+    if m == 0:
         tmp = value
-    const_term = tmp[0]
-    if const_term._is_exact_zero():
-        return []
     else:
-        flint_rep = const_term._flint_rep_abs()[0]
-        p = value.base_ring().prime()
-        term = [c % p for c in flint_rep.list()]
-        while term and not term[-1]:
-            del term[-1]
-        return term
+        tmp = value.parent()(0)
+    while m >= 0:
+        const_term = tmp[0]
+        if const_term._is_exact_zero():
+            term = []
+        else:
+            flint_rep = const_term._flint_rep_abs()[0]
+            term = [c % p for c in flint_rep.list()]
+            if m: tmp.__coeffs[0] -= R(term)
+        if m: cshift(tmp, tmp, -1, 1, prime_pow, False)
+        m -= 1
+    return term
+    # The following would be nice, but shifting doesn't behave the right way currently....
+    #if m > 0:
+    #    tmp = value.parent()(0)
+    #    cshift(tmp, value, -m, 1, prime_pow, False)
+    #else:
+    #    tmp = value
+    #const_term = tmp[0]
+    #if const_term._is_exact_zero():
+    #    return []
+    #else:
+    #    flint_rep = const_term._flint_rep_abs()[0]
+    #    p = value.base_ring().prime()
+    #    term = [c % p for c in flint_rep.list()]
+    #    while term and not term[-1]:
+    #        del term[-1]
+    #    return term
 
 cdef int cteichmuller(celement out, celement value, long prec, PowComputer_ prime_pow) except -1:
     r"""

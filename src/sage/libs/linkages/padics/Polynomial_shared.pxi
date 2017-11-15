@@ -104,15 +104,21 @@ cdef inline int ccmp(celement a, celement b, long prec, bint reduce_a, bint redu
     """
     if not (reduce_a or reduce_b):
         return 0 if a == b else 1
-    ccopy(prime_pow.tmp_ccmp_a, a, prime_pow)
-    ccopy(prime_pow.tmp_ccmp_b, b, prime_pow)
-
-    if reduce_a:
-        creduce(prime_pow.tmp_ccmp_a, prime_pow.tmp_ccmp_a, prec, prime_pow)
-    if reduce_b:
-        creduce(prime_pow.tmp_ccmp_b, prime_pow.tmp_ccmp_b, prec, prime_pow)
-
-    return 0 if prime_pow.tmp_ccmp_a == prime_pow.tmp_ccmp_b else 1
+    csub(prime_pow.tmp_ccmp_a, a, b, prec, prime_pow)
+    coeffs = prime_pow.tmp_ccmp_a.__coeffs
+    cdef long i, coeff_prec, break_pt
+    if prime_pow.e == 1:
+        for i in range(prime_pow.tmp_ccmp_a.degree()+1):
+            if coeffs[i].valuation() < prec:
+                return 1
+    else:
+        coeff_prec = prec / prime_pow.e + 1
+        break_pt = prec % prime_pow.e
+        for i in range(len(coeffs)):
+            if (i < break_pt and coeffs[i].valuation() < coeff_prec or
+                i >= break_pt and coeffs[i].valuation() < coeff_prec - 1):
+                return 1
+    return 0
 
 cdef inline long cremove(celement out, celement a, long prec, PowComputer_ prime_pow) except -1:
     r"""
@@ -137,7 +143,7 @@ cdef inline long cremove(celement out, celement a, long prec, PowComputer_ prime
     if a == 0:
         return prec
     cdef long v = cvaluation(a, prec, prime_pow)
-    cshift(out, a, -v, prec, prime_pow, True)
+    cshift(out, a, -v, prec, prime_pow, False)
     return v
 
 cdef inline bint cisunit(celement a, PowComputer_ prime_pow) except -1:

@@ -4929,6 +4929,9 @@ class GenericGraph(GenericGraph_pyx):
 
         self._scream_if_not_simple()
 
+        if self.is_planar():
+            return 0
+
         # Optimization one: the crossing number if the sum of crossing
         # numbers of connected components.
         if not self.is_connected():
@@ -4952,7 +4955,7 @@ class GenericGraph(GenericGraph_pyx):
         edgepairs = [x for x in edgepairs if x[0][0] not in [x[1][0], x[1][1]] and
                      x[0][1] not in [x[1][0], x[1][1]]]
 
-        k = 0
+        k = 1
         while True:
             for edges in Subsets(edgepairs, k):
                 g = copy(G)

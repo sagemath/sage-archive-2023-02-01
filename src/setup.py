@@ -433,6 +433,10 @@ class sage_build_cython(Command):
             cflags.append(flag)
         if not have_std_flag:  # See Trac #23919
             if sys.platform == 'cygwin':
+                # Cygwin (particularly newlib, Cygwin's libc) has some bugs
+                # with strict ANSI C/C++ in some headers; using the GNU
+                # extensions typically fares better:
+                # https://trac.sagemath.org/ticket/24192
                 if cplusplus:
                     cflags.append("-std=gnu++11")
                 else:

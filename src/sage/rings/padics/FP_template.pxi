@@ -184,6 +184,7 @@ cdef class FPElement(pAdicTemplateElement):
             sage: S.<x> = ZZ[]
             sage: W.<w> = R.ext(x^2 - 5)
             sage: w * (w+1) #indirect doctest
+            w + w^2
         """
         cdef type t = type(self)
         cdef FPElement ans = t.__new__(t)

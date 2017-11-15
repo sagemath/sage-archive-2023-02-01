@@ -190,6 +190,7 @@ cdef class CRElement(pAdicTemplateElement):
             sage: S.<x> = ZZ[]
             sage: W.<w> = R.ext(x^2 - 5)
             sage: w * (w+1) #indirect doctest
+            w + w^2 + O(w^41)
         """
         cdef type t = type(self)
         cdef type polyt

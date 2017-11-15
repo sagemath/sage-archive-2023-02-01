@@ -43,8 +43,8 @@ def KostkaFoulkesPolynomial(mu, nu, t=None):
     OUTPUT:
 
     - the Koskta-Foulkes polynomial indexed by partitions ``mu`` and ``nu`` and
-      evaluated at the parameter ``t``.  If ``t`` is ``None`` the resulting polynomial
-      is in the polynomial ring `ZZ['t']`.
+      evaluated at the parameter ``t``.  If ``t`` is ``None`` the resulting
+      polynomial is in the polynomial ring `\ZZ['t']`.
 
     EXAMPLES::
 
@@ -271,7 +271,6 @@ def compat(n, mu, nu):
         sa += 2*mmu[i] - nnu[i]
         bd.append(sa)
 
-    i = 0
     for la in ZS1_iterator(n):
         if dom(la, bd):
             return [x.conjugate() for x in _Partitions(la).dominated_partitions()]
@@ -332,7 +331,7 @@ def weight(rg, t=None):
     INPUT:
 
     - ``rg`` -- a rigging, a list of partitions
-    - ``t`` -- an optional parameter, (default: uses the generator from `ZZ['t']`)
+    - ``t`` -- an optional parameter, (default: the generator from `\ZZ['t']`)
 
     OUTPUT:
 

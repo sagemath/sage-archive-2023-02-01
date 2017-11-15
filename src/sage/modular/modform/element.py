@@ -1209,7 +1209,7 @@ class ModularForm_abstract(ModuleElement):
             sage: f._q_expansion_bound(eps)
             22
 
-        The level of `self` does not have to be related to the conductor
+        The level of ``self`` does not have to be related to the conductor
         of eps. ::
 
             sage: M = ModularForms(Gamma0(1), 12)
@@ -1288,7 +1288,7 @@ class ModularForm_abstract(ModuleElement):
         
         verbose("Conductors of candidate characters: %s" % (", ".join(str(x[0].conductor()) for x in cand_chars)), level=1)
         verbose("Qexp bounds: %s" % (", ".join(str(x[1]) for x in cand_chars)), level=1)
-        # If there are no candidate characters, then `self` cannot have CM.
+        # If there are no candidate characters, then self cannot have CM.
         if not cand_chars:
             return False
 
@@ -1328,7 +1328,7 @@ class ModularForm_abstract(ModuleElement):
         Return the discriminant of the CM field associated to this form. An
         error will be raised if the form isn't of CM type.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Newforms(49, 2)[0].cm_discriminant()
             -7

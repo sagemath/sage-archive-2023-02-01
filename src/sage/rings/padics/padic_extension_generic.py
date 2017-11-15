@@ -56,7 +56,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
         print_mode['var_name'] = names[0]
         names = names[0]
         pAdicGeneric.__init__(self, R, R.prime(), prec, print_mode, names, element_class)
-        self._populate_coercion_lists_(element_constructor=element_class)
+        self._populate_coercion_lists_(coerce_list=[R], element_constructor=element_class)
 
     def _coerce_map_from_(self, R):
         """

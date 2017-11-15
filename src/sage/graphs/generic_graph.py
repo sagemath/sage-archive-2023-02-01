@@ -4887,18 +4887,28 @@ class GenericGraph(GenericGraph_pyx):
 
         Computing the crossing number is NP-hard problem.
 
-        TESTS::
+        TESTS:
+
+        Empty graph, graph without edges::
 
             sage: E = graphs.EmptyGraph()
             sage: E.crossing_number()
             0
 
-            sage: C4 = graphs.CompleteGraph(4)  # Planar
+            sage: g = Graph(5)
+            sage: g.crossing_number()
+            0
+
+        Planar graph::
+
+            sage: C4 = graphs.CompleteGraph(4)
             sage: C4.crossing_number()
             0
 
+        Non-connected graph::
+
             sage: C5x2 = graphs.CompleteGraph(5) * 2
-            sage: C5x2.crossing_number()  # Check non-connected graph
+            sage: C5x2.crossing_number()
             2
 
         Test the "un-splitting edges" optimization::

@@ -312,7 +312,7 @@ def Matroid(groundset=None, data=None, **kwds):
             sage: M = Matroid(groundset='abcd', circuits=['abc', 'abd', 'acd',
             ....:                                         'bcd'])
             sage: type(M)
-            <type 'sage.matroids.basis_matroid.BasisMatroid'>
+            <... 'sage.matroids.basis_matroid.BasisMatroid'>
 
         Strange things can happen if the input does not satisfy the circuit
         axioms, and these are not always caught by the

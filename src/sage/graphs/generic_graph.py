@@ -4927,29 +4927,39 @@ class GenericGraph(GenericGraph_pyx):
         """
         from sage.combinat.subset import Subsets
 
-        self._scream_if_not_simple()
+        self._scream_if_not_simple(allow_loops=True)
 
+        # Shortcut for already planar graphs.
         if self.is_planar():
             return 0
 
-        # Optimization one: the crossing number if the sum of crossing
+        # The crossing number is the sum of crossing
         # numbers of connected components.
         if not self.is_connected():
             return sum(part.crossing_number() for part in
                        self.connected_components_subgraphs())
 
-        # Optimization two: Splitting an edge or adding a vertex of
-        # degree one does not increase the crossing number, so
-        # reversedly we can remove those.
-        G = self.subgraph([v for v in self if self.degree(v) > 1])
+        # Remove "tails", i.e. vertices that are not part of a cycle.
+        G = self.subgraph(self.cores(k=2)[1])
+
+        # Splitting an edge does not increase the
+        # crossing number, so reversedly we can shrink those. We must
+        # check that un-splitting would not create multiple edges.
         while True:
             for v in G:
                 if G.degree(v) == 2:
-                    G.add_edge(G.neighbors(v))
-                    G.delete_vertex(v)
-                    break
+                    if not G.has_edge(G.neighbors(v)):
+                        G.add_edge(G.neighbors(v))
+                        G.delete_vertex(v)
+                        break
             else:
                 break
+
+        # Remove triangles that just make a loop. All uninteresting loops are
+        # reduced to triangles in previous phase.
+        remove = [v for v in G if G.degree(v) == 2 and
+                  any(G.degree(v_) == 2 for v_ in G.neighbor_iterator(v))]
+        G.delete_vertices(remove)
 
         edgepairs = Subsets(G.edges(labels=False, sort=False), 2)
         edgepairs = [x for x in edgepairs if x[0][0] not in [x[1][0], x[1][1]] and

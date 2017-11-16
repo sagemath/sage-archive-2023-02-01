@@ -33,7 +33,11 @@ def stable_uniq(L):
 
 def have_module(name):
     """
-    Check whether a Python module named ``name`` is installed.
+    Check whether a Python module named ``name`` can be imported.
+
+    This is done by trying to import that module and returning ``True``
+    if that import succeeded. So, as a side effect, the module is
+    actually imported if possible.
 
     EXAMPLES::
 

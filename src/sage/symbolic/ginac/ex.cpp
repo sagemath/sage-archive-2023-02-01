@@ -590,11 +590,6 @@ void ex::coefficients(const ex & s, expairvec & vec) const
         exmap submap {{s, symb}}, revmap {{symb, s}};
         ex sub = subs(submap);
 
-        if (has_nonposint_power(sub, symb)) {
-                vec.push_back(std::make_pair(*this, _ex0));
-                return;
-        }
-
         if (is_exactly_a<add>(sub)) {
                 const add& addref = ex_to<add>(sub);
                 const numeric& oc = addref.get_overall_coeff();
@@ -602,12 +597,14 @@ void ex::coefficients(const ex & s, expairvec & vec) const
                         vec.push_back(std::make_pair(oc, _ex0));
                 for (const auto& term : addref.seq) {
                         ex tmp = addref.recombine_pair_to_ex(term);
-                        if (not match_monom(tmp, symb, vec, revmap))
+                        if (has_nonposint_power(tmp, symb)
+                            or not match_monom(tmp, symb, vec, revmap))
                                 vec.push_back(std::make_pair(tmp.subs(revmap), _ex0));
                 }
         }
         else {
-                if (not match_monom(sub, symb, vec, revmap)) {
+                if (has_nonposint_power(sub, symb)
+                    or not match_monom(sub, symb, vec, revmap)) {
                         vec.clear();
                         vec.push_back(std::make_pair(*this, _ex0));
                 }

@@ -46,7 +46,7 @@ def have_module(name):
         False
     """
     try:
-        __import__(name)
+        __import__(name, {}, {}, [], 0)
         return True
     except ImportError:
         return False

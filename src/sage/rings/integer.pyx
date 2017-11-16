@@ -158,6 +158,7 @@ from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
 from sage.misc.superseded import deprecated_function_alias
 from sage.arith.long cimport pyobject_to_long, integer_check_long
+from sage.cpython.string cimport char_to_str, str_to_bytes
 
 from cpython.list cimport *
 from cpython.number cimport *
@@ -687,8 +688,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     except AttributeError:
                         pass
 
-                elif isinstance(x, basestring):
+                elif isinstance(x, bytes):
                     mpz_set_str_python(self.value, x, base)
+                    return
+                elif isinstance(x, str):
+                    # Note: This should only be executed on Python 3 since on
+                    # Python 2 str is bytes
+                    mpz_set_str_python(self.value, str_to_bytes(x), base)
                     return
 
                 elif (isinstance(x, list) or isinstance(x, tuple)) and base > 1:
@@ -1084,7 +1090,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         sig_on()
         mpz_get_str(s, base, self.value)
         sig_off()
-        k = <bytes>s
+        k = char_to_str(s)
         sig_free(s)
         return k
 

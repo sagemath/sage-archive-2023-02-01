@@ -23,6 +23,7 @@ cimport cysignals.signals
 
 from sage.libs.gmp.types cimport mpz_t
 from sage.misc.misc import ECL_TMP
+from sage.cpython.string cimport str_to_bytes, char_to_str
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from cpython.object cimport Py_EQ, Py_NE
@@ -279,30 +280,30 @@ def init_ecl():
     #initialise list of objects and bind to global variable
     # *SAGE-LIST-OF-OBJECTS* to make it rooted in the reachable tree for the GC
     list_of_objects=cl_cons(Cnil,cl_cons(Cnil,Cnil))
-    cl_set(string_to_object("*SAGE-LIST-OF-OBJECTS*"),list_of_objects)
+    cl_set(string_to_object(b"*SAGE-LIST-OF-OBJECTS*"), list_of_objects)
 
-    cl_eval(string_to_object("""
+    cl_eval(string_to_object(b"""
         (setf (logical-pathname-translations "TMP")
               '(("**;*.*" "%s/**/*.*")))
-        """ % ECL_TMP))
+        """ % str_to_bytes(str(ECL_TMP))))
 
     # We define our own error catching eval, apply and funcall/
     # Presently these routines are only converted to byte-code. If they
     # ever turn out to be a bottle neck, it should be easy to properly
     # compile them.
 
-    read_from_string_clobj=cl_eval(string_to_object("(symbol-function 'read-from-string)"))
+    read_from_string_clobj=cl_eval(string_to_object(b"(symbol-function 'read-from-string)"))
 
-    cl_eval(string_to_object("""
+    cl_eval(string_to_object(b"""
         (defun sage-safe-eval (form)
             (handler-case
                 (values (eval form))
                 (serious-condition (cnd)
                     (values nil (princ-to-string cnd)))))
         """))
-    safe_eval_clobj=cl_eval(string_to_object("(symbol-function 'sage-safe-eval)"))
+    safe_eval_clobj=cl_eval(string_to_object(b"(symbol-function 'sage-safe-eval)"))
 
-    cl_eval(string_to_object("""
+    cl_eval(string_to_object(b"""
         (defun sage-safe-apply (func args)
             (handler-case
                 (values (apply func args))
@@ -310,15 +311,15 @@ def init_ecl():
                     (values nil (princ-to-string cnd)))))
         """))
 
-    safe_apply_clobj=cl_eval(string_to_object("(symbol-function 'sage-safe-apply)"))
-    cl_eval(string_to_object("""
+    safe_apply_clobj=cl_eval(string_to_object(b"(symbol-function 'sage-safe-apply)"))
+    cl_eval(string_to_object(b"""
         (defun sage-safe-funcall (func arg)
             (handler-case
                 (values (funcall func arg))
                 (serious-condition (cnd)
                     (values nil (princ-to-string cnd)))))
         """))
-    safe_funcall_clobj=cl_eval(string_to_object("(symbol-function 'sage-safe-funcall)"))
+    safe_funcall_clobj=cl_eval(string_to_object(b"(symbol-function 'sage-safe-funcall)"))
 
     ecl_has_booted = 1
 
@@ -426,7 +427,7 @@ def print_objects():
     c = list_of_objects
     while True:
         s = si_coerce_to_base_string(cl_write_to_string(1,cl_car(c)))
-        print(ecl_base_string_pointer_safe(s))
+        print(char_to_str(ecl_base_string_pointer_safe(s)))
         c = cl_cadr(c)
         if c == Cnil:
             break
@@ -458,7 +459,7 @@ cdef cl_object python_to_ecl(pyobj) except NULL:
     elif isinstance(pyobj,float):
         return ecl_make_doublefloat(pyobj)
     elif isinstance(pyobj,unicode):
-        s=<bytes>(str(pyobj))
+        s=str_to_bytes(pyobj)
         return ecl_safe_read_string(s)
     elif isinstance(pyobj,bytes):
         s=<bytes>pyobj
@@ -537,7 +538,7 @@ cdef ecl_to_python(cl_object o):
         return L
     else:
         s = si_coerce_to_base_string(cl_write_to_string(1,o))
-        return ecl_base_string_pointer_safe(s)
+        return char_to_str(ecl_base_string_pointer_safe(s))
 
 #Maxima's BFLOAT multiprecision float type can be read with:
 #def bfloat_to_python(e):
@@ -754,7 +755,7 @@ cdef class EclObject:
         """
         cdef cl_object s
         s = si_coerce_to_base_string(cl_write_to_string(1,self.obj))
-        return ecl_base_string_pointer_safe(s)
+        return char_to_str(ecl_base_string_pointer_safe(s))
 
     def __hash__(self):
         r"""
@@ -1319,7 +1320,7 @@ cdef EclObject ecl_wrap(cl_object o):
     return obj
 
 #convenience routine to more easily evaluate strings
-cpdef EclObject ecl_eval(bytes s):
+cpdef EclObject ecl_eval(str s):
     """
     Read and evaluate string in Lisp and return the result
 
@@ -1333,7 +1334,7 @@ cpdef EclObject ecl_eval(bytes s):
 
     """
     cdef cl_object o
-    o=ecl_safe_read_string(s)
+    o=ecl_safe_read_string(str_to_bytes(s))
     o=ecl_safe_eval(o)
     return ecl_wrap(o)
 

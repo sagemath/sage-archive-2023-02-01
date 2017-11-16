@@ -126,6 +126,7 @@ from sage.ext.stdsage cimport PY_NEW
 from sage.libs.gmp.mpz cimport *
 from sage.libs.mpfr cimport *
 from sage.misc.randstate cimport randstate, current_randstate
+from sage.cpython.string cimport char_to_str
 
 from sage.structure.element cimport RingElement, Element, ModuleElement
 from sage.structure.richcmp cimport rich_to_bool_sgn
@@ -1974,7 +1975,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         sig_off()
         if s is NULL:
             raise RuntimeError("unable to convert an mpfr number to a string")
-        t = str(s)
+        t = char_to_str(s)
         mpfr_free_str(s)
 
         if skip_zeroes:

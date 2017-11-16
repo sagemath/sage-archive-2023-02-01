@@ -1648,8 +1648,8 @@ class DiGraph(GenericGraph):
                     if verbose:
                         print("Adding a constraint on circuit : {}".format(certificate))
 
-                    edges = zip(certificate, certificate[1:] + [certificate[0]])
-                    p.add_constraint( p.sum( b[u,v] for u,v in edges), min=1)
+                    edges = list(zip(certificate, certificate[1:] + [certificate[0]]))
+                    p.add_constraint(p.sum(b[u, v] for u, v in edges), min=1)
 
                     # Is there another edge disjoint circuit ?
                     h.delete_edges(edges)
@@ -1662,8 +1662,8 @@ class DiGraph(GenericGraph):
 
             else:
                 # listing the edges contained in the MFAS
-                return [(u,v) for u,v in self.edges(labels=False)
-                        if p.get_values(b[u,v]) > .5]
+                return [(u, v) for u, v in self.edges(labels=False)
+                        if p.get_values(b[u, v]) > .5]
 
         ######################################
         # Ordering-based MILP Implementation #

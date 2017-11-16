@@ -1648,10 +1648,12 @@ class DiGraph(GenericGraph):
                     if verbose:
                         print("Adding a constraint on circuit : {}".format(certificate))
 
-                    edges = list(zip(certificate, certificate[1:] + [certificate[0]]))
+                    edges = zip(certificate, certificate[1:] + [certificate[0]])
                     p.add_constraint(p.sum(b[u, v] for u, v in edges), min=1)
 
                     # Is there another edge disjoint circuit ?
+                    # for python3, we need to recreate the zip iterator
+                    edges = zip(certificate, certificate[1:] + [certificate[0]])
                     h.delete_edges(edges)
                     isok, certificate = h.is_directed_acyclic(certificate=True)
 

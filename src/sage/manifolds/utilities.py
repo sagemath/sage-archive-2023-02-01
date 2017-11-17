@@ -117,20 +117,6 @@ class SimplifySqrtReal(ExpressionTreeWalker):
         :class:`SimplifySqrtReal` at work.
 
     """
-    def __init__(self, ex):
-        r"""
-        Construct a SimplifySqrtReal object.
-
-        TESTS::
-
-            sage: from sage.manifolds.utilities import SimplifySqrtReal
-            sage: s = SimplifySqrtReal(1+sqrt((x+1)^2))
-            sage: type(s)
-            <class 'sage.manifolds.utilities.SimplifySqrtReal'>
-
-        """
-        ExpressionTreeWalker.__init__(self, ex)
-
     def arithmetic(self, ex, operator):
         r"""
         This is the only method of the base class
@@ -176,7 +162,8 @@ class SimplifySqrtReal(ExpressionTreeWalker):
             operands = ex.operands()
             power = operands[1]
             one_half = Rational((1,2))
-            if (power == one_half) or (power == -one_half):
+            minus_one_half = -one_half
+            if (power == one_half) or (power == minus_one_half):
                 # This is a square root or the inverse of a square root
                 argum = operands[0]  # the argument of sqrt
                 if 'sqrt(' in str(argum):
@@ -192,14 +179,14 @@ class SimplifySqrtReal(ExpressionTreeWalker):
                         ex = sqrt(argum)
                 else:
                     ex = sqrt(argum)
-                if power == -one_half:
-                    ex = SR(1)/ex
                 simpl = SR(ex._maxima_().radcan())
                 if str(simpl)[:5] != 'sqrt(' and str(simpl)[:7] != '1/sqrt(':
                     # the absolute value of radcan's output is taken, the call
                     # to simplify() taking into account possible assumptions
                     # regarding the sign of simpl:
                     simpl = abs(simpl).simplify()
+                if power == minus_one_half:
+                    simpl = SR(1)/simpl
                 return simpl
         # If operator is not a square root, we default to ExpressionTreeWalker:
         return super(SimplifySqrtReal, self).arithmetic(ex, operator)
@@ -263,20 +250,6 @@ class SimplifyAbsTrig(ExpressionTreeWalker):
         :class:`SimplifyAbsTrig` at work.
 
     """
-    def __init__(self, ex):
-        r"""
-        Construct a SimplifyAbsTrig object.
-
-        TESTS::
-
-            sage: from sage.manifolds.utilities import SimplifyAbsTrig
-            sage: s = SimplifyAbsTrig(abs(sin(x)))
-            sage: type(s)
-            <class 'sage.manifolds.utilities.SimplifyAbsTrig'>
-
-        """
-        ExpressionTreeWalker.__init__(self, ex)
-
     def composition(self, ex, operator):
         r"""
         This is the only method of the base class

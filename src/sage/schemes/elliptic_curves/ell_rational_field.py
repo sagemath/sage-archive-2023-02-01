@@ -604,7 +604,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E = EllipticCurve([0, 0, 1, -1, 0])
             sage: e = E.pari_curve()
             sage: type(e)
-            <type 'cypari2.gen.Gen'>
+            <... 'cypari2.gen.Gen'>
             sage: e.type()
             't_VEC'
             sage: e.ellan(10)
@@ -900,7 +900,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: v = e.aplist(13); v
             [-2, -3, -2, -1, -5, -2]
             sage: type(v[0])
-            <type 'sage.rings.integer.Integer'>
+            <... 'sage.rings.integer.Integer'>
             sage: type(e.aplist(13, python_ints=True)[0])
             <... 'int'>
         """
@@ -4058,12 +4058,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: e.torsion_order()
             5
             sage: type(e.torsion_order())
-            <type 'sage.rings.integer.Integer'>
+            <... 'sage.rings.integer.Integer'>
             sage: e = EllipticCurve([1,2,3,4,5])
             sage: e.torsion_order()
             1
             sage: type(e.torsion_order())
-            <type 'sage.rings.integer.Integer'>
+            <... 'sage.rings.integer.Integer'>
         """
         try:
             return self.__torsion_order
@@ -4247,7 +4247,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: EllipticCurve('389a1').root_number()
             1
             sage: type(EllipticCurve('389a1').root_number())
-            <type 'sage.rings.integer.Integer'>
+            <... 'sage.rings.integer.Integer'>
 
             sage: E = EllipticCurve('100a1')
             sage: E.root_number(2)

@@ -141,7 +141,7 @@ cdef class ActOnAction(GenericAction):
             2*x + 3*y + z
 
             sage: type(A)
-            <type 'sage.structure.coerce_actions.ActOnAction'>
+            <... 'sage.structure.coerce_actions.ActOnAction'>
         """
         if self._is_left:
             return (<Element>a)._act_on_(b, True)
@@ -164,7 +164,7 @@ cdef class ActedUponAction(GenericAction):
             Infinity
 
             sage: type(A)
-            <type 'sage.structure.coerce_actions.ActedUponAction'>
+            <... 'sage.structure.coerce_actions.ActedUponAction'>
         """
         if self._is_left:
             return (<Element>b)._acted_upon_(a, False)

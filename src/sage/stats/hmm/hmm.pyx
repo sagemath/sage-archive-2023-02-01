@@ -63,7 +63,7 @@ cdef class HiddenMarkovModel:
             sage: pi = m.initial_probabilities(); pi
             [0.2000, 0.8000]
             sage: type(pi)
-            <type 'sage.finance.time_series.TimeSeries'>
+            <... 'sage.finance.time_series.TimeSeries'>
 
         The returned time series is a copy, so changing it does not
         change the model.

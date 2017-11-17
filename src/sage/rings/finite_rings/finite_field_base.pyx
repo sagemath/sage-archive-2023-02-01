@@ -1161,6 +1161,9 @@ cdef class FiniteField(Field):
             sage: R.<x> = k[]
             sage: k.extension(3)
             Finite Field in z12 of size 3^12
+            sage: K = k.extension(2, 'a')
+            sage: k.is_subring(K)
+            True
 
         An example using the ``map`` argument::
 
@@ -1211,16 +1214,25 @@ cdef class FiniteField(Field):
                     E = Field.extension(self, modulus, name=name, embedding=embedding)
         elif isinstance(modulus, (int, Integer)):
             E = GF(self.order()**modulus, name=name, **kwds)
+            if E is self:
+                pass # coercion map (identity map) is automatically found
+            elif hasattr(E, '_prefix') and hasattr(self, '_prefix'):
+                pass # coercion map is automatically found
+            else:
+                if self.is_conway(): # and E is Conway
+                    alpha = E.gen()**((E.order()-1)//(self.order()-1))
+                else:
+                    alpha = self.modulus().roots(E)[0][0]
+                try: # to register a coercion map (embedding of self to E)
+                    E.register_coercion(self.hom([alpha], codomain=E, check=False))
+                except AssertionError: # coercion already exists
+                    pass
         else:
             E = Field.extension(self, modulus, name=name, embedding=embedding)
-        if not map:
+        if map:
+            return (E, E.coerce_map_from(self))
+        else:
             return E
-        # Use the canonical map if it exists.
-        f = E.coerce_map_from(self)
-        if f is None:
-            from sage.categories.homset import Hom
-            f = Hom(self, E).an_element()
-        return (E, f)
 
     def subfields(self, degree=0, name=None):
         """

@@ -196,12 +196,6 @@ cdef void linbox_fmpz_mat_charpoly(fmpz_poly_t cp, fmpz_mat_t A):
     cdef LinBoxIntegerDenseMatrix * LBA
     cdef LinBoxIntegerDensePolynomial * m_A
 
-    # FIXME: bug in LinBox
-    # see https://github.com/linbox-team/linbox/issues/51
-    if fmpz_mat_nrows(A) == 0:
-        fmpz_poly_one(cp)
-        return
-
     LBA = new LinBoxIntegerDenseMatrix(ZZ, fmpz_mat_nrows(A), fmpz_mat_ncols(A))
     fmpz_mat_get_linbox(LBA[0], A)
     m_A = new LinBoxIntegerDensePolynomial(ZZ, fmpz_mat_nrows(A))
@@ -217,12 +211,6 @@ cdef void linbox_fmpz_mat_minpoly(fmpz_poly_t mp, fmpz_mat_t A):
     cdef GivaroIntegerRing ZZ
     cdef LinBoxIntegerDenseMatrix * LBA
     cdef LinBoxIntegerDensePolynomial * m_A
-
-    # FIXME: bug in LinBox
-    # see https://github.com/linbox-team/linbox/issues/51
-    if fmpz_mat_nrows(A) == 0:
-        fmpz_poly_one(mp)
-        return
 
     LBA = new LinBoxIntegerDenseMatrix(ZZ, fmpz_mat_nrows(A), fmpz_mat_ncols(A))
     m_A = new LinBoxIntegerDensePolynomial(ZZ)

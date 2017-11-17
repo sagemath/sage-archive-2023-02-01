@@ -1222,7 +1222,7 @@ cdef class FiniteField(Field):
                 if self.is_conway(): # and E is Conway
                     alpha = E.gen()**((E.order()-1)//(self.order()-1))
                 else:
-                    alpha = self.modulus().roots(E)[0][0]
+                    alpha = self.modulus().any_root(E)
                 try: # to register a coercion map (embedding of self to E)
                     E.register_coercion(self.hom([alpha], codomain=E, check=False))
                 except AssertionError: # coercion already exists

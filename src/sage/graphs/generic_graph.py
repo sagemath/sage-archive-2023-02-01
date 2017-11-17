@@ -4920,66 +4920,61 @@ class GenericGraph(GenericGraph_pyx):
             0
 
             sage: g = graphs.CompleteGraph(5)
-            sage: g.subdivide_edges(g.edges(), 1)
+            sage: g.subdivide_edges(g.edges(), 2)
             sage: g.add_edge(0, g.add_vertex())
             sage: g.crossing_number()
             1
         """
-        from sage.combinat.subset import Subsets
+        def _crossing_number(G):
+            """
+            Return the crossing number of a biconnected non-planar
+            graph ``G``.
+            """
+            from sage.combinat.subset import Subsets
+
+            # Splitting an edge does not increase the
+            # crossing number, so reversedly we can shrink those. We must
+            # check that un-splitting would not create multiple edges.
+            while True:
+                for v in G:
+                    if G.degree(v) == 2:
+                        if not G.has_edge(G.neighbors(v)):
+                            G.add_edge(G.neighbors(v))
+                            G.delete_vertex(v)
+                            break
+                else:
+                    break
+
+            edgepairs = Subsets(G.edges(labels=False, sort=False), 2)
+            edgepairs = [x for x in edgepairs if x[0][0] not in [x[1][0], x[1][1]] and
+                         x[0][1] not in [x[1][0], x[1][1]]]
+
+            k = 1
+            while True:
+                for edges in Subsets(edgepairs, k):
+                    g = copy(G)
+                    for pair in edges:
+                        g.delete_edges(pair)
+                    for edge in edges:
+                        v = g.add_vertex()
+                        g.add_edge(edge[0][0], v)
+                        g.add_edge(v, edge[0][1])
+                        g.add_edge(edge[1][0], v)
+                        g.add_edge(v, edge[1][1])
+                    if g.is_planar():
+                        return k
+                k += 1
 
         self._scream_if_not_simple(allow_loops=True)
 
-        # Shortcut for already planar graphs.
-        if self.is_planar():
-            return 0
-
-        # The crossing number is the sum of crossing
-        # numbers of connected components.
-        if not self.is_connected():
-            return sum(part.crossing_number() for part in
-                       self.connected_components_subgraphs())
-
-        # Remove "tails", i.e. vertices that are not part of a cycle.
-        G = self.subgraph(self.cores(k=2)[1])
-
-        # Splitting an edge does not increase the
-        # crossing number, so reversedly we can shrink those. We must
-        # check that un-splitting would not create multiple edges.
-        while True:
-            for v in G:
-                if G.degree(v) == 2:
-                    if not G.has_edge(G.neighbors(v)):
-                        G.add_edge(G.neighbors(v))
-                        G.delete_vertex(v)
-                        break
-            else:
-                break
-
-        # Remove triangles that just make a loop. All uninteresting loops are
-        # reduced to triangles in previous phase.
-        remove = [v for v in G if G.degree(v) == 2 and
-                  any(G.degree(v_) == 2 for v_ in G.neighbor_iterator(v))]
-        G.delete_vertices(remove)
-
-        edgepairs = Subsets(G.edges(labels=False, sort=False), 2)
-        edgepairs = [x for x in edgepairs if x[0][0] not in [x[1][0], x[1][1]] and
-                     x[0][1] not in [x[1][0], x[1][1]]]
-
-        k = 1
-        while True:
-            for edges in Subsets(edgepairs, k):
-                g = copy(G)
-                for pair in edges:
-                    g.delete_edges(pair)
-                for edge in edges:
-                    v = g.add_vertex()
-                    g.add_edge(edge[0][0], v)
-                    g.add_edge(v, edge[0][1])
-                    g.add_edge(edge[1][0], v)
-                    g.add_edge(v, edge[1][1])
-                if g.is_planar():
-                    return k
-            k += 1
+        blocks = self.blocks_and_cut_vertices()[0]
+        k = 0
+        for block in blocks:
+            if len(block) > 4:
+                g = self.subgraph(block)
+                if not g.is_planar():
+                    k += _crossing_number(g)
+        return k
 
     def faces(self, embedding = None):
         """

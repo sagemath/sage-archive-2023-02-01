@@ -30,6 +30,8 @@ from functools import reduce
 from sage.categories.morphism import Morphism
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
 from sage.categories.integral_domains import IntegralDomains
+from sage.categories.euclidean_domains import EuclideanDomains
+from sage.categories.metric_spaces import MetricSpaces
 from sage.categories.fields import Fields
 from sage.categories.homset import Hom
 
@@ -129,11 +131,13 @@ class pAdicExtensionGeneric(pAdicGeneric):
         if self._implementation == 'NTL' and R == QQ:
             # Want to use DefaultConvertMap
             return None
-        if isinstance(R, pAdicExtensionGeneric) and R.defining_polynomial(exact=True) == self.defining_polynomial(exact=True):
+        if isinstance(R, pAdicExtensionGeneric) and R.prime() == self.prime() and R.defining_polynomial(exact=True) == self.defining_polynomial(exact=True):
             if R.is_field() and not self.is_field():
                 cat = SetsWithPartialMaps()
-            else:
+            elif R.category() is self.category():
                 cat = R.category()
+            else:
+                cat = EuclideanDomains() & MetricSpaces().Complete()
         elif isinstance(R, Order) and R.number_field().defining_polynomial() == self.defining_polynomial():
             cat = IntegralDomains()
         elif isinstance(R, NumberField) and R.defining_polynomial() == self.defining_polynomial():

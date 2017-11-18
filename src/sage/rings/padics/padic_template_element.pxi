@@ -127,7 +127,12 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
                 if x.parent().modulus().change_ring(self.base_ring()) == self.parent().modulus():
                     x = x.polynomial().change_ring(self.base_ring()).list()
                 else:
-                    raise NotImplementedError("conversion from %r to %r not implemented"%(x.parent(), self.parent()))
+                    x = self.base_ring()(x)
+                    if x.is_zero():
+                        absprec = min(absprec, x.precision_absolute()*self.prime_pow.e)
+                        x = []
+                    else:
+                        x = [x]
         elif sage.rings.finite_rings.integer_mod.is_IntegerMod(x):
             if not Integer(self.prime_pow.prime).divides(x.parent().order()):
                 raise TypeError("p does not divide modulus %s"%x.parent().order())

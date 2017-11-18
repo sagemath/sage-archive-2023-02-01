@@ -4935,15 +4935,12 @@ class GenericGraph(GenericGraph_pyx):
             # Splitting an edge does not increase the
             # crossing number, so reversedly we can shrink those. We must
             # check that un-splitting would not create multiple edges.
-            while True:
-                for v in G:
-                    if G.degree(v) == 2:
-                        if not G.has_edge(G.neighbors(v)):
-                            G.add_edge(G.neighbors(v))
-                            G.delete_vertex(v)
-                            break
-                else:
-                    break
+            two = [v for v in G if G.degree(v) == 2]
+            for v in two:
+                u, w = G.neighbors(v)
+                if not G.has_edge(u, w):
+                    G.add_edge(u, w)
+                    G.delete_vertex(v)
 
             edgepairs = Subsets(G.edges(labels=False, sort=False), 2)
             edgepairs = [x for x in edgepairs if x[0][0] not in [x[1][0], x[1][1]] and

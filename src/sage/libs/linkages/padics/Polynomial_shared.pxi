@@ -176,7 +176,11 @@ cdef inline int cneg(celement out, celement a, long prec, PowComputer_ prime_pow
     - ``prime_pow`` -- the ``PowComputer`` for the ring
 
     """
-    out.__coeffs = (<celement?>(-a)).__coeffs
+    cdef celement ma = -a
+    if ma is a:
+        out.__coeffs = ma.__coeffs[:]
+    else:
+        out.__coeffs = ma.__coeffs
 
 cdef inline int cadd(celement out, celement a, celement b, long prec, PowComputer_ prime_pow) except -1:
     r"""
@@ -197,7 +201,11 @@ cdef inline int cadd(celement out, celement a, celement b, long prec, PowCompute
     - ``prime_pow`` -- the ``PowComputer`` for the ring
 
     """
-    out.__coeffs = (<celement?>(a + b)).__coeffs
+    cdef celement sm = a + b
+    if sm is a or sm is b:
+        out.__coeffs = sm.__coeffs[:]
+    else:
+        out.__coeffs = sm.__coeffs
 
 cdef inline int csub(celement out, celement a, celement b, long prec, PowComputer_ prime_pow) except -1:
     r"""
@@ -218,7 +226,11 @@ cdef inline int csub(celement out, celement a, celement b, long prec, PowCompute
     - ``prime_pow`` -- the ``PowComputer`` for the ring
 
     """
-    out.__coeffs = (<celement?>(a - b)).__coeffs
+    cdef celement df = a - b
+    if df is a or df is b:
+        out.__coeffs = df.__coeffs[:]
+    else:
+        out.__coeffs = df.__coeffs
 
 cdef inline int cmul(celement out, celement a, celement b, long prec, PowComputer_ prime_pow) except -1:
     r"""
@@ -239,7 +251,11 @@ cdef inline int cmul(celement out, celement a, celement b, long prec, PowCompute
     - ``prime_pow`` -- the ``PowComputer`` for the ring
 
     """
-    out.__coeffs = (<celement?>(a*b)).__coeffs
+    cdef celement pd = a*b
+    if pd is a or pd is b:
+        out.__coeffs = pd.__coeffs[:]
+    else:
+        out.__coeffs = pd.__coeffs
 
 cdef inline int csetone(celement out, PowComputer_ prime_pow) except -1:
     r"""
@@ -375,7 +391,11 @@ cdef int cconv(celement out, x, long prec, long valshift, PowComputer_ prime_pow
     - ``prime_pow`` -- a ``PowComputer`` for the ring
 
     """
-    out.__coeffs = (<celement?>prime_pow.poly_ring(x)).__coeffs
+    cdef celement xx = prime_pow.poly_ring(x)
+    if xx is x:
+        out.__coeffs = xx.__coeffs[:]
+    else:
+        out.__coeffs = xx.__coeffs
     creduce(out, out, prec, prime_pow)
     cshift(out, out, -valshift, prec, prime_pow, True)
 

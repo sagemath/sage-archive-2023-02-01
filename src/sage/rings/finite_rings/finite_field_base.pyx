@@ -1041,7 +1041,6 @@ cdef class FiniteField(Field):
             sage: to_W(basis[0]); to_W(basis[1])
             (1, 0)
             (0, 1)
-
         """
         from sage.modules.all import VectorSpace
 
@@ -1083,26 +1082,8 @@ cdef class FiniteField(Field):
                    [E_basis_beta[i]._vector_() for i in range(E.degree())])
         Cinv = C.inverse()
 
-        def to_V(e):
-            w = e._vector_() * Cinv
-            if F.degree() > 1:
-                return V([F(w[i*F.degree():(i+1)*F.degree()]) for i in range(s)])
-            else:
-                return w
-
-        def from_V(v):
-            w = []
-            for i in range(s):
-                w.extend(v[i]._vector_())
-            w = vector(w)
-            e = w * C
-            if E.degree() > 1:
-                return E(e)
-            else:
-                return e[0]
-
-        phi = MorphismVectorSpaceToFiniteField(V, self, from_V)
-        psi = MorphismFiniteFieldToVectorSpace(self, V, to_V)
+        phi = MorphismVectorSpaceToFiniteField(V, self, C)
+        psi = MorphismFiniteFieldToVectorSpace(self, V, Cinv)
 
         return V, phi, psi
 

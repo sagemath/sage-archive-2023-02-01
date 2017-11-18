@@ -19,10 +19,9 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.categories.homset import Hom
-from sage.categories.morphism import SetMorphism
+from sage.categories.morphism import Morphism
 
-class FiniteFieldIsomorphism(SetMorphism):
+class FiniteFieldIsomorphism(Morphism):
     """
     Base class of the vector space isomorphism between a finite field
     and a vector space over a subfield of the finite field.
@@ -72,11 +71,13 @@ class FiniteFieldIsomorphism(SetMorphism):
         """
         return True
 
+# from_V
+# needs C
 class MorphismVectorSpaceToFiniteField(FiniteFieldIsomorphism):
     """
     Isomorphisms from vector spaces to finite fields.
     """
-    def __init__(self, V, K, function):
+    def __init__(self, V, K, C):
         """
         Initialize.
 
@@ -86,8 +87,7 @@ class MorphismVectorSpaceToFiniteField(FiniteFieldIsomorphism):
 
         - ``K`` -- finite field
 
-        - ``function`` -- Python function that inputs a vector and outputs
-          an element of the finite field
+        - ``C`` -- matrix
 
         EXAMPLES::
 
@@ -99,24 +99,55 @@ class MorphismVectorSpaceToFiniteField(FiniteFieldIsomorphism):
               From: Vector space of dimension 1 over Finite Field in z4 of size 2^4
               To:   Finite Field in z4 of size 2^4
         """
-        FiniteFieldIsomorphism.__init__(self, Hom(V, K), function)
+        if C.is_mutable():
+            C = C.__copy__()
+            C.set_immutable()
+        self._C = C
+        FiniteFieldIsomorphism.__init__(self, V, K)
+
+    def _call_(self, v):
+        r"""
+        TESTS::
+
+            sage: E = GF(64)
+            sage: F = GF(4)
+            sage: V, phi, psi = E.vector_space(F, map=True)
+            sage: phi(V.zero())
+            0
+            sage: [phi(v) for v in V.basis()]
+            [1, z6, z6^2]
+        """
+        E = self.codomain()  # = GF((p^n)^m)
+        V = self.domain()    # = GF(p^n)^m
+        m = V.dimension()
+        F = V.base_ring()    # = GF(p^n)
+        n = F.degree()
+
+        if m == n == 1:
+            # 1x1 matrix
+            return self._C[0][0] * v[0]
+        else:
+            # expand v as a vector over GF(p)
+            w = self._C._row_ambient_module()()
+            for i in range(m):
+                w[i*n:(i+1)*n] = v[i]._vector_()
+            return E(w * self._C)
 
 class MorphismFiniteFieldToVectorSpace(FiniteFieldIsomorphism):
     """
     Isomorphisms from finite fields to vector spaces
     """
-    def __init__(self, K, V, function):
+    def __init__(self, K, V, C):
         """
         Initialize.
 
         INPUT:
 
-        - ``K`` -- finite field
+        - ``K`` -- finite field GF((p^m)^n)
 
-        - ``V`` -- vector space
+        - ``V`` -- vector space of rank n over GF(p^m)
 
-        - ``function`` -- Python function that inputs an element of the finite field
-          and outputs a vector of the vector space
+        - ``C`` -- matrix
 
         EXAMPLES::
 
@@ -128,4 +159,33 @@ class MorphismFiniteFieldToVectorSpace(FiniteFieldIsomorphism):
               From: Finite Field in z4 of size 2^4
               To:   Vector space of dimension 1 over Finite Field in z4 of size 2^4
         """
-        FiniteFieldIsomorphism.__init__(self, Hom(K, V), function)
+        if C.is_mutable():
+            C = C.__copy__()
+            C.set_immutable()
+        self._C = C
+        FiniteFieldIsomorphism.__init__(self, K, V)
+
+    def _call_(self, e):
+        r"""
+        TESTS::
+
+            sage: E = GF(64)
+            sage: F = GF(4)
+            sage: V, phi, psi = E.vector_space(F, map=True)
+            sage: psi(E.zero())
+            (0, 0, 0)
+            sage: psi(E.one())
+            (1, 0, 0)
+            sage: psi(E.gen())
+            (0, 1, 0)
+        """
+        V = self.codomain()   # = GF(p^n)^m
+        m = V.dimension()
+        F = V.base_ring()     # = GF(p^n)
+        n = F.degree()
+        w = e._vector_() * self._C
+        if F.degree() > 1:
+            return V([F(w[i*n:(i+1)*n]) for i in range(m)])
+        else:
+            return w
+

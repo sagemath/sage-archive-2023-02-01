@@ -350,7 +350,7 @@ mpfr_set_exp_max(mpfr_get_emax_max())
 # The real field is in Cython, so mpfr elements will have access to
 # their parent via direct C calls, which will be faster.
 
-from sage.misc.long cimport pyobject_to_long
+from sage.arith.long cimport pyobject_to_long
 cdef dict rounding_modes = dict(RNDN=MPFR_RNDN, RNDZ=MPFR_RNDZ,
         RNDD=MPFR_RNDD, RNDU=MPFR_RNDU, RNDA=MPFR_RNDA)
 

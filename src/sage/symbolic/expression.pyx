@@ -2569,8 +2569,17 @@ cdef class Expression(CommutativeRingElement):
             True
             sage: ((x^2+x) / (x+1)).is_trivially_equal(1/x)
             False
+
+        TESTS:
+
+        Make sure Python objects work as argument too::
+
+            sage: x = SR(1/2)
+            sage: x.is_trivially_equal(QQbar(1/2))
+            True
         """
-        cdef Expression _other = <Expression>other
+        from .ring import SR
+        cdef Expression _other = <Expression>(SR(other))
         sig_on()
         try:
             return self._gobj.is_equal(_other._gobj)

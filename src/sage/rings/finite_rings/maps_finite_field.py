@@ -21,7 +21,7 @@ AUTHORS:
 
 from sage.categories.morphism import Morphism
 
-class FiniteFieldIsomorphism(Morphism):
+class FiniteFieldVectorSpaceIsomorphism(Morphism):
     """
     Base class of the vector space isomorphism between a finite field
     and a vector space over a subfield of the finite field.
@@ -73,7 +73,7 @@ class FiniteFieldIsomorphism(Morphism):
 
 # from_V
 # needs C
-class MorphismVectorSpaceToFiniteField(FiniteFieldIsomorphism):
+class MorphismVectorSpaceToFiniteField(FiniteFieldVectorSpaceIsomorphism):
     """
     Isomorphisms from vector spaces to finite fields.
     """
@@ -103,7 +103,7 @@ class MorphismVectorSpaceToFiniteField(FiniteFieldIsomorphism):
             C = C.__copy__()
             C.set_immutable()
         self._C = C
-        FiniteFieldIsomorphism.__init__(self, V, K)
+        FiniteFieldVectorSpaceIsomorphism.__init__(self, V, K)
 
     def _call_(self, v):
         r"""
@@ -133,7 +133,7 @@ class MorphismVectorSpaceToFiniteField(FiniteFieldIsomorphism):
                 w[i*n:(i+1)*n] = v[i]._vector_()
             return E(w * self._C)
 
-class MorphismFiniteFieldToVectorSpace(FiniteFieldIsomorphism):
+class MorphismFiniteFieldToVectorSpace(FiniteFieldVectorSpaceIsomorphism):
     """
     Isomorphisms from finite fields to vector spaces
     """
@@ -163,7 +163,7 @@ class MorphismFiniteFieldToVectorSpace(FiniteFieldIsomorphism):
             C = C.__copy__()
             C.set_immutable()
         self._C = C
-        FiniteFieldIsomorphism.__init__(self, K, V)
+        FiniteFieldVectorSpaceIsomorphism.__init__(self, K, V)
 
     def _call_(self, e):
         r"""

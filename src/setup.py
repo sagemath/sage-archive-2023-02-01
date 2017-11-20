@@ -288,6 +288,7 @@ class sage_build_cython(Command):
         )
         self.compile_time_env = dict(
             PY_VERSION_HEX=sys.hexversion,
+            PY_MAJOR_VERSION=sys.version_info[0],
             HAVE_GMPY2=have_module("gmpy2"),
         )
 

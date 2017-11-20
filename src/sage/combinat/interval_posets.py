@@ -2934,7 +2934,8 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
         color_b = graph.incoming_edges('b')[0][2]
 
         embedding = graph.get_embedding()
-        graph0 = DiGraph([e for e in graph.edges() if e[2] == color_a],
+        graph0 = DiGraph([e for e in graph.edges(sort=False)
+                          if e[2] == color_a],
                          format='list_of_edges')
         restricted_embedding = {u: [v for v in embedding[u]
                                     if v in graph0.neighbors_in(u) or

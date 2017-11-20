@@ -983,21 +983,25 @@ cdef class FiniteField(Field):
             else:
                 return PolynomialRing(GF(self.characteristic()), variable_name)
 
-    def vector_space(self, subfield=None, basis=None, map=False):
+    def vector_space(self, subfield=None, basis=None, map=False, inclusion_map=None):
         """
         Return the vector space over the subfield isomorphic to this
         finite field as a vector space, along with the isomorphisms.
 
         INPUT:
 
-        - ``subfield`` -- a subfield of the finite field. If not given,
-          the prime subfield is assumed.
+        - ``subfield`` -- a subfield of or a morphism into the finite field.
+          If not given, the prime subfield is assumed.
 
         - ``basis`` -- a basis of the finite field as a vector space
           over the subfield. If not given, one is chosen automatically.
 
         - ``map`` -- boolean (default: ``False``); if ``True``, isomophisms
           from and to the vector space are also returned.
+
+        - ``inclusion_map`` -- a morphism from a finite field into this finite
+          field. If this is not given and ``subfield`` is given, the coercion
+          map of the ``subfield`` to this finite field is assumed.
 
         The ``basis`` maps to the standard basis of the vector space
         by the isomorphisms.
@@ -1016,11 +1020,12 @@ cdef class FiniteField(Field):
 
             sage: GF(27,'a').vector_space()
             Vector space of dimension 3 over Finite Field of size 3
-            sage: E = GF(16)
-            sage: F = GF(4)
+
+            sage: F = GF(8)
+            sage: E = GF(64)
             sage: V, from_V, to_V = E.vector_space(F, map=True)
             sage: V
-            Vector space of dimension 2 over Finite Field in z2 of size 2^2
+            Vector space of dimension 2 over Finite Field in z3 of size 2^3
             sage: to_V(E.gen())
             (0, 1)
             sage: all(from_V(to_V(e)) == e for e in E)
@@ -1042,8 +1047,23 @@ cdef class FiniteField(Field):
             (1, 0)
             (0, 1)
 
+            sage: F = GF(9, 't', modulus=(x^2+x-1))
+            sage: E = GF(81)
+            sage: h = Hom(F,E).an_element()
+            sage: V, from_V, to_V = E.vector_space(h, map=True)
+            sage: V
+            Vector space of dimension 2 over Finite Field in t of size 3^2
+            sage: V.base_ring() is F
+            True
+            sage: all(from_V(to_V(e)) == e for e in E)
+            True
+            sage: all(to_V(e1 + e2) == to_V(e1) + to_V(e2) for e1 in E for e2 in E)
+            True
+            sage: all(to_V(h(c) * e) == c * to_V(e) for e in E for c in F)
+            True
         """
         from sage.modules.all import VectorSpace
+        from sage.categories.morphism import is_Morphism
 
         if subfield is None:
             subfield = self.prime_subfield()
@@ -1051,6 +1071,11 @@ cdef class FiniteField(Field):
             if self.__vector_space is None:
                 self.__vector_space = VectorSpace(subfield, s)
             V = self.__vector_space
+        elif is_Morphism(subfield):
+            inclusion_map = subfield
+            subfield = inclusion_map.domain()
+            s = self.degree() // subfield.degree()
+            V = VectorSpace(subfield, s)
         elif subfield.is_subring(self):
             s = self.degree() // subfield.degree()
             V = VectorSpace(subfield, s)
@@ -1059,6 +1084,9 @@ cdef class FiniteField(Field):
 
         if map is False: # shortcut
             return V
+
+        if inclusion_map is None:
+            inclusion_map = self.coerce_map_from(subfield)
 
         from sage.modules.all import vector
         from sage.matrix.all import matrix
@@ -1077,31 +1105,16 @@ cdef class FiniteField(Field):
         F_basis = [beta**i for i in range(F.degree())]
 
         # E_basis_alpha is the implicit basis of E over the prime subfield
-        E_basis_beta = [F_basis[i] * basis[j] for j in range(s) for i in range(F.degree())]
+        E_basis_beta = [inclusion_map(F_basis[i]) * basis[j]
+                        for j in range(s)
+                        for i in range(F.degree())]
 
-        C = matrix([E_basis_beta[i]._vector_() for i in range(E.degree())])
+        C = matrix(E.prime_subfield(), E.degree(), E.degree(),
+                   [E_basis_beta[i]._vector_() for i in range(E.degree())])
         Cinv = C.inverse()
 
-        def to_V(e):
-            w = e._vector_() * Cinv
-            if F.degree() > 1:
-                return vector(F, [F(w[i*F.degree():(i+1)*F.degree()]) for i in range(s)])
-            else:
-                return w
-
-        def from_V(v):
-            w = []
-            for i in range(s):
-                w.extend(v[i]._vector_())
-            w = vector(w)
-            e = w * C
-            if E.degree() > 1:
-                return E(e)
-            else:
-                return e[0]
-
-        phi = MorphismVectorSpaceToFiniteField(V, self, from_V)
-        psi = MorphismFiniteFieldToVectorSpace(self, V, to_V)
+        phi = MorphismVectorSpaceToFiniteField(V, self, C)
+        psi = MorphismFiniteFieldToVectorSpace(self, V, Cinv)
 
         return V, phi, psi
 

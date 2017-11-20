@@ -24,18 +24,23 @@ IF PY_MAJOR_VERSION >= 3:
         object PyUnicode_EncodeLocale(object unicode, const char* errors)
 
 
-cdef inline str char_to_str(char* c, encoding=None):
+cdef inline str char_to_str(char* c, encoding=None, errors=None):
     IF PY_MAJOR_VERSION <= 2:
         return <str>PyString_FromString(c)
     ELSE:
+        cdef char* err
+        if errors is None:
+            err = NULL  # implies "strict"
+        else:
+            err = PyUnicode_AsUTF8(errors)
+
         if encoding is None:
-            return PyUnicode_DecodeLocale(c, "surrogateescape")
+            return PyUnicode_DecodeLocale(c, err)
 
-        return PyUnicode_Decode(c, strlen(c), PyUnicode_AsUTF8(encoding),
-                                "surrogateescape")
+        return PyUnicode_Decode(c, strlen(c), PyUnicode_AsUTF8(encoding), err)
 
 
-cpdef inline str bytes_to_str(bytes b, encoding=None):
+cpdef inline str bytes_to_str(bytes b, encoding=None, errors=None):
     """
     Convertes `bytes` to `str`.
 
@@ -58,10 +63,11 @@ cpdef inline str bytes_to_str(bytes b, encoding=None):
     IF PY_MAJOR_VERSION <= 2:
         return <str>b
     ELSE:
-        return char_to_str(PyString_AsString(b), encoding=encoding)
+        return char_to_str(PyString_AsString(b), encoding=encoding,
+                           errors=errors)
 
 
-cpdef inline bytes str_to_bytes(str s, encoding=None):
+cpdef inline bytes str_to_bytes(str s, encoding=None, errors=None):
     """
     Convertes `str` to `bytes`.
 
@@ -83,8 +89,13 @@ cpdef inline bytes str_to_bytes(str s, encoding=None):
     IF PY_MAJOR_VERSION <= 2:
         return <bytes>s
     ELSE:
-        if encoding is None:
-            return PyUnicode_EncodeLocale(s, "surrogateescape")
+        cdef char* err
+        if errors is None:
+            err = NULL  # implies "strict"
+        else:
+            err = PyUnicode_AsUTF8(errors)
 
-        return PyUnicode_AsEncodedString(s, PyUnicode_AsUTF8(encoding),
-                                         "surrogateescape")
+        if encoding is None:
+            return PyUnicode_EncodeLocale(s, err)
+
+        return PyUnicode_AsEncodedString(s, PyUnicode_AsUTF8(encoding), err)

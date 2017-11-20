@@ -2099,7 +2099,7 @@ class FockSpaceTruncated(FockSpace):
             sage: F(G[4,2,2])
             |4, 2, 2> + q*|3, 2, 2, 1>
 
-        We check agianst the tables in [LLT1996]_ (after truncating)::
+        We check against the tables in [LLT1996]_ (after truncating)::
 
             sage: FS = FockSpace(3, truncated=3)
             sage: F = FS.natural()

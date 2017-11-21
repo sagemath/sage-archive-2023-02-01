@@ -585,11 +585,10 @@ ex basic::subs_one_level(const exmap & m, unsigned options) const
 	exmap::const_iterator it;
 
         if (options & subs_options::no_pattern) {
-		ex thisex = *this;
-		it = m.find(thisex);
-		if (it != m.end())
-			return it->second;
-		return thisex;
+                ex thisex = *this;
+                for (const auto & pair : m)
+                        if (thisex.is_equal(pair.first))
+                                return pair.second;
 	} else {
                 for (const auto & elem : m) {
 			lst repl_lst;
@@ -605,6 +604,10 @@ ex basic::subs_one_level(const exmap & m, unsigned options) const
  *  will already be evaluated. */
 ex basic::subs(const exmap & m, unsigned options) const
 {
+        if (std::all_of(m.cbegin(), m.cend(),
+                                [](std::pair<ex,ex> p) 
+                                { return not haswild(p.first); } ))
+                options |= subs_options::no_pattern;
 	size_t num = nops();
 	if (num != 0u) {
 

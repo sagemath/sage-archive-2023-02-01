@@ -2017,13 +2017,13 @@ class ParallelogramPolyomino(ClonableList):
 
             EXAMPLES::
 
-            sage: pp = ParallelogramPolyomino(
-            ....:     [
-            ....:         [0, 0, 0, 0, 1, 0, 1, 0, 1],
-            ....:         [1, 0, 0, 0, 1, 1, 0, 0, 0]
-            ....:     ]
-            ....: )
-            sage: row = ParallelogramPolyomino._polyomino_row( pp, 4 )
+                sage: pp = ParallelogramPolyomino(
+                ....:     [
+                ....:         [0, 0, 0, 0, 1, 0, 1, 0, 1],
+                ....:         [1, 0, 0, 0, 1, 1, 0, 0, 0]
+                ....:     ]
+                ....: )
+                sage: row = ParallelogramPolyomino._polyomino_row( pp, 4 )
             """
             self.polyomino = polyomino
             self.row = row
@@ -2035,23 +2035,23 @@ class ParallelogramPolyomino(ClonableList):
 
             EXAMPLES::
 
-            sage: pp = ParallelogramPolyomino(
-            ....:     [
-            ....:         [0, 0, 0, 0, 1, 0, 1, 0, 1],
-            ....:         [1, 0, 0, 0, 1, 1, 0, 0, 0]
-            ....:     ]
-            ....: )
-            sage: matrix(pp.get_array())
-            [1 0 0]
-            [1 0 0]
-            [1 0 0]
-            [1 1 1]
-            [0 1 1]
-            [0 0 1]
+                sage: pp = ParallelogramPolyomino(
+                ....:     [
+                ....:         [0, 0, 0, 0, 1, 0, 1, 0, 1],
+                ....:         [1, 0, 0, 0, 1, 1, 0, 0, 0]
+                ....:     ]
+                ....: )
+                sage: matrix(pp.get_array())
+                [1 0 0]
+                [1 0 0]
+                [1 0 0]
+                [1 1 1]
+                [0 1 1]
+                [0 0 1]
 
-            sage: row = ParallelogramPolyomino._polyomino_row( pp, 4 )
-            sage: [row[-1], row[0], row[1], row[2], row[3]]
-            [0, 0, 1, 1, 0]
+                sage: row = ParallelogramPolyomino._polyomino_row( pp, 4 )
+                sage: [row[-1], row[0], row[1], row[2], row[3]]
+                [0, 0, 1, 1, 0]
             """
             if (self.is_inside() and
                     0 <= column and column < self.polyomino.width()):
@@ -2064,23 +2064,23 @@ class ParallelogramPolyomino(ClonableList):
 
             EXAMPLES::
 
-            sage: PP=ParallelogramPolyomino
-            sage: pp = PP(
-            ....:     [
-            ....:         [0, 0, 0, 0, 1, 0, 1, 0, 1],
-            ....:         [1, 0, 0, 0, 1, 1, 0, 0, 0]
-            ....:     ]
-            ....: )
-            sage: matrix(pp.get_array())
-            [1 0 0]
-            [1 0 0]
-            [1 0 0]
-            [1 1 1]
-            [0 1 1]
-            [0 0 1]
+                sage: PP = ParallelogramPolyomino
+                sage: pp = PP(
+                ....:     [
+                ....:         [0, 0, 0, 0, 1, 0, 1, 0, 1],
+                ....:         [1, 0, 0, 0, 1, 1, 0, 0, 0]
+                ....:     ]
+                ....: )
+                sage: matrix(pp.get_array())
+                [1 0 0]
+                [1 0 0]
+                [1 0 0]
+                [1 1 1]
+                [0 1 1]
+                [0 0 1]
 
-            sage: [PP._polyomino_row(pp, i).is_inside() for i in [-1,0,3,5,6]]
-            [False, True, True, True, False]
+                sage: [PP._polyomino_row(pp, i).is_inside() for i in [-1,0,3,5,6]]
+                [False, True, True, True, False]
 
             """
             return 0 <= self.row and self.row < self.polyomino.height()
@@ -2091,24 +2091,23 @@ class ParallelogramPolyomino(ClonableList):
 
             EXAMPLES::
 
-            sage: PP=ParallelogramPolyomino
-            sage: pp = PP(
-            ....:     [
-            ....:         [0, 0, 0, 0, 1, 0, 1, 0, 1],
-            ....:         [1, 0, 0, 0, 1, 1, 0, 0, 0]
-            ....:     ]
-            ....: )
-            sage: matrix(pp.get_array())
-            [1 0 0]
-            [1 0 0]
-            [1 0 0]
-            [1 1 1]
-            [0 1 1]
-            [0 0 1]
+                sage: PP = ParallelogramPolyomino
+                sage: pp = PP(
+                ....:     [
+                ....:         [0, 0, 0, 0, 1, 0, 1, 0, 1],
+                ....:         [1, 0, 0, 0, 1, 1, 0, 0, 0]
+                ....:     ]
+                ....: )
+                sage: matrix(pp.get_array())
+                [1 0 0]
+                [1 0 0]
+                [1 0 0]
+                [1 1 1]
+                [0 1 1]
+                [0 0 1]
 
-            sage: [PP._polyomino_row(pp, i).is_outside() for i in [-1,0,3,5,6]]
-            [True, False, False, False, True]
-
+                sage: [PP._polyomino_row(pp, i).is_outside() for i in [-1,0,3,5,6]]
+                [True, False, False, False, True]
             """
             return not self.is_inside()
 
@@ -2118,21 +2117,21 @@ class ParallelogramPolyomino(ClonableList):
 
             EXAMPLES::
 
-            sage: PP=ParallelogramPolyomino
-            sage: pp = PP(
-            ....:     [
-            ....:         [0, 0, 0, 0, 1, 0, 1, 0, 1],
-            ....:         [1, 0, 0, 0, 1, 1, 0, 0, 0]
-            ....:     ]
-            ....: )
-            sage: pp[-1]
-            The (outside) row -1 of the parallelogram
-            sage: pp[0]
-            [1, 0, 0]
-            sage: pp[5]
-            [0, 0, 1]
-            sage: pp[6]
-            The (outside) row 6 of the parallelogram
+                sage: PP = ParallelogramPolyomino
+                sage: pp = PP(
+                ....:     [
+                ....:         [0, 0, 0, 0, 1, 0, 1, 0, 1],
+                ....:         [1, 0, 0, 0, 1, 1, 0, 0, 0]
+                ....:     ]
+                ....: )
+                sage: pp[-1]
+                The (outside) row -1 of the parallelogram
+                sage: pp[0]
+                [1, 0, 0]
+                sage: pp[5]
+                [0, 0, 1]
+                sage: pp[6]
+                The (outside) row 6 of the parallelogram
             """
             if self.is_outside():
                 return "The (outside) row %s of the parallelogram" % (self.row)
@@ -2844,7 +2843,7 @@ class ParallelogramPolyomino(ClonableList):
 
         - ``box`` -- the x,y coordinate of the cell.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: pp = ParallelogramPolyomino(
             ....:     [[0, 0, 1, 0, 0, 0, 1, 1], [1, 1, 0, 1, 0, 0, 0, 0]]
@@ -2881,6 +2880,7 @@ class ParallelogramPolyomino(ClonableList):
                            1 for left and 0 for top). 
 
         EXAMPLES::
+
             sage: pp = ParallelogramPolyomino(
             ....:     [[0, 0, 1, 0, 0, 0, 1, 1], [1, 0, 1, 1, 0, 0, 0, 0]]
             ....: )
@@ -2959,6 +2959,7 @@ class ParallelogramPolyomino(ClonableList):
         - ``line`` -- the x coordinate of the line.
 
         EXAMPLES::
+
             sage: pp = ParallelogramPolyomino(
             ....:     [[0, 0, 1, 0, 0, 0, 1, 1], [1, 0, 1, 1, 0, 0, 0, 0]]
             ....: )
@@ -3014,6 +3015,7 @@ class ParallelogramPolyomino(ClonableList):
         - ``column`` -- the y coordinate of the column.
 
         EXAMPLES::
+
             sage: pp = ParallelogramPolyomino(
             ....:     [[0, 0, 1, 0, 0, 0, 1, 1], [1, 0, 1, 1, 0, 0, 0, 0]]
             ....: )
@@ -3399,23 +3401,15 @@ class ParallelogramPolyominoesFactory(SetFactory):
         raise ValueError("Invalid argument for Parallelogram Polyominoes "
                          "Factory.")
 
-#    def add_constraints(self, cons, args_opts):
-#        r"""
-#        This function permit to add some enumeration constraint to the
-#        factory. The factory make a family using the given constraints.
-#
-#        :meth:`SetFactory.add_constraints<.set_factories.SetFactory.add_constraints>`.
-#        """
-#        args, opts = args_opts
-#        return cons + args
-
     @lazy_attribute
     def _default_policy(self):
         r"""
         Return a default policy.
 
-        sage: ParallelogramPolyominoes._default_policy
-        Set factory policy for <class 'sage.combinat.parallelogram_polyomino.ParallelogramPolyomino'> with parent Parallelogram polyominoes[=Factory for parallelogram polyominoes(())]
+        EXAMPLES::
+
+            sage: ParallelogramPolyominoes._default_policy
+            Set factory policy for <class 'sage.combinat.parallelogram_polyomino.ParallelogramPolyomino'> with parent Parallelogram polyominoes[=Factory for parallelogram polyominoes(())]
         """
         return TopMostParentPolicy(self, (), ParallelogramPolyomino)
 

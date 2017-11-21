@@ -5592,7 +5592,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         TESTS:
 
-        See (:trac:`10017`)::
+        Check that the bug reported at :trac:`10017` is fixed::
 
             sage: x = polygen(QQ)
             sage: k = NumberField(x^6 + 2218926655879913714112*x^4 - 32507675650290949030789018433536*x^3 + 4923635504174417014460581055002374467948544*x^2 - 3666074010564497464129951249279114076897746988630016*x + 264187244046129768986806800244258952598300346857154900812365824,'a')
@@ -5605,7 +5605,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
              x^6 + 27*x^5 + 9579*x^4 + 623358*x^3 + 5060091*x^2 - 139224285*x + 880944177,
              x^6 - 72*x^5 + 65286*x^4 - 10762768*x^3 + 473072922*x^2 - 2502686322*x + 54227921641]
             sage: R = k.order(new_basis)
-            sage: assert R.discriminant()==k.discriminant()
+            sage: R.discriminant()==k.discriminant()
+            True
         """
         if self.is_totally_real():
             try:

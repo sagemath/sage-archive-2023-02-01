@@ -5604,7 +5604,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
              x^6 + 18*x^5 + 3366*x^4 + 82008*x^3 + 886962*x^2 - 840726*x + 5521647,
              x^6 + 27*x^5 + 9579*x^4 + 623358*x^3 + 5060091*x^2 - 139224285*x + 880944177,
              x^6 - 72*x^5 + 65286*x^4 - 10762768*x^3 + 473072922*x^2 - 2502686322*x + 54227921641]
-
+            sage: R = k.order(new_basis)
+            sage: assert R.discriminant()==k.discriminant()
         """
         if self.is_totally_real():
             try:

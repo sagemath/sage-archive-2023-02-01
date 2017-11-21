@@ -1974,8 +1974,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             1024
             sage: float(2.5)^10
             9536.7431640625
-            sage: 'sage'^3
-            'sagesagesage'
 
         The exponent must fit in a long unless the base is -1, 0, or 1.
 
@@ -2030,6 +2028,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             <type 'sage.rings.integer.Integer'>
             sage: type(int(3)^int(2))
             <... 'int'>
+            sage: 'sage' ^ 3
+            doctest:...:
+            DeprecationWarning: raising a string to an integer power is deprecated
+            See http://trac.sagemath.org/24260 for details.
+            'sagesagesage'
         """
         if modulus is not None:
             from sage.rings.finite_rings.integer_mod import Mod
@@ -2037,7 +2040,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         if not isinstance(self, Integer):
             if isinstance(self, str):
-                return self * n
+                from sage.misc.superseded import deprecation
+                deprecation(24260, "raising a string to an integer power is deprecated")
+                return self * int(n)
             if not isinstance(self, int):
                 return self ** int(n)
             else:
@@ -2891,7 +2896,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef Py_ssize_t divisor_count = 1
         with cython.overflowcheck(True):
             for p, e in f:
-                # Using *= does not work, see http://trac.cython.org/cython_trac/ticket/825
+                # Using *= does not work, see
+                # https://github.com/cython/cython/issues/1381
                 divisor_count = divisor_count * (1 + e)
 
         ptr = <unsigned long*>check_allocarray(divisor_count, 3 * sizeof(unsigned long))

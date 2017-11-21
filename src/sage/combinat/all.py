@@ -138,6 +138,9 @@ from .lyndon_word import LyndonWord, LyndonWords, StandardBracketedLyndonWords
 from .dyck_word import DyckWords, DyckWord
 from .sloane_functions import sloane
 
+lazy_import('sage.combinat.parallelogram_polyomino',
+            ['ParallelogramPolyomino', 'ParallelogramPolyominoes'])
+
 from .root_system.all import *
 from .sf.all import *
 from .ncsf_qsym.all import *

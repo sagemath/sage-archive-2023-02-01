@@ -1109,8 +1109,11 @@ REGISTER_FUNCTION(csc, eval_func(csc_eval).
 
 static ex asin_eval(const ex & x)
 {
-	if (is_exactly_a<numeric>(x)) {
+        // asin() is odd
+        if (x.info(info_flags::negative))
+                return -asin(-x);
 
+	if (is_exactly_a<numeric>(x)) {
 		// asin(0) -> 0
 		if (x.is_zero())
 			return x;
@@ -1123,14 +1126,6 @@ static ex asin_eval(const ex & x)
 		if (x.is_equal(_ex1))
 			return _ex1_2*Pi;
 
-		// asin(-1/2) -> -Pi/6
-		if (x.is_equal(_ex_1_2))
-			return numeric(-1,6)*Pi;
-
-		// asin(-1) -> -Pi/2
-		if (x.is_equal(_ex_1))
-			return _ex_1_2*Pi;
-
 		if (x.info(info_flags::inexact)) {
                         const numeric& num = ex_to<numeric>(x);
                         if (num.is_real()
@@ -1141,9 +1136,6 @@ static ex asin_eval(const ex & x)
 	        		return asin(ex_to<numeric>(x));
                 }
 
-		// asin() is odd
-		if (x.info(info_flags::negative))
-			return -asin(-x);
 	}
 	
 	// asin(oo) -> error
@@ -1153,6 +1145,12 @@ static ex asin_eval(const ex & x)
 			return UnsignedInfinity;
 		throw (std::runtime_error("arcsin_eval(): arcsin(infinity) encountered"));
 	}
+
+        if (x.is_equal(mul(pow(_ex2, _ex1_2), _ex1_2)))
+                return mul(Pi, _ex1_4);
+
+        if (x.is_equal(mul(pow(_ex3, _ex1_2), _ex1_2)))
+                return mul(Pi, _ex1_3);
 
 	return asin(x).hold();
 }
@@ -1265,8 +1263,11 @@ REGISTER_FUNCTION(acos, eval_func(acos_eval).
 
 static ex atan_eval(const ex & x)
 {
-	if (is_exactly_a<numeric>(x)) {
+        // atan() is odd
+        if (x.info(info_flags::negative))
+                return -atan(-x);
 
+        if (is_exactly_a<numeric>(x)) {
 		// atan(0) -> 0
 		if (x.is_zero())
 			return _ex0;
@@ -1275,20 +1276,12 @@ static ex atan_eval(const ex & x)
 		if (x.is_equal(_ex1))
 			return _ex1_4*Pi;
 
-		// atan(-1) -> -Pi/4
-		if (x.is_equal(_ex_1))
-			return _ex_1_4*Pi;
-
-		if (x.is_equal(I) || x.is_equal(-I))
+		if (x.is_equal(I))
 			throw (pole_error("atan_eval(): logarithmic pole",0));
 
 		// atan(float) -> float
 		if (x.info(info_flags::inexact))
 			return atan(ex_to<numeric>(x));
-
-		// atan() is odd
-		if (x.info(info_flags::negative))
-			return -atan(-x);
 	}
 	
 	// arctan(oo) -> Pi/2
@@ -1303,7 +1296,13 @@ static ex atan_eval(const ex & x)
 		// x is UnsignedInfinity
 		throw (std::runtime_error("arctan_eval(): arctan(unsigned_infinity) encountered"));
 	}
-		
+
+        if (x.is_equal(pow(_ex3, _ex1_2)))
+                return mul(Pi, _ex1_3);
+
+        if (x.is_equal(mul(pow(_ex3, _ex1_2), _ex1_3)))
+                return mul(Pi, numeric(1,6));
+
 	return atan(x).hold();
 }
 

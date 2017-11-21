@@ -176,10 +176,10 @@ cdef inline bint integer_check_long(x, long* value, int* err) except -1:
             err[0] = ERR_OVERFLOW
         return 1
     elif PyIndex_Check(x):
+        err[0] = ERR_INDEX
         try:
             x = PyNumber_Index(x)
         except TypeError:
-            err[0] = ERR_INDEX
             return 0
         return integer_check_long_py(x, value, err)
     else:

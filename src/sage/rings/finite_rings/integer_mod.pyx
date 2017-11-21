@@ -2567,7 +2567,9 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             sage: e = Mod(8, 2^5 - 1)
             sage: e >> 3
             1
-            sage: int(e)/int(2^3)  # optional - python2
+            sage: int(e)/int(2^3)  # py2
+            1
+            sage: int(e)//int(2^3)  # py3
             1
         """
         if k == 0:

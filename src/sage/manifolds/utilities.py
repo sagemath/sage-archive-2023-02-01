@@ -27,7 +27,7 @@ AUTHORS:
 
 from __future__ import division
 
-import operator as _operator
+from operator import pow as _pow
 from sage.symbolic.expression import Expression
 from sage.symbolic.expression_conversions import ExpressionTreeWalker
 from sage.symbolic.ring import SR
@@ -109,6 +109,8 @@ class SimplifySqrtReal(ExpressionTreeWalker):
 
         sage: SimplifySqrtReal(1/sqrt(x^2-4*x+4))()
         -1/(x - 2)
+        sage: SimplifySqrtReal(sqrt((x-2)/((x-3)*(x^2-2*x+1))))()
+        -sqrt(-x + 2)/((x - 1)*sqrt(-x + 3))
         sage: forget()  # for doctests below
 
     .. SEEALSO::
@@ -158,15 +160,20 @@ class SimplifySqrtReal(ExpressionTreeWalker):
             x + abs(f(x)) + 1
 
         """
-        if operator is _operator.pow:
+        if operator is _pow:
             operands = ex.operands()
             power = operands[1]
             one_half = Rational((1,2))
             minus_one_half = -one_half
             if (power == one_half) or (power == minus_one_half):
                 # This is a square root or the inverse of a square root
+                w0 = SR.wild(0); w1 = SR.wild(1)
+                sqrt_pattern = w0**one_half
+                inv_sqrt_pattern = w0**minus_one_half
+                sqrt_ratio_pattern1 = w0**one_half * w1**minus_one_half
+                sqrt_ratio_pattern2 = w0**minus_one_half * w1**one_half
                 argum = operands[0]  # the argument of sqrt
-                if 'sqrt(' in str(argum):
+                if argum.has(sqrt_pattern) or argum.has(inv_sqrt_pattern):
                     argum = self(argum)  # treatment of nested sqrt's
                 den = argum.denominator()
                 if not (den == 1):  # the argument of sqrt is a fraction
@@ -180,10 +187,15 @@ class SimplifySqrtReal(ExpressionTreeWalker):
                 else:
                     ex = sqrt(argum)
                 simpl = SR(ex._maxima_().radcan())
-                if str(simpl)[:5] != 'sqrt(' and str(simpl)[:7] != '1/sqrt(':
-                    # the absolute value of radcan's output is taken, the call
-                    # to simplify() taking into account possible assumptions
-                    # regarding the sign of simpl:
+                if (not simpl.match(sqrt_pattern) and
+                    not simpl.match(inv_sqrt_pattern) and
+                    not simpl.match(sqrt_ratio_pattern1) and
+                    not simpl.match(sqrt_ratio_pattern2)):
+                    # radcan transformed substantially the expression,
+                    # possibly getting rid of some sqrt; in order to ensure a
+                    # positive result, the absolute value of radcan's output
+                    # is taken, the call to simplify() taking care of possible
+                    # assumptions regarding signs of subexpression of simpl:
                     simpl = abs(simpl).simplify()
                 if power == minus_one_half:
                     simpl = SR(1)/simpl
@@ -302,9 +314,9 @@ class SimplifyAbsTrig(ExpressionTreeWalker):
             argum = ex.operands()[0]  # argument of abs
             if argum.operator() is sin:
                 # Case of abs(sin(...))
-                x = argum.operands()[0]
-                sx = str(x)
-                if 'abs(sin(' in sx or 'abs(cos(' in sx:
+                x = argum.operands()[0]  # argument of sin
+                w0 = SR.wild()
+                if x.has(abs_symbolic(sin(w0))) or x.has(abs_symbolic(cos(w0))):
                     x = self(x)  # treatment of nested abs(sin_or_cos(...))
                 # Simplifications for values of x in the range [-pi, 2*pi]:
                 if x>=0 and x<=pi:
@@ -314,9 +326,9 @@ class SimplifyAbsTrig(ExpressionTreeWalker):
                 return ex
             if argum.operator() is cos:
                 # Case of abs(cos(...))
-                x = argum.operands()[0]
-                sx = str(x)
-                if 'abs(sin(' in sx or 'abs(cos(' in sx:
+                x = argum.operands()[0]  # argument of cos
+                w0 = SR.wild()
+                if x.has(abs_symbolic(sin(w0))) or x.has(abs_symbolic(cos(w0))):
                     x = self(x)  # treatment of nested abs(sin_or_cos(...))
                 # Simplifications for values of x in the range [-pi, 2*pi]:
                 if (x>=-pi/2 and x<=pi/2) or (x>=3*pi/2 and x<=2*pi):
@@ -384,17 +396,20 @@ def simplify_sqrt_real(expr):
     Simplification of expressions involving some symbolic derivatives::
 
         sage: f = function('f')
-        sage: simplify_sqrt_real( diff(f(x), x)*sqrt(x^2) )  # x<0 (see above)
-        -x*diff(f(x), x)
+        sage: simplify_sqrt_real( diff(f(x), x)/sqrt(x^2-2*x+1) )  # x<0 => x-1<0
+        -diff(f(x), x)/(x - 1)
         sage: g = function('g')
-        sage: simplify_sqrt_real( sqrt(x^3*diff(f(g(x)), x)^2) )
+        sage: simplify_sqrt_real( sqrt(x^3*diff(f(g(x)), x)^2) )  # x<0
         (-x)^(3/2)*abs(D[0](f)(g(x)))*abs(diff(g(x), x))
         sage: forget()  # for doctests below
 
     """
-    if 'sqrt(' not in str(expr):  # nothing to simplify
-        return expr
-    return SimplifySqrtReal(expr)()
+    w0 = SR.wild()
+    one_half = Rational((1,2))
+    if expr.has(w0**one_half) or expr.has(w0**(-one_half)):
+        return SimplifySqrtReal(expr)()
+    return expr
+
 
 def simplify_abs_trig(expr):
     r"""
@@ -479,10 +494,10 @@ def simplify_abs_trig(expr):
         sage: forget()  # for doctests below
 
     """
-    sexpr = str(expr)
-    if 'abs(sin(' not in sexpr and 'abs(cos(' not in sexpr:  # nothing to simplify
-        return expr
-    return SimplifyAbsTrig(expr)()
+    w0 = SR.wild()
+    if expr.has(abs_symbolic(sin(w0))) or expr.has(abs_symbolic(cos(w0))):
+        return SimplifyAbsTrig(expr)()
+    return expr
 
 def simplify_chain_real(expr):
     r"""

@@ -21,7 +21,7 @@ to Sage Sandpiles, a collection of tools in Sage for doing sandpile
 calculations.  For a more thorough introduction to the theory of the ASM, the
 papers *Chip-Firing and Rotor-Routing on Directed Graphs* [H]_ by Holroyd et
 al., and *Riemann-Roch and Abel-Jacobi Theory on a Finite Graph* by Baker and
-Norine [BN]_ are recommended.
+Norine [BN]_ are recommended. See also [PPW2013]_.
 
 To describe the ASM, we start with a *sandpile graph*: a directed multigraph
 `\Gamma` with a vertex `s` that is accessible from every vertex.
@@ -475,6 +475,9 @@ attained from `E` by firing a single unstable vertex. ::
 
    Complete linear system for `(1,1,1,1,2,0)` on `C_6`: single firings
 
+The ``is_alive`` method checks whether the divisor `D` is alive, i.e.,
+whether every divisor linearly equivalent to `D` is unstable.
+   
 The second graph has the same set of vertices but with an edge from `E` to `F`
 if `F` is obtained from `E` by firing all unstable vertices of `E`. ::
 
@@ -638,13 +641,23 @@ The *zero set* for the sandpile ideal `I` is
 
 .. MATH::
 
-    Z(I) = \{p\in\CC^n: f(p)=0\mbox{ for all $f\in I$}\},
+    Z(I) = \{ p\in\CC^n : f(p)=0\mbox{ for all $f\in I$} \},
 
 the set of simultaneous zeros of the polynomials in `I`.  Letting `S^1` denote
 the unit circle in the complex plane, `Z(I)` is a finite
 subgroup of `S^1 \times \cdots \times S^1 \subset \CC^n`, isomorphic to
 the sandpile group.  The zero set is actually linearly isomorphic to a
 faithful representation of the sandpile group on `\CC^n`.
+
+.. TODO::
+
+    The above is not quite true. `Z(I)` is neither finite
+    nor a subgroup of
+    `S^1 \times \cdots \times S^1 \subset \CC^n`.
+    What is probably meant is that the subset of `Z(I)` in
+    which the coordinate of `p` corresponding to the sink
+    is set to `1` is a finite subgroup of
+    `S^1 \times \cdots \times S^1 \subset \CC^{n-1}`.
 
 **Example.** (Continued.) ::
 
@@ -2498,7 +2511,8 @@ EXAMPLES::
 
 **tutte_polynomial()**
 
-The Tutte polynomial.  Only defined for undirected sandpile graphs.
+The Tutte polynomial of the underlying graph.
+Only defined for undirected sandpile graphs.
 
 OUTPUT:
 

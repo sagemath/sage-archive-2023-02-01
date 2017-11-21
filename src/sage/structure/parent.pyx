@@ -185,10 +185,10 @@ cdef inline bint good_as_coerce_domain(S):
     to some other parent is not cached, by :trac:`13378`::
 
         sage: P.<x,y> = QQ[]
-        sage: P.is_coercion_cached(x)
+        sage: P._is_coercion_cached(x)
         False
         sage: P.coerce_map_from(x)
-        sage: P.is_coercion_cached(x)  # indirect doctest
+        sage: P._is_coercion_cached(x)
         False
 
     """
@@ -285,6 +285,8 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         .. automethod:: _an_element_
         .. automethod:: _repr_option
         .. automethod:: _init_category_
+        .. automethod:: _is_coercion_cached
+        .. automethod:: _is_conversion_cached
         """
         if "element_constructor" in kwds:
             from sage.misc.superseded import deprecation
@@ -1509,14 +1511,68 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         self._embedding = None
         self._unset_coercions_used()
 
-    cpdef bint is_coercion_cached(self, domain):
+    def is_coercion_cached(self, domain):
         """
+        Deprecated method
 
+        TESTS::
+
+            sage: Parent().is_coercion_cached(QQ)
+            doctest:warning
+            ...
+            DeprecationWarning: is_coercion_cached is deprecated use _is_coercion_cached instead
+            See http://trac.sagemath.org/24254 for details.
+            False
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(24254, "is_coercion_cached is deprecated use _is_coercion_cached instead")
+        return self._is_coercion_cached(domain)
+
+    cpdef bint _is_coercion_cached(self, domain):
+        r"""
+        Test whether the coercion from ``domain`` is already cached.
+
+        EXAMPLES::
+
+            sage: R.<XX> = QQ
+            sage: R._is_coercion_cached(QQ)
+            False
+            sage: _ = R.coerce_map_from(QQ)
+            sage: R._is_coercion_cached(QQ)
+            True
         """
         return domain in self._coerce_from_hash
 
-    cpdef bint is_conversion_cached(self, domain):
+    def is_conversion_cached(self, domain):
         """
+        Deprecated method
+
+        TESTS::
+
+            sage: Parent().is_conversion_cached(QQ)
+            doctest:warning
+            ...
+            DeprecationWarning: is_conversion_cached is deprecated use _is_conversion_cached instead
+            See http://trac.sagemath.org/24254 for details.
+            False
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(24254, "is_conversion_cached is deprecated use _is_conversion_cached instead")
+        return self._is_conversion_cached(domain)
+
+    cpdef bint _is_conversion_cached(self, domain):
+        r"""
+        Test whether the conversion from ``domain`` is already set.
+
+        EXAMPLES::
+
+            sage: P = Parent()
+            sage: P._is_conversion_cached(P)
+            False
+            sage: P.convert_map_from(P)
+            Identity endomorphism of <type 'sage.structure.parent.Parent'>
+            sage: P._is_conversion_cached(P)
+            True
         """
         return domain in self._convert_from_hash
 

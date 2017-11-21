@@ -24,6 +24,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function, absolute_import, unicode_literals
 from sage.misc.six import u
+import six
 from six import text_type
 
 import re
@@ -869,14 +870,14 @@ class SageOutputChecker(doctest.OutputChecker):
             sage: print("[ - 1, 2]")  # abs tol 1e-10
             [-1,2]
 
-        Tolerance for string results with unicode prefix::
+        Tolerance on Python 3 for string results with unicode prefix::
 
             sage: a = u'Cyrano'; a
-            'Cyrano'
+            u'Cyrano'
             sage: b = [u'Fermat', u'Euler']; b
-            ['Fermat',  'Euler']
+            [u'Fermat',  u'Euler']
             sage: c = u'you'; c
-            'you'
+            u'you'
         """
         got = self.human_readable_escape_sequences(got)
         if isinstance(want, MarkedOutput):
@@ -902,12 +903,14 @@ class SageOutputChecker(doctest.OutputChecker):
                 return all(a.overlaps(b) for a, b in zip(want_intervals, got_values))
 
         ok = doctest.OutputChecker.check_output(self, want, got, optionflags)
-        if ok or 'u' not in got:
+        if ok or ('u"' not in want and "u'" not in want):
             return ok
 
         # accept the same answer where strings have unicode prefix u
         # for smoother transition to python3
-        got = remove_unicode_u(got)
+        if not six.PY2:
+            want = remove_unicode_u(want)
+
         return doctest.OutputChecker.check_output(self, want, got, optionflags)
 
     def output_difference(self, example, got, optionflags):

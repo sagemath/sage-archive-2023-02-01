@@ -65,6 +65,8 @@ from sage.misc.object_multiplexer import Multiplex
 from sage.docs.instancedoc import instancedoc
 from sage.cpython.string import bytes_to_str
 
+from sage.cpython.string import str_to_bytes
+
 from six import reraise as raise_
 
 BAD_SESSION = -2
@@ -1189,7 +1191,7 @@ If this all works, you can then make calls like:
         if self._expect is None:
             self._start()
         try:
-            os.write(self._expect.child_fd, string)
+            os.write(self._expect.child_fd, str_to_bytes(string))
         except OSError:
             self._crash_msg()
             self.quit()

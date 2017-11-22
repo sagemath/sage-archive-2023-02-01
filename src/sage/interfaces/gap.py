@@ -175,6 +175,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import, print_function
+import six
 from six import string_types
 
 from .expect import Expect, ExpectElement, FunctionElement, ExpectFunction
@@ -596,9 +597,9 @@ class Gap_generic(ExtraTabCompletion, Expect):
         except OSError:
             raise RuntimeError("Error evaluating %s in %s"%(line, self))
         if not wait_for_prompt:
-            return ('','')
+            return (b'',b'')
         if len(line)==0:
-            return ('','')
+            return (b'',b'')
         try:
             terminal_echo = []   # to be discarded
             normal_outputs = []  # GAP stdout
@@ -608,13 +609,18 @@ class Gap_generic(ExtraTabCompletion, Expect):
                 x = E.expect_list(self._compiled_full_pattern)
                 current_outputs.append(E.before)
                 if x == 0:   # @p
-                    if E.after != '@p1.':
+                    if E.after != b'@p1.':
                         print("Warning: possibly wrong version of GAP package interface\n")
                         print("Crossing fingers and continuing\n")
                 elif x == 1: #@@
-                    current_outputs.append('@')
+                    current_outputs.append(b'@')
                 elif x == 2: #special char
-                    current_outputs.append(chr(ord(E.after[1:2])-ord('A')+1))
+                    c = ord(E.after[1:2]) - ord(b'A') + 1
+                    if six.PY2:
+                        s = chr(c)
+                    else:
+                        s = bytes([c])
+                    current_outputs.append(s)
                 elif x == 3: # garbage collection info, ignore
                     pass
                 elif x == 4: # @e -- break loop
@@ -646,7 +652,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
                 raise RuntimeError("Unexpected EOF from %s executing %s"%(self,line))
         except IOError:
             raise RuntimeError("IO Error from %s executing %s"%(self,line))
-        return ("".join(normal_outputs),"".join(error_outputs))
+        return (b"".join(normal_outputs), b"".join(error_outputs))
 
     def _keyboard_interrupt(self):
         """
@@ -741,6 +747,12 @@ class Gap_generic(ExtraTabCompletion, Expect):
                 return self._eval_line_using_file(line)
             (normal, error) = self._execute_line(line, wait_for_prompt=wait_for_prompt,
                                                  expect_eof= (self._quit_string() in line))
+
+            # The internal method _execute_line returns bytes but the bytes it
+            # returns should contain text (any terminal commands and other
+            # garbage should be filtered out by this point); here we decode
+            # them (on Python 3), currently just using the default encoding
+            normal, error = bytes_to_str(normal), bytes_to_str(error)
 
             if len(error):
                 if 'Error, Rebuild completion files!' in error:

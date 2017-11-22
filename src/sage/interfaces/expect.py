@@ -264,12 +264,12 @@ class Expect(Interface):
             # contents of E.before, if consisting of multi-byte encoded text,
             # may be incomplete and contain errors, so merely calling
             # bytes_to_str here is probably not sufficient.
-            return False, bytes_to_str(E.before)
+            return False, self._before()
         except pexpect.EOF:
-            return True, bytes_to_str(E.before)
+            return True, self._before()
         except Exception:   # weird major problem!
-            return True, bytes_to_str(E.before)
-        return True, bytes_to_str(E.before)
+            return True, self._before()
+        return True, self._before()
 
     def _send(self, cmd):
         if self._expect is None:
@@ -974,9 +974,9 @@ If this all works, you can then make calls like:
                             pass
                     raise RuntimeError("%s\n%s crashed executing %s"%(msg,self, line))
                 if self._terminal_echo:
-                    out = bytes_to_str(E.before)
+                    out = self._before()
                 else:
-                    out = bytes_to_str(E.before).rstrip('\n\r')
+                    out = self._before().rstrip('\n\r')
             else:
                 if self._terminal_echo:
                     out = '\n\r'
@@ -1187,7 +1187,7 @@ If this all works, you can then make calls like:
             else:
                 i = self._expect.expect(expr)
             if i > 0:
-                v = bytes_to_str(self._expect.before)
+                v = self._before()
                 self.quit()
                 raise ValueError("%s\nComputation failed due to a bug in %s -- NOTE: Had to restart."%(v, self))
         except KeyboardInterrupt:
@@ -1285,8 +1285,8 @@ If this all works, you can then make calls like:
         self._sendstr(cmd)
         try:
             self._expect_expr(timeout=0.5)
-            if not s in bytes_to_str(self._expect.before):
-                self._expect_expr(s,timeout=0.5)
+            if not s in self._before():
+                self._expect_expr(s, timeout=0.5)
                 self._expect_expr(timeout=0.5)
         except pexpect.TIMEOUT:
             self._interrupt()

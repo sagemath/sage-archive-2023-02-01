@@ -472,7 +472,6 @@ import pexpect
 
 from random import randrange
 
-from sage.cpython.string import bytes_to_str
 from sage.env import DOT_SAGE, SAGE_LOCAL
 from sage.misc.misc import ECL_TMP
 
@@ -848,7 +847,7 @@ class Maxima(MaximaAbstract, Expect):
         try:
             try:
                 self._expect_expr(timeout=0.5)
-                if not s in bytes_to_str(self._before()):
+                if not s in self._before():
                     self._expect_expr(s,timeout=0.5)
                     self._expect_expr(timeout=0.5)
             except pexpect.TIMEOUT:
@@ -896,7 +895,7 @@ class Maxima(MaximaAbstract, Expect):
 
         self._sendline(cmd)
         self._expect_expr(s)
-        out = bytes_to_str(self._before())
+        out = self._before()
         self._error_check(cmd, out)
         os.unlink(filename)
         return out
@@ -981,7 +980,7 @@ class Maxima(MaximaAbstract, Expect):
         self._eval_line(':lisp %s\n""'%cmd, allow_use_file=False,
                wait_for_prompt=False, reformat=False, error_check=False)
         self._expect_expr('(%i)')
-        return bytes_to_str(self._before())
+        return self._before()
 
     #####
     #

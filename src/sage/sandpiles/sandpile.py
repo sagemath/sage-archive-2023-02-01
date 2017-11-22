@@ -1626,7 +1626,8 @@ class Sandpile(DiGraph):
 
     def tutte_polynomial(self):
         r"""
-        The Tutte polynomial.  Only defined for undirected sandpile graphs.
+        The Tutte polynomial of the underlying graph.
+        Only defined for undirected sandpile graphs.
 
         OUTPUT:
 
@@ -1743,7 +1744,7 @@ class Sandpile(DiGraph):
 
             The "nonspecial divisors" are those divisors of degree `g-1` with
             empty linear system.  The term is only defined for undirected graphs.
-            Here, `g = |E| - |V| + 1` is the genus of the graph (not counted loops
+            Here, `g = |E| - |V| + 1` is the genus of the graph (not counting loops
             as part of `|E|`).  If ``verbose`` is ``False``, the divisors are converted
             to lists of integers.
 
@@ -2671,7 +2672,7 @@ class Sandpile(DiGraph):
         r"""
         The Betti table for the homogeneous toppling ideal.  If
         ``verbose`` is ``True``, it prints the standard Betti table, otherwise,
-        it returns a less formated table.
+        it returns a less formatted table.
 
         INPUT:
 
@@ -5701,7 +5702,8 @@ class SandpileDivisor(dict):
 
         .. NOTE::
 
-            The vertex `v` is a (generalized) Weierstrass point for divisor `D` if the sequence of ranks `r(D - nv)`
+            The vertex `v` is a (generalized) Weierstrass point for divisor
+            `D` if the sequence of ranks `r(D - nv)`
             for `n = 0, 1, 2, \dots` is not `r(D), r(D)-1, \dots, 0, -1, -1, \dots`
         """
         return self.weierstrass_gap_seq(v)[1] > 0
@@ -5743,7 +5745,8 @@ class SandpileDivisor(dict):
 
         .. NOTE::
 
-            The vertex `v` is a (generalized) Weierstrass point for divisor `D` if the sequence of ranks `r(D - nv)`
+            The vertex `v` is a (generalized) Weierstrass point for divisor
+            `D` if the sequence of ranks `r(D - nv)`
             for `n = 0, 1, 2, \dots`` is not `r(D), r(D)-1, \dots, 0, -1, -1, \dots`
         """
         if with_rank_seq:

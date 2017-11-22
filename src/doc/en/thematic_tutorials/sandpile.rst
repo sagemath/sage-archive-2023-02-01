@@ -1098,7 +1098,7 @@ EXAMPLES::
 
 The Betti table for the homogeneous toppling ideal.  If
 ``verbose`` is ``True``, it prints the standard Betti table, otherwise,
-it returns a less formated table.
+it returns a less formatted table.
 
 INPUT:
 

@@ -3037,7 +3037,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
 
         ALGORITHM:
 
-        See [Co2] Cohen H., A Course in Computational Algebraic Number
+        See [Co2]_ Cohen H., A Course in Computational Algebraic Number
         Theory GTM 138, Springer 1996 for the case of real embeddings,
         and Cremona, J.E. and Thongjunthug , T. 2010 for the complex
         case.
@@ -3045,7 +3045,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         AUTHORS:
 
         - Michael Mardaus (2008-07),
-        - Tobias Nagel (2008-07) -- original version from [Co2].
+        - Tobias Nagel (2008-07) -- original version from [Co2]_.
         - John Cremona (2008-07) -- revision following eclib code.
         - John Cremona (2010-03) -- implementation for complex embeddings.
 

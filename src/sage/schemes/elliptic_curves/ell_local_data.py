@@ -4,7 +4,7 @@ Local data for elliptic curves over number fields
 
 Let `E` be an elliptic curve over a number field `K` (including `\QQ`).
 There are several local invariants at a finite place `v` that
-can be computed via Tate's algorithm (see [Sil2] IV.9.4 or [Ta]).
+can be computed via Tate's algorithm (see [Sil2]_ IV.9.4 or [Ta]_).
 
 These include the type of reduction (good, additive, multiplicative),
 a minimal equation of `E` over `K_v`,

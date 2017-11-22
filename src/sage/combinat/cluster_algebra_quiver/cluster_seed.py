@@ -4578,8 +4578,9 @@ class ClusterSeed(SageObject):
 
     def _compute_compatible_vectors(self,vd):
         r"""
-        Returns a list of compatible vectors of each vector in the vector decomposition `vd`.
-        Compatibility is defined as in [LLM] with respect to the matrix `B`.
+        Return a list of compatible vectors of each vector in the vector decomposition `vd`.
+
+        Compatibility is defined as in [LLM]_ with respect to the matrix `B`.
 
         INPUT:
 

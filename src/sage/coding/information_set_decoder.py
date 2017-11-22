@@ -355,7 +355,7 @@ class LeeBrickellISDAlgorithm(InformationSetAlgorithm):
     :class:`sage.coding.information_set_decoder.LinearCodeInformationSetDecoder`.
 
     This implements the Lee-Brickell variant of ISD, see [LB1988]_ for the
-    original binary case, and [Pet10]_ for the `q`-ary extension.
+    original binary case, and [Pet2010]_ for the `q`-ary extension.
 
     Let `C` be a `[n, k]`-linear code over `GF(q)`, and let `r \in GF(q)^{n}` be
     a received word in a transmission. We seek the codeword whose Hamming

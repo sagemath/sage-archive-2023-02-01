@@ -2,9 +2,7 @@ r"""
 This file contains helper functions for detecting the mutation type of
 a cluster algebra or quiver.
 
-For the compendium on the cluster algebra and quiver package see
-
-:arxiv:`1102.4844`
+For the compendium on the cluster algebra and quiver package see [MS2011]_
 
 AUTHORS:
 
@@ -20,6 +18,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six.moves import range
 
 from copy import copy
 from sage.misc.all import cached_function
@@ -31,9 +30,12 @@ from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import QuiverMuta
 
 def is_mutation_finite(M, nr_of_checks=None):
     r"""
-    Use a non-deterministic method by random mutations in various directions. Can result in a wrong answer.
+    Use a non-deterministic method by random mutations in various
+    directions. Can result in a wrong answer.
 
-    .. ATTENTION: This method modifies the input matrix ``M``!
+    .. WARNING::
+
+        This method modifies the input matrix ``M``!
 
     INPUT:
 
@@ -66,18 +68,19 @@ def is_mutation_finite(M, nr_of_checks=None):
         True
     """
     import random
-    n, m = M.ncols(), M.nrows()
-    if n == 1:
+    n = M.ncols()
+    if n <= 2:
         return True, None
     if nr_of_checks is None:
         nr_of_checks = 1000 * n
     k = 0
     path = []
-    for i in xrange(nr_of_checks):
-        # this test is done to avoid mutating back in the same direction
-        k_test = k
-        while k_test == k:
-            k = random.randint(0, n - 1)
+    for i in range(nr_of_checks):
+        # avoid mutating back in the same direction
+        next_k = random.randint(0, n - 2)
+        if next_k >= k:
+            next_k += 1
+        k = next_k
         M.mutate(k)
         path.append(k)
         for i, j in M.nonzero_positions():
@@ -791,8 +794,7 @@ def _connected_mutation_type_AAtildeD(dg, ret_conn_vert=False):
 
     For all other types (including affine D), outputs 'unknown'
 
-    See :arxiv:`0906.0487` (by Bastian, Prellberg, Rubey, and Stump)
-    and :arxiv:`0810.4789v1` (by Vatne) for theoretical details.
+    See [BPRS2009]_ and [Vat2008]_ (by Vatne) for theoretical details.
 
     .. TODO::
 
@@ -1245,7 +1247,7 @@ def load_data(n):
 
         sage: def test_database(n):
         ....:     import os.path
-        ....:     import cPickle
+        ....:     from six.moves import cPickle
         ....:     from sage.env import SAGE_SHARE
         ....:     relative_filename = 'cluster_algebra_quiver/mutation_classes_%s.dig6'%n
         ....:     filename = os.path.join(SAGE_SHARE, relative_filename)
@@ -1272,7 +1274,7 @@ def load_data(n):
            ('BP_', (((0, 1), (2, -2)), ((1, 2), (1, -3)), ((2, 0), (3, -1))))])]
     """
     import os.path
-    import cPickle
+    from six.moves import cPickle
     from sage.env import DOT_SAGE, SAGE_SHARE
     relative_filename = 'cluster_algebra_quiver/mutation_classes_%s.dig6'%n
     getfilename = lambda path: os.path.join(path,relative_filename)
@@ -1413,8 +1415,8 @@ def _random_tests(mt, k, mut_class=None, nr_mut=5):
     - ``nr_mut`` (integer, default:5) the number of mutations performed before
       testing
 
-    The idea of of this random test is to start with a mutation type
-    and compute is mutation class (or have this class given). Now,
+    The idea of this random test is to start with a mutation type
+    and compute its mutation class (or have this class given). Now,
     every quiver in this mutation class is slightly changed in order
     to obtain a matrix of the same type or something very similar.
     Now, the new type is computed and checked if it stays stable for
@@ -1436,7 +1438,7 @@ def _random_tests(mt, k, mut_class=None, nr_mut=5):
         M_const = _dig6_to_matrix( dig6 )
         nz = [ (i,j) for i,j in M_const.nonzero_positions() if i > j ]
         # performing k tests on the matrix M_const
-        for i in xrange(k):
+        for i in range(k):
             M = copy( M_const )
             # every pair M[i,j],M[j,i] is possibly changed
             # while the property of being skew-symmetrizable is kept
@@ -1468,21 +1470,20 @@ def _random_tests(mt, k, mut_class=None, nr_mut=5):
             mt = _connected_mutation_type( dg )
             mut = -1
             # we perform nr_mut many mutations
-            for i in xrange(nr_mut):
+            for i in range(nr_mut):
                 # while making sure that we do not mutate back
                 mut_tmp = mut
                 while mut == mut_tmp:
                     mut = random.randint(0,dg.order()-1)
                 dg_new = _digraph_mutate( dg, mut, dg.order(), 0 )
-                M = _edge_list_to_matrix(dg.edges(),dg.order(),0)
-                # M_new = _edge_list_to_matrix(dg_new.edges(),dg_new.order(),0)
+                M = _edge_list_to_matrix(dg.edges(), list(range(dg.order())), [])
                 mt_new = _connected_mutation_type( dg_new )
                 if not mt == mt_new:
                     print("FOUND ERROR!")
-                    M1 = _edge_list_to_matrix( dg.edges(), dg.order(), 0 )
+                    M1 = _edge_list_to_matrix( dg.edges(), list(range(dg.order())), [] )
                     print(M1)
                     print("has mutation type " + str( mt ) + " while it has mutation type " + str(mt_new) + " after mutating at " + str(mut) + ":")
-                    M2 = _edge_list_to_matrix( dg_new.edges(), dg.order(), 0 )
+                    M2 = _edge_list_to_matrix( dg_new.edges(), list(range(dg.order())), [] )
                     print(M2)
                     return dg, dg_new
                 else:

@@ -16,12 +16,14 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
+from cysignals.memory cimport check_malloc, check_allocarray, sig_free
+from cysignals.signals cimport sig_check, sig_on, sig_off
+
 include "sage/data_structures/bitset.pxi"
 
 from cpython.ref cimport *
 from cython.operator cimport predecrement as predec, postincrement as postinc
+from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
 from sage.libs.gmp.mpn cimport mpn_cmp
 from libc.stdlib cimport free
 
@@ -718,27 +720,31 @@ cdef bint poly_inplace_unpickle(path_poly_t *P, list data) except -1:
 ##
 ## Polynomial arithmetics
 
-# Comparison of P1 and P2, using the given monomial ordering cmp_terms.
-# Return -1, 0, 1, if P1<P2, P1==P2, P1>P2, respectively.
-cdef int poly_cmp(path_poly_t *P1, path_poly_t *P2, path_order_t cmp_terms) except -2:
+# Rich comparison of P1 and P2, using the given monomial ordering cmp_terms.
+# Return a boolean.
+cdef bint poly_richcmp(path_poly_t *P1, path_poly_t *P2, path_order_t cmp_terms, int op):
     cdef path_term_t *T1 = P1.lead
     cdef path_term_t *T2 = P2.lead
     cdef int c
+    cdef object t1
+    cdef object t2
     while T1 != NULL and T2 != NULL:
         sig_check()
         c = cmp_terms(T1.mon, T2.mon)
-        if c != 0:
-            return c
-        c = cmp(<object>T1.coef, <object>T2.coef)
-        if c != 0:
-            return c
+        if c:
+            return rich_to_bool(op, c)
+
+        t1 = <object>T1.coef
+        t2 = <object>T2.coef
+        if t1 != t2:
+            return richcmp_not_equal(t1, t2, op)
         T1 = T1.nxt
         T2 = T2.nxt
     if T1 == NULL:
         if T2 == NULL:
-            return 0
-        return -1
-    return 1
+            return rich_to_bool(op, 0)
+        return rich_to_bool(op, -1)
+    return rich_to_bool(op, 1)
 
 # Hash of a polynomial. Probably not a very strong hash.
 cdef inline long poly_hash(path_poly_t *P):
@@ -764,7 +770,7 @@ cdef inline void term_iadd(path_term_t *T1, path_term_t *T2):
 # Change P inplace to P+T. It is assumed that initially the terms of P are
 # decreasingly sorted wrt. cmp_terms, and then it is guaranteed that they
 # are decreasingly sorted wrt. cmp_terms after adding T.
-# The adddition is "destructive" for T, which means that one MUST NOT
+# The addition is "destructive" for T, which means that one MUST NOT
 # call term_free(T) after the addition!
 cdef bint poly_iadd_term_d(path_poly_t *P, path_term_t *T, path_order_t cmp_terms) except -1:
     if P.lead == NULL:

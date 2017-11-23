@@ -1,6 +1,17 @@
 The Sage Notebook
 =================
 
+This documentation is for the legacy Sage notebook
+(sagenb) server.  SageMath is transitioning its
+default notebook to the `Jupyter notebook
+<http://jupyter-notebook.readthedocs.io/en/latest/notebook.html>`_.
+(Currently the default behavior is to open an
+export service.)
+
+
+Legacy Sage Notebook (sagenb)
+-----------------------------
+
 .. toctree::
    :maxdepth: 2
 
@@ -20,7 +31,6 @@ Other Servers
 .. toctree::
    :maxdepth: 2
 
-   sage/server/trac/trac
    sagenb/notebook/challenge
 
 Miscellaneous

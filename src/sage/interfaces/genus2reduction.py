@@ -101,7 +101,7 @@ class ReductionData(SageObject):
        the reduction (Namikawa, Ueno:"The complete classification of
        fibers in pencils of curves of genus two", Manuscripta Math., vol.
        9, (1973), pages 143-186.) The reduction symbol is followed by the
-       corresponding page number (or just an indiction) in the above
+       corresponding page number (or just an indication) in the above
        article. The lower index is printed by , for instance, [I2-II-5]
        means [I_2-II-5]. Note that if `K` and `K'` are
        Kodaira symbols for singular fibers of elliptic curves, [K-K'-m]
@@ -130,7 +130,7 @@ class ReductionData(SageObject):
 
        Be careful regarding the formula:
 
-       .. math::
+       .. MATH::
 
           \text{valuation of the naive minimal discriminant} = f + n - 1 + 11c(X).
 
@@ -290,7 +290,7 @@ class Genus2reduction(SageObject):
         sage: factor(genus2reduction(x^3 + x + 1, x^5 + 2*x^4 + 2*x^3 + x^2 - x - 1).conductor)
         5^6
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: genus2reduction(0, x^6 + 3*x^3 + 63)
         Reduction data about this proper smooth genus 2 curve:
@@ -318,7 +318,7 @@ class Genus2reduction(SageObject):
     Consider the modular curve `X_1(13)` defined by an
     equation
 
-    .. math::
+    .. MATH::
 
                    y^2 + (x^3-x^2-1)y = x^2 - x.
 

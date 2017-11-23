@@ -32,7 +32,7 @@ algorithm in that paper:
 
 The best description of the algorithms used (other than this source
 code itself) is in the slides for my Sage Days 4 talk, currently available
-from http://www.sagemath.org:9001/days4schedule .
+from https://wiki.sagemath.org/days4schedule .
 """
 
 ################################################################################
@@ -130,7 +130,7 @@ from http://www.sagemath.org:9001/days4schedule .
 # This may be vastly faster than the exact calculations carried out
 # by this algorithm!  Is it enough faster to be faster than, say,
 # Pari's floating-point algorithms?)
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from copy import copy
 from random import Random
@@ -152,11 +152,10 @@ from sage.rings.real_mpfr cimport RealNumber
 
 cimport numpy
 
-# TODO: Just for the fabs function below
-from math import fabs
+from libc.math cimport fabs, sqrt, ldexp, frexp
 
-include "sage/ext/cdefs.pxi"
-
+from sage.libs.gmp.mpz cimport *
+from sage.libs.gmp.mpq cimport *
 from sage.libs.mpfr cimport *
 
 cdef class interval_bernstein_polynomial:
@@ -169,7 +168,7 @@ cdef class interval_bernstein_polynomial:
     The Bernstein basis of degree n over the region [a .. b] is the
     set of polynomials
 
-    .. math::
+    .. MATH::
 
       \binom{n}{k} (x-a)^k (b-x)^{n-k} / (b-a)^n
 
@@ -1260,13 +1259,13 @@ def intvec_to_doublevec(Vector_integer_dense b, long err):
     B = [b1, ..., bn], lower and upper error bounds F1 and F2, and
     a scaling factor d, such that
 
-    .. math::
+    .. MATH::
 
        (bk + F1) * 2^d \le ak
 
     and
 
-    .. math::
+    .. MATH::
 
         ak + E \le (bk + F2) * 2^d
 
@@ -2184,7 +2183,7 @@ def cl_maximum_root_first_lambda(cl):
 
     TESTS::
 
-        sage: bnd = cl_maximum_root_first_lambda(map(RIF, [0, 0, 0, 14, 1]))
+        sage: bnd = cl_maximum_root_first_lambda(list(map(RIF, [0, 0, 0, 14, 1])))
         sage: bnd, bnd.parent()
         (0.000000000000000,
         Real Field with 53 bits of precision and rounding RNDU)

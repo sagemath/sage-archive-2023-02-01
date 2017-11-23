@@ -148,7 +148,8 @@ Classes and methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-
+from six.moves.urllib.request import urlopen
+from six.moves.urllib.parse import urlencode
 
 from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
@@ -159,7 +160,6 @@ from sage.misc.unknown import Unknown
 from sage.misc.misc import embedded
 from sage.misc.html import HtmlFragment
 from collections import defaultdict
-from urllib import urlopen, urlencode
 import re
 
 oeis_url = 'http://oeis.org/'
@@ -555,7 +555,7 @@ class OEIS:
                 '%D A999999 Lewis Carroll, The Hunting of the Snark.\n'
                 '%D A999999 Deep Thought, The Answer to the Ultimate Question of Life, The Universe, and Everything.\n'
                 '%H A999999 Wikipedia, <a href="http://en.wikipedia.org/wiki/42_(number)">42 (number)</a>\n'
-                '%H A999999 See. also <a href="http://trac.sagemath.org/sage_trac/ticket/42">trac ticket #42</a>\n'
+                '%H A999999 See. also <a href="https://trac.sagemath.org/sage_trac/ticket/42">trac ticket #42</a>\n'
                 '%H A999999 Do not confuse with the sequence <a href="/A000042">A000042</a> or the sequence <a href="/A000024">A000024</a>\n'
                 '%H A999999 The string http://42.com is not a link.\n'
                 '%F A999999 For n big enough, s(n+1) - s(n) = 0.\n'
@@ -1162,7 +1162,7 @@ class OEISSequence(SageObject):
 
     def __call__(self, k):
         r"""
-        Returns the element of the sequence ``self`` whith index ``k``.
+        Return the element of the sequence ``self`` with index ``k``.
 
         INPUT:
 
@@ -1466,7 +1466,7 @@ class OEISSequence(SageObject):
 
             sage: HTML = s.links(format="html");  HTML
             0: Wikipedia, <a href="http://en.wikipedia.org/wiki/42_(number)">42 (number)</a>
-            1: See. also <a href="http://trac.sagemath.org/sage_trac/ticket/42">trac ticket #42</a>
+            1: See. also <a href="https://trac.sagemath.org/sage_trac/ticket/42">trac ticket #42</a>
             ...
             sage: type(HTML)
             <class 'sage.misc.html.HtmlFragment'>

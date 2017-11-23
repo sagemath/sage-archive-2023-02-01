@@ -190,7 +190,7 @@ class BackendIPythonCommandline(BackendIPython):
             OutputPlainText, OutputAsciiArt, OutputUnicodeArt, OutputLatex,
             OutputImagePng, OutputImageGif,
             OutputImagePdf, OutputImageDvi,
-            OutputSceneJmol, OutputSceneWavefront,
+            OutputSceneJmol, OutputSceneWavefront, OutputSceneThreejs,
         ])
 
     def displayhook(self, plain_text, rich_output):
@@ -236,7 +236,7 @@ class BackendIPythonCommandline(BackendIPython):
             sage: from sage.repl.rich_output import get_display_manager
             sage: dm = get_display_manager()
             sage: dm.displayhook(Foo())
-            ({u'text/plain': u'Mot\xc3\xb6rhead'}, {})
+            ({u'text/plain': u'Mot\xf6rhead'}, {})
         """
         if isinstance(rich_output, OutputPlainText):
             return ({u'text/plain': rich_output.text.get_unicode()}, {})
@@ -267,6 +267,10 @@ class BackendIPythonCommandline(BackendIPython):
             return ({u'text/plain': msg}, {})
         elif isinstance(rich_output, OutputSceneWavefront):
             msg = self.launch_sage3d(rich_output, plain_text.text.get_unicode())
+            return ({u'text/plain': msg}, {})
+        elif isinstance(rich_output, OutputSceneThreejs):
+            msg = self.launch_viewer(
+                rich_output.html.filename(ext='html'), plain_text.text.get_unicode())
             return ({u'text/plain': msg}, {})
         else:
             raise TypeError('rich_output type not supported')
@@ -391,6 +395,38 @@ class BackendIPythonCommandline(BackendIPython):
             True
         """
         return True
+
+    def threejs_offline_scripts(self):
+        """
+        Three.js scripts for the IPython command line
+
+        OUTPUT:
+
+        String containing script tags
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_ipython import BackendIPythonCommandline
+            sage: backend = BackendIPythonCommandline()
+            sage: backend.threejs_offline_scripts()
+            '...<script ...</script>...'
+        """
+        from sage.env import SAGE_SHARE
+        return """
+<script src="{0}/threejs/three.min.js"></script>
+<script src="{0}/threejs/OrbitControls.js"></script>
+        """.format(SAGE_SHARE)
+
+
+IFRAME_TEMPLATE = \
+"""
+<iframe srcdoc="{escaped_html}" 
+        width="{width}"
+        height="{height}"
+        style="border: 0;">
+</iframe>
+"""
+
     
 class BackendIPythonNotebook(BackendIPython):
     """
@@ -441,20 +477,16 @@ class BackendIPythonNotebook(BackendIPython):
             sage: from sage.repl.rich_output.output_basic import OutputLatex
             sage: OutputLatex in supp
             True
-
-        The IPython notebook cannot display gif images, see
-        https://github.com/ipython/ipython/issues/2115 ::
-
             sage: from sage.repl.rich_output.output_graphics import OutputImageGif
             sage: OutputImageGif in supp
-            False
+            True
         """
         return set([
             OutputPlainText, OutputAsciiArt, OutputUnicodeArt, OutputLatex,
             OutputHtml,
-            OutputImagePng, OutputImageJpg,
+            OutputImagePng, OutputImageGif, OutputImageJpg,
             OutputImageSvg, OutputImagePdf,
-            OutputSceneJmol,
+            OutputSceneJmol, OutputSceneThreejs,
         ])
 
     def displayhook(self, plain_text, rich_output):
@@ -508,11 +540,14 @@ class BackendIPythonNotebook(BackendIPython):
             return ({u'image/png':  rich_output.png.get(),
                      u'text/plain': plain_text.text.get_unicode(),
             }, {})
+        elif isinstance(rich_output, OutputImageGif):
+            return ({u'text/html':  rich_output.html_fragment(),
+                     u'text/plain': plain_text.text.get(),
+            }, {})
         elif isinstance(rich_output, OutputImageJpg):
             return ({u'image/jpeg':  rich_output.jpg.get(),
                      u'text/plain':  plain_text.text.get_unicode(),
             }, {})
-
         elif isinstance(rich_output, OutputImageSvg):
             return ({u'image/svg+xml': rich_output.svg.get(),
                      u'text/plain':    plain_text.text.get_unicode(),
@@ -527,7 +562,40 @@ class BackendIPythonNotebook(BackendIPython):
             return ({u'text/html':  jsmol.iframe(),
                      u'text/plain': plain_text.text.get_unicode(),
             }, {})            
+        elif isinstance(rich_output, OutputSceneThreejs):
+            escaped_html = rich_output.html.get().replace('"', '&quot;')
+            iframe = IFRAME_TEMPLATE.format(
+                escaped_html=escaped_html,
+                width='100%',
+                height=400,
+            )
+            return ({u'text/html':  iframe,
+                     u'text/plain': plain_text.text.get_unicode(),
+            }, {})            
         else:
             raise TypeError('rich_output type not supported')
 
-        
+    def threejs_offline_scripts(self):
+        """
+        Three.js scripts for the IPython notebook
+
+        OUTPUT:
+
+        String containing script tags
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_ipython import BackendIPythonNotebook
+            sage: backend = BackendIPythonNotebook()
+            sage: backend.threejs_offline_scripts()
+            '...<script src="/nbextensions/threejs/three.min...<\\/script>...'
+        """
+        from sage.repl.rich_output import get_display_manager
+        CDN_scripts = get_display_manager().threejs_scripts(online=True)
+        return """
+<script src="/nbextensions/threejs/three.min.js"></script>
+<script src="/nbextensions/threejs/OrbitControls.js"></script>
+<script>
+  if ( !window.THREE ) document.write('{}');
+</script>
+        """.format(CDN_scripts.replace('</script>', r'<\/script>'))

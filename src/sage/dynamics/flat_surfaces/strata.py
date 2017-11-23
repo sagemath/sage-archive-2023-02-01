@@ -11,42 +11,25 @@ a stratum (which corresponds to the SAGE object
 :class:`~sage.dynamics.flat_surfaces.strata.AbelianStratum`).
 
 The work for Abelian differentials was done by Maxim Kontsevich and Anton
-Zorich in [KonZor03]_ and for quadratic differentials by Erwan Lanneau in
-[Lan08]_. Zorich gave an algorithm to pass from a connected component of a
+Zorich in [KZ2003]_ and for quadratic differentials by Erwan Lanneau in
+[Lan2008]_. Zorich gave an algorithm to pass from a connected component of a
 stratum to the associated Rauzy class (for both interval exchange
-transformations and linear involutions) in [Zor08]_ and is implemented for
+transformations and linear involutions) in [Zor2008]_ and is implemented for
 Abelian stratum at different level (approximately one for each component):
 
 - for connected stratum :meth:`~ConnectedComponentOfAbelianStratum.representative`
-- for hyperellitic component :meth:`~HypConnectedComponentOfAbelianStratum.representative`
+- for hyperelliptic component :meth:`~HypConnectedComponentOfAbelianStratum.representative`
 - for non hyperelliptic component, the algorithm is the same as for connected
   component
 - for odd component :meth:`~OddConnectedComponentOfAbelianStratum.representative`
 - for even component :meth:`~EvenConnectedComponentOfAbelianStratum.representative`
 
 The inverse operation (pass from an interval exchange transformation to
-the connected component) is partially written in [KonZor03]_ and
+the connected component) is partially written in [KZ2003]_ and
 simply named here
 :meth:`~sage.dynamics.interval_exchanges.template.PermutationIET.connected_component`.
 
-All the code here was first available on Mathematica [ZS]_.
-
-REFERENCES:
-
-.. [KonZor03] \M. Kontsevich, A. Zorich "Connected components of the moduli space
-   of Abelian differentials with prescripebd singularities" Invent. math. 153,
-   631-678 (2003)
-
-.. [Lan08] \E. Lanneau "Connected components of the strata of the moduli spaces
-   of quadratic differentials", Annales sci. de l'ENS, serie 4, fascicule 1,
-   41, 1-56 (2008)
-
-.. [Zor08] \A. Zorich "Explicit Jenkins-Strebel representatives of all strata of
-   Abelian and quadratic differentials", Journal of Modern Dynamics, vol. 2,
-   no 1, 139-185 (2008) (http://www.math.psu.edu/jmd)
-
-.. [ZS] Anton Zorich, "Generalized Permutation software"
-   (http://perso.univ-rennes1.fr/anton.zorich/Software/software_en.html)
+All the code here was first available on Mathematica [Zor]_.
 
 .. NOTE::
 
@@ -204,7 +187,7 @@ Rauzy diagrams from the classification of strata::
 
     sage: a = AbelianStrata(nintervals=4)
     sage: l = sum([stratum.connected_components() for stratum in a], [])
-    sage: n = map(lambda x: x.rauzy_diagram().cardinality(), l)
+    sage: n = [x.rauzy_diagram().cardinality() for x in l]
     sage: for c,i in zip(l,n):
     ....:     print("{} : {}".format(c, i))
     H_hyp^out(2) : 7
@@ -216,7 +199,7 @@ Rauzy diagrams from the classification of strata::
 
     sage: a = AbelianStrata(nintervals=5)
     sage: l = sum([stratum.connected_components() for stratum in a], [])
-    sage: n = map(lambda x: x.rauzy_diagram().cardinality(), l)
+    sage: n = [x.rauzy_diagram().cardinality() for x in l]
     sage: for c,i in zip(l,n):
     ....:     print("{} : {}".format(c, i))
     H_hyp^out(0, 2) : 11
@@ -230,7 +213,7 @@ Rauzy diagrams from the classification of strata::
 
     sage: a = AbelianStrata(nintervals=6)
     sage: l = sum([stratum.connected_components() for stratum in a], [])
-    sage: n = map(lambda x: x.rauzy_diagram().cardinality(), l)
+    sage: n = [x.rauzy_diagram().cardinality() for x in l]
     sage: for c,i in zip(l,n):
     ....:     print("{} : {}".format(c, i))
     H_hyp^out(4) : 31
@@ -250,6 +233,7 @@ Rauzy diagrams from the classification of strata::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six.moves import range
 
 from sage.structure.sage_object import SageObject
 
@@ -258,7 +242,6 @@ from sage.combinat.combinat import InfiniteAbstractCombinatorialClass
 from sage.combinat.partition import Partitions
 
 from sage.rings.integer import Integer
-from sage.rings.rational import Rational
 
 
 def AbelianStrata(genus=None, nintervals=None, marked_separatrix=None):
@@ -681,7 +664,7 @@ class AbelianStratum(SageObject):
     :meth:`sage.dynamics.interval_exchanges.template.Permutation.symmetric`
     operation of Boissy-Lanneau).
 
-    When you want to specify a marked separatrix, the degree on which it is is
+    When you want to specify a marked separatrix, the degree on which it is
     the first term of your degrees list.
 
     INPUT:
@@ -1242,7 +1225,7 @@ class ConnectedComponentOfAbelianStratum(SageObject):
         Returns the Zorich representative of this connected component.
 
         Zorich constructs explicitely interval exchange
-        transformations for each stratum in [Zor08]_.
+        transformations for each stratum in [Zor2008]_.
 
         INPUT:
 
@@ -1274,7 +1257,7 @@ class ConnectedComponentOfAbelianStratum(SageObject):
         zeroes = [x for x in self._parent._zeroes if x > 0]
         n = self._parent._zeroes.count(0)
 
-        l0 = range(0, 4*g-3)
+        l0 = list(range(4 * g - 3))
         l1 = [4, 3, 2]
         for k in range(5, 4*g-6, 4):
             l1 += [k, k+3, k+2, k+1]
@@ -1288,7 +1271,7 @@ class ConnectedComponentOfAbelianStratum(SageObject):
             k += 2
 
         if n != 0:
-            interval = range(4*g-3, 4*g-3+n)
+            interval = list(range(4 * g - 3, 4 * g - 3 + n))
 
             if self._parent._zeroes[0] == 0:
                 k = l0.index(4)
@@ -1407,21 +1390,17 @@ class ConnectedComponentOfAbelianStratum(SageObject):
             sage: c2_hyp != c2_odd
             True
             sage: c1 == True
-            Traceback (most recent call last):
-            ...
-            TypeError: other must be a connected component
+            False
         """
-        if not isinstance(other, CCA):
-            raise TypeError("other must be a connected component")
+        if not isinstance(other, CCA) or type(self) != type(other):
+            return NotImplemented
 
-        if type(self) is type(other):
-            if self._parent._zeroes > other._parent._zeroes:
-                return 1
-            elif self._parent._zeroes < other._parent._zeroes:
-                return -1
-            return 0
+        if self._parent._zeroes < other._parent._zeroes:
+            return 1
+        elif self._parent._zeroes > other._parent._zeroes:
+            return -1
+        return 0
 
-        return cmp(type(self), type(other))
 
 CCA = ConnectedComponentOfAbelianStratum
 
@@ -1441,7 +1420,7 @@ class HypConnectedComponentOfAbelianStratum(CCA):
         Returns the Zorich representative of this connected component.
 
         Zorich constructs explicitely interval exchange
-        transformations for each stratum in [Zor08]_.
+        transformations for each stratum in [Zor2008]_.
 
         INPUT:
 
@@ -1514,13 +1493,13 @@ class HypConnectedComponentOfAbelianStratum(CCA):
                 l0 = [0, 1, 2]
                 l1 = [2, 1, 0]
             else:
-                l0 = range(1, n+2)
-                l1 = [n+1] + range(1, n+1)
+                l0 = list(range(1, n + 2))
+                l1 = [n + 1] + list(range(1, n + 1))
 
         elif m == 1:  # H(2g-2,0^n) or H(0,2g-2,0^(n-1))
-            l0 = range(1, 2*g+1)
-            l1 = range(2*g, 0, -1)
-            interval = range(2*g+1, 2*g+n+1)
+            l0 = list(range(1, 2*g+1))
+            l1 = list(range(2*g, 0, -1))
+            interval = list(range(2*g+1, 2*g+n+1))
 
             if self._parent._zeroes[0] == 0:
                 l0[-1:-1] = interval
@@ -1530,9 +1509,9 @@ class HypConnectedComponentOfAbelianStratum(CCA):
                 l1[1:1] = interval
 
         else:  # H(g-1,g-1,0^n) or H(0,g-1,g-1,0^(n-1))
-            l0 = range(1, 2*g+2)
-            l1 = range(2*g+1, 0, -1)
-            interval = range(2*g+2, 2*g+n+2)
+            l0 = list(range(1, 2*g+2))
+            l1 = list(range(2*g+1, 0, -1))
+            interval = list(range(2*g+2, 2*g+n+2))
 
             if self._parent._zeroes[0] == 0:
                 l0[-1:-1] = interval
@@ -1584,7 +1563,7 @@ class EvenConnectedComponentOfAbelianStratum(CCA):
         Returns the Zorich representative of this connected component.
 
         Zorich constructs explicitely interval exchange
-        transformations for each stratum in [Zor08]_.
+        transformations for each stratum in [Zor2008]_.
 
         EXAMPLES:
 
@@ -1616,7 +1595,7 @@ class EvenConnectedComponentOfAbelianStratum(CCA):
         n = self._parent._zeroes.count(0)
         g = self._parent._genus
 
-        l0 = range(3*g-2)
+        l0 = list(range(3*g-2))
         l1 = [6, 5, 4, 3, 2, 7, 9, 8]
         for k in range(10, 3*g-4, 3):
             l1 += [k, k+2, k+1]
@@ -1632,7 +1611,7 @@ class EvenConnectedComponentOfAbelianStratum(CCA):
 
         # if there are marked points we transform 0 in [3g-2, 3g-3, ...]
         if n != 0:
-            interval = range(3*g-2, 3*g - 2 + n)
+            interval = list(range(3*g-2, 3*g - 2 + n))
 
             if self._parent._zeroes[0] == 0:
                 k = l0.index(6)
@@ -1672,7 +1651,7 @@ class OddConnectedComponentOfAbelianStratum(CCA):
         Returns the Zorich representative of this connected component.
 
         Zorich constructs explicitely interval exchange
-        transformations for each stratum in [Zor08]_.
+        transformations for each stratum in [Zor2008]_.
 
         EXAMPLES:
 
@@ -1695,7 +1674,7 @@ class OddConnectedComponentOfAbelianStratum(CCA):
         n = self._parent._zeroes.count(0)
         g = self._parent._genus
 
-        l0 = range(3*g-2)
+        l0 = list(range(3*g-2))
         l1 = [3, 2]
         for k in range(4, 3*g-4, 3):
             l1 += [k, k+2, k+1]
@@ -1711,7 +1690,7 @@ class OddConnectedComponentOfAbelianStratum(CCA):
 
         # marked points
         if n != 0:
-            interval = range(3*g-2, 3*g-2+n)
+            interval = list(range(3*g-2, 3*g-2+n))
 
             if self._parent._zeroes[0] == 0:
                 k = l0.index(3)

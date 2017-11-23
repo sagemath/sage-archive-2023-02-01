@@ -19,14 +19,11 @@ cpdef inline parent(x):
 
     - If ``x`` is a Sage :class:`Element`, return ``x.parent()``.
 
-    - If ``x`` has a ``parent`` method and ``x`` does not have an
-      ``__int__`` or ``__float__`` method, return ``x.parent()``.
-
     - Otherwise, return ``type(x)``.
 
     .. SEEALSO::
 
-        `Parents, Conversion and Coercion <http://www.sagemath.org/doc/tutorial/tour_coercion.html>`_
+        `Parents, Conversion and Coercion <http://doc.sagemath.org/html/en/tutorial/tour_coercion.html>`_
         Section in the Sage Tutorial
 
     EXAMPLES::
@@ -55,22 +52,14 @@ cpdef inline parent(x):
 
         sage: d = int(42)  # Python int
         sage: parent(d)
-        <type 'int'>
-        sage: L = range(10)
+        <... 'int'>
+        sage: L = list(range(10))
         sage: parent(L)
-        <type 'list'>
+        <... 'list'>
     """
     if isinstance(x, Element):
         return (<Element>x)._parent
-    # Fast check for "number" types, including int and float
-    if PyNumber_Check(x):
-        return type(x)
-    try:
-        p = x.parent
-    except AttributeError:
-        return type(x)
-    else:
-        return p()
+    return type(x)
 
 
 cdef inline int classify_elements(left, right):
@@ -158,18 +147,27 @@ cpdef inline bint have_same_parent(left, right):
 cdef inline parent_c(x):
     """
     Deprecated alias for :func:`parent`.
+
+    TESTS::
+
+        sage: cython('''
+        ....: from sage.structure.element cimport parent_c
+        ....: from sage.all import ZZ
+        ....: print(parent_c(ZZ.one()))
+        ....: ''')
+        doctest:...:
+        DeprecationWarning: parent_c() is deprecated, use parent() instead
+        See http://trac.sagemath.org/22311 for details.
+        Integer Ring
     """
+    from sage.misc.superseded import deprecation
+    deprecation(22311, "parent_c() is deprecated, use parent() instead")
     return parent(x)
 
 
-cdef inline bint have_same_parent_c(left, right):
-    """
-    Deprecated alias for :func:`have_same_parent`.
-    """
-    return have_same_parent(left, right)
+cdef unary_op_exception(op, x)
+cdef bin_op_exception(op, x, y)
 
-
-cdef str arith_error_message(x, y, op)
 
 cdef class Element(SageObject):
     cdef Parent _parent
@@ -177,8 +175,22 @@ cdef class Element(SageObject):
     cpdef int _cmp_(left, right) except -2
     cpdef base_extend(self, R)
 
+    cdef getattr_from_category(self, name)
+
     cpdef _act_on_(self, x, bint self_on_left)
     cpdef _acted_upon_(self, x, bint self_on_left)
+
+    cdef _add_(self, other)
+    cdef _sub_(self, other)
+    cdef _neg_(self)
+    cdef _add_long(self, long n)
+
+    cdef _mul_(self, other)
+    cdef _mul_long(self, long n)
+    cdef _div_(self, other)
+    cdef _floordiv_(self, other)
+    cdef _mod_(self, other)
+
 
 cdef class ElementWithCachedMethod(Element):
     cdef public dict __cached_methods
@@ -188,18 +200,16 @@ cdef class ModuleElement(Element)       # forward declaration
 cdef class RingElement(ModuleElement)   # forward declaration
 
 cdef class ModuleElement(Element):
-    cpdef _add_(self, right)
     cpdef _sub_(self, right)
     cpdef _neg_(self)
-    # self._rmul_(x) is x * self
-    cpdef _lmul_(self, RingElement right)
-    # self._lmul_(x) is self * x, to abide with Python conventions.
-    cpdef _rmul_(self, RingElement left)
 
-    cdef _mul_long(self, long n)
+    # self._rmul_(x) is x * self
+    cpdef _lmul_(self, Element right)
+    # self._lmul_(x) is self * x
+    cpdef _rmul_(self, Element left)
 
 cdef class MonoidElement(Element):
-    cpdef _mul_(self, right)
+    pass
 
 cdef class MultiplicativeGroupElement(MonoidElement):
     cpdef _div_(self, right)
@@ -208,11 +218,7 @@ cdef class AdditiveGroupElement(ModuleElement):
     pass
 
 cdef class RingElement(ModuleElement):
-    cpdef _mul_(self, right)
     cpdef _div_(self, right)
-    cpdef _floordiv_(self, right)
-
-    cdef _add_long(self, long n)
 
 cdef class CommutativeRingElement(RingElement):
     pass
@@ -227,18 +233,16 @@ cdef class PrincipalIdealDomainElement(DedekindDomainElement):
     pass
 
 cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
-    pass
+    cpdef _floordiv_(self, right)
+    cpdef _mod_(self, right)
 
 cdef class FieldElement(CommutativeRingElement):
-    pass
+    cpdef _floordiv_(self, right)
 
 cdef class AlgebraElement(RingElement):
     pass
 
 cdef class CommutativeAlgebraElement(CommutativeRingElement):
-    pass
-
-cdef class CommutativeAlgebra(AlgebraElement):
     pass
 
 cdef class InfinityElement(RingElement):

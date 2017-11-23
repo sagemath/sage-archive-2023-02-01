@@ -127,7 +127,7 @@ class FiniteFieldHomset(RingHomset_generic):
 
     def _repr_(self):
         """
-        Return a string represention of ``self``.
+        Return a string representation of ``self``.
 
         EXAMPLES::
 
@@ -182,6 +182,18 @@ class FiniteFieldHomset(RingHomset_generic):
         n = len(self.list())
         self.__order = n
         return n
+
+    def __len__(self):
+        """
+        Return the number of elements of ``self``.
+
+        EXAMPLES::
+
+            sage: K.<a> = GF(25)
+            sage: len(End(K))
+            2
+        """
+        return self.order()
 
     def list(self):
         """

@@ -1,61 +1,80 @@
 # -*- encoding: utf-8 -*-
+# cython: old_style_globals=True
 r"""
 Abstract base class for Sage objects
-"""
-from __future__ import print_function
 
-import cPickle
+TESTS:
+
+Test deprecations::
+
+    sage: from sage.structure.sage_object import (
+    ....:     richcmp, richcmp_not_equal,
+    ....:     rich_to_bool, py_rich_to_bool, rich_to_bool_sgn,
+    ....:     op_EQ, op_NE, op_LT, op_LE, op_GT, op_GE)
+    sage: richcmp(2, 3, op_EQ)
+    doctest:...: DeprecationWarning: Importing richcmp from here is deprecated. If you need to use it, please import it directly from sage.structure.richcmp
+    See http://trac.sagemath.org/23103 for details.
+    doctest:...: DeprecationWarning: Importing op_EQ from here is deprecated. If you need to use it, please import it directly from sage.structure.richcmp
+    See http://trac.sagemath.org/23103 for details.
+    False
+    sage: richcmp_not_equal(2, 3, op_LT)
+    doctest:...: DeprecationWarning: Importing richcmp_not_equal from here is deprecated. If you need to use it, please import it directly from sage.structure.richcmp
+    See http://trac.sagemath.org/23103 for details.
+    doctest:...: DeprecationWarning: Importing op_LT from here is deprecated. If you need to use it, please import it directly from sage.structure.richcmp
+    See http://trac.sagemath.org/23103 for details.
+    True
+    sage: rich_to_bool(op_NE, 0)
+    doctest:...: DeprecationWarning: Importing rich_to_bool from here is deprecated. If you need to use it, please import it directly from sage.structure.richcmp
+    See http://trac.sagemath.org/23103 for details.
+    doctest:...: DeprecationWarning: Importing op_NE from here is deprecated. If you need to use it, please import it directly from sage.structure.richcmp
+    See http://trac.sagemath.org/23103 for details.
+    False
+    sage: py_rich_to_bool(op_GT, 1)
+    doctest:...: DeprecationWarning: Importing rich_to_bool from here is deprecated. If you need to use it, please import it directly from sage.structure.richcmp
+    See http://trac.sagemath.org/21128 for details.
+    doctest:...: DeprecationWarning: Importing op_GT from here is deprecated. If you need to use it, please import it directly from sage.structure.richcmp
+    See http://trac.sagemath.org/23103 for details.
+    True
+    sage: rich_to_bool_sgn(op_LE, -123)
+    doctest:...: DeprecationWarning: Importing rich_to_bool_sgn from here is deprecated. If you need to use it, please import it directly from sage.structure.richcmp
+    See http://trac.sagemath.org/23103 for details.
+    doctest:...: DeprecationWarning: Importing op_LE from here is deprecated. If you need to use it, please import it directly from sage.structure.richcmp
+    See http://trac.sagemath.org/23103 for details.
+    True
+    sage: op_GE
+    doctest:...: DeprecationWarning: Importing op_GE from here is deprecated. If you need to use it, please import it directly from sage.structure.richcmp
+    See http://trac.sagemath.org/23103 for details.
+    5
+"""
+
+from __future__ import absolute_import, print_function
+
+from six.moves import cPickle
 import os
 import sys
-from cStringIO import StringIO
+from six.moves import cStringIO as StringIO
 from sage.misc.sage_unittest import TestSuite
 
 sys_modules = sys.modules
-
-from sage.misc.lazy_import import LazyImport
-have_same_parent = LazyImport('sage.structure.element', 'have_same_parent', deprecation=17533)
 
 # change to import zlib to use zlib instead; but this
 # slows down loading any data stored in the other format
 import zlib; comp = zlib
 import bz2; comp_other = bz2
 
-op_LT = Py_LT   # operator <
-op_LE = Py_LE   # operator <=
-op_EQ = Py_EQ   # operator ==
-op_NE = Py_NE   # operator !=
-op_GT = Py_GT   # operator >
-op_GE = Py_GE   # operator >=
+from sage.misc.lazy_import import LazyImport
+richcmp = LazyImport('sage.structure.richcmp', 'richcmp', deprecation=23103)
+richcmp_not_equal = LazyImport('sage.structure.richcmp', 'richcmp_not_equal', deprecation=23103)
+rich_to_bool = LazyImport('sage.structure.richcmp', 'rich_to_bool', deprecation=23103)
+py_rich_to_bool = LazyImport('sage.structure.richcmp', 'rich_to_bool', deprecation=21128)
+rich_to_bool_sgn = LazyImport('sage.structure.richcmp', 'rich_to_bool_sgn', deprecation=23103)
+op_LT = LazyImport('sage.structure.richcmp', 'op_LT', deprecation=23103)
+op_LE = LazyImport('sage.structure.richcmp', 'op_LE', deprecation=23103)
+op_EQ = LazyImport('sage.structure.richcmp', 'op_EQ', deprecation=23103)
+op_NE = LazyImport('sage.structure.richcmp', 'op_NE', deprecation=23103)
+op_GT = LazyImport('sage.structure.richcmp', 'op_GT', deprecation=23103)
+op_GE = LazyImport('sage.structure.richcmp', 'op_GE', deprecation=23103)
 
-def py_rich_to_bool(op, c):
-    r"""
-    Return ``True`` or ``False`` for a rich comparison, given the result of an
-    ordinary comparison.
-
-    Do not use this function from Cython. Instead, call ``rich_to_bool`` or
-    ``rich_to_bool_sgn`` defined in ``sage_object.pxd``.
-
-    INPUT:
-
-    - ``op`` -- a rich comparison operation (e.g. ``op_EQ``)
-
-    - ``c`` -- the result of an ordinary comparison, i.e. an integer.
-
-    EXAMPLES::
-
-        sage: from sage.structure.sage_object import (py_rich_to_bool,
-        ....:    op_EQ, op_NE, op_LT, op_LE, op_GT, op_GE)
-        sage: for op in (op_LT, op_LE, op_EQ, op_NE, op_GT, op_GE):
-        ....:     for c in (-1,0,1):
-        ....:         print(py_rich_to_bool(op, c))
-        True False False
-        True True False
-        False True False
-        True False True
-        False False True
-        False True True
-    """
-    return rich_to_bool_sgn(op, c)
 
 cdef process(s):
     if s[-5:] != '.sobj':
@@ -74,6 +93,23 @@ cdef class SageObject:
     .. automethod:: _ascii_art_
     .. automethod:: _cache_key
     """
+    def _test_new(self, **options):
+        """
+        Check that ``cls.__new__(cls)`` does not crash Python,
+        where ``cls = type(self)``.
+
+        It is perfectly legal for ``__new__`` to raise ordinary
+        exceptions.
+
+        EXAMPLES::
+
+            sage: SageObject()._test_new()
+        """
+        cdef type cls = type(self)
+        try:
+            cls.__new__(cls)
+        except Exception:
+            pass
 
     #######################################################################
     # Textual representation code
@@ -199,8 +235,8 @@ cdef class SageObject:
             return str(type(self))
         else:
             result = repr_func()
-            if isinstance(result, unicode):
-                # Py3 compatibility: allow _repr_ to return unicode
+            if sys.version_info[0] < 3 and isinstance(result, unicode):
+                # for Py3 compatibility: allow _repr_ to return unicode
                 return result.encode('utf-8')
             else:
                 return result
@@ -466,24 +502,6 @@ cdef class SageObject:
         else:
             return s
 
-    def db(self, name, compress=True):
-        r"""
-        Dumps self into the Sage database.  Use db(name) by itself to
-        reload.
-
-        The database directory is ``$HOME/.sage/db``
-
-        TESTS::
-
-            sage: SageObject().db("Test")
-            doctest:... DeprecationWarning: db() is deprecated.
-            See http://trac.sagemath.org/2536 for details.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(2536, 'db() is deprecated.')
-        from sage.misc.all import SAGE_DB
-        return self.dump('%s/%s'%(SAGE_DB,name), compress=compress)
-
     #############################################################################
     # Category theory / structure
     #############################################################################
@@ -603,14 +621,21 @@ cdef class SageObject:
 
         """
         tester = self._tester(**options)
-        for name in dir(self):
-            try:
-                getattr(self, name)
-            except NotImplementedError:
-                # It would be best to make sure that this NotImplementedError was triggered by AbstractMethod
-                tester.fail("Not implemented method: %s"%name)
-            except Exception:
-                pass
+        try:
+            # Disable warnings for the duration of the test
+            import warnings
+            warnings.filterwarnings('ignore')
+            for name in dir(self):
+                try:
+                    getattr(self, name)
+                except NotImplementedError:
+                    # It would be best to make sure that this NotImplementedError was triggered by AbstractMethod
+                    tester.fail("Not implemented method: %s"%name)
+                except Exception:
+                    pass
+        finally: 
+            # Restore warnings
+            warnings.filters.pop(0)
 
     def _test_pickling(self, **options):
         """
@@ -646,6 +671,24 @@ cdef class SageObject:
     # Sage
     def _sage_(self):
         return self
+
+    def _pari_(self):
+        """
+        Deprecated alias for ``__pari__``.
+
+        TESTS::
+
+            sage: class NewStylePari(SageObject):
+            ....:     def __pari__(self):
+            ....:         return pari(42)
+            sage: NewStylePari()._pari_()
+            doctest:...: DeprecationWarning: the _pari_ method is deprecated, use __pari__ instead
+            See http://trac.sagemath.org/22470 for details.
+            42
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(22470, 'the _pari_ method is deprecated, use __pari__ instead')
+        return self.__pari__()
 
     def _interface_(self, I):
         """
@@ -871,6 +914,17 @@ cdef class SageObject:
         I = sage.interfaces.octave.octave
         return self._interface_init_(I)
 
+    def _polymake_(self, G=None):
+        if G is None:
+            import sage.interfaces.polymake
+            G = sage.interfaces.polymake.polymake
+        return self._interface_(G)
+
+    def _polymake_init_(self):
+        import sage.interfaces.polymake
+        I = sage.interfaces.polymake.polymake
+        return self._interface_init_(I)
+
     def _r_init_(self):
         """
         Return default string expression that evaluates in R to this
@@ -902,7 +956,7 @@ cdef class SageObject:
         return self._interface_init_(I)
 
     # PARI (slightly different, since is via C library, hence instance is unique)
-    def _pari_(self):
+    def __pari__(self):
         if self._interface_is_cached_():
             try:
                 return self.__pari
@@ -943,7 +997,7 @@ def load(*filename, compress=True, verbose=True):
     of those files are loaded, or all of the objects are loaded and a
     list of the corresponding loaded objects is returned.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: u = 'http://sage.math.washington.edu/home/was/db/test.sobj'
         sage: s = load(u)                                                  # optional - internet
@@ -955,7 +1009,7 @@ def load(*filename, compress=True, verbose=True):
     We test loading a file or multiple files or even mixing loading files and objects::
 
         sage: t = tmp_filename(ext='.py')
-        sage: open(t,'w').write("print('hello world')")
+        sage: _ = open(t,'w').write("print('hello world')")
         sage: load(t)
         hello world
         sage: load(t,t)
@@ -967,11 +1021,22 @@ def load(*filename, compress=True, verbose=True):
         hello world
         [None, None, 2/3]
 
+    Files with a ``.sage`` extension are preparsed. Also note that we
+    can access global variables::
+
+        sage: t = tmp_filename(ext=".sage")
+        sage: with open(t, 'w') as f:
+        ....:     _ = f.write("a += Mod(2/3, 11)")  # This evaluates to Mod(8, 11)
+        sage: a = -1
+        sage: load(t)
+        sage: a
+        7
+
     We can load Fortran files::
 
         sage: code = '      subroutine hello\n         print *, "Hello World!"\n      end subroutine hello\n'
         sage: t = tmp_filename(ext=".F")
-        sage: open(t, 'w').write(code)
+        sage: _ = open(t, 'w').write(code)
         sage: load(t)
         sage: hello
         <fortran object>
@@ -1010,7 +1075,7 @@ def load(*filename, compress=True, verbose=True):
         pass
 
     ## Delete the tempfile, if it exists
-    if tmpfile_flag == True:
+    if tmpfile_flag:
         os.unlink(filename)
 
     return X
@@ -1087,7 +1152,7 @@ def dumps(obj, compress=True):
     """
     Dump obj to a string s.  To recover obj, use ``loads(s)``.
 
-    .. seealso:: :func:`dumps`
+    .. SEEALSO:: :func:`dumps`
 
     EXAMPLES::
 
@@ -1200,8 +1265,10 @@ def register_unpickle_override(module, name, callable, call_name=None):
         ....:             self._set_parent(Tableaux())  # this is a fudge: we need an appropriate parent here
         ....:             self.__dict__ = state
         ....:         else:
-        ....:             self._set_parent(state[0])
-        ....:             self.__dict__ = state[1]
+        ....:             P, D = state
+        ....:             if P is not None:
+        ....:                 self._set_parent(P)
+        ....:             self.__dict__ = D
         sage: __main__.SweeterPickle = SweeterPickle
         sage: register_unpickle_override('__main__','SourPickle',SweeterPickle)
         sage: loads( gherkin )
@@ -1315,20 +1382,44 @@ def unpickle_global(module, name):
         sage: del unpickle_override[('sage.rings.integer', 'Integer')]
         sage: unpickle_global('sage.rings.integer', 'Integer')
         <type 'sage.rings.integer.Integer'>
+        
+    A meaningful error message with resolution instructions is displayed for
+    old pickles that accidentally got broken because a class or entire module
+    was moved or renamed::
+    
+        sage: unpickle_global('sage.all', 'some_old_class')
+        Traceback (most recent call last):
+        ...
+        ImportError: cannot import some_old_class from sage.all, call
+        register_unpickle_override('sage.all', 'some_old_class', ...)
+        to fix this
+        
+        sage: unpickle_global('sage.some_old_module', 'some_old_class')
+        Traceback (most recent call last):
+        ...
+        ImportError: cannot import some_old_class from sage.some_old_module, call
+        register_unpickle_override('sage.some_old_module', 'some_old_class', ...)
+        to fix this
     """
     unpickler = unpickle_override.get((module, name))
     if unpickler is not None:
         return unpickler[0]
 
+    def error():
+        raise ImportError("cannot import {1} from {0}, call "
+            "register_unpickle_override({0!r}, {1!r}, ...) to fix this".format(
+                module, name))
+
     mod = sys_modules.get(module)
     if mod is not None:
-        return getattr(mod, name)
+        try:
+            return getattr(mod, name)
+        except AttributeError:
+            error()
     try:
         __import__(module)
     except ImportError:
-        raise ImportError("cannot import {1} from {0}, "
-            "call register_unpickle_override({0!r}, {1!r}, ...) to fix this".format(
-            module, name))
+        error()
     mod = sys_modules[module]
     return getattr(mod, name)
 
@@ -1337,7 +1428,7 @@ def loads(s, compress=True):
     Recover an object x that has been dumped to a string s
     using ``s = dumps(x)``.
 
-    .. seealso:: :func:`dumps`
+    .. SEEALSO:: :func:`dumps`
 
     EXAMPLES::
 
@@ -1417,7 +1508,7 @@ def picklejar(obj, dir=None):
 
     Test an unaccessible directory::
 
-        sage: import os
+        sage: import os, sys
         sage: os.chmod(dir, 0o000)
         sage: try:
         ....:     uid = os.getuid()
@@ -1425,6 +1516,8 @@ def picklejar(obj, dir=None):
         ....:     uid = -1
         sage: if uid==0:
         ....:     raise OSError('You must not run the doctests as root, geez!')
+        ....: elif sys.platform == 'cygwin':
+        ....:     raise OSError("This won't always behave on Cygwin depending on permission handling configuration.")
         ....: else:
         ....:     sage.structure.sage_object.picklejar(1, dir + '/noaccess')
         Traceback (most recent call last):
@@ -1486,7 +1579,7 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
 
     When run with no arguments :meth:`unpickle_all` tests that all of the
     "standard" pickles stored in the pickle_jar at
-    ``SAGE_ROOT/local/share/sage/ext/pickle_jar/pickle_jar.tar.bz2`` can be unpickled.
+    ``SAGE_SHARE/sage/ext/pickle_jar/pickle_jar.tar.bz2`` can be unpickled.
 
     ::
 
@@ -1613,3 +1706,21 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
     print("Failed to unpickle %s objects." % j)
     if debug:
         return tracebacks
+
+
+def make_None(*args, **kwds):
+    """
+    Do nothing and return ``None``. Used for overriding pickles when
+    that pickle is no longer needed.
+
+    EXAMPLES::
+
+        sage: from sage.structure.sage_object import make_None
+        sage: print(make_None(42, pi, foo='bar'))
+        None
+    """
+    return None
+
+
+# Generators is no longer used (#21382)
+register_unpickle_override('sage.structure.generators', 'make_list_gens', make_None)

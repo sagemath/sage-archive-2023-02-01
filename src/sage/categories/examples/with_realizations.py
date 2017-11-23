@@ -50,6 +50,9 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
     .. SEEALSO::
 
        - :func:`Sets().WithRealizations <sage.categories.with_realizations.WithRealizations>`
+       - the `Implementing Algebraic Structures
+         <../../../../../thematic_tutorials/tutorial-implementing-algebraic-structures>`_
+         thematic tutorial.
 
     EXAMPLES::
 
@@ -70,10 +73,9 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
     One can quickly define all the bases using the following shortcut::
 
         sage: A.inject_shorthands()
-        Injecting F as shorthand for The subset algebra of {1, 2, 3} over Rational Field in the Fundamental basis
-        ...
-        Injecting In as shorthand for The subset algebra of {1, 2, 3} over Rational Field in the In basis
-        ...
+        Defining F as shorthand for The subset algebra of {1, 2, 3} over Rational Field in the Fundamental basis
+        Defining In as shorthand for The subset algebra of {1, 2, 3} over Rational Field in the In basis
+        Defining Out as shorthand for The subset algebra of {1, 2, 3} over Rational Field in the Out basis
 
     Accessing the basis elements is done with :meth:`basis()` method::
 
@@ -167,29 +169,27 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
         assert(R in Rings())
         self._base = R # Won't be needed when CategoryObject won't override anymore base_ring
         self._S = S
-        Parent.__init__(self, category = Algebras(R).WithRealizations())
+        Parent.__init__(self, category = Algebras(R).Commutative().WithRealizations())
 
         # Initializes the bases and change of bases of ``self``
 
-        category   = self.Bases()
         F   = self.F()
         In  = self.In()
         Out = self.Out()
 
-        # TODO: Have module_morphism use keys instead of cmp
-        #   and remove the call to cmp_to_key here.
-        key_cmp = lambda x,y: cmp(self.indices_key(x), self.indices_key(y))
+        category = self.Bases()
+        key = lambda x: self.indices_key(x)
         In_to_F = In.module_morphism(F.sum_of_monomials * Subsets,
-                                     codomain = F, category = category,
-                                     triangular = 'upper', unitriangular = True,
-                                     cmp = key_cmp)
+                                     codomain=F, category=category,
+                                     triangular='upper', unitriangular=True,
+                                     key=key)
         In_to_F   .register_as_coercion()
         (~In_to_F).register_as_coercion()
 
         F_to_Out = F.module_morphism(Out.sum_of_monomials * self.supsets,
-                                     codomain = Out, category = category,
-                                     triangular = 'lower', unitriangular = True,
-                                     cmp = key_cmp)
+                                     codomain=Out, category=category,
+                                     triangular='lower', unitriangular=True,
+                                     key=key)
         F_to_Out   .register_as_coercion()
         (~F_to_Out).register_as_coercion()
 
@@ -231,33 +231,6 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
             Subsets of {1, 2, 3}
         """
         return Subsets(self._S)
-
-    def indices_cmp(self, x, y):
-        r"""
-        A comparison function on sets which gives a linear extension
-        of the inclusion order.
-
-        INPUT:
-
-        - ``x``, ``y`` -- sets
-
-        EXAMPLES::
-
-            sage: from functools import cmp_to_key
-            sage: A = Sets().WithRealizations().example(); A
-            The subset algebra of {1, 2, 3} over Rational Field
-            sage: sorted(A.indices(), key=cmp_to_key(A.indices_cmp))
-            doctest:...: DeprecationWarning: indices_cmp is deprecated, use indices_key instead.
-            See http://trac.sagemath.org/17229 for details.
-            [{}, {1}, {2}, {3}, {1, 2}, {1, 3}, {2, 3}, {1, 2, 3}]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(17229, "indices_cmp is deprecated, use indices_key instead.")
-
-        s = (len(x) > len(y)) - (len(x) < len(y))
-        if s != 0:
-            return s
-        return (list(x) > list(y)) - (list(x) < list(y))
 
     def indices_key(self, x):
         r"""
@@ -318,12 +291,16 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
                 sage: C = A.Bases(); C
                 Category of bases of The subset algebra of {1, 2, 3} over Rational Field
                 sage: C.super_categories()
-                [Join of Category of algebras over Rational Field and Category of realizations of unital magmas,
-                 Category of realizations of The subset algebra of {1, 2, 3} over Rational Field,
-                 Category of algebras with basis over Rational Field]
+                [Category of realizations of The subset algebra of {1, 2, 3} over Rational Field,
+                 Join of Category of algebras with basis over Rational Field and
+                         Category of commutative algebras over Rational Field and
+                         Category of realizations of unital magmas]
             """
-            R = self.base().base_ring()
-            return [Algebras(R).Realizations(), self.base().Realizations(), AlgebrasWithBasis(R)]
+            A = self.base()
+            category = Algebras(A.base_ring()).Commutative()
+            return [A.Realizations(),
+                    category.Realizations().WithBasis()]
+
 
         class ParentMethods:
 

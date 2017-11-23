@@ -149,7 +149,7 @@ Explore a página na web do Sage para informações para desenvolvedores;
 entre outras coisas, você pode encontrar uma lista longa de projetos
 relacionados ao Sage ordenados por prioridade e categoria. O `Guia
 para desenvolvedores do Sage
-<http://www.sagemath.org/doc/developer/>`_ (em inglês) também possui
+<http://doc.sagemath.org/html/en/developer/>`_ (em inglês) também possui
 informações úteis, e você pode também visitar o grupo de discussões
 ``sage-devel`` no Google Groups.
 

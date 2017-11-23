@@ -875,7 +875,7 @@ class GaloisRepresentation(SageObject):
         a4_str =        "The image in PGL_2(F_%s) is the exceptional group A_4."%p
         a5_str =        "The image in PGL_2(F_%s) is the exceptional group A_5."%p
 
-        # we first treat p=3 and 5 seperately. p=2 has already been done.
+        # we first treat p=3 and 5 separately. p=2 has already been done.
 
         if p == 3:
             # this implies that the image of rhobar in PGL_2 = S_4
@@ -1086,7 +1086,12 @@ class GaloisRepresentation(SageObject):
             d = K.absolute_degree()
 
             misc.verbose("field of degree %s.  try to compute Galois group"%(d),2)
+            # If the degree is too big, we have no chance at the Galois
+            # group.  K.galois_group calls is_galois which used to rely on
+            # pari's Galois group computations, so degree < 12
             try:
+                if d > 15:
+                    raise Exception()
                 G = K.galois_group()
             except Exception:
                 self.__image_type[p] = "The image is a group of order %s."%d
@@ -1334,7 +1339,7 @@ class GaloisRepresentation(SageObject):
 
     def is_quasi_unipotent(self,p,ell):
         r"""
-        Returns true if the Galois representation to `GL_2(\ZZ_p)` is quasi-unipotent at `\ell\neq p`, i.e. if there is a fintie extension `K/\QQ` such that the inertia group at a place above `\ell` in `\text{Gal}(\bar\QQ/K)` maps into a Borel subgroup.
+        Returns true if the Galois representation to `GL_2(\ZZ_p)` is quasi-unipotent at `\ell\neq p`, i.e. if there is a finite extension `K/\QQ` such that the inertia group at a place above `\ell` in `\text{Gal}(\bar\QQ/K)` maps into a Borel subgroup.
 
         For a Galois representation attached to an elliptic curve `E`, this returns always True.
 

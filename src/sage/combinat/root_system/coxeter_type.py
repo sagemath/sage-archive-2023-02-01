@@ -16,6 +16,7 @@ Coxeter Types
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import add_metaclass
 
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
@@ -25,14 +26,14 @@ from sage.matrix.all import MatrixSpace
 from sage.symbolic.ring import SR
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.sage_object import SageObject
+from sage.rings.number_field.number_field import is_QuadraticField
 
 
+@add_metaclass(ClasscallMetaclass)
 class CoxeterType(SageObject):
     """
     Abstract class for Coxeter types.
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, *x):
         """
@@ -178,10 +179,10 @@ class CoxeterType(SageObject):
                                             ['E', 6], ['E', 7], ['E', 8], ['F', 4],
                                             ['H', 3], ['H', 4], ['I', 10]]]
 
-        affine = [CoxeterType(t)  for t in ['A', 2, 1], ['B', 5, 1],
+        affine = [CoxeterType(t)  for t in [['A', 2, 1], ['B', 5, 1],
                                            ['C', 5, 1], ['D', 5, 1], ['E', 6, 1],
                                            ['E', 7, 1], ['E', 8, 1], ['F', 4, 1],
-                                           ['G', 2, 1], ['A', 1, 1]]
+                                           ['G', 2, 1], ['A', 1, 1]]]
 
         return finite + affine
 
@@ -384,12 +385,30 @@ class CoxeterType(SageObject):
         #     R = base_ring
 
         # Compute the matrix with entries `- \cos( \pi / m_{ij} )`.
+        E = UCF.gen
         if R is UCF:
-            val = lambda x: (R.gen(2*x) + ~R.gen(2*x)) / R(-2) if x > -1 else R.one()*x
+
+            def val(x):
+                if x > -1:
+                    return (E(2*x) + ~E(2*x)) / R(-2)
+                else:
+                    return R(x)
+        elif is_QuadraticField(R):
+
+            def val(x):
+                if x > -1:
+                    return R((E(2*x) + ~E(2*x)).to_cyclotomic_field()) / R(-2)
+                else:
+                    return R(x)
         else:
             from sage.functions.trig import cos
             from sage.symbolic.constants import pi
-            val = lambda x: -R(cos(pi / SR(x))) if x > -1 else x
+
+            def val(x):
+                if x > -1:
+                    return -R(cos(pi / SR(x)))
+                else:
+                    return R(x)
 
         MS = MatrixSpace(R, n, sparse=True)
         MC = MS._get_matrix_class()

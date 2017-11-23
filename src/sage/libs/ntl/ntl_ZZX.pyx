@@ -12,11 +12,11 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import division, print_function, absolute_import
 
-from __future__ import division, print_function
+from cysignals.signals cimport sig_on, sig_off
+from sage.ext.cplusplus cimport ccreadstr
 
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
 include "decl.pxi"
 include 'misc.pxi'
 
@@ -130,8 +130,7 @@ cdef class ntl_ZZX(object):
                     cc = x
                 ZZX_SetCoeff(self.x, i, cc.x)
         else:
-            v = str(v)
-            ZZX_from_str(&self.x, v)
+            ccreadstr(self.x, str(v))
 
     def __reduce__(self):
         """
@@ -251,7 +250,7 @@ cdef class ntl_ZZX(object):
         sage: i
          -7
         sage: type(i)
-         <type 'int'>
+         <... 'int'>
         sage: x.getitem_as_int_doctest(15)
          0
         """
@@ -277,7 +276,7 @@ cdef class ntl_ZZX(object):
     def __add__(ntl_ZZX self, ntl_ZZX other):
         """
         EXAMPLES:
-            sage: ntl.ZZX(range(5)) + ntl.ZZX(range(6))
+            sage: ntl.ZZX(list(range(5))) + ntl.ZZX(list(range(6)))
             [0 2 4 6 8 5]
         """
         cdef ntl_ZZX r = ntl_ZZX.__new__(ntl_ZZX)
@@ -291,7 +290,7 @@ cdef class ntl_ZZX(object):
     def __sub__(ntl_ZZX self, ntl_ZZX other):
         """
         EXAMPLES:
-            sage: ntl.ZZX(range(5)) - ntl.ZZX(range(6))
+            sage: ntl.ZZX(list(range(5))) - ntl.ZZX(list(range(6)))
             [0 0 0 0 0 -5]
         """
         cdef ntl_ZZX r = ntl_ZZX.__new__(ntl_ZZX)
@@ -305,7 +304,7 @@ cdef class ntl_ZZX(object):
     def __mul__(ntl_ZZX self, ntl_ZZX other):
         """
         EXAMPLES:
-            sage: ntl.ZZX(range(5)) * ntl.ZZX(range(6))
+            sage: ntl.ZZX(list(range(5))) * ntl.ZZX(list(range(6)))
             [0 0 1 4 10 20 30 34 31 20]
         """
         cdef ntl_ZZX r = ntl_ZZX.__new__(ntl_ZZX)
@@ -331,7 +330,7 @@ cdef class ntl_ZZX(object):
             sage: ntl.ZZX([1,2,3]) * ntl.ZZX([4,5])
             [4 13 22 15]
 
-            sage: f = ntl.ZZX(range(10)); g = ntl.ZZX([-1,0,1])
+            sage: f = ntl.ZZX(list(range(10))); g = ntl.ZZX([-1,0,1])
             sage: f/g
             Traceback (most recent call last):
             ...
@@ -363,7 +362,7 @@ cdef class ntl_ZZX(object):
             sage: f % g   # 0
             []
 
-            sage: f = ntl.ZZX(range(10)); g = ntl.ZZX([-1,0,1])
+            sage: f = ntl.ZZX(list(range(10))); g = ntl.ZZX([-1,0,1])
             sage: f % g
             [20 25]
         """
@@ -383,7 +382,7 @@ cdef class ntl_ZZX(object):
         r, if they exist.  Otherwise raises an Exception.
 
         EXAMPLES:
-           sage: f = ntl.ZZX(range(10)); g = ntl.ZZX([-1,0,1])
+           sage: f = ntl.ZZX(list(range(10))); g = ntl.ZZX([-1,0,1])
            sage: q, r = f.quo_rem(g)
            sage: q, r
            ([20 24 18 21 14 16 8 9], [20 25])
@@ -705,7 +704,7 @@ cdef class ntl_ZZX(object):
             sage: f = ntl.ZZX([5,0,1])
             sage: f.degree()
             2
-            sage: f = ntl.ZZX(range(100))
+            sage: f = ntl.ZZX(list(range(100)))
             sage: f.degree()
             99
             sage: f = ntl.ZZX()
@@ -984,7 +983,7 @@ cdef class ntl_ZZX(object):
         the global default is proof=True) then it may use a randomized
         strategy that errors with probability no more than $2^{-80}$.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: f = ntl.ZZX([1,2,0,3])
             sage: mod = ntl.ZZX([-5,2,0,0,1])
             sage: f.norm_mod(mod)

@@ -1,5 +1,5 @@
 r"""
-Calculus functions.
+Calculus functions
 """
 from __future__ import absolute_import
 from sage.matrix.all import matrix
@@ -67,9 +67,9 @@ def wronskian(*args):
         sage: wronskian(1, e^(-x), e^(2*x))
         -6*e^x
 
-    NOTES:
+    REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Wronskian
+    - :wikipedia:`Wronskian`
     - http://planetmath.org/encyclopedia/WronskianDeterminant.html
 
     AUTHORS:

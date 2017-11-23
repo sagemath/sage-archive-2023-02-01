@@ -129,8 +129,8 @@ TESTS::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six.moves import range
 
 from sage.matrix.all import matrix
 from sage.rings.all import ZZ
@@ -295,7 +295,8 @@ class LatinSquare:
             sage: L = LatinSquare(matrix(ZZ, [[0, 1], [2, 3]]))
             sage: L.set_immutable()
             sage: L.__hash__()
-            12
+            1677951251422179082  # 64-bit
+            -479138038           # 32-bit
         """
         return hash(self.square)
 
@@ -441,7 +442,7 @@ class LatinSquare:
            right of self, and that the used symbols are in the range
            {0, 1, ..., m} (no holes in that list).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.combinat.matrices.latin import *
             sage: B = back_circulant(3)
@@ -503,7 +504,7 @@ class LatinSquare:
         Returns the number of distinct symbols in the partial latin square
         self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.combinat.matrices.latin import *
             sage: back_circulant(5).nr_distinct_symbols()
@@ -790,7 +791,7 @@ class LatinSquare:
                     # in the previous for-loop.
                     pass
 
-        return vals.keys()
+        return list(vals)
 
     def random_empty_cell(self):
         """
@@ -821,9 +822,10 @@ class LatinSquare:
                 if self[r, c] < 0:
                     cells[ (r,c) ] = True
 
-        cells = cells.keys()
+        cells = list(cells)
 
-        if len(cells) == 0: return None
+        if not cells:
+            return None
 
         rc = cells[ ZZ.random_element(len(cells)) ]
 
@@ -1709,7 +1711,7 @@ def tau1(T1, T2, cells_map):
     r"""
     The definition of `\tau_1` is
 
-    .. math::
+    .. MATH::
 
        \tau_1 : T1 \rightarrow T1 \\
        \tau_1 = \beta_2^{-1} \beta_3
@@ -1760,7 +1762,7 @@ def tau2(T1, T2, cells_map):
     r"""
     The definition of `\tau_2` is
 
-    .. math::
+    .. MATH::
 
        \tau_2 : T1 \rightarrow T1 \\
        \tau_2 = \beta_3^{-1} \beta_1
@@ -1811,7 +1813,7 @@ def tau3(T1, T2, cells_map):
     r"""
     The definition of `\tau_3` is
 
-    .. math::
+    .. MATH::
 
        \tau_3 : T1 \rightarrow T1 \\
        \tau_3 = \beta_1^{-1} \beta_2
@@ -2357,7 +2359,7 @@ def alternating_group_bitrade_generators(m):
 
     a = tuple(range(1, 2*m+1 + 1))
 
-    b = tuple(range(m+1, 0, -1) + range(2*m+2, 3*m+1 + 1))
+    b = tuple(range(m + 1, 0, -1)) + tuple(range(2*m+2, 3*m+1 + 1))
 
     a = PermutationGroupElement(a)
     b = PermutationGroupElement(b)
@@ -2532,7 +2534,7 @@ def tau_to_bitrade(t1, t2, t3):
     convert them to an explicit latin bitrade (T1, T2). The result is
     unique up to isotopism.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.matrices.latin import *
         sage: T1 = back_circulant(5)
@@ -2838,7 +2840,7 @@ def dlxcpp_find_completions(P, nr_to_find = None):
 
     comps = []
 
-    for i in SOLUTIONS.keys():
+    for i in SOLUTIONS:
         soln = list(i)
 
         from copy import deepcopy

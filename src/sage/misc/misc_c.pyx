@@ -22,6 +22,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 import sys
 
@@ -78,6 +79,10 @@ def prod(x, z=None, Py_ssize_t recursion_cutoff=5):
 
     This assumes that your multiplication is associative; we don't promise
     which end of the list we start at.
+
+    .. SEEALSO::
+
+        For the symbolic product function, see :func:`sage.calculus.calculus.symbolic_product`.
 
     EXAMPLES::
 
@@ -332,9 +337,9 @@ def balanced_sum(x, z=None, Py_ssize_t recursion_cutoff=5):
 
     We make copies when appropriate so that we don't accidentally modify the arguments::
 
-        sage: range(10e4)==balanced_sum([[i] for i in range(10e4)], [])
+        sage: list(range(10e4))==balanced_sum([[i] for i in range(10e4)], [])
         True
-        sage: range(10e4)==balanced_sum([[i] for i in range(10e4)], [])
+        sage: list(range(10e4))==balanced_sum([[i] for i in range(10e4)], [])
         True
 
     TESTS::
@@ -347,6 +352,8 @@ def balanced_sum(x, z=None, Py_ssize_t recursion_cutoff=5):
         11
         sage: balanced_sum((1..-1), 5) # empty, z is not None
         5
+        sage: balanced_sum([1])
+        1
 
     AUTHORS:
 
@@ -397,7 +404,7 @@ cdef balanced_list_sum(L, Py_ssize_t offset, Py_ssize_t count, Py_ssize_t cutoff
 
     - ``L`` -- the terms (MUST be a tuple or list)
     - ``off`` -- offset in the list from which to start
-    - ``count`` -- how many terms in the product
+    - ``count`` -- how many terms in the sum
     - ``cutoff`` -- the minimum count to recurse on.  Must be at least 2
 
     OUTPUT:
@@ -417,20 +424,13 @@ cdef balanced_list_sum(L, Py_ssize_t offset, Py_ssize_t count, Py_ssize_t cutoff
     """
     cdef Py_ssize_t k
     if count <= cutoff:
-        sum = <object>PySequence_Fast_GET_ITEM(L, offset) + <object>PySequence_Fast_GET_ITEM(L, offset + 1)
-        for k from offset + 1 < k < offset + count:
+        sum = <object>PySequence_Fast_GET_ITEM(L, offset)
+        for k in range(offset + 1, offset + count):
             sum += <object>PySequence_Fast_GET_ITEM(L, k)
         return sum
     else:
         k = (1 + count) >> 1
         return balanced_list_sum(L, offset, k, cutoff) + balanced_list_sum(L, offset + k, count - k, cutoff)
-
-
-#################################################################
-# 32/64-bit computer?
-#################################################################
-is_64_bit = sys.maxsize >= 9223372036854775807
-is_32_bit = not is_64_bit
 
 
 cpdef list normalize_index(object key, int size):
@@ -517,59 +517,59 @@ cpdef list normalize_index(object key, int size):
         [0, 2, 2]
         sage: normalize_index([4,4,-5],5)
         [4, 4, 0]
-        sage: s=slice(None,None,None); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(None,None,None); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(None,None,-2); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(None,None,-2); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(None,None,4); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(None,None,4); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(None,-2,None); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(None,-2,None); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(None,-2,-2); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(None,-2,-2); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(None,-2,4); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(None,-2,4); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(None,4,None); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(None,4,None); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(None,4,-2); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(None,4,-2); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(None,4,4); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(None,4,4); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(-2,None,None); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(-2,None,None); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(-2,None,-2); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(-2,None,-2); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(-2,None,4); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(-2,None,4); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(-2,-2,None); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(-2,-2,None); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(-2,-2,-2); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(-2,-2,-2); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(-2,-2,4); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(-2,-2,4); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(-2,4,None); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(-2,4,None); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(-2,4,-2); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(-2,4,-2); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(-2,4,4); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(-2,4,4); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(4,None,None); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(4,None,None); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(4,None,-2); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(4,None,-2); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(4,None,4); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(4,None,4); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(4,-2,None); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(4,-2,None); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(4,-2,-2); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(4,-2,-2); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(4,-2,4); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(4,-2,4); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(4,4,None); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(4,4,None); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(4,4,-2); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(4,4,-2); normalize_index(s,5)==list(range(5))[s]
         True
-        sage: s=slice(4,4,4); normalize_index(s,5)==range(5)[s]
+        sage: s=slice(4,4,4); normalize_index(s,5)==list(range(5))[s]
         True
     """
     cdef tuple index_tuple
@@ -586,7 +586,7 @@ cpdef list normalize_index(object key, int size):
             raise IndexError("index out of range")
         return [index]
     elif isinstance(key, slice):
-        return range(*key.indices(size))
+        return list(xrange(*key.indices(size)))
     elif type(key) is tuple:
         index_tuple = key
     elif type(key) is list:

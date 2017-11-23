@@ -22,10 +22,10 @@ AUTHORS:
 from __future__ import print_function
 
 from sage.ext.stdsage cimport PY_NEW
-include "sage/ext/cdefs.pxi"
 from cpython.list cimport *
 include "sage/libs/ntl/decl.pxi"
 
+from sage.libs.gmp.mpz cimport *
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.libs.ntl.ntl_ZZ_p cimport ntl_ZZ_p
 from sage.libs.ntl.ntl_ZZ_pX cimport ntl_ZZ_pX
@@ -558,7 +558,7 @@ def _test_preprocess_list(R, L):
       ``ntl_ZZ_ps``, ``ntl_ZZs``, ``IntegerMods`` or `p`-adic base
       elements
 
-    OUTPUTS:
+    OUTPUT:
 
     - ``LL`` -- if all inputs are integral, a list of ``ntl_ZZs``.
       Otherwise, a list of ``ntl_ZZ_ps``, modulo `p^n` which is
@@ -576,21 +576,21 @@ def _test_preprocess_list(R, L):
 
         sage: from sage.rings.padics.padic_ZZ_pX_element import _test_preprocess_list
         sage: from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZ_p as ntl_ZZ_p
-        sage: _test_preprocess_list(Zq(25,names='a',implementation="NTL"), [1,2,3])
+        sage: _test_preprocess_list(ZqCA(25,names='a',implementation="NTL"), [1,2,3])
         ([1, 2, 3], 0, None)
-        sage: _test_preprocess_list(Zq(25,names='a',implementation="NTL"), [10,20,30])
+        sage: _test_preprocess_list(ZqCA(25,names='a',implementation="NTL"), [10,20,30])
         ([10, 20, 30], 0, None)
-        sage: _test_preprocess_list(Zq(25,names='a',implementation="NTL"), [1/5,2/5,3])
+        sage: _test_preprocess_list(ZqCA(25,names='a',implementation="NTL"), [1/5,2/5,3])
         ([1, 2, 15], -1, NTL modulus 95367431640625)
-        sage: _test_preprocess_list(Zq(25,names='a',implementation="NTL"), [1/5,mod(2,625),3])
+        sage: _test_preprocess_list(ZqCA(25,names='a',implementation="NTL"), [1/5,mod(2,625),3])
         ([1, 10, 15], -1, NTL modulus 3125)
-        sage: _test_preprocess_list(Zq(25,names='a',implementation="NTL"), [1/5,mod(2,625),ntl_ZZ_p(3,25)])
+        sage: _test_preprocess_list(ZqCA(25,names='a',implementation="NTL"), [1/5,mod(2,625),ntl_ZZ_p(3,25)])
         ([1, 10, 15], -1, NTL modulus 125)
-        sage: _test_preprocess_list(Zq(25,names='a',implementation="NTL"), [1/5,mod(2,625),Zp(5)(5,3)])
+        sage: _test_preprocess_list(ZqCA(25,names='a',implementation="NTL"), [1/5,mod(2,625),Zp(5)(5,3)])
         ([1, 10, 1], -1, NTL modulus 625)
-        sage: _test_preprocess_list(Zq(25,names='a',implementation="NTL"), [1/5,mod(2,625),Zp(5)(5,3),0])
+        sage: _test_preprocess_list(ZqCA(25,names='a',implementation="NTL"), [1/5,mod(2,625),Zp(5)(5,3),0])
         ([1, 10, 1, 0], -1, NTL modulus 625)
-        sage: _test_preprocess_list(Zq(25,names='a',implementation="NTL"), [1/5,mod(2,625),Zp(5)(5,3),mod(0,3125)])
+        sage: _test_preprocess_list(ZqCA(25,names='a',implementation="NTL"), [1/5,mod(2,625),Zp(5)(5,3),mod(0,3125)])
         ([1, 10, 1, 0], -1, NTL modulus 625)
     """
     return preprocess_list(R(0), L)
@@ -680,7 +680,7 @@ def _find_val_aprec_test(R, L):
     - ``R`` -- a `p`-adic extension
     - ``L`` -- a list of integers, rationals, ``IntegerMods``, etc.
 
-    OUTPUTS:
+    OUTPUT:
 
     - ``min_val`` -- the minimum valuation of any element in the list.
 
@@ -757,7 +757,7 @@ def _test_get_val_prec(R, a):
     - ``a`` -- A rational, integer, int, long, ``ntl_ZZ_p``,
       ``ntl_ZZ``, ``IntegerMod`` or `p`-adic base element.
 
-    OUTPUTS:
+    OUTPUT:
 
     - ``val`` -- if ``a`` is exact, ``a.valuation(p)``, otherwise
       ``min(0, a.valuation())``

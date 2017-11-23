@@ -74,7 +74,7 @@ class OutputBase(SageObject):
         Construct a sample instance
 
         This static method is meant for doctests, so they can easily
-        construt an example.
+        construct an example.
 
         OUTPUT:
 
@@ -119,7 +119,7 @@ class OutputPlainText(OutputBase):
         """
         # Internally, all buffers store bytes. Strings/Unicode is always utf-8
         # encoded.
-        if isinstance(plain_text, unicode):
+        if not isinstance(plain_text, bytes):
             plain_text = plain_text.encode('utf-8')
         self.text = OutputBuffer(plain_text)
 
@@ -129,7 +129,7 @@ class OutputPlainText(OutputBase):
         Construct a sample plain text output container
 
         This static method is meant for doctests, so they can easily
-        construt an example.
+        construct an example.
 
         OUTPUT:
 
@@ -190,7 +190,7 @@ class OutputAsciiArt(OutputBase):
         Construct a sample ascii art output container
 
         This static method is meant for doctests, so they can easily
-        construt an example.
+        construct an example.
 
         OUTPUT:
 
@@ -252,7 +252,7 @@ class OutputUnicodeArt(OutputBase):
         """
         # Internally, all buffers store bytes. Unicode is always utf-8
         # encoded.
-        if isinstance(unicode_art, unicode):
+        if not isinstance(unicode_art, bytes):
             unicode_art = unicode_art.encode('utf-8')
         self.unicode_art = OutputBuffer(unicode_art)
 
@@ -262,7 +262,7 @@ class OutputUnicodeArt(OutputBase):
         Construct a sample unicode art output container
 
         This static method is meant for doctests, so they can easily
-        construt an example.
+        construct an example.
 
         OUTPUT:
 
@@ -404,7 +404,7 @@ class OutputLatex(OutputBase):
         Construct a sample LaTeX output container
 
         This static method is meant for doctests, so they can easily
-        construt an example.
+        construct an example.
 
         OUTPUT:
 

@@ -369,6 +369,7 @@ class TransducerGenerators(object):
     - :meth:`~CountSubblockOccurrences`
     - :meth:`~Wait`
     - :meth:`~GrayCode`
+    - :meth:`~Recursion`
     """
 
     def Identity(self, input_alphabet):
@@ -591,7 +592,7 @@ class TransducerGenerators(object):
         A transducer mapping an input letter `x` to
         `f(x)`.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The following binary transducer realizes component-wise
         absolute value (this transducer is also available as :meth:`.abs`)::
@@ -646,7 +647,7 @@ class TransducerGenerators(object):
         The input alphabet of the generated transducer is the Cartesian
         product of ``number_of_operands`` copies of ``input_alphabet``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The following binary transducer realizes component-wise
         addition (this transducer is also available as :meth:`.add`)::
@@ -725,7 +726,7 @@ class TransducerGenerators(object):
         The input alphabet of the generated transducer is the Cartesian
         product of ``number_of_operands`` copies of ``input_alphabet``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The following transducer realizes letter-wise
         logical ``and``::
@@ -777,7 +778,7 @@ class TransducerGenerators(object):
         The input alphabet of the generated transducer is the Cartesian
         product of ``number_of_operands`` copies of ``input_alphabet``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The following transducer realizes letter-wise
         logical ``or``::
@@ -829,7 +830,7 @@ class TransducerGenerators(object):
         The input alphabet of the generated transducer is the Cartesian
         product of ``number_of_operands`` copies of ``input_alphabet``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The following transducer realizes letter-wise
         addition::
@@ -880,7 +881,7 @@ class TransducerGenerators(object):
         The input alphabet of the generated transducer is the Cartesian
         product of two copies of ``input_alphabet``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The following transducer realizes letter-wise
         subtraction::
@@ -984,7 +985,7 @@ class TransducerGenerators(object):
         A transducer mapping `i_0\ldots i_k`
         to `|i_0|\ldots |i_k|`.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The following transducer realizes letter-wise
         absolute value::
@@ -1020,7 +1021,7 @@ class TransducerGenerators(object):
 
         Cf. the :wikipedia:`Gray_code` for a description of the Gray code.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = transducers.GrayCode()
             sage: G
@@ -1093,7 +1094,7 @@ class TransducerGenerators(object):
         A ``RecursionRule`` if the equation is of the first form
         described above and a dictionary ``{r: [t]}`` otherwise.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: var('n')
             n
@@ -1255,9 +1256,11 @@ class TransducerGenerators(object):
 
         def convert_output(output):
             for ring in output_rings:
-                if output in ring:
+                try:
                     return ring(output)
-            return(output)
+                except (ValueError,TypeError):
+                    pass
+            return output
 
         def to_list(output):
             if output == 0:
@@ -1285,7 +1288,7 @@ class TransducerGenerators(object):
 
         try:
             polynomial_left = base_ring[var](left_side.operands()[0])
-        except:
+        except Exception:
             raise ValueError("%s is not a polynomial "
                              "in %s." % (left_side.operands()[0], var))
         if polynomial_left in base_ring and is_scalar(right_side):
@@ -1296,7 +1299,10 @@ class TransducerGenerators(object):
                              % (polynomial_left,))
 
         [r, base_power_K] = list(polynomial_left)
-        K = log(base_power_K, base=base)
+        try:
+            K = log(base_power_K, base=base)
+        except RuntimeError:
+            K = 1
         try:
             K = K.simplify()
         except AttributeError:
@@ -1337,7 +1343,7 @@ class TransducerGenerators(object):
 
         try:
             polynomial_right = base_ring[var](next_function.operands()[0])
-        except:
+        except Exception:
             raise ValueError("%s is not a polynomial in %s."
                              % (next_function.operands()[0], var))
         if polynomial_right.degree() != 1:
@@ -1977,7 +1983,7 @@ class TransducerGenerators(object):
              if carry >= 0},
             multiedges=False)
 
-        initial_values_set = set(initial_values.iterkeys())
+        initial_values_set = set(initial_values)
 
         missing_initial_values = required_initial_values.difference(
             initial_values_set)

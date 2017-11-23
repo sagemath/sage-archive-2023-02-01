@@ -309,7 +309,7 @@ cdef class LinearFunctionOrConstraint(ModuleElement):
             sage: cm = sage.structure.element.get_coercion_model()
             sage: cm.explain(10, LF(1), operator.le)
             Coercion on left operand via
-                Conversion map:
+                Coercion map:
                   From: Integer Ring
                   To:   Linear functions over Real Double Field
             Arithmetic performed after coercions.
@@ -838,7 +838,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         which are integers ). The key ``-1`` corresponds to the
         constant term.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram()
             sage: LF = p.linear_functions_parent()
@@ -850,7 +850,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
 
     def coefficient(self, x):
         r"""
-        Return one of the the coefficients.
+        Return one of the coefficients.
 
         INPUT:
 
@@ -862,7 +862,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         A base ring element. The coefficient of ``x`` in the linear
         function. Pass ``-1`` for the constant term.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: mip.<b> = MixedIntegerLinearProgram()
             sage: lf = -8 * b[3] + b[0] - 5;  lf
@@ -897,7 +897,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
                 raise ValueError('x is from a different linear functions module')
             if len((<LinearFunction>x)._f) != 1:
                 raise ValueError('x is a sum, must be a single variable')
-            i = (<LinearFunction>x)._f.keys()[0]
+            i, = (<LinearFunction>x)._f.keys()
             if (<LinearFunction>x)._f[i] != 1:
                 raise ValueError('x must have a unit coefficient')
         else:
@@ -911,7 +911,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         r"""
         Defining the + operator
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram()
             sage: LF = p.linear_functions_parent()
@@ -928,7 +928,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         r"""
         Defining the - operator (opposite).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram()
             sage: LF = p.linear_functions_parent()
@@ -942,7 +942,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         r"""
         Defining the - operator (substraction).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram()
             sage: LF = p.linear_functions_parent()
@@ -957,32 +957,21 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         P = self.parent()
         return P(e)
 
-    cpdef _rmul_(self, RingElement b):
+    cpdef _lmul_(self, Element b):
         r"""
-        Left multiplication by scalars
+        Multiplication by scalars
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram()
             sage: LF = p.linear_functions_parent()
             sage: LF({2 : 5, 3 : 2}) * 3
             15*x_2 + 6*x_3
-        """
-        P = self.parent()
-        return P(dict([(id,b*coeff) for (id, coeff) in self._f.iteritems()]))
-
-    cpdef _lmul_(self, RingElement b):
-        r"""
-        Right multiplication by scalars
-
-        EXAMPLE::
-
-            sage: p = MixedIntegerLinearProgram()
-            sage: LF = p.linear_functions_parent()
             sage: 3 * LF({2 : 5, 3 : 2})
             15*x_2 + 6*x_3
         """
-        return self._rmul_(b)
+        P = self.parent()
+        return P(dict([(id,b*coeff) for (id, coeff) in self._f.iteritems()]))
 
     cpdef _acted_upon_(self, x, bint self_on_left):
        """
@@ -1098,7 +1087,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         r"""
         Returns a string version of the linear function.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: LF = p.linear_functions_parent()
@@ -1115,13 +1104,13 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
 
         if -1 in d:
             coeff = d.pop(-1)
-            if coeff!=0:
+            if coeff:
                 t = self._coeff_formatter(coeff, constant_term=True)
                 first = False
 
         cdef list l = sorted(d.items())
-        for id,coeff in l:
-            sign = cmp(coeff,0)
+        for id, coeff in l:
+            sign = coeff.sign()
             if sign == 0:
                 continue
             if not first:
@@ -1412,7 +1401,7 @@ cdef class LinearConstraint(LinearFunctionOrConstraint):
       are the entries of a chained less-or-equal (``<=``) inequality
       or a chained equality.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: p = MixedIntegerLinearProgram()
         sage: b = p.new_variable()
@@ -1428,7 +1417,7 @@ cdef class LinearConstraint(LinearFunctionOrConstraint):
 
         See :class:`LinearConstraint`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram()
             sage: b = p.new_variable()
@@ -1631,7 +1620,7 @@ cdef class LinearConstraint(LinearFunctionOrConstraint):
 
         String.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram()
             sage: b = p.new_variable()

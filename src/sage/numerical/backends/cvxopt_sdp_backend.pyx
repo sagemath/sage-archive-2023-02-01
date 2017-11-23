@@ -22,7 +22,8 @@ from __future__ import print_function
 
 from sage.numerical.sdp import SDPSolverException
 from sage.matrix.all import Matrix
-from cvxopt import solvers
+from .generic_sdp_backend cimport GenericSDPBackend
+
 
 cdef class CVXOPTSDPBackend(GenericSDPBackend):
     cdef list objective_function #c_matrix
@@ -39,7 +40,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
         """
         Cython constructor
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_sdp_backend import get_solver
             sage: p = get_solver(solver = "CVXOPT")
@@ -61,7 +62,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
                       "abstol":1e-7,
                       "reltol":1e-6,
                       "feastol":1e-7,
-                      "refinement":0 }
+                      "refinement":1 }
         self.answer = {}
         if maximization:
             self.set_sense(+1)
@@ -72,7 +73,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
         """
         Get a block of a matrix coefficient
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = SemidefiniteProgram(solver="cvxopt")
             sage: x = p.new_variable()
@@ -104,7 +105,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
 
         OUTPUT: The index of the newly created variable
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_sdp_backend import get_solver
             sage: p = get_solver(solver = "CVXOPT")
@@ -125,7 +126,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
         """
         i = 0
         for row in self.coeffs_matrix:
-            if self.matrices_dim.get(i) != None:
+            if self.matrices_dim.get(i) is not None:
                 row.append( Matrix.zero(self.matrices_dim[i], self.matrices_dim[i]) )
             else:
                 row.append(0)
@@ -150,7 +151,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
 
         OUTPUT: The index of the variable created last.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_sdp_backend import get_solver
             sage: p = get_solver(solver = "CVXOPT")
@@ -179,7 +180,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
             * +1 => Maximization
             * -1 => Minimization
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_sdp_backend import get_solver
             sage: p = get_solver(solver = "CVXOPT")
@@ -205,7 +206,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
 
         - ``coeff`` (double) -- its coefficient
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_sdp_backend import get_solver
             sage: p = get_solver(solver = "CVXOPT")
@@ -233,14 +234,14 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
 
         - ``d`` (double) -- the constant term in the linear function (set to `0` by default)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_sdp_backend import get_solver
             sage: p = get_solver(solver = "CVXOPT")
             sage: p.add_variables(5)
             4
             sage: p.set_objective([1, 1, 2, 1, 3])
-            sage: map(lambda x :p.objective_coefficient(x), range(5))
+            sage: [p.objective_coefficient(x) for x in range(5)]
             [1, 1, 2, 1, 3]
         """
         for i in range(len(coeff)):
@@ -262,7 +263,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
 
         - ``name`` - an optional name for this row (default: ``None``)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_sdp_backend import get_solver
             sage: p = get_solver(solver = "CVXOPT")
@@ -289,7 +290,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
                 raise ValueError("The coefficients must be matrices")
             if not m.is_square():
                 raise ValueError("The matrix has to be a square")
-            if self.matrices_dim.get(self.nrows()) != None and m.dimensions()[0] != self.matrices_dim.get(self.nrows()):
+            if self.matrices_dim.get(self.nrows()) is not None and m.dimensions()[0] != self.matrices_dim.get(self.nrows()):
                 raise ValueError("The matrces have to be of the same dimension")
         self.coeffs_matrix.append(coefficients)
         self.matrices_dim[self.nrows()] = m.dimensions()[0] #
@@ -305,7 +306,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
 
         - ``names`` - an optional list of names (default: ``None``)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_sdp_backend import get_solver
             sage: p = get_solver(solver = "CVXOPT")
@@ -331,7 +332,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
             the solution can not be computed for any reason (none
             exists, or the LP solver was not able to find it, etc...)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = SemidefiniteProgram(solver = "cvxopt", maximization=False)
             sage: x = p.new_variable()
@@ -434,7 +435,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
 
            Behaviour is undefined unless ``solve`` has been called before.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = SemidefiniteProgram(solver = "cvxopt", maximization=False)
             sage: x = p.new_variable()
@@ -495,7 +496,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
 
            Behaviour is undefined unless ``solve`` has been called before.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_sdp_backend import get_solver
             sage: p = get_solver(solver = "cvxopt")
@@ -529,7 +530,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
         """
         Return the number of columns/variables.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_sdp_backend import get_solver
             sage: p = get_solver(solver = "CVXOPT")
@@ -547,7 +548,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
         """
         Return the number of rows/constraints.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_sdp_backend import get_solver
             sage: p = get_solver(solver = "CVXOPT")
@@ -566,7 +567,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
         """
         Test whether the problem is a maximization
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_sdp_backend import get_solver
             sage: p = get_solver(solver = "CVXOPT")
@@ -590,7 +591,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
         - ``name`` (``char *``) -- the problem's name. When set to
           ``NULL`` (default), the method returns the problem's name.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_sdp_backend import get_solver
             sage: p = get_solver(solver = "CVXOPT")
@@ -618,7 +619,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
         associates their coefficient on the model of the
         ``add_linear_constraint`` method.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_sdp_backend import get_solver
             sage: p = get_solver(solver = "CVXOPT")
@@ -655,7 +656,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
 
         The matrix of the `i`-th dual variable
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = SemidefiniteProgram(maximization = False, solver='cvxopt')
             sage: x = p.new_variable()
@@ -706,7 +707,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
 
         The matrix of the slack of the `i`-th constraint
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = SemidefiniteProgram(maximization = False, solver='cvxopt')
             sage: x = p.new_variable()
@@ -754,7 +755,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
 
         - ``index`` (integer) -- the row's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_sdp_backend import get_solver
             sage: p = get_solver(solver = "CVXOPT")
@@ -778,7 +779,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
         - ``name`` (``char *``) -- its name. When set to ``NULL``
           (default), the method returns the current name.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_sdp_backend import get_solver
             sage: p = get_solver(solver = "CVXOPT")
@@ -809,7 +810,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
            The list of available parameters is available at
            :meth:`~sage.numerical.sdp.SemidefiniteProgram.solver_parameter`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_sdp_backend import get_solver
             sage: p = get_solver(solver = "CVXOPT")
@@ -819,7 +820,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
             sage: p.solver_parameter("show_progress")
             True
         """
-        if value == None:
+        if value is None:
             return self.param[name]
         else:
             self.param[name] = value

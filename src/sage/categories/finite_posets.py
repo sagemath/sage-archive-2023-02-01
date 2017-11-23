@@ -33,7 +33,7 @@ class FinitePosets(CategoryWithAxiom):
         sage: FinitePosets().example()
         NotImplemented
 
-    .. seealso:: :class:`~sage.categories.posets.Posets`, :func:`Poset`
+    .. SEEALSO:: :class:`~sage.categories.posets.Posets`, :func:`Poset`
 
     TESTS::
 
@@ -51,43 +51,71 @@ class FinitePosets(CategoryWithAxiom):
 
         def is_lattice(self):
             r"""
-            Returns whether this poset is both a meet and a join semilattice.
+            Return whether the poset is a lattice.
+
+            A poset is a lattice if all pairs of elements have
+            both a least upper bound ("join") and a greatest lower bound
+            ("meet") in the poset.
 
             EXAMPLES::
 
-                sage: P = Poset([[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]])
+                sage: P = Poset([[1, 3, 2], [4], [4, 5, 6], [6], [7], [7], [7], []])
                 sage: P.is_lattice()
                 True
 
-                sage: P = Poset([[1,2],[3],[3],[]])
+                sage: P = Poset([[1, 2], [3], [3], []])
                 sage: P.is_lattice()
                 True
 
-                sage: P = Poset({0:[2,3],1:[2,3]})
+                sage: P = Poset({0: [2, 3], 1: [2, 3]})
                 sage: P.is_lattice()
                 False
+
+                sage: P = Poset({1: [2, 3, 4], 2: [5, 6], 3: [5, 7], 4: [6, 7], 5: [8, 9],
+                ....:            6: [8, 10], 7: [9, 10], 8: [11], 9: [11], 10: [11]})
+                sage: P.is_lattice()
+                False
+
+            TESTS::
+
+                sage: P = Poset()
+                sage: P.is_lattice()
+                True
+
+            .. SEEALSO::
+
+                - Weaker properties: :meth:`~sage.combinat.posets.posets.FinitePoset.is_join_semilattice`,
+                  :meth:`~sage.combinat.posets.posets.FinitePoset.is_meet_semilattice`
             """
             return (self.cardinality() == 0 or
                      (self.has_bottom() and self.is_join_semilattice()))
 
-        def is_selfdual(self):
+        def is_self_dual(self):
             r"""
-            Returns whether this poset is *self-dual*, that is
-            isomorphic to its dual poset.
+            Return whether the poset is *self-dual*.
+
+            A poset is self-dual if it is isomorphic to its dual poset.
 
             EXAMPLES::
 
-                sage: P = Poset(([1,2,3],[[1,3],[2,3]]),cover_relations=True)
-                sage: P.is_selfdual()
+                sage: P = Poset({1: [3, 4], 2: [3, 4]})
+                sage: P.is_self_dual()
+                True
+
+                sage: P = Poset({1: [2, 3]})
+                sage: P.is_self_dual()
                 False
 
-                sage: P = Poset(([1,2,3,4],[[1,3],[1,4],[2,3],[2,4]]),cover_relations=True)
-                sage: P.is_selfdual()
+            TESTS::
+
+                sage: P = Poset()
+                sage: P.is_self_dual()
                 True
 
-                sage: P = Poset( {} )
-                sage: P.is_selfdual()
-                True
+            .. SEEALSO::
+
+                - Stronger properties: :meth:`~sage.combinat.posets.lattices.FiniteLatticePoset.is_orthocomplemented` (for lattices)
+                - Other: :meth:`~sage.combinat.posets.posets.FinitePoset.dual`
             """
             # Two quick checks before full isomorphic test.
             if sorted(self._hasse_diagram.in_degree()) != sorted(self._hasse_diagram.out_degree()):
@@ -98,6 +126,9 @@ class FinitePosets(CategoryWithAxiom):
             if levels_orig != levels_dual:
                 return False
             return self._hasse_diagram.is_isomorphic(dual_poset_hasse)
+
+        from sage.misc.superseded import deprecated_function_alias
+        is_selfdual = deprecated_function_alias(24048, is_self_dual)
 
 
         ##########################################################################
@@ -152,7 +183,7 @@ class FinitePosets(CategoryWithAxiom):
                responsible for the conversions between integers and subsets to
                elements of ``D`` and ``B`` and back.
 
-            .. seealso:: :meth:`FiniteLatticePosets.ParentMethods.is_lattice_morphism`
+            .. SEEALSO:: :meth:`FiniteLatticePosets.ParentMethods.is_lattice_morphism`
             """
             image = set(f(x) for x in self)
             if len(image) != self.cardinality():
@@ -209,14 +240,14 @@ class FinitePosets(CategoryWithAxiom):
 
             FIXME: should this be ``is_order_preserving_morphism``?
 
-            .. seealso:: :meth:`is_poset_isomorphism`
+            .. SEEALSO:: :meth:`is_poset_isomorphism`
 
             TESTS:
 
             Base cases::
 
-                sage: P = Posets.ChainPoset(2)
-                sage: Q = Posets.AntichainPoset(2)
+                sage: P = posets.ChainPoset(2)
+                sage: Q = posets.AntichainPoset(2)
                 sage: f = lambda x: 1-x
                 sage: P.is_poset_morphism(f, P)
                 False
@@ -312,7 +343,7 @@ class FinitePosets(CategoryWithAxiom):
                 sage: P.order_filter_generators(I)
                 {{2, 3}, {1}}
 
-            .. seealso:: :meth:`order_ideal_generators`
+            .. SEEALSO:: :meth:`order_ideal_generators`
             """
             return self.order_ideal_generators(filter, direction='up')
 
@@ -426,7 +457,7 @@ class FinitePosets(CategoryWithAxiom):
                 sage: P = Poset( {} )
                 sage: I = Set({})
                 sage: P.rowmotion(I)
-                Set of elements of {}
+                {}
             """
             result = order_ideal
             for i in reversed(self.linear_extension()):
@@ -441,10 +472,10 @@ class FinitePosets(CategoryWithAxiom):
 
             Let us hold back defining this, and introduce birational
             toggles and birational rowmotion first. These notions have
-            been introduced in [EP13]_ as generalizations of the notions
+            been introduced in [EP2013]_ as generalizations of the notions
             of toggles (:meth:`order_ideal_toggle`) and :meth:`rowmotion
             <rowmotion>` on order ideals of a finite poset. They
-            have been studied further in [GR13]_.
+            have been studied further in [GR2013]_.
 
             Let `\mathbf{K}` be a field, and `P` be a finite poset. Let
             `\widehat{P}` denote the poset obtained from `P` by adding a
@@ -495,9 +526,9 @@ class FinitePosets(CategoryWithAxiom):
             <sage.rings.semirings.tropical_semiring.TropicalSemiring>`,
             in which case birational rowmotion relates to classical
             constructions such as promotion of rectangular semistandard
-            Young tableaux (page 5 of [EP13b]_ and future work, via the
+            Young tableaux (page 5 of [EP2013b]_ and future work, via the
             related notion of birational *promotion*) and rowmotion on
-            order ideals of the poset ([EP13]_).
+            order ideals of the poset ([EP2013]_).
 
             The *birational free labelling* is a special labelling
             defined for every finite poset `P` and every linear extension
@@ -570,22 +601,6 @@ class FinitePosets(CategoryWithAxiom):
             linear extension ``linear_extension``. Or, if ``reduced``
             is set to ``True``, the reduced birational free labelling.
 
-            REFERENCES:
-
-            .. [EP13] David Einstein, James Propp.
-               *Combinatorial, piecewise-linear, and birational homomesy
-               for products of two chains*.
-               :arxiv:`1310.5294v1`.
-
-            .. [EP13b] David Einstein, James Propp.
-               *Piecewise-linear and birational toggling*.
-               Extended abstract for FPSAC 2014.
-               http://faculty.uml.edu/jpropp/fpsac14.pdf
-
-            .. [GR13] Darij Grinberg, Tom Roby.
-               *Iterative properties of birational rowmotion I*.
-               http://web.mit.edu/~darij/www/algebra/skeletal.pdf
-
             EXAMPLES:
 
             We construct the birational free labelling on a simple
@@ -651,7 +666,7 @@ class FinitePosets(CategoryWithAxiom):
 
             Another poset::
 
-                sage: P = Posets.SSTPoset([2,1])
+                sage: P = posets.SSTPoset([2,1])
                 sage: lext = sorted(P)
                 sage: l = P.birational_free_labelling(linear_extension=lext, addvars="ohai")
                 sage: l
@@ -672,7 +687,7 @@ class FinitePosets(CategoryWithAxiom):
             The ``linear_extension`` keyword does not have to be given an
             actual linear extension::
 
-                sage: P = Posets.ChainPoset(2).product(Posets.ChainPoset(3))
+                sage: P = posets.ChainPoset(2).product(posets.ChainPoset(3))
                 sage: P
                 Finite lattice containing 6 elements
                 sage: lex = [(1,0),(0,0),(1,1),(0,1),(1,2),(0,2)]
@@ -934,7 +949,7 @@ class FinitePosets(CategoryWithAxiom):
             We turn to more interesting posets. Here is the `6`-element
             poset arising from the weak order on `S_3`::
 
-                sage: P = Posets.SymmetricGroupWeakOrderPoset(3)
+                sage: P = posets.SymmetricGroupWeakOrderPoset(3)
                 sage: sorted(list(P))
                 ['123', '132', '213', '231', '312', '321']
                 sage: t = (TT, {'123': TT(4), '132': TT(2), '213': TT(3), '231': TT(1), '321': TT(1), '312': TT(2)}, TT(7), TT(1))
@@ -1058,7 +1073,7 @@ class FinitePosets(CategoryWithAxiom):
 
             EXAMPLES::
 
-                sage: P = Posets.SymmetricGroupBruhatOrderPoset(3)
+                sage: P = posets.SymmetricGroupBruhatOrderPoset(3)
                 sage: sorted(list(P))
                 ['123', '132', '213', '231', '312', '321']
                 sage: TT = TropicalSemiring(ZZ)
@@ -1145,12 +1160,12 @@ class FinitePosets(CategoryWithAxiom):
                 [(1, a*b/x4), (2, (x1*x2*b + x1*x3*b)/(x2*x4)),
                  (3, (x1*x2*b + x1*x3*b)/(x3*x4)), (4, (x2*b + x3*b)/x4)]
 
-            A result of [GR13]_ states that applying birational rowmotion
+            A result of [GR2013]_ states that applying birational rowmotion
             `n+m` times to a `\mathbf{K}`-labelling `f` of the poset
             `[n] \times [m]` gives back `f`. Let us check this::
 
                 sage: def test_rectangle_periodicity(n, m, k):
-                ....:     P = Posets.ChainPoset(n).product(Posets.ChainPoset(m))
+                ....:     P = posets.ChainPoset(n).product(posets.ChainPoset(m))
                 ....:     t0 = P.birational_free_labelling(P)
                 ....:     t = t0
                 ....:     for i in range(k):
@@ -1170,7 +1185,7 @@ class FinitePosets(CategoryWithAxiom):
             semiring::
 
                 sage: def test_rectangle_periodicity_tropical(n, m, k):
-                ....:     P = Posets.ChainPoset(n).product(Posets.ChainPoset(m))
+                ....:     P = posets.ChainPoset(n).product(posets.ChainPoset(m))
                 ....:     TT = TropicalSemiring(ZZ)
                 ....:     t0 = (TT, {v: TT(floor(random()*100)) for v in P}, TT(0), TT(124))
                 ....:     t = t0
@@ -1194,7 +1209,7 @@ class FinitePosets(CategoryWithAxiom):
             rowmotion, and `r` denotes :meth:`classical rowmotion <rowmotion>`
             on `J(P)`. An example::
 
-                sage: P = Posets.IntegerPartitions(5)
+                sage: P = posets.IntegerPartitions(5)
                 sage: TT = TropicalSemiring(ZZ)
                 sage: def indicator_labelling(I):
                 ....:     # send order ideal `I` to a `T`-labelling of `P`.
@@ -1706,7 +1721,7 @@ class FinitePosets(CategoryWithAxiom):
 
             EXAMPLES::
 
-                sage: P = Posets.PentagonPoset()
+                sage: P = posets.PentagonPoset()
                 sage: P.cover_relations()
                 [[0, 1], [0, 2], [1, 4], [2, 3], [3, 4]]
                 sage: J = P.order_ideals_lattice(); J
@@ -1723,7 +1738,7 @@ class FinitePosets(CategoryWithAxiom):
 
             TESTS::
 
-                sage: J = Posets.DiamondPoset(4, facade = True).order_ideals_lattice(); J
+                sage: J = posets.DiamondPoset(4, facade = True).order_ideals_lattice(); J
                 Finite lattice containing 6 elements
                 sage: list(J)
                 [{}, {0}, {0, 2}, {0, 1}, {0, 1, 2}, {0, 1, 2, 3}]
@@ -1752,9 +1767,9 @@ class FinitePosets(CategoryWithAxiom):
                 @cached_function
                 def is_above(a, xb):
                     return any(self.is_lequal(xa, xb) for xa in a)
-                def cmp(a, b):
+                def compare(a, b):
                     return all(is_above(a, xb) for xb in b)
-                return LatticePoset((antichains, cmp), facade=facade)
+                return LatticePoset((antichains, compare), facade=facade)
 
         @abstract_method(optional = True)
         def antichains(self):
@@ -1763,7 +1778,7 @@ class FinitePosets(CategoryWithAxiom):
 
             EXAMPLES::
 
-                sage: A = Posets.PentagonPoset().antichains(); A
+                sage: A = posets.PentagonPoset().antichains(); A
                 Set of antichains of Finite lattice containing 5 elements
                 sage: list(A)
                 [[], [0], [1], [1, 2], [1, 3], [2], [3], [4]]

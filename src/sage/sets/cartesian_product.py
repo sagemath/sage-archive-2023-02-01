@@ -117,11 +117,12 @@ class CartesianProduct(UniqueRepresentation, Parent):
             ...
             ValueError: (1, 3, 4) should be of length 2
         """
+        from builtins import zip
         x = tuple(x)
         if len(x) != len(self._sets):
             raise ValueError(
                 "{} should be of length {}".format(x, len(self._sets)))
-        x = tuple(c(xx) for c,xx in itertools.izip(self._sets,x))
+        x = tuple(c(xx) for c, xx in zip(self._sets, x))
         return self.element_class(self, x)
 
     def _repr_(self):
@@ -139,7 +140,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: C = cartesian_product([range(5), range(5)])
+            sage: C = cartesian_product([list(range(5)), list(range(5))])
             sage: (1, 1) in C
             True
             sage: (1, 6) in C
@@ -234,7 +235,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
             This is meant as a fast low-level method. In particular,
             no coercion is attempted. When coercion or sanity checks
             are desirable, please use instead ``self(elements)`` or
-            ``self._element_constructor(elements)``.
+            ``self._element_constructor_(elements)``.
 
         EXAMPLES::
 
@@ -343,6 +344,19 @@ class CartesianProduct(UniqueRepresentation, Parent):
             """
             return iter(self.value)
 
+        def __len__(self):
+            r"""
+            Return the number of factors in the cartesian product from which ``self`` comes.
+
+            EXAMPLES::
+
+                sage: C = cartesian_product([ZZ, QQ, CC])
+                sage: e = C.random_element()
+                sage: len(e)
+                3
+            """
+            return len(self.value)
+
         def cartesian_factors(self):
             r"""
             Return the tuple of elements that compose this element.
@@ -353,7 +367,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
                 sage: A((1, 1.23)).cartesian_factors()
                 (1, 1.23000000000000)
                 sage: type(_)
-                <type 'tuple'>
+                <... 'tuple'>
             """
             return self.value
 

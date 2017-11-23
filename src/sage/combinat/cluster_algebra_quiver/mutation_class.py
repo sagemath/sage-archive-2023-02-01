@@ -3,9 +3,7 @@ mutation_class
 
 This file contains helper functions for compute the mutation class of a cluster algebra or quiver.
 
-For the compendium on the cluster algebra and quiver package see
-
-        http://arxiv.org/abs/1102.4844
+For the compendium on the cluster algebra and quiver package see [MS2011]_
 
 AUTHORS:
 
@@ -21,14 +19,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six.moves import range
 
 import time
 from sage.groups.perm_gps.partn_ref.refinement_graphs import *
-from sage.graphs.generic_graph import graph_isom_equivalent_non_edge_labeled_graph
-from copy import copy
 from sage.rings.all import ZZ, infinity
-from sage.graphs.all import Graph, DiGraph
-from sage.matrix.all import matrix
+from sage.graphs.all import DiGraph
 from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _edge_list_to_matrix
 
 def _principal_part( mat ):
@@ -146,7 +142,7 @@ def _matrix_to_digraph( M ):
         elif i >= n:
             dg._backend.add_edge(j,i,(-a,-b),True)
     if dg.order() < M.nrows():
-        for i in [ index for index in xrange(M.nrows()) if index not in dg ]:
+        for i in [ index for index in range(M.nrows()) if index not in dg ]:
             dg.add_vertex(i)
     return dg
 
@@ -171,7 +167,7 @@ def _dg_canonical_form( dg, n, m ):
         partition = [ vertices ]
     partition_add, edges = _graph_without_edge_labels(dg,vertices)
     partition += partition_add
-    automorphism_group, obsolete, iso = search_tree(dg, partition=partition, lab=True, dig=True, certify=True)
+    automorphism_group, obsolete, iso = search_tree(dg, partition=partition, lab=True, dig=True, certificate=True)
     orbits = get_orbits( automorphism_group, n+m )
     orbits = [ [ iso[i] for i in orbit] for orbit in orbits ]
     for v in iso.keys():
@@ -229,7 +225,7 @@ def _mutation_class_iter( dg, n, m, depth=infinity, return_dig6=False, show_dept
         orbits = [ orbit[0] for orbit in orbits ]
         dig6s[dig6] = [ orbits, [], iso_inv ]
     else:
-        dig6s[dig6] = [ range(n), [] ]
+        dig6s[dig6] = [list(range(n)), [] ]
     if return_dig6:
         yield (dig6, [])
     else:
@@ -274,7 +270,7 @@ def _mutation_class_iter( dg, n, m, depth=infinity, return_dig6=False, show_dept
                             history = dig6s[key][1] + [i_history]
                             dig6s[dig6_new] = [orbits,history,iso_history]
                         else:
-                            orbits = range(n)
+                            orbits = list(range(n))
                             del orbits[i_new]
                             history = dig6s[key][1] + [i_new]
                             dig6s[dig6_new] = [orbits,history]
@@ -350,11 +346,12 @@ def _dig6_to_digraph( dig6 ):
 
 def _dig6_to_matrix( dig6 ):
     """
-    Returns the matrix obtained from the dig6 and edge data.
+    Return the matrix obtained from the dig6 and edge data.
 
     INPUT:
 
-    - ``dig6`` -- a pair ``(dig6, edges)`` where ``dig6`` is a string encoding a digraph and ``edges`` is a dict or tuple encoding edges
+    - ``dig6`` -- a pair ``(dig6, edges)`` where ``dig6`` is a string
+      encoding a digraph and ``edges`` is a dict or tuple encoding edges
 
     EXAMPLES::
 
@@ -368,8 +365,8 @@ def _dig6_to_matrix( dig6 ):
         [ 0  1  0  1]
         [ 0  0 -1  0]
     """
-    dg = _dig6_to_digraph( dig6 )
-    return _edge_list_to_matrix( dg.edges(), dg.order(), 0 )
+    dg = _dig6_to_digraph(dig6)
+    return _edge_list_to_matrix(dg.edges(), list(range(dg.order())), [])
 
 def _dg_is_sink_source( dg, v ):
     """
@@ -418,7 +415,7 @@ def _graph_without_edge_labels(dg,vertices):
             edge_labels.pop(i)
         else:
             i += 1
-    edge_partition = [[] for _ in xrange(len(edge_labels))]
+    edge_partition = [[] for _ in range(len(edge_labels))]
     i = 0
     new_vertices = []
     for u,v,l in edges:

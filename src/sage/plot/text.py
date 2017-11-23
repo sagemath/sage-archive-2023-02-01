@@ -99,26 +99,26 @@ class Text(GraphicPrimitive):
             sage: T[0]._allowed_options()['zorder']
             'The layer level in which to draw'
             sage: T[0]._allowed_options()['rotation']
-            'how to rotate the text: angle in degrees, vertical, horizontal'
+            'How to rotate the text: angle in degrees, vertical, horizontal'
 
         """
         return {'fontsize': 'How big the text is. Either the size in points or a relative size, e.g. \'smaller\', \'x-large\', etc',
-                'fontstyle': 'either \'normal\', \'italic\' or \'oblic\'',
-                'fontweight': 'a numeric value in the range 0-1000 or a string'
+                'fontstyle': 'A string either \'normal\', \'italic\' or \'oblique\'',
+                'fontweight': 'A numeric value in the range 0-1000 or a string'
                               '\'ultralight\', \'light\', \'normal\', \'regular\', \'book\','
                               '\'medium\', \'roman\', \'semibold\', \'demibold\', \'demi\','
                               '\'bold,\', \'heavy\', \'extra bold\', \'black\'',
-                'rgbcolor': 'The color as an RGB tuple.',
-                'background_color': 'The background color.',
+                'rgbcolor': 'The color as an RGB tuple',
+                'background_color': 'The background color',
                 'bounding_box': 'A dictionary specifying a bounding box',
-                'hue': 'The color given as a hue.',
-                'alpha': 'a float (0.0 transparent through 1.0 opaque)',
-                'axis_coords': 'Uses axis coordinates -- (0,0) lower left and (1,1) upper right',
-                'rotation': 'how to rotate the text: angle in degrees, vertical, horizontal',
-                'vertical_alignment': 'how to align vertically: top, center, bottom',
-                'horizontal_alignment': 'how to align horizontally: left, center, right',
+                'hue': 'The color given as a hue',
+                'alpha': 'A float (0.0 transparent through 1.0 opaque)',
+                'axis_coords': 'If True use axis coordinates: (0,0) lower left and (1,1) upper right',
+                'rotation': 'How to rotate the text: angle in degrees, vertical, horizontal',
+                'vertical_alignment': 'How to align vertically: top, center, bottom',
+                'horizontal_alignment': 'How to align horizontally: left, center, right',
                 'zorder': 'The layer level in which to draw',
-                'clip': 'Whether to clip or not.'}
+                'clip': 'Whether to clip or not'}
 
     def _plot3d_options(self, options=None):
         """
@@ -224,11 +224,11 @@ def text(string, xy, **options):
 
     2D OPTIONS:
 
-    - ``fontsize`` - How big the text is. It is either an integer that
+    - ``fontsize`` - How big the text is. Either an integer that
       specifies the size in points or a string which specifies a size (one of
       'xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large')
 
-    - ``fontstyle`` - A string either 'normal', 'italique' or 'oblique'.
+    - ``fontstyle`` - A string either 'normal', 'italic' or 'oblique'
 
     - ``fontweight`` - A numeric value in the range 0-1000 or a string (one of
       'ultralight', 'light', 'normal', 'regular', 'book',' 'medium', 'roman',
@@ -238,18 +238,25 @@ def text(string, xy, **options):
 
     - ``hue`` - The color given as a hue
 
+    - ``alpha`` - A float (0.0 transparent through 1.0 opaque)
+
+    - ``background_color`` - The background color
+
     - ``rotation`` - How to rotate the text: angle in degrees, vertical, horizontal
 
     - ``vertical_alignment`` - How to align vertically: top, center, bottom
 
     - ``horizontal_alignment`` - How to align horizontally: left, center, right
 
-    - ``axis_coords`` - (default: False) if True, use axis coordinates, so that
+    - ``zorder`` - The layer level in which to draw
+
+    - ``clip`` - (default: False) Whether to clip or not
+
+    - ``axis_coords`` - (default: False) If True, use axis coordinates, so that
       (0,0) is the lower left and (1,1) upper right, regardless of the x and y
       range of plotted values.
 
-    - ``bounding_box`` - a dictionary specifying a bounding box. See the
-      examples (or the matplotlib documentation).
+    - ``bounding_box`` - A dictionary specifying a bounding box. Currently the text location.
 
     EXAMPLES::
 

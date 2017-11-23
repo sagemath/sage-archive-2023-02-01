@@ -11,7 +11,7 @@ use, this document is for you.
 
 - Do you want to **contibute** to Sage by adding your interface to its code? The
   (more complex) instructions are `available here
-  <http://www.sagemath.org/doc/developer/index.html#packaging-third-party-code>`_.
+  <http://doc.sagemath.org/html/en/developer/index.html#packaging-third-party-code>`_.
 
 .. _section-cython-interface-helloworld:
 
@@ -147,7 +147,7 @@ and ``.h`` files in the header of our ``~/my_dir/hello_sage.pyx`` file:
 
 .. code-block:: cython
 
-   #clib /home/username/my_dir/hello
+   # distutils: libraries = /home/username/my_dir/hello
 
    cdef extern from "hello.h":
        void hello_world()
@@ -157,10 +157,11 @@ and ``.h`` files in the header of our ``~/my_dir/hello_sage.pyx`` file:
 
 .. NOTE::
 
-   The instruction ``#clib /home/username/my_dir/hello`` indicates that the
-   library is actually named ``/home/username/my_dir/hello``. Change it
-   according to your needs. For more information about these instructions, see
-   :func:`~sage.misc.cython.cython`.
+   The instruction ``# distutils: libraries = /home/username/my_dir/hello``
+   indicates that the library is actually named ``/home/username/my_dir/hello``.
+   Change it according to your needs.
+   For more information about these instructions, see
+   http://cython.readthedocs.io/en/latest/src/reference/compilation.html#configuring-the-c-build
 
 We can now **load** this file in Sage and **call** the function::
 

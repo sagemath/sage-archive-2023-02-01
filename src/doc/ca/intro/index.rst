@@ -495,7 +495,7 @@ repetim els primers exemples::
     sage: len(solutions)
     2
     sage: type(solutions[0])
-    <type 'dict'>
+    <... 'dict'>
     sage: for sol in solutions: print((sol[x].n(digits=3), sol[y].n(digits=3)))
     (5.00 - 5.59*I, 5.00 + 5.59*I)
     (5.00 + 5.59*I, 5.00 - 5.59*I)
@@ -842,7 +842,7 @@ Podem dibuixar cercles, línies, polígons; gràfics de funcions en
 coordenades cartesianes; i també en coordenades polars, corbes de nivell
 i gràfics de camps vectorials. Podem trobar més exemples de les funcions
 gràfiques del Sage a la documentació
-`Sage Constructions <http://www.sagemath.org/doc/constructions/>`_
+`Sage Constructions <http://doc.sagemath.org/html/en/constructions/>`_
 
 
 Per dibuixar un cercle groc de radi 1, centrat a l'origen, fem::

@@ -44,9 +44,9 @@ A 2-dimensional point configuration::
 
     sage: p = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
     sage: p
-    A point configuration in QQ^2 consisting of 5 points. The
-    triangulations of this point configuration are assumed to
-    be connected, not necessarily fine, not necessarily regular.
+    A point configuration in affine 2-space over Integer Ring consisting
+    of 5 points. The triangulations of this point configuration are
+    assumed to be connected, not necessarily fine, not necessarily regular.
 
 .. PLOT::
     :width: 300 px
@@ -86,9 +86,9 @@ List triangulations of it::
      (<0,1,2>, <0,1,4>, <0,2,4>, <1,2,3>)]
     sage: p_fine = p.restrict_to_fine_triangulations()
     sage: p_fine
-    A point configuration in QQ^2 consisting of 5 points. The
-    triangulations of this point configuration are assumed to
-    be connected, fine, not necessarily regular.
+    A point configuration in affine 2-space over Integer Ring consisting
+    of 5 points. The triangulations of this point configuration are
+    assumed to be connected, fine, not necessarily regular.
     sage: list( p_fine.triangulations() )
     [(<0,1,3>, <0,1,4>, <0,2,3>, <0,2,4>),
      (<0,1,2>, <0,1,4>, <0,2,4>, <1,2,3>)]
@@ -140,17 +140,6 @@ removed before passing the data to TOPCOM which cannot handle it::
     True
     sage: len( pc.triangulations_list() )
     26
-
-REFERENCES:
-
-.. [TOPCOM] J. Rambau,
-   TOPCOM <http://www.rambau.wm.uni-bayreuth.de/TOPCOM/>.
-
-.. [GKZ] Gelfand, I. M.; Kapranov, M. M.; and Zelevinsky, A. V.
-   "Discriminants, Resultants and Multidimensional Determinants" Birkhauser 1994
-
-.. [PUNTOS] Jesus A. De Loera
-   http://www.math.ucdavis.edu/~deloera/RECENT_WORK/puntos2000
 
 AUTHORS:
 
@@ -266,9 +255,10 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
         sage: p = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
         sage: p
-        A point configuration in QQ^2 consisting of 5 points. The
-        triangulations of this point configuration are assumed to
-        be connected, not necessarily fine, not necessarily regular.
+        A point configuration in affine 2-space over Integer Ring
+        consisting of 5 points. The triangulations of this point
+        configuration are assumed to be connected, not necessarily fine,
+        not necessarily regular.
         sage: p.triangulate()  # a single triangulation
         (<1,3,4>, <2,3,4>)
     """
@@ -360,7 +350,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
         assert connected in [True, False], 'Unknown value: connected='+str(connected)
         self._connected = connected
-        if connected!=True and not PointConfiguration._have_TOPCOM():
+        if not connected and not PointConfiguration._have_TOPCOM():
             raise ValueError('You must install TOPCOM to find non-connected triangulations.')
 
         assert fine in [True, False], 'Unknown value: fine='+str(fine)
@@ -414,7 +404,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         r"""
         Return the center used for star triangulations.
 
-        .. seealso:: :meth:`restrict_to_star_triangulations`.
+        .. SEEALSO:: :meth:`restrict_to_star_triangulations`.
 
         OUTPUT:
 
@@ -425,18 +415,19 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         EXAMPLES::
 
             sage: pc = PointConfiguration([(1,0),(-1,0),(0,1),(0,2)], star=(0,1)); pc
-            A point configuration in QQ^2 consisting of 4 points. The
-            triangulations of this point configuration are assumed to be
-            connected, not necessarily fine, not necessarily regular, and
-            star with center P(0, 1).
+            A point configuration in affine 2-space over Integer Ring
+            consisting of 4 points. The triangulations of this point
+            configuration are assumed to be connected, not necessarily
+            fine, not necessarily regular, and star with center P(0, 1).
             sage: pc.star_center()
             P(0, 1)
 
             sage: pc_nostar = pc.restrict_to_star_triangulations(None)
             sage: pc_nostar
-            A point configuration in QQ^2 consisting of 4 points. The
-            triangulations of this point configuration are assumed to be
-            connected, not necessarily fine, not necessarily regular.
+            A point configuration in affine 2-space over Integer Ring
+            consisting of 4 points. The triangulations of this point
+            configuration are assumed to be connected, not necessarily
+            fine, not necessarily regular.
             sage: pc_nostar.star_center()
             Traceback (most recent call last):
             ...
@@ -534,22 +525,25 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         TESTS::
 
             sage: p = PointConfiguration([[1,1,1],[-1,1,1],[1,-1,1],[-1,-1,1],[1,1,-1],
-            ...                           [-1,1,-1],[1,-1,-1],[-1,-1,-1],[0,0,0]])
+            ....:                         [-1,1,-1],[1,-1,-1],[-1,-1,-1],[0,0,0]])
             sage: p._repr_()
-            'A point configuration in QQ^3 consisting of 9 points. The triangulations
-            of this point configuration are assumed to be connected, not necessarily
+            'A point configuration in affine 3-space over Integer Ring
+            consisting of 9 points. The triangulations of this point
+            configuration are assumed to be connected, not necessarily
             fine, not necessarily regular.'
 
             sage: PointConfiguration([[1, 1, 1], [-1, 1, 1], [1, -1, 1], [-1, -1, 1]], projective=True)
-            A point configuration in P(QQ^3) consisting of 4 points. The triangulations
-            of this point configuration are assumed to be connected, not necessarily
-            fine, not necessarily regular.
+            A point configuration in projective 2-space over Integer
+            Ring consisting of 4 points. The triangulations of this
+            point configuration are assumed to be connected,
+            not necessarily fine, not necessarily regular.
         """
-        s = 'A point configuration'
+        s = 'A point configuration in'
         if self.is_affine():
-            s += ' in QQ^'+str(self.ambient_dim())
+            s += ' affine'
         else:
-            s += ' in P(QQ^'+str(self.ambient_dim()+1)+')'
+            s += ' projective'
+        s += " %s-space over %s"%(self.ambient_dim(),self.base_ring())
         if len(self)==1:
             s += ' consisting of '+str(len(self))+' point. '
         else:
@@ -567,9 +561,9 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         else:
             s += ' not necessarily fine,'
 
-        if self._regular==True:
+        if self._regular:
             s += ' regular'
-        elif self._regular==False:
+        elif self._regular is False: # may be False or None, with different meanings
             s += ' irregular'
         else:
             s += ' not necessarily regular'
@@ -578,6 +572,8 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             s += '.'
         else:
             s += ', and star with center '+str(self.star_center())+'.'
+        if self.n_points() == 0:
+            s = 'The pointless empty configuration'
         return s
 
 
@@ -653,7 +649,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
                 line = proc.readline().strip()
             except pexpect.TIMEOUT:
                 if verbose:
-                    print('# Still runnnig ' + str(executable))
+                    print('# Still running ' + str(executable))
                 continue
             if len(line)==0: # EOF
                 break;
@@ -731,9 +727,9 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
         command += 'triangs'
 
-        if self._regular==True:
+        if self._regular:
             command += ' --regular'
-        if self._regular==False:
+        if self._regular is False:
             command += ' --nonregular'
 
         for t in self._TOPCOM_communicate(command, verbose):
@@ -766,7 +762,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             [(0, 1, 2), (0, 1, 4), (0, 2, 4), (1, 2, 3)]
             sage: p.set_engine('internal')               # optional - topcom
         """
-        assert self._regular!=False, \
+        assert self._regular is not False, \
             'When asked for a single triangulation TOPCOM ' + \
             'always returns a regular triangulation.'
 
@@ -803,9 +799,10 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
             sage: p = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
             sage: p
-            A point configuration in QQ^2 consisting of 5 points. The
-            triangulations of this point configuration are assumed to
-            be connected, not necessarily fine, not necessarily regular.
+            A point configuration in affine 2-space over Integer Ring
+            consisting of 5 points. The triangulations of this point
+            configuration are assumed to be connected, not necessarily
+            fine, not necessarily regular.
             sage: len(p.triangulations_list())
             4
             sage: PointConfiguration.set_engine('topcom')            # optional - topcom
@@ -848,9 +845,10 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
             sage: p = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
             sage: p
-            A point configuration in QQ^2 consisting of 5 points. The
-            triangulations of this point configuration are assumed to
-            be connected, not necessarily fine, not necessarily regular.
+            A point configuration in affine 2-space over Integer Ring
+            consisting of 5 points. The triangulations of this point
+            configuration are assumed to be connected, not necessarily
+            fine, not necessarily regular.
             sage: len(p.triangulations_list())
             4
             sage: PointConfiguration.set_engine('topcom')                          # optional - topcom
@@ -886,9 +884,11 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
             sage: p = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
             sage: p
-            A point configuration in QQ^2 consisting of 5 points. The
-            triangulations of this point configuration are assumed to
-            be connected, not necessarily fine, not necessarily regular.
+            A point configuration in affine 2-space over Integer Ring
+            consisting of 5 points. The triangulations of this point
+            configuration are assumed to be connected, not necessarily
+            fine, not necessarily regular.
+
             sage: len(p.triangulations_list())
             4
             sage: p_fine = p.restrict_to_fine_triangulations()
@@ -1010,7 +1010,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             for triangulation in self._TOPCOM_triangulations(verbose):
                 yield triangulation
         else:
-            if (self._connected!=True):
+            if not self._connected:
                 raise ValueError('Need TOPCOM to find disconnected triangulations.')
             if (self._regular is not None):
                 raise ValueError('Need TOPCOM to test for regularity.')
@@ -1039,7 +1039,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             sage: p = PointConfiguration([[0,0],[0,1],[1,0],[1,1]])
             sage: p.triangulations_list()
             [(<0,1,2>, <1,2,3>), (<0,1,3>, <0,2,3>)]
-            sage: map(list, p.triangulations_list() )
+            sage: list(map(list, p.triangulations_list()))
             [[(0, 1, 2), (1, 2, 3)], [(0, 1, 3), (0, 2, 3)]]
             sage: p.set_engine('topcom')       # optional - topcom
             sage: p.triangulations_list()      # optional - topcom
@@ -1081,14 +1081,14 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             [(0, 1, 2), (0, 1, 4), (0, 2, 4), (1, 2, 3)]
             sage: p.set_engine('internal')         # optional - topcom
         """
-        if self._use_TOPCOM and self._regular!=False:
+        if self._use_TOPCOM and self._regular is not False:
             try:
                 return self._TOPCOM_triangulate(verbose)
             except StopIteration:
                 # either topcom did not return a triangulation or we filtered it out
                 pass
 
-        if self._connected and not self._fine and self._regular!=False and self._star is None:
+        if self._connected and not self._fine and self._regular is not False and self._star is None:
             return self.placing_triangulation()
 
         try:
@@ -1132,7 +1132,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
         The restricted automorphism group is the subgroup of the
         linear automorphism group generated by permutations of
-        points. See [BSS]_ for more details and a description of the
+        points. See [BSS2009]_ for more details and a description of the
         algorithm.
 
         OUTPUT:
@@ -1324,7 +1324,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             We return n!*(metric volume of the simplex) to ensure that
             the volume is an integer.  Essentially, this normalizes
             things so that the volume of the standard n-simplex is 1.
-            See [GKZ]_ page 182.
+            See [GKZ1994]_ page 182.
         """
         if (simplex is None):
             return sum([ self.volume(s) for s in self.triangulate() ])
@@ -1340,7 +1340,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         r"""
         Calculate the secondary polytope of the point configuration.
 
-        For a definition of the secondary polytope, see [GKZ]_ page 220
+        For a definition of the secondary polytope, see [GKZ1994]_ page 220
         Definition 1.6.
 
         Note that if you restricted the admissible triangulations of
@@ -1479,12 +1479,12 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         TESTS::
 
             sage: U=matrix([
-            ...      [ 0, 0, 0, 0, 0, 2, 4,-1, 1, 1, 0, 0, 1, 0],
-            ...      [ 0, 0, 0, 1, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0],
-            ...      [ 0, 2, 0, 0, 0, 0,-1, 0, 1, 0, 1, 0, 0, 1],
-            ...      [ 0, 1, 1, 0, 0, 1, 0,-2, 1, 0, 0,-1, 1, 1],
-            ...      [ 0, 0, 0, 0, 1, 0,-1, 0, 0, 0, 0, 0, 0, 0]
-            ...   ])
+            ....:    [ 0, 0, 0, 0, 0, 2, 4,-1, 1, 1, 0, 0, 1, 0],
+            ....:    [ 0, 0, 0, 1, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0],
+            ....:    [ 0, 2, 0, 0, 0, 0,-1, 0, 1, 0, 1, 0, 0, 1],
+            ....:    [ 0, 1, 1, 0, 0, 1, 0,-2, 1, 0, 0,-1, 1, 1],
+            ....:    [ 0, 0, 0, 0, 1, 0,-1, 0, 0, 0, 0, 0, 0, 0]
+            ....: ])
             sage: p = PointConfiguration(U.columns())
             sage: len( p.circuits() )    # long time
             218
@@ -1525,7 +1525,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
         A tuple of all circuits with `C_-` = ``negative``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = PointConfiguration([(1,0,0),(0,1,0),(0,0,1),(-2,0,-1),(-2,-1,0),(-3,-1,-1),(1,1,1),(-1,0,0),(0,0,0)])
             sage: p.positive_circuits(8)
@@ -1608,12 +1608,12 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         TESTS::
 
             sage: U=matrix([
-            ...      [ 0, 0, 0, 0, 0, 2, 4,-1, 1, 1, 0, 0, 1, 0],
-            ...      [ 0, 0, 0, 1, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0],
-            ...      [ 0, 2, 0, 0, 0, 0,-1, 0, 1, 0, 1, 0, 0, 1],
-            ...      [ 0, 1, 1, 0, 0, 1, 0,-2, 1, 0, 0,-1, 1, 1],
-            ...      [ 0, 0, 0, 0, 1, 0,-1, 0, 0, 0, 0, 0, 0, 0]
-            ...   ])
+            ....:    [ 0, 0, 0, 0, 0, 2, 4,-1, 1, 1, 0, 0, 1, 0],
+            ....:    [ 0, 0, 0, 1, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0],
+            ....:    [ 0, 2, 0, 0, 0, 0,-1, 0, 1, 0, 1, 0, 0, 1],
+            ....:    [ 0, 1, 1, 0, 0, 1, 0,-2, 1, 0, 0,-1, 1, 1],
+            ....:    [ 0, 0, 0, 0, 1, 0,-1, 0, 0, 0, 0, 0, 0, 0]
+            ....: ])
             sage: pc = PointConfiguration(U.columns())
             sage: pc.lexicographic_triangulation()
             (<1,3,4,7,10,13>, <1,3,4,8,10,13>, <1,3,6,7,10,13>, <1,3,6,8,10,13>,
@@ -1687,7 +1687,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         The distance function used in this method is `d_{aff}(x,y)^2`,
         the square of the usual affine distance function
 
-        .. math::
+        .. MATH::
 
             d_{aff}(x,y) = |x-y|
 
@@ -1724,7 +1724,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         d_{FS}(x,y)^2`, where `d_{FS}` is the Fubini-Study distance of
         projective points. Recall the Fubini-Studi distance function
 
-        .. math::
+        .. MATH::
 
             d_{FS}(x,y) = \arccos \sqrt{ \frac{(x\cdot y)^2}{|x|^2 |y|^2} }
 
@@ -1846,7 +1846,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         A tuple of points that span a simplex of dimension
         :meth:`dim`. If ``large==True``, the simplex is constructed by
         sucessively picking the farthest point. This will ensure that
-        the simplex is not unneccessarily small, but will in general
+        the simplex is not unnecessarily small, but will in general
         not return a maximal simplex.
 
         EXAMPLES::
@@ -1924,12 +1924,12 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             (<0,1,2>, <0,2,4>, <2,3,4>)
 
             sage: U=matrix([
-            ...      [ 0, 0, 0, 0, 0, 2, 4,-1, 1, 1, 0, 0, 1, 0],
-            ...      [ 0, 0, 0, 1, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0],
-            ...      [ 0, 2, 0, 0, 0, 0,-1, 0, 1, 0, 1, 0, 0, 1],
-            ...      [ 0, 1, 1, 0, 0, 1, 0,-2, 1, 0, 0,-1, 1, 1],
-            ...      [ 0, 0, 0, 0, 1, 0,-1, 0, 0, 0, 0, 0, 0, 0]
-            ...   ])
+            ....:    [ 0, 0, 0, 0, 0, 2, 4,-1, 1, 1, 0, 0, 1, 0],
+            ....:    [ 0, 0, 0, 1, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0],
+            ....:    [ 0, 2, 0, 0, 0, 0,-1, 0, 1, 0, 1, 0, 0, 1],
+            ....:    [ 0, 1, 1, 0, 0, 1, 0,-2, 1, 0, 0,-1, 1, 1],
+            ....:    [ 0, 0, 0, 0, 1, 0,-1, 0, 0, 0, 0, 0, 0, 0]
+            ....: ])
             sage: p = PointConfiguration(U.columns())
             sage: triangulation = p.placing_triangulation();  triangulation
             (<0,2,3,4,6,7>, <0,2,3,4,6,12>, <0,2,3,4,7,13>, <0,2,3,4,12,13>,

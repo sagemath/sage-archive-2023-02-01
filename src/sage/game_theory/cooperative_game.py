@@ -61,7 +61,7 @@ class CooperativeGame(SageObject):
         42 &\text{if } c = \{1,2,3\}. \\
         \end{cases}
 
-    The function `v` can be thought of as as a record of contribution of
+    The function `v` can be thought of as a record of contribution of
     individuals and coalitions of individuals. Of interest, becomes how to
     fairly share the value of the grand coalition (`\Omega`)? This class
     allows for such an answer to be formulated by calculating the Shapley
@@ -251,26 +251,6 @@ class CooperativeGame(SageObject):
         True
         sage: letter_game.is_symmetric({'A': 0, 'C': 35, 'B': 3})
         True
-
-    REFERENCES:
-
-    .. [CEW2011] Georgios Chalkiadakis, Edith Elkind, and Michael Wooldridge.
-       *Computational Aspects of Cooperative Game Theory*.
-       Morgan & Claypool Publishers, (2011).
-       ISBN 9781608456529, :doi:`10.2200/S00355ED1V01Y201107AIM016`.
-
-    .. [MSZ2013] Michael Maschler, Solan Eilon, and Zamir Shmuel.
-       *Game Theory*.
-       Cambridge: Cambridge University Press, (2013).
-       ISBN 9781107005488.
-
-    .. [XP1994] Deng Xiaotie, and Christos Papadimitriou.
-       *On the complexity of cooperative solution concepts.*
-       Mathematics of Operations Research 19.2 (1994): 257-266.
-
-    .. [SWJ2008] Fatima Shaheen, Michael Wooldridge, and Nicholas Jennings.
-       *A linear approximation method for the Shapley value.*
-       Artificial Intelligence 172.14 (2008): 1673-1699.
     """
     def __init__(self, characteristic_function):
         r"""
@@ -799,7 +779,7 @@ class CooperativeGame(SageObject):
 
         EXAMPLES:
 
-        A payoff pector that has the symmetry property::
+        A payoff vector that has the symmetry property::
 
             sage: letter_function = {(): 0,
             ....:                    ('A',): 6,

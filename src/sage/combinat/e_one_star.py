@@ -108,7 +108,7 @@ A list of colors allows us to color the faces sequentially::
     sage: P = E(P, 3)
     sage: P.plot()                   #not tested
 
-All the color schemes from ``matplotlib.cm.datad.keys()`` can be used::
+All the color schemes from ``list(matplotlib.cm.datad)`` can be used::
 
     sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
     sage: P.repaint(cmap='summer')
@@ -208,6 +208,7 @@ which only work in dimension two or three)::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from sage.misc.functional import det
 from sage.structure.sage_object import SageObject
@@ -220,7 +221,6 @@ from sage.plot.polygon import polygon
 from sage.plot.line import line
 from sage.rings.integer_ring import ZZ
 from sage.misc.latex import LatexExpr
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 
 # matplotlib color maps, loaded on-demand
@@ -273,7 +273,7 @@ class Face(SageObject):
             sage: f.type()
             3
 
-        TEST:
+        TESTS:
 
         We test that types can be given by an int (see :trac:`10699`)::
 
@@ -352,15 +352,19 @@ class Face(SageObject):
         """
         v1 = self.vector()
         v2 = other.vector()
-        t1 = self.type()
-        t2 = other.type()
-
         if v1 < v2:
             return -1
         elif v1 > v2:
             return 1
-        else:
-            return cmp(t1, t2)
+
+        t1 = self.type()
+        t2 = other.type()
+        if t1 < t2:
+            return -1
+        elif t1 > t2:
+            return 1
+
+        return 0
 
     def __hash__(self):
         r"""
@@ -520,7 +524,7 @@ class Face(SageObject):
 
     def _plot3d(self, face_contour):
         r"""
-        3D reprensentation of a unit face (Jmol).
+        3D representation of a unit face (Jmol).
 
         INPUT:
 
@@ -589,7 +593,7 @@ class Patch(SageObject):
             sage: P
             Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*, [(0, 0, 0), 3]*]
 
-        TEST:
+        TESTS:
 
         We test that colors are not anymore mixed up between
         Patches (see :trac:`11255`)::
@@ -666,7 +670,7 @@ class Patch(SageObject):
             sage: hash(P)      #random
             -4839605361791007520
 
-        TEST:
+        TESTS:
 
         We test that two equal patches have the same hash (see :trac:`11255`)::
 
@@ -1005,11 +1009,11 @@ class Patch(SageObject):
         -  ``cmap`` - color map (default: ``'Set1'``). It can be one of the
            following :
 
-           - string - A coloring map. For available coloring map names type:
+           - string -- A coloring map. For available coloring map names type:
              ``sorted(colormaps)``
-           - list - a list of colors to assign cyclically to the faces.
+           - list -- a list of colors to assign cyclically to the faces.
              A list of a single color colors all the faces with the same color.
-           - dict - a dict of face types mapped to colors, to color the
+           - dict -- a dict of face types mapped to colors, to color the
              faces according to their type.
            - ``{}``, the empty dict - shorcut for
              ``{1:'red', 2:'green', 3:'blue'}``.
@@ -1064,7 +1068,7 @@ class Patch(SageObject):
             if not cm:
                 from matplotlib import cm
 
-            if not cmap in cm.datad.keys():
+            if not cmap in cm.datad:
                 raise RuntimeError("Color map %s not known (type sorted(colors) for valid names)" % cmap)
             cmap = cm.__dict__[cmap]
             dim = float(len(self))
@@ -1086,7 +1090,7 @@ class Patch(SageObject):
           ``None``, the isometric projection is used by default.
 
         - ``opacity`` - float between ``0`` and ``1`` (optional, default: ``0.75``)
-          opacity of the the face
+          opacity of the face
 
         .. WARNING::
 
@@ -1236,7 +1240,7 @@ class Patch(SageObject):
             sage: P = E(P, 4)
             sage: from sage.misc.latex import latex             #not tested
             sage: latex.add_to_preamble('\\usepackage{tikz}')   #not tested
-            sage: view(P, tightpage=true)                       #not tested
+            sage: view(P)                       #not tested
 
         Plot using shades of gray (useful for article figures)::
 
@@ -1252,7 +1256,7 @@ class Patch(SageObject):
             sage: sigma = WordMorphism({1:[1,2], 2:[1,3], 3:[1]})
             sage: E = E1Star(sigma)
             sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
-            sage: M = matrix(2, 3, map(float, [1,0,-0.7071,0,1,-0.7071]))
+            sage: M = matrix(2,3,[float(u) for u in [1,0,-0.7071,0,1,-0.7071]])
             sage: P = E(P, 3)
             sage: s = P.plot_tikz(projmat=M, edgecolor='facecolor', scale=0.6, drawzero=True)
 
@@ -1480,7 +1484,7 @@ class E1Star(SageObject):
             sage: E(P, iterations=4)
             Patch of 31 faces
 
-        TEST:
+        TESTS:
 
         We test that iterations=0 works (see :trac:`10699`)::
 
@@ -1496,7 +1500,7 @@ class E1Star(SageObject):
             raise ValueError("iterations (=%s) must be >= 0." % iterations)
         else:
             old_faces = patch
-            for i in xrange(iterations):
+            for i in range(iterations):
                 new_faces = []
                 for f in old_faces:
                     new_faces.extend(self._call_on_face(f, color=f.color()))

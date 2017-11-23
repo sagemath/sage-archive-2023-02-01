@@ -9,7 +9,7 @@
 #*****************************************************************************
 
 from sage.libs.glpk.types cimport glp_prob, glp_iocp, glp_smcp
-from generic_backend cimport GenericBackend
+from .generic_backend cimport GenericBackend
 
 
 # search_tree_data_t:
@@ -30,8 +30,8 @@ cdef class GLPKBackend(GenericBackend):
     cpdef int print_ranges(self, char * filename = *) except -1
     cpdef double get_row_dual(self, int variable)
     cpdef double get_col_dual(self, int variable)
-    cpdef int get_row_stat(self, int variable)
-    cpdef int get_col_stat(self, int variable)
+    cpdef int get_row_stat(self, int variable) except? -1
+    cpdef int get_col_stat(self, int variable) except? -1
     cpdef eval_tab_row(self, int k)
     cpdef eval_tab_col(self, int k)
     cpdef get_row_prim(self, int i)

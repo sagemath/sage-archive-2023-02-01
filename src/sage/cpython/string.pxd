@@ -12,21 +12,20 @@ from __future__ import absolute_import
 
 from libc.string cimport strlen
 
-from cpython.bytes cimport (PyBytes_AsString as PyString_AsString,
-                            PyBytes_FromString as PyString_FromString)
+from cpython.bytes cimport PyBytes_AS_STRING, PyBytes_FromString
 from cpython.unicode cimport PyUnicode_Decode, PyUnicode_AsEncodedString
 
 IF PY_MAJOR_VERSION >= 3:
     cdef extern from "Python.h":
-        # Missing from cpython.unicode
+        # Missing from cpython.unicode in Cython 0.27.3
         char* PyUnicode_AsUTF8(object unicode)
-        object PyUnicode_DecodeLocale(const char* str, const char* errors)
-        object PyUnicode_EncodeLocale(object unicode, const char* errors)
+        unicode PyUnicode_DecodeLocale(const char* str, const char* errors)
+        bytes PyUnicode_EncodeLocale(object unicode, const char* errors)
 
 
 cdef inline str char_to_str(char* c, encoding=None, errors=None):
     IF PY_MAJOR_VERSION <= 2:
-        return <str>PyString_FromString(c)
+        return <str>PyBytes_FromString(c)
     ELSE:
         cdef char* err
         if errors is None:
@@ -40,13 +39,13 @@ cdef inline str char_to_str(char* c, encoding=None, errors=None):
         return PyUnicode_Decode(c, strlen(c), PyUnicode_AsUTF8(encoding), err)
 
 
-cpdef inline str bytes_to_str(bytes b, encoding=None, errors=None):
+cpdef inline bytes_to_str(b, encoding=None, errors=None):
     """
-    Convertes `bytes` to `str`.
+    Convert ``bytes`` to ``str``.
 
     On Python 2 this is a no-op since ``bytes is str``.  On Python 3
-    this decodes the given `bytes` to a Python 3 unicode `str` using the
-    specified encoding.
+    this decodes the given ``bytes`` to a Python 3 unicode ``str`` using
+    the specified encoding.
 
     EXAMPLES::
 
@@ -58,21 +57,27 @@ cpdef inline str bytes_to_str(bytes b, encoding=None, errors=None):
         ....: else:
         ....:     s == u'☃'
         True
+        sage: bytes_to_str([])
+        Traceback (most recent call last):
+        ...
+        TypeError: expected bytes, list found
     """
+    if not isinstance(b, bytes):
+        raise TypeError(f"expected bytes, {type(b).__name__} found")
 
     IF PY_MAJOR_VERSION <= 2:
-        return <str>b
+        return b
     ELSE:
-        return char_to_str(PyString_AsString(b), encoding=encoding,
+        return char_to_str(PyBytes_AS_STRING(b), encoding=encoding,
                            errors=errors)
 
 
-cpdef inline bytes str_to_bytes(str s, encoding=None, errors=None):
+cpdef inline str_to_bytes(s, encoding=None, errors=None):
     """
-    Convertes `str` to `bytes`.
+    Convert ``str`` to ``bytes``.
 
     On Python 2 this is a no-op since ``str is bytes``.  On Python 3
-    this encodes the given `str` to a Python 3 `bytes` using the
+    this encodes the given ``str`` to a Python 3 ``bytes`` using the
     specified encoding.
 
     EXAMPLES::
@@ -85,9 +90,17 @@ cpdef inline bytes str_to_bytes(str s, encoding=None, errors=None):
         ....:     b = str_to_bytes(u'☃')
         sage: b == b'\xe2\x98\x83'
         True
+        sage: str_to_bytes([])
+        Traceback (most recent call last):
+        ...
+        TypeError: expected str, list found
     """
+    # Make this check explicit to avoid obscure error message below
+    if not isinstance(s, str):
+        raise TypeError(f"expected str, {type(s).__name__} found")
+
     IF PY_MAJOR_VERSION <= 2:
-        return <bytes>s
+        return s
     ELSE:
         cdef char* err
         if errors is None:

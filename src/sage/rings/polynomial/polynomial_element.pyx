@@ -9678,6 +9678,49 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     raise ValueError("not a %s power"%m.ordinal_str())
             raise ValueError("not a %s power"%m.ordinal_str())
 
+    @coerce_binop
+    def divides(self, p):
+        r"""
+        Return `True` if this polynomial divides `p`.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: (2*x + 1).divides(4*x**2 - 1)
+            True
+            sage: (2*x + 1).divides(4*x**2 + 1)
+            False
+            sage: (2*x + 1).divides(R(0))
+            True
+            sage: R(0).divides(2*x + 1)
+            False
+            sage: R(0).divides(R(0))
+            True
+            sage: R.<x> = PolynomialRing(ZZ, implementation="NTL")
+            sage: (2*x + 1).divides(4*x**2 + 1)
+            False
+            sage: K.<z> = GF(4)
+            sage: R.<x> = K[]
+            sage: S.<y> = R[]
+            sage: p = ((3*z + 2)*x + 2*z - 1) * y + 2*x + z
+            sage: q = y^2 + z*y*x + 2*y + z
+            sage: p.divides(q)
+            False
+            sage: p.divides(p*q)
+            True
+        """
+        if p.is_zero(): return True          # everything divides 0
+        if self.is_zero(): return False      # 0 only divides 0
+        try:
+            if self.is_unit(): return True   # units divide everything
+        except NotImplementedError:
+            if self.is_one(): return True    # if is_unit is not implemented
+
+        try:
+            return (p % self) == 0           # if quo_rem is defined
+        except ArithmeticError:
+            return False                     # if division is not exact
+
     def specialization(self, D=None, phi=None):
         r"""
         Specialization of this polynomial.
@@ -9865,7 +9908,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             -1/3*x^3 + x
         """
         raise NotImplementedError
-
 
 # ----------------- inner functions -------------
 # Cython can't handle function definitions inside other function

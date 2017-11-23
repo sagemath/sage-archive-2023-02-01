@@ -9696,6 +9696,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             False
             sage: R(0).divides(R(0))
             True
+            sage: S.<y> = R[]
+            sage: p = x * y**2 + (2*x + 1) * y + x + 1
+            sage: q = (x + 1) * y + (3*x + 2)
+            sage: q.divides(p)
+            False
+            sage: q.divides(p * q)
+            True
+
+        TESTS::
             sage: R.<x> = PolynomialRing(ZZ, implementation="NTL")
             sage: (2*x + 1).divides(4*x**2 + 1)
             False
@@ -9704,10 +9713,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: S.<y> = R[]
             sage: p = ((3*z + 2)*x + 2*z - 1) * y + 2*x + z
             sage: q = y^2 + z*y*x + 2*y + z
-            sage: p.divides(q)
-            False
-            sage: p.divides(p*q)
-            True
+            sage: p.divides(q), p.divides(p*q)
+            (False, True)
+            sage: R.<x,y> = GF(2)[]
+            sage: S.<z> = R[]
+            sage: p = (x+y+1) * z + x*y
+            sage: q = (y^2-x^2) * z^2 + z + x-y
+            sage: p.divides(q), p.divides(p*q)
+            (False, True)
+            sage: R.<x> = Zmod(6)[]
+            sage: p = 4*x + 3
+            sage: q = 5*x**2 + x + 2
+            sage: p.divides(q), p.divides(p*q)
+            (False, True)
         """
         if p.is_zero(): return True          # everything divides 0
         if self.is_zero(): return False      # 0 only divides 0

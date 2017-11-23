@@ -998,7 +998,7 @@ class CyclicCodePolynomialEncoder(Encoder):
             sage: C = codes.CyclicCode(generator_pol = g, length = n)
             sage: E = codes.encoders.CyclicCodePolynomialEncoder(C)
             sage: E.message_space()
-            Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
+            Univariate Polynomial Ring in x over Finite Field of size 2 (using GF2X)
         """
         return self._polynomial_ring
 

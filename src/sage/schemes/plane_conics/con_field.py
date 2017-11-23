@@ -200,7 +200,7 @@ class ProjectiveConic_field(ProjectivePlaneCurve):
 
             sage: P.<t> = GF(2)[]
             sage: c = Conic([t, 1, t^2, 1, 1, 0]); c
-            Projective Conic Curve over Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL) defined by t*x^2 + x*y + y^2 + t^2*x*z + y*z
+            Projective Conic Curve over Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 2 (using GF2X) defined by t*x^2 + x*y + y^2 + t^2*x*z + y*z
             sage: c.is_smooth()
             True
             sage: c.derivative_matrix()
@@ -587,7 +587,7 @@ class ProjectiveConic_field(ProjectivePlaneCurve):
 
             sage: P.<t> = GF(2)[]
             sage: C = Conic(P, [t,t,1]); C
-            Projective Conic Curve over Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL) defined by t*x^2 + t*y^2 + z^2
+            Projective Conic Curve over Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 2 (using GF2X) defined by t*x^2 + t*y^2 + z^2
             sage: C.has_singular_point(point = False)
             Traceback (most recent call last):
             ...

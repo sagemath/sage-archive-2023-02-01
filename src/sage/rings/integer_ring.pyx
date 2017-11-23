@@ -1323,11 +1323,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         # The dense algorithm is to compute the roots from the factorization.
         if algorithm == "dense":
-            #NOTE: the content sometimes return an ideal sometimes a number...
-            if parent(p).is_sparse():
-                cont = p.content().gen()
-            else:
-                cont = p.content()
+            cont = p.content_ideal().gen()
             if not cont.is_unit():
                 p = p.map_coefficients(lambda c: c // cont)
             return p._roots_from_factorization(p.factor(), multiplicities)
@@ -1352,13 +1348,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         if k == 1 + deg:
             return roots + p._roots_from_factorization(p.factor(), multiplicities)
 
-        #TODO: the content sometimes return an ideal sometimes a number... this
-        # should be corrected. See
-        # <https://groups.google.com/forum/#!topic/sage-devel/DP_R3rl0vH0>
-        if parent(p).is_sparse():
-            cont = p.content().gen()
-        else:
-            cont = p.content()
+        cont = p.content_ideal().gen()
         if not cont.is_unit():
             p = p.map_coefficients(lambda c: c // cont)
 

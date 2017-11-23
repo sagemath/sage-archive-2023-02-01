@@ -8847,6 +8847,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = x^4 + 3*x^2 + 2
             sage: f.content_ideal()
             Ideal (2, 3, 1) of Ring of integers modulo 4
+
+        When the base ring is a gcd ring, the content as a ring element is
+        the generator of the content ideal::
+
+            sage: R.<x> = ZZ[]
+            sage: f = 2*x^3 - 4*x^2 + 6*x - 10
+            sage: f.content_ideal().gen()
+            2
         """
         return self.base_ring().ideal(self.coefficients())
 

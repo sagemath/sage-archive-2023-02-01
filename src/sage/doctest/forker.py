@@ -40,6 +40,8 @@ import __future__
 import hashlib, multiprocessing, os, sys, time, warnings, signal, linecache
 import doctest, traceback
 import tempfile
+import six
+
 import sage.misc.randstate as randstate
 from .util import Timer, RecordingDict, count_noun
 from .sources import DictAsObject
@@ -537,8 +539,27 @@ class SageDocTestRunner(doctest.DocTestRunner):
 
             # The example raised an exception: check if it was expected.
             else:
-                exc_info = sys.exc_info()
+                exc_info = exception
                 exc_msg = traceback.format_exception_only(*exc_info[:2])[-1]
+
+                if six.PY3 and example.exc_msg is not None:
+                    # On Python 3 the exception repr often includes the
+                    # exception's full module name (for non-builtin
+                    # exceptions), whereas on Python 2 does not, so we
+                    # normalize Python 3 exceptions to match tests written to
+                    # Python 2
+                    exc_cls = exc_info[0]
+                    exc_name = exc_cls.__name__
+                    if exc_cls.__module__:
+                        exc_fullname = (exc_cls.__module__ + '.' +
+                                        exc_cls.__qualname__)
+                    else:
+                        exc_fullname = exc_cls.__qualname__
+
+                    if (example.exc_msg.startswith(exc_name) and
+                            exc_msg.startswith(exc_fullname)):
+                        exc_msg = exc_msg.replace(exc_fullname, exc_name, 1)
+
                 if not quiet:
                     got += doctest._exception_traceback(exc_info)
 

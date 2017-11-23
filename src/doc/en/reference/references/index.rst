@@ -2031,8 +2031,11 @@ REFERENCES:
                 and T. Shirai, *Piccolo: An ultra-lightweight block-cipher*; in
                 CHES, (2011), pp. 342-457.
 
+.. [Sil1994] Joseph H. Silverman, Advanced topics in the arithmetic of
+             elliptic curves. GTM 151, Springer-Verlag, New York, 1994.
+
 .. [Sil2007] Joseph H. Silverman. The Arithmetic of Dynamics Systems.
-             Springer, GTM 241, 2007.
+             GTM 241, Springer-Verlag, New York, 2007.
 
 .. [SK2011] \J. Spreer and W. Kühnel, "Combinatorial properties of the
             K3 surface: Simplicial blowups and slicings", Experimental

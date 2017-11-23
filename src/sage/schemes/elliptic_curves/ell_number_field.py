@@ -1497,9 +1497,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         REFERENCES:
 
-        - [Ta2] Tate, John, On the conjectures of Birch and Swinnerton-Dyer and a geometric analog. Seminaire Bourbaki, Vol. 9, Exp. No. 306.
+        .. [Ta2] Tate, John, On the conjectures of Birch and Swinnerton-Dyer and a geometric analog. Seminaire Bourbaki, Vol. 9, Exp. No. 306.
 
-        - [Do] Dokchitser, Tim and Vladimir, On the Birch-Swinnerton-Dyer quotients modulo squares, Annals of Math., 2010.
+        .. [Do] Dokchitser, Tim and Vladimir, On the Birch-Swinnerton-Dyer quotients modulo squares, Annals of Math., 2010.
 
         """
         da = self.local_data()

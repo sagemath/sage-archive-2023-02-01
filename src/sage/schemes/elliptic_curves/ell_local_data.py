@@ -4,7 +4,7 @@ Local data for elliptic curves over number fields
 
 Let `E` be an elliptic curve over a number field `K` (including `\QQ`).
 There are several local invariants at a finite place `v` that
-can be computed via Tate's algorithm (see [Sil2]_ IV.9.4 or [Ta]_).
+can be computed via Tate's algorithm (see [Sil1994]_ IV.9.4 or [Ta]_).
 
 These include the type of reduction (good, additive, multiplicative),
 a minimal equation of `E` over `K_v`,
@@ -65,12 +65,9 @@ Or how the minimal equation changes::
 
 REFERENCES:
 
-- [Sil2] Silverman, Joseph H., Advanced topics in the arithmetic of elliptic curves.
-  Graduate Texts in Mathematics, 151. Springer-Verlag, New York, 1994.
-
-- [Ta] Tate, John, Algorithm for determining the type of a singular fiber in an elliptic pencil.
-  Modular functions of one variable, IV, pp. 33--52. Lecture Notes in Math., Vol. 476,
-  Springer, Berlin, 1975.
+.. [Ta] Tate, John, Algorithm for determining the type of a singular fiber in an elliptic pencil.
+   Modular functions of one variable, IV, pp. 33--52. Lecture Notes in Math., Vol. 476,
+   Springer, Berlin, 1975.
 
 AUTHORS:
 

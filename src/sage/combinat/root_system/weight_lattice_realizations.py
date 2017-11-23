@@ -268,7 +268,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
                        for base_ring in set([ZZ, self.base_ring()])
                        for extended  in set([self.cartan_type().is_affine(), self.is_extended()])]
             for domain in domains:
-                tester.assert_(self._internal_coerce_map_from(domain) is not None)
+                tester.assertTrue(self._internal_coerce_map_from(domain) is not None)
                 for i in self.index_set():
                     # This embedding maps fundamental weights to fundamental weights
                     tester.assertEqual(self(domain.fundamental_weight(i)), Lambda[i])
@@ -291,9 +291,9 @@ class WeightLatticeRealizations(Category_over_base_ring):
                 for j in self.index_set():
                     tester.assertEqual(Lambda[j].scalar(alphacheck[i]), (1 if i==j else 0))
 
-            tester.assert_(self.rho().is_dominant())
+            tester.assertTrue(self.rho().is_dominant())
             if self.root_system.is_finite() and self.root_system.is_irreducible():
-                tester.assert_(self.highest_root().is_dominant())
+                tester.assertTrue(self.highest_root().is_dominant())
 
         @cached_method
         def fundamental_weights(self):
@@ -688,7 +688,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
                     permutation = [None for i in self.index_set()]
                     for i in self.index_set():
                         root = w.action(alpha[i])
-                        tester.assert_(root in rank_simple_roots)
+                        tester.assertTrue(root in rank_simple_roots)
                         permutation[i] = rank_simple_roots[root]
                     tester.assertEqual(set(permutation), set(self.index_set()))
                     #print permutation

@@ -467,7 +467,7 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
         # Check the quadratic relation
         for i in cartan_type.index_set():
             for x in elements:
-                tester.assert_(Ti(Ti(x,i,-q2),i,-q1).is_zero())
+                tester.assertTrue(Ti(Ti(x,i,-q2),i,-q1).is_zero())
         G = cartan_type.coxeter_diagram()
         # Check the braid relation
         for (i, j) in Subsets(cartan_type.index_set(), 2):

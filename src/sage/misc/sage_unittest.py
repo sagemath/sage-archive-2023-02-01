@@ -326,12 +326,12 @@ def instance_tester(instance, tester = None, **options):
         sage: from sage.misc.sage_unittest import instance_tester
         sage: tester = instance_tester(ZZ)
 
-        sage: tester.assert_(1 == 1)
-        sage: tester.assert_(1 == 0)
+        sage: tester.assertTrue(1 == 1)
+        sage: tester.assertTrue(1 == 0)
         Traceback (most recent call last):
         ...
         AssertionError: False is not true
-        sage: tester.assert_(1 == 0, "this is expected to fail")
+        sage: tester.assertTrue(1 == 0, "this is expected to fail")
         Traceback (most recent call last):
         ...
         AssertionError: this is expected to fail

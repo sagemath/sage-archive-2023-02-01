@@ -663,9 +663,9 @@ class AdditiveMagmas(Category_singleton):
                 tester = self._tester(**options)
                 zero = self.zero()
                 # TODO: also call is_zero once it will work
-                tester.assert_(self.is_parent_of(zero))
+                tester.assertTrue(self.is_parent_of(zero))
                 for x in tester.some_elements():
-                    tester.assert_(x + zero == x)
+                    tester.assertTrue(x + zero == x)
                 # Check that zero is immutable if it looks like we can:
                 if hasattr(zero,"is_immutable"):
                     tester.assertEqual(zero.is_immutable(),True)

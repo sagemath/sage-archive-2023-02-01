@@ -689,11 +689,11 @@ cdef class Element(SageObject):
         if can_assign_class(self):
             # For usual Python classes, that should be done with
             # standard inheritance
-            tester.assert_(isinstance(self, self.parent().category().element_class))
+            tester.assertTrue(isinstance(self, self.parent().category().element_class))
         else:
             # For extension types we just check that inheritance
             # occurs on a dummy attribute of Sets().ElementMethods
-            tester.assert_(hasattr(self, "_dummy_attribute"))
+            tester.assertTrue(hasattr(self, "_dummy_attribute"))
 
     def _test_eq(self, **options):
         """

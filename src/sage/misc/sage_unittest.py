@@ -336,8 +336,8 @@ def instance_tester(instance, tester = None, **options):
         ...
         AssertionError: this is expected to fail
 
-        sage: tester.assertEquals(1, 1)
-        sage: tester.assertEquals(1, 0)
+        sage: tester.assertEqual(1, 1)
+        sage: tester.assertEqual(1, 0)
         Traceback (most recent call last):
         ...
         AssertionError: 1 != 0

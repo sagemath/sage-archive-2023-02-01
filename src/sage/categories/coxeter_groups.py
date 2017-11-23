@@ -377,8 +377,8 @@ class CoxeterGroups(Category_singleton):
             s = self.simple_reflections()
             for x in tester.some_elements():
                 red = x.reduced_word()
-                tester.assertEquals(self.from_reduced_word(red), x)
-                tester.assertEquals(self.prod((s[i] for i in red)), x)
+                tester.assertEqual(self.from_reduced_word(red), x)
+                tester.assertEqual(self.prod((s[i] for i in red)), x)
 
         def simple_projection(self, i, side = 'right', length_increasing = True):
             r"""
@@ -775,7 +775,7 @@ class CoxeterGroups(Category_singleton):
                         tester.assert_(opi[i](w) == w.apply_simple_projection(i, side = side, length_increasing = False))
                         tester.assert_( pi[i](w).has_descent(i, side = side))
                         tester.assert_(not opi[i](w).has_descent(i, side = side))
-                        tester.assertEquals(set([pi[i](w), opi[i](w)]),
+                        tester.assertEqual(set([pi[i](w), opi[i](w)]),
                                             set([w, w.apply_simple_reflection(i, side = side)]))
 
         def _test_has_descent(self, **options):
@@ -799,20 +799,20 @@ class CoxeterGroups(Category_singleton):
                 tester.assert_(self.one().has_descent(i, positive = True, side = 'left'))
                 tester.assert_(self.one().has_descent(i, positive = True, side = 'right'))
                 for j in self.index_set():
-                    tester.assertEquals(s[i].has_descent(j, side = 'left' ), i==j)
-                    tester.assertEquals(s[i].has_descent(j, side = 'right'), i==j)
-                    tester.assertEquals(s[i].has_descent(j                ), i==j)
-                    tester.assertEquals(s[i].has_descent(j, positive = True, side = 'left' ), i!=j)
-                    tester.assertEquals(s[i].has_descent(j, positive = True, side = 'right'), i!=j)
-                    tester.assertEquals(s[i].has_descent(j, positive = True,               ), i!=j)
+                    tester.assertEqual(s[i].has_descent(j, side = 'left' ), i==j)
+                    tester.assertEqual(s[i].has_descent(j, side = 'right'), i==j)
+                    tester.assertEqual(s[i].has_descent(j                ), i==j)
+                    tester.assertEqual(s[i].has_descent(j, positive = True, side = 'left' ), i!=j)
+                    tester.assertEqual(s[i].has_descent(j, positive = True, side = 'right'), i!=j)
+                    tester.assertEqual(s[i].has_descent(j, positive = True,               ), i!=j)
                     if i == j:
                         continue
                     u = s[i] * s[j]
                     v = s[j] * s[i]
                     tester.assert_((s[i]*s[j]).has_descent(i, side = 'left' ))
                     tester.assert_((s[i]*s[j]).has_descent(j, side = 'right'))
-                    tester.assertEquals((s[i]*s[j]).has_descent(j, side = 'left' ), u == v)
-                    tester.assertEquals((s[i]*s[j]).has_descent(i, side = 'right'), u == v)
+                    tester.assertEqual((s[i]*s[j]).has_descent(j, side = 'left' ), u == v)
+                    tester.assertEqual((s[i]*s[j]).has_descent(i, side = 'right'), u == v)
 
         def _test_descents(self, **options):
             """

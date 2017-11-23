@@ -681,7 +681,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
                 w = self.weyl_group().from_reduced_word(self.reduced_word_of_translation(t))
                 if self.null_root().is_zero():
                     # The following formula is only valid when the null root is zero
-                    tester.assertEquals(w.action(rho), rho + rho.level()*t)
+                    tester.assertEqual(w.action(rho), rho + rho.level()*t)
                     # TODO: fix this formula to take delta into account,
                     # and remove the above condition
                 if test_automorphism:
@@ -690,12 +690,12 @@ class WeightLatticeRealizations(Category_over_base_ring):
                         root = w.action(alpha[i])
                         tester.assert_(root in rank_simple_roots)
                         permutation[i] = rank_simple_roots[root]
-                    tester.assertEquals(set(permutation), set(self.index_set()))
+                    tester.assertEqual(set(permutation), set(self.index_set()))
                     #print permutation
                     # It could be nicer to test equality of G and its relabelling
                     for i in self.index_set():
                         for j in self.index_set():
-                            tester.assertEquals(G[permutation[i],permutation[j]], G[i,j])
+                            tester.assertEqual(G[permutation[i],permutation[j]], G[i,j])
                     permutations.append(permutation)
 
             if test_automorphism and elements is None: # note: the test on elements is broken
@@ -706,7 +706,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
                 #from sage.groups.perm_gps.permgroup import PermutationGroup
                 #P = PermutationGroup([[i+1 for i in permutation] for permutation in permutations])
                 #print P, len(P)
-                #tester.assertEquals(P, G.automorphism_group())
+                #tester.assertEqual(P, G.automorphism_group())
                 pass
 
         def signs_of_alcovewalk(self, walk):

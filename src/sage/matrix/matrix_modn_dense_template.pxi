@@ -1714,8 +1714,6 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
         if self._nrows != self._ncols:
             raise ValueError("matrix must be square")
-        if self._nrows <= 1:
-            return Matrix_dense.charpoly(self, var)
         R = self._base_ring[var]
         # call linbox for charpoly
         v = linbox_charpoly(self.p, self._nrows, self._entries)

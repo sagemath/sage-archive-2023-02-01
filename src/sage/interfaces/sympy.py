@@ -221,6 +221,20 @@ def _sympysage_symbol(self):
     from sage.symbolic.ring import SR
     return SR.var(self.name)
 
+def _sympysage_Subs(self):
+     """
+     EXAMPLES::
+
+         sage: from sympy import Symbol
+         sage: from sympy.core.singleton import S
+     """
+
+     args = self.args
+     substi = dict([(args[1][i]._sage_(),args[2][i]._sage_()) for i in range(len(args[1]))])
+
+     return args[0]._sage_().subs(substi)
+
+
 ##############       functions       ###############
 
 def _sympysage_function(self):
@@ -650,7 +664,7 @@ def sympy_init():
     if Add._sage_ == _sympysage_add:
         return
 
-    from sympy import Mul, Pow, Symbol
+    from sympy import Mul, Pow, Symbol, Subs
     from sympy.core.function import (Function, AppliedUndef, Derivative)
     from sympy.core.numbers import (Float, Integer, Rational, Infinity,
             NegativeInfinity, ComplexInfinity, Exp1, Pi, GoldenRatio,
@@ -691,6 +705,7 @@ def sympy_init():
     Mul._sage_ = _sympysage_mul
     Pow._sage_ = _sympysage_pow
     Symbol._sage_ = _sympysage_symbol
+    Subs._sage_ = _sympysage_Subs
     Function._sage_ = _sympysage_function
     AppliedUndef._sage_ = _sympysage_function
     Integral._sage_ = _sympysage_integral

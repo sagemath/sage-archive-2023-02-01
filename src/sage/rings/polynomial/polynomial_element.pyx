@@ -9717,7 +9717,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if self.is_one(): return True    # if is_unit is not implemented
 
         try:
-            return (p % self) == 0           # if quo_rem is defined
+            return (p % self).is_zero()      # if quo_rem is defined
         except ArithmeticError:
             return False                     # if division is not exact
 

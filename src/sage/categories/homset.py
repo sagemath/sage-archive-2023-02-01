@@ -1110,6 +1110,22 @@ class Homset(Set_generic):
         else:
             raise TypeError("Identity map only defined for endomorphisms. Try natural_map() instead.")
 
+    def one(self):
+        """
+        The identity map of this homset.
+
+        .. NOTE::
+
+            Of course, this only exists for sets of endomorphisms.
+
+        EXAMPLES::
+
+            sage: K = GaussianIntegers()
+            sage: End(K).one()
+            Identity endomorphism of Gaussian Integers in Number Field in I with defining polynomial x^2 + 1
+        """
+        return self.identity()
+
     def domain(self):
         """
         Return the domain of this homset.

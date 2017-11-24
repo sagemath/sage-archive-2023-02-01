@@ -685,6 +685,16 @@ REFERENCES:
              unit equation." International Mathematics Research Notices
              2016.17 (2016): 5291-5354.
 
+.. [DD2010] Tim Dokchitser and Vladimir Dokchitser,
+            *On the Birch-Swinnerton-Dyer quotients modulo squares*,
+            Ann. Math. (2) 172 (2010), 567-596.
+
+.. [DDLL2013] Léo Ducas, Alain Durmus, Tancrède Lepoint and Vadim
+              Lyubashevsky. *Lattice Signatures and Bimodal
+              Gaussians*; in Advances in Cryptology – CRYPTO 2013;
+              Lecture Notes in Computer Science Volume 8042, 2013, pp
+              40-56 http://www.di.ens.fr/~lyubash/papers/bimodal.pdf
+
 .. [Dec1998] \W. Decker and T. de Jong. Groebner Bases and Invariant
              Theory in Groebner Bases and Applications. London
              Mathematical Society Lecture Note Series No. 251. (1998)
@@ -692,12 +702,6 @@ REFERENCES:
 
 .. [DEMS2016] \C. Dobraunig, M. Eichlseder, F. Mendel, and M. Schläffer,
               *Ascon v1.2*; in CAESAR Competition, (2016).
-
-.. [DDLL2013] Léo Ducas, Alain Durmus, Tancrède Lepoint and Vadim
-              Lyubashevsky. *Lattice Signatures and Bimodal
-              Gaussians*; in Advances in Cryptology – CRYPTO 2013;
-              Lecture Notes in Computer Science Volume 8042, 2013, pp
-              40-56 http://www.di.ens.fr/~lyubash/papers/bimodal.pdf
 
 .. [De1973] \P. Delsarte, An algebraic approach to the association
             schemes of coding theory, Philips Res. Rep., Suppl.,
@@ -782,10 +786,6 @@ REFERENCES:
 
 .. [Do2009] \P. Dobcsanyi et
             al. DesignTheory.org. http://designtheory.org/database/
-
-.. [Dor2010] Dokchitser, Tim and Vladimir,
-             *On the Birch-Swinnerton-Dyer quotients modulo squares*,
-             Annals of Math., 2010.
 
 .. [DPV2001] \J. Daemen, M. Peeters, and G. Van Assche,
              *Bitslice ciphers and power analysis attacks*; in FSE, (2000), pp. 134-149.
@@ -2219,8 +2219,9 @@ REFERENCES:
               Modular functions of one variable*, IV, pp. 33--52.
               Lecture Notes in Math., Vol. 476, Springer, Berlin, 1975.
 
-.. [Tate2] John Tate, *On the conjectures of Birch and Swinnerton-Dyer and
-           a geometric analog*. Seminaire Bourbaki, Vol. 9, Exp. No. 306.
+.. [Tate1966] John Tate, *On the conjectures of Birch and Swinnerton-Dyer and
+              a geometric analog*. Seminaire Bourbaki, Vol. 9,
+              Exp. No. 306, 1966.
 
 .. [TB1997] Lloyd N. Trefethen and David Bau III, *Numerical Linear
             Algebra*, SIAM, Philadelphia, 1997.

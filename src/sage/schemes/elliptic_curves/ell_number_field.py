@@ -1456,7 +1456,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         for the local information at finite places. If the model is a global minimal model then `C(E/K)` is
         simply the product of the Tamagawa numbers `c_v` where `v` runs over all prime ideals of `K`. Otherwise, if the model has to be changed at a place `v` a correction factor appears.
         The definition is such that `C(E/K)` times the periods at the infinite places is invariant
-        under change of the Weierstrass model. See [Tate2]_ and [Dor2010]_ for details.
+        under change of the Weierstrass model. See [Tate1966]_ and [DD2010]_ for details.
 
         .. note::
 

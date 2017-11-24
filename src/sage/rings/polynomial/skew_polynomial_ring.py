@@ -138,24 +138,26 @@ def _minimal_vanishing_polynomial(R, eval_pts):
 
 def _lagrange_polynomial(R, eval_pts, values):
     """
-    Return the Lagrange polynomial of the given points if it exists. Otherwise
-    return an unspecified polynomial (internal method).
+    Return the Lagrange polynomial of the given points if it exists.
+
+    Otherwise return an unspecified polynomial (internal method).
 
     See the documentation for
-    :meth:`SkewPolynomialRing.lagrange_polynomial` for a description of Lagrange polynomial.
+    :meth:`SkewPolynomialRing.lagrange_polynomial` for a description
+    of Lagrange polynomial.
 
-    INPUT::
+    INPUT:
 
     - ``R`` -- a skew polynomial ring over a field
 
     - ``eval_pts`` -- list of evaluation points
 
-    - ``values`` -- list of values that the lagrange polynomial takes
-        at the respective `eval_pts`
+    - ``values`` -- list of values that the Lagrange polynomial takes
+        at the respective ``eval_pts``
 
-    OUTPUT::
+    OUTPUT:
 
-    - the lagrange polynomial.
+    - the Lagrange polynomial.
 
     EXAMPLES::
 

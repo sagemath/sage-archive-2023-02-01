@@ -5874,14 +5874,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             ....:     assert 4*n^6+4*n^2 in [P[0] for P in EllipticCurve([0,0,0,2,n^2]).integral_points()]
 
 
-        .. note::
+        .. NOTE::
 
-           This function uses the algorithm given in [Co1]_.
-
-        REFERENCES:
-
-        .. [Co1] \H. Cohen, Number Theory, Vol. I: Tools and
-           Diophantine Equations.  GTM 239, Springer, 2007.
+           This function uses the algorithm given in [Coh2007I]_.
 
         AUTHORS:
 
@@ -6008,7 +6003,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             print("e1,e2,e3: ", e1, e2, e3)
             sys.stdout.flush()
 
-        # Algorithm presented in [Co1]
+        # Algorithm presented in [Coh2007I]
         h_E = self.height()
         w1, w2 = self.period_lattice().basis()
         mu = R(disc).abs().log() / 6

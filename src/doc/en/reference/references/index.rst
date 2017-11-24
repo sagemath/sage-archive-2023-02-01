@@ -608,6 +608,9 @@ REFERENCES:
 .. [Coh1993] Henri Cohen. A Course in Computational Number
              Theory. Graduate Texts in Mathematics 138. Springer, 1993.
 
+.. [Coh2007I] Henri Cohen, *Number Theory, Vol. I: Tools and
+              Diophantine Equations.*  GTM 239, Springer, 2007.
+
 .. [Coh2007] Henri Cohen, Number Theory,
              Volume II.  Graduate Texts in Mathematics 240. Springer, 2007.
 
@@ -779,6 +782,10 @@ REFERENCES:
 
 .. [Do2009] \P. Dobcsanyi et
             al. DesignTheory.org. http://designtheory.org/database/
+
+.. [Dor2010] Dokchitser, Tim and Vladimir,
+             *On the Birch-Swinnerton-Dyer quotients modulo squares*,
+             Annals of Math., 2010.
 
 .. [DPV2001] \J. Daemen, M. Peeters, and G. Van Assche,
              *Bitslice ciphers and power analysis attacks*; in FSE, (2000), pp. 134-149.
@@ -2206,6 +2213,14 @@ REFERENCES:
 .. [Tar1976] Robert E. Tarjan, *Edge-disjoint spanning trees and
              depth-first search*, Acta Informatica 6 (2), 1976,
              171-185, :doi:`10.1007/BF00268499`.
+
+.. [Tate1975] John Tate, *Algorithm for determining the type of a
+              singular fiber in an elliptic pencil.
+              Modular functions of one variable*, IV, pp. 33--52.
+              Lecture Notes in Math., Vol. 476, Springer, Berlin, 1975.
+
+.. [Tate2] John Tate, *On the conjectures of Birch and Swinnerton-Dyer and
+           a geometric analog*. Seminaire Bourbaki, Vol. 9, Exp. No. 306.
 
 .. [TB1997] Lloyd N. Trefethen and David Bau III, *Numerical Linear
             Algebra*, SIAM, Philadelphia, 1997.

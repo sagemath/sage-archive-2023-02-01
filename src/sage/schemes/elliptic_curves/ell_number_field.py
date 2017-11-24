@@ -1456,7 +1456,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         for the local information at finite places. If the model is a global minimal model then `C(E/K)` is
         simply the product of the Tamagawa numbers `c_v` where `v` runs over all prime ideals of `K`. Otherwise, if the model has to be changed at a place `v` a correction factor appears.
         The definition is such that `C(E/K)` times the periods at the infinite places is invariant
-        under change of the Weierstrass model. See [Ta2]_ and [Do]_ for details.
+        under change of the Weierstrass model. See [Tate2]_ and [Dor2010]_ for details.
 
         .. note::
 
@@ -1489,18 +1489,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: [dav.tamagawa_number() for dav in da]
             [1, 1]
 
-        An example over `\mathbb{Q}` (:trac:`9413`)::
+        An example over `\QQ` (:trac:`9413`)::
 
             sage: E = EllipticCurve('30a')
             sage: E.tamagawa_product_bsd()
             6
-
-        REFERENCES:
-
-        .. [Ta2] Tate, John, On the conjectures of Birch and Swinnerton-Dyer and a geometric analog. Seminaire Bourbaki, Vol. 9, Exp. No. 306.
-
-        .. [Do] Dokchitser, Tim and Vladimir, On the Birch-Swinnerton-Dyer quotients modulo squares, Annals of Math., 2010.
-
         """
         da = self.local_data()
         pr = 1

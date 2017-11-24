@@ -24,7 +24,7 @@ There is no homomorphism in the other direction::
     sage: H([1])
     Traceback (most recent call last):
     ...
-    TypeError: images do not define a valid homomorphism
+    ValueError: relations do not all (canonically) map to 0 under map determined by images of generators
 
 EXAMPLES:
 
@@ -60,7 +60,7 @@ Identity map on the real numbers::
     sage: f = RR.hom( [2.0] )
     Traceback (most recent call last):
     ...
-    TypeError: images do not define a valid homomorphism
+    ValueError: relations do not all (canonically) map to 0 under map determined by images of generators
 
 Homomorphism from one precision of field to another.
 
@@ -210,7 +210,7 @@ Note that Sage verifies that the morphism is valid::
     sage: c = S.hom([1-sqrt2])    # this is not valid
     Traceback (most recent call last):
     ...
-    TypeError: images do not define a valid homomorphism
+    ValueError: relations do not all (canonically) map to 0 under map determined by images of generators
 
 Endomorphism of power series ring::
 
@@ -265,11 +265,11 @@ positive::
     sage: R.hom([1/t])
     Traceback (most recent call last):
     ...
-    TypeError: images do not define a valid homomorphism
+    ValueError: relations do not all (canonically) map to 0 under map determined by images of generators
     sage: R.hom([1])
     Traceback (most recent call last):
     ...
-    TypeError: images do not define a valid homomorphism
+    ValueError: relations do not all (canonically) map to 0 under map determined by images of generators
 
 Complex conjugation on cyclotomic fields::
 
@@ -1017,7 +1017,7 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
                 raise ValueError("number of images must equal number of generators")
             t = parent.domain()._is_valid_homomorphism_(parent.codomain(), im_gens)
             if not t:
-                raise ValueError("relations do not all (canonically) map to 0 under map determined by images of generators.")
+                raise ValueError("relations do not all (canonically) map to 0 under map determined by images of generators")
         if not im_gens.is_immutable():
             import copy
             im_gens = copy.copy(im_gens)
@@ -1704,7 +1704,7 @@ cdef class RingHomomorphism_from_quotient(RingHomomorphism):
             raise ValueError("Domain of phi must equal domain of covering (%s != %s)." % (pi.domain(), phi.domain()))
         for x in pi.kernel().gens():
             if phi(x) != 0:
-                raise ValueError("relations do not all (canonically) map to 0 under map determined by images of generators.")
+                raise ValueError("relations do not all (canonically) map to 0 under map determined by images of generators")
         self._lift = pi.lift()
         self.phi = phi
 

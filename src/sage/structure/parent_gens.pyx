@@ -249,7 +249,7 @@ cdef class ParentWithGens(ParentWithBase):
             sage: f = R.hom([5], GF(7))
             Traceback (most recent call last):
             ...
-            TypeError: images do not define a valid homomorphism
+            ValueError: relations do not all (canonically) map to 0 under map determined by images of generators
 
             sage: R.<x> = PolynomialRing(GF(7))
             sage: f = R.hom([3], GF(49,'a'))

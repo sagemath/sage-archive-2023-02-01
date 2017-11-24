@@ -670,11 +670,11 @@ class FiniteDimensionalAlgebra(UniqueRepresentation, Algebra):
             sage: H(Matrix([[1, 0], [1, 1]]))
             Traceback (most recent call last):
             ...
-            ValueError: relations do not all (canonically) map to 0 under map determined by images of generators.
+            ValueError: relations do not all (canonically) map to 0 under map determined by images of generators
             sage: Hom(B, B)(Matrix([[2]]))
             Traceback (most recent call last):
             ...
-            ValueError: relations do not all (canonically) map to 0 under map determined by images of generators.
+            ValueError: relations do not all (canonically) map to 0 under map determined by images of generators
         """
         assert len(im_gens) == self.degree()
 

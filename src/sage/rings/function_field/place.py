@@ -968,7 +968,7 @@ class FunctionFieldPlace_global(FunctionFieldPlace):
         return K, from_K, to_K
 
     @cached_method
-    def _residue_field(self):
+    def _residue_field_old(self, name=None):
         """
         Return the residue field of the place along with the functions
         mapping from and to it.
@@ -1115,10 +1115,13 @@ class FunctionFieldPlace_global(FunctionFieldPlace):
         min_poly = R((-mat.solve_left(to_V(g))).list() + [1])
 
         if deg > 1:
+            if name is None:
+                name = 'a' # default
+
             # Step 4: construct the finite field
             K = k.extension(deg)
             alpha = min_poly.roots(K)[0][0]
-            W, from_W, to_W = K.vector_space_over(k, basis=[alpha**i for i in range(deg)])
+            W, from_W, to_W = K.vector_space(k, basis=[alpha**i for i in range(deg)], map=True)
 
             # Step 5: compute the matrix of change of basis
             C = mat.inverse()

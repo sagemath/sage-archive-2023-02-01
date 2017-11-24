@@ -136,7 +136,7 @@ class SageNBExport(NotebookJupyter):
             SAGENB_EXPORT = 'sagenb-export'
             os.execvp(SAGENB_EXPORT, [SAGENB_EXPORT] + argv)
         argv += [
-            "--NotebookApp.nbserver_extensions=['sagenb_export.nbextension']",
+            "--NotebookApp.nbserver_extensions={'sagenb_export.nbextension':True}",
             "--NotebookApp.default_url='/sagenb'",
         ]
         super(SageNBExport, self).__init__(argv)

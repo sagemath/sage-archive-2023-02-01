@@ -3132,7 +3132,7 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
     - ``base_point`` (optional, default ``None``) -- 0-simplex in this
       simplicial set, its base point
 
-    - ``name`` (optional, defaul ``None``) -- string, the name of the
+    - ``name`` (optional, default ``None``) -- string, the name of the
       simplicial set
 
     - ``check`` (optional, default ``True``) -- boolean. If ``True``,

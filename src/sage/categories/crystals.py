@@ -9,6 +9,7 @@ Crystals
 #******************************************************************************
 from __future__ import print_function
 from builtins import zip
+from six import itervalues
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
@@ -775,7 +776,7 @@ class Crystals(Category_singleton):
                         codomain = on_gens[0].parent()
                 elif isinstance(on_gens, dict):
                     if on_gens:
-                        codomain = on_gens.values()[0].parent()
+                        codomain = next(itervalues(on_gens)).parent()
                 else:
                     for x in self.module_generators:
                         y = on_gens(x)

@@ -195,8 +195,8 @@ import collections
 import copy
 import warnings
 
+from sage.arith.all import gcd, lcm
 from sage.combinat.posets.posets import FinitePoset
-from sage.geometry.lattice_polytope import integral_length
 from sage.geometry.point_collection import PointCollection
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.geometry.polyhedron.base import is_Polyhedron
@@ -209,7 +209,6 @@ from sage.matrix.all import matrix, MatrixSpace
 from sage.misc.all import cached_method, flatten, latex
 from sage.modules.all import span, vector, VectorSpace
 from sage.rings.all import QQ, RR, ZZ
-from sage.arith.all import gcd
 from sage.structure.all import SageObject, parent
 from sage.structure.richcmp import richcmp_method, richcmp
 from sage.libs.ppl import C_Polyhedron, Generator_System, Constraint_System, \
@@ -506,6 +505,93 @@ def _Cone_from_PPL(cone, lattice, original_rays=None):
         return ConvexRationalPolyhedralCone(rays, lattice, PPL=cone)
 
 
+def _ambient_space_point(body, data):
+    r"""
+    Try to convert ``data`` to a point of the ambient space of ``body``.
+
+    INPUT:
+
+    - ``body`` -- a cone, fan, or lattice polytope with ``lattice()`` method
+
+    - ``data`` -- anything
+
+    OUTPUT:
+
+    - integral, rational or numeric point of the ambient space of ``body``
+      if ``data`` were successfully interpreted in such a way, otherwise a
+      ``TypeError`` exception is raised
+
+    TESTS::
+
+        sage: from sage.geometry.cone import _ambient_space_point
+        sage: c = Cone([(1,0), (0,1)])
+        sage: _ambient_space_point(c, [1,1])
+        N(1, 1)
+        sage: _ambient_space_point(c, c.dual_lattice()([1,1]))
+        Traceback (most recent call last):
+        ...
+        TypeError: the point M(1, 1) and
+         2-d cone in 2-d lattice N have incompatible lattices
+        sage: _ambient_space_point(c, [1,1/3])
+        (1, 1/3)
+        sage: _ambient_space_point(c, [1/2,1/sqrt(3)])
+        (0.500000000000000, 0.577350269189626)
+        sage: _ambient_space_point(c, [1,1,3])
+        Traceback (most recent call last):
+        ...
+        TypeError: [1, 1, 3] does not represent a valid point
+         in the ambient space of 2-d cone in 2-d lattice N
+    """
+    L = body.lattice()
+    try: # to make a lattice element...
+        return L(data)
+    except TypeError:
+        # Special treatment for toric lattice elements
+        if is_ToricLattice(parent(data)):
+            raise TypeError("the point %s and %s have incompatible "
+                            "lattices" % (data, body))
+    try: # ... or an exact point...
+        return L.base_extend(QQ)(data)
+    except TypeError:
+        pass
+    try: # ... or at least a numeric one
+        return L.base_extend(RR)(data)
+    except TypeError:
+        pass
+    # Raise TypeError with our own message
+    raise TypeError("%s does not represent a valid point in the ambient "
+                    "space of %s" % (data, body))
+
+
+def integral_length(v):
+    """
+    Compute the integral length of a given rational vector.
+
+    INPUT:
+
+    - ``v`` -- any object which can be converted to a list of rationals
+
+    OUTPUT:
+
+    Rational number `r`` such that ``v = r * u``, where ``u`` is the
+    primitive integral vector in the direction of ``v``.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.cone import integral_length
+        sage: integral_length([1, 2, 4])
+        1
+        sage: integral_length([2, 2, 4])
+        2
+        sage: integral_length([2/3, 2, 4])
+        2/3
+    """
+    data = [QQ(e) for e in list(v)]
+    ns = [e.numerator() for e in data]
+    ds = [e.denominator() for e in data]
+    return gcd(ns) / lcm(ds)
+
+
 def normalize_rays(rays, lattice):
     r"""
     Normalize a list of rational rays: make them primitive and immutable.
@@ -731,60 +817,6 @@ class IntegralRayCollection(SageObject,
             N(0, 1)
         """
         return iter(self._rays)
-
-    def _ambient_space_point(self, data):
-        r"""
-        Try to convert ``data`` to a point of the ambient space of ``self``.
-
-        INPUT:
-
-        - ``data`` -- anything.
-
-        OUTPUT:
-
-        - integral, rational or numeric point of the ambient space of ``self``
-          if ``data`` were successfully interpreted in such a way, otherwise a
-          ``TypeError`` exception is raised.
-
-        TESTS::
-
-            sage: c = Cone([(1,0), (0,1)])
-            sage: c._ambient_space_point([1,1])
-            N(1, 1)
-            sage: c._ambient_space_point(c.dual_lattice()([1,1]))
-            Traceback (most recent call last):
-            ...
-            TypeError: the point M(1, 1) and
-            2-d cone in 2-d lattice N have incompatible lattices!
-            sage: c._ambient_space_point([1,1/3])
-            (1, 1/3)
-            sage: c._ambient_space_point([1/2,1/sqrt(3)])
-            (0.500000000000000, 0.577350269189626)
-            sage: c._ambient_space_point([1,1,3])
-            Traceback (most recent call last):
-            ...
-            TypeError: [1, 1, 3] does not represent a valid point
-            in the ambient space of 2-d cone in 2-d lattice N!
-        """
-        L = self.lattice()
-        try: # to make a lattice element...
-            return L(data)
-        except TypeError:
-            # Special treatment for toric lattice elements
-            if is_ToricLattice(parent(data)):
-                raise TypeError("the point %s and %s have incompatible "
-                                "lattices!" % (data, self))
-        try: # ... or an exact point...
-            return L.base_extend(QQ)(data)
-        except TypeError:
-            pass
-        try: # ... or at least a numeric one
-            return L.base_extend(RR)(data)
-        except TypeError:
-            pass
-        # Raise TypeError with our own message
-        raise TypeError("%s does not represent a valid point in the ambient "
-                        "space of %s!" % (data, self))
 
     def cartesian_product(self, other, lattice=None):
         r"""
@@ -1540,7 +1572,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             True
         """
         try:
-            point = self._ambient_space_point(point)
+            point = _ambient_space_point(self, point)
         except TypeError as ex:
             if str(ex).endswith("have incompatible lattices!"):
                 warnings.warn("you have checked if a cone contains a point "

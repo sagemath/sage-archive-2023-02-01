@@ -160,7 +160,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.automorphism_group` | Return the largest subgroup of the automorphism group of the (di)graph whose orbit partition is finer than the partition given.
     :meth:`~GenericGraph.is_vertex_transitive` | Return whether the automorphism group of self is transitive within the partition provided
     :meth:`~GenericGraph.is_isomorphic` | Test for isomorphism between self and other.
-    :meth:`~GenericGraph.canonical_label` | Return the unique graph on `\{0,1,...,n-1\}` ( ``n = self.order()`` ) which 1) is isomorphic to self 2) is invariant in the isomorphism class.
+    :meth:`~GenericGraph.canonical_label` | Return the canonical graph.
     :meth:`~GenericGraph.is_cayley` | Check whether the graph is a Cayley graph.
 
 **Graph properties:**
@@ -4238,7 +4238,7 @@ class GenericGraph(GenericGraph_pyx):
 
         :trac:`19193`::
 
-            sage: Posets.BooleanLattice(3).cover_relations_graph().is_planar()
+            sage: posets.BooleanLattice(3).cover_relations_graph().is_planar()
             True
         """
         if self.has_multiple_edges() or self.has_loops():
@@ -13516,7 +13516,7 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES::
 
-            sage: (graphs.FruchtGraph()).cluster_triangles().values()
+            sage: list((graphs.FruchtGraph()).cluster_triangles().values())
             [1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0]
             sage: (graphs.FruchtGraph()).cluster_triangles()
             {0: 1, 1: 1, 2: 0, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 0, 9: 1, 10: 1, 11: 0}
@@ -14108,7 +14108,9 @@ class GenericGraph(GenericGraph_pyx):
         if with_labels:
             return e
         else:
-            if len(e)==1: return e.values()[0] # return single value
+            if len(e) == 1:
+                v, = e.values()
+                return v # return single value
             return e.values()
 
     def radius(self, by_weight=False, algorithm=None, weight_function=None,
@@ -21811,63 +21813,72 @@ class GenericGraph(GenericGraph_pyx):
             return True, isom_trans
 
     def canonical_label(self, partition=None, certificate=False, verbosity=0,
-                        edge_labels=False,algorithm=None,return_graph=True):
-        """Return a graph on `\{0,1,...,n-1\}` ( ``n = self.order()`` ) which
+                        edge_labels=False, algorithm=None, return_graph=True):
+        r"""
+        Return the canonical graph.
 
-        - is isomorphic to self,
+        A canonical graph is the representative graph of an isomorphism
+        class by some canonization function `c`. If `G` and `H` are graphs,
+        then `G \cong c(G)`, and `c(G) == c(H)` if and only if `G \cong H`.
 
-        - is invariant in the isomorphism class.
-
-        In other words, given two graphs ``G`` and ``H`` which are isomorphic,
-        suppose ``G_c`` and ``H_c`` are the graphs returned by
-        ``canonical_label``. Then the following hold:
-
-        - ``G_c == H_c``
-
-        - ``G_c.adjacency_matrix() == H_c.adjacency_matrix()``
-
-        - ``G_c.graph6_string() == H_c.graph6_string()``
+        See :wikipedia:`Graph_canonization`.
 
         INPUT:
 
-        -  ``partition`` - if given, the canonical label with
-           respect to this set partition will be computed. The default is the unit
-           set partition.
+        - ``partition`` -- if given, the canonical label with respect
+          to this set partition will be computed. The default is the unit
+          set partition.
 
-        -  ``certificate`` - if True, a dictionary mapping from the
-           (di)graph to its canonical label will be given.
+        - ``certificate`` -- boolean (default: ``False``). When set to
+          ``True``, a dictionary mapping from the vertices of the (di)graph
+          to its canonical label will also be returned.
 
-        -  ``verbosity`` - gets passed to nice: prints helpful
-           output.
+        - ``edge_labels`` -- boolean (default: ``False``). When set to
+          ``True``, allows only permutations respecting edge labels.
 
-        -  ``edge_labels`` - default False, otherwise allows
-           only permutations respecting edge labels.
+        - ``algorithm`` -- a string (default: ``None``). The algorithm to use;
+          currently available:
 
-        - ``algorithm`` - If ``algorithm = "bliss"`` the automorphism group is
-          computed using the optional package bliss
-          (http://www.tcs.tkk.fi/Software/bliss/index.html). Setting it to
-          "sage" uses Sage's implementation. If set to ``None`` (default), bliss
-          is used when available.
+          * ``'bliss'``: use the optional package bliss
+            (http://www.tcs.tkk.fi/Software/bliss/index.html); can not
+            be combined with ``edge_labels``
+          * ``'sage'``: always use Sage's implementation.
+          * ``None`` (default): use bliss when available and possible
 
             .. NOTE::
 
                 Make sure you always compare canonical forms obtained by the
                 same algorithm.
 
-        - ``return_graph`` - If ``return_graph = 'False'`` do not return the
-           canonical graph.
+        - ``return_graph`` -- boolean (default: ``True``). When set to
+          ``False``, returns the list of edges of the the canonical graph
+          instead of the canonical graph; only available when ``'bliss'``
+          is explicitly set as algorithm.
 
-        EXAMPLES::
+        - ``verbosity`` -- deprecated, does nothing
 
-            sage: D = graphs.DodecahedralGraph()
-            sage: E = D.canonical_label(algorithm='sage'); E
-            Dodecahedron: Graph on 20 vertices
-            sage: D.canonical_label(certificate=True, algorithm='sage')
-            (Dodecahedron: Graph on 20 vertices, {0: 0, 1: 19, 2: 16, 3: 15, 4: 9, 5: 1, 6: 10, 7: 8, 8: 14, 9: 12, 10: 17, 11: 11, 12: 5, 13: 6, 14: 2, 15: 4, 16: 3, 17: 7, 18: 13, 19: 18})
-            sage: D.is_isomorphic(E)
+        EXAMPLES:
+
+        Canonization changes isomorphism to equality::
+
+            sage: g1 = graphs.GridGraph([2,3])
+            sage: g2 = Graph({1: [2, 4], 3: [2, 6], 5: [4, 2, 6]})
+            sage: g1 == g2
+            False
+            sage: g1.is_isomorphic(g2)
+            True
+            sage: g1.canonical_label() == g2.canonical_label()
             True
 
-        Multigraphs::
+        We can get the relabeling used for canonization::
+
+            sage: g, c = g1.canonical_label(algorithm='sage', certificate=True)
+            sage: g
+            Grid Graph for [2, 3]: Graph on 6 vertices
+            sage: c
+            {(0, 0): 3, (0, 1): 4, (0, 2): 2, (1, 0): 0, (1, 1): 5, (1, 2): 1}
+
+        Multigraphs and directed graphs work too::
 
             sage: G = Graph(multiedges=True,sparse=True)
             sage: G.add_edge((0,1))
@@ -21877,8 +21888,6 @@ class GenericGraph(GenericGraph_pyx):
             Multi-graph on 2 vertices
             sage: Graph('A?', implementation='c_graph').canonical_label()
             Graph on 2 vertices
-
-        Digraphs::
 
             sage: P = graphs.PetersenGraph()
             sage: DP = P.to_directed()
@@ -21903,14 +21912,16 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.canonical_label(edge_labels=True, certificate=True)
             (Graph on 5 vertices, {0: 4, 1: 3, 2: 0, 3: 1, 4: 2})
 
-        Canonical forms can be computed by bliss as well::
+        Canonical forms can be computed by bliss as well. Different
+        canonization algorithms give different graphs::
 
-            sage: G = graphs.CubeGraph(6)                                       # optional - bliss
-            sage: H = G.copy()                                                  # optional - bliss
-            sage: s1 = G.canonical_label(return_graph=false,algorithm='bliss')  # optional - bliss
-            sage: s2 = H.canonical_label(return_graph=false,algorithm='bliss')  # optional - bliss
-            sage: s1 == s2                                                      # optional - bliss
-            True
+            sage: g = Graph({'a': ['b'], 'c': ['d']})
+            sage: g_sage = g.canonical_label(algorithm='sage')
+            sage: g_bliss = g.canonical_label(algorithm='bliss')  # optional - bliss
+            sage: g_sage.edges(labels=False)
+            [(0, 3), (1, 2)]
+            sage: g_bliss.edges(labels=False)  # optional - bliss
+            [(0, 1), (2, 3)]
 
         TESTS::
 
@@ -21925,35 +21936,66 @@ class GenericGraph(GenericGraph_pyx):
             Graph on 3 vertices
             sage: C.vertices()
             [0, 1, 2]
+
+        Corner cases::
+
+            sage: g = Graph()
+            sage: g.canonical_label(algorithm='sage')
+            Graph on 0 vertices
+            sage: g.canonical_label(algorithm='bliss')  # optional - bliss
+            Graph on 0 vertices
+            sage: g = Graph({'x': []})
+            sage: g.canonical_label(algorithm='sage').vertices()
+            [0]
+            sage: g.canonical_label(algorithm='bliss').vertices()  # optional - bliss
+            [0]
+
+        Check that the name is preserved with both algorithms::
+
+            sage: g = graphs.PathGraph(1)
+            sage: g.canonical_label(algorithm='sage')
+            Path graph: Graph on 1 vertex
+            sage: g.canonical_label(algorithm='bliss')  # optional - bliss
+            Path graph: Graph on 1 vertex
         """
-        try:
+        # Deprecation
+        if verbosity != 0:
+            deprecation(19517, "Verbosity-parameter is removed.")
+
+        # Check parameter combinations
+        if algorithm and algorithm not in ['sage', 'bliss']:
+            raise ValueError("'algorithm' must be equal to 'bliss', 'sage', or None")
+        if algorithm != 'bliss' and not return_graph:
+            raise ValueError("return_graph=False can only be used with algorithm='bliss'")
+        has_multiedges = self.has_multiple_edges()
+        if has_multiedges and algorithm == 'bliss':  # See trac #21704
+            raise NotImplementedError("algorithm 'bliss' can not be used for graph with multiedges")
+        if edge_labels and algorithm == 'bliss':
+            raise NotImplementedError("algorithm 'bliss' can not be used when edge_labels=True")
+
+        # Check bliss if explicitly requested, raise if not found.
+        if algorithm == 'bliss':
             from sage.graphs.bliss import canonical_form
-            have_bliss = True
-        except ImportError:
-            have_bliss = False
 
-        # See trac #21704
-        if self.has_multiple_edges():
-            if algorithm == 'bliss':
-                raise NotImplementedError("algorithm 'bliss' can not be used for graph with multiedges")
-            have_bliss = False
+        # By default use bliss when possible
+        if algorithm is None:
+            algorithm = 'sage'
+            if not has_multiedges and not edge_labels:
+                try:
+                    from sage.graphs.bliss import canonical_form
+                    algorithm = 'bliss'
+                except ImportError:
+                    pass
 
-        if (algorithm == 'bliss'           or  # explicit request; or
-            (algorithm is None             and # default choice
-             have_bliss and
-             not edge_labels)):
-            if edge_labels:
-                raise ValueError("bliss cannot be used when edge_labels is True")
-            if not have_bliss:
-                from sage.misc.package import PackageNotFoundError
-                raise PackageNotFoundError("bliss")
-
+        if algorithm == 'bliss':
+            if return_graph:
+                vert_dict = canonical_form(self, partition, certificate=True)[1]
+                if not certificate:
+                    return self.relabel(vert_dict, inplace=False)
+                return (self.relabel(vert_dict, inplace=False), vert_dict)
             return canonical_form(self, partition, return_graph, certificate)
 
-        if (algorithm is not None and
-            algorithm != "sage"):
-            raise ValueError("'algorithm' must be equal to 'bliss', 'sage', or None")
-
+        # algorithm == 'sage':
         from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
 
         dig = (self.has_loops() or self._directed)
@@ -21974,7 +22016,7 @@ class GenericGraph(GenericGraph_pyx):
                 HB.add_edge(u,v,None,G._directed)
             GC = HB.c_graph()[0]
             partition = [[G_to[v] for v in cell] for cell in partition]
-            a,b,c = search_tree(GC, partition, certificate=True, dig=dig, verbosity=verbosity)
+            a,b,c = search_tree(GC, partition, certificate=True, dig=dig)
             # c is a permutation to the canonical label of G, which depends only on isomorphism class of self.
             H = copy(self)
             c_new = {}
@@ -21995,10 +22037,10 @@ class GenericGraph(GenericGraph_pyx):
         HB = H._backend
         for u,v in self.edge_iterator(labels=False):
             u = G_to[u]; v = G_to[v]
-            HB.add_edge(u,v,None,self._directed)
+            HB.add_edge(u, v, None, self._directed)
         GC = HB.c_graph()[0]
         partition = [[G_to[v] for v in cell] for cell in partition]
-        a,b,c = search_tree(GC, partition, certificate=True, dig=dig, verbosity=verbosity)
+        a,b,c = search_tree(GC, partition, certificate=True, dig=dig)
         H = copy(self)
         c_new = {}
         for v in G_to:

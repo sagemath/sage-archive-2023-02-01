@@ -925,7 +925,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
 
         OUTPUT:
 
-        The lagrange polynomial.
+        The Lagrange polynomial.
 
         EXAMPLES::
 

@@ -789,7 +789,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         cdef long mpos
         cdef MPolynomial_libsingular Element
         cdef MPolynomialRing_libsingular El_parent
-        cdef unsigned int i, j
+        cdef int i, j
         cdef list ind_map = []
         cdef int e
         if _ring!=currRing: rChangeCurrRing(_ring)

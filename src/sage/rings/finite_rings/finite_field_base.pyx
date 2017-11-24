@@ -983,15 +983,16 @@ cdef class FiniteField(Field):
             else:
                 return PolynomialRing(GF(self.characteristic()), variable_name)
 
-    def vector_space(self, subfield=None, basis=None, map=False, inclusion_map=None):
+    def vector_space(self, subfield=None, basis=None, map=False):
         """
         Return the vector space over the subfield isomorphic to this
         finite field as a vector space, along with the isomorphisms.
 
         INPUT:
 
-        - ``subfield`` -- a subfield of or a morphism into the finite field.
-          If not given, the prime subfield is assumed.
+        - ``subfield`` -- a subfield of or a morphism into this finite field.
+          If not given, the prime subfield is assumed. A subfield means
+          a finite field with coercion to this finite field.
 
         - ``basis`` -- a basis of the finite field as a vector space
           over the subfield. If not given, one is chosen automatically.
@@ -999,22 +1000,19 @@ cdef class FiniteField(Field):
         - ``map`` -- boolean (default: ``False``); if ``True``, isomophisms
           from and to the vector space are also returned.
 
-        - ``inclusion_map`` -- a morphism from a finite field into this finite
-          field. If this is not given and ``subfield`` is given, the coercion
-          map of the ``subfield`` to this finite field is assumed.
-
         The ``basis`` maps to the standard basis of the vector space
         by the isomorphisms.
 
         OUTPUT: if ``map`` is ``False``,
 
-        - vector space over the subfield, isomorphic to the finite field
+        - vector space over the subfield or the domain of the morphism,
+          isomorphic to this finite field.
 
         and if ``map`` is ``True``, then also
 
-        - an isomorphism fromhe vector space to the finite field
+        - an isomorphism from the vector space to the finite field.
 
-        - the inverse isomorphism to the vector space from the finite field
+        - the inverse isomorphism to the vector space from the finite field.
 
         EXAMPLES::
 
@@ -1071,6 +1069,7 @@ cdef class FiniteField(Field):
             if self.__vector_space is None:
                 self.__vector_space = VectorSpace(subfield, s)
             V = self.__vector_space
+            inclusion_map = None
         elif is_Morphism(subfield):
             inclusion_map = subfield
             subfield = inclusion_map.domain()
@@ -1079,6 +1078,7 @@ cdef class FiniteField(Field):
         elif subfield.is_subring(self):
             s = self.degree() // subfield.degree()
             V = VectorSpace(subfield, s)
+            inclusion_map = None
         else:
             raise ValueError("{} is not a subfield".format(subfield))
 
@@ -1111,7 +1111,9 @@ cdef class FiniteField(Field):
 
         C = matrix(E.prime_subfield(), E.degree(), E.degree(),
                    [E_basis_beta[i]._vector_() for i in range(E.degree())])
+        C.set_immutable()
         Cinv = C.inverse()
+        Cinv.set_immutable()
 
         phi = MorphismVectorSpaceToFiniteField(V, self, C)
         psi = MorphismFiniteFieldToVectorSpace(self, V, Cinv)

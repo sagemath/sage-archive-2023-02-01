@@ -71,8 +71,6 @@ class FiniteFieldVectorSpaceIsomorphism(Morphism):
         """
         return True
 
-# from_V
-# needs C
 class MorphismVectorSpaceToFiniteField(FiniteFieldVectorSpaceIsomorphism):
     """
     Isomorphisms from vector spaces to finite fields.

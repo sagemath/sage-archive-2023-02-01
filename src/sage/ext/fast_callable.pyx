@@ -1655,8 +1655,8 @@ cpdef dict get_builtin_functions():
 
         sage: from sage.ext.fast_callable import get_builtin_functions
         sage: builtins = get_builtin_functions()
-        sage: sorted(list(builtins.values()))
-        ['abs', 'abs', 'acos', 'acosh', 'add', 'asin', 'asinh', 'atan', 'atanh', 'ceil', 'cos', 'cosh', 'cot', 'csc', 'div', 'div', 'exp', 'floor', 'floordiv', 'inv', 'log', 'mul', 'neg', 'pow', 'sec', 'sin', 'sinh', 'sqrt', 'sub', 'tan', 'tanh']
+        sage: set(builtins.values())
+        {'abs', 'acos', 'acosh', 'add', 'asin', 'asinh', 'atan', 'atanh', 'ceil', 'cos', 'cosh', 'cot', 'csc', 'div', 'exp', 'floor', 'floordiv', 'inv', 'log', 'mul', 'neg', 'pow', 'sec', 'sin', 'sinh', 'sqrt', 'sub', 'tan', 'tanh'}
         sage: builtins[sin]
         'sin'
         sage: builtins[ln]
@@ -1970,7 +1970,7 @@ cdef class InstructionStream:
 
         - metadata -- The metadata_by_opname from a wrapper module
 
-        - n_args - The number of arguments accessible by the generated code
+        - n_args -- The number of arguments accessible by the generated code
           (this is just passed to the wrapper class)
 
         - domain -- The domain of interpretation (this is just passed to the

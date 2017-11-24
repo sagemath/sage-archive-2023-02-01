@@ -676,7 +676,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             """
             Return ``True`` since ``self`` is a real reflection group.
 
-            EXMAPLES::
+            EXAMPLES::
 
                 sage: CoxeterGroup(['F',4]).is_real()
                 True

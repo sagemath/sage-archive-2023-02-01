@@ -199,7 +199,7 @@ The top of each Sage code file should follow this format::
 
     """
 
-    #*****************************************************************************
+    # ****************************************************************************
     #       Copyright (C) 2013 YOUR NAME <your email>
     #
     # This program is free software: you can redistribute it and/or modify
@@ -207,7 +207,7 @@ The top of each Sage code file should follow this format::
     # the Free Software Foundation, either version 2 of the License, or
     # (at your option) any later version.
     #                  http://www.gnu.org/licenses/
-    #*****************************************************************************
+    # ****************************************************************************
 
 As an example, see ``SAGE_ROOT/src/sage/rings/integer.pyx``, which contains the
 implementation for `\ZZ`. The names of the people who made major contributions

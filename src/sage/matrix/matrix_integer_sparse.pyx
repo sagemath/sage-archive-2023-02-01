@@ -49,16 +49,6 @@ from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 
 
 cdef class Matrix_integer_sparse(Matrix_sparse):
-
-    ########################################################################
-    # LEVEL 1 functionality
-    #   * __cinit__
-    #   * __dealloc__
-    #   * __init__
-    #   * set_unsafe
-    #   * get_unsafe
-    #   * __hash__       -- always simple
-    ########################################################################
     def __cinit__(self, parent, entries, copy, coerce):
         self._initialized = False
         # set the parent, nrows, ncols, etc.
@@ -159,9 +149,6 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
         x = Integer()
         mpz_vector_get_entry(x.value, &self._matrix[i], j)
         return x
-
-    def __hash__(self):
-        return self._hash()
 
     ########################################################################
     # LEVEL 2 functionality

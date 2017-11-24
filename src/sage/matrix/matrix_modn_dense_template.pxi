@@ -584,7 +584,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
                     v[j] = <celement>(entries[k])
                 k = k + 1
 
-    def __hash__(self):
+    cdef long _hash_(self) except -1:
         """
         EXAMPLES::
 
@@ -598,15 +598,16 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             sage: M = random_matrix(GF(7), 10, 10)
             sage: M.set_immutable()
             sage: hash(M)
-            143
+            -5724333594806680561  # 64-bit
+            -1581874161           # 32-bit
             sage: MZ = M.change_ring(ZZ)
             sage: MZ.set_immutable()
-            sage: hash(MZ)
-            143
+            sage: hash(MZ) == hash(M)
+            True
             sage: MS = M.sparse_matrix()
             sage: MS.set_immutable()
-            sage: hash(MS)
-            143
+            sage: hash(MS) == hash(M)
+            True
 
         TESTS::
 
@@ -619,34 +620,25 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             sage: hash(A)
             0
         """
-        if self.is_mutable():
-            raise TypeError("Mutable matrices are unhashable.")
-        x = self.fetch('hash')
-        if not x is None:
-            return x
+        cdef long C[5]
+        self.get_hash_constants(C)
 
-        cdef long _hash = 0
-        cdef celement *_matrix
-        cdef long n = 0
+        cdef long h = 0, k, l
         cdef Py_ssize_t i, j
-
-        if self._nrows == 0 or self._ncols == 0:
-            return 0
-
+        cdef celement* row
         sig_on()
         for i in range(self._nrows):
-            _matrix = self._matrix[i]
+            k = C[0] if i == 0 else C[1] + C[2] * i
+            row = self._matrix[i]
             for j in range(self._ncols):
-                _hash ^= <long>(n * _matrix[j])
-                n+=1
+                l = C[3] * (i - j) * (i ^ j)
+                h += (k ^ l) * <long>(row[j])
+        h *= C[4]
         sig_off()
 
-        if _hash == -1:
+        if h == -1:
             return -2
-
-        self.cache('hash', _hash)
-
-        return _hash
+        return h
 
     def _pickle(self):
         """

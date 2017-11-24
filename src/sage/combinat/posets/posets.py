@@ -2275,15 +2275,23 @@ class FinitePoset(UniqueRepresentation, Parent):
                 raise TypeError("%s is not a tuple of tuples." % str(tuple(m)))
             if not all(len(chain_pair) is 2 for chain_pair in chain_pairs):
                 raise ValueError("%r is not a tuple of length-2 tuples." % str(tuple(m)))
-            return all(self.is_incomparable_chain_free(*chain_pair) for chain_pair in chain_pairs)
-        try:
-            m, n = Integer(m), Integer(n)
-        except TypeError:
-            raise TypeError("%s and %s must be integers." % (m, n))
-        if m < 1 or n < 1:
-            raise ValueError("%s and %s must be positive integers." % (m, n))
-        twochains = digraphs.TransitiveTournament(m) + digraphs.TransitiveTournament(n)
-        return self._hasse_diagram.transitive_closure().subgraph_search(twochains, induced = True) is None
+            chain_pairs = sorted(chain_pairs, key=min)
+        else:
+            chain_pairs = [(m, n)]
+
+        if chain_pairs:
+            closure = self._hasse_diagram.transitive_closure()
+        for m, n in chain_pairs:
+            try:
+                m, n = Integer(m), Integer(n)
+            except TypeError:
+                raise TypeError("%s and %s must be integers." % (m, n))
+            if m < 1 or n < 1:
+                raise ValueError("%s and %s must be positive integers." % (m, n))
+            twochains = digraphs.TransitiveTournament(m) + digraphs.TransitiveTournament(n)
+            if closure.subgraph_search(twochains, induced=True) is not None:
+                return False
+        return True
 
     def is_lequal(self, x, y):
         """
@@ -3882,7 +3890,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         To get the antichains as, say, sets, one may use the
         ``element_constructor`` option::
 
-            sage: list(Posets.ChainPoset(3).antichains(element_constructor=set))
+            sage: list(posets.ChainPoset(3).antichains(element_constructor=set))
             [set(), {0}, {1}, {2}]
 
         To get the antichains of a given size one can currently use::
@@ -4261,7 +4269,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = posets.BooleanLattice(2)
             sage: Q = P.product(P)
-            sage: Q.is_isomorphic(Posets.BooleanLattice(4))
+            sage: Q.is_isomorphic(posets.BooleanLattice(4))
             True
 
         One can also simply use `*`::
@@ -4692,7 +4700,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: A(2) < A(1)
             True
 
-        .. SEEALSO:: :meth:`~sage.categories.finite_posets.FinitePosets.ParentMethods.is_selfdual`
+        .. SEEALSO:: :meth:`~sage.categories.finite_posets.FinitePosets.ParentMethods.is_self_dual`
 
         TESTS::
 

@@ -37,6 +37,7 @@ from sage.structure.sage_object import register_unpickle_override
 from sage.misc.cachefunc import cached_method
 from sage.misc.prandom import randrange
 
+
 # Copied from sage.misc.fast_methods, used in __hash__() below.
 cdef int SIZEOF_VOID_P_SHIFT = 8*sizeof(void *) - 4
 
@@ -982,23 +983,140 @@ cdef class FiniteField(Field):
             else:
                 return PolynomialRing(GF(self.characteristic()), variable_name)
 
-    def vector_space(self):
+    def vector_space(self, subfield=None, basis=None, map=False, inclusion_map=None):
         """
-        Return the vector space over the prime subfield isomorphic
-        to this finite field as a vector space.
+        Return the vector space over the subfield isomorphic to this
+        finite field as a vector space, along with the isomorphisms.
+
+        INPUT:
+
+        - ``subfield`` -- a subfield of or a morphism into the finite field.
+          If not given, the prime subfield is assumed.
+
+        - ``basis`` -- a basis of the finite field as a vector space
+          over the subfield. If not given, one is chosen automatically.
+
+        - ``map`` -- boolean (default: ``False``); if ``True``, isomophisms
+          from and to the vector space are also returned.
+
+        - ``inclusion_map`` -- a morphism from a finite field into this finite
+          field. If this is not given and ``subfield`` is given, the coercion
+          map of the ``subfield`` to this finite field is assumed.
+
+        The ``basis`` maps to the standard basis of the vector space
+        by the isomorphisms.
+
+        OUTPUT: if ``map`` is ``False``,
+
+        - vector space over the subfield, isomorphic to the finite field
+
+        and if ``map`` is ``True``, then also
+
+        - an isomorphism fromhe vector space to the finite field
+
+        - the inverse isomorphism to the vector space from the finite field
 
         EXAMPLES::
 
             sage: GF(27,'a').vector_space()
             Vector space of dimension 3 over Finite Field of size 3
+
+            sage: F = GF(8)
+            sage: E = GF(64)
+            sage: V, from_V, to_V = E.vector_space(F, map=True)
+            sage: V
+            Vector space of dimension 2 over Finite Field in z3 of size 2^3
+            sage: to_V(E.gen())
+            (0, 1)
+            sage: all(from_V(to_V(e)) == e for e in E)
+            True
+            sage: all(to_V(e1 + e2) == to_V(e1) + to_V(e2) for e1 in E for e2 in E)
+            True
+            sage: all(to_V(c * e) == c * to_V(e) for e in E for c in F)
+            True
+
+            sage: basis = [E.gen(), E.gen() + 1]
+            sage: W, from_W, to_W = E.vector_space(F, basis, map=True)
+            sage: all(from_W(to_W(e)) == e for e in E)
+            True
+            sage: all(to_W(c * e) == c * to_W(e) for e in E for c in F)
+            True
+            sage: all(to_W(e1 + e2) == to_W(e1) + to_W(e2) for e1 in E for e2 in E)
+            True
+            sage: to_W(basis[0]); to_W(basis[1])
+            (1, 0)
+            (0, 1)
+
+            sage: F = GF(9, 't', modulus=(x^2+x-1))
+            sage: E = GF(81)
+            sage: h = Hom(F,E).an_element()
+            sage: V, from_V, to_V = E.vector_space(h, map=True)
+            sage: V
+            Vector space of dimension 2 over Finite Field in t of size 3^2
+            sage: V.base_ring() is F
+            True
+            sage: all(from_V(to_V(e)) == e for e in E)
+            True
+            sage: all(to_V(e1 + e2) == to_V(e1) + to_V(e2) for e1 in E for e2 in E)
+            True
+            sage: all(to_V(h(c) * e) == c * to_V(e) for e in E for c in F)
+            True
         """
-        if self.__vector_space is not None:
-            return self.__vector_space
+        from sage.modules.all import VectorSpace
+        from sage.categories.morphism import is_Morphism
+
+        if subfield is None:
+            subfield = self.prime_subfield()
+            s = self.degree()
+            if self.__vector_space is None:
+                self.__vector_space = VectorSpace(subfield, s)
+            V = self.__vector_space
+        elif is_Morphism(subfield):
+            inclusion_map = subfield
+            subfield = inclusion_map.domain()
+            s = self.degree() // subfield.degree()
+            V = VectorSpace(subfield, s)
+        elif subfield.is_subring(self):
+            s = self.degree() // subfield.degree()
+            V = VectorSpace(subfield, s)
         else:
-            import sage.modules.all
-            V = sage.modules.all.VectorSpace(self.prime_subfield(),self.degree())
-            self.__vector_space = V
+            raise ValueError("{} is not a subfield".format(subfield))
+
+        if map is False: # shortcut
             return V
+
+        if inclusion_map is None:
+            inclusion_map = self.coerce_map_from(subfield)
+
+        from sage.modules.all import vector
+        from sage.matrix.all import matrix
+        from .maps_finite_field import (
+            MorphismVectorSpaceToFiniteField, MorphismFiniteFieldToVectorSpace)
+
+        E = self
+        F = subfield
+
+        alpha = E.gen()
+        beta = F.gen()
+
+        if basis is None:
+            basis = [alpha**i for i in range(s)] # of E over F
+
+        F_basis = [beta**i for i in range(F.degree())]
+
+        # E_basis_alpha is the implicit basis of E over the prime subfield
+        E_basis_beta = [inclusion_map(F_basis[i]) * basis[j]
+                        for j in range(s)
+                        for i in range(F.degree())]
+
+        C = matrix(E.prime_subfield(), E.degree(), E.degree(),
+                   [E_basis_beta[i]._vector_() for i in range(E.degree())])
+        Cinv = C.inverse()
+
+        phi = MorphismVectorSpaceToFiniteField(V, self, C)
+        psi = MorphismFiniteFieldToVectorSpace(self, V, Cinv)
+
+        return V, phi, psi
 
     cpdef _coerce_map_from_(self, R):
         r"""
@@ -1161,6 +1279,9 @@ cdef class FiniteField(Field):
             sage: R.<x> = k[]
             sage: k.extension(3)
             Finite Field in z12 of size 3^12
+            sage: K = k.extension(2, 'a')
+            sage: k.is_subring(K)
+            True
 
         An example using the ``map`` argument::
 
@@ -1211,16 +1332,25 @@ cdef class FiniteField(Field):
                     E = Field.extension(self, modulus, name=name, embedding=embedding)
         elif isinstance(modulus, (int, Integer)):
             E = GF(self.order()**modulus, name=name, **kwds)
+            if E is self:
+                pass # coercion map (identity map) is automatically found
+            elif hasattr(E, '_prefix') and hasattr(self, '_prefix'):
+                pass # coercion map is automatically found
+            else:
+                if self.is_conway(): # and E is Conway
+                    alpha = E.gen()**((E.order()-1)//(self.order()-1))
+                else:
+                    alpha = self.modulus().any_root(E)
+                try: # to register a coercion map (embedding of self to E)
+                    E.register_coercion(self.hom([alpha], codomain=E, check=False))
+                except AssertionError: # coercion already exists
+                    pass
         else:
             E = Field.extension(self, modulus, name=name, embedding=embedding)
-        if not map:
+        if map:
+            return (E, E.coerce_map_from(self))
+        else:
             return E
-        # Use the canonical map if it exists.
-        f = E.coerce_map_from(self)
-        if f is None:
-            from sage.categories.homset import Hom
-            f = Hom(self, E).an_element()
-        return (E, f)
 
     def subfields(self, degree=0, name=None):
         """

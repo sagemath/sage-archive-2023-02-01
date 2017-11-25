@@ -1,3 +1,51 @@
+r"""
+Finitely generated `\ZZ`-modules with non-degenerate integral
+symmetric bilinear form.
+
+An integral lattice is a finitely generated free abelian group
+`L \cong \ZZ^r` equipped with a non-degenerate, symmetric bilinear
+form `L \times L \colon \rightarrow \ZZ`.
+
+Here, lattices have an ambient quadratic space `\QQ^n` and
+a distinguished basis.
+
+EXAMPLES::
+
+    sage: M = Matrix(ZZ, [[0,1], [1,0]])
+    sage: IntegralLattice(M)
+    Lattice of degree 2 and rank 2 over Integer Ring
+    Basis matrix:
+    [1 0]
+    [0 1]
+    Inner product matrix:
+    [0 1]
+    [1 0]
+
+A lattice can be defined by an inner product matrix of the
+ambient space and a basis::
+
+    sage: G = matrix.identity(3)
+    sage: basis = [[1,-1,0],[0,1,-1]]
+    sage: L = IntegralLattice(G,basis)
+    sage: L
+    Lattice of degree 3 and rank 2 over Integer Ring
+    Basis matrix:
+    [ 1 -1  0]
+    [ 0  1 -1]
+    Inner product matrix:
+    [1 0 0]
+    [0 1 0]
+    [0 0 1]
+
+    sage: L.gram_matrix()
+    [ 2 -1]
+    [-1  2]
+
+AUTHORS:
+
+- Simon Brandhorst (2017-09): First created
+"""
+
 #*****************************************************************************
 #       Copyright (C) 2017 Simon Brandhorst <sbrandhorst@web.de>
 #
@@ -24,9 +72,9 @@ def IntegralLattice(inner_product_matrix, basis=None):
     r"""
     Return the integral lattice spanned by ``basis`` in the ambient space.
 
-    A lattice is a finitely generated free abelian group `L \cong \Z^r` equipped
-    with a non-degenerate, symmetric bilinear form `L \times L \colon \rightarrow \Z`.
-    Here, lattices have an ambient quadratic space `\Q^n` and a distinguished basis.
+    A lattice is a finitely generated free abelian group `L \cong \ZZ^r` equipped
+    with a non-degenerate, symmetric bilinear form `L \times L \colon \rightarrow \ZZ`.
+    Here, lattices have an ambient quadratic space `\QQ^n` and a distinguished basis.
 
     INPUT:
 
@@ -41,7 +89,6 @@ def IntegralLattice(inner_product_matrix, basis=None):
 
     EXAMPLES::
 
-        sage: from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice
         sage: IntegralLattice(Matrix(ZZ,2,2,[0,1,1,0]))
         Lattice of degree 2 and rank 2 over Integer Ring
         Basis matrix:
@@ -80,7 +127,7 @@ def IntegralLattice(inner_product_matrix, basis=None):
 
 class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_basis_pid):
     r"""
-    This class represents non-degenerate, integral, symmetric free quadratic `\Z`-modules.
+    This class represents non-degenerate, integral, symmetric free quadratic `\ZZ`-modules.
 
     INPUT:
 
@@ -92,7 +139,6 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
     EXAMPLES::
 
-        sage: from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice
         sage: IntegralLattice(Matrix(ZZ,2,2,[0,1,1,0]),basis=[vector([1,1])])
         Lattice of degree 2 and rank 1 over Integer Ring
         Basis matrix:
@@ -107,7 +153,6 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         TESTS::
 
-            sage: from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice
             sage: L = IntegralLattice(Matrix(ZZ,2,2,[0,1,1,0]))
             sage: TestSuite(L).run()
         """
@@ -124,7 +169,6 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         EXAMPLES::
 
-            sage: from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice
             sage: A2 = IntegralLattice(matrix(ZZ,2,2,[2,-1,-1,2]))
             sage: A2
             Lattice of degree 2 and rank 2 over Integer Ring
@@ -153,7 +197,6 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         EXAMPLES::
 
-            sage: from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice
             sage: L = IntegralLattice(Matrix(ZZ,2,2,[-1,1,1,2]))
             sage: L.is_even()
             False
@@ -175,7 +218,6 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         EXAMPLES::
 
-            sage: from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice
             sage: L = IntegralLattice(Matrix(ZZ,2,2,[2,-1,-1,2]))
             sage: Ldual=L.dual_lattice()
             sage: Ldual
@@ -206,23 +248,32 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         EXAMPLES::
 
-            sage: from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice
             sage: L = IntegralLattice(Matrix(ZZ,2,2,[2,1,1,-2])*2)
             sage: L.discriminant_group()
-            Finitely generated module V/W over Integer Ring with invariants (2, 10)
+            Finite quadratic module over Integer Ring with invariants (2, 10)
+            Gram matrix of the quadratic form with values in Q/2Z:
+            [  1 1/2]
+            [1/2 9/5]
             sage: L.discriminant_group(2)
-            Finitely generated module V/W over Integer Ring with invariants (2, 2)
+            Finite quadratic module over Integer Ring with invariants (2, 2)
+            Gram matrix of the quadratic form with values in Q/2Z:
+            [  1 1/2]
+            [1/2   1]
             sage: L.discriminant_group(5)
-            Finitely generated module V/W over Integer Ring with invariants (5)
+            Finite quadratic module over Integer Ring with invariants (5,)
+            Gram matrix of the quadratic form with values in Q/2Z:
+            [6/5]
 
         TESTS::
 
-            sage: from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice
             sage: L = IntegralLattice(Matrix(ZZ,2,2,[0,1,1,0]))
             sage: L.discriminant_group()
-            Finitely generated module V/W over Integer Ring with invariants ()
+            Finite quadratic module over Integer Ring with invariants ()
+            Gram matrix of the quadratic form with values in Q/2Z:
+            []
         """
-        D = self.dual_lattice() / self
+        from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
+        D = TorsionQuadraticModule(self.dual_lattice(), self)
         d = D.annihilator().gen()
         a = d.prime_to_m_part(s)
         Dp_gens = [a*g for g in D.gens()]
@@ -236,7 +287,6 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         EXAMPLES::
 
-            sage: from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice
             sage: U = IntegralLattice(Matrix(ZZ,2,2,[0,1,1,0]))
             sage: U.signature()
             0
@@ -253,7 +303,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         EXAMPLES::
 
-            sage: from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice
+
             sage: A2 = IntegralLattice(Matrix(ZZ,2,2,[2,-1,-1,2]))
             sage: A2.signature_pair()
             (2, 0)
@@ -267,11 +317,10 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         INPUT:
 
-        - ``M`` -- a module over `\Z`
+        - ``M`` -- a module over `\ZZ`
 
         EXAMPLES::
 
-            sage: from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice
             sage: A = IntegralLattice(matrix([1]))
             sage: A.direct_sum(A)
             Lattice of degree 2 and rank 2 over Integer Ring
@@ -296,7 +345,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         r"""
         Return whether ``M`` is a primitive submodule of this lattice.
 
-        A `\Z`-submodule ``M`` of a `\Z`-module ``L`` is called primitive if
+        A `\ZZ`-submodule ``M`` of a `\ZZ`-module ``L`` is called primitive if
         the quotient ``L/M`` is torsion free.
 
         INPUT:
@@ -305,7 +354,6 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         EXAMPLES::
 
-            sage: from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice
             sage: U = IntegralLattice(Matrix(ZZ,2,2,[0,1,1,0]))
             sage: L1 = U.span([vector([1,1])])
             sage: L2 = U.span([vector([1,-1])])
@@ -334,7 +382,6 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         EXAMPLES::
 
-            sage: from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice
             sage: L = IntegralLattice(Matrix(ZZ,2,2,[2,1,1,-2]))
             sage: S = L.span([vector([1,1])])
             sage: L.orthogonal_complement(S)
@@ -375,7 +422,6 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         EXAMPLES::
 
-            sage: from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice
             sage: U = IntegralLattice(Matrix(ZZ,2,2,[0,1,1,0]))
             sage: S = U.sublattice([vector([1,1])])
             sage: S
@@ -413,7 +459,6 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         EXAMPLES::
 
-            sage: from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice
             sage: L = IntegralLattice(Matrix(ZZ,2,2,[2,0,0,2]))
             sage: M = L.overlattice([vector([1,1])/2])
             sage: M.gram_matrix()
@@ -432,7 +477,6 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         EXAMPLES::
 
-            sage: from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice
             sage: L = IntegralLattice(Matrix(ZZ,2,2,[0,1,1,0]))
             sage: L.genus()
             Genus of

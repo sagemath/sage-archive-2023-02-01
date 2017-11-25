@@ -495,10 +495,8 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         compute the orthogonal group for positive definite lattices.
         
         EXAMPLES::
-        
-            sage: from sage.modules.free_quadratic_module_integer_symmetric import IntegralLattice
-            sage: A4 = DynkinDiagram("A",4).cartan_matrix()
-            sage: A4 = IntegralLattice(A4)
+
+            sage: A4 = IntegralLattice("A4")
             sage: Aut = A4.orthogonal_group()
             sage: Aut
             Orthogonal group over Rational Field with 5 generators (

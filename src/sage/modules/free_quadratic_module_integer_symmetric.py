@@ -428,7 +428,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
     
     def orthogonal_group(self, gens=None, is_finite=None):
         """
-        Return orthogonal group of this lattice as a matrix group.
+        Return the orthogonal group of this lattice as a matrix group.
         
         The elements are isometries of the ambient vector space 
         which preserve this lattice. They are represented by 
@@ -462,7 +462,23 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             [ 0  0 -1  0]  [0 1 0 0]  [ 0  0  1  1]  [ 0  0  0  1]  [ 0  0  1  1]
             [ 0  0  0 -1], [1 0 0 0], [ 0  1  0  0], [ 0  0  1  0], [ 0  0  0 -1]
             )
-        
+    
+        The group acts from the right::
+
+            sage: x = A4.an_element()
+            sage: g = Aut.an_element()
+            sage: g
+            [ 1  1  1  0]
+            [ 0  0 -1  0]
+            [ 0  0  1  1]
+            [ 0 -1 -1 -1]
+            sage: x*g
+            (1, 1, 1, 0)
+            sage: (x*g).parent()==A4
+            True
+            sage: (g*x).parent()
+            Vector space of dimension 4 over Rational Field
+            
         If the group is finite we can compute the usual things::
         
             sage: Aut.order()
@@ -484,23 +500,24 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             )
 
         It can be negative definite as well::
-        
+
             sage: A2m = IntegralLattice(-Matrix(ZZ,2,[2,1,1,2]))
             sage: G = A2m.orthogonal_group()
             sage: G.order()
             12
-        
+
         If the lattice is indefinite, sage does not know how to compute generators. 
         Can you teach it?::
-        
+
             sage: U = IntegralLattice(Matrix(ZZ,2,[0,1,1,0]))
             sage: U.orthogonal_group()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Currently, we can only compute generators for orthogonal groups over definite lattices.
+            NotImplementedError: Currently, we can only compute generators for 
+            orthogonal groups over definite lattices.
 
         But we can define subgroups::
-        
+
             sage: S = IntegralLattice(Matrix(ZZ,2,[2, 3, 3, 2]))
             sage: f = Matrix(ZZ,2,[0,1,-1,3])
             sage: S.orthogonal_group([f])
@@ -508,7 +525,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             [ 0  1]
             [-1  3]
             )
-            
+
         TESTS:
         
         We can handle the trivial group::
@@ -555,9 +572,16 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             cat = Groups().Finite()
         else:
             cat = None
-        G = OrthogonalMatrixGroup_with_gap(deg, base, gens, inv_bil, category=cat)
-        return(G)
-
+        G = OrthogonalMatrixGroup_with_gap(deg,
+                                           base,
+                                           gens,
+                                           inv_bil,
+                                           category=cat,
+                                           invariant_submodule=self)
+        return G
+    
+    automorphisms=orthogonal_group
+    
     def genus(self):
         r"""
         Return the genus of this lattice.

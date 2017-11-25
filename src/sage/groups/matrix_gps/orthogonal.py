@@ -85,7 +85,7 @@ from sage.misc.cachefunc import cached_method
 from sage.groups.matrix_gps.named_group import (
     normalize_args_vectorspace, NamedMatrixGroup_generic, NamedMatrixGroup_gap )
 from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGroup_gap
-
+from sage.categories.action import Action
 
 def normalize_args_e(degree, ring, e):
     """
@@ -472,9 +472,11 @@ class OrthogonalMatrixGroup_with_gap(FinitelyGeneratedMatrixGroup_gap):
 
         - ``check`` -- bool (default: ``True``) - check if the generators
           preserve the bilinear form
-        
+        - ``invariant_submodule`` -- a submodule preserved by the group action 
+         (default: None) registers an action on this submodule.
+
     EXAMPLES::
-    
+
         sage: from sage.groups.matrix_gps.orthogonal import OrthogonalMatrixGroup_with_gap
         sage: bil = Matrix(ZZ,2,[3,2,2,3])
         sage: gens = [-Matrix(ZZ,2,[0,1,1,0])]
@@ -495,10 +497,10 @@ class OrthogonalMatrixGroup_with_gap(FinitelyGeneratedMatrixGroup_gap):
         sage: O.cardinality()
         +Infinity
     """
-    
+
     def __init__(self, degree, base_ring,
                  gens, invariant_bilinear_form, 
-                 category=None, check=True):
+                 category=None, check=True, invariant_submodule=None):
         """
         Initialization 
             
@@ -514,6 +516,7 @@ class OrthogonalMatrixGroup_with_gap(FinitelyGeneratedMatrixGroup_gap):
         G = copy(invariant_bilinear_form)
         G.set_immutable()
         self._invariant_bilinear_form = G
+        self.invariant_submodule = invariant_submodule
         if check:
             for f in gens:
                 self._check_matrix(f)
@@ -577,6 +580,12 @@ class OrthogonalMatrixGroup_with_gap(FinitelyGeneratedMatrixGroup_gap):
         """
         return self._invariant_bilinear_form
 
+    def _get_action_(self,S,op, self_on_left):
+        import operator
+        if S is self.invariant_submodule and op == operator.mul and not self_on_left:
+            return GroupActionOnSubmodule(self,S)
+        return None
+    
     def _check_matrix(self, x, *args):
         """
         Check whether the matrix ``x`` preserves the bilinear form.
@@ -598,4 +607,72 @@ class OrthogonalMatrixGroup_with_gap(FinitelyGeneratedMatrixGroup_gap):
         """
         F = self.invariant_bilinear_form()
         if x * F * x.transpose() != F:
-            raise TypeError('matrix must be orthogonal with respect to the invariant form')
+            raise TypeError('matrix must be orthogonal '
+                'with respect to the invariant form')
+        
+class GroupActionOnSubmodule(Action):
+    """
+    Matrix group action on a submodule from the right.
+    
+    INPUT:
+
+        - MatrixGroup 
+        - submodule -- an invariant submodule
+        - is_left -- bool (default: False)
+
+    EXAMPLES::
+
+        sage: from sage.groups.matrix_gps.orthogonal import OrthogonalMatrixGroup_with_gap
+        sage: S = span(ZZ,[[0,1]])
+        sage: g = Matrix(QQ,2,[1,0,0,-1])
+        sage: G = OrthogonalMatrixGroup_with_gap(2, ZZ, [g], invariant_bilinear_form=matrix.identity(2), invariant_submodule=S)
+        sage: g = G.an_element()
+        sage: x = S.an_element()
+        sage: x*g
+        (0, -1)
+        sage: (x*g).parent()
+        Free module of degree 2 and rank 1 over Integer Ring
+        Echelon basis matrix:
+        [0 1]
+    """
+    def __init__(self,MatrixGroup,submodule,is_left=False):
+        """
+        Initialize the action
+        """
+        import operator
+        Action.__init__(self, MatrixGroup, submodule, is_left, operator.mul)
+
+    def _call_(self, a, g):
+        """
+        This defines the group action.
+
+        INPUT:
+
+                - a -- an element of the invariant submodule
+                - g -- an element of the acting group
+
+        OUTPUT:
+
+                - an element of the invariant submodule
+
+        EXAMPLES::
+
+            sage: from sage.groups.matrix_gps.orthogonal import GroupActionOnSubmodule
+            sage: S = span(QQ,[[0,1]])
+            sage: g = Matrix(QQ,2,[1,1,0,1/2])
+            sage: G = MatrixGroup([g])
+            sage: A = GroupActionOnSubmodule(G,S)
+            Right action by Matrix group over Rational Field with 1 generators (
+            [  1   1]
+            [  0 1/2]
+            ) on Vector space of degree 2 and dimension 1 over Rational Field
+            Basis matrix:
+            [0 1]
+            sage: s = S.an_element()
+            sage: g = G.an_element()
+            sage: A(s,g).parent()
+            Vector space of degree 2 and dimension 1 over Rational Field
+            Basis matrix:
+            [0 1]
+        """
+        return(a.parent()(a*g.matrix()))

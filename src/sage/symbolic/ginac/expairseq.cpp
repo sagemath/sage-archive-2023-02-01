@@ -474,10 +474,6 @@ found:		;
 
 ex expairseq::subs(const exmap & m, unsigned options) const
 {
-        if (std::all_of(m.cbegin(), m.cend(),
-                                [](std::pair<ex,ex> p) 
-                                { return not haswild(p.first); } ))
-                options |= subs_options::no_pattern;
 	std::unique_ptr<epvector> vp = subschildren(m, options);
 	if (vp.get() != nullptr)
 		return ex_to<basic>(thisexpairseq(std::move(vp), overall_coeff, (options & subs_options::no_index_renaming) == 0));

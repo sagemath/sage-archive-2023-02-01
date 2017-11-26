@@ -604,10 +604,6 @@ ex basic::subs_one_level(const exmap & m, unsigned options) const
  *  will already be evaluated. */
 ex basic::subs(const exmap & m, unsigned options) const
 {
-        if (std::all_of(m.cbegin(), m.cend(),
-                                [](std::pair<ex,ex> p) 
-                                { return not haswild(p.first); } ))
-                options |= subs_options::no_pattern;
 	size_t num = nops();
 	if (num != 0u) {
 

@@ -28,8 +28,10 @@ import operator
 
 
 
-from sage.structure.element cimport Element
+from sage.structure.element cimport Element, ModuleElement
 from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
+from sage.structure.parent cimport Parent
+
 
 def is_Morphism(x):
     return isinstance(x, Morphism)
@@ -304,12 +306,6 @@ cdef class Morphism(Map):
         """
         self._codomain.register_conversion(self)
 
-    # You *must* override this method in all cython classes
-    # deriving from this class.
-    # If you are happy with this implementation (typically
-    # is your domain has generators), simply write:
-    # def __hash__(self):
-    #     return Morphism.__hash__(self)
     def __hash__(self):
         """
         Return a hash of this morphism.
@@ -335,29 +331,39 @@ cdef class Morphism(Map):
             definition = repr(self)
         return hash((domain, codomain, definition))
 
-    cpdef _richcmp_(left, right, int op):
-        if left is right:
+    cpdef _richcmp_(self, other, int op):
+        """
+        Generic comparison function for morphisms.
+
+        We check the images of the generators of the domain under both
+        maps. We then iteratively check the base.
+        """
+        if self is other:
             return rich_to_bool(op, 0)
-        if not isinstance(right, Morphism):
-            return NotImplemented
-        ldomain = left.domain()
-        rdomain = right.domain()
-        if ldomain != rdomain:
-            return richcmp_not_equal(ldomain, rdomain, op)
-        lcodomain = left.codomain()
-        rcodomain = right.codomain()
-        if lcodomain != rcodomain:
-            return richcmp_not_equal(lcodomain, rcodomain, op)
-        try:
-            gens = ldomain.gens()
-            for x in gens:
-                lx = left(x)
-                rx = right(x)
-                if lx != rx:
-                    return richcmp_not_equal(lx, rx, op)
-            return rich_to_bool(op, 0)
-        except (AttributeError, NotImplementedError):
-            return NotImplemented
+
+        cdef Parent domain = <Parent?>self.domain()
+        e = None
+        while True:
+            # If e is a ModuleElement, then this is not the first
+            # iteration and we are really in the base structure.
+            #
+            # If so, we see the base as a ring of scalars and create new
+            # gens by picking an element of the initial domain (e) and
+            # multiplying it with the gens of the scalar ring.
+            gens = domain.gens()
+            if e is not None and isinstance(e, ModuleElement):
+                gens = [(<ModuleElement>e)._lmul_(x) for x in gens]
+            for e in gens:
+                x = self(e)
+                y = other(e)
+                if x != y:
+                    return richcmp_not_equal(x, y, op)
+            # Check base
+            base = domain._base
+            if base is None or base is domain:
+                break
+            domain = <Parent?>base
+        return rich_to_bool(op, 0)
 
     def __nonzero__(self):
         r"""

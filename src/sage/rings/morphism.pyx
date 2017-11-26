@@ -343,6 +343,36 @@ TESTS::
     sage: f = R.hom([t^5])
     sage: f == loads(dumps(f))
     True
+
+We define the identity map in many possible ways. These should all
+compare equal::
+
+    sage: k = GF(2)
+    sage: R.<x> = k[]
+    sage: F4.<a> = R.quo(x^2+x+1)
+    sage: H = End(F4)
+
+    sage: from sage.rings.morphism import *
+    sage: phi1 = H.identity(); phi1
+    Identity endomorphism of Univariate Quotient Polynomial Ring in a over Finite Field of size 2 with modulus x^2 + x + 1
+    sage: phi2 = H([a]); phi2
+    Ring endomorphism of Univariate Quotient Polynomial Ring in a over Finite Field of size 2 with modulus x^2 + x + 1
+      Defn: a |--> a
+    sage: phi3 = RingHomomorphism_from_base(H, R.hom([x])); phi3
+    Ring endomorphism of Univariate Quotient Polynomial Ring in a over Finite Field of size 2 with modulus x^2 + x + 1
+      Defn: Induced from base ring by
+            Ring endomorphism of Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
+              Defn: x |--> x
+    sage: phi4 = RingHomomorphism_cover(H); phi4
+    Ring endomorphism of Univariate Quotient Polynomial Ring in a over Finite Field of size 2 with modulus x^2 + x + 1
+      Defn: Natural quotient map
+    sage: phi5 = F4.frobenius_endomorphism() ^ 2; phi5
+    Frobenius endomorphism x |--> x^(2^2) of Univariate Quotient Polynomial Ring in a over Finite Field of size 2 with modulus x^2 + x + 1
+    sage: maps = [phi1, phi2, phi3, phi4, phi5]
+    sage: for f in maps:
+    ....:     for g in maps:
+    ....:         if f != g:
+    ....:             print("{} != {}".format(f, g))
 """
 
 #*****************************************************************************
@@ -356,8 +386,10 @@ TESTS::
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 
-from . import ideal
 from cpython.object cimport Py_EQ, Py_NE
+
+from . import ideal
+import sage.structure.all
 from sage.structure.richcmp cimport (richcmp, rich_to_bool,
         richcmp_not_equal)
 
@@ -383,6 +415,7 @@ def is_RingHomomorphism(phi):
     from sage.categories.map import Map
     from sage.categories.all import Rings
     return isinstance(phi, Map) and phi.category_for().is_subcategory(Rings())
+
 
 cdef class RingMap(Morphism):
     """
@@ -530,16 +563,11 @@ cdef class RingMap_lift(RingMap):
             sage: Zmod(8).lift() == 1
             False
         """
-        if op not in [Py_EQ, Py_NE]:
-            return NotImplemented
-
         if not isinstance(other, RingMap_lift):
-            return (op == Py_NE)
-
-        # Since they are lifting maps they are determined by their
-        # parents, i.e., by the domain and codomain, since we just
-        # compare those.
-        return richcmp(self.parent(), other.parent(), op)
+            # Generic comparison
+            return RingMap._richcmp_(self, other, op)
+        # Two lifting maps with the same parent must be equal
+        return rich_to_bool(op, 0)
 
     def __hash__(self):
         """
@@ -592,6 +620,7 @@ cdef class RingMap_lift(RingMap):
             <type 'sage.rings.integer.Integer'>
         """
         return self.S._coerce_c(x.lift())
+
 
 cdef class RingHomomorphism(RingMap):
     """
@@ -852,6 +881,7 @@ cdef class RingHomomorphism(RingMap):
             return self._lift
         return self._lift(x)
 
+
 cdef class RingHomomorphism_coercion(RingHomomorphism):
     r"""
     A ring homomorphism that is a coercion.
@@ -923,18 +953,12 @@ cdef class RingHomomorphism_coercion(RingHomomorphism):
             True
             sage: f != f
             False
-
         """
-        if op not in [Py_EQ, Py_NE]:
-            return NotImplemented
-
         if not isinstance(other, RingHomomorphism_coercion):
-            return (op == Py_NE)
-
-        # Since they are coercion morphisms they are determined by
-        # their parents, i.e., by the domain and codomain, so we just
-        # compare those.
-        return richcmp(self.parent(), other.parent(), op)
+            # Generic comparison
+            return RingMap._richcmp_(self, other, op)
+        # Two coercion maps with the same parent must be equal
+        return rich_to_bool(op, 0)
 
     def __hash__(self):
         """
@@ -967,7 +991,6 @@ cdef class RingHomomorphism_coercion(RingHomomorphism):
         """
         return self.codomain().coerce(x)
 
-import sage.structure.all
 
 cdef class RingHomomorphism_im_gens(RingHomomorphism):
     """
@@ -1023,9 +1046,6 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             im_gens = copy.copy(im_gens)
             im_gens.set_immutable()
         self.__im_gens = im_gens
-
-    def __hash__(self):
-        return Morphism.__hash__(self)
 
     def im_gens(self):
         """
@@ -1142,13 +1162,20 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
 
             sage: loads(dumps(f2)) == f2
             True
+
+        This was fixed in :trac:`24277`::
+
+            sage: H = End(QQ)
+            sage: H(1) == H.identity()
+            True
         """
         if not isinstance(other, RingHomomorphism_im_gens):
-            if op in [Py_EQ, Py_NE]:
-                return (op == Py_NE)
-            return NotImplemented
-
-        return richcmp(self.__im_gens, (<RingHomomorphism_im_gens>other).__im_gens, op)
+            # Generic comparison
+            return RingMap._richcmp_(self, other, op)
+        # Check equality using the images of the generators.
+        self_im = self.__im_gens
+        other_im = (<RingHomomorphism_im_gens>other).__im_gens
+        return richcmp(self_im, other_im, op)
 
     def __hash__(self):
         """
@@ -1194,6 +1221,7 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             2*x + 3*y + 2*z
         """
         return x._im_gens_(self.codomain(), self.im_gens())
+
 
 cdef class RingHomomorphism_from_base(RingHomomorphism):
     """
@@ -1438,10 +1466,11 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
             True
         """
         if not isinstance(other, RingHomomorphism_from_base):
-            if op in [Py_EQ, Py_NE]:
-                return (op == Py_NE)
-            return NotImplemented
-        return richcmp(self.__underlying, (<RingHomomorphism_from_base>other).__underlying, op)
+            # Generic comparison
+            return RingMap._richcmp_(self, other, op)
+        self_underlying = self.__underlying
+        other_underlying = (<RingHomomorphism_from_base>other).__underlying
+        return richcmp(self_underlying, other_underlying, op)
 
     def _repr_defn(self):
         """
@@ -1507,6 +1536,7 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
             False
         """
         return self.__underlying.is_identity() and RingHomomorphism.is_identity(self)
+
 
 cdef class RingHomomorphism_cover(RingHomomorphism):
     r"""
@@ -1613,13 +1643,11 @@ cdef class RingHomomorphism_cover(RingHomomorphism):
             sage: phi == R.quo(x^2 + y^3).cover()
             False
         """
-        if op not in [Py_EQ, Py_NE]:
-            return NotImplemented
-
         if not isinstance(other, RingHomomorphism_cover):
-            return (op == Py_NE)
-
-        return richcmp(self.parent(), other.parent(), op)
+            # Generic comparison
+            return RingMap._richcmp_(self, other, op)
+        # Two cover maps with the same parent must be equal
+        return rich_to_bool(op, 0)
 
     def __hash__(self):
         """
@@ -1638,6 +1666,7 @@ cdef class RingHomomorphism_cover(RingHomomorphism):
             1
         """
         return hash((self.domain(), self.codomain()))
+
 
 cdef class RingHomomorphism_from_quotient(RingHomomorphism):
     r"""
@@ -1812,15 +1841,13 @@ cdef class RingHomomorphism_from_quotient(RingHomomorphism):
             sage: phi == f
             True
         """
-        if op not in [Py_EQ, Py_NE]:
-            return NotImplemented
-
         if not isinstance(other, RingHomomorphism_from_quotient):
-            return (op == Py_NE)
-
-        cdef RingHomomorphism_from_quotient left = self
-        cdef RingHomomorphism_from_quotient right = other
-        return richcmp(left.phi, right.phi, op)
+            # Generic comparison
+            return RingMap._richcmp_(self, other, op)
+        # Generic comparison
+        self_phi = self.phi
+        other_phi = (<RingHomomorphism_from_quotient>other).phi
+        return richcmp(self_phi, other_phi, op)
 
     def __hash__(self):
         """
@@ -2057,30 +2084,3 @@ cdef class FrobeniusEndomorphism_generic(RingHomomorphism):
         domain = self.domain()
         codomain = self.codomain()
         return hash((domain, codomain, ('Frob', self._power)))
-
-    cpdef _richcmp_(left, right, int op):
-        if left is right:
-            return rich_to_bool(op, 0)
-
-        l_domain = left.domain()
-        r_domain = right.domain()
-        if l_domain != r_domain:
-            return richcmp_not_equal(l_domain, r_domain, op)
-
-        l_codomain = left.codomain()
-        r_codomain = right.codomain()
-        if l_codomain != r_codomain:
-            return richcmp_not_equal(l_codomain, r_codomain, op)
-
-        if isinstance(right, FrobeniusEndomorphism_generic):
-            return richcmp(left._power, (<FrobeniusEndomorphism_generic>right)._power, op)
-
-        try:
-            for x in l_domain.gens():
-                lx = left(x)
-                rx = right(x)
-                if lx != rx:
-                    return richcmp_not_equal(lx, rx, op)
-            return rich_to_bool(op, 0)
-        except (AttributeError, NotImplementedError):
-            raise NotImplementedError

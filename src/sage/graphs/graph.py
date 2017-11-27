@@ -6445,8 +6445,8 @@ class Graph(GenericGraph):
 
         A minimum vertex cover of a graph is a set `S` of vertices such that
         each edge is incident to at least one element of `S`, and such that `S`
-        is of minimum cardinality. For more information, see the
-        :wikipedia:`Wikipedia article on vertex cover <Vertex_cover>`.
+        is of minimum cardinality. For more information, see
+        :wikipedia:`Vertex_cover`.
 
         Equivalently, a vertex cover is defined as the complement of an
         independent set.
@@ -6563,14 +6563,15 @@ class Graph(GenericGraph):
             sage: graphs.PetersenGraph().vertex_cover(algorithm = "guess")
             Traceback (most recent call last):
             ...
-            ValueError: The algorithm must be "Cliquer" "MILP" or "mcqd".
+            ValueError: the algorithm must be "Cliquer", "MILP" or "mcqd"
 
-        REFERENCE:
+        Ticket :trac:`24287` is fixed::
 
-        .. [ACFLSS04] \F. N. Abu-Khzam, R. L. Collins, M. R. Fellows, M. A.
-          Langston, W. H. Suters, and C. T. Symons: Kernelization Algorithm for
-          the Vertex Cover Problem: Theory and Experiments. *SIAM ALENEX/ANALCO*
-          2004: 62-69.
+            sage: G = Graph([(0,1)]*5 + [(1,2)]*2, multiedges=True)
+            sage: G.vertex_cover(reduction_rules=True, algorithm='MILP')
+            [1]
+            sage: G.vertex_cover(reduction_rules=False)
+            [1]
         """
         self._scream_if_not_simple(allow_multiple_edges=True)
         g = self
@@ -6586,11 +6587,11 @@ class Graph(GenericGraph):
             # We apply simple reduction rules allowing to identify vertices that
             # belongs to an optimal vertex cover
 
-            # We first create manually a copy of the graph to prevent creating
-            # multi-edges when merging vertices, if edges have labels (e.g., weights).
+            # We first take a copy of the graph without multiple edges, if any.
             g = copy(self)
+            g.allow_multiple_edges(False)
 
-            degree_at_most_two = set([u for u,du in g.degree(labels = True).items() if du <= 2])
+            degree_at_most_two = {u for u in g.vertex_iterator() if g.degree(u) <= 2}
 
             while degree_at_most_two:
 
@@ -6607,7 +6608,7 @@ class Graph(GenericGraph):
                 elif du == 1:
                     # RULE 2: If a vertex u has degree 1, we select its neighbor
                     # v and remove both u and v from g.
-                    v = g.neighbors(u)[0]
+                    v = next(g.neighbor_iterator(u))
                     ppset.append(v)
                     g.delete_vertex(u)
 
@@ -6623,14 +6624,14 @@ class Graph(GenericGraph):
                 elif du == 2:
                     v,w  = g.neighbors(u)
 
-                    if g.has_edge(v,w):
+                    if g.has_edge(v, w):
                         # RULE 3: If the neighbors v and w of a degree 2 vertex
                         # u are incident, then we select both v and w and remove
                         # u, v, and w from g.
                         ppset.append(v)
                         ppset.append(w)
                         g.delete_vertex(u)
-                        neigh = set(g.neighbors(v) + g.neighbors(w)).difference(set([v,w]))
+                        neigh = set(g.neighbors(v) + g.neighbors(w)).difference([v, w])
                         g.delete_vertex(v)
                         g.delete_vertex(w)
 
@@ -6641,16 +6642,16 @@ class Graph(GenericGraph):
                     else:
                         # RULE 4, folded vertices: If the neighbors v and w of a
                         # degree 2 vertex u are not incident, then we contract
-                        # edges (u, v), (u,w). Then, if the solution contains u,
+                        # edges (u, v), (u, w). Then, if the solution contains u,
                         # we replace it with v and w. Otherwise, we let u in the
                         # solution.
-                        neigh = set(g.neighbors(v) + g.neighbors(w)).difference(set([u,v,w]))
+                        neigh = set(g.neighbors(v) + g.neighbors(w)).difference([u, v, w])
                         g.delete_vertex(v)
                         g.delete_vertex(w)
                         for z in neigh:
                             g.add_edge(u,z)
 
-                        folded_vertices += [(u,v,w)]
+                        folded_vertices.append((u, v, w))
 
                         if g.degree(u) <= 2:
                             degree_at_most_two.add(u)
@@ -6673,11 +6674,15 @@ class Graph(GenericGraph):
             cover_g = []
 
         elif algorithm == "Cliquer" or algorithm == "mcqd":
+            if g.has_multiple_edges() and not reduction_rules:
+                g = copy(g)
+                g.allow_multiple_edges(False)
+
             independent = g.complement().clique_maximum(algorithm=algorithm)
             if value_only:
                 size_cover_g = g.order() - len(independent)
             else:
-                cover_g = [u for u in g.vertices() if not u in independent]
+                cover_g = [u for u in g.vertex_iterator() if not u in independent]
 
         elif algorithm == "MILP":
 
@@ -6686,7 +6691,7 @@ class Graph(GenericGraph):
             b = p.new_variable(binary=True)
 
             # minimizes the number of vertices in the set
-            p.set_objective(p.sum(b[v] for v in g.vertices()))
+            p.set_objective(p.sum(b[v] for v in g.vertex_iterator()))
 
             # an edge contains at least one vertex of the minimum vertex cover
             for (u,v) in g.edges(labels=None):
@@ -6697,9 +6702,9 @@ class Graph(GenericGraph):
             else:
                 p.solve(log=verbosity)
                 b = p.get_values(b)
-                cover_g = [v for v in g.vertices() if b[v] == 1]
+                cover_g = [v for v in g.vertex_iterator() if b[v] == 1]
         else:
-            raise ValueError("The algorithm must be \"Cliquer\" \"MILP\" or \"mcqd\".")
+            raise ValueError('the algorithm must be "Cliquer", "MILP" or "mcqd"')
 
         #########################
         # Returning the results #
@@ -6716,9 +6721,10 @@ class Graph(GenericGraph):
             for u,v,w in folded_vertices:
                 if u in cover_g:
                     cover_g.remove(u)
-                    cover_g += [v,w]
+                    cover_g.append(v)
+                    cover_g.append(w)
                 else:
-                    cover_g += [u]
+                    cover_g.append(u)
             cover_g.sort()
             return cover_g
 

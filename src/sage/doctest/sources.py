@@ -18,8 +18,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import, unicode_literals
+from __future__ import print_function, absolute_import
 
 import os
 import sys
@@ -695,7 +694,7 @@ class FileDocTestSource(DocTestSource):
             sage: doctests[18].name
             'sage.doctest.sources.FileDocTestSource.create_doctests'
             sage: doctests[18].examples[10].source
-            'doctests[Integer(18)].examples[Integer(10)].source\n'
+            u'doctests[Integer(18)].examples[Integer(10)].source\n'
 
         TESTS:
 

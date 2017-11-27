@@ -22,7 +22,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import, unicode_literals
+from __future__ import print_function, absolute_import
 from sage.misc.six import u
 import six
 from six import text_type
@@ -60,13 +60,7 @@ RIFtol = RealIntervalField(64)
 
 # This is the correct pattern to match ISO/IEC 6429 ANSI escape sequences:
 #
-#ansi_escape_sequence = re.compile(r'(\x1b[@-Z\\-~]|\x1b\[.*?[@-~]|\x9b.*?[@-~])')
-#
-# Unfortunately, we cannot use this, since the \x9b might be part of
-# a UTF-8 character. Once we have a unicode-aware doctest framework, we
-# should use the correct pattern including \x9b. For now, we use this
-# form without \x9b:
-ansi_escape_sequence = re.compile(r'(\x1b[@-Z\\-~]|\x1b\[.*?[@-~])')
+ansi_escape_sequence = re.compile(r'(\x1b[@-Z\\-~]|\x1b\[.*?[@-~]|\x9b.*?[@-~])')
 
 
 def remove_unicode_u(string):
@@ -89,13 +83,13 @@ def remove_unicode_u(string):
 
         sage: from sage.doctest.parsing import remove_unicode_u as remu
         sage: remu("u'you'")
-        "'you'"
+        u"'you'"
         sage: remu('u')
-        'u'
+        u'u'
         sage: remu("[u'am', 'stram', u'gram']")
-        "['am', 'stram', 'gram']"
+        u"['am', 'stram', 'gram']"
         sage: remu('[u"am", "stram", u"gram"]')
-        '["am", "stram", "gram"]'
+        u'["am", "stram", "gram"]'
 
     This deals correctly with nested quotes::
 
@@ -305,7 +299,7 @@ class MarkedOutput(text_type):
         sage: s.rel_tol
         0
         sage: s.update(rel_tol = .05)
-        'abc'
+        u'abc'
         sage: s.rel_tol
         0.0500000000000000
 
@@ -323,7 +317,7 @@ class MarkedOutput(text_type):
             sage: from sage.doctest.parsing import MarkedOutput
             sage: s = MarkedOutput("0.0007401")
             sage: s.update(abs_tol = .0000001)
-            '0.0007401'
+            u'0.0007401'
             sage: s.rel_tol
             0
             sage: s.abs_tol
@@ -341,7 +335,7 @@ class MarkedOutput(text_type):
             sage: from sage.doctest.parsing import MarkedOutput
             sage: s = MarkedOutput("0.0007401")
             sage: s.update(abs_tol = .0000001)
-            '0.0007401'
+            u'0.0007401'
             sage: t = loads(dumps(s)) # indirect doctest
             sage: t == s
             True
@@ -350,6 +344,7 @@ class MarkedOutput(text_type):
         """
         return make_marked_output, (str(self), self.__dict__)
 
+
 def make_marked_output(s, D):
     """
     Auxilliary function for pickling.
@@ -357,15 +352,16 @@ def make_marked_output(s, D):
     EXAMPLES::
 
         sage: from sage.doctest.parsing import make_marked_output
-        sage: s = make_marked_output("0.0007401",{'abs_tol':.0000001})
+        sage: s = make_marked_output("0.0007401", {'abs_tol':.0000001})
         sage: s
-        '0.0007401'
+        u'0.0007401'
         sage: s.abs_tol
         1.00000000000000e-7
     """
     ans = MarkedOutput(s)
     ans.__dict__.update(D)
     return ans
+
 
 class OriginalSource:
     r"""
@@ -383,13 +379,13 @@ class OriginalSource:
         sage: doctests, extras = FDS.create_doctests(globals())
         sage: ex = doctests[0].examples[0]
         sage: ex.sage_source
-        'doctest_var = 42; doctest_var^2\n'
+        u'doctest_var = 42; doctest_var^2\n'
         sage: ex.source
-        'doctest_var = Integer(42); doctest_var**Integer(2)\n'
+        u'doctest_var = Integer(42); doctest_var**Integer(2)\n'
         sage: from sage.doctest.parsing import OriginalSource
         sage: with OriginalSource(ex):
         ....:     ex.source
-        'doctest_var = 42; doctest_var^2\n'
+        u'doctest_var = 42; doctest_var^2\n'
     """
     def __init__(self, example):
         """
@@ -431,7 +427,7 @@ class OriginalSource:
             sage: with OriginalSource(ex): # indirect doctest
             ....:     ex.source
             ...
-            'doctest_var = 42; doctest_var^2\n'
+            u'doctest_var = 42; doctest_var^2\n'
         """
         if hasattr(self.example, 'sage_source'):
             self.old_source, self.example.source = self.example.source, self.example.sage_source
@@ -452,9 +448,9 @@ class OriginalSource:
             sage: with OriginalSource(ex): # indirect doctest
             ....:     ex.source
             ...
-            'doctest_var = 42; doctest_var^2\n'
+            u'doctest_var = 42; doctest_var^2\n'
             sage: ex.source # indirect doctest
-            'doctest_var = Integer(42); doctest_var**Integer(2)\n'
+            u'doctest_var = Integer(42); doctest_var**Integer(2)\n'
         """
         if hasattr(self.example, 'sage_source'):
             self.example.source = self.old_source
@@ -575,7 +571,7 @@ class SageDocTestParser(doctest.DocTestParser):
             sage: ex.sage_source
             'gamma(1.6) # tol 2.0e-11\n'
             sage: ex.want
-            '0.893515349287690\n'
+            u'0.893515349287690\n'
             sage: type(ex.want)
             <class 'sage.doctest.parsing.MarkedOutput'>
             sage: ex.want.tol
@@ -673,7 +669,7 @@ class SageOutputChecker(doctest.OutputChecker):
         sage: ex.sage_source
         'gamma(1.6) # tol 2.0e-11\n'
         sage: ex.want
-        '0.893515349287690\n'
+        u'0.893515349287690\n'
         sage: type(ex.want)
         <class 'sage.doctest.parsing.MarkedOutput'>
         sage: ex.want.tol
@@ -705,15 +701,15 @@ class SageOutputChecker(doctest.OutputChecker):
             ....:     'red\x1b[31m',
             ....:     'oscmd\x1ba'])
             sage: OC.human_readable_escape_sequences(teststr)
-            'bold<CSI-1m>-red<CSI-31m>-oscmd<ESC-a>'
+            u'bold<CSI-1m>-red<CSI-31m>-oscmd<ESC-a>'
         """
         def human_readable(match):
             ansi_escape = match.group(1)
             assert len(ansi_escape) >= 2
             if len(ansi_escape) == 2:
-                return '<ESC-'+ansi_escape[1]+'>'
+                return u'<ESC-'+ansi_escape[1]+u'>'
             else:
-                return '<CSI-'+ansi_escape.lstrip('\x1b[\x9b')+'>'
+                return u'<CSI-'+ansi_escape.lstrip(u'\x1b[\x9b')+u'>'
         return ansi_escape_sequence.subn(human_readable, string)[0]
 
     def add_tolerance(self, wantval, want):

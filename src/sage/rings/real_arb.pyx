@@ -45,7 +45,7 @@ real numbers represented by balls on which computations are carried out with a
 certain precision::
 
     sage: RBF
-    Real ball field with 53 bits precision
+    Real ball field with 53 bits of precision
 
 It is possible to construct a ball whose parent is the real ball field with
 precision `p` but whose midpoint does not fit on `p` bits. However, the results
@@ -161,7 +161,7 @@ TESTS::
 
     sage: (RBF(pi) * identity_matrix(QQ, 3)).parent()
     Full MatrixSpace of 3 by 3 dense matrices over Real ball field
-    with 53 bits precision
+    with 53 bits of precision
 
     sage: polygen(RBF, 'x')^3
     x^3
@@ -440,9 +440,9 @@ class RealBallField(UniqueRepresentation, Field):
         TESTS::
 
             sage: RBF.base()
-            Real ball field with 53 bits precision
+            Real ball field with 53 bits of precision
             sage: RBF.base_ring()
-            Real ball field with 53 bits precision
+            Real ball field with 53 bits of precision
 
         """
         if precision < 2:
@@ -463,11 +463,11 @@ class RealBallField(UniqueRepresentation, Field):
         EXAMPLES::
 
             sage: RealBallField()
-            Real ball field with 53 bits precision
+            Real ball field with 53 bits of precision
             sage: RealBallField(106)
-            Real ball field with 106 bits precision
+            Real ball field with 106 bits of precision
         """
-        return "Real ball field with {} bits precision".format(self._prec)
+        return "Real ball field with {} bits of precision".format(self._prec)
 
     def _coerce_map_from_(self, other):
         r"""
@@ -617,9 +617,9 @@ class RealBallField(UniqueRepresentation, Field):
 
             sage: from sage.rings.complex_arb import ComplexBallField
             sage: RBF.complex_field()
-            Complex ball field with 53 bits precision
+            Complex ball field with 53 bits of precision
             sage: RealBallField(3).algebraic_closure()
-            Complex ball field with 3 bits precision
+            Complex ball field with 3 bits of precision
         """
         from sage.rings.complex_arb import ComplexBallField
         return ComplexBallField(self._prec)
@@ -1673,7 +1673,7 @@ cdef class RealBall(RingElement):
             sage: mid.is_exact()
             True
             sage: mid.parent()
-            Real ball field with 16 bits precision
+            Real ball field with 16 bits of precision
 
         .. SEEALSO:: :meth:`mid`, :meth:`rad_as_ball`
         """

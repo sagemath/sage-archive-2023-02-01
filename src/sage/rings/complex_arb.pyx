@@ -98,7 +98,7 @@ Automatic coercions work as expected::
     sage: bpol
     x + [1.41421 +/- 5.09e-6] + [1.33333 +/- 3.97e-6]*I
     sage: bpol.parent()
-    Univariate Polynomial Ring in x over Complex ball field with 20 bits precision
+    Univariate Polynomial Ring in x over Complex ball field with 20 bits of precision
     sage: bpol/3
     ([0.333333 +/- 4.93e-7])*x + [0.47140 +/- 5.39e-6] + [0.44444 +/- 4.98e-6]*I
 
@@ -115,7 +115,7 @@ TESTS::
 Check that :trac:`19839` is fixed::
 
     sage: log(SR(CBF(0.42))).pyobject().parent()
-    Complex ball field with 53 bits precision
+    Complex ball field with 53 bits of precision
 
 Classes and Methods
 ===================
@@ -265,9 +265,9 @@ class ComplexBallField(UniqueRepresentation, Field):
         TESTS::
 
             sage: CBF.base()
-            Real ball field with 53 bits precision
+            Real ball field with 53 bits of precision
             sage: CBF.base_ring()
-            Real ball field with 53 bits precision
+            Real ball field with 53 bits of precision
 
         There are direct coercions from ZZ and QQ (for which arb provides
         construction functions)::
@@ -275,11 +275,11 @@ class ComplexBallField(UniqueRepresentation, Field):
             sage: CBF.coerce_map_from(ZZ)
             Coercion map:
               From: Integer Ring
-              To:   Complex ball field with 53 bits precision
+              To:   Complex ball field with 53 bits of precision
             sage: CBF.coerce_map_from(QQ)
             Coercion map:
               From: Rational Field
-              To:   Complex ball field with 53 bits precision
+              To:   Complex ball field with 53 bits of precision
 
         Various other coercions are available through real ball fields or CLF::
 
@@ -330,11 +330,11 @@ class ComplexBallField(UniqueRepresentation, Field):
         EXAMPLES::
 
             sage: ComplexBallField()
-            Complex ball field with 53 bits precision
+            Complex ball field with 53 bits of precision
             sage: ComplexBallField(106)
-            Complex ball field with 106 bits precision
+            Complex ball field with 106 bits of precision
         """
-        return "Complex ball field with {} bits precision".format(self._prec)
+        return "Complex ball field with {} bits of precision".format(self._prec)
 
     def construction(self):
         """
@@ -345,7 +345,7 @@ class ComplexBallField(UniqueRepresentation, Field):
 
             sage: functor, base = CBF.construction()
             sage: functor, base
-            (AlgebraicClosureFunctor, Real ball field with 53 bits precision)
+            (AlgebraicClosureFunctor, Real ball field with 53 bits of precision)
             sage: functor(base) is CBF
             True
         """
@@ -421,11 +421,11 @@ class ComplexBallField(UniqueRepresentation, Field):
         TESTS::
 
             sage: CBF.coerce_map_from(CBF)
-            Identity endomorphism of Complex ball field with 53 bits precision
+            Identity endomorphism of Complex ball field with 53 bits of precision
             sage: CBF.coerce_map_from(ComplexBallField(100))
             Coercion map:
-              From: Complex ball field with 100 bits precision
-              To:   Complex ball field with 53 bits precision
+              From: Complex ball field with 100 bits of precision
+              To:   Complex ball field with 53 bits of precision
             sage: CBF.has_coerce_map_from(ComplexBallField(42))
             False
             sage: CBF.has_coerce_map_from(RealBallField(54))
@@ -1070,7 +1070,7 @@ cdef class ComplexBall(RingElement):
             1.000000000000000
 
             sage: CBF(1 + i).abs().parent()
-            Real ball field with 53 bits precision
+            Real ball field with 53 bits of precision
         """
         cdef RealBall r = RealBall(real_ball_field(self))
         acb_abs(r.value, self.value, prec(self))
@@ -1150,7 +1150,7 @@ cdef class ComplexBall(RingElement):
             sage: CBF(-1).arg()
             [3.141592653589793 +/- 5.61e-16]
             sage: CBF(-1).arg().parent()
-            Real ball field with 53 bits precision
+            Real ball field with 53 bits of precision
         """
         cdef RealBall r = RealBall(real_ball_field(self))
         acb_arg(r.value, self.value, prec(self))
@@ -1204,7 +1204,7 @@ cdef class ComplexBall(RingElement):
             sage: mid
             [0.3333333333333333 +/- 1.49e-17] + [0.09999999999999999 +/- 1.68e-18]*I
             sage: mid.parent()
-            Complex ball field with 53 bits precision
+            Complex ball field with 53 bits of precision
             sage: mid.is_exact()
             True
 

@@ -430,6 +430,11 @@ inline bool is_the_function(const ex & x)
 #define is_ex_the_function(OBJ, FUNCNAME) (GiNaC::is_the_function<FUNCNAME##_SERIAL>(OBJ))
 
 bool has_function(const ex & x);
+bool has_function(const ex& x, const std::string& s);
+bool has_function(const std::vector<std::string>& v);
+bool has_function(const ex& x,
+                const std::vector<std::string>& v,
+                bool all);
 bool has_symbol_or_function(const ex & x);
 
 } // namespace GiNaC

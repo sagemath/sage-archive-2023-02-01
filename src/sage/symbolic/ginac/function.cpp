@@ -1683,6 +1683,71 @@ bool has_symbol_or_function(const ex & x)
 	return false;
 }
 
+static bool has_oneof_function_helper(const ex& x,
+                const std::map<unsigned,int>& m)
+{
+	if (is_exactly_a<function>(x)
+            and m.find(ex_to<function>(x).get_serial()) != m.end())
+		return true;
+	for (size_t i=0; i<x.nops(); ++i)
+		if (has_oneof_function_helper(x.op(i), m))
+			return true;
+
+	return false;
+}
+
+static void has_allof_function_helper(const ex& x,
+                std::map<unsigned,int>& m)
+{
+	if (is_exactly_a<function>(x)) {
+                unsigned ser = ex_to<function>(x).get_serial();
+                if (m.find(ser) != m.end())
+        		m[ser] = 1;
+        }
+	for (size_t i=0; i<x.nops(); ++i)
+		has_allof_function_helper(x.op(i), m);
+}
+
+bool has_function(const ex& x,
+                const std::string& s)
+{
+        std::map<unsigned,int> m;
+        unsigned ser = 0;
+        for (const auto & elem : function::registered_functions()) {
+                if (s == elem.name)
+                        m[ser] = 0;
+                ++ser;
+        }
+        if (m.empty())
+                return false;
+        return has_oneof_function_helper(x, m);
+}
+
+bool has_function(const ex& x,
+                const std::vector<std::string>& v,
+                bool all)
+{
+        std::map<unsigned,int> m;
+        for (const auto & s : v) {
+                unsigned ser = 0;
+                for (const auto & elem : function::registered_functions()) {
+                        if (s == elem.name)
+                                m[ser] = 0;
+                        ++ser;
+                }
+        }
+        if (m.empty())
+                return false;
+        if (all) {
+                has_allof_function_helper(x, m);
+                for (const auto & p : m)
+                        // TODO: false negative if >1 func with same name
+                        if (p.second == 0)
+                                return false;
+                return true;
+        }
+        return has_oneof_function_helper(x, m);
+}
 
 } // namespace GiNaC
 

@@ -548,6 +548,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
                     # exceptions), whereas on Python 2 does not, so we
                     # normalize Python 3 exceptions to match tests written to
                     # Python 2
+                    # See https://trac.sagemath.org/ticket/24271
                     exc_cls = exc_info[0]
                     exc_name = exc_cls.__name__
                     if exc_cls.__module__:
@@ -556,9 +557,22 @@ class SageDocTestRunner(doctest.DocTestRunner):
                     else:
                         exc_fullname = exc_cls.__qualname__
 
+                    # See
+                    # https://docs.python.org/3/library/exceptions.html#OSError
+                    oserror_aliases = ['IOError', 'EnvironmentError',
+                                       'socket.error', 'select.error',
+                                       'mmap.error']
+
                     if (example.exc_msg.startswith(exc_name) and
                             exc_msg.startswith(exc_fullname)):
                         exc_msg = exc_msg.replace(exc_fullname, exc_name, 1)
+                    else:
+                        # Special case: On Python 3 these exceptions are all
+                        # just aliases for OSError
+                        for alias in oserror_aliases:
+                            if example.exc_msg.startswith(alias + ':'):
+                                exc_msg = exc_msg.replace('OSError', alias, 1)
+                                break
 
                 if not quiet:
                     got += doctest._exception_traceback(exc_info)

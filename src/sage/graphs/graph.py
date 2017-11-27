@@ -6591,7 +6591,7 @@ class Graph(GenericGraph):
             g = copy(self)
             g.allow_multiple_edges(False)
 
-            degree_at_most_two = {u for u in g.vertex_iterator() if g.degree(u) <= 2}
+            degree_at_most_two = {u for u in g if g.degree(u) <= 2}
 
             while degree_at_most_two:
 
@@ -6682,7 +6682,7 @@ class Graph(GenericGraph):
             if value_only:
                 size_cover_g = g.order() - len(independent)
             else:
-                cover_g = [u for u in g.vertex_iterator() if not u in independent]
+                cover_g = [u for u in g if not u in independent]
 
         elif algorithm == "MILP":
 
@@ -6691,7 +6691,7 @@ class Graph(GenericGraph):
             b = p.new_variable(binary=True)
 
             # minimizes the number of vertices in the set
-            p.set_objective(p.sum(b[v] for v in g.vertex_iterator()))
+            p.set_objective(p.sum(b[v] for v in g))
 
             # an edge contains at least one vertex of the minimum vertex cover
             for (u,v) in g.edges(labels=None):
@@ -6702,7 +6702,7 @@ class Graph(GenericGraph):
             else:
                 p.solve(log=verbosity)
                 b = p.get_values(b)
-                cover_g = [v for v in g.vertex_iterator() if b[v] == 1]
+                cover_g = [v for v in g if b[v] == 1]
         else:
             raise ValueError('the algorithm must be "Cliquer", "MILP" or "mcqd"')
 

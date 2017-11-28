@@ -919,7 +919,7 @@ class SageOutputChecker(doctest.OutputChecker):
         classes) between Python 2 and Python 3::
 
             sage: int
-            <class 'int'>
+            <type 'int'>
             sage: float
             <type 'float'>
         """

@@ -179,6 +179,8 @@ import sage.rings.integer
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from sage.misc.randstate import current_randstate
 from sage.structure.sequence import Sequence
+from sage.structure.richcmp import (richcmp_method, rich_to_bool, richcmp,
+                                    richcmp_not_equal, revop)
 
 from sage.misc.cachefunc import cached_method
 
@@ -692,7 +694,7 @@ class FreeModule_generic(Module):
              (finite enumerated fields and subquotients of monoids and quotients of semigroups)
             sage: V = QQ^4; V.category()
             Category of finite dimensional vector spaces with basis over
-             (quotient fields and metric spaces)
+             (number fields and quotient fields and metric spaces)
             sage: V = GF(5)**20; V.category()
             Category of enumerated finite dimensional vector spaces with basis over (finite enumerated fields and subquotients of monoids and quotients of semigroups)
             sage: FreeModule(ZZ,3).category()
@@ -700,7 +702,8 @@ class FreeModule_generic(Module):
              (euclidean domains and infinite enumerated sets
               and metric spaces)
             sage: (QQ^0).category()
-            Category of finite enumerated finite dimensional vector spaces with basis over (quotient fields and metric spaces)
+            Category of finite enumerated finite dimensional vector spaces with basis
+             over (number fields and quotient fields and metric spaces)
 
         TESTS::
 
@@ -1552,6 +1555,31 @@ done from the right side.""")
             1
         """
         return self.rank()
+
+    def codimension(self):
+        """
+        Return the codimension of this free module, which is the
+        dimension of the ambient space minus the dimension of this
+        free module.
+
+        EXAMPLES::
+
+            sage: M = Matrix(3, 4, range(12))
+            sage: V = M.left_kernel(); V
+            Free module of degree 3 and rank 1 over Integer Ring
+            Echelon basis matrix:
+            [ 1 -2  1]
+            sage: V.dimension()
+            1
+            sage: V.codimension()
+            2
+
+        The codimension of an ambient space is always zero::
+
+            sage: (QQ^10).codimension()
+            0
+        """
+        return self.degree() - self.rank()
 
     def discriminant(self):
         """
@@ -2550,7 +2578,45 @@ class FreeModule_generic_pid(FreeModule_generic):
         K = K.matrix_from_columns(range(n))
         B = K*A1
         return B.row_module(self.base_ring())
+    
+    def __and__(self, other):
+        r"""
+        Return the intersection of self and other.
+        
+        See :meth:`intersection`.
+        
+        EXAMPLES:
 
+        We intersect two submodules one of which is clearly
+        contained in the other.
+
+        ::
+
+            sage: A = ZZ^2
+            sage: M1 = A.span([[1,1]])
+            sage: M2 = A.span([[3,3]])
+            sage: M1 & M2
+            Free module of degree 2 and rank 1 over Integer Ring
+            Echelon basis matrix:
+            [3 3]
+            sage: M1 & M2 is M2
+            True
+
+        We intersection two submodules of `\ZZ^3` of rank
+        `2`, whose intersection has rank `1`.
+
+        ::
+
+            sage: A = ZZ^3
+            sage: M1 = A.span([[1,1,1], [1,2,3]])
+            sage: M2 = A.span([[2,2,2], [1,0,0]])
+            sage: M1 & M2
+            Free module of degree 3 and rank 1 over Integer Ring
+            Echelon basis matrix:
+            [2 2 2]
+        """
+        return self.intersection(other)    
+    
     def zero_submodule(self):
         """
         Return the zero submodule of this module.
@@ -3159,7 +3225,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             Set of Morphisms from Vector space of dimension 2 over Rational Field
              to Ambient free module of rank 3 over the principal ideal domain Integer Ring
              in Category of finite dimensional vector spaces with basis over
-              (quotient fields and metric spaces)
+              (number fields and quotient fields and metric spaces)
         """
         if Y.base_ring().is_field():
             from . import vector_space_homspace
@@ -4149,6 +4215,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
 #
 ###############################################################################
 
+@richcmp_method
 class FreeModule_ambient(FreeModule_generic):
     """
     Ambient free module over a commutative ring.
@@ -4285,8 +4352,8 @@ class FreeModule_ambient(FreeModule_generic):
         """
         return self.basis_matrix()
 
-    def __cmp__(self, other):
-        """
+    def __richcmp__(self, other, op):
+        r"""
         Compare the free module self with other.
 
         Modules are ordered by their ambient spaces, then by dimension,
@@ -4345,7 +4412,7 @@ class FreeModule_ambient(FreeModule_generic):
             sage: M == V
             False
 
-        We create the module `\\ZZ^3`, and the submodule generated by
+        We create the module `\ZZ^3`, and the submodule generated by
         one vector `(1,1,0)`, and check whether certain elements are
         in the submodule::
 
@@ -4365,30 +4432,41 @@ class FreeModule_ambient(FreeModule_generic):
             False
             sage: V.coordinates(w)
             [1/2]
-
         """
         if self is other:
-            return 0
+            return rich_to_bool(op, 0)
         if not isinstance(other, FreeModule_generic):
-            return cmp(type(self), type(other))
+            return NotImplemented
         from sage.modules.quotient_module import FreeModule_ambient_field_quotient
-        if isinstance(other, FreeModule_ambient) and not isinstance(other,FreeModule_ambient_field_quotient):
-            c = cmp(self.rank(), other.rank())
-            if c: return c
-            c = cmp(self.base_ring(), other.base_ring())
-            if not c: return c
+        if isinstance(other, FreeModule_ambient) and not isinstance(other, FreeModule_ambient_field_quotient):
+            lx = self.rank()
+            rx = other.rank()
+            if lx != rx:
+                return richcmp_not_equal(lx, rx, op)
+            lx = self.base_ring()
+            rx = other.base_ring()
+            if lx == rx:
+                #We do not want to create an inner product matrix in memory if
+                #self and other use the dot product
+                if self._inner_product_is_dot_product() and other._inner_product_is_dot_product():
+                    return rich_to_bool(op, 0)
+                else:
+                    #this only affects free_quadratic_modules
+                    lx = self.inner_product_matrix()
+                    rx = other.inner_product_matrix()
+                    return richcmp(lx,rx,op)
             try:
                 if self.base_ring().is_subring(other.base_ring()):
-                    return -1
+                    return rich_to_bool(op, -1)
                 elif other.base_ring().is_subring(self.base_ring()):
-                    return 1
+                    return rich_to_bool(op, 1)
             except NotImplementedError:
                 pass
-            return c
+            return richcmp_not_equal(lx, rx, op)
         else:
             # now other is not ambient or is a quotient;
             # it knows how to do the comparison.
-            return -other.__cmp__(self)
+            return richcmp(other, self, revop(op))
 
     def _repr_(self):
         """
@@ -5174,6 +5252,7 @@ class FreeModule_ambient_field(FreeModule_generic_field, FreeModule_ambient_pid)
 #
 ###############################################################################
 
+@richcmp_method
 class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
     r"""
     Construct a submodule of a free module over PID with a distinguished basis.
@@ -5390,7 +5469,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         self.__echelonized_basis_matrix = E
         return E.rows()
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
         Compare the free module self with other.
 
@@ -5450,18 +5529,28 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
         """
         if self is other:
-            return 0
+            return rich_to_bool(op, 0)
         if not isinstance(other, FreeModule_generic):
-            return cmp(type(self), type(other))
-        c = cmp(self.ambient_vector_space(), other.ambient_vector_space())
-        if c: return c
-        c = cmp(self.dimension(), other.dimension())
-        if c: return c
-        c = cmp(self.base_ring(), other.base_ring())
-        if c: return c
+            return NotImplemented
+        lx = self.ambient_vector_space()
+        rx = other.ambient_vector_space()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        lx = self.dimension()
+        rx = other.dimension()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        lx = self.base_ring()
+        rx = other.base_ring()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
         # We use self.echelonized_basis_matrix() == other.echelonized_basis_matrix()
         # with the matrix to avoid a circular reference.
-        return cmp(self.echelonized_basis_matrix(), other.echelonized_basis_matrix())
+        return richcmp(self.echelonized_basis_matrix(),
+                       other.echelonized_basis_matrix(), op)
 
     def _denominator(self, B):
         """

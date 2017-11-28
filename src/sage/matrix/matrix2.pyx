@@ -39,7 +39,7 @@ bug, see :trac:`17527`)::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
+from __future__ import print_function, absolute_import, division
 
 from cpython cimport *
 from cysignals.signals cimport sig_check
@@ -168,6 +168,13 @@ cdef class Matrix(Matrix1):
             sage: X*A == B
             True
 
+            sage: M = matrix([(3,-1,0,0),(1,1,-2,0),(0,0,0,-3)])
+            sage: B = matrix(QQ,3,1, [0,0,-1])
+            sage: M.solve_left(B)
+            Traceback (most recent call last):
+            ...
+            ValueError: number of columns of self must equal number of columns of B
+
         TESTS::
 
             sage: A = matrix(QQ,4,2, [0, -1, 1, 0, -2, 2, 1, 0])
@@ -184,11 +191,26 @@ cdef class Matrix(Matrix1):
             sage: X * A == B
             True
 
+            sage: M = matrix([(3,-1,0,0),(1,1,-2,0),(0,0,0,-3)])
+            sage: B = matrix(QQ,3,1, [0,0,-1])
+            sage: M.solve_left(B)
+            Traceback (most recent call last):
+            ...
+            ValueError: number of columns of self must equal number of columns of B
+
+
         """
+        from string import replace
         if is_Vector(B):
-            return self.transpose().solve_right(B, check=check)
+            try:
+                return self.transpose().solve_right(B, check=check)
+            except ValueError as e:
+                raise ValueError(replace(str(e), 'row', 'column'))
         else:
-            return self.transpose().solve_right(B.transpose(), check=check).transpose()
+            try:
+                return self.transpose().solve_right(B.transpose(), check=check).transpose()
+            except ValueError as e:
+                raise ValueError(replace(str(e), 'row', 'column'))
 
     def solve_right(self, B, check=True):
         r"""
@@ -1313,7 +1335,7 @@ cdef class Matrix(Matrix1):
         cdef unsigned int num_ones
         cdef int m = self._nrows
         cdef int n = self._ncols
-        cdef int mn = min(m,n)
+        cdef int mn = min(m, n)
         cdef Matrix B
         zero = self.base_ring().zero()
         one  = self.base_ring().one()
@@ -1348,22 +1370,23 @@ cdef class Matrix(Matrix1):
             B = self.new_matrix()
             for i in range(m):
                 for j in range(n):
-                    B.set_unsafe(i,j, one-self.get_unsafe(i,j))
+                    B.set_unsafe(i, j, one-self.get_unsafe(i, j))
             b = B.rook_vector(algorithm=algorithm, use_complement=False)
             complement = not complement
 
         elif algorithm == "Ryser":
-            b = [self.permanental_minor(k,algorithm="Ryser") for k in range(mn+1)]
+            b = [self.permanental_minor(k,algorithm="Ryser")
+                 for k in range(mn + 1)]
 
         elif algorithm == "ButeraPernici":
             p = permanental_minor_polynomial(self)
-            b = [p[k] for k in range(mn+1)]
+            b = [p[k] for k in range(mn + 1)]
 
         elif algorithm == "Godsil":
             from sage.graphs.bipartite_graph import BipartiteGraph
             p = BipartiteGraph(self).matching_polynomial()
             d = p.degree()
-            b = [p[i]*(-1)**((d - i)/2) for i in range(d, d-2*mn-1, -2)]
+            b = [p[i] * (-1)**((d - i)//2) for i in range(d, d-2*mn-1, -2)]
 
         else:
             raise ValueError('algorithm must be one of "Ryser", "ButeraPernici" or "Godsil".')
@@ -1373,12 +1396,12 @@ cdef class Matrix(Matrix1):
             a = [one]
             c1 = 1
             for k in range(1, mn + 1):
-                c1 = c1*(m-k+1)*(n-k+1)/k
+                c1 = (c1 * (m-k+1) * (n-k+1)) // k
                 c = c1
                 s = c*b[0] + (-one)**k*b[k]
                 for j in range(1, k):
-                    c = -c*(k-j+1)/((m-j+1)*(n-j+1))
-                    s += c*b[j]
+                    c = -c * (k-j+1) // ((m-j+1) * (n-j+1))
+                    s += c * b[j]
                 a.append(s)
             return a
         else:
@@ -1870,35 +1893,6 @@ cdef class Matrix(Matrix1):
         """
         return self.determinant(*args, **kwds)
 
-    def __abs__(self):
-        """
-        Deprecated.
-
-        This function used to return the determinant. It is deprecated since
-        :trac:`17443`.
-
-        EXAMPLES::
-
-            sage: a = matrix(QQ, 2,2, [1,2,3,4]); a
-            [1 2]
-            [3 4]
-            sage: abs(a)
-            doctest:...: DeprecationWarning: abs(matrix) is deprecated. Use matrix.det()to
-            get the determinant.
-            See http://trac.sagemath.org/17443 for details.
-            -2
-        """
-        #TODO: after expiration of the one year deprecation, we should return a
-        # TypeError with the following kind of message:
-        #   absolute value is not defined on matrices. If you want the
-        #   L^1-norm use m.norm(1) and if you want the matrix obtained by
-        #   applying the absolute value to the coefficients use
-        #   m.apply_map(abs).
-        from sage.misc.superseded import deprecation
-        deprecation(17443, "abs(matrix) is deprecated. Use matrix.det()"
-                           "to get the determinant.")
-        return self.det()
-
     def apply_morphism(self, phi):
         """
         Apply the morphism phi to the coefficients of this dense matrix.
@@ -2357,7 +2351,7 @@ cdef class Matrix(Matrix1):
 
         OUTPUT:
 
-        - polynomial - the characteristic polynomial of ``self``
+        - polynomial -- the characteristic polynomial of ``self``
 
         EXAMPLES:
 
@@ -6194,6 +6188,24 @@ cdef class Matrix(Matrix1):
             [0.44024286723591904  0.5678683713143027  0.6954938753926869]
             [ 0.8978787322617111 0.27843403682172374 -0.3410106586182631]
             [ 0.4082482904638625 -0.8164965809277263 0.40824829046386324]
+
+        The following example shows that :trac:`20439` has been resolved::
+
+            sage: A = matrix(CDF, [[-2.53634347567,  2.04801738686, -0.0, -62.166145304],
+            ....:                  [ 0.7, -0.6, 0.0, 0.0],
+            ....:                  [0.547271128842, 0.0, -0.3015, -21.7532081652],
+            ....:                  [0.0, 0.0, 0.3, -0.4]])
+            sage: D, P = A.eigenmatrix_left()
+            sage: (P*A - D*P).norm() < 10^(-2)
+            True
+
+        The following example shows that the fix for :trac:`20439` (conjugating
+        eigenvectors rather than eigenvalues) is the correct one::
+
+            sage: A = Matrix(CDF,[[I,0],[0,1]])
+            sage: D, P = A.eigenmatrix_left()
+            sage: (P*A - D*P).norm() < 10^(-2)
+            True
         """
         from sage.misc.flatten import flatten
         from sage.matrix.constructor import diagonal_matrix, matrix
@@ -6284,13 +6296,77 @@ cdef class Matrix(Matrix1):
             [ 0.1647638172823028   0.799699663111865 0.40824829046386285]
             [ 0.5057744759005657 0.10420578771917821 -0.8164965809277261]
             [ 0.8467851345188293 -0.5912880876735089  0.4082482904638632]
+
+        The following example shows that :trac:`20439` has been resolved::
+
+            sage: A = matrix(CDF, [[-2.53634347567,  2.04801738686, -0.0, -62.166145304],
+            ....:                  [ 0.7, -0.6, 0.0, 0.0],
+            ....:                  [0.547271128842, 0.0, -0.3015, -21.7532081652],
+            ....:                  [0.0, 0.0, 0.3, -0.4]])
+            sage: D, P = A.eigenmatrix_right()
+            sage: (A*P - P*D).norm() < 10^(-2)
+            True
+
+        The following example shows that the fix for :trac:`20439` (conjugating
+        eigenvectors rather than eigenvalues) is the correct one::
+
+            sage: A = Matrix(CDF,[[I,0],[0,1]])
+            sage: D, P = A.eigenmatrix_right()
+            sage: (A*P - P*D).norm() < 10^(-2)
+            True
+
         """
         D,P = self.transpose().eigenmatrix_left()
         return D,P.transpose()
 
     right_eigenmatrix = eigenmatrix_right
 
-    ###################################################################################
+    def eigenvalue_multiplicity(self, s):
+        r"""
+        Return the multiplicity of ``s`` as a generalized eigenvalue
+        of the matrix.
+
+        EXAMPLES::
+
+            sage: M = Matrix(QQ, [[0,1],[0,0]])
+            sage: M.eigenvalue_multiplicity(0)
+            2
+            sage: M.eigenvalue_multiplicity(1)
+            0
+
+            sage: M = posets.DiamondPoset(5).coxeter_transformation()
+            sage: [M.eigenvalue_multiplicity(x) for x in [-1, 1]]
+            [3, 2]
+
+        TESTS::
+
+            sage: M = Matrix(QQ, [[0,1,2],[0,0,0]])
+            sage: M.eigenvalue_multiplicity(1)
+            Traceback (most recent call last):
+            ...
+            TypeError: matrix must be square, not 2 x 3
+        """
+        if not self.is_square():
+            msg = 'matrix must be square, not {0} x {1}'
+            raise TypeError(msg.format(self.nrows(), self.ncols()))
+
+        r = self.dimensions()[0]
+        n = 0
+        m1 = self - s
+        while True:
+            m1 *= m1
+            m2 = m1.extended_echelon_form(subdivide=True)
+            t = r - m2.subdivisions()[0][0]
+            n += t
+            if t == 0 or t == r:
+                return n
+            m3 = m2.subdivision(0, 0)
+            m4 = m2.submatrix(0, r, r, r)
+            m5 = m3 * m4.inverse()
+            m1 = m5.submatrix(0, 0, r - t, r - t)
+            r -= t
+
+    #####################################################################################
     # Generic Echelon Form
     ###################################################################################
 
@@ -7575,7 +7651,7 @@ cdef class Matrix(Matrix1):
 
         from . import strassen
         pivots = strassen.strassen_echelon(self.matrix_window(), cutoff)
-        self._set_pivots(pivots)
+        self.cache('pivots', pivots)
         verbose('done with strassen', tm)
 
     cpdef matrix_window(self, Py_ssize_t row=0, Py_ssize_t col=0,
@@ -8787,7 +8863,7 @@ cdef class Matrix(Matrix1):
 
         OUTPUT:
 
-        - matrix - the adjoint of self
+        - matrix -- the adjoint of self
 
         EXAMPLES:
 
@@ -10982,9 +11058,6 @@ cdef class Matrix(Matrix1):
             True
             sage: p, S = A.cyclic_subspace(v, var='T'); p
             T^3 - 9*T^2 + 24*T - 16
-            sage: gen = polygen(QQ, 'z')
-            sage: p, S = A.cyclic_subspace(v, var=gen); p
-            z^3 - 9*z^2 + 24*z - 16
             sage: p.degree() == E.dimension()
             True
 
@@ -13183,8 +13256,7 @@ cdef class Matrix(Matrix1):
            integers of number fields of large degree).
 
 
-        ALGORITHM: Lifted wholesale from
-        http://en.wikipedia.org/wiki/Smith_normal_form
+        ALGORITHM: Lifted wholesale from :wikipedia:`Smith_normal_form`
 
         .. SEEALSO::
 
@@ -15013,17 +15085,17 @@ def _binomial(Py_ssize_t n, Py_ssize_t k):
     """
     cdef Py_ssize_t i
 
-    if k > (n/2):
-        k = n-k
+    if 2 * k > n:
+        k = n - k
     if k == 0:
         return 1
 
     result = n
-    n, k = n-1, k-1
+    n, k = n - 1, k - 1
     i = 2
     while k > 0:
-        result = (result*n)/i
-        i, n, k = i+1, n-1, k-1
+        result = (result * n) // i
+        i, n, k = i + 1, n - 1, k - 1
     return result
 
 def _jordan_form_vector_in_difference(V, W):

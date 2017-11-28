@@ -20,7 +20,6 @@ from __future__ import print_function
 
 from sage.numerical.mip import MIPSolverException
 from .generic_backend cimport GenericBackend
-from cvxopt import solvers
 from copy import copy
 
 
@@ -39,7 +38,7 @@ cdef class CVXOPTBackend(GenericBackend):
     :trac:`20332`::
 
         sage: p
-        Mixed Integer Program  ( maximization, 0 variables, 0 constraints )
+        Mixed Integer Program (no objective, 0 variables, 0 constraints)
 
     General backend testsuite::
 

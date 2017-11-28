@@ -99,7 +99,7 @@ from sage.modules.free_module_element import vector
 import sage.matrix.all as matrix
 import sage.schemes.hyperelliptic_curves.monsky_washnitzer
 # from sage.interfaces.all import gp
-from sage.misc.functional import log
+from sage.functions.log import log
 
 from sage.misc.decorators import rename_keyword
 

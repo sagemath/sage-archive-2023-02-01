@@ -86,9 +86,10 @@ def merge_environment(app, env):
                 env.metadata[ind] = md
             # merge the citations
             newcite = {}
-            for ind, (path, tag) in six.iteritems(docenv.domaindata["std"]["citations"]):
+            citations = docenv.domaindata["std"]["citations"]
+            for ind, (path, tag, lineno) in six.iteritems(docenv.domaindata["std"]["citations"]):
                 # TODO: Warn on conflicts
-                newcite[ind] = (fixpath(path), tag)
+                newcite[ind] = (fixpath(path), tag, lineno)
             env.domaindata["std"]["citations"].update(newcite)
             # merge the py:module indexes
             newmodules = {}
@@ -247,9 +248,10 @@ def fetch_citation(app, env):
         cache = cPickle.load(f)
     app.builder.info("done (%s citations)."%len(cache))
     cite = env.domaindata["std"]["citations"]
-    for ind, (path, tag) in six.iteritems(cache):
+    for ind, (path, tag, lineno) in six.iteritems(cache):
         if ind not in cite: # don't override local citation
-            cite[ind]=(os.path.join("..", path), tag)
+            cite[ind] = (os.path.join("..", path), tag, lineno)
+
 
 def init_subdoc(app):
     """

@@ -502,7 +502,7 @@ cdef class TimeSeries:
 
         Note that both summands must be a time series::
 
-            sage: v + range(4)
+            sage: v + list(range(4))
             Traceback (most recent call last):
             ...
             TypeError: right operand must be a time series

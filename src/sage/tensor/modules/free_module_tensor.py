@@ -665,9 +665,13 @@ class FreeModuleTensor(ModuleElement):
         for ind in comp.index_generator():
             ind_arg = ind + (format_spec,)
             coef = comp[ind_arg]
-            if not (coef == 0):   # NB: coef != 0 would return False for
-                                  # cases in which Sage cannot conclude
-                                  # see :trac:`22520`
+            # Check whether the coefficient is zero, preferably via
+            # the fast method is_trivial_zero():
+            if hasattr(coef, 'is_trivial_zero'):
+                zero_coef = coef.is_trivial_zero()
+            else:
+                zero_coef = coef == 0
+            if not zero_coef:
                 bases_txt = []
                 bases_latex = []
                 for k in range(n_con):
@@ -1606,7 +1610,7 @@ class FreeModuleTensor(ModuleElement):
             return self._fmodule._def_basis  # the default basis is privileged
         else:
             # a basis is picked arbitrarily:
-            return self._components.items()[0][0]
+            return next(iter(self._components.items()))[0]
 
     def __eq__(self, other):
         r"""
@@ -1806,8 +1810,6 @@ class FreeModuleTensor(ModuleElement):
         """
         # No need for consistency check since self and other are guaranted
         # to belong to the same tensor module
-        if other == 0:
-            return +self
         basis = self.common_basis(other)
         if basis is None:
             raise ValueError("no common basis for the addition")
@@ -1863,8 +1865,6 @@ class FreeModuleTensor(ModuleElement):
         """
         # No need for consistency check since self and other are guaranted
         # to belong to the same tensor module
-        if other == 0:
-            return +self
         basis = self.common_basis(other)
         if basis is None:
             raise ValueError("no common basis for the subtraction")
@@ -2365,7 +2365,7 @@ class FreeModuleTensor(ModuleElement):
 
         Instead of the explicit call to the method :meth:`contract`, the index
         notation can be used to specify the contraction, via Einstein
-        conventation (summation on repeated indices); it suffices to pass the
+        convention (summation on repeated indices); it suffices to pass the
         indices as a string inside square brackets::
 
             sage: s1 = a['_i']*b['^i'] ; s1

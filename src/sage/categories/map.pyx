@@ -636,11 +636,12 @@ cdef class Map(Element):
             sage: f = R.hom([x+y, x-y], R)
             sage: f.category_for()
             Join of Category of unique factorization domains
-             and Category of commutative algebras over (quotient fields and metric spaces)
+             and Category of commutative algebras over
+                 (number fields and quotient fields and metric spaces)
             sage: f.category()
             Category of endsets of unital magmas
-             and right modules over (quotient fields and metric spaces)
-             and left modules over (quotient fields and metric spaces)
+             and right modules over (number fields and quotient fields and metric spaces)
+             and left modules over (number fields and quotient fields and metric spaces)
 
 
         FIXME: find a better name for this method
@@ -1544,10 +1545,10 @@ cdef class FormalCompositeMap(Map):
 
             sage: copy(QQ['q,t'].coerce_map_from(int))   # indirect doctest
             Composite map:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Multivariate Polynomial Ring in q, t over Rational Field
               Defn:   Native morphism:
-                      From: Set of Python objects of type 'int'
+                      From: Set of Python objects of class 'int'
                       To:   Rational Field
                     then
                       Polynomial base injection morphism:

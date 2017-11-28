@@ -645,20 +645,17 @@ class Factorization(SageObject):
         if repeat:
             self.simplify()
 
-    def sort(self, _cmp=None, key=None):
+    def sort(self, key=None):
         r"""
         Sort the factors in this factorization.
 
         INPUT:
 
-        - ``_cmp`` - (default: ``None``) comparison function (deprecated)
         - ``key`` - (default: ``None``) comparison key
 
         OUTPUT:
 
         - changes this factorization to be sorted (inplace)
-
-        If ``_cmp`` is ``None``, we use a comparison key.
 
         If ``key`` is ``None``, we determine the comparison key as
         follows:
@@ -688,26 +685,8 @@ class Factorization(SageObject):
             sage: F.sort(key=lambda x:(-x[0].degree(), x))
             sage: F
             (x^2 - x + 1) * (x + 1)
-
-        TESTS:
-
-        We sort it using the negated version of the
-        Python cmp function (using ``_cmp`` is deprecated)::
-
-            sage: F.sort(_cmp=lambda x,y: -cmp(x,y))
-            doctest:...: DeprecationWarning: Please use 'key' to sort.
-            See http://trac.sagemath.org/21145 for details.
-            sage: F
-            (x^2 - x + 1) * (x + 1)
         """
         if len(self) == 0:
-            return
-
-        if _cmp is not None:
-            from functools import cmp_to_key
-            from sage.misc.superseded import deprecation
-            deprecation(21145, "Please use 'key' to sort.")
-            self.__x.sort(key=cmp_to_key(_cmp))
             return
 
         if key is not None:

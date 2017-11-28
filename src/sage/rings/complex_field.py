@@ -298,23 +298,50 @@ class ComplexField_class(ring.Field):
             self.__real_field = RealField(self._prec)
             return self.__real_field
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
-        Compare ``self`` to ``other``.
+        Check whether ``self`` is not equal to ``other``.
 
-        If ``other`` is not a :class:`ComplexField_class', then this compares
-        by their types. Otherwise it compares by their precision.
+        If ``other`` is not a :class:`ComplexField_class`, then this 
+        return ``False``. Otherwise it compares their precision.
 
         EXAMPLES::
 
-            sage: cmp(ComplexField(), ComplexField())
-            0
-            sage: cmp(ComplexField(10), ComplexField(15))
-            -1
+            sage: ComplexField() == ComplexField()
+            True
+            sage: ComplexField(10) == ComplexField(15)
+            False
         """
         if not isinstance(other, ComplexField_class):
-            return cmp(type(self), type(other))
-        return cmp(self._prec, other._prec)
+            return NotImplemented
+        return self._prec == other._prec
+
+    def __hash__(self):
+         """
+         Return the hash.
+
+         EXAMPLES::
+
+             sage: C = ComplexField(200)
+             sage: from sage.rings.complex_field import ComplexField_class
+             sage: D = ComplexField_class(200)
+             sage: hash(C) == hash(D)
+             True
+         """
+         return hash((self.__class__, self._prec))
+
+    def __ne__(self, other):
+        """
+        Check whether ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: ComplexField() != ComplexField()
+            False
+            sage: ComplexField(10) != ComplexField(15)
+            True
+        """
+        return not (self == other)
 
     def __call__(self, x=None, im=None):
         """

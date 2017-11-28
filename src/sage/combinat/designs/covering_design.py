@@ -455,7 +455,7 @@ def best_known_covering_design_www(v, k, t, verbose=False):
     Gives the best known `(v,k,t)` covering design, using the database
     available at `<http://www.ccrwest.org/>`_
 
-    INPUeT:
+    INPUT:
 
     - ``v`` -- integer, the size of the point set for the design
     - ``k`` -- integer, the number of points per block

@@ -68,7 +68,7 @@ class FiniteDimensionalAlgebraIdeal(Ideal_generic):
             gens = FiniteDimensionalAlgebraElement(A, gens)
         elif isinstance(gens, FiniteDimensionalAlgebraElement):
             gens = gens.vector()
-            B = Matrix([gens * b for b in A.table()])
+            B = Matrix([(gens * b).list() for b in A.table()])
             self._basis_matrix = B.echelon_form().image().basis_matrix()
         Ideal_generic.__init__(self, A, gens)
 

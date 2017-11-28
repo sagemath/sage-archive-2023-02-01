@@ -514,6 +514,14 @@ Running Sage from a directory with spaces in its name will also fail.
 #. Optional:  Set various other environment variables that influence the
    build process; see :ref:`section_envvar`.
 
+   Some environment variables deserve a special mention: `CC`, `CXX` and `FC`;
+   and on OS X, `OBJC` and `OBJCXX`. Those variables defining your compilers
+   can be set at configuration time and their values will be recorded for
+   further use at runtime. Those initial values are over-ridden if Sage builds
+   its own compiler or they are set to a different value again before calling
+   Sage. Note that some packages will ignore the compiler settings and use
+   values deemed safe for that package on a particular OS.
+
 #. Optional:  Run the configure script to set some options that
    influence the build process.
 
@@ -959,15 +967,15 @@ Here are some of the more commonly used variables affecting the build process:
   An entry ``package-name`` means to run the test suite for the named package
   regardless of the setting of :envvar:`SAGE_CHECK`.
   An entry ``!package-name`` means to skip its test suite.
-  So if this is set to ``mpir,!python``, then always run the test suite for
-  MPIR, but always skip the test suite for Python.
+  So if this is set to ``mpir,!python2``, then always run the test suite for
+  MPIR, but always skip the test suite for Python 2.
 
   .. note::
 
-     As of this writing (April 2013, Sage 5.8), the test suite for the Python
-     spkg fails on most platforms.
+     As of this writing (September 2017, Sage 8.1), the test suites for the
+     Python 2 and 3 spkgs fail on most platforms.
      So when this variable is empty or unset, Sage uses a default of
-     ``!python``.
+     ``!python2,!python3``.
 
 - :envvar:`SAGE64` - if set to ``yes``, then build a 64-bit binary on platforms
   which default to 32-bit, even though they can build 64-bit binaries.
@@ -1287,6 +1295,9 @@ Some standard environment variables which are used by Sage:
   :envvar:`CPPFLAGS`, :envvar:`LDFLAGS`, :envvar:`CXXFLAG64`,
   :envvar:`LDFLAG64`, and :envvar:`LD`.
 
+- :envvar:`OPENBLAS_CONFIGURE` - adds additional configuration flags for
+  the OpenBLAS package that gets added to the make command. (see :trac:`23272`)
+
 Sage uses the following environment variables when it runs:
 
 - :envvar:`DOT_SAGE` - this is the directory, to which the user has read and
@@ -1303,15 +1314,6 @@ Sage uses the following environment variables when it runs:
 - :envvar:`BROWSER` - on most platforms, Sage will detect the command to
   run a web browser, but if this doesn't seem to work on your machine, set this
   variable to the appropriate command.
-
-Sage overrides the user's settings of the following variables:
-
-- :envvar:`MPLCONFIGDIR` - ordinarily, this variable lets the user set their
-  matplotlib config directory.
-  Due to incompatibilities in the contents of this directory among different
-  versions of matplotlib, Sage overrides the user's setting, defining it
-  instead to be :file:`$DOT_SAGE/matplotlib-VER`, with ``VER`` replaced by the
-  current matplotlib version number.
 
 Variables dealing with doctesting:
 
@@ -1433,4 +1435,4 @@ the directory where you want to install Sage.
 
 
 
-**This page was last updated in February 2017 (Sage 7.6).**
+**This page was last updated in September 2017 (Sage 8.1).**

@@ -3186,9 +3186,9 @@ def random_diagonalizable_matrix(parent,eigenvalues=None,dimensions=None):
         ...
         ValueError: each eigenvalue must have a corresponding dimension and each dimension a corresponding eigenvalue.
 
-    TODO:
+    .. TODO::
 
-    Modify the routine to allow for complex eigenvalues.
+        Modify the routine to allow for complex eigenvalues.
 
     AUTHOR:
 

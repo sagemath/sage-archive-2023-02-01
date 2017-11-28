@@ -979,7 +979,7 @@ def _possible_normalizers(E, SA):
 
     OUTPUT:
 
-    - list - A list of primes, which contains all primes `l` such that the
+    - list -- A list of primes, which contains all primes `l` such that the
              Galois image at `l` is contained in the normalizer of a Cartan
              subgroup, such that the corresponding quadratic character is
              ramified only at primes in SA.

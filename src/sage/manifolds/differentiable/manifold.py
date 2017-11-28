@@ -253,7 +253,8 @@ A 1-form on the sphere::
     sage: df.display(stereoS.frame())
     df = -2*u/(u^4 + 2*u^2*v^2 + v^4 + 1) du - 2*v/(u^4 + 2*u^2*v^2 + v^4 + 1) dv
     sage: df.parent()
-    Module /\^1(S^2) of 1-forms on the 2-dimensional differentiable manifold S^2
+    Module Omega^1(S^2) of 1-forms on the 2-dimensional differentiable
+     manifold S^2
     sage: df.parent().category()
     Category of modules over Algebra of differentiable scalar fields on the
      2-dimensional differentiable manifold S^2
@@ -1096,12 +1097,12 @@ class DifferentiableManifold(TopologicalManifold):
           :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldModule`
           (or if `N` is parallelizable, a
           :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldFreeModule`)
-          representing the module `\mathcal{X}(M,\Phi)` of vector fields on
+          representing the module `\mathfrak{X}(M,\Phi)` of vector fields on
           `M` taking values on `\Phi(M)\subset N`
 
         EXAMPLES:
 
-        Vector field module `\mathcal{X}(U) := \mathcal{X}(U,\mathrm{Id}_U)`
+        Vector field module `\mathfrak{X}(U) := \mathfrak{X}(U,\mathrm{Id}_U)`
         of the complement `U` of the two poles on the sphere `\mathbb{S}^2`::
 
             sage: S2 = Manifold(2, 'S^2')
@@ -1120,7 +1121,7 @@ class DifferentiableManifold(TopologicalManifold):
             sage: XU.base_ring() is U.scalar_field_algebra()
             True
 
-        `\mathcal{X}(U)` is a free module because `U` is parallelizable
+        `\mathfrak{X}(U)` is a free module because `U` is parallelizable
         (being a chart domain)::
 
             sage: U.is_manifestly_parallelizable()
@@ -1131,7 +1132,7 @@ class DifferentiableManifold(TopologicalManifold):
             sage: XU.rank()
             2
 
-        The elements of `\mathcal{X}(U)` are vector fields on `U`::
+        The elements of `\mathfrak{X}(U)` are vector fields on `U`::
 
             sage: XU.an_element()
             Vector field on the Open subset U of the 2-dimensional
@@ -1139,7 +1140,7 @@ class DifferentiableManifold(TopologicalManifold):
             sage: XU.an_element().display()
             2 d/dth + 2 d/dph
 
-        Vector field module `\mathcal{X}(U,\Phi)` of the
+        Vector field module `\mathfrak{X}(U,\Phi)` of the
         `\RR^3`-valued vector fields along `U`, associated with the
         embedding `\Phi` of `\mathbb{S}^2` into `\RR^3`::
 
@@ -1155,7 +1156,7 @@ class DifferentiableManifold(TopologicalManifold):
             Algebra of differentiable scalar fields on the Open subset U of the
              2-dimensional differentiable manifold S^2
 
-        `\mathcal{X}(U,\Phi)` is a free module because `\RR^3`
+        `\mathfrak{X}(U,\Phi)` is a free module because `\RR^3`
         is parallelizable and its rank is 3::
 
             sage: XU_R3.rank()
@@ -1266,7 +1267,7 @@ class DifferentiableManifold(TopologicalManifold):
           :class:`~sage.manifolds.differentiable.diff_form_module.DiffFormModule`
           (or if `N` is parallelizable, a
           :class:`~sage.manifolds.differentiable.diff_form_module.DiffFormFreeModule`)
-          representing the module `\Lambda^p(M,\Phi)` of `p`-forms on `M`
+          representing the module `\Omega^p(M,\Phi)` of `p`-forms on `M`
           taking values on `\Phi(M)\subset N`
 
         EXAMPLES:
@@ -1276,12 +1277,12 @@ class DifferentiableManifold(TopologicalManifold):
             sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()
             sage: M.diff_form_module(2)
-            Free module /\^2(M) of 2-forms on the 3-dimensional differentiable
-             manifold M
+            Free module Omega^2(M) of 2-forms on the 3-dimensional
+             differentiable manifold M
             sage: M.diff_form_module(2).category()
             Category of finite dimensional modules over Algebra of
-             differentiable scalar fields on the 3-dimensional differentiable
-             manifold M
+             differentiable scalar fields on the 3-dimensional
+             differentiable manifold M
             sage: M.diff_form_module(2).base_ring()
             Algebra of differentiable scalar fields on the 3-dimensional
              differentiable manifold M
@@ -1296,6 +1297,66 @@ class DifferentiableManifold(TopologicalManifold):
         """
         return self.vector_field_module(dest_map=dest_map).dual_exterior_power(degree)
 
+    def multivector_module(self, degree, dest_map=None):
+        r"""
+        Return the set of multivector fields of a given degree defined
+        on ``self``, possibly with values in another manifold, as a
+        module over the algebra of scalar fields defined on ``self``.
+
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.multivector_module.MultivectorModule`
+            for complete documentation.
+
+        INPUT:
+
+        - ``degree`` -- positive integer; the degree `p` of the
+          multivector fields
+        - ``dest_map`` -- (default: ``None``) destination map, i.e. a
+          differentiable map `\Phi:\ M \rightarrow N`, where `M` is the
+          current manifold and `N` a differentiable manifold;
+          if ``None``, it is assumed that `N = M` and that `\Phi` is the
+          identity map (case of multivector fields *on* `M`), otherwise
+          ``dest_map`` must be a
+          :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
+
+        OUTPUT:
+
+        - a
+          :class:`~sage.manifolds.differentiable.multivector_module.MultivectorModule`
+          (or if `N` is parallelizable, a
+          :class:`~sage.manifolds.differentiable.multivector_module.MultivectorFreeModule`)
+          representing the module `\Omega^p(M,\Phi)` of `p`-forms on `M`
+          taking values on `\Phi(M)\subset N`
+
+        EXAMPLES:
+
+        Module of 2-vector fields on a 3-dimensional parallelizable
+        manifold::
+
+            sage: M = Manifold(3, 'M')
+            sage: X.<x,y,z> = M.chart()
+            sage: M.multivector_module(2)
+            Free module A^2(M) of 2-vector fields on the 3-dimensional
+             differentiable manifold M
+            sage: M.multivector_module(2).category()
+            Category of finite dimensional modules over Algebra of
+             differentiable scalar fields on the 3-dimensional
+             differentiable manifold M
+            sage: M.multivector_module(2).base_ring()
+            Algebra of differentiable scalar fields on the 3-dimensional
+             differentiable manifold M
+            sage: M.multivector_module(2).rank()
+            3
+
+        The outcome is cached::
+
+            sage: M.multivector_module(2) is M.multivector_module(2)
+            True
+
+        """
+        return self.vector_field_module(dest_map=dest_map).exterior_power(degree)
+
     def automorphism_field_group(self, dest_map=None):
         r"""
         Return the group of tangent-space automorphism fields defined on
@@ -1305,8 +1366,8 @@ class DifferentiableManifold(TopologicalManifold):
         If `M` is the current manifold and `\Phi` a differentiable map
         `\Phi: M \rightarrow N`, where `N` is a differentiable manifold,
         this method called with ``dest_map`` being `\Phi` returns the
-        general linear group `\mathrm{GL}(\mathcal{X}(M, \Phi))` of the module
-        `\mathcal{X}(M, \Phi)` of vector fields along `M` with values in
+        general linear group `\mathrm{GL}(\mathfrak{X}(M, \Phi))` of the module
+        `\mathfrak{X}(M, \Phi)` of vector fields along `M` with values in
         `\Phi(M) \subset N`.
 
         INPUT:
@@ -1325,7 +1386,7 @@ class DifferentiableManifold(TopologicalManifold):
           (if `N` is parallelizable) or a
           :class:`~sage.manifolds.differentiable.automorphismfield_group.AutomorphismFieldGroup`
           (if `N` is not parallelizable) representing
-          `\mathrm{GL}(\mathcal{X}(U, \Phi))`
+          `\mathrm{GL}(\mathfrak{X}(U, \Phi))`
 
         EXAMPLES:
 
@@ -1411,7 +1472,7 @@ class DifferentiableManifold(TopologicalManifold):
             Vector field v on the Open subset U of the 3-dimensional
              differentiable manifold M
 
-        The vector fields on `U` form the set `\mathcal{X}(U)`, which is a
+        The vector fields on `U` form the set `\mathfrak{X}(U)`, which is a
         module over the algebra `C^k(U)` of differentiable scalar fields
         on `U`::
 
@@ -1688,6 +1749,91 @@ class DifferentiableManifold(TopologicalManifold):
         return self.tensor_field(0, 2, name=name, latex_name=latex_name,
                                  sym=(0,1))
 
+    def multivector_field(self, degree, name=None, latex_name=None,
+                          dest_map=None):
+        r"""
+        Define a multivector field on ``self``.
+
+        Via the argument ``dest_map``, it is possible to let the
+        multivector field take its values on another manifold. More
+        precisely, if `M` is the current manifold, `N` a differentiable
+        manifold, `\Phi:\  M \rightarrow N` a differentiable map and `p`
+        a non-negative integer, a *multivector field of degree* `p` (or
+        `p`-*vector field*) *along* `M` *with values on* `N` is a
+        differentiable map
+
+        .. MATH::
+
+            t:\ M  \longrightarrow T^{(p,0)} N
+
+        (`T^{(p,0)} N` being the tensor bundle of type `(p,0)` over `N`)
+        such that
+
+        .. MATH::
+
+            \forall x \in M,\quad t(x) \in \Lambda^p(T_{\Phi(x)} N),
+
+        where `\Lambda^p(T_{\Phi(x)} N)` is the `p`-th exterior power
+        of the tangent vector space `T_{\Phi(x)} N`.
+
+        The standard case of a `p`-vector field *on* `M` corresponds
+        to `N = M` and `\Phi = \mathrm{Id}_M`. Other common cases are
+        `\Phi` being an immersion and `\Phi` being a curve in `N` (`M`
+        is then an open interval of `\RR`).
+
+        For `p = 1`, one can use the method
+        :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.vector_field`
+        instead.
+
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.multivectorfield.MultivectorField`
+            for complete documentation.
+
+        INPUT:
+
+        - ``degree`` -- the degree `p` of the multivector field (i.e.
+          its tensor rank)
+        - ``name`` -- (default: ``None``) name given to the multivector
+          field
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote
+          the multivector field; if none is provided, the LaTeX symbol
+          is set to ``name``
+        - ``dest_map`` -- (default: ``None``) the destination map
+          `\Phi:\ M \rightarrow N`; if ``None``, it is assumed that
+          `N = M` and that `\Phi` is the identity map (case of a
+          multivector field *on* `M`), otherwise ``dest_map`` must be a
+          :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
+
+        OUTPUT:
+
+        - the `p`-vector field as a
+          :class:`~sage.manifolds.differentiable.multivectorfield.MultivectorField`
+          (or if `N` is parallelizable, a
+          :class:`~sage.manifolds.differentiable.multivectorfield.MultivectorFieldParal`)
+
+        EXAMPLES:
+
+        A 2-vector field on a open subset of a 4-dimensional
+         differentiable manifold::
+
+            sage: M = Manifold(4, 'M')
+            sage: A = M.open_subset('A', latex_name=r'\mathcal{A}'); A
+            Open subset A of the 4-dimensional differentiable manifold M
+            sage: c_xyzt.<x,y,z,t> = A.chart()
+            sage: h = A.multivector_field(2, 'H'); h
+            2-vector field H on the Open subset A of the 4-dimensional
+             differentiable manifold M
+
+        See the documentation of class
+        :class:`~sage.manifolds.differentiable.multivectorfield.MultivectorField`
+        for more examples.
+
+        """
+        vmodule = self.vector_field_module(dest_map)
+        return vmodule.alternating_contravariant_tensor(degree,
+                                       name=name, latex_name=latex_name)
+
     def diff_form(self, degree, name=None, latex_name=None,
                   dest_map=None):
         r"""
@@ -1698,7 +1844,8 @@ class DifferentiableManifold(TopologicalManifold):
         precisely, if `M` is the current manifold, `N` a differentiable
         manifold, `\Phi:\  M \rightarrow N` a differentiable map and `p`
         a non-negative integer, a *differential form of degree* `p` (or
-        `p`-form) *along* `M` *with values on* `N` is a differentiable map
+        `p`-*form*) *along* `M` *with values on* `N` is a differentiable
+        map
 
         .. MATH::
 
@@ -1709,15 +1856,15 @@ class DifferentiableManifold(TopologicalManifold):
 
         .. MATH::
 
-            \forall p \in M,\ t(p) \in \Lambda^p(T^*_{\Phi(p)} N),
+            \forall x \in M,\quad t(x) \in \Lambda^p(T^*_{\Phi(x)} N),
 
-        where `\Lambda^p(T^*_{\Phi(p)} N)` is the `p`-th exterior power
-        of the dual of the tangent space `T_{\Phi(p)} N`.
+        where `\Lambda^p(T^*_{\Phi(x)} N)` is the `p`-th exterior power
+        of the dual of the tangent space `T_{\Phi(x)} N`.
 
         The standard case of a differential form *on* `M` corresponds
-        to `N = M` and `\Phi = \mathrm{Id}_M`. Other common cases are `\Phi`
-        being an immersion and `\Phi` being a curve in `N` (`M` is then
-        an open interval of `\RR`).
+        to `N = M` and `\Phi = \mathrm{Id}_M`. Other common cases are
+        `\Phi` being an immersion and `\Phi` being a curve in `N` (`M`
+        is then an open interval of `\RR`).
 
         For `p = 1`, one can use the method
         :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.one_form`
@@ -1725,21 +1872,22 @@ class DifferentiableManifold(TopologicalManifold):
 
         .. SEEALSO::
 
-            :class:`~sage.manifolds.differentiable.diff_form.DiffForm` for
-            complete documentation.
+            :class:`~sage.manifolds.differentiable.diff_form.DiffForm`
+            for complete documentation.
 
         INPUT:
 
-        - ``degree`` -- the degree `p` of the differential form (i.e. its
-          tensor rank)
-        - ``name`` -- (default: ``None``) name given to the differential form
-        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
-          differential form; if none is provided, the LaTeX symbol is set to
-          ``name``
+        - ``degree`` -- the degree `p` of the differential form (i.e.
+          its tensor rank)
+        - ``name`` -- (default: ``None``) name given to the differential
+          form
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote
+          the differential form; if none is provided, the LaTeX symbol
+          is set to ``name``
         - ``dest_map`` -- (default: ``None``) the destination map
-          `\Phi:\ M \rightarrow N`; if ``None``, it is assumed that `N = M`
-          and that `\Phi` is the identity map (case of a differential
-          form *on* `M`), otherwise ``dest_map`` must be a
+          `\Phi:\ M \rightarrow N`; if ``None``, it is assumed that
+          `N = M` and that `\Phi` is the identity map (case of a
+          differential form *on* `M`), otherwise ``dest_map`` must be a
           :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
 
         OUTPUT:
@@ -1751,19 +1899,20 @@ class DifferentiableManifold(TopologicalManifold):
 
         EXAMPLES:
 
-        A 2-form on a open subset of a 4-dimensional differentiable manifold::
+        A 2-form on a open subset of a 4-dimensional differentiable
+        manifold::
 
             sage: M = Manifold(4, 'M')
             sage: A = M.open_subset('A', latex_name=r'\mathcal{A}'); A
             Open subset A of the 4-dimensional differentiable manifold M
             sage: c_xyzt.<x,y,z,t> = A.chart()
             sage: f = A.diff_form(2, 'F'); f
-            2-form F on the Open subset A of the 4-dimensional differentiable
-             manifold M
+            2-form F on the Open subset A of the 4-dimensional
+             differentiable manifold M
 
         See the documentation of class
-        :class:`~sage.manifolds.differentiable.diff_form.DiffForm` for more
-        examples.
+        :class:`~sage.manifolds.differentiable.diff_form.DiffForm` for
+        more examples.
 
         """
         vmodule = self.vector_field_module(dest_map)
@@ -1778,7 +1927,8 @@ class DifferentiableManifold(TopologicalManifold):
         1-form take its values on another manifold. More precisely,
         if `M` is the current manifold, `N` a differentiable
         manifold and `\Phi:\ M \rightarrow N` a differentiable map,
-        a *1-form along* `M` *with values on* `N` is a differentiable map
+        a *1-form along* `M` *with values on* `N` is a differentiable
+        map
 
         .. MATH::
 
@@ -1788,9 +1938,10 @@ class DifferentiableManifold(TopologicalManifold):
 
         .. MATH::
 
-            \forall p \in M,\ t(p) \in T^*_{\Phi(p)}N,
+            \forall p \in M,\quad t(p) \in T^*_{\Phi(p)}N,
 
-        where `T^*_{\Phi(p)}` is the dual of the tangent space `T_{\Phi(p)} N`.
+        where `T^*_{\Phi(p)}` is the dual of the tangent space
+        `T_{\Phi(p)} N`.
 
         The standard case of a 1-form *on* `M` corresponds to `N = M`
         and `\Phi = \mathrm{Id}_M`. Other common cases are `\Phi`
@@ -1799,18 +1950,19 @@ class DifferentiableManifold(TopologicalManifold):
 
         .. SEEALSO::
 
-            :class:`~sage.manifolds.differentiable.diff_form.DiffForm` for
-            complete documentation.
+            :class:`~sage.manifolds.differentiable.diff_form.DiffForm`
+            for complete documentation.
 
         INPUT:
 
         - ``name`` -- (default: ``None``) name given to the 1-form
-        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
-          1-form; if none is provided, the LaTeX symbol is set to ``name``
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote
+          the 1-form; if none is provided, the LaTeX symbol is set to
+          ``name``
         - ``dest_map`` -- (default: ``None``) the destination map
-          `\Phi:\ M \rightarrow N`; if ``None``, it is assumed that `N = M`
-          and that `\Phi` is the identity map (case of a 1-form *on* `M`),
-          otherwise ``dest_map`` must be a
+          `\Phi:\ M \rightarrow N`; if ``None``, it is assumed that
+          `N = M` and that `\Phi` is the identity map (case of a 1-form
+          *on* `M`), otherwise ``dest_map`` must be a
           :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
 
         OUTPUT:
@@ -1831,8 +1983,8 @@ class DifferentiableManifold(TopologicalManifold):
             1-form omega on the Open subset A of the 3-dimensional
              differentiable manifold M
             sage: om.parent()
-            Free module /\^1(A) of 1-forms on the Open subset A of the
-             3-dimensional differentiable manifold M
+            Free module Omega^1(A) of 1-forms on the Open subset A of
+             the 3-dimensional differentiable manifold M
 
         .. SEEALSO::
 
@@ -1843,7 +1995,8 @@ class DifferentiableManifold(TopologicalManifold):
         vmodule = self.vector_field_module(dest_map)
         return vmodule.linear_form(name=name, latex_name=latex_name)
 
-    def automorphism_field(self, name=None, latex_name=None, dest_map=None):
+    def automorphism_field(self, name=None, latex_name=None,
+                          dest_map=None):
         r"""
         Define a field of automorphisms (invertible endomorphisms in each
         tangent space) on ``self``.
@@ -1920,7 +2073,8 @@ class DifferentiableManifold(TopologicalManifold):
         vmodule = self.vector_field_module(dest_map)
         return vmodule.automorphism(name=name, latex_name=latex_name)
 
-    def tangent_identity_field(self, name='Id', latex_name=None, dest_map=None):
+    def tangent_identity_field(self, name='Id', latex_name=None,
+                               dest_map=None):
         r"""
         Return the field of identity maps in the tangent spaces on ``self``.
 

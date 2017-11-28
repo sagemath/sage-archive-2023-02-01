@@ -129,15 +129,6 @@ cdef Linbox_modn_sparse linbox
 linbox = Linbox_modn_sparse()
 
 cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
-
-    ########################################################################
-    # LEVEL 1 functionality
-    # x * __cinit__
-    # x * __dealloc__
-    # x * __init__
-    # x * set_unsafe
-    # x * get_unsafe
-    ########################################################################
     def __cinit__(self, parent, entries, copy, coerce):
         matrix.Matrix.__init__(self, parent)
 
@@ -243,10 +234,6 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         IntegerMod_abstract.__init__(n, self._base_ring)
         n.ivalue = get_entry(&self.rows[i], j)
         return n
-
-    def __hash__(self):
-        return self._hash()
-
 
     ########################################################################
     # LEVEL 2 functionality
@@ -356,6 +343,17 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             sage: d = matrix(GF(43), 3, 8, range(24))
             sage: a*c == a*d
             True
+            
+        TESTS:
+        
+        The following shows that :trac:`23669` has been addressed::
+
+            sage: p = next_prime(2**15)
+            sage: M = Matrix(GF(p), 1,3, lambda i,j: -1, sparse=True); M
+            [32770 32770 32770]
+            sage: M*M.transpose() # previously returned [32738]
+            [3]
+
         """
         cdef Matrix_modn_sparse right, ans
         right = _right
@@ -384,7 +382,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
                     if v.positions[k] in c:
                         y = get_entry(&right.rows[v.positions[k]], j)
                         x = v.entries[k] * y
-                        s += x
+                        s = (s + x) % self.p
                 set_entry(&ans.rows[i], j, s)
         return ans
 

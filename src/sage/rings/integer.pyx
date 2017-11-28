@@ -465,6 +465,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         -10380104371593008048799446356441519384
         sage: Integer(pari('Pol([-3])'))
         -3
+
+    .. automethod:: __pow__
     """
 
     def __cinit__(self):
@@ -1961,6 +1963,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 0^0
             1
 
+        See also `<http://www.faqs.org/faqs/sci-math-faq/0to0/>`_ and
+        `<https://math.stackexchange.com/questions/11150/zero-to-the-zero-power-is-00-1>`_.
+
         The base need not be an integer (it can be a builtin Python type).
 
         ::
@@ -2527,7 +2532,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: Integer(125).log(5,prec=53)
             3.00000000000000
             sage: log(Integer(125))
-            log(125)
+            3*log(5)
 
         For extremely large numbers, this works::
 
@@ -3791,7 +3796,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     def coprime_integers(self, m):
         """
         Return the positive integers `< m` that are coprime to
-        self.
+        this integer.
 
         EXAMPLES::
 
@@ -3807,19 +3812,64 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n = 99; n.coprime_integers(99)
             [1, 2, 4, 5, 7, 8, 10, 13, 14, 16, 17, 19, 20, 23, 25, 26, 28, 29, 31, 32, 34, 35, 37, 38, 40, 41, 43, 46, 47, 49, 50, 52, 53, 56, 58, 59, 61, 62, 64, 65, 67, 68, 70, 71, 73, 74, 76, 79, 80, 82, 83, 85, 86, 89, 91, 92, 94, 95, 97, 98]
 
+        TESTS::
+
+            sage: for n in srange(-6,7):
+            ....:     for m in range(1,abs(n)+3):
+            ....:         assert n.coprime_integers(m) == [k for k in srange(1,m) if gcd(k,n) == 1]
+
         AUTHORS:
 
         - Naqi Jaffery (2006-01-24): examples
 
-        ALGORITHM: Naive - compute lots of GCD's. If this isn't good enough
-        for you, please code something better and submit a patch.
+        - David Roe (2017-10-02): Now uses sieving for larger inputs
+
+        ALGORITHM:
+
+        Create an integer with `m` bits and set bits at every multiple
+        of a prime `p` that divides this integer and is less than `m`.
+        Then return a list of integers corresponding to the unset bits.
         """
-        # TODO -- make VASTLY faster
-        v = []
-        for n in range(1,m):
-            if self.gcd(n) == 1:
-                v.append(Integer(n))
-        return v
+        cdef Integer sieve, p, slf, mInteger = Integer(m)
+        if mpz_cmp_ui(mInteger.value, 1) <= 0:
+            return []
+        if mpz_sgn(self.value) == 0:
+            return [one]
+        if mpz_fits_slong_p(mInteger.value) == 0:
+            raise ValueError("m is too large")
+        cdef long mlong = mpz_get_si(mInteger.value)
+        cdef unsigned long ilong, plong
+        if mpz_cmpabs_ui(self.value, 1) == 0:
+            return [Integer(ilong) for ilong in range(1, mlong)]
+        if (mpz_cmpabs(self.value, mInteger.value) >= 0 and
+            (mpz_sgn(self.value) > 0 and self.is_prime() or
+             mpz_sgn(self.value) < 0 and (-self).is_prime())):
+            return [Integer(ilong) for ilong in range(1, mlong)]
+        sieve = PY_NEW(Integer)
+        p = one
+        slf = PY_NEW(Integer)
+        mpz_set(slf.value, self.value)
+        while True:
+            p = slf.trial_division(mlong, mpz_get_si(p.value)+1)
+            if mpz_cmp_si(p.value, mlong) >= 0:
+                # p is larger than m, so no more primes are needed.
+                break
+            sig_on()
+            ilong = plong = mpz_get_ui(p.value)
+            while ilong < mlong:
+                # Set bits in sieve at each multiple of p
+                mpz_setbit(sieve.value, ilong)
+                ilong += plong
+            # Now divide by p until no ps remain
+            mpz_divexact_ui(slf.value, slf.value, plong)
+            while mpz_divisible_ui_p(slf.value, plong):
+                mpz_divexact_ui(slf.value, slf.value, plong)
+            sig_off()
+            # If we have found all factors, we break
+            if mpz_cmpabs_ui(slf.value, 1) == 0:
+                break
+        return [Integer(ilong) for ilong in range(1, mlong)
+                if mpz_tstbit(sieve.value, ilong) == 0]
 
     def divides(self, n):
         """
@@ -4282,6 +4332,34 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return self
 
+    def trunc(self):
+        """
+        Round this number to the nearest integer, which is self since
+        self is an integer.
+
+        EXAMPLES::
+
+            sage: n = 6
+            sage: n.trunc()
+            6
+        """
+        return self
+
+    def round(Integer self, mode="away"):
+        """
+        Returns the nearest integer to ``self``, which is self since
+        self is an integer.
+
+        EXAMPLES:
+
+        This example addresses :trac:`23502`::
+
+            sage: n = 6
+            sage: n.round()
+            6
+        """
+        return self
+
     def real(self):
         """
         Returns the real part of self, which is self.
@@ -4670,7 +4748,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             n = Integer(n)
         return self._is_power_of(n)
 
-    def is_prime_power(self, flag=None, proof=None, bint get_data=False):
+    def is_prime_power(self, *, proof=None, bint get_data=False):
         r"""
         Return ``True`` if this integer is a prime power, and ``False`` otherwise.
 
@@ -4753,9 +4831,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n.is_prime_power()
             True
         """
-        if flag is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(16878, "the 'flag' argument to is_prime_power() is no longer used")
         if mpz_sgn(self.value) <= 0:
             return (self, zero) if get_data else False
 
@@ -4907,12 +4982,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def is_pseudoprime(self):
         r"""
-        Test whether self is a pseudoprime
+        Test whether ``self`` is a pseudoprime.
 
         This uses PARI's Baillie-PSW probabilistic primality
         test. Currently, there are no known pseudoprimes for
-        Baille-PSW that are not actually prime. However it is
+        Baillie-PSW that are not actually prime. However it is
         conjectured that there are infinitely many.
+
+        See :wikipedia:`Baillie-PSW_primality_test`
 
         EXAMPLES::
 
@@ -6091,11 +6168,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         TESTS::
 
-            sage: 1 << (2^60)
+            sage: 1 << (2^60)                                        # optional - mpir
             Traceback (most recent call last):
             ...
-            MemoryError: failed to allocate ... bytes   # 64-bit
-            OverflowError: ...                          # 32-bit
+            MemoryError: failed to allocate ... bytes                # 64-bit
+            OverflowError: Python int too large to convert to C long # 32-bit
+
+            sage: 1 << (2^60)                                        # optional - gmp
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Aborted                                    # 64-bit
+            OverflowError: Python int too large to convert to C long # 32-bit
         """
         cdef long n
 
@@ -6835,7 +6918,7 @@ cdef class int_to_Z(Morphism):
     already of the correct type which may have undesirable results::
 
         sage: f.domain()
-        Set of Python objects of type 'int'
+        Set of Python objects of class 'int'
         sage: f(1/3)
         0
         sage: f(1.7)
@@ -6857,7 +6940,7 @@ cdef class int_to_Z(Morphism):
 
             sage: f = ZZ.coerce_map_from(int)
             sage: f.parent()
-            Set of Morphisms from Set of Python objects of type 'int' to Integer Ring in Category of sets
+            Set of Morphisms from Set of Python objects of class 'int' to Integer Ring in Category of sets
         """
         import sage.categories.homset
         from sage.structure.parent import Set_PythonType
@@ -6893,7 +6976,7 @@ cdef class int_to_Z(Morphism):
             sage: f = ZZ.coerce_map_from(int)
             sage: print(f)
             Native morphism:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Integer Ring
         """
         return "Native"
@@ -6904,7 +6987,7 @@ cdef class long_to_Z(Morphism):
 
         sage: f = ZZ.coerce_map_from(long); f
         Native morphism:
-          From: Set of Python objects of type 'long'
+          From: Set of Python objects of class 'long'
           To:   Integer Ring
         sage: f(1rL)
         1

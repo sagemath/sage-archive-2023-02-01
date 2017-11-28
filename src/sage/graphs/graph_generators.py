@@ -55,7 +55,8 @@ __doc__ += """
 """
 
 __append_to_doc(
-    ["BullGraph",
+    ["AztecDiamondGraph",
+     "BullGraph",
      "ButterflyGraph",
      "CircularLadderGraph",
      "ClawGraph",
@@ -449,7 +450,8 @@ class GraphGenerators():
 
     INPUT:
 
-    - ``vertices`` -- natural number.
+    - ``vertices`` -- a natural number or ``None`` to infinitely generate
+      bigger and bigger graphs.
 
     - ``property`` -- (default: ``lambda x: True``) any property to be
       tested on graphs before generation, but note that in general the
@@ -467,7 +469,7 @@ class GraphGenerators():
     - ``augment`` -- (default: ``'edges'``) possible values:
 
       - ``'edges'`` -- augments a fixed number of vertices by
-        adding one edge. In this case, all graphs on exactly ``n=vertices`` are
+        adding one edge. In this case, all graphs on *exactly* ``n=vertices`` are
         generated. If for any graph G satisfying the property, every
         subgraph, obtained from G by deleting one edge but not the vertices
         incident to that edge, satisfies the property, then this will
@@ -476,7 +478,7 @@ class GraphGenerators():
         be some missing.
 
       - ``'vertices'`` -- augments by adding a vertex and
-        edges incident to that vertex. In this case, all graphs up to
+        edges incident to that vertex. In this case, all graphs *up to*
         ``n=vertices`` are generated. If for any graph G satisfying the
         property, every subgraph, obtained from G by deleting one vertex
         and only edges incident to that vertex, satisfies the property,
@@ -506,7 +508,7 @@ class GraphGenerators():
       is working on. The second alternative is faster, but modifying
       any of the graph instances returned by the method may break
       the function's behaviour, as it is using these graphs to
-      compute the next ones : only use ``copy_graph = False`` when
+      compute the next ones: only use ``copy = False`` when
       you stick to *reading* the graphs returned.
 
     EXAMPLES:
@@ -1987,6 +1989,7 @@ class GraphGenerators():
 # Families
 ###########################################################################
     import sage.graphs.generators.families
+    AztecDiamondGraph      = staticmethod(sage.graphs.generators.families.AztecDiamondGraph)
     BalancedTree           = staticmethod(sage.graphs.generators.families.BalancedTree)
     BarbellGraph           = staticmethod(sage.graphs.generators.families.BarbellGraph)
     BubbleSortGraph        = staticmethod(sage.graphs.generators.families.BubbleSortGraph)

@@ -56,11 +56,12 @@ class InterpreterGenerator(object):
 
     def gen_code(self, instr_desc, write):
         r"""
-        Generates code for a single instruction.
+        Generate code for a single instruction.
 
-        INPUTS:
-            instr_desc -- an InstrSpec
-            write -- a Python callable
+        INPUT:
+
+        - instr_desc -- an InstrSpec
+        - write -- a Python callable
 
         This function calls its write parameter successively with
         strings; when these strings are concatenated, the result is

@@ -203,7 +203,7 @@ def load(filename, globals, attach=False):
 
     if filename.lower().startswith(('http://', 'https://')):
         if attach:
-            # But see http://en.wikipedia.org/wiki/HTTP_ETag for how
+            # But see https://en.wikipedia.org/wiki/HTTP_ETag for how
             # we will do this.
             # http://www.diveintopython.net/http_web_services/etags.html
             raise NotImplementedError("you can't attach a URL")

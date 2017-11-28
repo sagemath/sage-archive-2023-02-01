@@ -691,6 +691,28 @@ cdef class LaurentSeries(AlgebraElement):
         u = self.__u.add_bigoh(prec - self.__n)
         return type(self)(P, u, self.__n)
 
+    def O(self, prec):
+        r"""
+        Return the Laurent series of precision at most ``prec`` obtained by
+        adding `O(q^\text{prec})`, where `q` is the variable. 
+        
+        The precision of ``self`` and the integer ``prec`` can be arbitrary. The
+        resulting Laurent series will have precision equal to the minimum of
+        the precision of ``self`` and ``prec``. The term `O(q^\text{prec})` is the
+        zero series with precision ``prec``.
+       
+        EXAMPLES::
+
+            sage: R.<t> = LaurentSeriesRing(QQ)
+            sage: f = t^-5 + t^-4 + t^3 + O(t^10); f
+            t^-5 + t^-4 + t^3 + O(t^10)
+            sage: f.O(-4)
+            t^-5 + O(t^-4)
+            sage: f.O(15)
+            t^-5 + t^-4 + t^3 + O(t^10)
+        """
+        return self.add_bigoh(prec)
+
     def degree(self):
         """
         Return the degree of a polynomial equivalent to this power series
@@ -978,7 +1000,7 @@ cdef class LaurentSeries(AlgebraElement):
 
     cpdef _richcmp_(self, right_r, int op):
         r"""
-        Comparison of self and right.
+        Comparison of ``self`` and ``right``.
 
         We say two approximate Laurent series are equal, if they agree for
         all coefficients up to the *minimum* of the precisions of each.
@@ -987,7 +1009,7 @@ cdef class LaurentSeries(AlgebraElement):
         but consistent with the idea that the variable of a Laurent
         series is considered to be "very small".
 
-        See power_series_ring_element.__cmp__() for more
+        See :meth:`power_series_ring_element._richcmp_` for more
         information.
 
         EXAMPLES::
@@ -1396,6 +1418,13 @@ cdef class LaurentSeries(AlgebraElement):
             Traceback (most recent call last):
             ...
             ValueError: Can only substitute elements of positive valuation
+
+        Test for :trac:`23928`::
+
+            sage: R.<x> = PowerSeriesRing(QQ, implementation='pari')
+            sage: f = LaurentSeries(R, x).add_bigoh(7)
+            sage: f(x)
+            x + O(x^7)
             """
         if len(kwds) >= 1:
             name = self.parent().variable_name()
@@ -1423,7 +1452,7 @@ cdef class LaurentSeries(AlgebraElement):
         if isinstance(x[0], tuple):
             x = x[0]
 
-        return self.__u(x)*(x[0]**self.__n)
+        return self.__u(*x)*(x[0]**self.__n)
 
 def make_element_from_parent(parent, *args):
     return parent(*args)

@@ -56,7 +56,6 @@ import sage.rings.infinity
 import sage.rings.rational
 import sage.rings.rational_field
 import sage.rings.ideal
-import sage.structure.factorization as factorization
 import sage.libs.pari.all
 import sage.rings.ideal
 from sage.categories.basic import EuclideanDomains
@@ -596,7 +595,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
             sage: f = ZZ.coerce_map_from(int); f
             Native morphism:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Integer Ring
             sage: f(4r)
             4

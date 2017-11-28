@@ -1176,7 +1176,7 @@ def Bessel(*args, **kwds):
 
     """
     # Determine the order and type of function from the arguments and keywords.
-    # These are recored in local variables: _type, _order, _system, _nargs.
+    # These are recorded in local variables: _type, _order, _system, _nargs.
     _type = None
     if len(args) == 0:    # no order specified
         _order = None

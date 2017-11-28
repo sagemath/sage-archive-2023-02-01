@@ -51,7 +51,7 @@ def frobenius_unram(self, arithmetic=True):
     frob_a = R._frob_gen()
     ppow = self.valuation()
     unit = self.unit_part()
-    coefs = unit.list()
+    coefs = unit.expansion()
     ans = 0
 
     # Xavier's implementation based on Horner scheme

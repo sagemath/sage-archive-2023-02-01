@@ -305,12 +305,13 @@ AC_CACHE_CHECK([for git], [ac_cv_path_GIT], [
     [need_to_install_git=yes; ac_cv_path_GIT=no])])
 
 # Yasm is only needed on x86(_64) systems; check also for system yasm
+# which must support "adox" (new Skylake instruction)
 need_to_install_yasm=no
 AC_CACHE_CHECK([for yasm], [ac_cv_path_YASM],
     AS_CASE("$host_cpu",
         [i@<:@0-9@:>@86|x86_64], [
         AC_PATH_PROGS_FEATURE_CHECK([YASM], [yasm],
-        [${ac_path_YASM} --version >/dev/null 2>/dev/null && ac_cv_path_YASM=${ac_path_YASM}],
+        [[{ echo "BITS 64"; echo "adox rax, rax"; } | ${ac_path_YASM} - -o /dev/null >/dev/null 2>/dev/null && ac_cv_path_YASM=${ac_path_YASM}]],
         [need_to_install_yasm=yes; ac_cv_path_YASM=no])],
         [ac_cv_path_YASM="not needed for $host_cpu"]))
 
@@ -369,25 +370,51 @@ elif test -n "$SAGE_INSTALL_GCC"; then
 fi
 
 
-AC_LANG(C)
 AC_PROG_CC()
 AC_PROG_CPP()
-
-AC_LANG(C++)
 AC_PROG_CXX()
-
-AC_LANG(Fortran)
 AC_PROG_FC()
+
+AC_SUBST(CC)
+AC_SUBST(CXX)
+AC_SUBST(FC)
+
+# On darwin, also set the objective C/C++ compilers
+# Checking on all platforms doesn't hurt and stops
+# configure from sending an error when run on non-darwin.
+AC_PROG_OBJC()
+AC_PROG_OBJCXX()
+AC_SUBST(OBJC)
+AC_SUBST(OBJCXX)
 
 if test "x$CXX" = x
 then
     AC_MSG_ERROR([a C++ compiler is missing])
 fi
 
+###############################################################################
+# Check libraries
+###############################################################################
+
+# Only install curl (and libcurl) if we cannot find version 7.22 or
+# later, since that is what R needs.
+need_to_install_curl=no
+AC_CACHE_CHECK([for curl 7.22], [ac_cv_path_CURL], [
+    AC_PATH_PROGS_FEATURE_CHECK(CURL, [curl],
+    [${ac_path_CURL}-config --checkfor 7.22 >/dev/null 2>/dev/null && ac_cv_path_CURL=${ac_path_CURL}],
+    [need_to_install_curl=yes; ac_cv_path_CURL=no])])
+
 
 ###############################################################################
 # Check header files
 ###############################################################################
+
+# If (lib)curl is installed, we need to check for the curl header
+# file, too.
+if test $need_to_install_curl = no;
+then
+    AC_CHECK_HEADER([curl/curl.h], [], [need_to_install_curl=yes])
+fi
 
 # complex.h is one that might not exist on older systems.
 AC_LANG(C++)
@@ -416,12 +443,16 @@ AC_LANG(C)
 if test -z "$CC"; then
     SAGE_MUST_INSTALL_GCC([a C compiler is missing])
 else
+    # Save compiler before checking for C99 support
+    save_CC=$CC
     # Check that we can compile C99 code
     AC_PROG_CC_C99()
     if test "x$ac_cv_prog_cc_c99" = xno
     then
         SAGE_MUST_INSTALL_GCC([your C compiler cannot compile C99 code])
     fi
+    # restore original CC
+    CC=$save_CC
 fi
 
 # Check that the Fortran compiler accepts free-format source code

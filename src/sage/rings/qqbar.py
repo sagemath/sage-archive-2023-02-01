@@ -285,7 +285,7 @@ difficult to find, but we can easily verify it. ::
     sage: lhs - rhs
     0
     sage: lhs._exact_value()
-    10648699402510886229334132989629606002223831*a^9 + 23174560249100286133718183712802529035435800*a^8 + 27259790692625442252605558473646959458901265*a^7 + 21416469499004652376912957054411004410158065*a^6 + 14543082864016871805545108986578337637140321*a^5 + 6458050008796664339372667222902512216589785*a^4 - 3052219053800078449122081871454923124998263*a^3 - 14238966128623353681821644902045640915516176*a^2 - 16749022728952328254673732618939204392161001*a - 9052854758155114957837247156588012516273410 where a^10 + a^9 - a^7 - a^6 - a^5 - a^4 - a^3 + a + 1 = 0 and a in 1.176280818259918?
+    -10648699402510886229334132989629606002223831*a^9 + 23174560249100286133718183712802529035435800*a^8 - 27259790692625442252605558473646959458901265*a^7 + 21416469499004652376912957054411004410158065*a^6 - 14543082864016871805545108986578337637140321*a^5 + 6458050008796664339372667222902512216589785*a^4 + 3052219053800078449122081871454923124998263*a^3 - 14238966128623353681821644902045640915516176*a^2 + 16749022728952328254673732618939204392161001*a - 9052854758155114957837247156588012516273410 where a^10 - a^9 + a^7 - a^6 + a^5 - a^4 + a^3 - a + 1 = 0 and a in -1.176280818259918?
 
 Given an algebraic number, we can produce a string that will reproduce
 that algebraic number if you type the string into Sage. We can see
@@ -508,7 +508,7 @@ Check that :trac:`22202` is fixed::
     1/4
 """
 
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import, print_function, division
 from six.moves import range
 from six import integer_types, iteritems
 
@@ -519,7 +519,7 @@ import sage.rings.ring
 from sage.misc.fast_methods import Singleton
 from sage.misc.cachefunc import cached_method
 from sage.structure.sage_object import SageObject
-from sage.structure.richcmp import (richcmp,
+from sage.structure.richcmp import (richcmp, richcmp_method,
                                     rich_to_bool, richcmp_not_equal,
                                     op_EQ, op_NE, op_LE, op_LT,
                                     op_GE, op_GT)
@@ -1752,7 +1752,7 @@ def do_polred(poly):
         sage: do_polred(x^2 - x - 11)
         (1/3*x + 1/3, 3*x - 1, x^2 - x - 1)
         sage: do_polred(x^3 + 123456)
-        (1/4*x, 4*x, x^3 + 1929)
+        (-1/4*x, -4*x, x^3 - 1929)
 
     This shows that :trac:`13054` has been fixed::
 
@@ -2197,6 +2197,8 @@ class AlgebraicGeneratorRelation(SageObject):
 
 algebraic_generator_counter = 0
 
+
+@richcmp_method
 class AlgebraicGenerator(SageObject):
     r"""
     An ``AlgebraicGenerator`` represents both an algebraic number `\alpha` and
@@ -2278,9 +2280,9 @@ class AlgebraicGenerator(SageObject):
         """
         return self._index
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
-        Compare self with another AlgebraicGenerator object.
+        Compare ``self`` with another ``AlgebraicGenerator`` object.
 
         EXAMPLES::
 
@@ -2290,16 +2292,10 @@ class AlgebraicGenerator(SageObject):
             sage: nf = NumberField(y^2 - y - 1, name='a', check=False)
             sage: root = ANRoot(x^2 - x - 1, RIF(1, 2))
             sage: gen = AlgebraicGenerator(nf, root)
-            sage: gen.__cmp__(qq_generator)
-            1
+            sage: gen > qq_generator
+            True
         """
-        si = self._index
-        oi = other._index
-        if si < oi:
-            return -1
-        if si > oi:
-            return 1
-        return 0
+        return richcmp(self._index, other._index, op)
 
     def is_complex(self):
         r"""
@@ -2929,13 +2925,13 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: latex(AA(22/7))
             \frac{22}{7}
             sage: latex(QQbar(1/3 + 2/7*I))
-            \frac{2}{7} \sqrt{-1} + \frac{1}{3}
+            \frac{2}{7} i + \frac{1}{3}
             sage: latex(QQbar.zeta(4) + 5)
-            \sqrt{-1} + 5
+            i + 5
             sage: latex(QQbar.zeta(4))
-            \sqrt{-1}
+            i
             sage: latex(3*QQbar.zeta(4))
-            3 \sqrt{-1}
+            3 i
             sage: latex(QQbar.zeta(17))
             0.9324722294043558? + 0.3612416661871530? \sqrt{-1}
             sage: latex(AA(19).sqrt())
@@ -3022,7 +3018,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         """
         sk = type(self._descr)
         ok = type(other._descr)
-        return type(self)(_binop_algo[sk,ok](self, other, operator.div))
+        return type(self)(_binop_algo[sk,ok](self, other, operator.truediv))
 
     def __invert__(self):
         """
@@ -3254,7 +3250,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             if not ans:
                 self._set_descr(ANRational(QQ.zero()))
             return ans
-        elif isinstance(sd, ANBinaryExpr) and sd._op is operator.div:
+        elif isinstance(sd, ANBinaryExpr) and sd._op is operator.truediv:
             ans = bool(sd._left)
             if not ans:
                 self._set_descr(ANRational(QQ.zero()))
@@ -3819,7 +3815,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         EXAMPLES::
 
             sage: AA(1/sqrt(5)).radical_expression()
-            1/5*sqrt(5)
+            sqrt(1/5)
             sage: AA(sqrt(5 + sqrt(5))).radical_expression()
             sqrt(sqrt(5) + 5)
             sage: QQbar.zeta(5).radical_expression()
@@ -3923,12 +3919,12 @@ class AlgebraicNumber(AlgebraicNumber_base):
 
             sage: x = QQbar.zeta(3); x
             -0.500000000000000? + 0.866025403784439?*I
-            sage: cmp(QQbar(-1), x)
-            -1
-            sage: cmp(QQbar(-1/2), x)
-            -1
-            sage: cmp(QQbar(0), x)
-            1
+            sage: QQbar(-1) < x
+            True
+            sage: QQbar(-1/2) < x
+            True
+            sage: QQbar(0) > x
+            True
 
         One problem with this lexicographic ordering is the fact that if
         two algebraic numbers have the same real component, that real
@@ -3962,8 +3958,8 @@ class AlgebraicNumber(AlgebraicNumber_base):
             16
             sage: r1 = QQbar.polynomial_root(p2, CIF(1, (-4.1,-4.0)))
             sage: r2 = QQbar.polynomial_root(p2, CIF(1, (4.0, 4.1)))
-            sage: cmp(r1,r2), cmp(r1,r1), cmp(r2,r2), cmp(r2,r1)
-            (-1, 0, 0, 1)
+            sage: all([r1<r2, r1==r1, r2==r2, r2>r1])
+            True
 
         Though, comparing roots which are not equal or conjugate is much
         slower because the algorithm needs to check the equality of the real
@@ -5024,7 +5020,7 @@ class AlgebraicReal(AlgebraicNumber_base):
         elif type(sd) is ANBinaryExpr:
             ls = sd._left.sign()
             rs = sd._right.sign()
-            if sd._op is operator.mul or sd._op is operator.div:
+            if sd._op is operator.mul or sd._op is operator.truediv:
                 return sd._left.sign() * sd._right.sign()
             elif sd._op is operator.add:
                 if ls == rs:
@@ -7314,7 +7310,7 @@ class ANBinaryExpr(ANDescr):
             v = sib.sum([v1, -v2], simplify=True)
         elif op is operator.mul:
             v = sib.prod([v1, v2], simplify=True)
-        elif op is operator.div:
+        elif op is operator.truediv:
             v = v1 / v2
         else:
             raise RuntimeError("op is {}".format(op))
@@ -7494,7 +7490,7 @@ def an_binop_element(a, b, op):
         <class 'sage.rings.qqbar.ANBinaryExpr'>
         sage: an_binop_element(a, b, operator.mul)
         <class 'sage.rings.qqbar.ANBinaryExpr'>
-        sage: an_binop_element(a, b, operator.div)
+        sage: an_binop_element(a, b, operator.truediv)
         <class 'sage.rings.qqbar.ANBinaryExpr'>
 
     The code tries to use existing unions of number fields::
@@ -7576,7 +7572,7 @@ def _init_qqbar():
 
     AA_0 = AA.zero()
 
-    QQbar_I_nf = QuadraticField(-1, 'I', embedding=CC.gen())
+    QQbar_I_nf = QuadraticField(-1, 'I', embedding=CC.gen(), latex_name='i')
     QQbar_I_generator = AlgebraicGenerator(QQbar_I_nf, ANRoot(AAPoly.gen()**2 + 1, CIF(0, 1)))
     QQbar_I = AlgebraicNumber(ANExtensionElement(QQbar_I_generator, QQbar_I_nf.gen()))
 

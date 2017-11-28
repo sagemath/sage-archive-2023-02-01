@@ -289,14 +289,14 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
 
         sage: vars = var('x y z')
         sage: f = 100*(y-x^2)^2+(1-x)^2+100*(z-y^2)^2+(1-y)^2
-        sage: minimize(f, [.1,.3,.4])
-        (1.00..., 1.00..., 1.00...)
+        sage: minimize(f, [.1,.3,.4]) # abs tol 1e-6
+        (1.0, 1.0, 1.0)
 
     Try the newton-conjugate gradient method; the gradient and hessian are 
     computed automatically::
 
-        sage: minimize(f, [.1, .3, .4], algorithm="ncg")
-        (0.9999999..., 0.999999..., 0.999999...)
+        sage: minimize(f, [.1, .3, .4], algorithm="ncg") # abs tol 1e-6
+        (1.0, 1.0, 1.0)
 
     We get additional convergence information with the `verbose` option::
 
@@ -309,8 +309,8 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
 
         sage: def rosen(x): # The Rosenbrock function
         ....:    return sum(100.0r*(x[1r:]-x[:-1r]**2.0r)**2.0r + (1r-x[:-1r])**2.0r)
-        sage: minimize(rosen, [.1,.3,.4])
-        (1.00..., 1.00..., 1.00...)
+        sage: minimize(rosen, [.1,.3,.4]) # abs tol 3e-5
+        (1.0, 1.0, 1.0)
 
     Same example with a pure Python function and a Python function to
     compute the gradient::
@@ -328,8 +328,8 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
         ....:    der[0] = -400r*x[0r]*(x[1r]-x[0r]**2r) - 2r*(1r-x[0])
         ....:    der[-1] = 200r*(x[-1r]-x[-2r]**2r)
         ....:    return der
-        sage: minimize(rosen, [.1,.3,.4], gradient=rosen_der, algorithm="bfgs")
-        (1.00...,  1.00..., 1.00...)
+        sage: minimize(rosen, [.1,.3,.4], gradient=rosen_der, algorithm="bfgs") # abs tol 1e-6
+        (1.0, 1.0, 1.0)
     """
     from sage.symbolic.expression import Expression
     from sage.ext.fast_eval import fast_callable
@@ -765,7 +765,7 @@ def binpacking(items,maximum=1,k=None):
     the least number of bins such that all the items can be put in the
     bins, while keeping sure that each bin contains a weight of at most `K` ?
 
-    For more informations : http://en.wikipedia.org/wiki/Bin_packing_problem
+    For more informations, see :wikipedia:`Bin_packing_problem`
 
     Two version of this problem are solved by this algorithm :
          * Is it possible to put the given items in `L` bins ?

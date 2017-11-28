@@ -28,6 +28,8 @@ AUTHOR:
 - Yann Laigle-Chapuy (2009-08-28): first implementation
 
 """
+from __future__ import absolute_import
+
 from libc.string cimport memcpy
 
 from sage.structure.sage_object cimport SageObject
@@ -998,7 +1000,7 @@ cdef class BooleanFunction(SageObject):
 
         INPUT:
 
-        - annihilator - a Boolean (default: False), if True, returns also an annihilator of minimal degree.
+        - annihilator -- a Boolean (default: False), if True, returns also an annihilator of minimal degree.
 
         EXAMPLES::
 

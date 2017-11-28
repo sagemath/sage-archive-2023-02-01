@@ -44,7 +44,7 @@ cpdef gen_to_sage(Gen z, locals=None):
     - a :class:`~sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic`
       or a :class:`~sage.rings.complex_number.ComplexNumber` if ``z`` is a complex
       number (type ``t_COMPLEX``). The former is used when the real and imaginary parts are
-      integers or rationals and the latter when they are floation point numbers. In that
+      integers or rationals and the latter when they are floating point numbers. In that
       case The precision will be the maximal precision of the real and imaginary parts.
 
     - a Python list if ``z`` is a vector or a list (type ``t_VEC``, ``t_COL``)

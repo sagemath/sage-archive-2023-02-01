@@ -370,7 +370,7 @@ created by ``VectorSpace`` is actually a Cartesian power of the base field::
     Vector space of dimension 3 over Rational Field
     sage: V.category()
     Category of finite dimensional vector spaces with basis
-     over (quotient fields and metric spaces)
+     over (number fields and quotient fields and metric spaces)
     sage: V is QQ^3
     True
     sage: V.basis()
@@ -778,14 +778,18 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         self._sindex = start_index
         self._output_formatter = output_formatter
         # Dictionary of the tensor modules built on self
-        #   (keys = (k,l) --the tensor type) :
-        self._tensor_modules = {(1,0): self} # self is considered as the set of
-                                            # tensors of type (1,0)
-        # Dictionary of exterior powers of self and of the dual of self:
-        #   (keys = p --the power degree) :
-        self._exterior_powers = {}
+        #   (keys = (k,l) --the tensor type)
+        # This dictionary is to be extended on need by the method tensor_module
+        self._tensor_modules = {(1,0): self} # self is considered as the set
+                                             # of tensors of type (1,0)
+        # Dictionaries of exterior powers of self and of its dual
+        #   (keys = p --the power degree)
+        # These dictionaries are to be extended on need by the methods
+        # exterior_power and dual_exterior_power
+        self._exterior_powers = {1: self}
         self._dual_exterior_powers = {}
-        self._known_bases = []  # List of known bases on the free module
+        # List of known bases on the free module:
+        self._known_bases = []
         self._def_basis = None # default basis
         self._basis_changes = {} # Dictionary of the changes of bases
         # Zero element:
@@ -822,7 +826,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             Element of the Rank-3 free module M over the Integer Ring
 
         """
-        if comp == 0:
+        if isinstance(comp, (int, Integer)) and comp == 0:
             return self._zero_element
         resu = self.element_class(self, name=name, latex_name=latex_name)
         if comp:
@@ -1021,8 +1025,6 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         from sage.tensor.modules.ext_pow_free_module import ExtPowerFreeModule
         if p == 0:
             return self._ring
-        if p == 1:
-            return self
         if p not in self._exterior_powers:
             self._exterior_powers[p] = ExtPowerFreeModule(self, p)
         return self._exterior_powers[p]

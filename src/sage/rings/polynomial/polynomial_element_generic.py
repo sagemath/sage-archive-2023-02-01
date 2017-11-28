@@ -304,7 +304,7 @@ class Polynomial_generic_sparse(Polynomial):
         from sage.structure.element import coercion_model as cm
         import operator
         try:
-            Q = cm.bin_op(R.one(), ZZ.one(), operator.div).parent()
+            Q = cm.bin_op(R.one(), ZZ.one(), operator.truediv).parent()
         except TypeError:
             F = (R.base_ring().one()/ZZ.one()).parent()
             Q = R.change_ring(F)
@@ -670,7 +670,7 @@ class Polynomial_generic_sparse(Polynomial):
             sage: for _ in range(100):
             ....:     pd = Rd.random_element()
             ....:     qd = Rd.random_element()
-            ....:     assert cmp(pd,qd) == cmp(Rs(pd), Rs(qd))
+            ....:     assert bool(pd < qd) == bool(Rs(pd) < Rs(qd))
         """
         d1 = self.degree()
         d2 = other.degree()
@@ -1236,9 +1236,9 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
 
         - Xavier Caruso (2013-03-20)
 
-        TODO:
+        .. TODO::
 
-        Precision is not optimal, and can be improved.
+            Precision is not optimal, and can be improved.
         """
         coeffs = self.list()
         a = coeffs[:deg+1]

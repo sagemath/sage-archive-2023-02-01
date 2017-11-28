@@ -8,7 +8,6 @@ Coxeter Groups
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
 
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.combinat.root_system.reflection_group_real import ReflectionGroup
@@ -161,4 +160,3 @@ def CoxeterGroup(data, implementation="reflection", base_ring=None, index_set=No
 
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.root_system.coxeter_group', 'CoxeterGroupAsPermutationGroup',  ReflectionGroup)
-

@@ -41,12 +41,13 @@ from sage.categories.cartesian_product import cartesian_product
 from sage.categories.classical_crystals import ClassicalCrystals
 from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.sets_cat import Sets
-from sage.combinat.root_system.cartan_type import CartanType
+from sage.combinat.root_system.cartan_type import CartanType, SuperCartanType_standard
 from sage.combinat.partition import Partition
 from .letters import CrystalOfLetters
 from .spins import CrystalOfSpins, CrystalOfSpinsMinus, CrystalOfSpinsPlus
 from sage.combinat.crystals.tensor_product_element import (TensorProductOfCrystalsElement,
-        TensorProductOfRegularCrystalsElement, CrystalOfTableauxElement)
+        TensorProductOfRegularCrystalsElement, CrystalOfTableauxElement,
+        TensorProductOfSuperCrystalsElement)
 from sage.misc.flatten import flatten
 from sage.structure.element import get_coercion_model
 
@@ -630,6 +631,20 @@ class TensorProductOfRegularCrystalsWithGenerators(TensorProductOfCrystalsWithGe
     class Element(TensorProductOfRegularCrystalsElement):
         pass
 
+class FullTensorProductOfSuperCrystals(FullTensorProductOfCrystals):
+    r"""
+    Tensor product of super crystals.
+
+    EXAMPLES::
+
+        sage: L = crystals.Letters(['A', [1,1]])
+        sage: T = tensor([L,L,L])
+        sage: T.cardinality()
+        64
+    """
+    class Element(TensorProductOfSuperCrystalsElement):
+        pass
+
 #########################################################
 ## Crystal of tableaux
 
@@ -743,6 +758,13 @@ class CrystalOfTableaux(CrystalOfWords):
         ([++-, [[1]]],)
         sage: TestSuite(T).run()
 
+    We can also construct the tableaux for `\mathfrak{gl}(m|n)` as
+    given by [BKK2000]_::
+
+        sage: T = crystals.Tableaux(['A', [1,2]], shape=[4,2,1,1,1])
+        sage: T.cardinality()
+        1392
+
     TESTS:
 
     Base cases::
@@ -810,8 +832,20 @@ class CrystalOfTableaux(CrystalOfWords):
             sage: T3 = crystals.Tableaux(['A',3],             shapes = ([2,2],))
             sage: T2 is T1, T3 is T1
             (True, True)
+
+            sage: T1 = crystals.Tableaux(['A', [1,1]], shape=[3,1,1,1])
+            sage: T1
+            Crystal of BKK tableaux of shape [3, 1, 1, 1] of gl(2|2)
+            sage: T2 = crystals.Tableaux(['A', [1,1]], [3,1,1,1])
+            sage: T1 is T2
+            True
         """
         cartan_type = CartanType(cartan_type)
+        if cartan_type.letter == 'A' and isinstance(cartan_type, SuperCartanType_standard):
+            if shape is None:
+                shape = shapes
+            from sage.combinat.crystals.bkk_crystals import CrystalOfBKKTableaux
+            return CrystalOfBKKTableaux(cartan_type, shape=shape)
         n = cartan_type.rank()
         # standardize shape/shapes input into a tuple of tuples
         assert operator.xor(shape is not None, shapes is not None)

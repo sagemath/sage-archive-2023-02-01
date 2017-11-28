@@ -182,18 +182,21 @@ cdef class Matrix_integer_dense(Matrix_dense):
         Traceback (most recent call last):
         ...
         TypeError: nonzero scalar matrix must be square
-    """
-    ########################################################################
-    # LEVEL 1 functionality
-    # x * __cinit__
-    # x * __dealloc__
-    # x * __init__
-    # x * set_unsafe
-    # x * get_unsafe
-    # x * def _pickle
-    # x * def _unpickle
-    ########################################################################
 
+    TESTS:
+
+    Test hashing::
+
+        sage: a = Matrix(ZZ, 2, [1,2,3,4])
+        sage: hash(a)
+        Traceback (most recent call last):
+        ...
+        TypeError: mutable matrices are unhashable
+        sage: a.set_immutable()
+        sage: hash(a)
+        1846857684291126914  # 64-bit
+        1591707266           # 32-bit
+    """
     def __cinit__(self, parent, entries, coerce, copy):
         """
         Create and allocate memory for the matrix. Does not actually
@@ -228,28 +231,6 @@ cdef class Matrix_integer_dense(Matrix_dense):
         sig_str("FLINT exception")
         fmpz_mat_init(self._matrix, self._nrows, self._ncols)
         sig_off()
-
-    def __hash__(self):
-        r"""
-        Returns hash of self.
-
-        self must be immutable.
-
-        EXAMPLES::
-
-            sage: a = Matrix(ZZ,2,[1,2,3,4])
-            sage: hash(a)
-            Traceback (most recent call last):
-            ...
-            TypeError: mutable matrices are unhashable
-
-        ::
-
-            sage: a.set_immutable()
-            sage: hash(a)
-            8
-        """
-        return self._hash()
 
     def __dealloc__(self):
         """
@@ -2619,20 +2600,41 @@ cdef class Matrix_integer_dense(Matrix_dense):
     ####################################################################################
     # LLL
     ####################################################################################
-    def LLL_gram(self):
+    def LLL_gram(self, flag = 0):
         """
-        LLL reduction of the lattice whose gram matrix is ``self``.
+        LLL reduction of the lattice whose gram matrix is ``self``,
+        assuming that ``self`` is positive definite.
+
+        .. WARNING::
+
+            The algorithm does not check if ``self`` is positive definite.
 
         INPUT:
 
-        - ``M`` -- gram matrix of a definite quadratic form
+        - ``self`` -- a gram matrix of a positive definite quadratic form
+
+        - ``flag`` -- an optional flag passed to ``qflllgram``.
+                      According  to :pari:`qflllgram`'s documentation
+                      the options are:
+
+            - ``0`` -- (default), assume that ``self`` has either exact
+                       (integral or rational) or real floating point entries.
+                       The matrix is rescaled, converted to integers and the
+                       behavior is then as in ``flag = 1``.
+
+            - ``1`` -- assume that G is integral.
+                       Computations involving Gram-Schmidt vectors are
+                       approximate, with precision varying as needed.
+
 
         OUTPUT:
 
-        ``U`` - unimodular transformation matrix such that
-        ``U.T * M * U``  is LLL-reduced.
+        A dense matrix ``U`` over the integers that represents a unimodular
+        transformation matrix such that ``U.T * M * U``  is LLL-reduced.
 
-        ALGORITHM: Use PARI
+        ALGORITHM:
+
+        Calls PARI's :pari:`qflllgram`.
 
         EXAMPLES::
 
@@ -2646,7 +2648,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             [1 0]
             [0 1]
 
-        Semidefinite and indefinite forms no longer raise a ``ValueError``::
+        The algorithm might work for some semidefinite and indefinite forms::
 
             sage: Matrix(ZZ,2,2,[2,6,6,3]).LLL_gram()
             [-3 -1]
@@ -2654,6 +2656,30 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: Matrix(ZZ,2,2,[1,0,0,-1]).LLL_gram()
             [ 0 -1]
             [ 1  0]
+
+        However, it might fail for others by raising a ``ValueError``::
+
+            sage: Matrix(ZZ, 1,1,[0]).LLL_gram()
+            Traceback (most recent call last):
+            ...
+            ValueError: qflllgram did not return a square matrix,
+            perhaps the matrix is not positive definite
+
+            sage: Matrix(ZZ, 2, 2, [0,1,1,0]).LLL_gram()
+            Traceback (most recent call last):
+            ...
+            ValueError: qflllgram did not return a square matrix,
+            perhaps the matrix is not positive definite
+
+        or by running forever::
+
+            sage: Matrix(ZZ, 2, 2, [-5, -1, -1, -5]).LLL_gram() # not tested
+            Traceback (most recent call last):
+            ...
+            RuntimeError: infinite loop while calling qflllgram
+
+
+
 
         """
         if self._nrows != self._ncols:
@@ -2663,9 +2689,13 @@ cdef class Matrix_integer_dense(Matrix_dense):
         # maybe should be /unimodular/ matrices ?
         P = self.__pari__()
         try:
-            U = P.lllgramint()
+            U = P.qflllgram(flag)
         except (RuntimeError, ArithmeticError) as msg:
-            raise ValueError("not a definite matrix")
+            raise ValueError("qflllgram failed, "
+                             "perhaps the matrix is not positive definite")
+        if U.matsize() != [n, n]:
+            raise ValueError("qflllgram did not return a square matrix, "
+                             "perhaps the matrix is not positive definite");
         MS = matrix_space.MatrixSpace(ZZ,n)
         U = MS(U.sage())
         # Fix last column so that det = +1
@@ -2674,8 +2704,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
                 U[i,n-1] = - U[i,n-1]
         return U
 
-    def BKZ(self, delta=None, algorithm="fpLLL", fp=None, block_size=10, prune=0, use_givens=False,
-            precision=0, proof=None, **kwds):
+    def BKZ(self, delta=None, algorithm="fpLLL", fp=None, block_size=10, prune=0,
+            use_givens=False, precision=0, proof=None, **kwds):
         """
         Block Korkin-Zolotarev reduction.
 
@@ -4750,7 +4780,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             [  0   0 545], [0, 1, 2]
             )
         """
-        from sage.all import get_memory_usage
+        from sage.misc.getusage import get_memory_usage
         cdef Py_ssize_t i, j, piv, n = self._nrows, m = self._ncols
 
         from .constructor import matrix

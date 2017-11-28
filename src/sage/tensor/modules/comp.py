@@ -913,9 +913,16 @@ class Components(SageObject):
             self._set_list(indices, format_type, value)
         else:
             ind = self._check_indices(indices)
-            if value == 0:
+            # Check for a zero value
+            #   The fast method is_trivial_zero() is employed preferably
+            #   to the (possibly expensive) direct comparison to zero:
+            if hasattr(value, 'is_trivial_zero'):
+                zero_value = value.is_trivial_zero()
+            else:
+                zero_value = value == 0
+            if zero_value:
                 # if the component has been set previously, it is deleted,
-                # otherwise nothing is done:
+                # otherwise nothing is done (zero components are not stored):
                 if ind in self._comp:
                     del self._comp[ind]
             else:
@@ -1197,8 +1204,13 @@ class Components(SageObject):
         for ind in generator:
             ind_arg = ind + (format_spec,)
             val = self[ind_arg]
-            if not (val == 0) or not only_nonzero:  # val != 0 would not be
-                                                    # correct, see :trac:`22520`
+            # Check whether the value is zero, preferably via the
+            # fast method is_trivial_zero():
+            if hasattr(val, 'is_trivial_zero'):
+                zero_value = val.is_trivial_zero()
+            else:
+                zero_value = val == 0
+            if not zero_value or not only_nonzero:
                 indices = ''  # text indices
                 d_indices = '' # LaTeX down indices
                 u_indices = '' # LaTeX up indices
@@ -1521,7 +1533,7 @@ class Components(SageObject):
             sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
         """
-        if other == 0:
+        if isinstance(other, (int, Integer)) and other == 0:
             return +self
         if not isinstance(other, Components):
             raise TypeError("the second argument for the addition must be " +
@@ -1636,7 +1648,7 @@ class Components(SageObject):
             sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
         """
-        if other == 0:
+        if isinstance(other, (int, Integer)) and other == 0:
             return +self
         return self + (-other)  #!# correct, deals properly with
                                 # symmetries, but is probably not optimal
@@ -3252,14 +3264,21 @@ class CompWithSym(Components):
             self._set_list(indices, format_type, value)
         else:
             sign, ind = self._ordered_indices(indices)
+            # Check for a zero value
+            #   The fast method is_trivial_zero() is employed preferably
+            #   to the (possibly expensive) direct comparison to zero:
+            if hasattr(value, 'is_trivial_zero'):
+                zero_value = value.is_trivial_zero()
+            else:
+                zero_value = value == 0
             if sign == 0:
-                if not (value == 0):
+                if not zero_value:
                     raise ValueError("by antisymmetry, the component cannot " +
                                      "have a nonzero value for the indices " +
                                      str(indices))
                 if ind in self._comp:
                     del self._comp[ind]  # zero values are not stored
-            elif value == 0:
+            elif zero_value:
                 if ind in self._comp:
                     del self._comp[ind]  # zero values are not stored
             else:
@@ -3402,7 +3421,7 @@ class CompWithSym(Components):
             sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
         """
-        if other == 0:
+        if isinstance(other, (int, Integer)) and other == 0:
             return +self
         if not isinstance(other, Components):
             raise TypeError("the second argument for the addition must be a " +
@@ -4811,7 +4830,16 @@ class CompFullySym(CompWithSym):
             self._set_list(indices, format_type, value)
         else:
             ind = self._ordered_indices(indices)[1]  # [0]=sign is not used
-            if value == 0:
+            # Check for a zero value
+            #   The fast method is_trivial_zero() is employed preferably
+            #   to the (possibly expensive) direct comparison to zero:
+            if hasattr(value, 'is_trivial_zero'):
+                zero_value = value.is_trivial_zero()
+            else:
+                zero_value = value == 0
+            if zero_value:
+                # if the component has been set previously, it is deleted,
+                # otherwise nothing is done (zero components are not stored):
                 if ind in self._comp:
                     del self._comp[ind]  # zero values are not stored
             else:
@@ -4898,7 +4926,7 @@ class CompFullySym(CompWithSym):
             sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
         """
-        if other == 0:
+        if isinstance(other, (int, Integer)) and other == 0:
             return +self
         if not isinstance(other, Components):
             raise TypeError("the second argument for the addition must be a " +
@@ -5198,7 +5226,7 @@ class CompFullyAntiSym(CompWithSym):
             sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
         """
-        if other == 0:
+        if isinstance(other, (int, Integer)) and other == 0:
             return +self
         if not isinstance(other, Components):
             raise TypeError("the second argument for the addition must be a " +

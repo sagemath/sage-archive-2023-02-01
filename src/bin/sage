@@ -744,7 +744,7 @@ fi
 
 if [ "$1" = '-rst2ipynb' -o "$1" = '--rst2ipynb' ]; then
     shift
-    exec sage-rst2ipynb "$@"
+    exec rst2ipynb --kernel=sagemath "$@"
 fi
 
 if [ "$1" = '-rst2txt' -o "$1" = '--rst2txt' ]; then
@@ -790,15 +790,15 @@ if [ "$1" = "-inotebook" -o "$1" = '--inotebook' ]; then
 fi
 
 if [ "$1" = '-grep' -o "$1" = "--grep" -o "$1" = "-search_src" -o "$1" = "--search_src" ]; then
-   shift
-   sage-grep "$@"
-   exit 0
+    shift
+    sage-grep "$@"
+    exit 0
 fi
 
 if [ "$1" = '-grepdoc' -o "$1" = "--grepdoc" -o "$1" = "-search_doc" -o "$1" = "--search_doc" ]; then
-   shift
-   sage-grepdoc "$@"
-   exit 0
+    shift
+    sage-grepdoc "$@"
+    exit 0
 fi
 
 if [ "$1" = '-b' ]; then
@@ -812,8 +812,8 @@ if [ "$1" = '-br' -o "$1" = "--br" ]; then
 fi
 
 if [ "$1" = '-r' ]; then
-   shift
-   interactive_sage
+    shift
+    interactive_sage
 fi
 
 if [ "$1" = '-ba' -o "$1" = '-ba-force' -o "$1" = '--ba-force' ]; then

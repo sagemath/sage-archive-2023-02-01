@@ -1154,9 +1154,9 @@ class InterfaceElement(Element):
         P = self.parent()
         try:
             if self._get_using_file:
-                return P.get_using_file(self._name).strip()
+                return P.get_using_file(self._name).rstrip()
         except AttributeError:
-            return self.parent().get(self._name).strip()
+            return self.parent().get(self._name).rstrip()
 
     def __getattr__(self, attrname):
         P = self._check_valid()

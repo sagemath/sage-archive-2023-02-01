@@ -121,9 +121,9 @@ REFERENCES:
 - Abramowitz and Stegun: Handbook of Mathematical Functions,
   http://www.math.sfu.ca/~cbm/aands/
 
-- http://en.wikipedia.org/wiki/Spherical_harmonics
+- :wikipedia:`Spherical_harmonics`
 
-- http://en.wikipedia.org/wiki/Helmholtz_equation
+- :wikipedia:`Helmholtz_equation`
 
 - Online Encyclopedia of Special Function
   http://algo.inria.fr/esf/index.html
@@ -229,9 +229,9 @@ class SphericalHarmonic(BuiltinFunction):
 
         Check that :trac:`20939` is fixed::
 
-            sage: spherical_harmonic(3,2,1,2*pi/3)
-            -1/240*sqrt(30)*(15*I*sqrt(7)*sqrt(3)
-             + 15*sqrt(7))*cos(1)*sin(1)^2/sqrt(pi)
+            sage: ex = spherical_harmonic(3,2,1,2*pi/3)
+            sage: QQbar(ex * sqrt(pi)/cos(1)/sin(1)^2).minpoly()
+            x^4 + 105/32*x^2 + 11025/1024
         """
         if n in ZZ and m in ZZ and n > -1:
             if abs(m) > n:

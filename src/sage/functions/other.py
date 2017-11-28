@@ -142,6 +142,18 @@ def _eval_floor_ceil(self, x, method, bits=0, **kwds):
         ....:     else:
         ....:         assert f + 1 == c
 
+    A test from :trac:`12121`::
+
+        sage: e1 = pi - continued_fraction(pi).convergent(2785)
+        sage: e2 = e - continued_fraction(e).convergent(1500)
+        sage: f = e1/e2
+        sage: f = 1 / (f - continued_fraction(f).convergent(1000))
+        sage: f = f - continued_fraction(f).convergent(1)
+        sage: floor(f, bits=10000)
+        -1
+        sage: ceil(f, bits=10000)
+        0
+
     These don't work but fail gracefully::
 
         sage: ceil(Infinity)
@@ -190,7 +202,7 @@ def _eval_floor_ceil(self, x, method, bits=0, **kwds):
     #     how many bits are used.
     #
     # The strategy is to first reduce the absolute diameter of the
-    # interval until its size is at most 2^(-20). Then we check for
+    # interval until its size is at most 10^(-6). Then we check for
     # (B) by simplifying the expression.
     from sage.rings.all import RealIntervalField
 
@@ -204,7 +216,7 @@ def _eval_floor_ceil(self, x, method, bits=0, **kwds):
     # to, an exact integer.
     guess = Integer(0)
 
-    # We do not use the target number of bits immediatly, we just use
+    # We do not use the target number of bits immediately, we just use
     # it as indication of when to stop.
     target_bits = bits
     bits = 32
@@ -464,8 +476,18 @@ class Function_floor(BuiltinFunction):
 
         ::
 
-            sage: floor(cos(8)/cos(2))
+            sage: floor(cos(8) / cos(2))
             0
+            sage: floor(log(4) / log(2))
+            2
+            sage: a = floor(5.4 + x); a
+            floor(x + 5.40000000000000)
+            sage: a.subs(x==2)
+            7
+            sage: floor(log(2^(3/2)) / log(2) + 1/2)
+            2
+            sage: floor(log(2^(-3/2)) / log(2) + 1/2)
+            -1
 
         ::
 

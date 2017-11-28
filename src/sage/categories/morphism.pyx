@@ -337,20 +337,39 @@ cdef class Morphism(Map):
 
         We check the images of the generators of the domain under both
         maps. We then iteratively check the base.
+
+        TESTS::
+
+            sage: from sage.categories.morphism import SetMorphism
+            sage: E = End(Partitions(5))
+            sage: f = E.identity()
+            sage: g = SetMorphism(E, lambda x:x)
+            sage: f == g
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: unable to compare morphisms of type <... 'sage.categories.morphism.IdentityMorphism'> and <... 'sage.categories.morphism.SetMorphism'> with domain Partitions of the integer 5
         """
         if self is other:
             return rich_to_bool(op, 0)
 
+        # Important note: because of the coercion model, we know that
+        # self and other have identical parents. This means that self
+        # and other have the same domain and codomain.
+
         cdef Parent domain = <Parent?>self.domain()
         e = None
         while True:
+            try:
+                m = domain.gens
+            except AttributeError:
+                raise NotImplementedError(f"unable to compare morphisms of type {type(self)} and {type(other)} with domain {domain}")
+            gens = m()
             # If e is a ModuleElement, then this is not the first
             # iteration and we are really in the base structure.
             #
             # If so, we see the base as a ring of scalars and create new
             # gens by picking an element of the initial domain (e) and
             # multiplying it with the gens of the scalar ring.
-            gens = domain.gens()
             if e is not None and isinstance(e, ModuleElement):
                 gens = [(<ModuleElement>e)._lmul_(x) for x in gens]
             for e in gens:
@@ -472,6 +491,7 @@ cdef class IdentityMorphism(Morphism):
             True
         """
         return True
+
 
 cdef class SetMorphism(Morphism):
     def __init__(self, parent, function):

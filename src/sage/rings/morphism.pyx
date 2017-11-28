@@ -420,20 +420,18 @@ def is_RingHomomorphism(phi):
 cdef class RingMap(Morphism):
     """
     Set-theoretic map between rings.
+
+    TESTS:
+
+    This is an abstract base class that is not directly instantiated,
+    but we will do so anyway as a test::
+
+        sage: f = sage.rings.morphism.RingMap(ZZ.Hom(ZZ))
+        sage: parent(f)
+        Set of Homomorphisms from Integer Ring to Integer Ring
+        sage: type(f)
+        <type 'sage.rings.morphism.RingMap'>
     """
-    def __init__(self, parent):
-        """
-        This is an abstract base class that isn't directly
-        instantiated, but we will do so anyways as a test.
-
-        TESTS::
-
-            sage: f = sage.rings.morphism.RingMap(ZZ.Hom(ZZ))
-            sage: type(f)
-            <type 'sage.rings.morphism.RingMap'>
-        """
-        Morphism.__init__(self, parent)
-
     def _repr_type(self):
         """
         TESTS::
@@ -447,9 +445,6 @@ cdef class RingMap(Morphism):
             Set-theoretic ring endomorphism of Integer Ring
         """
         return "Set-theoretic ring"
-
-    def __hash__(self):
-        return Morphism.__hash__(self)
 
 
 cdef class RingMap_lift(RingMap):

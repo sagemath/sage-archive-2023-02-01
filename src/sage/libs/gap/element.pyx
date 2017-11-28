@@ -466,6 +466,29 @@ cdef class GapElement(RingElement):
         """
         return self.deepcopy(0)
 
+    def __contains__(self, other):
+        r"""
+        TESTS::
+
+            sage: libgap(1) in libgap.eval('Integers')
+            True
+            sage: 1 in libgap.eval('Integers')
+            True
+
+            sage: 3 in libgap([1,5,3,2])
+            True
+            sage: -5 in libgap([1,5,3,2])
+            False
+
+            sage: libgap.eval('Integers') in libgap(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: libGAP: Error, no method found! Error, no 1st choice method found for `in' on 2 arguments
+        """
+        from sage.libs.gap.libgap import libgap
+        GAP_IN = libgap.eval(r'\in')
+        return GAP_IN(other, self).sage()
+
     cpdef _type_number(self):
         """
         Return the GAP internal type number.
@@ -1260,6 +1283,10 @@ cdef class GapElement_Integer(GapElement):
         if self.is_C_int():
             return ring(libGAP_INT_INTOBJ(self.value))
         else:
+            # TODO: waste of time!
+            # gap integers are stored as a mp_limb_t and we have a much more direct
+            # conversion implemented in mpz_get_pylong(mpz_srcptr z)
+            # (see sage.libs.gmp.pylong)
             string = self.String().sage()
             return ring(string)
 
@@ -1280,6 +1307,18 @@ cdef class GapElement_Integer(GapElement):
             <type 'long'>
         """
         return self.sage(ring=int)
+
+    def __index__(self):
+        r"""
+        TESTS:
+
+        Check that gap integers can be used as indices (:trac:`23878`)::
+
+            sage: s = 'abcd'
+            sage: s[libgap(1)]
+            'b'
+        """
+        return int(self)
 
 ############################################################################
 ### GapElement_IntegerMod #####################################################

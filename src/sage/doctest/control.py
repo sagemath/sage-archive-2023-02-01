@@ -316,9 +316,6 @@ class DocTestController(SageObject):
 
         if isinstance(options.optional, six.string_types):
             s = options.optional.lower()
-            if s == 'true':
-                sage.misc.superseded.deprecation(18558, "Use --optional=all instead of --optional=true")
-                s = "all"
             options.optional = set(s.split(','))
             if "all" in options.optional:
                 # Special case to run all optional tests
@@ -672,6 +669,7 @@ class DocTestController(SageObject):
                                               "--work-tree=" + SAGE_ROOT,
                                               "status",
                                               "--porcelain"])
+            change = change.decode('utf-8')
             for line in change.split("\n"):
                 if not line:
                     continue
@@ -946,11 +944,6 @@ class DocTestController(SageObject):
             sage: DC = DocTestController(DocTestDefaults(optional="all,and,some,more"), [])
             sage: DC._optional_tags_string()
             'all'
-            sage: DC = DocTestController(DocTestDefaults(optional="true"), [])
-            doctest:...: DeprecationWarning: Use --optional=all instead of --optional=true
-            See http://trac.sagemath.org/18558 for details.
-            sage: DC._optional_tags_string()
-            'all'
             sage: DC = DocTestController(DocTestDefaults(optional="sage,openssl"), [])
             sage: DC._optional_tags_string()
             'openssl,sage'
@@ -1135,6 +1128,7 @@ class DocTestController(SageObject):
                                                       "rev-parse",
                                                       "--abbrev-ref",
                                                       "HEAD"])
+                    branch = branch.decode('utf-8')
                     self.log("Git branch: " + branch, end="")
                 except subprocess.CalledProcessError:
                     pass

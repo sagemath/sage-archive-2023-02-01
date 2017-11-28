@@ -100,12 +100,11 @@ contains the following combinatorial functions:
         * GrayMat returns a list of all different vectors of length n over
           the field F, using Gray ordering.
     Not in GAP:
-        * Rencontres numbers
-          http://en.wikipedia.org/wiki/Rencontres_number
+        * Rencontres numbers (:wikipedia:`Rencontres_number`)
 
 REFERENCES:
 
-- http://en.wikipedia.org/wiki/Twelvefold_way (general reference)
+- :wikipedia:`Twelvefold_way` (general reference)
 
 AUTHORS:
 
@@ -495,7 +494,7 @@ def euler_number(n, algorithm='flint'):
 
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Euler_number
+    - :wikipedia:`Euler_number`
     """
     n = ZZ(n)
     if n < 0:
@@ -1293,7 +1292,7 @@ class CombinatorialElement(CombinatorialObject, Element):
         if len(args) == 1 and not kwds:
             L = args[0]
         elif len(kwds) == 1 and not args:
-            L = kwds.values()[0]
+            L, = kwds.values()
         else:
             raise TypeError("__init__() takes exactly 2 arguments ({} given)".format(1+len(args)+len(kwds)))
         super(CombinatorialElement, self).__init__(L)

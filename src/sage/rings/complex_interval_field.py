@@ -397,6 +397,20 @@ class ComplexIntervalField_class(ring.Field):
             return False
         return self._prec == other._prec
 
+    def __hash__(self):
+         """
+         Return the hash.
+ 
+         EXAMPLES::
+ 
+             sage: C = ComplexIntervalField(200)
+             sage: from sage.rings.complex_interval_field import ComplexIntervalField_class
+             sage: D = ComplexIntervalField_class(200)
+             sage: hash(C) == hash(D)
+             True
+         """
+         return hash((self.__class__, self._prec))
+
     def __ne__(self, other):
         """
         Test whether ``self`` is not equal to ``other``.

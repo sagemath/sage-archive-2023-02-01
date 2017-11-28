@@ -71,8 +71,8 @@ def _add_variable_or_fallback(key, fallback, force=False):
     Test that :trac:`23758` has been resolved::
 
         sage: sage.env._add_variable_or_fallback('SAGE_BA', '---hello---')
-        sage: sage.env._add_variable_or_fallback('TEMP', '$SAGE_BAR')
-        sage: sage.env.SAGE_ENV['TEMP']
+        sage: sage.env._add_variable_or_fallback('SAGE_QUX', '$SAGE_BAR')
+        sage: sage.env.SAGE_ENV['SAGE_QUX']
         '---foo---'
     """
     global SAGE_ENV
@@ -266,3 +266,62 @@ def sage_include_directories(use_sources=False):
                                     opj(SAGE_LIB, 'sage', 'ext')])
 
     return include_directories
+
+
+def cython_aliases():
+    """
+    Return the aliases for compiling Cython code. These aliases are
+    macros which can occur in ``# distutils`` headers.
+
+    EXAMPLES::
+
+        sage: from sage.env import cython_aliases
+        sage: cython_aliases()
+        {...}
+        sage: sorted(cython_aliases().keys())
+        ['FFLASFFPACK_CFLAGS',
+         'FFLASFFPACK_INCDIR',
+         'FFLASFFPACK_LIBDIR',
+         'FFLASFFPACK_LIBRARIES',
+         'GIVARO_CFLAGS',
+         'GIVARO_INCDIR',
+         'GIVARO_LIBDIR',
+         'GIVARO_LIBRARIES',
+         'GSL_CFLAGS',
+         'GSL_INCDIR',
+         'GSL_LIBDIR',
+         'GSL_LIBRARIES',
+         'LINBOX_CFLAGS',
+         'LINBOX_INCDIR',
+         'LINBOX_LIBDIR',
+         'LINBOX_LIBRARIES',
+         'SINGULAR_CFLAGS',
+         'SINGULAR_INCDIR',
+         'SINGULAR_LIBDIR',
+         'SINGULAR_LIBRARIES']
+    """
+    import pkgconfig
+
+    aliases = {}
+
+    for lib in ['fflas-ffpack', 'givaro', 'gsl', 'linbox', 'Singular']:
+        var = lib.upper().replace("-", "") + "_"
+        aliases[var + "CFLAGS"] = pkgconfig.cflags(lib).split()
+        pc = pkgconfig.parse(lib)
+        # INCDIR should be redundant because the -I options are also
+        # passed in CFLAGS
+        aliases[var + "INCDIR"] = pc['include_dirs']
+        aliases[var + "LIBDIR"] = pc['library_dirs']
+        aliases[var + "LIBRARIES"] = pc['libraries']
+
+    # LinBox needs special care because it actually requires C++11 with
+    # GNU extensions: -std=c++11 does not work, you need -std=gnu++11
+    # (this is true at least with GCC 7.2.0).
+    #
+    # Further, note that LinBox does not add any C++11 flag in its .pc
+    # file (possibly because of confusion between CFLAGS and CXXFLAGS?).
+    # This is not a problem in practice since LinBox depends on
+    # fflas-ffpack and fflas-ffpack does add such a C++11 flag.
+    aliases["LINBOX_CFLAGS"].append("-std=gnu++11")
+
+    return aliases

@@ -92,8 +92,7 @@ specify one less variable::
 
 REFERENCES:
 
-..  [WpInvariantTheory]
-    http://en.wikipedia.org/wiki/Glossary_of_invariant_theory
+.. [WpInvariantTheory] :wikipedia:`Glossary_of_invariant_theory`
 """
 
 #*****************************************************************************
@@ -1614,7 +1613,7 @@ class TernaryCubic(AlgebraicForm):
     Invariant theory of a ternary cubic.
 
     You should use the :class:`invariant_theory
-    <InvariantTheoryFactory>` factory object to contstruct instances
+    <InvariantTheoryFactory>` factory object to construct instances
     of this class. See :meth:`~InvariantTheoryFactory.ternary_cubic`
     for details.
 
@@ -3102,8 +3101,7 @@ can then be queried for invariant and covariants. For example,
 
         REFERENCES:
 
-        ..  [WpBinaryForm]
-            http://en.wikipedia.org/wiki/Invariant_of_a_binary_form
+        ..  [WpBinaryForm] :wikipedia:`Invariant_of_a_binary_form`
 
         EXAMPLES::
 
@@ -3242,8 +3240,7 @@ can then be queried for invariant and covariants. For example,
 
         REFERENCES:
 
-        ..  [WpTernaryCubic]
-            http://en.wikipedia.org/wiki/Ternary_cubic
+        .. [WpTernaryCubic] :wikipedia:`Ternary_cubic`
 
         INPUT:
 

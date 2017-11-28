@@ -1296,7 +1296,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         r"""
         Compute all the subgroups of this abelian group (which must be finite).
 
-        TODO: This is *many orders of magnitude* slower than Magma.
+        .. TODO:: This is *many orders of magnitude* slower than Magma.
 
         INPUT:
 
@@ -1422,15 +1422,16 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         return self.subgroup([self([x[0][i] % self.gens_orders()[i]
                                     for i in range(d)]) for x in new_basis if x[1] != 1])
 
+
 class AbelianGroup_subgroup(AbelianGroup_class):
     """
     Subgroup subclass of AbelianGroup_class, so instance methods are
     inherited.
 
-    TODO:
+    .. TODO::
 
-    - There should be a way to coerce an element of a subgroup
-      into the ambient group.
+        There should be a way to coerce an element of a subgroup
+        into the ambient group.
     """
     def __init__(self, ambient, gens, names="f"):
         """

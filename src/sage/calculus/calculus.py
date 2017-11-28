@@ -266,7 +266,7 @@ We coerce various symbolic expressions into the complex numbers::
     sage: ComplexField(200)(sin(I))
     1.1752011936438014568823818505956008151557179813340958702296*I
     sage: f = sin(I) + cos(I/2); f
-    cos(1/2*I) + sin(I)
+    cosh(1/2) + I*sinh(1)
     sage: CC(f)
     1.12762596520638 + 1.17520119364380*I
     sage: ComplexField(200)(f)
@@ -650,6 +650,8 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima', hold=False):
     elif algorithm == 'sympy':
         expression,v,a,b = [expr._sympy_() for expr in (expression, v, a, b)]
         from sympy import summation
+        from sage.interfaces.sympy import sympy_init
+        sympy_init()
         result = summation(expression, (v, a, b))
         try:
             return result._sage_()
@@ -894,6 +896,8 @@ def symbolic_product(expression, v, a, b, algorithm='maxima', hold=False):
     elif algorithm == 'sympy':
         expression,v,a,b = [expr._sympy_() for expr in (expression, v, a, b)]
         from sympy import product as sproduct
+        from sage.interfaces.sympy import sympy_init
+        sympy_init()
         result = sproduct(expression, (v, a, b))
         try:
             return result._sage_()
@@ -1319,7 +1323,7 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
     if len(argv) != 1:
         raise ValueError("call the limit function like this, e.g. limit(expr, x=2).")
     else:
-        k = argv.keys()[0]
+        k, = argv.keys()
         v = var(k)
         a = argv[k]
 
@@ -1536,6 +1540,8 @@ def laplace(ex, t, s, algorithm='maxima'):
     elif algorithm == 'sympy':
         ex_sy, t, s = [expr._sympy_() for expr in (ex, t, s)]
         from sympy import laplace_transform
+        from sage.interfaces.sympy import sympy_init
+        sympy_init()
         result = laplace_transform(ex_sy, t, s)
         if isinstance(result, tuple):
             try:
@@ -1702,6 +1708,8 @@ def inverse_laplace(ex, s, t, algorithm='maxima'):
     elif algorithm == 'sympy':
         ex_sy, s, t = [expr._sympy_() for expr in (ex, s, t)]
         from sympy import inverse_laplace_transform
+        from sage.interfaces.sympy import sympy_init
+        sympy_init()
         result = inverse_laplace_transform(ex_sy, s, t)
         try:
             return result._sage_()

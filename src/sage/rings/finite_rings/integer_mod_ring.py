@@ -1201,7 +1201,7 @@ In the latter case, please inform the developers.""".format(self.order()))
             14
             sage: f = R.coerce_map_from(int); f
             Native morphism:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Ring of integers modulo 15
             sage: f(-1r)
             14
@@ -1257,6 +1257,25 @@ In the latter case, please inform the developers.""".format(self.order()))
         to_ZZ = integer_ring.ZZ._internal_coerce_map_from(S)
         if to_ZZ is not None:
             return integer_mod.Integer_to_IntegerMod(self) * to_ZZ
+
+    def _convert_map_from_(self, other):
+        """
+        Conversion from p-adic fields.
+
+        EXAMPLES::
+
+            sage: Zmod(81).convert_map_from(Qp(3))
+            Reduction morphism:
+              From: 3-adic Field with capped relative precision 20
+              To:   Ring of integers modulo 81
+        """
+        from sage.rings.padics.padic_generic import pAdicGeneric, ResidueReductionMap
+        if isinstance(other, pAdicGeneric) and other.degree() == 1:
+            p = other.prime()
+            N = self.cardinality()
+            n = N.exact_log(p)
+            if p**n == N:
+                return ResidueReductionMap._create_(other, self)
 
     def __richcmp__(self, other, op):
         """

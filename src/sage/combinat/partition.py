@@ -539,11 +539,17 @@ class Partition(CombinatorialElement):
             CombinatorialElement.__init__(self, parent, mu._list)
             return
 
-        elif len(mu)==0 or (all(mu[i] in NN and mu[i]>=mu[i+1] for i in range(len(mu)-1)) \
+        elif not mu:
+            CombinatorialElement.__init__(self, parent, mu)
+
+        elif (all(mu[i] in NN and mu[i] >= mu[i+1] for i in range(len(mu)-1))
                 and mu[-1] in NN):
-            if 0 in mu:
+            if mu[-1] == 0: # From the above checks, the last value must be == 0 or > 0
                 # strip all trailing zeros
-                CombinatorialElement.__init__(self, parent, mu[:mu.index(0)])
+                temp = len(mu) - 1
+                while temp > 0 and mu[temp-1] == 0:
+                    temp -= 1
+                CombinatorialElement.__init__(self, parent, mu[:temp])
             else:
                 CombinatorialElement.__init__(self, parent, mu)
 
@@ -4211,17 +4217,6 @@ class Partition(CombinatorialElement):
         """
         return Partition(self.k_skew(k).conjugate().row_lengths())
 
-#    def parent(self):
-#        """
-#        Returns the combinatorial class of partitions of ``sum(self)``.
-#
-#        EXAMPLES::
-#
-#            sage: Partition([3,2,1]).parent()
-#            Partitions of the integer 6
-#        """
-#        return Partitions(sum(self[:]))
-
     def arms_legs_coeff(self, i, j):
         r"""
         This is a statistic on a cell `c = (i,j)` in the diagram of partition
@@ -4589,7 +4584,7 @@ class Partition(CombinatorialElement):
         """
         return self.dimension()**2/factorial(self.size())
 
-    def outline(self, variable=var("x")):
+    def outline(self, variable=None):
         r"""
         Return the outline of the partition ``self``.
 
@@ -4620,6 +4615,8 @@ class Partition(CombinatorialElement):
             sage: integrate(Partition([1]).outline()-abs(x),(x,-10,10))
             2
         """
+        if variable is None:
+            variable = var('x')
         outside_contents = [self.content(*c) for c in self.outside_corners()]
         inside_contents = [self.content(*c) for c in self.corners()]
         return sum(abs(variable+c) for c in outside_contents)\

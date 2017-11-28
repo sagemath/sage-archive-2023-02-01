@@ -220,7 +220,7 @@ while true; do
         -s)
             export SAGE_KEEP_BUILT_SPKGS=yes;;
         -c|--check)
-            SAGE_CHECK_PACKAGES=x  # nonempty, so not set to '!python2' later
+            SAGE_CHECK_PACKAGES=x  # nonempty, so not set to default later
             export SAGE_CHECK=yes;;
         -*)
             echo >&2 "Error: unknown option '$1'"
@@ -615,7 +615,7 @@ fi
 if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
     # New-style package
     echo "Setting up build directory for $PKG_NAME"
-    cp -Rp "$PKG_SCRIPTS" "$PKG_NAME"
+    cp -RLp "$PKG_SCRIPTS" "$PKG_NAME"
     cd "$PKG_NAME" || exit $?
 
     sage-uncompress-spkg -d src "$PKG_SRC"
@@ -767,7 +767,7 @@ fi
 # Since Python's self-tests seem to fail on all platforms, we disable
 # its test suite by default.
 if [ -z "$SAGE_CHECK_PACKAGES" ]; then
-    SAGE_CHECK_PACKAGES='!python2'
+    SAGE_CHECK_PACKAGES='!python2,!python3'
 fi
 # Allow spaces, commas, or colons as separator (the documentation suggests commas).
 if echo ",$SAGE_CHECK_PACKAGES," | grep -i "[ ,:]\!$PKG_BASE[ ,:]" > /dev/null ; then

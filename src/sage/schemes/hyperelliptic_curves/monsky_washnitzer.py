@@ -66,7 +66,7 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.infinity import Infinity
 
 from sage.arith.all import binomial, integer_ceil as ceil
-from sage.misc.functional import log
+from sage.functions.log import log
 from sage.misc.misc import newton_method_sizes
 
 from sage.schemes.elliptic_curves.ell_generic import is_EllipticCurve
@@ -1759,7 +1759,7 @@ def matrix_of_frobenius_hyperelliptic(Q, p=None, prec=None, M=None):
 
     - ``prec`` -- (optional) `p`-adic precision of the coefficient ring
 
-    - ``M`` -- (optional) adjusted `p`-adic precision of the coefficint ring
+    - ``M`` -- (optional) adjusted `p`-adic precision of the coefficient ring
 
     OUTPUT:
 

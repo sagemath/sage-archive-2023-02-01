@@ -591,7 +591,7 @@ class QuiverRepHom(CallMorphism):
             sage: f = S.hom(maps2, S) # indirect doctest
             Traceback (most recent call last):
             ...
-            TypeError: Unable to coerce x (={...}) to a morphism in Dimension 2 QuiverHomSpace
+            TypeError: unable to convert {2: [1, -1], 3: 1} to an element of Dimension 2 QuiverHomSpace
         """
         # Check that the domain and codomains dimensions add correctly
         totaldim = 0

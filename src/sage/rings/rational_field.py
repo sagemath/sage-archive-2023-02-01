@@ -343,7 +343,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             0
             sage: f = QQ.coerce_map_from(int); f # indirect doctest
             Native morphism:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Rational Field
             sage: f(44)
             44
@@ -352,10 +352,10 @@ class RationalField(Singleton, number_field_base.NumberField):
 
             sage: QQ.coerce_map_from(long) # indirect doctest
             Composite map:
-              From: Set of Python objects of type 'long'
+              From: Set of Python objects of class 'long'
               To:   Rational Field
               Defn:   Native morphism:
-                      From: Set of Python objects of type 'long'
+                      From: Set of Python objects of class 'long'
                       To:   Integer Ring
                     then
                       Natural morphism:
@@ -425,6 +425,24 @@ class RationalField(Singleton, number_field_base.NumberField):
                     yield self(-other/height)
                     yield self(height/other)
                     yield self(-height/other)
+
+    def __truediv__(self, I):
+        """
+        Form the quotient by an integral ideal.
+
+        EXAMPLES::
+
+            sage: QQ / ZZ
+            Q/Z
+        """
+        from sage.rings.ideal import Ideal_generic
+        from sage.groups.additive_abelian.qmodnz import QmodnZ
+        if I is ZZ:
+            return QmodnZ(1)
+        elif isinstance(I, Ideal_generic) and I.base_ring() is ZZ:
+            return QmodnZ(I.gen())
+        else:
+            return super(RationalField, self).__truediv__(I)
 
     def range_by_height(self, start, end=None):
         r"""

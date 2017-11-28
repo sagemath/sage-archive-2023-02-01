@@ -104,9 +104,9 @@ AUTHORS:
 from __future__ import print_function, absolute_import
 from six.moves import range
 
-from sage.arith.all import gcd, lcm
 from sage.combinat.posets.posets import FinitePoset
 from sage.env import POLYTOPE_DATA_DIR
+from sage.geometry.cone import _ambient_space_point, integral_length
 from sage.geometry.hasse_diagram import Hasse_diagram_from_incidences
 from sage.geometry.point_collection import PointCollection, is_PointCollection
 from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice
@@ -116,7 +116,7 @@ from sage.libs.ppl import (C_Polyhedron, Generator_System, Linear_Expression,
                            point as PPL_point)
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix import is_Matrix
-from sage.misc.all import cached_method, tmp_filename
+from sage.misc.all import cached_method, flatten, tmp_filename
 from sage.misc.superseded import deprecated_function_alias
 from sage.modules.all import vector
 from sage.numerical.mip import MixedIntegerLinearProgram
@@ -133,6 +133,7 @@ import collections
 from six.moves import copyreg
 import os
 import subprocess
+import warnings
 from six import StringIO
 from functools import reduce
 
@@ -422,7 +423,7 @@ def ReflexivePolytopes(dim):
             p.normal_form.set_cache(p._vertices)
             p.index.set_cache(n)
             # Prevents dimension computation later
-            p._dim = dim
+            p.dim.set_cache(dim)
         # Compute "fast" data in one call to PALP
         all_polars(rp)
         # Construction of all points via PALP takes more time after the switch
@@ -540,6 +541,25 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             self._ambient_vertex_indices = tuple(ambient_vertex_indices)
             self._ambient_facet_indices = tuple(ambient_facet_indices)
             self._vertices = ambient.vertices(self._ambient_vertex_indices)
+
+    def __contains__(self, point):
+        r"""
+        Check if ``point`` is contained in ``self``.
+
+        See :meth:`_contains` (which is called by this function) for
+        documentation.
+
+        TESTS::
+
+            sage: p = lattice_polytope.cross_polytope(2)
+            sage: (1,0) in p
+            True
+            sage: [1,0] in p
+            True
+            sage: (-2,0) in p
+            False
+        """
+        return self._contains(point)
 
     def __eq__(self, other):
         r"""
@@ -666,44 +686,35 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         """
         self.__dict__.update(state)
 
-    def _compute_dim(self):
+    def _compute_embedding(self):
         r"""
-        Compute the dimension of this polytope.
+        Compute embedding data for this polytope.
 
-        If the dimension of this polytope is not equal to its ambient dimension,
-        auxiliary polytope will be created and stored for using PALP commands.
+        Useful only if the dimension of this polytope is not equal to its
+        ambient dimension.
 
         TESTS::
 
             sage: p = LatticePolytope(([1], [2], [3]))
-            sage: hasattr(p, "_dim")
+            sage: hasattr(p, "_sublattice_polytope")
             False
-            sage: p._compute_dim()
-            sage: p._dim
-            1
+            sage: p._compute_embedding()
+            sage: p._sublattice_polytope
+            1-d lattice polytope in 1-d lattice M
         """
-        if hasattr(self, "_dim"):
+        if hasattr(self, "_sublattice_polytope"):
             return
-        N = self.lattice()
         points = self._vertices
         if not points:  # the empty lattice polytope
-            self._dim = -1
             return
-        p0 = points[0]
+        p0 = self._shift_vector = points[0]
         points = [point - p0 for point in points]
-        H = N.submodule(points)
-        self._dim = H.rank()
-        # Setup auxiliary polytope and maps
-        H = H.saturation()
-        H_points = [H.coordinates(point) for point in points]
-        H_polytope = LatticePolytope(H_points, compute_vertices=True)
-        self._sublattice = H
-        self._sublattice_polytope = H_polytope
-        self._embedding_matrix = H.basis_matrix().transpose()
-        self._shift_vector = p0
+        H = self._sublattice = self.lattice().submodule(points).saturation()
+        self._sublattice_polytope = LatticePolytope([H.coordinates(point)
+                                                     for point in points])
+        M = self._embedding_matrix = H.basis_matrix().transpose()
         # In order to use facet normals obtained from subpolytopes, we
         # need the following (see Trac #9188).
-        M = self._embedding_matrix
         # Basis for the ambient space with spanned subspace in front
         basis = M.columns() + M.integer_kernel().basis()
         # Let's represent it as columns of a matrix
@@ -729,48 +740,35 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             in 3-d lattice N
         """
         assert not hasattr(self, "_facet_normals")
-        if self.dim() == self.lattice_dim():
-            N = self.dual_lattice()
-            normals = []
-            constants = []
-            for c in self._PPL().minimized_constraints():
-                assert c.is_inequality()
+        N = self.dual_lattice()
+        normals = []
+        constants = []
+        for c in self._PPL().minimized_constraints():
+            if c.is_inequality():
                 normals.append(N(c.coefficients()))
                 normals[-1].set_immutable()
                 constants.append(c.inhomogeneous_term())
-            # Sort normals if facets are vertices
-            if (self.dim() == 1
-                and normals[0] * self.vertex(0) + constants[0] != 0):
-                normals = (normals[1], normals[0])
-                constants = (constants[1], constants[0])
-            self.is_reflexive.set_cache(all(c == 1 for c in constants))
-            if self.is_reflexive():
-                polar = LatticePolytope(
-                    normals, compute_vertices=False, lattice=N)
-                polar._dim = self._dim
-                polar.is_reflexive.set_cache(True)
-                polar._polar = self
-                self._polar = polar
-                self._facet_normals = polar._vertices
-                polar._facet_normals = self._vertices
-                self._facet_constants = vector(ZZ, [1] * polar.nvertices())
-                self._facet_constants.set_immutable()
-                polar._facet_constants = vector(ZZ, [1] * self.nvertices())
-                polar._facet_constants.set_immutable()
-            else:
-                self._facet_normals = PointCollection(normals, N)
-                self._facet_constants = vector(ZZ, constants)
-                self._facet_constants.set_immutable()
+        # Sort normals if facets are vertices
+        if (self.dim() == 1
+            and normals[0] * self.vertex(0) + constants[0] != 0):
+            normals = (normals[1], normals[0])
+            constants = (constants[1], constants[0])
+        self.is_reflexive.set_cache(all(c == 1 for c in constants))
+        if self.is_reflexive():
+            polar = LatticePolytope(normals, compute_vertices=False, lattice=N)
+            polar.dim.set_cache(self.dim())
+            polar.is_reflexive.set_cache(True)
+            polar._polar = self
+            self._polar = polar
+            self._facet_normals = polar._vertices
+            polar._facet_normals = self._vertices
+            self._facet_constants = vector(ZZ, [1] * polar.nvertices())
+            self._facet_constants.set_immutable()
+            polar._facet_constants = vector(ZZ, [1] * self.nvertices())
+            polar._facet_constants.set_immutable()
         else:
-            sp = self._sublattice_polytope
-            N = self.dual_lattice()
-            normals = [N(_) for _ in sp.facet_normals() * self._dual_embedding_matrix]
-            for n in normals:
-                n.set_immutable()
             self._facet_normals = PointCollection(normals, N)
-            self._facet_constants = (
-                            sp.facet_constants() * self._dual_embedding_scale -
-                            self._shift_vector * self._facet_normals)
+            self._facet_constants = vector(ZZ, constants)
             self._facet_constants.set_immutable()
 
     def _compute_hodge_numbers(self):
@@ -789,6 +787,57 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             NotImplementedError: use nef_partitions(hodge_numbers=True)!
         """
         raise NotImplementedError("use nef_partitions(hodge_numbers=True)!")
+
+    def _contains(self, point, region='whole polytope'):
+        r"""
+        Check if ``point`` is contained in ``self``.
+
+        This function is called by :meth:`__contains__` and :meth:`contains`
+        to ensure the same call depth for warning messages.
+
+        INPUT:
+
+        - ``point`` -- an attempt will be made to convert it into a
+          single element of the ambient space of ``self``; if it fails,
+          ``False`` is returned
+
+        - ``region`` -- string; can be either ``'whole polytope'`` (default),
+          ``'interior'``, or ``'relative interior'``
+
+        OUTPUT:
+
+        - ``True`` if ``point`` is contained in the specified ``region`` of
+          ``self``, ``False`` otherwise
+
+        TESTS::
+
+            sage: p = lattice_polytope.cross_polytope(2)
+            sage: p._contains((1,0))
+            True
+        """
+        try:
+            point = _ambient_space_point(self, point)
+        except TypeError as ex:
+            if str(ex).endswith("have incompatible lattices"):
+                warnings.warn("you have checked if a cone contains a point "
+                              "from an incompatible lattice, this is False",
+                              stacklevel=3)
+            return False
+
+        if region not in ("whole polytope", "relative interior", "interior"):
+            raise ValueError("%s is an unknown region" % region)
+        if region == "interior" and self.dim() < self.lattice_dim():
+            return False
+        need_strict = region.endswith("interior")
+        N = self.dual_lattice()
+        for c in self._PPL().minimized_constraints():
+            pr = N(c.coefficients()) * point + c.inhomogeneous_term()
+            if c.is_equality():
+                if pr != 0:
+                    return False
+            elif pr < 0 or need_strict and pr == 0:
+                return False
+        return True
 
     def _embed(self, data):
         r"""
@@ -816,6 +865,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         """
         if self.lattice_dim() == self.dim():
             return data
+        self._compute_embedding()
         M = self.lattice()
         if is_PointCollection(data):
             r = [M(self._embedding_matrix * point + self._shift_vector)
@@ -982,6 +1032,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         """
         if self.lattice_dim() == self.dim():
             return data
+        self._compute_embedding()
         if data is self._vertices:
             return self._sublattice_polytope._vertices
         if is_PointCollection(data):
@@ -1074,7 +1125,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             data.seek(pos)
             polar = LatticePolytope(read_palp_matrix(data).columns(),
                                     compute_vertices=False, lattice=N)
-            polar._dim = self._dim
+            polar.dim.set_cache(self.dim())
             polar.is_reflexive.set_cache(True)
             polar._constructed_as_polar = True
             polar._polar = self
@@ -1604,13 +1655,47 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             in 2-d lattice N
         """
         return self.points(self.boundary_point_indices())
+
+    def contains(self, *args):
+        r"""
+        Check if a given point is contained in ``self``.
+
+        INPUT:
+
+        - an attempt will be made to convert all arguments into a
+          single element of the ambient space of ``self``; if it fails,
+          ``False`` will be returned
+
+        OUTPUT:
+
+        - ``True`` if the given point is contained in ``self``, ``False``
+          otherwise
+
+        EXAMPLES::
+
+            sage: p = lattice_polytope.cross_polytope(2)
+            sage: p.contains(p.lattice()(1,0))
+            True
+            sage: p.contains((1,0))
+            True
+            sage: p.contains(1,0)
+            True
+            sage: p.contains((2,0))
+            False
+        """
+        point = flatten(args)
+        if len(point) == 1:
+           point = point[0]
+        return self._contains(point)
         
+    @cached_method
     def dim(self):
         r"""
         Return the dimension of this polytope.
 
-        EXAMPLES: We create a 3-dimensional octahedron and check its
-        dimension::
+        EXAMPLES:
+
+        We create a 3-dimensional octahedron and check its dimension::
 
             sage: o = lattice_polytope.cross_polytope(3)
             sage: o.dim()
@@ -1624,9 +1709,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: p.lattice_dim()
             3
         """
-        if not hasattr(self, "_dim"):
-            self._compute_dim()
-        return self._dim
+        return self._PPL().affine_dimension() if self.nvertices() else -1
 
     def distances(self, point=None):
         r"""
@@ -1639,11 +1722,6 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         If point is specified, integral distances from the point to all
         facets of this polytope will be computed.
-
-        This function CAN be used for polytopes whose dimension is smaller
-        than the dimension of the ambient space. In this case distances are
-        computed in the affine subspace spanned by the polytope and if the
-        point is given, it must be in this subspace.
 
         EXAMPLES: The matrix of distances for a 3-dimensional octahedron::
 
@@ -1682,19 +1760,15 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             [0 2 2 0 1]
             sage: p.distances((1/2, 3, 0))
             (9/2, -3/2, -5/2, 7/2)
+
+        This point is not even in the affine subspace of the polytope::
+
             sage: p.distances((1, 1, 1))
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: vector is not in free module
+            (3, 1, -1, 1)
         """
         if point is not None:
-            if self.dim() < self.lattice_dim():
-                return self._sublattice_polytope.distances(
-                                                        self._pullback(point))
             return (vector(QQ, point) * self.facet_normals() +
                     self.facet_constants())
-        if self.dim() < self.lattice_dim():
-            return self._sublattice_polytope.distances()
         try:
             return self._distances
         except AttributeError:
@@ -2045,87 +2119,30 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         r"""
         Return the constant in the ``i``-th facet inequality of this polytope.
 
-        The i-th facet inequality is given by
-        self.facet_normal(i) * X + self.facet_constant(i) >= 0.
+        This is equivalent to ``facet_constants()[i]``.
 
         INPUT:
 
-        - ``i`` - integer, the index of the facet
+        - ``i`` -- integer; the index of the facet
 
         OUTPUT:
 
         - integer -- the constant in the ``i``-th facet inequality.
 
-        EXAMPLES:
+        .. SEEALSO::
 
-        Let's take a look at facets of the octahedron and some polytopes
-        inside it::
+            :meth:`facet_constants`,
+            :meth:`facet_normal`,
+            :meth:`facet_normals`,
+            :meth:`facets`.
+
+        EXAMPLES::
 
             sage: o = lattice_polytope.cross_polytope(3)
-            sage: o.vertices()
-            M( 1,  0,  0),
-            M( 0,  1,  0),
-            M( 0,  0,  1),
-            M(-1,  0,  0),
-            M( 0, -1,  0),
-            M( 0,  0, -1)
-            in 3-d lattice M
-            sage: o.facet_normal(0)
-            N(1, -1, -1)
             sage: o.facet_constant(0)
             1
-            sage: p = LatticePolytope(o.vertices()(1,2,3,4,5))
-            sage: p.vertices()
-            M( 0,  1,  0),
-            M( 0,  0,  1),
-            M(-1,  0,  0),
-            M( 0, -1,  0),
-            M( 0,  0, -1)
-            in 3-d lattice M
-            sage: p.facet_normal(0)
-            N(-1, 0, 0)
-            sage: p.facet_constant(0)
-            0
-            sage: p = LatticePolytope(o.vertices()(1,2,4,5))
-            sage: p.vertices()
-            M(0,  1,  0),
-            M(0,  0,  1),
-            M(0, -1,  0),
-            M(0,  0, -1)
-            in 3-d lattice M
-            sage: p.facet_normal(0)
-            N(0, 1, 1)
-            sage: p.facet_constant(0)
-            1
-
-        This is a 2-dimensional lattice polytope in a 4-dimensional space::
-
-            sage: p = LatticePolytope([(1,-1,1,3), (-1,-1,1,3), (0,0,0,0)])
-            sage: p
-            2-d lattice polytope in 4-d lattice M
-            sage: p.vertices()
-            M( 1, -1, 1, 3),
-            M(-1, -1, 1, 3),
-            M( 0,  0, 0, 0)
-            in 4-d lattice M
-            sage: fns = [p.facet_normal(i) for i in range(p.nfacets())]
-            sage: fns
-            [N(11, -1, 1, 3), N(0, 1, -1, -3), N(-11, -1, 1, 3)]
-            sage: fcs = [p.facet_constant(i) for i in range(p.nfacets())]
-            sage: fcs
-            [0, 11, 0]
-
-        Now we manually compute the distance matrix of this polytope. Since it
-        is a triangle, each line (corresponding to a facet) should have two
-        zeros (vertices of the corresponding facet) and one positive number
-        (since our normals are inner)::
-
-            sage: matrix([[fns[i] * p.vertex(j) + fcs[i]
-            ....:          for j in range(p.nvertices())]
-            ....:         for i in range(p.nfacets())])
-            [22  0  0]
-            [ 0  0 11]
-            [ 0 22  0]
+            sage: o.facet_constant(0) == o.facet_constants()[0]
+            True
         """
         return self.facet_constants()[i]
 
@@ -2133,9 +2150,19 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         r"""
         Return facet constants of ``self``.
 
+        Facet inequalities have form `n \cdot x + c \geq 0` where `n` is the
+        inner normal and `c` is a constant.
+
         OUTPUT:
 
-        - an integer vector.
+        - an integer vector
+
+        .. SEEALSO::
+
+            :meth:`facet_constant`,
+            :meth:`facet_normal`,
+            :meth:`facet_normals`,
+            :meth:`facets`.
 
         EXAMPLES:
 
@@ -2165,7 +2192,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             M(-1, -1, 1, 3)
             in 4-d lattice M
             sage: p.facet_constants()
-            (0, 0, 10, 0)
+            (0, 0, 3, 0)
         """
         try:
             return self._facet_constants
@@ -2177,90 +2204,30 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         r"""
         Return the inner normal to the ``i``-th facet of this polytope.
 
-        If this polytope is not full-dimensional, facet normals will be
-        orthogonal to the integer kernel of the affine subspace spanned by
-        this polytope.
+        This is equivalent to ``facet_normals()[i]``.
 
         INPUT:
 
-        - ``i`` -- integer, the index of the facet
+        - ``i`` -- integer; the index of the facet
 
         OUTPUT:
 
-        - vectors -- the inner normal of the ``i``-th facet
+        - a vector
 
-        EXAMPLES:
+        .. SEEALSO::
 
-        Let's take a look at facets of the octahedron and some polytopes
-        inside it::
+            :meth:`facet_constant`,
+            :meth:`facet_constants`,
+            :meth:`facet_normals`,
+            :meth:`facets`.
+
+        EXAMPLES::
 
             sage: o = lattice_polytope.cross_polytope(3)
-            sage: o.vertices()
-            M( 1,  0,  0),
-            M( 0,  1,  0),
-            M( 0,  0,  1),
-            M(-1,  0,  0),
-            M( 0, -1,  0),
-            M( 0,  0, -1)
-            in 3-d lattice M
             sage: o.facet_normal(0)
             N(1, -1, -1)
-            sage: o.facet_constant(0)
-            1
-            sage: p = LatticePolytope(o.vertices()(1,2,3,4,5))
-            sage: p.vertices()
-            M( 0,  1,  0),
-            M( 0,  0,  1),
-            M(-1,  0,  0),
-            M( 0, -1,  0),
-            M( 0,  0, -1)
-            in 3-d lattice M
-            sage: p.facet_normal(0)
-            N(-1, 0, 0)
-            sage: p.facet_constant(0)
-            0
-            sage: p = LatticePolytope(o.vertices()(1,2,4,5))
-            sage: p.vertices()
-            M(0,  1,  0),
-            M(0,  0,  1),
-            M(0, -1,  0),
-            M(0,  0, -1)
-            in 3-d lattice M
-            sage: p.facet_normal(0)
-            N(0, 1, 1)
-            sage: p.facet_constant(0)
-            1
-
-        Here is an example of a 3-dimensional polytope in a 4-dimensional
-        space::
-
-            sage: p = LatticePolytope([(0,0,0,0), (1,1,1,3),
-            ....:                      (1,-1,1,3), (-1,-1,1,3)])
-            sage: p.vertices()
-            M( 0,  0, 0, 0),
-            M( 1,  1, 1, 3),
-            M( 1, -1, 1, 3),
-            M(-1, -1, 1, 3)
-            in 4-d lattice M
-            sage: ker = p.vertices().column_matrix().integer_kernel().matrix()
-            sage: ker
-            [ 0  0  3 -1]
-            sage: ker * p.facet_normals()
-            [0 0 0 0]
-
-        Now we manually compute the distance matrix of this polytope. Since it
-        is a simplex, each line (corresponding to a facet) should consist of
-        zeros (indicating generating vertices of the corresponding facet) and
-        a single positive number (since our normals are inner)::
-
-            sage: matrix([[p.facet_normal(i) * p.vertex(j)
-            ....:          + p.facet_constant(i)
-            ....:          for j in range(p.nvertices())]
-            ....:         for i in range(p.nfacets())])
-            [ 0 20  0  0]
-            [ 0  0 20  0]
-            [10  0  0  0]
-            [ 0  0  0 20]
+            sage: o.facet_normal(0) is o.facet_normals()[0]
+            True
         """
         return self.facet_normals()[i]
 
@@ -2268,10 +2235,20 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         r"""
         Return inner normals to the facets of ``self``.
 
+        If this polytope is not full-dimensional, facet normals will define
+        this polytope in the affine subspace spanned by it.
+
         OUTPUT:
 
         - a :class:`point collection <PointCollection>` in the
           :meth:`dual_lattice` of ``self``.
+
+        .. SEEALSO::
+
+            :meth:`facet_constant`,
+            :meth:`facet_constants`,
+            :meth:`facet_normal`,
+            :meth:`facets`.
 
         EXAMPLES:
 
@@ -2309,11 +2286,25 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             M(-1, -1, 1, 3)
             in 4-d lattice M
             sage: p.facet_normals()
-            N(  0,  10,  1,  3),
-            N( 10, -10,  0,  0),
-            N(  0,   0, -1, -3),
-            N(-10,   0,  1,  3)
+            N( 0,  3, 0,  1),
+            N( 1, -1, 0,  0),
+            N( 0,  0, 0, -1),
+            N(-3,  0, 0,  1)
             in 4-d lattice N
+            sage: p.facet_constants()
+            (0, 0, 3, 0)
+
+        Now we manually compute the distance matrix of this polytope. Since it
+        is a simplex, each line (corresponding to a facet) should consist of
+        zeros (indicating generating vertices of the corresponding facet) and
+        a single positive number (since our normals are inner)::
+
+            sage: matrix([[n * v + c for v in p.vertices()]
+            ....:     for n, c in zip(p.facet_normals(), p.facet_constants())])
+            [0 6 0 0]
+            [0 0 2 0]
+            [3 0 0 0]
+            [0 0 0 6]
         """
         try:
             return self._facet_normals
@@ -3063,7 +3054,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             [3 0 0]
             [0 3 0]
             [0 0 3]
-            sage: permutations.values()
+            sage: list(permutations.values())
             [[(1,2,3), (1,2,3)],
              [(1,3,2), (1,3,2)],
              [(1,3), (1,3)],
@@ -4893,12 +4884,8 @@ class NefPartition(SageObject,
             raise ValueError("the origin belongs to all parts!")
         point = self._Delta_polar.point(i)
         for part, nabla in enumerate(self.nablas()):
-            try:
-                if min(nabla.distances(point)) >= 0:
-                    return part
-            except ArithmeticError:
-                # point is not even in the affine subspace of nabla
-                continue
+            if point in nabla:
+                return part
 
 
 _palp_dimension = None
@@ -5428,32 +5415,6 @@ def cross_polytope(dim):
     return LatticePolytope(vertices, compute_vertices=False)
 
 
-def integral_length(v):
-    """
-    Compute the integral length of a given rational vector.
-
-    INPUT:
-
-    -  ``v`` - any object which can be converted to a list of rationals
-
-    OUTPUT: Rational number ``r`` such that ``v = r u``, where ``u`` is the
-    primitive integral vector in the direction of ``v``.
-
-    EXAMPLES::
-
-        sage: lattice_polytope.integral_length([1, 2, 4])
-        1
-        sage: lattice_polytope.integral_length([2, 2, 4])
-        2
-        sage: lattice_polytope.integral_length([2/3, 2, 4])
-        2/3
-    """
-    data = [QQ(e) for e in list(v)]
-    ns = [e.numerator() for e in data]
-    ds = [e.denominator() for e in data]
-    return gcd(ns)/lcm(ds)
-
-
 def minkowski_sum(points1, points2):
     r"""
     Compute the Minkowski sum of two convex polytopes.
@@ -5553,7 +5514,7 @@ def positive_integer_relations(points):
         c = [0] * (n + i) + [1] + [0] * (n_nonpivots - i - 1)
         MIP.set_objective(sum(ci * w[i] for i, ci in enumerate(c)))
         MIP.solve()
-        x = MIP.get_values(w).values()[:n]
+        x = list(MIP.get_values(w).values())[:n]
         v = relations.linear_combination_of_rows(x)
         new_relations.append(v)
 

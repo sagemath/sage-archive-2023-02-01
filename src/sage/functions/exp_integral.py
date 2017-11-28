@@ -395,7 +395,7 @@ class Function_log_integral(BuiltinFunction):
 
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Logarithmic_integral_function
+    - :wikipedia:`Logarithmic_integral_function`
     - mpmath documentation: `logarithmic-integral`_
 
     .. _`logarithmic-integral`: http://mpmath.org/doc/current/functions/expintegrals.html#logarithmic-integral
@@ -583,7 +583,7 @@ class Function_log_integral_offset(BuiltinFunction):
 
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Logarithmic_integral_function
+    - :wikipedia:`Logarithmic_integral_function`
     - mpmath documentation: `logarithmic-integral`_
 
     .. _`logarithmic-integral`: http://mpmath.org/doc/current/functions/expintegrals.html#logarithmic-integral
@@ -754,7 +754,7 @@ class Function_sin_integral(BuiltinFunction):
 
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Trigonometric_integral
+    - :wikipedia:`Trigonometric_integral`
     - mpmath documentation: `si`_
 
     .. _`si`: http://mpmath.org/doc/current/functions/expintegrals.html#si
@@ -927,7 +927,7 @@ class Function_cos_integral(BuiltinFunction):
 
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Trigonometric_integral
+    - :wikipedia:`Trigonometric_integral`
     - mpmath documentation: `ci`_
 
     .. _`ci`: http://mpmath.org/doc/current/functions/expintegrals.html#ci
@@ -1060,7 +1060,7 @@ class Function_sinh_integral(BuiltinFunction):
 
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Trigonometric_integral
+    - :wikipedia:`Trigonometric_integral`
     - mpmath documentation: `shi`_
 
     .. _`shi`: http://mpmath.org/doc/current/functions/expintegrals.html#shi
@@ -1130,7 +1130,7 @@ class Function_sinh_integral(BuiltinFunction):
 
             sage: f = sinh_integral(ln(x))
             sage: f.diff(x)
-            sinh(log(x))/(x*log(x))
+            1/2*(x^2 - 1)/(x^2*log(x))
 
         """
         return sinh(z)/z
@@ -1208,7 +1208,7 @@ class Function_cosh_integral(BuiltinFunction):
 
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Trigonometric_integral
+    - :wikipedia:`Trigonometric_integral`
     - mpmath documentation: `chi`_
 
     .. _`chi`: http://mpmath.org/doc/current/functions/expintegrals.html#chi
@@ -1258,7 +1258,7 @@ class Function_cosh_integral(BuiltinFunction):
 
             sage: f = cosh_integral(ln(x))
             sage: f.diff(x)
-            cosh(log(x))/(x*log(x))
+            1/2*(x^2 + 1)/(x^2*log(x))
 
         """
         return cosh(z)/z

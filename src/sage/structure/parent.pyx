@@ -11,31 +11,28 @@ A simple example of registering coercions::
 
     sage: class A_class(Parent):
     ....:   def __init__(self, name):
-    ....:       Parent.__init__(self, name=name)
+    ....:       Parent.__init__(self)
     ....:       self._populate_coercion_lists_()
     ....:       self.rename(name)
-    ....:   #
+    ....:
     ....:   def category(self):
     ....:       return Sets()
-    ....:   #
+    ....:
     ....:   def _element_constructor_(self, i):
     ....:       assert(isinstance(i, (int, Integer)))
     ....:       return ElementWrapper(self, i)
-    ....:
     sage: A = A_class("A")
     sage: B = A_class("B")
     sage: C = A_class("C")
 
     sage: def f(a):
     ....:   return B(a.value+1)
-    ....:
     sage: class MyMorphism(Morphism):
     ....:   def __init__(self, domain, codomain):
     ....:       Morphism.__init__(self, Hom(domain, codomain))
-    ....:   #
+    ....:
     ....:   def _call_(self, x):
     ....:       return self.codomain()(x.value)
-    ....:
     sage: f = MyMorphism(A,B)
     sage: f
         Generic morphism:
@@ -201,7 +198,7 @@ cdef inline bint good_as_convert_domain(S):
     return isinstance(S,SageObject) or isinstance(S,type)
 
 cdef class Parent(sage.structure.category_object.CategoryObject):
-    def __init__(self, base=None, *, category=None, element_constructor=None,
+    def __init__(self, base=None, *, category=None,
                  names=None, normalize=True, facade=None, **kwds):
         """
         Base class for all parents.
@@ -225,10 +222,6 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
           :class:`~sage.structure.category_object.CategoryObject`),
           but won't be used to inherit parent's or element's code from
           this category.
-
-        - ``element_constructor`` -- A class or function that creates
-          elements of this Parent given appropriate input (can also be
-          filled in later with :meth:`_populate_coercion_lists_`)
 
         - ``names`` -- Names of generators.
 
@@ -255,7 +248,6 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             Eventually, category should be
             :class:`~sage.categories.sets_cat.Sets` by default.
 
-
         TESTS:
 
         We check that the facade option is compatible with specifying
@@ -265,6 +257,23 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             sage: P = MyClass(facade = ZZ, category = (Monoids(), CommutativeAdditiveMonoids()))
             sage: P.category()
             Join of Category of monoids and Category of commutative additive monoids and Category of facade sets
+
+        Test various deprecations::
+
+            sage: class MyParent(Parent):
+            ....:     def __init__(self):
+            ....:         Parent.__init__(self, element_constructor=self.make_element, foo=42)
+            ....:     def make_element(self, x):
+            ....:         print("Making element")
+            ....:         return x
+            sage: P = MyParent()
+            doctest:...: DeprecationWarning: the 'element_constructor' keyword is deprecated: override the _element_constructor_ method instead
+            See http://trac.sagemath.org/23917 for details.
+            doctest:...: DeprecationWarning: the 'foo' keyword is deprecated: it is currently ignored and will become an error in the future
+            See http://trac.sagemath.org/24109 for details.
+            sage: P(42)
+            Making element
+            42
 
         .. automethod:: __call__
         .. automethod:: _populate_coercion_lists_
@@ -277,37 +286,31 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         .. automethod:: _repr_option
         .. automethod:: _init_category_
         """
-        # TODO: in the long run, we want to get rid of the element_constructor = argument
-        # (element_constructor would always be set by inheritance)
-        # Then, all the element_constructor logic should be moved to init_coerce.
-        CategoryObject.__init__(self, base = base)
+        if "element_constructor" in kwds:
+            from sage.misc.superseded import deprecation
+            deprecation(23917, "the 'element_constructor' keyword is deprecated: override the _element_constructor_ method instead")
+            element_constructor = kwds.pop("element_constructor")
+        else:
+            element_constructor = None
+
         if isinstance(category, (tuple, list)):
             category = Category.join(category)
         if facade is not None and facade is not False:
-            if isinstance(facade, Parent):
-                facade = (facade,)
             if facade is not True:
-                assert isinstance(facade, tuple)
-                self._facade_for = facade
+                if isinstance(facade, Parent):
+                    self._facade_for = (facade,)
+                else:
+                    self._facade_for = tuple(facade)
             if category is None:
                 category = Sets().Facade()
             else:
-                if isinstance(category, (tuple,list)):
-                    category = Category.join(tuple(category) + (Sets().Facade(),))
-                else:
-                    category = Category.join((category,Sets().Facade()))
-        # Setting the categories is currently done in a separate
-        # method to let some subclasses (like ParentsWithBase)
-        # call it without calling the full constructor
-        self._init_category_(category)
+                category = Category.join((category, Sets().Facade()))
 
-        if len(kwds) > 0:
-            if debug.bad_parent_warnings:
-                print("Illegal keywords for %s: %s" % (type(self), kwds))
-        # TODO: many classes don't call this at all, but __new__ crashes Sage
-        if debug.bad_parent_warnings:
-            if element_constructor is not None and not callable(element_constructor):
-                print("coerce BUG: Bad element_constructor provided", type(self), type(element_constructor), element_constructor)
+        CategoryObject.__init__(self, category, base)
+
+        for k in kwds:
+            from sage.misc.superseded import deprecation
+            deprecation(24109, f"the {k!r} keyword is deprecated: it is currently ignored and will become an error in the future")
         if names is not None:
             self._assign_names(names, normalize)
         if element_constructor is None:
@@ -594,10 +597,10 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
 
         EXAMPLES::
 
-            sage: k = GF(5); k._element_constructor # indirect doctest
-            <bound method FiniteField_prime_modn_with_category._element_constructor_ of Finite Field of size 5>
+            sage: k = GF(5)
+            sage: k._set_element_constructor()
         """
-        try: #if hasattr(self, '_element_constructor_'):
+        try:
             _element_constructor_ = self._element_constructor_
         except (AttributeError, TypeError):
             # Remark: A TypeError can actually occur;
@@ -1382,7 +1385,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
            sage: QQ.hom(ZZ)
            Traceback (most recent call last):
            ...
-           TypeError: natural coercion morphism from Rational Field to Integer Ring not defined 
+           TypeError: natural coercion morphism from Rational Field to Integer Ring not defined
        """
        if isinstance(im_gens, Parent):
            return self.Hom(im_gens).natural_map()
@@ -1800,7 +1803,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         r"""
         Returns a default coercion map based on the data provided to
         :meth:`_populate_coercion_lists_`.
-        
+
         This method differs from :meth:`_generic_convert_map` only in setting
         the category for the map to the meet of the category of this parent
         and ``S``.
@@ -1905,10 +1908,10 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
 
             sage: copy(CDF._coerce_map_via([ZZ, RR, CC], int))
             Composite map:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Complex Double Field
               Defn:   Native morphism:
-                      From: Set of Python objects of type 'int'
+                      From: Set of Python objects of class 'int'
                       To:   Integer Ring
                     then
                       Native morphism:
@@ -2030,11 +2033,11 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             sage: ZZ._internal_coerce_map_from(int)
             (map internal to coercion system -- copy before use)
             Native morphism:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Integer Ring
             sage: copy(ZZ._internal_coerce_map_from(int))
             Native morphism:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Integer Ring
             sage: copy(QQ._internal_coerce_map_from(ZZ))
             Natural morphism:
@@ -2733,7 +2736,7 @@ cpdef Parent Set_PythonType(theType):
 
         sage: from sage.structure.parent import Set_PythonType
         sage: Set_PythonType(list)
-        Set of Python objects of type 'list'
+        Set of Python objects of class 'list'
         sage: Set_PythonType(list) is Set_PythonType(list)
         True
         sage: S = Set_PythonType(tuple)
@@ -2749,7 +2752,7 @@ cpdef Parent Set_PythonType(theType):
         sage: R = sage.structure.parent.Set_PythonType(int)
         sage: S = sage.structure.parent.Set_PythonType(float)
         sage: Hom(R, S)
-        Set of Morphisms from Set of Python objects of type 'int' to Set of Python objects of type 'float' in Category of sets
+        Set of Morphisms from Set of Python objects of class 'int' to Set of Python objects of class 'float' in Category of sets
 
     """
     try:
@@ -2758,15 +2761,24 @@ cpdef Parent Set_PythonType(theType):
         _type_set_cache[theType] = theSet = Set_PythonType_class(theType)
         return theSet
 
+
 cdef class Set_PythonType_class(Set_generic):
     r"""
-    The set of Python objects of a given type.
+    The set of Python objects of a given class.
+
+    The elements of this set are not instances of
+    :class:`~sage.structure.element.Element`; they are instances of
+    the given class.
+
+    INPUT:
+
+    - ``theType`` -- a Python (new-style) class
 
     EXAMPLES::
 
         sage: S = sage.structure.parent.Set_PythonType(int)
         sage: S
-        Set of Python objects of type 'int'
+        Set of Python objects of class 'int'
         sage: int('1') in S
         True
         sage: Integer('1') in S
@@ -2775,10 +2787,9 @@ cdef class Set_PythonType_class(Set_generic):
         sage: sage.structure.parent.Set_PythonType(2)
         Traceback (most recent call last):
         ...
-        TypeError: must be initialized with a type, not 2
+        TypeError: must be initialized with a class, not 2
     """
-
-    cdef _type
+    cdef type _type
 
     def __init__(self, theType):
         """
@@ -2789,9 +2800,23 @@ cdef class Set_PythonType_class(Set_generic):
             Category of sets
         """
         if not isinstance(theType, type):
-            raise TypeError("must be initialized with a type, not %r" % theType)
-        Set_generic.__init__(self, element_constructor=theType, category=Sets())
-        self._type = theType
+            raise TypeError(f"must be initialized with a class, not {theType!r}")
+        super().__init__(category=Sets())
+        self._type = <type>theType
+
+    def _element_constructor_(self, *args, **kwds):
+        """
+        Construct an instance of the class.
+
+        EXAMPLES::
+
+            sage: S = sage.structure.parent.Set_PythonType(complex)
+            sage: S._element_constructor_(5)
+            (5+0j)
+            sage: S._element_constructor_(1, 5/2)
+            (1+2.5j)
+        """
+        return self._type(*args, **kwds)
 
     def __reduce__(self):
         r"""
@@ -2801,13 +2826,14 @@ cdef class Set_PythonType_class(Set_generic):
 
             sage: S = sage.structure.parent.Set_PythonType(object)
             sage: loads(dumps(S))
-            Set of Python objects of type 'object'
+            Set of Python objects of class 'object'
         """
         return Set_PythonType, (self._type,)
 
     def __call__(self, x):
         """
-        This doesn't return Elements, but actual objects of the given type.
+        Construct a new instance from ``x``. If ``x`` is already an
+        instance of the correct class, directly return ``x`` itself.
 
         EXAMPLES::
 
@@ -2818,7 +2844,8 @@ cdef class Set_PythonType_class(Set_generic):
             3.0
             sage: S(1/3)
             0.333333333333333...
-
+            sage: a = float(3); S(a) is a
+            True
         """
         if isinstance(x, self._type):
             return x
@@ -2836,8 +2863,8 @@ cdef class Set_PythonType_class(Set_generic):
 
     def __richcmp__(self, other, int op):
         """
-        Two Python type sets are considered the same if they contain the same
-        type.
+        Two Python class sets are considered the same if they contain
+        the same class.
 
         EXAMPLES::
 
@@ -2870,8 +2897,8 @@ cdef class Set_PythonType_class(Set_generic):
 
     def __contains__(self, x):
         """
-        Only things of the right type (or subtypes thereof) are considered to
-        belong to the set.
+        Only things of the right class (or subclasses thereof) are
+        considered to belong to the set.
 
         EXAMPLES::
 
@@ -2890,13 +2917,13 @@ cdef class Set_PythonType_class(Set_generic):
         EXAMPLES::
 
             sage: sage.structure.parent.Set_PythonType(tuple)
-            Set of Python objects of type 'tuple'
+            Set of Python objects of class 'tuple'
             sage: sage.structure.parent.Set_PythonType(Integer)
-            Set of Python objects of type 'sage.rings.integer.Integer'
+            Set of Python objects of class 'Integer'
             sage: sage.structure.parent.Set_PythonType(Parent)
-            Set of Python objects of type 'sage.structure.parent.Parent'
+            Set of Python objects of class 'Parent'
         """
-        return "Set of Python objects of %s"%(str(self._type)[1:-1])
+        return f"Set of Python objects of class '{self._type.__name__}'"
 
     def object(self):
         """
@@ -2939,6 +2966,7 @@ cdef class Set_PythonType_class(Set_generic):
             # probably
             import sage.rings.infinity
             return sage.rings.infinity.infinity
+
 
 # These functions are to guarantee that user defined _lmul_, _rmul_,
 # _act_on_, _acted_upon_ do not in turn call __mul__ on their

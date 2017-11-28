@@ -65,7 +65,7 @@ from sage.rings.infinity import Infinity
 from sage.combinat.words.abstract_word import Word_class
 from sage.combinat.words.word import FiniteWord_list
 from sage.combinat.words.finite_word import FiniteWord_class, Factorization
-from sage.combinat.words.words import Words, FiniteWords, InfiniteWords
+from sage.combinat.words.words import FiniteWords, InfiniteWords
 from sage.combinat.words.morphism import WordMorphism
 from sage.arith.all import gcd
 from sage.misc.decorators import rename_keyword
@@ -1918,11 +1918,11 @@ class WordGenerator(object):
 
     def PalindromicDefectWord(self, k=1, alphabet='ab'):
         r"""
-        Returns the finite word `w = a b^k a b^{k-1} a a b^{k-1} a b^{k} a`.
+        Return the finite word `w = a b^k a b^{k-1} a a b^{k-1} a b^{k} a`.
 
-        As described by Brlek, Hamel, Nivat and Reuteunaer in [BHNR04]_, this
+        As described by Brlek, Hamel, Nivat and Reutenauer in [BHNR04]_, this
         finite word `w` is such that the infinite periodic word `w^{\omega}`
-        have palindromic defect ``k``.
+        has palindromic defect ``k``.
 
         INPUT:
 

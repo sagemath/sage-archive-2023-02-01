@@ -9,6 +9,7 @@ Crystals
 #******************************************************************************
 from __future__ import print_function
 from builtins import zip
+from six import itervalues
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
@@ -470,6 +471,20 @@ class Crystals(Category_singleton):
                 sage: B = crystals.Tableaux(['B',2], shape=[1])
                 sage: S.digraph().is_isomorphic(B.digraph(), edge_labels=True)
                 True
+
+            TESTS:
+
+            Check that :trac:`23942` is fixed::
+
+                sage: B = crystals.infinity.Tableaux(['A',2])
+                sage: S = B.subcrystal(max_depth=3, category=HighestWeightCrystals())
+                sage: S.category()
+                Category of finite highest weight crystals
+
+                sage: K = crystals.KirillovReshetikhin(['A',3,1], 2,3)
+                sage: S = K.subcrystal(index_set=[1,3], category=HighestWeightCrystals())
+                sage: S.category()
+                Category of finite highest weight crystals
             """
             from sage.combinat.crystals.subcrystal import Subcrystal
             from sage.categories.finite_crystals import FiniteCrystals
@@ -494,8 +509,12 @@ class Crystals(Category_singleton):
                                       virtualization, scaling_factors,
                                       cartan_type, index_set, category)
 
+                # else self is a finite crystal
                 if direction == 'both':
-                    category = FiniteCrystals().or_subcategory(category)
+                    if category is None:
+                        category = FiniteCrystals()
+                    else:
+                        category = FiniteCrystals() & category
                     return Subcrystal(self, contained, generators,
                                       virtualization, scaling_factors,
                                       cartan_type, index_set, category)
@@ -527,7 +546,7 @@ class Crystals(Category_singleton):
             if category is None:
                 category = FiniteCrystals()
             else:
-               category = FiniteCrystals().join(category)
+               category = FiniteCrystals() & category
 
             if self in FiniteCrystals() and len(subset) == self.cardinality():
                 if index_set == self.index_set():
@@ -757,7 +776,7 @@ class Crystals(Category_singleton):
                         codomain = on_gens[0].parent()
                 elif isinstance(on_gens, dict):
                     if on_gens:
-                        codomain = on_gens.values()[0].parent()
+                        codomain = next(itervalues(on_gens)).parent()
                 else:
                     for x in self.module_generators:
                         y = on_gens(x)
@@ -1693,9 +1712,20 @@ class Crystals(Category_singleton):
                 [[[1, 4]], [[1, 3]]]
                 sage: list(elt.subcrystal(index_set=[1,3], direction='lower'))
                 [[[1, 4]], [[2, 4]]]
+
+            TESTS:
+
+            Check that :trac:`23942` is fixed::
+
+                sage: K = crystals.KirillovReshetikhin(['A',2,1], 1,1)
+                sage: cat = HighestWeightCrystals().Finite()
+                sage: S = K.module_generator().subcrystal(index_set=[1,2], category=cat)
+                sage: S.category()
+                Category of finite highest weight crystals
             """
             return self.parent().subcrystal(generators=[self], index_set=index_set,
-                                            max_depth=max_depth, direction=direction)
+                                            max_depth=max_depth, direction=direction,
+                                            category=category)
 
     class SubcategoryMethods:
         """

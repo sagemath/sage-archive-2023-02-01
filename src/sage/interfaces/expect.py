@@ -555,7 +555,7 @@ If this all works, you can then make calls like:
             pass
         self._expect = None
 
-    def quit(self, verbose=False, timeout=None):
+    def quit(self, verbose=False):
         """
         Quit the running subprocess.
 
@@ -578,9 +578,6 @@ If this all works, you can then make calls like:
 
             sage: maxima.quit(verbose=True)
         """
-        if timeout is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(17686, 'the timeout argument to quit() is deprecated and ignored')
         if self._expect is not None:
             if verbose:
                 if self.is_remote():
@@ -672,14 +669,14 @@ If this all works, you can then make calls like:
             sage: @parallel
             ....: def f(n):
             ....:     return gap._local_tmpfile()
-            sage: L = [t[1] for t in f(range(5))]
+            sage: L = [t[1] for t in f(list(range(5)))]
             sage: len(set(L))
             5
 
         The following used to fail::
 
             sage: s = gap._local_tmpfile()
-            sage: L = [t[1] for t in f(range(5))]
+            sage: L = [t[1] for t in f(list(range(5)))]
             sage: len(set(L))
             5
 

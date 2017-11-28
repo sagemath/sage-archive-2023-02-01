@@ -22,6 +22,7 @@ from __future__ import absolute_import
 
 from cysignals.memory cimport check_malloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
+from sage.ext.cplusplus cimport ccrepr, ccreadstr
 
 include "sage/libs/ntl/decl.pxi"
 from cypari2.paridecl cimport *
@@ -179,7 +180,7 @@ cdef class Cache_ntl_gf2e(SageObject):
         GF2E_conv_long((<FiniteField_ntl_gf2eElement>self._one_element).x,1)
         if k > 1:
             self._gen = self._new()
-            GF2E_from_str(&self._gen.x, "[0 1]")
+            ccreadstr(self._gen.x, b"[0 1]")
         elif modulus[0]:
             self._gen = self._one_element
         else:
@@ -221,7 +222,7 @@ cdef class Cache_ntl_gf2e(SageObject):
         # Print the current modulus.
         cdef GF2XModulus_c modulus = GF2E_modulus()
         cdef GF2X_c mod_poly = GF2XModulus_GF2X(modulus)
-        print(GF2X_to_PyString(&mod_poly))
+        print(ccrepr(mod_poly))
 
         # do another garbage collection
         gc.collect()
@@ -229,7 +230,7 @@ cdef class Cache_ntl_gf2e(SageObject):
         # and print the modulus again
         modulus = GF2E_modulus()
         mod_poly = GF2XModulus_GF2X(modulus)
-        print(GF2X_to_PyString(&mod_poly))
+        print(ccrepr(mod_poly))
 
     cdef FiniteField_ntl_gf2eElement _new(self):
         """
@@ -436,17 +437,16 @@ cdef class Cache_ntl_gf2e(SageObject):
             if not number:
                 n = 0
             else:
-                from sage.misc.functional import log
-                n = int(log(number,2))/8 + 1
+                n = int(Integer(number).nbits()) // 8 + 1
         elif isinstance(number, Integer):
-            n = int(number.nbits())/8 + 1
+            n = int(number.nbits()) // 8 + 1
         else:
             raise TypeError("number %s is not an integer" % number)
 
         cdef unsigned char* p = <unsigned char*>check_malloc(n)
         cdef long i
         for i in range(n):
-            p[i] = (number%256)
+            p[i] = (number % 256)
             number = number >> 8
         GF2XFromBytes(_a, p, n)
         GF2E_conv_GF2X(a.x, _a)

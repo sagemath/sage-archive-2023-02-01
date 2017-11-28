@@ -617,7 +617,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
         self._require_mutable()
         list.remove(self, value)
 
-    def sort(self, cmp=None, key=None, reverse=False):
+    def sort(self, key=None, reverse=False):
         """
         Sort this list *IN PLACE*.
 
@@ -627,10 +627,6 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
         
         - ``reverse`` - see Python ``list sort``
 
-        - ``cmp`` - see Python ``list sort`` (deprecated)
-
-        Because ``cmp`` is not allowed in Python3, it must be avoided.
-
         EXAMPLES::
 
             sage: B = Sequence([3,2,1/5])
@@ -639,19 +635,9 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             [1/5, 2, 3]
             sage: B.sort(reverse=True); B
             [3, 2, 1/5]
-
-        TESTS::
-
-            sage: B.sort(cmp = lambda x,y: (x<y)-(x>y)); B
-            doctest:...: DeprecationWarning: sorting using cmp is deprecated
-            See http://trac.sagemath.org/21376 for details.
-            [3, 2, 1/5]
         """
-        if cmp is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(21376, 'sorting using cmp is deprecated')
         self._require_mutable()
-        list.sort(self, cmp=cmp, key=key, reverse=reverse)
+        list.sort(self, key=key, reverse=reverse)
 
     def __hash__(self):
         """

@@ -684,6 +684,10 @@ class SympyConverter(Converter):
         x + I
 
     """
+    def __init__(self):
+        from sage.interfaces.sympy import sympy_init
+        sympy_init()
+
     def pyobject(self, ex, obj):
         """
         EXAMPLES::
@@ -741,6 +745,27 @@ class SympyConverter(Converter):
         import sympy
         return sympy.symbols(repr(ex))
 
+    def relation(self, ex, op):
+        """
+        EXAMPLES::
+
+            sage: import operator
+            sage: from sage.symbolic.expression_conversions import SympyConverter
+            sage: s = SympyConverter()
+            sage: s.relation(x == 3, operator.eq)
+            Eq(x, 3)
+            sage: s.relation(pi < 3, operator.lt)
+            pi < 3
+            sage: s.relation(x != pi, operator.ne)
+            Ne(x, pi)
+            sage: s.relation(x > 0, operator.gt)
+            x > 0
+        """
+        from operator import eq, ne, gt, lt, ge, le
+        from sympy import Eq, Ne, Gt, Lt, Ge, Le
+        ops = {eq : Eq, ne : Ne, gt : Gt, lt : Lt, ge : Ge, le : Le}
+        return ops.get(op)(self(ex.lhs()), self(ex.rhs()), evaluate=False)
+
     def composition(self, ex, operator):
         """
         EXAMPLES::
@@ -756,8 +781,12 @@ class SympyConverter(Converter):
             sage: s.composition(f, f.operator())
             asin(2)
         """
-        f = operator._sympy_init_()
         g = ex.operands()
+        try:
+            return operator._sympy_(*g)
+        except (AttributeError, TypeError):
+            pass
+        f = operator._sympy_init_()
         import sympy
 
         f_sympy = getattr(sympy, f, None)
@@ -812,7 +841,7 @@ class SympyConverter(Converter):
         return f_sympy.diff(*sympy_arg)
 
 
-sympy = SympyConverter()
+sympy_converter = SympyConverter()
 
 #############
 # Algebraic #

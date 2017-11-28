@@ -2578,7 +2578,45 @@ class FreeModule_generic_pid(FreeModule_generic):
         K = K.matrix_from_columns(range(n))
         B = K*A1
         return B.row_module(self.base_ring())
+    
+    def __and__(self, other):
+        r"""
+        Return the intersection of self and other.
+        
+        See :meth:`intersection`.
+        
+        EXAMPLES:
 
+        We intersect two submodules one of which is clearly
+        contained in the other.
+
+        ::
+
+            sage: A = ZZ^2
+            sage: M1 = A.span([[1,1]])
+            sage: M2 = A.span([[3,3]])
+            sage: M1 & M2
+            Free module of degree 2 and rank 1 over Integer Ring
+            Echelon basis matrix:
+            [3 3]
+            sage: M1 & M2 is M2
+            True
+
+        We intersection two submodules of `\ZZ^3` of rank
+        `2`, whose intersection has rank `1`.
+
+        ::
+
+            sage: A = ZZ^3
+            sage: M1 = A.span([[1,1,1], [1,2,3]])
+            sage: M2 = A.span([[2,2,2], [1,0,0]])
+            sage: M1 & M2
+            Free module of degree 3 and rank 1 over Integer Ring
+            Echelon basis matrix:
+            [2 2 2]
+        """
+        return self.intersection(other)    
+    
     def zero_submodule(self):
         """
         Return the zero submodule of this module.
@@ -4408,7 +4446,15 @@ class FreeModule_ambient(FreeModule_generic):
             lx = self.base_ring()
             rx = other.base_ring()
             if lx == rx:
-                return rich_to_bool(op, 0)
+                #We do not want to create an inner product matrix in memory if
+                #self and other use the dot product
+                if self._inner_product_is_dot_product() and other._inner_product_is_dot_product():
+                    return rich_to_bool(op, 0)
+                else:
+                    #this only affects free_quadratic_modules
+                    lx = self.inner_product_matrix()
+                    rx = other.inner_product_matrix()
+                    return richcmp(lx,rx,op)
             try:
                 if self.base_ring().is_subring(other.base_ring()):
                     return rich_to_bool(op, -1)

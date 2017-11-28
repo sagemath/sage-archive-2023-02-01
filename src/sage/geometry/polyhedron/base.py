@@ -159,14 +159,25 @@ class Polyhedron_base(Element):
 
         See :mod:`sage.misc.sage_input` for details.
 
+        .. TODO::
+
+            Add the option `preparse` to the method.
+
         EXAMPLES::
 
-            sage: P = Polyhedron([(1,0), (0,1)], rays=[(1,1)])
+            sage: P = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]], backend='ppl')
             sage: sage_input(P)
-            Polyhedron(base_ring=ZZ, rays=[(1, 1)], vertices=[(0, 1), (1, 0)])
+            Polyhedron(backend='ppl', base_ring=ZZ, rays=[(1, 1)], vertices=[(0, 1), (1, 0)])
+            sage: P = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]], backend='normaliz') # optional - pynormaliz
+            sage: sage_input(P)                                                                    # optional - pynormaliz
+            Polyhedron(backend='normaliz', base_ring=ZZ, rays=[(1, 1)], vertices=[(0, 1), (1, 0)])
+            sage: P = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]], backend='polymake') # optional - polymake
+            sage: sage_input(P)                                                                    # optional - polymake
+            Polyhedron(backend='polymake', base_ring=QQ, rays=[(QQ(1), QQ(1))], vertices=[(QQ(1), QQ(0)), (QQ(0), QQ(1))])
        """
         kwds = dict()
         kwds['base_ring'] = sib(self.base_ring())
+        kwds['backend'] = sib(self.backend())
         if self.n_vertices() > 0:
             kwds['vertices'] = [sib(tuple(v)) for v in self.vertices()]
         if self.n_rays() > 0:
@@ -1201,6 +1212,14 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             TypeError: The PPL backend only supports rational data.
+
+        Test that equations are handled correctly (:trac:`24154`)::
+
+            sage: p = Polyhedron(vertices=[[19]])
+            sage: lp, x = p.to_linear_program(return_variable=True)
+            sage: lp.set_objective(x[0])
+            sage: lp.solve()
+            19
         """
         if base_ring is None:
             base_ring = self.base_ring()
@@ -1215,7 +1234,7 @@ class Polyhedron_base(Element):
 
         for eqn in self.equations_list():
             b = -eqn.pop(0)
-            p.add_constraint(p.sum([x[i]*eqn[i] for i in range(len(eqn))]) == -b)
+            p.add_constraint(p.sum([x[i]*eqn[i] for i in range(len(eqn))]) == b)
 
         if return_variable:
             return p, x
@@ -2112,6 +2131,39 @@ class Polyhedron_base(Element):
             True
         """
         return self.parent().base_ring()
+
+    def backend(self):
+        """
+        Return the backend used.
+
+        OUTPUT:
+
+        The name of the backend used for computations. It will be one of
+        the following backends:
+
+         * ``ppl`` the Parma Polyhedra Library
+
+         * ``cdd`` CDD
+
+         * ``normaliz`` normaliz
+
+         * ``polymake`` polymake
+
+         * ``field`` a generic Sage implementation
+
+        EXAMPLES::
+
+            sage: triangle = Polyhedron(vertices = [[1, 0], [0, 1], [1, 1]])
+            sage: triangle.backend()
+            'ppl'
+            sage: D = polytopes.dodecahedron()
+            sage: D.backend()
+            'field'
+            sage: P = Polyhedron([[1.23]])
+            sage: P.backend()
+            'cdd'
+        """
+        return self.parent().backend()
 
     field = deprecated_function_alias(22551, base_ring)
 

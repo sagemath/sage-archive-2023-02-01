@@ -15,12 +15,11 @@ from sage.categories.all import Category, Algebras, AlgebrasWithBasis
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.root_system import RootSystem
-from sage.combinat.root_system.dynkin_diagram import DynkinDiagram
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.functional import is_even, is_odd
-from sage.modules.free_module_element import vector
-from sage.rings.all import ZZ, QQ
+from sage.misc.functional import is_even
+from sage.rings.all import ZZ
+
 
 class WeylCharacterRing(CombinatorialFreeModule):
     """

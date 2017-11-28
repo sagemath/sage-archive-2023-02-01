@@ -66,6 +66,9 @@ from sage.structure.dynamic_class import DynamicMetaclass
 
 
 def guess_category(obj):
+    from sage.misc.superseded import deprecation
+    deprecation(24109, f"guess_category() is deprecated: CategoryObject of type {type(obj)} requires a category")
+
     # this should be obsolete if things declare their categories
     try:
         if obj.is_field():
@@ -165,19 +168,23 @@ cdef class CategoryObject(SageObject):
             sage: A._init_category_((Semigroups(), CommutativeAdditiveSemigroups()))
             sage: A.category()
             Join of Category of semigroups and Category of commutative additive semigroups
-            sage: A._init_category_(None)
-            sage: A.category()
-            Category of objects
-
-            sage: P = Parent(category = None)
+            sage: P = Parent(category=None)
             sage: P.category()
             Category of sets
+
+        TESTS::
+
+            sage: A = sage.structure.category_object.CategoryObject()
+            sage: A._init_category_(None)
+            doctest:...: DeprecationWarning: guess_category() is deprecated: CategoryObject of type <type 'sage.structure.category_object.CategoryObject'> requires a category
+            See http://trac.sagemath.org/24109 for details.
+            sage: A.category()
+            Category of objects
         """
         if category is None:
-            if debug.bad_parent_warnings:
-                print("No category for %s" % type(self))
-            category = guess_category(self) # so generators don't crash
-        elif isinstance(category, (list, tuple)):
+            # Deprecated in Trac #24109
+            category = guess_category(self)
+        if isinstance(category, (list, tuple)):
             category = Category.join(category)
         self._category = category
 
@@ -828,6 +835,7 @@ cdef class CategoryObject(SageObject):
             running ._test_enumerated_set_iter_list() . . . pass
             running ._test_eq() . . . pass
             running ._test_euclidean_degree() . . . pass
+            running ._test_fraction_field() . . . pass
             running ._test_gcd_vs_xgcd() . . . pass
             running ._test_metric() . . . pass
             running ._test_new() . . . pass
@@ -891,6 +899,7 @@ cdef class CategoryObject(SageObject):
             _test_enumerated_set_iter_list
             _test_eq
             _test_euclidean_degree
+            _test_fraction_field
             _test_gcd_vs_xgcd
             _test_metric
             _test_new

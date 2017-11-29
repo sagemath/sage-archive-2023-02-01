@@ -197,16 +197,16 @@ void add::do_print_csrc(const print_csrc & c, unsigned level) const
 	// Print arguments, separated by "+" or "-"
 	char separator = ' ';
         for (const auto & elem : seq) {
-		
+		numeric co = ex_to<numeric>(elem.coeff);
 		// If the coefficient is negative, separator is "-"
-		if (elem.coeff.is_equal(_ex_1) || 
-			ex_to<numeric>(elem.coeff).numer().is_equal(*_num_1_p))
+		if (co.is_minus_one()
+                    or co.numer().is_minus_one())
 			separator = '-';
 		c.s << separator;
-		if (elem.coeff.is_equal(_ex1) || elem.coeff.is_equal(_ex_1)) {
+		if (co.is_one() or co.is_minus_one()) {
 			elem.rest.print(c, precedence());
-		} else if (ex_to<numeric>(elem.coeff).numer().is_one()
-                        or ex_to<numeric>(elem.coeff).numer().is_minus_one())
+		} else if (co.numer().is_one()
+                        or co.numer().is_minus_one())
 		{
 			elem.rest.print(c, precedence());
 			c.s << '/';

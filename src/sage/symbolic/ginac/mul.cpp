@@ -313,8 +313,8 @@ void mul::do_print_rat_func(const print_context & c, unsigned level,
 				}
 			}
 			c.s << "}{";
-			ex denom = overall_coeff.denom();
-			if (denom.is_equal(_ex1)) {
+			numeric denom = overall_coeff.denom();
+			if (denom.is_one()) {
 				mul(neg_powers).eval().print(c);
 			} else {
 				mul(denom, mul(neg_powers).eval()).hold().print(c);
@@ -398,41 +398,39 @@ void mul::do_print_csrc(const print_csrc & c, unsigned level) const
 	}
 
 	// Print arguments, separated by "*" or "/"
-	auto it = seq.begin(), itend = seq.end();
-	while (it != itend) {
-
+        bool seqstart = true;
+	for (const auto & item : seq) {
+                const numeric co = ex_to<numeric>(item.coeff);
 		// If the first argument is a negative integer power, it gets printed as "1.0/<expr>"
 		bool needclosingparenthesis = false;
-		if (it == seq.begin() && it->coeff.info(info_flags::negint)) {
+		if (seqstart and co.info(info_flags::negint)) {
 			if (is_a<print_csrc_cl_N>(c)) {
 				c.s << "recip(";
 				needclosingparenthesis = true;
 			} else
 				c.s << "1.0/";
+                        seqstart = false;
 		}
 
 		// If the exponent is 1 or -1, it is left out
-		if (it->coeff.is_integer_pmone()) {
-			it->rest.print(c, precedence());
+		if (co.is_one() or co.is_minus_one()) {
+			item.rest.print(c, precedence());
 		}
-		else if (it->coeff.info(info_flags::negint))
+		else if (co.info(info_flags::negint))
 			// Outer parens around ex needed for broken GCC parser:
-			(ex(power(it->rest, -ex_to<numeric>(it->coeff)))).print(c, level);
+			(ex(power(item.rest, -co))).print(c, level);
 		else
 			// Outer parens around ex needed for broken GCC parser:
-			(ex(power(it->rest, ex_to<numeric>(it->coeff)))).print(c, level);
+			(ex(power(item.rest, co))).print(c, level);
 
 		if (needclosingparenthesis)
 			c.s << ")";
 
 		// Separator is "/" for negative integer powers, "*" otherwise
-		++it;
-		if (it != itend) {
-			if (it->coeff.info(info_flags::negint))
-				c.s << "/";
-			else
-				c.s << "*";
-		}
+                if (co.info(info_flags::negint))
+                        c.s << "/";
+                else
+                        c.s << "*";
 	}
 
 	if (precedence() <= level)

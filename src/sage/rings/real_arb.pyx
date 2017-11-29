@@ -444,7 +444,7 @@ class RealBallField(UniqueRepresentation, Field):
             sage: RBF.has_coerce_map_from(QuadraticField(-2))
             False
 
-        Check that the map go through the ``_arb_`` method::
+        Check that the map goes through the ``_arb_`` method::
 
             sage: RBF.coerce_map_from(QuadraticField(2, embedding=AA(2).sqrt()))
             Conversion via _arb_ method map:

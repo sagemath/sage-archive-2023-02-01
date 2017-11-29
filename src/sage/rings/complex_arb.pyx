@@ -436,7 +436,7 @@ class ComplexBallField(UniqueRepresentation, Field):
             sage: CBF.has_coerce_map_from(CC)
             False
 
-        Check that the map go through the ``_acb_`` method::
+        Check that the map goes through the ``_acb_`` method::
 
             sage: CBF.coerce_map_from(QuadraticField(-2, embedding=AA(-2).sqrt()))
             Conversion via _acb_ method map:

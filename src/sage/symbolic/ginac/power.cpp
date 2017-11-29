@@ -559,11 +559,19 @@ ex power::eval(int level) const
 
 	// Turn (x^c)^d into x^(c*d) in the case that x is positive and c is real,
         // or if d is integer (and positive to preserve fraction output).
-	if (is_exactly_a<power>(ebasis) and ((eexponent.info(info_flags::integer)
-                                          and eexponent.info(info_flags::positive))
-                                        or (ebasis.op(0).info(info_flags::positive)
-                                          and ebasis.op(1).info(info_flags::real))))
-		return power(ebasis.op(0), ebasis.op(1) * eexponent);
+        // Secondly, if both c,d are numeric negative then cancel minuses.
+	if (is_exactly_a<power>(ebasis)) {
+                if (((eexponent.info(info_flags::integer)
+                      and eexponent.info(info_flags::positive))
+                    or (ebasis.op(0).info(info_flags::positive)
+                      and ebasis.op(1).info(info_flags::real))))
+		        return power(ebasis.op(0), ebasis.op(1) * eexponent);
+                if (is_exactly_a<numeric>(eexponent)
+                    and ex_to<numeric>(eexponent).is_negative()
+                    and is_exactly_a<numeric>(ebasis.op(1))
+                    and ex_to<numeric>(ebasis.op(1)).is_negative())
+                        return power(power(ebasis.op(0), -ebasis.op(1)), -eexponent);
+        }
 
         // (negative oc)^even --> (positive oc)^even
         if (is_exactly_a<mul>(ebasis)

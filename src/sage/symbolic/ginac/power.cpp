@@ -566,11 +566,6 @@ ex power::eval(int level) const
                     or (ebasis.op(0).info(info_flags::positive)
                       and ebasis.op(1).info(info_flags::real))))
 		        return power(ebasis.op(0), ebasis.op(1) * eexponent);
-                if (is_exactly_a<numeric>(eexponent)
-                    and ex_to<numeric>(eexponent).is_negative()
-                    and is_exactly_a<numeric>(ebasis.op(1))
-                    and ex_to<numeric>(ebasis.op(1)).is_negative())
-                        return power(power(ebasis.op(0), -ebasis.op(1)), -eexponent);
         }
 
         // (negative oc)^even --> (positive oc)^even
@@ -656,6 +651,11 @@ ex power::eval(int level) const
 			const ex & sub_exponent = sub_power.exponent;
 			if (is_exactly_a<numeric>(sub_exponent)) {
 				const numeric & num_sub_exponent = ex_to<numeric>(sub_exponent);
+                                if (num_sub_exponent.is_negative()
+                                    and num_exponent.is_negative())
+                                        return power(power(sub_basis,
+                                                           -num_sub_exponent),
+                                                     -num_exponent);
 				GINAC_ASSERT(num_sub_exponent!=numeric(1));
 				if (num_exponent.is_integer() || (abs(num_sub_exponent) - (*_num1_p)).is_negative() 
 						|| (num_sub_exponent == *_num_1_p && num_exponent.is_positive())) {
@@ -1414,7 +1414,7 @@ ex power::expand_add(const add & a, long n, unsigned options) const
 			const std::vector<int>& partition = partitions.current();
 			// All monomials of this partition have the same number of terms and the same coefficient.
 			const unsigned msize = std::count_if(partition.begin(), partition.end(), [](int i) { return i > 0; });
-			const numeric coeff = multinomial_coefficient(partition) * binomial_coefficient;
+			const numeric coef = multinomial_coefficient(partition) * binomial_coefficient;
 
 			// Iterate over all compositions of the current partition.
 			composition_generator compositions(partition);
@@ -1422,7 +1422,7 @@ ex power::expand_add(const add & a, long n, unsigned options) const
 				const std::vector<int>& the_exponent = compositions.current();
 				epvector monomial;
 				monomial.reserve(msize);
-				numeric factor = coeff;
+				numeric factor = coef;
 				for (unsigned i = 0; i < the_exponent.size(); ++i) {
 					const ex & r = a.seq[i].rest;
 					GINAC_ASSERT(!is_exactly_a<add>(r));

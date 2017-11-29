@@ -20,10 +20,30 @@ AUTHORS:
 from sage.modules.fg_pid.fgp_module import FGP_Module_class
 from sage.modules.fg_pid.fgp_element import DEBUG, FGP_Element
 from sage.arith.misc import gcd
-from sage.rings.all import ZZ
+from sage.rings.all import ZZ, QQ
 from sage.groups.additive_abelian.qmodnz import QmodnZ
 from sage.matrix.constructor import matrix
 
+def TorsionQuadraticForm(q):
+    """
+    Create a torsion quadratic form module from a rational matrix
+    
+    INPUT:
+    """
+    q = Matrix(QQ,q)
+    Q,d = q._clear_denom()
+    S,U,V = Q.smith_form()
+    D = U * q * V
+    gens_indices = []
+    for i in range(D.ncols()):
+        if D[i,i]!=0 and D[i,i].denominator()!=1:
+            gens_indices.append(i)
+    gens = U[gens_indices]
+    qf = gens*q*gens.T
+    rels = D[gens_indices,gens_indices].inverse()
+    Q = FreeQuadraticModule(ZZ,qf.ncols(),qf)
+    rels = Q.span(rels)
+    return TorsionQuadraticModule(Q,rels)
 
 class TorsionQuadraticModuleElement(FGP_Element):
     r"""

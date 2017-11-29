@@ -605,7 +605,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         fmpz_init(tmpz)
 
         if mpz_sgn(self.D.value) > 0:
-            # To mitigate the effect of cancellationss between
+            # To mitigate the effect of cancellations between
             # a and b*sqrt(D) we perform a loop with increasing
             # working precision
             arb_init(rootD)

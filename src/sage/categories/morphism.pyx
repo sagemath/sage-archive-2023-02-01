@@ -220,22 +220,14 @@ cdef class Morphism(Map):
             sage: h = R.hom([t2])
             sage: h.is_identity()
             False
-
-        AUTHOR:
-
-        - Xavier Caruso (2012-06-29)
         """
-        domain = self.domain()
-        if domain != self.codomain():
-            return False
         try:
-            gens = domain.gens()
-            for x in gens:
-                if self(x) != x:
-                    return False
-            return True
-        except AttributeError:
-            raise NotImplementedError
+            i = self._parent.identity()
+        except TypeError:
+            # If there is no identity morphism,
+            # then self cannot be equal to it.
+            return False
+        return self._richcmp_(i, Py_EQ)
 
     def pushforward(self, I):
         raise NotImplementedError
@@ -450,6 +442,27 @@ cdef class IdentityMorphism(Morphism):
 
     def __invert__(self):
         return self
+
+    def is_identity(self):
+        """
+        Return ``True`` if this morphism is the identity morphism.
+
+        EXAMPLES::
+
+            sage: E = End(Partitions(5))
+            sage: E.identity().is_identity()
+            True
+
+        Check that :trac:`15478` is fixed::
+
+            sage: K.<z> = GF(4)
+            sage: phi = End(K)([z^2])
+            sage: R.<t> = K[]
+            sage: psi = End(R)(phi)
+            sage: psi.is_identity()
+            False
+        """
+        return True
 
     def is_surjective(self):
         r"""

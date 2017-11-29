@@ -402,18 +402,6 @@ class RealBallField(UniqueRepresentation, Field):
         from sage.rings.real_lazy import RLF
         self._populate_coercion_lists_([ZZ, QQ], convert_method_name='_arb_')
 
-    def __reduce__(self):
-        r"""
-        Pickling support.
-
-        TESTS::
-
-            sage: R = RealBallField(128)
-            sage: loads(dumps(R)) == R
-            True
-        """
-        return RealBallField, (self._prec,)
-
     def _repr_(self):
         r"""
         String representation of ``self``.

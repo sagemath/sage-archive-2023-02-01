@@ -61,7 +61,7 @@ sagestart = re.compile(r"^\s*(>>> |sage: )\s*[^#\s]")
 untested = re.compile("(not implemented|not tested)")
 
 # For parsing a PEP 0263 encoding declaration
-pep_0263 = re.compile(r'coding[:=]\s*([-\w.]+)')
+pep_0263 = re.compile(br'^[ \t\v]*#.*?coding[:=]\s*([-\w.]+)')
 
 # Source line number in warning output
 doctest_line_number = re.compile(r"^\s*doctest:[0-9]")
@@ -467,6 +467,7 @@ class StringDocTestSource(DocTestSource):
         """
         return self._create_doctests(namespace)
 
+
 class FileDocTestSource(DocTestSource):
     """
     This class creates doctests from a file.
@@ -569,13 +570,13 @@ class FileDocTestSource(DocTestSource):
             sage: FDS.encoding
             'latin-1'
         """
-        with open(self.path) as source:
+        with open(self.path, 'rb') as source:
             for lineno, line in enumerate(source):
                 if lineno < 2:
                     match = pep_0263.search(line)
                     if match:
-                        self.encoding = match.group(1)
-                yield lineno, unicode(line, self.encoding)
+                        self.encoding = match.group(1).decode('ascii')
+                yield lineno, line.decode(self.encoding)
 
     @lazy_attribute
     def printpath(self):

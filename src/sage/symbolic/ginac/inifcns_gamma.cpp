@@ -30,6 +30,7 @@
 #include "relational.h"
 #include "operators.h"
 #include "symbol.h"
+#include "constant.h"
 #include "symmetry.h"
 #include "utils.h"
 
@@ -267,10 +268,12 @@ static ex beta_evalf(const ex & x, const ex & y, PyObject* parent)
 
 static ex beta_eval(const ex & x, const ex & y)
 {
-	if (x.is_equal(_ex1))
-		return 1/y;
-	if (y.is_equal(_ex1))
-		return 1/x;
+        if (x.is_zero() or y.is_zero())
+                return NaN;
+	if (x.is_one())
+		return power(y, _ex_1);
+	if (y.is_one())
+		return power(x, _ex_1);
 	if (is_exactly_a<numeric>(x) and is_exactly_a<numeric>(y)) {
 		// treat all problematic x and y that may not be passed into tgamma,
 		// because they would throw there although beta(x,y) is well-defined

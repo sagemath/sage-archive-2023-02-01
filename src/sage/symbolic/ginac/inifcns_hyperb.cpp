@@ -771,11 +771,11 @@ static ex acosh_eval(const ex & x)
 			return Pi*I*numeric(1,2);
 
 		// acosh(1) -> 0
-		if (x.is_equal(_ex1))
+		if (x.is_one())
 			return _ex0;
 
 		// acosh(-1) -> Pi*I
-		if (x.is_equal(_ex_1))
+		if (x.is_minus_one())
 			return Pi*I;
 
 		// acosh(float) -> float
@@ -840,10 +840,10 @@ static ex atanh_eval(const ex & x)
 		*/
 
 		// atanh(1) -> oo
-		if (x.is_equal(_ex1))
+		if (x.is_one())
 			return Infinity;
 		// atahn(-1) -> -oo
-		if (x.is_equal(_ex_1))
+		if (x.is_minus_one())
 			return NegInfinity;
 
 		// atanh(float) -> float
@@ -946,10 +946,10 @@ static ex acoth_eval(const ex & x)
 {
         if (is_exactly_a<numeric>(x)) {
                 // acoth(1) -> oo
-                if (x.is_equal(_ex1))
+                if (x.is_one())
                         return Infinity;
                 // acoth(-1) -> -oo
-                if (x.is_equal(_ex_1))
+                if (x.is_minus_one())
                         return NegInfinity;
                 //acoth(float) -> float 
                 if (x.info(info_flags::inexact))
@@ -1072,10 +1072,10 @@ static ex asech_eval(const ex & x)
                 if (x.is_zero())
                         return Infinity;
                 // asech(1) -> 0
-                if (x.is_equal(_ex1))
+                if (x.is_one())
                         return _ex0;
                 //asech(-1) -> I*Pi
-                if (x.is_equal(_ex_1))
+                if (x.is_minus_one())
                         return Pi*I;
                 //asech(float) -> float 
                 if (x.info(info_flags::inexact))

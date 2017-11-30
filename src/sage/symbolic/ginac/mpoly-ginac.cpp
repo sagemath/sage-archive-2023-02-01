@@ -573,7 +573,7 @@ ex sqrfree_parfrac(const ex & a, const symbol & x)
 	exvector factor; factor.reserve(num_yun);
 	exvector cofac; cofac.reserve(num_yun);
 	for (unsigned i=0; i<num_yun; i++) {
-		if (!yun[i].is_equal(_ex1)) {
+		if (!yun[i].is_one()) {
 			for (unsigned j=0; j<=i; j++) {
 				factor.push_back(pow(yun[i], j+1));
 				ex prod = _ex1;

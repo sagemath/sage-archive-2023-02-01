@@ -500,13 +500,13 @@ static ex Li2_eval(const ex & x)
 		if (x.is_zero())
 			return _ex0;
 		// Li2(1) -> Pi^2/6
-		if (x.is_equal(_ex1))
+		if (x.is_one())
 			return power(Pi,_ex2)/_ex6;
 		// Li2(1/2) -> Pi^2/12 - log(2)^2/2
 		if (x.is_equal(_ex1_2))
 			return power(Pi,_ex2)/_ex12 + power(log(_ex2),_ex2)*_ex_1_2;
 		// Li2(-1) -> -Pi^2/12
-		if (x.is_equal(_ex_1))
+		if (x.is_minus_one())
 			return -power(Pi,_ex2)/_ex12;
 		// Li2(I) -> -Pi^2/48+Catalan*I
 		if (x.is_equal(I))

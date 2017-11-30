@@ -411,7 +411,7 @@ static ex frac_cancel(const ex &n, const ex &d)
 //std::clog << "frac_cancel num = " << num << ", den = " << den << std::endl;
 
 	// Handle trivial case where denominator is 1
-	if (den.is_equal(_ex1))
+	if (den.is_one())
 		return (new lst(num, den))->setflag(status_flags::dynallocated);
 
 	// Handle special cases where numerator or denominator is 0
@@ -602,7 +602,7 @@ ex power::normal(exmap & repl, exmap & rev_lookup, int level, unsigned options) 
 
 		} else if (n_exponent.info(info_flags::negative)) {
 
-			if (n_basis.op(1).is_equal(_ex1)) {
+			if (n_basis.op(1).is_one()) {
 
 				// a^-x -> {1, sym(a^x)}
 				return (new lst(_ex1, replace_with_symbol(power(n_basis.op(0), -n_exponent), repl, rev_lookup)))->setflag(status_flags::dynallocated);
@@ -961,7 +961,7 @@ static ex find_common_factor(const ex & e, ex & factor, exmap & repl)
 			terms.push_back(x);
 		}
 
-		if (gc.is_equal(_ex1))
+		if (gc.is_one())
 			return e;
 #ifdef PYNAC_HAVE_LIBGIAC
                 else {

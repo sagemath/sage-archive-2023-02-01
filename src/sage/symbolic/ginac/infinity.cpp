@@ -291,13 +291,13 @@ bool infinity::is_unsigned_infinity() const
 
 bool infinity::is_plus_infinity() const 
 { 
-	return direction.is_equal(_ex1); 
+	return direction.is_one(); 
 }
 
 
 bool infinity::is_minus_infinity() const 
 { 
-	return direction.is_equal(_ex_1); 
+	return direction.is_minus_one(); 
 }
 
 

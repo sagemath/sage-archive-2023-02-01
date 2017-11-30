@@ -280,7 +280,7 @@ ex resultant(const ex & e1, const ex & e2, const ex & s)
                         f2 = ee1;
                 ex den1 = f1.denom();
                 ex den2 = f2.denom();
-                if (not den1.is_equal(_ex1) and den1.is_equal(den2))
+                if (not den1.is_one() and den1.is_equal(den2))
                         return resultant(f1.numer(), f2.numer(), s);
 		throw(std::runtime_error("resultant(): arguments must be polynomials"));
         }

@@ -1123,7 +1123,7 @@ static ex asin_eval(const ex & x)
 			return numeric(1,6)*Pi;
 
 		// asin(1) -> Pi/2
-		if (x.is_equal(_ex1))
+		if (x.is_one())
 			return _ex1_2*Pi;
 
 		if (x.info(info_flags::inexact)) {
@@ -1188,7 +1188,7 @@ static ex acos_eval(const ex & x)
 	if (is_exactly_a<numeric>(x)) {
 
 		// acos(1) -> 0
-		if (x.is_equal(_ex1))
+		if (x.is_one())
 			return _ex0;
 
 		// acos(1/2) -> Pi/3
@@ -1204,7 +1204,7 @@ static ex acos_eval(const ex & x)
 			return numeric(2,3)*Pi;
 
 		// acos(-1) -> Pi
-		if (x.is_equal(_ex_1))
+		if (x.is_minus_one())
 			return Pi;
 
 		if (x.info(info_flags::inexact)) {
@@ -1273,7 +1273,7 @@ static ex atan_eval(const ex & x)
 			return _ex0;
 
 		// atan(1) -> Pi/4
-		if (x.is_equal(_ex1))
+		if (x.is_one())
 			return _ex1_4*Pi;
 
 		if (x.is_equal(I))
@@ -1516,10 +1516,10 @@ static ex acot_eval(const ex & x)
 		if (x.is_zero())
 			return _ex1_2*Pi;
 
-		if (x.is_equal(_ex1))
+		if (x.is_one())
 			return _ex1_4*Pi;
 
-		if (x.is_equal(_ex_1))
+		if (x.is_minus_one())
 			return _ex_1_4*Pi;
 
 		if (x.is_equal(I) || x.is_equal(-I))

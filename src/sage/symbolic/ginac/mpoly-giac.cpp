@@ -302,7 +302,7 @@ factored_b:
 			} else {
 				ex p_co, pb_co;
 				ex p_gcd = gcdpoly(p, pb, &p_co, &pb_co, check_args);
-				if (p_gcd.is_equal(_ex1)) {
+				if (p_gcd.is_one()) {
 					// a(x) = p(x)^n, b(x) = p_b(x)^m, gcd (p, p_b) = 1 ==>
 					// gcd(a,b) = 1
 					if (ca != nullptr)
@@ -338,7 +338,7 @@ factored_b:
 			ex p_co, bpart_co;
 			ex p_gcd = gcdpoly(p, b, &p_co, &bpart_co, false);
 
-			if (p_gcd.is_equal(_ex1)) {
+			if (p_gcd.is_one()) {
 				// a(x) = p(x)^n, gcd(p, b) = 1 ==> gcd(a, b) = 1
 				if (ca != nullptr)
 					*ca = a;
@@ -365,7 +365,7 @@ factored_b:
 		ex p_co, apart_co;
 		const ex& exp_b(b.op(1));
 		ex p_gcd = gcdpoly(a, p, &apart_co, &p_co, false);
-		if (p_gcd.is_equal(_ex1)) {
+		if (p_gcd.is_one()) {
 			// b=p(x)^n, gcd(a, p) = 1 ==> gcd(a, b) == 1
 			if (ca != nullptr)
 				*ca = a;

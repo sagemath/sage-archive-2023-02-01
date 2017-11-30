@@ -21,9 +21,13 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 
+import locale
 import os
 import tempfile
 import atexit
+
+import six
+
 
 def delete_tmpfiles():
     """
@@ -232,6 +236,14 @@ class atomic_write:
       resulting file will also have these permissions (unless the
       mode bits of the file were changed manually).
 
+    - ``binary`` -- (boolean, default: False) the underlying file is opened
+      in binary mode.  If False then it is opened in text mode and an encoding
+      with which to write the file may be supplied.
+
+    - ``encoding`` -- (str, default: ``locale.getpreferredencoding(False)``)
+      the encoding with which to write text data when ``binary=False``.
+      Implies ``binary=False`` if given.
+
     EXAMPLES::
 
         sage: from sage.misc.temporary_file import atomic_write
@@ -322,7 +334,8 @@ class atomic_write:
         sage: open(target_file, "r").read()
         '>>> AAA'
     """
-    def __init__(self, target_filename, append=False, mode=0o666):
+    def __init__(self, target_filename, append=False, mode=0o666,
+                 binary=False, encoding=None):
         """
         TESTS::
 
@@ -341,6 +354,10 @@ class atomic_write:
         # Remove umask bits from mode
         umask = os.umask(0); os.umask(umask)
         self.mode = mode & (~umask)
+        self.binary = binary if encoding is None else False
+        if not self.binary and encoding is None:
+            encoding = locale.getpreferredencoding(False)
+        self.encoding = encoding
 
     def __enter__(self):
         """
@@ -360,12 +377,23 @@ class atomic_write:
             ....:     os.path.dirname(aw.target) == os.path.dirname(f.name)
             True
         """
-        self.tempfile = tempfile.NamedTemporaryFile(dir=self.tmpdir, delete=False)
+
+        rmode = 'r' + ('b' if self.binary else '')
+        wmode = 'w+' + ('b' if self.binary else '')
+        if six.PY2:
+            encoding_kwargs = {}
+        else:
+            encoding_kwargs = {'encoding': self.encoding}
+
+        self.tempfile = tempfile.NamedTemporaryFile(
+                wmode, dir=self.tmpdir, delete=False, **encoding_kwargs)
+
         self.tempname = self.tempfile.name
         os.chmod(self.tempname, self.mode)
         if self.append:
             try:
-                r = open(self.target).read()
+                with open(self.target, rmode, **encoding_kwargs) as f:
+                    r = f.read()
             except IOError:
                 pass
             else:

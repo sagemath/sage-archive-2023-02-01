@@ -1541,6 +1541,7 @@ class Func_assoc_legendre_P(BuiltinFunction):
         Special values known.
 
         EXAMPLES::
+
             sage: gen_legendre_P(2,3,4)
             0
             sage: gen_legendre_P(2,0,4)==legendre_P(2,4)

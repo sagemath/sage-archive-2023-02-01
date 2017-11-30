@@ -284,6 +284,7 @@ class AvailableSoftware(object):
         Initialization.
 
         EXAMPLES::
+
             sage: from sage.doctest.external import AvailableSoftware
             sage: S = AvailableSoftware()
             sage: S.seen() # random
@@ -299,6 +300,7 @@ class AvailableSoftware(object):
         Return ``True`` if ``item`` is available on the system.
 
         EXAMPLES::
+
             sage: from sage.doctest.external import available_software
             sage: 'internet' in available_software # random
             True

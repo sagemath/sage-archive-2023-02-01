@@ -242,6 +242,7 @@ class Factorization(SageObject):
         - a Factorization object
 
         EXAMPLES:
+
         We create a factorization with all the default options::
 
             sage: Factorization([(2,3), (5, 1)])

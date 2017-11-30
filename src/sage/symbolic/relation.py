@@ -1560,7 +1560,7 @@ def solve_ineq_fourier(ineq,vars=None):
     Solves system of inequalities using Maxima and Fourier elimination
 
     Can be used for system of linear inequalities and for some types
-    of nonlinear inequalities. For examples see the section EXAMPLES
+    of nonlinear inequalities. For examples, see the example section
     below and http://maxima.cvs.sourceforge.net/viewvc/maxima/maxima/share/contrib/fourier_elim/rtest_fourier_elim.mac
 
 

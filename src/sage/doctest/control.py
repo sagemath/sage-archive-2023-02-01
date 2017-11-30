@@ -693,6 +693,12 @@ class DocTestController(SageObject):
                     and (filename.endswith(".py") or filename.endswith(".pyx"))):
                     self.files.append(os.path.relpath(opj(SAGE_ROOT,filename)))
         if self.options.sagenb:
+            if six.PY3:
+                if not self.options.all:
+                    self.log("Skipping doctesting of the Sage notebook: "
+                             "not installed on Python 3")
+                return
+
             if not self.options.all:
                 self.log("Doctesting the Sage notebook.")
             from pkg_resources import Requirement, working_set
@@ -828,7 +834,7 @@ class DocTestController(SageObject):
             def sort_key(source):
                 basename = source.basename
                 return -self.stats.get(basename, default).get('walltime'), basename
-            self.sources = [x[1] for x in sorted((sort_key(source), source) for source in self.sources)]
+            self.sources = sorted(self.sources, key=sort_key)
 
     def run_doctests(self):
         """

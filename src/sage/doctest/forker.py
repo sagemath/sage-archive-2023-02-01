@@ -50,6 +50,8 @@ from .parsing import OriginalSource, reduce_hex
 from sage.structure.sage_object import SageObject
 from .parsing import SageOutputChecker, pre_hash, get_source
 from sage.repl.user_globals import set_globals
+from sage.interfaces.process import ContainChildren
+from sage.cpython.string import bytes_to_str, str_to_bytes
 
 
 # All doctests run as if the following future imports are present
@@ -148,7 +150,7 @@ def init_sage():
     stringPict.terminal_width = lambda self:0
 
 
-def showwarning_with_traceback(message, category, filename, lineno, file=sys.stdout, line=None):
+def showwarning_with_traceback(message, category, filename, lineno, file=None, line=None):
     r"""
     Displays a warning message with a traceback.
 
@@ -175,7 +177,10 @@ def showwarning_with_traceback(message, category, filename, lineno, file=sys.std
     lines = ["doctest:warning\n"]  # Match historical warning messages in doctests
     lines.extend(traceback.format_list(tb))
     lines.append(":\n")            # Match historical warning messages in doctests
-    lines.extend(traceback.format_exception_only(category, message))
+    lines.extend(traceback.format_exception_only(category, category(message)))
+
+    if file is None:
+        file = sys.stderr
     try:
         file.writelines(lines)
         file.flush()
@@ -380,9 +385,9 @@ class SageSpoofInOut(SageObject):
         self.outfile.seek(self.position)
         result = self.outfile.read()
         self.position = self.outfile.tell()
-        if not result.endswith("\n"):
-            result += "\n"
-        return result
+        if not result.endswith(b"\n"):
+            result += b"\n"
+        return bytes_to_str(result)
 
 
 class SageDocTestRunner(doctest.DocTestRunner):
@@ -1351,6 +1356,11 @@ class SageDocTestRunner(doctest.DocTestRunner):
                         os.tcsetpgrp(0, os.getpgrp())
 
                     exc_type, exc_val, exc_tb = exc_info
+                    if exc_tb is None:
+                        raise RuntimeError(
+                            "could not start the debugger for an unexpected "
+                            "exception, probably due to an unhandled error "
+                            "in a C extension module")
                     self.debugger.reset()
                     self.debugger.interaction(None, exc_tb)
                 except KeyboardInterrupt:

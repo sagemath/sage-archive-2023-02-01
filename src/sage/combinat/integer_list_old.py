@@ -410,8 +410,6 @@ def iterator(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
         sage: list(iterator(2, 3, 3, lambda i: 0, lambda i: 5, 0, 10))
         [[0, 1, 1], [0, 0, 2]]
     """
-    #from sage.misc.superseded import deprecation
-    #deprecation(13605, 'iterator(...) is deprecated. Use IntegerListLex(...) instead.')
     stopgap("Iterator uses the old implementation of IntegerListsLex, which does not allow for arbitrary input;"
             " non-allowed input can return wrong results,"
             " please see the documentation for IntegerListsLex for details.",

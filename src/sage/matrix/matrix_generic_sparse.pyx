@@ -103,16 +103,6 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         Secondly, there is no fast way to access non-zero elements in a given
         row/column.
     """
-    ########################################################################
-    # LEVEL 1 functionality
-    #   * __cinit__
-    #   * __init__
-    #   * __dealloc__
-    #   * set_unsafe
-    #   * get_unsafe
-    #   * def _pickle
-    #   * def _unpickle
-    ########################################################################
     def __cinit__(self, parent, entries=0, coerce=True, copy=True):
         self._entries = {}  # crucial so that pickling works
 
@@ -314,9 +304,6 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         else:
             raise RuntimeError("unknown matrix version (=%s)"%version)
 
-    def __hash__(self):
-        return self._hash()
-
     ########################################################################
     # LEVEL 2 functionality
     # x  * cdef _add_
@@ -358,10 +345,8 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         cdef Py_ssize_t i, j, len_v, len_w
         cdef Matrix_generic_sparse other
         other = <Matrix_generic_sparse> _other
-        cdef list v = self._entries.items()
-        v.sort()
-        cdef list w = other._entries.items()
-        w.sort()
+        cdef list v = sorted(self._entries.items())
+        cdef list w = sorted(other._entries.items())
         s = {}
         i = 0  # pointer into self
         j = 0  # pointer into other

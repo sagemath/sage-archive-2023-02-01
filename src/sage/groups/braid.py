@@ -1818,7 +1818,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
 
     def dimension_of_TL_space(self, drain_size):
         """
-        Return the dimension of a particular Templerley--Lieb representation
+        Return the dimension of a particular Temperley--Lieb representation
         summand of ``self``.
 
         Following the notation of :meth:`TL_basis_with_drain`, the summand

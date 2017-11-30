@@ -4588,7 +4588,7 @@ class Partition(CombinatorialElement):
         """
         return self.dimension()**2/factorial(self.size())
 
-    def outline(self, variable=var("x")):
+    def outline(self, variable=None):
         r"""
         Return the outline of the partition ``self``.
 
@@ -4619,6 +4619,8 @@ class Partition(CombinatorialElement):
             sage: integrate(Partition([1]).outline()-abs(x),(x,-10,10))
             2
         """
+        if variable is None:
+            variable = var('x')
         outside_contents = [self.content(*c) for c in self.outside_corners()]
         inside_contents = [self.content(*c) for c in self.corners()]
         return sum(abs(variable+c) for c in outside_contents)\

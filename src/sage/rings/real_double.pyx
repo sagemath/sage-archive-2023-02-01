@@ -70,6 +70,7 @@ from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.richcmp cimport rich_to_bool
+from sage.arith.constants cimport *
 
 
 def is_RealDoubleField(x):
@@ -535,7 +536,6 @@ cdef class RealDoubleField_class(Field):
             0.8862269254527579
         """
         return self(M_PI)
-
 
     def euler_constant(self):
         """
@@ -2041,13 +2041,13 @@ cdef class RealDoubleElement(FieldElement):
         ::
 
             sage: r = RDF(31.9); r.log2()
-            4.995484518877507
+            4.9954845188775066
         """
         if self < 0:
             from sage.rings.complex_double import CDF
             return CDF(self).log(2)
         sig_on()
-        a = self._new_c(gsl_sf_log(self._value) / M_LN2)
+        a = self._new_c(gsl_sf_log(self._value) * M_1_LN2)
         sig_off()
         return a
 
@@ -2059,7 +2059,7 @@ cdef class RealDoubleElement(FieldElement):
         EXAMPLES::
 
             sage: r = RDF('16.0'); r.log10()
-            1.2041199826559246
+            1.2041199826559248
             sage: r.log() / RDF(log(10))
             1.2041199826559246
             sage: r = RDF('39.9'); r.log10()
@@ -2069,7 +2069,7 @@ cdef class RealDoubleElement(FieldElement):
             from sage.rings.complex_double import CDF
             return CDF(self).log(10)
         sig_on()
-        a = self._new_c(gsl_sf_log(self._value) / M_LN10)
+        a = self._new_c(gsl_sf_log(self._value) * M_1_LN10)
         sig_off()
         return a
 
@@ -2088,9 +2088,9 @@ cdef class RealDoubleElement(FieldElement):
         """
         if self < 0:
             from sage.rings.complex_double import CDF
-            return CDF(self).log(math.pi)
+            return CDF(self).log(M_PI)
         sig_on()
-        a = self._new_c(gsl_sf_log(self._value) / M_LNPI)
+        a = self._new_c(gsl_sf_log(self._value) * M_1_LNPI)
         sig_off()
         return a
 

@@ -400,6 +400,11 @@ REFERENCES:
              *Reverse-Engineering the S-Box of Streebog, Kuznyechik and STRIBOBr1*; in
              EuroCrypt'16, pp. 372-402.
 
+.. [Bre2008] \A. Bretscher and D. G. Corneil and M. Habib and C. Paul (2008), "A
+             simple Linear Time LexBFS Cograph Recognition Algorithm", SIAM
+             Journal on Discrete Mathematics, 22 (4): 1277–1296,
+             :doi:`10.1137/060664690`.
+
 .. [Br1910] Bruckner, "Uber die Ableitung der allgemeinen Polytope und
             die nach Isomorphismus verschiedenen Typen der allgemeinen
             Achtzelle (Oktatope)", Verhand. Konik. Akad. Wetenschap,
@@ -596,6 +601,9 @@ REFERENCES:
 .. [Co1984] \J. Conway, Hexacode and tetracode - MINIMOG and
             MOG. *Computational group theory*, ed. M. Atkinson,
             Academic Press, 1984.
+
+.. [Co1999] John Conway, Neil Sloan. *Sphere Packings, Lattices and Groups*,
+            Springer Verlag 1999.
 
 .. [Coh1993] Henri Cohen. A Course in Computational Number
              Theory. Graduate Texts in Mathematics 138. Springer, 1993.
@@ -2347,6 +2355,9 @@ REFERENCES:
 .. [WW2005] Ralf-Philipp Weinmann and Kai Wirt,
             *Analysis of the DVB Common Scrambling Algorithm*; in
             IFIP TC-6 TC-11, (2005).
+
+.. [WZY2015] WenLing Wu, Lei Zhang, and XiaoLi Yu, *The DBlock family of block ciphers*;
+             in Science China Information Sciences, (2015), pp. 1-14.
 
 .. _ref-X:
 

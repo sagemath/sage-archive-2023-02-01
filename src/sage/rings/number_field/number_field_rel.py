@@ -2326,7 +2326,7 @@ class NumberField_relative(NumberField_generic):
         - ``type`` - ``'pari'`` or ``'gap'``: type of object to return -- a
           wrapper around a Pari or Gap transitive group object.         -
 
-        - algorithm - 'pari', 'kash', 'magma' (default: 'pari', except when
+        - algorithm -- 'pari', 'kash', 'magma' (default: 'pari', except when
           the degree is >= 12 when 'kash' is tried)
 
         At present much less functionality is available for Galois groups of
@@ -2543,7 +2543,7 @@ class NumberField_relative(NumberField_generic):
 
             sage: K.<a, b> = NumberField([x^2 + 23, x^2 - 3])
             sage: P = K.prime_factors(5)[0]; P
-            Fractional ideal (5, 1/2*a - b - 5/2)
+            Fractional ideal (5, 1/2*a + b - 5/2)
             sage: u = K.uniformizer(P)
             sage: u.valuation(P)
             1

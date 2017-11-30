@@ -921,7 +921,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         - Original algorithm written by Elliot Wells [WELLS]_
 
-        - Wells' Algortithm implemented as part of GSOC 2017 by Rebecca Lauren Miller and Paul Fili
+        - Wells' Algorithm implemented as part of GSOC 2017 by Rebecca Lauren Miller and Paul Fili
 
 
         EXAMPLES::
@@ -1255,7 +1255,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         OUTPUT:
 
-        - boolean - ``True`` if preperiodic.
+        - boolean -- ``True`` if preperiodic.
 
         - if return_period is ``True``, then ``(0,0)`` if wandering, and ``(m,n)``
             if preperiod ``m`` and period ``n``.

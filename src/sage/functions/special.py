@@ -121,9 +121,9 @@ REFERENCES:
 - Abramowitz and Stegun: Handbook of Mathematical Functions,
   http://www.math.sfu.ca/~cbm/aands/
 
-- http://en.wikipedia.org/wiki/Spherical_harmonics
+- :wikipedia:`Spherical_harmonics`
 
-- http://en.wikipedia.org/wiki/Helmholtz_equation
+- :wikipedia:`Helmholtz_equation`
 
 - Online Encyclopedia of Special Function
   http://algo.inria.fr/esf/index.html

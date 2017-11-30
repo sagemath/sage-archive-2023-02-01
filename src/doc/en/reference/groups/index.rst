@@ -87,6 +87,7 @@ Partition Refinement
 
    sage/groups/perm_gps/partn_ref/canonical_augmentation
    sage/groups/perm_gps/partn_ref/data_structures
+   sage/groups/perm_gps/partn_ref/refinement_graphs
    sage/groups/perm_gps/partn_ref/refinement_lists
    sage/groups/perm_gps/partn_ref/refinement_matrices
 

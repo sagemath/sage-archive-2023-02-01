@@ -11,31 +11,28 @@ A simple example of registering coercions::
 
     sage: class A_class(Parent):
     ....:   def __init__(self, name):
-    ....:       Parent.__init__(self, name=name)
+    ....:       Parent.__init__(self)
     ....:       self._populate_coercion_lists_()
     ....:       self.rename(name)
-    ....:   #
+    ....:
     ....:   def category(self):
     ....:       return Sets()
-    ....:   #
+    ....:
     ....:   def _element_constructor_(self, i):
     ....:       assert(isinstance(i, (int, Integer)))
     ....:       return ElementWrapper(self, i)
-    ....:
     sage: A = A_class("A")
     sage: B = A_class("B")
     sage: C = A_class("C")
 
     sage: def f(a):
     ....:   return B(a.value+1)
-    ....:
     sage: class MyMorphism(Morphism):
     ....:   def __init__(self, domain, codomain):
     ....:       Morphism.__init__(self, Hom(domain, codomain))
-    ....:   #
+    ....:
     ....:   def _call_(self, x):
     ....:       return self.codomain()(x.value)
-    ....:
     sage: f = MyMorphism(A,B)
     sage: f
         Generic morphism:
@@ -261,17 +258,19 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             sage: P.category()
             Join of Category of monoids and Category of commutative additive monoids and Category of facade sets
 
-        Test the deprecated ``element_constructor`` argument::
+        Test various deprecations::
 
             sage: class MyParent(Parent):
             ....:     def __init__(self):
-            ....:         Parent.__init__(self, element_constructor=self.make_element)
+            ....:         Parent.__init__(self, element_constructor=self.make_element, foo=42)
             ....:     def make_element(self, x):
             ....:         print("Making element")
             ....:         return x
             sage: P = MyParent()
             doctest:...: DeprecationWarning: the 'element_constructor' keyword is deprecated: override the _element_constructor_ method instead
             See http://trac.sagemath.org/23917 for details.
+            doctest:...: DeprecationWarning: the 'foo' keyword is deprecated: it is currently ignored and will become an error in the future
+            See http://trac.sagemath.org/24109 for details.
             sage: P(42)
             Making element
             42
@@ -309,9 +308,9 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
 
         CategoryObject.__init__(self, category, base)
 
-        if kwds:
-            if debug.bad_parent_warnings:
-                print("Illegal keywords for %s: %s" % (type(self), kwds))
+        for k in kwds:
+            from sage.misc.superseded import deprecation
+            deprecation(24109, f"the {k!r} keyword is deprecated: it is currently ignored and will become an error in the future")
         if names is not None:
             self._assign_names(names, normalize)
         if element_constructor is None:
@@ -598,10 +597,10 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
 
         EXAMPLES::
 
-            sage: k = GF(5); k._element_constructor # indirect doctest
-            <bound method FiniteField_prime_modn_with_category._element_constructor_ of Finite Field of size 5>
+            sage: k = GF(5)
+            sage: k._set_element_constructor()
         """
-        try: #if hasattr(self, '_element_constructor_'):
+        try:
             _element_constructor_ = self._element_constructor_
         except (AttributeError, TypeError):
             # Remark: A TypeError can actually occur;
@@ -1386,7 +1385,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
            sage: QQ.hom(ZZ)
            Traceback (most recent call last):
            ...
-           TypeError: natural coercion morphism from Rational Field to Integer Ring not defined 
+           TypeError: natural coercion morphism from Rational Field to Integer Ring not defined
        """
        if isinstance(im_gens, Parent):
            return self.Hom(im_gens).natural_map()
@@ -1804,7 +1803,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         r"""
         Returns a default coercion map based on the data provided to
         :meth:`_populate_coercion_lists_`.
-        
+
         This method differs from :meth:`_generic_convert_map` only in setting
         the category for the map to the meet of the category of this parent
         and ``S``.

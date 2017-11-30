@@ -70,6 +70,6 @@ if [ $? -ne 0 ]; then
 fi
 
 
-# Pretend that the "fplll" package is not installed. This is needed to
-# support renaming libfplll -> fplll in the future.
-rm -f "$SAGE_SPKG_INST/"fplll-*
+# Pretend that the "libfplll" package is not installed. This is needed to
+# support renaming libfplll -> fplll done on Trac #24042
+rm -f "$SAGE_SPKG_INST/"libfplll-*

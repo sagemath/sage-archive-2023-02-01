@@ -615,7 +615,7 @@ fi
 if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
     # New-style package
     echo "Setting up build directory for $PKG_NAME"
-    cp -Rp "$PKG_SCRIPTS" "$PKG_NAME"
+    cp -RLp "$PKG_SCRIPTS" "$PKG_NAME"
     cd "$PKG_NAME" || exit $?
 
     sage-uncompress-spkg -d src "$PKG_SRC"

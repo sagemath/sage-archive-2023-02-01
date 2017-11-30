@@ -156,9 +156,7 @@ void mul::print_overall_coeff(const ex coeff_ex, const print_context & c,
 		//(coeffstr.find('/') != std::string::npos) ||
 		//(coeffstr.find('*') != std::string::npos) ||
 		//(coeffstr.find('^') != std::string::npos));
-	if (num_coeff.is_integer()
-                and num_coeff.is_minus_one()
-                and not num_coeff.is_parent_pos_char())
+	if (num_coeff.is_minus_one())
 		c.s<<"-";
 	else if (parenthesis && coeffstr[0] == '-') {
 		// We want to move the '-' out of the parenthesis if it is
@@ -278,9 +276,7 @@ void mul::do_print_rat_func(const print_context & c, unsigned level,
 		if (latex_tags) {
 			const numeric& numer = overall_coeff.numer();
 			bool negate = false;
-			if (numer.is_integer()
-                            and numer.is_minus_one()
-                            and not numer.is_parent_pos_char()) {
+			if (numer.is_minus_one()) {
 				c.s<<"-";
 				negate = true;
 				//print_numer = coeff_numer.mul(*_num_1_p);
@@ -696,8 +692,7 @@ ex mul::eval(int level) const
 		// *(;c) -> c
 		return overall_coeff;
 	} else if (seq_size==1
-                   and overall_coeff.is_one()
-		   and not overall_coeff.is_parent_pos_char()) {
+                   and overall_coeff.is_one()) {
 		// *(x;1) -> x
 		// except in positive characteristic: 1*(x+2) = x in F_2
 		return recombine_pair_to_ex(*(seq.begin()));

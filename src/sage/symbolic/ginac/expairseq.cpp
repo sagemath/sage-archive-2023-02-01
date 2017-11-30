@@ -1184,8 +1184,7 @@ void expairseq::combine_same_terms_sorted_seq()
 				needs_further_processing = true;
 			must_copy = true;
 		} else {
-			if (not ex_to<numeric>(itin1->coeff).is_zero()
-                                or ex_to<numeric>(itin1->coeff).is_parent_pos_char()) {
+			if (not ex_to<numeric>(itin1->coeff).is_zero()) {
 				if (must_copy)
 					*itout = *itin1;
 				++itout;
@@ -1194,8 +1193,7 @@ void expairseq::combine_same_terms_sorted_seq()
 		}
 		++itin2;
 	}
-	if (not ex_to<numeric>(itin1->coeff).is_zero()
-                or ex_to<numeric>(itin1->coeff).is_parent_pos_char()) {
+	if (not ex_to<numeric>(itin1->coeff).is_zero()) {
 		if (must_copy)
 			*itout = *itin1;
 		++itout;

@@ -522,11 +522,8 @@ ex power::eval(int level) const
 	}
 	
 	// ^(x,0) -> 1  (0^0 also handled here)
-	if (eexponent.is_zero() && 
-		!(basis_is_numerical && 
-			num_basis.is_parent_pos_char())) {
+	if (eexponent.is_zero())
 		return _ex1;
-	}
 	
 	// ^(x,1) -> x
 	if (eexponent.is_one())
@@ -684,7 +681,7 @@ ex power::eval(int level) const
 
                                 const bool canonicalizable = lead_coeff.is_integer();
                                 const add& addref = ex_to<add>(ebasis);
-                                const bool unit_normal = lead_coeff.is_positive() || lead_coeff.is_parent_pos_char();
+                                const bool unit_normal = lead_coeff.is_positive();
                                 if (canonicalizable
                                     and (! unit_normal)
                                     and num_exponent.denom().is_one())

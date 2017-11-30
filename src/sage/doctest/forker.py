@@ -249,16 +249,20 @@ class SageSpoofInOut(SageObject):
         """
         if infile is None:
             self.infile = open(os.devnull)
+            self._close_infile = True
         else:
             self.infile = infile
+            self._close_infile = False
         if outfile is None:
             self.outfile = tempfile.TemporaryFile()
+            self._close_outfile = True
         else:
             self.outfile = outfile
+            self._close_outfile = False
         self.spoofing = False
         self.real_stdin = os.fdopen(os.dup(sys.stdin.fileno()), "r")
-        self.real_stdout = os.fdopen(os.dup(sys.stdout.fileno()), "a")
-        self.real_stderr = os.fdopen(os.dup(sys.stderr.fileno()), "a")
+        self.real_stdout = os.fdopen(os.dup(sys.stdout.fileno()), "w")
+        self.real_stderr = os.fdopen(os.dup(sys.stderr.fileno()), "w")
         self.position = 0
 
     def __del__(self):
@@ -276,6 +280,12 @@ class SageSpoofInOut(SageObject):
             Not spoofed!
         """
         self.stop_spoofing()
+        if self._close_infile:
+            self.infile.close()
+        if self._close_outfile:
+            self.outfile.close()
+        for stream in ('stdin', 'stdout', 'stderr'):
+            getattr(self, 'real_' + stream).close()
 
     def start_spoofing(self):
         r"""
@@ -1974,6 +1984,10 @@ class DocTestWorker(multiprocessing.Process):
             task(self.options, self.outtmpfile, msgpipe, self.result_queue)
         finally:
             msgpipe.close()
+            # Note: This closes the tempfile in the child process, but in the
+            # parent process self.outtmpfile will not be closed yet, and can
+            # still be accessed in save_result_output
+            self.outtmpfile.close()
 
     def start(self):
         """
@@ -2072,6 +2086,11 @@ class DocTestWorker(multiprocessing.Process):
             ['cputime', 'err', 'failures', 'optionals', 'walltime']
             sage: len(W.output) > 0
             True
+
+        .. NOTE::
+
+            This method is called from the parent process, not from the
+            subprocess.
         """
         from six.moves.queue import Empty
         try:
@@ -2135,6 +2154,7 @@ class DocTestWorker(multiprocessing.Process):
             sage: W.is_alive()
             False
         """
+
         if self.rmessages is not None:
             os.close(self.rmessages)
             self.rmessages = None

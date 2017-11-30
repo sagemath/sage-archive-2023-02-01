@@ -88,12 +88,13 @@ def tmp_dir(name="dir_", ext=""):
         sage: d   # random output
         '/home/username/.sage/temp/hostname/7961/dir_testing_XgRu4p.extension/'
         sage: os.chdir(d)
-        sage: _ = open('file_inside_d', 'w')
+        sage: f = open('file_inside_d', 'w')
 
     Temporary directories are unaccessible by other users::
 
         sage: os.stat(d).st_mode & 0o077
         0
+        sage: f.close()
     """
     from sage.misc.misc import SAGE_TMP
     tmp = tempfile.mkdtemp(prefix=name, suffix=ext, dir=str(SAGE_TMP))
@@ -137,12 +138,13 @@ def tmp_filename(name="tmp_", ext=""):
         sage: fn = tmp_filename('just_for_testing_', '.extension')
         sage: fn  # random
         '/home/username/.sage/temp/hostname/8044/just_for_testing_tVVHsn.extension'
-        sage: _ = open(fn, 'w')
+        sage: f = open(fn, 'w')
 
     Temporary files are unaccessible by other users::
 
         sage: os.stat(fn).st_mode & 0o077
         0
+        sage: f.close()
     """
     from sage.misc.misc import SAGE_TMP
     handle, tmp = tempfile.mkstemp(prefix=name, suffix=ext, dir=str(SAGE_TMP))
@@ -248,13 +250,16 @@ class atomic_write:
 
         sage: from sage.misc.temporary_file import atomic_write
         sage: target_file = tmp_filename()
-        sage: _ = open(target_file, "w").write("Old contents")
+        sage: with open(target_file, 'w') as f:
+        ....:     _ = f.write("Old contents")
         sage: with atomic_write(target_file) as f:
         ....:     _ = f.write("New contents")
         ....:     f.flush()
-        ....:     open(target_file, "r").read()
+        ....:     with open(target_file, 'r') as f2:
+        ....:         f2.read()
         'Old contents'
-        sage: open(target_file, "r").read()
+        sage: with open(target_file, 'r') as f:
+        ....:     f.read()
         'New contents'
 
     The name of the temporary file can be accessed using ``f.name``.
@@ -262,11 +267,14 @@ class atomic_write:
 
         sage: from sage.misc.temporary_file import atomic_write
         sage: target_file = tmp_filename()
-        sage: _ = open(target_file, "w").write("Old contents")
+        sage: with open(target_file, 'w') as f:
+        ....:     _ = f.write("Old contents")
         sage: with atomic_write(target_file) as f:
         ....:     f.close()
-        ....:     _ = open(f.name, "w").write("Newer contents")
-        sage: open(target_file, "r").read()
+        ....:     with open(f.name, 'w') as f2:
+        ....:         _ = f2.write("Newer contents")
+        sage: with open(target_file, 'r') as f:
+        ....:     f.read()
         'Newer contents'
 
     If an exception occurs while writing the file, the target file is
@@ -278,7 +286,8 @@ class atomic_write:
         Traceback (most recent call last):
         ...
         RuntimeError
-        sage: open(target_file, "r").read()
+        sage: with open(target_file, 'r') as f:
+        ....:     f.read()
         'Newer contents'
 
     Some examples of using the ``append`` option. Note that the file
@@ -290,12 +299,14 @@ class atomic_write:
         ....:     _ = f.write("Hello")
         sage: with atomic_write(target_file, append=True) as f:
         ....:     _ = f.write(" World")
-        sage: open(target_file, "r").read()
+        sage: with open(target_file, 'r') as f:
+        ....:     f.read()
         'Hello World'
         sage: with atomic_write(target_file, append=True) as f:
-        ....:     f.seek(0)
+        ....:     _ = f.seek(0)
         ....:     _ = f.write("HELLO")
-        sage: open(target_file, "r").read()
+        sage: with open(target_file, 'r') as f:
+        ....:     f.read()
         'HELLO World'
 
     If the target file is a symbolic link, the link is kept and the
@@ -305,7 +316,8 @@ class atomic_write:
         sage: os.symlink(target_file, link_to_target)
         sage: with atomic_write(link_to_target) as f:
         ....:     _ = f.write("Newest contents")
-        sage: open(target_file, "r").read()
+        sage: with open(target_file, 'r') as f:
+        ....:     f.read()
         'Newest contents'
 
     We check the permission bits of the new file. Note that the old
@@ -315,23 +327,25 @@ class atomic_write:
         sage: _ = os.umask(0o022)
         sage: with atomic_write(target_file) as f:
         ....:     pass
-        sage: oct(os.stat(target_file).st_mode & 0o777)
-        '644'
+        sage: '{:#o}'.format(os.stat(target_file).st_mode & 0o777)
+        '0o644'
         sage: _ = os.umask(0o077)
         sage: with atomic_write(target_file, mode=0o777) as f:
         ....:     pass
-        sage: oct(os.stat(target_file).st_mode & 0o777)
-        '700'
+        sage: '{:#o}'.format(os.stat(target_file).st_mode & 0o777)
+        '0o700'
 
     Test writing twice to the same target file. The outermost ``with``
     "wins"::
 
-        sage: _ = open(target_file, "w").write(">>> ")
+        sage: with open(target_file, 'w') as f:
+        ....:     _ = f.write('>>> ')
         sage: with atomic_write(target_file, append=True) as f, \
         ....:          atomic_write(target_file, append=True) as g:
         ....:     _ = f.write("AAA"); f.close()
         ....:     _ = g.write("BBB"); g.close()
-        sage: open(target_file, "r").read()
+        sage: with open(target_file, 'r') as f:
+        ....:     f.read()
         '>>> AAA'
     """
     def __init__(self, target_filename, append=False, mode=0o666,

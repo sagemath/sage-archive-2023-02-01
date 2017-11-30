@@ -1140,27 +1140,6 @@ class Homset(Set_generic):
         """
         return self._codomain
 
-    def is_endomorphism_set(self):
-        """
-        Return ``True`` if the domain and codomain of ``self`` are the same
-        object.
-
-        EXAMPLES::
-
-            sage: P.<t> = ZZ[]
-            sage: f = P.hom([1/2*t])
-            sage: f.parent().is_endomorphism_set()
-            False
-            sage: g = P.hom([2*t])
-            sage: g.parent().is_endomorphism_set()
-            True
-        """
-        sD = self.domain()
-        sC = self.codomain()
-        if sC is None or sD is None:
-            raise RuntimeError("Domain or codomain of this homset have been deallocated")
-        return sD is sC
-
     def reversed(self):
         """
         Return the corresponding homset, but with the domain and codomain

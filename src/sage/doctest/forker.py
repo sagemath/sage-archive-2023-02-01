@@ -218,7 +218,7 @@ class SageSpoofInOut(SageObject):
         ....:
         sage: S.getvalue()
         'hello world\n'
-        sage: O.seek(0)
+        sage: _ = O.seek(0)
         sage: S = SageSpoofInOut(outfile=sys.stdout, infile=O)
         sage: try:
         ....:     S.start_spoofing()
@@ -227,6 +227,7 @@ class SageSpoofInOut(SageObject):
         ....:     S.stop_spoofing()
         ....:
         hello world
+        sage: O.close()
     """
     def __init__(self, outfile=None, infile=None):
         """
@@ -234,9 +235,11 @@ class SageSpoofInOut(SageObject):
 
         TESTS::
 
-            sage: import tempfile
+            sage: from tempfile import TemporaryFile
             sage: from sage.doctest.forker import SageSpoofInOut
-            sage: SageSpoofInOut(tempfile.TemporaryFile(), tempfile.TemporaryFile())
+            sage: with TemporaryFile() as outfile:
+            ....:     with TemporaryFile() as infile:
+            ....:         SageSpoofInOut(outfile, infile)
             <sage.doctest.forker.SageSpoofInOut object at ...>
         """
         if infile is None:
@@ -288,7 +291,7 @@ class SageSpoofInOut(SageObject):
             ....:
             sage: S.getvalue()
             'this is not printed\n'
-            sage: O.seek(0)
+            sage: _ = O.seek(0)
             sage: S = SageSpoofInOut(infile=O)
             sage: try:
             ....:     S.start_spoofing()
@@ -309,6 +312,7 @@ class SageSpoofInOut(SageObject):
             ....:
             sage: S.getvalue()
             'Hello there\ngood\n'
+            sage: O.close()
         """
         if not self.spoofing:
             sys.stdout.flush()
@@ -1531,9 +1535,9 @@ class DocTestDispatcher(SageObject):
             sage: test1 = os.path.join(SAGE_TMP, 'test1.py')
             sage: test2 = os.path.join(SAGE_TMP, 'test2.py')
             sage: with open(test1, 'w') as f:
-            ....:     f.write("'''\nsage: import time; time.sleep(60)\n'''")
+            ....:     _ = f.write("'''\nsage: import time; time.sleep(60)\n'''")
             sage: with open(test2, 'w') as f:
-            ....:     f.write("'''\nsage: True\nFalse\n'''")
+            ....:     _ = f.write("'''\nsage: True\nFalse\n'''")
             sage: DC = DocTestController(DocTestDefaults(exitfirst=True,
             ....:                                        nthreads=2),
             ....:                        [test1, test2])

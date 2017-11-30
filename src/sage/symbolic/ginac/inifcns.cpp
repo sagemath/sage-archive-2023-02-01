@@ -293,7 +293,7 @@ static ex abs_eval(const ex & arg)
                 }
                 if (is_prod_neg)
                         prod *= _ex_1;
-                if (not prod_sy.is_integer_one())
+                if (not prod_sy.is_one())
                         prod *= abs(prod_sy).hold();
                 return prod;
 	}

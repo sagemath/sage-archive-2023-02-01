@@ -338,7 +338,7 @@ static ex log_series(const ex &arg,
 		if (!argser.is_terminating() || argser.nops()!=1) {
 			// in this case n more (or less) terms are needed
 			// (sadly, to generate them, we have to start from the beginning)
-			if (n == 0 and coeff.is_integer_one()) {
+			if (n == 0 and coeff.is_one()) {
 				epvector epv;
 				ex acc = (new pseries(rel, epv))->setflag(status_flags::dynallocated);
 				epv.reserve(2);
@@ -658,32 +658,39 @@ static ex Li_evalf(const ex& m_, const ex& x_, PyObject* parent)
         }
         catch (std::logic_error) {}
 
+        if (parent == nullptr)
+                parent = CC_get();
         return Li2(num_m, num_x, parent);
 }
 
 
 static ex Li_eval(const ex& m_, const ex& x_)
 {
-	// classical polylogs
-	if (x_.is_zero()) {
-		return _ex0;
-	}
-	if (x_.is_integer_one()) {
-		return zeta(m_);
-	}
-	if ((-x_).is_integer_one()) {
-		return (pow(2,1-m_)-1) * zeta(m_);
-	}
-	if (m_.is_integer_one()) {
-		return -log(1-x_);
-	}
-	if (m_.is_equal(_ex2)) 
-                return Li2_eval(x_);
-
         if ((is_exactly_a<numeric>(x_) and not ex_to<numeric>(x_).is_exact())
             or (is_exactly_a<numeric>(m_) and not ex_to<numeric>(m_).is_exact())) {
 	        return Li_evalf(m_, x_, nullptr);
 	}
+
+	// classical polylogs
+        if ((is_exactly_a<numeric>(x_) and not ex_to<numeric>(x_).is_exact())
+            or (is_exactly_a<numeric>(m_) and not ex_to<numeric>(m_).is_exact())) {
+	        return Li_evalf(m_, x_, nullptr);
+	}
+
+	if (x_.is_zero()) {
+		return _ex0;
+	}
+	if (x_.is_one()) {
+		return zeta(m_);
+	}
+	if (x_.is_minus_one()) {
+		return (pow(2,1-m_)-1) * zeta(m_);
+	}
+	if (m_.is_one()) {
+		return -log(1-x_);
+	}
+	if (m_.is_equal(_ex2)) 
+                return Li2_eval(x_);
 
 	return Li(m_, x_).hold();
 }

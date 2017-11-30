@@ -661,7 +661,7 @@ ex mul::eval(int level) const
 	
 	if (level == 1 and is_evaluated()) {
 		GINAC_ASSERT(seq.size()>0);
-		GINAC_ASSERT(seq.size()>1 || !overall_coeff.is_integer_one());
+		GINAC_ASSERT(seq.size()>1 || !overall_coeff.is_one());
 		return *this;
 	}
 
@@ -729,7 +729,7 @@ ex mul::eval(int level) const
 		numeric oc = *_num1_p;
 		bool something_changed = false;
 		while (i!=last) {
-			if (likely(! (is_exactly_a<add>(i->rest) && i->coeff.is_integer_one()))) {
+			if (likely(! (is_exactly_a<add>(i->rest) && i->coeff.is_one()))) {
 				// power::eval has such a rule, no need to handle powers here
 				++i;
 				continue;
@@ -1235,7 +1235,7 @@ expair mul::combine_pair_with_coeff_to_pair(const expair & p,
                 return expair(p.rest, p.coeff*c);
 	if (c.is_one())
 		return p;
-        if (p.coeff.is_integer_one())
+        if (p.coeff.is_one())
                 return expair(p.rest, c);
 
 	// to avoid duplication of power simplification rules,
@@ -1249,7 +1249,7 @@ ex mul::recombine_pair_to_ex(const expair & p) const
 {
         if (unlikely(is_exactly_a<infinity>(p.rest)))
                 return (new infinity(ex_to<numeric>(p.coeff)))->setflag(status_flags::evaluated|status_flags::dynallocated);
-	if (p.coeff.is_integer_one()) 
+	if (p.coeff.is_one()) 
 		return p.rest;
 	else
 		return (new power(p.rest,p.coeff))->setflag(status_flags::dynallocated);
@@ -1270,7 +1270,7 @@ bool mul::expair_needs_further_processing(epp it)
 			*it = ep;
 			return true;
 		}
-		if (it->coeff.is_integer_one()) {
+		if (it->coeff.is_one()) {
 			// combined pair has coeff 1 and must be moved to the end
 			return true;
 		}
@@ -1347,7 +1347,7 @@ ex mul::expand(unsigned options) const
 
 	for (const auto & elem : expanded_seq) {
 		if (is_exactly_a<add>(elem.rest) &&
-			(elem.coeff.is_integer_one())) {
+			(elem.coeff.is_one())) {
 			if (is_exactly_a<add>(last_expanded)) {
 				// Expand a product of two sums, aggressive version.
 				// Caring for the overall coefficients in separate loops can
@@ -1423,7 +1423,7 @@ ex mul::expand(unsigned options) const
 				} 
 				last_expanded = tmp_accu;
 			} else {
-				if (!last_expanded.is_integer_one())
+				if (!last_expanded.is_one())
 					non_adds.push_back(split_ex_to_pair(last_expanded));
 				last_expanded = elem.rest;
 			}

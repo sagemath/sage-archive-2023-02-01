@@ -488,7 +488,7 @@ ex gosper_term(ex e, ex n)
         ex cn = num.lcoeff(n);
         ex cd = den.lcoeff(n);
         ex ldq = (cn / cd).normal(0, true, false);
-        if (ldq.is_integer_one())
+        if (ldq.is_one())
                 cn = cd = _ex1;
         ex A = (num / cn).normal(0, true, false);
         ex B = (den / cd).normal(0, true, false);

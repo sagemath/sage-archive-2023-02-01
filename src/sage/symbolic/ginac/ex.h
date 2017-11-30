@@ -242,8 +242,8 @@ public:
 	int compare(const ex & other) const;
 	bool is_equal(const ex & other) const;
 	bool is_zero() const;
-        bool is_integer_one() const;
-        bool is_integer_pmone() const;
+        bool is_one() const;
+        bool is_minus_one() const;
 	
 	// symmetry
 	ex symmetrize() const;

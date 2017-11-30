@@ -430,7 +430,7 @@ static ex frac_cancel(const ex &n, const ex &d)
 
 	// Cancel GCD from numerator and denominator
 	ex cnum, cden;
-	if (not gcdpoly(num, den, &cnum, &cden, false).is_integer_one()) {
+	if (not gcdpoly(num, den, &cnum, &cden, false).is_one()) {
 		num = cnum;
 		den = cden;
 	}

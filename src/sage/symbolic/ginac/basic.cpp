@@ -349,7 +349,7 @@ numeric basic::ldegree(const ex & s) const
 ex basic::coeff(const ex & s, const ex & n) const
 {
 	if (is_equal(ex_to<basic>(s)))
-		return n.is_integer_one() ? _ex1 : _ex0;
+		return n.is_one() ? _ex1 : _ex0;
 	else
 		return n.is_zero() ? *this : _ex0;
 }

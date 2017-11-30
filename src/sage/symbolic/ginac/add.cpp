@@ -570,8 +570,8 @@ expair add::split_ex_to_pair(const ex & e) const
 {
 	if (is_exactly_a<mul>(e)) {
 		const mul &mulref(ex_to<mul>(e));
-		const ex &numfactor = mulref.overall_coeff;
-		if (numfactor.is_integer_one())
+		const numeric &numfactor = mulref.overall_coeff;
+		if (numfactor.is_one())
                         return expair(e, _ex1);
                 auto mulcopyp = new mul(mulref);
 		mulcopyp->overall_coeff = *_num1_p;

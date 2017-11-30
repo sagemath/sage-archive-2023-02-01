@@ -119,7 +119,7 @@ void power::print_power(const print_context & c, const char *powersymbol, const 
 
 void power::do_print_dflt(const print_dflt & c, unsigned level) const
 {
-       if ((-exponent).is_integer_one()) {
+       if (exponent.is_minus_one()) {
 		// inverses printed in a special way
  	        if (level >= 20) c.s << "(";
 		c.s << "1/";
@@ -152,13 +152,13 @@ void power::do_print_dflt(const print_dflt & c, unsigned level) const
 		// exp function prints as e^a. Printing powers of this can be
 		// confusing, so we add parenthesis if the basis is exp
 		bool exp_parenthesis = is_ex_the_function(basis, exp) and
-                        not basis.op(0).is_integer_one();
+                        not basis.op(0).is_one();
 		if (exp_parenthesis)
 			c.s << '(';
 		basis.print(c, precedence());
 		if (exp_parenthesis)
 			c.s << ')';
-		if (not (-exponent).is_integer_one()) {
+		if (not exponent.is_minus_one()) {
     		        c.s << "^" << expstr;
 		}
 		if (precedence() <= level)
@@ -185,7 +185,7 @@ void power::do_print_latex(const print_latex & c, unsigned level) const
 		// exp function prints as e^a. Printing powers of this can be
 		// confusing, so we add parenthesis if the basis is exp
 		bool base_parenthesis = is_ex_the_function(basis, exp) and
-			not basis.op(0).is_integer_one();
+			not basis.op(0).is_one();
 
 		if (precedence() <= level)
 			c.s << "{\\left(";
@@ -197,7 +197,7 @@ void power::do_print_latex(const print_latex & c, unsigned level) const
 		if (base_parenthesis)
 			c.s << "\\right)";
 
-		if (not (-exponent).is_integer_one()) {
+		if (not exponent.is_minus_one()) {
     		        c.s << "^{";
 			bool exp_parenthesis = is_exactly_a<power>(exponent);
 			if (exp_parenthesis)
@@ -240,7 +240,7 @@ static void print_sym_pow(const print_context & c, const symbol &x, int exp)
 void power::do_print_csrc(const print_csrc & c, unsigned level) const
 {
 	if (is_a<print_csrc_cl_N>(c)) {
-		if (exponent.is_integer_one()) {
+		if (exponent.is_one()) {
 			c.s << "recip(";
 			basis.print(c);
 			c.s << ')';
@@ -269,7 +269,7 @@ void power::do_print_csrc(const print_csrc & c, unsigned level) const
 		c.s << ')';
 
 	// <expr>^-1 is printed as "1.0/<expr>" or with the recip() function of CLN
-	} else if (exponent.is_integer_one()) {
+	} else if (exponent.is_one()) {
 		c.s << "1.0/(";
 		basis.print(c);
 		c.s << ')';
@@ -417,7 +417,7 @@ numeric power::ldegree(const ex & s) const
 ex power::coeff(const ex & s, const ex & n) const
 {
 	if (is_equal(ex_to<basic>(s)))
-		return n.is_integer_one() ? _ex1 : _ex0;
+		return n.is_one() ? _ex1 : _ex0;
 	else if (!basis.is_equal(s)) {
 		// basis not equal to s
 		if (n.is_zero())
@@ -529,7 +529,7 @@ ex power::eval(int level) const
 	}
 	
 	// ^(x,1) -> x
-	if (eexponent.is_integer_one())
+	if (eexponent.is_one())
 		return ebasis;
 
 	// ^(0,c1) -> 0 or exception  (depending on real value of c1)
@@ -543,7 +543,7 @@ ex power::eval(int level) const
 	}
 
 	// ^(1,x) -> 1
-	if (ebasis.is_integer_one())
+	if (ebasis.is_one())
 		return _ex1;
 
 	// power of a function calculated by separate rules defined for this function
@@ -1491,7 +1491,7 @@ ex power::expand_add_2(const add & a, unsigned options) const
 		             !is_exactly_a<mul>(ex_to<power>(r).basis) ||
 		             !is_exactly_a<power>(ex_to<power>(r).basis));
 		
-		if (c.is_integer_one()) {
+		if (c.is_one()) {
 			if (is_exactly_a<mul>(r)) {
 				result.push_back(expair(expand_mul(ex_to<mul>(r), *_num2_p, options, true),
 				                        _ex1));

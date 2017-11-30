@@ -45,11 +45,11 @@ GINAC_IMPLEMENT_REGISTERED_CLASS_OPT(infinity, basic,
 
 static long hash_from_dir(const ex& direction)
 {
-        if (direction.is_integer_one())
+        if (direction.is_one())
                 return LONG_MAX;
-        if (ex_to<numeric>(direction).is_zero())
+        if (direction.is_zero())
                 return LONG_MAX-1;
-        if (direction.is_equal(_ex_1))
+        if (direction.is_minus_one())
                 return LONG_MIN;
         return 0L;
 }

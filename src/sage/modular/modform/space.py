@@ -1166,7 +1166,10 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         if self.is_ambient() or x.is_ambient():
             return richcmp(self.dimension(), x.dimension(), op)
         else:
-            return richcmp(self.free_module(), x.free_module(), op)
+            from sage.modules.free_module import total_module_order
+            lx = total_module_order(self.free_module())
+            rx = total_module_order(x.free_module())
+            return richcmp(lx, rx, op)
 
     def span_of_basis(self, B):
         """

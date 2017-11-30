@@ -7343,7 +7343,7 @@ def element_class(R, is_sparse):
             return free_module_element.FreeModuleElement_generic_dense
     raise NotImplementedError
 
-def total_module_ordering(): 
+class total_module_order:
     """
     A total ordering on free modules for sorting.
 
@@ -7356,24 +7356,22 @@ def total_module_ordering():
             sage: Z = ZZ^2
             sage: modules = [V,W,X,Y,Z]
             sage: modules_sorted = [Z,X,V,W,Y]
-            sage: from sage.modules.free_module import total_module_ordering
-            sage: modules.sort(key=total_module_ordering())
+            sage: from sage.modules.free_module import total_module_order
+            sage: modules.sort(key=total_module_order)
             sage: modules == modules_sorted
             True
     """
-    class K:
-        def __init__(self, obj, *args):
-            self.obj = obj
-        def __lt__(self, other):
-            return self.obj._total_ordering_cmp(other.obj,op_LT)
-        def __gt__(self, other):
-            return self.obj._total_ordering_cmp(other.obj,op_GT)
-        def __eq__(self, other):
-            return self.obj._total_ordering_cmp(other.obj,op_EQ)
-        def __le__(self, other):
-            return self.obj._total_ordering_cmp(other.obj,op_LE)
-        def __ge__(self, other):
-            return self.obj._total_ordering_cmp(other.obj,op_GE)
-        def __ne__(self, other):
-            return self.obj._total_ordering_cmp(other.obj,op_NE)
-    return K    
+    def __init__(self, obj, *args):
+        self.obj = obj
+    def __lt__(self, other):
+        return self.obj._total_ordering_cmp(other.obj,op_LT)
+    def __gt__(self, other):
+        return self.obj._total_ordering_cmp(other.obj,op_GT)
+    def __eq__(self, other):
+        return self.obj._total_ordering_cmp(other.obj,op_EQ)
+    def __le__(self, other):
+        return self.obj._total_ordering_cmp(other.obj,op_LE)
+    def __ge__(self, other):
+        return self.obj._total_ordering_cmp(other.obj,op_GE)
+    def __ne__(self, other):
+        return self.obj._total_ordering_cmp(other.obj,op_NE)  

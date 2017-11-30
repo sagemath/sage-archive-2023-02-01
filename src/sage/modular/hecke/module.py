@@ -1026,8 +1026,9 @@ class HeckeModule_free_module(HeckeModule_generic):
         self.__is_splittable = len(D) > 1
         if anemic:
             self.__is_splittable_anemic = len(D) > 1
-
-        D.sort(key = None if not sort_by_basis else lambda ss: ss.free_module())
+        from sage.modules.free_module import total_module_order
+        D.sort(key = None if not sort_by_basis 
+               else lambda ss: total_module_order(ss.free_module()))
         D.set_immutable()
         self.__decomposition[key] = D
         for i in range(len(D)):

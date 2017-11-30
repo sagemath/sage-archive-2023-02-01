@@ -101,7 +101,7 @@ from __future__ import absolute_import
 
 from sage.modular.abvar.torsion_point import TorsionPoint
 from sage.modules.module import Module
-from sage.modules.free_module import is_FreeModule
+from sage.modules.free_module import is_FreeModule, total_module_order
 from sage.structure.element import ModuleElement
 from sage.structure.gens_py import abelian_iterator
 from sage.structure.sequence import Sequence
@@ -253,8 +253,10 @@ class FiniteSubgroup(Module):
         if not A.in_same_ambient_variety(B):
             return richcmp(A.ambient_variety(), B.ambient_variety(), op)
         L = A.lattice() + B.lattice()
+        lx = total_module_order(other.lattice() + L)
+        rx = total_module_order(self.lattice() + L)
         # order gets reversed in passing to lattices.
-        return richcmp(other.lattice() + L, self.lattice() + L, op)
+        return richcmp(lx, rx, op)
 
     def is_subgroup(self, other):
         """

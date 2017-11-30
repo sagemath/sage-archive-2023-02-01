@@ -27,6 +27,7 @@ from six.moves import range
 import sage.modules.free_module as free_module
 import sage.matrix.matrix_space as matrix_space
 from   sage.modules.free_module_element  import is_FreeModuleElement
+from sage.modules.free_module import total_module_order
 import sage.misc.all as misc
 import sage.modular.hecke.all as hecke
 import sage.arith.all as arith
@@ -144,9 +145,9 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         rx = other.dimension()
         if lx != rx:
             return richcmp_not_equal(lx, rx, op)
-
-        lx = self.free_module()
-        rx = other.free_module()
+        
+        lx = total_module_order(self.free_module())
+        rx = total_module_order(other.free_module())
 
         if lx == rx:
             return rich_to_bool(op, 0)

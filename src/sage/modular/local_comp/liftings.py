@@ -20,6 +20,12 @@ def lift_to_gamma1(g, m, n):
     `\begin{pmatrix} 1 & * \\ 0 & 1 \end{pmatrix} \pmod n`. Here `m` and `n`
     must be coprime.
 
+    INPUT:
+
+    - ``g`` -- list of 4 integers defining a `2 \times 2` matrix
+
+    - `m`, `n` -- coprime positive integers
+
     Here `m` and `n` should be coprime positive integers. Either of `m` and `n`
     can be `1`. If `n = 1`, this still makes perfect sense; this is what is
     called by the function :func:`~lift_matrix_to_sl2z`. If `m = 1` this is a
@@ -78,6 +84,12 @@ def lift_matrix_to_sl2z(A, N):
 
     This is a special case of :func:`~lift_to_gamma1`, and is coded as such.
 
+    INPUT:
+
+    - ``A`` -- list of 4 integers defining a `2 \times 2` matrix
+
+    - `N` -- positive integer
+
     EXAMPLES::
 
         sage: from sage.modular.local_comp.liftings import lift_matrix_to_sl2z
@@ -101,6 +113,10 @@ def lift_gen_to_gamma1(m, n):
     n`.
 
     This is a special case of :func:`~lift_to_gamma1`, and is coded as such.
+
+    INPUT:
+
+    - `m`, `n` -- coprime positive integers
 
     EXAMPLES::
 
@@ -170,75 +186,83 @@ def lift_ramified(g, p, u, n):
     return [a,b,c,d]
 
 
-def lift_for_SL(A, N):
+def lift_for_SL(A):
     r"""
     Lift a matrix `A` from `SL_m(\ZZ / N\ZZ)` to `SL_m(\ZZ)`.
 
     This follows [Shimura]_, Lemma 1.38, p. 21.
 
+    INPUT:
+
+    - ``A`` -- a square matrix with coefficients in `\ZZ / N\ZZ`
+
     EXAMPLES::
 
         sage: from sage.modular.local_comp.liftings import lift_for_SL
-        sage: N = 11
-        sage: A = matrix(ZZ, 4, 4, [6, 0, 0, 9, 1, 6, 9, 4, 4, 4, 8, 0, 4, 0, 0, 8])
+        sage: A = matrix(Zmod(11), 4, 4, [6, 0, 0, 9, 1, 6, 9, 4, 4, 4, 8, 0, 4, 0, 0, 8])
         sage: A.det()
-        144
-        sage: A.change_ring(Zmod(N)).det()
         1
-        sage: L = lift_for_SL(A, N)
+        sage: L = lift_for_SL(A)
         sage: L.det()
         1
-        sage: (L - A) * Mod(1, N) == 0
+        sage: (L - A) == 0
         True
 
-        sage: N = 19
-        sage: B = matrix(ZZ, 4, 4, [1, 6, 10, 4, 4, 14, 15, 4, 13, 0, 1, 15, 15, 15, 17, 10])
+        sage: B = matrix(Zmod(19), 4, 4, [1, 6, 10, 4, 4, 14, 15, 4, 13, 0, 1, 15, 15, 15, 17, 10])
         sage: B.det()
-        4447
-        sage: B.change_ring(Zmod(N)).det()
         1
-        sage: L = lift_for_SL(B, N)
+        sage: L = lift_for_SL(B)
         sage: L.det()
         1
-        sage: (L - B) * Mod(1, N) == 0
+        sage: (L - B) == 0
         True
+
+    TESTS::
+
+        sage: A = matrix(Zmod(7), 2, [1,0,0,1])
+        sage: L = lift_for_SL(A)
+        sage: L.parent()
+        Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
+
+        sage: A = matrix(Zmod(7), 1, [1])
+        sage: L = lift_for_SL(A); L
+        [1]
     """
     from sage.matrix.constructor import matrix
     from sage.matrix.special import identity_matrix, diagonal_matrix, block_diagonal_matrix
     from sage.misc.misc_c import prod
 
+    N = A.parent().base_ring().characteristic()
+
     m = A.nrows()
     if m == 1:
-        return identity_matrix(1)
+        return identity_matrix(ZZ, 1)
 
-    D, U, V = A.smith_form()
+    AZZ = A .change_ring(ZZ)
+    D, U, V = AZZ.smith_form()
     diag = diagonal_matrix([-1] + [1] * (m - 1))
     if U.det() == -1:
         U = diag * U
     if V.det() == -1:
         V = V * diag
-    D = U * A * V
+    D = U * AZZ * V
 
     a = [D[i, i] for i in range(m)]
     b = prod(a[1:])
-    W = identity_matrix(m)
-    W[0, 0] = b
-    W[1, 0] = b - 1
-    W[0, 1] = 1
 
-    X = identity_matrix(m)
-    X[0, 1] = -a[1]
+    Winv = identity_matrix(m)
+    Winv[1, 0] = 1 - b
+    Winv[0, 1] = -1
+    Winv[1, 1] = b
 
-    Ap = copy(D)
-    Ap[0, 0] = 1
-    Ap[1, 0] = 1 - a[0]
-    Ap[1, 1] *= a[0]
+    Xinv = identity_matrix(m)
+    Xinv[0, 1] = a[1]
 
     Cp = diagonal_matrix(a[1:])
     Cp[0, 0] *= a[0]
-    C = lift_for_SL(Cp, N)
+    C = lift_for_SL(Cp)
 
     Cpp = block_diagonal_matrix(identity_matrix(1), C)
     Cpp[1, 0] = 1 - a[0]
 
-    return (~U * ~W * Cpp * ~X * ~V).change_ring(ZZ)
+    return (~U * Winv * Cpp * Xinv * ~V).change_ring(ZZ)

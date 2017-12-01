@@ -4742,14 +4742,14 @@ class FreeModule_ambient(FreeModule_generic):
         """
         return FreeModule(base_ring=self.base_ring(), rank = self.rank(), sparse=True)
 
-    def _total_ordering_cmp(self, other, op):
+    def _total_order_cmp(self, other, op):
         r"""
         Compare the free module self with other.
 
         Modules are ordered by their ambient spaces, then by dimension,
         then in order by their echelon matrices. However, if
         other is a sub-module or is a quotient module then its
-        comparison method is used instead of generic comparison.
+        total comparison method is used instead of generic comparison.
 
         EXAMPLES:
 
@@ -4757,28 +4757,28 @@ class FreeModule_ambient(FreeModule_generic):
         rationals::
 
             sage: from sage.structure.richcmp import op_LT,op_LE,op_EQ,op_NE,op_GT,op_GE
-            sage: (QQ^3)._total_ordering_cmp(CC^3, op_LT)
+            sage: (QQ^3)._total_order_cmp(CC^3, op_LT)
             True
-            sage: (CC^3)._total_ordering_cmp(QQ^3, op_LT)
+            sage: (CC^3)._total_order_cmp(QQ^3, op_LT)
             False
-            sage: (CC^3)._total_ordering_cmp(QQ^3, op_GT)
+            sage: (CC^3)._total_order_cmp(QQ^3, op_GT)
             True
 
         ::
 
             sage: from sage.structure.richcmp import op_LT,op_LE,op_EQ,op_NE,op_GT,op_GE
             sage: Q = QQ; Z = ZZ
-            sage: (Q^3)._total_ordering_cmp(Z^3, op_GT)
+            sage: (Q^3)._total_order_cmp(Z^3, op_GT)
             True
-            sage: (Q^3)._total_ordering_cmp(Z^3, op_LT)
+            sage: (Q^3)._total_order_cmp(Z^3, op_LT)
             False
-            sage: (Z^3)._total_ordering_cmp(Q^3, op_LT)
+            sage: (Z^3)._total_order_cmp(Q^3, op_LT)
             True
-            sage: (Z^3)._total_ordering_cmp(Q^3, op_GT)
+            sage: (Z^3)._total_order_cmp(Q^3, op_GT)
             False
-            sage: (Q^3)._total_ordering_cmp(Z^3, op_EQ)
+            sage: (Q^3)._total_order_cmp(Z^3, op_EQ)
             False
-            sage: (Q^3)._total_ordering_cmp(Q^3, op_EQ)
+            sage: (Q^3)._total_order_cmp(Q^3, op_EQ)
             True
 
         Comparison with a sub-module::
@@ -4791,9 +4791,9 @@ class FreeModule_ambient(FreeModule_generic):
             [ 1  0 -1]
             [ 0  1  2]
             sage: A = QQ^3
-            sage: V._total_ordering_cmp(A, op_LT)
+            sage: V._total_order_cmp(A, op_LT)
             True
-            sage: A._total_ordering_cmp(V, op_LT)
+            sage: A._total_order_cmp(V, op_LT)
             False
 
         Comparison with a quotient module (see :trac:`10513`)::
@@ -4801,9 +4801,9 @@ class FreeModule_ambient(FreeModule_generic):
             sage: from sage.structure.richcmp import op_LT,op_LE,op_EQ,op_NE,op_GT,op_GE
             sage: M = QQ^3 / [[1,2,3]]
             sage: V = QQ^2
-            sage: V._total_ordering_cmp(M, op_EQ)
+            sage: V._total_order_cmp(M, op_EQ)
             False
-            sage: M._total_ordering_cmp(V, op_EQ)
+            sage: M._total_order_cmp(V, op_EQ)
             False
         """
         if self is other:
@@ -4836,10 +4836,11 @@ class FreeModule_ambient(FreeModule_generic):
             except NotImplementedError:
                 pass
             return richcmp_not_equal(lx, rx, op)
+
         else:
             # now other is not ambient or is a quotient;
             # it knows how to do the comparison.
-            return other._total_ordering_cmp( self, revop(op))
+            return other._total_order_cmp( self, revop(op))
 
     def echelonized_basis_matrix(self):
         """
@@ -5792,7 +5793,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         """
         return hash(self.__basis)
     
-    def _total_ordering_cmp(self, other, op):
+    def _total_order_cmp(self, other, op):
         r"""
         Compare the free module self with other.
 
@@ -5813,7 +5814,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             sage: from sage.structure.richcmp import op_LT,op_LE,op_EQ,op_NE,op_GT,op_GE
             sage: V = span([[1,2,3], [5,6,7], [8,9,10]], QQ)
             sage: W = span([[5,6,7], [8,9,10]], QQ)
-            sage: V._total_ordering_cmp(W,op_EQ)
+            sage: V._total_order_cmp(W,op_EQ)
             True
 
         Next we compare a one dimensional space to the two dimensional
@@ -5823,11 +5824,11 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
             sage: from sage.structure.richcmp import op_LT,op_LE,op_EQ,op_NE,op_GT,op_GE
             sage: M = span([[5,6,7]], QQ)
-            sage: V._total_ordering_cmp(M,op_EQ)
+            sage: V._total_order_cmp(M,op_EQ)
             False
-            sage: M._total_ordering_cmp(V, op_LT)
+            sage: M._total_order_cmp(V, op_LT)
             True
-            sage: V._total_ordering_cmp(M, op_LT)
+            sage: V._total_order_cmp(M, op_LT)
             False
 
         We compare a `\ZZ`-module to the one-dimensional
@@ -5838,9 +5839,9 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             Free module of degree 3 and rank 1 over Integer Ring
             Echelon basis matrix:
             [5/11 6/11 7/11]
-            sage: V._total_ordering_cmp(M, op_LT)
+            sage: V._total_order_cmp(M, op_LT)
             True
-            sage: M._total_ordering_cmp(V, op_LT)
+            sage: M._total_order_cmp(V, op_LT)
             False
         """
         if self is other:
@@ -5850,7 +5851,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         lx = self.ambient_vector_space()
         rx = other.ambient_vector_space()
         if lx != rx:
-            return lx._total_ordering_cmp( rx, op)
+            return lx._total_order_cmp( rx, op)
 
         lx = self.dimension()
         rx = other.dimension()
@@ -7343,9 +7344,17 @@ def element_class(R, is_sparse):
             return free_module_element.FreeModuleElement_generic_dense
     raise NotImplementedError
 
-class total_module_order:
+@richcmp_method
+class total_module_order(object):
     """
     A total ordering on free modules for sorting.
+
+    Modules are ordered by their ambient spaces, then by dimension,
+    then in order by their echelon matrices.
+
+    INPUT:
+
+        - a free module
 
     EXAMPLES::
 
@@ -7361,17 +7370,22 @@ class total_module_order:
             sage: modules == modules_sorted
             True
     """
-    def __init__(self, obj, *args):
+    def __init__(self, obj):
+        """
+        Initialization
+        """
         self.obj = obj
-    def __lt__(self, other):
-        return self.obj._total_ordering_cmp(other.obj,op_LT)
-    def __gt__(self, other):
-        return self.obj._total_ordering_cmp(other.obj,op_GT)
-    def __eq__(self, other):
-        return self.obj._total_ordering_cmp(other.obj,op_EQ)
-    def __le__(self, other):
-        return self.obj._total_ordering_cmp(other.obj,op_LE)
-    def __ge__(self, other):
-        return self.obj._total_ordering_cmp(other.obj,op_GE)
-    def __ne__(self, other):
-        return self.obj._total_ordering_cmp(other.obj,op_NE)  
+
+    def __richcmp__(self,other,op):
+        """
+        A total ordering on free modules.
+
+        TESTS::
+
+            sage: from sage.modules.free_module import total_module_order          
+            sage: Y = total_module_order(CC^3)
+            sage: Z = total_module_order(ZZ^2)
+            sage: Z < Y
+            True
+        """
+        return self.obj._total_order_cmp(other.obj,op)

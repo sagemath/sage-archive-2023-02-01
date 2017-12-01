@@ -421,8 +421,9 @@ class SageArgSpecVisitor(ast.NodeVisitor):
         sage: visitor = sms.SageArgSpecVisitor()
         sage: visitor.visit(ast.parse('[1,2,3]').body[0].value)
         [1, 2, 3]
-        sage: visitor.visit(ast.parse("{'a':('e',2,[None,({False:True},'pi')]), 37.0:'temp'}").body[0].value)
-        {37.0: 'temp', 'a': ('e', 2, [None, ({False: True}, 'pi')])}
+        sage: v = visitor.visit(ast.parse("{'a':('e',2,[None,({False:True},'pi')]), 37.0:'temp'}").body[0].value)
+        sage: sorted(v.items(), key=lambda x: str(x[0]))
+        [(37.0, 'temp'), ('a', ('e', 2, [None, ({False: True}, 'pi')]))]
         sage: v = ast.parse("jc = ['veni', 'vidi', 'vici']").body[0]; v
         <_ast.Assign object at ...>
         sage: [x for x in dir(v) if not x.startswith('__')]
@@ -645,8 +646,9 @@ class SageArgSpecVisitor(ast.NodeVisitor):
             sage: import ast, sage.misc.sageinspect as sms
             sage: visitor = sms.SageArgSpecVisitor()
             sage: vis = lambda x: visitor.visit_Dict(ast.parse(x).body[0].value)
-            sage: [vis(d) for d in ['{}', "{1:one, 'two':2, other:bother}"]]
-            [{}, {1: 'one', 'other': 'bother', 'two': 2}]
+            sage: v = [vis(d) for d in ['{}', "{1:one, 'two':2, other:bother}"]]
+            sage: [sorted(d.items(), key=lambda x: str(x[0])) for d in v]
+            [[], [(1, 'one'), ('other', 'bother'), ('two', 2)]]
         """
         d = {}
         for k, v in zip(node.keys, node.values):
@@ -767,6 +769,8 @@ class SageArgSpecVisitor(ast.NodeVisitor):
             sage: vis = lambda x: visitor.visit(ast.parse(x).body[0].value)
             sage: [vis(d) for d in ['(3+(2*4))', '7|8', '5^3', '7/3', '7//3', '3<<4']] #indirect doctest # py2
             [11, 15, 6, 2, 2, 48]
+            sage: [vis(d) for d in ['(3+(2*4))', '7|8', '5^3', '7/3', '7//3', '3<<4']] #indirect doctest # py3
+            [11, 15, 6, 2.3333333333333335, 2, 48]
         """
         op = node.op.__class__.__name__
         if op == 'Add':
@@ -1060,13 +1064,18 @@ def _sage_getargspec_from_ast(source):
 
     EXAMPLES::
 
+        sage: import warnings
+        sage: warnings.filterwarnings('ignore',
+        ....:                         r'inspect.getargspec\(\) is deprecated',
+        ....:                         DeprecationWarning)
         sage: import inspect, sage.misc.sageinspect as sms
         sage: from_ast = sms._sage_getargspec_from_ast
         sage: s = "def f(a, b=2, c={'a': [4, 5.5, False]}, d=(None, True)):\n    return"
         sage: from_ast(s)
         ArgSpec(args=['a', 'b', 'c', 'd'], varargs=None, keywords=None, defaults=(2, {'a': [4, 5.5, False]}, (None, True)))
         sage: context = {}
-        sage: exec compile(s, '<string>', 'single') in context
+        sage: exec compile(s, '<string>', 'single') in context  # py2
+        sage: exec(compile(s, '<string>', 'single'), context)  # py3
         sage: inspect.getargspec(context['f'])
         ArgSpec(args=['a', 'b', 'c', 'd'], varargs=None, keywords=None, defaults=(2, {'a': [4, 5.5, False]}, (None, True)))
         sage: from_ast(s) == inspect.getargspec(context['f'])
@@ -1154,15 +1163,18 @@ def _sage_getargspec_cython(source):
 
     TESTS:
 
-    Some input that is malformed in Python but wellformed in Cython
-    is correctly parsed::
+    Some input that is malformed in Python 2 but well formed in Cython or
+    Python 3 is correctly parsed::
 
-        sage: def dummy_python(self,*args,x=1): pass
+        sage: def dummy_python(self, *args, x=1): pass  # py2
         Traceback (most recent call last):
         ...
         SyntaxError: invalid syntax
-        sage: cython("def dummy_cython(self,*args,x=1): pass")
-        sage: sgc("def dummy_cython(self,*args,x=1): pass")
+        sage: def dummy_python(self, *args, x=1): pass  # py3
+        sage: sgc("def dummy_python(self, *args, x=1): pass")  # py3
+        ArgSpec(args=['self', 'x'], varargs='args', keywords=None, defaults=(1,))
+        sage: cython("def dummy_cython(self, *args, x=1): pass")
+        sage: sgc("def dummy_cython(self, *args, x=1): pass")
         ArgSpec(args=['self', 'x'], varargs='args', keywords=None, defaults=(1,))
 
     In some examples above, a syntax error was raised when a type
@@ -1473,8 +1485,13 @@ def sage_getargspec(obj):
         sage: O = MyClass()
         sage: print(sage.misc.sageinspect.sage_getsource(O))
         def foo(x, a=')"', b={(2+1):'bar', not 1:3, 3<<4:5}): return
-        sage: sage.misc.sageinspect.sage_getargspec(O)
-        ArgSpec(args=['x', 'a', 'b'], varargs=None, keywords=None, defaults=(')"', {False: 3, 48: 5, 3: 'bar'}))
+        sage: spec = sage.misc.sageinspect.sage_getargspec(O)
+        sage: spec.args, spec.varargs, spec.keywords
+        (['x', 'a', 'b'], None, None)
+        sage: spec.defaults[0]
+        ')"'
+        sage: sorted(spec.defaults[1].items(), key=lambda x: str(x))
+        [(3, 'bar'), (48, 5), (False, 3)]
         sage: sage.misc.sageinspect.sage_getargspec(O.__call__)
         ArgSpec(args=['self', 'm', 'n'], varargs=None, keywords=None, defaults=None)
 
@@ -1526,7 +1543,7 @@ def sage_getargspec(obj):
     inspect module does)::
 
         sage: import inspect
-        sage: inspect.getargspec(range)
+        sage: inspect.getargspec(range)  # py2
         Traceback (most recent call last):
         ...
         TypeError: <built-in function range> is not a Python function

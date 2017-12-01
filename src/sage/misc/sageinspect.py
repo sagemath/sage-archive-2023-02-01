@@ -1853,7 +1853,8 @@ def sage_getsource(obj):
     (source_lines, lineno) = t
     return ''.join(source_lines)
 
-def _sage_getsourcelines_name_with_dot(object):
+
+def _sage_getsourcelines_name_with_dot(obj):
     r"""
     Get the source lines of an object whose name
     contains a dot and whose source lines can not
@@ -1900,19 +1901,19 @@ def _sage_getsourcelines_name_with_dot(object):
     - Simon King (2011-09)
     """
     # First, split the name:
-    if '.' in object.__name__:
-        splitted_name = object.__name__.split('.')
-    elif hasattr(object,'__qualname__'):
-        splitted_name = object.__qualname__.split('.')
+    if '.' in obj.__name__:
+        splitted_name = obj.__name__.split('.')
+    elif hasattr(obj, '__qualname__'):
+        splitted_name = obj.__qualname__.split('.')
     else:
-        splitted_name = object.__name__
-    path = object.__module__.split('.')+splitted_name[:-1]
+        splitted_name = obj.__name__
+    path = obj.__module__.split('.')+splitted_name[:-1]
     name = splitted_name[-1]
     try:
         M = __import__(path.pop(0))
     except ImportError:
         try:
-            B = object.__base__
+            B = obj.__base__
             if B is None:
                 raise AttributeError
         except AttributeError:
@@ -1925,7 +1926,7 @@ def _sage_getsourcelines_name_with_dot(object):
             M = getattr(M, path.pop(0))
     except AttributeError:
         try:
-            B = object.__base__
+            B = obj.__base__
             if B is None:
                 raise AttributeError
         except AttributeError:
@@ -1938,10 +1939,10 @@ def _sage_getsourcelines_name_with_dot(object):
     if not lines:
         raise IOError('could not get source code')
 
-    if inspect.ismodule(object):
+    if inspect.ismodule(obj):
         return lines, base_lineno
 
-    if inspect.isclass(object):
+    if inspect.isclass(obj):
         pat = re.compile(r'^(\s*)class\s*' + name + r'\b')
         # make some effort to find the best matching class definition:
         # use the one with the least indentation, which is the one
@@ -1963,22 +1964,22 @@ def _sage_getsourcelines_name_with_dot(object):
         else:
             raise IOError('could not find class definition')
 
-    if inspect.ismethod(object):
-        object = object.__func__
-    if inspect.isfunction(object):
-        object = object.__code__
-    if inspect.istraceback(object):
-        object = object.tb_frame
-    if inspect.isframe(object):
-        object = object.f_code
-    if inspect.iscode(object):
-        if not hasattr(object, 'co_firstlineno'):
+    if inspect.ismethod(obj):
+        obj = obj.__func__
+    if inspect.isfunction(obj):
+        obj = obj.__code__
+    if inspect.istraceback(obj):
+        obj = obj.tb_frame
+    if inspect.isframe(obj):
+        obj = obj.f_code
+    if inspect.iscode(obj):
+        if not hasattr(obj, 'co_firstlineno'):
             raise IOError('could not find function definition')
         pat = re.compile(r'^(\s*def\s)|(.*(?<!\w)lambda(:|\s))|^(\s*@)')
         pmatch = pat.match
         # fperez - fix: sometimes, co_firstlineno can give a number larger than
         # the length of lines, which causes an error.  Safeguard against that.
-        lnum = min(object.co_firstlineno,len(lines))-1
+        lnum = min(obj.co_firstlineno,len(lines))-1
         while lnum > 0:
             if pmatch(lines[lnum]): break
             lnum -= 1

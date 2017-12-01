@@ -113,8 +113,10 @@ defined Cython code, and with rather tricky argument lines::
 
 """
 from __future__ import print_function, absolute_import
-from six.moves import range
+
+import six
 from six import iteritems, string_types, class_types, text_type
+from six.moves import range
 from sage.misc.six import u
 
 import ast
@@ -447,19 +449,83 @@ class SageArgSpecVisitor(ast.NodeVisitor):
             sage: import ast, sage.misc.sageinspect as sms
             sage: visitor = sms.SageArgSpecVisitor()
             sage: vis = lambda x: visitor.visit_Name(ast.parse(x).body[0].value)
-            sage: [vis(n) for n in ['True', 'False', 'None', 'foo', 'bar']]
+            sage: [vis(n) for n in ['True', 'False', 'None', 'foo', 'bar']]  # py2
             [True, False, None, 'foo', 'bar']
-            sage: [type(vis(n)) for n in ['True', 'False', 'None', 'foo', 'bar']]
-            [<... 'bool'>, <... 'bool'>, <... 'NoneType'>, <... 'str'>, <... 'str'>]
+            sage: [type(vis(n)) for n in ['True', 'False', 'None', 'foo', 'bar']]  # py2
+            [<type 'bool'>, <type 'bool'>, <type 'NoneType'>, <type 'str'>, <type 'str'>]
+            sage: [vis(n) for n in ['foo', 'bar']]  # py3
+            ['foo', 'bar']
+            sage: [type(vis(n)) for n in ['foo', 'bar']]  # py3
+            [<type 'str'>, <type 'str'>]
         """
-        what = node.id
-        if what == 'None':
-            return None
-        elif what == 'True':
-            return True
-        elif what == 'False':
-            return False
+        if six.PY2:
+            what = node.id
+            if what == 'None':
+                return None
+            elif what == 'True':
+                return True
+            elif what == 'False':
+                return False
         return node.id
+
+    if six.PY3:
+        def visit_NameConstant(self, node):
+            """
+            Visit a Python AST :class:`ast.NameConstant` node.
+
+            This is an optimization added in Python 3.4 for the special cases
+            of True, False, and None.
+
+            INPUT:
+
+            - ``node`` - the node instance to visit
+
+            OUTPUT:
+
+            - None, True, False.
+
+            EXAMPLES::
+
+                sage: import ast, sage.misc.sageinspect as sms  # py3
+                sage: visitor = sms.SageArgSpecVisitor()  # py3
+                sage: vis = lambda x: visitor.visit_NameConstant(ast.parse(x).body[0].value)  # py3
+                sage: [vis(n) for n in ['True', 'False', 'None']]  # py3
+                [True, False, None]
+                sage: [type(vis(n)) for n in ['True', 'False', 'None']]  # py3
+                [<type 'bool'>, <type 'bool'>, <type 'NoneType'>]
+            """
+
+            return node.value
+
+        def visit_arg(self, node):
+            """
+            Visit a Python AST :class:`ast.arg` node.
+
+            This node type is only on Python 3, where function arguments are
+            more complex than just an identifier (e.g. they may also include
+            annotations).
+
+            For now we simply return the argument identifier as a string.
+
+            INPUT:
+
+            - ``node`` - the node instance to visit
+
+            OUTPUT:
+
+            - the argument name
+
+            EXAMPLES::
+
+                sage: import ast, sage.misc.sageinspect as sms  # py3
+                sage: s = "def f(a, b=2, c={'a': [4, 5.5, False]}, d=(None, True)):\n    return"  # py3
+                sage: visitor = sms.SageArgSpecVisitor()  # py3
+                sage: args = ast.parse(s).body[0].args.args  # py3
+                sage: [visitor.visit_arg(n) for n in args]  # py3
+                ['a', 'b', 'c', 'd']
+            """
+
+            return node.arg
 
     def visit_Num(self, node):
         """
@@ -478,8 +544,15 @@ class SageArgSpecVisitor(ast.NodeVisitor):
             sage: import ast, sage.misc.sageinspect as sms
             sage: visitor = sms.SageArgSpecVisitor()
             sage: vis = lambda x: visitor.visit_Num(ast.parse(x).body[0].value)
-            sage: [vis(n) for n in ['123', '0.0', str(-pi.n())]]
+            sage: [vis(n) for n in ['123', '0.0', str(-pi.n())]]  # py2
             [123, 0.0, -3.14159265358979]
+            sage: [vis(n) for n in ['123', '0.0']]  # py3
+            [123, 0.0]
+
+        .. NOTE::
+
+            On Python 3 negative numbers are parsed first, for some reason, as
+            a UnaryOp node.
         """
         return node.n
 
@@ -500,7 +573,7 @@ class SageArgSpecVisitor(ast.NodeVisitor):
             sage: import ast, sage.misc.sageinspect as sms
             sage: visitor = sms.SageArgSpecVisitor()
             sage: vis = lambda x: visitor.visit_Str(ast.parse(x).body[0].value)
-            sage: [vis(s) for s in ['"abstract"', "u'syntax'", '''r"tr\ee"''']]
+            sage: [vis(s) for s in ['"abstract"', "u'syntax'", r'''r"tr\ee"''']]
             ['abstract', u'syntax', 'tr\\ee']
         """
         return node.s
@@ -1007,8 +1080,17 @@ def _sage_getargspec_from_ast(source):
     args = [visitor.visit(a) for a in ast_args.args]
     defaults = [visitor.visit(d) for d in ast_args.defaults]
 
-    return inspect.ArgSpec(args, ast_args.vararg, ast_args.kwarg,
+    if six.PY2:
+        vararg = ast_args.vararg
+        kwarg = ast_args.kwarg
+    else:
+        # vararg and kwarg may be None
+        vararg = getattr(ast_args.vararg, 'arg', None)
+        kwarg = getattr(ast_args.kwarg, 'arg', None)
+
+    return inspect.ArgSpec(args, vararg, kwarg,
                            tuple(defaults) if defaults else None)
+
 
 def _sage_getargspec_cython(source):
     r"""

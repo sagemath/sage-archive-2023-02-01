@@ -4820,7 +4820,9 @@ class FreeModule_ambient(FreeModule_generic):
         if not isinstance(other, FreeModule_generic):
             return NotImplemented
         from sage.modules.quotient_module import FreeModule_ambient_field_quotient
-        if isinstance(other, FreeModule_ambient) and not isinstance(other, FreeModule_ambient_field_quotient):
+        if isinstance(other, FreeModule_ambient):
+            if isinstance(other, FreeModule_ambient_field_quotient) or isinstance(self, FreeModule_ambient_field_quotient):
+                return richcmp(self,other,op)
             lx = self.rank()
             rx = other.rank()
             if lx != rx:

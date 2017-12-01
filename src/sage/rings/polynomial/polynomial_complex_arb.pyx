@@ -674,7 +674,7 @@ cdef class Polynomial_complex_arb(Polynomial):
             return self(other).truncate(n)
         cdef Polynomial_complex_arb other1 = <Polynomial_complex_arb> other
         cdef Polynomial_complex_arb res = self._new()
-        cdef acb_poly_t self_ts, other_ts, lin
+        cdef acb_poly_t self_ts, other_ts
         cdef acb_ptr cc
         if acb_poly_length(other1.__poly) > 0:
             cc = acb_poly_get_coeff_ptr(other1.__poly, 0)
@@ -683,20 +683,11 @@ cdef class Polynomial_complex_arb(Polynomial):
                 try:
                     acb_poly_init(self_ts)
                     acb_poly_init(other_ts)
-                    ### Not yet supported in sage's version of arb
-                    #acb_poly_taylor_shift(self_ts, self.__poly, cc, prec(self))
-                    acb_poly_init(lin)
-                    acb_poly_set_coeff_acb(lin, 0, cc)
-                    acb_poly_set_coeff_si(lin, 1, 1)
-                    acb_poly_compose(self_ts, self.__poly, lin, prec(self))
-                    ###
+                    acb_poly_taylor_shift(self_ts, self.__poly, cc, prec(self))
                     acb_poly_set(other_ts, other1.__poly)
                     acb_zero(acb_poly_get_coeff_ptr(other_ts, 0))
                     acb_poly_compose_series(res.__poly, self_ts, other_ts, n, prec(self))
                 finally:
-                    ###
-                    acb_poly_clear(lin)
-                    ###
                     acb_poly_clear(other_ts)
                     acb_poly_clear(self_ts)
                     sig_off()

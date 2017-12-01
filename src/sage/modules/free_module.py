@@ -1505,7 +1505,6 @@ done from the right side.""")
         else:
             if self.inner_product_matrix() != other.inner_product_matrix():
                 return False
-        # self and other lie in a common ambient space.
         R = self.base_ring()
         S = other.base_ring()
         if R != S:
@@ -1517,12 +1516,22 @@ done from the right side.""")
                     raise NotImplementedError("could not determine if %s is a "
                                               "subring of %s" %(R, S))
         # now R is a subring of S
-        try:
-            M = [list(other.basis_matrix().solve_left(self.basis_matrix()[i])) for i in range(self.basis_matrix().nrows())]
+        if other.is_ambient() and S.is_field():
+            return True
+        try: 
+            M = other.basis_matrix().solve_left(self.basis_matrix())
         except ValueError:
             return False
-        from sage.misc.flatten import flatten
-        return all(x in S for x in flatten(M))
+        except TypeError:
+            # only if solve_left does not eat a matrix
+            # else this is far to inefficient
+            try:
+                M = [list(other.basis_matrix().solve_left(self.basis_matrix()[i])) for i in range(self.basis_matrix().nrows())]
+            except ValueError:
+                return False
+            from sage.misc.flatten import flatten
+            return all(x in S for x in flatten(M))
+        return all(x in S for x in M.list())
 
     def __iter__(self):
         """

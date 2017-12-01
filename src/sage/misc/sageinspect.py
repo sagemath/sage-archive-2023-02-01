@@ -358,11 +358,20 @@ def _getblock(lines):
     it uses an instance of our custom :class:`BlockFinder`.
     """
     blockfinder = BlockFinder()
+    iter_lines = iter(lines)
+    if six.PY2:
+        tokenizer = tokenize.generate_tokens
+        readline = lambda: next(iter_lines)
+    else:
+        tokenizer = tokenize.tokenize
+        readline = lambda: next(iter_lines).encode('utf-8')
     try:
-        tokenize.tokenize(iter(lines).next, blockfinder.tokeneater)
+        for tok in tokenizer(readline):
+            blockfinder.tokeneater(*tok)
     except (inspect.EndOfBlock, IndentationError):
         pass
     return lines[:blockfinder.last]
+
 
 def _extract_source(lines, lineno):
     r"""

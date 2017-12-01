@@ -166,10 +166,13 @@ def isclassinstance(obj):
         sage: isclassinstance(myclass2)
         False
     """
-    return (not inspect.isclass(obj) and \
-            hasattr(obj, '__class__') and \
-            hasattr(obj.__class__, '__module__') and \
-            obj.__class__.__module__ not in ('__builtin__', 'exceptions'))
+
+    builtin_mods = set(['__builtin__', 'builtins', 'exceptions'])
+
+    return (not inspect.isclass(obj) and
+            hasattr(obj, '__class__') and
+            hasattr(obj.__class__, '__module__') and
+            obj.__class__.__module__ not in builtin_mods)
 
 
 import re

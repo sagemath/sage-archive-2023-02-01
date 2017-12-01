@@ -2209,6 +2209,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = S[]
             sage: pow(y*x+1, 51, x^7)
             18009460*y^6*x^6 + 2349060*y^5*x^5 + ... + 51*y*x + 1
+
+        Check that fallback method is used when it is not possible to compute
+        the characteristic of the base ring (trac:`24308`)::
+
+            sage: kk.<a,b> = GF(2)[]
+            sage: k.<y,w> = kk.quo(a^2+a+1)
+            sage: K.<T> = k[] 
+            sage: (T*y)^21
+            T^21
         """
         if not isinstance(left, Polynomial):
             return NotImplemented

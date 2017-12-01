@@ -176,6 +176,13 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
         x^5 + x^2
         sage: algdep(z, 5)
         x^2 - x + 1
+
+    Check that cases where a constant polynomial might look better
+    get handled correctly::
+
+        sage: z=CC(-1)**(1/3)
+        sage: algdep(z,1)
+        x
     """
     if proof and not height_bound:
         raise ValueError("height_bound must be given for proof=True")
@@ -228,6 +235,12 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
                 M[k, -1] = r.round()
         LLL = M.LLL(delta=.75)
         coeffs = LLL[0][:n]
+        #we're supposed to find an irreducible polynomial, so we cannot
+        #return a constant one. If the first LLL basis vector gives
+        #a constant polynomial, use the next one.
+        if all(c==0 for c in coeffs[1:]):
+            coeffs = LLL[1][:n]
+
         if height_bound:
             def norm(v):
                 # norm on an integer vector invokes Integer.sqrt() which tries to factor...

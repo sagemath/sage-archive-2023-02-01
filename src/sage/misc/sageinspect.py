@@ -1782,9 +1782,6 @@ def _sage_getdoc_unformatted(obj):
     # not a 'getset_descriptor' or similar.
     if isinstance(r, str):
         return r
-    elif isinstance(r, text_type):
-        # On Python 2, we want str, not unicode
-        return r.encode('utf-8', 'ignore')
     else:
         # Not a string of any kind
         return ''

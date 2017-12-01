@@ -211,7 +211,9 @@ def _extract_embedded_position(docstring):
     The following has been fixed in :trac:`13916`::
 
         sage: cython('''cpdef test_funct(x,y): return''')
-        sage: print(open(_extract_embedded_position(inspect.getdoc(test_funct))[1]).read())
+        sage: func_doc = inspect.getdoc(test_funct)
+        sage: with open(_extract_embedded_position(func_doc)[1]) as f:
+        ....:     print(f.read())
         cpdef test_funct(x,y): return
 
     Ensure that the embedded filename of the compiled function is correct.  In
@@ -222,7 +224,9 @@ def _extract_embedded_position(docstring):
         sage: from sage.misc.sage_ostools import restore_cwd
         sage: with restore_cwd(DOT_SAGE):
         ....:     cython('''cpdef test_funct(x,y): return''')
-        sage: print(open(_extract_embedded_position(inspect.getdoc(test_funct))[1]).read())
+        sage: func_doc = inspect.getdoc(test_funct)
+        sage: with open(_extract_embedded_position(func_doc)[1]) as f:
+        ....:     print(f.read())
         cpdef test_funct(x,y): return
 
     AUTHORS:
@@ -285,8 +289,10 @@ def _extract_embedded_signature(docstring, name):
         ...
         sage: _extract_embedded_signature(MainClass.NestedClass.NestedSubClass.dummy.__doc__, 'dummy')[1]
         ArgSpec(args=['self', 'x', 'r'], varargs='args', keywords='kwds', defaults=((1, 2, 3.4),))
-        sage: _extract_embedded_signature(range.__call__.__doc__, '__call__')
+        sage: _extract_embedded_signature(range.__call__.__doc__, '__call__')  # py2
         ('x.__call__(...) <==> x(...)', None)
+        sage: _extract_embedded_signature(range.__call__.__doc__, '__call__')  # py3
+        ('Call self as a function.', None)
 
     """
     # If there is an embedded signature, it is in the first line
@@ -351,6 +357,7 @@ class BlockFinder:
             # any other token on the same indentation level end the previous
             # block as well, except the pseudo-tokens COMMENT and NL.
             raise inspect.EndOfBlock
+
 
 def _getblock(lines):
     """
@@ -2245,10 +2252,10 @@ def sage_getsourcelines(obj):
 
     # First, we deal with nested classes. Their name contains a dot, and we
     # have a special function for that purpose.
-    if (not hasattr(obj, '__class__')) or (isinstance(obj, type) and type(obj) is not type):
+    if not hasattr(obj, '__class__') or isinstance(obj, type):
         # That happens for ParentMethods
         # of categories
-        if '.' in obj.__name__ or '.' in getattr(obj,'__qualname__',''):
+        if '.' in obj.__name__ or '.' in getattr(obj, '__qualname__',''):
             return _sage_getsourcelines_name_with_dot(obj)
 
     # Next, we try _sage_getdoc_unformatted()
@@ -2283,13 +2290,15 @@ def sage_getsourcelines(obj):
 
     (orig, filename, lineno) = pos
     try:
-        source_lines = open(filename).readlines()
+        with open(filename) as f:
+            source_lines = f.readlines()
     except IOError:
         try:
             from sage.misc.misc import SPYX_TMP
             raw_name = filename.split('/')[-1]
             newname = os.path.join(SPYX_TMP, '_'.join(raw_name.split('_')[:-1]), raw_name)
-            source_lines = open(newname).readlines()
+            with open(newname) as f:
+                source_lines = f.readlines()
         except IOError:
             return None
 

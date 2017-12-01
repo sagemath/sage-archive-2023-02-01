@@ -658,8 +658,6 @@ static ex Li_evalf(const ex& m_, const ex& x_, PyObject* parent)
         }
         catch (std::logic_error) {}
 
-        if (parent == nullptr)
-                parent = CC_get();
         return Li2(num_m, num_x, parent);
 }
 

@@ -289,6 +289,7 @@ int precision(const GiNaC::numeric& num, PyObject*& a_parent) {
                 mprec = PyObject_CallMethod(the_parent, const_cast<char*>("precision"), NULL);
         if (mprec == nullptr) {
                 prec = 53;
+                the_parent = CC_get();
         }
         else {
                 prec = PyLong_AsLong(mprec);

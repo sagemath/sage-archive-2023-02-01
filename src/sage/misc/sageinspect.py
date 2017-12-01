@@ -2179,16 +2179,16 @@ def sage_getsourcelines(obj):
         sage: P = TestNestedParent()
         sage: E = P.element_class
         sage: E.__bases__
-        (<class sage.misc.nested_class_test.TestNestedParent.Element at ...>,
+        (<class 'sage.misc.nested_class_test.TestNestedParent.Element'>,
          <class 'sage.categories.sets_cat.Sets.element_class'>)
         sage: print(sage_getsource(E))
-            class Element:
+            class Element(object):
                 "This is a dummy element class"
                 pass
         sage: print(sage_getsource(P))
         class TestNestedParent(UniqueRepresentation, Parent):
             ...
-            class Element:
+            class Element(object):
                 "This is a dummy element class"
                 pass
 

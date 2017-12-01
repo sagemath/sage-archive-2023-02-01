@@ -216,12 +216,12 @@ class TestNestedParent(UniqueRepresentation, Parent):
         (<class sage.misc.nested_class_test.TestNestedParent.Element at ...>,
          <class 'sage.categories.sets_cat.Sets.element_class'>)
         sage: print(sage_getsource(E))
-            class Element:
+            class Element(object):
                 "This is a dummy element class"
                 pass
 
     """
-    class Element:
+    class Element(object):
         "This is a dummy element class"
         pass
 

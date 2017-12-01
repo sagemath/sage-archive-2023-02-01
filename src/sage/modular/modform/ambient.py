@@ -820,3 +820,14 @@ class ModularFormsAmbient(space.ModularFormsSpace,
         else:
             return space.ModularFormsSpace._compute_hecke_matrix_prime_power(self, p, r)
 
+    def hecke_polynomial(self, n, var='x'):
+        r"""
+        Compute the characteristic polynomial of the n-th Hecke operator acting
+        on this space.
+
+        EXAMPLE::
+
+            sage: ModularForms(17,4).hecke_polynomial(2)
+            x^6 - 16*x^5 + 18*x^4 + 608*x^3 - 1371*x^2 - 4968*x + 7776
+        """
+        return self.cuspidal_submodule().hecke_polynomial(n,var) * self.eisenstein_submodule().hecke_polynomial(n,var)

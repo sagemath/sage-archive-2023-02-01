@@ -359,6 +359,7 @@ REGISTER_FUNCTION(beta, eval_func(beta_eval).
 // Psi-function (aka digamma-function)
 //////////
 
+// Needed because there is no RR member function
 static ex psi1_evalf(const ex & x, PyObject* parent)
 {
 	if (is_exactly_a<numeric>(x)) {

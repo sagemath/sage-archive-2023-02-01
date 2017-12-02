@@ -511,7 +511,7 @@ def EllipticCurve_from_Weierstrass_polynomial(f):
 
 def coefficients_from_Weierstrass_polynomial(f):
     """
-    Return the coefficients `(a_1, a_2, a_3, a_4, a_5)` for a cubic in
+    Return the coefficients `[a_1, a_2, a_3, a_4, a_6]` of a cubic in
     Weierstrass form.
 
     EXAMPLES::
@@ -723,36 +723,49 @@ def coefficients_from_j(j, minimal_twist=True):
     return Sequence([0, 0, 0, -3*j*k, -2*j*k**2], universe=K)
 
 
-def EllipticCurve_from_cubic(F, P, morphism=True):
+def EllipticCurve_from_cubic(F, P=None, morphism=True):
     r"""
-    Construct an elliptic curve from a ternary cubic with a rational point.
-
-    If you just want the Weierstrass form and are not interested in
-    the morphism then it is easier to use
-    :func:`~sage.schemes.elliptic_curves.jacobian.Jacobian`
-    instead. This will construct the same elliptic curve but you don't
-    have to supply the point ``P``.
+    Construct an elliptic curve from a smooth ternary cubic with a rational point.
 
     INPUT:
 
     - ``F`` -- a homogeneous cubic in three variables with rational
       coefficients, as a polynomial ring element, defining a smooth
-      plane cubic curve.
+      plane cubic curve `C`.
 
-    - ``P`` -- a 3-tuple `(x,y,z)` defining a projective point on the
-      curve `F=0`. Need not be a flex, but see caveat on output.
+    - ``P`` -- a 3-tuple `(x,y,z)` defining a projective point on `C`,
+      or ``None``.  If ``None`` then a rational flex will be used as a
+      base point if one exists, otherwise an error will be raised.
 
-    - ``morphism`` -- boolean (default: ``True``). Whether to return
-      the morphism or just the elliptic curve.
+    - ``morphism`` -- boolean (default: ``True``).  If ``True``
+      returns a birational isomorphism from `C` to a Weierstrass
+      elliptic curve `E`, otherwise just returns `E`.
 
     OUTPUT:
 
-    An elliptic curve in long Weierstrass form isomorphic to the curve
-    `F=0`.
+    Either (when ``morphism``=``False``) an elliptic curve `E` in long
+    Weierstrass form isomorphic to the plane cubic curve `C` defined
+    by the equation `F=0`.
 
-    If ``morphism=True`` is passed, then a birational equivalence
-    between F and the Weierstrass curve is returned. If the point
-    happens to be a flex, then this is an isomorphism.
+    Or (when ``morphism=True``), a birational isomorphism from `C` to
+    the elliptic curve `E`. If the given point is a flex, this is a
+    linear isomorphism.
+
+    .. note::
+
+      The function
+      :func:`~sage.schemes.elliptic_curves.jacobian.Jacobian` may be
+      used instead.  It constructs the same elliptic curve (which is in
+      all cases the Jacobian of `(F=0)`) and needs no base point to be
+      provided, but also returns no isomorphism since in general there
+      is none: the plane cubic is only isomorphic to its Jacobian when
+      it has a rational point.
+
+    .. note::
+
+       When ``morphism=True``, the morphism does not necessarily take
+    the given point `P` to the point at infinity on `E`, since we
+    always use a rational flex on `C` as base-point when one exists.
 
     EXAMPLES:
 
@@ -898,25 +911,26 @@ def EllipticCurve_from_cubic(F, P, morphism=True):
     if not F.is_homogeneous():
         raise TypeError('equation must be a homogeneous polynomial')
     K = F.parent().base_ring()
+
     try:
-        P = [K(c) for c in P]
-    except TypeError:
-        raise TypeError('cannot convert %s into %s'%(P,K))
-    if F(P) != 0:
-        raise ValueError('%s is not a point on %s'%(P,F))
-    if len(P) != 3:
-        raise TypeError('%s is not a projective point'%P)
+        C = Curve(F)
+        CP = C(P)
+    except TypeError, ValueError:
+        raise TypeError('{} does not define a point on a projective curve over {} defined by {}'.format(P,K,F))
+
     x, y, z = R.gens()
 
-    # First case: if P = P2 then P is a flex, or if P2 = P3 then P2 is a flex
-    P2 = chord_and_tangent(F, P)
-    flex_point = None
-    if are_projectively_equivalent(P, P2, base_ring=K):
+    # Test whether P is a flex; if not test whether there are any rational flexes:
+
+    hessian = Matrix([[F.derivative(v1, v2) for v1 in R.gens()] for v2 in R.gens()]).det()
+    if hessian(P)==0:
         flex_point = P
     else:
-        P3 = chord_and_tangent(F, P2)
-        if are_projectively_equivalent(P2, P3, base_ring=K):
-            flex_point = P2
+        flexes = C.intersection(Curve(hessian)).rational_points()
+        if flexes:
+            flex_point = list(flexes[0])
+        else:
+            flex_point = None
 
     if flex_point is not None:
         P = flex_point

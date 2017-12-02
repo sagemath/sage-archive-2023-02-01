@@ -62,7 +62,7 @@ static bool is_rational_linear(const ex& the_ex)
 
 static ex factorial_to_gamma(const function& f)
 {
-        return tgamma(f.op(0) + _ex1);
+        return gamma(f.op(0) + _ex1);
 }
 
 static ex gamma_to_gamma(const function& f) { return ex(f); }
@@ -76,7 +76,7 @@ static ex binomial_to_gamma(const function& f)
                 if (anum.info(info_flags::integer)
                     and anum.info(info_flags::negative))
                         return pow(_ex_1, k) * 
-                                (tgamma(k - a) / (tgamma(k+1) * (anum-*_num1_p).factorial()));
+                                (gamma(k - a) / (gamma(k+1) * (anum-*_num1_p).factorial()));
         }
         ex t = (k - a).expand();
         if (is_exactly_a<numeric>(t)
@@ -84,17 +84,17 @@ static ex binomial_to_gamma(const function& f)
             and ex_to<numeric>(t).info(info_flags::negative))
                 return _ex0;
 
-        return tgamma(a+1) / (tgamma(k+1) * tgamma(a-k+1));
+        return gamma(a+1) / (gamma(k+1) * gamma(a-k+1));
 }
 
 static ex rising_factorial_to_gamma(const function& f)
 {
-        return tgamma(f.op(0) + f.op(1)) / tgamma(f.op(0));
+        return gamma(f.op(0) + f.op(1)) / gamma(f.op(0));
 }
 
 static ex falling_factorial_to_gamma(const function& f)
 {
-        return tgamma(f.op(0) + _ex1) / tgamma(f.op(0) - f.op(1) + _ex_1);
+        return gamma(f.op(0) + _ex1) / gamma(f.op(0) - f.op(1) + _ex_1);
 }
 
 using tgfun_t = decltype(gamma_to_gamma);
@@ -103,7 +103,7 @@ static bool has_suitable_form(ex the_ex)
 {
         static std::unordered_map<unsigned int,tgfun_t*> funcmap {{
           {factorial_SERIAL::serial, &factorial_to_gamma},
-          {tgamma_SERIAL::serial, &gamma_to_gamma},
+          {gamma_SERIAL::serial, &gamma_to_gamma},
           {binomial_SERIAL::serial, &binomial_to_gamma},
           {rising_factorial_SERIAL::serial, &rising_factorial_to_gamma},
           {falling_factorial_SERIAL::serial, &falling_factorial_to_gamma},
@@ -152,7 +152,7 @@ ex to_gamma(const ex& the_ex)
 {
         static std::unordered_map<unsigned int,tgfun_t*> funcmap {{
           {factorial_SERIAL::serial, &factorial_to_gamma},
-          {tgamma_SERIAL::serial, &gamma_to_gamma},
+          {gamma_SERIAL::serial, &gamma_to_gamma},
           {binomial_SERIAL::serial, &binomial_to_gamma},
           {rising_factorial_SERIAL::serial, &rising_factorial_to_gamma},
           {falling_factorial_SERIAL::serial, &falling_factorial_to_gamma},
@@ -243,7 +243,7 @@ static void collect_gamma_args(ex the_ex, ex_intset_map& map)
 {
         if (is_exactly_a<function>(the_ex)) {
                 function f = ex_to<function>(the_ex);
-                if (f.get_serial() == tgamma_SERIAL::serial) {
+                if (f.get_serial() == gamma_SERIAL::serial) {
                         ex arg = f.op(0).expand();
                         if (is_exactly_a<numeric>(arg))
                                 return;
@@ -301,7 +301,7 @@ ex gamma_normalize(ex the_ex)
                         const ex& base = p.first;
                         for (int i=m; i<oc; ++i)
                                 prod *= (base + numeric(i));
-                        submap[tgamma(base + numeric(oc)).hold()] = tgamma(base + numeric(m)).hold() * prod;
+                        submap[gamma(base + numeric(oc)).hold()] = gamma(base + numeric(m)).hold() * prod;
                 }
         }
 

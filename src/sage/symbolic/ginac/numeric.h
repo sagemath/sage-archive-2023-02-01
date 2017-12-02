@@ -286,7 +286,7 @@ public:
 	const numeric zeta() const;
 	const numeric stieltjes() const;
 	const numeric lgamma(PyObject* parent) const;
-	const numeric tgamma(PyObject* parent) const;
+	const numeric gamma(PyObject* parent) const;
 	const numeric rgamma(PyObject* parent) const;
 	const numeric psi() const;
 	const numeric psi(const numeric &n) const;
@@ -366,7 +366,7 @@ const numeric Li2(const numeric &x, const numeric &n, PyObject* parent=nullptr);
 const numeric stieltjes(const numeric &x);
 const numeric zeta(const numeric &x);
 const numeric lgamma(const numeric &x, PyObject* parent=nullptr);
-const numeric tgamma(const numeric &x, PyObject* parent=nullptr);
+const numeric gamma(const numeric &x, PyObject* parent=nullptr);
 const numeric rgamma(const numeric &x, PyObject* parent=nullptr);
 const numeric psi(const numeric &x);
 const numeric psi(const numeric &n, const numeric &x);

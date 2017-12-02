@@ -3517,7 +3517,7 @@ const numeric numeric::lgamma(PyObject* parent) const {
         return ex_to<numeric>(rnum.evalf(0, parent));
 }
 
-const numeric numeric::tgamma(PyObject* parent) const {
+const numeric numeric::gamma(PyObject* parent) const {
         int prec = precision(*this, parent);
         PyObject* field = CBF(prec+15);
         PyObject* ball = CallBallMethod0Arg(field, const_cast<char*>("gamma"), *this);
@@ -4496,8 +4496,8 @@ const numeric lgamma(const numeric &x, PyObject* parent) {
 }
 
 /** The Gamma function. */
-const numeric tgamma(const numeric &x, PyObject* parent) {
-        return x.tgamma(parent);
+const numeric gamma(const numeric &x, PyObject* parent) {
+        return x.gamma(parent);
 }
 
 /** The psi function (aka polygamma function). */
@@ -4519,7 +4519,7 @@ const numeric factorial(const numeric &n) {
 }
 
 /** The double factorial combinatorial function.  (Scarcely used, but still
- *  useful in cases, like for exact results of tgamma(n+1/2) for instance.)
+ *  useful in cases, like for exact results of gamma(n+1/2) for instance.)
  *
  *  @param n  integer argument >= -1
  *  @return n!! == n * (n-2) * (n-4) * ... * ({1|2}) with 0!! == (-1)!! == 1

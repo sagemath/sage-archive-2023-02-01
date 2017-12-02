@@ -200,7 +200,7 @@ DECLARE_FUNCTION_2P(H)
 
 /** Gamma-function. */
 DECLARE_FUNCTION_1P(lgamma)
-DECLARE_FUNCTION_1P(tgamma)
+DECLARE_FUNCTION_1P(gamma)
 
 /** Beta-function. */
 DECLARE_FUNCTION_2P(beta)

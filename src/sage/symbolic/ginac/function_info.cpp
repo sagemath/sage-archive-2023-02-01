@@ -177,7 +177,7 @@ static bool acsch_info(const function& f, unsigned inf)
         return trig_info(f, inf);
 }
 
-static bool tgamma_info(const function& f, unsigned inf)
+static bool gamma_info(const function& f, unsigned inf)
 {
         const ex& arg = f.op(0);
         switch (inf) {
@@ -287,7 +287,7 @@ bool function::info(unsigned inf) const
                 {csch_SERIAL::serial, &csch_info},
                 {asinh_SERIAL::serial, &asinh_info},
                 {acsch_SERIAL::serial, &acsch_info},
-                {tgamma_SERIAL::serial, &tgamma_info},
+                {gamma_SERIAL::serial, &gamma_info},
                 {zeta1_SERIAL::serial, &zeta_info},
                 {abs_SERIAL::serial, &abs_info},
                 {real_part_function_SERIAL::serial, &real_info},

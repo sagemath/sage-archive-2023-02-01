@@ -20,22 +20,17 @@ namespace GiNaC {
   typedef std::multiset<unsigned> paramset;
 
   struct py_funcs_struct {
-    PyObject* (*py_binomial)(PyObject* a, PyObject* b);
-    PyObject* (*py_binomial_int)(int n, unsigned int k);
 	PyObject* (*py_gcd)(PyObject* a, PyObject* b);
 	PyObject* (*py_lcm)(PyObject* a, PyObject* b);
 	PyObject* (*py_real)(PyObject* a);
 	PyObject* (*py_imag)(PyObject* a);
 	PyObject* (*py_numer)(PyObject* a);
 	PyObject* (*py_denom)(PyObject* a);
-	PyObject* (*py_conjugate)(PyObject* a);
     int       (*py_is_rational)(PyObject* a);
-    int       (*py_is_crational)(PyObject* a);
     int       (*py_is_real)(PyObject* a);
     int       (*py_is_integer)(PyObject* a);
     int       (*py_is_equal)(PyObject* a, PyObject* b);
     int       (*py_is_even)(PyObject* a);
-    int       (*py_is_cinteger)(PyObject* a);
     int       (*py_is_prime)(PyObject* n);
     int       (*py_is_exact)(PyObject* a);
 
@@ -49,7 +44,6 @@ namespace GiNaC {
 	__mpq_struct* (*py_mpq_from_rational)(PyObject *);
 
 	PyObject* (*py_float)(PyObject* a, PyObject* parent);
-	PyObject* (*py_RDF_from_double)(double x);
 
 	PyObject* (*py_factorial)(PyObject* a);
 	PyObject* (*py_fibonacci)(PyObject* n);
@@ -73,21 +67,13 @@ namespace GiNaC {
 	PyObject* (*py_asinh)(PyObject* n);
 	PyObject* (*py_acosh)(PyObject* n);
 	PyObject* (*py_atanh)(PyObject* n);
-    PyObject* (*py_li)(PyObject* x, PyObject* n, PyObject* prec);
-	PyObject* (*py_li2)(PyObject* n);
-	PyObject* (*py_lgamma)(PyObject* n);
-	PyObject* (*py_tgamma)(PyObject* n);
 	PyObject* (*py_psi)(PyObject* n);
 	PyObject* (*py_psi2)(PyObject* n, PyObject* b);
 	PyObject* (*py_isqrt)(PyObject* n);
 	PyObject* (*py_sqrt)(PyObject* n);
-	PyObject* (*py_abs)(PyObject* n);
 	PyObject* (*py_mod)(PyObject* n, PyObject* b);
 	PyObject* (*py_smod)(PyObject* n, PyObject* b);
 	PyObject* (*py_irem)(PyObject* n, PyObject* b);
-	PyObject* (*py_iquo)(PyObject* n, PyObject* b);
-	PyObject* (*py_iquo2)(PyObject* n, PyObject* b);
-	int       (*py_int_length)(PyObject* x);
 
 	PyObject* (*py_eval_constant)(unsigned serial, PyObject* parent);
 	PyObject* (*py_eval_unsigned_infinity)();
@@ -123,7 +109,6 @@ namespace GiNaC {
 	std::string* (*py_latex_fderivative)(unsigned id, PyObject* params, PyObject* args);
 	PyObject* (*paramset_to_PyTuple)(const GiNaC::paramset &s);
 
-    PyObject* (*py_rational_power_parts)(PyObject* basis, PyObject* exp);
   };
 
   extern py_funcs_struct py_funcs;

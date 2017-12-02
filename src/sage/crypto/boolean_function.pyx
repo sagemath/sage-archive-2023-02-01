@@ -554,6 +554,28 @@ cdef class BooleanFunction(SageObject):
             sage: BooleanFunction('00ab').truth_table(format='hex')
             '00ab'
 
+            sage: H = '0abbacadabbacad0'
+            sage: len(H)
+            16
+            sage: T = BooleanFunction(H).truth_table(format='hex')
+            sage: T == H
+            True
+            sage: H = H * 4
+            sage: len(H)
+            64
+            sage: T = BooleanFunction(H).truth_table(format='hex')
+            sage: T == H
+            True
+            sage: len(T)
+            64
+            sage: H = H * 4
+            sage: len(H)
+            256
+            sage: T = BooleanFunction(H).truth_table(format='hex')
+            sage: T == H
+            True
+            sage: len(T)
+            256
             sage: B.truth_table(format='oct')
             Traceback (most recent call last):
             ...
@@ -564,15 +586,8 @@ cdef class BooleanFunction(SageObject):
         if format == 'int':
             return tuple(map(int,self))
         if format == 'hex':
-            S = ""
             S = ZZ(self.truth_table(),2).str(16)
             S = "0"*((1<<(self._nvariables-2)) - len(S)) + S
-            for 1 <= i < self._truth_table.limbs:
-                if sizeof(long)==4:
-                    t = "%04x"%self._truth_table.bits[i]
-                if sizeof(long)==8:
-                    t = "%08x"%self._truth_table.bits[i]
-                S = t + S
             return S
         raise ValueError("unknown output format")
 

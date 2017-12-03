@@ -2841,3 +2841,83 @@ class Function_cases(GinacFunction):
         return pw(*args)
 
 cases = Function_cases()
+
+
+class Function_crootof(BuiltinFunction):
+    """
+    Formal function holding ``(polynomial, index)`` pairs.
+
+    The expression evaluates to a floating point value that is an
+    approximation to a specific complex root of the polynomial. The
+    ordering is fixed so you always get the same root.
+
+    The functionality is imported from SymPy, see
+    http://docs.sympy.org/latest/_modules/sympy/polys/rootoftools.html
+
+    EXAMPLES::
+
+        sage: c = complex_root_of(x^6 + x + 1, 1); c
+        complex_root_of(x^6 + x + 1, 1)
+        sage: c.n()
+        -0.790667188814418 + 0.300506920309552*I
+        sage: c.n(100)
+        -0.79066718881441764449859281847 + 0.30050692030955162512001002521*I
+        sage: (c^6 + c + 1).n(100) < 1e-25
+        True
+    """
+    def __init__(self):
+        """
+        EXAMPLES::
+
+            sage: loads(dumps(complex_root_of))
+            complex_root_of
+        """
+        BuiltinFunction.__init__(self, "complex_root_of", nargs=2,
+                                   conversions=dict(sympy='CRootOf'))
+
+    def _eval_(self, poly, index):
+        """
+        TESTS::
+
+            sage: _ = var('y')
+            sage: complex_root_of(1, 1)
+            Traceback (most recent call last):
+            ...
+            ValueError: polynomial in one variable required
+            sage: complex_root_of(x+y, 1)
+            Traceback (most recent call last):
+            ...
+            ValueError: polynomial in one variable required
+            sage: complex_root_of(sin(x), 1)
+            Traceback (most recent call last):
+            ...
+            ValueError: polynomial in one variable required
+        """
+        try:
+            vars = poly.variables()
+        except AttributeError:
+            raise ValueError('polynomial in one variable required')
+        if len(vars) != 1 or not poly.is_polynomial(vars[0]):
+            raise ValueError('polynomial in one variable required')
+
+    def _evalf_(self, poly, index, parent=None, algorithm=None):
+        """
+        EXAMPLES::
+
+            sage: complex_root_of(x^2-2, 1).n()
+            1.41421356237310
+            sage: complex_root_of(x^2-2, 3).n()
+            Traceback (most recent call last):
+            ...
+            IndexError: root index out of [-2, 1] range, got 3
+        """
+        from sympy.polys import CRootOf, Poly
+        try:
+            prec = parent.precision()
+        except AttributeError:
+            prec = 53
+        sobj = CRootOf(Poly(poly._sympy_()), int(index))
+        return sobj.n(ceil(prec*3/10))._sage_()
+
+complex_root_of = Function_crootof()
+

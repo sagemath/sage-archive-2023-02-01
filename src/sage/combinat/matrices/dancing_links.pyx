@@ -15,8 +15,8 @@ The number of solutions::
     sage: x.number_of_solutions()
     3
 
-.. WARNING:: 
- 
+.. WARNING::
+
     The way it is coded, it can be iterated through only once. The
     next call to the above function gives wrong result::
 
@@ -398,11 +398,12 @@ cdef class dancing_linksWrapper:
             sage: d.restrict([]).rows()
             [[0, 1, 2], [3, 4, 5], [0, 1], [2, 3, 4, 5], [0], [1, 2, 3, 4, 5]]
         """
-        from copy import deepcopy
-        rows = deepcopy(self._rows)
+        from copy import copy
+        rows = copy(self._rows)
         ncols = self.ncols()
         for i,row_index in enumerate(indices):
-            rows[row_index].append(ncols+i)
+            # in the line below we want the creation of a new list
+            rows[row_index] = rows[row_index] + [ncols+i]
         return dlx_solver(rows)
 
     def split(self, column):
@@ -411,7 +412,7 @@ cdef class dancing_linksWrapper:
 
         For each ``i``-th row containing a ``1`` in the ``column``, the
         dict associates the solver giving all solution using the ``i``-th
-        row. 
+        row.
 
         This is used for parallel computations.
 
@@ -458,6 +459,17 @@ cdef class dancing_linksWrapper:
             ...
             ValueError: column(=6) must be in range(ncols) where ncols=6
 
+        This use to take a lot of time and memory. Not anymore since
+        :trac:`24315`::
+
+            sage: S = Subsets(range(11))
+            sage: rows = map(list, S)
+            sage: dlx = dlx_solver(rows)
+            sage: dlx
+            Dancing links solver for 11 columns and 2048 rows
+            sage: d = dlx.split(0)
+            sage: d[1]
+            Dancing links solver for 12 columns and 2048 rows
         """
         if not 0 <= column < self.ncols():
             raise ValueError("column(={}) must be in range(ncols) "
@@ -525,30 +537,49 @@ cdef class dancing_linksWrapper:
 
             sage: rows = [[0,1,2], [2,3,4,5], [0,1,2,3]]
             sage: d = dlx_solver(rows)
+            sage: d.first_solution_found_in_parallel() is None
+            True
+
+        TESTS::
+
             sage: [d.first_solution_found_in_parallel(column=i) for i in range(6)]
             [None, None, None, None, None, None]
+
+        The preprocess needed to start the parallel computation is not so
+        big (less than 50ms in the example below)::
+
+            sage: S = Subsets(range(11))
+            sage: rows = map(list, S)
+            sage: dlx = dlx_solver(rows)
+            sage: dlx
+            Dancing links solver for 11 columns and 2048 rows
+            sage: sorted(dlx.first_solution_found_in_parallel())
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 
         """
         if column is None:
             from random import randrange
             column = randrange(self.ncols())
-        D = self.split(column)
+
+        if not 0 <= column < self.ncols():
+            raise ValueError("column(={}) must be in range(ncols) "
+                             "where ncols={}".format(column, self.ncols()))
 
         from sage.parallel.decorate import parallel
         @parallel(ncpus=ncpus)
         def first_solution(i):
-            dlx = D[i]
+            dlx = self.restrict([i])
             if dlx.search():
                 return dlx.get_solution()
             else:
                 return None
 
-        K = sorted(D)
-        for ((args, kwds), val) in first_solution(K):
+        indices = [i for (i,row) in enumerate(self._rows) if column in row]
+        for ((args, kwds), val) in first_solution(indices):
             if not val is None:
                 return val
 
-    def _number_of_solutions_iterator(self, ncpus=1, column=0):
+    def _number_of_solutions_iterator(self, ncpus=1, column=None):
         r"""
         Return an iterator over the number of solutions using each row
         containing a ``1`` in the given ``column``.
@@ -557,8 +588,8 @@ cdef class dancing_linksWrapper:
 
         - ``ncpus`` -- integer (default: ``1``), maximal number of
           subprocesses to use at the same time
-        - ``column`` -- integer (default: ``0``), the column used to split
-          the problem
+        - ``column`` -- integer (default: ``None``), the column used to split
+          the problem, if ``None`` a random column is chosen
 
         OUTPUT:
 
@@ -582,17 +613,24 @@ cdef class dancing_linksWrapper:
             sage: sum(b for a,b in d._number_of_solutions_iterator(ncpus=2, column=3))
             52
         """
-        D = self.split(column)
-        from sage.parallel.decorate import parallel
+        if column is None:
+            from random import randrange
+            column = randrange(self.ncols())
 
+        if not 0 <= column < self.ncols():
+            raise ValueError("column(={}) must be in range(ncols) "
+                             "where ncols={}".format(column, self.ncols()))
+
+        from sage.parallel.decorate import parallel
         @parallel(ncpus=ncpus)
         def nb_sol(i):
-            return D[i].number_of_solutions()
-        K = sorted(D)
-        for ((args, kwds), val) in nb_sol(K):
+            return self.restrict([i]).number_of_solutions()
+
+        indices = [i for (i,row) in enumerate(self._rows) if column in row]
+        for ((args, kwds), val) in nb_sol(indices):
             yield args[0], val
 
-    def number_of_solutions(self, ncpus=1, column=0):
+    def number_of_solutions(self, ncpus=1, column=None):
         r"""
         Return the number of distinct solutions.
 
@@ -602,8 +640,9 @@ cdef class dancing_linksWrapper:
           subprocesses to use at the same time. If `ncpus>1` the dancing
           links problem is split into independent subproblems to
           allow parallel computation.
-        - ``column`` -- integer (default: ``0``), the column used to split
-          the problem (ignored if ``ncpus`` is ``1``)
+        - ``column`` -- integer (default: ``None``), the column used to split
+          the problem, if ``None`` a random column is chosen (this argument
+          is ignored if ``ncpus`` is ``1``)
 
         OUTPUT:
 

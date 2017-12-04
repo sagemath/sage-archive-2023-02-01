@@ -47,7 +47,7 @@ static ex lgamma_evalf(const ex & x, PyObject* parent)
 {
 	if (is_exactly_a<numeric>(x)) {
 		try {
-			return lgamma(ex_to<numeric>(x));
+			return lgamma(ex_to<numeric>(x), parent);
 		} catch (const dunno &e) { }
 	}
 	
@@ -62,18 +62,22 @@ static ex lgamma_evalf(const ex & x, PyObject* parent)
 static ex lgamma_eval(const ex & x)
 {
 	if (x.info(info_flags::numeric)) {
-		// trap integer arguments:
-		if (x.info(info_flags::integer)) {
-			// lgamma(n) -> log((n-1)!) for postitive n
-			if (x.info(info_flags::posint))
-				return log(factorial(x + _ex_1));
-			else
-				return Infinity;
-				//throw (pole_error("lgamma_eval(): logarithmic pole",0));
-		}
-		if (!ex_to<numeric>(x).is_exact())
-			return lgamma(ex_to<numeric>(x));
-	}
+                const numeric& num = ex_to<numeric>(x);
+		
+                if (num.is_positive()) {
+                        if (num.is_integer())
+                                return log(factorial(x - _ex1));
+                        if (num.is_exact())
+                                return lgamma(x).hold();
+                        return lgamma(num);
+                }
+                else
+                        if (num.is_integer())
+                                return Infinity;
+                        //throw (pole_error("lgamma_eval(): logarithmic pole",0));
+		if (not num.is_exact())
+			return lgamma(num);
+                }
 	
 	return lgamma(x).hold();
 }

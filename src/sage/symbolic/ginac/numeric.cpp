@@ -289,7 +289,10 @@ int precision(const GiNaC::numeric& num, PyObject*& a_parent) {
                 mprec = PyObject_CallMethod(the_parent, const_cast<char*>("precision"), NULL);
         if (mprec == nullptr) {
                 prec = 53;
-                the_parent = CC_get();
+                if (num.is_real())
+                        the_parent = RR_get();
+                else
+                        the_parent = CC_get();
         }
         else {
                 prec = PyLong_AsLong(mprec);
@@ -432,6 +435,20 @@ PyObject* CoerceBall(PyObject* ball, int prec) {
 namespace GiNaC {
 
 numeric I;
+
+const numeric numeric::arbfunc_0arg(const char* name, PyObject* parent) const
+{
+        int prec = precision(*this, parent);
+        PyObject* field = CBF(prec+15);
+        PyObject* ret = CallBallMethod0Arg(field, name, *this);
+        Py_DECREF(field);
+
+        numeric rnum(ret);
+        if (is_real() or imag().is_zero())
+                return ex_to<numeric>(rnum.real().evalf(0, parent));
+        else
+                return ex_to<numeric>(rnum.evalf(0, parent));
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // class numeric
@@ -3450,16 +3467,27 @@ const numeric numeric::tan() const {
         PY_RETURN(py_funcs.py_tan);
 }
 
-const numeric numeric::asin() const {
-        PY_RETURN(py_funcs.py_asin);
+const numeric numeric::asin(PyObject* parent) const {
+        return arbfunc_0arg("arcsin", parent);
 }
 
-const numeric numeric::acos() const {
-        PY_RETURN(py_funcs.py_acos);
+const numeric numeric::acos(PyObject* parent) const {
+        int prec = precision(*this, parent);
+        PyObject* field = CBF(prec+15);
+        PyObject* ret = CallBallMethod0Arg(field, const_cast<char*>("arccos"), *this);
+        Py_DECREF(field);
+
+        numeric rnum(ret);
+        // necessary because of
+        // https://github.com/fredrik-johansson/arb/issues/198
+        if ((is_real() or imag().is_zero()) and *this > (*_num1_p))
+                return ex_to<numeric>((rnum.imag()*I).evalf(0, parent));
+        else
+                return ex_to<numeric>(rnum.evalf(0, parent));
 }
 
-const numeric numeric::atan() const {
-        PY_RETURN(py_funcs.py_atan);
+const numeric numeric::atan(PyObject* parent) const {
+        return arbfunc_0arg("arctan", parent);
 }
 
 const numeric numeric::atan(const numeric& y) const {
@@ -3478,28 +3506,38 @@ const numeric numeric::tanh() const {
         PY_RETURN(py_funcs.py_tanh);
 }
 
-const numeric numeric::asinh() const {
-        PY_RETURN(py_funcs.py_asinh);
+const numeric numeric::asinh(PyObject* parent) const {
+        return arbfunc_0arg("arcsinh", parent);
 }
 
-const numeric numeric::acosh() const {
-        PY_RETURN(py_funcs.py_acosh);
+const numeric numeric::acosh(PyObject* parent) const {
+        int prec = precision(*this, parent);
+        PyObject* field = CBF(prec+15);
+        PyObject* ret = CallBallMethod0Arg(field, const_cast<char*>("arccosh"), *this);
+        Py_DECREF(field);
+
+        numeric rnum(ret);
+        // necessary because of
+        // https://github.com/fredrik-johansson/arb/issues/198
+        if ((is_real() or imag().is_zero()) and abs()<(*_num1_p))
+                return ex_to<numeric>((rnum.imag()*I).evalf(0, parent));
+        else
+                return ex_to<numeric>(rnum.evalf(0, parent));
 }
 
-const numeric numeric::atanh() const {
-        PY_RETURN(py_funcs.py_atanh);
+const numeric numeric::atanh(PyObject* parent) const {
+        return arbfunc_0arg("arctanh", parent);
 }
 
 const numeric numeric::Li2(const numeric &n, PyObject* parent) const {
         int prec = precision(*this, parent);
         PyObject* field = CBF(prec+15);
-        PyObject* ball = CallBallMethod1Arg(field, const_cast<char*>("polylog"), *this, n);
-        PyObject* ret = CoerceBall(ball, prec);
+        PyObject* ret = CallBallMethod1Arg(field, const_cast<char*>("polylog"), *this, n);
         Py_DECREF(field);
-        Py_DECREF(ball);
 
         numeric rnum(ret);
-        if (is_real() and n.is_integer() and rnum.real()<(*_num1_p))
+        if ((is_real() or imag().is_zero())
+            and n.is_integer() and rnum.real()<(*_num1_p))
                 return ex_to<numeric>(rnum.real().evalf(0, parent));
         else
                 return ex_to<numeric>(rnum.evalf(0, parent));
@@ -3508,43 +3546,19 @@ const numeric numeric::Li2(const numeric &n, PyObject* parent) const {
 const numeric numeric::lgamma(PyObject* parent) const {
         int prec = precision(*this, parent);
         PyObject* field = CBF(prec+15);
-        PyObject* ball = CallBallMethod0Arg(field, const_cast<char*>("log_gamma"), *this);
-        PyObject* ret = CoerceBall(ball, prec);
+        PyObject* ret = CallBallMethod0Arg(field, const_cast<char*>("log_gamma"), *this);
         Py_DECREF(field);
-        Py_DECREF(ball);
 
         numeric rnum(ret);
         return ex_to<numeric>(rnum.evalf(0, parent));
 }
 
 const numeric numeric::gamma(PyObject* parent) const {
-        int prec = precision(*this, parent);
-        PyObject* field = CBF(prec+15);
-        PyObject* ball = CallBallMethod0Arg(field, const_cast<char*>("gamma"), *this);
-        PyObject* ret = CoerceBall(ball, prec);
-        Py_DECREF(field);
-        Py_DECREF(ball);
-
-        numeric rnum(ret);
-        if (is_real())
-                return ex_to<numeric>(rnum.real().evalf(0, parent));
-        else
-                return ex_to<numeric>(rnum.evalf(0, parent));
+        return arbfunc_0arg("gamma", parent);
 }
 
 const numeric numeric::rgamma(PyObject* parent) const {
-        int prec = precision(*this, parent);
-        PyObject* field = CBF(prec+15);
-        PyObject* ball = CallBallMethod0Arg(field, const_cast<char*>("rgamma"), *this);
-        PyObject* ret = CoerceBall(ball, prec);
-        Py_DECREF(field);
-        Py_DECREF(ball);
-
-        numeric rnum(ret);
-        if (is_real())
-                return rnum.real();
-        else
-                return rnum;
+        return arbfunc_0arg("rgamma", parent);
 }
 
 const numeric numeric::psi() const {
@@ -4396,15 +4410,15 @@ const numeric tan(const numeric &x) {
 /** Numeric inverse sine (trigonometric function).
  *
  *  @return  arbitrary precision numerical asin(x). */
-const numeric asin(const numeric &x) {
-        return x.asin();
+const numeric asin(const numeric &x, PyObject* parent) {
+        return x.asin(parent);
 }
 
 /** Numeric inverse cosine (trigonometric function).
  *
  *  @return  arbitrary precision numerical acos(x). */
-const numeric acos(const numeric &x) {
-        return x.acos();
+const numeric acos(const numeric &x, PyObject* parent) {
+        return x.acos(parent);
 }
 
 /** Numeric arcustangent.
@@ -4412,12 +4426,12 @@ const numeric acos(const numeric &x) {
  *  @param x complex number
  *  @return atan(x)
  *  @exception pole_error("atan(): logarithmic pole",0) if x==I or x==-I. */
-const numeric atan(const numeric &x) {
+const numeric atan(const numeric &x, PyObject* parent) {
         if (!x.is_real() &&
                 x.real().is_zero() &&
                 abs(x.imag()).is_one())
                 throw pole_error("atan(): logarithmic pole", 0);
-        return x.atan();
+        return x.atan(parent);
 }
 
 /** Numeric arcustangent of two arguments, analytically continued in a suitable way.
@@ -4455,22 +4469,22 @@ const numeric tanh(const numeric &x) {
 /** Numeric inverse hyperbolic sine (trigonometric function).
  *
  *  @return  arbitrary precision numerical asinh(x). */
-const numeric asinh(const numeric &x) {
-        return x.asinh();
+const numeric asinh(const numeric &x, PyObject* parent) {
+        return x.asinh(parent);
 }
 
 /** Numeric inverse hyperbolic cosine (trigonometric function).
  *
  *  @return  arbitrary precision numerical acosh(x). */
-const numeric acosh(const numeric &x) {
-        return x.acosh();
+const numeric acosh(const numeric &x, PyObject* parent) {
+        return x.acosh(parent);
 }
 
 /** Numeric inverse hyperbolic tangent (trigonometric function).
  *
  *  @return  arbitrary precision numerical atanh(x). */
-const numeric atanh(const numeric &x) {
-        return x.atanh();
+const numeric atanh(const numeric &x, PyObject* parent) {
+        return x.atanh(parent);
 }
 
 

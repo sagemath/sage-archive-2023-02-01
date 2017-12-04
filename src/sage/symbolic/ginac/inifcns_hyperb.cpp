@@ -827,10 +827,12 @@ REGISTER_FUNCTION(acosh, eval_func(acosh_eval).
 
 static ex atanh_eval(const ex & x)
 {
-	if (is_exactly_a<numeric>(x)) {
+        if (is_exactly_a<numeric>(x)) {
+
+                const numeric& num = ex_to<numeric>(x);
 
 		// atanh(0) -> 0
-		if (x.is_zero())
+		if (num.is_zero())
 			return _ex0;
 
 		/*
@@ -840,19 +842,25 @@ static ex atanh_eval(const ex & x)
 		*/
 
 		// atanh(1) -> oo
-		if (x.is_one())
+		if (num.is_one())
 			return Infinity;
 		// atahn(-1) -> -oo
-		if (x.is_minus_one())
+		if (num.is_minus_one())
 			return NegInfinity;
 
-		// atanh(float) -> float
-		if (x.info(info_flags::inexact))
-			return atanh(ex_to<numeric>(x));
+                // atanh(real) outside (-1,1)
+                if (num.is_real() and abs(num) > *_num1_p)
+                        return NaN;
 
 		// atanh() is odd
-		if (x.info(info_flags::negative))
+		if (num.is_negative())
 			return -atanh(-x);
+
+		// atanh(float) -> float
+		if (not num.is_exact())
+			return atanh(num);
+                else
+                        return atanh(x).hold();
 	}
 	
 	// atanh(oo) -> -i*pi/2

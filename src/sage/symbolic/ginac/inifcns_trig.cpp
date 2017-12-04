@@ -1107,6 +1107,15 @@ REGISTER_FUNCTION(csc, eval_func(csc_eval).
 // inverse sine (arc sine)
 //////////
 
+// Needed because there is no RR member
+static ex asin_evalf(const ex & x, PyObject* parent)
+{
+	if (is_exactly_a<numeric>(x))
+		return asin(ex_to<numeric>(x), parent);
+
+	return asin(x).hold();
+}
+
 static ex asin_eval(const ex & x)
 {
         // asin() is odd
@@ -1175,6 +1184,7 @@ static ex asin_conjugate(const ex & x)
 }
 
 REGISTER_FUNCTION(asin, eval_func(asin_eval).
+                        evalf_func(asin_evalf).
                         derivative_func(asin_deriv).
                         conjugate_func(asin_conjugate).
 			set_name("arcsin", "\\arcsin"));
@@ -1573,7 +1583,13 @@ REGISTER_FUNCTION(acot, eval_func(acot_eval).
 static ex asec_evalf(const ex & x, PyObject* parent)
 {
 	if (is_exactly_a<numeric>(x))
-		return acos(ex_to<numeric>(x).inverse());
+        {
+                numeric num = ex_to<numeric>(x);
+                if (num.is_real()
+                    and (num > *_num_1_p and num < *_num1_p))
+                        return NaN;
+                return acos(num.inverse());
+        }
 
 	return asec(x).hold();
 }
@@ -1589,7 +1605,7 @@ static ex asec_eval(const ex & x)
                 if (num.is_equal(*_num_1_p))
                         return Pi;
                 if (num.info(info_flags::inexact))
-                        return acos(num.inverse());
+                        return asec_evalf(x, nullptr);
 	}
 
 	if (x.info(info_flags::infinity)) {

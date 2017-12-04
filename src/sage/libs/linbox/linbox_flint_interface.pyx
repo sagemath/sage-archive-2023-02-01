@@ -89,7 +89,7 @@ cdef extern from "linbox/polynomial/dense-polynomial.h":
 
 cdef extern from "linbox/ring/polynomial-ring.h":
     ## template <class BaseRing, class StorageTag= Givaro::Dense>
-    ##	class PolynomialRing : public Givaro::Poly1FactorDom<BaseRing,StorageTag>
+    ## class PolynomialRing : public Givaro::Poly1FactorDom<BaseRing,StorageTag>
     cdef cppclass LinBoxIntegerPolynomialRing "LinBox::PolynomialRing<Givaro::ZRing<Givaro::Integer>, Givaro::Dense>":
         ctypedef LinBoxIntegerDensePolynomial Element
         ctypedef LinBoxIntegerDensePolynomial Polynomial

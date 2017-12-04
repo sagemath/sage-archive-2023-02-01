@@ -5040,3 +5040,11 @@ additional features and other improvements.
    An older version of this paper appears in *In and out of Equilibrium II*,
    Eds. V. Sidoravicius, M. E. Vares, in the Series Progress in Probability,
    Birkhauser (2008).
+
+
+.. [PPW2013] D. Perkinson, J. Perlman, and J. Wilmes.
+             *Primer for the algebraic geometry of sandpiles*.
+             Tropical and Non-Archimedean
+             Geometry, Contemp. Math., 605, Amer. Math. Soc.,
+             Providence, RI, 2013.
+             :arxiv:`1112.6163`.

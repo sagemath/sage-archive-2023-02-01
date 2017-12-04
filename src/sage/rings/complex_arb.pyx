@@ -142,17 +142,25 @@ cimport sage.rings.rational
 from cpython.float cimport PyFloat_AS_DOUBLE
 from cpython.int cimport PyInt_AS_LONG
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
+from cpython.complex cimport PyComplex_FromDoubles
+
+from sage.ext.stdsage cimport PY_NEW
 
 from sage.libs.mpfr cimport MPFR_RNDU
+from sage.libs.arb.types cimport ARF_RND_NEAR
 from sage.libs.arb.arb cimport *
 from sage.libs.arb.acb cimport *
 from sage.libs.arb.acb_hypgeom cimport *
 from sage.libs.arb.acb_modular cimport *
-from sage.libs.arb.arf cimport arf_init, arf_get_mpfr, arf_set_mpfr, arf_clear, arf_set_mag, arf_set, arf_is_nan
+from sage.libs.arb.arf cimport arf_init, arf_get_d, arf_get_mpfr, arf_set_mpfr, arf_clear, arf_set_mag, arf_set, arf_is_nan
 from sage.libs.arb.mag cimport mag_init, mag_clear, mag_add, mag_set_d, MAG_BITS, mag_is_inf, mag_is_finite, mag_zero
 from sage.libs.flint.fmpz cimport fmpz_t, fmpz_init, fmpz_get_mpz, fmpz_set_mpz, fmpz_clear, fmpz_abs
 from sage.libs.flint.fmpq cimport fmpq_t, fmpq_init, fmpq_set_mpq, fmpq_clear
 from sage.libs.gmp.mpz cimport mpz_fits_ulong_p, mpz_fits_slong_p, mpz_get_ui, mpz_get_si, mpz_sgn
+from sage.libs.gsl.complex cimport gsl_complex_rect
+
+from sage.rings.real_double cimport RealDoubleElement
+from sage.rings.complex_double cimport ComplexDoubleElement
 from sage.rings.complex_field import ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.integer_ring import ZZ
@@ -921,6 +929,13 @@ cdef class ComplexBall(RingElement):
             0.333333333333333 + 0.333333333333333*I
             sage: ComplexField(100)(CBF(1/3, 1/3))
             0.33333333333333331482961625625 + 0.33333333333333331482961625625*I
+
+        Check nan and inf::
+
+            sage: CC(CBF('nan', 1/3))
+            NaN + 0.333333333333333*I
+            sage: CC(CBF('+inf'))
+            +infinity
         """
         real_field = parent._base
         return parent(real_field(self.real()), real_field(self.imag()))
@@ -983,15 +998,16 @@ cdef class ComplexBall(RingElement):
 
             sage: float(CBF(1))
             1.0
+            sage: float(CBF(1/3))
+            0.3333333333333333
             sage: float(CBF(1,1))
             Traceback (most recent call last):
             ...
             TypeError: can't convert complex ball to float
         """
-        if self.imag() == 0:
-            return float(self.n(prec(self)))
-        else:
+        if not arb_is_zero(acb_imagref(self.value)):
             raise TypeError("can't convert complex ball to float")
+        return arf_get_d(arb_midref(acb_realref(self.value)), ARF_RND_NEAR)
 
     def __complex__(self):
         """
@@ -1003,8 +1019,98 @@ cdef class ComplexBall(RingElement):
             (1+0j)
             sage: complex(CBF(1,1))
             (1+1j)
+
+        Check nan and inf::
+
+            sage: complex(CBF(0, 'nan'))
+            nanj
+            sage: complex(CBF('+inf', '-inf'))
+            (inf-infj)
         """
-        return complex(self.n(prec(self)))
+        return PyComplex_FromDoubles(
+                arf_get_d(arb_midref(acb_realref(self.value)), ARF_RND_NEAR),
+                arf_get_d(arb_midref(acb_imagref(self.value)), ARF_RND_NEAR))
+
+    def _real_double_(self, parent):
+        r"""
+        Convert this complex ball to a real double.
+
+        EXAMPLES::
+
+            sage: RDF(CBF(3))
+            3.0
+            sage: RDF(CBF(3/7))
+            0.42857142857142855
+            sage: RDF(CBF(1 + I))
+            Traceback (most recent call last):
+            ...
+            TypeError: can't convert complex ball to float
+
+            sage: RDF(CBF(3)).parent()
+            Real Double Field
+
+        Check nan and inf::
+
+            sage: RDF(CBF('nan'))
+            NaN
+            sage: RDF(CBF('nan')).parent()
+            Real Double Field
+            sage: RDF(CBF('+inf'))
+            +infinity
+            sage: RDF(CBF('+inf')).parent()
+            Real Double Field
+
+        TESTS:
+
+        Check that conversions go through this method::
+
+            sage: RDF.convert_map_from(CBF)
+            Conversion via _real_double_ method map:
+              From: Complex ball field with 53 bits of precision
+              To:   Real Double Field
+        """
+        if not arb_is_zero(acb_imagref(self.value)):
+            raise TypeError("can't convert complex ball to float")
+        cdef RealDoubleElement x
+        x = PY_NEW(RealDoubleElement)
+        x._value = arf_get_d(arb_midref(acb_realref(self.value)), ARF_RND_NEAR)
+        return x
+
+    def _complex_double_(self, parent):
+        r"""
+        Convert this complex ball to a complex double.
+
+        EXAMPLES::
+
+            sage: CDF(CBF(1+I))
+            1.0 + 1.0*I
+            sage: CDF(CBF(3/7, -21/13))
+            0.42857142857142855 - 1.6153846153846152*I
+
+        Check nan and inf::
+
+            sage: CDF(CBF('nan', 'nan'))
+            NaN + NaN*I
+            sage: CDF(CBF('+inf', 'nan'))
+            +infinity + NaN*I
+            sage: CDF(CBF('+inf', '-inf'))
+            +infinity - +infinity*I
+
+        TESTS:
+
+        The conversion map should go through this method. However, it is
+        manually called in the constructor of complex double elements::
+
+            sage: CDF.convert_map_from(CBF)  # bug
+            Conversion map:
+              From: Complex ball field with 53 bits of precision
+              To:   Complex Double Field
+        """
+        cdef ComplexDoubleElement x = ComplexDoubleElement.__new__(ComplexDoubleElement)
+        x._complex = gsl_complex_rect(
+                arf_get_d(arb_midref(acb_realref(self.value)), ARF_RND_NEAR),
+                arf_get_d(arb_midref(acb_imagref(self.value)), ARF_RND_NEAR))
+        return x
 
     # Real and imaginary part, midpoint, radius
 

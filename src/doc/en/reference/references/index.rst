@@ -1850,10 +1850,12 @@ REFERENCES:
 .. [Pos2005] \A. Postnikov, Affine approach to quantum Schubert
              calculus, Duke Math. J. 128 (2005) 473-509
 
-.. [PPW2013] Perlman, Perkinson, and Wilmes.  Primer for the algebraic
-             geometry of sandpiles. Tropical and Non-Archimedean
+.. [PPW2013] D. Perkinson, J. Perlman, and J. Wilmes.
+             *Primer for the algebraic geometry of sandpiles*.
+             Tropical and Non-Archimedean
              Geometry, Contemp. Math., 605, Amer. Math. Soc.,
              Providence, RI, 2013.
+             :arxiv:`1112.6163`
 
 .. [PR2015] \P. Pilarczyk and P. Réal, *Computation of cubical
             homology, cohomology, and (co)homological operations via

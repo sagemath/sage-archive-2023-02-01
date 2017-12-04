@@ -240,9 +240,8 @@ class AbstractPartitionDiagram(SetPartition):
         super(AbstractPartitionDiagram, self).__init__(parent, self._base_diagram)
 
     # add options to class
-    options=GlobalOptions('Brauer diagram', option_class='AbstractPartitionDiagram',
-        module='sage.combinat.diagram_algebras',
-        doc=r"""
+    class options(GlobalOptions):
+        r"""
         Set and display the global options for Brauer diagram (algebras). If no
         parameters are set, then the function returns a copy of the options
         dictionary.
@@ -250,8 +249,9 @@ class AbstractPartitionDiagram(SetPartition):
         The ``options`` to diagram algebras can be accessed as the method
         :obj:`BrauerAlgebra.options` of :class:`BrauerAlgebra` and
         related classes.
-        """,
-        end_doc=r"""
+
+        @OPTIONS@
+
         EXAMPLES::
 
             sage: R.<q> = QQ[]
@@ -259,17 +259,19 @@ class AbstractPartitionDiagram(SetPartition):
             sage: E = BA([[1,2],[-1,-2]])
             sage: E
             B{{-2, -1}, {1, 2}}
-            sage: BrauerAlgebra.options.display="compact"
-            sage: E
+            sage: BrauerAlgebra.options.display="compact"  # known bug (Trac #24323)
+            sage: E                                        # known bug (Trac #24323)
             B[12/12;]
-            sage: BrauerAlgebra.options._reset()
-        """,
-        display=dict(default="normal",
+            sage: BrauerAlgebra.options._reset()           # known bug (Trac #24323)
+        """
+        NAME = 'Brauer diagram'
+        module = 'sage.combinat.diagram_algebras'
+        option_class='AbstractPartitionDiagram'
+        display = dict(default="normal",
                        description='Specifies how the Brauer diagrams should be printed',
                        values=dict(normal="Using the normal representation",
                                    compact="Using the compact representation"),
-                                   case_sensitive=False),
-    )
+                                   case_sensitive=False)
 
     def check(self):
         r"""

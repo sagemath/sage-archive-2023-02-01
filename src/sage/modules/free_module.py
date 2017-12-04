@@ -7360,8 +7360,10 @@ class total_module_order(object):
     """
     A total ordering on free modules for sorting.
 
-    Modules are ordered by their ambient spaces, then by dimension,
-    then in order by their echelon matrices.
+    This class orders modules by their ambient spaces, then by dimension,
+    then in order by their echelon matrices. If a function returns a list of 
+    free modules, this can be used to sort the output and thus render 
+    it deterministic.
 
     INPUT:
 
@@ -7383,7 +7385,18 @@ class total_module_order(object):
     """
     def __init__(self, obj):
         """
-        Initialization
+        Create a container for a free module with a total ordering.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: V = span(R,[[x,1+x],[x^2,2+x]])
+            sage: W = RR^2
+            sage: from sage.modules.free_module import total_module_order
+            sage: V = total_module_order(V)
+            sage: W = total_module_order(W)
+            sage: V < W
+            True
         """
         self.obj = obj
 

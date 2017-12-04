@@ -1,5 +1,5 @@
 diff --git a/linbox/solutions/charpoly.h b/linbox/solutions/charpoly.h
-index 9e6e5dd..f3d6aba 100644
+index 9e6e5dd..8663ac8 100644
 --- a/linbox/solutions/charpoly.h
 +++ b/linbox/solutions/charpoly.h
 @@ -194,7 +194,21 @@ namespace LinBox
@@ -25,7 +25,7 @@ index 9e6e5dd..f3d6aba 100644
  	Polynomial& charpoly (Polynomial                       & P,
  						  const Blackbox                   & A,
  						  const RingCategories::IntegerTag & tag,
-@@ -395,40 +409,38 @@ namespace LinBox
+@@ -395,40 +409,39 @@ namespace LinBox
  	}
  
  
@@ -68,6 +68,7 @@ index 9e6e5dd..f3d6aba 100644
  		double hadamarcp = n/2.0*(log(double(n))+2*log(double(max))+0.21163275)/log(2.0);
 -
 -
++        if (!n) hadamarcp = 1;
  		ChineseRemainder< FullMultipCRA<Givaro::Modular<double> > > cra(hadamarcp);
 +#else
 +            // Early terminated Chinese remaindering disabled for the moment (waiting to pass a switch in the method)

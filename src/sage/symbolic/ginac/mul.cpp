@@ -668,12 +668,21 @@ ex mul::eval(int level) const
 		           setflag(status_flags::dynallocated);
 	}
 	
-	// handle infinity and handle exp(a)*exp(b) -> exp(a+b) and
+	// handle infinity, simple way
+        if (std::any_of(seq.cbegin(), seq.cend(),
+                        [](expair p)
+                                { return is_exactly_a<infinity>(p.rest); })) {
+                infinity result = infinity::from_sign(1);
+                result *= overall_coeff;
+                for (auto p : seq)
+		        result *= recombine_pair_to_ex(p);
+                return result;
+        }
+
+        // handle exp(a)*exp(b) -> exp(a+b) and
 	unsigned exp_count = 0;
 	for (auto i = seq.begin(); i != seq.end(); i++) {
 		const numeric& num_coeff = ex_to<numeric>(i->coeff);
-		if (unlikely(is_exactly_a<infinity>(i->rest)))
-			return eval_infinity(i);
 		if (unlikely(is_ex_the_function(i->rest, exp) and
 			     num_coeff.is_integer())) {
 			exp_count++;
@@ -835,23 +844,6 @@ ex mul::eval_exponentials() const
 	mul * result = new mul(s, overall_coeff.mul(oc));
 	return result->setflag(status_flags::dynallocated);
 }
-
-
-ex mul::eval_infinity(epvector::const_iterator infinity_iter) const
-{
-	GINAC_ASSERT(is_exactly_a<infinity>(infinity_iter->rest));
-	GINAC_ASSERT(infinity_iter->coeff.is_one());
-	infinity result(ex_to<numeric>(
-                ex_to<infinity>(infinity_iter->rest).get_direction()));
-        result *= overall_coeff;
-
-	for (auto i = seq.begin(); i != seq.end(); i++) {
-		if (i == infinity_iter) continue;
-		result *= recombine_pair_to_ex(*i);
-	}
-	return result;
-}
-
 
 ex mul::evalf(int level, PyObject* parent) const
 {
@@ -1242,8 +1234,11 @@ expair mul::combine_pair_with_coeff_to_pair(const expair & p,
 	
 ex mul::recombine_pair_to_ex(const expair & p) const
 {
-        if (unlikely(is_exactly_a<infinity>(p.rest)))
-                return (new infinity(ex_to<numeric>(p.coeff)))->setflag(status_flags::evaluated|status_flags::dynallocated);
+        if (unlikely(is_exactly_a<infinity>(p.rest))) {
+                infinity res = ex_to<infinity>(p.rest);
+                res *= p.coeff;
+                return res;
+        }
 	if (p.coeff.is_one()) 
 		return p.rest;
 	else

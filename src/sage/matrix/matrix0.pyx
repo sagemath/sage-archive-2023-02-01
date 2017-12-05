@@ -31,6 +31,7 @@ import sage.modules.free_module
 import sage.misc.latex
 import sage.rings.integer
 
+from sage.arith.power cimport generic_power
 from sage.misc.misc import verbose, get_verbose
 from sage.structure.sequence import Sequence
 
@@ -5371,7 +5372,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         if isinstance(n, Expression):
             from sage.matrix.matrix2 import _matrix_power_symbolic
             return _matrix_power_symbolic(self, n)
-        return sage.structure.element.generic_power_c(self, n, None)
+        return generic_power(self, n)
 
     ###################################################
     # Comparison

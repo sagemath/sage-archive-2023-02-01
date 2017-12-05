@@ -283,5 +283,3 @@ cdef class CoercionModel:
     cpdef richcmp(self, x, y, int op)
 
 cdef CoercionModel coercion_model
-
-cdef generic_power_c(a, nn, one)

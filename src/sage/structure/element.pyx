@@ -305,7 +305,7 @@ from sage.misc import sageinspect
 from sage.misc.classcall_metaclass cimport ClasscallMetaclass
 from sage.misc.superseded import deprecated_function_alias
 from sage.arith.long cimport integer_check_long_py
-from sage.arith.power cimport generic_power
+from sage.arith.power cimport generic_power as arith_generic_power
 from sage.arith.numerical_approx cimport digits_to_bits
 from sage.misc.decorators import sage_wraps
 
@@ -2292,7 +2292,7 @@ cdef class MonoidElement(Element):
         """
         if dummy is not None:
             raise RuntimeError("__pow__ dummy argument not used")
-        return generic_power(self, n)
+        return arith_generic_power(self, n)
 
     def powers(self, n):
         r"""
@@ -2445,7 +2445,7 @@ cdef class RingElement(ModuleElement):
         """
         if dummy is not None:
             raise RuntimeError("__pow__ dummy argument not used")
-        return generic_power(self, n)
+        return arith_generic_power(self, n)
 
     def powers(self, n):
         r"""
@@ -4093,7 +4093,7 @@ def coerce_binop(method):
 
 ###############################################################################
 
-def generic_power_deprecated(a, n, one=None):
+def generic_power(a, n, one=None):
     """
     Computes `a^n`, where `n` is an integer, and `a` is an object which
     supports multiplication.  Optionally an additional argument,
@@ -4135,9 +4135,5 @@ def generic_power_deprecated(a, n, one=None):
         if not n:
             return one
         if n < 0:
-            return ~generic_power(a, -n)
-    return generic_power(a, n)
-
-# Assign to globals() to avoid a conflict with the
-# cimported generic_power.
-globals()["generic_power"] = generic_power_deprecated
+            return ~arith_generic_power(a, -n)
+    return arith_generic_power(a, n)

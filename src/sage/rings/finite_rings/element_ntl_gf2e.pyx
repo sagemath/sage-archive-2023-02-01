@@ -45,6 +45,7 @@ from sage.interfaces.gap import is_GapElement
 
 from sage.misc.randstate import current_randstate
 from sage.arith.long cimport pyobject_to_long
+from sage.arith.power cimport generic_power
 
 from .element_ext_pari import FiniteField_ext_pariElement
 from .element_pari_ffelt import FiniteFieldElement_pari_ffelt
@@ -822,9 +823,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             s = <FiniteField_ntl_gf2eElement?>self
             exp_int = pyobject_to_long(exp)
         except (OverflowError, TypeError):
-            # we could try to factor out the order first
-            from sage.groups.generic import power
-            return power(self, exp)
+            return generic_power(self, exp)
         else:
             if exp_int < 0 and GF2E_IsZero(s.x):
                 raise ZeroDivisionError('division by zero in finite field')

@@ -57,13 +57,28 @@ cpdef generic_power(a, n):
 
         sage: generic_power(int(5), 0)
         1
+        sage: generic_power(2, 5/4)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: non-integral exponents not supported
+
+    ::
+
+        sage: class SymbolicMul(str):
+        ....:     def __mul__(self, other):
+        ....:         s = "({}*{})".format(self, other)
+        ....:         return type(self)(s)
+        sage: x = SymbolicMul("x")
+        sage: print(generic_power(x, 7))
+        (((x*x)*(x*x))*((x*x)*x))
     """
     if not n:
         return one(a)
 
     cdef long value = 0
     cdef int err
-    integer_check_long(n, &value, &err)
+    if not integer_check_long(n, &value, &err):
+        raise NotImplementedError("non-integral exponents not supported")
     if not err:
         return generic_power_long(a, value)
 
@@ -105,7 +120,7 @@ cdef generic_power_pos(a, ulong_or_object n):
         sig_check()
         apow *= apow
         if n & 1:
-            res *= apow
+            res = apow * res
         n >>= 1
 
     return res

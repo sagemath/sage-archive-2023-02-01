@@ -915,3 +915,192 @@ class LocalGeneric(CommutativeRing):
                 tester.assertEqual(y.valuation(), 0)
             z = y.residue()
             tester.assertEqual(x, z)
+
+    def _matrix_smith_form(self, M, transformation, integral):
+        r"""
+        Return the Smith normal form of the matrix ``M``.
+
+        This method gets called by
+        :meth:`sage.matrix.matrix2.Matrix.smith_form` to compute the Smith
+        normal form over local rings and fields.
+
+        The entries of the Smith normal form are normalized such that non-zero
+        entries of the diagonal are powers of the distinguished uniformizer.
+
+        INPUT:
+
+        - ``M`` -- a matrix over this ring
+
+        - ``transformation`` -- a boolean; whether the transformation matrices
+        are returned
+
+        - ``integral`` -- a subring of the base ring or ``True``; the entries
+        of the transformation matrices are in this ring.  If ``True``, the
+        entries are in the ring of integers of the base ring.
+
+        EXAMPLES::
+
+            sage: A = Zp(5, prec=10, print_mode="digits")
+            sage: M = matrix(A, 2, 2, [2, 7, 1, 6])
+
+            sage: S, L, R = M.smith_form()  # indirect doctest
+            sage: S
+            [ ...1     0]
+            [    0 ...10]
+            sage: L
+            [...222222223          ...]
+            [...444444444         ...2]
+            sage: R
+            [         ...1 ...2222222214]
+            [            0          ...1]
+
+        If not needed, it is possible to avoid the computation of
+        the transformations matrices `L` and `R`::
+
+            sage: M.smith_form(transformation=False)  # indirect doctest
+            [ ...1     0]
+            [    0 ...10]
+
+        This method works for rectangular matrices as well::
+
+            sage: M = matrix(A, 3, 2, [2, 7, 1, 6, 3, 8])
+            sage: S, L, R = M.smith_form()  # indirect doctest
+            sage: S
+            [ ...1     0]
+            [    0 ...10]
+            [    0     0]
+            sage: L
+            [...222222223          ...          ...]
+            [...444444444         ...2          ...]
+            [...444444443         ...1         ...1]
+            sage: R
+            [         ...1 ...2222222214]
+            [            0          ...1]
+
+        An error is raised if the precision on the entries is
+        not enough to determine the Smith normal form::
+
+            sage: M = matrix(A, 2, 2, [1, 1, 1, 1])
+            sage: M.smith_form()  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            PrecisionError: not enough precision to compute Smith normal form
+
+        """
+        if integral is None:
+            integral = self
+        if integral is True:
+            integral = self.integer_ring()
+        if integral is not self and integral is not self.integer_ring():
+            raise NotImplementedError("Smith normal form over this subring")
+
+        n = M.nrows()
+        m = M.ncols()
+        S = M.parent()(M.list())
+        smith = M.parent()(0)
+        R = M.base_ring()
+        if R.tracks_precision():
+            precM = min([ x.precision_absolute() for x in M.list() ])
+
+        if transformation:
+            from sage.matrix.special import identity_matrix
+            left = identity_matrix(R,n)
+            right = identity_matrix(R,m)
+
+        from sage.rings.all import Infinity
+        val = -Infinity
+        for piv in range(min(n,m)):
+            curval = Infinity
+            pivi = pivj = piv
+            for i in range(piv,n):
+                for j in range(piv,m):
+                    v = S[i,j].valuation()
+                    if v < curval:
+                        pivi = i; pivj = j
+                        curval = v
+                        if v == val: break
+                else:
+                    continue
+                break
+            val = curval
+
+            if R.tracks_precision() and precM is not Infinity and val >= precM:
+                from .precision_error import PrecisionError
+                raise PrecisionError("not enough precision to compute Smith normal form")
+
+            if val is Infinity:
+                break
+
+            S.swap_rows(pivi,piv)
+            S.swap_columns(pivj,piv)
+            if transformation:
+                left.swap_rows(pivi,piv)
+                right.swap_columns(pivj,piv)
+
+            smith[piv,piv] = R(1) << val
+            inv = ~(S[piv,piv] >> val)
+            for i in range(piv+1,n):
+                scalar = -inv * (S[i,piv] >> val)
+                if R.tracks_precision():
+                    scalar = scalar.lift_to_precision()
+                S.add_multiple_of_row(i,piv,scalar,piv+1)
+                if transformation:
+                    left.add_multiple_of_row(i,piv,scalar)
+            if transformation:
+                left.rescale_row(piv,inv)
+                for j in range(piv+1,m):
+                    scalar = -inv * (S[piv,j] >> val)
+                    if R.tracks_precision():
+                        scalar = scalar.lift_to_precision()
+                    right.add_multiple_of_column(j,piv,scalar)
+
+        if transformation:
+            if R.tracks_precision() and precM is not Infinity:
+                left = left.apply_map(lambda x: x.add_bigoh(precM-val))
+            left = left.change_ring(integral)
+            right = right.change_ring(integral)
+            return smith, left, right
+        else:
+            return smith
+
+    def _test_matrix_smith(self, **options):
+        r"""
+        Test that :meth:`_matrix_smith_form` works correctly.
+
+        EXAMPLES::
+
+            sage: ZpCA(5, 15)._test_matrix_smith()
+
+        """
+        tester = self._tester(**options)
+        tester.assertEqual(self.residue_field().characteristic(), self.residue_characteristic())
+
+        from itertools import chain
+        from sage.all import MatrixSpace
+        from .precision_error import PrecisionError
+        matrices = chain(*[MatrixSpace(self, n, m).some_elements() for n in (1,3,7) for m in (1,4,7)])
+        for M in tester.some_elements(matrices):
+            bases = [self]
+            if self is not self.integer_ring():
+                bases.append(self.integer_ring())
+            for base in bases:
+                try:
+                    S,U,V = M.smith_form(integral=base)
+                except PrecisionError:
+                    continue
+
+                if self.is_exact() or self.tracks_precision():
+                    tester.assertEqual(U*M*V, S)
+
+                tester.assertEqual(U.nrows(), U.ncols())
+                tester.assertEqual(U.base_ring(), base)
+
+                tester.assertEqual(V.nrows(), V.ncols())
+                tester.assertEqual(V.base_ring(), base)
+
+                for d in S.diagonal():
+                    if not d.is_zero():
+                        tester.assertTrue(d.unit_part().is_one())
+
+                for (d,dd) in zip(S.diagonal(), S.diagonal()[1:]):
+                    tester.assertTrue(d.divides(dd))

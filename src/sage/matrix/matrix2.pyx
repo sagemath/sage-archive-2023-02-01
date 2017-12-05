@@ -13263,26 +13263,26 @@ cdef class Matrix(Matrix1):
         INPUT:
 
         - ``transformation`` -- a boolean (default: ``True``); whether the
-        matrices `U` and `V` should be returned
+          matrices `U` and `V` should be returned
 
-        - ``integral`` -- a subring of the base ring or ``True`` (default: ``None``); the
-        entries of `U` and `V` are taken from this subring. If ``True``, then
-        the entries are taken from the canonical ring of integers of the base ring.
+        - ``integral`` -- a subring of the base ring or ``True``
+          (default: ``None``); the entries of `U` and `V` are taken
+          from this subring. If ``True``, then the entries are taken
+          from the canonical ring of integers of the base ring.
 
         OUTPUT:
 
         The matrices `S, U, V` or the matrix `S` depending on
         ``transformation``.
 
-        ALGORITHM: Lifted wholesale from :wikipedia:`Smith_normal_form`
+        ALGORITHM:
 
         If the base ring has a method ``_matrix_smith_form``, use it; note that
         ``_matrix_smith_form`` might choose to further normalize the output,
         e.g., over local rings, the diagonal of `S` only contains powers of the
         uniformizer. See ``_matrix_smith_form`` for more detail.
 
-        Otherwise, use the lifted wholesale from
-        http://en.wikipedia.org/wiki/Smith_normal_form
+        Otherwise, use the algorithm from :wikipedia:`Smith_normal_form`
 
         AUTHORS:
 

@@ -561,16 +561,10 @@ cdef class BooleanFunction(SageObject):
             sage: T == H
             True
             sage: H = H * 4
-            sage: len(H)
-            64
             sage: T = BooleanFunction(H).truth_table(format='hex')
             sage: T == H
             True
-            sage: len(T)
-            64
             sage: H = H * 4
-            sage: len(H)
-            256
             sage: T = BooleanFunction(H).truth_table(format='hex')
             sage: T == H
             True

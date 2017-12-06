@@ -265,9 +265,8 @@ def lift_for_SL(A, N=None):
         U = diag * U
     if V.det() == -1:
         V = V * diag
-    D = U * AZZ * V
 
-    a = [D[i, i] for i in range(m)]
+    a = [U.row(i) * AZZ * V.column(i) for i in range(m)]
     b = prod(a[1:])
 
     Winv = identity_matrix(m)

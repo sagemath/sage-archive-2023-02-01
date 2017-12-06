@@ -1653,8 +1653,13 @@ REGISTER_FUNCTION(asec, eval_func(asec_eval).
 // Needed because there is no Python RR equivalent
 static ex acsc_evalf(const ex & x, PyObject* parent)
 {
-	if (is_exactly_a<numeric>(x))
-		return asin(ex_to<numeric>(x).inverse());
+	if (is_exactly_a<numeric>(x)) {
+                const numeric& num = ex_to<numeric>(x);
+                if (num.is_real()
+                    and (num > *_num_1_p and num < *_num1_p))
+                        return NaN;
+		return asin(num.inverse());
+        }
 
 	return acsc(x).hold();
 }

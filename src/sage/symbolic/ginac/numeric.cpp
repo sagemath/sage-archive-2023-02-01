@@ -3468,6 +3468,8 @@ const numeric numeric::tan() const {
 }
 
 const numeric numeric::asin(PyObject* parent) const {
+        if (is_real() and (*this < (*_num_1_p) or *this > (*_num1_p)))
+                return ex_to<numeric>(NaN.evalf(0, parent));
         return arbfunc_0arg("arcsin", parent);
 }
 

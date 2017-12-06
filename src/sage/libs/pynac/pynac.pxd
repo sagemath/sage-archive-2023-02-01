@@ -362,7 +362,7 @@ cdef extern from "pynac_wrap.h":
     GEx g_zeta2 "GiNaC::zeta" (GEx m, GEx s)            except + # alternating Euler sum
     GEx g_stieltjes "GiNaC::stieltjes" (GEx m)          except + # Stieltjes constants
     GEx g_zetaderiv "GiNaC::zetaderiv" (GEx n, GEx x)   except + # derivatives of Riemann's zeta function
-    GEx g_tgamma "GiNaC::tgamma" (GEx x)                except + # gamma function
+    GEx g_gamma "GiNaC::gamma" (GEx x)                  except + # gamma function
     GEx g_lgamma "GiNaC::lgamma" (GEx x)                except + # logarithm of gamma function
     GEx g_beta "GiNaC::beta" (GEx x, GEx y)             except + # beta function (tgamma(x)*tgamma(y)/tgamma(x+y))
     GEx g_psi "GiNaC::psi" (GEx x)                      except + # psi (digamma) function

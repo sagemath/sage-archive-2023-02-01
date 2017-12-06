@@ -186,7 +186,7 @@ def lift_ramified(g, p, u, n):
     return [a,b,c,d]
 
 
-def lift_for_SL(A):
+def lift_for_SL(A, N=None):
     r"""
     Lift a matrix `A` from `SL_m(\ZZ / N\ZZ)` to `SL_m(\ZZ)`.
 
@@ -194,7 +194,10 @@ def lift_for_SL(A):
 
     INPUT:
 
-    - ``A`` -- a square matrix with coefficients in `\ZZ / N\ZZ`
+    - ``A`` -- a square matrix with coefficients in `\ZZ / N\ZZ` (or `\ZZ`)
+
+    - ``N`` -- the modulus (optional) required only if the matrix ``A``
+      has coefficients in `\ZZ`
 
     EXAMPLES::
 
@@ -219,6 +222,11 @@ def lift_for_SL(A):
 
     TESTS::
 
+        sage: lift_for_SL(matrix(3,3,[1,2,0,3,4,0,0,0,1]),3)
+        [10 14  3]
+        [ 9 10  3]
+        [ 3  3  1]
+
         sage: A = matrix(Zmod(7), 2, [1,0,0,1])
         sage: L = lift_for_SL(A)
         sage: L.parent()
@@ -227,12 +235,24 @@ def lift_for_SL(A):
         sage: A = matrix(Zmod(7), 1, [1])
         sage: L = lift_for_SL(A); L
         [1]
+
+        sage: A = matrix(ZZ, 2, [1,0,0,1])
+        sage: lift_for_SL(A)
+        Traceback (most recent call last):
+        ...
+        ValueError: you must choose the modulus
     """
     from sage.matrix.constructor import matrix
-    from sage.matrix.special import identity_matrix, diagonal_matrix, block_diagonal_matrix
+    from sage.matrix.special import (identity_matrix, diagonal_matrix,
+                                     block_diagonal_matrix)
     from sage.misc.misc_c import prod
 
-    N = A.parent().base_ring().characteristic()
+    ring = A.parent().base_ring()
+    if N is None:
+        if ring is ZZ:
+            raise ValueError('you must choose the modulus')
+        else:
+            N = ring.characteristic()
 
     m = A.nrows()
     if m == 1:
@@ -260,7 +280,7 @@ def lift_for_SL(A):
 
     Cp = diagonal_matrix(a[1:])
     Cp[0, 0] *= a[0]
-    C = lift_for_SL(Cp)
+    C = lift_for_SL(Cp, N)
 
     Cpp = block_diagonal_matrix(identity_matrix(1), C)
     Cpp[1, 0] = 1 - a[0]

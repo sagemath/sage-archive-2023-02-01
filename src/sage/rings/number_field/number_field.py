@@ -10272,10 +10272,8 @@ class NumberField_cyclotomic(NumberField_absolute):
                 deg = self.degree()
                 d = ZZ(1) # so that CyclotomicField(1).disc() has the right type
                 factors = n.factor()
-                for f in factors:
-                    p = f[0]
-                    r = f[1]
-                    e = (r*p - r - 1)*deg/(p-1)
+                for (p, r) in factors:
+                    e = (r*p - r - 1) * deg // (p-1)
                     d *= p**e
                 sign = 1
                 if len(factors) == 1 and (n == 4 or factors[0][0].mod(4) == 3):
@@ -10286,7 +10284,6 @@ class NumberField_cyclotomic(NumberField_absolute):
                 return self.__disc
         else:
             return NumberField_generic.discriminant(self, v)
-
 
     def next_split_prime(self, p=2):
         """

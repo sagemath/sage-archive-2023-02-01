@@ -1,5 +1,5 @@
 diff --git a/linbox/solutions/charpoly.h b/linbox/solutions/charpoly.h
-index 9e6e5dd..8663ac8 100644
+index 9e6e5dd..f4b483c 100644
 --- a/linbox/solutions/charpoly.h
 +++ b/linbox/solutions/charpoly.h
 @@ -194,7 +194,21 @@ namespace LinBox
@@ -25,6 +25,15 @@ index 9e6e5dd..8663ac8 100644
  	Polynomial& charpoly (Polynomial                       & P,
  						  const Blackbox                   & A,
  						  const RingCategories::IntegerTag & tag,
+@@ -379,7 +393,7 @@ namespace LinBox
+ 		if (max<-min)
+ 			max=-min;
+ 		size_t n=A.coldim();
+-		double hadamarcp = n/2.0*(log(double(n))+2*log(double(max))+0.21163275)/log(2.0);
++		double hadamarcp = n/2.0*(log(double(n))+2*double(max.bitsize())+0.21163275)/log(2.0);
+ 
+ 		ChineseRemainder< FullMultipCRA<Givaro::Modular<double> > > cra(hadamarcp);
+ #endif
 @@ -395,40 +409,39 @@ namespace LinBox
  	}
  
@@ -65,9 +74,10 @@ index 9e6e5dd..8663ac8 100644
  		if (max<-min)
  			max=-min;
  		size_t n=A.coldim();
- 		double hadamarcp = n/2.0*(log(double(n))+2*log(double(max))+0.21163275)/log(2.0);
+-		double hadamarcp = n/2.0*(log(double(n))+2*log(double(max))+0.21163275)/log(2.0);
 -
 -
++		double hadamarcp = n/2.0*(log(double(n))+2*double(max.bitsize())+0.21163275)/log(2.0);
 +        if (!n) hadamarcp = 1;
  		ChineseRemainder< FullMultipCRA<Givaro::Modular<double> > > cra(hadamarcp);
 +#else

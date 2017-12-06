@@ -267,6 +267,11 @@ unsigned constant::next_serial = 0;
 // global constants
 //////////
 
+// DANGER! Defining a constant here without equivalent in Sage Python
+// will inevitably lead to crashes. See alsd
+// https://github.com/pynac/pynac/wiki/%7C-constants
+// https://github.com/pynac/pynac/issues/211
+
 /**  Pi. (3.14159...) Calls python function py_eval_constant() for evalf(). */
 const constant Pi("pi", ConstantEvalf, "\\pi", domain::positive);
 

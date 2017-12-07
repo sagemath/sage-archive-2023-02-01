@@ -1799,10 +1799,11 @@ class TopologicalManifold(ManifoldSubset):
         to ``False``::
 
             sage: Manifold.options.textbook_output=False
-            sage: f         # known bug (Trac #24325)
-            D[0](g)(x, y) + D[1](g)(x, y)
-            sage: latex(f)  # known bug (Trac #24325)
-            D[0]\left(g\right)\left(x, y\right) + D[1]\left(g\right)\left(x, y\right)
+            sage: f
+            diff(g(x, y), x) + diff(g(x, y), y)
+            sage: latex(f)
+            \frac{\partial}{\partial x}g\left(x, y\right)
+             + \frac{\partial}{\partial y}g\left(x, y\right)
             sage: Manifold.options._reset()
 
         If there is a clear understanding that `u` and `v` are functions of
@@ -1827,7 +1828,7 @@ class TopologicalManifold(ManifoldSubset):
                              description='textbook-like output instead of the Pynac output for derivatives',
                              checker=lambda x: isinstance(x, bool))
         omit_function_arguments = dict(default=False,
-                                     description='Determine if the arguments of symbolic functions are printed',
+                                     description='Determine whether the arguments of symbolic functions are printed',
                                      checker=lambda x: isinstance(x, bool))
 
     def _Hom_(self, other, category=None):

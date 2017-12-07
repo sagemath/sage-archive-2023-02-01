@@ -365,10 +365,6 @@ class GenericGraph(GenericGraph_pyx):
         Set the state from a pickle dict
 
         Also converts old NetworkX backends into a more recent one.
-
-        EXAMPLES::
-
-            sage: sage.structure.sage_object.unpickle_all() # indirect random
         """
         for k,v in iteritems(state):
             self.__dict__[k] = v

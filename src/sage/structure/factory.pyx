@@ -754,5 +754,5 @@ def lookup_global(name):
     return getattr(all, name)
 
 
-# To make the pickle jar happy:
+# Old imports required for unpickling old pickles
 from sage.structure.test_factory import test_factory

@@ -154,21 +154,24 @@ bool constant::info(unsigned inf) const
 {
         if (name == "NaN")
                 return false;
-        if (inf == info_flags::polynomial)
-                return true;
-        if (inf == info_flags::inexact)
-                return false;
-        if (inf == info_flags::real)
-                return domain==domain::real or domain==domain::positive ;
-        if (inf==info_flags::positive)
-                return domain == domain::positive;
-        if (inf==info_flags::nonnegative)
-                return domain == domain::positive and evalf(0, nullptr).is_zero();
-        if (inf==info_flags::infinity) {
-                return domain == domain::infinity;
+        switch (inf) {
+                case info_flags::polynomial:
+                        return true;
+                case info_flags::inexact:
+                        return false;
+                case info_flags::real:
+                        return domain==domain::real or domain==domain::positive ;
+                case info_flags::positive:
+                        return domain == domain::positive;
+                case info_flags::nonnegative:
+                        return domain == domain::positive and evalf(0, nullptr).is_zero();
+                case info_flags::nonzero:
+                        return domain == domain::positive or not evalf(0, nullptr).is_zero();
+                case info_flags::infinity:
+                        return domain == domain::infinity;
+                default:
+                        return inherited::info(inf);
         }
-        else
-                return inherited::info(inf);
 }
 
 ex constant::evalf(int level, PyObject* parent) const

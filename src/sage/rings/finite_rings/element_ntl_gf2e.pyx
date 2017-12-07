@@ -46,7 +46,6 @@ from sage.interfaces.gap import is_GapElement
 from sage.misc.randstate import current_randstate
 from sage.misc.long cimport pyobject_to_long
 
-from .element_ext_pari import FiniteField_ext_pariElement
 from .element_pari_ffelt import FiniteFieldElement_pari_ffelt
 from .finite_field_ntl_gf2e import FiniteField_ntl_gf2e
 
@@ -360,8 +359,7 @@ cdef class Cache_ntl_gf2e(SageObject):
         elif isinstance(e, Gen):
             pass # handle this in next if clause
 
-        elif isinstance(e, FiniteFieldElement_pari_ffelt) or \
-             isinstance(e, FiniteField_ext_pariElement):
+        elif isinstance(e, FiniteFieldElement_pari_ffelt):
             # Reduce to pari
             e = e.__pari__()
 

@@ -2577,7 +2577,7 @@ class FreeModule_generic_pid(FreeModule_generic):
         n  = int(V1.dimension())
         K = K.matrix_from_columns(range(n))
         B = K*A1
-        return B.row_module(self.base_ring())
+        return self.ambient_module().span(B)
     
     def __and__(self, other):
         r"""

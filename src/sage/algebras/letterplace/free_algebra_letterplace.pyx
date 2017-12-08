@@ -802,7 +802,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
 #                break
 #        return FreeAlgebraElement_letterplace(self, p, check=False)
 
-    def _from_dict_(self, D, check=True):
+    def _from_dict_(self, dict D, check=True):
         """
         Create an element from a dictionary.
 
@@ -835,15 +835,15 @@ cdef class FreeAlgebra_letterplace(Algebra):
         """
         if not D:
             return self.zero()
-        cdef int l
+        cdef Py_ssize_t l
         for e in D:
             l = len(e)
             break
         cdef dict out = {}
         self.set_degbound(l/self.__ngens)
-        cdef int n = self._current_ring.ngens()
-        for e,c in D.iteritems():
-            out[tuple(e)+(0,)*(n-l)] = c
+        cdef Py_ssize_t n = self._current_ring.ngens()
+        for e, c in D.iteritems():
+            out[tuple(e) + (0,)*(n-l)] = c
         return FreeAlgebraElement_letterplace(self,self._current_ring(out),
                                               check=check)
 

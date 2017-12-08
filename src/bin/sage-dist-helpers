@@ -35,8 +35,8 @@
 #
 # - sdh_configure [...]
 #
-#    Runs `./configure --prefix="$SAGE_LOCAL"`.  Additional arguments to
-#    `./configure` may be given as arguments.
+#    Runs `./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib"`.
+#    Additional arguments to `./configure` may be given as arguments.
 #
 # - sdh_make [...]
 #
@@ -118,7 +118,7 @@ sdh_guard() {
 
 sdh_configure() {
     echo "Configuring $PKG_NAME"
-    ./configure --prefix="$SAGE_LOCAL" "$@" || \
+    ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" "$@" || \
         sdh_die "Error configuring $PKG_NAME"
 }
 

@@ -27,7 +27,7 @@ from sage.structure.sage_object import SageObject
 from sage.rings.all import RealField, RationalField
 from math import sqrt, exp, log, ceil
 import sage.functions.exp_integral as exp_integral
-import sage.misc.all as misc
+from sage.misc.all import verbose
 
 class Lseries_ell(SageObject):
     """
@@ -877,7 +877,7 @@ class Lseries_ell(SageObject):
                 self.__lratio = quo / self.__E.real_components()
                 return self.__lratio
             k += sqrtN
-            misc.verbose("Increasing precision to %s terms."%k)
+            verbose("Increasing precision to %s terms." % k)
 
     def zero_sums(self, N=None):
         r"""

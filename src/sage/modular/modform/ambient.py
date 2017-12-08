@@ -75,7 +75,8 @@ import sage.modular.hecke.all as hecke
 import sage.modular.modsym.all as modsym
 import sage.modules.free_module as free_module
 import sage.rings.all as rings
-from sage.arith.all import is_prime
+from sage.arith.all import is_prime, sigma
+from sage.matrix.constructor import matrix
 
 from sage.structure.sequence import Sequence
 from sage.misc.cachefunc import cached_method
@@ -758,6 +759,15 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             sage: M._compute_hecke_matrix(6)
             [ 2  0]
             [ 0 12]
+        
+        Check that :trac:`22780` is fixed::
+
+            sage: M = ModularForms(1, 12)
+            sage: M._compute_hecke_matrix(2)
+            [ -24    0]
+            [   0 2049]
+            sage: ModularForms(1, 2).hecke_matrix(2)
+            []
 
         TESTS:
 
@@ -768,6 +778,8 @@ class ModularFormsAmbient(space.ModularFormsSpace,
 
             sage: M = ModularForms(1, 512)
             sage: t = M._compute_hecke_matrix(5)     # long time (2s)
+            sage: t[-1, -1] == 1 + 5^511             # long time (0s, depends on above)
+            True
             sage: f = t.charpoly()                   # long time (4s)
             sage: [f[0]%p for p in prime_range(100)] # long time (0s, depends on above)
             [0, 0, 0, 0, 1, 9, 2, 7, 0, 0, 0, 0, 1, 12, 9, 16, 37, 0, 21, 11, 70, 22, 0, 58, 76]
@@ -777,9 +789,11 @@ class ModularFormsAmbient(space.ModularFormsSpace,
         if self.level() == 1:
             k = self.weight()
             d = self.dimension()
+            if d == 0: return matrix(self.base_ring(), 0, 0, [])
             from sage.modular.all import victor_miller_basis, hecke_operator_on_basis
-            vmb = victor_miller_basis(k, prec=d*n+1)
-            return hecke_operator_on_basis(vmb, n, k)
+            vmb = victor_miller_basis(k, prec=d*n+1)[1:]
+            Tcusp = hecke_operator_on_basis(vmb, n, k)
+            return Tcusp.block_sum(matrix(self.base_ring(), 1, 1, [sigma(n, k-1)]))
         else:
             return space.ModularFormsSpace._compute_hecke_matrix(self, n)
 
@@ -794,8 +808,8 @@ class ModularFormsAmbient(space.ModularFormsSpace,
 
             sage: M = ModularForms(1, 12)
             sage: M._compute_hecke_matrix_prime_power(5, 3)
-            [  116415324211120654296876 11038396588040733750558720]
-            [                         0              -359001100500]
+            [           -359001100500                        0]
+            [                       0 116415324211120654296876]
             sage: delta_qexp(126)[125]
             -359001100500
             sage: eisenstein_series_qexp(12, 126)[125]

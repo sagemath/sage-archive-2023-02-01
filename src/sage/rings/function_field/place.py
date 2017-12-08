@@ -703,7 +703,7 @@ class FunctionFieldPlace_global(FunctionFieldPlace):
         """
         F = self.function_field()
         R,fr_R,to_R = self._residue_field()
-        hasse = F.hasse_derivation()
+        der = F.higher_derivation()
 
         sep = self.local_uniformizer()
 
@@ -722,7 +722,7 @@ class FunctionFieldPlace_global(FunctionFieldPlace):
         e = 1
         gaps = [1]
         while M.nrows() < d:
-            row = vector([to_R(hasse._derive(basis[i], e, sep)) for i in range(d)])
+            row = vector([to_R(der._derive(basis[i], e, sep)) for i in range(d)])
             if not row in M.row_space():
                 M = matrix(M.rows() + [row])
                 M.echelonize()

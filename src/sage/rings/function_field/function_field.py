@@ -272,7 +272,7 @@ class FunctionField(Field):
 
     def is_perfect(self):
         r"""
-        Return whether the field is perfect, i.e., its characteristic is `p=0`
+        Return whether the field is perfect, i.e., its characteristic `p` is zero
         or every element has a `p`-th root.
 
         EXAMPLES::
@@ -355,7 +355,7 @@ class FunctionField(Field):
 
     def is_finite(self):
         """
-        Return whether the function field is finite, which it is not.
+        Return whether the function field is finite, which is false.
 
         EXAMPLES::
 
@@ -371,7 +371,7 @@ class FunctionField(Field):
     def is_global(self):
         """
         Return whether the function field is global, that is, whether
-        the constant base_field is finite.
+        the constant field is finite.
 
         EXAMPLES::
 
@@ -492,7 +492,7 @@ class FunctionField(Field):
             sage: Z.basis()
             (1,)
 
-        Orders with multiple generators, not yet supported::
+        Orders with multiple generators are not yet supported::
 
             sage: Z = K.order([x,x^2]); Z
             Traceback (most recent call last):
@@ -2446,21 +2446,27 @@ class FunctionField_global(FunctionField_polymod):
         return place.residue_field(name=name)
 
     @cached_method
-    def hasse_derivation(self):
+    def higher_derivation(self):
         """
-        Return the Hasse derivation for the function field.
+        Return the higher derivation for the function field.
+
+        The higher derivation is also called the Hasse-Schmidt derivation.
+
+        The higher derivation of the function field is uniquely determined with
+        respect to the separating element `x` of the base rational function
+        field `k(x)`.
 
         EXAMPLES::
 
             sage: K.<x>=FunctionField(GF(5)); _.<Y>=K[]
             sage: L.<y>=K.extension(Y^3 - (x^3 - 1)/(x^3 - 2))
-            sage: L.hasse_derivation()
-            Hasse derivation map:
+            sage: L.higher_derivation()
+            Higher derivation map:
               From: Function field in y defined by y^3 + (4*x^3 + 1)/(x^3 + 3)
               To:   Function field in y defined by y^3 + (4*x^3 + 1)/(x^3 + 3)
         """
-        from .maps import FunctionFieldHasseDerivation_global
-        return FunctionFieldHasseDerivation_global(self)
+        from .maps import FunctionFieldHigherDerivation_global
+        return FunctionFieldHigherDerivation_global(self)
 
     def places(self, degree=1):
         """
@@ -2736,12 +2742,12 @@ class FunctionField_global(FunctionField_polymod):
         if d == 0:
             return [],[]
 
-        hasse = self.hasse_derivation()
+        der = self.higher_derivation()
         M = matrix([basis])
         e = 1
         gaps = [1]
         while M.nrows() < d:
-            row = vector([hasse._derive(basis[i], e) for i in range(d)])
+            row = vector([der._derive(basis[i], e) for i in range(d)])
             if not row in M.row_space():
                 M = matrix(M.rows() + [row])
                 gaps.append(e+1)
@@ -3897,21 +3903,23 @@ class RationalFunctionField_global(RationalFunctionField):
         return place.residue_field(name=name)
 
     @cached_method
-    def hasse_derivation(self):
+    def higher_derivation(self):
         """
-        Return the Hasse derivation for the function field.
+        Return the higher derivation for the function field.
+
+        This is also called the Hasse-Schmidt derivation.
 
         EXAMPLES::
 
             sage: F.<x> = FunctionField(GF(5))
-            sage: d = F.hasse_derivation()
+            sage: d = F.higher_derivation()
             sage: [d(x^5,i) for i in range(10)]
             [x^5, 0, 0, 0, 0, 1, 0, 0, 0, 0]
             sage: [d(x^7,i) for i in range(10)]
             [x^7, 2*x^6, x^5, 0, 0, x^2, 2*x, 1, 0, 0]
         """
-        from .maps import FunctionFieldHasseDerivation_rational
-        return FunctionFieldHasseDerivation_rational(self)
+        from .maps import FunctionFieldHigherDerivation_rational
+        return FunctionFieldHigherDerivation_rational(self)
 
     def valuation_ring(self, place):
         """

@@ -345,7 +345,7 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
             return R(0)
         else:
             g_shifted = g * s**(-r)
-            c = g_shifted.hasse_derivative(-r-1, s)
+            c = g_shifted.higher_derivative(-r-1, s)
             return to_R(c)
 
     def cartier(self):
@@ -367,8 +367,8 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
             sage: w.cartier() == w
             True
         """
-        hasse = self._field.hasse_derivation()
-        power_repr = hasse._prime_power_representation(self._f)
+        der = self._field.higher_derivation()
+        power_repr = der._prime_power_representation(self._f)
         return differential(self._field, power_repr[-1])
 
 class DifferentialsSpace(Parent):

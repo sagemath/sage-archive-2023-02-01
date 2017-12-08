@@ -25,12 +25,12 @@ EXAMPLES::
     ...
     ValueError: invalid morphism
 
-For global function fields, which have positive characteristics, Hasse
-derivations are available::
+For global function fields, which have positive characteristics, the higher
+derivation is available::
 
     sage: K.<x> = FunctionField(GF(2)); _.<Y>=K[]
     sage: L.<y> = K.extension(Y^3+x+x^3*Y)
-    sage: h = L.hasse_derivation()
+    sage: h = L.higher_derivation()
     sage: h(y^2,2)
     ((x^7 + 1)/x^2)*y^2 + x^3*y
 
@@ -41,7 +41,7 @@ AUTHORS:
 - Julian Rüth (2011-09-14, 2014-06-23, 2017-08-21): refactored class hierarchy; added
   derivation classes; morphisms to/from fraction fields
 
-- Kwankyu Lee (2017-04-30): added Hasse derivations and completions
+- Kwankyu Lee (2017-04-30): added higher derivations and completions
 
 """
 from __future__ import absolute_import
@@ -282,9 +282,9 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
         else:
             return ret
 
-class FunctionFieldHasseDerivation(Map):
+class FunctionFieldHigherDerivation(Map):
     """
-    Base class of Hasse derivations on function fields.
+    Base class of higher derivations on function fields.
     """
     def __init__(self, field):
         """
@@ -298,8 +298,8 @@ class FunctionFieldHasseDerivation(Map):
         EXAMPLES::
 
             sage: F.<x> = FunctionField(GF(2))
-            sage: F.hasse_derivation()
-            Hasse derivation map:
+            sage: F.higher_derivation()
+            Higher derivation map:
               From: Rational function field in x over Finite Field of size 2
               To:   Rational function field in x over Finite Field of size 2
         """
@@ -314,21 +314,21 @@ class FunctionFieldHasseDerivation(Map):
         EXAMPLES::
 
             sage: F.<x> = FunctionField(GF(2))
-            sage: h = F.hasse_derivation()
+            sage: h = F.higher_derivation()
             sage: h  # indirect doctest
-            Hasse derivation map:
+            Higher derivation map:
               From: Rational function field in x over Finite Field of size 2
               To:   Rational function field in x over Finite Field of size 2
         """
-        return 'Hasse derivation'
+        return 'Higher derivation'
 
-class FunctionFieldHasseDerivation_rational(FunctionFieldHasseDerivation):
+class FunctionFieldHigherDerivation_rational(FunctionFieldHigherDerivation):
     """
-    Hasse derivations of rational function fields.
+    Higher derivations of rational function fields.
     """
     def __init__(self, field):
         """
-        Initialize the Hasse derivation on the rational function field.
+        Initialize the higher derivation on the rational function field.
 
         INPUT:
 
@@ -338,15 +338,15 @@ class FunctionFieldHasseDerivation_rational(FunctionFieldHasseDerivation):
         EXAMPLES::
 
             sage: F.<x> = FunctionField(GF(2))
-            sage: h = F.hasse_derivation()
+            sage: h = F.higher_derivation()
             sage: h
-            Hasse derivation map:
+            Higher derivation map:
               From: Rational function field in x over Finite Field of size 2
               To:   Rational function field in x over Finite Field of size 2
             sage: h(x^2,2)
             1
         """
-        FunctionFieldHasseDerivation.__init__(self, field)
+        FunctionFieldHigherDerivation.__init__(self, field)
 
         self._p = field.characteristic()
         self._separating_element = field.gen()
@@ -364,7 +364,7 @@ class FunctionFieldHasseDerivation_rational(FunctionFieldHasseDerivation):
         EXAMPLES::
 
             sage: F.<x> = FunctionField(GF(2))
-            sage: h = F.hasse_derivation()
+            sage: h = F.higher_derivation()
             sage: h(x^2,2)  # indirect doctest
             1
         """
@@ -379,7 +379,7 @@ class FunctionFieldHasseDerivation_rational(FunctionFieldHasseDerivation):
         EXAMPLES::
 
             sage: F.<x> = FunctionField(GF(2))
-            sage: h = F.hasse_derivation()
+            sage: h = F.higher_derivation()
             sage: h._derive(x^3,0)
             x^3
             sage: h._derive(x^3,1)
@@ -441,7 +441,7 @@ class FunctionFieldHasseDerivation_rational(FunctionFieldHasseDerivation):
         EXAMPLES::
 
             sage: F.<x> = FunctionField(GF(2))
-            sage: h = F.hasse_derivation()
+            sage: h = F.higher_derivation()
             sage: h._prime_power_representation(x^2 + x + 1)
             [x + 1, 1]
             sage: x^2 + x + 1 == _[0]^2 + _[1]^2 * x
@@ -487,7 +487,7 @@ class FunctionFieldHasseDerivation_rational(FunctionFieldHasseDerivation):
         EXAMPLES::
 
             sage: F.<x> = FunctionField(GF(2))
-            sage: h = F.hasse_derivation()
+            sage: h = F.higher_derivation()
             sage: h._pth_root((x^2+1)^2)
             x^2 + 1
         """
@@ -504,13 +504,13 @@ class FunctionFieldHasseDerivation_rational(FunctionFieldHasseDerivation):
         den = R([pth_root(poly[i]) for i in range(0,poly.degree()+1,p)])
         return FunctionFieldElement_rational(K, num / den)
 
-class FunctionFieldHasseDerivation_global(FunctionFieldHasseDerivation):
+class FunctionFieldHigherDerivation_global(FunctionFieldHigherDerivation):
     """
-    Hasse derivations of function fields.
+    Higher derivations of function fields.
     """
     def __init__(self, field):
         """
-        Initialize the Hasse derivation.
+        Initialize the higher derivation.
 
         INPUT:
 
@@ -521,15 +521,15 @@ class FunctionFieldHasseDerivation_global(FunctionFieldHasseDerivation):
 
             sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
             sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
-            sage: h = L.hasse_derivation()
+            sage: h = L.higher_derivation()
             sage: h
-            Hasse derivation map:
+            Higher derivation map:
               From: Function field in y defined by y^3 + x^3*y + x
               To:   Function field in y defined by y^3 + x^3*y + x
             sage: h(y^2,2)
             ((x^7 + 1)/x^2)*y^2 + x^3*y
         """
-        FunctionFieldHasseDerivation.__init__(self, field)
+        FunctionFieldHigherDerivation.__init__(self, field)
 
         self._p = field.characteristic()
         self._separating_element = field(field.base_field().gen())
@@ -558,7 +558,7 @@ class FunctionFieldHasseDerivation_global(FunctionFieldHasseDerivation):
 
             sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
             sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
-            sage: h = L.hasse_derivation()
+            sage: h = L.higher_derivation()
             sage: h(y^2,2)  # indirect doctest
             ((x^7 + 1)/x^2)*y^2 + x^3*y
         """
@@ -575,7 +575,7 @@ class FunctionFieldHasseDerivation_global(FunctionFieldHasseDerivation):
 
             sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
             sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
-            sage: h = L.hasse_derivation()
+            sage: h = L.higher_derivation()
             sage: y^3
             x^3*y + x
             sage: h._derive(y^3,0)
@@ -671,7 +671,7 @@ class FunctionFieldHasseDerivation_global(FunctionFieldHasseDerivation):
 
             sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
             sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
-            sage: h = L.hasse_derivation()
+            sage: h = L.higher_derivation()
             sage: b = h._prime_power_representation(y)
             sage: y == b[0]^2 + b[1]^2 * x
             True
@@ -714,7 +714,7 @@ class FunctionFieldHasseDerivation_global(FunctionFieldHasseDerivation):
 
             sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
             sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
-            sage: h = L.hasse_derivation()
+            sage: h = L.higher_derivation()
             sage: h._pth_root((x^2 + y^2)^2)
             y^2 + x^2
         """
@@ -1500,7 +1500,7 @@ class FunctionFieldCompletion_global(FunctionFieldCompletion):
 
         place = self._place
         F = place.function_field()
-        hasse = F.hasse_derivation()
+        der = F.higher_derivation()
 
         k,from_k,to_k = place.residue_field(name=self._gen_name)
         sep = place.local_uniformizer()
@@ -1508,7 +1508,7 @@ class FunctionFieldCompletion_global(FunctionFieldCompletion):
         val = f.valuation(place)
         e = f * sep **(-val)
 
-        coeffs = [to_k(hasse._derive(e, i, sep)) for i in range(prec)]
+        coeffs = [to_k(der._derive(e, i, sep)) for i in range(prec)]
         return self.codomain()(coeffs, val).add_bigoh(prec + val)
 
     def default_precision(self):

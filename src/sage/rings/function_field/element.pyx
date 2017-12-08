@@ -1036,9 +1036,9 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         D = self.parent().derivation()
         return D(self)
 
-    def hasse_derivative(self, i, separating_element=None):
+    def higher_derivative(self, i, separating_element=None):
         """
-        Return the `i`-th Hasse derivative of the element with respect to the
+        Return the `i`-th derivative of the element with respect to the
         separating element.
 
         INPUT:
@@ -1052,10 +1052,10 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
             sage: K.<t> = FunctionField(GF(2))
             sage: f = t^2
-            sage: f.hasse_derivative(2)
+            sage: f.higher_derivative(2)
             1
         """
-        D = self.parent().hasse_derivation()
+        D = self.parent().higher_derivation()
         return D(self, i, separating_element)
 
 cdef class FunctionFieldElement_global(FunctionFieldElement_polymod):
@@ -1180,9 +1180,9 @@ cdef class FunctionFieldElement_global(FunctionFieldElement_polymod):
         D = self.parent().derivation()
         return D(self)
 
-    def hasse_derivative(self, i, separating_element=None):
+    def higher_derivative(self, i, separating_element=None):
         """
-        Return the ``i``-th order Hasse derivative of the element with respect
+        Return the ``i``-th order higher derivative of the element with respect
         to the separating element.
 
         INPUT:
@@ -1196,8 +1196,8 @@ cdef class FunctionFieldElement_global(FunctionFieldElement_polymod):
 
             sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
             sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: (y^3 + x).hasse_derivative(2)
+            sage: (y^3 + x).higher_derivative(2)
             1/x^3*y + (x^6 + x^4 + x^3 + x^2 + x + 1)/x^5
         """
-        D = self.parent().hasse_derivation()
+        D = self.parent().higher_derivation()
         return D(self, i, separating_element)

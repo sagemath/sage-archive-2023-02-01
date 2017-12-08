@@ -1058,6 +1058,10 @@ REFERENCES:
 .. [Gr2007] \J. Green, Polynomial representations of `GL_n`, Springer
             Verlag, 2007.
 
+.. [GriRei16] Darij Grinberg, Victor Reiner,
+              *Hopf Algebras in Combinatorics*,
+              :arxiv:`1409.8356v4`.
+
 .. [GR2013] Darij Grinberg, Tom Roby. *Iterative properties of
             birational rowmotion*.
             http://www.cip.ifi.lmu.de/~grinberg/algebra/skeletal.pdf
@@ -1068,7 +1072,7 @@ REFERENCES:
 
 .. [Grinb2016a] Darij Grinberg,
                 *Double posets and the antipode of QSym*,
-                :arxiv:`1509.08355v2`.
+                :arxiv:`1509.08355v3`.
 
 .. [GrS1967] Grunbaum and Sreedharan, "An enumeration of simplicial
              4-polytopes with 8 vertices", J. Comb. Th. 2,

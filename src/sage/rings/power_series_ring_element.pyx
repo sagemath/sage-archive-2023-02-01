@@ -483,7 +483,9 @@ cdef class PowerSeries(AlgebraElement):
             sage: A.<t> = PowerSeriesRing(GF(5))
             sage: x = t + t^2 + O(t^5)
             sage: x.lift_to_precision(10)
+            t + t^2 + O(t^10)
             sage: x.lift_to_precision()
+            t + t^2
 
         """
         if absprec is not None and absprec <= self.precision_absolute():

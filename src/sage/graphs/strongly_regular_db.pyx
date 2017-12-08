@@ -2397,7 +2397,7 @@ def strongly_regular_from_two_weight_code(L):
       http://dx.doi.org/10.1016/0012-365X(72)90024-6.
 
     """
-    from sage.matrix.matrix import is_Matrix
+    from sage.structure.element import is_Matrix
     if is_Matrix(L):
         L = LinearCode(L)
     V = map(tuple,list(L))

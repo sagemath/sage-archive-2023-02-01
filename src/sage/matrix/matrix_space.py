@@ -1114,8 +1114,6 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                 return matrix_polynomial_dense.Matrix_polynomial_dense
             elif sage.rings.polynomial.multi_polynomial_ring_generic.is_MPolynomialRing(R) and R.base_ring() in _Fields:
                 return matrix_mpolynomial_dense.Matrix_mpolynomial_dense
-            #elif isinstance(R, sage.rings.padics.padic_ring_capped_relative.pAdicRingCappedRelative):
-            #    return padics.matrix_padic_capped_relative_dense
 
             from sage.symbolic.ring import SR   # causes circular imports
             if R is SR:

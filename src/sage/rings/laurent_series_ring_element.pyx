@@ -544,6 +544,34 @@ cdef class LaurentSeries(AlgebraElement):
         R = self._parent.laurent_polynomial_ring()
         return R(self.__u.polynomial()) * R.gen()**(self.__n)
 
+    def lift_to_precision(self, absprec=None):
+        """
+        Return a congruent Laurent series with absolute precision at least
+        ``absprec``.
+
+        INPUT:
+
+        - ``absprec`` -- an integer or ``None`` (default: ``None``), the
+          absolute precision of the result. If ``None``, lifts to an exact
+          element.
+
+        EXAMPLES::
+
+            sage: A.<t> = LaurentSeriesRing(GF(5))
+            sage: x = t^(-1) + t^2 + O(t^5)
+            sage: x.lift_to_precision(10)
+            sage: x.lift_to_precision()
+            t^-1 + t^2
+        """
+        if absprec is not None and absprec <= self.precision_absolute():
+            return self
+
+        exact = self._parent(0) if self.is_zero() else self._parent(self.list()) << self.__n
+        if absprec is None:
+            return exact
+        else:
+            return exact.add_bigoh(absprec)
+
     def __setitem__(self, n, value):
         """
         EXAMPLES::
@@ -1167,7 +1195,7 @@ cdef class LaurentSeries(AlgebraElement):
     def precision_relative(self):
         """
         Return the relative precision of this series, that
-        is the difference between its absolute precision  
+        is the difference between its absolute precision
         and its valuation.
 
         By convention, the relative precision of `0` (or

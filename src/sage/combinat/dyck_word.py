@@ -1327,7 +1327,7 @@ class DyckWord(CombinatorialElement):
             0
         """
         touches = self.touch_points()
-        if touches == []:
+        if not touches:
             return 0
         else:
             return touches[0]
@@ -1381,8 +1381,16 @@ class DyckWord(CombinatorialElement):
             sage: DyckWord([1, 1, 0, 0]).returns_to_zero()
             [4]
         """
-        h = self.heights()
-        return [i for i in range(2, len(h), 2) if h[i] == 0]
+        height = 0
+        points = []
+        for i, letter in enumerate(self):
+            if letter == open_symbol:
+                height += 1
+            elif letter == close_symbol:
+                height -= 1
+            if not height:
+                points.append(i + 1)
+        return points
 
     def touch_points(self):
         r"""
@@ -1437,9 +1445,9 @@ class DyckWord(CombinatorialElement):
             []
         """
         from sage.combinat.composition import Composition
-        if self.length() == 0:
+        if not self:
             return Composition([])
-        return Composition(descents=[i-1 for i in self.touch_points()])
+        return Composition(descents=[i - 1 for i in self.touch_points()])
 
     def number_of_touch_points(self):
         r"""
@@ -1465,7 +1473,7 @@ class DyckWord(CombinatorialElement):
             sage: DyckWord([]).number_of_touch_points()
             0
         """
-        return len(self.touch_points())
+        return len(self.returns_to_zero())
 
     def rise_composition(self):
         r"""
@@ -1496,8 +1504,8 @@ class DyckWord(CombinatorialElement):
         rise_comp = []
         while L:
             i = L.index(0)
-            L = L[i+1:]
-            if i > 0:
+            L = L[i + 1:]
+            if i:
                 rise_comp.append(i)
         return Composition(rise_comp)
 
@@ -1583,21 +1591,21 @@ class DyckWord(CombinatorialElement):
             ValueError: R10L is not a correct map
         """
         if usemap not in ["1L0R", "1R0L", "L1R0", "R1L0"]:
-            raise ValueError("%s is not a correct map" % (usemap))
+            raise ValueError("%s is not a correct map" % usemap)
         from sage.combinat.binary_tree import BinaryTree
-        if len(self) == 0:
+        if not self:
             return BinaryTree()
         tp = [0]
-        tp.extend(self.touch_points())
+        tp.extend(self.returns_to_zero())
         l = len(self)
         if usemap[0] == '1':  # we check what kind of reduction we want
             s0 = 1  # start point for first substree
-            e0 = tp[1] * 2 - 1  # end point for first subtree
+            e0 = tp[1] - 1  # end point for first subtree
             s1 = e0 + 1  # start point for second subtree
             e1 = l  # end point for second subtree
         else:
             s0 = 0
-            e0 = tp[len(tp) - 2] * 2
+            e0 = tp[len(tp) - 2]
             s1 = e0 + 1
             e1 = l - 1
         trees = [DyckWord(self[s0:e0]).to_binary_tree(usemap),
@@ -1869,7 +1877,7 @@ class DyckWord_complete(DyckWord):
             [3, 4, 2, 1]
         """
         alist = self.to_area_sequence()
-        if len(alist) == 0:
+        if not alist:
             return Permutation([])
         m = max(alist)
         p1 = Word([m-alist[-i-1]
@@ -2320,10 +2328,10 @@ class DyckWord_complete(DyckWord):
         if not self:
             return []
         cut = self.associated_parenthesis(0)
-        recdw = DyckWord(self[1:cut]+self[cut+1:])
-        returns = [0]+recdw.returns_to_zero()
+        recdw = DyckWord(self[1:cut] + self[cut+1:])
+        returns = [0] + recdw.returns_to_zero()
         res = recdw.to_Catalan_code()
-        res.append(returns.index(cut-1))
+        res.append(returns.index(cut - 1))
         return res
 
     @combinatorial_map(name="To Ordered tree")
@@ -3750,7 +3758,7 @@ class CompleteDyckWords(DyckWords):
                              "and the diagonal.")
         dyck_word = []
         for i in range(len(code)):
-            if i > 0:
+            if i:
                 dyck_word.extend([close_symbol]*(code[i-1]-code[i]+1))
             dyck_word.append(open_symbol)
         dyck_word.extend([close_symbol]*(2*len(code)-len(dyck_word)))
@@ -3775,13 +3783,13 @@ class CompleteDyckWords(DyckWords):
             sage: dws == dws2
             True
         """
-        l = [0] * int(sum([len(v) for v in ncp]))
+        l = [0] * sum(len(v) for v in ncp)
         for v in ncp:
             l[v[-1] - 1] = len(v)
 
         res = []
         for i in l:
-            res += [open_symbol] + [close_symbol]*int(i)
+            res += [open_symbol] + [close_symbol] * i
         return self.element_class(self, res)
 
     def from_non_decreasing_parking_function(self, pf):

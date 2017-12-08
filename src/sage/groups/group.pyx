@@ -75,7 +75,7 @@ cdef class Group(Parent):
         sage: 4 in G
         Traceback (most recent call last):
         ...
-        NotImplementedError
+        NotImplementedError: cannot construct elements of <sage.groups.group.Group object at ...>
     """
     def __init__(self, base=None, gens=None, category=None):
         """

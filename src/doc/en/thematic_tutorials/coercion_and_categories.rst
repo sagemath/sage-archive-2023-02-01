@@ -423,7 +423,7 @@ does not even give a wrong answer, but results in an error::
     sage: 1 in P
     Traceback (most recent call last):
     ...
-    NotImplementedError
+    NotImplementedError: cannot construct elements of NewFrac(Integer Ring)
 
 .. end of output
 
@@ -610,7 +610,7 @@ does not work, yet::
     sage: P.sum([a, b, c])
     Traceback (most recent call last):
     ...
-    NotImplementedError
+    NotImplementedError: cannot construct elements of NewFrac(Integer Ring)
 
 .. end of output
 

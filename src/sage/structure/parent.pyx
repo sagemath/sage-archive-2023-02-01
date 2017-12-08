@@ -851,25 +851,6 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             }
         return defaults[key]
 
-    def is_atomic_repr(self):
-        """
-        The old way to signal atomic string reps.
-
-        True if the elements have atomic string representations, in the
-        sense that if they print at s, then -s means the negative of s. For
-        example, integers are atomic but polynomials are not.
-
-        EXAMPLES::
-
-            sage: Parent().is_atomic_repr()
-            doctest:...: DeprecationWarning: Use _repr_option to return metadata about string rep
-            See http://trac.sagemath.org/14040 for details.
-            False
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(14040, 'Use _repr_option to return metadata about string rep')
-        return False
-
     def __call__(self, x=0, *args, **kwds):
         """
         This is the generic call method for all parents.
@@ -884,9 +865,11 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
 
         TESTS:
 
-        We check that the invariant::
+        We check that the invariant
 
-                self._element_init_pass_parent == guess_pass_parent(self, self._element_constructor)
+        ::
+
+            self._element_init_pass_parent == guess_pass_parent(self, self._element_constructor)
 
         is preserved (see :trac:`5979`)::
 
@@ -896,7 +879,6 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             ....:         return sage.structure.element.Element(parent = self)
             ....:     def _repr_(self):
             ....:         return "my_parent"
-            ....:
             sage: my_parent = MyParent()
             sage: x = my_parent("bla")
             my_parent bla
@@ -907,17 +889,9 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             my_parent 0
             sage: x = my_parent(3)   # todo: not implemented  why does this one fail???
             my_parent 3
-
-
         """
         if self._element_constructor is None:
-            # Neither __init__ nor _populate_coercion_lists_ have been called...
-            try:
-                assert callable(self._element_constructor_)
-                self._element_constructor = self._element_constructor_
-                self._element_init_pass_parent = guess_pass_parent(self, self._element_constructor)
-            except (AttributeError, AssertionError):
-                raise NotImplementedError
+            raise NotImplementedError(f"cannot construct elements of {self}")
         cdef Py_ssize_t i
         cdef R = parent(x)
         cdef bint no_extra_args = len(args) == 0 and len(kwds) == 0

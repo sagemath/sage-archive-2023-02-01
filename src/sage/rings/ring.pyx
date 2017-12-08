@@ -1186,7 +1186,7 @@ cdef class Ring(ParentWithGens):
             sage: R.random_element()
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: cannot construct elements of <sage.rings.ring.Ring object at ...>
         """
         return self(randint(-bound,bound))
 
@@ -1703,7 +1703,7 @@ cdef class IntegralDomain(CommutativeRing):
             sage: R.is_field()
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: cannot construct elements of <sage.rings.ring.IntegralDomain object at ...>
         """
         if self.is_finite():
             return True

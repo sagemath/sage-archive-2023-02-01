@@ -68,7 +68,7 @@ cdef walsh_hadamard(long *f, int ldn):
         sage: from sage.crypto.boolean_function import BooleanFunction
         sage: B = BooleanFunction([1,0,0,1])
         sage: B.walsh_hadamard_transform() # indirect doctest
-        (0, 0, 0, 4)
+        (0, 0, 0, -4)
     """
     cdef long n, ldm, m, mh, t1, t2, r
     n = 1 << ldn
@@ -684,7 +684,7 @@ cdef class BooleanFunction(SageObject):
             sage: R.<x> = GF(2^3,'a')[]
             sage: B = BooleanFunction( x^3 )
             sage: B.walsh_hadamard_transform()
-            (0, 4, 0, -4, 0, -4, 0, -4)
+            (0, -4, 0, 4, 0, 4, 0, 4)
         """
         cdef long *temp
 
@@ -693,7 +693,7 @@ cdef class BooleanFunction(SageObject):
             temp = <long *>sig_malloc(sizeof(long)*n)
 
             for 0<= i < n:
-                temp[i] = (bitset_in(self._truth_table,i)<<1)-1
+                temp[i] = 1 - (bitset_in(self._truth_table,i)<<1)
 
             walsh_hadamard(temp, self._nvariables)
             self._walsh_hadamard_transform = tuple(temp[i] for i in xrange(n))
@@ -1042,7 +1042,7 @@ cdef class BooleanFunction(SageObject):
             sage: R.<x0, x1, x2, x3> = BooleanPolynomialRing()
             sage: f = BooleanFunction(x0*x1 + x2 + x3)
             sage: f.walsh_hadamard_transform()
-            (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -8, -8, -8, 8)
+            (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 8, -8)
             sage: f.is_plateaued()
             True
         """

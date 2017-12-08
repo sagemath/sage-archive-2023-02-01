@@ -329,6 +329,17 @@ def log(*args, **kwds):
         sage: log(-1.0)
         3.14159265358979*I
 
+    Small integer powers are factored out immediately::
+
+        sage: log(4)
+        2*log(2)
+        sage: log(1000000000)
+        9*log(10)
+        sage: log(8) - 3*log(2)
+        0
+        sage: bool(log(8) == 3*log(2))
+        True
+
     The ``hold`` parameter can be used to prevent automatic evaluation::
 
         sage: log(-1,hold=True)

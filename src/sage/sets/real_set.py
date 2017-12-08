@@ -39,6 +39,28 @@ Instead, you can use the following construction functions::
     sage: RealSet.unbounded_above_closed(1)
     [1, +oo)
 
+Relations containing symbols and numeric values or constants::
+
+    sage: RealSet(x != 0)
+    (-oo, 0) + (0, +oo)
+    sage: RealSet(x == pi)
+    {pi}
+    sage: RealSet(x < 1/2)
+    (-oo, 1/2)
+    sage: RealSet(1/2 < x)
+    (1/2, +oo)
+    sage: RealSet(1.5 <= x)
+    [1.50000000000000, +oo)
+
+Note that multiple arguments are combined as union::
+
+    sage: RealSet(x >= 0, x < 1)
+    (-oo, +oo)
+    sage: RealSet(x >= 0, x > 1)
+    [0, +oo)
+    sage: RealSet(x >= 0, x > -1)
+    (-1, +oo)
+
 AUTHORS:
 
 - Laurent Claessens (2010-12-10): Interval and ContinuousSet, posted
@@ -610,10 +632,50 @@ class RealSet(UniqueRepresentation, Parent):
             sage: R = RealSet(RealSet.open_closed(0,1), RealSet.closed_open(2,3)); R
             (0, 1] + [2, 3)
 
+        ::
+
+            sage: RealSet(x != 0)
+            (-oo, 0) + (0, +oo)
+            sage: RealSet(x == pi)
+            {pi}
+            sage: RealSet(x < 1/2)
+            (-oo, 1/2)
+            sage: RealSet(1/2 < x)
+            (1/2, +oo)
+            sage: RealSet(1.5 <= x)
+            [1.50000000000000, +oo)
+            sage: RealSet(x >= -1)
+            [-1, +oo)
+            sage: RealSet(x > oo)
+            {}
+            sage: RealSet(x >= oo)
+            {}
+            sage: RealSet(x <= -oo)
+            {}
+            sage: RealSet(x < oo)
+            (-oo, +oo)
+            sage: RealSet(x > -oo)
+            (-oo, +oo)
+            sage: RealSet(x != oo)
+            (-oo, +oo)
+            sage: RealSet(x <= oo)
+            Traceback (most recent call last):
+            ...
+            ValueError: interval cannot be closed at +oo
+            sage: RealSet(x == oo)
+            Traceback (most recent call last):
+            ...
+            ValueError: interval cannot be closed at +oo
+            sage: RealSet(x >= -oo)
+            Traceback (most recent call last):
+            ...
+            ValueError: interval cannot be closed at -oo
+
         TESTS::
 
             sage: TestSuite(R).run()
         """
+        from sage.symbolic.expression import Expression
         if len(args) == 1 and isinstance(args[0], RealSet):
             return args[0]   # common optimization
         intervals = []
@@ -637,6 +699,51 @@ class RealSet(UniqueRepresentation, Parent):
                 intervals.append(arg)
             elif isinstance(arg, RealSet):
                 intervals.extend(arg._intervals)
+            elif isinstance(arg, Expression) and arg.is_relational():
+                from operator import eq, ne, lt, gt, le, ge
+                def rel_to_interval(op, val):
+                    """
+                    Internal helper function.
+                    """
+                    oo = infinity
+                    try:
+                        val = val.pyobject()
+                    except AttributeError:
+                        pass
+                    val = RLF(val)
+                    if op == eq:
+                        return [InternalRealInterval(val, True, val, True)]
+                    elif op == ne:
+                        return [InternalRealInterval(-oo, False, val, False),
+                                InternalRealInterval(val, False, oo, False)]
+                    elif op == gt:
+                        return [InternalRealInterval(val, False, oo, False)]
+                    elif op == ge:
+                        return [InternalRealInterval(val, True, oo, False)]
+                    elif op == lt:
+                        return [InternalRealInterval(-oo, False, val, False)]
+                    else:
+                        return [InternalRealInterval(-oo, False, val, True)]
+
+                if (arg.lhs().is_symbol()
+                    and (arg.rhs().is_numeric() or arg.rhs().is_constant())
+                    and arg.rhs().is_real()):
+                    intervals.extend(rel_to_interval(arg.operator(), arg.rhs()))
+                elif (arg.rhs().is_symbol()
+                    and (arg.lhs().is_numeric() or arg.lhs().is_constant())
+                    and arg.lhs().is_real()):
+                    op = arg.operator()
+                    if op == lt:
+                        op = gt
+                    elif op == gt:
+                        op = lt
+                    elif op == le:
+                        op = ge
+                    elif op == ge:
+                        op = le
+                    intervals.extend(rel_to_interval(op, arg.lhs()))
+                else:
+                    raise ValueError(str(arg) + ' does not determine real interval')
             else:
                 raise ValueError(str(arg) + ' does not determine real interval')
         intervals = RealSet.normalize(intervals)

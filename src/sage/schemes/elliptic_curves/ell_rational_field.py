@@ -5761,12 +5761,20 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: xset = E.integral_x_coords_in_interval(-100,100)
             sage: xlist = list(xset); xlist.sort(); xlist
             [-3, -2, -1, 0, 1, 2, 3, 4, 8, 11, 14, 21, 37, 52, 93]
+
+        TESTS:
+
+        The bug reported on :trac:`22719` is now fixed::
+
+            sage: E = EllipticCurve("141d1")
+            sage: E.integral_points()
+            [(0 : 0 : 1), (2 : 1 : 1)]
         """
         from sage.libs.ratpoints import ratpoints
         xmin=Integer(xmin)
         xmax=Integer(xmax)
         coeffs = self.division_polynomial(2).coefficients(sparse=False)
-        H = max(xmin.abs(), xmax.abs())
+        H = max(1, xmin.abs(), xmax.abs())
         return set([x for x,y,z in ratpoints(coeffs, H, max_x_denom=1, intervals=[[xmin,xmax]]) if z])
 
     prove_BSD = BSD.prove_BSD

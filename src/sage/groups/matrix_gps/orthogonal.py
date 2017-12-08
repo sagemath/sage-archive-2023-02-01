@@ -452,30 +452,21 @@ class OrthogonalMatrixGroup_gap(OrthogonalMatrixGroup_generic, NamedMatrixGroup_
 class OrthogonalMatrixGroup_with_gap(FinitelyGeneratedMatrixGroup_gap):
     r"""
     A base class for Orthogonal matrix groups with a gap backend.
-    
+
     It remembers the bilinear form.
     The difference to `OrthogonalMatrixGroup_gap` is that our groups do not have 
     a specific name.
-    
+
     INPUT:
 
-        - ``degree`` -- integer, the degree (matrix size) of the
-           matrix group
-
+        - ``degree`` -- integer, the degree (matrix size) of the matrix 
         - ``base_ring`` -- ring, the base ring of the matrices
-
         - ``gens`` -- a list of matrices over the base ring
-
         - ``invariant_bilinear_form`` -- a symmetric matrix
-
         - ``category`` -- (default:``None``) a category of groups
-
-        - ``check`` -- bool (default: ``True``) - check if the generators
-          preserve the bilinear form
-        - ``invariant_submodule`` -- a submodule preserved by the group action 
-         (default: ``None``) registers an action on this submodule.
-        - ``invariant_submodule`` -- a quotient module preserved by the group action 
-         (default: ``None``) registers an action on this quotient module.
+        - ``check`` -- bool (default: ``True``) check if the generators preserve the bilinear form
+        - ``invariant_submodule`` -- a submodule preserved by the group action         (default: ``None``) registers an action on this submodule.
+        - ``invariant_submodule`` -- a quotient module preserved by the group action         (default: ``None``) registers an action on this quotient module.
 
     EXAMPLES::
 
@@ -492,7 +483,7 @@ class OrthogonalMatrixGroup_with_gap(FinitelyGeneratedMatrixGroup_gap):
         2
 
     Infinite groups are O.K. too::
-    
+
         sage: bil = Matrix(ZZ,4,[0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0])
         sage: f = Matrix(ZZ,4,[0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, -1, 1, 1, 1])
         sage: O = OrthogonalMatrixGroup_with_gap(2,ZZ,[f],bil)
@@ -507,9 +498,9 @@ class OrthogonalMatrixGroup_with_gap(FinitelyGeneratedMatrixGroup_gap):
                  invariant_quotient_module=None):
         r"""
         Create this orthogonal group from the input. 
-            
+
         EXAMPLES::
-        
+
             sage: from sage.groups.matrix_gps.orthogonal import OrthogonalMatrixGroup_with_gap
             sage: bil = Matrix(ZZ,2,[3,2,2,3])
             sage: gens = [-Matrix(ZZ,2,[0,1,1,0])]
@@ -545,6 +536,7 @@ class OrthogonalMatrixGroup_with_gap(FinitelyGeneratedMatrixGroup_gap):
             - a string
 
         EXAMPLES::
+
             sage: from sage.groups.matrix_gps.orthogonal import OrthogonalMatrixGroup_with_gap
             sage: bil = Matrix(ZZ,2,[3,2,2,3])
             sage: gens = [-Matrix(ZZ,2,[0,1,1,0])]
@@ -565,33 +557,35 @@ class OrthogonalMatrixGroup_with_gap(FinitelyGeneratedMatrixGroup_gap):
 
     def invariant_bilinear_form(self):
         r"""
-        Return the symmetric bilinear form preserved by the orthogonal
-        group.
+        Return the symmetric bilinear form preserved by the orthogonal group.
 
         OUTPUT:
 
             - the matrix defining the bilinear form
 
         EXAMPLES::
-        sage: from sage.groups.matrix_gps.orthogonal import OrthogonalMatrixGroup_with_gap
-        sage: bil = Matrix(ZZ,2,[3,2,2,3])
-        sage: gens = [-Matrix(ZZ,2,[0,1,1,0])]
-        sage: O = OrthogonalMatrixGroup_with_gap(2,ZZ,gens,bil)
-        sage: O.invariant_bilinear_form()
-        [3 2]
-        [2 3]
 
+            sage: from sage.groups.matrix_gps.orthogonal import OrthogonalMatrixGroup_with_gap
+            sage: bil = Matrix(ZZ,2,[3,2,2,3])
+            sage: gens = [-Matrix(ZZ,2,[0,1,1,0])]
+            sage: O = OrthogonalMatrixGroup_with_gap(2,ZZ,gens,bil)
+            sage: O.invariant_bilinear_form()
+            [3 2]
+            [2 3]
         """
         return self._invariant_bilinear_form
 
     def _get_action_(self,S,op, self_on_left):
+        """
+        Provide the coercion system with an action.
+        """
         import operator
         if S is self._invariant_submodule and op == operator.mul and not self_on_left:
             return GroupActionOnSubmodule(self,S)
         if S is self._invariant_quotient_module and op == operator.mul and not self_on_left:
             return GroupActionOnQuotientModule(self,S)
         return None
-    
+
     def _check_matrix(self, x, *args):
         r"""
         Check whether the matrix ``x`` preserves the bilinear form.
@@ -615,11 +609,11 @@ class OrthogonalMatrixGroup_with_gap(FinitelyGeneratedMatrixGroup_gap):
         if x * F * x.transpose() != F:
             raise TypeError('matrix must be orthogonal '
                 'with respect to the invariant form')
-        
+
 class GroupActionOnSubmodule(Action):
     r"""
     Matrix group action on a submodule from the right.
-    
+
     INPUT:
 
         - ``MatrixGroup`` --  a :class:`~sage.groups.matrix_gps.orthogonal.OrthogonalMatrixGroup_with_gap`
@@ -654,12 +648,12 @@ class GroupActionOnSubmodule(Action):
 
         INPUT:
 
-                - ``a`` -- an element of the invariant submodule
-                - ``g`` -- an element of the acting group
+            - ``a`` -- an element of the invariant submodule
+            - ``g`` -- an element of the acting group
 
         OUTPUT:
 
-                - an element of the invariant submodule
+            - an element of the invariant submodule
 
         EXAMPLES::
 
@@ -690,7 +684,7 @@ class GroupActionOnQuotientModule(Action):
 
     INPUT:
 
-        - ``MatrixGroup`` --  a :class:`~sage.groups.matrix_gps.orthogonal.OrthogonalMatrixGroup_with_gap`
+        - ``MatrixGroup`` --  the group acting :class:`~sage.groups.matrix_gps.orthogonal.OrthogonalMatrixGroup_with_gap`
         - ``submodule`` -- an invariant submodule
         - ``is_left`` -- bool (default: False)
 
@@ -721,12 +715,12 @@ class GroupActionOnQuotientModule(Action):
 
         INPUT:
 
-                - ``a`` -- an element of the invariant submodule
-                - ``g`` -- an element of the acting group
+            - ``a`` -- an element of the invariant submodule
+            - ``g`` -- an element of the acting group
 
         OUTPUT:
 
-                - an element of the invariant quotient module
+            - an element of the invariant quotient module
 
         EXAMPLES::
 

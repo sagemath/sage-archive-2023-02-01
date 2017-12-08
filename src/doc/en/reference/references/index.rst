@@ -2331,6 +2331,10 @@ REFERENCES:
                *A new keystream generator MUGI*; in
                FSE, (2002), pp. 179-194.
 
+.. [Wil2013] Harold Williams. *Q-systems, factorization dynamics, and the
+             twist automorphism*. Int. Math. Res. Not. (2015) no. 22,
+             12042--12069. :doi:`10.1093/imrn/rnv057`.
+
 .. [Woo1998] \R. M. W. Wood, "Problems in the Steenrod algebra,"
              Bull. London Math. Soc. 30 (1998), no. 5, 449-517.
 

@@ -341,24 +341,6 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
         rep += "Coxeter group over {} with Coxeter matrix:\n{}".format(self.base_ring(), self._matrix)
         return rep
 
-    def index_set(self):
-        """
-        Return the index set of ``self``.
-
-        EXAMPLES::
-
-            sage: W = CoxeterGroup([[1,3],[3,1]])
-            sage: W.index_set()
-            (1, 2)
-            sage: W = CoxeterGroup([[1,3],[3,1]], index_set=['x', 'y'])
-            sage: W.index_set()
-            ('x', 'y')
-            sage: W = CoxeterGroup(['H',3])
-            sage: W.index_set()
-            (1, 2, 3)
-        """
-        return self._matrix.index_set()
-
     def coxeter_matrix(self):
         """
         Return the Coxeter matrix of ``self``.
@@ -376,42 +358,6 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
             [2 5 1]
         """
         return self._matrix
-
-    def coxeter_diagram(self):
-        """
-        Return the Coxeter diagram of ``self``.
-
-        EXAMPLES::
-
-            sage: W = CoxeterGroup(['H',3], implementation="reflection")
-            sage: G = W.coxeter_diagram(); G
-            Graph on 3 vertices
-            sage: G.edges()
-            [(1, 2, 3), (2, 3, 5)]
-            sage: CoxeterGroup(G) is W
-            True
-            sage: G = Graph([(0, 1, 3), (1, 2, oo)])
-            sage: W = CoxeterGroup(G)
-            sage: W.coxeter_diagram() == G
-            True
-            sage: CoxeterGroup(W.coxeter_diagram()) is W
-            True
-        """
-        return self._matrix.coxeter_graph()
-
-    coxeter_graph = deprecated_function_alias(17798, coxeter_diagram)
-
-    def coxeter_type(self):
-        """
-        Return the Coxeter type of ``self``.
-
-        EXAMPLES::
-
-            sage: W = CoxeterGroup(['H',3])
-            sage: W.coxeter_type()
-            Coxeter type of ['H', 3]
-        """
-        return self._matrix.coxeter_type()
 
     def bilinear_form(self):
         r"""

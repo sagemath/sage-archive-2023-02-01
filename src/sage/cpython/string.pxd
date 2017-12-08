@@ -23,7 +23,7 @@ IF PY_MAJOR_VERSION >= 3:
         bytes PyUnicode_EncodeLocale(object unicode, const char* errors)
 
 
-cdef inline str char_to_str(char* c, encoding=None, errors=None):
+cdef inline str char_to_str(const char* c, encoding=None, errors=None):
     IF PY_MAJOR_VERSION <= 2:
         return <str>PyBytes_FromString(c)
     ELSE:

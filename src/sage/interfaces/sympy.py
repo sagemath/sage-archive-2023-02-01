@@ -578,6 +578,24 @@ def _sympysage_abs(self):
     from sage.functions.other import abs_symbolic
     return abs_symbolic(self.args[0]._sage_())
 
+def _sympysage_crootof(self):
+    """
+    EXAMPLES::
+
+        sage: from sympy import Symbol, CRootOf
+        sage: sobj = CRootOf(Symbol('x')**2 - 2, 1)
+        sage: assert complex_root_of(x^2-2, 1)._sympy_() == sobj
+        sage: assert complex_root_of(x^2-2, 1) == sobj._sage_()
+
+        sage: from sympy import solve as ssolve
+        sage: sols = ssolve(x^6+x+1, x)
+        sage: (sols[0]+1)._sage_().n()
+        0.209332811185582 - 0.300506920309552*I
+    """
+    from sage.functions.other import complex_root_of
+    from sage.symbolic.ring import SR
+    return complex_root_of(self.args[0]._sage_(), SR(self.args[1]))
+
 def _sympysage_relational(self):
     """
     EXAMPLES::
@@ -672,6 +690,7 @@ def sympy_init():
     from sympy.functions.special.tensor_functions import KroneckerDelta
     from sympy.logic.boolalg import BooleanTrue, BooleanFalse
     from sympy.integrals.integrals import Integral
+    from sympy.polys.rootoftools import CRootOf
     from sympy.series.order import Order
 
     Float._sage_ = _sympysage_float
@@ -715,6 +734,7 @@ def sympy_init():
     re._sage_ = _sympysage_re
     im._sage_ = _sympysage_im
     Abs._sage_ = _sympysage_abs
+    CRootOf._sage_ = _sympysage_crootof
     BooleanFalse._sage_ = _sympysage_false
     BooleanTrue._sage_ = _sympysage_true
     ceiling._sage_ = _sympysage_ceiling

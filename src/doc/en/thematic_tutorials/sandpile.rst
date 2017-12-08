@@ -5026,12 +5026,12 @@ additional features and other improvements.
    Advances in Mathematics 215 (2007), 766--788.
 
 .. [BTW] Per Bak, Chao Tang and Kurt Wiesenfeld (1987).
-   *Self-organized criticality: an explanation of 1/ƒ noise*,
-   Physical Review Letters 60: 381–384;
+   *Self-organized criticality: an explanation of 1/f noise*,
+   Physical Review Letters 60: 381--384;
    :wikipedia:`Bak-Tang-Wiesenfeld_sandpile`.
 
 .. [CRS] Robert Cori, Dominique Rossin, and Bruno Salvy, *Polynomial ideals for
-   sandpiles and their Gröbner bases*,
+   sandpiles and their Groebner bases*,
    Theoretical Computer Science, 276 (2002) no. 1--2, 1--15.
 
 .. [H] Alexander E. Holroyd, Lionel Levine, Karola Meszaros, Yuval Peres,
@@ -5040,7 +5040,6 @@ additional features and other improvements.
    An older version of this paper appears in *In and out of Equilibrium II*,
    Eds. V. Sidoravicius, M. E. Vares, in the Series Progress in Probability,
    Birkhauser (2008).
-
 
 .. [PPW2013] D. Perkinson, J. Perlman, and J. Wilmes.
              *Primer for the algebraic geometry of sandpiles*.

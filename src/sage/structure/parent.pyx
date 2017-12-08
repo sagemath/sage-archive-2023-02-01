@@ -725,11 +725,11 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             self._initial_convert_list = []
             self._coerce_from_list = []
             self._registered_domains = []
-            self._coerce_from_hash = MonoDict(23)
+            self._coerce_from_hash = MonoDict()
             self._action_list = []
-            self._action_hash = TripleDict(23)
+            self._action_hash = TripleDict()
             self._convert_from_list = []
-            self._convert_from_hash = MonoDict(53)
+            self._convert_from_hash = MonoDict()
             self._embedding = None
 
     def _introspect_coerce(self):

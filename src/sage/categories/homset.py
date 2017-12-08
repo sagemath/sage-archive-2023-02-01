@@ -252,11 +252,11 @@ def Hom(X, Y, category=None, check=True):
         sage: PA = Parent(category=Algebras(QQ))
         sage: PJ = Parent(category=Rings() & Modules(QQ))
         sage: Hom(PA,PJ)
-        Set of Homomorphisms from <type 'sage.structure.parent.Parent'> to <type 'sage.structure.parent.Parent'>
+        Set of Homomorphisms from <sage.structure.parent.Parent object at ...> to <sage.structure.parent.Parent object at ...>
         sage: Hom(PA,PJ).category()
         Category of homsets of unital magmas and right modules over Rational Field and left modules over Rational Field
         sage: Hom(PA,PJ, Rngs())
-        Set of Morphisms from <type 'sage.structure.parent.Parent'> to <type 'sage.structure.parent.Parent'> in Category of rngs
+        Set of Morphisms from <sage.structure.parent.Parent object at ...> to <sage.structure.parent.Parent object at ...> in Category of rngs
 
     .. TODO::
 

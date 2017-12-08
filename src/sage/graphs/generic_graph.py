@@ -1012,25 +1012,25 @@ class GenericGraph(GenericGraph_pyx):
         Which backend? ::
 
             sage: G.copy(data_structure="sparse")._backend
-            <type 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
+            <sage.graphs.base.sparse_graph.SparseGraphBackend object at ...>
             sage: G.copy(data_structure="dense")._backend
-            <type 'sage.graphs.base.dense_graph.DenseGraphBackend'>
+            <sage.graphs.base.dense_graph.DenseGraphBackend object at ...>
             sage: G.copy(data_structure="static_sparse")._backend
-            <type 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
+            <sage.graphs.base.static_sparse_backend.StaticSparseBackend object at ...>
             sage: G.copy(immutable=True)._backend
-            <type 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
+            <sage.graphs.base.static_sparse_backend.StaticSparseBackend object at ...>
             sage: G.copy(immutable=True, sparse=True)._backend
-            <type 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
+            <sage.graphs.base.static_sparse_backend.StaticSparseBackend object at ...>
             sage: G.copy(immutable=False, sparse=True)._backend
-            <type 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
+            <sage.graphs.base.sparse_graph.SparseGraphBackend object at ...>
             sage: G.copy(immutable=False, sparse=False)._backend
-            <type 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
+            <sage.graphs.base.sparse_graph.SparseGraphBackend object at ...>
 
         Fake immutable graphs::
 
             sage: G._immutable = True
             sage: G.copy()._backend
-            <type 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
+            <sage.graphs.base.sparse_graph.SparseGraphBackend object at ...>
         """
         # Which data structure should be used ?
         if implementation != 'c_graph':
@@ -17640,7 +17640,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = g.copy(immutable=True)
             sage: (2*g)._backend
-            <type 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
+            <sage.graphs.base.static_sparse_backend.StaticSparseBackend object at ...>
 
         Check that weighted is appropriately inherited (:trac:`23843`)::
 

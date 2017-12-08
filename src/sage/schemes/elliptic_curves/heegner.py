@@ -1250,7 +1250,7 @@ class GaloisAutomorphism(SageObject):
             sage: G = heegner_points(389,-7,5).ring_class_field().galois_group(); G
             Galois group of Ring class field extension of QQ[sqrt(-7)] of conductor 5
             sage: sage.schemes.elliptic_curves.heegner.GaloisAutomorphism(G)
-            <class 'sage.schemes.elliptic_curves.heegner.GaloisAutomorphism'>
+            <sage.schemes.elliptic_curves.heegner.GaloisAutomorphism object at ...>
         """
         self.__parent = parent
 

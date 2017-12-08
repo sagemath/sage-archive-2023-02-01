@@ -68,7 +68,7 @@ class IncreasingArrays(UniqueRepresentation, Parent):
 
             sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: IncreasingArrays()
-            <class 'sage.structure.list_clone_demo.IncreasingArrays_with_category'>
+            <sage.structure.list_clone_demo.IncreasingArrays_with_category object at ...>
             sage: IncreasingArrays() == IncreasingArrays()
             True
         """

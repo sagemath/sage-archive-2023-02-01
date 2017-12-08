@@ -383,7 +383,7 @@ This is because an attribute is stored that explains how the instance was
 created::
 
     sage: a._factory_data
-    (<class '__main__.MyFactory'>, (...), (1, 1), {})
+    (<__main__.MyFactory object at ...>, (8, 1), (1, 1), {})
 
 .. NOTE::
 

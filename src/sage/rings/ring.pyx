@@ -1182,7 +1182,7 @@ cdef class Ring(ParentWithGens):
         ring class by a random integer::
 
             sage: R = sage.rings.ring.Ring(ZZ); R
-            <type 'sage.rings.ring.Ring'>
+            <sage.rings.ring.Ring object at ...>
             sage: R.random_element()
             Traceback (most recent call last):
             ...
@@ -2263,7 +2263,7 @@ cdef class Algebra(Ring):
         EXAMPLES::
 
             sage: A = Algebra(ZZ); A
-            <type 'sage.rings.ring.Algebra'>
+            <sage.rings.ring.Algebra object at ...>
         """
         # This is a low-level class. For performance, we trust that the category
         # is fine, if it is provided. If it isn't, we use the category of Algebras(base_ring).
@@ -2283,7 +2283,7 @@ cdef class Algebra(Ring):
         EXAMPLES::
 
             sage: A = Algebra(ZZ); A
-            <type 'sage.rings.ring.Algebra'>
+            <sage.rings.ring.Algebra object at ...>
             sage: A.characteristic()
             0
             sage: A = Algebra(GF(7^3, 'a'))
@@ -2362,10 +2362,10 @@ cdef class CommutativeAlgebra(CommutativeRing):
 
         EXAMPLES::
 
-            sage: sage.rings.ring.CommutativeAlgebra(QQ) # indirect doctest
-            <type 'sage.rings.ring.CommutativeAlgebra'>
+            sage: sage.rings.ring.CommutativeAlgebra(QQ)
+            <sage.rings.ring.CommutativeAlgebra object at ...>
 
-            sage: sage.rings.ring.CommutativeAlgebra(QuaternionAlgebra(QQ,-1,-1)) # indirect doctest
+            sage: sage.rings.ring.CommutativeAlgebra(QuaternionAlgebra(QQ,-1,-1))
             Traceback (most recent call last):
             ...
             TypeError: base ring must be a commutative ring

@@ -154,7 +154,7 @@ cdef class Cache_ntl_gf2e(SageObject):
 
             sage: from sage.rings.finite_rings.element_ntl_gf2e import Cache_ntl_gf2e
             sage: Cache_ntl_gf2e.__new__(Cache_ntl_gf2e, None, 2, [1,1,1])
-            <type 'sage.rings.finite_rings.element_ntl_gf2e.Cache_ntl_gf2e'>
+            <sage.rings.finite_rings.element_ntl_gf2e.Cache_ntl_gf2e object at ...>
         """
         cdef GF2X_c ntl_m
         cdef GF2_c c

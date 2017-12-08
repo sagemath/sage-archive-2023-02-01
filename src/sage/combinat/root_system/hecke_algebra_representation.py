@@ -823,7 +823,7 @@ class CherednikOperatorsEigenvectors(UniqueRepresentation, SageObject):
             sage: KW = W.algebra(K)
             sage: rho = KW.demazure_lusztig_operators(q1, q2, affine=True)
             sage: E = CherednikOperatorsEigenvectors(rho); E
-            <class 'sage.combinat.root_system.hecke_algebra_representation.CherednikOperatorsEigenvectors'>
+            <sage.combinat.root_system.hecke_algebra_representation.CherednikOperatorsEigenvectors object at ...>
             sage: E.keys()
             Weyl Group of type ['B', 3] (as a matrix group acting on the ambient space)
             sage: E.domain()

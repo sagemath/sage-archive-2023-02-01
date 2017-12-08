@@ -2003,6 +2003,9 @@ REFERENCES:
 .. [Sch2006] Oliver Schiffmann. *Lectures on Hall algebras*,
              preprint, 2006. :arxiv:`0611617v2`.
 
+.. [Sch2015] George Schaeffer. *Hecke stability and weight 1 modular forms*.
+             Math. Z. 281:159–191, 2015. :doi:`10.1007/s00209-015-1477-9`
+
 .. [Sco1985] \R. Scott,
              *Wide-open encryption design offers flexible implementations*; in
              Cryptologia, (1985), pp. 75-91.

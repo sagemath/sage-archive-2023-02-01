@@ -476,7 +476,7 @@ class CoxeterTypeFromCartanType(UniqueRepresentation, CoxeterType):
         EXAMPLES::
 
             sage: latex(CoxeterType(['A',3]))
-            'A_{3}'
+            A_{3}
         """
         return self._cartan_type._latex_()
 

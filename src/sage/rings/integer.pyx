@@ -655,11 +655,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             if isinstance(x, Integer):
                 set_from_Integer(self, <Integer>x)
 
-            elif isinstance(x, int):
-                mpz_set_si(self.value, PyInt_AS_LONG(x))
-
             elif isinstance(x, long):
                 mpz_set_pylong(self.value, x)
+
+            elif isinstance(x, int):
+                mpz_set_si(self.value, PyInt_AS_LONG(x))
 
             elif isinstance(x, float):
                 n = long(x)

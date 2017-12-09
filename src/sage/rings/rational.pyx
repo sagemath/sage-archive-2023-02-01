@@ -57,7 +57,7 @@ import operator
 import fractions
 
 from sage.misc.mathml import mathml
-from sage.misc.long cimport pyobject_to_long
+from sage.arith.long cimport pyobject_to_long
 
 import sage.misc.misc as misc
 from sage.structure.sage_object cimport SageObject

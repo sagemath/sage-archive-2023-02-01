@@ -44,7 +44,7 @@ from cypari2.gen cimport Gen
 from sage.interfaces.gap import is_GapElement
 
 from sage.misc.randstate import current_randstate
-from sage.misc.long cimport pyobject_to_long
+from sage.arith.long cimport pyobject_to_long
 
 from .element_ext_pari import FiniteField_ext_pariElement
 from .element_pari_ffelt import FiniteFieldElement_pari_ffelt

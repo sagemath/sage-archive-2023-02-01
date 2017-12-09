@@ -372,7 +372,8 @@ class Sandpile(DiGraph):
     @staticmethod
     def help(verbose=True):
         r"""
-        List of Sandpile-specific methods (not inherited from Graph).  If ``verbose``, include short descriptions.
+        List of Sandpile-specific methods (not inherited from :class:`Graph`).
+        If ``verbose``, include short descriptions.
 
         INPUT:
 
@@ -436,7 +437,7 @@ class Sandpile(DiGraph):
             stationary_density       -- The stationary density of the sandpile.
             superstables             -- The superstable configurations.
             symmetric_recurrents     -- The symmetric recurrent configurations.
-            tutte_polynomial         -- The Tutte polynomial.
+            tutte_polynomial         -- The Tutte polynomial of the underlying graph.
             unsaturated_ideal        -- The unsaturated, homogeneous toppling ideal.
             version                  -- The version number of Sage Sandpiles.
             zero_config              -- The all-zero configuration.
@@ -617,7 +618,7 @@ class Sandpile(DiGraph):
 
     def __copy__(self):
         """
-        Make a copy of this sandpile
+        Make a copy of this sandpile.
 
         OUTPUT:
 

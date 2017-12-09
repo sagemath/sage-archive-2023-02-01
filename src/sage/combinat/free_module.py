@@ -337,7 +337,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
             sage: A.element_class.mro()
             [<class 'sage.categories.examples.algebras_with_basis.FreeAlgebra_with_category.element_class'>,
-             <type 'sage.modules.with_basis.indexed_element.IndexedFreeModuleElement'>,
+             <... 'sage.modules.with_basis.indexed_element.IndexedFreeModuleElement'>,
              ...]
             sage: a,b,c = A.algebra_generators()
             sage: a * b

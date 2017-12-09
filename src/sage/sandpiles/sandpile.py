@@ -584,24 +584,25 @@ class Sandpile(DiGraph):
         else:
             self._name = 'sandpile graph'
         # preprocess a graph, if necessary
-        if isinstance(g, dict) and isinstance(g.values()[0], dict):
+        if isinstance(g, dict) and isinstance(next(iter(g.values())), dict):
             pass # this is the default format
-        elif isinstance(g, dict) and isinstance(g.values()[0], list):
-            processed_g = {i:dict(Counter(g[i])) for i in g}
+        elif isinstance(g, dict) and isinstance(next(iter(g.values())), list):
+            processed_g = {i: dict(Counter(g[i])) for i in g}
             g = processed_g
         elif isinstance(g, Graph) or isinstance(g, DiGraph):
             if not g.weighted():
                 h = g.to_dictionary(multiple_edges=True)
-                g = {i:dict(Counter(h[i])) for i in h}
+                g = {i: dict(Counter(h[i])) for i in h}
             else:
-                vi = {v:g.vertices().index(v) for v in g.vertices()}
+                vi = {v: g.vertices().index(v) for v in g.vertices()}
                 ad = g.weighted_adjacency_matrix()
-                g = {v:{w:ad[vi[v],vi[w]] for w in g.neighbors(v)} for v in g.vertices()}
+                g = {v: {w: ad[vi[v], vi[w]] for w in g.neighbors(v)}
+                     for v in g.vertices()}
         else:
             raise SyntaxError(g)
 
         # create digraph and initialize some variables
-        DiGraph.__init__(self,g,weighted=True)
+        DiGraph.__init__(self, g, weighted=True)
         self._dict = deepcopy(g)
         if sink is None:
             sink = self.vertices()[0]

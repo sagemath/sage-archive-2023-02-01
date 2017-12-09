@@ -13,6 +13,7 @@ Quadratic Forms
 
    sage/quadratic_forms/extras
    sage/quadratic_forms/genera/genus
+   sage/quadratic_forms/genera/p_adic_jordan_blocks
    sage/quadratic_forms/qfsolve
    sage/quadratic_forms/ternary
    sage/quadratic_forms/ternary_qf

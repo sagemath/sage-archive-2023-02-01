@@ -44,14 +44,14 @@ def jordan_p_adic(G,p,precision=None,normalize=True):
 
         - ``G`` -- a symmetric n x n matrix in `\QQ`
         - ``p`` -- a prime number -- it is not checked whether ``p`` is prime
-        - ``precision`` -- defining precision. If not set, the minimal possible is taken.
-        - ``ǹormalize```-- bool (default: `True`)
+        - ``precision`` -- defining precision. If not set, 
+          the minimal possible is taken.
+        - ``normalize```-- bool (default: `True`)
 
     OUTPUT:
 
         - ``D`` -- the jordan matrix over `\Q_p`
-        - ``U`` -- invertible transformation matrix over `\Z_p`, 
-        i.e, ``D = U * G * U^T``
+        - ``U`` -- invertible transformation matrix over `\Z_p`, i.e, ``D = U * G * U^T``
 
     EXAMPLES::
 

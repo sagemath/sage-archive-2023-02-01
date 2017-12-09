@@ -20,7 +20,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import Zp
+from sage.rings.all import Zp, ZZ, GF
 from sage.matrix.constructor import Matrix
 from copy import copy
 from sage.rings.finite_rings.integer_mod import mod
@@ -28,10 +28,10 @@ from sage.rings.finite_rings.integer_mod import mod
 def jordan_p_adic(G,p,precision=None,normalize=True):
     r"""
     Return the `p`-adic Jordan form of a symmetric matrix.
-    
+
     Let `p` be odd and `u` be the smallest non-square modulo `p`.
     The Jordan form is a diagonal matrix with diagonal entries either `p^n` or `u*p^n`.
-    
+
     If `p=2` is even, then the Jordan form consists of 
     1 x 1 blocks of the form
     `0`, `[2^n]`, `[3*2^n]`, `[5*2^n]`, `[7*2^n]`
@@ -39,22 +39,22 @@ def jordan_p_adic(G,p,precision=None,normalize=True):
     [2 1]           [0 1]
     [1 2] * 2^n or  [1 0] * 2^n
     In any case the entries are ordered by their valuation.
-    
+
     INPUT:
-    
+
         - ``G`` -- a symmetric n x n matrix in `\QQ`
         - ``p`` -- a prime number -- it is not checked whether ``p`` is prime
-        - ``precision`` -- defining precision. If not set the minimal possible is taken.
+        - ``precision`` -- defining precision. If not set, the minimal possible is taken.
         - ``ǹormalize```-- bool (default: `True`)
-    
+
     OUTPUT:
-    
+
         - ``D`` -- the jordan matrix over `\Q_p`
         - ``U`` -- invertible transformation matrix over `\Z_p`, 
         i.e, ``D = U * G * U^T``
-    
+
     EXAMPLES::
-    
+
         sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import jordan_p_adic
         sage: D4 = Matrix(ZZ,4,[2,-1,-1,-1,-1,2,0,0,-1,0,2,0,-1,0,0,2])
         sage: D4
@@ -84,7 +84,7 @@ def jordan_p_adic(G,p,precision=None,normalize=True):
         [0 0 1 0]
 
     We can handle degenerate forms as well::
-        
+
         sage: A4_extended = Matrix(ZZ,5,[2, -1, 0, 0, -1, -1, 2, -1, 0, 0, 0, -1, 2, -1, 0, 0, 0, -1, 2, -1, -1, 0, 0, -1, 2])
         sage: D, U = jordan_p_adic(A4_extended,5)
         sage: D
@@ -93,9 +93,9 @@ def jordan_p_adic(G,p,precision=None,normalize=True):
             [0 0 2 0 0]
             [0 0 0 5 0]
             [0 0 0 0 0]
-        
+
     Rational matrices as no problem as well::
-    
+
         sage: A4dual = A4.inverse()
         sage: D, U = jordan_p_adic(A4dual,5)
         sage: D
@@ -103,9 +103,9 @@ def jordan_p_adic(G,p,precision=None,normalize=True):
         [   0    2    0    0]
         [   0    0    1    0]
         [   0    0    0    2]
-        
+
     TESTS::
-        
+
         sage: Z = Matrix(ZZ,0,[])
         sage: jordan_p_adic(Z,3)
         ([], [])
@@ -117,7 +117,7 @@ def jordan_p_adic(G,p,precision=None,normalize=True):
     p = ZZ(p)
     denom = G.denominator()
     G = G * denom
-    
+
     if G.det() != 0:
         # we have to calculate at least mod 8 for 2-adic things to make sense.
         min_precision = G.det().valuation(p) + 3 
@@ -130,7 +130,7 @@ def jordan_p_adic(G,p,precision=None,normalize=True):
     if precision == None:
         precision = min_precision
     precision = max(precision, min_precision)
-    
+
     R = Zp(p, prec = precision, type = 'fixed-mod')
     G = G.change_ring(R) # is not changed
     D = copy(G)    # is transformed into jordan form
@@ -140,7 +140,7 @@ def jordan_p_adic(G,p,precision=None,normalize=True):
         return G.parent().zero(), G.parent().zero()
     # transformation matrix
     U = Matrix.identity(R,n)
-    
+
     if(p == 2):
         D, U = _jordan_2_adic(G)
         # we confirm the result
@@ -159,18 +159,18 @@ def jordan_p_adic(G,p,precision=None,normalize=True):
 def _jordan_odd_adic(G):
     r"""
     Return the Jordan decomposition over an odd prime.
-    
+
     INPUT:
-    
+
         -- a symmetric matrix over ``Zp`` of type ``'fixed-mod'``
-    
+
     OUTPUT:
-    
+
         - ``D`` -- a diagonal matrix
         - ``U`` -- a unimodular matrix such that ``D = U*G*U.T``
-        
+
     EXAMPLES::
-        
+
         sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import _jordan_odd_adic
         sage: R = Zp(3,prec=2,print_mode='series')
         sage: A4 = Matrix(R,4,[2, -1, 0, 0, -1, 2, -1, 0, 0, -1, 2, -1, 0, 0, -1, 2])
@@ -193,10 +193,10 @@ def _jordan_odd_adic(G):
     R = G.base_ring()
     D = copy(G)
     n = G.ncols()
-    
+
     # transformation matrix
     U = Matrix.identity(R, n)
-    
+
     # indices of the diagonal entrys which are already used
     cnt = 0
     while cnt < n:
@@ -233,28 +233,28 @@ def _jordan_odd_adic(G):
 def _jordan_2_adic(G):
     r"""
     Transform a symmetric matrix over the `2`-adic integers into jordan form
-    
+
     Note that if the precision is too low this method fails.
     The method is only tested for input over `\Z_2` of`'type=fixed-mod'`.
-    
+
     Input:
 
         - ``G`` -- symmetric `n` x `n` matrix in ``Zp``
-    
+
     Output:
 
         - ``D`` -- the jordand matrix
         - ``U`` -- transformation matrix i.e ``D = U * G * U^T``
-    
+
     The matrix ``D`` is a block diagonal matrix consisting 
     of `1` x `1` and `2` x `2` blocks.
     The 2 x 2 blocks are of the form
     `[2a  b]`
     `[ b 2c] * 2^k`
     with `b` of valuation `0`.
-    
+
     EXAMPLES:
-    
+
         sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import _jordan_2_adic
         sage: R = Zp(2,prec=3,print_mode='series')
         sage: A4 = Matrix(R,4,[2, -1, 0, 0, -1, 2, -1, 0, 0, -1, 2, -1, 0, 0, -1, 2])
@@ -265,7 +265,7 @@ def _jordan_2_adic(G):
         [0 0 7 2]
 
         sage: D, U = _jordan_2_adic(A4)
-        sage: D.change_ring(ZZ)   #just for pretty printing.
+        sage: D.change_ring(ZZ)   # for pretty printing.
         [ 2  7  0  0]
         [ 7  2  0  0]
         [ 0  0 12  7]
@@ -279,10 +279,10 @@ def _jordan_2_adic(G):
     R = G.base_ring()
     D = copy(G)
     n = G.ncols()
-    
+
     # transformation matrix
     U = Matrix.identity(R, n)
-    
+
     # indices of the diagonal entrys which are already used
     cnt = 0
     minval = None
@@ -358,19 +358,19 @@ def _jordan_2_adic(G):
 def _get_small_block_indices(G):
     r"""
     Return the indices of the blocks.
-    
+
     For internal use in :meth:`collect_small_blocks`
-    
+
     INPUT:
-    
+
         - ``G`` -- a block_diagonal matrix consisting of `1 x 1` and `2 x 2` blocks
-    
+
     OUTPUT:
-    
+
         - a list of integers
-        
+
     EXAMPLES::
-    
+
         sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import _get_small_block_indices
         sage: A = Matrix([1])
         sage: B = Matrix(ZZ, 2, [2, 1, 1, 2])
@@ -394,17 +394,17 @@ def _get_small_block_indices(G):
 def collect_small_blocks(G):
     r"""
     Return the blocks as list.
-    
+
     INPUT:
-    
+
         - ``G`` -- a block_diagonal matrix consisting of `1 x 1` and `2 x 2` blocks
-    
+
     OUTPUT:
-    
+
         - a list of `1` x `1` and `2` x `2` matrices -- the blocks
-        
+
     EXAMPLES::
-    
+
         sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import collect_small_blocks
         sage: A = Matrix([1])
         sage: B = Matrix(ZZ, 2, [2, 1, 1, 2])
@@ -425,17 +425,33 @@ def collect_small_blocks(G):
 def _normalize(G):
     r"""
     Normalize a block diagonal matrix further.
-    
+
     See also :meth:``p_adic_jordan_blocks``.
-    
+
     INPUT:
-    
+
         - a symmetric matrix over `Zp` in jordan form --
         the output of :meth:``jordan_p_adic`` or :meth:``_jordan_2_adic``
-    
+
     OUTPUT:
-    
-        - a matrix in normalized jordan form
+
+        - ``(D, U)`` - a pair of matrices such that ``D=U*G*U.T`` is in normalized jordan form
+
+    EXAMPLES::
+
+        sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import         _normalize
+        sage: R = Zp(3, prec = 5, type = 'fixed-mod', print_mode = 'digits')
+        sage: G = matrix.diagonal(R,[1,7,3,3*5,3,9,-9,27*13])
+        sage: D,U =_normalize(G)
+        sage: D
+        [...00001        0        0        0        0        0        0        0]
+        [       0 ...00001        0        0        0        0        0        0]
+        [       0        0 ...00010        0        0        0        0        0]
+        [       0        0        0 ...00020        0        0        0        0]
+        [       0        0        0        0 ...00010        0        0        0]
+        [       0        0        0        0        0 ...00100        0        0]
+        [       0        0        0        0        0        0 ...00200        0]
+        [       0        0        0        0        0        0        0 ...01000]
     """
     R = G.base_ring()
     D = copy(G)
@@ -475,17 +491,17 @@ def _normalize(G):
 def _normalize_2x2(G):
     r"""
     normalize this 2x2 block
-    
+
     INPUT:
-    
+
         -  ``G`` - a `2` by `2` matrix over ``Zp`` 
             with ``type = 'fixed-mod'`` of the form
             `[2a  b]`
             `[ b 2c]*2^n`
             with b of valuation 1
-    
+
     OUTPUT:
-    
+
         -  a unimodular `2 x 2` matrix ``U`` over ``Zp`` with 
             ``U * G *U.transpose()``
             either 
@@ -494,8 +510,9 @@ def _normalize_2x2(G):
             or
                 `[2 1]`
                 `[1 2]`
-    
+
     EXAMPLES::
+
         sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import         _normalize_2x2
         sage: R = Zp(2, prec = 10, type = 'fixed-mod', print_mode = 'digits')
         sage: G = Matrix(R,2,[-17*2,3,3,23*2])
@@ -515,9 +532,9 @@ def _normalize_2x2(G):
         sage: U*G*U.T
         [...1110000010 ...1010000001]
         [...1010000001 ...1110000010]
-        
+
     TESTS::
-    
+
         sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import _normalize_2x2
         sage: R = Zp(2, prec = 10, type = 'fixed-mod')
         sage: ref1 = Matrix(R,2,[2,1,1,2])
@@ -526,13 +543,12 @@ def _normalize_2x2(G):
         sage: (N*G*N.T == ref1) or (N*G*N.T == ref2)
         True
     """
-    
     U = copy(G.parent().identity_matrix())
     R = G.base_ring()
     from sage.rings.all import PolynomialRing
     P = PolynomialRing(R, 'x')
     x = P.gen()
-    
+
     # The input must be an even block
     odd1 = (G[0, 0].valuation() < G[1, 0].valuation())
     odd2 = (G[1, 1].valuation() < G[1, 0].valuation())
@@ -545,7 +561,7 @@ def _normalize_2x2(G):
     # [b  2c]
     # where b has valuation 1.
     G = copy(D)
-    
+
     # Make sure G[1, 1] has valuation 1.
     if D[1, 1].valuation() > D[0, 0].valuation():
         U.swap_columns(0, 1)
@@ -557,7 +573,7 @@ def _normalize_2x2(G):
         U[1, :] += U[0, :]
         D = U * G * U.transpose()
     assert D[1, 1].valuation() == 1
-    
+
     if mod(D.det(), 8) == 3:
         #  in this case we can transform D to
         #  2 1
@@ -573,7 +589,7 @@ def _normalize_2x2(G):
         # make D[0, 1] = 1
         U[1, :] *= D[1, 0].inverse_of_unit()
         D = U * G * U.transpose()
-        
+
         # solve: v*D*v == 2 with v = (x,-2*x+1)
         from sage.modules.free_module_element import vector
         if D[1, 1] != 2:
@@ -611,20 +627,20 @@ def _normalize_2x2(G):
 def _find_min_p(G, cnt):
     r"""
     Find smallest valuation below and right from ``cnt`` prefering the diagonal.
-    
+
     Input:
 
         - ``G`` -- symmetric `n` x `n` matrix in `\Qp`
         - ``cnt`` -- start search from this index
-    
+
     Output:
 
         - ``min`` -- minimal valuation
         - ``min_i`` -- row of the minimal valuation
         - ``min_j`` -- column of the minimal valuation
-    
+
     EXAMPLES::
-    
+
         sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import _find_min_p
         sage: G = matrix(Qp(2),3,3,[4,0,1,0,4,2,1,2,1])
         sage: G    
@@ -634,7 +650,7 @@ def _find_min_p(G, cnt):
 
         sage: _find_min_p(G,0)
         (0, 2, 2)        
-        
+
         sage: G = matrix(Qp(3),3,3,[4,0,1,0,4,2,1,2,1])
         sage: G
         [1 + 3 + O(3^20)               0     1 + O(3^20)]
@@ -642,7 +658,6 @@ def _find_min_p(G, cnt):
         [    1 + O(3^20)     2 + O(3^20)     1 + O(3^20)]
         sage: _find_min_p(G,0)
         (0, 2, 2)
-    
     """
     n = G.ncols()
     min = G[cnt, cnt].valuation()
@@ -664,17 +679,17 @@ def _find_min_p(G, cnt):
 def _min_nonsquare(p):
     r"""
     Return the minimal nonsquare modulo the prime ``p``.
-    
+
     Input:
 
         - ``p`` -- a prime number
-    
+
     Output:
-    
+
         - ``a`` -- the minimal nonsquare mod ``p`` as an element of `\Z`.
-    
+
     EXAMPLES::
-    
+
         sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import _min_nonsquare
         sage: _min_nonsquare(2)
         sage: _min_nonsquare(3)
@@ -684,8 +699,7 @@ def _min_nonsquare(p):
         sage: _min_nonsquare(7)
         3
     """
-    from sage.rings.all import GF
-    R = GF(prime)
+    R = GF(p)
     for i in R:
         if not R(i).is_square():
             return i

@@ -243,6 +243,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.edge_cut` | Return a minimum edge cut between vertices `s` and `t`
     :meth:`~GenericGraph.vertex_cut` | Return a minimum vertex cut between non-adjacent vertices `s` and `t`
     :meth:`~GenericGraph.flow` | Return a maximum flow in the graph from ``x`` to ``y``
+    :meth:`~GenericGraph.nowhere_zero_flow` | Return a `k`-nowhere zero flow of the (di)graph.
     :meth:`~GenericGraph.edge_disjoint_paths` | Returns a list of edge-disjoint paths between two vertices
     :meth:`~GenericGraph.vertex_disjoint_paths` | Return a list of vertex-disjoint paths between two vertices as given by Menger's theorem.
     :meth:`~GenericGraph.edge_connectivity` | Return the edge connectivity of the graph.
@@ -8306,6 +8307,200 @@ class GenericGraph(GenericGraph_pyx):
             flow_graph = Graph(flow_graph)
 
         return [obj,flow_graph]
+
+    def nowhere_zero_flow(self, k=None, solver=None, verbose=0):
+        r"""
+        Return a `k`-nowhere zero flow of the (di)graph.
+
+        A flow on a graph `G = (V, E)` is a pair `(D, f)` such that `D` is an
+        orientation of `G` and `f` is a function on `E` satisfying
+
+        .. MATH::
+
+            \sum_{u \in N^-_D(v)} f(uv) = \sum_{w \in N^+_D(v)} f(vw),\ \forall v \in V
+
+        A ``nowhere zero flow`` on a graph `G = (V, E)` is a flow `(D, f)` such
+        that `f(e) \neq 0` for every `e \in E`. For a positive integer `k`, a
+        `k`-flow on a graph `G = (V, E)` is a flow `(D, f)` such that `f : E \to
+        Z` and `−(k − 1) \leq f(e) \leq k − 1` for every `e \in E`. A `k`-flow
+        is positive if `f(e) > 0` for every `e \in E`. A `k`-flow which is
+        nowhere zero is called a `k`-nowhere zero flow (or `k`-NZF).
+
+        We have that `G` admits a positive `k`-flow iff `G` admits a `k`-NZF iff
+        every orientation of `G` admits a `k`-NZF. Furthermore, a (di)graph
+        admits a `k`-NZF iff it is bridgeless, and every bridgeless graph admits
+        a 6-NZF [Sey1981]_. See :wikipedia:`Nowhere-zero_flow` for more details.
+
+        If ``self`` is not directed, we search for a `k`-NZF on any orientation
+        of ``self`` and then build a positive `k`-NZF by reverting edges with
+        negative flow.
+
+        INPUT:
+
+        - ``k`` -- integer (default: ``None``); By default, the value of `k` is
+          set to 6 [Sey1981]_. When set to a positive integer `\geq 2`, search
+          for a `k`-nowhere zero flow.
+
+        - ``solver`` -- (default: ``None``); Specify a Linear Program solver to
+          be used.  If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``verbose`` -- integer (default: ``0``); Sets the level of
+          verbosity of the LP solver. Set to 0 by default, which means quiet.
+
+        OUTPUT: A digraph with flow values stored as edge labels if a
+        `k`-nowhere zero flow is found. If ``self`` is undirected, the edges of
+        this digraph indicate the selected orientation. If no feasible solution
+        is found, an error is raised.
+
+        EXAMPLES:
+
+        The Petersen graph admits a (positive) 5-nowhere zero flow, but no
+        4-nowhere zero flow::
+
+            sage: g = graphs.PetersenGraph()
+            sage: h = g.nowhere_zero_flow(k=5)
+            sage: sorted(list( set(h.edge_labels()) ))
+            [1, 2, 3, 4]
+            sage: h = g.nowhere_zero_flow(k=3)
+            Traceback (most recent call last):
+            ...
+            EmptySetError: the problem has no feasible solution
+
+        The de Bruijn digraph admits a 2-nowhere zero flow::
+
+            sage: g = digraphs.DeBruijn(2, 3)
+            sage: h = g.nowhere_zero_flow(k=2)
+            sage: sorted(list( set(h.edge_labels()) ))
+            [-1, 1]
+
+        TESTS:
+
+        Loops and multiple edges::
+
+            sage: g = Graph([(0, 0), (0, 0)], loops=True, multiedges=True)
+            sage: g.nowhere_zero_flow().edges()
+            [(0, 0, 1), (0, 0, 1)]
+            sage: g = Graph([(0, 0), (0, 1), (0, 1)], loops=True, multiedges=True)
+            sage: g.nowhere_zero_flow(k=2).edges()
+            [(0, 0, 1), (0, 1, 1), (1, 0, 1)]
+            sage: g = DiGraph([(0, 0), (0, 0)], loops=True, multiedges=True)
+            sage: g.nowhere_zero_flow().edges()
+            [(0, 0, 1), (0, 0, 1)]
+            sage: g = DiGraph([(0, 0), (0, 1), (0, 1)], loops=True, multiedges=True)
+            sage: g.nowhere_zero_flow(k=2).edges()
+            [(0, 0, 1), (0, 1, -1), (0, 1, 1)]
+
+        Multiple connected components::
+
+            sage: g = graphs.CycleGraph(3) * 2
+            sage: h = g.nowhere_zero_flow()
+            sage: h.connected_components_sizes()
+            [3, 3]
+
+        (Di)Graphs with bridges::
+
+            sage: g = graphs.PathGraph(2)
+            sage: g.nowhere_zero_flow()
+            Traceback (most recent call last):
+            ...
+            EmptySetError: (di)graphs with bridges have no feasible solution
+            sage: g = digraphs.Path(2)
+            sage: g.nowhere_zero_flow()
+            Traceback (most recent call last):
+            ...
+            EmptySetError: (di)graphs with bridges have no feasible solution
+
+        Too small value of `k`::
+
+            sage: Graph().nowhere_zero_flow(k=1)
+            Traceback (most recent call last):
+            ...
+            ValueError: parameter `k` must be `\geq 2`
+        """
+        if k is None:
+            k = 6 # See [Sey1981]_
+        elif k < 2:
+            raise ValueError("parameter `k` must be `\geq 2`")
+
+        from sage.graphs.digraph import DiGraph
+        from sage.categories.sets_cat import EmptySetError
+
+        # If the (di)graph is not connected, we solve the problem on each of its
+        # connected components
+        if not self.is_connected():
+            solution = DiGraph(loops=self.allows_loops(), multiedges=self.allows_multiple_edges())
+            solution.add_vertices(self.vertices())
+            for g in self.connected_components_subgraphs():
+                solution.add_edges(g.nowhere_zero_flow(k=k, solver=solver, verbose=verbose).edges())
+            return solution
+
+        # If the (di)graph has bridges, the problem is not feasible
+        if ( (self.is_directed() and not self.is_strongly_connected() and self.to_undirected().bridges())
+            or (not self.is_directed() and self.bridges()) ):
+            raise EmptySetError("(di)graphs with bridges have no feasible solution")
+
+        #
+        # We deal with loops and multiple edges, if any
+        #
+        if self.has_loops() or self.has_multiple_edges():
+            G = copy(self) if self.is_directed() else next(self.orientations())
+
+            # We assign flow 1 to loops, if any
+            solution = DiGraph([(u,v,1) for u,v in G.loops(labels=0)],
+                                loops=G.has_loops(), multiedges=G.has_multiple_edges())
+            G.allow_loops(False)
+
+            # We ensure that multiple edges have distinct labels
+            multiedges = {(u,v,i) for i,(u,v) in enumerate(G.multiple_edges(labels=0))}
+            G.delete_edges(G.multiple_edges())
+            G.add_edges(multiedges)
+
+        else:
+            G = self if self.is_directed() else next(self.orientations())
+            solution = DiGraph()
+
+        if G.order() <= 1:
+            return solution
+
+        #
+        # We use a MIP formulation to solve the problem
+        #
+        from sage.numerical.mip import MixedIntegerLinearProgram,MIPSolverException
+        p = MixedIntegerLinearProgram(solver=solver)
+        f = p.new_variable(nonnegative=False, integer=True)
+        b = p.new_variable(nonnegative=True, binary=True)
+
+        # flow conservation constraints
+        for u in G:
+            p.add_constraint( p.sum(f[e] for e in G.incoming_edge_iterator(u))
+                                  == p.sum(f[e] for e in G.outgoing_edge_iterator(u)) )
+
+        # The flow on edge e has value in {-k+1,..., -1, 1, ..., k-1}
+        for e in G.edge_iterator():
+            p.add_constraint( p.sum( b[e,i] for i in range(-k+1, k) if i != 0 ) == 1 )
+            p.add_constraint( f[e] == p.sum( i * b[e,i] for i in range(-k+1, k) if i != 0 ) )
+
+        # We solve the MIP.
+        try:
+            p.solve(log=verbose)
+        except MIPSolverException:
+            raise EmptySetError("the problem has no feasible solution")
+
+        # Extract and return the solution. If the graph is not directed, we
+        # reverse edges with a negative flow to obtain a positive k-NZF
+        for (u,v,_),val in p.get_values(f).items():
+            if self.is_directed() or val > 0:
+                solution.add_edge(u, v, int(val))
+            else:
+                solution.add_edge(v, u, int(-val))
+
+        return solution
+
 
     def _ford_fulkerson(self, s, t, use_edge_labels = False, integer = False, value_only = True):
         r"""

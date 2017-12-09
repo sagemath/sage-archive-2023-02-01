@@ -280,10 +280,10 @@ class BipartiteGraph(Graph):
         if kwds is None:
             kwds = {'loops': False}
         else:
-            if kwds.has_key('loops') and kwds['loops'] is True:
+            if 'loops' in kwds and kwds['loops']:
                 raise ValueError('loops are not allowed in bipartite graphs')
             kwds['loops'] = False
-                
+
         if data is None:
             if partition is not None and check:
                 if partition[0] or partition[1]:

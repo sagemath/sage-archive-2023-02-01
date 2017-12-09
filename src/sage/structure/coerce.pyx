@@ -231,7 +231,7 @@ cpdef py_scalar_to_element(x):
     """
     if isinstance(x, Element):
         return x
-    elif isinstance(x, int):
+    elif isinstance(x, (int, long)):
         from sage.rings.integer import Integer
         return Integer(x)
     elif type(x) is FractionType:
@@ -240,9 +240,6 @@ cpdef py_scalar_to_element(x):
     elif isinstance(x, float):
         from sage.rings.real_double import RDF
         return RDF(x)
-    elif isinstance(x, long):
-        from sage.rings.integer import Integer
-        return Integer(x)
     elif isinstance(x, complex):
         from sage.rings.complex_double import CDF
         return CDF(x)

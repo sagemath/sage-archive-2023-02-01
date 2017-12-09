@@ -540,12 +540,12 @@ cdef class Rational(sage.structure.element.FieldElement):
         if isinstance(x, Rational):
             set_from_Rational(self, x)
 
+        elif isinstance(x, long):
+            mpz_set_pylong(mpq_numref(self.value), x)
+
         elif isinstance(x, int):
             i = x
             mpq_set_si(self.value, i, 1)
-
-        elif isinstance(x, long):
-            mpz_set_pylong(mpq_numref(self.value), x)
 
         elif isinstance(x, integer.Integer):
             set_from_Integer(self, x)
@@ -829,13 +829,13 @@ cdef class Rational(sage.structure.element.FieldElement):
                 c = mpq_cmp((<Rational>left).value, (<Rational>right).value)
         elif isinstance(right, Integer):
             c = mpq_cmp_z((<Rational>left).value, (<Integer>right).value)
-        elif isinstance(right, int):
-            c = mpq_cmp_si((<Rational>left).value, PyInt_AS_LONG(right), 1)
         elif isinstance(right, long):
             mpz_init(mpz_tmp)
             mpz_set_pylong(mpz_tmp, right)
             c = mpq_cmp_z((<Rational>left).value, mpz_tmp)
             mpz_clear(mpz_tmp)
+        elif isinstance(right, int):
+            c = mpq_cmp_si((<Rational>left).value, PyInt_AS_LONG(right), 1)
         else:
             return coercion_model.richcmp(left, right, op)
 

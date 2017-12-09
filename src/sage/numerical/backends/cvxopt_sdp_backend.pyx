@@ -283,7 +283,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
             sage: p.row_name(-1)
             'fun'
         """
-        from sage.matrix.matrix import is_Matrix
+        from sage.structure.element import is_Matrix
         for t in coefficients:
             m = t[1]
             if not is_Matrix(m):

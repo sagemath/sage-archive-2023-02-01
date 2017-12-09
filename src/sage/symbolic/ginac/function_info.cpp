@@ -7,6 +7,7 @@
 
 #include "inifcns.h"
 #include "function.h"
+#include "operators.h"
 #include "utils.h"
 
 namespace GiNaC {
@@ -188,6 +189,9 @@ static bool gamma_info(const function& f, unsigned inf)
         case info_flags::integer:
                 return arg.info(info_flags::integer)
                    and arg.info(info_flags::positive);
+        case info_flags::even:
+                return arg.info(info_flags::integer)
+                   and (arg+_ex_2).info(info_flags::positive);
         }
         return false;
 }
@@ -210,6 +214,7 @@ static bool abs_info(const function& f, unsigned inf)
                 return true;
         case info_flags::integer:
         case info_flags::nonzero:
+        case info_flags::even:
                 return f.op(0).info(inf);
         case info_flags::positive:
                 return f.op(0).info(info_flags::nonzero);
@@ -224,6 +229,7 @@ static bool real_info(const function& f, unsigned inf)
                 return true;
         case info_flags::integer:
         case info_flags::nonzero:
+        case info_flags::even:
                 return f.op(0).info(inf);
         }
         return false;
@@ -235,7 +241,8 @@ static bool imag_info(const function& f, unsigned inf)
         case info_flags::real:
                 return true;
         case info_flags::nonzero:
-                return f.op(0).info(info_flags::nonzero);
+        case info_flags::even:
+                return f.op(0).info(inf);
         }
         return false;
 }
@@ -248,6 +255,9 @@ static bool factorial_info(const function& f, unsigned inf)
         case info_flags::nonnegative:
         case info_flags::integer:
                 return arg.info(inf);
+        case info_flags::even:
+                return arg.info(info_flags::integer)
+                        and (arg+_ex_1).info(info_flags::positive);
         }
         return false;
 }

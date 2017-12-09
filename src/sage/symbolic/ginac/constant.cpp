@@ -170,7 +170,7 @@ bool constant::info(unsigned inf) const
                 case info_flags::infinity:
                         return domain == domain::infinity;
                 default:
-                        return inherited::info(inf);
+                        return evalf(0, nullptr).info(inf);
         }
 }
 

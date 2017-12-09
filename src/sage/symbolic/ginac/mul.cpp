@@ -457,7 +457,6 @@ bool mul::info(unsigned inf) const
 		case info_flags::crational:
 		case info_flags::cinteger:
                 case info_flags::nonzero:
-		case info_flags::even:
 		case info_flags::crational_polynomial:
 		case info_flags::rational_function: {
                         if (not overall_coeff.info(info_flags::real))
@@ -469,6 +468,18 @@ bool mul::info(unsigned inf) const
 				return true;
 			return overall_coeff.info(inf);
 		}
+		case info_flags::even:
+                {
+                        bool even_seen = false;
+                        for (const auto & elem : seq) {
+				const ex& e = recombine_pair_to_ex(elem);
+                                if (not e.info(info_flags::integer))
+					return false;
+                                if (e.info(info_flags::even))
+                                        even_seen = true;
+                        }
+                        return even_seen or overall_coeff.is_even();
+                }
 		case info_flags::inexact:
 		case info_flags::algebraic: {
                         if (overall_coeff.info(inf))

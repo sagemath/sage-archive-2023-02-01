@@ -50,4 +50,4 @@ class ExtraTabCompletion(object):
         except AttributeError:
             raise NotImplementedError(
                 '{0} must implement _tab_completion() method'.format(self.__class__))
-        return dir(self.__class__) + self.__dict__.keys() + tab_fn()
+        return dir(self.__class__) + list(self.__dict__) + tab_fn()

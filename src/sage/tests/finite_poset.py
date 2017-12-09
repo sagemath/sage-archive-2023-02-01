@@ -157,8 +157,8 @@ def test_finite_lattice(L):
         # Special cases should be tested in specific TESTS-sections.
         return None
 
-    all_props = set(implications.keys() + flatten(implications.values()))
-    P = {x: test_attrcall('is_'+x, L) for x in all_props}
+    all_props = set(list(implications) + flatten(implications.values()))
+    P = {x: test_attrcall('is_' + x, L) for x in all_props}
 
     ### Relations between boolean-valued properties ###
 

@@ -1,10 +1,6 @@
 r"""
 Algorithms for finite quadratic forms and their relation to genera.
 
-EXAMPLES::
-
-<Lots and lots of examples>
-
 AUTHORS:
 
 - Simon Brandhorst (2017-10-09): initial version
@@ -36,8 +32,9 @@ def jordan_p_adic(G,p,precision=None,normalize=True):
     1 x 1 blocks of the form
     `0`, `[2^n]`, `[3*2^n]`, `[5*2^n]`, `[7*2^n]`
     or of 2 x 2 blocks of the form
-    [2 1]           [0 1]
-    [1 2] * 2^n or  [1 0] * 2^n
+    `[[2, 1],[1, 2]] * 2^n`
+    or  
+    `[[0, 1],[1,0]] * 2^n`
     In any case the entries are ordered by their valuation.
 
     INPUT:
@@ -46,12 +43,13 @@ def jordan_p_adic(G,p,precision=None,normalize=True):
         - ``p`` -- a prime number -- it is not checked whether ``p`` is prime
         - ``precision`` -- defining precision. If not set, 
           the minimal possible is taken.
-        - ``normalize```-- bool (default: `True`)
+        - ``normalize```-- bool (default: ``True``)
 
     OUTPUT:
 
-        - ``D`` -- the jordan matrix over `\Q_p`
-        - ``U`` -- invertible transformation matrix over `\Z_p`, i.e, ``D = U * G * U^T``
+        - ``D`` -- the jordan matrix over `\QQ_p`
+        - ``U`` -- invertible transformation matrix over `\ZZ_p`, 
+          i.e, ``D = U * G * U^T``
 
     EXAMPLES::
 
@@ -144,7 +142,7 @@ def jordan_p_adic(G,p,precision=None,normalize=True):
     if(p == 2):
         D, U = _jordan_2_adic(G)
         # we confirm the result
-        assert U*G*U.T == Matrix.block_diagonal(collect_small_blocks(D))
+        assert U*G*U.T == Matrix.block_diagonal(_collect_small_blocks(D))
     else:
         D, U = _jordan_odd_adic(G)
         # we confirm the result
@@ -153,7 +151,7 @@ def jordan_p_adic(G,p,precision=None,normalize=True):
     if normalize:
         D, U1 = _normalize(D)
         U = U1 * U
-    assert U*G*U.T == Matrix.block_diagonal(collect_small_blocks(D))
+    assert U*G*U.T == Matrix.block_diagonal(_collect_small_blocks(D))
     return D/denom, U
 
 def _jordan_odd_adic(G):
@@ -235,7 +233,7 @@ def _jordan_2_adic(G):
     Transform a symmetric matrix over the `2`-adic integers into jordan form
 
     Note that if the precision is too low this method fails.
-    The method is only tested for input over `\Z_2` of`'type=fixed-mod'`.
+    The method is only tested for input over `\ZZ_2` of`'type=fixed-mod'`.
 
     Input:
 
@@ -359,7 +357,7 @@ def _get_small_block_indices(G):
     r"""
     Return the indices of the blocks.
 
-    For internal use in :meth:`collect_small_blocks`
+    For internal use in :meth:`_collect_small_blocks`
 
     INPUT:
 
@@ -391,13 +389,13 @@ def _get_small_block_indices(G):
         L.append(i)
     return L[1:]
 
-def collect_small_blocks(G):
+def _collect_small_blocks(G):
     r"""
     Return the blocks as list.
 
     INPUT:
 
-        - ``G`` -- a block_diagonal matrix consisting of `1 x 1` and `2 x 2` blocks
+        - ``G`` -- a block_diagonal matrix consisting of `1` x `1` and `2` x `2` blocks
 
     OUTPUT:
 
@@ -405,12 +403,12 @@ def collect_small_blocks(G):
 
     EXAMPLES::
 
-        sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import collect_small_blocks
+        sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import _collect_small_blocks
         sage: A = Matrix([1])
         sage: B = Matrix(ZZ, 2, [2, 1, 1, 2])
         sage: L = [A, B, B, A, A, B, A, B]
         sage: G = Matrix.block_diagonal(L)
-        sage: L == collect_small_blocks(G)
+        sage: L == _collect_small_blocks(G)
         True
     """
     D = copy(G)
@@ -686,7 +684,7 @@ def _min_nonsquare(p):
 
     Output:
 
-        - ``a`` -- the minimal nonsquare mod ``p`` as an element of `\Z`.
+        - ``a`` -- the minimal nonsquare mod ``p`` as an element of `\ZZ`.
 
     EXAMPLES::
 

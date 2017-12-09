@@ -178,12 +178,12 @@ def lift_ramified(g, p, u, n):
         sage: type(lift_ramified([8,2,12,2], 3, 2, 23)[0])
         <type 'sage.rings.integer.Integer'>
     """
-    a,b,c,d = lift_to_gamma1(g, p**u, n)
-    r = crt( (c - g[2]) / p**u * inverse_mod(a, p), 0, p, n)
+    a, b, c, d = lift_to_gamma1(g, p**u, n)
+    r = crt((c - g[2]) / p**u * inverse_mod(a, p), 0, p, n)
     c = c - p**u * r * a
     d = d - p**u * r * b
     # assert (c - g[2]) % p**(u+1) == 0
-    return [a,b,c,d]
+    return [a, b, c, d]
 
 
 def lift_for_SL(A, N=None):
@@ -241,6 +241,12 @@ def lift_for_SL(A, N=None):
         Traceback (most recent call last):
         ...
         ValueError: you must choose the modulus
+
+        sage: for _ in range(100):
+        ....:     d = randint(0, 10)
+        ....:     p = choice([2,3,5,7,11])
+        ....:     M = random_matrix(Zmod(p), d, algorithm='unimodular')
+        ....:     assert lift_for_SL(M).det() == 1
     """
     from sage.matrix.constructor import matrix
     from sage.matrix.special import (identity_matrix, diagonal_matrix,
@@ -255,8 +261,8 @@ def lift_for_SL(A, N=None):
             N = ring.characteristic()
 
     m = A.nrows()
-    if m == 1:
-        return identity_matrix(ZZ, 1)
+    if m <= 1:
+        return identity_matrix(ZZ, m)
 
     AZZ = A .change_ring(ZZ)
     D, U, V = AZZ.smith_form()

@@ -180,7 +180,7 @@ if os.path.exists(sage.misc.lazy_import_cache.get_cache_file()):
 ########################################################################
 
 from Cython.Build.Dependencies import default_create_extension
-from sage_setup.util import stable_uniq
+from sage_setup.util import stable_uniq, have_module
 
 # Do not put all, but only the most common libraries and their headers
 # (that are likely to change on an upgrade) here:
@@ -224,6 +224,7 @@ class sage_build_cython(Command):
         self.force = None
 
         self.cython_directives = None
+        self.compile_time_env = None
 
         self.build_lib = None
         self.cythonized_files = None
@@ -285,6 +286,10 @@ class sage_build_cython(Command):
             fast_getattr=True,
             profile=self.profile,
         )
+        self.compile_time_env = dict(
+            PY_VERSION_HEX=sys.hexversion,
+            HAVE_GMPY2=have_module("gmpy2"),
+        )
 
         # We check the Cython version and some relevant configuration
         # options from the earlier build to see if we need to force a
@@ -295,6 +300,7 @@ class sage_build_cython(Command):
             'version': Cython.__version__,
             'debug': self.debug,
             'directives': self.cython_directives,
+            'compile_time_env': self.compile_time_env,
         }, sort_keys=True)
 
         # Read an already written version file if it exists and compare to the
@@ -360,7 +366,7 @@ class sage_build_cython(Command):
             force=self.force,
             aliases=cython_aliases(),
             compiler_directives=self.cython_directives,
-            compile_time_env={'PY_VERSION_HEX':sys.hexversion},
+            compile_time_env=self.compile_time_env,
             create_extension=self.create_extension,
             # Debugging
             gdb_debug=self.debug,

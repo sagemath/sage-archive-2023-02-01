@@ -33,13 +33,11 @@ static bool log_info(const function& f, unsigned inf)
                 return arg.info(info_flags::positive);
         case info_flags::positive:
                 return arg.info(info_flags::real) and
-                        is_exactly_a<numeric>(arg) and
-                        ex_to<numeric>(arg) > *_num1_p;
+                        (arg-_ex1).info(info_flags::positive);
         case info_flags::negative:
                 return arg.info(info_flags::real) and
-                        is_exactly_a<numeric>(arg) and
                         arg.info(info_flags::positive) and
-                        ex_to<numeric>(arg) < *_num1_p;
+                        (arg-_ex1).info(info_flags::negative);
         }
         return false;
 }
@@ -86,6 +84,24 @@ static bool csc_info(const function& f, unsigned inf)
 
 static bool atan_info(const function& f, unsigned inf)
 {
+        switch (inf) {
+        case info_flags::nonnegative:
+        case info_flags::negative:
+        case info_flags::positive:
+        case info_flags::nonzero:
+                return f.op(0).info(inf);
+        }
+        return trig_info(f, inf);
+}
+
+static bool acot_info(const function& f, unsigned inf)
+{
+        switch (inf) {
+        case info_flags::nonnegative:
+        case info_flags::positive:
+        case info_flags::nonzero:
+                return true;
+        }
         return trig_info(f, inf);
 }
 
@@ -93,6 +109,7 @@ static bool sinh_info(const function& f, unsigned inf)
 {
         switch (inf) {
         case info_flags::nonnegative:
+        case info_flags::negative:
         case info_flags::positive:
         case info_flags::nonzero:
                 return f.op(0).info(inf);
@@ -103,6 +120,7 @@ static bool sinh_info(const function& f, unsigned inf)
 static bool cosh_info(const function& f, unsigned inf)
 {
         switch (inf) {
+        case info_flags::nonnegative:
         case info_flags::positive:
         case info_flags::nonzero:
                 return f.op(0).info(info_flags::real);
@@ -114,6 +132,7 @@ static bool tanh_info(const function& f, unsigned inf)
 {
         switch (inf) {
         case info_flags::nonnegative:
+        case info_flags::negative:
         case info_flags::positive:
         case info_flags::nonzero:
                 return f.op(0).info(inf);
@@ -126,6 +145,7 @@ static bool coth_info(const function& f, unsigned inf)
         switch (inf) {
         case info_flags::nonnegative:
         case info_flags::positive:
+        case info_flags::negative:
                 return f.op(0).info(inf);
         case info_flags::nonzero:
                 return true;
@@ -137,6 +157,7 @@ static bool sech_info(const function& f, unsigned inf)
 {
         switch (inf) {
         case info_flags::positive:
+        case info_flags::nonnegative:
         case info_flags::nonzero:
                 return f.op(0).info(info_flags::real);
         }
@@ -147,6 +168,7 @@ static bool csch_info(const function& f, unsigned inf)
 {
         switch (inf) {
         case info_flags::nonnegative:
+        case info_flags::negative:
         case info_flags::positive:
                 return f.op(0).info(inf);
         case info_flags::nonzero:
@@ -160,6 +182,7 @@ static bool asinh_info(const function& f, unsigned inf)
         switch (inf) {
         case info_flags::nonnegative:
         case info_flags::positive:
+        case info_flags::negative:
         case info_flags::nonzero:
                 return f.op(0).info(inf);
         }
@@ -170,6 +193,7 @@ static bool acsch_info(const function& f, unsigned inf)
 {
         switch (inf) {
         case info_flags::nonnegative:
+        case info_flags::negative:
         case info_flags::positive:
                 return f.op(0).info(inf);
         case info_flags::nonzero:
@@ -227,8 +251,10 @@ static bool real_info(const function& f, unsigned inf)
         switch (inf) {
         case info_flags::real:
                 return true;
+        case info_flags::nonnegative:
+        case info_flags::negative:
+        case info_flags::positive:
         case info_flags::integer:
-        case info_flags::nonzero:
         case info_flags::even:
                 return f.op(0).info(inf);
         }
@@ -240,9 +266,6 @@ static bool imag_info(const function& f, unsigned inf)
         switch (inf) {
         case info_flags::real:
                 return true;
-        case info_flags::nonzero:
-        case info_flags::even:
-                return f.op(0).info(inf);
         }
         return false;
 }
@@ -291,6 +314,7 @@ bool function::info(unsigned inf) const
                 {sec_SERIAL::serial, &sec_info},
                 {csc_SERIAL::serial, &csc_info},
                 {atan_SERIAL::serial, &atan_info},
+                {acot_SERIAL::serial, &acot_info},
                 {sinh_SERIAL::serial, &sinh_info},
                 {cosh_SERIAL::serial, &cosh_info},
                 {tanh_SERIAL::serial, &tanh_info},

@@ -488,6 +488,13 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
             sage: W = CoxeterGroup(['I',2])
             sage: W.is_commutative()
             True
+
+        TESTS::
+
+            sage: CoxeterGroup([['A', 2], ['A', 1]]).is_commutative()
+            False
+            sage: CoxeterGroup([['A', 1]] * 3).is_commutative()
+            True
         """
         return "Commutative" in self.category().axioms()
 

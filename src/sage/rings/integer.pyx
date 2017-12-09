@@ -920,13 +920,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             c = mpz_cmp((<Integer>left).value, (<Integer>right).value)
         elif isinstance(right, Rational):
             c = -mpq_cmp_z((<Rational>right).value, (<Integer>left).value)
-        elif isinstance(right, int):
-            c = mpz_cmp_si((<Integer>left).value, PyInt_AS_LONG(right))
         elif isinstance(right, long):
             mpz_init(mpz_tmp)
             mpz_set_pylong(mpz_tmp, right)
             c = mpz_cmp((<Integer>left).value, mpz_tmp)
             mpz_clear(mpz_tmp)
+        elif isinstance(right, int):
+            # this case should only occur in python 2
+            c = mpz_cmp_si((<Integer>left).value, PyInt_AS_LONG(right))
         elif isinstance(right, float):
             d = right
             if isnan(d):

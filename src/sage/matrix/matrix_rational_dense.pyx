@@ -39,6 +39,18 @@ TESTS::
 
     sage: a = matrix(QQ, 2, range(4), sparse=False)
     sage: TestSuite(a).run()
+
+Test hashing::
+
+    sage: m = matrix(QQ, 2, [1/2, -1, 2, 3])
+    sage: hash(m)
+    Traceback (most recent call last):
+    ...
+    TypeError: mutable matrices are unhashable
+    sage: m.set_immutable()
+    sage: hash(m)
+    2212268000387745777  # 64-bit
+    1997752305           # 32-bit
 """
 
 #*****************************************************************************
@@ -110,17 +122,6 @@ from cypari2.paridecl cimport *
 #########################################################
 
 cdef class Matrix_rational_dense(Matrix_dense):
-
-    ########################################################################
-    # LEVEL 1 functionality
-    # x * __cinit__
-    # x * __dealloc__
-    # x * __init__
-    # x * set_unsafe
-    # x * get_unsafe
-    # x * cdef _pickle
-    # x * cdef _unpickle
-    ########################################################################
     def __cinit__(self, parent, entries, copy, coerce):
         """
         Create and allocate memory for the matrix.
@@ -392,21 +393,6 @@ cdef class Matrix_rational_dense(Matrix_dense):
                     if fmpz_set_str(fmpq_mat_entry_num(self._matrix, i, j), s, 32):
                         raise RuntimeError("invalid pickle data")
                     fmpz_one(fmpq_mat_entry_den(self._matrix, i, j))
-
-    def __hash__(self):
-        r"""
-        TESTS::
-
-            sage: m = matrix(QQ, 2, [1/2, -1, 2, 3])
-            sage: hash(m)
-            Traceback (most recent call last):
-            ...
-            TypeError: mutable matrices are unhashable
-            sage: m.set_immutable()
-            sage: hash(m)
-            -13
-        """
-        return self._hash()
 
     ########################################################################
     # LEVEL 2 functionality

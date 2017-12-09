@@ -24,10 +24,14 @@ import re
 import shutil
 import pkgconfig
 
+from textwrap import dedent
+
 from sage.env import (SAGE_LOCAL, SAGE_SRC, cython_aliases,
         sage_include_directories)
 from sage.misc.misc import SPYX_TMP, sage_makedirs
 from .temporary_file import tmp_filename
+from sage.misc.superseded import deprecated_function_alias
+from sage.repl.user_globals import get_globals
 
 
 # CBLAS can be one of multiple implementations
@@ -84,7 +88,7 @@ old_pxi_names = {
     }
 
 
-def parse_keywords(kwd, s):
+def _parse_keywords(kwd, s):
     r"""
     Given a keyword ``kwd`` and a string ``s``, return a list of all arguments
     on the same line as that keyword in ``s``, as well as a new copy of ``s``
@@ -94,14 +98,24 @@ def parse_keywords(kwd, s):
 
     EXAMPLES::
 
-        sage: import sage.misc.cython
-        sage: sage.misc.cython.parse_keywords('clib', " clib foo bar baz\n #cinclude bar\n")
+        sage: from sage.misc.cython import _parse_keywords
+        sage: _parse_keywords('clib', " clib foo bar baz\n #cinclude bar\n")
+        doctest:...: DeprecationWarning: the Sage-specific Cython pragma '#clib' is deprecated;
+        use '# distutils: libraries' instead
+        See http://trac.sagemath.org/24105 for details.
         (['foo', 'bar', 'baz'], ' #clib foo bar baz\n #cinclude bar\n')
-
-        sage: sage.misc.cython.parse_keywords('clib', "# qux clib foo bar baz\n #cinclude bar\n")
+        sage: _parse_keywords('clib', "# qux clib foo bar baz\n #cinclude bar\n")
         (['foo', 'bar', 'baz'], '# qux clib foo bar baz\n #cinclude bar\n')
-        sage: sage.misc.cython.parse_keywords('clib', "# clib foo bar # baz\n #cinclude bar\n")
+        sage: _parse_keywords('clib', "# clib foo bar # baz\n #cinclude bar\n")
         (['foo', 'bar'], '# clib foo bar # baz\n #cinclude bar\n')
+
+    TESTS::
+
+        sage: from sage.misc.cython import parse_keywords
+        sage: parse_keywords('kwd', "#kwd foo")
+        doctest:...: DeprecationWarning: parse_keywords is deprecated. Please use sage.misc.cython._parse_keywords instead.
+        See http://trac.sagemath.org/24105 for details.
+        (['foo'], '#kwd foo')
     """
     j = 0
     v = []
@@ -131,9 +145,22 @@ def parse_keywords(kwd, s):
                 break
             v.append(X)
 
+    if v:
+        replacements = {
+            "clang": "# distutils: language",
+            "clib": "# distutils: libraries",
+            "cfile": "# distutils: sources",
+            "cinclude": "# distutils: include_dirs",
+            "cargs": "# distutils: extra_compile_args",
+        }
+        if kwd in replacements:
+            from sage.misc.superseded import deprecation
+            deprecation(24105, "the Sage-specific Cython pragma {!r} is deprecated;\n"
+                "use {!r} instead".format("#" + kwd, replacements[kwd]))
     return v, s
 
-def environ_parse(s):
+
+def _environ_parse(s):
     r"""
     Given a string s, find each substring of the form ``'\$ABC'``. If the
     environment variable :envvar:`$ABC` is set, replace ``'\$ABC'`` with its
@@ -142,14 +169,22 @@ def environ_parse(s):
 
     EXAMPLES::
 
-        sage: from sage.misc.cython import environ_parse
-        sage: environ_parse('$SAGE_LOCAL') == SAGE_LOCAL
+        sage: from sage.misc.cython import _environ_parse
+        sage: _environ_parse('$SAGE_LOCAL') == SAGE_LOCAL
         True
-        sage: environ_parse('$THIS_IS_NOT_DEFINED_ANYWHERE')
+        sage: _environ_parse('$THIS_IS_NOT_DEFINED_ANYWHERE')
         '$THIS_IS_NOT_DEFINED_ANYWHERE'
         sage: os.environ['DEFINE_THIS'] = 'hello'
-        sage: environ_parse('$DEFINE_THIS/$THIS_IS_NOT_DEFINED_ANYWHERE/$DEFINE_THIS')
+        sage: _environ_parse('$DEFINE_THIS/$THIS_IS_NOT_DEFINED_ANYWHERE/$DEFINE_THIS')
         'hello/$THIS_IS_NOT_DEFINED_ANYWHERE/$DEFINE_THIS'
+
+    TESTS::
+
+        sage: from sage.misc.cython import environ_parse
+        sage: environ_parse('$SAGE_LOCAL') == SAGE_LOCAL
+        doctest:...: DeprecationWarning: environ_parse is deprecated. Please use sage.misc.cython._environ_parse instead.
+        See http://trac.sagemath.org/24105 for details.
+        True
     """
     i = s.find('$')
     if i == -1:
@@ -164,9 +199,10 @@ def environ_parse(s):
         s = s[:i] + os.environ[name] + s[j:]
     else:
         return s
-    return environ_parse(s)
+    return _environ_parse(s)
 
-def pyx_preparse(s):
+
+def _pyx_preparse(s):
     r"""
     Preparse a pyx file:
 
@@ -197,8 +233,8 @@ def pyx_preparse(s):
 
     EXAMPLES::
 
-        sage: from sage.misc.cython import pyx_preparse
-        sage: pyx_preparse("")
+        sage: from sage.misc.cython import _pyx_preparse
+        sage: _pyx_preparse("")
         ('',
         ['mpfr',
         'gmp',
@@ -218,7 +254,16 @@ def pyx_preparse(s):
         '.../cysignals'],
         'c',
         [], ['-w', '-O2'],...)
-        sage: s, libs, inc, lang, f, args, libdirs = pyx_preparse("# clang c++\n #clib foo\n # cinclude bar\n")
+        sage: s, libs, inc, lang, f, args, libdirs = _pyx_preparse("# clang c++\n #clib foo\n # cinclude bar\n")
+        doctest:...: DeprecationWarning: the Sage-specific Cython pragma '#clang' is deprecated;
+        use '# distutils: language' instead
+        See http://trac.sagemath.org/24105 for details.
+        doctest:...: DeprecationWarning: the Sage-specific Cython pragma '#clib' is deprecated;
+        use '# distutils: libraries' instead
+        See http://trac.sagemath.org/24105 for details.
+        doctest:...: DeprecationWarning: the Sage-specific Cython pragma '#cinclude' is deprecated;
+        use '# distutils: include_dirs' instead
+        See http://trac.sagemath.org/24105 for details.
         sage: lang
         'c++'
 
@@ -244,7 +289,10 @@ def pyx_preparse(s):
         '.../sage/ext',
         '.../cysignals']
 
-        sage: s, libs, inc, lang, f, args, libdirs = pyx_preparse("# cargs -O3 -ggdb\n")
+        sage: s, libs, inc, lang, f, args, libdirs = _pyx_preparse("# cargs -O3 -ggdb\n")
+        doctest:...: DeprecationWarning: the Sage-specific Cython pragma '#cargs' is deprecated;
+        use '# distutils: extra_compile_args' instead
+        See http://trac.sagemath.org/24105 for details.
         sage: args
         ['-w', '-O2', '-O3', '-ggdb']
 
@@ -254,21 +302,28 @@ def pyx_preparse(s):
         sage: R.<x> = QQ[]
         sage: module.evaluate_at_power_of_gen(x^3 + x - 7, 5)  # long time
         x^15 + x^5 - 7
+
+    ::
+
+        sage: from sage.misc.cython import pyx_preparse
+        sage: _ = pyx_preparse("")
+        doctest:...: DeprecationWarning: pyx_preparse is deprecated. Please use sage.misc.cython._pyx_preparse instead.
+        See http://trac.sagemath.org/24105 for details.
     """
-    lang, s = parse_keywords('clang', s)
+    lang, s = _parse_keywords('clang', s)
     if lang:
         lang = lang[0].lower() # this allows both C++ and c++
     else:
         lang = "c"
 
-    v, s = parse_keywords('clib', s)
+    v, s = _parse_keywords('clib', s)
     libs = v + standard_libs
 
-    additional_source_files, s = parse_keywords('cfile', s)
+    additional_source_files, s = _parse_keywords('cfile', s)
 
-    v, s = parse_keywords('cinclude', s)
-    inc = [environ_parse(x.replace('"','').replace("'","")) for x in v] + sage_include_directories()
-    args, s = parse_keywords('cargs', s)
+    v, s = _parse_keywords('cinclude', s)
+    inc = [_environ_parse(x.replace('"','').replace("'","")) for x in v] + sage_include_directories()
+    args, s = _parse_keywords('cargs', s)
     args = ['-w','-O2'] + args
     libdirs = cblas_library_dirs
 
@@ -279,6 +334,12 @@ def pyx_preparse(s):
             inc.append(cysignals_path)
 
     return s, libs, inc, lang, additional_source_files, args, libdirs
+
+
+parse_keywords = deprecated_function_alias(24105, _parse_keywords)
+environ_parse = deprecated_function_alias(24105, _environ_parse)
+pyx_preparse = deprecated_function_alias(24105, _pyx_preparse)
+
 
 ################################################################
 # If the user attaches a .spyx file and changes it, we have
@@ -356,22 +417,21 @@ def cython(filename, verbose=0, compile_message=False,
         sage: x
         x^2
 
-    Check that compiling c++ code works::
+    Check that compiling C++ code works::
 
-        sage: cython("#clang C++\n"+
+        sage: cython("# distutils: language = c++\n"+
         ....:        "from libcpp.vector cimport vector\n"
         ....:        "cdef vector[int] * v = new vector[int](4)\n")
 
-    Check that compiling c++ code works, when creating a local c file,
+    Check that compiling C++ code works when creating a local C file,
     first moving to a tempdir to avoid clutter.  Before :trac:`22113`,
-    the create_local_c_file argument was not tested in combination with
-    the ``#clang c++`` directive::
+    the create_local_c_file argument was not tested for C++ code::
 
         sage: import sage.misc.cython
         sage: d = sage.misc.temporary_file.tmp_dir()
         sage: os.chdir(d)
         sage: with open("test.pyx", 'w') as f:
-        ....:     _ = f.write("#clang C++\n"
+        ....:     _ = f.write("# distutils: language = c++\n"
         ....:       "from libcpp.vector cimport vector\n"
         ....:       "cdef vector[int] * v = new vector[int](4)\n")
         sage: output = sage.misc.cython.cython("test.pyx", create_local_c_file=True)
@@ -452,7 +512,7 @@ def cython(filename, verbose=0, compile_message=False,
 
     with open(filename) as f:
         (preparsed, libs, includes, language, additional_source_files,
-         extra_args, libdirs) = pyx_preparse(f.read())
+         extra_args, libdirs) = _pyx_preparse(f.read())
 
     # New filename with preparsed code.
     # NOTE: if we ever stop preparsing, we should still copy the
@@ -487,22 +547,31 @@ def cython(filename, verbose=0, compile_message=False,
                     extra_compile_args=extra_args,
                     language=language)
 
+    orig_cwd = os.getcwd()
     try:
+        # Change directories to target_dir so that Cython produces the correct
+        # relative path; https://trac.sagemath.org/ticket/24097
+        os.chdir(target_dir)
         ext, = cythonize([ext],
                          aliases=cython_aliases(),
                          include_path=includes,
                          quiet=not verbose)
     except CompileError:
-        msg = "Error converting {} to C".format(filename)
         # Check for names in old_pxi_names
+        note = ''
         for pxd, names in old_pxi_names.items():
             for name in names:
                 if re.search(r"\b{}\b".format(name), preparsed):
-                    msg += '\nNOTE: Sage no longer automatically includes the deprecated files\n' \
-                       '"cdefs.pxi", "signals.pxi" and "stdsage.pxi" in Cython files.\n' \
-                       'You can fix your code by adding "from %s cimport %s".' % \
-                       (pxd, name)
-        raise RuntimeError(msg)
+                    note += dedent(
+                        """
+                        NOTE: Sage no longer automatically includes the deprecated files
+                        "cdefs.pxi", "signals.pxi" and "stdsage.pxi" in Cython files.
+                        You can fix your code by adding "from {} cimport {}".
+                        """.format(pxd, name))
+        raise RuntimeError("Error converting {} to C".format(filename) +
+                           note)
+    finally:
+        os.chdir(orig_cwd)
 
     if create_local_c_file:
         shutil.copy(os.path.join(target_dir, ext.sources[0]),
@@ -800,11 +869,45 @@ def compile_and_load(code):
     return cython_import(file, create_local_c_file=False)
 
 
+def cython_compile(code,
+          verbose=False, compile_message=False,
+          make_c_file_nice=False, use_cache=False):
+    """
+    Given a block of Cython code (as a text string), this function
+    compiles it using a C compiler, and includes it into the global
+    namespace.
+
+    AUTHOR: William Stein, 2006-10-31
+
+    .. warn:
+
+        Only use this from Python code, not from extension code, since
+        from extension code you would change the global scope (i.e.,
+        of the Sage interpreter). And it would be stupid, since you're
+        already writing Cython!
+
+        Also, never use this in the standard Sage library.  Any code
+        that uses this can only run on a system that has a C compiler
+        installed, and we want to avoid making that assumption for
+        casual Sage usage.  Also, any code that uses this in the
+        library would greatly slow down startup time, since currently
+        there is no caching.
+
+    .. todo:
+
+        Need to create a clever caching system so code only gets
+        compiled once.
+    """
+    tmpfile = tmp_filename(ext=".pyx")
+    open(tmpfile,'w').write(code)
+    cython_import_all(tmpfile, get_globals(),
+                      verbose=verbose, compile_message=compile_message,
+                      use_cache=use_cache,
+                      create_local_c_file=False)
+
+
 TESTS = {
 'trac11680':"""
-#cargs -O3 -ggdb
-#clib flint
-
 from sage.rings.rational cimport Rational
 from sage.rings.polynomial.polynomial_rational_flint cimport Polynomial_rational_flint
 from sage.libs.flint.fmpq_poly cimport fmpq_poly_length, fmpq_poly_get_coeff_mpq, fmpq_poly_set_coeff_mpq

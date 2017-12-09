@@ -48,7 +48,7 @@ from __future__ import absolute_import
 
 import math
 from collections import Iterator, Sequence
-        
+
 import sage.rings.real_double
 import sage.rings.complex_double
 
@@ -89,17 +89,30 @@ cdef class Matrix_double_dense(Matrix_dense):
         sage: m^(-1)        # rel tol 1e-15
         [-1.9999999999999996  0.9999999999999998]
         [ 1.4999999999999998 -0.4999999999999999]
-    """
 
-    ########################################################################
-    # LEVEL 1 functionality
-    #   * __cinit__
-    #   * __dealloc__
-    #   * __init__
-    #   * set_unsafe
-    #   * get_unsafe
-    #   * __hash__       -- always simple
-    ########################################################################
+    TESTS:
+
+    Test hashing::
+
+        sage: A = matrix(RDF, 3, range(1,10))
+        sage: hash(A)
+        Traceback (most recent call last):
+        ...
+        TypeError: mutable matrices are unhashable
+        sage: A.set_immutable()
+        sage: hash(A)
+        6694819972852100501  # 64-bit
+        1829383573           # 32-bit
+        sage: A = matrix(CDF, 3, range(1,10))
+        sage: hash(A)
+        Traceback (most recent call last):
+        ...
+        TypeError: mutable matrices are unhashable
+        sage: A.set_immutable()
+        sage: hash(A)
+        6694819972852100501  # 64-bit
+        1829383573           # 32-bit
+    """
     def __cinit__(self, parent, entries, copy, coerce):
         """
         Set up a new matrix
@@ -126,35 +139,6 @@ cdef class Matrix_double_dense(Matrix_dense):
         dims[1] = self._ncols
         self._matrix_numpy = cnumpy.PyArray_SimpleNew(2, dims, self._numpy_dtypeint)
         return
-
-    def __dealloc__(self):
-        """ Deallocate any memory that was initialized."""
-        return
-
-    def __hash__(self):
-        """
-        Hash this matrix if it's immutable.
-
-        EXAMPLES::
-
-            sage: A = matrix(RDF,3,range(1,10))
-            sage: hash(A)
-            Traceback (most recent call last):
-            ...
-            TypeError: mutable matrices are unhashable
-            sage: A.set_immutable()
-            sage: hash(A)
-            88
-            sage: A = matrix(CDF,3,range(1,10))
-            sage: hash(A)
-            Traceback (most recent call last):
-            ...
-            TypeError: mutable matrices are unhashable
-            sage: A.set_immutable()
-            sage: hash(A)
-            88
-        """
-        return self._hash()
 
     def LU_valid(self):
         r"""
@@ -1134,7 +1118,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             [ 0.0  1.0  2.0  3.0]
             [ 8.0  9.0 10.0 11.0]
             [ 4.0  5.0  6.0  7.0]
-            sage: L*U # rel tol 2e-16 
+            sage: L*U # rel tol 2e-16
             [12.0 13.0 14.0 15.0]
             [ 0.0  1.0  2.0  3.0]
             [ 8.0  9.0 10.0 11.0]
@@ -1532,7 +1516,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             [ -2.0   7.0   6.0  13.0]
             sage: spectrum = m.left_eigenvectors()
             sage: for i in range(len(spectrum)):
-            ....:   spectrum[i][1][0]=matrix(RDF, spectrum[i][1]).echelon_form()[0]
+            ....:     spectrum[i][1][0]=matrix(RDF, spectrum[i][1]).echelon_form()[0]
             sage: spectrum[0]  # tol 1e-13
             (2.0000000000000675, [(1.0, 1.0000000000000138, 1.0000000000000147, 1.0000000000000309)], 1)
             sage: spectrum[1]  # tol 1e-13
@@ -1541,6 +1525,30 @@ cdef class Matrix_double_dense(Matrix_dense):
             (-1.9999999999999782, [(1.0, 0.40000000000000335, 0.6000000000000039, 0.2000000000000051)], 1)
             sage: spectrum[3]  # tol 1e-13
             (-1.0000000000000018, [(1.0, 0.9999999999999568, 1.9999999999998794, 1.9999999999998472)], 1)
+
+        TESTS:
+
+        The following example shows that :trac:`20439` has been resolved::
+
+            sage: A = matrix(CDF, [[-2.53634347567,  2.04801738686, -0.0, -62.166145304],
+            ....:                  [ 0.7, -0.6, 0.0, 0.0],
+            ....:                  [0.547271128842, 0.0, -0.3015, -21.7532081652],
+            ....:                  [0.0, 0.0, 0.3, -0.4]])
+            sage: spectrum = A.left_eigenvectors()
+            sage: all((Matrix(spectrum[i][1])*(A - spectrum[i][0])).norm() < 10^(-2)
+            ....:     for i in range(A.nrows()))
+            True
+
+        The following example shows that the fix for :trac:`20439` (conjugating
+        eigenvectors rather than eigenvalues) is the correct one::
+
+            sage: A = Matrix(CDF,[[I,0],[0,1]])
+            sage: spectrum = A.left_eigenvectors()
+            sage: for i in range(len(spectrum)):
+            ....:   spectrum[i][1][0]=matrix(CDF, spectrum[i][1]).echelon_form()[0]
+            sage: spectrum
+            [(1.0*I, [(1.0, 0.0)], 1), (1.0, [(0.0, 1.0)], 1)]
+
         """
         if not self.is_square():
             raise ArithmeticError("self must be a square matrix")
@@ -1553,7 +1561,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         v,eig = scipy.linalg.eig(self._matrix_numpy, right=False, left=True)
         # scipy puts eigenvectors in columns, we will extract from rows
         eig = matrix(eig.T)
-        return [(sage.rings.complex_double.CDF(v[i]), [eig[i]], 1) for i in range(len(v))]
+        return [(sage.rings.complex_double.CDF(v[i]), [eig[i].conjugate()], 1) for i in range(len(v))]
 
     eigenvectors_left = left_eigenvectors
 
@@ -1602,6 +1610,29 @@ cdef class Matrix_double_dense(Matrix_dense):
             (-1.9999999999999483, [(1.0, -0.2000000000000063, 1.0000000000000173, 0.20000000000000498)], 1)
             sage: spectrum[3]  # tol 1e-13
             (-1.0000000000000406, [(1.0, -0.49999999999996264, 1.9999999999998617, 0.499999999999958)], 1)
+
+        TESTS:
+
+        The following example shows that :trac:`20439` has been resolved::
+
+            sage: A = matrix(CDF, [[-2.53634347567,  2.04801738686, -0.0, -62.166145304],
+            ....:                  [ 0.7, -0.6, 0.0, 0.0],
+            ....:                  [0.547271128842, 0.0, -0.3015, -21.7532081652],
+            ....:                  [0.0, 0.0, 0.3, -0.4]])
+            sage: spectrum = A.right_eigenvectors()
+            sage: all(((A - spectrum[i][0]) * Matrix(spectrum[i][1]).transpose()).norm() < 10^(-2)
+            ....:     for i in range(A.nrows()))
+            True
+
+        The following example shows that the fix for :trac:`20439` (conjugating
+        eigenvectors rather than eigenvalues) is the correct one::
+
+            sage: A = Matrix(CDF,[[I,0],[0,1]])
+            sage: spectrum = A.right_eigenvectors()
+            sage: for i in range(len(spectrum)):
+            ....:     spectrum[i][1][0]=matrix(CDF, spectrum[i][1]).echelon_form()[0]
+            sage: spectrum
+            [(1.0*I, [(1.0, 0.0)], 1), (1.0, [(0.0, 1.0)], 1)]
         """
         if not self.is_square():
             raise ArithmeticError("self must be a square matrix")

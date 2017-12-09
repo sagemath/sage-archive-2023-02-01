@@ -26,34 +26,34 @@ The infinite set of all posets can be used to find minimal examples::
     :widths: 30, 70
     :delim: |
 
-    :meth:`~Posets.AntichainPoset` | Return an antichain on `n` elements.
-    :meth:`~Posets.BooleanLattice` | Return the Boolean lattice on `2^n` elements.
-    :meth:`~Posets.ChainPoset` | Return a chain on `n` elements.
-    :meth:`~Posets.Crown` | Return the crown poset on `2n` elements.
-    :meth:`~Posets.DiamondPoset` | Return the lattice of rank two on `n` elements.
-    :meth:`~Posets.DivisorLattice` | Return the divisor lattice of an integer.
-    :meth:`~Posets.IntegerCompositions` | Return the poset of integer compositions of `n`.
-    :meth:`~Posets.IntegerPartitions` | Return the poset of integer partitions of ``n``.
-    :meth:`~Posets.IntegerPartitionsDominanceOrder` | Return the lattice of integer partitions on the integer `n` ordered by dominance.
-    :meth:`~Posets.NoncrossingPartitions` | Return the poset of noncrossing partitions of a finite Coxeter group ``W``.
-    :meth:`~Posets.PentagonPoset` | Return the Pentagon poset.
-    :meth:`~Posets.RandomLattice` | Return a random lattice on `n` elements.
-    :meth:`~Posets.RandomPoset` | Return a random poset on `n` elements.
-    :meth:`~Posets.RestrictedIntegerPartitions` | Return the poset of integer partitions of `n`, ordered by restricted refinement.
-    :meth:`~Posets.SetPartitions` | Return the poset of set partitions of the set `\{1,\dots,n\}`.
-    :meth:`~Posets.ShardPoset` | Return the shard intersection order.
-    :meth:`~Posets.SSTPoset` | Return the poset on semistandard tableaux of shape `s` and largest entry `f` that is ordered by componentwise comparison.
-    :meth:`~Posets.StandardExample` | Return the standard example of a poset with dimension `n`.
-    :meth:`~Posets.SymmetricGroupAbsoluteOrderPoset` | The poset of permutations with respect to absolute order.
-    :meth:`~Posets.SymmetricGroupBruhatIntervalPoset` | The poset of permutations with respect to Bruhat order.
-    :meth:`~Posets.SymmetricGroupBruhatOrderPoset` | The poset of permutations with respect to Bruhat order.
-    :meth:`~Posets.SymmetricGroupWeakOrderPoset` | The poset of permutations of `\{ 1, 2, \ldots, n \}` with respect to the weak order.
-    :meth:`~Posets.TamariLattice` | Return the Tamari lattice.
-    :meth:`~Posets.TetrahedralPoset` | Return the Tetrahedral poset with `n-1` layers based on the input colors.
-    :meth:`~Posets.UpDownPoset` | Return the up-down poset on `n` elements.
-    :meth:`~Posets.YoungDiagramPoset` | Return the poset of cells in the Young diagram of a partition.
-    :meth:`~Posets.YoungsLattice` | Return Young's Lattice up to rank `n`.
-    :meth:`~Posets.YoungsLatticePrincipalOrderIdeal` | Return the principal order ideal of the partition `lam` in Young's Lattice.
+    :meth:`~posets.AntichainPoset` | Return an antichain on `n` elements.
+    :meth:`~posets.BooleanLattice` | Return the Boolean lattice on `2^n` elements.
+    :meth:`~posets.ChainPoset` | Return a chain on `n` elements.
+    :meth:`~posets.Crown` | Return the crown poset on `2n` elements.
+    :meth:`~posets.DiamondPoset` | Return the lattice of rank two on `n` elements.
+    :meth:`~posets.DivisorLattice` | Return the divisor lattice of an integer.
+    :meth:`~posets.IntegerCompositions` | Return the poset of integer compositions of `n`.
+    :meth:`~posets.IntegerPartitions` | Return the poset of integer partitions of ``n``.
+    :meth:`~posets.IntegerPartitionsDominanceOrder` | Return the lattice of integer partitions on the integer `n` ordered by dominance.
+    :meth:`~posets.NoncrossingPartitions` | Return the poset of noncrossing partitions of a finite Coxeter group ``W``.
+    :meth:`~posets.PentagonPoset` | Return the Pentagon poset.
+    :meth:`~posets.RandomLattice` | Return a random lattice on `n` elements.
+    :meth:`~posets.RandomPoset` | Return a random poset on `n` elements.
+    :meth:`~posets.RestrictedIntegerPartitions` | Return the poset of integer partitions of `n`, ordered by restricted refinement.
+    :meth:`~posets.SetPartitions` | Return the poset of set partitions of the set `\{1,\dots,n\}`.
+    :meth:`~posets.ShardPoset` | Return the shard intersection order.
+    :meth:`~posets.SSTPoset` | Return the poset on semistandard tableaux of shape `s` and largest entry `f` that is ordered by componentwise comparison.
+    :meth:`~posets.StandardExample` | Return the standard example of a poset with dimension `n`.
+    :meth:`~posets.SymmetricGroupAbsoluteOrderPoset` | The poset of permutations with respect to absolute order.
+    :meth:`~posets.SymmetricGroupBruhatIntervalPoset` | The poset of permutations with respect to Bruhat order.
+    :meth:`~posets.SymmetricGroupBruhatOrderPoset` | The poset of permutations with respect to Bruhat order.
+    :meth:`~posets.SymmetricGroupWeakOrderPoset` | The poset of permutations of `\{ 1, 2, \ldots, n \}` with respect to the weak order.
+    :meth:`~posets.TamariLattice` | Return the Tamari lattice.
+    :meth:`~posets.TetrahedralPoset` | Return the Tetrahedral poset with `n-1` layers based on the input colors.
+    :meth:`~posets.UpDownPoset` | Return the up-down poset on `n` elements.
+    :meth:`~posets.YoungDiagramPoset` | Return the poset of cells in the Young diagram of a partition.
+    :meth:`~posets.YoungsLattice` | Return Young's Lattice up to rank `n`.
+    :meth:`~posets.YoungsLatticePrincipalOrderIdeal` | Return the principal order ideal of the partition `lam` in Young's Lattice.
 
 Constructions
 -------------
@@ -1249,7 +1249,7 @@ class Posets(object):
 
         Fibonacci numbers as the number of antichains of a poset::
 
-            sage: [len(Posets.UpDownPoset(n).antichains().list()) for n in range(6)]
+            sage: [len(posets.UpDownPoset(n).antichains().list()) for n in range(6)]
             [1, 2, 3, 5, 8, 13]
 
         TESTS::

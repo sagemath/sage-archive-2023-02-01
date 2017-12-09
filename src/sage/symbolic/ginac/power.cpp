@@ -333,6 +333,10 @@ bool power::info(unsigned inf) const
 		case info_flags::nonnegative:
 			return (basis.info(info_flags::positive) && exponent.info(info_flags::real)) ||
 			       (basis.info(info_flags::real) && exponent.info(info_flags::integer) && exponent.info(info_flags::even));
+		case info_flags::negative:
+                        if (exponent.info(info_flags::odd))
+                                return basis.info(inf);
+                        return false;
 		case info_flags::real:
 			return ((basis.info(inf) and
                                  (exponent.info(info_flags::integer))) or

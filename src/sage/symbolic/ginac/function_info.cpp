@@ -256,8 +256,10 @@ static bool factorial_info(const function& f, unsigned inf)
         case info_flags::integer:
                 return arg.info(inf);
         case info_flags::even:
-                return arg.info(info_flags::integer)
-                        and (arg+_ex_1).info(info_flags::positive);
+                return (arg.info(info_flags::integer)
+                        and (arg+_ex_1).info(info_flags::positive))
+                       or (arg.info(info_flags::even)
+                        and arg.info(info_flags::positive));
         }
         return false;
 }

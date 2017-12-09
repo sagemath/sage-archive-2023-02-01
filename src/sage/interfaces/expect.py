@@ -555,7 +555,7 @@ If this all works, you can then make calls like:
             pass
         self._expect = None
 
-    def quit(self, verbose=False, timeout=None):
+    def quit(self, verbose=False):
         """
         Quit the running subprocess.
 
@@ -578,9 +578,6 @@ If this all works, you can then make calls like:
 
             sage: maxima.quit(verbose=True)
         """
-        if timeout is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(17686, 'the timeout argument to quit() is deprecated and ignored')
         if self._expect is not None:
             if verbose:
                 if self.is_remote():

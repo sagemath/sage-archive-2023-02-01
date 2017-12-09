@@ -119,15 +119,6 @@ cdef class Matrix_complex_ball_dense(Matrix_dense):
         sage: matrix(CBF, 1, 3, [1, 2, -3])
         [ 1.000000000000000  2.000000000000000 -3.000000000000000]
     """
-    #################################################################
-    # LEVEL 1 functionality
-    # * __cinit__
-    # * __init__
-    # * __dealloc__
-    # * set_unsafe(self, size_t i, size_t j, x)
-    # * get_unsafe(self, size_t i, size_t j)
-    ################################################################
-
     def __cinit__(self,
                   parent,
                   entries,

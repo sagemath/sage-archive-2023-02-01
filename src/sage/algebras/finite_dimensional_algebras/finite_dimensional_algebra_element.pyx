@@ -6,6 +6,7 @@ Elements of Finite Algebras
 #  Copyright (C) 2011 Johan Bosman <johan.g.bosman@gmail.com>
 #  Copyright (C) 2011, 2013 Peter Bruin <peter.bruin@math.uzh.ch>
 #  Copyright (C) 2011 Michiel Kosters <kosters@gmail.com>
+#  Copyright (C) 2017 Simon King <simon.king@uni-jena.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -17,14 +18,32 @@ from six.moves import range
 import re
 
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.matrix.constructor import Matrix
+from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.matrix import is_Matrix
 from sage.modules.free_module_element import vector
 from sage.rings.integer import Integer
-from sage.structure.element import AlgebraElement, is_Vector, parent
 
+from cpython.object cimport PyObject_RichCompare as richcmp
 
-class FiniteDimensionalAlgebraElement(AlgebraElement):
+cpdef FiniteDimensionalAlgebraElement unpickle_FiniteDimensionalAlgebraElement(A, vec, mat):
+    """
+    Helper for unpickling of finite dimensional algebra elements.
+
+    TESTS::
+
+        sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[1,1,0], [0,1,1], [0,1,1]]), Matrix([[0,0,1], [0,1,0], [1,0,0]])])
+        sage: x = B([1,2,3])
+        sage: loads(dumps(x)) == x      # indirect doctest
+        True
+
+    """
+    cdef FiniteDimensionalAlgebraElement x = A.element_class.__new__(A.element_class)
+    AlgebraElement.__init__(x, A)
+    x._vector  = vec
+    x.__matrix = mat
+    return x
+
+cdef class FiniteDimensionalAlgebraElement(AlgebraElement):
     r"""
     Create an element of a :class:`FiniteDimensionalAlgebra` using a multiplication table.
 
@@ -38,10 +57,10 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
     - ``check`` -- boolean (default: ``True``); if ``False`` and ``elt`` is a
       matrix, assume that it is known to be the matrix of an element
 
-    If ``elt`` is a vector, it is interpreted as a vector of
-    coordinates with respect to the given basis of ``A``.  If ``elt`` is
-    a matrix, it is interpreted as a multiplication matrix with
-    respect to this basis.
+    If ``elt`` is a vector or a matrix consisting of a single row, it is
+    interpreted as a vector of coordinates with respect to the given basis
+    of ``A``.  If ``elt`` is a square matrix, it is interpreted as a
+    multiplication matrix with respect to this basis.
 
     EXAMPLES::
 
@@ -74,40 +93,116 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
         k = A.base_ring()
         n = A.degree()
         if elt is None:
-            self._vector = vector(k, n)
-            self._matrix = Matrix(k, n)
+            self._vector = MatrixSpace(k,1,n)()
+            self.__matrix = MatrixSpace(k, n)()
         else:
             if isinstance(elt, int):
                 elt = Integer(elt)
             elif isinstance(elt, list):
-                elt = vector(elt)
+                elt = MatrixSpace(k,1,n)(elt)
             if A == elt.parent():
+                mat = (<FiniteDimensionalAlgebraElement> elt).__matrix
+                if mat is None:
+                    self.__matrix = None
+                else:
+                    self.__matrix = mat.base_extend(k)
                 self._vector = elt._vector.base_extend(k)
-                self._matrix = elt._matrix.base_extend(k)
             elif k.has_coerce_map_from(elt.parent()):
                 e = k(elt)
                 if e == 0:
-                    self._vector = vector(k, n)
-                    self._matrix = Matrix(k, n)
+                    self._vector = MatrixSpace(k, 1, n)()
+                    self.__matrix = MatrixSpace(k, n)()
                 elif A.is_unitary():
                     self._vector = A._one * e
-                    self._matrix = Matrix.identity(k, n) * e
+                    self.__matrix = MatrixSpace(k, n)(1) * e
                 else:
                     raise TypeError("algebra is not unitary")
-            elif is_Vector(elt):
-                self._vector = elt.base_extend(k)
-                self._matrix = Matrix(k, sum([elt[i] * A.table()[i] for i in range(n)]))
+            elif isinstance(elt, Vector):
+                self._vector = MatrixSpace(k,1,n)(list(elt))
             elif is_Matrix(elt):
-                if not A.is_unitary():
-                    raise TypeError("algebra is not unitary")
-                self._vector = A._one * elt
-                if not check or sum([self._vector[i]*A.table()[i] for i in range(n)]) == elt:
-                    self._matrix = elt
-                else:
+                if elt.ncols() != n:
                     raise ValueError("matrix does not define an element of the algebra")
+                if elt.nrows() == 1:
+                    self._vector = elt.__copy__()
+                else:
+                    if not A.is_unitary():
+                        raise TypeError("algebra is not unitary")
+                    self._vector = A._one * elt
+                    if check and self._matrix != elt:
+                        raise ValueError("matrix does not define an element of the algebra")
             else:
                 raise TypeError("elt should be a vector, a matrix, " +
                                 "or an element of the base field")
+
+    def __reduce__(self):
+        """
+        TESTS::
+
+            sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[1,1,0], [0,1,1], [0,1,1]]), Matrix([[0,0,1], [0,1,0], [1,0,0]])])
+            sage: x = B([1,2,3])
+            sage: loads(dumps(x)) == x      # indirect doctest
+            True
+            sage: loads(dumps(x)) is x
+            False
+
+        """
+        return unpickle_FiniteDimensionalAlgebraElement, (self._parent, self._vector, self.__matrix)
+
+    def __setstate__(self, state):
+        """
+        This method serves at unpickling old pickles.
+
+        TESTS::
+
+            sage: A = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
+            sage: x = A.element_class.__new__(A.element_class)
+            sage: x.__setstate__((A, {'_vector':vector([1,1,1]), '_matrix':matrix(QQ,3,[1,1,0, 0,1,0, 0,0,1])}))
+            sage: x
+            e0 + e1 + e2
+            sage: x.matrix()
+            [1 1 0]
+            [0 1 0]
+            [0 0 1]
+
+        Note that in old pickles, the vector actually is a vector. However,
+        it is converted into a single-row matrix, in the new implementation::
+
+            sage: x.vector()
+            (1, 1, 1)
+
+        """
+        self._parent, D = state
+        v = D.pop('_vector')
+        if isinstance(v, Vector):
+            self._vector = MatrixSpace(self._parent.base_ring(), 1,len(v))(list(v))
+        else:
+            self._vector = v
+        self.__matrix = D.pop('_matrix', None)
+        try:
+            self.__dict__ = D
+        except AttributeError:
+            pass
+
+    @property
+    def _matrix(self):
+        """
+        TESTS::
+
+            sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[1,1,0], [0,1,1], [0,1,1]]), Matrix([[0,0,1], [0,1,0], [1,0,0]])])
+            sage: x = B([1,2,3])
+            sage: x._matrix
+            [3 2 3]
+            [0 6 2]
+            [3 2 2]
+        """
+        cdef Py_ssize_t i
+        cdef tuple table
+        if self.__matrix is None:
+            A = self.parent()
+            table = <tuple> A.table()
+            ret = sum(self._vector[0,i] * table[i] for i in xrange(A.degree()))
+            self.__matrix = MatrixSpace(A.base_ring(), A.degree())(ret)
+        return self.__matrix
 
     def vector(self):
         """
@@ -119,7 +214,10 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
             sage: B(5).vector()
             (5, 0, 5)
         """
-        return self._vector
+        #By :trac:`23707`, ``self._vector`` now is a single row matrix,
+        #not a vector, which results in a speed-up. For backwards compatibility,
+        #this method still returns a vector.
+        return self._vector[0]
 
     def matrix(self):
         """
@@ -143,10 +241,7 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
 
         INPUT:
 
-        - ``copy`` -- (default: ``True``) if ``self`` is internally
-          represented by a dictionary ``d``, then make a copy of ``d``;
-          if ``False``, then this can cause undesired behavior by
-          mutating ``d``
+        - ``copy`` -- ignored
 
         EXAMPLES::
 
@@ -155,7 +250,8 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
             sage: elt.monomial_coefficients()
             {0: 1, 1: 1}
         """
-        return self._vector.dict(copy)
+        cdef Py_ssize_t i
+        return {i:self._vector[0,i] for i in range(self._vector.ncols())}
 
     def left_matrix(self):
         """
@@ -173,7 +269,7 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
         A = self.parent()
         if A.is_commutative():
             return self._matrix
-        return sum([self.vector()[i] * A.left_table()[i] for
+        return sum([self._vector[0,i] * A.left_table()[i] for
                     i in range(A.degree())])
 
     def _repr_(self):
@@ -189,7 +285,7 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
         s = " "
         A = self.parent()
         m = A.degree()
-        coeffs = list(self.vector())
+        coeffs = self._vector.list()
         atomic = A.base_ring()._repr_option('element_is_atomic')
         non_zero = False
         for n in range(m):
@@ -228,7 +324,32 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
         from sage.misc.latex import latex
         return latex(self.matrix())
 
-    def __eq__(self, other):
+    def __getitem__(self, m):
+        """
+        Return the `m`-th coefficient of ``self``
+
+        EXAMPLES::
+
+            sage: A = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
+            sage: A([2,1/4,3])[2]
+            3
+
+        """
+        return self._vector[0,m]
+
+    def __len__(self):
+        """
+        EXAMPLES::
+
+            sage: A = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
+            sage: len(A([2,1/4,3]))
+            3
+
+        """
+        return self._vector.ncols()
+
+    ## (Rich) comparison
+    cpdef _richcmp_(self, right, int op):
         """
         EXAMPLES::
 
@@ -239,49 +360,29 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
             False
             sage: A(2) == GF(5)(2)
             False
-        """
-        A = self.parent()
-        return (A.has_coerce_map_from(parent(other)) and
-                self.vector() == A(other).vector())
-
-    def __ne__(self, other):
-        """
-        EXAMPLES::
 
             sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
             sage: B(1) != 0
             True
-        """
-        return not self == other
 
-    def __gt__(self, other):
-        """
-        Raise a ``TypeError`` as there is no (natural) ordering defined on a
-        finite-dimensional algebra::
+        By :trac:`23707`, an ordering is defined on finite-dimensional algebras, corresponding
+        to the ordering of the defining vectors; this may be handy if the vector space basis of
+        the algebra corresponds to the standard monomials of the relation ideal, when
+        the algebra is considered as a quotient of a path algebra. ::
 
-            sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1,0], [0,1]]), Matrix([[0,1], [0,0]])])
             sage: A(1) > 0
-            Traceback (most recent call last):
-            ...
-            TypeError: there is no ordering defined on a finite-dimensional algebra
+            True
             sage: A(1) < 0
-            Traceback (most recent call last):
-            ...
-            TypeError: there is no ordering defined on a finite-dimensional algebra
+            False
             sage: A(1) >= 0
-            Traceback (most recent call last):
-            ...
-            TypeError: there is no ordering defined on a finite-dimensional algebra
+            True
             sage: A(1) <= 0
-            Traceback (most recent call last):
-            ...
-            TypeError: there is no ordering defined on a finite-dimensional algebra
+            False
+
         """
-        raise TypeError("there is no ordering defined on a finite-dimensional algebra")
+        return richcmp(self._vector, <FiniteDimensionalAlgebraElement>right._vector, op)
 
-    __lt__ = __ge__ = __le__ = __gt__
-
-    def _add_(self, other):
+    cpdef _add_(self, other):
         """
         EXAMPLES::
 
@@ -289,9 +390,9 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
             sage: A.basis()[0] + A.basis()[1]
             e0 + e1
         """
-        return self.__class__(self.parent(), self._vector + other._vector)
+        return self._parent.element_class(self._parent, self._vector + <FiniteDimensionalAlgebraElement>other._vector)
 
-    def _sub_(self, other):
+    cpdef _sub_(self, other):
         """
         EXAMPLES::
 
@@ -299,9 +400,9 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
             sage: A.basis()[0] - A.basis()[1]
             e0 + 2*e1
         """
-        return self.__class__(self.parent(), self._vector - other._vector)
+        return self._parent.element_class(self._parent, self._vector - <FiniteDimensionalAlgebraElement>other._vector)
 
-    def _mul_(self, other):
+    cpdef _mul_(self, other):
         """
         EXAMPLES::
 
@@ -309,9 +410,9 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
             sage: C.basis()[1] * C.basis()[2]
             e1
         """
-        return self.__class__(self.parent(), self._vector * other._matrix)
+        return self._parent.element_class(self._parent, self._vector * <FiniteDimensionalAlgebraElement>(other)._matrix)
 
-    def _lmul_(self, other):
+    cpdef _lmul_(self, Element other):
         """
         TESTS::
 
@@ -320,12 +421,12 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
             sage: c * 2 == c + c
             True
         """
-        if not self.parent().base_ring().has_coerce_map_from(other.parent()):
+        if not self._parent.base_ring().has_coerce_map_from(other.parent()):
             raise TypeError("unsupported operand parent(s) for *: '{}' and '{}'"
                             .format(self.parent(), other.parent()))
-        return self.__class__(self.parent(), self._vector * other)
+        return self._parent.element_class(self._parent, self._vector * other)
 
-    def _rmul_(self, other):
+    cpdef _rmul_(self, Element other):
         """
         TESTS::
 
@@ -334,19 +435,19 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
             sage: 2 * c == c + c
             True
         """
-        if not self.parent().base_ring().has_coerce_map_from(other.parent()):
+        if not self._parent.base_ring().has_coerce_map_from(other.parent()):
             raise TypeError("unsupported operand parent(s) for *: '{}' and '{}'"
                             .format(self.parent(), other.parent()))
-        return FiniteDimensionalAlgebraElement(self.parent(), other * self._vector) # Note the different order
+        return self._parent.element_class(self._parent, other * self._vector) # Note the different order
 
-    def __pow__(self, n):
+    def __pow__(self, n, m):
         """
         Return ``self`` raised to the power ``n``.
 
         EXAMPLES::
 
             sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
-            sage: b = B(vector(QQ, [2,3,4]))
+            sage: b = B([2,3,4])
             sage: b^6
             64*e0 + 576*e1 + 4096*e2
         """
@@ -354,13 +455,28 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
         if not (A._assume_associative or A.is_associative()):
             raise TypeError("algebra is not associative")
         if n > 0:
-            return self.__class__(A, self.vector() * self._matrix ** (n - 1))
+            return A.element_class(A, self._vector * self._matrix ** (n - 1))
         if not A.is_unitary():
             raise TypeError("algebra is not unitary")
         if n == 0:
             return A.one()
-        a = self.inverse()
-        return self.__class__(A, a.vector() * a.matrix() ** (-n - 1))
+        cdef FiniteDimensionalAlgebraElement a = <FiniteDimensionalAlgebraElement>(~self)
+        return A.element_class(A, a._vector * a.__matrix ** (-n - 1))
+
+    def __invert__(self):
+        """
+        TESTS::
+
+            sage: C = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0], [0,1]]), Matrix([[0,1], [-1,0]])])
+            sage: x = C([1,2])
+            sage: y = ~x; y                 # indirect doctest
+            1/5*e0 - 2/5*e1
+            sage: x*y
+            e0
+            sage: C.one()
+            e0
+        """
+        return self.inverse()
 
     def is_invertible(self):
         """
@@ -386,7 +502,7 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
         """
         return self._inverse is not None
 
-    @lazy_attribute
+    @property
     def _inverse(self):
         """
         The two-sided inverse of ``self``, if it exists; otherwise this
@@ -403,17 +519,21 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
             sage: C(0)._inverse is None
             True
         """
-        A = self.parent()
-        if not A.is_unitary():
+        cdef FiniteDimensionalAlgebraElement y
+        if self.__inverse is None:
+            A = self.parent()
+            if not A.is_unitary():
+                self.__inverse = False
+            try:
+                a = self._matrix.inverse()
+                y = FiniteDimensionalAlgebraElement(A, a, check=True)
+                y.__inverse = self
+                self.__inverse = y
+            except (ZeroDivisionError, ValueError):
+                self.__inverse = False
+        if self.__inverse is False:
             return None
-
-        try:
-            a = self.matrix().inverse()
-            y = FiniteDimensionalAlgebraElement(A, a, check=True)
-            y._inverse = self
-            return y
-        except (ZeroDivisionError, ValueError):
-            return None
+        return self.__inverse
 
     def inverse(self):
         """

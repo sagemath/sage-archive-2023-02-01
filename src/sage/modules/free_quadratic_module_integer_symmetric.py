@@ -665,8 +665,10 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
             sage: L = IntegralLattice("U")
             sage: L.genus()
-            Genus of [0 1]
+            Genus of
+            [0 1]
             [1 0]
+            Genus symbol at 2:    1^2
         """
         from sage.quadratic_forms.genera.genus import Genus
         return Genus(self.gram_matrix())

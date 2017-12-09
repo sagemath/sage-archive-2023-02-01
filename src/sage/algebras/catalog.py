@@ -60,7 +60,6 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 """
 
 from sage.algebras.free_algebra import FreeAlgebra as Free
-from sage.algebras.iwahori_hecke_algebra import IwahoriHeckeAlgebra as IwahoriHecke
 from sage.algebras.quatalg.quaternion_algebra import QuaternionAlgebra as Quaternion
 from sage.algebras.steenrod.steenrod_algebra import SteenrodAlgebra as Steenrod
 from sage.algebras.finite_dimensional_algebras.finite_dimensional_algebra import FiniteDimensionalAlgebra as FiniteDimensional
@@ -71,6 +70,7 @@ from sage.algebras.weyl_algebra import DifferentialWeylAlgebra as DifferentialWe
 from sage.algebras.lie_algebras.lie_algebra import LieAlgebra as Lie
 
 from sage.misc.lazy_import import lazy_import
+lazy_import('sage.algebras.iwahori_hecke_algebra', 'IwahoriHeckeAlgebra', 'IwahoriHecke')
 lazy_import('sage.algebras.nil_coxeter_algebra', 'NilCoxeterAlgebra', 'NilCoxeter')
 lazy_import('sage.algebras.free_zinbiel_algebra', 'FreeZinbielAlgebra', 'FreeZinbiel')
 lazy_import('sage.algebras.hall_algebra', 'HallAlgebra', 'Hall')

@@ -295,7 +295,8 @@ class LatinSquare:
             sage: L = LatinSquare(matrix(ZZ, [[0, 1], [2, 3]]))
             sage: L.set_immutable()
             sage: L.__hash__()
-            12
+            1677951251422179082  # 64-bit
+            -479138038           # 32-bit
         """
         return hash(self.square)
 

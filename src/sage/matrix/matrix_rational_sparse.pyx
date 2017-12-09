@@ -60,16 +60,6 @@ from .matrix_rational_dense cimport Matrix_rational_dense
 from sage.misc.misc import verbose
 
 cdef class Matrix_rational_sparse(Matrix_sparse):
-
-    ########################################################################
-    # LEVEL 1 functionality
-    #   * __cinit__
-    #   * __dealloc__
-    #   * __init__
-    #   * set_unsafe
-    #   * get_unsafe
-    #   * __hash__       -- always simple
-    ########################################################################
     def __cinit__(self, parent, entries, copy, coerce):
         # set the parent, nrows, ncols, etc.
         Matrix_sparse.__init__(self, parent)
@@ -172,9 +162,6 @@ cdef class Matrix_rational_sparse(Matrix_sparse):
         x = Rational()
         mpq_vector_get_entry(x.value, &self._matrix[i], j)
         return x
-
-    def __hash__(self):
-        return self._hash()
 
     def add_to_entry(self, Py_ssize_t i, Py_ssize_t j, elt):
         r"""

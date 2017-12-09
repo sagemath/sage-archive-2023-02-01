@@ -176,7 +176,7 @@ cdef class CategoryObject(SageObject):
 
             sage: A = sage.structure.category_object.CategoryObject()
             sage: A._init_category_(None)
-            doctest:...: DeprecationWarning: guess_category() is deprecated: CategoryObject of type <type 'sage.structure.category_object.CategoryObject'> requires a category
+            doctest:...: DeprecationWarning: guess_category() is deprecated: CategoryObject of type <... 'sage.structure.category_object.CategoryObject'> requires a category
             See http://trac.sagemath.org/24109 for details.
             sage: A.category()
             Category of objects
@@ -277,9 +277,9 @@ cdef class CategoryObject(SageObject):
             sage: QQ._underlying_class()
             <class 'sage.rings.rational_field.RationalField'>
             sage: type(ZZ)
-            <type 'sage.rings.integer_ring.IntegerRing_class'>
+            <... 'sage.rings.integer_ring.IntegerRing_class'>
             sage: ZZ._underlying_class()
-            <type 'sage.rings.integer_ring.IntegerRing_class'>
+            <... 'sage.rings.integer_ring.IntegerRing_class'>
         """
         cls = type(self)
         if isinstance(cls, DynamicMetaclass):

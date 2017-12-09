@@ -391,13 +391,13 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         sage: numpy.uint8('2') + 3
         5
         sage: type(_)
-        <type 'numpy.int32'>  # 32-bit
-        <type 'numpy.int64'>  # 64-bit
+        <... 'numpy.int32'>  # 32-bit
+        <... 'numpy.int64'>  # 64-bit
 
         sage: numpy.int8('12') + 1/3
         12.333333333333334
         sage: type(_)
-        <type 'numpy.float64'>
+        <... 'numpy.float64'>
 
     AUTHOR:
 
@@ -810,7 +810,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: res
             Finite Field of size 7
             sage: f = steps[1]; type(f)
-            <type 'sage.rings.finite_rings.integer_mod.Integer_to_IntegerMod'>
+            <... 'sage.rings.finite_rings.integer_mod.Integer_to_IntegerMod'>
             sage: f(100)
             2
         """
@@ -1165,7 +1165,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
             sage: x, y = cm.canonical_coercion(int(5), 10)
             sage: type(x), type(y)
-            (<type 'sage.rings.integer.Integer'>, <type 'sage.rings.integer.Integer'>)
+            (<... 'sage.rings.integer.Integer'>, <... 'sage.rings.integer.Integer'>)
 
 
             sage: x, y = cm.canonical_coercion(int(5), complex(3))
@@ -1179,7 +1179,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: a, b
             (13, 1/3)
             sage: type(a)
-            <type 'sage.rings.rational.Rational'>
+            <... 'sage.rings.rational.Rational'>
 
         We also make an exception for 0, even if $\ZZ$ does not map in::
 
@@ -1649,7 +1649,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 R = Real Double Field
                 S = Univariate Polynomial Ring in x over Integer Ring
                 (should be Univariate Polynomial Ring in x over Integer Ring, Rational Field)
-                action = Right scalar multiplication by Rational Field on Univariate Polynomial Ring in x over Integer Ring (<type 'sage.structure.coerce_actions.RightModuleAction'>)
+                action = Right scalar multiplication by Rational Field on Univariate Polynomial Ring in x over Integer Ring (<... 'sage.structure.coerce_actions.RightModuleAction'>)
         """
         if action is None:
             return action

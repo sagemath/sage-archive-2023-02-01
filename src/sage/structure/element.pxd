@@ -135,9 +135,9 @@ cpdef inline bint have_same_parent(left, right):
         sage: a = RLF(2)
         sage: b = exp(a)
         sage: type(a)
-        <type 'sage.rings.real_lazy.LazyWrapper'>
+        <... 'sage.rings.real_lazy.LazyWrapper'>
         sage: type(b)
-        <type 'sage.rings.real_lazy.LazyNamedUnop'>
+        <... 'sage.rings.real_lazy.LazyNamedUnop'>
         sage: have_same_parent(a, b)
         True
     """

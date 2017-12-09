@@ -190,10 +190,12 @@ void symbol::set_domain(unsigned d)
                         if(iflags.get(info_flags::positive)) {
                                 iflags.set(info_flags::positive, true);
                                 iflags.set(info_flags::nonnegative, true);
+                                iflags.set(info_flags::nonzero, true);
                         }  
                         else {
                                 iflags.set(info_flags::positive, false);
                                 iflags.set(info_flags::nonnegative, false);
+                                iflags.set(info_flags::nonzero, true);
                         }
                         if(iflags.get(info_flags::negative)) {
                                 iflags.set(info_flags::negative, true);
@@ -221,6 +223,7 @@ void symbol::set_domain(unsigned d)
                         iflags.set(info_flags::positive, true);
                         iflags.set(info_flags::negative, false);
                         iflags.set(info_flags::nonnegative, true);
+                        iflags.set(info_flags::nonzero, true);
                         if(iflags.get(info_flags::integer)) {
                                 iflags.set(info_flags::integer, true);
                         }
@@ -239,6 +242,7 @@ void symbol::set_domain(unsigned d)
                         iflags.set(info_flags::negative, true);
                         iflags.set(info_flags::positive, false);
                         iflags.set(info_flags::nonnegative, false);
+                        iflags.set(info_flags::nonzero, true);
                         if(iflags.get(info_flags::integer)) {
                                 iflags.set(info_flags::integer, true);
                         }
@@ -303,10 +307,14 @@ void symbol::set_domain_from_ex(const ex& expr)
         }
         if (expr.info(info_flags::real)) {
                 iflags.set(info_flags::real, true);
-                if (expr.info(info_flags::positive))
+                if (expr.info(info_flags::positive)) {
                         iflags.set(info_flags::positive, true);
-                else if (expr.info(info_flags::negative))
+                        iflags.set(info_flags::nonzero, true);
+                }
+                else if (expr.info(info_flags::negative)) {
                         iflags.set(info_flags::negative, true);
+                        iflags.set(info_flags::nonzero, true);
+                }
         }
 }
 

@@ -342,6 +342,10 @@ bool power::info(unsigned inf) const
                                  (exponent.info(info_flags::integer))) or
                                 (basis.info(info_flags::positive) and
                                  exponent.info(inf)));
+                case info_flags::nonzero:
+                        return (basis.info(inf)
+                                or exponent.is_zero()
+                                or exponent.info(info_flags::negative));
 	}
 	return inherited::info(inf);
 }

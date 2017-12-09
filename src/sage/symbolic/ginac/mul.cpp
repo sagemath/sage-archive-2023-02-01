@@ -447,6 +447,9 @@ void mul::do_print_python_repr(const print_python_repr & c, unsigned level) cons
 bool mul::info(unsigned inf) const
 {
 	switch (inf) {
+		case info_flags::nonzero:
+                        return info(info_flags::positive)
+                                or info(info_flags::negative);
 		case info_flags::polynomial:
 		case info_flags::integer_polynomial:
 		case info_flags::cinteger_polynomial:
@@ -456,7 +459,6 @@ bool mul::info(unsigned inf) const
 		case info_flags::integer:
 		case info_flags::crational:
 		case info_flags::cinteger:
-                case info_flags::nonzero:
 		case info_flags::crational_polynomial:
 		case info_flags::rational_function: {
                         if (not overall_coeff.info(info_flags::real))

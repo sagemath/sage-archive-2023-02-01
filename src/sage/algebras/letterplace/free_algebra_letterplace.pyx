@@ -235,7 +235,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
             sage: FreeAlgebra_letterplace(QQ['x'])
             Traceback (most recent call last):
             ...
-            TypeError: A letterplace algebra must be provided by a polynomial ring of type <type 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomialRing_libsingular'>
+            TypeError: A letterplace algebra must be provided by a polynomial ring of type <... 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomialRing_libsingular'>
 
         ::
 

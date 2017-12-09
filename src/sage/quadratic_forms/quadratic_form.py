@@ -845,7 +845,7 @@ class QuadraticForm(SageObject):
             sage: Q([1,0])
             1
             sage: type(Q([1,0]))
-            <type 'sage.rings.rational.Rational'>
+            <... 'sage.rings.rational.Rational'>
             sage: Q = QuadraticForm(QQ, 2, range(1,4))
             sage: Q(matrix(2, [1,0]))
             Quadratic form in 1 variables over Rational Field with coefficients:

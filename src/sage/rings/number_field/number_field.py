@@ -135,6 +135,7 @@ from sage.structure.sequence import Sequence
 
 from sage.structure.category_object import normalize_names
 import sage.structure.parent_gens
+import sage.structure.coerce_exceptions
 
 from sage.structure.proof.proof import get_flag
 from . import maps
@@ -4705,6 +4706,20 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             32
             sage: F.gen() == map2(F2.gen()) + k*map1(F1.gen())
             True
+
+        Check that the bugs reported at :trac:`24357` are fixed::
+
+            sage: A.<a> = NumberField(x^9 - 7)
+            sage: B.<b> = NumberField(x^3-7, embedding=a^3)
+            sage: C.<c> = QuadraticField(-1)
+            sage: B.composite_fields(C)
+            [Number Field in bc with defining polynomial x^6 + 3*x^4 + 14*x^3 + 3*x^2 - 42*x + 50]
+
+            sage: y = polygen(QQ, 'y')
+            sage: A.<a> = NumberField(x^3 - 7, embedding=CC(-0.95+1.65*I))
+            sage: B.<b> = NumberField(y^9 - 7, embedding=CC(-1.16+0.42*I))
+            sage: A.composite_fields(B)
+            [Number Field in b with defining polynomial y^9 - 7]
         """
         if not isinstance(other, NumberField_generic):
             raise TypeError("other must be a number field.")
@@ -4724,13 +4739,13 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             try:
                 from sage.categories.pushout import pushout
                 ambient_field = pushout(self.coerce_embedding().codomain(), other.coerce_embedding().codomain())
-            except CoercionException:
+            except sage.structure.coerce_exceptions.CoercionException:
                 ambient_field = None
             if ambient_field is None:
                 subfields_have_embeddings = False
 
         f = self.absolute_polynomial()
-        g = other.absolute_polynomial()
+        g = other.absolute_polynomial().change_variable_name(f.variable_name())
         R = f.parent()
         f = f.__pari__(); f /= f.content()
         g = g.__pari__(); g /= g.content()

@@ -862,18 +862,23 @@ def solve(f, *args, **kwds):
     handled by Maxima::
 
         sage: _ = var('t')
-        sage: solve([x^2 - y^2/exp(x), y-1], x, y, algorithm='sympy')
-        [{y: 1, x: 2*lambert_w(1/2)}]
+        sage: r = solve([x^2 - y^2/exp(x), y-1], x, y, algorithm='sympy')
+        sage: (r[0][x], r[0][y])
+        (2*lambert_w(1/2), 1)
         sage: solve(-2*x**3 + 4*x**2 - 2*x + 6 > 0, x, algorithm='sympy')
         [x < (1/6*sqrt(77) + 79/54)^(1/3) + 1/9/(1/6*sqrt(77) + 79/54)^(1/3) + 2/3]
         sage: solve(sqrt(2*x^2 - 7) - (3 - x),x,algorithm='sympy')
         [x == -8, x == 2]
         sage: solve(sqrt(2*x + 9) - sqrt(x + 1) - sqrt(x + 4),x,algorithm='sympy')
         [x == 0]
-        sage: solve([x + y + z + t, -z - t], x, y, z, t, algorithm='sympy')
-        [{z: -t, x: -y}]
-        sage: solve([x^2+y+z, y+x^2+z, x+y+z^2], x, y,z, algorithm='sympy')
-        [{y: -(z + 1)*z, x: z}, {y: -z^2 + z - 1, x: -z + 1}]
+        sage: r = solve([x + y + z + t, -z - t], x, y, z, t, algorithm='sympy')
+        sage: (r[0][x], r[0][z])
+        (-y, -t)
+        sage: r = solve([x^2+y+z, y+x^2+z, x+y+z^2], x, y,z, algorithm='sympy')
+        sage: (r[0][x], r[0][y])
+        (z, -(z + 1)*z)
+        sage: (r[1][x], r[1][y])
+        (-z + 1, -z^2 + z - 1)
         sage: solve(abs(x + 3) - 2*abs(x - 3),x,algorithm='sympy',domain='real')
         [x == 1, x == 9]
         

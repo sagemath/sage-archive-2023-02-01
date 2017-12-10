@@ -4621,6 +4621,16 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: Hom(Q1, F).order()
             4
 
+        Note that even with ``preserve_embedding=True``, this method may fail
+        to recognize that the two number fields have compatible embeddings, and
+        hence return several composite number fields::
+
+            sage: x = polygen(ZZ)
+            sage: A.<a> = NumberField(x^3 - 7, embedding=CC(-0.95+1.65*I))
+            sage: B.<a> = NumberField(x^9 - 7, embedding=QQbar.polynomial_root(x^9 - 7, RIF(1.2, 1.3)))
+            sage: len(A.composite_fields(B, preserve_embedding=True))
+            2
+
         TESTS:
 
         Let's check that embeddings are being respected::

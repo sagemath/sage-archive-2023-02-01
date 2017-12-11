@@ -3974,6 +3974,13 @@ class Graph(GenericGraph):
             sage: G = graphs.PetersenGraph()
             sage: next(G.orientations())
             An orientation of Petersen graph: Digraph on 10 vertices
+
+        An orientation must have the same ground set of vertices as the original
+        graph (:trac:`24366`)::
+
+            sage: G = Graph(1)
+            sage: next(G.orientations())
+            Digraph on 1 vertex
         """
         if sparse is not None:
             if data_structure is not None:
@@ -3994,7 +4001,9 @@ class Graph(GenericGraph):
             name = 'An orientation of ' + name
 
         if self.num_edges() == 0:
-            D = DiGraph(name=name,
+            D = DiGraph(data=[self.vertices(), []],
+                        format='vertices_and_edges',
+                        name=name,
                         pos=self._pos,
                         multiedges=self.allows_multiple_edges(),
                         loops=self.allows_loops(),

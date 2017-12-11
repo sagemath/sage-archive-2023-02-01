@@ -743,19 +743,28 @@ class FunctionFieldVectorSpaceIsomorphism(Morphism):
         sage: isinstance(f, sage.rings.function_field.maps.FunctionFieldVectorSpaceIsomorphism)
         True
     """
-    def _repr_type(self):
+    def _repr_(self):
         """
-        Return the type of the map for the purpose of printing.
+        Return the string representation of this isomorphism.
 
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
             sage: V, f, t = L.vector_space()
-            sage: f._repr_type()
-            'Isomorphism'
+            sage: f
+            Isomorphism:
+              From: Vector space of dimension 2 over Rational function field in x over Rational Field
+              To:   Function field in y defined by y^2 - x*y + 4*x^3
+            sage: t
+            Isomorphism:
+              From: Function field in y defined by y^2 - x*y + 4*x^3
+              To:   Vector space of dimension 2 over Rational function field in x over Rational Field
         """
-        return "Isomorphism"
+        s = "Isomorphism:"
+        s += "\n  From: {}".format(self.domain())
+        s += "\n  To:   {}".format(self.codomain())
+        return s
 
     def is_injective(self):
         """
@@ -845,7 +854,7 @@ class MapVectorSpaceToFunctionField(FunctionFieldVectorSpaceIsomorphism):
         sage: K.<x> = FunctionField(QQ); R.<y> = K[]
         sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
         sage: V, f, t = L.vector_space(); f
-        Isomorphism morphism:
+        Isomorphism:
           From: Vector space of dimension 2 over Rational function field in x over Rational Field
           To:   Function field in y defined by y^2 - x*y + 4*x^3
     """
@@ -959,7 +968,7 @@ class MapFunctionFieldToVectorSpace(FunctionFieldVectorSpaceIsomorphism):
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
             sage: V, f, t = L.vector_space(); t
-            Isomorphism morphism:
+            Isomorphism:
               From: Function field in y defined by y^2 - x*y + 4*x^3
               To:   Vector space of dimension 2 over Rational function field in x over Rational Field
         """
@@ -1225,7 +1234,7 @@ class FunctionFieldToFractionField(FunctionFieldVectorSpaceIsomorphism):
         sage: K = QQ['x'].fraction_field()
         sage: L = K.function_field()
         sage: f = K.coerce_map_from(L); f
-        Isomorphism morphism:
+        Isomorphism:
           From: Rational function field in x over Rational Field
           To:   Fraction Field of Univariate Polynomial Ring in x over Rational Field
 
@@ -1266,7 +1275,7 @@ class FunctionFieldToFractionField(FunctionFieldVectorSpaceIsomorphism):
             sage: L = K.function_field()
             sage: f = K.coerce_map_from(L)
             sage: f.section()
-            Isomorphism morphism:
+            Isomorphism:
                 From: Fraction Field of Univariate Polynomial Ring in x over Rational Field
                 To:   Rational function field in x over Rational Field
 
@@ -1286,7 +1295,7 @@ class FractionFieldToFunctionField(FunctionFieldVectorSpaceIsomorphism):
         sage: K = QQ['x'].fraction_field()
         sage: L = K.function_field()
         sage: f = L.coerce_map_from(K); f
-        Isomorphism morphism:
+        Isomorphism:
             From: Fraction Field of Univariate Polynomial Ring in x over Rational Field
             To:   Rational function field in x over Rational Field
 
@@ -1326,7 +1335,7 @@ class FractionFieldToFunctionField(FunctionFieldVectorSpaceIsomorphism):
             sage: L = K.function_field()
             sage: f = L.coerce_map_from(K)
             sage: f.section()
-            Isomorphism morphism:
+            Isomorphism:
                 From: Rational function field in x over Rational Field
                 To:   Fraction Field of Univariate Polynomial Ring in x over Rational Field
 

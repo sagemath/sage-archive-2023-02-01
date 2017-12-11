@@ -1483,11 +1483,11 @@ class FunctionField_polymod(FunctionField):
             sage: V
             Vector space of dimension 5 over Rational function field in x over Rational Field
             sage: from_V
-            Isomorphism morphism:
+            Isomorphism:
               From: Vector space of dimension 5 over Rational function field in x over Rational Field
               To:   Function field in y defined by y^5 - 2*x*y + (-x^4 - 1)/x
             sage: to_V
-            Isomorphism morphism:
+            Isomorphism:
               From: Function field in y defined by y^5 - 2*x*y + (-x^4 - 1)/x
               To:   Vector space of dimension 5 over Rational function field in x over Rational Field
 
@@ -1521,18 +1521,18 @@ class FunctionField_polymod(FunctionField):
 
             sage: R2.<z> = L[]; M.<z> = L.extension(z^2 -y)
             sage: M.vector_space()
-            (Vector space of dimension 2 over Function field in y defined by y^5 - 2*x*y + (-x^4 - 1)/x, Isomorphism morphism:
+            (Vector space of dimension 2 over Function field in y defined by y^5 - 2*x*y + (-x^4 - 1)/x, Isomorphism:
               From: Vector space of dimension 2 over Function field in y defined by y^5 - 2*x*y + (-x^4 - 1)/x
-              To:   Function field in z defined by z^2 - y, Isomorphism morphism:
+              To:   Function field in z defined by z^2 - y, Isomorphism:
               From: Function field in z defined by z^2 - y
               To:   Vector space of dimension 2 over Function field in y defined by y^5 - 2*x*y + (-x^4 - 1)/x)
 
         We can also get the vector space of ``M`` over ``K``::
 
             sage: M.vector_space(K)
-            (Vector space of dimension 10 over Rational function field in x over Rational Field, Isomorphism morphism:
+            (Vector space of dimension 10 over Rational function field in x over Rational Field, Isomorphism:
               From: Vector space of dimension 10 over Rational function field in x over Rational Field
-              To:   Function field in z defined by z^2 - y, Isomorphism morphism:
+              To:   Function field in z defined by z^2 - y, Isomorphism:
               From: Function field in z defined by z^2 - y
               To:   Vector space of dimension 10 over Rational function field in x over Rational Field)
 
@@ -3379,9 +3379,9 @@ class RationalFunctionField(FunctionField):
 
             sage: K.<x> = FunctionField(QQ)
             sage: K.vector_space()
-            (Vector space of dimension 1 over Rational function field in x over Rational Field, Isomorphism morphism:
+            (Vector space of dimension 1 over Rational function field in x over Rational Field, Isomorphism:
               From: Vector space of dimension 1 over Rational function field in x over Rational Field
-              To:   Rational function field in x over Rational Field, Isomorphism morphism:
+              To:   Rational function field in x over Rational Field, Isomorphism:
               From: Rational function field in x over Rational Field
               To:   Vector space of dimension 1 over Rational function field in x over Rational Field)
         """
@@ -3671,18 +3671,18 @@ class RationalFunctionField(FunctionField):
 
             sage: K.<x> = FunctionField(QQ)
             sage: K.vector_space()
-            (Vector space of dimension 1 over Rational function field in x over Rational Field, Isomorphism morphism:
+            (Vector space of dimension 1 over Rational function field in x over Rational Field, Isomorphism:
               From: Vector space of dimension 1 over Rational function field in x over Rational Field
-              To:   Rational function field in x over Rational Field, Isomorphism morphism:
+              To:   Rational function field in x over Rational Field, Isomorphism:
               From: Rational function field in x over Rational Field
               To:   Vector space of dimension 1 over Rational function field in x over Rational Field)
 
         TESTS::
 
             sage: K.vector_space()
-            (Vector space of dimension 1 over Rational function field in x over Rational Field, Isomorphism morphism:
+            (Vector space of dimension 1 over Rational function field in x over Rational Field, Isomorphism:
               From: Vector space of dimension 1 over Rational function field in x over Rational Field
-              To:   Rational function field in x over Rational Field, Isomorphism morphism:
+              To:   Rational function field in x over Rational Field, Isomorphism:
               From: Rational function field in x over Rational Field
               To:   Vector space of dimension 1 over Rational function field in x over Rational Field)
 

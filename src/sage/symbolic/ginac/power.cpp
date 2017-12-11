@@ -313,6 +313,7 @@ bool power::info(unsigned inf) const
 			return exponent.info(info_flags::posint)
                                 and basis.info(info_flags::integer);
 		case info_flags::rational_function:
+                case info_flags::rational:
 			return exponent.info(info_flags::integer) &&
 			       basis.info(inf);
                 case info_flags::inexact:

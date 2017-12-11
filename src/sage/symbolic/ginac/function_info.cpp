@@ -236,6 +236,7 @@ static bool abs_info(const function& f, unsigned inf)
         case info_flags::real:
         case info_flags::nonnegative:
                 return true;
+        case info_flags::rational:
         case info_flags::integer:
         case info_flags::nonzero:
         case info_flags::even:
@@ -254,6 +255,7 @@ static bool real_info(const function& f, unsigned inf)
         case info_flags::nonnegative:
         case info_flags::negative:
         case info_flags::positive:
+        case info_flags::rational:
         case info_flags::integer:
         case info_flags::even:
                 return f.op(0).info(inf);
@@ -278,6 +280,8 @@ static bool factorial_info(const function& f, unsigned inf)
         case info_flags::nonnegative:
         case info_flags::integer:
                 return arg.info(inf);
+        case info_flags::rational:
+                return arg.info(info_flags::integer);
         case info_flags::even:
                 return (arg.info(info_flags::integer)
                         and (arg+_ex_1).info(info_flags::positive))

@@ -318,6 +318,17 @@ def _sympysage_order(self):
     from sage.functions.other import Order
     return Order(self.args[0])._sage_()
 
+def _sympysage_lambertw(self):
+    """
+    EXAMPLES::
+
+        sage: from sympy import Symbol, LambertW
+        sage: assert lambert_w(x)._sympy_() == LambertW(0, Symbol('x'))
+        sage: assert lambert_w(x) == LambertW(Symbol('x'))._sage_()
+    """
+    from sage.functions.log import lambert_w
+    return lambert_w(self.args[0]._sage_())
+
 def _sympysage_rf(self):
     """
     EXAMPLES::
@@ -678,6 +689,7 @@ def sympy_init():
     from sympy.functions.combinatorial.factorials import (RisingFactorial,
             FallingFactorial)
     from sympy.functions.elementary.complexes import (re, im, Abs)
+    from sympy.functions.elementary.exponential import LambertW
     from sympy.functions.elementary.integers import ceiling
     from sympy.functions.elementary.piecewise import Piecewise
     from sympy.functions.special.bessel import (besselj, bessely, besseli, besselk)
@@ -715,6 +727,7 @@ def sympy_init():
     Integral._sage_ = _sympysage_integral
     Derivative._sage_ = _sympysage_derivative
     Order._sage_ = _sympysage_order
+    LambertW._sage_ = _sympysage_lambertw
     RisingFactorial._sage_ = _sympysage_rf
     FallingFactorial._sage_ = _sympysage_ff
     loggamma._sage_ = _sympysage_lgamma
@@ -900,3 +913,48 @@ def test_all():
     test_integral()
     #test_integral_failing()
     test_undefined_function()
+
+def sympy_set_to_list(set, vars):
+    """
+    Convert all set objects that can be returned by SymPy's solvers.
+    """
+    from sympy import (FiniteSet, And, Or, Union, Interval, oo, S)
+    from sympy.core.relational import Relational
+    if set == S.Reals:
+        return [x._sage_() < oo for x in vars]
+    elif set == S.Complexes:
+        return [x._sage_() != UnsignedInfinity for x in vars]
+    elif set is None or set == S.EmptySet:
+        return []
+    if isinstance(set, (And, Or, Relational)):
+        if isinstance(set, And):
+            return [[item for rel in set._args[0]
+                    for item in sympy_set_to_list(rel, vars) ]]
+        elif isinstance(set, Or):
+            return [sympy_set_to_list(iv, vars) for iv in set._args[0]]
+        elif isinstance(set, Relational):
+            return [set._sage_()]
+    elif isinstance(set, FiniteSet):
+        x = vars[0]
+        return [x._sage_() == arg._sage_() for arg in set.args]
+    elif isinstance(set, (Union, Interval)):
+        x = vars[0]
+        if isinstance(set, Interval):
+            left,right,lclosed,rclosed = set._args
+            if lclosed:
+                rel1 = [x._sage_() > left._sage_()]
+            else:
+                rel1 = [x._sage_() >= left._sage_()]
+            if rclosed:
+                rel2 = [x._sage_() < right._sage_()]
+            else:
+                return [x._sage_() <= right._sage_()]
+            if right == oo:
+                return rel1
+            if left == -oo:
+                return rel2
+            return [rel1, rel2]
+        if isinstance(set, Union):
+            return [sympy_set_to_list(iv, vars) for iv in set._args]
+    return set
+

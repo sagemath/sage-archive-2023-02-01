@@ -194,12 +194,18 @@ void symbol::set_domain(unsigned d)
                         nb.set(info_flags::negative, true);
                         nb.set(info_flags::nonzero, true);
                         break;
+                case domain::rational:
+                        nb.set(info_flags::real, true);
+                        nb.set(info_flags::rational, true);
+                        break;
                 case domain::integer:
                         nb.set(info_flags::real, true);
+                        nb.set(info_flags::rational, true);
                         nb.set(info_flags::integer, true);
                         break;
                 case domain::even:
                         nb.set(info_flags::real, true);
+                        nb.set(info_flags::rational, true);
                         nb.set(info_flags::integer, true);
                         nb.set(info_flags::even, true);
                         break;
@@ -210,23 +216,19 @@ void symbol::set_domain(unsigned d)
 void symbol::set_domain_from_ex(const ex& expr)
 {
         iflags.clear();
-        if (expr.info(info_flags::integer)) {
-                iflags.set(info_flags::real, true);
-                iflags.set(info_flags::integer, true);
-                if (expr.info(info_flags::even))
-                        iflags.set(info_flags::even, true);
-        }
-        if (expr.info(info_flags::real)) {
-                iflags.set(info_flags::real, true);
-                if (expr.info(info_flags::positive)) {
-                        iflags.set(info_flags::positive, true);
-                        iflags.set(info_flags::nonzero, true);
-                }
-                else if (expr.info(info_flags::negative)) {
-                        iflags.set(info_flags::negative, true);
-                        iflags.set(info_flags::nonzero, true);
-                }
-        }
+        if (expr.info(info_flags::even))
+                set_domain(domain::even);
+        else if (expr.info(info_flags::integer))
+                set_domain(domain::integer);
+        else if (expr.info(info_flags::rational))
+                set_domain(domain::rational);
+        else if (expr.info(info_flags::real))
+                set_domain(domain::real);
+
+        if (expr.info(info_flags::positive))
+                set_domain(domain::positive);
+        else if (expr.info(info_flags::negative))
+                set_domain(domain::negative);
 }
 
 bool symbol::info(unsigned inf) const

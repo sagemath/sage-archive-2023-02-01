@@ -82,6 +82,7 @@ public:
 		positive,
                 negative,
 		infinity,
+                rational,
 		integer,
                 even
 	};

@@ -304,6 +304,7 @@ from sage.misc.lazy_format import LazyFormat
 from sage.misc import sageinspect
 from sage.misc.classcall_metaclass cimport ClasscallMetaclass
 from sage.misc.superseded import deprecated_function_alias
+from sage.arith.long cimport integer_check_long_py
 from sage.arith.numerical_approx cimport digits_to_bits
 from sage.misc.decorators import sage_wraps
 
@@ -1241,12 +1242,16 @@ cdef class Element(SageObject):
         if BOTH_ARE_ELEMENT(cl):
             return coercion_model.bin_op(left, right, add)
 
+        cdef long value
+        cdef int err = -1
         try:
             # Special case addition with Python int
-            if isinstance(right, int):
-                return (<Element>left)._add_long(PyInt_AS_LONG(right))
-            if isinstance(left, int):
-                return (<Element>right)._add_long(PyInt_AS_LONG(left))
+            integer_check_long_py(right, &value, &err)
+            if not err:
+                return (<Element>left)._add_long(value)
+            integer_check_long_py(left, &value, &err)
+            if not err:
+                return (<Element>right)._add_long(value)
             return coercion_model.bin_op(left, right, add)
         except TypeError:
             # Either coercion failed or arithmetic is not defined.
@@ -1520,11 +1525,16 @@ cdef class Element(SageObject):
         if BOTH_ARE_ELEMENT(cl):
             return coercion_model.bin_op(left, right, mul)
 
+        cdef long value
+        cdef int err = -1
         try:
-            if isinstance(right, int):
-                return (<Element>left)._mul_long(PyInt_AS_LONG(right))
-            if isinstance(left, int):
-                return (<Element>right)._mul_long(PyInt_AS_LONG(left))
+            # Special case multiplication with Python int
+            integer_check_long_py(right, &value, &err)
+            if not err:
+                return (<Element>left)._mul_long(value)
+            integer_check_long_py(left, &value, &err)
+            if not err:
+                return (<Element>right)._mul_long(value)
             return coercion_model.bin_op(left, right, mul)
         except TypeError:
             return NotImplemented

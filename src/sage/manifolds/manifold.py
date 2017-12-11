@@ -1785,16 +1785,16 @@ class TopologicalManifold(ManifoldSubset):
         """
         return self._one_scalar_field
 
-    options = GlobalOptions(name='manifolds',
-        module = 'sage.manifolds', option_class = 'TopologicalManifold',
-        doc=r"""
+    class options(GlobalOptions):
+        r"""
         Sets and displays the options for manifolds. If no parameters
         are set, then the function returns a copy of the options dictionary.
 
         The ``options`` to manifolds can be accessed as the method
         :obj:`Manifold.options`.
-        """,
-        end_doc=r"""
+
+        @OPTIONS@
+
         EXAMPLES::
 
             sage: M = Manifold(2, 'M', structure='topological')
@@ -1813,9 +1813,9 @@ class TopologicalManifold(ManifoldSubset):
         to ``False``::
 
             sage: Manifold.options.textbook_output=False
-            sage: f
+            sage: f         # known bug (Trac #24325)
             D[0](g)(x, y) + D[1](g)(x, y)
-            sage: latex(f)
+            sage: latex(f)  # known bug (Trac #24325)
             D[0]\left(g\right)\left(x, y\right) + D[1]\left(g\right)\left(x, y\right)
             sage: Manifold.options._reset()
 
@@ -1833,14 +1833,16 @@ class TopologicalManifold(ManifoldSubset):
             sage: f
             u*v
             sage: M.options._reset()
-        """,
-        textbook_output=dict(default=True,
+        """
+        NAME = 'manifolds'
+        module = 'sage.manifolds'
+        option_class = 'TopologicalManifold'
+        textbook_output = dict(default=True,
                              description='textbook-like output instead of the Pynac output for derivatives',
-                             checker=lambda x: isinstance(x, bool)),
-        omit_function_arguments=dict(default=False,
+                             checker=lambda x: isinstance(x, bool))
+        omit_function_arguments = dict(default=False,
                                      description='Determine if the arguments of symbolic functions are printed',
-                                     checker=lambda x: isinstance(x, bool)),
-    )
+                                     checker=lambda x: isinstance(x, bool))
 
     def _Hom_(self, other, category=None):
         r"""

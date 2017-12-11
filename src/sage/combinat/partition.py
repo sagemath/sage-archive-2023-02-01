@@ -5184,9 +5184,8 @@ class Partitions(UniqueRepresentation, Parent):
     Element = Partition
 
     # add options to class
-    options = GlobalOptions('Partitions',
-        module='sage.combinat.partition',
-        doc=r"""
+    class options(GlobalOptions):
+        r"""
         Sets and displays the global options for elements of the partition,
         skew partition, and partition tuple classes.  If no parameters are
         set, then the function returns a copy of the options dictionary.
@@ -5194,8 +5193,9 @@ class Partitions(UniqueRepresentation, Parent):
         The ``options`` to partitions can be accessed as the method
         :obj:`Partitions.options` of :class:`Partitions` and
         related parent classes.
-        """,
-        end_doc=r"""
+
+        @OPTIONS@
+
         EXAMPLES::
 
             sage: P = Partition([4,2,2,1])
@@ -5245,8 +5245,10 @@ class Partitions(UniqueRepresentation, Parent):
               1  2  3
               4  5
             sage: Partitions.options._reset()
-        """,
-        display=dict(default="list",
+        """
+        NAME = 'Partitions'
+        module = 'sage.combinat.partition'
+        display = dict(default="list",
                      description='Specifies how partitions should be printed',
                      values=dict(list='displayed as a list',
                                exp_low='in exponential form (lowest first)',
@@ -5256,8 +5258,8 @@ class Partitions(UniqueRepresentation, Parent):
                                compact_high='compact form of ``exp_high``'),
                      alias=dict(exp="exp_low", compact="compact_low", array="diagram",
                                ferrers_diagram="diagram", young_diagram="diagram"),
-                     case_sensitive=False),
-        latex=dict(default="young_diagram",
+                     case_sensitive=False)
+        latex = dict(default="young_diagram",
                    description='Specifies how partitions should be latexed',
                    values=dict(diagram='latex as a Ferrers diagram',
                                young_diagram='latex as a Young diagram',
@@ -5265,16 +5267,15 @@ class Partitions(UniqueRepresentation, Parent):
                                exp_high='latex as a list in exponential notation (highest first)',
                                exp_low='as a list latex in exponential notation (lowest first)'),
                    alias=dict(exp="exp_low", array="diagram", ferrers_diagram="diagram"),
-                   case_sensitive=False),
-        diagram_str=dict(default="*",
+                   case_sensitive=False)
+        diagram_str = dict(default="*",
                          description='The character used for the cells when printing Ferrers diagrams',
-                         checker=lambda char: isinstance(char,str)),
-        latex_diagram_str=dict(default="\\ast",
+                         checker=lambda char: isinstance(char,str))
+        latex_diagram_str = dict(default="\\ast",
                          description='The character used for the cells when latexing Ferrers diagrams',
-                         checker=lambda char: isinstance(char,str)),
-        convention=dict(link_to=(tableau.Tableaux.options,'convention')),
+                         checker=lambda char: isinstance(char,str))
+        convention = dict(link_to=(tableau.Tableaux.options,'convention'))
         notation = dict(alt_name='convention')
-    )
 
     def __reversed__(self):
         """

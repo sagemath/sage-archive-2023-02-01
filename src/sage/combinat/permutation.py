@@ -5117,9 +5117,8 @@ class Permutations(UniqueRepresentation, Parent):
     Element = Permutation
 
     # add options to class
-    options=GlobalOptions('Permutations',
-        module='sage.combinat.permutation',
-        doc=r"""
+    class options(GlobalOptions):
+        r"""
         Set the global options for elements of the permutation class. The
         defaults are for permutations to be displayed in list notation and
         the multiplication done from left to right (like in GAP) -- that
@@ -5128,15 +5127,16 @@ class Permutations(UniqueRepresentation, Parent):
         .. NOTE::
 
             These options have no effect on permutation group elements.
-        """,
-        end_doc="""
+
+        @OPTIONS@
+
         EXAMPLES::
 
             sage: p213 = Permutation([2,1,3])
             sage: p312 = Permutation([3,1,2])
             sage: Permutations.options(mult='l2r', display='list')
             sage: Permutations.options.display
-            'list'
+            list
             sage: p213
             [2, 1, 3]
             sage: Permutations.options.display='cycle'
@@ -5150,15 +5150,17 @@ class Permutations(UniqueRepresentation, Parent):
         ::
 
             sage: Permutations.options.mult
-            'l2r'
+            l2r
             sage: p213*p312
             [1, 3, 2]
             sage: Permutations.options.mult='r2l'
             sage: p213*p312
             [3, 2, 1]
             sage: Permutations.options._reset()
-        """,
-        display=dict(default="list",
+        """
+        NAME = 'Permutations'
+        module = 'sage.combinat.permutation'
+        display = dict(default="list",
                      description="Specifies how the permutations should be printed",
                      values=dict(list="the permutations are displayed in list notation"
                                       " (aka 1-line notation)",
@@ -5168,8 +5170,8 @@ class Permutations(UniqueRepresentation, Parent):
                                            " with singleton cycles shown as well",
                                  reduced_word="the permutations are displayed as reduced words"),
                      alias=dict(word="reduced_word", reduced_expression="reduced_word"),
-                     case_sensitive=False),
-        latex=dict(default="list",
+                     case_sensitive=False)
+        latex = dict(default="list",
                    description="Specifies how the permutations should be latexed",
                    values=dict(list="latex as a list in one-line notation",
                                twoline="latex in two-line notation",
@@ -5177,19 +5179,18 @@ class Permutations(UniqueRepresentation, Parent):
                                singleton="latex in cycle notation with singleton cycles shown as well",
                                reduced_word="latex as reduced words"),
                    alias=dict(word="reduced_word", reduced_expression="reduced_word", oneline="list"),
-                   case_sensitive=False),
-        latex_empty_str=dict(default="1",
+                   case_sensitive=False)
+        latex_empty_str = dict(default="1",
                              description='The LaTeX representation of a reduced word when said word is empty',
-                             checker=lambda char: isinstance(char,str)),
-        generator_name=dict(default="s",
+                             checker=lambda char: isinstance(char,str))
+        generator_name = dict(default="s",
                             description="the letter used in latexing the reduced word",
-                            checker=lambda char: isinstance(char,str)),
-        mult=dict(default="l2r",
+                            checker=lambda char: isinstance(char,str))
+        mult = dict(default="l2r",
                   description="The multiplication of permutations",
                   values=dict(l2r="left to right: `(p_1 \cdot p_2)(x) = p_2(p_1(x))`",
                               r2l="right to left: `(p_1 \cdot p_2)(x) = p_1(p_2(x))`"),
                   case_sensitive=False)
-    )
 
 class Permutations_nk(Permutations):
     r"""

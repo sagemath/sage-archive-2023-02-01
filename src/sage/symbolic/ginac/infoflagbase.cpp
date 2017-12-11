@@ -6,6 +6,7 @@
  */
 
 #include <stdexcept>
+#include <iostream>
 #include "infoflagbase.h"
 
 namespace GiNaC {
@@ -39,5 +40,9 @@ bool infoflagbase::get(unsigned flag) const
         return bits[index[flag]];
 }
 
+void infoflagbase::set(unsigned flag, bool value)
+{
+        bits[index[flag]] = value;
+}
 
 } // namespace GiNaC

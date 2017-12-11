@@ -21,7 +21,7 @@ public:
 
 	std::string to_string() const       { return bits.to_string(); }
 	bool get(unsigned flag) const;
-	void set(unsigned flag, bool value) { bits[index[flag]] = value; }
+	void set(unsigned flag, bool value);
 	void clear()                        { bits.reset(); }
 
 private:

@@ -8310,51 +8310,61 @@ class GenericGraph(GenericGraph_pyx):
 
     def nowhere_zero_flow(self, k=None, solver=None, verbose=0):
         r"""
-        Return a `k`-nowhere zero flow of the (di)graph.
+        Return a ``k``-nowhere zero flow of the (di)graph.
 
-        A flow on a graph `G = (V, E)` is a pair `(D, f)` such that `D` is an
-        orientation of `G` and `f` is a function on `E` satisfying
+        A flow on a graph `G = (V, E)` is a pair `(D, f)` such that `D`
+        is an orientation of `G` and `f` is a function on `E` satisfying
 
         .. MATH::
 
-            \sum_{u \in N^-_D(v)} f(uv) = \sum_{w \in N^+_D(v)} f(vw),\ \forall v \in V
+            \sum_{u \in N^-_D(v)} f(uv) = \sum_{w \in N^+_D(v)} f(vw),
+            \ \forall v \in V.
 
-        A ``nowhere zero flow`` on a graph `G = (V, E)` is a flow `(D, f)` such
-        that `f(e) \neq 0` for every `e \in E`. For a positive integer `k`, a
-        `k`-flow on a graph `G = (V, E)` is a flow `(D, f)` such that `f : E \to
-        Z` and `−(k − 1) \leq f(e) \leq k − 1` for every `e \in E`. A `k`-flow
-        is positive if `f(e) > 0` for every `e \in E`. A `k`-flow which is
-        nowhere zero is called a `k`-nowhere zero flow (or `k`-NZF).
+        A ``nowhere zero flow`` on a graph `G = (V, E)` is a flow `(D, f)`
+        such that `f(e) \neq 0` for every `e \in E`. For a positive
+        integer `k`, a `k`-flow on a graph `G = (V, E)` is a flow `(D, f)`
+        such that `f: E \to Z` and `−(k − 1) \leq f(e) \leq k − 1` for
+        every `e \in E`. A `k`-flow is positive if `f(e) > 0` for every
+        `e \in E`. A `k`-flow which is nowhere zero is called a
+        `k`-*nowhere zero flow* (or `k`-NZF).
 
-        We have that `G` admits a positive `k`-flow iff `G` admits a `k`-NZF iff
-        every orientation of `G` admits a `k`-NZF. Furthermore, a (di)graph
-        admits a `k`-NZF iff it is bridgeless, and every bridgeless graph admits
-        a 6-NZF [Sey1981]_. See :wikipedia:`Nowhere-zero_flow` for more details.
+        The following are equivalent.
 
-        If ``self`` is not directed, we search for a `k`-NZF on any orientation
-        of ``self`` and then build a positive `k`-NZF by reverting edges with
-        negative flow.
+        - `G` admits a positive `k`-flow.
+        - `G` admits a `k`-NZF.
+        - Every orientation of `G` admits a `k`-NZF.
+
+        Furthermore, a (di)graph admits a `k`-NZF if and only if it
+        is bridgeless and every bridgeless graph admits a `6`-NZF [Sey1981]_.
+        See :wikipedia:`Nowhere-zero_flow` for more details.
+
+        ALGORITHM:
+
+        If ``self`` is not directed, we search for a `k`-NZF on any
+        orientation of ``self`` and then build a positive `k`-NZF by
+        reverting edges with negative flow.
 
         INPUT:
 
-        - ``k`` -- integer (default: ``None``); By default, the value of `k` is
-          set to 6 [Sey1981]_. When set to a positive integer `\geq 2`, search
-          for a `k`-nowhere zero flow.
+        - ``k`` -- integer (default: ``6``); when set to a positive
+          integer `\geq 2`, search for a `k`-nowhere zero flow
 
-        - ``solver`` -- (default: ``None``); Specify a Linear Program solver to
-          be used.  If set to ``None``, the default one is used. For more
+        - ``solver`` -- (default: ``None``); Specify a Linear Program solver
+          to be used.  If set to ``None``, the default one is used. For more
           information on LP solvers and which default solver is used, see the
           method
           :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
           of the class
           :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbose`` -- integer (default: ``0``); Sets the level of
-          verbosity of the LP solver. Set to 0 by default, which means quiet.
+        - ``verbose`` -- integer (default: ``0``); sets the level of
+          verbosity of the LP solver, where `0` means quiet.
 
-        OUTPUT: A digraph with flow values stored as edge labels if a
-        `k`-nowhere zero flow is found. If ``self`` is undirected, the edges of
-        this digraph indicate the selected orientation. If no feasible solution
+        OUTPUT:
+
+        A digraph with flow values stored as edge labels if a `k`-nowhere
+        zero flow is found. If ``self`` is undirected, the edges of this
+        digraph indicate the selected orientation. If no feasible solution
         is found, an error is raised.
 
         EXAMPLES:
@@ -8379,6 +8389,20 @@ class GenericGraph(GenericGraph_pyx):
             [-1, 1]
 
         TESTS:
+
+        Empty graph::
+
+            sage: G = Graph()
+            sage: G.nowhere_zero_flow()
+            Digraph on 0 vertices
+
+        Graph with one vertex::
+
+            sage: G = Graph([[1], []])
+            sage: G
+            Graph on 1 vertex
+            sage: G.nowhere_zero_flow()
+            Digraph on 0 vertices
 
         Loops and multiple edges::
 
@@ -8430,13 +8454,15 @@ class GenericGraph(GenericGraph_pyx):
         from sage.graphs.digraph import DiGraph
         from sage.categories.sets_cat import EmptySetError
 
-        # If the (di)graph is not connected, we solve the problem on each of its
-        # connected components
+        # If the (di)graph is not connected, we solve the problem on each
+        #   of its connected components
         if not self.is_connected():
-            solution = DiGraph(loops=self.allows_loops(), multiedges=self.allows_multiple_edges())
+            solution = DiGraph(loops=self.allows_loops(),
+                               multiedges=self.allows_multiple_edges())
             solution.add_vertices(self.vertices())
             for g in self.connected_components_subgraphs():
-                solution.add_edges(g.nowhere_zero_flow(k=k, solver=solver, verbose=verbose).edges())
+                solution.add_edges(g.nowhere_zero_flow(k=k, solver=solver,
+                                                       verbose=verbose).edges())
             return solution
 
         # If the (di)graph has bridges, the problem is not feasible
@@ -8452,7 +8478,8 @@ class GenericGraph(GenericGraph_pyx):
 
             # We assign flow 1 to loops, if any
             solution = DiGraph([(u,v,1) for u,v in G.loops(labels=0)],
-                                loops=G.has_loops(), multiedges=G.has_multiple_edges())
+                               loops=G.has_loops(),
+                               multiedges=G.has_multiple_edges())
             G.allow_loops(False)
 
             # We ensure that multiple edges have distinct labels
@@ -8478,12 +8505,12 @@ class GenericGraph(GenericGraph_pyx):
         # flow conservation constraints
         for u in G:
             p.add_constraint( p.sum(f[e] for e in G.incoming_edge_iterator(u))
-                                  == p.sum(f[e] for e in G.outgoing_edge_iterator(u)) )
+                              == p.sum(f[e] for e in G.outgoing_edge_iterator(u)) )
 
         # The flow on edge e has value in {-k+1,..., -1, 1, ..., k-1}
         for e in G.edge_iterator():
-            p.add_constraint( p.sum( b[e,i] for i in range(-k+1, k) if i != 0 ) == 1 )
-            p.add_constraint( f[e] == p.sum( i * b[e,i] for i in range(-k+1, k) if i != 0 ) )
+            p.add_constraint(p.sum(b[e,i] for i in range(-k+1, k) if i != 0) == 1)
+            p.add_constraint(f[e] == p.sum(i * b[e,i] for i in range(-k+1, k) if i != 0))
 
         # We solve the MIP.
         try:
@@ -8493,14 +8520,13 @@ class GenericGraph(GenericGraph_pyx):
 
         # Extract and return the solution. If the graph is not directed, we
         # reverse edges with a negative flow to obtain a positive k-NZF
-        for (u,v,_),val in p.get_values(f).items():
+        for (u,v,_), val in p.get_values(f).items():
             if self.is_directed() or val > 0:
                 solution.add_edge(u, v, int(val))
             else:
                 solution.add_edge(v, u, int(-val))
 
         return solution
-
 
     def _ford_fulkerson(self, s, t, use_edge_labels = False, integer = False, value_only = True):
         r"""

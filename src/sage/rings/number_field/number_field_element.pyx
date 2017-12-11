@@ -70,7 +70,8 @@ from sage.categories.fields import Fields
 from sage.modules.free_module_element import vector
 
 from sage.structure.element cimport Element, FieldElement
-from sage.structure.element import canonical_coercion, parent, coerce_binop
+from sage.structure.element cimport parent
+from sage.structure.element import canonical_coercion, coerce_binop
 
 from sage.libs.pari import pari
 
@@ -5210,7 +5211,6 @@ class CoordinateFunction:
             ...
             TypeError: Cannot coerce element into this number field
         """
-        from sage.all import parent
         if not self.__K.has_coerce_map_from(parent(x)):
             raise TypeError("Cannot coerce element into this number field")
         return self.__W.coordinates(self.__to_V(self.__K(x)))

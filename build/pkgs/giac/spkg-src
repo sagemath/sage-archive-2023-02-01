@@ -15,7 +15,7 @@ set -e
 
 # TODO on the next update: l71 switch from gz to bz2 as wished in #18826
 VERSION="1.4.9"
-VERSIONREV="19"
+VERSIONREV="39"
 
 # The upstream tarball name is: giac"$SOURCEORIG".tar.gz
 SOURCEORIG=_"$VERSION"-"$VERSIONREV"

@@ -522,15 +522,15 @@ class Function_polylog(GinacFunction):
             sage: polylog(2, BF(4/3))
             nan
             sage: parent(_)
-            Real ball field with 100 bits precision
+            Real ball field with 100 bits of precision
             sage: polylog(2, CBF(1/3))
             [0.366213229977063 +/- 5.85e-16]
             sage: parent(_)
-            Complex ball field with 53 bits precision
+            Complex ball field with 53 bits of precision
             sage: polylog(2, CBF(1))
             [1.644934066848226 +/- 6.59e-16]
             sage: parent(_)
-            Complex ball field with 53 bits precision
+            Complex ball field with 53 bits of precision
         """
         GinacFunction.__init__(self, "polylog", nargs=2)
 

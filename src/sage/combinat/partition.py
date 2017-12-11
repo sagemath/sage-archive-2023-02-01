@@ -6925,7 +6925,8 @@ class RegularPartitions(Partitions):
     .. NOTE::
 
         This is conjugate to the notion of `\ell`-*restricted* partitions,
-        where the difference between any two parts is at most `\ell`.
+        where the difference between any two consecutive
+        parts is `< \ell`.
 
     INPUT:
 
@@ -7389,13 +7390,17 @@ class RegularPartitions_n(RegularPartitions, Partitions_n):
             sage: P._an_element_()
             [4, 1]
 
+            sage: P = Partitions(0, regular=1)
+            sage: P._an_element_()
+            []
+
             sage: P = Partitions(5, regular=1)
             sage: P._an_element_()
             Traceback (most recent call last):
             ...
             EmptySetError
         """
-        if self._ell == 1:
+        if self._ell == 1 and self.n > 0:
             from sage.categories.sets_cat import EmptySetError
             raise EmptySetError
         return Partitions_n._an_element_(self)

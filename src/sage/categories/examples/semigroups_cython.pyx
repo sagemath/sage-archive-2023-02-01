@@ -130,8 +130,8 @@ class LeftZeroSemigroup(LeftZeroSemigroupPython):
 
     This class illustrates a minimal implementation of a semi-group
     where the element class is an extension type, and still gets code
-    from the category. Also, the category itself includes some cython
-    methods.
+    from the category. The category itself must be a Python class
+    though.
 
     This is purely a proof of concept. The code obviously needs refactorisation!
 

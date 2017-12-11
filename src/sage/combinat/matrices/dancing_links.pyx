@@ -15,14 +15,6 @@ The number of solutions::
     sage: x.number_of_solutions()
     3
 
-.. WARNING::
-
-    The way it is coded, it can be iterated through only once. The
-    next call to the above function gives wrong result::
-
-        sage: x.number_of_solutions()
-        0
-
 We recreate the dancing links object and we find all solutions::
 
     sage: x = dlx_solver(rows)
@@ -31,7 +23,7 @@ We recreate the dancing links object and we find all solutions::
 
 Return the first solution found when the computation is done in parallel::
 
-    sage: sorted(x.first_solution_found_in_parallel(ncpus=8))
+    sage: sorted(x.one_solution(ncpus=8))
     [0, 1]
 
 Find all solutions using some specific rows::
@@ -155,10 +147,10 @@ cdef class dancing_linksWrapper:
         EXAMPLES::
 
             sage: from sage.combinat.matrices.dancing_links import dlx_solver
-            sage: rows = [[0,1,2], [1,2], [0]]
+            sage: rows = [[0,1,2], [1,2], [0], [3,4,5]]
             sage: dlx = dlx_solver(rows)
             sage: dlx.ncols()
-            3
+            6
         """
         return self._x.number_of_columns()
 
@@ -169,10 +161,10 @@ cdef class dancing_linksWrapper:
         EXAMPLES::
 
             sage: from sage.combinat.matrices.dancing_links import dlx_solver
-            sage: rows = [[0,1,2], [1,2], [0]]
+            sage: rows = [[0,1,2], [1,2], [0], [3,4,5]]
             sage: dlx = dlx_solver(rows)
             sage: dlx.nrows()
-            3
+            4
         """
         return len(self._rows)
 
@@ -502,7 +494,7 @@ cdef class dancing_linksWrapper:
         while self.search():
             yield self.get_solution()
 
-    def first_solution_found_in_parallel(self, ncpus=1, column=None):
+    def one_solution(self, ncpus=1, column=None):
         r"""
         Return the first solution found after spliting the problem to
         allow parallel computation.
@@ -526,23 +518,23 @@ cdef class dancing_linksWrapper:
             sage: from sage.combinat.matrices.dancing_links import dlx_solver
             sage: rows = [[0,1,2], [3,4,5], [0,1], [2,3,4,5], [0], [1,2,3,4,5]]
             sage: d = dlx_solver(rows)
-            sage: sorted(d.first_solution_found_in_parallel())
+            sage: sorted(d.one_solution())
             [0, 1]
-            sage: sorted(d.first_solution_found_in_parallel(ncpus=8))
+            sage: sorted(d.one_solution(ncpus=8))
             [0, 1]
-            sage: sorted(d.first_solution_found_in_parallel(ncpus=8, column=4))
+            sage: sorted(d.one_solution(ncpus=8, column=4))
             [0, 1]
 
         When no solution is found::
 
             sage: rows = [[0,1,2], [2,3,4,5], [0,1,2,3]]
             sage: d = dlx_solver(rows)
-            sage: d.first_solution_found_in_parallel() is None
+            sage: d.one_solution() is None
             True
 
         TESTS::
 
-            sage: [d.first_solution_found_in_parallel(column=i) for i in range(6)]
+            sage: [d.one_solution(column=i) for i in range(6)]
             [None, None, None, None, None, None]
 
         The preprocess needed to start the parallel computation is not so
@@ -553,9 +545,8 @@ cdef class dancing_linksWrapper:
             sage: dlx = dlx_solver(rows)
             sage: dlx
             Dancing links solver for 11 columns and 2048 rows
-            sage: sorted(dlx.first_solution_found_in_parallel())
+            sage: sorted(dlx.one_solution())
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-
         """
         if column is None:
             from random import randrange
@@ -665,6 +656,16 @@ cdef class dancing_linksWrapper:
             sage: x = dlx_solver(rows)
             sage: x.number_of_solutions(ncpus=2, column=3)
             3
+
+        The way it is coded, solutions of a dlx solver can be iterated
+        through only once. The second call to the function gives wrong
+        result::
+
+            sage: x = dlx_solver(rows)
+            sage: x.number_of_solutions()
+            3
+            sage: x.number_of_solutions()
+            0
 
         TESTS::
 

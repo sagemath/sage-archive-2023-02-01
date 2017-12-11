@@ -575,11 +575,11 @@ You need to give hints to Sage so that it uses C++ (both Givaro and
 NTL are C++ libraries), and it also needs the GMP and STDC C++
 libraries. Here is a small example::
 
-    # These comments are hints to Sage/Pyrex about the compiler and
+    # These comments are hints to Cython about the compiler and
     # libraries needed for the Givaro library:
     #
-    #clang c++
-    #clib givaro gmpxx gmp m stdc++
+    # distutils: language = c++
+    # distutils: libraries = givaro gmpxx gmp m
     cimport sage.rings.finite_field_givaro
     # Construct a finite field of order 11.
     cdef sage.rings.finite_field_givaro.FiniteField_givaro K

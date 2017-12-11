@@ -3,7 +3,7 @@ Conjugacy Classes Of The Symmetric Group
 
 AUTHORS:
 
-- Vincent Delacroix, Travis Scrimshaw (2014-11-23)
+- Vincent Delecroix, Travis Scrimshaw (2014-11-23)
 """
 from __future__ import print_function
 from six.moves import range

@@ -1130,7 +1130,6 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
                                               (<FiniteField_givaroElement>right).element)
         return make_FiniteField_givaroElement(self._cache,r)
 
-
     cpdef _div_(self, right):
         """
         Divide two elements

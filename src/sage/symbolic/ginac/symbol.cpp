@@ -175,132 +175,43 @@ void symbol::do_print_python_repr(const print_python_repr & c, unsigned level) c
 
 void symbol::set_domain(unsigned d)
 {
-        domain = d;
+        infoflagbase nb;
+        if (not d == domain::complex)
+                nb = iflags;
         switch (d) {
                 case domain::complex:
-                        iflags.set(info_flags::real, false);
-                        iflags.set(info_flags::positive, false);
-                        iflags.set(info_flags::negative, false);
-                        iflags.set(info_flags::nonnegative, false);
-                        iflags.set(info_flags::integer, false);
-                        iflags.set(info_flags::even, false);
                         break;
                 case domain::real:
-                        iflags.set(info_flags::real, true);
-                        if(iflags.get(info_flags::positive)) {
-                                iflags.set(info_flags::positive, true);
-                                iflags.set(info_flags::nonnegative, true);
-                                iflags.set(info_flags::nonzero, true);
-                        }  
-                        else {
-                                iflags.set(info_flags::positive, false);
-                                iflags.set(info_flags::nonnegative, false);
-                                iflags.set(info_flags::nonzero, true);
-                        }
-                        if(iflags.get(info_flags::negative)) {
-                                iflags.set(info_flags::negative, true);
-                                iflags.set(info_flags::nonnegative, false);
-                        }  
-                        else {
-                                iflags.set(info_flags::negative, false);
-                                iflags.set(info_flags::nonnegative, false);
-                        }
-                        if(iflags.get(info_flags::integer)) {
-                                iflags.set(info_flags::integer, true);
-                        }
-                        else {
-                                iflags.set(info_flags::integer, false);
-                        }
-                        if(iflags.get(info_flags::even)) {
-                                iflags.set(info_flags::even, true);
-                        }
-                        else {
-                                iflags.set(info_flags::even, false);
-                        }
+                        nb.set(info_flags::real, true);
                         break;
                 case domain::positive:
-                        iflags.set(info_flags::real, true);
-                        iflags.set(info_flags::positive, true);
-                        iflags.set(info_flags::negative, false);
-                        iflags.set(info_flags::nonnegative, true);
-                        iflags.set(info_flags::nonzero, true);
-                        if(iflags.get(info_flags::integer)) {
-                                iflags.set(info_flags::integer, true);
-                        }
-                        else {
-                                iflags.set(info_flags::integer, false);
-                        }
-                        if(iflags.get(info_flags::even)) {
-                                iflags.set(info_flags::even, true);
-                        }
-                        else {
-                                iflags.set(info_flags::even, false);
-                        }
+                        nb.set(info_flags::real, true);
+                        nb.set(info_flags::positive, true);
+                        nb.set(info_flags::nonzero, true);
                         break;
                 case domain::negative:
-                        iflags.set(info_flags::real, true);
-                        iflags.set(info_flags::negative, true);
-                        iflags.set(info_flags::positive, false);
-                        iflags.set(info_flags::nonnegative, false);
-                        iflags.set(info_flags::nonzero, true);
-                        if(iflags.get(info_flags::integer)) {
-                                iflags.set(info_flags::integer, true);
-                        }
-                        else {
-                                iflags.set(info_flags::integer, false);
-                        }
-                        if(iflags.get(info_flags::even)) {
-                                iflags.set(info_flags::even, true);
-                        }
-                        else {
-                                iflags.set(info_flags::even, false);
-                        }
+                        nb.set(info_flags::real, true);
+                        nb.set(info_flags::negative, true);
+                        nb.set(info_flags::nonzero, true);
                         break;
                 case domain::integer:
-                        iflags.set(info_flags::real, true);
-                        iflags.set(info_flags::integer, true);
-                        if(iflags.get(info_flags::positive)) {
-                                iflags.set(info_flags::positive, true);
-                        }
-                        else {
-                                iflags.set(info_flags::positive, false);
-                        }
-                        if(iflags.get(info_flags::negative)) {
-                                iflags.set(info_flags::negative, true);
-                        }
-                        else {
-                                iflags.set(info_flags::negative, false);
-                        }
-                        if(iflags.get(info_flags::even)) {
-                                iflags.set(info_flags::even, true);
-                        }
-                        else {
-                                iflags.set(info_flags::even, false);
-                        }
+                        nb.set(info_flags::real, true);
+                        nb.set(info_flags::integer, true);
                         break;
                 case domain::even:
-                        if(iflags.get(info_flags::positive)) {
-                                iflags.set(info_flags::positive, true);
-                        }
-                        else {
-                                iflags.set(info_flags::positive, false);
-                        }
-                        if(iflags.get(info_flags::negative)) {
-                                iflags.set(info_flags::negative, true);
-                        }
-                        else {
-                                iflags.set(info_flags::negative, false);
-                        }
-                        iflags.set(info_flags::integer, true);
-                        iflags.set(info_flags::even, true);
+                        nb.set(info_flags::real, true);
+                        nb.set(info_flags::integer, true);
+                        nb.set(info_flags::even, true);
                         break;
         }
+        iflags = nb;
 }
 
 void symbol::set_domain_from_ex(const ex& expr)
 {
         iflags.clear();
         if (expr.info(info_flags::integer)) {
+                iflags.set(info_flags::real, true);
                 iflags.set(info_flags::integer, true);
                 if (expr.info(info_flags::even))
                         iflags.set(info_flags::even, true);
@@ -331,7 +242,8 @@ bool symbol::info(unsigned inf) const
 		case info_flags::expanded:
 			return true;
                 case info_flags::nonzero:
-                        return iflags.get(info_flags::positive)
+                        return iflags.get(info_flags::nonzero)
+                            or iflags.get(info_flags::positive)
                             or iflags.get(info_flags::negative);
                 case info_flags::infinity:
                         return false;
@@ -351,23 +263,22 @@ ex symbol::eval(int level) const
 
 ex symbol::conjugate() const
 {
-	if (this->domain == domain::complex) {
-		return conjugate_function(*this).hold();
-	} else {
+	if (iflags.get(info_flags::real))
 		return *this;
-	}
+	else
+		return conjugate_function(*this).hold();
 }
 
 ex symbol::real_part() const
 {
-	if (domain==domain::real || domain==domain::positive)
+	if (iflags.get(info_flags::real))
 		return *this;
 	return real_part_function(*this).hold();
 }
 
 ex symbol::imag_part() const
 {
-	if (domain==domain::real || domain==domain::positive)
+	if (iflags.get(info_flags::real))
 		return _ex0;
 	return imag_part_function(*this).hold();
 }

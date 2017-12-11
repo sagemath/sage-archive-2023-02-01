@@ -427,13 +427,15 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             True
 
         """
+        cdef Py_hash_t hash_old = -1
         if debug.refine_category_hash_check:
             # check that the hash stays the same after refinement
             hash_old = hash(self)
+
         if self._category is None:
             self._init_category_(category)
-            if debug.refine_category_hash_check and hash_old != hash(self):
-                print('hash of {0} changed in Parent._refine_category_ during initialisation'.format(str(self.__class__)))
+            if hash_old != -1 and hash_old != hash(self):
+                print(f'hash of {type(self)} changed in Parent._refine_category_ during initialisation')
             return
         if category is self._category:
             return
@@ -456,12 +458,12 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         # If the element class has already been assigned, it
         # needs to be erased now.
         try:
-            self.__dict__.__delitem__('element_class')
-            self.__dict__.__delitem__('_abstract_element_class')
+            del self.__dict__['element_class']
+            del self.__dict__['_abstract_element_class']
         except (AttributeError, KeyError):
             pass
-        if debug.refine_category_hash_check and hash_old != hash(self):
-            print('hash of {0} changed in Parent._refine_category_ during refinement'.format(str(self.__class__)))
+        if hash_old != -1 and hash_old != hash(self):
+            print(f'hash of {type(self)} changed in Parent._refine_category_ during refinement')
 
     def _unset_category(self):
         """

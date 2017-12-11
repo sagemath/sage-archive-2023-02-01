@@ -2721,7 +2721,7 @@ class Permutation(CombinatorialElement):
 
             By default, the descents are returned as elements in the
             index set, i.e., starting at `1`. If you want them to
-            start at `0`, set the keyword ``from_zero`` to ``False``.
+            start at `0`, set the keyword ``from_zero`` to ``True``.
 
         INPUT:
 
@@ -2797,7 +2797,7 @@ class Permutation(CombinatorialElement):
 
             By default, the descents are returned as elements in the
             index set, i.e., starting at `1`. If you want them to
-            start at `0`, set the keyword ``from_zero`` to ``False``.
+            start at `0`, set the keyword ``from_zero`` to ``True``.
 
         INPUT:
 

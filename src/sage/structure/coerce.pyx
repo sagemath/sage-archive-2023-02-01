@@ -95,6 +95,7 @@ from .parent cimport Set_PythonType, Parent_richcmp_element_without_coercion
 from .element cimport bin_op_exception, parent, Element
 from .coerce_actions import LeftModuleAction, RightModuleAction, IntegerMulAction
 from .coerce_exceptions import CoercionException
+from sage.rings.integer_fake cimport is_Integer
 from sage.categories.map cimport Map
 from sage.categories.morphism import IdentityMorphism
 from sage.categories.action cimport Action, InverseAction, PrecomposedAction
@@ -330,12 +331,6 @@ cpdef bint is_mpmath_type(t):
     return isinstance(t, type) and \
            strncmp((<PyTypeObject*>t).tp_name, "sage.libs.mpmath.", 17) == 0
 
-cdef object _Integer
-cdef bint is_Integer(x):
-    global _Integer
-    if _Integer is None:
-        from sage.rings.integer import Integer as _Integer
-    return type(x) is _Integer
 
 cdef class CoercionModel_cache_maps(CoercionModel):
     """

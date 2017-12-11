@@ -8402,7 +8402,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G
             Graph on 1 vertex
             sage: G.nowhere_zero_flow()
-            Digraph on 0 vertices
+            Digraph on 1 vertices
 
         Loops and multiple edges::
 
@@ -8477,7 +8477,7 @@ class GenericGraph(GenericGraph_pyx):
             G = copy(self) if self.is_directed() else next(self.orientations())
 
             # We assign flow 1 to loops, if any
-            solution = DiGraph([(u,v,1) for u,v in G.loops(labels=0)],
+            solution = DiGraph([G.vertices(), [(u,v,1) for u,v in G.loops(labels=0)]],
                                loops=G.has_loops(),
                                multiedges=G.has_multiple_edges())
             G.allow_loops(False)
@@ -8489,7 +8489,7 @@ class GenericGraph(GenericGraph_pyx):
 
         else:
             G = self if self.is_directed() else next(self.orientations())
-            solution = DiGraph()
+            solution = DiGraph([G.vertices(), []])
 
         if G.order() <= 1:
             return solution

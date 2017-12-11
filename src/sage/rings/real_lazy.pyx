@@ -96,6 +96,8 @@ cdef class LazyField(Field):
         """
         Field.__init__(self,base or self, names=names, normalize=normalize, category=category)
 
+    Element = LazyWrapper
+
     def __getattr__(self, name):
         """
         Simulates a list of methods found on the real/complex rings.
@@ -225,25 +227,17 @@ class RealLazyField_class(LazyField):
         sage: RealField(100)(a+5)
         5.3333333333333333333333333333
 
+    ::
+
+        sage: CC.0 + RLF(1/3)
+        0.333333333333333 + 1.00000000000000*I
+        sage: ComplexField(200).0 + RLF(1/3)
+        0.33333333333333333333333333333333333333333333333333333333333 + 1.0000000000000000000000000000000000000000000000000000000000*I
+
     TESTS::
 
         sage: TestSuite(RLF).run()
     """
-
-    def __init__(self):
-        """
-        Initialize ``self``.
-
-        EXAMPLES::
-
-            sage: CC.0 + RLF(1/3)
-            0.333333333333333 + 1.00000000000000*I
-            sage: ComplexField(200).0 + RLF(1/3)
-            0.33333333333333333333333333333333333333333333333333333333333 + 1.0000000000000000000000000000000000000000000000000000000000*I
-        """
-        LazyField.__init__(self)
-        self._populate_coercion_lists_(element_constructor=LazyWrapper)
-
     def interval_field(self, prec=None):
         """
         Returns the interval field that represents the same mathematical
@@ -398,7 +392,6 @@ class ComplexLazyField_class(LazyField):
             sage: x^2
             -0.9999999999999999? + 0.?e-15*I
     """
-
     def __init__(self):
         """
         This lazy field doesn't evaluate its elements until they are cast into
@@ -411,7 +404,7 @@ class ComplexLazyField_class(LazyField):
             0.33333333333333333333333333333333333333333333333333333333333
         """
         LazyField.__init__(self, base=RLF)
-        self._populate_coercion_lists_(coerce_list=[LazyWrapperMorphism(RLF, self)], element_constructor=LazyWrapper)
+        self._populate_coercion_lists_(coerce_list=[LazyWrapperMorphism(RLF, self)])
 
     def interval_field(self, prec=None):
         """

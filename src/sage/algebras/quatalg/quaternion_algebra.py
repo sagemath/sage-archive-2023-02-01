@@ -614,10 +614,8 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
         ParentWithGens.__init__(self, base_ring, names=names, category=Algebras(base_ring).Division())
         self._a = a
         self._b = b
-        if base_ring not in _Fields:
-            raise TypeError("base ring of quaternion algebra must be a field")
         if is_RationalField(base_ring) and a.denominator() == 1 and b.denominator() == 1:
-            element_constructor = quaternion_algebra_element.QuaternionAlgebraElement_rational_field
+            self.Element = quaternion_algebra_element.QuaternionAlgebraElement_rational_field
         elif is_NumberField(base_ring) and base_ring.degree() > 2 and base_ring.is_absolute() and \
                  a.denominator() == 1 and b.denominator() == 1 and base_ring.defining_polynomial().is_monic():
             # This QuaternionAlgebraElement_number_field class is not
@@ -627,10 +625,12 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
             # (or more?) speedup.  Much care must be taken because the
             # underlying representation of quadratic fields is a bit
             # tricky.
-            element_constructor = quaternion_algebra_element.QuaternionAlgebraElement_number_field
+            self.Element = quaternion_algebra_element.QuaternionAlgebraElement_number_field
+        elif base_ring in _Fields:
+            self.Element = quaternion_algebra_element.QuaternionAlgebraElement_generic
         else:
-            element_constructor = quaternion_algebra_element.QuaternionAlgebraElement_generic
-        self._populate_coercion_lists_(coerce_list=[base_ring], element_constructor=element_constructor)
+            raise TypeError("base ring of quaternion algebra must be a field")
+        self._populate_coercion_lists_(coerce_list=[base_ring])
         self._gens = [self([0,1,0,0]), self([0,0,1,0]), self([0,0,0,1])]
 
     def maximal_order(self, take_shortcuts = True):

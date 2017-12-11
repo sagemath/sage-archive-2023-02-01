@@ -5095,8 +5095,8 @@ class Partitions(UniqueRepresentation, Parent):
                         return RegularPartitions_all(kwargs['regular'])
                 elif len(kwargs) == 2:
                     if 'regular' in kwargs:
-                        if kwargs['regular'] < 2:
-                            raise ValueError("the regularity must be at least 2")
+                        if kwargs['regular'] < 1 or kwargs['regular'] not in ZZ:
+                            raise ValueError("the regularity must be a positive integer")
                         if 'max_part' in kwargs:
                             return RegularPartitions_bounded(kwargs['regular'], kwargs['max_part'])
                         if 'max_length' in kwargs:
@@ -7032,8 +7032,15 @@ class RegularPartitions_all(RegularPartitions):
 
             sage: P = Partitions(regular=4)
             sage: TestSuite(P).run()
+
+        1-regular partitions::
+
+            sage: P = Partitions(regular=1)
+            sage: P in FiniteEnumeratedSets()
+            True
+            sage: TestSuite(P).run()
         """
-        RegularPartitions.__init__(self, ell, True)
+        RegularPartitions.__init__(self, ell, bool(ell > 1))
 
     def _repr_(self):
         """
@@ -7055,7 +7062,17 @@ class RegularPartitions_all(RegularPartitions):
             sage: it = P.__iter__()
             sage: [next(it) for x in range(10)]
             [[], [1], [2], [1, 1], [3], [2, 1], [4], [3, 1], [2, 2], [2, 1, 1]]
+
+        Check that 1-regular partitions works (:trac:`20584`)::
+
+            sage: P = Partitions(regular=1)
+            sage: list(P)
+            [[]]
         """
+        if self._ell == 1:
+            yield self.element_class(self, [])
+            return
+
         n = 0
         while True:
             for p in self._fast_iterator(n, n):
@@ -7085,7 +7102,7 @@ class RegularPartitions_truncated(RegularPartitions):
             sage: TestSuite(P).run()
         """
         self._max_len = max_len
-        RegularPartitions.__init__(self, ell, True)
+        RegularPartitions.__init__(self, ell, bool(ell > 1))
 
     def max_length(self):
         """
@@ -7133,7 +7150,17 @@ class RegularPartitions_truncated(RegularPartitions):
             sage: it = P.__iter__()
             sage: [next(it) for x in range(10)]
             [[], [1], [2], [1, 1], [3], [2, 1], [4], [3, 1], [2, 2], [5]]
+
+        Check that 1-regular partitions works (:trac:`20584`)::
+
+            sage: P = Partitions(regular=1, max_length=2)
+            sage: list(P)
+            [[]]
         """
+        if self._ell == 1:
+            yield self.element_class(self, [])
+            return
+
         n = 0
         while True:
             for p in self._fast_iterator(n, n):
@@ -7194,6 +7221,13 @@ class RegularPartitions_bounded(RegularPartitions):
 
             sage: P = Partitions(regular=4, max_part=3)
             sage: TestSuite(P).run()
+
+        1-regular partitions::
+
+            sage: P = Partitions(regular=1, max_part=3)
+            sage: P in FiniteEnumeratedSets()
+            True
+            sage: TestSuite(P).run()
         """
         self.k = k
         RegularPartitions.__init__(self, ell, False)
@@ -7231,6 +7265,12 @@ class RegularPartitions_bounded(RegularPartitions):
             sage: P = Partitions(regular=2, max_part=3)
             sage: list(P)
             [[3, 2, 1], [3, 2], [3, 1], [3], [2, 1], [2], [1], []]
+
+        Check that 1-regular partitions works (:trac:`20584`)::
+
+            sage: P = Partitions(regular=1, max_part=3)
+            sage: list(P)
+            [[]]
         """
         k = self.k
         for n in reversed(range(k*(k+1)/2 * self._ell)):
@@ -7257,6 +7297,11 @@ class RegularPartitions_n(RegularPartitions, Partitions_n):
         EXAMPLES::
 
             sage: P = Partitions(5, regular=3)
+            sage: TestSuite(P).run()
+
+        1-regular partitions::
+
+            sage: P = Partitions(5, regular=1)
             sage: TestSuite(P).run()
         """
         RegularPartitions.__init__(self, ell)
@@ -7311,10 +7356,49 @@ class RegularPartitions_n(RegularPartitions, Partitions_n):
             7
             sage: P.cardinality() == Partitions(5).cardinality()
             True
+
+        TESTS:
+
+        Check the corner case::
+
+            sage: P = Partitions(0, regular=3)
+            sage: P.cardinality()
+            1
+
+        Check for 1-regular partitions::
+
+            sage: P = Partitions(0, regular=1)
+            sage: P.cardinality()
+            1
+            sage: P = Partitions(5, regular=1)
+            sage: P.cardinality()
+            0
+
         """
         if self._ell > self.n:
             return Partitions_n.cardinality(self)
         return ZZ.sum(1 for x in self)
+
+    def _an_element_(self):
+        """
+        Returns a partition in ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(5, regular=2)
+            sage: P._an_element_()
+            [4, 1]
+
+            sage: P = Partitions(5, regular=1)
+            sage: P._an_element_()
+            Traceback (most recent call last):
+            ...
+            EmptySetError
+        """
+        if self._ell == 1:
+            from sage.categories.sets_cat import EmptySetError
+            raise EmptySetError
+        return Partitions_n._an_element_(self)
 
 ######################
 # Ordered Partitions #

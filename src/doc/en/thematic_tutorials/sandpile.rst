@@ -1,3 +1,4 @@
+.. -*- coding: utf-8 -*-
 .. Sage Sandpiles documentation master file, created by sphinx-quickstart on Fri May 22 23:01:09 2009.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
@@ -543,7 +544,7 @@ necessarily minimal), then
 
     \{T(\sigma) : \sigma \leq \sigma_b\}
 
-is a Groebner basis for `I`.
+is a Gröbner basis for `I`.
 
 Projective
 ~~~~~~~~~~
@@ -566,10 +567,10 @@ This ideal can be calculated by saturating the ideal
     (T(e_i): i=0, \ldots, n)
 
 with respect to the product of the indeterminates: `\prod_{i=0}^n x_i`
-(extending the `T` operator in the obvious way).  A Groebner basis with
+(extending the `T` operator in the obvious way).  A Gröbner basis with
 respect to the degree lexicographic order described above (with `x_0`
 the smallest vertex) is obtained by homogenizing each element of the
-Groebner basis for the non-homogeneous sandpile ideal with respect to `x_0`.
+Gröbner basis for the non-homogeneous sandpile ideal with respect to `x_0`.
 
 **Example.**  ::
 
@@ -1467,7 +1468,7 @@ EXAMPLES::
     group_gens               -- A minimal list of generators for the sandpile group.
     group_order              -- The size of the sandpile group.
     h_vector                 -- The number of superstable configurations in each degree.
-    help                     -- List of Sandpile-specific methods (not inherited from Graph).
+    help                     -- List of Sandpile-specific methods (not inherited from "Graph").
     hilbert_function         -- The Hilbert function of the homogeneous toppling ideal.
     ideal                    -- The saturated homogeneous toppling ideal.
     identity                 -- The identity configuration.
@@ -1501,7 +1502,7 @@ EXAMPLES::
     stationary_density       -- The stationary density of the sandpile.
     superstables             -- The superstable configurations.
     symmetric_recurrents     -- The symmetric recurrent configurations.
-    tutte_polynomial         -- The Tutte polynomial.
+    tutte_polynomial         -- The Tutte polynomial of the underlying graph.
     unsaturated_ideal        -- The unsaturated, homogeneous toppling ideal.
     version                  -- The version number of Sage Sandpiles.
     zero_config              -- The all-zero configuration.
@@ -5031,7 +5032,7 @@ additional features and other improvements.
    :wikipedia:`Bak-Tang-Wiesenfeld_sandpile`.
 
 .. [CRS] Robert Cori, Dominique Rossin, and Bruno Salvy, *Polynomial ideals for
-   sandpiles and their Groebner bases*,
+   sandpiles and their Gröbner bases*,
    Theoretical Computer Science, 276 (2002) no. 1--2, 1--15.
 
 .. [H] Alexander E. Holroyd, Lionel Levine, Karola Meszaros, Yuval Peres,

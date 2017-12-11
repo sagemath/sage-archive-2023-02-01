@@ -286,7 +286,7 @@ class FunctionField(Field):
 
     def some_elements(self):
         """
-        Return some elemnts in this function field.
+        Return some elements in this function field.
 
         EXAMPLES::
 
@@ -2418,8 +2418,8 @@ class FunctionField_global(FunctionField_polymod):
         is then the quotient of the discrete valuation ring by its maximal
         ideal.
 
-        If an element not in the valuation ring is applied to the map,
-        TypeError is raised.
+        If an element not in the valuation ring is applied to the map, an
+        exception ``TypeError`` is raised.
 
         EXAMPLES::
 
@@ -2448,9 +2448,8 @@ class FunctionField_global(FunctionField_polymod):
     @cached_method
     def higher_derivation(self):
         """
-        Return the higher derivation for the function field.
-
-        The higher derivation is also called the Hasse-Schmidt derivation.
+        Return the higher derivation (also called the Hasse-Schmidt derivation)
+        for the function field.
 
         The higher derivation of the function field is uniquely determined with
         respect to the separating element `x` of the base rational function
@@ -2470,13 +2469,11 @@ class FunctionField_global(FunctionField_polymod):
 
     def places(self, degree=1):
         """
-        Return a list of the places of the degree.
+        Return a list of the places of degree ``degree``.
 
         INPUT:
 
-        - ``degree`` -- positive integer
-
-        The infinite places come first.
+        - ``degree`` -- positive integer (default: `1`)
 
         EXAMPLES::
 
@@ -2491,11 +2488,11 @@ class FunctionField_global(FunctionField_polymod):
 
     def places_finite(self, degree=1):
         """
-        Return a list of the finite places of the degree.
+        Return a list of the finite places of degree ``degree``.
 
         INPUT:
 
-        - ``degree`` -- positive integer
+        - ``degree`` -- positive integer (default: `1`)
 
         EXAMPLES::
 
@@ -2540,11 +2537,11 @@ class FunctionField_global(FunctionField_polymod):
 
     def places_infinite(self, degree=1):
         """
-        Return a list of the infinite places of the degree
+        Return a list of the infinite places of degree ``degree``.
 
         INPUT:
 
-        - ``degree`` -- positive integer
+        - ``degree`` -- positive integer (default: `1`)
 
         EXAMPLES::
 
@@ -2682,6 +2679,9 @@ class FunctionField_global(FunctionField_polymod):
         """
         Return the gaps of the function field.
 
+        These are the gaps at the ordinary places, that is, places which are
+        not Weierstrass places.
+
         EXAMPLES::
 
             sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
@@ -2697,7 +2697,7 @@ class FunctionField_global(FunctionField_polymod):
 
     def weierstrass_places(self):
         """
-        Return all Weierstrass places.
+        Return all Weierstrass places of the function field.
 
         EXAMPLES::
 
@@ -2814,9 +2814,9 @@ class FunctionField_global(FunctionField_polymod):
 
 class FunctionField_global_integral(FunctionField_global):
     """
-    Global function fields defined by an irreducible and separable polynomial
-    integral over the maximal order of the base rational function field over a
-    finite field.
+    Global function fields defined by an irreducible and separable polynomial,
+    which is integral over the maximal order of the base rational function
+    field with a finite constant field.
     """
     @cached_method
     def equation_order(self):

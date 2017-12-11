@@ -731,7 +731,7 @@ class FunctionFieldHigherDerivation_global(FunctionFieldHigherDerivation):
             coeffs.append( num/den )
         return self._field(coeffs)
 
-class FunctionFieldIsomorphism(Morphism):
+class FunctionFieldVectorSpaceIsomorphism(Morphism):
     """
     Base class for isomorphisms between function fields and vector spaces.
 
@@ -740,7 +740,7 @@ class FunctionFieldIsomorphism(Morphism):
         sage: K.<x> = FunctionField(QQ); R.<y> = K[]
         sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
         sage: V, f, t = L.vector_space()
-        sage: isinstance(f, sage.rings.function_field.maps.FunctionFieldIsomorphism)
+        sage: isinstance(f, sage.rings.function_field.maps.FunctionFieldVectorSpaceIsomorphism)
         True
     """
     def _repr_type(self):
@@ -836,7 +836,7 @@ class FunctionFieldIsomorphism(Morphism):
         """
         return hash((self.domain(), self.codomain()))
 
-class MapVectorSpaceToFunctionField(FunctionFieldIsomorphism):
+class MapVectorSpaceToFunctionField(FunctionFieldVectorSpaceIsomorphism):
     """
     Isomorphism from a vector space to a function field.
 
@@ -862,7 +862,7 @@ class MapVectorSpaceToFunctionField(FunctionFieldIsomorphism):
         self._K = K
         self._R = K.polynomial_ring()
         from sage.categories.homset import Hom
-        FunctionFieldIsomorphism.__init__(self, Hom(V, K))
+        FunctionFieldVectorSpaceIsomorphism.__init__(self, Hom(V, K))
 
     def _call_(self, v):
         """
@@ -940,7 +940,7 @@ class MapVectorSpaceToFunctionField(FunctionFieldIsomorphism):
         """
         return self._K
 
-class MapFunctionFieldToVectorSpace(FunctionFieldIsomorphism):
+class MapFunctionFieldToVectorSpace(FunctionFieldVectorSpaceIsomorphism):
     """
     Isomorphism from a function field to a vector space.
     """
@@ -968,7 +968,7 @@ class MapFunctionFieldToVectorSpace(FunctionFieldIsomorphism):
         self._zero = K.base_ring()(0)
         self._n = K.degree()
         from sage.categories.homset import Hom
-        FunctionFieldIsomorphism.__init__(self, Hom(K, V))
+        FunctionFieldVectorSpaceIsomorphism.__init__(self, Hom(K, V))
 
     def _call_(self, x):
         """
@@ -1215,7 +1215,7 @@ class FunctionFieldConversionToConstantBaseField(Map):
         """
         return x.parent()._to_constant_base_field(x)
 
-class FunctionFieldToFractionField(FunctionFieldIsomorphism):
+class FunctionFieldToFractionField(FunctionFieldVectorSpaceIsomorphism):
     r"""
     Isomorphism from rational function field to the isomorphic fraction
     field of a polynomial ring.
@@ -1276,7 +1276,7 @@ class FunctionFieldToFractionField(FunctionFieldIsomorphism):
         parent = Hom(self.codomain(), self.domain())
         return parent.__make_element_class__(FractionFieldToFunctionField)(parent.domain(), parent.codomain())
 
-class FractionFieldToFunctionField(FunctionFieldIsomorphism):
+class FractionFieldToFunctionField(FunctionFieldVectorSpaceIsomorphism):
     r"""
     Isomorphism from a fraction field of a polynomial ring to the isomorphic
     function field.

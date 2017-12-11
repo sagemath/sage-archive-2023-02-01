@@ -44,7 +44,8 @@ namespace GiNaC {
 // expression recursively (used internally by lcm_of_coefficients_denominators())
 static numeric lcmcoeff(const ex &e, const numeric &l)
 {
-	if (e.info(info_flags::rational))
+	if (is_exactly_a<numeric>(e)
+            and e.info(info_flags::rational))
 		return lcm(ex_to<numeric>(e).denom(), l);
 	else if (is_exactly_a<add>(e)) {
 		numeric c = *_num1_p;

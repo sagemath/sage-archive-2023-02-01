@@ -36,6 +36,11 @@ REFERENCES:
 .. [ABBR2012] \A. Abad, R. Barrio, F. Blesa, M. Rodriguez. Algorithm 924.
               *ACM Transactions on Mathematical Software*, *39* no. 1 (2012), 1-28.
 
+.. [ACFLSS04] \F. N. Abu-Khzam, R. L. Collins, M. R. Fellows, M. A.  Langston,
+              W. H. Suters, and C. T. Symons: Kernelization Algorithm for the
+              Vertex Cover Problem: Theory and Experiments. *SIAM
+              ALENEX/ANALCO* 2004: 62-69.
+
 .. [ADKF1970] \V. Arlazarov, E. Dinic, M. Kronrod,
               and I. Faradzev. 'On Economical Construction of the
               Transitive Closure of a Directed Graph.'

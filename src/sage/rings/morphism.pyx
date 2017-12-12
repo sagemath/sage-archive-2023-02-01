@@ -1300,7 +1300,7 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
             sage: g = RingHomomorphism_from_base(P,f)
             Traceback (most recent call last):
             ...
-            ValueError: Domain and codomain must have the same functorial construction over their base rings
+            ValueError: domain (Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Integer Ring) and codomain (Univariate Polynomial Ring in t over Univariate Polynomial Ring in x over Integer Ring) must have the same functorial construction over their base rings
         """
         RingHomomorphism.__init__(self, parent)
         if underlying.domain() != parent.domain().base():
@@ -1308,7 +1308,7 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
         if underlying.codomain() != parent.codomain().base():
             raise ValueError("The given homomorphism has to have the codomain %s"%parent.codomain().base())
         if parent.domain().construction()[0] != parent.codomain().construction()[0]:
-            raise ValueError("Domain and codomain must have the same functorial construction over their base rings")
+            raise ValueError(f"domain ({parent.domain()}) and codomain ({parent.codomain()}) must have the same functorial construction over their base rings")
         self.__underlying = underlying
 
     def underlying_map(self):

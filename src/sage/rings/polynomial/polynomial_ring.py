@@ -726,8 +726,9 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         # polynomial rings in the same variable over a base that canonically
         # coerces into self.base_ring()
         if is_PolynomialRing(P):
-            if self.variable_names() != P.variable_names():
-                # Variable must be the same
+            if self.construction()[0] != P.construction()[0]:
+                # Construction (including variable names) must be the
+                # same to allow coercion
                 return False
             self_sparse = self.is_sparse()
             P_sparse = P.is_sparse()

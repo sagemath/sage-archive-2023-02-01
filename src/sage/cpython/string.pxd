@@ -40,7 +40,7 @@ cdef inline str char_to_str(const char* c, encoding=None, errors=None):
 
 
 cpdef inline bytes_to_str(b, encoding=None, errors=None):
-    """
+    r"""
     Convert ``bytes`` to ``str``.
 
     On Python 2 this is a no-op since ``bytes is str``.  On Python 3
@@ -73,7 +73,7 @@ cpdef inline bytes_to_str(b, encoding=None, errors=None):
 
 
 cpdef inline str_to_bytes(s, encoding=None, errors=None):
-    """
+    r"""
     Convert ``str`` to ``bytes``.
 
     On Python 2 this is a no-op since ``str is bytes``.  On Python 3

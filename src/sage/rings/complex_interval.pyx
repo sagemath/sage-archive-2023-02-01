@@ -41,16 +41,16 @@ heavily modified:
 
 from __future__ import absolute_import, print_function
 
+from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 from cysignals.signals cimport sig_on, sig_off
 
 from sage.libs.gmp.mpz cimport mpz_sgn, mpz_cmpabs_ui
 from sage.libs.mpfr cimport *
 from sage.libs.mpfi cimport *
 from sage.libs.flint.fmpz cimport *
-from cypari2.gen cimport Gen as pari_gen
 from sage.libs.mpfr cimport MPFR_RNDU, MPFR_RNDD
+from sage.arith.constants cimport LOG_TEN_TWO_PLUS_EPSILON
 
-from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 from sage.structure.element cimport FieldElement, RingElement, Element, ModuleElement
 from sage.structure.parent cimport Parent
 from .complex_number cimport ComplexNumber
@@ -58,9 +58,8 @@ from .complex_field import ComplexField
 from sage.rings.integer cimport Integer
 cimport sage.rings.real_mpfi as real_mpfi
 from .real_mpfr cimport RealNumber, RealField
+from .convert.mpfi cimport mpfi_set_sage
 
-
-cdef double LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
 
 def is_ComplexIntervalFieldElement(x):
     """
@@ -76,6 +75,7 @@ def is_ComplexIntervalFieldElement(x):
     """
     return isinstance(x, ComplexIntervalFieldElement)
 
+
 cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
     """
     A complex interval.
@@ -86,7 +86,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         sage: b = 1.5 + 2.5*I
         sage: TestSuite(b).run()
     """
-    def __cinit__(self, parent, real=None, imag=None):
+    def __cinit__(self, parent, *args):
         """
         TESTS::
 
@@ -98,13 +98,12 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: ComplexIntervalFieldElement.__new__(ComplexIntervalFieldElement, CIF)
             [.. NaN ..] + [.. NaN ..]*I
         """
-        cdef Parent p = <Parent?>parent
-        self._prec = p._prec
+        self._parent = <Parent?>parent
+        self._prec = parent._prec
         mpfi_init2(self.__re, self._prec)
         mpfi_init2(self.__im, self._prec)
-        self._parent = p
 
-    def __init__(self, parent, real, imag=None):
+    def __init__(self, parent, real, imag=None, int base=10):
         """
         Initialize a complex number (interval).
 
@@ -117,35 +116,16 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: CIF(1.5 + 2.5*I)
             1.5000000000000000? + 2.5000000000000000?*I
         """
-        cdef real_mpfi.RealIntervalFieldElement rr, ii
-        self._parent = parent
-        self._prec = self._parent._prec
-        mpfi_init2(self.__re, self._prec)
-        mpfi_init2(self.__im, self._prec)
-
-        if imag is None:
-            if isinstance(real, ComplexNumber):
-                real, imag = (<ComplexNumber>real).real(), (<ComplexNumber>real).imag()
-            elif isinstance(real, ComplexIntervalFieldElement):
-                real, imag = (<ComplexIntervalFieldElement>real).real(), (<ComplexIntervalFieldElement>real).imag()
-            elif isinstance(real, pari_gen):
-                real, imag = real.real(), real.imag()
-            elif isinstance(real, list) or isinstance(real, tuple):
-                re, imag = real
-                real = re
-            elif isinstance(real, complex):
-                real, imag = real.real, real.imag
-            else:
-                imag = 0
-        try:
-            R = parent._real_field()
-            rr = R(real)
-            ii = R(imag)
-            mpfi_set(self.__re, rr.value)
-            mpfi_set(self.__im, ii.value)
-        except TypeError:
-            raise TypeError("unable to coerce to a ComplexIntervalFieldElement")
-
+        if real is None:
+            mpfi_set_ui(self.__re, 0)
+            mpfi_set_ui(self.__im, 0)
+        elif imag is None:
+            # "real" may be real or complex
+            mpfi_set_sage(self.__re, self.__im, real, parent, base)
+        else:
+            # Set real and imaginary parts separately
+            mpfi_set_sage(self.__re, NULL, real, parent, base)
+            mpfi_set_sage(self.__im, NULL, imag, parent, base)
 
     def  __dealloc__(self):
         if self._parent is not None:
@@ -418,7 +398,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         """
         left, right = self.real().endpoints()
         lower, upper = self.imag().endpoints()
-        CC = self._parent._middle_field()
+        CC = self._parent.middle_field()
         return (CC(left, lower), CC(right, upper),
                 CC(left, upper), CC(right, lower))
 
@@ -491,7 +471,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             2.00000000000000
         """
         cdef RealNumber diam
-        diam = RealNumber(self._parent._real_field()._middle_field(), None)
+        diam = RealNumber(self._parent._real_field().middle_field(), None)
         cdef mpfr_t tmp
         mpfr_init2(tmp, self.prec())
         mpfi_diam(diam.value, self.__re)
@@ -629,7 +609,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             1.50000000000000 + 3.50000000000000*I
         """
         cdef ComplexNumber center
-        center = ComplexNumber(self._parent._middle_field(), None)
+        center = ComplexNumber(self._parent.middle_field(), None)
         mpfi_mid(center.__re, self.__re)
         mpfi_mid(center.__im, self.__im)
 

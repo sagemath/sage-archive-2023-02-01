@@ -44,6 +44,8 @@ from __future__ import absolute_import, print_function
 from cysignals.signals cimport sig_on, sig_off
 
 from sage.libs.gmp.mpz cimport mpz_sgn, mpz_cmpabs_ui
+from sage.libs.mpfr cimport *
+from sage.libs.mpfi cimport *
 from sage.libs.flint.fmpz cimport *
 from cypari2.gen cimport Gen as pari_gen
 from sage.libs.mpfr cimport MPFR_RNDU, MPFR_RNDD

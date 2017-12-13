@@ -2648,7 +2648,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
     @staticmethod
     def initial_forest(element):
         r"""
-        Return the inital forest of a binary tree, an interval-poset or
+        Return the initial forest of a binary tree, an interval-poset or
         a Dyck word.
 
         An initial forest is an interval-poset corresponding to an initial

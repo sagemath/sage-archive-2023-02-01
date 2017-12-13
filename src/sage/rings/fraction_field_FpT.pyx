@@ -1032,7 +1032,7 @@ cdef class Polyring_FpT_coerce(RingHomomorphism):
         RingHomomorphism.__init__(self, R.ring_of_integers().Hom(R))
         self.p = R.base_ring().characteristic()
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -1044,8 +1044,9 @@ cdef class Polyring_FpT_coerce(RingHomomorphism):
             sage: f(t^2 + 1)
             t^2 + 1
         """
-        _slots['p'] = self.p
-        return RingHomomorphism._extra_slots(self, _slots)
+        slots = RingHomomorphism._extra_slots(self)
+        slots['p'] = self.p
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """
@@ -1234,7 +1235,7 @@ cdef class FpT_Polyring_section(Section):
         self.p = f.p
         Section.__init__(self, f)
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -1252,8 +1253,9 @@ cdef class FpT_Polyring_section(Section):
             ...
             ValueError: not integral
         """
-        _slots['p'] = self.p
-        return Section._extra_slots(self, _slots)
+        slots = Section._extra_slots(self)
+        slots['p'] = self.p
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """
@@ -1348,7 +1350,7 @@ cdef class Fp_FpT_coerce(RingHomomorphism):
         RingHomomorphism.__init__(self, R.base_ring().Hom(R))
         self.p = R.base_ring().characteristic()
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -1363,8 +1365,9 @@ cdef class Fp_FpT_coerce(RingHomomorphism):
             sage: g(GF(5)(2)) == f(GF(5)(2))
             True
         """
-        _slots['p'] = self.p
-        return RingHomomorphism._extra_slots(self, _slots)
+        slots = RingHomomorphism._extra_slots(self)
+        slots['p'] = self.p
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """
@@ -1535,7 +1538,7 @@ cdef class FpT_Fp_section(Section):
         self.p = f.p
         Section.__init__(self, f)
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -1559,8 +1562,9 @@ cdef class FpT_Fp_section(Section):
             sage: g(K(0))
             0
         """
-        _slots['p'] = self.p
-        return Section._extra_slots(self, _slots)
+        slots = Section._extra_slots(self)
+        slots['p'] = self.p
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """
@@ -1668,7 +1672,7 @@ cdef class ZZ_FpT_coerce(RingHomomorphism):
         RingHomomorphism.__init__(self, ZZ.Hom(R))
         self.p = R.base_ring().characteristic()
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -1685,8 +1689,9 @@ cdef class ZZ_FpT_coerce(RingHomomorphism):
             sage: g(0) == f(0)
             True
         """
-        _slots['p'] = self.p
-        return RingHomomorphism._extra_slots(self, _slots)
+        slots = RingHomomorphism._extra_slots(self)
+        slots['p'] = self.p
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """

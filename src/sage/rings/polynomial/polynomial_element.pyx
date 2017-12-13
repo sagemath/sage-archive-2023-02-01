@@ -11064,7 +11064,7 @@ cdef class PolynomialBaseringInjection(Morphism):
         self._repr_type_str = "Polynomial base injection"
         self._new_constant_poly_ = self._an_element._new_constant_poly
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         EXAMPLES::
 
@@ -11076,9 +11076,11 @@ cdef class PolynomialBaseringInjection(Morphism):
             sage: phi(3/1)
             3
         """
-        _slots['_an_element'] = self._an_element
-        _slots['_new_constant_poly_'] = self._new_constant_poly_
-        return Morphism._extra_slots(self, _slots)
+        slots = Morphism._extra_slots(self)
+        slots.update(
+                _an_element=self._an_element,
+                _new_constant_poly_=self._new_constant_poly_)
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """

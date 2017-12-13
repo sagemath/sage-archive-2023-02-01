@@ -4117,7 +4117,7 @@ cdef class IntegerMod_hom(Morphism):
         self.zero = C._element_constructor_(0)
         self.modulus = C._pyx_order
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for pickling and copying.
 
@@ -4139,9 +4139,10 @@ cdef class IntegerMod_hom(Morphism):
             sage: psi(R15(7))
             2
         """
-        _slots['zero'] = self.zero
-        _slots['modulus'] = self.modulus
-        return Morphism._extra_slots(self, _slots)
+        slots = Morphism._extra_slots(self)
+        slots['zero'] = self.zero
+        slots['modulus'] = self.modulus
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """

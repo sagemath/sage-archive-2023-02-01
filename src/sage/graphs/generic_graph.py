@@ -5205,14 +5205,14 @@ class GenericGraph(GenericGraph_pyx):
         In the case of a digraph, this computation is done on the underlying
         graph.
 
-        A cut vertex is one whose deletion increases the number of
-        connected components. A block is a maximal induced subgraph which
-        itself has no cut vertices. Two distinct blocks cannot overlap in
-        more than a single cut vertex.
+        A cut vertex is one whose deletion increases the number of connected
+        components. A block is a maximal induced subgraph which itself has no
+        cut vertices. Two distinct blocks cannot overlap in more than a single
+        cut vertex.
 
-        OUTPUT: ``( B, C )``, where ``B`` is a list of blocks- each is
-        a list of vertices and the blocks are the corresponding induced
-        subgraphs-and ``C`` is a list of cut vertices.
+        OUTPUT: ``(B, C)``, where ``B`` is a list of blocks - each is a list of
+        vertices and the blocks are the corresponding induced subgraphs - and
+        ``C`` is a list of cut vertices.
 
         ALGORITHM:
 
@@ -5223,24 +5223,27 @@ class GenericGraph(GenericGraph_pyx):
 
             - :meth:`blocks_and_cuts_tree`
             - :meth:`~Graph.is_biconnected`
+            - :meth:`~Graph.bridges`
 
-        EXAMPLES::
+        EXAMPLES:
+
+        We construct a trivial example of a graph with one cut vertex::
+
+            sage: rings = graphs.CycleGraph(10)
+            sage: rings.merge_vertices([0, 5])
+            sage: rings.blocks_and_cut_vertices()
+            ([[0, 1, 2, 3, 4], [0, 6, 7, 8, 9]], [0])
+
+        The Petersen graph is biconnected, hence has no cut vertices::
 
             sage: graphs.PetersenGraph().blocks_and_cut_vertices()
             ([[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]], [])
-            sage: graphs.PathGraph(6).blocks_and_cut_vertices()
-            ([[4, 5], [3, 4], [2, 3], [1, 2], [0, 1]], [1, 2, 3, 4])
-            sage: graphs.CycleGraph(7).blocks_and_cut_vertices()
-            ([[0, 1, 2, 3, 4, 5, 6]], [])
-            sage: graphs.KrackhardtKiteGraph().blocks_and_cut_vertices()
-            ([[8, 9], [7, 8], [0, 1, 2, 3, 4, 5, 6, 7]], [7, 8])
-            sage: G=Graph()  # make a bowtie graph where 0 is a cut vertex
-            sage: G.add_vertices(range(5))
-            sage: G.add_edges([(0,1),(0,2),(0,3),(0,4),(1,2),(3,4)])
-            sage: G.blocks_and_cut_vertices()
-            ([[0, 1, 2], [0, 3, 4]], [0])
-            sage: graphs.StarGraph(3).blocks_and_cut_vertices()
-            ([[0, 1], [0, 2], [0, 3]], [0])
+
+        Decomposing paths to pairs::
+
+            sage: g = graphs.PathGraph(4) + graphs.PathGraph(5)
+            sage: g.blocks_and_cut_vertices()
+            ([[2, 3], [1, 2], [0, 1], [7, 8], [6, 7], [5, 6], [4, 5]], [1, 2, 5, 6, 7])
 
         TESTS::
 
@@ -5249,110 +5252,114 @@ class GenericGraph(GenericGraph_pyx):
             sage: Graph(1).blocks_and_cut_vertices()
             ([[0]], [])
             sage: Graph(2).blocks_and_cut_vertices()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: ...
+            ([[0], [1]], [])
 
         REFERENCE:
 
         .. [Tarjan72] \R.E. Tarjan. Depth-First Search and Linear Graph
           Algorithms. SIAM J. Comput. 1(2): 146-160 (1972).
         """
-        if not self: # empty graph
-            return [],[]
-
-        start = next(self.vertex_iterator()) # source
-
-        if len(self) == 1: # only one vertex
-            return [[start]],[]
-
-        if not self.is_connected():
-            raise NotImplementedError("Blocks and cut vertices is currently only implemented for connected graphs.")
-
-        # Each vertex is number with an integer from 1...|V(G)|, corresponding
-        # to the order in which it is discovered during the DFS.
-        number = {}
-        num = 1
-
-        # Associates to each vertex v the smallest number of a vertex that can
-        # be reached from v in the orientation of the graph that the algorithm
-        # creates.
-        low_point = {}
-
-        # Associates to each vertex an iterator over its neighbors
-        neighbors = {}
-
         blocks = []
         cut_vertices = set()
 
-        stack = [start]
-        edge_stack = []
-        start_already_seen = False
+        # We iterate over all vertices to ensure that we visit each connected
+        # component of the graph
+        seen = set()
+        for start in self.vertex_iterator():
+            if start in seen:
+                continue
 
-        while stack:
-            v = stack[-1]
+            # Special case of an isolated vertex
+            if not self.degree(start):
+                blocks.append([start])
+                seen.add(start)
+                continue
 
-            # The first time we meet v
-            if not v in number:
-                # We number the vertices in the order they are reached during
-                # DFS
-                number[v] = num
-                neighbors[v] = self.neighbor_iterator(v)
-                low_point[v] = num
-                num += 1
+            # Each vertex is numbered with an integer from 1...|V(G)|,
+            # corresponding to the order in which it is discovered during the
+            # DFS.
+            number = {}
+            num = 1
 
-            try:
-                # We consider the next of its neighbors
-                w = next(neighbors[v])
+            # Associates to each vertex v the smallest number of a vertex that
+            # can be reached from v in the orientation of the graph that the
+            # algorithm creates.
+            low_point = {}
 
-                # If we never met w before, we remember the direction of edge
-                # vw, and add w to the stack.
-                if not w in number:
-                    edge_stack.append( (v,w) )
-                    stack.append(w)
+            # Associates to each vertex an iterator over its neighbors
+            neighbors = {}
 
-                # If w is an ancestor of v in the DFS tree, we remember the
-                # direction of edge vw
-                elif number[w]<number[v]:
-                    edge_stack.append( (v,w) )
-                    low_point[v] = min(low_point[v], number[w])
+            stack = [start]
+            edge_stack = []
+            start_already_seen = False
 
-            # We went through all of v's neighbors
-            except StopIteration:
-                # We trackback, so w takes the value of v and we pop the stack
-                w = stack.pop()
-
-                # Test termination of the algorithm
-                if not stack:
-                    break
-
+            while stack:
                 v = stack[-1]
+                seen.add(v)
 
-                # Propagating the information : low_point[v] indicates the
-                # smallest vertex (the vertex x with smallest number[x]) that
-                # can be reached from v
-                low_point[v] = min(low_point[v], low_point[w])
+                # The first time we meet v
+                if not v in number:
+                    # We number the vertices in the order they are reached
+                    # during DFS
+                    number[v] = num
+                    neighbors[v] = self.neighbor_iterator(v)
+                    low_point[v] = num
+                    num += 1
 
-                # The situation in which there is no path from w to an ancestor
-                # of v : we have identified a new biconnected component
-                if low_point[w] >= number[v]:
-                    new_block = set()
-                    nw = number[w]
-                    u1,u2 = edge_stack.pop()
-                    while number[u1] >= nw:
-                        new_block.add(u1)
+                try:
+                    # We consider the next of its neighbors
+                    w = next(neighbors[v])
+
+                    # If we never met w before, we remember the direction of
+                    # edge vw, and add w to the stack.
+                    if not w in number:
+                        edge_stack.append( (v,w) )
+                        stack.append(w)
+
+                    # If w is an ancestor of v in the DFS tree, we remember the
+                    # direction of edge vw
+                    elif number[w]<number[v]:
+                        edge_stack.append( (v,w) )
+                        low_point[v] = min(low_point[v], number[w])
+
+                # We went through all of v's neighbors
+                except StopIteration:
+                    # We trackback, so w takes the value of v and we pop the
+                    # stack
+                    w = stack.pop()
+
+                    # Test termination of the algorithm
+                    if not stack:
+                        break
+
+                    v = stack[-1]
+
+                    # Propagating the information : low_point[v] indicates the
+                    # smallest vertex (the vertex x with smallest number[x])
+                    # that can be reached from v
+                    low_point[v] = min(low_point[v], low_point[w])
+
+                    # The situation in which there is no path from w to an
+                    # ancestor of v : we have identified a new biconnected
+                    # component
+                    if low_point[w] >= number[v]:
+                        new_block = set()
+                        nw = number[w]
                         u1,u2 = edge_stack.pop()
-                    new_block.add(u1)
-                    blocks.append(sorted(list(new_block)))
+                        while number[u1] >= nw:
+                            new_block.add(u1)
+                            u1,u2 = edge_stack.pop()
+                        new_block.add(u1)
+                        blocks.append(sorted(list(new_block)))
 
-                    # We update the set of cut vertices.
-                    #
-                    # If v is start, then we add it only if it belongs to
-                    # several blocks.
-                    if (not v is start) or start_already_seen:
-                        cut_vertices.add(v)
-                    else:
-                        start_already_seen = True
+                        # We update the set of cut vertices.
+                        #
+                        # If v is start, then we add it only if it belongs to
+                        # several blocks.
+                        if (not v is start) or start_already_seen:
+                            cut_vertices.add(v)
+                        else:
+                            start_already_seen = True
 
         return blocks,sorted(list(cut_vertices))
 
@@ -5369,7 +5376,8 @@ class GenericGraph(GenericGraph_pyx):
         to `u`.
 
         The resulting graph is a tree, with the additional characteristic
-        property that the distance between two leaves is even.
+        property that the distance between two leaves is even. When ``self`` is
+        not connected, the resulting graph is a forest.
 
         When ``self`` is biconnected, the tree is reduced to a single node of
         type `B`.
@@ -5400,6 +5408,14 @@ class GenericGraph(GenericGraph_pyx):
             sage: T = graphs.PetersenGraph().blocks_and_cuts_tree()
             sage: T.vertices()
             [('B', (0, 1, 2, 3, 4, 5, 6, 7, 8, 9))]
+
+        TESTS:
+
+        When ``self`` is not connected, the resulting graph is a forest (:trac:`24163`)::
+
+            sage: T = Graph(2).blocks_and_cuts_tree()
+            sage: T.is_forest()
+            True
 
         REFERENCES:
 

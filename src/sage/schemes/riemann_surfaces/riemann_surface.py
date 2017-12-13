@@ -19,6 +19,7 @@ approximate linear equations.
 AUTHORS:
 
 - Alexandre Zotine, Nils Bruin (2017-06-10): initial version
+- Jeroen Sijsling (2017-12-13): algebraization, automorphisms
 
 EXAMPLES:
 
@@ -80,6 +81,14 @@ from sage.matrix.constructor import Matrix
 from sage.modules.free_module import VectorSpace
 from sage.numerical.gauss_legendre import integrate_vector
 from sage.misc.misc_c import prod
+from sage.arith.misc import algdep
+from sage.groups.matrix_gps.finitely_generated import MatrixGroup
+from sage.matrix.constructor import Matrix, matrix
+from sage.modules.free_module_element import vector
+from sage.rings.qqbar import number_field_elements_from_algebraics
+from sage.sets.all import Set
+from sage.misc.flatten import flatten
+from sage.interfaces.gp import gp
 import operator
 
 def voronoi_ghost(cpoints, n=6, CC=CDF):
@@ -1637,6 +1646,224 @@ class RiemannSurface(object):
         M1 = self.riemann_matrix()
         M2 = other.riemann_matrix()
         return integer_matrix_relations(M2,M1,b,r)
+
+    def tangent_representation_complex(self, Rs, epsinv = 10**(-20)):
+        r"""
+        Compute the complex tangent representation corresponding to the
+        representation on homology obtained from :meth:`endomorphism_basis`. For
+        an element `R` of said homology representation, the corresponding
+        tangent matrix `T` satisfies `T P = P R`.
+
+        INPUT:
+
+        - ``Rs`` -- a set of matrices on homology to be converted to their
+          tangential representation.
+
+        - ``epsinv`` -- real number (default: ``10^(-20)``). Used to find an
+          invertible submatrix of the period matrix.
+
+        OUTPUT:
+
+        The complex tangent representation of the matrices in ``Rs``.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
+            sage: A.<x,y> = QQ[]
+            sage: S = RiemannSurface(y^2 - (x^6 + 2*x^4 + 4*x^2 + 8), prec = 100)
+            sage: P = S.period_matrix()
+            sage: Rs = S.endomorphism_basis()
+            sage: Ts = S.tangent_representation_complex(Rs)
+            sage: print all([ ((T*P - P*R).norm() < 10^(-25)) for [ T, R ] in zip(Ts, Rs) ])
+            True
+
+        """
+        P = self.period_matrix()
+        def invertible_submatrix(M):
+            cols = M.columns()
+            ncols = len(cols)
+            rk = min(len(M.rows()), len(M.columns()))
+            for s in Set(range(ncols)).subsets(rk):
+                N = Matrix([ cols[i] for i in s ]).transpose()
+                if N.determinant() > epsinv:
+                    return N, s
+        subP, s = invertible_submatrix(P)
+        Ts = [ ]
+        for R in Rs:
+            RCC = R.base_extend(P.base_ring())
+            cols = (P*RCC).columns()
+            subPR  = Matrix([ cols[i] for i in s ]).transpose()
+            Ts.append(subPR * subP**(-1))
+        return [ T.change_ring(P.base_ring()) for T in Ts ]
+
+    def tangent_representation_algebraic(self, Rs, epscomp = 10**(-25), epsinv = 10**(-20), b = None, r = None):
+        r"""
+        Compute the algebraized tangent representation corresponding to the
+        representation on homology obtained from :meth:`endomorphism_basis`. For
+        an element `R` of said homology representation, the corresponding
+        tangent matrix `T` satisfies `T P = P R`.
+
+        INPUT:
+
+        - ``Rs`` -- a set of matrices on homology to be converted to their
+          tangential representation.
+
+        - ``epscomp`` -- real number (default: ``10^(-25)``). Used to determine
+          whether a complex number is close enough to a root of a polynomial.
+
+        - ``epsinv`` -- real number (default: ``10^(-20)``). Used to find an
+          invertible submatrix of the period matrix.
+
+        OUTPUT:
+
+        The algebraized tangent representation of the matrices in ``Rs``.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
+            sage: A.<x,y> = QQ[]
+            sage: S = RiemannSurface(y^2 - (x^6 + 2*x^4 + 4*x^2 + 8), prec = 100)
+            sage: Rs = S.endomorphism_basis()
+            sage: print S.tangent_representation_algebraic(Rs)
+            [[1 0]
+            [0 1], [    0 1/2*a]
+            [    a     0], [-1  0]
+            [ 0  1], [    0 1/2*a]
+            [   -a     0]]
+
+        """
+        QQalg = QQ.algebraic_closure()
+        def polynomialize_element(alpha):
+            d = 1
+            while True:
+                d += 1
+                dep = algdep(alpha, d, height_bound = 10^d)
+                if dep and dep(alpha) < epscomp:
+                    return dep
+        def algebraize_element(alpha):
+            alphaPol = polynomialize_element(alpha)
+            CC = alpha.parent()
+            for tup in alphaPol.roots(QQalg):
+                rt = tup[0]
+                if (alpha - CC(rt)).abs() < epscomp:
+                    return rt
+            raise AssertionError('No close root found while algebraizing')
+        def algebraize_matrices(Ts):
+            nr = len(Ts[0].rows())
+            nc = len(Ts[0].columns())
+            rr = range(nr)
+            rc = range(nc)
+            TsAlg = [ ]
+            for T in Ts:
+                rows = T.rows()
+                TAlg = Matrix([ [ algebraize_element(T[i,j]) for j in rc ] for i in rr ])
+                TsAlg.append(TAlg)
+            elts = number_field_elements_from_algebraics(reduce(lambda x,y : x + y, [ TAlg.list() for TAlg in TsAlg ]))[1]
+            L = elts[0].parent()
+            TsAlgL = [ ]
+            for i in range(len(Ts)):
+                TsAlgL.append(Matrix(L, nr, nc, [ elts[j] for j in range(i*nr*nc, (i + 1)*nr*nc) ]))
+            return TsAlgL
+        Ts = self.tangent_representation_complex(Rs, epsinv = epsinv)
+        return algebraize_matrices(Ts)
+
+    def rosati_involution(self, R):
+        r"""
+        Computes the Rosati involution of an endomorphism `R` (a homology
+        representation with respect to a symplectic basis).
+
+        INPUT:
+
+        - ``R`` -- integral matrix.
+
+        OUTPUT:
+
+        The result of applying the Rosati involution to ``R``.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
+            sage: A.<x,y> = QQ[]
+            sage: S = RiemannSurface(y^2 - (x^6 + 2*x^4 + 4*x^2 + 8), prec = 100)
+            sage: Rs = S.endomorphism_basis()
+            sage: print S.rosati_involution(Rs[1])
+            [ 0  1  0  1]
+            [ 0  0 -1  0]
+            [ 0 -1  0  0]
+            [ 1  0  1  0]
+
+        """
+        def standard_symplectic_matrix(n):
+            m = n // 2
+            one = matrix.identity(m)
+            zero = matrix.zero(m)
+            return 1*matrix.block([ [zero, -one], [one, zero] ])
+        g = self.genus
+        if len(R.rows()) != 2*g or len(R.columns()) != 2*g:
+            raise AssertionError("Matrix is not the homology representation of an endomorphism")
+        J = standard_symplectic_matrix(2*g)
+        return -J * R.transpose() * J
+
+    def symplectic_automorphism_group(self, b = None, r = None):
+        r"""
+        Numerically compute the symplectic automorphism group.
+
+        Let `\left(I | M \right)` be the normalized period matrix (`M` is the
+        `g\times g` :meth:`riemann_matrix`).
+        We consider the system of matrix equations `MA + B = (MC + D)M` where
+        `A, B, C, D` are `g\times g` integer matrices.  We determine small
+        integer (near) solutions using LLL reductions.  Small combinations of
+        the elements of :meth:`endomorphism_basis` that correspond to actual
+        automorphisms of the Riemann surface are returned as `2g \times 2g`
+        integer matrices obtained by stacking `\left(D | B\right)` on top of
+        `\left(C | A\right)`.
+
+        INPUT:
+
+        - ``b`` -- integer (default: precision - 10). The equation coefficients
+          are scaled by `2^b` before rounding to integers.
+
+        - ``r`` -- integer (default: ``b/4``). Solutions that have all
+          coefficients smaller than `2^r` in absolute value are reported as
+          actual solutions.
+
+        OUTPUT:
+
+        A list of `2g \times 2g` integer matrices that, for large enough ``r``
+        and ``b-r``, give the automorphisms of the Jacobian that preserve the
+        symplectic form. The automorphism group of the Riemann surface itself
+        can be recovered from this; if the curve is hyperelliptic, then it is
+        identical, and if not, then one divides out by the central element -1.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
+            sage: A.<x,y> = QQ[]
+            sage: S = RiemannSurface(y^2 - (x^6 + 2*x^4 + 4*x^2 + 8), prec = 100)
+            sage: Ms = S.symplectic_automorphism_group()
+            sage: print Ms.as_permutation_group().is_isomorphic(DihedralGroup(4))
+            True
+
+        """
+        Rs = self.endomorphism_basis()
+        g = self.genus
+        A = PolynomialRing(QQ, len(Rs), 'x')
+        gensA = A.gens()
+        # Use that the trace is positive definite; we could also put this as an
+        # extra condition when determining the endomorphism basis to speed up
+        # that calculation slightly
+        R = sum([ gensA[i]*Rs[i].change_ring(A) for i in range(len(Rs)) ])
+        tr = (R*self.rosati_involution(R)).trace()
+        # Condition tr = 2 g creates ellipsoid
+        M = Matrix(ZZ, [ [ tr.derivative(gen1).derivative(gen2) for gen1 in gensA ] for gen2 in gensA ])
+        vs = gp.qfminim(M, 4*g)[3].sage().transpose()
+        vs = [ v for v in vs if v * M * v == 4*g ]
+        RsAut = [ ]
+        for v in vs:
+            R = sum([ v[i]*Rs[i] for i in range(len(Rs)) ])
+            if R*self.rosati_involution(R) == 1:
+                RsAut.append(R)
+        return MatrixGroup(RsAut)
 
     def __add__(self,other):
         r"""

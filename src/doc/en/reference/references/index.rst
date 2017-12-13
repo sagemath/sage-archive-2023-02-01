@@ -1740,6 +1740,10 @@ REFERENCES:
              Theory*. Cambridge: Cambridge University Press,
              (2013). ISBN 9781107005488.
 
+.. [Mu1997] Murty, M. Ram. *Congruences between modular forms*. In "Analytic
+            Number Theory" (ed. Y. Motohashi), London Math. Soc. Lecture Notes
+            247 (1997), 313-320, Cambridge Univ. Press.
+
 .. [MV2010] \D. Micciancio, P. Voulgaris. *A Deterministic Single
             Exponential Time Algorithm for Most Lattice Problems based
             on Voronoi Cell Computations*. Proceedings of the 42nd ACM
@@ -2037,6 +2041,9 @@ REFERENCES:
             Chor-Rivest Cryptosystem by Improved Lattice
             Reduction*. Advances in Cryptology - EUROCRYPT '95. LNCS
             Volume 921, 1995, pp 1-12.
+
+.. [Shi1971]  Shimura, Goro. *Introduction to the arithmetic theory of
+            automorphic functions*. Princeton University Press, 1971. 
 
 .. [Shr2004] Shreve, S. Stochastic Calculus for Finance II:
              Continuous-Time Models.  New York: Springer, 2004

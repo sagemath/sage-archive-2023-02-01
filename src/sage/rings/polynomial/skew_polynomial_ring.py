@@ -217,7 +217,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
         X*a = \sigma(a) X.
 
     This means that `R[X, \sigma]` is a non-commutative ring. Skew polynomials
-    were first introduced by Ore [Ore33].
+    were first introduced by Ore [Ore33]_.
 
     EXAMPLES::
 

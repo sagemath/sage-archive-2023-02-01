@@ -1685,7 +1685,7 @@ class RiemannSurface(object):
             rk = min(len(M.rows()), len(M.columns()))
             for s in Set(range(ncols)).subsets(rk):
                 N = Matrix([ cols[i] for i in s ]).transpose()
-                if N.determinant() > epsinv:
+                if N.determinant().abs() > epsinv:
                     return N, s
         subP, s = invertible_submatrix(P)
         Ts = [ ]
@@ -1846,21 +1846,22 @@ class RiemannSurface(object):
 
         """
         Rs = self.endomorphism_basis()
+        r = len(Rs)
         g = self.genus
-        A = PolynomialRing(QQ, len(Rs), 'x')
+        A = PolynomialRing(QQ, r, 'x')
         gensA = A.gens()
         # Use that the trace is positive definite; we could also put this as an
         # extra condition when determining the endomorphism basis to speed up
         # that calculation slightly
-        R = sum([ gensA[i]*Rs[i].change_ring(A) for i in range(len(Rs)) ])
+        R = sum( gensA[i]*Rs[i].change_ring(A) for i in range(r) )
         tr = (R*self.rosati_involution(R)).trace()
         # Condition tr = 2 g creates ellipsoid
-        M = Matrix(ZZ, [ [ tr.derivative(gen1).derivative(gen2) for gen1 in gensA ] for gen2 in gensA ])
-        vs = gp.qfminim(M, 4*g)[3].sage().transpose()
+        M = Matrix(ZZ, r, r, [ tr.derivative(gen1).derivative(gen2) for gen1 in gensA for gen2 in gensA ])
+        vs = M.__pari__().qfminim(4*g)[2].sage().transpose()
         vs = [ v for v in vs if v * M * v == 4*g ]
         RsAut = [ ]
         for v in vs:
-            R = sum([ v[i]*Rs[i] for i in range(len(Rs)) ])
+            R = sum( v[i]*Rs[i] for i in range(r) )
             if R*self.rosati_involution(R) == 1:
                 RsAut.append(R)
         return MatrixGroup(RsAut)
@@ -1884,15 +1885,15 @@ def integer_matrix_relations(M1,M2,b=None,r=None):
     r"""
     Determine integer relations between complex matrices
 
-    Given two g x g matrices with complex entries, numerically determine
-    an (approximate) ZZ-basis for the 2g x 2g matrices with integer entries
-    of the shape (D, B; C, A) such that
-    B+M1*A=(D+M1*C)*M2
-    By considering real and imaginary parts separately we obtain `2g^2`
-    equations with real coefficients in `4g^2` variables. We scale the
-    coefficients by a constant `2^b` and round them to integers, in order
-    to obtain an integer system of equations. Standard application of LLL
-    allows us to determine near solutions.
+    Given two square matrices with complex entries of size g, h
+    respectively, numerically determine an (approximate) ZZ-basis for
+    the 2g x 2h matrices with integer entries of the shape (D, B; C, A)
+    such that B+M1*A=(D+M1*C)*M2. By considering real and imaginary
+    parts separately we obtain `2gh` equations with real coefficients
+    in `4gh` variables. We scale the coefficients by a constant `2^b`
+    and round them to integers, in order to obtain an integer system of
+    equations. Standard application of LLL allows us to determine near
+    solutions.
 
     The user can specify the parameter `b`, but by default the system will
     choose a `b` based on the size of the coefficients and the precision
@@ -1912,7 +1913,7 @@ def integer_matrix_relations(M1,M2,b=None,r=None):
 
     OUTPUT:
 
-    A list of 2g x 2g integer matrices that, for large enough `r`, `b-r`,
+    A list of 2g x 2h integer matrices that, for large enough `r`, `b-r`,
     generate the ZZ-module of relevant transformations.
 
     EXAMPLES::
@@ -1926,8 +1927,8 @@ def integer_matrix_relations(M1,M2,b=None,r=None):
         [True, True]
 
     """
-    if not(M1.ncols()==M2.ncols() and M1.nrows()==M1.nrows() and M2.nrows()==M2.nrows()):
-        raise ValueError("matrices need to be square of same dimensions")
+    if not(M1.ncols()==M1.nrows() and M2.ncols()==M2.nrows()):
+        raise ValueError("matrices need to be square")
     prec = min(M1.base_ring().precision(),M2.base_ring().precision())
     H = max(max( abs(m.real_part()) for m in M1.list()+M2.list()), max( abs(m.imag_part()) for m in M1.list()+M2.list()))
     if b is None:
@@ -1937,29 +1938,30 @@ def integer_matrix_relations(M1,M2,b=None,r=None):
     S = 2**b
     if H*S > 2**(prec-4):
         raise ValueError("insufficient precision for b=%s"%b)
-    g = M1.ncols()
+    g1 = M1.ncols()
+    g2 = M2.ncols()
     CC = M1.base_ring()
-    V = ["%s%s"%(n,i) for n in ["a","b","c","d"] for i in srange(1,1+g**2)]
+    V = ["%s%s"%(n,i) for n in ["a","b","c","d"] for i in srange(1,1+g1*g2)]
     R = PolynomialRing(CC,V)
-    A = Matrix(R,g,g,V[:g**2])
-    B = Matrix(R,g,g,V[g**2:2*g**2])
-    C = Matrix(R,g,g,V[2*g**2:3*g**2])
-    D = Matrix(R,g,g,V[3*g**2:4*g**2])
+    A = Matrix(R,g1,g2,V[:g1*g2])
+    B = Matrix(R,g1,g2,V[g1*g2:2*g1*g2])
+    C = Matrix(R,g1,g2,V[2*g1*g2:3*g1*g2])
+    D = Matrix(R,g1,g2,V[3*g1*g2:4*g1*g2])
     W = ((M1*A+B) - (M1*C+D)*M2).list()
     vars = R.gens()
-    mt = Matrix(ZZ,[[1 if i==j else 0 for j in range(4*g**2)] +
+    mt = Matrix(ZZ,[[1 if i==j else 0 for j in range(4*g1*g2)] +
       [(S*w.monomial_coefficient(vars[i]).real_part()).round() for w in W] +
       [(S*w.monomial_coefficient(vars[i]).imag_part()).round() for w in W] for i in range(len(vars))])
     # we compute an LLL-reduced basis of this lattice:
     mtL = mt.LLL()
-    def vectomat(v,g):
-        A = Matrix(g,g,v[:g**2].list())
-        B = Matrix(g,g,v[g**2:2*g**2].list())
-        C = Matrix(g,g,v[2*g**2:3*g**2].list())
-        D = Matrix(g,g,v[3*g**2:4*g**2].list())
+    def vectomat(v):
+        A = Matrix(g1,g2,v[:g1*g2].list())
+        B = Matrix(g1,g2,v[g1*g2:2*g1*g2].list())
+        C = Matrix(g1,g2,v[2*g1*g2:3*g1*g2].list())
+        D = Matrix(g1,g2,v[3*g1*g2:4*g1*g2].list())
         return D.augment(B).stack(C.augment(A))
     c = 2**r
-    return [vectomat(v,g) for v in mtL if all(a.abs() <= c for a in v[4*g**2:])]
+    return [vectomat(v) for v in mtL if all(a.abs() <= c for a in v[g1*g2:])]
 
 class RiemannSurfaceSum(RiemannSurface):
     r"""

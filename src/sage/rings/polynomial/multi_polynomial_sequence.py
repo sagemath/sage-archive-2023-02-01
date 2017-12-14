@@ -277,7 +277,7 @@ def PolynomialSequence(arg1, arg2=None, immutable=False, cr=False, cr_str=None):
         sage: PolynomialSequence([0], R)
         [0]
     """
-    from sage.matrix.matrix import is_Matrix
+    from sage.structure.element import is_Matrix
     from sage.rings.polynomial.pbori import BooleanMonomialMonoid, BooleanMonomial
 
     is_ring = lambda r: is_MPolynomialRing(r) or isinstance(r, BooleanMonomialMonoid) or (is_QuotientRing(r) and is_MPolynomialRing(r.cover_ring()))

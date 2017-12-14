@@ -55,7 +55,7 @@ cdef class dancing_linksWrapper:
             sage: x
             Dancing links solver for 3 columns and 2 rows
             sage: type(x)
-            <type 'sage.combinat.matrices.dancing_links.dancing_linksWrapper'>
+            <... 'sage.combinat.matrices.dancing_links.dancing_linksWrapper'>
         """
         self._init_rows(rows)
 

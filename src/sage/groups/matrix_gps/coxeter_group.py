@@ -318,6 +318,9 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
             category = category.Finite()
         else:
             category = category.Infinite()
+        if all(self._matrix._matrix[i, j] == 2
+               for i in range(n) for j in range(i)):
+            category = category.Commutative()
         if self._matrix.is_irreducible():
             category = category.Irreducible()
         self._index_set_inverse = {i: ii for ii,i in enumerate(self._matrix.index_set())}
@@ -473,6 +476,27 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
         # their ``__init__`` method, so we can just check
         # the category of ``self``.
         return "Finite" in self.category().axioms()
+
+    def is_commutative(self):
+        """
+        Return whether ``self`` is commutative.
+
+        EXAMPLES::
+
+            sage: CoxeterGroup(['A', 2]).is_commutative()
+            False
+            sage: W = CoxeterGroup(['I',2])
+            sage: W.is_commutative()
+            True
+
+        TESTS::
+
+            sage: CoxeterGroup([['A', 2], ['A', 1]]).is_commutative()
+            False
+            sage: CoxeterGroup([['A', 1]] * 3).is_commutative()
+            True
+        """
+        return "Commutative" in self.category().axioms()
 
     @cached_method
     def order(self):

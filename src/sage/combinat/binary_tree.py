@@ -1430,6 +1430,39 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             right.append(label)
             return right
 
+    def _tamari_sorting_tuple(self):
+        r"""
+        Auxiliary method for implementation of the Tamari order.
+
+        OUTPUT:
+
+        a pair `(w, n)`, where `w` is a tuple of integers, and `n` the size
+
+        Two binary trees are comparable in the Tamari order
+        if and only if the associated tuples are componentwise
+        comparable. This is used in :meth:`tamari_lequal`.
+
+        EXAMPLES::
+
+            sage: [t._tamari_sorting_tuple() for t in BinaryTrees(3)]
+            [((3, 3, 3), 3),
+            ((3, 2, 3), 3),
+            ((1, 3, 3), 3),
+            ((2, 2, 3), 3),
+            ((1, 2, 3), 3)]
+
+        REFERENCES:
+
+        - [HuangTamari1972]_
+        """
+        if not self:
+            return tuple(), 0
+        t1, t2 = self
+        u1, n1 = t1._tamari_sorting_tuple()
+        u2, n2 = t2._tamari_sorting_tuple()
+        n = n1 + 1 + n2
+        return (u1 + (n,) + tuple(n1 + 1 + k for k in u2), n)
+
     @combinatorial_map(name="To 312 avoiding permutation")
     def to_312_avoiding_permutation(self):
         r"""
@@ -2185,9 +2218,11 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             ....:         if not S.tamari_lequal(T):
             ....:             print("FAILURE")
         """
-        self_perm = self.to_312_avoiding_permutation()
-        t2_perm = t2.to_312_avoiding_permutation()
-        return self_perm.permutohedron_lequal(t2_perm)
+        self_word, n1 = self._tamari_sorting_tuple()
+        t2_word, n2 = t2._tamari_sorting_tuple()
+        if n1 != n2:
+            return False
+        return all(x <= y for x, y in zip(self_word, t2_word))
 
     def tamari_greater(self):
         r"""

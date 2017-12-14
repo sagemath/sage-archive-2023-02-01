@@ -304,6 +304,8 @@ from sage.misc.lazy_format import LazyFormat
 from sage.misc import sageinspect
 from sage.misc.classcall_metaclass cimport ClasscallMetaclass
 from sage.misc.superseded import deprecated_function_alias
+from sage.arith.long cimport integer_check_long_py
+from sage.arith.power cimport generic_power as arith_generic_power
 from sage.arith.numerical_approx cimport digits_to_bits
 from sage.misc.decorators import sage_wraps
 
@@ -1121,7 +1123,7 @@ cdef class Element(SageObject):
             sage: e1 < e2     # indirect doctest
             Traceback (most recent call last):
             ...
-            NotImplementedError: comparison not implemented for <type 'sage.structure.element.Element'>
+            NotImplementedError: comparison not implemented for <... 'sage.structure.element.Element'>
 
         We now create an ``Element`` class where we define ``_richcmp_``
         and check that comparison works::
@@ -1148,7 +1150,7 @@ cdef class Element(SageObject):
             sage: a._cmp_(b)
             Traceback (most recent call last):
             ...
-            NotImplementedError: comparison not implemented for <type '...FloatCmp'>
+            NotImplementedError: comparison not implemented for <... '...FloatCmp'>
         """
         # Obvious case
         if left is right:
@@ -1241,12 +1243,16 @@ cdef class Element(SageObject):
         if BOTH_ARE_ELEMENT(cl):
             return coercion_model.bin_op(left, right, add)
 
+        cdef long value
+        cdef int err = -1
         try:
             # Special case addition with Python int
-            if isinstance(right, int):
-                return (<Element>left)._add_long(PyInt_AS_LONG(right))
-            if isinstance(left, int):
-                return (<Element>right)._add_long(PyInt_AS_LONG(left))
+            integer_check_long_py(right, &value, &err)
+            if not err:
+                return (<Element>left)._add_long(value)
+            integer_check_long_py(left, &value, &err)
+            if not err:
+                return (<Element>right)._add_long(value)
             return coercion_model.bin_op(left, right, add)
         except TypeError:
             # Either coercion failed or arithmetic is not defined.
@@ -1520,11 +1526,16 @@ cdef class Element(SageObject):
         if BOTH_ARE_ELEMENT(cl):
             return coercion_model.bin_op(left, right, mul)
 
+        cdef long value
+        cdef int err = -1
         try:
-            if isinstance(right, int):
-                return (<Element>left)._mul_long(PyInt_AS_LONG(right))
-            if isinstance(left, int):
-                return (<Element>right)._mul_long(PyInt_AS_LONG(left))
+            # Special case multiplication with Python int
+            integer_check_long_py(right, &value, &err)
+            if not err:
+                return (<Element>left)._mul_long(value)
+            integer_check_long_py(left, &value, &err)
+            if not err:
+                return (<Element>right)._mul_long(value)
             return coercion_model.bin_op(left, right, mul)
         except TypeError:
             return NotImplemented
@@ -2281,7 +2292,7 @@ cdef class MonoidElement(Element):
         """
         if dummy is not None:
             raise RuntimeError("__pow__ dummy argument not used")
-        return generic_power_c(self,n,None)
+        return arith_generic_power(self, n)
 
     def powers(self, n):
         r"""
@@ -2434,7 +2445,7 @@ cdef class RingElement(ModuleElement):
         """
         if dummy is not None:
             raise RuntimeError("__pow__ dummy argument not used")
-        return generic_power_c(self,n,None)
+        return arith_generic_power(self, n)
 
     def powers(self, n):
         r"""
@@ -4117,83 +4128,12 @@ def generic_power(a, n, one=None):
         sage: generic_power(int(5), 0)
         1
     """
-
-    return generic_power_c(a,n,one)
-
-cdef generic_power_c(a, nn, one):
-    try:
-        n = PyNumber_Index(nn)
-    except TypeError:
-        try:
-            # Try harder, since many things coerce to Integer.
-            from sage.rings.integer import Integer
-            n = int(Integer(nn))
-        except TypeError:
-            raise NotImplementedError("non-integral exponents not supported")
-
-    if not n:
-        if one is None:
-            if isinstance(a, Element):
-                return (<Element>a)._parent.one()
-            try:
-                try:
-                    return a.parent().one()
-                except AttributeError:
-                    return type(a)(1)
-            except Exception:
-                return 1 #oops, the one sucks
-        else:
+    # from sage.misc.superseded import deprecation
+    # deprecation(24256, "import 'generic_power' from sage.arith.power instead")
+    if one is not None:
+        # Special cases not handled by sage.arith.power
+        if not n:
             return one
-    elif n < 0:
-        # I don't think raising division by zero is really my job. It should
-        # be the one of ~a. Moreover, this does not handle the case of monoids
-        # with partially defined division (e.g. the multiplicative monoid of a
-        # ring such as ZZ/12ZZ)
-        #        if not a:
-        #            raise ZeroDivisionError
-        a = ~a
-        n = -n
-
-    if n < 4:
-        # These cases will probably be called often
-        # and don't benefit from the code below
-        if n == 1:
-            return a
-        elif n == 2:
-            return a*a
-        elif n == 3:
-            return a*a*a
-
-    # check for idempotence, and store the result otherwise
-    aa = a*a
-    if aa == a:
-        return a
-
-    # since we've computed a^2, let's start squaring there
-    # so, let's keep the least-significant bit around, just
-    # in case.
-    m = n & 1
-    n = n >> 1
-
-    # One multiplication can be saved by starting with
-    # the second-smallest power needed rather than with 1
-    # we've already squared a, so let's start there.
-    apow = aa
-    while n&1 == 0:
-        apow = apow*apow
-        n = n >> 1
-    power = apow
-    n = n >> 1
-
-    # now multiply that least-significant bit in...
-    if m:
-        power = power * a
-
-    # and this is straight from the book.
-    while n != 0:
-        apow = apow*apow
-        if n&1 != 0:
-            power = power*apow
-        n = n >> 1
-
-    return power
+        if n < 0:
+            return ~arith_generic_power(a, -n)
+    return arith_generic_power(a, n)

@@ -142,6 +142,7 @@ from .root_system.all import *
 from .sf.all import *
 from .ncsf_qsym.all import *
 from .ncsym.all import *
+lazy_import('sage.combinat.fqsym', 'FreeQuasisymmetricFunctions')
 from .matrices.all import *
 # Posets
 from .posets.all import *

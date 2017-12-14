@@ -109,7 +109,7 @@ coordinates where the codomain is not implemented as a toric variety::
 from sage.categories.finite_fields import FiniteFields
 from sage.rings.all import ZZ
 
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 from sage.matrix.matrix_space import MatrixSpace
 from sage.geometry.fan_morphism import FanMorphism
 

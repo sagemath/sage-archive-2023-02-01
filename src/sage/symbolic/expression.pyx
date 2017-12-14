@@ -1211,7 +1211,7 @@ cdef class Expression(CommutativeRingElement):
     cpdef _convert(self, kwds):
         """
         Convert all the numeric coefficients and constants in this expression
-        to the given ring `R`. This results in an expression which contains
+        to the given ring ``R``. This results in an expression which contains
         only variables, and functions whose arguments contain a variable.
 
         EXAMPLES::
@@ -1228,7 +1228,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x._convert({'parent':CC})
             x
 
-        Note that the output is not meant to be in the in the given ring `R`.
+        Note that the output is not meant to be in the in the given ring ``R``.
         Since the results of some functions will still be  floating point
         approximations::
 
@@ -1252,6 +1252,22 @@ cdef class Expression(CommutativeRingElement):
             sqrt(2)
             sage: f._convert({'parent':int})
             0
+
+        If ``R`` has an associated complex field it is used with complex
+        input::
+
+            sage: SR(CBF(1+I))._convert({'parent':RDF})
+            1.0 + 1.0*I
+            sage: type(_.pyobject())
+            <type 'sage.rings.complex_double.ComplexDoubleElement'>
+            sage: SR(CBF(1+I))._convert({'parent':CDF})
+            1.0 + 1.0*I
+            sage: SR(RBF(1))._convert({'parent':RDF})
+            1.0
+            sage: SR(CBF(1))._convert({'parent':RDF})
+            1.0
+            sage: type(_.pyobject())
+            <type 'sage.rings.real_double.RealDoubleElement'>
         """
         cdef GEx res
         sig_on()

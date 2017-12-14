@@ -359,7 +359,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             if not all(test(poly.parent()) for poly in polys):
                 try:
                     polys = [poly.lift() for poly in polys]
-                except:
+                except AttributeError:
                     raise ValueError('{} must be elements of a polynomial ring'.format(morphism_or_polys))
         else:
             # homogenize!

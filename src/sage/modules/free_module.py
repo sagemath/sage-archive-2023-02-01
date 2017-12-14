@@ -748,7 +748,7 @@ done from the right side.""")
             try:
                 if base_ring.is_finite() or rank == 0:
                     category = category.Enumerated().Finite()
-            except:
+            except Exception:
                 pass
 
         super(FreeModule_generic, self).__init__(base_ring, category=category)

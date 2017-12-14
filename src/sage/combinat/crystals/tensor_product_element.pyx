@@ -750,10 +750,10 @@ cdef class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
             sage: T = crystals.Tableaux(['A',3], shape = [2,2])
             sage: t = T(list=[int(3),1,4,2])
             sage: type(t[0])
-            <type 'sage.combinat.crystals.letters.Crystal_of_letters_type_A_element'>
+            <... 'sage.combinat.crystals.letters.Crystal_of_letters_type_A_element'>
             sage: t = T(list=[3,int(1),4,2])
             sage: type(t[1])
-            <type 'sage.combinat.crystals.letters.Crystal_of_letters_type_A_element'>
+            <... 'sage.combinat.crystals.letters.Crystal_of_letters_type_A_element'>
             sage: C = crystals.KirillovReshetikhin(['A',int(3),1], 1,1)
             sage: C[0].e(0)
             [[4]]

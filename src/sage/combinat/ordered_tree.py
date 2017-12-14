@@ -233,7 +233,7 @@ class OrderedTree(AbstractClonableTree, ClonableList):
                 sage: t1
                 []
                 sage: t1.parent()
-                <type 'sage.structure.parent.Parent'>
+                <... 'sage.structure.parent.Parent'>
         """
         return OrderedTrees_all()
 

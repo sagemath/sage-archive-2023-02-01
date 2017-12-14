@@ -38,7 +38,7 @@ from sage.structure.element import Element, is_InfinityElement
 from sage.structure.richcmp import richcmp
 
 from sage.modular.modsym.p1list import lift_to_sl2z_llong
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
 

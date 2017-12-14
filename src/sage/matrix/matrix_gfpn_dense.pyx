@@ -327,7 +327,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         it can be used as key in a Python dictionary.
 
         The arguments ``copy`` and ``coerce`` are ignored, they are only
-        here for a common interface with :class:`~sage.matrix.matrix.Matrix`.
+        here for a common interface with other matrix constructors.
 
         EXAMPLES::
 

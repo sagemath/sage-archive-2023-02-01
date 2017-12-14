@@ -47,14 +47,14 @@ def normalized_laurent_polynomial(R, p):
 
         sage: R.<q>=LaurentPolynomialRing(ZZ)
         sage: [type(c) for c in (q**-1).coefficients()]
-        [<type 'sage.rings.integer.Integer'>]
+        [<... 'sage.rings.integer.Integer'>]
 
     It also happens in any ring when dividing by units::
 
         sage: type ( 3/1 )
-        <type 'sage.rings.rational.Rational'>
+        <... 'sage.rings.rational.Rational'>
         sage: type ( -1/-1 )
-        <type 'sage.rings.rational.Rational'>
+        <... 'sage.rings.rational.Rational'>
 
     This function is a variation on a suggested workaround of Nils Bruin.
 
@@ -62,10 +62,10 @@ def normalized_laurent_polynomial(R, p):
 
         sage: from sage.algebras.iwahori_hecke_algebra import normalized_laurent_polynomial
         sage: type ( normalized_laurent_polynomial(ZZ, 3/1) )
-        <type 'sage.rings.integer.Integer'>
+        <... 'sage.rings.integer.Integer'>
         sage: R.<q>=LaurentPolynomialRing(ZZ)
         sage: [type(c) for c in normalized_laurent_polynomial(R, q**-1).coefficients()]
-        [<type 'sage.rings.integer.Integer'>]
+        [<... 'sage.rings.integer.Integer'>]
         sage: R.<u,v>=LaurentPolynomialRing(ZZ,2)
         sage: p=normalized_laurent_polynomial(R, 2*u**-1*v**-1+u*v)
         sage: ui=normalized_laurent_polynomial(R, u^-1)

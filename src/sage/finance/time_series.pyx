@@ -2088,7 +2088,7 @@ cdef class TimeSeries:
             sage: w = v.numpy(copy=False); w
             array([ 1. , -3. ,  4.5, -2. ])
             sage: type(w)
-            <type 'numpy.ndarray'>
+            <... 'numpy.ndarray'>
             sage: w.shape
             (4,)
 

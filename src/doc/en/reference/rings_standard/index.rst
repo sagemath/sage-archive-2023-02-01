@@ -15,6 +15,7 @@ Integers
    sage/rings/fast_arith
    sage/rings/sum_of_squares
    sage/arith/functions
+   sage/arith/power
    sage/arith/multi_modular
    sage/arith/misc
 

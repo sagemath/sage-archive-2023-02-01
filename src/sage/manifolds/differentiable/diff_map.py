@@ -708,7 +708,7 @@ class DiffMap(ContinuousMap):
 
         - the functions `J_{ij}` as a double array, `J_{ij}` being
           the element ``[i][j]`` represented by a
-          :class:`~sage.manifolds.coord_func.CoordFunction`
+          :class:`~sage.manifolds.chart_func.ChartFunction`
 
         To get symbolic expressions, use the method
         :meth:`jacobian_matrix` instead.
@@ -740,7 +740,8 @@ class DiffMap(ContinuousMap):
             sage: J[2][0]
             2*x
             sage: type(J[2][0])
-            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category.element_class'>
+            <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category.element_class'>
+
             sage: J[2][0].display()
             (x, y) |--> 2*x
 
@@ -1226,4 +1227,3 @@ class DiffMap(ContinuousMap):
         resu = fmodule2.tensor_from_comp((ncon, 0), ptcomp, name=resu_name,
                                          latex_name=resu_latex_name)
         return resu
-

@@ -623,9 +623,9 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         Example to show that bug :trac:`4820` is fixed::
 
             sage: [type(c) for c in 2*EllipticCurve('37a1').gen(0)]
-            [<type 'sage.rings.rational.Rational'>,
-            <type 'sage.rings.rational.Rational'>,
-            <type 'sage.rings.rational.Rational'>]
+            [<... 'sage.rings.rational.Rational'>,
+            <... 'sage.rings.rational.Rational'>,
+            <... 'sage.rings.rational.Rational'>]
 
         Checks that :trac:`15964` is fixed::
 
@@ -725,9 +725,9 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         Example to show that bug :trac:`4820` is fixed::
 
             sage: [type(c) for c in -EllipticCurve('37a1').gen(0)]
-            [<type 'sage.rings.rational.Rational'>,
-            <type 'sage.rings.rational.Rational'>,
-            <type 'sage.rings.rational.Rational'>]
+            [<... 'sage.rings.rational.Rational'>,
+            <... 'sage.rings.rational.Rational'>,
+            <... 'sage.rings.rational.Rational'>]
         """
         if self.is_zero():
             return self

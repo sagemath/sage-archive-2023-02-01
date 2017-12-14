@@ -81,7 +81,7 @@ import types
 # trac ticket #14159
 
 from sage.structure.coerce_dict import TripleDict
-_cache = TripleDict(53, weak_values=True)
+_cache = TripleDict(weak_values=True)
 
 def Hom(X, Y, category=None, check=True):
     """

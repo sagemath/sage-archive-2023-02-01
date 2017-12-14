@@ -165,10 +165,9 @@ class IntegerMatrices(UniqueRepresentation, Parent):
             False
             sage: matrix([[-1, 3, 1]]) in IM
             False
-
         """
-        from sage.matrix.matrix import Matrix
-        if not isinstance(x, Matrix):
+        from sage.structure.element import is_Matrix
+        if not is_Matrix(x):
             return False
         row_sums = [ZZ.zero()] * x.nrows()
         col_sums = [ZZ.zero()] * x.ncols()

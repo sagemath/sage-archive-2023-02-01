@@ -750,8 +750,7 @@ ext_modules = [
 
     Extension("sage.matrix.matrix_complex_ball_dense",
               ["sage/matrix/matrix_complex_ball_dense.pyx"],
-              libraries=['arb', 'mpfi', 'mpfr'],
-              language = "c++"),
+              libraries=['arb', 'mpfi', 'mpfr']),
 
     Extension('sage.matrix.matrix_complex_double_dense',
               sources = ['sage/matrix/matrix_complex_double_dense.pyx']),
@@ -1118,8 +1117,7 @@ ext_modules = [
 
     Extension("sage.rings.complex_arb",
               ["sage/rings/complex_arb.pyx"],
-              libraries=['mpfi', 'mpfr', 'gmp'],
-              language = 'c++'),
+              libraries=['mpfi', 'mpfr', 'gmp']),
 
     Extension('sage.rings.complex_double',
               sources = ['sage/rings/complex_double.pyx'],
@@ -1193,8 +1191,7 @@ ext_modules = [
 
     Extension("sage.rings.real_arb",
               ["sage/rings/real_arb.pyx"],
-              libraries = ['mpfi', 'mpfr'],
-              language = 'c++'),
+              libraries = ['mpfi', 'mpfr']),
 
     Extension('sage.rings.real_lazy',
               sources = ['sage/rings/real_lazy.pyx']),
@@ -1417,8 +1414,7 @@ ext_modules = [
               sources = ['sage/rings/polynomial/polydict.pyx']),
 
     Extension('sage.rings.polynomial.polynomial_complex_arb',
-               sources = ['sage/rings/polynomial/polynomial_complex_arb.pyx'],
-               language="c++"),
+               sources = ['sage/rings/polynomial/polynomial_complex_arb.pyx']),
 
     Extension('sage.rings.polynomial.polynomial_compiled',
                sources = ['sage/rings/polynomial/polynomial_compiled.pyx']),

@@ -697,23 +697,6 @@ class AdditiveMagmas(Category_singleton):
                 # TODO: add a test that actually exercise this default implementation
                 return self(0)
 
-            def zero_element(self):
-                """
-                Backward compatibility alias for ``self.zero()``.
-
-                TESTS::
-
-                    sage: from sage.geometry.polyhedron.parent import Polyhedra
-                    sage: P = Polyhedra(QQ, 3)
-                    sage: P.zero_element()
-                    doctest:...: DeprecationWarning: .zero_element() is deprecated. Use .zero() instead
-                    See http://trac.sagemath.org/17694 for details.
-                    A 0-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex
-                """
-                from sage.misc.superseded import deprecation
-                deprecation(17694, ".zero_element() is deprecated. Use .zero() instead")
-                return self.zero()
-
             def is_empty(self):
                 r"""
                 Return whether this set is empty.

@@ -69,6 +69,7 @@ from sage.misc.misc import verbose
 from sage.rings.real_mpfr import RR
 from sage.modular.pollack_stevens.sigma0 import Sigma0ActionAdjuster
 from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
+from sage.misc.superseded import deprecated_function_alias
 
 # Need this to be pickleable
 
@@ -2320,7 +2321,7 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
         """
         return self._p
 
-    def zero_element(self):
+    def zero(self):
         r"""
         Return the zero element of ``self``.
 
@@ -2328,10 +2329,20 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
 
             sage: X = BruhatTitsQuotient(5, 7)
             sage: H1 = X.padic_automorphic_forms( 2, prec=10)
-            sage: H1.zero_element() == 0
+            sage: H1.zero() == 0
             True
+
+        TESTS::
+
+           sage: H1.zero_element() == 0
+           doctest:...:
+           DeprecationWarning: zero_element is deprecated. Please use zero instead.
+           See http://trac.sagemath.org/24203 for details.
+           True
         """
         return self.element_class(self, [self._U(0) for o in self._list])
+
+    zero_element = deprecated_function_alias(24203, zero)
 
     def __eq__(self, other):
         r"""
@@ -2478,7 +2489,7 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
             vals = self._make_invariant([self._U(o,normalize=False) for o in F])
             return self.element_class(self, vals)
         if data == 0:
-            return self.zero_element()
+            return self.zero()
 
     def _an_element_(self):
         r"""

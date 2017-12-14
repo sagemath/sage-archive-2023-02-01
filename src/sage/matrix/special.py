@@ -69,10 +69,9 @@ import sage.rings.all as rings
 from sage.rings.ring import is_Ring
 import sage.matrix.matrix_space as matrix_space
 from sage.modules.free_module_element import vector
-from sage.structure.element import is_Vector
+from sage.structure.element import is_Vector, is_Matrix
 from sage.rings.all import ZZ, QQ
 from sage.misc.misc_c import running_total
-from .matrix import is_Matrix
 from copy import copy
 from .constructor import matrix
 

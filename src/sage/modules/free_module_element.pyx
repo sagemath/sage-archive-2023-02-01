@@ -1585,11 +1585,12 @@ cdef class FreeModuleElement(Vector):   # abstract base class
 
             sage: v = vector([1,2/3,pi])
             sage: v.iteritems()
-            <dictionary-itemiterator object at ...>
+            <generator object at ...>
             sage: list(v.iteritems())
             [(0, 1), (1, 2/3), (2, pi)]
         """
-        return self.dict(copy=False).iteritems()
+        cdef dict d = self.dict(copy=False)
+        yield from d.iteritems()
 
     def __abs__(self):
         """

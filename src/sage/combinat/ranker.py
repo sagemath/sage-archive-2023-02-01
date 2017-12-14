@@ -89,7 +89,7 @@ def rank_from_list(l):
     implementation detail::
 
         sage: type(r)
-        <type 'sage.misc.callable_dict.CallableDict'>
+        <... 'sage.misc.callable_dict.CallableDict'>
         sage: r
         {'a': 0, 'c': 2, 'b': 1}
 

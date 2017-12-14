@@ -35,7 +35,7 @@ from sage.structure.sequence import Sequence
 from sage.structure.element import is_Vector
 from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.matrix.constructor import Matrix
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 
 from sage.schemes.curves.projective_curve import ProjectivePlaneCurve
 

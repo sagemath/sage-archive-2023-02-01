@@ -285,7 +285,7 @@ def disk(point, radius, angle, **options):
         sage: d
         Graphics3d Object
         sage: type(d)
-        <type 'sage.plot.plot3d.index_face_set.IndexFaceSet'>
+        <... 'sage.plot.plot3d.index_face_set.IndexFaceSet'>
 
     Extra options will get passed on to ``show()``, as long as they are valid::
 

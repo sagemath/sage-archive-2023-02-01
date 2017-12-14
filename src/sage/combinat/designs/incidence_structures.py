@@ -170,9 +170,9 @@ class IncidenceStructure(object):
             sage: blocks = [[e0,e1,e2],[e0,e1],[e2,e4]]
             sage: I = IncidenceStructure(V, blocks)
             sage: type(I.ground_set()[0])
-            <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
+            <... 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
             sage: type(I.blocks()[0][0])
-            <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
+            <... 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
 
         TESTS::
 

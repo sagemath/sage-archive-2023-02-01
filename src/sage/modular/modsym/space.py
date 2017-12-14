@@ -28,7 +28,7 @@ import sage.modules.free_module as free_module
 import sage.matrix.matrix_space as matrix_space
 from   sage.modules.free_module_element  import is_FreeModuleElement
 from sage.modules.free_module import total_module_order
-import sage.misc.all as misc
+from sage.misc.all import verbose, prod
 import sage.modular.hecke.all as hecke
 import sage.arith.all as arith
 import sage.rings.fast_arith as fast_arith
@@ -1384,13 +1384,13 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         i = self.dimension()-1
         j = 0
 
-        t = misc.verbose('computing basis to precision %s'%prec)
+        t = verbose('computing basis to precision %s'%prec)
         while V.dimension() < d and i >= 0:
             v = [self.dual_hecke_matrix(n).column(i) for n in range(1,prec)]
-            t = misc.verbose('iteration: %s'%j,t)
+            t = verbose('iteration: %s'%j,t)
             X = M(v).transpose()
             V += X.row_space()
-            t = misc.verbose('addition of row space: %s'%j,t)
+            t = verbose('addition of row space: %s'%j,t)
             i -= 1
             j += 1
 
@@ -2163,7 +2163,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             while self.level() % p == 0:
                 p = arith.next_prime(p)
             f = self.hecke_polynomial(p)
-            g = misc.prod(g for g,_ in f.factor())   # square free part
+            g = prod(g for g,_ in f.factor())   # square free part
             t = B.hecke_operator(p)
             s = g(t)
             B = s.kernel()

@@ -197,7 +197,7 @@ cdef class IntList:
             sage: a[5:-2]
             [5, 6, 7]
             sage: type(a[5:-2])
-            <type 'sage.stats.intlist.IntList'>
+            <... 'sage.stats.intlist.IntList'>
             sage: type(a[5])
             <... 'int'>
         """
@@ -496,7 +496,7 @@ cdef class IntList:
             sage: T = stats.IntList([-2,3,5]).time_series(); T
             [-2.0000, 3.0000, 5.0000]
             sage: type(T)
-            <type 'sage.finance.time_series.TimeSeries'>
+            <... 'sage.finance.time_series.TimeSeries'>
         """
         cdef TimeSeries T = TimeSeries.__new__(TimeSeries)
         # We just reach into the data structure underlying T, since we

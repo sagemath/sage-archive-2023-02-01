@@ -329,6 +329,17 @@ def log(*args, **kwds):
         sage: log(-1.0)
         3.14159265358979*I
 
+    Small integer powers are factored out immediately::
+
+        sage: log(4)
+        2*log(2)
+        sage: log(1000000000)
+        9*log(10)
+        sage: log(8) - 3*log(2)
+        0
+        sage: bool(log(8) == 3*log(2))
+        True
+
     The ``hold`` parameter can be used to prevent automatic evaluation::
 
         sage: log(-1,hold=True)
@@ -511,15 +522,15 @@ class Function_polylog(GinacFunction):
             sage: polylog(2, BF(4/3))
             nan
             sage: parent(_)
-            Real ball field with 100 bits precision
+            Real ball field with 100 bits of precision
             sage: polylog(2, CBF(1/3))
             [0.366213229977063 +/- 5.85e-16]
             sage: parent(_)
-            Complex ball field with 53 bits precision
+            Complex ball field with 53 bits of precision
             sage: polylog(2, CBF(1))
             [1.644934066848226 +/- 6.59e-16]
             sage: parent(_)
-            Complex ball field with 53 bits precision
+            Complex ball field with 53 bits of precision
         """
         GinacFunction.__init__(self, "polylog", nargs=2)
 

@@ -3579,12 +3579,11 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         A list of all primes ``p < B`` which split completely in ``K``.
 
-       EXAMPLE::
+       EXAMPLES::
 
             sage: K.<xi> = NumberField(x^3 - 3*x + 1)
             sage: K.completely_split_primes(100)
             [17, 19, 37, 53, 71, 73, 89]
-
         """
         from sage.rings.fast_arith import prime_range
         from sage.rings.finite_rings.finite_field_constructor import GF

@@ -1637,7 +1637,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         tester = self._tester(**options)
         # Test to make sure the returned matrix is a copy
-        tester.assert_(self.change_ring(self.base_ring()) is not self)
+        tester.assertTrue(self.change_ring(self.base_ring()) is not self)
 
     def _matrix_(self, R=None):
         """

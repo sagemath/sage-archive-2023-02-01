@@ -536,9 +536,9 @@ cdef class SageObject:
         from sage.categories.objects import Objects
         tester = self._tester(**options)
         category = self.category()
-        tester.assert_(isinstance(category, Category))
-        tester.assert_(category.is_subcategory(Objects()))
-        tester.assert_(self in category)
+        tester.assertTrue(isinstance(category, Category))
+        tester.assertTrue(category.is_subcategory(Objects()))
+        tester.assertTrue(self in category)
 
     def parent(self):
         """
@@ -570,18 +570,18 @@ cdef class SageObject:
 
             sage: tester = ZZ._tester()
 
-            sage: tester.assert_(1 == 1)
-            sage: tester.assert_(1 == 0)
+            sage: tester.assertTrue(1 == 1)
+            sage: tester.assertTrue(1 == 0)
             Traceback (most recent call last):
             ...
             AssertionError: False is not true
-            sage: tester.assert_(1 == 0, "this is expected to fail")
+            sage: tester.assertTrue(1 == 0, "this is expected to fail")
             Traceback (most recent call last):
             ...
             AssertionError: this is expected to fail
 
-            sage: tester.assertEquals(1, 1)
-            sage: tester.assertEquals(1, 0)
+            sage: tester.assertEqual(1, 1)
+            sage: tester.assertEqual(1, 0)
             Traceback (most recent call last):
             ...
             AssertionError: 1 != 0

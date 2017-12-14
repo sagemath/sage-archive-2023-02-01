@@ -973,7 +973,7 @@ class TamariIntervalPoset(Element):
         return TamariIntervalPoset(N - 1, new_covers, check=False)
 
     def insertion(self, i):
-        """
+        r"""
         Return the Tamari insertion of an integer `i` into the
         interval-poset ``self``.
 
@@ -2356,7 +2356,7 @@ class TamariIntervalPoset(Element):
         return down.canopee() == up.canopee()
 
     def is_modern(self):
-        """
+        r"""
         Return ``True`` if ``self`` is a modern Tamari interval.
 
         This is defined by exclusion of a simple pattern in the Hasse diagram,
@@ -2379,7 +2379,7 @@ class TamariIntervalPoset(Element):
         return True
 
     def is_exceptional(self):
-        """
+        r"""
         Return ``True`` if ``self`` is an exceptional Tamari interval.
 
         This is defined by exclusion of a simple pattern in the Hasse diagram,
@@ -2464,15 +2464,15 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: ip = TamariIntervalPoset(4,[(2,4),(3,4),(2,1),(3,1)])
-            sage: ip.latex_options.color_decreasing  # known bug (Trac #24326)
-            'red'
-            sage: TamariIntervalPosets.options.latex_color_decreasing='green'
-            sage: ip.latex_options.color_decreasing  # known bug (Trac #24326)
-            'green'
-            sage: TamariIntervalPosets.options._reset()
-            sage: ip.latex_options.color_decreasing  # known bug (Trac #24326)
-            'red'
+            sage: TIP = TamariIntervalPosets
+            sage: TIP.options.latex_color_decreasing
+            red
+            sage: TIP.options.latex_color_decreasing='green'
+            sage: TIP.options.latex_color_decreasing
+            green
+            sage: TIP.options._reset()
+            sage: TIP.options.latex_color_decreasing
+            red
         """
         NAME = 'TamariIntervalPosets'
         module = 'sage.combinat.interval_posets'

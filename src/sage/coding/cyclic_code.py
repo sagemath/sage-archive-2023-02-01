@@ -367,18 +367,17 @@ class CyclicCode(AbstractLinearCode):
             sage: Cc = codes.CyclicCode(D=Dset, field=F, length=n, primitive_root=alpha)
             Traceback (most recent call last):
             ...
-            ValueError: primitive_root must belong to an extension of the base field.
+            ValueError: primitive_root must belong to an extension of the base field
             sage: alpha = GF(16).one()
             sage: Cc = codes.CyclicCode(D=Dset, field=F, length=n, primitive_root=alpha)
             Traceback (most recent call last):
             ...
-            ValueError: primitive_root must be a primitive n-th root of unity.
+            ValueError: primitive_root must be a primitive n-th root of unity
             sage: alpha = GF(32).gen()
             sage: Cc = codes.CyclicCode(D=Dset, field=F, length=n, primitive_root=alpha)
             Traceback (most recent call last):
             ...
-            ValueError: primitive_root must be a primitive n-th root of unity.
-
+            ValueError: primitive_root must be a primitive n-th root of unity
         """
         # Case (1) : generator polynomial and length are provided.
         if (generator_pol is not None and length is not None and
@@ -445,14 +444,13 @@ class CyclicCode(AbstractLinearCode):
                 Fsplit = primitive_root.parent()
                 try:
                     FE = RelativeFiniteFieldExtension(Fsplit, F)
-                    assert FE.extension_degree() == s
-                    assert primitive_root.multiplicative_order() == n
-                except AssertionError:
-                    raise ValueError("primitive_root must be a primitive "
-                                     "n-th root of unity.")
-                except:
+                except Exception:
                     raise ValueError("primitive_root must belong to an "
-                                     "extension of the base field.")
+                                     "extension of the base field")
+                if (FE.extension_degree() != s or
+                        primitive_root.multiplicative_order() != n):
+                    raise ValueError("primitive_root must be a primitive "
+                                     "n-th root of unity")
                 alpha = primitive_root
             else:
                 Fsplit, F_to_Fsplit = F.extension(Integer(s), map=True)

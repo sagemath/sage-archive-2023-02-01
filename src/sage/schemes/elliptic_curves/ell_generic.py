@@ -1713,9 +1713,9 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: [E.division_polynomial(3, two_torsion_multiplicity=i) for i in range(3)]
             [3*x^4 - 6*x^2 + 3*x - 1, 3*x^4 - 6*x^2 + 3*x - 1, 3*x^4 - 6*x^2 + 3*x - 1]
             sage: [type(E.division_polynomial(3, two_torsion_multiplicity=i)) for i in range(3)]
-            [<type 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint'>,
-             <type 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomial_libsingular'>,
-             <type 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint'>]
+            [<... 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint'>,
+             <... 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomial_libsingular'>,
+             <... 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint'>]
 
         ::
 
@@ -2889,7 +2889,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: E = EllipticCurve([RR(0), RR(0), RR(1), RR(-1), RR(0)])
             sage: e = E.pari_curve()
             sage: type(e)
-            <type 'cypari2.gen.Gen'>
+            <... 'cypari2.gen.Gen'>
             sage: e.type()
             't_VEC'
             sage: e.disc()

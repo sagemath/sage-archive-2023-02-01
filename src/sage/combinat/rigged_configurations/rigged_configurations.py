@@ -387,9 +387,8 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
         Parent.__init__(self, category=KirillovReshetikhinCrystals().TensorProducts())
 
     # add options to class
-    options=GlobalOptions('RiggedConfigurations',
-        module='sage.combinat.rigged_configurations.rigged_configurations',
-        doc=r"""
+    class options(GlobalOptions):
+        r"""
         Sets and displays the options for rigged configurations.
         If no parameters are set, then the function returns a copy of
         the options dictionary.
@@ -397,8 +396,9 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
         The ``options`` to partitions can be accessed as the method
         :obj:`RiggedConfigurations.options` of
         :class:`RiggedConfigurations`.
-        """,
-        end_doc=r"""
+
+        @OPTIONS@
+
         EXAMPLES::
 
             sage: RC = RiggedConfigurations(['A',3,1], [[2,2],[1,1],[1,1]])
@@ -432,21 +432,22 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
               1  2  3
               4  5
             sage: RiggedConfigurations.options._reset()
-        """,
-        display=dict(default="vertical",
+        """
+        NAME = 'RiggedConfigurations'
+        module = 'sage.combinat.rigged_configurations.rigged_configurations'
+        display = dict(default="vertical",
                      description='Specifies how rigged configurations should be printed',
                      values=dict(vertical='displayed vertically',
                                  horizontal='displayed horizontally'),
-                     case_sensitive=False),
-        element_ascii_art=dict(default=True,
+                     case_sensitive=False)
+        element_ascii_art = dict(default=True,
                          description='display using the repr option ``element_ascii_art``',
-                         checker=lambda x: isinstance(x, bool)),
-        half_width_boxes_type_B=dict(default=True,
+                         checker=lambda x: isinstance(x, bool))
+        half_width_boxes_type_B = dict(default=True,
                 description='display the last rigged partition in affine type B as half width boxes',
-                checker=lambda x: isinstance(x, bool)),
-        convention=dict(link_to=(tableau.Tableaux.options,'convention')),
+                checker=lambda x: isinstance(x, bool))
+        convention = dict(link_to=(tableau.Tableaux.options,'convention'))
         notation = dict(alt_name='convention')
-    )
 
     def _repr_(self):
         """

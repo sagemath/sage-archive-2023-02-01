@@ -1578,20 +1578,20 @@ class RElement(ExtraTabCompletion, ExpectElement):
 
             sage: one = r(1)
             sage: two = r(2)
-            sage: cmp(one,one)
+            sage: one.__cmp__(one)
             0
-            sage: cmp(one,two)
+            sage: one.__cmp__(two)
             -1
-            sage: cmp(two,one)
+            sage: two.__cmp__(one)
             1
         """
         P = self.parent()
-        if P.eval("%s %s %s"%(self.name(), P._equality_symbol(),
+        if P.eval("%s %s %s" % (self.name(), P._equality_symbol(),
                                  other.name())) == P._true_symbol():
             return 0
-        elif P.eval("%s %s %s"%(self.name(), P._lessthan_symbol(), other.name())) == P._true_symbol():
+        elif P.eval("%s %s %s" % (self.name(), P._lessthan_symbol(), other.name())) == P._true_symbol():
             return -1
-        elif P.eval("%s %s %s"%(self.name(), P._greaterthan_symbol(), other.name())) == P._true_symbol():
+        elif P.eval("%s %s %s" % (self.name(), P._greaterthan_symbol(), other.name())) == P._true_symbol():
             return 1
         else:
             return -1  # everything is supposed to be comparable in Python, so we define

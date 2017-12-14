@@ -28,7 +28,7 @@ from operator import add, sub, mul, pow, neg, inv, truediv
 
 cdef canonical_coercion
 from sage.structure.element import canonical_coercion
-from sage.structure.all import parent
+from sage.structure.element cimport parent
 from sage.structure.richcmp cimport richcmp
 
 import sage.categories.map

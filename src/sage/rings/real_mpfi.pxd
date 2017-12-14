@@ -1,6 +1,6 @@
 from sage.libs.mpfi cimport *
 
-cimport sage.rings.ring
+from sage.rings.ring cimport Field
 
 from sage.structure.element cimport RingElement
 
@@ -9,7 +9,7 @@ from .real_mpfr cimport RealField_class
 
 cdef class RealIntervalFieldElement(RingElement)  # forward decl
 
-cdef class RealIntervalField_class(sage.rings.ring.Field):
+cdef class RealIntervalField_class(Field):
     cdef int __prec
     cdef bint sci_not
     # Cache RealField instances for the lower, upper, and middle bounds.

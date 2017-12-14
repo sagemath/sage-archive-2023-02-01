@@ -18,9 +18,9 @@ from cpython.unicode cimport PyUnicode_Decode, PyUnicode_AsEncodedString
 IF PY_MAJOR_VERSION >= 3:
     cdef extern from "Python.h":
         # Missing from cpython.unicode in Cython 0.27.3
-        char* PyUnicode_AsUTF8(object unicode)
-        unicode PyUnicode_DecodeLocale(const char* str, const char* errors)
-        bytes PyUnicode_EncodeLocale(object unicode, const char* errors)
+        char* PyUnicode_AsUTF8(object s)
+        object PyUnicode_DecodeLocale(const char* s, const char* errors)
+        object PyUnicode_EncodeLocale(object s, const char* errors)
 
 
 cdef inline str char_to_str(const char* c, encoding=None, errors=None):

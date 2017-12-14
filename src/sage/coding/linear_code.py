@@ -310,16 +310,17 @@ def _explain_constructor(cl):
     r"""
     Internal function for use error messages when constructing encoders and decoders.
 
-    EXAMPLES:
-    sage: from sage.coding.linear_code import _explain_constructor, LinearCodeSyndromeDecoder
-    sage: cl = LinearCodeSyndromeDecoder
-    sage: _explain_constructor(cl)
-    "The constructor requires no arguments.\nIt takes the optional arguments ['maximum_error_weight'].\nSee the documentation of sage.coding.linear_code.LinearCodeSyndromeDecoder for more details."
+    EXAMPLES::
 
-    sage: from sage.coding.information_set_decoder import LinearCodeInformationSetDecoder
-    sage: cl = LinearCodeInformationSetDecoder
-    sage: _explain_constructor(cl)
-    "The constructor requires the arguments ['number_errors'].\nIt takes the optional arguments ['algorithm'].\nIt accepts unspecified arguments as well.\nSee the documentation of sage.coding.information_set_decoder.LinearCodeInformationSetDecoder for more details."
+        sage: from sage.coding.linear_code import _explain_constructor, LinearCodeSyndromeDecoder
+        sage: cl = LinearCodeSyndromeDecoder
+        sage: _explain_constructor(cl)
+        "The constructor requires no arguments.\nIt takes the optional arguments ['maximum_error_weight'].\nSee the documentation of sage.coding.linear_code.LinearCodeSyndromeDecoder for more details."
+
+        sage: from sage.coding.information_set_decoder import LinearCodeInformationSetDecoder
+        sage: cl = LinearCodeInformationSetDecoder
+        sage: _explain_constructor(cl)
+        "The constructor requires the arguments ['number_errors'].\nIt takes the optional arguments ['algorithm'].\nIt accepts unspecified arguments as well.\nSee the documentation of sage.coding.information_set_decoder.LinearCodeInformationSetDecoder for more details."
     """
     import inspect
     if inspect.isclass(cl):

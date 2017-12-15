@@ -157,10 +157,8 @@ class AbstractLanguage(Parent):
              all(alphabet.unrank(i) > alphabet.unrank(j)
                  for i in range(min(36, alphabet.cardinality()))
                  for j in range(i)))):
-            self.cmp_letters = cmp  # deprecated
             self.sortkey_letters = self._sortkey_trivial
         else:
-            self.cmp_letters = self._cmp_letters  # deprecated
             self.sortkey_letters = self._sortkey_letters
 
         if category is None:
@@ -247,102 +245,6 @@ class AbstractLanguage(Parent):
         for a in itertools.islice(w, length):
             if a not in self.alphabet():
                 raise ValueError("%s not in alphabet!" % a)
-
-    def has_letter(self, letter):
-        r"""
-        Returns True if the alphabet of self contains the given letter.
-
-        INPUT:
-
-        -  ``letter`` -- a letter
-
-        EXAMPLES::
-
-            sage: W = Words()
-            sage: W.has_letter('a')
-            doctest:...: DeprecationWarning: has_letter is deprecated. Use 'letter
-            in W.alphabet()' instead
-            See http://trac.sagemath.org/19619 for details.
-            True
-            sage: W.has_letter(1)
-            True
-            sage: W.has_letter({})
-            True
-            sage: W.has_letter([])
-            True
-            sage: W.has_letter(range(5))
-            True
-            sage: W.has_letter(Permutation([]))
-            True
-
-            sage: W = Words(['a','b','c'])
-            sage: W.has_letter('a')
-            True
-            sage: W.has_letter('d')
-            False
-            sage: W.has_letter(8)
-            False
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(19619, "has_letter is deprecated. Use 'letter in W.alphabet()' instead")
-        return letter in self.alphabet()
-
-    def size_of_alphabet(self):
-        r"""
-        Returns the size of the alphabet.
-
-        EXAMPLES::
-
-            sage: Words().size_of_alphabet()
-            doctest:...: DeprecationWarning: size_of_alphabet is deprecated. Use
-            W.alphabet().cardinality() instead
-            See http://trac.sagemath.org/19619 for details.
-            +Infinity
-            sage: Word('abaccefa').parent().size_of_alphabet()
-            +Infinity
-            sage: Words('abcdef').size_of_alphabet()
-            6
-            sage: Words('').size_of_alphabet()
-            0
-            sage: Words('456').size_of_alphabet()
-            3
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(19619, "size_of_alphabet is deprecated. Use W.alphabet().cardinality() instead")
-        return self.alphabet().cardinality()
-
-    def _cmp_letters(self, letter1, letter2):
-        r"""
-        Returns a negative number, zero or a positive number if
-        ``letter1`` < ``letter2``, ``letter1`` == ``letter2`` or
-        ``letter1`` > ``letter2`` respectively.
-
-        INPUT:
-
-        - ``letter1`` -- a letter in the alphabet
-        - ``letter2`` -- a letter in the alphabet
-
-        EXAMPLES::
-
-            sage: W = FiniteWords('woa')
-            sage: W.cmp_letters('w','a')  # indirect doctest
-            doctest:warning...:
-            DeprecationWarning: cmp_letters is deprecated. Use sortkey_letters instead
-            See http://trac.sagemath.org/21435 for details.
-            -2
-            sage: W.cmp_letters('w','o')  # indirect doctest
-            -1
-            sage: W.cmp_letters('w','w')  # indirect doctest
-            0
-
-        TESTS::
-
-            sage: assert W.cmp_letters == W._cmp_letters
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(21435, "cmp_letters is deprecated. Use sortkey_letters instead")
-        rk = self.alphabet().rank
-        return int(rk(letter1) - rk(letter2))
 
     def _sortkey_trivial(self, letter1):
         """

@@ -19,7 +19,7 @@ AUTHORS:
 
 from sage.modules.fg_pid.fgp_module import FGP_Module_class
 from sage.modules.fg_pid.fgp_element import DEBUG, FGP_Element
-from sage.arith.misc import gcd
+from sage.arith.misc import gcd, valuation
 from sage.rings.all import ZZ
 from sage.groups.additive_abelian.qmodnz import QmodnZ
 from sage.matrix.constructor import matrix
@@ -458,7 +458,8 @@ class TorsionQuadraticModule(FGP_Module_class):
             D_p = self.primary_part(p)
             q_p = D_p.gram_matrix_quadratic()
             q_p = q_p/D_p._modulus
-            D,U = jordan_p_adic(q_p,p,normalize=normalize)
+            prec = valuation(self.annihilator().gen(),p)
+            D,U = jordan_p_adic(q_p,p,normalize=normalize,precision=prec)
             #apply U to the generators
             n = U.ncols()
             U = U.change_ring(ZZ)

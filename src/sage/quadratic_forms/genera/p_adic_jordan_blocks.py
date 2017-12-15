@@ -43,7 +43,7 @@ def jordan_p_adic(G,p,precision=None,normalize=True):
         - ``p`` -- a prime number -- it is not checked whether ``p`` is prime
         - ``precision`` -- defining precision. If not set, 
           the minimal possible is taken.
-        - ``normalize```-- bool (default: ``True``)
+        - ``normalize``-- bool (default: ``True``)
 
     OUTPUT:
 
@@ -146,7 +146,7 @@ def jordan_p_adic(G,p,precision=None,normalize=True):
     else:
         D, U = _jordan_odd_adic(G)
         # we confirm the result
-        assert D == Matrix.diagonal(D.diagonal())
+        assert U*G*U.T == Matrix.diagonal(D.diagonal())
     assert U.determinant().valuation() == 0     # U is invertible!
     if normalize:
         D, U1 = _normalize(D)

@@ -710,8 +710,8 @@ cdef class RealField_class(sage.rings.ring.Field):
             return QQtoRR(QQ, self) * QQ._internal_coerce_map_from(S)
         from sage.rings.qqbar import AA
         from sage.rings.real_lazy import RLF
-        if S == AA or S is RLF:
-            return self._generic_coerce_map(S)
+        if S is AA or S is RLF:
+            return self.convert_method_map(S, "_mpfr_")
         return self._coerce_map_via([RLF], S)
 
     def __cmp__(self, other):

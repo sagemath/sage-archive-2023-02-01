@@ -364,7 +364,7 @@ cdef class SageObject:
             <class 'sage.typeset.unicode_art.UnicodeArt'>
         """
         ascii_art = self._ascii_art_()
-        lines = map(unicode, ascii_art)
+        lines = list(map(unicode, ascii_art))
         from sage.typeset.unicode_art import UnicodeArt
         return UnicodeArt(lines)
 

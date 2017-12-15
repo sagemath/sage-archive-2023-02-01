@@ -1043,7 +1043,7 @@ def is_polhill(int v,int k,int l,int mu):
         [(1,0),(3,0),(0,2),(1,3),(3,1)],
         [(1,2),(3,2),(2,1),(2,3),(2,2)]
         ]
-    D = [map(G,x) for x in D]
+    D = [list(map(G, x)) for x in D]
 
     # The K_i are hyperplanes partitionning the nonzero elements of
     # GF(2^s)^2. See section 6.
@@ -1113,8 +1113,8 @@ def is_polhill(int v,int k,int l,int mu):
                     product(D[0],PQ[1,i]),
                     product(D[1],PQ[2,i]),
                     product(D[2],PQ[3,i])]
-            Dtmp = map(set,Dtmp)
-            Dtmp = map(Gprod,sum(map(list,Dtmp),[]))
+            Dtmp = map(set, Dtmp)
+            Dtmp = list(map(Gprod, sum(map(list, Dtmp), [])))
             DD.append(Dtmp)
 
     # Now that we have the data, we can return the graphs.

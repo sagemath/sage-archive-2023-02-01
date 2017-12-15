@@ -333,7 +333,7 @@ cdef class WordDatatype_str(WordDatatype):
         if isinstance(data, str):
             self._data = data
         else:
-            self._data = "".join(map(str,data))
+            self._data = "".join(map(str, data))
         self._hash = None
 
     def __iter__(self):
@@ -574,7 +574,7 @@ cdef class WordDatatype_str(WordDatatype):
 
         TESTS::
 
-            sage: alphabet = map(chr, range(97,123))
+            sage: alphabet = list(map(chr, range(97, 123)))
             sage: w = Word(alphabet)
             sage: w[4]
             'e'
@@ -584,7 +584,6 @@ cdef class WordDatatype_str(WordDatatype):
             word: dfhj
             sage: all(chr(i+97) == w[i] for i in range(w.length()))
             True
-
         """
         if isinstance(key, slice):
             return self._parent(self._data[key])
@@ -713,9 +712,9 @@ cdef class WordDatatype_str(WordDatatype):
             raise ValueError("the separator must be a string.")
 
         if maxsplit is None:
-            return map(self._parent, self._data.split(sep))
+            return list(map(self._parent, self._data.split(sep)))
         else:
-            return map(self._parent, self._data.split(sep,maxsplit))
+            return list(map(self._parent, self._data.split(sep, maxsplit)))
 
     def partition(self, sep):
         r"""
@@ -758,9 +757,9 @@ cdef class WordDatatype_str(WordDatatype):
             ValueError: the separator must be a string.
         """
         if isinstance(sep, str):
-            return map(self._parent, self._data.partition(sep))
+            return list(map(self._parent, self._data.partition(sep)))
         elif isinstance(sep, WordDatatype_str):
-            return map(self._parent, self._data.partition(sep._data))
+            return list(map(self._parent, self._data.partition(sep._data)))
         raise ValueError("the separator must be a string.")
 
     def is_suffix(self, other):

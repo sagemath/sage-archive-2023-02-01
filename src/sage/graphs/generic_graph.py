@@ -8374,7 +8374,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = graphs.PetersenGraph()
             sage: h = g.nowhere_zero_flow(k=5)
-            sage: sorted(list( set(h.edge_labels()) ))
+            sage: sorted( set(h.edge_labels()) )
             [1, 2, 3, 4]
             sage: h = g.nowhere_zero_flow(k=3)
             Traceback (most recent call last):
@@ -8402,7 +8402,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G
             Graph on 1 vertex
             sage: G.nowhere_zero_flow()
-            Digraph on 1 vertices
+            Digraph on 1 vertex
 
         Loops and multiple edges::
 
@@ -8439,17 +8439,17 @@ class GenericGraph(GenericGraph_pyx):
             ...
             EmptySetError: (di)graphs with bridges have no feasible solution
 
-        Too small value of `k`::
+        Too small value of ``k``::
 
             sage: Graph().nowhere_zero_flow(k=1)
             Traceback (most recent call last):
             ...
-            ValueError: parameter `k` must be `\geq 2`
+            ValueError: parameter 'k' must be at least 2
         """
         if k is None:
             k = 6 # See [Sey1981]_
         elif k < 2:
-            raise ValueError("parameter `k` must be `\geq 2`")
+            raise ValueError("parameter 'k' must be at least 2")
 
         from sage.graphs.digraph import DiGraph
         from sage.categories.sets_cat import EmptySetError

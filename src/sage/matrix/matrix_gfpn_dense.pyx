@@ -1,5 +1,5 @@
 r"""
-Dense Matrices over `\mathbb F_q`, with `q<255`
+Dense Matrices over `\mathbb F_q`, with `q<255`.
 
 This module is a wrapper for version 2.4.24 of the Aachen
 `C-MeatAxe <http://www.math.rwth-aachen.de/homes/MTX/download.html>`_,
@@ -65,7 +65,7 @@ cimport sage.matrix.matrix0
 # Fast conversion from field to int and int to field
 cdef class FieldConverter_class:
     """
-    An auxiliary class, used to convert between <int> and finite field element
+    An auxiliary class, used to convert between <int> and finite field element.
 
     This class is for non-prime fields only. The method
     :meth:`int_to_field` exists for speed. The method
@@ -149,7 +149,7 @@ cdef class FieldConverter_class:
 
 cdef class PrimeFieldConverter_class(FieldConverter_class):
     """
-    An auxiliary class, used to convert between <int> and finite field element
+    An auxiliary class, used to convert between <int> and finite field element.
 
     This class is for prime fields only. The methods
     :meth:`int_to_field` and :meth:`field_to_int` exist in order to
@@ -302,7 +302,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
     def __init__(self, parent, data=None, mutable=True, copy=False, coerce=False):
         """
-        Matrix extension class using libmeataxe as backend
+        Matrix extension class using libmeataxe as backend.
 
         INPUT:
 
@@ -435,7 +435,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         assert self.Data.Nor == nr
         if nr==0 or nc==0:
             return
-        if len(data)<nr:
+        if len(data) < nr:
             raise ValueError("Expected a list of size at least the number of rows")
         cdef list dt, dt_i
         FfSetField(fl)
@@ -603,7 +603,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             True
 
         """
-        if not 0<=i<j<=self.Data.Nor:
+        if not 0 <= i < j <= self.Data.Nor:
             raise IndexError("Indices i={}, j={} violate the condition 0 < i < j < {}".format(i,j,self.Data.Nor))
         cdef Matrix_gfpn_dense OUT = self._new(j-i, self.Data.Noc)
         OUT.Data = MatAlloc(self.Data.Field, j-i, self.Data.Noc)
@@ -796,7 +796,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 ## comparison
     cpdef int _cmp_(left, right) except -2:
         """
-        Compare two :class:`Matrix_gfpn_dense` matrices
+        Compare two :class:`Matrix_gfpn_dense` matrices.
 
         Of course, '<' and '>' doesn't make much sense for matrices.
 
@@ -852,7 +852,8 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         return 0
 
     cpdef list _rowlist_(self, i, j=-1):
-        """Return rows as a flat list of python ints
+        """
+        Return rows as a flat list of python ints.
 
         INPUT:
 
@@ -893,7 +894,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             FfSetNoc(self.Data.Noc)
         else:
             raise ValueError("Matrix is empty")
-        if (i<0) or (i>=self.Data.Nor):
+        if (i < 0) or (i >= self.Data.Nor):
             raise IndexError("Index {} out of range 0..{}",format(i,self.Data.Nor-1))
         cdef PTR p
         p = MatGetPtr(self.Data,i)
@@ -1245,7 +1246,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
     cdef _mul_long(self, long n):
         """
-        Multiply an MTX matrix with a field element represented by an integer
+        Multiply an MTX matrix with a field element represented by an integer.
         """
         if self.Data == NULL:
             raise ValueError("The matrix must not be empty")
@@ -1298,7 +1299,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
     def __invert__(Matrix_gfpn_dense self):
         """
-        Multiplicative inverse of this matrix (if available)
+        Multiplicative inverse of this matrix (if available).
 
         TESTS::
 

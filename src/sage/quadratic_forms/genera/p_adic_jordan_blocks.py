@@ -21,7 +21,7 @@ from sage.matrix.constructor import Matrix
 from copy import copy
 from sage.rings.finite_rings.integer_mod import mod
 
-def jordan_p_adic(G,p,precision=None,normalize=True):
+def p_adic_normal_form(G,p,precision=None,normalize=True):
     r"""
     Return the `p`-adic Jordan form of a symmetric matrix.
 
@@ -53,14 +53,14 @@ def jordan_p_adic(G,p,precision=None,normalize=True):
 
     EXAMPLES::
 
-        sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import jordan_p_adic
+        sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import p_adic_normal_form
         sage: D4 = Matrix(ZZ,4,[2,-1,-1,-1,-1,2,0,0,-1,0,2,0,-1,0,0,2])
         sage: D4
         [ 2 -1 -1 -1]
         [-1  2  0  0]
         [-1  0  2  0]
         [-1  0  0  2]
-        sage: D, U = jordan_p_adic(D4,2)
+        sage: D, U = p_adic_normal_form(D4,2)
         sage: D            
         [  2   1   0   0]
         [  1   2   0   0]
@@ -74,7 +74,7 @@ def jordan_p_adic(G,p,precision=None,normalize=True):
         [-1  2 -1  0]
         [ 0 -1  2 -1]
         [ 0  0 -1  2]
-        sage: D, U = jordan_p_adic(A4,2)
+        sage: D, U = p_adic_normal_form(A4,2)
         sage: D        
         [2 1 0 0]
         [1 2 0 0]
@@ -84,51 +84,47 @@ def jordan_p_adic(G,p,precision=None,normalize=True):
     We can handle degenerate forms as well::
 
         sage: A4_extended = Matrix(ZZ,5,[2, -1, 0, 0, -1, -1, 2, -1, 0, 0, 0, -1, 2, -1, 0, 0, 0, -1, 2, -1, -1, 0, 0, -1, 2])
-        sage: D, U = jordan_p_adic(A4_extended,5)
+        sage: D, U = p_adic_normal_form(A4_extended,5)
         sage: D
-            [2 0 0 0 0]
+            [1 0 0 0 0]
             [0 1 0 0 0]
-            [0 0 2 0 0]
+            [0 0 1 0 0]
             [0 0 0 5 0]
             [0 0 0 0 0]
 
     Rational matrices as no problem as well::
 
         sage: A4dual = A4.inverse()
-        sage: D, U = jordan_p_adic(A4dual,5)
+        sage: D, U = p_adic_normal_form(A4dual,5)
         sage: D
         [5^-1    0    0    0]
-        [   0    2    0    0]
+        [   0    1    0    0]
         [   0    0    1    0]
-        [   0    0    0    2]
+        [   0    0    0    1]
 
     TESTS::
 
         sage: Z = Matrix(ZZ,0,[])
-        sage: jordan_p_adic(Z,3)
+        sage: p_adic_normal_form(Z,3)
         ([], [])
         sage: Z = matrix.zero(10)
-        sage: jordan_p_adic(Z,3)[0] == 0
+        sage: p_adic_normal_form(Z,3)[0] == 0
         True
     """
     # this calculation is local. Thus we can do it over the p-adics
     p = ZZ(p)
     denom = G.denominator()
     G = G * denom
-
-    if G.det() != 0:
-        # we have to calculate at least mod 8 for 2-adic things to make sense.
-        min_precision = G.det().valuation(p) + 3 
-    else:
-        # the non-degenerate part
-        B = G.row_space().basis_matrix()
-        GG = B * G * B.T
-        # we have to calculate at least mod 8 for things to make sense.
-        min_precision = GG.det().valuation(p) + 3 
     if precision == None:
-        precision = min_precision
-    precision = max(precision, min_precision)
-
+        if G.det() != 0:
+            # we have to calculate at least mod 8 for 2-adic things to make sense.
+            precision = G.det().valuation(p) + 3 
+        else:
+            # the non-degenerate part
+            B = G.row_space().basis_matrix()
+            GG = B * G * B.T
+            # we have to calculate at least mod 8 for things to make sense.
+            precision = GG.det().valuation(p) + 3
     R = Zp(p, prec = precision, type = 'fixed-mod')
     G = G.change_ring(R) # is not changed
     D = copy(G)    # is transformed into jordan form
@@ -429,7 +425,7 @@ def _normalize(G):
     INPUT:
 
         - a symmetric matrix over `Zp` in jordan form --
-        the output of :meth:``jordan_p_adic`` or :meth:``_jordan_2_adic``
+        the output of :meth:``p_adic_normal_form`` or :meth:``_jordan_2_adic``
 
     OUTPUT:
 
@@ -445,8 +441,8 @@ def _normalize(G):
         [...00001        0        0        0        0        0        0        0]
         [       0 ...00001        0        0        0        0        0        0]
         [       0        0 ...00010        0        0        0        0        0]
-        [       0        0        0 ...00020        0        0        0        0]
-        [       0        0        0        0 ...00010        0        0        0]
+        [       0        0        0 ...00010        0        0        0        0]
+        [       0        0        0        0 ...00020        0        0        0]
         [       0        0        0        0        0 ...00100        0        0]
         [       0        0        0        0        0        0 ...00200        0]
         [       0        0        0        0        0        0        0 ...01000]
@@ -460,8 +456,18 @@ def _normalize(G):
         # squareclasses 1, v
         v = _min_nonsquare(p)
         v = R(v)
+        non_squares = []
+        val = 0
         for i in range(n):
             if D[i, i] != 0:
+                if D[i,i].valuation()>val:
+                    # a new block starts
+                    val = D[i,i].valuation()
+                    if len(non_squares)!=0:
+                        # move the non-square to
+                        # the last entry of the last block
+                        j=non_squares.pop()
+                        U.swap_rows(j,i-1)
                 d = D[i, i].unit_part()
                 if d.is_square():
                     D[i, i] = 1
@@ -469,6 +475,15 @@ def _normalize(G):
                 else:
                     D[i, i] = v
                     U[i, :] *= (v * d.inverse_of_unit()).sqrt()
+                    if len(non_squares)!=0:
+                        j = non_squares.pop()
+                        trafo = _normalize_odd_2x2(D[[i,j],[i,j]])
+                        U[[i,j],:] = trafo*U[[i,j],:]
+                    else:
+                        non_squares.append(i)
+        if len(non_squares)!=0:
+            j=non_squares.pop()
+            U.swap_rows(j,n-1)
     else:
         # squareclasses 1,3,5,7 modulo 8
         for i in range(n):
@@ -541,9 +556,10 @@ def _normalize_2x2(G):
         sage: (N*G*N.T == ref1) or (N*G*N.T == ref2)
         True
     """
+    from sage.rings.all import PolynomialRing
+    from sage.modules.free_module_element import vector
     U = copy(G.parent().identity_matrix())
     R = G.base_ring()
-    from sage.rings.all import PolynomialRing
     P = PolynomialRing(R, 'x')
     x = P.gen()
 
@@ -589,7 +605,6 @@ def _normalize_2x2(G):
         D = U * G * U.transpose()
 
         # solve: v*D*v == 2 with v = (x,-2*x+1)
-        from sage.modules.free_module_element import vector
         if D[1, 1] != 2:
             v = vector([x, -2*x + 1])
             pol = (v*D*v - 2) // 2
@@ -701,3 +716,38 @@ def _min_nonsquare(p):
     for i in R:
         if not R(i).is_square():
             return i
+
+def _normalize_odd_2x2(G):
+    r"""
+    normalize this 2x2 block
+
+    Input:
+
+        - ``G`` -- a multiple of the 2x2 identity_matrix over the p-adics ``p!=2``
+
+    Output:
+
+        - A transformation matrix ``U`` such that
+          ``U*G*U.T`` is the identiy matrix
+
+    EXAMPLES::
+
+        sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import _normalize_odd_2x2
+        sage: G = 2*Matrix.identity(Qp(5),2)
+        sage: U = _normalize_odd_2x2(G)
+        sage: U*G*U.T
+        [1 + O(5^20)     O(5^20)]
+        [    O(5^20) 1 + O(5^20)]
+    """
+    assert G[0,0]==G[1,1]
+    u = G[0,0]
+    y = G.base_ring().zero()
+    while not (1/u-y**2).is_square():
+        y = y + 1
+    x = (1/u-y**2).sqrt()
+    U = copy(G.parent().identity_matrix())
+    U[0,0] = x
+    U[0,1] = y
+    U[1,0] = y
+    U[1,1] = -x
+    return U

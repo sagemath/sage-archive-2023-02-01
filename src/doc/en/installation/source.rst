@@ -1295,6 +1295,9 @@ Some standard environment variables which are used by Sage:
   :envvar:`CPPFLAGS`, :envvar:`LDFLAGS`, :envvar:`CXXFLAG64`,
   :envvar:`LDFLAG64`, and :envvar:`LD`.
 
+- :envvar:`OPENBLAS_CONFIGURE` - adds additional configuration flags for
+  the OpenBLAS package that gets added to the make command. (see :trac:`23272`)
+
 Sage uses the following environment variables when it runs:
 
 - :envvar:`DOT_SAGE` - this is the directory, to which the user has read and

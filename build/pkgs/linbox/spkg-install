@@ -1,9 +1,3 @@
-if [ -z "$SAGE_LOCAL" ]; then
-    echo >&2 "Error: SAGE_LOCAL undefined - exiting..."
-    echo >&2 "Maybe run 'sage -sh'?"
-    exit 1
-fi
-
 cd src/
 
 ###############################################################################
@@ -42,23 +36,8 @@ LINBOX_CONFIGURE="--without-fplll $LINBOX_CONFIGURE"
 
 # We disable openmp because of build failures, see
 # http://trac.sagemath.org/ticket/17635#comment:67
-./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
-            --with-default="$SAGE_LOCAL" \
-            --enable-sage --disable-static --disable-openmp \
-            $LINBOX_CONFIGURE
-if [ $? -ne 0 ]; then
-    echo >&2 "Error configuring LinBox."
-    exit 1
-fi
-
-$MAKE
-if [ $? -ne 0 ]; then
-    echo >&2 "Error building LinBox."
-    exit 1
-fi
-
-$MAKE install
-if [ $? -ne 0 ]; then
-    echo >&2 "Error installing LinBox."
-    exit 1
-fi
+sdh_configure --with-default="$SAGE_LOCAL" \
+              --enable-sage --disable-static --disable-openmp \
+              $LINBOX_CONFIGURE
+sdh_make
+sdh_make_install

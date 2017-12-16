@@ -25,7 +25,6 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.symbolic.ring import SR
 from sage.tensor.modules.free_module_element import FiniteRankFreeModuleElement
 from sage.misc.decorators import options
 

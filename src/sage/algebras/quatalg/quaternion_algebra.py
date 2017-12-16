@@ -159,9 +159,9 @@ class QuaternionAlgebraFactory(UniqueFactory):
     arithmetic::
 
         sage: type(QuaternionAlgebra(-1,-3).0)
-        <type 'sage.algebras.quatalg.quaternion_algebra_element.QuaternionAlgebraElement_rational_field'>
+        <... 'sage.algebras.quatalg.quaternion_algebra_element.QuaternionAlgebraElement_rational_field'>
         sage: type(QuaternionAlgebra(-1,-3/2).0)
-        <type 'sage.algebras.quatalg.quaternion_algebra_element.QuaternionAlgebraElement_generic'>
+        <... 'sage.algebras.quatalg.quaternion_algebra_element.QuaternionAlgebraElement_generic'>
 
     Make sure caching is sane::
 
@@ -592,7 +592,7 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
             sage: a = Q(2/3); a
             2/3
             sage: type(a)
-            <type 'sage.algebras.quatalg.quaternion_algebra_element.QuaternionAlgebraElement_rational_field'>
+            <... 'sage.algebras.quatalg.quaternion_algebra_element.QuaternionAlgebraElement_rational_field'>
             sage: Q(a)
             2/3
             sage: Q([1,2,3,4])
@@ -1601,7 +1601,7 @@ class QuaternionOrder(Algebra):
             sage: S.discriminant()
             55
             sage: type(S.discriminant())
-            <type 'sage.rings.rational.Rational'>
+            <... 'sage.rings.rational.Rational'>
         """
         L = []
         for d in self.basis():

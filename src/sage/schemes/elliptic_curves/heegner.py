@@ -369,7 +369,7 @@ class RingClassField(SageObject):
             sage: K5.degree_over_K()
             6
             sage: type(K5.degree_over_K())
-            <type 'sage.rings.integer.Integer'>
+            <... 'sage.rings.integer.Integer'>
 
             sage: E = EllipticCurve('389a'); E.heegner_point(-20).ring_class_field().degree_over_K()
             2

@@ -641,8 +641,7 @@ cdef class PowerSeries(AlgebraElement):
             f = self.polynomial()
             m = f.degree() + 1
             d = f._dict_unsafe()
-            coeffs = list(d.iteritems())
-            coeffs.sort()
+            coeffs = sorted(d.items())
             for (n, x) in coeffs:
                 x = repr(x)
                 if x != '0':

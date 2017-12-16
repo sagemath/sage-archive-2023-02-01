@@ -57,9 +57,11 @@ fi
 PYTHON_VERSION=$($PYTHON -c 'import sys; print("%d.%d" % sys.version_info[:2])')
 if [ "$PKG_BASE" = "python2" ]; then
     PYTHON_LDVERSION="$PYTHON_VERSION"
+    PYTHON_CONFIG_DIR="$SAGE_LOCAL/lib/python${PYTHON_VERSION}/config"
 else
     PYTHON_ABIFLAGS=$($PYTHON -c 'import sys; print(sys.abiflags)')
     PYTHON_LDVERSION="$PYTHON_VERSION$PYTHON_ABIFLAGS"
+    PYTHON_CONFIG_DIR="$SAGE_LOCAL/lib/python${PYTHON_VERSION}/config-${PYTHON_LDVERSION}"
 fi
 
 # On OS X with XCode 4, the presence of
@@ -69,9 +71,9 @@ fi
 # x.y.z with x >= 10).
 if [ "$UNAME" = "Darwin" ] && \
     [ `uname -r | cut '-d.' -f1` -gt 9 ]; then
-    rm -f "$SAGE_LOCAL/lib/python${PYTHON_VERSION}/config-${PYTHON_LDVERSION}/libpython${PYTHON_LDVERSION}.a"
+    rm -f "${PYTHON_CONFIG_DIR}/libpython${PYTHON_LDVERSION}.a"
 elif [ "$UNAME" = "CYGWIN" ]; then
     # See http://trac.sagemath.org/ticket/20437
-    ln -sf "python${PYTHON_VERSION}/config-${PYTHON_LDVERSION}/libpython${PYTHON_LDVERSION}.dll.a" \
+    ln -sf "${PYTHON_CONFIG_DIR}/libpython${PYTHON_LDVERSION}.dll.a" \
         "$SAGE_LOCAL/lib/libpython${PYTHON_LDVERSION}.dll.a"
 fi

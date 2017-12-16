@@ -582,7 +582,7 @@ class Components(SageObject):
         """
         result = self._new_instance()
         for ind, val in self._comp.items():
-            if hasattr(val, 'copy'):
+            if isinstance(val, SageObject) and hasattr(val, 'copy'):
                 result._comp[ind] = val.copy()
             else:
                 result._comp[ind] = val
@@ -816,7 +816,7 @@ class Components(SageObject):
                     for j in range(self._dim):
                         a = resu[i][j]
                         if hasattr(a, '_express'):
-                            resu[i][j] = a._express
+                            resu[i][j] = a.expr()
                 resu = matrix(resu)  # for a nicer output
             except TypeError:
                 pass

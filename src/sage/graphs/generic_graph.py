@@ -8323,7 +8323,7 @@ class GenericGraph(GenericGraph_pyx):
         A ``nowhere zero flow`` on a graph `G = (V, E)` is a flow `(D, f)`
         such that `f(e) \neq 0` for every `e \in E`. For a positive
         integer `k`, a `k`-flow on a graph `G = (V, E)` is a flow `(D, f)`
-        such that `f: E \to Z` and `−(k − 1) \leq f(e) \leq k − 1` for
+        such that `f: E \to Z` and `-(k - 1) \leq f(e) \leq k - 1` for
         every `e \in E`. A `k`-flow is positive if `f(e) > 0` for every
         `e \in E`. A `k`-flow which is nowhere zero is called a
         `k`-*nowhere zero flow* (or `k`-NZF).

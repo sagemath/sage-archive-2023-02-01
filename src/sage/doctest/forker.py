@@ -1163,7 +1163,8 @@ class SageDocTestRunner(doctest.DocTestRunner):
                 34
             **********************************************************************
             Previously executed commands:
-            ...
+            sage: sage0._expect.expect('sage: ')   # sage0 just mis-identified the output as prompt, synchronize
+            0
             sage: sage0.eval("a")
             '...17'
             sage: sage0.eval("quit")

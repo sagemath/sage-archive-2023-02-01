@@ -869,6 +869,19 @@ cdef class Matrix(sage.structure.element.Matrix):
             ...
             IndexError: row indices must be integers
 
+        Check that submatrices with a specified implementation have the
+        same implementation::
+
+            sage: M = MatrixSpace(GF(2), 3, 3, implementation='generic')
+            sage: m = M(range(9))
+            sage: type(m)
+            <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
+            sage: parent(m)
+            Full MatrixSpace of 3 by 3 dense matrices over Finite Field of size 2 (using Matrix_generic_dense)
+            sage: type(m[:2,:2])
+            <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
+            sage: parent(m[:2,:2])
+            Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 2 (using Matrix_generic_dense)
         """
         cdef list row_list
         cdef list col_list

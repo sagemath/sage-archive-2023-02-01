@@ -453,7 +453,7 @@ class Function_polylog(GinacFunction):
         EXAMPLES::
 
             sage: polylog(2.7, 0)
-            0
+            0.000000000000000
             sage: polylog(2, 1)
             1/6*pi^2
             sage: polylog(2, -1)
@@ -1005,7 +1005,8 @@ class Function_exp_polar(BuiltinFunction):
         This fixes :trac:`18085`::
 
             sage: integrate(1/sqrt(1+x^3),x,algorithm='sympy')
-            1/3*x*hypergeometric((1/3, 1/2), (4/3,), -x^3)*gamma(1/3)/gamma(4/3)
+            1/3*x*gamma(1/3)*hypergeometric((1/3, 1/2), (4/3,), -x^3)/gamma(4/3)
+
 
         .. SEEALSO::
 

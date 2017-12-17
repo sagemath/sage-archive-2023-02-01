@@ -870,19 +870,19 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         EXAMPLES::
 
             sage: M = random_matrix(GF(25,'x'), 5,5)
-            sage: M
+            sage: M                                      # optional: meataxe
             [      4     4*x   x + 3 4*x + 2 3*x + 4]
             [  x + 2 3*x + 1       3       0       3]
             [    3*x 2*x + 4       1       0     2*x]
             [4*x + 4 2*x + 3     4*x       1 3*x + 1]
             [3*x + 3   x + 3   x + 2   x + 1 3*x + 2]
-            sage: M._rowlist_(1)
+            sage: M._rowlist_(1)                         # optional: meataxe
             [7, 16, 3, 0, 3]
-            sage: [M[1,i]._int_repr() for i in range(5)]
+            sage: [M[1,i]._int_repr() for i in range(5)] # optional: meataxe
             ['7', '16', '3', '0', '3']
-            sage: M._rowlist_(2,4)
+            sage: M._rowlist_(2,4)                       # optional: meataxe
             [15, 14, 1, 0, 10, 24, 13, 20, 1, 16, 18, 8, 7, 6, 17]
-            sage: [[M[i,j]._int_repr() for j in range(5)] for i in range(2,5)]
+            sage: [[M[i,j]._int_repr() for j in range(5)] for i in range(2,5)] # optional: meataxe
             [['15', '14', '1', '0', '10'],
              ['24', '13', '20', '1', '16'],
              ['18', '8', '7', '6', '17']]

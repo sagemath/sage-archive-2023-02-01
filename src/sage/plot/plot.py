@@ -3910,7 +3910,8 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
 
     return data
 
-#Lovely cruft to keep the pickle jar working
+
+# Old imports required for unpickling old pickles
 from .line import line, line2d, Line as GraphicPrimitive_Line
 from .arrow import arrow, Arrow as GraphicPrimitive_Arrow
 from .bar_chart import bar_chart, BarChart as GraphicPrimitive_BarChart

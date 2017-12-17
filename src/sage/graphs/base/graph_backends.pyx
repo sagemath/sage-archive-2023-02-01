@@ -935,10 +935,6 @@ class NetworkXGraphBackend(GenericGraphBackend):
     def __setstate__(self,state):
         r"""
         Fix the deprecated class if necessary.
-
-        EXAMPLES::
-
-            sage: sage.structure.sage_object.unpickle_all() # indirect random
         """
         for k,v in state.iteritems():
             self.__dict__[k] = v

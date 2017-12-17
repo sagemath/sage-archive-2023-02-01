@@ -1438,11 +1438,6 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         - ``convert_method_name`` -- a name to look for that other elements
           can implement to create elements of self (e.g. _integer_)
 
-        - ``element_constructor`` -- A callable object used by the
-          __call__ method to construct new elements. Typically the
-          element class or a bound method (defaults to
-          self._element_constructor_).
-
         - ``init_no_parent`` -- if True omit passing self in as the
           first argument of element_constructor for conversion. This
           is useful if parents are unique, or element_constructor is a
@@ -1451,11 +1446,15 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         """
         self.init_coerce(False)
 
-        if element_constructor is None and not unpickling:
-            try:
-                element_constructor = self._element_constructor_
-            except AttributeError:
-                raise RuntimeError("element_constructor must be provided, either as an _element_constructor_ method or via the _populate_coercion_lists_ call")
+        if not unpickling:
+            if element_constructor is None:
+                try:
+                    element_constructor = self._element_constructor_
+                except AttributeError:
+                    raise RuntimeError("an _element_constructor_ method must be defined")
+            else:
+                from sage.misc.superseded import deprecation
+                deprecation(24363, "the 'element_constructor' keyword of _populate_coercion_lists_ is deprecated: override the _element_constructor_ method or define an Element attribute instead")
         self._element_constructor = element_constructor
         self._element_init_pass_parent = guess_pass_parent(self, element_constructor)
 

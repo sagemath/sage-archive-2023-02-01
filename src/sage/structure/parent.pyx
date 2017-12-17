@@ -694,7 +694,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             sage: CCls()._test_eq()
             Traceback (most recent call last):
             ...
-            AssertionError: broken equality: <class '__main__.CCls'> == None
+            AssertionError: broken equality: <__main__.CCls object at ...> == None
 
         Let us now break inequality::
 
@@ -704,7 +704,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             sage: CCls()._test_eq()
             Traceback (most recent call last):
             ...
-            AssertionError: broken non-equality: <class '__main__.CCls'> != itself
+            AssertionError: broken non-equality: <__main__.CCls object at ...> != itself
         """
         tester = self._tester(**options)
 
@@ -1572,7 +1572,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             sage: P._is_conversion_cached(P)
             False
             sage: P.convert_map_from(P)
-            Identity endomorphism of <type 'sage.structure.parent.Parent'>
+            Identity endomorphism of <sage.structure.parent.Parent object at ...>
             sage: P._is_conversion_cached(P)
             True
         """

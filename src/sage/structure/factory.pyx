@@ -263,7 +263,10 @@ cdef class UniqueFactory(SageObject):
         sage: loads(dumps(d)) is d
         False
         sage: d._factory_data
-        (<class '__main__.MyFactory'>, (...), (2,), {'impl': 'D'})
+        (<__main__.MyFactory object at ...>,
+         (...),
+         (2,),
+         {'impl': 'D'})
 
     Only when we have a new style class that can be weak referenced and allows
     for attribute assignment, everything works::
@@ -274,10 +277,11 @@ cdef class UniqueFactory(SageObject):
         sage: loads(dumps(e)) is e
         True
         sage: e._factory_data
-        (<class '__main__.MyFactory'>, (...), (3,), {'impl': None})
-
+        (<__main__.MyFactory object at ...>,
+         (...),
+         (3,),
+         {'impl': None})
     """
-
     cdef readonly _name
     cdef readonly _cache
 
@@ -544,7 +548,7 @@ cdef class UniqueFactory(SageObject):
             Making object (1, 2)
             sage: test_factory.reduce_data(a)
             (<built-in function generic_factory_unpickle>,
-             (<class 'sage.structure.test_factory.UniqueFactoryTester'>,
+             (<sage.structure.test_factory.UniqueFactoryTester object at ...>,
               (...),
               (1, 2),
               {}))

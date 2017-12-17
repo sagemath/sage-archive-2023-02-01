@@ -222,6 +222,14 @@ cdef class SageObject:
             sage: P.reset_name()
             sage: repr(P) == P._repr_()
             True
+
+        If there is no ``_repr_`` method defined, we fall back to the
+        super class (typically ``object``)::
+
+            sage: from sage.structure.sage_object import SageObject
+            sage: S = SageObject()
+            sage: S
+            <sage.structure.sage_object.SageObject object at ...>
         """
         try:
             name = self.__custom_name
@@ -230,16 +238,14 @@ cdef class SageObject:
         except AttributeError:
             pass
         try:
-            repr_func = self._repr_
+            reprfunc = self._repr_
         except AttributeError:
-            return str(type(self))
-        else:
-            result = repr_func()
-            if sys.version_info[0] < 3 and isinstance(result, unicode):
-                # for Py3 compatibility: allow _repr_ to return unicode
-                return result.encode('utf-8')
-            else:
-                return result
+            return super().__repr__()
+        result = reprfunc()
+        if isinstance(result, str):
+            return result
+        # Allow _repr_ to return unicode on Python 2
+        return result.encode('utf-8')
 
     def _ascii_art_(self):
         r"""

@@ -92,12 +92,12 @@ def symmetrized_coordinate_sums(dim, n):
     """
     from sage.structure.formal_sum import FormalSum
     coordinates = [range(dim) for i in range(n)]
-    table = dict()
+    table = {}
     from sage.categories.cartesian_product import cartesian_product
     for i in cartesian_product(coordinates):
         sort_i = tuple(sorted(i))
         x = table.get(sort_i, [])
-        x.append([+1, tuple(i)])
+        x.append([1, tuple(i)])
         table[sort_i] = x
     return tuple(FormalSum(x) for x in table.values())
 
@@ -192,7 +192,7 @@ class VectorCollection(FreeModule_ambient_field):
             r.set_immutable()
         if matrix(base_ring, self._vectors).rank() != self.degree():
             raise ValueError('the vectors must span the ambient vector space')
-        self._all_indices = tuple(map(ZZ, range(0, self._n_vectors)))
+        self._all_indices = tuple(ZZ(i) for i in range(self._n_vectors))
 
     def vectors(self):
         """

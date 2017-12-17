@@ -10,8 +10,8 @@ Sets
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six.moves import range
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.sage_unittest import TestSuite
@@ -241,7 +241,7 @@ class Sets(Category_singleton):
            Proper forgetful functors will eventually be implemented, with
            another syntax.
         """
-        if enumerated_set and type(X) in (tuple,list):
+        if enumerated_set and type(X) in (tuple,list,range):
             from sage.categories.enumerated_sets import EnumeratedSets
             return EnumeratedSets()(X)
         from sage.sets.set import Set

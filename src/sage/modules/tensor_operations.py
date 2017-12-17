@@ -60,6 +60,7 @@ vectors of the vector collection ``VW`` ::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from sage.structure.sage_object import SageObject
 from sage.modules.free_module import FreeModule_ambient_field, VectorSpace

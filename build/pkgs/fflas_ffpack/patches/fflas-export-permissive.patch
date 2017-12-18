@@ -1,0 +1,13 @@
+diff --git a/configure.ac b/configure.ac
+index 146174a..5b46b18 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -177,7 +177,7 @@ INSTR_SET
+ AC_SUBST(SIMD_FLAGS)
+ 
+ dnl gcc-4.9.2 bug See https://trac.sagemath.org/ticket/17635#comment:178
+-AS_IF([ test  "x$CCNAM" = "xgcc492" ],[CXXFLAGS="${CXXFLAGS} -fpermissive"],[])
++AS_IF([ test  "x$CCNAM" = "xgcc492" ],[REQUIRED_FLAGS="${REQUIRED_FLAGS} -fpermissive"],[])
+ 
+ dnl With GCC's default ABI version, a __m128 or __m256 are the same types and therefore we cannot
+ dnl have overloads for both types without linking error.

@@ -44,7 +44,7 @@ class QSystem(CombinatorialFreeModule):
     with index set `I` and Cartan matrix `(C_{ab})_{a,b \in I}` over a
     field `k`. Follow the presentation given in [HKOTY1999]_, an
     unrestricted Q-system is a `k`-algebra in infinitely many variables
-    `Q^{(a)}_m`, where `a \in I` and `m \in \ZZ_{>0}`, that satisifies
+    `Q^{(a)}_m`, where `a \in I` and `m \in \ZZ_{>0}`, that satisfies
     the relations
 
     .. MATH::

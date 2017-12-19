@@ -654,11 +654,85 @@ class RealBallField(UniqueRepresentation, Field):
                 self(sage.rings.infinity.Infinity), ~self(0),
                 self.element_class(self, sage.symbolic.constants.NotANumber())]
 
+    # Constants
+
+    def pi(self):
+        r"""
+        Return a ball enclosing `\pi`.
+
+        EXAMPLES::
+
+            sage: RBF.pi()
+            [3.141592653589793 +/- 5.61e-16]
+            sage: RealBallField(128).pi()
+            [3.1415926535897932384626433832795028842 +/- 1.65e-38]
+        """
+        cdef RealBall res = RealBall.__new__(RealBall)
+        res._parent = self
+        if _do_sig(self._prec): sig_on()
+        arb_const_pi(res.value, self._prec)
+        if _do_sig(self._prec): sig_off()
+        return res
+
+    def log2(self):
+        r"""
+        Return a ball enclosing log(2).
+
+        EXAMPLES::
+
+            sage: RBF.log2()
+            [0.693147180559945 +/- 3.98e-16]
+            sage: RealBallField(128).log2()
+            [0.69314718055994530941723212145817656807 +/- 7.70e-39]
+        """
+        cdef RealBall res = RealBall.__new__(RealBall)
+        res._parent = self
+        if _do_sig(self._prec): sig_on()
+        arb_const_log2(res.value, self._prec)
+        if _do_sig(self._prec): sig_off()
+        return res
+
+    def euler_constant(self):
+        r"""
+        Return a ball enclosing the euler constant.
+
+        EXAMPLES::
+
+            sage: RBF.euler_constant()
+            [0.577215664901533 +/- 3.57e-16]
+            sage: RealBallField(128).euler_constant()
+            [0.57721566490153286060651209008240243104 +/- 3.25e-39]
+        """
+        cdef RealBall res = RealBall.__new__(RealBall)
+        res._parent = self
+        if _do_sig(self._prec): sig_on()
+        arb_const_euler(res.value, self._prec)
+        if _do_sig(self._prec): sig_off()
+        return res
+
+    def catalan_constant(self):
+        r"""
+        Return a ball enclosing the Catalan constant.
+
+        EXAMPLES::
+
+            sage: RBF.catalan_constant()
+            [0.915965594177219 +/- 1.23e-16]
+            sage: RealBallField(128).catalan_constant()
+            [0.91596559417721901505460351493238411077 +/- 6.37e-39]
+        """
+        cdef RealBall res = RealBall.__new__(RealBall)
+        res._parent = self
+        if _do_sig(self._prec): sig_on()
+        arb_const_catalan(res.value, self._prec)
+        if _do_sig(self._prec): sig_off()
+        return res
+
     # Ball functions of non-ball arguments
 
     def sinpi(self, x):
         """
-        Return a ball enclosing sin(πx).
+        Return a ball enclosing `\sin(π \pi x)`.
 
         This works even if ``x`` itself is not a ball, and may be faster or
         more accurate where ``x`` is a rational number.
@@ -704,7 +778,7 @@ class RealBallField(UniqueRepresentation, Field):
 
     def cospi(self, x):
         """
-        Return a ball enclosing cos(πx).
+        Return a ball enclosing `\cos(π \pi x)`.
 
         This works even if ``x`` itself is not a ball, and may be faster or
         more accurate where ``x`` is a rational number.

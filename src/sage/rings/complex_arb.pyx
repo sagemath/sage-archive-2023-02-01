@@ -641,6 +641,30 @@ class ComplexBallField(UniqueRepresentation, Field):
                 self('inf'), self(1./3, 'inf'), self('inf', 'inf'),
                 self('nan'), self('nan', 'nan'), self('inf', 'nan')]
 
+    # Constants
+
+    def pi(self):
+        r"""
+        Return a ball enclosing `\pi`.
+
+        EXAMPLES::
+
+            sage: CBF.pi()
+            [3.141592653589793 +/- 5.61e-16]
+            sage: ComplexBallField(128).pi()
+            [3.1415926535897932384626433832795028842 +/- 1.65e-38]
+
+            sage: CBF.pi().parent()
+            Complex ball field with 53 bits of precision
+        """
+        cdef ComplexBall res = ComplexBall.__new__(ComplexBall)
+        res._parent = self
+        if _do_sig(self._prec): sig_on()
+        arb_const_pi(acb_realref(res.value), self._prec)
+        arb_zero(acb_imagref(res.value))
+        if _do_sig(self._prec): sig_off()
+        return res
+
 cdef inline bint _do_sig(long prec):
     """
     Whether signal handlers should be installed for calls to arb.

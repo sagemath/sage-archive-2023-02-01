@@ -89,6 +89,7 @@ from sage.rings.qqbar import number_field_elements_from_algebraics
 from sage.sets.all import Set
 from sage.misc.flatten import flatten
 from sage.interfaces.gp import gp
+from scipy.linalg import lu
 import operator
 
 def voronoi_ghost(cpoints, n=6, CC=CDF):
@@ -1647,24 +1648,30 @@ class RiemannSurface(object):
         M2 = other.riemann_matrix()
         return integer_matrix_relations(M2,M1,b,r)
 
-    def tangent_representation_complex(self, Rs, epsinv = 10**(-20)):
+    def tangent_representation_complex(self, Rs, other = None):
         r"""
-        Compute the complex tangent representation corresponding to the
-        representation on homology obtained from :meth:`endomorphism_basis`. For
-        an element `R` of said homology representation, the corresponding
-        tangent matrix `T` satisfies `T P = P R`.
+        Compute the numerical tangent representations corresponding to the
+        homology representations in ``Rs``.
+
+        The representations on homology ``Rs`` have to be given with respect to
+        the symplectic homology basis of the Jacobian of ``self``. Such matrices
+        can for example be obtained via :meth:`endomorphism_basis`.
+
+        Let `P` and `Q` be the period matrices of ``self`` and ``other``. Then
+        for a homology representation `R`, the corresponding tangential
+        representation `T` satisfies `T P = Q R`.
 
         INPUT:
 
         - ``Rs`` -- a set of matrices on homology to be converted to their
-          tangential representation.
+          tangent representations.
 
-        - ``epsinv`` -- real number (default: ``10^(-20)``). Used to find an
-          invertible submatrix of the period matrix.
+        - ``other`` (default: ``self``) -- the codomain, another Riemann
+          surface.
 
         OUTPUT:
 
-        The complex tangent representation of the matrices in ``Rs``.
+        The numerical tangent representations of the matrices in ``Rs``.
 
         EXAMPLES::
 
@@ -1674,49 +1681,71 @@ class RiemannSurface(object):
             sage: P = S.period_matrix()
             sage: Rs = S.endomorphism_basis()
             sage: Ts = S.tangent_representation_complex(Rs)
-            sage: print all([ ((T*P - P*R).norm() < 10^(-25)) for [ T, R ] in zip(Ts, Rs) ])
+            sage: all([ ((T*P - P*R).norm() < 2^(-80)) for [ T, R ] in zip(Ts, Rs) ])
             True
 
         """
+        if not other:
+            other = self
         P = self.period_matrix()
+        Q = other.period_matrix()
         def invertible_submatrix(M):
             cols = M.columns()
             ncols = len(cols)
             rk = min(len(M.rows()), len(M.columns()))
             for s in Set(range(ncols)).subsets(rk):
                 N = Matrix([ cols[i] for i in s ]).transpose()
-                if N.determinant().abs() > epsinv:
+                if N.determinant().abs() > 10^(-20):
                     return N, s
+        def invertible_submatrix_lu(M):
+            Mt = M.transpose()
+            rowsMt = Mt.rows()
+            colsMt = Mt.columns()
+            P, L, U = lu(P)
+            rowsP = matrix(P).rows()
+            col_nums = [ ]
+            for i in range(len(rowsP)):
+                if any([ (rowsP[i][j].abs() > 0.1) for j in range(len(colsMt)) ]):
+                    col_nums.append(i)
+            subM = Matrix([ rowsMt[i] for i in col_nums ]).transpose()
+            return subM, col_nums
         subP, s = invertible_submatrix(P)
         Ts = [ ]
         for R in Rs:
-            RCC = R.base_extend(P.base_ring())
-            cols = (P*RCC).columns()
-            subPR  = Matrix([ cols[i] for i in s ]).transpose()
-            Ts.append(subPR * subP**(-1))
+            RCC = R.base_extend(Q.base_ring())
+            cols = (Q*RCC).columns()
+            subQR  = Matrix([ cols[i] for i in s ]).transpose()
+            Ts.append(subQR * subP**(-1))
         return [ T.change_ring(P.base_ring()) for T in Ts ]
 
-    def tangent_representation_algebraic(self, Rs, epscomp = 10**(-25), epsinv = 10**(-20), b = None, r = None):
+    def tangent_representation_algebraic(self, Rs, other = None, epscomp = None):
         r"""
-        Compute the algebraized tangent representation corresponding to the
-        representation on homology obtained from :meth:`endomorphism_basis`. For
-        an element `R` of said homology representation, the corresponding
-        tangent matrix `T` satisfies `T P = P R`.
+        Compute the algebraic tangent representations corresponding to the
+        homology representations in ``Rs``.
+
+        The representations on homology ``Rs`` have to be given with respect to
+        the symplectic homology basis of the Jacobian of ``self``. Such matrices
+        can for example be obtained via :meth:`endomorphism_basis`.
+
+        Let `P` and `Q` be the period matrices of ``self`` and ``other``. Then
+        for a homology representation `R`, the corresponding tangential
+        representation `T` satisfies `T P = Q R`.
 
         INPUT:
 
         - ``Rs`` -- a set of matrices on homology to be converted to their
-          tangential representation.
+          tangent representations.
 
-        - ``epscomp`` -- real number (default: ``10^(-25)``). Used to determine
-          whether a complex number is close enough to a root of a polynomial.
+        - ``other`` (default: ``self``) -- the codomain, another Riemann
+          surface.
 
-        - ``epsinv`` -- real number (default: ``10^(-20)``). Used to find an
-          invertible submatrix of the period matrix.
+        - ``epscomp`` -- real number (default: ``2^(-prec + 30)``). Used to
+          determine whether a complex number is close enough to a root of a
+          polynomial.
 
         OUTPUT:
 
-        The algebraized tangent representation of the matrices in ``Rs``.
+        The algebraic tangent representations of the matrices in ``Rs``.
 
         EXAMPLES::
 
@@ -1724,14 +1753,15 @@ class RiemannSurface(object):
             sage: A.<x,y> = QQ[]
             sage: S = RiemannSurface(y^2 - (x^6 + 2*x^4 + 4*x^2 + 8), prec = 100)
             sage: Rs = S.endomorphism_basis()
-            sage: print S.tangent_representation_algebraic(Rs)
-            [[1 0]
-            [0 1], [    0 1/2*a]
-            [    a     0], [-1  0]
-            [ 0  1], [    0 1/2*a]
-            [   -a     0]]
+            sage: S.tangent_representation_algebraic(Rs)
+            [
+            [1 0]  [-1  0]  [    0 1/2*a]  [    0 1/2*a]
+            [0 1], [ 0  1], [    a     0], [   -a     0]
+            ]
 
         """
+        if not epscomp:
+            epscomp = 2**(-self._prec + 30)
         QQalg = QQ.algebraic_closure()
         def polynomialize_element(alpha):
             d = 1
@@ -1764,13 +1794,16 @@ class RiemannSurface(object):
             for i in range(len(Ts)):
                 TsAlgL.append(Matrix(L, nr, nc, [ elts[j] for j in range(i*nr*nc, (i + 1)*nr*nc) ]))
             return TsAlgL
-        Ts = self.tangent_representation_complex(Rs, epsinv = epsinv)
+        Ts = self.tangent_representation_complex(Rs, other = other)
         return algebraize_matrices(Ts)
 
     def rosati_involution(self, R):
         r"""
-        Computes the Rosati involution of an endomorphism `R` (a homology
-        representation with respect to a symplectic basis).
+        Computes the Rosati involution of an endomorphism.
+
+        The endomorphism in question should be given by its homology
+        representation with respect to the symplectic basis of the Jacobian of
+        ``self``.
 
         INPUT:
 
@@ -1786,11 +1819,11 @@ class RiemannSurface(object):
             sage: A.<x,y> = QQ[]
             sage: S = RiemannSurface(y^2 - (x^6 + 2*x^4 + 4*x^2 + 8), prec = 100)
             sage: Rs = S.endomorphism_basis()
-            sage: print S.rosati_involution(Rs[1])
+            sage: S.rosati_involution(Rs[1])
+            [ 0  1  0  0]
+            [ 1  0  0  0]
             [ 0  1  0  1]
-            [ 0  0 -1  0]
-            [ 0 -1  0  0]
-            [ 1  0  1  0]
+            [-1  0  1  0]
 
         """
         def standard_symplectic_matrix(n):
@@ -1804,48 +1837,45 @@ class RiemannSurface(object):
         J = standard_symplectic_matrix(2*g)
         return -J * R.transpose() * J
 
-    def symplectic_automorphism_group(self, b = None, r = None):
+    def symplectic_isomorphisms(self, other = None, b = None, r = None):
         r"""
-        Numerically compute the symplectic automorphism group.
-
-        Let `\left(I | M \right)` be the normalized period matrix (`M` is the
-        `g\times g` :meth:`riemann_matrix`).
-        We consider the system of matrix equations `MA + B = (MC + D)M` where
-        `A, B, C, D` are `g\times g` integer matrices.  We determine small
-        integer (near) solutions using LLL reductions.  Small combinations of
-        the elements of :meth:`endomorphism_basis` that correspond to actual
-        automorphisms of the Riemann surface are returned as `2g \times 2g`
-        integer matrices obtained by stacking `\left(D | B\right)` on top of
-        `\left(C | A\right)`.
+        Numerically compute symplectic isomorphisms.
 
         INPUT:
 
-        - ``b`` -- integer (default: precision - 10). The equation coefficients
-          are scaled by `2^b` before rounding to integers.
+        - ``other`` (default: ``self``) -- the codomain, another Riemann
+          surface.
 
-        - ``r`` -- integer (default: ``b/4``). Solutions that have all
-          coefficients smaller than `2^r` in absolute value are reported as
-          actual solutions.
+        - ``b`` -- integer (default: precision - 10): as for
+          :meth:`homomorphism_basis`.
+
+        - ``r`` -- integer (default: ``b/4``).  as for
+          :meth:`homomorphism_basis`.
 
         OUTPUT:
 
-        A list of `2g \times 2g` integer matrices that, for large enough ``r``
-        and ``b-r``, give the automorphisms of the Jacobian that preserve the
-        symplectic form. The automorphism group of the Riemann surface itself
-        can be recovered from this; if the curve is hyperelliptic, then it is
-        identical, and if not, then one divides out by the central element -1.
+        Returns the combinations of the elements of :meth:`homomorphism_basis`
+        that correspond to symplectic isomorphisms between the Riemann surfaces
+        involved.
 
         EXAMPLES::
 
             sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
             sage: A.<x,y> = QQ[]
             sage: S = RiemannSurface(y^2 - (x^6 + 2*x^4 + 4*x^2 + 8), prec = 100)
-            sage: Ms = S.symplectic_automorphism_group()
-            sage: print Ms.as_permutation_group().is_isomorphic(DihedralGroup(4))
-            True
+            sage: Rs = S.symplectic_isomorphisms()
+            sage: Rs
+            [
+            [ 0  0  1  0]  [ 0  1  0  1]  [ 0  1  0  0]  [1 0 0 0]
+            [ 0 -1  0 -1]  [ 0  0 -1  0]  [ 1  0  0  0]  [0 1 0 0]
+            [-1  0  0  0]  [ 0 -1  0  0]  [ 0  1  0  1]  [0 0 1 0]
+            [ 0  2  0  1], [ 1  0  1  0], [-1  0  1  0], [0 0 0 1]
+            ]
 
         """
-        Rs = self.endomorphism_basis()
+        if not other:
+            other = self
+        Rs = self.homomorphism_basis(other = other, b = b, r = r)
         r = len(Rs)
         g = self.genus
         A = PolynomialRing(QQ, r, 'x')
@@ -1864,7 +1894,41 @@ class RiemannSurface(object):
             R = sum( v[i]*Rs[i] for i in range(r) )
             if R*self.rosati_involution(R) == 1:
                 RsAut.append(R)
-        return MatrixGroup(RsAut)
+        return RsAut
+
+    def symplectic_automorphism_group(self, b = None, r = None):
+        r"""
+        Numerically compute the symplectic automorphism group as a permutation
+        group.
+
+        INPUT:
+
+        - ``b`` -- integer (default: precision - 10): as for
+          :meth:`homomorphism_basis`.
+
+        - ``r`` -- integer (default: ``b/4``).  as for
+          :meth:`homomorphism_basis`.
+
+        OUTPUT:
+
+        The symplectic isomorphisms from the Riemann surface to itself. The
+        automorphism group of the Riemann surface itself can be recovered from
+        this; if the curve is hyperelliptic, then it is identical, and if not,
+        then one divides out by the central element corresponding to
+        multiplication by -1.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
+            sage: A.<x,y> = QQ[]
+            sage: S = RiemannSurface(y^2 - (x^6 + 2*x^4 + 4*x^2 + 8), prec = 100)
+            sage: G = S.symplectic_automorphism_group()
+            sage: G.is_isomorphic(DihedralGroup(4))
+            True
+
+        """
+        RsAut = self.symplectic_isomorphisms(b = b, r = r)
+        return MatrixGroup(RsAut).as_permutation_group()
 
     def __add__(self,other):
         r"""

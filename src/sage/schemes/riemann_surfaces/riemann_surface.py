@@ -19,7 +19,7 @@ approximate linear equations.
 AUTHORS:
 
 - Alexandre Zotine, Nils Bruin (2017-06-10): initial version
-- Jeroen Sijsling (2017-12-13): algebraization, automorphisms
+- Jeroen Sijsling (2017-12-13): algebraization, isomorphisms
 
 EXAMPLES:
 
@@ -1654,8 +1654,9 @@ class RiemannSurface(object):
         homology representations in ``Rs``.
 
         The representations on homology ``Rs`` have to be given with respect to
-        the symplectic homology basis of the Jacobian of ``self``. Such matrices
-        can for example be obtained via :meth:`endomorphism_basis`.
+        the symplectic homology basis of the Jacobian of ``self`` and ``other``.
+        Such matrices can for example be obtained via
+        :meth:`endomorphism_basis`.
 
         Let `P` and `Q` be the period matrices of ``self`` and ``other``. Then
         for a homology representation `R`, the corresponding tangential
@@ -1701,7 +1702,7 @@ class RiemannSurface(object):
             Mt = M.transpose()
             rowsMt = Mt.rows()
             colsMt = Mt.columns()
-            P, L, U = lu(P)
+            P, L, U = lu(Mt)
             rowsP = matrix(P).rows()
             col_nums = [ ]
             for i in range(len(rowsP)):
@@ -1724,8 +1725,9 @@ class RiemannSurface(object):
         homology representations in ``Rs``.
 
         The representations on homology ``Rs`` have to be given with respect to
-        the symplectic homology basis of the Jacobian of ``self``. Such matrices
-        can for example be obtained via :meth:`endomorphism_basis`.
+        the symplectic homology basis of the Jacobian of ``self`` and ``other``.
+        Such matrices can for example be obtained via
+        :meth:`endomorphism_basis`.
 
         Let `P` and `Q` be the period matrices of ``self`` and ``other``. Then
         for a homology representation `R`, the corresponding tangential
@@ -1802,8 +1804,7 @@ class RiemannSurface(object):
         Computes the Rosati involution of an endomorphism.
 
         The endomorphism in question should be given by its homology
-        representation with respect to the symplectic basis of the Jacobian of
-        ``self``.
+        representation with respect to the symplectic basis of the Jacobian.
 
         INPUT:
 
@@ -1846,17 +1847,17 @@ class RiemannSurface(object):
         - ``other`` (default: ``self``) -- the codomain, another Riemann
           surface.
 
-        - ``b`` -- integer (default: precision - 10): as for
-          :meth:`homomorphism_basis`.
+        - ``b`` -- integer (default provided): as for
+          :meth:`homomorphism_basis`, and used in its invocation.
 
         - ``r`` -- integer (default: ``b/4``).  as for
-          :meth:`homomorphism_basis`.
+          :meth:`homomorphism_basis`, and used in its invocation.
 
         OUTPUT:
 
         Returns the combinations of the elements of :meth:`homomorphism_basis`
-        that correspond to symplectic isomorphisms between the Riemann surfaces
-        involved.
+        that correspond to symplectic isomorphisms between the Jacobians of
+        ``self`` and ``other``.
 
         EXAMPLES::
 
@@ -1903,19 +1904,19 @@ class RiemannSurface(object):
 
         INPUT:
 
-        - ``b`` -- integer (default: precision - 10): as for
-          :meth:`homomorphism_basis`.
+        - ``b`` -- integer (default provided): as for
+          :meth:`homomorphism_basis`, and used in its invocation.
 
         - ``r`` -- integer (default: ``b/4``).  as for
-          :meth:`homomorphism_basis`.
+          :meth:`homomorphism_basis`, and used in its invocation.
 
         OUTPUT:
 
-        The symplectic isomorphisms from the Riemann surface to itself. The
-        automorphism group of the Riemann surface itself can be recovered from
-        this; if the curve is hyperelliptic, then it is identical, and if not,
-        then one divides out by the central element corresponding to
-        multiplication by -1.
+        The symplectic automorphism group of the Jacobian of the Riemann
+        surface. The automorphism group of the Riemann surface itself can be
+        recovered from this; if the curve is hyperelliptic, then it is
+        identical, and if not, then one divides out by the central element
+        corresponding to multiplication by -1.
 
         EXAMPLES::
 

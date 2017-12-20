@@ -1688,7 +1688,7 @@ class CachedMethodPickle(object):
             if isinstance(CM, CachedMethodCallerNoArgs):
                 CM.cache = self._cache
             else:
-                for k,v in self._cache:
+                for k, v in self._cache:
                     CM.cache[k] = v
         return CM(*args,**kwds)
 
@@ -1727,7 +1727,7 @@ class CachedMethodPickle(object):
             if isinstance(CM, CachedMethodCallerNoArgs):
                 CM.cache = self._cache
             else:
-                for k,v in self._cache:
+                for k, v in self._cache:
                     CM.cache[k] = v
         return getattr(CM,s)
 
@@ -3473,7 +3473,7 @@ class FileCache(object):
             sage: I.sort(); I
             [(((), ()), 1), (((1,), (('a', 1),)), 3), (((1, 2), ()), 2)]
         """
-        return [(k,self[k]) for k in self]
+        return [(k, self[k]) for k in self]
 
     def values(self):
         """
@@ -3559,8 +3559,7 @@ class FileCache(object):
             sage: k2 in FC1
             False
         """
-
-        for k in list(self):
+        for k in self:
             del self[k]
 
     def _filename(self, key):

@@ -84,7 +84,7 @@ from sage.structure.richcmp import richcmp
 from sage.structure.parent import Parent
 from sage.structure.coerce import py_scalar_to_element
 from sage.structure.coerce_maps import CallableConvertMap, DefaultConvertMap_unique
-from sage.categories.basic import QuotientFields
+from sage.categories.basic import QuotientFields, Rings
 from sage.categories.morphism import Morphism
 from sage.categories.map import Section
 
@@ -173,11 +173,19 @@ class FractionField_generic(ring.Field):
             sage: Frac(QQ['x,y']).variable_names()
             ('x', 'y')
             sage: category(Frac(QQ['x']))
-            Category of quotient fields
+            Category of infinite quotient fields
         """
         self._R = R
         self._element_class = element_class
-        Parent.__init__(self, base=R, names=R._names, category=category)
+        cat = category
+        try:
+            if self in Rings().Infinite() or not self.characteristic():
+                cat = cat.Infinite()
+            elif self in Rings().Finite():
+                cat = cat.Finite()
+        except NotImplementedError:
+            pass
+        Parent.__init__(self, base=R, names=R._names, category=cat)
 
     def __reduce__(self):
         """

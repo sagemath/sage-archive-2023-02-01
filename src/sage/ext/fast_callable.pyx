@@ -591,7 +591,7 @@ cdef class ExpressionTreeBuilder:
         elif not isinstance(vars, list):
             vars = [vars]
 
-        vars = list(map(self._clean_var, vars))
+        vars = [self._clean_var(v) for v in vars]
 
         self._domain = domain
         self._vars = vars
@@ -747,7 +747,7 @@ cdef class ExpressionTreeBuilder:
             base, exponent = args
             return self(base)**exponent
         else:
-            return ExpressionCall(self, fn, list(map(self, args)))
+            return ExpressionCall(self, fn, [self(a) for a in args])
 
     def choice(self, cond, iftrue, iffalse):
         r"""
@@ -1308,7 +1308,7 @@ cdef class ExpressionCall(Expression):
             'sin(v_0)'
         """
         fn = function_name(self._function)
-        return '%s(%s)' % (fn, ', '.join(map(repr, self._arguments)))
+        return '%s(%s)' % (fn, ', '.join(repr(a) for a in self._arguments))
 
 
 cdef class ExpressionIPow(Expression):

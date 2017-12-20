@@ -524,7 +524,7 @@ cdef class Graphics3d(SageObject):
             if not isinstance(v, (tuple, list)):
                 raise TypeError("aspect_ratio must be a list or tuple of "
                                 "length 3 or the integer 1")
-            self._aspect_ratio = list(map(float, v))
+            self._aspect_ratio = [float(z) for z in v]
         else:
             if self._aspect_ratio is None:
                 self._aspect_ratio = [1.0, 1.0, 1.0]
@@ -558,7 +558,7 @@ cdef class Graphics3d(SageObject):
             if not isinstance(v, (tuple, list)):
                 raise TypeError("frame_aspect_ratio must be a list or tuple of "
                                 "length 3 or the integer 1")
-            self._frame_aspect_ratio = list(map(float, v))
+            self._frame_aspect_ratio = [float(z) for z in v]
         else:
             if self._frame_aspect_ratio is None:
                 self._frame_aspect_ratio = [1.0, 1.0, 1.0]

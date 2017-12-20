@@ -260,7 +260,7 @@ cdef class PartitionMatroid(Matroid):
             sage: PartitionMatroid([])
             Partition Matroid of rank 0 on 0 elements
         """
-        P2 = list(map(set, partition))
+        P2 = [set(p) for p in partition]
         if P2:
             if len(set.union(*P2)) != sum(len(pi) for pi in P2):
                 raise ValueError("not an iterator of disjoint sets")

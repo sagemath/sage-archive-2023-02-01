@@ -1690,32 +1690,13 @@ class RiemannSurface(object):
             other = self
         P = self.period_matrix()
         Q = other.period_matrix()
-        def invertible_submatrix(M):
-            cols = M.columns()
-            ncols = len(cols)
-            rk = min(len(M.rows()), len(M.columns()))
-            for s in Set(range(ncols)).subsets(rk):
-                N = Matrix([ cols[i] for i in s ]).transpose()
-                if N.determinant().abs() > 10^(-20):
-                    return N, s
-        def invertible_submatrix_lu(M):
-            Mt = M.transpose()
-            rowsMt = Mt.rows()
-            colsMt = Mt.columns()
-            P, L, U = lu(Mt)
-            rowsP = matrix(P).rows()
-            col_nums = [ ]
-            for i in range(len(rowsP)):
-                if any([ (rowsP[i][j].abs() > 0.1) for j in range(len(colsMt)) ]):
-                    col_nums.append(i)
-            subM = Matrix([ rowsMt[i] for i in col_nums ]).transpose()
-            return subM, col_nums
-        subP, s = invertible_submatrix(P)
+        gP = len(P.rows())
+        subP = P.submatrix(0, 0, gP, gP)
         Ts = [ ]
         for R in Rs:
             RCC = R.base_extend(Q.base_ring())
-            cols = (Q*RCC).columns()
-            subQR  = Matrix([ cols[i] for i in s ]).transpose()
+            QR = Q*RCC
+            subQR = QR.submatrix(0, 0, gP, gP)
             Ts.append(subQR * subP**(-1))
         return [ T.change_ring(P.base_ring()) for T in Ts ]
 

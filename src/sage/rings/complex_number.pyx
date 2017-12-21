@@ -2521,7 +2521,7 @@ cdef class RRtoCC(Map):
         self._zero = ComplexNumber(CC, 0)
         self._repr_type_str = "Natural"
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         A helper for pickling and copying.
 
@@ -2543,8 +2543,9 @@ cdef class RRtoCC(Map):
               From: Real Field with 53 bits of precision
               To:   Complex Field with 53 bits of precision
         """
-        _slots['_zero'] = self._zero
-        return Map._extra_slots(self, _slots)
+        slots = Map._extra_slots(self)
+        slots['_zero'] = self._zero
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """

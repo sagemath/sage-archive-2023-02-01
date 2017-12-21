@@ -2,7 +2,9 @@
 Variants of getattr()
 """
 
-from cpython.object cimport PyObject, Py_TYPE, descrgetfunc
+from cpython.object cimport PyObject, PyTypeObject, Py_TYPE, descrgetfunc
+
+from .string cimport bytes_to_str
 
 cdef extern from "Python.h":
     # Internal API to look for a name through the MRO.
@@ -37,7 +39,7 @@ cdef class AttributeErrorMessage:
     ::
 
         sage: from sage.cpython.getattr import AttributeErrorMessage
-        sage: AttributeErrorMessage(int(1),'bla')
+        sage: AttributeErrorMessage(int(1), 'bla')
         'int' object has no attribute 'bla'
 
     TESTS:
@@ -48,14 +50,14 @@ cdef class AttributeErrorMessage:
 
         sage: try:
         ....:     1.__bla
-        ....: except AttributeError as ElementError:
-        ....:     pass
+        ....: except AttributeError as exc:
+        ....:     ElementError = exc
         sage: ElementError
         AttributeError('sage.rings.integer.Integer' object has no attribute '__bla',)
         sage: try:
         ....:     x.__bla
-        ....: except AttributeError as ElementError2:
-        ....:     pass
+        ....: except AttributeError as exc:
+        ....:     ElementError2 = exc
         sage: ElementError2 is ElementError
         True
         sage: ElementError
@@ -69,14 +71,14 @@ cdef class AttributeErrorMessage:
 
         sage: try:
         ....:     QQ.__bla
-        ....: except AttributeError as ParentError:
-        ....:     pass
+        ....: except AttributeError as exc:
+        ....:     ParentError = exc
         sage: ParentError
         AttributeError('RationalField_with_category' object has no attribute '__bla',)
         sage: try:
         ....:     ZZ.__bla
-        ....: except AttributeError as ParentError2:
-        ....:     pass
+        ....: except AttributeError as exc:
+        ....:     ParentError2 = exc
         sage: ParentError2 is ParentError
         True
         sage: ParentError2
@@ -93,20 +95,16 @@ cdef class AttributeErrorMessage:
         self.name = name
 
     def __repr__(self):
-        cdef int dictoff = 1
-        try:
-            dictoff = self.cls.__dictoffset__
-        except AttributeError:
-            pass
-        if dictoff:
-            cls = repr(self.cls.__name__)
-        else:
-            cls = repr(self.cls)[6:-1]
-        return f"{cls} object has no attribute {self.name!r}"
+        cls = bytes_to_str((<PyTypeObject*>self.cls).tp_name, 'utf-8',
+                           'replace')
+        # Go directly through tp_name since __name__ can be overridden--this is
+        # almost verbatim how CPython formats this message except we don't cut
+        # off the class name after 50 characters, and non-strings are displayed
+        # with their repr :)
+        return f"'{cls}' object has no attribute {self.name!r}"
 
 
 cdef AttributeErrorMessage dummy_error_message = AttributeErrorMessage()
-cdef dummy_attribute_error = AttributeError(dummy_error_message)
 
 
 cpdef getattr_from_other_class(self, cls, name):
@@ -227,9 +225,9 @@ cpdef getattr_from_other_class(self, cls, name):
 
     This does not work with an old-style class::
 
-        sage: class OldStyle:
+        sage: class OldStyle:  # py2 -- no 'old-style' classes in Python 3
         ....:     pass
-        sage: getattr_from_other_class(1, OldStyle, "foo")
+        sage: getattr_from_other_class(1, OldStyle, "foo")  # py2
         Traceback (most recent call last):
         ...
         TypeError: <class __main__.OldStyle at ...> is not a type
@@ -243,6 +241,9 @@ cpdef getattr_from_other_class(self, cls, name):
     """
     if not isinstance(cls, type):
         raise TypeError(f"{cls!r} is not a type")
+
+    cdef dummy_attribute_error = AttributeError(dummy_error_message)
+
     if isinstance(self, cls):
         dummy_error_message.cls = type(self)
         dummy_error_message.name = name

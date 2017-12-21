@@ -7,12 +7,11 @@ from sage.rings.all import ZZ, QQ
 from sage.rings.integer import Integer
 from sage.arith.functions import LCM_list
 from sage.misc.functional import denominator
-from sage.matrix.constructor import matrix
 from ppl import (
     C_Polyhedron, Constraint_System, Generator_System,
-    Variable, Linear_Expression,
-    line, ray, point )
-from gmpy2 import mpz
+    Linear_Expression,
+    line, ray, point
+)
 from .base import Polyhedron_base
 from .base_QQ import Polyhedron_QQ
 from .base_ZZ import Polyhedron_ZZ

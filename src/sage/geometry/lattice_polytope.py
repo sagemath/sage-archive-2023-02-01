@@ -107,6 +107,7 @@ from six import StringIO
 from six.moves import copyreg
 import six
 
+from sage.arith.all import gcd
 from sage.combinat.posets.posets import FinitePoset
 from sage.env import POLYTOPE_DATA_DIR
 from sage.geometry.cone import _ambient_space_point, integral_length
@@ -5036,7 +5037,7 @@ def _palp_canonical_order(V, PM_max, permutations):
             p_c = PermutationGroupElement((1 + i, 1 + k))*p_c
     # Create array of possible NFs.
     permutations = [p_c * l[1] for l in permutations.values()]
-    Vs = [(V.column_matrix().with_permuted_columns(sig).hermite_form(), sig) 
+    Vs = [(V.column_matrix().with_permuted_columns(sig).hermite_form(), sig)
           for sig in permutations]
     Vmin = min(Vs, key=lambda x:x[0])
     vertices = [V.module()(_) for _ in Vmin[0].columns()]

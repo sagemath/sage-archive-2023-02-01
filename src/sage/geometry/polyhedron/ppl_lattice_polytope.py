@@ -160,7 +160,7 @@ def LatticePolytope_PPL(*args):
     if len(args)==1 and isinstance(args[0], C_Polyhedron):
         polyhedron = args[0]
         polytope_class = _class_for_LatticePolytope(polyhedron.space_dimension())
-        if not all(p.is_point() and Integer(p.divisor()).is_one() for p in polyhedron.generators()):
+        if not all(p.is_point() and p.divisor() == 1 for p in polyhedron.generators()):
             raise TypeError('polyhedron has non-integral generators')
         return polytope_class(polyhedron)
     if len(args)==1 \
@@ -172,7 +172,7 @@ def LatticePolytope_PPL(*args):
     gs = Generator_System()
     for v in vertices:
         if isinstance(v, Generator):
-            if (not v.is_point()) or (not Integer(v.divisor()).is_one()):
+            if (not v.is_point()) or v.divisor() != 1:
                 raise TypeError('generator is not a lattice polytope generator')
             gs.insert(v)
         else:

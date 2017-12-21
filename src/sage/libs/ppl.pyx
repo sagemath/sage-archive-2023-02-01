@@ -2999,6 +2999,11 @@ cdef class Polyhedron(_mutable_or_immutable):
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print(err)  # long time
+            /... DeprecationWarning: 
+            The Sage wrappers around ppl are now superseded by the standalone pplpy.
+                                Please use import 'ppl' instead of 'sage.libs.ppl'.
+            See http://trac.sagemath.org/23024 for details.
+            ...
             space_dim 2
             -ZE -EM  +CM +GM  +CS +GS  -CP -GP  -SC +SG
             con_sys (up-to-date)
@@ -3952,6 +3957,11 @@ cdef class Variables_Set(object):
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print(err)  # long time
+            /... DeprecationWarning: 
+            The Sage wrappers around ppl are now superseded by the standalone pplpy.
+                                Please use import 'ppl' instead of 'sage.libs.ppl'.
+            See http://trac.sagemath.org/23024 for details.
+            ...
             <BLANKLINE>
             variables( 1 )
             123
@@ -4236,6 +4246,11 @@ cdef class Linear_Expression(object):
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print(err)  # long time
+            /... DeprecationWarning: 
+            The Sage wrappers around ppl are now superseded by the standalone pplpy.
+                                Please use import 'ppl' instead of 'sage.libs.ppl'.
+            See http://trac.sagemath.org/23024 for details.
+            ...
             size 3 1 3 2
         """
         self.thisptr.ascii_dump()
@@ -5130,6 +5145,11 @@ cdef class Generator(object):
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print(err)  # long time
+            /... DeprecationWarning: 
+            The Sage wrappers around ppl are now superseded by the standalone pplpy.
+                                Please use import 'ppl' instead of 'sage.libs.ppl'.
+            See http://trac.sagemath.org/23024 for details.
+            ...
             size 3 1 3 2 P (C)
         """
         self.thisptr.ascii_dump()
@@ -5431,6 +5451,11 @@ cdef class Generator_System(_mutable_or_immutable):
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print(err)  # long time
+            /... DeprecationWarning: 
+            The Sage wrappers around ppl are now superseded by the standalone pplpy.
+                                Please use import 'ppl' instead of 'sage.libs.ppl'.
+            See http://trac.sagemath.org/23024 for details.
+            ...
             topology NECESSARILY_CLOSED
             1 x 2 SPARSE (sorted)
             index_first_pending 1
@@ -6119,6 +6144,11 @@ cdef class Constraint(object):
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print(err)  # long time
+            /... DeprecationWarning: 
+            The Sage wrappers around ppl are now superseded by the standalone pplpy.
+                                Please use import 'ppl' instead of 'sage.libs.ppl'.
+            See http://trac.sagemath.org/23024 for details.
+            ...
             size 4 1 3 2 -1 > (NNC)
         """
         self.thisptr.ascii_dump()
@@ -6465,6 +6495,11 @@ cdef class Constraint_System(object):
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print(err)  # long time
+            /... DeprecationWarning: 
+            The Sage wrappers around ppl are now superseded by the standalone pplpy.
+                                Please use import 'ppl' instead of 'sage.libs.ppl'.
+            See http://trac.sagemath.org/23024 for details.
+            ...
             topology NOT_NECESSARILY_CLOSED
             1 x 2 SPARSE (sorted)
             index_first_pending 1
@@ -6816,6 +6851,11 @@ cdef class Poly_Gen_Relation(object):
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print(err)  # long time
+            /... DeprecationWarning: 
+            The Sage wrappers around ppl are now superseded by the standalone pplpy.
+                                Please use import 'ppl' instead of 'sage.libs.ppl'.
+            See http://trac.sagemath.org/23024 for details.
+            ...
             NOTHING
         """
         self.thisptr.ascii_dump()
@@ -7066,6 +7106,11 @@ cdef class Poly_Con_Relation(object):
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
             sage: print(err)  # long time
+            /... DeprecationWarning: 
+            The Sage wrappers around ppl are now superseded by the standalone pplpy.
+                                Please use import 'ppl' instead of 'sage.libs.ppl'.
+            See http://trac.sagemath.org/23024 for details.
+            ...
             NOTHING
         """
         self.thisptr.ascii_dump()

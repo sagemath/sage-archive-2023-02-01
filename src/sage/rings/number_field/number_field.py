@@ -10552,6 +10552,13 @@ class NumberField_quadratic(NumberField_absolute):
             <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
 
             sage: TestSuite(k).run()
+
+        Check that :trac:`23008` is fixed::
+
+            sage: z = polygen(ZZ, 'z')
+            sage: K.<phi> = NumberField(z^2 - z - 1, embedding=QQbar(golden_ratio))
+            sage: floor(phi)
+            1
         """
         NumberField_absolute.__init__(self, polynomial, name=name, check=check,
                                       embedding=embedding, latex_name=latex_name,
@@ -10568,15 +10575,12 @@ class NumberField_quadratic(NumberField_absolute):
 
         # we must set the flag _standard_embedding *before* any element creation
         # Note that in the following code, no element is built.
-        emb = self.coerce_embedding()
-        if emb is not None:
-            rootD = number_field_element_quadratic.NumberFieldElement_quadratic(self, (QQ(0),QQ(1)))
+        if self.coerce_embedding() is not None and CDF.has_coerce_map_from(self):
+            rootD = CDF(number_field_element_quadratic.NumberFieldElement_quadratic(self, (QQ(0),QQ(1))))
             if D > 0:
-                from sage.rings.real_double import RDF
-                self._standard_embedding = RDF.has_coerce_map_from(self) and RDF(rootD) > 0
+                self._standard_embedding = rootD.real() > 0
             else:
-                from sage.rings.complex_double import CDF
-                self._standard_embedding = CDF.has_coerce_map_from(self) and CDF(rootD).imag() > 0
+                self._standard_embedding = rootD.imag() > 0
 
         # we reset _NumberField_generic__gen has the flag standard_embedding
         # might be modified

@@ -173,18 +173,15 @@ class FractionField_generic(ring.Field):
             sage: Frac(QQ['x,y']).variable_names()
             ('x', 'y')
             sage: category(Frac(QQ['x']))
-            Category of infinite quotient fields
+            Category of quotient fields
         """
         self._R = R
         self._element_class = element_class
         cat = category
-        try:
-            if self in Rings().Infinite() or not self.characteristic():
-                cat = cat.Infinite()
-            elif self in Rings().Finite():
-                cat = cat.Finite()
-        except NotImplementedError:
-            pass
+        if self in Rings().Infinite():
+            cat = cat.Infinite()
+        elif self in Rings().Finite():
+            cat = cat.Finite()
         Parent.__init__(self, base=R, names=R._names, category=cat)
 
     def __reduce__(self):

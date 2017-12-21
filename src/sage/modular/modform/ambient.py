@@ -822,12 +822,19 @@ class ModularFormsAmbient(space.ModularFormsSpace,
 
     def hecke_polynomial(self, n, var='x'):
         r"""
-        Compute the characteristic polynomial of the n-th Hecke operator acting
-        on this space.
+        Compute the characteristic polynomial of the Hecke operator T_n acting
+        on this space. Except in level 1, this is computed via modular symbols,
+        and in particular is faster to compute than the matrix itself.
 
         EXAMPLES::
 
             sage: ModularForms(17,4).hecke_polynomial(2)
+            x^6 - 16*x^5 + 18*x^4 + 608*x^3 - 1371*x^2 - 4968*x + 7776
+
+        Check that this gives the same answer as computing the actual Hecke
+        matrix (which is generally slower)::
+
+            sage: ModularForms(17,4).hecke_matrix(2).charpoly()
             x^6 - 16*x^5 + 18*x^4 + 608*x^3 - 1371*x^2 - 4968*x + 7776
         """
         return self.cuspidal_submodule().hecke_polynomial(n,var) * self.eisenstein_submodule().hecke_polynomial(n,var)

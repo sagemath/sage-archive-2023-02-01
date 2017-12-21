@@ -263,11 +263,17 @@ class CuspidalSubmodule_modsym_qexp(CuspidalSubmodule):
     def hecke_polynomial(self, n, var='x'):
         r"""
         Return the characteristic polynomial of the Hecke operator T_n on this
-        space. This is computed via modular symbols.
+        space. This is computed via modular symbols, and in particular is
+        faster to compute than the matrix itself.
 
         EXAMPLES::
 
             sage: CuspForms(105, 2).hecke_polynomial(2, 'y')
+            y^13 + 5*y^12 - 4*y^11 - 52*y^10 - 34*y^9 + 174*y^8 + 212*y^7 - 196*y^6 - 375*y^5 - 11*y^4 + 200*y^3 + 80*y^2
+
+        Check that this gives the same answer as computing the Hecke matrix::
+
+            sage: CuspForms(105, 2).hecke_matrix(2).charpoly(var='y')
             y^13 + 5*y^12 - 4*y^11 - 52*y^10 - 34*y^9 + 174*y^8 + 212*y^7 - 196*y^6 - 375*y^5 - 11*y^4 + 200*y^3 + 80*y^2
         """
         return self.modular_symbols(sign=1).hecke_polynomial(n, var)

@@ -1425,6 +1425,26 @@ cdef class PowerSeries(AlgebraElement):
 
             sage: (1 + x + O(x^5)).nth_root(5)
             1 + 1/5*x - 2/25*x^2 + 6/125*x^3 - 21/625*x^4 + O(x^5)
+
+        Check that the result are consistent with taking log and exponential::
+
+            sage: R.<x> = PowerSeriesRing(QQ, default_prec=100)
+            sage: p = (1 + 2*x - x^4)**200
+            sage: p1 = p.nth_root(1000, prec=100)
+            sage: p2 = (p.log()/1000).exp()
+            sage: p1.prec() == p2.prec() == 100
+            True
+            sage: p1.polynomial() == p2.polynomial()
+            True
+
+        Positive characteristic::
+
+            sage: R.<u> = GF(3)[[]]
+            sage: p = 1 + 2 * u^2
+            sage: p.nth_root(4)
+            1 + 2*u^2 + u^6 + 2*u^8 + u^12 + 2*u^14 + O(u^20)
+            sage: p.nth_root(4)**4
+            1 + 2*u^2 + O(u^20)
         """
         if prec is None:
             prec = self.prec()

@@ -69,7 +69,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         if n < 0:
             raise ValueError("Multivariate Polynomial Rings must " + \
                   "have more than 0 variables.")
-        order = TermOrder(order,n)
+        order = TermOrder(order, n)
         self.__ngens = n
         self.__term_order = order
         self._has_singular = False #cannot convert to Singular by default
@@ -79,7 +79,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         # as well, assigning the names twice.
         #ParentWithGens.__init__(self, base_ring, names)
         sage.rings.ring.Ring.__init__(self, base_ring, names,
-                                      category=polynomial_default_category(base_ring.category(),n>1))
+                                      category=polynomial_default_category(base_ring.category(), n))
 
     def is_integral_domain(self, proof = True):
         """

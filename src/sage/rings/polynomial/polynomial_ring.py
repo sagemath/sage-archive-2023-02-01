@@ -241,10 +241,11 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             Join of Category of unique factorization domains
              and Category of commutative algebras over
               (euclidean domains and infinite enumerated sets and metric spaces)
+             and Category of infinite sets
             sage: category(GF(7)['x'])
             Join of Category of euclidean domains
              and Category of commutative algebras over
-              (finite enumerated fields and subquotients of monoids and quotients of semigroups)
+              (finite enumerated fields and subquotients of monoids and quotients of semigroups) and Category of infinite sets
 
         TESTS:
 
@@ -258,7 +259,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         # We trust that, if category is given, it is useful and does not need to be joined
         # with the default category
         if category is None:
-            category = polynomial_default_category(base_ring.category(),False)
+            category = polynomial_default_category(base_ring.category(), 1)
         self.__is_sparse = sparse
         if element_class:
             self._polynomial_class = element_class
@@ -1466,7 +1467,7 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
             raise TypeError("Base ring %s must be a commutative ring."%repr(base_ring))
         # We trust that, if a category is given, that it is useful.
         if category is None:
-            category = polynomial_default_category(base_ring.category(),False)
+            category = polynomial_default_category(base_ring.category(), 1)
         PolynomialRing_general.__init__(self, base_ring, name=name,
                 sparse=sparse, element_class=element_class, category=category)
 

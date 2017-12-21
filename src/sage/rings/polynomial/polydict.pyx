@@ -445,7 +445,7 @@ cdef class PolyDict:
         """
         n = len(vars)
         poly = ""
-        E = list(self.__repn.keys())
+        E = list(self.__repn)
         if sortkey:
             E.sort(key=sortkey, reverse=True)
         else:
@@ -535,7 +535,7 @@ cdef class PolyDict:
         """
         n = len(vars)
         poly = ""
-        E = list(self.__repn.keys())
+        E = list(self.__repn)
         if sortkey:
             E.sort(key=sortkey, reverse=True)
         else:

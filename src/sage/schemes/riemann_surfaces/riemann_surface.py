@@ -1690,14 +1690,9 @@ class RiemannSurface(object):
             other = self
         P = self.period_matrix()
         Q = other.period_matrix()
-        gP = len(P.rows())
-        subP = P.submatrix(0, 0, gP, gP)
-        Ts = [ ]
-        for R in Rs:
-            RCC = R.base_extend(Q.base_ring())
-            QR = Q*RCC
-            subQR = QR.submatrix(0, 0, gP, gP)
-            Ts.append(subQR * subP**(-1))
+        g = P.nrows()
+        subP = (P[:g,:g]).inverse()
+        Ts = [(Q*R)[:g,:g] * subP for R in Rs]
         return [ T.change_ring(P.base_ring()) for T in Ts ]
 
     def tangent_representation_algebraic(self, Rs, other = None, epscomp = None):
@@ -1905,12 +1900,12 @@ class RiemannSurface(object):
             sage: A.<x,y> = QQ[]
             sage: S = RiemannSurface(y^2 - (x^6 + 2*x^4 + 4*x^2 + 8), prec = 100)
             sage: G = S.symplectic_automorphism_group()
-            sage: G.is_isomorphic(DihedralGroup(4))
+            sage: G.as_permutation_group().is_isomorphic(DihedralGroup(4))
             True
 
         """
         RsAut = self.symplectic_isomorphisms(b = b, r = r)
-        return MatrixGroup(RsAut).as_permutation_group()
+        return MatrixGroup(RsAut)
 
     def __add__(self,other):
         r"""

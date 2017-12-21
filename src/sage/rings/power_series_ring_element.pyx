@@ -81,6 +81,7 @@ With power series the behavior is the same.
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
+#                     2017 Vincent Delecroix <20100.delecroix@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -1405,6 +1406,36 @@ cdef class PowerSeries(AlgebraElement):
                 return self.parent()(self.sqrt())
             except TypeError:
                 raise ValueError("Square root does not live in this ring.")
+
+    def nth_root(self, n, prec=None):
+        r"""
+        Return the ``n``-th root of this power series.
+
+        INPUT:
+
+        - ``n`` -- integer
+
+        - ``prec`` -- integer (optional) - the precision of the result
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[[]]
+            sage: (1+x).nth_root(5)
+            1 + 1/5*x - 2/25*x^2 + ... + 12039376311816/2384185791015625*x^19 + O(x^20)
+
+            sage: (1 + x + O(x^5)).nth_root(5)
+            1 + 1/5*x - 2/25*x^2 + 6/125*x^3 - 21/625*x^4 + O(x^5)
+        """
+        if prec is None:
+            prec = self.prec()
+            if prec == infinity:
+                prec = self.parent().default_prec()
+        else:
+            prec = min(self.prec(), prec)
+
+        p = self.polynomial()
+        q = p._nth_root_series(n, prec)
+        return self.parent()(q) + self.parent()(0).O(prec)
 
     def cos(self, prec=infinity):
         r"""

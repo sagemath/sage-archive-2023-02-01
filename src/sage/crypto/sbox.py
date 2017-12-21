@@ -551,7 +551,7 @@ class SBox(SageObject):
             L.append(B.walsh_hadamard_transform())
 
         A = Matrix(ZZ, ncols, nrows, L)
-        A = -A.transpose()/2
+        A = A.transpose()/2
         A.set_immutable()
 
         return A

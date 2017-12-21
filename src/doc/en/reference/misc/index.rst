@@ -152,7 +152,6 @@ Code Evaluation
 .. toctree::
    :maxdepth: 1
 
-   sage/misc/cython_c
    sage/misc/cython
    sage/misc/inline_fortran
    sage/misc/parser

@@ -610,20 +610,17 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: f(a) # random
             5
         """
-        if S is int:
-            return sage.rings.integer.int_to_Z()
-        elif S is long:
+        if S is long:
             return sage.rings.integer.long_to_Z()
+        elif S is int:
+            return sage.rings.integer.int_to_Z()
         elif S is bool:
             return True
         elif is_numpy_type(S):
             import numpy
             if issubclass(S, numpy.integer):
                 return True
-            else:
-                return None
-        else:
-            None
+        return None
 
     def random_element(self, x=None, y=None, distribution=None):
         r"""

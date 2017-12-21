@@ -37,9 +37,12 @@ from cysignals.signals cimport sig_on, sig_off
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
+from sage.libs.flint.fmpz cimport *
+from sage.libs.arb.arb cimport *
+from sage.libs.arb.acb cimport *
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
-from sage.libs.mpfi cimport mpfi_set_z, mpfi_set_q, mpfi_sqrt, mpfi_add_z, mpfi_mul_z, mpfi_div_z, mpfi_neg
+from sage.libs.mpfi cimport *
 
 from sage.structure.parent_base cimport ParentWithBase
 from sage.structure.element cimport Element
@@ -53,6 +56,8 @@ from sage.rings.complex_double import CDF
 from sage.categories.morphism cimport Morphism
 from sage.rings.number_field.number_field_element import _inverse_mod_generic
 from sage.rings.real_mpfi cimport RealIntervalFieldElement, RealIntervalField_class
+from sage.rings.real_arb cimport RealBall
+from sage.rings.complex_arb cimport ComplexBall
 
 from sage.libs.gmp.pylong cimport mpz_pythonhash
 
@@ -562,6 +567,15 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             0.?e-17
             sage: RealIntervalField(128)(u).is_zero()
             False
+
+        The following is a bug due to the fact that ``RIF`` does not play
+        nicely with coercions (it should have been a conversion map
+        via _real_mpfi_ method map)::
+
+            sage: RIF.convert_map_from(QuadraticField(5))
+            Call morphism:
+              From: Number Field in a with defining polynomial x^2 - 5
+              To:   Real Interval Field with 53 bits of precision
         """
         cdef RealIntervalFieldElement ans = R._new()
 
@@ -581,6 +595,153 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
         mpfi_div_z(ans.value, ans.value, self.denom)
         return ans
+
+    cdef int arb_set_real(self, arb_t x, long prec) except -1:
+        "Set x to the real part of this element"
+        cdef fmpz_t tmpz
+        cdef arb_t rootD
+        cdef long prec2
+
+        fmpz_init(tmpz)
+
+        if mpz_sgn(self.D.value) > 0:
+            # To mitigate the effect of cancellations between
+            # a and b*sqrt(D) we perform a loop with increasing
+            # working precision
+            arb_init(rootD)
+            prec2 = prec
+            sig_on()
+            while True:
+                fmpz_set_mpz(tmpz, self.a)
+                arb_set_fmpz(x, tmpz)
+                fmpz_set_mpz(tmpz, self.D.value)
+                arb_sqrt_fmpz(rootD, tmpz, prec2)
+                fmpz_set_mpz(tmpz, self.b)
+                if self.standard_embedding:
+                    arb_addmul_fmpz(x, rootD, tmpz, prec2)
+                else:
+                    arb_submul_fmpz(x, rootD, tmpz, prec2)
+                if arb_rel_accuracy_bits(x) < prec - 4:
+                    prec2 *= 2
+                    continue
+                else:
+                    break
+            sig_off()
+            arb_clear(rootD)
+        else:
+            fmpz_set_mpz(tmpz, self.a)
+            arb_set_fmpz(x, tmpz)
+
+        fmpz_set_mpz(tmpz, self.denom)
+        arb_div_fmpz(x, x, tmpz, prec)
+        fmpz_clear(tmpz)
+        return 0
+
+    cdef void arb_set_imag(self, arb_t x, long prec):
+        "Set x to the imaginary part of this element"
+        cdef fmpz_t tmpz
+        cdef arb_t rootD
+
+        if mpz_sgn(self.D.value) < 0 and mpz_sgn(self.b):
+            arb_init(rootD)
+            fmpz_init(tmpz)
+            fmpz_set_mpz(tmpz, self.D.value)
+            fmpz_neg(tmpz, tmpz)
+            arb_sqrt_fmpz(rootD, tmpz, prec)
+            fmpz_set_mpz(tmpz, self.b)
+            if self.standard_embedding:
+                arb_addmul_fmpz(x, rootD, tmpz, prec)
+            else:
+                arb_submul_fmpz(x, rootD, tmpz, prec)
+            fmpz_set_mpz(tmpz, self.denom)
+            arb_div_fmpz(x, x, tmpz, prec)
+
+            fmpz_clear(tmpz)
+            arb_clear(rootD)
+
+    def _arb_(self, R):
+        r"""
+        Conversion to a real ball with parent ``R``.
+
+        EXAMPLES::
+
+            sage: a = QuadraticField(7).gen()
+            sage: a._arb_(RBF)
+            [2.645751311064590 +/- 7.17e-16]
+            sage: RBF(a)
+            [2.645751311064590 +/- 7.17e-16]
+
+            sage: a = QuadraticField(7, embedding=-AA(7).sqrt()).gen()
+            sage: a._arb_(RBF)
+            [-2.645751311064590 +/- 7.17e-16]
+
+            sage: a = QuadraticField(-1).gen()
+            sage: RBF(a)
+            Traceback (most recent call last):
+            ...
+            ValueError: nonzero imaginary part
+
+        This conversion takes care of cancellations::
+
+            sage: K.<a> = QuadraticField(3)
+            sage: b = (a - 1)**1000
+            sage: RBF(b)
+            [3.477155118441024e-136 +/- 8.45e-152]
+
+        TESTS:
+
+        Check that coercions and conversions go throuh this method::
+
+            sage: RBF.convert_map_from(QuadraticField(5))
+            Conversion via _arb_ method map:
+              From: Number Field in a with defining polynomial x^2 - 5
+              To:   Real ball field with 53 bits of precision
+            sage: RBF.coerce_map_from(QuadraticField(5, embedding=-AA(5).sqrt()))
+            Conversion via _arb_ method map:
+              From: Number Field in a with defining polynomial x^2 - 5
+              To:   Real ball field with 53 bits of precision
+        """
+        cdef RealBall res = RealBall.__new__(RealBall)
+        res._parent = R
+        if mpz_sgn(self.D.value) < 0 and mpz_sgn(self.b):
+            raise ValueError('nonzero imaginary part')
+        self.arb_set_real(res.value, R._prec)
+        return res
+
+    def _acb_(self, R):
+        r"""
+        Conversion to complex ball with parent ``R``.
+
+        EXAMPLES::
+
+            sage: K.<a> = QuadraticField(-3)
+            sage: CBF(1/7 + 3/2 * a)
+            [0.1428571428571428 +/- 7.70e-17] + [2.59807621135332 +/- 6.17e-15]*I
+            sage: CBF(1/7) + CBF(3/2) * CBF(a)
+            [0.1428571428571428 +/- 7.70e-17] + [2.59807621135332 +/- 5.21e-15]*I
+
+            sage: a._acb_(CBF)
+            [1.732050807568877 +/- 4.16e-16]*I
+
+        TESTS:
+
+        Check that coercions and conversions go through this method::
+
+            sage: CBF.convert_map_from(QuadraticField(-3))
+            Conversion via _acb_ method map:
+              From: Number Field in a with defining polynomial x^2 + 3
+              To:   Complex ball field with 53 bits of precision
+
+            sage: CBF.coerce_map_from(QuadraticField(-3, embedding=-QQbar(-3).sqrt()))
+            Conversion via _acb_ method map:
+              From: Number Field in a with defining polynomial x^2 + 3
+              To:   Complex ball field with 53 bits of precision
+        """
+        cdef ComplexBall res = ComplexBall.__new__(ComplexBall)
+        res._parent = R
+        self.arb_set_real(acb_realref(res.value), R._prec)
+        self.arb_set_imag(acb_imagref(res.value), R._prec)
+        return res
 
     def parts(self):
         """
@@ -748,7 +909,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
             sage: K1 = NumberField(x^2 - 2, 'a', embedding=RR(1.4))
             sage: K2 = NumberField(x^2 - 2, 'a', embedding=RR(-1.4))
-            sage: for _ in range(500):
+            sage: for _ in range(500):  # long time
             ....:     for K in K1, K2:
             ....:         a = K.random_element()
             ....:         b = K.random_element()
@@ -763,7 +924,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
             sage: K1 = NumberField(x^2 + 2, 'a', embedding=CC(0,1))
             sage: K2 = NumberField(x^2 + 2, 'a', embedding=CC(0,-1))
-            sage: for _ in range(500):
+            sage: for _ in range(500):  # long time
             ....:     for K in K1, K2:
             ....:         a = K.random_element()
             ....:         b = K.random_element()
@@ -1813,10 +1974,9 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         else:
             return NumberFieldElement.norm(self, K)
 
-
     def is_integral(self):
         r"""
-        Returns whether this element is an algebraic integer.
+        Return whether this element is an algebraic integer.
 
         TESTS::
 
@@ -1827,11 +1987,11 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             True
             sage: K(1/2).is_integral()
             False
-            sage: K(a/2).is_integral()
+            sage: (a/2).is_integral()
             False
-            sage: K((a+1)/2).is_integral()
+            sage: ((a+1)/2).is_integral()
             False
-            sage: K(a/3).is_integral()
+            sage: ((a+1)/3).is_integral()
             False
 
             sage: K.<a> = QuadraticField(-3)
@@ -1841,15 +2001,33 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             True
             sage: K(1/2).is_integral()
             False
-            sage: K(a/2).is_integral()
+            sage: (a/2).is_integral()
             False
             sage: ((a+1)/2).is_integral()
             True
+            sage: ((a+1)/3).is_integral()
+            False
+
+        This works for order elements too, see :trac:`24077`::
+
+            sage: O.<w> = EisensteinIntegers()
+            sage: w.is_integral()
+            True
+            sage: for _ in range(20):
+            ....:     assert O.random_element().is_integral()
         """
         if mpz_cmp_ui(self.denom, 1) == 0:
             return True
-        else:
-            return self.norm().denom() == 1 and self.trace().denom() == 1
+
+        # Check for an element of the form x + y sqrt(D) where x and y
+        # are half-integers.
+        if mpz_even_p(self.a) or mpz_even_p(self.b):
+            return False
+        if mpz_cmp_ui(self.denom, 2) != 0:
+            return False
+        # Numbers with half-integral components are integral only for
+        # D = 1 mod 4
+        return mpz_fdiv_ui(self.D.value, 4) == 1
 
     def charpoly(self, var='x'):
         r"""

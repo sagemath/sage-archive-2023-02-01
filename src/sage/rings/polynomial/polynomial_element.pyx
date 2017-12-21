@@ -71,7 +71,7 @@ import sage.rings.infinity as infinity
 from sage.misc.sage_eval import sage_eval
 from sage.misc.abstract_method import abstract_method
 from sage.misc.latex import latex
-from sage.misc.long cimport pyobject_to_long
+from sage.arith.long cimport pyobject_to_long
 from sage.structure.factorization import Factorization
 from sage.structure.richcmp cimport (richcmp, richcmp_not_equal,
         rich_to_bool, rich_to_bool_sgn)
@@ -1276,14 +1276,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: g(x=2)
             10
 
-        The polynomial does not have to be over a field of
-        characteristic 0::
+        The polynomial has to be over a field of characteristic 0 (see
+        :trac:`24072`)::
 
             sage: R.<w> = GF(7)[]
             sage: f = SR(2*w^3 + 1); f
-            2*w^3 + 1
-            sage: f.variables()
-            (w,)
+            Traceback (most recent call last):
+            ...
+            TypeError: positive characteristic not allowed in symbolic computations
         """
         d = dict([(repr(g), R.var(g)) for g in self._parent.gens()])
         return self.subs(**d)
@@ -2209,6 +2209,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = S[]
             sage: pow(y*x+1, 51, x^7)
             18009460*y^6*x^6 + 2349060*y^5*x^5 + ... + 51*y*x + 1
+
+        Check that fallback method is used when it is not possible to compute
+        the characteristic of the base ring (trac:`24308`)::
+
+            sage: kk.<a,b> = GF(2)[]
+            sage: k.<y,w> = kk.quo(a^2+a+1)
+            sage: K.<T> = k[] 
+            sage: (T*y)^21
+            T^21
         """
         if not isinstance(left, Polynomial):
             return NotImplemented
@@ -2240,8 +2249,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 v = [R.zero()]*right + [R.one()]
             return self.parent()(v, check=False)
         if right > 20: # no gain below
-            p = self.parent().characteristic()
-            if p > 0 and p <= right and (self.base_ring() in sage.categories.integral_domains.IntegralDomains() or p.is_prime()):
+            try:
+                p = self.parent().characteristic()
+            except (AttributeError, NotImplementedError):
+                # some quotients do not implement characteristic
+                # see trac ticket 24308
+                p = -1
+            if 0 < p <= right and (self.base_ring() in sage.categories.integral_domains.IntegralDomains() or p.is_prime()):
                 x = self.parent().gen()
                 one = self.parent().one()
                 ret = one

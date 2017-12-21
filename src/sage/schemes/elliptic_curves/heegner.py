@@ -369,7 +369,7 @@ class RingClassField(SageObject):
             sage: K5.degree_over_K()
             6
             sage: type(K5.degree_over_K())
-            <type 'sage.rings.integer.Integer'>
+            <... 'sage.rings.integer.Integer'>
 
             sage: E = EllipticCurve('389a'); E.heegner_point(-20).ring_class_field().degree_over_K()
             2
@@ -6618,7 +6618,7 @@ def heegner_index(self, D,  min_p=2, prec=5, descent_second_limit=12, verbose_mw
     which can be used to fine tune the 2-descent used to compute
     the regulator of the twist::
 
-        sage: E = EllipticCurve([0, 0, 1, -34874, -2506691])
+        sage: E = EllipticCurve([1,-1,0,-1228,-16267])
         sage: E.heegner_index(-8)
         Traceback (most recent call last):
         ...
@@ -6627,7 +6627,7 @@ def heegner_index(self, D,  min_p=2, prec=5, descent_second_limit=12, verbose_mw
     However when we search higher, we find the points we need::
 
         sage: E.heegner_index(-8, descent_second_limit=16, check_rank=False)
-        1.00000?
+        2.00000?
 
 
     Two higher rank examples (of ranks 2 and 3)::

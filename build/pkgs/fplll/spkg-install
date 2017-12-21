@@ -1,9 +1,3 @@
-if [ "$SAGE_LOCAL" = "" ]; then
-    echo "SAGE_LOCAL undefined ... exiting";
-    echo "Maybe run 'sage -sh'?"
-    exit 1
-fi
-
 cd src || exit
 
 INCLUDES="-I$SAGE_LOCAL/include/"
@@ -48,28 +42,10 @@ export CXXFLAGS="$CXXFLAGS"
 export CPPFLAGS="$CPPFLAGS"
 export CXX="$CXX"
 
-echo "Now configuring fplll..."
-./configure $CONFIGUREFLAGS
-if [ $? -ne 0 ]; then
-    echo "Error configuring fplll"
-    exit 1
-fi
+sdh_configure $CONFIGUREFLAGS
+sdh_make
+sdh_make_install
 
-echo "Now building fplll..."
-$MAKE
-if [ $? -ne 0 ]; then
-    echo "Error building fplll"
-    exit 1
-fi
-
-echo "Now installing fplll..."
-$MAKE install
-if [ $? -ne 0 ]; then
-    echo "Error installing fplll"
-    exit 1
-fi
-
-
-# Pretend that the "fplll" package is not installed. This is needed to
-# support renaming libfplll -> fplll in the future.
-rm -f "$SAGE_SPKG_INST/"fplll-*
+# Pretend that the "libfplll" package is not installed. This is needed to
+# support renaming libfplll -> fplll done on Trac #24042
+rm -f "$SAGE_SPKG_INST/"libfplll-*

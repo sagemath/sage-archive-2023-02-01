@@ -36,6 +36,11 @@ REFERENCES:
 .. [ABBR2012] \A. Abad, R. Barrio, F. Blesa, M. Rodriguez. Algorithm 924.
               *ACM Transactions on Mathematical Software*, *39* no. 1 (2012), 1-28.
 
+.. [ACFLSS04] \F. N. Abu-Khzam, R. L. Collins, M. R. Fellows, M. A.  Langston,
+              W. H. Suters, and C. T. Symons: Kernelization Algorithm for the
+              Vertex Cover Problem: Theory and Experiments. *SIAM
+              ALENEX/ANALCO* 2004: 62-69.
+
 .. [ADKF1970] \V. Arlazarov, E. Dinic, M. Kronrod,
               and I. Faradzev. 'On Economical Construction of the
               Transitive Closure of a Directed Graph.'
@@ -399,6 +404,11 @@ REFERENCES:
 .. [BPU2016] Alex Biryukov, Léo Perrin, Aleksei Udovenko,
              *Reverse-Engineering the S-Box of Streebog, Kuznyechik and STRIBOBr1*; in
              EuroCrypt'16, pp. 372-402.
+
+.. [Bre2008] \A. Bretscher and D. G. Corneil and M. Habib and C. Paul (2008), "A
+             simple Linear Time LexBFS Cograph Recognition Algorithm", SIAM
+             Journal on Discrete Mathematics, 22 (4): 1277–1296,
+             :doi:`10.1137/060664690`.
 
 .. [Br1910] Bruckner, "Uber die Ableitung der allgemeinen Polytope und
             die nach Isomorphismus verschiedenen Typen der allgemeinen
@@ -1056,6 +1066,10 @@ REFERENCES:
 .. [Gr2007] \J. Green, Polynomial representations of `GL_n`, Springer
             Verlag, 2007.
 
+.. [GriRei16] Darij Grinberg, Victor Reiner,
+              *Hopf Algebras in Combinatorics*,
+              :arxiv:`1409.8356v4`.
+
 .. [GR2013] Darij Grinberg, Tom Roby. *Iterative properties of
             birational rowmotion*.
             http://www.cip.ifi.lmu.de/~grinberg/algebra/skeletal.pdf
@@ -1066,7 +1080,7 @@ REFERENCES:
 
 .. [Grinb2016a] Darij Grinberg,
                 *Double posets and the antipode of QSym*,
-                :arxiv:`1509.08355v2`.
+                :arxiv:`1509.08355v3`.
 
 .. [GrS1967] Grunbaum and Sreedharan, "An enumeration of simplicial
              4-polytopes with 8 vertices", J. Comb. Th. 2,
@@ -2013,6 +2027,9 @@ REFERENCES:
 .. [Sch2006] Oliver Schiffmann. *Lectures on Hall algebras*,
              preprint, 2006. :arxiv:`0611617v2`.
 
+.. [Sch2015] George Schaeffer. *Hecke stability and weight 1 modular forms*.
+             Math. Z. 281:159–191, 2015. :doi:`10.1007/s00209-015-1477-9`
+
 .. [Sco1985] \R. Scott,
              *Wide-open encryption design offers flexible implementations*; in
              Cryptologia, (1985), pp. 75-91.
@@ -2361,6 +2378,9 @@ REFERENCES:
 .. [WW2005] Ralf-Philipp Weinmann and Kai Wirt,
             *Analysis of the DVB Common Scrambling Algorithm*; in
             IFIP TC-6 TC-11, (2005).
+
+.. [WZY2015] WenLing Wu, Lei Zhang, and XiaoLi Yu, *The DBlock family of block ciphers*;
+             in Science China Information Sciences, (2015), pp. 1-14.
 
 .. _ref-X:
 

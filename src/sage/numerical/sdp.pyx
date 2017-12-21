@@ -97,7 +97,7 @@ of primal and dual problems. Thus we can get the optimizer `X` of the dual probl
 as follows, as diagonal blocks, one per each constraint, via :meth:`~SemidefiniteProgram.dual_variable`.
 E.g.::
 
-    sage: p.dual_variable(1)  # rel tol 1e-03
+    sage: p.dual_variable(1)  # rel tol 2e-03
     [ 85555.0 -85555.0]
     [-85555.0  85555.0]
 
@@ -224,7 +224,7 @@ from sage.structure.element cimport Element
 from sage.misc.cachefunc import cached_method
 from sage.numerical.linear_functions import is_LinearFunction, is_LinearConstraint
 from sage.matrix.all import Matrix
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 
 
 cdef class SemidefiniteProgram(SageObject):
@@ -1334,8 +1334,7 @@ cdef class SDPVariable(Element):
         result = dict()
         for i, row in enumerate(m.rows()):
             x = self[i]
-            assert len(x.dict()) == 1
-            x_index = x.dict().keys()[0]
+            x_index, = x.dict().keys()
             result[x_index] = row
         from sage.modules.free_module import FreeModule
         V = FreeModule(self._p.base_ring(), m.ncols())
@@ -1349,8 +1348,7 @@ cdef class SDPVariable(Element):
         result = dict()
         for i, col in enumerate(m.columns()):
             x = self[i]
-            assert len(x.dict()) == 1
-            x_index = x.dict().keys()[0]
+            x_index, = x.dict().keys()
             result[x_index] = col
         from sage.modules.free_module import FreeModule
         V = FreeModule(self._p.base_ring(), m.nrows())
@@ -1371,7 +1369,7 @@ cdef class SDPVariable(Element):
             sage: m * v
             (1.0, 3.0)*x_0 + (2.0, 4.0)*x_1
         """
-        from sage.matrix.matrix import is_Matrix
+        from sage.structure.element import is_Matrix
         if is_Matrix(mat):
             return self._matrix_rmul_impl(mat) if self_on_left else self._matrix_lmul_impl(mat)
 

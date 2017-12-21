@@ -154,7 +154,7 @@ from sage.cpython.python_debug cimport if_Py_TRACE_REFS_then_PyObject_INIT
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
 from sage.misc.superseded import deprecated_function_alias
-from sage.misc.long cimport pyobject_to_long
+from sage.arith.long cimport pyobject_to_long, integer_check_long
 
 from cpython.list cimport *
 from cpython.number cimport *
@@ -655,11 +655,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             if isinstance(x, Integer):
                 set_from_Integer(self, <Integer>x)
 
-            elif isinstance(x, int):
-                mpz_set_si(self.value, PyInt_AS_LONG(x))
-
             elif isinstance(x, long):
                 mpz_set_pylong(self.value, x)
+
+            elif isinstance(x, int):
+                mpz_set_si(self.value, PyInt_AS_LONG(x))
 
             elif isinstance(x, float):
                 n = long(x)
@@ -920,13 +920,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             c = mpz_cmp((<Integer>left).value, (<Integer>right).value)
         elif isinstance(right, Rational):
             c = -mpq_cmp_z((<Rational>right).value, (<Integer>left).value)
-        elif isinstance(right, int):
-            c = mpz_cmp_si((<Integer>left).value, PyInt_AS_LONG(right))
         elif isinstance(right, long):
             mpz_init(mpz_tmp)
             mpz_set_pylong(mpz_tmp, right)
             c = mpz_cmp((<Integer>left).value, mpz_tmp)
             mpz_clear(mpz_tmp)
+        elif isinstance(right, int):
+            # this case should only occur in python 2
+            c = mpz_cmp_si((<Integer>left).value, PyInt_AS_LONG(right))
         elif isinstance(right, float):
             d = right
             if isnan(d):
@@ -3107,13 +3108,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             ArithmeticError: reduction modulo 100 not defined
         """
         cdef Integer z
-        cdef long yy, res
 
         # First case: Integer % Integer
         if type(x) is type(y):
             if not mpz_sgn((<Integer>y).value):
                 raise ZeroDivisionError("Integer modulo by zero")
-            z = PY_NEW(Integer)
+            z = <Integer>PY_NEW(Integer)
             if mpz_size((<Integer>x).value) > 100000:
                 sig_on()
                 mpz_fdiv_r(z.value, (<Integer>x).value, (<Integer>y).value)
@@ -3122,22 +3122,30 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 mpz_fdiv_r(z.value, (<Integer>x).value, (<Integer>y).value)
             return z
 
-        # Next: Integer % python int
-        elif isinstance(y, int):
-            yy = PyInt_AS_LONG(y)
-            if not yy:
+        # Next: Integer % C long
+        cdef long yy = 0
+        cdef int err
+        if not isinstance(y, Element):
+            # x must be an Integer in this case
+            if not integer_check_long(y, &yy, &err):
+                # y cannot be converted to an integer
+                return NotImplemented
+            if err:
+                # y is some kind of integer,
+                # but too large for a C long
+                return x % Integer(y)
+
+            if yy == 0:
                 raise ZeroDivisionError("Integer modulo by zero")
-            z = PY_NEW(Integer)
+            z = <Integer>PY_NEW(Integer)
             if yy > 0:
                 mpz_fdiv_r_ui(z.value, (<Integer>x).value, yy)
             else:
-                res = mpz_fdiv_r_ui(z.value, (<Integer>x).value, -yy)
-                if res:
-                    mpz_sub_ui(z.value, z.value, -yy)
+                mpz_cdiv_r_ui(z.value, (<Integer>x).value, -<unsigned long>yy)
             return z
 
         # Use the coercion model
-        return bin_op(x, y, operator.mod)
+        return coercion_model.bin_op(x, y, operator.mod)
 
     def quo_rem(Integer self, other):
         """
@@ -4748,7 +4756,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             n = Integer(n)
         return self._is_power_of(n)
 
-    def is_prime_power(self, flag=None, proof=None, bint get_data=False):
+    def is_prime_power(self, *, proof=None, bint get_data=False):
         r"""
         Return ``True`` if this integer is a prime power, and ``False`` otherwise.
 
@@ -4831,9 +4839,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n.is_prime_power()
             True
         """
-        if flag is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(16878, "the 'flag' argument to is_prime_power() is no longer used")
         if mpz_sgn(self.value) <= 0:
             return (self, zero) if get_data else False
 
@@ -4985,12 +4990,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def is_pseudoprime(self):
         r"""
-        Test whether self is a pseudoprime
+        Test whether ``self`` is a pseudoprime.
 
         This uses PARI's Baillie-PSW probabilistic primality
         test. Currently, there are no known pseudoprimes for
-        Baille-PSW that are not actually prime. However it is
+        Baillie-PSW that are not actually prime. However it is
         conjectured that there are infinitely many.
+
+        See :wikipedia:`Baillie-PSW_primality_test`
 
         EXAMPLES::
 

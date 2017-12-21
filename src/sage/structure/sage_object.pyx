@@ -146,7 +146,7 @@ cdef class SageObject:
 
             sage: a = 3.14
             sage: type(a)
-            <type 'sage.rings.real_mpfr.RealLiteral'>
+            <... 'sage.rings.real_mpfr.RealLiteral'>
             sage: a.rename('pi')
             Traceback (most recent call last):
             ...
@@ -377,7 +377,7 @@ cdef class SageObject:
             sage: hash(SageObject())
             Traceback (most recent call last):
             ...
-            TypeError: <type 'sage.structure.sage_object.SageObject'> is not hashable
+            TypeError: <... 'sage.structure.sage_object.SageObject'> is not hashable
         """
         raise TypeError("{} is not hashable".format(type(self)))
 
@@ -501,24 +501,6 @@ cdef class SageObject:
             return comp.compress(s)
         else:
             return s
-
-    def db(self, name, compress=True):
-        r"""
-        Dumps self into the Sage database.  Use db(name) by itself to
-        reload.
-
-        The database directory is ``$HOME/.sage/db``
-
-        TESTS::
-
-            sage: SageObject().db("Test")
-            doctest:... DeprecationWarning: db() is deprecated.
-            See http://trac.sagemath.org/2536 for details.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(2536, 'db() is deprecated.')
-        from sage.misc.all import SAGE_DB
-        return self.dump('%s/%s'%(SAGE_DB,name), compress=compress)
 
     #############################################################################
     # Category theory / structure
@@ -1221,7 +1203,7 @@ def register_unpickle_override(module, name, callable, call_name=None):
         sage: from sage.structure.sage_object import register_unpickle_override
         sage: register_unpickle_override('sage.rings.old_integer', 'OldInteger', Integer)
         sage: unpickle_global('sage.rings.old_integer', 'OldInteger')
-        <type 'sage.rings.integer.Integer'>
+        <... 'sage.rings.integer.Integer'>
 
     In many cases, unpickling problems for old pickles can be resolved with a
     simple call to ``register_unpickle_override``, as in the example above and
@@ -1387,19 +1369,19 @@ def unpickle_global(module, name):
 
         sage: from sage.structure.sage_object import unpickle_override, register_unpickle_override
         sage: unpickle_global('sage.rings.integer', 'Integer')
-        <type 'sage.rings.integer.Integer'>
+        <... 'sage.rings.integer.Integer'>
 
     Now we horribly break the pickling system::
 
         sage: register_unpickle_override('sage.rings.integer', 'Integer', Rational, call_name=('sage.rings.rational', 'Rational'))
         sage: unpickle_global('sage.rings.integer', 'Integer')
-        <type 'sage.rings.rational.Rational'>
+        <... 'sage.rings.rational.Rational'>
 
     and we reach into the internals and put it back::
 
         sage: del unpickle_override[('sage.rings.integer', 'Integer')]
         sage: unpickle_global('sage.rings.integer', 'Integer')
-        <type 'sage.rings.integer.Integer'>
+        <... 'sage.rings.integer.Integer'>
         
     A meaningful error message with resolution instructions is displayed for
     old pickles that accidentally got broken because a class or entire module

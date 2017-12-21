@@ -306,12 +306,11 @@ import operator
 from copy import copy
 from sage.rings.real_mpfr cimport RealField_class, RealNumber
 from sage.rings.complex_field import ComplexField_class
-from sage.structure.element cimport Element
 from sage.rings.all import RDF, CDF
 from sage.libs.mpfr cimport mpfr_t, mpfr_ptr, mpfr_init2, mpfr_set, GMP_RNDN
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
-from sage.structure.element import parent
+from sage.structure.element cimport parent
 
 
 def fast_callable(x, domain=None, vars=None,
@@ -1655,8 +1654,8 @@ cpdef dict get_builtin_functions():
 
         sage: from sage.ext.fast_callable import get_builtin_functions
         sage: builtins = get_builtin_functions()
-        sage: sorted(list(builtins.values()))
-        ['abs', 'abs', 'acos', 'acosh', 'add', 'asin', 'asinh', 'atan', 'atanh', 'ceil', 'cos', 'cosh', 'cot', 'csc', 'div', 'div', 'exp', 'floor', 'floordiv', 'inv', 'log', 'mul', 'neg', 'pow', 'sec', 'sin', 'sinh', 'sqrt', 'sub', 'tan', 'tanh']
+        sage: set(builtins.values())
+        {'abs', 'acos', 'acosh', 'add', 'asin', 'asinh', 'atan', 'atanh', 'ceil', 'cos', 'cosh', 'cot', 'csc', 'div', 'exp', 'floor', 'floordiv', 'inv', 'log', 'mul', 'neg', 'pow', 'sec', 'sin', 'sinh', 'sqrt', 'sub', 'tan', 'tanh'}
         sage: builtins[sin]
         'sin'
         sage: builtins[ln]
@@ -1970,7 +1969,7 @@ cdef class InstructionStream:
 
         - metadata -- The metadata_by_opname from a wrapper module
 
-        - n_args - The number of arguments accessible by the generated code
+        - n_args -- The number of arguments accessible by the generated code
           (this is just passed to the wrapper class)
 
         - domain -- The domain of interpretation (this is just passed to the

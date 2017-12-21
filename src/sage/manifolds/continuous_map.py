@@ -976,6 +976,22 @@ class ContinuousMap(Morphism):
             on U: (x, y) |--> (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1), (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
             on V: (u, v) |--> (X, Y, Z) = (2*u/(u^2 + v^2 + 1), 2*v/(u^2 + v^2 + 1), -(u^2 + v^2 - 1)/(u^2 + v^2 + 1))
 
+        Display when SymPy is the symbolic engine::
+
+            sage: M.set_calculus_method('sympy')
+            sage: N.set_calculus_method('sympy')
+            sage: Phi.display(c_xy, c_cart)
+            Phi: S^2 --> R^3
+            on U: (x, y) |--> (X, Y, Z) = (2*x/(x**2 + y**2 + 1),
+             2*y/(x**2 + y**2 + 1), (x**2 + y**2 - 1)/(x**2 + y**2 + 1))
+            sage: latex(Phi.display(c_xy, c_cart))
+            \begin{array}{llcl} \Phi:& S^2 & \longrightarrow & \RR^3
+             \\ \mbox{on}\ U : & \left(x, y\right) & \longmapsto
+             & \left(X, Y, Z\right) = \left(\frac{2 x}{x^{2} + y^{2} + 1},
+               \frac{2 y}{x^{2} + y^{2} + 1},
+               \frac{x^{2} + y^{2} - 1}{x^{2} + y^{2} + 1}\right)
+             \end{array}
+
         """
         from sage.misc.latex import latex
         from sage.tensor.modules.format_utilities import FormattedExpansion
@@ -986,7 +1002,8 @@ class ContinuousMap(Morphism):
             """
             from sage.misc.latex import latex
             try:
-                expression = self.expr(chart1, chart2)
+                coord_func = self.coord_functions(chart1, chart2)
+                expression = coord_func.expr()
                 coords1 = chart1[:]
                 if len(coords1) == 1:
                     coords1 = coords1[0]
@@ -1005,21 +1022,21 @@ class ContinuousMap(Morphism):
                 if chart2 == chart1:
                     if len(expression) == 1:
                         result._txt += repr(expression[0]) + "\n"
-                        result._latex += latex(expression[0]) + r"\\"
+                        result._latex += latex(coord_func[0]) + r"\\"
                     else:
                         result._txt += repr(expression) + "\n"
-                        result._latex += latex(expression) + r"\\"
+                        result._latex += latex(coord_func) + r"\\"
                 else:
                     if len(expression) == 1:
                         result._txt += repr(coords2[0]) + " = " + \
                                       repr(expression[0]) + "\n"
                         result._latex += latex(coords2[0]) + " = " + \
-                                        latex(expression[0]) + r"\\"
+                                        latex(coord_func[0]) + r"\\"
                     else:
                         result._txt += repr(coords2) + " = " + \
                                       repr(expression) + "\n"
                         result._latex += latex(coords2) + " = " + \
-                                        latex(expression) + r"\\"
+                                        latex(coord_func) + r"\\"
             except (TypeError, ValueError):
                 pass
 
@@ -1074,7 +1091,7 @@ class ContinuousMap(Morphism):
 
         OUTPUT:
 
-        - a :class:`~sage.manifolds.coord_func.MultiCoordFunction`
+        - a :class:`~sage.manifolds.chart_func.MultiCoordFunction`
           representing the continuous map in the above two charts
 
         EXAMPLES:
@@ -1096,7 +1113,7 @@ class ContinuousMap(Morphism):
             sage: Phi.coord_functions() # equivalent to above since 'uv' and 'xyz' are default charts
             Coordinate functions (u*v, u/v, u + v) on the Chart (M, (u, v))
             sage: type(Phi.coord_functions())
-            <class 'sage.manifolds.coord_func.MultiCoordFunction'>
+            <class 'sage.manifolds.chart_func.MultiCoordFunction'>
 
         Coordinate representation in other charts::
 
@@ -1145,6 +1162,23 @@ class ContinuousMap(Morphism):
 
             sage: Phi1.coord_functions(c_uv.restrict(A), c_xyz)
             Coordinate functions (u*v, u/v, u + v) on the Chart (A, (u, v))
+
+        Same example with SymPy as the symbolic calculus engine::
+
+            sage: M.set_calculus_method('sympy')
+            sage: N.set_calculus_method('sympy')
+            sage: Phi = M.continuous_map(N, (u*v, u/v, u+v), name='Phi',
+            ....:                        latex_name=r'\Phi')
+            sage: Phi.coord_functions(c_uv, c_xyz)
+            Coordinate functions (u*v, u/v, u + v) on the Chart (M, (u, v))
+            sage: Phi.coord_functions(c_UV, c_xyz)
+            Coordinate functions (-U**2/4 + V**2/4, -(U + V)/(U - V), V)
+             on the Chart (M, (U, V))
+            sage: Phi.coord_functions(c_UV, c_XYZ)
+            Coordinate functions ((-U**3 + U**2*V + U*V**2 + 2*U*V + 6*U - V**3
+             - 2*V**2 + 6*V)/(2*(U - V)), (U**3/4 - U**2*V/4 - U*V**2/4 + U*V
+             - U + V**3/4 - V**2 - V)/(U - V), (U**3 - U**2*V - U*V**2 - 4*U*V
+             - 8*U + V**3 + 4*V**2 - 8*V)/(4*(U - V))) on the Chart (M, (U, V))
 
         """
         dom1 = self._domain; dom2 = self._codomain
@@ -1795,7 +1829,7 @@ class ContinuousMap(Morphism):
             # New symbolic variables (different from chart2._xx to allow for a
             #  correct solution even when chart2 = chart1):
             x2 = [SR.var('xxxx' + str(i)) for i in range(n2)]
-            equations = [x2[i] == coord_map._functions[i]._express
+            equations = [x2[i] == coord_map._functions[i].expr()
                          for i in range(n2)]
             solutions = solve(equations, chart1._xx, solution_dict=True)
             if not solutions:
@@ -1809,7 +1843,8 @@ class ContinuousMap(Morphism):
             for i in range(n1):
                 x = inv_functions[i]
                 try:
-                    inv_functions[i] = chart2._simplify(x)
+                    # simplify derived from calculus_method
+                    inv_functions[i] = chart2.simplify(x)
                 except AttributeError:
                     pass
             coord_functions[(chart2, chart1)] = inv_functions
@@ -1828,4 +1863,3 @@ class ContinuousMap(Morphism):
         return self._inverse
 
     inverse = __invert__
-

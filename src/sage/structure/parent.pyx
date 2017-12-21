@@ -11,31 +11,28 @@ A simple example of registering coercions::
 
     sage: class A_class(Parent):
     ....:   def __init__(self, name):
-    ....:       Parent.__init__(self, name=name)
+    ....:       Parent.__init__(self)
     ....:       self._populate_coercion_lists_()
     ....:       self.rename(name)
-    ....:   #
+    ....:
     ....:   def category(self):
     ....:       return Sets()
-    ....:   #
+    ....:
     ....:   def _element_constructor_(self, i):
     ....:       assert(isinstance(i, (int, Integer)))
     ....:       return ElementWrapper(self, i)
-    ....:
     sage: A = A_class("A")
     sage: B = A_class("B")
     sage: C = A_class("C")
 
     sage: def f(a):
     ....:   return B(a.value+1)
-    ....:
     sage: class MyMorphism(Morphism):
     ....:   def __init__(self, domain, codomain):
     ....:       Morphism.__init__(self, Hom(domain, codomain))
-    ....:   #
+    ....:
     ....:   def _call_(self, x):
     ....:       return self.codomain()(x.value)
-    ....:
     sage: f = MyMorphism(A,B)
     sage: f
         Generic morphism:
@@ -188,10 +185,10 @@ cdef inline bint good_as_coerce_domain(S):
     to some other parent is not cached, by :trac:`13378`::
 
         sage: P.<x,y> = QQ[]
-        sage: P.is_coercion_cached(x)
+        sage: P._is_coercion_cached(x)
         False
         sage: P.coerce_map_from(x)
-        sage: P.is_coercion_cached(x)  # indirect doctest
+        sage: P._is_coercion_cached(x)
         False
 
     """
@@ -261,17 +258,19 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             sage: P.category()
             Join of Category of monoids and Category of commutative additive monoids and Category of facade sets
 
-        Test the deprecated ``element_constructor`` argument::
+        Test various deprecations::
 
             sage: class MyParent(Parent):
             ....:     def __init__(self):
-            ....:         Parent.__init__(self, element_constructor=self.make_element)
+            ....:         Parent.__init__(self, element_constructor=self.make_element, foo=42)
             ....:     def make_element(self, x):
             ....:         print("Making element")
             ....:         return x
             sage: P = MyParent()
             doctest:...: DeprecationWarning: the 'element_constructor' keyword is deprecated: override the _element_constructor_ method instead
             See http://trac.sagemath.org/23917 for details.
+            doctest:...: DeprecationWarning: the 'foo' keyword is deprecated: it is currently ignored and will become an error in the future
+            See http://trac.sagemath.org/24109 for details.
             sage: P(42)
             Making element
             42
@@ -286,6 +285,8 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         .. automethod:: _an_element_
         .. automethod:: _repr_option
         .. automethod:: _init_category_
+        .. automethod:: _is_coercion_cached
+        .. automethod:: _is_conversion_cached
         """
         if "element_constructor" in kwds:
             from sage.misc.superseded import deprecation
@@ -309,9 +310,9 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
 
         CategoryObject.__init__(self, category, base)
 
-        if kwds:
-            if debug.bad_parent_warnings:
-                print("Illegal keywords for %s: %s" % (type(self), kwds))
+        for k in kwds:
+            from sage.misc.superseded import deprecation
+            deprecation(24109, f"the {k!r} keyword is deprecated: it is currently ignored and will become an error in the future")
         if names is not None:
             self._assign_names(names, normalize)
         if element_constructor is None:
@@ -426,13 +427,15 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             True
 
         """
+        cdef Py_hash_t hash_old = -1
         if debug.refine_category_hash_check:
             # check that the hash stays the same after refinement
             hash_old = hash(self)
+
         if self._category is None:
             self._init_category_(category)
-            if debug.refine_category_hash_check and hash_old != hash(self):
-                print('hash of {0} changed in Parent._refine_category_ during initialisation'.format(str(self.__class__)))
+            if hash_old != -1 and hash_old != hash(self):
+                print(f'hash of {type(self)} changed in Parent._refine_category_ during initialisation')
             return
         if category is self._category:
             return
@@ -455,12 +458,12 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         # If the element class has already been assigned, it
         # needs to be erased now.
         try:
-            self.__dict__.__delitem__('element_class')
-            self.__dict__.__delitem__('_abstract_element_class')
+            del self.__dict__['element_class']
+            del self.__dict__['_abstract_element_class']
         except (AttributeError, KeyError):
             pass
-        if debug.refine_category_hash_check and hash_old != hash(self):
-            print('hash of {0} changed in Parent._refine_category_ during refinement'.format(str(self.__class__)))
+        if hash_old != -1 and hash_old != hash(self):
+            print(f'hash of {type(self)} changed in Parent._refine_category_ during refinement')
 
     def _unset_category(self):
         """
@@ -726,11 +729,11 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             self._initial_convert_list = []
             self._coerce_from_list = []
             self._registered_domains = []
-            self._coerce_from_hash = MonoDict(23)
+            self._coerce_from_hash = MonoDict()
             self._action_list = []
-            self._action_hash = TripleDict(23)
+            self._action_hash = TripleDict()
             self._convert_from_list = []
-            self._convert_from_hash = MonoDict(53)
+            self._convert_from_hash = MonoDict()
             self._embedding = None
 
     def _introspect_coerce(self):
@@ -1356,7 +1359,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
            sage: f = R.hom([5], GF(7))
            Traceback (most recent call last):
            ...
-           TypeError: images do not define a valid homomorphism
+           ValueError: relations do not all (canonically) map to 0 under map determined by images of generators
 
            sage: R.<x> = PolynomialRing(GF(7))
            sage: f = R.hom([3], GF(49,'a'))
@@ -1386,7 +1389,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
            sage: QQ.hom(ZZ)
            Traceback (most recent call last):
            ...
-           TypeError: natural coercion morphism from Rational Field to Integer Ring not defined 
+           TypeError: natural coercion morphism from Rational Field to Integer Ring not defined
        """
        if isinstance(im_gens, Parent):
            return self.Hom(im_gens).natural_map()
@@ -1510,14 +1513,68 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         self._embedding = None
         self._unset_coercions_used()
 
-    cpdef bint is_coercion_cached(self, domain):
+    def is_coercion_cached(self, domain):
         """
+        Deprecated method
 
+        TESTS::
+
+            sage: Parent().is_coercion_cached(QQ)
+            doctest:warning
+            ...
+            DeprecationWarning: is_coercion_cached is deprecated use _is_coercion_cached instead
+            See http://trac.sagemath.org/24254 for details.
+            False
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(24254, "is_coercion_cached is deprecated use _is_coercion_cached instead")
+        return self._is_coercion_cached(domain)
+
+    cpdef bint _is_coercion_cached(self, domain):
+        r"""
+        Test whether the coercion from ``domain`` is already cached.
+
+        EXAMPLES::
+
+            sage: R.<XX> = QQ
+            sage: R._is_coercion_cached(QQ)
+            False
+            sage: _ = R.coerce_map_from(QQ)
+            sage: R._is_coercion_cached(QQ)
+            True
         """
         return domain in self._coerce_from_hash
 
-    cpdef bint is_conversion_cached(self, domain):
+    def is_conversion_cached(self, domain):
         """
+        Deprecated method
+
+        TESTS::
+
+            sage: Parent().is_conversion_cached(QQ)
+            doctest:warning
+            ...
+            DeprecationWarning: is_conversion_cached is deprecated use _is_conversion_cached instead
+            See http://trac.sagemath.org/24254 for details.
+            False
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(24254, "is_conversion_cached is deprecated use _is_conversion_cached instead")
+        return self._is_conversion_cached(domain)
+
+    cpdef bint _is_conversion_cached(self, domain):
+        r"""
+        Test whether the conversion from ``domain`` is already set.
+
+        EXAMPLES::
+
+            sage: P = Parent()
+            sage: P._is_conversion_cached(P)
+            False
+            sage: P.convert_map_from(P)
+            Identity endomorphism of <type 'sage.structure.parent.Parent'>
+            sage: P._is_conversion_cached(P)
+            True
         """
         return domain in self._convert_from_hash
 
@@ -1804,7 +1861,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         r"""
         Returns a default coercion map based on the data provided to
         :meth:`_populate_coercion_lists_`.
-        
+
         This method differs from :meth:`_generic_convert_map` only in setting
         the category for the map to the meet of the category of this parent
         and ``S``.

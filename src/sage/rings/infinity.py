@@ -215,7 +215,7 @@ We check that :trac:`17990` is fixed::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 # python3
-from __future__ import division, unicode_literals
+from __future__ import division
 from six import integer_types
 
 from sys import maxsize
@@ -924,7 +924,7 @@ class UnsignedInfinity(_uniq, AnInfinity, InfinityElement):
         EXAMPLES::
 
             sage: import sympy
-            sage: sympy.sympify(unsigned_infinity)
+            sage: SR(unsigned_infinity)._sympy_()
             zoo
             sage: gamma(-3)._sympy_() is sympy.factorial(-2)
             True

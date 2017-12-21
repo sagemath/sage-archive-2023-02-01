@@ -45,6 +45,7 @@ from sage.matrix.all import Matrix
 
 from .submodule import ModularFormsSubmodule
 from . import vm_basis
+from . import weight1
 
 class CuspidalSubmodule(ModularFormsSubmodule):
     """
@@ -279,6 +280,30 @@ class CuspidalSubmodule_level1_Q(CuspidalSubmodule):
             prec = Integer(prec)
         return vm_basis.victor_miller_basis(self.weight(), prec,
                                             cusp_only=True, var='q')
+
+class CuspidalSubmodule_wt1_eps(CuspidalSubmodule):
+    r"""
+    Space of cusp forms of weight 1 with specified character.
+    """
+
+    def _compute_q_expansion_basis(self, prec=None):
+        r"""
+        Compute q-expansion basis using Schaeffer's algorithm.
+
+        EXAMPLES::
+
+            sage: CuspForms(DirichletGroup(23, QQ).0, 1).q_echelon_basis() # indirect doctest
+            [
+            q - q^2 - q^3 + O(q^6)
+            ]
+        """
+        if prec is None:
+            prec = self.group().sturm_bound(2)
+        else:
+            prec = Integer(prec)
+        chi = self.character()
+        return [weight1.modular_ratio_to_prec(chi, f, prec) for f in 
+            weight1.hecke_stable_subspace(chi)]
 
 class CuspidalSubmodule_g0_Q(CuspidalSubmodule_modsym_qexp):
     r"""

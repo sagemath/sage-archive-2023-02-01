@@ -1311,7 +1311,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
             sage: Gamma1(3).as_permutation_group().congruence_closure()
             Congruence subgroup of SL(2,Z) of level 3, preimage of:
              Matrix group over Ring of integers modulo 3 with 2 generators (
-            [1 2]  [1 1]
+            [1 1]  [1 2]
             [0 1], [0 1]
             )
             sage: sage.modular.arithgroup.arithgroup_perm.HsuExample10().congruence_closure()  # long time (11s on sage.math, 2012)

@@ -1212,6 +1212,14 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             TypeError: The PPL backend only supports rational data.
+
+        Test that equations are handled correctly (:trac:`24154`)::
+
+            sage: p = Polyhedron(vertices=[[19]])
+            sage: lp, x = p.to_linear_program(return_variable=True)
+            sage: lp.set_objective(x[0])
+            sage: lp.solve()
+            19
         """
         if base_ring is None:
             base_ring = self.base_ring()
@@ -1226,7 +1234,7 @@ class Polyhedron_base(Element):
 
         for eqn in self.equations_list():
             b = -eqn.pop(0)
-            p.add_constraint(p.sum([x[i]*eqn[i] for i in range(len(eqn))]) == -b)
+            p.add_constraint(p.sum([x[i]*eqn[i] for i in range(len(eqn))]) == b)
 
         if return_variable:
             return p, x
@@ -6114,6 +6122,13 @@ class Polyhedron_base(Element):
             sage: P.affine_hull(orthogonal='True')
             A 0-dimensional polyhedron in QQ^0 defined as the convex hull of 1 vertex
 
+            Check that :trac:`24047` is fixed::
+
+            sage: P1 = Polyhedron(vertices=([[-1, 1], [0, -1], [0, 0], [-1, -1]]))
+            sage: P2 = Polyhedron(vertices=[[1, 1], [1, -1], [0, -1], [0, 0]])
+            sage: P = P1.intersection(P2)
+            sage: A, b = P.affine_hull(as_affine_map=True, orthonormal=True, extend=True)
+
             sage: Polyhedron([(2,3,4)]).affine_hull()
             A 0-dimensional polyhedron in ZZ^0 defined as the convex hull of 1 vertex
         """
@@ -6129,15 +6144,15 @@ class Polyhedron_base(Element):
                 raise NotImplementedError('"orthogonal=True" and "orthonormal=True" work only for compact polyhedra')
             # translate 0th vertex to the origin
             Q = self.translation(-vector(self.vertices()[0]))
-            v = Q.vertices()[0]
-            # check that translation didn't change the order of the vertices
+            v = next((_ for _ in Q.vertices() if _.vector() == Q.ambient_space().zero()), None)
+            # finding the zero in Q; checking that Q actually has a vertex zero
             assert v.vector() == Q.ambient_space().zero()
             # choose as an affine basis the neighbors of the origin vertex in Q
             M = matrix(self.base_ring(), self.dim(), self.ambient_dim(), [list(w) for w in itertools.islice(v.neighbors(), self.dim())])
-            # switch base_ring to AA if neccessary,
+            # Switch base_ring to AA if neccessary,
             # since gram_schmidt needs to be able to take square roots.
             # Pick orthonormal basis and transform all vertices accordingly
-            # if the orthonormal transform makes it neccessary, change base ring
+            # if the orthonormal transform makes it neccessary, change base ring.
             try:
                 A = M.gram_schmidt(orthonormal=orthonormal)[0]
             except TypeError:

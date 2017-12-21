@@ -3,7 +3,7 @@ Zariski-Van Kampen method implementation
 
 This file contains functions to compute the fundamental group of
 the complement of a curve in the complex affine or projective plane,
-using Zariski-Van Kampen approach. It deppends on the package sirocco.
+using Zariski-Van Kampen approach. It depends on the package ``sirocco``.
 
 The current implementation allows to compute a presentation of the
 fundamental group of curves over the rationals or number fields with
@@ -286,8 +286,9 @@ def followstrand(f, x0, x1, y0a, prec=53):
         else:
             points = contpath_mp(deg, coefs, yr, yi, prec)
         return points
-    except:
+    except Exception:
         return followstrand(f, x0, x1, y0a, 2*prec)
+
 
 @parallel
 def braid_in_segment(f, x0, x1):

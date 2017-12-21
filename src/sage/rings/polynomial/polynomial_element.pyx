@@ -9669,8 +9669,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
         r"""
         Return the first ``prec`` coefficients of the ``n``-th root series of this polynomial.
 
-        The method might fail if the exponent ``n`` is not invertible in the
-        base ring in which case an ``ArithmeticError`` is raised.
+        The method might fail if the exponent ``n`` or the coefficient of
+        lowest degree is not invertible in the base ring. In both cases an
+        ``ArithmeticError`` is raised.
+
+        .. ALGORITHM::
+
+            Let us denote by `a` the polynomial from which we wish to extract
+            a `n`-th root. The algorithm uses the Newton method for the fixed
+            point of `F(x) = x^{-n} - a^{-1}`. The advantage of this approach
+            compared to the more naive `x^n - a` is that it does require only
+            one polynomial inversion instead of one per iteration of the Newton
+            method.
 
         EXAMPLES::
 
@@ -9683,7 +9693,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             1
 
             sage: R.<x> = QQbar[]
-            sage: p = (2 + 3*x^2)
+            sage: p = 2 + 3*x^2
             sage: q = p._nth_root_series(3, 20)
             sage: (q**3).truncate(20)
             3*x^2 + 2
@@ -9724,8 +9734,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: QQ['x'].one()._nth_root_series(3, 5).parent()
             Univariate Polynomial Ring in x over Rational Field
         """
-        cdef Integer c, cc, e, m
-        cdef Polynomial p, q, qi
+        cdef Integer c, cc, e, m, mp1
+        cdef Polynomial p, q
 
         R = self.base_ring()
         S = self.parent()
@@ -9736,8 +9746,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         elif m.is_one() or self.is_zero() or self.is_one():
             return self
         elif self[0].is_zero():
-            # p = x^k q
-            # p^(1/n) = x^(k/n) q^(1/n)
+            # p = x^i q
+            # p^(1/m) = x^(i/m) q^(1/m)
             i = self.valuation()
             if i % m:
                 raise ValueError("not a %s power"%m.ordinal_str())
@@ -9761,27 +9771,32 @@ cdef class Polynomial(CommutativeAlgebraElement):
             else:
                 p = self
 
+            # beginning of Newton method
+            # (we can safely assume that the valuation is 0)
+            S = p.parent()
+
+            if start is not None:
+                a = R(start)
+            elif p[0].is_one():
+                a = R.one()
+            else:
+                a = p[0].nth_root(m)
+
+            try:
+                q = S(a.inverse_of_unit())
+            except ArithmeticError:
+                raise ArithmeticError("constant coefficient not invertible in base ring")
+
             try:
                 mi = R(m).inverse_of_unit()
             except ArithmeticError:
                 raise ArithmeticError("exponent not invertible in base ring")
 
-            # beginning of Newton method
-            S = p.parent()
-            if start is not None:
-                q = S(start)
-            elif p[0].is_one():
-                q = S.one()
-            else:
-                q = S(p[0].nth_root(m))
-
             from sage.misc.misc import newton_method_sizes
-            x = p.parent().gen()
+            mp1 = m + 1
             for i in newton_method_sizes(prec):
-                qi = q._power_trunc(m - 1, i).inverse_series_trunc(i)
-                q = mi * ((m - 1) * q + qi._mul_trunc_(p,i))
-
-            return q
+                q = mi * (mp1 * q - p._mul_trunc_(q._power_trunc(mp1, i), i))
+            return q.inverse_series_trunc(prec)
 
     def specialization(self, D=None, phi=None):
         r"""

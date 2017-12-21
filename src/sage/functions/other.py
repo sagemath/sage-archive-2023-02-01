@@ -1964,7 +1964,7 @@ class Function_beta(GinacFunction):
         The result is symbolic if exact input is given::
 
             sage: ex = beta(2,1+5*I); ex
-            beta(...
+            beta...
             sage: set(ex.operands()) == set([1+5*I, 2])
             True
             sage: beta(2, 2.)
@@ -2791,7 +2791,7 @@ class Function_cases(GinacFunction):
             Traceback (most recent call last):
             ...
             TypeError: __call__() takes exactly 2 arguments (1 given)
-            
+
             sage: cases(x)
             Traceback (most recent call last):
             ...

@@ -676,7 +676,7 @@ class RealBallField(UniqueRepresentation, Field):
 
     def log2(self):
         r"""
-        Return a ball enclosing log(2).
+        Return a ball enclosing `\log(2)`.
 
         EXAMPLES::
 
@@ -694,7 +694,7 @@ class RealBallField(UniqueRepresentation, Field):
 
     def euler_constant(self):
         r"""
-        Return a ball enclosing the euler constant.
+        Return a ball enclosing the Euler constant.
 
         EXAMPLES::
 
@@ -732,7 +732,7 @@ class RealBallField(UniqueRepresentation, Field):
 
     def sinpi(self, x):
         """
-        Return a ball enclosing `\sin(π \pi x)`.
+        Return a ball enclosing `\sin(\pi x)`.
 
         This works even if ``x`` itself is not a ball, and may be faster or
         more accurate where ``x`` is a rational number.
@@ -778,7 +778,7 @@ class RealBallField(UniqueRepresentation, Field):
 
     def cospi(self, x):
         """
-        Return a ball enclosing `\cos(π \pi x)`.
+        Return a ball enclosing `\cos(\pi x)`.
 
         This works even if ``x`` itself is not a ball, and may be faster or
         more accurate where ``x`` is a rational number.

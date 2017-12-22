@@ -25,7 +25,10 @@ from sage.libs.linbox.fflas cimport ModFloat_fgemm as Mod_fgemm, ModFloat_fgemv 
         ModFloatRank as ModRank, ModFloat_echelon as Mod_echelon, \
         ModFloat_applyp as Mod_applyp, \
         ModFloat_MinPoly as Mod_MinPoly, \
-        ModFloat_CharPoly as Mod_CharPoly
+        ModFloat_CharPoly as Mod_CharPoly, \
+        ModFloatPolynomialRing as ModDensePolyRing,\
+        ModFloatDensePolynomial as ModDensePoly
+
 
 # LinBox supports up to 2^11 using float but that's double dog slow,
 # so we pick a smaller value for crossover

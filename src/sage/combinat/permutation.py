@@ -4366,7 +4366,8 @@ class Permutation(CombinatorialElement):
             sage: Permutation([4,1,3,2]).binary_search_tree_shape(False)
             [[., .], [., [., .]]]
         """
-        return self.binary_search_tree(left_to_right).shape()
+        from sage.combinat.binary_tree import binary_search_tree_shape
+        return binary_search_tree_shape(list(self), left_to_right)
 
     def sylvester_class(self, left_to_right=False):
         """

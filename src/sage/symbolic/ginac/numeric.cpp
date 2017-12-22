@@ -1532,7 +1532,7 @@ void rational_power_parts(const numeric& a_orig, const numeric& b_orig,
         numeric numer = b.numer();
         numeric denom = b.denom();
         if (denom.t == MPZ
-            and not mpz_fits_ulong_p(denom.v._bigint)) {
+            and not mpz_fits_slong_p(denom.v._bigint)) {
                 c = *_num1_p;
                 c_unit = true;
                 d = a;
@@ -2951,7 +2951,7 @@ long numeric::to_long() const {
                 case LONG:
                         return v._long;
                 case MPZ:
-                        if (mpz_fits_sint_p(v._bigint))
+                        if (mpz_fits_slong_p(v._bigint))
                                 return (long int) mpz_get_si(v._bigint);
                         throw conversion_error();
                 case MPQ:
@@ -3563,8 +3563,8 @@ const numeric numeric::rgamma(PyObject* parent) const {
         return arbfunc_0arg("rgamma", parent);
 }
 
-const numeric numeric::psi() const {
-        PY_RETURN(py_funcs.py_psi);
+const numeric numeric::psi(PyObject* parent) const {
+        return arbfunc_0arg("psi", parent);
 }
 
 const numeric numeric::psi(const numeric& y) const {
@@ -4517,8 +4517,8 @@ const numeric gamma(const numeric &x, PyObject* parent) {
 }
 
 /** The psi function (aka polygamma function). */
-const numeric psi(const numeric &x) {
-        return x.psi();
+const numeric psi(const numeric &x, PyObject* parent) {
+        return x.psi(parent);
 }
 
 /** The psi functions (aka polygamma functions). */

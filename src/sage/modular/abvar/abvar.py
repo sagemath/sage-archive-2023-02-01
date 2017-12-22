@@ -48,7 +48,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.rings.infinity import infinity
 from sage.rings.fraction_field import FractionField
-from sage.modules.free_module   import is_FreeModule, total_module_order
+from sage.modules.free_module   import is_FreeModule, EchelonMatrixKey
 from sage.modular.arithgroup.all import is_CongruenceSubgroup, is_Gamma0, is_Gamma1, is_GammaH
 from sage.modular.modsym.all    import ModularSymbols
 from sage.modular.modsym.space  import ModularSymbolsSpace
@@ -409,8 +409,8 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         # NOTE!! having the same newform level, isogeny class number,
         # and degen_t does not imply two abelian varieties are equal.
         # See the docstring for self.label.
-        lx = total_module_order(self.lattice())
-        rx = total_module_order(other.lattice())
+        lx = EchelonMatrixKey(self.lattice())
+        rx = EchelonMatrixKey(other.lattice())
         return richcmp(lx, rx, op)
 
     def __radd__(self,other):

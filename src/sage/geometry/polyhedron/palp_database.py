@@ -332,7 +332,7 @@ class PALPreader(SageObject):
             sage: polygons = PALPreader(2)
             sage: func = polygons._iterate(output='list')
             sage: func
-            <bound method PALPreader._iterate_list of <class 'sage.geometry.polyhedron.palp_database.PALPreader'>>
+            <bound method PALPreader._iterate_list of <sage.geometry.polyhedron.palp_database.PALPreader object at ...>>
             sage: iter = func(0,1,1)
             sage: next(iter)
             [[1, 0], [0, 1], [-1, -1]]

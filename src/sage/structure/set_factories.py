@@ -439,7 +439,7 @@ class SetFactoryPolicy(UniqueRepresentation, SageObject):
             sage: from sage.structure.set_factories import SetFactoryPolicy
             sage: from sage.structure.set_factories_example import XYPairs
             sage: S = SetFactoryPolicy(XYPairs); S
-            <class 'sage.structure.set_factories.SetFactoryPolicy'>
+            <sage.structure.set_factories.SetFactoryPolicy object at ...>
         """
         assert isinstance(factory, SetFactory)
         self._factory = factory

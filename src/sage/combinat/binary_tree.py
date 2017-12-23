@@ -423,14 +423,14 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             node = node_to_str(self)
             rr_tree = self[1]._ascii_art_()
             if rr_tree._root > 2:
-                f_line = " " ** Integer(rr_tree._root - 3) + node
-                s_line = " " ** Integer(len(node) + rr_tree._root - 3) + "\\"
+                f_line = " " * (rr_tree._root - 3) + node
+                s_line = " " * (len(node) + rr_tree._root - 3) + "\\"
                 t_repr = AsciiArt([f_line, s_line]) * rr_tree
                 t_repr._root = rr_tree._root - 2
             else:
                 f_line = node
                 s_line = " " + "\\"
-                t_line = " " ** Integer(len(node) + 1)
+                t_line = " " * (len(node) + 1)
                 t_repr = AsciiArt([f_line, s_line]) * (AsciiArt([t_line]) + rr_tree)
                 t_repr._root = rr_tree._root
             t_repr._baseline = t_repr._h - 1
@@ -438,8 +438,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         if self[1].is_empty():
             node = node_to_str(self)
             lr_tree = self[0]._ascii_art_()
-            f_line = " " ** Integer(lr_tree._root + 1) + node
-            s_line = " " ** Integer(lr_tree._root) + "/"
+            f_line = " " * (lr_tree._root + 1) + node
+            s_line = " " * lr_tree._root + "/"
             t_repr = AsciiArt([f_line, s_line]) * lr_tree
             t_repr._root = lr_tree._root + 2
             t_repr._baseline = t_repr._h - 1
@@ -450,10 +450,10 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         nb_ = lr_tree._l - lr_tree._root + rr_tree._root - 1
         nb_L = nb_ // 2
         nb_R = nb_L + (nb_ % 2)
-        f_line = " " ** Integer(lr_tree._root + 1) + "_" ** Integer(nb_L) + node
-        f_line += "_" ** Integer(nb_R)
-        s_line = " " ** Integer(lr_tree._root) + "/" + " " ** Integer(len(node) + rr_tree._root - 1 + (lr_tree._l - lr_tree._root)) + "\\"
-        t_repr = AsciiArt([f_line, s_line]) * (lr_tree + AsciiArt([" " ** Integer(len(node) + 2)]) + rr_tree)
+        f_line = " " * (lr_tree._root + 1) + "_" * nb_L + node
+        f_line += "_" * nb_R
+        s_line = " " * lr_tree._root + "/" + " " * (len(node) + rr_tree._root - 1 + (lr_tree._l - lr_tree._root)) + "\\"
+        t_repr = AsciiArt([f_line, s_line]) * (lr_tree + AsciiArt([" " * (len(node) + 2)]) + rr_tree)
         t_repr._root = lr_tree._root + nb_L + 2
         t_repr._baseline = t_repr._h - 1
         return t_repr
@@ -627,14 +627,14 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             node = node_to_str(self)
             rr_tree = self[1]._unicode_art_()
             if rr_tree._root > 2:
-                f_line = u" " * Integer(rr_tree._root - 3) + node
-                s_line = u" " * Integer(len(node) + rr_tree._root - 3) + u"╲"
+                f_line = u" " * (rr_tree._root - 3) + node
+                s_line = u" " * (len(node) + rr_tree._root - 3) + u"╲"
                 t_repr = UnicodeArt([f_line, s_line]) * rr_tree
                 t_repr._root = rr_tree._root - 2
             else:
                 f_line = node
                 s_line = u" ╲"
-                t_line = u" " * Integer(len(node) + 1)
+                t_line = u" " * (len(node) + 1)
                 t_repr = UnicodeArt([f_line, s_line]) * (UnicodeArt([t_line]) + rr_tree)
                 t_repr._root = rr_tree._root
             t_repr._baseline = t_repr._h - 1
@@ -643,8 +643,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         if self[1].is_empty():
             node = node_to_str(self)
             lr_tree = self[0]._unicode_art_()
-            f_line = u" " * Integer(lr_tree._root + 1) + node
-            s_line = u" " * Integer(lr_tree._root) + u"╱"
+            f_line = u" " * (lr_tree._root + 1) + node
+            s_line = u" " * lr_tree._root + u"╱"
             t_repr = UnicodeArt([f_line, s_line]) * lr_tree
             t_repr._root = lr_tree._root + 2
             t_repr._baseline = t_repr._h - 1
@@ -656,10 +656,10 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         nb_ = lr_tree._l - lr_tree._root + rr_tree._root - 1
         nb_L = nb_ // 2
         nb_R = nb_L + (nb_ % 2)
-        f_line = u" " * Integer(lr_tree._root + 1) + u"_" * Integer(nb_L) + node
-        f_line += u"_" * Integer(nb_R)
-        s_line = u" " * Integer(lr_tree._root) + u"╱" + u" " * Integer(len(node) + rr_tree._root - 1 + (lr_tree._l - lr_tree._root)) + u"╲"
-        t_repr = UnicodeArt([f_line, s_line]) * (lr_tree + UnicodeArt([u" " * Integer(len(node) + 2)]) + rr_tree)
+        f_line = u" " * (lr_tree._root + 1) + u"_" * nb_L + node
+        f_line += u"_" * nb_R
+        s_line = u" " * lr_tree._root + u"╱" + u" " * (len(node) + rr_tree._root - 1 + (lr_tree._l - lr_tree._root)) + u"╲"
+        t_repr = UnicodeArt([f_line, s_line]) * (lr_tree + UnicodeArt([u" " * (len(node) + 2)]) + rr_tree)
         t_repr._root = lr_tree._root + nb_L + 2
         t_repr._baseline = t_repr._h - 1
         return t_repr
@@ -1430,6 +1430,39 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             right.append(label)
             return right
 
+    def _tamari_sorting_tuple(self):
+        r"""
+        Auxiliary method for implementation of the Tamari order.
+
+        OUTPUT:
+
+        a pair `(w, n)`, where `w` is a tuple of integers, and `n` the size
+
+        Two binary trees are comparable in the Tamari order
+        if and only if the associated tuples are componentwise
+        comparable. This is used in :meth:`tamari_lequal`.
+
+        EXAMPLES::
+
+            sage: [t._tamari_sorting_tuple() for t in BinaryTrees(3)]
+            [((3, 3, 3), 3),
+            ((3, 2, 3), 3),
+            ((1, 3, 3), 3),
+            ((2, 2, 3), 3),
+            ((1, 2, 3), 3)]
+
+        REFERENCES:
+
+        - [HuangTamari1972]_
+        """
+        if not self:
+            return tuple(), 0
+        t1, t2 = self
+        u1, n1 = t1._tamari_sorting_tuple()
+        u2, n2 = t2._tamari_sorting_tuple()
+        n = n1 + 1 + n2
+        return (u1 + (n,) + tuple(n1 + 1 + k for k in u2), n)
+
     @combinatorial_map(name="To 312 avoiding permutation")
     def to_312_avoiding_permutation(self):
         r"""
@@ -2185,9 +2218,11 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             ....:         if not S.tamari_lequal(T):
             ....:             print("FAILURE")
         """
-        self_perm = self.to_312_avoiding_permutation()
-        t2_perm = t2.to_312_avoiding_permutation()
-        return self_perm.permutohedron_lequal(t2_perm)
+        self_word, n1 = self._tamari_sorting_tuple()
+        t2_word, n2 = t2._tamari_sorting_tuple()
+        if n1 != n2:
+            return False
+        return all(x <= y for x, y in zip(self_word, t2_word))
 
     def tamari_greater(self):
         r"""

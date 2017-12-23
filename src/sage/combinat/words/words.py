@@ -2445,10 +2445,7 @@ class Words_all(FiniteOrInfiniteWords):
 
     def _element_constructor_(self):
         r"""
-        This method exists to make (old) unpickling works.
-
-        It is indirectly tested by the function
-        :func:`sage.structure.sage_object.unpickle_all`.
+        This method exists to make (old) unpickling work.
         """
         pass
 

@@ -645,8 +645,8 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             tester.assertGreaterEqual(z.valuation(), min(x.valuation(),y.valuation()))
             if x.valuation() != y.valuation():
                 tester.assertEqual(z.valuation(), min(x.valuation(),y.valuation()))
-            tester.assert_(y.is_equal_to(z-x,zprec))
-            tester.assert_(x.is_equal_to(z-y,zprec))
+            tester.assertTrue(y.is_equal_to(z-x,zprec))
+            tester.assertTrue(x.is_equal_to(z-y,zprec))
 
     def _test_sub(self, **options):
         """
@@ -683,8 +683,8 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             tester.assertGreaterEqual(z.valuation(), min(x.valuation(),y.valuation()))
             if x.valuation() != y.valuation():
                 tester.assertEqual(z.valuation(), min(x.valuation(),y.valuation()))
-            tester.assert_((-y).is_equal_to(z - x,zprec))
-            tester.assert_(x.is_equal_to(z + y,zprec))
+            tester.assertTrue((-y).is_equal_to(z - x,zprec))
+            tester.assertTrue(x.is_equal_to(z + y,zprec))
 
     def _test_invert(self, **options):
         """

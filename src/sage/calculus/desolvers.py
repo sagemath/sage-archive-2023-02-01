@@ -71,6 +71,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ##########################################################################
+from __future__ import division
 
 from sage.interfaces.maxima import Maxima
 from sage.plot.all import line
@@ -1056,18 +1057,21 @@ def eulers_method_2x2_plot(f,g, t0, x0, y0, h, t1):
         sage: f = lambda z : z[2]; g = lambda z : -sin(z[1])
         sage: P = eulers_method_2x2_plot(f,g, 0.0, 0.75, 0.0, 0.1, 1.0)
     """
-    n=int((1.0)*(t1-t0)/h)
-    t00 = t0; x00 = x0; y00 = y0
-    soln = [[t00,x00,y00]]
-    for i in range(n+1):
-        x01 = x00 + h*f([t00,x00,y00])
-        y00 = y00 + h*g([t00,x00,y00])
+    n = int((1.0)*(t1-t0)/h)
+    t00 = t0
+    x00 = x0
+    y00 = y0
+    soln = [[t00, x00, y00]]
+    for i in range(n + 1):
+        x01 = x00 + h * f([t00, x00, y00])
+        y00 = y00 + h * g([t00, x00, y00])
         x00 = x01
         t00 = t00 + h
-        soln.append([t00,x00,y00])
-    Q1 = line([[x[0],x[1]] for x in soln], rgbcolor=(1/4,1/8,3/4))
-    Q2 = line([[x[0],x[2]] for x in soln], rgbcolor=(1/2,1/8,1/4))
-    return [Q1,Q2]
+        soln.append([t00, x00, y00])
+    Q1 = line([[x[0], x[1]] for x in soln], rgbcolor=(.25, .125, .75))
+    Q2 = line([[x[0], x[2]] for x in soln], rgbcolor=(.5, .125, .25))
+    return [Q1, Q2]
+
 
 def desolve_rk4_determine_bounds(ics,end_points=None):
     """

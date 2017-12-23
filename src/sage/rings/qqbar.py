@@ -2185,9 +2185,8 @@ class AlgebraicGeneratorRelation(SageObject):
         EXAMPLES::
 
             sage: from sage.rings.qqbar import AlgebraicGeneratorRelation
-            sage: c = AlgebraicGeneratorRelation(None, None, None, None, None)
-            sage: c
-            <class 'sage.rings.qqbar.AlgebraicGeneratorRelation'>
+            sage: AlgebraicGeneratorRelation(None, None, None, None, None)
+            <sage.rings.qqbar.AlgebraicGeneratorRelation object at ...>
         """
         self.child1 = child1
         self.child1_poly = child1_poly
@@ -2705,7 +2704,7 @@ class ANDescr(SageObject):
             sage: a = QQbar(sqrt(2))
             sage: b = a._descr
             sage: b.neg(a)
-            <class 'sage.rings.qqbar.ANUnaryExpr'>
+            <sage.rings.qqbar.ANUnaryExpr object at ...>
         """
         return ANUnaryExpr(n, '-')
 
@@ -2718,7 +2717,7 @@ class ANDescr(SageObject):
             sage: a = QQbar(sqrt(2))
             sage: b = a._descr
             sage: b.invert(a)
-            <class 'sage.rings.qqbar.ANUnaryExpr'>
+            <sage.rings.qqbar.ANUnaryExpr object at ...>
         """
         return ANUnaryExpr(n, '~')
 
@@ -2731,7 +2730,7 @@ class ANDescr(SageObject):
             sage: a = QQbar(sqrt(2))
             sage: b = a._descr
             sage: b.abs(a)
-            <class 'sage.rings.qqbar.ANUnaryExpr'>
+            <sage.rings.qqbar.ANUnaryExpr object at ...>
         """
         return ANUnaryExpr(n, 'abs')
 
@@ -2744,7 +2743,7 @@ class ANDescr(SageObject):
             sage: a = QQbar(sqrt(-7))
             sage: b = a._descr
             sage: b.real(a)
-            <class 'sage.rings.qqbar.ANUnaryExpr'>
+            <sage.rings.qqbar.ANUnaryExpr object at ...>
         """
         if self.is_complex():
             return ANUnaryExpr(n, 'real')
@@ -2760,7 +2759,7 @@ class ANDescr(SageObject):
             sage: a = QQbar(sqrt(-7))
             sage: b = a._descr
             sage: b.imag(a)
-            <class 'sage.rings.qqbar.ANUnaryExpr'>
+            <sage.rings.qqbar.ANUnaryExpr object at ...>
         """
         if self.is_complex():
             return ANUnaryExpr(n, 'imag')
@@ -2776,7 +2775,7 @@ class ANDescr(SageObject):
             sage: a = QQbar(sqrt(-7))
             sage: b = a._descr
             sage: b.conjugate(a)
-            <class 'sage.rings.qqbar.ANUnaryExpr'>
+            <sage.rings.qqbar.ANUnaryExpr object at ...>
         """
         if self.is_complex():
             return ANUnaryExpr(n, 'conjugate')
@@ -2793,7 +2792,7 @@ class ANDescr(SageObject):
             sage: a = QQbar(sqrt(-7))
             sage: b = a._descr
             sage: b.norm(a)
-            <class 'sage.rings.qqbar.ANUnaryExpr'>
+            <sage.rings.qqbar.ANUnaryExpr object at ...>
         """
         if self.is_complex():
             return ANUnaryExpr(n, 'norm')
@@ -5958,7 +5957,7 @@ class ANRoot(ANDescr):
             sage: type(b)
             <class 'sage.rings.qqbar.ANRoot'>
             sage: c = b.conjugate(a); c
-            <class 'sage.rings.qqbar.ANUnaryExpr'>
+            <sage.rings.qqbar.ANUnaryExpr object at ...>
             sage: c.exactify()
             -2*a + 1 where a^2 - a + 6 = 0 and a in 0.50000000000000000? - 2.397915761656360?*I
         """
@@ -6855,7 +6854,7 @@ class ANExtensionElement(ANDescr):
             sage: type(b)
             <class 'sage.rings.qqbar.ANExtensionElement'>
             sage: b.norm(a)
-            <class 'sage.rings.qqbar.ANUnaryExpr'>
+            <sage.rings.qqbar.ANUnaryExpr object at ...>
         """
         if self._exactly_real:
             return (n*n)._descr
@@ -7059,7 +7058,7 @@ class ANUnaryExpr(ANDescr):
             sage: t = AA(sqrt(2))
             sage: s = (-t)._descr
             sage: s
-            <class 'sage.rings.qqbar.ANUnaryExpr'>
+            <sage.rings.qqbar.ANUnaryExpr object at ...>
             sage: s.is_complex()
             False
             sage: QQbar(-sqrt(2))._descr.is_complex()
@@ -7076,7 +7075,7 @@ class ANUnaryExpr(ANDescr):
             sage: t = AA(sqrt(2))
             sage: s = (-t)._descr
             sage: s
-            <class 'sage.rings.qqbar.ANUnaryExpr'>
+            <sage.rings.qqbar.ANUnaryExpr object at ...>
             sage: s._interval_fast(150)
             -1.414213562373095048801688724209698078569671876?
         """
@@ -7453,7 +7452,7 @@ def an_binop_expr(a, b, op):
         <class 'sage.rings.qqbar.ANBinaryExpr'>
         sage: from sage.rings.qqbar import an_binop_expr
         sage: x = an_binop_expr(a, b, operator.add); x
-        <class 'sage.rings.qqbar.ANBinaryExpr'>
+        <sage.rings.qqbar.ANBinaryExpr object at ...>
         sage: x.exactify()
         -6/7*a^7 + 2/7*a^6 + 71/7*a^5 - 26/7*a^4 - 125/7*a^3 + 72/7*a^2 + 43/7*a - 47/7 where a^8 - 12*a^6 + 23*a^4 - 12*a^2 + 1 = 0 and a in 3.12580...?
 
@@ -7462,7 +7461,7 @@ def an_binop_expr(a, b, op):
         sage: type(a._descr)
         <class 'sage.rings.qqbar.ANBinaryExpr'>
         sage: x = an_binop_expr(a, b, operator.mul); x
-        <class 'sage.rings.qqbar.ANBinaryExpr'>
+        <sage.rings.qqbar.ANBinaryExpr object at ...>
         sage: x.exactify()
         2*a^7 - a^6 - 24*a^5 + 12*a^4 + 46*a^3 - 22*a^2 - 22*a + 9 where a^8 - 12*a^6 + 23*a^4 - 12*a^2 + 1 = 0 and a in 3.1258...?
     """
@@ -7485,13 +7484,13 @@ def an_binop_element(a, b, op):
         <class 'sage.rings.qqbar.ANExtensionElement'>
         sage: from sage.rings.qqbar import an_binop_element
         sage: an_binop_element(a, b, operator.add)
-        <class 'sage.rings.qqbar.ANBinaryExpr'>
+        <sage.rings.qqbar.ANBinaryExpr object at ...>
         sage: an_binop_element(a, b, operator.sub)
-        <class 'sage.rings.qqbar.ANBinaryExpr'>
+        <sage.rings.qqbar.ANBinaryExpr object at ...>
         sage: an_binop_element(a, b, operator.mul)
-        <class 'sage.rings.qqbar.ANBinaryExpr'>
+        <sage.rings.qqbar.ANBinaryExpr object at ...>
         sage: an_binop_element(a, b, operator.truediv)
-        <class 'sage.rings.qqbar.ANBinaryExpr'>
+        <sage.rings.qqbar.ANBinaryExpr object at ...>
 
     The code tries to use existing unions of number fields::
 

@@ -313,27 +313,10 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         ParentWithGens.__init__(self, self, ('x',), normalize=False,
                                 category=(EuclideanDomains(), InfiniteEnumeratedSets().Metric()))
-        self._populate_coercion_lists_(element_constructor=integer.Integer,
-                                       init_no_parent=True,
+        self._populate_coercion_lists_(init_no_parent=True,
                                        convert_method_name='_integer_')
 
-    def __cinit__(self):
-        """
-        Cython initialize ``self``.
-
-        EXAMPLES::
-
-            sage: ZZ # indirect doctest
-            Integer Ring
-        """
-        # This is here because very old pickled integers don't have unique parents.
-        global number_of_integer_rings
-        if type(self) is IntegerRing_class:
-            if number_of_integer_rings > 0:
-                self._populate_coercion_lists_(element_constructor=integer.Integer,
-                                               init_no_parent=True,
-                                               convert_method_name='_integer_')
-            number_of_integer_rings += 1
+    _element_constructor_ = integer.Integer
 
     def __reduce__(self):
         """
@@ -610,20 +593,17 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: f(a) # random
             5
         """
-        if S is int:
-            return sage.rings.integer.int_to_Z()
-        elif S is long:
+        if S is long:
             return sage.rings.integer.long_to_Z()
+        elif S is int:
+            return sage.rings.integer.int_to_Z()
         elif S is bool:
             return True
         elif is_numpy_type(S):
             import numpy
             if issubclass(S, numpy.integer):
                 return True
-            else:
-                return None
-        else:
-            None
+        return None
 
     def random_element(self, x=None, y=None, distribution=None):
         r"""

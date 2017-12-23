@@ -1249,12 +1249,12 @@ class PermutationIET(Permutation):
 
         REFERENCES:
 
-        [Jo80] D. Johnson, "Spin structures and quadratic forms on surfaces", J.
-        London Math. Soc (2), 22, 1980, 365-373
+        .. [Jo80] D. Johnson, "Spin structures and quadratic forms on surfaces",
+           J. London Math. Soc (2), 22, 1980, 365-373
 
-        [KoZo03] M. Kontsevich, A. Zorich "Connected components of the moduli
-        spaces of Abelian differentials with prescribed singularities",
-        Inventiones Mathematicae, 153, 2003, 631-678
+        .. [KoZo03] M. Kontsevich, A. Zorich "Connected components of the moduli
+           spaces of Abelian differentials with prescribed singularities",
+           Inventiones Mathematicae, 153, 2003, 631-678
         """
         M = self.intersection_matrix()
         F, C = M.symplectic_form()

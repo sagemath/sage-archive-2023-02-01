@@ -361,7 +361,7 @@ compare equal::
     sage: phi3 = RingHomomorphism_from_base(H, R.hom([x])); phi3
     Ring endomorphism of Univariate Quotient Polynomial Ring in a over Finite Field of size 2 with modulus x^2 + x + 1
       Defn: Induced from base ring by
-            Ring endomorphism of Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
+            Ring endomorphism of Univariate Polynomial Ring in x over Finite Field of size 2 (using GF2X)
               Defn: x |--> x
     sage: phi4 = RingHomomorphism_cover(H); phi4
     Ring endomorphism of Univariate Quotient Polynomial Ring in a over Finite Field of size 2 with modulus x^2 + x + 1

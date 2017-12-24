@@ -24,7 +24,7 @@ We recreate the dancing links object and we find all solutions::
 
 Return the first solution found when the computation is done in parallel::
 
-    sage: sorted(x.one_solution(ncpus=8))
+    sage: sorted(x.one_solution(ncpus=2)) # random
     [0, 1]
 
 Find all solutions using some specific rows::
@@ -521,10 +521,14 @@ cdef class dancing_linksWrapper:
             sage: d = dlx_solver(rows)
             sage: sorted(d.one_solution())
             [0, 1]
-            sage: sorted(d.one_solution(ncpus=8))
-            [0, 1]
-            sage: sorted(d.one_solution(ncpus=8, column=4))
-            [0, 1]
+
+        Using parallel computations::
+
+            sage: solutions = [[0,1], [2,3], [4,5]]
+            sage: sorted(d.one_solution(ncpus=2)) in solutions
+            True
+            sage: sorted(d.one_solution(ncpus=2, column=4)) in solutions
+            True
 
         When no solution is found::
 

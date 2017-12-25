@@ -122,7 +122,7 @@ class Rings(CategoryWithAxiom):
                           From: Integer Ring
                           To:   Fraction Field of Univariate Polynomial Ring in x over Rational Field
                         then
-                          Isomorphism morphism:
+                          Isomorphism:
                           From: Fraction Field of Univariate Polynomial Ring in x over Rational Field
                           To:   Rational function field in x over Rational Field
                 sage: f.is_injective()

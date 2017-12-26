@@ -7025,6 +7025,12 @@ cdef class Expression(CommutativeRingElement):
  
             sage: gcd(I + I*x, x^2 - 1)
             x + 1
+
+        Check that arguments are expanded before GCD (:trac:`23845`)::
+
+            sage: P = (x+1)^2 + 1
+            sage: gcd(P, P.expand())
+            x^2 + 2*x + 2
         """
         cdef Expression r = self.coerce_in(b)
         cdef GEx x

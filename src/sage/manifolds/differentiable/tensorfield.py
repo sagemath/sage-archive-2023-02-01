@@ -292,10 +292,10 @@ class TensorField(ModuleElement):
     The default coordinate representations of tensor components are now
     SymPy objects::
 
-        sage: t[eV,1,1,c_uv].expr()
+        sage: t[eV,1,1,c_uv].expr() # long time
         (3*u**4 + 4*u**3*v - 2*u**2*v**2 - 4*u*v**3 + 3*v**4)/(u**8 +
          4*u**6*v**2 + 6*u**4*v**4 + 4*u**2*v**6 + v**8)
-        sage: type(t[eV,1,1,c_uv].expr())
+        sage: type(t[eV,1,1,c_uv].expr()) # long time
         <class 'sympy.core.mul.Mul'>
 
     Let us consider two vector fields, `a` and `b`, on `S^2`::

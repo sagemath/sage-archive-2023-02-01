@@ -835,7 +835,6 @@ class Function_gamma(GinacFunction):
             :meth:`sage.functions.other.gamma`
         """
         GinacFunction.__init__(self, 'gamma', latex_name=r"\Gamma",
-                               ginac_name='tgamma',
                                conversions={'mathematica':'Gamma',
                                             'maple':'GAMMA',
                                             'sympy':'gamma',

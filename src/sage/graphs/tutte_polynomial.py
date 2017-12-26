@@ -641,11 +641,6 @@ def _tutte_polynomial_internal(G, x, y, edge_selector, cache=None):
     if G.is_forest():
         return prod(x + yy(1, d_i-1) for d_i in d)
 
-    #Handle disconnected components
-    if not G.is_connected():
-        return prod([recursive_tp(G.subgraph(block))
-                     for block in G.connected_components()])
-
     #Theorem 1: from Haggard, Pearce, Royle 2008
     blocks, cut_vertices = G.blocks_and_cut_vertices()
     if len(blocks) > 1:

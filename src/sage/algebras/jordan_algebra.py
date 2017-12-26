@@ -34,7 +34,7 @@ class JordanAlgebra(Parent, UniqueRepresentation):
     - `xy = yx`, and
     - `(xy)(xx) = x(y(xx))` (the Jordan identity).
 
-    See [Ja1971]_, [Ch2012]_, and [McC1978], for example.
+    See [Ja1971]_, [Ch2012]_, and [McC1978]_, for example.
 
     These axioms imply that a Jordan algebra is power-associative and the
     following generalization of Jordan's identity holds [Al1947]_:

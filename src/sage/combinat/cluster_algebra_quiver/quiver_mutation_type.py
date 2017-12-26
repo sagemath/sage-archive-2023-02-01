@@ -1127,7 +1127,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract):
         self._rank = None
         self._bi_rank = None
 
-        # _graph and _digraph are initalized
+        # _graph and _digraph are initialized
         self._graph = Graph()
         self._digraph = DiGraph()
 

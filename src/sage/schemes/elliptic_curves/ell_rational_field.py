@@ -1581,7 +1581,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         by ``max_Delta``. This computation can be run on curves with very large
         conductor (so long as the conductor is known or quickly computable)
         when `\Delta` is not too large (see below).
-        Uses Bober's rank bounding method as described in [Bob13].
+        Uses Bober's rank bounding method as described in [Bob13]_.
 
         INPUT:
 
@@ -2685,10 +2685,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             0.6555158376972852
 
         IMPLEMENTATION:
-            Call the corresponding mwrank C++ library function.  Note that
-            the formula in the [CPS] paper is given for number fields.  It's
-            only the implementation in Sage that restricts to the rational
-            field.
+
+        Call the corresponding mwrank C++ library function.  Note that
+        the formula in the [CPS]_ paper is given for number fields.  It is
+        only the implementation in Sage that restricts to the rational
+        field.
         """
         if not self.is_minimal():
             raise RuntimeError("curve must be minimal.")
@@ -5881,14 +5882,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             ....:     assert 4*n^6+4*n^2 in [P[0] for P in EllipticCurve([0,0,0,2,n^2]).integral_points()]
 
 
-        .. note::
+        .. NOTE::
 
-           This function uses the algorithm given in [Co1]_.
-
-        REFERENCES:
-
-        .. [Co1] \H. Cohen, Number Theory, Vol. I: Tools and
-           Diophantine Equations.  GTM 239, Springer, 2007.
+           This function uses the algorithm given in [Coh2007I]_.
 
         AUTHORS:
 
@@ -6015,7 +6011,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             print("e1,e2,e3: ", e1, e2, e3)
             sys.stdout.flush()
 
-        # Algorithm presented in [Co1]
+        # Algorithm presented in [Coh2007I]
         h_E = self.height()
         w1, w2 = self.period_lattice().basis()
         mu = R(disc).abs().log() / 6
@@ -6275,7 +6271,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: [len(e.S_integral_points([2], both_signs=False)) for e in cremona_curves([11..100])] # long time (17s on sage.math, 2011)
             [2, 0, 2, 3, 3, 1, 3, 1, 3, 5, 3, 5, 4, 1, 1, 2, 2, 2, 3, 1, 2, 1, 0, 1, 3, 3, 1, 1, 5, 3, 4, 2, 1, 1, 5, 3, 2, 2, 1, 1, 1, 0, 1, 3, 0, 1, 0, 1, 1, 3, 7, 1, 3, 3, 3, 1, 1, 2, 3, 1, 2, 3, 1, 2, 1, 3, 3, 1, 1, 1, 0, 1, 3, 3, 1, 1, 7, 1, 0, 1, 1, 0, 1, 2, 0, 3, 1, 2, 1, 3, 1, 2, 2, 4, 5, 3, 2, 1, 1, 6, 1, 0, 1, 3, 1, 3, 3, 1, 1, 1, 1, 1, 3, 1, 5, 1, 2, 4, 1, 1, 1, 1, 1, 0, 1, 0, 2, 2, 0, 0, 1, 0, 1, 1, 6, 1, 0, 1, 1, 0, 4, 3, 1, 2, 1, 2, 3, 1, 1, 1, 1, 8, 3, 1, 2, 1, 2, 0, 8, 2, 0, 6, 2, 3, 1, 1, 1, 3, 1, 3, 2, 1, 3, 1, 2, 1, 6, 9, 3, 3, 1, 1, 2, 3, 1, 1, 5, 5, 1, 1, 0, 1, 1, 2, 3, 1, 1, 2, 3, 1, 3, 1, 1, 1, 1, 0, 0, 1, 3, 3, 1, 3, 1, 1, 2, 2, 0, 0, 6, 1, 0, 1, 1, 1, 1, 3, 1, 2, 6, 3, 1, 2, 2, 1, 1, 1, 1, 7, 5, 4, 3, 3, 1, 1, 1, 1, 1, 1, 8, 5, 1, 1, 3, 3, 1, 1, 3, 3, 1, 1, 2, 3, 6, 1, 1, 7, 3, 3, 4, 5, 9, 6, 1, 0, 7, 1, 1, 3, 1, 1, 2, 3, 1, 2, 1, 1, 1, 1, 1, 1, 1, 7, 8, 2, 3, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1]
 
-        An example from [PZGH]::
+        An example from [PZGH]_::
 
             sage: E = EllipticCurve([0,0,0,-172,505])
             sage: E.rank(), len(E.S_integral_points([3,5,7]))  # long time (5s on sage.math, 2011)
@@ -6298,9 +6294,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         REFERENCES:
 
-        - [PZGH] Petho A., Zimmer H.G., Gebel J. and Herrmann E.,
-          Computing all S-integral points on elliptic curves
-          Math. Proc. Camb. Phil. Soc. (1999), 127, 383-402
+        .. [PZGH] Petho A., Zimmer H.G., Gebel J. and Herrmann E.,
+           Computing all S-integral points on elliptic curves
+           Math. Proc. Camb. Phil. Soc. (1999), 127, 383-402
 
         - Some parts of this implementation are partially based on the
           function integral_points()

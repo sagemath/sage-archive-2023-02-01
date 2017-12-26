@@ -573,7 +573,7 @@ cdef class SetMorphism(Morphism):
         except Exception:
             raise TypeError("Underlying map %s does not accept additional arguments" % type(self._function))
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         INPUT:
 
@@ -584,16 +584,16 @@ cdef class SetMorphism(Morphism):
         EXAMPLES::
 
             sage: f = sage.categories.morphism.SetMorphism(Hom(ZZ,ZZ, Sets()), operator.__abs__)
-            sage: f._extra_slots_test({"bla":1})
+            sage: f._extra_slots_test()
             {'_codomain': Integer Ring,
              '_domain': Integer Ring,
              '_function': <built-in function __abs__>,
              '_is_coercion': False,
-             '_repr_type_str': None,
-             'bla': 1}
+             '_repr_type_str': None}
         """
-        _slots['_function'] = self._function
-        return Map._extra_slots(self, _slots)
+        slots = Map._extra_slots(self)
+        slots['_function'] = self._function
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """

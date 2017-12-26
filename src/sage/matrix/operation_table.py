@@ -469,6 +469,7 @@ class OperationTable(SageObject):
           the values are the elements of the structure.
 
         EXAMPLES:
+
         This routine is tested extensively in the :class:`OperationTable`
         and :meth:`change_names` methods.  So we just demonstrate
         the nature of the output here. ::

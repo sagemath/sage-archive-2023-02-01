@@ -9062,10 +9062,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         ALGORITHM:
 
-        The native algorithm implemented in Sage uses the first algorithm of
-        [BD89]_. The algorithm in pari is more subtle since it does compute the
-        inverse of the Euler `\phi` function to determine the `n` such that the
-        polynomial is the `n`-th cyclotomic polynomial.
+        The native algorithm implemented in Sage uses the first
+        algorithm of [BD89]_. The algorithm in pari (using
+        :pari:`poliscyclo`) is more subtle since it does compute the
+        inverse of the Euler `\phi` function to determine the `n` such
+        that the polynomial is the `n`-th cyclotomic polynomial.
 
         EXAMPLES:
 
@@ -9216,8 +9217,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         r"""
         Test whether this polynomial is a product of cyclotomic polynomials.
 
-        This method simply calls the function ``poliscycloprod`` from the Pari
-        library.
+        This method simply calls the function :pari:`poliscycloprod`
+        from the Pari library.
 
         .. SEEALSO::
 
@@ -11064,7 +11065,7 @@ cdef class PolynomialBaseringInjection(Morphism):
         self._repr_type_str = "Polynomial base injection"
         self._new_constant_poly_ = self._an_element._new_constant_poly
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         EXAMPLES::
 
@@ -11076,9 +11077,11 @@ cdef class PolynomialBaseringInjection(Morphism):
             sage: phi(3/1)
             3
         """
-        _slots['_an_element'] = self._an_element
-        _slots['_new_constant_poly_'] = self._new_constant_poly_
-        return Morphism._extra_slots(self, _slots)
+        slots = Morphism._extra_slots(self)
+        slots.update(
+                _an_element=self._an_element,
+                _new_constant_poly_=self._new_constant_poly_)
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """

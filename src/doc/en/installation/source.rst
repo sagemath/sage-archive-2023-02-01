@@ -1326,16 +1326,6 @@ Variables dealing with doctesting:
   ``sage -t --long``.
   If this isn't set, the default is 1800 seconds (30 minutes).
 
-- :envvar:`SAGE_PICKLE_JAR` - if you want to update the standard pickle
-  jar, set this to something non-empty and run the doctest suite.
-  See the documentation for the functions :func:`picklejar` and
-  :func:`unpickle_all` in
-  :file:`$SAGE_ROOT/src/sage/structure/sage_object.pyx`, online
-  `here (picklejar)
-  <http://doc.sagemath.org/html/en/reference/sage/structure/sage_object.html#sage.structure.sage_object.picklejar>`_
-  and `here (unpickle_all)
-  <http://doc.sagemath.org/html/en/reference/sage/structure/sage_object.html#sage.structure.sage_object.unpickle_all>`_.
-
 - :envvar:`SAGE_TEST_GLOBAL_ITER`, :envvar:`SAGE_TEST_ITER`: these can
   be used instead of passing the flags ``--global-iterations`` and
   ``--file-iterations``, respectively, to ``sage -t``. Indeed, these

@@ -31,7 +31,9 @@ import sage.modular.hecke.element as element
 
 from sage.rings.all import ZZ, QQ, Integer, RealField, ComplexField
 from sage.rings.fast_arith import prime_range
+from sage.arith.misc import euler_phi
 from sage.rings.morphism import RingHomomorphism
+from sage.rings.number_field.number_field import CyclotomicField
 from sage.rings.number_field.number_field_morphisms import NumberFieldEmbedding
 from sage.modular.modsym.space import is_ModularSymbolsSpace
 from sage.modular.modsym.modsym import ModularSymbols
@@ -43,6 +45,7 @@ from sage.misc.superseded import deprecated_function_alias
 from sage.arith.all import lcm, divisors, moebius, sigma, factor
 from sage.structure.element import coercion_model, ModuleElement
 from sage.misc.cachefunc import cached_method
+from sage.functions.other import ceil
 
 
 def is_ModularFormElement(x):
@@ -1174,6 +1177,168 @@ class ModularForm_abstract(ModuleElement):
         L = self.symsquare_lseries(prec=prec, embedding=embedding)
         k = self.weight()
         return (ZZ(k - 1).factorial() / 2**(2*k - 1) / pi**(k+1)) * L(k).real_part()
+
+    def _q_expansion_bound(self, eps):
+        r"""
+        This function takes as input a modular form, ``self`` and a
+        Dirichlet character ``eps`` and returns an integer bound such
+        that if ``self`` and its twist by ``eps`` have the same
+        q-expansion up to this bound, then they are equal.
+
+        The bound is taken from [Mu1997]_. See also [Shi1971]_, Proposition
+        3.64.
+
+        INPUT:
+
+        - ``eps`` -- a Dirichlet character
+
+        OUTPUT:
+
+        A positive integer.
+
+        EXAMPLES:
+
+        Here is an example that can easily be checked by hand. ::
+
+            sage: M = ModularForms(Gamma0(11), 2)
+            sage: C = M.cuspidal_submodule()
+            sage: f = C.gens()[0]
+            sage: F = CyclotomicField(5)
+            sage: D = DirichletGroup(11, F)
+            sage: eps = D.gens()[0]
+            sage: f._q_expansion_bound(eps)
+            22
+
+        The level of ``self`` does not have to be related to the conductor
+        of eps. ::
+
+            sage: M = ModularForms(Gamma0(1), 12)
+            sage: C = M.cuspidal_submodule()
+            sage: Delta = C.gens()[0]
+            sage: F = CyclotomicField(12)
+            sage: D = DirichletGroup(13, F)
+            sage: eps = D.gens()[0]
+            sage: Delta._q_expansion_bound(eps)
+            182
+        """
+        chi = self.character()
+        M = lcm([self.level(), eps.conductor()**2,
+                 chi.conductor() * eps.conductor()])
+        y = QQ(self.weight()) / QQ(12) * M
+        for p in M.prime_divisors():
+            y *= (1 + 1/QQ(p))
+        return y.ceil()
+
+    @cached_method
+    def has_cm(self):
+        r"""
+        Return whether the modular form ``self`` has complex multiplication.
+
+        OUTPUT:
+
+        Boolean
+
+        .. SEEALSO::
+
+            - :meth:`cm_discriminant` (to return the CM field)
+            - :meth:`sage.schemes.elliptic_curves.ell_rational_field.has_cm`
+
+        EXAMPLES::
+
+            sage: G = DirichletGroup(21); eps = G.0 * G.1
+            sage: Newforms(eps, 2)[0].has_cm()
+            True
+
+        This example illustrates what happens when
+        candidate_characters(self) is the empty list. ::
+
+            sage: M = ModularForms(Gamma0(1), 12)
+            sage: C = M.cuspidal_submodule()
+            sage: Delta = C.gens()[0]
+            sage: Delta.has_cm()
+            False
+
+        We now compare the function has_cm between elliptic curves and
+        their associated modular forms. ::
+
+            sage: E = EllipticCurve([-1, 0])
+            sage: f = E.modular_form()
+            sage: f.has_cm()
+            True
+            sage: E.has_cm() == f.has_cm()
+            True
+
+        Here is a non-cm example coming from elliptic curves. ::
+
+            sage: E = EllipticCurve('11a')
+            sage: f = E.modular_form()
+            sage: f.has_cm()
+            False
+            sage: E.has_cm() == f.has_cm()
+            True
+        """
+        N = self.level()
+        M = self.character().conductor()
+
+        for p in N.prime_factors():
+            if M % p and N.valuation(p) == 1:
+                verbose("Form is Steinberg at %s, cannot be CM" % p, level=1)
+                return False
+        cand_chars = [(x, self._q_expansion_bound(x)) for x in DirichletGroup(N, QQ) if x.is_odd()]
+        
+        verbose("Conductors of candidate characters: %s" % (", ".join(str(x[0].conductor()) for x in cand_chars)), level=1)
+        verbose("Qexp bounds: %s" % (", ".join(str(x[1]) for x in cand_chars)), level=1)
+        # If there are no candidate characters, then self cannot have CM.
+        if not cand_chars:
+            return False
+
+        # Test each prime and discard characters for which eps(p) != 1 when f[p] != 0.
+        p = ZZ(2)
+        while p <= min(B for (eps, B) in cand_chars):
+            verbose("Checking p = %s (%s candidate characters left))" % (p, len(cand_chars)), level=1)
+            # We only have to test the CM condition at primes that do not
+            # divide the level of self.
+            if not self.level() % p: 
+                p = p.next_prime()
+                continue
+
+            # Evaluating characters is cheap, while computing f[p] is
+            # expensive, so if eps(p) = 1 for all p, then we don't bother to
+            # compute f[p].
+            cand_chars = [(eps, B) for (eps, B) in cand_chars if (eps(p) == 1 or self[p] == 0)] 
+            
+            if len(cand_chars) == 0:
+                # f doesn't have CM
+                return False
+
+            # go on to next prime
+            p = p.next_prime()
+
+        B0 = min(B for (eps, B) in cand_chars)
+        C = [eps for (eps, B) in cand_chars if B == B0]
+        if len(C) > 1: 
+            # can't happen (except in weight 1, which isn't implemented yet
+            # anyway)
+            raise ArithmeticError("Got multiple characters in has_cm")
+        self.__cm_char = C[0].primitive_character()
+        return True
+    
+    def cm_discriminant(self):
+        r"""
+        Return the discriminant of the CM field associated to this form. An
+        error will be raised if the form isn't of CM type.
+
+        EXAMPLES::
+
+            sage: Newforms(49, 2)[0].cm_discriminant()
+            -7
+            sage: CuspForms(1, 12).gen(0).cm_discriminant()
+            Traceback (most recent call last):
+            ...
+            ValueError: Not a CM form
+        """
+        if not self.has_cm(): raise ValueError("Not a CM form")
+        return -self.__cm_char.conductor()
 
 class Newform(ModularForm_abstract):
     def __init__(self, parent, component, names, check=True):

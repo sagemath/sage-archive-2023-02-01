@@ -1287,7 +1287,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         * the defining polynomials of the algebraic scheme. Note that
           some authors do not include these in the definition of the
           Jacobian ideal. An example of a reference that does include
-          the defining equations is [LazarsfeldJacobian].
+          the defining equations is [LazarsfeldJacobian]_.
 
         OUTPUT:
 

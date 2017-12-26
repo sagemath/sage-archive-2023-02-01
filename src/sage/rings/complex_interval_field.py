@@ -172,7 +172,7 @@ class ComplexIntervalField_class(ring.Field):
         sage: CIF = ComplexIntervalField(53)
 
         sage: CIF.category()
-        Category of fields
+        Category of infinite fields
         sage: TestSuite(CIF).run()
 
     TESTS:
@@ -191,6 +191,11 @@ class ComplexIntervalField_class(ring.Field):
         0.?e1 + 0.?e1*I
         sage: x + CIF(RIF(3.14,3.15), 0)
         x + 3.15?
+
+    Methods inherited from categories::
+
+        sage: CIF.is_finite()
+        False
     """
     def __init__(self, prec=53):
         """
@@ -205,7 +210,7 @@ class ComplexIntervalField_class(ring.Field):
         """
         self._prec = int(prec)
         from sage.categories.fields import Fields
-        ParentWithGens.__init__(self, self._real_field(), ('I',), False, category = Fields())
+        ParentWithGens.__init__(self, self._real_field(), ('I',), False, category = Fields().Infinite())
 
     def __reduce__(self):
         """
@@ -610,17 +615,6 @@ class ComplexIntervalField_class(ring.Field):
             True
         """
         return True
-
-    def is_finite(self):
-        """
-        Return ``False``, since the complex numbers are infinite.
-
-        EXAMPLES::
-
-            sage: CIF.is_finite()
-            False
-        """
-        return False
 
     def pi(self):
         r"""

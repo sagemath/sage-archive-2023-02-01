@@ -58,9 +58,9 @@ class NumberFields(Category_singleton):
         EXAMPLES::
 
             sage: NumberFields().super_categories()
-            [Category of fields]
+            [Category of infinite fields]
         """
-        return[Fields()]
+        return [Fields()]
 
     def __contains__(self, x):
         r"""

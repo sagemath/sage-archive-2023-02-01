@@ -223,6 +223,12 @@ class RationalField(Singleton, number_field_base.NumberField):
             ('x',)
             sage: QQ._element_constructor_((2, 3))
             2/3
+
+            sage: QQ.is_finite()
+            False
+
+            sage: QQ.is_field()
+            True
         """
         from sage.categories.basic import QuotientFields
         from sage.categories.number_fields import NumberFields
@@ -803,28 +809,6 @@ class RationalField(Singleton, number_field_base.NumberField):
             True
         """
         return True
-
-    def is_field(self, proof = True):
-        """
-        Return ``True``, since the rational field is a field.
-
-        EXAMPLES::
-
-            sage: QQ.is_field()
-            True
-        """
-        return True
-
-    def is_finite(self):
-        """
-        Return ``False``, since the rational field is not finite.
-
-        EXAMPLES::
-
-            sage: QQ.is_finite()
-            False
-        """
-        return False
 
     def is_prime_field(self):
         r"""

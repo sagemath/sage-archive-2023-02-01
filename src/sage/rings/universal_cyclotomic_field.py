@@ -1071,6 +1071,9 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
 
             sage: UCF = UniversalCyclotomicField()
             sage: TestSuite(UCF).run()
+
+            sage: UniversalCyclotomicField().is_finite()
+            False
         """
         from sage.categories.fields import Fields
         Field.__init__(self, base_ring=QQ, category=Fields().Infinite())
@@ -1115,21 +1118,6 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
         return (self.zero(), self.one(), -self.one(),
                 self.gen(3, 1),
                 self.gen(7, 1) - self(2) / self(3) * self.gen(7, 2))
-
-    def is_finite(self):
-        r"""
-        Return ``True``.
-
-        EXAMPLES::
-
-            sage: UniversalCyclotomicField().is_finite()
-            True
-
-        .. TODO::
-
-            this method should be provided by the category.
-        """
-        return True
 
     def _repr_(self):
         r"""

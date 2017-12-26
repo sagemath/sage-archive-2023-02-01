@@ -50,7 +50,7 @@ cdef class FiniteFieldIterator:
     cdef object iter
     cdef FiniteField parent
 
-    def __init__(self,FiniteField parent):
+    def __init__(self, FiniteField parent):
         r"""
         Initialize ``self``.
 
@@ -106,6 +106,11 @@ cdef class FiniteFieldIterator:
 cdef class FiniteField(Field):
     """
     Abstract base class for finite fields.
+
+    TESTS::
+
+        sage: GF(997).is_finite()
+        True
     """
     def __init__(self, base, names, normalize, category=None):
         """
@@ -676,17 +681,6 @@ cdef class FiniteField(Field):
 
             sage: k.<a> = FiniteField(3^4)
             sage: k.is_field()
-            True
-        """
-        return True
-
-    def is_finite(self):
-        """
-        Return ``True`` since a finite field is finite.
-
-        EXAMPLES::
-
-            sage: GF(997).is_finite()
             True
         """
         return True

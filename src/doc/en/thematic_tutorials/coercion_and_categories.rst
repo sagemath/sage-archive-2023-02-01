@@ -135,7 +135,6 @@ This base class provides a lot more methods than a general parent::
      '_zero_ideal',
      'algebraic_closure',
      'base_extend',
-     'cardinality',
      'class_group',
      'coerce_map_from_c',
      'content',
@@ -155,7 +154,6 @@ This base class provides a lot more methods than a general parent::
      'integral_closure',
      'is_commutative',
      'is_field',
-     'is_finite',
      'is_integral_domain',
      'is_integrally_closed',
      'is_noetherian',
@@ -879,7 +877,7 @@ The four axioms requested for coercions
       rational field is a homomorphism of euclidean domains::
 
           sage: QQ.coerce_map_from(ZZ).category_for()
-          Join of Category of euclidean domains and Category of metric spaces
+          Join of Category of euclidean domains and Category of infinite sets and Category of metric spaces
 
       .. end of output
 

@@ -1852,7 +1852,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         We check that :trac:`23184` has been resolved::
 
             sage: QQ['x', 'y']._generic_coerce_map(QQ).category_for()
-            Category of unique factorization domains
+            Category of infinite unique factorization domains
             sage: QQ[['x']].coerce_map_from(QQ).category_for()
             Category of euclidean domains
 

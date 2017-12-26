@@ -1415,7 +1415,9 @@ cdef class PowerSeries(AlgebraElement):
 
         - ``n`` -- integer
 
-        - ``prec`` -- integer (optional) - the precision of the result
+        - ``prec`` -- integer (optional) - precision of the result. Though, if
+          this series has finite precision, then the result can not have larger
+          precision.
 
         EXAMPLES::
 
@@ -1426,7 +1428,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: (1 + x + O(x^5)).nth_root(5)
             1 + 1/5*x - 2/25*x^2 + 6/125*x^3 - 21/625*x^4 + O(x^5)
 
-        Check that the result are consistent with taking log and exponential::
+        Check that the results are consistent with taking log and exponential::
 
             sage: R.<x> = PowerSeriesRing(QQ, default_prec=100)
             sage: p = (1 + 2*x - x^4)**200

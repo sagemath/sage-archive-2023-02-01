@@ -9673,6 +9673,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
         lowest degree is not invertible in the base ring. In both cases an
         ``ArithmeticError`` is raised.
 
+        INPUT:
+
+        - ``n`` -- positive integer; the exponent of the root
+
+        - ``prec`` -- positive integer; the precision of the result
+
+        - ``start`` -- optional; the first term of the result. This
+          is only considered when the valuation is zero, i.e. when the
+          polynomial has a nonzero constant term.
+
         .. ALGORITHM::
 
             Let us denote by `a` the polynomial from which we wish to extract

@@ -2520,6 +2520,34 @@ class Permutation(CombinatorialElement):
 
         return reduced_word
 
+    def reduced_words_iterator(self):
+        r"""
+        Return an iterator for the reduced words of ``self``.
+
+        EXAMPLES::
+
+            sage: Permutation([5,2,3,4,1]).reduced_words_iterator().next()
+            [1, 2, 3, 4, 3, 2, 1]
+
+        """
+        def aux(p):
+            is_identity = True
+            for d in range(len(p)-1):
+                e = d+1
+                if p[d] > p[e]:
+                    is_identity = False
+                    p[d], p[e] = p[e], p[d]
+
+                    for x in aux(p):
+                        x.append(e)
+                        yield x
+
+                    p[d], p[e] = p[e], p[d]
+            if is_identity:
+                yield []
+
+        return aux(self[:])
+
     def reduced_words(self):
         r"""
         Return a list of the reduced words of ``self``.
@@ -2566,20 +2594,7 @@ class Permutation(CombinatorialElement):
             Permutation([]).reduced_words()
             [[]]
         """
-        p = self[:]
-        rws = []
-        descents = self.descents()
-
-        if not descents:
-            return [[]]
-
-        P = Permutations()
-        for d in descents:
-            pp = p[:d - 1] + [p[d], p[d - 1]] + p[d+1:]
-            z = lambda x: x + [d]
-            rws += [z(_) for _ in P(pp).reduced_words()]
-
-        return rws
+        return [w for w in self.reduced_words_iterator()]
 
     def reduced_word_lexmin(self):
         r"""

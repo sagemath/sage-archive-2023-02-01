@@ -2515,6 +2515,109 @@ class CrystalOfBKKLetters(ClassicalCrystalOfLetters):
 
     Element = BKKLetter
 
+#################
+# Type q(n) queer
+#################
+
+cdef class QueerLetter(Letter):
+    def _repr_(self):
+        r"""
+        A string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Letters(['Q', 3])
+            sage: C(2)
+            2
+        """
+        return Letter._repr_(self)
+
+    def _latex_(self):
+        r"""
+        A latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Letters(['Q', 3])
+            sage: latex(C(2))
+            2
+        """
+        return Letter._latex_(self)
+
+    cpdef Letter e(self, int i):
+        r"""
+        Return the action of `e_i` on ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Letters(['Q', 3])
+            sage: c = C(2)
+            sage: c.e(1)
+            1
+            sage: c.e(-1)
+            1
+            sage: c = C(3)
+            sage: c.e(2)
+            2
+            sage: c.e(-1)
+        """
+        cdef int b = self.value
+        if i == -1:
+            if b == 2:
+                return self._parent._element_constructor_(b - 1)
+        elif 0 < i:
+            if b == i + 1:
+                return self._parent._element_constructor_(b - 1)
+        return None
+
+    cpdef Letter f(self, int i):
+        r"""
+        Return the action of `f_i` on ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Letters(['Q', 3])
+            sage: c = C(1)
+            sage: c.f(1)
+            2
+            sage: c.f(-1)
+            2
+            sage: c = C(2)
+            sage: c.f(1)
+            sage: c.f(2)
+            3
+            sage: c.f(-1)
+        """
+        cdef int b = self.value
+        if 0 < i:
+            if self.value == i:
+                return self._parent._element_constructor_(b + 1)
+        elif i == -1:
+            if b == 1:
+                return self._parent._element_constructor_(b + 1)
+        return None
+
+    def weight(self):
+        """
+        Return weight of ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Letters(['Q', 3])
+            sage: c = C(-1)
+            sage: c.weight()
+            (0, 0, 1, 0, 0)
+            sage: c = C(2)
+            sage: c.weight()
+            (0, 0, 0, 0, 1)
+        """
+        # The ``Integer()`` should not be necessary, otherwise it does not
+        #   work properly for a negative Python int
+        ret = self._parent.weight_lattice_realization().basis()[Integer(self.value)]
+        if self._parent._dual:
+            return -ret
+        return ret
+
 #########################
 # Wrapped letters
 #########################

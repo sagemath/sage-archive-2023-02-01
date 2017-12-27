@@ -706,6 +706,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
             The output is a `p`-adic integer from Dwork's expansion,
             used to compute the `p`-adic gamma function as in [RV]_
             section 6.2.
+            The coefficients of the expansion are now cached to speed up
+            multiple evaluation, as in the trace formula for hypergeometric
+            motives.
 
         REFERENCES:
 
@@ -732,14 +735,26 @@ cdef class pAdicGenericElement(LocalGenericElement):
         s = R.one().add_bigoh(bd)
         t = s
         u = [s]
-        for j in range(1, p):
-            u.append(u[j-1] / j)
-        for k in range(1, bd):
-            u[0] = ((u[-1] + u[0]) / k) >> 1
+        try:
+            v = R.dwork_coeffs
+        except AttributeError:
+            v = None
+        if v is not None:
+            for k in range(1, bd):
+                t *= (self + k - 1)
+                s += t * (v[k] << k)
+        else:
             for j in range(1, p):
-                u[j] = (u[j-1] + u[j]) / (j + k * p )
-            t *= (self + k - 1)
-            s += t * (u[0] << k)
+                u.append(u[j-1] / j)
+            v = [u[0]]
+            for k in range(1, bd):
+                u[0] = ((u[-1] + u[0]) / k) >> 1
+                for j in range(1, p):
+                    u[j] = (u[j-1] + u[j]) / (j + k * p )
+                t *= (self + k - 1)
+                s += t * (u[0] << k)
+                v.append(u[0])
+            R.dwork_coeffs = v
         return R(-s)
 
     def gamma(self, algorithm='pari'):
@@ -811,6 +826,14 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: Zp(5)(0).gamma()
             1 + O(5^20)
+
+        Check the cached version of `dwork_expansion` from :trac:`24433`::
+            sage: p = next_prime(200)
+            sage: F = Qp(p)
+            sage: l1 = [F(a/(p-1)).gamma(algorithm='pari') for a in range(p-1)]
+            sage: l2 = [F(a/(p-1)).gamma(algorithm='sage') for a in range(p-1)]
+            sage: all(l1[i] == l2[i] for i in range(p-1))
+            True
         """
         if self.valuation() < 0:
             raise ValueError('The p-adic gamma function only works '

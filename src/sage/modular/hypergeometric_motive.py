@@ -987,10 +987,10 @@ class HypergeometricData(object):
         D = -min(self.zigzag(x, flip_beta=True) for x in alpha + beta)
         # also: D = (self.weight() + 1 - m[0]) // 2
 
-        gauss_table = [padic_gauss_sum(r, p, f, prec, factored=True) for r in range(q - 1)]
-
         p_ring = Zp(p, prec=prec)
         teich = p_ring.teichmuller(M / t)
+        gauss_table = [padic_gauss_sum(r, p, f, prec, factored=True, algorithm='sage') for r in range(q - 1)]
+
         sigma = sum(q**(D + m[0] - m[r]) *
                     (-p)**(sum(gauss_table[(v * r) % (q - 1)][0] * gv
                                for v, gv in gamma.items()) // (p - 1)) *

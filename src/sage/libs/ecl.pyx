@@ -448,13 +448,13 @@ cdef cl_object python_to_ecl(pyobj) except NULL:
             return Cnil
     elif pyobj is None:
         return Cnil
-    elif isinstance(pyobj,int):
-        return ecl_make_integer(pyobj)
     elif isinstance(pyobj,long):
         if pyobj >= MOST_NEGATIVE_FIXNUM and pyobj <= MOST_POSITIVE_FIXNUM:
             return ecl_make_integer(pyobj)
         else:
             return python_to_ecl(Integer(pyobj))
+    elif isinstance(pyobj,int):
+        return ecl_make_integer(pyobj)
     elif isinstance(pyobj,float):
         return ecl_make_doublefloat(pyobj)
     elif isinstance(pyobj,unicode):

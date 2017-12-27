@@ -1384,7 +1384,7 @@ class Sets(Category_singleton):
             tester = self._tester(**options)
             elements = self.some_elements()
             # Todo: enable this once
-            #tester.assert_(elements != iter(elements),
+            #tester.assertTrue(elements != iter(elements),
             #               "self.some_elements() should return an iterable, not an iterator")
             for x in elements:
                 tester.assertTrue(x in self, LazyFormat(
@@ -2548,7 +2548,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 """
                 tester = self._tester(**options)
                 for R in self.realizations():
-                    tester.assert_(R in self.Realizations())
+                    tester.assertTrue(R in self.Realizations())
                 # Could check that there are coerce maps between any two realizations
 
             @lazy_attribute

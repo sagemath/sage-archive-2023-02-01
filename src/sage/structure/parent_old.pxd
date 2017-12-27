@@ -9,7 +9,7 @@
 #*****************************************************************************
 
 cimport sage.structure.parent as parent
-from sage.structure.coerce_dict cimport MonoDict
+from sage.structure.coerce_dict cimport MonoDict, TripleDict
 
 
 cdef class Parent(parent.Parent):

@@ -238,19 +238,8 @@ class LazyPowerSeriesRing(Algebra):
             sage: L = LazyPowerSeriesRing(QQ)
             sage: L.zero()
             0
-
-        TESTS:
-
-        Check that the method `zero_element` raises a warning (:trac:`17694`)::
-
-            sage: L.zero_element()
-            doctest:...: DeprecationWarning: zero_element is deprecated. Please use zero instead.
-            See http://trac.sagemath.org/17694 for details.
-            0
         """
         return self(self.base_ring().zero())
-
-    zero_element = deprecated_function_alias(17694, zero)
 
     def identity_element(self):
         """

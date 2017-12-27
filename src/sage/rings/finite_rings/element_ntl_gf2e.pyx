@@ -44,9 +44,9 @@ from cypari2.gen cimport Gen
 from sage.interfaces.gap import is_GapElement
 
 from sage.misc.randstate import current_randstate
-from sage.misc.long cimport pyobject_to_long
+from sage.arith.long cimport pyobject_to_long
+from sage.arith.power cimport generic_power
 
-from .element_ext_pari import FiniteField_ext_pariElement
 from .element_pari_ffelt import FiniteFieldElement_pari_ffelt
 from .finite_field_ntl_gf2e import FiniteField_ntl_gf2e
 
@@ -154,7 +154,7 @@ cdef class Cache_ntl_gf2e(SageObject):
 
             sage: from sage.rings.finite_rings.element_ntl_gf2e import Cache_ntl_gf2e
             sage: Cache_ntl_gf2e.__new__(Cache_ntl_gf2e, None, 2, [1,1,1])
-            <type 'sage.rings.finite_rings.element_ntl_gf2e.Cache_ntl_gf2e'>
+            <sage.rings.finite_rings.element_ntl_gf2e.Cache_ntl_gf2e object at ...>
         """
         cdef GF2X_c ntl_m
         cdef GF2_c c
@@ -360,8 +360,7 @@ cdef class Cache_ntl_gf2e(SageObject):
         elif isinstance(e, Gen):
             pass # handle this in next if clause
 
-        elif isinstance(e, FiniteFieldElement_pari_ffelt) or \
-             isinstance(e, FiniteField_ext_pariElement):
+        elif isinstance(e, FiniteFieldElement_pari_ffelt):
             # Reduce to pari
             e = e.__pari__()
 
@@ -822,9 +821,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             s = <FiniteField_ntl_gf2eElement?>self
             exp_int = pyobject_to_long(exp)
         except (OverflowError, TypeError):
-            # we could try to factor out the order first
-            from sage.groups.generic import power
-            return power(self, exp)
+            return generic_power(self, exp)
         else:
             if exp_int < 0 and GF2E_IsZero(s.x):
                 raise ZeroDivisionError('division by zero in finite field')

@@ -103,7 +103,7 @@ class EisensteinSubmodule(submodule.ModularFormsSubmodule):
             Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 4 and level 13, weight 2, character [zeta6], sign 0, over Cyclotomic Field of order 6 and degree 2
 
             sage: E = EisensteinForms(eps, 1); E
-            Eisenstein subspace of dimension 1 of Modular Forms space of dimension 1, character [zeta12] and weight 1 over Cyclotomic Field of order 12 and degree 4
+            Eisenstein subspace of dimension 1 of Modular Forms space of character [zeta12] and weight 1 over Cyclotomic Field of order 12 and degree 4
             sage: E.modular_symbols()
             Traceback (most recent call last):
             ...

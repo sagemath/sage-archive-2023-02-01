@@ -146,9 +146,10 @@ cdef class RealDoubleField_class(Field):
         """
         from sage.categories.fields import Fields
         Field.__init__(self, self, category=Fields().Metric().Complete())
-        self._populate_coercion_lists_(element_constructor=RealDoubleElement,
-                                       init_no_parent=True,
+        self._populate_coercion_lists_(init_no_parent=True,
                                        convert_method_name='_real_double_')
+
+    _element_constructor_ = RealDoubleElement
 
     def __reduce__(self):
         """

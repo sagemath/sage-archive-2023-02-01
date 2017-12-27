@@ -587,17 +587,8 @@ class Gap(Parent):
 
             sage: libgap.zero()
             0
-
-        TESTS::
-
-            sage: libgap.zero_element()
-            doctest:...: DeprecationWarning: zero_element is deprecated. Please use zero instead.
-            See http://trac.sagemath.org/17694 for details.
-            0
         """
         return self(0)
-
-    zero_element = deprecated_function_alias(17694, zero)
 
     def one(self):
         r"""

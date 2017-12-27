@@ -183,7 +183,7 @@ class FormsBase(SageObject):
 
         sage: from sage.rings.invariant_theory import FormsBase
         sage: FormsBase(None, None, None, None)
-        <class 'sage.rings.invariant_theory.FormsBase'>
+        <sage.rings.invariant_theory.FormsBase object at ...>
     """
 
     def __init__(self, n, homogeneous, ring, variables):
@@ -194,7 +194,7 @@ class FormsBase(SageObject):
 
             sage: from sage.rings.invariant_theory import FormsBase
             sage: FormsBase(None, None, None, None)
-            <class 'sage.rings.invariant_theory.FormsBase'>
+            <sage.rings.invariant_theory.FormsBase object at ...>
         """
         self._n = n
         self._homogeneous = homogeneous

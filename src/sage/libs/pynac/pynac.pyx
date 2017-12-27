@@ -2432,23 +2432,18 @@ def init_function_table():
     called before Pynac is used; otherwise, there will be segfaults.
     """
 
-    py_funcs.py_binomial_int = &py_binomial_int
-    py_funcs.py_binomial = &py_binomial
     py_funcs.py_gcd = &py_gcd
     py_funcs.py_lcm = &py_lcm
     py_funcs.py_real = &py_real
     py_funcs.py_imag = &py_imag
     py_funcs.py_numer = &py_numer
     py_funcs.py_denom = &py_denom
-    py_funcs.py_conjugate = &py_conjugate
 
     py_funcs.py_is_rational = &py_is_rational
-    py_funcs.py_is_crational = &py_is_crational
     py_funcs.py_is_real = &py_is_real
     py_funcs.py_is_integer = &py_is_integer
     py_funcs.py_is_equal = &py_is_equal
     py_funcs.py_is_even = &py_is_even
-    py_funcs.py_is_cinteger = &py_is_cinteger
     py_funcs.py_is_prime = &py_is_prime
     py_funcs.py_is_exact = &py_is_exact
 
@@ -2462,7 +2457,6 @@ def init_function_table():
     py_funcs.py_mpq_from_rational = &py_mpq_from_rational
 
     py_funcs.py_float = &py_float
-    py_funcs.py_RDF_from_double = &py_RDF_from_double
 
     py_funcs.py_factorial = &py_factorial
     py_funcs.py_doublefactorial = &py_doublefactorial
@@ -2486,22 +2480,13 @@ def init_function_table():
     py_funcs.py_asinh = &py_asinh
     py_funcs.py_acosh = &py_acosh
     py_funcs.py_atanh = &py_atanh
-    py_funcs.py_tgamma = &py_tgamma
-    py_funcs.py_lgamma = &py_lgamma
     py_funcs.py_isqrt = &py_isqrt
     py_funcs.py_sqrt = &py_sqrt
-    py_funcs.py_abs = &py_abs
     py_funcs.py_mod = &py_mod
     py_funcs.py_smod = &py_smod
     py_funcs.py_irem = &py_irem
-    py_funcs.py_iquo = &py_iquo
-    py_funcs.py_iquo2 = &py_iquo2
-    py_funcs.py_li = &py_li
-    py_funcs.py_li2 = &py_li2
     py_funcs.py_psi = &py_psi
     py_funcs.py_psi2 = &py_psi2
-
-    py_funcs.py_int_length = &py_int_length
 
     py_funcs.py_eval_constant = &py_eval_constant
     py_funcs.py_eval_unsigned_infinity = &py_eval_unsigned_infinity
@@ -2531,7 +2516,6 @@ def init_function_table():
     py_funcs.py_print_fderivative =  &py_print_fderivative
     py_funcs.py_latex_fderivative =  &py_latex_fderivative
     py_funcs.paramset_to_PyTuple = &paramset_to_PyTuple
-    py_funcs.py_rational_power_parts = &py_rational_power_parts
 
 init_function_table()
 init_pynac_I()

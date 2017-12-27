@@ -1512,6 +1512,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         and reset both the current seed and the exploring iterator.
 
         EXAMPLES::
+
             sage: A = ClusterAlgebra(['A', 2])
             sage: A.clear_computed_data()
             sage: A.g_vectors_so_far()

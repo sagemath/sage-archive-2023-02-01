@@ -562,11 +562,11 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
 
             sage: P = Poset((divisors(15), attrcall("divides")), facade = False)
             sage: type(P.an_element().element)
-            <type 'sage.rings.integer.Integer'>
+            <... 'sage.rings.integer.Integer'>
 
             sage: P = Poset((divisors(15), attrcall("divides")), facade=True)
             sage: type(P.an_element())
-            <type 'sage.rings.integer.Integer'>
+            <... 'sage.rings.integer.Integer'>
 
         This may be abusive::
 
@@ -1970,8 +1970,6 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         from sage.graphs.graph import Graph
         return Graph(self.hasse_diagram(), immutable=True)
-
-    to_graph = deprecated_function_alias(17449, cover_relations_graph)
 
     def cover_relations_iterator(self):
         """

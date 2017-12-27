@@ -13,6 +13,7 @@ from sage.symbolic.all import SR
 from sage.rings.all import Integer, Rational, RealField, ZZ, ComplexField
 from sage.rings.complex_number import is_ComplexNumber
 from sage.misc.latex import latex
+from sage.misc.decorators import rename_keyword
 import math
 
 from sage.structure.element import coercion_model
@@ -27,7 +28,8 @@ from sage.functions.exp_integral import Ei
 from sage.libs.mpmath import utils as mpmath_utils
 from sage.arith.all import binomial as arith_binomial
 
-one_half = ~SR(2)
+one_half = SR.one() / SR(2)
+
 
 class Function_abs(GinacFunction):
     def __init__(self):
@@ -112,6 +114,171 @@ class Function_abs(GinacFunction):
 
 abs = abs_symbolic = Function_abs()
 
+
+@rename_keyword(deprecation=22079, maximum_bits="bits")
+def _eval_floor_ceil(self, x, method, bits=0, **kwds):
+    """
+    Helper function to compute ``floor(x)`` or ``ceil(x)``.
+
+    INPUT:
+
+    - ``x`` -- a number
+
+    - ``method`` -- should be either ``"floor"`` or ``"ceil"``
+
+    - ``bits`` -- how many bits to use before giving up
+
+    See :class:`Function_floor` and :class:`Function_ceil` for examples
+    and tests.
+
+    TESTS::
+
+        sage: numbers = [SR(10^100 + exp(-100)), SR(10^100 - exp(-100)), SR(10^100)]
+        sage: numbers += [-n for n in numbers]
+        sage: for n in numbers:
+        ....:     f = floor(n)
+        ....:     c = ceil(n)
+        ....:     if f == c:
+        ....:         assert n in ZZ
+        ....:     else:
+        ....:         assert f + 1 == c
+
+    A test from :trac:`12121`::
+
+        sage: e1 = pi - continued_fraction(pi).convergent(2785)
+        sage: e2 = e - continued_fraction(e).convergent(1500)
+        sage: f = e1/e2
+        sage: f = 1 / (f - continued_fraction(f).convergent(1000))
+        sage: f = f - continued_fraction(f).convergent(1)
+        sage: floor(f, bits=10000)
+        -1
+        sage: ceil(f, bits=10000)
+        0
+
+    These don't work but fail gracefully::
+
+        sage: ceil(Infinity)
+        Traceback (most recent call last):
+        ...
+        ValueError: Calling ceil() on infinity or NaN
+        sage: ceil(NaN)
+        Traceback (most recent call last):
+        ...
+        ValueError: Calling ceil() on infinity or NaN
+
+    TESTS::
+
+        sage: floor(pi, maximum_bits=0)
+        doctest:...: DeprecationWarning: use the option 'bits' instead of 'maximum_bits'
+        See http://trac.sagemath.org/22079 for details.
+        3
+    """
+    # First, some obvious things...
+    try:
+        m = getattr(x, method)
+    except AttributeError:
+        pass
+    else:
+        return m()
+
+    if isinstance(x, integer_types):
+        return Integer(x)
+    if isinstance(x, (float, complex)):
+        m = getattr(math, method)
+        return Integer(m(x))
+    if type(x).__module__ == 'numpy':
+        import numpy
+        m = getattr(numpy, method)
+        return m(x)
+
+    # The strategy is to convert the number to an interval field and
+    # hope that this interval will have a unique floor/ceiling.
+    #
+    # There are 2 reasons why this could fail:
+    # (A) The expression is very complicated and we simply require
+    #     more bits.
+    # (B) The expression is a non-obvious exact integer. In this
+    #     case, adding bits will not help since an interval around
+    #     an integer will not have a unique floor/ceiling, no matter
+    #     how many bits are used.
+    #
+    # The strategy is to first reduce the absolute diameter of the
+    # interval until its size is at most 10^(-6). Then we check for
+    # (B) by simplifying the expression.
+    from sage.rings.all import RealIntervalField
+
+    # Might it be needed to simplify x? This only applies for
+    # elements of SR.
+    need_to_simplify = (s_parent(x) is SR)
+
+    # An integer which is close to x. We use this to increase precision
+    # by subtracting this guess before converting to an interval field.
+    # This mostly helps with the case that x is close to, but not equal
+    # to, an exact integer.
+    guess = Integer(0)
+
+    # We do not use the target number of bits immediately, we just use
+    # it as indication of when to stop.
+    target_bits = bits
+    bits = 32
+    attempts = 5
+    while attempts:
+        attempts -= 1
+        if not attempts and bits < target_bits:
+            # Add one more attempt as long as the precision is less
+            # than requested
+            attempts = 1
+
+        RIF = RealIntervalField(bits)
+        if guess:
+            y = x - guess
+        else:
+            y = x
+        try:
+            y_interval = RIF(y)
+        except TypeError:
+            # If we cannot compute a numerical enclosure, leave the
+            # expression unevaluated.
+            return BuiltinFunction.__call__(self, SR(x))
+        diam = y_interval.absolute_diameter()
+        if diam.is_infinity():
+            # We have a very bad approximation => increase the number
+            # of bits a lot
+            bits *= 4
+            continue
+        fdiam = float(diam)
+        if fdiam >= 1.0:
+            # Increase number of bits to get to a diameter less than
+            # 2^(-32), assuming that the diameter scales as 2^(-bits)
+            bits += 32 + int(diam.log2())
+            continue
+
+        # Compute ceil/floor of both ends of the interval:
+        # if these match, we are done!
+        a = getattr(y_interval.lower(), method)()
+        b = getattr(y_interval.upper(), method)()
+        if a == b:
+            return a + guess
+
+        # Compute a better guess for the next attempt. Since diam < 1,
+        # there is a unique integer in our interval. This integer equals
+        # the ceil of the lower bound and the floor of the upper bound.
+        if self is floor:
+            guess += b
+        else:
+            assert self is ceil
+            guess += a
+
+        if need_to_simplify and fdiam <= 1e-6:
+            x = x.full_simplify().canonicalize_radical()
+            need_to_simplify = False
+            continue
+
+        bits *= 2
+
+    raise ValueError("cannot compute {}({!r}) using {} bits of precision".format(method, x, RIF.precision()))
+
+
 class Function_ceil(BuiltinFunction):
     def __init__(self):
         r"""
@@ -123,14 +290,14 @@ class Function_ceil(BuiltinFunction):
         #. The ``x.ceil()`` method is called and returned if it
            is there. If it is not, then Sage checks if `x` is one of
            Python's native numeric data types. If so, then it calls and
-           returns ``Integer(int(math.ceil(x)))``.
+           returns ``Integer(math.ceil(x))``.
 
         #. Sage tries to convert `x` into a
            ``RealIntervalField`` with 53 bits of precision. Next,
            the ceilings of the endpoints are computed. If they are the same,
            then that value is returned. Otherwise, the precision of the
            ``RealIntervalField`` is increased until they do match
-           up or it reaches ``maximum_bits`` of precision.
+           up or it reaches ``bits`` of precision.
 
         #. If none of the above work, Sage returns a
            ``Expression`` object.
@@ -174,6 +341,25 @@ class Function_ceil(BuiltinFunction):
             100000000000000000000000000000000000000000000000001
             sage: ceil(SR(10^50 - 10^(-50)))
             100000000000000000000000000000000000000000000000000
+
+        Small numbers which are extremely close to an integer are hard to
+        deal with::
+
+            sage: ceil((33^100 + 1)^(1/100))
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot compute ceil(...) using 256 bits of precision
+
+        This can be fixed by giving a sufficiently large ``bits`` argument::
+
+            sage: ceil((33^100 + 1)^(1/100), bits=500)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot compute ceil(...) using 512 bits of precision
+            sage: ceil((33^100 + 1)^(1/100), bits=1000)
+            34
+
+        ::
 
             sage: ceil(sec(e))
             -1
@@ -227,41 +413,7 @@ class Function_ceil(BuiltinFunction):
             sage: ceil((1725033*pi - 5419351)/(25510582*pi - 80143857))
             -2
         """
-        maximum_bits = kwds.get('maximum_bits', 20000)
-        try:
-            return x.ceil()
-        except AttributeError:
-            if isinstance(x, integer_types):
-                return Integer(x)
-            elif isinstance(x, (float, complex)):
-                return Integer(int(math.ceil(x)))
-            elif type(x).__module__ == 'numpy':
-                import numpy
-                return numpy.ceil(x)
-
-        from sage.rings.all import RealIntervalField
-
-        bits = 53
-        while bits < maximum_bits:
-            try:
-                x_interval = RealIntervalField(bits)(x)
-            except TypeError:
-                # If we cannot compute a numerical enclosure, leave the
-                # expression unevaluated.
-                return BuiltinFunction.__call__(self, SR(x))
-            try:
-                return x_interval.unique_ceil()
-            except ValueError:
-                bits *= 2
-
-        try:
-            return ceil(SR(x).full_simplify().canonicalize_radical())
-        except ValueError:
-            pass
-
-        raise ValueError("computing ceil(%s) requires more than %s bits of precision (increase maximum_bits to proceed)"%(x, maximum_bits))
-
-
+        return _eval_floor_ceil(self, x, "ceil", **kwds)
 
     def _eval_(self, x):
         """
@@ -278,7 +430,7 @@ class Function_ceil(BuiltinFunction):
             if isinstance(x, integer_types):
                 return Integer(x)
             elif isinstance(x, (float, complex)):
-                return Integer(int(math.ceil(x)))
+                return Integer(math.ceil(x))
         return None
 
 ceil = Function_ceil()
@@ -295,14 +447,14 @@ class Function_floor(BuiltinFunction):
         #. The ``x.floor()`` method is called and returned if
            it is there. If it is not, then Sage checks if `x` is one
            of Python's native numeric data types. If so, then it calls and
-           returns ``Integer(int(math.floor(x)))``.
+           returns ``Integer(math.floor(x))``.
 
         #. Sage tries to convert `x` into a
            ``RealIntervalField`` with 53 bits of precision. Next,
            the floors of the endpoints are computed. If they are the same,
            then that value is returned. Otherwise, the precision of the
            ``RealIntervalField`` is increased until they do match
-           up or it reaches ``maximum_bits`` of precision.
+           up or it reaches ``bits`` of precision.
 
         #. If none of the above work, Sage returns a
            symbolic ``Expression`` object.
@@ -325,8 +477,18 @@ class Function_floor(BuiltinFunction):
 
         ::
 
-            sage: floor(cos(8)/cos(2))
+            sage: floor(cos(8) / cos(2))
             0
+            sage: floor(log(4) / log(2))
+            2
+            sage: a = floor(5.4 + x); a
+            floor(x + 5.40000000000000)
+            sage: a.subs(x==2)
+            7
+            sage: floor(log(2^(3/2)) / log(2) + 1/2)
+            2
+            sage: floor(log(2^(-3/2)) / log(2) + 1/2)
+            -1
 
         ::
 
@@ -338,6 +500,23 @@ class Function_floor(BuiltinFunction):
             99999999999999999999999999999999999999999999999999
             sage: floor(int(10^50))
             100000000000000000000000000000000000000000000000000
+
+        Small numbers which are extremely close to an integer are hard to
+        deal with::
+
+            sage: floor((33^100 + 1)^(1/100))
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot compute floor(...) using 256 bits of precision
+
+        This can be fixed by giving a sufficiently large ``bits`` argument::
+
+            sage: floor((33^100 + 1)^(1/100), bits=500)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot compute floor(...) using 512 bits of precision
+            sage: floor((33^100 + 1)^(1/100), bits=1000)
+            33
 
         ::
 
@@ -383,39 +562,7 @@ class Function_floor(BuiltinFunction):
             sage: floor((1725033*pi - 5419351)/(25510582*pi - 80143857))
             -3
         """
-        maximum_bits = kwds.get('maximum_bits',20000)
-        try:
-            return x.floor()
-        except AttributeError:
-            if isinstance(x, integer_types):
-                return Integer(x)
-            elif isinstance(x, (float, complex)):
-                return Integer(int(math.floor(x)))
-            elif type(x).__module__ == 'numpy':
-                import numpy
-                return numpy.floor(x)
-
-        from sage.rings.all import RealIntervalField
-
-        bits = 53
-        while bits < maximum_bits:
-            try:
-                x_interval = RealIntervalField(bits)(x)
-            except TypeError:
-                # If we cannot compute a numerical enclosure, leave the
-                # expression unevaluated.
-                return BuiltinFunction.__call__(self, SR(x))
-            try:
-                return x_interval.unique_floor()
-            except ValueError:
-                bits *= 2
-
-        try:
-            return floor(SR(x).full_simplify().canonicalize_radical())
-        except ValueError:
-            pass
-
-        raise ValueError("computing floor(%s) requires more than %s bits of precision (increase maximum_bits to proceed)"%(x, maximum_bits))
+        return _eval_floor_ceil(self, x, "floor", **kwds)
 
     def _eval_(self, x):
         """
@@ -432,7 +579,7 @@ class Function_floor(BuiltinFunction):
             if isinstance(x, integer_types):
                 return Integer(x)
             elif isinstance(x, (float, complex)):
-                return Integer(int(math.floor(x)))
+                return Integer(math.floor(x))
         return None
 
 floor = Function_floor()
@@ -534,7 +681,7 @@ class Function_frac(BuiltinFunction):
             if isinstance(x, integer_types):
                 return Integer(0)
             elif isinstance(x, (float, complex)):
-                return x - Integer(int(math.floor(x)))
+                return x - Integer(math.floor(x))
             elif isinstance(x, Expression):
                 ret = floor(x)
                 if not hasattr(ret, "operator") or not ret.operator() == floor:
@@ -688,7 +835,6 @@ class Function_gamma(GinacFunction):
             :meth:`sage.functions.other.gamma`
         """
         GinacFunction.__init__(self, 'gamma', latex_name=r"\Gamma",
-                               ginac_name='tgamma',
                                conversions={'mathematica':'Gamma',
                                             'maple':'GAMMA',
                                             'sympy':'gamma',
@@ -2695,4 +2841,83 @@ class Function_cases(GinacFunction):
         return pw(*args)
 
 cases = Function_cases()
+
+
+class Function_crootof(BuiltinFunction):
+    """
+    Formal function holding ``(polynomial, index)`` pairs.
+
+    The expression evaluates to a floating point value that is an
+    approximation to a specific complex root of the polynomial. The
+    ordering is fixed so you always get the same root.
+
+    The functionality is imported from SymPy, see
+    http://docs.sympy.org/latest/_modules/sympy/polys/rootoftools.html
+
+    EXAMPLES::
+
+        sage: c = complex_root_of(x^6 + x + 1, 1); c
+        complex_root_of(x^6 + x + 1, 1)
+        sage: c.n()
+        -0.790667188814418 + 0.300506920309552*I
+        sage: c.n(100)
+        -0.79066718881441764449859281847 + 0.30050692030955162512001002521*I
+        sage: (c^6 + c + 1).n(100) < 1e-25
+        True
+    """
+    def __init__(self):
+        """
+        EXAMPLES::
+
+            sage: loads(dumps(complex_root_of))
+            complex_root_of
+        """
+        BuiltinFunction.__init__(self, "complex_root_of", nargs=2,
+                                   conversions=dict(sympy='CRootOf'))
+
+    def _eval_(self, poly, index):
+        """
+        TESTS::
+
+            sage: _ = var('y')
+            sage: complex_root_of(1, 1)
+            Traceback (most recent call last):
+            ...
+            ValueError: polynomial in one variable required
+            sage: complex_root_of(x+y, 1)
+            Traceback (most recent call last):
+            ...
+            ValueError: polynomial in one variable required
+            sage: complex_root_of(sin(x), 1)
+            Traceback (most recent call last):
+            ...
+            ValueError: polynomial in one variable required
+        """
+        try:
+            vars = poly.variables()
+        except AttributeError:
+            raise ValueError('polynomial in one variable required')
+        if len(vars) != 1 or not poly.is_polynomial(vars[0]):
+            raise ValueError('polynomial in one variable required')
+
+    def _evalf_(self, poly, index, parent=None, algorithm=None):
+        """
+        EXAMPLES::
+
+            sage: complex_root_of(x^2-2, 1).n()
+            1.41421356237310
+            sage: complex_root_of(x^2-2, 3).n()
+            Traceback (most recent call last):
+            ...
+            IndexError: root index out of [-2, 1] range, got 3
+        """
+        from sympy.polys import CRootOf, Poly
+        try:
+            prec = parent.precision()
+        except AttributeError:
+            prec = 53
+        sobj = CRootOf(Poly(poly._sympy_()), int(index))
+        return sobj.n(ceil(prec*3/10))._sage_()
+
+complex_root_of = Function_crootof()
 

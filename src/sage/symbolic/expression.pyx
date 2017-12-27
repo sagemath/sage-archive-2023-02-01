@@ -6978,8 +6978,8 @@ cdef class Expression(CommutativeRingElement):
             sage: r / (x^5 - 17*y + 2/3) in QQ
             True
 
-        Embedded Sage objects of all kind get basic support. Note that
-        full algebraic is not implemented yet::
+        Embedded Sage objects of all kinds get basic support. Note that
+        full algebraic GCD is not implemented yet::
 
             sage: gcd(I - I*x, x^2 - 1)
             x - 1

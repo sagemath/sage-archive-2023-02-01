@@ -1796,7 +1796,7 @@ cdef class Expression(CommutativeRingElement):
             sage: v,c = var('v,c')
             sage: assume(c != 0)
             sage: integral((1+v^2/c^2)^3/(1-v^2/c^2)^(3/2),v)
-            83/8*v/sqrt(-v^2/c^2 + 1) - 17/8*v^3/(c^2*sqrt(-v^2/c^2 + 1)) - 1/4*v^5/(c^4*sqrt(-v^2/c^2 + 1)) - 75/8*arcsin(v/(c^2*sqrt(c^(-2))))/sqrt(c^(-2))
+            -75/8*sqrt(c^2)*arcsin(sqrt(c^2)*v/c^2) + 83/8*v/sqrt(-v^2/c^2 + 1) - 17/8*v^3/(c^2*sqrt(-v^2/c^2 + 1)) - 1/4*v^5/(c^4*sqrt(-v^2/c^2 + 1))
             sage: forget()
         """
         from sage.symbolic.assumptions import _assumptions
@@ -2536,6 +2536,55 @@ cdef class Expression(CommutativeRingElement):
         return new_Expression_from_GEx(self._parent, self._gobj.rhs())
 
     rhs = right = right_hand_side
+
+    def is_trivially_equal(self, other):
+        """
+        Check if this expression is trivially equal to the argument
+        expression, without any simplification.
+
+        Note that the expressions may still be subject to immediate
+        evaluation.
+
+        This method is intended to be used in library code where trying to
+        obtain a mathematically correct result by applying potentially
+        expensive rewrite rules is not desirable.
+
+        EXAMPLES::
+
+            sage: (x^2).is_trivially_equal(x^2)
+            True
+            sage: ((x+1)^2 - 2*x - 1).is_trivially_equal(x^2)
+            False
+            sage: (x*(x+1)).is_trivially_equal((x+1)*x)
+            True
+            sage: (x^2 + x).is_trivially_equal((x+1)*x)
+            False
+            sage: ((x+1)*(x+1)).is_trivially_equal((x+1)^2)
+            True
+            sage: (x^2 + 2*x + 1).is_trivially_equal((x+1)^2)
+            False
+            sage: (x^-1).is_trivially_equal(1/x)
+            True
+            sage: (x/x^2).is_trivially_equal(1/x)
+            True
+            sage: ((x^2+x) / (x+1)).is_trivially_equal(1/x)
+            False
+
+        TESTS:
+
+        Make sure Python objects work as argument too::
+
+            sage: x = SR(1/2)
+            sage: x.is_trivially_equal(QQbar(1/2))
+            True
+        """
+        from .ring import SR
+        cdef Expression _other = <Expression>(SR(other))
+        sig_on()
+        try:
+            return self._gobj.is_equal(_other._gobj)
+        finally:
+            sig_off()
 
     def is_trivial_zero(self):
         """
@@ -5147,6 +5196,15 @@ cdef class Expression(CommutativeRingElement):
             (x, y, t) |--> x^2 + 2*t + cos(x) + sin(y)
             sage: f.subs_expr(x^2 + y^2 == t)
             (x, y, t) |--> x^2 + y^2 + t + cos(x) + sin(y)
+
+        Check that inverses in sums are recognized::
+
+            sage: (1 + 1/x).subs({x: 1/x})
+            x + 1
+            sage: (x + 1/x^2).subs({x: 1/x})
+            x^2 + 1/x
+            sage: (sqrt(x) + 1/sqrt(x)).subs({x: 1/x})
+            sqrt(x) + 1/sqrt(x)
         """
         cdef dict sdict = {}
         cdef GEx res
@@ -8917,7 +8975,7 @@ cdef class Expression(CommutativeRingElement):
         cdef GEx x
         sig_on()
         try:
-            x = g_hold_wrapper(g_tgamma, self._gobj, hold)
+            x = g_hold_wrapper(g_gamma, self._gobj, hold)
         finally:
             sig_off()
         return new_Expression_from_GEx(self._parent, x)
@@ -11266,7 +11324,7 @@ cdef class Expression(CommutativeRingElement):
         else:
             return [ rt for rt, mul in rt_muls ]
 
-    def solve(self, x, multiplicities=False, solution_dict=False, explicit_solutions=False, to_poly_solve=False):
+    def solve(self, x, multiplicities=False, solution_dict=False, explicit_solutions=False, to_poly_solve=False, algorithm=None, domain=None):
         r"""
         Analytically solve the equation ``self == 0`` or a univariate
         inequality for the variable `x`.
@@ -11317,7 +11375,9 @@ cdef class Expression(CommutativeRingElement):
         return solve(self, x, multiplicities=multiplicities,
                               solution_dict=solution_dict,
                               explicit_solutions=explicit_solutions,
-                              to_poly_solve=to_poly_solve)
+                              to_poly_solve=to_poly_solve,
+                              algorithm=algorithm,
+                              domain=domain)
 
     def solve_diophantine(self, x=None, solution_dict=False):
         """

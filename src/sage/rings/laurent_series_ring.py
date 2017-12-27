@@ -424,7 +424,7 @@ class LaurentSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing):
             sage: R.hom([y], S) # indirect doctest
             Traceback (most recent call last):
             ...
-            TypeError: images do not define a valid homomorphism
+            ValueError: relations do not all (canonically) map to 0 under map determined by images of generators
             sage: f = R.hom(x+x^3,R)
             sage: f(x^2)
             x^2 + 2*x^4 + x^6

@@ -1868,6 +1868,7 @@ def absolute_order_from_module_generators(gens,
     an absolute order
 
     EXAMPLES:
+
     We have to explicitly import the function, since it isn't meant
     for regular usage::
 
@@ -2004,6 +2005,7 @@ def relative_order_from_ring_generators(gens,
       known
 
     EXAMPLES:
+
     We have to explicitly import this function, since it isn't meant
     for regular usage::
 

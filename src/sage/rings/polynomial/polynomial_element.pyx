@@ -71,7 +71,7 @@ import sage.rings.infinity as infinity
 from sage.misc.sage_eval import sage_eval
 from sage.misc.abstract_method import abstract_method
 from sage.misc.latex import latex
-from sage.misc.long cimport pyobject_to_long
+from sage.arith.long cimport pyobject_to_long
 from sage.structure.factorization import Factorization
 from sage.structure.richcmp cimport (richcmp, richcmp_not_equal,
         rich_to_bool, rich_to_bool_sgn)
@@ -2209,6 +2209,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = S[]
             sage: pow(y*x+1, 51, x^7)
             18009460*y^6*x^6 + 2349060*y^5*x^5 + ... + 51*y*x + 1
+
+        Check that fallback method is used when it is not possible to compute
+        the characteristic of the base ring (trac:`24308`)::
+
+            sage: kk.<a,b> = GF(2)[]
+            sage: k.<y,w> = kk.quo(a^2+a+1)
+            sage: K.<T> = k[] 
+            sage: (T*y)^21
+            T^21
         """
         if not isinstance(left, Polynomial):
             return NotImplemented
@@ -2240,8 +2249,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 v = [R.zero()]*right + [R.one()]
             return self.parent()(v, check=False)
         if right > 20: # no gain below
-            p = self.parent().characteristic()
-            if p > 0 and p <= right and (self.base_ring() in sage.categories.integral_domains.IntegralDomains() or p.is_prime()):
+            try:
+                p = self.parent().characteristic()
+            except (AttributeError, NotImplementedError):
+                # some quotients do not implement characteristic
+                # see trac ticket 24308
+                p = -1
+            if 0 < p <= right and (self.base_ring() in sage.categories.integral_domains.IntegralDomains() or p.is_prime()):
                 x = self.parent().gen()
                 one = self.parent().one()
                 ret = one
@@ -9048,10 +9062,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         ALGORITHM:
 
-        The native algorithm implemented in Sage uses the first algorithm of
-        [BD89]_. The algorithm in pari is more subtle since it does compute the
-        inverse of the Euler `\phi` function to determine the `n` such that the
-        polynomial is the `n`-th cyclotomic polynomial.
+        The native algorithm implemented in Sage uses the first
+        algorithm of [BD89]_. The algorithm in pari (using
+        :pari:`poliscyclo`) is more subtle since it does compute the
+        inverse of the Euler `\phi` function to determine the `n` such
+        that the polynomial is the `n`-th cyclotomic polynomial.
 
         EXAMPLES:
 
@@ -9202,8 +9217,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         r"""
         Test whether this polynomial is a product of cyclotomic polynomials.
 
-        This method simply calls the function ``poliscycloprod`` from the Pari
-        library.
+        This method simply calls the function :pari:`poliscycloprod`
+        from the Pari library.
 
         .. SEEALSO::
 
@@ -11050,7 +11065,7 @@ cdef class PolynomialBaseringInjection(Morphism):
         self._repr_type_str = "Polynomial base injection"
         self._new_constant_poly_ = self._an_element._new_constant_poly
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         EXAMPLES::
 
@@ -11062,9 +11077,11 @@ cdef class PolynomialBaseringInjection(Morphism):
             sage: phi(3/1)
             3
         """
-        _slots['_an_element'] = self._an_element
-        _slots['_new_constant_poly_'] = self._new_constant_poly_
-        return Morphism._extra_slots(self, _slots)
+        slots = Morphism._extra_slots(self)
+        slots.update(
+                _an_element=self._an_element,
+                _new_constant_poly_=self._new_constant_poly_)
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """

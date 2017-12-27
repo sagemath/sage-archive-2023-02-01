@@ -24,22 +24,18 @@ In fact, if the environment variable :envvar:`EDITOR` is set to a known editor,
 then the system will use that if no template has been set explicitly.
 """
 
-######################################################################
-#  Copyright (C) 2007 Nils Bruin <nbruin@sfu.ca> and
-#                     William Stein <wstein@math.ucsd.edu>
+#*****************************************************************************
+#       Copyright (C) 2007 Nils Bruin <nbruin@sfu.ca> and
+#                          William Stein <wstein@math.ucsd.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty
-#    of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-#
-#  See the GNU General Public License for more details; the full text
-#  is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-######################################################################
+#*****************************************************************************
 
+from __future__ import absolute_import
 
 import sage.misc.sageinspect
 import inspect

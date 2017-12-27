@@ -108,11 +108,11 @@ cdef class ntl_ZZ_p(object):
         if v is not None:
             if isinstance(v, ntl_ZZ_p):
                 self.x = (<ntl_ZZ_p>v).x
-            elif isinstance(v, int):
-                self.x = int_to_ZZ_p(v)
             elif isinstance(v, long):
                 PyLong_to_ZZ(&temp, v)
                 self.x = ZZ_to_ZZ_p(temp)
+            elif isinstance(v, int):
+                self.x = int_to_ZZ_p(v)
             elif isinstance(v, Integer):
                 (<Integer>v)._to_ZZ(&temp)
                 self.x = ZZ_to_ZZ_p(temp)

@@ -21,6 +21,7 @@ from sage.libs.pynac.pynac import symbol_table
 from sage.symbolic.constants import (pi, e, golden_ratio, log2, euler_gamma,
                                      catalan, khinchin, twinprime, mertens)
 from sage.functions.hypergeometric import hypergeometric
+from sage.functions.other import cases
 from sage.symbolic.comparison import mixed_order
 
 ###################################################################
@@ -55,7 +56,8 @@ def _mk_full_functions():
             for (name, f) in items
             if hasattr(f, 'number_of_arguments') and
                f.number_of_arguments() > 0 and
-               f != hypergeometric]
+               f != hypergeometric and
+               f != cases]
 
 # For creating simple expressions
 

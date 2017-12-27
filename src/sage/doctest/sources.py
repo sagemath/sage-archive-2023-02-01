@@ -18,8 +18,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import, unicode_literals
+from __future__ import print_function, absolute_import
 
 import os
 import sys
@@ -695,7 +694,7 @@ class FileDocTestSource(DocTestSource):
             sage: doctests[18].name
             'sage.doctest.sources.FileDocTestSource.create_doctests'
             sage: doctests[18].examples[10].source
-            'doctests[Integer(18)].examples[Integer(10)].source\n'
+            u'doctests[Integer(18)].examples[Integer(10)].source\n'
 
         TESTS:
 
@@ -765,22 +764,11 @@ class FileDocTestSource(DocTestSource):
             ....:             filename = os.path.join(path, F)
             ....:             FDS = FileDocTestSource(filename, DocTestDefaults(long=True,optional=True))
             ....:             FDS._test_enough_doctests(verbose=False)
-            There are 7 tests in sage/combinat/diagram_algebras.py that are not being run
-            There are 7 tests in sage/combinat/dyck_word.py that are not being run
             There are 7 tests in sage/combinat/finite_state_machine.py that are not being run
-            There are 6 tests in sage/combinat/interval_posets.py that are not being run
-            There are 18 tests in sage/combinat/partition.py that are not being run
-            There are 15 tests in sage/combinat/permutation.py that are not being run
-            There are 14 tests in sage/combinat/skew_partition.py that are not being run
-            There are 18 tests in sage/combinat/tableau.py that are not being run
-            There are 8 tests in sage/combinat/crystals/tensor_product.py that are not being run
-            There are 11 tests in sage/combinat/rigged_configurations/rigged_configurations.py that are not being run
-            There are 15 tests in sage/combinat/root_system/cartan_type.py that are not being run
             There are 8 tests in sage/combinat/root_system/type_A.py that are not being run
             There are 8 tests in sage/combinat/root_system/type_G.py that are not being run
             There are 3 unexpected tests being run in sage/doctest/parsing.py
             There are 1 unexpected tests being run in sage/doctest/reporting.py
-            There are 15 tests in sage/manifolds/manifold.py that are not being run
             There are 3 tests in sage/rings/invariant_theory.py that are not being run
             sage: os.chdir(cwd)
         """

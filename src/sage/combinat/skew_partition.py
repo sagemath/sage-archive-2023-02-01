@@ -1291,9 +1291,8 @@ class SkewPartitions(UniqueRepresentation, Parent):
             Parent.__init__(self, category=FiniteEnumeratedSets())
 
     # add options to class
-    options=GlobalOptions('SkewPartitions',
-        module='sage.combinat.skew_partition',
-        doc="""
+    class options(GlobalOptions):
+        """
         Sets and displays the options for elements of the skew partition
         classes.  If no parameters are set, then the function returns a copy of
         the options dictionary.
@@ -1301,8 +1300,9 @@ class SkewPartitions(UniqueRepresentation, Parent):
         The ``options`` to skew partitions can be accessed as the method
         :obj:`SkewPartitions.options` of :class:`SkewPartitions` and
         related parent classes.
-        """,
-        end_doc=r"""
+
+        @OPTIONS@
+
         EXAMPLES::
 
             sage: SP = SkewPartition([[4,2,2,1], [3, 1, 1]])
@@ -1341,30 +1341,31 @@ class SkewPartitions(UniqueRepresentation, Parent):
               1  2  3
               4  5
             sage: SkewPartitions.options._reset()
-        """,
-        display=dict(default="quotient",
+        """
+        NAME = 'SkewPartitions'
+        module = 'sage.combinat.skew_partition'
+        display = dict(default="quotient",
                      description='Specifies how skew partitions should be printed',
                      values=dict(lists='displayed as a pair of lists',
                                  quotient='displayed as a quotient of partitions',
                                  diagram='as a skew Ferrers diagram'),
                      alias=dict(array="diagram", ferrers_diagram="diagram",
                                 young_diagram="diagram", pair="lists"),
-                     case_sensitive=False),
-        latex=dict(default="young_diagram",
+                     case_sensitive=False)
+        latex = dict(default="young_diagram",
                    description='Specifies how skew partitions should be latexed',
                    values=dict(diagram='latex as a skew Ferrers diagram',
                                young_diagram='latex as a skew Young diagram',
                                marked='latex as a partition where the skew shape is marked'),
                    alias=dict(array="diagram", ferrers_diagram="diagram"),
-                   case_sensitive=False),
-        diagram_str=dict(link_to=(Partitions.options,'diagram_str')),
-        latex_diagram_str=dict(link_to=(Partitions.options,'latex_diagram_str')),
-        latex_marking_str=dict(default="X",
+                   case_sensitive=False)
+        diagram_str = dict(link_to=(Partitions.options,'diagram_str'))
+        latex_diagram_str = dict(link_to=(Partitions.options,'latex_diagram_str'))
+        latex_marking_str = dict(default="X",
                          description='The character used to marked the deleted cells when latexing marked partitions',
-                         checker=lambda char: isinstance(char, str)),
-        convention=dict(link_to=(Tableaux.options,'convention')),
+                         checker=lambda char: isinstance(char, str))
+        convention = dict(link_to=(Tableaux.options,'convention'))
         notation = dict(alt_name='convention')
-    )
 
     Element = SkewPartition
 

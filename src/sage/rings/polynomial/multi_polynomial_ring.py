@@ -690,22 +690,18 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             sage: P.monomial_lcm(x, P(1))
             x
         """
-        one = self.base_ring()(1)
+        one = self.base_ring().one()
 
-        f = f.dict().keys()[0]
-        g = g.dict().keys()[0]
-
+        f, = f.dict()
+        g, = g.dict()
 
         length = len(f)
 
-        res = {}
+        res = {i: max(f[i], g[i])
+               for i in f.common_nonzero_positions(g)}
 
-        for i in f.common_nonzero_positions(g):
-            res[i] = max([f[i],g[i]])
-
-        res =  self(PolyDict({ETuple(res,length):one},\
-                            force_int_exponents=False,force_etuples=False))
-        return res
+        return self(PolyDict({ETuple(res, length): one},
+                             force_int_exponents=False, force_etuples=False))
 
     def monomial_reduce(self, f, G):
         r"""
@@ -771,15 +767,15 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
     def monomial_divides(self, a, b):
         """
-        Return False if ``a`` does not divide ``b`` and True otherwise.
+        Return ``False`` if ``a`` does not divide ``b`` and ``True`` otherwise.
 
         INPUT:
 
-        -  ``a`` - monomial.
+        - ``a`` -- monomial
 
-        -  ``b`` - monomial.
+        - ``b`` -- monomial
 
-        OUTPUT: Boolean.
+        OUTPUT: Boolean
 
         EXAMPLES::
 
@@ -802,8 +798,8 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
         if not a:
             raise ZeroDivisionError
 
-        a = a.dict().keys()[0]
-        b = b.dict().keys()[0]
+        a, = a.dict()
+        b, = b.dict()
 
         for i in b.common_nonzero_positions(a):
             if b[i] - a[i] < 0:
@@ -898,21 +894,22 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             raise TypeError("only monomials are supported")
 
         R = self
-        one = self.base_ring()(1)
+        one = self.base_ring().one()
         M = list()
 
-        maxvector = list(t.dict().keys()[0])
+        v, = t.dict()
+        maxvector = list(v)
 
-        tempvector =[0,]*len(maxvector)
+        tempvector =[0,] * len(maxvector)
 
         pos = 0
 
         while tempvector != maxvector:
             tempvector = addwithcarry(list(tempvector) , maxvector, pos)
-            M.append(R(PolyDict({ETuple(tempvector):one}, \
-                              force_int_exponents=False,force_etuples=False)))
+            M.append(R(PolyDict({ETuple(tempvector): one},
+                                force_int_exponents=False,
+                                force_etuples=False)))
         return M
-
 
 
 class MPolynomialRing_polydict_domain(IntegralDomain,

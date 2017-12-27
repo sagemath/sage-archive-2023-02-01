@@ -32,7 +32,7 @@ from six.moves.builtins import max as python_max
 from six.moves.builtins import range, zip
 from sage.rings.infinity import infinity
 
-def gauss_sum(a, p, f, prec=20, factored=False):
+def gauss_sum(a, p, f, prec=20, factored=False, algorithm='pari'):
     r"""
     Return the Gauss sum `g_q(a)` as a `p`-adic number.
 
@@ -73,6 +73,8 @@ def gauss_sum(a, p, f, prec=20, factored=False):
     - ``prec`` -- positive integer (optional, 20 by default)
 
     - ``factored`` - boolean (optional, False by default)
+
+    - ``algorithm`` - flag passed to p-adic Gamma function (optional, "pari" by default)
 
     OUTPUT:
 

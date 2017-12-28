@@ -367,7 +367,7 @@ class ShiftedPrimedTableau(ClonableArray):
 
     def _ascii_art_(self):
         """
-        Return ASCII representaion of a tableau.
+        Return ASCII representation of a tableau.
 
         EXAMPLES::
 

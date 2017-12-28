@@ -1353,7 +1353,17 @@ cdef class LieGenerator(LieObject):
             True
         """
         if isinstance(rhs, LieBracket):
-            return op == Py_NE or op == Py_LE or op == Py_LT
+            if op == Py_NE:
+                return True
+            if op == Py_EQ:
+                return False
+            return NotImplemented
+            # This causes the comparison to be done ``rhs``
+            # (different subclasses of ``LieBracket`` may
+            # compare differently with objects in ``LieGenerator``).
+            # (Python automatically tries to check ``rhs > self``
+            # when the comparison ``self < rhs`` returns a
+            # NotImplemented error.)
         if isinstance(rhs, LieGenerator):
             return richcmp(self._name, <LieGenerator>(rhs)._name, op)
         return op == Py_NE

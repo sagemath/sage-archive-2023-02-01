@@ -46,7 +46,7 @@ from sage.rings.all import ZZ
 
 class FreeLieBasis_abstract(FinitelyGeneratedLieAlgebra, IndexedGenerators, BindableClass):
     """
-    Abstract case class for all bases of a free Lie algebra.
+    Abstract base class for all bases of a free Lie algebra.
     """
     def __init__(self, lie, basis_name):
         """

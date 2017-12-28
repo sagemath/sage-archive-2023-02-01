@@ -75,9 +75,9 @@ cdef class LieAlgebraElement(IndexedFreeModuleElement):
 
     def _im_gens_(self, codomain, im_gens):
         """
-        Return the image of ``self`` in ``codomain`` under the map that sends
-        the images of the generators of the parent of ``self`` to the
-        tuple of elements of ``im_gens``.
+        Return the image of ``self`` in ``codomain`` under the
+        map that sends the generators of the parent of ``self``
+        to the elements of the tuple ``im_gens``.
 
         EXAMPLES::
 
@@ -90,6 +90,21 @@ cdef class LieAlgebraElement(IndexedFreeModuleElement):
             sage: elt = Lyn.an_element()
             sage: elt._im_gens_(H, H.gens())
             x + y + z
+            sage: x, y, z = Lyn.gens()
+            sage: elt = x.bracket(y) + y.bracket(z) + z.bracket(x); elt
+            [x, y] - [x, z] + [y, z]
+            sage: elt._im_gens_(H, H.gens())
+            [x, y] - [x, z] + [y, z]
+            sage: xx, yy, zz = H.gens()
+            sage: elt._im_gens_(H, [xx, yy, xx])
+            0
+            sage: elt._im_gens_(H, [xx, yy, yy+zz])
+            -[x, z] + [y, z]
+            sage: L2 = LieAlgebra(QQ, 'a,b')
+            sage: Lyn2 = L2.Lyndon()
+            sage: a, b = Lyn2.gens()
+            sage: elt._im_gens_(Lyn2, [a, b, a.bracket(b)])
+            -[a, [a, b]] + [a, b] - [[a, b], b]
         """
         s = codomain.zero()
         if not self: # If we are 0
@@ -1162,10 +1177,10 @@ class FreeLieAlgebraElement(LieAlgebraElement):
             x^2*y*z - 2*x*y*x*z + y*x^2*z - z*x^2*y + 2*z*x*y*x - z*y*x^2
         """
         UEA = self.parent().universal_enveloping_algebra()
-        gen_dict = UEA.gens_dict()
         s = UEA.zero()
         if not self:
             return s
+        gen_dict = UEA.gens_dict()
         for t, c in self._monomial_coefficients.iteritems():
             s += c * t.lift(gen_dict)
         return s
@@ -1173,8 +1188,9 @@ class FreeLieAlgebraElement(LieAlgebraElement):
     def list(self):
         """
         Return ``self`` as a list of pairs ``(m, c)`` where ``m`` is a
-        monomial and ``c`` is the coefficient where we also order by the
-        grading.
+        basis key (i.e., a key of one of the basis elements)
+        and ``c`` is its coefficient.
+        This list is sorted from highest to lowest degree.
 
         EXAMPLES::
 
@@ -1195,6 +1211,12 @@ class FreeLieAlgebraElement(LieAlgebraElement):
             sage: L.<x, y> = LieAlgebra(QQ)
             sage: L.bracket(x, y)
             [x, y]
+            sage: L.bracket(x, x)
+            0
+            sage: L.bracket(x, L.bracket(x, y))
+            [x, [x, y]]
+            sage: L.bracket(y, L.bracket(y, x))
+            [[x, y], y]
         """
         if not self or not y:
             return self.parent().zero()
@@ -1225,10 +1247,17 @@ class FreeLieAlgebraElement(LieAlgebraElement):
 cdef class LieObject(SageObject):
     """
     Abstract base class for :class:`LieGenerator` and :class:`LieBracket`.
+
+    Objects of this class are currently being used as basis keys
+    for the free Lie algebra (i.e., they index elements of
+    a basis of the free Lie algebra).
     """
     cpdef tuple to_word(self):
         """
-        Return ``self`` as a word.
+        Return the word ("flattening") of ``self``.
+
+        If ``self`` is a tree of Lie brackets, this word is
+        usually obtained by "forgetting the brackets".
 
         TESTS::
 
@@ -1245,6 +1274,10 @@ cdef class LieGenerator(LieObject):
     """
     A wrapper around an object so it can ducktype with and do
     comparison operations with :class:`LieBracket`.
+
+    Objects of this class are currently being used as keys
+    for the generators of a free Lie algebra (i.e., they index
+    the basis elements of degree `1`).
     """
     def __init__(self, name):
         """
@@ -1320,18 +1353,18 @@ cdef class LieGenerator(LieObject):
             True
         """
         if isinstance(rhs, LieBracket):
-            if op == Py_NE:
-                return True
-            if op == Py_EQ:
-                return False
-            return NotImplemented
+            return op == Py_NE or op == Py_LE or op == Py_LT
         if isinstance(rhs, LieGenerator):
             return richcmp(self._name, <LieGenerator>(rhs)._name, op)
         return op == Py_NE
 
     def _im_gens_(self, codomain, im_gens, names):
         """
-        Return the image of ``self``.
+        Return the image of ``self`` in ``codomain`` under the
+        map that sends the generators of the parent of ``self``
+        to the elements of the tuple ``im_gens``.
+        ``names`` should be the list of all names of the domain
+        where ``self`` comes from.
 
         EXAMPLES::
 
@@ -1343,12 +1376,14 @@ cdef class LieGenerator(LieObject):
             sage: im.parent() is H
             True
         """
-        x = im_gens[names.index(self._name)]
         return im_gens[names.index(self._name)]
 
     cpdef tuple to_word(self):
         """
-        Return ``self`` as a word in the variable names.
+        Return the word ("flattening") of ``self``.
+
+        If ``self`` is a tree of Lie brackets, this word is
+        usually obtained by "forgetting the brackets".
 
         EXAMPLES::
 
@@ -1361,7 +1396,11 @@ cdef class LieGenerator(LieObject):
 
 cdef class LieBracket(LieObject):
     """
-    A Lie bracket. This is the building blocks for Lie algebra elements.
+    An abstract Lie bracket (formally, just a binary tree).
+
+    Objects of this class are currently being used as keys
+    for the non-trivial basis elements of a free Lie algebra
+    (i.e., they index the basis elements of degree `> 1`).
     """
     def __init__(self, LieObject l, LieObject r):
         """
@@ -1508,7 +1547,11 @@ cdef class LieBracket(LieObject):
 
     def _im_gens_(self, codomain, im_gens, names):
         """
-        Return the image of ``self``.
+        Return the image of ``self`` in ``codomain`` under the
+        map that sends the generators of the parent of ``self``
+        to the elements of the tuple ``im_gens``.
+        ``names`` should be the list of all names of the domain
+        where ``self`` comes from.
 
         EXAMPLES::
 
@@ -1527,6 +1570,9 @@ cdef class LieBracket(LieObject):
     cpdef lift(self, dict UEA_gens_dict):
         """
         Lift ``self`` to the universal enveloping algebra.
+
+        ``UEA_gens_dict`` should be the dictionary for the
+        generators of the universal enveloping algebra.
 
         EXAMPLES::
 
@@ -1552,7 +1598,10 @@ cdef class LieBracket(LieObject):
 
     cpdef tuple to_word(self):
         """
-        Return ``self`` as a word expressed in the variable names.
+        Return the word ("flattening") of ``self``.
+
+        If ``self`` is a tree of Lie brackets, this word is
+        usually obtained by "forgetting the brackets".
 
         EXAMPLES::
 
@@ -1570,7 +1619,13 @@ cdef class LieBracket(LieObject):
 
 cdef class GradedLieBracket(LieBracket):
     """
-    A Lie bracket in a graded Lie algebra.
+    A Lie bracket (:class:`LieBracket`) in a graded Lie algebra.
+
+    Unlike the vanilla Lie bracket class, this also stores a
+    degree, and uses it as a first criterion when comparing
+    graded Lie brackets.
+    (Graded Lie brackets still compare greater than Lie
+    generators.)
     """
     def __init__(self, LieObject l, LieObject r, grade):
         """
@@ -1652,8 +1707,9 @@ cdef class GradedLieBracket(LieBracket):
 
 cdef class LyndonBracket(GradedLieBracket):
     """
-    Lie bracket for the Lyndon basis where the order is defined by `l < r`
-    if `w(l) < w(r)` where `w(l)` is the word corresponding to `l`.
+    A Lie bracket (:class:`LieBracket`) tailored for the Lyndon basis
+    where the order is defined by `l < r` if `w(l) < w(r)`,
+    where `w(l)` is the word corresponding to `l`.
     """
     def __richcmp__(self, rhs, op):
         """

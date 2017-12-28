@@ -133,7 +133,7 @@ def gauss_sum(a, p, f, prec=20, factored=False, algorithm='pari'):
     for i in range(f):
         a_i = R.sum(digits[k] * p**((i + k) % f) for k in range(f))
         if a_i:
-            out *= R((a_i / (p**f - 1)).gamma(algorithm=algorithm))
+            out *= R((a_i / (p**f - 1)).gamma(algorithm))
     if factored:
         return(s, out)
     X = PolynomialRing(R, name='X').gen()

@@ -61,7 +61,7 @@ class TestParent1(Parent):
         EXAMPLES::
 
             sage: sage.misc.nested_class_test.TestParent1()
-            <class 'sage.misc.nested_class_test.TestParent1_with_category'>
+            <sage.misc.nested_class_test.TestParent1_with_category object at ...>
         """
         from sage.categories.all import Sets
         Parent.__init__(self, category = Sets())
@@ -93,7 +93,7 @@ class TestParent3(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: sage.misc.nested_class_test.TestParent3()
-            <class 'sage.misc.nested_class_test.TestParent3_with_category'>
+            <sage.misc.nested_class_test.TestParent3_with_category object at ...>
         """
         from sage.categories.all import Sets
         Parent.__init__(self, category = Sets())
@@ -109,7 +109,7 @@ class TestParent4(Parent):
         EXAMPLES::
 
             sage: sage.misc.nested_class_test.TestParent4()
-            <class 'sage.misc.nested_class_test.TestParent4_with_category'>
+            <sage.misc.nested_class_test.TestParent4_with_category object at ...>
         """
         from sage.categories.all import Sets
         Parent.__init__(self, category = Sets())

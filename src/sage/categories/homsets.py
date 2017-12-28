@@ -137,8 +137,8 @@ class HomsetsCategory(FunctorialConstructionCategory):
         #from sage.categories.objects    import Objects
         #from sage.categories.sets_cat import Sets
         tester = self._tester(**options)
-        tester.assert_(self.is_subcategory(Category.join(self.base_category().structure()).Homsets()))
-        tester.assert_(self.is_subcategory(Homsets()))
+        tester.assertTrue(self.is_subcategory(Category.join(self.base_category().structure()).Homsets()))
+        tester.assertTrue(self.is_subcategory(Homsets()))
 
     @cached_method
     def base(self):

@@ -836,7 +836,7 @@ cdef class ReductionMap(Map):
         self._repr_type_str = "Partially defined reduction"
         Map.__init__(self, Hom(K, F, SetsWithPartialMaps()))
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -855,14 +855,15 @@ cdef class ReductionMap(Map):
             sage: r(2 + a) == cr(2 + a)
             True
         """
-        _slots['_K'] = self._K
-        _slots['_F'] = self._F
-        _slots['_to_vs'] = self._to_vs
-        _slots['_PBinv'] = self._PBinv
-        _slots['_to_order'] = self._to_order
-        _slots['_PB'] = self._PB
-        _slots['_section'] = self._section
-        return Map._extra_slots(self, _slots)
+        slots = Map._extra_slots(self)
+        slots['_K'] = self._K
+        slots['_F'] = self._F
+        slots['_to_vs'] = self._to_vs
+        slots['_PBinv'] = self._PBinv
+        slots['_to_order'] = self._to_order
+        slots['_PB'] = self._PB
+        slots['_section'] = self._section
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """
@@ -1120,7 +1121,7 @@ cdef class ResidueFieldHomomorphism_global(RingHomomorphism):
         self._repr_type_str = "Reduction"
         RingHomomorphism.__init__(self, Hom(K,F))
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -1140,14 +1141,15 @@ cdef class ResidueFieldHomomorphism_global(RingHomomorphism):
             sage: psi(OK.an_element()) == phi(OK.an_element())
             True
         """
-        _slots['_K'] = self._K
-        _slots['_F'] = self._F
-        _slots['_to_vs'] = self._to_vs
-        _slots['_PBinv'] = self._PBinv
-        _slots['_to_order'] = self._to_order
-        _slots['_PB'] = self._PB
-        _slots['_section'] = self._section
-        return RingHomomorphism._extra_slots(self, _slots)
+        slots = RingHomomorphism._extra_slots(self)
+        slots['_K'] = self._K
+        slots['_F'] = self._F
+        slots['_to_vs'] = self._to_vs
+        slots['_PBinv'] = self._PBinv
+        slots['_to_order'] = self._to_order
+        slots['_PB'] = self._PB
+        slots['_section'] = self._section
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """
@@ -1357,7 +1359,7 @@ cdef class LiftingMap(Section):
         self._PB = PB
         Section.__init__(self, reduction)
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -1375,11 +1377,12 @@ cdef class LiftingMap(Section):
             sage: phi(F.0) == psi(F.0)
             True
         """
-        _slots['_K'] = self._K
-        _slots['_F'] = self._F
-        _slots['_to_order'] = self._to_order
-        _slots['_PB'] = self._PB
-        return Section._extra_slots(self, _slots)
+        slots = Section._extra_slots(self)
+        slots['_K'] = self._K
+        slots['_F'] = self._F
+        slots['_to_order'] = self._to_order
+        slots['_PB'] = self._PB
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """

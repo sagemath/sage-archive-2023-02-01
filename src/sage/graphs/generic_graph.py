@@ -243,6 +243,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.edge_cut` | Return a minimum edge cut between vertices `s` and `t`
     :meth:`~GenericGraph.vertex_cut` | Return a minimum vertex cut between non-adjacent vertices `s` and `t`
     :meth:`~GenericGraph.flow` | Return a maximum flow in the graph from ``x`` to ``y``
+    :meth:`~GenericGraph.nowhere_zero_flow` | Return a `k`-nowhere zero flow of the (di)graph.
     :meth:`~GenericGraph.edge_disjoint_paths` | Returns a list of edge-disjoint paths between two vertices
     :meth:`~GenericGraph.vertex_disjoint_paths` | Return a list of vertex-disjoint paths between two vertices as given by Menger's theorem.
     :meth:`~GenericGraph.edge_connectivity` | Return the edge connectivity of the graph.
@@ -365,10 +366,6 @@ class GenericGraph(GenericGraph_pyx):
         Set the state from a pickle dict
 
         Also converts old NetworkX backends into a more recent one.
-
-        EXAMPLES::
-
-            sage: sage.structure.sage_object.unpickle_all() # indirect random
         """
         for k,v in iteritems(state):
             self.__dict__[k] = v
@@ -1012,25 +1009,25 @@ class GenericGraph(GenericGraph_pyx):
         Which backend? ::
 
             sage: G.copy(data_structure="sparse")._backend
-            <type 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
+            <sage.graphs.base.sparse_graph.SparseGraphBackend object at ...>
             sage: G.copy(data_structure="dense")._backend
-            <type 'sage.graphs.base.dense_graph.DenseGraphBackend'>
+            <sage.graphs.base.dense_graph.DenseGraphBackend object at ...>
             sage: G.copy(data_structure="static_sparse")._backend
-            <type 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
+            <sage.graphs.base.static_sparse_backend.StaticSparseBackend object at ...>
             sage: G.copy(immutable=True)._backend
-            <type 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
+            <sage.graphs.base.static_sparse_backend.StaticSparseBackend object at ...>
             sage: G.copy(immutable=True, sparse=True)._backend
-            <type 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
+            <sage.graphs.base.static_sparse_backend.StaticSparseBackend object at ...>
             sage: G.copy(immutable=False, sparse=True)._backend
-            <type 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
+            <sage.graphs.base.sparse_graph.SparseGraphBackend object at ...>
             sage: G.copy(immutable=False, sparse=False)._backend
-            <type 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
+            <sage.graphs.base.sparse_graph.SparseGraphBackend object at ...>
 
         Fake immutable graphs::
 
             sage: G._immutable = True
             sage: G.copy()._backend
-            <type 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
+            <sage.graphs.base.sparse_graph.SparseGraphBackend object at ...>
         """
         # Which data structure should be used ?
         if implementation != 'c_graph':
@@ -5205,14 +5202,14 @@ class GenericGraph(GenericGraph_pyx):
         In the case of a digraph, this computation is done on the underlying
         graph.
 
-        A cut vertex is one whose deletion increases the number of
-        connected components. A block is a maximal induced subgraph which
-        itself has no cut vertices. Two distinct blocks cannot overlap in
-        more than a single cut vertex.
+        A cut vertex is one whose deletion increases the number of connected
+        components. A block is a maximal induced subgraph which itself has no
+        cut vertices. Two distinct blocks cannot overlap in more than a single
+        cut vertex.
 
-        OUTPUT: ``( B, C )``, where ``B`` is a list of blocks- each is
-        a list of vertices and the blocks are the corresponding induced
-        subgraphs-and ``C`` is a list of cut vertices.
+        OUTPUT: ``(B, C)``, where ``B`` is a list of blocks - each is a list of
+        vertices and the blocks are the corresponding induced subgraphs - and
+        ``C`` is a list of cut vertices.
 
         ALGORITHM:
 
@@ -5223,24 +5220,27 @@ class GenericGraph(GenericGraph_pyx):
 
             - :meth:`blocks_and_cuts_tree`
             - :meth:`~Graph.is_biconnected`
+            - :meth:`~Graph.bridges`
 
-        EXAMPLES::
+        EXAMPLES:
+
+        We construct a trivial example of a graph with one cut vertex::
+
+            sage: rings = graphs.CycleGraph(10)
+            sage: rings.merge_vertices([0, 5])
+            sage: rings.blocks_and_cut_vertices()
+            ([[0, 1, 2, 3, 4], [0, 6, 7, 8, 9]], [0])
+
+        The Petersen graph is biconnected, hence has no cut vertices::
 
             sage: graphs.PetersenGraph().blocks_and_cut_vertices()
             ([[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]], [])
-            sage: graphs.PathGraph(6).blocks_and_cut_vertices()
-            ([[4, 5], [3, 4], [2, 3], [1, 2], [0, 1]], [1, 2, 3, 4])
-            sage: graphs.CycleGraph(7).blocks_and_cut_vertices()
-            ([[0, 1, 2, 3, 4, 5, 6]], [])
-            sage: graphs.KrackhardtKiteGraph().blocks_and_cut_vertices()
-            ([[8, 9], [7, 8], [0, 1, 2, 3, 4, 5, 6, 7]], [7, 8])
-            sage: G=Graph()  # make a bowtie graph where 0 is a cut vertex
-            sage: G.add_vertices(range(5))
-            sage: G.add_edges([(0,1),(0,2),(0,3),(0,4),(1,2),(3,4)])
-            sage: G.blocks_and_cut_vertices()
-            ([[0, 1, 2], [0, 3, 4]], [0])
-            sage: graphs.StarGraph(3).blocks_and_cut_vertices()
-            ([[0, 1], [0, 2], [0, 3]], [0])
+
+        Decomposing paths to pairs::
+
+            sage: g = graphs.PathGraph(4) + graphs.PathGraph(5)
+            sage: g.blocks_and_cut_vertices()
+            ([[2, 3], [1, 2], [0, 1], [7, 8], [6, 7], [5, 6], [4, 5]], [1, 2, 5, 6, 7])
 
         TESTS::
 
@@ -5249,110 +5249,114 @@ class GenericGraph(GenericGraph_pyx):
             sage: Graph(1).blocks_and_cut_vertices()
             ([[0]], [])
             sage: Graph(2).blocks_and_cut_vertices()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: ...
+            ([[0], [1]], [])
 
         REFERENCE:
 
         .. [Tarjan72] \R.E. Tarjan. Depth-First Search and Linear Graph
           Algorithms. SIAM J. Comput. 1(2): 146-160 (1972).
         """
-        if not self: # empty graph
-            return [],[]
-
-        start = next(self.vertex_iterator()) # source
-
-        if len(self) == 1: # only one vertex
-            return [[start]],[]
-
-        if not self.is_connected():
-            raise NotImplementedError("Blocks and cut vertices is currently only implemented for connected graphs.")
-
-        # Each vertex is number with an integer from 1...|V(G)|, corresponding
-        # to the order in which it is discovered during the DFS.
-        number = {}
-        num = 1
-
-        # Associates to each vertex v the smallest number of a vertex that can
-        # be reached from v in the orientation of the graph that the algorithm
-        # creates.
-        low_point = {}
-
-        # Associates to each vertex an iterator over its neighbors
-        neighbors = {}
-
         blocks = []
         cut_vertices = set()
 
-        stack = [start]
-        edge_stack = []
-        start_already_seen = False
+        # We iterate over all vertices to ensure that we visit each connected
+        # component of the graph
+        seen = set()
+        for start in self.vertex_iterator():
+            if start in seen:
+                continue
 
-        while stack:
-            v = stack[-1]
+            # Special case of an isolated vertex
+            if not self.degree(start):
+                blocks.append([start])
+                seen.add(start)
+                continue
 
-            # The first time we meet v
-            if not v in number:
-                # We number the vertices in the order they are reached during
-                # DFS
-                number[v] = num
-                neighbors[v] = self.neighbor_iterator(v)
-                low_point[v] = num
-                num += 1
+            # Each vertex is numbered with an integer from 1...|V(G)|,
+            # corresponding to the order in which it is discovered during the
+            # DFS.
+            number = {}
+            num = 1
 
-            try:
-                # We consider the next of its neighbors
-                w = next(neighbors[v])
+            # Associates to each vertex v the smallest number of a vertex that
+            # can be reached from v in the orientation of the graph that the
+            # algorithm creates.
+            low_point = {}
 
-                # If we never met w before, we remember the direction of edge
-                # vw, and add w to the stack.
-                if not w in number:
-                    edge_stack.append( (v,w) )
-                    stack.append(w)
+            # Associates to each vertex an iterator over its neighbors
+            neighbors = {}
 
-                # If w is an ancestor of v in the DFS tree, we remember the
-                # direction of edge vw
-                elif number[w]<number[v]:
-                    edge_stack.append( (v,w) )
-                    low_point[v] = min(low_point[v], number[w])
+            stack = [start]
+            edge_stack = []
+            start_already_seen = False
 
-            # We went through all of v's neighbors
-            except StopIteration:
-                # We trackback, so w takes the value of v and we pop the stack
-                w = stack.pop()
-
-                # Test termination of the algorithm
-                if not stack:
-                    break
-
+            while stack:
                 v = stack[-1]
+                seen.add(v)
 
-                # Propagating the information : low_point[v] indicates the
-                # smallest vertex (the vertex x with smallest number[x]) that
-                # can be reached from v
-                low_point[v] = min(low_point[v], low_point[w])
+                # The first time we meet v
+                if not v in number:
+                    # We number the vertices in the order they are reached
+                    # during DFS
+                    number[v] = num
+                    neighbors[v] = self.neighbor_iterator(v)
+                    low_point[v] = num
+                    num += 1
 
-                # The situation in which there is no path from w to an ancestor
-                # of v : we have identified a new biconnected component
-                if low_point[w] >= number[v]:
-                    new_block = set()
-                    nw = number[w]
-                    u1,u2 = edge_stack.pop()
-                    while number[u1] >= nw:
-                        new_block.add(u1)
+                try:
+                    # We consider the next of its neighbors
+                    w = next(neighbors[v])
+
+                    # If we never met w before, we remember the direction of
+                    # edge vw, and add w to the stack.
+                    if not w in number:
+                        edge_stack.append( (v,w) )
+                        stack.append(w)
+
+                    # If w is an ancestor of v in the DFS tree, we remember the
+                    # direction of edge vw
+                    elif number[w]<number[v]:
+                        edge_stack.append( (v,w) )
+                        low_point[v] = min(low_point[v], number[w])
+
+                # We went through all of v's neighbors
+                except StopIteration:
+                    # We trackback, so w takes the value of v and we pop the
+                    # stack
+                    w = stack.pop()
+
+                    # Test termination of the algorithm
+                    if not stack:
+                        break
+
+                    v = stack[-1]
+
+                    # Propagating the information : low_point[v] indicates the
+                    # smallest vertex (the vertex x with smallest number[x])
+                    # that can be reached from v
+                    low_point[v] = min(low_point[v], low_point[w])
+
+                    # The situation in which there is no path from w to an
+                    # ancestor of v : we have identified a new biconnected
+                    # component
+                    if low_point[w] >= number[v]:
+                        new_block = set()
+                        nw = number[w]
                         u1,u2 = edge_stack.pop()
-                    new_block.add(u1)
-                    blocks.append(sorted(list(new_block)))
+                        while number[u1] >= nw:
+                            new_block.add(u1)
+                            u1,u2 = edge_stack.pop()
+                        new_block.add(u1)
+                        blocks.append(sorted(list(new_block)))
 
-                    # We update the set of cut vertices.
-                    #
-                    # If v is start, then we add it only if it belongs to
-                    # several blocks.
-                    if (not v is start) or start_already_seen:
-                        cut_vertices.add(v)
-                    else:
-                        start_already_seen = True
+                        # We update the set of cut vertices.
+                        #
+                        # If v is start, then we add it only if it belongs to
+                        # several blocks.
+                        if (not v is start) or start_already_seen:
+                            cut_vertices.add(v)
+                        else:
+                            start_already_seen = True
 
         return blocks,sorted(list(cut_vertices))
 
@@ -5369,7 +5373,8 @@ class GenericGraph(GenericGraph_pyx):
         to `u`.
 
         The resulting graph is a tree, with the additional characteristic
-        property that the distance between two leaves is even.
+        property that the distance between two leaves is even. When ``self`` is
+        not connected, the resulting graph is a forest.
 
         When ``self`` is biconnected, the tree is reduced to a single node of
         type `B`.
@@ -5400,6 +5405,14 @@ class GenericGraph(GenericGraph_pyx):
             sage: T = graphs.PetersenGraph().blocks_and_cuts_tree()
             sage: T.vertices()
             [('B', (0, 1, 2, 3, 4, 5, 6, 7, 8, 9))]
+
+        TESTS:
+
+        When ``self`` is not connected, the resulting graph is a forest (:trac:`24163`)::
+
+            sage: T = Graph(2).blocks_and_cuts_tree()
+            sage: T.is_forest()
+            True
 
         REFERENCES:
 
@@ -8306,6 +8319,226 @@ class GenericGraph(GenericGraph_pyx):
             flow_graph = Graph(flow_graph)
 
         return [obj,flow_graph]
+
+    def nowhere_zero_flow(self, k=None, solver=None, verbose=0):
+        r"""
+        Return a ``k``-nowhere zero flow of the (di)graph.
+
+        A flow on a graph `G = (V, E)` is a pair `(D, f)` such that `D`
+        is an orientation of `G` and `f` is a function on `E` satisfying
+
+        .. MATH::
+
+            \sum_{u \in N^-_D(v)} f(uv) = \sum_{w \in N^+_D(v)} f(vw),
+            \ \forall v \in V.
+
+        A ``nowhere zero flow`` on a graph `G = (V, E)` is a flow `(D, f)`
+        such that `f(e) \neq 0` for every `e \in E`. For a positive
+        integer `k`, a `k`-flow on a graph `G = (V, E)` is a flow `(D, f)`
+        such that `f: E \to Z` and `-(k - 1) \leq f(e) \leq k - 1` for
+        every `e \in E`. A `k`-flow is positive if `f(e) > 0` for every
+        `e \in E`. A `k`-flow which is nowhere zero is called a
+        `k`-*nowhere zero flow* (or `k`-NZF).
+
+        The following are equivalent.
+
+        - `G` admits a positive `k`-flow.
+        - `G` admits a `k`-NZF.
+        - Every orientation of `G` admits a `k`-NZF.
+
+        Furthermore, a (di)graph admits a `k`-NZF if and only if it
+        is bridgeless and every bridgeless graph admits a `6`-NZF [Sey1981]_.
+        See :wikipedia:`Nowhere-zero_flow` for more details.
+
+        ALGORITHM:
+
+        If ``self`` is not directed, we search for a `k`-NZF on any
+        orientation of ``self`` and then build a positive `k`-NZF by
+        reverting edges with negative flow.
+
+        INPUT:
+
+        - ``k`` -- integer (default: ``6``); when set to a positive
+          integer `\geq 2`, search for a `k`-nowhere zero flow
+
+        - ``solver`` -- (default: ``None``); Specify a Linear Program solver
+          to be used.  If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``verbose`` -- integer (default: ``0``); sets the level of
+          verbosity of the LP solver, where `0` means quiet.
+
+        OUTPUT:
+
+        A digraph with flow values stored as edge labels if a `k`-nowhere
+        zero flow is found. If ``self`` is undirected, the edges of this
+        digraph indicate the selected orientation. If no feasible solution
+        is found, an error is raised.
+
+        EXAMPLES:
+
+        The Petersen graph admits a (positive) 5-nowhere zero flow, but no
+        4-nowhere zero flow::
+
+            sage: g = graphs.PetersenGraph()
+            sage: h = g.nowhere_zero_flow(k=5)
+            sage: sorted( set(h.edge_labels()) )
+            [1, 2, 3, 4]
+            sage: h = g.nowhere_zero_flow(k=3)
+            Traceback (most recent call last):
+            ...
+            EmptySetError: the problem has no feasible solution
+
+        The de Bruijn digraph admits a 2-nowhere zero flow::
+
+            sage: g = digraphs.DeBruijn(2, 3)
+            sage: h = g.nowhere_zero_flow(k=2)
+            sage: sorted(list( set(h.edge_labels()) ))
+            [-1, 1]
+
+        TESTS:
+
+        Empty graph::
+
+            sage: G = Graph()
+            sage: G.nowhere_zero_flow()
+            Digraph on 0 vertices
+
+        Graph with one vertex::
+
+            sage: G = Graph([[1], []])
+            sage: G
+            Graph on 1 vertex
+            sage: G.nowhere_zero_flow()
+            Digraph on 1 vertex
+
+        Loops and multiple edges::
+
+            sage: g = Graph([(0, 0), (0, 0)], loops=True, multiedges=True)
+            sage: g.nowhere_zero_flow().edges()
+            [(0, 0, 1), (0, 0, 1)]
+            sage: g = Graph([(0, 0), (0, 1), (0, 1)], loops=True, multiedges=True)
+            sage: g.nowhere_zero_flow(k=2).edges()
+            [(0, 0, 1), (0, 1, 1), (1, 0, 1)]
+            sage: g = DiGraph([(0, 0), (0, 0)], loops=True, multiedges=True)
+            sage: g.nowhere_zero_flow().edges()
+            [(0, 0, 1), (0, 0, 1)]
+            sage: g = DiGraph([(0, 0), (0, 1), (0, 1)], loops=True, multiedges=True)
+            sage: g.nowhere_zero_flow(k=2).edges()
+            [(0, 0, 1), (0, 1, -1), (0, 1, 1)]
+
+        Multiple connected components::
+
+            sage: g = graphs.CycleGraph(3) * 2
+            sage: h = g.nowhere_zero_flow()
+            sage: h.connected_components_sizes()
+            [3, 3]
+
+        (Di)Graphs with bridges::
+
+            sage: g = graphs.PathGraph(2)
+            sage: g.nowhere_zero_flow()
+            Traceback (most recent call last):
+            ...
+            EmptySetError: (di)graphs with bridges have no feasible solution
+            sage: g = digraphs.Path(2)
+            sage: g.nowhere_zero_flow()
+            Traceback (most recent call last):
+            ...
+            EmptySetError: (di)graphs with bridges have no feasible solution
+
+        Too small value of ``k``::
+
+            sage: Graph().nowhere_zero_flow(k=1)
+            Traceback (most recent call last):
+            ...
+            ValueError: parameter 'k' must be at least 2
+        """
+        if k is None:
+            k = 6 # See [Sey1981]_
+        elif k < 2:
+            raise ValueError("parameter 'k' must be at least 2")
+
+        from sage.graphs.digraph import DiGraph
+        from sage.categories.sets_cat import EmptySetError
+
+        # If the (di)graph is not connected, we solve the problem on each
+        #   of its connected components
+        if not self.is_connected():
+            solution = DiGraph(loops=self.allows_loops(),
+                               multiedges=self.allows_multiple_edges())
+            solution.add_vertices(self.vertices())
+            for g in self.connected_components_subgraphs():
+                solution.add_edges(g.nowhere_zero_flow(k=k, solver=solver,
+                                                       verbose=verbose).edges())
+            return solution
+
+        # If the (di)graph has bridges, the problem is not feasible
+        if ( (self.is_directed() and not self.is_strongly_connected() and self.to_undirected().bridges())
+            or (not self.is_directed() and self.bridges()) ):
+            raise EmptySetError("(di)graphs with bridges have no feasible solution")
+
+        #
+        # We deal with loops and multiple edges, if any
+        #
+        if self.has_loops() or self.has_multiple_edges():
+            G = copy(self) if self.is_directed() else next(self.orientations())
+
+            # We assign flow 1 to loops, if any
+            solution = DiGraph([G.vertices(), [(u,v,1) for u,v in G.loops(labels=0)]],
+                               loops=G.has_loops(),
+                               multiedges=G.has_multiple_edges())
+            G.allow_loops(False)
+
+            # We ensure that multiple edges have distinct labels
+            multiedges = {(u,v,i) for i,(u,v) in enumerate(G.multiple_edges(labels=0))}
+            G.delete_edges(G.multiple_edges())
+            G.add_edges(multiedges)
+
+        else:
+            G = self if self.is_directed() else next(self.orientations())
+            solution = DiGraph([G.vertices(), []])
+
+        if G.order() <= 1:
+            return solution
+
+        #
+        # We use a MIP formulation to solve the problem
+        #
+        from sage.numerical.mip import MixedIntegerLinearProgram,MIPSolverException
+        p = MixedIntegerLinearProgram(solver=solver)
+        f = p.new_variable(nonnegative=False, integer=True)
+        b = p.new_variable(nonnegative=True, binary=True)
+
+        # flow conservation constraints
+        for u in G:
+            p.add_constraint( p.sum(f[e] for e in G.incoming_edge_iterator(u))
+                              == p.sum(f[e] for e in G.outgoing_edge_iterator(u)) )
+
+        # The flow on edge e has value in {-k+1,..., -1, 1, ..., k-1}
+        for e in G.edge_iterator():
+            p.add_constraint(p.sum(b[e,i] for i in range(-k+1, k) if i != 0) == 1)
+            p.add_constraint(f[e] == p.sum(i * b[e,i] for i in range(-k+1, k) if i != 0))
+
+        # We solve the MIP.
+        try:
+            p.solve(log=verbose)
+        except MIPSolverException:
+            raise EmptySetError("the problem has no feasible solution")
+
+        # Extract and return the solution. If the graph is not directed, we
+        # reverse edges with a negative flow to obtain a positive k-NZF
+        for (u,v,_), val in p.get_values(f).items():
+            if self.is_directed() or val > 0:
+                solution.add_edge(u, v, int(val))
+            else:
+                solution.add_edge(v, u, int(-val))
+
+        return solution
 
     def _ford_fulkerson(self, s, t, use_edge_labels = False, integer = False, value_only = True):
         r"""
@@ -17498,14 +17731,11 @@ class GenericGraph(GenericGraph_pyx):
             g = g.copy(immutable=True)
         return g
 
-    def disjoint_union(self, other, verbose_relabel=None, labels="pairs",
-                             immutable=None):
+    def disjoint_union(self, other, labels="pairs", immutable=None):
         """
         Return the disjoint union of self and other.
 
         INPUT:
-
-        - ``verbose_relabel`` - deprecated.
 
         - ``labels`` - (defaults to 'pairs') If set to 'pairs', each
           element ``v`` in the first graph will be named ``(0,v)`` and
@@ -17553,13 +17783,6 @@ class GenericGraph(GenericGraph_pyx):
         """
         if (self._directed and not other._directed) or (not self._directed and other._directed):
             raise TypeError('both arguments must be of the same class')
-
-        if verbose_relabel is not None:
-            deprecation(17053, "Instead of verbose_relabel=True/False use labels='pairs'/'integers'.")
-            if verbose_relabel:
-                labels="pairs"
-            if not verbose_relabel:
-                labels="integers"
 
         if labels not in ['pairs', 'integers']:
             raise ValueError("Parameter labels must be either 'pairs' or 'integers'.")
@@ -17640,7 +17863,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = g.copy(immutable=True)
             sage: (2*g)._backend
-            <type 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
+            <sage.graphs.base.static_sparse_backend.StaticSparseBackend object at ...>
 
         Check that weighted is appropriately inherited (:trac:`23843`)::
 

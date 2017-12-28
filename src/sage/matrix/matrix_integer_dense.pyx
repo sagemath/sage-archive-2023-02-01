@@ -1149,6 +1149,10 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
     def charpoly(self, var='x', algorithm=None):
         """
+        .. NOTE::
+
+            The characteristic polynomial is defined as `\det(xI-A)`.
+
         INPUT:
 
 

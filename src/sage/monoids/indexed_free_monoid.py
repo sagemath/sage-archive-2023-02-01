@@ -147,7 +147,7 @@ class IndexedMonoidElement(MonoidElement):
             pref = AsciiArt([P.prefix()])
             def ascii_art_gen(m):
                 if m[1] != 1:
-                    r = (AsciiArt([" "**Integer(len(pref))]) + ascii_art(m[1]))
+                    r = (AsciiArt([" " * len(pref)]) + ascii_art(m[1]))
                 else:
                     r = empty_ascii_art
                 r = r * P._ascii_art_generator(m[0])

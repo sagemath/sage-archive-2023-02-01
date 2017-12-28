@@ -278,7 +278,7 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
         n = coxeter_matrix.rank()
         # Compute the matrix with entries `2 \cos( \pi / m_{ij} )`.
         MS = MatrixSpace(base_ring, n, sparse=True)
-        MC = MS._get_matrix_class()
+        MC = MS._matrix_class
         # FIXME: Hack because there is no ZZ \cup \{ \infty \}: -1 represents \infty
         E = UniversalCyclotomicField().gen
         if base_ring is UniversalCyclotomicField():

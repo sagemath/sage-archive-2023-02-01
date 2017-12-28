@@ -2501,7 +2501,7 @@ class RuleBinaryWord(Rule):
         0  0  0  0  0  0  0  1  0
         0  0  1  0  0  0  0  0  0
         0  0  0  0  0  0  0  0  1
-        sage: pi.descents(from_zero=False)
+        sage: pi.descents()
         [1, 3, 5, 6]
 
     TESTS::
@@ -2536,7 +2536,7 @@ class RuleBinaryWord(Rule):
     Test that the Kleitman Greene invariant is indeed the descent word::
 
         sage: r = 4
-        sage: all(Word([0 if i in w.descents(from_zero=False) else 1 for i in range(r)])
+        sage: all(Word([0 if i in w.descents() else 1 for i in range(r)])
         ....:      == BinaryWord(w).out_labels()[r]
         ....:     for w in Permutations(r))
         True

@@ -314,7 +314,7 @@ def _jordan_2_adic(G):
                     D.swap_rows(cnt+1, piv2)
                     D.swap_columns(cnt+1, piv2)
                 # we split off a 2 x 2 block
-                # if it is last 2 x 2 block, there is nothing to do.
+                # if it is the last 2 x 2 block, there is nothing to do.
                 if cnt != n-2:
                     content = R(2 ** minval)
                     eqn_mat = D[cnt:cnt+2, cnt:cnt+2].list()
@@ -751,3 +751,84 @@ def _normalize_odd_2x2(G):
     U[1,0] = y
     U[1,1] = -x
     return U
+
+def _relations(n,q):
+    r"""
+    Return relations of 2-adic quadratic forms
+
+    INPUT:
+
+        - ``n`` -- an integer between 1 and 10 the number of the relation
+        - ``q`` -- a square matrix - the left side of the relation
+
+    OUTPUT:
+
+        - square matrix ``B`` such that ``B*q*B.T`` is the right side of the relation
+
+    EXAMPLES::
+
+        sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import _relations
+        sage: R = Zp(2, type = 'fixed-mod')
+        sage: U = Matrix(R,2,[0,1,1,0])
+        sage: V = Matrix(R,2,[2,1,1,2])
+        sage: W1 = Matrix(R,1,[1])
+        sage: W3 = Matrix(R,1,[3])
+        sage: W5 = Matrix(R,1,[5])
+        sage: W7 = Matrix(R,1,[7])
+        sage: q = Matrix.block_diagonal([W1,W3])
+        sage: b = _relations(1,q)
+        sage: b*q*b.T
+        [    1 + 2^2 + O(2^20)               O(2^20)]
+        [              O(2^20) 1 + 2 + 2^2 + O(2^20)]
+
+    """
+    R = q.base_ring()
+    if n == 1:
+        e1 = q[0,0].unit_part()
+        e2 = q[1,1].unit_part()
+        B = Matrix(R,2,2,[1,2,2*e2,-e1])
+    if n == 2:
+        e1 = q[0,0].unit_part()
+        e2 = q[1,1].unit_part()
+        e3 = q[2,2].unit_part()
+        s1 = e1 + e2 + e3
+        s2 = e1*e2 + e1*e3 + e2*e3
+        s3 = e1*e2*e3
+        B = Matrix(R,3,3,3,[1,1,1,e2,-e1,0,e3,0,-e1])
+    if n == 3:
+        B = Matrix(4,4,[1,1,0,0, 0,1,1,1, 1,-1,-1,0, 1,-1,0,-1])
+        B = B.adjoint() #division free
+    if n == 4:
+        pass
+    if n == 5:
+        e1 = q[2,2].unit_part()
+        e2 = q[3,3].unit_part()
+        B = Matrix(R,4,4,[ 1,  1,  0, 0,
+                            0,  1,  1, 1, 
+                           -e1, e1, 1, 0, 
+                           -e2, e2, 0, 1])
+    if n == 6:
+        e1 = q[0,0].unit_part()
+        e2 = q[1,1].unit_part()
+        B = Matrix(R,2,[1,1,-2*e2,e1])
+    if n == 7:
+        e = q[0,0]
+        B = Matrix(R,3,[ 1, 1, 1,
+                        -2, e, 0,
+                        -2, 0, e])
+    if n == 8:
+        e = q[2,2]
+        B = Matrix(R,3,[ 2, 2,  1, 
+                         e, 0, -1,
+                        -2, 0,  e])
+    if n == 9:
+        B = Matrix(R,3,[ 1, 0,  1,
+                        -2, 0, e1,
+                         0, 1,  0])
+    #noch nicht vollständig
+    if n == 10:
+        e1 = q[0,0]
+        e2 = q[1,1]
+        B = Matrix(R,2,[1,1,-4*e2,e1])
+    D, U = _normalize(B*q*B.T)
+    return U*B

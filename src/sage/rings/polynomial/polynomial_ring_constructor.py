@@ -718,16 +718,20 @@ def _multi_variate(base_ring, names, sparse=None, order="degrevlex", implementat
 from sage import categories
 from sage.categories.algebras import Algebras
 # Some fixed categories, in order to avoid the function call overhead
+_FiniteSets = categories.sets_cat.Sets().Finite()
+_InfiniteSets = categories.sets_cat.Sets().Infinite()
 _EuclideanDomains = categories.euclidean_domains.EuclideanDomains()
 _UniqueFactorizationDomains = categories.unique_factorization_domains.UniqueFactorizationDomains()
 _IntegralDomains = categories.integral_domains.IntegralDomains()
-_Rings = category = categories.rings.Rings()
+_Rings = categories.rings.Rings()
 
 
 @weak_cached_function
 def polynomial_default_category(base_ring_category, n_variables):
     """
     Choose an appropriate category for a polynomial ring.
+
+    It is assumed that the corresponding base ring is nonzero.
 
     INPUT:
 
@@ -755,8 +759,19 @@ def polynomial_default_category(base_ring_category, n_variables):
         True
     """
     category = Algebras(base_ring_category)
+
     if n_variables:
+        # here we assume the base ring to be nonzero
         category = category.Infinite()
+    else:
+        if base_ring_category.is_subcategory(_Fields):
+            category = category & _Fields
+
+        if base_ring_category.is_subcategory(_FiniteSets):
+            category = category.Finite()
+        elif base_ring_category.is_subcategory(_InfiniteSets):
+            category = category.Infinite()
+
     if base_ring_category.is_subcategory(_Fields) and n_variables == 1:
         return category & _EuclideanDomains
     elif base_ring_category.is_subcategory(_UniqueFactorizationDomains):

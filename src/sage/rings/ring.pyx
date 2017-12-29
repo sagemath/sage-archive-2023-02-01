@@ -148,7 +148,7 @@ cdef class Ring(ParentWithGens):
         sage: PolynomialRing(SteenrodAlgebra(2),'x').category()
         Category of infinite algebras over graded hopf algebras with basis over Finite Field of size 2
 
-     TESTS::
+    TESTS::
 
         sage: Zp(7)._repr_option('element_is_atomic')
         False
@@ -156,7 +156,7 @@ cdef class Ring(ParentWithGens):
         True
         sage: CDF._repr_option('element_is_atomic')
         False
-     """
+    """
     def __init__(self, base, names=None, normalize=True, category = None):
         """
         Initialize ``self``.

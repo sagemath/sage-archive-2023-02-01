@@ -141,9 +141,7 @@ class ShiftedPrimedTableau(ClonableArray):
         else:
             t_ = T
 
-        # FIXME: Remove numpy imports!!!
-        import numpy as np
-        if not all(isinstance(row, (list, tuple, np.ndarray)) for row in t_):
+        if not all(isinstance(row, (list, tuple)) for row in t_):
             t_ = [t_]
 
         t = []
@@ -220,16 +218,14 @@ class ShiftedPrimedTableau(ClonableArray):
 
     def _to_matrix(self):
         """
-        Return a 2-dimensional numpy.array representation of a shifted tableau
+        Return a 2-dimensional array representation of a shifted tableau
 
         EXAMPLES::
 
             sage: t = ShiftedPrimedTableau([[1,'2p',2,2],[2,'3p'],[3]])
             sage: mat = t._to_matrix()
             sage: mat
-            array([[ 1. ,  1.5,  2. ,  2. ],
-                   [ 0. ,  2. ,  2.5,  0. ],
-                   [ 0. ,  0. ,  3. ,  0. ]])
+            [[1.0, 1.5, 2.0, 2.0], [0, 2.0, 2.5, 0], [0, 0, 3.0, 0]]
             sage: t == ShiftedPrimedTableau(mat)
             True
         """
@@ -242,8 +238,6 @@ class ShiftedPrimedTableau(ClonableArray):
                          + [0]*(m-i-self._skew[i]-len(self[i])))
         for i in range(sk_len, len(self)):
             array.append([0]*i + list(self[i]) + [0]*(m-i-len(self[i])))
-        import numpy as np
-        array = np.array(array, dtype='float')
         return array
 
     def check(self):
@@ -679,14 +673,18 @@ class ShiftedPrimedTableau(ClonableArray):
         if self._skew is not None:
             raise NotImplementedError('skew tableau must be empty')
         mat = self._to_matrix()
+        ndim, mdim = len(mat), len(mat[0])
         list_with_positions = []
-        import numpy as np
-        for (i, j), x in np.ndenumerate(mat[:, ::-1].T):
-            if int(x) != x:
-                list_with_positions.append(((j, mat.shape[1]-i-1), int(x+0.5)))
-        for (i, j), x in np.ndenumerate(mat[::-1, :]):
-            if int(x) == x and int(x) != 0:
-                list_with_positions.append(((mat.shape[0]-i-1, j), int(x)))
+        for j in reversed(range(mdim)):
+            for i in range(ndim):
+                x = mat[i][j]
+                if int(x) != x:
+                    list_with_positions.append(((i, j), int(x+0.5)))
+        for i in reversed(range(ndim)):
+            for j in range(mdim):
+                x = mat[i][j]
+                if int(x) == x and int(x) != 0:
+                    list_with_positions.append(((i, j), int(x)))
         return list_with_positions
 
     def reading_word(self):
@@ -752,11 +750,19 @@ class ShiftedPrimedTableau(ClonableArray):
                   3  4
 
         """
+
         if self is None:
             return None
 
         if self._skew is not None:
             raise NotImplementedError('skew tableau must be empty')
+
+        try:
+            self.parent()._weight
+            raise TypeError('operator generates an element outside of {}'
+                            .format(self.parent()))
+        except AttributeError:
+            pass
 
         T = self._to_matrix()
 
@@ -767,8 +773,6 @@ class ShiftedPrimedTableau(ClonableArray):
 
         element_to_change = None
         count = 0
-
-        import numpy as np
 
         for element in read_word:
             if element[1] == ind+1:
@@ -783,45 +787,47 @@ class ShiftedPrimedTableau(ClonableArray):
 
         (r, c), elt = element_to_change
 
-        if T[r, c] == ind - .5:
-            T = T.T + .5
+        if T[r][c] == ind - .5:
+            T = [[elt+.5 if elt != 0 else elt for elt in row] for row in T]
+            T = map(list, zip(*T))
             r, c = c, r
-        h, l = T.shape
+        h, l = len(T), len(T[0])
 
-        if (c+1 == l or T[r, c+1] >= ind+1 or T[r, c+1] < 1):
+        if (c+1 == l or T[r][c+1] >= ind+1 or T[r][c+1] < 1):
             (tp_r, tp_c) = (r, c)
             while True:
                 if (tp_r+1 == h or
-                        T[tp_r+1, tp_c] > ind+1 or
-                        T[tp_r+1, tp_c] < 1):
+                        T[tp_r+1][tp_c] > ind+1 or
+                        T[tp_r+1][tp_c] < 1):
                     break
-                if tp_r <= tp_c and T[tp_r+1, tp_r+1] == ind+1:
+                if tp_r <= tp_c and T[tp_r+1][tp_r+1] == ind+1:
                     tp_r += 1
                     tp_c = tp_r
                     break
                 if (ind+.5 not in T[tp_r+1]):
                     break
                 tp_r += 1
-                tp_c = np.where(T[tp_r] == ind+.5)[0]
+                tp_c = T[tp_r].index(ind+.5)
 
             if tp_r == r:
-                T[r, c] += 1
+                T[r][c] += 1
 
             elif tp_r == tp_c:
-                T[r, c] += .5
+                T[r][c] += .5
 
             else:
-                T[r, c] += .5
-                T[tp_r, tp_c] += .5
+                T[r][c] += .5
+                T[tp_r][tp_c] += .5
 
-        elif T[r, c+1] == ind+.5:
-            T[r, c+1] += .5
-            T[r, c] += .5
+        elif T[r][c+1] == ind+.5:
+            T[r][c+1] += .5
+            T[r][c] += .5
 
         if r > c:
-            T = T.T - .5
+            T = [[elt-.5 if elt != 0 else elt for elt in row] for row in T]
+            T = map(list, zip(*T))
 
-        return self.parent()(T) # FIXME: Generically this is not true
+        return self.parent()(T)
 
     def e(self, ind):
         """
@@ -859,6 +865,13 @@ class ShiftedPrimedTableau(ClonableArray):
         if self._skew is not None:
             raise NotImplementedError('skew tableau must be empty')
 
+        try:
+            self.parent()._weight
+            raise TypeError('operator generates an element outside of {}'
+                            .format(self.parent()))
+        except AttributeError:
+            pass
+
         T = self._to_matrix()
 
         read_word = self._reading_word_with_positions()
@@ -868,7 +881,6 @@ class ShiftedPrimedTableau(ClonableArray):
 
         element_to_change = None
         count = 0
-        import numpy as np
 
         for element in read_word[::-1]:
             if element[1] == ind:
@@ -882,41 +894,42 @@ class ShiftedPrimedTableau(ClonableArray):
             return None
         (r, c), elt = element_to_change
 
-        if T[r, c] == ind + .5:
-            T = T.T + .5
+        if T[r][c] == ind + .5:
+            T = [[elt+.5 if elt != 0 else elt for elt in row] for row in T]
+            T = map(list, zip(*T))
             r, c = c, r
-        h, l = T.shape
 
-        if (c == 0 or T[r, c-1] <= ind or T[r, c-1] < 1):
+        if (c == 0 or T[r][c-1] <= ind or T[r][c-1] < 1):
 
             (tp_r, tp_c) = (r, c)
             while True:
 
-                if tp_r == 0 or T[tp_r-1, tp_c] < ind or T[tp_r-1, tp_c] < 1:
+                if tp_r == 0 or T[tp_r-1][tp_c] < ind or T[tp_r-1][tp_c] < 1:
                     break
                 if (ind+.5 not in T[tp_r-1]):
                     break
                 tp_r -= 1
-                tp_c = np.where(T[tp_r] == ind+.5)[0]
+                tp_c = T[tp_r].index(ind+.5)
 
             if tp_r == r:
-                T[r, c] -= 1
+                T[r][c] -= 1
 
             elif tp_r == tp_c:
-                T[r, c] -= .5
+                T[r][c] -= .5
 
             else:
-                T[r, c] -= .5
-                T[tp_r, tp_c] -= .5
+                T[r][c] -= .5
+                T[tp_r][tp_c] -= .5
 
-        elif T[r, c-1] == ind+.5:
-            T[r, c-1] -= .5
-            T[r, c] -= .5
+        elif T[r][c-1] == ind+.5:
+            T[r][c-1] -= .5
+            T[r][c] -= .5
 
         if r > c:
-            T = T.T - .5
+            T = [[elt-.5 if elt != 0 else elt for elt in row] for row in T]
+            T = map(list, zip(*T))
 
-        return self.parent()(T) # FIXME: Generically this is not true
+        return self.parent()(T)
 
     def is_highest_weight(self):
         """
@@ -1303,8 +1316,18 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
     """
     @staticmethod
     def __classcall_private__(cls, shape, max_elt=None, skew=None):
+        """
+        Normalilize the attributes for the class.
+
+        TEST::
+
+            sage: SPT = ShiftedPrimedTableaux(shape=[2,1])
+            sage: SPT._shape.parent()
+            Partitions
+        """
         shape = _Partitions(shape)
-        return super(ShiftedPrimedTableaux_shape, cls).__classcall__(cls, shape, max_elt, skew)
+        return (super(ShiftedPrimedTableaux_shape, cls)
+                .__classcall__(cls, shape, max_elt, skew))
 
     Element = ShiftedPrimedTableau
 
@@ -1416,6 +1439,14 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
     def module_generators(self):
         """
         Return the generators of ``self`` as a crystal.
+
+        TEST::
+
+            sage: SPT = ShiftedPrimedTableaux(shape=[2,1])
+            sage: SPT.module_generators
+            ([(1.0, 1.0), (2.0,)],
+            [(1.0, 2.0), (3.0,)],
+            [(1.0, 1.5), (3.0,)])
         """
         if self._skew is not None:
             raise NotImplementedError("only for non-skew shapes")
@@ -1483,9 +1514,12 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
             max_element = sum(self._shape)
         else:
             max_element = self._max_elt
-        for weight in Partition(self._shape).dominated_partitions(rows=max_element):
-            list_dw.extend([self(T) for T in ShiftedPrimedTableaux(weight=tuple(weight),
-                                                                   shape=self._shape)])
+        for weight in (Partition(self._shape)
+                       .dominated_partitions(rows=max_element)):
+            list_dw.extend([self(T)
+                            for T in ShiftedPrimedTableaux(
+                                weight=tuple(weight),
+                                shape=self._shape)])
         return list_dw
 
     def list_highest_weight(self):

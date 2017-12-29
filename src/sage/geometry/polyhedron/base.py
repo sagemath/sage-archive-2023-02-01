@@ -5286,6 +5286,38 @@ class Polyhedron_base(Element):
         # assert all(self.contains(p) for p in points)   # slow
         return tuple(points)
 
+    def get_integral_point(self, index, **kwds):
+
+        def count(eqns, ieqs):
+            return Polyhedron(eqns=self.equations_list() + extra_eqns, ieqs=self.inequalities_list() + extra_ieqs).integral_points_count(**kwds)
+
+        if not 0 <= index < count([], []):
+            raise IndexError('polytope index out of range')
+
+        D = self.ambient_dim()
+        lower_bounds, upper_bounds = self.bounding_box()
+        coordinate = []
+        extra_eqns = []  # For the components of the coordinate that we have already found.
+        for i in range(D):
+            lower, upper = lower_bounds[i], upper_bounds[i]
+            while lower < upper-1:
+                guess = (lower + upper) // 2  # > lower.
+                # Build new inequalities corresponding to: lower <= x_i < guess.
+                lower_guess_ieqs = [
+                    [-lower] + [0] * i + [1] + [0] * (D - i - 1),
+                    [guess-1] + [0] * i + [-1] + [0] * (D - i - 1),
+                    ]
+                lower_guess_count = count(extra_eqns, lower_guess_ieqs)
+                if lower_guess_count > index:  # Move upper down to guess.
+                    upper = guess
+                    index -= 0
+                else:  # lower_guess_count <= index:  # Move lower up to guess.
+                    lower = guess
+                    index -= lower_guess_count
+            coordinate.append(lower)
+            extra_eqns.append([-lower] + [0] * i + [1] + [0] * (D - i - 1))
+        return vector(ZZ, coordinate)
+
     @cached_method
     def combinatorial_automorphism_group(self, vertex_graph_only=False):
         """

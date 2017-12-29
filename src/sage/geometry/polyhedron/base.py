@@ -5287,8 +5287,43 @@ class Polyhedron_base(Element):
         return tuple(points)
 
     def get_integral_point(self, index, **kwds):
+        r"""
+        Return the integral point self.integral_points()[index].
+
+        However, so long as self.integral_points_count() does not need to enumerate
+        all integral points, neither does this method. Hence this method can be
+        significantly faster.
+
+        INPUT:
+
+        - ``index`` -- integer. The index of the integral point to be found. If this is
+        not in [0, ``self.integral_point_count()``), an ``IndexError`` is raised.
+
+        OUTPUT:
+
+        The integral point in the polyhedron which appears at the given index in the
+        list of integral points returned by self.integral_points(). Note that the
+        points in this list are sorted, first by their first component and then by
+        their second component and so on.
+        If the polyhedron is not compact, a ``ValueError`` is raised.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[(-1,-1),(1,0),(1,1),(0,1)])
+            sage: P.get_integral_point(1)
+            (0, 0)
+            sage: P.get_integral_point(4)
+            (1, 1)
+            sage: P.integral_points()
+            ((-1, -1), (0, 0), (0, 1), (1, 0), (1, 1))
+        """
+
+        if not self.is_compact():
+            raise ValueError('Can only enumerate points in a compact polyhedron.')
 
         def count(eqns, ieqs):
+            r""" Return the number of integral points in this polytope intersected with the one given by eqns and ieqs. """
+
             return Polyhedron(eqns=self.equations_list() + extra_eqns, ieqs=self.inequalities_list() + extra_ieqs).integral_points_count(**kwds)
 
         if not 0 <= index < count([], []):
@@ -5297,8 +5332,8 @@ class Polyhedron_base(Element):
         D = self.ambient_dim()
         lower_bounds, upper_bounds = self.bounding_box()
         coordinate = []
-        extra_eqns = []  # For the components of the coordinate that we have already found.
-        for i in range(D):
+        extra_eqns = []  # Constraints from the components of the coordinate that we have already found.
+        for i in range(D):  # Now compute the ith component of coordinate.
             lower, upper = lower_bounds[i], upper_bounds[i]
             while lower < upper-1:
                 guess = (lower + upper) // 2  # > lower.
@@ -5307,6 +5342,7 @@ class Polyhedron_base(Element):
                     [-lower] + [0] * i + [1] + [0] * (D - i - 1),
                     [guess-1] + [0] * i + [-1] + [0] * (D - i - 1),
                     ]
+                # Find out how many integral points are in this range.
                 lower_guess_count = count(extra_eqns, lower_guess_ieqs)
                 if lower_guess_count > index:  # Move upper down to guess.
                     upper = guess
@@ -5314,6 +5350,7 @@ class Polyhedron_base(Element):
                 else:  # lower_guess_count <= index:  # Move lower up to guess.
                     lower = guess
                     index -= lower_guess_count
+            # Record the new component that we have found.
             coordinate.append(lower)
             extra_eqns.append([-lower] + [0] * i + [1] + [0] * (D - i - 1))
         return vector(ZZ, coordinate)

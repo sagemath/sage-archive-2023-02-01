@@ -1327,8 +1327,11 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         self._assume_disc_small = assume_disc_small
         self._maximize_at_primes = maximize_at_primes
         self._structure = structure
+        # even though number fields are infinite, it seems delicate
+        # to have it automatically understood by the category
+        # see https://groups.google.com/forum/#!topic/sage-devel/-ZtXuXan6cg
         from sage.categories.number_fields import NumberFields
-        default_category = NumberFields()
+        default_category = NumberFields().Infinite()
         if category is None:
             category = default_category
         else:

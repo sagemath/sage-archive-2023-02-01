@@ -231,9 +231,12 @@ class RationalField(Singleton, number_field_base.NumberField):
             True
         """
         from sage.categories.basic import QuotientFields
+        # even though number fields are infinite, it seems delicate
+        # to have it automatically understood by the category
+        # see https://groups.google.com/forum/#!topic/sage-devel/-ZtXuXan6cg
         from sage.categories.number_fields import NumberFields
         ParentWithGens.__init__(self, self, category=[QuotientFields().Metric(),
-                                                      NumberFields()])
+                                                      NumberFields().Infinite()])
         self._assign_names(('x',),normalize=False) # ???
         self._populate_coercion_lists_(init_no_parent=True)
 

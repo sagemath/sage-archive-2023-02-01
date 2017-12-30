@@ -231,7 +231,7 @@ class FreeLieBasis_abstract(FinitelyGeneratedLieAlgebra, IndexedGenerators, Bind
         from sage.arith.all import moebius
         s = len(self.lie_algebra_generators())
         k = ZZ(k) # Make sure we have something that is in ZZ
-        return sum(moebius(d) * s**(k/d) for d in k.divisors()) // k
+        return sum(moebius(d) * s**(k // d) for d in k.divisors()) // k
 
     @abstract_method
     def graded_basis(self, k):
@@ -669,7 +669,10 @@ class FreeLieAlgebra(Parent, UniqueRepresentation):
             # Rewrite [[a, b], c] = [a, [b, c]] + [[a, c], b] with a < b < c
             # with a = l._left, b = l._right and c = r.
             # Here, we use the fact that deg(l) > 1, because
-            # (actually, why?).
+            # if we had deg(l) == 1, then the
+            # "if self._is_basis_element(l, r)" would already have
+            # caught us.
+            # For a similar reason, we have b >= c.
             # Compute the left summand
             for m, inner_coeff in iteritems(self._rewrite_bracket(l._right, r)):
                 if l._left == m:
@@ -746,6 +749,10 @@ class FreeLieAlgebra(Parent, UniqueRepresentation):
 
                 sage: L = LieAlgebra(QQ, 'x', 3)
                 sage: Lyn = L.Lyndon()
+                sage: Lyn.graded_basis(1)
+                (x0, x1, x2)
+                sage: Lyn.graded_basis(2)
+                ([x0, x1], [x0, x2], [x1, x2])
                 sage: Lyn.graded_basis(4)
                 ([x0, [x0, [x0, x1]]],
                  [x0, [x0, [x0, x2]]],
@@ -775,7 +782,7 @@ class FreeLieAlgebra(Parent, UniqueRepresentation):
                 sage: [len(Lyn.graded_basis(i)) for i in range(1, 11)]
                 [3, 3, 8, 18, 48, 116, 312, 810, 2184, 5880]
             """
-            if k <= 0:
+            if k <= 0 or not self._indices:
                 return []
 
             names = self.variable_names()
@@ -788,23 +795,16 @@ class FreeLieAlgebra(Parent, UniqueRepresentation):
             #   combined logic
             from sage.combinat.integer_vector import IntegerVectors
             from sage.combinat.necklace import _sfc
+
             n = len(self._indices)
             ret = []
             for c in IntegerVectors(k, n):
                 nonzero_indices = [i for i,val in enumerate(c) if val != 0]
 
-                if not nonzero_indices:
-                    continue
-
                 cf = [c[i] for i in nonzero_indices]
 
-                # Strip leading 0's
-                a = 0
-                while cf[a] == 0:
-                    a += 1
-
-                for z in _sfc(cf[a:], equality=True):
-                    b = self._standard_bracket(tuple([names[nonzero_indices[i+a]] for i in z]))
+                for z in _sfc(cf, equality=True):
+                    b = self._standard_bracket(tuple([names[nonzero_indices[i]] for i in z]))
                     ret.append(self.element_class(self, {b: one}))
             return tuple(ret)
 
@@ -832,7 +832,7 @@ class FreeLieAlgebraBases(Category_realization_of_parent):
     """
     def __init__(self, base):
         r"""
-        Initialize the bases of a Iwahori-Hecke algebra.
+        Initialize the bases of a free Lie algebra.
 
         INPUT:
 
@@ -880,12 +880,18 @@ def is_lyndon(w):
     """
     Modified form of ``Word(w).is_lyndon()`` which uses the default order
     (this will either be the natural integer order or lex order) and assumes
-    the input ``w`` behaves like a list.
+    the input ``w`` behaves like a nonempty list.
     This function here is designed for speed.
 
     EXAMPLES::
 
         sage: from sage.algebras.lie_algebras.free_lie_algebra import is_lyndon
+        sage: is_lyndon([1])
+        True
+        sage: is_lyndon([1,3,1])
+        False
+        sage: is_lyndon((2,2,3))
+        True
         sage: all(is_lyndon(x) for x in LyndonWords(3, 5))
         True
         sage: all(is_lyndon(x) for x in LyndonWords(6, 4))
@@ -898,7 +904,7 @@ def is_lyndon(w):
         elif w[i] == let:
             i += 1
         else:
-            # we found the first word in the lyndon factorization;
+            # we found the first word in the lyndon factorization.
             return False
     return i == 0
 

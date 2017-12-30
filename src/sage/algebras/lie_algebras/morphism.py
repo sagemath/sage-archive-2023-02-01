@@ -23,8 +23,8 @@ class LieAlgebraHomomorphism_im_gens(Morphism):
     r"""
     A homomorphism of Lie algebras.
 
-    Let `\mathfrak{g}` and `\mathfrak{g}^{\prime}` be Lie algebras,
-    a linear map `f \colon \mathfrak{g} \to \mathfrak{g}^{\prime}` is a
+    Let `\mathfrak{g}` and `\mathfrak{g}^{\prime}` be Lie algebras.
+    A linear map `f \colon \mathfrak{g} \to \mathfrak{g}^{\prime}` is a
     homomorphism (of Lie algebras) if `f([x, y]) = [f(x), f(y)]` for all
     `x, y \in \mathfrak{g}`. Thus homomorphisms are completely determined
     by the image of the generators of `\mathfrak{g}`.
@@ -209,7 +209,7 @@ class LieAlgebraHomset(Homset):
 
     def __call__(self, im_gens, check=True):
         """
-        Construct an morphism from ``im_gens``.
+        Construct a morphism from ``im_gens``.
 
         EXAMPLES::
 

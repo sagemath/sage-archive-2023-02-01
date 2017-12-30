@@ -275,7 +275,9 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
          + [[x, [x, y]], [z, [x, y]]]
 
     We also have the free Lie algebra given in the polynomial
-    representation, which is the Lie algebra of the free algebra.
+    representation, which is the canonical embedding of the free
+    Lie algebra into the free algebra (i.e., the ring of
+    noncommutative polynomials).
     So the generators of the free Lie algebra are the generators of the
     free algebra and the Lie bracket is the commutator::
 

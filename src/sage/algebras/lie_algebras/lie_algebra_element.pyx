@@ -1717,9 +1717,14 @@ cdef class GradedLieBracket(LieBracket):
 
 cdef class LyndonBracket(GradedLieBracket):
     """
-    A Lie bracket (:class:`LieBracket`) tailored for the Lyndon basis
-    where the order is defined by `l < r` if `w(l) < w(r)`,
-    where `w(l)` is the word corresponding to `l`.
+    A Lie bracket (:class:`LieBracket`) tailored for the Lyndon
+    basis.
+
+    The order on these brackets is defined by `l < r`
+    if `w(l) < w(r)`, where `w(l)` is the word corresponding
+    to `l`.
+    (This is also true if one or both of `l` and `r` is a
+    :class:`LieGenerator`.)
     """
     def __richcmp__(self, rhs, op):
         """

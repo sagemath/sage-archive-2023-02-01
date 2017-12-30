@@ -89,7 +89,7 @@ from sage.rings.qqbar import number_field_elements_from_algebraics
 from sage.sets.all import Set
 from sage.misc.flatten import flatten
 from sage.interfaces.gp import gp
-from scipy.linalg import lu
+import sage.libs.mpmath.all as mpall
 import operator
 
 def voronoi_ghost(cpoints, n=6, CC=CDF):
@@ -197,6 +197,40 @@ def bisect(L,t):
             min = mid
     # Once the loop terminates, we return what the indices converged to.
     return min
+
+def numerical_inverse(C):
+    """
+    Compute numerical inverse of a matrix via LU decomposition
+
+    INPUT:
+
+    - ``C`` -- A real or complex invertible square matrix
+
+    EXAMPLE::
+
+        sage: C=matrix(CC,3,3,[-4.5606e-31 + 1.2326e-31*I,
+        ....: -0.21313 + 0.24166*I,
+        ....: -3.4513e-31 + 0.16111*I,
+        ....: -1.0175 + 9.8608e-32*I,
+        ....: 0.30912 + 0.19962*I,
+        ....: -4.9304e-32 + 0.39923*I,
+        ....: 0.96793 - 3.4513e-31*I,
+        ....: -0.091587 + 0.19276*I,
+        ....: 3.9443e-31 + 0.38552*I])
+        sage: from sage.schemes.riemann_surfaces.riemann_surface import numerical_inverse
+        sage: max(abs(c) for c in (C^(-1)*C-C^0).list()) < 1e-10
+        False
+        sage: max(abs(c) for c in (numerical_inverse(C)*C-C^0).list()) < 1e-10
+        True
+    """
+    R=C.parent()
+    prec = R.base_ring().prec()
+    mpall.mp.prec = prec
+    with mpall.workprec(prec):
+        Cmp=mpall.matrix([mpall.sage_to_mpmath(list(c),prec) for c in C])
+        PLU=mpall.lu(Cmp)
+    P,L,U=[ R([mpall.mpmath_to_sage(c,prec) for c in M]) for M in PLU]
+    return U.inverse()*L.inverse()*P
 
 class ConvergenceError(ValueError):
     r"""
@@ -1484,7 +1518,7 @@ class RiemannSurface(object):
         """
         PeriodMatrix = self.period_matrix()
         Am = PeriodMatrix[0:self.genus,0:self.genus]
-        RM = (Am.inverse())*PeriodMatrix[0:self.genus,self.genus:2*self.genus]
+        RM = numerical_inverse(Am)*PeriodMatrix[0:self.genus,self.genus:2*self.genus]
         return RM
 
     def plot_paths(self):
@@ -1691,7 +1725,7 @@ class RiemannSurface(object):
         P = self.period_matrix()
         Q = other.period_matrix()
         g = P.nrows()
-        subP = (P[:g,:g]).inverse()
+        subP = numerical_inverse(P[:g,:g])
         Ts = [(Q*R)[:g,:g] * subP for R in Rs]
         return [ T.change_ring(P.base_ring()) for T in Ts ]
 

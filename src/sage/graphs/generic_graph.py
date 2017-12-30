@@ -176,7 +176,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.is_regular` | Return ``True`` if this graph is (`k`-)regular.
     :meth:`~GenericGraph.is_chordal` | Test whether the given graph is chordal.
     :meth:`~GenericGraph.is_circulant` | Test whether the graph is a circulant graph.
-    :meth:`~GenericGraph.is_interval` | Check whether self is an interval graph
+    :meth:`~GenericGraph.is_interval` | Check whether the graph is an interval graph.
     :meth:`~GenericGraph.is_gallai_tree` | Return whether the current graph is a Gallai tree.
     :meth:`~GenericGraph.is_clique` | Test whether a set of vertices is a clique
     :meth:`~GenericGraph.is_cycle` | Test whether self is a (directed) cycle graph.
@@ -13283,20 +13283,26 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 return (False, None)
 
-    def is_interval(self, certificate = False):
+    def is_interval(self, certificate=False):
         r"""
-        Check whether self is an interval graph
+        Check whether the graph is an interval graph.
+
+        An *interval graph* is one where every vertex can be seen as
+        an interval on the real line so that there is an edge in the graph
+        iff the corresponding intervals intersects.
+
+        See :wikipedia:`Interval_graph` for more information.
 
         INPUT:
 
         - ``certificate`` (boolean) -- The function returns ``True``
-          or ``False`` according to the graph, when ``certificate =
-          False`` (default). When ``certificate = True`` and the graph
-          is an interval graph, a dictionary whose keys are the
-          vertices and values are pairs of integers are returned
-          instead of ``True``. They correspond to an embedding of the
-          interval graph, each vertex being represented by an interval
-          going from the first of the two values to the second.
+          or ``False`` according to the graph when ``certificate=False``
+          (default). When ``certificate=True`` it returns either
+          ``(False, None)`` or ``(True, d)`` where ``d`` is a dictionary
+          whose keys are the vertices and values are pairs of integers.
+          They correspond to an embedding of the interval graph, each
+          vertex being represented by an interval going from the first
+          of the two values to the second.
 
         ALGORITHM:
 
@@ -13306,46 +13312,26 @@ class GenericGraph(GenericGraph_pyx):
 
         Nathann Cohen (implementation)
 
-        EXAMPLES:
+        EXAMPLES::
 
-        A Petersen Graph is not chordal, nor can it be an interval
-        graph ::
+            sage: g = Graph({1: [2, 3, 4], 4: [2, 3]})
+            sage: g.is_interval()
+            True
+            sage: g.is_interval(certificate=True)
+            (True, {1: (0, 5), 2: (4, 6), 3: (1, 3), 4: (2, 7)})
+
+        The Petersen Graph is not chordal, so in can't be an interval
+        graph::
 
             sage: g = graphs.PetersenGraph()
             sage: g.is_interval()
             False
 
-        Though we can build intervals from the corresponding random
-        generator::
+        A chordal but still not an interval graph::
 
-            sage: g = graphs.RandomIntervalGraph(20)
+            sage: g = Graph({1: [4, 2, 3], 2: [3, 5], 3: [6]})
             sage: g.is_interval()
-            True
-
-        This method can also return, given an interval graph, a
-        possible embedding (we can actually compute all of them
-        through the PQ-Tree structures)::
-
-            sage: g = Graph(':S__@_@A_@AB_@AC_@ACD_@ACDE_ACDEF_ACDEFG_ACDEGH_ACDEGHI_ACDEGHIJ_ACDEGIJK_ACDEGIJKL_ACDEGIJKLMaCEGIJKNaCEGIJKNaCGIJKNPaCIP', loops=False, multiedges=False)
-            sage: d = g.is_interval(certificate = True)
-            sage: print(d)                                    # not tested
-            {0: (0, 20), 1: (1, 9), 2: (2, 36), 3: (3, 5), 4: (4, 38), 5: (6, 21), 6: (7, 27), 7: (8, 12), 8: (10, 29), 9: (11, 16), 10: (13, 39), 11: (14, 31), 12: (15, 32), 13: (17, 23), 14: (18, 22), 15: (19, 33), 16: (24, 25), 17: (26, 35), 18: (28, 30), 19: (34, 37)}
-
-        From this embedding, we can clearly build an interval graph
-        isomorphic to the previous one::
-
-            sage: g2 = graphs.IntervalGraph(d.values())
-            sage: g2.is_isomorphic(g)
-            True
-
-        Enumerate all small interval graphs::
-
-            sage: n = 8
-            sage: count = [0]*(n+1)
-            sage: for g in graphs(n, augment='vertices',property= lambda x:x.is_interval()): # not tested -- 50s
-            ....:     count[g.order()] += 1                                                  # not tested -- 50s
-            sage: count                                                                      # not tested -- 50s
-            [1, 1, 2, 4, 10, 27, 92, 369, 1807]
+            False
 
         .. SEEALSO::
 
@@ -13353,6 +13339,34 @@ class GenericGraph(GenericGraph_pyx):
 
             - :meth:`PQ <sage.graphs.pq_trees.PQ>`
               -- Implementation of PQ-Trees.
+
+        TESTS::
+
+            sage: E = Graph()
+            sage: E.is_interval()
+            True
+            sage: E.is_interval(certificate=True)
+            (True, {})
+
+            sage: graphs.CycleGraph(4).is_interval(certificate=True)
+            (False, None)
+
+        Enumerate all small interval graphs::
+
+            sage: [sum(1 for g in graphs(i) if g.is_interval()) for i in range(8)]  # Long time. Compare to A005975 in OEIS.
+            [1, 1, 2, 4, 10, 27, 92, 369]
+
+        Test certicate on a larger graph by re-doing isomorphic graph::
+
+            sage: g = Graph(':S__@_@A_@AB_@AC_@ACD_@ACDE_ACDEF_ACDEFG_ACDEGH_ACDEGHI_ACDEGHIJ_ACDEGIJK_ACDEGIJKL_ACDEGIJKLMaCEGIJKNaCEGIJKNaCGIJKNPaCIP', loops=False, multiedges=False)
+            sage: d = g.is_interval(certificate=True)[1]
+            sage: print(d)                                    # not tested
+            {0: (0, 20), 1: (1, 9), 2: (2, 36), 3: (3, 5), 4: (4, 38), 5: (6, 21), 6: (7, 27), 7: (8, 12), 8: (10, 29), 9: (11, 16), 10: (13, 39), 11: (14, 31), 12: (15, 32), 13: (17, 23), 14: (18, 22), 15: (19, 33), 16: (24, 25), 17: (26, 35), 18: (28, 30), 19: (34, 37)}
+
+            sage: g2 = graphs.IntervalGraph(d.values())
+            sage: g2.is_isomorphic(g)
+            True
+
         """
         self._scream_if_not_simple()
 
@@ -13361,7 +13375,7 @@ class GenericGraph(GenericGraph_pyx):
         # by the way :-)
 
         if not self.is_chordal():
-            return False
+            return (False, None) if certificate else False
 
         # First, we need to gather the list of maximal cliques, which
         # is easy as the graph is chordal
@@ -13397,7 +13411,7 @@ class GenericGraph(GenericGraph_pyx):
                 return True
 
         except ValueError:
-            return False
+            return (False, None) if certificate else False
 
         # We are now listing the maximal cliques in the given order,
         # and keeping track of the vertices appearing/disappearing
@@ -13420,9 +13434,7 @@ class GenericGraph(GenericGraph_pyx):
 
             current = S
 
-
-        return dict([(v, (beg[v], end[v])) for v in self])
-
+        return (True, dict([(v, (beg[v], end[v])) for v in self]))
 
     def is_gallai_tree(self):
         r"""

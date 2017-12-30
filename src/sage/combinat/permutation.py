@@ -2595,7 +2595,7 @@ class Permutation(CombinatorialElement):
             Permutation([]).reduced_words()
             [[]]
         """
-        return [w for w in self.reduced_words_iterator()]
+        return list(self.reduced_words_iterator())
 
     def reduced_word_lexmin(self):
         r"""

@@ -211,7 +211,7 @@ def column_matrix(*args, **kwds):
 
 
 @matrix_method
-def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds):
+def random_matrix(ring, nrows, ncols=None, algorithm='randomize', implementation=None, *args, **kwds):
     r"""
     Return a random matrix with entries in a specified ring, and possibly with additional properties.
 
@@ -244,6 +244,10 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
        - ``diagonalizable`` - creates a diagonalizable matrix whose
          eigenvectors, if computed by hand, will have only integer
          entries.
+
+    - ``implementation`` -  (``None`` or string or a matrix class) a possible
+      implementation. See the documentation of the constructor of
+      :class:`~sage.matrix.matrix_space.MatrixSpace`.
 
     -  ``*args, **kwds`` - arguments and keywords to describe additional
        properties. See more detailed documentation below.
@@ -364,6 +368,14 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
         sage: A = random_matrix(ZZ, 100, 100, x=2^16); A
         100 x 100 dense matrix over Integer Ring (use the '.str()' method to see the entries)
 
+    One can prescribe a specific matrix implementation::
+
+        sage: K.<a>=FiniteField(2^8)
+        sage: type(random_matrix(K, 2, 5))
+        <type 'sage.matrix.matrix_gf2e_dense.Matrix_gf2e_dense'>
+        sage: type(random_matrix(K, 2, 5, implementation="generic"))
+        <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
+
     Random rational matrices.  Now ``num_bound`` and ``den_bound`` control the
     generation of random elements, by specifying limits on the absolute value of
     numerators and denominators (respectively).  Entries will be positive and
@@ -407,10 +419,7 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
     that we use the default implementation in this test::
 
         sage: K.<a>=FiniteField(3^2)
-        sage: from sage.matrix.matrix_generic_dense import Matrix_generic_dense
-        sage: MS = MatrixSpace(K, 2, 5)
-        sage: MS._MatrixSpace__matrix_class = Matrix_generic_dense
-        sage: random_matrix(K, 2, 5)
+        sage: random_matrix(K, 2, 5, implementation='generic')
         [      1       a       1 2*a + 1       2]
         [    2*a   a + 2       0       2       1]
 
@@ -585,7 +594,7 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
         ncols = nrows
     sparse = kwds.pop('sparse', False)
     # Construct the parent of the desired matrix
-    parent = matrix_space.MatrixSpace(ring, nrows, ncols, sparse=sparse)
+    parent = matrix_space.MatrixSpace(ring, nrows, ncols, sparse=sparse, implementation=implementation)
     if algorithm == 'randomize':
         density = kwds.pop('density', None)
         # zero matrix is immutable, copy is mutable
@@ -3538,7 +3547,7 @@ def toeplitz(c, r, ring=None):
     r"""
     Return a Toeplitz matrix of given first column and first row.
 
-    In a Toeplitz matrix, each descending diagonal from left to right is 
+    In a Toeplitz matrix, each descending diagonal from left to right is
     constant, such that:
 
     .. MATH:: T_{i,j} = T_{i+1, j+1}.

@@ -5290,22 +5290,38 @@ class Polyhedron_base(Element):
         r"""
         Return the integral point self.integral_points()[index].
 
-        However, so long as self.integral_points_count() does not need to enumerate
-        all integral points, neither does this method. Hence it can be significantly
-        faster.
+        However, so long as self.integral_points_count() does not need to
+        enumerate all integral points, neither does this method. Hence it can be
+        significantly faster.
 
         INPUT:
 
-        - ``index`` -- integer. The index of the integral point to be found. If this is
-          not in [0, ``self.integral_point_count()``), an ``IndexError`` is raised.
+        - ``index`` -- integer. The index of the integral point to be found. If
+          this is not in [0, ``self.integral_point_count()``), an ``IndexError``
+          is raised.
+
+        - ``**kwds`` -- optional keyword parameters that are passed to
+          :meth:`self.integral_points_count`.
 
         OUTPUT:
 
-        The integral point in the polyhedron which appears at the given index in the
-        list of integral points returned by self.integral_points(). Note that the
-        points in this list are sorted, first by their first component and then by
-        their second component and so on.
-        If the polyhedron is not compact, a ``ValueError`` is raised.
+        The integral point in the polyhedron which appears at the given index in
+        the list of integral points returned by self.integral_points(). Note
+        that the points in this list are sorted first by their first component
+        and then by their second component and so on.  If the polyhedron is not
+        compact, a ``ValueError`` is raised.
+
+        ALGORITHM:
+
+        The function computes each of the components of the requested point in
+        turn.  To compute x_i, the ith component, it bisects the the upper and
+        lower bounds on x_i given by the bounding box. At each bisection, it
+        uses :meth:`integral_points_count` to determine on which side of the
+        bisecting hyperplane the requested point lies.
+
+        .. SEEALSO::
+
+            :meth:`integral_points_count`.
 
         EXAMPLES::
 
@@ -5316,6 +5332,10 @@ class Polyhedron_base(Element):
             (1, 1)
             sage: P.integral_points()
             ((-1, -1), (0, 0), (0, 1), (1, 0), (1, 1))
+
+            sage: Q = Polyhedron([(1,3), (2, 7), (9, 77)])
+            sage: [Q.get_integral_point(i) for i in range(Q.integral_points_count())] == list(Q.integral_points())
+            True
         """
 
         if not self.is_compact():
@@ -5324,7 +5344,7 @@ class Polyhedron_base(Element):
         def count(eqns, ieqs):
             r""" Return the number of integral points in this polytope intersected with the one given by eqns and ieqs. """
 
-            return Polyhedron(eqns=self.equations_list() + extra_eqns, ieqs=self.inequalities_list() + extra_ieqs).integral_points_count(**kwds)
+            return Polyhedron(eqns=self.equations_list() + eqns, ieqs=self.inequalities_list() + ieqs).integral_points_count(**kwds)
 
         if not 0 <= index < count([], []):
             raise IndexError('polytope index out of range')
@@ -5333,8 +5353,8 @@ class Polyhedron_base(Element):
         lower_bounds, upper_bounds = self.bounding_box()
         coordinate = []
         extra_eqns = []  # Constraints from the components of the coordinate that we have already found.
-        for i in range(D):  # Now compute the ith component of coordinate.
-            lower, upper = lower_bounds[i], upper_bounds[i]
+        for i in range(D):  # Now compute x_i, the ith component of coordinate.
+            lower, upper = lower_bounds[i], upper_bounds[i] + 1  # So lower <= x_i < upper.
             while lower < upper-1:
                 guess = (lower + upper) // 2  # > lower.
                 # Build new inequalities corresponding to: lower <= x_i < guess.

@@ -5291,13 +5291,13 @@ class Polyhedron_base(Element):
         Return the integral point self.integral_points()[index].
 
         However, so long as self.integral_points_count() does not need to enumerate
-        all integral points, neither does this method. Hence this method can be
-        significantly faster.
+        all integral points, neither does this method. Hence it can be significantly
+        faster.
 
         INPUT:
 
         - ``index`` -- integer. The index of the integral point to be found. If this is
-        not in [0, ``self.integral_point_count()``), an ``IndexError`` is raised.
+          not in [0, ``self.integral_point_count()``), an ``IndexError`` is raised.
 
         OUTPUT:
 

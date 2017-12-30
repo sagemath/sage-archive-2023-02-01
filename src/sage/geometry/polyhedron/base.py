@@ -17,6 +17,7 @@ Base class for polyhedra
 from __future__ import division, print_function, absolute_import
 
 import itertools
+import random
 import six
 from sage.structure.element import Element, coerce_binop, is_Vector
 from sage.structure.richcmp import rich_to_bool, op_NE

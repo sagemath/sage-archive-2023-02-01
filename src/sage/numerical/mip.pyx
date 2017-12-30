@@ -3190,6 +3190,14 @@ cdef class MIPVariable(SageObject):
             (1.0, 2.0)*x_0 + (3.0, 4.0)*x_1
             sage: m * v
             (1.0, 3.0)*x_0 + (2.0, 4.0)*x_1
+
+            sage: p = MixedIntegerLinearProgram(solver='PPL')
+            sage: v = p.new_variable()
+            sage: m = matrix([[1,1/2], [2/3,3/4]])
+            sage: v * m
+            (1, 1/2)*x_0 + (2/3, 3/4)*x_1
+            sage: m * v
+            (1, 2/3)*x_0 + (1/2, 3/4)*x_1
         """
         if isinstance(left, MIPVariable):
             if not is_Matrix(right):

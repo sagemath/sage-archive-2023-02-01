@@ -5288,7 +5288,7 @@ class Polyhedron_base(Element):
 
     def get_integral_point(self, index, **kwds):
         r"""
-        Return the integral point self.integral_points()[index].
+        Return the integral point sorted(self.integral_points())[index].
 
         However, so long as self.integral_points_count() does not need to
         enumerate all integral points, neither does this method. Hence it can be
@@ -5305,11 +5305,11 @@ class Polyhedron_base(Element):
 
         OUTPUT:
 
-        The integral point in the polyhedron which appears at the given index in
-        the list of integral points returned by self.integral_points(). Note
-        that the points in this list are sorted first by their first component
-        and then by their second component and so on.  If the polyhedron is not
-        compact, a ``ValueError`` is raised.
+        The integral point in the polyhedron which appears at the given index
+        in the sorted list of integral points returned by
+        self.integral_points(). Note that the points in this list are sorted
+        first by their first component and then by their second component and
+        so on.  If the polyhedron is not compact, a ``ValueError`` is raised.
 
         ALGORITHM:
 
@@ -5374,6 +5374,36 @@ class Polyhedron_base(Element):
             coordinate.append(lower)
             extra_eqns.append([-lower] + [0] * i + [1] + [0] * (D - i - 1))
         return vector(ZZ, coordinate)
+
+    def random_integral_point(self, **kwds):
+        r"""
+        Return an integral point in this polyhedron chosen uniformly at random.
+
+        INPUT:
+
+        - ``**kwds`` -- optional keyword parameters that are passed to
+          :meth:`self.get_integral_point`.
+
+        OUTPUT:
+
+        The integral point in the polyhedron chosen uniformly at random.
+        If the polyhedron is not compact, a ``ValueError`` is raised.
+
+        .. SEEALSO::
+
+            :meth:`get_integral_point`.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[(-1,-1),(1,0),(1,1),(0,1)])
+            sage: P.random_integral_point()  # random
+            (0, 0)
+            sage: P.random_integral_point() in P.integral_points()
+            True
+        """
+
+        index = random.randint(0, self.integral_points_count()-1)
+        return self.get_integral_point(index)
 
     @cached_method
     def combinatorial_automorphism_group(self, vertex_graph_only=False):

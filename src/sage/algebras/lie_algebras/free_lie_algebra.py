@@ -426,6 +426,12 @@ class FreeLieAlgebra(Parent, UniqueRepresentation):
     class Hall(FreeLieBasis_abstract):
         """
         The free Lie algebra in the Hall basis.
+
+        The basis keys are objects of class
+        :class:`~sage.algebras.lie_algebras.lie_algebra_element.LieGenerator`
+        (in degree `1`) and
+        :class:`~sage.algebras.lie_algebras.lie_algebra_element.GradedLieBracket`
+        (in degree `> 1`).
         """
         def __init__(self, lie):
             r"""
@@ -614,6 +620,12 @@ class FreeLieAlgebra(Parent, UniqueRepresentation):
     class Lyndon(FreeLieBasis_abstract):
         """
         The free Lie algebra in the Lyndon basis.
+
+        The basis keys are objects of class
+        :class:`~sage.algebras.lie_algebras.lie_algebra_element.LieGenerator`
+        (in degree `1`) and
+        :class:`~sage.algebras.lie_algebras.lie_algebra_element.LyndonBracket`
+        (in degree `> 1`).
         """
         def __init__(self, lie):
             r"""

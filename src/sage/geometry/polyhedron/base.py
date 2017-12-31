@@ -5382,7 +5382,9 @@ class Polyhedron_base(Element):
             # Record the new component that we have found.
             coordinate.append(lower)
             extra_eqns.append([-lower] + [0] * i + [1] + [0] * (D - i - 1))
-        return vector(ZZ, coordinate)
+        point = vector(ZZ, coordinate)
+        point.set_immutable()
+        return point
 
     def random_integral_point(self, **kwds):
         r"""

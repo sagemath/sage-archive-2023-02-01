@@ -5350,13 +5350,13 @@ class Polyhedron_base(Element):
         if not self.is_compact():
             raise ValueError('Can only enumerate points in a compact polyhedron.')
 
+        if not 0 <= index < self.integral_points_count():
+            raise IndexError('polytope index out of range')
+
         def count(eqns, ieqs):
             r""" Return the number of integral points in this polytope intersected with the one given by eqns and ieqs. """
 
             return Polyhedron(eqns=self.equations_list() + eqns, ieqs=self.inequalities_list() + ieqs).integral_points_count(**kwds)
-
-        if not 0 <= index < count([], []):
-            raise IndexError('polytope index out of range')
 
         D = self.ambient_dim()
         lower_bounds, upper_bounds = self.bounding_box()

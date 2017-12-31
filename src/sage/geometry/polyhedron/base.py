@@ -5363,7 +5363,7 @@ class Polyhedron_base(Element):
         coordinate = []
         extra_eqns = []  # Constraints from the components of the coordinate that we have already found.
         for i in range(D):  # Now compute x_i, the ith component of coordinate.
-            lower, upper = lower_bounds[i], upper_bounds[i] + 1  # So lower <= x_i < upper.
+            lower, upper = ceil(lower_bounds[i]), floor(upper_bounds[i]) + 1  # So lower <= x_i < upper.
             while lower < upper-1:
                 guess = (lower + upper) // 2  # > lower.
                 # Build new inequalities corresponding to: lower <= x_i < guess.

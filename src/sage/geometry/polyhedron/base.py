@@ -39,6 +39,8 @@ from .constructor import Polyhedron
 
 from sage.misc.superseded import deprecated_function_alias
 
+from sage.categories.sets_cat import EmptySetError
+
 #########################################################################
 # Notes if you want to implement your own backend:
 #
@@ -5335,8 +5337,14 @@ class Polyhedron_base(Element):
             ((-1, -1), (0, 0), (0, 1), (1, 0), (1, 1))
 
             sage: Q = Polyhedron([(1,3), (2, 7), (9, 77)])
-            sage: [Q.get_integral_point(i) for i in range(Q.integral_points_count())] == list(Q.integral_points())
+            sage: [Q.get_integral_point(i) for i in range(Q.integral_points_count())] == sorted(Q.integral_points())
             True
+
+            sage: R = Polyhedron(vertices=[[1/2, 1/3]], rays=[[1, 1]])
+            sage: R.get_integral_point(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: ...
         """
 
         if not self.is_compact():
@@ -5387,8 +5395,10 @@ class Polyhedron_base(Element):
 
         OUTPUT:
 
-        The integral point in the polyhedron chosen uniformly at random.
-        If the polyhedron is not compact, a ``ValueError`` is raised.
+        The integral point in the polyhedron chosen uniformly at random. If the
+        polyhedron is not compact, a ``ValueError`` is raised.  If the
+        polyhedron does not contain any integral points, an ``EmptySetError`` is
+        raised.
 
         .. SEEALSO::
 
@@ -5401,10 +5411,28 @@ class Polyhedron_base(Element):
             (0, 0)
             sage: P.random_integral_point() in P.integral_points()
             True
+
+            sage: Q = Polyhedron(vertices=[(2, 1/3)], rays=[(1, 2)])
+            sage: Q.random_integral_point()
+            Traceback (most recent call last):
+            ...
+            ValueError: ...
+
+            sage: R = Polyhedron(vertices=[(1/2, 0), (1, 1/2), (0, 1/2)])
+            sage: R.random_integral_point()
+            Traceback (most recent call last):
+            ...
+            EmptySetError: ...
         """
 
-        index = random.randint(0, self.integral_points_count()-1)
-        return self.get_integral_point(index)
+        if not self.is_compact():
+            raise ValueError('Can only sample integral points in a compact polyhedron.')
+
+        count = self.integral_points_count()
+        if count == 0:
+            raise EmptySetError('Polyhedron does not contain any integral points.')
+
+        return self.get_integral_point(random.randint(0, count-1))
 
     @cached_method
     def combinatorial_automorphism_group(self, vertex_graph_only=False):

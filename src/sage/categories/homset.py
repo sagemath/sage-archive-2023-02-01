@@ -47,8 +47,6 @@ AUTHORS:
 
 - Simon King (2013-02): added examples
 """
-from __future__ import absolute_import
-
 #*****************************************************************************
 #  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu>, William Stein <wstein@gmail.com>
 #
@@ -63,6 +61,8 @@ from __future__ import absolute_import
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+from __future__ import absolute_import, print_function
 
 from sage.categories.category import Category
 from . import morphism
@@ -402,7 +402,7 @@ def Hom(X, Y, category=None, check=True):
                 #   will be called twice.
                 # - This is bound to fail if X is an extension type and
                 #   does not actually inherit from category.parent_class
-                H = category.parent_class._Hom_(X, Y, category = category)
+                H = X.category().parent_class._Hom_(X, Y, category = category)
             except (AttributeError, TypeError):
                 # By default, construct a plain homset.
                 H = Homset(X, Y, category = category, check=check)

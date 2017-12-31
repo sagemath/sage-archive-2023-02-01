@@ -138,7 +138,7 @@ tmp-$(DMG): $(APP)/Contents/Resources/sage sage_symlink non_app_files
 $(DMG): tmp-$(DMG)
 	hdiutil convert -format UDBZ -o $(DMG) tmp-$(DMG)	
 
-.PHONY: clean default debug app non_app_files
+.PHONY: clean default debug app non_app_files sage_symlink
 
 clean:
 	rm -rf $(TARGET) build $(DMG) tmp-$(DMG) mnt

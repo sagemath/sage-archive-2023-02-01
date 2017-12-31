@@ -3068,6 +3068,9 @@ cdef class Expression(CommutativeRingElement):
         """
         Return True if this expression is a unit of the symbolic ring.
 
+        Note that a proof may be attempted to get the result. To avoid
+        this use ``(ex-1).is_trivial_zero()``.
+
         EXAMPLES::
 
             sage: SR(1).is_unit()
@@ -3079,7 +3082,7 @@ cdef class Expression(CommutativeRingElement):
         """
         if not not self:
             return True
-        if self.is_trivial_zero():
+        if self == 0:
             return False
         raise NotImplementedError
 

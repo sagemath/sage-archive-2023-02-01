@@ -131,7 +131,7 @@ tmp-$(DMG): $(APP)/Contents/Resources/sage sage_symlink non_app_files
 	@# to arrange the icons and set the background image
 	mkdir -p mnt
 	hdiutil attach tmp-$(DMG) -mountpoint mnt
-	osascript arrangeIcons.applescript mnt $(APP_NAME)
+	osascript tools/arrangeIcons.applescript mnt $(APP_NAME)
 	hdiutil detach mnt
 
 # Compress the built directory into a DMG

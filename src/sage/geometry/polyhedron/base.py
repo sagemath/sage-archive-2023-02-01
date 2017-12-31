@@ -5353,35 +5353,28 @@ class Polyhedron_base(Element):
         if not 0 <= index < self.integral_points_count():
             raise IndexError('polytope index out of range')
 
-        def count(eqns, ieqs):
-            r""" Return the number of integral points in this polytope intersected with the one given by eqns and ieqs. """
-
-            return Polyhedron(eqns=self.equations_list() + eqns, ieqs=self.inequalities_list() + ieqs).integral_points_count(**kwds)
-
         D = self.ambient_dim()
         lower_bounds, upper_bounds = self.bounding_box()
         coordinate = []
-        extra_eqns = []  # Constraints from the components of the coordinate that we have already found.
+        P = self
         for i in range(D):  # Now compute x_i, the ith component of coordinate.
             lower, upper = ceil(lower_bounds[i]), floor(upper_bounds[i]) + 1  # So lower <= x_i < upper.
             while lower < upper-1:
                 guess = (lower + upper) // 2  # > lower.
-                # Build new inequalities corresponding to: lower <= x_i < guess.
-                lower_guess_ieqs = [
-                    [-lower] + [0] * i + [1] + [0] * (D - i - 1),
-                    [guess-1] + [0] * i + [-1] + [0] * (D - i - 1),
-                    ]
-                # Find out how many integral points are in this range.
-                lower_guess_count = count(extra_eqns, lower_guess_ieqs)
-                if lower_guess_count > index:  # Move upper down to guess.
+                # Build new polyhedron by intersecting P with the halfspace {x_i < guess}.
+                P_lt_guess = P.intersection(Polyhedron(ieqs=[[guess-1] + [0] * i + [-1] + [0] * (D - i - 1)]))
+                # Avoid computing P_geq_guess = P.intersection{x_i >= guess} right now, it might not be needed.
+                P_lt_guess_count = P_lt_guess.integral_points_count()
+                if P_lt_guess_count > index:  # Move upper down to guess.
                     upper = guess
                     index -= 0
-                else:  # lower_guess_count <= index:  # Move lower up to guess.
+                    P = P_lt_guess
+                else:  # P_lt_guess_count <= index:  # Move lower up to guess.
                     lower = guess
-                    index -= lower_guess_count
-            # Record the new component that we have found.
-            coordinate.append(lower)
-            extra_eqns.append([-lower] + [0] * i + [1] + [0] * (D - i - 1))
+                    index -= P_lt_guess_count
+                    P_geq_guess = P.intersection(Polyhedron(ieqs=[[-guess] + [0] * i + [1] + [0] * (D - i - 1)]))
+                    P = P_geq_guess
+            coordinate.append(lower)  # Record the new component that we have found.
         point = vector(ZZ, coordinate)
         point.set_immutable()
         return point

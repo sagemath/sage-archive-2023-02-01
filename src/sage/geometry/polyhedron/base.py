@@ -17,13 +17,13 @@ Base class for polyhedra
 from __future__ import division, print_function, absolute_import
 
 import itertools
-import random
 import six
 from sage.structure.element import Element, coerce_binop, is_Vector
 from sage.structure.richcmp import rich_to_bool, op_NE
 
 from sage.misc.all import cached_method, prod
 from sage.misc.package import is_package_installed, PackageNotFoundError
+from sage.misc.randstate import current_randstate
 
 from sage.rings.all import QQ, ZZ, AA
 from sage.rings.real_double import RDF
@@ -5432,7 +5432,7 @@ class Polyhedron_base(Element):
         if count == 0:
             raise EmptySetError('Polyhedron does not contain any integral points.')
 
-        return self.get_integral_point(random.randint(0, count-1))
+        return self.get_integral_point(current_randstate().python_random().randint(0, count-1))
 
     @cached_method
     def combinatorial_automorphism_group(self, vertex_graph_only=False):

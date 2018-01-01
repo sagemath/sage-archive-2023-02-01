@@ -1,26 +1,22 @@
+# distutils: libraries = gmp mpfr mpfi
+
 from sage.libs.gmp.types cimport *
-from sage.libs.mpfr cimport *
+from sage.libs.mpfr.types cimport *
+from sage.libs.mpfi.types cimport *
 
 cdef extern from "mpfi.h":
-    ctypedef struct __mpfi_struct:
-        __mpfr_struct left
-        __mpfr_struct right
-    ctypedef __mpfi_struct mpfi_t[1]
-    ctypedef __mpfi_struct* mpfi_ptr
-    ctypedef __mpfi_struct* mpfi_srcptr
-
     # Rounding
-    int mpfi_round_prec(mpfi_ptr, mp_prec_t prec)
+    int mpfi_round_prec(mpfi_ptr, mpfr_prec_t prec)
 
     # Initialization, destruction, and assignment
     # Initializations
     void mpfi_init(mpfi_ptr)
-    void mpfi_init2(mpfi_ptr, mp_prec_t)
+    void mpfi_init2(mpfi_ptr, mpfr_prec_t)
     void mpfi_clear(mpfi_ptr)
 
     # mpfi bounds have the same precision
-    mp_prec_t mpfi_get_prec(mpfi_srcptr)
-    void mpfi_set_prec(mpfi_ptr, mp_prec_t)
+    mpfr_prec_t mpfi_get_prec(mpfi_srcptr)
+    void mpfi_set_prec(mpfi_ptr, mpfr_prec_t)
 
     # assignment functions
     int mpfi_set(mpfi_ptr, mpfi_srcptr)
@@ -252,9 +248,6 @@ cdef extern from "mpfi.h":
     int mpfi_intersect(mpfi_ptr, mpfi_srcptr, mpfi_srcptr)
     int mpfi_union(mpfi_ptr, mpfi_srcptr, mpfi_srcptr)
 
-    # complement... : to do later
-
-
     # Miscellaneous
 
     # adds the second argument to the right bound of the first one
@@ -269,45 +262,25 @@ cdef extern from "mpfi.h":
     char * mpfi_get_version()
 
     # Error handling
-
     void mpfi_reset_error()
     void mpfi_set_error(int)
     int mpfi_is_error()
 
-    # #define MPFI_FLAGS_BOTH_ENDPOINTS_EXACT       0
-    # #define MPFI_FLAGS_LEFT_ENDPOINT_INEXACT      1
-    # #define MPFI_FLAGS_RIGHT_ENDPOINT_INEXACT     2
-    # #define MPFI_FLAGS_BOTH_ENDPOINTS_INEXACT     3
-
     ctypedef enum mpfi_flags_exact:
-        MPFI_FLAGS_BOTH_ENDPOINTS_EXACT = 0
-        MPFI_FLAGS_LEFT_ENDPOINT_INEXACT = 1
-        MPFI_FLAGS_RIGHT_ENDPOINT_INEXACT = 2
-        MPFI_FLAGS_BOTH_ENDPOINTS_INEXACT = 3
+        MPFI_FLAGS_BOTH_ENDPOINTS_EXACT
+        MPFI_FLAGS_LEFT_ENDPOINT_INEXACT
+        MPFI_FLAGS_RIGHT_ENDPOINT_INEXACT
+        MPFI_FLAGS_BOTH_ENDPOINTS_INEXACT
 
-    # #define MPFI_BOTH_ARE_EXACT(x) ( (int)(x) == 0 )
-    # #define MPFI_LEFT_IS_INEXACT(x) ( (int)(x)%2 )
-    # #define MPFI_RIGHT_IS_INEXACT(x) ( (int)(x)/2 )
-    # #define MPFI_BOTH_ARE_INEXACT(x) ( (int)(x) == 3 )
-
-    bint MPFI_BOTH_ARE_EXACT(mpfi_flags_enum)
-    bint MPFI_LEFT_IS_INEXACT(mpfi_flags_enum)
-    bint MPFI_RIGHT_IS_INEXACT(mpfi_flags_enum)
-    bint MPFI_BOTH_ARE_INEXACT(mpfi_flags_enum)
-
-    # #define MPFI_REVERT_INEXACT_FLAGS(x) \
-    #   ( ((x)==1) ? 2 : ((x)==2) ? 1 : x )
+    bint MPFI_BOTH_ARE_EXACT(mpfi_flags_exact)
+    bint MPFI_LEFT_IS_INEXACT(mpfi_flags_exact)
+    bint MPFI_RIGHT_IS_INEXACT(mpfi_flags_exact)
+    bint MPFI_BOTH_ARE_INEXACT(mpfi_flags_exact)
 
     mpfi_flags_exact MPFI_REVERT_INEXACT_FLAGS(mpfi_flags_exact)
-
-    # #define MPFI_NAN_P(a) ( MPFR_IS_NAN(&(a->left)) || MPFR_IS_NAN (&(a->right)) )
-    # #define MPFI_INF_P(a) ( MPFR_IS_INF(&(a->left)) || MPFR_IS_INF (&(a->right)) )
-    # #define MPFI_IS_ZERO(a)  (MPFI_NAN_P(a) ? 0 : ((MPFR_SIGN(&(a->right))==0) && (MPFR_SIGN(&(a->left))==0)))
 
     bint MPFI_NAN_P(mpfi_srcptr)
     bint MPFI_INF_P(mpfi_srcptr)
     bint MPFI_IS_ZERO(mpfi_srcptr)
-
-    # #define MPFI_CLEAR(m) {mpfr_clear(&(m->right)); mpfr_clear(&(m->left));}
 
     void MPFI_CLEAR(mpfi_ptr)

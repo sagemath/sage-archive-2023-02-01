@@ -307,7 +307,6 @@ from copy import copy
 from sage.rings.real_mpfr cimport RealField_class, RealNumber
 from sage.rings.complex_field import ComplexField_class
 from sage.rings.all import RDF, CDF
-from sage.libs.mpfr cimport mpfr_t, mpfr_ptr, mpfr_init2, mpfr_set, GMP_RNDN
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.structure.element cimport parent
@@ -591,7 +590,7 @@ cdef class ExpressionTreeBuilder:
         elif not isinstance(vars, list):
             vars = [vars]
 
-        vars = map(self._clean_var, vars)
+        vars = [self._clean_var(v) for v in vars]
 
         self._domain = domain
         self._vars = vars
@@ -747,7 +746,7 @@ cdef class ExpressionTreeBuilder:
             base, exponent = args
             return self(base)**exponent
         else:
-            return ExpressionCall(self, fn, map(self, args))
+            return ExpressionCall(self, fn, [self(a) for a in args])
 
     def choice(self, cond, iftrue, iffalse):
         r"""
@@ -1308,7 +1307,8 @@ cdef class ExpressionCall(Expression):
             'sin(v_0)'
         """
         fn = function_name(self._function)
-        return '%s(%s)' % (fn, ', '.join(map(repr, self._arguments)))
+        return '%s(%s)' % (fn, ', '.join(repr(a) for a in self._arguments))
+
 
 cdef class ExpressionIPow(Expression):
     r"""

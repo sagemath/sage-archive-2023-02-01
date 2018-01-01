@@ -739,7 +739,10 @@ cdef class pAdicGenericElement(LocalGenericElement):
             6 + 4*7^19 + O(7^20)
         """
         R = self.parent()
-        p = R.prime()
+        cdef int p = R.prime()
+        cdef int b = a
+        cdef int k
+
         s = R.zero().add_bigoh(bd)
         t = R.one().add_bigoh(bd)
         try:
@@ -750,7 +753,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             v = None
         if v is not None:
             for k in range(bd):
-                s += t * (v[p*k+a] << k)
+                s += t * v[p*k+b]
                 t *= (self + k)
         else:
             u = [t]
@@ -758,14 +761,14 @@ cdef class pAdicGenericElement(LocalGenericElement):
             for j in range(1, p):
                 u.append(u[j-1] / j)
             for k in range(bd):
-                v += u
+                v += [x << k for x in u]
                 s += t * (u[a] << k)
                 t *= (self + k)
                 u[0] = ((u[-1] + u[0]) / (k+1)) >> 1
                 for j in range(1, p):
                     u[j] = (u[j-1] + u[j]) / (j + (k+1) * p )
             R.dwork_coeffs = v
-        return R(-s)
+        return -s
 
     def gamma(self, algorithm='pari'):
         r"""
@@ -849,16 +852,16 @@ cdef class pAdicGenericElement(LocalGenericElement):
             raise ValueError('The p-adic gamma function only works '
                              'on elements of Zp')
         parent = self.parent()
-        if self.precision_absolute() is infinity:
+        n = self.precision_absolute()
+        if n is infinity:
             # Have to deal with exact zeros separately
             return parent(1)
         if algorithm == 'pari':
             return parent(self.__pari__().gamma())
         elif algorithm == 'sage':
             p = parent.prime()
-            n = self.precision_absolute()
             bd = n + 2*n//p
-            k = Integer(-self.residue())
+            k = Integer(-self.residue(field=False)) # avoid GF(p) for efficiency
             x = (self+k) >> 1
             return -x.dwork_expansion(bd, a=k)
 

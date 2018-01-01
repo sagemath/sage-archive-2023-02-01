@@ -5836,32 +5836,30 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         Z.rename('Zeta function associated to %s'%self)
         return Z
 
+    @cached_method
     def narrow_class_group(self, proof=None):
         r"""
         Return the narrow class group of this field.
 
         INPUT:
 
-
         -  ``proof`` - default: None (use the global proof
            setting, which defaults to True).
-
 
         EXAMPLES::
 
             sage: NumberField(x^3+x+9, 'a').narrow_class_group()
             Multiplicative Abelian group isomorphic to C2
+
+        TESTS::
+
+            sage: QuadraticField(3, 'a').narrow_class_group()
+            Multiplicative Abelian group isomorphic to C2
         """
         proof = proof_flag(proof)
-        try:
-            return self.__narrow_class_group
-        except AttributeError:
-            k = self.pari_bnf(proof)
-            s = str(k.bnfnarrow())
-            s = s.replace(";",",")
-            s = eval(s)
-            self.__narrow_class_group = sage.groups.abelian_gps.abelian_group.AbelianGroup(s[1])
-        return self.__narrow_class_group
+        k = self.pari_bnf(proof)
+        s = k.bnfnarrow().sage()
+        return sage.groups.abelian_gps.abelian_group.AbelianGroup(s[1])
 
     def ngens(self):
         """

@@ -1645,6 +1645,27 @@ class RuleShiftedShapes(Rule):
             sage: G.P_symbol().pp()
             1  2  3  6  7
                4  5
+
+        Check the example just before Corollary 8.2 in [SS1990]_::
+
+            sage: T = ShiftedPrimedTableau([[4],[1],[5]], skew=[3,1])
+            sage: T.pp()
+             .  .  .  4
+                .  1
+                   5
+            sage: U = ShiftedPrimedTableau([[1],[3.5],[5]], skew=[3,1])
+            sage: U.pp()
+             .  .  .  1
+                .  4'
+                   5
+            sage: Shifted = GrowthDiagram.rules.ShiftedShapes()
+            sage: labels = [mu if is_even(i) else 0 for i, mu in enumerate(T.to_chain()[::-1])] + U.to_chain()[1:]
+            sage: G = Shifted({(1,2):1, (2,1):1}, shape=[5,5,5,5,5], labels=labels)
+            sage: G.P_symbol().pp()
+             .  .  .  .  2
+                .  .  1  3
+                   .  4  5
+
         """
         chain = P_chain[::2]
         shape = chain[-1]
@@ -1658,7 +1679,9 @@ class RuleShiftedShapes(Rule):
                 for c in range(mu[r], la[r]):
                     T[r][c] = i
 
-        return ShiftedPrimedTableau(T)
+        skew = _Partitions([row.count(None) for row in T])
+        T = [[e for e in row if e is not None] for row in T]
+        return ShiftedPrimedTableau(T, skew=skew)
 
     def Q_symbol(self, Q_chain):
         r"""
@@ -1674,6 +1697,27 @@ class RuleShiftedShapes(Rule):
             sage: G.Q_symbol().pp()
             1  2  4' 5  7'
                3  6'
+
+        Check the example just before Corollary 8.2 in [SS1990]_::
+
+            sage: T = ShiftedPrimedTableau([[4],[1],[5]], skew=[3,1])
+            sage: T.pp()
+             .  .  .  4
+                .  1
+                   5
+            sage: U = ShiftedPrimedTableau([[1],[3.5],[5]], skew=[3,1])
+            sage: U.pp()
+             .  .  .  1
+                .  4'
+                   5
+            sage: Shifted = GrowthDiagram.rules.ShiftedShapes()
+            sage: labels = [mu if is_even(i) else 0 for i, mu in enumerate(T.to_chain()[::-1])] + U.to_chain()[1:]
+            sage: G = Shifted({(1,2):1, (2,1):1}, shape=[5,5,5,5,5], labels=labels)
+            sage: G.Q_symbol().pp()
+             .  .  .  .  2
+                .  .  1  4'
+                   .  3' 5'
+
         """
         chain = Q_chain
         shape = chain[-1]
@@ -1691,7 +1735,9 @@ class RuleShiftedShapes(Rule):
                 for c in range(mu[r], la[r]):
                     T[r][c] = i - prime
 
-        return ShiftedPrimedTableau(T)
+        skew = _Partitions([row.count(None) for row in T])
+        T = [[e for e in row if e is not None] for row in T]
+        return ShiftedPrimedTableau(T, skew=skew)
 
     def forward_rule(self, y, e, t, f, x, content):
         r"""

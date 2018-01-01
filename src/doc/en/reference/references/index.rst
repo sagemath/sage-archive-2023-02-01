@@ -410,6 +410,11 @@ REFERENCES:
 .. [Br2016] *Bresenham's Line Algorithm*, Python, 26 December 2016.
             http://www.roguebasin.com/index.php?title=Bresenham%27s_Line_Algorithm
 
+.. [Bruin-Molnar] \N. Bruin and A. Molnar, *Minimal models for rational
+            functions in a dynamical setting*,
+            LMS Journal of Computation and Mathematics, Volume 15 (2012),
+            pp 400-417.
+
 .. [BS1996] Eric Bach, Jeffrey Shallit. *Algorithmic Number Theory,
             Vol. 1: Efficient Algorithms*. MIT Press, 1996. ISBN
             978-0262024051.
@@ -1946,6 +1951,9 @@ REFERENCES:
             Reduction*. Advances in Cryptology - EUROCRYPT '95. LNCS
             Volume 921, 1995, pp 1-12.
 
+.. [Shi1971]  Shimura, Goro. *Introduction to the arithmetic theory of
+            automorphic functions*. Princeton University Press, 1971.
+
 .. [Shr2004] Shreve, S. Stochastic Calculus for Finance II:
              Continuous-Time Models.  New York: Springer, 2004
 
@@ -1993,6 +2001,10 @@ REFERENCES:
 .. [SPRQL2004] \F.-X. Standaert, G. Piret, G. Rouvroy, J.-J. Quisquarter,
                and J.-D. Legat, *ICEBERG: An involutional cipher efficient for block
                encryption in reconfigurable hardware*; in FSE, (2004), pp. 279-299.
+
+.. [SS1990] Bruce E. Sagan and Richard P. Stanley.
+            *Robinson-Schensted algorithms for skew tableaux*.
+            Journal of Combinatorial Theory, Series A 55.2 (1990) pp. 161-193.
 
 .. [SS1992] \M. A. Shtan'ko and M. I. Shtogrin, "Embedding cubic
             manifolds and complexes into a cubic lattice", *Uspekhi

@@ -2,6 +2,7 @@ from six import add_metaclass
 import numpy as np
 
 from sage.combinat.partition import Partition, Partitions, OrderedPartitions
+from sage.combinat.skew_partition import SkewPartition
 from sage.combinat.integer_vector import IntegerVectors
 
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -122,24 +123,7 @@ class ShiftedPrimedTableau(ClonableArray):
         for row in t_:
             row_new = []
             for element in row:
-
-                if isinstance(element,str):
-                    if element[-1] == "'" and element[:-1].isdigit() == True:  # Check if an element has "'" at the end
-                        row_new.append(float(float(element[:-1]) - .5))
-                        continue
-                    if element[-1] == "p" and element[:-1].isdigit() == True:  # Check if an element has "p" at the end
-                        row_new.append(float(float(element[:-1]) - .5))
-                        continue
-                try:
-                    if int(float(element)*2) == float(element)*2:              # Check if an element is a half-integer
-                        row_new.append(float(element))
-                        continue
-                    else:
-                        raise ValueError("all numbers must be half-integers")
-
-                except (TypeError,ValueError):
-                    raise ValueError("primed elements should be half-integers or have symbols p or ' at the end")
-
+                row_new.append(to_half_integer(element))
             t.append(row_new)
 
 
@@ -338,7 +322,167 @@ class ShiftedPrimedTableau(ClonableArray):
         """
         return ([len(row) for row in self])
 
-    def __call__(self,*cell):
+    def restrict(self, n):
+        """
+        Return the restriction of the shifted tableau to all
+        the numbers less than or equal to ``n``.
+
+        .. NOTE::
+
+            If only the outer shape of the restriction, rather than
+            the whole restriction, is needed, then the faster method
+            :meth:`restriction_outer_shape` is preferred. Similarly if
+            only the skew shape is needed, use :meth:`restriction_shape`.
+
+        EXAMPLES::
+
+            sage: t = ShiftedPrimedTableau([[1,'2p',2,2],[2,'3p']])
+            sage: t.restrict(2).pp()
+            1  2' 2  2
+               2
+
+            sage: t.restrict("2p").pp()
+            1  2'
+
+            sage: s = ShiftedPrimedTableau([["2p",2,3],["2p"]], skew=[2,1])
+            sage: s.restrict(2).pp()
+            .  .  2' 2
+               .  2'
+            sage: s.restrict(1.5).pp()
+            .  .  2'
+               .  2'
+        """
+        t = self[:]
+        n = to_half_integer(n)
+        return ShiftedPrimedTableau([z for z in [[y for y in x if y <= n]
+                                                 for x in t] if z], skew=self._skew)
+
+    def restriction_outer_shape(self, n):
+        """
+        Return the outer shape of the restriction of the shifted
+        tableau ``self`` to `n`.
+
+        If `T` is a (skew) shifted tableau and `n` is a half-integer,
+        then the restriction of `T` to `n` is defined as the (skew)
+        shifted tableau obtained by removing all cells filled with
+        entries greater than `n` from `T`.
+
+        This method computes merely the outer shape of the restriction.
+        For the restriction itself, use :meth:`restrict`.
+
+        EXAMPLES::
+
+            sage: s = ShiftedPrimedTableau([["2p",2,3],["2p"]], skew=[2,1]); s.pp()
+            .  .  2' 2  3
+               .  2'
+            sage: s.restriction_outer_shape(2)
+            [4, 2]
+            sage: s.restriction_outer_shape("2p")
+            [3, 2]
+
+        """
+        from sage.combinat.partition import Partition
+        n = to_half_integer(n)
+        if self._skew is None:
+            res = [len([y for y in row if y <= n]) for row in self]
+        else:
+            m = len(self._skew)
+            res = [len([y for y in row if y <= n]) + (self._skew[i] if i < m else 0)
+                   for i, row in enumerate(self)]
+
+        return Partition(res)
+
+    def restriction_shape(self, n):
+        """
+        Return the skew shape of the restriction of the skew tableau
+        ``self`` to ``n``.
+
+        If `T` is a shifted tableau and `n` is a half-integer, then
+        the restriction of `T` to `n` is defined as the
+        (skew) shifted tableau obtained by removing all cells
+        filled with entries greater than `n` from `T`.
+
+        This method computes merely the skew shape of the restriction.
+        For the restriction itself, use :meth:`restrict`.
+
+        EXAMPLES::
+
+            sage: s = ShiftedPrimedTableau([["2p",2,3],["2p"]], skew=[2,1]); s.pp()
+             .  .  2' 2  3
+                .  2'
+
+            sage: s.restriction_shape(2)
+            [4, 2] / [2, 1]
+        """
+        if self._skew is None:
+            return Partition(self.restriction_outer_shape(n))
+        else:
+            return SkewPartition([self.restriction_outer_shape(n), self._skew])
+
+    def to_chain(self):
+        """
+        Return the chain of partitions corresponding to the (skew)
+        shifted tableau ``self``, interlaced by one of the colours
+        ``1`` is the added cell is on the diagonal, ``2`` if an
+        ordinary entry is added and ``3`` if a primed entry is added.
+
+        EXAMPLES::
+
+            sage: s = ShiftedPrimedTableau([(1, 2, 3.5, 5, 6.5), (3, 5.5)]); s.pp()
+             1  2  4' 5  7'
+                3  6'
+
+            sage: s.to_chain()
+            [[], 1, [1], 2, [2], 1, [2, 1], 3, [3, 1], 2, [4, 1], 3, [4, 2], 3, [5, 2]]
+
+
+            sage: s = ShiftedPrimedTableau([(1, 3.5), (2.5,), (6,)], skew=[2,1]); s.pp()
+             .  .  1  4'
+                .  3'
+                   6
+
+            sage: s.to_chain()
+            [[2, 1], 2, [3, 1], 0, [3, 1], 3, [3, 2], 3, [4, 2], 0, [4, 2], 1, [4, 2, 1]]
+
+
+        TESTS::
+
+            sage: s = ShiftedPrimedTableau([["2p",2,3],["2p"]], skew=[2,1]); s.pp()
+             .  .  2' 2  3
+                .  2'
+            sage: s.to_chain()
+            Traceback (most recent call last):
+            ...
+            AssertionError: can compute a chain of partitions only for skew shifted tableaux without repeated entries.
+
+        """
+        assert all(e in [0,1] for e in self.weight()), "can compute a chain of partitions only for skew shifted tableaux without repeated entries."
+        entries = sorted(e for row in self for e in row)
+        if self._skew is None:
+            mu = Partition([])
+            m = 0
+        else:
+            mu = self._skew
+            m = len(self._skew)
+        chain = [mu]
+        f = 0
+
+        for e in entries:
+            n = round(e)
+            chain.extend([0, mu]*int(n-f-1))
+            mu = self.restriction_outer_shape(e)
+            if n == e:
+                if any(e == row[0] for i, row in enumerate(self) if i >= m or self._skew[i] == 0):
+                    chain.append(1)
+                else:
+                    chain.append(2)
+            else:
+                chain.append(3)
+            chain.append(mu)
+            f = n
+        return chain
+
+    def __call__(self, *cell):
         """
         Function call of ``self``.
 
@@ -1516,7 +1660,6 @@ def add_strip(sub_tab, full_tab, length):
             for non_primed_strip in IntegerVectors(n=length-primes_num, k=len(plat_list), outer = plat_list):
                 yield (list(primed_strip) + list(non_primed_strip))
 
-
 # Helper function, preprocessing of the input array to fit Shifted Primed Tableau format.
 # Right now it requires 4 preprocessing calls to initialize ShiftedPrimedTableau element.
 # Donno how to fix.
@@ -1580,3 +1723,24 @@ def preprocessing(T):
     # Normalize t to be a list of tuples.
     t = [tuple(_) for _ in t]
     return t
+
+def to_half_integer(element):
+    """
+    Return the corresponding half-integer.
+    """
+    if isinstance(element, str):
+        if element[-1] == "'" and element[:-1].isdigit() is True:
+            # Check if an element has "'" at the end
+            return float(float(element[:-1]) - .5)
+        if element[-1] == "p" and element[:-1].isdigit() is True:
+            # Check if an element has "p" at the end
+            return float(float(element[:-1]) - .5)
+    try:
+        if int(float(element)*2) == float(element)*2:
+            # Check if an element is a half-integer
+            return float(element)
+        else:
+            raise ValueError("all numbers must be half-integers")
+
+    except (TypeError, ValueError):
+        raise ValueError("primed elements have wrong format")

@@ -124,6 +124,7 @@ from cysignals.signals cimport sig_on, sig_off
 
 from sage.ext.stdsage cimport PY_NEW
 from sage.libs.gmp.mpz cimport *
+from sage.libs.mpfr cimport *
 from sage.misc.randstate cimport randstate, current_randstate
 
 from sage.structure.element cimport RingElement, Element, ModuleElement

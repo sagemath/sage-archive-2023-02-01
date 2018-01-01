@@ -3796,7 +3796,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: h = g.univariate_polynomial(); h
             1
             sage: h.parent()
-            Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
+            Univariate Polynomial Ring in x over Finite Field of size 2 (using GF2X)
         """
         if not self.is_univariate():
             raise ValueError("polynomial must involve at most one variable")

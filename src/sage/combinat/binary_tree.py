@@ -5201,6 +5201,54 @@ class LabelledBinaryTrees(LabelledOrderedTrees):
     Element = LabelledBinaryTree
 
 
+def binary_search_tree_shape(w, left_to_right=True):
+    """
+    Direct computation of the binary search tree shape of a list of integers.
+
+    INPUT:
+
+    - ``w`` -- a list of integers
+
+    - ``left_to_right`` -- boolean (default ``True``)
+
+    OUTPUT: a non labelled binary tree
+
+    This is used under the same name as a method for permutations.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.binary_tree import binary_search_tree_shape
+        sage: binary_search_tree_shape([1,4,3,2])
+        [., [[[., .], .], .]]
+        sage: binary_search_tree_shape([5,1,3,2])
+        [[., [[., .], .]], .]
+
+    By passing the option ``left_to_right=False`` one can have
+    the insertion going from right to left::
+
+        sage: binary_search_tree_shape([1,6,4,2], False)
+        [[., .], [., [., .]]]
+
+    TESTS::
+
+        sage: t = Permutations(30).random_element()
+        sage: t.binary_search_tree().shape() == binary_search_tree_shape(t)
+        True
+        sage: t.binary_search_tree(False).shape() == binary_search_tree_shape(t, False)
+        True
+    """
+    if not w:
+        return BinaryTree()
+    if left_to_right:
+        root = w[0]
+    else:
+        root = w[-1]
+    left = [x for x in w if x < root]
+    right = [x for x in w if x > root]
+    return BinaryTree([binary_search_tree_shape(left, left_to_right),
+                      binary_search_tree_shape(right, left_to_right)])
+
+
 ################################################################
 # Interface attempt with species...
 #

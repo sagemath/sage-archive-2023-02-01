@@ -2457,7 +2457,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         EXAMPLES::
 
-            sage: R.<x> = PolynomialRing(QQ, implementation="FLINT")
+            sage: R.<x> = PolynomialRing(QQ)
             sage: f = x^3+2/3*x^2 - 5/3
             sage: f._repr_()
             'x^3 + 2/3*x^2 - 5/3'
@@ -9021,12 +9021,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: g = f.map_coefficients(residue, new_base_ring = k); g
             x + 1
             sage: g.parent()
-            Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
+            Univariate Polynomial Ring in x over Finite Field of size 2 (using GF2X)
             sage: residue = k.coerce_map_from(ZZ)
             sage: g = f.map_coefficients(residue); g
             x + 1
             sage: g.parent()
-            Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
+            Univariate Polynomial Ring in x over Finite Field of size 2 (using GF2X)
         """
         R = self._parent
         if new_base_ring is not None:
@@ -9592,6 +9592,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = ZZ[]
             sage: (x^12).nth_root(6)
             x^2
+            sage: ((3*x)^15).nth_root(5)
+            27*x^3
             sage: parent(R.one().nth_root(3))
             Univariate Polynomial Ring in x over Integer Ring
             sage: p = (x+1)**20 + x^20
@@ -9626,31 +9628,143 @@ cdef class Polynomial(CommutativeAlgebraElement):
             ....:         rl = r.leading_coefficient()
             ....:         assert p == r * pl/rl, "R={}\np={}\nr={}".format(R,p,r)
         """
-        cdef Integer c, cc, e, m
-        cdef Polynomial p, q, qi, r
-
         R = self.base_ring()
+        S = self.parent()
         if R not in sage.categories.integral_domains.IntegralDomains():
             raise ValueError("n-th root of polynomials over rings with zero divisors not implemented")
+
+        if n <= 0:
+            raise ValueError("n (={}) must be positive".format(n))
+        elif n == 1 or self.is_zero() or self.is_one():
+            return self
+        elif self.degree() % n:
+            raise ValueError("not a %s power"%Integer(n).ordinal_str())
+        elif self[0].is_zero():
+            # p = x^k q
+            # p^(1/n) = x^(k/n) q^(1/n)
+            i = self.valuation()
+            if i%n:
+                raise ValueError("not a %s power"%Integer(n).ordinal_str())
+            return (self >> i).nth_root(n) << (i // n)
+
+        if self[0].is_one():
+            start = S.one()
+        else:
+            start = S(self[0].nth_root(n))
+
+        cdef Polynomial p, q
+        p = self.change_ring(R.fraction_field())
+        q = p._nth_root_series(n, self.degree() // n + 1, start)
+
+        # (possible) TODO: below we check that the result is the
+        # n-th root. But in ZZ[x] that can be anticipated: we can
+        # detect that a given polynomial is not a n-th root inside
+        # the iteration of Newton method by looking at denominators.
+        if q**n == p:
+            return S(q)
+        else:
+            raise ValueError("not a %s power"%Integer(n).ordinal_str())
+
+    def _nth_root_series(self, long n, long prec, start=None):
+        r"""
+        Return the first ``prec`` coefficients of the ``n``-th root series of this polynomial.
+
+        The method might fail if the exponent ``n`` or the coefficient of
+        lowest degree is not invertible in the base ring. In both cases an
+        ``ArithmeticError`` is raised.
+
+        INPUT:
+
+        - ``n`` -- positive integer; the exponent of the root
+
+        - ``prec`` -- positive integer; the precision of the result
+
+        - ``start`` -- optional; the first term of the result. This
+          is only considered when the valuation is zero, i.e. when the
+          polynomial has a nonzero constant term.
+
+        .. ALGORITHM::
+
+            Let us denote by `a` the polynomial from which we wish to extract
+            a `n`-th root. The algorithm uses the Newton method for the fixed
+            point of `F(x) = x^{-n} - a^{-1}`. The advantage of this approach
+            compared to the more naive `x^n - a` is that it does require only
+            one polynomial inversion instead of one per iteration of the Newton
+            method.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: (1 + x)._nth_root_series(2, 5)
+            -5/128*x^4 + 1/16*x^3 - 1/8*x^2 + 1/2*x + 1
+            sage: R.zero()._nth_root_series(3, 5)
+            0
+            sage: R.one()._nth_root_series(3, 5)
+            1
+
+            sage: R.<x> = QQbar[]
+            sage: p = 2 + 3*x^2
+            sage: q = p._nth_root_series(3, 20)
+            sage: (q**3).truncate(20)
+            3*x^2 + 2
+
+        The exponent must be invertible in the base ring::
+
+            sage: R.<x> = ZZ[x]
+            sage: (1 + x)._nth_root_series(2, 5)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: exponent not invertible in base ring
+
+        Though, the base ring needs not be a field::
+
+            sage: Ru.<u> = QQ[]
+            sage: Rux.<x> = Ru[]
+            sage: (4 + u*x)._nth_root_series(2,5)
+            -5/16384*u^4*x^4 + 1/512*u^3*x^3 - 1/64*u^2*x^2 + 1/4*u*x + 2
+            sage: ((4 + u*x)._nth_root_series(2,5)**2).truncate(5)
+            u*x + 4
+
+        Finite characteristic::
+
+            sage: R.<x> = GF(2)[]
+            sage: (1 + x)._nth_root_series(3, 10)
+            x^9 + x^8 + x^3 + x^2 + x + 1
+            sage: (1 + x^2)._nth_root_series(2, 10)
+            x + 1
+            sage: (1 + x)._nth_root_series(2, 10)
+            Traceback (most recent call last):
+            ...
+            ValueError: not a 2nd power
+
+        TESTS::
+
+            sage: QQ['x'].zero()._nth_root_series(3, 5).parent()
+            Univariate Polynomial Ring in x over Rational Field
+            sage: QQ['x'].one()._nth_root_series(3, 5).parent()
+            Univariate Polynomial Ring in x over Rational Field
+        """
+        cdef Integer c, cc, e, m, mp1
+        cdef Polynomial p, q
+
+        R = self.base_ring()
+        S = self.parent()
 
         m = ZZ.coerce(n)
         if m <= 0:
             raise ValueError("n (={}) must be positive".format(m))
         elif m.is_one() or self.is_zero() or self.is_one():
             return self
-        elif self.degree() % m:
-            raise ValueError("not a %s power"%m.ordinal_str())
         elif self[0].is_zero():
-            # p = x^k q
-            # p^(1/n) = x^(k/n) q^(1/n)
+            # p = x^i q
+            # p^(1/m) = x^(i/m) q^(1/m)
             i = self.valuation()
-            if i%m:
+            if i % m:
                 raise ValueError("not a %s power"%m.ordinal_str())
-            S = self._parent
-            return S.gen()**(i//m) * (self>>i).nth_root(m)
+            return (self >> i)._nth_root_series(m, prec - i // m) << (i // m)
         else:
             c = R.characteristic()
-            if c and not n%c:
+            if c and not n % c:
                 # characteristic divides n
                 e = m.valuation(c)
                 cc = c**e
@@ -9668,30 +9782,31 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 p = self
 
             # beginning of Newton method
-            Sorig = p.parent()
-            if p[0].is_one():
-                q = Sorig.one()
-            else:
-                q = Sorig(p[0].nth_root(m))
+            # (we can safely assume that the valuation is 0)
+            S = p.parent()
 
-            R = R.fraction_field()
-            p = p.change_ring(R)
-            q = q.change_ring(R)
+            if start is not None:
+                a = R(start)
+            elif p[0].is_one():
+                a = R.one()
+            else:
+                a = p[0].nth_root(m)
+
+            try:
+                q = S(a.inverse_of_unit())
+            except ArithmeticError:
+                raise ArithmeticError("constant coefficient not invertible in base ring")
+
+            try:
+                mi = R(m).inverse_of_unit()
+            except ArithmeticError:
+                raise ArithmeticError("exponent not invertible in base ring")
 
             from sage.misc.misc import newton_method_sizes
-            x = p.parent().gen()
-            for i in newton_method_sizes(p.degree()//m+1):
-                qi = q._power_trunc(m-1, i).inverse_series_trunc(i)
-                q = ((m-1) * q + qi._mul_trunc_(p,i)) / m
-
-                # NOTE: if we knew that p was a n-th power we could remove the check
-                # below and just return q after the whole loop
-                r = q**m - p
-                if not r:
-                    return Sorig(q)
-                elif not r.truncate(i).is_zero():
-                    raise ValueError("not a %s power"%m.ordinal_str())
-            raise ValueError("not a %s power"%m.ordinal_str())
+            mp1 = m + 1
+            for i in newton_method_sizes(prec):
+                q = mi * (mp1 * q - p._mul_trunc_(q._power_trunc(mp1, i), i))
+            return q.inverse_series_trunc(prec)
 
     def specialization(self, D=None, phi=None):
         r"""

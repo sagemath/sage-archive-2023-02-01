@@ -832,7 +832,7 @@ class ShiftedPrimedTableau(ClonableArray):
     def e(self, ind):
         """
         Compute the action of the crystal operator `e_i` on a Shifted Primed
-        Tableau using cases from the paper [HPS.17].
+        Tableau using cases from the paper [HPS2017]_.
 
         INPUT:
 
@@ -1290,7 +1290,7 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
     The list of module generators consists of all elements of the
     crystal with nonincreasing weight.
 
-    Crystal is constructed following operations described in [HPS17]_.
+    Crystal is constructed following operations described in [HPS2017]_.
 
     EXAMPLES::
 

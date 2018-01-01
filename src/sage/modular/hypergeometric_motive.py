@@ -66,14 +66,15 @@ from sage.arith.misc import divisors, gcd, euler_phi, moebius, is_prime
 from sage.arith.misc import gauss_sum, kronecker_symbol
 from sage.combinat.integer_vector_weighted import WeightedIntegerVectors
 from sage.functions.generalized import sgn
-from sage.functions.other import floor
+from sage.functions.log import log
+from sage.functions.other import floor, ceil
 from sage.misc.cachefunc import cached_method
 from sage.misc.functional import cyclotomic_polynomial
 from sage.misc.misc_c import prod
 from sage.rings.fraction_field import FractionField
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.integer_ring import ZZ
-from sage.rings.padics.factory import Zp
+from sage.rings.padics.factory import Zp, Qp
 from sage.rings.padics.misc import gauss_sum as padic_gauss_sum
 from sage.rings.polynomial.polynomial_ring import polygen
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -928,7 +929,7 @@ class HypergeometricData(object):
                    for a in set(alpha))
 
     @cached_method
-    def padic_H_value(self, p, f, t, prec=20):
+    def padic_H_value(self, p, f, t, prec=None):
         """
         Return the `p`-adic trace of Frobenius, computed using the
         Gross-Koblitz formula.
@@ -982,22 +983,30 @@ class HypergeometricData(object):
         gamma = self.gamma_array()
         q = p ** f
 
-        m = {r: beta.count(QQ((r, q - 1))) for r in range(q - 1)}
+#        m = {r: beta.count(QQ((r, q - 1))) for r in range(q - 1)}
+        m = defaultdict(lambda: 0)
+        for r in range(q-1):
+            u = QQ((r, q-1))
+            if u in beta: m[r] = beta.count(u)
         M = self.M_value()
         D = -min(self.zigzag(x, flip_beta=True) for x in alpha + beta)
         # also: D = (self.weight() + 1 - m[0]) // 2
 
-        p_ring = Zp(p, prec=prec)
+        if prec is None:
+            prec = (self.weight()*f)//2 + ceil(log(self.degree(),p)) + 1
+        # For some reason, working in Qp instead of Zp is much faster;
+        # it appears to avoid some costly conversions.
+        p_ring = Qp(p, prec=prec)
         teich = p_ring.teichmuller(M / t)
-        gauss_table = [padic_gauss_sum(r, p, f, prec, factored=True, algorithm='sage') for r in range(q - 1)]
 
-        sigma = sum(q**(D + m[0] - m[r]) *
-                    (-p)**(sum(gauss_table[(v * r) % (q - 1)][0] * gv
-                               for v, gv in gamma.items()) // (p - 1)) *
-                    prod(gauss_table[(v * r) % (q - 1)][1] ** gv
-                         for v, gv in gamma.items()) *
-                    teich ** r
-                    for r in range(q - 1))
+        gauss_table = [padic_gauss_sum(r, p, f, prec, factored=True, algorithm='sage', parent=p_ring)
+                       for r in range(q-1)]
+
+        sigma = sum( ((-p)**(sum(gauss_table[(v * r) % (q - 1)][0] * gv
+                                for v, gv in gamma.items()) // (p - 1)) * 
+                     prod(gauss_table[(v * r) % (q - 1)][1] ** gv
+                          for v, gv in gamma.items()) * teich ** r)
+                     << (f*(D+m[0]-m[r])) for r in range(q-1))
         resu = ZZ(-1) ** m[0] / (1 - q) * sigma
         return IntegerModRing(p**prec)(resu).lift_centered()
 

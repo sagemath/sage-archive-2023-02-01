@@ -137,27 +137,25 @@ cdef class Ring(ParentWithGens):
     Test agaings another bug fixed in :trac:`9944`::
 
         sage: QQ['x'].category()
-        Join of Category of euclidean domains
-             and Category of commutative algebras over
-                 (number fields and quotient fields and metric spaces)
+        Join of Category of euclidean domains and Category of commutative algebras over
+        (number fields and quotient fields and metric spaces) and Category of infinite sets
         sage: QQ['x','y'].category()
-        Join of Category of unique factorization domains
-             and Category of commutative algebras over
-                 (number fields and quotient fields and metric spaces)
+        Join of Category of unique factorization domains and Category of commutative algebras over
+        (number fields and quotient fields and metric spaces) and Category of infinite sets
         sage: PolynomialRing(MatrixSpace(QQ,2),'x').category()
-        Category of algebras over (finite dimensional algebras with basis over
-         (number fields and quotient fields and metric spaces) and infinite sets)
+        Category of infinite algebras over (finite dimensional algebras with basis over
+        (number fields and quotient fields and metric spaces) and infinite sets)
         sage: PolynomialRing(SteenrodAlgebra(2),'x').category()
-        Category of algebras over graded hopf algebras with basis over Finite Field of size 2
+        Category of infinite algebras over graded hopf algebras with basis over Finite Field of size 2
 
      TESTS::
 
-         sage: Zp(7)._repr_option('element_is_atomic')
-         False
-         sage: QQ._repr_option('element_is_atomic')
-         True
-         sage: CDF._repr_option('element_is_atomic')
-         False
+        sage: Zp(7)._repr_option('element_is_atomic')
+        False
+        sage: QQ._repr_option('element_is_atomic')
+        True
+        sage: CDF._repr_option('element_is_atomic')
+        False
      """
     def __init__(self, base, names=None, normalize=True, category = None):
         """

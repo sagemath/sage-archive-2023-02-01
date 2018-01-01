@@ -32,7 +32,7 @@ from six.moves.builtins import max as python_max
 from six.moves.builtins import range, zip
 from sage.rings.infinity import infinity
 
-def gauss_sum(a, p, f, prec=20, factored=False, algorithm='pari'):
+def gauss_sum(a, p, f, prec=20, factored=False, algorithm='pari', parent=None):
     r"""
     Return the Gauss sum `g_q(a)` as a `p`-adic number.
 
@@ -123,17 +123,20 @@ def gauss_sum(a, p, f, prec=20, factored=False, algorithm='pari'):
     """
     from sage.rings.padics.factory import Zp
     from sage.rings.all import PolynomialRing
-    a = a % (p**f - 1)
-    R = Zp(p, prec)
-    digits = list(Zp(p)(a).expansion())
-    n = len(digits)
-    s = sum(digits)
-    digits = digits + [0] * (f - n)
-    out = R(-1)
-    for i in range(f):
-        a_i = R.sum(digits[k] * p**((i + k) % f) for k in range(f))
-        if a_i:
-            out *= R((a_i / (p**f - 1)).gamma(algorithm))
+
+    q = p**f
+    a = a % (q-1)
+    if parent is None:
+        R = Zp(p, prec)
+    else:
+        R = parent
+    out = -R.one()
+    if a != 0:
+        t = R(1/(q-1))
+        for i in range(f):
+            out *= (a*t).gamma(algorithm)
+            a = (a*p) % (q-1)
+    s = sum(a.digits(base=p))
     if factored:
         return(s, out)
     X = PolynomialRing(R, name='X').gen()

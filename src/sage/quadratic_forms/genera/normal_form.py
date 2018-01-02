@@ -53,7 +53,7 @@ def p_adic_normal_form(G,p,precision=None,normalize=True):
 
     EXAMPLES::
 
-        sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import p_adic_normal_form
+        sage: from sage.quadratic_forms.genera.normal_form import p_adic_normal_form
         sage: D4 = Matrix(ZZ,4,[2,-1,-1,-1,-1,2,0,0,-1,0,2,0,-1,0,0,2])
         sage: D4
         [ 2 -1 -1 -1]
@@ -86,11 +86,11 @@ def p_adic_normal_form(G,p,precision=None,normalize=True):
         sage: A4_extended = Matrix(ZZ,5,[2, -1, 0, 0, -1, -1, 2, -1, 0, 0, 0, -1, 2, -1, 0, 0, 0, -1, 2, -1, -1, 0, 0, -1, 2])
         sage: D, U = p_adic_normal_form(A4_extended,5)
         sage: D
-            [1 0 0 0 0]
-            [0 1 0 0 0]
-            [0 0 1 0 0]
-            [0 0 0 5 0]
-            [0 0 0 0 0]
+        [1 0 0 0 0]
+        [0 1 0 0 0]
+        [0 0 1 0 0]
+        [0 0 0 5 0]
+        [0 0 0 0 0]
 
     Rational matrices as no problem as well::
 
@@ -165,7 +165,7 @@ def _jordan_odd_adic(G):
 
     EXAMPLES::
 
-        sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import _jordan_odd_adic
+        sage: from sage.quadratic_forms.genera.normal_form import _jordan_odd_adic
         sage: R = Zp(3,prec=2,print_mode='series')
         sage: A4 = Matrix(R,4,[2, -1, 0, 0, -1, 2, -1, 0, 0, -1, 2, -1, 0, 0, -1, 2])
         sage: A4
@@ -249,7 +249,7 @@ def _jordan_2_adic(G):
 
     EXAMPLES:
 
-        sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import _jordan_2_adic
+        sage: from sage.quadratic_forms.genera.normal_form import _jordan_2_adic
         sage: R = Zp(2,prec=3,print_mode='series')
         sage: A4 = Matrix(R,4,[2, -1, 0, 0, -1, 2, -1, 0, 0, -1, 2, -1, 0, 0, -1, 2])
         sage: A4.change_ring(ZZ)   # for pretty printing
@@ -365,7 +365,7 @@ def _get_small_block_indices(G):
 
     EXAMPLES::
 
-        sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import _get_small_block_indices
+        sage: from sage.quadratic_forms.genera.normal_form import _get_small_block_indices
         sage: W1 = Matrix([1])
         sage: U = Matrix(ZZ, 2, [0, 1, 1, 0])
         sage: G = Matrix.block_diagonal([W1, U, U, W1, W1, U, W1, U])
@@ -399,7 +399,7 @@ def _collect_small_blocks(G):
 
     EXAMPLES::
 
-        sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import _collect_small_blocks
+        sage: from sage.quadratic_forms.genera.normal_form import _collect_small_blocks
         sage: W1 = Matrix([1])
         sage: V = Matrix(ZZ, 2, [2, 1, 1, 2])
         sage: L = [W1, V, V, W1, W1, V, W1, V]
@@ -419,20 +419,21 @@ def _collect_small_blocks(G):
 def _get_homogeneous_block_indices(G):
     r"""
     Return the indices of the homogeneous blocks.
-    
+
     EXAMPLES::
-    
-        sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import _get_homogeneous_block_indices
+
+        sage: from sage.quadratic_forms.genera.normal_form import _get_homogeneous_block_indices
         sage: W1 = Matrix(Zp(2),[1])
         sage: V = Matrix(Zp(2), 2, [2, 1, 1, 2])
         sage: G = Matrix.block_diagonal([W1, V, V, 2*W1, 2*W1, 8*V, 8*W1, 16*V])
         sage: _get_homogeneous_block_indices(G)
-        [0, 5, 7, 10]
+        ([0, 5, 7, 10], [0, 1, 3, 4])
         sage: G = Matrix.block_diagonal([W1, V, V, 2*W1, 2*W1, 8*V, 8*W1, 16*W1])
         sage: _get_homogeneous_block_indices(G)
-        [0, 5, 7]
+        ([0, 5, 7, 10], [0, 1, 3, 4])
     """
     L = []
+    vals = []
     n = G.ncols()
     i = 0
     val = -5
@@ -442,20 +443,23 @@ def _get_homogeneous_block_indices(G):
         if m > val:
             L.append(i)
             val = m
+            vals.append(val)
         if G[i, i+1]!=0:
             i += 1
         i += 1
     if i == n-1:
+        m = G[i,i].valuation()
         if m > val:
             L.append(i)
             val = m
-    return L
+            vals.append(val)
+    return L, vals
     
 def _normalize(G):
     r"""
     Return the partial normal form of ``G``.
 
-    See also :meth:``p_adic_jordan_blocks``.
+    See also :meth:``normal_form``.
 
     INPUT:
 
@@ -468,7 +472,7 @@ def _normalize(G):
 
     EXAMPLES::
 
-        sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import         _normalize
+        sage: from sage.quadratic_forms.genera.normal_form import         _normalize
         sage: R = Zp(3, prec = 5, type = 'fixed-mod', print_mode = 'digits')
         sage: G = matrix.diagonal(R,[1,7,3,3*5,3,9,-9,27*13])
         sage: D,U =_normalize(G)
@@ -562,7 +566,7 @@ def _normalize_2x2(G):
 
     EXAMPLES::
 
-        sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import         _normalize_2x2
+        sage: from sage.quadratic_forms.genera.normal_form import         _normalize_2x2
         sage: R = Zp(2, prec = 10, type = 'fixed-mod', print_mode = 'digits')
         sage: G = Matrix(R,2,[-17*2,3,3,23*2])
         sage: U =_normalize_2x2(G)
@@ -584,7 +588,7 @@ def _normalize_2x2(G):
 
     TESTS::
 
-        sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import _normalize_2x2
+        sage: from sage.quadratic_forms.genera.normal_form import _normalize_2x2
         sage: R = Zp(2, prec = 10, type = 'fixed-mod')
         sage: ref1 = Matrix(R,2,[2,1,1,2])
         sage: ref2 = Matrix(R,2,[0,1,1,0])
@@ -690,7 +694,7 @@ def _find_min_p(G, cnt):
 
     EXAMPLES::
 
-        sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import _find_min_p
+        sage: from sage.quadratic_forms.genera.normal_form import _find_min_p
         sage: G = matrix(Qp(2),3,3,[4,0,1,0,4,2,1,2,1])
         sage: G    
         [2^2 + O(2^22)             0   1 + O(2^20)]
@@ -739,7 +743,7 @@ def _min_nonsquare(p):
 
     EXAMPLES::
 
-        sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import _min_nonsquare
+        sage: from sage.quadratic_forms.genera.normal_form import _min_nonsquare
         sage: _min_nonsquare(2)
         sage: _min_nonsquare(3)
         2
@@ -768,7 +772,7 @@ def _normalize_odd_2x2(G):
 
     EXAMPLES::
 
-        sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import _normalize_odd_2x2
+        sage: from sage.quadratic_forms.genera.normal_form import _normalize_odd_2x2
         sage: G = 2*Matrix.identity(Qp(5),2)
         sage: U = _normalize_odd_2x2(G)
         sage: U*G*U.T
@@ -803,7 +807,7 @@ def _relations(G,n):
 
     EXAMPLES::
 
-        sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import _relations
+        sage: from sage.quadratic_forms.genera.normal_form import _relations
         sage: R = Zp(2, type = 'fixed-mod')
         sage: U = Matrix(R,2,[0,1,1,0])
         sage: V = Matrix(R,2,[2,1,1,2])
@@ -811,19 +815,183 @@ def _relations(G,n):
         sage: W3 = Matrix(R,1,[3])
         sage: W5 = Matrix(R,1,[5])
         sage: W7 = Matrix(R,1,[7])
-        sage: G = Matrix.block_diagonal([W1,W3])
+        sage: G = Matrix.block_diagonal(W1,W1)
         sage: b = _relations(G,1)
-        sage: b*G*b.T
-        [    1 + 2^2 + O(2^20)               O(2^20)]
-        [              O(2^20) 1 + 2 + 2^2 + O(2^20)]
-        
+        sage: (b*G*b.T).change_ring(ZZ)
+        [5 0]
+        [0 5]
+        sage: G = Matrix.block_diagonal(W1,W3)
+        sage: b = _relations(G,1)
+        sage: (b*G*b.T).change_ring(ZZ)
+        [5 0]
+        [0 7]
+        sage: G = Matrix.block_diagonal(W1,W5)
+        sage: b = _relations(G,1)
+        sage: (b*G*b.T).change_ring(ZZ)
+        [5 0]
+        [0 1]
+        sage: G = Matrix.block_diagonal(W1,W7)
+        sage: b = _relations(G,1)
+        sage: (b*G*b.T).change_ring(ZZ)
+        [5 0]
+        [0 3]
+        sage: G = Matrix.block_diagonal(W3,W3)
+        sage: b = _relations(G,1)
+        sage: (b*G*b.T).change_ring(ZZ)
+        [7 0]
+        [0 7]
+        sage: G = Matrix.block_diagonal(W3,W5)
+        sage: b = _relations(G,1)
+        sage: (b*G*b.T).change_ring(ZZ)
+        [7 0]
+        [0 1]
+        sage: G = Matrix.block_diagonal(W3,W7)
+        sage: b = _relations(G,1)
+        sage: (b*G*b.T).change_ring(ZZ)
+        [7 0]
+        [0 3]
+        sage: G = Matrix.block_diagonal(W5,W5)
+        sage: b = _relations(G,1)
+        sage: (b*G*b.T).change_ring(ZZ)
+        [1 0]
+        [0 1]
+        sage: G = Matrix.block_diagonal(W5,W7)
+        sage: b = _relations(G,1)
+        sage: (b*G*b.T).change_ring(ZZ)
+        [1 0]
+        [0 3]
+        sage: G = Matrix.block_diagonal(W7,W7)
+        sage: b = _relations(G,1)
+        sage: (b*G*b.T).change_ring(ZZ)
+        [3 0]
+        [0 3]
         sage: G = Matrix.block_diagonal([V,V])
         sage: b = _relations(G,3)
-        sage: b*G*b.T    
-        [    O(2^20) 1 + O(2^20)     O(2^20)     O(2^20)]
-        [1 + O(2^20)     O(2^20)     O(2^20)     O(2^20)]
-        [    O(2^20)     O(2^20)     O(2^20) 1 + O(2^20)]
-        [    O(2^20)     O(2^20) 1 + O(2^20)     O(2^20)]
+        sage: (b*G*b.T).change_ring(ZZ)        
+        [0 1 0 0]
+        [1 0 0 0]
+        [0 0 0 1]
+        [0 0 1 0]
+        sage: G = Matrix.block_diagonal([V,W1,W1])
+        sage: b = _relations(G,5)
+        sage: (b*G*b.T).change_ring(ZZ)
+        [0 1 0 0]
+        [1 0 0 0]
+        [0 0 3 0]
+        [0 0 0 7]
+        sage: G = Matrix.block_diagonal([V,W1,W5])
+        sage: b = _relations(G,5)
+        sage: (b*G*b.T).change_ring(ZZ)
+        [0 1 0 0]
+        [1 0 0 0]
+        [0 0 3 0]
+        [0 0 0 3]
+        sage: G = Matrix.block_diagonal([V,W3,W7])
+        sage: b = _relations(G,5)
+        sage: (b*G*b.T).change_ring(ZZ)
+        [0 1 0 0]
+        [1 0 0 0]
+        [0 0 5 0]
+        [0 0 0 5]
+        sage: G = Matrix.block_diagonal([W1,2*W1])
+        sage: b = _relations(G,6)
+        sage: (b*G*b.T).change_ring(ZZ)
+        [3 0]
+        [0 6]
+        sage: G = Matrix.block_diagonal([W1,2*W3])
+        sage: b = _relations(G,6)
+        sage: (b*G*b.T).change_ring(ZZ)
+        [ 7  0]
+        [ 0 10]
+        sage: G = Matrix.block_diagonal([W1,2*W5])
+        sage: b = _relations(G,6)
+        sage: (b*G*b.T).change_ring(ZZ)
+        [ 3  0]
+        [ 0 14]
+        sage: G = Matrix.block_diagonal([W1,2*W7])
+        sage: b = _relations(G,6)
+        sage: (b*G*b.T).change_ring(ZZ)
+        [7 0]
+        [0 2]
+        sage: G = Matrix.block_diagonal([W3,2*W5])
+        sage: b = _relations(G,6)
+        sage: (b*G*b.T).change_ring(ZZ)
+        [5 0]
+        [0 6]
+        sage: G = Matrix.block_diagonal([W3,2*W3])
+        sage: b = _relations(G,6)
+        sage: (b*G*b.T).change_ring(ZZ)
+        [1 0]
+        [0 2]
+        sage: G = Matrix.block_diagonal([2*W5,4*W7])
+        sage: b = _relations(G,6)
+        sage: (b*G*b.T).change_ring(ZZ)
+        [6 0]
+        [0 4]
+        sage: G = Matrix.block_diagonal([W3,2*V])
+        sage: b = _relations(G,7)
+        sage: (b*G*b.T).change_ring(ZZ)
+        [7 0 0]
+        [0 0 2]
+        [0 2 0]
+        sage: G = Matrix.block_diagonal([W7,2*V])
+        sage: b = _relations(G,7)
+        sage: (b*G*b.T).change_ring(ZZ)
+        [3 0 0]
+        [0 0 2]
+        [0 2 0]
+        sage: G = Matrix.block_diagonal([U,2*W1])
+        sage: b = _relations(G,8)
+        sage: (b*G*b.T).change_ring(ZZ)
+        [ 2  1  0]
+        [ 1  2  0]
+        [ 0  0 10]
+        sage: G = Matrix.block_diagonal([U,2*W5])
+        sage: b = _relations(G,8)
+        sage: (b*G*b.T).change_ring(ZZ)
+        [2 1 0]
+        [1 2 0]
+        [0 0 2]
+        sage: G = Matrix.block_diagonal([V,2*W1])
+        sage: b = _relations(G,8)
+        sage: (b*G*b.T).change_ring(ZZ)
+        [ 0  1  0]
+        [ 1  0  0]
+        [ 0  0 10]
+        sage: G = Matrix.block_diagonal([V,2*W7])
+        sage: b = _relations(G,8)
+        sage: (b*G*b.T).change_ring(ZZ)
+        [0 1 0]
+        [1 0 0]
+        [0 0 6]
+        sage: G = Matrix.block_diagonal([W1,W5,2*W5])
+        sage: b = _relations(G,9)
+        sage: (b*G*b.T).change_ring(ZZ)
+        [3 0 0]
+        [0 3 0]
+        [0 0 2]
+        sage: G = Matrix.block_diagonal([W3,W3,2*W5])
+        sage: b = _relations(G,9)
+        sage: (b*G*b.T).change_ring(ZZ)
+        [5 0 0]
+        [0 1 0]
+        [0 0 2]
+        sage: G = Matrix.block_diagonal([W3,W3,2*W1])
+        sage: b = _relations(G,9)
+        sage: (b*G*b.T).change_ring(ZZ)
+        [ 5  0  0]
+        [ 0  1  0]
+        [ 0  0 10]
+        sage: G = Matrix.block_diagonal([W3,4*W1])
+        sage: b = _relations(G,10)
+        sage: (b*G*b.T).change_ring(ZZ)
+        [ 7  0]
+        [ 0 20]
+        sage: G = Matrix.block_diagonal([W5,4*W5])
+        sage: b = _relations(G,10)
+        sage: (b*G*b.T).change_ring(ZZ)
+        [1 0]
+        [0 4]
     """
     R = G.base_ring()
     if n == 1:
@@ -841,35 +1009,45 @@ def _relations(G,n):
     if n == 3:
         B = Matrix(R,4,[1,1,1,0, 1,1,0,1, 1,0,-1,-1, 0,1,-1,-1])
     if n == 4:
-        pass
+        raise NotImplementedError("relation 4 is not needed")
     if n == 5:
         e1 = G[2,2].unit_part()
         e2 = G[3,3].unit_part()
-        B = Matrix(R,4,[ 1,  1,  0, 0,
-                            0,  1,  1, 1, 
-                           -e1, e1, 1, 0, 
-                           -e2, e2, 0, 1])
+        if mod(e1,4) != mod(e2,4):
+            raise ValueError("W is of the wrong type for relation 5")
+        B = Matrix(R,4,[  1,   0,        1,     1,
+                          0,   1,        1,     1,
+                        -e1, -e1, 2*e2 + 3, -2*e1, 
+                        -e2, -e2,        0,     3])
     if n == 6:
+        if G[0,0].valuation()+1 != G[1,1].valuation():
+            raise ValueError("wrong scales for relation 6")
         e1 = G[0,0].unit_part()
         e2 = G[1,1].unit_part()
         B = Matrix(R,2,[1,1,-2*e2,e1])
     if n == 7:
-        e = G[0,0]
-        B = Matrix(R,3,[ 1, 1, 1,
-                        -2, e, 0,
-                        -2, 0, e])
+        e = G[0,0].unit_part()
+        B = Matrix(R,3,[-3, e**2, e**2, 2*e, 1, 0, 2*e, 0, 1])
     if n == 8:
-        e = G[2,2]
-        B = Matrix(R,3,[ 2, 2,  1, 
-                         e, 0, -1,
-                        -2, 0,  e])
+        e = G[2,2].unit_part()
+        if G[0,0]==0:
+            B = Matrix(R,3,[e, 0, -1,
+                            0, e, -1,
+                            2, 2,  1])
+        else:
+            B = Matrix(R,3,[  1,   0,   1,
+                              0,   1,   1,
+                            2*e, 2*e, - 3])
     if n == 9:
-        B = Matrix(R,3,[ 1, 0,  1,
-                        -2, 0, e1,
-                         0, 1,  0])
+        e1 = G[0,0].unit_part()
+        e2 = G[1,1].unit_part()
+        e3 = G[2,2].unit_part()
+        B = Matrix(R,3,[1, 0, 1,
+                        2*e3, 1,
+                        -e1, -2*e2*e3, 2*e1**2*e3 + 4*e1*e3**2, e1*e2])
     if n == 10:
-        e1 = G[0,0]
-        e2 = G[1,1]
+        e1 = G[0,0].unit_part()
+        e2 = G[1,1].unit_part()
         B = Matrix(R,2,[1,1,-4*e2,e1])
     D, U = _normalize(B*G*B.T)
     return U*B
@@ -877,19 +1055,19 @@ def _relations(G,n):
 def _partial_normal_form(G):
     r"""
     Return the partial normal form of the homogeneous block ``G``
-    
+
     INPUT:
-    
+
         - ``G`` -- a modular symmetric matrix over the `2`-adic integers
-        
+
     OUTPUT:
-    
-        - ``B`` -- a transformation matrix such that 
+
+        - ``B`` -- a transformation matrix such that
           ``B*G*B.T`` is in homogeneous normal form
-    
+
     EXAMPLES::
-        
-        sage: from sage.quadratic_forms.genera.p_adic_jordan_blocks import _partial_normal_form
+
+        sage: from sage.quadratic_forms.genera.normal_form import _partial_normal_form
         sage: R = Zp(2,prec=4, type = 'fixed-mod')
         sage: U = Matrix(R,2,[0,1,1,0])
         sage: V = Matrix(R,2,[2,1,1,2])
@@ -898,7 +1076,7 @@ def _partial_normal_form(G):
         sage: W5 = Matrix(R,1,[5])
         sage: W7 = Matrix(R,1,[7])
         sage: G = Matrix.block_diagonal([W1,U,V,W5,V,W3,V,W7])
-        sage: B = _partial_normal_form(G)
+        sage: B = _partial_normal_form(G)[0]
         sage: (B*G*B.T).change_ring(ZZ)
         [0 1 0 0 0 0 0 0 0 0 0 0]
         [1 0 0 0 0 0 0 0 0 0 0 0]
@@ -913,7 +1091,7 @@ def _partial_normal_form(G):
         [0 0 0 0 0 0 0 0 0 0 1 0]
         [0 0 0 0 0 0 0 0 0 0 0 7]
         sage: G = Matrix.block_diagonal([W1,U,V,W1,V,W1,V,W7])
-        sage: B = _partial_normal_form(G)
+        sage: B = _partial_normal_form(G)[0]
         sage: (B*G*B.T).change_ring(ZZ)
         [0 1 0 0 0 0 0 0 0 0 0 0]
         [1 0 0 0 0 0 0 0 0 0 0 0]
@@ -935,8 +1113,8 @@ def _partial_normal_form(G):
     blocks = _get_small_block_indices(D)
     # collect the indices of forms of types U, V and W
     U = []
-    W = []
     V = []
+    W = []
     for i in blocks:
         if i+1 in blocks or i==n-1:
             W.append(i)
@@ -964,26 +1142,216 @@ def _partial_normal_form(G):
     UVW = U + V + W
     B = B[UVW,:]
     D = B * G * B.T
-    return B
-    
+    return B, D, len(V), len(W)
+
 def _homogeneous_normal_form(G):
     r"""
     Return the homogeneous normal form of ``G``.
-    
+
     INPUT:
-    
+
         - ``G`` -- a modular symmetric matrix over the `2`-adic integers
-    
+
     OUTPUT:
-    
+
         - ``B`` -- an invertible matrix over the basering of ``G`` 
           such that ``B*G*B.T`` is in homogeneous normal form
-    
+
     EXAMPLES::
-    
-        - 
+
+        sage: from sage.quadratic_forms.genera.normal_form import _homogeneous_normal_form
+        sage: R = Zp(2, type = 'fixed-mod')
+        sage: U = Matrix(R,2,[0,1,1,0])
+        sage: V = Matrix(R,2,[2,1,1,2])
+        sage: W1 = Matrix(R,1,[1])
+        sage: W3 = Matrix(R,1,[3])
+        sage: W5 = Matrix(R,1,[5])
+        sage: W7 = Matrix(R,1,[7])
+        sage: G = Matrix.block_diagonal([V,W1,W3])
+        sage: B = _homogeneous_normal_form(G)[0]
+        sage: (B*G*B.T).change_ring(ZZ)
+        [2 1 0 0]
+        [1 2 0 0]
+        [0 0 1 0]
+        [0 0 0 3]
+        sage: G = Matrix.block_diagonal([U,V,W1,W5])
+        sage: B = _homogeneous_normal_form(G)[0]
+        sage: (B*G*B.T).change_ring(ZZ)
+        [0 1 0 0 0 0]
+        [1 0 0 0 0 0]
+        [0 0 0 1 0 0]
+        [0 0 1 0 0 0]
+        [0 0 0 0 3 0]
+        [0 0 0 0 0 3]
+        sage: G = Matrix.block_diagonal([U,W7,W3])
+        sage: B = _homogeneous_normal_form(G)[0]
+        sage: (B*G*B.T).change_ring(ZZ)
+        [0 1 0 0]
+        [1 0 0 0]
+        [0 0 3 0]
+        [0 0 0 7]
+        sage: G = Matrix.block_diagonal([V,W5,W5])
+        sage: B = _homogeneous_normal_form(G)[0]
+        sage: (B*G*B.T).change_ring(ZZ)
+        [0 1 0 0]
+        [1 0 0 0]
+        [0 0 3 0]
+        [0 0 0 7]
+        sage: G = Matrix.block_diagonal([V,W3,W3])
+        sage: B = _homogeneous_normal_form(G)[0]
+        sage: (B*G*B.T).change_ring(ZZ)
+        [0 1 0 0]
+        [1 0 0 0]
+        [0 0 1 0]
+        [0 0 0 5]
+        sage: G = Matrix.block_diagonal([V,W1,W3])
+        sage: B = _homogeneous_normal_form(G)[0]
+        sage: (B*G*B.T).change_ring(ZZ)
+        [2 1 0 0]
+        [1 2 0 0]
+        [0 0 1 0]
+        [0 0 0 3]
+        sage: G = Matrix.block_diagonal([W3,W3])
+        sage: B = _homogeneous_normal_form(G)[0]
+        sage: (B*G*B.T).change_ring(ZZ)
+        [7 0]
+        [0 7]
     """
-    D = copy(G)
-    B = _partial_normal_form(G)
+    B, D, v, w = _partial_normal_form(G)
     D = B * G * B.T
+    n = B.ncols()
+    if w == 2:
+        e1 = D[-2,-2].unit_part()
+        e2 = D[-1,-1].unit_part()
+        e = {e1,e2}
+        E = [{3,3},{3,5},{5,5},{5,7}]
+        if e in E:
+            B[-2:,:] = _relations(D[-2:,-2:],1) * B[-2:,:]
+            D = B * G * B.T
+        if v==2:
+            e1 = D[-2,-2].unit_part()
+            e2 = D[-1,-1].unit_part()
+            e = {e1,e2}
+            E = [{1,1},{1,5},{3,7},{7,7}]
+            if e in E:
+                B[-4:,:] = _relations(D[-4:,-4:],5) * B[-4:,:]
+                D = B * G * B.T
+        e1 = D[-2,-2].unit_part()
+        e2 = D[-1,-1].unit_part()
+        if ZZ(e1) > ZZ(e2):
+            B.swap_rows(n-1,n-2)
+            D.swap_rows(n-1,n-2)
+            D.swap_columns(n-1,n-2)
+        v = 0
+    return B, D, w
+
+def _two_adic_normal_form(G):
+    r"""
+    Return the 2-adic normal form of a symmetric matrix.
+
+    INPUT:
+
+        - ``G`` -- block diagonal matrix with blocks of type `U`,`V`,`Wk`
+
+    OUTPUT:
+
+    EXAMPLES::
+
+        sage: from sage.quadratic_forms.genera.normal_form import _two_adic_normal_form
+        sage: R = Zp(2, type = 'fixed-mod')
+        sage: U = Matrix(R,2,[0,1,1,0])
+        sage: V = Matrix(R,2,[2,1,1,2])
+        sage: W1 = Matrix(R,1,[1])
+        sage: W3 = Matrix(R,1,[3])
+        sage: W5 = Matrix(R,1,[5])
+        sage: W7 = Matrix(R,1,[7])
+        sage: G = Matrix.block_diagonal([2*W1,2*W1,4*V])
+        sage: B = _two_adic_normal_form(G)
+        sage: (B*G*B.T).change_ring(ZZ)
+        [ 2  0  0  0]
+        [ 0 10  0  0]
+        [ 0  0  0  4]
+        [ 0  0  4  0]
+        sage: G = Matrix.block_diagonal([W1,2*V,2*W3,2*W5])
+        sage: B = _two_adic_normal_form(G)
+        sage: (B*G*B.T).change_ring(ZZ)
+        [3 0 0 0 0]
+        [0 0 2 0 0]
+        [0 2 0 0 0]
+        [0 0 0 2 0]
+        [0 0 0 0 2]
+        sage: G = Matrix.block_diagonal([U,2*V,2*W3,2*W5])
+        sage: B = _two_adic_normal_form(G)
+        sage: (B*G*B.T).change_ring(ZZ)
+    """
+    B = copy(G.parent().identity_matrix())
+    h, scales = _get_homogeneous_block_indices(G)
+    h.append(B.ncols())
+    UVlist = [[],[]]
+    Wlist = [[],[]]
+    # homogeneous normal form for each part
+    for k in range(scales[-1] - scales[0]+1):
+        if k+scales[0] in scales:
+            Gk = G[h[k]:h[k+1], h[k]:h[k+1]]
+            Bk, Dk, wk = _homogeneous_normal_form(Gk)
+            B[h[k]:h[k+1],:] = Bk * B[h[k]:h[k+1],:]
+            UVlist.append(range(h[k], h[k+1] - wk))
+            Wlist.append(range(h[k+1]-wk, h[k+1]))
+        else:
+            UVlist.append([])
+            Wlist.append([])
+    D = B * G * B.T
+    # use relations descending in k
+    for k in range(len(UVlist)-1,2,-1):
+        # setup notation
+        W = Wlist[k]
+        Wm = Wlist[k-1]
+        Wmm = Wlist[k-2]
+        UVm = UVlist[k-1]
+        V = UVlist[k][-2:]
+        if len(V)!=0 and D[V[0], V[0]]==0:
+            V = []    # it is U not V
+        # condition b)
+        if len(Wm) != 0:
+            if len(V)==2:
+                R = Wm[:1] + V
+                B[R,:] = _relations(D[R,R],7) * B[R,:]
+                V = []
+            D = B * G * B.T
+            E = {3,7}
+            for w in W:
+                if D[w,w].unit_part() in E:
+                    R = Wm[:1] + [w]
+                    B[R,:] = _relations(D[R,R],6) * B[R,:]
+            D = B * G * B.T
+        # condition c)
+        # We want type a or W = []
+        # modify D[w,w] to go from type b to type a
+        x = [len(V)] + [w.unit_part() for w in D[W,W].diagonal()]
+      # a = [[1], [2,3], [2,5], [7], [1,1], [2,1,3], [7,7], [1,7]]
+        b = [[5], [2,7], [2,1], [3], [1,5], [2,1,7], [3,7], [1,3]]
+        if x in b:
+            w = W[-1]
+            if x == [3,7]:
+                w = W[0]
+            if len(UVm) > 0:
+                R = UVm[-2:] + [w]
+                B[R,:] = _relations(D[R,R],8) * B[R,:]
+            elif len(Wmm) > 0:
+                R = Wmm[:1] + [w]
+                B[R,:] = _relations(D[R,R],10) * B[R,:]
+            elif len(Wm) == 2:
+                e0 = D[Wm,Wm][0,0].unit_part()
+                e1 = D[Wm,Wm][1,1].unit_part()
+                if mod(e1-e2,4) == 0:
+                    R = Wm + [w]
+                    B[R,:] = _relations(D[R,R,9]) * B[R,:]
+        D = B * G * B.T
+        # restore the homogeneous normal form of block k-1
+        if len(Wm) > 0:
+            R = UVm + Wm
+            Dk = D[R,R]
+            Bk = _homogeneous_normal_form(Dk)[0]
+            B[R,:] = Bk * B[R,:]
+            D = B * G * B.T
     return B

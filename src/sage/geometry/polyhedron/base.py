@@ -5293,10 +5293,10 @@ class Polyhedron_base(Element):
         r"""
         Return the ``index``-th integral point in this polyhedron.
 
-        This is equivalent to sorted(self.integral_points())[index]. However,
-        so long as self.integral_points_count() does not need to enumerate all
-        integral points, neither does this method. Hence it can be
-        significantly faster. If the polyhedron is not compact, a
+        This is equivalent to ``sorted(self.integral_points())[index]``.
+        However, so long as self.integral_points_count() does not need to
+        enumerate all integral points, neither does this method. Hence it can
+        be significantly faster. If the polyhedron is not compact, a
         ``ValueError`` is raised.
 
         INPUT:

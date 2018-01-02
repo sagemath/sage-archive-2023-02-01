@@ -2083,6 +2083,7 @@ class RiemannSurfaceSum(RiemannSurface):
         for s in it:
             M=M.block_sum(s.riemann_matrix())
         self.M=M
+        self.genus=sum(s.genus for s in L)
 
     def riemann_matrix(self):
         r"""

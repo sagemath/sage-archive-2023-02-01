@@ -821,8 +821,8 @@ cdef class ReductionMap(Map):
             sage: k = P.residue_field()
             sage: k.reduction_map()
             Partially defined reduction map:
-              From: Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
-              To:   Residue field in tbar of Principal ideal (t^7 + t^6 + t^5 + t^4 + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+              From: Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 2 (using GF2X)
+              To:   Residue field in tbar of Principal ideal (t^7 + t^6 + t^5 + t^4 + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using GF2X)
             sage: type(k)
             <class 'sage.rings.finite_rings.residue_field.ResidueFiniteField_givaro_with_category'>
         """
@@ -1038,8 +1038,8 @@ cdef class ReductionMap(Map):
             sage: f = k.convert_map_from(K)
             sage: f.section()
             Lifting map:
-              From: Residue field in a of Principal ideal (t^5 + t^2 + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
-              To:   Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+              From: Residue field in a of Principal ideal (t^5 + t^2 + 1) of Univariate Polynomial Ring in t over Finite Field of size 2 (using GF2X)
+              To:   Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 2 (using GF2X)
         """
         if self._section is None:
             self._section = LiftingMap(self, self._to_order, self._PB)
@@ -1351,7 +1351,7 @@ cdef class LiftingMap(Section):
             sage: k.<a> = R.residue_field(h)
             sage: K = R.fraction_field()
             sage: L = k.lift_map(); L.codomain()
-            Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
+            Univariate Polynomial Ring in t over Finite Field of size 2 (using GF2X)
         """
         self._K = reduction._K
         self._F = reduction._F   # finite field

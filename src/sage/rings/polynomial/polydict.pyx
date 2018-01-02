@@ -164,7 +164,7 @@ cdef class PolyDict:
 
     def list(PolyDict self):
         """
-        Return a list that defines self. It is safe to change this.
+        Return a list that defines ``self``. It is safe to change this.
 
         EXAMPLES::
 
@@ -408,7 +408,7 @@ cdef class PolyDict:
         return PolyDict(H, zero=self.__zero, force_etuples=False)
 
     def latex(PolyDict self, vars, atomic_exponents=True,
-              atomic_coefficients=True, cmpfn=None, sortkey=None):
+              atomic_coefficients=True, sortkey=None):
         r"""
         Return a nice polynomial latex representation of this PolyDict, where
         the vars are substituted in.
@@ -416,8 +416,8 @@ cdef class PolyDict:
         INPUT:
 
         - ``vars`` -- list
-        - ``atomic_exponents`` -- bool (default: True)
-        - ``atomic_coefficients`` -- bool (default: True)
+        - ``atomic_exponents`` -- bool (default: ``True``)
+        - ``atomic_coefficients`` -- bool (default: ``True``)
 
         EXAMPLES::
 
@@ -445,12 +445,9 @@ cdef class PolyDict:
         """
         n = len(vars)
         poly = ""
-        E = self.__repn.keys()
+        E = list(self.__repn)
         if sortkey:
             E.sort(key=sortkey, reverse=True)
-        elif cmpfn:
-            deprecation(21766, 'the cmpfn keyword is deprecated, use sortkey')
-            E.sort(cmp=cmpfn, reverse=True)
         else:
             E.sort(reverse=True)
         try:
@@ -498,7 +495,7 @@ cdef class PolyDict:
         return poly
 
     def poly_repr(PolyDict self, vars, atomic_exponents=True,
-                  atomic_coefficients=True, cmpfn=None, sortkey=None):
+                  atomic_coefficients=True, sortkey=None):
         """
         Return a nice polynomial string representation of this PolyDict, where
         the vars are substituted in.
@@ -538,12 +535,9 @@ cdef class PolyDict:
         """
         n = len(vars)
         poly = ""
-        E = self.__repn.keys()
+        E = list(self.__repn)
         if sortkey:
             E.sort(key=sortkey, reverse=True)
-        elif cmpfn:
-            deprecation(21766, 'the cmpfn keyword is deprecated, use sortkey')
-            E.sort(cmp=cmpfn, reverse=True)
         else:
             E.sort(reverse=True)
         try:

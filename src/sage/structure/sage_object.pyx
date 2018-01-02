@@ -369,9 +369,8 @@ cdef class SageObject:
             sage: type(_)
             <class 'sage.typeset.unicode_art.UnicodeArt'>
         """
-        ascii_art = self._ascii_art_()
-        lines = map(unicode, ascii_art)
         from sage.typeset.unicode_art import UnicodeArt
+        lines = [unicode(z) for z in self._ascii_art_()]
         return UnicodeArt(lines)
 
     def __hash__(self):

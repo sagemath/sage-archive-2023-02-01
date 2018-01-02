@@ -251,7 +251,8 @@ from cpython.object cimport Py_EQ, Py_NE, Py_LT, Py_LE, Py_GT, Py_GE
 from cysignals.signals cimport sig_on, sig_off
 
 from sage.libs.gmp.mpz cimport *
-from sage.libs.mpfr cimport MPFR_RNDN, MPFR_RNDZ, MPFR_RNDU, MPFR_RNDD, MPFR_RNDA
+from sage.libs.mpfr cimport *
+from sage.libs.mpfi cimport *
 
 cimport sage.structure.element
 from sage.structure.element cimport RingElement, Element, ModuleElement

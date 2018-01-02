@@ -34,7 +34,7 @@ class OperationInspector(SageObject):
 
         INPUT:
 
-        - ``libgap_element`` -- libgap element. 
+        - ``libgap_element`` -- libgap element.
 
         EXAMPLES::
 
@@ -61,7 +61,7 @@ class OperationInspector(SageObject):
             'Operations on 123'
         """
         return 'Operations on {0}'.format(repr(self._obj))
-        
+
     @property
     def obj(self):
         """
@@ -79,7 +79,7 @@ class OperationInspector(SageObject):
             123
         """
         return self._obj
-        
+
     def operations(self):
         """
         Return the GAP operations for :meth:`obj`
@@ -129,7 +129,7 @@ class OperationInspector(SageObject):
         result = set()
         for f in self.operations():
             name = NameFunction(f).sage()
-            if name[0] not in string.letters:
+            if name[0] not in string.ascii_letters:
                 continue
             match = NAME_RE.match(name)
             if match:
@@ -137,4 +137,4 @@ class OperationInspector(SageObject):
             else:
                 result.add(name)
         return sorted(result)
-        
+

@@ -21,6 +21,7 @@ from __future__ import print_function, absolute_import
 from six import add_metaclass
 
 from sage.combinat.partition import Partition, Partitions, _Partitions, OrderedPartitions
+from sage.combinat.skew_partition import SkewPartition
 from sage.combinat.integer_vector import IntegerVectors
 from sage.rings.integer import Integer
 
@@ -250,7 +251,8 @@ class ShiftedPrimedTableau(ClonableArray):
             sage: t = T([['1p','2p',2,2],[2,'3p']])
             Traceback (most recent call last):
             ....
-            ValueError: [['1p', '2p', 2, 2], [2, '3p']] is not an element of Shifted Primed Tableaux of shape [4, 2]
+            ValueError: [['1p', '2p', 2, 2], [2, '3p']] is not an element of
+            Shifted Primed Tableaux of shape [4, 2]
         """
         if self._skew is not None:
             if not all(self._skew[i] > self._skew[i+1]
@@ -289,7 +291,8 @@ class ShiftedPrimedTableau(ClonableArray):
 
     def _repr_(self):
         """
-        Represent ``self`` as a list of rows with rows represented as tuples of half-integers.
+        Represent ``self`` as a list of rows with rows represented as tuples of
+        half-integers.
 
         EXAMPLES::
 
@@ -571,56 +574,15 @@ class ShiftedPrimedTableau(ClonableArray):
             [4, 2]
             sage: s = ShiftedPrimedTableau([["2p",2,3],["2p"]],skew=[2,1])
             sage: s.shape()
-            [5, 2]
-        """
+            [5, 2] / [2, 1]
+            """
         if self._skew is None:
-            return ([len(_) for _ in self])
-        return ([len(self[i])+self._skew[i]
-                 for i in range(len(self._skew))] +
-                [len(self[i])
-                 for i in range(len(self._skew), len(self))])
-
-    def __call__(self, *cell):
-        """
-        Function call of ``self``.
-
-        INPUT:
-
-        - ``cell`` -- A pair of integers, tuple, or list specifying a cell in
-          the tableau.
-
-        OUTPUT:
-
-        - The element in the corresponding cell. If the element is primed,
-          returns half-integer value.
-
-        EXAMPLES::
-
-            sage: t  = ShiftedPrimedTableau([[1,'2p',2,2],[2,'3p']])
-            sage: t(1,0)
-            2.0
-            sage: t((1,2))
-            Traceback (most recent call last):
-            ...
-            IndexError: invalid cell
-            sage: t((1,1))
-            2.5
-            sage: s = ShiftedPrimedTableau([["2p",2,3],["2p"]],skew=[2,1])
-            sage: s(0,2)
-            1.5
-        """
-        try:
-            i, j = cell
-        except ValueError:
-            i, j = cell[0]
-        if self._skew is not None:
-            skew = self._skew[i] if i < len(self._skew) else 0
-        else:
-            skew = 0
-        try:
-            return self[i][j-skew]
-        except IndexError:
-            raise IndexError("invalid cell")
+            return Partition([len(_) for _ in self])
+        return SkewPartition(([len(self[i])+self._skew[i]
+                               for i in range(len(self._skew))] +
+                              [len(self[i])
+                               for i in range(len(self._skew), len(self))],
+                              self._skew))
 
     def weight(self):
         """
@@ -997,7 +959,7 @@ class ShiftedPrimedTableaux(UniqueRepresentation, Parent):
 
         2. a row cannot have two repeated primed elements, and a column
            cannot have two repeated non-primed elements
- 
+
         3. there are only non-primed elements along the main diagonal
 
     The weight of a tableau is defined to be the vector with `i`-th

@@ -19,6 +19,11 @@ EXAMPLES::
 """
 from __future__ import print_function, absolute_import
 
+from sage.categories.rings import Rings
+from sage.categories.integral_domains import IntegralDomains
+from sage.categories.fields import Fields
+from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationFields
+
 from .laurent_series_ring_element import LaurentSeries
 from . import polynomial
 from .ring import CommutativeRing
@@ -189,12 +194,6 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
             Category of infinite complete discrete valuation fields
             sage: TestSuite(RQQ).run()
         """
-        from sage.categories.rings import Rings
-        from sage.categories.integral_domains import IntegralDomains
-        from sage.categories.fields import Fields
-        from sage.categories.complete_discrete_valuation import (
-                CompleteDiscreteValuationRings, CompleteDiscreteValuationFields)
-
         base_ring = power_series.base_ring()
         if base_ring in Fields():
             category = CompleteDiscreteValuationFields()
@@ -211,7 +210,7 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
             category = category.Infinite()
 
         CommutativeRing.__init__(self, base_ring,
-                names=power_series.variable_name(),
+                names=power_series.variable_names(),
                 category=category)
 
         self._power_series_ring = power_series
@@ -260,7 +259,7 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
             return self
         elif self in IntegralDomains():
             return LaurentSeriesRing(self.base_ring().fraction_field(),
-                    self.variable_name(),
+                    self.variable_names(),
                     self.default_prec())
         else:
             raise ValueError('must be an integral domain')
@@ -275,7 +274,7 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
             sage: R.default_prec()
             4
         """
-        return LaurentSeriesRing(R, self.variable_name(),
+        return LaurentSeriesRing(R, self.variable_names(),
                                  default_prec=self.default_prec(),
                                  sparse=self.is_sparse())
 

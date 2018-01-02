@@ -5291,11 +5291,13 @@ class Polyhedron_base(Element):
 
     def get_integral_point(self, index, **kwds):
         r"""
-        Return the integral point sorted(self.integral_points())[index].
+        Return the ``index``-th integral point in this polyhedron.
 
-        However, so long as self.integral_points_count() does not need to
-        enumerate all integral points, neither does this method. Hence it can be
-        significantly faster.
+        This is equivalent to sorted(self.integral_points())[index]. However,
+        so long as self.integral_points_count() does not need to enumerate all
+        integral points, neither does this method. Hence it can be
+        significantly faster. If the polyhedron is not compact, a
+        ``ValueError`` is raised.
 
         INPUT:
 
@@ -5306,18 +5308,10 @@ class Polyhedron_base(Element):
         - ``**kwds`` -- optional keyword parameters that are passed to
           :meth:`self.integral_points_count`.
 
-        OUTPUT:
-
-        The integral point in the polyhedron which appears at the given index
-        in the sorted list of integral points returned by
-        self.integral_points(). Note that the points in this list are sorted
-        first by their first component and then by their second component and
-        so on.  If the polyhedron is not compact, a ``ValueError`` is raised.
-
         ALGORITHM:
 
         The function computes each of the components of the requested point in
-        turn.  To compute x_i, the ith component, it bisects the the upper and
+        turn. To compute x_i, the ith component, it bisects the the upper and
         lower bounds on x_i given by the bounding box. At each bisection, it
         uses :meth:`integral_points_count` to determine on which side of the
         bisecting hyperplane the requested point lies.
@@ -5333,8 +5327,12 @@ class Polyhedron_base(Element):
             (0, 0)
             sage: P.get_integral_point(4)
             (1, 1)
-            sage: P.integral_points()
-            ((-1, -1), (0, 0), (0, 1), (1, 0), (1, 1))
+            sage: sorted(P.integral_points())
+            [(-1, -1), (0, 0), (0, 1), (1, 0), (1, 1)]
+            sage: P.get_integral_point(5)
+            Traceback (most recent call last):
+            ...
+            IndexError: ...
 
             sage: Q = Polyhedron([(1,3), (2, 7), (9, 77)])
             sage: [Q.get_integral_point(i) for i in range(Q.integral_points_count())] == sorted(Q.integral_points())
@@ -5392,7 +5390,7 @@ class Polyhedron_base(Element):
         OUTPUT:
 
         The integral point in the polyhedron chosen uniformly at random. If the
-        polyhedron is not compact, a ``ValueError`` is raised.  If the
+        polyhedron is not compact, a ``ValueError`` is raised. If the
         polyhedron does not contain any integral points, an ``EmptySetError`` is
         raised.
 

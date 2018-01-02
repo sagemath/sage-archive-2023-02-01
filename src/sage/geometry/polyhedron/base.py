@@ -5363,7 +5363,7 @@ class Polyhedron_base(Element):
             while lower < upper-1:
                 guess = (lower + upper) // 2  # > lower.
                 # Build new polyhedron by intersecting P with the halfspace {x_i < guess}.
-                P_lt_guess = P.intersection(S(ieqs=[[guess-1] + [0] * i + [-1] + [0] * (D - i - 1)]))
+                P_lt_guess = P.intersection(S(None, ([[guess-1] + [0] * i + [-1] + [0] * (D - i - 1)], [])))
                 # Avoid computing P_geq_guess = P.intersection({x_i >= guess}) right now, it might not be needed.
                 P_lt_guess_count = P_lt_guess.integral_points_count()
                 if P_lt_guess_count > index:  # Move upper down to guess.
@@ -5373,7 +5373,7 @@ class Polyhedron_base(Element):
                 else:  # P_lt_guess_count <= index:  # Move lower up to guess.
                     lower = guess
                     index -= P_lt_guess_count
-                    P_geq_guess = P.intersection(S(ieqs=[[-guess] + [0] * i + [1] + [0] * (D - i - 1)]))
+                    P_geq_guess = P.intersection(S(None, ([[-guess] + [0] * i + [1] + [0] * (D - i - 1)], [])))
                     P = P_geq_guess
             coordinate.append(lower)  # Record the new component that we have found.
         point = vector(ZZ, coordinate)

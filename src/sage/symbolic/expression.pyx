@@ -3379,6 +3379,15 @@ cdef class Expression(CommutativeRingElement):
             -1.00000000000000
             sage: sin(1.0*pi)
             sin(1.00000000000000*pi)
+
+        Check that infinities multiply correctly (:trac:`23427`)::
+
+            sage: SR(-oo) * SR(-oo)
+            +Infinity
+            sage: SR(-oo) * SR(oo)
+            -Infinity
+            sage: SR(-oo) * SR(unsigned_infinity)
+            Infinity
         """
         cdef GEx x
         cdef Expression _right = <Expression>right
@@ -6250,6 +6259,17 @@ cdef class Expression(CommutativeRingElement):
             [[sin(x^2 + 1)*sin(x + 1), 0]]
             sage: (sin(1+x)*sin(1+x^2)*x).coefficients(x)
             [[sin(x^2 + 1)*sin(x + 1), 1]]
+
+        Check that :trac:`23545` is fixed::
+
+            sage: (x^2/(1+x)).coefficients()
+            [[x^2/(x + 1), 0]]
+            sage: (1+x+exp(x^2/(1+x))).coefficients()
+            [[e^(x^2/(x + 1)) + 1, 0], [1, 1]]
+            sage: (1/x).coefficients()
+            [[1, -1]]
+            sage: ((1+x)^pi).coefficients()
+            [[(x + 1)^pi, 0]]
         """
         cdef vector[pair[GEx,GEx]] vec
         cdef pair[GEx,GEx] gexpair
@@ -6950,7 +6970,7 @@ cdef class Expression(CommutativeRingElement):
 
     def gcd(self, b):
         r"""
-        Return the gcd of self and b.
+        Return the symbolic gcd of self and b.
 
         Note that the polynomial GCD is unique up to the multiplication
         by an invertible constant. The following examples make sure all
@@ -6977,6 +6997,22 @@ cdef class Expression(CommutativeRingElement):
             sage: r = gcd(expand( (x^2+17*x+3/7*y)*(x^5 - 17*y + 2/3) ), expand((x^13+17*x+3/7*y)*(x^5 - 17*y + 2/3)) )
             sage: r / (x^5 - 17*y + 2/3) in QQ
             True
+
+        Embedded Sage objects of all kinds get basic support. Note that
+        full algebraic GCD is not implemented yet::
+
+            sage: gcd(I - I*x, x^2 - 1)
+            x - 1
+            sage: gcd(I + I*x, x^2 - 1)
+            x + 1
+            sage: alg = SR(QQbar(sqrt(2) + I*sqrt(3)))
+            sage: gcd(alg + alg*x, x^2 - 1)
+            x + 1
+            sage: gcd(alg - alg*x, x^2 - 1)
+            x - 1
+            sage: sqrt2 = SR(QQbar(sqrt(2)))
+            sage: gcd(sqrt2 + x, x^2 - 2)    # known bug
+            1
 
         TESTS:
 
@@ -7009,6 +7045,12 @@ cdef class Expression(CommutativeRingElement):
  
             sage: gcd(I + I*x, x^2 - 1)
             x + 1
+
+        Check that arguments are expanded before GCD (:trac:`23845`)::
+
+            sage: P = (x+1)^2 + 1
+            sage: gcd(P, P.expand())
+            x^2 + 2*x + 2
         """
         cdef Expression r = self.coerce_in(b)
         cdef GEx x

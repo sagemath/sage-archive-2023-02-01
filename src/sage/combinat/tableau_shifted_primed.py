@@ -43,13 +43,13 @@ class ShiftedPrimedTableau(ClonableArray):
     r"""
     A shifted primed tableau with primed elements stored as half-integers.
 
-    A primed tableau is a shifted tableau on the alphabet
+    A primed tableau is a tableau of shifted shape in the alphabet
     `X' = \{1' < 1 < 2' < 2 < \cdots < n' < n\}` such that
 
-    1. the entries are weakly increasing along rows and columns
-    2. a row can't have two repeated primed elements, and a column
-       can't have two repeated non-primed elements
-    3. there are only non-primed elements on the main diagonal
+        1. The entries are weakly increasing along rows and columns;
+        2. A row cannot have two repeated primed elements, and a column
+           cannot have two repeated non-primed elements;
+        3. There are only non-primed elements on the main diagonal.
 
     EXAMPLES::
 
@@ -90,10 +90,8 @@ class ShiftedPrimedTableau(ClonableArray):
             sage: t.parent()
             Shifted Primed Tableaux skewed by [2, 1]
         """
-
         if (isinstance(T, cls) and T._skew == skew):
             return T
-
         return ShiftedPrimedTableaux(skew=skew)(T)
 
     def __init__(self, parent, T, skew=None):
@@ -198,9 +196,7 @@ class ShiftedPrimedTableau(ClonableArray):
 
         - ``other`` -- the element that ``self`` is compared to
 
-        OUTPUT:
-
-        Boolean.
+        OUTPUT: Boolean
 
         EXAMPLES::
 
@@ -218,7 +214,7 @@ class ShiftedPrimedTableau(ClonableArray):
 
     def _to_matrix(self):
         """
-        Return a 2-dimensional array representation of a shifted tableau
+        Return a 2-dimensional array representation of a shifted tableau.
 
         EXAMPLES::
 
@@ -242,7 +238,7 @@ class ShiftedPrimedTableau(ClonableArray):
 
     def check(self):
         """
-        Check that ``self`` is a valid primed tableaux.
+        Check that ``self`` is a valid primed tableau.
 
         EXAMPLES::
 
@@ -251,6 +247,10 @@ class ShiftedPrimedTableau(ClonableArray):
             sage: t.check()
             sage: s = ShiftedPrimedTableau([["2p",2,3],["2p"]],skew=[2,1])
             sage: s.check()
+            sage: t = T([['1p','2p',2,2],[2,'3p']])
+            Traceback (most recent call last):
+            ....
+            ValueError: [['1p', '2p', 2, 2], [2, '3p']] is not an element of Shifted Primed Tableaux of shape [4, 2]
         """
         if self._skew is not None:
             if not all(self._skew[i] > self._skew[i+1]
@@ -289,8 +289,7 @@ class ShiftedPrimedTableau(ClonableArray):
 
     def _repr_(self):
         """
-        Represent Shifted Primed Tableau as a list of rows,
-        rows are represented as tuples of half-integers.
+        Represent ``self`` as a list of rows with rows represented as tuples of half-integers.
 
         EXAMPLES::
 
@@ -361,7 +360,7 @@ class ShiftedPrimedTableau(ClonableArray):
 
     def _ascii_art_(self):
         """
-        Return ASCII representation of a tableau.
+        Return ASCII representation of ``self``.
 
         EXAMPLES::
 
@@ -390,7 +389,7 @@ class ShiftedPrimedTableau(ClonableArray):
 
     def _unicode_art_(self):
         """
-        Return a Unicode representation of a tableau.
+        Return a Unicode representation of ``self``.
 
         EXAMPLES::
 
@@ -587,12 +586,12 @@ class ShiftedPrimedTableau(ClonableArray):
 
         INPUT:
 
-        - ``cell`` -- a pair of integers, tuple, or list specifying a cell in
+        - ``cell`` -- A pair of integers, tuple, or list specifying a cell in
           the tableau.
 
         OUTPUT:
 
-        - the element in the corresponding cell. if the element is primed,
+        - The element in the corresponding cell. If the element is primed,
           returns half-integer value.
 
         EXAMPLES::
@@ -653,15 +652,15 @@ class ShiftedPrimedTableau(ClonableArray):
         The reading word of a shifted primed tableau is constructed
         as follows:
 
-        1. List all primed letters in the tableau, column by
-           column, in decreasing order within each column, moving
-           from the rightmost column to the left, and with all
-           the primes removed (i.e. all letters are increased by
-           half a unit).
+            1. List all primed letters in the tableau, column by
+               column, in decreasing order within each column, moving
+               from the rightmost column to the left, and with all
+               the primes removed (i.e. all letters are increased by
+               half a unit).
 
-        2. Then list all unprimed elements, row by row, in
-           increasing order within each row, moving from the
-           bottommost row to the top.
+            2. Then list all unprimed elements, row by row, in
+               increasing order within each row, moving from the
+               bottommost row to the top.
 
         EXAMPLES::
 
@@ -694,15 +693,15 @@ class ShiftedPrimedTableau(ClonableArray):
         The reading word of a shifted primed tableau is constructed
         as follows:
 
-        1. List all primed letters in the tableau, column by
-           column, in decreasing order within each column, moving
-           from the rightmost column to the left, and with all
-           the primes removed (i.e. all letters are increased by
-           half a unit).
+            1. List all primed letters in the tableau, column by
+               column, in decreasing order within each column, moving
+               from the rightmost column to the left, and with all
+               the primes removed (i.e. all letters are increased by
+               half a unit).
 
-        2. Then list all unprimed elements, row by row, in
-           increasing order within each row, moving from the
-           bottommost row to the top.
+            2. Then list all unprimed elements, row by row, in
+               increasing order within each row, moving from the
+               bottommost row to the top.
 
         EXAMPLES::
 
@@ -721,7 +720,7 @@ class ShiftedPrimedTableau(ClonableArray):
 
         INPUT:
 
-        - ``ind`` -- index of the crystal operator `f_i`
+        - ``ind`` -- element in the index set of the crystal
 
         OUTPUT:
 
@@ -836,7 +835,7 @@ class ShiftedPrimedTableau(ClonableArray):
 
         INPUT:
 
-        - ``ind`` -- index of the crystal operator `e_i`
+        - ``ind`` -- an element in the index set of the crystal.
 
         OUTPUT:
 
@@ -933,10 +932,9 @@ class ShiftedPrimedTableau(ClonableArray):
 
     def is_highest_weight(self):
         """
-        Check wether the shifted primed tableau ``self`` is a highest weight
-        element of the crystal.
+        Return whether ``self`` is a highest weight element of the crystal.
 
-        An element is highest weight if it vanishes under any crystal operator
+        An element is highest weight if it vanishes under all crystal operators
         `e_i`.
 
         EXAMPLES::
@@ -992,16 +990,18 @@ class ShiftedPrimedTableaux(UniqueRepresentation, Parent):
     - with a tuple argument, the class of all primed tableaux of that
       weight (finite set)
 
-    A primed tableau is a shifted tableau on the alphabet
+    A primed tableau is a tableau of shifted shape on the alphabet
     `X' = \{1' < 1 < 2' < 2 < \cdots < n' < n\}` such that
 
-    1. the entries are weakly increasing along rows and columns
-    2. a row can't have two repeated primed elements, and a column
-       can't have two repeated non-primed elements
-    3. there are only non-primed elements along the main diagonal
+        1. the entries are weakly increasing along rows and columns
 
-    The weight of a tableau is defined to be the vector with i-th
-    component equal to the number of letters i and i' in the tableau.
+        2. a row cannot have two repeated primed elements, and a column
+           cannot have two repeated non-primed elements
+ 
+        3. there are only non-primed elements along the main diagonal
+
+    The weight of a tableau is defined to be the vector with `i`-th
+    component equal to the number of letters `i` and `i'` in the tableau.
     The sum of the entries in the weight vector must be equal to the
     number of boxes in the partition.
 
@@ -1284,13 +1284,13 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
     """
     Shifted Primed Tableaux of a fixed shape.
 
-    Shifted prime tableaux admit a type `A_n` classical crystal structure
+    Shifted primed tableaux admit a type `A_n` classical crystal structure
     with highest weights corresponding to a given shape.
 
     The list of module generators consists of all elements of the
     crystal with nonincreasing weight.
 
-    Crystal is constructed following operations described in [HPS2017]_.
+    The crystal is constructed following operations described in [HPS2017]_.
 
     EXAMPLES::
 
@@ -1317,7 +1317,7 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
     @staticmethod
     def __classcall_private__(cls, shape, max_elt=None, skew=None):
         """
-        Normalilize the attributes for the class.
+        Normalize the attributes for the class.
 
         TEST::
 
@@ -1524,8 +1524,7 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
 
     def list_highest_weight(self):
         """
-        List elements of ``self`` that are highest weight elements
-        in the crystal.
+        List the highest weight elements of ``self``.
 
         EXAMPLES::
 

@@ -20,7 +20,7 @@ from sage.libs.pynac.pynac import symbol_table
 from sage.symbolic.constants import (pi, e, golden_ratio, log2, euler_gamma,
                                      catalan, khinchin, twinprime, mertens)
 from sage.functions.hypergeometric import hypergeometric
-from sage.functions.other import cases
+from sage.functions.other import (cases, element_of)
 from sage.symbolic.comparison import mixed_order
 
 ###################################################################
@@ -48,13 +48,13 @@ def _mk_full_functions():
     Note that this doctest will produce different output whenever a
     symbolic function is added or removed.
     """
+    excluded = [hypergeometric, cases, element_of]
     items = sorted(symbol_table['functions'].items())
     return [(1.0, f, f.number_of_arguments())
             for (name, f) in items
             if hasattr(f, 'number_of_arguments') and
                f.number_of_arguments() > 0 and
-               f != hypergeometric and
-               f != cases]
+               f not in excluded]
 
 # For creating simple expressions
 

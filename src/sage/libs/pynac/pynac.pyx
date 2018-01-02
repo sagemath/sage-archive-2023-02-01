@@ -1190,7 +1190,7 @@ cdef bint py_is_real(a):
             return False
     except NotImplementedError:
         return False
-    except AttributeError:
+    except (TypeError, AttributeError):
         pass
     return py_imag(a) == 0
 

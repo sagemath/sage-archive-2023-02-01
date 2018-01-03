@@ -1270,7 +1270,7 @@ functors are shuffled.
 ::
 
     sage: Compl, R = RR.construction(); Compl
-    Completion[+Infinity]
+    Completion[+Infinity, prec=53]
 
 .. end of output
 

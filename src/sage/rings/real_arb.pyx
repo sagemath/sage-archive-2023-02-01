@@ -558,7 +558,7 @@ class RealBallField(UniqueRepresentation, Field):
             sage: RBF = RealBallField(42)
             sage: functor, base = RBF.construction()
             sage: functor, base
-            (Completion[+Infinity], Rational Field)
+            (Completion[+Infinity, prec=42], Rational Field)
             sage: functor(base) is RBF
             True
         """

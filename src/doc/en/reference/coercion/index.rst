@@ -608,13 +608,13 @@ These are accessed via the :meth:`construction` method, which returns a
     sage: CC.construction()
     (AlgebraicClosureFunctor, Real Field with 53 bits of precision)
     sage: RR.construction()
-    (Completion[+Infinity], Rational Field)
+    (Completion[+Infinity, prec=53], Rational Field)
     sage: QQ.construction()
     (FractionField, Integer Ring)
     sage: ZZ.construction()  # None
 
     sage: Qp(5).construction()
-    (Completion[5], Rational Field)
+    (Completion[5, prec=20], Rational Field)
     sage: QQ.completion(5, 100, {})
     5-adic Field with capped relative precision 100
     sage: c, R = RR.construction()

@@ -441,6 +441,7 @@ def Hom(X, Y, category=None, check=True):
             for C in cats:
                 try:
                     H = C.parent_class._Hom_(X, Y, category=category)
+                    break
                 except (AttributeError, TypeError):
                     pass
             if H is None:

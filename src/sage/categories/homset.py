@@ -64,7 +64,7 @@ AUTHORS:
 
 from __future__ import absolute_import, print_function
 
-from sage.categories.category import Category
+from sage.categories.category import Category, JoinCategory
 from . import morphism
 from sage.structure.parent import Parent, Set_generic
 from sage.misc.fast_methods import WithEqualityById
@@ -422,16 +422,28 @@ def Hom(X, Y, category=None, check=True):
         try: # _Hom_ hook from the parent
             H = X._Hom_(Y, category)
         except (AttributeError, TypeError):
-            try:
-                # Workaround in case the above fails, but the category
-                # also provides a _Hom_ hook.
-                # FIXME:
-                # - If X._Hom_ actually comes from category and fails, it
-                #   will be called twice.
-                # - This is bound to fail if X is an extension type and
-                #   does not actually inherit from category.parent_class
-                H = category.parent_class._Hom_(X, Y, category=category)
-            except (AttributeError, TypeError):
+            # Workaround in case the above fails, but the category
+            # also provides a _Hom_ hook.
+            # FIXME:
+            # - If X._Hom_ actually comes from category and fails, it
+            #   will be called twice.
+            # - This is bound to fail if X is an extension type and
+            #   does not actually inherit from category.parent_class
+            # For join categories, we check all of the direct super
+            #   categories as the parent_class of the join category is
+            #   not (necessarily) inherited and join categories do not
+            #   implement a _Hom_ (see trac #23418).
+            if not isinstance(category, JoinCategory):
+                cats = [category]
+            else:
+                cats = category.super_categories()
+            H = None
+            for C in cats:
+                try:
+                    H = C.parent_class._Hom_(X, Y, category=category)
+                except (AttributeError, TypeError):
+                    pass
+            if H is None:
                 # By default, construct a plain homset.
                 H = Homset(X, Y, category=category, check=check)
     _cache[key] = H

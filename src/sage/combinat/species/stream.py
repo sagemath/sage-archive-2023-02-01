@@ -358,7 +358,6 @@ class Stream_class(SageObject):
             except IndexError:
                 break
             i += 1
-        raise StopIteration
 
     def __len__(self):
         """

@@ -894,7 +894,8 @@ class GraphGenerators():
             try:
                 s = next(gen)
             except StopIteration:
-                raise StopIteration("Exhausted list of graphs from nauty geng")
+                # Exhausted list of graphs from nauty geng
+                return
             G = graph.Graph(s[:-1], format='graph6')
             yield G
 

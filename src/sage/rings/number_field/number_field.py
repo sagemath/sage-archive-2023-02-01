@@ -3469,8 +3469,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             except (TypeError, AttributeError):
                 raise TypeError("%s is not valid bound on prime ideals" % B)
 
-        if B<2:
-            raise StopIteration
+        if B < 2:
+            return
 
         if self is QQ:
             for p in arith.primes(B+1):

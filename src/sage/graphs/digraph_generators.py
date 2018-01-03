@@ -560,7 +560,8 @@ class DiGraphGenerators():
             try:
                 s = next(gen)
             except StopIteration:
-                raise StopIteration("Exhausted list of graphs from nauty geng")
+                # Exhausted list of graphs from nauty geng
+                return
 
             G = DiGraph(n)
             i = 0

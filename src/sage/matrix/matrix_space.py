@@ -1322,7 +1322,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         #yield the empty matrix in that case and return
         if number_of_entries == 0:
             yield self(0)
-            raise StopIteration
+            return
 
         import sage.combinat.integer_vector
 

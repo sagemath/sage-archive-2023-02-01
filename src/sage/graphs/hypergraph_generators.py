@@ -150,7 +150,8 @@ class HypergraphGenerators():
             try:
                 s = next(gen)
             except StopIteration:
-                raise StopIteration("Exhausted list of graphs from nauty geng")
+                # Exhausted list of graphs from nauty geng
+                return
 
             from sage.graphs.graph import Graph
             G = Graph(s[:-1], format='graph6')

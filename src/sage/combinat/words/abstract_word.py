@@ -470,9 +470,7 @@ class Word_class(SageObject):
             if b == c:
                 yield b
             else:
-                raise StopIteration
-        else:
-            raise StopIteration
+                break
 
     def longest_common_prefix(self, other, length='unknown'):
         r"""
@@ -600,11 +598,11 @@ class Word_class(SageObject):
             sage: list(Word([1,2,1,2,1,3])._longest_periodic_prefix_iterator(2))
             [1, 2, 1, 2, 1]
         """
-        for i,l in enumerate(self):
-            if self[i%period] == l:
+        for i, l in enumerate(self):
+            if self[i % period] == l:
                 yield l
             else:
-                raise StopIteration
+                break
 
     def longest_periodic_prefix(self, period=1):
         r"""

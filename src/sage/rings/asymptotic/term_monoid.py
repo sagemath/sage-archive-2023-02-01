@@ -3114,7 +3114,7 @@ class ExactTerm(TermWithCoefficient):
         elif c == '-1':
             return '-{g}'.format(g=g)
         elif self.coefficient._is_atomic() or (-self.coefficient)._is_atomic():
-            # note that -pi/2 is not atomic, but -5 is. As subtractions are handeled
+            # note that -pi/2 is not atomic, but -5 is. As substractions are handeled
             # in the asymptotic ring, we ignore such non-atomicity.
             s = '{c} {g}' if latex else '{c}*{g}'
         else:

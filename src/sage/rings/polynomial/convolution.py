@@ -25,12 +25,12 @@ ALGORITHM: Converts the problem to multiplication in the ring
 `R` is the original base ring). Performs FFT with respect
 to the roots of unity `1, y, y^2, \ldots, y^{2K-1}` in
 `S`. The FFT/IFFT are accomplished with just additions and
-substractions and rotating python lists. (I think this algorithm is
+subtractions and rotating python lists. (I think this algorithm is
 essentially due to Schonhage, not completely sure.) The pointwise
 multiplications are handled recursively, switching to a classical
 algorithm at some point.
 
-Complexity is O(n log(n) log(log(n))) additions/substractions in R
+Complexity is O(n log(n) log(log(n))) additions/subtractions in R
 and O(n log(n)) multiplications in R.
 
 AUTHORS:

@@ -880,57 +880,56 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp = ParallelogramPolyomino([[1, 0], [0, 1]])  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: Lower and upper path are crossing.
+            ValueError: lower and upper path are crossing
 
             sage: pp = ParallelogramPolyomino([[1], [0, 1]])  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: Lower upper paht have different size (2 != 1).
+            ValueError: lower and upper paths have different sizes (2 != 1)
 
             sage: pp = ParallelogramPolyomino([[1], [0]])  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: The two paths don't join together at the end.
+            ValueError: the two paths have distinct ends
 
             sage: pp = ParallelogramPolyomino([[0], [1]])  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: The two paths don't join together at the end.
+            ValueError: the two paths have distinct ends
 
             sage: pp = ParallelogramPolyomino([[0], [0]])  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: A Parallelogam Polyomino can have the path [[0], [0]].
+            ValueError: wrong input for the paths: [[0], [0]]
 
             sage: pp = ParallelogramPolyomino([[], [0]])  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: A Parallelogam Polyomino can have lower or upper path equals to [].
+            ValueError: lower and upper path cannot be []
 
             sage: pp = ParallelogramPolyomino([[0], []])  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: A Parallelogam Polyomino can have lower or upper path equals to [].
+            ValueError: lower and upper path cannot be []
 
             sage: pp = ParallelogramPolyomino([[], []])  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: A Parallelogam Polyomino can have lower or upper path equals to [].
+            ValueError: lower and upper path cannot be []
         """
         lower_path = self.lower_path()
         upper_path = self.upper_path()
         if lower_path == [0] and upper_path == [0]:
             raise ValueError(
-                "A Parallelogam Polyomino can have the path [[0], [0]]."
+                "wrong input for the paths: [[0], [0]]"
             )
         if lower_path == [] or upper_path == []:
             raise ValueError(
-                "A Parallelogam Polyomino can have lower or upper path equals "
-                "to []."
+                "lower and upper path cannot be []"
             )
         if len(upper_path) != len(lower_path):
             raise ValueError(
-                "Lower upper paht have different size (%s != %s)." % (
+                "lower and upper paths have different sizes (%s != %s)" % (
                     len(upper_path), len(lower_path)
                 )
             )
@@ -940,15 +939,15 @@ class ParallelogramPolyomino(ClonableList):
             p_up[1-upper_path[i]] += 1
             p_down[1-lower_path[i]] += 1
             if(p_up[0] <= p_down[0] or p_down[1] <= p_up[1]):
-                raise ValueError("Lower and upper path are crossing.")
+                raise ValueError("lower and upper path are crossing")
         p_up[1-upper_path[-1]] += 1
         p_down[1-lower_path[-1]] += 1
         if(p_up[0] != p_down[0] or p_up[1] != p_down[1]):
-            raise ValueError("The two paths don't join together at the end.")
+            raise ValueError("the two paths have distinct ends")
 
     def __hash__(self):
         r"""
-        Return the hash code of the parallelogram polyomino
+        Return the hash code of the parallelogram polyomino.
 
         EXAMPLES::
 
@@ -1426,7 +1425,7 @@ class ParallelogramPolyomino(ClonableList):
     @combinatorial_map(name="To ordered tree")
     def to_ordered_tree(self, bijection=None):
         r"""
-        Return an ordered tree from the parallelogram polyomino
+        Return an ordered tree from the parallelogram polyomino.
 
         Different bijections can be specified.
 
@@ -1699,8 +1698,9 @@ class ParallelogramPolyomino(ClonableList):
 
     def widths(self):
         r"""
-        This method return a list of the widths of the parallelogram
-        polyomino: the parallelogram polyomino is splitted row by row and the
+        Return a list of the widths of the parallelogram polyomino.
+
+        Namely, the parallelogram polyomino is split row by row and the
         method returns the list containing the sizes of the rows.
 
         EXAMPLES::
@@ -1840,8 +1840,9 @@ class ParallelogramPolyomino(ClonableList):
 
     def heights(self):
         r"""
-        This method return a list of heights of the parallelogram
-        polyomino: the parallelogram polyomino is splitted column by column and
+        Return a list of heights of the parallelogram polyomino.
+
+        Namely, the parallelogram polyomino is split column by column and
         the method returns the list containing the sizes of the columns.
 
         EXAMPLES::
@@ -1973,7 +1974,7 @@ class ParallelogramPolyomino(ClonableList):
 
         def val(w, h):
             r"""
-            That technical function determine, if a cell at a given position
+            Determine whether the cell at a given position
             is inside the parallelogram polyomino.
 
             INPUT:
@@ -1984,20 +1985,20 @@ class ParallelogramPolyomino(ClonableList):
 
             OUTPUT:
 
-            Returns 0 or 1. Returns 0 if there is no cell at the given position,
+            Returns 0 if there is no cell at the given position,
             returns 1 if there is a cell.
             """
             if w >= len(widths) or w < 0:
                 return 0
-            if lower_widths[w] <= h and h < lower_widths[w]+widths[w]:
+            if lower_widths[w] <= h and h < lower_widths[w] + widths[w]:
                 return 1
             return 0
         return [[val(h, w) for w in range(width)] for h in range(height)]
 
     class _polyomino_row:
         r"""
-        That technical class implement the row of a parallelogram
-        polyomino.
+        This is an internal class representing a single row of
+        a parallelogram polyomino.
 
         EXAMPLES::
 
@@ -2430,7 +2431,7 @@ class ParallelogramPolyomino(ClonableList):
 
     def _to_tikz_diagram(self):
         r"""
-        Return the tikz code of the diagramme representing ``self``.
+        Return the tikz code of the diagram representing ``self``.
 
         TESTS::
 

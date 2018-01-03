@@ -343,6 +343,34 @@ def Hom(X, Y, category=None, check=True):
         si... = ... pg_Hom(si..., si..., ...) ...
         sage: Q == loads(dumps(Q))
         True
+
+    Check that the ``_Hom_`` method of the ``category`` input is used::
+
+        sage: from sage.categories.category_types import Category_over_base_ring
+        sage: class ModulesWithHom(Category_over_base_ring):
+        ....:     def super_categories(self):
+        ....:         return [Modules(self.base_ring())]
+        ....:     class ParentMethods:
+        ....:         def _Hom_(self, Y, category=None):
+        ....:             print("Modules")
+        ....:             raise TypeError
+        sage: class AlgebrasWithHom(Category_over_base_ring):
+        ....:     def super_categories(self):
+        ....:         return [Algebras(self.base_ring()), ModulesWithHom(self.base_ring())]
+        ....:     class ParentMethods:
+        ....:         def _Hom_(self, Y, category=None):
+        ....:             R = self.base_ring()
+        ....:             if category is not None and category.is_subcategory(Algebras(R)):
+        ....:                 print("Algebras")
+        ....:             raise TypeError
+        sage: from sage.structure.element import Element
+        sage: class Foo(Parent):
+        ....:     _no_generic_basering_coercion = True
+        ....:     class Element(Element):
+        ....:         pass
+        sage: X = Foo(base=QQ, category=AlgebrasWithHom(QQ))
+        sage: H = Hom(X, X, ModulesWithHom(QQ))
+        Modules
     """
     # This should use cache_function instead
     # However some special handling is currently needed for
@@ -402,10 +430,10 @@ def Hom(X, Y, category=None, check=True):
                 #   will be called twice.
                 # - This is bound to fail if X is an extension type and
                 #   does not actually inherit from category.parent_class
-                H = X.category().parent_class._Hom_(X, Y, category = category)
+                H = category.parent_class._Hom_(X, Y, category=category)
             except (AttributeError, TypeError):
                 # By default, construct a plain homset.
-                H = Homset(X, Y, category = category, check=check)
+                H = Homset(X, Y, category=category, check=check)
     _cache[key] = H
     if isinstance(X, UniqueRepresentation) and isinstance(Y, UniqueRepresentation):
         if not isinstance(H, WithEqualityById):

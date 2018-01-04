@@ -828,7 +828,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         Returns whether the graph is immutable.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: G = graphs.PetersenGraph()
             sage: G.is_immutable()
@@ -13306,7 +13306,7 @@ class GenericGraph(GenericGraph_pyx):
 
         ALGORITHM:
 
-        Through the use of PQ-Trees
+        Through the use of PQ-Trees.
 
         AUTHOR:
 
@@ -13320,7 +13320,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.is_interval(certificate=True)
             (True, {1: (0, 5), 2: (4, 6), 3: (1, 3), 4: (2, 7)})
 
-        The Petersen Graph is not chordal, so in can't be an interval
+        The Petersen Graph is not chordal, so it can't be an interval
         graph::
 
             sage: g = graphs.PetersenGraph()
@@ -13339,6 +13339,9 @@ class GenericGraph(GenericGraph_pyx):
 
             - :meth:`PQ <sage.graphs.pq_trees.PQ>`
               -- Implementation of PQ-Trees.
+            - :meth:`is_chordal`
+            - :func:`~sage.graphs.generators.intersection.IntervalGraph`
+            - :func:`~sage.graphs.generators.random.RandomIntervalGraph`
 
         TESTS::
 
@@ -13351,22 +13354,18 @@ class GenericGraph(GenericGraph_pyx):
             sage: graphs.CycleGraph(4).is_interval(certificate=True)
             (False, None)
 
-        Enumerate all small interval graphs::
+        Enumerate all small interval graphs (see :oeis:`A005975`)::
 
-            sage: [sum(1 for g in graphs(i) if g.is_interval()) for i in range(8)]  # Long time. Compare to A005975 in OEIS.
+            sage: [sum(1 for g in graphs(i) if g.is_interval()) for i in range(8)]  # long time
             [1, 1, 2, 4, 10, 27, 92, 369]
 
         Test certicate on a larger graph by re-doing isomorphic graph::
 
             sage: g = Graph(':S__@_@A_@AB_@AC_@ACD_@ACDE_ACDEF_ACDEFG_ACDEGH_ACDEGHI_ACDEGHIJ_ACDEGIJK_ACDEGIJKL_ACDEGIJKLMaCEGIJKNaCEGIJKNaCGIJKNPaCIP', loops=False, multiedges=False)
             sage: d = g.is_interval(certificate=True)[1]
-            sage: print(d)                                    # not tested
-            {0: (0, 20), 1: (1, 9), 2: (2, 36), 3: (3, 5), 4: (4, 38), 5: (6, 21), 6: (7, 27), 7: (8, 12), 8: (10, 29), 9: (11, 16), 10: (13, 39), 11: (14, 31), 12: (15, 32), 13: (17, 23), 14: (18, 22), 15: (19, 33), 16: (24, 25), 17: (26, 35), 18: (28, 30), 19: (34, 37)}
-
             sage: g2 = graphs.IntervalGraph(d.values())
             sage: g2.is_isomorphic(g)
             True
-
         """
         self._scream_if_not_simple()
 
@@ -13397,10 +13396,10 @@ class GenericGraph(GenericGraph_pyx):
 
             while peo:
                 v = peo.pop()
-                clique = frozenset( [v] + cc.neighbors(v))
+                clique = frozenset([v] + cc.neighbors(v))
                 cc.delete_vertex(v)
 
-                if not any([clique.issubset(c) for c in cliques]):
+                if not any(clique.issubset(c) for c in cliques):
                     cliques.append(clique)
 
         from sage.graphs.pq_trees import reorder_sets
@@ -13416,7 +13415,7 @@ class GenericGraph(GenericGraph_pyx):
         # We are now listing the maximal cliques in the given order,
         # and keeping track of the vertices appearing/disappearing
 
-        current = set([])
+        current = set()
         beg = {}
         end = {}
 
@@ -13434,7 +13433,7 @@ class GenericGraph(GenericGraph_pyx):
 
             current = S
 
-        return (True, dict([(v, (beg[v], end[v])) for v in self]))
+        return (True, {v: (beg[v], end[v]) for v in self})
 
     def is_gallai_tree(self):
         r"""

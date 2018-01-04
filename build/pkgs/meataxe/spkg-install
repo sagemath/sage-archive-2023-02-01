@@ -1,7 +1,18 @@
-cd src
+# Delete old (Shared)MeatAxe libraries. This ensures a sane state if
+# installation of this package fails: the mtx library should exist if
+# and only if meataxe is installed. In detail: the build-time check in
+# src/module_list.py checks whether or not the "meataxe" package is
+# marked as installed but the run-time check for the matrix_gfpn_dense
+# module checks whether it can be imported. We need to ensure that these
+# two conditions are equivalent, otherwise strange things can happen.
+# See also https://trac.sagemath.org/ticket/24359#comment:154
+#
+# This also deletes the static library left behind from the installation
+# of MeatAxe (as opposed to SharedMeatAxe).
+rm -f "$SAGE_LOCAL"/lib/libmtx.*
 
-# This is the place where arithmetic tables and some other input files are
-# searched by default.
+# This is the place where arithmetic tables and some other input files
+# are searched by default.
 export MTXLIB="$DOT_SAGE"/meataxe
 
 # Directory where executables are installed.
@@ -10,31 +21,16 @@ export MTXBIN="$SAGE_LOCAL"/bin
 # Field size up to GF(256)
 export ZZZ=0
 
-# In principle, one should uncomment for field sizes up to GF(2^16).
-# But upstream doesn't provide the required sources.
-#export ZZZ=1
-
 # We create a directory for the multiplication tables
-mkdir -p $MTXLIB
+mkdir -p $MTXLIB || \
+    sdh_die "Error creating directory for multiplication tables"
 
-if [ $? -ne 0 ]; then
-    echo >&2 "Error creating directory for ultiplication tables."
-    exit 1
-fi
-
-# We delete a static meataxe library that might be leftover
-# from installation of MeatAxe (as opposed to SharedMeatAxe).
-rm -f "$SAGE_LOCAL"/lib/libmtx.a
-
+cd src
 sdh_configure
 sdh_make
 sdh_make_install
 
-if [ "x$SAGE_SPKG_INSTALL_DOCS" = xyes ] ; then
-    $MAKE doc
-if [ $? -ne 0 ]; then
-    echo >&2 "Error documenting SharedMeatAxe."
-    exit 1
-fi
+if [ "$SAGE_SPKG_INSTALL_DOCS" = yes ] ; then
+    $MAKE doc || sdh_die "Error documenting SharedMeatAxe"
 fi
 

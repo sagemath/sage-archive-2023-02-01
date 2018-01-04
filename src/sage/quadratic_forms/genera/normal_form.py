@@ -3,11 +3,11 @@ Normal form for p-adic quadratic forms.
 
 AUTHORS:
 
-- Simon Brandhorst (2017-10-09): initial version
+- Simon Brandhorst (2018-01): initial version
 """
 
 #*****************************************************************************
-#       Copyright (C) 2017 Simon Branhdorst <sbrandhorst@web.de>
+#       Copyright (C) 2018 Simon Branhdorst <sbrandhorst@web.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,34 +21,78 @@ from sage.matrix.constructor import Matrix
 from copy import copy
 from sage.rings.finite_rings.integer_mod import mod
 
-def p_adic_normal_form(G,p,precision=None,debug=False):
+def collect_small_blocks(G):
     r"""
-    Return the `p`-adic normal form of a symmetric matrix.
-
-    Let `p` be odd and `u` be the smallest non-square modulo `p`.
-    The normal form is a diagonal matrix with diagonal entries 
-    either `p^n` or `u*p^n`.
-
-    If `p=2` is even, then the Jordan form consists of 
-    1 x 1 blocks of the form
-    `0`, `[2^n]`, `[3*2^n]`, `[5*2^n]`, `[7*2^n]`
-    and of 2 x 2 blocks of the form
-    `[[2, 1],[1, 2]] * 2^n`
-    and  
-    `[[0, 1],[1,0]] * 2^n`
-    In any case the entries are ordered by their valuation.
+    Return the blocks as list.
 
     INPUT:
 
+        - ``G`` -- a block_diagonal matrix consisting of 
+          `1` by `1` and `2` by `2` blocks
+
+    OUTPUT:
+
+        - a list of `1` by `1` and `2` by `2` matrices -- the blocks
+
+    EXAMPLES::
+
+        sage: from sage.quadratic_forms.genera.normal_form import collect_small_blocks
+        sage: W1 = Matrix([1])
+        sage: V = Matrix(ZZ, 2, [2, 1, 1, 2])
+        sage: L = [W1, V, V, W1, W1, V, W1, V]
+        sage: G = Matrix.block_diagonal(L)
+        sage: L == collect_small_blocks(G)
+        True
+    """
+    D = copy(G)
+    L = _get_small_block_indices(D)[1:]
+    D.subdivide(L, L)
+    blocks = []
+    for i in range(len(L)+1):
+        block = copy(D.subdivision(i, i))
+        blocks.append(block)
+    return blocks
+
+def p_adic_normal_form(G,p,precision=None,debug=False):
+    r"""
+    Return the transformation to the `p`-adic normal form of a symmetric matrix.
+
+    Two ``p-adic`` quadratic forms are integrally equivalent if and only if
+    their Gram matrices have the same normal form.
+    
+    Let `p` be odd and `u` be the smallest non-square modulo `p`.
+    The normal form is a block diagonal matrix
+    with blocks `p^k G_k` such that $G_k$ is either the identity matrix or
+    the identity matrix with the last diagonal entry replaced by `u`.
+
+    If `p=2` is even, define 
+    the `1` by `1` matrices
+    `W1 = [1]`, `W3 = [3]`, `W5 = [5]`, `W7 = [7]`,
+    and the `2` by `2` matrices
+    ``[2, 1]``
+    ``[1, 2] = V``
+    and
+    ``[0, 1]``
+    ``[1, 0] = U``.
+    
+    In this case the normal form is a block diagonal matrix with blocks
+    ``p^k G_k`` such that $G_k$ is a block diagonal matrix of the forms
+    ``[U, ..., U, V, Wa, Wb]`` 
+    where we allow ``V, Wa, Wb`` to be ``0 x 0`` matrices.
+    
+    Further restrictions to the normal form apply.
+    We refer to See [MirMor2009]_ IV Definition 4.6. for the details.
+    
+    INPUT:
+
         - ``G`` -- a symmetric n x n matrix in `\QQ`
-        - ``p`` -- a prime number -- it is not checked whether ``p`` is prime
-        - ``precision`` -- defining precision. If not set, 
-          the minimal possible is taken.
+        - ``p`` -- a prime number -- it is not checked whether it is prime
+        - ``precision`` -- If not set, the minimal possible is taken.
 
     OUTPUT:
 
         - ``D`` -- the jordan matrix over `\QQ_p`
-        - ``B`` -- invertible transformation matrix over `\ZZ_p`, 
+        - ``B`` -- invertible transformation matrix over `\ZZ_p`,
           i.e, ``D = B * G * B^T``
 
     EXAMPLES::
@@ -113,15 +157,18 @@ def p_adic_normal_form(G,p,precision=None,debug=False):
     """
     p = ZZ(p)
     G0, denom = G._clear_denom()
-    S = G0.smith_form()[1]
     r = G0.rank()
-    kernel = S[r:,:]
-    nondeg = S[:r,:]
+    if r != G0.ncols():
+        U  = G0.hermite_form(transformation=True)[1]
+    else:
+        U = G0.parent().identity_matrix()
+    kernel = U[r:,:]
+    nondeg = U[:r,:]
     # continue with the non-degenerate part
     G = nondeg * G0 * nondeg.T
     if precision == None:
-            # we have to calculate at least mod 8 for things to make sense.
-            precision = G.det().valuation(p) + 3
+        # in Zp(2) we have to calculate at least mod 8 for things to make sense.
+        precision = G.det().valuation(p) + 3
     R = Zp(p, prec = precision, type = 'fixed-mod')
     G = G.change_ring(R) # is not changed
     D = copy(G)    # is transformed into jordan form
@@ -133,10 +180,8 @@ def p_adic_normal_form(G,p,precision=None,debug=False):
     B = Matrix.identity(R,n)
     if(p == 2):
         D, B = _jordan_2_adic(G)
-        # we confirm the result
     else:
         D, B = _jordan_odd_adic(G)
-        # we confirm the result
     D, B1 = _normalize(D)
     B = B1 * B
     # we have reached a normal form for p!=2
@@ -150,10 +195,261 @@ def p_adic_normal_form(G,p,precision=None,debug=False):
     if debug:
         assert B.determinant().valuation() == 0     # B is invertible!
         if p==2:
-            assert B*G*B.T == Matrix.block_diagonal(_collect_small_blocks(D))
+            assert B*G*B.T == Matrix.block_diagonal(collect_small_blocks(D))
         else:
             assert B*G*B.T == Matrix.diagonal(D.diagonal())            
     return D/denom, B
+
+def _find_min_p(G, cnt, lower_bound=0):
+    r"""
+    Find smallest valuation below and right from ``cnt`` prefering the diagonal.
+
+    INPUT:
+
+        - ``G`` -- a symmetric `n` by `n` matrix in `\QQ_p`
+        - ``cnt`` -- start search from this index
+        - ``lower_bound`` -- an integer (default: `0`) 
+          a lower bound for the valuations used for optimization
+
+    OUTPUT:
+
+        - ``min`` -- minimal valuation
+        - ``min_i`` -- row index of the minimal valuation
+        - ``min_j`` -- column index of the minimal valuation
+
+    EXAMPLES::
+
+        sage: from sage.quadratic_forms.genera.normal_form import _find_min_p
+        sage: G = matrix(Qp(2),3,3,[4,0,1,0,4,2,1,2,1])
+        sage: G    
+        [2^2 + O(2^22)             0   1 + O(2^20)]
+        [            0 2^2 + O(2^22)   2 + O(2^21)]
+        [  1 + O(2^20)   2 + O(2^21)   1 + O(2^20)]
+
+        sage: _find_min_p(G,0)
+        (0, 2, 2)        
+
+        sage: G = matrix(Qp(3),3,3,[4,0,1,0,4,2,1,2,1])
+        sage: G
+        [1 + 3 + O(3^20)               0     1 + O(3^20)]
+        [              0 1 + 3 + O(3^20)     2 + O(3^20)]
+        [    1 + O(3^20)     2 + O(3^20)     1 + O(3^20)]
+        sage: _find_min_p(G,0)
+        (0, 0, 0)
+    """
+    n = G.ncols()
+    minval = G[cnt, cnt].valuation()
+    min_i = cnt
+    min_j = cnt
+    # diagonal has precedence
+    for i in range(cnt, n):
+        v = G[i, i].valuation()
+        if v == lower_bound:
+            return lower_bound, i, i 
+        if v < minval:
+            min_i = i
+            min_j = i
+            minval = v
+    # off diagonal
+    for i in range(cnt, n):
+        for j in range(i+1, n):
+            v = G[i, j].valuation()
+            if v == lower_bound:
+                return lower_bound, i, j
+            if v < minval:
+                min_i = i
+                min_j = j
+                minval = v
+    return minval, min_i, min_j
+
+def _get_small_block_indices(G):
+    r"""
+    Return the indices of the blocks.
+
+    For internal use in :meth:`collect_small_blocks`
+
+    INPUT:
+
+        - ``G`` -- a block_diagonal matrix consisting of `1` by `1` and `2` by `2` blocks
+
+    OUTPUT:
+
+        - a list of integers
+
+    EXAMPLES::
+
+        sage: from sage.quadratic_forms.genera.normal_form import _get_small_block_indices
+        sage: W1 = Matrix([1])
+        sage: U = Matrix(ZZ, 2, [0, 1, 1, 0])
+        sage: G = Matrix.block_diagonal([W1, U, U, W1, W1, U, W1, U])
+        sage: _get_small_block_indices(G)
+        [0, 1, 3, 5, 6, 7, 9, 10]
+    """
+    L = []
+    n = G.ncols()
+    i = 0
+    while i < n-1:
+        L.append(i)
+        if G[i, i+1]!=0:
+            i += 2
+        else:
+            i += 1
+    if i == n-1:
+        L.append(i)
+    return L[:]
+
+def _get_homogeneous_block_indices(G):
+    r"""
+    Return the indices of the homogeneous blocks.
+
+    EXAMPLES::
+
+        sage: from sage.quadratic_forms.genera.normal_form import _get_homogeneous_block_indices
+        sage: W1 = Matrix(Zp(2),[1])
+        sage: V = Matrix(Zp(2), 2, [2, 1, 1, 2])
+        sage: G = Matrix.block_diagonal([W1, V, V, 2*W1, 2*W1, 8*V, 8*W1, 16*V])
+        sage: _get_homogeneous_block_indices(G)
+        ([0, 5, 7, 10], [0, 1, 3, 4])
+        sage: G = Matrix.block_diagonal([W1, V, V, 2*W1, 2*W1, 8*V, 8*W1, 16*W1])
+        sage: _get_homogeneous_block_indices(G)
+        ([0, 5, 7, 10], [0, 1, 3, 4])
+    """
+    L = []
+    vals = []
+    n = G.ncols()
+    i = 0
+    val = -5
+    while i < n-1:
+        if G[i,i+1] != 0:
+            m = G[i,i+1].valuation()
+        else:
+            m = G[i,i].valuation()
+        if m > val:
+            L.append(i)
+            val = m
+            vals.append(val)
+        if G[i, i+1] != 0:
+            i += 1
+        i += 1
+    if i == n-1:
+        m = G[i,i].valuation()
+        if m > val:
+            L.append(i)
+            val = m
+            vals.append(val)
+    return L, vals
+
+def _homogeneous_normal_form(G, w):
+    r"""
+    Return the homogeneous normal form of the homogeneous ``G``.
+
+    INPUT:
+
+        - ``G`` -- a modular symmetric matrix over the `2`-adic integers 
+          in partial normal form
+
+    OUTPUT:
+
+        - ``B`` -- an invertible matrix over the basering of ``G`` 
+          such that ``B*G*B.T`` is in homogeneous normal form
+
+    EXAMPLES::
+
+        sage: from sage.quadratic_forms.genera.normal_form import _homogeneous_normal_form
+        sage: R = Zp(2, type = 'fixed-mod')
+        sage: U = Matrix(R,2,[0,1,1,0])
+        sage: V = Matrix(R,2,[2,1,1,2])
+        sage: W1 = Matrix(R,1,[1])
+        sage: W3 = Matrix(R,1,[3])
+        sage: W5 = Matrix(R,1,[5])
+        sage: W7 = Matrix(R,1,[7])
+        sage: G = Matrix.block_diagonal([V,W1])
+        sage: B = _homogeneous_normal_form(G,1)[1]
+        sage: (B*G*B.T).change_ring(ZZ)
+        [2 1 0]
+        [1 2 0]
+        [0 0 1]
+        sage: G = Matrix.block_diagonal([V,W1,W3])
+        sage: B = _homogeneous_normal_form(G,2)[1]
+        sage: (B*G*B.T).change_ring(ZZ)
+        [2 1 0 0]
+        [1 2 0 0]
+        [0 0 1 0]
+        [0 0 0 3]
+        sage: G = Matrix.block_diagonal([U,V,W1,W5])
+        sage: B = _homogeneous_normal_form(G,2)[1]
+        sage: (B*G*B.T).change_ring(ZZ)
+        [0 1 0 0 0 0]
+        [1 0 0 0 0 0]
+        [0 0 0 1 0 0]
+        [0 0 1 0 0 0]
+        [0 0 0 0 7 0]
+        [0 0 0 0 0 7]
+        sage: G = Matrix.block_diagonal([U,W7,W3])
+        sage: B = _homogeneous_normal_form(G,2)[1]
+        sage: (B*G*B.T).change_ring(ZZ)
+        [0 1 0 0]
+        [1 0 0 0]
+        [0 0 3 0]
+        [0 0 0 7]
+        sage: G = Matrix.block_diagonal([V,W5,W5])
+        sage: B = _homogeneous_normal_form(G,2)[1]
+        sage: (B*G*B.T).change_ring(ZZ)
+        [0 1 0 0]
+        [1 0 0 0]
+        [0 0 3 0]
+        [0 0 0 7]
+        sage: G = Matrix.block_diagonal([V,W3,W3])
+        sage: B = _homogeneous_normal_form(G,2)[1]
+        sage: (B*G*B.T).change_ring(ZZ)
+        [0 1 0 0]
+        [1 0 0 0]
+        [0 0 1 0]
+        [0 0 0 5]
+        sage: G = Matrix.block_diagonal([V,W1,W3])
+        sage: B = _homogeneous_normal_form(G,2)[1]
+        sage: (B*G*B.T).change_ring(ZZ)
+        [2 1 0 0]
+        [1 2 0 0]
+        [0 0 1 0]
+        [0 0 0 3]
+        sage: G = Matrix.block_diagonal([W3,W3])
+        sage: B = _homogeneous_normal_form(G,2)[1]
+        sage: (B*G*B.T).change_ring(ZZ)
+        [7 0]
+        [0 7]
+    """
+    B = copy(G.parent().identity_matrix())
+    D = copy(G)
+    n = B.ncols()
+    if w == 2:
+        if n>2 and D[-3,-3]!=0:
+            v = 2
+        else:
+            v = 0
+        if v==2:
+            e1 = D[-2,-2].unit_part()
+            e2 = D[-1,-1].unit_part()
+            e = {e1,e2}
+            E = [{1,3},{1,7},{5,7},{3,5}]
+            if not e in E:
+                B[-4:,:] = _relations(D[-4:,-4:],5) * B[-4:,:]
+                D = B * G * B.T
+        e1 = D[-2,-2].unit_part()
+        e2 = D[-1,-1].unit_part()
+        e = {e1,e2}
+        E = [{3,3},{3,5},{5,5},{5,7}]
+        if e in E:
+            B[-2:,:] = _relations(D[-2:,-2:],1) * B[-2:,:]
+            D = B * G * B.T      
+        # assert that e1 < e2
+        e1 = D[-2,-2].unit_part()
+        e2 = D[-1,-1].unit_part()
+        if ZZ(e1) > ZZ(e2):
+            B.swap_rows(n-1,n-2)
+            D.swap_rows(n-1,n-2)
+            D.swap_columns(n-1,n-2)
+    return D, B
 
 def _jordan_odd_adic(G):
     r"""
@@ -161,7 +457,7 @@ def _jordan_odd_adic(G):
 
     INPUT:
 
-        -- a symmetric matrix over ``Zp`` of type ``'fixed-mod'``
+        -- a symmetric matrix over ``\ZZ_p`` of type ``'fixed-mod'``
 
     OUTPUT:
 
@@ -198,8 +494,9 @@ def _jordan_odd_adic(G):
 
     # indices of the diagonal entrys which are already used
     cnt = 0
+    minval = 0
     while cnt < n:
-        pivot = _find_min_p(D, cnt)
+        pivot = _find_min_p(D, cnt, minval)
         piv1 = pivot[1]
         piv2 = pivot[2]
         minval = pivot[0]
@@ -234,25 +531,25 @@ def _jordan_2_adic(G):
     Transform a symmetric matrix over the `2`-adic integers into jordan form
 
     Note that if the precision is too low this method fails.
-    The method is only tested for input over `\ZZ_2` of`'type=fixed-mod'`.
+    The method is only tested for input over `\ZZ_2` of ``'type=fixed-mod'``.
 
     INPUT:
 
-        - ``G`` -- symmetric `n` x `n` matrix in ``Zp``
+        - ``G`` -- symmetric `n` by `n` matrix in ``\ZZ_p``
 
     OUTPUT:
 
         - ``D`` -- the jordand matrix
-        - ``B`` -- transformation matrix i.e ``D = B * G * B^T``
+        - ``B`` -- transformation matrix, i.e, ``D = B * G * B^T``
 
     The matrix ``D`` is a block diagonal matrix consisting 
-    of `1` x `1` and `2` x `2` blocks.
-    The 2 x 2 blocks are of the form
+    of `1` by `1` and `2` by `2` blocks.
+    The `2` by `2` blocks are of the form
     `[2a  b]`
     `[ b 2c] * 2^k`
     with `b` of valuation `0`.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.quadratic_forms.genera.normal_form import _jordan_2_adic
         sage: R = Zp(2,prec=3,print_mode='series')
@@ -262,14 +559,12 @@ def _jordan_2_adic(G):
         [7 2 7 0]
         [0 7 2 7]
         [0 0 7 2]
-
         sage: D, B = _jordan_2_adic(A4)
         sage: D.change_ring(ZZ)   # for pretty printing.
         [ 2  7  0  0]
         [ 7  2  0  0]
         [ 0  0 12  7]
         [ 0  0  7  2]
-
         sage: D == B*A4*B.T
         True
         sage: B.determinant().valuation() == 0
@@ -336,130 +631,52 @@ def _jordan_2_adic(G):
                 cnt += 2
     return D, B
 
-def _get_small_block_indices(G):
+def _min_nonsquare(p):
     r"""
-    Return the indices of the blocks.
-
-    For internal use in :meth:`_collect_small_blocks`
+    Return the minimal nonsquare modulo the prime `p`.
 
     INPUT:
 
-        - ``G`` -- a block_diagonal matrix consisting of `1 x 1` and `2 x 2` blocks
+        - ``p`` -- a prime number
 
     OUTPUT:
 
-        - a list of integers
+        - ``a`` -- the minimal nonsquare mod `p` as an element of `\ZZ`.
 
     EXAMPLES::
 
-        sage: from sage.quadratic_forms.genera.normal_form import _get_small_block_indices
-        sage: W1 = Matrix([1])
-        sage: U = Matrix(ZZ, 2, [0, 1, 1, 0])
-        sage: G = Matrix.block_diagonal([W1, U, U, W1, W1, U, W1, U])
-        sage: _get_small_block_indices(G)
-        [0, 1, 3, 5, 6, 7, 9, 10]
+        sage: from sage.quadratic_forms.genera.normal_form import _min_nonsquare
+        sage: _min_nonsquare(2)
+        sage: _min_nonsquare(3)
+        2
+        sage: _min_nonsquare(5)
+        2
+        sage: _min_nonsquare(7)
+        3
     """
-    L = []
-    n = G.ncols()
-    i = 0
-    while i < n-1:
-        L.append(i)
-        if G[i, i+1]!=0:
-            i += 2
-        else:
-            i += 1
-    if i == n-1:
-        L.append(i)
-    return L[:]
-
-def _collect_small_blocks(G):
-    r"""
-    Return the blocks as list.
-
-    INPUT:
-
-        - ``G`` -- a block_diagonal matrix consisting of `1` x `1` and `2` x `2` blocks
-
-    OUTPUT:
-
-        - a list of `1` x `1` and `2` x `2` matrices -- the blocks
-
-    EXAMPLES::
-
-        sage: from sage.quadratic_forms.genera.normal_form import _collect_small_blocks
-        sage: W1 = Matrix([1])
-        sage: V = Matrix(ZZ, 2, [2, 1, 1, 2])
-        sage: L = [W1, V, V, W1, W1, V, W1, V]
-        sage: G = Matrix.block_diagonal(L)
-        sage: L == _collect_small_blocks(G)
-        True
-    """
-    D = copy(G)
-    L = _get_small_block_indices(D)[1:]
-    D.subdivide(L, L)
-    blocks = []
-    for i in range(len(L)+1):
-        block = copy(D.subdivision(i, i))
-        blocks.append(block)
-    return blocks
-
-def _get_homogeneous_block_indices(G):
-    r"""
-    Return the indices of the homogeneous blocks.
-
-    EXAMPLES::
-
-        sage: from sage.quadratic_forms.genera.normal_form import _get_homogeneous_block_indices
-        sage: W1 = Matrix(Zp(2),[1])
-        sage: V = Matrix(Zp(2), 2, [2, 1, 1, 2])
-        sage: G = Matrix.block_diagonal([W1, V, V, 2*W1, 2*W1, 8*V, 8*W1, 16*V])
-        sage: _get_homogeneous_block_indices(G)
-        ([0, 5, 7, 10], [0, 1, 3, 4])
-        sage: G = Matrix.block_diagonal([W1, V, V, 2*W1, 2*W1, 8*V, 8*W1, 16*W1])
-        sage: _get_homogeneous_block_indices(G)
-        ([0, 5, 7, 10], [0, 1, 3, 4])
-    """
-    L = []
-    vals = []
-    n = G.ncols()
-    i = 0
-    val = -5
-    while i < n-1:
-        m = G[i,i].valuation()
-        m = min(m,G[i,i+1].valuation())
-        if m > val:
-            L.append(i)
-            val = m
-            vals.append(val)
-        if G[i, i+1]!=0:
-            i += 1
-        i += 1
-    if i == n-1:
-        m = G[i,i].valuation()
-        if m > val:
-            L.append(i)
-            val = m
-            vals.append(val)
-    return L, vals
+    R = GF(p)
+    for i in R:
+        if not R(i).is_square():
+            return i
     
 def _normalize(G):
     r"""
-    Return the partial normal form of ``G``.
+    Return the transformation to sums of forms of types `U`, `V` and `W`
 
-    See also :meth:``normal_form``.
+    See also :meth:``p_adic_normal_form``.
 
     INPUT:
 
-        - a symmetric matrix over `Zp` in jordan form --
-        the OUTPUT of :meth:``p_adic_normal_form`` or :meth:``_jordan_2_adic``
+        - a symmetric matrix over `\ZZ_p` in jordan form --
+          the output of :meth:``p_adic_normal_form`` or :meth:``_jordan_2_adic``
 
     OUTPUT:
 
-        - ``(D, B)`` - a pair of matrices such that ``D=B*G*B.T`` is in partial normal form
+        - ``(D, B)`` -- a pair of matrices such that ``D=B*G*B.T`` is in partial normal form
 
     EXAMPLES::
 
-        sage: from sage.quadratic_forms.genera.normal_form import         _normalize
+        sage: from sage.quadratic_forms.genera.normal_form import _normalize
         sage: R = Zp(3, prec = 5, type = 'fixed-mod', print_mode = 'digits')
         sage: G = matrix.diagonal(R,[1,7,3,3*5,3,9,-9,27*13])
         sage: D,B =_normalize(G)
@@ -501,7 +718,8 @@ def _normalize(G):
                 D[i, i] = v
                 B[i, :] *= (v * d.inverse_of_unit()).sqrt()
                 if len(non_squares) != 0:
-                    # we combine two non-squares to get the 2x2 identity matrix
+                    # we combine two non-squares to get 
+                    # the 2 x 2 identity matrix
                     j = non_squares.pop()
                     trafo = _normalize_odd_2x2(D[[i,j],[i,j]])
                     B[[i,j],:] = trafo*B[[i,j],:]
@@ -521,8 +739,7 @@ def _normalize(G):
                 B[i, :] *= (v * d.inverse_of_unit()).sqrt()
         D = B * G * B.T
         for i in range(n-1):
-            b = D[i, i+1]
-            if b !=0:    # there is a 2 x 2 block here
+            if D[i, i+1] != 0:    # there is a 2 x 2 block here
                 block = D[i:i+2, i:i+2]
                 trafo = _normalize_2x2(block)
                 B[i:i+2, :] = trafo * B[i:i+2, :]
@@ -531,11 +748,11 @@ def _normalize(G):
 
 def _normalize_2x2(G):
     r"""
-    normalize this 2x2 block
+    normalize this indecomposable `2` by `2` block
 
     INPUT:
 
-        -  ``G`` - a `2` by `2` matrix over ``Zp`` 
+        -  ``G`` - a `2` by `2` matrix over `\ZZ_p` 
             with ``type = 'fixed-mod'`` of the form
             `[2a  b]`
             `[ b 2c]*2^n`
@@ -543,18 +760,18 @@ def _normalize_2x2(G):
 
     OUTPUT:
 
-        -  a unimodular `2 x 2` matrix ``B`` over ``Zp`` with 
+        -  a unimodular `2` by `2` matrix ``B`` over `\ZZ_p` with 
             ``B * G *B.transpose()``
             either 
-                `[0 1]`
-                `[1 0]`
+            `[0 1]`
+            `[1 0]`
             or
-                `[2 1]`
-                `[1 2]`
+            `[2 1]`
+            `[1 2]`
 
     EXAMPLES::
 
-        sage: from sage.quadratic_forms.genera.normal_form import         _normalize_2x2
+        sage: from sage.quadratic_forms.genera.normal_form import _normalize_2x2
         sage: R = Zp(2, prec = 10, type = 'fixed-mod', print_mode = 'digits')
         sage: G = Matrix(R,2,[-17*2,3,3,23*2])
         sage: B =_normalize_2x2(G)
@@ -665,93 +882,14 @@ def _normalize_2x2(G):
         assert D == Matrix(G.parent(), 2, 2, [0, 1, 1, 0]), "D2 \n %r" %D
     return B
 
-def _find_min_p(G, cnt):
-    r"""
-    Find smallest valuation below and right from ``cnt`` prefering the diagonal.
-
-    INPUT:
-
-        - ``G`` -- symmetric `n` x `n` matrix in `\Qp`
-        - ``cnt`` -- start search from this index
-
-    OUTPUT:
-
-        - ``min`` -- minimal valuation
-        - ``min_i`` -- row of the minimal valuation
-        - ``min_j`` -- column of the minimal valuation
-
-    EXAMPLES::
-
-        sage: from sage.quadratic_forms.genera.normal_form import _find_min_p
-        sage: G = matrix(Qp(2),3,3,[4,0,1,0,4,2,1,2,1])
-        sage: G    
-        [2^2 + O(2^22)             0   1 + O(2^20)]
-        [            0 2^2 + O(2^22)   2 + O(2^21)]
-        [  1 + O(2^20)   2 + O(2^21)   1 + O(2^20)]
-
-        sage: _find_min_p(G,0)
-        (0, 2, 2)        
-
-        sage: G = matrix(Qp(3),3,3,[4,0,1,0,4,2,1,2,1])
-        sage: G
-        [1 + 3 + O(3^20)               0     1 + O(3^20)]
-        [              0 1 + 3 + O(3^20)     2 + O(3^20)]
-        [    1 + O(3^20)     2 + O(3^20)     1 + O(3^20)]
-        sage: _find_min_p(G,0)
-        (0, 2, 2)
-    """
-    n = G.ncols()
-    min = G[cnt, cnt].valuation()
-    min_i = cnt
-    min_j = cnt
-    for i in range(cnt, n):
-        for j in range(i, n):
-            if (G[i, j]!=0) and (G[i, j].valuation() < min):
-                min_i = i
-                min_j = j
-                min = G[i, j].valuation()
-        # diagonal has precedence
-        if (G[i, i]!=0) and (G[i, i].valuation() <= min):
-            min_i = i
-            min_j = i
-            min = G[i, i].valuation()
-    return min, min_i, min_j
-
-def _min_nonsquare(p):
-    r"""
-    Return the minimal nonsquare modulo the prime ``p``.
-
-    INPUT:
-
-        - ``p`` -- a prime number
-
-    OUTPUT:
-
-        - ``a`` -- the minimal nonsquare mod ``p`` as an element of `\ZZ`.
-
-    EXAMPLES::
-
-        sage: from sage.quadratic_forms.genera.normal_form import _min_nonsquare
-        sage: _min_nonsquare(2)
-        sage: _min_nonsquare(3)
-        2
-        sage: _min_nonsquare(5)
-        2
-        sage: _min_nonsquare(7)
-        3
-    """
-    R = GF(p)
-    for i in R:
-        if not R(i).is_square():
-            return i
-
 def _normalize_odd_2x2(G):
     r"""
     normalize this 2x2 block
 
     INPUT:
 
-        - ``G`` -- a multiple of the 2x2 identity_matrix over the p-adics ``p!=2``
+        - ``G`` -- a multiple of the `2` by `2` identity_matrix 
+          over the `p`-adics for `p` odd.
 
     OUTPUT:
 
@@ -780,18 +918,116 @@ def _normalize_odd_2x2(G):
     B[1,1] = -x
     return B
 
-def _relations(G,n):
+def _partial_normal_form(G):
     r"""
-    Return relations of 2-adic quadratic forms
+    Return the partial normal form of the homogeneous block ``G``
 
     INPUT:
 
-        - ``n`` -- an integer between 1 and 10 the number of the relation
-        - ``G`` -- a block diagonal matrix consisting of blocks of types `U,V,W`.
+        - ``G`` -- a modular symmetric matrix over the `2`-adic integers
 
     OUTPUT:
 
-        - square matrix ``B`` such that ``B*G*B.T`` is the right side of the relation
+        - ``D, B, w`` -- with ``B`` a transformation matrix such that
+          ``B*G*B.T`` is in partial normal form
+          and `w = 0,1,2` is the size of the part consisting of forms of type W.   
+
+    EXAMPLES::
+
+        sage: from sage.quadratic_forms.genera.normal_form import _partial_normal_form
+        sage: R = Zp(2,prec=4, type = 'fixed-mod')
+        sage: U = Matrix(R,2,[0,1,1,0])
+        sage: V = Matrix(R,2,[2,1,1,2])
+        sage: W1 = Matrix(R,1,[1])
+        sage: W3 = Matrix(R,1,[3])
+        sage: W5 = Matrix(R,1,[5])
+        sage: W7 = Matrix(R,1,[7])
+        sage: G = Matrix.block_diagonal([W1,U,V,W5,V,W3,V,W7])
+        sage: B = _partial_normal_form(G)[1]
+        sage: (B*G*B.T).change_ring(ZZ)
+        [0 1 0 0 0 0 0 0 0 0 0 0]
+        [1 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 1 0 0 0 0 0 0 0 0]
+        [0 0 1 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 1 0 0 0 0 0 0]
+        [0 0 0 0 1 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 1 0 0 0 0]
+        [0 0 0 0 0 0 1 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 2 1 0 0]
+        [0 0 0 0 0 0 0 0 1 2 0 0]
+        [0 0 0 0 0 0 0 0 0 0 1 0]
+        [0 0 0 0 0 0 0 0 0 0 0 7]
+        sage: G = Matrix.block_diagonal([W1,U,V,W1,V,W1,V,W7])
+        sage: B = _partial_normal_form(G)[1]
+        sage: (B*G*B.T).change_ring(ZZ)
+        [0 1 0 0 0 0 0 0 0 0 0 0]
+        [1 0 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 1 0 0 0 0 0 0 0 0]
+        [0 0 1 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 1 0 0 0 0 0 0]
+        [0 0 0 0 1 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 1 0 0 0 0]
+        [0 0 0 0 0 0 1 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 1 0 0]
+        [0 0 0 0 0 0 0 0 1 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 3 0]
+        [0 0 0 0 0 0 0 0 0 0 0 7]
+    """
+    D = copy(G)
+    R = D.base_ring()
+    n = D.ncols()
+    B = copy(G.parent().identity_matrix())     # the transformation matrix
+    blocks = _get_small_block_indices(D)
+    # collect the indices of forms of types U, V and W
+    U = []
+    V = []
+    W = []
+    for i in blocks:
+        if i+1 in blocks or i==n-1:
+            W.append(i)
+        else:
+            if D[i,i] != 0:
+                V += [i,i+1]
+            else:
+                U += [i,i+1]
+        if len(W) == 3:
+            # W W W transforms to W U or W V
+            T = _relations(D[W,W],2)
+            B[W,:] = _relations(D[W,W],2) * B[W,:]
+            D = B * G * B.T
+            if mod(D[W[1:],W[1:]].det().unit_part(),8) == 3:
+                V += W[1:]
+            else:
+                U += W[1:]
+            W = W[:1]
+        if len(V) == 4:
+            B[V,:] = _relations(D[V,V],3) * B[V,:]
+            U += V
+            V = []
+            D = B * G * B.T
+    # put everything into the right order
+    UVW = U + V + W
+    B = B[UVW,:]
+    D = B * G * B.T
+    return D, B, len(W)
+
+def _relations(G,n):
+    r"""
+    Return relations of `2`-adic quadratic forms
+    
+    See [MirMor2009]_ IV Prop. 3.2. 
+
+    INPUT:
+
+        - ``n`` -- an integer between 1 and 10 -- the number of the relation
+        - ``G`` -- a block diagonal matrix consisting of blocks of types `U,V,W`
+          the left side of the relation. If ``G`` does not match `n` then the 
+          results are unpredictable.
+
+    OUTPUT:
+
+        - square matrix ``B`` such that ``B*G*B.T`` is the right side of the 
+          relation which consits of blocks of types `U`, `V`, `W` again
 
     EXAMPLES::
 
@@ -865,8 +1101,8 @@ def _relations(G,n):
         sage: (b*G*b.T).change_ring(ZZ)
         [0 1 0 0]
         [1 0 0 0]
-        [0 0 3 0]
-        [0 0 0 7]
+        [0 0 7 0]
+        [0 0 0 3]
         sage: G = Matrix.block_diagonal([V,W1,W5])
         sage: b = _relations(G,5)
         sage: (b*G*b.T).change_ring(ZZ)
@@ -1040,208 +1276,17 @@ def _relations(G,n):
     D, B1 = _normalize(B*G*B.T)
     return B1*B
 
-def _partial_normal_form(G):
-    r"""
-    Return the partial normal form of the homogeneous block ``G``
-
-    INPUT:
-
-        - ``G`` -- a modular symmetric matrix over the `2`-adic integers
-
-    OUTPUT:
-
-        - ``(D,B)`` -- a transformation matrix such that
-          ``B*G*B.T`` is in homogeneous normal form
-
-    EXAMPLES::
-
-        sage: from sage.quadratic_forms.genera.normal_form import _partial_normal_form
-        sage: R = Zp(2,prec=4, type = 'fixed-mod')
-        sage: U = Matrix(R,2,[0,1,1,0])
-        sage: V = Matrix(R,2,[2,1,1,2])
-        sage: W1 = Matrix(R,1,[1])
-        sage: W3 = Matrix(R,1,[3])
-        sage: W5 = Matrix(R,1,[5])
-        sage: W7 = Matrix(R,1,[7])
-        sage: G = Matrix.block_diagonal([W1,U,V,W5,V,W3,V,W7])
-        sage: B = _partial_normal_form(G)[1]
-        sage: (B*G*B.T).change_ring(ZZ)
-        [0 1 0 0 0 0 0 0 0 0 0 0]
-        [1 0 0 0 0 0 0 0 0 0 0 0]
-        [0 0 0 1 0 0 0 0 0 0 0 0]
-        [0 0 1 0 0 0 0 0 0 0 0 0]
-        [0 0 0 0 0 1 0 0 0 0 0 0]
-        [0 0 0 0 1 0 0 0 0 0 0 0]
-        [0 0 0 0 0 0 0 1 0 0 0 0]
-        [0 0 0 0 0 0 1 0 0 0 0 0]
-        [0 0 0 0 0 0 0 0 2 1 0 0]
-        [0 0 0 0 0 0 0 0 1 2 0 0]
-        [0 0 0 0 0 0 0 0 0 0 1 0]
-        [0 0 0 0 0 0 0 0 0 0 0 7]
-        sage: G = Matrix.block_diagonal([W1,U,V,W1,V,W1,V,W7])
-        sage: B = _partial_normal_form(G)[1]
-        sage: (B*G*B.T).change_ring(ZZ)
-        [0 1 0 0 0 0 0 0 0 0 0 0]
-        [1 0 0 0 0 0 0 0 0 0 0 0]
-        [0 0 0 1 0 0 0 0 0 0 0 0]
-        [0 0 1 0 0 0 0 0 0 0 0 0]
-        [0 0 0 0 0 1 0 0 0 0 0 0]
-        [0 0 0 0 1 0 0 0 0 0 0 0]
-        [0 0 0 0 0 0 0 1 0 0 0 0]
-        [0 0 0 0 0 0 1 0 0 0 0 0]
-        [0 0 0 0 0 0 0 0 0 1 0 0]
-        [0 0 0 0 0 0 0 0 1 0 0 0]
-        [0 0 0 0 0 0 0 0 0 0 3 0]
-        [0 0 0 0 0 0 0 0 0 0 0 7]
-    """
-    D = copy(G)
-    R = D.base_ring()
-    n = D.ncols()
-    B = copy(G.parent().identity_matrix())     # the transformation matrix
-    blocks = _get_small_block_indices(D)
-    # collect the indices of forms of types U, V and W
-    U = []
-    V = []
-    W = []
-    for i in blocks:
-        if i+1 in blocks or i==n-1:
-            W.append(i)
-        else:
-            if D[i,i] != 0:
-                V += [i,i+1]
-            else:
-                U += [i,i+1]
-        if len(W) == 3:
-            # W W W transforms to W U or W V
-            T = _relations(D[W,W],2)
-            B[W,:] = _relations(D[W,W],2) * B[W,:]
-            D = B * G * B.T
-            if mod(D[W[1:],W[1:]].det().unit_part(),8) == 3:
-                V += W[1:]
-            else:
-                U += W[1:]
-            W = W[:1]
-        if len(V) == 4:
-            B[V,:] = _relations(D[V,V],3) * B[V,:]
-            U += V
-            V = []
-            D = B * G * B.T
-    # put everything into the right order
-    UVW = U + V + W
-    B = B[UVW,:]
-    D = B * G * B.T
-    return D, B, len(V), len(W)
-
-def _homogeneous_normal_form(G):
-    r"""
-    Return the homogeneous normal form of the homogeneous ``G``.
-
-    INPUT:
-
-        - ``G`` -- a modular symmetric matrix over the `2`-adic integers
-
-    OUTPUT:
-
-        - ``B`` -- an invertible matrix over the basering of ``G`` 
-          such that ``B*G*B.T`` is in homogeneous normal form
-
-    EXAMPLES::
-
-        sage: from sage.quadratic_forms.genera.normal_form import _homogeneous_normal_form
-        sage: R = Zp(2, type = 'fixed-mod')
-        sage: U = Matrix(R,2,[0,1,1,0])
-        sage: V = Matrix(R,2,[2,1,1,2])
-        sage: W1 = Matrix(R,1,[1])
-        sage: W3 = Matrix(R,1,[3])
-        sage: W5 = Matrix(R,1,[5])
-        sage: W7 = Matrix(R,1,[7])
-        sage: G = Matrix.block_diagonal([V,W1,W3])
-        sage: B = _homogeneous_normal_form(G)[1]
-        sage: (B*G*B.T).change_ring(ZZ)
-        [2 1 0 0]
-        [1 2 0 0]
-        [0 0 1 0]
-        [0 0 0 3]
-        sage: G = Matrix.block_diagonal([U,V,W1,W5])
-        sage: B = _homogeneous_normal_form(G)[1]
-        sage: (B*G*B.T).change_ring(ZZ)
-        [0 1 0 0 0 0]
-        [1 0 0 0 0 0]
-        [0 0 0 1 0 0]
-        [0 0 1 0 0 0]
-        [0 0 0 0 3 0]
-        [0 0 0 0 0 3]
-        sage: G = Matrix.block_diagonal([U,W7,W3])
-        sage: B = _homogeneous_normal_form(G)[1]
-        sage: (B*G*B.T).change_ring(ZZ)
-        [0 1 0 0]
-        [1 0 0 0]
-        [0 0 3 0]
-        [0 0 0 7]
-        sage: G = Matrix.block_diagonal([V,W5,W5])
-        sage: B = _homogeneous_normal_form(G)[1]
-        sage: (B*G*B.T).change_ring(ZZ)
-        [0 1 0 0]
-        [1 0 0 0]
-        [0 0 3 0]
-        [0 0 0 7]
-        sage: G = Matrix.block_diagonal([V,W3,W3])
-        sage: B = _homogeneous_normal_form(G)[1]
-        sage: (B*G*B.T).change_ring(ZZ)
-        [0 1 0 0]
-        [1 0 0 0]
-        [0 0 1 0]
-        [0 0 0 5]
-        sage: G = Matrix.block_diagonal([V,W1,W3])
-        sage: B = _homogeneous_normal_form(G)[1]
-        sage: (B*G*B.T).change_ring(ZZ)
-        [2 1 0 0]
-        [1 2 0 0]
-        [0 0 1 0]
-        [0 0 0 3]
-        sage: G = Matrix.block_diagonal([W3,W3])
-        sage: B = _homogeneous_normal_form(G)[1]
-        sage: (B*G*B.T).change_ring(ZZ)
-        [7 0]
-        [0 7]
-    """
-    D, B, v, w = _partial_normal_form(G)
-    D = B * G * B.T
-    n = B.ncols()
-    if w == 2:
-        if v==2:
-            e1 = D[-2,-2].unit_part()
-            e2 = D[-1,-1].unit_part()
-            e = {e1,e2}
-            E = [{1,3},{1,7},{5,7},{3,5}]
-            if not e in E:
-                B[-4:,:] = _relations(D[-4:,-4:],5) * B[-4:,:]
-                D = B * G * B.T
-        e1 = D[-2,-2].unit_part()
-        e2 = D[-1,-1].unit_part()
-        e = {e1,e2}
-        E = [{3,3},{3,5},{5,5},{5,7}]
-        if e in E:
-            B[-2:,:] = _relations(D[-2:,-2:],1) * B[-2:,:]
-            D = B * G * B.T      
-        # assert that e1 < e2
-        e1 = D[-2,-2].unit_part()
-        e2 = D[-1,-1].unit_part()
-        if ZZ(e1) > ZZ(e2):
-            B.swap_rows(n-1,n-2)
-            D.swap_rows(n-1,n-2)
-            D.swap_columns(n-1,n-2)
-    return D, B, w
-
 def _two_adic_normal_form(G):
     r"""
     Return the 2-adic normal form of a symmetric matrix.
 
     INPUT:
 
-        - ``G`` -- block diagonal matrix with blocks of type `U`,`V`,`Wk`
+        - ``G`` -- block diagonal matrix with blocks of type `U`, `V`, `W`
 
     OUTPUT:
+    
+        - ``D``, ``B`` -- such that ``D = B * G * B.T`` is in normal form.
 
     EXAMPLES::
 
@@ -1288,8 +1333,9 @@ def _two_adic_normal_form(G):
         if k+scales[0] in scales:
             i = scales.index(k + scales[0])
             Gk = G[h[i]:h[i+1], h[i]:h[i+1]]
-            Dk, Bk, wk = _homogeneous_normal_form(Gk)
-            B[h[i]:h[i+1],:] = Bk * B[h[i]:h[i+1],:]
+            Dk, Bk, wk = _partial_normal_form(Gk)
+            Dk, B1k = _homogeneous_normal_form(Dk, wk)
+            B[h[i]:h[i+1],:] = B1k * Bk * B[h[i]:h[i+1],:]
             UVlist.append(range(h[i], h[i+1] - wk))
             Wlist.append(range(h[i+1]-wk, h[i+1]))
         else:
@@ -1297,6 +1343,9 @@ def _two_adic_normal_form(G):
             Wlist.append([])
     D = B * G * B.T
     # use relations descending in k
+    # we never leave partial normal form
+    # but the homogneneous normal form may be destroyed
+    # it is restored at the end.    
     for k in range(len(UVlist)-1,2,-1):
         # setup notation
         W = Wlist[k]
@@ -1320,7 +1369,7 @@ def _two_adic_normal_form(G):
                     R = Wm[:1] + [w]
                     B[R,:] = _relations(D[R,R],6) * B[R,:]
                     D = B * G * B.T
-        # condition c)
+        # condition c) 
         # We want type a or W = []
         # modify D[w,w] to go from type b to type a
         x = [len(V)] + [ZZ(mod(w.unit_part(),8)) for w in D[W,W].diagonal()]
@@ -1344,16 +1393,17 @@ def _two_adic_normal_form(G):
                     R = Wm + [w]
                     B[R,:] = _relations(D[R,R],9) * B[R,:]
         D = B * G * B.T
+        # condition a) - stay in homogneneous normal form
         R = UV + W
         Dk = D[R,R]
-        Bk = _homogeneous_normal_form(Dk)[1]
+        Bk = _homogeneous_normal_form(Dk,len(W))[1]
         B[R,:] = Bk * B[R,:]
         D = B * G * B.T
-        # restore the homogeneous normal form of block k-1
-        if len(Wm) > 0:
+        # we need to restore the homogeneous normal form of  k-1
+        if len(Wm)>0:
             R = UVm + Wm
-            Dk = D[R,R]
-            Bk = _homogeneous_normal_form(Dk)[1]
-            B[R,:] = Bk * B[R,:]
+            Dkm = D[R,R]
+            Bkm = _homogeneous_normal_form(Dkm,len(Wm))[1]
+            B[R,:] = Bkm * B[R,:]
             D = B * G * B.T
     return D, B

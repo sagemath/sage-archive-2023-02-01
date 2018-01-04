@@ -407,13 +407,10 @@ class TorsionQuadraticModule(FGP_Module_class):
         orthogonal = self.submodule(orthogonal.gens())
         return orthogonal
     
-    def orthogonal_gens(self, normalize = True):
+    def normal_form(self):
         """
-        Return a free quadratic module with mutually orthogonal 
-        generators for ``p != 2`` and block size at most ``2`` for ``p = 2``.
-        
-        If normalize is ``True``, then the generators are further normalized.
-        Namely the new gram matrix is in Jordan form:
+        Return the normal form of this torsion quadratic module
+             
         
         Let `p` be odd and `u` be the smallest non-square modulo `p`.
         The Jordan form is a diagonal matrix with diagonal entries either `p^n` or `u*p^n`.
@@ -426,6 +423,10 @@ class TorsionQuadraticModule(FGP_Module_class):
         [1 2] * 2^n or  [1 0] * 2^n
         In any case the entries are ordered by their valuation.
         
+        OUTPUT:
+        
+            - a torsion quadratic module
+            
         EXAMPLES::
         
             sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
@@ -440,7 +441,7 @@ class TorsionQuadraticModule(FGP_Module_class):
             [5/36 1/18 5/36 5/36]
             [   0 5/36 1/36 1/72]
             [   0 5/36 1/72 1/36]
-            sage: T.orthogonal_gens()
+            sage: T.normal_form()
             Finite quadratic module over Integer Ring with invariants (6, 6, 12, 12)
             Gram matrix of the quadratic form with values in Q/(1/3)Z:
             [1/12 1/24    0    0    0    0    0    0]
@@ -453,13 +454,13 @@ class TorsionQuadraticModule(FGP_Module_class):
             [   0    0    0    0    0    0    0  2/9]
         """
         gens = []
-        from sage.quadratic_forms.genera.p_adic_jordan_blocks import p_adic_normal_form
+        from sage.quadratic_forms.genera.normal_form import p_adic_normal_form
         for p in self.annihilator().gen().prime_divisors():
             D_p = self.primary_part(p)
             q_p = D_p.gram_matrix_quadratic()
             q_p = q_p/D_p._modulus
             prec = self.annihilator().gen().valuation(p)+1
-            D,U = p_adic_normal_form(q_p,p,normalize=normalize,precision=prec)
+            D,U = p_adic_normal_form(q_p,p,precision=prec)
             #apply U to the generators
             n = U.ncols()
             U = U.change_ring(ZZ)

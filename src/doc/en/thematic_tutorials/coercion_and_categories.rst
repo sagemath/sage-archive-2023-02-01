@@ -1300,7 +1300,7 @@ When we apply ``Compl``, ``Matr`` and ``Poly`` to the ring of integers, we
 obtain::
 
     sage: (Poly*Matr*Compl)(ZZ)
-    Univariate Polynomial Ring in x over Full MatrixSpace of 3 by 3 dense matrices over Real Field with 53 bits of precision
+    Univariate Polynomial Ring in x over Full MatrixSpace of 3 by 3 dense matrices over Integer Ring
 
 .. end of output
 
@@ -1308,14 +1308,14 @@ Applying the shuffling procedure yields
 ::
 
     sage: (Poly*Matr*Fract*Poly*AlgClos*Fract*Compl)(ZZ)
-    Univariate Polynomial Ring in x over Full MatrixSpace of 3 by 3 dense matrices over Fraction Field of Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
+    Univariate Polynomial Ring in x over Full MatrixSpace of 3 by 3 dense matrices over Fraction Field of Univariate Polynomial Ring in x over Algebraic Field
 
 .. end of output
 
 and this is indeed equal to the pushout found by Sage::
 
     sage: pushout((Fract*Poly*AlgClos*Fract)(ZZ), (Poly*Matr*Compl)(ZZ))
-    Univariate Polynomial Ring in x over Full MatrixSpace of 3 by 3 dense matrices over Fraction Field of Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
+    Univariate Polynomial Ring in x over Full MatrixSpace of 3 by 3 dense matrices over Fraction Field of Univariate Polynomial Ring in x over Algebraic Field
 
 .. end of output
 

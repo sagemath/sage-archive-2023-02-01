@@ -93,7 +93,7 @@ from .richcmp cimport rich_to_bool
 from .sage_object cimport SageObject
 from .parent cimport Set_PythonType, Parent_richcmp_element_without_coercion
 from .element cimport bin_op_exception, parent, Element
-from .coerce_actions import LeftModuleAction, RightModuleAction, IntegerAction
+from .coerce_actions import LeftModuleAction, RightModuleAction
 from .coerce_exceptions import CoercionException
 from sage.rings.integer_fake cimport is_Integer
 from sage.categories.map cimport Map
@@ -1686,8 +1686,6 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 action = Right scalar multiplication by Rational Field on Univariate Polynomial Ring in x over Integer Ring (<... 'sage.structure.coerce_actions.RightModuleAction'>)
         """
         if action is None:
-            return action
-        elif isinstance(action, IntegerAction):
             return action
         cdef bint ok = True
         try:

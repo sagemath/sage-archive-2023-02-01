@@ -185,8 +185,7 @@ ELSE:
                                  kwargs))
         return exithandlers
 
-
-    def _set_exithandlers(list exithandlers):
+    def _set_exithandlers(exithandlers):
         """
         Replace the list of exit handlers registered with the atexit module
         with a new list.

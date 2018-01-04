@@ -49,7 +49,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: cr.is_commutative()
             True
             sage: cr['x,y']
-            Multivariate Polynomial Ring in x, y over <class '....CR_with_category'>
+            Multivariate Polynomial Ring in x, y over <__main__.CR_with_category object at ...>
 
         TESTS:
 

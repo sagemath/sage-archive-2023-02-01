@@ -1386,7 +1386,7 @@ class ContinuousMap(Morphism):
 
         EXAMPLES:
 
-        Polar representation of a planar rotation initally defined in
+        Polar representation of a planar rotation initially defined in
         Cartesian coordinates::
 
             sage: M = Manifold(2, 'R^2', latex_name=r'\RR^2', structure='topological')  # the Euclidean plane R^2
@@ -1511,7 +1511,7 @@ class ContinuousMap(Morphism):
 
         EXAMPLES:
 
-        Polar representation of a planar rotation initally defined in
+        Polar representation of a planar rotation initially defined in
         Cartesian coordinates::
 
             sage: M = Manifold(2, 'R^2', latex_name=r'\RR^2', structure='topological')  # the Euclidean plane R^2

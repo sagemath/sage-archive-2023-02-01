@@ -361,7 +361,7 @@ compare equal::
     sage: phi3 = RingHomomorphism_from_base(H, R.hom([x])); phi3
     Ring endomorphism of Univariate Quotient Polynomial Ring in a over Finite Field of size 2 with modulus x^2 + x + 1
       Defn: Induced from base ring by
-            Ring endomorphism of Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
+            Ring endomorphism of Univariate Polynomial Ring in x over Finite Field of size 2 (using GF2X)
               Defn: x |--> x
     sage: phi4 = RingHomomorphism_cover(H); phi4
     Ring endomorphism of Univariate Quotient Polynomial Ring in a over Finite Field of size 2 with modulus x^2 + x + 1
@@ -522,7 +522,7 @@ cdef class RingMap_lift(RingMap):
         self.S = _slots['S']
         Morphism._update_slots(self, _slots)
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -533,8 +533,9 @@ cdef class RingMap_lift(RingMap):
             sage: g(3) == f(3)
             True
         """
-        _slots['S'] = self.S
-        return Morphism._extra_slots(self, _slots)
+        slots = Morphism._extra_slots(self)
+        slots['S'] = self.S
+        return slots
 
     cpdef _richcmp_(self, other, int op):
         """
@@ -706,7 +707,7 @@ cdef class RingHomomorphism(RingMap):
             self._lift = _slots['_lift']
         Morphism._update_slots(self, _slots)
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -721,11 +722,12 @@ cdef class RingHomomorphism(RingMap):
             sage: g(7)
             1
         """
+        slots = Morphism._extra_slots(self)
         try:
-            _slots['_lift'] = self._lift
+            slots['_lift'] = self._lift
         except AttributeError:
             pass
-        return Morphism._extra_slots(self, _slots)
+        return slots
 
     def _composition_(self, right, homset):
         """
@@ -1085,7 +1087,7 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
         self.__im_gens = _slots['__im_gens']
         RingHomomorphism._update_slots(self, _slots)
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -1101,8 +1103,9 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             sage: g(y)
             x + y
         """
-        _slots['__im_gens'] = self.__im_gens
-        return RingHomomorphism._extra_slots(self, _slots)
+        slots = RingHomomorphism._extra_slots(self)
+        slots['__im_gens'] = self.__im_gens
+        return slots
 
     cpdef _richcmp_(self, other, int op):
         r"""
@@ -1323,7 +1326,7 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
             sage: g = RingHomomorphism_from_base(P,f)
             Traceback (most recent call last):
             ...
-            ValueError: Domain and codomain must have the same functorial construction over their base rings
+            ValueError: domain (Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Integer Ring) and codomain (Univariate Polynomial Ring in t over Univariate Polynomial Ring in x over Integer Ring) must have the same functorial construction over their base rings
         """
         RingHomomorphism.__init__(self, parent)
         if underlying.domain() != parent.domain().base():
@@ -1331,7 +1334,7 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
         if underlying.codomain() != parent.codomain().base():
             raise ValueError("The given homomorphism has to have the codomain %s"%parent.codomain().base())
         if parent.domain().construction()[0] != parent.codomain().construction()[0]:
-            raise ValueError("Domain and codomain must have the same functorial construction over their base rings")
+            raise ValueError(f"domain ({parent.domain()}) and codomain ({parent.codomain()}) must have the same functorial construction over their base rings")
         self.__underlying = underlying
 
     def underlying_map(self):
@@ -1381,7 +1384,7 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
         self.__underlying = _slots['__underlying']
         RingHomomorphism._update_slots(self, _slots)
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -1408,8 +1411,9 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
             sage: psi(x*t)
             2*z*t
         """
-        _slots['__underlying'] = self.__underlying
-        return RingHomomorphism._extra_slots(self, _slots)
+        slots = RingHomomorphism._extra_slots(self)
+        slots['__underlying'] = self.__underlying
+        return slots
 
     cpdef _richcmp_(self, other, int op):
         r"""
@@ -1744,7 +1748,7 @@ cdef class RingHomomorphism_from_quotient(RingHomomorphism):
         self.phi = _slots['phi']
         RingHomomorphism._update_slots(self, _slots)
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -1766,10 +1770,10 @@ cdef class RingHomomorphism_from_quotient(RingHomomorphism):
             False
             sage: psi(a) == phi(a)
             True
-
         """
-        _slots['phi'] = self.phi
-        return RingHomomorphism._extra_slots(self, _slots)
+        slots = RingHomomorphism._extra_slots(self)
+        slots['phi'] = self.phi
+        return slots
 
     def _phi(self):
         """

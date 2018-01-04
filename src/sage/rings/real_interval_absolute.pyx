@@ -131,6 +131,7 @@ cdef class RealIntervalAbsoluteField_class(Field):
         """
         if absprec < 0:
             raise ValueError("Absolute precision must be positive.")
+        Field.__init__(self, self)
         self._absprec = absprec
 
     def __reduce__(self):

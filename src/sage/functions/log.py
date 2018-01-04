@@ -93,7 +93,7 @@ class Function_exp(GinacFunction):
         sage: exp(2).n(100)
         7.3890560989306502272304274606
 
-    TEST::
+    TESTS::
 
         sage: latex(exp(x))
         e^{x}
@@ -453,7 +453,7 @@ class Function_polylog(GinacFunction):
         EXAMPLES::
 
             sage: polylog(2.7, 0)
-            0
+            0.000000000000000
             sage: polylog(2, 1)
             1/6*pi^2
             sage: polylog(2, -1)
@@ -1005,7 +1005,8 @@ class Function_exp_polar(BuiltinFunction):
         This fixes :trac:`18085`::
 
             sage: integrate(1/sqrt(1+x^3),x,algorithm='sympy')
-            1/3*x*hypergeometric((1/3, 1/2), (4/3,), -x^3)*gamma(1/3)/gamma(4/3)
+            1/3*x*gamma(1/3)*hypergeometric((1/3, 1/2), (4/3,), -x^3)/gamma(4/3)
+
 
         .. SEEALSO::
 
@@ -1062,12 +1063,20 @@ class Function_exp_polar(BuiltinFunction):
             sage: exp_polar(4*I*pi + x)
             exp_polar(4*I*pi + x)
 
+        TESTS:
+
+        Check that :trac:`24441` is fixed::
+
+            sage: exp_polar(arcsec(jacobi_sn(1.1*I*x, x))) # should be fast
+            exp_polar(arcsec(jacobi_sn(1.10000000000000*I*x, x)))
         """
-        if (isinstance(z, Expression)
-            and bool(-const_pi < z.imag_part() <= const_pi)):
-            return exp(z)
-        else:
-            return None
+        try:
+            im = z.imag_part()
+            if (len(im.variables()) == 0
+                and bool(-const_pi < im <= const_pi)):
+                return exp(z)
+        except AttributeError:
+            pass
 
 exp_polar = Function_exp_polar()
 

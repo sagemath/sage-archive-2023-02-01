@@ -705,9 +705,10 @@ class QuadraticForm(SageObject):
 
     def __add__(self, right):
           """
-          Returns the direct sum of two quadratic forms.
+          Return the direct sum of two quadratic forms.
 
           EXAMPLES::
+
               sage: Q = QuadraticForm(ZZ, 2, [1,4,10])
               sage: Q
               Quadratic form in 2 variables over Integer Ring with coefficients:
@@ -720,7 +721,6 @@ class QuadraticForm(SageObject):
               [ * 10 0 0 ]
               [ * * 1 4 ]
               [ * * * -10 ]
-
           """
           if not isinstance(right, QuadraticForm):
               raise TypeError("Oops!  Can't add these objects since they're not both quadratic forms. =(")

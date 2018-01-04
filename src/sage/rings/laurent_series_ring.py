@@ -19,19 +19,38 @@ EXAMPLES::
 """
 from __future__ import print_function, absolute_import
 
-from .laurent_series_ring_element import LaurentSeries
-
-from . import polynomial
-from . import ring
-
-from sage.libs.pari.all import pari_gen
+from sage.categories.rings import Rings
+from sage.categories.integral_domains import IntegralDomains
 from sage.categories.fields import Fields
 from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationFields
+
+from .laurent_series_ring_element import LaurentSeries
+from . import polynomial
+from .ring import CommutativeRing
+
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 
-def LaurentSeriesRing(base_ring, name=None, names=None, default_prec=None, sparse=False):
+def is_LaurentSeriesRing(x):
     """
+    Return ``True`` if this is a *univariate* Laurent series ring.
+
+    This is in keeping with the behavior of ``is_PolynomialRing``
+    versus ``is_MPolynomialRing``.
+
+    TESTS::
+
+        sage: from sage.rings.laurent_series_ring import is_LaurentSeriesRing
+        sage: K.<q> = LaurentSeriesRing(QQ)
+        sage: is_LaurentSeriesRing(K)
+        True
+    """
+    return isinstance(x, LaurentSeriesRing)
+
+class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
+    r"""
+    Univariate Laurent Series Ring.
+
     EXAMPLES::
 
         sage: R = LaurentSeriesRing(QQ, 'x'); R
@@ -73,61 +92,6 @@ def LaurentSeriesRing(base_ring, name=None, names=None, default_prec=None, spars
         sage: W is T
         False
 
-    TESTS:
-
-    Check if changing global series precision does it right (and
-    that :trac:`17955` is fixed)::
-
-        sage: set_series_precision(3)
-        sage: R.<x> = LaurentSeriesRing(ZZ)
-        sage: 1/(1 - 2*x)
-        1 + 2*x + 4*x^2 + O(x^3)
-        sage: set_series_precision(5)
-        sage: R.<x> = LaurentSeriesRing(ZZ)
-        sage: 1/(1 - 2*x)
-        1 + 2*x + 4*x^2 + 8*x^3 + 16*x^4 + O(x^5)
-        sage: set_series_precision(20)
-    """
-    if not names is None:
-        name = names
-    if name is None:
-        raise TypeError("you must specify the name of the indeterminate of the Laurent series ring")
-
-    if default_prec is None:
-        from sage.misc.defaults import series_precision
-        default_prec = series_precision()
-
-    if isinstance(base_ring, ring.Field):
-        return LaurentSeriesRing_field(base_ring, name, default_prec, sparse)
-    elif isinstance(base_ring, ring.IntegralDomain):
-        return LaurentSeriesRing_domain(base_ring, name, default_prec, sparse)
-    elif isinstance(base_ring, ring.CommutativeRing):
-        return LaurentSeriesRing_generic(base_ring, name, default_prec, sparse)
-    else:
-        raise TypeError("base_ring must be a commutative ring")
-
-def is_LaurentSeriesRing(x):
-    """
-    Return ``True`` if this is a *univariate* Laurent series ring.
-
-    This is in keeping with the behavior of ``is_PolynomialRing``
-    versus ``is_MPolynomialRing``.
-
-    TESTS::
-
-        sage: from sage.rings.laurent_series_ring import is_LaurentSeriesRing
-        sage: K.<q> = LaurentSeriesRing(QQ)
-        sage: is_LaurentSeriesRing(K)
-        True
-    """
-    return isinstance(x, LaurentSeriesRing_generic)
-
-class LaurentSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing):
-    r"""
-    Univariate Laurent Series Ring.
-
-    EXAMPLES::
-
         sage: K = LaurentSeriesRing(CC, 'q')
         sage: K
         Laurent Series Ring in q over Complex Field with 53 bits of precision
@@ -145,27 +109,111 @@ class LaurentSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing):
         sage: R.<x> = k[[]]
         sage: F = Frac(R)
         sage: F.category()
-        Category of complete discrete valuation fields
+        Category of infinite complete discrete valuation fields
         sage: TestSuite(F).run()
+
+    TESTS:
+
+    Check if changing global series precision does it right (and
+    that :trac:`17955` is fixed)::
+
+        sage: set_series_precision(3)
+        sage: R.<x> = LaurentSeriesRing(ZZ)
+        sage: 1/(1 - 2*x)
+        1 + 2*x + 4*x^2 + O(x^3)
+        sage: set_series_precision(5)
+        sage: R.<x> = LaurentSeriesRing(ZZ)
+        sage: 1/(1 - 2*x)
+        1 + 2*x + 4*x^2 + 8*x^3 + 16*x^4 + O(x^5)
+        sage: set_series_precision(20)
+
+    Check categories (:trac:`24420`)::
+
+        sage: LaurentSeriesRing(ZZ, 'x').category()
+        Category of infinite integral domains
+        sage: LaurentSeriesRing(QQ, 'x').category()
+        Category of infinite complete discrete valuation fields
+        sage: LaurentSeriesRing(Zmod(4), 'x').category()
+        Category of infinite commutative rings
     """
-    def __init__(self, base_ring, name=None, default_prec=None, sparse=False, category=None):
+    Element = LaurentSeries
+
+    @staticmethod
+    def __classcall__(cls, *args, **kwds):
+        r"""
+        TESTS::
+
+            sage: L = LaurentSeriesRing(QQ, 'q')
+            sage: L is LaurentSeriesRing(QQ, name='q')
+            True
+            sage: loads(dumps(L)) is L
+            True
+        """
+        from .power_series_ring import PowerSeriesRing, is_PowerSeriesRing
+
+        if not kwds and len(args) == 1 and is_PowerSeriesRing(args[0]):
+            power_series = args[0]
+        else:
+            power_series = PowerSeriesRing(*args, **kwds)
+
+        return UniqueRepresentation.__classcall__(cls, power_series)
+
+    def __init__(self, power_series):
         """
         Initialization
 
         EXAMPLES::
 
-            sage: K.<q> = LaurentSeriesRing(QQ,default_prec=4); K
+            sage: K.<q> = LaurentSeriesRing(QQ, default_prec=4); K
             Laurent Series Ring in q over Rational Field
             sage: 1 / (q-q^2)
             q^-1 + 1 + q + q^2 + O(q^3)
+
+            sage: RZZ = LaurentSeriesRing(ZZ, 't')
+            sage: RZZ.category()
+            Category of infinite integral domains
+            sage: TestSuite(RZZ).run()
+
+            sage: R1 = LaurentSeriesRing(Zmod(1), 't')
+            sage: R1.category()
+            Category of finite commutative rings
+            sage: TestSuite(R1).run()
+
+            sage: R2 = LaurentSeriesRing(Zmod(2), 't')
+            sage: R2.category()
+            Category of infinite complete discrete valuation fields
+            sage: TestSuite(R2).run()
+
+            sage: R4 = LaurentSeriesRing(Zmod(4), 't')
+            sage: R4.category()
+            Category of infinite commutative rings
+            sage: TestSuite(R4).run()
+
+            sage: RQQ = LaurentSeriesRing(QQ, 't')
+            sage: RQQ.category()
+            Category of infinite complete discrete valuation fields
+            sage: TestSuite(RQQ).run()
         """
-        from .power_series_ring import PowerSeriesRing
-        ring.CommutativeRing.__init__(self, base_ring, names=name,
-                                      category=getattr(self, '_default_category', Fields()))
-        self._power_series_ring = PowerSeriesRing(self.base_ring(),
-                                                  self.variable_name(),
-                                                  default_prec=default_prec,
-                                                  sparse=sparse)
+        base_ring = power_series.base_ring()
+        if base_ring in Fields():
+            category = CompleteDiscreteValuationFields()
+        elif base_ring in IntegralDomains():
+            category = IntegralDomains()
+        elif base_ring in Rings().Commutative():
+            category = Rings().Commutative()
+        else:
+            raise ValueError('unrecognized base ring')
+
+        if base_ring.is_zero():
+            category = category.Finite()
+        else:
+            category = category.Infinite()
+
+        CommutativeRing.__init__(self, base_ring,
+                names=power_series.variable_names(),
+                category=category)
+
+        self._power_series_ring = power_series
 
     def base_extend(self, R):
         """
@@ -184,6 +232,38 @@ class LaurentSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing):
         else:
             raise TypeError("no valid base extension defined")
 
+    def fraction_field(self):
+        r"""
+        Return the fraction field of this ring of Laurent series.
+
+        If the base ring is a field, then Laurent series are already a field.
+        If the base ring is a domain, then the Laurent series over its fraction
+        field is returned. Otherwise, raise a ``ValueError``.
+
+        EXAMPLES::
+
+            sage: R = LaurentSeriesRing(ZZ, 't', 30).fraction_field()
+            sage: R
+            Laurent Series Ring in t over Rational Field
+            sage: R.default_prec()
+            30
+
+            sage: LaurentSeriesRing(Zmod(4), 't').fraction_field()
+            Traceback (most recent call last):
+            ...
+            ValueError: must be an integral domain
+        """
+        from sage.categories.integral_domains import IntegralDomains
+        from sage.categories.fields import Fields
+        if self in Fields():
+            return self
+        elif self in IntegralDomains():
+            return LaurentSeriesRing(self.base_ring().fraction_field(),
+                    self.variable_names(),
+                    self.default_prec())
+        else:
+            raise ValueError('must be an integral domain')
+
     def change_ring(self, R):
         """
         EXAMPLES::
@@ -194,7 +274,7 @@ class LaurentSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing):
             sage: R.default_prec()
             4
         """
-        return LaurentSeriesRing(R, self.variable_name(),
+        return LaurentSeriesRing(R, self.variable_names(),
                                  default_prec=self.default_prec(),
                                  sparse=self.is_sparse())
 
@@ -247,8 +327,6 @@ class LaurentSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing):
         if self.is_sparse():
             s = 'Sparse ' + s
         return s
-
-    Element = LaurentSeries
 
     def _element_constructor_(self, x, n=0):
         r"""
@@ -332,6 +410,7 @@ class LaurentSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing):
         from sage.rings.polynomial.polynomial_element import is_Polynomial
         from sage.rings.polynomial.multi_polynomial_element import is_MPolynomial
         from sage.structure.element import parent
+        from sage.libs.pari.all import pari_gen
 
         P = parent(x)
         if isinstance(x, self.element_class) and n == 0 and P is self:
@@ -605,23 +684,4 @@ class LaurentSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing):
             Power Series Ring in x over Rational Field
         """
         return self._power_series_ring
-
-class LaurentSeriesRing_domain(LaurentSeriesRing_generic, ring.IntegralDomain):
-    """
-    Laurent series ring over a domain.
-
-    TESTS::
-
-        sage: TestSuite(LaurentSeriesRing(ZZ,'t')).run()
-    """
-
-class LaurentSeriesRing_field(LaurentSeriesRing_generic, ring.Field):
-    """
-    Laurent series ring over a field.
-
-    TESTS::
-
-        sage: TestSuite(LaurentSeriesRing(QQ,'t')).run()
-    """
-    _default_category = CompleteDiscreteValuationFields()
 

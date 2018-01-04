@@ -960,7 +960,7 @@ class FunctionFieldMaximalOrder_rational(FunctionFieldMaximalOrder):
             sage: F.<x> = FunctionField(k)
             sage: O = F.maximal_order()
             sage: O._ring
-            Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
+            Univariate Polynomial Ring in x over Finite Field of size 2 (using GF2X)
             sage: f = x^3 + x + 1
             sage: _f = f.numerator()
             sage: _f.is_irreducible()

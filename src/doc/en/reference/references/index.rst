@@ -435,7 +435,7 @@ REFERENCES:
             http://www.roguebasin.com/index.php?title=Bresenham%27s_Line_Algorithm
 
 .. [Bruin-Molnar] \N. Bruin and A. Molnar, *Minimal models for rational
-            functions in a dynamical setting*, 
+            functions in a dynamical setting*,
             LMS Journal of Computation and Mathematics, Volume 15 (2012),
             pp 400-417.
 
@@ -610,7 +610,7 @@ REFERENCES:
 .. [Co1999] John Conway, Neil Sloan. *Sphere Packings, Lattices and Groups*,
             Springer Verlag 1999.
 
-.. [Coh1993] Henri Cohen. A Course in Computational Number
+.. [Coh1993] Henri Cohen. A Course in Computational Algebraic Number
              Theory. Graduate Texts in Mathematics 138. Springer, 1993.
 
 .. [Coh2007I] Henri Cohen, *Number Theory, Vol. I: Tools and
@@ -1130,9 +1130,13 @@ REFERENCES:
             Cryptanalysis* ; 2002' available at
             http://www.engr.mun.ca/~howard/PAPERS/ldc_tutorial.pdf
 
-.. [Hes2002] \F. Hess, "Computing Riemann-Roch spaces in algebraic
+.. [Hes2002] Florian Hess, "Computing Riemann-Roch spaces in algebraic
              function fields and related topics," J. Symbolic
              Comput. 33 (2002), no. 4, 425--445.
+
+.. [Hes2002b] Florian Hess, "An algorithm for computing Weierstrass points,"
+              International Algorithmic Number Theory Symposium (pp. 357-371).
+              Springer Berlin Heidelberg, 2002.
 
 .. [Hig2008] \N. J. Higham, "Functions of matrices: theory and computation",
              Society for Industrial and Applied Mathematics (2008).

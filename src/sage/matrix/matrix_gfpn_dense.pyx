@@ -34,8 +34,6 @@ from cysignals.signals cimport sig_on, sig_off, sig_check
 
 import os
 
-meataxe_init()
-
 ####################
 #
 # import sage types
@@ -55,6 +53,9 @@ from sage.structure.element cimport Element, ModuleElement, RingElement, Matrix
 from libc.string cimport memset, memcpy
 
 cimport sage.matrix.matrix0
+
+# The following import is just to ensure that meataxe_init() is called.
+import sage.libs.meataxe
 
 ####################
 #
@@ -364,7 +365,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
                 sage: Matrix_gfpn_dense('foobarNONEXISTING_FILE')       # optional: meataxe
                 Traceback (most recent call last):
                 ...
-                OSError: .../foobarNONEXISTING_FILE: No such file or directory in file os.c (line 254)
+                OSError: .../foobarNONEXISTING_FILE: No such file or directory in file os.c (line 255)
                 sage: Matrix_gfpn_dense('')                             # optional: meataxe
                 Traceback (most recent call last):
                 ...

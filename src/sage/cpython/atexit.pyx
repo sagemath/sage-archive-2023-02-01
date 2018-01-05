@@ -22,7 +22,7 @@ __all__ = ['restore_atexit']
 
 
 cdef class restore_atexit(object):
-    """
+    r"""
     Context manager that restores the state of the atexit module to its
     previous state when exiting the context.
 

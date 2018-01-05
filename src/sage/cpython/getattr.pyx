@@ -44,9 +44,10 @@ cdef class AttributeErrorMessage:
 
     TESTS:
 
-    By :trac:`14100`, the attribute errors raised on elements and parents are
-    unique objects. The error message of this unique error object is changed
-    inplace. This is for reasons of efficiency. ::
+    The error message used for the ``AttributeError`` is a unique object
+    and is changed inplace. This is for reasons of efficiency.
+    Hence, if one really needs the error message as a string, then one should
+    make a copy of its string representation before it changes. ::
 
         sage: try:
         ....:     1.__bla
@@ -58,32 +59,11 @@ cdef class AttributeErrorMessage:
         ....:     x.__bla
         ....: except AttributeError as exc:
         ....:     ElementError2 = exc
-        sage: ElementError2 is ElementError
-        True
         sage: ElementError
         AttributeError('sage.symbolic.expression.Expression' object has no attribute '__bla',)
+        sage: ElementError2.args[0] is ElementError.args[0]
+        True
         sage: isinstance(ElementError.args[0], sage.cpython.getattr.AttributeErrorMessage)
-        True
-
-    Hence, if one really needs the error message as a string, then one should
-    make a copy of its string representation before it changes. Attribute
-    Errors of parents behave similarly::
-
-        sage: try:
-        ....:     QQ.__bla
-        ....: except AttributeError as exc:
-        ....:     ParentError = exc
-        sage: ParentError
-        AttributeError('RationalField_with_category' object has no attribute '__bla',)
-        sage: try:
-        ....:     ZZ.__bla
-        ....: except AttributeError as exc:
-        ....:     ParentError2 = exc
-        sage: ParentError2 is ParentError
-        True
-        sage: ParentError2
-        AttributeError('sage.rings.integer_ring.IntegerRing_class' object has no attribute '__bla',)
-        sage: ParentError2 is ElementError
         True
 
     AUTHOR:

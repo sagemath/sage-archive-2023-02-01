@@ -222,17 +222,15 @@ cpdef getattr_from_other_class(self, cls, name):
     if not isinstance(cls, type):
         raise TypeError(f"{cls!r} is not a type")
 
-    cdef dummy_attribute_error = AttributeError(dummy_error_message)
-
     if isinstance(self, cls):
         dummy_error_message.cls = type(self)
         dummy_error_message.name = name
-        raise dummy_attribute_error
+        raise AttributeError(dummy_error_message)
     cdef PyObject* attr = _PyType_Lookup(<type>cls, name)
     if attr is NULL:
         dummy_error_message.cls = type(self)
         dummy_error_message.name = name
-        raise dummy_attribute_error
+        raise AttributeError(dummy_error_message)
     attribute = <object>attr
     # Check for a descriptor (__get__ in Python)
     cdef descrgetfunc getter = Py_TYPE(attribute).tp_descr_get
@@ -249,7 +247,7 @@ cpdef getattr_from_other_class(self, cls, name):
         pass
     dummy_error_message.cls = type(self)
     dummy_error_message.name = name
-    raise dummy_attribute_error
+    raise AttributeError(dummy_error_message)
 
 
 def dir_with_other_class(self, cls):

@@ -5426,7 +5426,7 @@ class Polyhedron_base(Element):
         if count == 0:
             raise EmptySetError('Polyhedron does not contain any integral points.')
 
-        return self.get_integral_point(current_randstate().python_random().randint(0, count-1))
+        return self.get_integral_point(current_randstate().python_random().randint(0, count-1), **kwds)
 
     @cached_method
     def combinatorial_automorphism_group(self, vertex_graph_only=False):

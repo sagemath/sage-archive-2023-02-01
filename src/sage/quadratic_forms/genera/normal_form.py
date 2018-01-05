@@ -169,7 +169,9 @@ def p_adic_normal_form(G,p,precision=None,debug=False):
     G = nondeg * G * nondeg.T * p**d
     if precision == None:
         # in Zp(2) we have to calculate at least mod 8 for things to make sense.
-        precision = G.det().valuation(p) + 3
+        precision = G.det().valuation(p)
+    if p == 2:
+        precision = max(precision,3)
     R = Zp(p, prec = precision, type = 'fixed-mod')
     G = G.change_ring(R) # is not changed
     D = copy(G)    # is transformed into jordan form
@@ -842,7 +844,7 @@ def _normalize_2x2(G):
         # solve: 2 == D[1,1]*x^2 + 2*D[1,0]*x + D[0,0]
         pol = (D[1,1]*x**2 + 2*D[1,0]*x + D[0,0]-2) // 2
         # somehow else pari can get a hickup see `trac`:#24065
-        pol = pol // pol.leading_coefficient() 
+        pol = pol // pol.leading_coefficient()
         sol = pol.roots()[0][0]
         B[0, 1] = sol
         D = B * G * B.transpose()

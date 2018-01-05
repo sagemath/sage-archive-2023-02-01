@@ -822,13 +822,13 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
             sage: v = valuations.GaussValuation(QQ['x'], QQ.valuation(2))
             sage: w = K.valuation(v)
             sage: w.residue_ring()
-            Fraction Field of Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
+            Fraction Field of Univariate Polynomial Ring in x over Finite Field of size 2 (using ...)
 
             sage: R.<x> = QQ[]
             sage: vv = v.augmentation(x, 1)
             sage: w = K.valuation(vv)
             sage: w.residue_ring()
-            Fraction Field of Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
+            Fraction Field of Univariate Polynomial Ring in x over Finite Field of size 2 (using ...)
             
         """
         return self._base_valuation.residue_ring().fraction_field()

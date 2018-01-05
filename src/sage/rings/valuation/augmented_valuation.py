@@ -1155,7 +1155,7 @@ class NonFinalAugmentedValuation(AugmentedValuation_base, NonFinalInductiveValua
 
             sage: w = v.augmentation(x, 1)
             sage: w.residue_ring()
-            Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
+            Univariate Polynomial Ring in x over Finite Field of size 2 (using ...)
 
         """
         from sage.categories.fields import Fields

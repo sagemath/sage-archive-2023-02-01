@@ -297,7 +297,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
             sage: S.<x> = Qp(2,5)[]
             sage: v = GaussValuation(S)
             sage: v.residue_ring()
-            Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
+            Univariate Polynomial Ring in x over Finite Field of size 2 (using ...)
 
         """
         return self.domain().change_ring(self._base_valuation.residue_ring())

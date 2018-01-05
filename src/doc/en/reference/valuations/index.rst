@@ -150,7 +150,7 @@ constants::
     sage: K.<x> = FunctionField(QQ)
     sage: w = w.extension(K)
     sage: w.residue_field()
-    Fraction Field of Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
+    Fraction Field of Univariate Polynomial Ring in x over Finite Field of size 2 (using ...)
 
 Mac Lane Approximants
 ---------------------

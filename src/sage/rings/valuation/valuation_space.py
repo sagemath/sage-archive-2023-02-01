@@ -504,7 +504,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 sage: valuations.TrivialValuation(ZZ).residue_ring()
                 Integer Ring
                 sage: GaussValuation(ZZ['x'], ZZ.valuation(2)).residue_ring()
-                Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
+                Univariate Polynomial Ring in x over Finite Field of size 2 (using ...)
 
 
             """

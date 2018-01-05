@@ -74,15 +74,15 @@ def p_adic_normal_form(G,p,precision=None,debug=False):
     and
     ``[0, 1]``
     ``[1, 0] = U``.
-    
+
     In this case the normal form is a block diagonal matrix with blocks
     ``p^k G_k`` such that $G_k$ is a block diagonal matrix of the forms
     ``[U, ..., U, V, Wa, Wb]`` 
     where we allow ``V, Wa, Wb`` to be ``0 x 0`` matrices.
-    
+
     Further restrictions to the normal form apply.
     We refer to See [MirMor2009]_ IV Definition 4.6. for the details.
-    
+
     INPUT:
 
         - ``G`` -- a symmetric n x n matrix in `\QQ`
@@ -157,6 +157,7 @@ def p_adic_normal_form(G,p,precision=None,debug=False):
     """
     p = ZZ(p)
     G0, denom = G._clear_denom()
+    d = denom.valuation(p)
     r = G0.rank()
     if r != G0.ncols():
         U  = G0.hermite_form(transformation=True)[1]
@@ -165,7 +166,7 @@ def p_adic_normal_form(G,p,precision=None,debug=False):
     kernel = U[r:,:]
     nondeg = U[:r,:]
     # continue with the non-degenerate part
-    G = nondeg * G0 * nondeg.T
+    G = nondeg * G * nondeg.T * p**d
     if precision == None:
         # in Zp(2) we have to calculate at least mod 8 for things to make sense.
         precision = G.det().valuation(p) + 3
@@ -198,7 +199,7 @@ def p_adic_normal_form(G,p,precision=None,debug=False):
             assert B*G*B.T == Matrix.block_diagonal(collect_small_blocks(D))
         else:
             assert B*G*B.T == Matrix.diagonal(D.diagonal())            
-    return D/denom, B
+    return D/p**d, B
 
 def _find_min_p(G, cnt, lower_bound=0):
     r"""

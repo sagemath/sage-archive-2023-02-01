@@ -13340,8 +13340,8 @@ class GenericGraph(GenericGraph_pyx):
             - :meth:`PQ <sage.graphs.pq_trees.PQ>`
               -- Implementation of PQ-Trees.
             - :meth:`is_chordal`
-            - :func:`~sage.graphs.generators.intersection.IntervalGraph`
-            - :func:`~sage.graphs.generators.random.RandomIntervalGraph`
+            - :meth:`~sage.graphs.graph_generators.GraphGenerators.IntervalGraph`
+            - :meth:`~sage.graphs.graph_generators.GraphGenerators.RandomIntervalGraph`
 
         TESTS::
 

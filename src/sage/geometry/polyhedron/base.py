@@ -5337,6 +5337,12 @@ class Polyhedron_base(Element):
             sage: Q = Polyhedron([(1,3), (2, 7), (9, 77)])
             sage: [Q.get_integral_point(i) for i in range(Q.integral_points_count())] == sorted(Q.integral_points())
             True
+            sage: Q.get_integral_point(0, explicit_enumeration_threshold=0, triangulation='cddlib')
+            (1, 3)
+            sage: Q.get_integral_point(0, explicit_enumeration_threshold=0, triangulation='cddlib', foo=True)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: ...
 
             sage: R = Polyhedron(vertices=[[1/2, 1/3]], rays=[[1, 1]])
             sage: R.get_integral_point(0)
@@ -5348,7 +5354,7 @@ class Polyhedron_base(Element):
         if not self.is_compact():
             raise ValueError('Can only enumerate points in a compact polyhedron.')
 
-        if not 0 <= index < self.integral_points_count():
+        if not 0 <= index < self.integral_points_count(**kwds):
             raise IndexError('polytope index out of range')
 
         D = self.ambient_dim()
@@ -5363,7 +5369,7 @@ class Polyhedron_base(Element):
                 # Build new polyhedron by intersecting P with the halfspace {x_i < guess}.
                 P_lt_guess = P.intersection(S(None, ([[guess-1] + [0] * i + [-1] + [0] * (D - i - 1)], [])))
                 # Avoid computing P_geq_guess = P.intersection({x_i >= guess}) right now, it might not be needed.
-                P_lt_guess_count = P_lt_guess.integral_points_count()
+                P_lt_guess_count = P_lt_guess.integral_points_count(**kwds)
                 if P_lt_guess_count > index:  # Move upper down to guess.
                     upper = guess
                     index -= 0
@@ -5405,6 +5411,12 @@ class Polyhedron_base(Element):
             (0, 0)
             sage: P.random_integral_point() in P.integral_points()
             True
+            sage: P.random_integral_point(explicit_enumeration_threshold=0, triangulation='cddlib')  # random
+            (1, 1)
+            sage: P.random_integral_point(explicit_enumeration_threshold=0, triangulation='cddlib', foo=7)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: ...
 
             sage: Q = Polyhedron(vertices=[(2, 1/3)], rays=[(1, 2)])
             sage: Q.random_integral_point()

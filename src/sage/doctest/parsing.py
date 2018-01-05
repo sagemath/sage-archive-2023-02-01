@@ -633,27 +633,15 @@ class SageDocTestParser(doctest.DocTestParser):
                             ('not tested' in optional_tags)):
                         continue
 
-                    if 'py2' in optional_tags:
-                        if six.PY2:
-                            optional_tags.remove('py2')
-                        else:
-                            continue
-
-                    if 'py3' in optional_tags:
-                        if six.PY3:
-                            optional_tags.remove('py3')
-                        else:
-                            continue
-
                     if 'long time' in optional_tags:
                         if self.long:
                             optional_tags.remove('long time')
                         else:
                             continue
 
-                    if not self.optional_tags is True:
+                    if self.optional_tags is not True:
                         extra = optional_tags - self.optional_tags # set difference
-                        if len(extra) > 0:
+                        if extra:
                             if not('external' in self.optional_tags
                                    and available_software.issuperset(extra)):
                                 continue

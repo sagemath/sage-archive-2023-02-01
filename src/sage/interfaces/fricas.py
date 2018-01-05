@@ -1092,7 +1092,6 @@ class FriCASElement(ExpectElement):
              0.837981225008390,
              NaN,
              NaN]
-
             sage: l = [tanh, sinh, cosh, coth, sech, csch, asinh, acosh, atanh, acoth, asech, acsch, arcsinh, arccosh, arctanh, arccoth, arcsech, arccsch]
             sage: [f(x)._fricas_().sage().subs(x=0.9) for f in l]               # optional - fricas
             [0.716297870199024,
@@ -1102,15 +1101,15 @@ class FriCASElement(ExpectElement):
              0.697794641100332,
              0.974168247780004,
              0.808866935652782,
-             NaN,
+             0.451026811796262*I,
              1.47221948958322,
-             NaN,
+             1.47221948958322,
              0.467145308103262,
              0.957800449200672,
              0.808866935652782,
-             NaN,
+             0.451026811796262*I,
              1.47221948958322,
-             NaN,
+             1.47221948958322,
              0.467145308103262,
              0.957800449200672]
 

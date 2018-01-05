@@ -988,8 +988,6 @@ class ShiftedPrimedTableaux(UniqueRepresentation, Parent):
         Shifted Primed Tableaux of shape [3, 2] and maximum element 2
         sage: list(SPT)
         [[(1.0, 1.0, 1.0), (2.0, 2.0)], [(1.0, 1.0, 1.5), (2.0, 2.0)]]
-        sage: SPT.list_highest_weight()
-        [[(1.0, 1.0, 1.0), (2.0, 2.0)]]
 
     .. SEEALSO::
 
@@ -1488,24 +1486,6 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
                                 weight=tuple(weight),
                                 shape=self._shape)])
         return list_dw
-
-    def list_highest_weight(self):
-        """
-        List the highest weight elements of ``self``.
-
-        EXAMPLES::
-
-            sage: Tabs = ShiftedPrimedTableaux([3,1])
-            sage: Tabs.list_highest_weight()
-            [[(1.0, 1.0, 1.0), (2.0,)],
-             [(1.0, 1.0, 1.5), (2.0,)],
-             [(1.0, 1.0, 2.5), (2.0,)]]
-        """
-        if self._skew is not None:
-            raise NotImplementedError('skew tableau must be empty')
-        return [tab
-                for tab in self.list_decreasing_weight()
-                if tab.is_highest_weight()]
 
 
 class ShiftedPrimedTableaux_weight(ShiftedPrimedTableaux):

@@ -1063,12 +1063,20 @@ class Function_exp_polar(BuiltinFunction):
             sage: exp_polar(4*I*pi + x)
             exp_polar(4*I*pi + x)
 
+        TESTS:
+
+        Check that :trac:`24441` is fixed::
+
+            sage: exp_polar(arcsec(jacobi_sn(1.1*I*x, x))) # should be fast
+            exp_polar(arcsec(jacobi_sn(1.10000000000000*I*x, x)))
         """
-        if (isinstance(z, Expression)
-            and bool(-const_pi < z.imag_part() <= const_pi)):
-            return exp(z)
-        else:
-            return None
+        try:
+            im = z.imag_part()
+            if (len(im.variables()) == 0
+                and bool(-const_pi < im <= const_pi)):
+                return exp(z)
+        except AttributeError:
+            pass
 
 exp_polar = Function_exp_polar()
 

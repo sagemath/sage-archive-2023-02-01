@@ -1415,7 +1415,18 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
         """
         if self._skew is not None:
             raise NotImplementedError("only for non-skew shapes")
-        return tuple(self.list_decreasing_weight())
+        list_dw = []
+        if self._max_elt is None:
+            max_element = sum(self._shape)
+        else:
+            max_element = self._max_elt
+        for weight in (Partition(self._shape)
+                       .dominated_partitions(rows=max_element)):
+            list_dw.extend([self(T)
+                            for T in ShiftedPrimedTableaux(
+                                weight=tuple(weight),
+                                shape=self._shape)])
+        return tuple(list_dw)
 
     def shape(self):
         """
@@ -1461,31 +1472,6 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
             for tab in ShiftedPrimedTableaux(shape=self._shape,
                                              weight=weight_n):
                 yield self(tab)
-
-    def list_decreasing_weight(self):
-        """
-        List elements of ``self`` with weakly decreasing weight.
-
-        EXAMPLES::
-
-            sage: Tabs = ShiftedPrimedTableaux([2,1])
-            sage: Tabs.list_decreasing_weight()
-            [[(1.0, 1.0), (2.0,)], [(1.0, 2.0), (3.0,)], [(1.0, 1.5), (3.0,)]]
-        """
-        if self._skew is not None:
-            raise NotImplementedError('skew tableau must be empty')
-        list_dw = []
-        if self._max_elt is None:
-            max_element = sum(self._shape)
-        else:
-            max_element = self._max_elt
-        for weight in (Partition(self._shape)
-                       .dominated_partitions(rows=max_element)):
-            list_dw.extend([self(T)
-                            for T in ShiftedPrimedTableaux(
-                                weight=tuple(weight),
-                                shape=self._shape)])
-        return list_dw
 
 
 class ShiftedPrimedTableaux_weight(ShiftedPrimedTableaux):

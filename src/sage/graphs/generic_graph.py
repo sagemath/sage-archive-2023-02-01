@@ -11556,6 +11556,13 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: sort keyword is False, yet a key function is given
+
+            sage: G = Graph()
+            sage: G.add_edge(0, 1, [7])
+            sage: G.add_edge(0, 2, [7])
+            sage: G.edge_label(0,1)[0] += 1
+            sage: G.edges()
+            [(0, 1, [8]), (0, 2, [7])]
         """
         if not(sort) and key:
             raise ValueError('sort keyword is False, yet a key function is given')
@@ -11744,41 +11751,39 @@ class GenericGraph(GenericGraph_pyx):
             return sorted(self.edge_iterator(vertices=vertices,labels=labels))
         return list(self.edge_iterator(vertices=vertices,labels=labels))
 
-    def edge_label(self, u, v=None):
+    def edge_label(self, u, v):
         """
-        Returns the label of an edge. Note that if the graph allows
-        multiple edges, then a list of labels on the edge is returned.
+        Return the label of an edge.
+
+        If the graph allows multiple edges, then the list of labels
+        on the edges is returned.
+
+        .. SEEALSO::
+
+            - :meth:`set_edge_label`
 
         EXAMPLES::
 
-            sage: G = Graph({0 : {1 : 'edgelabel'}}, sparse=True)
-            sage: G.edges(labels=False)
-            [(0, 1)]
-            sage: G.edge_label( 0, 1 )
+            sage: G = Graph({0 : {1 : 'edgelabel'}})
+            sage: G.edge_label(0, 1)
             'edgelabel'
-            sage: D = DiGraph({0 : {1 : 'edgelabel'}}, sparse=True)
-            sage: D.edges(labels=False)
-            [(0, 1)]
-            sage: D.edge_label( 0, 1 )
-            'edgelabel'
+            sage: D = DiGraph({1 : {2: 'up'}, 2: {1: 'down'}})
+            sage: D.edge_label(2, 1)
+            'down'
 
         ::
 
-            sage: G = Graph(multiedges=True, sparse=True)
-            sage: [G.add_edge(0,1,i) for i in range(1,6)]
+            sage: G = Graph(multiedges=True)
+            sage: [G.add_edge(0, 1, i) for i in range(1, 6)]
             [None, None, None, None, None]
-            sage: sorted(G.edge_label(0,1))
+            sage: sorted(G.edge_label(0, 1))
             [1, 2, 3, 4, 5]
 
         TESTS::
 
-            sage: G = Graph()
-            sage: G.add_edge(0,1,[7])
-            sage: G.add_edge(0,2,[7])
-            sage: G.edge_label(0,1)[0] += 1
-            sage: G.edges()
-            [(0, 1, [8]), (0, 2, [7])]
-
+            sage: g = graphs.CycleGraph(5)
+            sage: g.edge_label(2, 3) is None
+            True
         """
         return self._backend.get_edge_label(u,v)
 

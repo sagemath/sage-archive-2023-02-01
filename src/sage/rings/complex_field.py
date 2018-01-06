@@ -316,6 +316,20 @@ class ComplexField_class(ring.Field):
             return NotImplemented
         return self._prec == other._prec
 
+    def __hash__(self):
+         """
+         Return the hash.
+
+         EXAMPLES::
+
+             sage: C = ComplexField(200)
+             sage: from sage.rings.complex_field import ComplexField_class
+             sage: D = ComplexField_class(200)
+             sage: hash(C) == hash(D)
+             True
+         """
+         return hash((self.__class__, self._prec))
+
     def __ne__(self, other):
         """
         Check whether ``self`` is not equal to ``other``.

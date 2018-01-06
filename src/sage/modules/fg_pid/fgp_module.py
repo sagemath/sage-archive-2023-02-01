@@ -310,6 +310,18 @@ class FGP_Module_class(Module):
         Finitely generated module V/W over Integer Ring with invariants (4, 12)
         sage: type(Q)
         <class 'sage.modules.fg_pid.fgp_module.FGP_Module_class_with_category'>
+    
+    TESTS::
+    
+    Make sure that the problems in
+    http://trac.sagemath.org/sage_trac/ticket/7516 are fixed::
+    
+        sage: V = FreeModule(QQ, 2)
+        sage: W = V.submodule([V([1,1])])
+        sage: Z = W.submodule([])
+        sage: WmodZ = W / Z   
+        sage: loads(dumps(WmodZ))==WmodZ
+        True
     """
 
     # The class to be used for creating elements of this
@@ -1553,6 +1565,39 @@ class FGP_Module_class(Module):
             b = V(a) * B
             yield self(b)
 
+    def construction(self):
+        """
+        The construction functor and ambient module for ``self``.
+
+        EXAMPLES::
+
+            sage: W = ZZ^2
+            sage: A1 = W.submodule([[1,0]])
+            sage: B1 = W.submodule([[2,0]])
+            sage: T1 = A1 / B1
+            sage: T1.construction()
+            (QuotientModuleFunctor,
+              Free module of degree 2 and rank 1 over Integer Ring
+              Echelon basis matrix:
+              [1 0])
+
+        TESTS::
+
+            sage: W = ZZ^2
+            sage: A1 = W.submodule([[1,0]])
+            sage: A2 = W.submodule([[0,1]])
+            sage: B1 = W.submodule([[2,0]])
+            sage: B2 = W.submodule([[0,2]])
+            sage: T1 = A1 / B1
+            sage: T2 = A2 / B2
+            sage: t1 = T1.an_element()
+            sage: t2 = T2.an_element()
+            sage: t1 + t2
+            (1, 1)
+        """
+        from sage.modules.module_functors import QuotientModuleFunctor
+        return (QuotientModuleFunctor(self._W), self._V)
+
     def is_finite(self):
         """
         Return True if self is finite and False otherwise.
@@ -1589,9 +1634,17 @@ class FGP_Module_class(Module):
             Finitely generated module V/W over Integer Ring with invariants (0, 0)
             sage: Q.annihilator()
             Principal ideal (0) of Integer Ring
+            
+        We check that :trac:`22720` is resolved::
+            
+            sage: H=AdditiveAbelianGroup([])
+            sage: H.annihilator()
+            Principal ideal (1) of Integer Ring
         """
         if not self.is_finite():
             g = 0
+        elif self.cardinality() == 1:
+            g = 1
         else:
             g = reduce(lcm, self.invariants())
         return self.base_ring().ideal(g)
@@ -1632,7 +1685,7 @@ class FGP_Module_class(Module):
             -7071641102956720018 # 64-bit
         """
         return hash( (self.V(), self.W()) )
-
+    
 ##############################################################
 # Useful for testing
 ##############################################################

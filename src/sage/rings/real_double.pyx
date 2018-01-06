@@ -70,6 +70,7 @@ from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.richcmp cimport rich_to_bool
+from sage.arith.constants cimport *
 
 
 def is_RealDoubleField(x):
@@ -145,9 +146,10 @@ cdef class RealDoubleField_class(Field):
         """
         from sage.categories.fields import Fields
         Field.__init__(self, self, category=Fields().Metric().Complete())
-        self._populate_coercion_lists_(element_constructor=RealDoubleElement,
-                                       init_no_parent=True,
+        self._populate_coercion_lists_(init_no_parent=True,
                                        convert_method_name='_real_double_')
+
+    _element_constructor_ = RealDoubleElement
 
     def __reduce__(self):
         """
@@ -535,7 +537,6 @@ cdef class RealDoubleField_class(Field):
             0.8862269254527579
         """
         return self(M_PI)
-
 
     def euler_constant(self):
         """
@@ -2041,13 +2042,13 @@ cdef class RealDoubleElement(FieldElement):
         ::
 
             sage: r = RDF(31.9); r.log2()
-            4.995484518877507
+            4.9954845188775066
         """
         if self < 0:
             from sage.rings.complex_double import CDF
             return CDF(self).log(2)
         sig_on()
-        a = self._new_c(gsl_sf_log(self._value) / M_LN2)
+        a = self._new_c(gsl_sf_log(self._value) * M_1_LN2)
         sig_off()
         return a
 
@@ -2059,7 +2060,7 @@ cdef class RealDoubleElement(FieldElement):
         EXAMPLES::
 
             sage: r = RDF('16.0'); r.log10()
-            1.2041199826559246
+            1.2041199826559248
             sage: r.log() / RDF(log(10))
             1.2041199826559246
             sage: r = RDF('39.9'); r.log10()
@@ -2069,7 +2070,7 @@ cdef class RealDoubleElement(FieldElement):
             from sage.rings.complex_double import CDF
             return CDF(self).log(10)
         sig_on()
-        a = self._new_c(gsl_sf_log(self._value) / M_LN10)
+        a = self._new_c(gsl_sf_log(self._value) * M_1_LN10)
         sig_off()
         return a
 
@@ -2088,9 +2089,9 @@ cdef class RealDoubleElement(FieldElement):
         """
         if self < 0:
             from sage.rings.complex_double import CDF
-            return CDF(self).log(math.pi)
+            return CDF(self).log(M_PI)
         sig_on()
-        a = self._new_c(gsl_sf_log(self._value) / M_LNPI)
+        a = self._new_c(gsl_sf_log(self._value) * M_1_LNPI)
         sig_off()
         return a
 
@@ -2769,75 +2770,6 @@ cdef void fast_tp_dealloc(PyObject* o):
 from sage.misc.allocator cimport hook_tp_functions
 hook_tp_functions(global_dummy_element, <newfunc>(&fast_tp_new), <destructor>(&fast_tp_dealloc), False)
 
-
-def time_alloc_list(n):
-    """
-    Allocate a list of length ``n`` of :class:`RealDoubleElement` instances.
-
-    EXAMPLES:
-
-    During the operation (in this example, addition), we end up with two
-    temporary elements. After completion of the operation, they are added
-    to the pool::
-
-        sage: from sage.rings.real_double import time_alloc_list
-        sage: RDF(2.1) + RDF(2.2)
-        4.300000000000001
-
-    Next when we call :func:`time_alloc_list`, the "created" elements are
-    actually pulled from the pool::
-
-        sage: time_alloc_list(2)
-        [2.2, 2.1]
-    """
-    cdef int i
-    l = []
-    for i from 0 <= i < n:
-        l.append(PY_NEW(RealDoubleElement))
-
-    return l
-
-
-def pool_stats():
-    """
-    Statistics for the real double pool.
-
-    EXAMPLES:
-
-    We first pull all elements from the pool (making sure it is empty to
-    illustrate how the pool works)::
-
-        sage: from sage.rings.real_double import time_alloc_list, pool_stats
-        sage: L = time_alloc_list(50)
-        sage: pool_stats()
-        Used pool 0 / 0 times
-        Pool contains 0 / 50 items
-
-    During the operation (in this example, addition), we end up with two
-    temporary elements. After completion of the operation, they are added
-    to the pool::
-
-        sage: RDF(2.1) + RDF(2.2)
-        4.300000000000001
-        sage: pool_stats()
-        Used pool 0 / 0 times
-        Pool contains 2 / 50 items
-
-    Next when we call :func:`time_alloc_list`, the "created" elements are
-    actually pulled from the pool::
-
-        sage: time_alloc_list(3)
-        [2.2, 2.1, 0.0]
-
-    Note that the number of objects left in the pool depends on the garbage
-    collector::
-
-        sage: pool_stats()
-        Used pool 0 / 0 times
-        Pool contains 1 / 50 items
-    """
-    print("Used pool %s / %s times" % (use_pool, total_alloc))
-    print("Pool contains %s / %s items" % (element_pool_count, element_pool_size))
 
 cdef double_repr(double x):
     """

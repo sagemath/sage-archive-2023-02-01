@@ -141,7 +141,7 @@ cdef class ActOnAction(GenericAction):
             2*x + 3*y + z
 
             sage: type(A)
-            <type 'sage.structure.coerce_actions.ActOnAction'>
+            <... 'sage.structure.coerce_actions.ActOnAction'>
         """
         if self._is_left:
             return (<Element>a)._act_on_(b, True)
@@ -164,7 +164,7 @@ cdef class ActedUponAction(GenericAction):
             Infinity
 
             sage: type(A)
-            <type 'sage.structure.coerce_actions.ActedUponAction'>
+            <... 'sage.structure.coerce_actions.ActedUponAction'>
         """
         if self._is_left:
             return (<Element>b)._acted_upon_(a, False)
@@ -208,7 +208,7 @@ def detect_element_action(Parent X, Y, bint X_on_left, X_el=None, Y_el=None):
         sage: detect_element_action(A, ZZ, True)
         Traceback (most recent call last):
         ...
-        RuntimeError: an_element() for <class '__main__.MyParent'> returned None
+        RuntimeError: an_element() for <__main__.MyParent object at ...> returned None
     """
     cdef Element x
     if X_el is None or (parent(X_el) is not X):

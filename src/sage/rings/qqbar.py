@@ -285,7 +285,7 @@ difficult to find, but we can easily verify it. ::
     sage: lhs - rhs
     0
     sage: lhs._exact_value()
-    10648699402510886229334132989629606002223831*a^9 + 23174560249100286133718183712802529035435800*a^8 + 27259790692625442252605558473646959458901265*a^7 + 21416469499004652376912957054411004410158065*a^6 + 14543082864016871805545108986578337637140321*a^5 + 6458050008796664339372667222902512216589785*a^4 - 3052219053800078449122081871454923124998263*a^3 - 14238966128623353681821644902045640915516176*a^2 - 16749022728952328254673732618939204392161001*a - 9052854758155114957837247156588012516273410 where a^10 + a^9 - a^7 - a^6 - a^5 - a^4 - a^3 + a + 1 = 0 and a in 1.176280818259918?
+    -10648699402510886229334132989629606002223831*a^9 + 23174560249100286133718183712802529035435800*a^8 - 27259790692625442252605558473646959458901265*a^7 + 21416469499004652376912957054411004410158065*a^6 - 14543082864016871805545108986578337637140321*a^5 + 6458050008796664339372667222902512216589785*a^4 + 3052219053800078449122081871454923124998263*a^3 - 14238966128623353681821644902045640915516176*a^2 + 16749022728952328254673732618939204392161001*a - 9052854758155114957837247156588012516273410 where a^10 - a^9 + a^7 - a^6 + a^5 - a^4 + a^3 - a + 1 = 0 and a in -1.176280818259918?
 
 Given an algebraic number, we can produce a string that will reproduce
 that algebraic number if you type the string into Sage. We can see
@@ -519,7 +519,7 @@ import sage.rings.ring
 from sage.misc.fast_methods import Singleton
 from sage.misc.cachefunc import cached_method
 from sage.structure.sage_object import SageObject
-from sage.structure.richcmp import (richcmp,
+from sage.structure.richcmp import (richcmp, richcmp_method,
                                     rich_to_bool, richcmp_not_equal,
                                     op_EQ, op_NE, op_LE, op_LT,
                                     op_GE, op_GT)
@@ -1752,7 +1752,7 @@ def do_polred(poly):
         sage: do_polred(x^2 - x - 11)
         (1/3*x + 1/3, 3*x - 1, x^2 - x - 1)
         sage: do_polred(x^3 + 123456)
-        (1/4*x, 4*x, x^3 + 1929)
+        (-1/4*x, -4*x, x^3 - 1929)
 
     This shows that :trac:`13054` has been fixed::
 
@@ -2185,9 +2185,8 @@ class AlgebraicGeneratorRelation(SageObject):
         EXAMPLES::
 
             sage: from sage.rings.qqbar import AlgebraicGeneratorRelation
-            sage: c = AlgebraicGeneratorRelation(None, None, None, None, None)
-            sage: c
-            <class 'sage.rings.qqbar.AlgebraicGeneratorRelation'>
+            sage: AlgebraicGeneratorRelation(None, None, None, None, None)
+            <sage.rings.qqbar.AlgebraicGeneratorRelation object at ...>
         """
         self.child1 = child1
         self.child1_poly = child1_poly
@@ -2197,6 +2196,8 @@ class AlgebraicGeneratorRelation(SageObject):
 
 algebraic_generator_counter = 0
 
+
+@richcmp_method
 class AlgebraicGenerator(SageObject):
     r"""
     An ``AlgebraicGenerator`` represents both an algebraic number `\alpha` and
@@ -2278,9 +2279,9 @@ class AlgebraicGenerator(SageObject):
         """
         return self._index
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
-        Compare self with another AlgebraicGenerator object.
+        Compare ``self`` with another ``AlgebraicGenerator`` object.
 
         EXAMPLES::
 
@@ -2290,16 +2291,10 @@ class AlgebraicGenerator(SageObject):
             sage: nf = NumberField(y^2 - y - 1, name='a', check=False)
             sage: root = ANRoot(x^2 - x - 1, RIF(1, 2))
             sage: gen = AlgebraicGenerator(nf, root)
-            sage: gen.__cmp__(qq_generator)
-            1
+            sage: gen > qq_generator
+            True
         """
-        si = self._index
-        oi = other._index
-        if si < oi:
-            return -1
-        if si > oi:
-            return 1
-        return 0
+        return richcmp(self._index, other._index, op)
 
     def is_complex(self):
         r"""
@@ -2709,7 +2704,7 @@ class ANDescr(SageObject):
             sage: a = QQbar(sqrt(2))
             sage: b = a._descr
             sage: b.neg(a)
-            <class 'sage.rings.qqbar.ANUnaryExpr'>
+            <sage.rings.qqbar.ANUnaryExpr object at ...>
         """
         return ANUnaryExpr(n, '-')
 
@@ -2722,7 +2717,7 @@ class ANDescr(SageObject):
             sage: a = QQbar(sqrt(2))
             sage: b = a._descr
             sage: b.invert(a)
-            <class 'sage.rings.qqbar.ANUnaryExpr'>
+            <sage.rings.qqbar.ANUnaryExpr object at ...>
         """
         return ANUnaryExpr(n, '~')
 
@@ -2735,7 +2730,7 @@ class ANDescr(SageObject):
             sage: a = QQbar(sqrt(2))
             sage: b = a._descr
             sage: b.abs(a)
-            <class 'sage.rings.qqbar.ANUnaryExpr'>
+            <sage.rings.qqbar.ANUnaryExpr object at ...>
         """
         return ANUnaryExpr(n, 'abs')
 
@@ -2748,7 +2743,7 @@ class ANDescr(SageObject):
             sage: a = QQbar(sqrt(-7))
             sage: b = a._descr
             sage: b.real(a)
-            <class 'sage.rings.qqbar.ANUnaryExpr'>
+            <sage.rings.qqbar.ANUnaryExpr object at ...>
         """
         if self.is_complex():
             return ANUnaryExpr(n, 'real')
@@ -2764,7 +2759,7 @@ class ANDescr(SageObject):
             sage: a = QQbar(sqrt(-7))
             sage: b = a._descr
             sage: b.imag(a)
-            <class 'sage.rings.qqbar.ANUnaryExpr'>
+            <sage.rings.qqbar.ANUnaryExpr object at ...>
         """
         if self.is_complex():
             return ANUnaryExpr(n, 'imag')
@@ -2780,7 +2775,7 @@ class ANDescr(SageObject):
             sage: a = QQbar(sqrt(-7))
             sage: b = a._descr
             sage: b.conjugate(a)
-            <class 'sage.rings.qqbar.ANUnaryExpr'>
+            <sage.rings.qqbar.ANUnaryExpr object at ...>
         """
         if self.is_complex():
             return ANUnaryExpr(n, 'conjugate')
@@ -2797,7 +2792,7 @@ class ANDescr(SageObject):
             sage: a = QQbar(sqrt(-7))
             sage: b = a._descr
             sage: b.norm(a)
-            <class 'sage.rings.qqbar.ANUnaryExpr'>
+            <sage.rings.qqbar.ANUnaryExpr object at ...>
         """
         if self.is_complex():
             return ANUnaryExpr(n, 'norm')
@@ -3923,12 +3918,12 @@ class AlgebraicNumber(AlgebraicNumber_base):
 
             sage: x = QQbar.zeta(3); x
             -0.500000000000000? + 0.866025403784439?*I
-            sage: cmp(QQbar(-1), x)
-            -1
-            sage: cmp(QQbar(-1/2), x)
-            -1
-            sage: cmp(QQbar(0), x)
-            1
+            sage: QQbar(-1) < x
+            True
+            sage: QQbar(-1/2) < x
+            True
+            sage: QQbar(0) > x
+            True
 
         One problem with this lexicographic ordering is the fact that if
         two algebraic numbers have the same real component, that real
@@ -3962,8 +3957,8 @@ class AlgebraicNumber(AlgebraicNumber_base):
             16
             sage: r1 = QQbar.polynomial_root(p2, CIF(1, (-4.1,-4.0)))
             sage: r2 = QQbar.polynomial_root(p2, CIF(1, (4.0, 4.1)))
-            sage: cmp(r1,r2), cmp(r1,r1), cmp(r2,r2), cmp(r2,r1)
-            (-1, 0, 0, 1)
+            sage: all([r1<r2, r1==r1, r2==r2, r2>r1])
+            True
 
         Though, comparing roots which are not equal or conjugate is much
         slower because the algorithm needs to check the equality of the real
@@ -5962,7 +5957,7 @@ class ANRoot(ANDescr):
             sage: type(b)
             <class 'sage.rings.qqbar.ANRoot'>
             sage: c = b.conjugate(a); c
-            <class 'sage.rings.qqbar.ANUnaryExpr'>
+            <sage.rings.qqbar.ANUnaryExpr object at ...>
             sage: c.exactify()
             -2*a + 1 where a^2 - a + 6 = 0 and a in 0.50000000000000000? - 2.397915761656360?*I
         """
@@ -6859,7 +6854,7 @@ class ANExtensionElement(ANDescr):
             sage: type(b)
             <class 'sage.rings.qqbar.ANExtensionElement'>
             sage: b.norm(a)
-            <class 'sage.rings.qqbar.ANUnaryExpr'>
+            <sage.rings.qqbar.ANUnaryExpr object at ...>
         """
         if self._exactly_real:
             return (n*n)._descr
@@ -7063,7 +7058,7 @@ class ANUnaryExpr(ANDescr):
             sage: t = AA(sqrt(2))
             sage: s = (-t)._descr
             sage: s
-            <class 'sage.rings.qqbar.ANUnaryExpr'>
+            <sage.rings.qqbar.ANUnaryExpr object at ...>
             sage: s.is_complex()
             False
             sage: QQbar(-sqrt(2))._descr.is_complex()
@@ -7080,7 +7075,7 @@ class ANUnaryExpr(ANDescr):
             sage: t = AA(sqrt(2))
             sage: s = (-t)._descr
             sage: s
-            <class 'sage.rings.qqbar.ANUnaryExpr'>
+            <sage.rings.qqbar.ANUnaryExpr object at ...>
             sage: s._interval_fast(150)
             -1.414213562373095048801688724209698078569671876?
         """
@@ -7457,7 +7452,7 @@ def an_binop_expr(a, b, op):
         <class 'sage.rings.qqbar.ANBinaryExpr'>
         sage: from sage.rings.qqbar import an_binop_expr
         sage: x = an_binop_expr(a, b, operator.add); x
-        <class 'sage.rings.qqbar.ANBinaryExpr'>
+        <sage.rings.qqbar.ANBinaryExpr object at ...>
         sage: x.exactify()
         -6/7*a^7 + 2/7*a^6 + 71/7*a^5 - 26/7*a^4 - 125/7*a^3 + 72/7*a^2 + 43/7*a - 47/7 where a^8 - 12*a^6 + 23*a^4 - 12*a^2 + 1 = 0 and a in 3.12580...?
 
@@ -7466,7 +7461,7 @@ def an_binop_expr(a, b, op):
         sage: type(a._descr)
         <class 'sage.rings.qqbar.ANBinaryExpr'>
         sage: x = an_binop_expr(a, b, operator.mul); x
-        <class 'sage.rings.qqbar.ANBinaryExpr'>
+        <sage.rings.qqbar.ANBinaryExpr object at ...>
         sage: x.exactify()
         2*a^7 - a^6 - 24*a^5 + 12*a^4 + 46*a^3 - 22*a^2 - 22*a + 9 where a^8 - 12*a^6 + 23*a^4 - 12*a^2 + 1 = 0 and a in 3.1258...?
     """
@@ -7489,13 +7484,13 @@ def an_binop_element(a, b, op):
         <class 'sage.rings.qqbar.ANExtensionElement'>
         sage: from sage.rings.qqbar import an_binop_element
         sage: an_binop_element(a, b, operator.add)
-        <class 'sage.rings.qqbar.ANBinaryExpr'>
+        <sage.rings.qqbar.ANBinaryExpr object at ...>
         sage: an_binop_element(a, b, operator.sub)
-        <class 'sage.rings.qqbar.ANBinaryExpr'>
+        <sage.rings.qqbar.ANBinaryExpr object at ...>
         sage: an_binop_element(a, b, operator.mul)
-        <class 'sage.rings.qqbar.ANBinaryExpr'>
+        <sage.rings.qqbar.ANBinaryExpr object at ...>
         sage: an_binop_element(a, b, operator.truediv)
-        <class 'sage.rings.qqbar.ANBinaryExpr'>
+        <sage.rings.qqbar.ANBinaryExpr object at ...>
 
     The code tries to use existing unions of number fields::
 

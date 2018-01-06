@@ -572,7 +572,7 @@ class RiemannSurface(object):
             sage: R.<z,w> = QQ[]
             sage: f = z^3*w + w^3 + z
             sage: S = RiemannSurface(f)
-            sage: edge1 = S.edge_permutations().keys()[0]
+            sage: edge1 = next(iter(S.edge_permutations().keys()))
             sage: sigma = S.edge_permutations()[edge1]
             sage: continued_values = S.homotopy_continuation(edge1)
             sage: stored_values = S.w_values(S._vertices[edge1[1]])

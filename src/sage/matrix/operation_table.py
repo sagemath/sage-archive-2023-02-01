@@ -3,12 +3,18 @@ Operation Tables
 
 This module implements general operation tables, which are very matrix-like.
 """
+
 #*****************************************************************************
-#  Copyright (C) 2010 Rob Beezer <beezer at ups.edu>
+#       Copyright (C) 2010 Rob Beezer <beezer at ups.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#******************************************************************************
+#*****************************************************************************
+
+from __future__ import absolute_import
 
 import six
 from sage.structure.sage_object import SageObject
@@ -463,6 +469,7 @@ class OperationTable(SageObject):
           the values are the elements of the structure.
 
         EXAMPLES:
+
         This routine is tested extensively in the :class:`OperationTable`
         and :meth:`change_names` methods.  So we just demonstrate
         the nature of the output here. ::
@@ -550,7 +557,7 @@ class OperationTable(SageObject):
         Returns the element of the table, given the elements indexing its position.
 
         INPUT:
-        - pair - two elements of the structure
+        - pair -- two elements of the structure
 
         OUTPUT:
         The element of the structure computed by the operation for

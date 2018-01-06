@@ -41,8 +41,8 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-
 from __future__ import print_function
+from six import itervalues
 
 from sage.rings.integer import Integer
 from sage.structure.element import ModuleElement
@@ -105,7 +105,7 @@ class TensorField(ModuleElement):
 
     INPUT:
 
-    - ``vector_field_module`` -- module `\mathcal{X}(U,\Phi)` of vector
+    - ``vector_field_module`` -- module `\mathfrak{X}(U,\Phi)` of vector
       fields along `U` associated with the map `\Phi: U \rightarrow M` (cf.
       :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldModule`)
     - ``tensor_type`` -- pair `(k,l)` with `k` being the contravariant rank
@@ -185,7 +185,7 @@ class TensorField(ModuleElement):
         sage: t.add_comp_by_continuation(eV, W, chart=c_uv)  # long time
 
     At this stage, `t` is fully defined, having components in frames eU and eV
-    and the union of the domains of eU and eV being whole manifold::
+    and the union of the domains of eU and eV being the whole manifold::
 
         sage: t.display(eV)  # long time
         t = (u^4 - 4*u^3*v + 10*u^2*v^2 + 4*u*v^3 + v^4)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) du*du
@@ -264,6 +264,99 @@ class TensorField(ModuleElement):
          differentiable manifold S^2
         sage: s.restrict(U) == f.restrict(U) * t.restrict(U)
         True
+
+    .. RUBRIC:: Same examples with SymPy as the symbolic engine
+
+    From now on, we ask that all symbolic calculus on manifold `M` are
+    performed by SymPy::
+
+        sage: M.set_calculus_method('sympy')
+
+    We define the tensor `t` as above::
+
+        sage: t = M.tensor_field(0,2, name='t')
+        sage: t[eU,:] = [[1,0], [-2,3]]
+        sage: t.display(eU)
+        t = dx*dx - 2 dy*dx + 3 dy*dy
+        sage: t.add_comp_by_continuation(eV, W, chart=c_uv)  # long time
+        sage: t.display(eV)  # long time
+        t = (u**4 - 4*u**3*v + 10*u**2*v**2 + 4*u*v**3 + v**4)/(u**8 +
+         4*u**6*v**2 + 6*u**4*v**4 + 4*u**2*v**6 + v**8) du*du +
+         4*u*v*(-u**2 - 2*u*v + v**2)/(u**8 + 4*u**6*v**2 + 6*u**4*v**4
+         + 4*u**2*v**6 + v**8) du*dv + 2*(u**4 - 2*u**3*v - 2*u**2*v**2
+         + 2*u*v**3 + v**4)/(u**8 + 4*u**6*v**2 + 6*u**4*v**4 +
+         4*u**2*v**6 + v**8) dv*du + (3*u**4 + 4*u**3*v - 2*u**2*v**2 -
+         4*u*v**3 + 3*v**4)/(u**8 + 4*u**6*v**2 + 6*u**4*v**4 +
+         4*u**2*v**6 + v**8) dv*dv
+
+    The default coordinate representations of tensor components are now
+    SymPy objects::
+
+        sage: t[eV,1,1,c_uv].expr() # long time
+        (3*u**4 + 4*u**3*v - 2*u**2*v**2 - 4*u*v**3 + 3*v**4)/(u**8 +
+         4*u**6*v**2 + 6*u**4*v**4 + 4*u**2*v**6 + v**8)
+        sage: type(t[eV,1,1,c_uv].expr()) # long time
+        <class 'sympy.core.mul.Mul'>
+
+    Let us consider two vector fields, `a` and `b`, on `S^2`::
+
+        sage: a = M.vector_field(name='a')
+        sage: a[eU,:] = [-y,x]
+        sage: a.add_comp_by_continuation(eV, W, chart=c_uv)
+        sage: a.display(eV)
+        a = -v d/du + u d/dv
+        sage: b = M.vector_field(name='b')
+        sage: b[eU,:] = [y,-1]
+        sage: b.add_comp_by_continuation(eV, W, chart=c_uv)
+        sage: b.display(eV)
+        b = v*(2*u**3 - u**2 + 2*u*v**2 + v**2)/(u**2 + v**2) d/du
+            + (-u**4 - 2*u*v**2 + v**4)/(u**2 + v**2) d/dv
+
+    As a tensor field of type `(0,2)`, `t` acts on the pair `(a,b)`,
+    resulting in a scalar field::
+
+        sage: f = t(a,b)
+        sage: f.display()  # long time
+        t(a,b): S^2 --> R
+        on U: (x, y) |--> -2*x*y - 3*x - y**2
+        on V: (u, v) |--> -(3*u**3 + 3*u*v**2 + 2*u*v + v**2)/(u**4 + 2*u**2*v**2 + v**4)
+
+    The vectors can be defined only on subsets of `S^2`, the domain of the
+    result is then the common subset::
+
+        sage: s = t(a.restrict(U), b)
+        sage: s.display()  # long time
+        t(a,b): U --> R
+           (x, y) |--> -2*x*y - 3*x - y**2
+        on W: (u, v) |--> -(3*u**3 + 3*u*v**2 + 2*u*v + v**2)/(u**4 + 2*u**2*v**2 + v**4)
+        sage: s = t(a.restrict(U), b.restrict(W))  # long time
+        sage: s.display()  # long time
+        t(a,b): W --> R
+           (x, y) |--> -2*x*y - 3*x - y**2
+           (u, v) |--> -(3*u**3 + 3*u*v**2 + 2*u*v + v**2)/(u**4 + 2*u**2*v**2 + v**4)
+
+    The tensor itself can be defined only on some open subset of `S^2`,
+    yielding a result whose domain is this subset::
+
+        sage: s = t.restrict(V)(a,b)  # long time
+        sage: s.display()  # long time
+        t(a,b): V --> R
+           (u, v) |--> -(3*u**3 + 3*u*v**2 + 2*u*v + v**2)/(u**4 + 2*u**2*v**2 + v**4)
+        on W: (x, y) |--> -2*x*y - 3*x - y**2
+
+    Tests regarding the multiplication by a scalar field::
+
+        sage: f = M.scalar_field({c_xy: 1/(1+x^2+y^2),
+        ....:                     c_uv: (u^2 + v^2)/(u^2 + v^2 + 1)}, name='f')
+        sage: s = f*t # long time
+        sage: s[[0,0]] == f*t[[0,0]]  # long time
+        True
+        sage: s.restrict(U) == f.restrict(U) * t.restrict(U)  # long time
+        True
+        sage: s = f*t.restrict(U)
+        sage: s.restrict(U) == f.restrict(U) * t.restrict(U)
+        True
+
 
     """
     def __init__(self, vector_field_module, tensor_type, name=None,
@@ -1781,7 +1874,7 @@ class TensorField(ModuleElement):
         resu_rst = {}
         for dom in self._common_subdomains(other):
             resu_rst[dom] = self._restrictions[dom] + other._restrictions[dom]
-        some_rst = resu_rst.values()[0]
+        some_rst = next(itervalues(resu_rst))
         resu_sym = some_rst._sym
         resu_antisym = some_rst._antisym
         resu = self._vmodule.tensor(self._tensor_type, sym=resu_sym,
@@ -1844,7 +1937,7 @@ class TensorField(ModuleElement):
         resu_rst = {}
         for dom in self._common_subdomains(other):
             resu_rst[dom] = self._restrictions[dom] - other._restrictions[dom]
-        some_rst = resu_rst.values()[0]
+        some_rst = next(itervalues(resu_rst))
         resu_sym = some_rst._sym
         resu_antisym = some_rst._antisym
         resu = self._vmodule.tensor(self._tensor_type, sym=resu_sym,
@@ -2002,6 +2095,23 @@ class TensorField(ModuleElement):
             sage: s.restrict(V) == 2*a.restrict(V)
             True
             sage: s == 2*a
+            True
+
+       Test with SymPy as calculus engine::
+
+            sage: M.set_calculus_method('sympy')
+            sage: f.add_expr_by_continuation(c_uv, U.intersection(V))
+            sage: s = a.__mul__(f); s
+            Tensor field of type (1,1) on the 2-dimensional differentiable
+             manifold M
+            sage: s.display(e_xy)
+            x**2*y d/dx*dx + x*y d/dx*dy + x*y**2 d/dy*dx
+            sage: s.display(e_uv)
+            (u**3/8 + u**2/8 - u*v**2/8 - v**2/8) d/du*du + (u**3/8 -
+            u**2/8 - u*v**2/8 + v**2/8) d/du*dv + (u**2*v/8 + u**2/8 -
+            v**3/8 - v**2/8) d/dv*du + (u**2*v/8 - u**2/8 - v**3/8 +
+            v**2/8) d/dv*dv
+            sage: s == f*a
             True
 
         """
@@ -2238,7 +2348,7 @@ class TensorField(ModuleElement):
                 resu_rr = self_rr(*args_rr)
                 if resu_rr.is_trivial_zero():
                     for chart in resu_rr._domain._atlas:
-                        resu._express[chart] = chart._zero_function
+                        resu._express[chart] = chart.zero_function()
                 else:
                     for chart, expr in resu_rr._express.items():
                         resu._express[chart] = expr

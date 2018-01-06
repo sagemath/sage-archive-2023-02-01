@@ -1111,7 +1111,7 @@ class ToricVariety_field(AmbientSpace):
             sage: R = toric_varieties.A1().coordinate_ring();  R
             Multivariate Polynomial Ring in z over Rational Field
             sage: type(R)
-            <type 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomialRing_libsingular'>
+            <... 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomialRing_libsingular'>
         """
         if "_coordinate_ring" not in self.__dict__:
             names = self.variable_names()
@@ -2212,9 +2212,7 @@ class ToricVariety_field(AmbientSpace):
 
         REFERENCES:
 
-        ..
-
-            http://en.wikipedia.org/wiki/Chern_class
+        - :wikipedia:`Chern_class`
 
         EXAMPLES::
 
@@ -2259,9 +2257,7 @@ class ToricVariety_field(AmbientSpace):
 
         REFERENCES:
 
-        ..
-
-            http://en.wikipedia.org/wiki/Chern_character#The_Chern_character
+        - :wikipedia:`Chern_character#The_Chern_character`
 
         EXAMPLES::
 
@@ -2300,9 +2296,7 @@ class ToricVariety_field(AmbientSpace):
 
         REFERENCES:
 
-        ..
-
-            http://en.wikipedia.org/wiki/Todd_class
+        - :wikipedia:`Todd_class`
 
         EXAMPLES::
 
@@ -2348,9 +2342,7 @@ class ToricVariety_field(AmbientSpace):
 
         REFERENCES:
 
-        ..
-
-            http://en.wikipedia.org/wiki/Euler_characteristic
+        - :wikipedia:`Euler_characteristic`
 
         EXAMPLES::
 

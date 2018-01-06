@@ -1400,8 +1400,8 @@ class Category(UniqueRepresentation, SageObject):
 
         """
         tester = self._tester(**options)
-        tester.assert_(self.parent_class.mro() == [C.parent_class for C in self._all_super_categories] + [object])
-        tester.assert_(self.element_class.mro() == [C.element_class for C in self._all_super_categories] + [object])
+        tester.assertTrue(self.parent_class.mro() == [C.parent_class for C in self._all_super_categories] + [object])
+        tester.assertTrue(self.element_class.mro() == [C.element_class for C in self._all_super_categories] + [object])
 
     def _test_category(self, **options):
         r"""
@@ -1442,26 +1442,26 @@ class Category(UniqueRepresentation, SageObject):
         from sage.categories.objects    import Objects
         from sage.categories.sets_cat import Sets
         tester = self._tester(**options)
-        tester.assert_(isinstance(self.super_categories(), list),
+        tester.assertTrue(isinstance(self.super_categories(), list),
                        "%s.super_categories() should return a list"%self)
-        tester.assert_(self.is_subcategory(Objects()),
+        tester.assertTrue(self.is_subcategory(Objects()),
                        "%s is not a subcategory of Objects()"%self)
-        tester.assert_(isinstance(self.parent_class, type))
-        tester.assert_(all(not isinstance(cat, JoinCategory) for cat in self._super_categories))
+        tester.assertTrue(isinstance(self.parent_class, type))
+        tester.assertTrue(all(not isinstance(cat, JoinCategory) for cat in self._super_categories))
         if not isinstance(self, JoinCategory):
-            tester.assert_(all(self._cmp_key > cat._cmp_key      for cat in self._super_categories))
-        tester.assert_(self.is_subcategory( Category.join(self.super_categories()) )) # Not an obviously passing test with axioms
+            tester.assertTrue(all(self._cmp_key > cat._cmp_key      for cat in self._super_categories))
+        tester.assertTrue(self.is_subcategory( Category.join(self.super_categories()) )) # Not an obviously passing test with axioms
 
         for category in self._all_super_categories_proper:
             if self.is_full_subcategory(category):
-                tester.assert_(any(cat.is_subcategory(category)
+                tester.assertTrue(any(cat.is_subcategory(category)
                                    for cat in self.full_super_categories()),
                                "Every full super category should be a super category"
                                "of some immediate full super category")
 
         if self.is_subcategory(Sets()):
-            tester.assert_(isinstance(self.parent_class, type))
-            tester.assert_(isinstance(self.element_class, type))
+            tester.assertTrue(isinstance(self.parent_class, type))
+            tester.assertTrue(isinstance(self.element_class, type))
 
     _cmp_key = _cmp_key
 

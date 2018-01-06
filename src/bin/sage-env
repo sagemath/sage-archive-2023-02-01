@@ -644,7 +644,9 @@ if [ "${MAKEFLAGS-__unset__}" != "__unset__" ]; then
 fi
 export MAKE
 
+# Deprecated: See https://trac.sagemath.org/ticket/24014
 export PIP_INSTALL="sage-pip-install"
+
 export PIP_FORMAT="columns"
 
 # When building documentation, use MathJax by default. To turn it off,

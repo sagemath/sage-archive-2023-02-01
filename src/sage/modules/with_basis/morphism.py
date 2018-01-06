@@ -120,7 +120,7 @@ from sage.categories.sets_cat import Sets
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
 from sage.structure.element import parent
 from sage.structure.richcmp import op_EQ, op_NE
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 
 class ModuleMorphism(Morphism):
     """

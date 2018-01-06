@@ -136,6 +136,28 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
         #coercion base.
         return self._res_field
 
+    def residue_ring(self, n):
+        """
+        Return the quotient of the ring of integers by the nth power of its maximal ideal.
+
+        EXAMPLES::
+
+            sage: R.<a> = Zq(125)
+            sage: R.residue_ring(1)
+            Finite Field in a0 of size 5^3
+
+        The following requires implementing more general Artinian rings::
+
+            sage: R.residue_ring(2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        if n == 1:
+            return self._res_field
+        else:
+            raise NotImplementedError
+
     def discriminant(self, K=None):
         """
         Returns the discriminant of self over the subring K.
@@ -217,6 +239,7 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
         Returns frobenius of the generator for this unramified extension
 
         EXAMPLES::
+
             sage: R.<a> = Zq(9)
             sage: R._frob_gen()
             (2*a + 1) + (2*a + 2)*3 + (2*a + 2)*3^2 + (2*a + 2)*3^3 + (2*a + 2)*3^4 + (2*a + 2)*3^5 + (2*a + 2)*3^6 + (2*a + 2)*3^7 + (2*a + 2)*3^8 + (2*a + 2)*3^9 + (2*a + 2)*3^10 + (2*a + 2)*3^11 + (2*a + 2)*3^12 + (2*a + 2)*3^13 + (2*a + 2)*3^14 + (2*a + 2)*3^15 + (2*a + 2)*3^16 + (2*a + 2)*3^17 + (2*a + 2)*3^18 + (2*a + 2)*3^19 + O(3^20)

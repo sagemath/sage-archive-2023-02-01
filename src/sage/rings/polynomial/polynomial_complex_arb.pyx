@@ -30,7 +30,7 @@ from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.complex_arb cimport ComplexBall
 
 from sage.rings.complex_arb import ComplexBallField
-from sage.structure.element import coerce_binop, have_same_parent
+from sage.structure.element import coerce_binop
 
 cdef inline long prec(Polynomial_complex_arb pol):
     return pol._parent._base._prec
@@ -334,10 +334,7 @@ cdef class Polynomial_complex_arb(Polynomial):
             sage: Pol.<x> = CBF[]
 
             sage: (x^3/7 - CBF(i)).quo_rem(x + CBF(pi))
-            (([0.1428571428571428 +/- 7.70e-17])*x^2 +
-            ([-0.448798950512828 +/- 6.74e-16])*x
-            + [1.40994348586991 +/- 3.34e-15],
-            [-4.42946809718569 +/- 9.00e-15] - I)
+            (([0.1428571428571428 +/- 7.70e-17])*x^2 + ([-0.448798950512828 +/- 6.74e-16])*x + [1.40994348586991 +/- 3.04e-15], [-4.42946809718569 +/- 7.86e-15] - I)
 
             sage: Pol(0).quo_rem(x + 1)
             (0, 0)

@@ -615,7 +615,7 @@ fi
 if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
     # New-style package
     echo "Setting up build directory for $PKG_NAME"
-    cp -Rp "$PKG_SCRIPTS" "$PKG_NAME"
+    cp -RLp "$PKG_SCRIPTS" "$PKG_NAME"
     cd "$PKG_NAME" || exit $?
 
     sage-uncompress-spkg -d src "$PKG_SRC"
@@ -830,7 +830,8 @@ if [ "$UNAME" = "CYGWIN" ]; then
     # Rebase after installing each package--in case any packages load this
     # package at build time we need to ensure during the build that no binaries
     # have conflicting address spaces
-    sage-rebase.sh "$SAGE_LOCAL" 2>/dev/null
+    sage-flock -x "$SAGE_LOCAL/var/lock/rebase.lock" \
+        sage-rebase.sh "$SAGE_LOCAL" 2>/dev/null
 fi
 
 echo "Successfully installed $PKG_NAME"

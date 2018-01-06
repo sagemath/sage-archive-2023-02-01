@@ -256,9 +256,9 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
         We check that :trac:`16630` is fixed::
 
             sage: CoxeterGroup(['D',4], base_ring=QQ).category()
-            Category of finite coxeter groups
+            Category of finite irreducible coxeter groups
             sage: CoxeterGroup(['H',4], base_ring=QQbar).category()
-            Category of finite coxeter groups
+            Category of finite irreducible coxeter groups
             sage: F = CoxeterGroups().Finite()
             sage: all(CoxeterGroup([letter,i]) in F
             ....:     for i in range(2,5) for letter in ['A','B','D'])
@@ -266,9 +266,9 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
             sage: all(CoxeterGroup(['E',i]) in F for i in range(6,9))
             True
             sage: CoxeterGroup(['F',4]).category()
-            Category of finite coxeter groups
+            Category of finite irreducible coxeter groups
             sage: CoxeterGroup(['G',2]).category()
-            Category of finite coxeter groups
+            Category of finite irreducible coxeter groups
             sage: all(CoxeterGroup(['H',i]) in F for i in range(3,5))
             True
             sage: all(CoxeterGroup(['I',i]) in F for i in range(2,5))
@@ -278,7 +278,7 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
         n = coxeter_matrix.rank()
         # Compute the matrix with entries `2 \cos( \pi / m_{ij} )`.
         MS = MatrixSpace(base_ring, n, sparse=True)
-        MC = MS._get_matrix_class()
+        MC = MS._matrix_class
         # FIXME: Hack because there is no ZZ \cup \{ \infty \}: -1 represents \infty
         E = UniversalCyclotomicField().gen
         if base_ring is UniversalCyclotomicField():
@@ -318,6 +318,11 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
             category = category.Finite()
         else:
             category = category.Infinite()
+        if all(self._matrix._matrix[i, j] == 2
+               for i in range(n) for j in range(i)):
+            category = category.Commutative()
+        if self._matrix.is_irreducible():
+            category = category.Irreducible()
         self._index_set_inverse = {i: ii for ii,i in enumerate(self._matrix.index_set())}
         FinitelyGeneratedMatrixGroup_generic.__init__(self, ZZ(n), base_ring,
                                                       gens, category=category)
@@ -471,6 +476,27 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
         # their ``__init__`` method, so we can just check
         # the category of ``self``.
         return "Finite" in self.category().axioms()
+
+    def is_commutative(self):
+        """
+        Return whether ``self`` is commutative.
+
+        EXAMPLES::
+
+            sage: CoxeterGroup(['A', 2]).is_commutative()
+            False
+            sage: W = CoxeterGroup(['I',2])
+            sage: W.is_commutative()
+            True
+
+        TESTS::
+
+            sage: CoxeterGroup([['A', 2], ['A', 1]]).is_commutative()
+            False
+            sage: CoxeterGroup([['A', 1]] * 3).is_commutative()
+            True
+        """
+        return "Commutative" in self.category().axioms()
 
     @cached_method
     def order(self):

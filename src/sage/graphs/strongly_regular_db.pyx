@@ -1043,7 +1043,7 @@ def is_polhill(int v,int k,int l,int mu):
         [(1,0),(3,0),(0,2),(1,3),(3,1)],
         [(1,2),(3,2),(2,1),(2,3),(2,2)]
         ]
-    D = [map(G,x) for x in D]
+    D = [[G(e) for e in x] for x in D]
 
     # The K_i are hyperplanes partitionning the nonzero elements of
     # GF(2^s)^2. See section 6.
@@ -1113,8 +1113,8 @@ def is_polhill(int v,int k,int l,int mu):
                     product(D[0],PQ[1,i]),
                     product(D[1],PQ[2,i]),
                     product(D[2],PQ[3,i])]
-            Dtmp = map(set,Dtmp)
-            Dtmp = map(Gprod,sum(map(list,Dtmp),[]))
+            Dtmp = map(set, Dtmp)
+            Dtmp = [Gprod(e) for e in sum(map(list, Dtmp), [])]
             DD.append(Dtmp)
 
     # Now that we have the data, we can return the graphs.
@@ -2397,7 +2397,7 @@ def strongly_regular_from_two_weight_code(L):
       http://dx.doi.org/10.1016/0012-365X(72)90024-6.
 
     """
-    from sage.matrix.matrix import is_Matrix
+    from sage.structure.element import is_Matrix
     if is_Matrix(L):
         L = LinearCode(L)
     V = map(tuple,list(L))

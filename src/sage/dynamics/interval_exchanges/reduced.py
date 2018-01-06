@@ -1,6 +1,12 @@
 r"""
 Reduced permutations
 
+.. WARNING::
+
+    This module is deprecated. You are advised to install and use the
+    surface_dynamics package instead available at
+    https://pypi.python.org/pypi/surface_dynamics/
+
 A reduced (generalized) permutation is better suited to study strata of Abelian
 (or quadratic) holomorphic forms on Riemann surfaces. The Rauzy diagram is an
 invariant of such a component. Corentin Boissy proved the identification of
@@ -123,9 +129,35 @@ class ReducedPermutation(SageObject) :
         TESTS::
 
             sage: p = iet.Permutation('a b','b a',reduced=True)
+            doctest:warning
+            ...
+            DeprecationWarning: Permutation is deprecated and will be removed from Sage.
+            You are advised to install the surface_dynamics package via:
+            sage -pip install surface_dynamics
+            If you do not have write access to the Sage installation you can
+            alternatively do
+            sage -pip install surface_dynamics --user
+            The package surface_dynamics subsumes all flat surface related
+            computation that are currently available in Sage. See more
+            information at
+            http://www.labri.fr/perso/vdelecro/surface-dynamics/latest/
+            See http://trac.sagemath.org/20695 for details.
             sage: len(p)
             2
             sage: p = iet.GeneralizedPermutation('a a b','b c c',reduced=True)
+            doctest:warning
+            ...
+            DeprecationWarning: GeneralizedPermutation is deprecated and will be removed from Sage.
+            You are advised to install the surface_dynamics package via:
+            sage -pip install surface_dynamics
+            If you do not have write access to the Sage installation you can
+            alternatively do
+            sage -pip install surface_dynamics --user
+            The package surface_dynamics subsumes all flat surface related
+            computation that are currently available in Sage. See more
+            information at
+            http://www.labri.fr/perso/vdelecro/surface-dynamics/latest/
+            See http://trac.sagemath.org/20695 for details.
             sage: len(p)
             3
             sage: p = iet.GeneralizedPermutation('a a','b b c c',reduced=True)
@@ -406,6 +438,19 @@ def ReducedPermutationsIET_iterator(
 
         sage: for p in iet.Permutations_iterator(3,reduced=True,alphabet="abc"):
         ....:     print(p)  #indirect doctest
+        doctest:warning
+        ...
+        DeprecationWarning: iet_Permutations_iterator is deprecated and will be removed from Sage.
+        You are advised to install the surface_dynamics package via:
+            sage -pip install surface_dynamics
+        If you do not have write access to the Sage installation you can
+        alternatively do
+            sage -pip install surface_dynamics --user
+        The package surface_dynamics subsumes all flat surface related
+        computation that are currently available in Sage. See more
+        information at
+            http://www.labri.fr/perso/vdelecro/surface-dynamics/latest/
+        See http://trac.sagemath.org/20695 for details.
         a b c
         b c a
         a b c
@@ -1773,6 +1818,19 @@ class FlippedReducedRauzyDiagram(FlippedRauzyDiagram, ReducedRauzyDiagram):
         TESTS::
 
             sage: r = iet.RauzyDiagram('a b c','c b a',flips='b',reduced=True)   #indirect doctest
+            doctest:warning
+            ...
+            DeprecationWarning: RauzyDiagram is deprecated and will be removed from Sage.
+            You are advised to install the surface_dynamics package via:
+            sage -pip install surface_dynamics
+            If you do not have write access to the Sage installation you can
+            alternatively do
+            sage -pip install surface_dynamics --user
+            The package surface_dynamics subsumes all flat surface related
+            computation that are currently available in Sage. See more
+            information at
+            http://www.labri.fr/perso/vdelecro/surface-dynamics/latest/
+            See http://trac.sagemath.org/20695 for details.
         """
         self._element._twin = [list(data[0][0]), list(data[0][1])]
         self._element._flips = [list(data[1][0]), list(data[1][1])]

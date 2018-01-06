@@ -221,13 +221,17 @@ class RationalField(Singleton, number_field_base.NumberField):
             'x'
             sage: QQ.variable_names()
             ('x',)
+            sage: QQ._element_constructor_((2, 3))
+            2/3
         """
         from sage.categories.basic import QuotientFields
         from sage.categories.number_fields import NumberFields
         ParentWithGens.__init__(self, self, category=[QuotientFields().Metric(),
                                                       NumberFields()])
         self._assign_names(('x',),normalize=False) # ???
-        self._populate_coercion_lists_(element_constructor=Rational, init_no_parent=True)
+        self._populate_coercion_lists_(init_no_parent=True)
+
+    _element_constructor_ = Rational
 
     def _repr_(self):
         """
@@ -425,6 +429,24 @@ class RationalField(Singleton, number_field_base.NumberField):
                     yield self(-other/height)
                     yield self(height/other)
                     yield self(-height/other)
+
+    def __truediv__(self, I):
+        """
+        Form the quotient by an integral ideal.
+
+        EXAMPLES::
+
+            sage: QQ / ZZ
+            Q/Z
+        """
+        from sage.rings.ideal import Ideal_generic
+        from sage.groups.additive_abelian.qmodnz import QmodnZ
+        if I is ZZ:
+            return QmodnZ(1)
+        elif isinstance(I, Ideal_generic) and I.base_ring() is ZZ:
+            return QmodnZ(I.gen())
+        else:
+            return super(RationalField, self).__truediv__(I)
 
     def range_by_height(self, start, end=None):
         r"""

@@ -140,7 +140,7 @@ class BinaryQF(SageObject):
             sage: pari(f)
             Qfb(2, 3, 4)
             sage: type(pari(f))
-            <type 'cypari2.gen.Gen'>
+            <... 'cypari2.gen.Gen'>
             sage: gp(f)
             Qfb(2, 3, 4)
             sage: type(gp(f))

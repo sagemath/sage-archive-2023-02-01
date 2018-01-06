@@ -137,16 +137,13 @@ CIF = ComplexIntervalField()
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.rings.invariant_theory', 'invariant_theory')
-lazy_import('sage.arith.all', '*', deprecation=19879)
 
 from .fast_arith import prime_range
 
 # continued fractions
 from sage.rings.continued_fraction import (farey, convergents,
-  continued_fraction, continued_fraction_list,
-   Hirzebruch_Jung_continued_fraction_list)
-# and deprecated continued fractions
-from sage.rings.contfrac import (CFF, ContinuedFractionField)
+    continued_fraction, continued_fraction_list,
+    Hirzebruch_Jung_continued_fraction_list)
 
 # asymptotic ring
 from .asymptotic.all import *

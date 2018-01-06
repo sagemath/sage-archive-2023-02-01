@@ -3,6 +3,23 @@
 # Sage-distribution helper).  Consult the below documentation for the list of
 # available helper functions:
 #
+# - sdh_die MESSAGE
+#
+#    Exit the build script with the error code of the last command if it was
+#    non-zero, or with 1 otherwise, and print an error message.
+#    Typically used like:
+#
+#        command || sdh_die "Command failed"
+#
+#    This function can also (if not given any arguments) read the error message
+#    from stdin.  In particular this is useful in conjunction with a heredoc to
+#    write multi-line error messages:
+#
+#        command || sdh_die << _EOF_
+#        Command failed.
+#        Reason given.
+#        _EOF_
+#
 # - sdh_check_vars [VARIABLE ...]
 #
 #    Check that one or more variables are defined and non-empty, and exit with
@@ -18,8 +35,8 @@
 #
 # - sdh_configure [...]
 #
-#    Runs `./configure --prefix="$SAGE_LOCAL"`.  Additional arguments to
-#    `./configure` may be given as arguments.
+#    Runs `./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib"`.
+#    Additional arguments to `./configure` may be given as arguments.
 #
 # - sdh_make [...]
 #
@@ -30,17 +47,65 @@
 #
 #    Runs `$SAGE_SUDO $MAKE install`.  Additional arguments to `make` may be
 #    given as arguments.
+#
+# - sdh_pip_install [...]
+#
+#    Runs `pip install` with the given arguments, as well as additional
+#    default arguments used for installing packages into Sage with pip.
+#    Currently this is just a wrapper around the `sage-pip-install` command.
 
 set -o allexport
 
+
+# Utility function to get the terminal width in columns
+# Returns 80 by default if nothing else works
+_sdh_cols() {
+    local cols="${COLUMNS:-$(tput cols 2>/dev/null)}"
+    if [ "$?" -ne 0 -o -z "$cols" ]; then
+        # If we can't get the terminal width any other way just default to 80
+        cols=80
+    fi
+    echo $cols
+}
+
+
+# Utility function to print a terminal-width horizonal rule using the given
+# character (or '-' by default)
+_sdh_hr() {
+    local char="${1:--}"
+    printf '%*s\n' $(_sdh_cols) '' | tr ' ' "${char}"
+}
+
+
+sdh_die() {
+    local ret=$?
+    local msg
+
+    if [ $ret -eq 0 ]; then
+        # Always return non-zero, but if the last command run returned non-zero
+        # then return its exact error code
+        ret=1
+    fi
+
+    if [ $# -gt 0 ]; then
+        msg="$*"
+    else
+        msg="$(cat -)"
+    fi
+
+    _sdh_hr >&2 '*'
+    echo "$msg" | fmt -s -w $(_sdh_cols) >&2
+    _sdh_hr >&2 '*'
+    exit $ret
+}
+
+
 sdh_check_vars() {
-    local varname
     while [ -n "$1" ]; do
-        if [ -z "$(eval "echo "\${${1}+isset}"")" ]; then
-            echo >&2 "${1} undefined ... exiting"
-            echo >&2 "Maybe run 'sage --sh'?"
-            exit 1
-        fi
+        [ -n "$(eval "echo "\${${1}+isset}"")" ] || sdh_die << _EOF_
+${1} undefined ... exiting
+Maybe run 'sage --sh'?
+_EOF_
         shift
     done
 }
@@ -52,35 +117,29 @@ sdh_guard() {
 
 
 sdh_configure() {
-    local ret
-    ./configure --prefix="$SAGE_LOCAL" "$@"
-    ret=$?
-    if [ $ret -ne 0 ]; then
-        echo >&2 "Error configuring $PKG_NAME"
-        exit $ret
-    fi
+    echo "Configuring $PKG_NAME"
+    ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" "$@" || \
+        sdh_die "Error configuring $PKG_NAME"
 }
 
 
 sdh_make() {
-    local ret
-    ${MAKE:-make} "$@"
-    ret=$?
-    if [ $ret -ne 0 ]; then
-        echo >&2 "Error building $PKG_NAME"
-        exit $ret
-    fi
+    echo "Building $PKG_NAME"
+    ${MAKE:-make} "$@" || sdh_die "Error building $PKG_NAME"
 }
 
 
 sdh_make_install() {
-    local ret
-    $SAGE_SUDO ${MAKE:-make} install "$@"
-    ret=$?
-    if [ $ret -ne 0 ]; then
-        echo >&2 "Error installing $PKG_NAME"
-        exit $ret
-    fi
+    echo "Installing $PKG_NAME"
+    $SAGE_SUDO ${MAKE:-make} install "$@" || \
+        sdh_die "Error installing $PKG_NAME"
+}
+
+
+sdh_pip_install() {
+    echo "Installing $PKG_NAME"
+    $SAGE_SUDO sage-pip-install "$@" || \
+        sdh_die "Error installing $PKG_NAME"
 }
 
 

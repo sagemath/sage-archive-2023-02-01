@@ -777,7 +777,7 @@ cdef class SetSystemIterator:
             sage: from sage.matroids.set_system import SetSystem
             sage: S = SetSystem([1, 2, 3, 4], [[1, 2], [3, 4], [1, 2, 4]])
             sage: type(S.__iter__())
-            <type 'sage.matroids.set_system.SetSystemIterator'>
+            <... 'sage.matroids.set_system.SetSystemIterator'>
         """
         self._H = H
         self._pointer = -1

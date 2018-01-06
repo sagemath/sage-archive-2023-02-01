@@ -401,10 +401,8 @@ class CompositeConstructionFunctor(ConstructionFunctor):
         sage: F == CompositeConstructionFunctor(*F.all)
         True
         sage: F(GF(2)['t'])
-        Univariate Polynomial Ring in y over Fraction Field of Univariate Polynomial Ring in x over Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
-
+        Univariate Polynomial Ring in y over Fraction Field of Univariate Polynomial Ring in x over Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 2 (using GF2X)
     """
-
     def __init__(self, *args):
         """
         TESTS::
@@ -1794,9 +1792,7 @@ class VectorFunctor(ConstructionFunctor):
         sage: F
         VectorFunctor
         sage: F(GF(2)['t'])
-        Ambient free module of rank 3 over the principal ideal domain Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
-
-
+        Ambient free module of rank 3 over the principal ideal domain Univariate Polynomial Ring in t over Finite Field of size 2 (using GF2X)
     """
     rank = 10 # ranking of functor, not rank of module.
     # This coincides with the rank of the matrix construction functor, but this is OK since they can not both be applied in any order
@@ -1887,7 +1883,7 @@ class VectorFunctor(ConstructionFunctor):
 
     def __eq__(self, other):
         """
-        Only the rank of the to-be-created modules is compared, *not* the inner product matrix.
+        The rank and the inner product matrix are compared.
 
         TESTS::
 
@@ -1895,16 +1891,14 @@ class VectorFunctor(ConstructionFunctor):
             sage: F1 = VectorFunctor(3, inner_product_matrix = Matrix(3,3,range(9)))
             sage: F2 = (ZZ^3).construction()[0]
             sage: F1 == F2
-            True
+            False
             sage: F1(QQ) == F2(QQ)
-            True
-            sage: F1(QQ).inner_product_matrix() == F2(QQ).inner_product_matrix()
             False
             sage: F1 == loads(dumps(F1))
             True
         """
         if isinstance(other, VectorFunctor):
-            return self.n == other.n
+            return (self.n == other.n and self.inner_product_matrix==other.inner_product_matrix)
         return False
 
     def __ne__(self, other):
@@ -1917,9 +1911,9 @@ class VectorFunctor(ConstructionFunctor):
             sage: F1 = VectorFunctor(3, inner_product_matrix = Matrix(3,3,range(9)))
             sage: F2 = (ZZ^3).construction()[0]
             sage: F1 != F2
-            False
+            True
             sage: F1(QQ) != F2(QQ)
-            False
+            True
             sage: F1 != loads(dumps(F1))
             False
         """
@@ -1927,7 +1921,7 @@ class VectorFunctor(ConstructionFunctor):
 
     def merge(self, other):
         """
-        Two constructors of free modules merge, if the module ranks coincide. If both
+        Two constructors of free modules merge, if the module ranks and the inner products coincide. If both
         have explicitly given inner product matrices, they must coincide as well.
 
         EXAMPLES:
@@ -1976,7 +1970,7 @@ class VectorFunctor(ConstructionFunctor):
             [6 7 8]'
 
         """
-        if self != other:
+        if not isinstance(other, VectorFunctor):
             return None
         if self.inner_product_matrix is None:
             return VectorFunctor(self.n, self.is_sparse and other.is_sparse, other.inner_product_matrix)
@@ -3595,7 +3589,6 @@ def pushout(R, S):
         ....:         return EvenPolynomialFunctor(), self.base()[self.variable_name()]
         ....:     def _coerce_map_from_(self, R):
         ....:         return self.base().has_coerce_map_from(R)
-        ....:
         sage: class EvenPolynomialFunctor(ConstructionFunctor):
         ....:     rank = 10
         ....:     coercion_reversed = True
@@ -3603,7 +3596,6 @@ def pushout(R, S):
         ....:         ConstructionFunctor.__init__(self, Rings(), Rings())
         ....:     def _apply_functor(self, R):
         ....:         return EvenPolynomialRing(R.base(), R.variable_name())
-        ....:
         sage: pushout(EvenPolynomialRing(QQ, 'x'), ZZ)
         Even Power Univariate Polynomial Ring in x over Rational Field
         sage: pushout(EvenPolynomialRing(QQ, 'x'), QQ)

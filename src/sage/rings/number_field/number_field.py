@@ -3579,12 +3579,11 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         A list of all primes ``p < B`` which split completely in ``K``.
 
-       EXAMPLE::
+       EXAMPLES::
 
             sage: K.<xi> = NumberField(x^3 - 3*x + 1)
             sage: K.completely_split_primes(100)
             [17, 19, 37, 53, 71, 73, 89]
-
         """
         from sage.rings.fast_arith import prime_range
         from sage.rings.finite_rings.finite_field_constructor import GF
@@ -3775,7 +3774,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: k.<a> = NumberField(x^4 - 3/2*x + 5/3); k
             Number Field in a with defining polynomial x^4 - 3/2*x + 5/3
             sage: k.pari_nf()
-            [y^4 - 324*y + 2160, [0, 2], 48918708, 216, ..., [1, y, 1/36*y^3 + 1/6*y^2 - 7, 1/6*y^2], [1, 0, 0, 252; 0, 1, 0, 0; 0, 0, 0, 36; 0, 0, 6, -36], [1, 0, 0, 0, 0, 0, -18, 42, 0, -18, -46, -60, 0, 42, -60, -60; 0, 1, 0, 0, 1, 0, 2, 0, 0, 2, -11, -1, 0, 0, -1, 9; 0, 0, 1, 0, 0, 0, 6, 6, 1, 6, -5, 0, 0, 6, 0, 0; 0, 0, 0, 1, 0, 6, -6, -6, 0, -6, -1, 2, 1, -6, 2, 0]]
+            [y^4 - 324*y + 2160, [0, 2], 48918708, 216, ..., [36, 36*y, y^3 + 6*y^2 - 252, 6*y^2], [1, 0, 0, 252; 0, 1, 0, 0; 0, 0, 0, 36; 0, 0, 6, -36], [1, 0, 0, 0, 0, 0, -18, 42, 0, -18, -46, -60, 0, 42, -60, -60; 0, 1, 0, 0, 1, 0, 2, 0, 0, 2, -11, -1, 0, 0, -1, 9; 0, 0, 1, 0, 0, 0, 6, 6, 1, 6, -5, 0, 0, 6, 0, 0; 0, 0, 0, 1, 0, 6, -6, -6, 0, -6, -1, 2, 1, -6, 2, 0]]
             sage: pari(k)
             [y^4 - 324*y + 2160, [0, 2], 48918708, 216, ...]
             sage: gp(k)
@@ -7356,7 +7355,7 @@ class NumberField_absolute(NumberField_generic):
             Number Field in b with defining polynomial x^8 + 40*x^6 + 352*x^4 + 960*x^2 + 576
             sage: L = K.optimized_subfields(name='b')
             sage: L[0][0]
-            Number Field in b0 with defining polynomial x - 1
+            Number Field in b0 with defining polynomial x
             sage: L[1][0]
             Number Field in b1 with defining polynomial x^2 - 3*x + 3
             sage: [z[0] for z in L]          # random -- since algorithm is random
@@ -7400,10 +7399,10 @@ class NumberField_absolute(NumberField_generic):
             sage: K.<a> = NumberField(2*x^4 + 6*x^2 + 1/2)
             sage: K.optimized_subfields()
             [
-            (Number Field in a0 with defining polynomial x - 1, Ring morphism:
-              From: Number Field in a0 with defining polynomial x - 1
+            (Number Field in a0 with defining polynomial x, Ring morphism:
+              From: Number Field in a0 with defining polynomial x
               To:   Number Field in a with defining polynomial 2*x^4 + 6*x^2 + 1/2
-              Defn: 1 |--> 1, None),
+              Defn: 0 |--> 0, None),
             (Number Field in a1 with defining polynomial x^2 - 2*x + 2, Ring morphism:
               From: Number Field in a1 with defining polynomial x^2 - 2*x + 2
               To:   Number Field in a with defining polynomial 2*x^4 + 6*x^2 + 1/2
@@ -10553,6 +10552,13 @@ class NumberField_quadratic(NumberField_absolute):
             <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
 
             sage: TestSuite(k).run()
+
+        Check that :trac:`23008` is fixed::
+
+            sage: z = polygen(ZZ, 'z')
+            sage: K.<phi> = NumberField(z^2 - z - 1, embedding=QQbar(golden_ratio))
+            sage: floor(phi)
+            1
         """
         NumberField_absolute.__init__(self, polynomial, name=name, check=check,
                                       embedding=embedding, latex_name=latex_name,
@@ -10569,15 +10575,12 @@ class NumberField_quadratic(NumberField_absolute):
 
         # we must set the flag _standard_embedding *before* any element creation
         # Note that in the following code, no element is built.
-        emb = self.coerce_embedding()
-        if emb is not None:
-            rootD = number_field_element_quadratic.NumberFieldElement_quadratic(self, (QQ(0),QQ(1)))
+        if self.coerce_embedding() is not None and CDF.has_coerce_map_from(self):
+            rootD = CDF(number_field_element_quadratic.NumberFieldElement_quadratic(self, (QQ(0),QQ(1))))
             if D > 0:
-                from sage.rings.real_double import RDF
-                self._standard_embedding = RDF.has_coerce_map_from(self) and RDF(rootD) > 0
+                self._standard_embedding = rootD.real() > 0
             else:
-                from sage.rings.complex_double import CDF
-                self._standard_embedding = CDF.has_coerce_map_from(self) and CDF(rootD).imag() > 0
+                self._standard_embedding = rootD.imag() > 0
 
         # we reset _NumberField_generic__gen has the flag standard_embedding
         # might be modified

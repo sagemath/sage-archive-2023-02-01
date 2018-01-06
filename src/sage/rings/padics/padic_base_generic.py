@@ -61,7 +61,8 @@ class pAdicBaseGeneric(pAdicGeneric):
             convert_list = [pAdicConvert_QQ_FP(self)]
         else:
             raise RuntimeError
-        self._populate_coercion_lists_(coerce_list=coerce_list, convert_list=convert_list, element_constructor=element_class)
+        self.Element = element_class
+        self._populate_coercion_lists_(coerce_list=coerce_list, convert_list=convert_list)
 
     def _repr_(self, do_latex=False):
         r"""
@@ -100,63 +101,6 @@ class pAdicBaseGeneric(pAdicGeneric):
             else:
                 return r"\ZZ_{%s}" % self.prime()
         return "%s-adic %s %s"%(self.prime(), "Field" if self.is_field() else "Ring", precprint(self._prec_type(), self.precision_cap(), self.prime()))
-
-    def fraction_field(self, print_mode=None):
-        r"""
-        Returns the fraction field of ``self``.
-
-        INPUT:
-
-        - ``print_mode`` - a dictionary containing print options.
-          Defaults to the same options as this ring.
-
-        OUTPUT:
-
-        - the fraction field of ``self``.
-
-        EXAMPLES::
-
-            sage: R = Zp(5, print_mode='digits')
-            sage: K = R.fraction_field(); repr(K(1/3))[3:]
-            '31313131313131313132'
-            sage: L = R.fraction_field({'max_ram_terms':4}); repr(L(1/3))[3:]
-            '3132'
-        """
-        if self.is_field() and print_mode is None:
-            return self
-        from sage.rings.padics.factory import Qp
-        if self.is_floating_point():
-            mode = 'floating-point'
-        else:
-            mode = 'capped-rel'
-        return Qp(self.prime(), self.precision_cap(), mode, print_mode=self._modified_print_mode(print_mode), names=self._uniformizer_print())
-
-    def integer_ring(self, print_mode=None):
-        r"""
-        Returns the integer ring of ``self``, possibly with
-        ``print_mode`` changed.
-
-        INPUT:
-
-        - ``print_mode`` - a dictionary containing print options.
-          Defaults to the same options as this ring.
-
-        OUTPUT:
-
-        - The ring of integral elements in ``self``.
-
-        EXAMPLES::
-
-            sage: K = Qp(5, print_mode='digits')
-            sage: R = K.integer_ring(); repr(R(1/3))[3:]
-            '31313131313131313132'
-            sage: S = K.integer_ring({'max_ram_terms':4}); repr(S(1/3))[3:]
-            '3132'
-        """
-        if not self.is_field() and print_mode is None:
-            return self
-        from sage.rings.padics.factory import Zp
-        return Zp(self.prime(), self.precision_cap(), self._prec_type(), print_mode=self._modified_print_mode(print_mode), names=self._uniformizer_print())
 
     def exact_field(self):
         """

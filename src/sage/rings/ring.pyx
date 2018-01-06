@@ -119,6 +119,7 @@ cdef class Ring(ParentWithGens):
         running ._test_elements_neq() . . . pass
         running ._test_eq() . . . pass
         running ._test_euclidean_degree() . . . pass
+        running ._test_fraction_field() . . . pass
         running ._test_gcd_vs_xgcd() . . . pass
         running ._test_new() . . . pass
         running ._test_not_implemented_methods() . . . pass
@@ -645,7 +646,7 @@ cdef class Ring(ParentWithGens):
 
         EXAMPLES::
 
-            sage: QQ / ZZ
+            sage: QQ['x'] / ZZ
             Traceback (most recent call last):
             ...
             TypeError: Use self.quo(I) or self.quotient(I) to construct the quotient ring.
@@ -1181,11 +1182,11 @@ cdef class Ring(ParentWithGens):
         ring class by a random integer::
 
             sage: R = sage.rings.ring.Ring(ZZ); R
-            <type 'sage.rings.ring.Ring'>
+            <sage.rings.ring.Ring object at ...>
             sage: R.random_element()
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: cannot construct elements of <sage.rings.ring.Ring object at ...>
         """
         return self(randint(-bound,bound))
 
@@ -1702,7 +1703,7 @@ cdef class IntegralDomain(CommutativeRing):
             sage: R.is_field()
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: cannot construct elements of <sage.rings.ring.IntegralDomain object at ...>
         """
         if self.is_finite():
             return True
@@ -2262,7 +2263,7 @@ cdef class Algebra(Ring):
         EXAMPLES::
 
             sage: A = Algebra(ZZ); A
-            <type 'sage.rings.ring.Algebra'>
+            <sage.rings.ring.Algebra object at ...>
         """
         # This is a low-level class. For performance, we trust that the category
         # is fine, if it is provided. If it isn't, we use the category of Algebras(base_ring).
@@ -2282,7 +2283,7 @@ cdef class Algebra(Ring):
         EXAMPLES::
 
             sage: A = Algebra(ZZ); A
-            <type 'sage.rings.ring.Algebra'>
+            <sage.rings.ring.Algebra object at ...>
             sage: A.characteristic()
             0
             sage: A = Algebra(GF(7^3, 'a'))
@@ -2361,10 +2362,10 @@ cdef class CommutativeAlgebra(CommutativeRing):
 
         EXAMPLES::
 
-            sage: sage.rings.ring.CommutativeAlgebra(QQ) # indirect doctest
-            <type 'sage.rings.ring.CommutativeAlgebra'>
+            sage: sage.rings.ring.CommutativeAlgebra(QQ)
+            <sage.rings.ring.CommutativeAlgebra object at ...>
 
-            sage: sage.rings.ring.CommutativeAlgebra(QuaternionAlgebra(QQ,-1,-1)) # indirect doctest
+            sage: sage.rings.ring.CommutativeAlgebra(QuaternionAlgebra(QQ,-1,-1))
             Traceback (most recent call last):
             ...
             TypeError: base ring must be a commutative ring

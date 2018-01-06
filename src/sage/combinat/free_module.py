@@ -337,7 +337,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
             sage: A.element_class.mro()
             [<class 'sage.categories.examples.algebras_with_basis.FreeAlgebra_with_category.element_class'>,
-             <type 'sage.modules.with_basis.indexed_element.IndexedFreeModuleElement'>,
+             <... 'sage.modules.with_basis.indexed_element.IndexedFreeModuleElement'>,
              ...]
             sage: a,b,c = A.algebra_generators()
             sage: a * b
@@ -433,13 +433,6 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
         # ignore the optional 'key' since it only affects CachedRepresentation
         kwds.pop('key', None)
-        # This needs to be first as per #10127
-        if 'monomial_cmp' in kwds:
-            from sage.misc.superseded import deprecation
-            deprecation(17229, "Option monomial_cmp is deprecated, use sorting_key and sorting_reverse instead.")
-            from functools import cmp_to_key
-            kwds['sorting_key'] = cmp_to_key(kwds['monomial_cmp'])
-            del kwds['monomial_cmp']
         if 'monomial_key' in kwds:
             kwds['sorting_key'] = kwds.pop('monomial_key')
         if 'monomial_reverse' in kwds:

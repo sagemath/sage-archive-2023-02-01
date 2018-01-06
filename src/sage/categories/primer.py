@@ -849,7 +849,7 @@ And rerun the test::
     Traceback (most recent call last):
     ...
       File ".../sage/categories/semigroups.py", line ..., in _test_associativity
-        tester.assert_((x * y) * z == x * (y * z))
+        tester.assertTrue((x * y) * z == x * (y * z))
     ...
     AssertionError: False is not true
 
@@ -864,7 +864,7 @@ work yet in the notebook)::
     -> raise self.failureException(msg)
     (Pdb) u
     > /opt/sage-5.11.rc1/local/lib/python2.7/site-packages/sage/categories/semigroups.py(145)_test_associativity()
-    -> tester.assert_((x * y) * z == x * (y * z))
+    -> tester.assertTrue((x * y) * z == x * (y * z))
     (Pdb) p x, y, z
     ('a', 'a', 'a')
     (Pdb) p (x * y) * z

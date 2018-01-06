@@ -467,15 +467,15 @@ class FunctionField(Field):
         from itertools import product
         # Leibniz's law
         for x,y in tester.some_elements(product(S, S)):
-            tester.assert_(d(x*y) == x*d(y) + d(x)*y)
+            tester.assertTrue(d(x*y) == x*d(y) + d(x)*y)
         # Linearity
         for x,y in tester.some_elements(product(S, S)):
-            tester.assert_(d(x+y) == d(x) + d(y))
+            tester.assertTrue(d(x+y) == d(x) + d(y))
         for c,x in tester.some_elements(product(K, S)):
-            tester.assert_(d(c*x) == c*d(x))
+            tester.assertTrue(d(c*x) == c*d(x))
         # Constants map to zero
         for c in tester.some_elements(K):
-            tester.assert_(d(c) == 0)
+            tester.assertTrue(d(c) == 0)
 
     def _convert_map_from_(self, R):
         r"""
@@ -689,7 +689,6 @@ class FunctionField_polymod(FunctionField):
         if not isinstance(base_field, FunctionField):
             raise TypeError("polynomial must be over a FunctionField")
         self._element_class = element_class
-        self._element_init_pass_parent = False
         self._base_field = base_field
         self._polynomial = polynomial
 
@@ -2036,7 +2035,6 @@ class RationalFunctionField(FunctionField):
         if not constant_field.is_field():
             raise TypeError("constant_field must be a field")
         self._element_class = element_class
-        self._element_init_pass_parent = False
         self._constant_field = constant_field
         FunctionField.__init__(self, self, names=names, category = category)
         R = constant_field[names[0]]

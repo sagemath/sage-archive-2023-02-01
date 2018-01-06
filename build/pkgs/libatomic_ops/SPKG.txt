@@ -1,4 +1,4 @@
-= gc =
+= libatomic_ops =
 
 == Description ==
 

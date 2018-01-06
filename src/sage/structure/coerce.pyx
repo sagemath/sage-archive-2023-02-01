@@ -1075,18 +1075,14 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             if action is not None:
                 return (<Action>action)._call_(x, y)
 
-        xy = None
         try:
-            xy = self.canonical_coercion(x,y)
-            return PyObject_CallObject(op, xy)
-        except TypeError as err:
-            if xy is not None:
-                # The error was in calling, not coercing
-                raise
+            xy = self.canonical_coercion(x, y)
+        except TypeError:
             self._record_exception()
+        else:
+            return PyObject_CallObject(op, xy)
 
         if op is mul or op is imul:
-
             # elements may also act on non-elements
             # (e.g. sequences or parents)
             if not isinstance(y, Element) or not isinstance(x, Element):

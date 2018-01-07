@@ -1675,7 +1675,7 @@ class FinitePoset(UniqueRepresentation, Parent):
           * ``element_color`` - a color for elements not set in
             ``element_colors``
           * ``element_shape`` - the shape of elements, like ``'s'`` for
-            square; see http://matplotlib.org/api/markers_api.html for the list
+            square; see https://matplotlib.org/api/markers_api.html for the list
           * ``element_size`` (default: 200) - the size of elements
           * ``label_elements`` (default: ``True``) - whether to display
             element labels

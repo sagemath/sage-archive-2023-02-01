@@ -70,7 +70,7 @@ def Necklaces(content):
     return Necklaces_evaluation(content)
 
 
-class Necklaces_evaluation(Parent, UniqueRepresentation):
+class Necklaces_evaluation(UniqueRepresentation, Parent):
     """
     Necklaces with a fixed evaluation (content).
 
@@ -82,14 +82,17 @@ class Necklaces_evaluation(Parent, UniqueRepresentation):
     def __classcall_private__(cls, content):
         """
         Return the correct parent object, with standardized parameters.
+
+        EXAMPLES::
+
+            sage: Necklaces([2,1,1]) is Necklaces(Composition([2,1,1]))
+            True
         """
-        if isinstance(content, (list, tuple)):
-            content = Composition(content)
-            return super(Necklaces_evaluation, cls).__classcall__(cls, content)
-        elif isinstance(content, Composition):
+        if isinstance(content, Composition):
             return super(Necklaces_evaluation, cls).__classcall__(cls, content)
         else:
-            raise TypeError('wrong input for Necklaces')
+            content = Composition(content)
+            return super(Necklaces_evaluation, cls).__classcall__(cls, content)
 
     def __init__(self, content):
         r"""

@@ -54,7 +54,7 @@ class RestrictedGrowthArrays(UniqueRepresentation, Parent):
         m = [0] + [1] * (n - 1)
         while True:
             yield copy.copy(a)
-            # Seach for maximum i with a[i] != m[i]
+            # Search for maximum i with a[i] != m[i]
             i = n - 1
             while a[i] == m[i] and i >= 0:
                 i -= 1

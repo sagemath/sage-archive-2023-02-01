@@ -301,6 +301,7 @@ Comprehensive Module list
     sage/combinat/sf/sfa
     sage/combinat/sf/witt
     sage/combinat/shard_order
+    sage/combinat/shifted_primed_tableau
     sage/combinat/shuffle
     sage/combinat/sidon_sets
     sage/combinat/similarity_class_type
@@ -343,7 +344,6 @@ Comprehensive Module list
     sage/combinat/tableau
     sage/combinat/tableau_residues
     sage/combinat/tableau_tuple
-    sage/combinat/tableau_shifted_primed
     sage/combinat/tamari_lattices
     sage/combinat/tiling
     sage/combinat/tools

@@ -1,4 +1,4 @@
-$(PYTHON) | pip entrypoints pygments mistune pandocfilters testpath
+$(PYTHON) | pip 
 
 ----------
 All lines of this file are ignored except the first.

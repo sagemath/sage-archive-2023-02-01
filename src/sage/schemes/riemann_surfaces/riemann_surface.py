@@ -207,7 +207,7 @@ def numerical_inverse(C):
 
     - ``C`` -- A real or complex invertible square matrix
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: C=matrix(CC,3,3,[-4.5606e-31 + 1.2326e-31*I,
         ....: -0.21313 + 0.24166*I,

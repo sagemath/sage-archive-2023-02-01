@@ -306,7 +306,7 @@ class Tableau(ClonableList):
         EXAMPLES::
 
             sage: t = Tableau([[1,1],[2]])
-            sage: hahs(tuple(t)) == hash(t)
+            sage: hash(tuple(t)) == hash(t)
             True
         """
         return hash(tuple(self))

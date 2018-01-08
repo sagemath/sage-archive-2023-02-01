@@ -4237,7 +4237,20 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: posets.BooleanLattice(3).cover_relations_graph().is_planar()
             True
+
+        Corner cases::
+
+            sage: graphs.EmptyGraph().is_planar()
+            True
+            sage: Graph(1).is_planar()
+            True
         """
+        # Quick check first
+        if (on_embedding is None and not kuratowski and not set_embedding and not set_pos
+            and not self.allows_loops() and not self.allows_multiple_edges()):
+            if self.order() > 4 and self.size() > 3*self.order()-6:
+                return False
+
         if self.has_multiple_edges() or self.has_loops():
             if set_embedding or (on_embedding is not None) or set_pos:
                 raise NotImplementedError("Cannot compute with embeddings of multiple-edged or looped graphs.")
@@ -4265,7 +4278,7 @@ class GenericGraph(GenericGraph_pyx):
             return planar
 
     def is_circular_planar(self, on_embedding=None, kuratowski=False,
-                           set_embedding=True, boundary = None,
+                           set_embedding=True, boundary=None,
                            ordered=False, set_pos=False):
         """
         Tests whether the graph is circular planar (outerplanar)
@@ -4371,9 +4384,25 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: K23.is_circular_planar(set_embedding=True, boundary = [0,2,1,3])
             True
+
+        TESTS:
+
+        Corner cases::
+
+            sage: graphs.EmptyGraph().is_circular_planar()
+            True
+            sage: Graph(1).is_circular_planar()
+            True
         """
         if ordered and boundary is None:
             raise ValueError("boundary must be set when ordered is True.")
+
+        # Quick check first
+        if (on_embedding is None and not kuratowski and set_embedding and
+            boundary is None and not ordered and not set_pos and
+            not self.allows_loops() and not self.allows_multiple_edges()):
+            if self.order() > 3 and self.size() > 2*self.order()-3:
+                return False
 
         if boundary is None:
             boundary = self

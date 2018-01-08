@@ -7,6 +7,7 @@ internals.
 .. toctree::
    :maxdepth: 2
 
+   sage/cpython/string
    sage/cpython/debug
    sage/cpython/getattr
    sage/cpython/cython_metaclass

@@ -361,7 +361,7 @@ compare equal::
     sage: phi3 = RingHomomorphism_from_base(H, R.hom([x])); phi3
     Ring endomorphism of Univariate Quotient Polynomial Ring in a over Finite Field of size 2 with modulus x^2 + x + 1
       Defn: Induced from base ring by
-            Ring endomorphism of Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
+            Ring endomorphism of Univariate Polynomial Ring in x over Finite Field of size 2 (using GF2X)
               Defn: x |--> x
     sage: phi4 = RingHomomorphism_cover(H); phi4
     Ring endomorphism of Univariate Quotient Polynomial Ring in a over Finite Field of size 2 with modulus x^2 + x + 1
@@ -1326,7 +1326,7 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
             sage: g = RingHomomorphism_from_base(P,f)
             Traceback (most recent call last):
             ...
-            ValueError: Domain and codomain must have the same functorial construction over their base rings
+            ValueError: domain (Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Integer Ring) and codomain (Univariate Polynomial Ring in t over Univariate Polynomial Ring in x over Integer Ring) must have the same functorial construction over their base rings
         """
         RingHomomorphism.__init__(self, parent)
         if underlying.domain() != parent.domain().base():
@@ -1334,7 +1334,7 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
         if underlying.codomain() != parent.codomain().base():
             raise ValueError("The given homomorphism has to have the codomain %s"%parent.codomain().base())
         if parent.domain().construction()[0] != parent.codomain().construction()[0]:
-            raise ValueError("Domain and codomain must have the same functorial construction over their base rings")
+            raise ValueError(f"domain ({parent.domain()}) and codomain ({parent.codomain()}) must have the same functorial construction over their base rings")
         self.__underlying = underlying
 
     def underlying_map(self):

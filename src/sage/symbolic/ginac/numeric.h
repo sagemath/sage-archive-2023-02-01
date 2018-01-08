@@ -289,7 +289,7 @@ public:
 	const numeric lgamma(PyObject* parent) const;
 	const numeric gamma(PyObject* parent) const;
 	const numeric rgamma(PyObject* parent) const;
-	const numeric psi() const;
+	const numeric psi(PyObject* parent) const;
 	const numeric psi(const numeric &n) const;
 	const numeric factorial() const;
 	const numeric doublefactorial() const;
@@ -369,7 +369,7 @@ const numeric zeta(const numeric &x);
 const numeric lgamma(const numeric &x, PyObject* parent=nullptr);
 const numeric gamma(const numeric &x, PyObject* parent=nullptr);
 const numeric rgamma(const numeric &x, PyObject* parent=nullptr);
-const numeric psi(const numeric &x);
+const numeric psi(const numeric &x, PyObject* parent=nullptr);
 const numeric psi(const numeric &n, const numeric &x);
 const numeric factorial(const numeric &n);
 const numeric doublefactorial(const numeric &n);

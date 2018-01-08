@@ -210,9 +210,9 @@ PyObject* RR_get()
 {
         static PyObject* ptr = nullptr;
         if (ptr == nullptr) {
-                PyObject* m = PyImport_ImportModule("sage.rings.real_mpfr");
+                PyObject* m = PyImport_ImportModule("sage.rings.all");
                 if (m == nullptr)
-                        py_error("Error importing sage.rings.real_mpfr");
+                        py_error("Error importing sage.rings.all");
                 ptr = PyObject_GetAttrString(m, "RR");
                 if (ptr == nullptr)
                         py_error("Error getting RR attribute");
@@ -225,9 +225,9 @@ PyObject* CC_get()
 {
         static PyObject* ptr = nullptr;
         if (ptr == nullptr) {
-                PyObject* m = PyImport_ImportModule("sage.rings.complex_field");
+                PyObject* m = PyImport_ImportModule("sage.rings.all");
                 if (m == nullptr)
-                        py_error("Error importing sage.complex_field");
+                        py_error("Error importing sage.rings.all");
                 ptr = PyObject_GetAttrString(m, "ComplexField");
                 if (ptr == nullptr)
                         py_error("Error getting ComplexField attribute");
@@ -306,7 +306,7 @@ int precision(const GiNaC::numeric& num, PyObject*& a_parent) {
 }
 
 PyObject* CBF(int res) {
-        PyObject* m = PyImport_ImportModule("sage.rings.complex_arb");
+        PyObject* m = PyImport_ImportModule("sage.rings.all");
         if (m == nullptr)
                 py_error("Error importing arb");
         PyObject* f = PyObject_GetAttrString(m, "ComplexBallField");
@@ -388,9 +388,9 @@ PyObject* CallBallMethod1Arg(PyObject* field, const char* meth, const GiNaC::num
 }
 
 PyObject* CoerceBall(PyObject* ball, int prec) {
-        PyObject* m = PyImport_ImportModule("sage.rings.complex_field");
+        PyObject* m = PyImport_ImportModule("sage.rings.all");
         if (m == nullptr)
-                py_error("Error importing sage.complex_field");
+                py_error("Error importing sage.rings.all");
         PyObject* f = PyObject_GetAttrString(m, "ComplexField");
         if (f == nullptr)
                 py_error("Error getting ComplexField attribute");

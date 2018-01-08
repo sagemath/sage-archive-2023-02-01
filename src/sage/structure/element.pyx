@@ -1984,6 +1984,23 @@ cdef class Element(SageObject):
             ...
             TypeError: the 3-argument version of pow() is not supported
 
+        ::
+
+            sage: (2/3)^I
+            (2/3)^I
+            sage: (2/3)^sqrt(2)
+            (2/3)^sqrt(2)
+            sage: var('x,y,z,n')
+            (x, y, z, n)
+            sage: (2/3)^(x^n + y^n + z^n)
+            (2/3)^(x^n + y^n + z^n)
+            sage: (-7/11)^(tan(x)+exp(x))
+            (-7/11)^(e^x + tan(x))
+            sage: float(1.2)**(1/2)
+            1.0954451150103321
+            sage: complex(1,2)**(1/2)
+            (1.272019649514069+0.786151377757423...j)
+
         TESTS::
 
             sage: e = Element(Parent())

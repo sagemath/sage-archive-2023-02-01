@@ -686,7 +686,7 @@ cdef class IntegerAction(Action):
 
 cdef class IntegerMulAction(IntegerAction):
     r"""
-    Implement the action `n · a = a + a + ... + a` via repeated
+    Implement the action `n \cdot a = a + a + ... + a` via repeated
     doubling.
 
     Both addition and negation must be defined on the set `M`.

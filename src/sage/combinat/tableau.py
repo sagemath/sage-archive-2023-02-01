@@ -110,7 +110,7 @@ class Tableau(ClonableList):
 
     A tableau is abstractly a mapping from the cells in a partition to
     arbitrary objects (called entries). It is often represented as a
-    finite list of nonempty lists (or, more generallym an iterator of
+    finite list of nonempty lists (or, more generally an iterator of
     iterables) of weakly decreasing lengths. This list,
     in particular, can be empty, representing the empty tableau.
 
@@ -876,13 +876,13 @@ class Tableau(ClonableList):
             sage: c.parent()
             Standard tableaux
         """
-        conj_shape = self.shape().conjugate()
-
-        conj = [[None]*row_length for row_length in conj_shape]
-
-        for i in range(len(conj)):
-            for j in range(len(conj[i])):
-                conj[i][j] = self[j][i]
+        if self:
+            conj = [[] for i in range(len(self[0]))]
+            for row in self:
+                for j, x in enumerate(row):
+                    conj[j].append(x)
+        else:
+            conj = []
 
         if isinstance(self, StandardTableau):
             return StandardTableau(conj)
@@ -1084,18 +1084,18 @@ class Tableau(ClonableList):
         r"""
         Return the sign matrix of ``self``.
 
-        A sign matrix is an `m \times n` matrix of 0's, 1's and -1's such that the 
-        partial sums of each column is either 0 or 1 and the partial sums of 
+        A sign matrix is an `m \times n` matrix of 0's, 1's and -1's such that the
+        partial sums of each column is either 0 or 1 and the partial sums of
         each row is non-negative. [Aval2008]_
-        
-        INPUT: 
 
-        - ``max_entry`` -- A non-negative integer, the  maximum allowable number in 
+        INPUT:
+
+        - ``max_entry`` -- A non-negative integer, the  maximum allowable number in
           the tableau. Defaults to the largest entry in the tableau if not specified.
 
 
-        EXAMPLES:: 
-       
+        EXAMPLES::
+
             sage: t = SemistandardTableau([[1,1,1,2,4],[3,3,4],[4,5],[6,6]])
             sage: t.to_sign_matrix(6)
             [ 0  0  0  1  0  0]
@@ -1125,7 +1125,7 @@ class Tableau(ClonableList):
 
         .. [Aval2008] Jean-Christope Aval.
            *Keys and Alternating Sign Matrices*,
-           Seminaire Lotharingien de Combinatoire 59 (2008) B59f 
+           Seminaire Lotharingien de Combinatoire 59 (2008) B59f
            :arxiv:`0711.2150`
         """
         from sage.rings.all import ZZ
@@ -1133,7 +1133,7 @@ class Tableau(ClonableList):
         PI = PositiveIntegers()
         for row in self:
             if any(c not in PI for c in row):
-                raise ValueError("the entries must be non-negative integers")        
+                raise ValueError("the entries must be non-negative integers")
         from sage.matrix.matrix_space import MatrixSpace
         if max_entry is None:
             max_entry=max([max(c) for c in self])
@@ -2648,7 +2648,7 @@ class Tableau(ClonableList):
 
             sage: T = Tableau([[1]])
             sage: type(T.promotion_inverse(2)[0][0])
-            <type 'sage.rings.integer.Integer'>
+            <... 'sage.rings.integer.Integer'>
         """
         if self.is_rectangular():
             n = Integer(n)
@@ -3508,8 +3508,8 @@ class Tableau(ClonableList):
             sage: t.is_key_tableau()
             False
         """
-        itr = enumerate(self.conjugate()[1:],1)
-        return all(x in self.conjugate()[i-1] for i, col in itr for x in col)
+        T_conj = self.conjugate()
+        return all(x in T_conj[i-1] for i in range(1, len(T_conj)) for x in T_conj[i])
 
     def right_key_tableau(self):
         """
@@ -3555,9 +3555,6 @@ class Tableau(ClonableList):
             sage: t.right_key_tableau() == t
             True
         """
-        if self.is_key_tableau():
-            return self
-
         cols_list = self.conjugate()
         key = [[] for row in cols_list]
 
@@ -3619,9 +3616,6 @@ class Tableau(ClonableList):
             sage: t.left_key_tableau() == t
             True
         """
-        if self.is_key_tableau():
-            return self
-
         cols_list = self.conjugate()
         key = [[] for row in cols_list]
         key[0] = list(cols_list[0])
@@ -3903,7 +3897,7 @@ class Tableau(ClonableList):
         deg = self.shape()._initial_degree(e,multicharge)
         res = self.shape().initial_tableau().residue_sequence(e, multicharge)
         for r in self.reduced_row_word():
-            if res[r] == res[r+1]: 
+            if res[r] == res[r+1]:
                 deg -= 2
             elif res[r] == res[r+1] + 1 or res[r] == res[r+1] - 1:
                 deg += (e == 2 and 2 or 1)
@@ -3993,7 +3987,7 @@ class Tableau(ClonableList):
 
     def first_column_descent(self):
         r"""
-        Return the first cell where ``self`` is not column standard. 
+        Return the first cell where ``self`` is not column standard.
 
         Cells are ordered left to right along the rows and then top to bottom.
         That is, the cell `(r, c)` with `r` and `c` minimal such that
@@ -4765,15 +4759,14 @@ class Tableaux(UniqueRepresentation, Parent):
     Element = Tableau
 
     # add options to class
-    options=GlobalOptions('Tableaux',
-        module='sage.combinat.tableau',
-        doc=r"""
+    class options(GlobalOptions):
+        r"""
         Sets the global options for elements of the tableau, skew_tableau,
         and tableau tuple classes. The defaults are for tableau to be
         displayed as a list, latexed as a Young diagram using the English
         convention.
-        """,
-        end_doc=r"""
+
+        @OPTIONS@
 
         .. NOTE::
 
@@ -4820,43 +4813,44 @@ class Tableaux(UniqueRepresentation, Parent):
             sage: ascii_art(t)
               1  2  3
               4  5
-            sage: Tableaux.options.ascii_art="table"
+            sage: Tableaux.options.ascii_art = "table"
             sage: ascii_art(t)
-            +---+---+
-            | 4 | 5 |
             +---+---+---+
             | 1 | 2 | 3 |
             +---+---+---+
-            sage: Tableaux.options.ascii_art="compact"
+            | 4 | 5 |
+            +---+---+
+            sage: Tableaux.options.ascii_art = "compact"
             sage: ascii_art(t)
-            |4|5|
             |1|2|3|
+            |4|5|
             sage: Tableaux.options._reset()
-        """,
-        display=dict(default="list",
+        """
+        NAME = 'Tableaux'
+        module = 'sage.combinat.tableau'
+        display = dict(default="list",
                      description='Controls the way in which tableaux are printed',
                      values=dict(list='print tableaux as lists',
                                  diagram='display as Young diagram (similar to :meth:`~sage.combinat.tableau.Tableau.pp()`',
                                  compact='minimal length string representation'),
                      alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram"),
-                     case_sensitive=False),
-        ascii_art=dict(default="repr",
+                     case_sensitive=False)
+        ascii_art = dict(default="repr",
                      description='Controls the ascii art output for tableaux',
                      values=dict(repr='display using the diagram string representation',
                                  table='display as a table',
                                  compact='minimal length ascii art'),
-                     case_sensitive=False),
-        latex=dict(default="diagram",
+                     case_sensitive=False)
+        latex = dict(default="diagram",
                    description='Controls the way in which tableaux are latexed',
                    values=dict(list='as a list', diagram='as a Young diagram'),
                    alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram"),
-                   case_sensitive=False),
-        convention=dict(default="English",
+                   case_sensitive=False)
+        convention = dict(default="English",
                         description='Sets the convention used for displaying tableaux and partitions',
                         values=dict(English='use the English convention',French='use the French convention'),
-                        case_sensitive=False),
+                        case_sensitive=False)
         notation = dict(alt_name="convention")
-    )
 
     def _element_constructor_(self, t):
         r"""

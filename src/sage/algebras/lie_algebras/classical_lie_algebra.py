@@ -42,8 +42,8 @@ from sage.combinat.root_system.dynkin_diagram import DynkinDiagram_class
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.arith import binomial
 from sage.sets.family import Family
+
 
 class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
     """
@@ -116,16 +116,26 @@ class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
 
             sage: g = lie_algebras.sl(QQ, 3, representation='matrix')
             sage: TestSuite(g).run()
+
+        TESTS:
+
+        Check that :trac:`23266` is fixed::
+
+            sage: sl2 = lie_algebras.sl(QQ, 2, 'matrix')
+            sage: isinstance(sl2.indices(), FiniteEnumeratedSet)
+            True
         """
         n = len(e)
         names = ['e%s'%i for i in range(1, n+1)]
         names += ['f%s'%i for i in range(1, n+1)]
         names += ['h%s'%i for i in range(1, n+1)]
         category = LieAlgebras(R).FiniteDimensional().WithBasis()
+        from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
+        index_set = FiniteEnumeratedSet(names)
         LieAlgebraFromAssociative.__init__(self, e[0].parent(),
                                            gens=tuple(e + f + h),
                                            names=tuple(names),
-                                           index_set=tuple(names),
+                                           index_set=index_set,
                                            category=category)
         self._cartan_type = ct
 
@@ -343,6 +353,17 @@ class gl(LieAlgebraFromAssociative):
 
             sage: g = lie_algebras.gl(QQ, 4)
             sage: TestSuite(g).run()
+
+        TESTS:
+
+        Check that :trac:`23266` is fixed::
+
+            sage: gl2 = lie_algebras.gl(QQ, 2)
+            sage: isinstance(gl2.basis().keys(), FiniteEnumeratedSet)
+            True
+            sage: Ugl2 = gl2.pbw_basis()
+            sage: prod(Ugl2.gens())
+            PBW['E_0_0']*PBW['E_0_1']*PBW['E_1_0']*PBW['E_1_1']
         """
         MS = MatrixSpace(R, n, sparse=True)
         one = R.one()
@@ -356,9 +377,11 @@ class gl(LieAlgebraFromAssociative):
                 gens.append(mat)
         self._n = n
         category = LieAlgebras(R).FiniteDimensional().WithBasis()
+        from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
+        index_set = FiniteEnumeratedSet(names)
         LieAlgebraFromAssociative.__init__(self, MS, tuple(gens),
                                            names=tuple(names),
-                                           index_set=tuple(names),
+                                           index_set=index_set,
                                            category=category)
 
     def _repr_(self):
@@ -410,6 +433,49 @@ class gl(LieAlgebraFromAssociative):
         """
         G = self.gens()
         return Family(self._indices, lambda i: G[self._indices.index(i)])
+
+    def monomial(self, i):
+        r"""
+        Return the basis element indexed by ``i``.
+
+        INPUT:
+
+        - ``i`` -- an element of the index set
+
+        EXAMPLES::
+
+            sage: gl4 = lie_algebras.gl(QQ, 4)
+            sage: gl4.monomial('E_2_1')
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 1 0 0]
+            [0 0 0 0]
+            sage: gl4.monomial((2,1))
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 1 0 0]
+            [0 0 0 0]
+        """
+        if isinstance(i, tuple):
+            return self.basis()['E_{}_{}'.format(*i)]
+        return self.basis()[i]
+
+    class Element(LieAlgebraFromAssociative.Element):
+        def monomial_coefficients(self, copy=True):
+            r"""
+            Return the monomial coefficients of ``self``.
+
+            EXAMPLES::
+
+                sage: gl4 = lie_algebras.gl(QQ, 4)
+                sage: x = gl4.monomial('E_2_1') + 3*gl4.monomial('E_0_3')
+                sage: x.monomial_coefficients()
+                {'E_0_3': 3, 'E_2_1': 1}
+            """
+            d = {}
+            for k in self.value.nonzero_positions():
+                d['E_{}_{}'.format(*k)] = self.value[k]
+            return d
 
 class sl(ClassicalMatrixLieAlgebra):
     r"""
@@ -855,7 +921,7 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
     @staticmethod
     def __classcall_private__(cls, R, cartan_type):
         """
-        Normalize ``self`` to ensure a unique represntation.
+        Normalize ``self`` to ensure a unique representation.
 
         TESTS::
 
@@ -990,7 +1056,7 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
         names += ['f{}'.format(i) for i in range(1, num_sroots+1)]
         names += ['h{}'.format(i) for i in range(1, num_sroots+1)]
         category = LieAlgebras(R).FiniteDimensional().WithBasis()
-        index_set = p_roots + n_roots + list(alphacheck)
+        index_set = p_roots + list(alphacheck) + n_roots
         names = tuple(names)
         from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
         index_set = FiniteEnumeratedSet(index_set)
@@ -1069,7 +1135,7 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
             sage: K = L.basis().keys()
             sage: L._repr_generator(K[0])
             'E[alpha[2]]'
-            sage: L._repr_generator(K[-1])
+            sage: L._repr_generator(K[4])
             'h2'
         """
         if m in self._cartan_type.root_system().root_lattice().simple_coroots():
@@ -1086,7 +1152,7 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
             sage: K = L.basis().keys()
             sage: L._latex_generator(K[0])
             'E_{\\alpha_{2}}'
-            sage: L._latex_generator(K[-1])
+            sage: L._latex_generator(K[4])
             'h_{2}'
         """
         if m in self._cartan_type.root_system().root_lattice().simple_coroots():

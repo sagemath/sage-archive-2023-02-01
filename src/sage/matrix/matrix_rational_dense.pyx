@@ -39,6 +39,18 @@ TESTS::
 
     sage: a = matrix(QQ, 2, range(4), sparse=False)
     sage: TestSuite(a).run()
+
+Test hashing::
+
+    sage: m = matrix(QQ, 2, [1/2, -1, 2, 3])
+    sage: hash(m)
+    Traceback (most recent call last):
+    ...
+    TypeError: mutable matrices are unhashable
+    sage: m.set_immutable()
+    sage: hash(m)
+    2212268000387745777  # 64-bit
+    1997752305           # 32-bit
 """
 
 #*****************************************************************************
@@ -94,7 +106,7 @@ from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 from sage.rings.rational_field import QQ
 from sage.arith.all import gcd
 
-from .matrix2 import cmp_pivots, decomp_seq
+from .matrix2 import decomp_seq
 from .matrix0 import Matrix as Matrix_base
 
 from sage.misc.all import verbose, get_verbose, prod
@@ -110,17 +122,6 @@ from cypari2.paridecl cimport *
 #########################################################
 
 cdef class Matrix_rational_dense(Matrix_dense):
-
-    ########################################################################
-    # LEVEL 1 functionality
-    # x * __cinit__
-    # x * __dealloc__
-    # x * __init__
-    # x * set_unsafe
-    # x * get_unsafe
-    # x * cdef _pickle
-    # x * cdef _unpickle
-    ########################################################################
     def __cinit__(self, parent, entries, copy, coerce):
         """
         Create and allocate memory for the matrix.
@@ -393,21 +394,6 @@ cdef class Matrix_rational_dense(Matrix_dense):
                         raise RuntimeError("invalid pickle data")
                     fmpz_one(fmpq_mat_entry_den(self._matrix, i, j))
 
-    def __hash__(self):
-        r"""
-        TESTS::
-
-            sage: m = matrix(QQ, 2, [1/2, -1, 2, 3])
-            sage: hash(m)
-            Traceback (most recent call last):
-            ...
-            TypeError: mutable matrices are unhashable
-            sage: m.set_immutable()
-            sage: hash(m)
-            -13
-        """
-        return self._hash()
-
     ########################################################################
     # LEVEL 2 functionality
     # x * cdef _add_
@@ -422,7 +408,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
     #   * _dict -- sparse dictionary of underlying elements (need not be a copy)
     ########################################################################
 
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         EXAMPLES::
 
@@ -995,6 +981,10 @@ cdef class Matrix_rational_dense(Matrix_dense):
     def charpoly(self, var='x', algorithm=None):
         """
         Return the characteristic polynomial of this matrix.
+
+        .. NOTE::
+
+            The characteristic polynomial is defined as `\det(xI-A)`.
 
         INPUT:
 

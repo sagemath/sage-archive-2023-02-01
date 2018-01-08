@@ -32,18 +32,23 @@ For more information about active vertices, see the documentation for the
 method :meth:`realloc <sage.graphs.base.c_graph.CGraph.realloc>`.
 """
 
-#**************************************************************************
-#        Copyright (C) 2008-9 Robert L. Miller <rlmillster@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2008-9 Robert L. Miller <rlmillster@gmail.com>
 #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
-#**************************************************************************
-from __future__ import print_function, absolute_import
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+from __future__ import print_function, absolute_import, division
 
 include "sage/data_structures/bitset.pxi"
 
 from sage.rings.integer cimport Integer
-from sage.misc.long cimport pyobject_to_long
+from sage.arith.long cimport pyobject_to_long
+
 
 cdef class CGraph:
     """
@@ -1027,111 +1032,6 @@ cdef class CGraph:
         """
         raise NotImplementedError()
 
-    def _in_degree(self, int v):
-        """
-        Return the number of edges coming into ``v``.
-
-        INPUT:
-
-        - ``v`` -- a vertex of this graph.
-
-        OUTPUT:
-
-        - The number of in-neighbors of ``v``.
-
-        EXAMPLES::
-
-            sage: from sage.graphs.base.sparse_graph import SparseGraph
-            sage: SparseGraph(7)._in_degree(3)
-            doctest:...: DeprecationWarning: _in_degree is deprecated
-            See http://trac.sagemath.org/20253 for details.
-            0
-
-        TESTS::
-
-            sage: g = Graph({1: [2,5], 2: [1,5,3,4], 3: [2,5], 4: [3], 5: [2,3]}, implementation="c_graph")
-            sage: g._backend.degree(5, False)
-            3
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(20253, "_in_degree is deprecated")
-        if not self.has_vertex(v):
-            raise LookupError("Vertex ({0}) is not a vertex of the graph.".format(v))
-        return self.in_degrees[v]
-
-    def _out_degree(self, int v):
-        """
-        Return the number of edges coming out of ``v``.
-
-        INPUT:
-
-        - ``v`` -- a vertex of this graph.
-
-        OUTPUT:
-
-        - The number of out-neighbors of ``v``.
-
-        EXAMPLES::
-
-            sage: from sage.graphs.base.sparse_graph import SparseGraph
-            sage: SparseGraph(7)._out_degree(3)
-            doctest:...: DeprecationWarning: _out_degree is deprecated
-            See http://trac.sagemath.org/20253 for details.
-            0
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(20253, "_out_degree is deprecated")
-        if not self.has_vertex(v):
-            raise LookupError("Vertex ({0}) is not a vertex of the graph.".format(v))
-        return self.out_degrees[v]
-
-    def _num_verts(self):
-        """
-        Return the number of vertices in the (di)graph.
-
-        INPUT:
-
-        - None.
-
-        OUTPUT:
-
-        - The order of this graph.
-
-        EXAMPLES::
-
-            sage: from sage.graphs.base.sparse_graph import SparseGraph
-            sage: SparseGraph(7)._num_verts()
-            doctest:...: DeprecationWarning: _num_verts is deprecated
-            See http://trac.sagemath.org/20253 for details.
-            7
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(20253, "_num_verts is deprecated")
-        return self.num_verts
-
-    def _num_arcs(self):
-        """
-        Return the number of arcs in ``self``.
-
-        INPUT:
-
-        - None.
-
-        OUTPUT:
-
-        - The size of this graph.
-
-        EXAMPLES::
-
-            sage: from sage.graphs.base.sparse_graph import SparseGraph
-            sage: SparseGraph(7)._num_arcs()
-            doctest:...: DeprecationWarning: _num_arcs is deprecated
-            See http://trac.sagemath.org/20253 for details.
-            0
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(20253, "_num_arcs is deprecated")
-        return self.num_arcs
 
 cdef class CGraphBackend(GenericGraphBackend):
     """
@@ -2004,7 +1904,7 @@ cdef class CGraphBackend(GenericGraphBackend):
                     for j in self.iterator_verts():
                         if self.has_edge(j, j, None):
                             k += 1
-            i = (i - k) / 2
+            i = (i - k) // 2
             return i + k
 
     def num_verts(self):
@@ -2257,7 +2157,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: G.shortest_path_length(1, 3, weight_function=lambda e:e[2]['weight'])
             2
 
-        TEST:
+        TESTS:
 
         Bugfix from :trac:`7673` ::
 

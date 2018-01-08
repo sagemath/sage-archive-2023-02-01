@@ -16,6 +16,7 @@ Base class for groups
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 doc="""
 Base class for all groups
@@ -81,7 +82,7 @@ cdef class Group(sage.structure.parent_gens.ParentWithGens):
             sage: 4 in G               #indirect doctest
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: cannot construct elements of <sage.groups.old.Group object at ...>
         """
         try:
             self(x)

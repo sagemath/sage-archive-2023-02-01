@@ -12,6 +12,9 @@ The symbolic ring
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+
+from sage.ext.cplusplus cimport ccrepr
 
 from sage.libs.pynac.pynac cimport *
 
@@ -190,7 +193,7 @@ cdef class SymbolicRing(CommutativeRing):
 
             from sage.interfaces.maxima import Maxima
 
-            from subring import GenericSymbolicSubring
+            from .subring import GenericSymbolicSubring
 
             if ComplexField(mpfr_prec_min()).has_coerce_map_from(R):
                 # Almost anything with a coercion into any precision of CC
@@ -228,7 +231,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: x.subs(x=y0/y1)
             y0/y1
             sage: x + long(1)
-            x + 1L
+            x + 1
 
         If `a` is already in the symbolic expression ring, coercing returns
         `a` itself (not a copy)::
@@ -259,12 +262,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: SR._coerce_(RIF(pi))
             3.141592653589794?
 
-        A number modulo 7::
-
-            sage: a = SR(Mod(3,7)); a
-            3
-            sage: a^2
-            2
+        The complex number `I`::
 
             sage: si = SR.coerce(I)
             sage: si^2
@@ -297,14 +295,6 @@ cdef class SymbolicRing(CommutativeRing):
             sage: t.operator(), t.operands()
             (<function mul_vararg at 0x...>, [x^5, log(y), 3])
 
-        Check that :trac:`20162` is fixed::
-
-            sage: k.<a> = GF(9)
-            sage: SR(a).is_real()
-            False
-            sage: SR(a).is_positive()
-            False
-
         We get a sensible error message if conversion fails::
 
             sage: SR(int)
@@ -329,6 +319,15 @@ cdef class SymbolicRing(CommutativeRing):
             False
             sage: sin(x).subs(x=complex('NaN'))
             sin(NaN)
+
+        Check that :trac:`24072` is solved::
+
+            sage: x = polygen(GF(3))
+            sage: a = SR.var('a')
+            sage: (2*x + 1) * a
+            Traceback (most recent call last):
+            ...
+            TypeError: positive characteristic not allowed in symbolic computations
         """
         cdef GEx exp
         if is_Expression(x):
@@ -371,6 +370,8 @@ cdef class SymbolicRing(CommutativeRing):
         elif x is unsigned_infinity:
             return new_Expression_from_GEx(self, g_UnsignedInfinity)
         elif isinstance(x, (RingElement, Matrix)):
+            if x.parent().characteristic():
+                raise TypeError('positive characteristic not allowed in symbolic computations')
             exp = x
         elif isinstance(x, Factorization):
             from sage.misc.all import prod
@@ -727,7 +728,7 @@ cdef class SymbolicRing(CommutativeRing):
 
         - ``latex_name`` -- (optional) string used when printing in latex mode, if not specified use ``'name'``
 
-        - ``n`` -- (optional) nonnegative integer; number of symbolic variables, indexed from `0` to `n-1`
+        - ``n`` -- (optional) positive integer; number of symbolic variables, indexed from `0` to `n-1`
 
         - ``domain`` -- (optional) specify the domain of the variable(s); it is the complex plane
           by default, and possible options are (non-exhaustive list, see note below):
@@ -765,6 +766,11 @@ cdef class SymbolicRing(CommutativeRing):
             sage: zz.is_real()
             True
 
+        The real domain is also set with the integer domain::
+
+            sage: SR.var('x', domain='integer').is_real()
+            True
+
         The ``name`` argument does not have to match the left-hand side variable::
 
             sage: t = SR.var('theta2'); t
@@ -772,8 +778,11 @@ cdef class SymbolicRing(CommutativeRing):
 
         Automatic indexing is available as well::
 
-            sage: SR.var('x', 4)
-            (x0, x1, x2, x3)
+            sage: x = SR.var('x', 4)
+            sage: x[0], x[3]
+            (x0, x3)
+            sage: sum(x)
+            x0 + x1 + x2 + x3
 
         TESTS::
 
@@ -872,7 +881,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: SR._repr_element_(x+2)
             'x + 2'
         """
-        return GEx_to_str(&x._gobj)
+        return ccrepr(x._gobj)
 
     def _latex_element_(self, Expression x):
         """
@@ -954,11 +963,8 @@ cdef class SymbolicRing(CommutativeRing):
         elif len(args) == 1 and isinstance(args[0], dict):
             d = args[0]
         else:
-            import inspect
-            if not hasattr(_the_element,'_fast_callable_') or not inspect.ismethod(_the_element._fast_callable_):
-                # only warn if _the_element is not dynamic
-                from sage.misc.superseded import deprecation
-                deprecation(5930, "Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)")
+            from sage.misc.superseded import deprecation
+            deprecation(5930, "Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)")
             d = {}
 
             vars = _the_element.variables()
@@ -1061,7 +1067,7 @@ cdef class SymbolicRing(CommutativeRing):
         """
         if self is not SR:
             raise NotImplementedError('Cannot create subring of %s.' % (self,))
-        from subring import SymbolicSubring
+        from .subring import SymbolicSubring
         return SymbolicSubring(*args, **kwds)
 
 SR = SymbolicRing()

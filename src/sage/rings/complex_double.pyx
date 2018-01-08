@@ -790,12 +790,12 @@ cdef class ComplexDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: cmp(CDF(1.2), CDF(i))
-            1
-            sage: cmp(CDF(1), CDF(2))
-            -1
-            sage: cmp(CDF(1 + i), CDF(-1 - i))
-            1
+            sage: CDF(1.2) > CDF(i)
+            True
+            sage: CDF(1) < CDF(2)
+            True
+            sage: CDF(1 + i) > CDF(-1 - i)
+            True
 
         ::
 
@@ -2410,13 +2410,13 @@ cdef class FloatToCDF(Morphism):
         0.5
         sage: f = CDF.coerce_map_from(int); f
         Native morphism:
-          From: Set of Python objects of type 'int'
+          From: Set of Python objects of class 'int'
           To:   Complex Double Field
         sage: f(3r)
         3.0
         sage: f = CDF.coerce_map_from(float); f
         Native morphism:
-          From: Set of Python objects of type 'float'
+          From: Set of Python objects of class 'float'
           To:   Complex Double Field
         sage: f(3.5)
         3.5

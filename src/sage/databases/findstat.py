@@ -90,7 +90,7 @@ lists::
     1: (St000042: The number of crossings of a perfect matching. , [], 105)
     ...
 
-This results tells us that the database contains another entriy that is
+This results tells us that the database contains another entry that is
 equidistributed with the number of nestings on perfect matchings of
 length `8`, namely the number of crossings.
 
@@ -179,6 +179,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 
 from sage.categories.sets_cat import Sets
 from sage.structure.sage_object import SageObject
+from sage.structure.richcmp import richcmp
 
 from sage.misc.misc import verbose
 from sage.rings.integer import Integer
@@ -1924,7 +1925,7 @@ class FindStatCollection(Element):
         """
         return (FindStatCollection, (self.id(),))
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         TESTS::
 
@@ -1950,7 +1951,7 @@ class FindStatCollection(Element):
             sage: sorted(c for c in FindStatCollections())[0]                                       # optional -- internet
             Cc0001: Permutations
         """
-        return self.id().__cmp__(other.id())
+        return richchmp(self.id(), other.id(), op)
 
     def is_supported(self):
         """
@@ -1967,7 +1968,7 @@ class FindStatCollection(Element):
 
         """
         try:
-            self._sageconstructor(self._levels.keys()[0])
+            self._sageconstructor(next(iter(self._levels.keys())))
             return True
         except NotImplementedError:
             return False
@@ -2646,7 +2647,7 @@ class FindStatMap(Element):
         """
         return "%s: %s" %(self.id_str(), self._map[FINDSTAT_MAP_NAME])
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         TESTS::
 
@@ -2672,7 +2673,7 @@ class FindStatMap(Element):
             sage: sorted(c for c in FindStatMaps())[0]                          # optional -- internet
             Mp00001: to semistandard tableau
         """
-        return self.id().__cmp__(other.id())
+        return richcmp(self.id(), other.id(), op)
 
     def name(self):
         r"""

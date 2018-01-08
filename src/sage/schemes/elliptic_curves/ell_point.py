@@ -129,7 +129,7 @@ import sage.rings.all as rings
 from sage.rings.real_mpfr import is_RealField
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
-from sage.groups.all import AbelianGroup
+from sage.groups.additive_abelian.additive_abelian_wrapper import AdditiveAbelianGroupWrapper
 import sage.groups.generic as generic
 from sage.libs.pari import pari
 from cypari2.pari_instance import prec_words_to_bits
@@ -623,9 +623,9 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         Example to show that bug :trac:`4820` is fixed::
 
             sage: [type(c) for c in 2*EllipticCurve('37a1').gen(0)]
-            [<type 'sage.rings.rational.Rational'>,
-            <type 'sage.rings.rational.Rational'>,
-            <type 'sage.rings.rational.Rational'>]
+            [<... 'sage.rings.rational.Rational'>,
+            <... 'sage.rings.rational.Rational'>,
+            <... 'sage.rings.rational.Rational'>]
 
         Checks that :trac:`15964` is fixed::
 
@@ -725,9 +725,9 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         Example to show that bug :trac:`4820` is fixed::
 
             sage: [type(c) for c in -EllipticCurve('37a1').gen(0)]
-            [<type 'sage.rings.rational.Rational'>,
-            <type 'sage.rings.rational.Rational'>,
-            <type 'sage.rings.rational.Rational'>]
+            [<... 'sage.rings.rational.Rational'>,
+            <... 'sage.rings.rational.Rational'>,
+            <... 'sage.rings.rational.Rational'>]
         """
         if self.is_zero():
             return self
@@ -1342,7 +1342,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             sage: Px._miller_(2*Px,41)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: division by zero in finite field.
+            ZeroDivisionError: division by zero in finite field
 
         A small example of embedding degree 6::
 
@@ -2044,11 +2044,13 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
 
         E = self.curve()
 
-        # Special code for curves over Q, calling PARI
+        # First try PARI
         from sage.libs.pari.all import PariError
         try:
-            n = int(E.pari_curve().ellorder(self))
-            if n == 0:
+            n = E.pari_curve().ellorder(self)
+            if n:
+                n = Integer(n)
+            else:
                 n = oo
             self._order = n
             return n
@@ -2884,7 +2886,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: Q.non_archimedean_local_height(K.ideal(1-2*i))
             0
             sage: Q.non_archimedean_local_height()
-            1/2*log(16)
+            2*log(2)
 
         An example over the rational numbers::
 
@@ -3035,15 +3037,14 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
 
         ALGORITHM:
 
-        See [Co2] Cohen H., A Course in Computational Algebraic Number
-        Theory GTM 138, Springer 1996 for the case of real embeddings,
-        and Cremona, J.E. and Thongjunthug , T. 2010 for the complex
+        See [Coh1993]_ for the case of real embeddings,
+        and Cremona, J.E. and Thongjunthug, T. 2010 for the complex
         case.
 
         AUTHORS:
 
         - Michael Mardaus (2008-07),
-        - Tobias Nagel (2008-07) -- original version from [Co2].
+        - Tobias Nagel (2008-07) -- original version from [Coh1993]_.
         - John Cremona (2008-07) -- revision following eclib code.
         - John Cremona (2010-03) -- implementation for complex embeddings.
 
@@ -3543,8 +3544,9 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         if 2*N > bounds[1]:  # then we have a generator, so cache this
             if not hasattr(E, '_order'):
                 E._order = N
-            if not hasattr(E, '__abelian_group'):
-                E.__abelian_group = AbelianGroup([N]), (self, )
+            if not E.abelian_group.is_in_cache():
+                g = AdditiveAbelianGroupWrapper(E.point_homset(), [self], [N])
+                E.abelian_group.set_cache(g)
 
         self._order = N
         return self._order

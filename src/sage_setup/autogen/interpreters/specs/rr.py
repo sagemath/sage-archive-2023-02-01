@@ -145,14 +145,12 @@ class RRInterpreter(StackInterpreter):
             sage: print(interp.c_header)
             <BLANKLINE>
             #include <mpfr.h>
-            #include "interpreters/wrapper_rr.h"
+            #include "sage/ext/interpreters/wrapper_rr.h"
             <BLANKLINE>
 
         The function ``rr_py_call_helper`` is implemented in Cython::
 
             sage: print(interp.pyx_header)
-            # distutils: libraries = mpfr gmp
-            <BLANKLINE>
             cdef public bint rr_py_call_helper(object domain, object fn,
                                                int n_args,
                                                mpfr_t* args, mpfr_t retval) except 0:
@@ -187,7 +185,7 @@ class RRInterpreter(StackInterpreter):
         self.c_header = ri(0,
             '''
             #include <mpfr.h>
-            #include "interpreters/wrapper_rr.h"
+            #include "sage/ext/interpreters/wrapper_rr.h"
             ''')
 
         self.pxd_header = ri(0,
@@ -199,8 +197,6 @@ class RRInterpreter(StackInterpreter):
 
         self.pyx_header = ri(0,
             """\
-            # distutils: libraries = mpfr gmp
-
             cdef public bint rr_py_call_helper(object domain, object fn,
                                                int n_args,
                                                mpfr_t* args, mpfr_t retval) except 0:

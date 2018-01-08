@@ -45,32 +45,6 @@ ALLOWED_EXTENSIONS = ['.eps', '.pdf', '.pgf', '.png', '.ps', '.sobj', '.svg']
 DEFAULT_DPI = 100
 
 
-def show_default(default=None):
-    r"""
-    Set the default for showing plots using any plot commands. If
-    called with no arguments, returns the current default.
-
-    If this is ``True`` (the default) then any plot object
-    when displayed will be displayed as an actual plot instead of text,
-    i.e., the show command is not needed.
-
-    EXAMPLES:
-
-    The default starts out as ``True`` in interactive use and
-    ``False`` in doctests::
-
-        sage: show_default()  # long time
-        doctest:...: DeprecationWarning: this is done automatically by the doctest framework
-        See http://trac.sagemath.org/14469 for details.
-        False
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14469, 'this is done automatically by the doctest framework')
-    import sage.doctest
-    if default is None:
-        return not sage.doctest.DOCTEST_MODE
-    sage.doctest.DOCTEST_MODE = not bool(default)
-
 # If do_verify is True, options are checked when drawing a
 # GraphicsPrimitive.  See primitive.py
 do_verify = True
@@ -693,8 +667,7 @@ class Graphics(WithEqualityById, SageObject):
             sage: c = circle((0,0), 1)
             sage: c.axes_labels(['axe des abscisses', u'axe des ordonnées'])
             sage: c._axes_labels
-            ('axe des abscisses', u'axe des ordonn\xc3\xa9es')
-
+            ('axe des abscisses', u'axe des ordonn\xe9es')
         """
         if l is None:
             try:
@@ -1627,12 +1600,14 @@ class Graphics(WithEqualityById, SageObject):
         requires that LaTeX, dvipng and Ghostscript be installed::
 
             sage: plot(x, typeset='latex') # optional - latex
+            Graphics object consisting of 1 graphics primitive
 
         If you want all the text in your plot to use Type 1 fonts, then
         set the ``typeset`` option to ``"type1"``. This requires that
         LaTeX, dvipng and Ghostscript be installed::
 
             sage: plot(x, typeset='type1') # optional - latex
+            Graphics object consisting of 1 graphics primitive
 
         You can turn on the drawing of a frame around the plots::
 

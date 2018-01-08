@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 if [ -z "$SAGE_LOCAL" ]; then
    echo "SAGE_LOCAL undefined ... exiting"
    echo "Maybe run 'sage -sh'?"
@@ -32,7 +30,7 @@ if [ `uname` = "Darwin" ]; then
     unset BLAS
     unset LAPACK
 else
-    export {ATLAS,PTATLAS,OPENBLAS,MKL}=None
+    export {ATLAS,PTATLAS,OPENBLAS,MKL,MKLROOT}=None
     export LDFLAGS="${LDFLAGS} -shared"
 fi
 

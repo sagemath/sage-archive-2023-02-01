@@ -522,7 +522,7 @@ class Decorator(object):
             sage: S = sage_getsourcelines(d)   # indirect doctest
             sage: S[0][2]
             '        Return the number of elements of this group.\n'
-            sage: S[0][18]
+            sage: S[0][25]
             '            return Integer(1)\n'
         """
         from sage.misc.sageinspect import sage_getsourcelines
@@ -698,8 +698,8 @@ class EnumeratedSetFromIterator_function_decorator(Decorator):
             if hasattr(self,'name'):
                 if isinstance(self.name,str):
                     if args or kwds:
-                        _,kk = self.af.fix_to_named(*args,**kwds)
-                        name = self.name%dict(kk)
+                        _, kk = self.af.fix_to_named(*args,**kwds)
+                        name = self.name % dict(kk)
                     else:
                         name = self.name
                 else:
@@ -709,8 +709,7 @@ class EnumeratedSetFromIterator_function_decorator(Decorator):
 
         else: # potential global options
             if args == ():
-                assert len(kwds.keys()) == 1
-                f = kwds.values()[0]
+                f, = kwds.values()
             else:
                 assert len(args) == 1
                 f = args[0]

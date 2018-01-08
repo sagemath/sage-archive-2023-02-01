@@ -168,7 +168,7 @@ use, that is to which category it belongs::
 
     sage: G = GL(2,ZZ)
     sage: G.category()
-    Category of groups
+    Category of infinite groups
 
 In fact a group is a semigroup, and Sage knows about this::
 
@@ -180,10 +180,10 @@ In fact a group is a semigroup, and Sage knows about this::
 Altogether, our group gets algorithms from a bunch of bookshelves::
 
     sage: G.categories()
-    [Category of groups, Category of monoids, Category of semigroups,
+    [Category of infinite groups, Category of groups, Category of monoids,
      ...,
      Category of magmas,
-     Category of sets, ...]
+     Category of infinite sets, ...]
 
 Those can be viewed graphically::
 
@@ -849,7 +849,7 @@ And rerun the test::
     Traceback (most recent call last):
     ...
       File ".../sage/categories/semigroups.py", line ..., in _test_associativity
-        tester.assert_((x * y) * z == x * (y * z))
+        tester.assertTrue((x * y) * z == x * (y * z))
     ...
     AssertionError: False is not true
 
@@ -864,7 +864,7 @@ work yet in the notebook)::
     -> raise self.failureException(msg)
     (Pdb) u
     > /opt/sage-5.11.rc1/local/lib/python2.7/site-packages/sage/categories/semigroups.py(145)_test_associativity()
-    -> tester.assert_((x * y) * z == x * (y * z))
+    -> tester.assertTrue((x * y) * z == x * (y * z))
     (Pdb) p x, y, z
     ('a', 'a', 'a')
     (Pdb) p (x * y) * z

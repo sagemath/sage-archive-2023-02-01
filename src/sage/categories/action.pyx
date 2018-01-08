@@ -307,9 +307,8 @@ cdef class PrecomposedAction(Action):
         sage: y = x.modular_symbol_rep()
         sage: A = y.parent().get_action(QQ, self_on_left=False, op=operator.mul)
         sage: A
-        Left scalar multiplication by Rational Field on Abelian Group of all
-        Formal Finite Sums over Rational Field
-        with precomposition on right by Conversion map:
+        Left scalar multiplication by Rational Field on Abelian Group of all Formal Finite Sums over Rational Field
+        with precomposition on right by Coercion map:
           From: Abelian Group of all Formal Finite Sums over Integer Ring
           To:   Abelian Group of all Formal Finite Sums over Rational Field
     """
@@ -387,7 +386,7 @@ cdef class ActionEndomorphism(Morphism):
         self._action = action
         self._g = g
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for pickling and copying.
 
@@ -404,9 +403,10 @@ cdef class ActionEndomorphism(Morphism):
             sage: psi(x) == phi(x)
             True
         """
-        _slots['_action'] = self._action
-        _slots['_g'] = self._g
-        return Morphism._extra_slots(self, _slots)
+        slots = Morphism._extra_slots(self)
+        slots['_action'] = self._action
+        slots['_g'] = self._g
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """

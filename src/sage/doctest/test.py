@@ -235,12 +235,9 @@ in max(20, 120 * 0.05) = 20 seconds::
 
     sage: pid = int(open(F).read())    # long time
     sage: time.sleep(2)                # long time
-    sage: os.kill(pid, signal.SIGHUP)  # long time; 2 seconds passed => still alive
+    sage: os.kill(pid, signal.SIGQUIT) # long time; 2 seconds passed => still alive
     sage: time.sleep(23)               # long time
-    sage: os.kill(pid, signal.SIGHUP)  # long time; 25 seconds passed => dead
-    Traceback (most recent call last):
-    ...
-    OSError: ...
+    sage: os.kill(pid, signal.SIGQUIT) # long time; 25 seconds passed => dead
 
 Test a doctest failing with ``abort()``::
 
@@ -382,7 +379,7 @@ Test the ``--debug`` option::
         s...: b = 5
         s...: a + b
         8
-    In [1]:
+    sage:
     <BLANKLINE>
     Returning to doctests...
     **********************************************************************

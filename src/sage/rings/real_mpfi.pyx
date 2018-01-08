@@ -233,6 +233,7 @@ Comparisons with numpy types are right (see :trac:`17758` and :trac:`18076`)::
 
 #*****************************************************************************
 #       Copyright (C) 2005-2006 William Stein <wstein@gmail.com>
+#                     2017 Vincent Delecroix <20100.delecroix@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -243,33 +244,32 @@ Comparisons with numpy types are right (see :trac:`17758` and :trac:`18076`)::
 
 from __future__ import absolute_import, print_function
 
-import math # for log
-import sys
-import operator
-
+from libc.string cimport strlen
 from cpython.mem cimport *
 from cpython.object cimport Py_EQ, Py_NE, Py_LT, Py_LE, Py_GT, Py_GE
-from libc.string cimport strlen
+
 from cysignals.signals cimport sig_on, sig_off
 
 from sage.libs.gmp.mpz cimport *
-cimport sage.rings.ring
+from sage.libs.mpfr cimport *
+from sage.libs.mpfi cimport *
+
 cimport sage.structure.element
 from sage.structure.element cimport RingElement, Element, ModuleElement
 from sage.structure.richcmp cimport richcmp
 
-cimport sage.rings.real_mpfr as real_mpfr
 from .real_mpfr cimport RealField_class, RealNumber, RealField
-from sage.libs.mpfr cimport MPFR_RNDN, MPFR_RNDZ, MPFR_RNDU, MPFR_RNDD, MPFR_RNDA
-
 from .integer cimport Integer
 from .real_double cimport RealDoubleElement
 
+cimport sage.rings.real_mpfr as real_mpfr
+
+import math # for log
+import sys
+import operator
+
 import sage.rings.complex_field
 import sage.rings.infinity
-
-from sage.structure.parent_gens cimport ParentWithGens
-
 
 #*****************************************************************************
 #
@@ -288,11 +288,8 @@ cdef double LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate 
 #       Real Field
 #
 #*****************************************************************************
-# The real field is in Cython, so mpfi elements will have access to
-# their parent via direct C calls, which will be faster.
 
 cdef dict RealIntervalField_cache = {}
-
 cpdef RealIntervalField_class RealIntervalField(prec=53, sci_not=False):
     r"""
     Construct a :class:`RealIntervalField_class`, with caching.
@@ -331,7 +328,7 @@ cpdef RealIntervalField_class RealIntervalField(prec=53, sci_not=False):
         RealIntervalField_cache[prec, sci_not] = R = RealIntervalField_class(prec, sci_not)
         return R
 
-cdef class RealIntervalField_class(sage.rings.ring.Field):
+cdef class RealIntervalField_class(Field):
     """
     Class of the real interval field.
 
@@ -506,7 +503,7 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         self.__middle_field = RealField(prec, sci_not, "RNDN")
         self.__upper_field = RealField(prec, sci_not, "RNDU")
         from sage.categories.fields import Fields
-        ParentWithGens.__init__(self, self, tuple([]), False, category = Fields())
+        Field.__init__(self, self, category=Fields().Infinite())
 
     def _lower_field(self):
         """
@@ -1221,6 +1218,9 @@ cdef class RealIntervalFieldElement(RingElement):
         elif isinstance(x, float):
             mpfi_set_d(self.value, <double>x)
         elif hasattr(x, '_real_mpfi_'):
+            # TODO: this is a stupid useless copy!
+            # this case should be handled by coercion once
+            # sage.rings.ring.Ring get rid of old parent inheritance
             d = x._real_mpfi_(self._parent)
             mpfi_set(self.value, d.value)
         elif isinstance(x, tuple):
@@ -1598,7 +1598,7 @@ cdef class RealIntervalFieldElement(RingElement):
 
         Now, consider the precisions needed to represent the endpoints
         (this is the precision that would be produced by
-        ``v.lower().str(no_sci=False, truncate=False)``). Our
+        ``v.lower().str(no_sci=False)``). Our
         result is no more precise than the less precise endpoint, and is
         sufficiently imprecise that the error can be represented with the
         given number of decimal digits. Our result is the most precise
@@ -1685,8 +1685,8 @@ cdef class RealIntervalFieldElement(RingElement):
             style = 'brackets'
 
         if style == 'brackets':
-            t1 = self.lower().str(base=base, no_sci=no_sci, e=e, truncate=False)
-            t2 = self.upper().str(base=base, no_sci=no_sci, e=e, truncate=False)
+            t1 = self.lower().str(base=base, no_sci=no_sci, e=e)
+            t2 = self.upper().str(base=base, no_sci=no_sci, e=e)
 
             return "[%s .. %s]"%(t1, t2)
 
@@ -2211,7 +2211,7 @@ cdef class RealIntervalFieldElement(RingElement):
         EXAMPLES::
 
             sage: R = RealIntervalField(13)
-            sage: R.pi().lower().str(truncate=False)
+            sage: R.pi().lower().str()
             '3.1411'
 
         ::
@@ -2262,7 +2262,7 @@ cdef class RealIntervalFieldElement(RingElement):
         EXAMPLES::
 
             sage: R = RealIntervalField(13)
-            sage: R.pi().upper().str(truncate=False)
+            sage: R.pi().upper().str()
             '3.1417'
 
         ::

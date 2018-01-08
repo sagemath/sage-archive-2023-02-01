@@ -20,7 +20,7 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import MonoidElement
-from sage.structure.indexed_generators import IndexedGenerators
+from sage.structure.indexed_generators import IndexedGenerators, parse_indices_names
 from sage.structure.richcmp import op_EQ, op_NE, richcmp, rich_to_bool
 import sage.data_structures.blas_dict as blas
 
@@ -147,7 +147,7 @@ class IndexedMonoidElement(MonoidElement):
             pref = AsciiArt([P.prefix()])
             def ascii_art_gen(m):
                 if m[1] != 1:
-                    r = (AsciiArt([" "**Integer(len(pref))]) + ascii_art(m[1]))
+                    r = (AsciiArt([" " * len(pref)]) + ascii_art(m[1]))
                 else:
                     r = empty_ascii_art
                 r = r * P._ascii_art_generator(m[0])
@@ -288,7 +288,7 @@ class IndexedMonoidElement(MonoidElement):
             sage: (a*c^3).support()
             [0, 2]
         """
-        supp = set([key for key, exp in self._sorted_items() if exp != 0])
+        supp = set(key for key, exp in self._sorted_items() if exp != 0)
         return sorted(supp)
 
     def leading_support(self):
@@ -497,7 +497,7 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
             :meth:`_repr_`, :meth:`_latex_`, :meth:`print_options`
         """
         print_options = self.parent().print_options()
-        v = self._monomial.items()
+        v = list(self._monomial.items())
         try:
             v.sort(key=print_options['sorting_key'],
                    reverse=print_options['sorting_reverse'])
@@ -578,9 +578,15 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
             Traceback (most recent call last):
             ...
             ValueError: invalid cancellation
+            sage: elt // e^4
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid cancellation
         """
         d = copy(self._monomial)
-        for k,v in iteritems(elt._monomial):
+        for k, v in iteritems(elt._monomial):
+            if k not in d:
+                raise ValueError("invalid cancellation")
             d[k] -= v
         for k,v in d.items():
             if v < 0:
@@ -633,7 +639,7 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
     :class:`~sage.structure.indexed_generators.IndexedGenerators`.
     """
     @staticmethod
-    def __classcall__(cls, indices, prefix="F", **kwds):
+    def __classcall__(cls, indices, prefix=None, names=None, **kwds):
         """
         TESTS::
 
@@ -651,16 +657,11 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
             sage: Groups.Commutative.free()
             Traceback (most recent call last):
             ...
-            ValueError: no index set specified
+            ValueError: either the indices or names must be given
         """
-        if isinstance(indices, str):
-            indices = FiniteEnumeratedSet(list(indices))
-        elif isinstance(indices, (list, tuple)):
-            indices = FiniteEnumeratedSet(indices)
-        elif indices is None:
-            if kwds.get('names', None) is None:
-                raise ValueError("no index set specified")
-            indices = FiniteEnumeratedSet(kwds['names'])
+        names, indices, prefix = parse_indices_names(names, indices, prefix, kwds)
+        if prefix is None:
+            prefix = "F"
 
         # bracket or latex_bracket might be lists, so convert
         # them to tuples so that they're hashable.
@@ -670,7 +671,9 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
         latex_bracket = kwds.get('latex_bracket', None)
         if isinstance(latex_bracket, list):
             kwds['latex_bracket'] = tuple(latex_bracket)
-        return super(IndexedMonoid, cls).__classcall__(cls, indices, prefix, **kwds)
+
+        return super(IndexedMonoid, cls).__classcall__(cls, indices, prefix,
+                                                       names=names, **kwds)
 
     def __init__(self, indices, prefix, category=None, names=None, **kwds):
         """
@@ -708,9 +711,9 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: F.<x,y,z> = FreeMonoid(index_set=ZZ)
-            sage: [x, y, z]
-            [F[0], F[1], F[-1]]
+            sage: F = FreeMonoid(index_set=ZZ)
+            sage: F._first_ngens(3)
+            (F[0], F[1], F[-1])
         """
         it = iter(self._indices)
         return tuple(self.gen(next(it)) for i in range(n))

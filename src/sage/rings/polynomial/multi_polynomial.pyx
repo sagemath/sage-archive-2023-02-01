@@ -10,7 +10,7 @@ Base class for elements of multivariate polynomial rings
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
@@ -33,7 +33,7 @@ from sage.arith.misc import gcd
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.real_mpfr import RealField_class,RealField
 
-from polydict cimport ETuple
+from .polydict cimport ETuple
 
 cdef class MPolynomial(CommutativeRingElement):
 
@@ -517,7 +517,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: id_ringA = ideal([a^2-b,b^2-c,c^2-a])
             sage: id_ringB = ideal(id_ringA.gens()).change_ring(PolynomialRing(QQ,'c,b,a'))
         """
-        from polydict import ETuple
+        from .polydict import ETuple
         if not self:
             return {}
 
@@ -864,7 +864,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: f.change_ring(K.embeddings(CC)[1])
             x^2 + (-0.500000000000000 + 0.866025403784439*I)*y
         """
-        if isinstance(R, Morphism):
+        if isinstance(R, Map):
         #if we're given a hom of the base ring extend to a poly hom
             if R.domain() == self.base_ring():
                 R = self.parent().hom(R, self.parent().change_ring(R.codomain()))
@@ -1236,7 +1236,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: f.sylvester_matrix(g, x).determinant() == f.resultant(g, x)
             True
 
-        TEST:
+        TESTS:
 
         The variable is optional::
 
@@ -2131,7 +2131,7 @@ cdef class MPolynomial(CommutativeRingElement):
 
         if self.parent().ngens() != 2:
             raise ValueError("(=%s) must have two variables"%self)
-        if self.is_homogeneous() != True:
+        if not self.is_homogeneous():
             raise ValueError("(=%s) must be homogenous"%self)
 
         #getting a numerical approximation of the roots of our polynomial
@@ -2214,7 +2214,7 @@ cdef class MPolynomial(CommutativeRingElement):
                 a += b
                 d = (t-(L[j].real()))/((t-(L[j])) * (t-(L[j].conjugate())) + u**2)
                 c += d
-            #Newton's Method, to to find solutions. Error bound is while less than diameter of our z
+            #Newton's Method, to find solutions. Error bound is while less than diameter of our z
             err = z.diameter()
             zz = z.diameter()
             n = F.degree()

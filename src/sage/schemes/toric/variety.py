@@ -586,19 +586,21 @@ class ToricVariety_field(AmbientSpace):
         self._coordinate_prefix = coordinate_names.pop()
         self._assign_names(names=coordinate_names, normalize=False)
 
-    def __cmp__(self, right):
+    def __eq__(self, right):
         r"""
-        Compare ``self`` and ``right``.
+        Check equality of ``self`` and ``right``.
 
         INPUT:
 
-        - ``right`` -- anything.
+        - ``right`` -- anything
 
         OUTPUT:
 
-        - 0 if ``right`` is of the same type as ``self``, their fans are the
-          same, names of variables are the same and stored in the same order,
-          and base fields are the same. 1 or -1 otherwise.
+        boolean
+
+        ``True`` if and only if ``right`` is of the same type as ``self``,
+        their fans are the same, names of variables are the same and
+        stored in the same order, and base fields are the same.
 
         TESTS::
 
@@ -606,26 +608,53 @@ class ToricVariety_field(AmbientSpace):
             sage: P1xP1 = ToricVariety(fan)
             sage: P1xP1a = ToricVariety(fan, "x s y t")
             sage: P1xP1b = ToricVariety(fan)
-            sage: cmp(P1xP1, P1xP1a)
-            1
-            sage: cmp(P1xP1a, P1xP1)
-            -1
-            sage: cmp(P1xP1, P1xP1b)
-            0
+
+            sage: P1xP1 == P1xP1a
+            False
+            sage: P1xP1a == P1xP1
+            False
+            sage: P1xP1 == P1xP1b
+            True
             sage: P1xP1 is P1xP1b
             False
-            sage: cmp(P1xP1, ZZ) * cmp(ZZ, P1xP1)
-            -1
         """
-        c = cmp(type(self), type(right))
-        if c:
-            return c
-        return cmp([self.fan(),
-                    self.variable_names(),
-                    self.base_ring()],
-                   [right.fan(),
-                    right.variable_names(),
-                    right.base_ring()])
+        if not isinstance(right, ToricVariety_field):
+            return False
+        return (self.fan() == right.fan() and
+                self.variable_names() == right.variable_names() and
+                self.base_ring() == right.base_ring())
+
+    def __ne__(self, other):
+        """
+        Check not-equality of ``self`` and ``other``.
+
+        INPUT:
+
+        - ``other`` -- anything
+
+        OUTPUT:
+
+        boolean
+
+        ``True`` if and only if ``other`` is of the same type as ``self``,
+        their fans are the same, names of variables are the same and
+        stored in the same order, and base fields are the same.
+
+        TESTS::
+
+            sage: fan = FaceFan(lattice_polytope.cross_polytope(2))
+            sage: P1xP1 = ToricVariety(fan)
+            sage: P1xP1a = ToricVariety(fan, "x s y t")
+            sage: P1xP1b = ToricVariety(fan)
+
+            sage: P1xP1 != P1xP1a
+            True
+            sage: P1xP1a != P1xP1
+            True
+            sage: P1xP1 != P1xP1b
+            False
+        """
+        return not (self == other)
 
     def _an_element_(self):
         r"""
@@ -1082,7 +1111,7 @@ class ToricVariety_field(AmbientSpace):
             sage: R = toric_varieties.A1().coordinate_ring();  R
             Multivariate Polynomial Ring in z over Rational Field
             sage: type(R)
-            <type 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomialRing_libsingular'>
+            <... 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomialRing_libsingular'>
         """
         if "_coordinate_ring" not in self.__dict__:
             names = self.variable_names()
@@ -1827,7 +1856,7 @@ class ToricVariety_field(AmbientSpace):
         OUTPUT:
 
         - :class:`subscheme of a toric variety
-          <sage.schemes.generic.algebraic_scheme.AlgebraicScheme_subscheme_toric>`.
+          <sage.schemes.toric.toric_subscheme.AlgebraicScheme_subscheme_toric>`.
 
         EXAMPLES:
 
@@ -1860,7 +1889,7 @@ class ToricVariety_field(AmbientSpace):
               To:   Spectrum of Rational Field
               Defn: Structure map
         """
-        from sage.schemes.generic.algebraic_scheme import \
+        from sage.schemes.toric.toric_subscheme import\
             AlgebraicScheme_subscheme_toric, AlgebraicScheme_subscheme_affine_toric
         if self.is_affine():
             return AlgebraicScheme_subscheme_affine_toric(self, polynomials)
@@ -2183,9 +2212,7 @@ class ToricVariety_field(AmbientSpace):
 
         REFERENCES:
 
-        ..
-
-            http://en.wikipedia.org/wiki/Chern_class
+        - :wikipedia:`Chern_class`
 
         EXAMPLES::
 
@@ -2230,9 +2257,7 @@ class ToricVariety_field(AmbientSpace):
 
         REFERENCES:
 
-        ..
-
-            http://en.wikipedia.org/wiki/Chern_character#The_Chern_character
+        - :wikipedia:`Chern_character#The_Chern_character`
 
         EXAMPLES::
 
@@ -2271,9 +2296,7 @@ class ToricVariety_field(AmbientSpace):
 
         REFERENCES:
 
-        ..
-
-            http://en.wikipedia.org/wiki/Todd_class
+        - :wikipedia:`Todd_class`
 
         EXAMPLES::
 
@@ -2319,9 +2342,7 @@ class ToricVariety_field(AmbientSpace):
 
         REFERENCES:
 
-        ..
-
-            http://en.wikipedia.org/wiki/Euler_characteristic
+        - :wikipedia:`Euler_characteristic`
 
         EXAMPLES::
 
@@ -2621,7 +2642,7 @@ class ToricVariety_field(AmbientSpace):
         OUTPUT:
 
         A :class:`affine algebraic subscheme
-        <sage.schemes.generic.algebraic_scheme.AlgebraicScheme_subscheme_affine>`
+        <sage.schemes.affine.affine_subscheme.AlgebraicScheme_subscheme_affine>`
         corresponding to the patch `\mathop{Spec}(\sigma^\vee \cap M)`
         associated to the cone `\sigma`.
 

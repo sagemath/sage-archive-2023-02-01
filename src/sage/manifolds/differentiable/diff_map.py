@@ -708,7 +708,7 @@ class DiffMap(ContinuousMap):
 
         - the functions `J_{ij}` as a double array, `J_{ij}` being
           the element ``[i][j]`` represented by a
-          :class:`~sage.manifolds.coord_func.CoordFunction`
+          :class:`~sage.manifolds.chart_func.ChartFunction`
 
         To get symbolic expressions, use the method
         :meth:`jacobian_matrix` instead.
@@ -740,7 +740,8 @@ class DiffMap(ContinuousMap):
             sage: J[2][0]
             2*x
             sage: type(J[2][0])
-            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category.element_class'>
+            <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category.element_class'>
+
             sage: J[2][0].display()
             (x, y) |--> 2*x
 
@@ -928,7 +929,8 @@ class DiffMap(ContinuousMap):
             dom1 = diff_map._domain
             dom2 = diff_map._codomain
             ncov = tensor._tensor_type[1]
-            resu_name = None ; resu_latex_name = None
+            resu_name = None
+            resu_latex_name = None
             if diff_map._name is not None and tensor._name is not None:
                 resu_name = diff_map._name + '_*(' + tensor._name + ')'
             if (diff_map._latex_name is not None and
@@ -1001,7 +1003,8 @@ class DiffMap(ContinuousMap):
         if ncon != 0:
             raise TypeError("the pullback cannot be taken on a tensor " +
                             "with some contravariant part")
-        resu_name = None ; resu_latex_name = None
+        resu_name = None
+        resu_latex_name = None
         if self._name is not None and tensor._name is not None:
             resu_name = self._name + '_*(' + tensor._name + ')'
         if self._latex_name is not None and tensor._latex_name is not None:
@@ -1214,7 +1217,8 @@ class DiffMap(ContinuousMap):
                 res += t
             ptcomp[ind_new] = res
         # Name of the result:
-        resu_name = None ; resu_latex_name = None
+        resu_name = None
+        resu_latex_name = None
         if self._name is not None and tensor._name is not None:
             resu_name = self._name + '^*(' + tensor._name + ')'
         if self._latex_name is not None and tensor._latex_name is not None:
@@ -1223,4 +1227,3 @@ class DiffMap(ContinuousMap):
         resu = fmodule2.tensor_from_comp((ncon, 0), ptcomp, name=resu_name,
                                          latex_name=resu_latex_name)
         return resu
-

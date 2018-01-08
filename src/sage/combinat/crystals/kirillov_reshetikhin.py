@@ -1605,6 +1605,38 @@ class KR_type_A2(KirillovReshetikhinGenericCrystal):
         sage: G.is_isomorphic(Gnew, edge_labels = True)
         True
     """
+    def module_generator(self):
+        r"""
+        Return the unique module generator of classical weight
+        `s \Lambda_r` of a Kirillov-Reshetikhin crystal `B^{r,s}`.
+
+        EXAMPLES::
+
+            sage: ct = CartanType(['A',8,2]).dual()
+            sage: K = crystals.KirillovReshetikhin(ct, 3, 5)
+            sage: K.module_generator()
+            [[1, 1, 1, 1, 1], [2, 2, 2, 2, 2], [3, 3, 3, 3, 3]]
+
+        TESTS:
+
+        Check that :trac:`23028` is fixed::
+
+            sage: ct = CartanType(['A',8,2]).dual()
+            sage: K = crystals.KirillovReshetikhin(ct, 4, 3)
+            sage: K.module_generator()
+            [[1, 1, 1], [2, 2, 2], [3, 3, 3], [4, 4, 4]]
+            sage: K = crystals.KirillovReshetikhin(ct, 4, 1)
+            sage: K.module_generator()
+            [[1], [2], [3], [4]]
+        """
+        R = self.weight_lattice_realization()
+        Lambda = R.fundamental_weights()
+        r = self.r()
+        s = self.s()
+        weight = s*Lambda[r] - s*Lambda[0]
+        if r == self.cartan_type().rank() - 1:
+            weight += s*Lambda[r] # Special case for r == n
+        return [b for b in self.module_generators if b.weight() == weight][0]
 
     def classical_decomposition(self):
         r"""

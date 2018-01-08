@@ -752,7 +752,7 @@ Finally, we check that this indeed computes the Gray code of the first
 Using the hook-functions
 ------------------------
 
-Let's use the :ref:`previous example "divison by
+Let's use the :ref:`previous example "division by
 3" <finite_state_machine_division_by_3_example>` to demonstrate the optional
 state and transition parameters ``hook``.
 
@@ -2860,7 +2860,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         ``LookupError`` or return an empty list.
 
         When constructing a finite state machine in this way, some
-        inital states and an input alphabet have to be specified.
+        initial states and an input alphabet have to be specified.
 
         ::
 
@@ -4328,7 +4328,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             \path[->] (v0) edge[loop above] node {$0\mid 3 2 1$} ();
             \end{tikzpicture}
 
-        TEST:
+        TESTS:
 
         Check that :trac:`16357` is fixed::
 
@@ -4409,7 +4409,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                 \path[->] (v0) edge node[rotate=360.00, anchor=south] {$t$} (v1);
                 \end{tikzpicture}
 
-        TEST:
+        TESTS:
 
         Check that :trac:`16357` is fixed::
 
@@ -10046,8 +10046,8 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             x^2 - x - 1
             sage: R.<phi> = NumberField(x^2-x-1, embedding=1.6)
             sage: N = NAFp.number_of_words(base_ring=R); N
-            1/10*(1/2*sqrt(5) + 1/2)^n*(3*sqrt(5) + 5)
-            - 1/10*(-1/2*sqrt(5) + 1/2)^n*(3*sqrt(5) - 5)
+            1/2*(1/2*sqrt(5) + 1/2)^n*(3*sqrt(1/5) + 1)
+            - 1/2*(-1/2*sqrt(5) + 1/2)^n*(3*sqrt(1/5) - 1)
             sage: all(len(list(NAFp.language(s)))
             ....:     - len(list(NAFp.language(s-1))) == N.subs(n=s)
             ....:     for s in srange(1, 6))
@@ -10554,7 +10554,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         (x, y, z) = R.gens()
         try:
             M = get_matrix(self, x, y)
-        except TypeError:
+        except (TypeError, ValueError):
             sage.misc.misc.verbose(
                 "Non-integer output weights lead to "
                 "significant performance degradation.", level=0)
@@ -11034,7 +11034,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
           ``max_length`` will be considered. If ``None``, then this
           iterates over all possible words without length restrictions.
 
-        - ``kwargs`` -- will be passed on to to the :class:`process
+        - ``kwargs`` -- will be passed on to the :class:`process
           iterator <FSMProcessIterator>`. See :meth:`process` for a
           description.
 
@@ -12309,7 +12309,7 @@ class Automaton(FiniteStateMachine):
           considered. If ``None``, then this iterates over all
           possible words without length restrictions.
 
-        - ``kwargs`` -- will be passed on to to the :class:`process
+        - ``kwargs`` -- will be passed on to the :class:`process
           iterator <FSMProcessIterator>`. See :meth:`process` for a
           description.
 

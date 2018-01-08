@@ -21,7 +21,8 @@ from sage.libs.pynac.pynac import symbol_table
 from sage.symbolic.constants import (pi, e, golden_ratio, log2, euler_gamma,
                                      catalan, khinchin, twinprime, mertens)
 from sage.functions.hypergeometric import hypergeometric
-
+from sage.functions.other import cases
+from sage.symbolic.comparison import mixed_order
 
 ###################################################################
 ### Generate random expressions for doctests ######################
@@ -55,7 +56,8 @@ def _mk_full_functions():
             for (name, f) in items
             if hasattr(f, 'number_of_arguments') and
                f.number_of_arguments() > 0 and
-               f != hypergeometric]
+               f != hypergeometric and
+               f != cases]
 
 # For creating simple expressions
 
@@ -66,7 +68,7 @@ fast_nodes = [(0.9, fast_binary, 2), (0.1, fast_unary, 1)]
 # For creating expressions with the full power of Pynac's simple expression
 # subset (with no quantifiers/operators; that is, no derivatives, integrals,
 # etc.)
-full_binary = [(0.3, operator.add), (0.1, operator.sub), (0.3, operator.mul), (0.2, operator.div), (0.1, operator.pow)]
+full_binary = [(0.3, operator.add), (0.1, operator.sub), (0.3, operator.mul), (0.2, operator.truediv), (0.1, operator.pow)]
 full_unary = [(0.8, operator.neg), (0.2, operator.inv)]
 full_functions = _mk_full_functions()
 full_nullary = [(1.0, c) for c in [pi, e]] + [(0.05, c) for c in
@@ -417,10 +419,10 @@ def test_symbolic_expression_order(repetitions=100):
             except (ZeroDivisionError, ValueError):
                 pass
 
-    for rep in range(0, repetitions):
+    for rep in range(repetitions):
         a = make_random_expr()
         b = make_random_expr()
         c = make_random_expr()
-        assert_strict_weak_order(a, b, c, lambda x,y: x._cmp_(y))
+        assert_strict_weak_order(a, b, c, mixed_order)
         assert_strict_weak_order(a, b, c, lambda x,y: x._cmp_add(y))
         assert_strict_weak_order(a, b, c, lambda x,y: x._cmp_mul(y))

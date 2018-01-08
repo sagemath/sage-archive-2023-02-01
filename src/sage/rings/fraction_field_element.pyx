@@ -17,29 +17,18 @@ REFERENCES:
 """
 
 #*****************************************************************************
-#
-#   Sage: System for Algebra and Geometry Experimentation
-#
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from __future__ import absolute_import
 
-import operator
-
-from sage.structure.element cimport (FieldElement, ModuleElement, RingElement,
-                                     Element)
-from sage.structure.element import parent
+from sage.structure.element cimport FieldElement, parent
 from sage.structure.richcmp cimport richcmp
 
 from . import integer_ring
@@ -51,7 +40,7 @@ import sage.misc.latex as latex
 
 def is_FractionFieldElement(x):
     """
-    Returns whether or not ``x`` is a :class`FractionFieldElement`.
+    Return whether or not ``x`` is a :class:`FractionFieldElement`.
 
     EXAMPLES::
 

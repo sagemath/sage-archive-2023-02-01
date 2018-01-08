@@ -35,16 +35,10 @@ value that is being garbage collected::
     sage: len(D)
     10
     sage: del ValList, v
-    Exception KeyError: (<__main__.Keys instance at ...>,) in <function remove at ...> ignored
-    Exception KeyError: (<__main__.Keys instance at ...>,) in <function remove at ...> ignored
-    Exception KeyError: (<__main__.Keys instance at ...>,) in <function remove at ...> ignored
-    Exception KeyError: (<__main__.Keys instance at ...>,) in <function remove at ...> ignored
-    ...
     sage: len(D) > 1
     True
 
-Hence, there are scary error messages, and moreover the defunct items have not
-been removed from the dictionary.
+Hence, the defunct items have not been removed from the dictionary.
 
 Therefore, Sage provides an alternative implementation
 :class:`sage.misc.weak_dict.WeakValueDictionary`, using a callback that
@@ -106,18 +100,23 @@ Note that Sage's weak value dictionary is actually an instance of
 
 See :trac:`13394` for a discussion of some of the design considerations.
 """
-########################################################################
+
+#*****************************************************************************
 #       Copyright (C) 2013 Simon King <simon.king@uni-jena.de>
 #                          Nils Bruin <nbruin@sfu.ca>
 #                          Julian Rueth <julian.rueth@fsfe.org>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-########################################################################
-from __future__ import print_function
+#*****************************************************************************
+
+from __future__ import absolute_import, print_function
 
 import weakref
+import six
 from weakref import KeyedRef
 from copy import deepcopy
 
@@ -125,7 +124,7 @@ from cpython.dict cimport *
 from cpython.weakref cimport PyWeakref_NewRef
 from cpython.object cimport PyObject_Hash
 from cpython cimport Py_XINCREF, Py_XDECREF
-from dict_del_by_value cimport *
+from sage.cpython.dict_del_by_value cimport *
 
 cdef extern from "Python.h":
     PyObject* Py_None
@@ -337,7 +336,7 @@ cdef class WeakValueDictionary(dict):
         self._guard_level = 0
         self._pending_removals = []
         try:
-            data=data.iteritems()
+            data = six.iteritems(data)
         except AttributeError:
             pass
         for k,v in data:

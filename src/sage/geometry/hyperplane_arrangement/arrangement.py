@@ -330,6 +330,7 @@ arrangements.
 
 from sage.structure.parent import Parent
 from sage.structure.element import Element
+from sage.structure.richcmp import richcmp
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.all import QQ, ZZ
 from sage.misc.cachefunc import cached_method
@@ -547,7 +548,7 @@ class HyperplaneArrangementElement(Element):
         normals = [h.normal() for h in self]
         return matrix(R, normals).rank()
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         Compare two hyperplane arrangements.
 
@@ -556,11 +557,13 @@ class HyperplaneArrangementElement(Element):
             sage: H.<x,y,z> = HyperplaneArrangements(QQ)
             sage: H(x) == H(y)
             False
+
+        TESTS::
+
             sage: H(x) == 0
             False
         """
-        assert type(self) is type(other) and self.parent() is other.parent()  # guaranteed by framework
-        return cmp(self._hyperplanes, other._hyperplanes)
+        return richcmp(self._hyperplanes, other._hyperplanes, op)
 
     def union(self, other):
         r"""
@@ -1209,7 +1212,7 @@ class HyperplaneArrangementElement(Element):
             assert row[pivot] == 1
             echelon_pivots.append(pivot)
             hyperplanes = [h - h.A()[pivot] * H(row, 0) for h in hyperplanes]
-        # eliminate the pivot'ed coodinates
+        # eliminate the pivot'ed coordinates
         restricted = []
         for h in hyperplanes:
             A = h.A()
@@ -1978,7 +1981,7 @@ class HyperplaneArrangementElement(Element):
         # Some hackery to generate a matrix quickly and without
         # unnecessary sanitization/ducktyping:
         MS = MatrixSpace(field, N, N)
-        MC = MS._get_matrix_class()
+        MC = MS._matrix_class
         table = []
         for j, sj in enumerate(Fs):
             matrix_j = []
@@ -2963,7 +2966,7 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
             sage: L._element_constructor_([[0, 1, 0], [0, 0, 1]])
             Arrangement <y | x>
 
-            sage: L._element_constructor(polytopes.hypercube(2))
+            sage: L._element_constructor_(polytopes.hypercube(2))
             Arrangement <-x + 1 | -y + 1 | y + 1 | x + 1>
 
             sage: L(x, x, warn_duplicates=True)
@@ -3102,15 +3105,13 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
             Hyperplane arrangements in 1-dimensional linear space over Real Field with 53 bits of precision with coordinate y
 
             sage: L.coerce_map_from(ZZ)
-            Conversion map:
+            Coercion map:
               From: Integer Ring
               To:   Hyperplane arrangements in 1-dimensional linear space over Rational Field with coordinate x
             sage: M.coerce_map_from(L)
-            Conversion map:
-              From: Hyperplane arrangements in 1-dimensional linear space over
-                    Rational Field with coordinate x
-              To:   Hyperplane arrangements in 1-dimensional linear space over
-                    Real Field with 53 bits of precision with coordinate y
+            Coercion map:
+              From: Hyperplane arrangements in 1-dimensional linear space over Rational Field with coordinate x
+              To:   Hyperplane arrangements in 1-dimensional linear space over Real Field with 53 bits of precision with coordinate y
             sage: L.coerce_map_from(M)
         """
         if self.ambient_space().has_coerce_map_from(P):

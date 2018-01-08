@@ -131,6 +131,7 @@ cdef class Map(Element):
         self._codomain = C
         self.domain    = ConstantFunction(D)
         self.codomain  = ConstantFunction(C)
+        self._is_coercion = False
         if D.is_exact() and C.is_exact():
             self._coerce_cost = 10 # default value.
         else:
@@ -175,7 +176,7 @@ cdef class Map(Element):
         # Element.__copy__ updates the __dict__, but not the slots.
         # Let's do this now, but with strong references.
         out._parent = self.parent() # self._parent might be None
-        out._update_slots(self._extra_slots({}))
+        out._update_slots(self._extra_slots())
         return out
 
     def parent(self):
@@ -363,15 +364,16 @@ cdef class Map(Element):
         self.domain = ConstantFunction(D)
         self._parent = homset.Hom(D, C, self._category_for)
 
-    cdef _update_slots(self, dict _slots):
+    cdef _update_slots(self, dict slots):
         """
-        Auxiliary method, used in pickling and copying.
+        Set various attributes of this map to implement unpickling.
 
         INPUT:
 
-        - A dictionary of slots to be updated.
-          The dictionary must have the keys ``'_domain'`` and ``'_codomain'``,
-          and may have the key ``'_repr_type_str'``.
+        - ``slots`` -- A dictionary of slots to be updated.
+          The dictionary must have the keys ``'_domain'`` and
+          ``'_codomain'``, and may have the keys ``'_repr_type_str'``
+          and ``'_is_coercion'``.
 
         TESTS:
 
@@ -393,16 +395,14 @@ cdef class Map(Element):
         # todo: the following can break during unpickling of complex
         # objects with circular references! In that case, _slots might
         # contain incomplete objects.
-        self.domain = ConstantFunction(_slots['_domain'])
-        self._codomain = _slots['_codomain']
+        self.domain = ConstantFunction(slots['_domain'])
+        self._codomain = slots['_codomain']
         self.codomain = ConstantFunction(self._codomain)
 
-        # Several pickles exist without a _repr_type_str, so
-        # if there is none saved, we just set it to None.
-        if '_repr_type_str' in _slots:
-            self._repr_type_str = _slots['_repr_type_str']
-        else:
-            self._repr_type_str = None
+        # Several pickles exist without the following, so these are
+        # optional
+        self._repr_type_str = slots.get('_repr_type_str')
+        self._is_coercion = slots.get('_is_coercion')
 
     def _update_slots_test(self, _slots):
         """
@@ -424,24 +424,17 @@ cdef class Map(Element):
         """
         self._update_slots(_slots)
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
-        Auxiliary method, used in pickling.
-
-        INPUT:
-
-        A dictionary.
-
-        OUTPUT:
-
-        The given dictionary, that is updated by the slots '_domain', '_codomain' and '_repr_type_str'.
+        Return a dict with attributes to pickle and copy this map.
         """
-        _slots['_domain'] = self.domain()
-        _slots['_codomain'] = self._codomain
-        _slots['_repr_type_str'] = self._repr_type_str
-        return _slots
+        return dict(
+                _domain=self.domain(),
+                _codomain=self._codomain,
+                _is_coercion=self._is_coercion,
+                _repr_type_str=self._repr_type_str)
 
-    def _extra_slots_test(self, _slots):
+    def _extra_slots_test(self):
         """
         A Python method to test the cdef _extra_slots method.
 
@@ -449,13 +442,13 @@ cdef class Map(Element):
 
             sage: from sage.categories.map import Map
             sage: f = Map(Hom(QQ, ZZ, Rings()))
-            sage: f._extra_slots_test({"bla": 1})
+            sage: f._extra_slots_test()
             {'_codomain': Integer Ring,
              '_domain': Rational Field,
-             '_repr_type_str': None,
-             'bla': 1}
+             '_is_coercion': False,
+             '_repr_type_str': None}
         """
-        return self._extra_slots(_slots)
+        return self._extra_slots()
 
     def __reduce__(self):
         """
@@ -475,7 +468,7 @@ cdef class Map(Element):
             _dict = self.__dict__
         else:
             _dict = {}
-        return unpickle_map, (self.__class__, self._parent, _dict, self._extra_slots({}))
+        return unpickle_map, (type(self), self.parent(), _dict, self._extra_slots())
 
     def _repr_type(self):
         """
@@ -628,11 +621,12 @@ cdef class Map(Element):
             sage: f = R.hom([x+y, x-y], R)
             sage: f.category_for()
             Join of Category of unique factorization domains
-             and Category of commutative algebras over (quotient fields and metric spaces)
+             and Category of commutative algebras over
+                 (number fields and quotient fields and metric spaces)
             sage: f.category()
             Category of endsets of unital magmas
-             and right modules over (quotient fields and metric spaces)
-             and left modules over (quotient fields and metric spaces)
+             and right modules over (number fields and quotient fields and metric spaces)
+             and left modules over (number fields and quotient fields and metric spaces)
 
 
         FIXME: find a better name for this method
@@ -691,7 +685,7 @@ cdef class Map(Element):
             sage: phi(I)
             Ideal (y, x) of Multivariate Polynomial Ring in x, y over Rational Field
 
-        TEST:
+        TESTS:
 
         We test that the map can be applied to something that converts
         (but not coerces) into the domain and can *not* be dealt with
@@ -994,7 +988,7 @@ cdef class Map(Element):
             sage: phi_xz.category_for()
             Category of monoids
 
-        TEST:
+        TESTS:
 
         This illustrates that it is not tested whether the maps can actually
         be composed, i.e., whether codomain and domain match.
@@ -1341,7 +1335,7 @@ cdef class Section(Map):
         Map.__init__(self, Hom(map.codomain(), map.domain(), SetsWithPartialMaps()))
         self._inverse = map    # TODO: Use this attribute somewhere!
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for pickling and copying.
 
@@ -1356,8 +1350,9 @@ cdef class Section(Map):
               From: Multivariate Polynomial Ring in x, y over Rational Field
               To:   Multivariate Polynomial Ring in x, y over Rational Field
         """
-        _slots['_inverse'] = self._inverse
-        return Map._extra_slots(self, _slots)
+        slots = Map._extra_slots(self)
+        slots['_inverse'] = self._inverse
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """
@@ -1536,10 +1531,10 @@ cdef class FormalCompositeMap(Map):
 
             sage: copy(QQ['q,t'].coerce_map_from(int))   # indirect doctest
             Composite map:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Multivariate Polynomial Ring in q, t over Rational Field
               Defn:   Native morphism:
-                      From: Set of Python objects of type 'int'
+                      From: Set of Python objects of class 'int'
                       To:   Rational Field
                     then
                       Polynomial base injection morphism:
@@ -1567,7 +1562,7 @@ cdef class FormalCompositeMap(Map):
         self.__list = _slots['__list']
         Map._update_slots(self, _slots)
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Used in pickling and copying.
 
@@ -1583,8 +1578,9 @@ cdef class FormalCompositeMap(Map):
             sage: m == loads(dumps(m))    # indirect doctest
             True
         """
-        _slots['__list'] = self.__list
-        return Map._extra_slots(self, _slots)
+        slots = Map._extra_slots(self)
+        slots['__list'] = self.__list
+        return slots
 
     def __richcmp__(self, other, int op):
         """
@@ -1880,6 +1876,16 @@ cdef class FormalCompositeMap(Map):
             True
 
         """
+        try:
+            # we try the category first
+            # as of 2017-06, the MRO of this class does not get patched to
+            # include the category's MorphismMethods (because it is a Cython
+            # class); therefore, we can not simply call "super" but need to
+            # invoke the category method explicitly
+            return self.getattr_from_category('is_injective')()
+        except (AttributeError, NotImplementedError):
+            pass
+
         injectives = []
         for f in self.__list:
             if f.is_injective():
@@ -1936,6 +1942,16 @@ cdef class FormalCompositeMap(Map):
             ...
             NotImplementedError: Not enough information to deduce surjectivity.
         """
+        try:
+            # we try the category first
+            # as of 2017-06, the MRO of this class does not get patched to
+            # include the category's MorphismMethods (because it is a Cython
+            # class); therefore, we can not simply call "super" but need to
+            # invoke the category method explicitly
+            return self.getattr_from_category('is_surjective')()
+        except (AttributeError, NotImplementedError):
+            pass
+
         surjectives = []
         for f in self.__list[::-1]:
             if f.is_surjective():

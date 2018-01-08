@@ -19,9 +19,6 @@ cpdef inline parent(x):
 
     - If ``x`` is a Sage :class:`Element`, return ``x.parent()``.
 
-    - If ``x`` has a ``parent`` method and ``x`` does not have an
-      ``__int__`` or ``__float__`` method, return ``x.parent()``.
-
     - Otherwise, return ``type(x)``.
 
     .. SEEALSO::
@@ -62,15 +59,7 @@ cpdef inline parent(x):
     """
     if isinstance(x, Element):
         return (<Element>x)._parent
-    # Fast check for "number" types, including int and float
-    if PyNumber_Check(x):
-        return type(x)
-    try:
-        p = x.parent
-    except AttributeError:
-        return type(x)
-    else:
-        return p()
+    return type(x)
 
 
 cdef inline int classify_elements(left, right):
@@ -146,9 +135,9 @@ cpdef inline bint have_same_parent(left, right):
         sage: a = RLF(2)
         sage: b = exp(a)
         sage: type(a)
-        <type 'sage.rings.real_lazy.LazyWrapper'>
+        <... 'sage.rings.real_lazy.LazyWrapper'>
         sage: type(b)
-        <type 'sage.rings.real_lazy.LazyNamedUnop'>
+        <... 'sage.rings.real_lazy.LazyNamedUnop'>
         sage: have_same_parent(a, b)
         True
     """
@@ -215,9 +204,9 @@ cdef class ModuleElement(Element):
     cpdef _neg_(self)
 
     # self._rmul_(x) is x * self
-    cpdef _lmul_(self, RingElement right)
+    cpdef _lmul_(self, Element right)
     # self._lmul_(x) is self * x
-    cpdef _rmul_(self, RingElement left)
+    cpdef _rmul_(self, Element left)
 
 cdef class MonoidElement(Element):
     pass
@@ -294,5 +283,3 @@ cdef class CoercionModel:
     cpdef richcmp(self, x, y, int op)
 
 cdef CoercionModel coercion_model
-
-cdef generic_power_c(a, nn, one)

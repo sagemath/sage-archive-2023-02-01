@@ -9,10 +9,10 @@
 cimport sage.structure.category_object
 from sage.structure.coerce_dict cimport MonoDict, TripleDict
 
-cdef class Parent(category_object.CategoryObject):
-    cdef public _element_constructor
+cdef class Parent(sage.structure.category_object.CategoryObject):
+    cdef _element_constructor
+    cdef bint _element_init_pass_parent
     cdef public _convert_method_name
-    cdef public bint _element_init_pass_parent
     cdef public _initial_coerce_list
     cdef public _initial_action_list
     cdef public _initial_convert_list
@@ -23,8 +23,8 @@ cdef class Parent(category_object.CategoryObject):
     cdef inline bint get_flag(self, int flag):
         return self.flags & flag
 
-    cpdef bint is_coercion_cached(self, domain)
-    cpdef bint is_conversion_cached(self, domain)
+    cpdef bint _is_coercion_cached(self, domain)
+    cpdef bint _is_conversion_cached(self, domain)
     cpdef register_coercion(self, mor)
     cpdef register_action(self, action)
     cpdef register_conversion(self, mor)

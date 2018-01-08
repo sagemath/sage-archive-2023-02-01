@@ -38,9 +38,9 @@ The libSINGULAR interface was implemented by
 
 - Volker Braun (2011-06): Major cleanup, refcount singular rings, bugfixes.
 
-TODO:
+.. TODO::
 
-- implement Real, Complex coefficient rings via libSINGULAR
+    Implement Real, Complex coefficient rings via libSINGULAR
 
 EXAMPLES:
 
@@ -137,7 +137,7 @@ TESTS::
     sage: loads(dumps(x)) == x
     True
 
-    sage: Rt.<t> = PolynomialRing(QQ,1)
+    sage: Rt.<t> = PolynomialRing(QQ, implementation="singular")
     sage: p = 1+t
     sage: R.<u,v> = PolynomialRing(QQ, 2)
     sage: p(u/v)
@@ -353,7 +353,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: P(2^32-1)
             4294967295
 
-        TEST:
+        TESTS:
 
         Make sure that a faster coercion map from the base ring is used;
         see :trac:`9944`::
@@ -363,6 +363,26 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             Polynomial base injection morphism:
               From: Integer Ring
               To:   Multivariate Polynomial Ring in x, y over Integer Ring
+
+        Check some invalid input::
+
+            sage: from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
+            sage: MPolynomialRing_libsingular(Zmod(1), 1, ["x"], "lex")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: polynomials over Ring of integers modulo 1 are not supported in Singular
+            sage: MPolynomialRing_libsingular(SR, 1, ["x"], "lex")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: polynomials over Symbolic Ring are not supported in Singular
+            sage: MPolynomialRing_libsingular(QQ, 0, [], "lex")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: polynomials in 0 variables are not supported in Singular
+            sage: MPolynomialRing_libsingular(QQ, -1, [], "lex")
+            Traceback (most recent call last):
+            ...
+            ValueError: Multivariate Polynomial Rings must have more than 0 variables.
         """
         MPolynomialRing_generic.__init__(self, base_ring, n, names, order)
         self._has_singular = True
@@ -470,9 +490,9 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: R.has_coerce_map_from(ZZ['t'])
             False
             sage: R.coerce_map_from(ZZ['x'])
-            Conversion map:
-            From: Univariate Polynomial Ring in x over Integer Ring
-            To:   Multivariate Polynomial Ring in x, y over Rational Field
+            Coercion map:
+              From: Univariate Polynomial Ring in x over Integer Ring
+              To:   Multivariate Polynomial Ring in x, y over Rational Field
 
         """
         base_ring = self.base_ring()
@@ -769,7 +789,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         cdef long mpos
         cdef MPolynomial_libsingular Element
         cdef MPolynomialRing_libsingular El_parent
-        cdef unsigned int i, j
+        cdef int i, j
         cdef list ind_map = []
         cdef int e
         if _ring!=currRing: rChangeCurrRing(_ring)
@@ -1947,9 +1967,10 @@ def unpickle_MPolynomialRing_libsingular(base_ring, names, term_order):
     from sage.rings.polynomial.polynomial_ring_constructor import _multi_variate
     # If libsingular would be replaced by a different implementation in future
     # sage version, the unpickled ring will belong the new implementation.
-    return _multi_variate(base_ring, tuple(names), len(names), False, term_order, None)
+    return _multi_variate(base_ring, tuple(names), None, term_order, None)
 
-cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolynomial):
+
+cdef class MPolynomial_libsingular(MPolynomial):
     """
     A multivariate polynomial implemented using libSINGULAR.
     """
@@ -2270,7 +2291,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                                 _ring)
         return new_MP((<MPolynomial_libsingular>left)._parent, _p)
 
-    cpdef _lmul_(self, RingElement left):
+    cpdef _lmul_(self, Element left):
         """
         Multiply self with a base ring element.
 
@@ -2395,7 +2416,8 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         """
         Return ``self**(exp)``.
 
-        The exponent must be an integer.
+        The exponent must be an integer or a rational such that
+        the result lies in the same polynomial ring.
 
         EXAMPLES::
 
@@ -2416,19 +2438,60 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: u^(1/2)
             Traceback (most recent call last):
             ...
-            TypeError: non-integral exponents not supported
+            ValueError: (u)^(1/2) does not lie in Multivariate Polynomial Ring
+            in u, v over Rational Field
 
             sage: P.<x,y> = PolynomialRing(QQ,order='lex')
             sage: (x+y^2^15)^10
             Traceback (most recent call last):
             ....
             OverflowError: exponent overflow (...)
+
+        Test fractional powers (:trac:`22329`)::
+
+            sage: P.<R, S> = ZZ[]
+            sage: (R^3 + 6*R^2*S + 12*R*S^2 + 8*S^3)^(1/3)
+            R + 2*S
+            sage: _.parent()
+            Multivariate Polynomial Ring in R, S over Integer Ring
+            sage: P(4)^(1/2)
+            2
+            sage: _.parent()
+            Multivariate Polynomial Ring in R, S over Integer Ring
+
+            sage: (R^2 + 3)^(1/2)
+            Traceback (most recent call last):
+            ...
+            ValueError: (R^2 + 3)^(1/2) does not lie in
+            Multivariate Polynomial Ring in R, S over Integer Ring
+            sage: P(2)^P(2)
+            4
+            sage: (R + 1)^P(2)
+            R^2 + 2*R + 1
+            sage: (R + 1)^R
+            Traceback (most recent call last):
+            ...
+            TypeError: R is neither an integer nor a rational
+            sage: 2^R
+            Traceback (most recent call last):
+            ...
+            TypeError: R is neither an integer nor a rational
         """
         if type(exp) is not Integer:
             try:
                 exp = Integer(exp)
             except TypeError:
-                raise TypeError("non-integral exponents not supported")
+                try:
+                    n = Rational(exp)
+                except TypeError:
+                    raise TypeError("{} is neither an integer nor a rational".format(exp))
+                num = n.numerator()
+                den = n.denominator()
+
+                if self.degree == 0:
+                    return self.parent()(
+                        self.constant_coefficient().nth_root(den) ** num)
+                return self.nth_root(den) ** num
 
         if exp < 0:
             return 1/(self**(-exp))
@@ -3018,7 +3081,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: f[0,1]
             0
 
-            sage: R.<x> = PolynomialRing(GF(7),1); R
+            sage: R.<x> = PolynomialRing(GF(7), implementation="singular"); R
             Multivariate Polynomial Ring in x over Finite Field of size 7
             sage: f = 5*x^2 + 3; f
             -2*x^2 + 3
@@ -4759,7 +4822,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: f.quo_rem(y)
             (2*x^2, x + 1)
             sage: f.quo_rem(3*x)
-            (0, 2*x^2*y + x + 1)
+            (2*x*y + 1, -4*x^2*y - 2*x + 1)
 
         TESTS::
 
@@ -4781,7 +4844,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if right.is_zero():
             raise ZeroDivisionError
 
-        if not self._parent._base.is_field():
+        if not self._parent._base.is_field() and not is_IntegerRing(self._parent._base):
             py_quo = self//right
             py_rem = self - right*py_quo
             return py_quo, py_rem

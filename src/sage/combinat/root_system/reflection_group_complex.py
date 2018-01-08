@@ -210,7 +210,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.groups.perm_gps.permgroup import PermutationGroup_generic
 from sage.rings.all import ZZ, QQ
 from sage.matrix.all import Matrix, identity_matrix
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 from sage.interfaces.gap3 import gap3
 from sage.rings.universal_cyclotomic_field import E
 from sage.modules.free_module_element import vector
@@ -1735,6 +1735,9 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
             r"""
             Return ``True`` if ``self`` is a Coxeter element.
 
+            This is, whether ``self`` has an eigenvalue that is a
+            primitive `h`-th root of unity.
+
             INPUT:
 
             - ``which_primitive`` -- (default:``1``) for which power of
@@ -1747,6 +1750,7 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
             .. SEEALSO::
 
                 :meth:`~IrreducibleComplexReflectionGroup.coxeter_element`
+                :meth:`~sage.categories.finite_complex_reflection_groups.coxeter_elements`
 
             EXAMPLES::
 

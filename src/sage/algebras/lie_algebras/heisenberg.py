@@ -139,7 +139,8 @@ class HeisenbergAlgebra_abstract(IndexedGenerators):
             return m
         return "%s_{%s}"%(m[0], m[1:]) # else it is of length at least 2
 
-    Element = LieAlgebraElement
+    class Element(LieAlgebraElement):
+        pass
 
 class HeisenbergAlgebra_fd(object):
     """

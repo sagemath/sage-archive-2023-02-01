@@ -250,7 +250,20 @@ class BipartiteGraph(Graph):
         sage: sorted(g.left.union(g.right))
         [0, 1, 2, 3, 4, 5, 6, 7]
 
+    Make sure that loops are not allowed (:trac:`23275`)::
 
+        sage: B = BipartiteGraph(loops=True)
+        Traceback (most recent call last):
+        ...
+        ValueError: loops are not allowed in bipartite graphs
+        sage: B = BipartiteGraph(loops=None)
+        sage: B.allows_loops()
+        False
+        sage: B.add_edge(0,0)
+        Traceback (most recent call last):
+        ...
+        ValueError: cannot add edge from 0 to 0 in graph without loops
+        
     """
 
     def __init__(self, data=None, partition=None, check=True, *args, **kwds):
@@ -264,6 +277,13 @@ class BipartiteGraph(Graph):
             sage: partition = [list(range(5)), list(range(5,10))]
             sage: B = BipartiteGraph(P, partition, check=False)
         """
+        if kwds is None:
+            kwds = {'loops': False}
+        else:
+            if 'loops' in kwds and kwds['loops']:
+                raise ValueError('loops are not allowed in bipartite graphs')
+            kwds['loops'] = False
+
         if data is None:
             if partition is not None and check:
                 if partition[0] or partition[1]:
@@ -797,6 +817,31 @@ class BipartiteGraph(Graph):
         # add the edge
         Graph.add_edge(self, u, v, label)
         return
+
+    def allow_loops(self, new, check=True):
+        """
+        Change whether loops are permitted in the (di)graph
+
+        .. NOTE::
+
+            This method overwrite the
+            :meth:`~sage.graphs.generic_graph.GenericGraph.allow_loops` method
+            to ensure that loops are forbidden in :class:`~BipartiteGraph`.
+
+        INPUT:
+
+        - ``new`` - boolean.
+
+        EXAMPLES::
+
+            sage: B = BipartiteGraph()
+            sage: B.allow_loops(True)
+            Traceback (most recent call last):
+            ...
+            ValueError: loops are not allowed in bipartite graphs
+        """
+        if new is True:
+            raise ValueError("loops are not allowed in bipartite graphs")
 
     def complement(self):
         """
@@ -1385,8 +1430,23 @@ class BipartiteGraph(Graph):
             2
             sage: B.matching(use_edge_labels=False, value_only=True, algorithm='LP')
             2
+
+        With multiedges enabled::
+
+            sage: G = BipartiteGraph(graphs.CubeGraph(3))
+            sage: for e in G.edges():
+            ....:     G.set_edge_label(e[0], e[1], int(e[0]) + int(e[1]))
+            ....:
+            sage: G.allow_multiple_edges(True)
+            sage: G.matching(use_edge_labels=True, value_only=True)
+            444
         """
-        self._scream_if_not_simple()
+        from sage.rings.real_mpfr import RR
+        def weight(x):
+            if x in RR:
+                return x
+            else:
+                return 1
 
         if algorithm is None:
             algorithm = "Edmonds" if use_edge_labels else "Hopcroft-Karp"
@@ -1395,18 +1455,32 @@ class BipartiteGraph(Graph):
             if use_edge_labels:
                 raise ValueError('use_edge_labels can not be used with ' +
                                  '"Hopcroft-Karp" or "Eppstein"')
+            W = dict()
+            L = dict()
+            for u,v,l in self.edge_iterator():
+                if not (u, v) in L or ( use_edge_labels and W[u, v] < weight(l) ):
+                    L[u, v] = l
+                    if use_edge_labels:
+                        W[u, v] = weight(l)
             import networkx
-            #this is necessary to call the methods for bipartite matchings
-            g = self.networkx_graph()
+            g = networkx.Graph()
+            if use_edge_labels:
+                for u, v in W:
+                    g.add_edge(u, v, attr_dict={"weight": W[u, v]})
+            else:
+                for u, v in L:
+                    g.add_edge(u, v)
             if algorithm == "Hopcroft-Karp":
                 d = networkx.bipartite.hopcroft_karp_matching(g)
             else:
                 d = networkx.bipartite.eppstein_matching(g)
             if value_only:
-                return Integer(len(d) // 2)
+                if use_edge_labels:
+                    return sum(W[u, v] for u, v in iteritems(d) if u < v)
+                else:
+                    return Integer(len(d) // 2)
             else:
-                return [(u, v, self.edge_label(u, v))
-                        for u, v in iteritems(d) if u < v]
+                return [(u, v, L[u, v]) for u, v in iteritems(d) if u < v]
         elif algorithm == "Edmonds" or algorithm == "LP":
             return Graph.matching(self, value_only=value_only,
                                   algorithm=algorithm,

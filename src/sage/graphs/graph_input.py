@@ -18,7 +18,7 @@ Functions
 ---------
 
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, division
 import six
 from six.moves import range
 
@@ -51,7 +51,7 @@ def from_graph6(G, g6_string):
     ss = g6_string[:n]
     n, s = length_and_string_from_graph6(ss)
     m = binary_string_from_graph6(s, n)
-    expected = n*(n-1)/2 + (6 - n*(n-1)/2)%6
+    expected = n*(n-1)//2 + (6 - n*(n-1)//2)%6
     if len(m) > expected:
         raise RuntimeError("The string (%s) seems corrupt: for n = %d, the string is too long."%(ss,n))
     elif len(m) < expected:
@@ -83,8 +83,7 @@ def from_sparse6(G, g6_string):
         True
     """
     from .generic_graph_pyx import length_and_string_from_graph6, int_to_binary_string
-    from math import ceil, floor
-    from sage.misc.functional import log
+    from math import floor
     n = g6_string.find('\n')
     if n == -1:
         n = len(g6_string)
@@ -93,14 +92,15 @@ def from_sparse6(G, g6_string):
     if n == 0:
         edges = []
     else:
-        k = int(ceil(log(n,2)))
+        from sage.rings.integer_ring import ZZ
+        k = int((ZZ(n) - 1).nbits())
         ords = [ord(i) for i in s]
         if any(o > 126 or o < 63 for o in ords):
             raise RuntimeError("The string seems corrupt: valid characters are \n" + ''.join([chr(i) for i in range(63,127)]))
         bits = ''.join([int_to_binary_string(o-63).zfill(6) for o in ords])
         b = []
         x = []
-        for i in range(int(floor(len(bits)/(k+1)))):
+        for i in range(len(bits)//(k+1)):
             b.append(int(bits[(k+1)*i:(k+1)*i+1],2))
             x.append(int(bits[(k+1)*i+1:(k+1)*i+k+1],2))
         v = 0
@@ -174,7 +174,7 @@ def from_seidel_adjacency_matrix(G, M):
         sage: g.is_isomorphic(graphs.PetersenGraph())
         True
     """
-    from sage.matrix.matrix import is_Matrix
+    from sage.structure.element import is_Matrix
     from sage.rings.integer_ring import ZZ
     assert is_Matrix(M)
 
@@ -227,7 +227,7 @@ def from_adjacency_matrix(G, M, loops=False, multiedges=False, weighted=False):
         sage: g.is_isomorphic(graphs.PetersenGraph())
         True
     """
-    from sage.matrix.matrix import is_Matrix
+    from sage.structure.element import is_Matrix
     from sage.rings.integer_ring import ZZ
     assert is_Matrix(M)
     # note: the adjacency matrix might be weighted and hence not
@@ -308,7 +308,7 @@ def from_incidence_matrix(G, M, loops=False, multiedges=False, weighted=False):
         sage: g.is_isomorphic(graphs.PetersenGraph())
         True
     """
-    from sage.matrix.matrix import is_Matrix
+    from sage.structure.element import is_Matrix
     assert is_Matrix(M)
 
     oriented = any(M[pos] < 0 for pos in M.nonzero_positions(copy=False))
@@ -379,7 +379,7 @@ def from_oriented_incidence_matrix(G, M, loops=False, multiedges=False, weighted
         ...
         ValueError: each column represents an edge: -1 goes to 1
     """
-    from sage.matrix.matrix import is_Matrix
+    from sage.structure.element import is_Matrix
     assert is_Matrix(M)
 
     positions = []

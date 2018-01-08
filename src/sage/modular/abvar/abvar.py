@@ -34,6 +34,8 @@ from __future__ import absolute_import
 
 from sage.categories.all        import ModularAbelianVarieties
 from sage.structure.sequence    import Sequence, Sequence_generic
+from sage.structure.richcmp import (richcmp_method, richcmp, richcmp_not_equal,
+                                    rich_to_bool)
 from sage.structure.parent_base import ParentWithBase
 from .morphism                   import HeckeOperator, Morphism, DegeneracyMap
 from .torsion_subgroup           import RationalTorsionSubgroup, QQbarTorsionSubgroup
@@ -95,6 +97,7 @@ def is_ModularAbelianVariety(x):
     return isinstance(x, ModularAbelianVariety_abstract)
 
 
+@richcmp_method
 class ModularAbelianVariety_abstract(ParentWithBase):
     def __init__(self, groups, base_field, is_simple=None, newform_level=None,
                  isogeny_number=None, number=None, check=True):
@@ -348,7 +351,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         nLambda = self.ambient_variety().lattice().scale(n)
         return n*v in self.lattice() + nLambda
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         Compare two modular abelian varieties.
 
@@ -360,34 +363,46 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
         EXAMPLES::
 
-            sage: cmp(J0(37)[0], J0(37)[1])
-            -1
-            sage: cmp(J0(33)[0], J0(33)[1])
-            -1
-            sage: J0(37) != ZZ
+            sage: J0(37)[0] < J0(37)[1]
             True
+            sage: J0(37)[0] == J0(37)[1]
+            False
+            sage: J0(33)[0] < J0(33)[1]
+            True
+            sage: J0(33)[0] >= J0(33)[1]
+            False
         """
-        if not isinstance(other, ModularAbelianVariety_abstract):
-            return cmp(type(self), type(other))
         if self is other:
-            return 0
-        c = cmp(self.groups(), other.groups())
-        if c: return c
+            return rich_to_bool(op, 0)
+        if not isinstance(other, ModularAbelianVariety_abstract):
+            return NotImplemented
+
+        lx = self.groups()
+        rx = other.groups()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
 
         try:
-            c = cmp(self.__newform_level, other.__newform_level)
-            if c: return c
-        except AttributeError:
-            pass
-        try:
-            c = cmp(self.__isogeny_number, other.__isogeny_number)
-            if c: return c
+            lx = self.__newform_level
+            rx = other.__newform_level
+            if lx != rx:
+                return richcmp_not_equal(lx, rx, op)
         except AttributeError:
             pass
 
         try:
-            c = cmp(self.__degen_t, other.__degen_t)
-            if c: return c
+            lx = self.__isogeny_number
+            rx = other.__isogeny_number
+            if lx != rx:
+                return richcmp_not_equal(lx, rx, op)
+        except AttributeError:
+            pass
+
+        try:
+            lx = self.__degen_t
+            rx = other.__degen_t
+            if lx != rx:
+                return richcmp_not_equal(lx, rx, op)
         except AttributeError:
             pass
 
@@ -395,7 +410,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         # and degen_t does not imply two abelian varieties are equal.
         # See the docstring for self.label.
 
-        return cmp(self.lattice(), other.lattice())
+        return richcmp(self.lattice(), other.lattice(), op)
 
     def __radd__(self,other):
         """
@@ -4306,7 +4321,7 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
     def is_ambient(self):
         """
         Return True if this abelian variety attached to a modular symbols
-        space space is attached to the cuspidal subspace of the ambient
+        space is attached to the cuspidal subspace of the ambient
         modular symbols space.
 
         OUTPUT: bool

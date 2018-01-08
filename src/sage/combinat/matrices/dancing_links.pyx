@@ -1,10 +1,63 @@
+# -*- coding: utf-8 -*-
 # distutils: language = c++
 """
 Dancing Links internal pyx code
-"""
 
+EXAMPLES::
+
+    sage: from sage.combinat.matrices.dancing_links import dlx_solver
+    sage: rows = [[0,1,2], [3,4,5], [0,1], [2,3,4,5], [0], [1,2,3,4,5]]
+    sage: x = dlx_solver(rows)
+    sage: x
+    Dancing links solver for 6 columns and 6 rows
+
+The number of solutions::
+
+    sage: x.number_of_solutions()
+    3
+
+We recreate the dancing links object and we find all solutions::
+
+    sage: x = dlx_solver(rows)
+    sage: sorted(x.solutions_iterator())
+    [[0, 1], [2, 3], [4, 5]]
+
+Return the first solution found when the computation is done in parallel::
+
+    sage: sorted(x.one_solution(ncpus=2)) # random
+    [0, 1]
+
+Find all solutions using some specific rows::
+
+    sage: x_using_row_2 = x.restrict([2])
+    sage: x_using_row_2
+    Dancing links solver for 7 columns and 6 rows
+    sage: list(x_using_row_2.solutions_iterator())
+    [[2, 3]]
+
+The two basic methods that are wrapped in this class are ``search`` which
+returns ``1`` if a solution is found or ``0`` otherwise and ``get_solution``
+which return the current solution::
+
+    sage: x = dlx_solver(rows)
+    sage: x.search()
+    1
+    sage: x.get_solution()
+    [0, 1]
+    sage: x.search()
+    1
+    sage: x.get_solution()
+    [2, 3]
+    sage: x.search()
+    1
+    sage: x.get_solution()
+    [4, 5]
+    sage: x.search()
+    0
+"""
 #*****************************************************************************
 #       Copyright (C) 2008 Carlo Hamalainen <carlo.hamalainen@gmail.com>
+#       Copyright (C) 2015-2017 Sébastien Labbé <slabqc@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,16 +72,12 @@ from libcpp.vector cimport vector
 from cysignals.signals cimport sig_on, sig_off
 
 cdef extern from "dancing_links_c.h":
-    ctypedef struct dancing_links:
+    cdef cppclass dancing_links:
         vector[int] solution
         int number_of_columns()
         void add_rows(vector[vector[int]] rows)
         int search()
-        void freemem()
 
-cdef extern from "ccobject.h":
-    dancing_links* dancing_links_construct "Construct<dancing_links>"(void *mem)
-    void dancing_links_destruct "Destruct<dancing_links>"(dancing_links *mem)
 
 cdef class dancing_linksWrapper:
     r"""
@@ -59,16 +108,9 @@ cdef class dancing_linksWrapper:
             sage: x
             Dancing links solver for 3 columns and 2 rows
             sage: type(x)
-            <type 'sage.combinat.matrices.dancing_links.dancing_linksWrapper'>
+            <... 'sage.combinat.matrices.dancing_links.dancing_linksWrapper'>
         """
         self._init_rows(rows)
-
-    def __cinit__(self):
-        dancing_links_construct(&self._x)
-
-    def __dealloc__(self):
-        self._x.freemem()
-        dancing_links_destruct(&self._x)
 
     def __repr__(self):
         """
@@ -83,8 +125,7 @@ cdef class dancing_linksWrapper:
             Dancing links solver for 3 columns and 3 rows
         """
         return "Dancing links solver for {} columns and {} rows".format(
-                self._x.number_of_columns(),
-                len(self._rows))
+                self.ncols(), self.nrows())
 
     def rows(self):
         r"""
@@ -99,6 +140,34 @@ cdef class dancing_linksWrapper:
             [[0, 1, 2], [1, 2], [0]]
         """
         return self._rows
+
+    def ncols(self):
+        """
+        Return the number of columns.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.matrices.dancing_links import dlx_solver
+            sage: rows = [[0,1,2], [1,2], [0], [3,4,5]]
+            sage: dlx = dlx_solver(rows)
+            sage: dlx.ncols()
+            6
+        """
+        return self._x.number_of_columns()
+
+    def nrows(self):
+        """
+        Return the number of rows.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.matrices.dancing_links import dlx_solver
+            sage: rows = [[0,1,2], [1,2], [0], [3,4,5]]
+            sage: dlx = dlx_solver(rows)
+            sage: dlx.nrows()
+            4
+        """
+        return len(self._rows)
 
     def __reduce__(self):
         """
@@ -254,23 +323,21 @@ cdef class dancing_linksWrapper:
         sig_off()
         return x
 
-    def split(self, column):
+    def restrict(self, indices):
         r"""
-        Return a dict of rows solving independent cases.
+        Return a dancing links solver solving the subcase which uses some
+        given rows.
 
-        For each ``i``-th row containing a ``1`` in the ``column``, the
-        dict associates the list of rows where each other row containing a
-        ``1`` in the same ``column`` is replaced by the empty list.
-
-        This is used for parallel computations.
+        For every row that is wanted in the solution, we add a new column
+        to the row to make sure it is in the solution.
 
         INPUT:
 
-        - ``column`` -- integer, the column used to split the problem
+        - ``indices`` -- list, row indices to be found in the solution
 
         OUTPUT:
 
-            dict where keys are row numbers and values are lists of rows
+            dancing links solver
 
         EXAMPLES::
 
@@ -282,37 +349,135 @@ cdef class dancing_linksWrapper:
             sage: sorted(d.solutions_iterator())
             [[0, 1], [2, 3], [4, 5]]
 
-        After the split each subproblem has the same number of columns and
-        rows as the original one::
+        To impose that the 0th row is part of the solution, the rows of the new
+        problem are::
+
+            sage: d_using_0 = d.restrict([0])
+            sage: d_using_0
+            Dancing links solver for 7 columns and 6 rows
+            sage: d_using_0.rows()
+            [[0, 1, 2, 6], [3, 4, 5], [0, 1], [2, 3, 4, 5], [0], [1, 2, 3, 4, 5]]
+
+        After restriction the subproblem has one more columns and the same
+        number of rows as the original one::
+
+            sage: d.restrict([1]).rows()
+            [[0, 1, 2], [3, 4, 5, 6], [0, 1], [2, 3, 4, 5], [0], [1, 2, 3, 4, 5]]
+            sage: d.restrict([2]).rows()
+            [[0, 1, 2], [3, 4, 5], [0, 1, 6], [2, 3, 4, 5], [0], [1, 2, 3, 4, 5]]
+
+        This method allows to find solutions where the 0th row is part of a
+        solution::
+
+            sage: map(sorted, d.restrict([0]).solutions_iterator())
+            [[0, 1]]
+
+        Some other examples::
+
+            sage: map(sorted, d.restrict([1]).solutions_iterator())
+            [[0, 1]]
+            sage: map(sorted, d.restrict([2]).solutions_iterator())
+            [[2, 3]]
+            sage: map(sorted, d.restrict([3]).solutions_iterator())
+            [[2, 3]]
+
+        Here there are no solution using both 0th and 3rd row::
+
+            sage: list(d.restrict([0,3]).solutions_iterator())
+            []
+
+        TESTS::
+
+            sage: d.restrict([]).rows()
+            [[0, 1, 2], [3, 4, 5], [0, 1], [2, 3, 4, 5], [0], [1, 2, 3, 4, 5]]
+        """
+        from copy import copy
+        rows = copy(self._rows)
+        ncols = self.ncols()
+        for i,row_index in enumerate(indices):
+            # in the line below we want the creation of a new list
+            rows[row_index] = rows[row_index] + [ncols+i]
+        return dlx_solver(rows)
+
+    def split(self, column):
+        r"""
+        Return a dict of independent solvers.
+
+        For each ``i``-th row containing a ``1`` in the ``column``, the
+        dict associates the solver giving all solution using the ``i``-th
+        row.
+
+        This is used for parallel computations.
+
+        INPUT:
+
+        - ``column`` -- integer, the column used to split the problem into
+          independent subproblems
+
+        OUTPUT:
+
+            dict where keys are row numbers and values are dlx solvers
+
+        EXAMPLES::
+
+            sage: from sage.combinat.matrices.dancing_links import dlx_solver
+            sage: rows = [[0,1,2], [3,4,5], [0,1], [2,3,4,5], [0], [1,2,3,4,5]]
+            sage: d = dlx_solver(rows)
+            sage: d
+            Dancing links solver for 6 columns and 6 rows
+            sage: sorted(d.solutions_iterator())
+            [[0, 1], [2, 3], [4, 5]]
+
+        After the split each subproblem has one more column and the same
+        number of rows as the original problem::
 
             sage: D = d.split(0)
             sage: D
-            {0: [[0, 1, 2], [3, 4, 5], [], [2, 3, 4, 5], [], [1, 2, 3, 4, 5]],
-             2: [[], [3, 4, 5], [0, 1], [2, 3, 4, 5], [], [1, 2, 3, 4, 5]],
-             4: [[], [3, 4, 5], [], [2, 3, 4, 5], [0], [1, 2, 3, 4, 5]]}
+            {0: Dancing links solver for 7 columns and 6 rows,
+             2: Dancing links solver for 7 columns and 6 rows,
+             4: Dancing links solver for 7 columns and 6 rows}
 
         The (disjoint) union of the solutions of the subproblems is equal to the
         set of solutions shown above::
 
-            sage: for a in D.values(): list(dlx_solver(a).solutions_iterator())
+            sage: for x in D.values(): list(x.solutions_iterator())
             [[0, 1]]
             [[2, 3]]
             [[4, 5]]
+
+        TESTS::
+
+            sage: d.split(6)
+            Traceback (most recent call last):
+            ...
+            ValueError: column(=6) must be in range(ncols) where ncols=6
+
+        This use to take a lot of time and memory. Not anymore since
+        :trac:`24315`::
+
+            sage: S = Subsets(range(11))
+            sage: rows = map(list, S)
+            sage: dlx = dlx_solver(rows)
+            sage: dlx
+            Dancing links solver for 11 columns and 2048 rows
+            sage: d = dlx.split(0)
+            sage: d[1]
+            Dancing links solver for 12 columns and 2048 rows
         """
-        from copy import deepcopy
+        if not 0 <= column < self.ncols():
+            raise ValueError("column(={}) must be in range(ncols) "
+                             "where ncols={}".format(column, self.ncols()))
         indices = [i for (i,row) in enumerate(self._rows) if column in row]
-        D = dict()
-        for i in indices:
-            rows = deepcopy(self._rows)
-            for j in indices:
-                if j != i:
-                    rows[j] = []
-            D[i] = rows
-        return D
+        return {i:self.restrict([i]) for i in indices}
 
     def solutions_iterator(self):
         r"""
         Return an iterator of the solutions.
+
+        .. WARNING::
+
+            This function can be used only once. To iterate through the
+            solutions another time, one needs to recreate the dlx solver.
 
         EXAMPLES::
 
@@ -321,11 +486,96 @@ cdef class dancing_linksWrapper:
             sage: d = dlx_solver(rows)
             sage: list(d.solutions_iterator())
             [[0, 1], [2, 3], [4, 5]]
+
+        As warned above, it can be used only once::
+
+            sage: list(d.solutions_iterator())
+            []
         """
         while self.search():
             yield self.get_solution()
 
-    def _number_of_solutions_iterator(self, ncpus=1, column=0):
+    def one_solution(self, ncpus=1, column=None):
+        r"""
+        Return the first solution found after spliting the problem to
+        allow parallel computation.
+
+        Usefull when it is very hard just to find one solution to a given
+        problem.
+
+        INPUT:
+
+        - ``ncpus`` -- integer (default: ``1``), maximal number of
+          subprocesses to use at the same time
+        - ``column`` -- integer (default: ``None``), the column used to split
+          the problem, if ``None`` a random column is chosen
+
+        OUTPUT:
+
+        list of rows or ``None`` if no solution is found
+
+        EXAMPLES::
+
+            sage: from sage.combinat.matrices.dancing_links import dlx_solver
+            sage: rows = [[0,1,2], [3,4,5], [0,1], [2,3,4,5], [0], [1,2,3,4,5]]
+            sage: d = dlx_solver(rows)
+            sage: sorted(d.one_solution())
+            [0, 1]
+
+        Using parallel computations::
+
+            sage: solutions = [[0,1], [2,3], [4,5]]
+            sage: sorted(d.one_solution(ncpus=2)) in solutions
+            True
+            sage: sorted(d.one_solution(ncpus=2, column=4)) in solutions
+            True
+
+        When no solution is found::
+
+            sage: rows = [[0,1,2], [2,3,4,5], [0,1,2,3]]
+            sage: d = dlx_solver(rows)
+            sage: d.one_solution() is None
+            True
+
+        TESTS::
+
+            sage: [d.one_solution(column=i) for i in range(6)]
+            [None, None, None, None, None, None]
+
+        The preprocess needed to start the parallel computation is not so
+        big (less than 50ms in the example below)::
+
+            sage: S = Subsets(range(11))
+            sage: rows = map(list, S)
+            sage: dlx = dlx_solver(rows)
+            sage: dlx
+            Dancing links solver for 11 columns and 2048 rows
+            sage: sorted(dlx.one_solution())
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+        """
+        if column is None:
+            from random import randrange
+            column = randrange(self.ncols())
+
+        if not 0 <= column < self.ncols():
+            raise ValueError("column(={}) must be in range(ncols) "
+                             "where ncols={}".format(column, self.ncols()))
+
+        from sage.parallel.decorate import parallel
+        @parallel(ncpus=ncpus)
+        def first_solution(i):
+            dlx = self.restrict([i])
+            if dlx.search():
+                return dlx.get_solution()
+            else:
+                return None
+
+        indices = [i for (i,row) in enumerate(self._rows) if column in row]
+        for ((args, kwds), val) in first_solution(indices):
+            if not val is None:
+                return val
+
+    def _number_of_solutions_iterator(self, ncpus=1, column=None):
         r"""
         Return an iterator over the number of solutions using each row
         containing a ``1`` in the given ``column``.
@@ -334,8 +584,8 @@ cdef class dancing_linksWrapper:
 
         - ``ncpus`` -- integer (default: ``1``), maximal number of
           subprocesses to use at the same time
-        - ``column`` -- integer (default: ``0``), the column used to split
-          the problem
+        - ``column`` -- integer (default: ``None``), the column used to split
+          the problem, if ``None`` a random column is chosen
 
         OUTPUT:
 
@@ -359,17 +609,24 @@ cdef class dancing_linksWrapper:
             sage: sum(b for a,b in d._number_of_solutions_iterator(ncpus=2, column=3))
             52
         """
-        D = self.split(column)
-        from sage.parallel.decorate import parallel
+        if column is None:
+            from random import randrange
+            column = randrange(self.ncols())
 
+        if not 0 <= column < self.ncols():
+            raise ValueError("column(={}) must be in range(ncols) "
+                             "where ncols={}".format(column, self.ncols()))
+
+        from sage.parallel.decorate import parallel
         @parallel(ncpus=ncpus)
         def nb_sol(i):
-            return dlx_solver(D[i]).number_of_solutions()
-        K = sorted(D)
-        for ((args, kwds), val) in nb_sol(K):
+            return self.restrict([i]).number_of_solutions()
+
+        indices = [i for (i,row) in enumerate(self._rows) if column in row]
+        for ((args, kwds), val) in nb_sol(indices):
             yield args[0], val
 
-    def number_of_solutions(self, ncpus=1, column=0):
+    def number_of_solutions(self, ncpus=1, column=None):
         r"""
         Return the number of distinct solutions.
 
@@ -379,8 +636,9 @@ cdef class dancing_linksWrapper:
           subprocesses to use at the same time. If `ncpus>1` the dancing
           links problem is split into independent subproblems to
           allow parallel computation.
-        - ``column`` -- integer (default: ``0``), the column used to split
-          the problem (ignored if ``ncpus`` is ``1``)
+        - ``column`` -- integer (default: ``None``), the column used to split
+          the problem, if ``None`` a random column is chosen (this argument
+          is ignored if ``ncpus`` is ``1``)
 
         OUTPUT:
 
@@ -403,6 +661,16 @@ cdef class dancing_linksWrapper:
             sage: x = dlx_solver(rows)
             sage: x.number_of_solutions(ncpus=2, column=3)
             3
+
+        The way it is coded, solutions of a dlx solver can be iterated
+        through only once. The second call to the function gives wrong
+        result::
+
+            sage: x = dlx_solver(rows)
+            sage: x.number_of_solutions()
+            3
+            sage: x.number_of_solutions()
+            0
 
         TESTS::
 
@@ -460,5 +728,5 @@ def make_dlxwrapper(s):
         sage: print(x.__str__())
         Dancing links solver for 3 columns and 1 rows
     """
-    from sage.all import loads
+    from sage.structure.sage_object import loads
     return dancing_linksWrapper(loads(s))

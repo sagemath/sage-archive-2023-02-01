@@ -1677,7 +1677,8 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
             (Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 7 and level 38, weight 2, character [zeta3], sign 1, over Cyclotomic Field of order 3 and degree 2)
         """
 
-##         EXAMPLES:
+##         EXAMPLES::
+
 ##             sage: M = ModularSymbols(Gamma0(22), 2); M
 ##             Modular Symbols space of dimension 7 for Gamma_0(22) of weight 2 with sign 0 over Rational Field
 ##             sage: M.factorization():
@@ -1687,7 +1688,8 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
 ##             1 11 2
 ##             1 22 1
 
-##         An example with sign 1:
+##         An example with sign 1::
+
 ##             sage: M = ModularSymbols(Gamma0(22), 2, sign=1); M
 ##             Modular Symbols space of dimension 5 for Gamma_0(22) of weight 2 with sign 1 over Rational Field
 ##             sage: for b, e in M.factorization():
@@ -1696,7 +1698,8 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
 ##             1 11 2
 ##             1 22 1
 
-##         An example for Gamma1:
+##         An example for Gamma1::
+
 ##             sage: M = ModularSymbols(Gamma1(26), 2, sign=1); M
 ##             Modular Symbols space of dimension 33 for Gamma_1(26) of weight 2 with sign 1 and over Rational Field
 ##             sage: for b, e in M.factorization():
@@ -1715,7 +1718,8 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
 ##             2 26 1
 ##             2 26 1
 
-##         An example with level divisible by a square:
+##         An example with level divisible by a square::
+
 ##             sage: M = ModularSymbols(Gamma0(2*9),2); M
 ##             ???
 ##             sage: for b, e in M.factorization():

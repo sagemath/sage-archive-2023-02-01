@@ -18,8 +18,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
 import os
 import sys
@@ -60,6 +59,9 @@ find_prompt = re.compile(r"^(\s*)(>>>|sage:)(.*)")
 # For testing that enough doctests are created
 sagestart = re.compile(r"^\s*(>>> |sage: )\s*[^#\s]")
 untested = re.compile("(not implemented|not tested)")
+
+# For parsing a PEP 0263 encoding declaration
+pep_0263 = re.compile(r'coding[:=]\s*([-\w.]+)')
 
 # Source line number in warning output
 doctest_line_number = re.compile(r"^\s*doctest:[0-9]")
@@ -226,7 +228,7 @@ class DocTestSource(object):
 
     def _create_doctests(self, namespace, tab_okay=None):
         """
-        Creates a list doctests defined in this source.
+        Creates a list of doctests defined in this source.
 
         This function collects functionality common to file and string
         sources, and is called by
@@ -511,10 +513,13 @@ class FileDocTestSource(DocTestSource):
         base, ext = os.path.splitext(path)
         if ext in ('.py', '.pyx', '.pxd', '.pxi', '.sage', '.spyx'):
             self.__class__ = dynamic_class('PythonFileSource',(FileDocTestSource,PythonSource))
+            self.encoding = "utf-8"
         elif ext == '.tex':
             self.__class__ = dynamic_class('TexFileSource',(FileDocTestSource,TexSource))
+            self.encoding = "utf-8"
         elif ext == '.rst':
             self.__class__ = dynamic_class('RestFileSource',(FileDocTestSource,RestSource))
+            self.encoding = "utf-8"
         else:
             raise ValueError("unknown file extension %r"%ext)
 
@@ -536,10 +541,38 @@ class FileDocTestSource(DocTestSource):
             1     sage: 2 + 2
             2     4
             3 '''
+
+        The encoding is "utf-8" by default::
+
+            sage: FDS.encoding
+            'utf-8'
+
+        We create a file with a Latin-1 encoding without declaring it::
+
+            sage: s = "'''\nRegardons le polyn\xF4me...\n'''\n"
+            sage: open(filename, 'w').write(s)
+            sage: FDS = FileDocTestSource(filename, DocTestDefaults())
+            sage: L = list(FDS)
+            Traceback (most recent call last):
+            ...
+            UnicodeDecodeError: 'utf8' codec can't decode byte 0xf4 in position 18: invalid continuation byte
+
+        This works if we add a PEP 0263 encoding declaration::
+
+            sage: s = "#!/usr/bin/env python\n# -*- coding: latin-1 -*-\n" + s
+            sage: open(filename, 'w').write(s)
+            sage: FDS = FileDocTestSource(filename, DocTestDefaults())
+            sage: L = list(FDS)
+            sage: FDS.encoding
+            'latin-1'
         """
         with open(self.path) as source:
             for lineno, line in enumerate(source):
-                yield lineno, line
+                if lineno < 2:
+                    match = pep_0263.search(line)
+                    if match:
+                        self.encoding = match.group(1)
+                yield lineno, unicode(line, self.encoding)
 
     @lazy_attribute
     def printpath(self):
@@ -661,7 +694,7 @@ class FileDocTestSource(DocTestSource):
             sage: doctests[18].name
             'sage.doctest.sources.FileDocTestSource.create_doctests'
             sage: doctests[18].examples[10].source
-            'doctests[Integer(18)].examples[Integer(10)].source\n'
+            u'doctests[Integer(18)].examples[Integer(10)].source\n'
 
         TESTS:
 
@@ -731,22 +764,11 @@ class FileDocTestSource(DocTestSource):
             ....:             filename = os.path.join(path, F)
             ....:             FDS = FileDocTestSource(filename, DocTestDefaults(long=True,optional=True))
             ....:             FDS._test_enough_doctests(verbose=False)
-            There are 7 tests in sage/combinat/diagram_algebras.py that are not being run
-            There are 7 tests in sage/combinat/dyck_word.py that are not being run
             There are 7 tests in sage/combinat/finite_state_machine.py that are not being run
-            There are 6 tests in sage/combinat/interval_posets.py that are not being run
-            There are 18 tests in sage/combinat/partition.py that are not being run
-            There are 15 tests in sage/combinat/permutation.py that are not being run
-            There are 14 tests in sage/combinat/skew_partition.py that are not being run
-            There are 18 tests in sage/combinat/tableau.py that are not being run
-            There are 8 tests in sage/combinat/crystals/tensor_product.py that are not being run
-            There are 11 tests in sage/combinat/rigged_configurations/rigged_configurations.py that are not being run
-            There are 15 tests in sage/combinat/root_system/cartan_type.py that are not being run
             There are 8 tests in sage/combinat/root_system/type_A.py that are not being run
             There are 8 tests in sage/combinat/root_system/type_G.py that are not being run
             There are 3 unexpected tests being run in sage/doctest/parsing.py
             There are 1 unexpected tests being run in sage/doctest/reporting.py
-            There are 15 tests in sage/manifolds/manifold.py that are not being run
             There are 3 tests in sage/rings/invariant_theory.py that are not being run
             sage: os.chdir(cwd)
         """
@@ -1030,13 +1052,25 @@ class PythonSource(SourceLanguage):
             sage: FDS.starting_docstring("class NewClass(object):")
             sage: FDS.starting_docstring("    '''")
             <_sre.SRE_Match object at ...>
+            sage: FDS.ending_docstring("    '''")
+            <_sre.SRE_Match object at ...>
             sage: FDS.qualified_name
             sage.doctest.sources.NewClass
+            sage: FDS.starting_docstring("print(")
+            sage: FDS.starting_docstring("    '''Not a docstring")
+            sage: FDS.starting_docstring("    ''')")
+            sage: FDS.starting_docstring("def foo():")
+            sage: FDS.starting_docstring("    '''This is a docstring'''")
+            <_sre.SRE_Match object at ...>
         """
         indent = whitespace.match(line).end()
         quotematch = None
-        if self.quotetype is None:
-            # We're not inside a triple quote
+        if self.quotetype is None and not self.code_wrapping:
+            # We're not inside a triple quote and not inside code like
+            # print(
+            #     """Not a docstring
+            #     """)
+
             if line[indent] != '#' and (indent == 0 or indent > self.last_indent):
                 quotematch = triple_quotes.match(line)
                 # It would be nice to only run the name_regex when

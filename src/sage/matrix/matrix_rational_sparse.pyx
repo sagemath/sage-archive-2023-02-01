@@ -29,6 +29,8 @@ from __future__ import absolute_import
 from cysignals.signals cimport sig_on, sig_off
 from cysignals.memory cimport sig_malloc, sig_free
 
+from collections import Iterator, Sequence
+
 from sage.data_structures.binary_search cimport *
 from sage.modules.vector_integer_sparse cimport *
 from sage.modules.vector_rational_sparse cimport *
@@ -58,16 +60,6 @@ from .matrix_rational_dense cimport Matrix_rational_dense
 from sage.misc.misc import verbose
 
 cdef class Matrix_rational_sparse(Matrix_sparse):
-
-    ########################################################################
-    # LEVEL 1 functionality
-    #   * __cinit__
-    #   * __dealloc__
-    #   * __init__
-    #   * set_unsafe
-    #   * get_unsafe
-    #   * __hash__       -- always simple
-    ########################################################################
     def __cinit__(self, parent, entries, copy, coerce):
         # set the parent, nrows, ncols, etc.
         Matrix_sparse.__init__(self, parent)
@@ -122,7 +114,8 @@ cdef class Matrix_rational_sparse(Matrix_sparse):
         cdef Rational z
         cdef PyObject** X
 
-        if entries is None: return
+        if entries is None:
+            return
         # fill in entries in the dict case
         if isinstance(entries, dict):
             R = self.base_ring()
@@ -133,7 +126,9 @@ cdef class Matrix_rational_sparse(Matrix_sparse):
                     if i < 0 or j < 0 or i >= self._nrows or j >= self._ncols:
                         raise IndexError("invalid entries list")
                     mpq_vector_set_entry(&self._matrix[i], j, z.value)
-        elif isinstance(entries, list):
+        elif isinstance(entries, (Iterator, Sequence)):
+            if not isinstance(entries, (list, tuple)):
+                entries = list(entries)
             # Dense input format -- fill in entries
             if len(entries) != self._nrows * self._ncols:
                 raise TypeError("list of entries must be a dictionary of (i,j):x or a dense list of n * m elements")
@@ -167,9 +162,6 @@ cdef class Matrix_rational_sparse(Matrix_sparse):
         x = Rational()
         mpq_vector_get_entry(x.value, &self._matrix[i], j)
         return x
-
-    def __hash__(self):
-        return self._hash()
 
     def add_to_entry(self, Py_ssize_t i, Py_ssize_t j, elt):
         r"""
@@ -331,7 +323,7 @@ cdef class Matrix_rational_sparse(Matrix_sparse):
     # def _list(self):
 
 # TODO
-##     cpdef _lmul_(self, RingElement right):
+##     cpdef _lmul_(self, Element right):
 ##         """
 ##         EXAMPLES:
 ##             sage: a = matrix(QQ,2,range(6))

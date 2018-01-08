@@ -107,11 +107,11 @@ Hyperbolicity
       twice over all pairs of vertices, in the "inner" loop, we cut several
       pairs by exploiting properties of the underlying graph.
 
-TODO:
+.. TODO::
 
-- Add exact methods for the hyperbolicity of chordal graphs
+    - Add exact methods for the hyperbolicity of chordal graphs
 
-- Add method for partitioning the graph with clique separators
+    - Add method for partitioning the graph with clique separators
 
 **This module contains the following functions**
 
@@ -636,7 +636,7 @@ cdef tuple hyperbolicity_BCCM(int N,
     - ``verbose`` -- (default: ``False``) is boolean set to ``True`` to display
       some information during execution
 
-    OUTPUTS:
+    OUTPUT:
 
     This function returns a tuple ( h, certificate, h_UB ), where:
 
@@ -892,7 +892,7 @@ cdef tuple hyperbolicity_CCL(int N,
     - ``verbose`` -- (default: ``False``) is boolean set to ``True`` to display
       some information during execution
 
-    OUTPUTS:
+    OUTPUT:
 
     This function returns a tuple ( h, certificate, h_UB ), where:
 

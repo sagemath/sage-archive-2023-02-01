@@ -320,7 +320,7 @@ class SimplicialSetMorphism(Morphism):
         r"""
         Return a morphism of simplicial sets.
 
-        INPUTS:
+        INPUT:
 
         - ``data`` -- optional. Dictionary defining the map.
         - ``domain`` -- simplicial set
@@ -795,7 +795,7 @@ class SimplicialSetMorphism(Morphism):
 
     def is_injective(self):
         """
-        Return ``True`` if this map is surjective.
+        Return ``True`` if this map is injective.
 
         EXAMPLES::
 
@@ -825,7 +825,7 @@ class SimplicialSetMorphism(Morphism):
 
     def is_bijective(self):
         """
-        Return ``True`` if this map is surjective.
+        Return ``True`` if this map is bijective.
 
         EXAMPLES::
 

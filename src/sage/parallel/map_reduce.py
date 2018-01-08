@@ -202,8 +202,10 @@ Fine control of the execution of a map/reduce computations is obtained by
 passing parameters to the :meth:`RESetMapReduce.run` method. One can use the
 three following parameters:
 
-- ``max_proc`` -- maximum number of process used.
-  default: number of processor on the machine
+- ``max_proc`` -- (integer, default: ``None``) if given, the
+  maximum number of worker processors to use. The actual number
+  is also bounded by the value of the environment variable
+  ``SAGE_NUM_THREADS`` (the number of cores by default).
 - ``timeout`` -- a timeout on the computation (default: ``None``)
 - ``reduce_locally`` -- whether the workers should reduce locally
   their work or sends results to the master as soon as possible.
@@ -213,7 +215,7 @@ three following parameters:
 Here is an example or how to deal with timeout::
 
     sage: from sage.parallel.map_reduce import RESetMPExample, AbortError
-    sage: EX = RESetMPExample(maxl = 8)
+    sage: EX = RESetMPExample(maxl = 100)
     sage: try:
     ....:     res = EX.run(timeout=0.01)
     ....: except AbortError:
@@ -225,6 +227,7 @@ Here is an example or how to deal with timeout::
 
 The following should not timeout even on a very slow machine::
 
+    sage: EX = RESetMPExample(maxl = 8)
     sage: try:
     ....:     res = EX.run(timeout=60)
     ....: except AbortError:
@@ -360,9 +363,9 @@ map-reduce protocol:
   the number of active task.  The work is done when it gets to 0.
 - ``master._done`` -- a :class:`~multiprocessing.Lock` which ensures that
   shutdown is done only once.
-- ``master._abort`` -- a :func:`~multiprocessing.Value` storing a shared
+- ``master._aborted`` -- a :func:`~multiprocessing.Value` storing a shared
   :class:`ctypes.c_bool` which is ``True`` if the computation was aborted before
-  all the worker runs out of work.
+  all the workers ran out of work.
 - ``master._workers`` -- a list of :class:`RESetMapReduceWorker` objects. Each worker is
   identified by its position in this list.
 
@@ -501,14 +504,16 @@ Classes and methods
 """
 from __future__ import print_function, absolute_import
 
-from multiprocessing import Process, Value, Semaphore, Lock, cpu_count
-from multiprocessing.queues import Pipe, SimpleQueue
+from multiprocessing import Process, Value, Semaphore, Lock
+from multiprocessing.queues import Pipe, Queue, SimpleQueue
 from multiprocessing.sharedctypes import RawArray
 from threading import Thread
+from six.moves import queue
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet # _generic
 from sage.misc.lazy_attribute import lazy_attribute
 import collections
 import copy
+import os
 import sys
 import random
 import ctypes
@@ -537,13 +542,14 @@ logger.addHandler(ch)
 
 
 
-def proc_number(max_proc = None):
+def proc_number(max_proc=None):
     r"""
-    Computing the number of process used
+    Return the number of processes to use
 
     INPUT:
 
-    - ``max_proc`` -- the maximum number of process used
+    - ``max_proc`` -- an upper bound on the number of processes or
+      ``None``.
 
     EXAMPLES::
 
@@ -555,10 +561,12 @@ def proc_number(max_proc = None):
         sage: proc_number(max_proc=2) in (1, 2)
         True
     """
+    from sage.parallel.ncpus import ncpus
+    n = ncpus()
     if max_proc is None:
-        return max(cpu_count(), 1)
+        return n
     else:
-        return min(max_proc, max(cpu_count(), 2))
+        return min(max_proc, n)
 
 
 class AbortError(Exception):
@@ -1036,14 +1044,14 @@ class RESetMapReduce(object):
         """
         return copy.copy(self._reduce_init)
 
-
-    def setup_workers(self, max_proc = None, reduce_locally=True):
+    def setup_workers(self, max_proc=None, reduce_locally=True):
         r"""
         Setup the communication channels
 
         INPUT:
 
-        - ``mac_proc`` -- an integer: the maximum number of workers
+        - ``max_proc`` -- (integer) an upper bound on the number of
+          worker processes.
 
         - ``reduce_locally`` -- whether the workers should reduce locally
           their work or sends results to the master as soon as possible.
@@ -1055,15 +1063,15 @@ class RESetMapReduce(object):
             sage: S = RESetMapReduce()
             sage: S.setup_workers(2)
             sage: S._results
-            <multiprocessing.queues.SimpleQueue object at 0x...>
+            <multiprocessing.queues.Queue object at 0x...>
             sage: len(S._workers)
             2
         """
         self._nprocess = proc_number(max_proc)
-        self._results = SimpleQueue()
+        self._results = Queue()
         self._active_tasks = ActiveTaskCounter(self._nprocess)
         self._done = Lock()
-        self._abort = Value(ctypes.c_bool, False)
+        self._aborted = Value(ctypes.c_bool, False)
         sys.stdout.flush()
         sys.stderr.flush()
         self._workers = [RESetMapReduceWorker(self, i, reduce_locally)
@@ -1103,7 +1111,7 @@ class RESetMapReduce(object):
         sys.stderr.flush()
         for w in self._workers: w.start()
 
-    def get_results(self):
+    def get_results(self, timeout=None):
         r"""
         Get the results from the queue
 
@@ -1128,12 +1136,25 @@ class RESetMapReduce(object):
         res = self.reduce_init()
         active_proc = self._nprocess
         while active_proc > 0:
-            newres = self._results.get()
+            try:
+                logger.debug('Waiting on results; active_proc: %s, '
+                             'timeout: %s, aborted: %s' %
+                             (active_proc, timeout, self._aborted.value))
+                newres = self._results.get(timeout=timeout)
+            except queue.Empty:
+                logger.debug('Timed out waiting for results; aborting')
+                # If we timed out here then the abort timer should have
+                # already fired, but just in case it didn't (or is in
+                # progress) wait for it to finish
+                self._timer.join()
+                return
+
             if newres is not None:
                 logger.debug("Got one result")
                 res = self.reduce_function(res, newres)
             else:
                 active_proc -= 1
+
         return res
 
 
@@ -1167,8 +1188,7 @@ class RESetMapReduce(object):
 
         .. SEEALSO:: :meth:`print_communication_statistics`
         """
-        self._abort = self._abort.value
-        if not self._abort:
+        if not self._aborted.value:
             logger.debug("Joining worker processes...")
             for worker in self._workers:
                 logger.debug("Joining %s"%worker.name)
@@ -1185,7 +1205,6 @@ class RESetMapReduce(object):
         self._get_stats()
         del self._workers
 
-
     def abort(self):
         r"""
         Abort the current parallel computation
@@ -1196,7 +1215,7 @@ class RESetMapReduce(object):
             sage: S = RESetParallelIterator( [[]],
             ....:   lambda l: [l+[0], l+[1]] if len(l) < 17 else [])
             sage: it = iter(S)
-            sage: next(it)
+            sage: next(it) # random
             []
             sage: S.abort()
             sage: hasattr(S, 'work_queue')
@@ -1207,7 +1226,7 @@ class RESetMapReduce(object):
             sage: S.finish()
         """
         logger.info("Abort called")
-        self._abort.value = True
+        self._aborted.value = True
         self._active_tasks.abort()
         self._shutdown()
 
@@ -1337,8 +1356,8 @@ class RESetMapReduce(object):
         return self._workers[victim]
 
     def run(self,
-            max_proc = None,
-            reduce_locally = True,
+            max_proc=None,
+            reduce_locally=True,
             timeout=None,
             profile=None):
         r"""
@@ -1346,8 +1365,10 @@ class RESetMapReduce(object):
 
         INPUT:
 
-        - ``max_proc`` -- maximum number of process used.
-          default: number of processor on the machine
+        - ``max_proc`` -- (integer, default: ``None``) if given, the
+          maximum number of worker processors to use. The actual number
+          is also bounded by the value of the environment variable
+          ``SAGE_NUM_THREADS`` (the number of cores by default).
         - ``reduce_locally`` -- See :class:`RESetMapReduceWorker` (default: ``True``)
         - ``timeout`` -- a timeout on the computation (default: ``None``)
         - ``profile`` -- directory/filename prefix for profiling, or ``None``
@@ -1368,6 +1389,7 @@ class RESetMapReduce(object):
         Here is an example or how to deal with timeout::
 
             sage: from sage.parallel.map_reduce import AbortError
+            sage: EX = RESetMPExample(maxl = 100)
             sage: try:
             ....:     res = EX.run(timeout=0.01)
             ....: except AbortError:
@@ -1380,6 +1402,7 @@ class RESetMapReduce(object):
         The following should not timeout even on a very slow machine::
 
             sage: from sage.parallel.map_reduce import AbortError
+            sage: EX = RESetMPExample(maxl = 8)
             sage: try:
             ....:     res = EX.run(timeout=60)
             ....: except AbortError:
@@ -1397,12 +1420,12 @@ class RESetMapReduce(object):
             from threading import Timer
             self._timer = Timer(timeout, self.abort)
             self._timer.start()
-        self.result = self.get_results()
-        self.finish()
+        self.result = self.get_results(timeout=timeout)
         if timeout is not None:
             self._timer.cancel()
         logger.info("Returning")
-        if self._abort:
+        self.finish()
+        if self._aborted.value:
             raise AbortError
         else:
             return self.result
@@ -1563,7 +1586,7 @@ class RESetMapReduceWorker(Process):
             logger.debug("Thief aborted")
         else:
             logger.debug("Thief received poison pill")
-        if self._mapred._abort.value:  # Computation was aborted
+        if self._mapred._aborted.value:  # Computation was aborted
             self._todo.clear()
         else: # Check that there is no remaining work
             assert len(self._todo) == 0, "Bad stop the result may be wrong"

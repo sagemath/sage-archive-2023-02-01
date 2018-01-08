@@ -142,8 +142,6 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
             sage: R.<t> = F[]
             sage: C = Conic([1,i*t,-t^2+4])
             sage: C.has_rational_point(point = True)
-            verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
-            ...
             (True, (-t - 2*i : -2*i : 1))
 
         It works on non-diagonal conics as well::
@@ -426,7 +424,7 @@ for function field of characteristic 2.")
     def find_point(self, supports, roots, case, solution = 0):
         r"""
         Given a solubility certificate like in [HC2006]_, find a point on
-        ``self``. Assumes ``self`` is in reduced form (see [HC2006] for a
+        ``self``. Assumes ``self`` is in reduced form (see [HC2006]_ for a
         definition).
 
         If you don't have a solubility certificate and just want to find a

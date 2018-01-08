@@ -88,10 +88,17 @@ We also have support for ``RR``::
     sage: timeit('fc_wilk_rr(30.0)') # random, long time
     625 loops, best of 3: 13 us per loop
 
+For ``CC``::
+
+    sage: fc_wilk_cc = fast_callable(wilk, vars=[x], domain=CC)
+    sage: timeit('fc_wilk_cc(30.0)') # random, long time
+    625 loops, best of 3: 23 us per loop
+
+
 And support for ``CDF``::
 
-    sage: fc_wilk_rr = fast_callable(wilk, vars=[x], domain=CDF)
-    sage: timeit('fc_wilk_rr(30.0)') # random, long time
+    sage: fc_wilk_cdf = fast_callable(wilk, vars=[x], domain=CDF)
+    sage: timeit('fc_wilk_cdf(30.0)') # random, long time
     625 loops, best of 3: 10.2 us per loop
 
 Currently, :func:`fast_callable` can accept two kinds of objects:
@@ -292,17 +299,17 @@ AUTHOR:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
 
 
 import operator
 from copy import copy
 from sage.rings.real_mpfr cimport RealField_class, RealNumber
-from sage.structure.element cimport Element
+from sage.rings.complex_field import ComplexField_class
 from sage.rings.all import RDF, CDF
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
-from sage.structure.element import parent
+from sage.structure.element cimport parent
 
 
 def fast_callable(x, domain=None, vars=None,
@@ -395,7 +402,7 @@ def fast_callable(x, domain=None, vars=None,
     Check that fast_callable also works for symbolic functions with evaluation
     functions::
 
-        sage: def evalf_func(self, x, y, parent): return parent(x*y) if parent != None else x*y
+        sage: def evalf_func(self, x, y, parent): return parent(x*y) if parent is not None else x*y
         sage: x,y = var('x,y')
         sage: f = function('f', evalf_func=evalf_func)
         sage: fc = fast_callable(f(x, y), vars=[x, y])
@@ -404,7 +411,7 @@ def fast_callable(x, domain=None, vars=None,
 
     And also when there are complex values involved::
 
-        sage: def evalf_func(self, x, y, parent): return parent(I*x*y) if parent != None else I*x*y
+        sage: def evalf_func(self, x, y, parent): return parent(I*x*y) if parent is not None else I*x*y
         sage: g = function('g', evalf_func=evalf_func)
         sage: fc = fast_callable(g(x, y), vars=[x, y])
         sage: fc(3, 4)
@@ -462,6 +469,14 @@ def fast_callable(x, domain=None, vars=None,
         str = InstructionStream(sage.ext.interpreters.wrapper_rr.metadata,
                                 len(vars),
                                 domain)
+
+    elif isinstance(domain, ComplexField_class):
+        import sage.ext.interpreters.wrapper_cc
+        builder = sage.ext.interpreters.wrapper_cc.Wrapper_cc
+        str = InstructionStream(sage.ext.interpreters.wrapper_cc.metadata,
+                                len(vars),
+                                domain)
+
     elif domain == RDF or domain is float:
         import sage.ext.interpreters.wrapper_rdf
         builder = sage.ext.interpreters.wrapper_rdf.Wrapper_rdf
@@ -575,7 +590,7 @@ cdef class ExpressionTreeBuilder:
         elif not isinstance(vars, list):
             vars = [vars]
 
-        vars = map(self._clean_var, vars)
+        vars = [self._clean_var(v) for v in vars]
 
         self._domain = domain
         self._vars = vars
@@ -731,7 +746,7 @@ cdef class ExpressionTreeBuilder:
             base, exponent = args
             return self(base)**exponent
         else:
-            return ExpressionCall(self, fn, map(self, args))
+            return ExpressionCall(self, fn, [self(a) for a in args])
 
     def choice(self, cond, iftrue, iffalse):
         r"""
@@ -757,7 +772,12 @@ cdef class ExpressionTreeBuilder:
 cdef op_add = operator.add
 cdef op_sub = operator.sub
 cdef op_mul = operator.mul
-cdef op_div = operator.div
+cdef op_div
+try:
+    op_div = operator.div
+except AttributeError:
+    op_div = object()  # Unique object not equal to anything else
+cdef op_truediv = operator.truediv
 cdef op_floordiv = operator.floordiv
 cdef op_pow = operator.pow
 cdef op_neg = operator.neg
@@ -910,7 +930,7 @@ cdef class Expression:
             sage: x.__rtruediv__(1)
             div(1, v_0)
         """
-        return _expression_binop_helper(s, o, op_div)
+        return _expression_binop_helper(s, o, op_truediv)
 
     def __div__(s, o):
         r"""
@@ -1287,7 +1307,8 @@ cdef class ExpressionCall(Expression):
             'sin(v_0)'
         """
         fn = function_name(self._function)
-        return '%s(%s)' % (fn, ', '.join(map(repr, self._arguments)))
+        return '%s(%s)' % (fn, ', '.join(repr(a) for a in self._arguments))
+
 
 cdef class ExpressionIPow(Expression):
     r"""
@@ -1633,8 +1654,8 @@ cpdef dict get_builtin_functions():
 
         sage: from sage.ext.fast_callable import get_builtin_functions
         sage: builtins = get_builtin_functions()
-        sage: sorted(list(builtins.values()))
-        ['abs', 'abs', 'acos', 'acosh', 'add', 'asin', 'asinh', 'atan', 'atanh', 'ceil', 'cos', 'cosh', 'cot', 'csc', 'div', 'exp', 'floor', 'floordiv', 'inv', 'log', 'mul', 'neg', 'pow', 'sec', 'sin', 'sinh', 'sqrt', 'sub', 'tan', 'tanh']
+        sage: set(builtins.values())
+        {'abs', 'acos', 'acosh', 'add', 'asin', 'asinh', 'atan', 'atanh', 'ceil', 'cos', 'cosh', 'cot', 'csc', 'div', 'exp', 'floor', 'floordiv', 'inv', 'log', 'mul', 'neg', 'pow', 'sec', 'sin', 'sinh', 'sqrt', 'sub', 'tan', 'tanh'}
         sage: builtins[sin]
         'sin'
         sage: builtins[ln]
@@ -1646,15 +1667,16 @@ cpdef dict get_builtin_functions():
     if builtin_functions is not None:
         return builtin_functions
     builtin_functions = {
-        operator.add: 'add',
-        operator.sub: 'sub',
-        operator.mul: 'mul',
-        operator.div: 'div',
-        operator.floordiv: 'floordiv',
-        operator.abs: 'abs',
-        operator.neg: 'neg',
-        operator.inv: 'inv',
-        operator.pow: 'pow',
+        op_add: 'add',
+        op_sub: 'sub',
+        op_mul: 'mul',
+        op_div: 'div',
+        op_truediv: 'div',
+        op_floordiv: 'floordiv',
+        op_abs: 'abs',
+        op_neg: 'neg',
+        op_inv: 'inv',
+        op_pow: 'pow',
         }
     # not handled: atan2, log2, log10
     import sage.functions.all as func_all
@@ -1945,12 +1967,12 @@ cdef class InstructionStream:
 
         INPUT:
 
-        - metadata - The metadata_by_opname from a wrapper module
+        - metadata -- The metadata_by_opname from a wrapper module
 
-        - n_args - The number of arguments accessible by the generated code
+        - n_args -- The number of arguments accessible by the generated code
           (this is just passed to the wrapper class)
 
-        - domain - The domain of interpretation (this is just passed to the
+        - domain -- The domain of interpretation (this is just passed to the
           wrapper class)
 
         EXAMPLES::

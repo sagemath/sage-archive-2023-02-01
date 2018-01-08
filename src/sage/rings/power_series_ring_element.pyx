@@ -81,6 +81,7 @@ With power series the behavior is the same.
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
+#                     2017 Vincent Delecroix <20100.delecroix@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -641,8 +642,7 @@ cdef class PowerSeries(AlgebraElement):
             f = self.polynomial()
             m = f.degree() + 1
             d = f._dict_unsafe()
-            coeffs = list(d.iteritems())
-            coeffs.sort()
+            coeffs = sorted(d.items())
             for (n, x) in coeffs:
                 x = repr(x)
                 if x != '0':
@@ -961,7 +961,7 @@ cdef class PowerSeries(AlgebraElement):
 
     def valuation_zero_part(self):
         r"""
-        Factor self as as `q^n \cdot (a_0 + a_1 q + \cdots)` with
+        Factor self as `q^n \cdot (a_0 + a_1 q + \cdots)` with
         `a_0` nonzero. Then this function returns
         `a_0 + a_1 q + \cdots` .
 
@@ -1406,6 +1406,58 @@ cdef class PowerSeries(AlgebraElement):
                 return self.parent()(self.sqrt())
             except TypeError:
                 raise ValueError("Square root does not live in this ring.")
+
+    def nth_root(self, n, prec=None):
+        r"""
+        Return the ``n``-th root of this power series.
+
+        INPUT:
+
+        - ``n`` -- integer
+
+        - ``prec`` -- integer (optional) - precision of the result. Though, if
+          this series has finite precision, then the result can not have larger
+          precision.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[[]]
+            sage: (1+x).nth_root(5)
+            1 + 1/5*x - 2/25*x^2 + ... + 12039376311816/2384185791015625*x^19 + O(x^20)
+
+            sage: (1 + x + O(x^5)).nth_root(5)
+            1 + 1/5*x - 2/25*x^2 + 6/125*x^3 - 21/625*x^4 + O(x^5)
+
+        Check that the results are consistent with taking log and exponential::
+
+            sage: R.<x> = PowerSeriesRing(QQ, default_prec=100)
+            sage: p = (1 + 2*x - x^4)**200
+            sage: p1 = p.nth_root(1000, prec=100)
+            sage: p2 = (p.log()/1000).exp()
+            sage: p1.prec() == p2.prec() == 100
+            True
+            sage: p1.polynomial() == p2.polynomial()
+            True
+
+        Positive characteristic::
+
+            sage: R.<u> = GF(3)[[]]
+            sage: p = 1 + 2 * u^2
+            sage: p.nth_root(4)
+            1 + 2*u^2 + u^6 + 2*u^8 + u^12 + 2*u^14 + O(u^20)
+            sage: p.nth_root(4)**4
+            1 + 2*u^2 + O(u^20)
+        """
+        if prec is None:
+            prec = self.prec()
+            if prec == infinity:
+                prec = self.parent().default_prec()
+        else:
+            prec = min(self.prec(), prec)
+
+        p = self.polynomial()
+        q = p._nth_root_series(n, prec)
+        return self.parent()(q) + self.parent()(0).O(prec)
 
     def cos(self, prec=infinity):
         r"""

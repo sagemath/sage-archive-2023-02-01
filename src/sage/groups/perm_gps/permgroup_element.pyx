@@ -69,7 +69,7 @@ from sage.ext.stdsage cimport HAS_DICTIONARY
 from sage.rings.all      import ZZ, Integer
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.rings.polynomial.multi_polynomial import is_MPolynomial
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 from sage.matrix.all     import MatrixSpace
 from sage.interfaces.all import gap
 from sage.interfaces.gap import is_GapElement
@@ -1044,7 +1044,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         cdef int i
         return {e:from_gap[self.perm[i-1]+1] for e,i in to_gap.iteritems()}
 
-    def order(self):
+    def multiplicative_order(self):
         """
         Return the order of this group element, which is the smallest
         positive integer `n` for which `g^n = 1`.
@@ -1052,6 +1052,11 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         EXAMPLES::
 
             sage: s = PermutationGroupElement('(1,2)(3,5,6)')
+            sage: s.multiplicative_order()
+            6
+
+        ``order`` is just an alias for ``multiplicative_order``::
+
             sage: s.order()
             6
 
@@ -1060,7 +1065,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: prod(primes(150))
             1492182350939279320058875736615841068547583863326864530410
             sage: L = [tuple(range(sum(primes(p))+1, sum(primes(p))+1+p)) for p in primes(150)]
-            sage: t=PermutationGroupElement(L).order(); t
+            sage: t=PermutationGroupElement(L).multiplicative_order(); t
             1492182350939279320058875736615841068547583863326864530410
             sage: type(t)
             <type 'sage.rings.integer.Integer'>
@@ -1324,12 +1329,13 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
           trivial cycles should be counted (default: ``True``)
 
         - ``as_list`` -- ``True`` or ``False`` depending on whether the cycle
-          type should be returned as a ``list`` or as a class:`Partition` 
+          type should be returned as a ``list`` or as a :class:`Partition` 
           (default: ``False``)
 
         OUTPUT:
 
-        A class:`Partition`, or `list` if ``is_list`` is ``True``, giving the cycle type of ``g`` 
+        A :class:`Partition`, or list if ``is_list`` is ``True``,
+        giving the cycle type of ``g``
 
         If speed is a concern then ``as_list=True`` should be used.
 

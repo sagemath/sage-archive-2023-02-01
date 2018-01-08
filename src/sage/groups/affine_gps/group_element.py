@@ -40,9 +40,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 from sage.misc.cachefunc import cached_method
 from sage.structure.element import MultiplicativeGroupElement
+from sage.structure.richcmp import richcmp, richcmp_not_equal
+
 
 class AffineGroupElement(MultiplicativeGroupElement):
     """
@@ -410,13 +412,13 @@ class AffineGroupElement(MultiplicativeGroupElement):
 
     __invert__ = inverse
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         Compare ``self`` with ``other``.
 
         OUTPUT:
 
-        -1, 0, or +1.
+        boolean
 
         EXAMPLES::
 
@@ -428,11 +430,12 @@ class AffineGroupElement(MultiplicativeGroupElement):
             sage: g == g
             True
         """
-        assert self.parent() is other.parent()
-        c = cmp(self._A, other._A)
-        if (c != 0):
-            return c
-        return cmp(self._b, other._b)
+        lx = self._A
+        rx = other._A
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        return richcmp(self._b, other._b, op)
 
     def list(self):
         """

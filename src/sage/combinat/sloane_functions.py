@@ -104,7 +104,8 @@ AUTHORS:
 # 3. Type "sage -br" to rebuild Sage, then fire up the notebook and
 #    try out your new sequence.  Click the text button to get a version
 #    of your session that you then include as a docstring.
-#    You can check your results with the entries of the OEIS:
+#    You can check your results with the entries of the OEIS::
+
 #       sage: seq = oeis(45) ; seq
 #       A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
 #       sage: seq.first_terms()[:12]
@@ -9019,8 +9020,7 @@ class A109814(SloaneSequence):
 
     .. SEEALSO::
 
-        * `Wikipedia article on polite numbers
-          <http://en.wikipedia.org/wiki/Polite_number>`_.
+        * :wikipedia:`Polite_number`
 
         * `An exercise sheet (with answers) about sums of
           consecutive integers

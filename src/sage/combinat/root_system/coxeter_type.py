@@ -411,7 +411,7 @@ class CoxeterType(SageObject):
                     return R(x)
 
         MS = MatrixSpace(R, n, sparse=True)
-        MC = MS._get_matrix_class()
+        MC = MS._matrix_class
 
         bilinear = MC(MS, entries={(i, j): val(mat[i, j])
                                    for i in range(n) for j in range(n)

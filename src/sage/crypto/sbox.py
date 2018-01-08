@@ -34,7 +34,7 @@ class SBox(SageObject):
 
     EXAMPLES:
 
-    We consider the S-box of the block cipher PRESENT [PRESENT07]_::
+    We consider the S-box of the block cipher PRESENT [BKLPPRSV2007]_::
 
         sage: from sage.crypto.sbox import SBox
         sage: S = SBox(12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2); S
@@ -75,7 +75,7 @@ class SBox(SageObject):
 
     - [He2002]_
 
-    - [PRESENT07]_
+    - [BKLPPRSV2007]_
 
     - [CDL2015]_
     """
@@ -551,7 +551,7 @@ class SBox(SageObject):
             L.append(B.walsh_hadamard_transform())
 
         A = Matrix(ZZ, ncols, nrows, L)
-        A = -A.transpose()/2
+        A = A.transpose()/2
         A.set_immutable()
 
         return A

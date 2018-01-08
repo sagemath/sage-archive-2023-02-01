@@ -161,7 +161,8 @@ graphplot_options.update(
                     'max_dist': 'The max distance range to allow multiedges.',
                     'talk': 'Whether to display the vertices in talk mode '
                         '(larger and white).',
-                    'graph_border': 'Whether or not to draw a frame around the graph.'})
+                    'graph_border': 'Whether or not to draw a frame around the graph.',
+                    'edge_labels_background' : 'The color of the background of the edge labels'})
 
 from six import iteritems
 
@@ -215,7 +216,8 @@ DEFAULT_PLOT_OPTIONS = {
     "partition"           : None,
     "dist"                : .075,
     "max_dist"            : 1.5,
-    "loop_size"           : .075
+    "loop_size"           : .075,
+    "edge_labels_background" : "white"
     }
 
 class GraphPlot(SageObject):
@@ -246,7 +248,8 @@ class GraphPlot(SageObject):
             ....:   'partition':None,
             ....:   'dist':.075,
             ....:   'max_dist':1.5,
-            ....:   'loop_size':.075}
+            ....:   'loop_size':.075,
+            ....:   'edge_labels_background':'transparent'}
             sage: g = Graph({0:[1,2], 2:[3], 4:[0,1]})
             sage: GP = GraphPlot(g, options)
 
@@ -453,7 +456,7 @@ class GraphPlot(SageObject):
                                                             clip=False)
                                                      for center in self._pos.values()]
             else:
-                self._plot_components['vertices'] = scatter_plot(self._pos.values(),
+                self._plot_components['vertices'] = scatter_plot(list(self._pos.values()),
                                                                  clip=False, **voptions)
         else:
             # Color list must be ordered:
@@ -597,10 +600,17 @@ class GraphPlot(SageObject):
             ....:         vn = vector(((x-(vx[v0]+vx[v1])/2.),y-(vy[v0]+vy[v1])/2.)).norm()
             ....:         assert vn < tol
 
+        Ticket :trac:`24051` is fixed::
+
+            sage: G = Graph([(0,1), (0,1)], multiedges=True)
+            sage: G.plot(edge_colors={"red":[(1,0)]})
+            Graphics object consisting of 5 graphics primitives
         """
         for arg in edge_options:
             self._options[arg] = edge_options[arg]
         if 'edge_colors' in edge_options: self._options['color_by_label'] = False
+        if self._options['edge_labels_background']=="transparent":
+            self._options['edge_labels_background']="None"
 
         # Handle base edge options: thickness, linestyle
         eoptions={}
@@ -630,7 +640,8 @@ class GraphPlot(SageObject):
         if self._options['color_by_label'] or isinstance(self._options['edge_colors'], dict):
             if self._options['color_by_label']:
                 edge_colors = self._graph._color_by_label(format=self._options['color_by_label'])
-            else: edge_colors = self._options['edge_colors']
+            else:
+                edge_colors = self._options['edge_colors']
             edges_drawn = []
             for color in edge_colors:
                 for edge in edge_colors[color]:
@@ -664,7 +675,10 @@ class GraphPlot(SageObject):
 
             # Add unspecified edges (default color black set in DEFAULT_PLOT_OPTIONS)
             for edge in self._graph.edge_iterator():
-                if (edge[0],edge[1],edge[2]) not in edges_drawn:
+                if (edge[0],edge[1],edge[2]) not in edges_drawn and \
+                    ( self._graph.is_directed() or
+                      (edge[1],edge[0],edge[2]) not in edges_drawn
+                    ):
                     key = tuple(sorted([edge[0],edge[1]]))
                     if key == (edge[0],edge[1]): head = 1
                     else: head = 0
@@ -703,7 +717,8 @@ class GraphPlot(SageObject):
                             rgbcolor=local_labels[i][1], **eoptions))
                         if labels:
                             self._plot_components['edge_labels'].append(text(local_labels[i][0],
-                                (self._pos[a][0], self._pos[a][1]-2*curr_loop_size)))
+                                (self._pos[a][0], self._pos[a][1]-2*curr_loop_size),
+                                background_color=self._options['edge_labels_background']))
                         curr_loop_size += distance/4
                 elif len(edges_to_draw[(a,b)]) > 1:
                     # Multi-edge
@@ -770,9 +785,10 @@ class GraphPlot(SageObject):
                         if labels:
                             j = k/2.0
                             self._plot_components['edge_labels'].append(text(local_labels[2*i][0],
-                                [odd_x(j),odd_y(j)]))
+                                [odd_x(j),odd_y(j)], background_color=self._options['edge_labels_background']))
                             self._plot_components['edge_labels'].append(text(local_labels[2*i+1][0],
-                                [even_x(j),even_y(j)]))
+                                [even_x(j),even_y(j)],
+                                background_color=self._options['edge_labels_background']))
                     if len(local_labels)%2 == 1:
                         edges_to_draw[(a,b)] = [local_labels[-1]] # draw line for last odd
 
@@ -785,7 +801,8 @@ class GraphPlot(SageObject):
                     **eoptions))
                 if labels:
                     self._plot_components['edge_labels'].append(text(str(edges_to_draw[(a,b)][0][0]),
-                        [(C[0]+D[0])/2., (C[1]+D[1])/2.]))
+                        [(C[0]+D[0])/2., (C[1]+D[1])/2.],
+                        background_color=self._options['edge_labels_background']))
             elif dir:
                 self._plot_components['edges'].append(arrow(self._pos[a],self._pos[b],
                     rgbcolor=edges_to_draw[(a,b)][0][1], arrowshorten=self._arrowshorten,
@@ -796,7 +813,8 @@ class GraphPlot(SageObject):
             if labels and not self._arcdigraph:
                 self._plot_components['edge_labels'].append(text(str(edges_to_draw[(a,b)][0][0]),
                     [(self._pos[a][0]+self._pos[b][0])/2.,
-                    (self._pos[a][1]+self._pos[b][1])/2.]))
+                    (self._pos[a][1]+self._pos[b][1])/2.],
+                    background_color=self._options['edge_labels_background']))
 
     def _polar_hack_for_multidigraph(self, A, B, VR):
         """

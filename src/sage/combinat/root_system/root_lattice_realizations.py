@@ -327,8 +327,8 @@ class RootLatticeRealizations(Category_over_base_ring):
             # Check the embeddings from the root lattice and the root space over the same base ring
             root_lattice = self.root_system.root_lattice()
             root_space   = self.root_system.root_space  (R)
-            tester.assert_(self.coerce_map_from(root_lattice) is not None)
-            tester.assert_(self.coerce_map_from(root_space  ) is not None)
+            tester.assertTrue(self.coerce_map_from(root_lattice) is not None)
+            tester.assertTrue(self.coerce_map_from(root_space  ) is not None)
             for i in self.index_set():
                 # This embedding maps simple roots to simple roots
                 tester.assertEqual(self(root_lattice.simple_root(i)), alpha[i])
@@ -352,8 +352,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                 nullcoroot = self.null_coroot()
                 special_node = self.cartan_type().special_node()
                 for i in alpha.keys():
-                    tester.assert_(nullroot.scalar(alphacheck[i]).is_zero())
-                    tester.assert_(alpha[i].scalar(nullcoroot).is_zero())
+                    tester.assertTrue(nullroot.scalar(alphacheck[i]).is_zero())
+                    tester.assertTrue(alpha[i].scalar(nullcoroot).is_zero())
                 # Check the projection on the classical space
                 classical = self.classical()
                 alpha_classical = classical.alpha()
@@ -1194,11 +1194,8 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             """
             if not self.cartan_type().is_finite():
-                raise ValueError("%s is not a finite Cartan type"%(self.cartan_type()))
-            from sage.combinat.combinat import MapCombinatorialClass
-            return MapCombinatorialClass(self.positive_roots(), attrcall('__neg__'), "The negative roots of %s"%self)
-            # Todo: use this instead once RecursivelyEnumeratedSet will be a proper enumerated set
-            #return self.positive_roots().map(attrcall('__negate__'))
+                raise ValueError("%s is not a finite Cartan type" % self.cartan_type())
+            return self.positive_roots().map(attrcall('__neg__'))
 
         ##########################################################################
         # coroots
@@ -1599,7 +1596,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: pi[1](x[2])
                 -Lambda[1] + 2*Lambda[2]
 
-            TESTS:
+            TESTS::
+
                 sage: pi
                 pi
             """
@@ -3735,7 +3733,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
         def is_dominant_weight(self): # Or is_dominant_integral_weight?
             """
-            Tests whether ``self`` is a dominant element of the weight lattice
+            Test whether ``self`` is a dominant element of the weight lattice.
 
             EXAMPLES::
 
@@ -3750,11 +3748,11 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: (-Lambda[1]+Lambda[2]).is_dominant()
                 False
 
-           Tests that the scalar products with the coroots are all
-           nonnegative integers. For example, if `x` is the sum of a
-           dominant element of the weight lattice plus some other element
-           orthogonal to all coroots, then the implementation correctly
-           reports `x` to be a dominant weight::
+            Tests that the scalar products with the coroots are all
+            nonnegative integers. For example, if `x` is the sum of a
+            dominant element of the weight lattice plus some other element
+            orthogonal to all coroots, then the implementation correctly
+            reports `x` to be a dominant weight::
 
                sage: x = Lambda[1] + L([-1,-1,-1])
                sage: x.is_dominant_weight()

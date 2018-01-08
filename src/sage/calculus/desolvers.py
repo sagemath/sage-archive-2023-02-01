@@ -71,6 +71,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ##########################################################################
+from __future__ import division
 
 from sage.interfaces.maxima import Maxima
 from sage.plot.all import line
@@ -392,7 +393,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
         sage: assume(x>0)
         sage: assume(y>0)
         sage: desolve(x*diff(y,x)-x*sqrt(y^2+x^2)-y == 0, y, contrib_ode=True)
-        [x - arcsinh(y(x)^2/(x*sqrt(y(x)^2))) - arcsinh(y(x)/x) + 1/2*log(4*(x^2 + 2*y(x)^2 + 2*x*sqrt((x^2*y(x)^2 + y(x)^4)/x^2))/x^2) == _C]
+        [x - arcsinh(y(x)^2/(x*sqrt(y(x)^2))) - arcsinh(y(x)/x) + 1/2*log(4*(x^2 + 2*y(x)^2 + 2*sqrt(x^2*y(x)^2 + y(x)^4))/x^2) == _C]
 
     :trac:`6479` fixed::
 
@@ -556,7 +557,8 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
 ##                  with symbols allowed which are represented by strings
 ##                  (eg, f(0)=1, f'(0)=2 is ics = [0,1,2])
 
-##     EXAMPLES:
+##     EXAMPLES::
+
 ##         sage: from sage.calculus.desolvers import desolve_laplace
 ##         sage: x = var('x')
 ##         sage: f = function('f')(x)
@@ -1055,18 +1057,21 @@ def eulers_method_2x2_plot(f,g, t0, x0, y0, h, t1):
         sage: f = lambda z : z[2]; g = lambda z : -sin(z[1])
         sage: P = eulers_method_2x2_plot(f,g, 0.0, 0.75, 0.0, 0.1, 1.0)
     """
-    n=int((1.0)*(t1-t0)/h)
-    t00 = t0; x00 = x0; y00 = y0
-    soln = [[t00,x00,y00]]
-    for i in range(n+1):
-        x01 = x00 + h*f([t00,x00,y00])
-        y00 = y00 + h*g([t00,x00,y00])
+    n = int((1.0)*(t1-t0)/h)
+    t00 = t0
+    x00 = x0
+    y00 = y0
+    soln = [[t00, x00, y00]]
+    for i in range(n + 1):
+        x01 = x00 + h * f([t00, x00, y00])
+        y00 = y00 + h * g([t00, x00, y00])
         x00 = x01
         t00 = t00 + h
-        soln.append([t00,x00,y00])
-    Q1 = line([[x[0],x[1]] for x in soln], rgbcolor=(1/4,1/8,3/4))
-    Q2 = line([[x[0],x[2]] for x in soln], rgbcolor=(1/2,1/8,1/4))
-    return [Q1,Q2]
+        soln.append([t00, x00, y00])
+    Q1 = line([[x[0], x[1]] for x in soln], rgbcolor=(.25, .125, .75))
+    Q2 = line([[x[0], x[2]] for x in soln], rgbcolor=(.5, .125, .25))
+    return [Q1, Q2]
+
 
 def desolve_rk4_determine_bounds(ics,end_points=None):
     """

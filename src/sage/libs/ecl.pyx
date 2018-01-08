@@ -9,7 +9,7 @@ Library interface to Embeddable Common Lisp (ECL)
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 #This version of the library interface prefers to convert ECL integers and
 #rationals to SAGE types Integer and Rational. These parts could easily be
@@ -22,6 +22,7 @@ from posix.signal cimport sigaction, sigaction_t
 cimport cysignals.signals
 
 from sage.libs.gmp.types cimport mpz_t
+from sage.misc.misc import ECL_TMP
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from cpython.object cimport Py_EQ, Py_NE
@@ -280,6 +281,11 @@ def init_ecl():
     list_of_objects=cl_cons(Cnil,cl_cons(Cnil,Cnil))
     cl_set(string_to_object("*SAGE-LIST-OF-OBJECTS*"),list_of_objects)
 
+    cl_eval(string_to_object("""
+        (setf (logical-pathname-translations "TMP")
+              '(("**;*.*" "%s/**/*.*")))
+        """ % ECL_TMP))
+
     # We define our own error catching eval, apply and funcall/
     # Presently these routines are only converted to byte-code. If they
     # ever turn out to be a bottle neck, it should be easy to properly
@@ -442,13 +448,13 @@ cdef cl_object python_to_ecl(pyobj) except NULL:
             return Cnil
     elif pyobj is None:
         return Cnil
-    elif isinstance(pyobj,int):
-        return ecl_make_integer(pyobj)
     elif isinstance(pyobj,long):
         if pyobj >= MOST_NEGATIVE_FIXNUM and pyobj <= MOST_POSITIVE_FIXNUM:
             return ecl_make_integer(pyobj)
         else:
             return python_to_ecl(Integer(pyobj))
+    elif isinstance(pyobj,int):
+        return ecl_make_integer(pyobj)
     elif isinstance(pyobj,float):
         return ecl_make_doublefloat(pyobj)
     elif isinstance(pyobj,unicode):

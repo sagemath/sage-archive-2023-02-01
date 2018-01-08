@@ -111,6 +111,8 @@ from sage.rings.number_field.number_field import refine_embedding
 from sage.rings.infinity import Infinity
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
 from sage.misc.cachefunc import cached_method
+from sage.structure.richcmp import richcmp_method, richcmp, richcmp_not_equal
+from sage.libs.all import pari
 
 
 class PeriodLattice(FreeModule_generic_pid):
@@ -119,6 +121,8 @@ class PeriodLattice(FreeModule_generic_pid):
     """
     pass
 
+
+@richcmp_method
 class PeriodLattice_ell(PeriodLattice):
     r"""
     The class for the period lattice of an elliptic curve.
@@ -257,7 +261,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         PeriodLattice.__init__(self, base_ring=ZZ, rank=2, degree=1, sparse=False)
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
         Comparison function for period lattices
 
@@ -270,13 +274,17 @@ class PeriodLattice_ell(PeriodLattice):
             sage: L1,L2,L3 = [PeriodLattice_ell(E,e) for e in embs]
             sage: L1 < L2 < L3
             True
-
         """
-        if not isinstance(other, PeriodLattice_ell): return -1
-        t = cmp(self.E, other.E)
-        if t: return t
+        if not isinstance(other, PeriodLattice_ell):
+            return NotImplemented
+
+        lx = self.E
+        rx = other.E
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
         a = self.E.base_field().gen()
-        return cmp(self.embedding(a), other.embedding(a))
+        return richcmp(self.embedding(a), other.embedding(a), op)
 
     def __repr__(self):
         """
@@ -595,7 +603,6 @@ class PeriodLattice_ell(PeriodLattice):
                 periods = self.E.pari_curve().omega(prec).sage()
                 return (R(periods[0]), C(periods[1]))
 
-            from sage.libs.pari.all import pari
             E_pari = pari([R(self.embedding(ai).real()) for ai in self.E.a_invariants()]).ellinit()
             periods = E_pari.omega(prec).sage()
             return (R(periods[0]), C(periods[1]))
@@ -1643,7 +1650,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: _.curve()
             Elliptic Curve defined by y^2 + 1.00000000000000*x*y + 1.00000000000000*y = x^3 + 1.00000000000000*x^2 - 8.00000000000000*x + 6.00000000000000 over Real Field with 53 bits of precision
             sage: L.elliptic_exponential(z,to_curve=False)
-            (1.41666666666667, -1.00000000000000)
+            (1.41666666666667, -2.00000000000000)
             sage: z = L(P,prec=201); z
             1.17044757240089592298992188482371493504472561677451007994189
             sage: L.elliptic_exponential(z)
@@ -1689,7 +1696,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: L.elliptic_exponential(CDF(.1,.1))
             (0.0000142854026029... - 49.9960001066650*I : 249.520141250950 + 250.019855549131*I : 1.00000000000000)
             sage: L.elliptic_exponential(CDF(.1,.1), to_curve=False)
-            (0.0000142854026029... - 49.9960001066650*I, 250.020141250950 + 250.019855549131*I)
+            (0.0000142854026029447 - 49.9960001066650*I, 500.040282501900 + 500.039711098263*I)
 
         `z=0` is treated as a special case::
 
@@ -1771,10 +1778,8 @@ class PeriodLattice_ell(PeriodLattice):
         # So we force the results back into the real/complex fields of
         # the same precision as the input.
 
-        from sage.libs.all import pari
-
-        x,y = pari(self.basis(prec=prec)).ellwp(pari(z),flag=1)
-        x,y = [C(t) for t in (x,y)]
+        x, y = pari(self.basis(prec=prec)).ellwp(z, flag=1)
+        x, y = [C(t) for t in (x,y)]
 
         if self.real_flag and z_is_real:
             x = x.real()
@@ -1783,8 +1788,8 @@ class PeriodLattice_ell(PeriodLattice):
         if to_curve:
             a1,a2,a3,a4,a6 = [self.embedding(a) for a in self.E.ainvs()]
             b2 = self.embedding(self.E.b2())
-            x = x - (b2/12)
-            y = y - (a1*x+a3)/2
+            x = x - b2 / 12
+            y = (y - (a1 * x + a3)) / 2
             K = x.parent()
             EK = EllipticCurve(K,[a1,a2,a3,a4,a6])
             return EK.point((x,y,K(1)), check=False)

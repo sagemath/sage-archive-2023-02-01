@@ -3,12 +3,18 @@ Operation Tables
 
 This module implements general operation tables, which are very matrix-like.
 """
+
 #*****************************************************************************
-#  Copyright (C) 2010 Rob Beezer <beezer at ups.edu>
+#       Copyright (C) 2010 Rob Beezer <beezer at ups.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#******************************************************************************
+#*****************************************************************************
+
+from __future__ import absolute_import
 
 import six
 from sage.structure.sage_object import SageObject
@@ -71,7 +77,7 @@ class OperationTable(SageObject):
 
     EXAMPLES:
 
-    In it's most basic use, the table needs a structure and an operation::
+    In its most basic use, the table needs a structure and an operation::
 
         sage: from sage.matrix.operation_table import OperationTable
         sage: G=SymmetricGroup(3)
@@ -349,10 +355,10 @@ class OperationTable(SageObject):
         ...
         TypeError: elements () and () of Cyclic group of order 4 as a permutation group are incompatible with operation: <built-in function xor>
 
-    TODO:
+    .. TODO::
 
-    Provide color and grayscale graphical representations of tables.
-    See commented-out stubs in source code.
+        Provide color and grayscale graphical representations of tables.
+        See commented-out stubs in source code.
 
     AUTHOR:
 
@@ -463,8 +469,9 @@ class OperationTable(SageObject):
           the values are the elements of the structure.
 
         EXAMPLES:
+
         This routine is tested extensively in the :class:`OperationTable`
-        and :meth:`change_names` methods.  So we just just demonstrate
+        and :meth:`change_names` methods.  So we just demonstrate
         the nature of the output here. ::
 
             sage: from sage.matrix.operation_table import OperationTable
@@ -550,7 +557,7 @@ class OperationTable(SageObject):
         Returns the element of the table, given the elements indexing its position.
 
         INPUT:
-        - pair - two elements of the structure
+        - pair -- two elements of the structure
 
         OUTPUT:
         The element of the structure computed by the operation for
@@ -620,7 +627,7 @@ class OperationTable(SageObject):
             sage: P=OperationTable(G, operator.mul)
             sage: Q=OperationTable(G, operator.mul)
             sage: R=OperationTable(H, operator.mul)
-            sage: S=OperationTable(G, operator.div)
+            sage: S=OperationTable(G, operator.truediv)
             sage: P == P, P == Q, P == R, P == S
             (True, True, False, False)
         """
@@ -638,7 +645,7 @@ class OperationTable(SageObject):
             sage: P=OperationTable(G, operator.mul)
             sage: Q=OperationTable(G, operator.mul)
             sage: R=OperationTable(H, operator.mul)
-            sage: S=OperationTable(G, operator.div)
+            sage: S=OperationTable(G, operator.truediv)
             sage: P != P, P != Q, P != R, P != S
             (False, False, True, True)
         """

@@ -115,10 +115,23 @@ class Rings(CategoryWithAxiom):
 
                 sage: K.<x> = FunctionField(QQ)
                 sage: f = ZZ.hom(K); f
-                Ring Coercion morphism:
+                Composite map:
                   From: Integer Ring
                   To:   Rational function field in x over Rational Field
+                  Defn:   Conversion via FractionFieldElement_1poly_field map:
+                          From: Integer Ring
+                          To:   Fraction Field of Univariate Polynomial Ring in x over Rational Field
+                        then
+                          Isomorphism morphism:
+                          From: Fraction Field of Univariate Polynomial Ring in x over Rational Field
+                          To:   Rational function field in x over Rational Field
                 sage: f.is_injective()
+                True
+
+            A coercion to the fraction field is injective::
+
+                sage: R = ZpFM(3)
+                sage: R.fraction_field().coerce_map_from(R).is_injective()
                 True
 
             """
@@ -148,10 +161,39 @@ class Rings(CategoryWithAxiom):
                         if self.domain().fraction_field() in NumberFields():
                             return True
 
+            if self._is_coercion:
+                try:
+                    K = self.domain().fraction_field()
+                except (TypeError, AttributeError, ValueError):
+                    pass
+                else:
+                    if K is self.codomain():
+                        return True
+
             if self.domain().cardinality() > self.codomain().cardinality():
                 return False
 
             raise NotImplementedError
+
+        def _is_nonzero(self):
+            r"""
+            Return whether this is not the zero morphism.
+
+            .. NOTE::
+
+                We can not override ``is_zero()`` from the category framework
+                and we can not implement ``__nonzero__`` because it is a
+                special method. That this is why this has a cumbersome name.
+
+            EXAMPLES::
+
+                sage: ZZ.hom(ZZ)._is_nonzero()
+                True
+                sage: ZZ.hom(Zmod(1))._is_nonzero()
+                False
+
+            """
+            return bool(self.codomain().one())
 
     class SubcategoryMethods:
 
@@ -920,14 +962,7 @@ class Rings(CategoryWithAxiom):
                 ...
                 TypeError: power series rings must have at least one variable
 
-            Some flexibility is allowed when specifying variables::
-
-                sage: QQ["x", SR.var('y'), polygen(CC, 'z')]
-                Multivariate Polynomial Ring in x, y, z over Rational Field
-                sage: QQ[["x", SR.var('y'), polygen(CC, 'z')]]
-                Multivariate Power Series Ring in x, y, z over Rational Field
-
-            but more baroque expressions do not work::
+            These kind of expressions do not work::
 
                 sage: QQ['a,b','c']
                 Traceback (most recent call last):
@@ -1081,6 +1116,60 @@ class Rings(CategoryWithAxiom):
             if self.is_zero(): # now 0 != 1
                 return False
             raise NotImplementedError
+
+        def inverse_of_unit(self):
+            r"""
+            Return the inverse of this element if it is a unit.
+
+            OUTPUT:
+
+            An element in the same ring as this element.
+
+            EXAMPLES::
+
+                sage: R.<x> = ZZ[]
+                sage: S = R.quo(x^2 + x + 1)
+                sage: S(1).inverse_of_unit()
+                1
+
+            This method fails when the element is not a unit::
+
+                sage: 2.inverse_of_unit()
+                Traceback (most recent call last):
+                ...
+                ArithmeticError: inverse does not exist
+
+            The inverse returned is in the same ring as this element::
+
+                sage: a = -1
+                sage: a.parent()
+                Integer Ring
+                sage: a.inverse_of_unit().parent()
+                Integer Ring
+
+            Note that this is often not the case when computing inverses in other ways::
+
+                sage: (~a).parent()
+                Rational Field
+                sage: (1/a).parent()
+                Rational Field
+
+            """
+            try:
+                if not self.is_unit():
+                    raise ArithmeticError("element is not a unit")
+            except NotImplementedError:
+                # if an element does not implement is_unit, we just try to
+                # invert it anyway; if the result is in the ring again, it was
+                # a unit
+                pass
+
+            inverse = ~self
+            if inverse not in self.parent():
+                raise ArithmeticError("element is not a unit")
+
+            # return the inverse (with the correct parent)
+            return self.parent()(inverse)
 
         def _divide_if_possible(self, y):
             """

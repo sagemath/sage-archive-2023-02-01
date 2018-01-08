@@ -366,6 +366,28 @@ class Magmas(Category_singleton):
             from sage.categories.magmatic_algebras import MagmaticAlgebras
             return [MagmaticAlgebras(self.base_ring())]
 
+
+        class ParentMethods:
+            def is_field(self, proof=True):
+                r"""
+                Return ``True`` if ``self`` is a field.
+
+                For a magma algebra `RS` this is always false unless
+                `S` is trivial and the base ring `R`` is a field.
+
+                EXAMPLES::
+
+                    sage: SymmetricGroup(1).algebra(QQ).is_field()
+                    True
+                    sage: SymmetricGroup(1).algebra(ZZ).is_field()
+                    False
+                    sage: SymmetricGroup(2).algebra(QQ).is_field()
+                    False
+                """
+                if not self.base_ring().is_field(proof):
+                    return False
+                return (self.basis().keys().cardinality() == 1)
+
     class Commutative(CategoryWithAxiom):
 
         class ParentMethods:
@@ -490,10 +512,10 @@ class Magmas(Category_singleton):
                 """
                 tester = self._tester(**options)
                 one = self.one()
-                tester.assert_(self.is_parent_of(one))
+                tester.assertTrue(self.is_parent_of(one))
                 for x in tester.some_elements():
-                    tester.assert_(x * one == x)
-                    tester.assert_(one * x == x)
+                    tester.assertTrue(x * one == x)
+                    tester.assertTrue(one * x == x)
                 # Check that one is immutable if it looks like we can test this
                 if hasattr(one,"is_immutable"):
                     tester.assertEqual(one.is_immutable(),True)

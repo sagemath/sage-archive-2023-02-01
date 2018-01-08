@@ -142,7 +142,7 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
         sage: el = next(it); el
         [2, 1, 3]
         sage: type(el)
-        <type 'sage.structure.element_wrapper.ElementWrapper'>
+        <... 'sage.structure.element_wrapper.ElementWrapper'>
         sage: el.parent() == UNoFacade
         True
         sage: elv = el.value; elv
@@ -344,9 +344,9 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
 
         .. WARNING::
 
-        If ``self`` is an infinite union and if the answer is
-        logically False, this will loop forever and never answer
-        ``False``. Therefore, a warning is issued.
+            If ``self`` is an infinite union and if the answer is
+            logically False, this will loop forever and never answer
+            ``False``. Therefore, a warning is issued.
 
         EXAMPLES::
 
@@ -589,7 +589,7 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
             sage: U = DisjointUnionEnumeratedSets(
             ....:          Family([1,2,3], Partitions), facade=False)
             sage: U.Element
-            <type 'sage.structure.element_wrapper.ElementWrapper'>
+            <... 'sage.structure.element_wrapper.ElementWrapper'>
             sage: U = DisjointUnionEnumeratedSets(
             ....:          Family([1,2,3], Partitions), facade=True)
             sage: U.Element

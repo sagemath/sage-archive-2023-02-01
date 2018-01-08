@@ -104,7 +104,7 @@ cdef extern from "meataxe.h":
     Matrix_t *MatCutRows(Matrix_t *src, int row1, int nrows) except NULL
     Matrix_t *MatDup(Matrix_t *src) except NULL
     Matrix_t *MatId(int fl, int nor) except NULL
-    Matrix_t *MatLoad(char *fn) except NULL
+    Matrix_t *MatLoad(char *fn) except? NULL
     int MatSave(Matrix_t *mat, char *fn) except -1
 
 
@@ -123,7 +123,7 @@ cdef extern from "meataxe.h":
     ## "Higher" Arithmetic
     Matrix_t *MatTensor(Matrix_t *m1, Matrix_t *m2) except NULL
     Matrix_t *TensorMap(Matrix_t *vec, Matrix_t *a, Matrix_t *b) except NULL
-    
+
     int MatClean(Matrix_t *mat, Matrix_t *sub) except -1
     int MatEchelonize(Matrix_t *mat) except -1
     int MatOrder(Matrix_t *mat) except? -1
@@ -146,3 +146,23 @@ cdef extern from "meataxe.h":
 
     ctypedef void MtxErrorHandler_t(MtxErrorRecord_t*)
     MtxErrorHandler_t *MtxSetErrorHandler(MtxErrorHandler_t *h)
+
+###############################################################
+## It is needed to do some initialisation. Since meataxe is
+## a static library, it is needed to do this initialisation
+## by calling meataxe_init() in all modules calling MeatAxe
+## library functions
+
+from cpython.bytes cimport PyBytes_AsString
+
+cdef void sage_meataxe_error_handler(const MtxErrorRecord_t *err)
+
+cdef inline meataxe_init():
+    ## Assign to a variable that enables MeatAxe to find
+    ## its multiplication tables.
+    import os
+    from sage.env import DOT_SAGE
+    global MtxLibDir
+    MtxLibDir = PyBytes_AsString(os.path.join(DOT_SAGE,'meataxe'))
+    ## Error handling for MeatAxe, to prevent immediate exit of the program
+    MtxSetErrorHandler(sage_meataxe_error_handler)

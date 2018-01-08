@@ -47,6 +47,23 @@ EXAMPLES::
     S = P + axes(6, color='black')
     sphinx_plot(S)
     
+Here is an example using a colormap and a color function ``c``::
+
+    sage: x, y = var('x y')
+    sage: cm = colormaps.hsv
+    sage: def c(x,y): return float((x+y+x*y)/15) % 1
+    sage: plot3d(x*x+y*y,(x,-4,4),(y,-4,4),color=(c,cm))
+    Graphics3d Object
+
+.. PLOT::
+
+    x, y = var('x y')
+    cm = colormaps.hsv
+    def c(x,y): return float((x+y+x*y)/15) % 1
+    sphinx_plot(plot3d(x*x+y*y,(x,-4,4),(y,-4,4),color=(c,cm)))
+
+Beware that the color function must take values between 0 and 1.
+
 We plot "cape man"::
 
     sage: S = sphere(size=.5, color='yellow')
@@ -88,7 +105,7 @@ Or, we plot a very simple function indeed::
 .. PLOT::
     
     sphinx_plot(plot3d(pi, (-1,1), (-1,1)))
-    
+
 .. TODO::
 
     Add support for smooth triangles.
@@ -213,7 +230,7 @@ class _Coordinates(object):
          - ``func`` - A function in this coordinate space. Corresponds to the
            independent variable.
 
-         - ``params`` - The parameters of func. Corresponds to the dependent
+         - ``params`` - The parameters of ``func``. Corresponds to the dependent
            variables.
 
         EXAMPLES::
@@ -266,7 +283,7 @@ class _Coordinates(object):
             sage: [h(u=1,v=2) for h in T.to_cartesian(operator.mul)]
             [3.0, -1.0, 2.0]
 
-        The output of the function `func` is coerced to a float when
+        The output of the function ``func`` is coerced to a float when
         it is evaluated if the function is something like a lambda or
         python callable. This takes care of situations like f returning a
         singleton numpy array, for example.

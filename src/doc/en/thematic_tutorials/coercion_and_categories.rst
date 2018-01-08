@@ -122,7 +122,6 @@ This base class provides a lot more methods than a general parent::
      '_coerce_impl',
      '_coerce_try',
      '_default_category',
-     '_gcd_univariate_polynomial',
      '_gens',
      '_has_coerce_map_from',
      '_ideal_class_',
@@ -132,7 +131,6 @@ This base class provides a lot more methods than a general parent::
      '_pseudo_fraction_field',
      '_random_nonzero_element',
      '_unit_ideal',
-     '_xgcd_univariate_polynomial',
      '_zero_element',
      '_zero_ideal',
      'algebraic_closure',
@@ -425,7 +423,7 @@ does not even give a wrong answer, but results in an error::
     sage: 1 in P
     Traceback (most recent call last):
     ...
-    NotImplementedError
+    NotImplementedError: cannot construct elements of NewFrac(Integer Ring)
 
 .. end of output
 
@@ -466,9 +464,9 @@ And indeed, ``MS2`` has *more* methods than ``MS1``::
 
     sage: import inspect
     sage: len([s for s in dir(MS1) if inspect.ismethod(getattr(MS1,s,None))])
-    60
+    78
     sage: len([s for s in dir(MS2) if inspect.ismethod(getattr(MS2,s,None))])
-    90
+    117
 
 This is because the class of ``MS2`` also inherits from the parent
 class for algebras::
@@ -612,7 +610,7 @@ does not work, yet::
     sage: P.sum([a, b, c])
     Traceback (most recent call last):
     ...
-    NotImplementedError
+    NotImplementedError: cannot construct elements of NewFrac(Integer Ring)
 
 .. end of output
 
@@ -824,7 +822,7 @@ thus have::
     sage: P1.has_coerce_map_from(P2)
     True
     sage: P1.coerce_map_from(P2)
-    Conversion map:
+    Coercion map:
       From: Multivariate Polynomial Ring in w, v over Integer Ring
       To:   Multivariate Polynomial Ring in v, w over Rational Field
 
@@ -1554,6 +1552,7 @@ Here are the tests that form the test suite of quotient fields::
      '_test_elements_eq_transitive',
      '_test_elements_neq',
      '_test_euclidean_degree',
+     '_test_fraction_field',
      '_test_gcd_vs_xgcd',
      '_test_one', '_test_prod',
      '_test_quo_rem',
@@ -1608,6 +1607,7 @@ Let us see what tests are actually performed::
     running ._test_elements_neq() . . . pass
     running ._test_eq() . . . pass
     running ._test_euclidean_degree() . . . pass
+    running ._test_fraction_field() . . . pass
     running ._test_gcd_vs_xgcd() . . . pass
     running ._test_new() . . . pass
     running ._test_not_implemented_methods() . . . pass
@@ -1780,6 +1780,7 @@ interesting.
     running ._test_elements_neq() . . . pass
     running ._test_eq() . . . pass
     running ._test_euclidean_degree() . . . pass
+    running ._test_fraction_field() . . . pass
     running ._test_gcd_vs_xgcd() . . . pass
     running ._test_new() . . . pass
     running ._test_not_implemented_methods() . . . pass

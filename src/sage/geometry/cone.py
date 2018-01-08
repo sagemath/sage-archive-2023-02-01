@@ -195,8 +195,8 @@ import collections
 import copy
 import warnings
 
+from sage.arith.all import gcd, lcm
 from sage.combinat.posets.posets import FinitePoset
-from sage.geometry.lattice_polytope import integral_length
 from sage.geometry.point_collection import PointCollection
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.geometry.polyhedron.base import is_Polyhedron
@@ -209,8 +209,8 @@ from sage.matrix.all import matrix, MatrixSpace
 from sage.misc.all import cached_method, flatten, latex
 from sage.modules.all import span, vector, VectorSpace
 from sage.rings.all import QQ, RR, ZZ
-from sage.arith.all import gcd
 from sage.structure.all import SageObject, parent
+from sage.structure.richcmp import richcmp_method, richcmp
 from sage.libs.ppl import C_Polyhedron, Generator_System, Constraint_System, \
     Linear_Expression, ray as PPL_ray, point as PPL_point, \
     Poly_Con_Relation
@@ -505,6 +505,93 @@ def _Cone_from_PPL(cone, lattice, original_rays=None):
         return ConvexRationalPolyhedralCone(rays, lattice, PPL=cone)
 
 
+def _ambient_space_point(body, data):
+    r"""
+    Try to convert ``data`` to a point of the ambient space of ``body``.
+
+    INPUT:
+
+    - ``body`` -- a cone, fan, or lattice polytope with ``lattice()`` method
+
+    - ``data`` -- anything
+
+    OUTPUT:
+
+    - integral, rational or numeric point of the ambient space of ``body``
+      if ``data`` were successfully interpreted in such a way, otherwise a
+      ``TypeError`` exception is raised
+
+    TESTS::
+
+        sage: from sage.geometry.cone import _ambient_space_point
+        sage: c = Cone([(1,0), (0,1)])
+        sage: _ambient_space_point(c, [1,1])
+        N(1, 1)
+        sage: _ambient_space_point(c, c.dual_lattice()([1,1]))
+        Traceback (most recent call last):
+        ...
+        TypeError: the point M(1, 1) and
+         2-d cone in 2-d lattice N have incompatible lattices
+        sage: _ambient_space_point(c, [1,1/3])
+        (1, 1/3)
+        sage: _ambient_space_point(c, [1/2,1/sqrt(3)])
+        (0.500000000000000, 0.577350269189626)
+        sage: _ambient_space_point(c, [1,1,3])
+        Traceback (most recent call last):
+        ...
+        TypeError: [1, 1, 3] does not represent a valid point
+         in the ambient space of 2-d cone in 2-d lattice N
+    """
+    L = body.lattice()
+    try: # to make a lattice element...
+        return L(data)
+    except TypeError:
+        # Special treatment for toric lattice elements
+        if is_ToricLattice(parent(data)):
+            raise TypeError("the point %s and %s have incompatible "
+                            "lattices" % (data, body))
+    try: # ... or an exact point...
+        return L.base_extend(QQ)(data)
+    except TypeError:
+        pass
+    try: # ... or at least a numeric one
+        return L.base_extend(RR)(data)
+    except TypeError:
+        pass
+    # Raise TypeError with our own message
+    raise TypeError("%s does not represent a valid point in the ambient "
+                    "space of %s" % (data, body))
+
+
+def integral_length(v):
+    """
+    Compute the integral length of a given rational vector.
+
+    INPUT:
+
+    - ``v`` -- any object which can be converted to a list of rationals
+
+    OUTPUT:
+
+    Rational number `r`` such that ``v = r * u``, where ``u`` is the
+    primitive integral vector in the direction of ``v``.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.cone import integral_length
+        sage: integral_length([1, 2, 4])
+        1
+        sage: integral_length([2, 2, 4])
+        2
+        sage: integral_length([2/3, 2, 4])
+        2/3
+    """
+    data = [QQ(e) for e in list(v)]
+    ns = [e.numerator() for e in data]
+    ds = [e.denominator() for e in data]
+    return gcd(ns) / lcm(ds)
+
+
 def normalize_rays(rays, lattice):
     r"""
     Normalize a list of rational rays: make them primitive and immutable.
@@ -595,6 +682,7 @@ def normalize_rays(rays, lattice):
     return rays
 
 
+@richcmp_method
 class IntegralRayCollection(SageObject,
                             collections.Hashable,
                             collections.Iterable):
@@ -656,7 +744,7 @@ class IntegralRayCollection(SageObject,
         self._rays = PointCollection(rays, lattice)
         self._lattice = lattice
 
-    def __cmp__(self, right):
+    def __richcmp__(self, right, op):
         r"""
         Compare ``self`` and ``right``.
 
@@ -666,32 +754,34 @@ class IntegralRayCollection(SageObject,
 
         OUTPUT:
 
-        - 0 if ``right`` is of the same type as ``self``, they have the same
-          ambient lattices, and their rays are the same and listed in the same
-          order. 1 or -1 otherwise.
+        boolean
+
+        There is equality if ``right`` is of the same type as
+        ``self``, they have the same ambient lattices, and their
+        rays are the same and listed in the same order.
 
         TESTS::
 
             sage: c1 = Cone([(1,0), (0,1)])
             sage: c2 = Cone([(0,1), (1,0)])
             sage: c3 = Cone([(0,1), (1,0)])
-            sage: cmp(c1, c2)
-            1
-            sage: cmp(c2, c1)
-            -1
-            sage: cmp(c2, c3)
-            0
+            sage: c1 > c2
+            True
+            sage: c2 < c1
+            True
+            sage: c2 == c3
+            True
             sage: c2 is c3
             False
         """
-        c = cmp(type(self), type(right))
-        if c:
-            return c
+        if type(self) != type(right):
+            return NotImplemented
+
         # We probably do need to have explicit comparison of lattices here
         # since if one of the collections does not live in a toric lattice,
         # comparison of rays may miss the difference.
-        return cmp((self.lattice(), self.rays()),
-                   (right.lattice(), right.rays()))
+        return richcmp((self.lattice(), self.rays()),
+                       (right.lattice(), right.rays()), op)
 
     def __hash__(self):
         r"""
@@ -727,60 +817,6 @@ class IntegralRayCollection(SageObject,
             N(0, 1)
         """
         return iter(self._rays)
-
-    def _ambient_space_point(self, data):
-        r"""
-        Try to convert ``data`` to a point of the ambient space of ``self``.
-
-        INPUT:
-
-        - ``data`` -- anything.
-
-        OUTPUT:
-
-        - integral, rational or numeric point of the ambient space of ``self``
-          if ``data`` were successfully interpreted in such a way, otherwise a
-          ``TypeError`` exception is raised.
-
-        TESTS::
-
-            sage: c = Cone([(1,0), (0,1)])
-            sage: c._ambient_space_point([1,1])
-            N(1, 1)
-            sage: c._ambient_space_point(c.dual_lattice()([1,1]))
-            Traceback (most recent call last):
-            ...
-            TypeError: the point M(1, 1) and
-            2-d cone in 2-d lattice N have incompatible lattices!
-            sage: c._ambient_space_point([1,1/3])
-            (1, 1/3)
-            sage: c._ambient_space_point([1/2,1/sqrt(3)])
-            (0.500000000000000, 0.577350269189626)
-            sage: c._ambient_space_point([1,1,3])
-            Traceback (most recent call last):
-            ...
-            TypeError: [1, 1, 3] does not represent a valid point
-            in the ambient space of 2-d cone in 2-d lattice N!
-        """
-        L = self.lattice()
-        try: # to make a lattice element...
-            return L(data)
-        except TypeError:
-            # Special treatment for toric lattice elements
-            if is_ToricLattice(parent(data)):
-                raise TypeError("the point %s and %s have incompatible "
-                                "lattices!" % (data, self))
-        try: # ... or an exact point...
-            return L.base_extend(QQ)(data)
-        except TypeError:
-            pass
-        try: # ... or at least a numeric one
-            return L.base_extend(RR)(data)
-        except TypeError:
-            pass
-        # Raise TypeError with our own message
-        raise TypeError("%s does not represent a valid point in the ambient "
-                        "space of %s!" % (data, self))
 
     def cartesian_product(self, other, lattice=None):
         r"""
@@ -1289,6 +1325,7 @@ def classify_cone_2d(ray0, ray1, check=True):
 # Derived classes MUST allow construction of their objects using ``ambient``
 # and ``ambient_ray_indices`` keyword parameters. See ``intersection`` method
 # for an example why this is needed.
+@richcmp_method
 class ConvexRationalPolyhedralCone(IntegralRayCollection,
                                    collections.Container):
     r"""
@@ -1535,7 +1572,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             True
         """
         try:
-            point = self._ambient_space_point(point)
+            point = _ambient_space_point(self, point)
         except TypeError as ex:
             if str(ex).endswith("have incompatible lattices!"):
                 warnings.warn("you have checked if a cone contains a point "
@@ -1690,7 +1727,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         rc = super(ConvexRationalPolyhedralCone, self).__neg__()
         return ConvexRationalPolyhedralCone(rc.rays(), rc.lattice())
 
-    def __cmp__(self, right):
+    def __richcmp__(self, right, op):
         r"""
         Compare ``self`` and ``right``.
 
@@ -1700,30 +1737,32 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         OUTPUT:
 
-        - 0 if ``self`` and ``right`` are cones of any kind in the same
-          lattice with the same rays listed in the same order. 1 or -1
-          otherwise.
+        boolean
+
+        There is equality if ``self`` and ``right`` are cones of any
+        kind in the same lattice with the same rays listed in the
+        same order.
 
         TESTS::
 
             sage: c1 = Cone([(1,0), (0,1)])
             sage: c2 = Cone([(0,1), (1,0)])
             sage: c3 = Cone([(0,1), (1,0)])
-            sage: cmp(c1, c2)
-            1
-            sage: cmp(c2, c1)
-            -1
-            sage: cmp(c2, c3)
-            0
+            sage: c1 > c2
+            True
+            sage: c2 < c1
+            True
+            sage: c2 == c3
+            True
             sage: c2 is c3
             False
         """
         if is_Cone(right):
             # We don't care about particular type of right in this case
-            return cmp((self.lattice(), self.rays()),
-                       (right.lattice(), right.rays()))
+            return richcmp((self.lattice(), self.rays()),
+                           (right.lattice(), right.rays()), op)
         else:
-            return cmp(type(self), type(right))
+            return NotImplemented
 
     def _latex_(self):
         r"""
@@ -2308,7 +2347,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             if self._ambient is self:
                 # We need to compute face lattice on our own. To accommodate
                 # non-strictly convex cones we split rays (or rather their
-                # indicies) into those in the linear subspace and others, which
+                # indices) into those in the linear subspace and others, which
                 # we refer to as atoms.
                 S = self.linear_subspace()
                 subspace_rays = []
@@ -3713,7 +3752,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         ``self.sublattice()``. This method returns the quotient
         lattice. The lifts of the quotient generators are
         `\dim(\sigma)-\dim(\rho)` linearly independent primitive
-        lattice lattice points that, together with `N_\rho`, generate
+        lattice points that, together with `N_\rho`, generate
         `N_\sigma`.
 
         OUTPUT:
@@ -4574,7 +4613,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: K = Cone([(0,0)])
             sage: M = MatrixSpace(K.lattice().base_field(), K.lattice_dim())
-            sage: M.basis() == K.lyapunov_like_basis()
+            sage: list(M.basis()) == K.lyapunov_like_basis()
             True
 
         And by duality, every transformation is Lyapunov-like on the
@@ -4584,7 +4623,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: K.is_full_space()
             True
             sage: M = MatrixSpace(K.lattice().base_field(), K.lattice_dim())
-            sage: M.basis() == K.lyapunov_like_basis()
+            sage: list(M.basis()) == K.lyapunov_like_basis()
             True
 
         However, in a trivial space, there are no non-trivial linear maps,

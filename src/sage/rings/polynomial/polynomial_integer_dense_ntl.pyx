@@ -36,11 +36,12 @@ from __future__ import absolute_import, print_function
 
 from cysignals.memory cimport sig_free
 from cysignals.signals cimport sig_on, sig_off
+from sage.ext.cplusplus cimport ccrepr
 
 include "sage/libs/ntl/decl.pxi"
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
-from sage.structure.element cimport ModuleElement, RingElement
+from sage.structure.element cimport ModuleElement, Element
 
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer_ring cimport IntegerRing_class
@@ -381,10 +382,10 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             if sign:
                 if sign > 0:
                     sign_str = '+'
-                    coeff_str = ZZ_to_PyString(&self.__poly.rep.elts()[i])
+                    coeff_str = ccrepr(self.__poly.rep.elts()[i])
                 else:
                     sign_str = '-'
-                    coeff_str = ZZ_to_PyString(&self.__poly.rep.elts()[i])[1:]
+                    coeff_str = ccrepr(self.__poly.rep.elts()[i])[1:]
                 if i > 0:
                     if coeff_str == '1':
                         coeff_str = ''
@@ -681,8 +682,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
                 (<Polynomial_integer_dense_ntl>right).__poly)
         return x
 
-
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         r"""
         Returns self multiplied by right, where right is a scalar (integer).
 
@@ -701,8 +701,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         ZZX_mul_ZZ(x.__poly, self.__poly, _right)
         return x
 
-
-    cpdef _rmul_(self, RingElement right):
+    cpdef _rmul_(self, Element right):
         r"""
         Returns self multiplied by right, where right is a scalar (integer).
 

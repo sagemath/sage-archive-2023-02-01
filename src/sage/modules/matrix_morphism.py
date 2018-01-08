@@ -55,6 +55,8 @@ import sage.categories.morphism
 import sage.categories.homset
 import sage.matrix.all as matrix
 from sage.structure.all import Sequence, parent
+from sage.structure.richcmp import richcmp, op_NE, op_EQ
+
 
 def is_MatrixMorphism(x):
     """
@@ -95,21 +97,33 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             raise TypeError("parent must be a Hom space")
         sage.categories.morphism.Morphism.__init__(self, parent)
 
-    def _cmp_(self, other):
+    def _richcmp_(self, other, op):
         """
-        Compare two matrix morphisms.
+        Rich comparison of morphisms.
 
         EXAMPLES::
 
-            sage: V = ZZ^2; phi = V.hom([3*V.0, 2*V.1])
-            sage: phi == 3
-            False
+            sage: V = ZZ^2
+            sage: phi = V.hom([3*V.0, 2*V.1])
+            sage: psi = V.hom([5*V.0, 5*V.1])
+            sage: id = V.hom([V.0, V.1])
             sage: phi == phi
             True
+            sage: phi == psi
+            False
+            sage: psi == End(V)(5)
+            True
+            sage: psi == 5 * id
+            True
+            sage: psi == 5  # no coercion
+            False
+            sage: id == End(V).identity()
+            True
         """
-        return cmp(self.matrix(), other.matrix())
-
-    __cmp__ = _cmp_
+        if not isinstance(other, MatrixMorphism) or op not in (op_EQ, op_NE):
+            # Generic comparison
+            return sage.categories.morphism.Morphism._richcmp_(self, other, op)
+        return richcmp(self.matrix(), other.matrix(), op)
 
     def _call_(self, x):
         """

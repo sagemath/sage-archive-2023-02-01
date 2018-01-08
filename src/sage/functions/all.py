@@ -25,7 +25,8 @@ from .other import ( ceil, floor, gamma, psi, factorial, beta, binomial,
                     abs_symbolic, sqrt, log_gamma,
                     gamma_inc, incomplete_gamma, gamma_inc_lower,
                     arg, real_part, real, frac,
-                    imag_part, imag, imaginary, conjugate)
+                    imag_part, imag, imaginary, conjugate, cases,
+                    complex_root_of)
 
 from .log import (exp, exp_polar, log, ln, polylog, dilog, lambert_w, harmonic_number)
 

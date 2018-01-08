@@ -35,17 +35,24 @@ AUTHORS:
 
 from __future__ import print_function
 from __future__ import absolute_import
+import __future__
 
 import hashlib, multiprocessing, os, sys, time, warnings, signal, linecache
 import doctest, traceback
 import tempfile
+import six
+
 import sage.misc.randstate as randstate
 from .util import Timer, RecordingDict, count_noun
 from .sources import DictAsObject
 from .parsing import OriginalSource, reduce_hex
 from sage.structure.sage_object import SageObject
 from .parsing import SageOutputChecker, pre_hash, get_source
-from sage.repl.user_globals import set_globals
+from sage.repl.user_globals import set_globals, get_globals
+
+
+# All doctests run as if the following future imports are present
+MANDATORY_COMPILE_FLAGS = __future__.print_function.compiler_flag
 
 
 def init_sage():
@@ -128,6 +135,7 @@ def init_sage():
     # Disable SymPy terminal width detection
     from sympy.printing.pretty.stringpict import stringPict
     stringPict.terminal_width = lambda self:0
+
 
 
 def showwarning_with_traceback(message, category, filename, lineno, file=sys.stdout, line=None):
@@ -218,7 +226,7 @@ class SageSpoofInOut(SageObject):
             sage: import tempfile
             sage: from sage.doctest.forker import SageSpoofInOut
             sage: SageSpoofInOut(tempfile.TemporaryFile(), tempfile.TemporaryFile())
-            <class 'sage.doctest.forker.SageSpoofInOut'>
+            <sage.doctest.forker.SageSpoofInOut object at ...>
         """
         if infile is None:
             self.infile = open(os.devnull)
@@ -514,7 +522,13 @@ class SageDocTestRunner(doctest.DocTestRunner):
             finally:
                 if self.debugger is not None:
                     self.debugger.set_continue() # ==== Example Finished ====
-            got = self._fakeout.getvalue()  # the actual output
+            got = self._fakeout.getvalue()
+            try:
+                got = got.decode('utf-8')
+            except UnicodeDecodeError:
+                got = got.decode('latin1')
+            # the actual output
+
             outcome = FAILURE   # guilty until proved innocent or insane
 
             # If the example executed without raising any exceptions,
@@ -525,8 +539,41 @@ class SageDocTestRunner(doctest.DocTestRunner):
 
             # The example raised an exception: check if it was expected.
             else:
-                exc_info = sys.exc_info()
+                exc_info = exception
                 exc_msg = traceback.format_exception_only(*exc_info[:2])[-1]
+
+                if six.PY3 and example.exc_msg is not None:
+                    # On Python 3 the exception repr often includes the
+                    # exception's full module name (for non-builtin
+                    # exceptions), whereas on Python 2 does not, so we
+                    # normalize Python 3 exceptions to match tests written to
+                    # Python 2
+                    # See https://trac.sagemath.org/ticket/24271
+                    exc_cls = exc_info[0]
+                    exc_name = exc_cls.__name__
+                    if exc_cls.__module__:
+                        exc_fullname = (exc_cls.__module__ + '.' +
+                                        exc_cls.__qualname__)
+                    else:
+                        exc_fullname = exc_cls.__qualname__
+
+                    # See
+                    # https://docs.python.org/3/library/exceptions.html#OSError
+                    oserror_aliases = ['IOError', 'EnvironmentError',
+                                       'socket.error', 'select.error',
+                                       'mmap.error']
+
+                    if (example.exc_msg.startswith(exc_name) and
+                            exc_msg.startswith(exc_fullname)):
+                        exc_msg = exc_msg.replace(exc_fullname, exc_name, 1)
+                    else:
+                        # Special case: On Python 3 these exceptions are all
+                        # just aliases for OSError
+                        for alias in oserror_aliases:
+                            if example.exc_msg.startswith(alias + ':'):
+                                exc_msg = exc_msg.replace('OSError', alias, 1)
+                                break
+
                 if not quiet:
                     got += doctest._exception_traceback(exc_info)
 
@@ -618,12 +665,13 @@ class SageDocTestRunner(doctest.DocTestRunner):
             TestResults(failed=0, attempted=4)
         """
         self.setters = {}
-        randstate.set_random_seed(long(0))
+        randstate.set_random_seed(0)
         warnings.showwarning = showwarning_with_traceback
         self.running_doctest_digest = hashlib.md5()
         self.test = test
         if compileflags is None:
             compileflags = doctest._extract_future_flags(test.globs)
+        compileflags |= MANDATORY_COMPILE_FLAGS
         # We use this slightly modified version of Pdb because it
         # interacts better with the doctesting framework (like allowing
         # doctests for sys.settrace()). Since we already have output
@@ -768,7 +816,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: DTR.running_global_digest.hexdigest()
             '3cb44104292c3a3ab4da3112ce5dc35c'
         """
-        s = pre_hash(get_source(example))
+        s = pre_hash(get_source(example)).encode('utf-8')
         self.running_global_digest.update(s)
         self.running_doctest_digest.update(s)
         if example.predecessors is not None:
@@ -1115,7 +1163,8 @@ class SageDocTestRunner(doctest.DocTestRunner):
                 34
             **********************************************************************
             Previously executed commands:
-            ...
+            sage: sage0._expect.expect('sage: ')   # sage0 just mis-identified the output as prompt, synchronize
+            0
             sage: sage0.eval("a")
             '...17'
             sage: sage0.eval("quit")
@@ -1384,7 +1433,7 @@ class DocTestDispatcher(SageObject):
             sage: from sage.doctest.control import DocTestController, DocTestDefaults
             sage: from sage.doctest.forker import DocTestDispatcher
             sage: DocTestDispatcher(DocTestController(DocTestDefaults(), []))
-            <class 'sage.doctest.forker.DocTestDispatcher'>
+            <sage.doctest.forker.DocTestDispatcher object at ...>
         """
         self.controller = controller
         init_sage()
@@ -1421,7 +1470,8 @@ class DocTestDispatcher(SageObject):
         """
         for source in self.controller.sources:
             heading = self.controller.reporter.report_head(source)
-            self.controller.log(heading)
+            if not self.controller.options.only_errors:
+                self.controller.log(heading)
 
             with tempfile.TemporaryFile() as outtmpfile:
                 result = DocTestTask(source)(self.controller.options,
@@ -1504,15 +1554,15 @@ class DocTestDispatcher(SageObject):
         # If timeout was 0, simply set a very long time
         if opt.timeout <= 0:
             opt.timeout = 2**60
-        # Timeout we give a process to die (after it received a SIGHUP
+        # Timeout we give a process to die (after it received a SIGQUIT
         # signal). If it doesn't exit by itself in this many seconds, we
         # SIGKILL it. This is 5% of doctest timeout, with a maximum of
-        # 10 minutes and a minimum of 20 seconds.
+        # 10 minutes and a minimum of 60 seconds.
         die_timeout = opt.timeout * 0.05
         if die_timeout > 600:
             die_timeout = 600
-        elif die_timeout < 20:
-            die_timeout = 20
+        elif die_timeout < 60:
+            die_timeout = 60
 
         # List of alive DocTestWorkers (child processes). Workers which
         # are done but whose messages have not been read are also
@@ -1642,7 +1692,8 @@ class DocTestDispatcher(SageObject):
                             # Start a new worker.
                             w = DocTestWorker(source, options=opt, funclist=[sel_exit])
                             heading = self.controller.reporter.report_head(w.source)
-                            w.messages = heading + "\n"
+                            if not self.controller.options.only_errors:
+                                w.messages = heading + "\n"
                             # Store length of heading to detect if the
                             # worker has something interesting to report.
                             w.heading_len = len(w.messages)
@@ -1707,7 +1758,7 @@ class DocTestDispatcher(SageObject):
             # killing the remaining workers.
             if len(workers) > 0 and os.fork() == 0:
                 # Block these signals
-                with PSelecter([signal.SIGHUP, signal.SIGINT]):
+                with PSelecter([signal.SIGQUIT, signal.SIGINT]):
                     try:
                         from time import sleep
                         sleep(die_timeout)
@@ -2010,9 +2061,18 @@ class DocTestWorker(multiprocessing.Process):
 
     def kill(self):
         """
-        Kill this worker. The first time this is called, use
-        ``SIGHUP``. Subsequent times, use ``SIGKILL``.  Also close the
-        message pipe if it was still open.
+        Kill this worker
+
+        This method is only called if there is something wrong with the
+        worker. Under normal circumstances, the worker is supposed to
+        exit by itself after finishing.
+
+        The first time this is called, use ``SIGQUIT``. This will trigger
+        the cysignals ``SIGQUIT`` handler and try to print an enhanced
+        traceback.
+
+        Subsequent times, use ``SIGKILL``.  Also close the message pipe
+        if it was still open.
 
         EXAMPLES::
 
@@ -2026,14 +2086,14 @@ class DocTestWorker(multiprocessing.Process):
             sage: DD = DocTestDefaults()
             sage: FDS = FileDocTestSource(filename,DD)
 
-        We set up the worker to start by blocking ``SIGHUP``, such that
+        We set up the worker to start by blocking ``SIGQUIT``, such that
         killing will fail initially::
 
             sage: from cysignals.pselect import PSelecter
             sage: import signal
             sage: def block_hup():
             ....:     # We never __exit__()
-            ....:     PSelecter([signal.SIGHUP]).__enter__()
+            ....:     PSelecter([signal.SIGQUIT]).__enter__()
             sage: W = DocTestWorker(FDS, DD, [block_hup])
             sage: W.start()
             sage: W.killed
@@ -2052,7 +2112,7 @@ class DocTestWorker(multiprocessing.Process):
             self.rmessages = None
         if not self.killed:
             self.killed = True
-            os.killpg(self.pid, signal.SIGHUP)
+            os.killpg(self.pid, signal.SIGQUIT)
         else:
             os.killpg(self.pid, signal.SIGKILL)
 
@@ -2103,7 +2163,7 @@ class DocTestTask(object):
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','sources.py')
             sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: DocTestTask(FDS)
-            <sage.doctest.forker.DocTestTask object at 0x...>
+            <sage.doctest.forker.DocTestTask object at ...>
         """
         self.source = source
 

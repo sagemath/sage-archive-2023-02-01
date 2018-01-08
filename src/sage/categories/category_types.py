@@ -84,9 +84,9 @@ class Elements(Category):
             sage: Elements(ZZ).super_categories()
             [Category of objects]
 
-        TODO:
+        .. TODO::
 
-        check that this is what we want.
+            Check that this is what we want.
         """
         return [Objects()]
 
@@ -172,7 +172,7 @@ class Category_over_base(CategoryWithParameters):
         from .bimodules import Bimodules
         from .schemes import Schemes
         for cat in self.super_categories():
-            tester.assert_(isinstance(cat, (Category_singleton, Category_over_base,
+            tester.assertTrue(isinstance(cat, (Category_singleton, Category_over_base,
                                             Bimodules, Schemes)),
                            "The super categories of a category over base should"
                            " be a category over base (or the related Bimodules)"
@@ -198,11 +198,15 @@ class Category_over_base(CategoryWithParameters):
              and Category of infinite enumerated sets
              and Category of metric spaces
             sage: Modules(QQ)._make_named_class_key('parent_class')
-            Join of Category of quotient fields and Category of metric spaces
+            Join of Category of number fields
+             and Category of quotient fields
+             and Category of metric spaces
             sage: Schemes(Spec(ZZ))._make_named_class_key('parent_class')
             Category of schemes
             sage: ModularAbelianVarieties(QQ)._make_named_class_key('parent_class')
-            Join of Category of quotient fields and Category of metric spaces
+            Join of Category of number fields
+             and Category of quotient fields
+             and Category of metric spaces
             sage: Algebras(Fields())._make_named_class_key('morphism_class')
             Category of fields
         """

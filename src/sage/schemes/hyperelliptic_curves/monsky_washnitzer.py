@@ -61,11 +61,12 @@ from sage.modules.all import vector
 from sage.rings.ring import CommutativeAlgebra
 from sage.structure.element import CommutativeAlgebraElement
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.richcmp import richcmp
 from sage.misc.cachefunc import cached_method
 from sage.rings.infinity import Infinity
 
 from sage.arith.all import binomial, integer_ceil as ceil
-from sage.misc.functional import log
+from sage.functions.log import log
 from sage.misc.misc import newton_method_sizes
 
 from sage.schemes.elliptic_curves.ell_generic import is_EllipticCurve
@@ -406,7 +407,7 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
 
     __nonzero__ = __bool__
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         EXAMPLES::
 
@@ -419,7 +420,7 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
             sage: x == x + x - x
             True
         """
-        return cmp(self._triple, other._triple)
+        return richcmp(self._triple, other._triple, op)
 
     def _repr_(self):
         """
@@ -1758,7 +1759,7 @@ def matrix_of_frobenius_hyperelliptic(Q, p=None, prec=None, M=None):
 
     - ``prec`` -- (optional) `p`-adic precision of the coefficient ring
 
-    - ``M`` -- (optional) adjusted `p`-adic precision of the coefficint ring
+    - ``M`` -- (optional) adjusted `p`-adic precision of the coefficient ring
 
     OUTPUT:
 
@@ -2163,6 +2164,7 @@ class SpecialHyperellipticQuotientRing(UniqueRepresentation, CommutativeAlgebra)
         return False
 SpecialHyperellipticQuotientRing_class = SpecialHyperellipticQuotientRing
 
+
 class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
 
     def __init__(self, parent, val=0, offset=0, check=True):
@@ -2194,25 +2196,25 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
         if offset != 0:
             self._f = self._f.parent()([a << offset for a in self._f], check=False)
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
-        Compares the elements
+        Compare the elements.
 
         EXAMPLES::
 
             sage: R.<x> = QQ['x']
             sage: E = HyperellipticCurve(x^5-36*x+1)
             sage: x,y = E.monsky_washnitzer_gens()
-            sage: x.__cmp__(x)
-            0
-            sage: x.__cmp__(y)
-            1
+            sage: x == x
+            True
+            sage: x > y
+            True
         """
-        return cmp(self._f, other._f)
+        return richcmp(self._f, other._f, op)
 
     def change_ring(self, R):
         """
-        Return the same element after changing the base ring to R
+        Return the same element after changing the base ring to R.
 
         EXAMPLES::
 

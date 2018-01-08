@@ -25,6 +25,7 @@ usage() {
     echo "  -mwrank [...]       -- run Sage's mwrank with given arguments"
     echo "  --notebook=[...]    -- start the Sage notebook (valid options are"
     echo "                         'default', 'sagenb', 'jupyter', and 'export')"
+    echo "                         Current default is 'export' from sagenb to jupyter"
     echo "  -n, --notebook      -- shortcut for --notebook=default"
     echo "  -optional           -- list all optional packages that can be installed"
     echo "  -python [...]       -- run the Python 2 interpreter"
@@ -77,6 +78,7 @@ usage_advanced() {
     echo "Running the notebook:"
     echo "  --notebook=[...]    -- start the Sage notebook (valid options are"
     echo "                         'default', 'sagenb', 'jupyter' and 'export')."
+    echo "                         Current default is 'export' sagenb to jupyter."
     echo "                         See the output of sage --notebook --help"
     echo "                         for more details and examples of how to pass"
     echo "                         optional arguments"
@@ -189,6 +191,7 @@ usage_advanced() {
     echo "                           --sagenb - test all sagenb files"
     echo "                           --help - show all testing options"
     echo "                           --warn-long [timeout] - warning if doctest is slow"
+    echo "                           --only-errors - only output failures, not successes"
     echo "  -tp <N> [...]       -- like -t above, but tests in parallel using N threads"
     echo "                         with 0 interpreted as a sensible default"
     echo "  -testall [options]  -- test all source files, docs, and examples.  options"
@@ -395,7 +398,7 @@ sage_setup() {
         exit 1
     fi
 
-    # Display the startup banner (unless SAGE_BANNER is explictly "no")
+    # Display the startup banner (unless SAGE_BANNER is explicitly "no")
     sage_banner
 
     maybe_sage_location
@@ -741,7 +744,7 @@ fi
 
 if [ "$1" = '-rst2ipynb' -o "$1" = '--rst2ipynb' ]; then
     shift
-    exec sage-rst2ipynb "$@"
+    exec rst2ipynb --kernel=sagemath "$@"
 fi
 
 if [ "$1" = '-rst2txt' -o "$1" = '--rst2txt' ]; then
@@ -787,15 +790,15 @@ if [ "$1" = "-inotebook" -o "$1" = '--inotebook' ]; then
 fi
 
 if [ "$1" = '-grep' -o "$1" = "--grep" -o "$1" = "-search_src" -o "$1" = "--search_src" ]; then
-   shift
-   sage-grep "$@"
-   exit 0
+    shift
+    sage-grep "$@"
+    exit 0
 fi
 
 if [ "$1" = '-grepdoc' -o "$1" = "--grepdoc" -o "$1" = "-search_doc" -o "$1" = "--search_doc" ]; then
-   shift
-   sage-grepdoc "$@"
-   exit 0
+    shift
+    sage-grepdoc "$@"
+    exit 0
 fi
 
 if [ "$1" = '-b' ]; then
@@ -809,8 +812,8 @@ if [ "$1" = '-br' -o "$1" = "--br" ]; then
 fi
 
 if [ "$1" = '-r' ]; then
-   shift
-   interactive_sage
+    shift
+    interactive_sage
 fi
 
 if [ "$1" = '-ba' -o "$1" = '-ba-force' -o "$1" = '--ba-force' ]; then
@@ -822,10 +825,6 @@ fi
 if [ "$1" = '-t' -o "$1" = '-bt' -o "$1" = '-tp' -o "$1" = '-btp' ]; then
     if [ "$1" = '-bt' -o "$1" = '-btp' ]; then
         build_sage
-    fi
-    if [ ! -f  "$DOT_SAGE"/init.sage ]; then
-        echo >&2 "init.sage does not exist ... creating"
-        touch "$DOT_SAGE"/init.sage
     fi
     SAGE_BANNER=no sage_setup
     export PYTHONIOENCODING="utf-8"  # Fix encoding for doctests

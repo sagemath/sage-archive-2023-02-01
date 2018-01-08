@@ -51,7 +51,23 @@ AUTHORS:
 
 - Robert Bradshaw: Cython version
 """
-from __future__ import print_function
+#*****************************************************************************
+#       Copyright (C) 2005 William Stein <wstein@gmail.com>
+#                     2017 Vincent Delecroix <20100.delecroix@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+from __future__ import print_function, absolute_import
 
 import operator
 
@@ -691,6 +707,28 @@ cdef class LaurentSeries(AlgebraElement):
         u = self.__u.add_bigoh(prec - self.__n)
         return type(self)(P, u, self.__n)
 
+    def O(self, prec):
+        r"""
+        Return the Laurent series of precision at most ``prec`` obtained by
+        adding `O(q^\text{prec})`, where `q` is the variable. 
+        
+        The precision of ``self`` and the integer ``prec`` can be arbitrary. The
+        resulting Laurent series will have precision equal to the minimum of
+        the precision of ``self`` and ``prec``. The term `O(q^\text{prec})` is the
+        zero series with precision ``prec``.
+       
+        EXAMPLES::
+
+            sage: R.<t> = LaurentSeriesRing(QQ)
+            sage: f = t^-5 + t^-4 + t^3 + O(t^10); f
+            t^-5 + t^-4 + t^3 + O(t^10)
+            sage: f.O(-4)
+            t^-5 + O(t^-4)
+            sage: f.O(15)
+            t^-5 + t^-4 + t^3 + O(t^10)
+        """
+        return self.add_bigoh(prec)
+
     def degree(self):
         """
         Return the degree of a polynomial equivalent to this power series
@@ -737,10 +775,10 @@ cdef class LaurentSeries(AlgebraElement):
                           self.__u * right.__u,
                           self.__n + right.__n)
 
-    cpdef _rmul_(self, RingElement c):
+    cpdef _rmul_(self, Element c):
         return type(self)(self._parent, self.__u._rmul_(c), self.__n)
 
-    cpdef _lmul_(self, RingElement c):
+    cpdef _lmul_(self, Element c):
         return type(self)(self._parent, self.__u._lmul_(c), self.__n)
 
     def __pow__(_self, r, dummy):
@@ -978,7 +1016,7 @@ cdef class LaurentSeries(AlgebraElement):
 
     cpdef _richcmp_(self, right_r, int op):
         r"""
-        Comparison of self and right.
+        Comparison of ``self`` and ``right``.
 
         We say two approximate Laurent series are equal, if they agree for
         all coefficients up to the *minimum* of the precisions of each.
@@ -987,7 +1025,7 @@ cdef class LaurentSeries(AlgebraElement):
         but consistent with the idea that the variable of a Laurent
         series is considered to be "very small".
 
-        See power_series_ring_element.__cmp__() for more
+        See :meth:`power_series_ring_element._richcmp_` for more
         information.
 
         EXAMPLES::
@@ -1313,6 +1351,50 @@ cdef class LaurentSeries(AlgebraElement):
         return type(self)(self._parent, u, n+1)
 
 
+    def nth_root(self, long n, prec=None):
+        r"""
+        Return the ``n``-th root of this Laurent power series.
+
+        INPUT:
+
+        - ``n`` -- integer
+
+        - ``prec`` -- integer (optional) - precision of the result. Though, if
+          this series has finite precision, then the result can not have larger
+          precision.
+
+        EXAMPLES::
+
+            sage: R.<x> = LaurentSeriesRing(QQ)
+            sage: (x^-2 + 1 + x).nth_root(2)
+            x^-1 + 1/2*x + 1/2*x^2 - ... - 19437/65536*x^18 + O(x^19)
+            sage: (x^-2 + 1 + x).nth_root(2)**2
+            x^-2 + 1 + x + O(x^18)
+
+            sage: j = j_invariant_qexp()
+            sage: q = j.parent().gen()
+            sage: j(q^3).nth_root(3)
+            q^-1 + 248*q^2 + 4124*q^5 + ... + O(q^29)
+            sage: (j(q^2) - 1728).nth_root(2)
+            q^-1 - 492*q - 22590*q^3 - ... + O(q^19)
+        """
+        if prec is None:
+            prec = self.prec()
+            if prec == infinity:
+                prec = self.parent().default_prec()
+        else:
+            prec = min(self.prec(), prec)
+
+        if n <= 0:
+            raise ValueError('n must be positive')
+
+        i = self.valuation()
+        if i % n:
+            raise ValueError('valuation must be divisible by n')
+
+        q = self.__u.nth_root(n, prec)
+        return type(self)(self._parent, q + self.parent()(0).O(prec), i // n)
+
     def power_series(self):
         """
         EXAMPLES::
@@ -1396,6 +1478,13 @@ cdef class LaurentSeries(AlgebraElement):
             Traceback (most recent call last):
             ...
             ValueError: Can only substitute elements of positive valuation
+
+        Test for :trac:`23928`::
+
+            sage: R.<x> = PowerSeriesRing(QQ, implementation='pari')
+            sage: f = LaurentSeries(R, x).add_bigoh(7)
+            sage: f(x)
+            x + O(x^7)
             """
         if len(kwds) >= 1:
             name = self.parent().variable_name()
@@ -1423,7 +1512,7 @@ cdef class LaurentSeries(AlgebraElement):
         if isinstance(x[0], tuple):
             x = x[0]
 
-        return self.__u(x)*(x[0]**self.__n)
+        return self.__u(*x)*(x[0]**self.__n)
 
 def make_element_from_parent(parent, *args):
     return parent(*args)

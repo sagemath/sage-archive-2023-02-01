@@ -57,7 +57,7 @@ from sage.schemes.affine.affine_space import (AffineSpace,
                                               is_AffineSpace)
 from . import point
 
-from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_affine
+from sage.schemes.affine.affine_subscheme import AlgebraicScheme_subscheme_affine
 
 from sage.schemes.affine.affine_space import AffineSpace, is_AffineSpace
 from sage.schemes.projective.projective_space import ProjectiveSpace
@@ -1526,6 +1526,24 @@ class AffinePlaneCurve(AffineCurve):
                                       " to the algebraic field")
         f = self.defining_polynomial()
         return fundamental_group(f, projective=False)
+
+    def riemann_surface(self,**kwargs):
+        r"""Return the complex riemann surface determined by this curve
+
+        OUTPUT:
+
+         - RiemannSurface object
+
+        EXAMPLES::
+
+            sage: R.<x,y>=QQ[]
+            sage: C=Curve(x^3+3*y^3+5)
+            sage: C.riemann_surface()
+            Riemann surface defined by polynomial f = x^3 + 3*y^3 + 5 = 0, with 53 bits of precision
+
+        """
+        from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
+        return RiemannSurface(self.defining_polynomial(),**kwargs)
 
 
 class AffinePlaneCurve_finite_field(AffinePlaneCurve):

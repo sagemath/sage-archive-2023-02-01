@@ -317,7 +317,7 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
             mpq_mul(z._entries[i], self._entries[i], r._entries[i])
         return z
 
-    cpdef _rmul_(self, RingElement left):
+    cpdef _rmul_(self, Element left):
         cdef Vector_rational_dense z
         cdef Rational a
         if isinstance(left, Rational):
@@ -334,8 +334,7 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
             mpq_mul(z._entries[i], self._entries[i], a.value)
         return z
 
-
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         cdef Vector_rational_dense z
         cdef Rational a
         if isinstance(right, Rational):

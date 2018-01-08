@@ -1255,7 +1255,7 @@ cdef class OrbitPartition:
     which also keeps track of the minimum element and size of each
     cell of the partition, and the size of the partition.
 
-    * http://en.wikipedia.org/wiki/Disjoint-set_data_structure
+    See :wikipedia:`Disjoint-set_data_structure`
 
     """
     def __cinit__(self, int nrows, int ncols):
@@ -3124,7 +3124,7 @@ cdef class BinaryCodeClassifier:
         INPUT:
 
         - CC - a BinaryCode object
-        - verbosity - a nonnegative integer
+        - verbosity -- a nonnegative integer
 
         OUTPUT:
             a tuple, (gens, labeling, size, base)

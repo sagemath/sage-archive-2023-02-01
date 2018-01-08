@@ -1,6 +1,12 @@
 r"""
 Interval Exchange Transformations and Linear Involution
 
+.. WARNING::
+
+    This module is deprecated. You are advised to install and use the
+    surface_dynamics package instead available at
+    https://pypi.python.org/pypi/surface_dynamics/
+
 An interval exchange transformation is a map defined on an interval (see
 help(iet.IntervalExchangeTransformation) for a more complete help.
 
@@ -9,6 +15,32 @@ EXAMPLES:
 Initialization of a simple iet with integer lengths::
 
     sage: T = iet.IntervalExchangeTransformation(Permutation([3,2,1]), [3,1,2])
+    doctest:warning
+    ...
+    DeprecationWarning: IntervalExchangeTransformation is deprecated and will be removed from Sage.
+    You are advised to install the surface_dynamics package via:
+    sage -pip install surface_dynamics
+    If you do not have write access to the Sage installation you can
+    alternatively do
+    sage -pip install surface_dynamics --user
+    The package surface_dynamics subsumes all flat surface related
+    computation that are currently available in Sage. See more
+    information at
+    http://www.labri.fr/perso/vdelecro/surface-dynamics/latest/
+    See http://trac.sagemath.org/20695 for details.
+    doctest:warning
+    ...
+    DeprecationWarning: Permutation is deprecated and will be removed from Sage.
+    You are advised to install the surface_dynamics package via:
+    sage -pip install surface_dynamics
+    If you do not have write access to the Sage installation you can
+    alternatively do
+    sage -pip install surface_dynamics --user
+    The package surface_dynamics subsumes all flat surface related
+    computation that are currently available in Sage. See more
+    information at
+    http://www.labri.fr/perso/vdelecro/surface-dynamics/latest/
+    See http://trac.sagemath.org/20695 for details.
     sage: T
     Interval exchange transformation of [0, 6[ with permutation
     1 2 3
@@ -526,7 +558,7 @@ class IntervalExchangeTransformation(SageObject):
 
         label -- a label corresponding to an interval
 
-        TEST:
+        TESTS:
 
         ::
 

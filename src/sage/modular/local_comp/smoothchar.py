@@ -46,6 +46,7 @@ import operator
 from sage.structure.element import MultiplicativeGroupElement, parent
 from sage.structure.parent_base import ParentWithBase
 from sage.structure.sequence    import Sequence
+from sage.structure.richcmp import richcmp_not_equal, richcmp
 from sage.rings.all             import QQ, ZZ, Zmod, NumberField
 from sage.rings.ring import is_Ring
 from sage.misc.cachefunc        import cached_method
@@ -103,10 +104,18 @@ class SmoothCharacterGeneric(MultiplicativeGroupElement):
             self._c = self._c - 1
             self._check_level()
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         r"""
-        Compare self and other. Note that this only gets called when the
-        parents of self and other are identical.
+        Compare ``self`` and ``other``.
+
+        Note that this only gets called when the
+        parents of ``self`` and ``other`` are identical.
+
+        INPUT:
+
+        - ``other`` -- another smooth character
+
+        - ``op`` -- a comparison operator (see :mod:`sage.structure.richcmp`)
 
         EXAMPLES::
 
@@ -122,8 +131,12 @@ class SmoothCharacterGeneric(MultiplicativeGroupElement):
             sage: chi1 == loads(dumps(chi1))
             True
         """
-        assert other.parent() is self.parent()
-        return cmp(self.level(), other.level()) or cmp(self._values_on_gens, other._values_on_gens)
+        lx = self.level()
+        rx = other.level()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        return richcmp(self._values_on_gens, other._values_on_gens, op)
 
     def multiplicative_order(self):
         r"""
@@ -371,7 +384,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
         else:
             raise TypeError
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         r"""
         TESTS::
 
@@ -386,10 +399,31 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
             sage: G == SmoothCharacterGroupQp(3, QQ)
             True
         """
-        return cmp(type(self), type(other)) \
-            or cmp(self.prime(), other.prime()) \
-            or cmp(self.number_field(), other.number_field()) \
-            or cmp(self.base_ring(), other.base_ring())
+        if not isinstance(other, SmoothCharacterGroupGeneric):
+            return False
+
+        return (self.prime() == other.prime() and
+                self.number_field() == other.number_field() and
+                self.base_ring() == other.base_ring())
+
+    def __ne__(self, other):
+        """
+        Check whether ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: from sage.modular.local_comp.smoothchar import SmoothCharacterGroupQp
+            sage: G = SmoothCharacterGroupQp(3, QQ)
+            sage: G != SmoothCharacterGroupQp(3, QQ[I])
+            True
+            sage: G != 7
+            True
+            sage: G != SmoothCharacterGroupQp(7, QQ)
+            True
+            sage: G != SmoothCharacterGroupQp(3, QQ)
+            False
+        """
+        return not (self == other)
 
     def _coerce_map_from_(self, other):
         r"""
@@ -702,9 +736,9 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
         for c in range(6):
             gens = self.unit_gens(c)
             exps = self.exponents(c)
-            T.assert_(exps[-1] == 0)
-            T.assert_(all([u != 0 for u in exps[:-1]]))
-            T.assert_(all([u.parent() is self.number_field() for u in gens]))
+            T.assertTrue(exps[-1] == 0)
+            T.assertTrue(all([u != 0 for u in exps[:-1]]))
+            T.assertTrue(all([u.parent() is self.number_field() for u in gens]))
 
             I = self.ideal(c)
             for i in range(len(exps[:-1])):
@@ -721,7 +755,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
                 if not (g - 1 in I):
                     T.fail("For generator g=%s, g^%s = %s, which is not 1 mod I" % (gens[i], exps[i], g))
             I = self.prime() if self.number_field() == QQ else self.ideal(1)
-            T.assert_(gens[-1].valuation(I) == 1)
+            T.assertTrue(gens[-1].valuation(I) == 1)
 
             # This implicitly tests that the gens really are gens!
             _ = self.discrete_log(c, -1)
@@ -739,7 +773,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
         for c in range(1, 6):
             sgs = self.subgroup_gens(c)
             I2 = self.ideal(c-1)
-            T.assert_(all([x-1 in I2 for x in sgs]), "Kernel gens at level %s not in kernel!" % c)
+            T.assertTrue(all([x-1 in I2 for x in sgs]), "Kernel gens at level %s not in kernel!" % c)
 
             # now find the exponent of the kernel
 
@@ -754,7 +788,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
                 L = tuple(self.discrete_log(c, y))
                 if L not in logs:
                     logs.append(L)
-            T.assert_(n2 * len(logs) == n1, "Kernel gens at level %s don't generate everything!" % c)
+            T.assertTrue(n2 * len(logs) == n1, "Kernel gens at level %s don't generate everything!" % c)
 
     def compose_with_norm(self, chi):
         r"""
@@ -1567,8 +1601,8 @@ class SmoothCharacterGroupRamifiedQuadratic(SmoothCharacterGroupGeneric):
             sage: G = SmoothCharacterGroupRamifiedQuadratic(3, 1, QQ)
             sage: s = G.number_field().gen()
             sage: G.discrete_log(4, 3 + 2*s)
-            [5, 2, 1, 1]
-            sage: gs = G.unit_gens(4); gs[0]^5 * gs[1]^2 * gs[2] * gs[3] - (3 + 2*s) in G.ideal(4)
+            [5, 1, 1, 1]
+            sage: gs = G.unit_gens(4); gs[0]^5 * gs[1] * gs[2] * gs[3] - (3 + 2*s) in G.ideal(4)
             True
         """
         x = self.number_field().coerce(x)

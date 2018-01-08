@@ -36,7 +36,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from libc.string cimport memcpy
 from cpython.dict cimport *
@@ -164,7 +164,7 @@ cdef class PolyDict:
 
     def list(PolyDict self):
         """
-        Return a list that defines self. It is safe to change this.
+        Return a list that defines ``self``. It is safe to change this.
 
         EXAMPLES::
 
@@ -307,6 +307,10 @@ cdef class PolyDict:
 
     def monomial_coefficient(PolyDict self, mon):
         """
+        INPUT:
+
+        a PolyDict with a single key
+
         EXAMPLES::
 
             sage: from sage.rings.polynomial.polydict import PolyDict
@@ -314,7 +318,7 @@ cdef class PolyDict:
             sage: f.monomial_coefficient(PolyDict({(2,1):1}).dict())
             4
         """
-        K = mon.keys()[0]
+        K, = mon.keys()
         if K not in self.__repn:
             return 0
         return self.__repn[K]
@@ -368,7 +372,7 @@ cdef class PolyDict:
         polynomial, then the coefficient is the sum T/mon where the
         sum is over terms T in f that are exactly divisible by mon.
         """
-        K = mon.keys()[0]
+        K, = mon.keys()
         nz = K.nonzero_positions()  # set([i for i in range(len(K)) if K[i] != 0])
         ans = {}
         for S in self.__repn.keys():
@@ -404,7 +408,7 @@ cdef class PolyDict:
         return PolyDict(H, zero=self.__zero, force_etuples=False)
 
     def latex(PolyDict self, vars, atomic_exponents=True,
-              atomic_coefficients=True, cmpfn=None, sortkey=None):
+              atomic_coefficients=True, sortkey=None):
         r"""
         Return a nice polynomial latex representation of this PolyDict, where
         the vars are substituted in.
@@ -412,8 +416,8 @@ cdef class PolyDict:
         INPUT:
 
         - ``vars`` -- list
-        - ``atomic_exponents`` -- bool (default: True)
-        - ``atomic_coefficients`` -- bool (default: True)
+        - ``atomic_exponents`` -- bool (default: ``True``)
+        - ``atomic_coefficients`` -- bool (default: ``True``)
 
         EXAMPLES::
 
@@ -441,12 +445,9 @@ cdef class PolyDict:
         """
         n = len(vars)
         poly = ""
-        E = self.__repn.keys()
+        E = list(self.__repn)
         if sortkey:
             E.sort(key=sortkey, reverse=True)
-        elif cmpfn:
-            deprecation(21766, 'the cmpfn keyword is deprecated, use sortkey')
-            E.sort(cmp=cmpfn, reverse=True)
         else:
             E.sort(reverse=True)
         try:
@@ -494,7 +495,7 @@ cdef class PolyDict:
         return poly
 
     def poly_repr(PolyDict self, vars, atomic_exponents=True,
-                  atomic_coefficients=True, cmpfn=None, sortkey=None):
+                  atomic_coefficients=True, sortkey=None):
         """
         Return a nice polynomial string representation of this PolyDict, where
         the vars are substituted in.
@@ -534,12 +535,9 @@ cdef class PolyDict:
         """
         n = len(vars)
         poly = ""
-        E = self.__repn.keys()
+        E = list(self.__repn)
         if sortkey:
             E.sort(key=sortkey, reverse=True)
-        elif cmpfn:
-            deprecation(21766, 'the cmpfn keyword is deprecated, use sortkey')
-            E.sort(cmp=cmpfn, reverse=True)
         else:
             E.sort(reverse=True)
         try:
@@ -744,7 +742,7 @@ cdef class PolyDict:
         if len(self.__repn) == 0:
             v = {(0):one}
         else:
-            v = {ETuple({}, len(self.__repn.keys()[0])):one}
+            v = {ETuple({}, len(next(iter(self.__repn)))): one}
         return PolyDict(v, self.__zero, force_int_exponents=False, force_etuples=False)
 
     def __pow__(PolyDict self, n, ignored):
@@ -970,7 +968,7 @@ cdef class ETuple:
             self._length = length
             self._nonzero = len(data)
             self._data = <int*>sig_malloc(sizeof(int)*self._nonzero*2)
-            nz_elts = sorted(data.iteritems())
+            nz_elts = sorted(data.items())
             ind = 0
             for index, exp in nz_elts:
                 self._data[2*ind] = index

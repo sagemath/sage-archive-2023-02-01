@@ -142,6 +142,7 @@ from .root_system.all import *
 from .sf.all import *
 from .ncsf_qsym.all import *
 from .ncsym.all import *
+lazy_import('sage.combinat.fqsym', 'FreeQuasisymmetricFunctions')
 from .matrices.all import *
 # Posets
 from .posets.all import *
@@ -204,6 +205,7 @@ lazy_import("sage.combinat.cluster_complex", "ClusterComplex")
 lazy_import('sage.combinat.constellation', ['Constellation', 'Constellations'])
 
 # Growth diagrams
-lazy_import('sage.combinat.growth', ['GrowthDiagramRSK', 'GrowthDiagramBurge',
+lazy_import('sage.combinat.growth', ['GrowthDiagram',
+                                     'GrowthDiagramRSK', 'GrowthDiagramBurge',
                                      'GrowthDiagramBinWord', 'GrowthDiagramDomino',
                                      'GrowthDiagramYoungFibonacci', 'GrowthDiagramSylvester'])

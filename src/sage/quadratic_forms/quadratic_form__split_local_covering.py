@@ -15,7 +15,6 @@ from sage.quadratic_forms.quadratic_form import QuadraticForm__constructor, is_Q
 from sage.rings.real_mpfr import RealField_class, RealField
 from sage.rings.real_double import RDF
 from sage.matrix.matrix_space import MatrixSpace
-#from sage.matrix.matrix import Matrix
 from sage.matrix.constructor import matrix
 from sage.functions.all import floor
 from sage.rings.integer_ring import ZZ
@@ -391,7 +390,7 @@ def complementary_subform_to_vector(self, v):
         if Q1[0,i] != 0:
             done_flag = False
 
-    if done_flag == False:
+    if not done_flag:
         raise RuntimeError("There is a problem cancelling out the matrix entries! =O")
 
 

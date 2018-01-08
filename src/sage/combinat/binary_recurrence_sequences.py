@@ -534,7 +534,7 @@ class BinaryRecurrenceSequence(SageObject):
 
         Let `u_n` be a binary recurrence sequence.  A ``p`` th power in `u_n` is a solution
         to `u_n = y^p` for some integer `y`.  There are only finitely many ``p`` th powers in
-        any recurrence sequence [SS].
+        any recurrence sequence [SS]_.
 
         INPUT:
 
@@ -560,7 +560,7 @@ class BinaryRecurrenceSequence(SageObject):
             sage: Q.pthpowers(11,10**30)          # long time (7.5 seconds)
             [1]
 
-        If the sequence is degenerate, and there are are no ``p`` th powers, returns `[]`.  Otherwise, if
+        If the sequence is degenerate, and there are no ``p`` th powers, returns `[]`.  Otherwise, if
         there are many ``p`` th powers, raises ``ValueError``.
 
         ::

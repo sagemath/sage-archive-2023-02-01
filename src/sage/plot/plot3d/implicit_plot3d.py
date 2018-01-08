@@ -313,7 +313,7 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
         G = implicit_plot3d(x**2 + y**2 - z**2 -0.3, (x,-2,2), (y,-2,2), (z,-1.8,1.8), color='honeydew')
         sphinx_plot(G)
 
-    Dupin cyclide (https://en.wikipedia.org/wiki/Dupin_cyclide) ::
+    Dupin cyclide (:wikipedia:`Dupin_cyclide`) ::
 
         sage: x, y, z , a, b, c, d = var('x,y,z,a,b,c,d')
         sage: a = 3.5

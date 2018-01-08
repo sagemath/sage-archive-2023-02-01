@@ -121,20 +121,6 @@ class HeckeModule_generic(sage.modules.module.Module):
         """
         return hash((self.base_ring(), self.__level))
 
-    def __cmp__(self, other):
-        r"""
-        Compare self to other. This must be overridden in all subclasses.
-
-        EXAMPLES::
-
-            sage: M = ModularForms(Gamma0(3))
-            sage: sage.modular.hecke.module.HeckeModule_generic.__cmp__(M, M)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: ...
-        """
-        raise NotImplementedError("Derived class %s should implement __cmp__" % type(self))
-
     def _compute_hecke_matrix_prime_power(self, p, r, **kwds):
         r"""
         Compute the Hecke matrix T_{p^r}, where `p` is prime and `r \ge 2`, assuming that
@@ -146,9 +132,9 @@ class HeckeModule_generic(sage.modules.module.Module):
 
             sage: M = ModularForms(SL2Z, 24)
             sage: M._compute_hecke_matrix_prime_power(3, 3)
-            [    834385168339943471891603972970040        462582247568491031177169792000 3880421605193373124143717311013888000]
-            [                                    0                     -4112503986561480                  53074162446443642880]
-            [                                    0                         2592937954080                     -1312130996155080]
+            [                -4112503986561480              53074162446443642880                                 0]
+            [                    2592937954080                 -1312130996155080                                 0]
+            [                                0                                 0 834385168339943471891603972970040]
         """
         # convert input arguments to int's.
         (p,r) = (int(p), int(r))
@@ -311,11 +297,7 @@ class HeckeModule_generic(sage.modules.module.Module):
             sage: A.is_anemic()
             True
         """
-        try:
-            return self.__anemic_hecke_algebra
-        except AttributeError:
-            self.__anemic_hecke_algebra = algebra.AnemicHeckeAlgebra(self)
-            return self.__anemic_hecke_algebra
+        return algebra.AnemicHeckeAlgebra(self)
 
     def character(self):
         r"""
@@ -360,11 +342,7 @@ class HeckeModule_generic(sage.modules.module.Module):
             sage: A.hecke_algebra() == B.hecke_algebra()
             False
         """
-        try:
-            return self.__hecke_algebra
-        except AttributeError:
-            self.__hecke_algebra = algebra.HeckeAlgebra(self)
-            return self.__hecke_algebra
+        return algebra.HeckeAlgebra(self)
 
     def is_zero(self):
         """
@@ -529,13 +507,6 @@ class HeckeModule_free_module(HeckeModule_generic):
         """
         HeckeModule_generic.__init__(self, base_ring, level, category=category)
         self.__weight = weight
-
-#    def __cmp__(self, other):
-#        if not isinstance(other, HeckeModule_free_module):
-#            return -1
-#        c = HeckeModule_generic.__cmp__(self, other)
-#        if c: return c
-#        return cmp(self.__weight, other.__weight)
 
 #    def __contains__(self, x):
 #        r"""
@@ -771,8 +742,8 @@ class HeckeModule_free_module(HeckeModule_generic):
 
     def ambient_hecke_module(self):
         r"""
-        Return the ambient module associated to this module. As this is an
-        abstract base class, return NotImplementedError.
+        Return the ambient module associated to this module. As this is
+        an abstract base class, raise NotImplementedError.
 
         EXAMPLES::
 
@@ -1216,8 +1187,8 @@ class HeckeModule_free_module(HeckeModule_generic):
         EXAMPLES::
 
             sage: CuspForms(1, 24).dual_hecke_matrix(5)
-            [     79345647584250/2796203 50530996976060416/763363419]
-            [    195556757760000/2796203     124970165346810/2796203]
+            [     44656110        -15040]
+            [-307849789440      28412910]
         """
         n = int(n)
         try:
@@ -1687,23 +1658,18 @@ class HeckeModule_free_module(HeckeModule_generic):
         -  ``alpha`` - name of generate for eigenvalue field
 
 
-        EXAMPLES: These computations use pseudo-random numbers, so we set
-        the seed for reproducible testing.
+        EXAMPLES:
 
-        ::
+        The outputs of the following tests are very unstable. The algorithms
+        are randomized and depend on cached results. A slight change in the
+        sequence of pseudo-random numbers or a modification in caching is
+        likely to modify the results. We reset the random number generator and
+        clear some caches for reproducibility::
 
             sage: set_random_seed(0)
-
-        The computations also use cached results from other computations,
-        so we clear the caches for reproducible testing.
-
-        ::
-
             sage: ModularSymbols_clear_cache()
 
-        We compute eigenvalues for newforms of level 62.
-
-        ::
+        We compute eigenvalues for newforms of level 62::
 
             sage: M = ModularSymbols(62,2,sign=-1)
             sage: S = M.cuspidal_submodule().new_submodule()

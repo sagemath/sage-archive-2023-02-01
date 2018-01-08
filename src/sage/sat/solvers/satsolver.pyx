@@ -14,6 +14,7 @@ AUTHORS:
 
 - Martin Albrecht (2012): first version
 """
+from __future__ import absolute_import
 
 cdef class SatSolver:
     def __cinit__(self, *args, **kwds):
@@ -121,19 +122,18 @@ cdef class SatSolver:
             [((1, -3), False, None), ((2, 3, -1), False, None)]
         """
         if isinstance(filename,str):
-            file_object = open(filename,"r")
+            file_object = open(filename, "r")
         else:
             file_object = filename
         for line in file_object:
             if line.startswith("c"):
-                continue # comment
+                continue  # comment
             if line.startswith("p"):
-                continue # header
+                continue  # header
             line = line.split(" ")
-            clause = map(int,[e for e in line if e])
+            clause = [int(e) for e in line if e]
             clause = clause[:-1] # strip trailing zero
             self.add_clause(clause)
-
 
     def __call__(self, assumptions=None):
         """
@@ -323,7 +323,7 @@ def SAT(solver=None, *args, **kwds):
         from sage.sat.solvers.cryptominisat import CryptoMiniSat
         return CryptoMiniSat(*args, **kwds)
     elif solver == "LP":
-        from sat_lp import SatLP
+        from .sat_lp import SatLP
         return SatLP()
     else:
         raise ValueError("Solver '{}' is not available".format(solver))

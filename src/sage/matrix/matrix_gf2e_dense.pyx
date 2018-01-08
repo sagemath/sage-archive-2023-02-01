@@ -54,10 +54,17 @@ TESTS::
     running ._test_new() . . . pass
     running ._test_pickling() . . . pass
 
-TODO:
+Test hashing::
 
-- wrap ``mzd_slice_t``
+    sage: K.<a> = GF(2^4)
+    sage: A = random_matrix(K, 1000, 1000)
+    sage: A.set_immutable()
+    sage: {A:1}
+    {1000 x 1000 dense matrix over Finite Field in a of size 2^4: 1}
 
+.. TODO::
+
+    Wrap ``mzd_slice_t``.
 
 REFERENCES:
 
@@ -134,9 +141,6 @@ cdef object word_to_poly(w, F):
     return F.fetch_int(w)
 
 cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
-    ########################################################################
-    # LEVEL 1 functionality
-    ########################################################################
     def __cinit__(self, parent, entries, copy, coerce, alloc=True):
         """
         Create new matrix over `GF(2^e)` for 2<=e<=10.
@@ -633,7 +637,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         sig_off()
         return ans
 
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         Return ``a*B`` for ``a`` an element of the base field.
 
@@ -830,7 +834,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
             _density = 1.0
 
         if _density == 1:
-            if nonzero == False:
+            if not nonzero:
                 sig_on()
                 for i in range(self._nrows):
                     for j in range(self._ncols):
@@ -847,7 +851,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
                         mzed_write_elem(self._entries, i, j, tmp)
                 sig_off()
         else:
-            if nonzero == False:
+            if not nonzero:
                 sig_on()
                 for i in range(self._nrows):
                     for j in range(self._ncols):
@@ -1377,19 +1381,6 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         mzed_free(A)
         self.cache('rank', r)
         return r
-
-    def __hash__(self):
-        """
-        EXAMPLES::
-
-            sage: K.<a> = GF(2^4)
-            sage: A = random_matrix(K, 1000, 1000)
-            sage: A.set_immutable()
-            sage: {A:1} #indirect doctest
-            {1000 x 1000 dense matrix over Finite Field in a of size 2^4: 1}
-
-        """
-        return self._hash()
 
     def __reduce__(self):
         """

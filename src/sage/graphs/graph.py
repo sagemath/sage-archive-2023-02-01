@@ -1811,6 +1811,11 @@ class Graph(GenericGraph):
 
             sage: Graph('Fli@?').is_cactus()
             False
+
+        Test a graph that is not outerplanar::
+
+            sage: graphs.Balaban10Cage().is_cactus()
+            False
         """
         self._scream_if_not_simple()
 

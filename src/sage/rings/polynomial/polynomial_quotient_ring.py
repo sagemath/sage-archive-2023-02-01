@@ -1876,23 +1876,14 @@ class PolynomialQuotientRing_coercion(DefaultConvertMap_unique):
         True
         sage: TestSuite(f).run(skip=['_test_pickling'])
 
-    Pickling works but the returned value is not compare equal to the original
-    morphism::
+    Pickling works::
 
         sage: g = loads(dumps(f)); g
         Coercion map:
           From: Univariate Quotient Polynomial Ring in xbar over Integer Ring with modulus x^2 + 1
           To:   Univariate Quotient Polynomial Ring in xbar over Rational Field with modulus x^2 + 1
         sage: f == g
-        False
-
-    The reason for this is that pickling of the domain is currently broken, and
-    therefore the parent of `f` and `g` are different::
-
-        sage: loads(dumps(f.domain())) is f.domain()
-        False
-        sage: f.parent() is g.parent()
-        False
+        True
 
     """
     def is_injective(self):

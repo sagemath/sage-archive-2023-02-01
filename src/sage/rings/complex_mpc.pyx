@@ -2142,7 +2142,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         cdef RealNumber a,r
         a = self.argument()/n
         r = self.abs()
-        mpfr_root(r.value, r.value, n, rrnd)
+        mpfr_rootn_ui(r.value, r.value, n, rrnd)
 
         cdef MPComplexNumber z
         z = self._new()

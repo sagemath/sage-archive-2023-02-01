@@ -521,8 +521,7 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import (richcmp, richcmp_method,
                                     rich_to_bool, richcmp_not_equal,
-                                    op_EQ, op_NE, op_LE, op_LT,
-                                    op_GE, op_GT)
+                                    op_EQ, op_NE)
 from sage.rings.real_mpfr import RR
 from sage.rings.real_mpfi import RealIntervalField, RIF, is_RealIntervalFieldElement, RealIntervalField_class
 from sage.rings.complex_field import ComplexField
@@ -535,14 +534,13 @@ from sage.rings.rational_field import QQ
 from sage.rings.number_field.number_field import NumberField, QuadraticField, CyclotomicField
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
 from sage.arith.all import factor
-from sage.structure.element import generic_power, canonical_coercion
 from . import infinity
-from sage.misc.functional import cyclotomic_polynomial
+from sage.categories.action import Action
+
 
 CC = ComplexField()
 CIF = ComplexIntervalField()
 
-is_SymbolicExpressionRing = None
 
 class AlgebraicField_common(sage.rings.ring.Field):
     r"""
@@ -639,6 +637,23 @@ class AlgebraicField_common(sage.rings.ring.Field):
              -0.6623589786223730? + 0.5622795120623013?*I
         """
         return AlgebraicPolynomialTracker(poly)
+
+    def _get_action_(self, G, op, self_on_left):
+        """
+        EXAMPLES::
+
+            sage: QQbar.get_action(QQ, operator.pow)
+            Right Rational Powering by Rational Field on Algebraic Field
+            sage: print(QQbar.get_action(QQ, operator.pow, self_on_left=False))
+            None
+            sage: print(QQbar.get_action(QQ, operator.mul))
+            None
+            sage: QQbar.get_action(ZZ, operator.pow)
+            Right Integer Powering by Integer Ring on Algebraic Field
+        """
+        if self_on_left and G is QQ and op is operator.pow:
+            return AlgebraicNumberPowQQAction(G, self)
+
 
 class AlgebraicRealField(Singleton, AlgebraicField_common):
     r"""
@@ -2139,7 +2154,7 @@ def cmp_elements_with_same_minpoly(a, b, p):
     ar = a._value.real()
     br = b._value.real()
     if not ar.overlaps(br):
-        return -1 if richcmp_not_equal(ar, br, op_LT) else 1
+        return -1 if (ar < br) else 1
 
     ai = a._value.imag()
     bi = b._value.imag()
@@ -2170,7 +2185,7 @@ def cmp_elements_with_same_minpoly(a, b, p):
             bi = b._value.imag()
         if ai.overlaps(bi):
             return 0
-        return -1 if richcmp_not_equal(ai, bi, op_LT) else 1
+        return -1 if (ai < bi) else 1
 
     return None
 
@@ -4048,137 +4063,6 @@ class AlgebraicNumber(AlgebraicNumber_base):
             return richcmp_not_equal(srp, orp, op)
         return richcmp(self.imag(), other.imag(), op)
 
-    def __pow__(self, e):
-        r""" ``self**p`` returns the `p`'th power of self (where `p` can
-        be an arbitrary rational). If `p` is `(a/b)`, takes the principal
-        `b`'th root of self, then takes that to the `a`'th power. (Note
-        that this differs from ``__pow__`` on algebraic reals, where real
-        roots are preferred over principal roots if they exist.)
-
-        EXAMPLES::
-
-            sage: QQbar(2)^(1/2)
-            1.414213562373095?
-            sage: QQbar(8)^(2/3)
-            4
-            sage: QQbar(8)^(2/3) == 4
-            True
-            sage: x = polygen(QQbar)
-            sage: phi = QQbar.polynomial_root(x^2 - x - 1, RIF(1, 2))
-            sage: tau = QQbar.polynomial_root(x^2 - x - 1, RIF(-1, 0))
-            sage: rt5 = QQbar(5)^(1/2)
-            sage: phi^10 / rt5
-            55.00363612324742?
-            sage: tau^10 / rt5
-            0.003636123247413266?
-            sage: (phi^10 - tau^10) / rt5
-            55.00000000000000?
-            sage: (phi^10 - tau^10) / rt5 == fibonacci(10)
-            True
-            sage: (phi^50 - tau^50) / rt5 == fibonacci(50)
-            True
-            sage: QQbar(-8)^(1/3)
-            1.000000000000000? + 1.732050807568878?*I
-            sage: (QQbar(-8)^(1/3))^3
-            -8
-            sage: QQbar(32)^(1/5)
-            2
-            sage: a = QQbar.zeta(7)^(1/3); a
-            0.9555728057861407? + 0.2947551744109043?*I
-            sage: a == QQbar.zeta(21)
-            True
-            sage: QQbar.zeta(7)^6
-            0.6234898018587335? - 0.7818314824680299?*I
-            sage: (QQbar.zeta(7)^6)^(1/3) * QQbar.zeta(21)
-            1.000000000000000? + 0.?e-17*I
-
-        TESTS:
-
-        :trac:`22120`::
-
-            sage: QQbar(1)^QQbar(sqrt(2))
-            1
-            sage: QQ(1)^QQbar(sqrt(3))
-            1
-            sage: ZZ(1)^QQbar(sqrt(5))
-            1
-        """
-        if self == self.parent().one():
-            return self.parent().one()
-        e = QQ._coerce_(e)
-        n = e.numerator()
-        d = e.denominator()
-        if d == 1:
-            return generic_power(self, n)
-
-        # First, check for exact roots.
-        if isinstance(self._descr, ANRational):
-            rt = rational_exact_root(abs(self._descr._value), d)
-            if rt is not None:
-                if self._descr._value < 0:
-                    z = QQbar.zeta(2*d)**n
-                    return z * AlgebraicNumber(ANRational(rt**n))
-                else:
-                    return AlgebraicNumber(ANRational(rt**n))
-
-        # Without this special case, we do not know the multiplicity
-        # of the desired root
-        if self.is_zero():
-            return QQbar.zero()
-        argument_is_pi = False
-        for prec in short_prec_seq():
-            if prec is None:
-                # We know that self.real() < 0, since self._value
-                # crosses the negative real line and self._value
-                # is known to be non-zero.
-                isgn = self.imag().sign()
-                val = self._value
-                argument = val.argument()
-                if isgn == 0:
-                    argument = argument.parent().pi()
-                    argument_is_pi = True
-                elif isgn > 0:
-                    if argument < 0:
-                        argument = argument + 2 * argument.parent().pi()
-                else:
-                    if argument > 0:
-                        argument = argument - 2 * argument.parent().pi()
-            else:
-                val = self._interval_fast(prec)
-                if not val.crosses_log_branch_cut():
-                    argument = val.argument()
-                    if val.imag().is_zero() and val.real() < 0:
-                        argument_is_pi = True
-                    break
-
-        target_abs = abs(val) ** e
-        target_arg = argument * e
-
-        for prec in tail_prec_seq():
-            if target_abs.relative_diameter() < RR_1_10 and (target_arg * d).absolute_diameter() < RR_1_10:
-                break
-
-            val = self._interval_fast(prec)
-
-            target_abs = abs(val) ** e
-            argument = val.argument()
-            if argument_is_pi:
-                argument = argument.parent().pi()
-            target_arg = argument * e
-
-        pow_n = self**n
-        poly = QQbarPoly.gen()**d - pow_n
-
-        prec = target_abs.prec()
-        if argument_is_pi and d == 2:
-            target_real = 0
-        else:
-            target_real = target_arg.cos() * target_abs
-        target = ComplexIntervalField(prec)(target_real,
-                                            target_arg.sin() * target_abs)
-
-        return AlgebraicNumber(ANRoot(poly, target))
-
     def _mpfr_(self, field):
         r"""
         Given a ``RealField``, compute a good approximation to self in
@@ -4521,6 +4405,32 @@ class AlgebraicNumber(AlgebraicNumber_base):
         self.exactify()
         return self._descr.rational_argument(self)
 
+    def _pow_(self, other):
+        """
+        Powering for ``QQbar(1)``.
+
+        EXAMPLES::
+
+            sage: QQbar(1) ^ QQbar(sqrt(2))
+            1
+            sage: 1 ^ QQbar(sqrt(2))
+            1
+            sage: QQbar(2) ^ QQbar(2)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for ^: 'Algebraic Field' and 'Algebraic Field'
+            sage: AA(1) ^ AA(1)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for ^: 'Algebraic Real Field' and 'Algebraic Real Field'
+        """
+        # For some crazy unspecified reason, we must allow this if the
+        # base is QQbar(1). See Trac #22120 and #24490.
+        if self == 1:
+            return self
+        raise TypeError("unsupported operand parent(s) for ^: '{0}' and '{0}'".format(self.parent()))
+
+
 class AlgebraicReal(AlgebraicNumber_base):
     r"""
     A real algebraic number.
@@ -4666,96 +4576,6 @@ class AlgebraicReal(AlgebraicNumber_base):
             return richcmp(self._value, other._value, op)
 
         return rich_to_bool(op, (self-other).sign())
-
-    def __pow__(self, e):
-        """
-        ``self**p`` returns the `p`'th power of self (where `p` can be an
-        arbitrary rational). If `p` is `(a/b)`, takes the `b`'th root of
-        self, then takes that to the `a`'th power. If self is negative
-        and `b` is odd, it takes the real `b`'th root; if self is odd and
-        `b` is even, this takes a complex root. Note that the behavior
-        when self is negative and `b` is odd differs from the complex
-        case; algebraic numbers select the principal complex `b`'th
-        root, but algebraic reals select the real root.
-
-        EXAMPLES::
-
-            sage: AA(2)^(1/2)
-            1.414213562373095?
-            sage: AA(8)^(2/3)
-            4
-            sage: AA(8)^(2/3) == 4
-            True
-            sage: x = polygen(AA)
-            sage: phi = AA.polynomial_root(x^2 - x - 1, RIF(0, 2))
-            sage: tau = AA.polynomial_root(x^2 - x - 1, RIF(-2, 0))
-            sage: rt5 = AA(5)^(1/2)
-            sage: phi^10 / rt5
-            55.00363612324742?
-            sage: tau^10 / rt5
-            0.003636123247413266?
-            sage: (phi^10 - tau^10) / rt5
-            55.00000000000000?
-            sage: (phi^10 - tau^10) / rt5 == fibonacci(10)
-            True
-            sage: (phi^50 - tau^50) / rt5 == fibonacci(50)
-            True
-
-        TESTS::
-
-            sage: AA(-8)^(1/3)
-            -2
-            sage: AA(-8)^(2/3)
-            4
-            sage: AA(32)^(3/5)
-            8
-            sage: AA(-16)^(1/2)
-            4*I
-            sage: AA(-16)^(1/4)
-            1.414213562373095? + 1.414213562373095?*I
-            sage: AA(-16)^(1/4)/QQbar.zeta(8)
-            2
-
-        We check that :trac:`7859` is fixed::
-
-            sage: (AA(2)^(1/2)-AA(2)^(1/2))^(1/2)
-            0
-        """
-        e = QQ._coerce_(e)
-        n = e.numerator()
-        d = e.denominator()
-        if d == 1:
-            return generic_power(self, n)
-
-        # First, check for exact roots.
-        if isinstance(self._descr, ANRational):
-            rt = rational_exact_root(abs(self._descr._value), d)
-            if rt is not None:
-                if self._descr._value < 0:
-                    if d % 2 == 0:
-                        z = QQbar.zeta(2*d)**n
-                        return z * AlgebraicNumber(ANRational(rt**n))
-                    else:
-                        return AlgebraicReal(ANRational((-rt)**n))
-                else:
-                    return AlgebraicReal(ANRational(rt**n))
-
-        # Without this special case, we do not know the multiplicity
-        # of the desired root
-        if self.sign() == 0:
-            return AA.zero()
-        if d % 2 == 0:
-            if self.sign() < 0:
-                return QQbar(self) ** e
-        pow_n = self**n
-        poly = AAPoly.gen()**d - pow_n
-        range = pow_n.interval_fast(RIF)
-        if d % 2 == 0:
-            result_min = 0
-        else:
-            result_min = min(range.lower(), -1)
-        result_max = max(range.upper(), 1)
-        return AlgebraicReal(ANRoot(poly, RIF(result_min, result_max)))
 
     def _integer_(self, Z=None):
         """
@@ -5299,6 +5119,234 @@ class AlgebraicReal(AlgebraicNumber_base):
         # of mid is the same as the rounded value of self.
 
         return field(mid)
+
+
+class AlgebraicNumberPowQQAction(Action):
+    """
+    Implement powering of an algebraic number (an element of ``QQbar``
+    or ``AA``) by a rational.
+
+    This is always a right action.
+
+    INPUT:
+
+    - ``G`` -- must be ``QQ``
+
+    - ``S`` -- the parent on which to act, either ``AA`` or ``QQbar``.
+
+    .. NOTE::
+
+        To compute ``x ^ (a/b)``, we take the `b`'th root of `x`; then
+        we take that to the `a`'th power. If `x` is a negative algebraic
+        real and `b` is odd, take the real `b`'th root; otherwise take
+        the principal `b`'th root.
+
+    EXAMPLES in ``QQbar``::
+
+        sage: QQbar(2)^(1/2)
+        1.414213562373095?
+        sage: QQbar(8)^(2/3)
+        4
+        sage: QQbar(8)^(2/3) == 4
+        True
+        sage: x = polygen(QQbar)
+        sage: phi = QQbar.polynomial_root(x^2 - x - 1, RIF(1, 2))
+        sage: tau = QQbar.polynomial_root(x^2 - x - 1, RIF(-1, 0))
+        sage: rt5 = QQbar(5)^(1/2)
+        sage: phi^10 / rt5
+        55.00363612324742?
+        sage: tau^10 / rt5
+        0.003636123247413266?
+        sage: (phi^10 - tau^10) / rt5
+        55.00000000000000?
+        sage: (phi^10 - tau^10) / rt5 == fibonacci(10)
+        True
+        sage: (phi^50 - tau^50) / rt5 == fibonacci(50)
+        True
+        sage: QQbar(-8)^(1/3)
+        1.000000000000000? + 1.732050807568878?*I
+        sage: (QQbar(-8)^(1/3))^3
+        -8
+        sage: QQbar(32)^(1/5)
+        2
+        sage: a = QQbar.zeta(7)^(1/3); a
+        0.9555728057861407? + 0.2947551744109043?*I
+        sage: a == QQbar.zeta(21)
+        True
+        sage: QQbar.zeta(7)^6
+        0.6234898018587335? - 0.7818314824680299?*I
+        sage: (QQbar.zeta(7)^6)^(1/3) * QQbar.zeta(21)
+        1.000000000000000? + 0.?e-17*I
+
+    EXAMPLES in ``AA``::
+
+        sage: AA(2)^(1/2)
+        1.414213562373095?
+        sage: AA(8)^(2/3)
+        4
+        sage: AA(8)^(2/3) == 4
+        True
+        sage: x = polygen(AA)
+        sage: phi = AA.polynomial_root(x^2 - x - 1, RIF(0, 2))
+        sage: tau = AA.polynomial_root(x^2 - x - 1, RIF(-2, 0))
+        sage: rt5 = AA(5)^(1/2)
+        sage: phi^10 / rt5
+        55.00363612324742?
+        sage: tau^10 / rt5
+        0.003636123247413266?
+        sage: (phi^10 - tau^10) / rt5
+        55.00000000000000?
+        sage: (phi^10 - tau^10) / rt5 == fibonacci(10)
+        True
+        sage: (phi^50 - tau^50) / rt5 == fibonacci(50)
+        True
+
+    TESTS::
+
+        sage: AA(-8)^(1/3)
+        -2
+        sage: AA(-8)^(2/3)
+        4
+        sage: AA(32)^(3/5)
+        8
+        sage: AA(-16)^(1/2)
+        4*I
+        sage: AA(-16)^(1/4)
+        1.414213562373095? + 1.414213562373095?*I
+        sage: AA(-16)^(1/4)/QQbar.zeta(8)
+        2
+
+    We check that :trac:`7859` is fixed::
+
+        sage: (AA(2)^(1/2)-AA(2)^(1/2))^(1/2)
+        0
+    """
+    def __init__(self, G, S):
+        """
+        EXAMPLES::
+
+            sage: from sage.rings.qqbar import AlgebraicNumberPowQQAction
+            sage: act = AlgebraicNumberPowQQAction(QQ, AA); act
+            Right Rational Powering by Rational Field on Algebraic Real Field
+            sage: act(AA(-2), 1/3)
+            -1.259921049894873?
+
+        ::
+
+            sage: act = AlgebraicNumberPowQQAction(QQ, QQbar); act
+            Right Rational Powering by Rational Field on Algebraic Field
+            sage: act(QQbar(-2), 1/3)
+            0.6299605249474365? + 1.091123635971722?*I
+        """
+        Action.__init__(self, G, S, False, operator.pow)
+
+    def _call_(self, x, e):
+        r"""
+        Return the power ``x ^ e``.
+
+        INPUT:
+
+        - ``x`` -- an algebraic number
+
+        - ``e`` -- a rational number
+        """
+        if not x:
+            return x
+
+        n = e.numerator()
+        d = e.denominator()
+        if d == 1:
+            return x._pow_int(n)
+
+        # Parent of the result
+        S = self.codomain()
+        if S is AA and d % 2 == 0 and x.sign() < 0:
+            S = QQbar
+
+        # First, check for exact roots.
+        if isinstance(x._descr, ANRational):
+            rt = rational_exact_root(abs(x._descr._value), d)
+            if rt is not None:
+                if x._descr._value < 0:
+                    if S is AA:
+                        return AlgebraicReal(ANRational((-rt)**n))
+                    else:
+                        z = QQbar.zeta(2*d)._pow_int(n)
+                        return z * AlgebraicNumber(ANRational(rt**n))
+                return S(ANRational(rt**n))
+
+        if S is AA:
+            # Result lies in AA
+            pow_n = x._pow_int(n)
+            poly = AAPoly.gen()**d - pow_n
+            range = pow_n.interval_fast(RIF)
+            if d % 2 == 0:
+                result_min = 0
+            else:
+                result_min = min(range.lower(), -1)
+            result_max = max(range.upper(), 1)
+            return AlgebraicReal(ANRoot(poly, RIF(result_min, result_max)))
+
+        # Result lies in QQbar
+
+        # Determine whether arg(x) equals pi.
+        argument_is_pi = False
+        for prec in short_prec_seq():
+            if prec is None:
+                # We know that x.real() < 0, since x._value
+                # crosses the negative real line and x._value
+                # is known to be non-zero.
+                isgn = x.imag().sign()
+                val = x._value
+                argument = val.argument()
+                if isgn == 0:
+                    argument = argument.parent().pi()
+                    argument_is_pi = True
+                elif isgn > 0:
+                    if argument < 0:
+                        argument = argument + 2 * argument.parent().pi()
+                else:
+                    if argument > 0:
+                        argument = argument - 2 * argument.parent().pi()
+            else:
+                val = x._interval_fast(prec)
+                if is_RealIntervalFieldElement(val) or not val.crosses_log_branch_cut():
+                    argument = val.argument()
+                    if val.imag().is_zero() and val.real() < 0:
+                        argument_is_pi = True
+                    break
+
+        target_abs = abs(val) ** e
+        target_arg = argument * e
+
+        for prec in tail_prec_seq():
+            if target_abs.relative_diameter() < RR_1_10 and (target_arg * d).absolute_diameter() < RR_1_10:
+                break
+
+            val = x._interval_fast(prec)
+
+            target_abs = abs(val) ** e
+            argument = val.argument()
+            if argument_is_pi:
+                argument = argument.parent().pi()
+            target_arg = argument * e
+
+        pow_n = x**n
+        poly = QQbarPoly.gen()**d - pow_n
+
+        prec = target_abs.prec()
+        if argument_is_pi and d == 2:
+            target_real = 0
+        else:
+            target_real = target_arg.cos() * target_abs
+        target = ComplexIntervalField(prec)(target_real,
+                                            target_arg.sin() * target_abs)
+
+        return AlgebraicNumber(ANRoot(poly, target))
+
+    def _repr_name_(self):
+        return "Rational Powering"
+
 
 class ANRational(ANDescr):
     r"""

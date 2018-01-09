@@ -72,12 +72,14 @@ def EuropeMap(continental=False, year=2018):
     no_land_border = ['Iceland', 'Malta']
 
     G = Graph(common_border, format='dict_of_lists')
-    G.add_vertices(no_land_border)
-    G.name(new="Europe Map")
 
     if continental:
-        G = G.connected_components_subgraphs()[0]
+        G = G.subgraph(G.connected_component_containing_vertex('Austria'))
         G.name(new="Continental Europe Map")
+    else:
+        G.add_vertices(no_land_border)
+        G.name(new="Europe Map")
+
     return G
 
 def WorldMap():

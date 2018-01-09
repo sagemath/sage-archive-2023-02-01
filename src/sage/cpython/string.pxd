@@ -19,8 +19,6 @@ IF PY_MAJOR_VERSION >= 3:
     cdef extern from "Python.h":
         # Missing from cpython.unicode in Cython 0.27.3
         char* PyUnicode_AsUTF8(object s)
-        str PyUnicode_DecodeLocale(const char* s, const char* errors)
-        bytes PyUnicode_EncodeLocale(object s, const char* errors)
 
 
 cdef inline str char_to_str(const char* c, encoding=None, errors=None):
@@ -34,7 +32,7 @@ cdef inline str char_to_str(const char* c, encoding=None, errors=None):
             err = PyUnicode_AsUTF8(errors)
 
         if encoding is None:
-            return PyUnicode_DecodeLocale(c, err)
+            encoding = 'utf-8'
 
         return PyUnicode_Decode(c, strlen(c), PyUnicode_AsUTF8(encoding), err)
 
@@ -76,39 +74,63 @@ cpdef inline str_to_bytes(s, encoding=None, errors=None):
     r"""
     Convert ``str`` to ``bytes``.
 
-    On Python 2 this is a no-op since ``str is bytes``.  On Python 3
-    this encodes the given ``str`` to a Python 3 ``bytes`` using the
-    specified encoding.
+    On Python 3 this encodes the given ``str`` to a Python 3 ``bytes`` using
+    the specified encoding.
+
+
+    On Python 2 this is a no-op on ``str`` input since ``str is bytes``.
+    However, this function also accepts Python 2 ``unicode`` objects and treats
+    them the same as Python 3 unicode ``str`` objects.
 
     EXAMPLES::
 
         sage: import six
         sage: from sage.cpython.string import str_to_bytes
         sage: if six.PY2:
-        ....:     b = str_to_bytes('\xcf\x80')
+        ....:     bs = [str_to_bytes('\xcf\x80'), str_to_bytes(u'π')]
         ....: else:
-        ....:     b = str_to_bytes(u'π')
-        sage: b == b'\xcf\x80'
+        ....:     bs = [str_to_bytes(u'π')]
+        sage: all(b == b'\xcf\x80' for b in bs)
         True
         sage: str_to_bytes([])
         Traceback (most recent call last):
         ...
-        TypeError: expected str, list found
+        TypeError: expected str ... list found
     """
-    # Make this check explicit to avoid obscure error message below
-    if not isinstance(s, str):
-        raise TypeError(f"expected str, {type(s).__name__} found")
+
+    cdef char* err
+    cdef char* enc
 
     IF PY_MAJOR_VERSION <= 2:
-        return s
+        # Make this check explicit to avoid obscure error message below
+        if isinstance(s, str):
+            # On Python 2 str is already bytes so this should be a no-op
+            return s
+        elif not isinstance(s, unicode):
+            raise TypeError(
+                    f"expected str or unicode, {type(s).__name__} found")
+
+        if errors is None:
+            err = NULL  # implies "strict"
+        else:
+            err = errors
+
+        if encoding is None:
+            enc = 'utf-8'
+        else:
+            enc = encoding
     ELSE:
-        cdef char* err
+        if not isinstance(s, str):
+            raise TypeError(f"expected str, {type(s).__name__} found")
+
         if errors is None:
             err = NULL  # implies "strict"
         else:
             err = PyUnicode_AsUTF8(errors)
 
         if encoding is None:
-            return PyUnicode_EncodeLocale(s, err)
+            enc = 'utf-8'
+        else:
+            enc = PyUnicode_AsUTF8(encoding)
 
-        return PyUnicode_AsEncodedString(s, PyUnicode_AsUTF8(encoding), err)
+    return PyUnicode_AsEncodedString(s, enc, err)

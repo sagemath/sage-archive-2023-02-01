@@ -1097,7 +1097,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         AUTHORS:
 
-        Viviane Pons and Darij Grinberg, 18 June 2014.
+        Viviane Pons and Darij Grinberg, 18 June 2014;
+        Frederic Chapoton, 9 January 2018.
 
         EXAMPLES::
 
@@ -1431,15 +1432,26 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
     def tamari_sorting_tuple(self):
         r"""
-        Auxiliary method for implementation of the Tamari order.
+        Return the Tamari sorting tuple of ``self`` and the
+        size of ``self``.
+
+        This is a pair `(w, n)`, where `n` is the number of
+        nodes of ``self``, and `w` is an `n`-tuple whose
+        `i`-th entry is the number of all nodes among the
+        descendants of the right child of the `i`-th node
+        of ``self``. Here, the nodes of ``self`` are numbered
+        from left to right.
 
         OUTPUT:
 
-        a pair `(w, n)`, where `w` is a tuple of integers, and `n` the size
+        a pair `(w, n)`, where `w` is a tuple of integers,
+        and `n` the size
 
-        Two binary trees are comparable in the Tamari order
-        if and only if the associated tuples are componentwise
-        comparable. This is used in :meth:`tamari_lequal`.
+        Two binary trees of the same size are comparable in
+        the Tamari order if and only if the associated tuples
+        `w` are componentwise comparable.
+        (This is essentially the Theorem in [HuangTamari1972]_.)
+        This is used in :meth:`tamari_lequal`.
 
         EXAMPLES::
 
@@ -4050,7 +4062,8 @@ class BinaryTrees(UniqueRepresentation, Parent):
 
 def from_tamari_sorting_tuple(key):
     """
-    Return a binary tree from its Tamari-sorting-tuple.
+    Return a binary tree from its Tamari-sorting tuple
+    (:meth:`tamari_sorting_tuple`).
 
     INPUT:
 
@@ -4066,13 +4079,14 @@ def from_tamari_sorting_tuple(key):
     if not key:
         return BinaryTree()
     n = len(key)
+    # Find the root (or, rather, its index in the list of all
+    # nodes) and call it ``i``:
     for i, v in enumerate(key):
         if v == n - i - 1:
-            j = i
             break
 
-    return BinaryTree([from_tamari_sorting_tuple(key[:j]),
-                       from_tamari_sorting_tuple(key[j + 1:])])
+    return BinaryTree([from_tamari_sorting_tuple(key[: i]),
+                       from_tamari_sorting_tuple(key[i + 1:])])
 
 #################################################################
 # Enumerated set of all binary trees

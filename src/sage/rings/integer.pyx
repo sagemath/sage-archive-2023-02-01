@@ -691,9 +691,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 elif isinstance(x, bytes):
                     mpz_set_str_python(self.value, x, base)
                     return
-                elif isinstance(x, str):
-                    # Note: This should only be executed on Python 3 since on
-                    # Python 2 str is bytes
+                elif isinstance(x, unicode):
                     mpz_set_str_python(self.value, str_to_bytes(x), base)
                     return
 

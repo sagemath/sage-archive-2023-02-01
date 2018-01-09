@@ -430,16 +430,15 @@ def import_statements(*objects, **kwds):
     In order to be able to detect functions that belong to a non-loaded module,
     you might call the helper :func:`load_submodules` as in the following::
 
-        sage: import_statements('EnumeratedSetFromIterator')
+        sage: import_statements('InternalRealInterval')
         Traceback (most recent call last):
         ...
-        LookupError: no object named 'EnumeratedSetFromIterator'
+        LookupError: no object named 'InternalRealInterval'
         sage: from sage.misc.dev_tools import load_submodules
         sage: load_submodules(sage.sets)
         load sage.sets.real_set... succeeded
-        load sage.sets.set_from_iterator... succeeded
-        sage: import_statements('EnumeratedSetFromIterator')
-        from sage.sets.set_from_iterator import EnumeratedSetFromIterator
+        sage: import_statements('InternalRealInterval')
+        from sage.sets.real_set import InternalRealInterval
 
     We test different objects which have no appropriate answer::
 

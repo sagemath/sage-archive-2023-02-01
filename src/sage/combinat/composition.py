@@ -1939,11 +1939,11 @@ class Compositions_n(Compositions):
             1
         """
         if self.n >= 1:
-            return 2**(self.n-1)
+            return ZZ(2) ** (self.n-1)
         elif self.n == 0:
-            return 1
+            return ZZ(1)
         else:
-            return 0
+            return ZZ(0)
 
     def random_element(self):
         r"""

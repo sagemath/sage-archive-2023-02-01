@@ -6,7 +6,6 @@ cdef class Expression(CommutativeRingElement):
     cpdef _add_(self, other)
     cpdef _mul_(self, other)
     cpdef _pow_(self, other)
-    cpdef _pow_int(self, other)
     cdef Expression coerce_in(self, z)
     cpdef object _eval_self(self, R)
     cpdef object _convert(self, R)

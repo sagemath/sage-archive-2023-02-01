@@ -3292,7 +3292,7 @@ cdef class Expression(CommutativeRingElement):
         Check if Pynac can compute inverses of Python longs (:trac:`13107`)::
 
             sage: SR(4L)*SR(2L)^(-1)
-            2
+            2.0
 
         Check for simplifications when multiplying instances of exp::
 
@@ -3493,7 +3493,7 @@ cdef class Expression(CommutativeRingElement):
         Check if Pynac can compute divisions of Python longs (:trac:`13107`)::
 
             sage: SR(1L)/SR(2L)
-            1/2
+            0.5
         """
         cdef GEx x
         cdef Expression _right = <Expression>right
@@ -3912,7 +3912,7 @@ cdef class Expression(CommutativeRingElement):
         Test if we can compute inverses of Python longs (:trac:`13107`)::
 
             sage: SR(2L)^(-1)
-            1/2
+            0.5
 
         Symbolic powers with ``None`` shouldn't crash (:trac:`17523`)::
 

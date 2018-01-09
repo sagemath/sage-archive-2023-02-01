@@ -1967,14 +1967,18 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         See also `<http://www.faqs.org/faqs/sci-math-faq/0to0/>`_ and
         `<https://math.stackexchange.com/questions/11150/zero-to-the-zero-power-is-00-1>`_.
 
-        The base need not be an integer (it can be a builtin Python type).
+        The base need not be a Sage integer. If it is a Python type, the
+        result is a Python type too::
 
-        ::
-
-            sage: int(2)^10
+            sage: r = int(2) ^ 10; r; type(r)
             1024
-            sage: float(2.5)^10
+            <... 'int'>
+            sage: r = int(3) ^ -3; r; type(r)
+            0.037037037037037035
+            <... 'float'>
+            sage: r = float(2.5) ^ 10; r; type(r)
             9536.7431640625
+            <... 'float'>
 
         We raise 2 to various interesting exponents::
 
@@ -1986,6 +1990,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             2.8284271247461903
             sage: 2^I                # complex number
             2^I
+            sage: r = 2 ^ int(-3); r; type(r)
+            1/8
+            <type 'sage.rings.rational.Rational'>
             sage: f = 2^(sin(x)-cos(x)); f
             2^(-cos(x) + sin(x))
             sage: f(x=3)
@@ -2003,20 +2010,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         TESTS::
 
-            sage: complex(0,1) ^ 2
-            -1.0
             sage: R.<t> = QQ[]
             sage: 2^t
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion from Univariate Polynomial
             Ring in t over Rational Field to Rational Field
-            sage: int(3)^-3
-            1/27
-            sage: type(int(3)^2)
-            <type 'sage.rings.integer.Integer'>
-            sage: type(int(3)^int(2))
-            <... 'int'>
             sage: 'sage' ^ 3
             doctest:...:
             DeprecationWarning: raising a string to an integer power is deprecated
@@ -2029,11 +2028,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         if type(left) is type(right):
             return (<Integer>left)._pow_(right)
-        if isinstance(left, str):
+        elif isinstance(left, Element):
+            return coercion_model.bin_op(left, right, operator.pow)
+        elif isinstance(left, str):
             from sage.misc.superseded import deprecation
             deprecation(24260, "raising a string to an integer power is deprecated")
             return left * int(right)
-        return coercion_model.bin_op(left, right, operator.pow)
+        # left is a non-Element: do the powering with a Python int
+        return left ** int(right)
 
     cpdef _pow_(self, other):
         """

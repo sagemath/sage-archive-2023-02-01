@@ -32,13 +32,18 @@ def WorldMap():
 
     EXAMPLES::
 
-        sage: g=graphs.WorldMap()
-        sage: g.has_edge("France","Italy")
+        sage: g = graphs.WorldMap()
+        sage: g.has_edge("France", "Italy")
         True
         sage: g.gps_coordinates["Bolivia"]
         [[17, 'S'], [65, 'W']]
         sage: sorted(g.connected_component_containing_vertex('Ireland'))
         ['Ireland', 'United Kingdom']
+
+    TESTS::
+
+        sage: 'Iceland' in graphs.WorldMap()  # Trac 24488
+        True
 
     REFERENCE:
 
@@ -463,6 +468,7 @@ def WorldMap():
         }
     g = Graph()
     g.add_edges(edges)
+    g.add_vertices(gps_coordinates)
     g.gps_coordinates = gps_coordinates
     g.name("World Map")
     return g

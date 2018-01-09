@@ -1251,11 +1251,10 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             sage: b.tamari_meet(b)
             [., .]
         """
-        # We use Reading's result that the projection from the symmetric
-        # group is a lattice homomorphism.
-        a = self.to_132_avoiding_permutation()
-        b = other.to_132_avoiding_permutation()
-        return a.permutohedron_meet(b).binary_search_tree_shape(left_to_right=False)
+        x = self.tamari_sorting_tuple()[0]
+        y = other.tamari_sorting_tuple()[0]
+        meet = tuple(min(a, b) for a, b in zip(x, y))
+        return from_tamari_sorting_tuple(meet)
 
     @combinatorial_map(name="to Dyck paths: up step, left tree, down step, right tree")
     def to_dyck_word(self, usemap="1L0R"):
@@ -1430,7 +1429,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             right.append(label)
             return right
 
-    def _tamari_sorting_tuple(self):
+    def tamari_sorting_tuple(self):
         r"""
         Auxiliary method for implementation of the Tamari order.
 
@@ -1444,12 +1443,12 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         EXAMPLES::
 
-            sage: [t._tamari_sorting_tuple() for t in BinaryTrees(3)]
-            [((3, 3, 3), 3),
-            ((3, 2, 3), 3),
-            ((1, 3, 3), 3),
-            ((2, 2, 3), 3),
-            ((1, 2, 3), 3)]
+            sage: [t.tamari_sorting_tuple() for t in BinaryTrees(3)]
+            [((2, 1, 0), 3),
+             ((2, 0, 0), 3),
+             ((0, 1, 0), 3),
+             ((1, 0, 0), 3),
+             ((0, 0, 0), 3)]
 
         REFERENCES:
 
@@ -1458,10 +1457,9 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         if not self:
             return tuple(), 0
         t1, t2 = self
-        u1, n1 = t1._tamari_sorting_tuple()
-        u2, n2 = t2._tamari_sorting_tuple()
-        n = n1 + 1 + n2
-        return (u1 + (n,) + tuple(n1 + 1 + k for k in u2), n)
+        u1, n1 = t1.tamari_sorting_tuple()
+        u2, n2 = t2.tamari_sorting_tuple()
+        return (u1 + (n2,) + u2, n1 + 1 + n2)
 
     @combinatorial_map(name="To 312 avoiding permutation")
     def to_312_avoiding_permutation(self):
@@ -2218,8 +2216,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             ....:         if not S.tamari_lequal(T):
             ....:             print("FAILURE")
         """
-        self_word, n1 = self._tamari_sorting_tuple()
-        t2_word, n2 = t2._tamari_sorting_tuple()
+        self_word, n1 = self.tamari_sorting_tuple()
+        t2_word, n2 = t2.tamari_sorting_tuple()
         if n1 != n2:
             return False
         return all(x <= y for x, y in zip(self_word, t2_word))
@@ -4048,6 +4046,33 @@ class BinaryTrees(UniqueRepresentation, Parent):
             True
         """
         return self(None)
+
+
+def from_tamari_sorting_tuple(key):
+    """
+    Return a binary tree from its Tamari-sorting-tuple.
+
+    INPUT:
+
+    - ``key`` -- a tuple of integers
+
+    EXEMPLES::
+
+        sage: from sage.combinat.binary_tree import from_tamari_sorting_tuple
+        sage: t = BinaryTrees(60).random_element()
+        sage: from_tamari_sorting_tuple(t.tamari_sorting_tuple()[0]) == t
+        True
+    """
+    if not key:
+        return BinaryTree()
+    n = len(key)
+    for i, v in enumerate(key):
+        if v == n - i - 1:
+            j = i
+            break
+
+    return BinaryTree([from_tamari_sorting_tuple(key[:j]),
+                       from_tamari_sorting_tuple(key[j + 1:])])
 
 #################################################################
 # Enumerated set of all binary trees

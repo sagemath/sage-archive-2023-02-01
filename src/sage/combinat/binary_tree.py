@@ -1098,7 +1098,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         AUTHORS:
 
         Viviane Pons and Darij Grinberg, 18 June 2014;
-        Frederic Chapoton, 9 January 2018.
+        Frédéric Chapoton, 9 January 2018.
 
         EXAMPLES::
 
@@ -4062,8 +4062,9 @@ class BinaryTrees(UniqueRepresentation, Parent):
 
 def from_tamari_sorting_tuple(key):
     """
-    Return a binary tree from its Tamari-sorting tuple
-    (:meth:`tamari_sorting_tuple`).
+    Return a binary tree from its Tamari-sorting tuple.
+
+    See :meth:`~sage.combinat.binary_tree.BinaryTree.tamari_sorting_tuple`
 
     INPUT:
 

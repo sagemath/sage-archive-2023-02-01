@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-World Map
+Map graphs
 
 The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 """
@@ -17,6 +17,68 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 
 # import from Sage library
 from sage.graphs.graph import Graph
+
+def EuropeMap(continental=False, year=2018):
+    """
+    Return European states as a graph of common border.
+
+    "European state" here is defined as an independent
+    state having the capital city in Europe. The graph
+    has an edge between those countries that have common
+    *land* border.
+
+    INPUT:
+
+    - ``continental``, a Boolean -- if set, only return states in
+      the continental Europe
+    - ``year`` -- reserved for future use
+
+    EXAMPLES::
+
+        sage: Europe = graphs.EuropeMap(); Europe
+        Europe Map: Graph on 44 vertices
+        sage: Europe.neighbors('Ireland')
+        ['United Kingdom']
+
+        sage: cont_Europe = graphs.EuropeMap(continental=True)
+        sage: cont_Europe.order()
+        40
+        sage: 'Iceland' in cont_Europe
+        False
+    """
+    if year != 2018:
+        raise ValueError("currently only year 2018 is implemented")
+
+    common_border = {
+     'Poland': ['Slovakia', 'Czech Republic', 'Lithuania', 'Russia', 'Ukraine', 'Germany'],
+     'Germany': ['Czech Republic', 'Netherlands', 'Switzerland', 'Luxembourg', 'Denmark'],
+     'Croatia': ['Bosnia and Herzegovina', 'Serbia', 'Hungary', 'Montenegro', 'Slovenia'],
+     'Austria': ['Czech Republic', 'Germany', 'Switzerland', 'Slovenia', 'Liechtenstein'],
+     'France': ['Germany', 'Italy', 'Switzerland', 'Monaco', 'Luxembourg', 'Andorra'],
+     'Hungary': ['Slovakia', 'Serbia', 'Romania', 'Ukraine', 'Slovenia', 'Austria'],
+     'Italy': ['Switzerland', 'Vatican City', 'San Marino', 'Slovenia', 'Austria'],
+     'Belarus': ['Poland', 'Latvia', 'Lithuania', 'Russia', 'Ukraine'],
+     'Montenegro': ['Bosnia and Herzegovina', 'Serbia', 'Albania'],
+     'Belgium': ['Germany', 'Netherlands', 'Luxembourg', 'France'],
+     'Russia': ['Finland', 'Lithuania', 'Estonia', 'Ukraine'],
+     'Romania': ['Serbia', 'Moldova', 'Bulgaria', 'Ukraine'],
+     'Latvia': ['Lithuania', 'Russia', 'Estonia'],
+     'Slovakia': ['Czech Republic', 'Ukraine', 'Austria'], 'Switzerland': ['Liechtenstein'],
+     'Spain': ['Portugal', 'Andorra', 'France'], 'Norway': ['Finland', 'Sweden', 'Russia'],
+     'Ireland': ['United Kingdom'], 'Serbia': ['Bosnia and Herzegovina', 'Bulgaria'],
+     'Greece': ['Macedonia', 'Bulgaria', 'Albania'], 'Ukraine': ['Moldova'],
+     'Macedonia': ['Serbia', 'Bulgaria', 'Albania'], 'Sweden': ['Finland']
+    }
+    no_land_border = ['Iceland', 'Malta']
+
+    G = Graph(common_border, format='dict_of_lists')
+    G.add_vertices(no_land_border)
+    G.name(new="Europe Map")
+
+    if continental:
+        G = G.connected_components_subgraphs()[0]
+        G.name(new="Continental Europe Map")
+    return G
 
 def WorldMap():
     """

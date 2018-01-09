@@ -335,7 +335,8 @@ __doc__ += """
 """
 
 __append_to_doc(
-    ["WorldMap"]
+    ["WorldMap",
+     "EuropeMap"]
     )
 
 __doc__ += """
@@ -2100,10 +2101,11 @@ class GraphGenerators():
     RandomTriangulation      = staticmethod(sage.graphs.generators.random.RandomTriangulation)
 
 ###########################################################################
-# World Map
+# Maps
 ###########################################################################
     import sage.graphs.generators.world_map
     WorldMap = staticmethod(sage.graphs.generators.world_map.WorldMap)
+    EuropeMap = staticmethod(sage.graphs.generators.world_map.EuropeMap)
 
 ###########################################################################
 # Degree Sequence

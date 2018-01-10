@@ -2473,7 +2473,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
 
     def endomorphism(self, matrix_rep, basis=None, name=None, latex_name=None):
         r"""
-        Contruct an endomorphism of the free module ``self``.
+        Construct an endomorphism of the free module ``self``.
 
         The returned object is a module morphism `\phi: M \rightarrow M`,
         where `M` is ``self``.

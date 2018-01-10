@@ -16,6 +16,8 @@ Pynac interface
 
 from __future__ import absolute_import, division, print_function
 
+from six import integer_types
+
 from cpython cimport *
 from libc cimport math
 
@@ -27,7 +29,7 @@ from sage.libs.gsl.gamma cimport gsl_sf_lngamma_complex_e
 from sage.libs.mpmath import utils as mpmath_utils
 from sage.libs.pari.all import pari
 
-from sage.cpython.string cimport str_to_bytes
+from sage.cpython.string cimport str_to_bytes, char_to_str
 
 from sage.arith.all import gcd, lcm, is_prime, factorial, bernoulli
 
@@ -290,7 +292,7 @@ cdef subs_args_to_PyTuple(const GExMap& map, unsigned options, const GExVector& 
         sage: tfunc = TFunc()
         sage: tfunc(x).subs(x=1)
         len(args): 3, types: [<type 'sage.symbolic.substitution_map.SubstitutionMap'>,
-          <... 'int'>,        # 64-bit
+          <type 'int'>,        # 64-bit
           <type 'long'>,       # 32-bit
           <type 'sage.symbolic.expression.Expression'>]
         x
@@ -380,7 +382,7 @@ cdef stdstring* string_from_pystr(py_str) except NULL:
         s = b"(INVALID)"  # Avoid segfaults for invalid input
     return new stdstring(s)
 
-cdef stdstring* py_latex_variable(char* var_name):
+cdef stdstring* py_latex_variable(var_name):
     """
     Returns a c++ string containing the latex representation of the given
     variable name.
@@ -405,7 +407,6 @@ cdef stdstring* py_latex_variable(char* var_name):
         sage: py_latex_variable('beta_00')
         \beta_{00}
     """
-    cdef Py_ssize_t slen
     from sage.misc.latex import latex_variable_name
     py_vlatex = latex_variable_name(var_name)
     return string_from_pystr(py_vlatex)
@@ -422,7 +423,7 @@ def py_latex_variable_for_doctests(x):
         \sigma
     """
     cdef stdstring* ostr = py_latex_variable(x)
-    print(ostr.c_str())
+    print(char_to_str(ostr.c_str()))
     del ostr
 
 def py_print_function_pystring(id, args, fname_paren=False):
@@ -661,7 +662,7 @@ def py_print_fderivative_for_doctests(id, params, args):
 
     """
     cdef stdstring* ostr = py_print_fderivative(id, params, args)
-    print(ostr.c_str())
+    print(char_to_str(ostr.c_str()))
     del ostr
 
 cdef stdstring* py_latex_fderivative(unsigned id, params,
@@ -747,7 +748,7 @@ def py_latex_fderivative_for_doctests(id, params, args):
         \mathrm{D}_{0, 1, 0, 1}func_with_args(x, y^z)
     """
     cdef stdstring* ostr = py_latex_fderivative(id, params, args)
-    print(ostr.c_str())
+    print(char_to_str(ostr.c_str()))
     del ostr
 
 #################################################################
@@ -985,8 +986,7 @@ cdef py_real(x):
         sage: py_real(complex(2,2))
         2.0
     """
-    if type(x) is float or type(x) is int or \
-            type(x) is long:
+    if type(x) is float or type(x) in integer_types:
         return x
     elif type(x) is complex:
         return x.real
@@ -1081,9 +1081,9 @@ cdef py_conjugate(x):
         return x # assume is real since it doesn't have an imag attribute.
 
 cdef bint py_is_rational(x):
-    return type(x) is Rational or \
-           type(x) is Integer or\
-           isinstance(x, int) or isinstance(x, long)
+    return (type(x) is Rational or
+            type(x) is Integer or
+            isinstance(x, integer_types))
 
 cdef bint py_is_equal(x, y):
     """
@@ -1117,10 +1117,10 @@ cdef bint py_is_integer(x):
         sage: py_is_integer(3.0r)
         False
     """
-    return isinstance(x, int) or isinstance(x, long) or isinstance(x, Integer) or \
-           (isinstance(x, Element) and
-            ((<Element>x)._parent.is_exact() or (<Element>x)._parent == ring.SR) and
-            (x in ZZ))
+    return (isinstance(x, integer_types + (Integer,)) or
+            (isinstance(x, Element) and
+             ((<Element>x)._parent.is_exact() or
+              (<Element>x)._parent == ring.SR) and (x in ZZ)))
 
 def py_is_integer_for_doctests(x):
     """
@@ -1177,8 +1177,8 @@ def py_is_crational_for_doctest(x):
     return py_is_crational(x)
 
 cdef bint py_is_real(a):
-    if type(a) is int or isinstance(a, Integer) or\
-            type(a) is long or type(a) is float:
+    if (type(a) in integer_types or isinstance(a, Integer) or
+            type(a) is float):
         return True
     try:
         P = parent(a)
@@ -1201,10 +1201,13 @@ cdef bint py_is_prime(n):
         pass
     return False
 
+
 cdef bint py_is_exact(x):
-    return isinstance(x, int) or isinstance(x, long) or isinstance(x, Integer) or \
-           (isinstance(x, Element) and
-            ((<Element>x)._parent.is_exact() or (<Element>x)._parent == ring.SR))
+    return (isinstance(x, integer_types + (Integer,)) or
+            (isinstance(x, Element) and
+             ((<Element>x)._parent.is_exact() or
+              (<Element>x)._parent == ring.SR)))
+
 
 cdef py_numer(n):
     """
@@ -1232,7 +1235,7 @@ cdef py_numer(n):
         sage: py_numer(no_numer())
         42
     """
-    if isinstance(n, (int, long, Integer)):
+    if isinstance(n, integer_types + (Integer,)):
         return n
     try:
         return n.numerator()
@@ -1270,7 +1273,7 @@ cdef py_denom(n):
         sage: py_denom(2/3*i)
         3
     """
-    if isinstance(n, (int, long, Integer)):
+    if isinstance(n, integer_types + (Integer,)):
         return 1
     try:
         return n.denominator()
@@ -1391,7 +1394,7 @@ cdef py_tgamma(x):
         sage: py_tgamma(1/2)
         1.77245385090552
     """
-    if type(x) is int or type(x) is long:
+    if type(x) in integer_types:
         x = float(x)
     if type(x) is float:
         return math.tgamma(PyFloat_AS_DOUBLE(x))
@@ -1712,7 +1715,7 @@ cdef py_log(x):
     """
     cdef gsl_complex res
     cdef double real, imag
-    if type(x) is int or type(x) is long:
+    if type(x) in integer_types:
         x = float(x)
     if type(x) is float:
         real = PyFloat_AS_DOUBLE(x)

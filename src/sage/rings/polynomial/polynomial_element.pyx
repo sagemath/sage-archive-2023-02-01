@@ -6291,8 +6291,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         REFERENCES:
 
-        .. [BFSS] A. Bostan, P. Flajolet, B. Salvy and E. Schost,
-           "Fast Computation of special resultants",
+        .. [BFSS] \A. Bostan, P. Flajolet, B. Salvy and E. Schost,
+           *Fast Computation of special resultants*,
            Journal of Symbolic Computation 41 (2006), 1-29
         """
         cdef long j

@@ -566,8 +566,8 @@ class Chain_class(ModuleElement):
             0 <---- [6] <---- [2] <----- 0
                     [8]       [4]
         """
-        vectors = dict()
-        for d in set(self._vec.keys() + other._vec.keys()):
+        vectors = {}
+        for d in set(list(self._vec) + list(other._vec)):
             v = self.vector(d) + other.vector(d)
             if not v.is_zero():
                 v.set_immutable()

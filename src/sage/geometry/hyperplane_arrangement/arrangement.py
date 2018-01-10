@@ -1981,7 +1981,7 @@ class HyperplaneArrangementElement(Element):
         # Some hackery to generate a matrix quickly and without
         # unnecessary sanitization/ducktyping:
         MS = MatrixSpace(field, N, N)
-        MC = MS._get_matrix_class()
+        MC = MS._matrix_class
         table = []
         for j, sj in enumerate(Fs):
             matrix_j = []

@@ -27,6 +27,7 @@ Modules
    sage/modules/fg_pid/fgp_module
    sage/modules/fg_pid/fgp_element
    sage/modules/fg_pid/fgp_morphism
+   sage/modules/torsion_quadratic_module
 
    sage/modules/diamond_cutting
 
@@ -36,6 +37,7 @@ Modules
 
    sage/modules/finite_submodule_iter
    sage/modules/free_quadratic_module
+   sage/modules/free_quadratic_module_integer_symmetric
    sage/modules/misc
    sage/modules/quotient_module
 

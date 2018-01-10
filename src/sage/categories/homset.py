@@ -81,7 +81,7 @@ import types
 # trac ticket #14159
 
 from sage.structure.coerce_dict import TripleDict
-_cache = TripleDict(53, weak_values=True)
+_cache = TripleDict(weak_values=True)
 
 def Hom(X, Y, category=None, check=True):
     """
@@ -252,11 +252,11 @@ def Hom(X, Y, category=None, check=True):
         sage: PA = Parent(category=Algebras(QQ))
         sage: PJ = Parent(category=Rings() & Modules(QQ))
         sage: Hom(PA,PJ)
-        Set of Homomorphisms from <type 'sage.structure.parent.Parent'> to <type 'sage.structure.parent.Parent'>
+        Set of Homomorphisms from <sage.structure.parent.Parent object at ...> to <sage.structure.parent.Parent object at ...>
         sage: Hom(PA,PJ).category()
         Category of homsets of unital magmas and right modules over Rational Field and left modules over Rational Field
         sage: Hom(PA,PJ, Rngs())
-        Set of Morphisms from <type 'sage.structure.parent.Parent'> to <type 'sage.structure.parent.Parent'> in Category of rngs
+        Set of Morphisms from <sage.structure.parent.Parent object at ...> to <sage.structure.parent.Parent object at ...> in Category of rngs
 
     .. TODO::
 
@@ -1109,6 +1109,22 @@ class Homset(Set_generic):
             return morphism.IdentityMorphism(self)
         else:
             raise TypeError("Identity map only defined for endomorphisms. Try natural_map() instead.")
+
+    def one(self):
+        """
+        The identity map of this homset.
+
+        .. NOTE::
+
+            Of course, this only exists for sets of endomorphisms.
+
+        EXAMPLES::
+
+            sage: K = GaussianIntegers()
+            sage: End(K).one()
+            Identity endomorphism of Gaussian Integers in Number Field in I with defining polynomial x^2 + 1
+        """
+        return self.identity()
 
     def domain(self):
         """

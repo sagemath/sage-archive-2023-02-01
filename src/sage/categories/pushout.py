@@ -401,10 +401,8 @@ class CompositeConstructionFunctor(ConstructionFunctor):
         sage: F == CompositeConstructionFunctor(*F.all)
         True
         sage: F(GF(2)['t'])
-        Univariate Polynomial Ring in y over Fraction Field of Univariate Polynomial Ring in x over Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
-
+        Univariate Polynomial Ring in y over Fraction Field of Univariate Polynomial Ring in x over Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 2 (using GF2X)
     """
-
     def __init__(self, *args):
         """
         TESTS::
@@ -1794,9 +1792,7 @@ class VectorFunctor(ConstructionFunctor):
         sage: F
         VectorFunctor
         sage: F(GF(2)['t'])
-        Ambient free module of rank 3 over the principal ideal domain Univariate Polynomial Ring in t over Finite Field of size 2 (using NTL)
-
-
+        Ambient free module of rank 3 over the principal ideal domain Univariate Polynomial Ring in t over Finite Field of size 2 (using GF2X)
     """
     rank = 10 # ranking of functor, not rank of module.
     # This coincides with the rank of the matrix construction functor, but this is OK since they can not both be applied in any order
@@ -3593,7 +3589,6 @@ def pushout(R, S):
         ....:         return EvenPolynomialFunctor(), self.base()[self.variable_name()]
         ....:     def _coerce_map_from_(self, R):
         ....:         return self.base().has_coerce_map_from(R)
-        ....:
         sage: class EvenPolynomialFunctor(ConstructionFunctor):
         ....:     rank = 10
         ....:     coercion_reversed = True
@@ -3601,7 +3596,6 @@ def pushout(R, S):
         ....:         ConstructionFunctor.__init__(self, Rings(), Rings())
         ....:     def _apply_functor(self, R):
         ....:         return EvenPolynomialRing(R.base(), R.variable_name())
-        ....:
         sage: pushout(EvenPolynomialRing(QQ, 'x'), ZZ)
         Even Power Univariate Polynomial Ring in x over Rational Field
         sage: pushout(EvenPolynomialRing(QQ, 'x'), QQ)

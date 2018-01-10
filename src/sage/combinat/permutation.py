@@ -67,6 +67,7 @@ Below are listed all methods and classes defined in this file.
     :meth:`~sage.combinat.permutation.Permutation.to_lehmer_cocode` | Returns the Lehmer cocode of ``self``.
     :meth:`~sage.combinat.permutation.Permutation.reduced_word` | Returns the reduced word of the permutation ``self``.
     :meth:`~sage.combinat.permutation.Permutation.reduced_words` | Returns a list of the reduced words of the permutation ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.reduced_words_iterator` | An iterator for the reduced words of the permutation ``self``.
     :meth:`~sage.combinat.permutation.Permutation.reduced_word_lexmin` | Returns a lexicographically minimal reduced word of a permutation ``self``.
     :meth:`~sage.combinat.permutation.Permutation.fixed_points` | Returns a list of the fixed points of the permutation ``self``.
     :meth:`~sage.combinat.permutation.Permutation.number_of_fixed_points` | Returns the number of fixed points of the permutation ``self``.
@@ -2373,7 +2374,7 @@ class Permutation(CombinatorialElement):
             ...
             ValueError: Not enough letters in the alphabet are specified compared to the weight
         """
-        ides = self.idescents(from_zero=False)
+        ides = self.idescents()
         partial = [0]
         for a in weight:
             partial.append(partial[-1]+a)
@@ -2520,6 +2521,34 @@ class Permutation(CombinatorialElement):
 
         return reduced_word
 
+    def reduced_words_iterator(self):
+        r"""
+        Return an iterator for the reduced words of ``self``.
+
+        EXAMPLES::
+
+            sage: next(Permutation([5,2,3,4,1]).reduced_words_iterator())
+            [1, 2, 3, 4, 3, 2, 1]
+
+        """
+        def aux(p):
+            is_identity = True
+            for d in range(len(p)-1):
+                e = d+1
+                if p[d] > p[e]:
+                    is_identity = False
+                    p[d], p[e] = p[e], p[d]
+
+                    for x in aux(p):
+                        x.append(e)
+                        yield x
+
+                    p[d], p[e] = p[e], p[d]
+            if is_identity:
+                yield []
+
+        return aux(self[:])
+
     def reduced_words(self):
         r"""
         Return a list of the reduced words of ``self``.
@@ -2566,20 +2595,7 @@ class Permutation(CombinatorialElement):
             Permutation([]).reduced_words()
             [[]]
         """
-        p = self[:]
-        rws = []
-        descents = self.descents(from_zero=False)
-
-        if not descents:
-            return [[]]
-
-        P = Permutations()
-        for d in descents:
-            pp = p[:d - 1] + [p[d], p[d - 1]] + p[d+1:]
-            z = lambda x: x + [d]
-            rws += [z(_) for _ in P(pp).reduced_words()]
-
-        return rws
+        return list(self.reduced_words_iterator())
 
     def reduced_word_lexmin(self):
         r"""
@@ -2710,7 +2726,7 @@ class Permutation(CombinatorialElement):
     ############
 
     def descents(self, final_descent=False, side='right', positive=False,
-                 from_zero=None):
+                 from_zero=False, index_set=None):
         r"""
         Return the list of the descents of ``self``.
 
@@ -2719,9 +2735,9 @@ class Permutation(CombinatorialElement):
 
         .. WARNING::
 
-            By default, the descents are returned as python indices,
-            starting at zero. If you want them to start at 1,
-            set the keyword ``from_zero`` to ``False``.
+            By default, the descents are returned as elements in the
+            index set, i.e., starting at `1`. If you want them to
+            start at `0`, set the keyword ``from_zero`` to ``True``.
 
         INPUT:
 
@@ -2735,42 +2751,47 @@ class Permutation(CombinatorialElement):
         - ``positive`` -- boolean (default ``False``);
           if ``True``, return the positions that are not descents
 
-        - ``from_zero`` -- boolean (default ``True``);
-          if ``False``, return the positions starting from `1`
+        - ``from_zero`` -- boolean (default ``False``);
+          if ``True``, return the positions starting from `0`
 
-        After a deprecation period starting from :trac:`20555`, the default
-        value of the parameter ``from_zero`` shall be changed to ``False``.
+        - ``index_set`` -- list (default: ``[1, ..., n-1]`` where ``self``
+          is a permutation of ``n``); the index set to check for descents
 
         EXAMPLES::
 
             sage: Permutation([3,1,2]).descents()
-            doctest:...: DeprecationWarning: default behavior of descents may change in the near future to have indices starting from 1
-            See http://trac.sagemath.org/20555 for details.
-            [0]
+            [1]
             sage: Permutation([1,4,3,2]).descents()
-            [1, 2]
-            sage: Permutation([1,4,3,2]).descents(final_descent=True)
-            [1, 2, 3]
-            sage: Permutation([1,4,3,2]).descents(from_zero=False)
             [2, 3]
+            sage: Permutation([1,4,3,2]).descents(final_descent=True)
+            [2, 3, 4]
+            sage: Permutation([1,4,3,2]).descents(index_set=[1,2])
+            [2]
+            sage: Permutation([1,4,3,2]).descents(from_zero=True)
+            [1, 2]
+
+        TESTS:
+
+        Check that the original error of :trac:`23891` is fixed::
+
+            sage: Permutations(4)([1,4,3,2]).weak_covers()
+            [[1, 4, 2, 3], [1, 3, 4, 2]]
         """
-        if from_zero is None:
-            from sage.misc.superseded import deprecation
-            deprecation(20555, "default behavior of descents may change in the near future to have indices starting from 1")
-            from_zero = True
+        if index_set is None:
+            index_set = range(1, len(self))
 
         if side == 'right':
             p = self
         else:
             p = self.inverse()
         descents = []
-        for i in range(len(p) - 1):
-            if p[i] > p[i + 1]:
+        for i in index_set:
+            if p[i-1] > p[i]:
                 if not positive:
-                    descents.append(i + 1)
+                    descents.append(i)
             else:
                 if positive:
-                    descents.append(i + 1)
+                    descents.append(i)
 
         if final_descent:
             descents.append(len(p))
@@ -2780,7 +2801,7 @@ class Permutation(CombinatorialElement):
 
         return descents
 
-    def idescents(self, final_descent=False, from_zero=None):
+    def idescents(self, final_descent=False, from_zero=False):
         """
         Return a list of the idescents of ``self``, that is the list of
         the descents of ``self``'s inverse.
@@ -2790,9 +2811,9 @@ class Permutation(CombinatorialElement):
 
         .. WARNING::
 
-            By default, the idescents are returned as python indices,
-            starting at zero. If you want them to start at 1,
-            set the keyword ``from_zero`` to ``False``.
+            By default, the descents are returned as elements in the
+            index set, i.e., starting at `1`. If you want them to
+            start at `0`, set the keyword ``from_zero`` to ``True``.
 
         INPUT:
 
@@ -2800,24 +2821,19 @@ class Permutation(CombinatorialElement):
           if ``True``, the last position of a non-empty
           permutation is also considered as a descent
 
-        - ``from_zero`` -- optional boolean (default ``True``);
+        - ``from_zero`` -- optional boolean (default ``False``);
           if ``False``, return the positions starting from `1`
-
-        After a deprecation period starting from :trac:`20555`, the default
-        value of the parameter ``from_zero`` shall be changed to ``False``.
 
         EXAMPLES::
 
             sage: Permutation([2,3,1]).idescents()
-            doctest:...: DeprecationWarning: default behavior of descents may change in the near future to have indices starting from 1
-            See http://trac.sagemath.org/20555 for details.
-            [0]
+            [1]
             sage: Permutation([1,4,3,2]).idescents()
-            [1, 2]
-            sage: Permutation([1,4,3,2]).idescents(final_descent=True)
-            [1, 2, 3]
-            sage: Permutation([1,4,3,2]).idescents(from_zero=False)
             [2, 3]
+            sage: Permutation([1,4,3,2]).idescents(final_descent=True)
+            [2, 3, 4]
+            sage: Permutation([1,4,3,2]).idescents(from_zero=True)
+            [1, 2]
         """
         return self.inverse().descents(final_descent=final_descent,
                                        from_zero=from_zero)
@@ -2836,11 +2852,11 @@ class Permutation(CombinatorialElement):
         EXAMPLES::
 
             sage: Permutation([1,4,3,2]).idescents()
-            [1, 2]
+            [2, 3]
             sage: Permutation([1,4,3,2]).idescents_signature()
             [1, -1, -1, 1]
         """
-        idescents = self.idescents(final_descent=final_descent, from_zero=False)
+        idescents = self.idescents(final_descent=final_descent)
         d = {True: -1, False: 1}
         return [d[(i + 1) in idescents] for i in range(len(self))]
 
@@ -2858,7 +2874,7 @@ class Permutation(CombinatorialElement):
             sage: Permutation([1,4,3,2]).number_of_descents(final_descent=True)
             3
         """
-        return len(self.descents(final_descent, from_zero=False))
+        return len(self.descents(final_descent))
 
     def number_of_idescents(self, final_descent=False):
         r"""
@@ -2903,7 +2919,7 @@ class Permutation(CombinatorialElement):
         """
         if len(self) == 0:
             return Composition([])
-        d = [0] + self.descents(from_zero=False, final_descent=True)
+        d = [0] + self.descents(final_descent=True)
         return Composition([d[i + 1] - d[i] for i in range(len(d) - 1)])
 
     def descent_polynomial(self):
@@ -2976,8 +2992,7 @@ class Permutation(CombinatorialElement):
             sage: Permutation([4,3,2,1]).major_index()
             6
         """
-        descents = self.descents(final_descent, from_zero=False)
-
+        descents = self.descents(final_descent)
         return sum(descents)
 
     def imajor_index(self, final_descent=False):
@@ -3001,7 +3016,7 @@ class Permutation(CombinatorialElement):
             sage: Permutation([4,3,2,1]).imajor_index()
             6
         """
-        return sum(self.idescents(final_descent, from_zero=False))
+        return sum(self.idescents(final_descent))
 
     def to_major_code(self, final_descent=False):
         r"""
@@ -3589,7 +3604,7 @@ class Permutation(CombinatorialElement):
         P = Permutations()
         pred = []
         if side == "right":
-            for d in p.descents(from_zero=False):
+            for d in p.descents():
                 pp = p[:]
                 pp[d - 1] = p[d]
                 pp[d] = p[d - 1]
@@ -4367,7 +4382,8 @@ class Permutation(CombinatorialElement):
             sage: Permutation([4,1,3,2]).binary_search_tree_shape(False)
             [[., .], [., [., .]]]
         """
-        return self.binary_search_tree(left_to_right).shape()
+        from sage.combinat.binary_tree import binary_search_tree_shape
+        return binary_search_tree_shape(list(self), left_to_right)
 
     def sylvester_class(self, left_to_right=False):
         """
@@ -5117,9 +5133,8 @@ class Permutations(UniqueRepresentation, Parent):
     Element = Permutation
 
     # add options to class
-    options=GlobalOptions('Permutations',
-        module='sage.combinat.permutation',
-        doc=r"""
+    class options(GlobalOptions):
+        r"""
         Set the global options for elements of the permutation class. The
         defaults are for permutations to be displayed in list notation and
         the multiplication done from left to right (like in GAP) -- that
@@ -5128,15 +5143,16 @@ class Permutations(UniqueRepresentation, Parent):
         .. NOTE::
 
             These options have no effect on permutation group elements.
-        """,
-        end_doc="""
+
+        @OPTIONS@
+
         EXAMPLES::
 
             sage: p213 = Permutation([2,1,3])
             sage: p312 = Permutation([3,1,2])
             sage: Permutations.options(mult='l2r', display='list')
             sage: Permutations.options.display
-            'list'
+            list
             sage: p213
             [2, 1, 3]
             sage: Permutations.options.display='cycle'
@@ -5150,15 +5166,17 @@ class Permutations(UniqueRepresentation, Parent):
         ::
 
             sage: Permutations.options.mult
-            'l2r'
+            l2r
             sage: p213*p312
             [1, 3, 2]
             sage: Permutations.options.mult='r2l'
             sage: p213*p312
             [3, 2, 1]
             sage: Permutations.options._reset()
-        """,
-        display=dict(default="list",
+        """
+        NAME = 'Permutations'
+        module = 'sage.combinat.permutation'
+        display = dict(default="list",
                      description="Specifies how the permutations should be printed",
                      values=dict(list="the permutations are displayed in list notation"
                                       " (aka 1-line notation)",
@@ -5168,8 +5186,8 @@ class Permutations(UniqueRepresentation, Parent):
                                            " with singleton cycles shown as well",
                                  reduced_word="the permutations are displayed as reduced words"),
                      alias=dict(word="reduced_word", reduced_expression="reduced_word"),
-                     case_sensitive=False),
-        latex=dict(default="list",
+                     case_sensitive=False)
+        latex = dict(default="list",
                    description="Specifies how the permutations should be latexed",
                    values=dict(list="latex as a list in one-line notation",
                                twoline="latex in two-line notation",
@@ -5177,19 +5195,18 @@ class Permutations(UniqueRepresentation, Parent):
                                singleton="latex in cycle notation with singleton cycles shown as well",
                                reduced_word="latex as reduced words"),
                    alias=dict(word="reduced_word", reduced_expression="reduced_word", oneline="list"),
-                   case_sensitive=False),
-        latex_empty_str=dict(default="1",
+                   case_sensitive=False)
+        latex_empty_str = dict(default="1",
                              description='The LaTeX representation of a reduced word when said word is empty',
-                             checker=lambda char: isinstance(char,str)),
-        generator_name=dict(default="s",
+                             checker=lambda char: isinstance(char,str))
+        generator_name = dict(default="s",
                             description="the letter used in latexing the reduced word",
-                            checker=lambda char: isinstance(char,str)),
-        mult=dict(default="l2r",
+                            checker=lambda char: isinstance(char,str))
+        mult = dict(default="l2r",
                   description="The multiplication of permutations",
                   values=dict(l2r="left to right: `(p_1 \cdot p_2)(x) = p_2(p_1(x))`",
                               r2l="right to left: `(p_1 \cdot p_2)(x) = p_1(p_2(x))`"),
                   case_sensitive=False)
-    )
 
 class Permutations_nk(Permutations):
     r"""
@@ -6471,7 +6488,7 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
 
                 sage: P = Permutations(4)
                 sage: x = P([3, 2, 4, 1])
-                sage: x.descents(from_zero=False)
+                sage: x.descents()
                 [1, 3]
                 sage: [i for i in P.index_set() if x.has_left_descent(i)]
                 [1, 3]
@@ -6529,7 +6546,7 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
 
                 sage: P = Permutations(4)
                 sage: x = P([3, 2, 4, 1])
-                sage: (~x).descents(from_zero=False)
+                sage: (~x).descents()
                 [1, 2]
                 sage: [i for i in P.index_set() if x.has_right_descent(i)]
                 [1, 2]
@@ -7477,7 +7494,7 @@ def from_major_code(mc, final_descent=False):
         #Lemma 2.2 in Skandera
 
         #Get the descents of w and place them in reverse order
-        d = Permutation(w, check_input=False).descents(final_descent=final_descent, from_zero=False)
+        d = Permutation(w, check_input=False).descents(final_descent=final_descent)
         d.reverse()
 
         #a is the list of all positions which are not descents

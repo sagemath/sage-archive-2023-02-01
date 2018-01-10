@@ -38,7 +38,6 @@ from six.moves import range
 
 from itertools import combinations
 
-import sage.matrix.matrix
 from sage.matrix.constructor import Matrix
 from sage.graphs.all import Graph, graphs
 

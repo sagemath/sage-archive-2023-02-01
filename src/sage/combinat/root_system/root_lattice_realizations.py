@@ -327,8 +327,8 @@ class RootLatticeRealizations(Category_over_base_ring):
             # Check the embeddings from the root lattice and the root space over the same base ring
             root_lattice = self.root_system.root_lattice()
             root_space   = self.root_system.root_space  (R)
-            tester.assert_(self.coerce_map_from(root_lattice) is not None)
-            tester.assert_(self.coerce_map_from(root_space  ) is not None)
+            tester.assertTrue(self.coerce_map_from(root_lattice) is not None)
+            tester.assertTrue(self.coerce_map_from(root_space  ) is not None)
             for i in self.index_set():
                 # This embedding maps simple roots to simple roots
                 tester.assertEqual(self(root_lattice.simple_root(i)), alpha[i])
@@ -352,8 +352,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                 nullcoroot = self.null_coroot()
                 special_node = self.cartan_type().special_node()
                 for i in alpha.keys():
-                    tester.assert_(nullroot.scalar(alphacheck[i]).is_zero())
-                    tester.assert_(alpha[i].scalar(nullcoroot).is_zero())
+                    tester.assertTrue(nullroot.scalar(alphacheck[i]).is_zero())
+                    tester.assertTrue(alpha[i].scalar(nullcoroot).is_zero())
                 # Check the projection on the classical space
                 classical = self.classical()
                 alpha_classical = classical.alpha()

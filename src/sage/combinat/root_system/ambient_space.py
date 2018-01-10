@@ -122,7 +122,7 @@ class AmbientSpace(CombinatorialFreeModule):
         D = T.symmetrizer()
         alpha = self.simple_roots()
         for C in T.dynkin_diagram().connected_components():
-            tester.assertEquals(len( set( alpha[i].scalar(alpha[i]) / D[i] for i in C ) ), 1)
+            tester.assertEqual(len( set( alpha[i].scalar(alpha[i]) / D[i] for i in C ) ), 1)
 
     # FIXME: attribute or method?
     def dimension(self):

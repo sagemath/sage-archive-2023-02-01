@@ -25,7 +25,7 @@ from sage.combinat.subset import Subsets
 from sage.functions.all import sqrt
 from itertools import permutations, combinations
 from sage.matrix.constructor import matrix
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 from sage.misc.misc_c import prod
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.finite_rings.integer_mod_ring import Integers

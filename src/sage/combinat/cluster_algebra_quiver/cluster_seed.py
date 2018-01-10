@@ -2175,6 +2175,7 @@ class ClusterSeed(SageObject):
         An integer.
 
         EXAMPLES::
+
             sage: B = matrix([[0,2],[-2,0]])
             sage: C = ClusterSeed(B).principal_extension();
             sage: C.mutate(0)
@@ -4578,8 +4579,9 @@ class ClusterSeed(SageObject):
 
     def _compute_compatible_vectors(self,vd):
         r"""
-        Returns a list of compatible vectors of each vector in the vector decomposition `vd`.
-        Compatibility is defined as in [LLM] with respect to the matrix `B`.
+        Return a list of compatible vectors of each vector in the vector decomposition `vd`.
+
+        Compatibility is defined as in [LLM]_ with respect to the matrix `B`.
 
         INPUT:
 
@@ -4940,9 +4942,12 @@ def get_green_vertices(C):
     #max_entries = [ np.max(np.array(C.column(i))) for i in range(C.ncols()) ]
     #return [i for i in range(C.ncols()) if max_entries[i] > 0]
 
+
 def get_red_vertices(C):
     r"""
-    Get the red vertices from a matrix. Will go through each clumn and return
+    Get the red vertices from a matrix.
+
+    Will go through each column and return
     the ones where no entry is less than 0.
 
     INPUT:
@@ -4950,11 +4955,11 @@ def get_red_vertices(C):
     - ``C`` -- The C matrix to check
 
     EXAMPLES::
+
         sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import get_red_vertices
         sage: S = ClusterSeed(['A',4]); S.mutate([1,2,3,2,0,1,2,0,3])
         sage: get_red_vertices(S.c_matrix())
         [1, 2]
-
     """
     return [ i for (i,v) in enumerate(C.columns()) if any(x < 0 for x in v) ]
     ## old code commented out

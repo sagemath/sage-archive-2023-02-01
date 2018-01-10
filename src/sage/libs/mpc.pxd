@@ -1,4 +1,5 @@
-from sage.libs.mpfr cimport *
+from sage.libs.gmp.types cimport *
+from sage.libs.mpfr.types cimport *
 
 cdef extern from "mpc.h":
     ctypedef struct __mpc_struct:
@@ -28,12 +29,12 @@ cdef extern from "mpc.h":
 
     # Memory management
     void mpc_init (mpc_t)
-    void mpc_init2 (mpc_t, mp_prec_t)
+    void mpc_init2 (mpc_t, mpfr_prec_t)
     void mpc_clear (mpc_t)
 
     # Precision accessors
-    mp_prec_t mpc_get_prec (mpc_t)
-    void mpc_set_prec (mpc_t, mp_prec_t)
+    mpfr_prec_t mpc_get_prec (mpc_t)
+    void mpc_set_prec (mpc_t, mpfr_prec_t)
 
     # Set real part to given value and imaginary part to +0
     int  mpc_set_ui (mpc_t, unsigned long int, mpc_rnd_t)

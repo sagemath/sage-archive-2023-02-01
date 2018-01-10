@@ -504,8 +504,8 @@ class FiniteExtensionFromInfiniteValuation(MappedValuation_base, DiscreteValuati
             sage: L.<t> = K.extension(t^2 + 1)
             sage: v = valuations.pAdicValuation(QQ, 5)
             sage: u,uu = v.extensions(L)
-            sage: u.upper_bound(t + 2)
-            3
+            sage: u.upper_bound(t + 2) >= 1
+            True
             sage: u(t + 2)
             1
 

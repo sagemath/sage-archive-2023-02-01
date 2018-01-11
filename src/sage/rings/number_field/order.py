@@ -1155,7 +1155,7 @@ class AbsoluteOrder(Order):
         """
         if is_Element(x) and x.parent() is self:
             return x
-        if isinstance(x,list) or isinstance(x,tuple):
+        if isinstance(x, (tuple, list)):
             x = sum(xi*gi for xi,gi in zip(x,self.gens()))
         if not is_Element(x) or x.parent() is not self._K:
             x = self._K(x)

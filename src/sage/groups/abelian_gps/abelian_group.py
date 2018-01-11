@@ -901,6 +901,19 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             raise TypeError('abelian groups in GAP are finite, but self is infinite')
         return 'AbelianGroup(%s)'%list(self.gens_orders())
 
+    @cached_method
+    def gap(self):
+        r"""
+        Return this abelian group a libgap group
+        
+        EXAMPLES::
+        
+            sage: A = AbelianGroup([2,3,0,6])
+            sage: A.gap()
+        """
+        from sage.groups.abelian_gps.abelian_group_gap import AbelianGroup_gap
+        return AbelianGroup_gap(self)
+    
     def gen(self, i=0):
         """
         The `i`-th generator of the abelian group.

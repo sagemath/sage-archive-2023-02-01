@@ -1216,6 +1216,10 @@ REFERENCES:
 
 **I**
 
+.. [IK2010] Kenji Iohara and Yoshiyuki Koga.
+            *Representation Theory of the Virasoro Algebra*. 
+            Springer, (2010).
+
 .. [ILS2012] Giuseppe F. Italiano, Luigi Laura, and Federico
              Santaroni. *Finding strong bridges and strong
              articulation points in linear time*. Theoretical Computer
@@ -1651,6 +1655,10 @@ REFERENCES:
            *SAFER K-64: A byte-oriented block-ciphering algorithm*; in
            FSE’93, Volume 809 of LNCS, pages 1-17.
            Springer, Heidelberg, December 1994.
+
+.. [Mat1992] \O. Mathieu. *Classification of Harish-Chandra
+             modules over the Virasoro Lie algebra*.
+             Invent. Math. **107(2)** (1992), pp. 225-234.
 
 .. [Mat2002] Jiří Matousek, "Lectures on Discrete Geometry", Springer,
              2002

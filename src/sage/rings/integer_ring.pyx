@@ -1129,7 +1129,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             5-adic Ring with capped relative precision 15
         """
         if p == sage.rings.infinity.Infinity:
-            from sage.rings.real_mpfr import create_RealField
+            from sage.rings.real_field import create_RealField
             return create_RealField(prec, **extras)
         else:
             from sage.rings.padics.factory import Zp

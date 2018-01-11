@@ -5795,3 +5795,21 @@ cdef class int_toRR(Map):
         cdef RealNumber y = parent._new()
         mpfr_set_si(y.value, x, parent.rnd)
         return y
+
+
+def create_RealField(*args, **kwds):
+    r"""
+    Deprecated function moved to :mod:`sage.rings.real_field`.
+
+    TESTS::
+
+        sage: from sage.rings.real_mpfr import create_RealField
+        sage: create_RealField()
+        doctest:...: DeprecationWarning: Please import create_RealField from sage.rings.real_field
+        See http://trac.sagemath.org/24511 for details.
+        Real Field with 53 bits of precision
+    """
+    from sage.misc.superseded import deprecation
+    deprecation(24511, "Please import create_RealField from sage.rings.real_field")
+    from sage.rings.real_field import create_RealField as cr
+    return cr(*args, **kwds)

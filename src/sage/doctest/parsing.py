@@ -145,6 +145,11 @@ def normalize_type_repr(s):
         sage: print(normalize_type_repr(s))
         The desired output was <class 'int'>
         The received output was <class 'int'>
+
+    And should work when types are embedded in other nested expressions::
+
+        sage: normalize_type_repr(repr([Integer, float]))
+        "[<class 'sage.rings.integer.Integer'>, <class 'float'>]"
     """
 
     def subst(m):

@@ -90,9 +90,9 @@ from sage.sets.all import Set
 from sage.misc.flatten import flatten
 from sage.interfaces.gp import gp
 from sage.matrix.special import block_matrix
-from scipy.linalg import lu as scipylu
 import sage.libs.mpmath.all as mpall
 import operator
+
 
 def voronoi_ghost(cpoints, n=6, CC=CDF):
     r"""
@@ -1708,22 +1708,11 @@ class RiemannSurface(object):
         CCP = P.base_ring()
         g = self.genus
         Q = other.period_matrix()
-        # Solve T P = Q R, or Pt Tt = QRt, via LU decomposition of Pt:
-        # we get sigma LU Tt = QRt, so LU Tt = sigmainv QRt.
-        # In this equality we only need the first g rows of LU and QRt, and
-        # those of LU usually form a matrix whose inverse can often be computed
-        # without instabilities
-        Pt = P.transpose()
-        sigma, L, U = scipylu(Pt.change_ring(CDF))
-        sigma = Matrix(CCP, sigma)
-        sigmainv = sigma**(-1)
-        LUsub = (sigmainv * Pt)[range(g)]
-        LUsubinv = numerical_inverse(LUsub)
+        Ptsubinv = numerical_inverse((P.transpose())[range(g)])
         Ts = [ ]
         for R in Rs:
-            QRt = (Q * R).transpose()
-            QRtsub = (sigmainv * QRt)[range(g)]
-            Tt = LUsubinv * QRtsub
+            QRtsub = ((Q * R).transpose())[range(g)]
+            Tt = Ptsubinv * QRtsub
             T = Tt.transpose().change_ring(CCP)
             Ts.append(T)
         return Ts

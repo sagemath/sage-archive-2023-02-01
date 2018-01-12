@@ -46,7 +46,7 @@ class AbelianGroupElement_gap(ElementLibGAP):
 
     def __hash__(self):
         r"""
-        Return the hash of this element
+        Return the hash of this element.
 
         EXAMPLES::
 
@@ -60,7 +60,9 @@ class AbelianGroupElement_gap(ElementLibGAP):
 
     def __reduce__(self):
         r"""
-        Implement pickling
+        Implement pickling.
+
+        EXAMPLES::
 
             sage: A = AbelianGroup([3,2,4])
             sage: G = A.gap()
@@ -158,18 +160,28 @@ class AbelianGroup_gap(UniqueRepresentation, GroupMixinLibGAP, ParentLibGAP, Abe
 
     INPUT:
 
-        - ``A`` -- an `AbelianGroup`
-        - ``G`` -- (default:``None``) a gap group
-        - ``ambient`` -- (default:``None``) an AbelianGroup_gap
+    - ``A`` -- :class:`sage.groups.abelian_gps.abelian_group.AbelianGroup_class`
+    - ``G`` -- (default:``None``) a gap group
+    - ``ambient`` -- (default:``None``) an :class:`AbelianGroup_gap`
 
     EXAMPLES::
 
         sage: A = AbelianGroup([3,2,5])
         sage: G = A.gap()
-        sage: TestSuite(G).run()
+        sage: G
+        Multiplicative Abelian group isomorphic to C3 x C2 x C5 with gap
     """
     def __init__(self, A, G=None, ambient=None):
         r"""
+        Create an instance of this class.
+
+        See :class:`AbelianGroup_gap` for details
+
+        TESTS::
+
+            sage: A = AbelianGroup([3,2,5])
+            sage: G = A.gap()
+            sage: TestSuite(G).run()
         """
         AbelianGroupBase.__init__(self, category=A.category())
         self._with_pc = libgap.LoadPackage("Polycyclic")
@@ -211,21 +223,29 @@ class AbelianGroup_gap(UniqueRepresentation, GroupMixinLibGAP, ParentLibGAP, Abe
         s += " with gap"
         return s
 
-    def __hash__(self):
+    def _coerce_map_from_(self, S):
         r"""
-        A hash function.
+        Return whether ``S`` canonically coerces to ``self``.
+
+        INPUT:
+
+        - ``S`` -- anything.
+
+        OUTPUT:
+
+        Boolean.
 
         EXAMPLES::
 
-            sage: A = AbelianGroup([2,6])
+            sage: A = AbelianGroup([2,3,4,5])
             sage: G = A.gap()
-            sage: G.__hash__()      # random
-            -9223363266866470866
-        """
-        return hash(self._A) ^ hash(type(self))
-
-    def _coerce_map_from_(self, S):
-        r"""
+            sage: gen = G.gens()[:2]
+            sage: S = G.subgroup(gen)
+            sage: G._coerce_map_from_(S)
+            True
+            sage: S._coerce_map_from_(G)
+            sage: G._coerce_map_from_(A)
+            True
         """
         try:
             if S.ambient() is self:
@@ -265,6 +285,13 @@ class AbelianGroup_gap(UniqueRepresentation, GroupMixinLibGAP, ParentLibGAP, Abe
         Return the elementary divisors of the group.
 
         See :meth:`sage.groups.abelian_gps.abelian_group_gap.elementary_divisors`
+
+        EXAMPLES::
+
+            sage: A = AbelianGroup([2,3,4,5])
+            sage: G = A.gap()
+            sage: G.elementary_divisors()
+            (2, 60)
         """
         ediv = self.gap().AbelianInvariants().sage()
         from sage.matrix.constructor import diagonal_matrix
@@ -294,15 +321,14 @@ class AbelianGroup_gap(UniqueRepresentation, GroupMixinLibGAP, ParentLibGAP, Abe
     @cached_method
     def gens_orders(self):
         r"""
-        Return the orders of the cyclic factors that this group has
-        been defined with.
+        Return the orders of the generators.
 
         Use :meth:`elementary_divisors` if you are looking for an
         invariant of the group.
 
         OUTPUT:
 
-            - A tuple of integers.
+        - a tuple of integers
 
         EXAMPLES::
 
@@ -342,11 +368,11 @@ class AbelianGroup_gap(UniqueRepresentation, GroupMixinLibGAP, ParentLibGAP, Abe
 
         INPUT:
 
-            - ``gens`` -- a list of elements coercible into this group
+        - ``gens`` -- a list of elements coercible into this group
 
         OUTPUT:
 
-            - a subgroup which remembers that it is a subgroup
+        - a subgroup
 
         EXAMPLES::
 

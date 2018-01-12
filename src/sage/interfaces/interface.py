@@ -124,7 +124,6 @@ class Interface(WithEqualityById, ParentWithBase):
 
         EXAMPLES::
 
-            from sage.misc.random_testing import random_testing
             sage: from sage.interfaces.interface import Interface
             sage: i = Interface("")
             sage: i.rand_seed() # random

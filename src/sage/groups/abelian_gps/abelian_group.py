@@ -700,7 +700,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
     @cached_method
     def dual_group(self, names="X", base_ring=None):
         """
-        Returns the dual group.
+        Return the dual group.
 
         INPUT:
 
@@ -889,31 +889,40 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             sage: G = AbelianGroup(3,[0,3,4],names="abc"); G
             Multiplicative Abelian group isomorphic to Z x C3 x C4
             sage: G._gap_init_()
-            Traceback (most recent call last):
-            ...
-            TypeError: abelian groups in GAP are finite, but self is infinite
+            'AbelianPcpGroup([0, 3, 4])'
         """
         # TODO: Use the package polycyclic has AbelianPcpGroup, which can handle
         # the infinite case but it is a GAP package not GPL'd.
         # Use this when the group is infinite...
-        # return 'AbelianPcpGroup(%s)'%list(self.invariants())
-        if not self.is_finite():
-            raise TypeError('abelian groups in GAP are finite, but self is infinite')
-        return 'AbelianGroup(%s)'%list(self.gens_orders())
+        if self.is_finite():
+            return 'AbelianGroup(%s)'%list(self.gens_orders())
+        from sage.misc.package import is_package_installed, PackageNotFoundError
+        if is_package_installed('gap_packages'):
+            # Make sure to LoadPackage("Polycyclic") in gap
+            return 'AbelianPcpGroup(%s)'%list(self.gens_orders())
+        raise PackageNotFoundError("gap_packages")
 
     @cached_method
     def gap(self):
         r"""
-        Return this abelian group a libgap group
-        
+        Return this abelian group as a libgap group
+
         EXAMPLES::
-        
-            sage: A = AbelianGroup([2,3,0,6])
+
+            sage: A = AbelianGroup([2,3,6])
             sage: A.gap()
+            Multiplicative Abelian group isomorphic to C2 x C3 x C6 with gap
+
+        If the gap package "Polycyclic" is installed, it can handle 
+        infinite cyclic groups as well::
+
+            sage: A = AbelianGroup([2,0,6])    # optional - gap_packages
+            sage: A.gap()
+            Multiplicative Abelian group isomorphic to C2 x Z x C6 with gap
         """
         from sage.groups.abelian_gps.abelian_group_gap import AbelianGroup_gap
         return AbelianGroup_gap(self)
-    
+
     def gen(self, i=0):
         """
         The `i`-th generator of the abelian group.

@@ -1,6 +1,6 @@
 r"""
-The Parallelogram Polyominoes
-=============================
+Parallelogram Polyominoes
+=========================
 
 The goal of this module is to give some tools to manipulate the
 parallelogram polyominoes.
@@ -351,7 +351,7 @@ class LocalOptions:
             ....:         )
             ....:     )
             ....: )
-            sage: all([key in ['tikz_options','display'] for key in o])
+            sage: all(key in ['tikz_options','display'] for key in o)
             True
         """
         return self._available_options.__iter__()
@@ -942,7 +942,7 @@ class ParallelogramPolyomino(ClonableList):
                 raise ValueError("lower and upper path are crossing")
         p_up[1-upper_path[-1]] += 1
         p_down[1-lower_path[-1]] += 1
-        if(p_up[0] != p_down[0] or p_up[1] != p_down[1]):
+        if (p_up[0] != p_down[0] or p_up[1] != p_down[1]):
             raise ValueError("the two paths have distinct ends")
 
     def __hash__(self):
@@ -1024,8 +1024,7 @@ class ParallelogramPolyomino(ClonableList):
         if check:
             if not isinstance(value, (list, tuple)):
                 raise ValueError(
-                    "Value %s must be a list or a tuple." % (value)
-                )
+                    "Value %s must be a list or a tuple." % value)
             self.check()
         self._options = None
 
@@ -1033,11 +1032,8 @@ class ParallelogramPolyomino(ClonableList):
         r"""
         Convert to a Dyck word using the Delest-Viennot bijection.
 
-        This bijection is described in the following article :
-            Ref. Delest, M.-P. and Viennot, G.
-            "Algebraic Languages and Polyominoes Enumeration."
-            Theoret. Comput. Sci. 34, 169-206, 1984.
-            (the bijection is described page 179 and page 180 Figure 6)
+        This bijection is described page 179 and page 180 Figure 6 in
+        the article [DeVi1984]_.
 
         EXAMPLES::
 
@@ -1064,12 +1060,8 @@ class ParallelogramPolyomino(ClonableList):
         r"""
         Convert to a Dyck word.
 
-        By default, we use the bijection from the following article :
-            Ref. Delest, M.-P. and Viennot, G.
-            "Algebraic Languages and Polyominoes Enumeration."
-            Theoret. Comput. Sci. 34, 169-206, 1984.
-            (the bijection is described in the previous article on page 179 
-            and 180. An example is given in Figure 6)
+        This bijection is described page 179 and page 180 Figure 6 in
+        the article [DeVi1984]_.
 
         INPUT:
 
@@ -1077,7 +1069,7 @@ class ParallelogramPolyomino(ClonableList):
 
         OUTPUT:
 
-        A list of 2 floats encoding a vector.
+        a Dyck word
 
         EXAMPLES::
 
@@ -1095,17 +1087,14 @@ class ParallelogramPolyomino(ClonableList):
     @staticmethod
     def _from_dyck_word_delest_viennot(dyck):
         r"""
-        Convert dyck word to parallelogram polyomino using the Delest Viennot
+        Convert Dyck word to parallelogram polyomino using the Delest Viennot
         bijection.
 
-        This bijection come from the article :
-            Ref. Delest, M.-P. and Viennot, G.
-            "Algebraic Languages and Polyominoes [sic] Enumeration."
-            Theoret. Comput. Sci. 34, 169-206, 1984.
+        This bijection come from the article [DeVi1984]_.
 
         INPUT:
 
-        - ``dyck`` -- a dyck word
+        - ``dyck`` -- a Dyck word
 
         OUTPUT:
 
@@ -1114,10 +1103,7 @@ class ParallelogramPolyomino(ClonableList):
         EXAMPLES::
 
             sage: dyck = DyckWord( [1, 1, 0, 1, 1, 0, 1, 0, 0, 0] )
-            sage: pp = ParallelogramPolyomino._from_dyck_word_delest_viennot(
-            ....:     dyck
-            ....: )
-            sage: pp
+            sage: ParallelogramPolyomino._from_dyck_word_delest_viennot(dyck)
             [[0, 1, 0, 0, 1, 1], [1, 1, 1, 0, 0, 0]]
         """
         l = [1] + list(dyck) + [0]
@@ -1131,11 +1117,11 @@ class ParallelogramPolyomino(ClonableList):
     @staticmethod
     def from_dyck_word(dyck, bijection=None):
         r"""
-        Convert dyck word to parallelogram polyomino.
+        Convert a Dyck word to parallelogram polyomino.
 
         INPUT:
 
-        - ``dyck`` -- a dyck word
+        - ``dyck`` -- a Dyck word
 
         - ``bijection`` -- (default: 'Delest-Viennot') the bijection to use.
           Expected values : 'Delest-Viennot'.
@@ -1147,7 +1133,7 @@ class ParallelogramPolyomino(ClonableList):
         EXAMPLES::
 
             sage: dyck = DyckWord( [1, 1, 0, 1, 1, 0, 1, 0, 0, 0] )
-            sage: pp = ParallelogramPolyomino.from_dyck_word( dyck )
+            sage: pp = ParallelogramPolyomino.from_dyck_word(dyck)
             sage: pp
             [[0, 1, 0, 0, 1, 1], [1, 1, 1, 0, 0, 0]]
             sage: pp = ParallelogramPolyomino.from_dyck_word(
@@ -1168,17 +1154,15 @@ class ParallelogramPolyomino(ClonableList):
         PP in such a way the cell at position ``position`` becomes the
         top-left most corner of the PP.
 
-        Ref.:
-            J.C Aval, A. Boussicault, M. Bouvel, M. Silimbani,
-            "Combinatorics of non-ambiguous trees",
-            :arxiv:`1305.3716`
+        Reference: [ABBS2013]_
 
         INPUT:
 
         - ``bijection`` -- ``None`` (default) The name of bijection to use for
-          the convertion. The possible value are, 'Aval-Boussicault'.
+          the convertion. The possible values are, 'Aval-Boussicault'.
 
-        - ``position`` -- the celle position wher t this is a recursvive parameter. It should not be used.
+        - ``position`` -- the cell position. This is a recursive parameter.
+          It should not be used directly.
 
         EXAMPLES::
 
@@ -1267,13 +1251,13 @@ class ParallelogramPolyomino(ClonableList):
 
     def _to_ordered_tree_via_dyck(self):
         r"""
-        Convert the parallelogram polyominoe (PP) by using first
-        the Delest-Viennot bijection between PP and dyck paths,
-        and then by using the classical bijection between dyck paths
-        and ordered trees, described in the following article :
-            Ref. Dershowitz Nachum, Zaks Shmuel (1980),
-            Enumerations of ordered trees, Discrete Mathematics, 31: 9 28.
-            (see page 12 and Figure 3.1 of page 13)
+        Convert the parallelogram polyominoe (PP) by using first the
+        Delest-Viennot bijection between PP and Dyck paths, and then
+        by using the classical bijection between Dyck paths and
+        ordered trees
+
+        This last bijection is described in [DerZak1980]_ (see page 12 and
+        Figure 3.1 of page 13).
 
         See :meth:`_to_dyck_delest_viennot` for the exact references.
         See also :meth:`to_ordered_tree()`.
@@ -1307,13 +1291,7 @@ class ParallelogramPolyomino(ClonableList):
         r"""
         Return the ordered tree using the Boussicault-Socci bijection.
 
-        This bijection is described in the article :
-
-        Ref. A. Boussicault, S. Rinaldi et S. Socci.
-        "The number of directed k-convex polyominoes"
-        27th Annual International Conference on Formal Power Series and
-        Algebraic Combinatorics (FPSAC 2015), 2015.
-        :arxiv:`1501.00872`
+        This bijection is described in the article [BRS2015]_.
 
         EXAMPLES::
 
@@ -1356,6 +1334,7 @@ class ParallelogramPolyomino(ClonableList):
 
             Then now the vertices of the ordered tree are the vertices of
             the binary tree and the virtual root.
+
             The edges are defined as follow :
             - if v1 is a left (resp. right) son of v2 and v2 is a right
               (resp. left) son of v3, then, in the ordered tree, v2 is the
@@ -1403,14 +1382,13 @@ class ParallelogramPolyomino(ClonableList):
 
             INPUT:
 
-            - ``b_tree`` -- A binary tree
+            - ``b_tree`` -- a binary tree
 
             - ``d`` -- 0 or 1
 
             OUTPUT:
 
             An ordered tree.
-
             """
             if b_tree == BinaryTree():
                 return OrderedTree([])
@@ -1433,18 +1411,10 @@ class ParallelogramPolyomino(ClonableList):
         :meth:`_to_dyck_delest_viennot` and the classical bijection between
         dyck paths and ordered trees.
 
-        The bijection between Dyck Word and ordered trees is described here :
-            Ref. Dershowitz Nachum, Zaks Shmuel (1980),
-            "Enumerations of ordered trees", Discrete Mathematics, 31: 9-28,
-            (See page 12 and 13 and Figure 3.1).
+        The bijection between Dyck Word and ordered trees is described
+        in [DerZak1908]_ (See page 12 and 13 and Figure 3.1).
 
-        The bijection 'Boussicault-Socci' is described in the article :
-            Ref. A. Boussicault, S. Rinaldi et S. Socci.
-            "The number of directed k-convex polyominoes"
-            27th Annual International Conference on Formal Power Series and
-            Algebraic Combinatorics (FPSAC 2015), 2015.
-            :arxiv:`1501.00872`
-
+        The bijection 'Boussicault-Socci' is described in [BRS2015]_.
 
         INPUT:
 
@@ -1452,7 +1422,6 @@ class ParallelogramPolyomino(ClonableList):
           the convertion. The possible value are, 'Boussicault-Socci',
           'via dyck and Delest-Viennot'. The default bijection is
           'Boussicault-Socci'.
-
 
         EXAMPLES::
 
@@ -1588,7 +1557,7 @@ class ParallelogramPolyomino(ClonableList):
 
         INPUT:
 
-        - ``word`` -- A word of 0 and 1.
+        - ``word`` -- a word of 0 and 1.
 
         - ``up`` -- 0 or 1 (a letter of the word)
 
@@ -1766,7 +1735,7 @@ class ParallelogramPolyomino(ClonableList):
 
     def is_flat(self):
         r"""
-        Return true if the two bounce paths join together in the rightmost cell
+        Return whether the two bounce paths join together in the rightmost cell
         of the bottom row of P.
 
         EXAMPLES::
@@ -1788,18 +1757,18 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp.is_flat()
             True
         """
-
         l0 = len(self.bounce_path(direction=0))
         l1 = len(self.bounce_path(direction=1))
         return l0 == l1
 
     def is_k_directed(self, k):
         r"""
-        Return true if the Polyomino Parallelogram is k-directed.
+        Return whether the Polyomino Parallelogram is k-directed.
 
         A convex polyomino is said to be k-convex if every pair of its cells
         can be connected by a monotone path (path with south and east steps)
         with at most k changes of direction.
+
         The degree of convexity of a convex polyomino P is the smallest integer
         k such that P is k-convex.
 
@@ -1864,12 +1833,9 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp.heights()
             [0]
         """
-        heights = []
         uh = self.upper_heights()
         lh = self.lower_heights()
-        for i in range(len(uh)):
-            heights.append(lh[i] - uh[i])
-        return heights
+        return [a - b for a, b in zip(lh, uh)]
 
     def width(self):
         r"""
@@ -1985,8 +1951,8 @@ class ParallelogramPolyomino(ClonableList):
 
             OUTPUT:
 
-            Returns 0 if there is no cell at the given position,
-            returns 1 if there is a cell.
+            Return 0 if there is no cell at the given position,
+            return 1 if there is a cell.
             """
             if w >= len(widths) or w < 0:
                 return 0
@@ -2190,7 +2156,7 @@ class ParallelogramPolyomino(ClonableList):
         the size of the path between two turnings.
 
         You can visualize the two bounce paths by using the following
-        commands:
+        commands.
 
         EXAMPLES::
 
@@ -2274,8 +2240,10 @@ class ParallelogramPolyomino(ClonableList):
         Return the bounce of the parallelogram polyomino.
 
         Les p be the bounce path of the parallelogram
-        polyomino. (p=self.bounce_path())
+        polyomino (:meth:`bounce_path`).
+
         The bounce is defined by:
+
         sum([(1+ floor(i/2))*p[i] for i in range(len(p))])
 
         EXAMPLES::
@@ -2315,15 +2283,12 @@ class ParallelogramPolyomino(ClonableList):
             sage: PP.bounce(direction=0)
             0
         """
-        result = 0
-        path = self.bounce_path(direction)
-        for i in range(len(path)):
-            result += (1+(int(i/2)))*path[i]
-        return result
+        return sum((1 + i//2) * pi
+                   for i, pi in enumerate(self.bounce_path(direction)))
 
     def area(self):
         r"""
-        Returns the area of the parallelogram polyomino.
+        Return the area of the parallelogram polyomino.
 
         EXAMPLES::
 
@@ -2348,10 +2313,7 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp.area()
             0
         """
-        res = 0
-        for h in self.heights():
-            res += h
-        return res
+        return sum(h for h in self.heights())
 
     def _repr_(self):
         r"""
@@ -2626,7 +2588,7 @@ class ParallelogramPolyomino(ClonableList):
 
     def _get_node_position_at_row(self, row):
         r"""
-        Returns the position of the leftmost cell in the row indexed by ``row``
+        Return the position of the leftmost cell in the row indexed by ``row``
         of the array obtained with ``get_array``.
 
         INPUT:
@@ -2673,7 +2635,7 @@ class ParallelogramPolyomino(ClonableList):
 
     def _get_node_position_at_column(self, column):
         r"""
-        Returns the position of the topmost cell in the column indexed by
+        Return the position of the topmost cell in the column indexed by
         ``column`` of the array obtained with ``get_array``.
 
         INPUT:
@@ -2945,12 +2907,7 @@ class ParallelogramPolyomino(ClonableList):
         This function returns the path of the bounding path inside the ordered 
         tree.
 
-        The bijection is described in the paper 
-            Ref. A. Boussicault, S. Rinaldi et S. Socci.
-            "The number of directed k-convex polyominoes"
-            27th Annual International Conference on Formal Power Series and
-            Algebraic Combinatorics (FPSAC 2015), 2015.
-            :arxiv:`1501.00872`
+        The bijection is described in the paper [BRS2015]_
         at page 7, the first (resp. second) ordered tree is obtained by 
         gluing all roots of the ordered forest F_e (resp. F_s) to a virtual 
         root. An example can be read, page 8, Figure 6.
@@ -3001,12 +2958,7 @@ class ParallelogramPolyomino(ClonableList):
         This function returns the path of the bounding path inside the ordered 
         tree.
 
-        The bijection is described in the paper 
-            Ref. A. Boussicault, S. Rinaldi et S. Socci.
-            "The number of directed k-convex polyominoes"
-            27th Annual International Conference on Formal Power Series and
-            Algebraic Combinatorics (FPSAC 2015), 2015.
-            :arxiv:`1501.00872`
+        The bijection is described in the paper [BRS2015]_
         at page 7, the first (resp. second) ordered tree is obtained by 
         gluing all roots of the ordered forest F_e (resp. F_s) to a virtual 
         root. An example can be read, page 8, Figure 6.
@@ -3181,12 +3133,11 @@ class ParallelogramPolyomino(ClonableList):
 
         This code is the code present inside a tikz latex environment.
 
-        We can modify the output with the options `
-
+        We can modify the output with the options.
 
         EXAMPLES::
 
-            sage: pp=ParallelogramPolyomino(
+            sage: pp = ParallelogramPolyomino(
             ....:     [[0,0,0,1,1,0,1,0,0,1,1,1],[1,1,1,0,0,1,1,0,0,1,0,0]]
             ....: )
             sage: print(pp.to_tikz())
@@ -3506,8 +3457,8 @@ class ParallelogramPolyominoes_size(
         r"""
         Return the number of parallelogram polyominoes.
 
-        The number of parallelogram polyominoes of size n is given by C(n-1)
-        where C is the catalan number.
+        The number of parallelogram polyominoes of size n is given by
+        the Catalan number $c_{n-1}$.
 
         EXAMPLES::
 
@@ -3520,18 +3471,11 @@ class ParallelogramPolyominoes_size(
             sage: ParallelogramPolyominoes(4).cardinality()
             5
 
-            sage: all([
-            ....:     ParallelogramPolyominoes(i+1).cardinality()
-            ....:     == catalan_number(i)
-            ....:     for i in range(6)
-            ....: ])
-            True
-
-            sage: all([
+            sage: all(
             ....:     ParallelogramPolyominoes(i).cardinality()
             ....:     == len(list(ParallelogramPolyominoes(i)))
             ....:     for i in range(1,7)
-            ....: ])
+            ....: )
             True
         """
         return catalan_number(self.size() - 1)
@@ -3544,10 +3488,10 @@ class ParallelogramPolyominoes_size(
 
             sage: len(list(ParallelogramPolyominoes(4))) == 5
             True
-            sage: all([
+            sage: all(
             ....:     pp in ParallelogramPolyominoes()
             ....:     for pp in ParallelogramPolyominoes(4)
-            ....: ])
+            ....: )
             True
         """
         from sage.combinat.dyck_word import DyckWords

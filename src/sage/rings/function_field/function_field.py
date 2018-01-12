@@ -2271,8 +2271,10 @@ class RationalFunctionField(FunctionField):
             sage: f.factor().prod() == f
             True
 
-        Factoring over a function field over a tower of finite fields does not
-        work yet, see :trac:`24533`::
+        We check that ``proof`` parameter is passed to the underlying
+        polynomial (see :trac:`24510`). However, factoring over a function
+        field over a tower of finite fields does not work yet (see
+        :trac:`24533`)::
 
             sage: k = GF(4)
             sage: k.<a> = GF(4)

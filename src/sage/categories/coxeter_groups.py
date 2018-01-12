@@ -244,10 +244,21 @@ class CoxeterGroups(Category_singleton):
                 [ a -1]
                 sage: W1(W3.an_element())
                 s1
+                sage: s1,s2 = W1.simple_reflections()
+                sage: W = CoxeterGroup("A1")
+                sage: W(s1*s2)
+                Traceback (most recent call last):
+                ...
+                ValueError: ...
             """
             P = parent(x)
             if P in CoxeterGroups():
-                return self.from_reduced_word(x.reduced_word())
+                try:
+                    return self.from_reduced_word(x.reduced_word())
+                except KeyError:
+                    # Unable to convert using the reduced word
+                    #    because of an incompatible index
+                    pass
             return self.element_class(self, x, **args)
 
         def weak_order_ideal(self, predicate, side ="right", category = None):

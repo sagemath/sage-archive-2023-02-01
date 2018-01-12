@@ -344,6 +344,28 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
         rep += "Coxeter group over {} with Coxeter matrix:\n{}".format(self.base_ring(), self._matrix)
         return rep
 
+    def _coerce_map_from_(self, P):
+        """
+        Return ``True`` if ``P`` is a Coxeter group of the same
+        Coxeter type and ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: W = CoxeterGroup(["A",4])
+            sage: W2 = WeylGroup(["A",4])
+            sage: W._coerce_map_from_(W2)
+            True
+            sage: W3 = WeylGroup(["A",4], implementation="permutation")
+            sage: W._coerce_map_from_(W3)
+            True
+            sage: W4 = WeylGroup(["A",3])
+            sage: W.has_coerce_map_from(W4)
+            False
+        """
+        if P in CoxeterGroups() and P.coxeter_type() is self.coxeter_type():
+            return True
+        return super(CoxeterMatrixGroup, self)._coerce_map_from_(P)
+
     def coxeter_matrix(self):
         """
         Return the Coxeter matrix of ``self``.

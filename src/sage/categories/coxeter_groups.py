@@ -21,7 +21,7 @@ from sage.categories.category_singleton import Category_singleton
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.generalized_coxeter_groups import GeneralizedCoxeterGroups
-from sage.structure.element import have_same_parent
+from sage.structure.element import have_same_parent, parent
 from sage.misc.flatten import flatten
 from copy import copy
 
@@ -227,6 +227,28 @@ class CoxeterGroups(Category_singleton):
                 [ 0  0  1]
             """
             return iter(self.weak_order_ideal(predicate = ConstantFunction(True)))
+
+        def _element_constructor_(self, x, **args):
+            """
+            Construct an element of ``self`` from ``x``.
+
+            EXAMPLES::
+
+                sage: W1 = WeylGroup("G2",prefix="s")
+                sage: W2 = CoxeterGroup("G2")
+                sage: W3 = CoxeterGroup("G2", implementation="permutation")
+                sage: W1(W2.an_element())
+                s1*s2
+                sage: W2(W1.an_element())
+                [ 2 -a]
+                [ a -1]
+                sage: W1(W3.an_element())
+                s1
+            """
+            P = parent(x)
+            if P in CoxeterGroups():
+                return self.from_reduced_word(x.reduced_word())
+            return self.element_class(self, x, **args)
 
         def weak_order_ideal(self, predicate, side ="right", category = None):
             """

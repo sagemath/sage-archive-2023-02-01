@@ -2426,7 +2426,15 @@ bool numeric::is_positive() const {
                 case MPQ:
                         return mpq_cmp_si(v._bigrat, 0, 1) > 0;
                 case PYOBJECT:
-                        return is_real() and PyObject_RichCompareBool(v._pyobject, ZERO, Py_GT) == 1;
+                        if (is_real()) {
+                            int result;
+                            result = PyObject_RichCompareBool(v._pyobject, ZERO, Py_GT);
+                            if (result == 1)
+                                return true;
+                            else if (result == -1)
+                                PyErr_Clear();
+                        }
+                        return false;
                 default:
                         stub("invalid type: is_positive() type not handled");
         }
@@ -2443,7 +2451,15 @@ bool numeric::is_negative() const {
                 case MPQ:
                         return mpq_cmp_si(v._bigrat, 0, 1) < 0;
                 case PYOBJECT:
-                        return is_real() and PyObject_RichCompareBool(v._pyobject, ZERO, Py_LT) == 1;
+                        if (is_real()) {
+                            int result;
+                            result = PyObject_RichCompareBool(v._pyobject, ZERO, Py_LT);
+                            if (result == 1)
+                                return true;
+                            else if (result == -1)
+                                PyErr_Clear();
+                        }
+                        return false;
                 default:
                         stub("invalid type: is_negative() type not handled");
         }
@@ -2501,7 +2517,15 @@ bool numeric::is_nonneg_integer() const {
                 case MPQ:
                         return (is_integer() and (is_positive() or is_zero()));
                 case PYOBJECT:
-                        return is_integer() and PyObject_RichCompareBool(v._pyobject, ZERO, Py_GE) == 1;
+                        if (is_integer()) {
+                            int result;
+                            result = PyObject_RichCompareBool(v._pyobject, ZERO, Py_GE);
+                            if (result == 1)
+                                return true;
+                            else if (result == -1)
+                                PyErr_Clear();
+                        }
+                        return false;
                 default:
                         stub("invalid type: is_nonneg_integer() type not handled");
         }
@@ -2823,7 +2847,12 @@ bool numeric::operator<(const numeric &right) const {
                 case MPQ:
                         return mpq_cmp(v._bigrat, right.v._bigrat) < 0;
                 case PYOBJECT:
-                        return PyObject_RichCompareBool(v._pyobject, right.v._pyobject, Py_LT) == 1;
+                        int result;
+                        result = PyObject_RichCompareBool(v._pyobject, right.v._pyobject, Py_LT);
+                        if (result == -1)
+                            py_error("richcmp failed");
+
+                        return (result == 1);
                 default:
                         stub("invalid type: operator< type not handled");
         }
@@ -2851,7 +2880,12 @@ bool numeric::operator<=(const numeric &right) const {
                 case MPQ:
                         return mpq_cmp(v._bigrat, right.v._bigrat) <= 0;
                 case PYOBJECT:
-                        return PyObject_RichCompareBool(v._pyobject, right.v._pyobject, Py_LE) == 1;
+                        int result;
+                        result = PyObject_RichCompareBool(v._pyobject, right.v._pyobject, Py_LE);
+                        if (result == -1)
+                            py_error("richcmp failed");
+
+                        return (result == 1);
                 default:
                         stub("invalid type: operator<= type not handled");
         }
@@ -2879,7 +2913,12 @@ bool numeric::operator>(const numeric &right) const {
                 case MPQ:
                         return mpq_cmp(v._bigrat, right.v._bigrat) > 0;
                 case PYOBJECT:
-                        return PyObject_RichCompareBool(v._pyobject, right.v._pyobject, Py_GT) == 1;
+                        int result;
+                        result = PyObject_RichCompareBool(v._pyobject, right.v._pyobject, Py_GT);
+                        if (result == -1)
+                            py_error("richcmp failed");
+
+                        return (result == 1);
                 default:
                         stub("invalid type: operator> type not handled");
         }
@@ -2907,7 +2946,12 @@ bool numeric::operator>=(const numeric &right) const {
                 case MPQ:
                         return mpq_cmp(v._bigrat, right.v._bigrat) >= 0;
                 case PYOBJECT:
-                        return PyObject_RichCompareBool(v._pyobject, right.v._pyobject, Py_GE) == 1;
+                        int result;
+                        result = PyObject_RichCompareBool(v._pyobject, right.v._pyobject, Py_GE);
+                        if (result == -1)
+                            py_error("richcmp failed");
+
+                        return (result == 1);
                 default:
                         stub("invalid type: operator!= type not handled");
         }

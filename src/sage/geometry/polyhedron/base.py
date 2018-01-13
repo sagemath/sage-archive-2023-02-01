@@ -5337,9 +5337,9 @@ class Polyhedron_base(Element):
             sage: Q = Polyhedron([(1,3), (2, 7), (9, 77)])
             sage: [Q.get_integral_point(i) for i in range(Q.integral_points_count())] == sorted(Q.integral_points())
             True
-            sage: Q.get_integral_point(0, explicit_enumeration_threshold=0, triangulation='cddlib')
+            sage: Q.get_integral_point(0, explicit_enumeration_threshold=0, triangulation='cddlib')  # optional - latte_int
             (1, 3)
-            sage: Q.get_integral_point(0, explicit_enumeration_threshold=0, triangulation='cddlib', foo=True)
+            sage: Q.get_integral_point(0, explicit_enumeration_threshold=0, triangulation='cddlib', foo=True)  # optional - latte_int
             Traceback (most recent call last):
             ...
             RuntimeError: ...
@@ -5411,9 +5411,9 @@ class Polyhedron_base(Element):
             (0, 0)
             sage: P.random_integral_point() in P.integral_points()
             True
-            sage: P.random_integral_point(explicit_enumeration_threshold=0, triangulation='cddlib')  # random
+            sage: P.random_integral_point(explicit_enumeration_threshold=0, triangulation='cddlib')  # random, optional - latte_int
             (1, 1)
-            sage: P.random_integral_point(explicit_enumeration_threshold=0, triangulation='cddlib', foo=7)
+            sage: P.random_integral_point(explicit_enumeration_threshold=0, triangulation='cddlib', foo=7)  # optional - latte_int
             Traceback (most recent call last):
             ...
             RuntimeError: ...

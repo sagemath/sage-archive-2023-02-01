@@ -1662,8 +1662,8 @@ def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
         sage: s = 'Uq\x82\xa7\x8bh'
         sage: len(s)
         6
-        sage: MS = MatrixSpace(GF(13), 2, 5)
-        sage: from sage.matrix.matrix_gfpn_dense import mtx_unpickle  # optional: meataxe
+        sage: from sage.matrix.matrix_gfpn_dense import mtx_unpickle, Matrix_gfpn_dense  # optional: meataxe
+        sage: MS = MatrixSpace(GF(13), 2, 5, implementation=Matrix_gfpn_dense) # optional: meataxe
         sage: N = mtx_unpickle(MS, 2, 5, s, True)            # optional: meataxe
         sage: N                                              # optional: meataxe
         [ 6  7  8  9 10]
@@ -1740,7 +1740,7 @@ def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
     OUT = Matrix_gfpn_dense.__new__(Matrix_gfpn_dense)
     if isinstance(f, (int, long)):
         # This is for old pickles created with the group cohomology spkg
-        Matrix_dense.__init__(OUT, MatrixSpace(GF(f, 'z'), nr, nc))
+        Matrix_dense.__init__(OUT, MatrixSpace(GF(f, 'z'), nr, nc, implementation=Matrix_gfpn_dense))
     else:
         if f.nrows() != nr or f.ncols() != nc:
             raise ValueError("Inconsistent dimensions in this matrix pickle")

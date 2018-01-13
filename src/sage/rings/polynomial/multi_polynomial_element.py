@@ -1649,17 +1649,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
         INPUT:
 
-        - ``proof'' - insist on provably correct results (ignored, always ``True``)
-
-        ALGORITHM: Use univariate factorization code.
-
-        If a polynomial is univariate, the appropriate univariate
-        factorization code is called::
-
-            sage: R.<z> = PolynomialRing(CC,1)
-            sage: f = z^4 - 6*z + 3
-            sage: f.factor()
-            (z - 1.60443920904349) * (z - 0.511399619393097) * (z + 1.05791941421830 - 1.59281852704435*I) * (z + 1.05791941421830 + 1.59281852704435*I)
+        - ``proof'' - insist on provably correct results (default: ``True``)
 
         TESTS:
 
@@ -1700,6 +1690,22 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: R.<x,y> = PolynomialRing(FractionField(K))
             sage: factor(x)
             x
+
+        In the example below, we set the special method
+        ``_factor_multivaria_polynomial()`` in the base ring which is called to
+        factor multivariate polynomials.  This facility can be used to easily
+        extend polynomial factorization to work over new rings you introduce::
+
+             sage: R.<x, y> = PolynomialRing(QQ['z'])
+             sage: (x*y).factor()
+             Traceback (most recent call last):
+             ...
+             NotImplementedError: ...
+             sage: R.base_ring()._factor_multivariate_polynomial = lambda f, **kwargs: f.change_ring(QQ).factor()
+             sage: (x*y).factor()
+             y * x
+             sage: del R.base_ring()._factor_multivariate_polynomial # clean up
+
         """
         R = self.parent()
 
@@ -1715,6 +1721,10 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             else:
                 F = base_ring(self).factor()
                 return Factorization([(R(f),m) for f,m in F], unit=F.unit())
+
+        base_ring = self.base_ring()
+        if hasattr(base_ring, '_factor_multivariate_polynomial'):
+            return base_ring._factor_multivariate_polynomial(self, proof=proof)
 
         # try to use univariate factoring
         try:

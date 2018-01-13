@@ -1581,6 +1581,34 @@ class PolynomialQuotientRing_generic(CommutativeRing):
 
         return gens
 
+    def _factor_multivariate_polynomial(self, f, proof=True):
+        r"""
+        Return the factorization of ``f`` over this ring.
+
+        TESTS::
+
+            sage: k = GF(4)
+            sage: k.<a> = GF(4)
+            sage: R.<b> = k[]
+            sage: l.<b> = k.extension(b^2 + b + a)
+            sage: K.<x> = FunctionField(l)
+            sage: R.<t> = K[]
+            sage: F = t*x
+            sage: F.factor(proof=False)
+            (x) * t
+
+        """
+        from sage.structure.factorization import Factorization
+
+        if f.is_zero():
+            raise ValueError("factorization of 0 not defined")
+
+        from_isomorphic_ring, to_isomorphic_ring, isomorphic_ring = self._isomorphic_ring()
+        g = f.map_coefficients(to_isomorphic_ring)
+        F = g.factor()
+        unit = f.parent(from_isomorphic_ring(F.unit().constant_coefficient()))
+        return Factorization([(factor.map_coefficients(from_isomorphic_ring), e) for factor,e in F], unit=unit)
+
     def _factor_univariate_polynomial(self, f):
         r"""
         Return the factorization of ``f`` over this ring.

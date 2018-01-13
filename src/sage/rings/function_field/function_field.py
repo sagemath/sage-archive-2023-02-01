@@ -2270,6 +2270,19 @@ class RationalFunctionField(FunctionField):
             (1/t) * (X + (a + 2)*t)^3
             sage: f.factor().prod() == f
             True
+
+        Factoring over a function field over a tower of finite fields::
+
+            sage: k = GF(4)
+            sage: k.<a> = GF(4)
+            sage: R.<b> = k[]
+            sage: l.<b> = k.extension(b^2 + b + a)
+            sage: K.<x> = FunctionField(l)
+            sage: R.<t> = K[]
+            sage: F = t*x
+            sage: F.factor(proof=False)
+            (x) * t
+
         """
         old_variable_name = f.variable_name()
         # the variables of the bivariate polynomial must be distinct
@@ -2292,7 +2305,10 @@ class RationalFunctionField(FunctionField):
             if old_variable_name != a.variable_name():
                 a = a.change_variable_name(old_variable_name)
             unit *= (c**e)
-            w.append((a,e))
+            if a.is_unit():
+                unit*=a
+            else:
+                w.append((a,e))
         from sage.structure.factorization import Factorization
         return Factorization(w, unit=unit)
 

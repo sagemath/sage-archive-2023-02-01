@@ -39,7 +39,7 @@ from functools import reduce
 from .external import available_software
 
 float_regex = re.compile('\s*([+-]?\s*((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
-optional_regex = re.compile(r'(long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')
+optional_regex = re.compile(r'(py2|py3|long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')
 find_sage_prompt = re.compile(r"^(\s*)sage: ", re.M)
 find_sage_continuation = re.compile(r"^(\s*)\.\.\.\.:", re.M)
 random_marker = re.compile('.*random', re.I)
@@ -122,6 +122,8 @@ def parse_optional_tags(string):
     - 'not implemented'
     - 'not tested'
     - 'known bug'
+    - 'py2'
+    - 'py3'
     - 'optional: PKG_NAME' -- the set will just contain 'PKG_NAME'
 
     EXAMPLES::
@@ -627,16 +629,19 @@ class SageDocTestParser(doctest.DocTestParser):
                 if optional_tags:
                     for tag in optional_tags:
                         self.optionals[tag] += 1
-                    if ('not implemented' in optional_tags) or ('not tested' in optional_tags):
+                    if (('not implemented' in optional_tags) or
+                            ('not tested' in optional_tags)):
                         continue
+
                     if 'long time' in optional_tags:
                         if self.long:
                             optional_tags.remove('long time')
                         else:
                             continue
-                    if not self.optional_tags is True:
+
+                    if self.optional_tags is not True:
                         extra = optional_tags - self.optional_tags # set difference
-                        if len(extra) > 0:
+                        if extra:
                             if not('external' in self.optional_tags
                                    and available_software.issuperset(extra)):
                                 continue

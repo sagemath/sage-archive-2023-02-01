@@ -39,6 +39,10 @@ from .external import external_software, available_software
 nodoctest_regex = re.compile(r'\s*(#+|%+|r"+|"+|\.\.)\s*nodoctest')
 optionaltag_regex = re.compile(r'^\w+$')
 
+# Optional tags which are always automatically added
+auto_optional_tags = set(['py2' if six.PY2 else 'py3'])
+
+
 class DocTestDefaults(SageObject):
     """
     This class is used for doctesting the Sage doctest module.
@@ -71,8 +75,9 @@ class DocTestDefaults(SageObject):
         EXAMPLES::
 
             sage: from sage.doctest.control import DocTestDefaults
-            sage: D = DocTestDefaults(); D.optional
-            {'sage'}
+            sage: D = DocTestDefaults()
+            sage: 'sage' in D.optional
+            True
         """
         self.nthreads = 1
         self.serial = False
@@ -82,7 +87,7 @@ class DocTestDefaults(SageObject):
         self.sagenb = False
         self.long = False
         self.warn_long = None
-        self.optional = set(['sage'])
+        self.optional = set(['sage']) | auto_optional_tags
         self.randorder = None
         self.global_iterations = 1  # sage-runtests default is 0
         self.file_iterations = 1    # sage-runtests default is 0
@@ -336,6 +341,8 @@ class DocTestController(SageObject):
                 for o in options.optional:
                     if not optionaltag_regex.search(o):
                         raise ValueError('invalid optional tag {!r}'.format(o))
+
+                options.optional |= auto_optional_tags
 
         self.options = options
         self.files = args
@@ -712,8 +719,8 @@ class DocTestController(SageObject):
             sage: DD = DocTestDefaults(optional='magma,guava')
             sage: DC = DocTestController(DD, [dirname])
             sage: DC.expand_files_into_sources()
-            sage: sorted(list(DC.sources[0].options.optional))
-            ['guava', 'magma']
+            sage: sorted(DC.sources[0].options.optional)  # abs tol 1
+            ['guava', 'magma', 'py3']
 
         We check that files are skipped appropriately::
 
@@ -952,7 +959,7 @@ class DocTestController(SageObject):
         if tags is True:
             return "all"
         else:
-            return ",".join(sorted(tags))
+            return ",".join(sorted(tags - auto_optional_tags))
 
     def _assemble_cmd(self):
         """

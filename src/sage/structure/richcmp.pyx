@@ -108,23 +108,34 @@ def richcmp(x, y, int op):
 cpdef richcmp_item(x, y, int op):
     """
     This function is meant to implement lexicographic rich comparison
-    of list-like objects. The inputs ``x`` and ``y`` are items of such
-    lists which should compared.
+    of sequences (lists, vectors, polynomials, ...).
+    The inputs ``x`` and ``y`` are corresponding items of such lists
+    which should compared.
 
     INPUT:
 
-    - ``x``, ``y`` -- arbitrary Python objects
+    - ``x``, ``y`` -- arbitrary Python objects. Typically, these are
+      ``X[i]`` and ``Y[i]`` for sequences ``X`` and ``Y``.
 
     - ``op`` -- comparison operator (one of ``op_LT`, ``op_LE``,
       ``op_EQ``, ``op_NE``, ``op_GT``, ``op_GE``)
 
     OUTPUT:
 
-    - if the comparison could not be decided (i.e. we should compare
-      the next items in the list): return ``NotImplemented``
+    Assuming that ``x = X[i]`` and ``y = Y[i]``:
 
-    - otherwise, the result of the comparison of the lists containing
-      ``x`` and ``y``
+    - if the comparison ``X {op} Y`` (where ``op`` is the given
+      operation) could not be decided yet (i.e. we should compare the
+      next items in the list): return ``NotImplemented``
+
+    - otherwise, if the comparison ``X {op} Y`` could be decided:
+      return ``x {op} y``, which should then also be the result for
+      ``X {op} Y``.
+
+    .. NOTE::
+
+        Since ``x {op} y`` cannot return ``NotImplemented``, the two
+        cases above are mutually exclusive.
 
     The semantics of the comparison is different from Python lists or
     tuples in the case that the order is not total. Assume that ``A``
@@ -144,6 +155,9 @@ cpdef richcmp_item(x, y, int op):
       for all `j < i`, ``A[j] >= B[j]``.
 
     - ``A >= B`` iff ``A > B`` or ``A[i] >= B[i]`` for all `i`.
+
+    See below for a detailed description of the exact semantics of
+    ``richcmp_item`` in general.
 
     EXAMPLES::
 
@@ -214,43 +228,78 @@ cpdef richcmp_item(x, y, int op):
         ....:                     reslist = richcmp(L1, L2, op)
         ....:                     reselt = all(richcmp([a1, a2], [b1, b2], op) for a1 in A1 for a2 in A2 for b1 in B1 for b2 in B2)
         ....:                     assert reslist is reselt
+
+    EXACT SEMANTICS:
+
+    Above, we only described how ``richcmp_item`` behaves when it is
+    used to compare sequences. Here, we specify the exact semantics.
+    First of all, recall that the result of ``richcmp_item(x, y, op)``
+    is either ``NotImplemented`` or ``x {op} y``.
+
+    - if ``op`` is ``==``: return ``NotImplemented`` if ``x == y``.
+      If ``x == y`` is false, then return ``x == y``.
+
+    - if ``op`` is ``!=``: return ``NotImplemented`` if not ``x != y``.
+      If ``x != y`` is true, then return ``x != y``.
+
+    - if ``op`` is ``<``: return ``NotImplemented`` if ``x == y``.
+      If ``x < y`` or not ``x <= y``, return ``x < y``.
+      Otherwise (if both ``x == y`` and ``x < y`` are false but
+      ``x <= y`` is true), return ``NotImplemented``.
+
+    - if ``op`` is ``<=``: return ``NotImplemented`` if ``x == y``.
+      If ``x < y`` or not ``x <= y``, return ``x <= y``.
+      Otherwise (if both ``x == y`` and ``x < y`` are false but
+      ``x <= y`` is true), return ``NotImplemented``.
+
+    - the ``>`` and ``>=`` operators are analogous to ``<`` and ``<=``.
     """
     if op == Py_NE:
         res = (x != y)
         if not res:
             return NotImplemented
-        else:
-            return res  # (x != y)  --> True
+        return res  # (x != y)  --> True
 
     # If x and y are equal, we cannot decide
     res = (x == y)
     if res:
         return NotImplemented
+
     if op == Py_EQ:
         return res  # not (x == y)  --> False
 
+    # At this point, {op} is < or <= or > or >=. In the comments below,
+    # we always refer to < and <= but > and >= are obviously analogous.
+
+    # Compute x {op} y and convert to boolean (0 or 1)
     res = PyObject_RichCompare(x, y, op)
     cdef bint bres = res
-    if bres != (op & 1):
-        # If we are asked to compute (x < y) and (x < y) is true, return true.
-        # If we are asked to compute (x <= y) and (x <= y) is false, return false.
+
+    # true (1) for <= and >= and false (0) for < and >
+    cdef bint op_is_not_strict = op & 1
+
+    if bres != op_is_not_strict:
+        # If we are asked to compute (x < y) and (x < y) is true,
+        # return (x < y) which is true.
+        # If we are asked to compute (x <= y) and (x <= y) is false,
+        # return (x <= y) which is false.
         return res
 
     # Finally, check the inequality with the other strictness
-    # (< becomes <= and vice versa). This check is redundant in the
-    # typical case that (x <= y) is equivalent to (x < y or x == y).
-    # Since (x == y) returned false, we expect this
-    # PyObject_RichCompare() call to return the same result as the
-    # previous one.
+    # (< becomes <= and vice versa; this corresponds to replacing op by
+    # op ^ 1). This check is redundant in the typical case that (x <= y)
+    # is equivalent to (x < y or x == y): since (x == y) returned false,
+    # we expect that this PyObject_RichCompare() call returns the same
+    # boolean result as the previous one.
     cdef bint xres = PyObject_RichCompare(x, y, op ^ 1)
     if xres == bres:  # As expected
         return res
 
-    # OK, we are in a special case now. Assuming that the op stands
-    # for < or for <=, we know that
-    # (x == y) is false, that (x < y) is false but (x <= y) is true.
+    # OK, we are in a special case now. We checked that (x == y) is
+    # false, that (x < y) is false but (x <= y) is true.
     # Since we want to give more importance to the < and <= results than
-    # the == result, we treat this case as equality.
+    # the == result, we treat this case as equality. Therefore, we
+    # cannot decide.
     return NotImplemented
 
 

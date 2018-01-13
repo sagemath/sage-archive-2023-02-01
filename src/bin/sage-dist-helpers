@@ -118,6 +118,12 @@ sdh_guard() {
 
 sdh_configure() {
     echo "Configuring $PKG_NAME"
+    # Run all configure scripts with bash to work around bugs with
+    # non-portable scripts.
+    # See https://trac.sagemath.org/ticket/24491
+    if [ -z "$CONFIG_SHELL" ]; then
+        export CONFIG_SHELL=`command -v bash`
+    fi
     ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" "$@" || \
         sdh_die "Error configuring $PKG_NAME"
 }

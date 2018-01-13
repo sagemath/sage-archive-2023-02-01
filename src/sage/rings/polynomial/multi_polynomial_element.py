@@ -1692,7 +1692,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             x
 
         In the example below, we set the special method
-        ``_factor_multivaria_polynomial()`` in the base ring which is called to
+        ``_factor_multivariate_polynomial()`` in the base ring which is called to
         factor multivariate polynomials.  This facility can be used to easily
         extend polynomial factorization to work over new rings you introduce::
 

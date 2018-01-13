@@ -104,7 +104,7 @@ $(TARGET)/README.txt: $(SAGE_ROOT)/src/bin/sage-README-osx.txt
 
 non_app_files: $(TARGET)/README.txt $(TARGET)/Applications
 
-sage_symlink: $(APP)/Contents/Resources/sage/sage
+sage_symlink: $(APP)/Contents/Resources/sage
 	rm -f $(APP)/sage
 	ln -s Contents/Resources/sage/sage $(APP)/sage
 

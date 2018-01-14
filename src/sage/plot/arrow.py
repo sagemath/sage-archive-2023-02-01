@@ -147,8 +147,8 @@ class CurveArrow(GraphicPrimitive):
         bpath = Path(self.vertices, self.codes)
         p = FancyArrowPatch(path=bpath,
                             lw=width, arrowstyle='%s,head_width=%s,head_length=%s' % (style, head_width, head_length),
-                            fc=color, ec=color)
-        p.set_linestyle(get_matplotlib_linestyle(options['linestyle'], return_type='long'))
+                            fc=color, ec=color, 
+                            linestyle=get_matplotlib_linestyle(options['linestyle'], return_type='long'))
         p.set_zorder(options['zorder'])
         p.set_label(options['legend_label'])
         subplot.add_patch(p)
@@ -336,7 +336,7 @@ class Arrow(GraphicPrimitive):
         this into account. See :trac:`12836`::
 
             sage: fig = Graphics().matplotlib()
-            sage: sp = fig.add_subplot(1,1,1)
+            sage: sp = fig.add_subplot(1,1,1, label='axis1')
             sage: a = arrow((0,0), (1,1))
             sage: b = arrow((0,0), (1,1), width=20)
             sage: p1 = a[0]._render_on_subplot(sp)
@@ -383,8 +383,8 @@ class Arrow(GraphicPrimitive):
                             lw=width,
                             arrowstyle='%s,head_width=%s,head_length=%s' % (style, head_width, head_length),
                             shrinkA=arrowshorten_end, shrinkB=arrowshorten_end,
-                            fc=color, ec=color)
-        p.set_linestyle(get_matplotlib_linestyle(options['linestyle'], return_type='long'))
+                            fc=color, ec=color,
+                            linestyle=get_matplotlib_linestyle(options['linestyle'], return_type='long'))
         p.set_zorder(options['zorder'])
         p.set_label(options['legend_label'])
 
@@ -437,7 +437,7 @@ class Arrow(GraphicPrimitive):
                             pe1.draw_path(renderer, gc, tpath, affine, rgbFace)
 
             pe1 = ConditionalStroke(CheckNthSubPath(p, 0), [pe.Stroke()])
-            pe2 = ConditionalStroke(CheckNthSubPath(p, 1), [pe.Stroke(linestyle="solid")])
+            pe2 = ConditionalStroke(CheckNthSubPath(p, 1), [pe.Stroke(dashes={'dash_offset': 0, 'dash_list': None})])
             p.set_path_effects([pe1, pe2])
 
         subplot.add_patch(p)

@@ -2005,7 +2005,7 @@ class AbstractLabelledTree(AbstractTree):
     """
     Abstract Labelled Tree.
 
-    Typically a class for labelled trees is contructed by inheriting from
+    Typically a class for labelled trees is constructed by inheriting from
     a class for unlabelled trees and :class:`AbstractLabelledTree`.
 
     .. rubric:: How should this class be extended ?

@@ -19446,7 +19446,7 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``vertex_shape`` - the shape to draw the vertices, for
           example ``"o"`` for circle or ``"s"`` for square. Whole list
-          is available at http://matplotlib.org/api/markers_api.html.
+          is available at https://matplotlib.org/api/markers_api.html.
           (Not available for multiedge digraphs.)
 
         - ``graph_border`` - whether to include a box around the graph

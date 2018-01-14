@@ -569,6 +569,18 @@ class FractionField_generic(ring.Field):
             sage: R.<x> = PolynomialRing(B,'x')
             sage: (a*d*x^2+a+e+1).resultant(-4*c^2*x+1)
             a*d + 16*c^4*e + 16*a*c^4 + 16*c^4
+
+        Check that :trac:`24539` is fixed::
+
+            sage: var('tau')
+            tau
+            sage: R = PolynomialRing(CyclotomicField(2), 'tau').fraction_field()(
+            ....:     tau/(1+tau))
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot convert tau/(tau + 1)/1 to an element of Fraction
+            Field of Univariate Polynomial Ring in tau over Cyclotomic Field of
+            order 2 and degree 1
         """
         if y is None:
             if isinstance(x, Element) and x.parent() is self:
@@ -614,8 +626,8 @@ class FractionField_generic(ring.Field):
                 x = x0.numerator()*y0.denominator()
                 y = y0.numerator()*x0.denominator()
             except AttributeError:
-                raise TypeError("cannot convert {!r}/{!r} to an element of {}",
-                                x0, y0, self)
+                raise TypeError("cannot convert {!r}/{!r} to an element of {}".format(
+                                x0, y0, self))
             try:
                 return self._element_class(self, x, y, coerce=coerce)
             except TypeError:
@@ -928,7 +940,7 @@ class FractionFieldEmbedding(DefaultConvertMap_unique):
         Coercion map:
           From: Univariate Polynomial Ring in x over Rational Field
           To:   Fraction Field of Univariate Polynomial Ring in x over Rational Field
- 
+
     TESTS::
 
         sage: from sage.rings.fraction_field import FractionFieldEmbedding
@@ -1003,7 +1015,7 @@ class FractionFieldEmbedding(DefaultConvertMap_unique):
             sage: f = R.fraction_field().coerce_map_from(R)
             sage: S.<y> = GF(2)[]
             sage: g = S.fraction_field().coerce_map_from(S)
- 
+
             sage: f == g # indirect doctest
             False
             sage: f == f
@@ -1040,7 +1052,7 @@ class FractionFieldEmbeddingSection(Section):
         Section map:
           From: Fraction Field of Univariate Polynomial Ring in x over Rational Field
           To:   Univariate Polynomial Ring in x over Rational Field
- 
+
     TESTS::
 
         sage: from sage.rings.fraction_field import FractionFieldEmbeddingSection
@@ -1118,7 +1130,7 @@ class FractionFieldEmbeddingSection(Section):
             sage: f = R.fraction_field().coerce_map_from(R).section()
             sage: S.<y> = GF(2)[]
             sage: g = S.fraction_field().coerce_map_from(S).section()
- 
+
             sage: f == g # indirect doctest
             False
             sage: f == f

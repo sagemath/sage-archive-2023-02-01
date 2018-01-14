@@ -2508,6 +2508,25 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             Right Integer Multiplication by Set of Python objects of class 'int' on Elliptic Curve defined by y^2 = x^3 + x over Rational Field
             sage: coercion_model.get_action(int, E, operator.mul)
             Left Integer Multiplication by Set of Python objects of class 'int' on Elliptic Curve defined by y^2 = x^3 + x over Rational Field
+
+        ::
+
+            sage: R.<x> = CDF[]
+            sage: coercion_model.get_action(R, ZZ, operator.pow)
+            Right Integer Powering by Integer Ring on Univariate Polynomial Ring in x over Complex Double Field
+            sage: print(coercion_model.get_action(ZZ, R, operator.pow))
+            None
+            sage: coercion_model.get_action(R, int, operator.pow)
+            Right Integer Powering by Set of Python objects of class 'int' on Univariate Polynomial Ring in x over Complex Double Field
+            sage: print(coercion_model.get_action(int, R, operator.pow))
+            None
+            sage: coercion_model.get_action(R, IntegerModRing(7), operator.pow)
+            Right Integer Powering by Ring of integers modulo 7 on Univariate Polynomial Ring in x over Complex Double Field
+
+        ::
+
+            sage: print(coercion_model.get_action(E, ZZ, operator.pow))
+            None
         """
         # G acts on S, G -> G', R -> S => G' acts on R (?)
         # NO! ZZ[x,y] acts on Matrices(ZZ[x]) but ZZ[y] does not.
@@ -2583,6 +2602,24 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
                         _record_exception()
             finally:
                 _unregister_pair(self, S, "action")
+        elif self_on_left and op is operator.pow:
+            S_is_int = parent_is_integers(S)
+            if not S_is_int:
+                from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
+                if is_IntegerModRing(S):
+                    # We allow powering by an IntegerMod by treating it
+                    # as an integer.
+                    #
+                    # TODO: this makes sense in a few cases that we want
+                    # to support. But in general this should not be
+                    # allowed. See Trac #15709
+                    S_is_int = True
+            if S_is_int:
+                from sage.structure.coerce_actions import IntegerPowAction
+                try:
+                    return IntegerPowAction(S, self, False, self_el)
+                except TypeError:
+                    _record_exception()
 
     cpdef _get_action_(self, S, op, bint self_on_left):
         """

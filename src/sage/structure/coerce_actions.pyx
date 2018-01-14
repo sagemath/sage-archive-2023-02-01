@@ -23,6 +23,7 @@ from .element cimport parent, coercion_model, Element, ModuleElement
 from .parent cimport Parent
 from .coerce_exceptions import CoercionException
 from sage.categories.action cimport InverseAction, PrecomposedAction
+from sage.arith.long cimport integer_check_long
 
 
 cdef _record_exception():
@@ -784,6 +785,101 @@ cdef class IntegerMulAction(IntegerAction):
         """
         return "Integer Multiplication"
 
+
+cdef class IntegerPowAction(IntegerAction):
+    r"""
+    The right action ``a ^ n = a * a * ... * a`` where `n` is an
+    integer.
+
+    The action is implemented using the ``_pow_int`` method on elements.
+
+    INPUT:
+
+    - ``Z`` -- a type or parent representing integers
+
+    - ``M`` -- a parent whose elements implement ``_pow_int``
+
+    - ``m`` -- (optional) an element of ``M``
+
+    EXAMPLES::
+
+        sage: from sage.structure.coerce_actions import IntegerPowAction
+        sage: R.<x> = LaurentSeriesRing(QQ)
+        sage: act = IntegerPowAction(ZZ, R)
+        sage: act(x, 5)
+        x^5
+        sage: act(x, -2)
+        x^-2
+        sage: act(x, int(5))
+        x^5
+
+    TESTS::
+
+        sage: IntegerPowAction(ZZ, R, True)
+        Traceback (most recent call last):
+        ...
+        ValueError: powering must be a right action
+        sage: IntegerPowAction(ZZ, QQ^3)
+        Traceback (most recent call last):
+        ...
+        TypeError: no integer powering action defined on Vector space of dimension 3 over Rational Field
+
+    ::
+
+        sage: var('x,y')
+        (x, y)
+        sage: RDF('-2.3')^(x+y^3+sin(x))
+        (-2.3)^(y^3 + x + sin(x))
+        sage: RDF('-2.3')^x
+        (-2.3)^x
+    """
+    def __init__(self, Z, M, is_left=False, m=None):
+        if is_left:
+            raise ValueError("powering must be a right action")
+        if m is None:
+            m = M.an_element()
+        try:
+            # Check that there is a _pow_int() method
+            m._pow_int
+        except AttributeError:
+            raise TypeError(f"no integer powering action defined on {M}")
+        super().__init__(Z, M, False, operator.pow)
+
+    cpdef _call_(self, a, n):
+        """
+        EXAMPLES:
+
+        Note that coerce actions should only be used inside of the coercion
+        model. For this test, we need to strongly reference the field
+        ``GF(101)``::
+
+            sage: from sage.structure.coerce_actions import IntegerPowAction
+            sage: GF101 = GF(101)
+            sage: act = IntegerPowAction(ZZ, GF101)
+            sage: act(3, 100)
+            1
+            sage: act(3, -1)
+            34
+            sage: act(3, 1000000000000000000000000000000000000000000001)
+            3
+        """
+        cdef Element e = <Element>a
+        cdef long value = 0
+        cdef int err
+        integer_check_long(n, &value, &err)
+        if not err:
+            return e._pow_long(value)
+        return e._pow_int(n)
+
+    def _repr_name_(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.structure.coerce_actions import IntegerPowAction
+            sage: IntegerPowAction(ZZ, QQ)
+            Right Integer Powering by Integer Ring on Rational Field
+        """
+        return "Integer Powering"
 
 
 cdef inline fast_mul(a, n):

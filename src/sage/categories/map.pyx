@@ -24,6 +24,7 @@ from __future__ import absolute_import, print_function
 from . import homset
 import weakref
 from sage.ext.stdsage cimport HAS_DICTIONARY
+from sage.arith.power cimport generic_power
 from sage.structure.parent cimport Set_PythonType
 from sage.misc.constant_function import ConstantFunction
 from sage.misc.superseded import deprecated_function_alias
@@ -1190,7 +1191,7 @@ cdef class Map(Element):
         """
         raise NotImplementedError(type(self))
 
-    def __pow__(Map self, n, dummy):
+    cpdef _pow_int(self, n):
         """
         TESTS::
 
@@ -1235,7 +1236,6 @@ cdef class Map(Element):
         if n == 0:
             from sage.categories.morphism import IdentityMorphism
             return IdentityMorphism(self._parent)
-        from sage.structure.element import generic_power
         return generic_power(self, n)
 
     def section(self):

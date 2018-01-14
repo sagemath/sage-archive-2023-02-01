@@ -399,15 +399,6 @@ we stay inside a single parent structure::
     sage: a-b == MyElement(P, 1, 4)
     True
 
-.. end of output
-
-We didn't implement exponentiation\---but it just works::
-
-    sage: a^3
-    (27):(64)
-
-.. end of output
-
 There is a default implementation of element tests. We can already do
 ::
 
@@ -661,7 +652,12 @@ This little change provides several benefits:
       sage: P.sum([a,b,c])
       (36):(16)
 
-.. end of output
+- Exponentiation now works out of the box using the multiplication
+  that we defined::
+
+    sage: a^3
+    (729):(64)
+
 
 What did happen behind the scenes to make this work?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

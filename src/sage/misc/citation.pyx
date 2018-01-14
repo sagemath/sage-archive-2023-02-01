@@ -80,7 +80,12 @@ def get_systems(cmd):
         sage: get_systems('I.primary_decomposition()')
         ['Singular']
 
+    Here we get a spurious ``MPFR`` because some coercions need to be
+    initialized. The second time it is gone::
+
         sage: a = var('a')
+        sage: get_systems('((a+1)^2).expand()')
+        ['MPFR', 'ginac']
         sage: get_systems('((a+1)^2).expand()')
         ['ginac']
     """

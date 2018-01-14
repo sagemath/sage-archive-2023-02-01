@@ -21,3 +21,6 @@ cdef class IntegerAction(Action):
 
 cdef class IntegerMulAction(IntegerAction):
     pass
+
+cdef class IntegerPowAction(IntegerAction):
+    pass

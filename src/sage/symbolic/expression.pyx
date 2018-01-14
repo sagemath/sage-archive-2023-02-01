@@ -3784,23 +3784,17 @@ cdef class Expression(CommutativeRingElement):
         """
         return print_order_compare_mul(left._gobj, right._gobj)
 
-    def __pow__(self, exp, ignored):
+    cpdef _pow_(self, other):
         """
-        Return self raised to the power of exp.
+        Return ``self`` raised to the power ``other``.
 
-        INPUT:
-
-        - ``exp`` -- something that coerces to a symbolic expression.
-
-        OUTPUT:
-
-        A symbolic expression.
+        OUTPUT: a symbolic expression
 
         EXAMPLES::
 
             sage: var('x,y')
             (x, y)
-            sage: x.__pow__(y)
+            sage: x._pow_(y)
             x^y
             sage: x^(3/5)
             x^(3/5)
@@ -3961,27 +3955,30 @@ cdef class Expression(CommutativeRingElement):
             sage: (elem, elem.parent())
             (2^n, Asymptotic Ring <SR^n * n^SR> over Symbolic Ring)
         """
-        cdef Expression base, nexp
-
-        cdef int cl = classify_elements(self, exp)
+        cdef Expression nexp = <Expression>other
         cdef GEx x
-        if HAVE_SAME_PARENT(cl):
-            base = <Expression>self
-            nexp = <Expression>exp
-            if is_a_relational(base._gobj):
-                x = relational(g_pow(base._gobj.lhs(), nexp._gobj),
-                               g_pow(base._gobj.rhs(), nexp._gobj),
-                               relational_operator(base._gobj))
-            else:
-                x = g_pow(base._gobj, nexp._gobj)
-            return new_Expression_from_GEx(base._parent, x)
-        if BOTH_ARE_ELEMENT(cl):
-            return coercion_model.bin_op(self, exp, pow)
+        if is_a_relational(self._gobj):
+            x = relational(g_pow(self._gobj.lhs(), nexp._gobj),
+                           g_pow(self._gobj.rhs(), nexp._gobj),
+                           relational_operator(self._gobj))
+        else:
+            x = g_pow(self._gobj, nexp._gobj)
+        return new_Expression_from_GEx(self._parent, x)
 
-        try:
-            return coercion_model.bin_op(self, exp, pow)
-        except TypeError:
-            return NotImplemented
+    cpdef _pow_int(self, other):
+        """
+        TESTS::
+
+            sage: var('x')
+            x
+            sage: cos(x)._pow_int(-3)
+            cos(x)^(-3)
+            sage: SR(-oo)._pow_int(2)
+            +Infinity
+            sage: pi._pow_int(4)
+            pi^4
+        """
+        return self._pow_(self._parent(other))
 
     def derivative(self, *args):
         """

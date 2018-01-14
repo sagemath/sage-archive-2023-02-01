@@ -13993,8 +13993,7 @@ class GenericGraph(GenericGraph_pyx):
     def clustering_coeff(self,
                          nodes=None,
                          weight=False,
-                         implementation=None,
-                         return_vertex_weights=None):
+                         implementation=None):
         r"""
         Returns the clustering coefficient for each vertex in ``nodes`` as
         a dictionary keyed by vertex.
@@ -14054,15 +14053,6 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS:
 
-        Check that the option 'return_vertex_weights' is deprecated::
-
-            sage: graphs.FruchtGraph().clustering_coeff(nodes=[0,1,2],
-            ....:   weight=True, return_vertex_weights=False)
-            doctest:...: DeprecationWarning: The option 'return_vertex_weights'
-            has been deprecated and is ignored.
-            See http://trac.sagemath.org/17134 for details.
-            {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0}
-
         Boost does not work with weights::
 
             sage: graphs.FruchtGraph().clustering_coeff(implementation='boost', weight=True)
@@ -14095,10 +14085,6 @@ class GenericGraph(GenericGraph_pyx):
             {}
         """
         from sage.rings.integer import Integer
-        if return_vertex_weights is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(17134, "The option 'return_vertex_weights' has been " +
-                        "deprecated and is ignored.")
 
         if implementation is None:
             from sage.graphs.base.dense_graph import DenseGraphBackend

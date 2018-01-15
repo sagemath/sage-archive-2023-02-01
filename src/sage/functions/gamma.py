@@ -163,7 +163,7 @@ class Function_gamma(GinacFunction):
             :meth:`gamma`
         """
         GinacFunction.__init__(self, 'gamma', latex_name=r"\Gamma",
-                               ginac_name='tgamma',
+                               ginac_name='gamma',
                                conversions={'mathematica':'Gamma',
                                             'maple':'GAMMA',
                                             'sympy':'gamma',

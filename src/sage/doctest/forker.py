@@ -226,7 +226,7 @@ class SageSpoofInOut(SageObject):
             sage: import tempfile
             sage: from sage.doctest.forker import SageSpoofInOut
             sage: SageSpoofInOut(tempfile.TemporaryFile(), tempfile.TemporaryFile())
-            <class 'sage.doctest.forker.SageSpoofInOut'>
+            <sage.doctest.forker.SageSpoofInOut object at ...>
         """
         if infile is None:
             self.infile = open(os.devnull)
@@ -1163,7 +1163,8 @@ class SageDocTestRunner(doctest.DocTestRunner):
                 34
             **********************************************************************
             Previously executed commands:
-            ...
+            sage: sage0._expect.expect('sage: ')   # sage0 just mis-identified the output as prompt, synchronize
+            0
             sage: sage0.eval("a")
             '...17'
             sage: sage0.eval("quit")
@@ -1432,7 +1433,7 @@ class DocTestDispatcher(SageObject):
             sage: from sage.doctest.control import DocTestController, DocTestDefaults
             sage: from sage.doctest.forker import DocTestDispatcher
             sage: DocTestDispatcher(DocTestController(DocTestDefaults(), []))
-            <class 'sage.doctest.forker.DocTestDispatcher'>
+            <sage.doctest.forker.DocTestDispatcher object at ...>
         """
         self.controller = controller
         init_sage()
@@ -2162,7 +2163,7 @@ class DocTestTask(object):
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','sources.py')
             sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: DocTestTask(FDS)
-            <sage.doctest.forker.DocTestTask object at 0x...>
+            <sage.doctest.forker.DocTestTask object at ...>
         """
         self.source = source
 

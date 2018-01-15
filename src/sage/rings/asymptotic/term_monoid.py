@@ -3565,10 +3565,6 @@ class ExactTerm(TermWithCoefficient):
             > *previous* ZeroDivisionError: Cannot substitute in x^(-1) in
             Growth Group x^ZZ.
             >> *previous* ZeroDivisionError: rational division by zero
-            sage: (e*e)._substitute_({'x': 'something'})
-            'somethingsomething'
-            sage: E(1/x)._substitute_({'x': 'something'})
-            ''
             sage: E(1/x)._substitute_({'x': ZZ})
             Traceback (most recent call last):
             ...

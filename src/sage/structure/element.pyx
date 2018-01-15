@@ -691,11 +691,11 @@ cdef class Element(SageObject):
         if can_assign_class(self):
             # For usual Python classes, that should be done with
             # standard inheritance
-            tester.assert_(isinstance(self, self.parent().category().element_class))
+            tester.assertTrue(isinstance(self, self.parent().category().element_class))
         else:
             # For extension types we just check that inheritance
             # occurs on a dummy attribute of Sets().ElementMethods
-            tester.assert_(hasattr(self, "_dummy_attribute"))
+            tester.assertTrue(hasattr(self, "_dummy_attribute"))
 
     def _test_eq(self, **options):
         """
@@ -1210,15 +1210,15 @@ cdef class Element(SageObject):
             sage: e + e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for +: '<... 'sage.structure.parent.Parent'>' and '<... 'sage.structure.parent.Parent'>'
+            TypeError: unsupported operand parent(s) for +: '<sage.structure.parent.Parent object at ...>' and '<sage.structure.parent.Parent object at ...>'
             sage: 1 + e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for +: 'Integer Ring' and '<... 'sage.structure.parent.Parent'>'
+            TypeError: unsupported operand parent(s) for +: 'Integer Ring' and '<sage.structure.parent.Parent object at ...>'
             sage: e + 1
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for +: '<... 'sage.structure.parent.Parent'>' and 'Integer Ring'
+            TypeError: unsupported operand parent(s) for +: '<sage.structure.parent.Parent object at ...>' and 'Integer Ring'
             sage: int(1) + e
             Traceback (most recent call last):
             ...
@@ -1335,15 +1335,15 @@ cdef class Element(SageObject):
             sage: e - e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for -: '<... 'sage.structure.parent.Parent'>' and '<... 'sage.structure.parent.Parent'>'
+            TypeError: unsupported operand parent(s) for -: '<sage.structure.parent.Parent object at ...>' and '<sage.structure.parent.Parent object at ...>'
             sage: 1 - e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for -: 'Integer Ring' and '<... 'sage.structure.parent.Parent'>'
+            TypeError: unsupported operand parent(s) for -: 'Integer Ring' and '<sage.structure.parent.Parent object at ...>'
             sage: e - 1
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for -: '<... 'sage.structure.parent.Parent'>' and 'Integer Ring'
+            TypeError: unsupported operand parent(s) for -: '<sage.structure.parent.Parent object at ...>' and 'Integer Ring'
             sage: int(1) - e
             Traceback (most recent call last):
             ...
@@ -1423,7 +1423,7 @@ cdef class Element(SageObject):
             sage: -e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent for unary -: '<... 'sage.structure.parent.Parent'>'
+            TypeError: unsupported operand parent for unary -: '<sage.structure.parent.Parent object at ...>'
         """
         return self._neg_()
 
@@ -1480,15 +1480,15 @@ cdef class Element(SageObject):
             sage: e * e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for *: '<... 'sage.structure.parent.Parent'>' and '<... 'sage.structure.parent.Parent'>'
+            TypeError: unsupported operand parent(s) for *: '<sage.structure.parent.Parent object at ...>' and '<sage.structure.parent.Parent object at ...>'
             sage: 1 * e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for *: 'Integer Ring' and '<... 'sage.structure.parent.Parent'>'
+            TypeError: unsupported operand parent(s) for *: 'Integer Ring' and '<sage.structure.parent.Parent object at ...>'
             sage: e * 1
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for *: '<... 'sage.structure.parent.Parent'>' and 'Integer Ring'
+            TypeError: unsupported operand parent(s) for *: '<sage.structure.parent.Parent object at ...>' and 'Integer Ring'
             sage: int(1) * e
             Traceback (most recent call last):
             ...
@@ -1623,15 +1623,15 @@ cdef class Element(SageObject):
             sage: e / e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for /: '<... 'sage.structure.parent.Parent'>' and '<... 'sage.structure.parent.Parent'>'
+            TypeError: unsupported operand parent(s) for /: '<sage.structure.parent.Parent object at ...>' and '<sage.structure.parent.Parent object at ...>'
             sage: 1 / e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for /: 'Integer Ring' and '<... 'sage.structure.parent.Parent'>'
+            TypeError: unsupported operand parent(s) for /: 'Integer Ring' and '<sage.structure.parent.Parent object at ...>'
             sage: e / 1
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for /: '<... 'sage.structure.parent.Parent'>' and 'Integer Ring'
+            TypeError: unsupported operand parent(s) for /: '<sage.structure.parent.Parent object at ...>' and 'Integer Ring'
             sage: int(1) / e
             Traceback (most recent call last):
             ...
@@ -1694,15 +1694,15 @@ cdef class Element(SageObject):
             sage: operator.truediv(e, e)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for /: '<... 'sage.structure.parent.Parent'>' and '<... 'sage.structure.parent.Parent'>'
+            TypeError: unsupported operand parent(s) for /: '<sage.structure.parent.Parent object at ...>' and '<sage.structure.parent.Parent object at ...>'
             sage: operator.truediv(1, e)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for /: 'Integer Ring' and '<... 'sage.structure.parent.Parent'>'
+            TypeError: unsupported operand parent(s) for /: 'Integer Ring' and '<sage.structure.parent.Parent object at ...>'
             sage: operator.truediv(e, 1)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for /: '<... 'sage.structure.parent.Parent'>' and 'Integer Ring'
+            TypeError: unsupported operand parent(s) for /: '<sage.structure.parent.Parent object at ...>' and 'Integer Ring'
             sage: operator.truediv(int(1), e)
             Traceback (most recent call last):
             ...
@@ -1795,15 +1795,15 @@ cdef class Element(SageObject):
             sage: e // e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for //: '<... 'sage.structure.parent.Parent'>' and '<... 'sage.structure.parent.Parent'>'
+            TypeError: unsupported operand parent(s) for //: '<sage.structure.parent.Parent object at ...>' and '<sage.structure.parent.Parent object at ...>'
             sage: 1 // e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for //: 'Integer Ring' and '<... 'sage.structure.parent.Parent'>'
+            TypeError: unsupported operand parent(s) for //: 'Integer Ring' and '<sage.structure.parent.Parent object at ...>'
             sage: e // 1
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for //: '<... 'sage.structure.parent.Parent'>' and 'Integer Ring'
+            TypeError: unsupported operand parent(s) for //: '<sage.structure.parent.Parent object at ...>' and 'Integer Ring'
             sage: int(1) // e
             Traceback (most recent call last):
             ...
@@ -1895,15 +1895,15 @@ cdef class Element(SageObject):
             sage: e % e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for %: '<... 'sage.structure.parent.Parent'>' and '<... 'sage.structure.parent.Parent'>'
+            TypeError: unsupported operand parent(s) for %: '<sage.structure.parent.Parent object at ...>' and '<sage.structure.parent.Parent object at ...>'
             sage: 1 % e
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for %: 'Integer Ring' and '<... 'sage.structure.parent.Parent'>'
+            TypeError: unsupported operand parent(s) for %: 'Integer Ring' and '<sage.structure.parent.Parent object at ...>'
             sage: e % 1
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for %: '<... 'sage.structure.parent.Parent'>' and 'Integer Ring'
+            TypeError: unsupported operand parent(s) for %: '<sage.structure.parent.Parent object at ...>' and 'Integer Ring'
             sage: int(1) % e
             Traceback (most recent call last):
             ...

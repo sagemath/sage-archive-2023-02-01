@@ -372,7 +372,8 @@ class Sandpile(DiGraph):
     @staticmethod
     def help(verbose=True):
         r"""
-        List of Sandpile-specific methods (not inherited from Graph).  If ``verbose``, include short descriptions.
+        List of Sandpile-specific methods (not inherited from :class:`Graph`).
+        If ``verbose``, include short descriptions.
 
         INPUT:
 
@@ -402,7 +403,7 @@ class Sandpile(DiGraph):
             group_gens               -- A minimal list of generators for the sandpile group.
             group_order              -- The size of the sandpile group.
             h_vector                 -- The number of superstable configurations in each degree.
-            help                     -- List of Sandpile-specific methods (not inherited from Graph).
+            help                     -- List of Sandpile-specific methods (not inherited from "Graph").
             hilbert_function         -- The Hilbert function of the homogeneous toppling ideal.
             ideal                    -- The saturated homogeneous toppling ideal.
             identity                 -- The identity configuration.
@@ -436,7 +437,7 @@ class Sandpile(DiGraph):
             stationary_density       -- The stationary density of the sandpile.
             superstables             -- The superstable configurations.
             symmetric_recurrents     -- The symmetric recurrent configurations.
-            tutte_polynomial         -- The Tutte polynomial.
+            tutte_polynomial         -- The Tutte polynomial of the underlying graph.
             unsaturated_ideal        -- The unsaturated, homogeneous toppling ideal.
             version                  -- The version number of Sage Sandpiles.
             zero_config              -- The all-zero configuration.
@@ -618,7 +619,7 @@ class Sandpile(DiGraph):
 
     def __copy__(self):
         """
-        Make a copy of this sandpile
+        Make a copy of this sandpile.
 
         OUTPUT:
 
@@ -1627,7 +1628,8 @@ class Sandpile(DiGraph):
 
     def tutte_polynomial(self):
         r"""
-        The Tutte polynomial.  Only defined for undirected sandpile graphs.
+        The Tutte polynomial of the underlying graph.
+        Only defined for undirected sandpile graphs.
 
         OUTPUT:
 
@@ -1744,7 +1746,7 @@ class Sandpile(DiGraph):
 
             The "nonspecial divisors" are those divisors of degree `g-1` with
             empty linear system.  The term is only defined for undirected graphs.
-            Here, `g = |E| - |V| + 1` is the genus of the graph (not counted loops
+            Here, `g = |E| - |V| + 1` is the genus of the graph (not counting loops
             as part of `|E|`).  If ``verbose`` is ``False``, the divisors are converted
             to lists of integers.
 
@@ -2672,7 +2674,7 @@ class Sandpile(DiGraph):
         r"""
         The Betti table for the homogeneous toppling ideal.  If
         ``verbose`` is ``True``, it prints the standard Betti table, otherwise,
-        it returns a less formated table.
+        it returns a less formatted table.
 
         INPUT:
 
@@ -5702,7 +5704,8 @@ class SandpileDivisor(dict):
 
         .. NOTE::
 
-            The vertex `v` is a (generalized) Weierstrass point for divisor `D` if the sequence of ranks `r(D - nv)`
+            The vertex `v` is a (generalized) Weierstrass point for divisor
+            `D` if the sequence of ranks `r(D - nv)`
             for `n = 0, 1, 2, \dots` is not `r(D), r(D)-1, \dots, 0, -1, -1, \dots`
         """
         return self.weierstrass_gap_seq(v)[1] > 0
@@ -5744,7 +5747,8 @@ class SandpileDivisor(dict):
 
         .. NOTE::
 
-            The vertex `v` is a (generalized) Weierstrass point for divisor `D` if the sequence of ranks `r(D - nv)`
+            The vertex `v` is a (generalized) Weierstrass point for divisor
+            `D` if the sequence of ranks `r(D - nv)`
             for `n = 0, 1, 2, \dots`` is not `r(D), r(D)-1, \dots, 0, -1, -1, \dots`
         """
         if with_rank_seq:

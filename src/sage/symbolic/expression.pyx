@@ -1796,7 +1796,7 @@ cdef class Expression(CommutativeRingElement):
             sage: v,c = var('v,c')
             sage: assume(c != 0)
             sage: integral((1+v^2/c^2)^3/(1-v^2/c^2)^(3/2),v)
-            83/8*v/sqrt(-v^2/c^2 + 1) - 17/8*v^3/(c^2*sqrt(-v^2/c^2 + 1)) - 1/4*v^5/(c^4*sqrt(-v^2/c^2 + 1)) - 75/8*arcsin(v/(c^2*sqrt(c^(-2))))/sqrt(c^(-2))
+            -75/8*sqrt(c^2)*arcsin(sqrt(c^2)*v/c^2) + 83/8*v/sqrt(-v^2/c^2 + 1) - 17/8*v^3/(c^2*sqrt(-v^2/c^2 + 1)) - 1/4*v^5/(c^4*sqrt(-v^2/c^2 + 1))
             sage: forget()
         """
         from sage.symbolic.assumptions import _assumptions
@@ -3379,6 +3379,15 @@ cdef class Expression(CommutativeRingElement):
             -1.00000000000000
             sage: sin(1.0*pi)
             sin(1.00000000000000*pi)
+
+        Check that infinities multiply correctly (:trac:`23427`)::
+
+            sage: SR(-oo) * SR(-oo)
+            +Infinity
+            sage: SR(-oo) * SR(oo)
+            -Infinity
+            sage: SR(-oo) * SR(unsigned_infinity)
+            Infinity
         """
         cdef GEx x
         cdef Expression _right = <Expression>right
@@ -5196,6 +5205,15 @@ cdef class Expression(CommutativeRingElement):
             (x, y, t) |--> x^2 + 2*t + cos(x) + sin(y)
             sage: f.subs_expr(x^2 + y^2 == t)
             (x, y, t) |--> x^2 + y^2 + t + cos(x) + sin(y)
+
+        Check that inverses in sums are recognized::
+
+            sage: (1 + 1/x).subs({x: 1/x})
+            x + 1
+            sage: (x + 1/x^2).subs({x: 1/x})
+            x^2 + 1/x
+            sage: (sqrt(x) + 1/sqrt(x)).subs({x: 1/x})
+            sqrt(x) + 1/sqrt(x)
         """
         cdef dict sdict = {}
         cdef GEx res
@@ -6241,6 +6259,17 @@ cdef class Expression(CommutativeRingElement):
             [[sin(x^2 + 1)*sin(x + 1), 0]]
             sage: (sin(1+x)*sin(1+x^2)*x).coefficients(x)
             [[sin(x^2 + 1)*sin(x + 1), 1]]
+
+        Check that :trac:`23545` is fixed::
+
+            sage: (x^2/(1+x)).coefficients()
+            [[x^2/(x + 1), 0]]
+            sage: (1+x+exp(x^2/(1+x))).coefficients()
+            [[e^(x^2/(x + 1)) + 1, 0], [1, 1]]
+            sage: (1/x).coefficients()
+            [[1, -1]]
+            sage: ((1+x)^pi).coefficients()
+            [[(x + 1)^pi, 0]]
         """
         cdef vector[pair[GEx,GEx]] vec
         cdef pair[GEx,GEx] gexpair
@@ -6941,7 +6970,7 @@ cdef class Expression(CommutativeRingElement):
 
     def gcd(self, b):
         r"""
-        Return the gcd of self and b.
+        Return the symbolic gcd of self and b.
 
         Note that the polynomial GCD is unique up to the multiplication
         by an invertible constant. The following examples make sure all
@@ -6968,6 +6997,22 @@ cdef class Expression(CommutativeRingElement):
             sage: r = gcd(expand( (x^2+17*x+3/7*y)*(x^5 - 17*y + 2/3) ), expand((x^13+17*x+3/7*y)*(x^5 - 17*y + 2/3)) )
             sage: r / (x^5 - 17*y + 2/3) in QQ
             True
+
+        Embedded Sage objects of all kinds get basic support. Note that
+        full algebraic GCD is not implemented yet::
+
+            sage: gcd(I - I*x, x^2 - 1)
+            x - 1
+            sage: gcd(I + I*x, x^2 - 1)
+            x + 1
+            sage: alg = SR(QQbar(sqrt(2) + I*sqrt(3)))
+            sage: gcd(alg + alg*x, x^2 - 1)
+            x + 1
+            sage: gcd(alg - alg*x, x^2 - 1)
+            x - 1
+            sage: sqrt2 = SR(QQbar(sqrt(2)))
+            sage: gcd(sqrt2 + x, x^2 - 2)    # known bug
+            1
 
         TESTS:
 
@@ -7000,6 +7045,12 @@ cdef class Expression(CommutativeRingElement):
  
             sage: gcd(I + I*x, x^2 - 1)
             x + 1
+
+        Check that arguments are expanded before GCD (:trac:`23845`)::
+
+            sage: P = (x+1)^2 + 1
+            sage: gcd(P, P.expand())
+            x^2 + 2*x + 2
         """
         cdef Expression r = self.coerce_in(b)
         cdef GEx x
@@ -8966,7 +9017,7 @@ cdef class Expression(CommutativeRingElement):
         cdef GEx x
         sig_on()
         try:
-            x = g_hold_wrapper(g_tgamma, self._gobj, hold)
+            x = g_hold_wrapper(g_gamma, self._gobj, hold)
         finally:
             sig_off()
         return new_Expression_from_GEx(self._parent, x)

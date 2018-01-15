@@ -423,14 +423,14 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             node = node_to_str(self)
             rr_tree = self[1]._ascii_art_()
             if rr_tree._root > 2:
-                f_line = " " ** Integer(rr_tree._root - 3) + node
-                s_line = " " ** Integer(len(node) + rr_tree._root - 3) + "\\"
+                f_line = " " * (rr_tree._root - 3) + node
+                s_line = " " * (len(node) + rr_tree._root - 3) + "\\"
                 t_repr = AsciiArt([f_line, s_line]) * rr_tree
                 t_repr._root = rr_tree._root - 2
             else:
                 f_line = node
                 s_line = " " + "\\"
-                t_line = " " ** Integer(len(node) + 1)
+                t_line = " " * (len(node) + 1)
                 t_repr = AsciiArt([f_line, s_line]) * (AsciiArt([t_line]) + rr_tree)
                 t_repr._root = rr_tree._root
             t_repr._baseline = t_repr._h - 1
@@ -438,8 +438,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         if self[1].is_empty():
             node = node_to_str(self)
             lr_tree = self[0]._ascii_art_()
-            f_line = " " ** Integer(lr_tree._root + 1) + node
-            s_line = " " ** Integer(lr_tree._root) + "/"
+            f_line = " " * (lr_tree._root + 1) + node
+            s_line = " " * lr_tree._root + "/"
             t_repr = AsciiArt([f_line, s_line]) * lr_tree
             t_repr._root = lr_tree._root + 2
             t_repr._baseline = t_repr._h - 1
@@ -450,10 +450,10 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         nb_ = lr_tree._l - lr_tree._root + rr_tree._root - 1
         nb_L = nb_ // 2
         nb_R = nb_L + (nb_ % 2)
-        f_line = " " ** Integer(lr_tree._root + 1) + "_" ** Integer(nb_L) + node
-        f_line += "_" ** Integer(nb_R)
-        s_line = " " ** Integer(lr_tree._root) + "/" + " " ** Integer(len(node) + rr_tree._root - 1 + (lr_tree._l - lr_tree._root)) + "\\"
-        t_repr = AsciiArt([f_line, s_line]) * (lr_tree + AsciiArt([" " ** Integer(len(node) + 2)]) + rr_tree)
+        f_line = " " * (lr_tree._root + 1) + "_" * nb_L + node
+        f_line += "_" * nb_R
+        s_line = " " * lr_tree._root + "/" + " " * (len(node) + rr_tree._root - 1 + (lr_tree._l - lr_tree._root)) + "\\"
+        t_repr = AsciiArt([f_line, s_line]) * (lr_tree + AsciiArt([" " * (len(node) + 2)]) + rr_tree)
         t_repr._root = lr_tree._root + nb_L + 2
         t_repr._baseline = t_repr._h - 1
         return t_repr
@@ -627,14 +627,14 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             node = node_to_str(self)
             rr_tree = self[1]._unicode_art_()
             if rr_tree._root > 2:
-                f_line = u" " * Integer(rr_tree._root - 3) + node
-                s_line = u" " * Integer(len(node) + rr_tree._root - 3) + u"╲"
+                f_line = u" " * (rr_tree._root - 3) + node
+                s_line = u" " * (len(node) + rr_tree._root - 3) + u"╲"
                 t_repr = UnicodeArt([f_line, s_line]) * rr_tree
                 t_repr._root = rr_tree._root - 2
             else:
                 f_line = node
                 s_line = u" ╲"
-                t_line = u" " * Integer(len(node) + 1)
+                t_line = u" " * (len(node) + 1)
                 t_repr = UnicodeArt([f_line, s_line]) * (UnicodeArt([t_line]) + rr_tree)
                 t_repr._root = rr_tree._root
             t_repr._baseline = t_repr._h - 1
@@ -643,8 +643,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         if self[1].is_empty():
             node = node_to_str(self)
             lr_tree = self[0]._unicode_art_()
-            f_line = u" " * Integer(lr_tree._root + 1) + node
-            s_line = u" " * Integer(lr_tree._root) + u"╱"
+            f_line = u" " * (lr_tree._root + 1) + node
+            s_line = u" " * lr_tree._root + u"╱"
             t_repr = UnicodeArt([f_line, s_line]) * lr_tree
             t_repr._root = lr_tree._root + 2
             t_repr._baseline = t_repr._h - 1
@@ -656,10 +656,10 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         nb_ = lr_tree._l - lr_tree._root + rr_tree._root - 1
         nb_L = nb_ // 2
         nb_R = nb_L + (nb_ % 2)
-        f_line = u" " * Integer(lr_tree._root + 1) + u"_" * Integer(nb_L) + node
-        f_line += u"_" * Integer(nb_R)
-        s_line = u" " * Integer(lr_tree._root) + u"╱" + u" " * Integer(len(node) + rr_tree._root - 1 + (lr_tree._l - lr_tree._root)) + u"╲"
-        t_repr = UnicodeArt([f_line, s_line]) * (lr_tree + UnicodeArt([u" " * Integer(len(node) + 2)]) + rr_tree)
+        f_line = u" " * (lr_tree._root + 1) + u"_" * nb_L + node
+        f_line += u"_" * nb_R
+        s_line = u" " * lr_tree._root + u"╱" + u" " * (len(node) + rr_tree._root - 1 + (lr_tree._l - lr_tree._root)) + u"╲"
+        t_repr = UnicodeArt([f_line, s_line]) * (lr_tree + UnicodeArt([u" " * (len(node) + 2)]) + rr_tree)
         t_repr._root = lr_tree._root + nb_L + 2
         t_repr._baseline = t_repr._h - 1
         return t_repr
@@ -5199,6 +5199,54 @@ class LabelledBinaryTrees(LabelledOrderedTrees):
         return self
 
     Element = LabelledBinaryTree
+
+
+def binary_search_tree_shape(w, left_to_right=True):
+    """
+    Direct computation of the binary search tree shape of a list of integers.
+
+    INPUT:
+
+    - ``w`` -- a list of integers
+
+    - ``left_to_right`` -- boolean (default ``True``)
+
+    OUTPUT: a non labelled binary tree
+
+    This is used under the same name as a method for permutations.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.binary_tree import binary_search_tree_shape
+        sage: binary_search_tree_shape([1,4,3,2])
+        [., [[[., .], .], .]]
+        sage: binary_search_tree_shape([5,1,3,2])
+        [[., [[., .], .]], .]
+
+    By passing the option ``left_to_right=False`` one can have
+    the insertion going from right to left::
+
+        sage: binary_search_tree_shape([1,6,4,2], False)
+        [[., .], [., [., .]]]
+
+    TESTS::
+
+        sage: t = Permutations(30).random_element()
+        sage: t.binary_search_tree().shape() == binary_search_tree_shape(t)
+        True
+        sage: t.binary_search_tree(False).shape() == binary_search_tree_shape(t, False)
+        True
+    """
+    if not w:
+        return BinaryTree()
+    if left_to_right:
+        root = w[0]
+    else:
+        root = w[-1]
+    left = [x for x in w if x < root]
+    right = [x for x in w if x > root]
+    return BinaryTree([binary_search_tree_shape(left, left_to_right),
+                      binary_search_tree_shape(right, left_to_right)])
 
 
 ################################################################

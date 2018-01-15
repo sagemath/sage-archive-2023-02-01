@@ -1335,7 +1335,7 @@ class Func_legendre_Q(BuiltinFunction):
             sage: var('n')
             n
             sage: legendre_Q(n, 0)
-            -1/2*sqrt(pi)*sin(1/2*pi*n)*gamma(1/2*n + 1/2)/gamma(1/2*n + 1)
+            -1/2*sqrt(pi)*gamma(1/2*n + 1/2)*sin(1/2*pi*n)/gamma(1/2*n + 1)
             sage: legendre_Q(-1., 0.)
             +infinity
             sage: legendre_Q(-1/2, 2)
@@ -1542,6 +1542,7 @@ class Func_assoc_legendre_P(BuiltinFunction):
         Special values known.
 
         EXAMPLES::
+
             sage: gen_legendre_P(2,3,4)
             0
             sage: gen_legendre_P(2,0,4)==legendre_P(2,4)
@@ -1686,7 +1687,7 @@ class Func_assoc_legendre_Q(BuiltinFunction):
 
             sage: n, m = var('n m')
             sage: gen_legendre_Q(n,m,0)
-            -sqrt(pi)*2^(m - 1)*sin(1/2*pi*m + 1/2*pi*n)*gamma(1/2*m + 1/2*n + 1/2)/gamma(-1/2*m + 1/2*n + 1)
+            -sqrt(pi)*2^(m - 1)*gamma(1/2*m + 1/2*n + 1/2)*sin(1/2*pi*m + 1/2*pi*n)/gamma(-1/2*m + 1/2*n + 1)
         """
         if m == 0:
             return legendre_Q(n, x)

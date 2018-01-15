@@ -2860,7 +2860,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         ``LookupError`` or return an empty list.
 
         When constructing a finite state machine in this way, some
-        inital states and an input alphabet have to be specified.
+        initial states and an input alphabet have to be specified.
 
         ::
 

@@ -289,7 +289,7 @@ def _sympysage_integral(self):
         sage: sx = Symbol('x')
         sage: assert integral(x, x, hold=True)._sympy_() == Integral(sx, sx)
         sage: assert integral(x, x, hold=True) == Integral(sx, sx)._sage_()
-        sage: assert integral(x, x, 0, 1, hold=True)._sympy_() == Integral(sx, (sx,0,1)) # known bug
+        sage: assert integral(x, x, 0, 1, hold=True)._sympy_() == Integral(sx, (sx,0,1))
         sage: assert integral(x, x, 0, 1, hold=True) == Integral(sx, (sx,0,1))._sage_()
     """
     from sage.misc.functional import integral

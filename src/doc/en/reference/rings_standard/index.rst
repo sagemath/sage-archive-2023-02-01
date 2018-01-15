@@ -34,6 +34,5 @@ Rationals
 
    sage/rings/rational_field
    sage/rings/rational
-   sage/rings/contfrac
 
 .. include:: ../footer.txt

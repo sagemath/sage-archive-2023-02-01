@@ -1923,7 +1923,8 @@ class Function_crootof(BuiltinFunction):
             complex_root_of
         """
         BuiltinFunction.__init__(self, "complex_root_of", nargs=2,
-                                   conversions=dict(sympy='CRootOf'))
+                                   conversions=dict(sympy='CRootOf'),
+                                   evalf_params_first=False)
 
     def _eval_(self, poly, index):
         """
@@ -1955,19 +1956,29 @@ class Function_crootof(BuiltinFunction):
         EXAMPLES::
 
             sage: complex_root_of(x^2-2, 1).n()
-            1.41421356237310
+            1.41421356237309
             sage: complex_root_of(x^2-2, 3).n()
             Traceback (most recent call last):
             ...
             IndexError: root index out of [-2, 1] range, got 3
+
+        TESTS:
+
+        Check that low precision is handled (:trac:`24378`)::
+
+            sage: complex_root_of(x^8-1, 7).n(2)
+            0.75 + 0.75*I
+            sage: complex_root_of(x^8-1, 7).n(20)
+            0.70711 + 0.70711*I
         """
+        from sympy.core.evalf import prec_to_dps
         from sympy.polys import CRootOf, Poly
         try:
             prec = parent.precision()
         except AttributeError:
             prec = 53
         sobj = CRootOf(Poly(poly._sympy_()), int(index))
-        return sobj.n(ceil(prec*3/10))._sage_()
+        return parent(sobj.n(1 + prec_to_dps(prec))._sage_())
 
 complex_root_of = Function_crootof()
 

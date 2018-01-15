@@ -74,9 +74,10 @@ cdef class DefaultConvertMap(Map):
         """
         return self._repr_type_str or ("Coercion" if self._is_coercion else "Conversion")
 
-    cdef dict _extra_slots(self, dict _slots):
-        _slots['_force_use'] = self._force_use
-        return Map._extra_slots(self, _slots)
+    cdef dict _extra_slots(self):
+        slots = Map._extra_slots(self)
+        slots['_force_use'] = self._force_use
+        return slots
 
     cdef _update_slots(self, dict _slots):
         self._force_use = _slots['_force_use']
@@ -203,7 +204,7 @@ cdef class NamedConvertMap(Map):
         self.method_name = method_name
         self._repr_type_str = "Conversion via %s method" % self.method_name
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -225,9 +226,10 @@ cdef class NamedConvertMap(Map):
             sage: psi(t^2/4+1) == phi(t^2/4+1)
             True
         """
-        _slots['method_name'] = self.method_name
-        _slots['_force_use'] = self._force_use
-        return Map._extra_slots(self, _slots)
+        slots = Map._extra_slots(self)
+        slots['method_name'] = method_name=self.method_name
+        slots['_force_use'] = self._force_use
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """
@@ -358,7 +360,7 @@ cdef class CallableConvertMap(Map):
         except AttributeError:
             self._repr_type_str = "Conversion via %s" % self._func
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -373,9 +375,10 @@ cdef class CallableConvertMap(Map):
             sage: f(3) == g(3)
             True
         """
-        _slots['_parent_as_first_arg'] = self._parent_as_first_arg
-        _slots['_func'] = self._func
-        return Map._extra_slots(self, _slots)
+        slots = Map._extra_slots(self)
+        slots['_func'] = self._func
+        slots['_parent_as_first_arg'] = self._parent_as_first_arg
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """
@@ -578,9 +581,10 @@ cdef class ListMorphism(Map):
         self._real_morphism = real_morphism
         self._repr_type_str = "List"
 
-    cdef dict _extra_slots(self, dict _slots):
-        _slots['_real_morphism'] = self._real_morphism
-        return Map._extra_slots(self, _slots)
+    cdef dict _extra_slots(self):
+        slots = Map._extra_slots(self)
+        slots['_real_morphism'] = self._real_morphism
+        return slots
 
     cdef _update_slots(self, dict _slots):
         self._real_morphism = _slots['_real_morphism']
@@ -622,7 +626,7 @@ cdef class TryMap(Map):
         else:
             self._error_types = error_types
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -639,10 +643,11 @@ cdef class TryMap(Map):
             sage: map(0) == cmap(0)
             True
         """
-        _slots['_map_p'] = self._map_p
-        _slots['_map_b'] = self._map_b
-        _slots['_error_types'] = self._error_types
-        return Map._extra_slots(self, _slots)
+        slots = Map._extra_slots(self)
+        slots['_map_p'] = self._map_p
+        slots['_map_b'] = self._map_b
+        slots['_error_types'] = self._error_types
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """

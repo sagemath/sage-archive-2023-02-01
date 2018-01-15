@@ -1011,6 +1011,12 @@ def plot(funcs, *args, **kwds):
 
     - ``fillalpha`` - (default: 0.5) How transparent the fill is.
       A number between 0 and 1.
+      
+    MATPLOTLIB STYLE SHEET OPTION:
+    
+    - ``stylesheet`` - (Default: classic) Support for loading a full matplotlib style sheet.
+      Any style sheet listed in ``matplotlib.pyplot.style.available`` is acceptable. If a
+      non-existing style is provided the default classic is applied.
 
     EXAMPLES:
 

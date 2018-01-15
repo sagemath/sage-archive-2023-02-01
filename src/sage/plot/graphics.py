@@ -2457,6 +2457,7 @@ class Graphics(WithEqualityById, SageObject):
                    axes_pad=None, ticks_integer=None,
                    tick_formatter=None, ticks=None, title=None,
                    title_pos=None, base=None, scale=None,
+                   stylesheet='classic',
                    typeset='default'):
         r"""
         Return a matplotlib figure object representing the graphic
@@ -2525,6 +2526,11 @@ class Graphics(WithEqualityById, SageObject):
         """
         if not isinstance(ticks, (list, tuple)):
             ticks = (ticks, None)
+
+        import matplotlib.pyplot as plt
+        if stylesheet not in plt.style.available:
+            stylesheet = 'classic'
+        plt.style.use(stylesheet)
 
         from sage.symbolic.ring import SR
         if not isinstance(tick_formatter, (list, tuple)):  # make sure both formatters typeset or both don't

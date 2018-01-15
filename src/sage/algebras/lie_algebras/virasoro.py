@@ -584,14 +584,14 @@ class ChargelessRepresentation(CombinatorialFreeModule):
 
     We construct the reducible `V_{0,2}` and the trivial
     subrepresentation given by the span of `v_2`. We verify
-    this for `\{d_i \mid -10 \leq i < 10\}::
+    this for `\{d_i \mid -10 \leq i < 10\}`::
 
         sage: M = L.chargeless_representation(0, 2)
         sage: v = M.basis()
         sage: all(d[i] * v[2] == M.zero() for i in range(-10, 10))
         True
 
-    REFERNCES::
+    REFERENCES::
 
     - [Mat1992]_
     - [IK2010]_
@@ -997,7 +997,7 @@ class VermaModule(CombinatorialFreeModule):
                 13/4*v
 
                 sage: it = iter(M.basis())
-                sage: B = [it.next() for _ in range(10)]
+                sage: B = [next(it) for _ in range(10)]
                 sage: all(d[i]*(d[j]*v) - d[j]*(d[i]*v) == d[i].bracket(d[j])*v
                 ....:     for i in range(-5, 5) for j in range(-5, 5) for v in B)
                 True

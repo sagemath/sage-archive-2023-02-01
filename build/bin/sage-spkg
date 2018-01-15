@@ -808,7 +808,7 @@ export rsync_proxy=$http_proxy
 # Set the $SAGE_DESTDIR variable to be passed to the spkg-install
 # script (the script itself could set this, but better to standardize
 # this in one place)
-export SAGE_DESTDIR="$(pwd)/inst"
+export SAGE_DESTDIR="${SAGE_BUILD_DIR}/${PKG_NAME}/inst"
 
 if [ -f spkg-build ]; then
     # Package has both spkg-build and spkg-install; execute the latter with SAGE_SUDO

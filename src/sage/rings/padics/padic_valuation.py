@@ -744,7 +744,7 @@ class pAdicValuation_base(DiscreteValuation):
             sage: F = x^48 + 120*x^45 + 56*x^42 + 108*x^36 + 32*x^33 + 40*x^30 + 48*x^27 + 80*x^24 + 112*x^21 + 96*x^18 + 96*x^15 + 24*x^12 + 96*x^9 + 16*x^6 + 96*x^3 + 68
             sage: L.<a> = QQ.extension(F)
             sage: v.extensions(L)
-            [[ 2-adic valuation, v(x) = 1/24, v(x^24 + 4*x^18 + 10*x^1 2 + 12*x^6 + 8*x^3 + 6) = 29/8 ]-adic valuation,
+            [[ 2-adic valuation, v(x) = 1/24, v(x^24 + 4*x^18 + 10*x^12 + 12*x^6 + 8*x^3 + 6) = 29/8 ]-adic valuation,
              [ 2-adic valuation, v(x) = 1/24, v(x^24 + 4*x^18 + 2*x^12 + 12*x^6 + 8*x^3 + 6) = 29/8 ]-adic valuation]
 
         """

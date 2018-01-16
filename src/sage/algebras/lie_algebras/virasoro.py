@@ -690,7 +690,7 @@ class VermaModule(CombinatorialFreeModule):
     """
     A Verma module of the Virasoro algebra.
 
-    The Virasoro algebra admits a trianglar decomposition of
+    The Virasoro algebra admits a triangular decomposition
 
     .. MATH::
 

@@ -113,6 +113,51 @@ def remove_unicode_u(string):
     return string
 
 
+_type_repr_re = re.compile(r"<type '(?P<name>[^']+)'>")
+
+def normalize_type_repr(s):
+    """
+    Converts the repr of type objects (e.g. ``int``, ``float``) from their
+    Python 2 representation to their Python 3 representation.
+
+    In Python 2, the repr of built-in types like ``int`` is like ``<type
+    'int'>``, whereas user-defined pure Python classes are displayed as
+    ``<class 'classname'>``.  On Python 3 this was normalized so that
+    built-in types are represented the same as user-defined classes (e.g.
+    ``<class 'int'>``.
+
+    This simply normalizes all class/type reprs to the Python 3 convention for
+    the sake of output checking.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.parsing import normalize_type_repr
+        sage: s = "<type 'int'>"
+        sage: normalize_type_repr(s)
+        "<class 'int'>"
+        sage: normalize_type_repr(repr(float))
+        "<class 'float'>"
+
+    This can work on multi-line output as well::
+
+        sage: s = "The desired output was <class 'int'>\n" \
+        ....:     "The received output was <type 'int'>"
+        sage: print(normalize_type_repr(s))
+        The desired output was <class 'int'>
+        The received output was <class 'int'>
+
+    And should work when types are embedded in other nested expressions::
+
+        sage: normalize_type_repr(repr([Integer, float]))
+        "[<class 'sage.rings.integer.Integer'>, <class 'float'>]"
+    """
+
+    def subst(m):
+        return "<class '{0}'>".format(m.group('name'))
+
+    return _type_repr_re.sub(subst, s)
+
+
 def parse_optional_tags(string):
     """
     Returns a set consisting of the optional tags from the following
@@ -874,6 +919,14 @@ class SageOutputChecker(doctest.OutputChecker):
             [u'Fermat',  u'Euler']
             sage: c = u'you'; c
             u'you'
+
+        Also allowance for the difference in reprs of ``type`` instances (i.e.
+        classes) between Python 2 and Python 3::
+
+            sage: int
+            <type 'int'>
+            sage: float
+            <type 'float'>
         """
         got = self.human_readable_escape_sequences(got)
         if isinstance(want, MarkedOutput):
@@ -899,13 +952,33 @@ class SageOutputChecker(doctest.OutputChecker):
                 return all(a.overlaps(b) for a, b in zip(want_intervals, got_values))
 
         ok = doctest.OutputChecker.check_output(self, want, got, optionflags)
-        if ok or ('u"' not in want and "u'" not in want):
+
+        if ok:
             return ok
 
-        # accept the same answer where strings have unicode prefix u
-        # for smoother transition to python3
-        if not six.PY2:
-            want = remove_unicode_u(want)
+        # Possibly fix up the desired output to account for the difference in
+        # reprs of some objects between Python 2 and Python 3
+        # Since most of the tests are currently written for Python 2 the only
+        # fixups we perform right now are on Python 3
+        if six.PY2:
+            repr_fixups = []
+        else:
+            repr_fixups = [
+                (lambda g, w: 'u"' in w or "u'" in w, remove_unicode_u),
+                (lambda g, w: '<class' in g and '<type' in w,
+                 normalize_type_repr)
+            ]
+
+        did_fixup = False
+        for quick_check, fixup in repr_fixups:
+            do_fixup = quick_check(got, want)
+            if do_fixup:
+                want = fixup(want)
+                did_fixup = True
+
+        if not did_fixup:
+            # Return the same result as before
+            return ok
 
         return doctest.OutputChecker.check_output(self, want, got, optionflags)
 

@@ -1649,9 +1649,8 @@ def is_switch_OA_srg(int v, int k, int l, int mu):
         not orthogonal_array(c+1,n,existence=True,resolvable=True)):
         return None
 
-    def switch_OA_srg(c,n):
-        from builtins import zip
-        OA = map(tuple,orthogonal_array(c+1,n,resolvable=True))
+    def switch_OA_srg(c, n):
+        OA = map(tuple, orthogonal_array(c+1, n, resolvable=True))
         g = Graph([OA, lambda x,y: any(xx==yy for xx,yy in zip(x,y))],
                   loops=False)
         g.add_vertex(0)
@@ -1659,6 +1658,7 @@ def is_switch_OA_srg(int v, int k, int l, int mu):
         return g
 
     return (switch_OA_srg,c,n)
+
 
 def is_nowhere0_twoweight(int v, int k, int l, int mu):
     r"""

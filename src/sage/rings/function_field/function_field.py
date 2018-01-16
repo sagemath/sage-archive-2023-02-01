@@ -2306,7 +2306,7 @@ class RationalFunctionField(FunctionField):
                 a = a.change_variable_name(old_variable_name)
             unit *= (c**e)
             if a.is_unit():
-                unit*=a
+                unit *= a**e
             else:
                 w.append((a,e))
         from sage.structure.factorization import Factorization

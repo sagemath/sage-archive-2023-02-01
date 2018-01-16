@@ -722,7 +722,9 @@ class Maxima(MaximaAbstract, Expect):
                 #Note that this depends on the order of self._prompt_wait
                 if expr is self._prompt_wait and i > len(self._ask):
                     self.quit()
-                    raise ValueError("%s\nComputation failed due to a bug in Maxima -- NOTE: Maxima had to be restarted."%v)
+                    raise ValueError(
+                            "{}\nComputation failed due to a bug in Maxima "
+                            "-- NOTE: Maxima had to be restarted.".format(v))
 
                 j = v.find('Is ')
                 v = v[j:]
@@ -804,7 +806,8 @@ class Maxima(MaximaAbstract, Expect):
             return out
 
         self._expect_expr()
-        assert len(self._before())==0, 'Maxima expect interface is confused!'
+        assert len(self._before()) == 0, \
+                'Maxima expect interface is confused!'
         r = self._output_prompt_re
         m = r.search(out)
         if m is not None:

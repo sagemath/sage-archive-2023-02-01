@@ -10,6 +10,7 @@
 #include "constant.h"
 #include "infinity.h"
 #include "numeric.h"
+#include "add.h"
 #include "mul.h"
 #include "power.h"
 #include "operators.h"
@@ -67,8 +68,9 @@ static ex hermite_eval(const ex& n, const ex& x)
         numeric coeff = _num2_p->pow_intexp(numn);
         ex sum = _ex0;
         int fac = 1;
+        epvector vec;
         while (numn >= 0) {
-                sum = sum + power(x, numn) * coeff;
+                vec.push_back(expair(power(x, numn), coeff));
                 coeff /= *_num_4_p;
                 coeff *= numn;
                 --numn;
@@ -76,7 +78,7 @@ static ex hermite_eval(const ex& n, const ex& x)
                 --numn;
                 coeff /= fac++;
                 }
-        return sum;
+        return add(vec);
 }
 
 static ex hermite_deriv(const ex& n, const ex & x, unsigned deriv_param)

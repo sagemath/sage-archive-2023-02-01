@@ -527,9 +527,9 @@ class ChargelessRepresentation(CombinatorialFreeModule):
     r"""
     A chargeless representation of the Virasoro algebra.
 
-    Let `L` be the Virasoro algebra over the field `F` of characteristic
-    `0`. For `\alpha, \beta \in R`, we denote `V_{a,b}` as the
-    `(a, b)`-*chargeless representation* of `L`, which is the
+    Let `L` be the Virasoro algebra over the field `F` of
+    characteristic `0`. For `\alpha, \beta \in R`, we denote `V_{a,b}`
+    as the `(a, b)`-*chargeless representation* of `L`, which is the
     `F`-span of `\{v_k \mid k \in \ZZ\}` with `L` action
 
     .. MATH::
@@ -539,13 +539,14 @@ class ChargelessRepresentation(CombinatorialFreeModule):
         \\ c \cdot v_k & = 0,
         \end{aligned}
 
-    This comes from the action of `d_n = -t^{n+1} \frac{d}{dt}`
-    on `F[t, t^{-1}]` (recall that `V` is the central extension
-    of the algebra of derivations of `F[t, t^{-1}]`), where
+    This comes from the action of `d_n = -t^{n+1} \frac{d}{dt}` on
+    `F[t, t^{-1}]` (recall that `L` is the central extension of the
+    :class:`algebra of derivations <LieAlgebraRegularVectorFields>`
+    of `F[t, t^{-1}]`), where
 
     .. MATH::
 
-        V_{a,b} = F[t, t^{-1}] t^(a-b) (dt)^{-a}
+        V_{a,b} = F[t, t^{-1}] t^{a-b} (dt)^{-a}
 
     and `v_k = t^{a-b+k} (dz)^{-a}`.
 
@@ -559,12 +560,12 @@ class ChargelessRepresentation(CombinatorialFreeModule):
     `a \neq 0, -1` or `b \notin \ZZ`. When `a = 0` and `b \in \ZZ`,
     then there exists a subrepresentation isomorphic to the trivial
     representation. If `a = -1` and `b \in \ZZ`, then there exists
-    a subrepresentation `V` such that `V_{a,b} / V` is isomorphic to
-    `K \frac{dt}{t}` and `V` is irreducible.
+    a subrepresentation `V` such that `V_{a,b} / V` is isomorphic
+    to `K \frac{dt}{t}` and `V` is irreducible.
 
-    In characteristic `p`, the non-trivial simple subquotient is
-    isomorphic to `F[t, t^{-1}] / F[t^p, t^{-p}]`. For `p \neq 2,3`,
-    then the action is given as above.
+    In characteristic `p`, the non-trivial simple subquotient
+    is isomorphic to `F[t, t^{-1}] / F[t^p, t^{-p}]`. For
+    `p \neq 2,3`, then the action is given as above.
 
     EXAMPLES:
 
@@ -689,7 +690,7 @@ class VermaModule(CombinatorialFreeModule):
     """
     A Verma module of the Virasoro algebra.
 
-    The Virasoro algebra admits a triangle decomposition of
+    The Virasoro algebra admits a trianglar decomposition of
 
     .. MATH::
 

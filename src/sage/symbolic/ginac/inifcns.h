@@ -236,6 +236,9 @@ DECLARE_FUNCTION_2P(rising_factorial)
 /** Falling factorial function. */
 DECLARE_FUNCTION_2P(falling_factorial)
 
+/** Legendre P polynomial. */
+DECLARE_FUNCTION_2P(legendre_P)
+
 /** Hermite polynomial. */
 DECLARE_FUNCTION_2P(hermite)
 

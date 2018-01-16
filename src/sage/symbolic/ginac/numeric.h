@@ -121,6 +121,9 @@ public:
                 hash = (i<0) ? i-1 : i;
                 setflag(status_flags::evaluated | status_flags::expanded);
         }
+	numeric(unsigned long i) : 
+                basic(&numeric::tinfo_static), t(LONG), v(i), hash(i)
+        { setflag(status_flags::evaluated | status_flags::expanded); }
 	numeric(long numer, long denom);
 	numeric(double d);
 	numeric(mpz_t bigint);

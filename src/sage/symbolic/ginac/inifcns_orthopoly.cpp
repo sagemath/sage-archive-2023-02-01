@@ -19,7 +19,124 @@
 #include "pseries.h"
 #include "utils.h"
 
+#include "gmp.h"
+#include "flint/fmpq_poly.h"
+#include "flint/fmpq.h"
+
 namespace GiNaC {
+
+//////////
+// Legendre polynomials P_n(x)
+//////////
+
+static ex legp_evalf(const ex& n, const ex& x, PyObject* parent)
+{
+	if (not is_exactly_a<numeric>(x)
+             or not is_exactly_a<numeric>(n))
+                return legendre_P(n,x).hold();
+
+        // see http://dlmf.nist.gov/15.9.E7
+        numeric numn = ex_to<numeric>(n);
+        numeric numx = ex_to<numeric>(x);
+        std::vector<numeric> numveca, numvecb;
+        numveca.push_back(numn.negative());
+        numveca.push_back(numn + *_num1_p);
+        numvecb.push_back(*_num1_p);
+        return hypergeometric_pFq(numveca, numvecb, (*_num1_p - numx).mul(*_num1_2_p), parent);
+}
+
+static ex legp_eval(const ex& n_, const ex& x)
+{
+        ex n;
+        if (n_.info(info_flags::negative))
+                n = _ex_1 - n_;
+        else
+                n = n_;
+	if (is_exactly_a<numeric>(x)) {
+                numeric numx = ex_to<numeric>(x);
+                if (numx.is_one())
+                        return _ex1;
+                if (numx.is_zero())
+                        if (n.info(info_flags::integer)) {
+                                if (n.is_zero())
+                                        return _ex1;
+                                if (n.is_one())
+                                        return x;
+                                if (n.info(info_flags::odd))
+                                        return _ex0;
+                                if (n.info(info_flags::even)) {
+                                        if (is_exactly_a<numeric>(n)) {
+                                                numeric numn = ex_to<numeric>(n);
+                                                return (numn+*_num_1_p).factorial() / numn.mul(*_num1_2_p).factorial().pow_intexp(2) * numn / _num2_p->pow_intexp(numn.to_int());
+                                        }
+                                        else
+                                                return gamma(n) / pow(gamma(n/_ex2), _ex2) / pow(_ex2, n-_ex2) / n;
+                                }
+                        }
+                if (is_exactly_a<numeric>(n)
+                    and (numx.info(info_flags::inexact)
+                         or n.info(info_flags::inexact)))
+                        return legp_evalf(n, x, nullptr);
+        }
+
+        if (not is_exactly_a<numeric>(n)
+            or not n.info(info_flags::integer))
+                return legendre_P(n, x).hold();
+
+        numeric numn = ex_to<numeric>(n);
+        if (numn.is_zero())
+                return _ex1;
+        if (numn.is_one())
+                return x;
+
+        unsigned long d, k, L;
+        unsigned long n_long = static_cast<unsigned long>(numn.to_long());
+        d = k = n_long >> 1;
+
+        while (k)
+        {
+                k >>= 1;
+                d += k;
+        }
+        numeric den = _num2_p->pow_intexp(d);
+        L = n_long / 2;
+        unsigned int odd = n_long % 2;
+        unsigned long index = odd;
+        numeric curr_coeff = binomial(n_long, L);
+        curr_coeff *= den;
+        if (odd)
+                curr_coeff *= L + 1;
+        curr_coeff /= _num2_p->pow_intexp(2*L);
+        if (L % 2)
+                curr_coeff = curr_coeff.negative();
+
+        epvector vec;
+        vec.push_back(expair(power(x, numeric(index)), curr_coeff / den));
+        for (k = 1; k <= L; k++)
+        {
+                curr_coeff *= L + 1 - k;
+                curr_coeff *= 2*k + 2*L - 1 + 2*odd;
+                curr_coeff /= k;
+                curr_coeff /= 2*k - 1 + 2*odd;
+                curr_coeff = curr_coeff.negative();
+                index += 2;
+                vec.push_back(expair(power(x, numeric(index)), curr_coeff / den));
+        }
+
+        return add(vec);
+}
+
+static ex legp_deriv(const ex& n, const ex & x, unsigned deriv_param)
+{
+	    if (deriv_param == 0)
+                    throw std::runtime_error("derivative w.r.t. to the index is not supported yet");
+	    return (n*legendre_P(n-1, x).hold() - n*x*legendre_P(n, x).hold()) / (1 - pow(x, 2));
+}
+
+REGISTER_FUNCTION(legendre_P, eval_func(legp_eval).
+                        evalf_func(legp_evalf).
+                        derivative_func(legp_deriv).
+		        latex_name("P"));
 
 //////////
 // Hermite polynomials H_n(x)

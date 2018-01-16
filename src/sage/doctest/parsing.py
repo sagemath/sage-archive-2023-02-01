@@ -116,13 +116,13 @@ def remove_unicode_u(string):
 _type_repr_re = re.compile(r"<type '(?P<name>[^']+)'>")
 
 def normalize_type_repr(s):
-    """
-    Converts the repr of type objects (e.g. ``int``, ``float``) from their
+    r"""
+    Convert the repr of type objects (e.g. ``int``, ``float``) from their
     Python 2 representation to their Python 3 representation.
 
-    In Python 2, the repr of built-in types like ``int`` is like ``<type
-    'int'>``, whereas user-defined pure Python classes are displayed as
-    ``<class 'classname'>``.  On Python 3 this was normalized so that
+    In Python 2, the repr of built-in types like ``int`` is like
+    ``<type 'int'>``, whereas user-defined pure Python classes are displayed
+    as ``<class 'classname'>``.  On Python 3 this was normalized so that
     built-in types are represented the same as user-defined classes (e.g.
     ``<class 'int'>``.
 
@@ -140,8 +140,8 @@ def normalize_type_repr(s):
 
     This can work on multi-line output as well::
 
-        sage: s = "The desired output was <class 'int'>\n" \
-        ....:     "The received output was <type 'int'>"
+        sage: s = "The desired output was <class 'int'>\n"
+        sage: s += "The received output was <type 'int'>"
         sage: print(normalize_type_repr(s))
         The desired output was <class 'int'>
         The received output was <class 'int'>

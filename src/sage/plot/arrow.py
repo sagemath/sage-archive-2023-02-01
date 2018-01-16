@@ -358,7 +358,7 @@ class Arrow(GraphicPrimitive):
             sage: a.save(filename=filename)
             sage: with open(filename, 'r') as f:
             ....:     contents = f.read().replace('\n', ' ')
-            sage: two_stroke_pattern = r'setdash.*stroke.*stroke.*setdash'
+            sage: two_stroke_pattern = r'setdash.*stroke.*stroke.*setdash.*setdash'
             sage: import re
             sage: two_stroke_re = re.compile(two_stroke_pattern)
             sage: two_stroke_re.search(contents) is None

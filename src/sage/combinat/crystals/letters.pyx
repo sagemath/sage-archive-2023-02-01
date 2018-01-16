@@ -2553,7 +2553,7 @@ class CrystalOfQueerLetters(ClassicalCrystalOfLetters):
         """
         self._cartan_type = ct
         self._index_set = [-1]+[i for i in ct.index_set()]
-        Parent.__init__(self, category= ClassicalCrystals())
+        Parent.__init__(self, category= RegularSuperCrystals())
         self.module_generators = (self._element_constructor_(1),)
         self._list = list(self.__iter__())
 

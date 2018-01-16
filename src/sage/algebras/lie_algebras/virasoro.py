@@ -591,7 +591,7 @@ class ChargelessRepresentation(CombinatorialFreeModule):
         sage: all(d[i] * v[2] == M.zero() for i in range(-10, 10))
         True
 
-    REFERENCES::
+    REFERENCES:
 
     - [Mat1992]_
     - [IK2010]_

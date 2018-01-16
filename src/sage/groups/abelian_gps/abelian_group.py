@@ -902,27 +902,6 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             return 'AbelianPcpGroup(%s)'%list(self.gens_orders())
         raise PackageNotFoundError("gap_packages")
 
-    @cached_method
-    def gap(self):
-        r"""
-        Return this abelian group as a libgap group
-
-        EXAMPLES::
-
-            sage: A = AbelianGroup([2,3,6])
-            sage: A.gap()
-            Multiplicative Abelian group isomorphic to C2 x C3 x C6 with gap
-
-        If the gap package "Polycyclic" is installed, it can handle 
-        infinite cyclic groups as well::
-
-            sage: A = AbelianGroup([2,0,6])    # optional - gap_packages
-            sage: A.gap()
-            Multiplicative Abelian group isomorphic to C2 x Z x C6 with gap
-        """
-        from sage.groups.abelian_gps.abelian_group_gap import AbelianGroup_gap
-        return AbelianGroup_gap(self)
-
     def gen(self, i=0):
         """
         The `i`-th generator of the abelian group.

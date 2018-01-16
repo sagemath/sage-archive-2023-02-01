@@ -164,20 +164,3 @@ class AbelianGroupElement(AbelianGroupElementBase):
         """
         from sage.groups.abelian_gps.abelian_group import AbelianGroup, word_problem
         return word_problem(words,self)
-
-    def gap(self):
-        r"""
-        Push this element to the corresponding gap based group.
-
-        Note that the notation of elements might change.
-
-        EXAMPLES::
-
-            sage: A = AbelianGroup([2,5])
-            sage: a = A.an_element()
-            sage: a.gap()
-            g1*g2
-            sage: a == a.gap().sage()
-            True
-        """
-        return self.parent().gap()(self)

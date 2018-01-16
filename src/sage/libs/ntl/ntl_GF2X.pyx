@@ -24,7 +24,7 @@ include 'decl.pxi'
 
 from cpython.object cimport Py_EQ, Py_NE
 from sage.rings.integer cimport Integer
-from sage.misc.superseded import deprecated_function_alias
+from sage.misc.superseded import deprecation
 
 from .ntl_ZZ import unpickle_class_value
 from .ntl_GF2 cimport ntl_GF2
@@ -517,9 +517,17 @@ cdef class ntl_GF2X(object):
 
         EXAMPLES::
 
-             sage: e = ntl.GF2X([1,1,0,1,1,1,0,0,1])
-             sage: e.hex()
-             '0xb31'
+            sage: e = ntl.GF2X([1,1,0,1,1,1,0,0,1])
+            sage: e.hex()
+            '0xb31'
+
+        TESTS::
+
+            sage: hex(e)
+            doctest:warning...:
+            DeprecationWarning: use the method .hex instead
+            See http://trac.sagemath.org/24514 for details.
+            '0xb31'
         """
         cdef long _hex = GF2XHexOutput_c[0]
         GF2XHexOutput_c[0] = 1
@@ -527,7 +535,9 @@ cdef class ntl_GF2X(object):
         GF2XHexOutput_c[0] = _hex
         return s
 
-    __hex__ = deprecated_function_alias(24514, hex)
+    def __hex__(self):
+        deprecation(24514, 'use the method .hex instead')
+        return self.hex()
 
     def __hash__(self):
         return hash(self.hex())

@@ -1,3 +1,27 @@
+r"""
+Finitely generated abelian groups with gap.
+
+This module provides a python wrapper for abelian groups in gap.
+
+EXAMPLES::
+
+    sage:
+
+AUTHORS:
+
+- Simon Brandhorst (2018-01-17): initial version
+
+"""
+
+# ****************************************************************************
+#       Copyright (C) 2018 SIMON BRANDHORST <sbrandhorst@web.de>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+# ****************************************************************************
 from sage.groups.libgap_wrapper import ParentLibGAP, ElementLibGAP
 from sage.groups.libgap_mixin import GroupMixinLibGAP
 from sage.groups.group import AbelianGroup as AbelianGroupBase
@@ -8,13 +32,14 @@ from sage.rings.integer_ring import ZZ
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.groups import Groups
 
+
 def AbelianGroupGap(generator_orders):
     r"""
     Create the multiplicative abelian group with given orders of generators.
     
     INPUT:
     
-    - ``generator_orders`` -- a list of nonnegative integers where `0` will give a factor isomorphic to `\ZZ`.
+    - ``generator_orders`` -- a list of nonnegative integers where `0` gives a factor isomorphic to `\ZZ`.
     
     OUTPUT:
     
@@ -43,7 +68,14 @@ def AbelianGroupGap(generator_orders):
 
 class AbelianGroupElement_gap(ElementLibGAP):
     r"""
-    An element of an abelian group via libgap
+    An element of an abelian group via libgap.
+    
+    EXAMPLES::
+    
+            sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
+            sage: G = AbelianGroupGap([3,6])
+            sage: G.gens()
+            (g1, g2)
     """
     def __init__(self, parent, x, check=True):
         """
@@ -87,6 +119,10 @@ class AbelianGroupElement_gap(ElementLibGAP):
     def __reduce__(self):
         r"""
         Implement pickling.
+        
+        OUTPUT:
+        
+        - a tuple ``f`` such that this element is ``f[0](*f[1])``
 
         EXAMPLES::
 
@@ -104,6 +140,10 @@ class AbelianGroupElement_gap(ElementLibGAP):
         """
         The string representation of this element.
         
+        OUTPUT:
+        
+        - a string
+        
         EXAMPLES::
 
             sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
@@ -118,6 +158,10 @@ class AbelianGroupElement_gap(ElementLibGAP):
     def exponents(self):
         r"""
         Return the tuple of exponents.
+        
+        OUTPUT:
+        
+        - a tuple of sage integers
 
         EXAMPLES::
 
@@ -157,6 +201,10 @@ class AbelianGroupElement_gap(ElementLibGAP):
     def order(self):
         r"""
         Return the order of this element.
+        
+        OUTPUT:
+        
+        - an integer or infinity
 
         EXAMPLES::
 
@@ -172,27 +220,6 @@ class AbelianGroupElement_gap(ElementLibGAP):
         """
         return self.gap().Order().sage()
 
-#    def sage(self):
-#        r"""
-#        Convert this element to the corresponding abelian group in sage.
-#
-#        EXAMPLES::
-#
-#            sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
-#            sage: G = AbelianGroupGap([2,3,7,4])
-#            sage: all([a == a.gap().sage() for a in A])
-#            True
-#            sage: all([g == g.sage().gap() for g in G])
-#            True
-#        """
-#        P = self.parent()
-#        gens_sage = P._A.gens()
-#        e = P._A.identity()
-#        exp = self.exponents()
-#        for i in range(len(exp)):
-#            e *= gens_sage[i]**exp[i]
-#        return e
-
 class AbelianGroup_gap(UniqueRepresentation,GroupMixinLibGAP, ParentLibGAP, AbelianGroupBase):
     r"""
     Python wrapper for finitely generated abelian groups in gap.
@@ -204,7 +231,7 @@ class AbelianGroup_gap(UniqueRepresentation,GroupMixinLibGAP, ParentLibGAP, Abel
     - ``G`` -- (default:``None``) a gap group
     - ``ambient`` -- (default:``None``) an :class:`AbelianGroup_gap`
     - ``polycyclic_package`` -- (default: ``False``) boolean
-    - ``category` -- a category`
+    - ``category`` -- a category
 
     EXAMPLES::
 
@@ -212,7 +239,6 @@ class AbelianGroup_gap(UniqueRepresentation,GroupMixinLibGAP, ParentLibGAP, Abel
         sage: G = AbelianGroupGap([3,2,5])
         sage: G    
         Abelian group with gap, generator orders (3, 2, 5)
-
     """
     def __init__(self, G, ambient=None, polycyclic_package=False, category=None):
         r"""
@@ -223,7 +249,7 @@ class AbelianGroup_gap(UniqueRepresentation,GroupMixinLibGAP, ParentLibGAP, Abel
         TESTS::
 
             sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
-            sage: G = AbelianGroupGap([3,2,5])
+            sage: G = AbelianGroupGap([3,2,5])      # indirect doctest
             sage: TestSuite(G).run()
         """
         self._with_pc = polycyclic_package
@@ -231,14 +257,6 @@ class AbelianGroup_gap(UniqueRepresentation,GroupMixinLibGAP, ParentLibGAP, Abel
         ParentLibGAP.__init__(self, G, ambient=ambient)
 
     Element = AbelianGroupElement_gap
-
-    def __reduce__(self):
-        r"""
-        """
-        if self is self.ambient():
-            return AbelianGroupGap, (self.gens_orders(),)
-        else:
-            return self.ambient().subgroup, (self.gens(),)
 
     def _coerce_map_from_(self, S):
         r"""
@@ -274,17 +292,53 @@ class AbelianGroup_gap(UniqueRepresentation,GroupMixinLibGAP, ParentLibGAP, Abel
         
         INPUT:
         
-        - ``x` -- an element of this group, a gap element `
-        """
+        - ``x`` -- an element of this group, a gap element
+        
+        EXAMPLES::
+        
+            sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
+            sage: G = AbelianGroupGap([2,3])
+            sage: A = AbelianGroup([2,3])
+            sage: a = A.an_element()
+            sage: a
+            f0*f1
+            sage: G(a)
+            g1*g2
+            sage: A = AdditiveAbelianGroup([2,3])
+            sage: a = A.an_element()
+            sage: a
+            (1, 0)
+            sage: G(a)
+            g1
+        
+        For general fgp_modules conversion is implemented if our group is in smith form::
+        
+            sage: G = AbelianGroupGap([6])
+            sage: A = ZZ^2
+            sage: A = A / A.submodule([2*A.0, 3*A.1])
+            sage: a = 2 * A.an_element()
+            sage: a    
+            (2)
+            sage: G(a)
+            g1^2
+            """
         if isinstance(x, AbelianGroupElement_gap):
             x = x.gap()
         elif x == 1:
             x = self.gap().Identity()
         elif not isinstance(x, GapElement):
-            try: 
+            from sage.groups.abelian_gps.abelian_group_element import AbelianGroupElement
+            from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroupElement
+            from sage.modules.fg_pid.fgp_element import FGP_Element
+            if isinstance(x, AbelianGroupElement): 
                 exp = x.exponents()
-            except AttributeError:
-                exp = tuple(x) 
+            elif isinstance(x, AdditiveAbelianGroupElement):
+                exp = x._hermite_lift()
+            elif isinstance(x, FGP_Element):
+                exp = x.vector()
+            else:
+                from sage.modules.free_module_element import vector
+                exp = vector(ZZ,x)
             # turn the exponents into a gap element
             gens_gap = self.gens()
             if len(exp) != len(gens_gap):
@@ -294,6 +348,28 @@ class AbelianGroup_gap(UniqueRepresentation,GroupMixinLibGAP, ParentLibGAP, Abel
                 x *= gens_gap[i]**exp[i]
             x = x.gap()
         return self.element_class(self, x, check=check)
+
+    def all_subgroups(self):
+        r"""
+        Return the list of all subgroups of this group.
+      
+        EXAMPLES::
+        
+            sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
+            sage: G = AbelianGroupGap([2,3])
+            sage: G.all_subgroups()
+            [Subgroup of Abelian group with gap, generator orders (2, 3) generated by (),
+            Subgroup of Abelian group with gap, generator orders (2, 3) generated by (g1,),
+            Subgroup of Abelian group with gap, generator orders (2, 3) generated by (g2,),
+            Subgroup of Abelian group with gap, generator orders (2, 3) generated by (g2, g1)]
+        """
+        subgroups_gap = self.gap().AllSubgroups()
+        subgroups_sage = []
+        for G in subgroups_gap:
+            S = self.subgroup(G.GeneratorsOfGroup())
+            subgroups_sage.append(S)
+            del G
+        return subgroups_sage
 
     def is_trivial(self):
         r"""
@@ -312,7 +388,7 @@ class AbelianGroup_gap(UniqueRepresentation,GroupMixinLibGAP, ParentLibGAP, Abel
         r"""
         Return the identity element of this group.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
             sage: G = AbelianGroupGap([4,10])
@@ -443,14 +519,14 @@ class AbelianGroupAmbient_gap(AbelianGroup_gap):
     r"""
     Ambient abelian groups with gap.
     
-    Do not use this class directly. Instead use :function:`AbelianGroupGap`.
+    Do not use this class directly. Instead use :meth:`AbelianGroupGap`.
     Needs the gap package "Polycyclic" in case the group is infinite.
 
     INPUT:
 
     - ``generator_orders`` - a tuple of nonnegative integers
     - ``polycyclic_package`` -- (default: ``False``) boolean
-    - ``category` -- a category`
+    - ``category`` -- a category
     
     EXAMPLES::
     
@@ -490,7 +566,22 @@ class AbelianGroupAmbient_gap(AbelianGroup_gap):
             'Abelian group with gap, generator orders (2, 6)'
         """
         return "Abelian group with gap, generator orders " + str(self.gens_orders())
-
+    
+    def __reduce__(self):
+        r"""
+        Implements pickling.
+        
+        We have to work around the fact that gap does not provide pickling.
+                        
+        EXAMPLES::
+        
+            sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
+            sage: G = AbelianGroupGap([3,2,5])
+            sage: G == loads(dumps(G))
+            True
+        """
+        return AbelianGroupGap, (self.gens_orders(),)
+    
 class AbelianGroupSubgroup_gap(AbelianGroup_gap):
     r"""
     Subgroups of abelian groups with gap.
@@ -536,9 +627,30 @@ class AbelianGroupSubgroup_gap(AbelianGroup_gap):
             sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
             sage: G = AbelianGroupGap([2,3,4,5])
             sage: gen = G.gens()[:2]
-            sage: S = G.subgroup(gen)                # indirect doctest
+            sage: S = G.subgroup(gen)
             sage: S.__repr__()      
             'Subgroup of Abelian group with gap, generator orders (2, 3, 4, 5) generated by (g1, g2)'
         """
         s = "Subgroup of %s generated by %s"%(self.ambient(),self.gens())
         return s
+    
+    
+    def __reduce__(self):
+        r"""
+        Implements pickling.
+        
+        We have to work around the fact that gap does not provide pickling.
+                        
+        EXAMPLES::
+        
+            sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
+            sage: G = AbelianGroupGap([2,3,4,5])
+            sage: gen = G.gens()[:2]
+            sage: S = G.subgroup(gen)
+            sage: S == loads(dumps(S))
+            True
+        """
+        amb = self.ambient()
+        # avoid infinite loop
+        gens = tuple(amb(g) for g in self.gens())
+        return amb.subgroup, (gens,)

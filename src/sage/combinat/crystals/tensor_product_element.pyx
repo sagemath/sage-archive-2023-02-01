@@ -1366,6 +1366,133 @@ cdef class CrystalOfBKKTableauxElement(TensorProductOfSuperCrystalsElement):
                 cur += 1
         return Tableau(tab).conjugate()
 
+#####################################################################
+## Queer crystal elements
+
+cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrystalsElement):
+    r"""
+    Element class for a tensor product of crystals for queer Lie superalgebras.
+
+    This implements the tensor product rule for crystals of Gancharov et al.
+
+    TESTS::
+
+        sage: C = crystals.Letters(['A', [2, 1]])
+        sage: T = tensor([C,C])
+        sage: T
+        Full tensor product of the crystals [The crystal of letters for type ['A', [2, 1]], The crystal of letters for type ['A', [2, 1]]]
+        sage: T.cardinality()
+        25
+        sage: t = T.an_element(); t
+        [-3, -3]
+        sage: t.weight()
+        (2, 0, 0, 0, 0)
+    """
+
+    def e(self, i):
+        r"""
+        Return `e_i` on ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Letters(['A', [2, 1]])
+            sage: T = tensor([C,C])
+            sage: t = T(C(1),C(1))
+            sage: t.e(0)
+            [-1, 1]
+        """
+        if i > 0:
+            return TensorProductOfRegularCrystalsElement.e(self, i)
+        if i < 0:
+            x = type(self)(self._parent, reversed(self))
+            k = x.position_of_first_unmatched_plus(i)
+            if k is None:
+                return None
+            k = len(self._list) - k - 1
+            return self._set_index(k, self._list[k].e(i))
+        # Otherwise i == 0
+        for k,elt in enumerate(self._list):
+            if elt.f(i) is not None:
+                return None
+            x = elt.e(i)
+            if x is not None:
+                return self._set_index(k, x)
+        return None
+
+    def f(self, i):
+        r"""
+        Return `f_i` on ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Letters(['A', [2, 1]])
+            sage: T = tensor([C,C])
+            sage: t = T(C(1),C(1))
+            sage: t.f(0)
+            sage: t.f(1)
+            [1, 2]
+        """
+        if i > 0:
+            return TensorProductOfRegularCrystalsElement.f(self, i)
+        if i < 0:
+            x = type(self)(self._parent, reversed(self))
+            k = x.position_of_last_unmatched_minus(i)
+            if k is None:
+                return None
+            k = len(self._list) - k - 1
+            return self._set_index(k, self._list[k].f(i))
+        # Otherwise i == 0
+        for k,elt in enumerate(self._list):
+            if elt.e(i) is not None:
+                return None
+            x = elt.f(i)
+            if x is not None:
+                return self._set_index(k, x)
+        return None
+
+    # Override epsilon/phi (for now)
+    def epsilon(self, i):
+        r"""
+        Return `\varepsilon_i` on ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Letters(['A', [2, 1]])
+            sage: T = tensor([C,C])
+            sage: t = T(C(1),C(1))
+            sage: t.epsilon(0)
+            1
+        """
+        string_length = 0
+        x = self
+        while True:
+            x = x.e(i)
+            if x is None:
+                return string_length
+            else:
+                string_length += 1
+
+    def phi(self, i):
+        r"""
+        Return `\varphi_i` on ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Letters(['A', [2, 1]])
+            sage: T = tensor([C,C])
+            sage: t = T(C(1),C(1))
+            sage: t.phi(0)
+            0
+        """
+        string_length = 0
+        x = self
+        while True:
+            x = x.f(i)
+            if x is None:
+                return string_length
+            else:
+                string_length += 1
+
 # for unpickling
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.crystals.tensor_product', 'ImmutableListWithParent',  ImmutableListWithParent)

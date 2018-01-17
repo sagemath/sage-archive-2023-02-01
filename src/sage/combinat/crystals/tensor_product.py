@@ -47,7 +47,7 @@ from .letters import CrystalOfLetters
 from .spins import CrystalOfSpins, CrystalOfSpinsMinus, CrystalOfSpinsPlus
 from sage.combinat.crystals.tensor_product_element import (TensorProductOfCrystalsElement,
         TensorProductOfRegularCrystalsElement, CrystalOfTableauxElement,
-        TensorProductOfSuperCrystalsElement)
+        TensorProductOfSuperCrystalsElement, TensorProductOfQueerSuperCrystalsElement)
 from sage.misc.flatten import flatten
 from sage.structure.element import get_coercion_model
 
@@ -643,6 +643,13 @@ class FullTensorProductOfSuperCrystals(FullTensorProductOfCrystals):
         64
     """
     class Element(TensorProductOfSuperCrystalsElement):
+        pass
+
+class FullTensorProductOfQueerSuperCrystals(FullTensorProductOfCrystals):
+    r"""
+    Tensor product of queer super crystals.
+    """
+    class Element(TensorProductOfQueerSuperCrystalsElement):
         pass
 
 #########################################################

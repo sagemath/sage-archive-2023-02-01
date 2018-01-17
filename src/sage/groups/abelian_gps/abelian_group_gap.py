@@ -376,6 +376,15 @@ class AbelianGroup_gap(UniqueRepresentation,GroupMixinLibGAP, ParentLibGAP, Abel
             del G
         return subgroups_sage
 
+    @cached_method
+    def automorphism_group(self):
+        r"""
+        """
+        from sage.groups.abelian_gps.abelian_aut import AbelianGroupAutomorphismGroup_ambient
+        return AbelianGroupAutomorphismGroup_ambient(self)
+
+    aut=automorphism_group
+
     def is_trivial(self):
         r"""
         Return if this group is the trivial group.
@@ -482,9 +491,9 @@ class AbelianGroup_gap(UniqueRepresentation,GroupMixinLibGAP, ParentLibGAP, Abel
     def is_subgroup_of(self, G):
         r"""
         Return if ``self`` is a subgroup of ``G`` considered in the same ambient group.
-        
+
         EXAMPLES::
-        
+
             sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
             sage: G = AbelianGroupGap([2,3,4,5])
             sage: gen = G.gens()[:2]

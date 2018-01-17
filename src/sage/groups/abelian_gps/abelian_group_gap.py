@@ -5,7 +5,14 @@ This module provides a python wrapper for abelian groups in gap.
 
 EXAMPLES::
 
-    sage:
+    sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
+    sage: AbelianGroupGap([3,5])
+    Abelian group with gap, generator orders (3, 5)
+    
+For infinite abelian groups we use the gap package Polycyclic::
+
+    sage: AbelianGroupGap([3,0])    # optional gap_packages
+    Abelian group with gap, generator orders (3, 0)
 
 AUTHORS:
 

@@ -240,9 +240,9 @@ class atomic_write(object):
       mode bits of the file were changed manually). (Not to be confused with
       the file opening mode.)
 
-    - ``binary`` -- (boolean, default: False) the underlying file is opened
-      in binary mode.  If False then it is opened in text mode and an encoding
-      with which to write the file may be supplied.
+    - ``binary`` -- (boolean, default: True on Python 2, False on Python 3) the
+      underlying file is opened in binary mode.  If False then it is opened in
+      text mode and an encoding with which to write the file may be supplied.
 
     - ``kwargs`` -- additional keyword arguments passed to the underlying
       `io.open` call.

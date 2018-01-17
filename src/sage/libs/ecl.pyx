@@ -1,4 +1,4 @@
-r"""
+"""
 Library interface to Embeddable Common Lisp (ECL)
 """
 #*****************************************************************************
@@ -347,7 +347,8 @@ cdef cl_object ecl_safe_eval(cl_object form) except NULL:
 
     if ecl_nvalues > 1:
         s = si_coerce_to_base_string(ecl_values(1))
-        raise RuntimeError("ECL says: "+ecl_base_string_pointer_safe(s))
+        raise RuntimeError("ECL says: {}".format(
+            char_to_str(ecl_base_string_pointer_safe(s))))
     else:
         return ecl_values(0)
 
@@ -361,7 +362,8 @@ cdef cl_object ecl_safe_funcall(cl_object func, cl_object arg) except NULL:
 
     if ecl_nvalues > 1:
         s = si_coerce_to_base_string(ecl_values(1))
-        raise RuntimeError("ECL says: "+ecl_base_string_pointer_safe(s))
+        raise RuntimeError("ECL says: {}".format(
+            char_to_str(ecl_base_string_pointer_safe(s))))
     else:
         return ecl_values(0)
 
@@ -373,7 +375,8 @@ cdef cl_object ecl_safe_apply(cl_object func, cl_object args) except NULL:
 
     if ecl_nvalues > 1:
         s = si_coerce_to_base_string(ecl_values(1))
-        raise RuntimeError("ECL says: "+ecl_base_string_pointer_safe(s))
+        raise RuntimeError("ECL says: {}".format(
+            char_to_str(ecl_base_string_pointer_safe(s))))
     else:
         return ecl_values(0)
 

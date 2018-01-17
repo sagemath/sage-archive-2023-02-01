@@ -1706,13 +1706,13 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
              y * x
              sage: del R.base_ring()._factor_multivariate_polynomial # clean up
 
-        Check that a "multivariate" polynomial in one variable are factored
+        Check that a "multivariate" polynomial in one variable is factored
         correctly::
 
             sage: R.<z> = PolynomialRing(CC,1)
             sage: f = z^4 - 6*z + 3
             sage: f.factor()
-            (z - 1.60443920904349) * (z - 0.511399619393097) * (z + 1.05791941421830 - 1.59281852704435*I) * (z + 1.05
+            (z - 1.60443920904349) * (z - 0.511399619393097) * (z + 1.05791941421830 - 1.59281852704435*I) * (z + 1.05791941421830 + 1.59281852704435*I)
 
         """
         R = self.parent()

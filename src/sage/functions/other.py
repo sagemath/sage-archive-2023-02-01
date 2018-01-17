@@ -1,9 +1,25 @@
 """
 Other functions
+
+TESTS:
+
+Check that gamma function imports are deprecated (:trac:`24411`)::
+
+    sage: from sage.functions.other import beta
+    sage: beta(x, x)
+    doctest:...: DeprecationWarning:
+    Importing beta from here is deprecated. If you need to use it, please import it directly from sage.functions.gamma
+    See http://trac.sagemath.org/24411 for details.
+    beta(x, x)
 """
 from __future__ import print_function
 from six.moves import range
 from six import integer_types
+
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.functions.gamma',
+    ('gamma', 'log_gamma', 'gamma_inc', 'incomplete_gamma',
+      'gamma_inc_lower', 'psi', 'beta'), deprecation=24411)
 
 from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.expression import Expression

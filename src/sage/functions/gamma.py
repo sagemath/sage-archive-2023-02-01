@@ -1,7 +1,7 @@
 """
 Gamma and related functions
 """
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 from six.moves import range
 from six import integer_types
 

@@ -177,9 +177,6 @@ inline void py_error(const char* errmsg) {
 #define PyNumber_TrueDivide PyNumber_Divide
 
 #else
-#define PyInt_Check PyLong_Check
-#define PyInt_AsLong PyLong_AsLong
-#define PyInt_FromLong PyLong_FromLong
 #define PyString_FromString PyBytes_FromString
 #define PyString_AsString PyBytes_AsString
 #endif
@@ -454,9 +451,15 @@ const numeric numeric::arbfunc_0arg(const char* name, PyObject* parent) const
 // class numeric
 ///////////////////////////////////////////////////////////////////////////////
 
+#if PY_MAJOR_VERSION < 3
 PyObject* ZERO = PyInt_FromLong(0); // todo: never freed
 PyObject* ONE = PyInt_FromLong(1); // todo: never freed
 PyObject* TWO = PyInt_FromLong(2); // todo: never freed
+#else
+PyObject* ZERO = PyLong_FromLong(0); // todo: never freed
+PyObject* ONE = PyLong_FromLong(1); // todo: never freed
+PyObject* TWO = PyLong_FromLong(2); // todo: never freed
+#endif
 
 std::ostream& operator<<(std::ostream& os, const numeric& s) {
         switch (s.t) {
@@ -639,6 +642,27 @@ static long _mpq_pythonhash(mpq_t the_rat)
     return n;
 }
 
+
+// Initialize an mpz_t from a Python long integer
+static void _mpz_set_pylong(mpz_t z, PyLongObject* l)
+{
+    Py_ssize_t pylong_size = Py_SIZE(l);
+    int sign = 1;
+
+    if (pylong_size < 0) {
+        pylong_size = -pylong_size;
+        sign = -1;
+    }
+
+    mpz_import(z, pylong_size, -1, sizeof(digit), 0,
+               8*sizeof(digit) - PyLong_SHIFT, l->ob_digit);
+
+    if (sign < 0)
+        mpz_neg(z, z);
+}
+
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // class numeric
 ///////////////////////////////////////////////////////////////////////////////
@@ -686,6 +710,7 @@ numeric::numeric(const numeric& other) : basic(&numeric::tinfo_static) {
 numeric::numeric(PyObject* o, bool force_py) : basic(&numeric::tinfo_static) {
         if (o == nullptr) py_error("Error");
         if (not force_py) {
+#if PY_MAJOR_VERSION < 3
                 if (PyInt_Check(o)) {
                         t = LONG;
                         v._long = PyInt_AsLong(o);
@@ -694,6 +719,7 @@ numeric::numeric(PyObject* o, bool force_py) : basic(&numeric::tinfo_static) {
                         Py_DECREF(o);
                         return;
                 }
+#endif
                 if (initialized) {
                         if (py_funcs.py_is_Integer(o) != 0) {
                                 t = MPZ;
@@ -1674,10 +1700,19 @@ const numeric numeric::pow_intexp(const numeric &exponent) const
 const ex numeric::power(const numeric &exponent) const {
         verbose("pow");
         numeric expo(exponent);
-        if (exponent.t == PYOBJECT and PyInt_Check(exponent.v._pyobject)) {
+        if (exponent.t == PYOBJECT) {
+#if PY_MAJOR_VERSION < 3
+            if (PyInt_Check(exponent.v._pyobject)) {
                 expo.t = MPZ;
                 long si = PyInt_AsLong(exponent.v._pyobject);
                 mpz_set_si(expo.v._bigint, si);
+            } else
+#endif
+            if (PyLong_Check(exponent.v._pyobject)) {
+                expo.t = MPZ;
+                _mpz_set_pylong(expo.v._bigint,
+                               (PyLongObject*) exponent.v._pyobject);
+            }
         }
         if (expo.t == LONG or expo.t == MPZ)
                 return pow_intexp(expo);

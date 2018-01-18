@@ -29,9 +29,8 @@ from __future__ import print_function
 
 from functools import (partial, update_wrapper, WRAPPER_ASSIGNMENTS,
                        WRAPPER_UPDATES)
+from six import iteritems
 from copy import copy
-
-import six
 
 from sage.misc.sageinspect import (sage_getsource, sage_getsourcelines,
                                    sage_getargspec)
@@ -160,7 +159,15 @@ def sage_wraps(wrapped, assigned=WRAPPER_ASSIGNMENTS, updated=WRAPPER_UPDATES):
     assigned = set(assigned).intersection(set(dir(wrapped)))
     #end workaround
 
-    def f(wrapper):
+    def f(wrapper, assigned=assigned, updated=updated):
+        # Workedaround for using with new-style classes whose dicts can't be
+        # updated directly
+        if isinstance(wrapper, type):
+            if '__dict__' in updated:
+                updated = tuple(attr for attr in updated if attr != '__dict__')
+                for key in wrapped.__dict__:
+                    assigned.add(key)
+
         update_wrapper(wrapper, wrapped, assigned=assigned, updated=updated)
         wrapper.f = wrapped
         wrapper._sage_src_ = lambda: sage_getsource(wrapped)
@@ -331,7 +338,7 @@ class infix_operator(object):
                 return self.function(left, self.right)
 
         @sage_wraps(func)
-        class wrapper:
+        class wrapper(object):
             def __init__(self, left=None, right=None):
                 """
                 Initialize the actual infix object, with possibly a
@@ -474,9 +481,9 @@ class suboptions(object):
             suboptions = copy(self.options)
             suboptions.update(kwds.pop(self.name+"options", {}))
 
-            #Collect all the relevant keywords in kwds
-            #and put them in suboptions
-            for key, value in list(six.iteritems(kwds)):
+            # Collect all the relevant keywords in kwds
+            # and put them in suboptions
+            for key, value in list(iteritems(kwds)):
                 if key.startswith(self.name):
                     suboptions[key[len(self.name):]] = value
                     del kwds[key]
@@ -485,9 +492,9 @@ class suboptions(object):
 
             return func(*args, **kwds)
 
-        #Add the options specified by @options to the signature of the wrapped
-        #function in the Sphinx-generated documentation (Trac 9976), using the
-        #special attribute _sage_argspec_ (see e.g. sage.misc.sageinspect)
+        # Add the options specified by @options to the signature of the wrapped
+        # function in the Sphinx-generated documentation (Trac 9976), using the
+        # special attribute _sage_argspec_ (see e.g. sage.misc.sageinspect)
         def argspec():
             argspec = sage_getargspec(func)
 
@@ -497,7 +504,7 @@ class suboptions(object):
             args = (argspec.args if not argspec.args is None else []) + newArgs
             defaults = (argspec.defaults if not argspec.defaults is None else ()) \
                         + tuple(self.options.values())
-            #Note: argspec.defaults is not always a tuple for some reason
+            # Note: argspec.defaults is not always a tuple for some reason
             return ArgSpec(args, argspec.varargs, argspec.keywords, defaults)
         wrapper._sage_argspec_ = argspec
 
@@ -571,10 +578,12 @@ class options(object):
         #special attribute _sage_argspec_ (see e.g. sage.misc.sageinspect)
         def argspec():
             argspec = sage_getargspec(func)
-            args = (argspec.args if not argspec.args is None else []) + list(self.options.keys())
-            defaults = tuple(argspec.defaults if not argspec.defaults is None else ()) + tuple(self.options.values())
-            #Note: argspec.defaults is not always a tuple for some reason
+            args = ((argspec.args if not argspec.args is None else []) +
+                    list(self.options))
+            defaults = (argspec.defaults or ()) + tuple(self.options.values())
+            # Note: argspec.defaults is not always a tuple for some reason
             return ArgSpec(args, argspec.varargs, argspec.keywords, defaults)
+
         wrapper._sage_argspec_ = argspec
 
         def defaults():

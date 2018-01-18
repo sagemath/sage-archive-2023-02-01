@@ -1388,7 +1388,7 @@ cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrysta
         sage: t.weight()
         (2, 0, 0, 0, 0)
     """
-
+ 
     def e(self, i):
         r"""
         Return `e_i` on ``self``.
@@ -1404,19 +1404,15 @@ cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrysta
         if i > 0:
             return TensorProductOfRegularCrystalsElement.e(self, i)
         if i < 0:
-            x = type(self)(self._parent, reversed(self))
-            k = x.position_of_first_unmatched_plus(i)
-            if k is None:
-                return None
-            k = len(self._list) - k - 1
-            return self._set_index(k, self._list[k].e(i))
-        # Otherwise i == 0
-        for k,elt in enumerate(self._list):
-            if elt.f(i) is not None:
-                return None
-            x = elt.e(i)
-            if x is not None:
-                return self._set_index(k, x)
+            k = 0
+            w = self[0].weight()[0] + self[0].weight()[1]
+            while w == 0 and k < len(self)-1:
+                  k += 1
+                  w += self[k].weight()[0] + self[k].weight()[1]
+            b = self[k].e(i)
+            if b is None:
+               return None
+            return self._set_index(k, b)
         return None
 
     def f(self, i):
@@ -1435,19 +1431,15 @@ cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrysta
         if i > 0:
             return TensorProductOfRegularCrystalsElement.f(self, i)
         if i < 0:
-            x = type(self)(self._parent, reversed(self))
-            k = x.position_of_last_unmatched_minus(i)
-            if k is None:
-                return None
-            k = len(self._list) - k - 1
-            return self._set_index(k, self._list[k].f(i))
-        # Otherwise i == 0
-        for k,elt in enumerate(self._list):
-            if elt.e(i) is not None:
-                return None
-            x = elt.f(i)
-            if x is not None:
-                return self._set_index(k, x)
+            k = 0
+            w = self[0].weight()[0] + self[0].weight()[1]
+            while w == 0 and k < len(self)-1:
+                  k += 1
+                  w += self[k].weight()[0] + self[k].weight()[1]
+            b = self[k].f(i)
+            if b is None:
+               return None
+            return self._set_index(k, b)
         return None
 
     # Override epsilon/phi (for now)

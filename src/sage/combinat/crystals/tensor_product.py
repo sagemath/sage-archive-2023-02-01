@@ -649,6 +649,9 @@ class FullTensorProductOfQueerSuperCrystals(FullTensorProductOfCrystals):
     r"""
     Tensor product of queer super crystals.
     """
+    def index_set(self):
+        return self.crystals[0].index_set()
+    
     class Element(TensorProductOfQueerSuperCrystalsElement):
         pass
 

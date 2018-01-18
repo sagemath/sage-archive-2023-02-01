@@ -336,7 +336,8 @@ __doc__ += """
 
 __append_to_doc(
     ["WorldMap",
-     "EuropeMap"]
+     "EuropeMap",
+     "AfricaMap"]
     )
 
 __doc__ += """
@@ -2106,6 +2107,7 @@ class GraphGenerators():
     import sage.graphs.generators.world_map
     WorldMap = staticmethod(sage.graphs.generators.world_map.WorldMap)
     EuropeMap = staticmethod(sage.graphs.generators.world_map.EuropeMap)
+    AfricaMap = staticmethod(sage.graphs.generators.world_map.AfricaMap)
 
 ###########################################################################
 # Degree Sequence

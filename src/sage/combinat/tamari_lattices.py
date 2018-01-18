@@ -163,7 +163,7 @@ def GeneralizedTamariLattice(a, b, m=1):
 
     - `a` and `b` coprime integers with `a \geq b`
 
-    - `m` a nonnegative integer such that `a \geq b \times m`
+    - `m` a nonnegative integer such that `a \geq b m`
 
     OUTPUT:
 

@@ -113,7 +113,7 @@ def FreeQuadraticModule(
         inner product matrix.
 
     EXAMPLES::
-        
+
         sage: M2 = FreeQuadraticModule(ZZ,2,inner_product_matrix=[1,2,3,4])
         sage: M2 is FreeQuadraticModule(ZZ,2,inner_product_matrix=[1,2,3,4])
         True
@@ -242,8 +242,8 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
 
     TESTS:
 
-    We compare rank three free modules over the integers and
-    rationals::
+    We compare rank three free modules over the integers,
+    rationals, and complex numbers::
 
         sage: Q3 = FreeQuadraticModule(QQ,3,matrix.identity(3)) 
         sage: C3 = FreeQuadraticModule(CC,3,matrix.identity(3))
@@ -253,11 +253,11 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
         ...
         DeprecationWarning: The default order on free modules has changed. The old ordering is in sage.modules.free_module.EchelonMatrixKey
         See http://trac.sagemath.org/23878 for details.
-        True
+        False
         sage: C3 < Q3
         False
         sage: C3 > Q3
-        True
+        False
         sage: Q3 > Z3
         True
         sage: Q3 < Z3
@@ -277,7 +277,7 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
         sage: Q3 < V
         False
 
-    The inner_product_matrix is part of the comparison::
+    The :meth:`inner_product_matrix` is part of the comparison::
 
         sage: Q3zero = FreeQuadraticModule(QQ,3,matrix.zero(3))
         sage: Q3zero == Q3

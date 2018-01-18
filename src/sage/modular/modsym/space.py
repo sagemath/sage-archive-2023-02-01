@@ -145,7 +145,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         rx = other.dimension()
         if lx != rx:
             return richcmp_not_equal(lx, rx, op)
-        
+
         lx = EchelonMatrixKey(self.free_module())
         rx = EchelonMatrixKey(other.free_module())
 

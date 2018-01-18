@@ -23,7 +23,6 @@ import sage.arith.all as arith
 import sage.misc.misc as misc
 from sage.misc.cachefunc import cached_method
 from sage.structure.richcmp import richcmp_method, richcmp_not_equal, richcmp
-from sage.modules.free_module import EchelonMatrixKey
 import sage.modules.all
 
 from . import module
@@ -190,9 +189,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         rx = other.ambient()
         if lx != rx:
             return richcmp_not_equal(lx, rx, op)
-        lx = EchelonMatrixKey(self.free_module())
-        rx = EchelonMatrixKey(other.free_module())
-        return richcmp(lx, rx, op)
+        return self.free_module()._echelon_matrix_richcmp(other.free_module(), op)
 
     ################################
     # Semi-Private functions

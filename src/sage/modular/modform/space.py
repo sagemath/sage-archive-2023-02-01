@@ -1166,10 +1166,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         if self.is_ambient() or x.is_ambient():
             return richcmp(self.dimension(), x.dimension(), op)
         else:
-            from sage.modules.free_module import EchelonMatrixKey
-            lx = EchelonMatrixKey(self.free_module())
-            rx = EchelonMatrixKey(x.free_module())
-            return richcmp(lx, rx, op)
+            return self.free_module()._echelon_matrix_richcmp(x.free_module(), op)
 
     def span_of_basis(self, B):
         """

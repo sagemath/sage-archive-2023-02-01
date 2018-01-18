@@ -179,10 +179,9 @@ import sage.rings.integer
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from sage.misc.randstate import current_randstate
 from sage.structure.sequence import Sequence
-from sage.structure.richcmp import (
-    richcmp_method,rich_to_bool,op_LT,op_LE,op_EQ,op_NE,op_GT,op_GE)
-from sage.structure.richcmp import (rich_to_bool, richcmp,
-                                    richcmp_not_equal, revop)
+from sage.structure.richcmp import (richcmp_method, rich_to_bool, richcmp,
+                                    richcmp_not_equal, revop,
+                                    op_LT,op_LE,op_EQ,op_NE,op_GT,op_GE)
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecation
 
@@ -1036,43 +1035,44 @@ done from the right side.""")
             except ArithmeticError:
                 raise TypeError("element {!r} is not in free module".format(x))
         return self.element_class(self, x, coerce, copy)
-    
-    def __richcmp__(self,other,op):
+
+    def __richcmp__(self, other, op):
         """
         Rich comparison via containment in the same ambient space.
-        
+
         Two modules compare if their ambient module/space is equal.
         Ambient spaces are equal if they have the same
         base ring, rank and inner product matrix.
-        
-        We compare rank three free modules over the integers and
-        rationals::
+
+        EXAMPLES:
+
+        We compare rank three free modules over the integers,
+        rationals, and complex numbers. Note the free modules
+        ``QQ^3`` (and hence ``ZZ^3``) and ``CC^3`` are incomparable
+        because of the different ambient vector spaces::
 
             sage: QQ^3 <= CC^3
             doctest:warning
             ...
             DeprecationWarning: The default order on free modules has changed. The old ordering is in sage.modules.free_module.EchelonMatrixKey
             See http://trac.sagemath.org/23878 for details.
-            True
+            False
             sage: CC^3 <= QQ^3
             False
             sage: QQ^3 <= QQ^3
             True
 
-        ::
+            sage: QQ^3 <= ZZ^3
+            False
+            sage: ZZ^3 <= QQ^3
+            True
+            sage: ZZ^3 <= CC^3
+            False
+            sage: CC^3 <= ZZ^3
+            False
 
-            sage: Q = QQ; Z = ZZ; C=CC
-            sage: Q^3 <= Z^3
-            False
-            sage: Z^3 <= Q^3
-            True
-            sage: Z^3 <= C^3
-            True
-            sage: C^3 <= Z^3
-            False
-                
-        Comparison with a sub-module::
-            
+        Comparison with a submodule::
+
             sage: A = QQ^3
             sage: V = span([[1,2,3], [5,6,7], [8,9,10]], QQ)
             sage: V
@@ -1091,30 +1091,29 @@ done from the right side.""")
             sage: L2 <= L1
             True
             sage: L1 <= L2
-            False   
-
-        More exotic comparisons:: 
-
-            sage: R1=ZZ[sqrt(2)]
-            sage: F1=R1^3
-            sage: V1=F1.span([[sqrt(2),sqrt(2),0]])
-            sage: F2=ZZ^3
-            sage: V2=F2.span([[2,2,0]])
-            sage: V2<=V1
-            True
-            sage: V1<=V2
-            False
-            sage: R2=GF(5)[x]
-            sage: F3=R2^3
-            sage: V3=F3.span([[x^5-1,1+x+x^2+x^3+x^4,0]])
-            sage: W3=F3.span([[1,1,0],[0,4,0]])
-            sage: V3<=W3
-            True
-            sage: W3<=V3
             False
 
-        We compare a one dimensional space to a two dimensional
-        space::
+        More exotic comparisons::
+
+            sage: R1 = ZZ[sqrt(2)]
+            sage: F1 = R1^3
+            sage: V1 = F1.span([[sqrt(2),sqrt(2),0]])
+            sage: F2 = ZZ^3
+            sage: V2 = F2.span([[2,2,0]])
+            sage: V2 <= V1  # Different ambient vector spaces
+            False
+            sage: V1 <= V2
+            False
+            sage: R2 = GF(5)[x]
+            sage: F3 = R2^3
+            sage: V3 = F3.span([[x^5-1,1+x+x^2+x^3+x^4,0]])
+            sage: W3 = F3.span([[1,1,0],[0,4,0]])
+            sage: V3 <= W3
+            True
+            sage: W3 <= V3
+            False
+
+        We compare a one dimensional space to a two dimensional space::
 
             sage: V = span([[1,2,3], [5,6,7], [8,9,10]], QQ)
             sage: M = span([[5,6,7]], QQ)
@@ -1154,29 +1153,16 @@ done from the right side.""")
 
         TESTS::
 
-            We compare rank three free modules over the integers and
-            rationals::
-
-            sage: QQ^3 < CC^3
+            sage: QQ^3 < ZZ^3
+            False
+            sage: ZZ^3 < QQ^3
             True
-            sage: CC^3 < QQ^3
+            sage: ZZ^3 < CC^3
             False
-            sage: QQ^3 < QQ^3
-            False
-
-        ::
-
-            sage: Q = QQ; Z = ZZ; C=CC
-            sage: Q^3 < Z^3
-            False
-            sage: Z^3 < Q^3
-            True
-            sage: Z^3 < C^3
-            True
-            sage: C^3 < Z^3
+            sage: CC^3 < ZZ^3
             False
 
-        Comparison with a sub-module::
+        Comparison with a submodule::
 
             sage: A = QQ^3
             sage: V = span([[1,2,3], [5,6,7], [8,9,10]], QQ)
@@ -1196,10 +1182,9 @@ done from the right side.""")
             sage: L2 < L1
             True
             sage: L1 < L2
-            False  
+            False
 
-        We compare a `\ZZ`-module to a one-dimensional
-        space::
+        We compare a `\ZZ`-module to a one-dimensional space::
 
             sage: V = span([[5,6,7]], ZZ).scale(1/11);  V
             Free module of degree 3 and rank 1 over Integer Ring
@@ -1211,17 +1196,17 @@ done from the right side.""")
             sage: M < V
             False
 
-        We compare rank three free modules over the integers and
-        rationals::
+        We compare rank three free modules over the rationals and
+        complex numbers::
 
             sage: QQ^3 >= CC^3
             False
             sage: CC^3 >= QQ^3
-            True
+            False
             sage: QQ^3 >= QQ^3
             True
 
-        Comparison with a sub-module::
+        Comparison with a submodule::
 
             sage: A = QQ^3
             sage: V = span([[1,2,3], [5,6,7], [8,9,10]], QQ)
@@ -1243,17 +1228,17 @@ done from the right side.""")
             sage: L1 >= L2
             True
 
-        We compare rank three free modules over the integers and
-        rationals::
+        We compare rank three free modules over the rationals and
+        complex numbers::
 
             sage: QQ^3 > CC^3
             False
             sage: CC^3 > QQ^3
-            True
+            False
             sage: QQ^3 > QQ^3
             False
 
-        Comparison with a sub-module::
+        Comparison with a submodule::
 
             sage: A = QQ^3
             sage: V = span([[1,2,3], [5,6,7], [8,9,10]], QQ)
@@ -1278,7 +1263,7 @@ done from the right side.""")
         if self is other:
             return rich_to_bool(op, 0)
         if not isinstance(other, FreeModule_generic):
-            return NotImplemented 
+            return NotImplemented
         # Check equality first if needed
         if op == op_EQ:
             return self._eq(other)
@@ -1295,100 +1280,33 @@ done from the right side.""")
         if op == op_GT:
             return (not self._eq(other)) and other.is_submodule(self)
 
-    def _eq(self,other):
+    def _eq(self, other):
         r"""
-        Return if this free module is equal to other.
+        Return if ``self`` is equal to ``other``.
 
         Ambient spaces are considered equal if they have the same
         rank, basering and inner product matrix.
 
         Modules in the same ambient space are partially ordered by inclusion.
 
-        EXAMPLES:
+        EXAMPLES::
 
-        We compare rank three free modules over the integers and
-        rationals::
-
-            sage: QQ^3 < CC^3
-            doctest:warning
-            ...
-            DeprecationWarning: The default order on free modules has changed. The old ordering is in sage.modules.free_module.EchelonMatrixKey
-            See http://trac.sagemath.org/23878 for details.
+            sage: L = IntegralLattice("U")
+            sage: L is IntegralLattice("U")
+            False
+            sage: L._eq(IntegralLattice("U"))
             True
-            sage: CC^3 < QQ^3
-            False
-            sage: CC^3 > QQ^3
-            True
-
-        ::
-
-            sage: Q = QQ; Z = ZZ
-            sage: Q^3 == Z^3
-            False
-            sage: Q^3 == Q^3
-            True
-            sage: Z^3 > Z^3
-            False
-
-        Comparison with a sub-module::
-
-            sage: V = span([[1,2,3], [5,6,7], [8,9,10]], QQ)
-            sage: V
-            Vector space of degree 3 and dimension 2 over Rational Field
-            Basis matrix:
-            [ 1  0 -1]
-            [ 0  1  2]
-            sage: A = QQ^3
-            sage: V < A
-            True
-            sage: A < V
-            False
-
-        Comparison with a quotient module (see :trac:`10513`)::
-
-            sage: M = QQ^3 / [[1,2,3]]
-            sage: V = QQ^2
-            sage: V == M
-            False
-            sage: M == V
-            False
-
-        We create the module `\ZZ^3`, and the submodule generated by
-        one vector `(1,1,0)`, and check whether certain elements are
-        in the submodule::
-
-            sage: R = FreeModule(ZZ, 3)
-            sage: V = R.submodule([R.gen(0) + R.gen(1)])
-            sage: R.gen(0) + R.gen(1) in V
-            True
-            sage: R.gen(0) + 2*R.gen(1) in V
-            False
-
-            sage: w = (1/2)*(R.gen(0) + R.gen(1))
-            sage: w
-            (1/2, 1/2, 0)
-            sage: w.parent()
-            Vector space of dimension 3 over Rational Field
-            sage: w in V
-            False
-            sage: V.coordinates(w)
-            [1/2]
         """
-        lx = self.rank()
-        rx = other.rank()
-        if lx != rx:
+        if self.rank() != other.rank():
             return False
-        lx = self.base_ring()
-        rx = other.base_ring()
-        if lx != rx:
+        if self.base_ring() != other.base_ring():
             return False
         # We do not want to create an inner product matrix in memory if
         # self and other use the dot product
-        if not (self._inner_product_is_dot_product() and other._inner_product_is_dot_product()):
-            #this only affects free_quadratic_modules
-            lx = self.inner_product_matrix()
-            rx = other.inner_product_matrix()
-            if lx != rx:
+        if not (self._inner_product_is_dot_product()
+                and other._inner_product_is_dot_product()):
+            # This only affects free_quadratic_modules
+            if self.inner_product_matrix() != other.inner_product_matrix():
                 return False
         from sage.modules.quotient_module import FreeModule_ambient_field_quotient
         lq = isinstance(self, FreeModule_ambient_field_quotient)
@@ -1407,9 +1325,7 @@ done from the right side.""")
                 rx = other.zero_submodule()
             if lx != rx:
                 return False
-        lx = isinstance(self, FreeModule_ambient)
-        rx = isinstance(other, FreeModule_ambient)
-        if lx and rx:
+        if isinstance(self, FreeModule_ambient) and isinstance(other, FreeModule_ambient):
             return True
         # self and other are not ambient.
         # but they are contained in the same ambient space
@@ -1417,15 +1333,13 @@ done from the right side.""")
         # We use self.echelonized_basis_matrix() == other.echelonized_basis_matrix()
         # with the matrix to avoid a circular reference.
         from sage.rings.integer_ring import IntegerRing
-        if self.base_ring().is_field() or self.base_ring() is IntegerRing:
+        if self.base_ring().is_field() or self.base_ring() is IntegerRing():
             # We know that the Hermite normal form is unique here.
-            lx = self.echelonized_basis_matrix()
-            rx = other.echelonized_basis_matrix()
-            return lx == rx
+            return self.echelonized_basis_matrix() == other.echelonized_basis_matrix()
         return self.is_submodule(other) and other.is_submodule(self)
 
     def is_submodule(self, other):
-        """
+        r"""
         Return ``True`` if ``self`` is a submodule of ``other``.
 
         EXAMPLES::
@@ -1462,7 +1376,7 @@ done from the right side.""")
 
         Since :meth:`basis` is not implemented in general, submodule
         testing does not work for all PID's. However, trivial cases are
-        already used (and useful) for coercion, e.g. ::
+        already used (and useful) for coercion, e.g.::
 
             sage: QQ(1/2) * vector(ZZ['x']['y'],[1,2,3,4])
             (1/2, 1, 3/2, 2)
@@ -1477,24 +1391,34 @@ done from the right side.""")
             False
 
             sage: M1 = QQ^3 / [[1,2,3]]
-            sage: V1 = span(QQ,[(1,0,0)])+ M1.relations()
+            sage: V1 = span(QQ,[(1,0,0)]) + M1.relations()
             sage: M2 = V1 / M1.relations()
-            sage: M2.is_submodule(M1)
-            True
+            sage: M2.is_submodule(M1)  # Different ambient vector spaces
+            False
         """
         if self is other:
             return True
         if not isinstance(other, FreeModule_generic):
             return False
+        # Removing this try-except block changes the behavior of
+        #   is_submodule for (QQ^2).is_submodule(CC^2)
+        try:
+            if self.ambient_vector_space() != other.ambient_vector_space():
+                return False
+            if other is other.ambient_vector_space():
+                return True
+        except AttributeError:
+            # Not all free modules have an ambient_vector_space.
+            pass
         from sage.modules.quotient_module import FreeModule_ambient_field_quotient
         if isinstance(other, FreeModule_ambient_field_quotient):
             #if the relations agree we continue with the covers.
             if isinstance(self, FreeModule_ambient_field_quotient):
-                if other.relations()!=self.relations():
+                if other.relations() != self.relations():
                     return False
                 self = self.cover()
             else:
-                if other.relations()!= 0:
+                if other.relations() != 0:
                     return False
             other = other.cover()
 
@@ -1516,11 +1440,11 @@ done from the right side.""")
             except NotImplementedError:
                 if not R.fraction_field().is_subring(S):
                     raise NotImplementedError("could not determine if %s is a "
-                                              "subring of %s" %(R, S))
+                                              "subring of %s" % (R, S))
         # now R is a subring of S
         if other.is_ambient() and S.is_field():
             return True
-        try: 
+        try:
             M = other.basis_matrix().solve_left(self.basis_matrix())
         except ValueError:
             return False
@@ -1883,25 +1807,22 @@ done from the right side.""")
 
     def coordinate_module(self, V):
         r"""
-        Suppose V is a submodule of ``self`` (or a module commensurable with
-        self), and that ``self`` is a free module over `R` of rank
+        Suppose ``V`` is a submodule of ``self`` (or a module commensurable
+        with ``self``), and that ``self`` is a free module over `R` of rank
         `n`. Let `\phi` be the map from ``self`` to
         `R^n` that sends the basis vectors of ``self`` in order to the
         standard basis of `R^n`. This function returns the image
         `\phi(V)`.
 
-        .. warning::
+        .. WARNING::
 
-           If there is no integer `d` such that `dV` is a
-           submodule of self, then this function will give total
-           nonsense.
+           If there is no integer `d` such that `dV` is a submodule
+           of ``self``, then this function will give total nonsense.
 
         EXAMPLES:
 
         We illustrate this function with some
-        `\ZZ`-submodules of `\QQ^3`.
-
-        ::
+        `\ZZ`-submodules of `\QQ^3`::
 
             sage: V = (ZZ^3).span([[1/2,3,5], [0,1,-3]])
             sage: W = (ZZ^3).span([[1/2,4,2]])
@@ -1912,10 +1833,7 @@ done from the right side.""")
             sage: V.0 + 4*V.1
             (1/2, 4, 2)
 
-        In this example, the coordinate module isn't even in
-        `\ZZ^3`.
-
-        ::
+        In this example, the coordinate module isn't even in `\ZZ^3`::
 
             sage: W = (ZZ^3).span([[1/4,2,1]])
             sage: V.coordinate_module(W)
@@ -2898,14 +2816,12 @@ class FreeModule_generic_pid(FreeModule_generic):
 
     def intersection(self, other):
         r"""
-        Return the intersection of ``self`` and other.
+        Return the intersection of ``self`` and ``other``.
 
         EXAMPLES:
 
         We intersect two submodules one of which is clearly
-        contained in the other.
-
-        ::
+        contained in the other::
 
             sage: A = ZZ^2
             sage: M1 = A.span([[1,1]])
@@ -2918,9 +2834,7 @@ class FreeModule_generic_pid(FreeModule_generic):
             True
 
         We intersection two submodules of `\ZZ^3` of rank
-        `2`, whose intersection has rank `1`.
-
-        ::
+        `2`, whose intersection has rank `1`::
 
             sage: A = ZZ^3
             sage: M1 = A.span([[1,1,1], [1,2,3]])
@@ -2931,9 +2845,7 @@ class FreeModule_generic_pid(FreeModule_generic):
             [2 2 2]
 
         We compute an intersection of two `\ZZ`-modules that
-        are not submodules of `\ZZ^2`.
-
-        ::
+        are not submodules of `\ZZ^2`::
 
             sage: A = ZZ^2
             sage: M1 = A.span([[1,2]]).scale(1/6)
@@ -2943,10 +2855,7 @@ class FreeModule_generic_pid(FreeModule_generic):
             Echelon basis matrix:
             [1/3 2/3]
 
-        We intersect a `\ZZ`-module with a
-        `\QQ`-vector space.
-
-        ::
+        We intersect a `\ZZ`-module with a `\QQ`-vector space::
 
             sage: A = ZZ^3
             sage: L = ZZ^3
@@ -2966,9 +2875,12 @@ class FreeModule_generic_pid(FreeModule_generic):
 
             sage: L.<w> = NumberField(x^2 - x + 2)
             sage: OL = L.ring_of_integers()
-            sage: V = L**3; W1 = V.span([[0,w/5,0], [1,0,-1/17]], OL); W2 = V.span([[0,(1-w)/5,0]], OL)
+            sage: V = L**3
+            sage: W1 = V.span([[0,w/5,0], [1,0,-1/17]], OL)
+            sage: W2 = V.span([[0,(1-w)/5,0]], OL)
             sage: W1.intersection(W2)
-            Free module of degree 3 and rank 1 over Maximal Order in Number Field in w with defining polynomial x^2 - x + 2
+            Free module of degree 3 and rank 1 over Maximal Order in
+             Number Field in w with defining polynomial x^2 - x + 2
             Echelon basis matrix:
             [  0 2/5   0]
 
@@ -3011,16 +2923,14 @@ class FreeModule_generic_pid(FreeModule_generic):
     
     def __and__(self, other):
         r"""
-        Return the intersection of ``self`` and other.
-        
+        Return the intersection of ``self`` and ``other``.
+
         See :meth:`intersection`.
-        
+
         EXAMPLES:
 
         We intersect two submodules one of which is clearly
-        contained in the other.
-
-        ::
+        contained in the other::
 
             sage: A = ZZ^2
             sage: M1 = A.span([[1,1]])
@@ -3033,9 +2943,7 @@ class FreeModule_generic_pid(FreeModule_generic):
             True
 
         We intersection two submodules of `\ZZ^3` of rank
-        `2`, whose intersection has rank `1`.
-
-        ::
+        `2`, whose intersection has rank `1`::
 
             sage: A = ZZ^3
             sage: M1 = A.span([[1,1,1], [1,2,3]])
@@ -4570,9 +4478,9 @@ class FreeModule_generic_field(FreeModule_generic_pid):
 
     def quotient_abstract(self, sub, check=True):
         r"""
-        Returns an ambient free module isomorphic to the quotient space of
-        ``self`` modulo sub, together with maps from ``self`` to the quotient, and
-        a lifting map in the other direction.
+        Return an ambient free module isomorphic to the quotient space
+        of ``self`` modulo ``sub``, together with maps from ``self`` to
+        the quotient, and a lifting map in the other direction.
 
         Use ``self.quotient(sub)`` to obtain the quotient
         module as an object equipped with natural maps in both directions,
@@ -4580,23 +4488,19 @@ class FreeModule_generic_field(FreeModule_generic_pid):
 
         INPUT:
 
+        -  ``sub`` -- a submodule of ``self`` or something that can
+           be turned into one via ``self.submodule(sub)``
 
-        -  ``sub`` - a submodule of self, or something that can
-           be turned into one via self.submodule(sub).
-
-        -  ``check`` - (default: True) whether or not to check
-           that sub is a submodule.
-
+        -  ``check`` -- (default: ``True``) whether or not to check
+           that sub is a submodule
 
         OUTPUT:
 
+        -  ``U`` -- the quotient as an abstract *ambient* free module
 
-        -  ``U`` - the quotient as an abstract *ambient* free
-           module
+        -  ``pi`` -- projection map to the quotient
 
-        -  ``pi`` - projection map to the quotient
-
-        -  ``lift`` - lifting map back from quotient
+        -  ``lift`` -- lifting map back from quotient
 
 
         EXAMPLES::
@@ -4611,9 +4515,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             sage: pi(V.0 + V.2)
             (0)
 
-        Another example involving a quotient of one subspace by another.
-
-        ::
+        Another example involving a quotient of one subspace by another::
 
             sage: A = matrix(QQ,4,4,[0,1,0,0, 0,0,1,0, 0,0,0,1, 0,0,0,0])
             sage: V = (A^3).kernel()
@@ -5803,7 +5705,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             True
         """
         return hash(self.__basis)
-    
+
     def _echelon_matrix_richcmp(self, other, op):
         r"""
         Compare the free module ``self`` with other.
@@ -5878,7 +5780,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         # with the matrix to avoid a circular reference.
         return richcmp(self.echelonized_basis_matrix(),
                        other.echelonized_basis_matrix(), op)
-    
+
     def construction(self):
         """
         Returns the functorial construction of self, namely, the subspace
@@ -7361,13 +7263,13 @@ class EchelonMatrixKey(object):
     A total ordering on free modules for sorting.
 
     This class orders modules by their ambient spaces, then by dimension,
-    then in order by their echelon matrices. If a function returns a list of 
-    free modules, this can be used to sort the output and thus render 
+    then in order by their echelon matrices. If a function returns a list
+    of free modules, this can be used to sort the output and thus render
     it deterministic.
 
     INPUT:
 
-        - a free module
+    - ``obj`` -- a free module
 
     EXAMPLES::
 
@@ -7400,16 +7302,17 @@ class EchelonMatrixKey(object):
         """
         self.obj = obj
 
-    def __richcmp__(self,other,op):
+    def __richcmp__(self, other, op):
         r"""
         A total ordering on free modules.
 
         TESTS::
 
-            sage: from sage.modules.free_module import EchelonMatrixKey          
+            sage: from sage.modules.free_module import EchelonMatrixKey
             sage: Y = EchelonMatrixKey(CC^3)
             sage: Z = EchelonMatrixKey(ZZ^2)
             sage: Z < Y
             True
         """
-        return self.obj._echelon_matrix_richcmp(other.obj,op)
+        return self.obj._echelon_matrix_richcmp(other.obj, op)
+

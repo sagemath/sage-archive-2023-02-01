@@ -115,9 +115,9 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
         sage: U = M.open_subset('U') # complement of the North pole
-        sage: c_xy.<x,y> = U.chart() # stereographic coordinates from North pole
+        sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
         sage: V = M.open_subset('V') # complement of the South pole
-        sage: c_uv.<u,v> = V.chart() # stereographic coordinates from South pole
+        sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
         sage: M.declare_union(U,V)   # S^2 is the union of U and V
         sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
         ....:                 intersection_name='W', restrictions1= x^2+y^2!=0,
@@ -190,9 +190,9 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
             sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
             sage: U = M.open_subset('U') # complement of the North pole
-            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from North pole
+            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
             sage: V = M.open_subset('V') # complement of the South pole
-            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from South pole
+            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
             sage: M.declare_union(U,V)   # S^2 is the union of U and V
             sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
             ....:                intersection_name='W', restrictions1= x^2+y^2!=0,

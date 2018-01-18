@@ -217,7 +217,7 @@ When obtaining Nash equilibrium the following algorithms are
 currently available:
 
 * ``'lp'``: A solver for constant sum 2 player games using linear
-  programming. This contructs a
+  programming. This constructs a
   :mod:`MixedIntegerLinearProgram <sage.numerical.MILP>` using the
   solver which was passed in with ``solver`` to solve the linear
   programming representation of the game. See

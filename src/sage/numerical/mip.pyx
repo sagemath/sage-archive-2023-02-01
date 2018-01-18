@@ -238,6 +238,7 @@ from __future__ import print_function
 from copy import copy
 from sage.structure.parent cimport Parent
 from sage.structure.element cimport Element
+from sage.structure.element import is_Matrix
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecation
 
@@ -852,7 +853,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         if not name and self._first_variable_names:
             name = self._first_variable_names.pop(0)
 
-        return mip_variable_parent(self,
+        return MIPVariable(self,
                       vtype,
                       name=name,
                       lower_bound=0 if (nonnegative or binary) else None,
@@ -2875,18 +2876,17 @@ class MIPSolverException(RuntimeError):
     pass
 
 
-cdef class MIPVariable(Element):
+cdef class MIPVariable(SageObject):
     r"""
     ``MIPVariable`` is a variable used by the class
     ``MixedIntegerLinearProgram``.
 
-    .. warning::
+    .. WARNING::
 
         You should not instantiate this class directly. Instead, use
         :meth:`MixedIntegerLinearProgram.new_variable`.
     """
-
-    def __init__(self, parent, mip, vtype, name, lower_bound, upper_bound):
+    def __init__(self, mip, vtype, name="", lower_bound=0, upper_bound=None):
         r"""
         Constructor for ``MIPVariable``.
 
@@ -2916,7 +2916,6 @@ cdef class MIPVariable(Element):
             sage: p.new_variable(nonnegative=True)
             MIPVariable of dimension 1
         """
-        super(MIPVariable, self).__init__(parent)
         self._dict = {}
         self._p = mip
         self._vtype = vtype
@@ -3030,8 +3029,8 @@ cdef class MIPVariable(Element):
             sage: q.number_of_variables()
             2
         """
-        cdef MIPVariable cp = type(self)(self.parent(), mip, self._vtype,
-                                         self._name, self._lower_bound, self._upper_bound)
+        cdef MIPVariable cp = type(self)(mip, self._vtype, self._name,
+                                         self._lower_bound, self._upper_bound)
         cp._dict = copy(self._dict)
         return cp
 
@@ -3178,6 +3177,37 @@ cdef class MIPVariable(Element):
         """
         return self._p
 
+    def __mul__(left, right):
+        """
+        Multiply ``left`` with ``right``.
+
+        EXAMPLES::
+
+            sage: p = MixedIntegerLinearProgram(solver='GLPK')
+            sage: v = p.new_variable()
+            sage: m = matrix([[1,2], [3,4]])
+            sage: v * m
+            (1.0, 2.0)*x_0 + (3.0, 4.0)*x_1
+            sage: m * v
+            (1.0, 3.0)*x_0 + (2.0, 4.0)*x_1
+
+            sage: p = MixedIntegerLinearProgram(solver='PPL')
+            sage: v = p.new_variable()
+            sage: m = matrix([[1,1/2], [2/3,3/4]])
+            sage: v * m
+            (1, 1/2)*x_0 + (2/3, 3/4)*x_1
+            sage: m * v
+            (1, 2/3)*x_0 + (1/2, 3/4)*x_1
+        """
+        if isinstance(left, MIPVariable):
+            if not is_Matrix(right):
+                return NotImplemented
+            return (<MIPVariable> left)._matrix_rmul_impl(right)
+        else:
+            if not is_Matrix(left):
+                return NotImplemented
+            return (<MIPVariable> right)._matrix_lmul_impl(left)
+
     cdef _matrix_rmul_impl(self, m):
         """
         Implement the action of a matrix multiplying from the right.
@@ -3205,94 +3235,4 @@ cdef class MIPVariable(Element):
         V = FreeModule(self._p.base_ring(), m.nrows())
         T = self._p.linear_functions_parent().tensor(V)
         return T(result)
-
-    cpdef _acted_upon_(self, mat, bint self_on_left):
-        """
-        Act with matrices on MIPVariables.
-
-        EXAMPLES::
-
-            sage: p = MixedIntegerLinearProgram(solver='GLPK')
-            sage: v = p.new_variable()
-            sage: m = matrix([[1,2], [3,4]])
-            sage: v * m
-            (1.0, 2.0)*x_0 + (3.0, 4.0)*x_1
-            sage: m * v
-            (1.0, 3.0)*x_0 + (2.0, 4.0)*x_1
-        """
-        from sage.matrix.matrix import is_Matrix
-        if is_Matrix(mat):
-            return self._matrix_rmul_impl(mat) if self_on_left else self._matrix_lmul_impl(mat)
-
-
-cdef class MIPVariableParent(Parent):
-    """
-    Parent for :class:`MIPVariable`.
-
-    .. warning::
-
-        This class is for internal use. You should not instantiate it
-        yourself. Use :meth:`MixedIntegerLinearProgram.new_variable`
-        to generate mip variables.
-    """
-
-    Element = MIPVariable
-
-    def _repr_(self):
-        r"""
-        Return representation of self.
-
-        OUTPUT:
-
-        String.
-
-        EXAMPLES::
-
-            sage: mip.<v> = MixedIntegerLinearProgram(solver='GLPK')
-            sage: v.parent()
-            Parent of MIPVariables
-        """
-        return 'Parent of MIPVariables'
-
-    def _an_element_(self):
-        """
-        Construct a MIP variable.
-
-        OUTPUT:
-
-        This is required for the coercion framework. We raise a
-        ``TypeError`` to abort search for any coercion to another
-        parent for binary operations. The only interesting operations
-        involving :class:`MIPVariable` elements are actions by
-        matrices.
-
-        EXAMPLES::
-
-            sage: mip.<x> = MixedIntegerLinearProgram(solver='GLPK')
-            sage: parent = x.parent()
-            sage: parent.an_element()    # indirect doctest
-            Traceback (most recent call last):
-            ...
-            TypeError: disallow coercion
-        """
-        raise TypeError('disallow coercion')
-
-    def _element_constructor_(self, mip, vtype, name="", lower_bound=0, upper_bound=None):
-        """
-        The Element constructor
-
-        INPUT/OUTPUT:
-
-        See :meth:`MIPVariable.__init__`.
-
-        EXAMPLES::
-
-            sage: mip = MixedIntegerLinearProgram(solver='GLPK')
-            sage: mip.new_variable()    # indirect doctest
-            MIPVariable of dimension 1
-        """
-        return self.element_class(self, mip, vtype, name, lower_bound, upper_bound)
-
-
-mip_variable_parent = MIPVariableParent()
 

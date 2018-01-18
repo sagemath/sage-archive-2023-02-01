@@ -882,17 +882,17 @@ class CartanTypeFactory(SageObject):
         return cls._colors.get(i, 'black')
 
     # add options to class
-    options=GlobalOptions('CartanType',
-        module='sage.combinat.root_system.cartan_type', option_class='CartanTypeFactory',
-        doc=r"""
+    class options(GlobalOptions):
+        r"""
         Sets and displays the options for Cartan types. If no parameters
         are set, then the function returns a copy of the options dictionary.
 
         The ``options`` to partitions can be accessed as the method
         :obj:`CartanType.options` of
         :class:`CartanType <CartanTypeFactory>`.
-        """,
-        end_doc=r"""
+
+        @OPTIONS@
+
         EXAMPLES::
 
             sage: ct = CartanType(['D',5,2]); ct
@@ -934,37 +934,39 @@ class CartanTypeFactory(SageObject):
             0   1   2   3   4
             A8^2+
             sage: CartanType.options._reset()
-        """,
-        notation=dict(default="Stembridge",
+        """
+        NAME = 'CartanType'
+        module = 'sage.combinat.root_system.cartan_type'
+        option_class = 'CartanTypeFactory'
+        notation = dict(default="Stembridge",
                       description='Specifies which notation Cartan types should use when printed',
                       values=dict(Stembridge="use Stembridge's notation",
                                   Kac="use Kac's notation"),
                       case_sensitive=False,
-                      alias=dict(BC="Stembridge", tilde="Stembridge", twisted="Kac")),
-        dual_str=dict(default="*",
+                      alias=dict(BC="Stembridge", tilde="Stembridge", twisted="Kac"))
+        dual_str = dict(default="*",
                       description='The string used for dual Cartan types when printing',
-                      checker=lambda char: isinstance(char, string_types)),
-        dual_latex=dict(default="\\vee",
+                      checker=lambda char: isinstance(char, string_types))
+        dual_latex = dict(default="\\vee",
                         description='The latex used for dual CartanTypes when latexing',
-                        checker=lambda char: isinstance(char, string_types)),
-        mark_special_node=dict(default="none",
+                        checker=lambda char: isinstance(char, string_types))
+        mark_special_node = dict(default="none",
                                description="Make the special nodes",
                                values=dict(none="no markup", latex="only in latex",
                                            printing="only in printing", both="both in latex and printing"),
-                               case_sensitive=False),
-        special_node_str=dict(default="@",
+                               case_sensitive=False)
+        special_node_str = dict(default="@",
                               description="The string used to indicate which node is special when printing",
-                              checker=lambda char: isinstance(char, string_types)),
-        marked_node_str=dict(default="X",
+                              checker=lambda char: isinstance(char, string_types))
+        marked_node_str = dict(default="X",
                              description="The string used to indicate a marked node when printing",
-                             checker=lambda char: isinstance(char, string_types)),
-        latex_relabel=dict(default=True,
+                             checker=lambda char: isinstance(char, string_types))
+        latex_relabel = dict(default=True,
                            description="Indicate in the latex output if a Cartan type has been relabelled",
-                           checker=lambda x: isinstance(x, bool)),
-        latex_marked=dict(default=True,
+                           checker=lambda x: isinstance(x, bool))
+        latex_marked = dict(default=True,
                           description="Indicate in the latex output if a Cartan type has been marked",
                           checker=lambda x: isinstance(x, bool))
-    )
 
 
 CartanType = CartanTypeFactory()

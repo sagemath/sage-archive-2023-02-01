@@ -400,9 +400,9 @@ class ChowCycle(FGP_Element):
             sage: intersection_QQ.count_points()
             -1
             sage: type(intersection_QQ.count_points())
-            <type 'sage.rings.rational.Rational'>
+            <... 'sage.rings.rational.Rational'>
             sage: type(intersection.count_points())
-            <type 'sage.rings.integer.Integer'>
+            <... 'sage.rings.integer.Integer'>
 
         TESTS:
 

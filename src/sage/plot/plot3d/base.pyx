@@ -518,16 +518,16 @@ cdef class Graphics3d(SageObject):
             sage: D.aspect_ratio()
             [1.0, 1.0, 1.0]
         """
-        if not v is None:
+        if v is not None:
             if v == 1:
-                v = (1,1,1)
+                v = (1, 1, 1)
             if not isinstance(v, (tuple, list)):
                 raise TypeError("aspect_ratio must be a list or tuple of "
                                 "length 3 or the integer 1")
-            self._aspect_ratio = map(float, v)
+            self._aspect_ratio = [float(z) for z in v]
         else:
             if self._aspect_ratio is None:
-                self._aspect_ratio = [1.0,1.0,1.0]
+                self._aspect_ratio = [1.0, 1.0, 1.0]
             return self._aspect_ratio
 
     def frame_aspect_ratio(self, v=None):
@@ -552,16 +552,16 @@ cdef class Graphics3d(SageObject):
             sage: D.frame_aspect_ratio()
             [1.0, 1.0, 1.0]
         """
-        if not v is None:
+        if v is not None:
             if v == 1:
-                v = (1,1,1)
+                v = (1, 1, 1)
             if not isinstance(v, (tuple, list)):
                 raise TypeError("frame_aspect_ratio must be a list or tuple of "
                                 "length 3 or the integer 1")
-            self._frame_aspect_ratio = map(float, v)
+            self._frame_aspect_ratio = [float(z) for z in v]
         else:
             if self._frame_aspect_ratio is None:
-                self._frame_aspect_ratio = [1.0,1.0,1.0]
+                self._frame_aspect_ratio = [1.0, 1.0, 1.0]
             return self._frame_aspect_ratio
 
     def _determine_frame_aspect_ratio(self, aspect_ratio):

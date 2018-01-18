@@ -46,10 +46,10 @@ from sage.rings.integer cimport Integer
 from sage.libs.gmp.pylong cimport *
 
 cdef mpz_set_integer(mpz_t v, x):
-    if isinstance(x, int):
-        mpz_set_si(v, PyInt_AS_LONG(x))
-    elif isinstance(x, long):
+    if isinstance(x, long):
         mpz_set_pylong(v, x)
+    elif isinstance(x, int):
+        mpz_set_si(v, PyInt_AS_LONG(x))
     elif isinstance(x, Integer):
         mpz_set(v, (<Integer>x).value)
     else:

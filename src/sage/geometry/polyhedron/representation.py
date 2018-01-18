@@ -44,9 +44,9 @@ class PolyhedronRepresentation(SageObject):
 
     TESTS::
 
-            sage: import sage.geometry.polyhedron.representation as P
-            sage: P.PolyhedronRepresentation()
-            <class 'sage.geometry.polyhedron.representation.PolyhedronRepresentation'>
+        sage: import sage.geometry.polyhedron.representation as P
+        sage: P.PolyhedronRepresentation()
+        <sage.geometry.polyhedron.representation.PolyhedronRepresentation object at ...>
     """
 
     # Numeric values for the output of the type() method

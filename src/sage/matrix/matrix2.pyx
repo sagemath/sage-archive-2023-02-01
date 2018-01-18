@@ -197,20 +197,17 @@ cdef class Matrix(Matrix1):
             Traceback (most recent call last):
             ...
             ValueError: number of columns of self must equal number of columns of B
-
-
         """
-        from string import replace
         if is_Vector(B):
             try:
                 return self.transpose().solve_right(B, check=check)
             except ValueError as e:
-                raise ValueError(replace(str(e), 'row', 'column'))
+                raise ValueError(str(e).replace('row', 'column'))
         else:
             try:
                 return self.transpose().solve_right(B.transpose(), check=check).transpose()
             except ValueError as e:
-                raise ValueError(replace(str(e), 'row', 'column'))
+                raise ValueError(str(e).replace('row', 'column'))
 
     def solve_right(self, B, check=True):
         r"""
@@ -449,7 +446,7 @@ cdef class Matrix(Matrix1):
 
     def _solve_right_nonsingular_square(self, B, check_rank=True):
         r"""
-        If self is a matrix `A` of full rank, then this function
+        If ``self`` is a matrix `A` of full rank, then this function
         returns a matrix `X` such that `A X = B`.
 
         .. SEEALSO::
@@ -458,11 +455,9 @@ cdef class Matrix(Matrix1):
 
         INPUT:
 
+        - ``B`` -- a matrix
 
-        -  ``B`` - a matrix
-
-        -  ``check_rank`` - bool (default: True)
-
+        - ``check_rank`` -- boolean (default: ``True``)
 
         OUTPUT: matrix
 
@@ -482,7 +477,8 @@ cdef class Matrix(Matrix1):
             sage: A*X == B
             True
         """
-        D = self.augment(B).echelon_form()
+        D = self.augment(B)
+        D.echelonize()
         return D.matrix_from_columns(range(self.ncols(),D.ncols()))
 
     def pivot_rows(self):
@@ -3719,7 +3715,6 @@ cdef class Matrix(Matrix1):
 
         - Rob Beezer (2011-02-05)
         """
-        from sage.matrix.constructor import identity_matrix
         R = self.base_ring()
 
         # First: massage keywords
@@ -3772,7 +3767,7 @@ cdef class Matrix(Matrix1):
         if self._ncols == 0 and R.is_integral_domain():
             return self.new_matrix(nrows=0, ncols=self._ncols)
         if self._nrows == 0 and R.is_integral_domain():
-            return identity_matrix(R, self._ncols)
+            return self.matrix_space(self._ncols, self._ncols).identity_matrix()
 
         # Third: generic first, if requested explicitly
         #   then try specialized class methods, and finally
@@ -3815,7 +3810,8 @@ cdef class Matrix(Matrix1):
             return M
         elif basis == 'echelon':
             if not format[:7] == 'echelon':
-                return M.echelon_form()
+                M.echelonize()
+                return M
             else:
                 return M
         elif basis == 'pivot':
@@ -7036,11 +7032,10 @@ cdef class Matrix(Matrix1):
 
         - Rob Beezer (2011-02-02)
         """
-        from sage.matrix.constructor import identity_matrix
         if not subdivide in [True, False]:
             raise TypeError("subdivide must be True or False, not %s" % subdivide)
         R = self.base_ring()
-        ident = identity_matrix(R, self.nrows())
+        ident = self.matrix_space(self.nrows(), self.nrows()).one()
         E = self.augment(ident)
         extended = E.echelon_form(**kwds)
         if subdivide:
@@ -10741,7 +10736,7 @@ cdef class Matrix(Matrix1):
 
         - Rob Beezer (2011-03-15, 2015-05-25)
         """
-        from sage.matrix.matrix import is_Matrix
+        from sage.structure.element import is_Matrix
 
         if not is_Matrix(other):
             raise TypeError('similarity requires a matrix as an argument, not {0}'.format(other))
@@ -12014,7 +12009,6 @@ cdef class Matrix(Matrix1):
         if format == 'compact':
             return compact
         elif format == 'plu':
-            from sage.matrix.constructor import identity_matrix
             import sage.combinat.permutation
             perm = compact[0]
             M = compact[1].__copy__()
@@ -12024,7 +12018,7 @@ cdef class Matrix(Matrix1):
             zero = F(0)
             perm = [perm[i]+1 for i in range(m)]
             P = sage.combinat.permutation.Permutation(perm).to_matrix()
-            L = identity_matrix(F, m)
+            L = M.matrix_space(m,m).identity_matrix().__copy__()
             for i in range(1, m):
                 for k in range(min(i,d)):
                     L[i,k] = M[i,k]

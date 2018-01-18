@@ -1518,6 +1518,23 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
         ...
         NotImplementedError: No construction available for (9,3,1)-difference family
 
+    Check that when ``existence=True`` we always obtain ``True``, ``False`` or ``Unknown``
+    and when ``explain_construction=True``it is a string (see :trac:`24513`)::
+
+        sage: designs.difference_family(3, 2, 1, existence=True)
+        True
+        sage: designs.difference_family(3, 2, 1, explain_construction=True)
+        'Trivial difference family'
+
+        sage: for _ in range(100):
+        ....:     v = randint(1, 30)
+        ....:     k = randint(2, 30)
+        ....:     l = randint(1, 30)
+        ....:     res = designs.difference_family(v, k, l, existence=True)
+        ....:     assert res is True or res is False or res is Unknown
+        ....:     if res is True:
+        ....:         assert isinstance(designs.difference_family(3, 2, 1, explain_construction=True), str)
+
     .. TODO::
 
         Implement recursive constructions from Buratti "Recursive for difference
@@ -1589,6 +1606,11 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
 
     # trivial construction
     if k == (v-1) and l == (v-2):
+        if existence:
+            return True
+        elif explain_construction:
+            return "Trivial difference family"
+
         from sage.rings.finite_rings.integer_mod_ring import Zmod
         G = Zmod(v)
         return G, [list(range(1, v))]

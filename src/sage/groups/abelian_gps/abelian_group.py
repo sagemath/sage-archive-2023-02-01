@@ -884,16 +884,13 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             sage: gap(G)
             Group( [ f1, f2, f3 ] )
 
-        Only works for finite groups::
+        Requires the optional `gap_packages` for infinite groups::
 
             sage: G = AbelianGroup(3,[0,3,4],names="abc"); G
             Multiplicative Abelian group isomorphic to Z x C3 x C4
-            sage: G._gap_init_()
+            sage: G._gap_init_()   # optional gap_packages
             'AbelianPcpGroup([0, 3, 4])'
         """
-        # TODO: Use the package polycyclic has AbelianPcpGroup, which can handle
-        # the infinite case but it is a GAP package not GPL'd.
-        # Use this when the group is infinite...
         if self.is_finite():
             return 'AbelianGroup(%s)'%list(self.gens_orders())
         from sage.misc.package import is_package_installed, PackageNotFoundError

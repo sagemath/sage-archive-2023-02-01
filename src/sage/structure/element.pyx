@@ -4283,6 +4283,8 @@ def generic_power(a, n, one=None):
 
         sage: from sage.structure.element import generic_power
         sage: generic_power(int(12),int(0))
+        doctest:...: DeprecationWarning: import 'generic_power' from sage.arith.power instead
+        See http://trac.sagemath.org/24256 for details.
         1
         sage: generic_power(int(0),int(100))
         0
@@ -4304,8 +4306,8 @@ def generic_power(a, n, one=None):
         sage: generic_power(int(5), 0)
         1
     """
-    # from sage.misc.superseded import deprecation
-    # deprecation(24256, "import 'generic_power' from sage.arith.power instead")
+    from sage.misc.superseded import deprecation
+    deprecation(24256, "import 'generic_power' from sage.arith.power instead")
     if one is not None:
         # Special cases not handled by sage.arith.power
         if not n:

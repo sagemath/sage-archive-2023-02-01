@@ -5619,7 +5619,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             from sage.matrix.constructor import matrix
             T = pari(matrix(ZZ, d, d, [[(x*y).trace() for x in ZK]  for y in ZK])).qflllgram()
         else:
-            M = self.Minkowski_embedding(ZK, prec=prec)
+            M = self.minkowski_embedding(ZK, prec=prec)
             T = pari(M).qflll()
 
         return [ sum([ ZZ(T[i][j]) * ZK[j] for j in range(d)])  for i in range(d)]

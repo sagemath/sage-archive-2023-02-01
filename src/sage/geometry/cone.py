@@ -6168,12 +6168,15 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
         generators. Please decrease min_rays.
 
     Ensure that we can obtain a cone in three dimensions with a large
-    number (in particular, more than 2*dim) rays::
+    number (in particular, more than 2*dim) rays. The ``max_rays`` is
+    not strictly necessary, but it minimizes the number of times that
+    we will loop with an absurd, unattainable, number of rays::
 
         sage: set_random_seed()                  # long time
         sage: K = random_cone(min_ambient_dim=3, # long time
         ....:                 max_ambient_dim=3, # long time
-        ....:                 min_rays=7)        # long time
+        ....:                 min_rays=7,        # long time
+        ....:                 max_rays=9)        # long time
         sage: K.nrays() >= 7                     # long time
         True
         sage: K.lattice_dim()                    # long time
@@ -6449,14 +6452,32 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
             d = random_min_max(min_ambient_dim, max_ambient_dim)
             L = ToricLattice(d)
 
+        # The number of rays that we will try to attain in this iteration.
         r = random_min_max(min_rays, max_rays)
 
         # The rays are trickier to generate, since we could generate v and
         # 2*v as our "two rays." In that case, the resulting cone would
-        # have one generating ray. To avoid such a situation, we start by
-        # generating ``r`` rays where ``r`` is the number we want to end
-        # up with...
-        rays = [L.random_element() for i in range(r)]
+        # have only one generating ray -- not what we want.
+        #
+        # Let's begin with an easier question: how many rays should we
+        # start with? If we want to attain ``r`` rays in this iteration,
+        # then surely ``r`` is a good number to start with, even if some
+        # of them will be redundant?
+        if max_rays is None:
+            # Not quite... if the maximum number of rays is unbounded,
+            # then ``r`` could be enormous. Ultimately that wouldn't
+            # be a problem, because almost all of those rays would be
+            # thrown out. However, as we discovered in :trac:`24517`,
+            # simply generating all of those random rays in the first
+            # place (and storing them in a list) is problematic.
+            #
+            # So, when the maximum number of rays is unbounded, we use
+            # the safer ``min_rays`` as the number to start with.
+            rays = [L.random_element() for i in range(min_rays)]
+        else:
+            # But yeah, if ``max_rays`` was specified, then ``r`` is a
+            # better guess.
+            rays = [L.random_element() for i in range(r)]
 
         # The lattice parameter is required when no rays are given, so
         # we pass it in case ``r == 0`` or ``d == 0`` (or ``d == 1``

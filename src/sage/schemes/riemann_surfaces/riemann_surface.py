@@ -1831,7 +1831,7 @@ class RiemannSurface(object):
         J = standard_symplectic_matrix(2*g)
         return -J * R.transpose() * J
 
-    def symplectic_isomorphisms(self, other = None, b = None, r = None):
+    def symplectic_isomorphisms(self, other = None, hom_basis = None, b = None, r = None):
         r"""
         Numerically compute symplectic isomorphisms.
 
@@ -1840,11 +1840,19 @@ class RiemannSurface(object):
         - ``other`` (default: ``self``) -- the codomain, another Riemann
           surface.
 
+        - ``hom_basis`` (default: ``None``) -- a `\ZZ`-basis of the
+          homomorphisms from ``self`` to ``other``, as obtained from
+          :meth:`homomorphism_basis`. If you have already calculated this
+          basis, it saves time to pass it via this keyword argument. Otherwise
+          the method will calculate it.
+
         - ``b`` -- integer (default provided): as for
-          :meth:`homomorphism_basis`, and used in its invocation.
+          :meth:`homomorphism_basis`, and used in its invocation if
+          (re)calculating said basis.
 
         - ``r`` -- integer (default: ``b/4``).  as for
-          :meth:`homomorphism_basis`, and used in its invocation.
+          :meth:`homomorphism_basis`, and used in its invocation if
+          (re)calculating said basis.
 
         OUTPUT:
 
@@ -1871,7 +1879,10 @@ class RiemannSurface(object):
         """
         if not other:
             other = self
-        Rs = self.homomorphism_basis(other = other, b = b, r = r)
+        if hom_basis:
+            Rs = hom_basis
+        else:
+            Rs = self.homomorphism_basis(other = other, b = b, r = r)
         r = len(Rs)
         g = self.genus
         A = PolynomialRing(QQ, r, 'x')
@@ -1894,18 +1905,26 @@ class RiemannSurface(object):
                 RsIso.append(R)
         return RsIso
 
-    def symplectic_automorphism_group(self, b = None, r = None):
+    def symplectic_automorphism_group(self, endo_basis = None, b = None, r = None):
         r"""
         Numerically compute the symplectic automorphism group as a permutation
         group.
 
         INPUT:
 
+        - ``endo_basis`` (default: ``None``) -- a `\ZZ`-basis of the
+          endomorphisms of ``self``, as obtained from
+          :meth:`endomorphism_basis`. If you have already calculated this
+          basis, it saves time to pass it via this keyword argument. Otherwise
+          the method will calculate it.
+
         - ``b`` -- integer (default provided): as for
-          :meth:`homomorphism_basis`, and used in its invocation.
+          :meth:`homomorphism_basis`, and used in its invocation if
+          (re)calculating said basis.
 
         - ``r`` -- integer (default: ``b/4``).  as for
-          :meth:`homomorphism_basis`, and used in its invocation.
+          :meth:`homomorphism_basis`, and used in its invocation if
+          (re)calculating said basis.
 
         OUTPUT:
 
@@ -1924,7 +1943,7 @@ class RiemannSurface(object):
             sage: G.as_permutation_group().is_isomorphic(DihedralGroup(4))
             True
         """
-        RsAut = self.symplectic_isomorphisms(b = b, r = r)
+        RsAut = self.symplectic_isomorphisms(hom_basis = endo_basis, b = b, r = r)
         return MatrixGroup(RsAut)
 
     def __add__(self,other):

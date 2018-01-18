@@ -229,7 +229,7 @@ class NewtonPolygon_element(Element):
 
         The Newton polygon, which is the Minkowski sum of this Newton polygon and ``other``.
 
-        NOTE::
+        .. NOTE::
 
             If ``self`` and ``other`` are respective Newton polygons of some polynomials
             `f` and `g` the self*other is the Newton polygon of the product `fg`
@@ -255,7 +255,7 @@ class NewtonPolygon_element(Element):
             sage: NP.slopes()
             [1, 3/2]
         """
-        polyhedron = self._polyhedron.Minkowski_sum(other._polyhedron)
+        polyhedron = self._polyhedron.minkowski_sum(other._polyhedron)
         return self.parent()(polyhedron)
 
     def __pow__(self, exp, ignored=None):

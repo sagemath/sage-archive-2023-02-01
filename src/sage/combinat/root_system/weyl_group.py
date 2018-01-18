@@ -1107,6 +1107,31 @@ class WeylGroup_permutation(UniqueRepresentation, PermutationGroup_generic):
         """
         return self.iteration(algorithm="breadth", tracking_words=True)
 
+    def _coerce_map_from_(self, P):
+        """
+        Return ``True`` if ``P`` is a Weyl group of the same
+        Cartan type and ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup(["B",4], implementation="permutation")
+            sage: W2 = WeylGroup(["B",4])
+            sage: W._coerce_map_from_(W2)
+            True
+            sage: W3 = WeylGroup(["B",5])
+            sage: W.has_coerce_map_from(W3)
+            False
+            sage: W4 = CoxeterGroup(["B",4])
+            sage: W.has_coerce_map_from(W4)
+            False
+            sage: W5 = WeylGroup(["C",4], implementation="permutation")
+            sage: W.has_coerce_map_from(W5)
+            False
+        """
+        if isinstance(P, WeylGroup_gens) and P.cartan_type() is self.cartan_type():
+            return True
+        return super(WeylGroup_permutation, self)._coerce_map_from_(P)
+
     @cached_method
     def rank(self):
         """

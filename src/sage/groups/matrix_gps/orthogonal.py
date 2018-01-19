@@ -654,7 +654,7 @@ class GroupActionOnSubmodule(Action):
         Echelon basis matrix:
         [0 1]
     """
-    def __init__(self,MatrixGroup,submodule,is_left=False):
+    def __init__(self, MatrixGroup,submodule, is_left=False):
         r"""
         Initialize the action
 
@@ -737,7 +737,7 @@ class GroupActionOnQuotientModule(Action):
         sage: (x*g).parent()
         Finitely generated module V/W over Integer Ring with invariants (6)
     """
-    def __init__(self,MatrixGroup,quotient_module,is_left=False):
+    def __init__(self, MatrixGroup, quotient_module, is_left=False):
         r"""
         Initialize the action
 

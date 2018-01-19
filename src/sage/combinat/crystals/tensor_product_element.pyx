@@ -1403,7 +1403,7 @@ cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrysta
         """
         if i > 0:
             return TensorProductOfRegularCrystalsElement.e(self, i)
-        if i < 0:
+        if i == -1:
             k = 0
             w = self[0].weight()[0] + self[0].weight()[1]
             while w == 0 and k < len(self)-1:
@@ -1413,6 +1413,34 @@ cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrysta
             if b is None:
                return None
             return self._set_index(k, b)
+        n = max(self.index_set())
+        if i < -1 and i >= -n:
+            j = -i
+            w = range(2,j+1) + range(1,j)
+            w.reverse()
+            b = self
+            for k in w:
+                b = b.s(k)
+            b = b.e(-1)
+            if b is None:
+               return None
+            w.reverse()
+            for k in w:
+                b = b.s(k)
+            return b
+        if i < -n:
+           j = -(i+n)
+           from sage.combinat.permutation import Permutations
+           w = Permutations(n+1).long_element().reduced_word()
+           b = self
+           for k in w:
+               b = b.s(k)
+           b = b.f(-(n+1-j))
+           if b is None:
+               return None
+           for k in w:
+               b = b.s(k)
+           return b
         return None
 
     def f(self, i):
@@ -1430,7 +1458,7 @@ cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrysta
         """
         if i > 0:
             return TensorProductOfRegularCrystalsElement.f(self, i)
-        if i < 0:
+        if i == -1:
             k = 0
             w = self[0].weight()[0] + self[0].weight()[1]
             while w == 0 and k < len(self)-1:
@@ -1440,6 +1468,34 @@ cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrysta
             if b is None:
                return None
             return self._set_index(k, b)
+        n = max(self.index_set())
+        if i < -1 and i >= -n:
+            j = -i
+            w = range(2,j+1) + range(1,j)
+            w.reverse()
+            b = self
+            for k in w:
+                b = b.s(k)
+            b = b.f(-1)
+            if b is None:
+               return None
+            w.reverse()
+            for k in w:
+                b = b.s(k)
+            return b
+        if i < -n:
+           j = -(i+n)
+           from sage.combinat.permutation import Permutations
+           w = Permutations(n+1).long_element().reduced_word()
+           b = self
+           for k in w:
+               b = b.s(k)
+           b = b.e(-(n+1-j))
+           if b is None:
+               return None
+           for k in w:
+               b = b.s(k)
+           return b
         return None
 
     # Override epsilon/phi (for now)

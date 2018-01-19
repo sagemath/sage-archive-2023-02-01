@@ -72,5 +72,11 @@ def unpack_archive(archive, dirname=None):
             # inspecting the newly extracted files
             rename = lambda: os.rename(top_level, dirname)
             retry(rename, OSError)
+
+            # Apply the user's umask to the top-level directory in case it
+            # wasn't already; see https://trac.sagemath.org/ticket/24567
+            umask = os.umask(0o777)
+            os.umask(umask)
+            os.chmod(dirname, os.stat(dirname).st_mode & ~umask)
     finally:
         os.chdir(prev_cwd)

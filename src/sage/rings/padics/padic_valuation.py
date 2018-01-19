@@ -264,7 +264,7 @@ class PadicValuationFactory(UniqueFactory):
         # the one approximated by v.
         vK = v.restriction(v.domain().base_ring()).extension(K)
         if approximants is None:
-            approximants = vK.mac_lane_approximants(G)
+            approximants = vK.mac_lane_approximants(G, require_incomparability=True)
         approximants = [approximant.extension(v.domain()) for approximant in approximants]
         approximant = vK.mac_lane_approximant(G, v, approximants=tuple(approximants))
 
@@ -298,7 +298,7 @@ class PadicValuationFactory(UniqueFactory):
         if len(F) != 1:
             raise ValueError("%r does not lie over a single prime of %r"%(I, K))
         vK = K.valuation(F[0][0])
-        candidates = vK.mac_lane_approximants(G)
+        candidates = vK.mac_lane_approximants(G, require_incomparability=True)
 
         candidates_for_I = [c for c in candidates if all(c(g.polynomial()) > 0 for g in I.gens())]
         assert(len(candidates_for_I) > 0) # This should not be possible, unless I contains a unit
@@ -687,7 +687,7 @@ class pAdicValuation_base(DiscreteValuation):
         """
         from sage.rings.valuation.valuation_space import DiscretePseudoValuationSpace
         parent = DiscretePseudoValuationSpace(ring)
-        approximants = approximants or self.mac_lane_approximants(ring.modulus().change_ring(self.domain()), assume_squarefree=True)
+        approximants = approximants or self.mac_lane_approximants(ring.modulus().change_ring(self.domain()), assume_squarefree=True, require_incomparability=True)
         return [pAdicValuation(ring, approximant, approximants) for approximant in approximants]
 
     def extensions(self, ring):
@@ -736,6 +736,16 @@ class pAdicValuation_base(DiscreteValuation):
             sage: w(w.uniformizer())
             1/4
 
+        A case where the extensions could not be separated at some point::
+
+            sage: v = QQ.valuation(2)
+            sage: R.<x> = QQ[]
+            sage: F = x^48 + 120*x^45 + 56*x^42 + 108*x^36 + 32*x^33 + 40*x^30 + 48*x^27 + 80*x^24 + 112*x^21 + 96*x^18 + 96*x^15 + 24*x^12 + 96*x^9 + 16*x^6 + 96*x^3 + 68
+            sage: L.<a> = QQ.extension(F)
+            sage: v.extensions(L)
+            [[ 2-adic valuation, v(x) = 1/24, v(x^24 + 4*x^18 + 10*x^12 + 12*x^6 + 8*x^3 + 6) = 29/8 ]-adic valuation,
+             [ 2-adic valuation, v(x) = 1/24, v(x^24 + 4*x^18 + 2*x^12 + 12*x^6 + 8*x^3 + 6) = 29/8 ]-adic valuation]
+
         """
         if self.domain() is ring:
             return [self]
@@ -761,7 +771,7 @@ class pAdicValuation_base(DiscreteValuation):
                 if ring.base_ring().fraction_field() is self.domain().fraction_field():
                     from sage.rings.valuation.valuation_space import DiscretePseudoValuationSpace
                     parent = DiscretePseudoValuationSpace(ring)
-                    approximants = self.mac_lane_approximants(ring.fraction_field().relative_polynomial().change_ring(self.domain()), assume_squarefree=True)
+                    approximants = self.mac_lane_approximants(ring.fraction_field().relative_polynomial().change_ring(self.domain()), assume_squarefree=True, require_incomparability=True)
                     return [pAdicValuation(ring, approximant, approximants) for approximant in approximants]
                 if ring.base_ring() is not ring and self.domain().is_subring(ring.base_ring()):
                     return sum([w.extensions(ring) for w in self.extensions(ring.base_ring())], [])

@@ -92,7 +92,7 @@ TESTS::
 
     sage: -1e30
     -1.00000000000000e30
-    sage: hex(-1. + 2^-52)
+    sage: (-1. + 2^-52).hex()
     '-0xf.ffffffffffffp-4'
 
 Make sure we don't have a new field for every new literal::
@@ -131,6 +131,7 @@ from sage.libs.gmp.mpz cimport *
 from sage.libs.mpfr cimport *
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.cpython.string cimport char_to_str
+from sage.misc.superseded import deprecation
 
 from sage.structure.element cimport RingElement, Element, ModuleElement
 from sage.structure.richcmp cimport rich_to_bool_sgn
@@ -2040,23 +2041,23 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         return z
 
-    def __hex__(self):
+    def hex(self):
         """
         Return a hexadecimal floating-point representation of ``self``, in the
         style of C99 hexadecimal floating-point constants.
 
         EXAMPLES::
 
-            sage: hex(RR(-1/3))
+            sage: RR(-1/3).hex()
             '-0x5.5555555555554p-4'
-            sage: hex(Reals(100)(123.456e789))
+            sage: Reals(100)(123.456e789).hex()
             '0xf.721008e90630c8da88f44dd2p+2624'
-            sage: hex((-0.))
+            sage: (-0.).hex()
             '-0x0p+0'
 
         ::
 
-            sage: [(hex(a), float(a).hex()) for a in [.5, 1., 2., 16.]]
+            sage: [(a.hex(), float(a).hex()) for a in [.5, 1., 2., 16.]]
             [('0x8p-4', '0x1.0000000000000p-1'),
             ('0x1p+0', '0x1.0000000000000p+0'),
             ('0x2p+0', '0x1.0000000000000p+1'),
@@ -2064,7 +2065,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         Special values::
 
-            sage: [hex(RR(s)) for s in ['+inf', '-inf', 'nan']]
+            sage: [RR(s).hex() for s in ['+inf', '-inf', 'nan']]
             ['inf', '-inf', 'nan']
         """
         cdef char *s
@@ -2074,9 +2075,22 @@ cdef class RealNumber(sage.structure.element.RingElement):
         sig_off()
         if r < 0:  # MPFR free()s its buffer itself in this case
             raise RuntimeError("unable to convert an mpfr number to a string")
-        t = str(s)
+        t = char_to_str(s)
         mpfr_free_str(s)
         return t
+
+    def __hex__(self):
+        """
+        TESTS::
+
+            sage: hex(RR(-1/3))  # py2
+            doctest:...:
+            DeprecationWarning: use the method .hex instead
+            See http://trac.sagemath.org/24568 for details.
+            '-0x5.5555555555554p-4'
+        """
+        deprecation(24568, 'use the method .hex instead')
+        return self.hex()
 
     def __copy__(self):
         """

@@ -857,7 +857,7 @@ class GraphGenerators():
             sage: next(gen)
             Traceback (most recent call last):
             ...
-            StopIteration: Exhausted list of graphs from nauty geng
+            StopIteration
 
         A list of all graphs on 7 vertices.  This agrees with
         :oeis:`A000088`.  ::

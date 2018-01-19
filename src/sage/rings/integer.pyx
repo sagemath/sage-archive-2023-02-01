@@ -756,7 +756,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
            Integers are supposed to be immutable, so you should not
            use this function.
         """
-        mpz_set_str(self.value, s, 32)
+        mpz_set_str(self.value, str_to_bytes(s), 32)
 
     def __index__(self):
         """
@@ -6900,7 +6900,7 @@ cdef int mpz_set_str_python(mpz_ptr z, char* s, int base) except -1:
 
     assert base >= 2
     if mpz_set_str(z, x, base) != 0:
-        raise TypeError("unable to convert %r to an integer" % s)
+        raise TypeError("unable to convert %r to an integer" % char_to_str(s))
     if sign < 0:
         mpz_neg(z, z)
     if warnoctal and mpz_sgn(z) != 0:
@@ -6987,7 +6987,7 @@ def make_integer(s):
         sage: make_integer(29)
         Traceback (most recent call last):
         ...
-        TypeError: expected string or Unicode object, sage.rings.integer.Integer found
+        TypeError: expected str...Integer found
     """
     cdef Integer r = PY_NEW(Integer)
     r._reduce_set(s)

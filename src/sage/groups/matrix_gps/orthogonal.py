@@ -454,19 +454,23 @@ class OrthogonalMatrixGroup_with_gap(FinitelyGeneratedMatrixGroup_gap):
     A base class for Orthogonal matrix groups with a gap backend.
 
     It remembers the bilinear form.
-    The difference to `OrthogonalMatrixGroup_gap` is that our groups do not have 
+    The difference to `OrthogonalMatrixGroup_gap` is that our groups do not have
     a specific name.
 
     INPUT:
 
-        - ``degree`` -- integer, the degree (matrix size) of the matrix 
-        - ``base_ring`` -- ring, the base ring of the matrices
-        - ``gens`` -- a list of matrices over the base ring
-        - ``invariant_bilinear_form`` -- a symmetric matrix
-        - ``category`` -- (default:``None``) a category of groups
-        - ``check`` -- bool (default: ``True``) check if the generators preserve the bilinear form
-        - ``invariant_submodule`` -- a submodule preserved by the group action         (default: ``None``) registers an action on this submodule.
-        - ``invariant_submodule`` -- a quotient module preserved by the group action         (default: ``None``) registers an action on this quotient module.
+    - ``degree`` -- integer, the degree (matrix size) of the matrix
+    - ``base_ring`` -- ring, the base ring of the matrices
+    - ``gens`` -- a list of matrices over the base ring
+    - ``invariant_bilinear_form`` -- a symmetric matrix
+    - ``category`` -- (default:``None``) a category of groups
+    - ``check`` -- bool (default: ``True``) check if the generators
+      preserve the bilinear form
+    - ``invariant_submodule`` -- a submodule preserved by the group action
+      (default: ``None``) registers an action on this submodule.
+    - ``invariant_quotient_module`` -- a quotient module preserved by
+      the group action (default: ``None``)
+      registers an action on this quotient module.
 
     EXAMPLES::
 
@@ -492,14 +496,14 @@ class OrthogonalMatrixGroup_with_gap(FinitelyGeneratedMatrixGroup_gap):
     """
 
     def __init__(self, degree, base_ring,
-                 gens, invariant_bilinear_form, 
+                 gens, invariant_bilinear_form,
                  category=None, check=True,
                  invariant_submodule=None,
                  invariant_quotient_module=None):
         r"""
-        Create this orthogonal group from the input. 
+        Create this orthogonal group from the input.
 
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.groups.matrix_gps.orthogonal import OrthogonalMatrixGroup_with_gap
             sage: bil = Matrix(ZZ,2,[3,2,2,3])
@@ -533,7 +537,7 @@ class OrthogonalMatrixGroup_with_gap(FinitelyGeneratedMatrixGroup_gap):
 
         OUTPUT:
 
-            - a string
+        - a string
 
         EXAMPLES::
 
@@ -561,7 +565,7 @@ class OrthogonalMatrixGroup_with_gap(FinitelyGeneratedMatrixGroup_gap):
 
         OUTPUT:
 
-            - the matrix defining the bilinear form
+        - the matrix defining the bilinear form
 
         EXAMPLES::
 
@@ -575,14 +579,29 @@ class OrthogonalMatrixGroup_with_gap(FinitelyGeneratedMatrixGroup_gap):
         """
         return self._invariant_bilinear_form
 
-    def _get_action_(self,S,op, self_on_left):
+    def _get_action_(self, S, op, self_on_left):
         """
         Provide the coercion system with an action.
+
+        EXAMPLES::
+
+            sage: from sage.groups.matrix_gps.orthogonal import OrthogonalMatrixGroup_with_gap
+            sage: bil = Matrix(ZZ,2,[3,2,2,3])
+            sage: gens = [-Matrix(ZZ,2,[0,1,1,0])]
+            sage: S = ZZ^2
+            sage: O = OrthogonalMatrixGroup_with_gap(2, ZZ, gens, bil, invariant_submodule=S)
+            sage: O._get_action_(S, operator.mul, False)
+            Right action by Orthogonal group over Integer Ring with 1 generators (
+            [ 0 -1]
+            [-1  0]
+            ) on Ambient free module of rank 2 over the principal ideal domain Integer Ring
         """
         import operator
-        if S is self._invariant_submodule and op == operator.mul and not self_on_left:
+        if (S is self._invariant_submodule and op == operator.mul
+                                           and not self_on_left):
             return GroupActionOnSubmodule(self,S)
-        if S is self._invariant_quotient_module and op == operator.mul and not self_on_left:
+        if (S is self._invariant_quotient_module and op == operator.mul
+                                                 and not self_on_left):
             return GroupActionOnQuotientModule(self,S)
         return None
 
@@ -616,9 +635,9 @@ class GroupActionOnSubmodule(Action):
 
     INPUT:
 
-        - ``MatrixGroup`` --  a :class:`~sage.groups.matrix_gps.orthogonal.OrthogonalMatrixGroup_with_gap`
-        - ``submodule`` -- an invariant submodule
-        - ``is_left`` -- bool (default: False)
+    - ``MatrixGroup`` --  an instance of :class:`OrthogonalMatrixGroup_with_gap`
+    - ``submodule`` -- an invariant submodule
+    - ``is_left`` -- bool (default: False)
 
     EXAMPLES::
 
@@ -638,6 +657,21 @@ class GroupActionOnSubmodule(Action):
     def __init__(self,MatrixGroup,submodule,is_left=False):
         r"""
         Initialize the action
+
+        TESTS::
+
+            sage: from sage.groups.matrix_gps.orthogonal import OrthogonalMatrixGroup_with_gap, GroupActionOnSubmodule
+            sage: S = span(ZZ,[[0,1]])
+            sage: g = Matrix(QQ,2,[1,0,0,-1])
+            sage: e = Matrix.identity(2)
+            sage: G = OrthogonalMatrixGroup_with_gap(2, ZZ, [g], e)
+            sage: GroupActionOnSubmodule(G,S)
+            Right action by Orthogonal group over Integer Ring with 1 generators (
+            [ 1  0]
+            [ 0 -1]
+            ) on Free module of degree 2 and rank 1 over Integer Ring
+            Echelon basis matrix:
+            [0 1]
         """
         import operator
         Action.__init__(self, MatrixGroup, submodule, is_left, operator.mul)
@@ -648,12 +682,12 @@ class GroupActionOnSubmodule(Action):
 
         INPUT:
 
-            - ``a`` -- an element of the invariant submodule
-            - ``g`` -- an element of the acting group
+        - ``a`` -- an element of the invariant submodule
+        - ``g`` -- an element of the acting group
 
         OUTPUT:
 
-            - an element of the invariant submodule
+        - an element of the invariant submodule
 
         EXAMPLES::
 
@@ -684,9 +718,10 @@ class GroupActionOnQuotientModule(Action):
 
     INPUT:
 
-        - ``MatrixGroup`` --  the group acting :class:`~sage.groups.matrix_gps.orthogonal.OrthogonalMatrixGroup_with_gap`
-        - ``submodule`` -- an invariant submodule
-        - ``is_left`` -- bool (default: False)
+    - ``MatrixGroup`` --  the group acting
+          :class:`OrthogonalMatrixGroup_with_gap`
+    - ``submodule`` -- an invariant submodule
+    - ``is_left`` -- bool (default: False)
 
     EXAMPLES::
 
@@ -705,6 +740,18 @@ class GroupActionOnQuotientModule(Action):
     def __init__(self,MatrixGroup,quotient_module,is_left=False):
         r"""
         Initialize the action
+
+        TESTS::
+
+            sage: from sage.groups.matrix_gps.orthogonal import OrthogonalMatrixGroup_with_gap
+            sage: S = span(ZZ,[[0,1]])
+            sage: Q = S/(6*S)
+            sage: g = Matrix(QQ,2,[1,0,0,-1])
+            sage: G = OrthogonalMatrixGroup_with_gap(2, ZZ, [g], invariant_bilinear_form=matrix.identity(2), invariant_quotient_module=Q)
+            sage: g = G.an_element()
+            sage: x = Q.an_element()
+            sage: x, x*g
+            ((1), (5))
         """
         import operator
         Action.__init__(self, MatrixGroup, quotient_module, is_left, operator.mul)
@@ -715,12 +762,12 @@ class GroupActionOnQuotientModule(Action):
 
         INPUT:
 
-            - ``a`` -- an element of the invariant submodule
-            - ``g`` -- an element of the acting group
+        - ``a`` -- an element of the invariant submodule
+        - ``g`` -- an element of the acting group
 
         OUTPUT:
 
-            - an element of the invariant quotient module
+        - an element of the invariant quotient module
 
         EXAMPLES::
 

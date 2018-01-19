@@ -50,6 +50,7 @@
  */
 
 #include <Python.h>
+#include <longintrepr.h>
 #include "flint/fmpz.h"
 #include "flint/fmpz_factor.h"
 

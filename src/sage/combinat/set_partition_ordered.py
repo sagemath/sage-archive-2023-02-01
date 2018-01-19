@@ -28,7 +28,7 @@ from six import add_metaclass
 
 from sage.arith.all import factorial
 import sage.rings.integer
-from sage.sets.set import Set, is_Set
+from sage.sets.set import Set, Set_generic
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.all import prod
@@ -324,7 +324,7 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
         #is a set
         u = Set([])
         for s in x:
-            if not isinstance(s, (set, frozenset)) and not is_Set(s):
+            if not isinstance(s, (set, frozenset, Set_generic)):
                 return False
             u = u.union(s)
 

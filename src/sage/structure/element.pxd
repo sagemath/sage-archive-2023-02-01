@@ -191,6 +191,10 @@ cdef class Element(SageObject):
     cdef _floordiv_(self, other)
     cdef _mod_(self, other)
 
+    cdef _pow_(self, other)
+    cdef _pow_int(self, n)
+    cdef _pow_long(self, long n)
+
 
 cdef class ElementWithCachedMethod(Element):
     cdef public dict __cached_methods
@@ -209,7 +213,7 @@ cdef class ModuleElement(Element):
     cpdef _rmul_(self, Element left)
 
 cdef class MonoidElement(Element):
-    pass
+    cpdef _pow_int(self, n)
 
 cdef class MultiplicativeGroupElement(MonoidElement):
     cpdef _div_(self, right)
@@ -219,6 +223,7 @@ cdef class AdditiveGroupElement(ModuleElement):
 
 cdef class RingElement(ModuleElement):
     cpdef _div_(self, right)
+    cpdef _pow_int(self, n)
 
 cdef class CommutativeRingElement(RingElement):
     pass

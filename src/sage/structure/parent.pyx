@@ -118,6 +118,7 @@ from sage.structure.element cimport parent, coercion_model
 cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
 from .category_object import CategoryObject
+from .coerce cimport parent_is_integers
 from .coerce_exceptions import CoercionException
 from sage.structure.debug_options cimport debug
 from sage.structure.richcmp cimport rich_to_bool
@@ -2494,8 +2495,39 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         self._action_hash.set(S, op, self_on_left, action)
         return action
 
-
     cdef discover_action(self, S, op, bint self_on_left, self_el=None, S_el=None):
+        """
+        TESTS::
+
+            sage: E = EllipticCurve([1,0])
+            sage: coercion_model.get_action(E, ZZ, operator.mul)
+            Right Integer Multiplication by Integer Ring on Elliptic Curve defined by y^2 = x^3 + x over Rational Field
+            sage: coercion_model.get_action(ZZ, E, operator.mul)
+            Left Integer Multiplication by Integer Ring on Elliptic Curve defined by y^2 = x^3 + x over Rational Field
+            sage: coercion_model.get_action(E, int, operator.mul)
+            Right Integer Multiplication by Set of Python objects of class 'int' on Elliptic Curve defined by y^2 = x^3 + x over Rational Field
+            sage: coercion_model.get_action(int, E, operator.mul)
+            Left Integer Multiplication by Set of Python objects of class 'int' on Elliptic Curve defined by y^2 = x^3 + x over Rational Field
+
+        ::
+
+            sage: R.<x> = CDF[]
+            sage: coercion_model.get_action(R, ZZ, operator.pow)
+            Right Integer Powering by Integer Ring on Univariate Polynomial Ring in x over Complex Double Field
+            sage: print(coercion_model.get_action(ZZ, R, operator.pow))
+            None
+            sage: coercion_model.get_action(R, int, operator.pow)
+            Right Integer Powering by Set of Python objects of class 'int' on Univariate Polynomial Ring in x over Complex Double Field
+            sage: print(coercion_model.get_action(int, R, operator.pow))
+            None
+            sage: coercion_model.get_action(R, IntegerModRing(7), operator.pow)
+            Right Integer Powering by Ring of integers modulo 7 on Univariate Polynomial Ring in x over Complex Double Field
+
+        ::
+
+            sage: print(coercion_model.get_action(E, ZZ, operator.pow))
+            None
+        """
         # G acts on S, G -> G', R -> S => G' acts on R (?)
         # NO! ZZ[x,y] acts on Matrices(ZZ[x]) but ZZ[y] does not.
         # What may be true is that if the action's destination is S, then this can be allowed.
@@ -2562,19 +2594,32 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
                 if action is not None:
                     return action
 
-                try:
-                    # maybe there is a more clever way of detecting ZZ than importing here...
-                    from sage.rings.integer_ring import ZZ
-                    if S is ZZ and not self.has_coerce_map_from(ZZ):
-                        from sage.structure.coerce_actions import IntegerMulAction
-                        action = IntegerMulAction(S, self, not self_on_left, self_el)
-                        return action
-                except (CoercionException, TypeError):
-                    _record_exception()
-
+                if parent_is_integers(S) and not self.has_coerce_map_from(S):
+                    from sage.structure.coerce_actions import IntegerMulAction
+                    try:
+                        return IntegerMulAction(S, self, not self_on_left, self_el)
+                    except TypeError:
+                        _record_exception()
             finally:
                 _unregister_pair(self, S, "action")
-
+        elif self_on_left and op is operator.pow:
+            S_is_int = parent_is_integers(S)
+            if not S_is_int:
+                from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
+                if is_IntegerModRing(S):
+                    # We allow powering by an IntegerMod by treating it
+                    # as an integer.
+                    #
+                    # TODO: this makes sense in a few cases that we want
+                    # to support. But in general this should not be
+                    # allowed. See Trac #15709
+                    S_is_int = True
+            if S_is_int:
+                from sage.structure.coerce_actions import IntegerPowAction
+                try:
+                    return IntegerPowAction(S, self, False, self_el)
+                except TypeError:
+                    _record_exception()
 
     cpdef _get_action_(self, S, op, bint self_on_left):
         """
@@ -3034,10 +3079,9 @@ cdef class EltPair:
         Verify that :trac:`16341` has been resolved::
 
             sage: K.<a> = Qq(9)
-            sage: E=EllipticCurve_from_j(0).base_extend(K)
+            sage: E = EllipticCurve_from_j(0).base_extend(K)
             sage: E.get_action(ZZ)
             Right Integer Multiplication by Integer Ring on Elliptic Curve defined by y^2 + (1+O(3^20))*y = x^3 over Unramified Extension in a defined by x^2 + 2*x + 2 with capped relative precision 20 over 3-adic Field
-
         """
         return hash((id(self.x), id(self.y), id(self.tag)))
 

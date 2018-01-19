@@ -2926,7 +2926,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
            For curves with rational CM, isogenies of primes degree
            exist for infinitely many primes `\ell`, though there are
-           only finitely many isogenous curves up to isomoprhism.  The
+           only finitely many isogenous curves up to isomorphism.  The
            list returned only includes one isogeny of prime degree for
            each codomain.
 

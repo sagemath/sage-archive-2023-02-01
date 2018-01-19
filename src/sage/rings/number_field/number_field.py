@@ -141,6 +141,7 @@ from . import structure
 from . import number_field_morphisms
 from itertools import count
 from builtins import zip
+from sage.misc.superseded import deprecated_function_alias
 
 
 def is_NumberFieldHomsetCodomain(codomain):
@@ -5616,11 +5617,11 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
                                            for j in range(d)])
                                      for i in range(d)]
         else:
-            M = self.Minkowski_embedding(self.integral_basis(), prec=prec)
+            M = self.minkowski_embedding(self.integral_basis(), prec=prec)
             T = pari(M).qflll().sage()
             self.__reduced_basis = [ self(v.list()) for v in T.columns() ]
             if prec is None:
-                ## this is the default choice for Minkowski_embedding
+                ## this is the default choice for minkowski_embedding
                 self.__reduced_basis_prec = 53
             else:
                 self.__reduced_basis_prec = prec
@@ -5647,7 +5648,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         self is given by `\{x_0, \dots, x_{n-1}\}`. Here `\langle , \rangle` is
         the usual inner product on `\RR^n`, and self is embedded in `\RR^n` by
         the Minkowski embedding. See the docstring for
-        :meth:`NumberField_absolute.Minkowski_embedding` for more information.
+        :meth:`NumberField_absolute.minkowski_embedding` for more information.
 
         .. note::
 
@@ -5714,13 +5715,13 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
                                                 [[(x*y).trace() for x in B]
                                                  for y in B])
         else:
-            M = self.Minkowski_embedding(prec=prec)
+            M = self.minkowski_embedding(prec=prec)
             T = matrix(d, flatten([ a.vector().list()
                                     for a in self.reduced_basis(prec=prec) ]))
             A = M*(T.transpose())
             self.__reduced_gram_matrix = A.transpose()*A
             if prec is None:
-                ## this is the default choice for Minkowski_embedding
+                ## this is the default choice for minkowski_embedding
                 self.__reduced_gram_matrix_prec = 53
             else:
                 self.__reduced_gram_matrix_prec = prec
@@ -5836,32 +5837,30 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         Z.rename('Zeta function associated to %s'%self)
         return Z
 
+    @cached_method
     def narrow_class_group(self, proof=None):
         r"""
         Return the narrow class group of this field.
 
         INPUT:
 
-
         -  ``proof`` - default: None (use the global proof
            setting, which defaults to True).
-
 
         EXAMPLES::
 
             sage: NumberField(x^3+x+9, 'a').narrow_class_group()
             Multiplicative Abelian group isomorphic to C2
+
+        TESTS::
+
+            sage: QuadraticField(3, 'a').narrow_class_group()
+            Multiplicative Abelian group isomorphic to C2
         """
         proof = proof_flag(proof)
-        try:
-            return self.__narrow_class_group
-        except AttributeError:
-            k = self.pari_bnf(proof)
-            s = str(k.bnfnarrow())
-            s = s.replace(";",",")
-            s = eval(s)
-            self.__narrow_class_group = sage.groups.abelian_gps.abelian_group.AbelianGroup(s[1])
-        return self.__narrow_class_group
+        k = self.pari_bnf(proof)
+        s = k.bnfnarrow().sage()
+        return sage.groups.abelian_gps.abelian_group.AbelianGroup(s[1])
 
     def ngens(self):
         """
@@ -8254,7 +8253,7 @@ class NumberField_absolute(NumberField_generic):
                                         check=False, universe=self.Hom(K))
         return self.__embeddings[K]
 
-    def Minkowski_embedding(self, B=None, prec=None):
+    def minkowski_embedding(self, B=None, prec=None):
         r"""
         Return an nxn matrix over RDF whose columns are the images of the
         basis `\{1, \alpha, \dots, \alpha^{n-1}\}` of self over
@@ -8287,24 +8286,33 @@ class NumberField_absolute(NumberField_generic):
         that the usual norm on `\RR^n` coincides with
         `|x| = \sum_i |\sigma_i(x)|^2` on self.
 
-        TODO: This could be much improved by implementing homomorphisms
-        over VectorSpaces.
+        .. TODO::
+
+            This could be much improved by implementing homomorphisms
+            over VectorSpaces.
 
         EXAMPLES::
 
             sage: F.<alpha> = NumberField(x^3+2)
-            sage: F.Minkowski_embedding()
+            sage: F.minkowski_embedding()
             [ 1.00000000000000 -1.25992104989487  1.58740105196820]
             [ 1.41421356237... 0.8908987181... -1.12246204830...]
             [0.000000000000000  1.54308184421...  1.94416129723...]
-            sage: F.Minkowski_embedding([1, alpha+2, alpha^2-alpha])
+            sage: F.minkowski_embedding([1, alpha+2, alpha^2-alpha])
             [ 1.00000000000000 0.740078950105127  2.84732210186307]
             [ 1.41421356237...  3.7193258428... -2.01336076644...]
             [0.000000000000000  1.54308184421... 0.40107945302...]
-            sage: F.Minkowski_embedding() * (alpha + 2).vector().column()
+            sage: F.minkowski_embedding() * (alpha + 2).vector().column()
             [0.740078950105127]
             [ 3.7193258428...]
             [ 1.54308184421...]
+
+        TESTS::
+
+            sage: emb = F.Minkowski_embedding()
+            doctest:warning...:
+            DeprecationWarning: Minkowski_embedding is deprecated. Please use minkowski_embedding instead.
+            See http://trac.sagemath.org/23685 for details.
         """
         n = self.degree()
         if prec is None:
@@ -8338,6 +8346,7 @@ class NumberField_absolute(NumberField_generic):
 
         return M
 
+    Minkowski_embedding = deprecated_function_alias(23685, minkowski_embedding)
 
     def places(self, all_complex=False, prec=None):
         """
@@ -10358,10 +10367,8 @@ class NumberField_cyclotomic(NumberField_absolute):
                 deg = self.degree()
                 d = ZZ(1) # so that CyclotomicField(1).disc() has the right type
                 factors = n.factor()
-                for f in factors:
-                    p = f[0]
-                    r = f[1]
-                    e = (r*p - r - 1)*deg/(p-1)
+                for (p, r) in factors:
+                    e = (r*p - r - 1) * deg // (p-1)
                     d *= p**e
                 sign = 1
                 if len(factors) == 1 and (n == 4 or factors[0][0].mod(4) == 3):
@@ -10372,7 +10379,6 @@ class NumberField_cyclotomic(NumberField_absolute):
                 return self.__disc
         else:
             return NumberField_generic.discriminant(self, v)
-
 
     def next_split_prime(self, p=2):
         """

@@ -197,20 +197,17 @@ cdef class Matrix(Matrix1):
             Traceback (most recent call last):
             ...
             ValueError: number of columns of self must equal number of columns of B
-
-
         """
-        from string import replace
         if is_Vector(B):
             try:
                 return self.transpose().solve_right(B, check=check)
             except ValueError as e:
-                raise ValueError(replace(str(e), 'row', 'column'))
+                raise ValueError(str(e).replace('row', 'column'))
         else:
             try:
                 return self.transpose().solve_right(B.transpose(), check=check).transpose()
             except ValueError as e:
-                raise ValueError(replace(str(e), 'row', 'column'))
+                raise ValueError(str(e).replace('row', 'column'))
 
     def solve_right(self, B, check=True):
         r"""

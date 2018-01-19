@@ -176,7 +176,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.is_regular` | Return ``True`` if this graph is (`k`-)regular.
     :meth:`~GenericGraph.is_chordal` | Test whether the given graph is chordal.
     :meth:`~GenericGraph.is_circulant` | Test whether the graph is a circulant graph.
-    :meth:`~GenericGraph.is_interval` | Check whether self is an interval graph
+    :meth:`~GenericGraph.is_interval` | Check whether the graph is an interval graph.
     :meth:`~GenericGraph.is_gallai_tree` | Return whether the current graph is a Gallai tree.
     :meth:`~GenericGraph.is_clique` | Test whether a set of vertices is a clique
     :meth:`~GenericGraph.is_cycle` | Test whether self is a (directed) cycle graph.
@@ -312,6 +312,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.subgraph_search_iterator` | Return an iterator over the labelled copies of ``G`` in ``self``.
     :meth:`~GenericGraph.characteristic_polynomial` | Return the characteristic polynomial of the adjacency matrix of the (di)graph.
     :meth:`~GenericGraph.genus` | Return the minimal genus of the graph.
+    :meth:`~GenericGraph.crossing_number` | Return the minimun number of edge crossings needed to draw the graph.
 
 Methods
 -------
@@ -828,7 +829,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         Returns whether the graph is immutable.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: G = graphs.PetersenGraph()
             sage: G.is_immutable()
@@ -4119,7 +4120,8 @@ class GenericGraph(GenericGraph_pyx):
 
         .. SEEALSO::
 
-          - :meth:`~Graph.is_apex`
+          - "Almost planar graph": :meth:`~Graph.is_apex`
+          - "Measuring non-planarity": :meth:`~genus`, :meth:`~crossing_number`
           - :meth:`planar_dual`
           - :meth:`faces`
 
@@ -4237,7 +4239,20 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: posets.BooleanLattice(3).cover_relations_graph().is_planar()
             True
+
+        Corner cases::
+
+            sage: graphs.EmptyGraph().is_planar()
+            True
+            sage: Graph(1).is_planar()
+            True
         """
+        # Quick check first
+        if (on_embedding is None and not kuratowski and not set_embedding and not set_pos
+            and not self.allows_loops() and not self.allows_multiple_edges()):
+            if self.order() > 4 and self.size() > 3*self.order()-6:
+                return False
+
         if self.has_multiple_edges() or self.has_loops():
             if set_embedding or (on_embedding is not None) or set_pos:
                 raise NotImplementedError("Cannot compute with embeddings of multiple-edged or looped graphs.")
@@ -4265,7 +4280,7 @@ class GenericGraph(GenericGraph_pyx):
             return planar
 
     def is_circular_planar(self, on_embedding=None, kuratowski=False,
-                           set_embedding=True, boundary = None,
+                           set_embedding=True, boundary=None,
                            ordered=False, set_pos=False):
         """
         Tests whether the graph is circular planar (outerplanar)
@@ -4371,9 +4386,25 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: K23.is_circular_planar(set_embedding=True, boundary = [0,2,1,3])
             True
+
+        TESTS:
+
+        Corner cases::
+
+            sage: graphs.EmptyGraph().is_circular_planar()
+            True
+            sage: Graph(1).is_circular_planar()
+            True
         """
         if ordered and boundary is None:
             raise ValueError("boundary must be set when ordered is True.")
+
+        # Quick check first
+        if (on_embedding is None and not kuratowski and set_embedding and
+            boundary is None and not ordered and not set_pos and
+            not self.allows_loops() and not self.allows_multiple_edges()):
+            if self.order() > 3 and self.size() > 2*self.order()-3:
+                return False
 
         if boundary is None:
             boundary = self
@@ -4645,7 +4676,8 @@ class GenericGraph(GenericGraph_pyx):
 
         The genus of a compact surface is the number of handles it
         has. The genus of a graph is the minimal genus of the surface
-        it can be embedded into.
+        it can be embedded into. It can be seen as a measure of non-planarity;
+        a planar graph has genus zero.
 
         Note - This function uses Euler's formula and thus it is necessary
         to consider only connected graphs.
@@ -4855,6 +4887,117 @@ class GenericGraph(GenericGraph_pyx):
                     return g
                 else:
                     return genus.simple_connected_graph_genus(G, set_embedding = False, check=False, minimal=minimal)
+
+    def crossing_number(self):
+        """
+        Return the crossing number of the graph.
+
+        The crossing number of a graph is the minimun number of
+        edge crossings needed to draw the graph on a plane. It can
+        be seen as a measure of non-planarity; a planar graph has
+        crossing number zero.
+
+        See :wikipedia:`Crossing_number` for more information.
+
+        EXAMPLES::
+
+            sage: P = graphs.PetersenGraph()
+            sage: P.crossing_number()
+            2
+
+        ALGORITHM:
+
+        This is slow brute force implementation: for every `k` pairs of
+        edges try adding a new vertex for a crossing point for them. If
+        the result is not planar in any of those, try `k+1` pairs.
+
+        Computing the crossing number is NP-hard problem.
+
+        TESTS:
+
+        Empty graph, graph without edges::
+
+            sage: E = graphs.EmptyGraph()
+            sage: E.crossing_number()
+            0
+
+            sage: g = Graph(5)
+            sage: g.crossing_number()
+            0
+
+        Planar graph::
+
+            sage: C4 = graphs.CompleteGraph(4)
+            sage: C4.crossing_number()
+            0
+
+        Non-connected graph::
+
+            sage: C5x2 = graphs.CompleteGraph(5) * 2
+            sage: C5x2.crossing_number()
+            2
+
+        Test the "un-splitting edges" optimization::
+
+            sage: g = graphs.CompleteGraph(4)
+            sage: g.subdivide_edges(g.edges(), 1)
+            sage: g.add_edge(0, g.add_vertex())
+            sage: g.crossing_number()
+            0
+
+            sage: g = graphs.CompleteGraph(5)
+            sage: g.subdivide_edges(g.edges(), 2)
+            sage: g.add_edge(0, g.add_vertex())
+            sage: g.crossing_number()
+            1
+        """
+        def _crossing_number(G):
+            """
+            Return the crossing number of a biconnected non-planar
+            graph ``G``.
+            """
+            from sage.combinat.subset import Subsets
+
+            # Splitting an edge does not increase the
+            # crossing number, so reversedly we can shrink those. We must
+            # check that un-splitting would not create multiple edges.
+            two = [v for v in G if G.degree(v) == 2]
+            for v in two:
+                u, w = G.neighbors(v)
+                if not G.has_edge(u, w):
+                    G.add_edge(u, w)
+                    G.delete_vertex(v)
+
+            edgepairs = Subsets(G.edges(labels=False, sort=False), 2)
+            edgepairs = [x for x in edgepairs if x[0][0] not in [x[1][0], x[1][1]] and
+                         x[0][1] not in [x[1][0], x[1][1]]]
+
+            k = 1
+            while True:
+                for edges in Subsets(edgepairs, k):
+                    g = copy(G)
+                    for pair in edges:
+                        g.delete_edges(pair)
+                    for edge in edges:
+                        v = g.add_vertex()
+                        g.add_edge(edge[0][0], v)
+                        g.add_edge(v, edge[0][1])
+                        g.add_edge(edge[1][0], v)
+                        g.add_edge(v, edge[1][1])
+                    if g.is_planar():
+                        return k
+                k += 1
+
+        self._scream_if_not_simple(allow_loops=True)
+
+        blocks = self.blocks_and_cut_vertices()[0]
+        k = 0
+        for block in blocks:
+            if len(block) > 4:
+                g = self.subgraph(block)
+                if not g.is_planar():
+                    k += _crossing_number(g)
+        return k
 
     def faces(self, embedding = None):
         """
@@ -11442,6 +11585,13 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: sort keyword is False, yet a key function is given
+
+            sage: G = Graph()
+            sage: G.add_edge(0, 1, [7])
+            sage: G.add_edge(0, 2, [7])
+            sage: G.edge_label(0,1)[0] += 1
+            sage: G.edges()
+            [(0, 1, [8]), (0, 2, [7])]
         """
         if not(sort) and key:
             raise ValueError('sort keyword is False, yet a key function is given')
@@ -11630,41 +11780,39 @@ class GenericGraph(GenericGraph_pyx):
             return sorted(self.edge_iterator(vertices=vertices,labels=labels))
         return list(self.edge_iterator(vertices=vertices,labels=labels))
 
-    def edge_label(self, u, v=None):
+    def edge_label(self, u, v):
         """
-        Returns the label of an edge. Note that if the graph allows
-        multiple edges, then a list of labels on the edge is returned.
+        Return the label of an edge.
+
+        If the graph allows multiple edges, then the list of labels
+        on the edges is returned.
+
+        .. SEEALSO::
+
+            - :meth:`set_edge_label`
 
         EXAMPLES::
 
-            sage: G = Graph({0 : {1 : 'edgelabel'}}, sparse=True)
-            sage: G.edges(labels=False)
-            [(0, 1)]
-            sage: G.edge_label( 0, 1 )
+            sage: G = Graph({0 : {1 : 'edgelabel'}})
+            sage: G.edge_label(0, 1)
             'edgelabel'
-            sage: D = DiGraph({0 : {1 : 'edgelabel'}}, sparse=True)
-            sage: D.edges(labels=False)
-            [(0, 1)]
-            sage: D.edge_label( 0, 1 )
-            'edgelabel'
+            sage: D = DiGraph({1 : {2: 'up'}, 2: {1: 'down'}})
+            sage: D.edge_label(2, 1)
+            'down'
 
         ::
 
-            sage: G = Graph(multiedges=True, sparse=True)
-            sage: [G.add_edge(0,1,i) for i in range(1,6)]
+            sage: G = Graph(multiedges=True)
+            sage: [G.add_edge(0, 1, i) for i in range(1, 6)]
             [None, None, None, None, None]
-            sage: sorted(G.edge_label(0,1))
+            sage: sorted(G.edge_label(0, 1))
             [1, 2, 3, 4, 5]
 
         TESTS::
 
-            sage: G = Graph()
-            sage: G.add_edge(0,1,[7])
-            sage: G.add_edge(0,2,[7])
-            sage: G.edge_label(0,1)[0] += 1
-            sage: G.edges()
-            [(0, 1, [8]), (0, 2, [7])]
-
+            sage: g = graphs.CycleGraph(5)
+            sage: g.edge_label(2, 3) is None
+            True
         """
         return self._backend.get_edge_label(u,v)
 
@@ -13283,69 +13431,55 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 return (False, None)
 
-    def is_interval(self, certificate = False):
+    def is_interval(self, certificate=False):
         r"""
-        Check whether self is an interval graph
+        Check whether the graph is an interval graph.
+
+        An *interval graph* is one where every vertex can be seen as
+        an interval on the real line so that there is an edge in the graph
+        iff the corresponding intervals intersects.
+
+        See :wikipedia:`Interval_graph` for more information.
 
         INPUT:
 
         - ``certificate`` (boolean) -- The function returns ``True``
-          or ``False`` according to the graph, when ``certificate =
-          False`` (default). When ``certificate = True`` and the graph
-          is an interval graph, a dictionary whose keys are the
-          vertices and values are pairs of integers are returned
-          instead of ``True``. They correspond to an embedding of the
-          interval graph, each vertex being represented by an interval
-          going from the first of the two values to the second.
+          or ``False`` according to the graph when ``certificate=False``
+          (default). When ``certificate=True`` it returns either
+          ``(False, None)`` or ``(True, d)`` where ``d`` is a dictionary
+          whose keys are the vertices and values are pairs of integers.
+          They correspond to an embedding of the interval graph, each
+          vertex being represented by an interval going from the first
+          of the two values to the second.
 
         ALGORITHM:
 
-        Through the use of PQ-Trees
+        Through the use of PQ-Trees.
 
         AUTHOR:
 
         Nathann Cohen (implementation)
 
-        EXAMPLES:
+        EXAMPLES::
 
-        A Petersen Graph is not chordal, nor can it be an interval
-        graph ::
+            sage: g = Graph({1: [2, 3, 4], 4: [2, 3]})
+            sage: g.is_interval()
+            True
+            sage: g.is_interval(certificate=True)
+            (True, {1: (0, 5), 2: (4, 6), 3: (1, 3), 4: (2, 7)})
+
+        The Petersen Graph is not chordal, so it can't be an interval
+        graph::
 
             sage: g = graphs.PetersenGraph()
             sage: g.is_interval()
             False
 
-        Though we can build intervals from the corresponding random
-        generator::
+        A chordal but still not an interval graph::
 
-            sage: g = graphs.RandomIntervalGraph(20)
+            sage: g = Graph({1: [4, 2, 3], 2: [3, 5], 3: [6]})
             sage: g.is_interval()
-            True
-
-        This method can also return, given an interval graph, a
-        possible embedding (we can actually compute all of them
-        through the PQ-Tree structures)::
-
-            sage: g = Graph(':S__@_@A_@AB_@AC_@ACD_@ACDE_ACDEF_ACDEFG_ACDEGH_ACDEGHI_ACDEGHIJ_ACDEGIJK_ACDEGIJKL_ACDEGIJKLMaCEGIJKNaCEGIJKNaCGIJKNPaCIP', loops=False, multiedges=False)
-            sage: d = g.is_interval(certificate = True)
-            sage: print(d)                                    # not tested
-            {0: (0, 20), 1: (1, 9), 2: (2, 36), 3: (3, 5), 4: (4, 38), 5: (6, 21), 6: (7, 27), 7: (8, 12), 8: (10, 29), 9: (11, 16), 10: (13, 39), 11: (14, 31), 12: (15, 32), 13: (17, 23), 14: (18, 22), 15: (19, 33), 16: (24, 25), 17: (26, 35), 18: (28, 30), 19: (34, 37)}
-
-        From this embedding, we can clearly build an interval graph
-        isomorphic to the previous one::
-
-            sage: g2 = graphs.IntervalGraph(d.values())
-            sage: g2.is_isomorphic(g)
-            True
-
-        Enumerate all small interval graphs::
-
-            sage: n = 8
-            sage: count = [0]*(n+1)
-            sage: for g in graphs(n, augment='vertices',property= lambda x:x.is_interval()): # not tested -- 50s
-            ....:     count[g.order()] += 1                                                  # not tested -- 50s
-            sage: count                                                                      # not tested -- 50s
-            [1, 1, 2, 4, 10, 27, 92, 369, 1807]
+            False
 
         .. SEEALSO::
 
@@ -13353,6 +13487,33 @@ class GenericGraph(GenericGraph_pyx):
 
             - :meth:`PQ <sage.graphs.pq_trees.PQ>`
               -- Implementation of PQ-Trees.
+            - :meth:`is_chordal`
+            - :meth:`~sage.graphs.graph_generators.GraphGenerators.IntervalGraph`
+            - :meth:`~sage.graphs.graph_generators.GraphGenerators.RandomIntervalGraph`
+
+        TESTS::
+
+            sage: E = Graph()
+            sage: E.is_interval()
+            True
+            sage: E.is_interval(certificate=True)
+            (True, {})
+
+            sage: graphs.CycleGraph(4).is_interval(certificate=True)
+            (False, None)
+
+        Enumerate all small interval graphs (see :oeis:`A005975`)::
+
+            sage: [sum(1 for g in graphs(i) if g.is_interval()) for i in range(8)]  # long time
+            [1, 1, 2, 4, 10, 27, 92, 369]
+
+        Test certicate on a larger graph by re-doing isomorphic graph::
+
+            sage: g = Graph(':S__@_@A_@AB_@AC_@ACD_@ACDE_ACDEF_ACDEFG_ACDEGH_ACDEGHI_ACDEGHIJ_ACDEGIJK_ACDEGIJKL_ACDEGIJKLMaCEGIJKNaCEGIJKNaCGIJKNPaCIP', loops=False, multiedges=False)
+            sage: d = g.is_interval(certificate=True)[1]
+            sage: g2 = graphs.IntervalGraph(d.values())
+            sage: g2.is_isomorphic(g)
+            True
         """
         self._scream_if_not_simple()
 
@@ -13361,7 +13522,7 @@ class GenericGraph(GenericGraph_pyx):
         # by the way :-)
 
         if not self.is_chordal():
-            return False
+            return (False, None) if certificate else False
 
         # First, we need to gather the list of maximal cliques, which
         # is easy as the graph is chordal
@@ -13383,10 +13544,10 @@ class GenericGraph(GenericGraph_pyx):
 
             while peo:
                 v = peo.pop()
-                clique = frozenset( [v] + cc.neighbors(v))
+                clique = frozenset([v] + cc.neighbors(v))
                 cc.delete_vertex(v)
 
-                if not any([clique.issubset(c) for c in cliques]):
+                if not any(clique.issubset(c) for c in cliques):
                     cliques.append(clique)
 
         from sage.graphs.pq_trees import reorder_sets
@@ -13397,12 +13558,12 @@ class GenericGraph(GenericGraph_pyx):
                 return True
 
         except ValueError:
-            return False
+            return (False, None) if certificate else False
 
         # We are now listing the maximal cliques in the given order,
         # and keeping track of the vertices appearing/disappearing
 
-        current = set([])
+        current = set()
         beg = {}
         end = {}
 
@@ -13420,9 +13581,7 @@ class GenericGraph(GenericGraph_pyx):
 
             current = S
 
-
-        return dict([(v, (beg[v], end[v])) for v in self])
-
+        return (True, {v: (beg[v], end[v]) for v in self})
 
     def is_gallai_tree(self):
         r"""
@@ -13834,8 +13993,7 @@ class GenericGraph(GenericGraph_pyx):
     def clustering_coeff(self,
                          nodes=None,
                          weight=False,
-                         implementation=None,
-                         return_vertex_weights=None):
+                         implementation=None):
         r"""
         Returns the clustering coefficient for each vertex in ``nodes`` as
         a dictionary keyed by vertex.
@@ -13895,15 +14053,6 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS:
 
-        Check that the option 'return_vertex_weights' is deprecated::
-
-            sage: graphs.FruchtGraph().clustering_coeff(nodes=[0,1,2],
-            ....:   weight=True, return_vertex_weights=False)
-            doctest:...: DeprecationWarning: The option 'return_vertex_weights'
-            has been deprecated and is ignored.
-            See http://trac.sagemath.org/17134 for details.
-            {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0}
-
         Boost does not work with weights::
 
             sage: graphs.FruchtGraph().clustering_coeff(implementation='boost', weight=True)
@@ -13936,10 +14085,6 @@ class GenericGraph(GenericGraph_pyx):
             {}
         """
         from sage.rings.integer import Integer
-        if return_vertex_weights is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(17134, "The option 'return_vertex_weights' has been " +
-                        "deprecated and is ignored.")
 
         if implementation is None:
             from sage.graphs.base.dense_graph import DenseGraphBackend
@@ -15395,10 +15540,15 @@ class GenericGraph(GenericGraph_pyx):
 
     def all_paths(self, start, end):
         """
-        Returns a list of all paths (also lists) between a pair of
-        vertices (start, end) in the (di)graph. If ``start`` is the same
-        vertex as ``end``, then ``[[start]]`` is returned -- a list
-        containing the 1-vertex, 0-edge path "``start``".
+        Return the list of all paths between a pair of vertices.
+
+        If ``start`` is the same vertex as ``end``, then ``[[start]]`` is
+        returned -- a list containing the 1-vertex, 0-edge path "``start``".
+
+        INPUT:
+
+        - ``start``, a vertex of a graph -- where to start
+        - ``end``, a vertex of a graph -- where to end
 
         EXAMPLES::
 
@@ -15451,13 +15601,28 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: graphs.CompleteGraph(4).all_paths(2,2)
             [[2]]
+
+        Non-existing vertex as end vertex (see :trac:`24495`)::
+
+            sage: g = graphs.PathGraph(5)
+            sage: g.all_paths(1, 'junk')
+            Traceback (most recent call last):
+            ...
+            LookupError: end vertex (junk) is not a vertex of the graph
         """
+        if start not in self:
+            raise LookupError("start vertex ({0}) is not a vertex of the graph".format(start))
+        if end not in self:
+            raise LookupError("end vertex ({0}) is not a vertex of the graph".format(end))
+
         if self.is_directed():
             iterator=self.neighbor_out_iterator
         else:
             iterator=self.neighbor_iterator
+
         if start == end:
             return [[start]]
+
         all_paths = []      # list of
         act_path = []       # the current path
         act_path_iter = []  # the neighbor/successor-iterators of the current path
@@ -19267,7 +19432,7 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``vertex_shape`` - the shape to draw the vertices, for
           example ``"o"`` for circle or ``"s"`` for square. Whole list
-          is available at http://matplotlib.org/api/markers_api.html.
+          is available at https://matplotlib.org/api/markers_api.html.
           (Not available for multiedge digraphs.)
 
         - ``graph_border`` - whether to include a box around the graph

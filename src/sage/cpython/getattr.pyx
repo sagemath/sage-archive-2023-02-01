@@ -2,7 +2,9 @@
 Variants of getattr()
 """
 
-from cpython.object cimport PyObject, Py_TYPE, descrgetfunc
+from cpython.object cimport PyObject, PyTypeObject, Py_TYPE, descrgetfunc
+
+from .string cimport bytes_to_str
 
 cdef extern from "Python.h":
     # Internal API to look for a name through the MRO.
@@ -37,51 +39,31 @@ cdef class AttributeErrorMessage:
     ::
 
         sage: from sage.cpython.getattr import AttributeErrorMessage
-        sage: AttributeErrorMessage(int(1),'bla')
+        sage: AttributeErrorMessage(int(1), 'bla')
         'int' object has no attribute 'bla'
 
     TESTS:
 
-    By :trac:`14100`, the attribute errors raised on elements and parents are
-    unique objects. The error message of this unique error object is changed
-    inplace. This is for reasons of efficiency. ::
+    The error message used for the ``AttributeError`` is a unique object
+    and is changed inplace. This is for reasons of efficiency.
+    Hence, if one really needs the error message as a string, then one should
+    make a copy of its string representation before it changes. ::
 
         sage: try:
         ....:     1.__bla
-        ....: except AttributeError as ElementError:
-        ....:     pass
+        ....: except AttributeError as exc:
+        ....:     ElementError = exc
         sage: ElementError
         AttributeError('sage.rings.integer.Integer' object has no attribute '__bla',)
         sage: try:
         ....:     x.__bla
-        ....: except AttributeError as ElementError2:
-        ....:     pass
-        sage: ElementError2 is ElementError
-        True
+        ....: except AttributeError as exc:
+        ....:     ElementError2 = exc
         sage: ElementError
         AttributeError('sage.symbolic.expression.Expression' object has no attribute '__bla',)
+        sage: ElementError2.args[0] is ElementError.args[0]
+        True
         sage: isinstance(ElementError.args[0], sage.cpython.getattr.AttributeErrorMessage)
-        True
-
-    Hence, if one really needs the error message as a string, then one should
-    make a copy of its string representation before it changes. Attribute
-    Errors of parents behave similarly::
-
-        sage: try:
-        ....:     QQ.__bla
-        ....: except AttributeError as ParentError:
-        ....:     pass
-        sage: ParentError
-        AttributeError('RationalField_with_category' object has no attribute '__bla',)
-        sage: try:
-        ....:     ZZ.__bla
-        ....: except AttributeError as ParentError2:
-        ....:     pass
-        sage: ParentError2 is ParentError
-        True
-        sage: ParentError2
-        AttributeError('sage.rings.integer_ring.IntegerRing_class' object has no attribute '__bla',)
-        sage: ParentError2 is ElementError
         True
 
     AUTHOR:
@@ -93,20 +75,16 @@ cdef class AttributeErrorMessage:
         self.name = name
 
     def __repr__(self):
-        cdef int dictoff = 1
-        try:
-            dictoff = self.cls.__dictoffset__
-        except AttributeError:
-            pass
-        if dictoff:
-            cls = repr(self.cls.__name__)
-        else:
-            cls = repr(self.cls)[6:-1]
-        return f"{cls} object has no attribute {self.name!r}"
+        cls = bytes_to_str((<PyTypeObject*>self.cls).tp_name, 'utf-8',
+                           'replace')
+        # Go directly through tp_name since __name__ can be overridden--this is
+        # almost verbatim how CPython formats this message except we don't cut
+        # off the class name after 50 characters, and non-strings are displayed
+        # with their repr :)
+        return f"'{cls}' object has no attribute {self.name!r}"
 
 
 cdef AttributeErrorMessage dummy_error_message = AttributeErrorMessage()
-cdef dummy_attribute_error = AttributeError(dummy_error_message)
 
 
 cpdef getattr_from_other_class(self, cls, name):
@@ -227,9 +205,9 @@ cpdef getattr_from_other_class(self, cls, name):
 
     This does not work with an old-style class::
 
-        sage: class OldStyle:
+        sage: class OldStyle:  # py2 -- no 'old-style' classes in Python 3
         ....:     pass
-        sage: getattr_from_other_class(1, OldStyle, "foo")
+        sage: getattr_from_other_class(1, OldStyle, "foo")  # py2
         Traceback (most recent call last):
         ...
         TypeError: <class __main__.OldStyle at ...> is not a type
@@ -243,15 +221,16 @@ cpdef getattr_from_other_class(self, cls, name):
     """
     if not isinstance(cls, type):
         raise TypeError(f"{cls!r} is not a type")
+
     if isinstance(self, cls):
         dummy_error_message.cls = type(self)
         dummy_error_message.name = name
-        raise dummy_attribute_error
+        raise AttributeError(dummy_error_message)
     cdef PyObject* attr = _PyType_Lookup(<type>cls, name)
     if attr is NULL:
         dummy_error_message.cls = type(self)
         dummy_error_message.name = name
-        raise dummy_attribute_error
+        raise AttributeError(dummy_error_message)
     attribute = <object>attr
     # Check for a descriptor (__get__ in Python)
     cdef descrgetfunc getter = Py_TYPE(attribute).tp_descr_get
@@ -268,7 +247,7 @@ cpdef getattr_from_other_class(self, cls, name):
         pass
     dummy_error_message.cls = type(self)
     dummy_error_message.name = name
-    raise dummy_attribute_error
+    raise AttributeError(dummy_error_message)
 
 
 def dir_with_other_class(self, cls):

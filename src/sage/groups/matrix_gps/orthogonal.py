@@ -1,7 +1,7 @@
 r"""
 Orthogonal Linear Groups
 
-The general orthogonal group `GO(n,R)` consists of all `n\times n`
+The general orthogonal group `GO(n,R)` consists of all `n \times n`
 matrices over the ring `R` preserving an `n`-ary positive definite
 quadratic form. In cases where there are multiple non-isomorphic
 quadratic forms, additional data needs to be specified to
@@ -140,7 +140,7 @@ def GO(n, R, e=0, var='a'):
     """
     Return the general orthogonal group.
 
-    The general orthogonal group `GO(n,R)` consists of all `n\times n`
+    The general orthogonal group `GO(n,R)` consists of all `n \times n`
     matrices over the ring `R` preserving an `n`-ary positive definite
     quadratic form. In cases where there are multiple non-isomorphic
     quadratic forms, additional data needs to be specified to
@@ -213,7 +213,7 @@ def SO(n, R, e=None, var='a'):
     """
     Return the special orthogonal group.
 
-    The special orthogonal group `GO(n,R)` consists of all `n\times n`
+    The special orthogonal group `GO(n,R)` consists of all `n \times n`
     matrices with determinant one over the ring `R` preserving an
     `n`-ary positive definite quadratic form. In cases where there are
     multiple non-isomorphic quadratic forms, additional data needs to
@@ -411,7 +411,7 @@ class OrthogonalMatrixGroup_gap(OrthogonalMatrixGroup_generic, NamedMatrixGroup_
 
         The matrix `Q` defining "orthogonal" as follows. The matrix
         determines a quadratic form `q` on the natural vector space
-        `V`, on which `G` acts, by `q(v) = v Q v^t`. A matrix `M' is
+        `V`, on which `G` acts, by `q(v) = v Q v^t`. A matrix `M` is
         an element of the orthogonal group if `q(v) = q(v M)` for all
         `v \in V`.
 
@@ -453,9 +453,8 @@ class OrthogonalMatrixGroup_with_gap(FinitelyGeneratedMatrixGroup_gap):
     r"""
     A base class for Orthogonal matrix groups with a gap backend.
 
-    It remembers the bilinear form.
-    The difference to `OrthogonalMatrixGroup_gap` is that our groups do not have
-    a specific name.
+    Main difference to ``OrthogonalMatrixGroup_gap`` is that we can
+    specify generators and a bilinear form.
 
     INPUT:
 
@@ -463,7 +462,7 @@ class OrthogonalMatrixGroup_with_gap(FinitelyGeneratedMatrixGroup_gap):
     - ``base_ring`` -- ring, the base ring of the matrices
     - ``gens`` -- a list of matrices over the base ring
     - ``invariant_bilinear_form`` -- a symmetric matrix
-    - ``category`` -- (default:``None``) a category of groups
+    - ``category`` -- (default: ``None``) a category of groups
     - ``check`` -- bool (default: ``True``) check if the generators
       preserve the bilinear form
     - ``invariant_submodule`` -- a submodule preserved by the group action
@@ -637,7 +636,7 @@ class GroupActionOnSubmodule(Action):
 
     - ``MatrixGroup`` --  an instance of :class:`OrthogonalMatrixGroup_with_gap`
     - ``submodule`` -- an invariant submodule
-    - ``is_left`` -- bool (default: False)
+    - ``is_left`` -- bool (default: ``False``)
 
     EXAMPLES::
 
@@ -719,9 +718,9 @@ class GroupActionOnQuotientModule(Action):
     INPUT:
 
     - ``MatrixGroup`` --  the group acting
-          :class:`OrthogonalMatrixGroup_with_gap`
+      :class:`OrthogonalMatrixGroup_with_gap`
     - ``submodule`` -- an invariant submodule
-    - ``is_left`` -- bool (default: False)
+    - ``is_left`` -- bool (default: ``False``)
 
     EXAMPLES::
 

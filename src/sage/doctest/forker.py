@@ -38,6 +38,7 @@ from __future__ import absolute_import
 import __future__
 
 import hashlib, multiprocessing, os, sys, time, warnings, signal, linecache
+import errno
 import doctest, traceback
 import tempfile
 import six
@@ -2110,11 +2111,19 @@ class DocTestWorker(multiprocessing.Process):
         if self.rmessages is not None:
             os.close(self.rmessages)
             self.rmessages = None
-        if not self.killed:
-            self.killed = True
-            os.killpg(self.pid, signal.SIGQUIT)
-        else:
-            os.killpg(self.pid, signal.SIGKILL)
+
+        try:
+            if not self.killed:
+                self.killed = True
+                os.killpg(self.pid, signal.SIGQUIT)
+            else:
+                os.killpg(self.pid, signal.SIGKILL)
+        except OSError as exc:
+            # Handle a race condition where the process has exited on
+            # its own by the time we get here, and ESRCH is returned
+            # indicating no processes in the specified process group
+            if exc.errno != errno.ESRCH:
+                raise
 
 
 class DocTestTask(object):

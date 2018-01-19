@@ -602,11 +602,20 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         EXAMPLES::
 
             sage: c = ComplexNumber(2,1)
-            sage: c.__mpc__()            # optional - gmpy2
+            sage: c.__mpc__()               # optional - gmpy2
             mpc('2.0+1.0j')
-            sage: from gmpy2 import mpc  # optional - gmpy2
-            sage: mpc(c)                 # optional - gmpy2
+            sage: from gmpy2 import mpc     # optional - gmpy2
+            sage: mpc(c)                    # optional - gmpy2
             mpc('2.0+1.0j')
+            sage: cf = ComplexField(134)    # optional - gmpy2
+            sage: mpc(cf.pi()).precision    # optional - gmpy2
+            (134, 134)
+            sage: cf = ComplexField(45)     # optional - gmpy2
+            sage: mpc(cf.zeta(5)).precision # optional - gmpy2
+            (45, 45)
+            sage: cf = ComplexField(255)    # optional - gmpy2
+            sage: mpc(cf.zeta(5)).precision # optional - gmpy2
+            (255, 255)
 
         TESTS::
 

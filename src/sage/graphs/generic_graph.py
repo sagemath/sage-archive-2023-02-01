@@ -14743,7 +14743,16 @@ class GenericGraph(GenericGraph_pyx):
         - ``check_weight`` (boolean) - if ``True``, we check that the
           weight_function outputs a number for each edge.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        Is Central African Republic in the center of Africa in graph theoretic
+        sense? Yes::
+
+            sage: A = graphs.AfricaMap(continental=True)
+            sage: sorted(A.center())
+            ['Cameroon', 'Central Africa']
+
+        Some other graphs. Center can be the whole graph::
 
             sage: G = graphs.DiamondGraph()
             sage: G.center()
@@ -14754,6 +14763,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: S = graphs.StarGraph(19)
             sage: S.center()
             [0]
+
+        TESTS::
+
             sage: G = Graph()
             sage: G.center()
             []

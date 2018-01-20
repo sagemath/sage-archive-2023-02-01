@@ -475,7 +475,7 @@ class TorsionQuadraticModule(FGP_Module_class):
             D_p = self.primary_part(p)
             q_p = D_p.gram_matrix_quadratic()
             q_p = q_p / D_p._modulus_qf
-            prec = self.annihilator().gen().valuation(p) + 1
+            prec = self.annihilator().gen().valuation(p) + 5
             D, U = p_adic_normal_form(q_p, p, precision=prec, partial=False)
             #apply U to the generators
             n = U.ncols()

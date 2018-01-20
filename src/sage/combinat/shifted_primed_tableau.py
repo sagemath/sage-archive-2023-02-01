@@ -614,7 +614,7 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
            column, in decreasing order within each column, moving
            from the rightmost column to the left, and with all
            the primes removed (i.e. all entries are increased by
-            half a unit).
+           half a unit).
 
         2. Then list all unprimed entries, row by row, in
            increasing order within each row, moving from the
@@ -933,7 +933,6 @@ class ShiftedPrimedTableauEntry(Rational):
             <class 'sage.combinat.shifted_primed_tableau.ShiftedPrimedTableauEntry'>
         """
         return ShiftedPrimedTableauEntry(Rational.__sub__(self, float(other)))
-
 
     def is_unprimed(self):
         """

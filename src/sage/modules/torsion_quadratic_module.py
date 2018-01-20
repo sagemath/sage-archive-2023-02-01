@@ -20,10 +20,12 @@ AUTHORS:
 from sage.modules.fg_pid.fgp_module import FGP_Module_class
 from sage.modules.fg_pid.fgp_element import DEBUG, FGP_Element
 from sage.arith.misc import gcd
-from sage.rings.all import ZZ
+from sage.rings.all import ZZ, IntegerModRing
 from sage.groups.additive_abelian.qmodnz import QmodnZ
 from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_method
+from sage.rings.finite_rings.integer_mod import mod
+from sage.arith.misc import legendre_symbol
 
 class TorsionQuadraticModuleElement(FGP_Element):
     r"""
@@ -278,6 +280,56 @@ class TorsionQuadraticModule(FGP_Module_class):
             [0 0]
         """
         return TorsionQuadraticModule(V, W, check=check)
+
+    @cached_method
+    def Brown_invariant(self):
+        r"""
+        Return the Brown invariant of this torsion quadratic form.
+
+        Let `(D,q)` be a torsion quadratic module with values in `\QQ / \2 \ZZ`.
+        The Brown invariant `Br(D,q) \in \Zmod{8}` is defined by the equation
+
+        .. MATH::
+
+            \exp \left( \frac{2 \pi i }{8} Br(q)\right) =
+            \frac{1}{\sqrt{D}} \sum_{x \in D} \exp(i \pi q(x)).
+
+        The Brown invariant is additive with respect to direct sums of
+        torsion quadratic modules.
+
+        OUTPUT:
+
+        - an element of `\Zmod{8}`
+
+        EXAMPLES::
+
+            sage: L = IntegralLattice("D4")
+            sage: D = L.discriminant_group()
+            sage: D.Brown_invariant()
+            4
+
+        We require the quadratic form to be defined modulo `2 \ZZ`::
+
+            sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
+            sage: V = FreeQuadraticModule(ZZ,3,matrix.identity(3))
+            sage: T = TorsionQuadraticModule((1/10)*V, V)
+            sage: T.Brown_invariant()
+            Traceback (most recent call last):
+            ...
+            ValueError: The torsion quadratic form must have values in\QQ / 2\ZZ
+        """
+        if self._modulus_qf != 2:
+            raise ValueError("The torsion quadratic form must have values in"
+                            "\QQ / 2\ZZ")
+        from sage.quadratic_forms.genera.normal_form import collect_small_blocks
+        brown = IntegerModRing(8).zero()
+        for p in self.annihilator().gen().prime_divisors():
+            q = self.primary_part(p).normal_form()
+            q = q.gram_matrix_quadratic()
+            L = collect_small_blocks(q)
+            for qi in L:
+                brown += _Brown_indecomposable(qi,p)
+        return brown
 
     @cached_method
     def gram_matrix_bilinear(self):
@@ -648,3 +700,60 @@ class TorsionQuadraticModule(FGP_Module_class):
         """
         return QmodnZ(self._modulus_qf)
 
+def _Brown_indecomposable(q, p):
+    r"""
+    Return the Brown invariant of the indecomposable form ``q``.
+
+    The values are taken from Table 2.1 in [Shim2016]_.
+
+    INPUT:
+
+    - ``q`` - an indecomposable quadratic form represented by a
+      rational `1 \times 1` or `2 \times 2` matrix
+    - ``p`` - a prime number
+
+    EXAMPLES::
+
+        sage: from sage.modules.torsion_quadratic_module import _Brown_indecomposable
+        sage: q = Matrix(QQ, [1/3])
+        sage: _Brown_indecomposable(q,3)
+        6
+        sage: q = Matrix(QQ, [2/3])
+        sage: _Brown_indecomposable(q,3)
+        2
+        sage: q = Matrix(QQ, [5/4])
+        sage: _Brown_indecomposable(q,2)
+        5
+        sage: q = Matrix(QQ, [7/4])
+        sage: _Brown_indecomposable(q,2)
+        7
+        sage: q = Matrix(QQ, 2, [0,1,1,0])/2
+        sage: _Brown_indecomposable(q,2)
+        0
+        sage: q = Matrix(QQ, 2, [2,1,1,2])/2
+        sage: _Brown_indecomposable(q,2)
+        4
+    """
+    v = q.denominator().valuation(p)
+    if p == 2:
+        # Brown(U) = 0
+        if q.ncols() == 2:
+            if q[0,0].valuation(2)>v+1 and q[1,1].valuation(2)>v+1:
+                # type U
+                return mod(0, 8)
+            else:
+                # type V
+                return mod(4*v, 8)
+        u = q[0,0].numerator()
+        return mod(u + v*(u**2 - 1)/2, 8)
+    if p % 4 == 1:
+        e = -1
+    if p % 4 == 3:
+        e = 1
+    if v % 2 == 1:
+        u = q[0,0].numerator()//2
+        if legendre_symbol(u,p) == 1:
+            return mod(1 + e, 8)
+        else:
+            return mod(-3 + e, 8)
+    return mod(0, 8)

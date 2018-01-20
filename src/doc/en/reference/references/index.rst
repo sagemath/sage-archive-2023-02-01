@@ -435,7 +435,7 @@ REFERENCES:
             http://www.roguebasin.com/index.php?title=Bresenham%27s_Line_Algorithm
 
 .. [Bruin-Molnar] \N. Bruin and A. Molnar, *Minimal models for rational
-            functions in a dynamical setting*, 
+            functions in a dynamical setting*,
             LMS Journal of Computation and Mathematics, Volume 15 (2012),
             pp 400-417.
 
@@ -2061,7 +2061,10 @@ REFERENCES:
             Volume 921, 1995, pp 1-12.
 
 .. [Shi1971]  Shimura, Goro. *Introduction to the arithmetic theory of
-            automorphic functions*. Princeton University Press, 1971. 
+            automorphic functions*. Princeton University Press, 1971.
+
+.. [Shim2016] Shimada, Ichiro, Connected components of the moduli of
+            elliptic K3 surfaces, https://arxiv.org/abs/1610.04706.
 
 .. [Shr2004] Shreve, S. Stochastic Calculus for Finance II:
              Continuous-Time Models.  New York: Springer, 2004

@@ -20,7 +20,7 @@ AUTHORS:
 from sage.modules.fg_pid.fgp_module import FGP_Module_class
 from sage.modules.fg_pid.fgp_element import DEBUG, FGP_Element
 from sage.arith.misc import gcd
-from sage.rings.all import ZZ, IntegerModRing
+from sage.rings.all import ZZ, QQ, IntegerModRing
 from sage.groups.additive_abelian.qmodnz import QmodnZ
 from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_method
@@ -412,6 +412,67 @@ class TorsionQuadraticModule(FGP_Module_class):
         """
         return self._gens
 
+    def is_Genus(self, signature_pair, even):
+        r"""
+        Return if there is an even lattice with this signature and discriminant form.
+
+        TODO:
+
+        - implement the same for odd lattices
+
+        INPUT:
+
+        - signature_pair -- a tuple of integers ``(s_plus,s_minus)``
+        - even -- bool (default: ``True`)
+
+        EXAMPLES::
+
+            sage:
+            sage:
+        """
+        s_plus = signature_pair[0]
+        s_minus = signature_pair[1]
+        rank = s_plus + s_minus
+        signature = s_plus - s_minus
+        D = self.cardinality()
+        det = (-1)**s_minus * D
+        if rank < len(self.invariants()):
+            return False
+        if even and self._modulus_qf != 2:
+            raise ValueError("The discriminant form of an even lattice has"
+                                 "values modulo 2.")
+        if (not even) and not (self.modulus == self._modulus_qf == 1):
+            raise ValueError("The discriminant form of an odd lattice has"
+                             "values modulo 1.")
+        if not even:
+            raise NotImplementedError()
+        for p in D.prime_divisors():
+            # check the determinat conditions
+            Q_p = self.primary_part(p)
+            gram_p = Q_p.gram_matrix_quadratic()
+            length_p = len(Q_p.invariants())
+            u = det.prime_to_m_part(p)
+            up = gram_p.det().numerator().prime_to_m_part(p)
+            if p!=2 and length_p==rank:
+                if legendre_symbol(u,p) != legendre_symbol(up, p):
+                    return False
+            if p == 2:
+                if mod(rank, 2) != mod(length_p, 2):
+                    return False
+                n = (rank - length_p)/2
+                if mod(u, 4) != mod((-1)**(n % 2) * up, 4):
+                    return False
+                if rank == length_p:
+                    a = QQ(1)/QQ(2)
+                    b = QQ(3)/QQ(2)
+                    diag = gram_p.diagonal()
+                    if not (a in diag or b in diag):
+                        if mod(u, 8) != mod(up, 8):
+                            return False
+        if self.Brown_invariant() != signature:
+            return False
+        return True
+
     def orthogonal_submodule_to(self, S):
         r"""
         Return the submodule orthogonal to ``S``.
@@ -527,7 +588,7 @@ class TorsionQuadraticModule(FGP_Module_class):
             D_p = self.primary_part(p)
             q_p = D_p.gram_matrix_quadratic()
             q_p = q_p / D_p._modulus_qf
-            prec = self.annihilator().gen().valuation(p) + 1
+            prec = self.annihilator().gen().valuation(p) + 3
             D, U = p_adic_normal_form(q_p, p, precision=prec, partial=False)
             #apply U to the generators
             n = U.ncols()

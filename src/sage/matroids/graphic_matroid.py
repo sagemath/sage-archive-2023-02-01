@@ -1079,9 +1079,9 @@ class GraphicMatroid(Matroid):
             sage: M = Matroid(Graph(edgelist))
             sage: N = Matroid(range(6), graphs.WheelGraph(4))
             sage: M._is_isomorphic(N, certificate=True)
-            (True, {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5})
+            (True, {'a': 2, 'b': 4, 'c': 5, 'd': 0, 'e': 1, 'f': 3})
             sage: N._is_isomorphic(M, certificate=True)
-            (True, {0: 'a', 1: 'b', 2: 'c', 3: 'd', 4: 'e', 5: 'f'})
+            (True, {0: 'd', 1: 'e', 2: 'a', 3: 'f', 4: 'b', 5: 'c'})
             sage: O = Matroid(range(6), graphs.CycleGraph(6))
             sage: M._is_isomorphic(O)
             False
@@ -1145,7 +1145,7 @@ class GraphicMatroid(Matroid):
             sage: M = Matroid(Graph(edgelist))
             sage: N = Matroid(range(6), graphs.WheelGraph(4))
             sage: M._isomorphism(N)
-            {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5}
+            {'a': 2, 'b': 4, 'c': 5, 'd': 0, 'e': 1, 'f': 3}
             sage: O = Matroid(Graph(edgelist), regular=True)
             sage: M._isomorphism(O)
             {'a': 'a', 'b': 'c', 'c': 'b', 'd': 'e', 'e': 'd', 'f': 'f'}
@@ -1497,7 +1497,8 @@ class GraphicMatroid(Matroid):
 
         EXAMPLES::
 
-            sage: M = Matroid(range(8), graphs.WheelGraph(5))
+            sage: G = Graph([(0, 1, 0), (0, 2, 1), (0, 3, 2), (0, 4, 3), (1, 2, 4), (1, 4, 5), (2, 3, 6), (3, 4, 7)])
+            sage: M = Matroid(G)
             sage: M1 = M.graphic_coextension(0, X=[1,2], element='a')
             sage: M1.graph().edges()
             [(0, 1, 0),
@@ -1625,7 +1626,8 @@ class GraphicMatroid(Matroid):
 
         EXAMPLES::
 
-            sage: M = Matroid(range(8), graphs.WheelGraph(5))
+            sage: G = Graph([(0, 1), (0, 2), (0, 3), (0, 4), (1, 2), (1, 4), (2, 3), (3, 4)])
+            sage: M = Matroid(range(8), G)
             sage: I = M.graphic_coextensions(vertices=[0], element='a')
             sage: for N in I:
             ....:     N.graph().edges_incident(0)

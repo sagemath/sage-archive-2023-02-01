@@ -409,24 +409,24 @@ class TorsionQuadraticModule(FGP_Module_class):
         return orthogonal
 
     @cached_method
-    def normal_form(self):
+    def normal_form(self, partial=False):
         """
         Return the normal form of this torsion quadratic module
 
         Two torsion quadratic modules are isomorphic if and only if they have
         the same value modules and the same normal form.
 
-        A torsion quadratic module `(T,q)` with values in `\QQ/n\ZZ` is 
-        in normal form if the rescaled quadratic module `(T, q/n)` 
+        A torsion quadratic module `(T,q)` with values in `\QQ/n\ZZ` is
+        in normal form if the rescaled quadratic module `(T, q/n)`
         with values in `\QQ/\ZZ` is in normal form.
 
-        For the definition of normal form see [MirMor2009]_.
+        For the definition of normal form see [MirMor2009]_ IV Definition 4.6.
         Below are some of its properties.
         Let `p` be odd and `u` be the smallest non-square modulo `p`.
         The normal form is a diagonal matrix with diagonal entries either `p^n`
         or `u*p^n`.
 
-        If `p = 2` is even, then the normal form consists of 
+        If `p = 2` is even, then the normal form consists of
         1 x 1 blocks of the form
         `0`, `[2^n]`, `[3*2^n]`, `[5*2^n]`, `[7*2^n]`
         or of 2 x 2 blocks of the form
@@ -434,9 +434,14 @@ class TorsionQuadraticModule(FGP_Module_class):
         [1 2] * 2^n or  [1 0] * 2^n
         The entries are ordered by their valuation.
 
+        INPUT:
+
+        - partial - bool (default: ``False``) return only a partial normal form
+          it is not unique but still useful to extract invariants
+
         OUTPUT:
 
-            - a torsion quadratic module
+        - a torsion quadratic module
 
         EXAMPLES::
 
@@ -469,9 +474,9 @@ class TorsionQuadraticModule(FGP_Module_class):
         for p in self.annihilator().gen().prime_divisors():
             D_p = self.primary_part(p)
             q_p = D_p.gram_matrix_quadratic()
-            q_p = q_p/D_p._modulus_qf
-            prec = self.annihilator().gen().valuation(p)+1
-            D,U = p_adic_normal_form(q_p,p,precision=prec)
+            q_p = q_p / D_p._modulus_qf
+            prec = self.annihilator().gen().valuation(p) + 1
+            D, U = p_adic_normal_form(q_p, p, precision=prec, partial=False)
             #apply U to the generators
             n = U.ncols()
             U = U.change_ring(ZZ)
@@ -479,7 +484,7 @@ class TorsionQuadraticModule(FGP_Module_class):
             for i in range(n):
                 g = self.V().zero()
                 for j in range(n):
-                    g += D_p.gens()[j].lift()*U[i,j]
+                    g += D_p.gens()[j].lift() * U[i,j]
                 gens_p.append(g)
             gens += gens_p
         return self.submodule_with_gens(gens)

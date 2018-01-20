@@ -1487,7 +1487,7 @@ class LazyPowerSeries(AlgebraElement):
             #Check to see if the stream is finite
             if self.is_finite(n-1):
                 yield self._stream[n-1]
-                raise StopIteration
+                break
             else:
                 yield (Integer(1)/Integer(n))*self._stream[n-1]
                 n += 1
@@ -1510,7 +1510,6 @@ class LazyPowerSeries(AlgebraElement):
 
         if ao == inf:
             yield self._zero
-            raise StopIteration
         else:
             for _ in range(ao-1):
                 yield self._zero
@@ -1522,7 +1521,7 @@ class LazyPowerSeries(AlgebraElement):
                 #Check to see if the stream is finite
                 if self.is_finite(n-1):
                     yield self.coefficient(n-1)
-                    raise StopIteration
+                    break
                 else:
                     yield (Integer(1)/Integer(n))*self.coefficient(n-1)
                     n += 1

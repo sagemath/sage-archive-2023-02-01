@@ -2537,16 +2537,18 @@ def WheelGraph(n):
         sage: spring23.show() # long time
         sage: posdict23.show() # long time
     """
-    from sage.graphs.generators.basic import CycleGraph
     if n < 4:
-        G = CycleGraph(n)
+        from sage.graphs.generators.basic import CycleGraph
+        pos_dict = CycleGraph(n).get_pos()
     else:
-        G = CycleGraph(n-1)
-        G.relabel(perm=list(range(1, n)), inplace=True)
-        G.add_edges([(0, i) for i in range(1, n)])
-        G._pos[0] = (0, 0)
-    G.name("Wheel graph")
-    return G
+        pos_dict = {0: (0, 0)}
+        for i in range(1,n):
+            x = float(cos((pi/2) + ((2*pi)/(n-1))*(i-1)))
+            y = float(sin((pi/2) + ((2*pi)/(n-1))*(i-1)))
+            pos_dict[i] = (x,y)
+    import networkx
+    G = networkx.wheel_graph(n)
+    return Graph(G, pos=pos_dict, name="Wheel graph")
 
 def WindmillGraph(k, n):
     r"""

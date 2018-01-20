@@ -120,6 +120,7 @@ from sage.misc.functional import is_odd, lift
 from sage.misc.misc_c import prod
 from sage.categories.homset import End
 from sage.rings.all import Infinity
+from sage.categories.number_fields import NumberFields
 
 import sage.rings.ring
 from sage.misc.latex import latex_variable_name
@@ -143,6 +144,7 @@ from itertools import count
 from builtins import zip
 from sage.misc.superseded import deprecated_function_alias
 
+_NumberFields = NumberFields()
 
 def is_NumberFieldHomsetCodomain(codomain):
     """
@@ -521,6 +523,18 @@ def NumberField(polynomial, name=None, check=True, names=None, embedding=None, l
         ...
         TypeError: You must specify the name of the generator.
 
+    Check that we can construct morphisms to matrix space (:trac:`23418`)::
+
+        sage: t = polygen(QQ)
+        sage: K = NumberField(t^4 - 2, 'a')
+        sage: K.hom([K.gen().matrix()])
+        Ring morphism:
+          From: Number Field in a with defining polynomial x^4 - 2
+          To:   Full MatrixSpace of 4 by 4 dense matrices over Rational Field
+          Defn: a |--> [0 1 0 0]
+                       [0 0 1 0]
+                       [0 0 0 1]
+                       [2 0 0 0]
     """
     if names is not None:
         name = names
@@ -1328,8 +1342,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         self._assume_disc_small = assume_disc_small
         self._maximize_at_primes = maximize_at_primes
         self._structure = structure
-        from sage.categories.number_fields import NumberFields
-        default_category = NumberFields()
+        default_category = _NumberFields
         if category is None:
             category = default_category
         else:

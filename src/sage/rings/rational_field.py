@@ -39,6 +39,8 @@ TESTS::
     True
     sage: RationalField() is RationalField()
     True
+    sage: Q in Fields().Infinite()
+    True
 
 AUTHORS:
 

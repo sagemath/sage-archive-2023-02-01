@@ -3292,7 +3292,7 @@ def list_plot_semilogy(data, plotjoined=False, **kwds):
 
         ::
 
-            sage: xl = [2**k for k in range(12)]; yl = list(range(len(xl)))
+            sage: xl = [2**k for k in range(12)]; yl = range(len(xl))
             sage: list_plot_semilogy(list(zip(xl,yl))) # plot empty due to (1,0)
             Graphics object consisting of 1 graphics primitive
 
@@ -3313,6 +3313,7 @@ def list_plot_semilogy(data, plotjoined=False, **kwds):
 
     """
     return list_plot(data, plotjoined=plotjoined, scale='semilogy', **kwds)
+
 
 def to_float_list(v):
     """

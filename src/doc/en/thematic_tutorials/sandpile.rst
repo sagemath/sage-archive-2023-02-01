@@ -5042,7 +5042,7 @@ additional features and other improvements.
    Eds. V. Sidoravicius, M. E. Vares, in the Series Progress in Probability,
    Birkhauser (2008).
 
-.. [PPW2013] D. Perkinson, J. Perlman, and J. Wilmes.
+.. [PPW2013] \D. Perkinson, J. Perlman, and J. Wilmes.
              *Primer for the algebraic geometry of sandpiles*.
              Tropical and Non-Archimedean
              Geometry, Contemp. Math., 605, Amer. Math. Soc.,

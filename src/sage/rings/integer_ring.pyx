@@ -1106,7 +1106,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def completion(self, p, prec, extras = {}):
         r"""
-        Return the completion of the integers at the prime `p`.
+        Return the metric completion of the integers at the prime `p`.
 
         INPUT:
 
@@ -1124,13 +1124,12 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         EXAMPLES::
 
             sage: ZZ.completion(infinity, 53)
-            Real Field with 53 bits of precision
+            Integer Ring
             sage: ZZ.completion(5, 15, {'print_mode': 'bars'})
             5-adic Ring with capped relative precision 15
         """
         if p == sage.rings.infinity.Infinity:
-            from sage.rings.real_mpfr import create_RealField
-            return create_RealField(prec, **extras)
+            return self
         else:
             from sage.rings.padics.factory import Zp
             return Zp(p, prec, **extras)
@@ -1303,11 +1302,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         # The dense algorithm is to compute the roots from the factorization.
         if algorithm == "dense":
-            #NOTE: the content sometimes return an ideal sometimes a number...
-            if parent(p).is_sparse():
-                cont = p.content().gen()
-            else:
-                cont = p.content()
+            cont = p.content_ideal().gen()
             if not cont.is_unit():
                 p = p.map_coefficients(lambda c: c // cont)
             return p._roots_from_factorization(p.factor(), multiplicities)
@@ -1332,13 +1327,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         if k == 1 + deg:
             return roots + p._roots_from_factorization(p.factor(), multiplicities)
 
-        #TODO: the content sometimes return an ideal sometimes a number... this
-        # should be corrected. See
-        # <https://groups.google.com/forum/#!topic/sage-devel/DP_R3rl0vH0>
-        if parent(p).is_sparse():
-            cont = p.content().gen()
-        else:
-            cont = p.content()
+        cont = p.content_ideal().gen()
         if not cont.is_unit():
             p = p.map_coefficients(lambda c: c // cont)
 

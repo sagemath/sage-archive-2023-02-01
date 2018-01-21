@@ -12,6 +12,7 @@ Coxeter Groups
 # With contributions from Dan Bump, Steve Pon, Qiang Wang, Anne Schilling, Christian Stump, Mark Shimozono
 from six.moves import range
 
+from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.lazy_import import LazyImport
 from sage.misc.constant_function import ConstantFunction
@@ -20,7 +21,7 @@ from sage.categories.category_singleton import Category_singleton
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.generalized_coxeter_groups import GeneralizedCoxeterGroups
-from sage.structure.element import have_same_parent
+from sage.structure.element import have_same_parent, parent
 from sage.misc.flatten import flatten
 from copy import copy
 
@@ -124,6 +125,73 @@ class CoxeterGroups(Category_singleton):
     Algebras = LazyImport('sage.categories.coxeter_group_algebras', 'CoxeterGroupAlgebras')
 
     class ParentMethods:
+        @abstract_method
+        def coxeter_matrix(self):
+            """
+            Return the Coxeter matrix associated to ``self``.
+
+            EXAMPLES::
+
+                sage: G = WeylGroup(['A',3])
+                sage: G.coxeter_matrix()
+                [1 3 2]
+                [3 1 3]
+                [2 3 1]
+            """
+
+        @cached_method
+        def index_set(self):
+            """
+            Return the index set of ``self``.
+
+            EXAMPLES::
+
+                sage: W = CoxeterGroup([[1,3],[3,1]])
+                sage: W.index_set()
+                (1, 2)
+                sage: W = CoxeterGroup([[1,3],[3,1]], index_set=['x', 'y'])
+                sage: W.index_set()
+                ('x', 'y')
+                sage: W = CoxeterGroup(['H',3])
+                sage: W.index_set()
+                (1, 2, 3)
+            """
+            return self.coxeter_matrix().index_set()
+
+        def coxeter_diagram(self):
+            """
+            Return the Coxeter diagram of ``self``.
+
+            EXAMPLES::
+
+                sage: W = CoxeterGroup(['H',3], implementation="reflection")
+                sage: G = W.coxeter_diagram(); G
+                Graph on 3 vertices
+                sage: G.edges()
+                [(1, 2, 3), (2, 3, 5)]
+                sage: CoxeterGroup(G) is W
+                True
+                sage: G = Graph([(0, 1, 3), (1, 2, oo)])
+                sage: W = CoxeterGroup(G)
+                sage: W.coxeter_diagram() == G
+                True
+                sage: CoxeterGroup(W.coxeter_diagram()) is W
+                True
+            """
+            return self.coxeter_matrix().coxeter_graph()
+
+        def coxeter_type(self):
+            """
+            Return the Coxeter type of ``self``.
+
+            EXAMPLES::
+
+                sage: W = CoxeterGroup(['H',3])
+                sage: W.coxeter_type()
+                Coxeter type of ['H', 3]
+            """
+            return self.coxeter_matrix().coxeter_type()
+
         def __iter__(self):
             r"""
             Returns an iterator over the elements of this Coxeter group.
@@ -159,6 +227,39 @@ class CoxeterGroups(Category_singleton):
                 [ 0  0  1]
             """
             return iter(self.weak_order_ideal(predicate = ConstantFunction(True)))
+
+        def _element_constructor_(self, x, **args):
+            """
+            Construct an element of ``self`` from ``x``.
+
+            EXAMPLES::
+
+                sage: W1 = WeylGroup("G2",prefix="s")
+                sage: W2 = CoxeterGroup("G2")
+                sage: W3 = CoxeterGroup("G2", implementation="permutation")
+                sage: W1(W2.an_element())
+                s1*s2
+                sage: W2(W1.an_element())
+                [ 2 -a]
+                [ a -1]
+                sage: W1(W3.an_element())
+                s1
+                sage: s1,s2 = W1.simple_reflections()
+                sage: W = CoxeterGroup("A1")
+                sage: W(s1*s2)
+                Traceback (most recent call last):
+                ...
+                ValueError: ...
+            """
+            P = parent(x)
+            if P in CoxeterGroups():
+                try:
+                    return self.from_reduced_word(x.reduced_word())
+                except KeyError:
+                    # Unable to convert using the reduced word
+                    #    because of an incompatible index
+                    pass
+            return self.element_class(self, x, **args)
 
         def weak_order_ideal(self, predicate, side ="right", category = None):
             """
@@ -561,11 +662,17 @@ class CoxeterGroups(Category_singleton):
                 sage: s0,s1,s2 = W.simple_reflections()
                 sage: W.bruhat_interval_poset(1, s0*s1*s2)
                 Finite poset containing 8 elements
+
+            TESTS::
+
+                sage: W.bruhat_interval_poset(s0*s1*s2, s0*s1*s2)
+                Finite poset containing 1 elements
             """
             if x == 1:
                 x = self.one()
             if y == 1:
                 y = self.one()
+            from sage.combinat.posets.posets import Poset
             if x == y:
                 return Poset([[x], []])
             if not x.bruhat_le(y):
@@ -586,7 +693,6 @@ class CoxeterGroups(Category_singleton):
                             nextlayer.add(t)
                 curlayer = nextlayer
 
-            from sage.combinat.posets.posets import Poset
             from sage.graphs.graph import DiGraph
             return Poset(DiGraph(d, format='dict_of_lists',
                                  data_structure='static_sparse'),

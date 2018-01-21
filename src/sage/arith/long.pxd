@@ -48,8 +48,8 @@ cdef inline long pyobject_to_long(x) except? LONG_MIN:
         sage: a^(2**258)
         Traceback (most recent call last):
         ...
-        RuntimeError: exponent must be at most 2147483647            # 32-bit
-        RuntimeError: exponent must be at most 9223372036854775807   # 64-bit
+        OverflowError: exponent must be at most 2147483647           # 32-bit
+        OverflowError: exponent must be at most 9223372036854775807  # 64-bit
 
     See :trac:`22319`::
 

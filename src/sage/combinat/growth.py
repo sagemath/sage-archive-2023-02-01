@@ -484,7 +484,7 @@ from sage.combinat.skew_partition import SkewPartition
 from sage.combinat.skew_tableau import SkewTableau
 from sage.combinat.core import Core, Cores
 from sage.combinat.k_tableau import WeakTableau, StrongTableau
-from sage.combinat.tableau_shifted_primed import ShiftedPrimedTableau
+from sage.combinat.shifted_primed_tableau import ShiftedPrimedTableau
 from copy import copy
 from sage.graphs.digraph import DiGraph
 

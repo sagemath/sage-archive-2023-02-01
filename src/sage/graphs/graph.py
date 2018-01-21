@@ -3379,7 +3379,7 @@ class Graph(GenericGraph):
         """
         Returns true if self is semi-symmetric.
 
-        A graph is semi-symmetric if it is regular, edge-transitve but not
+        A graph is semi-symmetric if it is regular, edge-transitive but not
         vertex-transitive.
 
         See :wikipedia:`the wikipedia article on semi-symmetric graphs

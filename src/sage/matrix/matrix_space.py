@@ -157,7 +157,7 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
         sage: get_matrix_class(GF(3), 2, 2, False, 'm4ri')
         Traceback (most recent call last):
         ...
-        ValueError: m4ri matrices are only available in characterstic 2
+        ValueError: m4ri matrices are only available in characteristic 2
         sage: get_matrix_class(Zmod(2**30), 2, 2, False, 'linbox-float')
         Traceback (most recent call last):
         ...
@@ -227,7 +227,7 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
 
             if implementation == 'm4ri':
                 if R.order() != 2:
-                    raise ValueError('m4ri matrices are only available in characterstic 2')
+                    raise ValueError('m4ri matrices are only available in characteristic 2')
                 else:
                     return matrix_mod2_dense.Matrix_mod2_dense
             elif implementation == 'linbox-float':

@@ -1483,9 +1483,11 @@ class FunctionField_polymod(FunctionField):
             sage: L.genus()
             3
         """
-        # unfortunately singular can not compute the genus with the polynomial_ring()._singular_
-        # object because genus method only accepts a ring of transdental degree 2 over a prime field
-        # not a ring of transdental degree 1 over a rational function field of one variable
+        # unfortunately singular can not compute the genus with the
+        # polynomial_ring()._singular_ object because genus method
+        # only accepts a ring of transcendental degree 2 over a prime
+        # field not a ring of transcendental degree 1 over a rational
+        # function field of one variable
 
         if is_RationalFunctionField(self._base_field) and self._base_field.constant_field().is_prime_field():
 

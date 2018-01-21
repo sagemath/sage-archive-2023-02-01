@@ -6416,7 +6416,7 @@ cdef class ReductionStrategy:
 
         - ``leading_terms`` - all leading terms of generators
 
-        - ``minimial_leading_terms`` - the reduced set of leading terms
+        - ``minimal_leading_terms`` - the reduced set of leading terms
 
         - ``monomials`` -
 

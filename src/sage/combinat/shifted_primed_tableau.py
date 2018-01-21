@@ -531,11 +531,12 @@ class ShiftedPrimedTableau(ClonableArray):
 
         EXAMPLES::
 
-           sage: t = ShiftedPrimedTableau([[1,'2p',2,2],[2,'3p']])
+           sage: t = ShiftedPrimedTableau([['2p',2,2],[2,'3p']], skew=[1])
            sage: t.weight()
-           (1, 4, 1)
+           (0, 4, 1)
         """
-        flat = [entry.unprime() for row in self for entry in row]
+        flat = [entry.unprime() for row in self
+                for entry in row if entry is not None]
         if flat == []:
             max_ind = 0
         else:

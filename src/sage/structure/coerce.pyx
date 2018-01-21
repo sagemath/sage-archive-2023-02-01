@@ -93,8 +93,9 @@ from .richcmp cimport rich_to_bool
 from .sage_object cimport SageObject
 from .parent cimport Set_PythonType, Parent_richcmp_element_without_coercion
 from .element cimport bin_op_exception, parent, Element
-from .coerce_actions import LeftModuleAction, RightModuleAction, IntegerMulAction
+from .coerce_actions import LeftModuleAction, RightModuleAction
 from .coerce_exceptions import CoercionException
+from sage.rings.integer_fake cimport is_Integer
 from sage.categories.map cimport Map
 from sage.categories.morphism import IdentityMorphism
 from sage.categories.action cimport Action, InverseAction, PrecomposedAction
@@ -231,7 +232,7 @@ cpdef py_scalar_to_element(x):
     """
     if isinstance(x, Element):
         return x
-    elif isinstance(x, int):
+    elif isinstance(x, (int, long)):
         from sage.rings.integer import Integer
         return Integer(x)
     elif type(x) is FractionType:
@@ -240,9 +241,6 @@ cpdef py_scalar_to_element(x):
     elif isinstance(x, float):
         from sage.rings.real_double import RDF
         return RDF(x)
-    elif isinstance(x, long):
-        from sage.rings.integer import Integer
-        return Integer(x)
     elif isinstance(x, complex):
         from sage.rings.complex_double import CDF
         return CDF(x)
@@ -261,6 +259,45 @@ cpdef py_scalar_to_element(x):
             return x
     else:
         return x
+
+
+cpdef bint parent_is_integers(P) except -1:
+    """
+    Check whether the type or parent represents the ring of integers.
+
+    EXAMPLES::
+
+        sage: from sage.structure.coerce import parent_is_integers
+        sage: parent_is_integers(int)
+        True
+        sage: parent_is_integers(long)
+        True
+        sage: parent_is_integers(float)
+        False
+        sage: parent_is_integers(bool)
+        True
+        sage: parent_is_integers(dict)
+        False
+
+        sage: import numpy
+        sage: parent_is_integers(numpy.int16)
+        True
+        sage: parent_is_integers(numpy.uint64)
+        True
+        sage: parent_is_integers(numpy.float)
+        False
+    """
+    if isinstance(P, type):
+        if issubclass(P, int) or issubclass(P, long):
+            return True
+        elif is_numpy_type(P):
+            from numpy import integer
+            return issubclass(P, integer)
+        else:
+            return False
+    else:
+        from sage.rings.integer_ring import ZZ
+        return P is ZZ
 
 
 cpdef bint is_numpy_type(t):
@@ -333,12 +370,6 @@ cpdef bint is_mpmath_type(t):
     return isinstance(t, type) and \
            strncmp((<PyTypeObject*>t).tp_name, "sage.libs.mpmath.", 17) == 0
 
-cdef object _Integer
-cdef bint is_Integer(x):
-    global _Integer
-    if _Integer is None:
-        from sage.rings.integer import Integer as _Integer
-    return type(x) is _Integer
 
 cdef class CoercionModel_cache_maps(CoercionModel):
     """
@@ -394,45 +425,40 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         sage: numpy.uint8('2') + 3
         5
         sage: type(_)
-        <type 'numpy.int32'>  # 32-bit
-        <type 'numpy.int64'>  # 64-bit
+        <... 'numpy.int32'>  # 32-bit
+        <... 'numpy.int64'>  # 64-bit
 
         sage: numpy.int8('12') + 1/3
         12.333333333333334
         sage: type(_)
-        <type 'numpy.float64'>
+        <... 'numpy.float64'>
 
     AUTHOR:
 
     - Robert Bradshaw
     """
-
-    def __init__(self, lookup_dict_size=127, lookup_dict_threshold=.75):
+    def __init__(self, *args, **kwds):
         """
-        INPUT:
-
-        - ``lookup_dict_size`` - initial size of the coercion hashtables
-
-        - ``lookup_dict_threshold`` - maximal density of the coercion
-          hashtables before forcing a re-hash
-
         EXAMPLES::
 
             sage: from sage.structure.coerce import CoercionModel_cache_maps
-            sage: cm = CoercionModel_cache_maps(4, .95)
+            sage: cm = CoercionModel_cache_maps()
             sage: K = NumberField(x^2-2, 'a')
             sage: A = cm.get_action(ZZ, K, operator.mul)
             sage: f, g = cm.coercion_maps(QQ, int)
             sage: f, g = cm.coercion_maps(ZZ, int)
 
-        .. NOTE::
+        TESTS::
 
-            In practice 4 would be a really bad number to choose, but
-            it makes the hashing deterministic.
+            sage: cm = CoercionModel_cache_maps(4, .95)
+            doctest:...: DeprecationWarning: the 'lookup_dict_size' argument is deprecated
+            See http://trac.sagemath.org/24135 for details.
+            doctest:...: DeprecationWarning: the 'lookup_dict_threshold' argument is deprecated
+            See http://trac.sagemath.org/24135 for details.
         """
-        self.reset_cache(lookup_dict_size, lookup_dict_threshold)
+        self.reset_cache(*args, **kwds)
 
-    def reset_cache(self, lookup_dict_size=127, lookup_dict_threshold=.75):
+    def reset_cache(self, lookup_dict_size=None, lookup_dict_threshold=None):
         """
         Clear the coercion cache.
 
@@ -450,14 +476,20 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm.get_cache()
             ({}, {})
         """
+        if lookup_dict_size is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(24135, "the 'lookup_dict_size' argument is deprecated")
+        if lookup_dict_threshold is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(24135, "the 'lookup_dict_threshold' argument is deprecated")
         # This MUST be a mapping of tuples, where each
         # tuple contains at least two elements that are either
         # None or of type Map.
-        self._coercion_maps = TripleDict(lookup_dict_size, threshold=lookup_dict_threshold)
+        self._coercion_maps = TripleDict()
         # This MUST be a mapping to actions.
-        self._action_maps = TripleDict(lookup_dict_size, threshold=lookup_dict_threshold)
+        self._action_maps = TripleDict()
         # This is a mapping from Parents to Parents, storing the result of division in the given parent.
-        self._division_parents = TripleDict(lookup_dict_size, threshold=lookup_dict_threshold)
+        self._division_parents = TripleDict()
 
     def get_cache(self):
         """
@@ -521,8 +553,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: act(1/5, x+10)
             1/5*x + 2
         """
-        return dict([((S, R), mors) for (S, R, op), mors in self._coercion_maps.iteritems()]), \
-               dict(self._action_maps.iteritems())
+        d1 = {(S, R): mors for (S, R, op), mors in self._coercion_maps.items()}
+        d2 = self._action_maps.copy()
+        return d1, d2
 
     def record_exceptions(self, bint value=True):
         r"""
@@ -671,7 +704,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm.explain(QQ, int)
             Coercion on right operand via
                 Native morphism:
-                  From: Set of Python objects of type 'int'
+                  From: Set of Python objects of class 'int'
                   To:   Rational Field
             Arithmetic performed after coercions.
             Result lives in Rational Field
@@ -741,7 +774,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm.explain(int, ZZ, operator.truediv)
             Coercion on left operand via
                 Native morphism:
-                  From: Set of Python objects of type 'int'
+                  From: Set of Python objects of class 'int'
                   To:   Integer Ring
             Arithmetic performed after coercions.
             Result lives in Rational Field
@@ -811,7 +844,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: res
             Finite Field of size 7
             sage: f = steps[1]; type(f)
-            <type 'sage.rings.finite_rings.integer_mod.Integer_to_IntegerMod'>
+            <... 'sage.rings.finite_rings.integer_mod.Integer_to_IntegerMod'>
             sage: f(100)
             2
         """
@@ -1081,18 +1114,14 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             if action is not None:
                 return (<Action>action)._call_(x, y)
 
-        xy = None
         try:
-            xy = self.canonical_coercion(x,y)
-            return PyObject_CallObject(op, xy)
-        except TypeError as err:
-            if xy is not None:
-                # The error was in calling, not coercing
-                raise
+            xy = self.canonical_coercion(x, y)
+        except TypeError:
             self._record_exception()
+        else:
+            return PyObject_CallObject(op, xy)
 
         if op is mul or op is imul:
-
             # elements may also act on non-elements
             # (e.g. sequences or parents)
             if not isinstance(y, Element) or not isinstance(x, Element):
@@ -1166,7 +1195,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
             sage: x, y = cm.canonical_coercion(int(5), 10)
             sage: type(x), type(y)
-            (<type 'sage.rings.integer.Integer'>, <type 'sage.rings.integer.Integer'>)
+            (<... 'sage.rings.integer.Integer'>, <... 'sage.rings.integer.Integer'>)
 
 
             sage: x, y = cm.canonical_coercion(int(5), complex(3))
@@ -1180,7 +1209,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: a, b
             (13, 1/3)
             sage: type(a)
-            <type 'sage.rings.rational.Rational'>
+            <... 'sage.rings.rational.Rational'>
 
         We also make an exception for 0, even if $\ZZ$ does not map in::
 
@@ -1596,7 +1625,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm.get_action(QQx, int, operator.mul)
             Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Rational Field
             with precomposition on right by Native morphism:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Integer Ring
 
             sage: A = cm.get_action(QQx, ZZ, operator.truediv); A
@@ -1650,11 +1679,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 R = Real Double Field
                 S = Univariate Polynomial Ring in x over Integer Ring
                 (should be Univariate Polynomial Ring in x over Integer Ring, Rational Field)
-                action = Right scalar multiplication by Rational Field on Univariate Polynomial Ring in x over Integer Ring (<type 'sage.structure.coerce_actions.RightModuleAction'>)
+                action = Right scalar multiplication by Rational Field on Univariate Polynomial Ring in x over Integer Ring (<... 'sage.structure.coerce_actions.RightModuleAction'>)
         """
         if action is None:
-            return action
-        elif isinstance(action, IntegerMulAction):
             return action
         cdef bint ok = True
         try:
@@ -1722,7 +1749,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm.discover_action(P, int, operator.mul)
             Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Integer Ring
             with precomposition on right by Native morphism:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Integer Ring
 
         If op in an inplace operation, look for the non-inplace action::
@@ -1790,18 +1817,14 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             if sageR is not None:
                 action = self.discover_action(sageR, S, op, s=s)
                 if action is not None:
-                    if not isinstance(action, IntegerMulAction):
-                        action = PrecomposedAction(action, sageR._internal_coerce_map_from(R), None)
-                    return action
+                    return PrecomposedAction(action, sageR._internal_coerce_map_from(R), None)
 
         if type(S) is type:
             sageS = py_scalar_parent(S)
             if sageS is not None:
                 action = self.discover_action(R, sageS, op, r=r)
                 if action is not None:
-                    if not isinstance(action, IntegerMulAction):
-                        action = PrecomposedAction(action, None, sageS._internal_coerce_map_from(S))
-                    return action
+                    return PrecomposedAction(action, None, sageS._internal_coerce_map_from(S))
 
         if op.__name__[0] == 'i':
             try:

@@ -20,11 +20,18 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from .padic_generic import pAdicGeneric
+from .padic_generic import pAdicGeneric, ResidueLiftingMap
 from .padic_base_generic import pAdicBaseGeneric
+from sage.rings.number_field.number_field_base import NumberField
+from sage.rings.number_field.order import Order
+from sage.rings.rational_field import QQ
 from sage.structure.richcmp import op_EQ
 from functools import reduce
-
+from sage.categories.morphism import Morphism
+from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
+from sage.categories.integral_domains import IntegralDomains
+from sage.categories.fields import Fields
+from sage.categories.homset import Hom
 
 class pAdicExtensionGeneric(pAdicGeneric):
     def __init__(self, poly, prec, print_mode, names, element_class):
@@ -49,20 +56,11 @@ class pAdicExtensionGeneric(pAdicGeneric):
         print_mode['var_name'] = names[0]
         names = names[0]
         pAdicGeneric.__init__(self, R, R.prime(), prec, print_mode, names, element_class)
-        self._populate_coercion_lists_(coerce_list=[R], element_constructor=element_class)
-
-#     def __reduce__(self):
-#         """
-#         For pickling.
-
-#         This function is provided because prime_pow needs to be set before _printer, so the standard unpickling fails.
-#         """
-#         from sage.rings.padics.factory import ExtensionFactory
-#         return ExtensionFactory, (self.base_ring(), self._exact_modulus, self.precision_cap(), self.print_mode(), None, self.variable_name())
+        self._populate_coercion_lists_(coerce_list=[R])
 
     def _coerce_map_from_(self, R):
         """
-        Returns True if there is a coercion map from R to self.
+        Finds coercion maps from R to this ring.
 
         EXAMPLES::
 
@@ -83,7 +81,59 @@ class pAdicExtensionGeneric(pAdicGeneric):
                 from sage.rings.padics.qadic_flint_CR import pAdicCoercion_CR_frac_field as coerce_map
             elif R._prec_type() == 'floating-point':
                 from sage.rings.padics.qadic_flint_FP import pAdicCoercion_FP_frac_field as coerce_map
+            elif R._prec_type() == 'fixed-mod':
+                from sage.rings.padics.qadic_flint_FM import pAdicCoercion_FM_frac_field as coerce_map
             return coerce_map(R, self)
+
+    def _convert_map_from_(self, R):
+        """
+        Finds conversion maps from R to this ring.
+
+        Currently, a conversion exists if the defining polynomial is the same.
+
+        EXAMPLES::
+
+            sage: R.<a> = Zq(125)
+            sage: S = R.change(type='capped-abs', prec=40, print_mode='terse', print_pos=False)
+            sage: S(a - 15)
+            -15 + a + O(5^20)
+
+        We get conversions from the exact field::
+
+            sage: K = R.exact_field(); K
+            Number Field in a with defining polynomial x^3 + 3*x + 3
+            sage: R(K.gen())
+            a + O(5^20)
+
+        and its maximal order::
+
+            sage: OK = K.maximal_order()
+            sage: R(OK.gen(1))
+            a + O(5^20)
+        """
+        cat = None
+        if self._implementation == 'NTL' and R == QQ:
+            # Want to use DefaultConvertMap
+            return None
+        if isinstance(R, pAdicExtensionGeneric) and R.defining_polynomial(exact=True) == self.defining_polynomial(exact=True):
+            if R.is_field() and not self.is_field():
+                cat = SetsWithPartialMaps()
+            else:
+                cat = R.category()
+        elif isinstance(R, Order) and R.number_field().defining_polynomial() == self.defining_polynomial():
+            cat = IntegralDomains()
+        elif isinstance(R, NumberField) and R.defining_polynomial() == self.defining_polynomial():
+            if self.is_field():
+                cat = Fields()
+            else:
+                cat = SetsWithPartialMaps()
+        else:
+            k = self.residue_field()
+            if R is k:
+                return ResidueLiftingMap._create_(R, self)
+        if cat is not None:
+            H = Hom(R, self, cat)
+            return H.__make_element_class__(DefPolyConversion)(H)
 
     def __eq__(self, other):
         """
@@ -347,67 +397,6 @@ class pAdicExtensionGeneric(pAdicGeneric):
                     implementation=self._implementation),
                 self.base_ring())
 
-    def fraction_field(self, print_mode=None):
-        r"""
-        Returns the fraction field of this extension, which is just
-        the extension of base.fraction_field() determined by the
-        same polynomial.
-
-        INPUT:
-
-        - print_mode -- a dictionary containing print options.
-          Defaults to the same options as this ring.
-
-        OUTPUT:
-
-        - the fraction field of self.
-
-        EXAMPLES::
-
-            sage: U.<a> = Zq(17^4, 6, print_mode='val-unit', print_max_terse_terms=3)
-            sage: U.fraction_field()
-            Unramified Extension in a defined by x^4 + 7*x^2 + 10*x + 3 with capped relative precision 6 over 17-adic Field
-            sage: U.fraction_field({"pos":False}) == U.fraction_field()
-            False
-        """
-        if self.is_field() and print_mode is None:
-            return self
-        if print_mode is None:
-            return self.change(field=True)
-        else:
-            return self.change(field=True, **print_mode)
-
-    def integer_ring(self, print_mode=None):
-        r"""
-        Returns the ring of integers of self, which is just the
-        extension of base.integer_ring() determined by the same
-        polynomial.
-
-        INPUT:
-
-            - print_mode -- a dictionary containing print options.
-              Defaults to the same options as this ring.
-
-        OUTPUT:
-
-            - the ring of elements of self with nonnegative valuation.
-
-        EXAMPLES::
-
-            sage: U.<a> = Qq(17^4, 6, print_mode='val-unit', print_max_terse_terms=3)
-            sage: U.integer_ring()
-            Unramified Extension in a defined by x^4 + 7*x^2 + 10*x + 3 with capped relative precision 6 over 17-adic Ring
-            sage: U.fraction_field({"pos":False}) == U.fraction_field()
-            False
-        """
-        #Currently does not support fields with non integral defining polynomials.  This should change when the padic_general_extension framework gets worked out.
-        if not self.is_field() and print_mode is None:
-            return self
-        if print_mode is None:
-            return self.change(field=False)
-        else:
-            return self.change(field=False, **print_mode)
-
     #def hasGNB(self):
     #    raise NotImplementedError
 
@@ -448,3 +437,82 @@ class pAdicExtensionGeneric(pAdicGeneric):
     #def zeta_order(self):
     #    raise NotImplementedError
 
+class DefPolyConversion(Morphism):
+    """
+    Conversion map between p-adic rings/fields with the same defining polynomial.
+
+    INPUT:
+
+    - ``R`` -- a p-adic extension ring or field.
+    - ``S`` -- a p-adic extension ring or field with the same defining polynomial.
+
+    EXAMPLES::
+
+        sage: R.<a> = Zq(125, print_mode='terse')
+        sage: S = R.change(prec = 15, type='floating-point')
+        sage: a - 1
+        95367431640624 + a + O(5^20)
+        sage: S(a - 1)
+        30517578124 + a + O(5^15)
+
+    ::
+
+        sage: R.<a> = Zq(125, print_mode='terse')
+        sage: S = R.change(prec = 15, type='floating-point')
+        sage: f = S.convert_map_from(R)
+        sage: TestSuite(f).run()
+    """
+    def _call_(self, x):
+        """
+        Use the polynomial associated to the element to do the conversion.
+
+        EXAMPLES::
+
+            sage: S.<x> = ZZ[]
+            sage: W.<w> = Zp(3).extension(x^4 + 9*x^2 + 3*x - 3)
+            sage: z = W.random_element()
+            sage: repr(W.change(print_mode='digits')(z))
+            '...20112102111011011200001212210222202220100111100200011222122121202100210120010120'
+        """
+        S = self.codomain()
+        Sbase = S.base_ring()
+        L = x.polynomial().list()
+        if L and not (len(L) == 1 and L[0].is_zero()):
+            return S([Sbase(c) for c in L])
+        # Inexact zeros need to be handled separately
+        elif isinstance(x.parent(), pAdicExtensionGeneric):
+            return S(0, x.precision_absolute())
+        else:
+            return S(0)
+
+    def _call_with_args(self, x, args=(), kwds={}):
+        """
+        Use the polynomial associated to the element to do the conversion,
+        passing arguments along to the codomain.
+
+        EXAMPLES::
+
+            sage: S.<x> = ZZ[]
+            sage: W.<w> = Zp(3).extension(x^4 + 9*x^2 + 3*x - 3)
+            sage: z = W.random_element()
+            sage: repr(W.change(print_mode='digits')(z, absprec=8)) # indirect doctest
+            '...20010120'
+        """
+        S = self.codomain()
+        Sbase = S.base_ring()
+        L = x.polynomial().list()
+        if L and not (len(L) == 1 and L[0].is_zero()):
+            return S([Sbase(c) for c in L], *args, **kwds)
+        # Inexact zeros need to be handled separately
+        elif isinstance(x.parent(), pAdicExtensionGeneric):
+            if args:
+                if 'absprec' in kwds:
+                    raise TypeError("_call_with_args() got multiple values for keyword argument 'absprec'")
+                absprec = args[0]
+                args = args[1:]
+            else:
+                absprec = kwds.pop('absprec',x.precision_absolute())
+            absprec = min(absprec, x.precision_absolute())
+            return S(0, absprec, *args, **kwds)
+        else:
+            return S(0, *args, **kwds)

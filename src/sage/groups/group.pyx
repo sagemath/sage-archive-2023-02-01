@@ -75,7 +75,7 @@ cdef class Group(Parent):
         sage: 4 in G
         Traceback (most recent call last):
         ...
-        NotImplementedError
+        NotImplementedError: cannot construct elements of <sage.groups.group.Group object at ...>
     """
     def __init__(self, base=None, gens=None, category=None):
         """
@@ -152,8 +152,9 @@ cdef class Group(Parent):
 
     def order(self):
         """
-        Returns the number of elements of this group, which is either a
-        positive integer or infinity.
+        Return the number of elements of this group.
+
+        This is either a positive integer or infinity.
 
         EXAMPLES::
 
@@ -163,8 +164,17 @@ cdef class Group(Parent):
             Traceback (most recent call last):
             ...
             NotImplementedError
+
+        TESTS::
+
+            sage: H = SL(2, QQ)
+            sage: H.order()
+            +Infinity
         """
-        raise NotImplementedError
+        try:
+            return self.cardinality()
+        except AttributeError:
+            raise NotImplementedError
 
     def is_finite(self):
         """

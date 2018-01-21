@@ -295,7 +295,8 @@ class LatinSquare:
             sage: L = LatinSquare(matrix(ZZ, [[0, 1], [2, 3]]))
             sage: L.set_immutable()
             sage: L.__hash__()
-            12
+            1677951251422179082  # 64-bit
+            -479138038           # 32-bit
         """
         return hash(self.square)
 
@@ -1197,7 +1198,7 @@ class LatinSquare:
                 # If this is an empty cell of self then we do nothing.
                 if self[r, c] < 0: continue
 
-                for e in uniq(valsrow.keys() + valscol.keys()):
+                for e in uniq(list(valsrow) + list(valscol)):
                     # These should be constants
                     c_OFFSET  = e + c*n
                     r_OFFSET  = e + r*n + n*n

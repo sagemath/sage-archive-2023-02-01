@@ -23,7 +23,7 @@ from copy import deepcopy
 
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix_space import MatrixSpace
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 from sage.rings.integer_ring import IntegerRing, ZZ
 from sage.rings.ring import Ring
 from sage.misc.functional import denominator, is_even, is_field
@@ -705,9 +705,10 @@ class QuadraticForm(SageObject):
 
     def __add__(self, right):
           """
-          Returns the direct sum of two quadratic forms.
+          Return the direct sum of two quadratic forms.
 
           EXAMPLES::
+
               sage: Q = QuadraticForm(ZZ, 2, [1,4,10])
               sage: Q
               Quadratic form in 2 variables over Integer Ring with coefficients:
@@ -720,7 +721,6 @@ class QuadraticForm(SageObject):
               [ * 10 0 0 ]
               [ * * 1 4 ]
               [ * * * -10 ]
-
           """
           if not isinstance(right, QuadraticForm):
               raise TypeError("Oops!  Can't add these objects since they're not both quadratic forms. =(")
@@ -845,7 +845,7 @@ class QuadraticForm(SageObject):
             sage: Q([1,0])
             1
             sage: type(Q([1,0]))
-            <type 'sage.rings.rational.Rational'>
+            <... 'sage.rings.rational.Rational'>
             sage: Q = QuadraticForm(QQ, 2, range(1,4))
             sage: Q(matrix(2, [1,0]))
             Quadratic form in 1 variables over Rational Field with coefficients:

@@ -32,9 +32,8 @@ from __future__ import absolute_import, print_function
 cimport sage.structure.sage_object as sage_object
 import operator
 from .parent import Set_PythonType, Set_PythonType_class
-from .coerce import py_scalar_parent
+from .coerce cimport py_scalar_parent
 from sage.ext.stdsage cimport HAS_DICTIONARY
-from sage.structure.coerce_dict import MonoDict, TripleDict
 
 from cpython.object cimport *
 from cpython.bool cimport *
@@ -73,9 +72,9 @@ cdef class Parent(parent.Parent):
 #            print(type(self), coerce_from)
         self.init_coerce(False)
         self._coerce_from_list = list(coerce_from)
-        self._coerce_from_hash = MonoDict(23)
+        self._coerce_from_hash = MonoDict()
         self._action_list = list(actions)
-        self._action_hash = TripleDict(23)
+        self._action_hash = TripleDict()
 
         cdef parent.Parent other
         for mor in embeddings:
@@ -88,7 +87,7 @@ cdef class Parent(parent.Parent):
         self._set_element_constructor()
 
         # old
-        self._has_coerce_map_from = MonoDict(23)
+        self._has_coerce_map_from = MonoDict()
         if category is not None:
             self._init_category_(category)
 
@@ -109,10 +108,10 @@ cdef class Parent(parent.Parent):
 
             sage: QQ['q,t'].coerce_map_from(int)
             Composite map:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Multivariate Polynomial Ring in q, t over Rational Field
               Defn:   Native morphism:
-                      From: Set of Python objects of type 'int'
+                      From: Set of Python objects of class 'int'
                       To:   Rational Field
                     then
                       Polynomial base injection morphism:
@@ -294,7 +293,7 @@ cdef class Parent(parent.Parent):
         if self == S:
             return True
         if self._has_coerce_map_from is None:
-            self._has_coerce_map_from = MonoDict(23)
+            self._has_coerce_map_from = MonoDict()
         else:
             try:
                 return self._has_coerce_map_from.get(S)

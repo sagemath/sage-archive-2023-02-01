@@ -543,11 +543,17 @@ class Partition(CombinatorialElement):
             CombinatorialElement.__init__(self, parent, mu._list)
             return
 
-        elif len(mu)==0 or (all(mu[i] in NN and mu[i]>=mu[i+1] for i in range(len(mu)-1)) \
+        elif not mu:
+            CombinatorialElement.__init__(self, parent, mu)
+
+        elif (all(mu[i] in NN and mu[i] >= mu[i+1] for i in range(len(mu)-1))
                 and mu[-1] in NN):
-            if 0 in mu:
+            if mu[-1] == 0: # From the above checks, the last value must be == 0 or > 0
                 # strip all trailing zeros
-                CombinatorialElement.__init__(self, parent, mu[:mu.index(0)])
+                temp = len(mu) - 1
+                while temp > 0 and mu[temp-1] == 0:
+                    temp -= 1
+                CombinatorialElement.__init__(self, parent, mu[:temp])
             else:
                 CombinatorialElement.__init__(self, parent, mu)
 
@@ -1834,14 +1840,14 @@ class Partition(CombinatorialElement):
         sum2 = 0
         min_length = min(len(p1), len(p2))
         if min_length == 0:
-            return len(p1) >= len(p2)
+            return not p2 # equivalent to len(p1) >= len(p2) = 0
 
         for i in range(min_length):
             sum1 += p1[i]
             sum2 += p2[i]
             if sum2 > sum1:
                 return False
-        return bool(sum(p1) >= sum(p2))
+        return sum(p1) >= sum(p2)
 
     def cells(self):
         """
@@ -2780,12 +2786,13 @@ class Partition(CombinatorialElement):
             sage: Partition([3,2,1]).dominated_partitions(rows=3)
             [[3, 2, 1], [2, 2, 2]]
         """
-        #Naive implementation
-        res = [x for x in Partitions_n(self.size()) if self.dominates(x)]
+        #Naive implementation because iteration is so fast
+        n = sum(self)
+        P = Partitions_n(n)
         if rows:
-            return [x for x in res if len(x) <= rows]
+            return [P(x) for x in ZS1_iterator_nk(n, rows) if self.dominates(x)]
         else:
-            return res
+            return [P(x) for x in ZS1_iterator(n) if self.dominates(x)]
 
     def contains(self, x):
         """
@@ -4215,17 +4222,6 @@ class Partition(CombinatorialElement):
         """
         return Partition(self.k_skew(k).conjugate().row_lengths())
 
-#    def parent(self):
-#        """
-#        Returns the combinatorial class of partitions of ``sum(self)``.
-#
-#        EXAMPLES::
-#
-#            sage: Partition([3,2,1]).parent()
-#            Partitions of the integer 6
-#        """
-#        return Partitions(sum(self[:]))
-
     def arms_legs_coeff(self, i, j):
         r"""
         This is a statistic on a cell `c = (i,j)` in the diagram of partition
@@ -4593,7 +4589,7 @@ class Partition(CombinatorialElement):
         """
         return self.dimension()**2/factorial(self.size())
 
-    def outline(self, variable=var("x")):
+    def outline(self, variable=None):
         r"""
         Return the outline of the partition ``self``.
 
@@ -4624,6 +4620,8 @@ class Partition(CombinatorialElement):
             sage: integrate(Partition([1]).outline()-abs(x),(x,-10,10))
             2
         """
+        if variable is None:
+            variable = var('x')
         outside_contents = [self.content(*c) for c in self.outside_corners()]
         inside_contents = [self.content(*c) for c in self.corners()]
         return sum(abs(variable+c) for c in outside_contents)\
@@ -5102,8 +5100,8 @@ class Partitions(UniqueRepresentation, Parent):
                         return RegularPartitions_all(kwargs['regular'])
                 elif len(kwargs) == 2:
                     if 'regular' in kwargs:
-                        if kwargs['regular'] < 2:
-                            raise ValueError("the regularity must be at least 2")
+                        if kwargs['regular'] < 1 or kwargs['regular'] not in ZZ:
+                            raise ValueError("the regularity must be a positive integer")
                         if 'max_part' in kwargs:
                             return RegularPartitions_bounded(kwargs['regular'], kwargs['max_part'])
                         if 'max_length' in kwargs:
@@ -5190,9 +5188,8 @@ class Partitions(UniqueRepresentation, Parent):
     Element = Partition
 
     # add options to class
-    options = GlobalOptions('Partitions',
-        module='sage.combinat.partition',
-        doc=r"""
+    class options(GlobalOptions):
+        r"""
         Sets and displays the global options for elements of the partition,
         skew partition, and partition tuple classes.  If no parameters are
         set, then the function returns a copy of the options dictionary.
@@ -5200,8 +5197,9 @@ class Partitions(UniqueRepresentation, Parent):
         The ``options`` to partitions can be accessed as the method
         :obj:`Partitions.options` of :class:`Partitions` and
         related parent classes.
-        """,
-        end_doc=r"""
+
+        @OPTIONS@
+
         EXAMPLES::
 
             sage: P = Partition([4,2,2,1])
@@ -5251,8 +5249,10 @@ class Partitions(UniqueRepresentation, Parent):
               1  2  3
               4  5
             sage: Partitions.options._reset()
-        """,
-        display=dict(default="list",
+        """
+        NAME = 'Partitions'
+        module = 'sage.combinat.partition'
+        display = dict(default="list",
                      description='Specifies how partitions should be printed',
                      values=dict(list='displayed as a list',
                                exp_low='in exponential form (lowest first)',
@@ -5262,8 +5262,8 @@ class Partitions(UniqueRepresentation, Parent):
                                compact_high='compact form of ``exp_high``'),
                      alias=dict(exp="exp_low", compact="compact_low", array="diagram",
                                ferrers_diagram="diagram", young_diagram="diagram"),
-                     case_sensitive=False),
-        latex=dict(default="young_diagram",
+                     case_sensitive=False)
+        latex = dict(default="young_diagram",
                    description='Specifies how partitions should be latexed',
                    values=dict(diagram='latex as a Ferrers diagram',
                                young_diagram='latex as a Young diagram',
@@ -5271,16 +5271,15 @@ class Partitions(UniqueRepresentation, Parent):
                                exp_high='latex as a list in exponential notation (highest first)',
                                exp_low='as a list latex in exponential notation (lowest first)'),
                    alias=dict(exp="exp_low", array="diagram", ferrers_diagram="diagram"),
-                   case_sensitive=False),
-        diagram_str=dict(default="*",
+                   case_sensitive=False)
+        diagram_str = dict(default="*",
                          description='The character used for the cells when printing Ferrers diagrams',
-                         checker=lambda char: isinstance(char,str)),
-        latex_diagram_str=dict(default="\\ast",
+                         checker=lambda char: isinstance(char,str))
+        latex_diagram_str = dict(default="\\ast",
                          description='The character used for the cells when latexing Ferrers diagrams',
-                         checker=lambda char: isinstance(char,str)),
-        convention=dict(link_to=(tableau.Tableaux.options,'convention')),
+                         checker=lambda char: isinstance(char,str))
+        convention = dict(link_to=(tableau.Tableaux.options,'convention'))
         notation = dict(alt_name='convention')
-    )
 
     def __reversed__(self):
         """
@@ -6932,7 +6931,8 @@ class RegularPartitions(Partitions):
     .. NOTE::
 
         This is conjugate to the notion of `\ell`-*restricted* partitions,
-        where the difference between any two parts is at most `\ell`.
+        where the difference between any two consecutive
+        parts is `< \ell`.
 
     INPUT:
 
@@ -7039,8 +7039,15 @@ class RegularPartitions_all(RegularPartitions):
 
             sage: P = Partitions(regular=4)
             sage: TestSuite(P).run()
+
+        1-regular partitions::
+
+            sage: P = Partitions(regular=1)
+            sage: P in FiniteEnumeratedSets()
+            True
+            sage: TestSuite(P).run()
         """
-        RegularPartitions.__init__(self, ell, True)
+        RegularPartitions.__init__(self, ell, bool(ell > 1))
 
     def _repr_(self):
         """
@@ -7062,7 +7069,17 @@ class RegularPartitions_all(RegularPartitions):
             sage: it = P.__iter__()
             sage: [next(it) for x in range(10)]
             [[], [1], [2], [1, 1], [3], [2, 1], [4], [3, 1], [2, 2], [2, 1, 1]]
+
+        Check that 1-regular partitions works (:trac:`20584`)::
+
+            sage: P = Partitions(regular=1)
+            sage: list(P)
+            [[]]
         """
+        if self._ell == 1:
+            yield self.element_class(self, [])
+            return
+
         n = 0
         while True:
             for p in self._fast_iterator(n, n):
@@ -7092,7 +7109,7 @@ class RegularPartitions_truncated(RegularPartitions):
             sage: TestSuite(P).run()
         """
         self._max_len = max_len
-        RegularPartitions.__init__(self, ell, True)
+        RegularPartitions.__init__(self, ell, bool(ell > 1))
 
     def max_length(self):
         """
@@ -7140,7 +7157,17 @@ class RegularPartitions_truncated(RegularPartitions):
             sage: it = P.__iter__()
             sage: [next(it) for x in range(10)]
             [[], [1], [2], [1, 1], [3], [2, 1], [4], [3, 1], [2, 2], [5]]
+
+        Check that 1-regular partitions works (:trac:`20584`)::
+
+            sage: P = Partitions(regular=1, max_length=2)
+            sage: list(P)
+            [[]]
         """
+        if self._ell == 1:
+            yield self.element_class(self, [])
+            return
+
         n = 0
         while True:
             for p in self._fast_iterator(n, n):
@@ -7201,6 +7228,13 @@ class RegularPartitions_bounded(RegularPartitions):
 
             sage: P = Partitions(regular=4, max_part=3)
             sage: TestSuite(P).run()
+
+        1-regular partitions::
+
+            sage: P = Partitions(regular=1, max_part=3)
+            sage: P in FiniteEnumeratedSets()
+            True
+            sage: TestSuite(P).run()
         """
         self.k = k
         RegularPartitions.__init__(self, ell, False)
@@ -7238,6 +7272,12 @@ class RegularPartitions_bounded(RegularPartitions):
             sage: P = Partitions(regular=2, max_part=3)
             sage: list(P)
             [[3, 2, 1], [3, 2], [3, 1], [3], [2, 1], [2], [1], []]
+
+        Check that 1-regular partitions works (:trac:`20584`)::
+
+            sage: P = Partitions(regular=1, max_part=3)
+            sage: list(P)
+            [[]]
         """
         k = self.k
         for n in reversed(range(k*(k+1)/2 * self._ell)):
@@ -7264,6 +7304,11 @@ class RegularPartitions_n(RegularPartitions, Partitions_n):
         EXAMPLES::
 
             sage: P = Partitions(5, regular=3)
+            sage: TestSuite(P).run()
+
+        1-regular partitions::
+
+            sage: P = Partitions(5, regular=1)
             sage: TestSuite(P).run()
         """
         RegularPartitions.__init__(self, ell)
@@ -7318,10 +7363,53 @@ class RegularPartitions_n(RegularPartitions, Partitions_n):
             7
             sage: P.cardinality() == Partitions(5).cardinality()
             True
+
+        TESTS:
+
+        Check the corner case::
+
+            sage: P = Partitions(0, regular=3)
+            sage: P.cardinality()
+            1
+
+        Check for 1-regular partitions::
+
+            sage: P = Partitions(0, regular=1)
+            sage: P.cardinality()
+            1
+            sage: P = Partitions(5, regular=1)
+            sage: P.cardinality()
+            0
+
         """
         if self._ell > self.n:
             return Partitions_n.cardinality(self)
         return ZZ.sum(1 for x in self)
+
+    def _an_element_(self):
+        """
+        Returns a partition in ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(5, regular=2)
+            sage: P._an_element_()
+            [4, 1]
+
+            sage: P = Partitions(0, regular=1)
+            sage: P._an_element_()
+            []
+
+            sage: P = Partitions(5, regular=1)
+            sage: P._an_element_()
+            Traceback (most recent call last):
+            ...
+            EmptySetError
+        """
+        if self._ell == 1 and self.n > 0:
+            from sage.categories.sets_cat import EmptySetError
+            raise EmptySetError
+        return Partitions_n._an_element_(self)
 
 ######################
 # Ordered Partitions #

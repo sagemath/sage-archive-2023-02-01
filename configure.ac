@@ -28,6 +28,32 @@ AC_PREREQ([2.69])
 AC_DEFUN([SAGE_VERSION], m4_esyscmd_s([. src/bin/sage-version.sh && echo $SAGE_VERSION]))
 AC_INIT([Sage], SAGE_VERSION, [sage-devel@googlegroups.com])
 
+# The following needs to be immediately after calling AC_INIT
+#------------------------------------------------------------
+# We need to run this configure script with bash
+if test -z "$BASH_VERSION"
+then
+    CONFIG_SHELL=`command -v bash`
+    export CONFIG_SHELL
+    if $CONFIG_SHELL -c "exit 0"
+    then
+        exec $CONFIG_SHELL $0 "$@"
+    else
+        AC_MSG_NOTICE([The 'bash' shell is needed to build AC_PACKAGE_NAME])
+        AC_MSG_NOTICE([All modern systems will have the 'bash' shell installed somewhere])
+        if test -d /opt/OpenSource/bin
+        then
+           AC_MSG_NOTICE([On HP-UX you may try adding /opt/OpenSource/bin to your path])
+        fi
+        if test -d /opt/pware/bin
+        then
+           AC_MSG_NOTICE([On AIX you may try adding /opt/pware/bin to your path])
+        fi
+        AC_MSG_ERROR(['bash' not found])
+    fi
+fi
+
+
 AC_COPYRIGHT([GPL version 3])
 AC_CONFIG_SRCDIR([configure.ac])
 AC_CONFIG_AUX_DIR([config])
@@ -47,30 +73,6 @@ AM_MAINTAINER_MODE([enable])
 dnl Make sure the path to our own m4 macros is always properly set 
 dnl and doesn't depend on how autoconf is called.
 AC_CONFIG_MACRO_DIR([m4])
-
-#---------------------------------------------------------
-# We need to run this configure script with bash
-if test -z "$BASH_VERSION$CONFIG_SHELL"
-then
-    CONFIG_SHELL=bash
-    export CONFIG_SHELL
-    if $CONFIG_SHELL -c "exit 0"
-    then
-        exec $CONFIG_SHELL $0 "$@"
-    else
-        AC_MSG_NOTICE([The 'bash' shell is needed to build AC_PACKAGE_NAME])
-        AC_MSG_NOTICE([All modern systems will have the 'bash' shell installed somewhere])
-        if test -d /opt/OpenSource/bin
-        then
-           AC_MSG_NOTICE([On HP-UX you may try adding /opt/OpenSource/bin to your path])
-        fi
-        if test -d /opt/pware/bin
-        then
-           AC_MSG_NOTICE([On AIX you may try adding /opt/pware/bin to your path])
-        fi
-        AC_MSG_ERROR(['bash' not found])
-    fi
-fi
 
 #---------------------------------------------------------
 #
@@ -305,12 +307,13 @@ AC_CACHE_CHECK([for git], [ac_cv_path_GIT], [
     [need_to_install_git=yes; ac_cv_path_GIT=no])])
 
 # Yasm is only needed on x86(_64) systems; check also for system yasm
+# which must support "adox" (new Skylake instruction)
 need_to_install_yasm=no
 AC_CACHE_CHECK([for yasm], [ac_cv_path_YASM],
     AS_CASE("$host_cpu",
         [i@<:@0-9@:>@86|x86_64], [
         AC_PATH_PROGS_FEATURE_CHECK([YASM], [yasm],
-        [${ac_path_YASM} --version >/dev/null 2>/dev/null && ac_cv_path_YASM=${ac_path_YASM}],
+        [[{ echo "BITS 64"; echo "adox rax, rax"; } | ${ac_path_YASM} - -o /dev/null >/dev/null 2>/dev/null && ac_cv_path_YASM=${ac_path_YASM}]],
         [need_to_install_yasm=yes; ac_cv_path_YASM=no])],
         [ac_cv_path_YASM="not needed for $host_cpu"]))
 
@@ -391,10 +394,29 @@ then
     AC_MSG_ERROR([a C++ compiler is missing])
 fi
 
+###############################################################################
+# Check libraries
+###############################################################################
+
+# Only install curl (and libcurl) if we cannot find version 7.22 or
+# later, since that is what R needs.
+need_to_install_curl=no
+AC_CACHE_CHECK([for curl 7.22], [ac_cv_path_CURL], [
+    AC_PATH_PROGS_FEATURE_CHECK(CURL, [curl],
+    [${ac_path_CURL}-config --checkfor 7.22 >/dev/null 2>/dev/null && ac_cv_path_CURL=${ac_path_CURL}],
+    [need_to_install_curl=yes; ac_cv_path_CURL=no])])
+
 
 ###############################################################################
 # Check header files
 ###############################################################################
+
+# If (lib)curl is installed, we need to check for the curl header
+# file, too.
+if test $need_to_install_curl = no;
+then
+    AC_CHECK_HEADER([curl/curl.h], [], [need_to_install_curl=yes])
+fi
 
 # complex.h is one that might not exist on older systems.
 AC_LANG(C++)

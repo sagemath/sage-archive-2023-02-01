@@ -84,9 +84,9 @@ class Elements(Category):
             sage: Elements(ZZ).super_categories()
             [Category of objects]
 
-        TODO:
+        .. TODO::
 
-        check that this is what we want.
+            Check that this is what we want.
         """
         return [Objects()]
 
@@ -172,7 +172,7 @@ class Category_over_base(CategoryWithParameters):
         from .bimodules import Bimodules
         from .schemes import Schemes
         for cat in self.super_categories():
-            tester.assert_(isinstance(cat, (Category_singleton, Category_over_base,
+            tester.assertTrue(isinstance(cat, (Category_singleton, Category_over_base,
                                             Bimodules, Schemes)),
                            "The super categories of a category over base should"
                            " be a category over base (or the related Bimodules)"

@@ -22,7 +22,7 @@ from cpython.sequence cimport *
 
 from cysignals.memory cimport sig_free
 
-from sage.misc.long cimport pyobject_to_long
+from sage.arith.long cimport pyobject_to_long
 from sage.structure.sage_object cimport SageObject
 from sage.rings.integer cimport Integer
 from sage.libs.flint.fmpz_poly cimport *

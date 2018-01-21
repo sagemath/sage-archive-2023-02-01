@@ -91,7 +91,7 @@ from .ell_generic import is_EllipticCurve
 from .ell_point import EllipticCurvePoint_number_field
 from .constructor import EllipticCurve
 from sage.rings.all import PolynomialRing, ZZ, QQ, RealField, Integer
-from sage.misc.all import cached_method, verbose, forall, prod, union, flatten
+from sage.misc.all import cached_method, verbose, prod, union, flatten
 from six import reraise as raise_
 
 class EllipticCurve_number_field(EllipticCurve_field):
@@ -246,11 +246,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
               C = Mod(y, y^2 + 7)
             <BLANKLINE>
               Computing L(S,2)
-              L(S,2) = [Mod(Mod(-1/2*y + 1/2, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + Mod(-y - 1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(-1, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(-1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(x^2 + 2, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x + Mod(1/2*y + 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x + Mod(1/2*y - 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
+              L(S,2) = [Mod(Mod(-1/2*y + 1/2, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + Mod(-y - 1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(-1, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + Mod(1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(-1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(x^2 + 2, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x + Mod(1/2*y + 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x + Mod(1/2*y - 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
             <BLANKLINE>
               Computing the Selmer group
               #LS2gen = 2
-               LS2gen = [Mod(Mod(-1/2*y + 1/2, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + Mod(-y - 1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y + 1/2, y^2 + 7)*x - 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
+               LS2gen = [Mod(Mod(-1/2*y + 1/2, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + Mod(-y - 1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y + 1/2, y^2 + 7)*x + Mod(-1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
               Search for trivial points on the curve
              Trivial points on the curve = [[Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7)], [1, 1, 0], [Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7), 1]]
               zc = Mod(Mod(-1/2*y + 1/2, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + Mod(-y - 1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
@@ -527,11 +527,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         INPUT:
 
-        - points - either a list of points, which must be on this
+        - points -- either a list of points, which must be on this
           curve, or (default) None, in which case self.gens() will be
           used.
 
-        - precision - number of bits of precision of result
+        - precision -- number of bits of precision of result
           (default: None, for default RealField precision)
 
         EXAMPLES::
@@ -722,10 +722,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: Emin.is_local_integral_model(P1,P2)
             True
         """
-        if len(P) == 1: P=P[0]
-        if isinstance(P,(tuple,list)):
-            return forall(P, lambda x : self.is_local_integral_model(x))[0]
-        return forall(self.ainvs(), lambda x : x.valuation(P) >= 0)[0]
+        if len(P) == 1:
+            P = P[0]
+        if isinstance(P, (tuple, list)):
+            return all(self.is_local_integral_model(x) for x in P)
+        return all(x.valuation(P) >= 0 for x in self.ainvs())
 
     def local_integral_model(self,*P):
         r"""
@@ -761,7 +762,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
     def is_global_integral_model(self):
         r"""
-        Return true iff self is integral at all primes.
+        Return whether ``self`` is integral at all primes.
 
         EXAMPLES::
 
@@ -772,7 +773,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: Emin.is_global_integral_model()
             True
         """
-        return forall(self.a_invariants(), lambda x : x.is_integral())[0]
+        return all(x.is_integral() for x in self.a_invariants())
 
     def global_integral_model(self):
         r"""
@@ -1455,7 +1456,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         for the local information at finite places. If the model is a global minimal model then `C(E/K)` is
         simply the product of the Tamagawa numbers `c_v` where `v` runs over all prime ideals of `K`. Otherwise, if the model has to be changed at a place `v` a correction factor appears.
         The definition is such that `C(E/K)` times the periods at the infinite places is invariant
-        under change of the Weierstrass model. See [Ta2] and [Do] for details.
+        under change of the Weierstrass model. See [Tate1966]_ and [DD2010]_ for details.
 
         .. note::
 
@@ -1488,18 +1489,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: [dav.tamagawa_number() for dav in da]
             [1, 1]
 
-        An example over `\mathbb{Q}` (:trac:`9413`)::
+        An example over `\QQ` (:trac:`9413`)::
 
             sage: E = EllipticCurve('30a')
             sage: E.tamagawa_product_bsd()
             6
-
-        REFERENCES:
-
-        - [Ta2] Tate, John, On the conjectures of Birch and Swinnerton-Dyer and a geometric analog. Seminaire Bourbaki, Vol. 9, Exp. No. 306.
-
-        - [Do] Dokchitser, Tim and Vladimir, On the Birch-Swinnerton-Dyer quotients modulo squares, Annals of Math., 2010.
-
         """
         da = self.local_data()
         pr = 1
@@ -2932,7 +2926,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
            For curves with rational CM, isogenies of primes degree
            exist for infinitely many primes `\ell`, though there are
-           only finitely many isogenous curves up to isomoprhism.  The
+           only finitely many isogenous curves up to isomorphism.  The
            list returned only includes one isogeny of prime degree for
            each codomain.
 

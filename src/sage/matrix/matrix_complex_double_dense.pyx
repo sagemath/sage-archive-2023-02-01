@@ -82,17 +82,6 @@ cdef class Matrix_complex_double_dense(Matrix_double_dense):
     See the commands qr, lu, and svd for QR, LU, and singular value
     decomposition.
     """
-
-
-    ########################################################################
-    # LEVEL 1 functionality
-    #   * __cinit__
-    #   * __dealloc__
-    #   * __init__
-    #   * set_unsafe
-    #   * get_unsafe
-    #   * __hash__       -- always simple
-    ########################################################################
     def __cinit__(self, parent, entries, copy, coerce):
         global numpy
         if numpy is None:

@@ -98,10 +98,11 @@ class Interface(WithEqualityById, ParentWithBase):
 
     def get_seed(self):
         """
-        Returns the seed used to set the random
-        number generator in this interface.
-        The seed is initialized as None
-        but should be set when the interface starts.
+        Return the seed used to set the random number generator in
+        this interface.
+
+        The seed is initialized as ``None`` but should be set when the
+        interface starts.
 
         EXAMPLES::
 
@@ -115,16 +116,14 @@ class Interface(WithEqualityById, ParentWithBase):
 
     def rand_seed(self):
         """
-        Returns a random seed that can be
-        put into set_seed function for
-        any interpreter.
-        This should be overridden if
-        the particular interface needs something
-        other than a small positive integer.
+        Return a random seed that can be put into ``set_seed`` function
+        for any interpreter.
+
+        This should be overridden if the particular interface needs
+        something other than a small positive integer.
 
         EXAMPLES::
 
-            from sage.misc.random_testing import random_testing
             sage: from sage.interfaces.interface import Interface
             sage: i = Interface("")
             sage: i.rand_seed() # random
@@ -135,18 +134,17 @@ class Interface(WithEqualityById, ParentWithBase):
             365260051L
         """
         from sage.misc.randstate import randstate
-        return long(randstate().seed()&0x1FFFFFFF)
+        return randstate().seed()&0x1FFFFFFF
 
-    def set_seed(self,seed = None):
+    def set_seed(self, seed=None):
         """
-        Sets the random seed for the interpreter
-        and returns the new value of the seed.
-        This is dependent on which interpreter
-        so must be implemented in each
-        separately. For examples see
-        gap.py or singular.py.
-        If seed is None then should generate
-        a random seed.
+        Set the random seed for the interpreter and return the new
+        value of the seed.
+
+        This is dependent on which interpreter so must be implemented
+        in each separately. For examples see gap.py or singular.py.
+
+        If seed is ``None`` then should generate a random seed.
 
         EXAMPLES::
 
@@ -1154,9 +1152,9 @@ class InterfaceElement(Element):
         P = self.parent()
         try:
             if self._get_using_file:
-                return P.get_using_file(self._name).strip()
+                return P.get_using_file(self._name).rstrip()
         except AttributeError:
-            return self.parent().get(self._name).strip()
+            return self.parent().get(self._name).rstrip()
 
     def __getattr__(self, attrname):
         P = self._check_valid()

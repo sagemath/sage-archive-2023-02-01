@@ -30,7 +30,7 @@ AUTHORS:
 
 
 from sage.calculus.functions import jacobian
-from sage.categories.homset import Hom
+from sage.categories.homset import Hom, End
 from sage.misc.cachefunc import cached_method
 from sage.misc.all import prod
 from sage.rings.all import Integer
@@ -398,7 +398,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
         OUTPUT:
 
-        - :class:`SchemMorphism_polynomial_projective_space`.
+        - :class:`SchemeMorphism_polynomial_projective_space`.
 
         EXAMPLES::
 
@@ -416,11 +416,10 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: H = Hom(A, A)
             sage: f = H([(x^2-2)/(x*y), y^2-x])
             sage: f.homogenize((2, 0))
-            Scheme morphism:
-              From: Projective Space of dimension 2 over Complex Field with 53 bits of precision
-              To:   Projective Space of dimension 2 over Complex Field with 53 bits of precision
-              Defn: Defined on coordinates by sending (x0 : x1 : x2) to
-                    (x0*x1*x2^2 : x0^2*x2^2 + (-2.00000000000000)*x2^4 : x0*x1^3 - x0^2*x1*x2)
+            Scheme endomorphism of Projective Space of dimension 2
+            over Complex Field with 53 bits of precision
+            Defn: Defined on coordinates by sending (x0 : x1 : x2) to
+            (x0*x1*x2^2 : x0^2*x2^2 + (-2.00000000000000)*x2^4 : x0*x1^3 - x0^2*x1*x2)
 
         ::
 
@@ -442,11 +441,10 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: H = Hom(A, A)
             sage: f = H([(x^2-2)/y, y^2-x])
             sage: f.homogenize((2, 0))
-            Scheme morphism:
-              From: Projective Space of dimension 2 over Univariate Polynomial Ring in t over Integer Ring
-              To:   Projective Space of dimension 2 over Univariate Polynomial Ring in t over Integer Ring
-              Defn: Defined on coordinates by sending (x0 : x1 : x2) to
-                    (x1*x2^2 : x0^2*x2 + (-2)*x2^3 : x1^3 - x0*x1*x2)
+            Scheme endomorphism of Projective Space of dimension 2
+            over Univariate Polynomial Ring in t over Integer Ring
+            Defn: Defined on coordinates by sending (x0 : x1 : x2) to
+            (x1*x2^2 : x0^2*x2 + (-2)*x2^3 : x1^3 - x0*x1*x2)
 
         ::
 
@@ -454,11 +452,10 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: H = End(A)
             sage: f = H([x^2-1])
             sage: f.homogenize((1, 0))
-            Scheme morphism:
-              From: Projective Space of dimension 1 over Rational Field
-              To:   Projective Space of dimension 1 over Rational Field
-              Defn: Defined on coordinates by sending (x0 : x1) to
-                    (x1^2 : x0^2 - x1^2)
+            Scheme endomorphism of Projective Space of dimension 1
+            over Rational Field
+            Defn: Defined on coordinates by sending (x0 : x1) to
+            (x1^2 : x0^2 - x1^2)
 
         ::
 
@@ -532,8 +529,13 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
         #homogenize the domain and codomain
         A = self.domain().projective_embedding(ind[0]).codomain()
-        B = self.codomain().projective_embedding(ind[1]).codomain()
-        H = Hom(A, B)
+        if self.is_endomorphism():
+            B = A
+            H = End(A)
+        else:
+            B = self.codomain().projective_embedding(ind[1]).codomain()
+            H = Hom(A, B)
+
         newvar = A.ambient_space().coordinate_ring().gen(ind[0])
 
         N = A.ambient_space().dimension_relative()
@@ -569,11 +571,11 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
     def as_dynamical_system(self):
         """
-        Return this endomorpism as a :class:`DynamicalSystem_affine`.
+        Return this endomorphism as a :class:`DynamicalSystem_affine`.
 
         OUTPUT:
 
-        - :class:`DynamicalSystem_affine`.
+        - :class:`DynamicalSystem_affine`
 
         EXAMPLES::
 

@@ -1818,7 +1818,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
 
     def dimension_of_TL_space(self, drain_size):
         """
-        Return the dimension of a particular Templerley--Lieb representation
+        Return the dimension of a particular Temperley--Lieb representation
         summand of ``self``.
 
         Following the notation of :meth:`TL_basis_with_drain`, the summand
@@ -2357,7 +2357,7 @@ class MappingClassGroupAction(Action):
     You should left multiplication of the free group element by the
     braid to compute the action. Alternatively, use the
     :meth:`~sage.groups.braid.BraidGroup_class.mapping_class_action`
-    method of the braid group to constuct this action.
+    method of the braid group to construct this action.
 
     EXAMPLES::
 

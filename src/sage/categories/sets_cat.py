@@ -10,8 +10,8 @@ Sets
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six.moves import range
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.sage_unittest import TestSuite
@@ -241,7 +241,7 @@ class Sets(Category_singleton):
            Proper forgetful functors will eventually be implemented, with
            another syntax.
         """
-        if enumerated_set and type(X) in (tuple,list):
+        if enumerated_set and type(X) in (tuple,list,range):
             from sage.categories.enumerated_sets import EnumeratedSets
             return EnumeratedSets()(X)
         from sage.sets.set import Set
@@ -941,12 +941,8 @@ class Sets(Category_singleton):
         Facades = deprecated_function_alias(17073, Facade)
 
     class ParentMethods:
-#         # currently overriden by the default implementation in sage.structure.Parent
-#         def __call__(self, *args, **options):
-#             return self.element_class(*args, **options)
-
-        # Todo: simplify the _element_constructor definition logic
-        # Todo: find a nicer mantra for conditionaly defined methods
+        # TODO: simplify the _element_constructor_ definition logic
+        # TODO: find a nicer mantra for conditionally defined methods
         @lazy_attribute
         def _element_constructor_(self):
             r"""
@@ -961,13 +957,13 @@ class Sets(Category_singleton):
                 sage: A = FreeModule(QQ, 3)
                 sage: A.element_class
                 <type 'sage.modules.vector_rational_dense.Vector_rational_dense'>
-                sage: A._element_constructor
+                sage: A._element_constructor_
                 <bound method FreeModule_ambient_field_with_category._element_constructor_ of Vector space of dimension 3 over Rational Field>
 
                 sage: B = SymmetricGroup(3).algebra(ZZ)
                 sage: B.element_class
                 <...SymmetricGroupAlgebra_n_with_category.element_class'>
-                sage: B._element_constructor
+                sage: B._element_constructor_
                 <bound method SymmetricGroupAlgebra_n_with_category._element_constructor_
                 of Symmetric group algebra of order 3 over Integer Ring>
             """
@@ -1388,7 +1384,7 @@ class Sets(Category_singleton):
             tester = self._tester(**options)
             elements = self.some_elements()
             # Todo: enable this once
-            #tester.assert_(elements != iter(elements),
+            #tester.assertTrue(elements != iter(elements),
             #               "self.some_elements() should return an iterable, not an iterator")
             for x in elements:
                 tester.assertTrue(x in self, LazyFormat(
@@ -2552,7 +2548,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 """
                 tester = self._tester(**options)
                 for R in self.realizations():
-                    tester.assert_(R in self.Realizations())
+                    tester.assertTrue(R in self.Realizations())
                 # Could check that there are coerce maps between any two realizations
 
             @lazy_attribute

@@ -49,9 +49,9 @@ class Word_class(SageObject):
         TESTS::
 
             sage: Word(iter([1,2,3]), length="unknown").parent()
-            Finite words over Set of Python objects of type 'object'
+            Finite words over Set of Python objects of class 'object'
             sage: Word(range(12)).parent()
-            Finite words over Set of Python objects of type 'object'
+            Finite words over Set of Python objects of class 'object'
             sage: Word(range(4), alphabet=list(range(6))).parent()
             Finite words over {0, 1, 2, 3, 4, 5}
             sage: Word(iter('abac'), alphabet='abc').parent()
@@ -1525,7 +1525,7 @@ class Word_class(SageObject):
         -  ``mod`` - modulo (default: ``None``), can take the following
            values:
 
-           - integer - the modulo
+           - integer -- the modulo
 
            - ``None`` - the value ``base`` is considered for the modulo.
 

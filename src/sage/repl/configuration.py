@@ -11,7 +11,7 @@ the IPython simple prompt is being used::
     sage: output = pexpect.run(
     ....:     'bash -c \'echo "{0}" | sage\''.format(cmd),
     ....: )
-    sage: 'In [1]: [False, True]' in output
+    sage: 'sage: [False, True]' in output
     True
 """
 

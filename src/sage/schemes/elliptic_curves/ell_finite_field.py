@@ -300,7 +300,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
             sage: k = GF(next_prime(7^5))
             sage: E = EllipticCurve(k,[2,4])
-            sage: P = E.random_element(); P
+            sage: P = E.random_element(); P # random
             (16740 : 12486 : 1)
             sage: type(P)
             <class 'sage.schemes.elliptic_curves.ell_point.EllipticCurvePoint_finite_field'>
@@ -1263,9 +1263,9 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: E.abelian_group()
             Additive abelian group isomorphic to Z/22 + Z/2 embedded in Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 2*x + 5 over Finite Field of size 41
             sage: E.abelian_group().gens()
-            ((30 : 28 : 1), (23 : 0 : 1))
+            ((30 : 13 : 1), (23 : 0 : 1))
             sage: E.gens()
-            ((30 : 28 : 1), (23 : 0 : 1))
+            ((30 : 13 : 1), (23 : 0 : 1))
             sage: E.gens()[0].order()
             22
             sage: E.gens()[1].order()

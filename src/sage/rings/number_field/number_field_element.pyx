@@ -57,6 +57,7 @@ import sage.rings.rational
 import sage.rings.integer_ring
 import sage.rings.integer
 
+from sage.arith.power cimport generic_power
 from sage.rings.real_mpfi cimport RealIntervalFieldElement
 
 cimport sage.rings.number_field.number_field_base as number_field_base
@@ -68,8 +69,9 @@ from sage.categories.fields import Fields
 
 from sage.modules.free_module_element import vector
 
-from sage.structure.element cimport Element, generic_power_c, FieldElement
-from sage.structure.element import canonical_coercion, parent, coerce_binop
+from sage.structure.element cimport Element, FieldElement
+from sage.structure.element cimport parent
+from sage.structure.element import canonical_coercion, coerce_binop
 
 from sage.libs.pari import pari
 
@@ -2210,7 +2212,7 @@ cdef class NumberFieldElement(FieldElement):
         """
         if (isinstance(base, NumberFieldElement) and
             (isinstance(exp, Integer) or type(exp) is int or exp in ZZ)):
-            return generic_power_c(base, exp, None)
+            return generic_power(base, exp)
         else:
             cbase, cexp = canonical_coercion(base, exp)
             if not isinstance(cbase, NumberFieldElement):
@@ -2339,7 +2341,7 @@ cdef class NumberFieldElement(FieldElement):
         # but asymptotically fast poly multiplication means it's
         # actually faster to *not* build a table!?!
 
-    cpdef _div_(self, right):
+    cpdef _div_(self, other):
         """
         Returns the quotient of self and other as elements of a number
         field.
@@ -2365,8 +2367,71 @@ cdef class NumberFieldElement(FieldElement):
             Traceback (most recent call last):
             ...
             ZeroDivisionError: number field element division by zero
+
+        TESTS:
+
+        For quadratic elements::
+
+            sage: K.<a> = NumberField(x^2-5)
+            sage: 2/a # indirect doctest
+            2/5*a
+            sage: (a+2)/(a+1)
+            1/4*a + 3/4
+            sage: (a+1)*(a+2)/(a+1)
+            a + 2
+            sage: (a+1/3)*(5*a+2/7)/(a+1/3)
+            5*a + 2/7
+
+        For order elements, see :trac:`4190`::
+
+            sage: K = NumberField(x^2 - 17, 'a')
+            sage: OK = K.ring_of_integers()
+            sage: a = OK(K.gen())
+            sage: (17/a).parent() is K # indirect doctest
+            True
+            sage: 17/a in OK
+            True
+            sage: (17/(2*a)).parent() is OK
+            False
+            sage: (17/(2*a)) in OK
+            False
+            sage: (17/(2*a)).parent() is K
+            True
+
+            sage: K = NumberField(x^3 - 17, 'a')
+            sage: OK = K.ring_of_integers()
+            sage: a = OK(K.gen())
+            sage: (17/a) in OK # indirect doctest
+            True
+            sage: (17/a).parent() is K # indirect doctest
+            True
+            sage: (17/(2*a)).parent() is K # indirect doctest
+            True
+            sage: (17/(2*a)) in OK # indirect doctest
+            False
+
+            sage: K1.<a> = NumberField(x^3 - 17)
+            sage: R.<y> = K1[]
+            sage: K2 = K1.extension(y^2 - a, 'b')
+            sage: OK2 = K2.order(K2.gen()) # (not maximal)
+            sage: b = OK2.basis()[1]; b
+            b
+            sage: (17/b).parent() is K2 # indirect doctest
+            True
+            sage: (17/b) in OK2 # indirect doctest
+            True
+            sage: (17/b^7) in OK2 # indirect doctest
+            False
         """
-        return self._mul_(~right)
+        cdef Element otherinv = <Element>(~other)
+        otherparent = otherinv._parent
+        if self._parent is not otherparent:
+            # We know by the coercion model that self and other have
+            # the same parent. Apparently inverting other changed
+            # its parent, so it must have been an order element.
+            # Convert self to the parent of ~other.
+            return otherinv._mul_(otherparent(self))
+        return otherinv._mul_(self)
 
     def __nonzero__(self):
         """
@@ -4814,32 +4879,6 @@ cdef class OrderElement_absolute(NumberFieldElement_absolute):
         """
         return self._number_field
 
-    cpdef _div_(self, other):
-        r"""
-        Implement division, checking that the result has the right parent.
-
-        It's not so crucial what the parent actually is, but it is crucial
-        that the returned value really is an element of its supposed
-        parent! This fixes :trac:`4190`.
-
-        EXAMPLES::
-
-            sage: K = NumberField(x^3 - 17, 'a')
-            sage: OK = K.ring_of_integers()
-            sage: a = OK(K.gen())
-            sage: (17/a) in OK # indirect doctest
-            True
-            sage: (17/a).parent() is K # indirect doctest
-            True
-            sage: (17/(2*a)).parent() is K # indirect doctest
-            True
-            sage: (17/(2*a)) in OK # indirect doctest
-            False
-        """
-        cdef NumberFieldElement_absolute x
-        x = NumberFieldElement_absolute._div_(self, other)
-        return self._parent.number_field()(x)
-
     def inverse_mod(self, I):
         r"""
         Return an inverse of self modulo the given ideal.
@@ -4891,6 +4930,7 @@ cdef class OrderElement_absolute(NumberFieldElement_absolute):
         """
         return self._parent.number_field()(NumberFieldElement_absolute.__invert__(self))
 
+
 cdef class OrderElement_relative(NumberFieldElement_relative):
     """
     Element of an order in a relative number field.
@@ -4941,33 +4981,6 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
         x.__fld_numerator = self.__fld_numerator
         x.__fld_denominator = self.__fld_denominator
         return x
-
-    cpdef _div_(self, other):
-        r"""
-        Implement division, checking that the result has the right parent.
-
-        It's not so crucial what the parent actually is, but it is crucial
-        that the returned value really is an element of its supposed
-        parent. This fixes trac :trac:`4190`.
-
-        EXAMPLES::
-
-            sage: K1.<a> = NumberField(x^3 - 17)
-            sage: R.<y> = K1[]
-            sage: K2 = K1.extension(y^2 - a, 'b')
-            sage: OK2 = K2.order(K2.gen()) # (not maximal)
-            sage: b = OK2.basis()[1]; b
-            b
-            sage: (17/b).parent() is K2 # indirect doctest
-            True
-            sage: (17/b) in OK2 # indirect doctest
-            True
-            sage: (17/b^7) in OK2 # indirect doctest
-            False
-        """
-        cdef NumberFieldElement_relative x
-        x = NumberFieldElement_relative._div_(self, other)
-        return self._parent.number_field()(x)
 
     def __invert__(self):
         r"""
@@ -5198,7 +5211,6 @@ class CoordinateFunction:
             ...
             TypeError: Cannot coerce element into this number field
         """
-        from sage.all import parent
         if not self.__K.has_coerce_map_from(parent(x)):
             raise TypeError("Cannot coerce element into this number field")
         return self.__W.coordinates(self.__to_V(self.__K(x)))

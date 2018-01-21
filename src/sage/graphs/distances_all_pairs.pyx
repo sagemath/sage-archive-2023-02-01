@@ -163,8 +163,6 @@ from sage.ext.memory_allocator cimport MemoryAllocator
 
 from sage.graphs.base.static_sparse_graph cimport short_digraph, init_short_digraph, free_short_digraph, out_degree
 
-from sage.misc.decorators import rename_keyword
-
 cdef inline all_pairs_shortest_path_BFS(gg,
                                         unsigned short * predecessors,
                                         unsigned short * distances,
@@ -810,7 +808,6 @@ cdef uint32_t * c_eccentricity_bounding(G) except NULL:
 
     return LB
 
-@rename_keyword(deprecation=19559 , method='algorithm')
 def eccentricity(G, algorithm="standard"):
     r"""
     Return the vector of eccentricities in G.
@@ -1238,7 +1235,6 @@ cdef uint32_t diameter_iFUB(uint32_t n,
     return LB
 
 
-@rename_keyword(deprecation=19559 , method='algorithm')
 def diameter(G, algorithm='iFUB', source=None):
     r"""
     Returns the diameter of `G`.

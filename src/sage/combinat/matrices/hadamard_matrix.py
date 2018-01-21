@@ -57,10 +57,10 @@ from __future__ import print_function
 
 from six.moves import range
 from six import itervalues
+from six.moves.urllib.request import urlopen
 
 from sage.rings.integer_ring import ZZ
 from sage.matrix.constructor import matrix, block_matrix, block_diagonal_matrix, diagonal_matrix
-from urllib import urlopen
 from sage.arith.all import is_square, is_prime_power, divisors
 from math import sqrt
 from sage.matrix.constructor import identity_matrix as I
@@ -1292,7 +1292,7 @@ def rshcd_from_prime_power_and_conference_matrix(n):
 
     From a :func:`symmetric_conference_matrix`, we only need the Seidel
     adjacency matrix of the underlying strongly regular conference (i.e. Paley
-    type) graph, which we constuct directly.
+    type) graph, which we construct directly.
 
     INPUT:
 

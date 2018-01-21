@@ -35,16 +35,10 @@ value that is being garbage collected::
     sage: len(D)
     10
     sage: del ValList, v
-    Exception KeyError: (<__main__.Keys instance at ...>,) in <function remove at ...> ignored
-    Exception KeyError: (<__main__.Keys instance at ...>,) in <function remove at ...> ignored
-    Exception KeyError: (<__main__.Keys instance at ...>,) in <function remove at ...> ignored
-    Exception KeyError: (<__main__.Keys instance at ...>,) in <function remove at ...> ignored
-    ...
     sage: len(D) > 1
     True
 
-Hence, there are scary error messages, and moreover the defunct items have not
-been removed from the dictionary.
+Hence, the defunct items have not been removed from the dictionary.
 
 Therefore, Sage provides an alternative implementation
 :class:`sage.misc.weak_dict.WeakValueDictionary`, using a callback that
@@ -122,6 +116,7 @@ See :trac:`13394` for a discussion of some of the design considerations.
 from __future__ import absolute_import, print_function
 
 import weakref
+import six
 from weakref import KeyedRef
 from copy import deepcopy
 
@@ -341,7 +336,7 @@ cdef class WeakValueDictionary(dict):
         self._guard_level = 0
         self._pending_removals = []
         try:
-            data=data.iteritems()
+            data = six.iteritems(data)
         except AttributeError:
             pass
         for k,v in data:

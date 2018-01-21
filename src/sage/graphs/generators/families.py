@@ -17,7 +17,7 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 ###########################################################################
-from __future__ import print_function
+from __future__ import print_function, division
 import six
 from six.moves import range
 
@@ -119,7 +119,7 @@ def KneserGraph(n,k):
 
     from sage.combinat.subset import Subsets
     S = Subsets(n,k)
-    if k>n/2:
+    if 2 * k > n:
         g.add_vertices(S)
 
     s0 = S.underlying_set()    # {1,2,...,n}
@@ -1322,9 +1322,9 @@ def GeneralizedPetersenGraph(n,k):
 
     - Anders Jonsson (2009-10-15)
     """
-    if (n < 3):
+    if n < 3:
             raise ValueError("n must be larger than 2")
-    if (k < 1 or k>((n-1)/2)):
+    if k < 1 or k > (n - 1) // 2:
             raise ValueError("k must be in 1<= k <=floor((n-1)/2)")
     pos_dict = {}
     G = Graph()
@@ -1811,23 +1811,38 @@ def PaleyGraph(q):
 
     EXAMPLES::
 
-        sage: G=graphs.PaleyGraph(9);G
+        sage: G = graphs.PaleyGraph(9); G
         Paley graph with parameter 9: Graph on 9 vertices
         sage: G.is_regular()
         True
 
     A Paley graph is always self-complementary::
 
-        sage: G.complement().is_isomorphic(G)
+        sage: G.is_self_complementary()
         True
+
+    TESTS:
+
+    Wrong parameter::
+
+        sage: graphs.PaleyGraph(6)
+        Traceback (most recent call last):
+        ...
+        ValueError: parameter q must be a prime power
+        sage: graphs.PaleyGraph(3)
+        Traceback (most recent call last):
+        ...
+        ValueError: parameter q must be congruent to 1 mod 4
     """
     from sage.rings.finite_rings.integer_mod import mod
     from sage.rings.finite_rings.finite_field_constructor import FiniteField
     from sage.arith.all import is_prime_power
-    assert is_prime_power(q), "Parameter q must be a prime power"
-    assert mod(q,4)==1, "Parameter q must be congruent to 1 mod 4"
+    if not is_prime_power(q):
+        raise ValueError("parameter q must be a prime power")
+    if not mod(q, 4) == 1:
+        raise ValueError("parameter q must be congruent to 1 mod 4")
     g = Graph([FiniteField(q,'a'), lambda i,j: (i-j).is_square()],
-    loops=False, name = "Paley graph with parameter %d"%q)
+                  loops=False, name="Paley graph with parameter {}".format(q))
     return g
 
 def PasechnikGraph(n):
@@ -3148,7 +3163,7 @@ def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
     # build L, L_i and the design
     m = int((n**d-1)/(n-1) + 1) #from m = p + 1, p = (n^d-1) / (n-1)
     L = CompleteGraph(m)
-    L.delete_edges([(2*x, 2*x + 1) for x in range(m/2)])
+    L.delete_edges([(2 * x, 2 * x + 1) for x in range(m // 2)])
     L_i = [L.edges_incident(x, labels=False) for x in range(m)]
     Design = ProjectiveGeometryDesign(d, d-1, GF(n, 'a'), point_coordinates=False)
     projBlocks = Design.blocks()

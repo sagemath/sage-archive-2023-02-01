@@ -38,9 +38,9 @@ The libSINGULAR interface was implemented by
 
 - Volker Braun (2011-06): Major cleanup, refcount singular rings, bugfixes.
 
-TODO:
+.. TODO::
 
-- implement Real, Complex coefficient rings via libSINGULAR
+    Implement Real, Complex coefficient rings via libSINGULAR
 
 EXAMPLES:
 
@@ -789,7 +789,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         cdef long mpos
         cdef MPolynomial_libsingular Element
         cdef MPolynomialRing_libsingular El_parent
-        cdef unsigned int i, j
+        cdef int i, j
         cdef list ind_map = []
         cdef int e
         if _ring!=currRing: rChangeCurrRing(_ring)
@@ -1967,7 +1967,8 @@ def unpickle_MPolynomialRing_libsingular(base_ring, names, term_order):
     from sage.rings.polynomial.polynomial_ring_constructor import _multi_variate
     # If libsingular would be replaced by a different implementation in future
     # sage version, the unpickled ring will belong the new implementation.
-    return _multi_variate(base_ring, tuple(names), False, term_order, None)
+    return _multi_variate(base_ring, tuple(names), None, term_order, None)
+
 
 cdef class MPolynomial_libsingular(MPolynomial):
     """
@@ -2415,7 +2416,8 @@ cdef class MPolynomial_libsingular(MPolynomial):
         """
         Return ``self**(exp)``.
 
-        The exponent must be an integer.
+        The exponent must be an integer or a rational such that
+        the result lies in the same polynomial ring.
 
         EXAMPLES::
 
@@ -2436,19 +2438,60 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: u^(1/2)
             Traceback (most recent call last):
             ...
-            TypeError: non-integral exponents not supported
+            ValueError: (u)^(1/2) does not lie in Multivariate Polynomial Ring
+            in u, v over Rational Field
 
             sage: P.<x,y> = PolynomialRing(QQ,order='lex')
             sage: (x+y^2^15)^10
             Traceback (most recent call last):
             ....
             OverflowError: exponent overflow (...)
+
+        Test fractional powers (:trac:`22329`)::
+
+            sage: P.<R, S> = ZZ[]
+            sage: (R^3 + 6*R^2*S + 12*R*S^2 + 8*S^3)^(1/3)
+            R + 2*S
+            sage: _.parent()
+            Multivariate Polynomial Ring in R, S over Integer Ring
+            sage: P(4)^(1/2)
+            2
+            sage: _.parent()
+            Multivariate Polynomial Ring in R, S over Integer Ring
+
+            sage: (R^2 + 3)^(1/2)
+            Traceback (most recent call last):
+            ...
+            ValueError: (R^2 + 3)^(1/2) does not lie in
+            Multivariate Polynomial Ring in R, S over Integer Ring
+            sage: P(2)^P(2)
+            4
+            sage: (R + 1)^P(2)
+            R^2 + 2*R + 1
+            sage: (R + 1)^R
+            Traceback (most recent call last):
+            ...
+            TypeError: R is neither an integer nor a rational
+            sage: 2^R
+            Traceback (most recent call last):
+            ...
+            TypeError: R is neither an integer nor a rational
         """
         if type(exp) is not Integer:
             try:
                 exp = Integer(exp)
             except TypeError:
-                raise TypeError("non-integral exponents not supported")
+                try:
+                    n = Rational(exp)
+                except TypeError:
+                    raise TypeError("{} is neither an integer nor a rational".format(exp))
+                num = n.numerator()
+                den = n.denominator()
+
+                if self.degree == 0:
+                    return self.parent()(
+                        self.constant_coefficient().nth_root(den) ** num)
+                return self.nth_root(den) ** num
 
         if exp < 0:
             return 1/(self**(-exp))

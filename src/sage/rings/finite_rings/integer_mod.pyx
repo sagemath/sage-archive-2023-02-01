@@ -522,7 +522,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         else:
             return sib(self.parent())(v)
 
-    def log(self, b=None):
+    def log(self, b=None, logarithm_exists=False):
         r"""
         Return an integer `x` such that `b^x = a`, where
         `a` is ``self``.
@@ -535,6 +535,11 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         -  ``b`` - a unit modulo `n`. If ``b`` is not given,
            ``R.multiplicative_generator()`` is used, where
            ``R`` is the parent of ``self``.
+
+        -  ``logarithm_exists`` - a boolean (default ``False``). If ``True``
+           it assumes that the logarithm exists in order to speed up
+           the computation, the code might end up in an infinite loop if this
+           is set to ``True`` but the logarithm does not exist.
 
 
         OUTPUT: Integer `x` such that `b^x = a`, if this exists; a ValueError otherwise.
@@ -574,12 +579,14 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             sage: Mod(3, 7).log(Mod(2, 7))
             Traceback (most recent call last):
             ...
-            ValueError: No discrete log of 3 found to base 2
+            ValueError: No discrete log of 3 found to base 2 modulo 7
             sage: a = Mod(16, 100); b = Mod(4,100)
             sage: a.log(b)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Inverse does not exist.
+            ValueError: logarithm of 16 is not defined since it is not a unit modulo 100
+
+        TESTS:
 
         We check that :trac:`9205` is fixed::
 
@@ -596,6 +603,13 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             sage: pari(b)
             b
 
+        We test that :trac:`23927` is fixed::
+
+            sage: x = mod(48475563673907791151, 10^20 + 763)^2
+            sage: e = 25248843418589594761
+            sage: (x^e).log(x)==e
+            True
+
         AUTHORS:
 
         - David Joyner and William Stein (2005-11)
@@ -605,23 +619,34 @@ cdef class IntegerMod_abstract(FiniteRingElement):
 
         - Simon King (2010-07-07): fix a side effect on PARI
         """
+        if not self.is_unit():
+            raise ValueError("logarithm of %s is not defined since it is not a unit modulo %s"%(self, self.modulus()))
+
         if b is None:
             b = self._parent.multiplicative_generator()
+            logarithm_exists = True
         else:
             b = self._parent(b)
+            if not (logarithm_exists or b.is_unit()):
+                raise ValueError("logarithm with base %s is not defined since it is not a unit modulo %s"%(b, b.modulus()))
 
-        if self.modulus().is_prime() and b.multiplicative_order() == b.parent().unit_group_order():
+        if logarithm_exists or self.modulus().is_prime():
+            if not logarithm_exists:
+                oa = self.multiplicative_order()
+                ob = b.multiplicative_order()
+                if not oa.divides(ob):
+                    raise ValueError("No discrete log of %s found to base %s modulo %s"%(self, b, self.modulus()))
 
-            # use PARI
-
-            cmd = 'if(znorder(Mod(%s,%s))!=eulerphi(%s),-1,znlog(%s,Mod(%s,%s)))'%(b, self.__modulus.sageInteger,
-                                                      self.__modulus.sageInteger,
-                                             self, b, self.__modulus.sageInteger)
             try:
-                n = Integer(pari(cmd))
-                return n
+                n = pari(self).znlog(pari(b), pari(b.multiplicative_order()))
+                n = n.sage()
             except PariError as msg:
-                raise ValueError("%s\nPARI failed to compute discrete log (perhaps base is not a generator or is too large)" % msg)
+                raise RuntimeError("%s\nPARI failed to compute discrete log (perhaps base is not a generator or is too large)" % msg)
+            else:
+                if n == []:
+                    raise ValueError("No discrete log of %s found to base %s modulo %s"%(self, b, self.modulus()))
+                return n
+
 
         else: # fall back on slower native implementation
 
@@ -2458,6 +2483,13 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         return self._new_c(x% self.__modulus.int32)
 
     def __int__(IntegerMod_int self):
+        """
+        TESTS::
+
+            sage: e = Mod(8, 31)
+            sage: int(e)
+            8
+        """
         return self.ivalue
 
     def __index__(self):
@@ -2541,8 +2573,6 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             160
             sage: e = Mod(8, 2^5 - 1)
             sage: e >> 3
-            1
-            sage: int(e)/int(2^3)  # optional - python2
             1
         """
         if k == 0:
@@ -4092,7 +4122,7 @@ cdef class IntegerMod_hom(Morphism):
         self.zero = C._element_constructor_(0)
         self.modulus = C._pyx_order
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for pickling and copying.
 
@@ -4114,9 +4144,10 @@ cdef class IntegerMod_hom(Morphism):
             sage: psi(R15(7))
             2
         """
-        _slots['zero'] = self.zero
-        _slots['modulus'] = self.modulus
-        return Morphism._extra_slots(self, _slots)
+        slots = Morphism._extra_slots(self)
+        slots['zero'] = self.zero
+        slots['modulus'] = self.modulus
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """

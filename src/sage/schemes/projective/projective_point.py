@@ -156,12 +156,18 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         SchemeMorphism.__init__(self, X)
         if check:
             from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field
+            from sage.rings.ring import CommutativeRing
             d = X.codomain().ambient_space().ngens()
 
             if is_SchemeMorphism(v) or isinstance(v, EllipticCurvePoint_field):
                 v = list(v)
-
-            if not isinstance(v,(list,tuple)):
+            else:
+                try:
+                    if isinstance(v.parent(), CommutativeRing):
+                        v = [v]
+                except AttributeError:
+                    pass
+            if not isinstance(v, (list, tuple)):
                 raise TypeError("argument v (= %s) must be a scheme point, list, or tuple"%str(v))
             if len(v) != d and len(v) != d-1:
                 raise TypeError("v (=%s) must have %s components"%(v, d))
@@ -243,7 +249,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: PS2 = ProjectiveSpace(Zp(7), 1, 'x')
             sage: Q = PS2([2, 1])
             sage: P == Q
-            False
+            True
 
         ::
 
@@ -331,7 +337,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: PS2 = ProjectiveSpace(Zp(7), 1, 'x')
             sage: Q = PS2([2, 1])
             sage: P != Q
-            True
+            False
 
         ::
 
@@ -915,7 +921,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         - Original algorithm written by Elliot Wells [WELLS]_
 
-        - Wells' Algortithm implemented as part of GSOC 2017 by Rebecca Lauren Miller and Paul Fili
+        - Wells' Algorithm implemented as part of GSOC 2017 by Rebecca Lauren Miller and Paul Fili
 
 
         EXAMPLES::
@@ -956,7 +962,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             self.normalize_coordinates()
             if self.parent().value_ring() is QQ:
                 self.clear_denominators()
-            #assures integer coeffcients
+            #assures integer coefficients
             coeffs = F[0].coefficients() + F[1].coefficients()
             t = 1
             for c in coeffs:
@@ -1249,7 +1255,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         OUTPUT:
 
-        - boolean - ``True`` if preperiodic.
+        - boolean -- ``True`` if preperiodic.
 
         - if return_period is ``True``, then ``(0,0)`` if wandering, and ``(m,n)``
             if preperiod ``m`` and period ``n``.
@@ -1429,9 +1435,16 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
         SchemeMorphism.__init__(self, X)
         if check:
             from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field
+            from sage.rings.ring import CommutativeRing
             d = X.codomain().ambient_space().ngens()
             if is_SchemeMorphism(v) or isinstance(v, EllipticCurvePoint_field):
                 v = list(v)
+            else:
+                try:
+                    if isinstance(v.parent(), CommutativeRing):
+                        v = [v]
+                except AttributeError:
+                    pass
             if not isinstance(v, (list,tuple)):
                 raise TypeError("argument v (= %s) must be a scheme point, list, or tuple"%str(v))
             if len(v) != d and len(v) != d-1:

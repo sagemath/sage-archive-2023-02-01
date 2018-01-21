@@ -12,7 +12,7 @@ coercitions pour utiliser comme il faut les structures algébriques fournies par
 Sage.
 
 Nous allons voir ici ce que ces notions signifient, mais pas comment les mettre
-en œuvre pour implémenter une nouvelle structure algébrique. Un tutorial
+en œuvre pour implémenter une nouvelle structure algébrique. Un tutoriel
 thématique couvrant ce point est disponible `ici <http://doc.sagemath.org/html/en/thematic_tutorials/coercion_and_categories.html>`_.
 
 Éléments

@@ -103,9 +103,9 @@ Comparison with the results from the Handbook of Combinatorial Designs (2ed)
     560|
     580|
 
-TODO:
+.. TODO::
 
-* Look at [ColDin01]_.
+    Look at [ColDin01]_.
 
 REFERENCES:
 

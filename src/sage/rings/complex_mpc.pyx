@@ -63,6 +63,7 @@ from . import real_mpfr
 import weakref
 from cpython.object cimport Py_NE
 
+from sage.libs.mpfr cimport *
 from sage.libs.mpc cimport *
 from sage.structure.parent cimport Parent
 from sage.structure.parent_gens cimport ParentWithGens
@@ -1856,7 +1857,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
 
     def csc(self):
         """
-        Return the cosecent of this complex number.
+        Return the cosecant of this complex number.
 
         EXAMPLES::
 
@@ -1868,7 +1869,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
 
     def csch(self):
         """
-        Return the hyperbolic cosecent of this complex number.
+        Return the hyperbolic cosecant of this complex number.
 
         EXAMPLES::
 

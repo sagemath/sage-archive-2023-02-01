@@ -6,25 +6,9 @@ chmod 755 install-sh
 # Workaround for bugs with -D_FORTIFY_SOURCE=2 on antiques
 export CPPFLAGS='-U_FORTIFY_SOURCE'
 
-./configure \
-    --prefix="$SAGE_LOCAL" \
-    --libdir="$SAGE_LOCAL/lib"
-if [ $? -ne 0 ]; then
-    echo >&2 "Error configuring pkgconf."
-    exit 1
-fi
-
-$MAKE
-if [ $? -ne 0 ]; then
-    echo >&2 "Error building pkgconf."
-    exit 1
-fi
-
-$MAKE -j1 install
-if [ $? -ne 0 ]; then
-    echo >&2 "Error installing pkgconf."
-    exit 1
-fi
+sdh_configure
+sdh_make
+sdh_make_install -j1
 
 # pkgconf is an alternative to the "official" pkg-config, and does not
 # automatically install a "pkg-config" binary.

@@ -778,14 +778,18 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         self._sindex = start_index
         self._output_formatter = output_formatter
         # Dictionary of the tensor modules built on self
-        #   (keys = (k,l) --the tensor type) :
-        self._tensor_modules = {(1,0): self} # self is considered as the set of
-                                            # tensors of type (1,0)
-        # Dictionary of exterior powers of self and of the dual of self:
-        #   (keys = p --the power degree) :
-        self._exterior_powers = {}
+        #   (keys = (k,l) --the tensor type)
+        # This dictionary is to be extended on need by the method tensor_module
+        self._tensor_modules = {(1,0): self} # self is considered as the set
+                                             # of tensors of type (1,0)
+        # Dictionaries of exterior powers of self and of its dual
+        #   (keys = p --the power degree)
+        # These dictionaries are to be extended on need by the methods
+        # exterior_power and dual_exterior_power
+        self._exterior_powers = {1: self}
         self._dual_exterior_powers = {}
-        self._known_bases = []  # List of known bases on the free module
+        # List of known bases on the free module:
+        self._known_bases = []
         self._def_basis = None # default basis
         self._basis_changes = {} # Dictionary of the changes of bases
         # Zero element:
@@ -1021,8 +1025,6 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         from sage.tensor.modules.ext_pow_free_module import ExtPowerFreeModule
         if p == 0:
             return self._ring
-        if p == 1:
-            return self
         if p not in self._exterior_powers:
             self._exterior_powers[p] = ExtPowerFreeModule(self, p)
         return self._exterior_powers[p]
@@ -2471,7 +2473,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
 
     def endomorphism(self, matrix_rep, basis=None, name=None, latex_name=None):
         r"""
-        Contruct an endomorphism of the free module ``self``.
+        Construct an endomorphism of the free module ``self``.
 
         The returned object is a module morphism `\phi: M \rightarrow M`,
         where `M` is ``self``.

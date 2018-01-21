@@ -942,7 +942,7 @@ class PrimedEntry(Rational):
             entry = Rational(entry)
         except (TypeError, ValueError):
             raise ValueError("primed elements have wrong format")
-        if (entry + half not in ZZ) and (entry not in ZZ):
+        if entry.denominator() > 2:
             # Check if an element is a half-integer
             raise ValueError("all numbers must be half-integers")
 

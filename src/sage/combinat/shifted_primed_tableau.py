@@ -284,7 +284,7 @@ class ShiftedPrimedTableau(ClonableArray):
 
             sage: ShiftedPrimedTableau([['2p',3],[2,2]], skew=[2])._repr_list()
             "[(None, None, 2', 3), (2, 2)]"
-            """
+        """
         return (repr([row for row in self]))
 
     def _repr_tab(self):
@@ -926,15 +926,18 @@ class ShiftedPrimedTableauEntry(Rational):
         if isinstance(entry, str):
             if (entry[-1] == "'" or entry[-1] == "p") and entry[:-1].isdigit() is True:
                 # Check if an element has "'" or "p" at the end
-                entry = QQ(entry[:-1]) - .5
+                entry = Rational(entry[:-1]) - Rational(.5)
+                Rational.__init__(self, entry)
+                return
         try:
-            if (QQ(entry)+.5 in ZZ) or (QQ(entry) in ZZ):
-                # Check if an element is a half-integer
-                entry = QQ(entry)
-            else:
-                raise ValueError("all numbers must be half-integers")
+            entry = Rational(entry)
         except (TypeError, ValueError):
             raise ValueError("primed elements have wrong format")
+
+        if (entry+.5 not in ZZ) and (entry not in ZZ):
+            # Check if an element is a half-integer
+            raise ValueError("all numbers must be half-integers")
+
         Rational.__init__(self, entry)
 
     def __repr__(self):

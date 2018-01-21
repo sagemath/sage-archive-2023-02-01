@@ -2547,7 +2547,8 @@ class ClusterSeed(SageObject):
         is_vertices = set(seqq).issubset(set(seed._nlist))
         is_indices = set(seqq).issubset(set(range(n)))
 
-        # Note - this does not guarantee that the sequence consists of cluster variables, it only rules out some posibilities.
+        # Note - this does not guarantee that the sequence consists of
+        # cluster variables, it only rules out some possibilities.
         is_cluster_vars = reduce(lambda x, y: isinstance(y, str), seqq, 1) and seed._use_fpolys
 
         # Ensures the sequence has elements of type input_type.

@@ -3085,7 +3085,7 @@ class Polyhedron_base(Element):
 
         TESTS:
 
-        Dilation of empty polyhedrons works, see :trac:`14987`::
+        Dilation of empty polyhedra works, see :trac:`14987`::
 
             sage: p = Polyhedron(ambient_dim=2); p
             The empty polyhedron in ZZ^2

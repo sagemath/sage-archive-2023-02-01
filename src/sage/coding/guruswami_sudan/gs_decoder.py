@@ -481,7 +481,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
 
         INPUT:
 
-        - ``tau`` -- an integer, number of errrors one expects Guruswami-Sudan algorithm
+        - ``tau`` -- an integer, number of errors one expects Guruswami-Sudan algorithm
           to correct
         - ``s`` -- an integer, multiplicity parameter of Guruswami-Sudan algorithm
         - ``l`` -- an integer, list size parameter

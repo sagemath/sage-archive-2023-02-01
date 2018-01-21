@@ -2297,7 +2297,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
 
     def agm(self, right, algorithm="optimal"):
         """
-        Returns the algebraic geometrc mean of ``self`` and ``right``.
+        Return the algebro-geometric mean of ``self`` and ``right``.
 
         EXAMPLES::
 

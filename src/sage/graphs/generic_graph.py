@@ -1532,7 +1532,7 @@ class GenericGraph(GenericGraph_pyx):
         .. NOTE::
 
           When used on directed graphs, the explanations above can be understood
-          by replacing the word "neigbours" by "out-neighbors"
+          by replacing the word "neighbors" by "out-neighbors"
 
         EXAMPLES::
 

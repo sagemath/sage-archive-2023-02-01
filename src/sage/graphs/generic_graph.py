@@ -312,7 +312,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.subgraph_search_iterator` | Return an iterator over the labelled copies of ``G`` in ``self``.
     :meth:`~GenericGraph.characteristic_polynomial` | Return the characteristic polynomial of the adjacency matrix of the (di)graph.
     :meth:`~GenericGraph.genus` | Return the minimal genus of the graph.
-    :meth:`~GenericGraph.crossing_number` | Return the minimun number of edge crossings needed to draw the graph.
+    :meth:`~GenericGraph.crossing_number` | Return the minimum number of edge crossings needed to draw the graph.
 
 Methods
 -------
@@ -4892,7 +4892,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         Return the crossing number of the graph.
 
-        The crossing number of a graph is the minimun number of
+        The crossing number of a graph is the minimum number of
         edge crossings needed to draw the graph on a plane. It can
         be seen as a measure of non-planarity; a planar graph has
         crossing number zero.
@@ -9125,7 +9125,7 @@ class GenericGraph(GenericGraph_pyx):
 
         Given a set of pairs `(s_i,t_i)`, a set
         of disjoint routed paths is a set of
-        `s_i-t_i` paths which can interset at their endpoints
+        `s_i-t_i` paths which can intersect at their endpoints
         and are vertex-disjoint otherwise.
 
         INPUT:

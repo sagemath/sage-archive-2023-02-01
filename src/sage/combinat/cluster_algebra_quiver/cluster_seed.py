@@ -4922,7 +4922,7 @@ def is_LeeLiZel_allowable(T,n,m,b,c):
 
 def get_green_vertices(C):
     r"""
-    Get the green vertices from a matrix. Will go through each clumn and return
+    Get the green vertices from a matrix. Will go through each column and return
     the ones where no entry is greater than 0.
 
     INPUT:

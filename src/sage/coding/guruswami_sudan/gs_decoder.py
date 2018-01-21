@@ -390,7 +390,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
             lmax = sqrt(n*s*(s+1.)/(k-1.)) - 1.
             #the best integral value will be
             (l,tau) = find_integral_max(lmax, lambda l: get_tau(s,l))
-            #Note that we have not proven that this ell is minimial in integral
+            #Note that we have not proven that this ell is minimal in integral
             #sense! It just seems that this most often happens
             return (tau,(s,l))
         if l is not None:

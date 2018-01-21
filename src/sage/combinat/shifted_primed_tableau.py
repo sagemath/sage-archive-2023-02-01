@@ -930,19 +930,18 @@ class PrimedEntry(Rational):
         if isinstance(entry, self.__class__):
             Rational.__init__(self, entry)
             return
-        half = Integer(1)/Integer(2)
 
         if isinstance(entry, str):
             if (entry[-1] == "'" or entry[-1] == "p") and entry[:-1].isdigit() is True:
                 # Check if an element has "'" or "p" at the end
-                entry = Rational(entry[:-1]) - half
+                entry = Rational(entry[:-1]) - Integer(1)/Integer(2)
                 Rational.__init__(self, entry)
                 return
         try:
             entry = Rational(entry)
         except (TypeError, ValueError):
             raise ValueError("primed elements have wrong format")
-        if entry.denominator() > 2:
+        if entry.denominator() not in (1, 2):
             # Check if an element is a half-integer
             raise ValueError("all numbers must be half-integers")
 

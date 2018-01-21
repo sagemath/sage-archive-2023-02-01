@@ -144,6 +144,9 @@ import sys
 from six.moves import range
 
 from sage.structure.element import Element
+
+import sage.categories as categories
+
 import sage.algebras.algebra
 import sage.rings.commutative_algebra as commutative_algebra
 import sage.rings.ring as ring
@@ -169,8 +172,7 @@ from .polynomial_element import PolynomialBaseringInjection
 from .polynomial_real_mpfr_dense import PolynomialRealDense
 from .polynomial_integer_dense_flint import Polynomial_integer_dense_flint
 
-from sage.categories.commutative_rings import CommutativeRings
-_CommutativeRings = CommutativeRings()
+_CommutativeRings = categories.commutative_rings.CommutativeRings()
 
 from . import cyclotomic
 
@@ -240,10 +242,11 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             Join of Category of unique factorization domains
              and Category of commutative algebras over
               (euclidean domains and infinite enumerated sets and metric spaces)
+             and Category of infinite sets
             sage: category(GF(7)['x'])
             Join of Category of euclidean domains
              and Category of commutative algebras over
-              (finite enumerated fields and subquotients of monoids and quotients of semigroups)
+              (finite enumerated fields and subquotients of monoids and quotients of semigroups) and Category of infinite sets
 
         TESTS:
 
@@ -253,11 +256,18 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: R.<y> = K[]
             sage: TestSuite(R).run()
 
+        Check that category for zero ring::
+
+            sage: PolynomialRing(Zmod(1), 'x').category()
+            Category of finite rings
         """
         # We trust that, if category is given, it is useful and does not need to be joined
         # with the default category
         if category is None:
-            category = polynomial_default_category(base_ring.category(),False)
+            if base_ring.is_zero():
+                category = categories.rings.Rings().Finite()
+            else:
+                category = polynomial_default_category(base_ring.category(), 1)
         self.__is_sparse = sparse
         if element_class:
             self._polynomial_class = element_class
@@ -581,8 +591,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         ]
 
     def construction(self):
-        from sage.categories.pushout import PolynomialFunctor
-        return PolynomialFunctor(self.variable_name(), sparse=self.__is_sparse), self.base_ring()
+        return categories.pushout.PolynomialFunctor(self.variable_name(), sparse=self.__is_sparse), self.base_ring()
 
     def completion(self, p, prec=20, extras=None):
         """
@@ -1565,7 +1574,10 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
             raise TypeError("Base ring %s must be a commutative ring."%repr(base_ring))
         # We trust that, if a category is given, that it is useful.
         if category is None:
-            category = polynomial_default_category(base_ring.category(),False)
+            if base_ring.is_zero():
+                category = categories.rings.Rings().Finite()
+            else:
+                category = polynomial_default_category(base_ring.category(), 1)
         PolynomialRing_general.__init__(self, base_ring, name=name,
                 sparse=sparse, element_class=element_class, category=category)
 

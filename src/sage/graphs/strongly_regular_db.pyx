@@ -1453,7 +1453,7 @@ def is_twograph_descendant_of_srg(int v, int k0, int l, int mu):
     `\lambda^*-\mu^*=\lambda-\mu`.  Further, there is a quadratic relation
     `2 k^2-(v+1+4 \mu) k+ 2 v \mu=0`.
 
-    If we can contruct such `G` then we return a function to build a
+    If we can construct such `G` then we return a function to build a
     `(v,k_0,\lambda,\mu)`-s.r.g.  For more information,
     see 10.3 in http://www.win.tue.nl/~aeb/2WF02/spectra.pdf
 

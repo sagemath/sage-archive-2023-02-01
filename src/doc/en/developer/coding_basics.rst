@@ -1016,6 +1016,12 @@ framework. Here is a comprehensive list:
      Neither of this applies to files or directories which are explicitly given
      as command line arguments: those are always tested.
 
+- **py2** or **py3:** Run the line on Python 2 *only* or Python 3 *only*
+  respectively.  Generally this should be avoided as code should be tested on
+  both Python 2 and Python 3, but there are on occasion tests that are simply
+  inapplicable on one or the other, such as tests that rely on optional features
+  that are only available on one Python version or the other.
+
 - **optional:** A line flagged with ``optional - keyword`` is not tested unless
   the ``--optional=keyword`` flag is passed to ``sage -t`` (see
   :ref:`section-optional-doctest-flag`). The main applications are:

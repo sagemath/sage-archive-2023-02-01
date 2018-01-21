@@ -2270,6 +2270,24 @@ class RationalFunctionField(FunctionField):
             (1/t) * (X + (a + 2)*t)^3
             sage: f.factor().prod() == f
             True
+
+        We check that ``proof`` parameter is passed to the underlying
+        polynomial (see :trac:`24510`). However, factoring over a function
+        field over a tower of finite fields does not work yet (see
+        :trac:`24533`)::
+
+            sage: k = GF(4)
+            sage: k.<a> = GF(4)
+            sage: R.<b> = k[]
+            sage: l.<b> = k.extension(a^2 + a + b)
+            sage: K.<x> = FunctionField(l)
+            sage: R.<t> = K[]
+            sage: F = t*x
+            sage: F.factor(proof=False)
+            Traceback (most recent call last):
+            ...
+            TypeError: no conversion of this ring to a Singular ring defined
+
         """
         old_variable_name = f.variable_name()
         # the variables of the bivariate polynomial must be distinct
@@ -2278,7 +2296,7 @@ class RationalFunctionField(FunctionField):
             f = f.change_variable_name(old_variable_name + old_variable_name)
 
         F, d = self._to_bivariate_polynomial(f)
-        fac = F.factor()
+        fac = F.factor(proof=proof)
         x = f.parent().gen()
         t = f.parent().base_ring().gen()
         phi = F.parent().hom([x, t])

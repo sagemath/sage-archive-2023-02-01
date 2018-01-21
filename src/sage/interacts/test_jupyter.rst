@@ -220,7 +220,7 @@ Test all interacts from the Sage interact library::
       yrange: Text(value=u'auto', description=u'yrange')
       a: IntSlider(value=1, min=-1, max=3, step=1, description=u'a')
       action: ToggleButtons(value='f', options=['f', 'df/dx', 'int f', 'num f', 'den f', '1/f', 'finv', 'f+a', 'f-a', 'f*a', 'f/a', 'f^a', 'f(x+a)', 'f(x*a)', 'f+g', 'f-g', 'f*g', 'f/g', 'f(g)'], description=u'h = ')
-      do_plot: Checkbox(value=True, description=u'do_plot')
+      do_plot: Checkbox(value=True, description=u'Draw Plots')
     <center><font color="red"><script type="math/tex">f = \sin\left(x\right)</script></font></center>
     <center><font color="green"><script type="math/tex">g = \cos\left(x\right)</script></font></center>
     <center><font color="blue"><b><script type="math/tex">h = f = \sin\left(x\right)</script></b></font></center>

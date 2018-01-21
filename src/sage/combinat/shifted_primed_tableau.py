@@ -175,7 +175,7 @@ class ShiftedPrimedTableau(ClonableArray):
             return T
 
         # Preprocessing list t for primes and other symbols
-        T = [[ShiftedPrimedTableauEntry(entry) for entry in row if entry is not None]
+        T = [[PrimedEntry(entry) for entry in row if entry is not None]
              for row in T]
 
         if skew is not None:
@@ -713,6 +713,8 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
 
         element_to_change = None
         count = 0
+        half = Integer(1)/Integer(2)
+        one = Integer(1)
 
         for element in read_word:
             if element[1] == ind+1:
@@ -728,40 +730,40 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
         (r, c), elt = element_to_change
 
         if T[r][c].is_primed():
-            T = [[elt+.5 if elt is not None else elt
+            T = [[elt+half if elt is not None else elt
                   for elt in row] for row in T]
             T = map(list, zip(*T))
             r, c = c, r
         h, l = len(T), len(T[0])
 
-        if (c+1 == l or T[r][c+1] is None or T[r][c+1] >= ind+1):
+        if (c+1 == l or T[r][c+1] is None or T[r][c+1] >= ind+one):
             (tp_r, tp_c) = (r, c)
             while True:
-                if (tp_r+1 == h or T[tp_r+1][tp_c] is None or T[tp_r+1][tp_c] > ind+1):
+                if (tp_r+1 == h or T[tp_r+1][tp_c] is None or T[tp_r+1][tp_c] > ind+one):
                     break
-                if tp_r <= tp_c and T[tp_r+1][tp_r+1] == ind+1:
+                if tp_r <= tp_c and T[tp_r+1][tp_r+1] == ind+one:
                     tp_r += 1
                     tp_c = tp_r
                     break
-                if (ind+.5 not in T[tp_r+1]):
+                if (ind+half not in T[tp_r+1]):
                     break
                 tp_r += 1
-                tp_c = T[tp_r].index(ind+.5)
+                tp_c = T[tp_r].index(ind+half)
 
             if tp_r == r:
-                T[r][c] = T[r][c]+1
+                T[r][c] = T[r][c]+one
             elif tp_r == tp_c:
-                T[r][c] = T[r][c]+.5
+                T[r][c] = T[r][c]+half
             else:
-                T[r][c] = T[r][c]+.5
-                T[tp_r][tp_c] = T[tp_r][tp_c]+.5
+                T[r][c] = T[r][c]+half
+                T[tp_r][tp_c] = T[tp_r][tp_c]+half
 
-        elif T[r][c+1] == ind+.5:
-            T[r][c+1] = T[r][c+1]+.5
-            T[r][c] = T[r][c]+.5
+        elif T[r][c+1] == ind+half:
+            T[r][c+1] = T[r][c+1]+half
+            T[r][c] = T[r][c]+half
 
         if r > c:
-            T = [[elt-.5 if elt is not None else elt
+            T = [[elt-half if elt is not None else elt
                   for elt in row] for row in T]
             T = map(list, zip(*T))
 
@@ -806,6 +808,8 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
 
         element_to_change = None
         count = 0
+        half = Integer(1)/Integer(2)
+        one = Integer(1)
 
         for element in read_word[::-1]:
             if element[1] == ind:
@@ -820,7 +824,7 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
         (r, c), elt = element_to_change
 
         if T[r][c].is_primed():
-            T = [[elt+.5 if elt is not None else elt
+            T = [[elt+half if elt is not None else elt
                   for elt in row] for row in T]
             T = map(list, zip(*T))
             r, c = c, r
@@ -830,24 +834,24 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
             while True:
                 if (tp_r == 0 or T[tp_r-1][tp_c] is None or T[tp_r-1][tp_c] < ind):
                     break
-                if (ind+.5 not in T[tp_r-1]):
+                if (ind+half not in T[tp_r-1]):
                     break
                 tp_r -= 1
-                tp_c = T[tp_r].index(ind+.5)
+                tp_c = T[tp_r].index(ind+half)
 
             if tp_r == r:
-                T[r][c] = T[r][c]-1.0
+                T[r][c] = T[r][c]-one
             elif tp_r == tp_c:
-                T[r][c] = T[r][c]-.5
+                T[r][c] = T[r][c]-half
             else:
-                T[r][c] = T[r][c]-.5
-                T[tp_r][tp_c] = T[tp_r][tp_c]-.5
+                T[r][c] = T[r][c]-half
+                T[tp_r][tp_c] = T[tp_r][tp_c]-half
 
-        elif T[r][c-1] == ind+.5:
-            T[r][c-1] = T[r][c-1]-.5
-            T[r][c] = T[r][c]-.5
+        elif T[r][c-1] == ind+half:
+            T[r][c-1] = T[r][c-1]-half
+            T[r][c] = T[r][c]-half
         if r > c:
-            T = [[elt-.5 if elt is not None else elt
+            T = [[elt-half if elt is not None else elt
                   for elt in row] for row in T]
             T = map(list, zip(*T))
 
@@ -906,7 +910,7 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
         return self.parent().weight_lattice_realization()(weight)
 
 
-class ShiftedPrimedTableauEntry(Rational):
+class PrimedEntry(Rational):
     """
     The class of entries in shifted primed tableaux.
     """
@@ -923,7 +927,11 @@ class ShiftedPrimedTableauEntry(Rational):
             sage: ShiftedPrimedTableau([[1,1.5]])[0][1]
             2'
         """
+        if isinstance(entry, self.__class__):
+            Rational.__init__(self, entry)
+            return
         half = Integer(1)/Integer(2)
+
         if isinstance(entry, str):
             if (entry[-1] == "'" or entry[-1] == "p") and entry[:-1].isdigit() is True:
                 # Check if an element has "'" or "p" at the end
@@ -934,7 +942,6 @@ class ShiftedPrimedTableauEntry(Rational):
             entry = Rational(entry)
         except (TypeError, ValueError):
             raise ValueError("primed elements have wrong format")
-
         if (entry + half not in ZZ) and (entry not in ZZ):
             # Check if an element is a half-integer
             raise ValueError("all numbers must be half-integers")
@@ -964,9 +971,9 @@ class ShiftedPrimedTableauEntry(Rational):
             sage: a = ShiftedPrimedTableau([[1,"2p"]])[0][1]
             sage: b = a+.5
             sage: type(b)
-            <class 'sage.combinat.shifted_primed_tableau.ShiftedPrimedTableauEntry'>
+            <class 'sage.combinat.shifted_primed_tableau.PrimedEntry'>
         """
-        return ShiftedPrimedTableauEntry(Rational.__add__(self, float(other)))
+        return self.__class__(Rational(self) + Rational(other))
 
     def __sub__(self, other):
         """
@@ -977,9 +984,9 @@ class ShiftedPrimedTableauEntry(Rational):
             sage: a = ShiftedPrimedTableau([[1,"2p"]])[0][1]
             sage: b = a-.5
             sage: type(b)
-            <class 'sage.combinat.shifted_primed_tableau.ShiftedPrimedTableauEntry'>
+            <class 'sage.combinat.shifted_primed_tableau.PrimedEntry'>
         """
-        return ShiftedPrimedTableauEntry(Rational.__sub__(self, float(other)))
+        return self.__class__(Rational(self) - Rational(other))
 
     def is_unprimed(self):
         """
@@ -1015,8 +1022,9 @@ class ShiftedPrimedTableauEntry(Rational):
             sage: a.unprime()
             2
         """
+        half = Integer(1)/Integer(2)
         if self.is_primed():
-            return Integer(self + Integer(1)/Integer(2))
+            return Integer(self + half)
         else:
             return Integer(self)
 

@@ -923,10 +923,11 @@ class ShiftedPrimedTableauEntry(Rational):
             sage: ShiftedPrimedTableau([[1,1.5]])[0][1]
             2'
         """
+        half = Integer(1)/Integer(2)
         if isinstance(entry, str):
             if (entry[-1] == "'" or entry[-1] == "p") and entry[:-1].isdigit() is True:
                 # Check if an element has "'" or "p" at the end
-                entry = Rational(entry[:-1]) - Rational(.5)
+                entry = Rational(entry[:-1]) - half
                 Rational.__init__(self, entry)
                 return
         try:
@@ -934,7 +935,7 @@ class ShiftedPrimedTableauEntry(Rational):
         except (TypeError, ValueError):
             raise ValueError("primed elements have wrong format")
 
-        if (entry+.5 not in ZZ) and (entry not in ZZ):
+        if (entry + half not in ZZ) and (entry not in ZZ):
             # Check if an element is a half-integer
             raise ValueError("all numbers must be half-integers")
 
@@ -1015,7 +1016,7 @@ class ShiftedPrimedTableauEntry(Rational):
             2
         """
         if self.is_primed():
-            return Integer(self + .5)
+            return Integer(self + Integer(1)/Integer(2))
         else:
             return Integer(self)
 

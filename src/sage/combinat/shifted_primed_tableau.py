@@ -850,7 +850,7 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
         Return the weight of ``self``.
 
         The weight of a shifted primed tableau is defined to be the vector
-        with `i`-th component equal to the number of entries i and i' in the
+        with `i`-th component equal to the number of entries `i` and `i'` in the
         tableau.
 
         EXAMPLES::

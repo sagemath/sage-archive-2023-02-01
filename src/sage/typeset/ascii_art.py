@@ -250,6 +250,18 @@ def ascii_art(*obj, **kwds):
             -- [1 0] -- [0 1 0]
         [1]    [0 1]    [0 0 1]
 
+    If specified, the ``sep_baseline`` overrides the baseline of
+    an ascii art separator::
+
+        sage: sep_line = ascii_art('\n'.join(' | ' for _ in range(6)))
+        sage: ascii_art(*Partitions(6), separator=sep_line, baseline=6)
+               |       |      |      |     |     |     |    |    |    | *
+               |       |      |      |     |     |     |    |    | ** | *
+               |       |      |      |     |     | *** |    | ** | *  | *
+               |       |      | **** |     | *** | *   | ** | ** | *  | *
+               | ***** | **** | *    | *** | **  | *   | ** | *  | *  | *
+        ****** | *     | **   | *    | *** | *   | *   | ** | *  | *  | *
+
     TESTS::
 
         sage: n = var('n')

@@ -62,8 +62,8 @@ import operator
 import fractions
 
 from sage.misc.mathml import mathml
-from sage.arith.long cimport pyobject_to_long
 from sage.cpython.string cimport char_to_str
+from sage.arith.long cimport pyobject_to_long, integer_check_long_py
 
 import sage.misc.misc as misc
 from sage.structure.sage_object cimport SageObject
@@ -3023,25 +3023,26 @@ cdef class Rational(sage.structure.element.FieldElement):
     #Define an alias for numerator
     numer = numerator
 
-    def __int__(self):
-        """
-        Convert this rational to a Python ``int``.
+    IF PY_MAJOR_VERSION <= 2:
+        def __int__(self):
+            """
+            Convert this rational to a Python ``int``.
 
-        This truncates ``self`` if ``self`` has a denominator (which is
-        consistent with Python's ``long(floats)``).
+            This truncates ``self`` if ``self`` has a denominator (which is
+            consistent with Python's ``long(floats)``).
 
-        EXAMPLES::
+            EXAMPLES::
 
-            sage: int(7/3)
-            2
-            sage: int(-7/3)
-            -2
-        """
-        return int(self.__long__())
+                sage: int(7/3)
+                2
+                sage: int(-7/3)
+                -2
+            """
+            return int(self.__long__())
 
     def __long__(self):
         """
-        Convert this rational to a Python ``long``.
+        Convert this rational to a Python ``long`` (``int`` on Python 3).
 
         This truncates ``self`` if ``self`` has a denominator (which is
         consistent with Python's ``long(floats)``).
@@ -3189,7 +3190,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         if mpz_sgn(mpq_numref(self.value)) < 0:
             from sage.symbolic.all import SR
             return SR(self).log()
-        if m <= 0 and m is not None:
+        if m is not None and m <= 0:
             raise ValueError("log base must be positive")
         if prec:
             from sage.rings.real_mpfr import RealField
@@ -4173,6 +4174,7 @@ cdef class Q_to_Z(Map):
         """
         return Z_to_Q()
 
+
 cdef class int_to_Q(Morphism):
     r"""
     A morphism from ``int`` to `\QQ`.
@@ -4202,12 +4204,23 @@ cdef class int_to_Q(Morphism):
             sage: f = sage.rings.rational.int_to_Q()
             sage: f(int(4)) # indirect doctest
             4
-            sage: f(int(4^100))   # random garbage, not an int
+            sage: f(int(4^100))   # py2: random garbage, not an int
             14
+            sage: f(int(4^100))  # py3 should just work
+            1606938044258990275541962092341162602522202993782792835301376
         """
         cdef Rational rat
+        cdef long a_long
+        cdef int err = 0
         rat = <Rational> Rational.__new__(Rational)
-        mpq_set_si(rat.value, PyInt_AS_LONG(a), 1)
+
+        integer_check_long_py(a, &a_long, &err)
+
+        if not err:
+            mpq_set_si(rat.value, PyInt_AS_LONG(a), 1)
+        else:
+            mpz_set_pylong(mpq_numref(rat.value), a)
+
         return rat
 
     def _repr_type(self):

@@ -352,17 +352,18 @@ def register_unpickle_override(module, name, callable, call_name=None):
 
         sage: from sage.structure.element import Element
         sage: class SourPickle(CombinatorialObject): pass
-        sage: class SweetPickle(CombinatorialObject,Element): pass
+        sage: class SweetPickle(CombinatorialObject, Element): pass
         sage: import __main__
-        sage: __main__.SourPickle=SourPickle
-        sage: __main__.SweetPickle=SweetPickle  # a hack to allow us to pickle command line classes
-        sage: gherkin = dumps( SourPickle([1,2,3]) )
+        sage: __main__.SourPickle = SourPickle
+        sage: __main__.SweetPickle = SweetPickle  # a hack to allow us to pickle command line classes
+        sage: gherkin = dumps(SourPickle([1, 2, 3]))
 
-    Using :func:`register_unpickle_override` we try to sweeten our pickle, but we are unable to eat it::
+    Using :func:`register_unpickle_override` we try to sweeten our pickle, but
+    we are unable to eat it::
 
         sage: from sage.misc.persist import register_unpickle_override
-        sage: register_unpickle_override('__main__','SourPickle',SweetPickle)
-        sage: loads( gherkin )
+        sage: register_unpickle_override('__main__', 'SourPickle', SweetPickle)
+        sage: loads(gherkin)
         Traceback (most recent call last):
         ...
         KeyError: 0
@@ -373,10 +374,13 @@ def register_unpickle_override(module, name, callable, call_name=None):
     unpickling for :class:`CombinatorialObject`. We can fix this by explicitly
     defining a new :meth:`__setstate__` method::
 
-        sage: class SweeterPickle(CombinatorialObject,Element):
+        sage: class SweeterPickle(CombinatorialObject, Element):
         ....:     def __setstate__(self, state):
-        ....:         if isinstance(state, dict):       # a pickle from CombinatorialObject is just its instance dictionary
-        ....:             self._set_parent(Tableaux())  # this is a fudge: we need an appropriate parent here
+        ....:         # a pickle from CombinatorialObject is just its instance
+        ....:         # dictionary
+        ....:         if isinstance(state, dict):
+        ....:             # this is a fudge: we need an appropriate parent here
+        ....:             self._set_parent(Tableaux())
         ....:             self.__dict__ = state
         ....:         else:
         ....:             P, D = state
@@ -384,10 +388,10 @@ def register_unpickle_override(module, name, callable, call_name=None):
         ....:                 self._set_parent(P)
         ....:             self.__dict__ = D
         sage: __main__.SweeterPickle = SweeterPickle
-        sage: register_unpickle_override('__main__','SourPickle',SweeterPickle)
-        sage: loads( gherkin )
+        sage: register_unpickle_override('__main__', 'SourPickle', SweeterPickle)
+        sage: loads(gherkin)
         [1, 2, 3]
-        sage: loads(dumps( SweeterPickle([1,2,3]) ))   # check that pickles work for SweeterPickle
+        sage: loads(dumps(SweeterPickle([1, 2, 3])))  # check that pickles work for SweeterPickle
         [1, 2, 3]
 
     The ``state`` passed to :meth:`__setstate__` will usually be something like
@@ -403,7 +407,7 @@ def register_unpickle_override(module, name, callable, call_name=None):
         ....:    def __init__(self,value):
         ....:        self.original_attribute = value
         ....:    def __repr__(self):
-        ....:        return 'A(%s)'%self.original_attribute
+        ....:        return 'A(%s)' % self.original_attribute
         sage: class B(object):
         ....:    def __init__(self,value):
         ....:        self.new_attribute = value
@@ -413,14 +417,16 @@ def register_unpickle_override(module, name, callable, call_name=None):
         ....:        except KeyError:      # an old pickle
         ....:            self.new_attribute = state['original_attribute']
         ....:    def __repr__(self):
-        ....:        return 'B(%s)'%self.new_attribute
+        ....:        return 'B(%s)' % self.new_attribute
         sage: import __main__
-        sage: __main__.A=A; __main__.B=B  # a hack to allow us to pickle command line classes
+        sage: # a hack to allow us to pickle command line classes
+        sage: __main__.A = A
+        sage: __main__.B = B
         sage: A(10)
         A(10)
-        sage: loads( dumps(A(10)) )
+        sage: loads(dumps(A(10)))
         A(10)
-        sage: sage.misc.explain_pickle.explain_pickle( dumps(A(10)) )
+        sage: sage.misc.explain_pickle.explain_pickle(dumps(A(10)))
         pg_A = unpickle_global('__main__', 'A')
         si = unpickle_newobj(pg_A, ())
         pg_make_integer = unpickle_global('sage.rings.integer', 'make_integer')
@@ -428,17 +434,18 @@ def register_unpickle_override(module, name, callable, call_name=None):
         si
         sage: from sage.misc.persist import register_unpickle_override
         sage: register_unpickle_override('__main__', 'A', B)
-        sage: loads( dumps(A(10)) )
+        sage: loads(dumps(A(10)))
         B(10)
-        sage: loads( dumps(B(10)) )
+        sage: loads(dumps(B(10)))
         B(10)
 
     Pickling for python classes and extension classes, such as cython, is
-    different -- again this is discussed in the `python pickling documentation`_. For the
-    unpickling of extension classes you need to write a :meth:`__reduce__`
-    method which typically returns a tuple ``(f, args,...)`` such that
-    ``f(*args)`` returns (a copy of) the original object. The following code
-    snippet is the :meth:`~sage.rings.integer.Integer.__reduce__` method from
+    different -- again this is discussed in the `python pickling
+    documentation`_. For the unpickling of extension classes you need to write
+    a :meth:`__reduce__` method which typically returns a tuple ``(f,
+    args,...)`` such that ``f(*args)`` returns (a copy of) the original object.
+    The following code snippet is the
+    :meth:`~sage.rings.integer.Integer.__reduce__` method from
     :class:`sage.rings.integer.Integer`.
 
     .. code-block:: cython
@@ -468,7 +475,7 @@ def register_unpickle_override(module, name, callable, call_name=None):
             return sage.rings.integer.make_integer, (self.str(32),)
 
     """
-    unpickle_override[(module,name)] = (callable, call_name)
+    unpickle_override[(module, name)] = (callable, call_name)
 
 
 def unpickle_global(module, name):
@@ -484,19 +491,19 @@ def unpickle_global(module, name):
 
         sage: from sage.misc.persist import unpickle_override, register_unpickle_override
         sage: unpickle_global('sage.rings.integer', 'Integer')
-        <... 'sage.rings.integer.Integer'>
+        <type 'sage.rings.integer.Integer'>
 
     Now we horribly break the pickling system::
 
         sage: register_unpickle_override('sage.rings.integer', 'Integer', Rational, call_name=('sage.rings.rational', 'Rational'))
         sage: unpickle_global('sage.rings.integer', 'Integer')
-        <... 'sage.rings.rational.Rational'>
+        <type 'sage.rings.rational.Rational'>
 
     and we reach into the internals and put it back::
 
         sage: del unpickle_override[('sage.rings.integer', 'Integer')]
         sage: unpickle_global('sage.rings.integer', 'Integer')
-        <... 'sage.rings.integer.Integer'>
+        <type 'sage.rings.integer.Integer'>
 
     A meaningful error message with resolution instructions is displayed for
     old pickles that accidentally got broken because a class or entire module
@@ -683,7 +690,7 @@ def picklejar(obj, dir=None):
         sage: os.chmod(dir, 0o755)
     """
     if dir is None:
-        dir = os.environ['SAGE_ROOT'] + '/tmp/pickle_jar/'
+        dir = os.path.join(os.environ['SAGE_ROOT'], '/tmp/pickle_jar/')
     try:
         os.makedirs(dir)
     except OSError as err:
@@ -696,12 +703,12 @@ def picklejar(obj, dir=None):
 
     typ = str(type(obj))
     name = ''.join([x if (x.isalnum() or x == '_') else '_' for x in typ])
-    base = '%s/%s'%(dir, name)
+    base = os.path.join(dir, name)
     if os.path.exists(base):
         i = 0
-        while os.path.exists(base + '-%s'%i):
+        while os.path.exists(f'{base}-{i}'):
             i += 1
-        base += '-%s'%i
+        base += f'-{i}'
 
     with open(base + '.sobj', 'wb') as fobj:
         fobj.write(s)

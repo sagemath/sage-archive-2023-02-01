@@ -650,7 +650,7 @@ cdef class SageObject:
                     tester.fail("Not implemented method: %s"%name)
                 except Exception:
                     pass
-        finally: 
+        finally:
             # Restore warnings
             warnings.filters.pop(0)
 

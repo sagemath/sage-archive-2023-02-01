@@ -160,6 +160,7 @@ import io
 import sys
 import re
 import types
+import six
 from six import iteritems
 from six.moves import cPickle
 import pickletools
@@ -2436,11 +2437,16 @@ def unpickle_newobj(klass, args):
     def pers_load(id):
         return pers[int(id)]
 
-    class PersistentSageUnpickler(SageUnpickler):
-        def persistent_load(self, id):
-            return pers_load(id)
+    if six.PY2:
+        unp = cPickle.Unpickler(io.BytesIO(pickle))
+        unp.persistent_load = pers_load
+    else:
+        class PersistentSageUnpickler(SageUnpickler):
+            def persistent_load(self, id):
+                return pers_load(id)
 
-    unp = PersistentSageUnpickler(io.BytesIO(pickle))
+        unp = PersistentSageUnpickler(io.BytesIO(pickle))
+
     return unp.load()
 
 
@@ -2645,11 +2651,17 @@ def test_pickle(p, verbose_eval=False, pedantic=False, args=()):
     if verbose_eval:
         print("loading pickle with cPickle:")
 
-    class PersistentSageUnpickler(SageUnpickler):
-        def persistent_load(self, p):
-            return pers_load(p)
+    if six.PY2:
+        unp = cPickle.Unpickler(io.BytesIO(p))
+        unp.persistent_load = pers_load
+        unp.find_global = unpickle_global
+    else:
+        class PersistentSageUnpickler(SageUnpickler):
+            def persistent_load(self, p):
+                return pers_load(p)
 
-    unp = PersistentSageUnpickler(io.BytesIO(p))
+        unp = PersistentSageUnpickler(io.BytesIO(p))
+
     try:
         cpickle_res = unp.load()
         cpickle_ok = True

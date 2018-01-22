@@ -30,6 +30,7 @@ from __future__ import absolute_import
 
 import io
 import os
+import pickle
 import sys
 
 from textwrap import dedent
@@ -38,6 +39,8 @@ from textwrap import dedent
 # slows down loading any data stored in the other format
 import zlib; comp = zlib
 import bz2; comp_other = bz2
+
+import six
 
 from six.moves import cPickle
 
@@ -546,10 +549,13 @@ def unpickle_global(module, name):
     return getattr(mod, name)
 
 
-class SageUnpickler(cPickle.Unpickler):
+class SageUnpickler(pickle.Unpickler):
     """
     Subclass `pickle.Unpickler` to control how certain objects get unpickled
-    (registered overried, specifically).
+    (registered overrides, specifically).
+
+    This is only needed in Python 3 and up.  On Python 2 the behavior of the
+    ``cPickle`` module is customized differently.
 
     This class simply overrides ``Unpickler.find_class`` to wrap
     `sage.misc.persist.unpickle_global``.
@@ -632,7 +638,11 @@ def loads(s, compress=True):
                 # Maybe data is uncompressed?
                 pass
 
-    unpickler = SageUnpickler(io.BytesIO(s))
+    if six.PY2:
+        unpickler = cPickle.Unpickler(io.BytesIO(s))
+        unpickler.find_global = unpickle_global
+    else:
+        unpickler = SageUnpickler(io.BytesIO(s))
 
     return unpickler.load()
 

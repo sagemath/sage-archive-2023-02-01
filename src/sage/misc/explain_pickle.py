@@ -156,11 +156,11 @@ old pickles to work).
 
 from __future__ import absolute_import, print_function
 
+import io
 import sys
 import re
 import types
 from six import iteritems
-from six.moves import cStringIO as StringIO
 from six.moves import cPickle
 import pickletools
 from pickletools import genops
@@ -171,7 +171,7 @@ import sage.all
 from sage.misc.sage_input import SageInputBuilder, SageInputExpression
 from sage.misc.sage_eval import sage_eval
 from sage.misc.persist import (unpickle_override, unpickle_global, dumps,
-                               register_unpickle_override)
+                               register_unpickle_override, SageUnpickler)
 
 
 try:
@@ -2436,8 +2436,11 @@ def unpickle_newobj(klass, args):
     def pers_load(id):
         return pers[int(id)]
 
-    unp = cPickle.Unpickler(StringIO(pickle))
-    unp.persistent_load = pers_load
+    class PersistentSageUnpickler(SageUnpickler):
+        def persistent_load(self, id):
+            return pers_load(id)
+
+    unp = PersistentSageUnpickler(io.BytesIO(pickle))
     return unp.load()
 
 
@@ -2641,9 +2644,12 @@ def test_pickle(p, verbose_eval=False, pedantic=False, args=()):
     generic_res = sage_eval(generic, preparse=False)
     if verbose_eval:
         print("loading pickle with cPickle:")
-    unp = cPickle.Unpickler(StringIO(p))
-    unp.persistent_load = pers_load
-    unp.find_global = unpickle_global
+
+    class PersistentSageUnpickler(SageUnpickler):
+        def persistent_load(self, p):
+            return pers_load(p)
+
+    unp = PersistentSageUnpickler(io.BytesIO(p))
     try:
         cpickle_res = unp.load()
         cpickle_ok = True

@@ -28,8 +28,11 @@ save member functions and commands.
 """
 from __future__ import absolute_import
 
+import io
 import os
 import sys
+
+from textwrap import dedent
 
 # change to import zlib to use zlib instead; but this
 # slows down loading any data stored in the other format
@@ -37,7 +40,6 @@ import zlib; comp = zlib
 import bz2; comp_other = bz2
 
 from six.moves import cPickle
-from six.moves import cStringIO as StringIO
 
 from .misc import SAGE_DB
 from .sage_unittest import TestSuite
@@ -143,7 +145,8 @@ def load(*filename, compress=True, verbose=True):
         filename = _normalize_filename(filename)
 
     ## Load file by absolute filename
-    X = loads(open(filename).read(), compress=compress)
+    with open(filename, 'rb') as fobj:
+        X = loads(fobj.read(), compress=compress)
     try:
         X._default_filename = os.path.abspath(filename)
     except AttributeError:
@@ -533,6 +536,47 @@ def unpickle_global(module, name):
     return getattr(mod, name)
 
 
+class SageUnpickler(cPickle.Unpickler):
+    """
+    Subclass `pickle.Unpickler` to control how certain objects get unpickled
+    (registered overried, specifically).
+
+    This class simply overrides ``Unpickler.find_class`` to wrap
+    `sage.misc.persist.unpickle_global``.
+
+    EXAMPLES::
+
+        sage: from sage.misc.persist import (
+        ....:     unpickle_override, register_unpickle_override, SageUnpickler)
+        sage: from sage.rings.integer import make_integer
+        sage: from io import BytesIO
+        sage: def fake_constructor(x):
+        ....:     print("unpickling an Integer")
+        ....:     return make_integer(x)
+        sage: register_unpickle_override('sage.rings.integer', 'make_integer',
+        ....:                            fake_constructor)
+        sage: unp = SageUnpickler(BytesIO(dumps(1, compress=False)))
+        sage: unp.load()
+        unpickling an Integer
+        1
+        sage: del unpickle_override[('sage.rings.integer', 'make_integer')]
+    """
+
+    def find_class(self, module, name):
+        """
+        The Unpickler uses this class to load module-level objects.  Contrary
+        to the name, it is used for functions as well as classes.
+
+        (This is equivalent to what was previously called ``find_global`` which
+        seems like a better name, albeit still somewhat misleading).
+
+        This is just a thin wrapper around
+        `sage.misc.persist.unpickle_global`
+        """
+
+        return unpickle_global(module, name)
+
+
 def loads(s, compress=True):
     """
     Recover an object x that has been dumped to a string s
@@ -565,8 +609,9 @@ def loads(s, compress=True):
         ...
         UnpicklingError: invalid load key, 'x'.
     """
-    if not isinstance(s, str):
-        raise TypeError("s must be a string")
+    if not isinstance(s, bytes):
+        raise TypeError("s must be bytes")
+
     if compress:
         try:
             s = comp.decompress(s)
@@ -577,8 +622,7 @@ def loads(s, compress=True):
                 # Maybe data is uncompressed?
                 pass
 
-    unpickler = cPickle.Unpickler(StringIO(s))
-    unpickler.find_global = unpickle_global
+    unpickler = SageUnpickler(io.BytesIO(s))
 
     return unpickler.load()
 
@@ -656,13 +700,18 @@ def picklejar(obj, dir=None):
             i += 1
         base += '-%s'%i
 
-    open(base + '.sobj', 'wb').write(s)
-    txt = "type(obj) = %s\n"%typ
-    import sage.version
-    txt += "version = %s\n"%sage.version.version
-    txt += "obj =\n'%s'\n"%str(obj)
+    with open(base + '.sobj', 'wb') as fobj:
+        fobj.write(s)
 
-    open(base + '.txt', 'w').write(txt)
+    import sage.version
+    stamp = dedent("""\
+        type(obj) = {typ}
+        version = {ver}
+        obj = {obj}
+    """.format(typ=typ, ver=sage.version.version, obj=obj))
+
+    with open(base + '.txt', 'w') as fobj:
+        fobj.write(stamp)
 
 
 def unpickle_all(dir, debug=False, run_test_suite=False):

@@ -86,7 +86,8 @@ def load(*filename, compress=True, verbose=True):
     We test loading a file or multiple files or even mixing loading files and objects::
 
         sage: t = tmp_filename(ext='.py')
-        sage: _ = open(t,'w').write("print('hello world')")
+        sage: with open(t, 'w') as f:
+        ....:     _ = f.write("print('hello world')")
         sage: load(t)
         hello world
         sage: load(t,t)
@@ -113,7 +114,8 @@ def load(*filename, compress=True, verbose=True):
 
         sage: code = '      subroutine hello\n         print *, "Hello World!"\n      end subroutine hello\n'
         sage: t = tmp_filename(ext=".F")
-        sage: _ = open(t, 'w').write(code)
+        sage: with open(t, 'w') as f:
+        ....:     _ = f.write(code)
         sage: load(t)
         sage: hello
         <fortran object>
@@ -271,9 +273,10 @@ def dumps(obj, compress=True):
 
         sage: a = 2/3
         sage: s = dumps(a)
-        sage: len(s)
-        49
-        sage: loads(s)
+        sage: a2 = loads(s)
+        sage: type(a) is type(a2)
+        True
+        sage: a2
         2/3
     """
     if make_pickle_jar:

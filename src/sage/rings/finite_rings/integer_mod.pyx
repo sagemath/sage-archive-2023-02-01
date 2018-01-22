@@ -1843,6 +1843,8 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         """
         mpz_init(self.value)
         IntegerMod_abstract.__init__(self, parent)
+        cdef long longval = 0
+        cdef int err = 0
         if empty:
             return
         cdef sage.rings.integer.Integer z
@@ -1850,8 +1852,8 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             z = value
         elif isinstance(value, rational.Rational):
             z = value % self.__modulus.sageInteger
-        elif isinstance(value, int):
-            self.set_from_long(value)
+        elif integer_check_long_py(value, &longval, &err) and not err:
+            self.set_from_long(longval)
             return
         else:
             z = sage.rings.integer_ring.Z(value)
@@ -4393,7 +4395,14 @@ cdef class Int_to_IntegerMod(IntegerMod_hom):
 
     cpdef Element _call_(self, x):
         cdef IntegerMod_abstract a
-        cdef long res = PyInt_AS_LONG(x)
+        cdef long res
+        cdef int err
+
+        if not integer_check_long_py(x, &res, &err):
+            raise TypeError(f"{x} is not an integer")
+        elif err == ERR_OVERFLOW:
+            return IntegerMod_gmp(self.zero._parent, x)
+
         if isinstance(self.zero, IntegerMod_gmp):
             if 0 <= res < INTEGER_MOD_INT64_LIMIT:
                 return self.zero._new_c_from_long(res)

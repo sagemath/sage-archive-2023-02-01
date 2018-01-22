@@ -1749,12 +1749,8 @@ class DocTestDispatcher(SageObject):
 
             # Kill all remaining workers (in case we got interrupted)
             for w in workers:
-                try:
-                    w.kill()
-                except Exception:
-                    pass
-                else:
-                    log("Killing test %s"%w.source.printpath)
+                if w.kill():
+                    log("Killing test %s" % w.source.printpath)
             # Fork a child process with the specific purpose of
             # killing the remaining workers.
             if len(workers) > 0 and os.fork() == 0:
@@ -1764,10 +1760,7 @@ class DocTestDispatcher(SageObject):
                         from time import sleep
                         sleep(die_timeout)
                         for w in workers:
-                            try:
-                                w.kill()
-                            except Exception:
-                                pass
+                            w.kill()
                     finally:
                         os._exit(0)
 
@@ -2062,7 +2055,8 @@ class DocTestWorker(multiprocessing.Process):
 
     def kill(self):
         """
-        Kill this worker
+        Kill this worker.  Returns ``True`` if the signal(s) are sent
+        successfully or ``False`` if the worker process no longer exists.
 
         This method is only called if there is something wrong with the
         worker. Under normal circumstances, the worker is supposed to
@@ -2100,10 +2094,12 @@ class DocTestWorker(multiprocessing.Process):
             sage: W.killed
             False
             sage: W.kill()
+            True
             sage: W.killed
             True
             sage: time.sleep(0.2)  # Worker doesn't die
             sage: W.kill()         # Worker dies now
+            True
             sage: time.sleep(0.2)
             sage: W.is_alive()
             False
@@ -2124,6 +2120,10 @@ class DocTestWorker(multiprocessing.Process):
             # indicating no processes in the specified process group
             if exc.errno != errno.ESRCH:
                 raise
+
+            return False
+
+        return True
 
 
 class DocTestTask(object):

@@ -4205,7 +4205,7 @@ cdef class int_to_Q(Morphism):
             sage: f = sage.rings.rational.int_to_Q()
             sage: f(int(4)) # indirect doctest
             4
-            sage: f(int(4^100))
+            sage: f(4^100)  # py2 - this will crash on Python 3
             Traceback (most recent call last):
             ...
             ValueError: must be a Python int object
@@ -4242,9 +4242,13 @@ cdef class long_to_Q(Morphism):
 
         EXAMPLES::
 
-            sage: sage.rings.rational.long_to_Q()
+            sage: sage.rings.rational.long_to_Q()  # py2
             Native morphism:
               From: Set of Python objects of class 'long'
+              To:   Rational Field
+            sage: sage.rings.rational.long_to_Q()  # py3
+            Native morphism:
+              From: Set of Python objects of class 'int'
               To:   Rational Field
         """
         from . import rational_field

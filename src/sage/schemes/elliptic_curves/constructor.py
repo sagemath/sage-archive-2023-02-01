@@ -918,10 +918,9 @@ def EllipticCurve_from_cubic(F, P, morphism=True):
         # case 1 : P itself is a flex
         flex_point = P
     else:
-        # case 2 : if P2 = P3 then P2 is a flex
+        # case 2 : P2 is a flex
         P2 = chord_and_tangent(F, P)
-        P3 = chord_and_tangent(F, P2)
-        if are_projectively_equivalent(P2, P3, base_ring=K):
+        if hessian_pol(P2) == 0:
             flex_point = P2
 
     if flex_point is not None:
@@ -963,6 +962,7 @@ def EllipticCurve_from_cubic(F, P, morphism=True):
 
     # Second case: P, P2, P3 are different
     else:
+        P3 = chord_and_tangent(F, P2)
         # send P, P2, P3 to (1:0:0), (0:1:0), (0:0:1) respectively
         M = matrix.matrix(K, [P, P2, P3]).transpose()
         F2 = M.act_on_polynomial(F)

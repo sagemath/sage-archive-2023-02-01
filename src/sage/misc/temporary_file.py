@@ -395,15 +395,17 @@ class atomic_write(object):
             True
         """
 
-        name = tmp_filename()
+        fd, name = tempfile.mkstemp(dir=self.tmpdir)
+        name = os.path.abspath(name)
 
         rmode = 'r' + ('b' if self.binary else '')
         wmode = 'w+' + ('b' if self.binary else '')
 
         try:
-            self.tempfile = io.open(name, wmode, **self.kwargs)
+            self.tempfile = io.open(fd, wmode, **self.kwargs)
         except (TypeError, ValueError):
             # Some invalid arguments were passed to io.open
+            os.close(fd)
             os.unlink(name)
             raise
 

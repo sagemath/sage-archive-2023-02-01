@@ -725,7 +725,14 @@ def coefficients_from_j(j, minimal_twist=True):
 
 def EllipticCurve_from_cubic(F, P=None, morphism=True):
     r"""
-    Construct an elliptic curve from a smooth ternary cubic with a rational point.
+    Construct an elliptic curve from a ternary cubic with a rational point.
+
+    If you just want the Weierstrass form and are not interested in
+    the morphism then it is easier to use the function
+    :func:`~sage.schemes.elliptic_curves.jacobian.Jacobian`
+    instead. If there is a rational point on the given cubic, this
+    function will construct the same elliptic curve but you do not have to
+    supply the point ``P``.
 
     INPUT:
 
@@ -763,9 +770,12 @@ def EllipticCurve_from_cubic(F, P=None, morphism=True):
 
     .. note::
 
-       When ``morphism=True``, the morphism does not necessarily take
-    the given point `P` to the point at infinity on `E`, since we
-    always use a rational flex on `C` as base-point when one exists.
+       When ``morphism=True``, a birational isomorphism between the
+       curve `F=0` and the Weierstrass curve is returned. If the point
+       happens to be a flex, then this is a linear isomorphism.  The
+       morphism does not necessarily take the given point `P` to the
+       point at infinity on `E`, since we always use a rational flex
+       on `C` as base-point when one exists.
 
     EXAMPLES:
 
@@ -797,9 +807,9 @@ def EllipticCurve_from_cubic(F, P=None, morphism=True):
         sage: E.conductor()
         24300
 
-    We can also get the birational equivalence to and from the
+    We can also get the birational isomorphism to and from the
     Weierstrass form. We start with an example where ``P`` is a flex
-    and the equivalence is an isomorphism::
+    and the equivalence is a linear isomorphism::
 
         sage: f = EllipticCurve_from_cubic(cubic, P, morphism=True)
         sage: f
@@ -906,10 +916,14 @@ def EllipticCurve_from_cubic(F, P=None, morphism=True):
     R = F.parent()
     if not is_MPolynomialRing(R):
         raise TypeError('equation must be a polynomial')
-    if R.ngens() != 3:
+    if R.ngens() != 3 or F.nvariables() != 3:
         raise TypeError('equation must be a polynomial in three variables')
+    x, y, z = R.gens()
     if not F.is_homogeneous():
         raise TypeError('equation must be a homogeneous polynomial')
+
+    if len(P) != 3:
+        raise TypeError('%s is not a projective point' % P)
     K = F.parent().base_ring()
 
     try:
@@ -945,7 +959,6 @@ def EllipticCurve_from_cubic(F, P=None, morphism=True):
             F_Q = F(Q)
             if F_Q != 0:  # At most one further point may accidentally be on the cubic
                 break
-        assert F_Q != 0
         # pick linearly independent third point
         for third_point in [(1,0,0), (0,1,0), (0,0,1)]:
             M = matrix.matrix(K, [Q, P, third_point]).transpose()

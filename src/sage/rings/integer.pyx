@@ -154,8 +154,6 @@ from cysignals.signals cimport sig_on, sig_off
 import operator
 import sys
 
-import six
-
 from sage.ext.stdsage cimport PY_NEW
 from sage.cpython.python_debug cimport if_Py_TRACE_REFS_then_PyObject_INIT
 
@@ -739,10 +737,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 elif is_numpy_type(type(x)):
                     import numpy
                     if isinstance(x, numpy.integer):
-                        if six.PY2:
-                            mpz_set_pylong(self.value, long(x))
-                        else:
-                            mpz_set_pylong(self.value, int(x))
+                        mpz_set_pylong(self.value, long(x))
                         return
 
                 elif HAVE_GMPY2 and type(x) is gmpy2.mpz:

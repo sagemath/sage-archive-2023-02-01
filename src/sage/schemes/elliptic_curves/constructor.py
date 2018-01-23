@@ -785,9 +785,9 @@ def EllipticCurve_from_cubic(F, P, morphism=True):
         sage: E.conductor()
         24300
 
-    We can also get the birational equivalence to and from the
+    We can also get the birational isomorphism to and from the
     Weierstrass form. We start with an example where ``P`` is a flex
-    and the equivalence is an isomorphism::
+    and the equivalence is a linear isomorphism::
 
         sage: f = EllipticCurve_from_cubic(cubic, P, morphism=True)
         sage: f

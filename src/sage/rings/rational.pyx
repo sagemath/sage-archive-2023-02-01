@@ -64,6 +64,7 @@ import fractions
 from sage.misc.mathml import mathml
 from sage.cpython.string cimport char_to_str
 from sage.arith.long cimport pyobject_to_long, integer_check_long_py
+from sage.ext.stdsage cimport PY_NEW
 
 import sage.misc.misc as misc
 from sage.structure.sage_object cimport SageObject
@@ -4177,7 +4178,7 @@ cdef class Q_to_Z(Map):
 
 cdef class int_to_Q(Morphism):
     r"""
-    A morphism from ``int`` to `\QQ`.
+    A morphism from Python 2 ``int`` to `\QQ`.
     """
     def __init__(self):
         """
@@ -4204,23 +4205,19 @@ cdef class int_to_Q(Morphism):
             sage: f = sage.rings.rational.int_to_Q()
             sage: f(int(4)) # indirect doctest
             4
-            sage: f(int(4^100))   # py2: random garbage, not an int
-            14
-            sage: f(int(4^100))  # py3 should just work
-            1606938044258990275541962092341162602522202993782792835301376
+            sage: f(int(4^100))
+            Traceback (most recent call last):
+            ...
+            ValueError: must be a Python int object
         """
+
         cdef Rational rat
-        cdef long a_long
-        cdef int err = 0
-        rat = <Rational> Rational.__new__(Rational)
 
-        integer_check_long_py(a, &a_long, &err)
+        if type(a) is not int:
+            raise ValueError("must be a Python int object")
 
-        if not err:
-            mpq_set_si(rat.value, PyInt_AS_LONG(a), 1)
-        else:
-            mpz_set_pylong(mpq_numref(rat.value), a)
-
+        rat = <Rational>PY_NEW(Rational)
+        mpq_set_si(rat.value, PyInt_AS_LONG(a), 1)
         return rat
 
     def _repr_type(self):
@@ -4234,3 +4231,63 @@ cdef class int_to_Q(Morphism):
         """
         return "Native"
 
+
+cdef class long_to_Q(Morphism):
+    r"""
+    A morphism from Python 2 ``long``/Python 3 ``int`` to `\QQ`.
+    """
+    def __init__(self):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: sage.rings.rational.long_to_Q()
+            Native morphism:
+              From: Set of Python objects of class 'long'
+              To:   Rational Field
+        """
+        from . import rational_field
+        import sage.categories.homset
+        from sage.structure.parent import Set_PythonType
+        Morphism.__init__(self, sage.categories.homset.Hom(
+            Set_PythonType(long), rational_field.QQ))
+
+    cpdef Element _call_(self, a):
+        """
+        Return the image of the morphism on ``a``.
+
+        EXAMPLES::
+
+            sage: f = sage.rings.rational.long_to_Q()
+            sage: f(long(4)) # indirect doctest
+            4
+            sage: f(long(4^100))
+            1606938044258990275541962092341162602522202993782792835301376
+        """
+
+        cdef Rational rat
+        cdef long a_long
+        cdef int err = 0
+
+        rat = <Rational>PY_NEW(Rational)
+
+        integer_check_long_py(a, &a_long, &err)
+
+        if not err:
+            mpq_set_si(rat.value, a_long, 1)
+        else:
+            mpz_set_pylong(mpq_numref(rat.value), a)
+
+        return rat
+
+    def _repr_type(self):
+        """
+        Return string that describes the type of morphism.
+
+        EXAMPLES::
+
+            sage: sage.rings.rational.long_to_Q()._repr_type()
+            'Native'
+        """
+        return "Native"

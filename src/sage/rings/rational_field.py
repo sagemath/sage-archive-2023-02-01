@@ -357,16 +357,9 @@ class RationalField(Singleton, number_field_base.NumberField):
         ::
 
             sage: QQ.coerce_map_from(long) # indirect doctest
-            Composite map:
+            Native morphism:
               From: Set of Python objects of class 'long'
               To:   Rational Field
-              Defn:   Native morphism:
-                      From: Set of Python objects of class 'long'
-                      To:   Integer Ring
-                    then
-                      Natural morphism:
-                      From: Integer Ring
-                      To:   Rational Field
         """
         global ZZ
         from . import rational
@@ -375,7 +368,9 @@ class RationalField(Singleton, number_field_base.NumberField):
             ZZ = integer_ring.ZZ
         if S is ZZ:
             return rational.Z_to_Q()
-        elif S is int or S is long:
+        elif S is long:
+            return rational.long_to_Q()
+        elif S is int:
             return rational.int_to_Q()
         elif ZZ.has_coerce_map_from(S):
             return rational.Z_to_Q() * ZZ._internal_coerce_map_from(S)

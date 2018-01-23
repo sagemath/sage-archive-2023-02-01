@@ -53,6 +53,12 @@ AUTHORS:
 """
 from __future__ import print_function, absolute_import
 
+import six
+if six.PY2:
+    _long_type = long
+else:
+    _long_type = int
+
 from .rational import Rational
 from .integer import Integer
 
@@ -356,7 +362,7 @@ class RationalField(Singleton, number_field_base.NumberField):
 
         ::
 
-            sage: QQ.coerce_map_from(long) # indirect doctest
+            sage: QQ.coerce_map_from(long) # indirect doctest py2
             Native morphism:
               From: Set of Python objects of class 'long'
               To:   Rational Field
@@ -368,7 +374,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             ZZ = integer_ring.ZZ
         if S is ZZ:
             return rational.Z_to_Q()
-        elif S is long:
+        elif S is _long_type:
             return rational.long_to_Q()
         elif S is int:
             return rational.int_to_Q()

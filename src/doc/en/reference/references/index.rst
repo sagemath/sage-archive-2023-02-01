@@ -36,6 +36,11 @@ REFERENCES:
 .. [ABBR2012] \A. Abad, R. Barrio, F. Blesa, M. Rodriguez. Algorithm 924.
               *ACM Transactions on Mathematical Software*, *39* no. 1 (2012), 1-28.
 
+.. [ACFLSS04] \F. N. Abu-Khzam, R. L. Collins, M. R. Fellows, M. A.  Langston,
+              W. H. Suters, and C. T. Symons: Kernelization Algorithm for the
+              Vertex Cover Problem: Theory and Experiments. *SIAM
+              ALENEX/ANALCO* 2004: 62-69.
+
 .. [ADKF1970] \V. Arlazarov, E. Dinic, M. Kronrod,
               and I. Faradzev. 'On Economical Construction of the
               Transitive Closure of a Directed Graph.'
@@ -571,6 +576,11 @@ REFERENCES:
               Introduction to Algorithms (2nd ed.), MIT Press and
               McGraw-Hill, 2001, 549-552, ISBN 0-262-03293-7.
 
+.. [CLS2014] \C. Ceballos, J.-P. Labbé, C. Stump, *Subword complexes,
+             cluster complexes, and generalized multi-associahedra*,
+             \J. Algebr. Comb. **39** (2014) pp. 17-51.
+             :doi:`10.1007/s10801-013-0437-x`, :arxiv:`1108.1776`.
+
 .. [CLS2011] David A. Cox, John Little, and Hal Schenck. *Toric
              Varieties*. Volume 124 of *Graduate Studies in
              Mathematics*. American Mathematical Society, Providence,
@@ -607,6 +617,9 @@ REFERENCES:
 
 .. [Coh1993] Henri Cohen. A Course in Computational Number
              Theory. Graduate Texts in Mathematics 138. Springer, 1993.
+
+.. [Coh2007I] Henri Cohen, *Number Theory, Vol. I: Tools and
+              Diophantine Equations.*  GTM 239, Springer, 2007.
 
 .. [Coh2007] Henri Cohen, Number Theory,
              Volume II.  Graduate Texts in Mathematics 240. Springer, 2007.
@@ -682,6 +695,16 @@ REFERENCES:
              unit equation." International Mathematics Research Notices
              2016.17 (2016): 5291-5354.
 
+.. [DD2010] Tim Dokchitser and Vladimir Dokchitser,
+            *On the Birch-Swinnerton-Dyer quotients modulo squares*,
+            Ann. Math. (2) 172 (2010), 567-596.
+
+.. [DDLL2013] Léo Ducas, Alain Durmus, Tancrède Lepoint and Vadim
+              Lyubashevsky. *Lattice Signatures and Bimodal
+              Gaussians*; in Advances in Cryptology – CRYPTO 2013;
+              Lecture Notes in Computer Science Volume 8042, 2013, pp
+              40-56 http://www.di.ens.fr/~lyubash/papers/bimodal.pdf
+
 .. [Dec1998] \W. Decker and T. de Jong. Groebner Bases and Invariant
              Theory in Groebner Bases and Applications. London
              Mathematical Society Lecture Note Series No. 251. (1998)
@@ -689,12 +712,6 @@ REFERENCES:
 
 .. [DEMS2016] \C. Dobraunig, M. Eichlseder, F. Mendel, and M. Schläffer,
               *Ascon v1.2*; in CAESAR Competition, (2016).
-
-.. [DDLL2013] Léo Ducas, Alain Durmus, Tancrède Lepoint and Vadim
-              Lyubashevsky. *Lattice Signatures and Bimodal
-              Gaussians*; in Advances in Cryptology – CRYPTO 2013;
-              Lecture Notes in Computer Science Volume 8042, 2013, pp
-              40-56 http://www.di.ens.fr/~lyubash/papers/bimodal.pdf
 
 .. [De1973] \P. Delsarte, An algebraic approach to the association
             schemes of coding theory, Philips Res. Rep., Suppl.,
@@ -1058,6 +1075,10 @@ REFERENCES:
 .. [Gr2007] \J. Green, Polynomial representations of `GL_n`, Springer
             Verlag, 2007.
 
+.. [GriRei16] Darij Grinberg, Victor Reiner,
+              *Hopf Algebras in Combinatorics*,
+              :arxiv:`1409.8356v4`.
+
 .. [GR2013] Darij Grinberg, Tom Roby. *Iterative properties of
             birational rowmotion*.
             http://www.cip.ifi.lmu.de/~grinberg/algebra/skeletal.pdf
@@ -1068,7 +1089,7 @@ REFERENCES:
 
 .. [Grinb2016a] Darij Grinberg,
                 *Double posets and the antipode of QSym*,
-                :arxiv:`1509.08355v2`.
+                :arxiv:`1509.08355v3`.
 
 .. [GrS1967] Grunbaum and Sreedharan, "An enumeration of simplicial
              4-polytopes with 8 vertices", J. Comb. Th. 2,
@@ -1592,7 +1613,7 @@ REFERENCES:
             coefficients and Kazhdan-Lusztig polynomials,
             http://front.math.ucdavis.edu/9809.5122
 
-.. [LT2009] G.I. Lehrer and D.E. Taylor. *Unitary reflection
+.. [LT2009] \G. I. Lehrer and D. E. Taylor. *Unitary reflection
             groups*. Australian Mathematical Society Lecture
             Series, 2009.
 
@@ -1731,6 +1752,10 @@ REFERENCES:
              Theory*. Cambridge: Cambridge University Press,
              (2013). ISBN 9781107005488.
 
+.. [Mu1997] Murty, M. Ram. *Congruences between modular forms*. In "Analytic
+            Number Theory" (ed. Y. Motohashi), London Math. Soc. Lecture Notes
+            247 (1997), 313-320, Cambridge Univ. Press.
+
 .. [MV2010] \D. Micciancio, P. Voulgaris. *A Deterministic Single
             Exponential Time Algorithm for Most Lattice Problems based
             on Voronoi Cell Computations*. Proceedings of the 42nd ACM
@@ -1850,10 +1875,12 @@ REFERENCES:
 .. [Pos2005] \A. Postnikov, Affine approach to quantum Schubert
              calculus, Duke Math. J. 128 (2005) 473-509
 
-.. [PPW2013] Perlman, Perkinson, and Wilmes.  Primer for the algebraic
-             geometry of sandpiles. Tropical and Non-Archimedean
+.. [PPW2013] \D. Perkinson, J. Perlman, and J. Wilmes.
+             *Primer for the algebraic geometry of sandpiles*.
+             Tropical and Non-Archimedean
              Geometry, Contemp. Math., 605, Amer. Math. Soc.,
              Providence, RI, 2013.
+             :arxiv:`1112.6163`
 
 .. [PR2015] \P. Pilarczyk and P. Réal, *Computation of cubical
             homology, cohomology, and (co)homological operations via
@@ -2003,6 +2030,9 @@ REFERENCES:
 .. [Sch2006] Oliver Schiffmann. *Lectures on Hall algebras*,
              preprint, 2006. :arxiv:`0611617v2`.
 
+.. [Sch2015] George Schaeffer. *Hecke stability and weight 1 modular forms*.
+             Math. Z. 281:159–191, 2015. :doi:`10.1007/s00209-015-1477-9`
+
 .. [Sco1985] \R. Scott,
              *Wide-open encryption design offers flexible implementations*; in
              Cryptologia, (1985), pp. 75-91.
@@ -2019,10 +2049,16 @@ REFERENCES:
              spaces* in Scientific contributions in honor of Mirian
              Andrés Gómez, pp 507-519, Univ. La Rioja Serv. Publ., Logroño (2010).
 
+.. [Sey1981] \P. D. Seymour, Nowhere-zero 6-flows, J. Comb. Theory Ser B,
+             30 (1981), 130-135. :doi: `10.1016/0095-8956(81)90058-7`
+
 .. [SH1995] \C. P. Schnorr and H. H. Hörner. *Attacking the
             Chor-Rivest Cryptosystem by Improved Lattice
             Reduction*. Advances in Cryptology - EUROCRYPT '95. LNCS
             Volume 921, 1995, pp 1-12.
+
+.. [Shi1971]  Shimura, Goro. *Introduction to the arithmetic theory of
+            automorphic functions*. Princeton University Press, 1971. 
 
 .. [Shr2004] Shreve, S. Stochastic Calculus for Finance II:
              Continuous-Time Models.  New York: Springer, 2004
@@ -2031,8 +2067,11 @@ REFERENCES:
                 and T. Shirai, *Piccolo: An ultra-lightweight block-cipher*; in
                 CHES, (2011), pp. 342-457.
 
+.. [Sil1994] Joseph H. Silverman, Advanced topics in the arithmetic of
+             elliptic curves. GTM 151, Springer-Verlag, New York, 1994.
+
 .. [Sil2007] Joseph H. Silverman. The Arithmetic of Dynamics Systems.
-             Springer, GTM 241, 2007.
+             GTM 241, Springer-Verlag, New York, 2007.
 
 .. [SK2011] \J. Spreer and W. Kühnel, "Combinatorial properties of the
             K3 surface: Simplicial blowups and slicings", Experimental
@@ -2204,6 +2243,15 @@ REFERENCES:
              depth-first search*, Acta Informatica 6 (2), 1976,
              171-185, :doi:`10.1007/BF00268499`.
 
+.. [Tate1975] John Tate, *Algorithm for determining the type of a
+              singular fiber in an elliptic pencil.
+              Modular functions of one variable*, IV, pp. 33--52.
+              Lecture Notes in Math., Vol. 476, Springer, Berlin, 1975.
+
+.. [Tate1966] John Tate, *On the conjectures of Birch and Swinnerton-Dyer and
+              a geometric analog*. Seminaire Bourbaki, Vol. 9,
+              Exp. No. 306, 1966.
+
 .. [TB1997] Lloyd N. Trefethen and David Bau III, *Numerical Linear
             Algebra*, SIAM, Philadelphia, 1997.
 
@@ -2330,6 +2378,10 @@ REFERENCES:
 .. [WFYTP2008] \D. Watanable, S. Furuya, H. Yoshida, K. Takaragi, and B. Preneel,
                *A new keystream generator MUGI*; in
                FSE, (2002), pp. 179-194.
+
+.. [Wil2013] Harold Williams. *Q-systems, factorization dynamics, and the
+             twist automorphism*. Int. Math. Res. Not. (2015) no. 22,
+             12042--12069. :doi:`10.1093/imrn/rnv057`.
 
 .. [Woo1998] \R. M. W. Wood, "Problems in the Steenrod algebra,"
              Bull. London Math. Soc. 30 (1998), no. 5, 449-517.

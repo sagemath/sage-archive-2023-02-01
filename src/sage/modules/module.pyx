@@ -247,8 +247,7 @@ cdef class Module(Parent):
             sage: from sage.modules.module import Module
             sage: M = Module(ZZ)
             sage: M.endomorphism_ring()
-            Set of Morphisms from <type 'sage.modules.module.Module'> to <type 'sage.modules.module.Module'> in Category of modules over Integer Ring
-
+            Set of Morphisms from <sage.modules.module.Module object at ...> to <sage.modules.module.Module object at ...> in Category of modules over Integer Ring
         """
         from sage.categories.all import End
         return End(self)

@@ -2706,7 +2706,7 @@ class Polyhedron_base(Element):
         return pc.triangulate()
 
     @coerce_binop
-    def Minkowski_sum(self, other):
+    def minkowski_sum(self, other):
         """
         Return the Minkowski sum.
 
@@ -2719,7 +2719,7 @@ class Polyhedron_base(Element):
             \cup_{y\in Y} (X+y) =
             \cup_{x\in X, y\in Y} (x+y)
 
-        See :meth:`Minkowski_difference` for a partial inverse operation.
+        See :meth:`minkowski_difference` for a partial inverse operation.
 
         INPUT:
 
@@ -2740,13 +2740,20 @@ class Polyhedron_base(Element):
             sage: four_simplex = Polyhedron(vertices = [[0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0]])
             sage: four_cube + four_simplex
             A 4-dimensional polyhedron in ZZ^4 defined as the convex hull of 36 vertices
-            sage: four_cube.Minkowski_sum(four_simplex) == four_cube + four_simplex
+            sage: four_cube.minkowski_sum(four_simplex) == four_cube + four_simplex
             True
 
             sage: poly_spam = Polyhedron([[3,4,5,2],[1,0,0,1],[0,0,0,0],[0,4,3,2],[-3,-3,-3,-3]], base_ring=ZZ)
             sage: poly_eggs = Polyhedron([[5,4,5,4],[-4,5,-4,5],[4,-5,4,-5],[0,0,0,0]], base_ring=QQ)
             sage: poly_spam + poly_spam + poly_eggs
             A 4-dimensional polyhedron in QQ^4 defined as the convex hull of 12 vertices
+
+        TESTS::
+
+            sage: Z = X.Minkowski_sum(X)
+            doctest:warning...:
+            DeprecationWarning: Minkowski_sum is deprecated. Please use minkowski_sum instead.
+            See http://trac.sagemath.org/23685 for details.
         """
         new_vertices = []
         for v1 in self.vertex_generator():
@@ -2759,15 +2766,17 @@ class Polyhedron_base(Element):
         else:
             return self.parent().element_class(self.parent(), None, None)
 
-    _add_ = Minkowski_sum
+    _add_ = minkowski_sum
+
+    Minkowski_sum = deprecated_function_alias(23685, minkowski_sum)
 
     @coerce_binop
-    def Minkowski_difference(self, other):
+    def minkowski_difference(self, other):
         """
         Return the Minkowski difference.
 
         Minkowski subtraction can equivalently be defined via
-        Minkowski addition (see :meth:`Minkowski_sum`) or as
+        Minkowski addition (see :meth:`minkowski_sum`) or as
         set-theoretic intersection via
 
         .. MATH::
@@ -2816,14 +2825,14 @@ class Polyhedron_base(Element):
             sage: (X2-Y2)+Y2 < X2
             True
 
-        Minus sign is really an alias for :meth:`Minkowski_difference`
+        Minus sign is really an alias for :meth:`minkowski_difference`
         ::
 
             sage: four_cube = polytopes.hypercube(4)
             sage: four_simplex = Polyhedron(vertices = [[0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0]])
             sage: four_cube - four_simplex
             A 4-dimensional polyhedron in ZZ^4 defined as the convex hull of 16 vertices
-            sage: four_cube.Minkowski_difference(four_simplex) == four_cube - four_simplex
+            sage: four_cube.minkowski_difference(four_simplex) == four_cube - four_simplex
             True
 
         Coercion of the base ring works::
@@ -2849,7 +2858,14 @@ class Polyhedron_base(Element):
             True
             sage: (X-Y)+Y == X
             True
-       """
+
+        TESTS::
+
+            sage: Z = X.Minkowski_difference(X)
+            doctest:warning...:
+            DeprecationWarning: Minkowski_difference is deprecated. Please use minkowski_difference instead.
+            See http://trac.sagemath.org/23685 for details.
+        """
         if other.is_empty():
             return self.parent().universe()   # empty intersection = everything
         if not other.is_compact():
@@ -2869,6 +2885,9 @@ class Polyhedron_base(Element):
             new_ieqs.append(ieq)
         P = self.parent()
         return P.element_class(P, None, [new_ieqs, new_eqns])
+
+    Minkowski_difference = deprecated_function_alias(23685,
+                                                     minkowski_difference)
 
     def __sub__(self, other):
         r"""
@@ -2904,14 +2923,14 @@ class Polyhedron_base(Element):
             True
         """
         if is_Polyhedron(other):
-            return self.Minkowski_difference(other)
+            return self.minkowski_difference(other)
         return self + (-other)
 
-    def is_Minkowski_summand(self, Y):
+    def is_minkowski_summand(self, Y):
         """
         Test whether ``Y`` is a Minkowski summand.
 
-        See :meth:`Minkowski_sum`.
+        See :meth:`minkowski_sum`.
 
         OUTPUT:
 
@@ -2923,20 +2942,30 @@ class Polyhedron_base(Element):
             sage: A = polytopes.hypercube(2)
             sage: B = Polyhedron(vertices=[(0,1), (1/2,1)])
             sage: C = Polyhedron(vertices=[(1,1)])
-            sage: A.is_Minkowski_summand(B)
+            sage: A.is_minkowski_summand(B)
             True
-            sage: A.is_Minkowski_summand(C)
+            sage: A.is_minkowski_summand(C)
             True
-            sage: B.is_Minkowski_summand(C)
+            sage: B.is_minkowski_summand(C)
             True
-            sage: B.is_Minkowski_summand(A)
+            sage: B.is_minkowski_summand(A)
             False
-            sage: C.is_Minkowski_summand(A)
+            sage: C.is_minkowski_summand(A)
             False
-            sage: C.is_Minkowski_summand(B)
+            sage: C.is_minkowski_summand(B)
             False
+
+        TESTS::
+
+            sage: b = C.is_Minkowski_summand(B)
+            doctest:warning...:
+            DeprecationWarning: is_Minkowski_summand is deprecated. Please use is_minkowski_summand instead.
+            See http://trac.sagemath.org/23685 for details.
         """
-        return self.Minkowski_difference(Y).Minkowski_sum(Y) == self
+        return self.minkowski_difference(Y).minkowski_sum(Y) == self
+
+    is_Minkowski_summand = deprecated_function_alias(23685,
+                                                     is_minkowski_summand)
 
     def translation(self, displacement):
         """
@@ -6122,6 +6151,13 @@ class Polyhedron_base(Element):
             sage: P.affine_hull(orthogonal='True')
             A 0-dimensional polyhedron in QQ^0 defined as the convex hull of 1 vertex
 
+            Check that :trac:`24047` is fixed::
+
+            sage: P1 = Polyhedron(vertices=([[-1, 1], [0, -1], [0, 0], [-1, -1]]))
+            sage: P2 = Polyhedron(vertices=[[1, 1], [1, -1], [0, -1], [0, 0]])
+            sage: P = P1.intersection(P2)
+            sage: A, b = P.affine_hull(as_affine_map=True, orthonormal=True, extend=True)
+
             sage: Polyhedron([(2,3,4)]).affine_hull()
             A 0-dimensional polyhedron in ZZ^0 defined as the convex hull of 1 vertex
         """
@@ -6137,15 +6173,15 @@ class Polyhedron_base(Element):
                 raise NotImplementedError('"orthogonal=True" and "orthonormal=True" work only for compact polyhedra')
             # translate 0th vertex to the origin
             Q = self.translation(-vector(self.vertices()[0]))
-            v = Q.vertices()[0]
-            # check that translation didn't change the order of the vertices
+            v = next((_ for _ in Q.vertices() if _.vector() == Q.ambient_space().zero()), None)
+            # finding the zero in Q; checking that Q actually has a vertex zero
             assert v.vector() == Q.ambient_space().zero()
             # choose as an affine basis the neighbors of the origin vertex in Q
             M = matrix(self.base_ring(), self.dim(), self.ambient_dim(), [list(w) for w in itertools.islice(v.neighbors(), self.dim())])
-            # switch base_ring to AA if neccessary,
+            # Switch base_ring to AA if neccessary,
             # since gram_schmidt needs to be able to take square roots.
             # Pick orthonormal basis and transform all vertices accordingly
-            # if the orthonormal transform makes it neccessary, change base ring
+            # if the orthonormal transform makes it neccessary, change base ring.
             try:
                 A = M.gram_schmidt(orthonormal=orthonormal)[0]
             except TypeError:

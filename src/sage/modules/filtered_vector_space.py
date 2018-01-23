@@ -1013,7 +1013,7 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
         filtration = dict()
         self_indices = set()
         other_indices = set()
-        for deg in reversed(uniq(self_filt.keys() + other_filt.keys())):
+        for deg in reversed(uniq(list(self_filt) + list(other_filt))):
             self_indices.update(self_filt.get(deg, []))
             other_indices.update(other_filt.get(deg, []))
             gens = join_indices(self_indices, other_indices)

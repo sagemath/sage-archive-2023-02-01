@@ -973,7 +973,7 @@ class TamariIntervalPoset(Element):
         return TamariIntervalPoset(N - 1, new_covers, check=False)
 
     def insertion(self, i):
-        """
+        r"""
         Return the Tamari insertion of an integer `i` into the
         interval-poset ``self``.
 
@@ -2356,7 +2356,7 @@ class TamariIntervalPoset(Element):
         return down.canopee() == up.canopee()
 
     def is_modern(self):
-        """
+        r"""
         Return ``True`` if ``self`` is a modern Tamari interval.
 
         This is defined by exclusion of a simple pattern in the Hasse diagram,
@@ -2379,7 +2379,7 @@ class TamariIntervalPoset(Element):
         return True
 
     def is_exceptional(self):
-        """
+        r"""
         Return ``True`` if ``self`` is an exceptional Tamari interval.
 
         This is defined by exclusion of a simple pattern in the Hasse diagram,
@@ -2450,9 +2450,8 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
         return TamariIntervalPosets_size(Integer(n))
 
     # add options to class
-    options = GlobalOptions('TamariIntervalPosets',
-        module='sage.combinat.interval_posets',
-        doc=r"""
+    class options(GlobalOptions):
+        r"""
         Set and display the options for Tamari interval-posets. If no
         parameters are set, then the function returns a copy of the options
         dictionary.
@@ -2460,42 +2459,44 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
         The ``options`` to Tamari interval-posets can be accessed as the method
         :meth:`TamariIntervalPosets.options` of :class:`TamariIntervalPosets`
         and related parent classes.
-        """,
-        end_doc=r"""
+
+        @OPTIONS@
+
         EXAMPLES::
 
-            sage: ip = TamariIntervalPoset(4,[(2,4),(3,4),(2,1),(3,1)])
-            sage: ip.latex_options.color_decreasing
-            'red'
-            sage: TamariIntervalPosets.options.latex_color_decreasing='green'
-            sage: ip.latex_options.color_decreasing
-            'green'
-            sage: TamariIntervalPosets.options._reset()
-            sage: ip.latex_options.color_decreasing
-            'red'
-        """,
-        latex_tikz_scale=dict(default=1,
+            sage: TIP = TamariIntervalPosets
+            sage: TIP.options.latex_color_decreasing
+            red
+            sage: TIP.options.latex_color_decreasing='green'
+            sage: TIP.options.latex_color_decreasing
+            green
+            sage: TIP.options._reset()
+            sage: TIP.options.latex_color_decreasing
+            red
+        """
+        NAME = 'TamariIntervalPosets'
+        module = 'sage.combinat.interval_posets'
+        latex_tikz_scale = dict(default=1,
                               description='the default value for the tikz scale when latexed',
-                              checker=lambda x: True),  # More trouble than it's worth to check
-        latex_line_width_scalar=dict(default=0.5,
+                              checker=lambda x: True)  # More trouble than it's worth to check
+        latex_line_width_scalar = dict(default=0.5,
                                      description='the default value for the line width as a'
                                                  'multiple of the tikz scale when latexed',
-                                     checker=lambda x: True),  # More trouble than it's worth to check
-        latex_color_decreasing=dict(default="red",
+                                     checker=lambda x: True)  # More trouble than it's worth to check
+        latex_color_decreasing = dict(default="red",
                                     description='the default color of decreasing relations when latexed',
-                                    checker=lambda x: True),  # More trouble than it's worth to check
-        latex_color_increasing=dict(default="blue",
+                                    checker=lambda x: True)  # More trouble than it's worth to check
+        latex_color_increasing = dict(default="blue",
                                     description='the default color of increasing relations when latexed',
-                                    checker=lambda x: True),  # More trouble than it's worth to check
-        latex_hspace=dict(default=1,
+                                    checker=lambda x: True)  # More trouble than it's worth to check
+        latex_hspace = dict(default=1,
                           description='the default difference between horizontal'
                                       ' coordinates of vertices when latexed',
-                          checker=lambda x: True),  # More trouble than it's worth to check
-        latex_vspace=dict(default=1,
+                          checker=lambda x: True)  # More trouble than it's worth to check
+        latex_vspace = dict(default=1,
                           description='the default difference between vertical'
                                       ' coordinates of vertices when latexed',
                           checker=lambda x: True)   # More trouble than it's worth to check
-    )
 
     @staticmethod
     def check_poset(poset):
@@ -2647,7 +2648,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
     @staticmethod
     def initial_forest(element):
         r"""
-        Return the inital forest of a binary tree, an interval-poset or
+        Return the initial forest of a binary tree, an interval-poset or
         a Dyck word.
 
         An initial forest is an interval-poset corresponding to an initial
@@ -2934,7 +2935,8 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
         color_b = graph.incoming_edges('b')[0][2]
 
         embedding = graph.get_embedding()
-        graph0 = DiGraph([e for e in graph.edges() if e[2] == color_a],
+        graph0 = DiGraph([e for e in graph.edges(sort=False)
+                          if e[2] == color_a],
                          format='list_of_edges')
         restricted_embedding = {u: [v for v in embedding[u]
                                     if v in graph0.neighbors_in(u) or

@@ -930,7 +930,7 @@ Modular forms ring and spaces for Hecke triangle groups:
       sage: L.taylor_series(1, 3)
       -0.0304484570583... - 0.0504570844798...*z - 0.0350657360354...*z^2 + O(z^3)
       sage: coeffs = f.q_expansion_vector(min_exp=0, max_exp=20, fix_d=True)
-      sage: abs(L(10) - sum([coeffs[k]*k^(-10) for k in range(1,len(coeffs))]).n(53)) < 10^(-7)
+      sage: abs(L(10) - sum([coeffs[k] * ZZ(k)^(-10) for k in range(1,len(coeffs))]).n(53)) < 10^(-7)
       True
 
       sage: L = ModularForms(n=6, k=6, ep=-1).E6().lseries(num_prec=200)

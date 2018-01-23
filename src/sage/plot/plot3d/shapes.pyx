@@ -745,7 +745,7 @@ def arrow3d(start, end, width=1, radius=None, head_radius=None, head_len=None, *
         sage: len(a.all)
         1
         sage: type(a.all[0])
-        <type 'sage.plot.plot3d.shapes.Cone'>
+        <... 'sage.plot.plot3d.shapes.Cone'>
 
     Arrows are always constructed pointing up in the z direction from
     the origin, and then rotated/translated into place. This works for

@@ -124,6 +124,7 @@ from cysignals.signals cimport sig_on, sig_off
 
 from sage.ext.stdsage cimport PY_NEW
 from sage.libs.gmp.mpz cimport *
+from sage.libs.mpfr cimport *
 from sage.misc.randstate cimport randstate, current_randstate
 
 from sage.structure.element cimport RingElement, Element, ModuleElement
@@ -350,7 +351,7 @@ mpfr_set_exp_max(mpfr_get_emax_max())
 # The real field is in Cython, so mpfr elements will have access to
 # their parent via direct C calls, which will be faster.
 
-from sage.misc.long cimport pyobject_to_long
+from sage.arith.long cimport pyobject_to_long
 cdef dict rounding_modes = dict(RNDN=MPFR_RNDN, RNDZ=MPFR_RNDZ,
         RNDD=MPFR_RNDD, RNDU=MPFR_RNDU, RNDA=MPFR_RNDA)
 
@@ -1435,11 +1436,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
         elif isinstance(x, Gen) and typ((<Gen>x).g) == t_REAL:
             _gen = x
             self._set_from_GEN_REAL(_gen.g)
-        elif isinstance(x, int):
-            mpfr_set_si(self.value, x, parent.rnd)
         elif isinstance(x, long):
             x = Integer(x)
             mpfr_set_z(self.value, (<Integer>x).value, parent.rnd)
+        elif isinstance(x, int):
+            mpfr_set_si(self.value, x, parent.rnd)
         elif isinstance(x, float):
             mpfr_set_d(self.value, x, parent.rnd)
         elif isinstance(x, RealDoubleElement):
@@ -2014,16 +2015,16 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: RR(-1/3).hex()
+            sage: hex(RR(-1/3))
             '-0x5.5555555555554p-4'
-            sage: Reals(100)(123.456e789).hex()
+            sage: hex(Reals(100)(123.456e789))
             '0xf.721008e90630c8da88f44dd2p+2624'
-            sage: (-0.).hex()
+            sage: hex((-0.))
             '-0x0p+0'
 
         ::
 
-            sage: [(a.hex(), float(a).hex()) for a in [.5, 1., 2., 16.]]
+            sage: [(hex(a), float(a).hex()) for a in [.5, 1., 2., 16.]]
             [('0x8p-4', '0x1.0000000000000p-1'),
             ('0x1p+0', '0x1.0000000000000p+0'),
             ('0x2p+0', '0x1.0000000000000p+1'),
@@ -2031,7 +2032,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         Special values::
 
-            sage: [RR(s).hex() for s in ['+inf', '-inf', 'nan']]
+            sage: [hex(RR(s)) for s in ['+inf', '-inf', 'nan']]
             ['inf', '-inf', 'nan']
         """
         cdef char *s
@@ -2044,8 +2045,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
         t = str(s)
         mpfr_free_str(s)
         return t
-
-    hex = __hex__
 
     def __copy__(self):
         """

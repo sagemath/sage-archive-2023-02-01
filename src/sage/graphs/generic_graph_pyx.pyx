@@ -150,14 +150,14 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
     if n == 0:
         return {}
 
-    cdef double* pos # position of each vertex (for dim=2: x1,y1,x2,y2,...)
-    cdef int* elist  # lexicographically ordered list of edges (u1,v1,u2,v2,...)
-    cdef double* cen # array of 'dim' doubles
+    cdef double* pos = NULL  # position of each vertex (for dim=2: x1,y1,x2,y2,...)
+    cdef int* elist = NULL   # lexicographically ordered list of edges (u1,v1,u2,v2,...)
+    cdef double* cen = NULL  # array of 'dim' doubles
     try:
         elist = <int*>    check_allocarray(2 * G.size() + 2, sizeof(int))
         pos   = <double*> check_allocarray(     n*dim      , sizeof(double))
         cen   = <double*> check_calloc(dim, sizeof(double))
-    except:
+    except MemoryError:
         sig_free(pos)
         sig_free(elist)
         sig_free(cen)

@@ -63,6 +63,7 @@ from . import real_mpfr
 import weakref
 from cpython.object cimport Py_NE
 
+from sage.libs.mpfr cimport *
 from sage.libs.mpc cimport *
 from sage.structure.parent cimport Parent
 from sage.structure.parent_gens cimport ParentWithGens

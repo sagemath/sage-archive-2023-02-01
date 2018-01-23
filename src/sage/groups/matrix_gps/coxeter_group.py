@@ -278,7 +278,7 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
         n = coxeter_matrix.rank()
         # Compute the matrix with entries `2 \cos( \pi / m_{ij} )`.
         MS = MatrixSpace(base_ring, n, sparse=True)
-        MC = MS._get_matrix_class()
+        MC = MS._matrix_class
         # FIXME: Hack because there is no ZZ \cup \{ \infty \}: -1 represents \infty
         E = UniversalCyclotomicField().gen
         if base_ring is UniversalCyclotomicField():
@@ -318,6 +318,9 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
             category = category.Finite()
         else:
             category = category.Infinite()
+        if all(self._matrix._matrix[i, j] == 2
+               for i in range(n) for j in range(i)):
+            category = category.Commutative()
         if self._matrix.is_irreducible():
             category = category.Irreducible()
         self._index_set_inverse = {i: ii for ii,i in enumerate(self._matrix.index_set())}
@@ -341,23 +344,27 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
         rep += "Coxeter group over {} with Coxeter matrix:\n{}".format(self.base_ring(), self._matrix)
         return rep
 
-    def index_set(self):
+    def _coerce_map_from_(self, P):
         """
-        Return the index set of ``self``.
+        Return ``True`` if ``P`` is a Coxeter group of the same
+        Coxeter type and ``False`` otherwise.
 
         EXAMPLES::
 
-            sage: W = CoxeterGroup([[1,3],[3,1]])
-            sage: W.index_set()
-            (1, 2)
-            sage: W = CoxeterGroup([[1,3],[3,1]], index_set=['x', 'y'])
-            sage: W.index_set()
-            ('x', 'y')
-            sage: W = CoxeterGroup(['H',3])
-            sage: W.index_set()
-            (1, 2, 3)
+            sage: W = CoxeterGroup(["A",4])
+            sage: W2 = WeylGroup(["A",4])
+            sage: W._coerce_map_from_(W2)
+            True
+            sage: W3 = WeylGroup(["A",4], implementation="permutation")
+            sage: W._coerce_map_from_(W3)
+            True
+            sage: W4 = WeylGroup(["A",3])
+            sage: W.has_coerce_map_from(W4)
+            False
         """
-        return self._matrix.index_set()
+        if P in CoxeterGroups() and P.coxeter_type() is self.coxeter_type():
+            return True
+        return super(CoxeterMatrixGroup, self)._coerce_map_from_(P)
 
     def coxeter_matrix(self):
         """
@@ -376,42 +383,6 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
             [2 5 1]
         """
         return self._matrix
-
-    def coxeter_diagram(self):
-        """
-        Return the Coxeter diagram of ``self``.
-
-        EXAMPLES::
-
-            sage: W = CoxeterGroup(['H',3], implementation="reflection")
-            sage: G = W.coxeter_diagram(); G
-            Graph on 3 vertices
-            sage: G.edges()
-            [(1, 2, 3), (2, 3, 5)]
-            sage: CoxeterGroup(G) is W
-            True
-            sage: G = Graph([(0, 1, 3), (1, 2, oo)])
-            sage: W = CoxeterGroup(G)
-            sage: W.coxeter_diagram() == G
-            True
-            sage: CoxeterGroup(W.coxeter_diagram()) is W
-            True
-        """
-        return self._matrix.coxeter_graph()
-
-    coxeter_graph = deprecated_function_alias(17798, coxeter_diagram)
-
-    def coxeter_type(self):
-        """
-        Return the Coxeter type of ``self``.
-
-        EXAMPLES::
-
-            sage: W = CoxeterGroup(['H',3])
-            sage: W.coxeter_type()
-            Coxeter type of ['H', 3]
-        """
-        return self._matrix.coxeter_type()
 
     def bilinear_form(self):
         r"""
@@ -473,6 +444,27 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
         # their ``__init__`` method, so we can just check
         # the category of ``self``.
         return "Finite" in self.category().axioms()
+
+    def is_commutative(self):
+        """
+        Return whether ``self`` is commutative.
+
+        EXAMPLES::
+
+            sage: CoxeterGroup(['A', 2]).is_commutative()
+            False
+            sage: W = CoxeterGroup(['I',2])
+            sage: W.is_commutative()
+            True
+
+        TESTS::
+
+            sage: CoxeterGroup([['A', 2], ['A', 1]]).is_commutative()
+            False
+            sage: CoxeterGroup([['A', 1]] * 3).is_commutative()
+            True
+        """
+        return "Commutative" in self.category().axioms()
 
     @cached_method
     def order(self):

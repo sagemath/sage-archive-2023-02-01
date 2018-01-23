@@ -3242,7 +3242,7 @@ class RationalFunctionField(FunctionField):
         phi = S.hom([t])
         return sum([phi((denom * v[i]).numerator()) * x**i for i in range(len(v))]), denom
 
-    def _factor_univariate_polynomial(self, f):
+    def _factor_univariate_polynomial(self, f, proof=True):
         """
         Factor the univariate polynomial f over the function field.
 

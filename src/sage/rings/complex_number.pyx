@@ -193,7 +193,9 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             elif isinstance(real, complex):
                 real, imag = real.real, real.imag
             elif HAVE_GMPY2 and type(real) is gmpy2.mpc:
-                real, imag = (<gmpy2.mpc>real).real, (<gmpy2.mpc>real).imag
+                mpfr_set(self.__re, (<mpc_t>(<gmpy2.mpc>real).c).re, rnd)
+                mpfr_set(self.__im, (<mpc_t>(<gmpy2.mpc>real).c).im, rnd)
+                return
             else:
                 imag = 0
         try:
@@ -607,15 +609,24 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: from gmpy2 import mpc     # optional - gmpy2
             sage: mpc(c)                    # optional - gmpy2
             mpc('2.0+1.0j')
-            sage: cf = ComplexField(134)    # optional - gmpy2
-            sage: mpc(cf.pi()).precision    # optional - gmpy2
+            sage: CF = ComplexField(134)    
+            sage: mpc(CF.pi()).precision    # optional - gmpy2
             (134, 134)
-            sage: cf = ComplexField(45)     # optional - gmpy2
-            sage: mpc(cf.zeta(5)).precision # optional - gmpy2
+            sage: CF = ComplexField(45)     
+            sage: mpc(CF.zeta(5)).precision # optional - gmpy2
             (45, 45)
-            sage: cf = ComplexField(255)    # optional - gmpy2
-            sage: mpc(cf.zeta(5)).precision # optional - gmpy2
+            sage: CF = ComplexField(255)
+            sage: x = CF(5, 8)
+            sage: y = mpc(x)                # optional - gmpy2
+            sage: y.precision               # optional - gmpy2
             (255, 255)
+            sage: CF(y) == x                # optional - gmpy2
+            True
+            sage: x = mpc('1.324+4e50j', precision=(70,70)) # optional - gmpy2
+            sage: CF = ComplexField(70)
+            sage: y = CF(x)                                 # optional - gmpy2
+            sage: x == mpc(y)                               # optional - gmpy2
+            True
 
         TESTS::
 

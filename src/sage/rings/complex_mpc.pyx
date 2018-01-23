@@ -1267,20 +1267,28 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
 
             sage: MPC = MPComplexField()
             sage: c = MPC(2,1)
-            sage: c.__mpc__()                                       # optional - gmpy2
+            sage: c.__mpc__()                               # optional - gmpy2
             mpc('2.0+1.0j')
-            sage: from gmpy2 import mpc                             # optional - gmpy2
-            sage: mpc(c)                                            # optional - gmpy2
+            sage: from gmpy2 import mpc                     # optional - gmpy2
+            sage: mpc(c)                                    # optional - gmpy2
             mpc('2.0+1.0j')
-            sage: MPCF = MPComplexField(42)                         # optional - gmpy2
-            sage: mpc(MPCF(12, 12)).precision                       # optional - gmpy2
+            sage: MPCF = MPComplexField(42)
+            sage: mpc(MPCF(12, 12)).precision               # optional - gmpy2
             (42, 42)
-            sage: MPCF = MPComplexField(236)                        # optional - gmpy2
-            sage: mpc(MPCF(12, 12)).precision                       # optional - gmpy2
+            sage: MPCF = MPComplexField(236)
+            sage: mpc(MPCF(12, 12)).precision               # optional - gmpy2
             (236, 236)
-            sage: MPCF = MPComplexField(63)                         # optional - gmpy2
-            sage: mpc(MPCF('15.64E+128', '15.64E+128')).precision   # optional - gmpy2
+            sage: MPCF = MPComplexField(63)
+            sage: x = MPCF('15.64E+128', '15.64E+128')
+            sage: y = mpc(x)                                # optional - gmpy2
+            sage: y.precision                               # optional - gmpy2
             (63, 63)
+            sage: MPCF(y) == x                              # optional - gmpy2
+            True
+            sage: x = mpc('1.324+4e50j', precision=(70,70)) # optional - gmpy2
+            sage: y = MPComplexField(70)(x)                 # optional - gmpy2
+            sage: mpc(y) == x                               # optional - gmpy2
+            True
 
         TESTS::
 

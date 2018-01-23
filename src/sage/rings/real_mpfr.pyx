@@ -3739,15 +3739,23 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: from gmpy2 import mpfr  # optional - gmpy2
             sage: mpfr(RR(4.5))           # optional - gmpy2
             mpfr('4.5')
-            sage: R = RealField(256)      # optional - gmpy2
-            sage: mpfr(R.pi()).precision  # optional - gmpy2
-            256
-            sage: R = RealField(127)      # optional - gmpy2
+            sage: R = RealField(127)
             sage: mpfr(R.pi()).precision  # optional - gmpy2
             127
-            sage: R = RealField(42)       # optional - gmpy2
+            sage: R = RealField(42)
             sage: mpfr(R.pi()).precision  # optional - gmpy2
             42
+            sage: R = RealField(256)
+            sage: x = mpfr(R.pi())
+            sage: x.precision             # optional - gmpy2
+            256
+            sage: y = R(x)                # optional - gmpy2
+            sage: mpfr(y) == x            # optional - gmpy2
+            True
+            sage: x = mpfr('2.567e42', precision=128)   # optional - gmpy2
+            sage: y = RealField(128)(x)
+            sage: mpfr(y) == x
+            True
 
         TESTS::
 

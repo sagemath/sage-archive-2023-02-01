@@ -31,7 +31,7 @@ from __future__ import absolute_import, print_function
 import math
 import operator
 
-from sage.libs.mpc cimport *
+from sage.libs.mpc cimport mpc_t
 from sage.libs.mpfr cimport *
 from sage.structure.element cimport FieldElement, RingElement, Element, ModuleElement
 from sage.categories.map cimport Map

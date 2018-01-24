@@ -1165,7 +1165,7 @@ class VermaModuleHomset(Homset):
             exp = (wt + rho).scalar(ac[i])
             if exp not in ZZ or exp < 0:
                 return None
-            elt = F[i]**exp * elt
+            elt = F[i]**ZZ(exp) * elt
             wt = wt.dot_action([i])
         return elt * C.highest_weight_vector()
 

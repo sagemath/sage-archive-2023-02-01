@@ -83,7 +83,7 @@ void function_options::initialize()
 	set_name(s1, s2);
 	nparams = 0;
 	eval_f = real_part_f = imag_part_f = conjugate_f = derivative_f
-		= expl_derivative_f = power_f = series_f = nullptr;
+            = pynac_eval_f = expl_derivative_f = power_f = series_f = nullptr;
 	evalf_f = nullptr;
 	evalf_params_first = true;
 	apply_chain_rule = true;
@@ -129,24 +129,28 @@ function_options & function_options::eval_func(eval_funcp_1 e)
 {
 	test_and_set_nparams(1);
 	eval_f = eval_funcp(e);
+        pynac_eval_f = eval_f;
 	return *this;
 }
 function_options & function_options::eval_func(eval_funcp_2 e)
 {
 	test_and_set_nparams(2);
 	eval_f = eval_funcp(e);
+        pynac_eval_f = eval_f;
 	return *this;
 }
 function_options & function_options::eval_func(eval_funcp_3 e)
 {
 	test_and_set_nparams(3);
 	eval_f = eval_funcp(e);
+        pynac_eval_f = eval_f;
 	return *this;
 }
 function_options & function_options::eval_func(eval_funcp_6 e)
 {
 	test_and_set_nparams(6);
 	eval_f = eval_funcp(e);
+        pynac_eval_f = eval_f;
 	return *this;
 }
 
@@ -320,6 +324,7 @@ function_options& function_options::eval_func(eval_funcp_exvector e)
 {
 	eval_use_exvector_args = true;
 	eval_f = eval_funcp(e);
+        pynac_eval_f = eval_f;
 	return *this;
 }
 function_options& function_options::evalf_func(evalf_funcp_exvector ef)
@@ -867,10 +872,6 @@ ex function::eval(int level) const
 		}
 	}
 
-	if (opt.eval_f==nullptr) {
-		return this->hold();
-	}
-
 	bool use_remember = opt.use_remember;
 	ex eval_result;
 	if (use_remember && lookup_remember_table(eval_result)) {
@@ -878,11 +879,20 @@ ex function::eval(int level) const
 	}
 	current_serial = serial;
 
-	if ((opt.python_func & function_options::eval_python_f) != 0u) {
+	if (opt.eval_f==nullptr)
+		return this->hold();
+        eval_funcp eval_f;
+        if (opt.pynac_eval_f == nullptr)
+                eval_f = opt.eval_f;
+        else
+                eval_f = opt.pynac_eval_f;
+
+	if (opt.pynac_eval_f == nullptr
+            and (opt.python_func & function_options::eval_python_f) != 0u) {
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 		// call opt.eval_f with this list
-		PyObject* pyresult = PyObject_CallMethod((PyObject*)opt.eval_f,
+		PyObject* pyresult = PyObject_CallMethod((PyObject*)eval_f,
 				const_cast<char*>("_eval_"), const_cast<char*>("O"), args);
 		Py_DECREF(args);
 		if (pyresult == nullptr) { 
@@ -899,21 +909,21 @@ ex function::eval(int level) const
 		}
 	}
 	else if (opt.eval_use_exvector_args)
-		eval_result = ((eval_funcp_exvector)(opt.eval_f))(seq);
+		eval_result = ((eval_funcp_exvector)(eval_f))(seq);
 	else
 	switch (opt.nparams) {
 		// the following lines have been generated for max. 14 parameters
 	case 1:
-		eval_result = ((eval_funcp_1)(opt.eval_f))(seq[1-1]);
+		eval_result = ((eval_funcp_1)(eval_f))(seq[1-1]);
 		break;
 	case 2:
-		eval_result = ((eval_funcp_2)(opt.eval_f))(seq[1-1], seq[2-1]);
+		eval_result = ((eval_funcp_2)(eval_f))(seq[1-1], seq[2-1]);
 		break;
 	case 3:
-		eval_result = ((eval_funcp_3)(opt.eval_f))(seq[1-1], seq[2-1], seq[3-1]);
+		eval_result = ((eval_funcp_3)(eval_f))(seq[1-1], seq[2-1], seq[3-1]);
 		break;
 	case 6:
-		eval_result = ((eval_funcp_6)(opt.eval_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1]);
+		eval_result = ((eval_funcp_6)(eval_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1]);
 		break;
 
 		// end of generated lines

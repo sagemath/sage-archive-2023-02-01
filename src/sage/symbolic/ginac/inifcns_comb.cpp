@@ -49,14 +49,6 @@ static ex factorial_evalf(const ex & x, PyObject* parent)
 	return factorial(x).hold();
 }
 
-static ex factorial_eval(const ex & x)
-{
-	if (is_exactly_a<numeric>(x))
-		return factorial(ex_to<numeric>(x));
-	else
-		return factorial(x).hold();
-}
-
 static void factorial_print_dflt_latex(const ex & x, const print_context & c)
 {
 	if (is_exactly_a<symbol>(x) ||
@@ -99,8 +91,7 @@ static ex factorial_imag_part(const ex & x)
 	return 0;
 }
 
-REGISTER_FUNCTION(factorial, eval_func(factorial_eval).
-                             evalf_func(factorial_evalf).
+REGISTER_FUNCTION(factorial, evalf_func(factorial_evalf).
                            //print_func<print_dflt>(factorial_print_dflt_latex).
                              print_func<print_latex>(factorial_print_dflt_latex).
                              conjugate_func(factorial_conjugate).
@@ -134,17 +125,6 @@ static ex binomial_sym(const ex & x, const numeric & y)
 	return binomial(x, y).hold();
 }
 
-static ex binomial_eval(const ex & x, const ex &y)
-{
-	if (is_exactly_a<numeric>(y)) {
-		if (is_exactly_a<numeric>(x) && ex_to<numeric>(x).is_integer())
-			return binomial(ex_to<numeric>(x), ex_to<numeric>(y));
-		else
-			return binomial_sym(x, ex_to<numeric>(y));
-	} else
-		return binomial(x, y).hold();
-}
-
 // At the moment the numeric evaluation of a binomail function always
 // gives a real number, but if this would be implemented using the gamma
 // function, also complex conjugation should be changed (or rather, deleted).
@@ -174,8 +154,7 @@ static void binomial_print_latex(const ex & x, const ex & y,
 }
 
 
-REGISTER_FUNCTION(binomial, eval_func(binomial_eval).
-                            evalf_func(binomial_evalf).
+REGISTER_FUNCTION(binomial, evalf_func(binomial_evalf).
                             conjugate_func(binomial_conjugate).
                             real_part_func(binomial_real_part).
                             print_func<print_latex>(binomial_print_latex).

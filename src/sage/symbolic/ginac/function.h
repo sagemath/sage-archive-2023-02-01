@@ -281,6 +281,7 @@ public:
 
 	unsigned nparams;
 
+	eval_funcp pynac_eval_f;
 	eval_funcp eval_f;
 	evalf_funcp evalf_f;
 	conjugate_funcp conjugate_f;

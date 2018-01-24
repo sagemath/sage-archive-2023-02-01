@@ -9,7 +9,7 @@ EXAMPLES::
     sage: G = AbelianGroupGap([2,6])
     sage: autG = G.aut()
 
-Automorphisms acts on the elements of the domain::
+Automorphisms act on the elements of the domain::
 
     sage: g = G.an_element()
     sage: f = autG.an_element()
@@ -90,8 +90,9 @@ class AbelianGroupAutomorphismGroupElement(ElementLibGAP):
 
     INPUT:
 
-    - ``x`` -- a libgap element.
+    - ``x`` -- a libgap element
     - ``parent`` -- the parent :class:`AbelianGroupAutomorphismGroup_generic`
+    - ``check`` -- bool (default:True) checks if ``x`` is an element of the group
 
     EXAMPLES::
 
@@ -103,7 +104,7 @@ class AbelianGroupAutomorphismGroupElement(ElementLibGAP):
         """
         The Python constructor.
 
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
             sage: G = AbelianGroupGap([2,3,4,5])
@@ -211,15 +212,16 @@ class AbelianGroupAutomorphismGroup_generic(UniqueRepresentation,
     r"""
     Base class for groups of automorphisms of abelian groups.
 
-    Do not use this directly
+    Do not use this directly.
 
      INPUT:
 
     - ``domain`` -- :class:`~sage.groups.abelian_gps.abelian_group_gap.AbelianGroup_gap`
     - ``libgap_parent`` -- the libgap element that is the parent in
       GAP.
-    - ``ambient`` -- A derived class of :class:`~sage.groups.libgap_wrapper.ParentLibGAP` or
-      ``None`` (default). The ambient class if ``libgap_parent`` has
+    - ``ambient`` -- An instance of a  derived class of
+      :class:`~sage.groups.libgap_wrapper.ParentLibGAP`
+      or ``None`` (default). The ambient group if ``libgap_parent`` has
       been defined as a subgroup
 
     EXAMPLES::
@@ -275,7 +277,7 @@ class AbelianGroupAutomorphismGroup_generic(UniqueRepresentation,
 
     def _coerce_map_from_(self, S):
         r"""
-        Return whether ``S`` canonically coerces to ``self``.
+        Return whether ``S`` coerces to ``self``.
 
         INPUT:
 
@@ -283,7 +285,7 @@ class AbelianGroupAutomorphismGroup_generic(UniqueRepresentation,
 
         OUTPUT:
 
-        Boolean.
+        Boolean or nothing
 
         EXAMPLES::
 
@@ -303,7 +305,8 @@ class AbelianGroupAutomorphismGroup_generic(UniqueRepresentation,
         r"""
         Create a subgroup from the input.
 
-        See :class:`~sage.groups.libgap_wrapper`
+        See :class:`~sage.groups.libgap_wrapper`. Override this in derived
+        classes.
 
         EXAMPLES::
 
@@ -359,6 +362,25 @@ class AbelianGroupAutomorphismGroup_generic(UniqueRepresentation,
 class AbelianGroupAutomorphismGroup_ambient(AbelianGroupAutomorphismGroup_generic):
     r"""
     Full automorphism group of a finite abelian group.
+
+    Do not use this directly. Rather use :meth:`~sage.groups.abelian_gps.abelian_group_gap.AbelianGroup_gap.automorphism_group`
+
+    INPUT:
+
+    - ``AbelianGroupGap`` -- an instance of :class:`~sage.groups.abelian_gps.abelian_group_gap.AbelianGroup_gap`
+
+    EXAMPLES::
+
+            sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
+            sage: from sage.groups.abelian_gps.abelian_aut import AbelianGroupAutomorphismGroup_ambient
+            sage: G = AbelianGroupGap([2,3,4,5])
+            sage: aut = G.aut()
+
+    Equivalently::
+
+            sage: aut1 = AbelianGroupAutomorphismGroup_ambient(G)
+            sage: aut is aut1
+            True
     """
     Element = AbelianGroupAutomorphismGroupElement
 

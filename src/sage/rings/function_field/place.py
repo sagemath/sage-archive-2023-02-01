@@ -162,73 +162,6 @@ class FunctionFieldPlace(Element):
         return richcmp((self._prime.ring(), self._prime),
                        (other._prime.ring(), other._prime), op)
 
-    def _acted_upon_(self, other, self_on_left):
-        """
-        Define integer multiplication upon the prime divisor
-        of the place on the left.
-
-        The output is a divisor.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(5)); R.<t> = PolynomialRing(K)
-            sage: F.<y> = K.extension(t^2-x^3-1)
-            sage: O = F.maximal_order()
-            sage: I = O.ideal(x+1,y)
-            sage: P = I.place()
-            sage: -3*P + 5*P
-            2*Place (x + 1, y)
-        """
-        if self_on_left:
-            raise TypeError("only left multiplication by integers is allowed")
-        return other * self.divisor()
-
-    def _add_(self, other):
-        """
-        Return the divisor that is the sum of the place and ``other``.
-
-        EXAMPLES::
-
-            sage: K.<x>=FunctionField(GF(2)); _.<Y>=K[]
-            sage: L.<y>=K.extension(Y^3+x+x^3*Y)
-            sage: p1, p2, p3 = L.places()[:3]
-            sage: p1 + p2 + p3
-            Place (1/x, 1/x^3*y^2 + 1/x)
-             + Place (1/x, 1/x^3*y^2 + 1/x^2*y + 1)
-             + Place (x, y)
-        """
-        return prime_divisor(self._field, self) + other
-
-    def __radd__(self, other):
-        """
-        Return the prime divisor of the place if ``other`` is zero.
-
-        This is only to support the ``sum`` function, that adds
-        the argument to initial (int) zero.
-
-        EXAMPLES::
-
-            sage: k.<a>=GF(2)
-            sage: K.<x>=FunctionField(k)
-            sage: sum(K.places_finite())
-            Place (x) + Place (x + 1)
-
-        .. NOTE:
-
-        This does not work though::
-
-            sage: 0 + K.place_infinite()
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported operand parent(s) for +: ...
-
-        The reason is that the ``0`` is a Sage integer, for which
-        the coercion system applies.
-        """
-        if other == 0:
-            return prime_divisor(self._field, self)
-        raise NotImplementedError
-
     def function_field(self):
         """
         Return the function field to which the place belongs.
@@ -257,22 +190,6 @@ class FunctionFieldPlace(Element):
             in y defined by y^3 + x^3*y + x
         """
         return self._prime
-
-    def divisor(self, multiplicity=1):
-        """
-        Return the prime divisor corresponding to the place.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(5)); R.<t> = PolynomialRing(K)
-            sage: F.<y> = K.extension(t^2-x^3-1)
-            sage: O = F.maximal_order()
-            sage: I = O.ideal(x+1,y)
-            sage: P = I.place()
-            sage: P.divisor()
-            Place (x + 1, y)
-        """
-        return prime_divisor(self._field, self, multiplicity)
 
 class FunctionFieldPlace_rational(FunctionFieldPlace):
     """

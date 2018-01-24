@@ -2190,8 +2190,6 @@ class FunctionField_global(FunctionField_polymod):
             sage: L.<y>=K.extension(Y^3-(x^3-1)/(x^3-2))
             sage: L
             Function field in y defined by y^3 + (4*x^3 + 1)/(x^3 + 3)
-            sage: L.genus()
-            4
         """
         FunctionField_polymod.__init__(self, polynomial, names,
                                        element_class=FunctionFieldElement_global)
@@ -2307,21 +2305,6 @@ class FunctionField_global(FunctionField_polymod):
         """
         from .place import PlaceSet
         return PlaceSet(self)
-
-    @cached_method
-    def divisor_group(self):
-        """
-        Return the group of divisors attached to the function field.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(5)); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^3 - (x^3 - 1)/(x^3 - 2))
-            sage: L.divisor_group()
-            Divisor group of Function field in y defined by y^3 + (4*x^3 + 1)/(x^3 + 3)
-        """
-        from .divisor import DivisorGroup
-        return DivisorGroup(self)
 
     @cached_method
     def valuation_ring(self, place):
@@ -2502,103 +2485,6 @@ class FunctionField_global(FunctionField_polymod):
             place = prime.place()
             if place.degree() == degree:
                 yield place
-
-    def different(self):
-        """
-        Return the different divisor of the function field.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(2)); R.<t> = PolynomialRing(K)
-            sage: F.<y> = K.extension(t^3-x^2*(x^2+x+1)^2)
-            sage: F.different()
-            2*Place (x, (1/(x^3 + x^2 + x))*y^2)
-             + 2*Place (x^2 + x + 1, (1/(x^3 + x^2 + x))*y^2)
-        """
-        O = self.maximal_order()
-        Oinf = self.maximal_order_infinite()
-        return O.different().divisor() + Oinf.different().divisor()
-
-    def constant_field(self):
-        """
-        Return the algebraic closure of the constant field of the base
-        field in the function field.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(3)); _.<y> = K[]
-            sage: L.<y> = K.extension(y^5 - (x^3 + 2*x*y + 1/x))
-            sage: L.constant_field()
-            Finite Field of size 3
-        """
-        return self.exact_constant_field()[0]
-
-    def exact_constant_field(self):
-        """
-        Return the exact constant field and its embedding into the function field.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(3)); _.<Y> = K[]
-            sage: f = Y^2 - x*Y + x^2 + 1 # irreducible but not absolutely irreducible
-            sage: L.<y> = K.extension(f)
-            sage: L.genus()
-            0
-            sage: L.exact_constant_field()
-            (Finite Field in t of size 3^2, Ring morphism:
-               From: Finite Field in t of size 3^2
-               To:   Function field in y defined by y^2 + 2*x*y + x^2 + 1
-               Defn: t |--> y + x)
-            sage: (y+x).divisor()
-            0
-        """
-        from .divisor import zero_divisor
-
-        # A basis of the full constant field is obtained from
-        # computing a Riemann-Roch basis of zero divisor.
-        basis = zero_divisor(self).basis_function_space()
-
-        dim = len(basis)
-
-        for e in basis:
-            _min_poly = e.minimal_polynomial('t')
-            if _min_poly.degree() == dim:
-                break
-        k = self.constant_base_field()
-        R = k['t']
-        min_poly = R([k(c) for c in _min_poly.list()])
-
-        k_ext = k.extension(min_poly, 't')
-
-        if k_ext.is_prime_field():
-            # The cover of the quotient ring k_ext is the integer ring
-            # whose generator is 1. This is different from the generator
-            # of k_ext.
-            embedding = k_ext.hom([self(1)], self)
-        else:
-            embedding = k_ext.hom([e], self)
-
-        return k_ext, embedding
-
-    def genus(self):
-        """
-        Return the genus of the function field.
-
-        EXAMPLES::
-
-            sage: F.<a> = GF(16)
-            sage: K.<x> = FunctionField(F); K
-            Rational function field in x over Finite Field in a of size 2^4
-            sage: R.<t> = PolynomialRing(K)
-            sage: L.<y> = K.extension(t^4+t-x^5)
-            sage: L.genus()
-            6
-
-        The genus is computed using the Hurwitz genus formula.
-        """
-        k,_ = self.exact_constant_field()
-        different_degree = self.different().degree() # must be even
-        return different_degree // 2 - self.degree() / k.degree() + 1
 
     def valuation_ring(self, place):
         """
@@ -3436,21 +3322,6 @@ class RationalFunctionField(FunctionField):
 
     constant_field = constant_base_field
 
-    def different(self):
-        """
-        Return the different ideal of the rational function field.
-
-        For a rational function field, the different is simply the zero
-        divisor.
-
-        EXAMPLES::
-
-            sage: K.<t> = FunctionField(QQ)
-            sage: K.different()
-            0
-        """
-        return self.divisor_group()(0)
-
     def genus(self):
         """
         Return the genus of the function field, namely 0.
@@ -3593,20 +3464,6 @@ class RationalFunctionField(FunctionField):
         if not self.constant_base_field().is_perfect():
             raise NotImplementedError("not implemented for non-perfect base fields")
         return FunctionFieldDerivation_rational(self, self.one())
-
-    @cached_method
-    def divisor_group(self):
-        """
-        Return the group of divisors of the rational function field.
-
-        EXAMPLES::
-
-            sage: K.<t> = FunctionField(QQ)
-            sage: K.divisor_group()
-            Divisor group of Rational function field in t over Rational Field
-        """
-        from .divisor import DivisorGroup
-        return DivisorGroup(self)
 
 class RationalFunctionField_global(RationalFunctionField):
     """

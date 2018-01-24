@@ -72,6 +72,7 @@ Matrix and Affine Groups
    sage/groups/matrix_gps/coxeter_group
    sage/groups/matrix_gps/linear
    sage/groups/matrix_gps/orthogonal
+   sage/groups/matrix_gps/isometries
    sage/groups/matrix_gps/symplectic
    sage/groups/matrix_gps/unitary
    sage/groups/matrix_gps/heisenberg

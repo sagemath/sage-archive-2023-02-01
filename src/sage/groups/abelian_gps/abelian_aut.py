@@ -260,6 +260,15 @@ class AbelianGroupAutomorphismGroup_generic(UniqueRepresentation,
         r"""
         Handle conversions and coercions.
 
+        INPUT:
+
+        ``x`` -- something that coerces it can be:
+        - a libgap element
+        - an integer matrix in the covering matrix ring
+        - an instance of class:`sage.modules.fg_pid.fgp_morphism.FGP_Morphism`
+          defining an automorphism -- the domain of ``x`` must have invariants equal
+          to ``self.domain().gens_orders()``
+
         EXAMPLES::
 
             sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
@@ -268,11 +277,33 @@ class AbelianGroupAutomorphismGroup_generic(UniqueRepresentation,
             sage: f = aut.an_element()
             sage: f == aut(f.matrix())
             True
+            sage: G = AbelianGroupGap([2,10])
+            sage: aut = G.aut()
+            sage: D = ZZ^2/(ZZ^2).submodule([[10,0],[0,2]])
+            sage: f = D.hom([D.0 + 5*D.1, 3*D.1])
+            sage: f
+            Morphism from module over Integer Ring with invariants (2, 10) to module with invariants (2, 10) that sends the generators to [(1, 5), (0, 3)]
+            sage: aut(f)
+            [ g1, g2 ] -> [ g1*g2^5, g2^3 ]
         """
         if x in self._covering_matrix_ring:
             dom = self._domain
             images = [dom(row).gap() for row in x.rows()]
-            x = dom.gap().GroupHomomorphismByImages(dom.gap(),images)
+            x = dom.gap().GroupHomomorphismByImages(dom.gap(), images)
+        from sage.modules.fg_pid.fgp_morphism import FGP_Morphism
+        if isinstance(x, FGP_Morphism):
+            if x.base_ring() != ZZ:
+                raise ValueError("Base ring must be ZZ.")
+            # generators of fgp_modules are not assumed to be unique
+            # thus we can only use smith_form_gens reliably.
+            # Also conversions between the domains use the smith gens.
+            if x.domain().invariants() != self.domain().gens_orders():
+                raise ValueError("Invariants of domains must agree.")
+            if not x.is_endomorphism() or not x.kernel().invariants() == ():
+                raise ValueError("Not an automorphism of an abelian group.")
+            dom = self._domain
+            images = [dom(x(a)).gap() for a in x.domain().smith_form_gens()]
+            x = dom.gap().GroupHomomorphismByImages(dom.gap(), images)
         return self.element_class(self, x, check)
 
     def _coerce_map_from_(self, S):

@@ -49,9 +49,9 @@ def is_FunctionFieldElement(x):
     EXAMPLES::
 
         sage: t = FunctionField(QQ,'t').gen()
-        sage: sage.rings.function_field.element.is_FunctionFieldElement(t)
+        sage: sage.rings.function_field.function_field_element.is_FunctionFieldElement(t)
         True
-        sage: sage.rings.function_field.element.is_FunctionFieldElement(0)
+        sage: sage.rings.function_field.function_field_element.is_FunctionFieldElement(0)
         False
     """
     if isinstance(x, FunctionFieldElement): return True
@@ -64,7 +64,7 @@ def make_FunctionFieldElement(parent, element_class, representing_element):
 
     EXAMPLES::
 
-        sage: from sage.rings.function_field.element import make_FunctionFieldElement
+        sage: from sage.rings.function_field.function_field_element import make_FunctionFieldElement
         sage: K.<x> = FunctionField(QQ)
         sage: make_FunctionFieldElement(K, K._element_class, (x+1)/x)
         (x + 1)/x
@@ -78,7 +78,7 @@ cdef class FunctionFieldElement(FieldElement):
     EXAMPLES::
 
         sage: t = FunctionField(QQ,'t').gen()
-        sage: isinstance(t, sage.rings.function_field.element.FunctionFieldElement)
+        sage: isinstance(t, sage.rings.function_field.function_field_element.FunctionFieldElement)
         True
     """
     cdef readonly object _x

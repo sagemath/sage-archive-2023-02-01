@@ -127,6 +127,8 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
         """
         if basis_key is not None:
             self._basis_key = basis_key
+        else:
+            self._basis_key_inverse = None
 
         R = g.base_ring()
         self._g = g
@@ -173,19 +175,22 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
             sage: Usl2._basis_key(3)
             Traceback (most recent call last):
             ...
-            ValueError: 3 is not in list
+            KeyError: 3
         """
-        K = self._g.basis().keys()
-        if isinstance(K, (list, tuple)):
-            return K.index(x)
-        if K.cardinality() == float('inf'):
+        if self._basis_key_inverse is None:
+            K = self._g.basis().keys()
+            if isinstance(K, (list, tuple)) or K.cardinality() < float('inf'):
+                self._basis_key_inverse = {k: i for i,k in enumerate(K)}
+            else:
+                self._basis_key_inverse = False
+        if self._basis_key_inverse is False:
             return x
-        lst = list(K)
-        return lst.index(x)
+        else:
+            return self._basis_key_inverse[x]
 
     def _monoid_key(self, x):
         """
-        Comparison function for the underlying monoid.
+        Comparison key for the underlying monoid.
 
         EXAMPLES::
 
@@ -267,14 +272,34 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
              - 4*PBW[-alpha[1]]*PBW[alpha[1]]
              + PBW[alphacheck[1]]^2
              - 2*PBW[alphacheck[1]]
+
+        TESTS:
+
+        Check that we can take the preimage (:trac:`23375`)::
+
+            sage: L = lie_algebras.cross_product(QQ)
+            sage: pbw = L.pbw_basis()
+            sage: L(pbw(L.an_element()))
+            X + Y + Z
+            sage: L(pbw(L.an_element())) == L.an_element()
+            True
+            sage: L(prod(pbw.gens()))
+            Traceback (most recent call last):
+            ValueError: PBW['X']*PBW['Y']*PBW['Z'] is not in the image
+            sage: L(pbw.one())
+            Traceback (most recent call last):
+            ...
+            ValueError: 1 is not in the image
         """
         if R == self._g:
             # Make this into the lift map
             I = self._indices
-            basis_function = lambda x: self.monomial(I.gen(x))
+            def basis_function(x): return self.monomial(I.gen(x))
+            def inv_supp(m): return None if m.length() != 1 else m.leading_support()
             # TODO: this diagonal, but with a smaller indexing set...
             return self._g.module_morphism(basis_function, codomain=self,
-                                           triangular='upper', unitriangular=True)
+                                           triangular='upper', unitriangular=True,
+                                           inverse_on_support=inv_supp)
 
         if isinstance(R, PoincareBirkhoffWittBasis) and self._g == R._g:
             I = self._indices

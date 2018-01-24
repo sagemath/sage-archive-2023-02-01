@@ -1196,7 +1196,10 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
                     + self._p_roots_index[-x])
         RL = self._cartan_type.root_system().root_lattice()
         alphacheck = list(RL.simple_coroots())
-        return len(self._p_roots_index) + alphacheck.index(x)
+        try:
+            return len(self._p_roots_index) + alphacheck.index(x)
+        except ValueError:
+            raise KeyError(x)
 
     def degree_on_basis(self, m):
         """

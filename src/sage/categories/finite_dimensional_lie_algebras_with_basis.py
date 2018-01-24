@@ -166,8 +166,9 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 ....:     return -L.basis().keys().index(x)
                 sage: PBW = L.pbw_basis(basis_key=neg_key)
                 sage: prod(PBW.gens())  # indirect doctest
-                PBW[alphacheck[1]]*PBW[-alpha[1]]*PBW[alpha[1]]
-                 + PBW[alphacheck[1]]^2
+                PBW[-alpha[1]]*PBW[alphacheck[1]]*PBW[alpha[1]]
+                 - 4*PBW[-alpha[1]]*PBW[alpha[1]] + PBW[alphacheck[1]]^2
+                 - 2*PBW[alphacheck[1]]
 
             Check that :trac:`23266` is fixed::
 

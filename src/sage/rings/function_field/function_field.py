@@ -95,16 +95,6 @@ ideals of those maximal orders::
     sage: O = L.maximal_order()
     sage: O.basis()
     (1, y, 1/x*y^2 + 1/x*y, 1/x^3*y^3 + 2/x^3*y^2 + 1/x^3*y)
-    sage: I = O.ideal(x,y); I
-    Ideal (x, y + x) of Maximal order of Function field in y defined by y^4 + y + 2*x^5
-    sage: J = I^-1
-    sage: J.basis_matrix()
-    [  1   0   0   0]
-    [1/x 1/x   0   0]
-    [  0   0   1   0]
-    [  0   0   0   1]
-    sage: L.maximal_order_infinite().basis()
-    (1, 1/x^2*y, 1/x^3*y^2, 1/x^4*y^3)
 
 AUTHORS:
 

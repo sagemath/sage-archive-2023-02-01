@@ -849,14 +849,6 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         Return an inverse of the element modulo the integral ideal `I`, if `I`
         and the element together generate the unit ideal.
 
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(QQ)
-            sage: O = K.maximal_order(); I = O.ideal(x^2+1)
-            sage: t = O(x+1).inverse_mod(I); t
-            -1/2*x + 1/2
-            sage: (t*(x+1) - 1) in I
-            True
         """
         assert  len(I.gens()) == 1
         f = I.gens()[0]._x

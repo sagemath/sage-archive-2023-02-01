@@ -12,6 +12,7 @@ Root lattice realizations
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
+from six.moves import range
 
 from sage.misc.abstract_method import abstract_method, AbstractMethod
 from sage.misc.misc import attrcall
@@ -1131,7 +1132,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             chains = [chain for chain in L.chains().list() if len(chain) <= m]
             multichains = []
             for chain in chains:
-                for multilist in combinations_with_replacement(range(len(chain)), m):
+                for multilist in combinations_with_replacement(list(range(len(chain))), m):
                     if len(set(multilist)) == len(chain):
                         multichains.append(tuple([chain[i] for i in multilist]))
             def is_saturated_chain(chain):
@@ -3392,7 +3393,7 @@ class RootLatticeRealizations(Category_over_base_ring):
         ##########################################################################
 
         def simple_reflection(self, i):
-            """
+            r"""
             Returns the image of ``self`` by the `i`-th simple reflection.
 
             EXAMPLES::
@@ -3463,6 +3464,75 @@ class RootLatticeRealizations(Category_over_base_ring):
                 6
             """
             return list(self._orbit_iter())
+
+        def _dot_orbit_iter(self):
+            """
+            Iterate the orbit of ``self`` under the dot or affine action
+            of the Weyl group.
+
+            Call this method when the dot orbit just needs to be
+            iterated over.
+
+            EXAMPLES::
+
+                sage: L = RootSystem(['A', 2]).ambient_lattice()
+                sage: sorted(L.rho()._dot_orbit_iter())    # the output order is not specified
+                [(-2, 1, 4), (-2, 3, 2), (2, -1, 2),
+                 (2, 1, 0), (0, -1, 4), (0, 3, 0)]
+                sage: sorted(L.rho()._orbit_iter())        # the output order is not specified
+                [(1, 2, 0), (1, 0, 2), (2, 1, 0),
+                 (2, 0, 1), (0, 1, 2), (0, 2, 1)]
+            """
+            I = self.parent().index_set()
+            def apply_action(la):
+                return [la.dot_action([i]) for i in I]
+            R = RecursivelyEnumeratedSet([self], apply_action, structure=None,
+                                         enumeration='breadth')
+            return iter(R)
+
+        def dot_orbit(self):
+            r"""
+            The orbit of ``self`` under the dot or affine action of
+            the Weyl group.
+
+            EXAMPLES::
+
+                sage: L = RootSystem(['A', 2]).ambient_lattice()
+                sage: sorted(L.rho().dot_orbit())          # the output order is not specified
+                [(-2, 1, 4), (-2, 3, 2), (2, -1, 2),
+                 (2, 1, 0), (0, -1, 4), (0, 3, 0)]
+
+                sage: L = RootSystem(['B',2]).weight_lattice()
+                sage: sorted(L.fundamental_weights()[1].dot_orbit())   # the output order is not specified
+                [-4*Lambda[1], -4*Lambda[1] + 4*Lambda[2],
+                 -3*Lambda[1] - 2*Lambda[2], -3*Lambda[1] + 4*Lambda[2],
+                 Lambda[1], Lambda[1] - 6*Lambda[2],
+                 2*Lambda[1] - 6*Lambda[2], 2*Lambda[1] - 2*Lambda[2]]
+
+            We compare the dot action orbit to the regular orbit::
+
+                sage: L = RootSystem(['A', 3]).weight_lattice()
+                sage: len(L.rho().dot_orbit())
+                24
+                sage: len((-L.rho()).dot_orbit())
+                1
+                sage: La = L.fundamental_weights()
+                sage: len(La[1].dot_orbit())
+                24
+                sage: len(La[1].orbit())
+                4
+                sage: len((-L.rho() + La[1]).dot_orbit())
+                4
+                sage: len(La[2].dot_orbit())
+                24
+                sage: len(La[2].orbit())
+                6
+                sage: len((-L.rho() + La[2]).dot_orbit())
+                6
+            """
+            return list(self._dot_orbit_iter())
+
+        affine_orbit = dot_orbit
 
         ##########################################################################
         #
@@ -4074,17 +4144,18 @@ class RootLatticeRealizations(Category_over_base_ring):
                 raise ValueError("%s is not of level zero"%(self))
             return x + x.level() * self
 
-        def weyl_action(self, element, inverse = False):
+        def weyl_action(self, element, inverse=False):
             r"""
-            Acts on ``self`` by an element of the Coxeter or Weyl group.
+            Act on ``self`` by an element of the Coxeter or Weyl group.
 
             INPUT:
 
             - ``element`` -- an element of a Coxeter or Weyl group
               of the same Cartan type, or a tuple or a list (such as a
-              reduced word) of elements from the index set.
+              reduced word) of elements from the index set
 
-            - ``inverse`` -- a boolean (default: False); whether to act by the inverse element.
+            - ``inverse`` -- a boolean (default: ``False``); whether to
+              act by the inverse element
 
             EXAMPLES::
 
@@ -4119,11 +4190,9 @@ class RootLatticeRealizations(Category_over_base_ring):
                 False
                 sage: mudom.weyl_action(w)
                 Lambda[1] - 2*Lambda[3]
-
             """
-
             # TODO, some day: accept an iterator
-            if isinstance(element, (tuple, list)):
+            if isinstance(element, (tuple, list, range)):
                 # Action by a (reduced) word
                 the_word = [x for x in element]
                 I = self.parent().index_set()
@@ -4176,6 +4245,53 @@ class RootLatticeRealizations(Category_over_base_ring):
                 index_set = self.parent().cartan_type().index_set()
             alphavee = self.parent().coroot_lattice().basis()
             return [i for i in index_set if self.scalar(alphavee[i]) == 0]
+
+        def dot_action(self, w, inverse=False):
+            r"""
+            Act on ``self`` by ``w`` using the dot or affine action.
+
+            Let `w` be an element of the Weyl group. The *dot action*
+            or *affine action* is given by:
+
+            .. MATH::
+
+                w \bullet \lambda = w (\lambda + \rho) - \rho,
+
+            where `\rho` is the sum of the fundamental weights.
+
+            INPUT:
+
+            - ``w`` -- an element of a Coxeter or Weyl group of
+              the same Cartan type, or a tuple or a list (such
+              as a reduced word) of elements from the index set
+
+            - ``inverse`` -- a boolean (default: ``False``); whether
+              to act by the inverse element
+
+            EXAMPLES::
+
+                sage: P = RootSystem(['B',3]).weight_lattice()
+                sage: La = P.fundamental_weights()
+                sage: mu = La[1] + 2*La[2] - 3*La[3]
+                sage: mu.dot_action([1])
+                -3*Lambda[1] + 4*Lambda[2] - 3*Lambda[3]
+                sage: mu.dot_action([3])
+                Lambda[1] + Lambda[3]
+                sage: mu.dot_action([1,2,3])
+                -4*Lambda[1] + Lambda[2] + 3*Lambda[3]
+
+            We check that the origin of this action is at `-\rho`::
+
+                sage: all((-P.rho()).dot_action([i]) == -P.rho()
+                ....:     for i in P.index_set())
+                True
+
+            REFERENCES:
+
+            - :wikipedia:`Affine_action`
+            """
+            rho = self.parent().rho()
+            return (self + rho).weyl_action(w, inverse=inverse) - rho
 
         def is_parabolic_root(self, index_set):
             r"""

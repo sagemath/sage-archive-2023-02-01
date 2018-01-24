@@ -884,29 +884,3 @@ class FractionFieldToFunctionField(FunctionFieldVectorSpaceIsomorphism):
         parent = Hom(self.codomain(), self.domain())
         return parent.__make_element_class__(FunctionFieldToFractionField)(parent)
 
-class FunctionFieldRingMorphism(SetMorphism):
-    """
-    Ring homomorphism.
-    """
-    def _repr_(self):
-        """
-        Return the string representaton of the map.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: p = L.places_finite()[0]
-            sage: R = p.valuation_ring()
-            sage: k, fr_k, to_k = R.residue_field()
-            sage: k
-            Finite Field of size 2
-            sage: fr_k
-            Ring morphism:
-              From: Finite Field of size 2
-              To:   Valuation ring at Place (x, x*y)
-        """
-        s = "Ring morphism:"
-        s += "\n  From: {}".format(self.domain())
-        s += "\n  To:   {}".format(self.codomain())
-        return s

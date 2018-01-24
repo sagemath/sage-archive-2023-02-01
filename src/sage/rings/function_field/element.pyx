@@ -11,12 +11,6 @@ Arithmetic with rational functions::
     sage: f = t - 1
     sage: g = t^2 - 3
     sage: h = f^2/g^3
-    sage: h.valuation(t-1)
-    2
-    sage: h.valuation(t)
-    0
-    sage: h.valuation(t^2 - 3)
-    -3
 
 AUTHORS:
 
@@ -782,47 +776,6 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         """
         return self._x.denominator()
 
-    def _valuation(self, v):
-        """
-        Return the valuation of the rational function with respect to
-        ``v``
-
-        INPUT:
-
-        - ``v`` -- irreducible polynomial
-
-        EXAMPLES::
-
-            sage: K.<t> = FunctionField(QQ)
-            sage: f = (t-1)^2 * (t+1) / (t^2 - 1/3)^3
-            sage: f.valuation(t-1)  # indirect doctest
-            2
-            sage: f.valuation(t)  # indirect doctest
-            0
-            sage: f.valuation(t^2 - 1/3)  # indirect doctest
-            -3
-        """
-        R = self._parent._ring
-        return self._x.valuation(R(self._parent(v)._x))
-
-    def valuation(self, place):
-        """
-        Return the valuation of the rational function at the place
-
-        INPUT:
-
-        - ``place`` -- place of the rational function field or an irreducible
-          polynomial associated with a place
-        """
-        from .place import is_Place
-
-        if not is_Place(place):
-            return self._valuation(place)
-
-        prime = place.prime_ideal()
-        ideal = prime.ring().ideal(self)
-        return prime.valuation(ideal)
-
     def is_square(self):
         """
         Return whether the element is a square.
@@ -915,24 +868,4 @@ cdef class FunctionFieldElement_global(FunctionFieldElement_polymod):
     """
     Elements of global function fields
     """
-    cdef public dict __cached_methods
-
-    def valuation(self, place):
-        """
-        Return the valuation of the element at the place.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: p = L.places_infinite()[0]
-            sage: y.valuation(p)
-            -1
-        """
-        prime = place.prime_ideal()
-        ideal = prime.ring().ideal(self)
-        return prime.valuation(ideal)
-
-    # for consistency with rational function field elements
-    _valuation = valuation
-
+    pass

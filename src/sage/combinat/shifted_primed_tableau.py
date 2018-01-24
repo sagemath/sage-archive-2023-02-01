@@ -35,6 +35,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.list_clone import ClonableArray
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.sage_object import SageObject
 
 from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.classical_crystals import ClassicalCrystals
@@ -537,7 +538,7 @@ class ShiftedPrimedTableau(ClonableArray):
         if self == []:
             return 0
         else:
-            flat = [entry.unprime() for row in self
+            flat = [entry.unprimed() for row in self
                     for entry in row if entry is not None]
             return max(flat)
 
@@ -573,7 +574,7 @@ class ShiftedPrimedTableau(ClonableArray):
            sage: t.weight()
            (0, 4, 1)
         """
-        flat = [entry.unprime() for row in self
+        flat = [entry.integer() for row in self
                 for entry in row if entry is not None]
         if flat == []:
             max_ind = 0
@@ -634,12 +635,12 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
             for i in range(ndim):
                 x = mat[i][j]
                 if x is not None and x.is_primed():
-                    list_with_positions.append(((i, j), x.unprime()))
+                    list_with_positions.append(((i, j), x.integer()))
         for i in reversed(range(ndim)):
             for j in range(mdim):
                 x = mat[i][j]
                 if x is not None and x.is_unprimed():
-                    list_with_positions.append(((i, j), x.unprime()))
+                    list_with_positions.append(((i, j), x.integer()))
         return list_with_positions
 
     def reading_word(self):
@@ -705,7 +706,6 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
 
         """
         T = self._to_matrix()
-
         read_word = self._reading_word_with_positions()
         read_word = [num
                      for num in read_word
@@ -713,8 +713,6 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
 
         element_to_change = None
         count = 0
-        half = Integer(1)/Integer(2)
-        one = Integer(1)
 
         for element in read_word:
             if element[1] == ind+1:
@@ -728,42 +726,45 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
             return None
 
         (r, c), elt = element_to_change
+        ind_e = PrimedEntry(ind)
+        ind_plus_one = ind_e.increase_one()
+        ind_plus_half = ind_e.increase_half()
 
         if T[r][c].is_primed():
-            T = [[elt+half if elt is not None else elt
+            T = [[elt.increase_half() if elt is not None else elt
                   for elt in row] for row in T]
             T = map(list, zip(*T))
             r, c = c, r
         h, l = len(T), len(T[0])
 
-        if (c+1 == l or T[r][c+1] is None or T[r][c+1] >= ind+one):
+        if (c+1 == l or T[r][c+1] is None or T[r][c+1] >= ind_plus_one):
             (tp_r, tp_c) = (r, c)
             while True:
-                if (tp_r+1 == h or T[tp_r+1][tp_c] is None or T[tp_r+1][tp_c] > ind+one):
+                if (tp_r+1 == h or T[tp_r+1][tp_c] is None or T[tp_r+1][tp_c] > ind_plus_one):
                     break
-                if tp_r <= tp_c and T[tp_r+1][tp_r+1] == ind+one:
+                if tp_r <= tp_c and T[tp_r+1][tp_r+1] == ind_plus_one:
                     tp_r += 1
                     tp_c = tp_r
                     break
-                if (ind+half not in T[tp_r+1]):
+                if (ind_plus_half not in T[tp_r+1]):
                     break
                 tp_r += 1
-                tp_c = T[tp_r].index(ind+half)
+                tp_c = T[tp_r].index(ind_plus_half)
 
             if tp_r == r:
-                T[r][c] = T[r][c]+one
+                T[r][c] = T[r][c].increase_one()
             elif tp_r == tp_c:
-                T[r][c] = T[r][c]+half
+                T[r][c] = T[r][c].increase_half()
             else:
-                T[r][c] = T[r][c]+half
-                T[tp_r][tp_c] = T[tp_r][tp_c]+half
+                T[r][c] = T[r][c].increase_half()
+                T[tp_r][tp_c] = T[tp_r][tp_c].increase_half()
 
-        elif T[r][c+1] == ind+half:
-            T[r][c+1] = T[r][c+1]+half
-            T[r][c] = T[r][c]+half
+        elif T[r][c+1] == ind_plus_half:
+            T[r][c+1] = T[r][c+1].increase_half()
+            T[r][c] = T[r][c].increase_half()
 
         if r > c:
-            T = [[elt-half if elt is not None else elt
+            T = [[elt.decrease_half() if elt is not None else elt
                   for elt in row] for row in T]
             T = map(list, zip(*T))
 
@@ -801,15 +802,12 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
 
         """
         T = self._to_matrix()
-
         read_word = self._reading_word_with_positions()
         read_word = [num for num in read_word
                      if num[1] == ind or num[1] == ind+1]
 
         element_to_change = None
         count = 0
-        half = Integer(1)/Integer(2)
-        one = Integer(1)
 
         for element in read_word[::-1]:
             if element[1] == ind:
@@ -823,35 +821,38 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
             return None
         (r, c), elt = element_to_change
 
+        ind_e = PrimedEntry(ind)
+        ind_plus_half = ind_e.increase_half()
+
         if T[r][c].is_primed():
-            T = [[elt+half if elt is not None else elt
+            T = [[elt.increase_half() if elt is not None else elt
                   for elt in row] for row in T]
             T = map(list, zip(*T))
             r, c = c, r
 
-        if (c == 0 or T[r][c-1] is None or T[r][c-1] <= ind):
+        if (c == 0 or T[r][c-1] is None or T[r][c-1] <= ind_e):
             (tp_r, tp_c) = (r, c)
             while True:
-                if (tp_r == 0 or T[tp_r-1][tp_c] is None or T[tp_r-1][tp_c] < ind):
+                if (tp_r == 0 or T[tp_r-1][tp_c] is None or T[tp_r-1][tp_c] < ind_e):
                     break
-                if (ind+half not in T[tp_r-1]):
+                if (ind_plus_half not in T[tp_r-1]):
                     break
                 tp_r -= 1
-                tp_c = T[tp_r].index(ind+half)
+                tp_c = T[tp_r].index(ind_plus_half)
 
             if tp_r == r:
-                T[r][c] = T[r][c]-one
+                T[r][c] = T[r][c].decrease_one()
             elif tp_r == tp_c:
-                T[r][c] = T[r][c]-half
+                T[r][c] = T[r][c].decrease_half()
             else:
-                T[r][c] = T[r][c]-half
-                T[tp_r][tp_c] = T[tp_r][tp_c]-half
+                T[r][c] = T[r][c].decrease_half()
+                T[tp_r][tp_c] = T[tp_r][tp_c].decrease_half()
 
-        elif T[r][c-1] == ind+half:
-            T[r][c-1] = T[r][c-1]-half
-            T[r][c] = T[r][c]-half
+        elif T[r][c-1] == ind_plus_half:
+            T[r][c-1] = T[r][c-1].decrease_half()
+            T[r][c] = T[r][c].decrease_half()
         if r > c:
-            T = [[elt-half if elt is not None else elt
+            T = [[elt.decrease_half() if elt is not None else elt
                   for elt in row] for row in T]
             T = map(list, zip(*T))
 
@@ -901,7 +902,7 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
            sage: t.weight()
            (1, 4, 1)
         """
-        flat = [entry.unprime() for row in self for entry in row]
+        flat = [entry.integer() for row in self for entry in row]
         if flat == []:
             max_ind = 0
         else:
@@ -910,13 +911,13 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
         return self.parent().weight_lattice_realization()(weight)
 
 
-class PrimedEntry(Rational):
+class PrimedEntry(SageObject):
     """
     The class of entries in shifted primed tableaux.
     """
-    def __init__(self, entry):
+    def __init__(self, entry=None, double=None):
         """
-        Normalize the entry to be a half-integer in ``QQ``.
+        Normalize the entry.
 
         TEST::
 
@@ -927,16 +928,21 @@ class PrimedEntry(Rational):
             sage: ShiftedPrimedTableau([[1,1.5]])[0][1]
             2'
         """
+        # store primed numbers as odd, unprimed numbers as even integers
         if isinstance(entry, self.__class__):
-            Rational.__init__(self, entry)
+            self._entry = entry._entry
+            return
+
+        if double is not None:
+            self._entry = Integer(double)
             return
 
         if isinstance(entry, str):
             if (entry[-1] == "'" or entry[-1] == "p") and entry[:-1].isdigit() is True:
                 # Check if an element has "'" or "p" at the end
-                entry = Rational(entry[:-1]) - Integer(1)/Integer(2)
-                Rational.__init__(self, entry)
+                self._entry = 2*Integer(entry[:-1]) - 1
                 return
+
         try:
             entry = Rational(entry)
         except (TypeError, ValueError):
@@ -944,8 +950,18 @@ class PrimedEntry(Rational):
         if entry.denominator() not in (1, 2):
             # Check if an element is a half-integer
             raise ValueError("all numbers must be half-integers")
+        self._entry = Integer(2*entry)
 
-        Rational.__init__(self, entry)
+    def __hash__(self):
+        """
+        TEST::
+
+            sage: a = ShiftedPrimedTableau([[1,"2p"]])[0][1]
+            sage: b = ShiftedPrimedTableau([[1,1,"2p"]])[0][2]
+            sage: a == b
+            True
+        """
+        return self._entry
 
     def __repr__(self):
         """
@@ -956,36 +972,87 @@ class PrimedEntry(Rational):
             sage: ShiftedPrimedTableau([[1,"2p"]])[0][1]
             2'
         """
-        if self.is_primed():
-            return Integer(self.unprime()).__repr__() + "'"
+        if self.is_unprimed():
+            return str(self._entry//2)
         else:
-            return Integer(self.unprime()).__repr__()
+            return str((self._entry+1)//2) + "'"
 
-    def __add__(self, other):
+    def integer(self):
         """
-        Sum of ``self`` with rational number ``other``.
-
         TEST::
 
-            sage: a = ShiftedPrimedTableau([[1,"2p"]])[0][1]
-            sage: b = a+.5
-            sage: type(b)
-            <class 'sage.combinat.shifted_primed_tableau.PrimedEntry'>
+            sage: ShiftedPrimedTableau([[1,"2p"]])[0][1].integer()
+            2
         """
-        return self.__class__(Rational(self) + Rational(other))
+        return (self._entry+1)//2
 
-    def __sub__(self, other):
+    def __eq__(self, other):
         """
-        Sum of ``self`` with rational number ``other``.
-
         TEST::
 
-            sage: a = ShiftedPrimedTableau([[1,"2p"]])[0][1]
-            sage: b = a-.5
-            sage: type(b)
-            <class 'sage.combinat.shifted_primed_tableau.PrimedEntry'>
+            sage: a = ShiftedPrimedTableau([[1,1]])[0][1]
+            sage: b = ShiftedPrimedTableau([[1,1]])[0][0]
+            sage: a == b
+            True
         """
-        return self.__class__(Rational(self) - Rational(other))
+
+        return self._entry == PrimedEntry(other)._entry
+
+    def __ne__(self, other):
+        """
+        TEST::
+
+            sage: a = ShiftedPrimedTableau([[1,1]])[0][1]
+            sage: b = ShiftedPrimedTableau([[1,1]])[0][0]
+            sage: a != b
+            False
+        """
+        return self._entry != PrimedEntry(other)._entry
+
+    def __lt__(self, other):
+        """
+        TEST::
+
+            sage: a = ShiftedPrimedTableau([[1,"2p",2]])[0][1]
+            sage: b = ShiftedPrimedTableau([[1,"2p",2]])[0][2]
+            sage: a < b
+            True
+        """
+
+        return self._entry < PrimedEntry(other)._entry
+
+    def __le__(self, other):
+        """
+        TEST::
+
+            sage: a = ShiftedPrimedTableau([[1,2,2]])[0][1]
+            sage: b = ShiftedPrimedTableau([[1,2,2]])[0][2]
+            sage: a <= b
+            True
+        """
+        return self._entry <= PrimedEntry(other)._entry
+
+    def __gt__(self, other):
+        """
+        TEST::
+
+            sage: a = ShiftedPrimedTableau([[1,"2p",2]])[0][1]
+            sage: b = ShiftedPrimedTableau([[1,"2p",2]])[0][2]
+            sage: b > a
+            True
+        """
+        return self._entry > PrimedEntry(other)._entry
+
+    def __ge__(self, other):
+        """
+        TEST::
+
+            sage: a = ShiftedPrimedTableau([[1,"2p",2]])[0][1]
+            sage: b = ShiftedPrimedTableau([[1,"2p",2]])[0][2]
+            sage: a >= b
+            False
+        """
+        return self._entry >= PrimedEntry(other)._entry
 
     def is_unprimed(self):
         """
@@ -997,7 +1064,7 @@ class PrimedEntry(Rational):
             sage: a.is_unprimed()
             False
         """
-        return (self in ZZ)
+        return self._entry % 2 == 0
 
     def is_primed(self):
         """
@@ -1009,23 +1076,77 @@ class PrimedEntry(Rational):
             sage: a.is_primed()
             True
         """
-        return (self not in ZZ)
+        return self._entry % 2 == 1
 
-    def unprime(self):
+    def unprimed(self):
         """
-        Unprime ``self`` if it was a prime element.
+        Unprime ``self`` if it is a primed element.
 
         TEST::
 
             sage: a = ShiftedPrimedTableau([[1,"2p"]])[0][1]
-            sage: a.unprime()
+            sage: a.unprimed()
             2
         """
-        half = Integer(1)/Integer(2)
-        if self.is_primed():
-            return Integer(self + half)
+        if self.is_unprimed():
+            return self
         else:
-            return Integer(self)
+            return PrimedEntry(double=self._entry + 1)
+
+    def primed(self):
+        """
+        Prime ``self`` if it is an unprimed element.
+
+        TEST::
+
+            sage: a = ShiftedPrimedTableau([[1,"2p"]])[0][0]
+            sage: a.primed()
+            1'
+        """
+        if self.is_unprimed():
+            return PrimedEntry(double=self._entry - 1)
+        else:
+            return self
+
+    def increase_half(self):
+        """
+        TEST::
+
+            sage: a = ShiftedPrimedTableau([[1,"2p"]])[0][0]
+            sage: a.increase_half()
+            2'
+        """
+        return PrimedEntry(double=self._entry + 1)
+
+    def decrease_half(self):
+        """
+        TEST::
+
+            sage: a = ShiftedPrimedTableau([[1,"2p"]])[0][0]
+            sage: a.decrease_half()
+            1'
+        """
+        return PrimedEntry(double=self._entry - 1)
+
+    def increase_one(self):
+        """
+        TEST::
+
+            sage: a = ShiftedPrimedTableau([[1,"2p"]])[0][1]
+            sage: a.increase_one()
+            3'
+        """
+        return PrimedEntry(double=self._entry + 2)
+
+    def decrease_one(self):
+        """
+        TEST::
+
+            sage: a = ShiftedPrimedTableau([[1,"2p"]])[0][1]
+            sage: a.decrease_one()
+            1'
+        """
+        return PrimedEntry(double=self._entry - 2)
 
 
 class ShiftedPrimedTableaux(UniqueRepresentation, Parent):
@@ -1269,7 +1390,7 @@ class ShiftedPrimedTableaux(UniqueRepresentation, Parent):
                        for j in range(skew[i], len(row)-1)
                        if row[j].is_primed()):
                 return False
-        if not all(int(row[0]) == row[0]
+        if not all(row[0].is_unprimed()
                    for i, row in enumerate(T)
                    if skew[i] == 0):
             return False
@@ -1491,7 +1612,7 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
             return False
 
         if self._max_entry is not None:
-            flat = [round(item) for sublist in T for item in sublist]
+            flat = [item.integer() for sublist in T for item in sublist]
             if flat == []:
                 max_entry = 0
             else:
@@ -1682,7 +1803,7 @@ class ShiftedPrimedTableaux_weight(ShiftedPrimedTableaux):
         if not super(ShiftedPrimedTableaux_weight, self)._contains_tableau_(T):
             return False
 
-        flat = [round(item) for sublist in T for item in sublist]
+        flat = [item.integer() for sublist in T for item in sublist]
         if flat == []:
             max_ind = 0
         else:
@@ -1771,13 +1892,13 @@ class ShiftedPrimedTableaux_weight_shape(ShiftedPrimedTableaux):
         if not super(ShiftedPrimedTableaux_weight_shape, self)._contains_tableau_(T):
             return False
 
-        flat = [round(item) for sublist in T for item in sublist]
+        flat = [item.integer() for sublist in T for item in sublist]
         if flat == []:
             max_ind = 0
         else:
             max_ind = int(max(flat))
         weight = tuple([flat.count(i+1) for i in range(max_ind)])
-        if self._weight!=weight:
+        if self._weight != weight:
             return False
 
         shape = [len(row) for row in T]

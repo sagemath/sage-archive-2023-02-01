@@ -184,20 +184,32 @@ class GroupOfIsometries(FinitelyGeneratedMatrixGroup_gap):
             sage: bil = Matrix(ZZ,2,[3,2,2,3])
             sage: gens = [-Matrix(ZZ,2,[0,1,1,0])]
             sage: S = ZZ^2
-            sage: O = GroupOfIsometries(2, ZZ, gens, bil, invariant_submodule=S)
+            sage: T = S/(6*S)
+            sage: O = GroupOfIsometries(2, ZZ, gens, bil, invariant_submodule=S, invariant_quotient_module=T)
             sage: O._get_action_(S, operator.mul, False)
             Right action by Group of isometries with 1 generator (
             [ 0 -1]
             [-1  0]
             ) on Ambient free module of rank 2 over the principal ideal domain Integer Ring
+            sage: U = T.submodule([2*t for t in T.gens()])
+            sage: u = U.an_element()
+            sage: f = O.an_element()
+            sage: u*f
+            (0, 2)
         """
         import operator
-        if (S is self._invariant_submodule and op == operator.mul
-                                           and not self_on_left):
-            return GroupActionOnSubmodule(self,S)
-        if (S is self._invariant_quotient_module and op == operator.mul
-                                                 and not self_on_left):
-            return GroupActionOnQuotientModule(self,S)
+        if op == operator.mul and not self_on_left:
+            if S is self._invariant_submodule:
+                return GroupActionOnSubmodule(self, S)
+            if S is self._invariant_quotient_module:
+                return GroupActionOnQuotientModule(self, S)
+            from sage.modules.fg_pid.fgp_module import is_FGP_Module
+            T = self._invariant_quotient_module
+            if is_FGP_Module(S):
+                if S.is_submodule(T):
+                    V = S.V()
+                    if all([V==V*f.matrix() for f in self.gens()]):
+                        return GroupActionOnQuotientModule(self, S)
         return None
 
     def _check_matrix(self, x, *args):

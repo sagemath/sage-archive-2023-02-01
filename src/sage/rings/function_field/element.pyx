@@ -18,13 +18,6 @@ Arithmetic with rational functions::
     sage: h.valuation(t^2 - 3)
     -3
 
-Derivatives of elements in separable extensions::
-
-    sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
-    sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-    sage: (y^3 + x).derivative()
-    ((x^2 + 1)/x^2)*y + (x^4 + x^3 + 1)/x^3
-
 The divisor of an element of a global function field::
 
     sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]

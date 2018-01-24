@@ -15,7 +15,6 @@ a divisor, are available for global function fields.
    sage/rings/function_field/ideal
    sage/rings/function_field/place
    sage/rings/function_field/divisor
-   sage/rings/function_field/differential
    sage/rings/function_field/valuation_ring
    sage/rings/function_field/maps
    sage/rings/function_field/constructor

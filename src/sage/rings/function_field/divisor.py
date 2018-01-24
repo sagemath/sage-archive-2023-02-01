@@ -25,13 +25,6 @@ the space as a vector space over the constant field::
     sage: (3*p + 2*q).basis_function_space()
     [1/x*y^2 + x^2, 1, 1/x]
 
-We verify the Riemann-Roch theorem::
-
-    sage: D = 3*p - q
-    sage: index_of_speciality = len(D.basis_differential_space())
-    sage: D.dimension() == D.degree() - L.genus() + 1 + index_of_speciality
-    True
-
 AUTHORS:
 
 - Kwankyu Lee (2017-04-30): initial version

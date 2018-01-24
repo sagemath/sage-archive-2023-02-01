@@ -106,38 +106,6 @@ ideals of those maximal orders::
     sage: L.maximal_order_infinite().basis()
     (1, 1/x^2*y, 1/x^3*y^2, 1/x^4*y^3)
 
-As an example of the most sophisticated computations that Sage can do with a
-global function field, we compute all the Weierstrass places of the Klein
-quartic over `\GF{2}` and gap numbers for ordinary places::
-
-    sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
-    sage: L.<y> = K.extension(Y^3 + x^3*Y + x)
-    sage: L.genus()
-    3
-    sage: L.weierstrass_places()
-    [Place (1/x, 1/x^3*y^2 + 1/x),
-     Place (1/x, 1/x^3*y^2 + 1/x^2*y + 1),
-     Place (x, y),
-     Place (x + 1, (x^3 + 1)*y + x + 1),
-     Place (x^3 + x + 1, y + 1),
-     Place (x^3 + x + 1, y + x^2),
-     Place (x^3 + x + 1, y + x^2 + 1),
-     Place (x^3 + x^2 + 1, y + x),
-     Place (x^3 + x^2 + 1, y + x^2 + 1),
-     Place (x^3 + x^2 + 1, y + x^2 + x + 1)]
-    sage: L.gaps()
-    [1, 2, 3]
-
-The gap numbers for Weierstrass places are of course not ordinary::
-
-    sage: p1,p2,p3 = L.weierstrass_places()[:3]
-    sage: p1.gaps()
-    [1, 2, 4]
-    sage: p2.gaps()
-    [1, 2, 4]
-    sage: p3.gaps()
-    [1, 2, 4]
-
 AUTHORS:
 
 - William Stein (2010): initial version
@@ -2224,13 +2192,6 @@ class FunctionField_global(FunctionField_polymod):
             Function field in y defined by y^3 + (4*x^3 + 1)/(x^3 + 3)
             sage: L.genus()
             4
-
-        The defining equation needs not be monic::
-
-            sage: K.<x>=FunctionField(GF(4)); _.<Y>=K[]
-            sage: L.<y>=K.extension((1-x)*Y^7-x^3)
-            sage: L.gaps()
-            [1, 2, 3]
         """
         FunctionField_polymod.__init__(self, polynomial, names,
                                        element_class=FunctionFieldElement_global)
@@ -2652,39 +2613,6 @@ class FunctionField_global(FunctionField_polymod):
             Valuation ring at Place (x, x*y)
         """
         return place.valuation_ring()
-
-    @cached_method
-    def completion(self, place, name=None, prec=None, gen_name=None):
-        """
-        Return the completion of the function field at the place
-
-        INPUT:
-
-        - ``place`` -- place
-
-        - ``name`` -- string; name of the series variable
-
-        - ``prec`` -- positive integer; default precision
-
-        - ``gen_name`` -- string; name of the generator of the residue field;
-          used only when the place is non-rational
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: p = L.places_finite()[0]
-            sage: m = L.completion(p); m
-            Completion map:
-              From: Function field in y defined by y^2 + y + (x^2 + 1)/x
-              To:   Laurent Series Ring in s over Finite Field of size 2
-            sage: m(x,10)
-            s^2 + s^3 + s^4 + s^5 + s^7 + s^8 + s^9 + s^10 + O(s^12)
-            sage: m(y,10)
-            s^-1 + 1 + s^3 + s^5 + s^7 + O(s^9)
-        """
-        from .maps import FunctionFieldCompletion_global
-        return FunctionFieldCompletion_global(self, place, name=name, prec=prec, gen_name=gen_name)
 
 class FunctionField_global_integral(FunctionField_global):
     """

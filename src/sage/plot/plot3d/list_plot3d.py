@@ -255,8 +255,8 @@ def list_plot3d_matrix(m, texture, **kwds):
     which must take values in (0, 1)::
 
         sage: cm = colormaps.rainbow
-        sage: cf = lambda x, y: ((2*(x-y)/n)**2) % 1
         sage: n = 20
+        sage: cf = lambda x, y: ((2*(x-y)/n)**2) % 1
         sage: list_plot3d(matrix(RDF, n, [cos(pi*(i+j)/n) for i in [1..n]
         ....:   for j in [1..n]]), color=(cf,cm))
         Graphics3d Object
@@ -264,9 +264,8 @@ def list_plot3d_matrix(m, texture, **kwds):
     .. PLOT::
 
         cm = colormaps.rainbow
-        cf = lambda x, y: ((2*(x-y)/n)**2) % 1
-        n = 20
-        expl = list_plot3d(matrix(RDF, n, [cos(pi*(i+j)/n) for i in [1..n] for j in [1..n]]), color=(cf,cm))
+        cf = lambda x, y: ((2*(x-y)/20)**2) % 1
+        expl = list_plot3d(matrix(RDF,20,20,[cos(pi*(i+j)/20) for i in range(1,21) for j in range(1,21)]),color=(cf,cm))
         sphinx_plot(expl)    
     """
     from .parametric_surface import ParametricSurface

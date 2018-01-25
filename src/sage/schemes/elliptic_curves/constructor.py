@@ -28,7 +28,6 @@ from six import string_types, integer_types
 import sage.rings.all as rings
 
 from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
-from sage.rings.rational_field import is_RationalField
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.number_field.number_field import is_NumberField
@@ -401,6 +400,7 @@ class EllipticCurveFactory(UniqueFactory):
             if y is None:
                 x = coefficients_from_Weierstrass_polynomial(x)
             else:
+                # TODO:  This function coefficients_from_cubic() is not defined anywhere!
                 x = coefficients_from_cubic(x, y, morphism=False)
 
         if isinstance(x, string_types):
@@ -786,7 +786,7 @@ def EllipticCurve_from_cubic(F, P=None, morphism=True):
         sage: cubic = x^3+y^3+z^3
         sage: P = [1,-1,0]
         sage: E = EllipticCurve_from_cubic(cubic, P, morphism=False); E
-        Elliptic Curve defined by y^2 + 2*x*y + 1/3*y = x^3 - x^2 - 1/3*x - 1/27 over Rational Field
+        Elliptic Curve defined by y^2 - 9*y = x^3 - 27 over Rational Field
         sage: E.cremona_label()
         '27a1'
         sage: EllipticCurve_from_cubic(cubic, [0,1,-1], morphism=False).cremona_label()
@@ -801,7 +801,7 @@ def EllipticCurve_from_cubic(F, P=None, morphism=True):
         sage: cubic = a^3+b^3+60*c^3
         sage: P = [1,-1,0]
         sage: E = EllipticCurve_from_cubic(cubic, P, morphism=False);  E
-        Elliptic Curve defined by y^2 + 2*x*y + 20*y = x^3 - x^2 - 20*x - 400/3 over Rational Field
+        Elliptic Curve defined by y^2 - 540*y = x^3 - 97200 over Rational Field
         sage: E.minimal_model()
         Elliptic Curve defined by y^2 = x^3 - 24300 over Rational Field
         sage: E.conductor()
@@ -814,14 +814,18 @@ def EllipticCurve_from_cubic(F, P=None, morphism=True):
         sage: f = EllipticCurve_from_cubic(cubic, P, morphism=True)
         sage: f
         Scheme morphism:
-          From: Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
-                a^3 + b^3 + 60*c^3
-          To:   Elliptic Curve defined by y^2 + 2*x*y + 20*y = x^3 - x^2 - 20*x - 400/3
-                over Rational Field
+          From: Projective Plane Curve over Rational Field defined by a^3 + b^3 + 60*c^3
+          To:   Elliptic Curve defined by y^2 - 540*y = x^3 - 97200 over Rational Field
           Defn: Defined on coordinates by sending (a : b : c) to
-                (-c : -b + c : 1/20*a + 1/20*b)
+                (-c : 3*a : 1/180*a + 1/180*b)
 
         sage: finv = f.inverse();  finv
+        Scheme morphism:
+          From: Elliptic Curve defined by y^2 - 540*y = x^3 - 97200 over Rational Field
+          To:   Projective Plane Curve over Rational Field defined by a^3 + b^3 + 60*c^3
+          Defn: Defined on coordinates by sending (x : y : z) to
+                (1/3*y : -1/3*y + 180*z : -x)
+
         Scheme morphism:
           From: Elliptic Curve defined by y^2 + 2*x*y + 20*y = x^3 - x^2 - 20*x - 400/3
                 over Rational Field
@@ -842,61 +846,110 @@ def EllipticCurve_from_cubic(F, P=None, morphism=True):
     this indeed transforms the cubic into Weierstrass form::
 
         sage: cubic(finv.defining_polynomials()) * finv.post_rescaling()
-        -x^3 + x^2*z + 2*x*y*z + y^2*z + 20*x*z^2 + 20*y*z^2 + 400/3*z^3
+        -x^3 + y^2*z - 540*y*z^2 + 97200*z^3
 
         sage: E.defining_polynomial()(f.defining_polynomials()) * f.post_rescaling()
         a^3 + b^3 + 60*c^3
 
-    If the point is not a flex then the cubic can not be transformed
-    to a Weierstrass equation by a linear transformation. The general
-    birational transformation is quadratic::
+    If the given point is not a flex and the cubic has no rational
+    flexes, then the cubic can not be transformed to a Weierstrass
+    equation by a linear transformation. The general birational
+    transformation is still a birational isomorphism, but is
+    quadratic::
 
+        sage: R.<x,y,z> = QQ[]
+        sage: cubic = x^2*y + 4*x*y^2 + x^2*z + 8*x*y*z + 4*y^2*z + 9*x*z^2 + 9*y*z^2
+        sage: f = EllipticCurve_from_cubic(cubic, [1,-1,1], morphism=True); f
+        Scheme morphism:
+          From: Projective Plane Curve over Rational Field defined by x^2*y + 4*x*y^2 + x^2*z + 8*x*y*z + 4*y^2*z + 9*x*z^2 + 9*y*z^2
+          To:   Elliptic Curve defined by y^2 + 7560/19*x*y + 552960000000/2352637*y = x^3 - 3445200/133*x^2 over Rational Field
+          Defn: Defined on coordinates by sending (x : y : z) to
+                (2527/17280*x^2 + 133/2160*x*y + 133/108000*y^2 + 133/2880*x*z + 931/18000*y*z - 3857/48000*z^2 : -6859/288*x^2 + 323/36*x*y + 359/1800*y^2 + 551/48*x*z + 2813/300*y*z + 24389/800*z^2 : -2352637/99532800000*x^2 - 2352637/124416000000*x*y - 2352637/622080000000*y^2 + 2352637/82944000000*x*z + 2352637/207360000000*y*z - 2352637/276480000000*z^2)
+
+    Note that the morphism returned cannor be evaluated directly at
+    the given point ``P=(1:-1:1)`` since the polynomials defining it
+    all vanish there::
+
+        sage: f([1,-1,1])
+        Traceback (most recent call last):
+        ...
+        ValueError: [0, 0, 0] does not define a valid point since all entries are 0
+
+    Using the group law on the codomain elliptic curve, which has rank
+    1 and full 2-torsion, anf the inverse morphism, we can find many
+    points on the cubic.  First we find the preimages of multiples of
+    the generator::
+
+        sage: E = f.codomain()
+        sage: E.label()
+        '720e2'
+        sage: E.rank()
+        1
+        sage: R = E.gens()[0]; R
+        (-17280000/2527 : 9331200000/6859 : 1)
+        sage: finv = f.inverse()
+        sage: [finv(k*R) for k in range(1,10)]
+        [(-4 : 1 : 0),
+        (-1 : 4 : 1),
+        (-20 : -55/76 : 1),
+        (319/399 : -11339/7539 : 1),
+        (159919/14360 : -4078139/1327840 : 1),
+        (-27809119/63578639 : 1856146436/3425378659 : 1),
+        (-510646582340/56909753439 : 424000923715/30153806197284 : 1),
+        (-56686114363679/4050436059492161 : -2433034816977728281/1072927821085503881 : 1),
+        (650589589099815846721/72056273157352822480 : -347376189546061993109881/194127383495944026752320 : 1)]
+
+    The elliptic curve also has torsion, which we can map back::
+
+        sage: E.torsion_points()
+        [(-144000000/17689 : 3533760000000/2352637 : 1),
+        (-92160000/17689 : 2162073600000/2352637 : 1),
+        (-5760000/17689 : -124070400000/2352637 : 1),
+        (0 : 1 : 0)]
+        sage: [finv(Q) for Q in E.torsion_points() if Q]
+        [(9 : -9/4 : 1), (-9 : 0 : 1), (0 : 1 : 0)]
+
+
+    In this example, the given point ``P`` is not a flex but the cubic
+    does have a rational flex, ``(-4:0:1)``.  We return a linear
+    isomorphism which maps this flex to the point at infinity on the
+    Weierstrass model::
+
+        sage: R.<a,b,c> = QQ[]
         sage: cubic =  a^3+7*b^3+64*c^3
         sage: P = [2,2,-1]
         sage: f = EllipticCurve_from_cubic(cubic, P, morphism=True)
         sage: E = f.codomain();  E
-        Elliptic Curve defined by y^2 - 722*x*y - 21870000*y = x^3
-        + 23579*x^2 over Rational Field
+        Elliptic Curve defined by y^2 - 258048*y = x^3 - 22196256768 over Rational Field
         sage: E.minimal_model()
         Elliptic Curve defined by y^2 + y = x^3 - 331 over Rational Field
 
         sage: f
         Scheme morphism:
-          From: Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
-                a^3 + 7*b^3 + 64*c^3
-          To:   Elliptic Curve defined by y^2 - 722*x*y - 21870000*y =
-                x^3 + 23579*x^2 over Rational Field
+          From: Projective Plane Curve over Rational Field defined by a^3 + 7*b^3 + 64*c^3
+          To:   Elliptic Curve defined by y^2 - 258048*y = x^3 - 22196256768 over Rational Field
           Defn: Defined on coordinates by sending (a : b : c) to
-                (-5/112896*a^2 - 17/40320*a*b - 1/1280*b^2 - 29/35280*a*c
-                 - 13/5040*b*c - 4/2205*c^2 :
-                 -4055/112896*a^2 - 4787/40320*a*b - 91/1280*b^2 - 7769/35280*a*c
-                 - 1993/5040*b*c - 724/2205*c^2 :
-                 1/4572288000*a^2 + 1/326592000*a*b + 1/93312000*b^2 + 1/142884000*a*c
-                 + 1/20412000*b*c + 1/17860500*c^2)
+                (b : -48*a : -1/5376*a - 1/1344*c)
 
         sage: finv = f.inverse();  finv
         Scheme morphism:
-          From: Elliptic Curve defined by y^2 - 722*x*y - 21870000*y =
-                x^3 + 23579*x^2 over Rational Field
-          To:   Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
-                a^3 + 7*b^3 + 64*c^3
+          From: Elliptic Curve defined by y^2 - 258048*y = x^3 - 22196256768 over Rational Field
+          To:   Projective Plane Curve over Rational Field defined by a^3 + 7*b^3 + 64*c^3
           Defn: Defined on coordinates by sending (x : y : z) to
-                (2*x^2 + 227700*x*z - 900*y*z :
-                 2*x^2 - 32940*x*z + 540*y*z :
-                 -x^2 - 56520*x*z - 180*y*z)
+                (-1/48*y : x : 1/192*y - 1344*z)
 
         sage: cubic(finv.defining_polynomials()) * finv.post_rescaling()
-        -x^3 - 23579*x^2*z - 722*x*y*z + y^2*z - 21870000*y*z^2
+        -x^3 + y^2*z - 258048*y*z^2 + 22196256768*z^3
 
         sage: E.defining_polynomial()(f.defining_polynomials()) * f.post_rescaling()
         a^3 + 7*b^3 + 64*c^3
 
-    TESTS::
+        sage: f(P)
+        (5376 : -258048 : 1)
+        sage: f([-4,0,1])
+        (0 : 1 : 0)
 
-        sage: R.<x,y,z> = QQ[]
-        sage: cubic = x^2*y + 4*x*y^2 + x^2*z + 8*x*y*z + 4*y^2*z + 9*x*z^2 + 9*y*z^2
-        sage: EllipticCurve_from_cubic(cubic, [1,-1,1], morphism=False)
-        Elliptic Curve defined by y^2 - 882*x*y - 2560000*y = x^3 - 127281*x^2 over Rational Field
+    TESTS:
 
     Here is a test for :trac:`21092`::
 
@@ -904,13 +957,16 @@ def EllipticCurve_from_cubic(F, P=None, morphism=True):
         sage: cubic = -3*x^2*y + 3*x*y^2 + 4*x^2*z + 4*y^2*z - 3*x*z^2 + 3*y*z^2 - 8*z^3
         sage: EllipticCurve_from_cubic(cubic, (-4/5, 4/5, 3/5) )
         Scheme morphism:
-          From: Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
-          -3*x^2*y + 3*x*y^2 + 4*x^2*z + 4*y^2*z - 3*x*z^2 + 3*y*z^2 - 8*z^3
-          To:   Elliptic Curve defined by y^2 - 6*x*y - 112*y = x^3 + 62*x^2 + 560*x over Rational Field
+          From: Projective Plane Curve over Rational Field defined by -3*x^2*y + 3*x*y^2 + 4*x^2*z + 4*y^2*z - 3*x*z^2 + 3*y*z^2 - 8*z^3
+          To:   Elliptic Curve defined by y^2 + 24*x*y + 3024*y = x^3 + 495*x^2 + 36288*x over Rational Field
           Defn: Defined on coordinates by sending (x : y : z) to
-                (1/3*z : -y - 1/3*z : 1/112*x - 1/112*y - 1/42*z)
+                (-1/3*z : 3*x : -1/1008*x + 1/1008*y + 1/378*z)
     """
-    import sage.matrix.all as matrix
+    from sage.schemes.curves.constructor import Curve
+    from sage.matrix.all import Matrix
+    from sage.modules.all import vector
+    from sage.schemes.elliptic_curves.weierstrass_transform import \
+        WeierstrassTransformationWithInverse
 
     # check the input
     R = F.parent()
@@ -918,18 +974,17 @@ def EllipticCurve_from_cubic(F, P=None, morphism=True):
         raise TypeError('equation must be a polynomial')
     if R.ngens() != 3 or F.nvariables() != 3:
         raise TypeError('equation must be a polynomial in three variables')
-    x, y, z = R.gens()
     if not F.is_homogeneous():
         raise TypeError('equation must be a homogeneous polynomial')
 
     if len(P) != 3:
         raise TypeError('%s is not a projective point' % P)
-    K = F.parent().base_ring()
+    K = R.base_ring()
 
     try:
         C = Curve(F)
         CP = C(P)
-    except TypeError, ValueError:
+    except (TypeError, ValueError):
         raise TypeError('{} does not define a point on a projective curve over {} defined by {}'.format(P,K,F))
 
     x, y, z = R.gens()
@@ -946,83 +1001,120 @@ def EllipticCurve_from_cubic(F, P=None, morphism=True):
         else:
             flex_point = None
 
-    if flex_point is not None:
+    if flex_point is not None: # first case: base point is a flex
         P = flex_point
-        # find the tangent to F in P
-        dx = K(F.derivative(x)(P))
-        dy = K(F.derivative(y)(P))
-        dz = K(F.derivative(z)(P))
-        # find a second point Q on the tangent line but not on the cubic
-        for tangent in [[dy, -dx, K.zero()], [dz, K.zero(), -dx], [K.zero(), -dz, dx]]:
-            tangent = projective_point(tangent)
-            Q = [tangent[0]+P[0], tangent[1]+P[1], tangent[2]+P[2]]
-            F_Q = F(Q)
-            if F_Q != 0:  # At most one further point may accidentally be on the cubic
-                break
-        # pick linearly independent third point
-        for third_point in [(1,0,0), (0,1,0), (0,0,1)]:
-            M = matrix.matrix(K, [Q, P, third_point]).transpose()
-            if M.is_invertible():
-                break
+        L = C.tangents(P)[0]
+        dx, dy, dz = [L.coefficient(v) for v in R.gens()]
+
+        # find an invertible matrix M such that (0,1,0)M=P and
+        # ML'=(0,0,1)' where L=[dx,dy,dx].  Then the linea transform
+        # by M takes P to [0,1,0] and L to Z=0:
+
+        if P[0]:
+            Q1 = [0,-dz,dy]
+            Q2 = [0,1,0] if dy else [0,0,1]
+        elif P[1]:
+            Q1 = [dz,0,-dx]
+            Q2 = [1,0,0] if dx else [0,0,1]
+        else:
+            Q1 = [-dy,dx,0]
+            Q2 = [1,0,0] if dx else [0,1,0]
+
+        M = Matrix(K,[Q1,P,Q2])
+        # assert M.is_invertible()
+        # assert list(vector([0,1,0])*M) == P
+        # assert list(M*vector([dx,dy,dz]))[:2] == [0,0]
+
+        M = M.transpose()
         F2 = R(M.act_on_polynomial(F))
+
         # scale and dehomogenise
         a = K(F2.coefficient(x**3))
-        F3 = F2/a
-        b = K(F3.coefficient(y*y*z))
-        S = rings.PolynomialRing(K, 'x,y,z')
-        # elliptic curve coordinates
-        X, Y, Z = S.gen(0), S.gen(1), S(-1/b)*S.gen(2)
-        F4 = F3(X, Y, Z)
-        E = EllipticCurve(F4.subs(z=1))
+        b = K(F2.coefficient(y*y*z))
+
+        F3 = F2([-x, y/b, z*a*b]) / a
+        # assert F3.coefficient(x**3) == -1
+        # assert F3.coefficient(y*y*z) == 1
+        E = EllipticCurve(F3([x,y,1]))
         if not morphism:
             return E
-        inv_defining_poly = [ M[i,0]*X + M[i,1]*Y + M[i,2]*Z for i in range(3) ]
-        inv_post = -1/a
-        M = M.inverse()
-        trans_x, trans_y, trans_z = [ M[i,0]*x + M[i,1]*y + M[i,2]*z for i in range(3) ]
-        fwd_defining_poly = [trans_x, trans_y, -b*trans_z]
-        fwd_post = -a
 
-    # Second case: P, P2, P3 are different
-    else:
+        # Construct the (linear) morphism
+        M = M * Matrix(K,[[-1,0,0],[0,1/b,0],[0,0,a*b]])
+        inv_defining_poly = [ M[i,0]*x + M[i,1]*y + M[i,2]*z for i in range(3) ]
+        inv_post = 1/a
+        M = M.inverse()
+        fwd_defining_poly = [ M[i,0]*x + M[i,1]*y + M[i,2]*z for i in range(3) ]
+        fwd_post = a
+
+    else: # Second case: no flexes
+        L = C.tangents(P)[0]
+        Qlist = [Q for Q in C.intersection(Curve(L)).rational_points() if C(Q)!=CP]
+        # assert Qlist
+        P2 = C(Qlist[0])
+        L2 = C.tangents(P2)[0]
+        Qlist = [Q for Q in C.intersection(Curve(L2)).rational_points() if C(Q)!=P2]
+        # assert Qlist
+        P3 = C(Qlist[0])
+
+        # NB This construction of P3 relies on P2 not being a flex.
+        # If we want to use a non-flex as P when there are rational
+        # flexes this would be a problem.  However, the only condition
+        # which P3 must satisfy is that it is on the tangent at P2, it
+        # need not lie on the cubic.
+
         # send P, P2, P3 to (1:0:0), (0:1:0), (0:0:1) respectively
-        M = matrix.matrix(K, [P, P2, P3]).transpose()
+        M = Matrix(K, [P, list(P2), list(P3)]).transpose()
         F2 = M.act_on_polynomial(F)
+        xyzM = [ M[i,0]*x + M[i,1]*y + M[i,2]*z for i in range(3) ]
+        # assert F(xyzM)==F2
+
         # substitute x = U^2, y = V*W, z = U*W, and rename (x,y,z)=(U,V,W)
-        F3 = F2.substitute({x:x**2, y:y*z, z:x*z}) // (x**2*z)
+        T1 = [x*x,y*z,x*z]
+        S1 = x**2*z
+        F3 = F2(T1) // S1
+        xyzC = [ t(T1) for t in xyzM ]
+        # assert F3 == F(xyzC) // S1
+
         # scale and dehomogenise
         a = K(F3.coefficient(x**3))
-        F4 = F3/a
-        b = K(F4.coefficient(y*y*z))
-        # change to a polynomial in only two variables
-        S = rings.PolynomialRing(K, 'x,y,z')
-        # elliptic curve coordinates
-        X, Y, Z = S.gen(0), S.gen(1), S(-1/b)*S.gen(2)
-        F5 = F4(X, Y, Z)
-        E = EllipticCurve(F5.subs(z=1))
+        b = K(F3.coefficient(y*y*z))
+        ab = a*b
+
+        T2 = [-x, y/b, ab*z]
+        F4 = F3(T2) / a
+        # assert F4.coefficient(x**3) == -1
+        # assert F4.coefficient(y*y*z) == 1
+        xyzW = [ t(T2) for t in xyzC ]
+        S2 = a*S1(T2)
+        # assert F4 == F(xyzW) // S2
+
+        E = EllipticCurve(F4([x,y,1]))
         if not morphism:
             return E
-        inv_defining_poly = [ M[i,0]*X*X + M[i,1]*Y*Z + M[i,2]*X*Z for i in range(3) ]
-        inv_post = -1/a/(X**2)/Z
-        M = M.inverse()
-        trans_x, trans_y, trans_z = [
-            (M[i,0]*x + M[i,1]*y + M[i,2]*z) for i in range(3) ]
-        fwd_defining_poly = [ trans_x*trans_z, trans_x*trans_y, -b*trans_z*trans_z ]
-        fwd_post = -a/(trans_x*trans_z*trans_z)
+
+        inv_defining_poly = xyzW
+        inv_post = 1/S2
+        # assert F4==F(inv_defining_poly)*inv_post
+        MI = M.inverse()
+        xyzI = [ (MI[i,0]*x + MI[i,1]*y + MI[i,2]*z) for i in range(3) ]
+        T1I = [x*z,x*y,z*z] # inverse of T1
+        xyzIC = [ t(xyzI) for t in T1I ]
+        T2I = [-x, b*y, z/ab] # inverse of T2
+        xyzIW = [ t(xyzIC) for t in T2I ]
+        fwd_defining_poly = xyzIW
+        fwd_post = a/(x*z*z)(xyzI)
+        # assert F4(fwd_defining_poly)*fwd_post == F
 
     # Construct the morphism
-    from sage.schemes.projective.projective_space import ProjectiveSpace
-    P2 = ProjectiveSpace(2, K, names=[str(_) for _ in R.gens()])
-    cubic = P2.subscheme(F)
-    from sage.schemes.elliptic_curves.weierstrass_transform import \
-        WeierstrassTransformationWithInverse
+
     return WeierstrassTransformationWithInverse(
-        cubic, E, fwd_defining_poly, fwd_post, inv_defining_poly, inv_post)
+        C, E, fwd_defining_poly, fwd_post, inv_defining_poly, inv_post)
 
 
 def chord_and_tangent(F, P):
     """
-    Use the chord and tangent method to get another point on a cubic.
+    Return the third point of intersection of a cubic with the tangent at one point.
 
     INPUT:
 
@@ -1035,7 +1127,7 @@ def chord_and_tangent(F, P):
 
     OUTPUT:
 
-    Another point satisfying the equation ``F``.
+    A point ``Q`` such that ``F(Q)=0``, namely the third point of intersection of the tangent at ``P`` with the curve ``F=0``, so ``Q=P`` if and only if ``P`` is a flex.
 
     EXAMPLES::
 
@@ -1043,18 +1135,18 @@ def chord_and_tangent(F, P):
         sage: from sage.schemes.elliptic_curves.constructor import chord_and_tangent
         sage: F = x^3+y^3+60*z^3
         sage: chord_and_tangent(F, [1,-1,0])
-        [1, -1, 0]
+        (-1 : 1 : 0)
 
         sage: F = x^3+7*y^3+64*z^3
         sage: p0 = [2,2,-1]
         sage: p1 = chord_and_tangent(F, p0);  p1
-        [-5, 3, -1]
+        (5 : -3 : 1)
         sage: p2 = chord_and_tangent(F, p1);  p2
-        [1265, -183, -314]
+        (-1265/314 : 183/314 : 1)
 
     TESTS::
 
-        sage: F(p2)
+        sage: F(list(p2))
         0
         sage: list(map(type, p2))
         [<... 'sage.rings.rational.Rational'>,
@@ -1065,68 +1157,32 @@ def chord_and_tangent(F, P):
 
         sage: F = x**3 - 4*x**2*y - 65*x*y**2 + 3*x*y*z - 76*y*z**2
         sage: chord_and_tangent(F, [0, 1, 0])
-        [0, 0, -1]
+        (0 : 0 : 1)
     """
+    from sage.schemes.curves.constructor import Curve
     # check the input
     R = F.parent()
     if not is_MPolynomialRing(R):
         raise TypeError('equation must be a polynomial')
     if R.ngens() != 3:
-        raise TypeError('%s is not a polynomial in three variables'%F)
+        raise TypeError('{} is not a polynomial in three variables'.format(F))
     if not F.is_homogeneous():
-        raise TypeError('%s is not a homogeneous polynomial'%F)
+        raise TypeError('{} is not a homogeneous polynomial'.format(F))
     x, y, z = R.gens()
     if len(P) != 3:
-        raise TypeError('%s is not a projective point'%P)
+        raise TypeError('{} is not a projective point'.format(P))
     K = R.base_ring()
     try:
-        P = [K(c) for c in P]
-    except TypeError:
-        raise TypeError('cannot coerce %s into %s'%(P,K))
-    if F(P) != 0:
-        raise ValueError('%s is not a point on %s'%(P,F))
+        C = Curve(F)
+        P = C(P)
+    except (TypeError, ValueError):
+        raise TypeError('{} does not define a point on a projective curve over {} defined by {}'.format(P,K,F))
 
-    # find the tangent to F in P
-    dx = K(F.derivative(x)(P))
-    dy = K(F.derivative(y)(P))
-    dz = K(F.derivative(z)(P))
-    # if dF/dy(P) = 0, change variables so that dF/dy != 0
-    if dy == 0:
-        if dx != 0:
-            g = F.substitute({x:y, y:x})
-            Q = [P[1], P[0], P[2]]
-            R = chord_and_tangent(g, Q)
-            return [R[1], R[0], R[2]]
-        elif dz != 0:
-            g = F.substitute({y:z, z:y})
-            Q = [P[0], P[2], P[1]]
-            R = chord_and_tangent(g, Q)
-            return [R[0], R[2], R[1]]
-        else:
-            raise ValueError('%s is singular at %s'%(F, P))
-
-    # t will be our choice of parmeter of the tangent plane
-    #     dx*(x-P[0]) + dy*(y-P[1]) + dz*(z-P[2])
-    # through the point P
-    t = rings.PolynomialRing(K, 't').gen(0)
-    Ft = F(dy*t+P[0], -dx*t+P[1], P[2])
-    if Ft == 0:   # (dy, -dx, 0) is projectively equivalent to P
-        # then (0, -dz, dy) is not projectively equivalent to P
-        g = F.substitute({x:z, z:x})
-        Q = [P[2], P[1], P[0]]
-        R = chord_and_tangent(g, Q)
-        return [R[2], R[1], R[0]]
-    # Ft has a double zero at t=0 by construction, which we now remove
-    Ft = Ft // t**2
-
-    # first case: the third point is at t=infinity
-    if Ft.is_constant():
-        return projective_point([dy, -dx, K(0)])
-    # second case: the third point is at finite t
-    else:
-        assert Ft.degree() == 1
-        t0 = Ft.roots()[0][0]
-        return projective_point([dy*t0+P[0], -dx*t0+P[1], P[2]])
+    L = Curve(C.tangents(P)[0])
+    Qlist = [Q for Q in C.intersection(L).rational_points() if Q!=P]
+    if Qlist:
+        return Qlist[0]
+    return P
 
 
 def projective_point(p):

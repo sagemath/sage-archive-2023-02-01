@@ -949,6 +949,29 @@ def EllipticCurve_from_cubic(F, P=None, morphism=True):
         sage: f([-4,0,1])
         (0 : 1 : 0)
 
+    It is possible to not provide a base point ``P`` provided that the
+    cubic has a rational flex.  In this case the flexes will be found
+    and one will beused as a base point::
+
+        sage: R.<x,y,z> = QQ[]
+        sage: cubic = x^3+y^3+z^3
+        sage: f = EllipticCurve_from_cubic(cubic, morphism=True)
+        sage: f
+        Scheme morphism:
+          From: Projective Plane Curve over Rational Field defined by x^3 + y^3 + z^3
+          To:   Elliptic Curve defined by y^2 - 9*y = x^3 - 27 over Rational Field
+          Defn: Defined on coordinates by sending (x : y : z) to
+                (y : -3*x : -1/3*x - 1/3*z)
+
+    An error will be raised if not point is given and there are not rational flexes::
+
+        sage: R.<x,y,z> = QQ[]
+        sage: cubic = 3*x^3+4*y^3+5*z^3
+        sage: EllipticCurve_from_cubic(cubic)
+        Traceback (most recent call last):
+        ...
+        ValueError: A point must be given when the cubic has no rational flexes
+
     TESTS:
 
     Here is a test for :trac:`21092`::
@@ -970,6 +993,7 @@ def EllipticCurve_from_cubic(F, P=None, morphism=True):
 
     # check the input
     R = F.parent()
+    K = R.base_ring()
     if not is_MPolynomialRing(R):
         raise TypeError('equation must be a polynomial')
     if R.ngens() != 3 or F.nvariables() != 3:
@@ -977,27 +1001,27 @@ def EllipticCurve_from_cubic(F, P=None, morphism=True):
     if not F.is_homogeneous():
         raise TypeError('equation must be a homogeneous polynomial')
 
-    if len(P) != 3:
-        raise TypeError('%s is not a projective point' % P)
-    K = R.base_ring()
-
-    try:
-        C = Curve(F)
-        CP = C(P)
-    except (TypeError, ValueError):
-        raise TypeError('{} does not define a point on a projective curve over {} defined by {}'.format(P,K,F))
+    C = Curve(F)
+    if P:
+        try:
+            CP = C(P)
+        except (TypeError, ValueError):
+            raise TypeError('{} does not define a point on a projective curve over {} defined by {}'.format(P,K,F))
 
     x, y, z = R.gens()
 
     # Test whether P is a flex; if not test whether there are any rational flexes:
 
     hessian = Matrix([[F.derivative(v1, v2) for v1 in R.gens()] for v2 in R.gens()]).det()
-    if hessian(P)==0:
+    if P and hessian(P)==0:
         flex_point = P
     else:
         flexes = C.intersection(Curve(hessian)).rational_points()
         if flexes:
             flex_point = list(flexes[0])
+            if not P:
+                P = flex_point
+                CP = C(P)
         else:
             flex_point = None
 
@@ -1048,6 +1072,8 @@ def EllipticCurve_from_cubic(F, P=None, morphism=True):
         fwd_post = a
 
     else: # Second case: no flexes
+        if not P:
+            raise ValueError('A point must be given when the cubic has no rational flexes')
         L = C.tangents(P)[0]
         Qlist = [Q for Q in C.intersection(Curve(L)).rational_points() if C(Q)!=CP]
         # assert Qlist

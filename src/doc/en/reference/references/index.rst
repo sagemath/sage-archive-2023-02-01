@@ -2062,7 +2062,7 @@ REFERENCES:
             Volume 921, 1995, pp 1-12.
 
 .. [Shi1971]  Shimura, Goro. *Introduction to the arithmetic theory of
-            automorphic functions*. Princeton University Press, 1971. 
+            automorphic functions*. Princeton University Press, 1971.
 
 .. [Shr2004] Shreve, S. Stochastic Calculus for Finance II:
              Continuous-Time Models.  New York: Springer, 2004

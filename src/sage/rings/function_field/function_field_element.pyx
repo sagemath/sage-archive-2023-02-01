@@ -776,9 +776,25 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         """
         return self._x.denominator()
 
+    def valuation(self, v):
+        """
+        EXAMPLES::
+
+            sage: K.<t> = FunctionField(QQ)
+            sage: f = (t-1)^2 * (t+1) / (t^2 - 1/3)^3
+            sage: f.valuation(t-1)
+            2
+            sage: f.valuation(t)
+            0
+            sage: f.valuation(t^2 - 1/3)
+            -3
+        """
+        R = self._parent._ring
+        return self._x.valuation(R(self._parent(v)._x))
+
     def is_square(self):
         """
-        Return whether the element is a square.
+        Returns whether self is a square.
 
         EXAMPLES::
 
@@ -849,6 +865,14 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         Return an inverse of the element modulo the integral ideal `I`, if `I`
         and the element together generate the unit ideal.
 
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: O = K.maximal_order(); I = O.ideal(x^2+1)
+            sage: t = O(x+1).inverse_mod(I); t
+            -1/2*x + 1/2
+            sage: (t*(x+1) - 1) in I
+            True
         """
         assert  len(I.gens()) == 1
         f = I.gens()[0]._x

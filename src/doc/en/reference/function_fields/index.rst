@@ -2,9 +2,7 @@ Algebraic Function Fields
 =========================
 
 Sage allows basic computations with elements and ideals in orders of
-algebraic function fields over arbitrary constant fields. Advanced
-computations, like computing the genus or a basis of the Riemann-Roch space of
-a divisor, are available for global function fields.
+algebraic function fields over arbitrary constant fields.
 
 .. toctree::
    :maxdepth: 1

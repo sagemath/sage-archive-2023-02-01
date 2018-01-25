@@ -1,12 +1,5 @@
 r"""
-Ideals
-
-Ideals of an order of a function field include all fractional ideals of the order.
-Sage provides basic arithmetic with fractional ideals.
-
-The fractional ideals of the maximal order of a global function field forms a multiplicative
-monoid. Sage allows advanced arithmetic with the fractional ideals. For example, an ideal
-of the maximal order can be factored into a product of prime ideals.
+Ideals in Function Fields
 
 AUTHORS:
 
@@ -14,8 +7,36 @@ AUTHORS:
 
 - Maarten Derickx (2011-09-14): fixed ideal_with_gens_over_base()
 
-- Kwankyu Lee (2017-04-30): added ideals for global function fields
+EXAMPLES:
 
+Ideals in the maximal order of a rational function field::
+
+    sage: K.<x> = FunctionField(QQ)
+    sage: O = K.maximal_order()
+    sage: I = O.ideal(x^3+1); I
+    Ideal (x^3 + 1) of Maximal order in Rational function field in x over Rational Field
+    sage: I^2
+    Ideal (x^6 + 2*x^3 + 1) of Maximal order in Rational function field in x over Rational Field
+    sage: ~I
+    Ideal (1/(x^3 + 1)) of Maximal order in Rational function field in x over Rational Field
+    sage: ~I * I
+    Ideal (1) of Maximal order in Rational function field in x over Rational Field
+
+Ideals in the equation order of an extension of a rational function field::
+
+    sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+    sage: L.<y> = K.extension(y^2-x^3-1)
+    sage: O = L.equation_order()
+    sage: I = O.ideal(y); I
+    Ideal (x^3 + 1, -y) of Order in Function field in y defined by y^2 - x^3 - 1
+    sage: I^2
+    Ideal (x^3 + 1, (-x^3 - 1)*y) of Order in Function field in y defined by y^2 - x^3 - 1
+    sage: ~I
+    Ideal (-1, (1/(x^3 + 1))*y) of Order in Function field in y defined by y^2 - x^3 - 1
+    sage: ~I * I
+    Ideal (1, y) of Order in Function field in y defined by y^2 - x^3 - 1
+    sage: I.intersection(~I)
+    Ideal (x^3 + 1, -y) of Order in Function field in y defined by y^2 - x^3 - 1
 """
 from __future__ import absolute_import
 #*****************************************************************************
@@ -28,55 +49,23 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import operator
-import itertools
-
-from sage.misc.cachefunc import cached_method
-from sage.misc.lazy_import import lazy_import
-from sage.misc.misc_c import prod
-
-from sage.structure.sage_object import SageObject
-from sage.structure.parent import Parent
-from sage.structure.element import AlgebraElement
+from sage.rings.ideal import Ideal_generic
 from sage.structure.richcmp import richcmp
-from sage.structure.factorization import Factorization
 
-from sage.modules.free_module_element import vector
 
-from sage.categories.monoids import Monoids
-
-import sage.rings.integer_ring
-from sage.rings.infinity import infinity
-
-lazy_import('sage.matrix.constructor', 'matrix')
-
-def is_Ideal(x):
+class FunctionFieldIdeal(Ideal_generic):
     """
-    Return ``True`` if ``x`` is an ideal in a function field.
+    A fractional ideal of a function field.
+
+    EXAMPLES::
+
+        sage: K.<x> = FunctionField(GF(7))
+        sage: O = K.maximal_order()
+        sage: I = O.ideal(x^3+1)
+        sage: isinstance(I, sage.rings.function_field.function_field_ideal.FunctionFieldIdeal)
+        True
     """
-    return isinstance(x, FunctionFieldIdeal)
-
-class FunctionFieldIdeal(AlgebraElement):
-    """
-    Fractional ideals of function fields.
-    """
-    def __init__(self, ring):
-        """
-        Initialize.
-        """
-        AlgebraElement.__init__(self, ring.ideal_monoid())
-        self._ring = ring
-
-    def gens_reduced(self):
-        r"""
-        Return reduced generators. This just returns the generators for now.
-
-        This method is provided so that ideals in funtion fields have the method
-        :meth:`gens_reduced()`, just like ideals of number fields. Sage linear algebra
-        machinery sometimes requires this.
-
-        """
-        return self.gens()
+    pass
 
 class FunctionFieldIdeal_module(FunctionFieldIdeal):
     """
@@ -90,332 +79,250 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
         sage: K.<x> = FunctionField(QQ); R.<y> = K[]
         sage: L.<y> = K.extension(y^2 - x^3 - 1)
         sage: O = L.equation_order()
+        sage: I = O.ideal(y)
+        sage: I
+        Ideal (x^3 + 1, -y) of Order in Function field in y defined by y^2 - x^3 - 1
+        sage: I^2
+        Ideal (x^3 + 1, (-x^3 - 1)*y) of Order in Function field in y defined by y^2 - x^3 - 1
     """
     def __init__(self, ring, module):
         """
-        Initialize.
-
         INPUT:
 
-        - ``ring`` -- order in a function field
+            - ``ring`` -- an order in a function field
+            - ``module`` -- a module
 
-        - ``module`` -- module
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x^3 - 1)
+            sage: O = L.equation_order()
+            sage: I = O.ideal(y)
+            sage: type(I)
+            <class 'sage.rings.function_field.function_field_ideal.FunctionFieldIdeal_module'>
         """
-        FunctionFieldIdeal.__init__(self, ring)
-
+        self._ring = ring
         self._module = module
         self._structure = ring.fraction_field().vector_space()
-
         V, from_V, to_V = self._structure
-        self._gens = tuple([from_V(a) for a in module.basis()])
+        gens = tuple([from_V(a) for a in module.basis()])
+        Ideal_generic.__init__(self, ring, gens, coerce=False)
 
     def __contains__(self, x):
         """
-        Return ``True`` if ``x`` is in the ideal.
+        Return True if x is in this ideal.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(7)); R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x^3 - 1)
+            sage: O = L.equation_order()
+            sage: I = O.ideal_with_gens_over_base([1, y]);  I
+            Ideal (1, y) of Order in Function field in y defined by y^2 + 6*x^3 + 6
+            sage: y in I
+            True
+            sage: y/x in I
+            False
+            sage: y^2 - 2 in I
+            True
         """
         return self._structure[2](x) in self._module
-
-    def __hash__(self):
-        """
-        Return the hash of the ideal.
-        """
-        return hash((self._ring,self._module))
-
-    def _richcmp_(self, other, op):
-        """
-        Compare this ideal with the other ideal with respect to ``op``.
-        """
-        return richcmp(self.module(), other.module(), op)
 
     def module(self):
         """
         Return module over the maximal order of the base field that
-        underlies the ideal.
+        underlies self.
 
-        The formation of the module is compatible with the vector
+        The formation of this module is compatible with the vector
         space corresponding to the function field.
 
         OUTPUT:
 
-        - a module over the maximal order of the base field of the ideal
+            - a module over the maximal order of the base field of self
 
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(7))
+            sage: O = K.maximal_order(); O
+            Maximal order in Rational function field in x over Finite Field of size 7
+            sage: K.polynomial_ring()
+            Univariate Polynomial Ring in x over Rational function field in x over Finite Field of size 7
+            sage: I = O.ideal_with_gens_over_base([x^2 + 1, x*(x^2+1)])
+            sage: I.gens()
+            (x^2 + 1,)
+            sage: I.module()
+            Free module of degree 1 and rank 1 over Maximal order in Rational function field in x over Finite Field of size 7
+            User basis matrix:
+            [x^2 + 1]
+            sage: V, from_V, to_V = K.vector_space(); V
+            Vector space of dimension 1 over Rational function field in x over Finite Field of size 7
+            sage: I.module().is_submodule(V)
+            True
         """
         return self._module
 
-    def __repr__(self):
-        """
-        Return a string representation of the ideal.
-
-        EXAMPLES::
-
-            sage: P.<a,b,c> = QQ[]
-            sage: P*[a^2,a*b+c,c^3] # indirect doctest
-            Ideal (a^2, a*b + c, c^3) of Multivariate Polynomial Ring in a, b, c over Rational Field
-        """
-        return "Ideal (%s) of %s"%(', '.join([repr(g) for g in self.gens()]), self.ring())
-
-    def base_ring(self):
-        r"""
-        Returns the base ring of the ideal.
-
-        EXAMPLES::
-
-            sage: R = ZZ
-            sage: I = 3*R; I
-            Principal ideal (3) of Integer Ring
-            sage: J = 2*I; J
-            Principal ideal (6) of Integer Ring
-            sage: I.base_ring(); J.base_ring()
-            Integer Ring
-            Integer Ring
-
-        We construct an example of an ideal of a quotient ring::
-
-            sage: R = PolynomialRing(QQ, 'x'); x = R.gen()
-            sage: I = R.ideal(x^2 - 2)
-            sage: I.base_ring()
-            Rational Field
-
-        And `p`-adic numbers::
-
-            sage: R = Zp(7, prec=10); R
-            7-adic Ring with capped relative precision 10
-            sage: I = 7*R; I
-            Principal ideal (7 + O(7^11)) of 7-adic Ring with capped relative precision 10
-            sage: I.base_ring()
-            7-adic Ring with capped relative precision 10
-        """
-        return self.ring().base_ring()
-
-    def apply_morphism(self, phi):
-        r"""
-        Apply the morphism ``phi`` to every element of the ideal and
-        return an ideal in the domain of ``phi``.
-
-        INPUT:
-
-        - ``phi`` -- morphism
-
-        EXAMPLES::
-
-            sage: psi = CC['x'].hom([-CC['x'].0])
-            sage: J = ideal([CC['x'].0 + 1]); J
-            Principal ideal (x + 1.00000000000000) of Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
-            sage: psi(J)
-            Principal ideal (x - 1.00000000000000) of Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
-            sage: J.apply_morphism(psi)
-            Principal ideal (x - 1.00000000000000) of Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
-
-        ::
-
-            sage: psi = ZZ['x'].hom([-ZZ['x'].0])
-            sage: J = ideal([ZZ['x'].0, 2]); J
-            Ideal (x, 2) of Univariate Polynomial Ring in x over Integer Ring
-            sage: psi(J)
-            Ideal (-x, 2) of Univariate Polynomial Ring in x over Integer Ring
-            sage: J.apply_morphism(psi)
-            Ideal (-x, 2) of Univariate Polynomial Ring in x over Integer Ring
-
-        TESTS::
-
-            sage: K.<a> = NumberField(x^2 + 1)
-            sage: A = K.ideal(a)
-            sage: taus = K.embeddings(K)
-            sage: A.apply_morphism(taus[0]) # identity
-            Fractional ideal (a)
-            sage: A.apply_morphism(taus[1]) # complex conjugation
-            Fractional ideal (-a)
-            sage: A.apply_morphism(taus[0]) == A.apply_morphism(taus[1])
-            True
-
-        ::
-
-            sage: K.<a> = NumberField(x^2 + 5)
-            sage: B = K.ideal([2, a + 1]); B
-            Fractional ideal (2, a + 1)
-            sage: taus = K.embeddings(K)
-            sage: B.apply_morphism(taus[0]) # identity
-            Fractional ideal (2, a + 1)
-
-        Since 2 is totally ramified, complex conjugation fixes it::
-
-            sage: B.apply_morphism(taus[1]) # complex conjugation
-            Fractional ideal (2, a + 1)
-            sage: taus[1](B)
-            Fractional ideal (2, a + 1)
-        """
-        from sage.categories.morphism import is_Morphism
-        if not is_Morphism(phi):
-            raise TypeError("phi must be a morphism")
-        # delegate: morphisms know how to apply themselves to ideals
-        return phi(self)
-
-    def gens(self):
-        """
-        Return a set of generators of the ideal.
-
-        This is the set of generators provided during the creation of the ideal.
-
-        EXAMPLES::
-
-            sage: P.<x,y> = PolynomialRing(QQ,2)
-            sage: I = Ideal([x,y+1]); I
-            Ideal (x, y + 1) of Multivariate Polynomial Ring in x, y over Rational Field
-            sage: I.gens()
-            [x, y + 1]
-
-        ::
-
-            sage: ZZ.ideal(5,10).gens()
-            (5,)
-        """
-        return self._gens
-
-    def gen(self, i):
-        """
-        Return the ``i``-th generator in the current basis of the ideal.
-
-        EXAMPLES::
-
-            sage: P.<x,y> = PolynomialRing(QQ,2)
-            sage: I = Ideal([x,y+1]); I
-            Ideal (x, y + 1) of Multivariate Polynomial Ring in x, y over Rational Field
-            sage: I.gen(1)
-            y + 1
-
-            sage: ZZ.ideal(5,10).gen()
-            5
-        """
-        return self._gens[i]
-
-    def ngens(self):
-        """
-        Return the number of generators in the basis.
-
-        EXAMPLES::
-
-            sage: P.<x,y> = PolynomialRing(QQ,2)
-            sage: I = Ideal([x,y+1]); I
-            Ideal (x, y + 1) of Multivariate Polynomial Ring in x, y over Rational Field
-            sage: I.ngens()
-            2
-
-            sage: ZZ.ideal(5,10).ngens()
-            1
-        """
-        return len(self.__gens)
-
     def __add__(self, other):
         """
-        This method just makes sure that the ideal and ``other`` are ideals in the
-        same ring and then calls :meth:`_add_`. If you want to change the
-        behaviour of ideal addition in a subclass of
-        :class:`Ideal_generic` please overwrite :meth:`_add_` and not
-        :meth:`__add__`.
+        Add self and ``other``.
 
         EXAMPLES::
 
-            sage: P.<x,y> = PolynomialRing(QQ,2)
-            sage: I = Ideal([x,y+1])
-            sage: I + I == I  # indirect doctest
+            sage: K.<x> = FunctionField(GF(7)); R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x^3 - 1)
+            sage: O = L.equation_order()
+            sage: I = O.ideal(y); J = O.ideal(y+1)
+            sage: Z = I + J; Z
+            Ideal (y + 1, 6*y) of Order in Function field in y defined by y^2 + 6*x^3 + 6
+            sage: 1 in Z
+            True
+            sage: O.ideal(y^2) + O.ideal(y^3) == O.ideal(y^2,y^3)
             True
         """
-        if not is_Ideal(other):
+        if not isinstance(other, FunctionFieldIdeal_module):
             other = self.ring().ideal(other)
-        return self._add_(other)
+        return FunctionFieldIdeal_module(self.ring(), self.module() + other.module())
 
-    def _add_(self, other):
+    def intersection(self, other):
         """
-        Add the ideal on the left to the other ideal.
+        Return the intersection of the ideals self and ``other``.
 
         EXAMPLES::
 
-            sage: P.<x,y,z> = QQ[]
-            sage: I = [x + y]*P
-            sage: I + [y + z]
-            Ideal (x + y, y + z) of Multivariate Polynomial Ring in x, y, z over Rational Field
+            sage: K.<x> = FunctionField(GF(7)); R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x^3 - 1)
+            sage: O = L.equation_order()
+            sage: I = O.ideal(y^3); J = O.ideal(y^2)
+            sage: Z = I.intersection(J); Z
+            Ideal (x^6 + 2*x^3 + 1, (6*x^3 + 6)*y) of Order in Function field in y defined by y^2 + 6*x^3 + 6
+            sage: y^2 in Z
+            False
+            sage: y^3 in Z
+            True
         """
-        return self.ring().ideal(self.gens() + other.gens())
+        if not isinstance(other, FunctionFieldIdeal_module):
+            other = self.ring().ideal(other)
+        if self.ring() != other.ring():
+            raise ValueError("rings must be the same")
+        return FunctionFieldIdeal_module(self.ring(), self.module().intersection(other.module()))
 
-    def __radd__(self, other):
+    def __richcmp__(self, other, op):
         """
-        Add the ideal on the right to the other ideal.
-
-        This makes sure that ``other`` is in the same ring of the ideal.
+        Compare self and ``other``.
 
         EXAMPLES::
 
-            sage: P.<x,y,z> = QQ[]
-            sage: I = [x + y]*P
-            sage: [y + z] + I
-            Ideal (x + y, y + z) of Multivariate Polynomial Ring in x, y, z over Rational Field
+            sage: K.<x> = FunctionField(GF(7)); R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x^3 - 1)
+            sage: O = L.equation_order()
+            sage: I = O.ideal(y*(y+1)); J = O.ideal((y^2-2)*(y+1))
+            sage: I+J == J+I            # indirect test
+            True
+            sage: I == J
+            False
+            sage: I < J
+            True
+            sage: J < I
+            False
         """
-        if not is_Ideal(other):
+        if not isinstance(other, FunctionFieldIdeal_module):
             other = self.ring().ideal(other)
-        return self.ring().ideal(self.gens() + other.gens())
+        if self.ring() != other.ring():
+            raise ValueError("rings must be the same")
+        return richcmp(self.module(), other.module(), op)
 
-    def __mul__(self, other):
+    def __invert__(self):
         """
-        This method just makes sure that ``other`` is an ideal in the same ring
-        with the ideal and then calls :meth:`_mul_`. If you want to change the
-        behaviour of ideal multiplication in a subclass of
-        :class:`Ideal_generic` please overwrite :meth:`_mul_` and not
-        :meth:`__mul__`.
+        Return the inverse of this fractional ideal.
 
         EXAMPLES::
 
-            sage: P.<x,y,z> = QQ[]
-            sage: I = [x*y + y*z, x^2 + x*y - y*x - y^2] * P
-            sage: I * 2    # indirect doctest
-            Ideal (2*x*y + 2*y*z, 2*x^2 - 2*y^2) of Multivariate Polynomial Ring in x, y, z over Rational Field
+            sage: K.<x> = FunctionField(GF(7)); R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x^3 - 1)
+            sage: O = L.equation_order()
+            sage: I = O.ideal(y)
+            sage: ~I
+            Ideal (6, (1/(x^3 + 1))*y) of Order in Function field in y defined by y^2 + 6*x^3 + 6
+            sage: I^(-1)
+            Ideal (6, (1/(x^3 + 1))*y) of Order in Function field in y defined by y^2 + 6*x^3 + 6
+            sage: ~I * I
+            Ideal (1, y) of Order in Function field in y defined by y^2 + 6*x^3 + 6
         """
-        if not is_Ideal(other):
-            try:
-                if self.ring().has_coerce_map_from(other):
-                    return self
-            except (TypeError,ArithmeticError,ValueError):
-                pass
-            other = self.ring().ideal(other)
-        return self._mul_(other)
+        if len(self.gens()) == 0:
+            raise ZeroDivisionError
 
-    def _mul_(self, other):
-        """
-        This is a very general implementation of Ideal multiplication.
+        # NOTE: If  I = (g0, ..., gn), then {x : x*I is in R}
+        # is the intersection over i of {x : x*gi is in R}
+        # Thus (I + J)^(-1) = I^(-1) intersect J^(-1).
 
-        The number of generators of ``self * other`` will be
-        ``self.ngens() * other.ngens()``. So if used repeatedly this method
-        will create an ideal with a uselessly large amount of generators.
-        Therefore it is advisable to overwrite this method with a method that
-        takes advantage of the structure of the ring your working in.
+        G = self.gens()
+        R = self.ring()
+        inv = R.ideal(~G[0])
+        for g in G[1:]:
+            inv = inv.intersection(R.ideal(~g))
+        return inv
 
-        Example::
+def ideal_with_gens(R, gens):
+    """
+    Return fractional ideal in the order ``R`` with generators ``gens``
+    over ``R``.
 
-            sage: P.<x,y,z> = QQ[]
-            sage: I=P.ideal([x*y, x*z, x^2])
-            sage: J=P.ideal([x^2, x*y])
-            sage: I._mul_(J)
-            Ideal (x^3*y, x^2*y^2, x^3*z, x^2*y*z, x^4, x^3*y) of Multivariate Polynomial Ring in x, y, z over Rational Field
-        """
-        return self.ring().ideal([x*y for x in self.gens() for y in other.gens()])
+    EXAMPLES::
 
-    def __rmul__(self, other):
-        """
-        Multiply the ideal on the right with ``other``.
+        sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+        sage: L.<y> = K.extension(y^2 - x^3 - 1)
+        sage: O = L.equation_order()
+        sage: sage.rings.function_field.function_field_ideal.ideal_with_gens(O, [y])
+        Ideal (x^3 + 1, -y) of Order in Function field in y defined by y^2 - x^3 - 1
+    """
+    K = R.fraction_field()
+    return ideal_with_gens_over_base(R, [b*K(g) for b in R.basis() for g in gens])
 
-        EXAMPLES::
+def ideal_with_gens_over_base(R, gens):
+    """
+    Return fractional ideal in the order ``R`` with generators ``gens``
+    over the maximal order of the base field.
 
-            sage: P.<x,y,z> = QQ[]
-            sage: I = [x*y+y*z,x^2+x*y-y*x-y^2]*P
-            sage: [2]*I    # indirect doctest
-            Ideal (2*x*y + 2*y*z, 2*x^2 - 2*y^2) of Multivariate Polynomial Ring in x, y, z over Rational Field
+    EXAMPLES::
 
-        """
-        if not is_Ideal(other):
-            try:
-                if self.ring().has_coerce_map_from(other):
-                    return self
-            except (TypeError,ArithmeticError,ValueError):
-                pass
-            other = self.ring().ideal(other)
-        return self.ring().ideal([z for z in [y*x for x in self.gens() for y in other.gens()] if z])
+        sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+        sage: L.<y> = K.extension(y^2 - x^3 - 1)
+        sage: O = L.equation_order()
+        sage: sage.rings.function_field.function_field_ideal.ideal_with_gens_over_base(O, [x^3+1,-y])
+        Ideal (x^3 + 1, -y) of Order in Function field in y defined by y^2 - x^3 - 1
 
+    TESTS::
+
+        sage: K.<x> = FunctionField(QQ)
+        sage: O = K.maximal_order()
+        sage: I = O*x
+        sage: ~I
+        Ideal (1/x) of Maximal order in Rational function field in x over Rational Field
+        sage: ~I == O.ideal(1/x)
+        True
+        sage: O.ideal([x,1/x])
+        Ideal (1/x) of Maximal order in Rational function field in x over Rational Field
+        sage: O.ideal([1/x,1/(x+1)])
+        Ideal (1/(x^2 + x)) of Maximal order in Rational function field in x over Rational Field
+    """
+    K = R.fraction_field()
+    V, from_V, to_V = K.vector_space()
+
+    # We handle the case of a rational function field separately,
+    # since this is the base case and is used, e.g,. internally
+    # by the linear algebra Hermite form code.
+    from . import function_field_order
+    if isinstance(R, function_field_order.FunctionFieldOrder_rational):
+        from sage.modules import free_module_element
+        gens = free_module_element.vector(x.element() for x in gens)
+        d = gens.denominator()
+        gens *= d
+        v = R._ring.ideal(gens.list()).gens_reduced()
+        assert len(v) == 1
+        basis = [to_V(v[0]/d)]
+        M = V.span_of_basis(basis, check=False, already_echelonized=True, base_ring=R)
+    else:
+        # General case
+        S = V.base_field().maximal_order()
+        M = V.span([to_V(b) for b in gens], base_ring=S)
+
+    return FunctionFieldIdeal_module(R, M)

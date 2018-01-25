@@ -599,7 +599,7 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
             sage: mat
             [[1, 2', 2, 2], [None, 2, 3', None], [None, None, 3, None]]
         """
-        m = self.shape()[0]
+        m = len(self[0])
         return [[None]*i + list(row) + [None]*(m-i-len(row))
                 for i, row in enumerate(self)]
 
@@ -809,7 +809,7 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
         element_to_change = None
         count = 0
 
-        for element in read_word[::-1]:
+        for element in reversed(read_word):
             if element[1] == ind:
                 count += 1
             elif count == 0:
@@ -882,7 +882,7 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
         count = {i: 0 for i in range(max_entry+1)}
         if index_set is None:
             index_set = self.parent().index_set()
-        for l in read_w[::-1]:
+        for l in reversed(read_w):
             count[l] += 1
             if (l-1 in index_set) and (l > 1) and (count[l] > count[l-1]):
                 return False
@@ -2041,7 +2041,7 @@ def _add_strip(sub_tab, full_tab, length):
             if len(sub_tab) < len(full_tab) and len(sub_tab) != 0:
                 plat_list.append(min(sub_tab[-1] + primed_strip[-2] - 1,
                                      full_tab[len(sub_tab)]))
-            for row in range(1, len(sub_tab))[::-1]:
+            for row in reversed(range(1, len(sub_tab))):
                 plat_list.append(
                     min(sub_tab[row-1]+primed_strip[row-1]-1, full_tab[row])
                     - sub_tab[row] - primed_strip[row])

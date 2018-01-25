@@ -114,6 +114,8 @@ class CharacterArtFactory(SageObject):
         """
         if isinstance(obj, self.art_type):
             if baseline is not None:
+                from copy import copy
+                obj = copy(obj)
                 obj._baseline = baseline
             return obj
         if isinstance(obj, SageObject):

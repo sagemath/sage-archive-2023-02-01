@@ -253,8 +253,8 @@ def ascii_art(*obj, **kwds):
     If specified, the ``sep_baseline`` overrides the baseline of
     an ascii art separator::
 
-        sage: sep_line = ascii_art('\n'.join(' | ' for _ in range(6)))
-        sage: ascii_art(*Partitions(6), separator=sep_line, baseline=6)
+        sage: sep_line = ascii_art('\n'.join(' | ' for _ in range(6)), baseline=6)
+        sage: ascii_art(*Partitions(6), separator=sep_line, sep_baseline=0)
                |       |      |      |     |     |     |    |    |    | *
                |       |      |      |     |     |     |    |    | ** | *
                |       |      |      |     |     | *** |    | ** | *  | *
@@ -278,13 +278,17 @@ def ascii_art(*obj, **kwds):
         sage: ascii_art(1)
         1
     """
-    separator, baseline, sep_base = _ascii_art_factory.parse_keywords(kwds)
+    separator, baseline, sep_baseline = _ascii_art_factory.parse_keywords(kwds)
     if kwds:
         raise ValueError('unknown keyword arguments: {0}'.format(list(kwds)))
     if len(obj) == 1:
         return _ascii_art_factory.build(obj[0], baseline=baseline)
     if not isinstance(separator, AsciiArt):
-        separator = _ascii_art_factory.build(separator, baseline=sep_base)
+        separator = _ascii_art_factory.build(separator, baseline=sep_baseline)
+    elif sep_baseline is not None:
+        from copy import copy
+        separator = copy(separator)
+        separator._baseline = sep_baseline
     obj = map(_ascii_art_factory.build, obj)
     return _ascii_art_factory.concatenate(obj, separator, empty_ascii_art, baseline=baseline)
 

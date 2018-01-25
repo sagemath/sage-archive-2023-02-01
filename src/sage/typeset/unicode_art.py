@@ -102,6 +102,17 @@ def unicode_art(*obj, **kwds):
               ⎛1 0⎞   ⎜0 1 0⎟
         (1) : ⎝0 1⎠ : ⎝0 0 1⎠
 
+    If specified, the ``sep_baseline`` overrides the baseline of
+    an unicode art separator::
+
+        sage: sep_line = unicode_art('\n'.join(u' ⎟ ' for _ in range(5)), baseline=5)
+        sage: unicode_art(*Partitions(4), separator=sep_line, sep_baseline=0)
+        ⎟      ⎟     ⎟     ⎟ ┌┐
+        ⎟      ⎟     ⎟ ┌┬┐ ⎟ ├┤
+        ⎟ ┌┬┬┐ ⎟ ┌┬┐ ⎟ ├┼┘ ⎟ ├┤
+        ┌┬┬┬┐ ⎟ ├┼┴┘ ⎟ ├┼┤ ⎟ ├┤  ⎟ ├┤
+        └┴┴┴┘ ⎟ └┘   ⎟ └┴┘ ⎟ └┘  ⎟ └┘
+
     TESTS::
 
         sage: n = var('n')
@@ -125,6 +136,10 @@ def unicode_art(*obj, **kwds):
         return _unicode_art_factory.build(obj[0], baseline=baseline)
     if not isinstance(separator, UnicodeArt):
         separator = _unicode_art_factory.build(separator, baseline=sep_baseline)
+    elif sep_baseline is not None:
+        from copy import copy
+        separator = copy(separator)
+        separator._baseline = sep_baseline
     obj = map(_unicode_art_factory.build, obj)
     return _unicode_art_factory.concatenate(obj, separator, empty_unicode_art,
                                             baseline=baseline)

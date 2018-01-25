@@ -26,6 +26,124 @@
 namespace GiNaC {
 
 //////////
+// Chebyshev polynomials T_n(x)
+//////////
+
+static ex chebyt_eval(const ex& n_, const ex& x)
+{
+        if (is_exactly_a<numeric>(n_)
+            and is_exactly_a<numeric>(x)
+            and (ex_to<numeric>(n_).info(info_flags::inexact)
+                 or ex_to<numeric>(x).info(info_flags::inexact)))
+                return chebyshev_T(n_, x).evalf();
+
+        if (x.is_one())
+                return x;
+        if (x.is_minus_one())
+                return power(x, n_);
+        if (x.is_zero())
+                return cos(Pi*n_/_ex2);
+        if (not is_exactly_a<numeric>(n_)
+            or not n_.info(info_flags::integer))
+                return chebyshev_T(n_, x).hold();
+
+        numeric numn = ex_to<numeric>(n_);
+        if (numn.is_zero())
+                return _ex1;
+        if (numn.is_one())
+                return x;
+        if (numn.is_negative())
+                numn = numn.negative();
+        epvector vec;
+        fmpz_poly_t p;
+        fmpz_poly_init(p);
+        fmpz_poly_chebyshev_t(p, static_cast<ulong>(numn.to_long()));
+        int len = fmpz_poly_length(p);
+        ex currx = _ex1;
+        for (int i = 0; i<len; ++i) {
+                mpz_t bigint;
+                mpz_init(bigint);
+                fmpz_poly_get_coeff_mpz(bigint, p, i);
+                numeric coeff(bigint);
+                if (not coeff.is_zero())
+                        vec.push_back(expair(currx, coeff));
+                currx *= x;
+        }
+        fmpz_poly_clear(p);
+        return add(vec);
+}
+
+static ex chebyt_deriv(const ex& n, const ex & x, unsigned deriv_param)
+{
+	    if (deriv_param == 0)
+                    throw std::runtime_error("derivative w.r.t. to the index is not supported yet");
+	    return n * chebyshev_U(n-_ex1, x).hold();
+}
+
+REGISTER_FUNCTION(chebyshev_T, eval_func(chebyt_eval).
+                        derivative_func(chebyt_deriv).
+		        latex_name("T"));
+
+//////////
+// Chebyshev polynomials U_n(x)
+//////////
+
+static ex chebyu_eval(const ex& n_, const ex& x)
+{
+        if (is_exactly_a<numeric>(n_)
+            and is_exactly_a<numeric>(x)
+            and (ex_to<numeric>(n_).info(info_flags::inexact)
+                 or ex_to<numeric>(x).info(info_flags::inexact)))
+                return chebyshev_U(n_, x).evalf();
+
+        if (x.is_one())
+                return n_ + _ex1;
+        if (x.is_minus_one())
+                return power(_ex_1, n_) * (n_+_ex1);
+        if (x.is_zero())
+                return cos(Pi*n_/_ex2);
+        if (not is_exactly_a<numeric>(n_)
+            or not n_.info(info_flags::integer))
+                return chebyshev_U(n_, x).hold();
+
+        numeric numn = ex_to<numeric>(n_);
+        if (numn.is_zero())
+                return _ex1;
+        if (numn.is_one())
+                return mul(x, _ex2);
+        if (numn.is_negative())
+                return -chebyu_eval(numn.negative()-*_num2_p, x);
+        epvector vec;
+        fmpz_poly_t p;
+        fmpz_poly_init(p);
+        fmpz_poly_chebyshev_u(p, static_cast<ulong>(numn.to_long()));
+        int len = fmpz_poly_length(p);
+        ex currx = _ex1;
+        for (int i = 0; i<len; ++i) {
+                mpz_t bigint;
+                mpz_init(bigint);
+                fmpz_poly_get_coeff_mpz(bigint, p, i);
+                numeric coeff(bigint);
+                if (not coeff.is_zero())
+                        vec.push_back(expair(currx, coeff));
+                currx *= x;
+        }
+        fmpz_poly_clear(p);
+        return add(vec);
+}
+
+static ex chebyu_deriv(const ex& n, const ex & x, unsigned deriv_param)
+{
+	    if (deriv_param == 0)
+                    throw std::runtime_error("derivative w.r.t. to the index is not supported yet");
+	    return ((n+1) * chebyshev_T(n+_ex1, x).hold() - x*chebyshev_U(n, x)) / (power(x, 2) - _ex1);
+}
+
+REGISTER_FUNCTION(chebyshev_U, eval_func(chebyu_eval).
+                        derivative_func(chebyu_deriv).
+		        latex_name("U"));
+
+//////////
 // Legendre polynomials P_n(x)
 //////////
 

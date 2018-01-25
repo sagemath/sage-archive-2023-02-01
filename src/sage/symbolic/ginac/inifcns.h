@@ -236,6 +236,12 @@ DECLARE_FUNCTION_2P(rising_factorial)
 /** Falling factorial function. */
 DECLARE_FUNCTION_2P(falling_factorial)
 
+/** Chebyshev T polynomial. */
+DECLARE_FUNCTION_2P(chebyshev_T)
+
+/** Chebyshev U polynomial. */
+DECLARE_FUNCTION_2P(chebyshev_U)
+
 /** Legendre P polynomial. */
 DECLARE_FUNCTION_2P(legendre_P)
 

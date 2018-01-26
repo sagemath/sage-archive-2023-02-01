@@ -428,11 +428,13 @@ class TorsionQuadraticModule(FGP_Module_class):
 
         If `p = 2` is even, then the normal form consists of
         1 x 1 blocks of the form
-        `0`, `[2^n]`, `[3*2^n]`, `[5*2^n]`, `[7*2^n]`
-        or of 2 x 2 blocks of the form
-        [2 1]           [0 1]
-        [1 2] * 2^n or  [1 0] * 2^n
-        The entries are ordered by their valuation.
+        ``[0]``, ``[2^n]`, ``[3*2^n]``, ``[5*2^n]``, ``[7*2^n]``
+        or of `2 \times 2` blocks of the form::
+
+            [2 1]           [0 1]
+            [1 2] * 2^n,    [1 0] * 2^n
+
+       The entries are ordered by their valuation.
 
         INPUT:
 

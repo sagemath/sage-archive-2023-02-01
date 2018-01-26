@@ -45,7 +45,7 @@ from __future__ import absolute_import
 #*****************************************************************************
 from sage.misc.lazy_import import lazy_import
 
-from sage.categories.morphism import Morphism, SetMorphism
+from sage.categories.morphism import Morphism
 from sage.categories.map import Map
 from sage.rings.morphism import RingHomomorphism
 from sage.modules.free_module_element import vector

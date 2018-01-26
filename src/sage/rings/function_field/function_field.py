@@ -2111,9 +2111,9 @@ class FunctionField_global(FunctionField_polymod):
         self2F = self.hom([F.gen(),xinv])
         F2self = F.hom([self.gen(),xinv])
 
-        M,M2F,F2M = F.monic_integral_model('s')
+        M, M2F, F2M = F.monic_integral_model('s')
 
-        return M,F2self*M2F,F2M*self2F
+        return M, F2self*M2F, F2M*self2F
 
 class FunctionField_global_integral(FunctionField_global):
     """

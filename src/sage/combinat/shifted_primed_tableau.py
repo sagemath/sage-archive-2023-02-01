@@ -1462,7 +1462,7 @@ class ShiftedPrimedTableaux_all(ShiftedPrimedTableaux):
             ValueError: [[1, 1, 2], [2, 2]] is not an element of
             Shifted Primed Tableaux
         """
-        return (super(ShiftedPrimedTableaux_all, self)._element_constructor_(T))
+        return super(ShiftedPrimedTableaux_all, self)._element_constructor_(T)
 
     def __iter__(self):
         """
@@ -1657,8 +1657,7 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
              of shape [3]
         """
         try:
-            return (super(ShiftedPrimedTableaux_shape, self)
-                    ._element_constructor_(T))
+            return super(ShiftedPrimedTableaux_shape, self)._element_constructor_(T)
         except ValueError:
             raise ValueError("{} is not an element of {}".format(T, self))
 
@@ -1786,14 +1785,13 @@ class ShiftedPrimedTableaux_weight(ShiftedPrimedTableaux):
 
         TESTS::
 
-            sage: tab= ShiftedPrimedTableaux(weight=(2,1))([[1,1,1.5]]); tab
+            sage: tab = ShiftedPrimedTableaux(weight=(2,1))([[1,1,1.5]]); tab
             [(1, 1, 2')]
             sage: tab.parent()
             Shifted Primed Tableaux of weight (2, 1)
         """
         try:
-            return (super(ShiftedPrimedTableaux_weight, self)
-                    ._element_constructor_(T))
+            return super(ShiftedPrimedTableaux_weight, self)._element_constructor_(T)
         except ValueError:
             raise ValueError("{} is not an element of {}".format(T, self))
 
@@ -1899,15 +1897,22 @@ class ShiftedPrimedTableaux_weight_shape(ShiftedPrimedTableaux):
             False
             sage: [[1,1.5,2,3],[3]] in ShiftedPrimedTableaux([3,2], weight=(1,2,2))
             False
+
+            sage: [] in ShiftedPrimedTableaux([3,2], weight=(1,2,2))
+            False
+            sage: [] in ShiftedPrimedTableaux([], weight=())
+            True
         """
         if not super(ShiftedPrimedTableaux_weight_shape, self)._contains_tableau_(T):
             return False
 
         flat = [item.integer() for sublist in T for item in sublist]
-        if flat == []:
-            max_ind = 0
-        else:
-            max_ind = int(max(flat))
+        if not flat:
+            # It is sufficient only to check this because the weight
+            #   and shape must be compatible
+            return not self._weight
+
+        max_ind = max(flat)
         weight = tuple([flat.count(i+1) for i in range(max_ind)])
         if self._weight != weight:
             return False
@@ -1915,34 +1920,30 @@ class ShiftedPrimedTableaux_weight_shape(ShiftedPrimedTableaux):
         shape = [len(row) for row in T]
         skew = [row.count(None) for row in T]
         if sum(skew) == 0:
-            shape = Partition(shape)
+            shape = _Partitions(shape)
         else:
             shape = SkewPartition((shape, skew))
-        if self._shape != shape:
-            return False
-
-        return True
+        return self._shape == shape:
 
     def _element_constructor_(self, T):
         """
-        Construct an object from ``T`` as an element of ``self``, if
-        possible.
+        Construct an object from ``T`` as an element of ``self``, if possible.
 
         TESTS::
 
-            sage: tab = ShiftedPrimedTableaux([3], weight=(2,1))([[1,1,1.5]]); tab
+            sage: SPT = ShiftedPrimedTableaux([3], weight=(2,1))
+            sage: tab = SPT([[1,1,1.5]]); tab
             [(1, 1, 2')]
-            sage: tab.parent()
-            Shifted Primed Tableaux of weight (2, 1) and shape [3]
-            sage: ShiftedPrimedTableaux([3], weight=(2,1))([[1,1]])
+            sage: tab.parent() is SPT
+            True
+            sage: SPT([[1,1]])
             Traceback (most recent call last):
             ...
             ValueError: [[1, 1]] is not an element of Shifted Primed Tableaux
-            of weight (2, 1) and shape [3]
+             of weight (2, 1) and shape [3]
         """
         try:
-            return (super(ShiftedPrimedTableaux_weight_shape, self)
-                    ._element_constructor_(T))
+            return super(ShiftedPrimedTableaux_weight_shape, self)._element_constructor_(T)
         except ValueError:
             raise ValueError("{} is not an element of {}".format(T, self))
 
@@ -2045,14 +2046,14 @@ def _add_strip(sub_tab, full_tab, length):
                 row += cliff
             plat_list = []
 
-            if len(sub_tab) < len(full_tab) and len(sub_tab) != 0:
+            if sub_tab and len(sub_tab) < len(full_tab):
                 plat_list.append(min(sub_tab[-1] + primed_strip[-2] - 1,
                                      full_tab[len(sub_tab)]))
             for row in reversed(range(1, len(sub_tab))):
                 plat_list.append(
                     min(sub_tab[row-1]+primed_strip[row-1]-1, full_tab[row])
                     - sub_tab[row] - primed_strip[row])
-            if len(sub_tab) > 0:
+            if sub_tab:
                 plat_list.append(full_tab[0] - sub_tab[0] - primed_strip[0])
             else:
                 plat_list.append(full_tab[0])

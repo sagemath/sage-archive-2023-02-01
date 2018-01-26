@@ -66,11 +66,11 @@ there are much faster ways::
     sage: q1.is_locally_equivalent_to(q2,2)
     True
 
-SEEALSO:
+SEEALSO::
 
-- :mod:`~sage.quadratic_forms.genera.genus`
-- :meth:`~sage.quadratic_forms.quadratic_form.QuadraticForm.is_locally_equivalent_to`
-- :meth:`~sage.modules.torsion_quadratic_module.TorsionQuadraticModule.normal_form`
+    :mod:`~sage.quadratic_forms.genera.genus`
+    :meth:`~sage.quadratic_forms.quadratic_form.QuadraticForm.is_locally_equivalent_to`
+    :meth:`~sage.modules.torsion_quadratic_module.TorsionQuadraticModule.normal_form`
 
 AUTHORS:
 

@@ -17,10 +17,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import print_function, absolute_import
+from __future__ import print_function, absolute_import, division
 from six import add_metaclass
 
 from sage.combinat.partition import Partition, Partitions, _Partitions, OrderedPartitions
+from sage.combinat.partitions import ZS1_iterator
 from sage.combinat.tableau import Tableaux
 from sage.combinat.skew_partition import SkewPartition
 from sage.combinat.integer_vector import IntegerVectors
@@ -168,7 +169,8 @@ class ShiftedPrimedTableau(ClonableArray):
         Preprocessing list ``T`` to initialize the tableau.
 
         TESTS::
-            sage: t = ShiftedPrimedTableau([[None, "2'", "3p", 3.5]]) #indirect doctest
+
+            sage: t = ShiftedPrimedTableau([[None, "2'", "3p", 3.5]]) # indirect doctest
             sage: t
             [(None, 2', 3', 4')]
         """
@@ -221,7 +223,7 @@ class ShiftedPrimedTableau(ClonableArray):
         EXAMPLES::
 
             sage: t = ShiftedPrimedTableau([[1,"2p"]])
-            sage: t == ShiftedPrimedTableaux([2])([[1,1.5]])
+            sage: t == ShiftedPrimedTableaux([2])([[1,3/2]])
             True
             sage: s = ShiftedPrimedTableau([["2p",3]], skew=[1])
             sage: s == [[None, "2p", 3]]
@@ -253,15 +255,8 @@ class ShiftedPrimedTableau(ClonableArray):
             sage: s = ShiftedPrimedTableau([["2p",3]], skew=[1])
             sage: s != [[None, "2p", 3]]
             False
-
         """
-        if isinstance(other, ShiftedPrimedTableau):
-            return (self._skew != other._skew or list(self) != list(other))
-        try:
-            Tab = ShiftedPrimedTableau(other)
-        except (ValueError, TypeError):
-            return True
-        return (self._skew != Tab._skew or list(self) != list(Tab))
+        return not (self == other)
 
     def _repr_(self):
         """
@@ -281,7 +276,7 @@ class ShiftedPrimedTableau(ClonableArray):
         """
         Return a string representation of ``self`` as a list of tuples.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ShiftedPrimedTableau([['2p',3],[2,2]], skew=[2])._repr_list()
             "[(None, None, 2', 3), (2, 2)]"
@@ -565,8 +560,8 @@ class ShiftedPrimedTableau(ClonableArray):
         Return the weight of ``self``.
 
         The weight of a shifted primed tableau is defined to be the vector
-        with `i`-th component equal to the number of entries i and i' in the
-        tableau.
+        with `i`-th component equal to the number of entries `i` and `i'`
+        in the tableau.
 
         EXAMPLES::
 
@@ -594,7 +589,8 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
 
         EXAMPLES::
 
-            sage: t = ShiftedPrimedTableaux([4,2,1])([[1,'2p',2,2],[2,'3p'],[3]])
+            sage: SPT = ShiftedPrimedTableaux([4,2,1])
+            sage: t = SPT([[1,'2p',2,2],[2,'3p'],[3]])
             sage: mat = t._to_matrix()
             sage: mat
             [[1, 2', 2, 2], [None, 2, 3', None], [None, None, 3, None]]
@@ -623,7 +619,8 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
 
         EXAMPLES::
 
-            sage: t = ShiftedPrimedTableaux([4,2])([[1,'2p',2,2],[2,'3p']])
+            sage: SPT = ShiftedPrimedTableaux([4,2])
+            sage: t = SPT([[1,'2p',2,2],[2,'3p']])
             sage: t._reading_word_with_positions()
             [((1, 2), 3), ((0, 1), 2), ((1, 1), 2), ((0, 0), 1),
             ((0, 2), 2), ((0, 3), 2)]
@@ -662,7 +659,8 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
 
         EXAMPLES::
 
-            sage: t = ShiftedPrimedTableaux([4,2])([[1,'2p',2,2],[2,'3p']])
+            sage: SPT = ShiftedPrimedTableaux([4,2])
+            sage: t = SPT([[1,'2p',2,2],[2,'3p']])
             sage: t.reading_word()
             [3, 2, 2, 1, 2, 2]
         """
@@ -685,15 +683,17 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
 
         EXAMPLES::
 
-            sage: t = ShiftedPrimedTableaux([5,4,2])([[1,1,1,1,'3p'],[2,2,2,'3p'],[3,3]])
+            sage: SPT = ShiftedPrimedTableaux([5,4,2])
+            sage: t = SPT([[1,1,1,1,'3p'],[2,2,2,'3p'],[3,3]])
             sage: t.pp()
             1  1  1  1  3'
                2  2  2  3'
                   3  3
             sage: s = t.f(2)
-            sage: print(s)
-            None
-            sage: t = ShiftedPrimedTableaux([5,4,2])([[1,1,1,'2p','3p'],[2,2,3,3],[3,4]])
+            sage: s is None
+            True
+
+            sage: t = SPT([[1,1,1,'2p','3p'],[2,2,3,3],[3,4]])
             sage: t.pp()
             1  1  1  2' 3'
                2  2  3  3
@@ -778,7 +778,7 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
 
         INPUT:
 
-        - ``ind`` -- an element in the index set of the crystal.
+        - ``ind`` -- an element in the index set of the crystal
 
         OUTPUT:
 
@@ -786,8 +786,8 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
 
         EXAMPLES::
 
-            sage: t = ShiftedPrimedTableaux([5,4,2])([[1,1,1,'2p','3p'],
-            ....: [2,'3p',3,3],[3,4]])
+            sage: SPT = ShiftedPrimedTableaux([5,4,2])
+            sage: t = SPT([[1,1,1,'2p','3p'], [2,'3p',3,3],[3,4]])
             sage: t.pp()
             1  1  1  2' 3'
                2  3' 3  3
@@ -799,7 +799,6 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
                   3  4
             sage: t == s.f(2)
             True
-
         """
         T = self._to_matrix()
         read_word = self._reading_word_with_positions()
@@ -863,18 +862,19 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
         r"""
         Return whether ``self`` is a highest weight element of the crystal.
 
-        An element is highest weight if it vanishes under all crystal operators
-        `e_i`.
+        An element is highest weight if it vanishes under all crystal
+        operators `e_i`.
 
         EXAMPLES::
 
-            sage: t = ShiftedPrimedTableaux([5,4,2])([(1.0, 1.0, 1.0, 1.0, 1.0),
-            ....: (2.0, 2.0, 2.0, 2.5), (3.0, 3.0)])
+            sage: SPT = ShiftedPrimedTableaux([5,4,2])
+            sage: t = SPT([(1.0, 1.0, 1.0, 1.0, 1.0), (2.0, 2.0, 2.0, 2.5), (3.0, 3.0)])
             sage: t.is_highest_weight()
             True
-            sage: s = ShiftedPrimedTableaux([5,4])([(1.0, 1.0, 1.0, 1.0, 1.0),
-            ....: (2.0, 2.0, 2.5, 3.0)])
-            sage: s.is_highest_weight(index_set = [1])
+
+            sage: SPT = ShiftedPrimedTableaux([5,4])
+            sage: s = SPT([(1.0, 1.0, 1.0, 1.0, 1.0), (2.0, 2.0, 2.5, 3.0)])
+            sage: s.is_highest_weight(index_set=[1])
             True
         """
         read_w = self.reading_word()
@@ -893,8 +893,8 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
         Return the weight of ``self``.
 
         The weight of a shifted primed tableau is defined to be the vector
-        with `i`-th component equal to the number of entries `i` and `i'` in the
-        tableau.
+        with `i`-th component equal to the number of entries `i` and `i'`
+        in the tableau.
 
         EXAMPLES::
 
@@ -912,14 +912,17 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
 
 
 class PrimedEntry(SageObject):
-    """
+    r"""
     The class of entries in shifted primed tableaux.
+
+    An entry in a shifted primed tableau is an element in
+    the alphabet `\{1' < 1 < 2' < 2 < \cdots < n' < n\}`.
     """
     def __init__(self, entry=None, double=None):
         """
         Normalize the entry.
 
-        TEST::
+        TESTS::
 
             sage: ShiftedPrimedTableau([[1,"2p"]])[0][1]
             2'
@@ -954,7 +957,7 @@ class PrimedEntry(SageObject):
 
     def __hash__(self):
         """
-        TEST::
+        TESTS::
 
             sage: a = ShiftedPrimedTableau([[1,"2p"]])[0][1]
             sage: b = ShiftedPrimedTableau([[1,1,"2p"]])[0][2]
@@ -967,7 +970,7 @@ class PrimedEntry(SageObject):
         """
         Represent ``self`` as primed or unprimed integer.
 
-        TEST::
+        TESTS::
 
             sage: ShiftedPrimedTableau([[1,"2p"]])[0][1]
             2'
@@ -979,7 +982,7 @@ class PrimedEntry(SageObject):
 
     def integer(self):
         """
-        TEST::
+        TESTS::
 
             sage: ShiftedPrimedTableau([[1,"2p"]])[0][1].integer()
             2
@@ -988,19 +991,18 @@ class PrimedEntry(SageObject):
 
     def __eq__(self, other):
         """
-        TEST::
+        TESTS::
 
             sage: a = ShiftedPrimedTableau([[1,1]])[0][1]
             sage: b = ShiftedPrimedTableau([[1,1]])[0][0]
             sage: a == b
             True
         """
-
         return self._entry == PrimedEntry(other)._entry
 
     def __ne__(self, other):
         """
-        TEST::
+        TESTS::
 
             sage: a = ShiftedPrimedTableau([[1,1]])[0][1]
             sage: b = ShiftedPrimedTableau([[1,1]])[0][0]
@@ -1011,19 +1013,18 @@ class PrimedEntry(SageObject):
 
     def __lt__(self, other):
         """
-        TEST::
+        TESTS::
 
             sage: a = ShiftedPrimedTableau([[1,"2p",2]])[0][1]
             sage: b = ShiftedPrimedTableau([[1,"2p",2]])[0][2]
             sage: a < b
             True
         """
-
         return self._entry < PrimedEntry(other)._entry
 
     def __le__(self, other):
         """
-        TEST::
+        TESTS::
 
             sage: a = ShiftedPrimedTableau([[1,2,2]])[0][1]
             sage: b = ShiftedPrimedTableau([[1,2,2]])[0][2]
@@ -1034,7 +1035,7 @@ class PrimedEntry(SageObject):
 
     def __gt__(self, other):
         """
-        TEST::
+        TESTS::
 
             sage: a = ShiftedPrimedTableau([[1,"2p",2]])[0][1]
             sage: b = ShiftedPrimedTableau([[1,"2p",2]])[0][2]
@@ -1045,7 +1046,7 @@ class PrimedEntry(SageObject):
 
     def __ge__(self, other):
         """
-        TEST::
+        TESTS::
 
             sage: a = ShiftedPrimedTableau([[1,"2p",2]])[0][1]
             sage: b = ShiftedPrimedTableau([[1,"2p",2]])[0][2]
@@ -1058,7 +1059,7 @@ class PrimedEntry(SageObject):
         """
         Checks if ``self`` is an unprimed element.
 
-        TEST::
+        TESTS::
 
             sage: a = ShiftedPrimedTableau([[1,"2p"]])[0][1]
             sage: a.is_unprimed()
@@ -1070,7 +1071,7 @@ class PrimedEntry(SageObject):
         """
         Checks if ``self`` is a primed element.
 
-        TEST::
+        TESTS::
 
             sage: a = ShiftedPrimedTableau([[1,"2p"]])[0][1]
             sage: a.is_primed()
@@ -1082,7 +1083,7 @@ class PrimedEntry(SageObject):
         """
         Unprime ``self`` if it is a primed element.
 
-        TEST::
+        TESTS::
 
             sage: a = ShiftedPrimedTableau([[1,"2p"]])[0][1]
             sage: a.unprimed()
@@ -1097,7 +1098,7 @@ class PrimedEntry(SageObject):
         """
         Prime ``self`` if it is an unprimed element.
 
-        TEST::
+        TESTS::
 
             sage: a = ShiftedPrimedTableau([[1,"2p"]])[0][0]
             sage: a.primed()
@@ -1110,7 +1111,7 @@ class PrimedEntry(SageObject):
 
     def increase_half(self):
         """
-        TEST::
+        TESTS::
 
             sage: a = ShiftedPrimedTableau([[1,"2p"]])[0][0]
             sage: a.increase_half()
@@ -1120,7 +1121,7 @@ class PrimedEntry(SageObject):
 
     def decrease_half(self):
         """
-        TEST::
+        TESTS::
 
             sage: a = ShiftedPrimedTableau([[1,"2p"]])[0][0]
             sage: a.decrease_half()
@@ -1130,7 +1131,7 @@ class PrimedEntry(SageObject):
 
     def increase_one(self):
         """
-        TEST::
+        TESTS::
 
             sage: a = ShiftedPrimedTableau([[1,"2p"]])[0][1]
             sage: a.increase_one()
@@ -1140,7 +1141,7 @@ class PrimedEntry(SageObject):
 
     def decrease_one(self):
         """
-        TEST::
+        TESTS::
 
             sage: a = ShiftedPrimedTableau([[1,"2p"]])[0][1]
             sage: a.decrease_one()
@@ -1152,7 +1153,7 @@ class PrimedEntry(SageObject):
 class ShiftedPrimedTableaux(UniqueRepresentation, Parent):
     r"""
     Returns the combinatorial class of shifted primed tableaux subject
-    ro the constraints given by the arguments.
+    to the constraints given by the arguments.
 
     A primed tableau is a tableau of shifted shape on the alphabet
     `X' = \{1' < 1 < 2' < 2 < \cdots < n' < n\}` such that
@@ -1221,9 +1222,8 @@ class ShiftedPrimedTableaux(UniqueRepresentation, Parent):
     def __classcall_private__(cls, shape=None, weight=None,
                               max_entry=None, skew=None):
         r"""
-        Normalize and process input to return the correct parent and ensure a
-        unique representation. See the documentation for
-        :class:`ShiftedPrimedTableaux` for more information.
+        Normalize and process input to return the correct parent and
+        ensure a unique representation.
 
         TESTS::
 
@@ -1306,7 +1306,7 @@ class ShiftedPrimedTableaux(UniqueRepresentation, Parent):
         """
         Initialization of the parent class with given skew shape.
 
-        TEST::
+        TESTS::
 
             sage: T = ShiftedPrimedTableau([[None, 2]])
             sage: T.parent()._skew
@@ -1369,18 +1369,16 @@ class ShiftedPrimedTableaux(UniqueRepresentation, Parent):
         if self._skew is not None:
             skew = self._skew + [0]*(len(T)-len(self._skew))
         else:
-            skew = [0]*len(T)
+            skew = [0] * len(T)
         for i, row in enumerate(T):
             if i > 0:
                 if not all(val > T[i-1][j+1]
                            for j, val in enumerate(row)
-                           if j+1 >= skew[i-1]
-                           if val.is_unprimed()):
+                           if j+1 >= skew[i-1] and val.is_unprimed()):
                     return False
                 if not all(val >= T[i-1][j+1]
                            for j, val in enumerate(row)
-                           if j+1 >= skew[i-1]
-                           if val.is_primed()):
+                           if j+1 >= skew[i-1] and val.is_primed()):
                     return False
             if not all(row[j] <= row[j+1]
                        for j in range(skew[i], len(row)-1)
@@ -1407,14 +1405,16 @@ class ShiftedPrimedTableaux_all(ShiftedPrimedTableaux):
 
         TESTS::
 
-            sage: [[1,1.5],[2]] in ShiftedPrimedTableaux()
+            sage: SPT = ShiftedPrimedTableaux()
+            sage: [[1,1.5],[2]] in SPT
             True
-            sage: [[1,1.5],[1.5]] in ShiftedPrimedTableaux()
+            sage: [[1,1.5],[1.5]] in SPT
             False
-            sage: [[1,1],[1]] in ShiftedPrimedTableaux()
+            sage: [[1,1],[1]] in SPT
             False
-            sage: [[1,1],[2,2]] in ShiftedPrimedTableaux()
+            sage: [[1,1],[2,2]] in SPT
             False
+            sage: TestSuite(SPT).run()  # long time
         """
         Parent.__init__(self, category=InfiniteEnumeratedSets())
         ShiftedPrimedTableaux.__init__(self, skew=skew)
@@ -1435,8 +1435,7 @@ class ShiftedPrimedTableaux_all(ShiftedPrimedTableaux):
 
     def _element_constructor_(self, T):
         """
-        Construct an object from ``T`` as an element of ``self``, if
-        possible.
+        Construct an object from ``T`` as an element of ``self``, if possible.
 
         INPUT:
 
@@ -1457,7 +1456,6 @@ class ShiftedPrimedTableaux_all(ShiftedPrimedTableaux):
             ...
             ValueError: [[1, 1, 2], [2, 2]] is not an element of
             Shifted Primed Tableaux
-
         """
         return (super(ShiftedPrimedTableaux_all, self)._element_constructor_(T))
 
@@ -1529,11 +1527,16 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
         """
         Normalize the attributes for the class.
 
-        TEST::
+        TESTS::
 
             sage: SPT = ShiftedPrimedTableaux(shape=[2,1])
             sage: SPT._shape.parent()
             Partitions
+
+            sage: SPT1 = ShiftedPrimedTableaux(shape=(2,1), max_entry=3)
+            sage: SPT2 = ShiftedPrimedTableaux(shape=[2,1], max_entry=3)
+            sage: SPT1 is SPT2
+            True
         """
         shape = _Partitions(shape)
         return (super(ShiftedPrimedTableaux_shape, cls)
@@ -1548,7 +1551,8 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
 
         TESTS::
 
-            sage: TestSuite(ShiftedPrimedTableaux([4,2,1], max_entry=4)).run()
+            sage: SPT = ShiftedPrimedTableaux([4,2,1], max_entry=4)
+            sage: TestSuite(SPT).run()  # long time
         """
         # Determine the correct category
         if max_entry is None:
@@ -1658,7 +1662,7 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
         """
         Return the generators of ``self`` as a crystal.
 
-        TEST::
+        TESTS::
 
             sage: SPT = ShiftedPrimedTableaux(shape=[2,1])
             sage: SPT.module_generators
@@ -1728,14 +1732,13 @@ class ShiftedPrimedTableaux_weight(ShiftedPrimedTableaux):
     """
     Shifted primed tableaux of fixed weight.
 
-    TESTS::
+    EXAMPLES::
 
         sage: ShiftedPrimedTableaux(weight=(2,3,1))
         Shifted Primed Tableaux of weight (2, 3, 1)
         sage: ShiftedPrimedTableaux(weight=(2,3,1)).cardinality()
         17
     """
-
     def __init__(self, weight, skew=None):
         """
         Initialize the class of shifted primed tableaux of a given weight.
@@ -1804,10 +1807,10 @@ class ShiftedPrimedTableaux_weight(ShiftedPrimedTableaux):
             return False
 
         flat = [item.integer() for sublist in T for item in sublist]
-        if flat == []:
+        if not flat:
             max_ind = 0
         else:
-            max_ind = int(max(flat))
+            max_ind = max(flat)
         weight = tuple([flat.count(i+1) for i in range(max_ind)])
         return self._weight == weight
 
@@ -1826,7 +1829,7 @@ class ShiftedPrimedTableaux_weight(ShiftedPrimedTableaux):
             sage: len(list(Tabs))
             5
         """
-        for shape_ in Partitions(sum(self._weight)):
+        for shape_ in ZS1_iterator(sum(self._weight)):
             if all(shape_[i] > shape_[i+1] for i in range(len(shape_)-1)):
                 for tab in ShiftedPrimedTableaux(shape=shape_, weight=self._weight,
                                                  skew=self._skew):
@@ -1838,7 +1841,7 @@ class ShiftedPrimedTableaux_weight_shape(ShiftedPrimedTableaux):
     """
     Shifted primed tableaux of the fixed weight and shape.
 
-    TESTS::
+    EXAMPLES::
 
         sage: ShiftedPrimedTableaux([4,2,1], weight=(2,3,2))
         Shifted Primed Tableaux of weight (2, 3, 2) and shape [4, 2, 1]
@@ -1859,7 +1862,7 @@ class ShiftedPrimedTableaux_weight_shape(ShiftedPrimedTableaux):
         self._weight = weight
         self._skew = skew
         if skew is None:
-            self._shape = Partition(shape)
+            self._shape = _Partitions(shape)
         else:
             self._shape = SkewPartition((shape, skew))
 
@@ -1888,7 +1891,6 @@ class ShiftedPrimedTableaux_weight_shape(ShiftedPrimedTableaux):
             sage: [[1,1.5,2,3],[3]] in ShiftedPrimedTableaux([3,2], weight=(1,2,2))
             False
         """
-
         if not super(ShiftedPrimedTableaux_weight_shape, self)._contains_tableau_(T):
             return False
 
@@ -1950,7 +1952,7 @@ class ShiftedPrimedTableaux_weight_shape(ShiftedPrimedTableaux):
             sage: len(list(Tabs))
             4
 
-        TEST::
+        TESTS::
 
             sage: Tabs = ShiftedPrimedTableaux([3,2], weight=(1,4))
             sage: list(Tabs)
@@ -1959,30 +1961,26 @@ class ShiftedPrimedTableaux_weight_shape(ShiftedPrimedTableaux):
         if self._skew is not None:
             raise NotImplementedError('skew tableau must be empty')
 
-        if not self._shape.dominates(
-              Partition(sorted(list(self._weight), reverse=True))):
+        if not self._shape.dominates(sorted(self._weight, reverse=True)):
             return
         full_shape = self._shape
         sub_tab = []
         tab_list_new = [[]]
+        half = ~QQ(2)
         for i, w in enumerate(self._weight):
             tab_list_old = tab_list_new
             tab_list_new = []
             for sub_tab in tab_list_old:
-                sub_shape = [len(sub_tab[r]) for r in range(len(sub_tab))]
+                sub_shape = [len(row) for row in sub_tab]
                 for strip in _add_strip(sub_shape, full_shape, w):
-                    l = int(len(strip)/2)
+                    l = len(strip) // 2
                     if len(sub_shape) < len(full_shape):
-                        new_tab = [sub_tab[r]
-                                   + [float(i+.5)]*int(strip[r])
-                                   + [float(i+1)]*int(strip[-r-1])
+                        new_tab = [sub_tab[r] + [i+half]*strip[r] + [i+1]*strip[-r-1]
                                    for r in range(l-1)]
                         if strip[l] != 0:
-                            new_tab.append([float(i+1)]*int(strip[l]))
+                            new_tab.append([i+1] * strip[l])
                     else:
-                        new_tab = [sub_tab[r]
-                                   + [float(i+.5)]*int(strip[r])
-                                   + [float(i+1)]*int(strip[-r-1])
+                        new_tab = [sub_tab[r] + [i+half]*strip[r] + [i+1]*strip[-r-1]
                                    for r in range(l)]
                     tab_list_new.append(new_tab)
         for tab in tab_list_new:
@@ -2004,10 +2002,10 @@ def _add_strip(sub_tab, full_tab, length):
         sage: list(ShiftedPrimedTableaux([3,1], weight=(2,2)))  # indirect doctest
         [[(1, 1, 2), (2,)], [(1, 1, 2'), (2,)]]
     """
-    if sum(sub_tab)+length > sum(full_tab):
+    if sum(sub_tab) + length > sum(full_tab):
         raise ValueError("strip does not fit")
 
-    if len(sub_tab) == 0:
+    if not sub_tab:
         cliff_list = []
     else:
         cliff_list = [int(sub_tab[0] != full_tab[0])]
@@ -2023,11 +2021,11 @@ def _add_strip(sub_tab, full_tab, length):
     if len(sub_tab) < len(full_tab):
         cliff_list.append(0)
 
-    for primes_num in range(min(sum(cliff_list), length)+1):
+    for primes_num in range(min(sum(cliff_list), length) + 1):
         for primed_list in IntegerVectors(n=primes_num, k=len(cliff_list),
                                           outer=cliff_list):
             row = 0
-            primed_strip = list()
+            primed_strip = []
             for i, cliff in enumerate(cliff_list):
                 if cliff == 0:
                     row += 1
@@ -2036,7 +2034,7 @@ def _add_strip(sub_tab, full_tab, length):
                 primed_strip.extend([int(primed_list[i] > j)
                                      for j in range(cliff)])
                 row += cliff
-            plat_list = list()
+            plat_list = []
 
             if len(sub_tab) < len(full_tab) and len(sub_tab) != 0:
                 plat_list.append(min(sub_tab[-1] + primed_strip[-2] - 1,
@@ -2050,8 +2048,6 @@ def _add_strip(sub_tab, full_tab, length):
             else:
                 plat_list.append(full_tab[0])
 
-            if sum(plat_list) < length - primes_num:
-                pass
             for non_primed_strip in IntegerVectors(n=length-primes_num,
                                                    k=len(plat_list),
                                                    outer=plat_list):

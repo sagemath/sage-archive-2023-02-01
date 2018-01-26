@@ -1316,6 +1316,7 @@ class ShiftedPrimedTableaux(UniqueRepresentation, Parent):
             sage: T = ShiftedPrimedTableau([[None, 2]])
             sage: T.parent()._skew
             [1]
+            sage: TestSuite(T).run()
         """
         self._skew = skew
 
@@ -1332,16 +1333,53 @@ class ShiftedPrimedTableaux(UniqueRepresentation, Parent):
 
         - the corresponding primed tableau object
 
-        TESTS::
+        EXAMPLES::
 
-            sage: Tabs = ShiftedPrimedTableaux()
-            sage: Tabs([[1,"2p","2p"]])
+            sage: SPT = ShiftedPrimedTableaux()
+            sage: tab = SPT([[1,1,"2p"]]); tab
+            [(1, 1, 2')]
+            sage: tab.parent() is SPT
+            True
+            sage: tab = SPT([[1,1,2],[2,2]])
+            Traceback (most recent call last):
+            ...
+            ValueError: [[1, 1, 2], [2, 2]] is not an element of Shifted Primed Tableaux
+            sage: SPT([[1,"2p","2p"]])
             Traceback (most recent call last):
             ...
             ValueError: [[1, '2p', '2p']] is not an element of Shifted Primed Tableaux
-            sage: Tabs = ShiftedPrimedTableaux(skew=[1])
-            sage: Tabs([["2p",2]])
+
+            sage: SPT = ShiftedPrimedTableaux(skew=[1])
+            sage: SPT([["2p",2]])
             [(None, 2', 2)]
+
+            sage: SPT = ShiftedPrimedTableaux(weight=(2,1))
+            sage: tab = SPT([[1,1,1.5]]); tab
+            [(1, 1, 2')]
+            sage: tab.parent() is SPT
+            True
+
+            sage: SPT = ShiftedPrimedTableaux([3])
+            sage: tab = SPT([[1,1,1.5]]); tab
+            [(1, 1, 2')]
+            sage: tab.parent() is SPT
+            True
+            sage: SPT([[1,1]])
+            Traceback (most recent call last):
+            ...
+            ValueError: [[1, 1]] is not an element of Shifted Primed Tableaux
+             of shape [3]
+
+            sage: SPT = ShiftedPrimedTableaux([3], weight=(2,1))
+            sage: tab = SPT([[1,1,1.5]]); tab
+            [(1, 1, 2')]
+            sage: tab.parent() is SPT
+            True
+            sage: SPT([[1,1]])
+            Traceback (most recent call last):
+            ...
+            ValueError: [[1, 1]] is not an element of Shifted Primed Tableaux
+             of weight (2, 1) and shape [3]
         """
         try:
             return self.element_class(self, T, skew=self._skew)
@@ -1437,32 +1475,6 @@ class ShiftedPrimedTableaux_all(ShiftedPrimedTableaux):
         if self._skew is None:
             return "Shifted Primed Tableaux"
         return "Shifted Primed Tableaux skewed by {}".format(self._skew)
-
-    def _element_constructor_(self, T):
-        """
-        Construct an object from ``T`` as an element of ``self``, if possible.
-
-        INPUT:
-
-        - ``T`` -- data which can be interpreted as a tableau
-
-        OUTPUT:
-
-        - the corresponding tableau object
-
-        TESTS::
-
-            sage: Tab=ShiftedPrimedTableaux()([[1,1,"2p"]]); Tab
-            [(1, 1, 2')]
-            sage: Tab.parent()
-            Shifted Primed Tableaux
-            sage: Tab=ShiftedPrimedTableaux()([[1,1,2],[2,2]])
-            Traceback (most recent call last):
-            ...
-            ValueError: [[1, 1, 2], [2, 2]] is not an element of
-            Shifted Primed Tableaux
-        """
-        return super(ShiftedPrimedTableaux_all, self)._element_constructor_(T)
 
     def __iter__(self):
         """
@@ -1631,36 +1643,6 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
 
         return True
 
-    def _element_constructor_(self, T):
-        """
-        Construct an object from ``T`` as an element of ``self``, if
-        possible.
-
-        INPUT:
-
-        - ``T`` -- data which can be interpreted as a primed tableau
-
-        OUTPUT:
-
-        - the corresponding primed tableau object
-
-        TESTS::
-
-            sage: tab= ShiftedPrimedTableaux([3])([[1,1,1.5]]); tab
-            [(1, 1, 2')]
-            sage: tab.parent()
-            Shifted Primed Tableaux of shape [3]
-            sage: ShiftedPrimedTableaux([3])([[1,1]])
-            Traceback (most recent call last):
-            ...
-            ValueError: [[1, 1]] is not an element of Shifted Primed Tableaux
-             of shape [3]
-        """
-        try:
-            return super(ShiftedPrimedTableaux_shape, self)._element_constructor_(T)
-        except ValueError:
-            raise ValueError("{} is not an element of {}".format(T, self))
-
     @lazy_attribute
     def module_generators(self):
         """
@@ -1769,31 +1751,6 @@ class ShiftedPrimedTableaux_weight(ShiftedPrimedTableaux):
             return "Shifted Primed Tableaux of weight {}".format(self._weight)
         return ("Shifted Primed Tableaux of weight {} skewed by {}"
                 .format(self._weight, self._skew))
-
-    def _element_constructor_(self, T):
-        """
-        Construct an object from ``T`` as an element of ``self``, if
-        possible.
-
-        INPUT:
-
-        - ``T`` -- data which can be interpreted as a primed tableau
-
-        OUTPUT:
-
-        - the corresponding primed tableau object
-
-        TESTS::
-
-            sage: tab = ShiftedPrimedTableaux(weight=(2,1))([[1,1,1.5]]); tab
-            [(1, 1, 2')]
-            sage: tab.parent()
-            Shifted Primed Tableaux of weight (2, 1)
-        """
-        try:
-            return super(ShiftedPrimedTableaux_weight, self)._element_constructor_(T)
-        except ValueError:
-            raise ValueError("{} is not an element of {}".format(T, self))
 
     def _contains_tableau_(self, T):
         """
@@ -1923,29 +1880,7 @@ class ShiftedPrimedTableaux_weight_shape(ShiftedPrimedTableaux):
             shape = _Partitions(shape)
         else:
             shape = SkewPartition((shape, skew))
-        return self._shape == shape:
-
-    def _element_constructor_(self, T):
-        """
-        Construct an object from ``T`` as an element of ``self``, if possible.
-
-        TESTS::
-
-            sage: SPT = ShiftedPrimedTableaux([3], weight=(2,1))
-            sage: tab = SPT([[1,1,1.5]]); tab
-            [(1, 1, 2')]
-            sage: tab.parent() is SPT
-            True
-            sage: SPT([[1,1]])
-            Traceback (most recent call last):
-            ...
-            ValueError: [[1, 1]] is not an element of Shifted Primed Tableaux
-             of weight (2, 1) and shape [3]
-        """
-        try:
-            return super(ShiftedPrimedTableaux_weight_shape, self)._element_constructor_(T)
-        except ValueError:
-            raise ValueError("{} is not an element of {}".format(T, self))
+        return self._shape == shape
 
     def __iter__(self):
         """

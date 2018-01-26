@@ -107,9 +107,9 @@ def unicode_art(*obj, **kwds):
 
         sage: sep_line = unicode_art('\n'.join(u' ⎟ ' for _ in range(5)), baseline=5)
         sage: unicode_art(*Partitions(4), separator=sep_line, sep_baseline=0)
-        ⎟      ⎟     ⎟     ⎟ ┌┐
-        ⎟      ⎟     ⎟ ┌┬┐ ⎟ ├┤
-        ⎟ ┌┬┬┐ ⎟ ┌┬┐ ⎟ ├┼┘ ⎟ ├┤
+              ⎟      ⎟     ⎟     ⎟ ┌┐
+              ⎟      ⎟     ⎟ ┌┬┐ ⎟ ├┤
+              ⎟ ┌┬┬┐ ⎟ ┌┬┐ ⎟ ├┼┘ ⎟ ├┤
         ┌┬┬┬┐ ⎟ ├┼┴┘ ⎟ ├┼┤ ⎟ ├┤  ⎟ ├┤
         └┴┴┴┘ ⎟ └┘   ⎟ └┴┘ ⎟ └┘  ⎟ └┘
 

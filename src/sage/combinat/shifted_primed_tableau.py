@@ -1249,6 +1249,11 @@ class ShiftedPrimedTableaux(UniqueRepresentation, Parent):
             Traceback (most recent call last):
             ...
             ValueError: skew shape must be inside the given tableau shape
+
+            sage: SPT1 = ShiftedPrimedTableaux(weight=())
+            sage: SPT2 = ShiftedPrimedTableaux(weight=(0,0,0))
+            sage: SPT1 is SPT2
+            True
         """
         if skew is not None:
             try:
@@ -1278,7 +1283,7 @@ class ShiftedPrimedTableaux(UniqueRepresentation, Parent):
                 raise ValueError('skew shape must be inside the given tableau shape')
 
         if weight is not None:
-            while weight[-1] == 0:
+            while weight and weight[-1] == 0:
                 weight = weight[:-1]
 
         if max_entry is not None and weight is not None:
@@ -1802,15 +1807,19 @@ class ShiftedPrimedTableaux_weight(ShiftedPrimedTableaux):
             True
             sage: [[1,1.5],[3]] in ShiftedPrimedTableaux(weight=(1,2))
             False
+
+            sage: [] in ShiftedPrimedTableaux(weight=())
+            True
+            sage: [] in ShiftedPrimedTableaux(weight=(1,2))
+            False
         """
         if not super(ShiftedPrimedTableaux_weight, self)._contains_tableau_(T):
             return False
 
         flat = [item.integer() for sublist in T for item in sublist]
         if not flat:
-            max_ind = 0
-        else:
-            max_ind = max(flat)
+            return not self._weight
+        max_ind = max(flat)
         weight = tuple([flat.count(i+1) for i in range(max_ind)])
         return self._weight == weight
 

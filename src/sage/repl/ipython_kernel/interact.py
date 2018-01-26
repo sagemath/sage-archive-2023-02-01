@@ -33,7 +33,7 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from ipywidgets.widgets import SelectionSlider, ValueWidget
+from ipywidgets.widgets import SelectionSlider, ValueWidget, ToggleButtons
 from ipywidgets.widgets.interaction import interactive, signature, ValueWidget
 from copy import copy
 from collections import Iterable, Iterator
@@ -101,6 +101,12 @@ class sage_interactive(interactive):
         if self.manual:
             # In Sage, manual interacts are always run once
             self.on_displayed(self.update)
+        else:
+            # In automatic mode, clicking on a ToggleButtons button
+            # should also run the interact
+            for widget in self.kwargs_widgets:
+                if isinstance(widget, ToggleButtons):
+                    widget.on_msg(self.update)
 
     def __repr__(self):
         """

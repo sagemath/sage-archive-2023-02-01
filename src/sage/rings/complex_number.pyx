@@ -31,7 +31,6 @@ from __future__ import absolute_import, print_function
 import math
 import operator
 
-from sage.libs.mpc cimport mpc_t
 from sage.libs.mpfr cimport *
 from sage.structure.element cimport FieldElement, RingElement, Element, ModuleElement
 from sage.categories.map cimport Map
@@ -193,9 +192,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             elif isinstance(real, complex):
                 real, imag = real.real, real.imag
             elif HAVE_GMPY2 and type(real) is gmpy2.mpc:
-                mpfr_set(self.__re, (<mpc_t>(<gmpy2.mpc>real).c).re, rnd)
-                mpfr_set(self.__im, (<mpc_t>(<gmpy2.mpc>real).c).im, rnd)
-                return
+                real, imag = (<gmpy2.mpc>real).real, (<gmpy2.mpc>real).imag
             else:
                 imag = 0
         try:

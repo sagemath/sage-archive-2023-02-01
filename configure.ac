@@ -70,7 +70,7 @@ AM_INIT_AUTOMAKE([1.9.6 foreign])
 # Allow "configure --disable-maintainer-mode" to disable timestamp checking
 AM_MAINTAINER_MODE([enable])
 
-dnl Make sure the path to our own m4 macros is always properly set 
+dnl Make sure the path to our own m4 macros is always properly set
 dnl and doesn't depend on how autoconf is called.
 AC_CONFIG_MACRO_DIR([m4])
 
@@ -212,7 +212,7 @@ then
     AC_MSG_NOTICE([On some systems it can be found in /usr/ccs/bin])
     AC_MSG_NOTICE([See also http://www.gnu.org/software/m4/])
     AC_MSG_ERROR([Exiting, as the macro processor 'm4' can not be found.])
-fi 
+fi
 
 AC_CHECK_PROG(found_ranlib, ranlib, yes, no)
 if test x$found_ranlib != xyes
@@ -355,6 +355,8 @@ AC_DEFUN([SAGE_MUST_INSTALL_GCC], [
 
 # By default, do not install GCC
 need_to_install_gcc=no
+# or GFORTRAN
+need_to_install_gfortran=no
 
 if test -f "$SAGE_LOCAL/bin/gcc"; then
     # Special value for SAGE_INSTALL_GCC if GCC is already installed
@@ -380,6 +382,13 @@ AC_PROG_FC()
 AC_SUBST(CC)
 AC_SUBST(CXX)
 AC_SUBST(FC)
+
+# Figuring out if we are using clang instead of gcc.
+AX_COMPILER_VENDOR()
+IS_REALLY_GCC=no
+if test "x$ax_cv_c_compiler_vendor" = xgnu ; then
+    IS_REALLY_GCC=yes
+fi
 
 # On darwin, also set the objective C/C++ compilers
 # Checking on all platforms doesn't hurt and stops

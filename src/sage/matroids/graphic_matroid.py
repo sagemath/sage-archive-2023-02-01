@@ -561,7 +561,7 @@ class GraphicMatroid(Matroid):
 
     def _has_minor(self, N, certificate=False):
         """
-        Check if the matroid has a minor isomoprhic to M(H).
+        Check if the matroid has a minor isomorphic to M(H).
 
         INPUT:
 

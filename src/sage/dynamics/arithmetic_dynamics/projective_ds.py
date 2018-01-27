@@ -3530,7 +3530,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         if type == 'cycle':
             #now we need to deal with having the correct number of factors
             #1 multiplier for each cycle. But we need to be careful about
-            #the length of the cycle and the mutliplicities
+            #the length of the cycle and the multiplicities
             good_res = 1
             if formal:
                 #then we are working with the n-th dynatomic and just need

@@ -2343,7 +2343,7 @@ def SRG_280_117_44_52():
     """
     from sage.graphs.hypergraph_generators import hypergraphs
 
-    # V is the set of partions {{a,b,c},{d,e,f},{g,h,i}} of {0,...,8}
+    # V is the set of partitions {{a,b,c},{d,e,f},{g,h,i}} of {0,...,8}
     H = hypergraphs.CompleteUniform(9,3)
     g = H.intersection_graph()
     V = g.complement().cliques_maximal()

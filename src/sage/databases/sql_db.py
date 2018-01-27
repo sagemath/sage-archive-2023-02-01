@@ -772,7 +772,7 @@ class SQLQuery(SageObject):
             if re.search(pattern, self.__query_string__) \
               or re.search(pattern, other.__query_string__):
                 raise TypeError('Input queries have joins but join ' \
-                    + 'paramaters are NoneType')
+                    + 'parameters are NoneType')
             s = ((self.__query_string__).upper()).split('FROM ')
             o = ((other.__query_string__).upper()).split('FROM ')
             s = s[1].split(' WHERE ')

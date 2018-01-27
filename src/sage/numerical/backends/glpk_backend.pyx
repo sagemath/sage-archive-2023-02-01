@@ -154,7 +154,7 @@ cdef class GLPKBackend(GenericBackend):
         Add ``number`` new variables.
 
         This amounts to adding new columns to the matrix. By default,
-        the variables are both positive, real and theor coefficient in
+        the variables are both positive, real and their coefficient in
         the objective function is 0.0.
 
         INPUT:
@@ -786,7 +786,7 @@ cdef class GLPKBackend(GenericBackend):
 
         INPUT:
 
-        - ``indices`` (list of integers) -- this list constains the
+        - ``indices`` (list of integers) -- this list contains the
           indices of the constraints in which the variable's
           coefficient is nonzero
 

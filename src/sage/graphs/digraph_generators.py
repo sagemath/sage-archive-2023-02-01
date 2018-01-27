@@ -60,7 +60,7 @@ Functions and methods
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 ################################################################################
-from __future__ import print_function
+from __future__ import print_function, division
 from six.moves import range
 
 from   math import sin, cos, pi
@@ -1290,14 +1290,14 @@ class DiGraphGenerators():
         if loops:
             if m > n*n:
                 good_input = False
-            elif m > n*n/2:
+            elif 2*m > n*n:
                 is_dense = True
                 m = n*n - m
 
         else:
             if m > n*(n-1):
                 good_input = False
-            elif m > n*(n-1)/2:
+            elif m > (n * (n - 1)) // 2:
                 is_dense = True
                 m = n*(n-1) - m
 

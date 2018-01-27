@@ -9488,7 +9488,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.homogenize('x')
             3*x^2
 
-        In positive characterstic, the degree can drop in this case::
+        In positive characteristic, the degree can drop in this case::
 
             sage: R.<x> = GF(2)[]
             sage: f = x + 1

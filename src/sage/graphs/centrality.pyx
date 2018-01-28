@@ -233,7 +233,7 @@ cdef dict centrality_betweenness_C(G, numerical_type _, normalize=True):
                 for j in range(layer_current_beginning,layer_current_end):
                     u = queue[j]
 
-                    # List the neighors of u
+                    # List the neighbors of u
                     p_tmp = g.neighbors[u]
                     while p_tmp<g.neighbors[u+1]:
                         v = p_tmp[0]
@@ -341,7 +341,7 @@ cdef void _estimate_reachable_vertices_dir(short_digraph g, int* reachL, int* re
         L(C)=|C|+\max_{(C,C') \in \mathcal{E}}L(C') \\
         U(C)=|C|+\max_{(C,C') \in \mathcal{E}}L(C')
 
-    By analyzing strongly connected components in reverse topologial order,
+    By analyzing strongly connected components in reverse topological order,
     we are sure that, as soon as we process component `C`, all components
     `C'` appearing on the right hand side have already been processed.
     A further improvement on these bounds is obtained by exactly computing
@@ -764,7 +764,7 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
 
                 u = queue[j]
 
-                # List the neighors of u
+                # List the neighbors of u
                 p_tmp = sd.neighbors[u]
                 while p_tmp<sd.neighbors[u+1] and not stopped:
                     sig_check()

@@ -714,14 +714,14 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
         EXAMPLES::
 
             sage: giac._true_symbol()
-            '1'
+            'true'
 
         ::
 
             sage: giac(2) == giac(2)
             True
         """
-        return '1'
+        return 'true'
 
     def _assign_symbol(self):
         """

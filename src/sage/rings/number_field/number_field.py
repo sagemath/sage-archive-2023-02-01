@@ -120,6 +120,7 @@ from sage.misc.functional import is_odd, lift
 from sage.misc.misc_c import prod
 from sage.categories.homset import End
 from sage.rings.all import Infinity
+from sage.categories.number_fields import NumberFields
 
 import sage.rings.ring
 from sage.misc.latex import latex_variable_name
@@ -143,6 +144,7 @@ from itertools import count
 from builtins import zip
 from sage.misc.superseded import deprecated_function_alias
 
+_NumberFields = NumberFields()
 
 def is_NumberFieldHomsetCodomain(codomain):
     """
@@ -521,6 +523,18 @@ def NumberField(polynomial, name=None, check=True, names=None, embedding=None, l
         ...
         TypeError: You must specify the name of the generator.
 
+    Check that we can construct morphisms to matrix space (:trac:`23418`)::
+
+        sage: t = polygen(QQ)
+        sage: K = NumberField(t^4 - 2, 'a')
+        sage: K.hom([K.gen().matrix()])
+        Ring morphism:
+          From: Number Field in a with defining polynomial x^4 - 2
+          To:   Full MatrixSpace of 4 by 4 dense matrices over Rational Field
+          Defn: a |--> [0 1 0 0]
+                       [0 0 1 0]
+                       [0 0 0 1]
+                       [2 0 0 0]
     """
     if names is not None:
         name = names
@@ -1202,7 +1216,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         sage: NumberField(QQ['x'].0^4 + 23, 'a') == NumberField(QQ['y'].0^4 + 23, 'a')
         False
 
-        sage: x = var('x'); y = ZZ['y'].gen()
+        sage: x = polygen(QQ); y = ZZ['y'].gen()
         sage: NumberField(x^3 + x + 5, 'a') == NumberField(y^3 + y + 5, 'a')
         False
         sage: NumberField(x^3 + x + 5, 'a') == NumberField(y^4 + y + 5, 'a')
@@ -1328,8 +1342,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         self._assume_disc_small = assume_disc_small
         self._maximize_at_primes = maximize_at_primes
         self._structure = structure
-        from sage.categories.number_fields import NumberFields
-        default_category = NumberFields()
+        default_category = _NumberFields
         if category is None:
             category = default_category
         else:
@@ -3470,8 +3483,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             except (TypeError, AttributeError):
                 raise TypeError("%s is not valid bound on prime ideals" % B)
 
-        if B<2:
-            raise StopIteration
+        if B < 2:
+            return
 
         if self is QQ:
             for p in arith.primes(B+1):
@@ -5050,7 +5063,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
             sage: k.<a> = NumberField(x^2 + 1); k
             Number Field in a with defining polynomial x^2 + 1
-            sage: y = var('y')
+            sage: y = polygen(QQ,'y')
             sage: m.<b> = k.extension(y^2 + 2); m
             Number Field in b with defining polynomial y^2 + 2 over its base field
 
@@ -5589,45 +5602,40 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             [-1, -1/2*t^5 + 1/2*t^4 + 3*t^3 - 3/2*t^2 - 4*t - 1/2, t, 1/2*t^5 + 1/2*t^4 - 4*t^3 - 5/2*t^2 + 7*t + 1/2, 1/2*t^5 - 1/2*t^4 - 2*t^3 + 3/2*t^2 - 1/2, 1/2*t^5 - 1/2*t^4 - 3*t^3 + 5/2*t^2 + 4*t - 5/2]
             sage: CyclotomicField(12).reduced_basis()
             [1, zeta12^2, zeta12, zeta12^3]
+
+        TESTS:
+
+        Check that the bug reported at :trac:`10017` is fixed::
+
+            sage: x = polygen(QQ)
+            sage: k.<a> = NumberField(x^6 + 2218926655879913714112*x^4 - 32507675650290949030789018433536*x^3 + 4923635504174417014460581055002374467948544*x^2 - 36066074010564497464129951249279114076897746988630016*x + 264187244046129768986806800244258952598300346857154900812365824)
+            sage: new_basis = k.reduced_basis(prec=120)
+            sage: [c.minpoly() for c in new_basis]
+            [x - 1,
+             x^2 - x + 1,
+             x^6 + 3*x^5 - 102*x^4 - 103*x^3 + 10572*x^2 - 59919*x + 127657,
+             x^6 - 3*x^5 - 102*x^4 + 315*x^3 + 10254*x^2 - 80955*x + 198147,
+             x^3 - 171*x + 848,
+             x^6 + 171*x^4 + 1696*x^3 + 29241*x^2 + 145008*x + 719104]
+            sage: R = k.order(new_basis)
+            sage: R.discriminant()==k.discriminant()
+            True
         """
-        if self.is_totally_real():
-            try:
-                return self.__reduced_basis
-            except AttributeError:
-                pass
-        else:
-            try:
-                if self.__reduced_basis_precision >= prec:
-                    return self.__reduced_basis
-            except AttributeError:
-                pass
-
-        from sage.matrix.constructor import matrix
-
+        ZK = self.integral_basis()
         d = self.absolute_degree()
-        Z_basis = self.integral_basis()
 
-        ## If self is totally real, then we can use (x*y).trace() as
-        ## the inner product on the Minkowski embedding, which is
-        ## faster than computing all the conjugates, etc ...
+        # If self is totally real, then we can use (x*y).trace() as
+        # the inner product on the Minkowski embedding, which is
+        # faster than computing all the conjugates, etc ...
+
         if self.is_totally_real():
-            T = pari(matrix(ZZ, d, d, [[(x*y).trace() for x in Z_basis]
-                                       for y in Z_basis])).qflllgram()
-            self.__reduced_basis = [ sum([ ZZ(T[i][j]) * Z_basis[j]
-                                           for j in range(d)])
-                                     for i in range(d)]
+            from sage.matrix.constructor import matrix
+            T = pari(matrix(ZZ, d, d, [[(x*y).trace() for x in ZK]  for y in ZK])).qflllgram()
         else:
-            M = self.minkowski_embedding(self.integral_basis(), prec=prec)
-            T = pari(M).qflll().sage()
-            self.__reduced_basis = [ self(v.list()) for v in T.columns() ]
-            if prec is None:
-                ## this is the default choice for minkowski_embedding
-                self.__reduced_basis_prec = 53
-            else:
-                self.__reduced_basis_prec = prec
+            M = self.minkowski_embedding(ZK, prec=prec)
+            T = pari(M).qflll()
 
-        return self.__reduced_basis
-
+        return [ sum([ ZZ(T[i][j]) * ZK[j] for j in range(d)])  for i in range(d)]
 
     def reduced_gram_matrix(self, prec=None):
         r"""
@@ -5684,14 +5692,13 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         ::
 
-            sage: var('x')
-            x
+            sage: x = polygen(QQ)
             sage: F.<alpha> = NumberField(x^4+x^2+712312*x+131001238)
             sage: F.reduced_gram_matrix(prec=128)
-            [   4.0000000000000000000000000000000000000   0.00000000000000000000000000000000000000 -2.1369360000000000000000000000000000000e6 -3.3122478000000000000000000000000000000e7]
-            [  0.00000000000000000000000000000000000000    46721.539331563218381658483353092335550 -2.2467769057394530109094755223395819322e7 -3.4807276041138450473611629088647496430e8]
-            [-2.1369360000000000000000000000000000000e6 -2.2467769057394530109094755223395819322e7 7.0704285924714907491782135494859351061e12 1.1256639928034037006027526953641297995e14]
-            [-3.3122478000000000000000000000000000000e7 -3.4807276041138450473611629088647496430e8 1.1256639928034037006027526953641297995e14 1.7923838231014970520503146603069479547e15]
+            [   4.0000000000000000000000000000000000000   0.00000000000000000000000000000000000000   -1.9999999999999999999999999999999999037  -0.99999999999999999999999999999999383702]
+            [  0.00000000000000000000000000000000000000    46721.539331563218381658483353092335550   -11488.910026551724275122749703614966768   -418.12718083977141198754424579680468382]
+            [  -1.9999999999999999999999999999999999037   -11488.910026551724275122749703614966768  5.5658915310500611768713076521847709187e8  1.4179092271494070050433368847682152174e8]
+            [ -0.99999999999999999999999999999999383702   -418.12718083977141198754424579680468382  1.4179092271494070050433368847682152174e8 1.3665897267919181137884111201405279175e12]
         """
         if self.is_totally_real():
             try:

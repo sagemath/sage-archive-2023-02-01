@@ -69,10 +69,10 @@ esac
 
 # Make sure that the install worked, despite whatever the
 # exit code of 'make' or 'make install' was:
-if [[ -f "$SAGE_LOCAL/lib/$DYLIB_NAME" ]]; then
+if [[ -f "$SAGE_DESTDIR$SAGE_LOCAL/lib/$DYLIB_NAME" ]]; then
     echo "Fixing permissions of libraries..."
-    chmod 755 "$SAGE_LOCAL"/lib/libreadline.*
-    chmod 755 "$SAGE_LOCAL"/lib/libhistory.*
+    chmod 755 "$SAGE_DESTDIR$SAGE_LOCAL"/lib/libreadline.*
+    chmod 755 "$SAGE_DESTDIR$SAGE_LOCAL"/lib/libhistory.*
 else
     # One or both of the readline libraries are missing, i.e.
     # haven't been installed.

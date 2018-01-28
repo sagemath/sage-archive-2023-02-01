@@ -174,24 +174,15 @@ cdef class WordDatatype_list(WordDatatype):
 
         http://docs.cython.org/docs/special_methods.html
         """
-        if op == Py_EQ:
-            if isinstance(other, WordDatatype_list):
+        if isinstance(other, WordDatatype_list):
+            if op == Py_EQ:
                 return self._data == other._data
-            else:
-                # Otherwise, force FiniteWord_class.__eq__ to do it
-                # (if we don't force it, then __cmp__ is called before)
-                from sage.combinat.words.word import FiniteWord_class
-                return FiniteWord_class.__eq__(self, other)
-        elif op == Py_NE:
-            if isinstance(other, WordDatatype_list):
+            elif op == Py_NE:
                 return self._data != other._data
-            else:
-                # Otherwise, force FiniteWord_class.__eq__ to do it
-                # (if we don't force it, then __cmp__ is called before)
-                from sage.combinat.words.word import FiniteWord_class
-                return not FiniteWord_class.__eq__(self,other)
-        else:
-            return NotImplemented
+
+        # Otherwise, force FiniteWord_class.__richcmp__ to do it
+        from sage.combinat.words.word import FiniteWord_class
+        return FiniteWord_class.__richcmp__(self, other, op)
 
     def __len__(self):
         r"""
@@ -385,24 +376,15 @@ cdef class WordDatatype_str(WordDatatype):
 
         http://docs.cython.org/docs/special_methods.html
         """
-        if op == Py_EQ:
-            if isinstance(other, WordDatatype_str):
+        if isinstance(other, WordDatatype_str):
+            if op == Py_EQ:
                 return self._data == other._data
-            else:
-                # Otherwise, force FiniteWord_class.__eq__ to do it
-                # (if we don't force it, then __cmp__ is called before)
-                from sage.combinat.words.word import FiniteWord_class
-                return FiniteWord_class.__eq__(self,other)
-        elif op == Py_NE:
-            if isinstance(other, WordDatatype_str):
+            elif op == Py_NE:
                 return self._data != other._data
-            else:
-                # Otherwise, force FiniteWord_class.__eq__ to do it
-                # (if we don't force it, then __cmp__ is called before)
-                from sage.combinat.words.word import FiniteWord_class
-                return not FiniteWord_class.__eq__(self,other)
-        else:
-            return NotImplemented
+
+        # Otherwise, force FiniteWord_class.__richcmp__ to do it
+        from sage.combinat.words.word import FiniteWord_class
+        return FiniteWord_class.__richcmp__(self, other, op)
 
     def __contains__(self, a):
         r"""
@@ -998,24 +980,15 @@ cdef class WordDatatype_tuple(WordDatatype):
 
         http://docs.cython.org/docs/special_methods.html
         """
-        if op == Py_EQ:
-            if isinstance(other, WordDatatype_tuple):
+        if isinstance(other, WordDatatype_tuple):
+            if op == Py_EQ:
                 return self._data == other._data
-            else:
-                # Otherwise, force FiniteWord_class.__eq__ to do it
-                # (if we don't force it, then __cmp__ is called before)
-                from sage.combinat.words.word import FiniteWord_class
-                return FiniteWord_class.__eq__(self,other)
-        elif op == Py_NE:
-            if isinstance(other, WordDatatype_tuple):
+            elif op == Py_NE:
                 return self._data != other._data
-            else:
-                # Otherwise, force FiniteWord_class.__eq__ to do it
-                # (if we don't force it, then __cmp__ is called before)
-                from sage.combinat.words.word import FiniteWord_class
-                return not FiniteWord_class.__eq__(self,other)
-        else:
-            return NotImplemented
+
+        # Otherwise, force FiniteWord_class.__richcmp__ to do it
+        from sage.combinat.words.word import FiniteWord_class
+        return FiniteWord_class.__richcmp__(self, other, op)
 
     def __len__(self):
         r"""

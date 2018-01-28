@@ -105,7 +105,7 @@ method for :class:`SteenrodAlgebra_generic
 <sage.algebras.steenrod.steenrod_algebra.SteenrodAlgebra_generic>` in
 :file:`steenrod_algebra.py`.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, division
 
 #*****************************************************************************
 #  Copyright (C) 2008-2010 John H. Palmieri <palmieri@math.washington.edu>
@@ -484,12 +484,12 @@ def xi_degrees(n,p=2, reverse=True):
         [307, 18, 1]
     """
     from sage.rings.all import Integer
-    if n <= 0: return []
+    if n <= 0:
+        return []
     N = Integer(n*(p-1) + 1)
-    l = [int((p**d-1)/(p-1)) for d in range(1,N.exact_log(p)+1)]
-    if not reverse:
-        return l
-    l.reverse()
+    l = [(p**d-1)//(p-1) for d in range(1, N.exact_log(p)+1)]
+    if reverse:
+        l.reverse()
     return l
 
 ########################################################
@@ -609,7 +609,7 @@ def milnor_basis(n, p=2, **kwds):
         # first find the P part of each basis element.
         # in this part of the code (the P part), all dimensions are
         # divided by 2(p-1).
-        for dim in range(n/(2*(p-1)) + 1):
+        for dim in range(n//(2*(p-1)) + 1):
             if dim == 0:
                 P_result = [[0]]
             else:
@@ -625,7 +625,7 @@ def milnor_basis(n, p=2, **kwds):
             for p_mono in P_result:
                 deg = n - 2*dim*(p-1)
                 q_degrees = [1+2*(p-1)*d for d in
-                             xi_degrees(int((deg - 1)/(2*(p-1))), p)] + [1]
+                             xi_degrees(int((deg - 1)//(2*(p-1))), p)] + [1]
                 q_degrees_decrease = q_degrees
                 q_degrees.reverse()
                 if deg % (2*(p-1)) <= len(q_degrees):
@@ -721,8 +721,8 @@ def serre_cartan_basis(n, p=2, bound=1, **kwds):
                     new = vec + (last,)
                     result.append(new)
         else: # p odd
-            if n % (2 * (p-1)) == 0 and n/(2 * (p-1)) >= bound:
-                result = [(0, int(n/(2 * (p-1))), 0)]
+            if n % (2 * (p-1)) == 0 and n//(2 * (p-1)) >= bound:
+                result = [(0, int(n//(2 * (p-1))), 0)]
             elif n == 1:
                 result = [(1,)]
             else:
@@ -1041,7 +1041,7 @@ def atomic_basis_odd(n, basis, p, **kwds):
     trunc = kwds.get("truncation_type", 0)
 
     result = []
-    for dim in range(n/(2*p-2) + 1):
+    for dim in range(n//(2*p-2) + 1):
         P_result = []
         for v in WeightedIntegerVectors(dim, xi_degrees(dim, p=p, reverse=False)):
             mono = []

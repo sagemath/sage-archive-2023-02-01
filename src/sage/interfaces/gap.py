@@ -1129,7 +1129,8 @@ class Gap(Gap_generic):
 
     def set_seed(self,seed=None):
         """
-        Sets the seed for gap interpeter.
+        Set the seed for gap interpreter.
+
         The seed should be an integer.
 
         EXAMPLES::

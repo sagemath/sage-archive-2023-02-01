@@ -2107,7 +2107,7 @@ class NormalFormGame(SageObject, MutableMapping):
                         M[strategy1][support2[strategy_pair2]] -\
                         M[strategy1][support2[strategy_pair2 - 1]]
             # Coefficients of linear system that ensure the vector is
-            # a probability vecotor. ie. sum to 1
+            # a probability vector. ie. sum to 1
             linearsystem[-1, strategy1] = 1
         # Create rhs of linear systems
         linearsystem_rhs = vector([0 for i in range(len(support2))] + [1])

@@ -190,16 +190,16 @@ def mpfr_prec_min():
 
         sage: from sage.rings.real_mpfr import mpfr_prec_min
         sage: mpfr_prec_min()
-        2
+        1
         sage: R = RealField(2)
         sage: R(2) + R(1)
         3.0
         sage: R(4) + R(1)
         4.0
-        sage: R = RealField(1)
+        sage: R = RealField(0)
         Traceback (most recent call last):
         ...
-        ValueError: prec (=1) must be >= 2 and <= 2147483391
+        ValueError: prec (=0) must be >= 1 and <= 2147483391
     """
     return MPFR_PREC_MIN
 
@@ -218,7 +218,7 @@ def mpfr_prec_max():
         sage: R = RealField(2^31-256)
         Traceback (most recent call last):
         ...
-        ValueError: prec (=2147483392) must be >= 2 and <= 2147483391
+        ValueError: prec (=2147483392) must be >= 1 and <= 2147483391
     """
     global MY_MPFR_PREC_MAX
     return MY_MPFR_PREC_MAX
@@ -353,7 +353,7 @@ mpfr_set_exp_max(mpfr_get_emax_max())
 
 from sage.arith.long cimport pyobject_to_long
 cdef dict rounding_modes = dict(RNDN=MPFR_RNDN, RNDZ=MPFR_RNDZ,
-        RNDD=MPFR_RNDD, RNDU=MPFR_RNDU, RNDA=MPFR_RNDA)
+        RNDD=MPFR_RNDD, RNDU=MPFR_RNDU, RNDA=MPFR_RNDA, RNDF=MPFR_RNDF)
 
 cdef double LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
 
@@ -384,6 +384,8 @@ cpdef RealField(int prec=53, int sci_not=0, rnd=MPFR_RNDN):
       - ``'RNDZ'`` -- round towards zero
       - ``'RNDU'`` -- round towards plus infinity
       - ``'RNDA'`` -- round away from zero
+      - ``'RNDF'`` -- faithful rounding (currently experimental; not
+                      guaranteed correct for every operation)
       - for specialized applications, the rounding mode can also be
         given as an integer value of type ``mpfr_rnd_t``. However, the
         exact values are unspecified.
@@ -472,6 +474,8 @@ cdef class RealField_class(sage.rings.ring.Field):
             Real Field with 100 bits of precision and rounding RNDD
             sage: RealField(100, rnd="RNDA")
             Real Field with 100 bits of precision and rounding RNDA
+            sage: RealField(100, rnd="RNDF")
+            Real Field with 100 bits of precision and rounding RNDF
             sage: RealField(100, rnd=0)
             Real Field with 100 bits of precision
             sage: RealField(100, rnd=1)
@@ -482,14 +486,16 @@ cdef class RealField_class(sage.rings.ring.Field):
             Real Field with 100 bits of precision and rounding RNDD
             sage: RealField(100, rnd=4)
             Real Field with 100 bits of precision and rounding RNDA
+            sage: RealField(100, rnd=5)
+            Real Field with 100 bits of precision and rounding RNDF
             sage: RealField(100, rnd=3.14)
             Traceback (most recent call last):
             ...
-            ValueError: rounding mode (=3.14000000000000) must be one of ['RNDA', 'RNDZ', 'RNDD', 'RNDU', 'RNDN']
-            sage: RealField(100, rnd=5)
+            ValueError: rounding mode (=3.14000000000000) must be one of ['RNDA', 'RNDD', 'RNDF', 'RNDN', 'RNDU', 'RNDZ']
+            sage: RealField(100, rnd=6)
             Traceback (most recent call last):
             ...
-            ValueError: unknown rounding mode 5
+            ValueError: unknown rounding mode 6
             sage: RealField(100, rnd=10^100)
             Traceback (most recent call last):
             ...
@@ -4419,7 +4425,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             sage: r = -1.0
             sage: r.eint()
-            NaN
+            -0.219383934395520
         """
         cdef RealNumber x = self._new()
         if (<RealField_class>self._parent).__prec > SIG_PREC_THRESHOLD: sig_on()
@@ -5275,7 +5281,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         if algorithm == 1:
             x = self._new()
             sig_on()
-            mpfr_root(x.value, self.value, n, (<RealField_class>self._parent).rnd)
+            mpfr_rootn_ui(x.value, self.value, n, (<RealField_class>self._parent).rnd)
             sig_off()
             return x
 

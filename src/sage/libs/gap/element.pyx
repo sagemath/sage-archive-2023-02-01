@@ -2617,7 +2617,7 @@ cdef class GapElement_List(GapElement):
         """
         Return the list as a vector.
 
-        GAP does not have a special vetor data type, they are just
+        GAP does not have a special vector data type, they are just
         lists. This function converts a GAP list to a Sage vector.
 
         OUTPUT:

@@ -45,7 +45,6 @@ from sage.interfaces.gap import is_GapElement
 
 from sage.misc.randstate import current_randstate
 from sage.arith.long cimport pyobject_to_long
-from sage.arith.power cimport generic_power
 
 from .element_pari_ffelt import FiniteFieldElement_pari_ffelt
 from .finite_field_ntl_gf2e import FiniteField_ntl_gf2e
@@ -154,7 +153,7 @@ cdef class Cache_ntl_gf2e(SageObject):
 
             sage: from sage.rings.finite_rings.element_ntl_gf2e import Cache_ntl_gf2e
             sage: Cache_ntl_gf2e.__new__(Cache_ntl_gf2e, None, 2, [1,1,1])
-            <type 'sage.rings.finite_rings.element_ntl_gf2e.Cache_ntl_gf2e'>
+            <sage.rings.finite_rings.element_ntl_gf2e.Cache_ntl_gf2e object at ...>
         """
         cdef GF2X_c ntl_m
         cdef GF2_c c
@@ -781,7 +780,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         cdef FiniteField_ntl_gf2eElement o = self._parent._cache._one_element
         return o._div_(self)
 
-    def __pow__(self, exp, mod):
+    cdef _pow_long(self, long n):
         """
         EXAMPLES::
 
@@ -808,26 +807,17 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             sage: 2 ^ a
             Traceback (most recent call last):
             ...
-            NotImplementedError: non-integral exponents not supported
+            TypeError: unsupported operand parent(s) for ^: 'Finite Field in a of size 2^63' and 'Finite Field in a of size 2^63'
             sage: a ^ "exp"
             Traceback (most recent call last):
             ...
-            NotImplementedError: non-integral exponents not supported
+            TypeError: unsupported operand type(s) for ** or pow(): 'sage.rings.finite_rings.element_ntl_gf2e.FiniteField_ntl_gf2eElement' and 'str'
         """
-        cdef long exp_int
-        cdef FiniteField_ntl_gf2eElement s, r
-
-        try:
-            s = <FiniteField_ntl_gf2eElement?>self
-            exp_int = pyobject_to_long(exp)
-        except (OverflowError, TypeError):
-            return generic_power(self, exp)
-        else:
-            if exp_int < 0 and GF2E_IsZero(s.x):
-                raise ZeroDivisionError('division by zero in finite field')
-            r = s._new()
-            GF2E_power(r.x, s.x, exp_int)
-            return r
+        if n < 0 and GF2E_IsZero(self.x):
+            raise ZeroDivisionError('division by zero in finite field')
+        r = self._new()
+        GF2E_power(r.x, self.x, n)
+        return r
 
     cpdef _richcmp_(left, right, int op):
         """

@@ -139,8 +139,11 @@ from __future__ import absolute_import, print_function
 # creation and deletion are setup by the call to hook_fast_tp_functions
 
 cimport cython
-from libc.math cimport ldexp
+from libc.math cimport (ldexp, sqrt as sqrt_double, log as log_c,
+        ceil as ceil_c, isnan)
 from libc.string cimport memcpy
+cdef extern from "<limits.h>":
+    const long LONG_MAX  # Work around https://github.com/cython/cython/pull/2016
 
 from cysignals.memory cimport check_allocarray, check_malloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
@@ -171,9 +174,6 @@ from sage.arith.rational_reconstruction cimport mpq_rational_reconstruction
 from sage.libs.gmp.pylong cimport *
 from sage.libs.ntl.convert cimport mpz_to_ZZ
 from sage.libs.gmp.mpq cimport mpq_neg
-
-from libc.limits cimport LONG_MAX
-from libc.math cimport sqrt as sqrt_double, log as log_c, ceil as ceil_c, isnan
 
 from cypari2.gen cimport objtogen, Gen as pari_gen
 from sage.libs.pari.convert_gmp cimport INT_to_mpz, new_gen_from_mpz_t
@@ -1941,9 +1941,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             mpz_fdiv_q(z.value, self.value, (<Integer>right).value)
         return z
 
-    def __pow__(self, n, modulus):
+    def __pow__(left, right, modulus):
         r"""
-        Computes `\text{self}^n`
+        Return ``(left ^ right) % modulus``.
 
         EXAMPLES::
 
@@ -1967,28 +1967,18 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         See also `<http://www.faqs.org/faqs/sci-math-faq/0to0/>`_ and
         `<https://math.stackexchange.com/questions/11150/zero-to-the-zero-power-is-00-1>`_.
 
-        The base need not be an integer (it can be a builtin Python type).
+        The base need not be a Sage integer. If it is a Python type, the
+        result is a Python type too::
 
-        ::
-
-            sage: int(2)^10
+            sage: r = int(2) ^ 10; r; type(r)
             1024
-            sage: float(2.5)^10
+            <... 'int'>
+            sage: r = int(3) ^ -3; r; type(r)
+            0.037037037037037035
+            <... 'float'>
+            sage: r = float(2.5) ^ 10; r; type(r)
             9536.7431640625
-            sage: 'sage'^3
-            'sagesagesage'
-
-        The exponent must fit in a long unless the base is -1, 0, or 1.
-
-        ::
-
-            sage: x = 2^100000000000000000000000
-            Traceback (most recent call last):
-            ...
-            RuntimeError: exponent must be at most 2147483647  # 32-bit
-            RuntimeError: exponent must be at most 9223372036854775807 # 64-bit
-            sage: (-1)^100000000000000000000000
-            1
+            <... 'float'>
 
         We raise 2 to various interesting exponents::
 
@@ -2000,6 +1990,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             2.8284271247461903
             sage: 2^I                # complex number
             2^I
+            sage: r = 2 ^ int(-3); r; type(r)
+            1/8
+            <type 'sage.rings.rational.Rational'>
             sage: f = 2^(sin(x)-cos(x)); f
             2^(-cos(x) + sin(x))
             sage: f(x=3)
@@ -2017,62 +2010,155 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         TESTS::
 
-            sage: complex(0,1)^2
-            (-1+0j)
             sage: R.<t> = QQ[]
             sage: 2^t
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion from Univariate Polynomial
             Ring in t over Rational Field to Rational Field
-            sage: int(3)^-3
-            1/27
-            sage: type(int(3)^2)
-            <type 'sage.rings.integer.Integer'>
-            sage: type(int(3)^int(2))
-            <... 'int'>
+            sage: 'sage' ^ 3
+            doctest:...:
+            DeprecationWarning: raising a string to an integer power is deprecated
+            See http://trac.sagemath.org/24260 for details.
+            'sagesagesage'
         """
         if modulus is not None:
             from sage.rings.finite_rings.integer_mod import Mod
-            return Mod(self, modulus) ** n
+            return Mod(left, modulus) ** right
 
-        if not isinstance(self, Integer):
-            if isinstance(self, str):
-                return self * n
-            if not isinstance(self, int):
-                return self ** int(n)
+        if type(left) is type(right):
+            return (<Integer>left)._pow_(right)
+        elif isinstance(left, Element):
+            return coercion_model.bin_op(left, right, operator.pow)
+        elif isinstance(left, str):
+            from sage.misc.superseded import deprecation
+            deprecation(24260, "raising a string to an integer power is deprecated")
+            return left * int(right)
+        # left is a non-Element: do the powering with a Python int
+        return left ** int(right)
+
+    cpdef _pow_(self, other):
+        """
+        Integer powering.
+
+        TESTS::
+
+            sage: 2._pow_(3)
+            8
+            sage: (-2)._pow_(3)
+            -8
+            sage: 2._pow_(-3)
+            1/8
+            sage: (-2)._pow_(-3)
+            -1/8
+            sage: 2._pow_(4)
+            16
+            sage: (-2)._pow_(4)
+            16
+            sage: 2._pow_(-4)
+            1/16
+            sage: (-2)._pow_(-4)
+            1/16
+            sage: 0._pow_(3)
+            0
+            sage: 0._pow_(-3)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: rational division by zero
+
+        The exponent must fit in a long unless the base is -1, 0, or 1::
+
+            sage: 2 ^ 100000000000000000000000
+            Traceback (most recent call last):
+            ...
+            OverflowError: exponent must be at most 2147483647           # 32-bit
+            OverflowError: exponent must be at most 9223372036854775807  # 64-bit
+            sage: 1 ^ 100000000000000000000000
+            1
+            sage: 1 ^ -100000000000000000000000
+            1
+            sage: 0 ^ 100000000000000000000000
+            0
+            sage: 0 ^ -100000000000000000000000
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: rational division by zero
+            sage: (-1) ^ 100000000000000000000000
+            1
+            sage: (-1) ^ 100000000000000000000001
+            -1
+            sage: (-1) ^ -100000000000000000000000
+            1
+            sage: (-1) ^ -100000000000000000000001
+            -1
+        """
+        cdef mpz_ptr exp = (<Integer>other).value
+
+        if mpz_fits_slong_p(exp):
+            return self._pow_long(mpz_get_si(exp))
+
+        # Raising to an exponent which doesn't fit in a long overflows
+        # except if the base is -1, 0 or 1.
+        cdef long s = LONG_MAX
+        if mpz_fits_slong_p(self.value):
+            s = mpz_get_si(self.value)
+
+        if s == 0 or s == 1:
+            r = self
+        elif s == -1:
+            if mpz_odd_p(exp):
+                r = self
             else:
-                self = Integer(self)        #convert from int to Integer
-        cdef Integer _self = <Integer>self
-        cdef long nn
-
-        try:
-            nn = pyobject_to_long(n)
-        except TypeError:
-            s = parent(n)(self)
-            return s**n
-        except OverflowError:
-            if mpz_cmp_si(_self.value, 1) == 0:
-                return self
-            elif mpz_cmp_si(_self.value, 0) == 0:
-                return self
-            elif mpz_cmp_si(_self.value, -1) == 0:
-                return self if n % 2 else -self
-            raise RuntimeError("exponent must be at most %s" % sys.maxsize)
-
-        if nn == 0:
-            return one
-
-        cdef Integer x = PY_NEW(Integer)
-
-        sig_on()
-        mpz_pow_ui(x.value, (<Integer>self).value, nn if nn > 0 else -nn)
-        sig_off()
-
-        if nn < 0:
-            return ~x
+                r = smallInteger(1)
         else:
+            raise OverflowError(f"exponent must be at most {LONG_MAX}")
+        if mpz_sgn(exp) >= 0:
+            return r
+        else:
+            return ~r
+
+    cdef _pow_long(self, long n):
+        if n == 0:
+            return smallInteger(1)
+        elif n == 1:
+            return self
+
+        cdef Integer x
+        cdef Rational q
+        if n > 0:
+            x = PY_NEW(Integer)
+            sig_on()
+            mpz_pow_ui(x.value, self.value, n)
+            sig_off()
             return x
+        else:
+            if mpz_sgn(self.value) == 0:
+                raise ZeroDivisionError("rational division by zero")
+            q = Rational.__new__(Rational)
+            sig_on()
+            mpz_pow_ui(mpq_denref(q.value), self.value, -n)
+            if mpz_sgn(mpq_denref(q.value)) > 0:
+                mpz_set_ui(mpq_numref(q.value), 1)
+            else:
+                # If the denominator was negative, change sign and set
+                # numerator to -1
+                mpz_set_si(mpq_numref(q.value), -1)
+                mpz_abs(mpq_denref(q.value), mpq_denref(q.value))
+            sig_off()
+            return q
+
+    cpdef _pow_int(self, n):
+        """
+        Integer powering to an integer exponent.
+
+        TESTS::
+
+            sage: 2._pow_int(int(20))
+            1048576
+            sage: 1._pow_int(int(2^100))
+            1
+        """
+        return self._pow_(Integer(n))
 
     def nth_root(self, int n, bint truncate_mode=0):
         r"""
@@ -2892,7 +2978,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef Py_ssize_t divisor_count = 1
         with cython.overflowcheck(True):
             for p, e in f:
-                # Using *= does not work, see http://trac.cython.org/cython_trac/ticket/825
+                # Using *= does not work, see
+                # https://github.com/cython/cython/issues/1381
                 divisor_count = divisor_count * (1 + e)
 
         ptr = <unsigned long*>check_allocarray(divisor_count, 3 * sizeof(unsigned long))

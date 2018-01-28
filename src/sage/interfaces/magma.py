@@ -366,7 +366,8 @@ class Magma(ExtraTabCompletion, Expect):
 
     def set_seed(self, seed=None):
         """
-        Sets the seed for the Magma interpeter.
+        Set the seed for the Magma interpreter.
+
         The seed should be an integer.
 
         EXAMPLES::

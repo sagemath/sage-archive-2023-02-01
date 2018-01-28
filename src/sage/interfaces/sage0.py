@@ -161,7 +161,7 @@ class Sage(ExtraTabCompletion, Expect):
                 '--no-term-title',
                 '--simple-prompt',
             ])
-            prompt = re.compile('In \[\d+\]: ')
+            prompt = re.compile('sage: ')
             if init_code is None:
                 init_code = ['from six.moves import cPickle']
 

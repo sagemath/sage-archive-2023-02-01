@@ -19,7 +19,7 @@ sdh_configure --with-mpfr="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL"
 sdh_make
 sdh_make_install
 
-if ! [ $? -eq 0 -a -f $SAGE_LOCAL/include/mpfi.h ]; then
+if ! [ $? -eq 0 -a -f $SAGE_DESTDIR$SAGE_LOCAL/include/mpfi.h ]; then
     echo "An error occurred while building MPFI."
     exit 1
 fi

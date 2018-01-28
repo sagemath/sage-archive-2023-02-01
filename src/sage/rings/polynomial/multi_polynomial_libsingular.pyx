@@ -789,7 +789,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         cdef long mpos
         cdef MPolynomial_libsingular Element
         cdef MPolynomialRing_libsingular El_parent
-        cdef unsigned int i, j
+        cdef int i, j
         cdef list ind_map = []
         cdef int e
         if _ring!=currRing: rChangeCurrRing(_ring)
@@ -1967,7 +1967,8 @@ def unpickle_MPolynomialRing_libsingular(base_ring, names, term_order):
     from sage.rings.polynomial.polynomial_ring_constructor import _multi_variate
     # If libsingular would be replaced by a different implementation in future
     # sage version, the unpickled ring will belong the new implementation.
-    return _multi_variate(base_ring, tuple(names), False, term_order, None)
+    return _multi_variate(base_ring, tuple(names), None, term_order, None)
+
 
 cdef class MPolynomial_libsingular(MPolynomial):
     """

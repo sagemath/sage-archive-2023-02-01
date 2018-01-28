@@ -2439,14 +2439,28 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
         R = self.parent()
         return R(_inverse_mod_generic(self, I))
 
+
 cdef class Z_to_quadratic_field_element(Morphism):
     """
     Morphism that coerces from integers to elements of a quadratic number
     field K.
-    """
-    cdef NumberFieldElement_quadratic zero_element    # the zero element of K
 
-    # TODO: implement __cmp__ properly so we can have a loads/dumps doctest
+    EXAMPLES::
+
+        sage: K.<a> = QuadraticField(3)
+        sage: phi = K.coerce_map_from(ZZ); phi
+        Natural morphism:
+          From: Integer Ring
+          To:   Number Field in a with defining polynomial x^2 - 3
+        sage: phi(4)
+        4
+        sage: phi(5).parent() is K
+        True
+    """
+    # The zero element of K, lazily initialized
+    cdef NumberFieldElement_quadratic zero_element
+
+    # TODO: implement __richcmp__ properly so we can have a loads/dumps doctest
 
     def __init__(self, K):
         """
@@ -2470,41 +2484,6 @@ cdef class Z_to_quadratic_field_element(Morphism):
         """
         import sage.categories.homset
         Morphism.__init__(self, sage.categories.homset.Hom(ZZ, K))
-        self.zero_element = K.zero()
-
-    cdef dict _extra_slots(self, dict _slots):
-        """
-        Helper for pickling and copying.
-
-        TESTS::
-
-            sage: K.<a> = QuadraticField(3)
-            sage: phi = K.coerce_map_from(ZZ) # indirect doctest
-            sage: phi(4)
-            4
-            sage: phi(5).parent() is K
-            True
-
-        """
-        _slots['zero_element'] = self.zero_element
-        return Morphism._extra_slots(self, _slots)
-
-    cdef _update_slots(self, dict _slots):
-        """
-        Helper for pickling and copying.
-
-        TESTS::
-
-            sage: K.<a> = QuadraticField(3)
-            sage: phi = K.coerce_map_from(ZZ) # indirect doctest
-            sage: phi(4)
-            4
-            sage: phi(5).parent() is K
-            True
-
-        """
-        Morphism._update_slots(self, _slots)
-        self.zero_element = _slots['zero_element']
 
     cpdef Element _call_(self, x):
         r"""
@@ -2527,6 +2506,8 @@ cdef class Z_to_quadratic_field_element(Morphism):
             True
         """
         cdef NumberFieldElement_quadratic y
+        if self.zero_element is None:
+            self.zero_element = self._codomain.zero()
         if mpz_sgn((<Integer> x).value) == 0:
             return self.zero_element
         y = self.zero_element._new()
@@ -2560,14 +2541,28 @@ cdef class Z_to_quadratic_field_element(Morphism):
         """
         return "Natural"
 
+
 cdef class Q_to_quadratic_field_element(Morphism):
     """
     Morphism that coerces from rationals to elements of a quadratic number
     field K.
-    """
-    cdef NumberFieldElement_quadratic zero_element    # the zero element of K
 
-    # TODO: implement __cmp__ properly so we can have a loads/dumps doctest
+    EXAMPLES::
+
+        sage: K.<a> = QuadraticField(-3)
+        sage: f = K.coerce_map_from(QQ); f
+        Natural morphism:
+          From: Rational Field
+          To:   Number Field in a with defining polynomial x^2 + 3
+        sage: f(3/1)
+        3
+        sage: f(1/2).parent() is K
+        True
+    """
+    # The zero element of K, lazily initialized
+    cdef NumberFieldElement_quadratic zero_element
+
+    # TODO: implement __richcmp__ properly so we can have a loads/dumps doctest
 
     def __init__(self, K):
         """
@@ -2591,47 +2586,6 @@ cdef class Q_to_quadratic_field_element(Morphism):
         """
         import sage.categories.homset
         Morphism.__init__(self, sage.categories.homset.Hom(QQ, K))
-        self.zero_element = K.zero()
-
-    cdef dict _extra_slots(self, dict _slots):
-        """
-        Helper for pickling and copying.
-
-        TESTS::
-
-            sage: K.<a> = QuadraticField(-3) ## line 8983 ##
-            sage: f = K.coerce_map_from(QQ); f # indirect doctest
-            Natural morphism:
-              From: Rational Field
-              To:   Number Field in a with defining polynomial x^2 + 3
-            sage: f(3/1)
-            3
-            sage: f(1/2).parent() is K
-            True
-
-        """
-        _slots['zero_element'] = self.zero_element
-        return Morphism._extra_slots(self, _slots)
-
-    cdef _update_slots(self, dict _slots):
-        """
-        Helper for pickling and copying.
-
-        TESTS::
-
-            sage: K.<a> = QuadraticField(-3) ## line 8983 ##
-            sage: f = K.coerce_map_from(QQ); f # indirect doctest
-            Natural morphism:
-              From: Rational Field
-              To:   Number Field in a with defining polynomial x^2 + 3
-            sage: f(3/1)
-            3
-            sage: f(1/2).parent() is K
-            True
-
-        """
-        Morphism._update_slots(self, _slots)
-        self.zero_element = _slots['zero_element']
 
     cpdef Element _call_(self, x):
         r"""
@@ -2653,6 +2607,8 @@ cdef class Q_to_quadratic_field_element(Morphism):
             sage: b.parent() is R
             True
         """
+        if self.zero_element is None:
+            self.zero_element = self._codomain.zero()
         cdef NumberFieldElement_quadratic y = self.zero_element._new()
         mpz_set(y.a, mpq_numref((<Rational>x).value))
         mpz_set(y.denom, mpq_denref((<Rational>x).value))

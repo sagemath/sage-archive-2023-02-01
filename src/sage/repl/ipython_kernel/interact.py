@@ -183,6 +183,8 @@ class sage_interactive(interactive):
             sage: from sage.repl.ipython_kernel.interact import sage_interactive
             sage: sage_interactive.widget_from_tuple( (0, 10) )
             IntSlider(value=5, min=0, max=10, step=1)
+            sage: sage_interactive.widget_from_tuple( ("number", (0, 10)) )
+            IntSlider(value=5, min=0, max=10, step=1, description=u'number')
             sage: sage_interactive.widget_from_tuple( (3, (0, 10)) )
             IntSlider(value=3, min=0, max=10, step=1)
             sage: sage_interactive.widget_from_tuple( (2, dict(one=1, two=2, three=3)) )
@@ -193,7 +195,7 @@ class sage_interactive(interactive):
         # Support (description, abbrev)
         if len(abbrev) == 2 and isinstance(abbrev[0], str):
             widget = cls.widget_from_abbrev(abbrev[1])
-            widget.descriprion = abbrev[0]
+            widget.description = abbrev[0]
             return widget
         # Support (default, abbrev)
         if len(abbrev) == 2 and isinstance(abbrev[1], Iterable):

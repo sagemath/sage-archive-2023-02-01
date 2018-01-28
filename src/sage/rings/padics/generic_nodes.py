@@ -221,7 +221,7 @@ class FloatingPointGeneric(LocalGeneric):
             else:
                 if prec > -infinity:
                     # only check left distributivity, since multiplication commutative
-                    tester.assert_((x * (y + z)).is_equal_to((x * y) + (x * z),prec))
+                    tester.assertTrue((x * (y + z)).is_equal_to((x * y) + (x * z),prec))
 
     def _test_additive_associativity(self, **options):
         r"""
@@ -251,7 +251,7 @@ class FloatingPointGeneric(LocalGeneric):
         S = tester.some_elements()
         from sage.misc.misc import some_tuples
         for x,y,z in some_tuples(S, 3, tester._max_runs):
-            tester.assert_(((x + y) + z).is_equal_to(x + (y + z), min(x.precision_absolute(), y.precision_absolute(), z.precision_absolute())))
+            tester.assertTrue(((x + y) + z).is_equal_to(x + (y + z), min(x.precision_absolute(), y.precision_absolute(), z.precision_absolute())))
 
 class FloatingPointRingGeneric(FloatingPointGeneric):
     pass

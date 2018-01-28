@@ -139,7 +139,7 @@ _INTERPRETERS = sorted(filter(lambda c: (isinstance(c, type) and
                        key=lambda c: c.name)
 
 # Tuple of (filename_root, extension, method) where filename_root is the
-# root of the filename to be joined with "_<interpeter_name>".ext and
+# root of the filename to be joined with "_<interpreter_name>".ext and
 # method is the name of a get_ method on InterpreterGenerator that returns
 # the contents of that file
 _INTERPRETER_SOURCES = [

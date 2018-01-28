@@ -391,7 +391,7 @@ cdef inline void DEBUG_CHECK(libGAP_Obj obj):
 
 cpdef memory_usage():
     """
-    Return information about the memory useage.
+    Return information about the memory usage.
 
     See :meth:`~sage.libs.gap.libgap.Gap.mem` for details.
     """

@@ -636,14 +636,14 @@ cdef class BooleanFunction(SageObject):
             1
             sage: B([1,0])
             1
-            sage: B(7)
+            sage: B(4)
             Traceback (most recent call last):
             ...
             IndexError: index out of bound
 
         """
         if isinstance(x, (int,long,Integer)):
-            if x > self._truth_table.size:
+            if x >= self._truth_table.size:
                 raise IndexError("index out of bound")
             return bitset_in(self._truth_table,x)
         elif isinstance(x, list):

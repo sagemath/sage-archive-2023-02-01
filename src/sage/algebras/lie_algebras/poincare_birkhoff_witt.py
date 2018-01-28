@@ -92,9 +92,9 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
         sage: G[2] * G[3]
         PBW[2]*PBW[3]
         sage: G[3] * G[2]
-        PBW[2]*PBW[3] - PBW[5]
+        PBW[2]*PBW[3] + PBW[5]
         sage: G[-2] * G[3] * G[2]
-        PBW[-2]*PBW[2]*PBW[3] - PBW[-2]*PBW[5]
+        PBW[-2]*PBW[2]*PBW[3] + PBW[-2]*PBW[5]
     """
     @staticmethod
     def __classcall_private__(cls, g, basis_key=None, prefix='PBW', **kwds):

@@ -600,7 +600,7 @@ cdef class SetSystem:
         partition ``P``, and while ``P`` has a partition element ``p`` with
         more than one element, select an arbitrary ``e`` from the first such
         ``p`` and split ``p`` into ``p-e``. Then replace ``P`` with
-        the equitabele refinement of this partition.
+        the equitable refinement of this partition.
 
         INPUT:
 

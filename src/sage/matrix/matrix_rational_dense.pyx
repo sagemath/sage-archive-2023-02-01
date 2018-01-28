@@ -1786,7 +1786,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
     def _echelonize_multimodular(self, height_guess=None, proof=None):
         """
-        Echelonize self using mutlimodular recomposition
+        Echelonize ``self`` using multimodular recomposition.
 
         REFERENCE:
 

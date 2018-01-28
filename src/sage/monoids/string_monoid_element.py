@@ -231,11 +231,10 @@ class StringMonoidElement(FreeMonoidElement):
             [S, H, R, U, B, B, E, R, Y]
         """
         l = len(self._element_list)
-        i=0
+        i = 0
         while i < l:
             yield self[i]
-            i+=1
-        raise StopIteration
+            i += 1
 
     def __getitem__(self, n):
         """

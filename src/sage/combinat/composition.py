@@ -1226,7 +1226,7 @@ class Composition(CombinatorialElement):
 
         OUTPUT:
 
-        An enumerated set (allowing for mutliplicities)
+        An enumerated set (allowing for multiplicities)
 
         EXAMPLES:
 

@@ -154,7 +154,7 @@ class HeckeModule_generic(sage.modules.module.Module):
         if eps is None:
             raise NotImplementedError("either character or _compute_hecke_matrix_prime_power must be overloaded in a derived class")
         k = self.weight()
-        Tpr2 = self._hecke_matrices[pow/p]
+        Tpr2 = self._hecke_matrices[pow // p]
         return Tp*Tpr1 - eps(p)*(p**(k-1)) * Tpr2
 
     def _compute_hecke_matrix_general_product(self, F, **kwds):

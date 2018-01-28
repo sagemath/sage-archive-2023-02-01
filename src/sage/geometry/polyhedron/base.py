@@ -23,6 +23,7 @@ from sage.structure.richcmp import rich_to_bool, op_NE
 
 from sage.misc.all import cached_method, prod
 from sage.misc.package import is_package_installed, PackageNotFoundError
+from sage.misc.randstate import current_randstate
 
 from sage.rings.all import QQ, ZZ, AA
 from sage.rings.real_double import RDF
@@ -37,6 +38,8 @@ from sage.graphs.digraph import DiGraph
 from .constructor import Polyhedron
 
 from sage.misc.superseded import deprecated_function_alias
+
+from sage.categories.sets_cat import EmptySetError
 
 #########################################################################
 # Notes if you want to implement your own backend:
@@ -3085,7 +3088,7 @@ class Polyhedron_base(Element):
 
         TESTS:
 
-        Dilation of empty polyhedrons works, see :trac:`14987`::
+        Dilation of empty polyhedra works, see :trac:`14987`::
 
             sage: p = Polyhedron(ambient_dim=2); p
             The empty polyhedron in ZZ^2
@@ -5314,6 +5317,157 @@ class Polyhedron_base(Element):
             points.update(new_points)
         # assert all(self.contains(p) for p in points)   # slow
         return tuple(points)
+
+    def get_integral_point(self, index, **kwds):
+        r"""
+        Return the ``index``-th integral point in this polyhedron.
+
+        This is equivalent to ``sorted(self.integral_points())[index]``.
+        However, so long as self.integral_points_count() does not need to
+        enumerate all integral points, neither does this method. Hence it can
+        be significantly faster. If the polyhedron is not compact, a
+        ``ValueError`` is raised.
+
+        INPUT:
+
+        - ``index`` -- integer. The index of the integral point to be found. If
+          this is not in [0, ``self.integral_point_count()``), an ``IndexError``
+          is raised.
+
+        - ``**kwds`` -- optional keyword parameters that are passed to
+          :meth:`self.integral_points_count`.
+
+        ALGORITHM:
+
+        The function computes each of the components of the requested point in
+        turn. To compute x_i, the ith component, it bisects the upper and lower
+        bounds on x_i given by the bounding box. At each bisection, it uses
+        :meth:`integral_points_count` to determine on which side of the
+        bisecting hyperplane the requested point lies.
+
+        .. SEEALSO::
+
+            :meth:`integral_points_count`.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[(-1,-1),(1,0),(1,1),(0,1)])
+            sage: P.get_integral_point(1)
+            (0, 0)
+            sage: P.get_integral_point(4)
+            (1, 1)
+            sage: sorted(P.integral_points())
+            [(-1, -1), (0, 0), (0, 1), (1, 0), (1, 1)]
+            sage: P.get_integral_point(5)
+            Traceback (most recent call last):
+            ...
+            IndexError: ...
+
+            sage: Q = Polyhedron([(1,3), (2, 7), (9, 77)])
+            sage: [Q.get_integral_point(i) for i in range(Q.integral_points_count())] == sorted(Q.integral_points())
+            True
+            sage: Q.get_integral_point(0, explicit_enumeration_threshold=0, triangulation='cddlib')  # optional - latte_int
+            (1, 3)
+            sage: Q.get_integral_point(0, explicit_enumeration_threshold=0, triangulation='cddlib', foo=True)  # optional - latte_int
+            Traceback (most recent call last):
+            ...
+            RuntimeError: ...
+
+            sage: R = Polyhedron(vertices=[[1/2, 1/3]], rays=[[1, 1]])
+            sage: R.get_integral_point(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: ...
+        """
+
+        if not self.is_compact():
+            raise ValueError('Can only enumerate points in a compact polyhedron.')
+
+        if not 0 <= index < self.integral_points_count(**kwds):
+            raise IndexError('polytope index out of range')
+
+        D = self.ambient_dim()
+        lower_bounds, upper_bounds = self.bounding_box()
+        coordinate = []
+        P = self
+        S = self.parent()
+        for i in range(D):  # Now compute x_i, the ith component of coordinate.
+            lower, upper = ceil(lower_bounds[i]), floor(upper_bounds[i]) + 1  # So lower <= x_i < upper.
+            while lower < upper-1:
+                guess = (lower + upper) // 2  # > lower.
+                # Build new polyhedron by intersecting P with the halfspace {x_i < guess}.
+                P_lt_guess = P.intersection(S(None, ([[guess-1] + [0] * i + [-1] + [0] * (D - i - 1)], [])))
+                # Avoid computing P_geq_guess = P.intersection({x_i >= guess}) right now, it might not be needed.
+                P_lt_guess_count = P_lt_guess.integral_points_count(**kwds)
+                if P_lt_guess_count > index:  # Move upper down to guess.
+                    upper = guess
+                    index -= 0
+                    P = P_lt_guess
+                else:  # P_lt_guess_count <= index:  # Move lower up to guess.
+                    lower = guess
+                    index -= P_lt_guess_count
+                    P_geq_guess = P.intersection(S(None, ([[-guess] + [0] * i + [1] + [0] * (D - i - 1)], [])))
+                    P = P_geq_guess
+            coordinate.append(lower)  # Record the new component that we have found.
+        point = vector(ZZ, coordinate)
+        point.set_immutable()
+        return point
+
+    def random_integral_point(self, **kwds):
+        r"""
+        Return an integral point in this polyhedron chosen uniformly at random.
+
+        INPUT:
+
+        - ``**kwds`` -- optional keyword parameters that are passed to
+          :meth:`self.get_integral_point`.
+
+        OUTPUT:
+
+        The integral point in the polyhedron chosen uniformly at random. If the
+        polyhedron is not compact, a ``ValueError`` is raised. If the
+        polyhedron does not contain any integral points, an ``EmptySetError`` is
+        raised.
+
+        .. SEEALSO::
+
+            :meth:`get_integral_point`.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[(-1,-1),(1,0),(1,1),(0,1)])
+            sage: P.random_integral_point()  # random
+            (0, 0)
+            sage: P.random_integral_point() in P.integral_points()
+            True
+            sage: P.random_integral_point(explicit_enumeration_threshold=0, triangulation='cddlib')  # random, optional - latte_int
+            (1, 1)
+            sage: P.random_integral_point(explicit_enumeration_threshold=0, triangulation='cddlib', foo=7)  # optional - latte_int
+            Traceback (most recent call last):
+            ...
+            RuntimeError: ...
+
+            sage: Q = Polyhedron(vertices=[(2, 1/3)], rays=[(1, 2)])
+            sage: Q.random_integral_point()
+            Traceback (most recent call last):
+            ...
+            ValueError: ...
+
+            sage: R = Polyhedron(vertices=[(1/2, 0), (1, 1/2), (0, 1/2)])
+            sage: R.random_integral_point()
+            Traceback (most recent call last):
+            ...
+            EmptySetError: ...
+        """
+
+        if not self.is_compact():
+            raise ValueError('Can only sample integral points in a compact polyhedron.')
+
+        count = self.integral_points_count()
+        if count == 0:
+            raise EmptySetError('Polyhedron does not contain any integral points.')
+
+        return self.get_integral_point(current_randstate().python_random().randint(0, count-1), **kwds)
 
     @cached_method
     def combinatorial_automorphism_group(self, vertex_graph_only=False):

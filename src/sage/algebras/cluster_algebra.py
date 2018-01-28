@@ -52,7 +52,7 @@ and coefficients.
 :class:`ClusterAlgebraElement` is a thin wrapper around
 :class:`sage.rings.polynomial.laurent_polynomial.LaurentPolynomial`
 providing all the functions specific to cluster variables.
-Elemets of a cluster algebra with principal coefficients have special methods
+Elements of a cluster algebra with principal coefficients have special methods
 and these are grouped in the subclass :class:`PrincipalClusterAlgebraElement`.
 
 One more remark about this implementation. Instances of
@@ -335,7 +335,7 @@ mutating at the initial seed::
     [False, False]
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 Dylan Rupel and Salvatore Stella
 #
 # This program is free software: you can redistribute it and/or modify
@@ -343,13 +343,12 @@ mutating at the initial seed::
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 from __future__ import absolute_import
 from six.moves import range
 from future_builtins import map
 
 from copy import copy
-from functools import wraps
 
 from sage.categories.homset import Hom
 from sage.categories.morphism import SetMorphism
@@ -471,6 +470,7 @@ class ClusterAlgebraElement(ElementWrapper):
         """
         numer, denom = self.lift()._fraction_pair()
         return repr(numer / denom)
+
 
 class PrincipalClusterAlgebraElement(ClusterAlgebraElement):
     """
@@ -667,9 +667,9 @@ class ClusterAlgebraSeed(SageObject):
             sage: S == A.current_seed()
             True
         """
-        return (isinstance(other, ClusterAlgebraSeed)
-                and self.parent() == other.parent()
-                and frozenset(self.g_vectors()) == frozenset(other.g_vectors()))
+        return (isinstance(other, ClusterAlgebraSeed) and
+                self.parent() == other.parent() and
+                frozenset(self.g_vectors()) == frozenset(other.g_vectors()))
 
     def __contains__(self, element):
         r"""
@@ -1145,6 +1145,7 @@ class ClusterAlgebraSeed(SageObject):
 # Cluster algebras
 ##############################################################################
 
+
 class ClusterAlgebra(Parent, UniqueRepresentation):
     r"""
     A Cluster Algebra.
@@ -1218,7 +1219,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         """
         Q = ClusterQuiver(data)
         for key in kwargs:
-            if isinstance(kwargs[key],list):
+            if isinstance(kwargs[key], list):
                 kwargs[key] = tuple(kwargs[key])
         return super(ClusterAlgebra, self).__classcall__(self, Q, **kwargs)
 

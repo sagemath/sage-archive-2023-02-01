@@ -680,7 +680,12 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
             # been called before we move on to the next line
             i += 1
             if i == len(self._elements) and not self._constructed:
-                next(self._iter)
+                try:
+                    next(self._iter)
+                except StopIteration:
+                    # Don't allow StopIteration to bubble up from generator
+                    # see PEP-479
+                    break
 
     def cardinality(self):
         """

@@ -3144,7 +3144,6 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: x != False
             True
         """
-        from builtins import zip
         for lm, rm in zip(left, right):
             if lm != rm:
                 return richcmp_not_equal(lm, rm, op)
@@ -6416,7 +6415,7 @@ cdef class ReductionStrategy:
 
         - ``leading_terms`` - all leading terms of generators
 
-        - ``minimial_leading_terms`` - the reduced set of leading terms
+        - ``minimal_leading_terms`` - the reduced set of leading terms
 
         - ``monomials`` -
 

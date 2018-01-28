@@ -1738,7 +1738,7 @@ class Category(UniqueRepresentation, SageObject):
 
         This class contains the methods defined in the nested class
         ``self.MorphismMethods`` (if it exists), and has as bases the
-        morphims classes of the super categories of ``self``.
+        morphism classes of the super categories of ``self``.
 
         .. SEEALSO::
 

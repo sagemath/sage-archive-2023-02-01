@@ -93,7 +93,7 @@ from .richcmp cimport rich_to_bool
 from .sage_object cimport SageObject
 from .parent cimport Set_PythonType, Parent_richcmp_element_without_coercion
 from .element cimport bin_op_exception, parent, Element
-from .coerce_actions import LeftModuleAction, RightModuleAction, IntegerMulAction
+from .coerce_actions import LeftModuleAction, RightModuleAction
 from .coerce_exceptions import CoercionException
 from sage.rings.integer_fake cimport is_Integer
 from sage.categories.map cimport Map
@@ -259,6 +259,45 @@ cpdef py_scalar_to_element(x):
             return x
     else:
         return x
+
+
+cpdef bint parent_is_integers(P) except -1:
+    """
+    Check whether the type or parent represents the ring of integers.
+
+    EXAMPLES::
+
+        sage: from sage.structure.coerce import parent_is_integers
+        sage: parent_is_integers(int)
+        True
+        sage: parent_is_integers(long)
+        True
+        sage: parent_is_integers(float)
+        False
+        sage: parent_is_integers(bool)
+        True
+        sage: parent_is_integers(dict)
+        False
+
+        sage: import numpy
+        sage: parent_is_integers(numpy.int16)
+        True
+        sage: parent_is_integers(numpy.uint64)
+        True
+        sage: parent_is_integers(numpy.float)
+        False
+    """
+    if isinstance(P, type):
+        if issubclass(P, int) or issubclass(P, long):
+            return True
+        elif is_numpy_type(P):
+            from numpy import integer
+            return issubclass(P, integer)
+        else:
+            return False
+    else:
+        from sage.rings.integer_ring import ZZ
+        return P is ZZ
 
 
 cpdef bint is_numpy_type(t):
@@ -1075,18 +1114,14 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             if action is not None:
                 return (<Action>action)._call_(x, y)
 
-        xy = None
         try:
-            xy = self.canonical_coercion(x,y)
-            return PyObject_CallObject(op, xy)
-        except TypeError as err:
-            if xy is not None:
-                # The error was in calling, not coercing
-                raise
+            xy = self.canonical_coercion(x, y)
+        except TypeError:
             self._record_exception()
+        else:
+            return PyObject_CallObject(op, xy)
 
         if op is mul or op is imul:
-
             # elements may also act on non-elements
             # (e.g. sequences or parents)
             if not isinstance(y, Element) or not isinstance(x, Element):
@@ -1648,8 +1683,6 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         """
         if action is None:
             return action
-        elif isinstance(action, IntegerMulAction):
-            return action
         cdef bint ok = True
         try:
             if action.left_domain() is not R:
@@ -1784,18 +1817,14 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             if sageR is not None:
                 action = self.discover_action(sageR, S, op, s=s)
                 if action is not None:
-                    if not isinstance(action, IntegerMulAction):
-                        action = PrecomposedAction(action, sageR._internal_coerce_map_from(R), None)
-                    return action
+                    return PrecomposedAction(action, sageR._internal_coerce_map_from(R), None)
 
         if type(S) is type:
             sageS = py_scalar_parent(S)
             if sageS is not None:
                 action = self.discover_action(R, sageS, op, r=r)
                 if action is not None:
-                    if not isinstance(action, IntegerMulAction):
-                        action = PrecomposedAction(action, None, sageS._internal_coerce_map_from(S))
-                    return action
+                    return PrecomposedAction(action, None, sageS._internal_coerce_map_from(S))
 
         if op.__name__[0] == 'i':
             try:

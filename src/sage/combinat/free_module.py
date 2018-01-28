@@ -31,8 +31,10 @@ from sage.categories.tensor import tensor
 import sage.data_structures.blas_dict as blas
 from sage.typeset.ascii_art import AsciiArt
 from sage.typeset.unicode_art import UnicodeArt
+from sage.misc.superseded import deprecation
 
 import six
+
 
 class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
     r"""
@@ -851,10 +853,16 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         Return a comparison function on the basis indices that is
         compatible with the current term order.
 
+        DEPRECATED by :trac:`24548`.
+
         EXAMPLES::
 
             sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example()
             sage: Acmp = A.get_order_cmp()
+            doctest:warning...:
+            DeprecationWarning: comparison should use keys
+            See http://trac.sagemath.org/24548 for details.
+
             sage: sorted(A.basis().keys(), Acmp)
             ['x', 'y', 'a', 'b']
             sage: A.set_order(list(reversed(A.basis().keys())))
@@ -862,12 +870,15 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             sage: sorted(A.basis().keys(), Acmp)
             ['b', 'a', 'y', 'x']
         """
+        deprecation(24548, 'comparison should use keys')
         self.get_order()
         return self._order_cmp
 
     def _order_cmp(self, x, y):
         """
         Compare `x` and `y` w.r.t. the term order.
+
+        DEPRECATED by :trac:`24548`.
 
         INPUT:
 
@@ -883,12 +894,16 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             sage: A = CombinatorialFreeModule(QQ, ['x','y','a','b'])
             sage: A.set_order(['x', 'y', 'a', 'b'])
             sage: A._order_cmp('x', 'y')
+            doctest:warning...:
+            DeprecationWarning: comparison should use keys
+            See http://trac.sagemath.org/24548 for details.
             -1
             sage: A._order_cmp('y', 'y')
             0
             sage: A._order_cmp('a', 'y')
             1
         """
+        deprecation(24548, 'comparison should use keys')
         ix = self._rank_basis(x)
         iy = self._rank_basis(y)
         if ix < iy:

@@ -303,7 +303,7 @@ cdef class PolyDict:
         return min(_min)
 
     def total_degree(PolyDict self):
-        return max([-1] + map(sum, self.__repn.keys()))
+        return max([-1] + [sum(k) for k in self.__repn.keys()])
 
     def monomial_coefficient(PolyDict self, mon):
         """

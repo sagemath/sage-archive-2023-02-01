@@ -890,7 +890,7 @@ class DiffScalarField(ScalarField):
 
         INPUT:
 
-        - ``metric``: a pseudo-Riemannian metric defined on the same manifold
+        - ``metric`` -- a pseudo-Riemannian metric defined on the same manifold
           as the current scalar field; must be an instance of
           :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
 
@@ -1053,3 +1053,75 @@ class DiffScalarField(ScalarField):
 
         """
         return 0
+
+    def gradient(self, metric=None):
+        r"""
+        Return the gradient vector field of ``self`` (with respect to a given
+        metric).
+
+        The gradient of a scalar field `f` with respect to a metric `g`
+        is the vector field `v` whose components in any coordinate frame
+        are
+
+        .. MATH::
+
+            v^i = g^{ij} \frac{\partial F}{\partial x^j}
+
+        where the `x^j`'s are the coordinate's with respect to which the
+        frame is defined and `F` is the chart function representing `f` in
+        these coordinates.
+        In other words, the gradient of `f` is the vector field that is the
+        `g`-dual of the differential of `f`.
+
+        INPUT:
+
+        - ``metric`` -- (default: ``None``) the pseudo-Riemannian metric `g`
+          involved in the definition of the gradient; if none is provided, the
+          domain of ``self`` is supposed to be endowed with a default metric
+          (i.e. is supposed to be pseudo-Riemannian manifold) and the latter
+          is used to define the gradient
+
+        OUTPUT:
+
+        - an instance of
+          :class:`~sage.manifolds.differentiable.vectorfield.VectorField`
+          representing the gradient of ``self``
+
+        """
+        if metric is None:
+            metric = self._domain.metric()
+        return self.differential().up(metric)
+
+    def laplacian(self, metric=None):
+        r"""
+        Return the Laplacian of ``self`` (with respect to a given
+        metric).
+
+        The Laplacian of a scalar field `f` with respect to a metric `g`
+        is the scalar field
+
+        .. MATH::
+
+            \Delta f  = g^{ij} \nabla_i \nabla_j f
+
+        where `\nabla` is the Levi-Civita connection of `g`.
+
+        INPUT:
+
+        - ``metric`` -- (default: ``None``) the pseudo-Riemannian metric `g`
+          involved in the definition of the Laplacian; if none is provided, the
+          domain of ``self`` is supposed to be endowed with a default metric
+          (i.e. is supposed to be pseudo-Riemannian manifold) and the latter
+          is used to define the Laplacian
+
+        OUTPUT:
+
+        - an instance of :class:`DiffScalarField` representing the
+          Laplacian of ``self``
+
+        """
+        if metric is None:
+            metric = self._domain.metric()
+        nabla = metric.connection()
+        return nabla(self.differential().up(metric)).trace()
+

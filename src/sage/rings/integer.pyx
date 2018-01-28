@@ -6103,7 +6103,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def _xgcd(self, Integer n, bint minimal=0):
         r"""
-        Return the exteded gcd of ``self`` and ``n``.
+        Return the extended gcd of ``self`` and ``n``.
 
         INPUT:
 

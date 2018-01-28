@@ -1901,7 +1901,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
              [3, 2, 1, 2, 1, 0],
              [3, 2, 1, 0, 1, 0]]
 
-        The number of basis elements hopefully correponds to the general
+        The number of basis elements hopefully corresponds to the general
         formula for the dimension of the representation spaces::
 
             sage: B = BraidGroup(10)

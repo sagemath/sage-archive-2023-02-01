@@ -2441,7 +2441,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         We verify that :trac:`23020` has been resolved. (There are no elements
         in the Sage library yet that do not implement ``__nonzero__``, so we
-        have to create one artifically.)::
+        have to create one artificially.)::
 
             sage: class PatchedAlgebraicNumber(sage.rings.qqbar.AlgebraicNumber):
             ....:     def __nonzero__(self): raise NotImplementedError()

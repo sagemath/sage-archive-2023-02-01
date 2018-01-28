@@ -698,7 +698,7 @@ class Tachyon(WithEqualityById, SageObject):
         -  ``scale`` - (default: (1,1,1))
 
 
-        EXAMPLES: We draw an infinite checkboard::
+        EXAMPLES: We draw an infinite checkerboard::
 
             sage: t = Tachyon(camera_center=(2,7,4), look_at=(2,0,0))
             sage: t.texture('black', color=(0,0,0), texfunc=1)

@@ -38,8 +38,8 @@ AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2014-2015): initial version
 - Joris Vankerschaver (2010): for the idea of storing only the non-zero
-  components as dictionaries, whose keys are the component indices (see
-  class :class:`~sage.tensor.differential_form_element.DifferentialForm`)
+  components as dictionaries, whose keys are the component indices (implemented
+  in the old class ``DifferentialForm``; see :trac:`24444`)
 - Marco Mancini (2015) : parallelization of some computations
 
 EXAMPLES:

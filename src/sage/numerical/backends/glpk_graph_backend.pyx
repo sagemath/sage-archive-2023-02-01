@@ -626,7 +626,7 @@ cdef class GLPKGraphBackend(object):
 
         - ``edges`` -- An iterable container of pairs of the form ``(u, v)``,
           where ``u`` is name (as ``str``) of the tail vertex and ``v`` is the
-          name (as ``str``) of the head vertex or an interable container of
+          name (as ``str``) of the head vertex or an iterable container of
           triples of the form ``(u, v, params)`` where params is a ``dict`` as
           described in ``add_edge``.
 

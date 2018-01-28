@@ -49,9 +49,7 @@ def SymplecticPolarGraph(d, q, algorithm=None):
 
     Computation of the spectrum of `Sp(6,2)`::
 
-        sage: g = graphs.SymplecticGraph(6,2)
-        doctest:...: DeprecationWarning: SymplecticGraph is deprecated. Please use sage.graphs.generators.classical_geometries.SymplecticPolarGraph instead.
-        See http://trac.sagemath.org/19136 for details.
+        sage: g = graphs.SymplecticPolarGraph(6,2)
         sage: g.is_strongly_regular(parameters=True)
         (63, 30, 13, 15)
         sage: set(g.spectrum()) == {-5, 3, 30}
@@ -112,8 +110,6 @@ def SymplecticPolarGraph(d, q, algorithm=None):
     G.relabel()
     return G
 
-from sage.misc.superseded import deprecated_function_alias
-SymplecticGraph = deprecated_function_alias(19136, SymplecticPolarGraph)
 
 def AffineOrthogonalPolarGraph(d,q,sign="+"):
     r"""

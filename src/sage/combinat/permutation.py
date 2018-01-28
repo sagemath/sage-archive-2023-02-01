@@ -5272,7 +5272,7 @@ class Permutations_nk(Permutations):
             sage: Permutations(3,2)
             Permutations of {1,...,3} of length 2
         """
-        return "Permutations of {1,...,%s} of length %s"%(self.n, self.k)
+        return "Permutations of {1,...,%s} of length %s" % (self.n, self.k)
 
     def __iter__(self):
         """
@@ -5285,7 +5285,7 @@ class Permutations_nk(Permutations):
             sage: [p for p in Permutations(3,4)]
             []
         """
-        for x in itertools.permutations(range(1,self.n+1), self.k):
+        for x in itertools.permutations(range(1,self.n+1), int(self.k)):
             yield self.element_class(self, x)
 
     def cardinality(self):
@@ -5755,7 +5755,7 @@ class Permutations_setk(Permutations_set):
             sage: [i for i in Permutations([1,2,4],2)]
             [[1, 2], [1, 4], [2, 1], [2, 4], [4, 1], [4, 2]]
         """
-        for perm in itertools.permutations(self._set, self.k):
+        for perm in itertools.permutations(self._set, int(self.k)):
             yield self.element_class(self, perm)
 
     def random_element(self):
@@ -5941,7 +5941,7 @@ class StandardPermutations_all(Permutations):
         """
         n = 0
         while True:
-            for p in itertools.permutations(range(1, n+1), n):
+            for p in itertools.permutations(range(1, n + 1)):
                 yield self.element_class(self, p)
             n += 1
 
@@ -6065,7 +6065,7 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             sage: [p for p in Permutations(3)]
             [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
         """
-        for p in itertools.permutations(range(1, self.n+1), self.n):
+        for p in itertools.permutations(range(1, self.n + 1)):
             yield self.element_class(self, p)
 
     def _coerce_map_from_(self, G):
@@ -8209,12 +8209,12 @@ class StandardPermutations_avoiding_132(StandardPermutations_avoiding_generic):
             return
 
         elif self.n < 3:
-            for p in itertools.permutations(range(1, self.n+1), self.n):
+            for p in itertools.permutations(range(1, self.n + 1)):
                 yield self.element_class(self, p)
             return
 
         elif self.n == 3:
-            for p in itertools.permutations(range(1, self.n+1), self.n):
+            for p in itertools.permutations(range(1, self.n + 1)):
                 if p != (1, 3, 2):
                     yield self.element_class(self, p)
             return
@@ -8270,12 +8270,12 @@ class StandardPermutations_avoiding_123(StandardPermutations_avoiding_generic):
             return
 
         elif self.n < 3:
-            for p in itertools.permutations(range(1, self.n+1), self.n):
+            for p in itertools.permutations(range(1, self.n + 1)):
                 yield self.element_class(self, p)
             return
 
         elif self.n == 3:
-            for p in itertools.permutations(range(1, self.n+1), self.n):
+            for p in itertools.permutations(range(1, self.n + 1)):
                 if p != (1, 2, 3):
                     yield self.element_class(self, p)
             return

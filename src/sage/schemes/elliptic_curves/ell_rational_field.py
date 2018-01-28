@@ -4979,7 +4979,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 #     The following function can be implemented once composition of
 #     isogenies has been implemented.
 #
-#     def contruct_isogeny(self, other):
+#     def construct_isogeny(self, other):
 #         """
 #         Return an isogeny from self to other if the two curves are in
 #         the same isogeny class.

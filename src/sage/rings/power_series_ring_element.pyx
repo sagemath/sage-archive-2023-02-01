@@ -1347,7 +1347,7 @@ cdef class PowerSeries(AlgebraElement):
 
         ans = s
         if val != 0:
-            ans *= P.gen(0)**(val/2)
+            ans *= P.gen(0) ** (val // 2)
         if test_exact and ans.degree() < prec/2:
             if ans*ans == self:
                 (<PowerSeries>ans)._prec = infinity

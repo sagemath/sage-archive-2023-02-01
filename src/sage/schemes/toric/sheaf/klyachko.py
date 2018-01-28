@@ -948,7 +948,7 @@ class KlyachkoBundle_class(SageObject):
 
         OUTPUT:
 
-        A new Klyachko bundle with randomly perturbed moduly. In
+        A new Klyachko bundle with randomly perturbed moduli. In
         particular, the same Chern classes.
 
         EXAMPLES::

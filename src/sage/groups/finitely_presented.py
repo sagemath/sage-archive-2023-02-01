@@ -429,7 +429,7 @@ class RewritingSystem(object):
     A rewriting system is a set of rules that allow to transform
     one word in the group to an equivalent one.
 
-    If the rewriting system is confluent, then the transformated
+    If the rewriting system is confluent, then the transformed
     word is a unique reduced form of the element of the group.
 
     .. WARNING::

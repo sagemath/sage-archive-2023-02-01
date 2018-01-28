@@ -661,7 +661,7 @@ class PolynomialSequence_generic(Sequence_generic):
 
         J = RR.ideal([ Ts[j] - RR(self[j]) for j in range(r)])
         JJ = J.elimination_ideal(Xs)
-        # By the elimination theorem, JJ is the kernel of the ring homorphism
+        # By the elimination theorem, JJ is the kernel of the ring morphism
         # `phi:K[\bar T] \to K[\bar X]` that fixes `K` and sends each
         # `T_i` to `f_i`.
         # So JJ is the ideal of annihilating polynomials of `f_1,\ldots,f_r`,

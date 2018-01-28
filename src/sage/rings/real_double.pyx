@@ -1870,78 +1870,162 @@ cdef class RealDoubleElement(FieldElement):
         else:
             return self ** (float(1)/n)
 
-    cdef RealDoubleElement __pow_float(self, double exponent):
+    cdef __pow_double(self, double exponent, double sign):
         """
-        Raise ``self`` to a floating point value.
-
-        TESTS:
-
-              sage: RDF(0)^.5
-              0.0
-              sage: RDF(0)^(1/2)
-              0.0
-              sage: RDF(0)^RDF(0)
-              1.0
+        If ``sign == 1`` or ``self >= 0``, return ``self ^ exponent``.
+        If ``sign == -1`` and ``self < 0``, return ``- abs(self) ^ exponent``.
         """
-        if exponent == 0:
-            return self._new_c(1)
-        elif self._value == 0 or self._value == 1:
-            return self
-        else:
-            return self._new_c(gsl_sf_exp(gsl_sf_log(self._value) * exponent))
+        cdef double v = self._value
+        if v >= 0:
+            if v == 1:
+                return self
+            elif exponent == 0:
+                return self._new_c(1.0)
+            elif v == 0:
+                if exponent < 0:
+                    raise ZeroDivisionError("0.0 cannot be raised to a negative power")
+                return self
+            sign = 1.0
+        else:  # v < 0
+            expmod2 = libc.math.fmod(exponent, 2.0)
+            if expmod2 == 0.0:
+                pass
+            elif expmod2 == 1.0:
+                sign = -1.0
+            else:
+                raise ValueError("negative number cannot be raised to a fractional power")
+            v = -v
+        return self._new_c(sign * gsl_sf_exp(gsl_sf_log(v) * exponent))
 
-    cdef RealDoubleElement __pow_int(self, int exponent):
-        return self._new_c(gsl_pow_int(self._value, exponent))
-
-    def __pow__(self, exponent, modulus):
+    cpdef _pow_(self, other):
         """
-        Compute ``self`` raised to the power of exponent, rounded in the
-        direction specified by the parent of ``self``.
-
-        If the result is not a real number, ``self`` and the exponent are both
-        coerced to complex numbers (with sufficient precision), then the
-        exponentiation is computed in the complex numbers. Thus this
-        function can return either a real or complex number.
+        Return ``self`` raised to the real double power ``other``.
 
         EXAMPLES::
 
             sage: a = RDF('1.23456')
-            sage: a^20
-            67.64629770385...
             sage: a^a
             1.2971114817819216
 
-        Symbolic examples::
+        TESTS::
 
-            sage: x, y = var('x,y')
-            sage: RDF('-2.3')^(x+y^3+sin(x))
-            (-2.3)^(y^3 + x + sin(x))
-            sage: RDF('-2.3')^x
-            (-2.3)^x
+            sage: RDF(0) ^ RDF(0.5)
+            0.0
+            sage: RDF(0) ^ (1/2)
+            0.0
+            sage: RDF(0) ^ RDF(0)
+            1.0
+            sage: RDF(0) ^ RDF(-1)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: 0.0 cannot be raised to a negative power
+            sage: RDF(-1) ^ RDF(0)
+            1.0
+            sage: RDF(-1) ^ RDF(1)
+            -1.0
+            sage: RDF(-1) ^ RDF(0.5)
+            Traceback (most recent call last):
+            ...
+            ValueError: negative number cannot be raised to a fractional power
         """
-        cdef RealDoubleElement base, exp
-        if isinstance(self, RealDoubleElement):
-            base = self
-            if isinstance(exponent, RealDoubleElement):
-                return base.__pow_float((<RealDoubleElement>exponent)._value)
-            elif isinstance(exponent, float):
-                return base.__pow_float(exponent)
-            elif isinstance(exponent, int):
-                return base.__pow_int(exponent)
-            elif isinstance(exponent, Integer) and exponent < INT_MAX:
-                return base.__pow_int(exponent)
-            try:
-                exp = base._parent(exponent)
-                return base.__pow_float(exp._value)
-            except TypeError:
-                return exponent.parent()(self) ** exponent # neither operand is RealDoubleElement
-        else:
-            try:
-                base = exponent.parent()(self)
-                return base.__pow_float((<RealDoubleElement>exponent)._value)
-            except TypeError:
-                return self ** self.parent()(exponent) # neither operand is RealDoubleElement
+        return self.__pow_double((<RealDoubleElement>other)._value, 1)
 
+    cpdef _pow_int(self, n):
+        """
+        Return ``self`` raised to the integer power ``n``.
+
+        TESTS::
+
+            sage: RDF(1) ^ (2^1000)
+            1.0
+            sage: RDF(1) ^ (2^1000 + 1)
+            1.0
+            sage: RDF(1) ^ (-2^1000)
+            1.0
+            sage: RDF(1) ^ (-2^1000 + 1)
+            1.0
+            sage: RDF(-1) ^ (2^1000)
+            1.0
+            sage: RDF(-1) ^ (2^1000 + 1)
+            -1.0
+            sage: RDF(-1) ^ (-2^1000)
+            1.0
+            sage: RDF(-1) ^ (-2^1000 + 1)
+            -1.0
+
+        ::
+
+            sage: base = RDF(1.0000000000000002)
+            sage: base._pow_int(0)
+            1.0
+            sage: base._pow_int(1)
+            1.0000000000000002
+            sage: base._pow_int(2)
+            1.0000000000000004
+            sage: base._pow_int(3)
+            1.0000000000000007
+            sage: base._pow_int(2^57)
+            78962960182680.42
+            sage: base._pow_int(2^57 + 1)
+            78962960182680.42
+
+        ::
+
+            sage: base = RDF(-1.0000000000000002)
+            sage: base._pow_int(0)
+            1.0
+            sage: base._pow_int(1)
+            -1.0000000000000002
+            sage: base._pow_int(2)
+            1.0000000000000004
+            sage: base._pow_int(3)
+            -1.0000000000000007
+            sage: base._pow_int(2^57)
+            78962960182680.42
+            sage: base._pow_int(2^57 + 1)
+            -78962960182680.42
+        """
+        return self.__pow_double(n, -1.0 if (n & 1) else 1.0)
+
+    cdef _pow_long(self, long n):
+        """
+        Compute ``self`` raised to the power ``n``.
+
+        EXAMPLES::
+
+            sage: RDF('1.23456') ^ 20
+            67.64629770385...
+            sage: RDF(3) ^ 32
+            1853020188851841.0
+            sage: RDF(2)^(-1024)
+            5.562684646268003e-309
+
+        TESTS::
+
+            sage: base = RDF(1.0000000000000002)
+            sage: base ^ RDF(2^31)
+            1.000000476837272
+            sage: base ^ (2^57)
+            78962960182680.42
+            sage: base ^ RDF(2^57)
+            78962960182680.42
+        """
+        if -2048 <= n <= 2048:
+            # For small exponents, it is possible that the powering
+            # is exact either because the base is a power of 2
+            # (e.g. 2.0^1000) or because the exact result has few
+            # significant digits (e.g. 3.0^10). Here, we use the
+            # square-and-multiply algorithm by GSL.
+            return self._new_c(gsl_pow_int(self._value, <int>n))
+        # If the exponent is sufficiently large in absolute value, the
+        # result cannot be exact (except if the base is -1.0, 0.0 or
+        # 1.0 but those cases are handled by __pow_double too). The
+        # log-and-exp algorithm from __pow_double will be more precise
+        # than square-and-multiply.
+
+        # We do need to take care of the sign since the conversion
+        # of n to double might change an odd number to an even number.
+        return self.__pow_double(<double>n, -1.0 if (n & 1) else 1.0)
 
     cdef _log_base(self, double log_of_base):
         if self._value == 0:

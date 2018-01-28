@@ -2217,7 +2217,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         rho = abs(self)
         arg = self.argument() / n
         mpfr_init2(r, self._prec)
-        mpfr_root(r, rho.value, n, rnd)
+        mpfr_rootn_ui(r, rho.value, n, rnd)
 
         mpfr_sin_cos(z.__im, z.__re, arg.value, rnd)
         mpfr_mul(z.__re, z.__re, r, rnd)

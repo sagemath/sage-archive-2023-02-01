@@ -2526,7 +2526,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: RootSystem(["D",3]).ambient_space().plot_hedron()
                 Graphics3d Object
 
-            Surprise: polyhedrons of large dimension know how to
+            Surprise: polyhedra of large dimension know how to
             project themselves nicely::
 
                 sage: RootSystem(["F",4]).ambient_space().plot_hedron() # long time

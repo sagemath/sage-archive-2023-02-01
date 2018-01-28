@@ -1,6 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env sage-python23
 
-import optparse, os, sys
+import optparse
+import os
+import sys
 
 # Note: the DOT_SAGE and SAGE_STARTUP_FILE environment variables have already been set by sage-env
 DOT_SAGE = os.environ['DOT_SAGE']

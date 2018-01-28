@@ -340,7 +340,7 @@ cdef stdstring* py_repr(o, int level):
         else:
             t = s
         # Python complexes are always printed with parentheses
-        # we try to avoid double parantheses
+        # we try to avoid double parentheses
         if type(o) is not complex and \
                 (' ' in t or '/' in t or '+' in t or '-' in t or '*' in t \
                 or '^' in t):

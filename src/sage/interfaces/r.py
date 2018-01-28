@@ -362,7 +362,8 @@ class R(ExtraTabCompletion, Expect):
 
     def set_seed(self, seed=None):
         """
-        Sets the seed for R interpeter.
+        Set the seed for R interpreter.
+
         The seed should be an integer.
 
         EXAMPLES::
@@ -1889,7 +1890,7 @@ class RElement(ExtraTabCompletion, ExpectElement):
         # c is an ordered list
         # list is a dictionary (where _Names give the entries names.
         #    map entries in names to (value, name) in each entry?
-        # structure is .. see above .. strucuture(DATA,**kw)
+        # structure is .. see above .. structure(DATA,**kw)
         # TODO: thinking of just replacing c( with ( to get a long tuple?
 
 

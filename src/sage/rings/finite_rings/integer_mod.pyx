@@ -2483,6 +2483,13 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         return self._new_c(x% self.__modulus.int32)
 
     def __int__(IntegerMod_int self):
+        """
+        TESTS::
+
+            sage: e = Mod(8, 31)
+            sage: int(e)
+            8
+        """
         return self.ivalue
 
     def __index__(self):
@@ -2566,8 +2573,6 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             160
             sage: e = Mod(8, 2^5 - 1)
             sage: e >> 3
-            1
-            sage: int(e)/int(2^3)  # optional - python2
             1
         """
         if k == 0:
@@ -4117,7 +4122,7 @@ cdef class IntegerMod_hom(Morphism):
         self.zero = C._element_constructor_(0)
         self.modulus = C._pyx_order
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for pickling and copying.
 
@@ -4139,9 +4144,10 @@ cdef class IntegerMod_hom(Morphism):
             sage: psi(R15(7))
             2
         """
-        _slots['zero'] = self.zero
-        _slots['modulus'] = self.modulus
-        return Morphism._extra_slots(self, _slots)
+        slots = Morphism._extra_slots(self)
+        slots['zero'] = self.zero
+        slots['modulus'] = self.modulus
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """

@@ -878,7 +878,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         try:
             return EllipticCurveIsogeny(self, kernel, codomain, degree, model, check=check)
         except AttributeError as e:
-            raise RuntimeError("Unable to contruct isogeny: %s" % e)
+            raise RuntimeError("Unable to construct isogeny: %s" % e)
 
 
     def isogeny_codomain(self, kernel, degree=None):

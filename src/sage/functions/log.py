@@ -93,7 +93,7 @@ class Function_exp(GinacFunction):
         sage: exp(2).n(100)
         7.3890560989306502272304274606
 
-    TEST::
+    TESTS::
 
         sage: latex(exp(x))
         e^{x}
@@ -453,7 +453,7 @@ class Function_polylog(GinacFunction):
         EXAMPLES::
 
             sage: polylog(2.7, 0)
-            0
+            0.000000000000000
             sage: polylog(2, 1)
             1/6*pi^2
             sage: polylog(2, -1)
@@ -1005,7 +1005,8 @@ class Function_exp_polar(BuiltinFunction):
         This fixes :trac:`18085`::
 
             sage: integrate(1/sqrt(1+x^3),x,algorithm='sympy')
-            1/3*x*hypergeometric((1/3, 1/2), (4/3,), -x^3)*gamma(1/3)/gamma(4/3)
+            1/3*x*gamma(1/3)*hypergeometric((1/3, 1/2), (4/3,), -x^3)/gamma(4/3)
+
 
         .. SEEALSO::
 
@@ -1062,12 +1063,20 @@ class Function_exp_polar(BuiltinFunction):
             sage: exp_polar(4*I*pi + x)
             exp_polar(4*I*pi + x)
 
+        TESTS:
+
+        Check that :trac:`24441` is fixed::
+
+            sage: exp_polar(arcsec(jacobi_sn(1.1*I*x, x))) # should be fast
+            exp_polar(arcsec(jacobi_sn(1.10000000000000*I*x, x)))
         """
-        if (isinstance(z, Expression)
-            and bool(-const_pi < z.imag_part() <= const_pi)):
-            return exp(z)
-        else:
-            return None
+        try:
+            im = z.imag_part()
+            if (len(im.variables()) == 0
+                and bool(-const_pi < im <= const_pi)):
+                return exp(z)
+        except AttributeError:
+            pass
 
 exp_polar = Function_exp_polar()
 
@@ -1211,6 +1220,11 @@ class Function_harmonic_number_generalized(BuiltinFunction):
             0.386627621982332
             sage: harmonic_number(3,5/2)
             1/27*sqrt(3) + 1/8*sqrt(2) + 1
+
+        TESTS::
+
+            sage: harmonic_number(int(3), int(3))
+            1.162037037037037
         """
         if m == 0:
             return z
@@ -1218,7 +1232,7 @@ class Function_harmonic_number_generalized(BuiltinFunction):
             return harmonic_m1._eval_(z)
 
         if z in ZZ and z >= 0:
-            return sum(1 / (k ** m) for k in range(1, z + 1))
+            return sum(ZZ(k) ** (-m) for k in range(1, z + 1))
 
     def _evalf_(self, z, m, parent=None, algorithm=None):
         """

@@ -96,6 +96,22 @@ class OHLC:
                 self.close == other.close and
                 self.volume == other.volume)
 
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: ohlc = sage.finance.stock.OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092)
+            sage: H = hash(ohlc)
+        """
+        return hash((self.timestamp,
+                     self.open,
+                     self.high,
+                     self.low,
+                     self.close ,
+                     self.volume))
+
     def __ne__(self, other):
         """
         Compare ``self`` and ``other``.

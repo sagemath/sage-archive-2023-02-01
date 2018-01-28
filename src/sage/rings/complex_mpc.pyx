@@ -63,6 +63,7 @@ from . import real_mpfr
 import weakref
 from cpython.object cimport Py_NE
 
+from sage.libs.mpfr cimport *
 from sage.libs.mpc cimport *
 from sage.structure.parent cimport Parent
 from sage.structure.parent_gens cimport ParentWithGens
@@ -2141,7 +2142,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         cdef RealNumber a,r
         a = self.argument()/n
         r = self.abs()
-        mpfr_root(r.value, r.value, n, rrnd)
+        mpfr_rootn_ui(r.value, r.value, n, rrnd)
 
         cdef MPComplexNumber z
         z = self._new()
@@ -2296,7 +2297,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
 
     def agm(self, right, algorithm="optimal"):
         """
-        Returns the algebraic geometrc mean of ``self`` and ``right``.
+        Return the algebro-geometric mean of ``self`` and ``right``.
 
         EXAMPLES::
 

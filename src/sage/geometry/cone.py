@@ -4076,7 +4076,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         set over `\ZZ` for the integral points `C\cap \ZZ^d`.
 
         If the cone `C` is not strictly convex, this method finds the
-        (unique) minimial set of lattice points that need to be added
+        (unique) minimal set of lattice points that need to be added
         to the defining rays of the cone to generate the whole
         semigroup `C\cap \ZZ^d`. But because the rays of the cone are
         not unique nor necessarily minimal in this case, neither is

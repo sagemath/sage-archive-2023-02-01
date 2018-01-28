@@ -630,7 +630,6 @@ def latex_extra_preamble():
         \newcommand{\RDF}{\Bold{R}}
         \newcommand{\RIF}{\Bold{I} \Bold{R}}
         \newcommand{\RLF}{\Bold{R}}
-        \newcommand{\CFF}{\Bold{CFF}}
         \newcommand{\Bold}[1]{\mathbf{#1}}
         <BLANKLINE>
     """

@@ -412,8 +412,7 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
         self._R = R
         names = R.variable_names()
         CommutativeRing.__init__(self, R.base_ring(), names=names)
-        self._populate_coercion_lists_(element_constructor=self._element_constructor_,
-                                       init_no_parent=True)
+        self._populate_coercion_lists_(init_no_parent=True)
 
     def ngens(self):
         """

@@ -323,7 +323,7 @@ def integer_matrices_generator(row_sums, column_sums):
     """
     column_sums = list(column_sums)
     if sum(row_sums) != sum(column_sums):
-        raise StopIteration
+        return
     if not row_sums:
         yield []
     elif len(row_sums) == 1:

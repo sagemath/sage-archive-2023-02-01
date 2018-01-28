@@ -39,6 +39,8 @@ TESTS::
     True
     sage: RationalField() is RationalField()
     True
+    sage: Q in Fields().Infinite()
+    True
 
 AUTHORS:
 
@@ -221,13 +223,17 @@ class RationalField(Singleton, number_field_base.NumberField):
             'x'
             sage: QQ.variable_names()
             ('x',)
+            sage: QQ._element_constructor_((2, 3))
+            2/3
         """
         from sage.categories.basic import QuotientFields
         from sage.categories.number_fields import NumberFields
         ParentWithGens.__init__(self, self, category=[QuotientFields().Metric(),
                                                       NumberFields()])
         self._assign_names(('x',),normalize=False) # ???
-        self._populate_coercion_lists_(element_constructor=Rational, init_no_parent=True)
+        self._populate_coercion_lists_(init_no_parent=True)
+
+    _element_constructor_ = Rational
 
     def _repr_(self):
         """
@@ -527,8 +533,8 @@ class RationalField(Singleton, number_field_base.NumberField):
         except (TypeError, AttributeError):
             raise TypeError("%s is not valid bound on prime ideals" % B)
 
-        if B<2:
-            raise StopIteration
+        if B < 2:
+            return
 
         from sage.arith.all import primes
         for p in primes(B+1):

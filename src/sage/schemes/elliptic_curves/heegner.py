@@ -1250,7 +1250,7 @@ class GaloisAutomorphism(SageObject):
             sage: G = heegner_points(389,-7,5).ring_class_field().galois_group(); G
             Galois group of Ring class field extension of QQ[sqrt(-7)] of conductor 5
             sage: sage.schemes.elliptic_curves.heegner.GaloisAutomorphism(G)
-            <class 'sage.schemes.elliptic_curves.heegner.GaloisAutomorphism'>
+            <sage.schemes.elliptic_curves.heegner.GaloisAutomorphism object at ...>
         """
         self.__parent = parent
 
@@ -6884,12 +6884,15 @@ def _heegner_index_in_EK(self, D):
     Return the index of the sum of `E(\QQ)/tor + E^D(\QQ)/tor` in `E(K)/tor`.
 
     INPUT:
-        - `D` -- negative integer; the Heegner discriminant
+
+    - `D` -- negative integer; the Heegner discriminant
 
     OUTPUT:
-        a power of 2 -- the given index
+
+    a power of 2 -- the given index
 
     EXAMPLES:
+
     We compute the index for a rank 2 curve and found that it is 2::
 
         sage: E = EllipticCurve('389a')
@@ -6897,7 +6900,7 @@ def _heegner_index_in_EK(self, D):
         2
 
     We explicitly verify in the above example that indeed that
-    index is divisibly by 2 by writing down a generator of
+    index is divisible by 2 by writing down a generator of
     `E(\QQ)/tor + E^D(\QQ)/tor` that is divisible by 2 in `E(K)`::
 
         sage: F = E.quadratic_twist(-7)

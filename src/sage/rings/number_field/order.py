@@ -1129,6 +1129,7 @@ class AbsoluteOrder(Order):
 
         EXAMPLES::
 
+            sage: x = polygen(QQ)
             sage: k.<z> = NumberField(x^2 - 389)
             sage: m = k.order(3*z); m
             Order in Number Field in z with defining polynomial x^2 - 389
@@ -1136,9 +1137,26 @@ class AbsoluteOrder(Order):
             6*z
             sage: k(m(6*z))
             6*z
+
+        If ``x`` is a list or tuple the element constructed is the
+        linear combination of the generators with these coefficients
+        (see :trac:`10017`)::
+
+            sage: x = polygen(QQ)
+            sage: K.<a> = NumberField(x^3-10)
+            sage: ZK = K.ring_of_integers()
+            sage: ZK.basis()
+            [1/3*a^2 + 1/3*a + 1/3, a, a^2]
+            sage: ZK([1,2,3])
+            10/3*a^2 + 7/3*a + 1/3
+            sage: K([1,2,3])
+            3*a^2 + 2*a + 1
+
         """
         if is_Element(x) and x.parent() is self:
             return x
+        if isinstance(x, (tuple, list)):
+            x = sum(xi*gi for xi,gi in zip(x,self.gens()))
         if not is_Element(x) or x.parent() is not self._K:
             x = self._K(x)
         V, _, embedding = self._K.vector_space()
@@ -1868,6 +1886,7 @@ def absolute_order_from_module_generators(gens,
     an absolute order
 
     EXAMPLES:
+
     We have to explicitly import the function, since it isn't meant
     for regular usage::
 
@@ -2004,6 +2023,7 @@ def relative_order_from_ring_generators(gens,
       known
 
     EXAMPLES:
+
     We have to explicitly import this function, since it isn't meant
     for regular usage::
 

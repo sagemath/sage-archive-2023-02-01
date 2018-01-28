@@ -1570,7 +1570,7 @@ cdef class LinearConstraint(LinearFunctionOrConstraint):
             3 == x_2
         """
         if not self.is_equation() or self.is_trivial():
-            raise StopIteration
+            return
         term_iter = iter(self)
         lhs = next(term_iter)
         rhs = next(term_iter)
@@ -1603,7 +1603,7 @@ cdef class LinearConstraint(LinearFunctionOrConstraint):
             3 <= x_2
         """
         if not self.is_less_or_equal() or self.is_trivial():
-            raise StopIteration
+            return
         term_iter = iter(self)
         lhs = next(term_iter)
         rhs = next(term_iter)

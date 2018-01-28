@@ -2148,7 +2148,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         For `K=\QQ` there is no need to specify an embedding::
 
             sage: E=EllipticCurve('5077a1')
-            sage: [E.lift_x(x).is_on_identity_component() for x in range(-3,5)]
+            sage: [E.lift_x(x).is_on_identity_component() for x in srange(-3,5)]
             [False, False, False, False, False, True, True, True]
 
         An example over a field with two real embeddings::
@@ -3037,15 +3037,14 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
 
         ALGORITHM:
 
-        See [Co2] Cohen H., A Course in Computational Algebraic Number
-        Theory GTM 138, Springer 1996 for the case of real embeddings,
-        and Cremona, J.E. and Thongjunthug , T. 2010 for the complex
+        See [Coh1993]_ for the case of real embeddings,
+        and Cremona, J.E. and Thongjunthug, T. 2010 for the complex
         case.
 
         AUTHORS:
 
         - Michael Mardaus (2008-07),
-        - Tobias Nagel (2008-07) -- original version from [Co2].
+        - Tobias Nagel (2008-07) -- original version from [Coh1993]_.
         - John Cremona (2008-07) -- revision following eclib code.
         - John Cremona (2010-03) -- implementation for complex embeddings.
 

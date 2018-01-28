@@ -318,7 +318,7 @@ class CompositionTableaux(UniqueRepresentation, Parent):
          [[3, 3, 3]]]
 
         sage: CT = CompositionTableaux([1,2,1]); CT
-        Composition tableaux of shape [1, 2, 1] and maximun entry 4
+        Composition tableaux of shape [1, 2, 1] and maximum entry 4
         sage: list(CT)
         [[[1], [2, 2], [3]],
          [[1], [2, 2], [4]],
@@ -327,7 +327,7 @@ class CompositionTableaux(UniqueRepresentation, Parent):
          [[2], [3, 3], [4]]]
 
         sage: CT = CompositionTableaux(shape=[1,2,1],max_entry=3); CT
-        Composition tableaux of shape [1, 2, 1] and maximun entry 3
+        Composition tableaux of shape [1, 2, 1] and maximum entry 3
         sage: list(CT)
         [[[1], [2, 2], [3]]]
 
@@ -363,17 +363,17 @@ class CompositionTableaux(UniqueRepresentation, Parent):
             sage: CT = CompositionTableaux(size=3); CT
             Composition Tableaux of size 3 and maximum entry 3
             sage: CT = CompositionTableaux([1,2]); CT
-            Composition tableaux of shape [1, 2] and maximun entry 3
+            Composition tableaux of shape [1, 2] and maximum entry 3
             sage: CT = CompositionTableaux(shape=[1,2]); CT
-            Composition tableaux of shape [1, 2] and maximun entry 3
+            Composition tableaux of shape [1, 2] and maximum entry 3
             sage: CT = CompositionTableaux(shape=[]); CT
-            Composition tableaux of shape [] and maximun entry 0
+            Composition tableaux of shape [] and maximum entry 0
             sage: CT = CompositionTableaux(0); CT
             Composition Tableaux of size 0 and maximum entry 0
             sage: CT = CompositionTableaux(max_entry=3); CT
             Composition tableaux with maximum entry 3
             sage: CT = CompositionTableaux([1,2],max_entry=3); CT
-            Composition tableaux of shape [1, 2] and maximun entry 3
+            Composition tableaux of shape [1, 2] and maximum entry 3
             sage: CT = CompositionTableaux(size=2,shape=[1,2]); CT
             Traceback (most recent call last):
             ...
@@ -737,11 +737,11 @@ class CompositionTableaux_shape(CompositionTableaux):
         TESTS::
 
             sage: CompositionTableaux([1,2,1])
-            Composition tableaux of shape [1, 2, 1] and maximun entry 4
+            Composition tableaux of shape [1, 2, 1] and maximum entry 4
             sage: CompositionTableaux([1,2,1],max_entry=3)
-            Composition tableaux of shape [1, 2, 1] and maximun entry 3
+            Composition tableaux of shape [1, 2, 1] and maximum entry 3
         """
-        return "Composition tableaux of shape %s and maximun entry %s"%(str(self.shape), str(self.max_entry))
+        return "Composition tableaux of shape %s and maximum entry %s" % (str(self.shape), str(self.max_entry))
 
     def an_element(self):
         r"""

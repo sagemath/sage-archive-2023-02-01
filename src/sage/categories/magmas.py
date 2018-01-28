@@ -512,10 +512,10 @@ class Magmas(Category_singleton):
                 """
                 tester = self._tester(**options)
                 one = self.one()
-                tester.assert_(self.is_parent_of(one))
+                tester.assertTrue(self.is_parent_of(one))
                 for x in tester.some_elements():
-                    tester.assert_(x * one == x)
-                    tester.assert_(one * x == x)
+                    tester.assertTrue(x * one == x)
+                    tester.assertTrue(one * x == x)
                 # Check that one is immutable if it looks like we can test this
                 if hasattr(one,"is_immutable"):
                     tester.assertEqual(one.is_immutable(),True)

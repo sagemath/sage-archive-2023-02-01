@@ -1944,8 +1944,8 @@ class FormsRingElement(six.with_metaclass(
             2.525...e-10 - 3.884...e-6*I
             sage: f_i(i)
             0
-            sage: f_i(i + 1e-1000)
-            -6.084...e-14 - 4.101...e-1000*I
+            sage: f_i(i + 1e-1000)  # rel tol 5e-2
+            -6.08402217494586e-14 - 4.10147008296517e-1000*I
             sage: f_inf(infinity)
             0
 

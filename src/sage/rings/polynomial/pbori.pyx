@@ -194,7 +194,7 @@ import operator
 from sage.misc.cachefunc import cached_method
 
 from sage.misc.randstate import current_randstate
-from sage.misc.long cimport pyobject_to_long
+from sage.arith.long cimport pyobject_to_long
 import sage.misc.weak_dict
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
@@ -3144,7 +3144,6 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: x != False
             True
         """
-        from builtins import zip
         for lm, rm in zip(left, right):
             if lm != rm:
                 return richcmp_not_equal(lm, rm, op)
@@ -3796,7 +3795,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: h = g.univariate_polynomial(); h
             1
             sage: h.parent()
-            Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
+            Univariate Polynomial Ring in x over Finite Field of size 2 (using GF2X)
         """
         if not self.is_univariate():
             raise ValueError("polynomial must involve at most one variable")
@@ -6416,7 +6415,7 @@ cdef class ReductionStrategy:
 
         - ``leading_terms`` - all leading terms of generators
 
-        - ``minimial_leading_terms`` - the reduced set of leading terms
+        - ``minimal_leading_terms`` - the reduced set of leading terms
 
         - ``monomials`` -
 

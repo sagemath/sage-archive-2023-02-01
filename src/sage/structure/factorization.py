@@ -242,6 +242,7 @@ class Factorization(SageObject):
         - a Factorization object
 
         EXAMPLES:
+
         We create a factorization with all the default options::
 
             sage: Factorization([(2,3), (5, 1)])
@@ -1057,8 +1058,8 @@ class Factorization(SageObject):
             sage: F = Fc * Fg; F.universe()
             Univariate Polynomial Ring in x over Integer Ring
             sage: [type(a[0]) for a in F]
-            [<type 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>,
-             <type 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>]
+            [<... 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>,
+             <... 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>]
         """
         if not isinstance(other, Factorization):
             return self * Factorization([(other, 1)])

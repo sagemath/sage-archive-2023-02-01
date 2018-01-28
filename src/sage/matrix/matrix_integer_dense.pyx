@@ -74,7 +74,8 @@ from sage.modules.vector_integer_dense cimport Vector_integer_dense
 from sage.misc.misc import verbose, get_verbose, cputime
 
 from sage.arith.all import previous_prime
-from sage.structure.element cimport Element, generic_power_c
+from sage.arith.power cimport generic_power
+from sage.structure.element cimport Element
 from sage.structure.proof.proof import get_flag as get_proof_flag
 from sage.misc.randstate cimport randstate, current_randstate
 
@@ -304,8 +305,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         Actually it is only necessary that the input can be coerced to a
         list, so the following also works::
 
-            sage: v = reversed(range(4)); type(v)
-            <... 'listreverseiterator'>
+            sage: v = reversed(range(4))
             sage: A(v)
             [3 2]
             [1 0]
@@ -1006,8 +1006,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
                 e = mpz_get_ui((<Integer>n).value)
             else:
                 # it is very likely that the following will never finish except
-                # if self is nilpotent
-                return generic_power_c(self, n, self._parent.one())
+                # if self has only eigenvalues 0, 1 or -1.
+                return generic_power(self, n)
 
         if e == 0:
             return self._parent.identity_matrix()
@@ -1148,6 +1148,10 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
     def charpoly(self, var='x', algorithm=None):
         """
+        .. NOTE::
+
+            The characteristic polynomial is defined as `\det(xI-A)`.
+
         INPUT:
 
 

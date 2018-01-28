@@ -146,7 +146,7 @@ cdef class SageObject:
 
             sage: a = 3.14
             sage: type(a)
-            <type 'sage.rings.real_mpfr.RealLiteral'>
+            <... 'sage.rings.real_mpfr.RealLiteral'>
             sage: a.rename('pi')
             Traceback (most recent call last):
             ...
@@ -222,6 +222,14 @@ cdef class SageObject:
             sage: P.reset_name()
             sage: repr(P) == P._repr_()
             True
+
+        If there is no ``_repr_`` method defined, we fall back to the
+        super class (typically ``object``)::
+
+            sage: from sage.structure.sage_object import SageObject
+            sage: S = SageObject()
+            sage: S
+            <sage.structure.sage_object.SageObject object at ...>
         """
         try:
             name = self.__custom_name
@@ -230,16 +238,14 @@ cdef class SageObject:
         except AttributeError:
             pass
         try:
-            repr_func = self._repr_
+            reprfunc = self._repr_
         except AttributeError:
-            return str(type(self))
-        else:
-            result = repr_func()
-            if sys.version_info[0] < 3 and isinstance(result, unicode):
-                # for Py3 compatibility: allow _repr_ to return unicode
-                return result.encode('utf-8')
-            else:
-                return result
+            return super().__repr__()
+        result = reprfunc()
+        if isinstance(result, str):
+            return result
+        # Allow _repr_ to return unicode on Python 2
+        return result.encode('utf-8')
 
     def _ascii_art_(self):
         r"""
@@ -363,9 +369,8 @@ cdef class SageObject:
             sage: type(_)
             <class 'sage.typeset.unicode_art.UnicodeArt'>
         """
-        ascii_art = self._ascii_art_()
-        lines = map(unicode, ascii_art)
         from sage.typeset.unicode_art import UnicodeArt
+        lines = [unicode(z) for z in self._ascii_art_()]
         return UnicodeArt(lines)
 
     def __hash__(self):
@@ -377,7 +382,7 @@ cdef class SageObject:
             sage: hash(SageObject())
             Traceback (most recent call last):
             ...
-            TypeError: <type 'sage.structure.sage_object.SageObject'> is not hashable
+            TypeError: <... 'sage.structure.sage_object.SageObject'> is not hashable
         """
         raise TypeError("{} is not hashable".format(type(self)))
 
@@ -536,9 +541,9 @@ cdef class SageObject:
         from sage.categories.objects import Objects
         tester = self._tester(**options)
         category = self.category()
-        tester.assert_(isinstance(category, Category))
-        tester.assert_(category.is_subcategory(Objects()))
-        tester.assert_(self in category)
+        tester.assertTrue(isinstance(category, Category))
+        tester.assertTrue(category.is_subcategory(Objects()))
+        tester.assertTrue(self in category)
 
     def parent(self):
         """
@@ -570,18 +575,18 @@ cdef class SageObject:
 
             sage: tester = ZZ._tester()
 
-            sage: tester.assert_(1 == 1)
-            sage: tester.assert_(1 == 0)
+            sage: tester.assertTrue(1 == 1)
+            sage: tester.assertTrue(1 == 0)
             Traceback (most recent call last):
             ...
             AssertionError: False is not true
-            sage: tester.assert_(1 == 0, "this is expected to fail")
+            sage: tester.assertTrue(1 == 0, "this is expected to fail")
             Traceback (most recent call last):
             ...
             AssertionError: this is expected to fail
 
-            sage: tester.assertEquals(1, 1)
-            sage: tester.assertEquals(1, 0)
+            sage: tester.assertEqual(1, 1)
+            sage: tester.assertEqual(1, 0)
             Traceback (most recent call last):
             ...
             AssertionError: 1 != 0
@@ -1203,7 +1208,7 @@ def register_unpickle_override(module, name, callable, call_name=None):
         sage: from sage.structure.sage_object import register_unpickle_override
         sage: register_unpickle_override('sage.rings.old_integer', 'OldInteger', Integer)
         sage: unpickle_global('sage.rings.old_integer', 'OldInteger')
-        <type 'sage.rings.integer.Integer'>
+        <... 'sage.rings.integer.Integer'>
 
     In many cases, unpickling problems for old pickles can be resolved with a
     simple call to ``register_unpickle_override``, as in the example above and
@@ -1369,19 +1374,19 @@ def unpickle_global(module, name):
 
         sage: from sage.structure.sage_object import unpickle_override, register_unpickle_override
         sage: unpickle_global('sage.rings.integer', 'Integer')
-        <type 'sage.rings.integer.Integer'>
+        <... 'sage.rings.integer.Integer'>
 
     Now we horribly break the pickling system::
 
         sage: register_unpickle_override('sage.rings.integer', 'Integer', Rational, call_name=('sage.rings.rational', 'Rational'))
         sage: unpickle_global('sage.rings.integer', 'Integer')
-        <type 'sage.rings.rational.Rational'>
+        <... 'sage.rings.rational.Rational'>
 
     and we reach into the internals and put it back::
 
         sage: del unpickle_override[('sage.rings.integer', 'Integer')]
         sage: unpickle_global('sage.rings.integer', 'Integer')
-        <type 'sage.rings.integer.Integer'>
+        <... 'sage.rings.integer.Integer'>
         
     A meaningful error message with resolution instructions is displayed for
     old pickles that accidentally got broken because a class or entire module
@@ -1477,17 +1482,17 @@ cdef bint make_pickle_jar = 'SAGE_PICKLE_JAR' in os.environ
 
 def picklejar(obj, dir=None):
     """
-    Create pickled sobj of obj in dir, with name the absolute value of
-    the hash of the pickle of obj.  This is used in conjunction with
-    :func:`unpickle_all`.
+    Create pickled sobj of ``obj`` in ``dir``, with name the absolute
+    value of the hash of the pickle of obj.  This is used in conjunction
+    with :func:`unpickle_all`.
 
     To use this to test the whole Sage library right now, set the
-    environment variable ``SAGE_PICKLE_JAR``, which will make it so dumps
-    will by default call picklejar with the default dir.  Once you do
-    that and doctest Sage, you'll find that the ``SAGE_ROOT``/tmp/
-    contains a bunch of pickled objects along with corresponding txt
-    descriptions of them.  Use the :func:`unpickle_all` to see if they unpickle
-    later.
+    environment variable ``SAGE_PICKLE_JAR``, which will make it so
+    :func:`dumps` will by default call :func:`picklejar` with the
+    default dir.  Once you do that and doctest Sage, you'll find that
+    the ``SAGE_ROOT/tmp/pickle_jar`` directory contains a bunch of
+    pickled objects along with corresponding txt descriptions of them.
+    Use the :func:`unpickle_all` to see if they unpickle later.
 
     INPUT:
 
@@ -1554,7 +1559,8 @@ def picklejar(obj, dir=None):
 
     open(base + '.txt', 'w').write(txt)
 
-def unpickle_all(dir = None, debug=False, run_test_suite=False):
+
+def unpickle_all(dir, debug=False, run_test_suite=False):
     """
     Unpickle all sobj's in the given directory, reporting failures as
     they occur.  Also printed the number of successes and failure.
@@ -1563,7 +1569,6 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
 
     - ``dir`` -- a string; the name of a directory (or of a .tar.bz2
       file that decompresses to a directory) full of pickles.
-      (default: the standard pickle jar)
     - ``debug`` -- a boolean (default: False)
       whether to report a stacktrace in case of failure
     - ``run_test_suite`` -- a boolean (default: False)
@@ -1576,88 +1581,7 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
         sage: sage.structure.sage_object.unpickle_all(dir)
         Successfully unpickled 1 objects.
         Failed to unpickle 0 objects.
-
-    When run with no arguments :meth:`unpickle_all` tests that all of the
-    "standard" pickles stored in the pickle_jar at
-    ``SAGE_SHARE/sage/ext/pickle_jar/pickle_jar.tar.bz2`` can be unpickled.
-
-    ::
-
-        sage: sage.structure.sage_object.unpickle_all()  # (4s on sage.math, 2011)
-        doctest:... DeprecationWarning: ...
-        See http://trac.sagemath.org/... for details.
-        Successfully unpickled ... objects.
-        Failed to unpickle 0 objects.
-
-    Check that unpickling a second time works (see :trac:`5838`)::
-
-        sage: sage.structure.sage_object.unpickle_all()
-        Successfully unpickled ... objects.
-        Failed to unpickle 0 objects.
-
-    When it is not possible to unpickle a pickle in the pickle_jar then
-    :meth:`unpickle_all` prints the following error message which warns against removing
-    pickles from the pickle_jar and directs the user towards
-    :meth:`register_unpickle_override`. The following code intentionally
-    breaks a pickle to illustrate this::
-
-        sage: from sage.structure.sage_object import register_unpickle_override, unpickle_all, unpickle_global
-        sage: class A(CombinatorialObject,sage.structure.element.Element):
-        ....:     pass  # to break a pickle
-        sage: tableau_unpickler=unpickle_global('sage.combinat.tableau','Tableau_class')
-        sage: register_unpickle_override('sage.combinat.tableau','Tableau_class',A) # breaking the pickle
-        sage: unpickle_all()  # todo: not tested
-        ...
-        Failed:
-        _class__sage_combinat_crystals_affine_AffineCrystalFromClassicalAndPromotion_with_category_element_class__.sobj
-        _class__sage_combinat_crystals_tensor_product_CrystalOfTableaux_with_category_element_class__.sobj
-        _class__sage_combinat_crystals_tensor_product_TensorProductOfCrystalsWithGenerators_with_category__.sobj
-        _class__sage_combinat_tableau_Tableau_class__.sobj
-        ----------------------------------------------------------------------
-        ** This error is probably due to an old pickle failing to unpickle.
-        ** See sage.structure.sage_object.register_unpickle_override for
-        ** how to override the default unpickling methods for (old) pickles.
-        ** NOTE: pickles should never be removed from the pickle_jar!
-        ----------------------------------------------------------------------
-        Successfully unpickled 583 objects.
-        Failed to unpickle 4 objects.
-        sage: register_unpickle_override('sage.combinat.tableau','Tableau_class',tableau_unpickler) # restore to default
-
-    .. TODO::
-
-        Create a custom-made ``SourPickle`` for the last example.
-
-    If you want to find *lots* of little issues in Sage then try the following::
-
-        sage: sage.structure.sage_object.unpickle_all(run_test_suite = True) # todo: not tested
-
-    This runs :class:`TestSuite` tests on all objects in the Sage pickle
-    jar. Some of those objects seem to unpickle properly, but do not
-    pass the tests because their internal data structure is messed
-    up. In most cases though it is just that their source file misses
-    a TestSuite call, and therefore some misfeatures went unnoticed
-    (typically Parents not implementing the ``an_element`` method).
-
-    .. NOTE::
-
-        Every so often the standard pickle jar should be updated by running the
-        doctest suite with the environment variable ``SAGE_PICKLE_JAR`` set, then
-        copying the files from ``SAGE_ROOT/tmp/pickle_jar*`` into the standard pickle
-        jar.
-
-    .. WARNING::
-
-        Sage's pickle jar helps to ensure backward compatibility in sage. Pickles should
-        **only** be removed from the pickle jar after the corresponding objects
-        have been properly deprecated. Any proposal to remove pickles from the
-        pickle jar should first be discussed on sage-devel.
     """
-    if dir is None:
-        pickle_jar=True
-        from sage.env import SAGE_EXTCODE
-        dir = os.path.join(SAGE_EXTCODE,'pickle_jar','pickle_jar.tar.bz2')
-    else:
-        pickle_jar=False
     i = 0
     j = 0
     failed = []
@@ -1693,15 +1617,6 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
 
     if len(failed) > 0:
         print("Failed:\n%s" % ('\n'.join(failed)))
-        if pickle_jar:
-            # if we are checking the pickle_jar then print a message to alert the
-            # user about what to do to fix unpickling errors
-            print('-' * 70)
-            print("""** This error is probably due to an old pickle failing to unpickle.
-** See sage.structure.sage_object.register_unpickle_override for
-** how to override the default unpickling methods for (old) pickles.
-** NOTE: pickles should never be removed from the pickle_jar! """)
-            print('-' * 70)
     print("Successfully unpickled %s objects." % i)
     print("Failed to unpickle %s objects." % j)
     if debug:

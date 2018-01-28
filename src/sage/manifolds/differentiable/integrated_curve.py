@@ -2,7 +2,7 @@
 r"""
 Integrated Curves and Geodesics in Manifolds
 
-Given a differentiable manifold `M`, an *integrated curve* curve in `M`
+Given a differentiable manifold `M`, an *integrated curve* in `M`
 is a differentiable curve constructed as a solution to a system of
 second order differential equations.
 
@@ -2378,7 +2378,7 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
     the usual embedding of `\mathbb{S}^{2}` in
     `\mathbb{R}^{3}` thanks to using an orthonormal frame,
     since providing the components with respect to the coordinate basis
-    would require mutliplying the second component (i.e. the `\phi`
+    would require multiplying the second component (i.e. the `\phi`
     component) in order to picture the vector in the same way.
     This subtlety will need to be taken into account later when the
     numerical curve will be compared to the analytical solution.

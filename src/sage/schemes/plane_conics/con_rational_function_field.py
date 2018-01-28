@@ -424,7 +424,7 @@ for function field of characteristic 2.")
     def find_point(self, supports, roots, case, solution = 0):
         r"""
         Given a solubility certificate like in [HC2006]_, find a point on
-        ``self``. Assumes ``self`` is in reduced form (see [HC2006] for a
+        ``self``. Assumes ``self`` is in reduced form (see [HC2006]_ for a
         definition).
 
         If you don't have a solubility certificate and just want to find a

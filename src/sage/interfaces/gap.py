@@ -1129,7 +1129,8 @@ class Gap(Gap_generic):
 
     def set_seed(self,seed=None):
         """
-        Sets the seed for gap interpeter.
+        Set the seed for gap interpreter.
+
         The seed should be an integer.
 
         EXAMPLES::
@@ -1790,31 +1791,6 @@ def reduce_load_GAP():
     """
     return gap
 
-# This is only for backwards compatibility, in order to be able
-# to unpickle the invalid objects that are in the pickle jar.
-def reduce_load():
-    """
-    This is for backwards compatibility only.
-
-    To be precise, it only serves at unpickling the invalid
-    gap elements that are stored in the pickle jar.
-
-    EXAMPLES::
-
-        sage: from sage.interfaces.gap import reduce_load
-        sage: reduce_load()
-        doctest:...: DeprecationWarning: This function is only used to unpickle invalid objects
-        See http://trac.sagemath.org/18848 for details.
-        (invalid <class 'sage.interfaces.gap.GapElement'> object -- The session in which this object was defined is no longer running.)
-
-    By :trac:`18848`, pickling actually often works::
-
-        sage: loads(dumps(gap([1,2,3])))
-        [ 1, 2, 3 ]
-
-    """
-    deprecation(18848, "This function is only used to unpickle invalid objects")
-    return GapElement(None, None)
 
 def gap_console():
     """

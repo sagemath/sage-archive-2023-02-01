@@ -238,19 +238,8 @@ class LazyPowerSeriesRing(Algebra):
             sage: L = LazyPowerSeriesRing(QQ)
             sage: L.zero()
             0
-
-        TESTS:
-
-        Check that the method `zero_element` raises a warning (:trac:`17694`)::
-
-            sage: L.zero_element()
-            doctest:...: DeprecationWarning: zero_element is deprecated. Please use zero instead.
-            See http://trac.sagemath.org/17694 for details.
-            0
         """
         return self(self.base_ring().zero())
-
-    zero_element = deprecated_function_alias(17694, zero)
 
     def identity_element(self):
         """
@@ -417,10 +406,9 @@ class LazyPowerSeriesRing(Algebra):
         """
         EXAMPLES::
 
-            sage: from builtins import map
             sage: from sage.combinat.species.stream import _integers_from
             sage: L = LazyPowerSeriesRing(QQ)
-            sage: g = map(lambda i: L([1]+[0]*i+[1]), _integers_from(0))
+            sage: g = (L([1]+[0]*i+[1]) for i in _integers_from(0))
             sage: g2 = L._product_generator_gen(g)
             sage: [next(g2) for i in range(10)]
             [1, 1, 2, 4, 7, 12, 20, 33, 53, 84]
@@ -1499,7 +1487,7 @@ class LazyPowerSeries(AlgebraElement):
             #Check to see if the stream is finite
             if self.is_finite(n-1):
                 yield self._stream[n-1]
-                raise StopIteration
+                break
             else:
                 yield (Integer(1)/Integer(n))*self._stream[n-1]
                 n += 1
@@ -1522,7 +1510,6 @@ class LazyPowerSeries(AlgebraElement):
 
         if ao == inf:
             yield self._zero
-            raise StopIteration
         else:
             for _ in range(ao-1):
                 yield self._zero
@@ -1534,7 +1521,7 @@ class LazyPowerSeries(AlgebraElement):
                 #Check to see if the stream is finite
                 if self.is_finite(n-1):
                     yield self.coefficient(n-1)
-                    raise StopIteration
+                    break
                 else:
                     yield (Integer(1)/Integer(n))*self.coefficient(n-1)
                     n += 1

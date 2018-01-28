@@ -1414,28 +1414,6 @@ class Graph(GenericGraph):
 
     ### Attributes
 
-    @combinatorial_map(name="partition of connected components")
-    @doc_index("Deprecated")
-    def to_partition(self):
-        """
-        Return the partition of connected components of ``self``.
-
-        EXAMPLES::
-
-            sage: for x in graphs(3):    print(x.to_partition())
-            doctest:...: DeprecationWarning: Please use G.connected_components_sizes() instead
-            See http://trac.sagemath.org/17449 for details.
-            [1, 1, 1]
-            [2, 1]
-            [3]
-            [3]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(17449, "Please use G.connected_components_sizes() instead")
-
-        from sage.combinat.partition import Partition
-        return Partition(sorted([len(y) for y in self.connected_components()], reverse=True))
-
     @doc_index("Basic methods")
     def is_directed(self):
         """
@@ -1833,6 +1811,11 @@ class Graph(GenericGraph):
 
             sage: Graph('Fli@?').is_cactus()
             False
+
+        Test a graph that is not outerplanar, see :trac:`24480`::
+
+            sage: graphs.Balaban10Cage().is_cactus()
+            False
         """
         self._scream_if_not_simple()
 
@@ -1840,9 +1823,8 @@ class Graph(GenericGraph):
         if self.order() < 4:
             return True
 
-        # Every cactus graph is outerplanar, and outerplanar
-        # graphs have limited number of edges.
-        if self.size() > self.order()*2-3:
+        # Every cactus graph is outerplanar
+        if not self.is_circular_planar():
             return False
 
         if not self.is_connected():
@@ -3397,7 +3379,7 @@ class Graph(GenericGraph):
         """
         Returns true if self is semi-symmetric.
 
-        A graph is semi-symmetric if it is regular, edge-transitve but not
+        A graph is semi-symmetric if it is regular, edge-transitive but not
         vertex-transitive.
 
         See :wikipedia:`the wikipedia article on semi-symmetric graphs
@@ -3974,6 +3956,13 @@ class Graph(GenericGraph):
             sage: G = graphs.PetersenGraph()
             sage: next(G.orientations())
             An orientation of Petersen graph: Digraph on 10 vertices
+
+        An orientation must have the same ground set of vertices as the original
+        graph (:trac:`24366`)::
+
+            sage: G = Graph(1)
+            sage: next(G.orientations())
+            Digraph on 1 vertex
         """
         if sparse is not None:
             if data_structure is not None:
@@ -3994,7 +3983,9 @@ class Graph(GenericGraph):
             name = 'An orientation of ' + name
 
         if self.num_edges() == 0:
-            D = DiGraph(name=name,
+            D = DiGraph(data=[self.vertices(), []],
+                        format='vertices_and_edges',
+                        name=name,
                         pos=self._pos,
                         multiedges=self.allows_multiple_edges(),
                         loops=self.allows_loops(),
@@ -5448,7 +5439,7 @@ class Graph(GenericGraph):
         Immutable graphs yield immutable graphs::
 
             sage: Graph([[1, 2]], immutable=True).to_directed()._backend
-            <type 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
+            <sage.graphs.base.static_sparse_backend.StaticSparseBackend object at ...>
 
         :trac:`17005`::
 
@@ -5516,13 +5507,11 @@ class Graph(GenericGraph):
         return self.copy()
 
     @doc_index("Basic methods")
-    def join(self, other, verbose_relabel=None, labels="pairs", immutable=None):
+    def join(self, other, labels="pairs", immutable=None):
         """
         Returns the join of ``self`` and ``other``.
 
         INPUT:
-
-        - ``verbose_relabel`` - deprecated.
 
         - ``labels`` - (defaults to 'pairs') If set to 'pairs', each
           element ``v`` in the first graph will be named ``(0,v)`` and
@@ -5570,13 +5559,6 @@ class Graph(GenericGraph):
             sage: J.edges()
             [(0, 3, None), (0, 4, None), (1, 3, None), (1, 4, None), (2, 3, None), (2, 4, None)]
         """
-        if verbose_relabel is not None:
-            deprecation(17053, "Instead of verbose_relabel=True/False use labels='pairs'/'integers'.")
-            if verbose_relabel is True:
-                labels="pairs"
-            if verbose_relabel is False:
-                labels="integers"
-
         G = self.disjoint_union(other, labels=labels, immutable=False)
         if labels=="integers":
             G.add_edges((u,v) for u in range(self.order())
@@ -6445,8 +6427,8 @@ class Graph(GenericGraph):
 
         A minimum vertex cover of a graph is a set `S` of vertices such that
         each edge is incident to at least one element of `S`, and such that `S`
-        is of minimum cardinality. For more information, see the
-        :wikipedia:`Wikipedia article on vertex cover <Vertex_cover>`.
+        is of minimum cardinality. For more information, see
+        :wikipedia:`Vertex_cover`.
 
         Equivalently, a vertex cover is defined as the complement of an
         independent set.
@@ -6462,7 +6444,7 @@ class Graph(GenericGraph):
         INPUT:
 
         - ``algorithm`` -- string (default: ``"Cliquer"``). Indicating
-          which algorithm to use. It can be one of those two values.
+          which algorithm to use. It can be one of those values.
 
           - ``"Cliquer"`` will compute a minimum vertex cover
             using the Cliquer package.
@@ -6563,14 +6545,15 @@ class Graph(GenericGraph):
             sage: graphs.PetersenGraph().vertex_cover(algorithm = "guess")
             Traceback (most recent call last):
             ...
-            ValueError: The algorithm must be "Cliquer" "MILP" or "mcqd".
+            ValueError: the algorithm must be "Cliquer", "MILP" or "mcqd"
 
-        REFERENCE:
+        Ticket :trac:`24287` is fixed::
 
-        .. [ACFLSS04] \F. N. Abu-Khzam, R. L. Collins, M. R. Fellows, M. A.
-          Langston, W. H. Suters, and C. T. Symons: Kernelization Algorithm for
-          the Vertex Cover Problem: Theory and Experiments. *SIAM ALENEX/ANALCO*
-          2004: 62-69.
+            sage: G = Graph([(0,1)]*5 + [(1,2)]*2, multiedges=True)
+            sage: G.vertex_cover(reduction_rules=True, algorithm='MILP')
+            [1]
+            sage: G.vertex_cover(reduction_rules=False)
+            [1]
         """
         self._scream_if_not_simple(allow_multiple_edges=True)
         g = self
@@ -6586,11 +6569,11 @@ class Graph(GenericGraph):
             # We apply simple reduction rules allowing to identify vertices that
             # belongs to an optimal vertex cover
 
-            # We first create manually a copy of the graph to prevent creating
-            # multi-edges when merging vertices, if edges have labels (e.g., weights).
+            # We first take a copy of the graph without multiple edges, if any.
             g = copy(self)
+            g.allow_multiple_edges(False)
 
-            degree_at_most_two = set([u for u,du in g.degree(labels = True).items() if du <= 2])
+            degree_at_most_two = {u for u in g if g.degree(u) <= 2}
 
             while degree_at_most_two:
 
@@ -6607,7 +6590,7 @@ class Graph(GenericGraph):
                 elif du == 1:
                     # RULE 2: If a vertex u has degree 1, we select its neighbor
                     # v and remove both u and v from g.
-                    v = g.neighbors(u)[0]
+                    v = next(g.neighbor_iterator(u))
                     ppset.append(v)
                     g.delete_vertex(u)
 
@@ -6623,14 +6606,14 @@ class Graph(GenericGraph):
                 elif du == 2:
                     v,w  = g.neighbors(u)
 
-                    if g.has_edge(v,w):
+                    if g.has_edge(v, w):
                         # RULE 3: If the neighbors v and w of a degree 2 vertex
                         # u are incident, then we select both v and w and remove
                         # u, v, and w from g.
                         ppset.append(v)
                         ppset.append(w)
                         g.delete_vertex(u)
-                        neigh = set(g.neighbors(v) + g.neighbors(w)).difference(set([v,w]))
+                        neigh = set(g.neighbors(v) + g.neighbors(w)).difference([v, w])
                         g.delete_vertex(v)
                         g.delete_vertex(w)
 
@@ -6641,16 +6624,16 @@ class Graph(GenericGraph):
                     else:
                         # RULE 4, folded vertices: If the neighbors v and w of a
                         # degree 2 vertex u are not incident, then we contract
-                        # edges (u, v), (u,w). Then, if the solution contains u,
+                        # edges (u, v), (u, w). Then, if the solution contains u,
                         # we replace it with v and w. Otherwise, we let u in the
                         # solution.
-                        neigh = set(g.neighbors(v) + g.neighbors(w)).difference(set([u,v,w]))
+                        neigh = set(g.neighbors(v) + g.neighbors(w)).difference([u, v, w])
                         g.delete_vertex(v)
                         g.delete_vertex(w)
                         for z in neigh:
                             g.add_edge(u,z)
 
-                        folded_vertices += [(u,v,w)]
+                        folded_vertices.append((u, v, w))
 
                         if g.degree(u) <= 2:
                             degree_at_most_two.add(u)
@@ -6673,11 +6656,15 @@ class Graph(GenericGraph):
             cover_g = []
 
         elif algorithm == "Cliquer" or algorithm == "mcqd":
+            if g.has_multiple_edges() and not reduction_rules:
+                g = copy(g)
+                g.allow_multiple_edges(False)
+
             independent = g.complement().clique_maximum(algorithm=algorithm)
             if value_only:
                 size_cover_g = g.order() - len(independent)
             else:
-                cover_g = [u for u in g.vertices() if not u in independent]
+                cover_g = [u for u in g if not u in independent]
 
         elif algorithm == "MILP":
 
@@ -6686,7 +6673,7 @@ class Graph(GenericGraph):
             b = p.new_variable(binary=True)
 
             # minimizes the number of vertices in the set
-            p.set_objective(p.sum(b[v] for v in g.vertices()))
+            p.set_objective(p.sum(b[v] for v in g))
 
             # an edge contains at least one vertex of the minimum vertex cover
             for (u,v) in g.edges(labels=None):
@@ -6697,9 +6684,9 @@ class Graph(GenericGraph):
             else:
                 p.solve(log=verbosity)
                 b = p.get_values(b)
-                cover_g = [v for v in g.vertices() if b[v] == 1]
+                cover_g = [v for v in g if b[v] == 1]
         else:
-            raise ValueError("The algorithm must be \"Cliquer\" \"MILP\" or \"mcqd\".")
+            raise ValueError('the algorithm must be "Cliquer", "MILP" or "mcqd"')
 
         #########################
         # Returning the results #
@@ -6716,9 +6703,10 @@ class Graph(GenericGraph):
             for u,v,w in folded_vertices:
                 if u in cover_g:
                     cover_g.remove(u)
-                    cover_g += [v,w]
+                    cover_g.append(v)
+                    cover_g.append(w)
                 else:
-                    cover_g += [u]
+                    cover_g.append(u)
             cover_g.sort()
             return cover_g
 
@@ -7945,24 +7933,25 @@ class Graph(GenericGraph):
 
 
 _additional_categories = {
-    Graph.is_long_hole_free         : "Graph properties",
-    Graph.is_long_antihole_free     : "Graph properties",
-    Graph.is_weakly_chordal         : "Graph properties",
-    Graph.is_asteroidal_triple_free : "Graph properties",
-    Graph.chromatic_polynomial      : "Algorithmically hard stuff",
-    Graph.rank_decomposition        : "Algorithmically hard stuff",
-    Graph.pathwidth                 : "Algorithmically hard stuff",
-    Graph.matching_polynomial       : "Algorithmically hard stuff",
-    Graph.cliques_maximum           : "Clique-related methods",
-    Graph.random_spanning_tree      : "Connectivity, orientations, trees",
-    Graph.is_cartesian_product      : "Graph properties",
-    Graph.is_distance_regular       : "Graph properties",
-    Graph.is_strongly_regular       : "Graph properties",
-    Graph.is_line_graph             : "Graph properties",
-    Graph.is_partial_cube           : "Graph properties",
-    Graph.tutte_polynomial          : "Algorithmically hard stuff",
-    Graph.lovasz_theta              : "Leftovers",
-    Graph.strong_orientations_iterator : "Orientations"
+    "is_long_hole_free"         : "Graph properties",
+    "is_long_antihole_free"     : "Graph properties",
+    "is_weakly_chordal"         : "Graph properties",
+    "is_asteroidal_triple_free" : "Graph properties",
+    "chromatic_polynomial"      : "Algorithmically hard stuff",
+    "rank_decomposition"        : "Algorithmically hard stuff",
+    "pathwidth"                 : "Algorithmically hard stuff",
+    "matching_polynomial"       : "Algorithmically hard stuff",
+    "all_max_cliques"           : "Clique-related methods",
+    "cliques_maximum"           : "Clique-related methods",
+    "random_spanning_tree"      : "Connectivity, orientations, trees",
+    "is_cartesian_product"      : "Graph properties",
+    "is_distance_regular"       : "Graph properties",
+    "is_strongly_regular"       : "Graph properties",
+    "is_line_graph"             : "Graph properties",
+    "is_partial_cube"           : "Graph properties",
+    "tutte_polynomial"          : "Algorithmically hard stuff",
+    "lovasz_theta"              : "Leftovers",
+    "strong_orientations_iterator" : "Connectivity, orientations, trees"
     }
 
 __doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))

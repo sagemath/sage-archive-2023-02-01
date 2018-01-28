@@ -915,7 +915,7 @@ class FiniteFieldSubschemePointEnumerator(NaiveSubschemePointEnumerator):
         if len(log_range) <= 2:
             for log_t in self.solutions_serial(inhomogeneous_equations, log_range):
                 yield log_t
-            raise StopIteration
+            return
         # Parallelize the outermost loop of the Cartesian product
         work = [([[r]] + log_range[1:],) for r in log_range[0]]
         from sage.parallel.decorate import Parallel

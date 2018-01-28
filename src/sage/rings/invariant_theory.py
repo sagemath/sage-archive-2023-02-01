@@ -183,7 +183,7 @@ class FormsBase(SageObject):
 
         sage: from sage.rings.invariant_theory import FormsBase
         sage: FormsBase(None, None, None, None)
-        <class 'sage.rings.invariant_theory.FormsBase'>
+        <sage.rings.invariant_theory.FormsBase object at ...>
     """
 
     def __init__(self, n, homogeneous, ring, variables):
@@ -194,7 +194,7 @@ class FormsBase(SageObject):
 
             sage: from sage.rings.invariant_theory import FormsBase
             sage: FormsBase(None, None, None, None)
-            <class 'sage.rings.invariant_theory.FormsBase'>
+            <sage.rings.invariant_theory.FormsBase object at ...>
         """
         self._n = n
         self._homogeneous = homogeneous
@@ -3318,7 +3318,8 @@ can then be queried for invariant and covariants. For example,
 
         INPUT:
 
-        - ``quadratic1``, ``quadratic2`` -- two polynomias. Either homogeneous quadratic
+        - ``quadratic1``, ``quadratic2`` -- two polynomials.
+          Either homogeneous quadratic
           in 4 homogeneous variables, or inhomogeneous quadratic
           in 3 variables.
 

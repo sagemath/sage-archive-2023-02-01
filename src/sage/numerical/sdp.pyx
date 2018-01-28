@@ -224,7 +224,7 @@ from sage.structure.element cimport Element
 from sage.misc.cachefunc import cached_method
 from sage.numerical.linear_functions import is_LinearFunction, is_LinearConstraint
 from sage.matrix.all import Matrix
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 
 
 cdef class SemidefiniteProgram(SageObject):
@@ -740,8 +740,7 @@ cdef class SemidefiniteProgram(SageObject):
         for l in lists:
             if isinstance(l, SDPVariable):
                     c = {}
-                    for (k,v) in l.items():
-                        #c[k] = self._values[v] if self._values.has_key(v) else None
+                    for k, v in l.items():
                         c[k] = self._backend.get_variable_value(self._variables[v])
                     val.append(c)
             elif isinstance(l, list):
@@ -1369,7 +1368,7 @@ cdef class SDPVariable(Element):
             sage: m * v
             (1.0, 3.0)*x_0 + (2.0, 4.0)*x_1
         """
-        from sage.matrix.matrix import is_Matrix
+        from sage.structure.element import is_Matrix
         if is_Matrix(mat):
             return self._matrix_rmul_impl(mat) if self_on_left else self._matrix_lmul_impl(mat)
 

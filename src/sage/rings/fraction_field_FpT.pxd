@@ -7,7 +7,7 @@ from sage.categories.map cimport Section
 
 cdef class FpTElement(RingElement):
     cdef nmod_poly_t _numer, _denom
-    cdef bint initalized
+    cdef bint initialized
     cdef long p
 
     cdef FpTElement _new_c(self)

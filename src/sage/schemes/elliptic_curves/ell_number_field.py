@@ -1456,7 +1456,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         for the local information at finite places. If the model is a global minimal model then `C(E/K)` is
         simply the product of the Tamagawa numbers `c_v` where `v` runs over all prime ideals of `K`. Otherwise, if the model has to be changed at a place `v` a correction factor appears.
         The definition is such that `C(E/K)` times the periods at the infinite places is invariant
-        under change of the Weierstrass model. See [Ta2] and [Do] for details.
+        under change of the Weierstrass model. See [Tate1966]_ and [DD2010]_ for details.
 
         .. note::
 
@@ -1489,18 +1489,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: [dav.tamagawa_number() for dav in da]
             [1, 1]
 
-        An example over `\mathbb{Q}` (:trac:`9413`)::
+        An example over `\QQ` (:trac:`9413`)::
 
             sage: E = EllipticCurve('30a')
             sage: E.tamagawa_product_bsd()
             6
-
-        REFERENCES:
-
-        - [Ta2] Tate, John, On the conjectures of Birch and Swinnerton-Dyer and a geometric analog. Seminaire Bourbaki, Vol. 9, Exp. No. 306.
-
-        - [Do] Dokchitser, Tim and Vladimir, On the Birch-Swinnerton-Dyer quotients modulo squares, Annals of Math., 2010.
-
         """
         da = self.local_data()
         pr = 1
@@ -2635,7 +2628,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         The array of isogenies themselves is not filled out but only
         contains those used to construct the class, the other entries
-        containing the interger 0.  This will be changed when the
+        containing the integer 0.  This will be changed when the
         class :class:`EllipticCurveIsogeny` allowed composition.  In
         this case we used `2`-isogenies to go from 0 to 2 and from 1
         to 3, and `3`-isogenies to go from 0 to 1 and from 2 to 3::
@@ -2933,7 +2926,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
            For curves with rational CM, isogenies of primes degree
            exist for infinitely many primes `\ell`, though there are
-           only finitely many isogenous curves up to isomoprhism.  The
+           only finitely many isogenous curves up to isomorphism.  The
            list returned only includes one isogeny of prime degree for
            each codomain.
 

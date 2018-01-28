@@ -3566,7 +3566,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
             sage: w.coleman_integral(P,2*P)
             O(5^6)
 
-            sage: Q = E.lift_x(3)
+            sage: Q = E([3,58332])
             sage: w.coleman_integral(P,Q)
             2*5 + 4*5^2 + 3*5^3 + 4*5^4 + 3*5^5 + O(5^6)
             sage: w.coleman_integral(2*P,Q)

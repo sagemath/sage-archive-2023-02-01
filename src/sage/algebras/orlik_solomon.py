@@ -284,7 +284,7 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
 
             return R(coeff) * self.subset_image(ns)
 
-        # r is the accumalator
+        # r is the accumulator
         # we reverse a in the product, so add a sign
         # note that l>=2 here
         if len(a) % 4 < 2:

@@ -230,7 +230,7 @@ class FormsElement(FormsRingElement):
             sage: L.taylor_series(1, 3)
             -0.0304484570583... - 0.0504570844798...*z - 0.0350657360354...*z^2 + O(z^3)
             sage: coeffs = f.q_expansion_vector(min_exp=0, max_exp=20, fix_d=True)
-            sage: sum([coeffs[k]*k^(-10) for k in range(1,len(coeffs))]).n(53)
+            sage: sum([coeffs[k] * ZZ(k)^(-10) for k in range(1,len(coeffs))]).n(53)
             1.00935215408...
             sage: L(10)
             1.00935215649...
@@ -246,7 +246,7 @@ class FormsElement(FormsRingElement):
             sage: L(1).prec()
             200
             sage: coeffs = f.q_expansion_vector(min_exp=0, max_exp=20, fix_d=True)
-            sage: sum([coeffs[k]*k^(-10) for k in range(1,len(coeffs))]).n(53)
+            sage: sum([coeffs[k] * ZZ(k)^(-10) for k in range(1,len(coeffs))]).n(53)
             24.2281438789...
             sage: L(10).n(53)
             24.2281439447...
@@ -282,7 +282,7 @@ class FormsElement(FormsRingElement):
             sage: L.taylor_series(1, 3)
             0.000000000000... + 5.76543616701...*z + 9.92776715593...*z^2 + O(z^3)
             sage: coeffs = f.q_expansion_vector(min_exp=0, max_exp=20, fix_d=True)
-            sage: sum([coeffs[k]*k^(-10) for k in range(1,len(coeffs))]).n(53)
+            sage: sum([coeffs[k] * ZZ(k)^(-10) for k in range(1,len(coeffs))]).n(53)
             -23.9781792831...
             sage: L(10).n(53)
             -23.9781792831...

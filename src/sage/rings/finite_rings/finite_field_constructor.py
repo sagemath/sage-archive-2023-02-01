@@ -226,11 +226,8 @@ class FiniteFieldFactory(UniqueFactory):
 
       - ``'ntl'`` -- NTL using GF2X (only in characteristic 2).
 
-      - ``'pari_ffelt'`` -- PARI's ``FFELT`` type (only for extension
-        fields).
-
-      - ``'pari_mod'`` -- Older PARI implementation using ``POLMOD``s
-        (slower than ``'pari_ffelt'``, only for extension fields).
+      - ``'pari'`` or ``'pari_ffelt'`` -- PARI's ``FFELT`` type (only
+        for extension fields).
 
     - ``elem_cache`` -- (default: order < 500) cache all elements to
       avoid creation time; ignored unless ``impl='givaro'``
@@ -455,9 +452,9 @@ class FiniteFieldFactory(UniqueFactory):
 
     Check that :trac:`16934` has been fixed::
 
-        sage: k1.<a> = GF(17^14, impl="pari_ffelt")
+        sage: k1.<a> = GF(17^14, impl="pari")
         sage: _ = a/2
-        sage: k2.<a> = GF(17^14, impl="pari_ffelt")
+        sage: k2.<a> = GF(17^14, impl="pari")
         sage: k1 is k2
         True
 
@@ -613,14 +610,10 @@ class FiniteFieldFactory(UniqueFactory):
             sage: k = GF(2, impl='modn')
             sage: k = GF(2, impl='givaro')
             sage: k = GF(2, impl='ntl')
-            sage: k = GF(2, impl='pari_ffelt')
+            sage: k = GF(2, impl='pari')
             Traceback (most recent call last):
             ...
             ValueError: the degree must be at least 2
-            sage: k = GF(2, impl='pari_mod')
-            Traceback (most recent call last):
-            ...
-            ValueError: The size of the finite field must not be prime.
             sage: k = GF(2, impl='supercalifragilisticexpialidocious')
             Traceback (most recent call last):
             ...
@@ -631,8 +624,7 @@ class FiniteFieldFactory(UniqueFactory):
             ValueError: the 'modn' implementation requires a prime order
             sage: k.<a> = GF(2^15, impl='givaro')
             sage: k.<a> = GF(2^15, impl='ntl')
-            sage: k.<a> = GF(2^15, impl='pari_ffelt')
-            sage: k.<a> = GF(2^15, impl='pari_mod')
+            sage: k.<a> = GF(2^15, impl='pari')
             sage: k.<a> = GF(3^60, impl='modn')
             Traceback (most recent call last):
             ...
@@ -645,8 +637,7 @@ class FiniteFieldFactory(UniqueFactory):
             Traceback (most recent call last):
             ...
             ValueError: q must be a 2-power
-            sage: k.<a> = GF(3^60, impl='pari_ffelt')
-            sage: k.<a> = GF(3^60, impl='pari_mod')
+            sage: k.<a> = GF(3^60, impl='pari')
         """
         # IMPORTANT!  If you add a new class to the list of classes
         # that get cached by this factor object, then you *must* add
@@ -702,16 +693,9 @@ class FiniteFieldFactory(UniqueFactory):
                 elif impl == 'ntl':
                     from .finite_field_ntl_gf2e import FiniteField_ntl_gf2e
                     K = FiniteField_ntl_gf2e(order, name, modulus)
-                elif impl == 'pari_ffelt':
+                elif impl == 'pari_ffelt' or impl == 'pari':
                     from .finite_field_pari_ffelt import FiniteField_pari_ffelt
                     K = FiniteField_pari_ffelt(p, modulus, name)
-                elif (impl == 'pari_mod'
-                      or impl == 'pari'):    # for unpickling old pickles
-                    # This implementation is deprecated, a warning will
-                    # be given when this field is created.
-                    # See http://trac.sagemath.org/ticket/17297
-                    from .finite_field_ext_pari import FiniteField_ext_pari
-                    K = FiniteField_ext_pari(order, name, modulus)
                 else:
                     raise ValueError("no such finite field implementation: %r" % impl)
 

@@ -132,9 +132,9 @@ class HeckeModule_generic(sage.modules.module.Module):
 
             sage: M = ModularForms(SL2Z, 24)
             sage: M._compute_hecke_matrix_prime_power(3, 3)
-            [    834385168339943471891603972970040        462582247568491031177169792000 3880421605193373124143717311013888000]
-            [                                    0                     -4112503986561480                  53074162446443642880]
-            [                                    0                         2592937954080                     -1312130996155080]
+            [                -4112503986561480              53074162446443642880                                 0]
+            [                    2592937954080                 -1312130996155080                                 0]
+            [                                0                                 0 834385168339943471891603972970040]
         """
         # convert input arguments to int's.
         (p,r) = (int(p), int(r))
@@ -154,7 +154,7 @@ class HeckeModule_generic(sage.modules.module.Module):
         if eps is None:
             raise NotImplementedError("either character or _compute_hecke_matrix_prime_power must be overloaded in a derived class")
         k = self.weight()
-        Tpr2 = self._hecke_matrices[pow/p]
+        Tpr2 = self._hecke_matrices[pow // p]
         return Tp*Tpr1 - eps(p)*(p**(k-1)) * Tpr2
 
     def _compute_hecke_matrix_general_product(self, F, **kwds):
@@ -1187,8 +1187,8 @@ class HeckeModule_free_module(HeckeModule_generic):
         EXAMPLES::
 
             sage: CuspForms(1, 24).dual_hecke_matrix(5)
-            [     79345647584250/2796203 50530996976060416/763363419]
-            [    195556757760000/2796203     124970165346810/2796203]
+            [     44656110        -15040]
+            [-307849789440      28412910]
         """
         n = int(n)
         try:

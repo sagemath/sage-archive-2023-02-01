@@ -758,7 +758,7 @@ def EllipticCurve_from_cubic(F, P=None, morphism=True):
     the elliptic curve `E`. If the given point is a flex, this is a
     linear isomorphism.
 
-    .. note::
+    .. NOTE::
 
       The function
       :func:`~sage.schemes.elliptic_curves.jacobian.Jacobian` may be
@@ -768,7 +768,7 @@ def EllipticCurve_from_cubic(F, P=None, morphism=True):
       is none: the plane cubic is only isomorphic to its Jacobian when
       it has a rational point.
 
-    .. note::
+    .. NOTE::
 
        When ``morphism=True``, a birational isomorphism between the
        curve `F=0` and the Weierstrass curve is returned. If the point
@@ -866,7 +866,7 @@ def EllipticCurve_from_cubic(F, P=None, morphism=True):
           Defn: Defined on coordinates by sending (x : y : z) to
                 (2527/17280*x^2 + 133/2160*x*y + 133/108000*y^2 + 133/2880*x*z + 931/18000*y*z - 3857/48000*z^2 : -6859/288*x^2 + 323/36*x*y + 359/1800*y^2 + 551/48*x*z + 2813/300*y*z + 24389/800*z^2 : -2352637/99532800000*x^2 - 2352637/124416000000*x*y - 2352637/622080000000*y^2 + 2352637/82944000000*x*z + 2352637/207360000000*y*z - 2352637/276480000000*z^2)
 
-    Note that the morphism returned cannor be evaluated directly at
+    Note that the morphism returned cannot be evaluated directly at
     the given point ``P=(1:-1:1)`` since the polynomials defining it
     all vanish there::
 
@@ -876,7 +876,7 @@ def EllipticCurve_from_cubic(F, P=None, morphism=True):
         ValueError: [0, 0, 0] does not define a valid point since all entries are 0
 
     Using the group law on the codomain elliptic curve, which has rank
-    1 and full 2-torsion, anf the inverse morphism, we can find many
+    1 and full 2-torsion, and the inverse morphism, we can find many
     points on the cubic.  First we find the preimages of multiples of
     the generator::
 
@@ -951,7 +951,7 @@ def EllipticCurve_from_cubic(F, P=None, morphism=True):
 
     It is possible to not provide a base point ``P`` provided that the
     cubic has a rational flex.  In this case the flexes will be found
-    and one will beused as a base point::
+    and one will be used as a base point::
 
         sage: R.<x,y,z> = QQ[]
         sage: cubic = x^3+y^3+z^3
@@ -963,7 +963,7 @@ def EllipticCurve_from_cubic(F, P=None, morphism=True):
           Defn: Defined on coordinates by sending (x : y : z) to
                 (y : -3*x : -1/3*x - 1/3*z)
 
-    An error will be raised if not point is given and there are not rational flexes::
+    An error will be raised if no point is given and there are no rational flexes::
 
         sage: R.<x,y,z> = QQ[]
         sage: cubic = 3*x^3+4*y^3+5*z^3
@@ -971,6 +971,51 @@ def EllipticCurve_from_cubic(F, P=None, morphism=True):
         Traceback (most recent call last):
         ...
         ValueError: A point must be given when the cubic has no rational flexes
+
+    An example over a finite field, using a flex::
+
+        sage: K = GF(17)
+        sage: R.<x,y,z> = K[]
+        sage: cubic = 2*x^3+3*y^3+4*z^3
+        sage: EllipticCurve_from_cubic(cubic,[0,3,1])
+        Scheme morphism:
+          From: Projective Plane Curve over Finite Field of size 17 defined by 2*x^3 + 3*y^3 + 4*z^3
+          To:   Elliptic Curve defined by y^2 + 16*y = x^3 + 11 over Finite Field of size 17
+          Defn: Defined on coordinates by sending (x : y : z) to
+                (-x : 4*y : 4*y + 5*z)
+
+    An example in characteristic 3::
+
+        sage: K = GF(3)
+        sage: R.<x,y,z> = K[]
+        sage: cubic = x^3+y^3+z^3+x*y*z
+        sage: EllipticCurve_from_cubic(cubic,[0,1,-1])
+        Scheme morphism:
+          From: Projective Plane Curve over Finite Field of size 3 defined by x^3 + y^3 + x*y*z + z^3
+          To:   Elliptic Curve defined by y^2 + x*y = x^3 + 1 over Finite Field of size 3
+          Defn: Defined on coordinates by sending (x : y : z) to
+                (y + z : -y : x)
+
+    An example over a number field, using a non-flex and where there are no rational flexes::
+
+        sage: K.<a> = QuadraticField(-3)
+        sage: R.<x,y,z> = K[]
+        sage: cubic = 2*x^3+3*y^3+5*z^3
+        sage: EllipticCurve_from_cubic(cubic,[1,1,-1])
+        Scheme morphism:
+          From: Projective Plane Curve over Number Field in a with defining polynomial x^2 + 3 defined by 2*x^3 + 3*y^3 + 5*z^3
+          To:   Elliptic Curve defined by y^2 + 1754460/2053*x*y + 5226454388736000/8653002877*y = x^3 + (-652253285700/4214809)*x^2 over Number Field in a with defining polynomial x^2 + 3
+          Defn: Defined on coordinates by sending (x : y : z) to
+                (-16424/127575*x^2 - 231989/680400*x*y - 14371/64800*y^2 - 26689/81648*x*z - 10265/27216*y*z - 2053/163296*z^2 : 24496/315*x^2 + 119243/840*x*y + 4837/80*y^2 + 67259/504*x*z + 25507/168*y*z + 5135/1008*z^2 : 8653002877/2099914709760000*x^2 + 8653002877/699971569920000*x*y + 8653002877/933295426560000*y^2 + 8653002877/419982941952000*x*z + 8653002877/279988627968000*y*z + 8653002877/335986353561600*z^2)
+
+    An example over a function field, using a non-flex::
+
+        sage: K.<t> = FunctionField(QQ)
+        sage: R.<x,y,z> = K[]
+        sage: cubic = x^3+t*y^3+(1+t)*z^3
+        sage: EllipticCurve_from_cubic(cubic,[1,1,-1], morphism=False)
+        Elliptic Curve defined by y^2 + ((-236196*t^6-708588*t^5-1180980*t^4-1180980*t^3-708588*t^2-236196*t)/(-1458*t^6-17496*t^5+4374*t^4+29160*t^3+4374*t^2-17496*t-1458))*x*y + ((-459165024*t^14-5969145312*t^13-34207794288*t^12-113872925952*t^11-244304490582*t^10-354331909458*t^9-354331909458*t^8-244304490582*t^7-113872925952*t^6-34207794288*t^5-5969145312*t^4-459165024*t^3)/(-1458*t^14-58320*t^13-841266*t^12-5137992*t^11-11773350*t^10-7709904*t^9+12627738*t^8+25789104*t^7+12627738*t^6-7709904*t^5-11773350*t^4-5137992*t^3-841266*t^2-58320*t-1458))*y = x^3 + ((-118098*t^12-708588*t^11+944784*t^10+11219310*t^9+27871128*t^8+36374184*t^7+27871128*t^6+11219310*t^5+944784*t^4-708588*t^3-118098*t^2)/(-54*t^12-1296*t^11-7452*t^10+6048*t^9+25758*t^8-3888*t^7-38232*t^6-3888*t^5+25758*t^4+6048*t^3-7452*t^2-1296*t-54))*x^2 over Rational function field in t over Rational Field
+
 
     TESTS:
 
@@ -1027,7 +1072,7 @@ def EllipticCurve_from_cubic(F, P=None, morphism=True):
 
     if flex_point is not None: # first case: base point is a flex
         P = flex_point
-        L = C.tangents(P)[0]
+        L = tangent_at_smooth_point(C,P)
         dx, dy, dz = [L.coefficient(v) for v in R.gens()]
 
         # find an invertible matrix M such that (0,1,0)M=P and
@@ -1074,11 +1119,11 @@ def EllipticCurve_from_cubic(F, P=None, morphism=True):
     else: # Second case: no flexes
         if not P:
             raise ValueError('A point must be given when the cubic has no rational flexes')
-        L = C.tangents(P)[0]
+        L = tangent_at_smooth_point(C,P)
         Qlist = [Q for Q in C.intersection(Curve(L)).rational_points() if C(Q)!=CP]
         # assert Qlist
         P2 = C(Qlist[0])
-        L2 = C.tangents(P2)[0]
+        L2 = tangent_at_smooth_point(C,P2)
         Qlist = [Q for Q in C.intersection(Curve(L2)).rational_points() if C(Q)!=P2]
         # assert Qlist
         P3 = C(Qlist[0])
@@ -1138,9 +1183,48 @@ def EllipticCurve_from_cubic(F, P=None, morphism=True):
         C, E, fwd_defining_poly, fwd_post, inv_defining_poly, inv_post)
 
 
-def chord_and_tangent(F, P):
+def tangent_at_smooth_point(C,P):
+    """Return the tangent at the smooth point `P` of projective curve `C`.
+
+    INPUT:
+
+    - ``C`` -- a projective plane curve.
+
+    - ``P`` -- a 3-tuple `(x,y,z)` defining a projective point on `C`.
+
+    OUTPUT:
+
+    The linear form defining the tangent at `P` to `C`.
+
+    EXAMPLES::
+
+        sage: R.<x,y,z> = QQ[]
+        sage: from sage.schemes.elliptic_curves.constructor import tangent_at_smooth_point
+        sage: C = Curve(x^3+y^3+60*z^3)
+        sage: tangent_at_smooth_point(C, [1,-1,0])
+        x + y
+
+        sage: K.<t> = FunctionField(QQ)
+        sage: R.<x,y,z> = K[]
+        sage: C = Curve(x^3+2*y^3+3*z^3)
+        sage: from sage.schemes.elliptic_curves.constructor import tangent_at_smooth_point
+        sage: tangent_at_smooth_point(C,[1,1,-1])
+        3*x + 6*y + 9*z
     """
-    Return the third point of intersection of a cubic with the tangent at one point.
+    # Over function fields such as QQ(t) an error is raised with the
+    # default (factor=True).  Note that factor=False returns the
+    # product of the tangents in case of a multiple point, while here
+    # `P` is assumed smooth so factorization is unnecessary, but over
+    # QQ (for example) including the factorization gives better
+    # results, for example returning x+y instead of 3x+3y in the
+    # doctest.
+    try:
+        return C.tangents(P)[0]
+    except NotImplementedError:
+        return C.tangents(P,factor=False)[0]
+
+def chord_and_tangent(F, P):
+    """Return the third point of intersection of a cubic with the tangent at one point.
 
     INPUT:
 
@@ -1153,7 +1237,9 @@ def chord_and_tangent(F, P):
 
     OUTPUT:
 
-    A point ``Q`` such that ``F(Q)=0``, namely the third point of intersection of the tangent at ``P`` with the curve ``F=0``, so ``Q=P`` if and only if ``P`` is a flex.
+    A point ``Q`` such that ``F(Q)=0``, namely the third point of
+    intersection of the tangent at ``P`` with the curve ``F=0``, so
+    ``Q=P`` if and only if ``P`` is a flex.
 
     EXAMPLES::
 
@@ -1184,6 +1270,7 @@ def chord_and_tangent(F, P):
         sage: F = x**3 - 4*x**2*y - 65*x*y**2 + 3*x*y*z - 76*y*z**2
         sage: chord_and_tangent(F, [0, 1, 0])
         (0 : 0 : 1)
+
     """
     from sage.schemes.curves.constructor import Curve
     # check the input
@@ -1204,7 +1291,7 @@ def chord_and_tangent(F, P):
     except (TypeError, ValueError):
         raise TypeError('{} does not define a point on a projective curve over {} defined by {}'.format(P,K,F))
 
-    L = Curve(C.tangents(P)[0])
+    L = Curve(tangent_at_smooth_point(C,P))
     Qlist = [Q for Q in C.intersection(L).rational_points() if Q!=P]
     if Qlist:
         return Qlist[0]
@@ -1307,7 +1394,7 @@ def EllipticCurves_with_good_reduction_outside_S(S=[], proof=None, verbose=False
     - ``verbose`` - True/False (default False): if True, some details
       of the computation will be output.
 
-    .. note::
+    .. NOTE::
 
         Proof flag: The algorithm used requires determining all
         S-integral points on several auxiliary curves, which in turn

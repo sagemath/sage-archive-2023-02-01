@@ -144,13 +144,13 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
 
     SAGE_PACKAGE_VERSIONS+="vers_$PKG_NAME = $PKG_VERSION"$'\n'
 
-    # If $need_to_install_{PKG_NAME} is set to no, then set inst_<pkgname> to
+    # If $sage_spkg_install_{PKG_NAME} is set to no, then set inst_<pkgname> to
     # some dummy file to skip the installation. Note that an explicit
     # "./sage -i PKG_NAME" will still install the package.
     if test "$PKG_NAME" != "$PKG_VERSION"; then
-        need_to_install="need_to_install_${PKG_NAME}"
+        sage_spkg_install="sage_spkg_install_${PKG_NAME}"
 
-        if test "${!need_to_install}" != no ; then
+        if test "${!sage_spkg_install}" != no ; then
             SAGE_BUILT_PACKAGES+="    $PKG_NAME \\"$'\n'
             AC_MSG_RESULT([    $PKG_NAME-$PKG_VERSION])
         else

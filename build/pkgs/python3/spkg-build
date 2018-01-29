@@ -67,6 +67,13 @@ fi
 # interfere with the Python build.
 rm -f "$SAGE_LOCAL/lib/python"
 
+# Remove old libraries. We really need to do this before building Python
+# since Python tries to import some modules (e.g. ctypes) at build-time.
+# We need to make sure that the old installed libraries in local/lib are
+# not used for that. See https://trac.sagemath.org/ticket/24605
+rm -f "$SAGE_LOCAL"/lib/lib"$PKG_BASE"*
+
+
 if [ "$PKG_BASE" = "python2" ]; then
     PYTHON_CONFIGURE="$PYTHON_CONFIGURE --enable-unicode=ucs4"
 else

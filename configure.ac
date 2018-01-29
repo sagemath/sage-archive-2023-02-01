@@ -473,7 +473,7 @@ fi
 # not a working Fortran compiler.
 AC_LANG(Fortran)
 if test -z "$FC"; then
-    SAGE_MUST_INSTALL_GCC([a Fortran compiler is missing])
+    need_to_install_gfortran=yes
 else
    # see http://www.gnu.org/software/hello/manual/autoconf/Fortran-Compiler.html
    AC_FC_FREEFORM([],
@@ -481,7 +481,7 @@ else
    AC_MSG_NOTICE([Your Fortran compiler does not accept free-format source code])
    AC_MSG_NOTICE([which means the compiler is either seriously broken, or])
    AC_MSG_NOTICE([is too old to build Sage.])
-   SAGE_MUST_INSTALL_GCC([the Fortran compiler is not suitable])
+   need_to_install_gfortran=yes
    ])
 fi
 
@@ -497,7 +497,7 @@ elif test $need_to_install_gcc = yes; then
 elif test x$GCC != xyes; then
     SAGE_SHOULD_INSTALL_GCC([your C compiler isn't GCC (GNU C)])
 elif test x$GFC != xyes; then
-    SAGE_SHOULD_INSTALL_GCC([your Fortran compiler isn't GCC (GNU Fortran)])
+    need_to_install_gfortran=yes
 else
     # Since need_to_install_gcc is "no", we know that
     # at least C, C++ and Fortran compilers are available.
@@ -507,13 +507,15 @@ else
     AX_GCC_VERSION()
     AX_GXX_VERSION()
 
-    # Add the .0 because Debian/Ubuntu gives version numbers like
-    # 4.6 instead of 4.6.4 (Trac #18885)
-    case "$GXX_VERSION.0" in
-        [[0-3]].*|4.[[0-7]].*)
-            # Install our own GCC if the system-provided one is older than gcc-4.8.
-            SAGE_SHOULD_INSTALL_GCC([you have $CXX version $GXX_VERSION, which is quite old]);;
-    esac
+    if test $IS_REALLY_GCC = yes ; then
+        # Add the .0 because Debian/Ubuntu gives version numbers like
+        # 4.6 instead of 4.6.4 (Trac #18885)
+        case "$GXX_VERSION.0" in
+            [[0-3]].*|4.[[0-7]].*)
+                # Install our own GCC if the system-provided one is older than gcc-4.8.
+                SAGE_SHOULD_INSTALL_GCC([you have $CXX version $GXX_VERSION, which is quite old]);;
+        esac
+    fi
 
     # The following tests check that the version of the compilers
     # are all the same.
@@ -521,43 +523,7 @@ else
         SAGE_SHOULD_INSTALL_GCC([$CC ($GCC_VERSION) and $CXX ($GXX_VERSION) are not the same version])
     fi
 
-    # In the paragraph below, 'gfortran' is used to indicate the GNU Fortran
-    # compiler, though it might be called something else.
-
-    # It's not easily possible to determine the Fortran version, as
-    # gfortran -dumpversion did not until GCC 4.5 return just the
-    # the version number, but the same as gfortran --version
-    # for example:
-
-    # drkirkby@hawk:~$ gcc -dumpversion
-    # 4.3.4
-
-    # drkirkby@hawk:~$ g++ -dumpversion
-    # 4.3.4
-
-    # drkirkby@hawk:~$ gfortran -dumpversion
-    # GNU Fortran (GCC) 4.3.4
-    # Copyright (C) 2008 Free Software Foundation, Inc.
-    # GNU Fortran comes with NO WARRANTY, to the extent permitted by law.
-    # You may redistribute copies of GNU Fortran
-    # under the terms of the GNU General Public License.
-    # For more information about these matters, see the file named COPYING
-
-    # This behaviour is fixed in the gcc 4.5 branch. Since we need to
-    # support older versions of the compiler, we can't change this.
-
-    # But I would expect that the version will be on the output
-    # of the compiler followed by -dumpversion (e.g. fortran -dumpversion)
-
-    # So we grep for the known gcc version on the output of gfortran -dumpversion.
-    # and hope we find the same string. If so, they are almost certainly
-    # the same version.
-    fortran_version_string="`$FC -dumpversion | grep $GCC_VERSION 2>&1`"
-
-    if test "x$fortran_version_string" = x
-    then
-        SAGE_SHOULD_INSTALL_GCC([the Fortran compiler is not the same version as the C compiler])
-    fi
+    # assuming gfortran does work.
 fi
 
 
@@ -679,6 +645,12 @@ AC_MSG_ERROR([["found Fink in $FINK_PATH. Either:
 (2) change PATH and DYLD_LIBRARY_PATH
 (Once Sage is built, you can restore them.)]])
     fi
+fi
+
+# if GCC needs to be installed GFORTRAN shouldn't be installed
+# GCC will provide GFORTRAN in that case
+if test $need_to_install_gcc = yes ; then
+    need_to_install_gfortran=no
 fi
 
 ###############################################################################

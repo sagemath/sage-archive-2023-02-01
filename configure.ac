@@ -306,17 +306,6 @@ AC_CACHE_CHECK([for git], [ac_cv_path_GIT], [
     [${ac_path_GIT} --version >/dev/null 2>/dev/null && ac_cv_path_GIT=${ac_path_GIT}],
     [sage_spkg_install_git=yes; ac_cv_path_GIT=no])])
 
-# Yasm is only needed on x86(_64) systems; check also for system yasm
-# which must support "adox" (new Skylake instruction)
-sage_spkg_install_yasm=no
-AC_CACHE_CHECK([for yasm], [ac_cv_path_YASM],
-    AS_CASE("$host_cpu",
-        [i@<:@0-9@:>@86|x86_64], [
-        AC_PATH_PROGS_FEATURE_CHECK([YASM], [yasm],
-        [[{ echo "BITS 64"; echo "adox rax, rax"; } | ${ac_path_YASM} - -o /dev/null >/dev/null 2>/dev/null && ac_cv_path_YASM=${ac_path_YASM}]],
-        [sage_spkg_install_yasm=yes; ac_cv_path_YASM=no])],
-        [ac_cv_path_YASM="not needed for $host_cpu"]))
-
 ###############################################################################
 # Check C/C++/Fortran compilers
 ###############################################################################

@@ -29,6 +29,11 @@ CONFVERSION=`cat $PKG/package-version.txt`
 
 
 bootstrap () {
+    rm -f m4/sage_spkg_configures.m4
+    for filename in $(find build/pkgs/ -type f -name spkg-configure.m4); do
+        echo "m4_include([$filename])" >> m4/sage_spkg_configures.m4
+    done
+
     aclocal -I m4 && \
     automake --add-missing --copy build/make/Makefile-auto && \
     autoconf

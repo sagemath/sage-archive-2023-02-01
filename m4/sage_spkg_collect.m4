@@ -53,6 +53,9 @@
 #        download additional source files.
 #
 AC_DEFUN_ONCE([SAGE_SPKG_COLLECT], [
+# Configure all spkgs with configure-time checks
+m4_include([m4/sage_spkg_configures.m4])
+
 # To deal with ABI incompatibilities when gcc is upgraded, every package
 # (except gcc) should depend on gcc if gcc is already installed.
 # See https://trac.sagemath.org/ticket/24703
@@ -63,7 +66,7 @@ else
 fi
 AC_SUBST([SAGE_GCC_DEP])
 
-AC_MSG_CHECKING([package versions])
+AC_MSG_CHECKING([SPKGs to install])
 AC_MSG_RESULT([])
 
 # Usage: newest_version $pkg

@@ -1676,40 +1676,6 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
         """
         return self._shape
 
-    def __iter__(self):
-        """
-        Iterate over ``self``.
-
-        EXAMPLES::
-
-            sage: Tabs = ShiftedPrimedTableaux([3,2], max_entry=3)
-            sage: Tabs[:3]
-            [[(1, 1, 1), (2, 2)], [(1, 1, 1), (2, 3)], [(1, 1, 1), (2, 3')]]
-            sage: len(list(Tabs))
-            24
-            sage: Tabs = ShiftedPrimedTableaux([3,2])
-            sage: Tabs[:3]
-            [[(1, 1, 1), (2, 2)], [(1, 1, 2'), (2, 2)], [(1, 1, 1), (2, 2)]]
-        """
-        if self._skew is not None:
-            raise NotImplementedError('skew tableau must be empty')
-        if self._max_entry is not None:
-            for weight in OrderedPartitions(sum(self._shape)+self._max_entry,
-                                            k=self._max_entry):
-                weight_n = tuple([w-1 for w in weight])
-                for tab in ShiftedPrimedTableaux(shape=self._shape, weight=weight_n):
-                    yield self.element_class(self, tab, check=False,
-                                             preprocessed=True)
-        else:
-            max_entry = 1
-            while True:
-                for weight in OrderedPartitions(sum(self._shape)+max_entry, k=max_entry):
-                    weight_n = tuple([w-1 for w in weight])
-                    for tab in ShiftedPrimedTableaux(shape=self._shape, weight=weight_n):
-                        yield self.element_class(self, tab, check=False,
-                                                 preprocessed=True)
-                max_entry += 1
-
 
 class ShiftedPrimedTableaux_weight(ShiftedPrimedTableaux):
     """

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 r"""
 Pseudo-Riemannian Manifolds
 
@@ -19,15 +18,15 @@ AUTHORS:
 
 from sage.rings.infinity import infinity
 from sage.rings.integer import Integer
-from sage.misc.prandom import getrandbits
-from sage.manifolds.structure import RealDifferentialStructure
+from sage.manifolds.structure import (PseudoRiemannianStructure,
+                                      RiemannianStructure, LorentzianStructure)
 from sage.manifolds.differentiable.manifold import DifferentiableManifold
 from sage.manifolds.differentiable.metric import PseudoRiemannianMetric
 from sage.manifolds.differentiable.tensorfield import TensorField
 
 ###############################################################################
 
-class PseudoRiemManifold(DifferentiableManifold):
+class PseudoRiemannianManifold(DifferentiableManifold):
     r"""
     PseudoRiemannian manifold.
 
@@ -77,10 +76,15 @@ class PseudoRiemManifold(DifferentiableManifold):
         r"""
         Construct a differentiable manifold.
         """
-        if ambient and not isinstance(ambient, PseudoRiemManifold):
+        if ambient and not isinstance(ambient, PseudoRiemannianManifold):
             raise TypeError("the argument 'ambient' must be a " +
                             "pseudo-Riemannian manifold")
-        structure = RealDifferentialStructure()
+        if signature is None or signature == n:
+            structure = RiemannianStructure()
+        elif signature == n-2 or signature == 2-n:
+            structure = LorentzianStructure()
+        else:
+            structure = PseudoRiemannianStructure()
         DifferentiableManifold.__init__(self, n, name, 'real', structure,
                                         ambient=ambient,
                                         diff_degree=diff_degree,
@@ -134,7 +138,6 @@ class PseudoRiemManifold(DifferentiableManifold):
         Return the metric of the pseudo-Riemannian manifold ``self`` or
         defines a new metric tensor on ``self``.
 
-
         INPUT:
 
         - ``name`` -- (default: ``None``) name given to the metric; if
@@ -175,50 +178,3 @@ class PseudoRiemManifold(DifferentiableManifold):
         return DifferentiableManifold.metric(self, name, signature=signature,
                                              latex_name=latex_name,
                                              dest_map=dest_map)
-
-
-##############################################################################
-# Constructor function
-
-def PseudoRiemannianManifold(dim, name, metric_name='g', signature=None,
-                             latex_name=None, metric_latex_name=None,
-                             diff_degree=infinity, start_index=0):
-    r"""
-    Construct a pseudo-Riemannian manifold.
-
-    INPUT:
-
-    - ``dim`` -- positive integer; dimension of the manifold
-    - ``name`` -- string; name (symbol) given to the manifold
-    - ``metric_name`` -- (default: ``'g'``) string; name (symbol) given to the
-      metric
-    - ``signature`` -- (default: ``None``) signature `S` of the metric as a
-      single integer: `S = n_+ - n_-`, where `n_+` (resp. `n_-`) is the
-      number of positive terms (resp. number of negative terms) in any
-      diagonal writing of the metric components; if ``signature`` is not
-      provided, `S` is set to the manifold's dimension (Riemannian
-      signature)
-    - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to
-      denote the manifold; if none are provided, it is set to ``name``
-    - ``metric_latex_name`` -- (default: ``None``) string; LaTeX symbol to
-      denote the metric; if none is provided, it is set to ``metric_name``
-    - ``diff_degree`` -- (default: ``infinity``) degree `k` of
-      differentiability
-    - ``start_index`` -- (default: 0) integer; lower value of the range of
-      indices used for "indexed objects" on the manifold, e.g. coordinates
-      in a chart
-
-    """
-    from time import time
-    from sage.rings.infinity import infinity
-    # Some sanity checks
-    if not isinstance(dim, (int, Integer)):
-        raise TypeError("the manifold dimension must be an integer")
-    if dim < 1:
-        raise ValueError("the manifold dimension must be strictly positive")
-    return PseudoRiemManifold(dim, name, metric_name=metric_name,
-                              signature=signature, diff_degree=diff_degree,
-                              latex_name=latex_name,
-                              metric_latex_name=metric_latex_name,
-                              start_index=start_index,
-                              unique_tag=getrandbits(128)*time())

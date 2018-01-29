@@ -27,14 +27,20 @@
 #     sage_spkg_install_<packagename>="no".
 #
 AC_DEFUN([SAGE_SPKG_CONFIGURE], [
-m4_ifval($1, [
-m4_pushdef([PACKAGE_NAME], [$1])
-m4_ifval([$2], [sage_spkg_install_]PACKAGE_NAME[=no], [sage_spkg_install_]PACKAGE_NAME[=yes])
+m4_pushdef([SPKG_NAME], [$1])
+m4_pushdef([SPKG_INSTALL_VAR], [sage_spkg_install_]SPKG_NAME)
+m4_pushdef([SPKG_REQUIRE_VAR], [sage_require_]SPKG_NAME)
+m4_ifval(
+[$2],
+[AS_VAR_SET_IF(SPKG_INSTALL_VAR, [], SPKG_INSTALL_VAR[=no])],
+[AS_VAR_SET_IF(SPKG_INSTALL_VAR, [], SPKG_INSTALL_VAR[=yes])])
 m4_ifval([$3], [
-sage_require_]PACKAGE_NAME[=no
+AS_VAR_SET_IF(SPKG_REQUIRE_VAR, [], SPKG_REQUIRE_VAR[=no])
 $3
-], [sage_require_]PACKAGE_NAME[=yes])
-AS_IF([test "$sage_require_]PACKAGE_NAME[" = "yes"], [$2],
-[sage_spkg_install_]PACKAGE_NAME[=no])
-m4_popdef([PACKAGE_NAME])
-])])
+],
+[AS_VAR_SET_IF(SPKG_REQUIRE_VAR, [], SPKG_REQUIRE_VAR[=yes])])
+AS_VAR_IF(SPKG_REQUIRE_VAR, [yes], [$2], SPKG_INSTALL_VAR[=no])
+m4_popdef([SPKG_REQUIRE_VAR])
+m4_popdef([SPKG_INSTALL_VAR])
+m4_popdef([SPKG_NAME])
+])

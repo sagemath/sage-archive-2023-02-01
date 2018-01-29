@@ -593,8 +593,8 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
 
     def _reading_word_with_positions(self):
         """
-        Return the reading word of ``self`` together with positions of the
-        corresponding letters in ``self``.
+        Iterate over the reading word of ``self`` together with positions
+        of the corresponding letters in ``self``.
 
         The reading word of a shifted primed tableau is constructed
         as follows:
@@ -603,7 +603,7 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
            column, in decreasing order within each column, moving
            from the rightmost column to the left, and with all
            the primes removed (i.e. all entries are increased by
-            half a unit).
+           half a unit).
 
         2. Then list all unprimed entries, row by row, in
            increasing order within each row, moving from the
@@ -613,24 +613,22 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
 
             sage: SPT = ShiftedPrimedTableaux([4,2])
             sage: t = SPT([[1,'2p',2,2],[2,'3p']])
-            sage: t._reading_word_with_positions()
+            sage: list(t._reading_word_with_positions())
             [((1, 2), 3), ((0, 1), 2), ((1, 1), 2), ((0, 0), 1),
              ((0, 2), 2), ((0, 3), 2)]
         """
         mat = self._to_matrix()
         ndim, mdim = len(mat), len(mat[0])
-        list_with_positions = []
         for j in reversed(range(mdim)):
             for i in range(ndim):
                 x = mat[i][j]
                 if x is not None and x.is_primed():
-                    list_with_positions.append(((i, j), x.integer()))
+                    yield ((i, j), x.integer())
         for i in reversed(range(ndim)):
             for j in range(mdim):
                 x = mat[i][j]
                 if x is not None and x.is_unprimed():
-                    list_with_positions.append(((i, j), x.integer()))
-        return list_with_positions
+                    yield ((i, j), x.integer())
 
     def reading_word(self):
         """
@@ -730,13 +728,13 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
         if (c+1 == l or T[r][c+1] is None or T[r][c+1] >= ind_plus_one):
             (tp_r, tp_c) = (r, c)
             while True:
-                if (tp_r+1 == h or T[tp_r+1][tp_c] is None or T[tp_r+1][tp_c] > ind_plus_one):
+                if tp_r+1 == h or T[tp_r+1][tp_c] is None or T[tp_r+1][tp_c] > ind_plus_one:
                     break
                 if tp_r <= tp_c and T[tp_r+1][tp_r+1] == ind_plus_one:
                     tp_r += 1
                     tp_c = tp_r
                     break
-                if (ind_plus_half not in T[tp_r+1]):
+                if ind_plus_half not in T[tp_r+1]:
                     break
                 tp_r += 1
                 tp_c = T[tp_r].index(ind_plus_half)
@@ -821,9 +819,9 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
         if (c == 0 or T[r][c-1] is None or T[r][c-1] <= ind_e):
             (tp_r, tp_c) = (r, c)
             while True:
-                if (tp_r == 0 or T[tp_r-1][tp_c] is None or T[tp_r-1][tp_c] < ind_e):
+                if tp_r == 0 or T[tp_r-1][tp_c] is None or T[tp_r-1][tp_c] < ind_e:
                     break
-                if (ind_plus_half not in T[tp_r-1]):
+                if ind_plus_half not in T[tp_r-1]:
                     break
                 tp_r -= 1
                 tp_c = T[tp_r].index(ind_plus_half)
@@ -873,7 +871,7 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
             index_set = self.parent().index_set()
         for l in reversed(read_w):
             count[l] += 1
-            if (l-1 in index_set) and (l > 1) and (count[l] > count[l-1]):
+            if l-1 in index_set and l > 1 and count[l] > count[l-1]:
                 return False
         return True
 

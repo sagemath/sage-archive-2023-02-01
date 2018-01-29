@@ -1,0 +1,9 @@
+# Yasm is only needed on x86(_64) systems; check also for system yasm
+# which must support "adox" (new Skylake instruction)
+SAGE_SPKG_CONFIGURE(
+    [yasm],
+    [AC_PATH_PROGS_FEATURE_CHECK([YASM], [yasm],
+        [[{ echo "BITS 64"; echo "adox rax, rax"; } | ${ac_path_YASM} - -o /dev/null >/dev/null 2>/dev/null && ac_cv_path_YASM=${ac_path_YASM}]],
+        [sage_spkg_install_yasm=yes; ac_cv_path_YASM=no])],
+    [AS_CASE("$host_cpu", [i@<:@0-9@:>@86|x86_64], [sage_require_yasm=yes])]
+)

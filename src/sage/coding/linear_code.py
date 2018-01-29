@@ -1318,7 +1318,7 @@ class AbstractLinearCode(Module):
     @cached_method
     def covering_radius(self):
         r"""
-        Return the minimimal integer `r` such that any element in the ambient space of ``self`` has distance at most `r` to a codeword of ``self``.
+        Return the minimal integer `r` such that any element in the ambient space of ``self`` has distance at most `r` to a codeword of ``self``.
 
         This method requires the optional GAP package Guava.
 

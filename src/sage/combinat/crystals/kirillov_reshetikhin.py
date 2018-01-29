@@ -853,7 +853,7 @@ class KR_type_vertical(KirillovReshetikhinCrystalFromPromotion):
 
         It is given by `B^{r,s} \cong \bigoplus_\Lambda B(\Lambda)`,
         where `\Lambda` are weights obtained from a rectangle of width `s`
-        and height `r` by removing verticle dominoes. Here we identify
+        and height `r` by removing vertical dominoes. Here we identify
         the fundamental weight `\Lambda_i` with a column of height `i`.
 
         EXAMPLES::

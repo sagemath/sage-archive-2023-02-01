@@ -2451,7 +2451,7 @@ class RationalFunctionField(FunctionField):
 
         INPUT:
 
-            - ``im_gens`` -- exactly one element of some ring.  It must be invertible and trascendental over
+            - ``im_gens`` -- exactly one element of some ring.  It must be invertible and transcendental over
                              the image of ``base_morphism``; this is not checked.
             - ``base_morphism`` -- a homomorphism from the base field into the other ring.
                                    If ``None``, try to use a coercion map.

@@ -5141,7 +5141,9 @@ class AlgebraicNumberPowQQAction(Action):
         real and `b` is odd, take the real `b`'th root; otherwise take
         the principal `b`'th root.
 
-    EXAMPLES in ``QQbar``::
+    EXAMPLES:
+
+    In ``QQbar``::
 
         sage: QQbar(2)^(1/2)
         1.414213562373095?
@@ -5178,7 +5180,7 @@ class AlgebraicNumberPowQQAction(Action):
         sage: (QQbar.zeta(7)^6)^(1/3) * QQbar.zeta(21)
         1.000000000000000? + 0.?e-17*I
 
-    EXAMPLES in ``AA``::
+    In ``AA``::
 
         sage: AA(2)^(1/2)
         1.414213562373095?

@@ -300,21 +300,21 @@ AX_PROG_PERL_VERSION([5.8.0],[],[
 ])
 
 # Check whether git works by executing "git --version"
-need_to_install_git=no
+sage_spkg_install_git=no
 AC_CACHE_CHECK([for git], [ac_cv_path_GIT], [
     AC_PATH_PROGS_FEATURE_CHECK([GIT], [git],
     [${ac_path_GIT} --version >/dev/null 2>/dev/null && ac_cv_path_GIT=${ac_path_GIT}],
-    [need_to_install_git=yes; ac_cv_path_GIT=no])])
+    [sage_spkg_install_git=yes; ac_cv_path_GIT=no])])
 
 # Yasm is only needed on x86(_64) systems; check also for system yasm
 # which must support "adox" (new Skylake instruction)
-need_to_install_yasm=no
+sage_spkg_install_yasm=no
 AC_CACHE_CHECK([for yasm], [ac_cv_path_YASM],
     AS_CASE("$host_cpu",
         [i@<:@0-9@:>@86|x86_64], [
         AC_PATH_PROGS_FEATURE_CHECK([YASM], [yasm],
         [[{ echo "BITS 64"; echo "adox rax, rax"; } | ${ac_path_YASM} - -o /dev/null >/dev/null 2>/dev/null && ac_cv_path_YASM=${ac_path_YASM}]],
-        [need_to_install_yasm=yes; ac_cv_path_YASM=no])],
+        [sage_spkg_install_yasm=yes; ac_cv_path_YASM=no])],
         [ac_cv_path_YASM="not needed for $host_cpu"]))
 
 ###############################################################################
@@ -334,7 +334,7 @@ AC_DEFUN([SAGE_SHOULD_INSTALL_GCC], [
         AC_MSG_WARN([$1])
     else
         AC_MSG_NOTICE([Installing GCC because $1])
-        need_to_install_gcc=yes
+        sage_spkg_install_gcc=yes
     fi
 ])
 
@@ -350,7 +350,7 @@ AC_DEFUN([SAGE_MUST_INSTALL_GCC], [
         AC_MSG_ERROR([SAGE_INSTALL_GCC is set to 'no', but $1])
     else
         AC_MSG_NOTICE([Installing GCC because $1])
-        need_to_install_gcc=yes
+        sage_spkg_install_gcc=yes
     fi
 ])
 
@@ -373,9 +373,9 @@ AC_DEFUN([SAGE_CHECK_BROKEN_GCC], [
 
 
 # By default, do not install GCC
-need_to_install_gcc=no
+sage_spkg_install_gcc=no
 # or GFORTRAN
-need_to_install_gfortran=no
+sage_spkg_install_gfortran=no
 
 if test -f "$SAGE_LOCAL/bin/gcc"; then
     # Special value for SAGE_INSTALL_GCC if GCC is already installed
@@ -440,11 +440,11 @@ fi
 
 # Only install curl (and libcurl) if we cannot find version 7.22 or
 # later, since that is what R needs.
-need_to_install_curl=no
+sage_spkg_install_curl=no
 AC_CACHE_CHECK([for curl 7.22], [ac_cv_path_CURL], [
     AC_PATH_PROGS_FEATURE_CHECK(CURL, [curl],
     [${ac_path_CURL}-config --checkfor 7.22 >/dev/null 2>/dev/null && ac_cv_path_CURL=${ac_path_CURL}],
-    [need_to_install_curl=yes; ac_cv_path_CURL=no])])
+    [sage_spkg_install_curl=yes; ac_cv_path_CURL=no])])
 
 
 ###############################################################################
@@ -453,9 +453,9 @@ AC_CACHE_CHECK([for curl 7.22], [ac_cv_path_CURL], [
 
 # If (lib)curl is installed, we need to check for the curl header
 # file, too.
-if test $need_to_install_curl = no;
+if test $sage_spkg_install_curl = no;
 then
-    AC_CHECK_HEADER([curl/curl.h], [], [need_to_install_curl=yes])
+    AC_CHECK_HEADER([curl/curl.h], [], [sage_spkg_install_curl=yes])
 fi
 
 # complex.h is one that might not exist on older systems.
@@ -504,7 +504,7 @@ fi
 # not a working Fortran compiler.
 AC_LANG(Fortran)
 if test -z "$FC"; then
-    need_to_install_gfortran=yes
+    sage_spkg_install_gfortran=yes
 else
    # see http://www.gnu.org/software/hello/manual/autoconf/Fortran-Compiler.html
    AC_FC_FREEFORM([],
@@ -512,7 +512,7 @@ else
    AC_MSG_NOTICE([Your Fortran compiler does not accept free-format source code])
    AC_MSG_NOTICE([which means the compiler is either seriously broken, or])
    AC_MSG_NOTICE([is too old to build Sage.])
-   need_to_install_gfortran=yes
+   sage_spkg_install_gfortran=yes
    ])
 fi
 
@@ -521,16 +521,16 @@ fi
 
 if test x$GXX != xyes; then
     SAGE_SHOULD_INSTALL_GCC([your C++ compiler isn't GCC (GNU C++)])
-elif test $need_to_install_gcc = yes; then
+elif test $sage_spkg_install_gcc = yes; then
     # If we're installing GCC anyway, skip the rest of these version
     # checks.
     true
 elif test x$GCC != xyes; then
     SAGE_SHOULD_INSTALL_GCC([your C compiler isn't GCC (GNU C)])
 elif test x$GFC != xyes; then
-    need_to_install_gfortran=yes
+    sage_spkg_install_gfortran=yes
 else
-    # Since need_to_install_gcc is "no", we know that
+    # Since sage_spkg_install_gcc is "no", we know that
     # at least C, C++ and Fortran compilers are available.
     # We also know that all compilers are GCC.
 
@@ -616,8 +616,8 @@ SAGE_CHECK_OSX_SUPPORTED()
 # if GCC needs to be installed GFORTRAN shouldn't be installed.
 # if GCC is already installed GFORTRAN shouldn't be installed either.
 # GCC will provide GFORTRAN in both cases.
-if test x$need_to_install_gcc = xyes -o x$SAGE_INSTALL_GCC = xexists ; then
-    need_to_install_gfortran=no
+if test x$sage_spkg_install_gcc = xyes -o x$SAGE_INSTALL_GCC = xexists ; then
+    sage_spkg_install_gfortran=no
 fi
 
 ###############################################################################
@@ -680,7 +680,7 @@ AC_ARG_WITH([blas],
 
 case "$with_blas" in
     openblas) true;;
-    atlas) need_to_install_openblas=no;;
+    atlas) sage_spkg_install_openblas=no;;
     *) AC_MSG_ERROR([allowed values for --with-blas are 'atlas' and 'openblas']);;
 esac
 

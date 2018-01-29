@@ -418,34 +418,13 @@ AC_PROG_OBJCXX()
 AC_SUBST(OBJC)
 AC_SUBST(OBJCXX)
 
-if test "x$CXX" = x
-then
-    AC_MSG_ERROR([a C++ compiler is missing])
-fi
-
-###############################################################################
-# Check libraries
-###############################################################################
-
-# Only install curl (and libcurl) if we cannot find version 7.22 or
-# later, since that is what R needs.
-sage_spkg_install_curl=no
-AC_CACHE_CHECK([for curl 7.22], [ac_cv_path_CURL], [
-    AC_PATH_PROGS_FEATURE_CHECK(CURL, [curl],
-    [${ac_path_CURL}-config --checkfor 7.22 >/dev/null 2>/dev/null && ac_cv_path_CURL=${ac_path_CURL}],
-    [sage_spkg_install_curl=yes; ac_cv_path_CURL=no])])
+AS_IF([test "x$CXX" = x], [AC_MSG_ERROR([a C++ compiler is missing])])
 
 
 ###############################################################################
 # Check header files
 ###############################################################################
 
-# If (lib)curl is installed, we need to check for the curl header
-# file, too.
-if test $sage_spkg_install_curl = no;
-then
-    AC_CHECK_HEADER([curl/curl.h], [], [sage_spkg_install_curl=yes])
-fi
 
 # complex.h is one that might not exist on older systems.
 AC_LANG(C++)

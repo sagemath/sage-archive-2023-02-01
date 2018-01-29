@@ -5815,6 +5815,11 @@ cdef class Expression(CommutativeRingElement):
             162.000000000000
             sage: (ex+1).n()
             163.000000000000
+
+        Check if :trac:`24418` is fixed::
+
+            sage: numerical_approx(2^(450232897/4888643760))
+            1.06591892580915
         """
         if prec is None:
             prec = digits_to_bits(digits)

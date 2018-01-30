@@ -14,7 +14,7 @@ Mathematics Software with Undergraduates" (funding provided by NSF DUE
 
 Invaluable resources are the Sage wiki
 `http://wiki.sagemath.org/interact <http://wiki.sagemath.org/interact>`_
-(type "sage interact" into Google), `http://interact.sagemath.org <http://interact.sagemath.org>`_
+(type "sage interact" into Google), `UTMOST Sage Cell Repository <http://utmost-sage-cell.org/interacts>`_
 (a collection of contributed interacts), and the `interact documentation
 <http://doc.sagemath.org/html/en/reference/notebook/sagenb/notebook/interact.html#sagenb.notebook.interact.interact>`_.
 

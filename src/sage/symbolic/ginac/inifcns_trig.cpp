@@ -1395,7 +1395,7 @@ REGISTER_FUNCTION(atan, eval_func(atan_eval).
 
 static ex atan2_evalf(const ex &y, const ex &x, PyObject* parent)
 {
-	if (is_exactly_a<numeric>(y) && is_exactly_a<numeric>(x))
+	if (is_exactly_a<numeric>(y) and is_exactly_a<numeric>(x))
 		return atan(ex_to<numeric>(y), ex_to<numeric>(x));
 	
 	return atan2(y, x).hold();
@@ -1452,8 +1452,8 @@ static ex atan2_eval(const ex & y, const ex & x)
 	}
 
 	// atan2(float, float) -> float
-	if (is_exactly_a<numeric>(y) && y.info(info_flags::inexact) &&
-	    is_exactly_a<numeric>(x) && x.info(info_flags::inexact))
+	if (is_exactly_a<numeric>(y) && y.info(info_flags::inexact)
+	    or is_exactly_a<numeric>(x) && x.info(info_flags::inexact))
 		return atan(ex_to<numeric>(y), ex_to<numeric>(x));
 
 	// handle infinities

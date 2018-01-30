@@ -3368,3 +3368,146 @@ class TensorField(ModuleElement):
             print("pos = {}".format(pos))
             raise ValueError("position out of range")
         return metric.contract(1, self, pos)
+
+    def divergence(self, metric=None):
+        r"""
+        Return the divergence of ``self`` (with respect to a given
+        metric).
+
+        The divergence is taken on the *last* index: if
+        ``self`` is a tensor field `T` of type `(k,0)` with `k\geq 1`, the
+        divergence of `T` with respect to the metric `g` is the tensor field
+        of type `(k-1,0)` defined by
+
+        .. MATH::
+
+            (\mathrm{div}\, T)^{a_1\ldots a_{k-1}} =
+                \nabla_i T^{a_1\ldots a_{k-1}\, i} =
+                (\nabla T)^{a_1\ldots a_{k-1}\, i}_{\qquad\quad i}
+
+        where `\nabla` is the Levi-Civita connection of `g` (cf.
+        :class:`~sage.manifolds.differentiable.levi_civita_connection.LeviCivitaConnection`).
+
+        This definition is extended to tensor fields of type `(k,l)` with
+        `k\geq 0` and `l\geq 1`, by raising the last index with the metric `g`:
+        `\mathrm{div}\, T` is then the tensor field of type `(k,l-1)` defined by
+
+        .. MATH::
+
+            (\mathrm{div}\, T)^{a_1\ldots a_k}_{\qquad b_1\ldots b_{l-1}} =
+                \nabla_i (g^{ij} T^{a_1\ldots a_k}_{\qquad b_1\ldots b_{l-1}\, j}) =
+                (\nabla T^\sharp)^{a_1\ldots a_k\, i}_{\qquad\  b_1\ldots b_{l-1}\, i}
+
+        where `T^\sharp` is the tensor field deduced from `T` by raising the
+        last index with the metric `g` (see :meth:`up`).
+
+        INPUT:
+
+        - ``metric`` -- (default: ``None``) the pseudo-Riemannian metric `g`
+          involved in the definition of the divergence; if none is provided,
+          the domain of ``self`` is supposed to be endowed with a default
+          metric (i.e. is supposed to be pseudo-Riemannian manifold, see
+          :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`)
+          and the latter is used to define the divergence.
+
+        OUTPUT:
+
+        - instance of either
+          :class:`~sage.manifolds.differentiable.scalarfield.DiffScalarField`
+          if `(k,l)=(1,0)` (``self`` is a vector field) or `(k,l)=(0,1)`
+          (``self`` is a 1-form) or of :class:`TensorField` if `k+l\geq 2`
+          representing the divergence of ``self`` with respect to ``metric``
+
+        EXAMPLES:
+
+        Divergence of a vector field in the Euclidean plane::
+
+            sage: M = Manifold(2, 'M', structure='Riemannian')
+            sage: X.<x,y> = M.chart()
+            sage: g = M.metric()
+            sage: g[0,0], g[1,1] = 1, 1
+            sage: v = M.vector_field('v')
+            sage: v[:] = x, y
+            sage: s = v.divergence(); s
+            Scalar field div(v) on the 2-dimensional Riemannian manifold M
+            sage: s.display()
+            div(v): M --> R
+               (x, y) |--> 2
+
+        A shortcut alias of ``divergence`` is ``div``::
+
+            sage: v.div() == s
+            True
+
+        The divergence can be taken with respect to a metric tensor that is
+        not the default one::
+
+            sage: h = M.lorentzian_metric('h')
+            sage: h[0,0], h[1,1] = -1, 1/(1+x^2+y^2)
+            sage: s = v.div(h); s
+            Scalar field div_h(v) on the 2-dimensional Riemannian manifold M
+            sage: s.display()
+            sage: s.display()
+            div_h(v): M --> R
+               (x, y) |--> (x^2 + y^2 + 2)/(x^2 + y^2 + 1)
+
+        The standard formula
+
+        .. MATH::
+
+            \mathrm{div}_h \, v = \frac{1}{\sqrt{\det h}}
+                \frac{\partial}{\partial x^i}
+                \left( \sqrt{\det h} \, v^i \right)
+
+        is checked as follows::
+
+            sage: sqrth = h.sqrt_abs_det().expr(); sqrth
+            1/sqrt(x^2 + y^2 + 1)
+            sage: s == 1/sqrth * sum( (sqrth*v[i]).diff(i) for i in M.irange())
+            True
+
+        A divergence-free vector::
+
+            sage: w = M.vector_field('w')
+            sage: w[:] = -y, x
+            sage: w.div().display()
+            div(w): M --> R
+               (x, y) |--> 0
+            sage: w.div(h).display()
+            div_h(w): M --> R
+               (x, y) |--> 0
+
+        Divergence of a type-``(2,0)`` tensor field::
+
+            sage: t = v*w; t
+            Tensor field v*w of type (2,0) on the 2-dimensional Riemannian
+             manifold M
+            sage: s = t.div(); s
+            Vector field div(v*w) on the 2-dimensional Riemannian manifold M
+            sage: s.display()
+            div(v*w) = -y d/dx + x d/dy
+
+        """
+        n_con = self._tensor_type[0] # number of contravariant indices = k
+        n_cov = self._tensor_type[1] # number of covariant indices = l
+        default_metric = metric is None
+        if default_metric:
+            metric = self._domain.metric()
+        nabla = metric.connection()
+        if n_cov == 0:
+            resu =  nabla(self).trace(n_con-1, n_con)
+        else:
+            tup = self.up(metric, self._tensor_rank-1)
+            resu = nabla(tup).trace(n_con, self._tensor_rank)
+        if self._name is not None:
+            if default_metric:
+                resu._name = "div({})".format(self._name)
+                resu._latex_name = r"\mathrm{div}\left(" + self._latex_name + \
+                                   r"\right)"
+            else:
+                resu._name = "div_{}({})".format(metric._name, self._name)
+                resu._latex_name = r"\mathrm{div}_{" + metric._latex_name + \
+                                   r"}\left(" + self._latex_name + r"\right)"
+        return resu
+
+    div = divergence

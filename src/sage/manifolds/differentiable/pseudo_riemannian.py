@@ -1,6 +1,22 @@
 r"""
 Pseudo-Riemannian Manifolds
 
+A *pseudo-Riemannian manifold* is a pair `(M,g)` where `M` is a real
+differentiable manifold `M` (see
+:class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`)
+and `g` is a field non-degenerate symmetric bilinear forms on `M`, which is
+called the *metric tensor*, or simply the *metric* (see
+:class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`).
+
+Two important subcases are
+
+- *Riemannian manifold*: the metric `g` is definite-positive
+- *Lorentzian manifold*: the metric `g` has signature `n-2` (positive
+  convention) or `2-n` (negative convention), where `n = \dim M`.
+
+All pseudo-Riemannian manifolds are implemented via the class
+:class:`PseudoRiemannianManifold`.
+
 AUTHORS:
 
 - Eric Gourgoulhon (2018): initial version
@@ -30,6 +46,19 @@ class PseudoRiemannianManifold(DifferentiableManifold):
     r"""
     PseudoRiemannian manifold.
 
+    A *pseudo-Riemannian manifold* is a pair `(M,g)` where `M` is a real
+    differentiable manifold `M` (see
+    :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`)
+    and `g` is a field non-degenerate symmetric bilinear forms on `M`, which is
+    called the *metric tensor*, or simply the *metric* (see
+    :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`).
+
+    Two important subcases are
+
+    - *Riemannian manifold*: the metric `g` is definite-positive
+    - *Lorentzian manifold*: the metric `g` has signature `n-2` (positive
+      convention) or `2-n` (negative convention), where `n = \dim M`.
+
     INPUT:
 
     - ``n`` -- positive integer; dimension of the manifold
@@ -55,7 +84,7 @@ class PseudoRiemannianManifold(DifferentiableManifold):
       indices used for "indexed objects" on the manifold, e.g. coordinates
       in a chart
     - ``category`` -- (default: ``None``) to specify the category; if ``None``,
-      ``Manifolds(field).Differentiable()`` (or ``Manifolds(field).Smooth()``
+      ``Manifolds(RR).Differentiable()`` (or ``Manifolds(RR).Smooth()``
       if ``diff_degree`` = ``infinity``) is assumed (see the category
       :class:`~sage.categories.manifolds.Manifolds`)
     - ``unique_tag`` -- (default: ``None``) tag used to force the construction
@@ -63,8 +92,9 @@ class PseudoRiemannianManifold(DifferentiableManifold):
       (without ``unique_tag``, the
       :class:`~sage.structure.unique_representation.UniqueRepresentation`
       behavior inherited from
-      :class:`~sage.manifolds.subset.ManifoldSubset`,
-      via :class:`~sage.manifolds.manifold.TopologicalManifold`,
+      :class:`~sage.manifolds.subset.ManifoldSubset`, via
+      :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
+      and :class:`~sage.manifolds.manifold.TopologicalManifold`,
       would return the previously constructed object corresponding to these
       arguments).
 

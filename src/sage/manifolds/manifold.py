@@ -2211,7 +2211,7 @@ class TopologicalManifold(ManifoldSubset):
 def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
              start_index=0, **extra_kwds):
     r"""
-    Construct a manifold of a given type over a topological field `K`.
+    Construct a manifold of a given type over a topological field.
 
     Given a topological field `K` (in most applications, `K = \RR` or
     `K = \CC`) and a non-negative integer `n`, a *topological manifold of
@@ -2222,8 +2222,13 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
     - every point in `M` has a neighborhood homeomorphic to `K^n`.
 
     A *real manifold* is a manifold over `\RR`. A *differentiable* (resp.
-    *smooth*, resp. *analytic*) is a real manifold such that all transition
-    maps are *differentiable* (resp. *smooth*, resp. *analytic*).
+    *smooth*, resp. *analytic*) *manifold* is a manifold such that all
+    transition maps are *differentiable* (resp. *smooth*, resp. *analytic*). A
+    *pseudo-Riemannian manifold* is a real differentiable manifold equipped
+    with a metric tensor `g` (i.e. a field of non-degenerate symmetric bilinear
+    forms), with the two subcases of *Riemannian manifold* (`g`
+    positive-definite) and *Lorentzian manifold* (`g` has signature `n-2` or
+    `2-n`).
 
     INPUT:
 
@@ -2250,14 +2255,14 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
       - ``'differentiable'`` or ``'diff'`` for a differentiable manifold
       - ``'smooth'`` for a smooth manifold
       - ``'analytic'`` for an analytic manifold
-      - ``'pseudo-Riemannian'`` for a real manifold equipped with a
-        pseudo-Riemannian metric; the signature is then passed via the keyword
-        argument ``signature`` (see below)
-      - ``'Riemannian'`` for a real manifold equipped with a Riemannian (i.e.
-        positive definite) metric
-      - ``'Lorentzian'`` for a real manifold equipped with a Lorentzian metric;
-        the signature convention is then specified by the keyword argument
-        ``signature='positive'`` (default) or ``'negative'``
+      - ``'pseudo-Riemannian'`` for a real differentiable manifold equipped
+        with a pseudo-Riemannian metric; the signature is specified via the
+        keyword argument ``signature`` (see below)
+      - ``'Riemannian'`` for a real differentiable manifold equipped with a
+        Riemannian (i.e. positive definite) metric
+      - ``'Lorentzian'`` for a real differentiable manifold equipped with a
+        Lorentzian metric; the signature convention is specified by the
+        keyword argument ``signature='positive'`` (default) or ``'negative'``
 
     - ``start_index`` -- (default: 0) integer; lower value of the range of
       indices used for "indexed objects" on the manifold, e.g. coordinates
@@ -2275,7 +2280,7 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
       - ``signature`` -- (only for pseudo-Riemannian manifolds; default:
         ``None``) signature `S` of the metric as a single integer:
         `S = n_+ - n_-`, where `n_+` (resp. `n_-`) is the number of positive
-        terms (resp. number of negative terms) in any diagonal writing of the
+        terms (resp. negative terms) in any diagonal writing of the
         metric components; if ``signature`` is not provided, `S` is set to the
         manifold's dimension (Riemannian signature); for Lorentzian manifolds
         the values ``signature='positive'`` (default) or
@@ -2359,8 +2364,10 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
         +Infinity
 
     See the documentation of classes
-    :class:`~sage.manifolds.manifold.TopologicalManifold` and
+    :class:`~sage.manifolds.manifold.TopologicalManifold`,
     :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
+    and
+    :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`
     for more detailed examples.
 
     .. RUBRIC:: Uniqueness of manifold objects

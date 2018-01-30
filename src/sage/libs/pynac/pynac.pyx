@@ -27,7 +27,7 @@ from sage.libs.gsl.gamma cimport gsl_sf_lngamma_complex_e
 from sage.libs.mpmath import utils as mpmath_utils
 from sage.libs.pari.all import pari
 
-from sage.cpython.string import str_to_bytes
+from sage.cpython.string cimport str_to_bytes
 
 from sage.arith.all import gcd, lcm, is_prime, factorial, bernoulli
 

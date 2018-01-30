@@ -19,7 +19,7 @@ from __future__ import absolute_import, division, print_function
 from .pynac cimport *
 from sage.symbolic.expression cimport new_Expression_from_GEx
 from sage.symbolic.ring import SR
-from sage.cpython.string import str_to_bytes
+from sage.cpython.string cimport str_to_bytes
 
 
 cdef class PynacConstant:

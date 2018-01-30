@@ -417,6 +417,20 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
 
         sage: all(((A.get_action(B) is not None) == (A is B)) for A in [M1,M2] for B in [M1,M2])
         True
+
+    Check that libgap matrices over finite fields are working properly::
+
+        sage: M2 = MatrixSpace(GF(2), 5, implementation='gap')
+        sage: M2.one()
+        [1 0 0 0 0]
+        [0 1 0 0 0]
+        [0 0 1 0 0]
+        [0 0 0 1 0]
+        [0 0 0 0 1]
+        sage: m = M2.random_element()
+        sage: M1 = MatrixSpace(GF(2), 5)
+        sage: M1(m * m) == M1(m) * M1(m)
+        True
     """
     _no_generic_basering_coercion = True
 

@@ -1549,6 +1549,24 @@ cdef class GapElement_FiniteField(GapElement):
             exp = self.LogFFE(gap_field.PrimitiveRoot())
             return ring.multiplicative_generator() ** exp.sage()
 
+    def __int__(self):
+        r"""
+        TESTS::
+
+            sage: int(libgap.eval("Z(53)"))
+            2
+        """
+        return int(self.Int())
+
+    def _integer_(self, R):
+        r"""
+        TESTS::
+
+            sage: ZZ(libgap.eval("Z(53)"))
+            2
+        """
+        return R(self.Int())
+
 
 ############################################################################
 ### GapElement_Cyclotomic #####################################################

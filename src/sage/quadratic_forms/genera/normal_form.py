@@ -353,7 +353,7 @@ def _get_small_block_indices(G):
     r"""
     Return the indices of the blocks.
 
-    For internal use in :meth:`collect_small_blocks`
+    For internal use in :meth:`collect_small_blocks`.
 
     INPUT:
 
@@ -739,7 +739,7 @@ def _min_nonsquare(p):
 
     OUTPUT:
 
-    - ``a`` -- the minimal nonsquare mod `p` as an element of `\ZZ`.
+    - ``a`` -- the minimal nonsquare mod `p`
 
     EXAMPLES::
 
@@ -759,9 +759,9 @@ def _min_nonsquare(p):
 
 def _normalize(G):
     r"""
-    Return the transformation to sums of forms of types `U`, `V` and `W`
+    Return the transformation to sums of forms of types `U`, `V` and `W`.
 
-    See also :meth:``p_adic_normal_form``.
+    Part of the algorithm :meth:`p_adic_normal_form`.
 
     INPUT:
 
@@ -849,7 +849,7 @@ def _normalize(G):
 
 def _normalize_2x2(G):
     r"""
-    normalize this indecomposable `2` by `2` block
+    Normalize this indecomposable `2` by `2` block.
 
     INPUT:
 
@@ -985,7 +985,7 @@ def _normalize_2x2(G):
 
 def _normalize_odd_2x2(G):
     r"""
-    normalize this 2x2 block
+    Normalize this `2` by `2` block.
 
     INPUT:
 
@@ -1116,7 +1116,7 @@ def _partial_normal_form_of_block(G):
 
 def _relations(G,n):
     r"""
-    Return relations of `2`-adic quadratic forms
+    Return relations of `2`-adic quadratic forms.
 
     See [MirMor2009]_ IV Prop. 3.2. This function is for internal use only.
 
@@ -1508,14 +1508,14 @@ def _two_adic_normal_forms(G, partial=False):
         # condition a) - stay in homogneneous normal form
         R = UV + W
         Dk = D[R,R]
-        Bk = _homogeneous_normal_form(Dk,len(W))[1]
+        Bk = _homogeneous_normal_form(Dk, len(W))[1]
         B[R,:] = Bk * B[R,:]
         D = B * G * B.T
         # we need to restore the homogeneous normal form of  k-1
         if len(Wm)>0:
             R = UVm + Wm
             Dkm = D[R,R]
-            Bkm = _homogeneous_normal_form(Dkm,len(Wm))[1]
+            Bkm = _homogeneous_normal_form(Dkm, len(Wm))[1]
             B[R,:] = Bkm * B[R,:]
             D = B * G * B.T
     return D, B

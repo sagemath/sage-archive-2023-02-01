@@ -62,7 +62,7 @@ class TorsionQuadraticModuleElement(FGP_Element):
 
     def _mul_(self, other):
         r"""
-        Compute the inner product of two elements
+        Compute the inner product of two elements.
 
         OUTPUT:
 
@@ -282,7 +282,7 @@ class TorsionQuadraticModule(FGP_Module_class):
     @cached_method
     def gram_matrix_bilinear(self):
         r"""
-        The gram matrix with respect to the generators
+        Return the gram matrix with respect to the generators.
 
         OUTPUT:
 
@@ -410,8 +410,8 @@ class TorsionQuadraticModule(FGP_Module_class):
 
     @cached_method
     def normal_form(self, partial=False):
-        """
-        Return the normal form of this torsion quadratic module
+        r"""
+        Return the normal form of this torsion quadratic module.
 
         Two torsion quadratic modules are isomorphic if and only if they have
         the same value modules and the same normal form.
@@ -424,17 +424,31 @@ class TorsionQuadraticModule(FGP_Module_class):
         Below are some of its properties.
         Let `p` be odd and `u` be the smallest non-square modulo `p`.
         The normal form is a diagonal matrix with diagonal entries either `p^n`
-        or `u*p^n`.
+        or `u p^n`.
 
         If `p = 2` is even, then the normal form consists of
         1 x 1 blocks of the form
-        ``[0]``, ``[2^n]`, ``[3*2^n]``, ``[5*2^n]``, ``[7*2^n]``
-        or of `2 \times 2` blocks of the form::
 
-            [2 1]           [0 1]
-            [1 2] * 2^n,    [1 0] * 2^n
+        .. MATH::
 
-       The entries are ordered by their valuation.
+            (0), \quad 2^n(1),\quad 2^n(3),\quad 2^n(5) ,\quad 2^n(7)
+
+        or of `2 \times 2` blocks of the form
+
+        .. MATH::
+
+            2^n
+            \left(\begin{matrix}
+                2 & 1\\
+                1 & 2
+            \end{matrix}\right), \quad
+            2^n
+            \left(\begin{matrix}
+                0 & 1\\
+                1 & 0
+            \end{matrix}\right).
+
+       The blocks are ordered by their valuation.
 
         INPUT:
 

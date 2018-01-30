@@ -193,33 +193,6 @@ cdef class Parent(parent.Parent):
         else:
             return None
 
-    cpdef get_action_c(self, S, op, bint self_on_left):
-        check_old_coerce(self)
-        try:
-            if self._action_hash is None: # this is because parent.__init__() does not always get called
-                self.init_coerce()
-            return self._action_hash.get(S, op, self_on_left)
-        except KeyError:
-            pass
-        if HAS_DICTIONARY(self):
-            action = self.get_action_impl(S, op, self_on_left)
-        else:
-            action = self.get_action_c_impl(S, op, self_on_left)
-        if action is not None:
-            from sage.categories.action import Action
-            if not isinstance(action, Action):
-                raise TypeError("get_action_impl must return None or an Action")
-            self._action_hash.set(S, op, self_on_left, action)
-        return action
-
-    def get_action_impl(self, S, op, self_on_left):
-        check_old_coerce(self)
-        return self.get_action_c_impl(S, op, self_on_left)
-
-    cdef get_action_c_impl(self, S, op, bint self_on_left):
-        check_old_coerce(self)
-        return self.discover_action(S, op, self_on_left, None, None)
-
     #################################################################################
     # Coercion support functionality
     #################################################################################
@@ -366,12 +339,6 @@ cdef class Parent(parent.Parent):
             return self.coerce_map_from_c(S)
         else:
             return parent.Parent._coerce_map_from_(self, S)
-
-    cpdef _get_action_(self, other, op, bint self_on_left):
-        if self._element_constructor is None:
-            return self.get_action_c(other, op, self_on_left)
-        else:
-            return parent.Parent._get_action_(self, other, op, self_on_left)
 
     def _an_element_(self):
         if self._element_constructor is None:

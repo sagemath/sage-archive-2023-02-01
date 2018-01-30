@@ -126,7 +126,7 @@ from sage.structure.misc import is_extension_type
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.sets_cat import Sets, EmptySetError
 from sage.misc.lazy_format import LazyFormat
-from . coerce_maps cimport (NamedConvertMap, DefaultConvertMap,
+from .coerce_maps cimport (NamedConvertMap, DefaultConvertMap,
         DefaultConvertMap_unique, CallableConvertMap)
 
 

@@ -165,8 +165,8 @@ class ShiftedPrimedTableau(ClonableArray):
 
         TESTS::
 
-            sage: t = ShiftedPrimedTableau([[None, "2'", "3p", 3.5]]) # indirect doctest
-            sage: t
+            sage: ShiftedPrimedTableau._preprocess([["2'", "3p", 3.5]],
+            ....: skew=[1])
             [(None, 2', 3', 4')]
         """
         if isinstance(T, ShiftedPrimedTableau):
@@ -903,6 +903,9 @@ class PrimedEntry(SageObject):
 
     An entry in a shifted primed tableau is an element in
     the alphabet `\{1' < 1 < 2' < 2 < \cdots < n' < n\}`.
+    The difference between two elements `i` and `i-1` counts as a
+    whole unit, whereas the difference between `i` and `i'` counts
+    as half a unit.
     Internally, we represent an unprimed element `x` as `2x`
     and the primed elements as the corresponding odd integer
     that respects the total order.
@@ -929,6 +932,10 @@ class PrimedEntry(SageObject):
             sage: a = PrimedEntry(2.5)
             sage: PrimedEntry(a)
             3'
+            sage: PrimedEntry(None)
+            Traceback (most recent call last):
+            ....
+            ValueError: primed entry must not be None
         """
         # store primed numbers as odd, unprimed numbers as even integers
         if isinstance(entry, self.__class__):
@@ -982,6 +989,9 @@ class PrimedEntry(SageObject):
 
     def integer(self):
         """
+        Return the corresponding integer `i` for primed entries
+        of the form `i` or `i'`.
+
         TESTS::
 
             sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
@@ -1035,11 +1045,7 @@ class PrimedEntry(SageObject):
             sage: a < b
             True
         """
-        try:
-            other = PrimedEntry(other)
-        except ValueError:
-            raise ValueError("both elements must be primed entries")
-        return self._entry < other._entry
+        return self._entry < PrimedEntry(other)._entry
 
     def __le__(self, other):
         """
@@ -1051,11 +1057,7 @@ class PrimedEntry(SageObject):
             sage: a <= b
             True
         """
-        try:
-            other = PrimedEntry(other)
-        except ValueError:
-            raise ValueError("both elements must be primed entries")
-        return self._entry <= other._entry
+        return self._entry <= PrimedEntry(other)._entry
 
     def __gt__(self, other):
         """
@@ -1067,11 +1069,7 @@ class PrimedEntry(SageObject):
             sage: b > a
             True
         """
-        try:
-            other = PrimedEntry(other)
-        except ValueError:
-            raise ValueError("both elements must be primed entries")
-        return self._entry > other._entry
+        return self._entry > PrimedEntry(other)._entry
 
     def __ge__(self, other):
         """
@@ -1083,11 +1081,7 @@ class PrimedEntry(SageObject):
             sage: a <= b
             True
         """
-        try:
-            other = PrimedEntry(other)
-        except ValueError:
-            raise ValueError("both elements must be primed entries")
-        return self._entry >= other._entry
+        return self._entry >= PrimedEntry(other)._entry
 
     def is_unprimed(self):
         """
@@ -1149,6 +1143,8 @@ class PrimedEntry(SageObject):
 
     def increase_half(self):
         """
+        Increase ``self`` by half a unit.
+
         TESTS::
 
             sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
@@ -1160,6 +1156,8 @@ class PrimedEntry(SageObject):
 
     def decrease_half(self):
         """
+        Decrease ``self`` by half a unit.
+
         TESTS::
 
             sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
@@ -1171,6 +1169,8 @@ class PrimedEntry(SageObject):
 
     def increase_one(self):
         """
+        Increase ``self`` by one unit.
+
         TESTS::
 
             sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
@@ -1182,6 +1182,8 @@ class PrimedEntry(SageObject):
 
     def decrease_one(self):
         """
+        Decrease ``self`` by one unit.
+
         TESTS::
 
             sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
@@ -1433,15 +1435,15 @@ class ShiftedPrimedTableaux(UniqueRepresentation, Parent):
         TESTS::
 
             sage: Tabs = ShiftedPrimedTableaux()
-            sage: tab = ShiftedPrimedTableau([])._preprocess(
+            sage: tab = ShiftedPrimedTableau._preprocess(
             ....: [[1,"2p","3p","3p"]])
             sage: tab
             [(1, 2', 3', 3')]
             sage: Tabs._contains_tableau(tab)
             False
             sage: Tabs = ShiftedPrimedTableaux(skew=[1])
-            sage: tab = ShiftedPrimedTableau([])._preprocess(
-            ....: [[None,"2p","3p",3]], skew=[1])
+            sage: tab = ShiftedPrimedTableau._preprocess(
+            ....: [["2p","3p",3]], skew=[1])
             sage: tab
             [(None, 2', 3', 3)]
             sage: Tabs._contains_tableau(tab)

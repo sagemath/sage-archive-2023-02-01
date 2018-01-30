@@ -66,23 +66,29 @@ cdef class Parent(parent.Parent):
         [0, a, a + 1, 1]
     """
 
-    def __init__(self, coerce_from=[], actions=[], embeddings=[], category=None):
-        # TODO: many classes don't call this at all, but __new__ crashes Sage
-#        if len(coerce_from):
-#            print(type(self), coerce_from)
+    def __init__(self, coerce_from=None, actions=None, embeddings=None, *, category=None):
         self.init_coerce(False)
-        self._coerce_from_list = list(coerce_from)
+        if coerce_from is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(24614, "the 'coerce_from' keyword is deprecated")
+            self._coerce_from_list = list(coerce_from)
         self._coerce_from_hash = MonoDict()
-        self._action_list = list(actions)
+        if actions is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(24614, "the 'actions' keyword is deprecated")
+            self._action_list = list(actions)
         self._action_hash = TripleDict()
 
         cdef parent.Parent other
-        for mor in embeddings:
-            other = mor.domain()
-            print("embedding", self, " --> ", other)
-            print(mor)
-            other.init_coerce() # TODO remove when we can
-            other._coerce_from_list.append(mor)
+        if embeddings is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(24614, "the 'embeddings' keyword is deprecated")
+            for mor in embeddings:
+                other = mor.domain()
+                print("embedding", self, " --> ", other)
+                print(mor)
+                other.init_coerce() # TODO remove when we can
+                other._coerce_from_list.append(mor)
 
         self._set_element_constructor()
 
@@ -90,10 +96,6 @@ cdef class Parent(parent.Parent):
         self._has_coerce_map_from = MonoDict()
         if category is not None:
             self._init_category_(category)
-
-    cdef int init_coerce(self, bint warn=False) except -1:
-        parent.Parent.init_coerce(self, warn)
-
 
     #################################################################################
     # New Coercion support functionality

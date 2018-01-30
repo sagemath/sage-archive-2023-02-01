@@ -719,8 +719,17 @@ numeric::numeric(PyObject* o, bool force_py) : basic(&numeric::tinfo_static) {
                         setflag(status_flags::evaluated | status_flags::expanded);
                         Py_DECREF(o);
                         return;
-                }
+                } else
 #endif
+                if (PyLong_Check(o)) {
+                    t = MPZ;
+                    mpz_init(v._bigint);
+                    _mpz_set_pylong(v._bigint, (PyLongObject*) o);
+                    hash = _mpz_pythonhash(v._bigint);
+                    setflag(status_flags::evaluated | status_flags::expanded);
+                    Py_DECREF(o);
+                    return;
+                }
                 if (initialized) {
                         if (py_funcs.py_is_Integer(o) != 0) {
                                 t = MPZ;

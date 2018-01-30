@@ -31,14 +31,6 @@ ntl_configure()
     CFLAGS="-O2 -g $CFLAGS"
     CXXFLAGS="-O2 -g $CXXFLAGS"
 
-    if [ "$SAGE64" = "yes" ]; then
-        if [ -z "$CFLAG64" ]; then
-            CFLAG64="-m64"
-        fi
-        CFLAGS="$CFLAG64 $CFLAGS"
-        CXXFLAGS="$CFLAG64 $CXXFLAGS"
-    fi
-
     case "$UNAME" in
       Darwin)
         echo "Setting SHAREDFLAGS to '-fno-common'"

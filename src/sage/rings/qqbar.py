@@ -5322,7 +5322,7 @@ class AlgebraicNumberPowQQAction(Action):
         """
         Action.__init__(self, G, S, False, operator.pow)
 
-    def _call_(self, x, e):
+    def _act_(self, e, x):
         r"""
         Return the power ``x ^ e``.
 

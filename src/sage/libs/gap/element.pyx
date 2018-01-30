@@ -1329,7 +1329,7 @@ cdef class GapElement_Integer(GapElement):
 
 cdef GapElement_Float make_GapElement_Float(parent, libGAP_Obj obj):
     r"""
-    Turn a Gap integer object into a GapElement_Float Sage object
+    Turn a Gap macfloat object into a GapElement_Float Sage object
 
     EXAMPLES::
 

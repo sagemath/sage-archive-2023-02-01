@@ -750,12 +750,12 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
         sage: A.parent()
         Full MatrixSpace of 0 by 0 sparse matrices over Integer Ring
 
-    Giving the entries improperly may first complain about not having a length.  ::
+    Giving the entries improperly may first complain about not being iterable::
 
         sage: diagonal_matrix(QQ, 5, 10)
         Traceback (most recent call last):
         ...
-        TypeError: unable to determine number of entries for diagonal matrix construction
+        TypeError: 'sage.rings.integer.Integer' object is not iterable
 
     Giving too many entries will raise an error. ::
 
@@ -771,16 +771,21 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
         ...
         ValueError: number of diagonal matrix entries (1) exceeds the requested matrix size (-2)
 
-    Types for the entries are limited, even though they may have a length.  ::
+    Types for the entries need to be iterable (tuple, list, vector, NumPy array,
+    etc)::
 
         sage: diagonal_matrix(x^2)
         Traceback (most recent call last):
         ...
-        TypeError: diagonal matrix entries are not a supported type (list, tuple, vector, or NumPy array)
+        TypeError: 'sage.symbolic.expression.Expression' object is not iterable
+
+    TESTS::
+
+        sage: A = diagonal_matrix(reversed(range(4)))
 
     AUTHOR:
 
-        - Rob Beezer (2011-01-11): total rewrite
+    - Rob Beezer (2011-01-11): total rewrite
     """
     # Roll arguments leftward
     #
@@ -801,6 +806,11 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
     # Formats 1, 2, 3, 4
     entries = arg0
 
+    # sanity check for entries
+    from numpy import ndarray
+    if not isinstance(entries, (list, tuple, ndarray)):
+        entries = list(entries)
+
     # Reconcile matrix size and number of entries
     try:
         nentries = len(entries)
@@ -815,11 +825,6 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
     # provide a default ring for an empty list
     if len(entries) == 0 and ring is None:
       ring = rings.ZZ
-
-    # Sanity check on entries (partially, e.g. a list of lists will survive this check)
-    from numpy import ndarray
-    if not any([isinstance(entries, (list, tuple)), isinstance(entries, ndarray), is_Vector(entries)]):
-        raise TypeError('diagonal matrix entries are not a supported type (list, tuple, vector, or NumPy array)')
 
     # Convert entries to a list v over a common ring
     from sage.modules.free_module_element import prepare

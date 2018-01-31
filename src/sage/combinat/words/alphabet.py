@@ -142,7 +142,7 @@ def build_alphabet(data=None, names=None, name=None):
     The other families for the option ``name`` are among 'lower', 'upper',
     'space', 'underscore', 'punctuation', 'printable', 'binary', 'octal',
     'decimal', 'hexadecimal', 'radix64' which refer to standard set of
-    charaters. Theses names may be combined by separating them by a space::
+    characters. Theses names may be combined by separating them by a space::
 
         sage: build_alphabet(name="lower")
         {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'}

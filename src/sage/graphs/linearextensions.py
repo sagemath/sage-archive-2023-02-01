@@ -93,16 +93,16 @@ class LinearExtensions(CombinatorialClass):
         #Pruesse and Ruskey
         while dag_copy.num_verts() != 0:
             #Find all the minimal elements of dag_copy
-            minimial_elements = []
+            minimal_elements = []
             for node in dag_copy.vertices():
                 if len(dag_copy.incoming_edges(node)) == 0:
-                    minimial_elements.append(node)
-            if len(minimial_elements) == 1:
-                le.append(minimial_elements[0])
-                dag_copy.delete_vertex(minimial_elements[0])
+                    minimal_elements.append(node)
+            if len(minimal_elements) == 1:
+                le.append(minimal_elements[0])
+                dag_copy.delete_vertex(minimal_elements[0])
             else:
-                ap = minimial_elements[0]
-                bp = minimial_elements[1]
+                ap = minimal_elements[0]
+                bp = minimal_elements[1]
                 a.append(ap)
                 b.append(bp)
                 le.append(ap)

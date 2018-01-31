@@ -3086,7 +3086,7 @@ cdef class CommutativeRingElement(RingElement):
                 if not isinstance(P, IntegralDomain):
                     raise NotImplementedError('sqrt() with all=True is only implemented for integral domains, not for %s' % P)
                 if P.characteristic()==2 or sq_rt==0:
-                    #0 has only one square root, and in charasteristic 2 everything also has only 1 root
+                    #0 has only one square root, and in characteristic 2 everything also has only 1 root
                     return [ sq_rt ]
                 return [ sq_rt, -sq_rt ]
             return sq_rt

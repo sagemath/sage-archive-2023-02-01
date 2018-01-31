@@ -1225,6 +1225,10 @@ REFERENCES:
 
 **I**
 
+.. [IK2010] Kenji Iohara and Yoshiyuki Koga.
+            *Representation Theory of the Virasoro Algebra*. 
+            Springer, (2010).
+
 .. [ILS2012] Giuseppe F. Italiano, Luigi Laura, and Federico
              Santaroni. *Finding strong bridges and strong
              articulation points in linear time*. Theoretical Computer
@@ -1661,6 +1665,10 @@ REFERENCES:
            FSE’93, Volume 809 of LNCS, pages 1-17.
            Springer, Heidelberg, December 1994.
 
+.. [Mat1992] \O. Mathieu. *Classification of Harish-Chandra
+             modules over the Virasoro Lie algebra*.
+             Invent. Math. **107(2)** (1992), pp. 225-234.
+
 .. [Mat2002] Jiří Matousek, "Lectures on Discrete Geometry", Springer,
              2002
 
@@ -2061,11 +2069,12 @@ REFERENCES:
             Reduction*. Advances in Cryptology - EUROCRYPT '95. LNCS
             Volume 921, 1995, pp 1-12.
 
-.. [Shi1971]  Shimura, Goro. *Introduction to the arithmetic theory of
-            automorphic functions*. Princeton University Press, 1971.
+.. [Shi1971] Goro Shimura, *Introduction to the arithmetic theory of
+             automorphic functions*. Publications of the Mathematical
+             Society of Japan and Princeton University Press, 1971.
 
-.. [Shr2004] Shreve, S. Stochastic Calculus for Finance II:
-             Continuous-Time Models.  New York: Springer, 2004
+.. [Shr2004] \S. Shreve, *Stochastic Calculus for Finance II:
+             Continuous-Time Models*.  New York: Springer, 2004
 
 .. [SIHMAS2011] \K. Shibutani, T. Isobe, H. Hiwatari, A. Mitsuda, T. Akishita,
                 and T. Shirai, *Piccolo: An ultra-lightweight block-cipher*; in

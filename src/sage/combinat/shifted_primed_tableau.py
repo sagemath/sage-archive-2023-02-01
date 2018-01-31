@@ -1078,8 +1078,8 @@ class PrimedEntry(SageObject):
             sage: from sage.combinat.shifted_primed_tableau import PrimedEntry
             sage: a = PrimedEntry(2)
             sage: b = PrimedEntry("3p")
-            sage: a <= b
-            True
+            sage: a >= b
+            False
         """
         return self._entry >= PrimedEntry(other)._entry
 
@@ -1659,10 +1659,11 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
         """
         TESTS::
 
-           sage: [[1,'2p',2,2],[2,'3p']] in ShiftedPrimedTableaux([4,2],
-           ....: max_entry=4)
+           sage: t = ShiftedPrimedTableau._preprocess([[1,'2p',2,2],[2,'3p']])
+           sage: ShiftedPrimedTableaux([4,2],max_entry=4)._contains_tableau(t)
            True
-           sage: [[1,'2p',2],[2,'3p']] in ShiftedPrimedTableaux([4,2])
+           sage: s = ShiftedPrimedTableau._preprocess([[1,'2p',2],[2,'3p']])
+           sage: ShiftedPrimedTableaux([4,2])._contains_tableau(s)
            False
         """
         if not super(ShiftedPrimedTableaux_shape, self)._contains_tableau(T):
@@ -1770,15 +1771,17 @@ class ShiftedPrimedTableaux_weight(ShiftedPrimedTableaux):
         Check if ``self`` contains preprocessed tableau ``T``.
 
         TESTS::
-
-            sage: [[1,1.5],[2]] in ShiftedPrimedTableaux(weight=(1,2))
+            sage: t = ShiftedPrimedTableau._preprocess([[1,1.5],[2]])
+            sage: ShiftedPrimedTableaux(weight=(1,2))._contains_tableau(t)
             True
-            sage: [[1,1.5],[3]] in ShiftedPrimedTableaux(weight=(1,2))
+            sage: s = ShiftedPrimedTableau._preprocess([[1,1.5],[3]])
+            sage: ShiftedPrimedTableaux(weight=(1,2))._contains_tableau(s)
             False
 
-            sage: [] in ShiftedPrimedTableaux(weight=())
+            sage: u = ShiftedPrimedTableau._preprocess([])
+            sage: ShiftedPrimedTableaux(weight=())._contains_tableau(u)
             True
-            sage: [] in ShiftedPrimedTableaux(weight=(1,2))
+            sage: ShiftedPrimedTableaux(weight=(1,2))._contains_tableau(u)
             False
         """
         if not super(ShiftedPrimedTableaux_weight, self)._contains_tableau(T):
@@ -1864,16 +1867,19 @@ class ShiftedPrimedTableaux_weight_shape(ShiftedPrimedTableaux):
 
         TESTS::
 
-            sage: [[1,1.5],[2]] in ShiftedPrimedTableaux([2,1], weight=(1,2))
+            sage: t = ShiftedPrimedTableau._preprocess([[1,1.5],[2]])
+            sage: ShiftedPrimedTableaux([2,1], weight=(1,2))._contains_tableau(t)
             True
-            sage: [[1,1.5],[3]] in ShiftedPrimedTableaux([2,1], weight=(1,2))
+            sage: ShiftedPrimedTableaux([2,1], weight=(2,1))._contains_tableau(t)
             False
-            sage: [[1,1.5,2,3],[3]] in ShiftedPrimedTableaux([3,2], weight=(1,2,2))
+            sage: s = ShiftedPrimedTableau._preprocess([[1,1.5,2,3],[3]])
+            sage: ShiftedPrimedTableaux([3,2], weight=(1,2,2))._contains_tableau(s)
             False
 
-            sage: [] in ShiftedPrimedTableaux([3,2], weight=(1,2,2))
+            sage: u = ShiftedPrimedTableau._preprocess([])
+            sage: ShiftedPrimedTableaux([3,2], weight=(1,2,2))._contains_tableau(u)
             False
-            sage: [] in ShiftedPrimedTableaux([], weight=())
+            sage: ShiftedPrimedTableaux([], weight=())._contains_tableau(u)
             True
         """
         if not super(ShiftedPrimedTableaux_weight_shape, self)._contains_tableau(T):

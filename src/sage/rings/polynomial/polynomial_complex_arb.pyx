@@ -28,6 +28,7 @@ from cysignals.signals cimport sig_on, sig_off
 from sage.libs.arb.acb cimport *
 from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.complex_arb cimport ComplexBall
+from sage.structure.element cimport Element
 
 from sage.rings.complex_arb import ComplexBallField
 from sage.structure.element import coerce_binop
@@ -319,6 +320,30 @@ cdef class Polynomial_complex_arb(Polynomial):
                 prec(self))
         sig_off()
         return res
+
+    cpdef _lmul_(self, Element a):
+        r"""
+        TESTS::
+
+            sage: Pol.<x> = CBF[]
+            sage: (x + 1)._lmul_(CBF(3))
+            3.000000000000000*x + 3.000000000000000
+        """
+        cdef Polynomial_complex_arb res = self._new()
+        sig_on()
+        acb_poly_scalar_mul(res.__poly, self.__poly, (<ComplexBall> a).value, prec(self))
+        sig_off()
+        return res
+
+    cpdef _rmul_(self, Element a):
+        r"""
+        TESTS::
+
+            sage: Pol.<x> = CBF[]
+            sage: (x + 1)._rmul_(CBF(3))
+            3.000000000000000*x + 3.000000000000000
+        """
+        return self._lmul_(a)
 
     @coerce_binop
     def quo_rem(self, divisor):

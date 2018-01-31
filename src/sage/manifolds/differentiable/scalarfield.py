@@ -1133,6 +1133,9 @@ class DiffScalarField(ScalarField):
                 resu._name = "grad_{}({})".format(metric._name, self._name)
                 resu._latex_name = r"\mathrm{grad}_{" + metric._latex_name + \
                                    r"}\left(" + self._latex_name + r"\right)"
+            # The name is propagated to possible restrictions of self:
+            for restrict in resu._restrictions.values():
+                restrict.set_name(resu._name, latex_name=resu._latex_name)
         return resu
 
     grad = gradient
@@ -1219,4 +1222,7 @@ class DiffScalarField(ScalarField):
                 resu._name = "Delta_{}({})".format(metric._name, self._name)
                 resu._latex_name = r"\Delta_{" + metric._latex_name + \
                                    r"}\left(" + self._latex_name + r"\right)"
+            # The name is propagated to possible restrictions of self:
+            for restrict in resu._restrictions.values():
+                restrict.set_name(resu._name, latex_name=resu._latex_name)
         return resu

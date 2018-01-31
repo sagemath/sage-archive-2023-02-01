@@ -17,20 +17,26 @@ Two important subcases are
 All pseudo-Riemannian manifolds are implemented via the class
 :class:`PseudoRiemannianManifold`.
 
-.. RUBRIC:: Example: the sphere as a Riemannian manifold of dimension 2
+.. RUBRIC:: Example 1: the sphere as a Riemannian manifold of dimension 2
 
-One starts by declaring `S^2` as a 2-dimensional Riemnnian manifold::
+We start by declaring `S^2` as a 2-dimensional Riemannian manifold::
 
     sage: M = Manifold(2, 'S^2', structure='Riemannian')
     sage: M
     2-dimensional Riemannian manifold S^2
+
+We then cover `S^2` by two stereographic charts, from the North pole and from
+the South pole respectively::
+
     sage: U = M.open_subset('U')
     sage: stereoN.<x,y> = U.chart()
     sage: V = M.open_subset('V')
     sage: stereoS.<u,v> = V.chart()
+    sage: M.declare_union(U,V)
     sage: stereoN_to_S = stereoN.transition_map(stereoS,
     ....:                [x/(x^2+y^2), y/(x^2+y^2)], intersection_name='W',
     ....:                restrictions1= x^2+y^2!=0, restrictions2= u^2+v^2!=0)
+    sage: W = U.intersection(V)
     sage: stereoN_to_S
     Change of coordinates from Chart (W, (x, y)) to Chart (W, (u, v))
     sage: stereoN_to_S.display()
@@ -39,21 +45,137 @@ One starts by declaring `S^2` as a 2-dimensional Riemnnian manifold::
     sage: stereoN_to_S.inverse().display()
     x = u/(u^2 + v^2)
     y = v/(u^2 + v^2)
-    sage: M.declare_union(U,V)
-    sage: W = U.intersection(V)
+
+We get the metric defining the Riemannian structure by::
+
     sage: g = M.metric()
-    sage: g[stereoN.frame(), 0, 0] = 4/(1 + x^2 + y^2)^2
-    sage: g[stereoN.frame(), 1, 1] = 4/(1 + x^2 + y^2)^2
-    sage: g.add_comp_by_continuation(stereoS.frame(), W)
-    sage: gV = V.metric()
-    sage: gV.display()
-    g = 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du*du + 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) dv*dv
+    sage: g
+    Riemannian metric g on the 2-dimensional Riemannian manifold S^2
+
+At this stage, the metric `g` is defined a Python object but there remains to
+initialize it by setting its components with respect to the vector frames
+associated with the stereographic coordinates. Let us begin with the frame
+of chart ``stereoN``::
+
+    sage: eU = stereoN.frame()
+    sage: g[eU, 0, 0] = 4/(1 + x^2 + y^2)^2
+    sage: g[eU, 1, 1] = 4/(1 + x^2 + y^2)^2
+
+The metric components in the frame of chart ``stereoS`` are obtained by
+continuation of the expressions found in `W = U\cap V` from the known
+change-of-coordinate formulas::
+
+    sage: eV = stereoS.frame()
+    sage: g.add_comp_by_continuation(eV, W)
+
+At this stage, the metric `g` is well defined in all `S^2`::
+
+    sage: g.display(eU)
+    g = 4/(x^2 + y^2 + 1)^2 dx*dx + 4/(x^2 + y^2 + 1)^2 dy*dy
+    sage: g.display(eV)
+    g = 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du*du
+     + 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) dv*dv
+
+The expression in frame ``eV`` can be given a shape similar to that in frame
+``eU``, by factorizing the components::
+
+    sage: g[eV, 0, 0].factor()
+    4/(u^2 + v^2 + 1)^2
+    sage: g[eV, 1, 1].factor()
+    4/(u^2 + v^2 + 1)^2
+    sage: g.display(eV)
+    g = 4/(u^2 + v^2 + 1)^2 du*du + 4/(u^2 + v^2 + 1)^2 dv*dv
+
+Let us consider a scalar field `f` on `S^2`::
+
+    sage: f = M.scalar_field({stereoN: 1/(1+x^2+y^2)}, name='f')
+    sage: f.add_expr_by_continuation(stereoS, W)
+    sage: f.display()
+    f: S^2 --> R
+    on U: (x, y) |--> 1/(x^2 + y^2 + 1)
+    on V: (u, v) |--> (u^2 + v^2)/(u^2 + v^2 + 1)
+
+The gradient of `f` (with respect to the metric `g`) is::
+
+    sage: gradf = f.grad()
+    sage: gradf
+    Vector field grad(f) on the 2-dimensional Riemannian manifold S^2
+    sage: gradf.display(eU)
+    grad(f) = -1/2*x d/dx - 1/2*y d/dy
+    sage: gradf.display(eV)
+    grad(f) = 1/2*u d/du + 1/2*v d/dv
+
+The Laplacian of `f`  (with respect to the metric `g`) is::
+
+    sage: Df = f.laplacian()
+    sage: Df
+    Scalar field Delta(f) on the 2-dimensional Riemannian manifold S^2
+    sage: Df.display()
+    Delta(f): S^2 --> R
+    on U: (x, y) |--> (x^2 + y^2 - 1)/(x^2 + y^2 + 1)
+    on V: (u, v) |--> -(u^2 + v^2 - 1)/(u^2 + v^2 + 1)
+
+Let us check the standard formula
+`\Delta f = \mathrm{div}( \mathrm{grad}\,  f )`::
+
+    sage: Df == f.grad().div()
+    True
+
+Since each open subset of `S^2` inherits the structure of a Riemannian
+manifold, we can get the metric on it via the method ``metric()``::
+
+    sage: gU = U.metric()
+    sage: gU
+    Riemannian metric g on the Open subset U of the 2-dimensional Riemannian
+     manifold S^2
+    sage: gU.display()
+    g = 4/(x^2 + y^2 + 1)^2 dx*dx + 4/(x^2 + y^2 + 1)^2 dy*dy
+
+On course, ``gU`` is nothing but the restriction of `g` to `U`::
+
+    sage: gU is g.restrict(U)
+    True
+
+.. RUBRIC:: Example 2: Minkowski spacetime as a Lorentzian manifold of
+  dimension 4
+
+We start by declaring 4-dimensional Lorentzian manifold::
+
+    sage: M = Manifold(4, 'M', structure='Lorentzian')
+    sage: M
+    4-dimensional Lorentzian manifold M
+
+We define Minkowskian coordinates on ``M``::
+
+    sage: X.<t,x,y,z> = M.chart()
+
+We get the metric by::
+
+    sage: g = M.metric()
+    sage: g
+    Lorentzian metric g on the 4-dimensional Lorentzian manifold M
+
+and initialize it to the Minkowskian value::
+
+    sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1, 1, 1, 1
+    sage: g.display()
+    g = -dt*dt + dx*dx + dy*dy + dz*dz
+
+We may check that the metric is flat, i.e. has a vanishing Riemann curvature
+tensor::
+
+    sage: g.riemann().display()
+    Riem(g) = 0
 
 
 AUTHORS:
 
 - Eric Gourgoulhon (2018): initial version
 
+REFERENCES:
+
+- \B. O'Neill : *Semi-Riemannian Geometry* [ONe1983]_
+- \J. M. Lee : *Riemannian Manifolds* [Lee1997]_
 
 """
 
@@ -132,6 +254,71 @@ class PseudoRiemannianManifold(DifferentiableManifold):
       would return the previously constructed object corresponding to these
       arguments).
 
+    EXAMPLES:
+
+    Pseudo-Riemannian manifolds are constructed via the generic function
+    :func:`~sage.manifolds.manifold.Manifold`, using the keyword
+    ``structure``::
+
+        sage: M = Manifold(4, 'M', structure='pseudo-Riemannian', signature=0)
+        sage: M
+        4-dimensional pseudo-Riemannian manifold M
+        sage: M.category()
+        Category of smooth manifolds over Real Field with 53 bits of precision
+
+    The metric associated with ``M`` is::
+
+        sage: M.metric()
+        Pseudo-Riemannian metric g on the 4-dimensional pseudo-Riemannian
+         manifold M
+        sage: M.metric().signature()
+        0
+        sage: M.metric().tensor_type()
+        (0, 2)
+
+    Its value has to be initialized either by setting its components in various
+    vector frames or by using the method :meth:`set_metric` (see the
+    documentation of this method, or the full example of `S^2` above).
+
+    The default name of the metric is ``g``; it can be customized::
+
+        sage: M = Manifold(4, 'M', structure='pseudo-Riemannian',
+        ....:              metric_name='gam', metric_latex_name=r'\gamma')
+        sage: M.metric()
+        Riemannian metric gam on the 4-dimensional Riemannian manifold M
+        sage: latex(M.metric())
+        \gamma
+
+    A Riemannian manifold is constructed by the proper setting of the keyword
+    ``structure``::
+
+        sage: M = Manifold(4, 'M', structure='Riemannian'); M
+        4-dimensional Riemannian manifold M
+        sage: M.metric()
+        Riemannian metric g on the 4-dimensional Riemannian manifold M
+        sage: M.metric().signature()
+        4
+
+    Similarly, a Lorentzian manifold is obtained by::
+
+        sage: M = Manifold(4, 'M', structure='Lorentzian'); M
+        4-dimensional Lorentzian manifold M
+        sage: M.metric()
+        Lorentzian metric g on the 4-dimensional Lorentzian manifold M
+
+    The default Lorentzian signature is taken to be positive::
+
+        sage: M.metric().signature()
+        2
+
+    but one can opt for the negative convention via the keyword ``signature``::
+
+        sage: M = Manifold(4, 'M', structure='Lorentzian', signature='negative')
+        sage: M.metric()
+        Lorentzian metric g on the 4-dimensional Lorentzian manifold M
+        sage: M.metric().signature()
+        -2
+
     """
     def __init__(self, n, name, metric_name='g', signature=None, ambient=None,
                  diff_degree=infinity, latex_name=None,
@@ -184,6 +371,38 @@ class PseudoRiemannianManifold(DifferentiableManifold):
     def set_metric(self, metric):
         r"""
         Set the metric on ``self``.
+
+        INPUT:
+
+        - ``metric`` -- either a metric tensor defined on ``self`` or a field
+          of nondegenerate symmetric bilinear forms defined on ``self``,
+          assuming in both cases that the signature agrees with that declared
+          at the construction of ``self``.
+
+        EXAMPLES:
+
+        Let us consider a 2-dimensional Lorentzian manifold::
+
+            sage: M = Manifold(2, 'M', structure='Lorentzian')
+            sage: X.<x,y> = M.chart()
+
+        We construct a field of symmetric bilinear forms on ``M`` as follows::
+
+            sage: X.coframe()
+            Coordinate coframe (M, (dx,dy))
+            sage: dx = X.coframe()[0]
+            sage: dy = X.coframe()[1]
+            sage: a = dx*dx - dy*dy
+            sage: a
+            Field of symmetric bilinear forms dx*dx-dy*dy on the 2-dimensional
+             Lorentzian manifold M
+
+        Since ``a`` has the correct signature, we can use it to set the value
+        of the manifold's metric::
+
+            sage: M.set_metric(a)
+            sage: M.metric().display()
+            g = dx*dx - dy*dy
 
         """
         if isinstance(metric, PseudoRiemannianMetric):
@@ -240,6 +459,54 @@ class PseudoRiemannianManifold(DifferentiableManifold):
           :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
 
         EXAMPLES:
+
+        Metric of a 3-dimensional Riemannian manifold::
+
+            sage: M = Manifold(3, 'M', structure='Riemannian', start_index=1)
+            sage: X.<x,y,z> = M.chart()
+            sage: g = M.metric(); g
+            Riemannian metric g on the 3-dimensional Riemannian manifold M
+
+        The metric remains to be initialized, for instance by setting its
+        components in the coordinate frame associated to the chart ``X``::
+
+            sage: g[1,1], g[2,2], g[3,3] = 1, 1, 1
+            sage: g.display()
+            g = dx*dx + dy*dy + dz*dz
+
+        Another metric can be defined on ``M`` by specifying a metric name
+        distinct from that chosen at the creation of the manifold (which
+        is ``g`` by default, but can be changed thanks to the keyword
+        ``metric_name`` in :func:`~sage.manifolds.manifold.Manifold`)::
+
+            sage: h = M.metric('h'); h
+            Riemannian metric h on the 3-dimensional Riemannian manifold M
+            sage: h[1,1], h[2,2], h[3,3] = 1+y^2, 1+z^2, 1+x^2
+            sage: h.display()
+            h = (y^2 + 1) dx*dx + (z^2 + 1) dy*dy + (x^2 + 1) dz*dz
+
+        The metric tensor ``h`` is distinct from the metric entering in the
+        definition of the Riemannian manifold ``M``::
+
+            sage: h is M.metric()
+            False
+
+        while we have of course::
+
+            sage: g is M.metric()
+            True
+
+        Providing the same name as the manifold's default metric returns the
+        latter::
+
+            sage: M.metric('g') is M.metric()
+            True
+
+        In the present case (``M`` is diffeomorphic to `\RR^3`), we can even
+        create a Lorentzian metric on ``M``::
+
+            sage: h = M.metric('h', signature=1); h
+            Lorentzian metric h on the 3-dimensional Riemannian manifold M
 
         """
         if name is None or name == self._metric_name:

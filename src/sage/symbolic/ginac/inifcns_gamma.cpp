@@ -247,7 +247,7 @@ static ex beta_evalf(const ex & x, const ex & y, PyObject* parent)
 	if (is_exactly_a<numeric>(x) && is_exactly_a<numeric>(y)) {
 		const numeric &nx = ex_to<numeric>(x);
 		const numeric &ny = ex_to<numeric>(y);
-                return (nx+ny).rgamma(parent) * nx.gamma(parent) * ny.gamma(parent);
+                return beta(nx, ny, parent);
 	}
 	
 	return beta(x,y).hold();

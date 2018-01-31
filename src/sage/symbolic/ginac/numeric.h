@@ -374,6 +374,7 @@ const numeric gamma(const numeric &x, PyObject* parent=nullptr);
 const numeric rgamma(const numeric &x, PyObject* parent=nullptr);
 const numeric psi(const numeric &x, PyObject* parent=nullptr);
 const numeric psi(const numeric &n, const numeric &x);
+const numeric beta(const numeric &x, const numeric &y, PyObject* parent=nullptr);
 const numeric factorial(const numeric &n);
 const numeric doublefactorial(const numeric &n);
 const numeric binomial(unsigned long n, unsigned long k);

@@ -434,6 +434,26 @@ namespace GiNaC {
 
 numeric I;
 
+PyObject* common_parent(const numeric& x, const numeric& y)
+{
+        PyObject* m = PyImport_ImportModule("sage.structure.element");
+        if (m == nullptr)
+                py_error("Error importing coerce");
+        PyObject* f = PyObject_GetAttrString(m, "coercion_model");
+        if (f == nullptr)
+                py_error("Error getting coercion_model attribute");
+
+        PyObject* mname = PyString_FromString("common_parent");
+        PyObject* ret = PyObject_CallMethodObjArgs(f, mname,
+                          x.to_pyobject(), y.to_pyobject(), NULL);
+        if (ret == nullptr)
+                throw(std::runtime_error("GiNaC::common_parent: PyObject_CallMethodObjArgs unsuccessful"));
+        Py_DECREF(m);
+        Py_DECREF(f);
+        Py_DECREF(mname);
+        return ret;
+}
+
 const numeric numeric::arbfunc_0arg(const char* name, PyObject* parent) const
 {
         int prec = precision(*this, parent);
@@ -4613,6 +4633,15 @@ const numeric psi(const numeric &x, PyObject* parent) {
 /** The psi functions (aka polygamma functions). */
 const numeric psi(const numeric &n, const numeric &x) {
         return n.psi(x);
+}
+const numeric beta(const numeric &x, const numeric &y, PyObject* parent)
+{
+        PyObject *cparent = common_parent(x, y);
+        if (parent == nullptr)
+               parent = cparent;
+        numeric ret = (x+y).rgamma(parent) * x.gamma(parent) * y.gamma(parent);
+        Py_DECREF(cparent);
+        return ret;
 }
 
 /** Factorial combinatorial function.

@@ -1452,8 +1452,9 @@ static ex atan2_eval(const ex & y, const ex & x)
 	}
 
 	// atan2(float, float) -> float
-	if (is_exactly_a<numeric>(y) && y.info(info_flags::inexact)
-	    or is_exactly_a<numeric>(x) && x.info(info_flags::inexact))
+	if (is_exactly_a<numeric>(x)
+            and is_exactly_a<numeric>(y)
+            and (x.info(info_flags::inexact) or y.info(info_flags::inexact)))
 		return atan(ex_to<numeric>(y), ex_to<numeric>(x));
 
 	// handle infinities

@@ -578,7 +578,7 @@ class ShiftedPrimedTableau(ClonableArray):
                .  2'
         """
         t = self[:]
-        n = ShiftedPrimedTableauEntry(n)
+        n = PrimedEntry(n)
         return ShiftedPrimedTableau([z for z in [[y for y in x if y is not None and y <= n]
                                                  for x in t] if z], skew=self._skew)
 
@@ -606,7 +606,7 @@ class ShiftedPrimedTableau(ClonableArray):
             [3, 2]
 
         """
-        n = ShiftedPrimedTableauEntry(n)        
+        n = PrimedEntry(n)
         if self._skew is None:
             res = [len([y for y in row if y <= n]) for row in self]
         else:
@@ -691,7 +691,7 @@ class ShiftedPrimedTableau(ClonableArray):
         chain = [mu]
         f = 0
         for e in entries:
-            n = e.unprime()
+            n = e.integer()
             chain.extend([0, mu]*int(n-f-1))
             mu = self.restriction_outer_shape(e)
             if n == e:
@@ -2177,4 +2177,3 @@ def _add_strip(sub_tab, full_tab, length):
                                                    k=len(plat_list),
                                                    outer=plat_list):
                 yield list(primed_strip) + list(non_primed_strip)
-

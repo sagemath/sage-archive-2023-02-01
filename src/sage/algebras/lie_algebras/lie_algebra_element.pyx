@@ -45,6 +45,14 @@ cdef class LieAlgebraElement(IndexedFreeModuleElement):
             sage: y*x
             x*y - z
 
+        Check that actions work::
+
+            sage: L = lie_algebras.VirasoroAlgebra(QQ)
+            sage: d = L.basis()
+            sage: M = L.chargeless_representation(1/2, 3/4)
+            sage: d[-5] * M.basis()[10]
+            -47/4*v[5]
+
         TESTS::
 
             sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'): {'z':1}})
@@ -96,7 +104,7 @@ cdef class LieAlgebraElement(IndexedFreeModuleElement):
             sage: x * y
             b2*b3
             sage: y * x
-            b2*b3 - b0
+            b2*b3 + b0
 
             sage: L = lie_algebras.regular_vector_fields(QQ)
             sage: L.an_element()

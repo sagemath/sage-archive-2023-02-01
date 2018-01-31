@@ -212,6 +212,7 @@ def list_plot3d(v, interpolation_type='default', texture="automatic", point_list
             return list_plot3d_array_of_arrays(v, interpolation_type, texture, **kwds)
     raise TypeError("v must be a matrix or list")
 
+
 def list_plot3d_matrix(m, texture, **kwds):
     """
     A 3-dimensional plot of a surface defined by a matrix ``M``
@@ -248,6 +249,23 @@ def list_plot3d_matrix(m, texture, **kwds):
         Graphics3d Object
         sage: list_plot3d(m, texture='yellow', interpolation_type='linear') # indirect doctest
         Graphics3d Object
+
+    Here is a colored example, using a colormap and a coloring function
+    which must take values in (0, 1)::
+
+        sage: cm = colormaps.rainbow
+        sage: n = 20
+        sage: cf = lambda x, y: ((2*(x-y)/n)**2) % 1
+        sage: list_plot3d(matrix(RDF, n, [cos(pi*(i+j)/n) for i in [1..n]
+        ....:   for j in [1..n]]), color=(cf,cm))
+        Graphics3d Object
+
+    .. PLOT::
+
+        cm = colormaps.rainbow
+        cf = lambda x, y: ((2*(x-y)/20)**2) % 1
+        expl = list_plot3d(matrix(RDF,20,20,[cos(pi*(i+j)/20) for i in range(1,21) for j in range(1,21)]),color=(cf,cm))
+        sphinx_plot(expl)    
     """
     from .parametric_surface import ParametricSurface
     f = lambda i,j: (i, j, float(m[int(i), int(j)]))
@@ -255,6 +273,7 @@ def list_plot3d_matrix(m, texture, **kwds):
                           texture=texture, **kwds)
     G._set_extra_kwds(kwds)
     return G
+
 
 def list_plot3d_array_of_arrays(v, interpolation_type, texture, **kwds):
     """

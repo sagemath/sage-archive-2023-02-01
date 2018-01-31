@@ -559,6 +559,18 @@ class Link(object):
                 return True
         return self.braid() == other.braid()
 
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(8)
+            sage: L1 = Link(B([-1, -1, -1, -2, 1, -2, 3, -2, 5, 4]))
+            sage: H = hash(L1)
+        """
+        return hash(self.braid())
+
     def __ne__(self, other):
         """
         Check inequality.

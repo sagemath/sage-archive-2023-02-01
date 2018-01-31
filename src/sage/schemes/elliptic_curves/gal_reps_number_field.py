@@ -532,7 +532,7 @@ def _maybe_borels(E, L, patience=100):
         sage: sage.schemes.elliptic_curves.gal_reps_number_field._maybe_borels(E, primes(20))
         [2, 3]
 
-    Here the curve really does possess isognies of degrees 2 and 3::
+    Here the curve really does possess isogenies of degrees 2 and 3::
 
         sage: [len(E.isogenies_prime_degree(l)) for l in [2,3]]
         [1, 1]

@@ -1154,8 +1154,7 @@ ext_modules = [
               sources = ['sage/rings/morphism.pyx']),
 
     Extension('sage.rings.complex_mpc',
-              sources = ['sage/rings/complex_mpc.pyx'],
-              libraries = ['mpc']),
+              sources = ['sage/rings/complex_mpc.pyx']),
 
     Extension('sage.rings.noncommutative_ideals',
               sources = ['sage/rings/noncommutative_ideals.pyx']),

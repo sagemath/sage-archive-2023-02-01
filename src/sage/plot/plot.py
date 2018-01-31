@@ -3313,7 +3313,6 @@ def list_plot_semilogy(data, plotjoined=False, **kwds):
             sage: list_plot_semilogy(list(zip(xl[1:],yl[1:])))
             Graphics object consisting of 1 graphics primitive
 
-
     ::
 
         sage: list_plot_semilogy([2, 4, 6, 8, 16, 31], base=2) # with base 2
@@ -3326,6 +3325,7 @@ def list_plot_semilogy(data, plotjoined=False, **kwds):
 
     """
     return list_plot(data, plotjoined=plotjoined, scale='semilogy', **kwds)
+
 
 def to_float_list(v):
     """

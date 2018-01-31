@@ -328,6 +328,12 @@ cdef class Polynomial_complex_arb(Polynomial):
             sage: Pol.<x> = CBF[]
             sage: (x + 1)._lmul_(CBF(3))
             3.000000000000000*x + 3.000000000000000
+            sage: (1 + x)*(1/3)
+            ([0.3333333333333333 +/- 7.04e-17])*x + [0.3333333333333333 +/- 7.04e-17]
+            sage: (1 + x)*GF(2)(1)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s)...
         """
         cdef Polynomial_complex_arb res = self._new()
         sig_on()
@@ -342,6 +348,8 @@ cdef class Polynomial_complex_arb(Polynomial):
             sage: Pol.<x> = CBF[]
             sage: (x + 1)._rmul_(CBF(3))
             3.000000000000000*x + 3.000000000000000
+            sage: (1/3)*(1 + x)
+            ([0.3333333333333333 +/- 7.04e-17])*x + [0.3333333333333333 +/- 7.04e-17]
         """
         return self._lmul_(a)
 
@@ -719,6 +727,43 @@ cdef class Polynomial_complex_arb(Polynomial):
                 return res
         sig_on()
         acb_poly_compose_series(res.__poly, self.__poly, other1.__poly, n, prec(self))
+        sig_off()
+        return res
+
+    def revert_series(self, long n):
+        r"""
+        Return a polynomial ``f`` such that
+        ``f(self(x)) = self(f(x)) = x mod x^n``.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = CBF[]
+
+            sage: (2*x).revert_series(5)
+            0.5000000000000000*x
+
+            sage: (x + x^3/6 + x^5/120).revert_series(6)
+            ([0.075000000000000 +/- 9.75e-17])*x^5 + ([-0.166666666666667 +/- 4.45e-16])*x^3 + x
+
+            sage: (1 + x).revert_series(6)
+            Traceback (most recent call last):
+            ...
+            ValueError: the constant coefficient must be zero
+
+            sage: (x^2).revert_series(6)
+            Traceback (most recent call last):
+            ...
+            ValueError: the linear term must be nonzero
+        """
+        cdef Polynomial_complex_arb res = self._new()
+        if n < 0:
+            n = 0
+        if not acb_is_zero(acb_poly_get_coeff_ptr(self.__poly, 0)):
+            raise ValueError("the constant coefficient must be zero")
+        if acb_contains_zero(acb_poly_get_coeff_ptr(self.__poly, 1)):
+            raise ValueError("the linear term must be nonzero")
+        sig_on()
+        acb_poly_revert_series(res.__poly, self.__poly, n, prec(self))
         sig_off()
         return res
 

@@ -22,6 +22,9 @@ cdef class Map(Element):
     cdef public _repr_type_str
     cdef public bint _is_coercion
 
+    cpdef _pow_int(self, n)
+
+
 cdef class Section(Map):
     cdef Map _inverse
 

@@ -1811,6 +1811,11 @@ class Graph(GenericGraph):
 
             sage: Graph('Fli@?').is_cactus()
             False
+
+        Test a graph that is not outerplanar, see :trac:`24480`::
+
+            sage: graphs.Balaban10Cage().is_cactus()
+            False
         """
         self._scream_if_not_simple()
 
@@ -1818,9 +1823,8 @@ class Graph(GenericGraph):
         if self.order() < 4:
             return True
 
-        # Every cactus graph is outerplanar, and outerplanar
-        # graphs have limited number of edges.
-        if self.size() > self.order()*2-3:
+        # Every cactus graph is outerplanar
+        if not self.is_circular_planar():
             return False
 
         if not self.is_connected():

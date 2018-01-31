@@ -68,7 +68,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
     EXAMPLES:
 
-    A homomorphism between two free modules over `\ZZ` is contructed
+    A homomorphism between two free modules over `\ZZ` is constructed
     as an element of the corresponding hom-set, by means of the function
     ``__call__``::
 

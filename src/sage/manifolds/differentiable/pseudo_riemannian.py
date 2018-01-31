@@ -160,6 +160,11 @@ and initialize it to the Minkowskian value::
     sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1, 1, 1, 1
     sage: g.display()
     g = -dt*dt + dx*dx + dy*dy + dz*dz
+    sage: g[:]
+    [-1  0  0  0]
+    [ 0  1  0  0]
+    [ 0  0  1  0]
+    [ 0  0  0  1]
 
 We may check that the metric is flat, i.e. has a vanishing Riemann curvature
 tensor::
@@ -277,8 +282,22 @@ class PseudoRiemannianManifold(DifferentiableManifold):
         (0, 2)
 
     Its value has to be initialized either by setting its components in various
-    vector frames or by using the method :meth:`set_metric` (see the
-    documentation of this method, or the full example of `S^2` above).
+    vector frames (see the above examples regarding the 2-sphere and Minkowski
+    spacetime) or by making it equal to a given field of symmetric bilinear
+    forms (see the method
+    :meth:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric.set`
+    of the metric class). Both methods are also covered in the
+    documentation of method :meth:`metric` below.
+
+    The metric object belongs to the class
+    :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`::
+
+        sage: isinstance(M.metric(), sage.manifolds.differentiable.metric.
+        ....:                        PseudoRiemannianMetric)
+        True
+
+    See the documentation of this class for all operations available on
+    metrics.
 
     The default name of the metric is ``g``; it can be customized::
 
@@ -356,7 +375,7 @@ class PseudoRiemannianManifold(DifferentiableManifold):
                                         latex_name=latex_name,
                                         start_index=start_index,
                                         category=category)
-        self._metric = None # to be initialized by set_metric() or by metric()
+        self._metric = None # to be initialized by metric()
         self._metric_signature = signature
         if not isinstance(metric_name, str):
             raise TypeError("{} is not a string".format(metric_name))
@@ -368,68 +387,11 @@ class PseudoRiemannianManifold(DifferentiableManifold):
                 raise TypeError("{} is not a string".format(metric_latex_name))
             self._metric_latex_name = metric_latex_name
 
-    def set_metric(self, metric):
-        r"""
-        Set the metric on ``self``.
-
-        INPUT:
-
-        - ``metric`` -- either a metric tensor defined on ``self`` or a field
-          of nondegenerate symmetric bilinear forms defined on ``self``,
-          assuming in both cases that the signature agrees with that declared
-          at the construction of ``self``.
-
-        EXAMPLES:
-
-        Let us consider a 2-dimensional Lorentzian manifold::
-
-            sage: M = Manifold(2, 'M', structure='Lorentzian')
-            sage: X.<x,y> = M.chart()
-
-        We construct a field of symmetric bilinear forms on ``M`` as follows::
-
-            sage: X.coframe()
-            Coordinate coframe (M, (dx,dy))
-            sage: dx = X.coframe()[0]
-            sage: dy = X.coframe()[1]
-            sage: a = dx*dx - dy*dy
-            sage: a
-            Field of symmetric bilinear forms dx*dx-dy*dy on the 2-dimensional
-             Lorentzian manifold M
-
-        Since ``a`` has the correct signature, we can use it to set the value
-        of the manifold's metric::
-
-            sage: M.set_metric(a)
-            sage: M.metric().display()
-            g = dx*dx - dy*dy
-
-        """
-        if isinstance(metric, PseudoRiemannianMetric):
-            if metric._name != self._metric_name:
-                raise ValueError("name of {} does not match ".format(metric) +
-                                 "the name '{}' ".format(self._metric_name) +
-                                 "declared at the construction of the " +
-                                 "{}".format(self))
-            if metric.parent()._dest_map is not self.identity_map():
-                raise ValueError("{} is not a metric ".format(metric) +
-                                 "defined on {}".format(self))
-            self._metric = metric
-            metric._latex_name = self._metric_latex_name
-        elif isinstance(metric, TensorField):
-            self._metric = self.metric(self._metric_name,
-                                       signature=self._metric_signature,
-                                       latex_name=self._metric_latex_name)
-            self._metric.set(metric)
-        else:
-            raise TypeError("{} must be a metric or a ".format(metric) +
-                            "of bilinear forms")
-
     def metric(self, name=None, signature=None, latex_name=None,
                dest_map=None):
         r"""
-        Return the metric of the pseudo-Riemannian manifold ``self`` or
-        defines a new metric tensor on ``self``.
+        Return the metric giving the pseudo-Riemannian structure to the
+        manifold, or defines a new metric tensor on the manifold.
 
         INPUT:
 
@@ -471,6 +433,27 @@ class PseudoRiemannianManifold(DifferentiableManifold):
         components in the coordinate frame associated to the chart ``X``::
 
             sage: g[1,1], g[2,2], g[3,3] = 1, 1, 1
+            sage: g.display()
+            g = dx*dx + dy*dy + dz*dz
+
+        Alternatively, the metric can be initialized from a given field of
+        nondegenerate symmetric bilinear forms; we may create the former
+        object by::
+
+            sage: X.coframe()
+            Coordinate coframe (M, (dx,dy,dz))
+            sage: dx, dy, dz = X.coframe()[1], X.coframe()[2], X.coframe()[3]
+            sage: b = dx*dx + dy*dy + dz*dz
+            sage: b
+            Field of symmetric bilinear forms dx*dx+dy*dy+dz*dz on the
+             3-dimensional Riemannian manifold M
+
+        We then use the metric method
+        :meth:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric.set`
+        to make ``g`` being equal to ``b`` as a symmetric tensor field of
+        type ``(0,2)``::
+
+            sage: g.set(b)
             sage: g.display()
             g = dx*dx + dy*dy + dz*dz
 

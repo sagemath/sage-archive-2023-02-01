@@ -3087,9 +3087,9 @@ class TensorField(ModuleElement):
 
         .. MATH::
 
-            (T^\sharp)^{a_1\ldots a_{k+1}}_{\qquad\ \ b_1 \ldots b_{l-1}}
-            = g^{a_{k+1} i} \,
-            T^{a_1\ldots a_k}_{\qquad\   b_1 \ldots b_{p-k} \, i \, b_{p-k+1}\ldots b_{l-1}},
+          (T^\sharp)^{a_1\ldots a_{k+1}}_{\phantom{a_1\ldots a_{k+1}}\, b_1 \ldots b_{l-1}}
+          = g^{a_{k+1} i} \,
+          T^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\, b_1 \ldots b_{p-k} \, i \, b_{p-k+1}\ldots b_{l-1}},
 
         `g^{ab}` being the components of the inverse metric.
 
@@ -3235,9 +3235,9 @@ class TensorField(ModuleElement):
 
         .. MATH::
 
-            (T^\flat)^{a_1\ldots a_{k-1}}_{\qquad\ \  b_1 \ldots b_{l+1}}
-            = g_{b_1 i} \,
-            T^{a_1\ldots a_{p} \, i \, a_{p+1}\ldots a_{k-1}}_{\qquad\qquad\quad\; b_2 \ldots b_{l+1}},
+          (T^\flat)^{a_1\ldots a_{k-1}}_{\phantom{a_1\ldots a_{k-1}}\, b_1 \ldots b_{l+1}}
+          = g_{b_1 i} \,
+          T^{a_1\ldots a_{p} \, i \, a_{p+1}\ldots a_{k-1}}_{\phantom{a_1\ldots a_{p} \, i \, a_{p+1}\ldots a_{k-1}}\, b_2 \ldots b_{l+1}},
 
         `g_{ab}` being the components of the metric tensor.
 
@@ -3383,7 +3383,7 @@ class TensorField(ModuleElement):
 
             (\mathrm{div}\, T)^{a_1\ldots a_{k-1}} =
                 \nabla_i T^{a_1\ldots a_{k-1}\, i} =
-                (\nabla T)^{a_1\ldots a_{k-1}\, i}_{\qquad\quad i}
+                (\nabla T)^{a_1\ldots a_{k-1}\, i}_{\phantom{a_1\ldots a_{k-1}\, i}\, i}
 
         where `\nabla` is the Levi-Civita connection of `g` (cf.
         :class:`~sage.manifolds.differentiable.levi_civita_connection.LeviCivitaConnection`).
@@ -3394,9 +3394,9 @@ class TensorField(ModuleElement):
 
         .. MATH::
 
-            (\mathrm{div}\, T)^{a_1\ldots a_k}_{\qquad b_1\ldots b_{l-1}} =
-                \nabla_i (g^{ij} T^{a_1\ldots a_k}_{\qquad b_1\ldots b_{l-1}\, j}) =
-                (\nabla T^\sharp)^{a_1\ldots a_k\, i}_{\qquad\  b_1\ldots b_{l-1}\, i}
+          (\mathrm{div}\, T)^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\, b_1\ldots b_{l-1}}
+          = \nabla_i (g^{ij} T^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\, b_1\ldots b_{l-1}\, j})
+          = (\nabla T^\sharp)^{a_1\ldots a_k\, i}_{\phantom{a_1\ldots a_k\, i}\,  b_1\ldots b_{l-1}\, i}
 
         where `T^\sharp` is the tensor field deduced from `T` by raising the
         last index with the metric `g` (see :meth:`up`).
@@ -3508,6 +3508,9 @@ class TensorField(ModuleElement):
                 resu._name = "div_{}({})".format(metric._name, self._name)
                 resu._latex_name = r"\mathrm{div}_{" + metric._latex_name + \
                                    r"}\left(" + self._latex_name + r"\right)"
+            # The name is propagated to possible restrictions of self:
+            for restrict in resu._restrictions.values():
+                restrict.set_name(resu._name, latex_name=resu._latex_name)
         return resu
 
     div = divergence

@@ -1142,10 +1142,10 @@ class DiffScalarField(ScalarField):
 
     def laplacian(self, metric=None):
         r"""
-        Return the Laplacian of ``self`` (with respect to a given
-        metric).
+        Return the Laplacian of ``self`` with respect to a given
+        metric (Laplace-Beltrami operator).
 
-        The Laplacian of a scalar field `f` with respect to a metric `g`
+        The *Laplacian* of a scalar field `f` with respect to a metric `g`
         is the scalar field
 
         .. MATH::
@@ -1153,6 +1153,7 @@ class DiffScalarField(ScalarField):
             \Delta f  = g^{ij} \nabla_i \nabla_j f
 
         where `\nabla` is the Levi-Civita connection of `g`.
+        `\Delta` is also called the *Laplace-Beltrami operator*.
 
         INPUT:
 

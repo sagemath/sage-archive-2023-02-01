@@ -31,7 +31,6 @@
 #include "operators.h"
 #include "symbol.h"
 #include "constant.h"
-#include "symmetry.h"
 #include "utils.h"
 
 #include <vector>
@@ -355,8 +354,7 @@ REGISTER_FUNCTION(beta, eval_func(beta_eval).
                         evalf_func(beta_evalf).
                         derivative_func(beta_deriv).
                         series_func(beta_series).
-                        latex_name("{\\rm B}").
-                        set_symmetry(sy_symm(0, 1)));
+                        latex_name("{\\rm B}"));
 
 
 //////////

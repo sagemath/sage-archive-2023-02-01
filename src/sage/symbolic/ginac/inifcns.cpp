@@ -32,7 +32,6 @@
 #include "relational.h"
 #include "pseries.h"
 #include "symbol.h"
-#include "symmetry.h"
 #include "utils.h"
 #include "wildcard.h"
 
@@ -725,7 +724,6 @@ REGISTER_FUNCTION(eta, eval_func(eta_eval).
                        evalf_func(eta_evalf).
                        series_func(eta_series).
                        latex_name("\\eta").
-                       set_symmetry(sy_symm(0, 1)).
                        conjugate_func(eta_conjugate).
                        real_part_func(eta_real_part).
                        imag_part_func(eta_imag_part));

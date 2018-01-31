@@ -31,7 +31,6 @@
 #include "relational.h"
 #include "pseries.h"
 #include "symbol.h"
-#include "symmetry.h"
 #include "utils.h"
 
 #include <vector>

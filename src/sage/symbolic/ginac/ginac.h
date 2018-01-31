@@ -52,7 +52,6 @@
 
 #include "exprseq.h"
 #include "function.h"
-#include "symmetry.h"
 
 #include "inifcns.h"
 #include "fderivative.h"

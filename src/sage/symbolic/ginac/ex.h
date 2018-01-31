@@ -245,14 +245,6 @@ public:
         bool is_one() const;
         bool is_minus_one() const;
 	
-	// symmetry
-	ex symmetrize() const;
-	ex symmetrize(const lst & l) const;
-	ex antisymmetrize() const;
-	ex antisymmetrize(const lst & l) const;
-	ex symmetrize_cyclic() const;
-	ex symmetrize_cyclic(const lst & l) const;
-
 	// noncommutativity
 	unsigned return_type() const { return bp->return_type(); }
 	tinfo_t return_type_tinfo() const { return bp->return_type_tinfo(); }

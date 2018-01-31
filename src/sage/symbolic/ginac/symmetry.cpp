@@ -559,26 +559,4 @@ ex symmetrize_cyclic(const ex & e, exvector::const_iterator first, exvector::con
 	return sum / num;
 }
 
-/** Symmetrize expression over a list of objects (symbols, indices). */
-ex ex::symmetrize(const lst & l) const
-{
-	exvector v(l.begin(), l.end());
-	return symm(*this, v.begin(), v.end(), false);
-}
-
-/** Antisymmetrize expression over a list of objects (symbols, indices). */
-ex ex::antisymmetrize(const lst & l) const
-{
-	exvector v(l.begin(), l.end());
-	return symm(*this, v.begin(), v.end(), true);
-}
-
-/** Symmetrize expression by cyclic permutation over a list of objects
- *  (symbols, indices). */
-ex ex::symmetrize_cyclic(const lst & l) const
-{
-	exvector v(l.begin(), l.end());
-	return GiNaC::symmetrize_cyclic(*this, v.begin(), v.end());
-}
-
 } // namespace GiNaC

@@ -69,7 +69,6 @@ unsigned NAME##_SERIAL::serial = \
 namespace GiNaC {
 
 class function;
-class symmetry;
 
 typedef ex (* eval_funcp)();
 typedef ex (* evalf_funcp)(PyObject* parent);
@@ -248,7 +247,6 @@ public:
 	function_options & remember(unsigned size, unsigned assoc_size=0,
 	                            unsigned strategy=remember_strategies::delete_never);
 	function_options & overloaded(unsigned o);
-	function_options & set_symmetry(const symmetry & s);
 
 	std::string get_name() const { return name; }
 	unsigned get_nparams() const { return nparams; }

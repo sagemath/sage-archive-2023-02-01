@@ -86,24 +86,6 @@ inline ex series(const ex & thisex, const ex & r, int order, unsigned options = 
 inline bool match(const ex & thisex, const ex & pattern, lst & repl_lst)
 { return thisex.match(pattern, repl_lst); }
 
-inline ex symmetrize(const ex & thisex)
-{ return thisex.symmetrize(); }
-
-inline ex symmetrize(const ex & thisex, const lst & l)
-{ return thisex.symmetrize(l); }
-
-inline ex antisymmetrize(const ex & thisex)
-{ return thisex.antisymmetrize(); }
-
-inline ex antisymmetrize(const ex & thisex, const lst & l)
-{ return thisex.antisymmetrize(l); }
-
-inline ex symmetrize_cyclic(const ex & thisex)
-{ return thisex.symmetrize_cyclic(); }
-
-inline ex symmetrize_cyclic(const ex & thisex, const lst & l)
-{ return thisex.symmetrize_cyclic(l); }
-
 inline ex op(const ex & thisex, size_t i)
 { return thisex.op(i); }
 

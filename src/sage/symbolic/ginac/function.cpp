@@ -27,7 +27,6 @@
 #include "fderivative.h"
 #include "ex.h"
 #include "lst.h"
-#include "symmetry.h"
 #include "print.h"
 #include "power.h"
 #include "relational.h"
@@ -472,12 +471,6 @@ function_options & function_options::overloaded(unsigned o)
 	return *this;
 }
 
-function_options & function_options::set_symmetry(const symmetry & s)
-{
-	symtree = s;
-	return *this;
-}
-	
 void function_options::test_and_set_nparams(unsigned n)
 {
 	if (nparams==0) {
@@ -858,19 +851,6 @@ ex function::eval(int level) const
 
 	GINAC_ASSERT(serial<registered_functions().size());
 	const function_options &opt = registered_functions()[serial];
-
-	// Canonicalize argument order according to the symmetry properties
-	if (seq.size() > 1 && !(opt.symtree.is_zero())) {
-		exvector v = seq;
-		GINAC_ASSERT(is_a<symmetry>(opt.symtree));
-		int sig = canonicalize(v.begin(), ex_to<symmetry>(opt.symtree));
-		if (sig != std::numeric_limits<int>::max()) {
-			// Something has changed while sorting arguments, more evaluations later
-			if (sig == 0)
-				return _ex0;
-			return ex(sig) * thiscontainer(v);
-		}
-	}
 
 	bool use_remember = opt.use_remember;
 	ex eval_result;

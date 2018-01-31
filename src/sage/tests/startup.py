@@ -22,9 +22,9 @@ not work, but this time we don't have to avoid to load ipython.
 
     sage: from sage.tests.cmdline import test_executable
     sage: cmd = "print('numpy' in sys.modules)\n"
-    sage: print(test_executable(["sage", "-c"], cmd)[0])  # long time
+    sage: print(test_executable(["sage", "-c", cmd])[0])  # long time
     False
     sage: cmd = "print('pyparsing' in sys.modules)\n"
-    sage: print(test_executable(["sage", "-c"], cmd)[0])  # long time
+    sage: print(test_executable(["sage", "-c", cmd])[0])  # long time
     False
 """

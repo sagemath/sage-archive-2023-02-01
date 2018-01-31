@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Temporary file handling
 
@@ -244,7 +245,7 @@ class atomic_write(object):
       underlying file is opened in binary mode.  If False then it is opened in
       text mode and an encoding with which to write the file may be supplied.
 
-    - ``kwargs`` -- additional keyword arguments passed to the underlying
+    - ``**kwargs`` -- additional keyword arguments passed to the underlying
       `io.open` call.
 
     EXAMPLES::
@@ -348,6 +349,31 @@ class atomic_write(object):
         sage: with open(target_file, 'r') as f:
         ....:     f.read()
         '>>> AAA'
+
+    Supplying an encoding means we're writing the file in "text mode" (in the
+    same sense as `io.open`) and so we must write unicode strings::
+
+        sage: target_file = tmp_filename()
+        sage: with atomic_write(target_file, binary=False,
+        ....:                   encoding='utf-8') as f:
+        ....:     _ = f.write(u'Hélas')
+        sage: import io
+        sage: with io.open(target_file, encoding='utf-8') as f:
+        ....:     print(f.read())
+        Hélas
+
+    Supplying an encoding in binary mode (or other arguments that don't
+    make sense to `io.open` in binary mode) is an error::
+
+        sage: writer = atomic_write(target_file, binary=True,
+        ....:                       encoding='utf-8')
+        sage: with writer as f:
+        ....:     _ = f.write(u'Hello')
+        Traceback (most recent call last):
+        ...
+        ValueError: binary mode doesn't take an encoding argument
+        sage: os.path.exists(writer.tempname)
+        False
     """
     def __init__(self, target_filename, append=False, mode=0o666,
                  binary=None, **kwargs):
@@ -396,21 +422,21 @@ class atomic_write(object):
         """
 
         fd, name = tempfile.mkstemp(dir=self.tmpdir)
-        name = os.path.abspath(name)
+        self.tempname = os.path.abspath(name)
 
         rmode = 'r' + ('b' if self.binary else '')
         wmode = 'w+' + ('b' if self.binary else '')
 
         try:
-            self.tempfile = io.open(fd, wmode, **self.kwargs)
+            self.tempfile = io.open(name, wmode, **self.kwargs)
         except (TypeError, ValueError):
             # Some invalid arguments were passed to io.open
-            os.close(fd)
             os.unlink(name)
             raise
+        finally:
+            os.close(fd)
 
-        self.tempname = name
-        os.chmod(self.tempname, self.mode)
+        os.chmod(name, self.mode)
         if self.append:
             try:
                 with io.open(self.target, rmode, **self.kwargs) as f:
@@ -419,6 +445,7 @@ class atomic_write(object):
                 pass
             else:
                 self.tempfile.write(r)
+
         return self.tempfile
 
     def __exit__(self, exc_type, exc_val, exc_tb):

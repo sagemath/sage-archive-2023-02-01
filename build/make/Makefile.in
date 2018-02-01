@@ -15,7 +15,7 @@
 # rules generated from the templates.
 
 # Always use bash for make rules
-SHELL = /bin/bash
+SHELL = @SHELL@
 
 ifndef SAGE_SPKG_INST
 ifndef DEBUG_RULES

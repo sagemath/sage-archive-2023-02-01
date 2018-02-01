@@ -494,7 +494,6 @@ ext_modules = [
                       package="libbraiding",
                       language = 'c++'),
 
-
     OptionalExtension('sage.libs.homfly',
                       sources = ["sage/libs/homfly.pyx"],
                       libraries = ["homfly", "gc"],

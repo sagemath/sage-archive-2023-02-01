@@ -116,6 +116,9 @@ AUTHORS:
   in favour of :meth:`~sage.rings.integer.Integer.is_perfect_power` (see
   :trac:`12116`)
 
+- Vincent Klein (2017-05-11): add __mpz__() to class Integer
+
+- Vincent Klein (2017-05-22): Integer constructor support gmpy2.mpz parameter
 """
 #*****************************************************************************
 #       Copyright (C) 2004,2006 William Stein <wstein@gmail.com>
@@ -186,6 +189,11 @@ from sage.structure.coerce cimport is_numpy_type
 from sage.structure.element import coerce_binop
 
 from sage.libs.gmp.binop cimport mpq_add_z, mpq_mul_z, mpq_div_zz
+
+IF HAVE_GMPY2:
+    cimport gmpy2
+    gmpy2.import_gmpy2()
+
 
 cdef extern from *:
     int unlikely(int) nogil  # Defined by Cython
@@ -466,6 +474,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         sage: Integer(pari('Pol([-3])'))
         -3
 
+    Conversion from gmpy2::
+
+        sage: from gmpy2 import mpz  # optional - gmpy2
+        sage: Integer(mpz(3))        # optional - gmpy2
+        3
+
     .. automethod:: __pow__
     """
 
@@ -522,6 +536,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             0
             sage: ZZ('+10')
             10
+            sage: from gmpy2 import mpz  # optional - gmpy2
+            sage: ZZ(mpz(42))            # optional - gmpy2
+            42
 
         ::
 
@@ -717,6 +734,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     if isinstance(x, numpy.integer):
                         mpz_set_pylong(self.value, x.__long__())
                         return
+
+                elif HAVE_GMPY2 and type(x) is gmpy2.mpz:
+                    mpz_set(self.value, (<gmpy2.mpz>x).z)
+                    return
 
                 raise TypeError("unable to coerce %s to an integer" % type(x))
 
@@ -1038,6 +1059,31 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             '<mn>-45</mn>'
         """
         return '<mn>%s</mn>'%self
+
+    def __mpz__(self):
+        """
+        Return a gmpy2 integer
+
+        EXAMPLES::
+
+            sage: a = 5
+            sage: a.__mpz__()            # optional - gmpy2
+            mpz(5)
+            sage: from gmpy2 import mpz  # optional - gmpy2
+            sage: mpz(a)                 # optional - gmpy2
+            mpz(5)
+
+        TESTS::
+
+            sage: a.__mpz__(); raise NotImplementedError("gmpy2 is not installed")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: gmpy2 is not installed
+        """
+        IF HAVE_GMPY2:
+            return gmpy2.GMPy_MPZ_From_mpz(self.value)
+        ELSE:
+            raise NotImplementedError("gmpy2 is not installed")
 
     def str(self, int base=10):
         r"""

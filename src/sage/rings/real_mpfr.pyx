@@ -31,6 +31,10 @@ AUTHORS:
 
 - Eviatar Bach (2013-06): Fixing numerical evaluation of log_gamma
 
+- Vincent Klein (2017-06): RealNumber constructor support gmpy2.mpfr
+  , gmpy2.mpq or gmpy2.mpz parameter.
+  Add __mpfr__ to class RealNumber.
+
 This is a binding for the MPFR arbitrary-precision floating point
 library.
 
@@ -159,6 +163,11 @@ import sage.rings.infinity
 
 from sage.structure.parent_gens cimport ParentWithGens
 from sage.arith.numerical_approx cimport digits_to_bits
+
+IF HAVE_GMPY2:
+    cimport gmpy2
+    gmpy2.import_gmpy2()
+
 
 #*****************************************************************************
 #
@@ -1363,6 +1372,16 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RealField(2, rnd="RNDN")(w).str(2)
             '10.'
 
+        Conversion from gmpy2 numbers::
+
+            sage: from gmpy2 import *  # optional - gmpy2
+            sage: RR(mpz(5))           # optional - gmpy2
+            5.00000000000000
+            sage: RR(mpq(1/2))         # optional - gmpy2
+            0.500000000000000
+            sage: RR(mpfr('42.1'))     # optional - gmpy2
+            42.1000000000000
+
         .. NOTE::
 
            A real number is an arbitrary precision mantissa with a
@@ -1451,6 +1470,12 @@ cdef class RealNumber(sage.structure.element.RingElement):
             mpfr_set_d(self.value, x, parent.rnd)
         elif isinstance(x, RealDoubleElement):
             mpfr_set_d(self.value, (<RealDoubleElement>x)._value, parent.rnd)
+        elif HAVE_GMPY2 and type(x) is gmpy2.mpfr:
+            mpfr_set(self.value, (<gmpy2.mpfr>x).f, parent.rnd)
+        elif HAVE_GMPY2 and type(x) is gmpy2.mpq:
+            mpfr_set_q(self.value, (<gmpy2.mpq>x).q, parent.rnd)
+        elif HAVE_GMPY2 and type(x) is gmpy2.mpz:
+            mpfr_set_z(self.value, (<gmpy2.mpz>x).z, parent.rnd)
         else:
             s = str(x).replace(' ','')
             s_lower = s.lower()
@@ -3708,6 +3733,47 @@ cdef class RealNumber(sage.structure.element.RingElement):
             return -result
         return result
 
+    def __mpfr__(self):
+        """
+        Convert Sage ``RealNumber`` to gmpy2 ``mpfr``.
+
+        EXAMPLES::
+
+            sage: r = RR(4.12)
+            sage: r.__mpfr__()            # optional - gmpy2
+            mpfr('4.1200000000000001')
+            sage: from gmpy2 import mpfr  # optional - gmpy2
+            sage: mpfr(RR(4.5))           # optional - gmpy2
+            mpfr('4.5')
+            sage: R = RealField(127)
+            sage: mpfr(R.pi()).precision  # optional - gmpy2
+            127
+            sage: R = RealField(42)
+            sage: mpfr(R.pi()).precision  # optional - gmpy2
+            42
+            sage: R = RealField(256)
+            sage: x = mpfr(R.pi())        # optional - gmpy2
+            sage: x.precision             # optional - gmpy2
+            256
+            sage: y = R(x)                # optional - gmpy2
+            sage: mpfr(y) == x            # optional - gmpy2
+            True
+            sage: x = mpfr('2.567e42', precision=128)   # optional - gmpy2
+            sage: y = RealField(128)(x)   # optional - gmpy2
+            sage: mpfr(y) == x            # optional - gmpy2
+            True
+
+        TESTS::
+
+            sage: r.__mpfr__(); raise NotImplementedError("gmpy2 is not installed")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: gmpy2 is not installed
+        """
+        IF HAVE_GMPY2:
+            return gmpy2.GMPy_MPFR_From_mpfr(self.value)
+        ELSE:
+            raise NotImplementedError("gmpy2 is not installed")
 
     ###########################################
     # Comparisons: ==, !=, <, <=, >, >=

@@ -112,27 +112,9 @@ class ShiftedPrimedTableau(ClonableArray):
             []
             sage: ShiftedPrimedTableau([tuple([])])
             []
-            sage: ShiftedPrimedTableau(1)
-            Traceback (most recent call last):
-            ...
-            ValueError: input must be an iterable
-            sage: ShiftedPrimedTableau([1,2])
-            Traceback (most recent call last):
-            ...
-            ValueError: rows in the tableau must be iterables
         """
         if isinstance(T, ShiftedPrimedTableau) and T._skew == skew:
             return T
-        try:
-            if len(T) == 0:
-                return ShiftedPrimedTableaux(skew=skew)([])
-        except TypeError:
-            raise ValueError("input must be an iterable")
-        try:
-            if sum(len(row) for row in T) == 0:
-                return ShiftedPrimedTableaux(skew=skew)([])
-        except TypeError:
-            raise ValueError("rows in the tableau must be iterables")
 
         skew_ = Partition([row.count(None) for row in T])
         if skew_:
@@ -189,9 +171,6 @@ class ShiftedPrimedTableau(ClonableArray):
             sage: ShiftedPrimedTableau._preprocess([["2'", "3p", 3.5]],
             ....: skew=[1])
             [(None, 2', 3', 4')]
-            sage: ShiftedPrimedTableau._preprocess([["2'", "3p", 3.5]], skew=[1])
-            [(None, 2', 3', 4')]
-
             sage: ShiftedPrimedTableau._preprocess([[None]], skew=[1])
             [(None,)]
             sage: ShiftedPrimedTableau._preprocess([], skew=[2,1])
@@ -201,10 +180,11 @@ class ShiftedPrimedTableau(ClonableArray):
         """
         if isinstance(T, ShiftedPrimedTableau):
             return T
-
         # Preprocessing list t for primes and other symbols
         T = [[PrimedEntry(entry) for entry in row if entry is not None]
              for row in T]
+        while len(T) > 0 and len(T[-1]) == 0:
+            T = T[:-1]
         row_min = min(len(skew), len(T)) if skew else 0
         T_ = [(None,)*skew[i] + tuple(T[i]) for i in range(row_min)]
 

@@ -26,6 +26,12 @@ def sphinx_plot(plot):
     from sage.misc.temporary_file import tmp_filename
     import matplotlib.pyplot as plt
     if os.environ.get('SAGE_SKIP_PLOT_DIRECTIVE', 'no') != 'yes':
+        import matplotlib as mpl
+        mpl.rcParams['image.interpolation'] = 'bilinear'
+        mpl.rcParams['image.resample'] = False
+        mpl.rcParams['figure.figsize'] = [8.0, 6.0]
+        mpl.rcParams['figure.dpi'] = 80
+        mpl.rcParams['savefig.dpi'] = 100
         fn = tmp_filename(ext=".png")
         plot.plot().save(fn)
         img = mpimg.imread(fn)

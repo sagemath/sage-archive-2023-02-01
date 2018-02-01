@@ -32,7 +32,17 @@ AUTHORS:
 - Jeroen Demeyer
 """
 
-from cpython.object cimport PyObject_RichCompare, Py_TYPE, PyTypeObject
+#*****************************************************************************
+#       Copyright (C) 2017-2018 Jeroen Demeyer <J.Demeyer@UGent.be>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+from cpython.object cimport Py_TYPE, PyTypeObject
 from sage.cpython.wrapperdescr cimport get_slotdef, wrapperbase, PyDescr_NewWrapper
 
 cdef extern from *:
@@ -56,53 +66,6 @@ richcmp_slotdef[Py_LT] = get_slotdef(bytes.__lt__)
 richcmp_slotdef[Py_GT] = get_slotdef(bytes.__gt__)
 richcmp_slotdef[Py_LE] = get_slotdef(bytes.__le__)
 richcmp_slotdef[Py_GE] = get_slotdef(bytes.__ge__)
-
-
-def richcmp(x, y, int op):
-    """
-    Return the result of the rich comparison of ``x`` and ``y`` with
-    operator ``op``.
-
-    INPUT:
-
-    - ``x``, ``y`` -- arbitrary Python objects
-
-    - ``op`` -- comparison operator (one of ``op_LT`, ``op_LE``,
-      ``op_EQ``, ``op_NE``, ``op_GT``, ``op_GE``).
-
-    EXAMPLES::
-
-        sage: from sage.structure.richcmp import *
-        sage: richcmp(3, 4, op_LT)
-        True
-        sage: richcmp(x, x^2, op_EQ)
-        x == x^2
-
-    The two examples above are completely equivalent to ``3 < 4``
-    and ``x == x^2``. For this reason, it only makes sense in practice
-    to call ``richcmp`` with a non-constant value for ``op``.
-
-    We can write a custom ``Element`` class which shows a more
-    realistic example of how to use this::
-
-        sage: from sage.structure.element import Element
-        sage: class MyElement(Element):
-        ....:     def __init__(self, parent, value):
-        ....:         Element.__init__(self, parent)
-        ....:         self.v = value
-        ....:     def _richcmp_(self, other, op):
-        ....:         return richcmp(self.v, other.v, op)
-        sage: P = Parent()
-        sage: x = MyElement(P, 3)
-        sage: y = MyElement(P, 3)
-        sage: x < y
-        False
-        sage: x == y
-        True
-        sage: x > y
-        False
-    """
-    return PyObject_RichCompare(x, y, op)
 
 
 cpdef richcmp_item(x, y, int op):

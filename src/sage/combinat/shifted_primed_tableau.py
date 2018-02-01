@@ -105,11 +105,35 @@ class ShiftedPrimedTableau(ClonableArray):
             sage: s = ShiftedPrimedTableau([[None, None,"2p",2,3],[None,"2p"]])
             sage: s.parent()
             Shifted Primed Tableaux skewed by [2, 1]
+
+        TESTS::
+
+            sage: ShiftedPrimedTableau([])
+            []
+            sage: ShiftedPrimedTableau([tuple([])])
+            []
+            sage: ShiftedPrimedTableau(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: input must be an iterable
+            sage: ShiftedPrimedTableau([1,2])
+            Traceback (most recent call last):
+            ...
+            ValueError: rows in the tableau must be iterables
         """
         if isinstance(T, ShiftedPrimedTableau) and T._skew == skew:
             return T
-        if T == [] or T == [[]]:
-            return ShiftedPrimedTableaux(skew=skew)([])
+        try:
+            if len(T) == 0:
+                return ShiftedPrimedTableaux(skew=skew)([])
+        except TypeError:
+            raise ValueError("input must be an iterable")
+        try:
+            if sum(len(row) for row in T) == 0:
+                return ShiftedPrimedTableaux(skew=skew)([])
+        except TypeError:
+            raise ValueError("rows in the tableau must be iterables")
+
         skew_ = Partition([row.count(None) for row in T])
         if skew_:
             if skew and Partition(skew) != skew_:

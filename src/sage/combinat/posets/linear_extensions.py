@@ -325,6 +325,47 @@ class LinearExtensionOfPoset(ClonableArray):
                 self = self.tau(j)
         return self
 
+    def jump_count(self):
+        """
+        Return the number of jumps in the linear extension.
+
+        A *jump* in a linear extension `[e_1, e_2, \ldots, e_n]`
+        is a pair `(e_i, e_{i+1})` such that `e_{i+1}` does not
+        cover `e_i`.
+
+        .. SEEALSO::
+
+            - :meth:`sage.combinat.posets.posets.FinitePoset.jump_number()`
+
+        EXAMPLES::
+
+            sage: B3 = posets.BooleanLattice(3)
+            sage: l1 = B3.linear_extension((0, 1, 2, 3, 4, 5, 6, 7))
+            sage: l1.jump_count()
+            3
+            sage: l2 = B3.linear_extension((0, 1, 2, 4, 3, 5, 6, 7))
+            sage: l2.jump_count()
+            5
+
+        TESTS::
+
+            sage: E = Poset()
+            sage: E.linear_extensions()[0].jump_count()
+            0
+            sage: C4 = posets.ChainPoset(4)
+            sage: C4.linear_extensions()[0].jump_count()
+            0
+            sage: A4 = posets.AntichainPoset(4)
+            sage: A4.linear_extensions()[0].jump_count()
+            3
+        """
+        P = self.poset()
+        n = 0
+        for i in range(len(self)-1):
+            if not P.covers(self[i], self[i+1]):
+                n += 1
+        return n
+
 class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
     """
     The set of all linear extensions of a finite poset

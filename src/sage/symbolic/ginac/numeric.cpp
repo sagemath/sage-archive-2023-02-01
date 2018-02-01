@@ -285,13 +285,8 @@ int precision(const GiNaC::numeric& num, PyObject*& a_parent) {
         PyObject *mprec = nullptr;
         if (the_parent != nullptr)
                 mprec = PyObject_CallMethod(the_parent, const_cast<char*>("precision"), NULL);
-        if (mprec == nullptr) {
+        if (mprec == nullptr)
                 prec = 53;
-                if (num.is_real())
-                        the_parent = RR_get();
-                else
-                        the_parent = CC_get();
-        }
         else {
                 prec = PyLong_AsLong(mprec);
                 Py_DECREF(mprec);
@@ -3268,8 +3263,21 @@ ex numeric::eval(int /*level*/) const {
  *  @param level  ignored, only needed for overriding basic::evalf.
  *  @return  an ex-handle to a numeric. */
 ex numeric::evalf(int /*level*/, PyObject* parent) const {
-        PyObject *a = to_pyobject();
-        PyObject *ans = py_funcs.py_float(a, parent);
+        PyObject *ans, *a = to_pyobject();
+        if (parent == nullptr)
+                parent = RR_get();
+        if (not PyDict_CheckExact(parent)) {
+                PyObject* dict = PyDict_New();
+                if (dict == nullptr)
+                        throw(std::runtime_error("PyDict_New returned NULL"));
+                int r = PyDict_SetItemString(dict, "parent", parent);
+                if (r<0)
+                        throw(std::runtime_error("PyDict_SetItemString failed"));
+                ans = py_funcs.py_float(a, dict);
+                Py_DECREF(dict);
+        }
+        else
+                ans = py_funcs.py_float(a, parent);
         Py_DECREF(a);
         if (ans == nullptr)
                 throw (std::runtime_error("numeric::evalf(): error calling py_float()"));
@@ -3651,17 +3659,22 @@ const numeric numeric::atanh(PyObject* parent) const {
 }
 
 const numeric numeric::Li2(const numeric &n, PyObject* parent) const {
+        PyObject *cparent = common_parent(*this, n);
+        if (parent == nullptr)
+               parent = cparent;
         int prec = precision(*this, parent);
         PyObject* field = CBF(prec+15);
         PyObject* ret = CallBallMethod1Arg(field, const_cast<char*>("polylog"), *this, n);
         Py_DECREF(field);
 
-        numeric rnum(ret);
+        numeric rnum(ret), nret;
         if ((is_real() or imag().is_zero())
             and n.is_integer() and rnum.real()<(*_num1_p))
-                return ex_to<numeric>(rnum.real().evalf(0, parent));
+                nret = ex_to<numeric>(rnum.real().evalf(0, parent));
         else
-                return ex_to<numeric>(rnum.evalf(0, parent));
+                nret = ex_to<numeric>(rnum.evalf(0, parent));
+        Py_DECREF(cparent);
+        return nret;
 }
 
 const numeric numeric::lgamma(PyObject* parent) const {

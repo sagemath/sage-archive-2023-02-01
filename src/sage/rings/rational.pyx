@@ -63,6 +63,7 @@ import fractions
 
 from sage.misc.mathml import mathml
 from sage.arith.long cimport pyobject_to_long
+from sage.cpython.string cimport char_to_str
 
 import sage.misc.misc as misc
 from sage.structure.sage_object cimport SageObject
@@ -2155,7 +2156,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         sig_on()
         mpq_get_str(s, base, self.value)
         sig_off()
-        k = str(s)
+        k = char_to_str(s)
         PyMem_Free(s)
         return k
 

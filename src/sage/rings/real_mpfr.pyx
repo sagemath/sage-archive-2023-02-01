@@ -637,9 +637,14 @@ cdef class RealField_class(sage.rings.ring.Field):
             ValueError: can only convert signed infinity to RR
             sage: R(CIF(NaN))
             NaN
+            sage: R(complex(1.7))
+            1.7000
         """
+        from sage.structure.element import parent 
         if hasattr(x, '_mpfr_'):
             return x._mpfr_(self)
+        if parent(x) is complex and x.imag == 0:
+            x = x.real
         cdef RealNumber z
         z = self._new()
         z._set(x, base)

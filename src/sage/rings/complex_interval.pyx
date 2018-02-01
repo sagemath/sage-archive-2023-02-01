@@ -259,6 +259,31 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             s = "0"
         return s
 
+    def _mpfr_(self, parent):
+        r"""
+        Try to convert this interval field element to a real number.
+
+        Fail if the imaginary part is not exactly zero.
+
+        INPUT:
+
+        - ``parent`` - :class:`~sage.rings.real_mpfr.RealField_class`,
+          target parent.
+
+        EXAMPLES::
+
+            sage: RR(CIF(1/3))
+            0.333333333333333
+            sage: RR(CIF(1, 1/3) - CIF(0, 1/3))
+            Traceback (most recent call last):
+            ...
+            TypeError: can't convert complex interval to real number
+        """
+        if self.imag() == 0:
+            return parent(self.real())
+        else:
+            raise TypeError("can't convert complex interval to real number")
+
     def plot(self, pointsize=10, **kwds):
         r"""
         Plot a complex interval as a rectangle.

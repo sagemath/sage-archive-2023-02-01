@@ -3124,7 +3124,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         ALGORITHM:
 
-        See [BIANCO]_
+        Basically we test every greedy linear extension of the poset.
+        The problem is shown to be NP-hard.
 
         TESTS::
 

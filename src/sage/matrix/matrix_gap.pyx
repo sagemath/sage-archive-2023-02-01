@@ -15,7 +15,7 @@ from __future__ import print_function, absolute_import
 
 from sage.libs.gap.libgap import libgap
 from . import matrix_space
-cimport sage.structure.element
+from sage.structure.element cimport Matrix
 
 cdef class Matrix_gap(Matrix_dense):
     r"""
@@ -307,7 +307,7 @@ cdef class Matrix_gap(Matrix_dense):
         ans._libgap = left._libgap - (<Matrix_gap> right)._libgap
         return ans
 
-    cdef sage.structure.element.Matrix _matrix_times_matrix_(left, sage.structure.element.Matrix right):
+    cdef Matrix _matrix_times_matrix_(left, Matrix right):
         r"""
         TESTS::
 

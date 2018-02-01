@@ -3139,23 +3139,48 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: A4.jump_number()
             3
         """
-        H = self._hasse_diagram
-        jumps_min = H.order()  # = "Infinity"
+        N = self.cardinality()
+        if N == 0:
+            return (0, []) if certificate else 0
+        self_as_set = set(self)
+        # No 'nonlocal' in Python 2. Workaround:
+        # nonlocals[0] is the best jump number found so far,
+        # nonlocals[1] is the linear extension giving it.
+        nonlocals = [N, []]
 
-        for lin_ext in H.topological_sort_generator():
-            jumpcount = 0
-            for a, b in zip(lin_ext, lin_ext[1:]):
-                if not H.has_edge(a, b):
-                    jumpcount += 1
-                    if jumpcount >= jumps_min:
-                        break
-            else:
-                jumps_min = jumpcount
-                best_le = lin_ext
+        def greedy_rec(self, linext, jumpcount):
+            """
+            Recursively extend beginning of a linear extension by one element,
+            unless we see that an extension with smaller jump number already
+            has been found.
+            """
+            if len(linext) == N:
+                nonlocals[0] = jumpcount
+                nonlocals[1] = linext[:]
+                return
+
+            S = []
+            if linext:
+                # S is elements where we can grow the chain without a jump.
+                S = [x for x in self.upper_covers(linext[-1]) if
+                     all(low in linext for low in self.lower_covers(x))]
+            if not S:
+                if jumpcount >= nonlocals[0]-1:
+                    return
+                jumpcount += 1
+                # S is minimal elements of the poset without elements in linext
+                S_ = self_as_set.difference(set(linext))
+                S = [x for x in S_ if
+                     not any(low in S_ for low in self.lower_covers(x))]
+
+            for e in S:
+                greedy_rec(self, linext+[e], jumpcount)
+
+        greedy_rec(self, [], -1)
 
         if certificate:
-            return (jumps_min, [self._vertex_to_element(v) for v in best_le])
-        return jumps_min
+            return (nonlocals[0], nonlocals[1])
+        return nonlocals[0]
 
     def rank_function(self):
         r"""

@@ -434,6 +434,12 @@ REFERENCES:
 .. [Br2016] *Bresenham's Line Algorithm*, Python, 26 December 2016.
             http://www.roguebasin.com/index.php?title=Bresenham%27s_Line_Algorithm
 
+.. [Bru1994] Richard A. Brualdi, Hyung Chan Jung, William T.Trotter Jr
+             *On the poset of all posets on `n` elements*
+             Volume 50, Issue 2, 6 May 1994, Pages 111-123
+             Discrete Applied Mathematics
+             http://www.sciencedirect.com/science/article/pii/0166218X9200169M
+
 .. [Bruin-Molnar] \N. Bruin and A. Molnar, *Minimal models for rational
             functions in a dynamical setting*, 
             LMS Journal of Computation and Mathematics, Volume 15 (2012),

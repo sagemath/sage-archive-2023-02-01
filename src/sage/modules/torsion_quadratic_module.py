@@ -476,10 +476,10 @@ class TorsionQuadraticModule(FGP_Module_class):
             sage: T.normal_form()
             Finite quadratic module over Integer Ring with invariants (6, 6, 12, 12)
             Gram matrix of the quadratic form with values in Q/(1/3)Z:
-            [ 1/6 1/12    0    0    0    0    0    0]
-            [1/12  1/6    0    0    0    0    0    0]
-            [   0    0 1/12 1/24    0    0    0    0]
-            [   0    0 1/24 1/12    0    0    0    0]
+            [1/12 1/24    0    0    0    0    0    0]
+            [1/24 1/12    0    0    0    0    0    0]
+            [   0    0  1/6 1/12    0    0    0    0]
+            [   0    0 1/12  1/6    0    0    0    0]
             [   0    0    0    0  1/9    0    0    0]
             [   0    0    0    0    0  1/9    0    0]
             [   0    0    0    0    0    0  1/9    0]
@@ -502,9 +502,6 @@ class TorsionQuadraticModule(FGP_Module_class):
                 for j in range(n):
                     g += D_p.gens()[j].lift() * U[i,j]
                 gens_p.append(g)
-            # we want the order of the generators of the p-primary part
-            # to be ascending
-            gens_p.reverse()
             gens += gens_p
         return self.submodule_with_gens(gens)
 

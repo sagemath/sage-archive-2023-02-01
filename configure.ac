@@ -886,8 +886,6 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
     SAGE_PACKAGE_DEPENDENCIES+="deps_$PKG_NAME = $DEPS"$'\n'
 
     # Determine package build rules
-    # Below we have to obscure A""M_V_at, or autoconf would complain:
-    # "error: possibly undefined macro: A""M_V_at"
     case "$PKG_TYPE" in
     pip)
         SAGE_PIP_PACKAGES+="    $PKG_NAME \\"$'\n'

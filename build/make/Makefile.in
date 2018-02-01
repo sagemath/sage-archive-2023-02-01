@@ -1,8 +1,29 @@
+# Makefile template for Sage packages: This Makefile is filled by the
+# ./configure script with information all of Sage's dependent packages (SPKGs),
+# including their names, their current versions, their dependencies, and some
+# classifications according to their installation priority ("standard",
+# "optional") and installation method ("normal", "pip", "script").
+#
+# Finally, install and clean rules for each package are generated from the
+# templates at the end of this file.  Because the templates may slightly
+# obscure the substance of the actual rules, this file can be debugged by
+# running:
+#
+#     $ make -f build/make/Makefile -n DEBUG_RULES=1
+#
+# This will not actually run any rules (the -n flag) but will print all the
+# rules generated from the templates.
+
 # Always use bash for make rules
 SHELL = /bin/bash
 
 ifndef SAGE_SPKG_INST
+ifndef DEBUG_RULES
 $(error This Makefile needs to be invoked by build/make/install)
+else
+# A dummy value for this variable for debugging purposes
+SAGE_SPKG_INST=installed
+endif
 endif
 
 # Directory to keep track of which packages are installed
@@ -65,9 +86,16 @@ SCRIPT_PACKAGES = @SAGE_SCRIPT_PACKAGES@
 #
 # inst_<pkgname> = $(INST)/<pkgname>-<pkgvers>
 #
-# And for 'dummy' package that are not actually built/installed:
+# And for 'dummy' package that are not actually built/installed (e.g. because
+# configure determined we can use the package from the system):
 #
 # inst_<pkgname> = $(INST)/.dummy
+#
+# For example:
+#
+# inst_python2 = $(INST)/python2-$(vers_python2)
+#
+# inst_git = $(INST)/.dummy
 
 $(foreach pkgname,$(BUILT_PACKAGES),\
 	$(eval inst_$(pkgname) = $$(INST)/$(pkgname)-$(vers_$(pkgname))))
@@ -88,10 +116,26 @@ $(INST)/.dummy:
 # Rules generated from pkgs/<package>/dependencies files
 #==============================================================================
 
+# Define a function for generating the list of a package's dependencies
+# as $(inst_<pkgname>) variables.  For example, takes:
+#
+#     deps_cysignals = python2 cython pari | pip
+#
+# to:
+#
+#     $(inst_python2) $(inst_cython) $(inst_pari) | $(inst_pip)
+#
+# Positional arguments:
+#     $(1): package name
+pkg_deps = \
+	$(foreach dep,$(deps_$(1)),\
+        $(if $(findstring |,$(dep)),|,$$(inst_$(dep))))
+
+# ============================= normal packages ==============================
 # Generate build rules for 'normal' packages; this template is used to generate
 # three rules in the form:
 #
-# $(INST)/<pkgname>-<pkgvers>: $(foreach dep,$(deps_<pkname>),$(inst_$(dep)))
+# $(INST)/<pkgname>-<pkgvers>: <dependencies>
 #     +$(AM_V_at)sage-logger -p '$(SAGE_SPKG) <pkgname>-<pkgvers>' '$(SAGE_LOGS)/<pkgname>-<pkgvers>.log'
 #
 # <pkgname>: $(INST)/<pkgname>-<pkgvers>
@@ -99,49 +143,83 @@ $(INST)/.dummy:
 # <pkgname>-clean:
 #     rm -rf $(INST)/<pkgname>-<pkgvers>
 #
+# For example, for python2 this will expand to:
+#
+# $(INST)/python2-2.7.14: $(inst_zlib) $(inst_readline) $(inst_sqlite) $(inst_libpng) $(inst_bzip2)
+#     +$(AM_V_at)sage-logger -p '$(SAGE_SPKG) python2-2.7.14' '$(SAGE_LOGS)/python2-2.7.14.log'
+#
+# python2: $(INST)/python2-2.7.14
+#
+# python2-clean:
+#     rm -rf $(INST)/python2-2.7.14
+#
 # Note: In these rules the $(INST)/<pkgname>-<pkgvers> target is used
 # explicitly, rather than expanding the $(inst_<pkgname>) variable, since
 # it may expand to $(INST)/.dummy for packages that were not configured
 # for installation by default.  However, we wish to be able to manually
 # install those packages later.
 
+# Positional arguments:
+#     $(1): package name
+#     $(2): package version
+#     $(3): package dependencies
 define NORMAL_PACKAGE_templ
-$$(INST)/$(1)-$$(vers_$(1)): $$(foreach dep,$$(deps_$(1)),$$(inst_$$(dep)))
-	+$(AM_V_at)sage-logger -p '$(SAGE_SPKG) $(1)-$$(vers_$(1))' '$(SAGE_LOGS)/$(1)-$$(vers_$(1)).log'
+$$(INST)/$(1)-$(2): $(3)
+	+$(AM_V_at)sage-logger -p '$$(SAGE_SPKG) $(1)-$(2)' '$$(SAGE_LOGS)/$(1)-$(2).log'
 
-$(1): $$(INST)/$(1)-$$(vers_$(1))
+$(1): $$(INST)/$(1)-$(2)
 
 $(1)-clean:
-	rm -rf $$(INST)/$(1)-$$(vers_$(1))
+	rm -rf $$(INST)/$(1)-$(2)
+
 endef
 
-$(foreach pkgname,$(NORMAL_PACKAGES),\
-	$(eval $(call NORMAL_PACKAGE_templ,$(pkgname))))
+$(foreach pkgname, $(NORMAL_PACKAGES),\
+	$(eval $(call NORMAL_PACKAGE_templ,$(pkgname),$(vers_$(pkgname)),\
+	                                   $(call pkg_deps,$(pkgname)))))
 
+ifdef DEBUG_RULES
+$(info # Rules for standard packages)
+$(foreach pkgname, $(NORMAL_PACKAGES),\
+	$(info $(call NORMAL_PACKAGE_templ,$(pkgname),$(vers_$(pkgname)),\
+	                                   $(call pkg_deps,$(pkgname)))))
+endif
+
+# ================================ pip packages ===============================
 # Generate build rules for 'pip' packages; this template is used to generate
 # two rules in the form:
 #
-# <pkgname>: $(foreach dep,$(deps_<pkname>),$(inst_$(dep)))
+# <pkgname>: <dependencies>
 #     $(AM_V_at)sage-logger -p 'sage --pip install <pkgname>' '$(SAGE_LOGS)/<pkgname>.log'
 #
 # <pkgname>-clean:
 #     -sage --pip uninstall -y <pkgname>
 
+# Positional arguments:
+#     $(1): package name
+#     $(2): package dependencies
 define PIP_PACKAGE_templ
-$(1): $$(foreach dep,$$(deps_$(1)),$$(inst_$$(dep)))
-	$(AM_V_at)sage-logger -p 'sage --pip install $(1)' '$(SAGE_LOGS)/$(1).log'
+$(1): $(2)
+	$(AM_V_at)sage-logger -p 'sage --pip install $(1)' '$$(SAGE_LOGS)/$(1).log'
 
 $(1)-clean:
 	-sage --pip uninstall -y $(1)
 endef
 
 $(foreach pkgname,$(PIP_PACKAGES),\
-	$(eval $(call PIP_PACKAGE_templ,$(pkgname))))
+	$(eval $(call PIP_PACKAGE_templ,$(pkgname),$(call pkg_deps,$(pkgname)))))
 
+ifdef DEBUG_RULES
+$(info # Rules for pip packages)
+$(foreach pkgname,$(PIP_PACKAGES),\
+	$(info $(call PIP_PACKAGE_templ,$(pkgname),$(call pkg_deps,$(pkgname)))))
+endif
+
+# ============================= script packages ==============================
 # Generate build rules for 'script' packages; this template is used to generate
 # two rules in the form:
 #
-# <pkgname>: $(foreach dep,$(deps_<pkname>),$(inst_$(dep)))
+# <pkgname>: <dependencies>
 #     $(AM_V_at)cd '$SAGE_ROOT' && \\
 #         source '$SAGE_ROOT/src/bin/sage-env' && \\
 #         sage-logger -p '$SAGE_ROOT/build/pkgs/<pkgname>/spkg-install' '$(SAGE_LOGS)/<pkgname>.log'
@@ -151,20 +229,29 @@ $(foreach pkgname,$(PIP_PACKAGES),\
 #         source '$SAGE_ROOT/src/bin/sage-env' && \\
 #         '$SAGE_ROOT/build/pkgs/$PKG_NAME/spkg-uninstall'
 
+# Positional arguments:
+#     $(1): package name
+#     $(2): package dependencies
 define SCRIPT_PACKAGE_templ
-$(1): $$(foreach dep,$$(deps_$(1)),$$(inst_$$(dep)))
-	$(AM_V_at)cd '$(SAGE_ROOT)' && \
-		source '$(SAGE_ROOT)/src/bin/sage-env' && \
-		sage-logger -p '$(SAGE_ROOT)/build/pkgs/$(1)/spkg-install' '$(SAGE_LOGS)/$(1).log'
+$(1): $(2)
+	$(AM_V_at)cd '$$(SAGE_ROOT)' && \
+		source '$$(SAGE_ROOT)/src/bin/sage-env' && \
+		sage-logger -p '$$(SAGE_ROOT)/build/pkgs/$(1)/spkg-install' '$$(SAGE_LOGS)/$(1).log'
 
 $(1)-clean:
-	-$(AM_V_at)cd '$(SAGE_ROOT)' && \
-		source '$(SAGE_ROOT)/src/bin/sage-env' && \
-		'$(SAGE_ROOT)/build/pkgs/$(1)/spkg-uninstall'
+	-$(AM_V_at)cd '$$(SAGE_ROOT)' && \
+		source '$$(SAGE_ROOT)/src/bin/sage-env' && \
+		'$$(SAGE_ROOT)/build/pkgs/$(1)/spkg-uninstall'
 endef
 
 $(foreach pkgname,$(SCRIPT_PACKAGES),\
-	$(eval $(call SCRIPT_PACKAGE_templ,$(pkgname))))
+	$(eval $(call SCRIPT_PACKAGE_templ,$(pkgname),$(call pkg_deps,$(pkgname)))))
+
+ifdef DEBUG_RULES
+$(info # Rules for script packages)
+$(foreach pkgname,$(SCRIPT_PACKAGES),\
+	$(info $(call SCRIPT_PACKAGE_templ,$(pkgname),$(call pkg_deps,$(pkgname)))))
+endif
 
 .PHONY: $(NORMAL_PACKAGES) $(addsuffix -clean,$(NORMAL_PACKAGES)) \
         $(PIP_PACKAGES) $(addsuffix -clean,$(PIP_PACKAGES)) \

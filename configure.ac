@@ -361,6 +361,19 @@ need_to_install_gfortran=no
 if test -f "$SAGE_LOCAL/bin/gcc"; then
     # Special value for SAGE_INSTALL_GCC if GCC is already installed
     SAGE_INSTALL_GCC=exists
+
+    # Check whether it actually works...
+    # See https://trac.sagemath.org/ticket/24599
+    if test -x "$SAGE_LOCAL/bin/g++"; then
+        echo '#include <complex>' >conftest.cpp
+        echo 'auto inf = 1.0 / std::complex<double>();' >>conftest.cpp
+
+        if ! bash -c "source '$SAGE_LOCAL/bin/sage-env' && g++ -O3 -c -o conftest.o conftest.cpp"; then
+            SAGE_INSTALL_GCC=yes
+            SAGE_MUST_INSTALL_GCC([installed g++ is broken])
+        fi
+        rm -f conftest.*
+    fi
 elif test -n "$SAGE_INSTALL_GCC"; then
     # Check the value of the environment variable SAGE_INSTALL_GCC
     case "$SAGE_INSTALL_GCC" in

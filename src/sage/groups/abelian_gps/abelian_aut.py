@@ -299,8 +299,10 @@ class AbelianGroupAutomorphismGroup_generic(UniqueRepresentation,
             # Also conversions between the domains use the smith gens.
             if x.domain().invariants() != self.domain().gens_orders():
                 raise ValueError("Invariants of domains must agree.")
-            if not x.is_endomorphism() or not x.kernel().invariants() == ():
-                raise ValueError("Not an automorphism of an abelian group.")
+            if not x.domain()==x.codomain():
+                raise ValueError("Domain and codomain do not agree.")
+            if not x.kernel().invariants() == ():
+                raise ValueError("Not an automorphism.")
             dom = self._domain
             images = [dom(x(a)).gap() for a in x.domain().smith_form_gens()]
             x = dom.gap().GroupHomomorphismByImages(dom.gap(), images)

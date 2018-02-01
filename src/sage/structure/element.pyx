@@ -2337,10 +2337,26 @@ cdef class ElementWithCachedMethod(Element):
             self.__cached_methods = {name : attr}
             return attr
 
+
 cdef class ModuleElement(Element):
     """
     Generic element of a module.
     """
+    cpdef _add_(self, other):
+        """
+        Abstract addition method
+
+        TESTS::
+
+            sage: from sage.structure.element import ModuleElement
+            sage: e = ModuleElement(Parent())
+            sage: e + e
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: addition not implemented for <sage.structure.parent.Parent object at ...>
+        """
+        raise NotImplementedError(f"addition not implemented for {self._parent}")
+
     cdef _add_long(self, long n):
         """
         Generic path for adding a C long, assumed to commute.
@@ -2526,6 +2542,21 @@ def is_RingElement(x):
     return isinstance(x, RingElement)
 
 cdef class RingElement(ModuleElement):
+    cpdef _mul_(self, other):
+        """
+        Abstract multiplication method
+
+        TESTS::
+
+            sage: from sage.structure.element import RingElement
+            sage: e = RingElement(Parent())
+            sage: e * e
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: multiplication not implemented for <sage.structure.parent.Parent object at ...>
+        """
+        raise NotImplementedError(f"multiplication not implemented for {self._parent}")
+
     def is_one(self):
         return self == self._parent.one()
 

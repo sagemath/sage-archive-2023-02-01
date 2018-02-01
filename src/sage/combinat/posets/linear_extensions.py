@@ -213,6 +213,40 @@ class LinearExtensionOfPoset(ClonableArray):
         relabelling = dict(zip(old,new))
         return P.relabel(relabelling).with_linear_extension(new)
 
+    def is_greedy(self):
+        """
+        Return ``True`` if the linear extension is greedy.
+
+        A linear extension `[e_1, e_2, \ldots, e_n]` is *greedy* if for
+        every `i` either `e_{i+1}` covers `e_i` or all upper covers
+        of `e_i` have at least one lower cover that is not in
+        `[e_1, e_2, \ldots, e_i]`.
+
+        Informally said a linear extension is greedy if it "always
+        goes up when possible" and so has no unnecessary jumps.
+
+        EXAMPLES::
+
+            sage: P = posets.PentagonPoset()
+            sage: for l in P.linear_extensions():
+            ....:     if not l.is_greedy():
+            ....:         print(l)
+            [0, 2, 1, 3, 4]
+
+        TESTS::
+
+            sage: E = Poset()
+            sage: E.linear_extensions()[0].is_greedy()
+            True
+        """
+        P = self.poset()
+        for i in range(len(self)-1):
+            if not P.covers(self[i], self[i+1]):
+                for u in P.upper_covers(self[i]):
+                    if all(l in self[:i+1] for l in P.lower_covers(u)):
+                        return False
+        return True
+
     def tau(self, i):
         r"""
         Returns the operator `\tau_i` on linear extensions ``self`` of a poset.

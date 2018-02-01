@@ -2497,7 +2497,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         if action is not None:
             from sage.categories.action import Action
             if not isinstance(action, Action):
-                raise TypeError("get_action_impl must return None or an Action")
+                raise TypeError("_get_action_ must return None or an Action")
             # We do NOT add to the list, as this would lead to errors as in
             # the example above.
 

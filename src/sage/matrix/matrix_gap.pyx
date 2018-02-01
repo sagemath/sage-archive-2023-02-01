@@ -49,19 +49,23 @@ cdef class Matrix_gap(Matrix_dense):
         sage: m.transpose().parent() is M
         True
 
+        sage: UCF = UniversalCyclotomicField()
+        sage: M = MatrixSpace(UCF, 3, implementation='gap')
+        sage: m = M([UCF.zeta(i) for i in range(1,10)])
+        sage: m
+        [               1               -1             E(3)]
+        [            E(4)             E(5)          -E(3)^2]
+        [            E(7)             E(8) -E(9)^4 - E(9)^7]
+        sage: (m^2)[1,2]
+        E(180)^32 - E(180)^33 + E(180)^68 - E(180)^69 + E(180)^104 - E(180)^141 - E(180)^156 + E(180)^176 - E(180)^177
+
     TESTS::
 
-        sage: M = MatrixSpace(ZZ, 2, implementation='gap')
-        sage: TestSuite(M).run()
-
-        sage: M = MatrixSpace(ZZ, 2, 3, implementation='gap')
-        sage: TestSuite(M).run()
-
-        sage: M = MatrixSpace(QQ, 3, implementation='gap')
-        sage: TestSuite(M).run()
-
-        sage: M = MatrixSpace(QQ, 3, 2, implementation='gap')
-        sage: TestSuite(M).run()
+        sage: for ring in [ZZ, QQ, UniversalCyclotomicField(), GF(2), GF(3)]:
+        ....:     M = MatrixSpace(ring, 2, implementation='gap')
+        ....:     TestSuite(M).run()
+        ....:     M = MatrixSpace(ring, 2, 3, implementation='gap')
+        ....:     TestSuite(M).run()
     """
     def __init__(self, parent, entries, coerce, copy):
         r"""

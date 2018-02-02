@@ -173,7 +173,6 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.is_eulerian` | Return ``True`` if the graph has a (closed) tour that visits each edge exactly once.
     :meth:`~GenericGraph.is_planar` | Test whether the graph is planar.
     :meth:`~GenericGraph.is_circular_planar` | Test whether the graph is circular planar (outerplanar)
-    :meth:`~GenericGraph.is_polyhedral` | Test whether the graph is the graph of a polyhedron.
     :meth:`~GenericGraph.is_regular` | Return ``True`` if this graph is (`k`-)regular.
     :meth:`~GenericGraph.is_chordal` | Test whether the given graph is chordal.
     :meth:`~GenericGraph.is_circulant` | Test whether the graph is a circulant graph.
@@ -4125,7 +4124,7 @@ class GenericGraph(GenericGraph_pyx):
           - "Measuring non-planarity": :meth:`~genus`, :meth:`~crossing_number`
           - :meth:`planar_dual`
           - :meth:`faces`
-          - :meth:`is_polyhedral`
+          - :meth:`~sage.graphs.graph.Graph.is_polyhedral`
 
         INPUT:
 
@@ -5202,52 +5201,6 @@ class GenericGraph(GenericGraph_pyx):
 
         from sage.graphs.graph import Graph
         return Graph([[tuple(_) for _ in self.faces()], lambda f, g: not set([tuple(reversed(e)) for e in f]).isdisjoint(g)], loops=False)
-
-    def is_polyhedral(self):
-        """
-        Test whether the graph is the graph of the polyhedron.
-
-        By a theorem of Steinitz (Satz 43, p. 77 of [St1922]_),
-        graphs of three-dimensional polyhedra are exactly
-        the simple 3-vertex-connected planar graphs.
-
-        EXAMPLES::
-
-            sage: C = graphs.CubeGraph(3)
-            sage: C.is_polyhedral()
-            True
-            sage: K33=graphs.CompleteBipartiteGraph(3, 3)
-            sage: K33.is_polyhedral()
-            False
-            sage: graphs.CycleGraph(17).is_polyhedral()
-            False
-            sage: [i for i in range(9) if graphs.CompleteGraph(i).is_polyhedral()]
-            [4]
-
-
-        .. SEEALSO::
-
-            * :meth:`vertex_connectivity`
-            * :meth:`is_planar`
-
-        TESTS::
-
-            sage: G = Graph([[1, 2, 3, 4], [[1, 2], [1,1]]], loops=True)
-            sage: G.is_polyhedral()
-            False
-
-            sage: G = Graph([[1, 2, 3], [[1, 2], [3, 1], [1, 2], [2, 3]]], multiedges=True)
-            sage: G.is_polyhedral()
-            False
-
-        .. TODO::
-
-            Implement a faster 3-vertex-connectivity test.
-        """
-
-        return (not (self.has_loops() or self.has_multiple_edges())
-                and (self.vertex_connectivity() >= 3)
-                and self.is_planar())
 
     ### Connectivity
 

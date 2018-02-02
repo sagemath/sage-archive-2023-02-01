@@ -173,6 +173,8 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.is_eulerian` | Return ``True`` if the graph has a (closed) tour that visits each edge exactly once.
     :meth:`~GenericGraph.is_planar` | Test whether the graph is planar.
     :meth:`~GenericGraph.is_circular_planar` | Test whether the graph is circular planar (outerplanar)
+    :meth:`~GenericGraph.is_circumscribable` | Test whether the graph is the graph of a circumscribed polyhedron.
+    :meth:`~GenericGraph.is_inscribable` | Test whether the graph is the graph of an inscribed polyhedron.
     :meth:`~GenericGraph.is_regular` | Return ``True`` if this graph is (`k`-)regular.
     :meth:`~GenericGraph.is_chordal` | Test whether the given graph is chordal.
     :meth:`~GenericGraph.is_circulant` | Test whether the graph is a circulant graph.
@@ -5203,7 +5205,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def is_circumscribable(self):
         """
-        Test whether the graph is the graph of a circumscrbed polyhedron.
+        Test whether the graph is the graph of a circumscribed polyhedron.
 
         A polyhedron is circumscribed is all of its facets are tangent to a sphere.
         By a theorem of Rivin ([HRS1993]_), this can be checked by solving a
@@ -5299,7 +5301,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def is_inscribable(self):
         """
-        Test whether the graph is the graph of a inscribed polyhedron.
+        Test whether the graph is the graph of an inscribed polyhedron.
 
         A polyhedron is inscribed if all of its vertices are on a sphere.
         This is dual to the notion of circumscribed polyhedron:

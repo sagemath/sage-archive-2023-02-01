@@ -105,24 +105,22 @@ class ShiftedPrimedTableau(ClonableArray):
             sage: s = ShiftedPrimedTableau([[None, None,"2p",2,3],[None,"2p"]])
             sage: s.parent()
             Shifted Primed Tableaux skewed by [2, 1]
+
+        TESTS::
+
+            sage: ShiftedPrimedTableau([])
+            []
+            sage: ShiftedPrimedTableau([tuple([])])
+            []
         """
         if isinstance(T, ShiftedPrimedTableau) and T._skew == skew:
             return T
-        if not T or T == [[]]:
-            return ShiftedPrimedTableaux(skew=skew)([])
-        try:
-            entry = T[0][0]
-        except TypeError:
-            raise ValueError("input tableau must be a list of lists")
 
-        if entry is None:
-            skew_ = [row.count(None) for row in T if row[0] is None]
-            if skew is not None:
-                if skew != skew_:
-                    raise ValueError("skew shape does not agree with None entries")
-            else:
-                skew = skew_
-
+        skew_ = Partition([row.count(None) for row in T])
+        if skew_:
+            if skew and Partition(skew) != skew_:
+                raise ValueError("skew shape does not agree with None entries")
+            skew = skew_
         return ShiftedPrimedTableaux(skew=skew)(T)
 
     def __init__(self, parent, T, skew=None, check=True, preprocessed=False):
@@ -162,27 +160,39 @@ class ShiftedPrimedTableau(ClonableArray):
     def _preprocess(T, skew=None):
         """
         Preprocessing list ``T`` to initialize the tableau.
+        The output is a list of rows as tuples, with explicit
+        ``None``'s to indicate the skew shape, and entries being
+        ``PrimedEntry``s.
+
+        Trailing empty rows are removed.
 
         TESTS::
 
             sage: ShiftedPrimedTableau._preprocess([["2'", "3p", 3.5]],
             ....: skew=[1])
             [(None, 2', 3', 4')]
+            sage: ShiftedPrimedTableau._preprocess([[None]], skew=[1])
+            [(None,)]
+            sage: ShiftedPrimedTableau._preprocess([], skew=[2,1])
+            [(None, None), (None,)]
+            sage: ShiftedPrimedTableau._preprocess([], skew=[])
+            []
         """
         if isinstance(T, ShiftedPrimedTableau):
             return T
-
         # Preprocessing list t for primes and other symbols
         T = [[PrimedEntry(entry) for entry in row if entry is not None]
              for row in T]
+        while len(T) > 0 and len(T[-1]) == 0:
+            T = T[:-1]
+        row_min = min(len(skew), len(T)) if skew else 0
+        T_ = [(None,)*skew[i] + tuple(T[i]) for i in range(row_min)]
 
-        if skew is not None:
-            T = ([(None,)*skew[i] + tuple(T[i])
-                  for i in range(len(skew))]
-                 + [tuple(T[i]) for i in range(len(skew), len(T))])
-        else:
-            T = [tuple(row) for row in T]
-        return T
+        if row_min < len(T):
+            T_ += [tuple(T[i]) for i in range(row_min, len(T))]
+        elif skew:
+            T_ += [(None,)*skew[i] for i in range(row_min, len(skew))]
+        return T_
 
     def check(self):
         """
@@ -354,6 +364,12 @@ class ShiftedPrimedTableau(ClonableArray):
             sage: ascii_art(ShiftedPrimedTableau([]))
             ++
             ++
+
+            sage: ascii_art(ShiftedPrimedTableau([], skew=[1]))
+            +---+
+            | . |
+            +---+
+
         """
         from sage.typeset.ascii_art import AsciiArt
         return AsciiArt(self._ascii_art_table(unicode=False).splitlines())
@@ -383,6 +399,10 @@ class ShiftedPrimedTableau(ClonableArray):
             sage: unicode_art(ShiftedPrimedTableau([]))
             ┌┐
             └┘
+            sage: unicode_art(ShiftedPrimedTableau([], skew=[1]))
+            ┌───┐
+            │ . │
+            └───┘
         """
         from sage.typeset.unicode_art import UnicodeArt
         return UnicodeArt(self._ascii_art_table(unicode=True).splitlines())
@@ -492,6 +512,13 @@ class ShiftedPrimedTableau(ClonableArray):
             sage: s.pp()
              .  .  2' 2  3
                 .  2'
+
+        TESTS::
+
+            sage: ShiftedPrimedTableau([],skew=[1]).pp()
+            .
+            sage: ShiftedPrimedTableau([]).pp()
+            <BLANKLINE>
         """
         print(self._repr_diagram())
 
@@ -523,12 +550,21 @@ class ShiftedPrimedTableau(ClonableArray):
             sage: Tab = ShiftedPrimedTableau([(1,1,'2p','3p'),(2,2)])
             sage: Tab.max_entry()
             3
-        """
-        if not self:
-            return 0
 
-        return max(entry.unprimed() for row in self
-                   for entry in row if entry is not None)
+        TESTS::
+
+            sage: Tab = ShiftedPrimedTableau([], skew=[2,1])
+            sage: Tab.max_entry()
+            0
+            sage: Tab = ShiftedPrimedTableau([["1p"]], skew=[2,1])
+            sage: Tab.max_entry()
+            1
+        """
+        flat = [entry.unprimed() for row in self
+                for entry in row if entry is not None]
+        if len(flat) == 0:
+            return 0
+        return max(flat)
 
     def shape(self):
         r"""

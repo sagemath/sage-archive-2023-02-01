@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-World Map
+Map graphs
 
 The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 """
@@ -18,6 +18,147 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 # import from Sage library
 from sage.graphs.graph import Graph
 
+def AfricaMap(continental=False, year=2018):
+    """
+    Return African states as a graph of common border.
+
+    "African state" here is defined as an independent
+    state having the capital city in Africa. The graph
+    has an edge between those countries that have common
+    *land* border.
+
+    INPUT:
+
+    - ``continental``, a Boolean -- if set, only return states in
+      the continental Africa
+    - ``year`` -- reserved for future use
+
+    EXAMPLES::
+
+        sage: Africa = graphs.AfricaMap(); Africa
+        Africa Map: Graph on 54 vertices
+        sage: sorted(Africa.neighbors('Libya'))
+        ['Algeria', 'Chad', 'Egypt', 'Niger', 'Sudan', 'Tunisia']
+
+        sage: cont_Africa = graphs.AfricaMap(continental=True)
+        sage: cont_Africa.order()
+        48
+        sage: 'Madagaskar' in cont_Africa
+        False
+    """
+    if year != 2018:
+        raise ValueError("currently only year 2018 is implemented")
+
+    common_border = {
+     'Algeria': ['Libya', 'Mali', 'Mauritania', 'Morocco', 'Niger', 'Tunisia'],
+     'Angola': ['Namibia', 'Zambia'],
+     'Benin': ['Burkina Faso', 'Niger', 'Nigeria', 'Togo'],
+     'Botswana': ['Namibia', 'South Africa', 'Zimbabwe'],
+     'Burkina Faso': ['Ghana', 'Ivory Coast', 'Mali', 'Niger', 'Togo'],
+     'Cameroon': ['Central Africa', 'Chad', 'Equatorial Guinea', 'Gabon', 'Nigeria'],
+     'Central Africa': ['Chad', 'South Sudan', 'Sudan'],
+     'Chad': ['Libya', 'Niger', 'Nigeria', 'Sudan'],
+     'Republic of the Congo': ['Gabon', 'Cameroon', 'Central Africa', 'Angola',
+                               'Democratic Republic of the Congo'],
+     'Democratic Republic of the Congo': ['Zambia', 'South Sudan', 'Tanzania', 'Burundi',
+                                          'Rwanda', 'Uganda', 'Central Africa', 'Angola'],
+     'Djibouti': ['Eritrea', 'Ethiopia', 'Somalia'],
+     'Ethiopia': ['Eritrea', 'Kenya', 'Somalia', 'South Sudan', 'Sudan'],
+     'Gabon': ['Equatorial Guinea'],
+     'Ghana': ['Ivory Coast', 'Togo'],
+     'Guinea': ['Guinea-Bissau', 'Ivory Coast', 'Liberia', 'Sierra Leone'],
+     'Kenya': ['Somalia', 'South Sudan', 'Tanzania', 'Uganda'],
+     'Liberia': ['Ivory Coast', 'Sierra Leone'],
+     'Libya': ['Egypt', 'Niger', 'Sudan', 'Tunisia'],
+     'Mali': ['Guinea', 'Ivory Coast', 'Mauritania', 'Niger', 'Senegal'],
+     'Mozambique': ['Malawi', 'South Africa', 'Swaziland', 'Zimbabwe'],
+     'Niger': ['Nigeria'],
+     'Rwanda': ['Burundi', 'Tanzania', 'Uganda'],
+     'Senegal': ['Guinea', 'Guinea-Bissau', 'Mauritania', 'Gambia'],
+     'South Africa': ['Lesotho', 'Namibia', 'Swaziland', 'Zimbabwe'],
+     'South Sudan': ['Uganda', 'Sudan', 'Democratic Republic of the Congo'],
+     'Sudan': ['Egypt', 'Eritrea'],
+     'Tanzania': ['Burundi', 'Malawi', 'Mozambique', 'Uganda', 'Zambia'],
+     'Zambia': ['Malawi', 'Mozambique', 'Namibia', 'Zimbabwe']
+     }
+
+    no_land_border = ['Cape Verde', 'Seychelles', 'Mauritius', 'S\xc3\xa3o Tom\xc3\xa9 and Pr\xc3\xadncipe', 'Madagascar', 'Comoros']
+
+    G = Graph(common_border, format='dict_of_lists')
+
+    if continental:
+        G = G.subgraph(G.connected_component_containing_vertex('Central Africa'))
+        G.name(new="Continental Africa Map")
+    else:
+        G.add_vertices(no_land_border)
+        G.name(new="Africa Map")
+
+    return G
+
+def EuropeMap(continental=False, year=2018):
+    """
+    Return European states as a graph of common border.
+
+    "European state" here is defined as an independent
+    state having the capital city in Europe. The graph
+    has an edge between those countries that have common
+    *land* border.
+
+    INPUT:
+
+    - ``continental``, a Boolean -- if set, only return states in
+      the continental Europe
+    - ``year`` -- reserved for future use
+
+    EXAMPLES::
+
+        sage: Europe = graphs.EuropeMap(); Europe
+        Europe Map: Graph on 44 vertices
+        sage: Europe.neighbors('Ireland')
+        ['United Kingdom']
+
+        sage: cont_Europe = graphs.EuropeMap(continental=True)
+        sage: cont_Europe.order()
+        40
+        sage: 'Iceland' in cont_Europe
+        False
+    """
+    if year != 2018:
+        raise ValueError("currently only year 2018 is implemented")
+
+    common_border = {
+     'Poland': ['Slovakia', 'Czech Republic', 'Lithuania', 'Russia', 'Ukraine', 'Germany'],
+     'Germany': ['Czech Republic', 'Netherlands', 'Switzerland', 'Luxembourg', 'Denmark'],
+     'Croatia': ['Bosnia and Herzegovina', 'Serbia', 'Hungary', 'Montenegro', 'Slovenia'],
+     'Austria': ['Czech Republic', 'Germany', 'Switzerland', 'Slovenia', 'Liechtenstein'],
+     'France': ['Germany', 'Italy', 'Switzerland', 'Monaco', 'Luxembourg', 'Andorra'],
+     'Hungary': ['Slovakia', 'Serbia', 'Romania', 'Ukraine', 'Slovenia', 'Austria'],
+     'Italy': ['Switzerland', 'Vatican City', 'San Marino', 'Slovenia', 'Austria'],
+     'Belarus': ['Poland', 'Latvia', 'Lithuania', 'Russia', 'Ukraine'],
+     'Montenegro': ['Bosnia and Herzegovina', 'Serbia', 'Albania'],
+     'Belgium': ['Germany', 'Netherlands', 'Luxembourg', 'France'],
+     'Russia': ['Finland', 'Lithuania', 'Estonia', 'Ukraine'],
+     'Romania': ['Serbia', 'Moldova', 'Bulgaria', 'Ukraine'],
+     'Latvia': ['Lithuania', 'Russia', 'Estonia'],
+     'Slovakia': ['Czech Republic', 'Ukraine', 'Austria'], 'Switzerland': ['Liechtenstein'],
+     'Spain': ['Portugal', 'Andorra', 'France'], 'Norway': ['Finland', 'Sweden', 'Russia'],
+     'Ireland': ['United Kingdom'], 'Serbia': ['Bosnia and Herzegovina', 'Bulgaria'],
+     'Greece': ['Macedonia', 'Bulgaria', 'Albania'], 'Ukraine': ['Moldova'],
+     'Macedonia': ['Serbia', 'Bulgaria', 'Albania'], 'Sweden': ['Finland']
+    }
+    no_land_border = ['Iceland', 'Malta']
+
+    G = Graph(common_border, format='dict_of_lists')
+
+    if continental:
+        G = G.subgraph(G.connected_component_containing_vertex('Austria'))
+        G.name(new="Continental Europe Map")
+    else:
+        G.add_vertices(no_land_border)
+        G.name(new="Europe Map")
+
+    return G
+
 def WorldMap():
     """
     Returns the Graph of all the countries, in which two countries are adjacent
@@ -32,13 +173,18 @@ def WorldMap():
 
     EXAMPLES::
 
-        sage: g=graphs.WorldMap()
-        sage: g.has_edge("France","Italy")
+        sage: g = graphs.WorldMap()
+        sage: g.has_edge("France", "Italy")
         True
         sage: g.gps_coordinates["Bolivia"]
         [[17, 'S'], [65, 'W']]
         sage: sorted(g.connected_component_containing_vertex('Ireland'))
         ['Ireland', 'United Kingdom']
+
+    TESTS::
+
+        sage: 'Iceland' in graphs.WorldMap()  # Trac 24488
+        True
 
     REFERENCE:
 
@@ -463,6 +609,7 @@ def WorldMap():
         }
     g = Graph()
     g.add_edges(edges)
+    g.add_vertices(gps_coordinates)
     g.gps_coordinates = gps_coordinates
     g.name("World Map")
     return g

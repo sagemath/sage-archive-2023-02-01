@@ -299,6 +299,18 @@ class Tableau(ClonableList):
         else:
             return list(self) != other
 
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,1],[2]])
+            sage: hash(tuple(t)) == hash(t)
+            True
+        """
+        return hash(tuple(self))
+
     def check(self):
         r"""
         Check that ``self`` is a valid straight-shape tableau.

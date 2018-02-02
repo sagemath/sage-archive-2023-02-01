@@ -512,11 +512,11 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def as_dynamical_system(self):
         """
-        Return this endomorpism as a :class:`DynamicalSystem_projective`.
+        Return this endomorphism as a :class:`DynamicalSystem_projective`.
 
         OUTPUT:
 
-        - :class:`DynamicalSystem_projective`.
+        - :class:`DynamicalSystem_projective`
 
         EXAMPLES::
 

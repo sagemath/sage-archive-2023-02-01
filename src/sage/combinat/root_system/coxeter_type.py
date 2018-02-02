@@ -421,7 +421,7 @@ class CoxeterType(SageObject):
         return bilinear
 
 
-class CoxeterTypeFromCartanType(CoxeterType, UniqueRepresentation):
+class CoxeterTypeFromCartanType(UniqueRepresentation, CoxeterType):
     """
     A Coxeter type associated to a Cartan type.
     """
@@ -456,7 +456,7 @@ class CoxeterTypeFromCartanType(CoxeterType, UniqueRepresentation):
         """
         self._cartan_type = cartan_type
 
-    def _repr_(self):
+    def _repr_(self, compact=False):
         """
         Return a string representation of ``self``.
 
@@ -465,7 +465,20 @@ class CoxeterTypeFromCartanType(CoxeterType, UniqueRepresentation):
             sage: CoxeterType(['A',3])
             Coxeter type of ['A', 3]
         """
+        if compact:
+            return self._cartan_type._repr_(compact)
         return "Coxeter type of {}".format(self._cartan_type)
+
+    def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: latex(CoxeterType(['A',3]))
+            A_{3}
+        """
+        return self._cartan_type._latex_()
 
     def coxeter_matrix(self):
         """

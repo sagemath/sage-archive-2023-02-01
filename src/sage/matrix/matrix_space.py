@@ -71,7 +71,6 @@ import sage.rings.finite_rings.finite_field_constructor
 import sage.rings.polynomial.multi_polynomial_ring_generic
 import sage.misc.latex as latex
 import sage.modules.free_module
-from sage.structure.sequence import Sequence
 
 from sage.misc.all import lazy_attribute
 
@@ -85,6 +84,7 @@ _Fields = Fields()
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.groups.matrix_gps.group_element', 'is_MatrixGroupElement', at_startup=True)
 lazy_import('sage.modular.arithgroup.arithgroup_element', 'ArithmeticSubgroupElement', at_startup=True)
+
 
 def is_MatrixSpace(x):
     """
@@ -157,7 +157,7 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
         sage: get_matrix_class(GF(3), 2, 2, False, 'm4ri')
         Traceback (most recent call last):
         ...
-        ValueError: m4ri matrices are only available in characterstic 2
+        ValueError: m4ri matrices are only available in characteristic 2
         sage: get_matrix_class(Zmod(2**30), 2, 2, False, 'linbox-float')
         Traceback (most recent call last):
         ...
@@ -227,7 +227,7 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
 
             if implementation == 'm4ri':
                 if R.order() != 2:
-                    raise ValueError('m4ri matrices are only available in characterstic 2')
+                    raise ValueError('m4ri matrices are only available in characteristic 2')
                 else:
                     return matrix_mod2_dense.Matrix_mod2_dense
             elif implementation == 'linbox-float':
@@ -269,7 +269,7 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
                         from . import matrix_gfpn_dense
                     except ImportError:
                         from sage.misc.package import PackageNotFoundError
-                        raise PackageNotFound('meataxe')
+                        raise PackageNotFoundError('meataxe')
                     else:
                         return matrix_gfpn_dense.Matrix_gfpn_dense
 
@@ -1322,7 +1322,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         #yield the empty matrix in that case and return
         if number_of_entries == 0:
             yield self(0)
-            raise StopIteration
+            return
 
         import sage.combinat.integer_vector
 
@@ -1343,7 +1343,6 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             #the "weight" of each entry is bounded by the number
             #of elements in the base ring
             order = base_ring.order()
-            done = False
             base_elements = list(base_ring)
             for weight in range((order-1)*number_of_entries+1):
                 for iv in sage.combinat.integer_vector.IntegerVectors(weight, number_of_entries, max_part=(order-1)):
@@ -1793,7 +1792,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                                      "a matrix in %s!" % (x.parent(), self))
         if is_MatrixGroupElement(x) or isinstance(x, ArithmeticSubgroupElement):
             return self(x.matrix(), copy=False)
-        if isinstance(x, (types.GeneratorType,)):
+        if isinstance(x, (types.GeneratorType, range)):
             x = list(x)
         if not sparse and isinstance(x, dict):
             x = dict_to_list(x, m, n)

@@ -84,7 +84,7 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
        Hecke group algebras as quotients of affine Hecke algebras at level 0,
        Journal of Combinatorial Theory, Series A 116 (2009) 844-863 ( arXiv:0804.3781 [math.RT] )
     """
-    def __init__(self, domain, on_basis, cartan_type, q1, q2, q=1, side="right"):
+    def __init__(self, domain, on_basis, cartan_type, q1, q2, q=ZZ.one(), side="right"):
         r"""
         TESTS::
 

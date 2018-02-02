@@ -82,7 +82,7 @@ def _is_finite(L, fallback=True):
 
     try:
         n = _len(L)
-    except (TypeError, AttributeError):
+    except (TypeError, AttributeError, NotImplementedError):
         # We usually assume L is finite for speed reasons
         return fallback
 

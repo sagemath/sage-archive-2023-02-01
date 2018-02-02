@@ -3,6 +3,8 @@ from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 from cpython.object cimport PyObject_RichCompare as richcmp
 
 
+cpdef richcmp_item(x, y, int op)
+
 cpdef inline richcmp_not_equal(x, y, int op):
     """
     Like ``richcmp(x, y, op)`` but assuming that `x` is not equal to `y`.

@@ -900,7 +900,7 @@ fi
 
 # Run the post-install script, if any
 if [ -f spkg-postinst ]; then
-    time ./spkg-postinst
+    time $SAGE_SUDO ./spkg-postinst
     if [ $? -ne 0 ]; then
         # TODO: It would be good if this also rolled back the failed
         # installation.  This will have to be done once there is an uninstall

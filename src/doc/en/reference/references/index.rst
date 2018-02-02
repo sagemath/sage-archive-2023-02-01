@@ -435,7 +435,7 @@ REFERENCES:
             http://www.roguebasin.com/index.php?title=Bresenham%27s_Line_Algorithm
 
 .. [Bruin-Molnar] \N. Bruin and A. Molnar, *Minimal models for rational
-            functions in a dynamical setting*, 
+            functions in a dynamical setting*,
             LMS Journal of Computation and Mathematics, Volume 15 (2012),
             pp 400-417.
 
@@ -1191,6 +1191,12 @@ REFERENCES:
              `J`-Ideals of a Matrix Over a Principal Ideal Domain",
              :arxiv:`1611.10308`, 2016.
 
+.. [HRS1993] ] Craig D. Hodgson, Igor Rivin and Warren D. Smith, \
+               *A characterization of convex hyperbolic polyhedra
+               and of convex polyhedra inscribed in the sphere.*
+               Bulletin of the American Mathematical Society
+               27.2 (1992): 246-251.
+
 .. [HRT2000] \R.B. Howlett, L.J. Rylands, and D.E. Taylor.
              *Matrix generators for exceptional groups of Lie type*.
              J. Symbolic Computation. **11** (2000).
@@ -1222,7 +1228,7 @@ REFERENCES:
 **I**
 
 .. [IK2010] Kenji Iohara and Yoshiyuki Koga.
-            *Representation Theory of the Virasoro Algebra*. 
+            *Representation Theory of the Virasoro Algebra*.
             Springer, (2010).
 
 .. [ILS2012] Giuseppe F. Italiano, Luigi Laura, and Federico
@@ -2234,7 +2240,7 @@ REFERENCES:
             p267--275. http://modular.math.washington.edu/papers/stein-watkins/
 
 .. [St1922] Ernst Steinitz, *Polyeder und Raumeinteilungen*.
-            In *Encyclopädie der Mathematischen Wissenschaften*, Franz Meyer 
+            In *Encyclopädie der Mathematischen Wissenschaften*, Franz Meyer
             and Hand Mohrmann, eds., volume 3, *Geometrie, erster Teil, zweite Hälfte*,
             pp. 1--139, Teubner, Leipzig, 1922
 

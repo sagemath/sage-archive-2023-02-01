@@ -857,9 +857,9 @@ if [ -d "$SAGE_DESTDIR" ]; then
         fi
         # Copy file from the temp install path into $SAGE_LOCAL
         if [ ! -d "$SAGE_LOCAL/$(dirname "$filename")" ]; then
-            mkdir -p "$SAGE_LOCAL/$(dirname "$filename")"
+            $SAGE_SUDO mkdir -p "$SAGE_LOCAL/$(dirname "$filename")"
         fi
-        mv "$PREFIX$filename" "${SAGE_LOCAL%/}/$filename"
+        $SAGE_SUDO mv "$PREFIX$filename" "${SAGE_LOCAL%/}/$filename"
         if [ $? -ne 0 ]; then
             error_msg "Error moving files for $PKG_BASE."
             exit 1

@@ -173,7 +173,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.is_eulerian` | Return ``True`` if the graph has a (closed) tour that visits each edge exactly once.
     :meth:`~GenericGraph.is_planar` | Test whether the graph is planar.
     :meth:`~GenericGraph.is_circular_planar` | Test whether the graph is circular planar (outerplanar)
-    :meth:`~GenericGraph.is_polyhedral` | Test whether the graph is the graph of the polyhedron.
+    :meth:`~GenericGraph.is_polyhedral` | Test whether the graph is the graph of a polyhedron.
     :meth:`~GenericGraph.is_regular` | Return ``True`` if this graph is (`k`-)regular.
     :meth:`~GenericGraph.is_chordal` | Test whether the given graph is chordal.
     :meth:`~GenericGraph.is_circulant` | Test whether the graph is a circulant graph.

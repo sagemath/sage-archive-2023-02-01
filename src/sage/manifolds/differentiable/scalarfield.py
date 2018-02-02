@@ -1150,7 +1150,7 @@ class DiffScalarField(ScalarField):
 
         .. MATH::
 
-            \Delta f  = g^{ij} \nabla_i \nabla_j f
+            \Delta f  = g^{ij} \nabla_i \nabla_j f =  = \nabla_i \nabla^i f
 
         where `\nabla` is the Levi-Civita connection of `g`.
         `\Delta` is also called the *Laplace-Beltrami operator*.
@@ -1222,6 +1222,78 @@ class DiffScalarField(ScalarField):
             else:
                 resu._name = "Delta_{}({})".format(metric._name, self._name)
                 resu._latex_name = r"\Delta_{" + metric._latex_name + \
+                                   r"}\left(" + self._latex_name + r"\right)"
+            # The name is propagated to possible restrictions of self:
+            for restrict in resu._restrictions.values():
+                restrict.set_name(resu._name, latex_name=resu._latex_name)
+        return resu
+
+    def dalembertian(self, metric=None):
+        r"""
+        Return the d'Alembertian of ``self`` with respect to a given
+        Lorentzian metric.
+
+        The *d'Alembertian* of a scalar field `f` with respect to a Lorentzian
+        metric `g` is nothing but the Laplacian (see :meth:`laplacian`) of `f`
+        with respect to that metric:
+
+        .. MATH::
+
+            \Box f  = g^{ij} \nabla_i \nabla_j f = \nabla_i \nabla^i f
+
+        where `\nabla` is the Levi-Civita connection of `g`.
+
+        .. NOTE::
+
+            If the metric `g` is not Lorentzian, the name *d'Alembertian* is
+            not appropriate and one should use instead :meth:`laplacian`.
+
+        INPUT:
+
+        - ``metric`` -- (default: ``None``) the Lorentzian metric `g`
+          involved in the definition of the d'Alembertian; if none is provided,
+          the domain of ``self`` is supposed to be endowed with a default
+          Lorentzian metric (i.e. is supposed to be Lorentzian manifold, see
+          :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`) and the latter is used to define the d'Alembertian
+
+        OUTPUT:
+
+        - instance of :class:`DiffScalarField` representing the d'Alembertian
+          of ``self``
+
+        EXAMPLES:
+
+        d'Alembertian of a scalar field in Minkowski spacetime::
+
+            sage: M = Manifold(4, 'M', structure='Lorentzian')
+            sage: X.<t,x,y,z> = M.chart()
+            sage: g = M.metric()
+            sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1, 1, 1, 1
+            sage: f = M.scalar_field(t + x^2 + t^2*y^3 - x*z^4, name='f')
+            sage: s = f.dalembertian(); s
+            Scalar field Box(f) on the 4-dimensional Lorentzian manifold M
+            sage: s.display()
+            Box(f): M --> R
+               (t, x, y, z) |--> 6*t^2*y - 2*y^3 - 12*x*z^2 + 2
+
+        """
+        default_metric = metric is None
+        if default_metric:
+            metric = self._domain.metric()
+        nm2 = self._manifold.dim() - 2
+        if metric.signature() not in [nm2, -nm2]:
+            raise TypeError("the {} is not a Lorentzian ".format(metric) +
+                            "metric; use laplacian() instead")
+        nabla = metric.connection()
+        resu = nabla(self.differential().up(metric)).trace()
+        if self._name is not None:
+            if default_metric:
+                resu._name = "Box({})".format(self._name)
+                resu._latex_name = r"\Box\left(" + self._latex_name + \
+                                   r"\right)"
+            else:
+                resu._name = "Box_{}({})".format(metric._name, self._name)
+                resu._latex_name = r"\Box_{" + metric._latex_name + \
                                    r"}\left(" + self._latex_name + r"\right)"
             # The name is propagated to possible restrictions of self:
             for restrict in resu._restrictions.values():

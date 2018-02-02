@@ -954,6 +954,105 @@ class VectorField(MultivectorField):
         # Call of the Schouten-Nijenhuis bracket
         return MultivectorField.bracket(self, other)
 
+    def curl(self, metric=None):
+        r"""
+        Return the curl of ``self`` with respect to a given metric, assuming
+        that the domain of ``self`` is 3-dimensional.
+
+        If ``self`` is the vector field `v` on a 3-dimensional differentiable
+        orientable manifold `M`, the curl of `v` with respect to a metric `g`
+        on `M` is the vector field defined by
+
+        .. MATH::
+
+           \mathrm{curl}\, v = (*(\mathrm{d} v^\flat))^\sharp
+
+        where `v^\flat` is the 1-form associated to `v` by the metric `g`
+        (see :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.down`),
+        `*(\mathrm{d} v^\flat)` is the Hodge dual with respect to `g` of the
+        2-form `\mathrm{d} v^\flat` (exterior derivative of `v^\flat`) and
+        `(*(\mathrm{d} v^\flat))^\sharp` is corresponding vector field by
+        `g`-duality (cf.
+        :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.up`)
+
+        An alternative expression of the curl is
+
+        .. MATH::
+
+          (\mathrm{curl}\, v)^i = \epsilon^{ijk} \nabla_j v_k
+
+
+        where `\nabla` is the Levi-Civita connection of `g` (cf.
+        :class:`~sage.manifolds.differentiable.levi_civita_connection.LeviCivitaConnection`)
+        and `\epsilon` the volume 3-form (Levi-Civita tensor) of `g` (cf.
+        :meth:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric.volume_form`)
+
+        .. NOTE::
+
+            This method is meaningful only if ``self`` is a vector field on
+            a 3-dimensional manifold.
+
+        INPUT:
+
+        - ``metric`` -- (default: ``None``) the pseudo-Riemannian metric `g`
+          involved in the definition of the curl; if none is provided, the
+          domain of ``self`` is supposed to be endowed with a default metric
+          (i.e. is supposed to be pseudo-Riemannian manifold, see
+          :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`) and the latter is used to define the curl
+
+        OUTPUT:
+
+        - instance of :class:`VectorField` representing the curl of ``self``
+
+        EXAMPLES:
+
+        Curl of a rotation vector field in the Euclidean 3-space::
+
+            sage: M = Manifold(3, 'M', structure='Riemannian')
+            sage: X.<x,y,z> = M.chart()
+            sage: g = M.metric()
+            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
+            sage: v = M.vector_field(name='v')
+            sage: v[0], v[1] = -y, x
+            sage: v.display()
+            v = -y d/dx + x d/dy
+            sage: s = v.curl(); s
+            Vector field curl(v) on the 3-dimensional Riemannian manifold M
+            sage: s.display()
+            curl(v) = 2 d/dz
+
+        The curl of a gradient vanishes identically::
+
+            sage: f = M.scalar_field(function('F')(x,y,z))
+            sage: gradf = f.grad()
+            sage: gradf.display()
+            d(F)/dx d/dx + d(F)/dy d/dy + d(F)/dz d/dz
+            sage: s = gradf.curl(); s
+            Vector field on the 3-dimensional Riemannian manifold M
+            sage: s.display()
+            0
+
+        """
+        default_metric = metric is None
+        if default_metric:
+            metric = self._domain.metric()
+        der = self.down(metric).exterior_derivative()  # 2-form d(v^\flat)
+        resu = der.hodge_dual(metric).up(metric)
+        if self._name is not None:
+            if default_metric:
+                resu._name = "curl({})".format(self._name)
+                resu._latex_name = r"\mathrm{curl}\left(" + self._latex_name + \
+                                   r"\right)"
+            else:
+                resu._name = "curl_{}({})".format(metric._name, self._name)
+                resu._latex_name = r"\mathrm{curl}_{" + metric._latex_name + \
+                                   r"}\left(" + self._latex_name + r"\right)"
+            # The name is propagated to possible restrictions of self:
+            for restrict in resu._restrictions.values():
+                restrict.set_name(resu._name, latex_name=resu._latex_name)
+        return resu
+
+
 #******************************************************************************
 
 class VectorFieldParal(FiniteRankFreeModuleElement, MultivectorFieldParal,

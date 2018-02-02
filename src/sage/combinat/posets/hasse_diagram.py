@@ -122,6 +122,56 @@ class HasseDiagram(DiGraph):
         """
         return self.topological_sort_generator()
 
+    def greedy_linear_extensions_iterator(self):
+        """
+        Return an iterator over greedy linear extensions of the Hasse diagram.
+
+        A linear extension `[e_1, e_2, \ldots, e_n]` is *greedy* if for
+        every `i` either `e_{i+1}` covers `e_i` or all upper covers
+        of `e_i` have at least one lower cover that is not in
+        `[e_1, e_2, \ldots, e_i]`.
+
+        Informally said a linear extension is greedy if it "always
+        goes up when possible" and so has no unnecessary jumps.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: N5 = HasseDiagram({0: [1, 2], 2: [3], 1: [4], 3: [4]})
+            sage: for l in N5.greedy_linear_extensions_iterator():
+            ....:     print(l)
+            [0, 1, 2, 3, 4]
+            [0, 2, 3, 1, 4]
+
+        TESTS:
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: list(HasseDiagram({}).greedy_linear_extensions_iterator())
+            [[]]
+            sage: H = HasseDiagram({42: []})
+            sage: list(H.greedy_linear_extensions_iterator())
+            [[42]]
+        """
+        N = self.order()
+
+        def greedy_rec(H, linext):
+            if len(linext) == N:
+                yield linext
+
+            S = []
+            if linext:
+                S = [x for x in H.neighbors_out(linext[-1]) if all(low in linext for low in H.neighbors_in(x))]
+            if not S:
+                S_ = set(self).difference(set(linext))
+                S = [x for x in S_ if
+                not any(low in S_ for low in self.neighbors_in(x))]
+
+            for e in S:
+                for i_want_python_3 in greedy_rec(H, linext+[e]):
+                    yield i_want_python_3
+
+        return greedy_rec(self, [])
+
     def is_linear_extension(self, lin_ext=None):
         r"""
         Test if an ordering is a linear extension.

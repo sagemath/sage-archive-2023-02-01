@@ -31,6 +31,7 @@ include "sage/data_structures/binary_matrix.pxi"
 from libc.math cimport sqrt, fabs
 from libc.string cimport memset
 
+from sage.cpython.string cimport char_to_str
 from sage.libs.gmp.mpz cimport *
 from sage.misc.prandom import random
 from sage.ext.memory_allocator cimport MemoryAllocator
@@ -150,14 +151,14 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
     if n == 0:
         return {}
 
-    cdef double* pos # position of each vertex (for dim=2: x1,y1,x2,y2,...)
-    cdef int* elist  # lexicographically ordered list of edges (u1,v1,u2,v2,...)
-    cdef double* cen # array of 'dim' doubles
+    cdef double* pos = NULL  # position of each vertex (for dim=2: x1,y1,x2,y2,...)
+    cdef int* elist = NULL   # lexicographically ordered list of edges (u1,v1,u2,v2,...)
+    cdef double* cen = NULL  # array of 'dim' doubles
     try:
         elist = <int*>    check_allocarray(2 * G.size() + 2, sizeof(int))
         pos   = <double*> check_allocarray(     n*dim      , sizeof(double))
         cen   = <double*> check_calloc(dim, sizeof(double))
-    except:
+    except MemoryError:
         sig_free(pos)
         sig_free(elist)
         sig_free(cen)
@@ -398,10 +399,11 @@ def int_to_binary_string(n):
         '11111010111'
     """
     cdef mpz_t i
+    cdef char* s
     mpz_init(i)
-    mpz_set_ui(i,n)
-    cdef char* s=mpz_get_str(NULL, 2, i)
-    t=str(s)
+    mpz_set_ui(i, n)
+    s = mpz_get_str(NULL, 2, i)
+    t = char_to_str(s)
     sig_free(s)
     mpz_clear(i)
     return t

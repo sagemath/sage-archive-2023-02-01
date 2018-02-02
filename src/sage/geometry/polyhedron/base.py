@@ -23,6 +23,7 @@ from sage.structure.richcmp import rich_to_bool, op_NE
 
 from sage.misc.all import cached_method, prod
 from sage.misc.package import is_package_installed, PackageNotFoundError
+from sage.misc.randstate import current_randstate
 
 from sage.rings.all import QQ, ZZ, AA
 from sage.rings.real_double import RDF
@@ -37,6 +38,8 @@ from sage.graphs.digraph import DiGraph
 from .constructor import Polyhedron
 
 from sage.misc.superseded import deprecated_function_alias
+
+from sage.categories.sets_cat import EmptySetError
 
 #########################################################################
 # Notes if you want to implement your own backend:
@@ -1212,6 +1215,14 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             TypeError: The PPL backend only supports rational data.
+
+        Test that equations are handled correctly (:trac:`24154`)::
+
+            sage: p = Polyhedron(vertices=[[19]])
+            sage: lp, x = p.to_linear_program(return_variable=True)
+            sage: lp.set_objective(x[0])
+            sage: lp.solve()
+            19
         """
         if base_ring is None:
             base_ring = self.base_ring()
@@ -1226,7 +1237,7 @@ class Polyhedron_base(Element):
 
         for eqn in self.equations_list():
             b = -eqn.pop(0)
-            p.add_constraint(p.sum([x[i]*eqn[i] for i in range(len(eqn))]) == -b)
+            p.add_constraint(p.sum([x[i]*eqn[i] for i in range(len(eqn))]) == b)
 
         if return_variable:
             return p, x
@@ -2698,7 +2709,7 @@ class Polyhedron_base(Element):
         return pc.triangulate()
 
     @coerce_binop
-    def Minkowski_sum(self, other):
+    def minkowski_sum(self, other):
         """
         Return the Minkowski sum.
 
@@ -2711,7 +2722,7 @@ class Polyhedron_base(Element):
             \cup_{y\in Y} (X+y) =
             \cup_{x\in X, y\in Y} (x+y)
 
-        See :meth:`Minkowski_difference` for a partial inverse operation.
+        See :meth:`minkowski_difference` for a partial inverse operation.
 
         INPUT:
 
@@ -2732,13 +2743,20 @@ class Polyhedron_base(Element):
             sage: four_simplex = Polyhedron(vertices = [[0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0]])
             sage: four_cube + four_simplex
             A 4-dimensional polyhedron in ZZ^4 defined as the convex hull of 36 vertices
-            sage: four_cube.Minkowski_sum(four_simplex) == four_cube + four_simplex
+            sage: four_cube.minkowski_sum(four_simplex) == four_cube + four_simplex
             True
 
             sage: poly_spam = Polyhedron([[3,4,5,2],[1,0,0,1],[0,0,0,0],[0,4,3,2],[-3,-3,-3,-3]], base_ring=ZZ)
             sage: poly_eggs = Polyhedron([[5,4,5,4],[-4,5,-4,5],[4,-5,4,-5],[0,0,0,0]], base_ring=QQ)
             sage: poly_spam + poly_spam + poly_eggs
             A 4-dimensional polyhedron in QQ^4 defined as the convex hull of 12 vertices
+
+        TESTS::
+
+            sage: Z = X.Minkowski_sum(X)
+            doctest:warning...:
+            DeprecationWarning: Minkowski_sum is deprecated. Please use minkowski_sum instead.
+            See http://trac.sagemath.org/23685 for details.
         """
         new_vertices = []
         for v1 in self.vertex_generator():
@@ -2751,15 +2769,17 @@ class Polyhedron_base(Element):
         else:
             return self.parent().element_class(self.parent(), None, None)
 
-    _add_ = Minkowski_sum
+    _add_ = minkowski_sum
+
+    Minkowski_sum = deprecated_function_alias(23685, minkowski_sum)
 
     @coerce_binop
-    def Minkowski_difference(self, other):
+    def minkowski_difference(self, other):
         """
         Return the Minkowski difference.
 
         Minkowski subtraction can equivalently be defined via
-        Minkowski addition (see :meth:`Minkowski_sum`) or as
+        Minkowski addition (see :meth:`minkowski_sum`) or as
         set-theoretic intersection via
 
         .. MATH::
@@ -2808,14 +2828,14 @@ class Polyhedron_base(Element):
             sage: (X2-Y2)+Y2 < X2
             True
 
-        Minus sign is really an alias for :meth:`Minkowski_difference`
+        Minus sign is really an alias for :meth:`minkowski_difference`
         ::
 
             sage: four_cube = polytopes.hypercube(4)
             sage: four_simplex = Polyhedron(vertices = [[0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0]])
             sage: four_cube - four_simplex
             A 4-dimensional polyhedron in ZZ^4 defined as the convex hull of 16 vertices
-            sage: four_cube.Minkowski_difference(four_simplex) == four_cube - four_simplex
+            sage: four_cube.minkowski_difference(four_simplex) == four_cube - four_simplex
             True
 
         Coercion of the base ring works::
@@ -2841,7 +2861,14 @@ class Polyhedron_base(Element):
             True
             sage: (X-Y)+Y == X
             True
-       """
+
+        TESTS::
+
+            sage: Z = X.Minkowski_difference(X)
+            doctest:warning...:
+            DeprecationWarning: Minkowski_difference is deprecated. Please use minkowski_difference instead.
+            See http://trac.sagemath.org/23685 for details.
+        """
         if other.is_empty():
             return self.parent().universe()   # empty intersection = everything
         if not other.is_compact():
@@ -2861,6 +2888,9 @@ class Polyhedron_base(Element):
             new_ieqs.append(ieq)
         P = self.parent()
         return P.element_class(P, None, [new_ieqs, new_eqns])
+
+    Minkowski_difference = deprecated_function_alias(23685,
+                                                     minkowski_difference)
 
     def __sub__(self, other):
         r"""
@@ -2896,14 +2926,14 @@ class Polyhedron_base(Element):
             True
         """
         if is_Polyhedron(other):
-            return self.Minkowski_difference(other)
+            return self.minkowski_difference(other)
         return self + (-other)
 
-    def is_Minkowski_summand(self, Y):
+    def is_minkowski_summand(self, Y):
         """
         Test whether ``Y`` is a Minkowski summand.
 
-        See :meth:`Minkowski_sum`.
+        See :meth:`minkowski_sum`.
 
         OUTPUT:
 
@@ -2915,20 +2945,30 @@ class Polyhedron_base(Element):
             sage: A = polytopes.hypercube(2)
             sage: B = Polyhedron(vertices=[(0,1), (1/2,1)])
             sage: C = Polyhedron(vertices=[(1,1)])
-            sage: A.is_Minkowski_summand(B)
+            sage: A.is_minkowski_summand(B)
             True
-            sage: A.is_Minkowski_summand(C)
+            sage: A.is_minkowski_summand(C)
             True
-            sage: B.is_Minkowski_summand(C)
+            sage: B.is_minkowski_summand(C)
             True
-            sage: B.is_Minkowski_summand(A)
+            sage: B.is_minkowski_summand(A)
             False
-            sage: C.is_Minkowski_summand(A)
+            sage: C.is_minkowski_summand(A)
             False
-            sage: C.is_Minkowski_summand(B)
+            sage: C.is_minkowski_summand(B)
             False
+
+        TESTS::
+
+            sage: b = C.is_Minkowski_summand(B)
+            doctest:warning...:
+            DeprecationWarning: is_Minkowski_summand is deprecated. Please use is_minkowski_summand instead.
+            See http://trac.sagemath.org/23685 for details.
         """
-        return self.Minkowski_difference(Y).Minkowski_sum(Y) == self
+        return self.minkowski_difference(Y).minkowski_sum(Y) == self
+
+    is_Minkowski_summand = deprecated_function_alias(23685,
+                                                     is_minkowski_summand)
 
     def translation(self, displacement):
         """
@@ -3048,7 +3088,7 @@ class Polyhedron_base(Element):
 
         TESTS:
 
-        Dilation of empty polyhedrons works, see :trac:`14987`::
+        Dilation of empty polyhedra works, see :trac:`14987`::
 
             sage: p = Polyhedron(ambient_dim=2); p
             The empty polyhedron in ZZ^2
@@ -5278,6 +5318,157 @@ class Polyhedron_base(Element):
         # assert all(self.contains(p) for p in points)   # slow
         return tuple(points)
 
+    def get_integral_point(self, index, **kwds):
+        r"""
+        Return the ``index``-th integral point in this polyhedron.
+
+        This is equivalent to ``sorted(self.integral_points())[index]``.
+        However, so long as self.integral_points_count() does not need to
+        enumerate all integral points, neither does this method. Hence it can
+        be significantly faster. If the polyhedron is not compact, a
+        ``ValueError`` is raised.
+
+        INPUT:
+
+        - ``index`` -- integer. The index of the integral point to be found. If
+          this is not in [0, ``self.integral_point_count()``), an ``IndexError``
+          is raised.
+
+        - ``**kwds`` -- optional keyword parameters that are passed to
+          :meth:`self.integral_points_count`.
+
+        ALGORITHM:
+
+        The function computes each of the components of the requested point in
+        turn. To compute x_i, the ith component, it bisects the upper and lower
+        bounds on x_i given by the bounding box. At each bisection, it uses
+        :meth:`integral_points_count` to determine on which side of the
+        bisecting hyperplane the requested point lies.
+
+        .. SEEALSO::
+
+            :meth:`integral_points_count`.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[(-1,-1),(1,0),(1,1),(0,1)])
+            sage: P.get_integral_point(1)
+            (0, 0)
+            sage: P.get_integral_point(4)
+            (1, 1)
+            sage: sorted(P.integral_points())
+            [(-1, -1), (0, 0), (0, 1), (1, 0), (1, 1)]
+            sage: P.get_integral_point(5)
+            Traceback (most recent call last):
+            ...
+            IndexError: ...
+
+            sage: Q = Polyhedron([(1,3), (2, 7), (9, 77)])
+            sage: [Q.get_integral_point(i) for i in range(Q.integral_points_count())] == sorted(Q.integral_points())
+            True
+            sage: Q.get_integral_point(0, explicit_enumeration_threshold=0, triangulation='cddlib')  # optional - latte_int
+            (1, 3)
+            sage: Q.get_integral_point(0, explicit_enumeration_threshold=0, triangulation='cddlib', foo=True)  # optional - latte_int
+            Traceback (most recent call last):
+            ...
+            RuntimeError: ...
+
+            sage: R = Polyhedron(vertices=[[1/2, 1/3]], rays=[[1, 1]])
+            sage: R.get_integral_point(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: ...
+        """
+
+        if not self.is_compact():
+            raise ValueError('Can only enumerate points in a compact polyhedron.')
+
+        if not 0 <= index < self.integral_points_count(**kwds):
+            raise IndexError('polytope index out of range')
+
+        D = self.ambient_dim()
+        lower_bounds, upper_bounds = self.bounding_box()
+        coordinate = []
+        P = self
+        S = self.parent()
+        for i in range(D):  # Now compute x_i, the ith component of coordinate.
+            lower, upper = ceil(lower_bounds[i]), floor(upper_bounds[i]) + 1  # So lower <= x_i < upper.
+            while lower < upper-1:
+                guess = (lower + upper) // 2  # > lower.
+                # Build new polyhedron by intersecting P with the halfspace {x_i < guess}.
+                P_lt_guess = P.intersection(S(None, ([[guess-1] + [0] * i + [-1] + [0] * (D - i - 1)], [])))
+                # Avoid computing P_geq_guess = P.intersection({x_i >= guess}) right now, it might not be needed.
+                P_lt_guess_count = P_lt_guess.integral_points_count(**kwds)
+                if P_lt_guess_count > index:  # Move upper down to guess.
+                    upper = guess
+                    index -= 0
+                    P = P_lt_guess
+                else:  # P_lt_guess_count <= index:  # Move lower up to guess.
+                    lower = guess
+                    index -= P_lt_guess_count
+                    P_geq_guess = P.intersection(S(None, ([[-guess] + [0] * i + [1] + [0] * (D - i - 1)], [])))
+                    P = P_geq_guess
+            coordinate.append(lower)  # Record the new component that we have found.
+        point = vector(ZZ, coordinate)
+        point.set_immutable()
+        return point
+
+    def random_integral_point(self, **kwds):
+        r"""
+        Return an integral point in this polyhedron chosen uniformly at random.
+
+        INPUT:
+
+        - ``**kwds`` -- optional keyword parameters that are passed to
+          :meth:`self.get_integral_point`.
+
+        OUTPUT:
+
+        The integral point in the polyhedron chosen uniformly at random. If the
+        polyhedron is not compact, a ``ValueError`` is raised. If the
+        polyhedron does not contain any integral points, an ``EmptySetError`` is
+        raised.
+
+        .. SEEALSO::
+
+            :meth:`get_integral_point`.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[(-1,-1),(1,0),(1,1),(0,1)])
+            sage: P.random_integral_point()  # random
+            (0, 0)
+            sage: P.random_integral_point() in P.integral_points()
+            True
+            sage: P.random_integral_point(explicit_enumeration_threshold=0, triangulation='cddlib')  # random, optional - latte_int
+            (1, 1)
+            sage: P.random_integral_point(explicit_enumeration_threshold=0, triangulation='cddlib', foo=7)  # optional - latte_int
+            Traceback (most recent call last):
+            ...
+            RuntimeError: ...
+
+            sage: Q = Polyhedron(vertices=[(2, 1/3)], rays=[(1, 2)])
+            sage: Q.random_integral_point()
+            Traceback (most recent call last):
+            ...
+            ValueError: ...
+
+            sage: R = Polyhedron(vertices=[(1/2, 0), (1, 1/2), (0, 1/2)])
+            sage: R.random_integral_point()
+            Traceback (most recent call last):
+            ...
+            EmptySetError: ...
+        """
+
+        if not self.is_compact():
+            raise ValueError('Can only sample integral points in a compact polyhedron.')
+
+        count = self.integral_points_count()
+        if count == 0:
+            raise EmptySetError('Polyhedron does not contain any integral points.')
+
+        return self.get_integral_point(current_randstate().python_random().randint(0, count-1), **kwds)
+
     @cached_method
     def combinatorial_automorphism_group(self, vertex_graph_only=False):
         """
@@ -6114,6 +6305,13 @@ class Polyhedron_base(Element):
             sage: P.affine_hull(orthogonal='True')
             A 0-dimensional polyhedron in QQ^0 defined as the convex hull of 1 vertex
 
+            Check that :trac:`24047` is fixed::
+
+            sage: P1 = Polyhedron(vertices=([[-1, 1], [0, -1], [0, 0], [-1, -1]]))
+            sage: P2 = Polyhedron(vertices=[[1, 1], [1, -1], [0, -1], [0, 0]])
+            sage: P = P1.intersection(P2)
+            sage: A, b = P.affine_hull(as_affine_map=True, orthonormal=True, extend=True)
+
             sage: Polyhedron([(2,3,4)]).affine_hull()
             A 0-dimensional polyhedron in ZZ^0 defined as the convex hull of 1 vertex
         """
@@ -6129,15 +6327,15 @@ class Polyhedron_base(Element):
                 raise NotImplementedError('"orthogonal=True" and "orthonormal=True" work only for compact polyhedra')
             # translate 0th vertex to the origin
             Q = self.translation(-vector(self.vertices()[0]))
-            v = Q.vertices()[0]
-            # check that translation didn't change the order of the vertices
+            v = next((_ for _ in Q.vertices() if _.vector() == Q.ambient_space().zero()), None)
+            # finding the zero in Q; checking that Q actually has a vertex zero
             assert v.vector() == Q.ambient_space().zero()
             # choose as an affine basis the neighbors of the origin vertex in Q
             M = matrix(self.base_ring(), self.dim(), self.ambient_dim(), [list(w) for w in itertools.islice(v.neighbors(), self.dim())])
-            # switch base_ring to AA if neccessary,
+            # Switch base_ring to AA if neccessary,
             # since gram_schmidt needs to be able to take square roots.
             # Pick orthonormal basis and transform all vertices accordingly
-            # if the orthonormal transform makes it neccessary, change base ring
+            # if the orthonormal transform makes it neccessary, change base ring.
             try:
                 A = M.gram_schmidt(orthonormal=orthonormal)[0]
             except TypeError:

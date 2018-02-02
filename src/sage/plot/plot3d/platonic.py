@@ -222,7 +222,7 @@ def tetrahedron(center=(0, 0, 0), size=1, **kwds):
 
         sphinx_plot(tetrahedron(color='red') + tetrahedron((0,0,-2)).scale([1,1,-1]))
 
-    A Dodecahedral complex of 5 tetrahedrons (a more elaborate example
+    A Dodecahedral complex of 5 tetrahedra (a more elaborate example
     from Peter Jipsen)::
 
         sage: v=(sqrt(5.)/2-5/6, 5/6*sqrt(3.)-sqrt(15.)/2, sqrt(5.)/3)
@@ -579,7 +579,7 @@ def icosahedron(center=(0, 0, 0), size=1, **kwds):
 
         sphinx_plot(icosahedron())
 
-    Two icosahedrons at different positions of different sizes. ::
+    Two icosahedra at different positions of different sizes. ::
 
         sage: p = icosahedron((-1/2,0,1), color='orange')
         sage: p += icosahedron((2,0,1), size=1/2, color='red', aspect_ratio=[1,1,1])

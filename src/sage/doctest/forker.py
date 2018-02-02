@@ -40,13 +40,16 @@ import __future__
 import hashlib, multiprocessing, os, sys, time, warnings, signal, linecache
 import doctest, traceback
 import tempfile
+import six
+
 import sage.misc.randstate as randstate
 from .util import Timer, RecordingDict, count_noun
 from .sources import DictAsObject
 from .parsing import OriginalSource, reduce_hex
 from sage.structure.sage_object import SageObject
 from .parsing import SageOutputChecker, pre_hash, get_source
-from sage.repl.user_globals import set_globals, get_globals
+from sage.repl.user_globals import set_globals
+from sage.interfaces.process import ContainChildren
 
 
 # All doctests run as if the following future imports are present
@@ -105,7 +108,20 @@ def init_sage():
         sage: {'a':23, 'b':34, 'au':56, 'bbf':234, 'aaa':234}
         {'a': 23, 'aaa': 234, 'au': 56, 'b': 34, 'bbf': 234}
     """
-    # Do this once before forking.
+    # We need to ensure that the Matplotlib font cache is built to
+    # avoid spurious warnings (see Trac #20222). We don't want to
+    # import matplotlib in the main process because we want the
+    # doctesting environment to be as close to a real Sage session
+    # as possible.
+    with ContainChildren():
+        pid = os.fork()
+        if not pid:
+            # Child process
+            from matplotlib.font_manager import fontManager
+
+    # Do this once before forking off child processes running the tests.
+    # This is more efficient because we only need to wait once for the
+    # Sage imports.
     import sage.doctest
     sage.doctest.DOCTEST_MODE=True
     import sage.all_cmdline
@@ -134,6 +150,8 @@ def init_sage():
     from sympy.printing.pretty.stringpict import stringPict
     stringPict.terminal_width = lambda self:0
 
+    # Wait for the child process created above
+    os.waitpid(pid, 0)
 
 
 def showwarning_with_traceback(message, category, filename, lineno, file=sys.stdout, line=None):
@@ -224,7 +242,7 @@ class SageSpoofInOut(SageObject):
             sage: import tempfile
             sage: from sage.doctest.forker import SageSpoofInOut
             sage: SageSpoofInOut(tempfile.TemporaryFile(), tempfile.TemporaryFile())
-            <class 'sage.doctest.forker.SageSpoofInOut'>
+            <sage.doctest.forker.SageSpoofInOut object at ...>
         """
         if infile is None:
             self.infile = open(os.devnull)
@@ -537,8 +555,41 @@ class SageDocTestRunner(doctest.DocTestRunner):
 
             # The example raised an exception: check if it was expected.
             else:
-                exc_info = sys.exc_info()
+                exc_info = exception
                 exc_msg = traceback.format_exception_only(*exc_info[:2])[-1]
+
+                if six.PY3 and example.exc_msg is not None:
+                    # On Python 3 the exception repr often includes the
+                    # exception's full module name (for non-builtin
+                    # exceptions), whereas on Python 2 does not, so we
+                    # normalize Python 3 exceptions to match tests written to
+                    # Python 2
+                    # See https://trac.sagemath.org/ticket/24271
+                    exc_cls = exc_info[0]
+                    exc_name = exc_cls.__name__
+                    if exc_cls.__module__:
+                        exc_fullname = (exc_cls.__module__ + '.' +
+                                        exc_cls.__qualname__)
+                    else:
+                        exc_fullname = exc_cls.__qualname__
+
+                    # See
+                    # https://docs.python.org/3/library/exceptions.html#OSError
+                    oserror_aliases = ['IOError', 'EnvironmentError',
+                                       'socket.error', 'select.error',
+                                       'mmap.error']
+
+                    if (example.exc_msg.startswith(exc_name) and
+                            exc_msg.startswith(exc_fullname)):
+                        exc_msg = exc_msg.replace(exc_fullname, exc_name, 1)
+                    else:
+                        # Special case: On Python 3 these exceptions are all
+                        # just aliases for OSError
+                        for alias in oserror_aliases:
+                            if example.exc_msg.startswith(alias + ':'):
+                                exc_msg = exc_msg.replace('OSError', alias, 1)
+                                break
+
                 if not quiet:
                     got += doctest._exception_traceback(exc_info)
 
@@ -630,7 +681,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             TestResults(failed=0, attempted=4)
         """
         self.setters = {}
-        randstate.set_random_seed(long(0))
+        randstate.set_random_seed(0)
         warnings.showwarning = showwarning_with_traceback
         self.running_doctest_digest = hashlib.md5()
         self.test = test
@@ -1128,7 +1179,8 @@ class SageDocTestRunner(doctest.DocTestRunner):
                 34
             **********************************************************************
             Previously executed commands:
-            ...
+            sage: sage0._expect.expect('sage: ')   # sage0 just mis-identified the output as prompt, synchronize
+            0
             sage: sage0.eval("a")
             '...17'
             sage: sage0.eval("quit")
@@ -1397,7 +1449,7 @@ class DocTestDispatcher(SageObject):
             sage: from sage.doctest.control import DocTestController, DocTestDefaults
             sage: from sage.doctest.forker import DocTestDispatcher
             sage: DocTestDispatcher(DocTestController(DocTestDefaults(), []))
-            <class 'sage.doctest.forker.DocTestDispatcher'>
+            <sage.doctest.forker.DocTestDispatcher object at ...>
         """
         self.controller = controller
         init_sage()
@@ -2127,7 +2179,7 @@ class DocTestTask(object):
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','sources.py')
             sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: DocTestTask(FDS)
-            <sage.doctest.forker.DocTestTask object at 0x...>
+            <sage.doctest.forker.DocTestTask object at ...>
         """
         self.source = source
 

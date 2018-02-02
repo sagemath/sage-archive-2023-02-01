@@ -1256,9 +1256,11 @@ class TransducerGenerators(object):
 
         def convert_output(output):
             for ring in output_rings:
-                if output in ring:
+                try:
                     return ring(output)
-            return(output)
+                except (ValueError,TypeError):
+                    pass
+            return output
 
         def to_list(output):
             if output == 0:
@@ -1297,7 +1299,10 @@ class TransducerGenerators(object):
                              % (polynomial_left,))
 
         [r, base_power_K] = list(polynomial_left)
-        K = log(base_power_K, base=base)
+        try:
+            K = log(base_power_K, base=base)
+        except RuntimeError:
+            K = 1
         try:
             K = K.simplify()
         except AttributeError:

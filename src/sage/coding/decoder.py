@@ -362,7 +362,7 @@ class Decoder(SageObject):
         """
         raise NotImplementedError
 
-Decoder._instance_decoder_type.__func__.__doc__ = Decoder.decoder_type.im_func.__doc__
+Decoder._instance_decoder_type.__func__.__doc__ = Decoder.decoder_type.__doc__
 
 class DecodingError(Exception):
     r"""

@@ -897,7 +897,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
                 raise ValueError('x is from a different linear functions module')
             if len((<LinearFunction>x)._f) != 1:
                 raise ValueError('x is a sum, must be a single variable')
-            i = (<LinearFunction>x)._f.keys()[0]
+            i, = (<LinearFunction>x)._f.keys()
             if (<LinearFunction>x)._f[i] != 1:
                 raise ValueError('x must have a unit coefficient')
         else:
@@ -1570,7 +1570,7 @@ cdef class LinearConstraint(LinearFunctionOrConstraint):
             3 == x_2
         """
         if not self.is_equation() or self.is_trivial():
-            raise StopIteration
+            return
         term_iter = iter(self)
         lhs = next(term_iter)
         rhs = next(term_iter)
@@ -1603,7 +1603,7 @@ cdef class LinearConstraint(LinearFunctionOrConstraint):
             3 <= x_2
         """
         if not self.is_less_or_equal() or self.is_trivial():
-            raise StopIteration
+            return
         term_iter = iter(self)
         lhs = next(term_iter)
         rhs = next(term_iter)

@@ -68,7 +68,7 @@ cdef walsh_hadamard(long *f, int ldn):
         sage: from sage.crypto.boolean_function import BooleanFunction
         sage: B = BooleanFunction([1,0,0,1])
         sage: B.walsh_hadamard_transform() # indirect doctest
-        (0, 0, 0, 4)
+        (0, 0, 0, -4)
     """
     cdef long n, ldm, m, mh, t1, t2, r
     n = 1 << ldn
@@ -554,6 +554,22 @@ cdef class BooleanFunction(SageObject):
             sage: BooleanFunction('00ab').truth_table(format='hex')
             '00ab'
 
+            sage: H = '0abbacadabbacad0'
+            sage: len(H)
+            16
+            sage: T = BooleanFunction(H).truth_table(format='hex')
+            sage: T == H
+            True
+            sage: H = H * 4
+            sage: T = BooleanFunction(H).truth_table(format='hex')
+            sage: T == H
+            True
+            sage: H = H * 4
+            sage: T = BooleanFunction(H).truth_table(format='hex')
+            sage: T == H
+            True
+            sage: len(T)
+            256
             sage: B.truth_table(format='oct')
             Traceback (most recent call last):
             ...
@@ -564,15 +580,8 @@ cdef class BooleanFunction(SageObject):
         if format == 'int':
             return tuple(map(int,self))
         if format == 'hex':
-            S = ""
             S = ZZ(self.truth_table(),2).str(16)
             S = "0"*((1<<(self._nvariables-2)) - len(S)) + S
-            for 1 <= i < self._truth_table.limbs:
-                if sizeof(long)==4:
-                    t = "%04x"%self._truth_table.bits[i]
-                if sizeof(long)==8:
-                    t = "%08x"%self._truth_table.bits[i]
-                S = t + S
             return S
         raise ValueError("unknown output format")
 
@@ -627,14 +636,14 @@ cdef class BooleanFunction(SageObject):
             1
             sage: B([1,0])
             1
-            sage: B(7)
+            sage: B(4)
             Traceback (most recent call last):
             ...
             IndexError: index out of bound
 
         """
         if isinstance(x, (int,long,Integer)):
-            if x > self._truth_table.size:
+            if x >= self._truth_table.size:
                 raise IndexError("index out of bound")
             return bitset_in(self._truth_table,x)
         elif isinstance(x, list):
@@ -684,7 +693,7 @@ cdef class BooleanFunction(SageObject):
             sage: R.<x> = GF(2^3,'a')[]
             sage: B = BooleanFunction( x^3 )
             sage: B.walsh_hadamard_transform()
-            (0, 4, 0, -4, 0, -4, 0, -4)
+            (0, -4, 0, 4, 0, 4, 0, 4)
         """
         cdef long *temp
 
@@ -693,7 +702,7 @@ cdef class BooleanFunction(SageObject):
             temp = <long *>sig_malloc(sizeof(long)*n)
 
             for 0<= i < n:
-                temp[i] = (bitset_in(self._truth_table,i)<<1)-1
+                temp[i] = 1 - (bitset_in(self._truth_table,i)<<1)
 
             walsh_hadamard(temp, self._nvariables)
             self._walsh_hadamard_transform = tuple(temp[i] for i in xrange(n))
@@ -1042,7 +1051,7 @@ cdef class BooleanFunction(SageObject):
             sage: R.<x0, x1, x2, x3> = BooleanPolynomialRing()
             sage: f = BooleanFunction(x0*x1 + x2 + x3)
             sage: f.walsh_hadamard_transform()
-            (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -8, -8, -8, 8)
+            (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 8, -8)
             sage: f.is_plateaued()
             True
         """

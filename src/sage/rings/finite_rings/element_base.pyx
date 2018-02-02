@@ -28,6 +28,7 @@ def is_FiniteFieldElement(x):
     from sage.rings.finite_rings.finite_field_base import is_FiniteField
     return isinstance(x, Element) and is_FiniteField(x.parent())
 
+
 cdef class FiniteRingElement(CommutativeRingElement):
     def _nth_root_common(self, n, all, algorithm, cunningham):
         """
@@ -98,6 +99,15 @@ cdef class FiniteRingElement(CommutativeRingElement):
                 return self
         else:
             raise ValueError("unknown algorithm")
+
+    cpdef _add_(self, other):
+        """Abstract addition method"""
+        raise NotImplementedError
+
+    cpdef _mul_(self, other):
+        """Abstract multiplication method"""
+        raise NotImplementedError
+
 
 cdef class FinitePolyExtElement(FiniteRingElement):
     """
@@ -795,4 +805,3 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             b^11 + b^10 + b^9 + b^7 + b^5 + b^4 + b^2 + b
         """
         return self.pth_power(-k)
-

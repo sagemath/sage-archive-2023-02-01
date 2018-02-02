@@ -336,7 +336,7 @@ class StandardRibbonShapedTableaux(StandardSkewTableaux):
         if p == []:
             return self.element_class(self, [])
 
-        comp = p.descents(from_zero=False)
+        comp = p.descents()
 
         if comp == []:
             return self.element_class(self, [p[:]])

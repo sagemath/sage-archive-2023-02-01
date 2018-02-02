@@ -608,13 +608,13 @@ These are accessed via the :meth:`construction` method, which returns a
     sage: CC.construction()
     (AlgebraicClosureFunctor, Real Field with 53 bits of precision)
     sage: RR.construction()
-    (Completion[+Infinity], Rational Field)
+    (Completion[+Infinity, prec=53], Rational Field)
     sage: QQ.construction()
     (FractionField, Integer Ring)
     sage: ZZ.construction()  # None
 
     sage: Qp(5).construction()
-    (Completion[5], Rational Field)
+    (Completion[5, prec=20], Rational Field)
     sage: QQ.completion(5, 100, {})
     5-adic Field with capped relative precision 100
     sage: c, R = RR.construction()
@@ -626,13 +626,13 @@ These are accessed via the :meth:`construction` method, which returns a
 
     sage: sage.categories.pushout.construction_tower(Frac(CDF['x']))
     [(None,
-     Fraction Field of Univariate Polynomial Ring in x over Complex Double Field),
-    (FractionField, Univariate Polynomial Ring in x over Complex Double Field),
-    (Poly[x], Complex Double Field),
-    (AlgebraicClosureFunctor, Real Double Field),
-    (Completion[+Infinity], Rational Field),
-    (FractionField, Integer Ring)]
-
+      Fraction Field of Univariate Polynomial Ring in x over Complex Double Field),
+     (FractionField, Univariate Polynomial Ring in x over Complex Double Field),
+     (Poly[x], Complex Double Field),
+     (AlgebraicClosureFunctor, Real Double Field),
+     (Completion[+Infinity, prec=53], Rational Field),
+     (FractionField, Integer Ring)]
+    
 Given Parents R and S, such that there is no coercion either from R to
 S or from S to R, one can find a common Z with coercions
 `R \rightarrow Z` and `S \rightarrow Z` by considering the sequence of

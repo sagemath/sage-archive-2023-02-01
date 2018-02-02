@@ -188,7 +188,7 @@ exactly one non-zero entry in column `2r-k`.  Explicitly, if `(i,j)`
 is a pair in the perfect matching, the entry in column `i-1` and row
 `2r-j` equals `1`.  For example::
 
-    sage: m = PerfectMatching([[1,5],[3,4],[2,7],[6,8]])
+    sage: m = [[1,5],[3,4],[2,7],[6,8]]
     sage: G = RuleRSK({(i-1, 8-j): 1 for i,j in m}, shape=[7,6,5,4,3,2,1]); G
     0  0  0  0  0  1  0
     0  1  0  0  0  0
@@ -2501,7 +2501,7 @@ class RuleBinaryWord(Rule):
         0  0  0  0  0  0  0  1  0
         0  0  1  0  0  0  0  0  0
         0  0  0  0  0  0  0  0  1
-        sage: pi.descents(from_zero=False)
+        sage: pi.descents()
         [1, 3, 5, 6]
 
     TESTS::
@@ -2536,7 +2536,7 @@ class RuleBinaryWord(Rule):
     Test that the Kleitman Greene invariant is indeed the descent word::
 
         sage: r = 4
-        sage: all(Word([0 if i in w.descents(from_zero=False) else 1 for i in range(r)])
+        sage: all(Word([0 if i in w.descents() else 1 for i in range(r)])
         ....:      == BinaryWord(w).out_labels()[r]
         ....:     for w in Permutations(r))
         True

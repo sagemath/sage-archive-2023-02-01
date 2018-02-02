@@ -4902,7 +4902,7 @@ def JankoKharaghaniGraph(v):
     q = m*t+1
     K = GF(q,'alpha')
     a = K.primitive_element()
-    Ci= [[K(0)]] + map(set,[[a**(k*j+i) for j in range(t)] for i in range(m)])
+    Ci= [[K(0)]] + [set(a**(k*j+i) for j in range(t)) for i in range(m)]
     Kelem_to_Ci = {v:i for i,s in enumerate(Ci) for v in s} # maps v to [0,...,12]
 
     W = ([[0]+ [1]*(len(K))] +

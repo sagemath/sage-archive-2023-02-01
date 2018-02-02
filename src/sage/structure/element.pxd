@@ -135,9 +135,9 @@ cpdef inline bint have_same_parent(left, right):
         sage: a = RLF(2)
         sage: b = exp(a)
         sage: type(a)
-        <type 'sage.rings.real_lazy.LazyWrapper'>
+        <... 'sage.rings.real_lazy.LazyWrapper'>
         sage: type(b)
-        <type 'sage.rings.real_lazy.LazyNamedUnop'>
+        <... 'sage.rings.real_lazy.LazyNamedUnop'>
         sage: have_same_parent(a, b)
         True
     """
@@ -191,6 +191,10 @@ cdef class Element(SageObject):
     cdef _floordiv_(self, other)
     cdef _mod_(self, other)
 
+    cdef _pow_(self, other)
+    cdef _pow_int(self, n)
+    cdef _pow_long(self, long n)
+
 
 cdef class ElementWithCachedMethod(Element):
     cdef public dict __cached_methods
@@ -209,7 +213,7 @@ cdef class ModuleElement(Element):
     cpdef _rmul_(self, Element left)
 
 cdef class MonoidElement(Element):
-    pass
+    cpdef _pow_int(self, n)
 
 cdef class MultiplicativeGroupElement(MonoidElement):
     cpdef _div_(self, right)
@@ -219,6 +223,7 @@ cdef class AdditiveGroupElement(ModuleElement):
 
 cdef class RingElement(ModuleElement):
     cpdef _div_(self, right)
+    cpdef _pow_int(self, n)
 
 cdef class CommutativeRingElement(RingElement):
     pass
@@ -283,5 +288,3 @@ cdef class CoercionModel:
     cpdef richcmp(self, x, y, int op)
 
 cdef CoercionModel coercion_model
-
-cdef generic_power_c(a, nn, one)

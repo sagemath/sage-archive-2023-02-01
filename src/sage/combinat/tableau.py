@@ -299,6 +299,18 @@ class Tableau(ClonableList):
         else:
             return list(self) != other
 
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,1],[2]])
+            sage: hash(tuple(t)) == hash(t)
+            True
+        """
+        return hash(tuple(self))
+
     def check(self):
         r"""
         Check that ``self`` is a valid straight-shape tableau.
@@ -2648,7 +2660,7 @@ class Tableau(ClonableList):
 
             sage: T = Tableau([[1]])
             sage: type(T.promotion_inverse(2)[0][0])
-            <type 'sage.rings.integer.Integer'>
+            <... 'sage.rings.integer.Integer'>
         """
         if self.is_rectangular():
             n = Integer(n)
@@ -4759,15 +4771,14 @@ class Tableaux(UniqueRepresentation, Parent):
     Element = Tableau
 
     # add options to class
-    options=GlobalOptions('Tableaux',
-        module='sage.combinat.tableau',
-        doc=r"""
+    class options(GlobalOptions):
+        r"""
         Sets the global options for elements of the tableau, skew_tableau,
         and tableau tuple classes. The defaults are for tableau to be
         displayed as a list, latexed as a Young diagram using the English
         convention.
-        """,
-        end_doc=r"""
+
+        @OPTIONS@
 
         .. NOTE::
 
@@ -4814,43 +4825,44 @@ class Tableaux(UniqueRepresentation, Parent):
             sage: ascii_art(t)
               1  2  3
               4  5
-            sage: Tableaux.options.ascii_art="table"
+            sage: Tableaux.options.ascii_art = "table"
             sage: ascii_art(t)
-            +---+---+
-            | 4 | 5 |
             +---+---+---+
             | 1 | 2 | 3 |
             +---+---+---+
-            sage: Tableaux.options.ascii_art="compact"
+            | 4 | 5 |
+            +---+---+
+            sage: Tableaux.options.ascii_art = "compact"
             sage: ascii_art(t)
-            |4|5|
             |1|2|3|
+            |4|5|
             sage: Tableaux.options._reset()
-        """,
-        display=dict(default="list",
+        """
+        NAME = 'Tableaux'
+        module = 'sage.combinat.tableau'
+        display = dict(default="list",
                      description='Controls the way in which tableaux are printed',
                      values=dict(list='print tableaux as lists',
                                  diagram='display as Young diagram (similar to :meth:`~sage.combinat.tableau.Tableau.pp()`',
                                  compact='minimal length string representation'),
                      alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram"),
-                     case_sensitive=False),
-        ascii_art=dict(default="repr",
+                     case_sensitive=False)
+        ascii_art = dict(default="repr",
                      description='Controls the ascii art output for tableaux',
                      values=dict(repr='display using the diagram string representation',
                                  table='display as a table',
                                  compact='minimal length ascii art'),
-                     case_sensitive=False),
-        latex=dict(default="diagram",
+                     case_sensitive=False)
+        latex = dict(default="diagram",
                    description='Controls the way in which tableaux are latexed',
                    values=dict(list='as a list', diagram='as a Young diagram'),
                    alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram"),
-                   case_sensitive=False),
-        convention=dict(default="English",
+                   case_sensitive=False)
+        convention = dict(default="English",
                         description='Sets the convention used for displaying tableaux and partitions',
                         values=dict(English='use the English convention',French='use the French convention'),
-                        case_sensitive=False),
+                        case_sensitive=False)
         notation = dict(alt_name="convention")
-    )
 
     def _element_constructor_(self, t):
         r"""

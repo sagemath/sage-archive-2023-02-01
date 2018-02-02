@@ -902,9 +902,6 @@ fi
 if [ -f spkg-postinst ]; then
     time $SAGE_SUDO ./spkg-postinst
     if [ $? -ne 0 ]; then
-        # TODO: It would be good if this also rolled back the failed
-        # installation.  This will have to be done once there is an uninstall
-        # script.
         error_msg "Error running the postinst script for $PKG_BASE."
         exit 1
     fi

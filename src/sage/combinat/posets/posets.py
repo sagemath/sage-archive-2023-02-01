@@ -3124,8 +3124,14 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         ALGORITHM:
 
-        Basically we test every greedy linear extension of the poset.
-        The problem is shown to be NP-hard.
+        It is known that every poset has a greedy linear extension --
+        an extension `[e_1, e_2, \ldots, e_n]` where every `e_{i+1}` is
+        an upper cover of `e_i` if that is possible -- with the smallest
+        possible number of jumps; see [Mac1987]_.
+
+        Hence it suffices to test only those. We do that by backtracking.
+
+        The problem is proven to be NP-complete.
 
         TESTS::
 

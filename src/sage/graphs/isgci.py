@@ -226,6 +226,10 @@ Predefined classes
 
      - :meth:`~sage.graphs.generic_graph.GenericGraph.is_planar`
 
+   * - Polyhedral
+
+     - :meth:`~sage.graphs.generic_graph.GenericGraph.is_polyhedral`
+
    * - Split
 
      - :meth:`~sage.graphs.graph.Graph.is_split`

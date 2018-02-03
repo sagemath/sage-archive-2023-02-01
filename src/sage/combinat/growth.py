@@ -1822,8 +1822,11 @@ class Rule(UniqueRepresentation):
 class RuleShiftedShapes(Rule):
     r"""
     A class modelling the Schensted correspondence for shifted
-    shapes, which agrees with Sagan and Worley's and Haiman's
-    insertion algorithms.
+    shapes.
+
+    This agrees with Sagan [Sag1987]_ and Worley's [Wor1984]_, and
+    Haiman's [Hai1989]_ insertion algorithms, see Proposition 4.5.2
+    of [Fom1995]_.
 
     EXAMPLES::
 

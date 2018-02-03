@@ -1128,6 +1128,10 @@ REFERENCES:
 
 .. [Hac2016] \M. Hachimori. http://infoshako.sk.tsukuba.ac.jp/~hachi/math/library/dunce_hat_eng.html
 
+.. [Hai1989] M.D. Haiman, *On mixed insertion, symmetry, and shifted
+             Young tableaux*. Journal of Combinatorial Theory, Series
+             A Volume 50, Number 2 (1989), pp. 196-225.
+
 .. [Hat2002] Allen Hatcher, "Algebraic Topology", Cambridge University
              Press (2002).
 
@@ -1226,7 +1230,7 @@ REFERENCES:
 **I**
 
 .. [IK2010] Kenji Iohara and Yoshiyuki Koga.
-            *Representation Theory of the Virasoro Algebra*. 
+            *Representation Theory of the Virasoro Algebra*.
             Springer, (2010).
 
 .. [ILS2012] Giuseppe F. Italiano, Luigi Laura, and Federico
@@ -2402,6 +2406,10 @@ REFERENCES:
 
 .. [Woo1998] \R. M. W. Wood, "Problems in the Steenrod algebra,"
              Bull. London Math. Soc. 30 (1998), no. 5, 449-517.
+
+.. [Wor1984] Worley, Dale Raymond, *A theory of shifted Young
+             tableaux*. Dissertation, Massachusetts Institute of
+             Technology, 1984.
 
 .. [WP-Bessel] :wikipedia:`Bessel_function`
 

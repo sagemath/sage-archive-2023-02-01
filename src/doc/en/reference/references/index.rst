@@ -1724,6 +1724,9 @@ REFERENCES:
 .. [Mil1958] \J. W. Milnor, "The Steenrod algebra and its dual,"
              Ann. of Math. (2) 67 (1958), 150-171.
 
+.. [MirMor2009] \R. Miranda, D.R. Morrison, "Embeddings of Integral Quadratic Forms"
+                http://www.math.ucsb.edu/~drm/manuscripts/eiqf.pdf .
+
 .. [MMIB2012] \Y. Matsumoto, S. Moriyama, H. Imai, D. Bremner:
               Matroid Enumeration for Incidence Geometry,
               Discrete and Computational Geometry,

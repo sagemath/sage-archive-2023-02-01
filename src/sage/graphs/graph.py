@@ -2953,7 +2953,7 @@ class Graph(GenericGraph):
                 v = next(T[0].vertex_iterator())
                 for t in T[1:]:
                     tree.add_edge(next(t.vertex_iterator()),v)
-                return tree 
+                return tree
 
         # Forcing k to be defined
         if k is None:
@@ -4131,7 +4131,7 @@ class Graph(GenericGraph):
         """
         if self.order() == 0 or self.size() == 0:
             return 0
-        
+
         from sage.graphs.graph_coloring import edge_coloring
         return edge_coloring(self, value_only=True, solver=solver, verbose=verbose)
 
@@ -7187,6 +7187,55 @@ class Graph(GenericGraph):
         return relabel(D)
 
     @doc_index("Graph properties")
+    def is_polyhedral(self):
+        """
+        Test whether the graph is the graph of the polyhedron.
+
+        By a theorem of Steinitz (Satz 43, p. 77 of [St1922]_),
+        graphs of three-dimensional polyhedra are exactly
+        the simple 3-vertex-connected planar graphs.
+
+        EXAMPLES::
+
+            sage: C = graphs.CubeGraph(3)
+            sage: C.is_polyhedral()
+            True
+            sage: K33=graphs.CompleteBipartiteGraph(3, 3)
+            sage: K33.is_polyhedral()
+            False
+            sage: graphs.CycleGraph(17).is_polyhedral()
+            False
+            sage: [i for i in range(9) if graphs.CompleteGraph(i).is_polyhedral()]
+            [4]
+
+
+        .. SEEALSO::
+
+            * :meth:`~sage.graphs.generic_graph.GenericGraph.vertex_connectivity`
+            * :meth:`~sage.graphs.generic_graph.GenericGraph.is_planar`
+            * :wikipedia:`Polyhedral_graph`
+
+        TESTS::
+
+            sage: G = Graph([[1, 2, 3, 4], [[1, 2], [1,1]]], loops=True)
+            sage: G.is_polyhedral()
+            False
+
+            sage: G = Graph([[1, 2, 3], [[1, 2], [3, 1], [1, 2], [2, 3]]], multiedges=True)
+            sage: G.is_polyhedral()
+            False
+
+        .. TODO::
+
+            Implement a faster 3-vertex-connectivity test: :trac:`24635`.
+        """
+
+        return (not self.has_loops()
+                and not self.has_multiple_edges()
+                and (self.vertex_connectivity() >= 3)
+                and self.is_planar())
+
+    @doc_index("Graph properties")
     def is_prime(self):
         r"""
         Tests whether the current graph is prime.
@@ -7832,12 +7881,12 @@ class Graph(GenericGraph):
             problem: put a binary variable ``b[e]`` on each edge ``e``, and for
             each vertex ``v``, require that the sum of the values of the edges
             incident to ``v`` is 1.
-            
+
         - ``solver`` -- (default: ``None``) specify a Linear Program (LP)
           solver to be used; if set to ``None``, the default one is used
 
         - ``verbose`` -- integer (default: ``0``); sets the level of verbosity:
-          set to 0 by default, which means quiet (only useful when 
+          set to 0 by default, which means quiet (only useful when
           ``algorithm == "LP_matching"`` or ``algorithm == "LP"``)
 
         For more information on LP solvers and which default solver is
@@ -7872,7 +7921,7 @@ class Graph(GenericGraph):
             False
 
         TESTS::
-    
+
             sage: G = graphs.EmptyGraph()
             sage: all(G.has_perfect_matching(algorithm=algo) for algo in ['Edmonds', 'LP_matching', 'LP'])
             True

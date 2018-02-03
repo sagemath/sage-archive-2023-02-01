@@ -4124,6 +4124,7 @@ class GenericGraph(GenericGraph_pyx):
           - "Measuring non-planarity": :meth:`~genus`, :meth:`~crossing_number`
           - :meth:`planar_dual`
           - :meth:`faces`
+          - :meth:`~sage.graphs.graph.Graph.is_polyhedral`
 
         INPUT:
 
@@ -8108,7 +8109,7 @@ class GenericGraph(GenericGraph_pyx):
                 # There is a circuit left. Let's add the corresponding
                 # constraint !
                 while not isok:
-                    
+
                     p.add_constraint(p.sum(b[v] for v in certificate), min=1)
                     if verbose:
                         print("Adding a constraint on circuit: ", certificate)

@@ -354,6 +354,11 @@ cdef class Matrix(Matrix1):
             sage: B = B.column(0)
             sage: A.solve_right(B)
             (1, 124, 1)
+            sage: A = Matrix(Zmod(15), 3,4, range(12))
+            sage: B = Matrix(Zmod(15), 3,3, range(3,12))
+            sage: X = A.solve_right(B)
+            sage: A*X == B
+            True
 
         Solving a system over the p-adics::
 
@@ -403,16 +408,23 @@ cdef class Matrix(Matrix1):
                 A = pari(self.lift())
                 b = pari(B).lift()
                 if b.type() == "t_MAT":
-                    b = b[0]
+                    X = []
+                    for n in range(B.ncols()):
+                        ret = A.matsolvemod(K.cardinality(), b[n])
+                        if ret.type() == 't_INT':
+                            raise ValueError("matrix equation has no solutions")
+                        X.append(ret.sage())
+                    X = self.matrix_space(B.ncols(),self.ncols())(X)
+                    return X.T
                 elif b.type() == "t_VEC":
                     b = b.Col()
-                ret = A.matsolvemod(K.cardinality(), b)
-                if ret.type() == 't_INT':
-                    raise ValueError("matrix equation has no solutions")
-                ret = ret.Vec().sage()
+                    ret = A.matsolvemod(K.cardinality(), b)
+                    if ret.type() == 't_INT':
+                        raise ValueError("matrix equation has no solutions")
+                    ret = A.matsolvemod(K.cardinality(), b)
+                    ret = ret.Vec().sage()
                 if is_Vector(B):
                     return (K ** self.ncols())(ret)
-                return self.matrix_space(self.ncols(), 1)(ret)
             raise TypeError("base ring must be an integral domain or a ring of integers mod n")
         if not K.is_field():
             K = K.fraction_field()

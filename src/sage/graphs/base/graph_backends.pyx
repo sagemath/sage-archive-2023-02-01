@@ -743,7 +743,7 @@ def unpickle_graph_backend(directed,vertices,edges,kwds):
         sage: from sage.graphs.base.graph_backends import unpickle_graph_backend
         sage: b = unpickle_graph_backend(0,[0,1,2,3],[(0,3,'label'),(0,0,1)],{'loops':True})
         sage: b
-        <type 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
+        <sage.graphs.base.sparse_graph.SparseGraphBackend object at ...>
         sage: list(b.iterator_edges(range(4),1))
         [(0, 0, 1), (0, 3, 'label')]
     """
@@ -776,7 +776,7 @@ class NetworkXGraphDeprecated(SageObject):
 
             sage: from sage.graphs.base.graph_backends import NetworkXGraphDeprecated
             sage: NetworkXGraphDeprecated()
-            <class 'sage.graphs.base.graph_backends.NetworkXGraphDeprecated'>
+            <sage.graphs.base.graph_backends.NetworkXGraphDeprecated object at ...>
         """
         from sage.misc.superseded import deprecation
         deprecation(10900, "Your graph object is saved in an old format since networkx "+
@@ -844,7 +844,7 @@ class NetworkXDiGraphDeprecated(SageObject):
             sage: from sage.graphs.base.graph_backends import NetworkXDiGraphDeprecated
             sage: NetworkXDiGraphDeprecated()
             doctest:...
-            <class 'sage.graphs.base.graph_backends.NetworkXDiGraphDeprecated'>
+            <sage.graphs.base.graph_backends.NetworkXDiGraphDeprecated object at ...>
         """
         from sage.misc.superseded import deprecation
         deprecation(10900, "Your digraph object is saved in an old format since networkx "+
@@ -935,10 +935,6 @@ class NetworkXGraphBackend(GenericGraphBackend):
     def __setstate__(self,state):
         r"""
         Fix the deprecated class if necessary.
-
-        EXAMPLES::
-
-            sage: sage.structure.sage_object.unpickle_all() # indirect random
         """
         for k,v in state.iteritems():
             self.__dict__[k] = v

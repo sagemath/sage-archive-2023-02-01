@@ -458,7 +458,7 @@ cdef class Function(SageObject):
         cdef Py_ssize_t i
         if coerce:
             try:
-                args = map(SR.coerce, args)
+                args = [SR.coerce(a) for a in args]
             except TypeError as err:
                 # If the function takes only one argument, we try to call
                 # a method with the name of this function on the object.
@@ -999,7 +999,6 @@ cdef class BuiltinFunction(Function):
         if any(isinstance(x, Element) for x in args):
             if (self._preserved_arg
                     and isinstance(args[self._preserved_arg-1], Element)):
-                from sage.structure.all import parent
                 arg_parent = parent(args[self._preserved_arg-1])
                 if arg_parent is SR:
                     return res

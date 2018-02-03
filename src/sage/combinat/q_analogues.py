@@ -2,7 +2,7 @@
 r"""
 `q`-Analogues
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -15,7 +15,7 @@ r"""
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 # python3
 from __future__ import division
 
@@ -69,7 +69,7 @@ def q_int(n, q=None):
         sage: q_int(0).parent()
         Univariate Polynomial Ring in q over Integer Ring
     """
-    if not n in ZZ:
+    if n not in ZZ:
         raise ValueError('%s must be an integer' % n)
 
     if q is None:
@@ -79,6 +79,7 @@ def q_int(n, q=None):
     if n >= 0:
         return sum(q**i for i in range(n))
     return -q**n*sum(q**i for i in range(-n))
+
 
 def q_factorial(n, q=None):
     """
@@ -105,9 +106,10 @@ def q_factorial(n, q=None):
         ValueError: Argument (-2) must be a nonnegative integer.
     """
     if n in ZZ and n >= 0:
-        return prod([q_int(i, q) for i in range(1, n+1)])
+        return prod(q_int(i, q) for i in range(1, n + 1))
     else:
-        raise ValueError("Argument (%s) must be a nonnegative integer." %n)
+        raise ValueError("Argument (%s) must be a nonnegative integer." % n)
+
 
 def q_binomial(n, k, q=None, algorithm='auto'):
     r"""
@@ -297,7 +299,7 @@ def q_binomial(n, k, q=None, algorithm='auto'):
     if not(0 <= k and k <= n):
         return zero
 
-    k = min(n-k,k) # Pick the smallest k
+    k = min(n - k, k)  # Pick the smallest k
 
     # heuristic choice of the fastest algorithm
     if algorithm == 'auto':
@@ -322,7 +324,7 @@ def q_binomial(n, k, q=None, algorithm='auto'):
     # the algorithms
     if algorithm == 'naive':
         denom = prod(one - q**i for i in range(1, k+1))
-        if not denom: # q is a root of unity, use the cyclotomic algorithm
+        if not denom:  # q is a root of unity, use the cyclotomic algorithm
             from sage.rings.polynomial.cyclotomic import cyclotomic_value
             return cyclotomic_value(n, k, q, algorithm='cyclotomic')
         else:
@@ -358,6 +360,7 @@ def gaussian_binomial(n, k, q=None, algorithm='auto'):
         q^4 + q^3 + 2*q^2 + q + 1
     """
     return q_binomial(n, k, q, algorithm)
+
 
 def q_multinomial(seq, q=None, binomial_algorithm='auto'):
     r"""
@@ -485,11 +488,78 @@ def qt_catalan_number(n):
         ZZqt = ZZ['q','t']
         d = {}
         for dw in DyckWords(n):
-            tup = (dw.area(),dw.bounce())
-            d[tup] = d.get(tup,0)+1
+            tup = (dw.area(), dw.bounce())
+            d[tup] = d.get(tup, 0) + 1
         return ZZqt(d)
     else:
-        raise ValueError("Argument (%s) must be a nonnegative integer." %n)
+        raise ValueError("Argument (%s) must be a nonnegative integer." % n)
+
+
+def q_pochhammer(n, a, q=None):
+    r"""
+    Return the `q`-Pochhammer `(a; q)_n`.
+
+    The `q`-Pochhammer symbol is defined by
+
+    .. MATH::
+
+        (a; q)_n = \prod_{k=0}^{n-1} (1 - aq^k)
+
+    with `(a; q)_0 = 1` for all `a, q` and `n \in \NN`.
+    By using the identity
+
+    .. MATH::
+
+        (a; q)_n = \frac{(a; q)_{\infty}}{(aq^n; q)_{\infty}},
+
+    we can extend the definition to `n < 0` by
+
+    .. MATH::
+
+        (a; q)_n = \frac{1}{(aq^n; q)_{-n}}
+        = \prod_{k=1}^{-n} \frac{1}{1 - a/q^k}.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.q_analogues import q_pochhammer
+        sage: q_pochhammer(3, 1/7)
+        6/343*q^3 - 6/49*q^2 - 6/49*q + 6/7
+        sage: q_pochhammer(3, 3)
+        -18*q^3 + 6*q^2 + 6*q - 2
+        sage: q_pochhammer(3, 1)
+        0
+
+        sage: R.<q> = ZZ[]
+        sage: q_pochhammer(4, q)
+        q^10 - q^9 - q^8 + 2*q^5 - q^2 - q + 1
+        sage: q_pochhammer(4, q^2)
+        q^14 - q^12 - q^11 - q^10 + q^8 + 2*q^7 + q^6 - q^4 - q^3 - q^2 + 1
+        sage: q_pochhammer(-3, q)
+        1/(-q^9 + q^7 + q^6 + q^5 - q^4 - q^3 - q^2 + 1)
+
+    TESTS::
+
+        sage: q_pochhammer(0, 2)
+        1
+        sage: q_pochhammer(0, 1)
+        1
+        sage: q_pochhammer(0, var('a'))
+        1
+
+    REFERENCES:
+
+    - :wikipedia:`Q-Pochhammer_symbol`
+    """
+    if q is None:
+        q = ZZ['q'].gen()
+    if n not in ZZ:
+        raise ValueError("{} must be an integer".format(n))
+    R = q.parent()
+    one = R.one()
+    if n < 0:
+        return R.prod(one / (one - a/q**-k) for k in range(1,-n+1))
+    return R.prod((one - a*q**k) for k in range(n))
+
 
 @cached_function
 def q_jordan(t, q):
@@ -549,7 +619,6 @@ def q_jordan(t, q):
 
     - Xavier Caruso (2012-06-29)
     """
-
     if q == 1:
         raise ValueError("q must not be equal to 1")
 
@@ -565,6 +634,7 @@ def q_jordan(t, q):
             res += q_jordan(Partition(tp),q) * ((q**ti - q**tj) // (q-1))
             tj = ti
     return res
+
 
 def q_subgroups_of_abelian_group(la, mu, q=None, algorithm='birkhoff'):
     r"""
@@ -691,7 +761,7 @@ def q_subgroups_of_abelian_group(la, mu, q=None, algorithm='birkhoff'):
     - Tomer Bauer (2013-09-26): Implemented the Birkhoff algorithm
     """
     if q is None:
-        q = ZZ['q'].gens()[0]
+        q = ZZ['q'].gen()
     la_c = Partition(la).conjugate()
     mu_c = Partition(mu).conjugate()
     k = mu_c.length()
@@ -715,3 +785,64 @@ def q_subgroups_of_abelian_group(la, mu, q=None, algorithm='birkhoff'):
 
     raise ValueError("invalid algorithm choice")
 
+
+@cached_function
+def q_stirling_number1(n, k, q=None):
+    r"""
+    Return the (unsigned) `q`-Stirling number of the first kind.
+
+    This is a `q`-analogue of :func:`sage.combinat.combinat.stirling_number1` .
+
+    INPUT:
+
+    - ``n``, ``k`` -- integers with ``1 <= k <= n``
+
+    - ``q`` -- optional variable (default `q`)
+
+    OUTPUT: a polynomial in the variable `q`
+
+    These polynomials satisfy the recurrence
+
+    .. MATH::
+
+         s_{n,k} = s_{n-1,k-1} + [n-1]_q s_{n-1, k}.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.q_analogues import q_stirling_number1
+        sage: q_stirling_number1(4,2)
+        q^3 + 3*q^2 + 4*q + 3
+
+        sage: all(stirling_number1(6,k) == q_stirling_number1(6,k)(1)
+        ....:     for k in range(1,7))
+        True
+
+        sage: x = polygen(QQ['q'],'x')
+        sage: S = sum(q_stirling_number1(5,k)*x**k for k in range(1, 6))
+        sage: factor(S)
+        x * (x + 1) * (x + q + 1) * (x + q^2 + q + 1) * (x + q^3 + q^2 + q + 1)
+
+    TESTS::
+
+        sage: q_stirling_number1(-1,2)
+        Traceback (most recent call last):
+        ...
+        ValueError: q-Stirling numbers are not defined for n < 0
+
+    REFERENCES:
+
+    - [Ca1948]_
+
+    - [Ca1954]_
+    """
+    if q is None:
+        q = ZZ['q'].gen()
+    A = q.parent()
+    if n < 0:
+        raise ValueError('q-Stirling numbers are not defined for n < 0')
+    if n == 0 == k:
+        return A.one()
+    if k > n or k < 1:
+        return A.zero()
+    return (q_stirling_number1(n - 1, k - 1, q=q) +
+            q_int(n - 1) * q_stirling_number1(n - 1, k, q=q))

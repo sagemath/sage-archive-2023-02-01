@@ -505,7 +505,7 @@ class Fields(CategoryWithAxiom):
 
             return Factorization(factors, unit=unit, sort=False)
 
-        def __pow__(self, n):
+        def _pow_int(self, n):
             r"""
             Returns the vector space of dimension `n` over ``self``.
 

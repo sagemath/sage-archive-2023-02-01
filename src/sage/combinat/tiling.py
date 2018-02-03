@@ -439,7 +439,7 @@ def ncube_isometry_group_cosets(n, orientation_preserving=True):
         sage: [len(c) for c in cosets]
         [8, 8, 8, 8, 8, 8]
         sage: type(cosets[0][0])
-        <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
+        <... 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
 
     """
     from sage.misc.misc_c import prod
@@ -1834,7 +1834,8 @@ class TilingSolver(SageObject):
             [[0, 7, 14], [0, 12, 10], [6, 13, 5], [6, 14, 2], [11, 9, 5], [11, 10, 3]]
         """
         if len(self.rows()) == 0:
-            raise StopIteration
+            return
+
         x = self.dlx_solver()
         while x.search() == 1:
             yield x.get_solution()
@@ -2047,7 +2048,7 @@ class TilingSolver(SageObject):
 
         """
         if not self.is_suitable():
-            raise StopIteration
+            return
         if partial is None:
             it = self._dlx_solutions_iterator()
         elif partial == 'common_prefix':

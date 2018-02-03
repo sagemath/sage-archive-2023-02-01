@@ -54,6 +54,14 @@ TESTS::
     running ._test_new() . . . pass
     running ._test_pickling() . . . pass
 
+Test hashing::
+
+    sage: K.<a> = GF(2^4)
+    sage: A = random_matrix(K, 1000, 1000)
+    sage: A.set_immutable()
+    sage: {A:1}
+    {1000 x 1000 dense matrix over Finite Field in a of size 2^4: 1}
+
 .. TODO::
 
     Wrap ``mzd_slice_t``.
@@ -133,9 +141,6 @@ cdef object word_to_poly(w, F):
     return F.fetch_int(w)
 
 cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
-    ########################################################################
-    # LEVEL 1 functionality
-    ########################################################################
     def __cinit__(self, parent, entries, copy, coerce, alloc=True):
         """
         Create new matrix over `GF(2^e)` for 2<=e<=10.
@@ -1376,19 +1381,6 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         mzed_free(A)
         self.cache('rank', r)
         return r
-
-    def __hash__(self):
-        """
-        EXAMPLES::
-
-            sage: K.<a> = GF(2^4)
-            sage: A = random_matrix(K, 1000, 1000)
-            sage: A.set_immutable()
-            sage: {A:1} #indirect doctest
-            {1000 x 1000 dense matrix over Finite Field in a of size 2^4: 1}
-
-        """
-        return self._hash()
 
     def __reduce__(self):
         """

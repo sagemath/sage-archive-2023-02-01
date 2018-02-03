@@ -45,32 +45,6 @@ ALLOWED_EXTENSIONS = ['.eps', '.pdf', '.pgf', '.png', '.ps', '.sobj', '.svg']
 DEFAULT_DPI = 100
 
 
-def show_default(default=None):
-    r"""
-    Set the default for showing plots using any plot commands. If
-    called with no arguments, returns the current default.
-
-    If this is ``True`` (the default) then any plot object
-    when displayed will be displayed as an actual plot instead of text,
-    i.e., the show command is not needed.
-
-    EXAMPLES:
-
-    The default starts out as ``True`` in interactive use and
-    ``False`` in doctests::
-
-        sage: show_default()  # long time
-        doctest:...: DeprecationWarning: this is done automatically by the doctest framework
-        See http://trac.sagemath.org/14469 for details.
-        False
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14469, 'this is done automatically by the doctest framework')
-    import sage.doctest
-    if default is None:
-        return not sage.doctest.DOCTEST_MODE
-    sage.doctest.DOCTEST_MODE = not bool(default)
-
 # If do_verify is True, options are checked when drawing a
 # GraphicsPrimitive.  See primitive.py
 do_verify = True
@@ -1575,7 +1549,7 @@ class Graphics(WithEqualityById, SageObject):
 
           - ``"default"`` -- Uses matplotlib's internal text rendering
             engine called Mathtext ( see
-            http://matplotlib.org/users/mathtext.html ). If you have
+            https://matplotlib.org/users/mathtext.html ). If you have
             modified the default matplotlib settings, for instance via
             a matplotlibrc file, then this option will not change any of
             those settings.
@@ -3185,7 +3159,7 @@ class Graphics(WithEqualityById, SageObject):
                 if latex_implementations[0] == "pdflatex":
                     # use pdflatex and set font encoding as per
                     # matplotlib documentation:
-                    # http://matplotlib.org/users/pgf.html#pgf-tutorial
+                    # https://matplotlib.org/users/pgf.html#pgf-tutorial
                     pgf_options= {"pgf.texsystem": "pdflatex",
                                   "pgf.preamble": [
                                       r"\usepackage[utf8x]{inputenc}",

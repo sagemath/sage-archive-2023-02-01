@@ -289,11 +289,11 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
 
     def as_dynamical_system(self):
         """
-        Return this endomorpism as a :class:`DynamicalSystem_producte_projective`.
+        Return this endomorphism as a :class:`DynamicalSystem_producte_projective`.
 
         OUTPUT:
 
-        - :class:`DynamicalSystem_produce_projective`.
+        - :class:`DynamicalSystem_produce_projective`
 
         EXAMPLES::
 

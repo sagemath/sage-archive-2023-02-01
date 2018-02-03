@@ -147,7 +147,7 @@ class IndexedMonoidElement(MonoidElement):
             pref = AsciiArt([P.prefix()])
             def ascii_art_gen(m):
                 if m[1] != 1:
-                    r = (AsciiArt([" "**Integer(len(pref))]) + ascii_art(m[1]))
+                    r = (AsciiArt([" " * len(pref)]) + ascii_art(m[1]))
                 else:
                     r = empty_ascii_art
                 r = r * P._ascii_art_generator(m[0])
@@ -288,7 +288,7 @@ class IndexedMonoidElement(MonoidElement):
             sage: (a*c^3).support()
             [0, 2]
         """
-        supp = set([key for key, exp in self._sorted_items() if exp != 0])
+        supp = set(key for key, exp in self._sorted_items() if exp != 0)
         return sorted(supp)
 
     def leading_support(self):
@@ -497,7 +497,7 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
             :meth:`_repr_`, :meth:`_latex_`, :meth:`print_options`
         """
         print_options = self.parent().print_options()
-        v = self._monomial.items()
+        v = list(self._monomial.items())
         try:
             v.sort(key=print_options['sorting_key'],
                    reverse=print_options['sorting_reverse'])

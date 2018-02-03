@@ -313,7 +313,7 @@ Working with sandpile divisors::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, division
 from six.moves import zip, range
 
 from collections import Counter
@@ -372,7 +372,8 @@ class Sandpile(DiGraph):
     @staticmethod
     def help(verbose=True):
         r"""
-        List of Sandpile-specific methods (not inherited from Graph).  If ``verbose``, include short descriptions.
+        List of Sandpile-specific methods (not inherited from :class:`Graph`).
+        If ``verbose``, include short descriptions.
 
         INPUT:
 
@@ -402,7 +403,7 @@ class Sandpile(DiGraph):
             group_gens               -- A minimal list of generators for the sandpile group.
             group_order              -- The size of the sandpile group.
             h_vector                 -- The number of superstable configurations in each degree.
-            help                     -- List of Sandpile-specific methods (not inherited from Graph).
+            help                     -- List of Sandpile-specific methods (not inherited from "Graph").
             hilbert_function         -- The Hilbert function of the homogeneous toppling ideal.
             ideal                    -- The saturated homogeneous toppling ideal.
             identity                 -- The identity configuration.
@@ -436,7 +437,7 @@ class Sandpile(DiGraph):
             stationary_density       -- The stationary density of the sandpile.
             superstables             -- The superstable configurations.
             symmetric_recurrents     -- The symmetric recurrent configurations.
-            tutte_polynomial         -- The Tutte polynomial.
+            tutte_polynomial         -- The Tutte polynomial of the underlying graph.
             unsaturated_ideal        -- The unsaturated, homogeneous toppling ideal.
             version                  -- The version number of Sage Sandpiles.
             zero_config              -- The all-zero configuration.
@@ -584,24 +585,25 @@ class Sandpile(DiGraph):
         else:
             self._name = 'sandpile graph'
         # preprocess a graph, if necessary
-        if isinstance(g, dict) and isinstance(g.values()[0], dict):
+        if isinstance(g, dict) and isinstance(next(iter(g.values())), dict):
             pass # this is the default format
-        elif isinstance(g, dict) and isinstance(g.values()[0], list):
-            processed_g = {i:dict(Counter(g[i])) for i in g}
+        elif isinstance(g, dict) and isinstance(next(iter(g.values())), list):
+            processed_g = {i: dict(Counter(g[i])) for i in g}
             g = processed_g
         elif isinstance(g, Graph) or isinstance(g, DiGraph):
             if not g.weighted():
                 h = g.to_dictionary(multiple_edges=True)
-                g = {i:dict(Counter(h[i])) for i in h}
+                g = {i: dict(Counter(h[i])) for i in h}
             else:
-                vi = {v:g.vertices().index(v) for v in g.vertices()}
+                vi = {v: g.vertices().index(v) for v in g.vertices()}
                 ad = g.weighted_adjacency_matrix()
-                g = {v:{w:ad[vi[v],vi[w]] for w in g.neighbors(v)} for v in g.vertices()}
+                g = {v: {w: ad[vi[v], vi[w]] for w in g.neighbors(v)}
+                     for v in g.vertices()}
         else:
             raise SyntaxError(g)
 
         # create digraph and initialize some variables
-        DiGraph.__init__(self,g,weighted=True)
+        DiGraph.__init__(self, g, weighted=True)
         self._dict = deepcopy(g)
         if sink is None:
             sink = self.vertices()[0]
@@ -617,7 +619,7 @@ class Sandpile(DiGraph):
 
     def __copy__(self):
         """
-        Make a copy of this sandpile
+        Make a copy of this sandpile.
 
         OUTPUT:
 
@@ -1626,7 +1628,8 @@ class Sandpile(DiGraph):
 
     def tutte_polynomial(self):
         r"""
-        The Tutte polynomial.  Only defined for undirected sandpile graphs.
+        The Tutte polynomial of the underlying graph.
+        Only defined for undirected sandpile graphs.
 
         OUTPUT:
 
@@ -1743,7 +1746,7 @@ class Sandpile(DiGraph):
 
             The "nonspecial divisors" are those divisors of degree `g-1` with
             empty linear system.  The term is only defined for undirected graphs.
-            Here, `g = |E| - |V| + 1` is the genus of the graph (not counted loops
+            Here, `g = |E| - |V| + 1` is the genus of the graph (not counting loops
             as part of `|E|`).  If ``verbose`` is ``False``, the divisors are converted
             to lists of integers.
 
@@ -2240,7 +2243,7 @@ class Sandpile(DiGraph):
             else:
                 raise SyntaxError(state)
         if distrib is None:  # default = uniform distribution
-            distrib = [1/n]*n
+            distrib = [QQ.one() / n] * n
         X = GeneralDiscreteDistribution(distrib)
         if isinstance(st,SandpileConfig):
             while True:
@@ -2276,9 +2279,9 @@ class Sandpile(DiGraph):
             sage: '_stationary_density' in s.__dict__
             True
         """
-        if self.name()=='Complete sandpile graph':
+        if self.name() == 'Complete sandpile graph':
             n = Integer(self.num_verts())
-            self._stationary_density =  (n + 1/n + sum([falling_factorial(n,i)/n**i for i in range(1,n+1)]) - 3)/2
+            self._stationary_density =  (n + QQ.one() / n + sum(falling_factorial(n,i)/n**i for i in range(1,n+1)) - 3)/2
         elif self.is_undirected() and '_h_vector' not in self.__dict__:
             t = Graph(self).tutte_polynomial().subs(x=1)
             myR = PolynomialRing(QQ,'y')
@@ -2671,7 +2674,7 @@ class Sandpile(DiGraph):
         r"""
         The Betti table for the homogeneous toppling ideal.  If
         ``verbose`` is ``True``, it prints the standard Betti table, otherwise,
-        it returns a less formated table.
+        it returns a less formatted table.
 
         INPUT:
 
@@ -3795,7 +3798,7 @@ class SandpileConfig(dict):
         ind = self._sandpile._sink_ind
         n = self._sandpile.num_verts()
         if distrib is None:  # default = uniform distribution on nonsink vertices
-            distrib = [1/(n-1)]*(n-1)
+            distrib = [QQ.one() / (n - 1)] * (n - 1)
         if len(distrib)==n-1: # prob. dist. on nonsink vertices
             X = GeneralDiscreteDistribution(distrib)
             V = self._sandpile.nonsink_vertices()
@@ -5118,7 +5121,7 @@ class SandpileDivisor(dict):
         V = S.vertices()
         n = S.num_verts()
         if distrib is None:  # default = uniform distribution
-            distrib = [1/n]*n
+            distrib = [QQ.one() / n] * n
         X = GeneralDiscreteDistribution(distrib)
         while not E.is_alive():
             E = E.stabilize()
@@ -5701,7 +5704,8 @@ class SandpileDivisor(dict):
 
         .. NOTE::
 
-            The vertex `v` is a (generalized) Weierstrass point for divisor `D` if the sequence of ranks `r(D - nv)`
+            The vertex `v` is a (generalized) Weierstrass point for divisor
+            `D` if the sequence of ranks `r(D - nv)`
             for `n = 0, 1, 2, \dots` is not `r(D), r(D)-1, \dots, 0, -1, -1, \dots`
         """
         return self.weierstrass_gap_seq(v)[1] > 0
@@ -5743,7 +5747,8 @@ class SandpileDivisor(dict):
 
         .. NOTE::
 
-            The vertex `v` is a (generalized) Weierstrass point for divisor `D` if the sequence of ranks `r(D - nv)`
+            The vertex `v` is a (generalized) Weierstrass point for divisor
+            `D` if the sequence of ranks `r(D - nv)`
             for `n = 0, 1, 2, \dots`` is not `r(D), r(D)-1, \dots, 0, -1, -1, \dots`
         """
         if with_rank_seq:
@@ -5922,7 +5927,7 @@ class SandpileDivisor(dict):
         V = S.vertices()
         if distrib is None:  # default = uniform distribution
             n = S.num_verts()
-            distrib = [1/n]*n
+            distrib = [QQ.one() / n] * n
         X = GeneralDiscreteDistribution(distrib)
         i = X.get_random_element()
         D[V[i]] += 1

@@ -199,7 +199,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
         #def _test_product(self, **options):
         #    tester = self._tester(**options)
-        #    tester.assert_(self.product is not None)
+        #    tester.assertTrue(self.product is not None)
         #    could check that self.product is in Hom( self x self, self)
 
         def hochschild_complex(self, M):

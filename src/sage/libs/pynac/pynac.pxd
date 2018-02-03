@@ -9,9 +9,9 @@ Check that we can externally cimport this (:trac:`18825`)::
 
     sage: cython(  # long time; random compiler warnings
     ....: '''
-    ....: #clang c++
-    ....: #clib pynac
-    ....: #cargs --std=c++11
+    ....: # distutils: language = c++
+    ....: # distutils: libraries = pynac
+    ....: # distutils: extra_compile_args = --std=c++11
     ....: cimport sage.libs.pynac.pynac
     ....: ''')
 """
@@ -317,6 +317,7 @@ cdef extern from "pynac_wrap.h":
             bint) except +
     GEx g_hold2_wrapper "HOLD2" (GEx (GEx, GEx) except+, GEx ex, GEx ex,
             bint) except +
+    void g_set_state "GiNaC::set_state" (stdstring & s, bint b) except +
 
     GSymbol ginac_symbol "GiNaC::symbol" (char* s, char* t, unsigned d) except +
     GSymbol ginac_new_symbol "GiNaC::symbol" () except +
@@ -361,7 +362,7 @@ cdef extern from "pynac_wrap.h":
     GEx g_zeta2 "GiNaC::zeta" (GEx m, GEx s)            except + # alternating Euler sum
     GEx g_stieltjes "GiNaC::stieltjes" (GEx m)          except + # Stieltjes constants
     GEx g_zetaderiv "GiNaC::zetaderiv" (GEx n, GEx x)   except + # derivatives of Riemann's zeta function
-    GEx g_tgamma "GiNaC::tgamma" (GEx x)                except + # gamma function
+    GEx g_gamma "GiNaC::gamma" (GEx x)                  except + # gamma function
     GEx g_lgamma "GiNaC::lgamma" (GEx x)                except + # logarithm of gamma function
     GEx g_beta "GiNaC::beta" (GEx x, GEx y)             except + # beta function (tgamma(x)*tgamma(y)/tgamma(x+y))
     GEx g_psi "GiNaC::psi" (GEx x)                      except + # psi (digamma) function
@@ -480,22 +481,17 @@ cdef extern from "pynac_wrap.h":
     ctypedef GParamSet const_paramset_ref "const GiNaC::paramset&"
 
     ctypedef struct py_funcs_struct:
-        py_binomial(a, b)
-        py_binomial_int(int n, unsigned int k)
         py_gcd(a, b)
         py_lcm(a, b)
         py_real(a)
         py_imag(a)
         py_numer(a)
         py_denom(a)
-        py_conjugate(a)
         bint py_is_rational(a)
-        bint py_is_crational(a)
         bint py_is_real(a)
         bint py_is_integer(a)
         bint py_is_equal(a, b)
         bint py_is_even(a)
-        bint py_is_cinteger(a)
         bint py_is_prime(n)
         bint py_is_exact(x)
 
@@ -533,22 +529,13 @@ cdef extern from "pynac_wrap.h":
         py_asinh(x)
         py_acosh(x)
         py_atanh(x)
-        py_tgamma(x)
-        py_lgamma(x)
         py_isqrt(x)
         py_sqrt(x)
-        py_abs(x)
         py_mod(x, y)
         py_smod(x, y)
         py_irem(x, y)
-        py_iquo(x, y)
-        py_iquo2(x, y)
-        py_li(x, n, parent)
-        py_li2(x)
         py_psi(x)
         py_psi2(n, x)
-
-        int py_int_length(x) except -1
 
         py_eval_constant(unsigned serial, parent)
         py_eval_unsigned_infinity()
@@ -581,8 +568,6 @@ cdef extern from "pynac_wrap.h":
         stdstring* py_print_fderivative(unsigned id, params, args)
         stdstring* py_latex_fderivative(unsigned id, params, args)
         paramset_to_PyTuple(const_paramset_ref s)
-
-        py_rational_power_parts(basis, exp)
 
     py_funcs_struct py_funcs "GiNaC::py_funcs"
 

@@ -13,7 +13,7 @@ docstrings.
 -  Catalan numbers, :func:`catalan_number` (not to be
    confused with the Catalan constant)
 
--  Eulerian/Euler numbers, :func:`euler_number` (Maxima)
+-  Euler numbers, :func:`euler_number` (Maxima)
 
 -  Fibonacci numbers, :func:`fibonacci` (PARI) and
    :func:`fibonacci_number` (GAP) The PARI version is
@@ -662,11 +662,11 @@ def lucas_number2(n, P, Q):
         sage: n = lucas_number2(5,2,3); n
         2
         sage: type(n)
-        <type 'sage.rings.integer.Integer'>
+        <... 'sage.rings.integer.Integer'>
         sage: n = lucas_number2(5,2,-3/9); n
         418/9
         sage: type(n)
-        <type 'sage.rings.rational.Rational'>
+        <... 'sage.rings.rational.Rational'>
 
     The case `P=1`, `Q=-1` is the Lucas sequence in Brualdi's Introductory
     Combinatorics, 4th ed., Prentice-Hall, 2004::
@@ -777,17 +777,17 @@ def stirling_number2(n, k, algorithm=None):
         sage: n
         1900842429486
         sage: type(n)
-        <type 'sage.rings.integer.Integer'>
+        <... 'sage.rings.integer.Integer'>
         sage: n = stirling_number2(20,11,algorithm='gap')
         sage: n
         1900842429486
         sage: type(n)
-        <type 'sage.rings.integer.Integer'>
+        <... 'sage.rings.integer.Integer'>
         sage: n = stirling_number2(20,11,algorithm='maxima')
         sage: n
         1900842429486
         sage: type(n)
-        <type 'sage.rings.integer.Integer'>
+        <... 'sage.rings.integer.Integer'>
 
      Sage's implementation splitting the computation of the Stirling
      numbers of the second kind in two cases according to `n`, let us
@@ -831,7 +831,7 @@ def stirling_number2(n, k, algorithm=None):
         from sage.libs.gap.libgap import libgap
         return libgap.Stirling2(n, k).sage()
     elif algorithm == 'maxima':
-        return ZZ(maxima.eval("stirling2(%s,%s)"%(n, k)))
+        return ZZ(maxima.eval("stirling2(%s,%s)" % (n, k)))
     else:
         raise ValueError("unknown algorithm: %s" % algorithm)
 
@@ -1292,7 +1292,7 @@ class CombinatorialElement(CombinatorialObject, Element):
         if len(args) == 1 and not kwds:
             L = args[0]
         elif len(kwds) == 1 and not args:
-            L = kwds.values()[0]
+            L, = kwds.values()
         else:
             raise TypeError("__init__() takes exactly 2 arguments ({} given)".format(1+len(args)+len(kwds)))
         super(CombinatorialElement, self).__init__(L)
@@ -1506,7 +1506,7 @@ class CombinatorialClass(Parent):
         if x in self:
             return self._element_constructor_(x)
         else:
-            raise ValueError("%s not in %s"%(x, self))
+            raise ValueError("%s not in %s" % (x, self))
 
     Element = CombinatorialObject # mostly for backward compatibility
     @lazy_attribute
@@ -1715,7 +1715,7 @@ class CombinatorialClass(Parent):
             if counter == r:
                 return u
             counter += 1
-        raise ValueError("the value must be between %s and %s inclusive"%(0,counter-1))
+        raise ValueError("the value must be between %s and %s inclusive" % (0, counter - 1))
 
     #Set the default implementation of unrank
     unrank = __unrank_from_iterator
@@ -2006,7 +2006,7 @@ class UnionCombinatorialClass(CombinatorialClass):
         if self._name:
             return self._name
         else:
-            return "Union combinatorial class of \n    %s\nand\n    %s"%(self.left_cc, self.right_cc)
+            return "Union combinatorial class of \n    %s\nand\n    %s" % (self.left_cc, self.right_cc)
 
     def __contains__(self, x):
         """
@@ -2207,7 +2207,7 @@ class MapCombinatorialClass(CombinatorialClass):
         if self._name:
             return self._name
         else:
-            return "Image of %s by %s"%(self.cc, self.f)
+            return "Image of %s by %s" % (self.cc, self.f)
 
     def cardinality(self):
         """

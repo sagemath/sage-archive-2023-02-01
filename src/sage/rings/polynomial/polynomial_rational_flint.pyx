@@ -20,7 +20,7 @@ from cysignals.memory cimport check_allocarray, check_malloc, sig_free
 from cysignals.signals cimport sig_on, sig_str, sig_off
 
 from cpython.int cimport PyInt_AS_LONG
-from sage.misc.long cimport pyobject_to_long
+from sage.arith.long cimport pyobject_to_long
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *

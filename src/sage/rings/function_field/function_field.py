@@ -467,15 +467,15 @@ class FunctionField(Field):
         from itertools import product
         # Leibniz's law
         for x,y in tester.some_elements(product(S, S)):
-            tester.assert_(d(x*y) == x*d(y) + d(x)*y)
+            tester.assertTrue(d(x*y) == x*d(y) + d(x)*y)
         # Linearity
         for x,y in tester.some_elements(product(S, S)):
-            tester.assert_(d(x+y) == d(x) + d(y))
+            tester.assertTrue(d(x+y) == d(x) + d(y))
         for c,x in tester.some_elements(product(K, S)):
-            tester.assert_(d(c*x) == c*d(x))
+            tester.assertTrue(d(c*x) == c*d(x))
         # Constants map to zero
         for c in tester.some_elements(K):
-            tester.assert_(d(c) == 0)
+            tester.assertTrue(d(c) == 0)
 
     def _convert_map_from_(self, R):
         r"""
@@ -1483,9 +1483,11 @@ class FunctionField_polymod(FunctionField):
             sage: L.genus()
             3
         """
-        # unfortunately singular can not compute the genus with the polynomial_ring()._singular_
-        # object because genus method only accepts a ring of transdental degree 2 over a prime field
-        # not a ring of transdental degree 1 over a rational function field of one variable
+        # unfortunately singular can not compute the genus with the
+        # polynomial_ring()._singular_ object because genus method
+        # only accepts a ring of transcendental degree 2 over a prime
+        # field not a ring of transcendental degree 1 over a rational
+        # function field of one variable
 
         if is_RationalFunctionField(self._base_field) and self._base_field.constant_field().is_prime_field():
 
@@ -2270,6 +2272,24 @@ class RationalFunctionField(FunctionField):
             (1/t) * (X + (a + 2)*t)^3
             sage: f.factor().prod() == f
             True
+
+        We check that ``proof`` parameter is passed to the underlying
+        polynomial (see :trac:`24510`). However, factoring over a function
+        field over a tower of finite fields does not work yet (see
+        :trac:`24533`)::
+
+            sage: k = GF(4)
+            sage: k.<a> = GF(4)
+            sage: R.<b> = k[]
+            sage: l.<b> = k.extension(a^2 + a + b)
+            sage: K.<x> = FunctionField(l)
+            sage: R.<t> = K[]
+            sage: F = t*x
+            sage: F.factor(proof=False)
+            Traceback (most recent call last):
+            ...
+            TypeError: no conversion of this ring to a Singular ring defined
+
         """
         old_variable_name = f.variable_name()
         # the variables of the bivariate polynomial must be distinct
@@ -2278,7 +2298,7 @@ class RationalFunctionField(FunctionField):
             f = f.change_variable_name(old_variable_name + old_variable_name)
 
         F, d = self._to_bivariate_polynomial(f)
-        fac = F.factor()
+        fac = F.factor(proof=proof)
         x = f.parent().gen()
         t = f.parent().base_ring().gen()
         phi = F.parent().hom([x, t])

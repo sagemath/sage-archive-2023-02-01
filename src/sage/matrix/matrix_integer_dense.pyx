@@ -74,7 +74,8 @@ from sage.modules.vector_integer_dense cimport Vector_integer_dense
 from sage.misc.misc import verbose, get_verbose, cputime
 
 from sage.arith.all import previous_prime
-from sage.structure.element cimport Element, generic_power_c
+from sage.arith.power cimport generic_power
+from sage.structure.element cimport Element
 from sage.structure.proof.proof import get_flag as get_proof_flag
 from sage.misc.randstate cimport randstate, current_randstate
 
@@ -182,18 +183,21 @@ cdef class Matrix_integer_dense(Matrix_dense):
         Traceback (most recent call last):
         ...
         TypeError: nonzero scalar matrix must be square
-    """
-    ########################################################################
-    # LEVEL 1 functionality
-    # x * __cinit__
-    # x * __dealloc__
-    # x * __init__
-    # x * set_unsafe
-    # x * get_unsafe
-    # x * def _pickle
-    # x * def _unpickle
-    ########################################################################
 
+    TESTS:
+
+    Test hashing::
+
+        sage: a = Matrix(ZZ, 2, [1,2,3,4])
+        sage: hash(a)
+        Traceback (most recent call last):
+        ...
+        TypeError: mutable matrices are unhashable
+        sage: a.set_immutable()
+        sage: hash(a)
+        1846857684291126914  # 64-bit
+        1591707266           # 32-bit
+    """
     def __cinit__(self, parent, entries, coerce, copy):
         """
         Create and allocate memory for the matrix. Does not actually
@@ -228,28 +232,6 @@ cdef class Matrix_integer_dense(Matrix_dense):
         sig_str("FLINT exception")
         fmpz_mat_init(self._matrix, self._nrows, self._ncols)
         sig_off()
-
-    def __hash__(self):
-        r"""
-        Returns hash of self.
-
-        self must be immutable.
-
-        EXAMPLES::
-
-            sage: a = Matrix(ZZ,2,[1,2,3,4])
-            sage: hash(a)
-            Traceback (most recent call last):
-            ...
-            TypeError: mutable matrices are unhashable
-
-        ::
-
-            sage: a.set_immutable()
-            sage: hash(a)
-            8
-        """
-        return self._hash()
 
     def __dealloc__(self):
         """
@@ -323,8 +305,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         Actually it is only necessary that the input can be coerced to a
         list, so the following also works::
 
-            sage: v = reversed(range(4)); type(v)
-            <... 'listreverseiterator'>
+            sage: v = reversed(range(4))
             sage: A(v)
             [3 2]
             [1 0]
@@ -1025,8 +1006,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
                 e = mpz_get_ui((<Integer>n).value)
             else:
                 # it is very likely that the following will never finish except
-                # if self is nilpotent
-                return generic_power_c(self, n, self._parent.one())
+                # if self has only eigenvalues 0, 1 or -1.
+                return generic_power(self, n)
 
         if e == 0:
             return self._parent.identity_matrix()
@@ -1167,6 +1148,10 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
     def charpoly(self, var='x', algorithm=None):
         """
+        .. NOTE::
+
+            The characteristic polynomial is defined as `\det(xI-A)`.
+
         INPUT:
 
 

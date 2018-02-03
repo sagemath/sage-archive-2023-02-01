@@ -52,6 +52,18 @@ class UnicodeArt(CharacterArt):
     """
     _string_type = text_type
 
+    def __unicode__(self):
+        r"""
+        Return a unicode representation of ``self``.
+
+        EXAMPLES::
+
+            sage: i = var('i')
+            sage: ua = unicode_art(sum(pi^i/factorial(i)*x^i, i, 0, oo))
+            sage: unicode(ua)
+            u' \u03c0\u22c5x\n\u212f   '
+        """
+        return repr(self).decode("utf-8")
 
 _unicode_art_factory = CharacterArtFactory(
     UnicodeArt, text_type, '_unicode_art_',

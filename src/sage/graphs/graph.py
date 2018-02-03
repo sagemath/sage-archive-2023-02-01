@@ -7276,7 +7276,7 @@ class Graph(GenericGraph):
         """
         if not self.is_polyhedral():
             raise NotImplementedError('this method only works for polyhedral graphs')
-        G = self.to_undirected()
+
         from sage.numerical.mip import MixedIntegerLinearProgram
         # For a description of the algorithm see paper by Rivin and:
         # https://www.ics.uci.edu/~eppstein/junkyard/uninscribable/
@@ -7285,51 +7285,42 @@ class Graph(GenericGraph):
         # the LP has a solution, such that all inequalities are strict
         # after removing the auxiliary variable c[0].
         M = MixedIntegerLinearProgram(maximization=True, solver="ppl")
-        e = M.new_variable()
+        e = M.new_variable(nonnegative=True)
         c = M.new_variable()
         M.set_min(c[0], -1)
         M.set_max(c[0], 1)
         M.set_objective(c[0])
 
-        vertices_dict = {}
-        for i, v in enumerate(self):
-            vertices_dict[v] = i
-
-        for edge in self.edges():
-            sorted_edge = sorted([vertices_dict[edge[0]], vertices_dict[edge[1]]])
-            angle = e[sorted_edge[0], sorted_edge[1]]
-            M.set_min(angle, 0)
-            M.set_max(angle, ZZ(1)/ZZ(2))
-            M.add_constraint(angle-c[0], min=0)
-            M.add_constraint(angle+c[0], max=ZZ(1)/ZZ(2))
+        for u,v in self.edge_iterator(labels=0):
+            if u > v:
+                u,v = v,u
+            M.set_max(e[u,v], ZZ(1)/ZZ(2))
+            M.add_constraint(e[u,v] - c[0], min=0)
+            M.add_constraint(e[u,v] + c[0], max=ZZ(1)/ZZ(2))
 
         from sage.misc.flatten import flatten
         # The faces are completely determined by the graph structure:
         # for polyhedral graph, there is only one way to choose the faces.
-        faces = [flatten([[vertices_dict[_[0]], vertices_dict[_[1]]] for _ in face]) for face in self.faces()]
+        # We add an equality constraint for each face.
+        efaces = self.faces()
+        vfaces = [set(flatten(face)) for face in efaces]
+        for edges in efaces:
+            M.add_constraint(M.sum(e[tuple(sorted(_))] for _ in edges) == 1)
+        # In order to generate all simple cycles of G, which are not faces,
+        # we use the "all_simple_cycles" method of directed graphs, generating
+        # each cycle twice (in both directions). The set below make sure only
+        # one direction gives rise to an (in)equality
         D = self.to_directed()
-        # In order to generate all simple cycles of G, we use the "all_simple_cycles"
-        # method of directed graphs, generating each cycle twice (in both directions)
-        # The two sets below make sure only one direction gives rise to an (in)equality
-        equality_constraints = set()
         inequality_constraints = set()
-        for scycle in D.all_simple_cycles():
-            cycle = [vertices_dict[_] for _ in scycle]
+        for cycle in D.all_simple_cycles():
             if len(cycle) > 3:
-                edges = [sorted([cycle[i], cycle[i+1]]) for i in range(len(cycle)-1)]
-                if any(set(cycle).issubset(_) for _ in faces):
-                    eq = tuple([e[_[0], _[1]] for _ in sorted(edges)])
-                    equality_constraints.add(eq)
-                else:
-                    ieq = tuple([e[_[0], _[1]] for _ in sorted(edges)])
-                    inequality_constraints.add(ieq)
+                edges = (tuple(sorted([cycle[i], cycle[i+1]])) for i in range(len(cycle)-1))
+                scycle = set(flatten(cycle))
+                if scycle not in vfaces:
+                    inequality_constraints.add(frozenset(edges))
 
-        for eq in equality_constraints:
-            symb_eq = M.sum(eq)
-            M.add_constraint(symb_eq, min=1, max=1)
         for ieq in inequality_constraints:
-            symb_ieq = M.sum(ieq)-1-c[0]
-            M.add_constraint(symb_ieq, min=0)
+            M.add_constraint(M.sum(e[_] for _ in ieq) - c[0] >= 1)
 
         from sage.numerical.mip import MIPSolverException
         try:

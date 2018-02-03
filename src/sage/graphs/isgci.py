@@ -228,7 +228,7 @@ Predefined classes
 
    * - Polyhedral
 
-     - :meth:`~sage.graphs.generic_graph.GenericGraph.is_polyhedral`
+     - :meth:`~sage.graphs.generic_graph.Graph.is_polyhedral`
 
    * - Split
 

@@ -7242,7 +7242,7 @@ class Graph(GenericGraph):
         """
         Test whether the graph is the graph of a circumscribed polyhedron.
 
-        A polyhedron is circumscribed is all of its facets are tangent to a sphere.
+        A polyhedron is circumscribed if all of its facets are tangent to a sphere.
         By a theorem of Rivin ([HRS1993]_), this can be checked by solving a
         linear program.
 
@@ -7268,16 +7268,18 @@ class Graph(GenericGraph):
             sage: G.is_circumscribable()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Complete graph is not polyhedral. This method only works for polyhedral graphs.
+            NotImplementedError: this method only works for polyhedral graphs
 
         .. TODO::
 
             Allow the use of other, inexact but faster solvers.
         """
         if not self.is_polyhedral():
-            raise NotImplementedError('%s is not polyhedral. This method only works for polyhedral graphs.' % str(self))
+            raise NotImplementedError('this method only works for polyhedral graphs')
         G = self.to_undirected()
         from sage.numerical.mip import MixedIntegerLinearProgram
+        # For a description of the algorithm see paper by Rivin and:
+        # https://www.ics.uci.edu/~eppstein/junkyard/uninscribable/
         # In order to simulate strict inequalities in the following LP, we
         # introduce a variable c[0] and maximize it. If it is positive, then
         # the LP has a solution, such that all inequalities are strict
@@ -7292,6 +7294,7 @@ class Graph(GenericGraph):
         vertices_dict = {}
         for i, v in enumerate(self):
             vertices_dict[v] = i
+
         for edge in self.edges():
             sorted_edge = sorted([vertices_dict[edge[0]], vertices_dict[edge[1]]])
             angle = e[sorted_edge[0], sorted_edge[1]]
@@ -7301,18 +7304,18 @@ class Graph(GenericGraph):
             M.add_constraint(angle+c[0], max=ZZ(1)/ZZ(2))
 
         from sage.misc.flatten import flatten
-        # The faces are completely determinend by the graph structure:
+        # The faces are completely determined by the graph structure:
         # for polyhedral graph, there is only one way to choose the faces.
         faces = [flatten([[vertices_dict[_[0]], vertices_dict[_[1]]] for _ in face]) for face in self.faces()]
         D = self.to_directed()
         # In order to generate all simple cycles of G, we use the "all_simple_cycles"
         # method of directed graphs, generating each cycle twice (in both directions)
         # The two sets below make sure only one direction gives rise to an (in)equality
-        equality_constraints = set([])
-        inequality_constraints = set([])
+        equality_constraints = set()
+        inequality_constraints = set()
         for scycle in D.all_simple_cycles():
             cycle = [vertices_dict[_] for _ in scycle]
-            if len(set(cycle)) > 2:
+            if len(cycle) > 3:
                 edges = [sorted([cycle[i], cycle[i+1]]) for i in range(len(cycle)-1)]
                 if any(set(cycle).issubset(_) for _ in faces):
                     eq = tuple([e[_[0], _[1]] for _ in sorted(edges)])
@@ -7320,12 +7323,14 @@ class Graph(GenericGraph):
                 else:
                     ieq = tuple([e[_[0], _[1]] for _ in sorted(edges)])
                     inequality_constraints.add(ieq)
+
         for eq in equality_constraints:
             symb_eq = M.sum(eq)
             M.add_constraint(symb_eq, min=1, max=1)
         for ieq in inequality_constraints:
             symb_ieq = M.sum(ieq)-1-c[0]
             M.add_constraint(symb_ieq, min=0)
+
         from sage.numerical.mip import MIPSolverException
         try:
             solution = M.solve()
@@ -7358,6 +7363,10 @@ class Graph(GenericGraph):
             sage: C.is_inscribable()
             False
 
+            sage: H = graphs.HerschelGraph()
+            sage: H.is_inscribable()    # long time (1 second)
+            False
+
         .. SEEALSO::
 
             * :meth:`is_polyhedral`
@@ -7369,10 +7378,10 @@ class Graph(GenericGraph):
             sage: G.is_inscribable()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Complete bipartite graph is not polyhedral. This method only works for polyhedral graphs.
+            NotImplementedError: this method only works for polyhedral graphs
         """
         if not self.is_polyhedral():
-            raise NotImplementedError('%s is not polyhedral. This method only works for polyhedral graphs.' % str(self))
+            raise NotImplementedError('this method only works for polyhedral graphs')
         return self.planar_dual().is_circumscribable()
 
 

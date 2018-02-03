@@ -28,10 +28,10 @@ class SolitonCellularAutomata(SageObject):
     r"""
     Soliton cellular automata.
 
-    Fix some an affine Lie algebra `\mathfrak{g}` with index `I` and
+    Fix an affine Lie algebra `\mathfrak{g}` with index `I` and
     classical index set `I_0`. Fix some `r \in I_0`. A *soliton
     cellular automaton* (SCA) is a discrete (non-linear) dynamical
-    system is given as follows. The *states* are given by elements of
+    system given as follows. The *states* are given by elements of
     a semi-infinite tensor product of Kirillov-Reshetihkin crystals
     `B^{r,1}`, where only a finite number of factors are not the
     maximal element `u`, which we will call the *vacuum*. The *time
@@ -41,10 +41,10 @@ class SolitonCellularAutomata(SageObject):
 
         R(p \otimes u_s) = u_s \otimes T_s(p),
 
-    where `p = \cdots \otimes p_3 \otimes p_2 \otimes p_1 \otimes _0`
+    where `p = \cdots \otimes p_3 \otimes p_2 \otimes p_1 \otimes p_0`
     is a state and `u_s` is the maximal element of `B^{r,s}`.
     In more detail, we have `R(p_i \otimes u^{(i)}) =
-    u^{(i+1)} \otimes \widetilde{p}_i` with u^{(0)} = u_s` and
+    u^{(i+1)} \otimes \widetilde{p}_i` with `u^{(0)} = u_s` and
     `T_s(p) = \cdots \otimes \widetilde{p}_1 \otimes \widetilde{p}_0`.
     This is well-defined since `R(u \otimes u_s) = u_s \otimes u`
     and `u^{(k)} = u_s` for all `k \gg 1`.
@@ -53,7 +53,8 @@ class SolitonCellularAutomata(SageObject):
 
     - ``initial_state`` -- the list of elements, can also be a string
       when ``vacuum`` is 1 and ``n`` is `\mathfrak{sl}_n`
-    - ``cartan_type`` -- (default: 2) the value `sl_n` or a Cartan type
+    - ``cartan_type`` -- (default: 2) the value ``n``, for `\mathfrak{sl}_n`,
+      or a Cartan type
     - ``r`` -- (default: 1) the node index `r`; typically this
       corresponds to the height of the vacuum element
 
@@ -189,7 +190,7 @@ class SolitonCellularAutomata(SageObject):
           11....112
           evoltuions: [(2, 9), (2, 9), (2, 9)]
           current state:
-             44 333        
+             44 333
           ...11.112.........
 
     We construct Example 2.9 from [LS2017]_::
@@ -217,6 +218,32 @@ class SolitonCellularAutomata(SageObject):
              .......2403......442...43..........................
         t: 9       _       ___     _
              ...2403.......442....43............................
+
+    Example 3.4 from [LS2017]_::
+
+        sage: B = SolitonCellularAutomata([['E'],[1],[1],[1],[3],[0],
+        ....: [1],[1],[1],[1],[2],[-3],[-1],[1]], ['D',4,2])
+        sage: B.print_states(10)
+        t: 0                                                      __
+             ..........................................E...30....231.
+        t: 1                                                  __
+             .........................................E..30..231.....
+        t: 2                                            _  _
+             ........................................E303.21.........
+        t: 3                                       _ _
+             ....................................303E2.22............
+        t: 4                                   _    _
+             ................................303E...222..............
+        t: 5                               _       _
+             ............................303E......12................
+        t: 6                           _         _
+             ........................303E........1.2.................
+        t: 7                       _           _
+             ....................303E..........1..2..................
+        t: 8                   _             _
+             ................303E............1...2...................
+        t: 9               _               _
+             ............303E..............1....2....................
 
     Example 3.12 from [LS2017]_::
 
@@ -900,7 +927,7 @@ class SolitonCellularAutomata(SageObject):
                  .....................3302....3..................
             t: 9
                  ..................33322.....3...................
-            t: 10 
+            t: 10
                   ...............333.22......3....................
             t: 11
                   ............333..22.......3.....................
@@ -1069,7 +1096,7 @@ class SolitonCellularAutomata(SageObject):
 """
 {!s:^7}
    |
- --+-- 
+ --+--
    |
 {!s:^7}
 """.format(simple_repr(state[i]), simple_repr(final[i])))

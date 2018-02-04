@@ -64,13 +64,13 @@ public:
  *  It declares some functions that are common to all classes derived
  *  from 'print_context' as well as all required stuff for the GiNaC
  *  registry. */
-#define GINAC_DECLARE_PRINT_CONTEXT(classname, supername) \
+#define GINAC_DECLARE_PRINT_CONTEXT(classname) \
 public: \
-	typedef supername inherited; \
+	typedef print_context inherited; \
 public: \
-	static const print_context_class_info & get_class_info_static() \
+	static const print_context_class_info &get_class_info_static() \
         { \
-	        static print_context_class_info reg_info = GiNaC::print_context_class_info(GiNaC::print_context_options(#classname, #supername, GiNaC::next_print_context_id++)); \
+	        static print_context_class_info reg_info = GiNaC::print_context_class_info(GiNaC::print_context_options(#classname, "print_context", GiNaC::next_print_context_id++)); \
         	return reg_info; \
         } \
 	virtual const GiNaC::print_context_class_info &get_class_info() const { return classname::get_class_info_static(); } \
@@ -115,7 +115,7 @@ public:
 /** Context for default (ginsh-parsable) output. */
 class print_dflt : public print_context
 {
-	GINAC_DECLARE_PRINT_CONTEXT(print_dflt, print_context)
+	GINAC_DECLARE_PRINT_CONTEXT(print_dflt)
 public:
 	print_dflt(std::ostream &, unsigned options = 0);
 };
@@ -123,7 +123,7 @@ public:
 /** Context for latex-parsable output. */
 class print_latex : public print_context
 {
-	GINAC_DECLARE_PRINT_CONTEXT(print_latex, print_context)
+	GINAC_DECLARE_PRINT_CONTEXT(print_latex)
 public:
 	print_latex(std::ostream &, unsigned options = 0);
 };
@@ -131,7 +131,7 @@ public:
 /** Context for python pretty-print output. */
 class print_python : public print_context
 {
-	GINAC_DECLARE_PRINT_CONTEXT(print_python, print_context)
+	GINAC_DECLARE_PRINT_CONTEXT(print_python)
 public:
 	print_python(std::ostream &, unsigned options = 0);
 };
@@ -139,7 +139,7 @@ public:
 /** Context for python-parsable output. */
 class print_python_repr : public print_context
 {
-	GINAC_DECLARE_PRINT_CONTEXT(print_python_repr, print_context)
+	GINAC_DECLARE_PRINT_CONTEXT(print_python_repr)
 public:
 	print_python_repr(std::ostream &, unsigned options = 0);
 };
@@ -147,7 +147,7 @@ public:
 /** Context for tree-like output for debugging. */
 class print_tree : public print_context
 {
-	GINAC_DECLARE_PRINT_CONTEXT(print_tree, print_context)
+	GINAC_DECLARE_PRINT_CONTEXT(print_tree)
 public:
 	print_tree(unsigned d);
 	print_tree(std::ostream &, unsigned options = 0, unsigned d = 4);

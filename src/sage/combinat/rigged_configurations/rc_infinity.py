@@ -261,12 +261,12 @@ class InfinityCrystalOfRiggedConfigurations(UniqueRepresentation, Parent):
             sage: RC._calc_vacancy_number(elt.nu(), 0, 1)
             -1
         """
-        vac_num = 0
+        if i == float('inf'):
+            return -sum(self._cartan_matrix[a,b] * sum(nu)
+                        for b,nu in enumerate(partitions))
 
-        for b in range(self._cartan_matrix.ncols()):
-            vac_num -= self._cartan_matrix[a,b] * partitions[b].get_num_cells_to_column(i)
-
-        return vac_num
+        return -sum(self._cartan_matrix[a,b] * nu.get_num_cells_to_column(i)
+                    for b,nu in enumerate(partitions))
 
     # FIXME: Remove this method!!!
     def weight_lattice_realization(self):
@@ -379,6 +379,10 @@ class InfinityCrystalOfNonSimplyLacedRC(InfinityCrystalOfRiggedConfigurations):
         I = self.index_set()
         ia = I[a]
         vac_num = 0
+
+        if i == float('inf'):
+            return -sum(self._cartan_matrix[a,b] * sum(nu)
+                        for b,nu in enumerate(partitions))
 
         gamma = self._folded_ct.scaling_factors()
         g = gamma[ia]

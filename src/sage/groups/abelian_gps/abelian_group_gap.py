@@ -130,12 +130,30 @@ class AbelianGroupElement_gap(ElementLibGAP):
             f1
             sage: s.exponents()
             (1,)
+
+        It can handle quite large groups too::
+
+            sage: G = AbelianGroupGap([2^10, 5^10])
+            sage: f1, f2 = G.gens()
+            sage: g = f1^123*f2^789
+            sage: g.exponents()
+            (123, 789)
+
+        .. WARNING::
+
+            Crashes for very large groups.
+
+        .. TODO::
+
+            Make exponents work for very large groups.
+            This could be done by using Pcgs in gap.
         """
+
         P = self.parent()
-        # works only for small groups
-        # as gap has problems to solve the word problem
-        P = self.parent()
-        x = libgap.Factorization(P.gap(), self.gap())
+        # better than Factorization as this does not create the
+        # whole group in memory.
+        f = P.gap().EpimorphismFromFreeGroup()
+        x = f.PreImagesRepresentative(self.gap())
         L = x.ExtRepOfObj().sage()
         Lgens = L[::2]
         Lexpo = L[1::2]
@@ -198,6 +216,13 @@ class AbelianGroupElement_polycyclic(AbelianGroupElement_gap):
             sage: g = gens[0]^2 * gens[1]^4 * gens[2]^8 # optional - gap_packages
             sage: g.exponents()                         # optional - gap_packages
             (2, 4, 8)
+
+        Efficiently handles very large groups::
+
+            sage: G = AbelianGroupGap([2^30,5^30,0])    # optional - gap_packages
+            sage: f1, f2, f3 = G.gens()                 # optional - gap_packages
+            sage: (f1^12345*f2^123456789).exponents()   # optional - gap_packages
+            (12345, 123456789, 0)
         """
         return tuple(self.gap().Exponents().sage())
 

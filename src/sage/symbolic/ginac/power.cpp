@@ -239,21 +239,6 @@ static void print_sym_pow(const print_context & c, const symbol &x, int exp)
 
 void power::do_print_csrc(const print_csrc & c, unsigned level) const
 {
-	if (is_a<print_csrc_cl_N>(c)) {
-		if (exponent.is_one()) {
-			c.s << "recip(";
-			basis.print(c);
-			c.s << ')';
-			return;
-		}
-		c.s << "expt(";
-		basis.print(c);
-		c.s << ", ";
-		exponent.print(c);
-		c.s << ')';
-		return;
-	}
-
 	// Integer powers of symbols are printed in a special, optimized way
 	if (is_exactly_a<numeric>(exponent)
             and exponent.info(info_flags::integer)

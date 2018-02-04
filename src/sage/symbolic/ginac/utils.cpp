@@ -441,7 +441,6 @@ library_init::library_init()
 		print_csrc::get_class_info_static();
 		print_csrc_float::get_class_info_static();
 		print_csrc_double::get_class_info_static();
-		print_csrc_cl_N::get_class_info_static();
 	}
 }
 

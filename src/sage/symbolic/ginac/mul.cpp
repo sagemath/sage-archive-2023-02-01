@@ -400,11 +400,7 @@ void mul::do_print_csrc(const print_csrc & c, unsigned level) const
 		// If the first argument is a negative integer power, it gets printed as "1.0/<expr>"
 		bool needclosingparenthesis = false;
 		if (seqstart and co.info(info_flags::negint)) {
-			if (is_a<print_csrc_cl_N>(c)) {
-				c.s << "recip(";
-				needclosingparenthesis = true;
-			} else
-				c.s << "1.0/";
+                        c.s << "1.0/";
                         seqstart = false;
 		}
 

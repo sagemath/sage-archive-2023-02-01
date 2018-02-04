@@ -222,7 +222,7 @@ void add::do_print_csrc(const print_csrc & c, unsigned level) const
 	
 	if (!overall_coeff.is_zero()) {
 		if (overall_coeff.info(info_flags::positive)
-		 || is_a<print_csrc_cl_N>(c) || !overall_coeff.info(info_flags::real))  // sign inside ctor argument
+		    or not overall_coeff.info(info_flags::real))  // sign inside ctor argument
 			c.s << '+';
 		overall_coeff.print(c, precedence());
 	}

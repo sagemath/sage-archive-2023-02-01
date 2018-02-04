@@ -179,14 +179,6 @@ public:
 	print_csrc_double(std::ostream &, unsigned options = 0);
 };
 
-/** Context for C source output using CLN numbers. */
-class print_csrc_cl_N : public print_csrc
-{
-	GINAC_DECLARE_PRINT_CONTEXT(print_csrc_cl_N, print_csrc)
-public:
-	print_csrc_cl_N(std::ostream &, unsigned options = 0);
-};
-
 /** Check if obj is a T, including base classes. */
 template <class T>
 inline bool is_a(const print_context & obj)

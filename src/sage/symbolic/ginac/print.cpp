@@ -76,9 +76,4 @@ print_csrc_double::print_csrc_double()
 print_csrc_double::print_csrc_double(std::ostream & os, unsigned opt)
 	: print_csrc(os, opt) {}
 
-print_csrc_cl_N::print_csrc_cl_N()
-	: print_csrc(std::cout) {}
-print_csrc_cl_N::print_csrc_cl_N(std::ostream & os, unsigned opt)
-	: print_csrc(os, opt) {}
-
 } // namespace GiNaC

@@ -94,7 +94,6 @@ std::ostream & tree(std::ostream & os);
 std::ostream & csrc(std::ostream & os); // same as csrc_double
 std::ostream & csrc_float(std::ostream & os);
 std::ostream & csrc_double(std::ostream & os);
-std::ostream & csrc_cl_N(std::ostream & os);
 
 std::ostream & index_dimensions(std::ostream & os);
 std::ostream & no_index_dimensions(std::ostream & os);

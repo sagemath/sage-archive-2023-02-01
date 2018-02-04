@@ -7244,7 +7244,10 @@ class Graph(GenericGraph):
 
         A polyhedron is circumscribed if all of its facets are tangent to a sphere.
         By a theorem of Rivin ([HRS1993]_), this can be checked by solving a
-        linear program.
+        linear program that assigns weights between 0 and 1/2 on each edge of
+        the polyhedron, so that the weights on any face add to exactly one
+        and the weights on any non-facial cycle add to more than one.
+        If and only if this can be done, the polyhedron can be circumscribed.
 
         EXAMPLES::
 
@@ -7298,14 +7301,14 @@ class Graph(GenericGraph):
             M.add_constraint(e[u,v] - c[0], min=0)
             M.add_constraint(e[u,v] + c[0], max=ZZ(1)/ZZ(2))
 
-        from sage.misc.flatten import flatten
         # The faces are completely determined by the graph structure:
         # for polyhedral graph, there is only one way to choose the faces.
         # We add an equality constraint for each face.
         efaces = self.faces()
-        vfaces = [set(flatten(face)) for face in efaces]
+        vfaces = set(frozenset([_[0] for _ in face]) for face in efaces)
         for edges in efaces:
             M.add_constraint(M.sum(e[tuple(sorted(_))] for _ in edges) == 1)
+
         # In order to generate all simple cycles of G, which are not faces,
         # we use the "all_simple_cycles" method of directed graphs, generating
         # each cycle twice (in both directions). The set below make sure only
@@ -7314,9 +7317,9 @@ class Graph(GenericGraph):
         inequality_constraints = set()
         for cycle in D.all_simple_cycles():
             if len(cycle) > 3:
-                edges = (tuple(sorted([cycle[i], cycle[i+1]])) for i in range(len(cycle)-1))
-                scycle = set(flatten(cycle))
+                scycle = frozenset(cycle)
                 if scycle not in vfaces:
+                    edges = (tuple(sorted([cycle[i], cycle[i+1]])) for i in range(len(cycle)-1))
                     inequality_constraints.add(frozenset(edges))
 
         for ieq in inequality_constraints:

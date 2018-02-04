@@ -106,24 +106,6 @@ static ex binomial_evalf(const ex & x, const ex & y, PyObject* parent)
 	return binomial(x, y).hold();
 }
 
-static ex binomial_sym(const ex & x, const numeric & y)
-{
-	if (y.is_integer()) {
-		if (y.is_nonneg_integer()) {
-			const unsigned N = y.to_int();
-			if (N == 0) return _ex1;
-			if (N == 1) return x;
-			ex t = x.expand();
-			for (unsigned i = 2; i <= N; ++i)
-				t = (t * (x + i - y - 1)).expand() / i;
-			return t;
-		} else
-			return _ex0;
-	}
-
-	return binomial(x, y).hold();
-}
-
 // At the moment the numeric evaluation of a binomail function always
 // gives a real number, but if this would be implemented using the gamma
 // function, also complex conjugation should be changed (or rather, deleted).

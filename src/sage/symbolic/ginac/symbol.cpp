@@ -176,7 +176,7 @@ void symbol::do_print_python_repr(const print_python_repr & c, unsigned level) c
 void symbol::set_domain(unsigned d)
 {
         infoflagbase nb;
-        if (not d == domain::complex)
+        if (not (d == domain::complex))
                 nb = iflags;
         switch (d) {
                 case domain::complex:

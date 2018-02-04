@@ -23,7 +23,6 @@
 #ifndef __GINAC_BASIC_H__
 #define __GINAC_BASIC_H__
 
-#include <cstddef> // for size_t
 #include <vector>
 #include <set>
 #include <map>

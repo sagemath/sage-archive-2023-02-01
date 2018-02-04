@@ -1,5 +1,5 @@
 #ifndef __PYNAC_EXUTILS_H__
-#define __PYNAC_EXUTILS_H___
+#define __PYNAC_EXUTILS_H__
 
 #include "ex.h"
 #include "numeric.h"
@@ -140,5 +140,5 @@ inline void iter_swap(list<GiNaC::ex>::iterator i1, list<GiNaC::ex>::iterator i2
 
 } // namespace std
 
-#endif // ndef __PYNAC_EXUTILS_H___
+#endif // ndef __PYNAC_EXUTILS_H__
 

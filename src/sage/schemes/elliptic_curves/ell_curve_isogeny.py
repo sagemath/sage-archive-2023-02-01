@@ -1833,7 +1833,6 @@ class EllipticCurveIsogeny(Morphism):
 
         return
 
-
     ###########################
     # Velu's Formula Functions
     ###########################
@@ -1870,8 +1869,15 @@ class EllipticCurveIsogeny(Morphism):
         kernel_set = Set([self.__E1(0)])
         from sage.misc.all import flatten
         from sage.groups.generic import multiples
+        def all_multiples(itr, terminal):
+            mult_list = [terminal]
+            R = terminal + itr
+            while R != terminal:
+                mult_list.append(R)
+                R = R + itr
+            return mult_list
         for P in kernel_gens:
-            kernel_set += Set(flatten([list(multiples(P,P.order(),Q))
+            kernel_set += Set(flatten([list(all_multiples(P,Q))
                                        for Q in kernel_set]))
 
         self.__kernel_list = kernel_set.list()
@@ -1879,7 +1885,7 @@ class EllipticCurveIsogeny(Morphism):
         self.__kernel_non2tor = {}
         self.__degree = Integer(len(kernel_set))
         self.__sort_kernel_list()
-
+ 
     #
     # Precompute the values in Velu's Formula.
     #

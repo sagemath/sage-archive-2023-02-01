@@ -112,7 +112,6 @@ protected:
 	void do_print_latex(const print_latex & c, unsigned level) const;
 	void do_print_rat_func(const print_context & c, unsigned level, 
 			bool latex_tags) const;
-	void do_print_csrc(const print_csrc & c, unsigned level) const;
 	void do_print_python_repr(const print_python_repr & c, unsigned level) const override;
 	static bool can_be_further_expanded(const ex & e);
 	std::unique_ptr<epvector> expandchildren(unsigned options) const;

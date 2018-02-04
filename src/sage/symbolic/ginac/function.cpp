@@ -793,16 +793,6 @@ next_context:
 				elem.print(c, level + delta_indent);
 			c.s << std::string(level + delta_indent, ' ') << "=====" << std::endl;
 
-		} else if (is_a<print_csrc>(c)) {
-
-			// Print function name in lowercase
-			std::string lname = opt.name;
-			size_t num = lname.size();
-			for (size_t i=0; i<num; i++)
-				lname[i] = tolower(lname[i]);
-			c.s << lname;
-			printseq(c, "(", ',', ")", exprseq::precedence(), function::precedence());
-
 		} else if (is_a<print_latex>(c)) {
 			c.s << opt.TeX_name;
 			printseq(c, "\\left(", ',', "\\right)", exprseq::precedence(), function::precedence());

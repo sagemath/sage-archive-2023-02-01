@@ -50,7 +50,6 @@ namespace GiNaC {
 GINAC_IMPLEMENT_REGISTERED_CLASS_OPT(mul, expairseq,
   print_func<print_context>(&mul::do_print).
   print_func<print_latex>(&mul::do_print_latex).
-  print_func<print_csrc>(&mul::do_print_csrc).
   print_func<print_tree>(&mul::do_print_tree).
   print_func<print_python_repr>(&mul::do_print_python_repr))
 
@@ -376,57 +375,6 @@ void mul::do_print_rat_func(const print_context & c, unsigned level,
 			c.s << ')';
 	}
 
-}
-
-void mul::do_print_csrc(const print_csrc & c, unsigned level) const
-{
-	if (precedence() <= level)
-		c.s << "(";
-
-	if (not overall_coeff.is_one()) {
-		if (overall_coeff.is_minus_one()) {
-			c.s << "-";
-		}
-		else {
-			overall_coeff.print(c, precedence());
-			c.s << "*";
-		}
-	}
-
-	// Print arguments, separated by "*" or "/"
-        bool seqstart = true;
-	for (const auto & item : seq) {
-                const numeric co = ex_to<numeric>(item.coeff);
-		// If the first argument is a negative integer power, it gets printed as "1.0/<expr>"
-		bool needclosingparenthesis = false;
-		if (seqstart and co.info(info_flags::negint)) {
-                        c.s << "1.0/";
-                        seqstart = false;
-		}
-
-		// If the exponent is 1 or -1, it is left out
-		if (co.is_one() or co.is_minus_one()) {
-			item.rest.print(c, precedence());
-		}
-		else if (co.info(info_flags::negint))
-			// Outer parens around ex needed for broken GCC parser:
-			(ex(power(item.rest, -co))).print(c, level);
-		else
-			// Outer parens around ex needed for broken GCC parser:
-			(ex(power(item.rest, co))).print(c, level);
-
-		if (needclosingparenthesis)
-			c.s << ")";
-
-		// Separator is "/" for negative integer powers, "*" otherwise
-                if (co.info(info_flags::negint))
-                        c.s << "/";
-                else
-                        c.s << "*";
-	}
-
-	if (precedence() <= level)
-		c.s << ")";
 }
 
 void mul::do_print_python_repr(const print_python_repr & c, unsigned level) const

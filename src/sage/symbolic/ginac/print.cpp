@@ -61,19 +61,4 @@ print_tree::print_tree(unsigned d)
 print_tree::print_tree(std::ostream & os, unsigned opt, unsigned d)
 	: print_context(os, opt), delta_indent(d) {}
 
-print_csrc::print_csrc()
-	: print_context(std::cout) {}
-print_csrc::print_csrc(std::ostream & os, unsigned opt)
-	: print_context(os, opt) {}
-
-print_csrc_float::print_csrc_float()
-	: print_csrc(std::cout) {}
-print_csrc_float::print_csrc_float(std::ostream & os, unsigned opt)
-	: print_csrc(os, opt) {}
-
-print_csrc_double::print_csrc_double()
-	: print_csrc(std::cout) {}
-print_csrc_double::print_csrc_double(std::ostream & os, unsigned opt)
-	: print_csrc(os, opt) {}
-
 } // namespace GiNaC

@@ -318,11 +318,6 @@ static void abs_print_latex(const ex & arg, const print_context & c)
 	c.s << "{\\left| "; arg.print(c); c.s << " \\right|}";
 }
 
-static void abs_print_csrc_float(const ex & arg, const print_context & c)
-{
-	c.s << "fabs("; arg.print(c); c.s << ")";
-}
-
 static ex abs_conjugate(const ex & arg)
 {
 	return abs(arg).hold();
@@ -361,8 +356,6 @@ REGISTER_FUNCTION(abs, eval_func(abs_eval).
                        evalf_func(abs_evalf).
                        expl_derivative_func(abs_expl_derivative).
                        print_func<print_latex>(abs_print_latex).
-                       print_func<print_csrc_float>(abs_print_csrc_float).
-                       print_func<print_csrc_double>(abs_print_csrc_float).
                        derivative_func(abs_deriv).
                        conjugate_func(abs_conjugate).
                        real_part_func(abs_real_part).

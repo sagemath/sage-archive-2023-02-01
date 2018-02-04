@@ -53,7 +53,6 @@ namespace GiNaC {
 GINAC_IMPLEMENT_REGISTERED_CLASS_OPT(power, basic,
   print_func<print_dflt>(&power::do_print_dflt).
   print_func<print_latex>(&power::do_print_latex).
-  print_func<print_csrc>(&power::do_print_csrc).
   print_func<print_python>(&power::do_print_python).
   print_func<print_python_repr>(&power::do_print_python_repr))
 
@@ -234,38 +233,6 @@ static void print_sym_pow(const print_context & c, const symbol &x, int exp)
 		c.s << ")*(";
 		print_sym_pow(c, x, exp >> 1);
 		c.s << ")";
-	}
-}
-
-void power::do_print_csrc(const print_csrc & c, unsigned level) const
-{
-	// Integer powers of symbols are printed in a special, optimized way
-	if (is_exactly_a<numeric>(exponent)
-            and exponent.info(info_flags::integer)
-	    and (is_exactly_a<symbol>(basis) or is_exactly_a<constant>(basis))) {
-		int exp = ex_to<numeric>(exponent).to_int();
-		if (exp > 0)
-			c.s << '(';
-		else {
-			exp = -exp;
-			c.s << "1.0/(";
-		}
-		print_sym_pow(c, ex_to<symbol>(basis), exp);
-		c.s << ')';
-
-	// <expr>^-1 is printed as "1.0/<expr>" or with the recip() function of CLN
-	} else if (exponent.is_one()) {
-		c.s << "1.0/(";
-		basis.print(c);
-		c.s << ')';
-
-	// Otherwise, use the pow() function
-	} else {
-		c.s << "pow(";
-		basis.print(c);
-		c.s << ',';
-		exponent.print(c);
-		c.s << ')';
 	}
 }
 

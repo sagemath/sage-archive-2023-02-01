@@ -84,7 +84,6 @@ protected:
 	void print_add(const print_context & c, unsigned level, bool latex) const;
 	void do_print(const print_context & c, unsigned level) const override;
 	void do_print_latex(const print_latex & c, unsigned level) const;
-	void do_print_csrc(const print_csrc & c, unsigned level) const;
 	void do_print_python_repr(const print_python_repr & c, unsigned level) const override;
 
 public:

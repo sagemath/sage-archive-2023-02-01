@@ -155,30 +155,6 @@ public:
 	const unsigned delta_indent; /**< size of indentation step */
 };
 
-/** Base context for C source output. */
-class print_csrc : public print_context
-{
-	GINAC_DECLARE_PRINT_CONTEXT(print_csrc, print_context)
-public:
-	print_csrc(std::ostream &, unsigned options = 0);
-};
-
-/** Context for C source output using float precision. */
-class print_csrc_float : public print_csrc
-{
-	GINAC_DECLARE_PRINT_CONTEXT(print_csrc_float, print_csrc)
-public:
-	print_csrc_float(std::ostream &, unsigned options = 0);
-};
-
-/** Context for C source output using double precision. */
-class print_csrc_double : public print_csrc
-{
-	GINAC_DECLARE_PRINT_CONTEXT(print_csrc_double, print_csrc)
-public:
-	print_csrc_double(std::ostream &, unsigned options = 0);
-};
-
 /** Check if obj is a T, including base classes. */
 template <class T>
 inline bool is_a(const print_context & obj)

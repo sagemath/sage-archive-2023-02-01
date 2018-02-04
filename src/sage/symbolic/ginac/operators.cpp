@@ -452,24 +452,6 @@ std::ostream & tree(std::ostream & os)
 	return os;
 }
 
-std::ostream & csrc(std::ostream & os)
-{
-	set_print_context(os, print_csrc_double(os));
-	return os;
-}
-
-std::ostream & csrc_float(std::ostream & os)
-{
-	set_print_context(os, print_csrc_float(os));
-	return os;
-}
-
-std::ostream & csrc_double(std::ostream & os)
-{
-	set_print_context(os, print_csrc_double(os));
-	return os;
-}
-
 std::ostream & index_dimensions(std::ostream & os)
 {
 	set_print_options(os, get_print_options(os) | print_options::print_index_dimensions);

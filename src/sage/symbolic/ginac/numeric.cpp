@@ -686,7 +686,6 @@ static void _mpz_set_pylong(mpz_t z, PyLongObject* l)
 GINAC_IMPLEMENT_REGISTERED_CLASS_OPT(numeric, basic,
         print_func<print_context>(&numeric::do_print).
         print_func<print_latex>(&numeric::do_print_latex).
-        print_func<print_csrc>(&numeric::do_print_csrc).
         print_func<print_tree>(&numeric::do_print_tree).
         print_func<print_python_repr>(&numeric::do_print_python_repr))
 
@@ -974,11 +973,6 @@ void numeric::do_print(const print_context & c, unsigned level) const {
 
 void numeric::do_print_latex(const print_latex & c, unsigned level) const {
         print_numeric(c, "{(", ")}", "i", " ", level, true);
-}
-
-void numeric::do_print_csrc(const print_csrc & c, unsigned /*unused*/) const {
-        // TODO: not really needed?
-        stub("print_csrc");
 }
 
 void numeric::do_print_tree(const print_tree & c, unsigned level) const {

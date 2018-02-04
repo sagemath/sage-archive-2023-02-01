@@ -93,7 +93,6 @@ protected:
 	void print_power(const print_context & c, const char *powersymbol, const char *openbrace, const char *closebrace, unsigned level) const;
 	void do_print_dflt(const print_dflt & c, unsigned level) const;
 	void do_print_latex(const print_latex & c, unsigned level) const;
-	void do_print_csrc(const print_csrc & c, unsigned level) const;
 	void do_print_python(const print_python & c, unsigned level) const;
 	void do_print_python_repr(const print_python_repr & c, unsigned level) const override;
 

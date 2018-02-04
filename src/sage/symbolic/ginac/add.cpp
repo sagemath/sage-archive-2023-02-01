@@ -41,7 +41,6 @@ namespace GiNaC {
 GINAC_IMPLEMENT_REGISTERED_CLASS_OPT(add, expairseq,
   print_func<print_context>(&add::do_print).
   print_func<print_latex>(&add::do_print_latex).
-  print_func<print_csrc>(&add::do_print_csrc).
   print_func<print_tree>(&add::do_print_tree).
   print_func<print_python_repr>(&add::do_print_python_repr))
 
@@ -187,48 +186,6 @@ void add::do_print(const print_context & c, unsigned level) const
 void add::do_print_latex(const print_latex & c, unsigned level) const
 {
 	print_add(c, level, true);
-}
-
-void add::do_print_csrc(const print_csrc & c, unsigned level) const
-{
-	if (precedence() <= level)
-		c.s << "(";
-	
-	// Print arguments, separated by "+" or "-"
-	char separator = ' ';
-        for (const auto & elem : seq) {
-		numeric co = ex_to<numeric>(elem.coeff);
-		// If the coefficient is negative, separator is "-"
-		if (co.is_minus_one()
-                    or co.numer().is_minus_one())
-			separator = '-';
-		c.s << separator;
-		if (co.is_one() or co.is_minus_one()) {
-			elem.rest.print(c, precedence());
-		} else if (co.numer().is_one()
-                        or co.numer().is_minus_one())
-		{
-			elem.rest.print(c, precedence());
-			c.s << '/';
-			ex_to<numeric>(elem.coeff).denom().print(c, precedence());
-		} else {
-			elem.coeff.print(c, precedence());
-			c.s << '*';
-			elem.rest.print(c, precedence());
-		}
-		
-		separator = '+';
-	}
-	
-	if (!overall_coeff.is_zero()) {
-		if (overall_coeff.info(info_flags::positive)
-		    or not overall_coeff.info(info_flags::real))  // sign inside ctor argument
-			c.s << '+';
-		overall_coeff.print(c, precedence());
-	}
-		
-	if (precedence() <= level)
-		c.s << ")";
 }
 
 void add::do_print_python_repr(const print_python_repr & c, unsigned /*level*/) const

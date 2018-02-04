@@ -79,7 +79,6 @@ protected:
 	// non-virtual functions in this class
 protected:
 	void do_print(const print_context & c, unsigned level) const override;
-	void do_print_csrc(const print_csrc & c, unsigned level) const;
 	void do_print_tree(const print_tree & c, unsigned level) const override;
 
 	// member variables

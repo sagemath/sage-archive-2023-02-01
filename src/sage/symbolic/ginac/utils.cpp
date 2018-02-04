@@ -438,9 +438,6 @@ library_init::library_init()
 		print_python::get_class_info_static();
 		print_python_repr::get_class_info_static();
 		print_tree::get_class_info_static();
-		print_csrc::get_class_info_static();
-		print_csrc_float::get_class_info_static();
-		print_csrc_double::get_class_info_static();
 	}
 }
 

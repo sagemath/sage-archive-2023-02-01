@@ -7242,11 +7242,11 @@ class Graph(GenericGraph):
         """
         Test whether the graph is the graph of a circumscribed polyhedron.
 
-        A polyhedron is circumscribed if all of its facets are tangent to a sphere.
-        By a theorem of Rivin ([HRS1993]_), this can be checked by solving a
-        linear program that assigns weights between 0 and 1/2 on each edge of
-        the polyhedron, so that the weights on any face add to exactly one
-        and the weights on any non-facial cycle add to more than one.
+        A polyhedron is circumscribed if all of its facets are tangent to a
+        sphere. By a theorem of Rivin ([HRS1993]_), this can be checked by
+        solving a linear program that assigns weights between 0 and 1/2 on each
+        edge of the polyhedron, so that the weights on any face add to exactly
+        one and the weights on any non-facial cycle add to more than one.
         If and only if this can be done, the polyhedron can be circumscribed.
 
         EXAMPLES::
@@ -7254,11 +7254,23 @@ class Graph(GenericGraph):
             sage: C = graphs.CubeGraph(3)
             sage: C.is_circumscribable()
             True
+
             sage: O = graphs.OctahedralGraph()
-            sage: f = set(flatten(O.faces()[0]))
+            sage: O.is_circumscribable()
+            True
+
+            sage: TT = polytopes.truncated_tetrahedron().graph()
+            sage: TT.is_circumscribable()
+            False
+
+
+        Stellating in a face of the octahedral graph is not circumscribable::
+
+            sage: f = set(flatten(choice(O.faces())))
             sage: O.add_edges([[6, i] for i in f])
             sage: O.is_circumscribable()
             False
+
 
         .. SEEALSO::
 
@@ -7294,12 +7306,12 @@ class Graph(GenericGraph):
         M.set_max(c[0], 1)
         M.set_objective(c[0])
 
-        for u,v in self.edge_iterator(labels=0):
+        for u, v in self.edge_iterator(labels=0):
             if u > v:
-                u,v = v,u
-            M.set_max(e[u,v], ZZ(1)/ZZ(2))
-            M.add_constraint(e[u,v] - c[0], min=0)
-            M.add_constraint(e[u,v] + c[0], max=ZZ(1)/ZZ(2))
+                u, v = v, u
+            M.set_max(e[u, v], ZZ(1)/ZZ(2))
+            M.add_constraint(e[u, v] - c[0], min=0)
+            M.add_constraint(e[u, v] + c[0], max=ZZ(1)/ZZ(2))
 
         # The faces are completely determined by the graph structure:
         # for polyhedral graph, there is only one way to choose the faces.
@@ -7339,27 +7351,41 @@ class Graph(GenericGraph):
         Test whether the graph is the graph of an inscribed polyhedron.
 
         A polyhedron is inscribed if all of its vertices are on a sphere.
-        This is dual to the notion of circumscribed polyhedron:
-        A Polyhedron is inscribed if and only if its polar dual is circumscribed
-        and hence a graph is inscribable if and only if its planar dual is
-        circumscribable.
+        This is dual to the notion of circumscribed polyhedron: A Polyhedron is
+        inscribed if and only if its polar dual is circumscribed and hence a
+        graph is inscribable if and only if its planar dual is circumscribable.
 
         EXAMPLES::
 
-            sage: graphs.CubeGraph(3).is_inscribable()
+            sage: H = graphs.HerschelGraph()
+            sage: H.is_inscribable()               # long time (> 1 sec)
+            False
+            sage: H.planar_dual().is_inscribable() # long time (> 1 sec)
             True
-            sage: C=graphs.CubeGraph(3)
-            sage: v = C.vertices()[0]
-            sage: triangle=[_ + v for _ in C.neighbors(v)]
+
+            sage: C = graphs.CubeGraph(3)
+            sage: C.is_inscribable()
+            True
+
+        Cutting off a vertex from the cube yields an uninscribable graph::
+
+            sage: C = graphs.CubeGraph(3)
+            sage: v = next(C.vertex_iterator())
+            sage: triangle = [_ + v for _ in C.neighbors(v)]
             sage: C.add_edges(Combinations(triangle, 2))
             sage: C.add_edges(zip(triangle, C.neighbors(v)))
             sage: C.delete_vertex(v)
             sage: C.is_inscribable()
             False
 
-            sage: H = graphs.HerschelGraph()
-            sage: H.is_inscribable()    # long time (1 second)
+        Breaking a face of the cube yields an uninscribable graph::
+
+            sage: C = graphs.CubeGraph(3)
+            sage: face = choice(C.faces())
+            sage: C.add_edge([face[0][0], face[2][0]])
+            sage: C.is_inscribable()
             False
+
 
         .. SEEALSO::
 
@@ -7377,7 +7403,6 @@ class Graph(GenericGraph):
         if not self.is_polyhedral():
             raise NotImplementedError('this method only works for polyhedral graphs')
         return self.planar_dual().is_circumscribable()
-
 
     @doc_index("Graph properties")
     def is_prime(self):

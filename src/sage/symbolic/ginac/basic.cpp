@@ -140,40 +140,40 @@ void basic::print_dispatch(const registered_class_info & ri, const print_context
 	const registered_class_info * r_info = &ri;
 	const print_context_class_info * pc_info = &c.get_class_info();
 
-next_class:
-	const std::vector<print_functor> & pdt = r_info->options.get_print_dispatch_table();
-
-next_context:
+	const std::vector<print_functor> * pdt = &r_info->options.get_print_dispatch_table();
 	unsigned id = pc_info->options.get_id();
-	if (id >= pdt.size() || !(pdt[id].is_valid())) {
 
-		// Method not found, try parent print_context class
-		const print_context_class_info * parent_pc_info = pc_info->get_parent();
-		if (parent_pc_info != nullptr) {
-			pc_info = parent_pc_info;
-			goto next_context;
-		}
+        while(id >= pdt->size() or not ((*pdt)[id].is_valid())) {
 
-		// Method still not found, try parent class
-		const registered_class_info * parent_reg_info = r_info->get_parent();
-		if (parent_reg_info != nullptr) {
-			r_info = parent_reg_info;
-			pc_info = &c.get_class_info();
-			goto next_class;
-		}
+                // Method not found, try parent print_context class
+                const print_context_class_info * parent_pc_info = pc_info->get_parent();
+                if (parent_pc_info != nullptr) {
+                        pc_info = parent_pc_info;
+                        id = pc_info->options.get_id();
+                        continue;
+                }
 
-		// Method still not found. This shouldn't happen because basic (the
-		// base class of the algebraic hierarchy) registers a method for
-		// print_context (the base class of the print context hierarchy),
-		// so if we end up here, there's something wrong with the class
-		// registry.
-		throw (std::runtime_error(std::string("basic::print(): method for ") + class_name() + "/" + c.class_name() + " not found"));
+                // Method still not found, try parent class
+                const registered_class_info * parent_reg_info = r_info->get_parent();
+                if (parent_reg_info != nullptr) {
+                        r_info = parent_reg_info;
+                        pc_info = &c.get_class_info();
+                        pdt = &r_info->options.get_print_dispatch_table();
+                        id = pc_info->options.get_id();
+                        continue;
+                }
 
-	} else {
+                // Method still not found. This shouldn't happen because basic (the
+                // base class of the algebraic hierarchy) registers a method for
+                // print_context (the base class of the print context hierarchy),
+                // so if we end up here, there's something wrong with the class
+                // registry.
+                throw (std::runtime_error(std::string("basic::print(): method for ") + class_name() + "/" + c.class_name() + " not found"));
 
-		// Call method
-		pdt[id](*this, c, level);
-	}
+        }
+
+        // Call method
+        (*pdt)[id](*this, c, level);
 }
 
 /** Default output to stream. */

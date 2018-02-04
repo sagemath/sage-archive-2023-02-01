@@ -148,9 +148,9 @@ class HasseDiagram(DiGraph):
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: list(HasseDiagram({}).greedy_linear_extensions_iterator())
             [[]]
-            sage: H = HasseDiagram({42: []})
+            sage: H = HasseDiagram({0: []})
             sage: list(H.greedy_linear_extensions_iterator())
-            [[42]]
+            [[0]]
         """
         N = self.order()
 

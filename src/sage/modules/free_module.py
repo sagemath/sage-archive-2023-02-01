@@ -1752,7 +1752,7 @@ done from the right side.""")
         return self.basis_matrix().block_sum(other.basis_matrix()).row_module(self.base_ring())
 
     def coordinates(self, v, check=True):
-        r"""
+        """
         Write `v` in terms of the basis for self.
 
         INPUT:
@@ -2920,7 +2920,7 @@ class FreeModule_generic_pid(FreeModule_generic):
         K = K.matrix_from_columns(range(n))
         B = K*A1
         return B.row_module(self.base_ring())
-    
+
     def __and__(self, other):
         r"""
         Return the intersection of ``self`` and ``other``.
@@ -2953,8 +2953,8 @@ class FreeModule_generic_pid(FreeModule_generic):
             Echelon basis matrix:
             [2 2 2]
         """
-        return self.intersection(other)    
-    
+        return self.intersection(other)
+
     def zero_submodule(self):
         """
         Return the zero submodule of this module.
@@ -5989,7 +5989,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
         .. MATH::
 
-            \\sum c_i B_i = v.
+            \sum c_i B_i = v.
 
         If `v` is not in self, raise an ``ArithmeticError`` exception.
 

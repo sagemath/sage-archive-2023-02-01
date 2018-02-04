@@ -182,13 +182,13 @@ static void write_unsigned(std::ostream &os, unsigned val)
 /** Read unsigned integer quantity from stream. */
 static unsigned read_unsigned(std::istream &is)
 {
-	unsigned char b;
+	unsigned char b = 0;
 	unsigned ret = 0;
 	unsigned shift = 0;
 	do {
-		char b2;
-		is.get(b2);
-		b = b2;
+		char b2 = 0;
+		if (is.get(b2))
+        		b = b2;
 		ret |= (b & 0x7f) << shift;
 		shift += 7;
 	} while ((b & 0x80) != 0);
@@ -259,7 +259,7 @@ std::istream &operator>>(std::istream &is, archive_node &n)
 std::istream &operator>>(std::istream &is, archive &ar)
 {
 	// Read header
-	char c1, c2, c3, c4;
+	char c1 = 0, c2 = 0, c3 = 0, c4 = 0;
 	is.get(c1); is.get(c2); is.get(c3); is.get(c4);
 	if (c1 != 'G' || c2 != 'A' || c3 != 'R' || c4 != 'C')
 		throw (std::runtime_error("not a GiNaC archive (signature not found)"));

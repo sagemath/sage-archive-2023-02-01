@@ -1438,11 +1438,11 @@ int matrix::fraction_free_elimination(const bool det)
 					              tmp_d.m[r0*n+c0]*tmp_d.m[r2*n+c]).expand();
 					dividend_d = (tmp_d.m[r2*n+c0]*tmp_d.m[r0*n+c]*
 					              tmp_d.m[r0*n+c0]*tmp_d.m[r2*n+c]).expand();
+#ifdef DO_GINAC_ASSERT
 					bool check = divide(dividend_n, divisor_n,
 					                    tmp_n.m[r2*n+c], true);
 					check &= static_cast<int>(divide(dividend_d, divisor_d,
 					                tmp_d.m[r2*n+c], true));
-#ifdef DO_GINAC_ASSERT
 					GINAC_ASSERT(check);
 #endif
 				}

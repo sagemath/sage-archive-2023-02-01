@@ -1191,11 +1191,11 @@ REFERENCES:
              `J`-Ideals of a Matrix Over a Principal Ideal Domain",
              :arxiv:`1611.10308`, 2016.
 
-.. [HRS1993] ] Craig D. Hodgson, Igor Rivin and Warren D. Smith, \
-               *A characterization of convex hyperbolic polyhedra
-               and of convex polyhedra inscribed in the sphere.*
-               Bulletin of the American Mathematical Society
-               27.2 (1992): 246-251.
+.. [HRS1993] \C. D. Hodgson, I. Rivin and W. D. Smith.
+             *A characterization of convex hyperbolic polyhedra
+             and of convex polyhedra inscribed in the sphere.*
+             Bulletin of the American Mathematical Society
+             27.2 (1992): 246-251.
 
 .. [HRT2000] \R.B. Howlett, L.J. Rylands, and D.E. Taylor.
              *Matrix generators for exceptional groups of Lie type*.

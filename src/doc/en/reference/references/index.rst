@@ -1446,6 +1446,11 @@ REFERENCES:
             Jacobi Elliptic Functions",
             preprint 2002. :arxiv:`math-ph/0201004`
 
+.. [KS2006] Atsuo Kuniba and Reiho Sakamoto,
+            *The Bethe ansatz in a periodic box-ball system and the
+            ultradiscrete Riemann theta function*, J. Stat. Mech.,
+            P09005 (2006).
+
 .. [KSV2011] Ian Kiming, Matthias Schuett and Helena Verrill, "Lifts
              of projective congruence groups", J. London
              Math. Soc. (2011) 83 (1): 96-120,
@@ -1455,6 +1460,10 @@ REFERENCES:
 .. [KT1986] \N. Kerzman and M. R. Trummer. "Numerical Conformal
             Mapping via the Szego kernel". Journal of Computational
             and Applied Mathematics, 14(1-2): 111--123, 1986.
+
+.. [KTT2006] \A. Kuniba, T. Takagi, and A. Takenouchi,
+             *Bethe ansatz and inverse scattering transform in a periodic
+             box-ball system*, Nuclear Phys. B **747**, no. 3 (2006), 354--397.
 
 .. [Kuh1987] \W. Kühnel, "Minimal triangulations of Kummer varieties",
              Abh. Math. Sem. Univ. Hamburg 57 (1987), 7-20.
@@ -2450,6 +2459,14 @@ REFERENCES:
 
 .. [YWHWXSW2014] \D. Ye, P. Wang, L. Hu, L. Wang, Y. Xie, S. Sun, and P. Wang,
                  *Panda v1*; in CAESAR Competition, (2014).
+
+.. [YT2002] \F. Yura and T. Tokihiro,
+            *On a periodic soliton cellular automaton*, J. Phys. A: Math. Gen.
+            **35** (2002) 3787-3801.
+
+.. [YYT2003] \D. Yoshihara, F. Yura, and T. Tokihiro,
+             *Fundamental cycle of a periodic box-ball system*, J. Phys. A:
+             Math. Gen. **36** (2003) 99-121.
 
 .. _ref-Z:
 

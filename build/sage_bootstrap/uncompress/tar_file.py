@@ -36,7 +36,8 @@ class SageBaseTarFile(tarfile.TarFile):
     behavior in all cases, such as when the user's umask is not strict enough.
 
     This also sets the modified timestamps on all extracted files to the same
-    time, not the timestamps stored in the tarball.
+    time (the current time), not the timestamps stored in the tarball. This
+    is meant to work around https://bugs.python.org/issue32773
 
     See http://trac.sagemath.org/ticket/20218#comment:16 and
     https://trac.sagemath.org/ticket/24567 for more background.
@@ -49,9 +50,8 @@ class SageBaseTarFile(tarfile.TarFile):
         # and then restore it
         super(SageBaseTarFile, self).__init__(*args, **kwargs)
 
-        # When extracting files, this will be set to the time of the first
-        # file extracted, so that all files can be set to the same mtime
-        self._extracted_mtime = None
+        # Extracted files will have this timestamp
+        self._extracted_mtime = time.time()
 
     @property
     def names(self):
@@ -73,7 +73,6 @@ class SageBaseTarFile(tarfile.TarFile):
 
     def utime(self, tarinfo, target):
         """Override to keep the extraction time as the file's timestamp."""
-
         tarinfo.mtime = self._extracted_mtime
         return super(SageBaseTarFile, self).utime(tarinfo, target)
 
@@ -82,9 +81,6 @@ class SageBaseTarFile(tarfile.TarFile):
         Same as tarfile.TarFile.extractall but allows filenames for
         the members argument (like zipfile.ZipFile).
         """
-
-        self._extracted_mtime = None
-
         if members:
             name_to_member = dict([member.name, member] for member in self.getmembers())
             members = [m if isinstance(m, tarfile.TarInfo)
@@ -110,10 +106,6 @@ class SageBaseTarFile(tarfile.TarFile):
         directory tree, even for directories that are not explicitly listed in
         the tarball.
         """
-
-        if self._extracted_mtime is None:
-            self._extracted_mtime = time.time()
-
         old_umask = os.umask(self.umask)
         try:
             super(SageBaseTarFile, self)._extract_member(tarinfo, targetpath)

@@ -859,8 +859,11 @@ static ex atanh_eval(const ex & x)
 		// atanh(float) -> float
 		if (not num.is_exact())
 			return atanh(num);
-                else
-                        return atanh(x).hold();
+                
+                if (num.is_integer() or num.is_rational())
+                        return _ex1_2 * log(ex((*_num1_p + num)/(*_num1_p - num)));
+
+                return atanh(x).hold();
 	}
 	
 	// atanh(oo) -> -i*pi/2
@@ -953,18 +956,24 @@ REGISTER_FUNCTION(atanh, eval_func(atanh_eval).
 static ex acoth_eval(const ex & x)
 {
         if (is_exactly_a<numeric>(x)) {
+                const numeric& num = ex_to<numeric>(x);
                 // acoth(1) -> oo
-                if (x.is_one())
+                if (num.is_one())
                         return Infinity;
                 // acoth(-1) -> -oo
-                if (x.is_minus_one())
+                if (num.is_minus_one())
                         return NegInfinity;
                 //acoth(float) -> float 
-                if (x.info(info_flags::inexact))
-                        return atanh(ex_to<numeric>(x).inverse());
+                if (not num.is_exact())
+                        return atanh(num.inverse());
+                // acoth(real) inside (-1,1)
+                if (num.is_real() and abs(num) < *_num1_p)
+                        return NaN;
                 // acoth() is odd
-                if (x.info(info_flags::negative))
-                        return -acoth(-x);
+                if (num.is_negative())
+                        return -acoth(num.negative());
+                if (num.is_integer() or num.is_rational())
+                        return _ex1_2 * log(ex((num + *_num1_p)/(num - *_num1_p)));
         }
        
 	if (is_exactly_a<function>(x)) {

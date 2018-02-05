@@ -2612,9 +2612,12 @@ cdef class Expression(CommutativeRingElement):
         The :meth:`~sage.structure.element.Element.is_zero` method
         is more capable::
 
-            sage: t = pi + x*pi + (pi - 1 - x)*pi - pi^2
+            sage: t = pi + (pi - 1)*pi - pi^2
             sage: t.is_trivial_zero()
             False
+            sage: t.is_zero()
+            True
+            sage: t = pi + x*pi + (pi - 1 - x)*pi - pi^2
             sage: t.is_zero()
             True
             sage: u = sin(x)^2 + cos(x)^2 - 1
@@ -2622,13 +2625,6 @@ cdef class Expression(CommutativeRingElement):
             False
             sage: u.is_zero()
             True
-
-        Note that constants-only expressions are decided numerically
-        and may return the wrong result::
-
-            sage: t = pi + (pi - 1)*pi - pi^2
-            sage: t.is_zero()
-            False
         """
         return self._gobj.is_zero()
 
@@ -2835,10 +2831,11 @@ cdef class Expression(CommutativeRingElement):
                 if pynac_result == relational_notimplemented and self.operator()==operator.ne:
                     return not (self.lhs()-self.rhs()).is_trivial_zero()
                 res = self.test_relation()
-                if res is True:
-                    return True
-                elif res is False:
-                    return False
+                if res in (True, False):
+                    return res
+                res = self.operator()((self.lhs()-self.rhs()).simplify_full(), 0).test_relation()
+                if res in (True, False):
+                    return res
 
             # we really have to do some work here...
             # I really don't like calling Maxima to test equality.  It

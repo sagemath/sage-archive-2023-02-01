@@ -2622,6 +2622,13 @@ cdef class Expression(CommutativeRingElement):
             False
             sage: u.is_zero()
             True
+
+        Note that constants-only expressions are decided numerically
+        and may return the wrong result::
+
+            sage: t = pi + (pi - 1)*pi - pi^2
+            sage: t.is_zero()
+            False
         """
         return self._gobj.is_zero()
 
@@ -2708,10 +2715,6 @@ cdef class Expression(CommutativeRingElement):
             sage: assert(x != y) # The same comment as above applies here as well
             sage: forget()
 
-            sage: val = pi - 2286635172367940241408/1029347477390786609545*sqrt(2)
-            sage: bool(val>0)
-            False
-
         Comparisons of infinities::
 
             sage: assert( (1+I)*oo == (2+2*I)*oo )
@@ -2776,6 +2779,12 @@ cdef class Expression(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             TypeError: unsupported operand parent(s)...
+
+        Check that :trac:`24658` is fixed::
+
+            sage: val = pi - 2286635172367940241408/1029347477390786609545*sqrt(2)
+            sage: bool(val>0)
+            False
         """
         if self.is_relational():
             # constants are wrappers around Sage objects, compare directly

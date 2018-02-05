@@ -2612,7 +2612,7 @@ cdef class Expression(CommutativeRingElement):
         The :meth:`~sage.structure.element.Element.is_zero` method
         is more capable::
 
-            sage: t = pi + (pi - 1)*pi - pi^2
+            sage: t = pi + x*pi + (pi - 1 - x)*pi - pi^2
             sage: t.is_trivial_zero()
             False
             sage: t.is_zero()
@@ -2707,6 +2707,10 @@ cdef class Expression(CommutativeRingElement):
             sage: assert(not x==y)
             sage: assert(x != y) # The same comment as above applies here as well
             sage: forget()
+
+            sage: val = pi - 2286635172367940241408/1029347477390786609545*sqrt(2)
+            sage: bool(val>0)
+            False
 
         Comparisons of infinities::
 
@@ -2834,7 +2838,10 @@ cdef class Expression(CommutativeRingElement):
             # precision, etc., that can lead to subtle bugs.  Also, a
             # lot of basic Sage objects can't be put into maxima.
             from sage.symbolic.relation import test_relation_maxima
-            return test_relation_maxima(self)
+            if self.variables():
+                return test_relation_maxima(self)
+            else:
+                return False
 
         self_is_zero = self._gobj.is_zero()
         if self_is_zero:

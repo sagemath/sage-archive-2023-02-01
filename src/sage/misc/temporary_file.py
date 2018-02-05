@@ -427,7 +427,7 @@ class atomic_write(object):
 
         try:
             self.tempfile = io.open(name, wmode, **self.kwargs)
-        except (TypeError, ValueError):
+        except Exception:
             # Some invalid arguments were passed to io.open
             os.unlink(name)
             raise

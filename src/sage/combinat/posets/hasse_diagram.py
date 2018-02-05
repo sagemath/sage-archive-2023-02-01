@@ -167,8 +167,9 @@ class HasseDiagram(DiGraph):
                 not any(low in S_ for low in self.neighbors_in(x))]
 
             for e in S:
-                for i_want_python_3 in greedy_rec(H, linext+[e]):
-                    yield i_want_python_3
+                # Python3-todo: use yield from
+                for tmp in greedy_rec(H, linext+[e]):
+                    yield tmp
 
         return greedy_rec(self, [])
 
@@ -229,8 +230,9 @@ class HasseDiagram(DiGraph):
                         k -= 1
 
                 for e in S:
-                    for i_want_python_3 in supergreedy_rec(H, linext+[e]):
-                        yield i_want_python_3
+                # Python3-todo: use yield from
+                    for tmp in supergreedy_rec(H, linext+[e]):
+                        yield tmp
 
         return supergreedy_rec(self, [])
 

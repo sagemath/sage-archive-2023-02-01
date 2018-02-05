@@ -73,6 +73,7 @@ List of Poset methods
     :meth:`~FinitePoset.is_ranked` | Return ``True`` if the poset has a rank function.
     :meth:`~FinitePoset.is_rank_symmetric` | Return ``True`` if the poset is rank symmetric.
     :meth:`~FinitePoset.is_series_parallel` | Return ``True`` if the poset can be built by ordinal sums and disjoint unions.
+    :meth:`~FinitePoset.is_greedy` | Return ``True`` if all greedy linear extensions have equal number of jumps.
     :meth:`~FinitePoset.is_eulerian` | Return ``True`` if the poset is Eulerian.
     :meth:`~FinitePoset.is_incomparable_chain_free` | Return ``True`` if the poset is (m+n)-free.
     :meth:`~FinitePoset.is_slender` | Return ``True`` if the poset is slender.
@@ -6712,6 +6713,70 @@ class FinitePoset(UniqueRepresentation, Parent):
                                 return (False, (self._vertex_to_element(i),
                                                 self._vertex_to_element(j)))
                             return False
+        return (True, None) if certificate else True
+
+    def is_greedy(self, certificate=False):
+        """
+        Return ``True`` if the poset is greedy, and ``False`` otherwise.
+
+        A poset is ''greedy'' if every greedy linear extension
+        has the same number of jumps.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, (A, B))`` where `A` and `B` are greedy linear extension
+          so that `B` has more jumps. If ``certificate=False`` return
+          ``True`` or ``False``.
+
+        EXAMPLES:
+
+        This is not a self-dual property::
+
+            sage: W = Poset({1: [3, 4], 2: [4, 5]})
+            sage: M = W.dual()
+            sage: W.is_greedy()
+            True
+            sage: M.is_greedy()
+            False
+
+        Getting a certificate::
+
+            sage: N = Poset({1: [3], 2: [3, 4]})
+            sage: L.is_greedy(certificate=True)
+            (False, ([1, 2, 4, 3], [2, 4, 1, 3]))
+
+        TESTS::
+
+            sage: Poset().is_greedy()
+            True
+            sage: posets.AntichainPoset(3).is_greedy()
+            True
+            sage: posets.ChainPoset(3).is_greedy()
+            True
+        """
+        H = P._hasse_diagram
+        N1 = H.order()-1
+        it = H.greedy_linear_extensions_iterator()
+        A = next(it)
+        A_jumps = sum(1 for i in range(N1) if H.has_edge(A[i], A[i+1]))
+
+        for B in it:
+            B_jumps = sum(1 for i in range(N1) if H.has_edge(B[i], B[i+1]))
+            if A_jumps != B_jumps:
+                if certificate:
+                    if A_jumps > B_jumps:
+                        tmp = A; A = B; B = tmp
+                    return (False,
+                            (self.linear_extension([self[v] for v in A]),
+                             self.linear_extension([self[v] for v in B])))
+                return False
+
         return (True, None) if certificate else True
 
     def frank_network(self):

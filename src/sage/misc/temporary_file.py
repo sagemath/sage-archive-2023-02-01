@@ -23,11 +23,9 @@ AUTHORS:
 from __future__ import print_function
 
 import io
-import locale
 import os
 import tempfile
 import atexit
-
 import six
 
 

@@ -70,7 +70,8 @@ public: \
 public: \
 	static const print_context_class_info &get_class_info_static() \
         { \
-	        static print_context_class_info reg_info = GiNaC::print_context_class_info(GiNaC::print_context_options(#classname, "print_context", GiNaC::next_print_context_id++)); \
+	        static print_context_options o(#classname, "print_context", GiNaC::next_print_context_id++); \
+	        static print_context_class_info reg_info(o); \
         	return reg_info; \
         } \
 	virtual const GiNaC::print_context_class_info &get_class_info() const { return classname::get_class_info_static(); } \
@@ -93,7 +94,8 @@ public:
 	typedef void inherited;
 	static const print_context_class_info &get_class_info_static()
         {
-	        static print_context_class_info reg_info = print_context_class_info(print_context_options("print_context", "void", next_print_context_id++));
+	        static print_context_options o("print_context", "void", next_print_context_id++);
+	        static print_context_class_info reg_info(o);
         	return reg_info;
         }
 	virtual const print_context_class_info &get_class_info() const

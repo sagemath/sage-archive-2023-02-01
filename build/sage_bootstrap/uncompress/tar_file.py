@@ -19,6 +19,8 @@ import copy
 import tarfile
 import stat
 import subprocess
+import time
+
 from io import BytesIO
 
 from sage_bootstrap.uncompress.filter_os_files import filter_os_files
@@ -26,26 +28,30 @@ from sage_bootstrap.uncompress.filter_os_files import filter_os_files
 
 class SageBaseTarFile(tarfile.TarFile):
     """
-    Sage as tarfile.TarFile, but applies a strict umask (0077) to the
+    Sage as tarfile.TarFile, but applies a reasonable umask (0022) to the
     permissions of all extracted files and directories.
 
     Previously this applied the user's current umask per the default behavior
     of the ``tar`` utility, but this did not provide sufficiently reliable
     behavior in all cases, such as when the user's umask is not strict enough.
 
-    This also sets the modified timestamps on all extracted files to the time
-    of their extraction, not the timestamps stored in the tarball.
+    This also sets the modified timestamps on all extracted files to the same
+    time, not the timestamps stored in the tarball.
 
     See http://trac.sagemath.org/ticket/20218#comment:16 and
     https://trac.sagemath.org/ticket/24567 for more background.
     """
 
-    umask = 0o077
+    umask = 0o022
 
     def __init__(self, *args, **kwargs):
         # Unfortunately the only way to get the current umask is to set it
         # and then restore it
         super(SageBaseTarFile, self).__init__(*args, **kwargs)
+
+        # When extracting files, this will be set to the time of the first
+        # file extracted, so that all files can be set to the same mtime
+        self._extracted_mtime = None
 
     @property
     def names(self):
@@ -68,13 +74,17 @@ class SageBaseTarFile(tarfile.TarFile):
     def utime(self, tarinfo, target):
         """Override to keep the extraction time as the file's timestamp."""
 
-        return
+        tarinfo.mtime = self._extracted_mtime
+        return super(SageBaseTarFile, self).utime(tarinfo, target)
 
     def extractall(self, path='.', members=None):
         """
         Same as tarfile.TarFile.extractall but allows filenames for
         the members argument (like zipfile.ZipFile).
         """
+
+        self._extracted_mtime = None
+
         if members:
             name_to_member = dict([member.name, member] for member in self.getmembers())
             members = [m if isinstance(m, tarfile.TarInfo)
@@ -100,6 +110,9 @@ class SageBaseTarFile(tarfile.TarFile):
         directory tree, even for directories that are not explicitly listed in
         the tarball.
         """
+
+        if self._extracted_mtime is None:
+            self._extracted_mtime = time.time()
 
         old_umask = os.umask(self.umask)
         try:

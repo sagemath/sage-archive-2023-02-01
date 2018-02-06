@@ -967,13 +967,15 @@ class VectorField(MultivectorField):
 
            \mathrm{curl}\, v = (*(\mathrm{d} v^\flat))^\sharp
 
-        where `v^\flat` is the 1-form associated to `v` by the metric `g`
-        (see :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.down`),
+        where `v^\flat` is the 1-form associated to `v` by the metric `g` (see
+        :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.down`),
         `*(\mathrm{d} v^\flat)` is the Hodge dual with respect to `g` of the
-        2-form `\mathrm{d} v^\flat` (exterior derivative of `v^\flat`) and
+        2-form `\mathrm{d} v^\flat` (exterior derivative of `v^\flat`) (see
+        :meth:`~sage.manifolds.differentiable.diff_form.DiffForm.hodge_dual`)
+        and
         `(*(\mathrm{d} v^\flat))^\sharp` is corresponding vector field by
-        `g`-duality (cf.
-        :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.up`)
+        `g`-duality (see
+        :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.up`).
 
         An alternative expression of the curl is
 
@@ -989,8 +991,8 @@ class VectorField(MultivectorField):
 
         .. NOTE::
 
-            This method is meaningful only if ``self`` is a vector field on
-            a 3-dimensional manifold.
+            The method ``curl`` is meaningful only if ``self`` is a vector
+            field on a 3-dimensional manifold.
 
         INPUT:
 
@@ -998,7 +1000,8 @@ class VectorField(MultivectorField):
           involved in the definition of the curl; if none is provided, the
           domain of ``self`` is supposed to be endowed with a default metric
           (i.e. is supposed to be pseudo-Riemannian manifold, see
-          :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`) and the latter is used to define the curl
+          :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`)
+          and the latter is used to define the curl
 
         OUTPUT:
 
@@ -1052,6 +1055,132 @@ class VectorField(MultivectorField):
                 restrict.set_name(resu._name, latex_name=resu._latex_name)
         return resu
 
+    def dot(self, other, metric=None):
+        r"""
+        Return the scalar product of ``self`` with another vector field (with
+        respect to a given metric).
+
+        If ``self`` is the vector field `u` and other is the vector field `v`,
+        the *scalar product of* `u` *by* `v` with respect to a given
+        pseudo-Riemannian metric `g` is the scalar field `s` defined by
+
+        .. MATH::
+
+            s = u\cdot v = g(u,v) = g_{ij} u^i v^j
+
+        INPUT:
+
+        - ``other`` -- a vector field, defined on the same domain as ``self``
+        - ``metric`` -- (default: ``None``) the pseudo-Riemannian metric `g`
+          involved in the definition of the scalar product; if none is
+          provided, the domain of ``self`` is supposed to be endowed with a
+          default metric (i.e. is supposed to be pseudo-Riemannian manifold,
+          see
+          :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`)
+          and the latter is used to define the scalar product
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.scalarfield.DiffScalarField`
+          representing the scalar product of ``self`` by ``other``.
+
+        EXAMPLES:
+
+        Scalar product in the Euclidean plane::
+
+            sage: M = Manifold(2, 'M', structure='Riemannian')
+            sage: X.<x,y> = M.chart()
+            sage: g = M.metric()
+            sage: g[0,0], g[1,1] = 1, 1
+            sage: u = M.vector_field(name='u')
+            sage: u[:] = x, y
+            sage: v = M.vector_field(name='v')
+            sage: v[:] = y, x
+            sage: s = u.dot(v); s
+            Scalar field u.v on the 2-dimensional Riemannian manifold M
+            sage: s.display()
+            u.v: M --> R
+               (x, y) |--> 2*x*y
+
+        A test of orthogonality::
+
+            sage: v[:] = -y, x
+            sage: u.dot(v) == 0
+            True
+
+        Scalar product with respect to a metric that is not the default one::
+
+            sage: h = M.riemannian_metric('h')
+            sage: h[0,0], h[1,1] = 1/(1+y^2), 1/(1+x^2)
+            sage: s = u.dot(v, metric=h); s
+            Scalar field h(u,v) on the 2-dimensional Riemannian manifold M
+            sage: s.display()
+            h(u,v): M --> R
+               (x, y) |--> -(x^3*y - x*y^3)/((x^2 + 1)*y^2 + x^2 + 1)
+
+        """
+        default_metric = metric is None
+        if default_metric:
+            metric = self._domain.metric()
+        resu = metric(self, other)
+        # From the above operation the name of resu is "g(u,v')" where
+        # g = metric._name, u = self._name, v = other._name
+        # For a default metric, we change it to "u.v":
+        if (self._name is not None and other._name is not None and
+            default_metric):
+            resu._name = "{}.{}".format(self._name, other._name)
+            resu._latex_name = self._latex_name + r"\cdot" + other._latex_name
+            # The name is propagated to possible restrictions of self:
+            for restrict in resu._restrictions.values():
+                restrict.set_name(resu._name, latex_name=resu._latex_name)
+        return resu
+
+    def cross(self, other, metric=None):
+        r"""
+        Return the cross product of ``self`` with another vector field (with
+        respect to a given metric).
+
+        If ``self`` is the vector field `u` and other is the vector field `v`,
+        the *cross product of* `u` *by* `v` with respect to a given
+        pseudo-Riemannian metric `g` is the vector field `w = u\times v`
+        defined by
+
+        .. MATH::
+
+            w^i = \epsilon^i_{\phantom{i}\, jk} u^j v^k
+                = g^{il} \epsilon_{ljk} u^j v^k
+
+        .. NOTE::
+
+            The method ``cross`` is meaningful only if for vector fields on a
+            3-dimensional manifold.
+
+        INPUT:
+
+        - ``other`` -- a vector field, defined on the same domain as ``self``
+        - ``metric`` -- (default: ``None``) the pseudo-Riemannian metric `g`
+          involved in the definition of the cross product; if none is
+          provided, the domain of ``self`` is supposed to be endowed with a
+          default metric (i.e. is supposed to be pseudo-Riemannian manifold,
+          see
+          :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`)
+          and the latter is used to define the cross product
+
+        OUTPUT:
+
+        - instance of :class:`VectorField` representing the cross product of
+          ``self`` by ``other``.
+
+        EXAMPLES:
+
+        """
+        default_metric = metric is None
+        if default_metric:
+            metric = self._domain.metric()
+        eps = metric.volume_form(1)
+        resu = eps.contract(1, 2, self.wedge(other), 0, 1)
+        return resu
 
 #******************************************************************************
 

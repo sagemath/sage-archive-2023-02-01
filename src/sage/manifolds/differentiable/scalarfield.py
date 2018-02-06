@@ -1080,7 +1080,8 @@ class DiffScalarField(ScalarField):
           involved in the definition of the gradient; if none is provided, the
           domain of ``self`` is supposed to be endowed with a default metric
           (i.e. is supposed to be pseudo-Riemannian manifold, see
-          :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`) and the latter is used to define the gradient
+          :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`)
+          and the latter is used to define the gradient
 
         OUTPUT:
 
@@ -1161,7 +1162,8 @@ class DiffScalarField(ScalarField):
           involved in the definition of the Laplacian; if none is provided, the
           domain of ``self`` is supposed to be endowed with a default metric
           (i.e. is supposed to be pseudo-Riemannian manifold, see
-          :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`) and the latter is used to define the Laplacian
+          :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`)
+          and the latter is used to define the Laplacian
 
         OUTPUT:
 
@@ -1254,7 +1256,8 @@ class DiffScalarField(ScalarField):
           involved in the definition of the d'Alembertian; if none is provided,
           the domain of ``self`` is supposed to be endowed with a default
           Lorentzian metric (i.e. is supposed to be Lorentzian manifold, see
-          :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`) and the latter is used to define the d'Alembertian
+          :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`)
+          and the latter is used to define the d'Alembertian
 
         OUTPUT:
 

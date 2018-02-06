@@ -1679,7 +1679,7 @@ class Function_factorial(GinacFunction):
             sage: SR(5).factorial()
             120
             sage: SR(3245908723049857203948572398475r).factorial()
-            factorial(3245908723049857203948572398475L)
+            factorial(3245908723049857203948572398475)
             sage: SR(3245908723049857203948572398475).factorial()
             factorial(3245908723049857203948572398475)
         """

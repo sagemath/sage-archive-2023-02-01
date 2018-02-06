@@ -536,7 +536,7 @@ class Function_arctanh(GinacFunction):
             sage: arctanh(0.5)
             0.549306144334055
             sage: arctanh(1/2)
-            arctanh(1/2)
+            1/2*log(3)
             sage: arctanh(1 + I*1.0)
             0.402359478108525 + 1.01722196789785*I
 
@@ -549,7 +549,7 @@ class Function_arctanh(GinacFunction):
         :meth:`sage.symbolic.expression.Expression.simplify`::
 
             sage: arctanh(-1/2,hold=True).simplify()
-            -arctanh(1/2)
+            -1/2*log(3)
 
         ``conjugate(arctanh(x))==arctanh(conjugate(x))`` unless on the branch
         cuts which run along the real axis outside the interval [-1, +1].::
@@ -563,7 +563,7 @@ class Function_arctanh(GinacFunction):
             sage: conjugate(arctanh(y+I))
             conjugate(arctanh(y + I))
             sage: conjugate(arctanh(1/16))
-            arctanh(1/16)
+            1/2*log(17/15)
             sage: conjugate(arctanh(I/2))
             arctanh(-1/2*I)
             sage: conjugate(arctanh(-2*I))
@@ -595,7 +595,7 @@ class Function_arccoth(GinacFunction):
             sage: arccoth(2.0)
             0.549306144334055
             sage: arccoth(2)
-            arccoth(2)
+            1/2*log(3)
             sage: arccoth(1 + I*1.0)
             0.402359478108525 - 0.553574358897045*I
             sage: arccoth(2).n(200)

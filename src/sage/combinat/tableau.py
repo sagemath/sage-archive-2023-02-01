@@ -68,7 +68,7 @@ For display options, see :meth:`Tableaux.options`.
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import range, zip
-from six import add_metaclass
+from six import add_metaclass, text_type
 
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
@@ -597,7 +597,7 @@ class Tableau(ClonableList):
         if use_unicode:
             # Special handling of overline not adding to printed length
             def get_len(e):
-                return len(e) - list(unicode(e)).count(u"\u0304")
+                return len(e) - list(text_type(e)).count(u"\u0304")
         else:
             get_len = len
         for row in str_tab:

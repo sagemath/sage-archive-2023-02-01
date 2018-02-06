@@ -1052,11 +1052,11 @@ matrix matrix::solve(const matrix & vars,
 		unsigned last_assigned_sol = n+1;
 		for (int r=mm-1; r>=0; --r) {
 			unsigned fnz = 1;    // first non-zero in row
-			while ((fnz<=n) && (aug.m[r*(n+p)+(fnz-1)].is_zero()))
+			while ((fnz<=n) && (aug.m[r*(n+p)+(fnz-1)].normal().is_zero()))
 				++fnz;
 			if (fnz>n) {
 				// row consists only of zeros, corresponding rhs must be 0, too
-				if (!aug.m[r*(n+p)+n+co].is_zero()) {
+				if (!aug.m[r*(n+p)+n+co].normal().is_zero()) {
 					throw (std::runtime_error("matrix::solve(): inconsistent linear system"));
 				}
 			} else {

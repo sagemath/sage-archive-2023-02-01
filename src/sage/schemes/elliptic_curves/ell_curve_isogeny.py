@@ -1855,7 +1855,9 @@ class EllipticCurveIsogeny(Morphism):
             Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 6*x over Finite Field of size 7 to Elliptic Curve defined by y^2 = x^3 + 4*x over Finite Field of size 7
             sage: phi._EllipticCurveIsogeny__init_from_kernel_list([E(0), E((0,0))])
 
-        The following example demonstrates the necessity of avoiding any calls to P.order(), since such calls involve factoring the group order which could take a long time.
+        The following example demonstrates the necessity of avoiding any calls
+        to P.order(), since such calls involve factoring the group order which
+        could take a long time. ::
 
             sage: p=12*next_prime(2**516)*next_prime(2**543)-1
             sage: E=EllipticCurve([GF(p)(1),GF(p)(0)])
@@ -1876,7 +1878,7 @@ class EllipticCurveIsogeny(Morphism):
 
         kernel_set = Set([self.__E1(0)])
         from sage.misc.all import flatten
-        from sage.groups.generic import multiples
+
         def all_multiples(itr, terminal):
             mult_list = [terminal]
             R = terminal + itr
@@ -1885,15 +1887,14 @@ class EllipticCurveIsogeny(Morphism):
                 R = R + itr
             return mult_list
         for P in kernel_gens:
-            kernel_set += Set(flatten([list(all_multiples(P,Q))
+            kernel_set += Set(flatten([all_multiples(P,Q)
                                        for Q in kernel_set]))
-
         self.__kernel_list = kernel_set.list()
         self.__kernel_2tor = {}
         self.__kernel_non2tor = {}
         self.__degree = Integer(len(kernel_set))
         self.__sort_kernel_list()
- 
+
     #
     # Precompute the values in Velu's Formula.
     #

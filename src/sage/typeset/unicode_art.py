@@ -60,8 +60,10 @@ class UnicodeArt(CharacterArt):
 
             sage: i = var('i')
             sage: ua = unicode_art(sum(pi^i/factorial(i)*x^i, i, 0, oo))
-            sage: unicode(ua)
+            sage: unicode(ua)  # py2
             u' \u03c0\u22c5x\n\u212f   '
+            sage: str(ua)  # py3
+            ' \u03c0\u22c5x\n\u212f   '
         """
         return repr(self).decode("utf-8")
 

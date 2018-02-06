@@ -63,6 +63,11 @@ class ArtinGroupElement(FinitelyPresentedGroupElement):
             sage: b = A([1, 2, 3, -1, 2, -3])
             sage: b._latex_()
             '\\sigma_{1}\\sigma_{2}\\sigma_{3}\\sigma_{1}^{-1}\\sigma_{2}\\sigma_{3}^{-1}'
+
+            sage: B = BraidGroup(4)
+            sage: b = B([1, 2, 3, -1, 2, -3])
+            sage: b._latex_()
+            '\\sigma_{1}\\sigma_{2}\\sigma_{3}\\sigma_{1}^{-1}\\sigma_{2}\\sigma_{3}^{-1}'
         """
         return ''.join("\sigma_{%s}^{-1}" % (-i) if i < 0 else "\sigma_{%s}" % i
                        for i in self.Tietze())
@@ -82,6 +87,14 @@ class ArtinGroupElement(FinitelyPresentedGroupElement):
             sage: b.exponent_sum()
             2
             sage: b = A([])
+            sage: b.exponent_sum()
+            0
+
+            sage: B = BraidGroup(5)
+            sage: b = B([1, 4, -3, 2])
+            sage: b.exponent_sum()
+            2
+            sage: b = B([])
             sage: b.exponent_sum()
             0
         """
@@ -192,11 +205,19 @@ class FiniteTypeArtinGroupElement(ArtinGroupElement):
              (s3*s1*s2)^2*s1, s1*s2*s3*s2)
             sage: A([1,2,1,3,2,1,3,2,3,3,2,3,1,2,3,1,2,3,1,2]).left_normal_form()
             ((s3*(s2*s3*s1)^2*s2*s1)^2, s3*s2)
+
+            sage: B = BraidGroup(4)
+            sage: b = B([1, 2, 3, -1, 2, -3])
+            sage: b.left_normal_form()
+            (s0^-1*s1^-1*s2^-1*s0^-1*s1^-1*s0^-1, s0*s1*s2*s1*s0, s0*s2*s1)
+            sage: c = B([1])
+            sage: c.left_normal_form()
+            (1, s0)
         """
         lnfp = self._left_normal_form_coxeter()
         P = self.parent()
         return tuple([P.delta() ** lnfp[0]] +
-                     [P(w.reduced_word()) for w in lnfp[1:]])
+                     [P._standard_lift(w) for w in lnfp[1:]])
 
     def _left_normal_form_coxeter(self):
         """
@@ -372,10 +393,10 @@ class ArtinGroup(FinitelyPresentedGroup):
             sage: ArtinGroup(['A',3]) is BraidGroup(4, 's1,s2,s3')
             True
 
-            sage: G = graphs.Path(3)
+            sage: G = graphs.PathGraph(3)
             sage: CM = CoxeterMatrix([[1,-1,2],[-1,1,-1],[2,-1,1]], index_set=G.vertices())
-            sage: A = groups.Artin(CM)
-            sage: Ap = groups.RightAngledArtin(G, 's')
+            sage: A = groups.misc.Artin(CM)
+            sage: Ap = groups.misc.RightAngledArtin(G, 's')
             sage: A is Ap
             True
         """
@@ -560,6 +581,8 @@ class ArtinGroup(FinitelyPresentedGroup):
             sage: A([2,1,-2,3,3,3,1])
             s2*s1*s2^-1*s3^3*s1
         """
+        if x in self._coxeter_group:
+            return self._standard_lift(x)
         return self.element_class(self, x)
 
     @cached_method
@@ -590,6 +613,46 @@ class ArtinGroup(FinitelyPresentedGroup):
         elements_list.append(self.prod(self.gens()))
         elements_list.append(elements_list[-1] ** min(rank,3))
         return elements_list
+
+    def _standard_lift_Tietze(self, w):
+        """
+        Return a Tietze word representing the Coxeter element ``w``
+        under the natural section.
+
+        INPUT:
+
+        - ``w`` -- an element of the Coxeter group of ``self``.
+
+        EXAMPLES::
+
+            sage: A = ArtinGroup(['B',3])
+            sage: A._standard_lift_Tietze(A.coxeter_group().long_element())
+            [3, 2, 3, 1, 2, 3, 1, 2, 1]
+        """
+        return w.reduced_word()
+
+    @cached_method
+    def _standard_lift(self, w):
+        """
+        Return the element of ``self`` that corresponds to the given
+        Coxeter element ``w`` under the natural section.
+
+        INPUT:
+
+        - ``w`` -- an element of the Coxeter group of ``self``.
+
+        EXAMPLES::
+
+            sage: A = ArtinGroup(['B',3])
+            sage: A._standard_lift(A.coxeter_group().long_element())
+            s3*(s2*s3*s1)^2*s2*s1
+
+            sage: B = BraidGroup(5)
+            sage: P = Permutation([5, 3, 1, 2, 4])
+            sage: B._standard_lift(P)
+            s0*s1*s0*s2*s1*s3
+        """
+        return self(self._standard_lift_Tietze(w))
 
     Element = ArtinGroupElement
 
@@ -645,8 +708,12 @@ class FiniteTypeArtinGroup(ArtinGroup):
             sage: A = ArtinGroup(['G',2])
             sage: A.delta()
             (s2*s1)^3
+
+            sage: B = BraidGroup(5)
+            sage: B.delta()
+            s0*s1*s0*s2*s1*s0*s3*s2*s1*s0
         """
-        return self(self._coxeter_group.long_element().reduced_word())
+        return self._standard_lift(self._coxeter_group.long_element())
 
     Element = FiniteTypeArtinGroupElement
 

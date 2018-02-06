@@ -698,13 +698,13 @@ class AbelianGroupSubgroup_gap(AbelianGroup_gap):
 
         Check that we are in the correct category::
 
-            sage: G = AbelianGroupGap([2,3,0])
-            sage: g = G.gens()
-            sage: H1 = G.subgroup([g[0],g[1]])
-            sage: H1 in Groups().Finite()
+            sage: G = AbelianGroupGap([2,3,0])      # optional - gap_packages
+            sage: g = G.gens()                      # optional - gap_packages
+            sage: H1 = G.subgroup([g[0],g[1]])      # optional - gap_packages
+            sage: H1 in Groups().Finite()           # optional - gap_packages
             True
-            sage: H2 = G.subgroup([g[0],g[2]])
-            sage: H2 in Groups().Infinite()
+            sage: H2 = G.subgroup([g[0],g[2]])      # optional - gap_packages
+            sage: H2 in Groups().Infinite()         # optional - gap_packages
             True
         """
         gens_gap = tuple([g.gap() for g in gens])

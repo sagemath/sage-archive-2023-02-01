@@ -22,8 +22,7 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from .linear_code import (AbstractLinearCode,
-                         LinearCodeParityCheckEncoder)
+from .linear_code import AbstractLinearCode
 from sage.matrix.matrix_space import MatrixSpace
 from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.misc.cachefunc import cached_method
@@ -167,5 +166,3 @@ class HammingCode(AbstractLinearCode):
 
 
 ####################### registration ###############################
-
-HammingCode._registered_encoders["ParityCheck"] = LinearCodeParityCheckEncoder

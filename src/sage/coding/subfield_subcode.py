@@ -18,10 +18,7 @@ coordinate of `c`.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from linear_code import (AbstractLinearCode,
-                         LinearCodeParityCheckEncoder,
-                         LinearCodeSyndromeDecoder,
-                         LinearCodeNearestNeighborDecoder)
+from linear_code import AbstractLinearCode
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_constructor import GF

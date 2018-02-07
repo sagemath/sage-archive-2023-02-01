@@ -296,14 +296,6 @@ def wtdist_gap(Gmat, n, F):
     C = LinearCode(G)
     return C._spectrum_from_gap()
 
-def min_wt_vec_gap(Gmat, n, k, F, algorithm=None):
-    from sage.misc.superseded import deprecation
-    deprecation(20953, "min_wt_vec_gap is now deprecated. Please use AbstractLinearCode._minimum_weight_codeword instead.")
-    G_gap = gap(Gmat)
-    G = G_gap._matrix_(F)
-    C = LinearCode(G)
-    return C._minimum_weight_codeword(algorithm)
-
 def _explain_constructor(cl):
     r"""
     Internal function for use error messages when constructing encoders and decoders.

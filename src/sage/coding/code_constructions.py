@@ -334,17 +334,6 @@ def walsh_matrix(m0):
 
 ##################### main constructions #####################
 
-
-def BinaryGolayCode():
-    """
-    This method is now deprecated.
-    Please use :class:`sage.coding.golay_code.GolayCode` instead.
-    """
-    from sage.misc.superseded import deprecation
-    from .golay_code import GolayCode
-    deprecation(20787, "codes.BinaryGolayCode is now deprecated. Please use codes.GolayCode instead.")
-    return GolayCode(GF(2), False)
-
 def CyclicCodeFromGeneratingPolynomial(n,g,ignore=True):
     r"""
     If g is a polynomial over GF(q) which divides `x^n-1` then
@@ -524,16 +513,6 @@ def DuadicCodeOddPair(F,S1,S2):
     return C1,C2
 
 
-def ExtendedBinaryGolayCode():
-    """
-    This method is now deprecated.
-    Please use :class:`sage.coding.golay_code.GolayCode` instead.
-    """
-    from sage.misc.superseded import deprecation
-    from .golay_code import GolayCode
-    deprecation(20787, "codes.ExtendedBinaryGolayCode is now deprecated. Please use codes.GolayCode instead.")
-    return GolayCode(GF(2))
-
 
 def ExtendedQuadraticResidueCode(n,F):
     r"""
@@ -576,16 +555,6 @@ def ExtendedQuadraticResidueCode(n,F):
     """
     C = QuadraticResidueCodeOddPair(n,F)[0]
     return C.extended_code()
-
-def ExtendedTernaryGolayCode():
-    """
-    This method is now deprecated.
-    Please use :class:`sage.coding.golay_code.GolayCode` instead.
-    """
-    from sage.misc.superseded import deprecation
-    from .golay_code import GolayCode
-    deprecation(20787, "codes.ExtendedTernaryGolayCode is now deprecated. Please use codes.GolayCode instead.")
-    return GolayCode(GF(3))
 
 def from_parity_check_matrix(H):
     r"""
@@ -820,16 +789,6 @@ def ReedSolomonCode(n,k,F,pts = None):
                 i = i+1
     return GeneralizedReedSolomonCode(pts, k)
 
-
-def TernaryGolayCode():
-    """
-    This method is now deprecated.
-    Please use :class:`sage.coding.golay_code.GolayCode` instead.
-    """
-    from sage.misc.superseded import deprecation
-    from .golay_code import GolayCode
-    deprecation(20787, "codes.TernaryGolayCode is now deprecated. Please use codes.GolayCode instead.")
-    return GolayCode(GF(3), False)
 
 def ToricCode(P,F):
     r"""

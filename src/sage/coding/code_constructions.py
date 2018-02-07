@@ -7,13 +7,10 @@ of special (or random) linear codes and wraps them in a
 therefore not rich objects such as
 :class:`sage.coding.grs.GeneralizedReedSolomonCode`.
 
-For deprecation reasons, this file also contains some constructions for which
-Sage now does have rich representations.
-
 All codes available here can be accessed through the ``codes`` object::
 
-    sage: codes.GolayCode(GF(2),extended=False)
-    [23, 12, 7]  Golay code over GF(2)
+    sage: codes.random_linear_code(GF(2), 5, 2)
+    [5, 2]  linear code over GF(2)
 
 REFERENCES:
 

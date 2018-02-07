@@ -529,7 +529,7 @@ class ArtinGroup(FinitelyPresentedGroup):
 
     def coxeter_matrix(self):
         """
-        Return the Coxeter type of ``self``.
+        Return the Coxeter matrix of ``self``.
 
         EXAMPLES::
 

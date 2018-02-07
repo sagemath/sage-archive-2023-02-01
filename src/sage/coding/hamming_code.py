@@ -67,13 +67,6 @@ class HammingCode(AbstractLinearCode):
             ...
             ValueError: order has to be a Sage Integer or a Python int
         """
-        if isinstance(base_field, (Integer, int)) and isinstance(order, Field):
-            from sage.misc.superseded import deprecation
-            deprecation(19930, "codes.HammingCode(r, F) is now deprecated. Please use codes.HammingCode(F, r) instead.")
-            tmp = copy(order)
-            order = copy(base_field)
-            base_field = copy(tmp)
-
         if not base_field.is_finite():
             raise ValueError("base_field has to be a finite field")
         if not isinstance(order, (Integer, int)):

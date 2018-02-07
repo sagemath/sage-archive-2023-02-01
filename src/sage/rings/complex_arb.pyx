@@ -150,6 +150,7 @@ from sage.libs.mpfr cimport MPFR_RNDU
 from sage.libs.arb.types cimport ARF_RND_NEAR
 from sage.libs.arb.arb cimport *
 from sage.libs.arb.acb cimport *
+from sage.libs.arb.acb_calc cimport *
 from sage.libs.arb.acb_hypgeom cimport *
 from sage.libs.arb.acb_modular cimport *
 from sage.libs.arb.arf cimport arf_init, arf_get_d, arf_get_mpfr, arf_set_mpfr, arf_clear, arf_set_mag, arf_set, arf_is_nan

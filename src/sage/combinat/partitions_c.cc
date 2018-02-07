@@ -145,7 +145,6 @@ const unsigned int long_double_precision = (LDBL_MANT_DIG == 106) ? double_preci
                                                                             // Note: On many systems double_precision = long_double_precision. This is OK, as
                                                                             // the long double stage of the computation will just be skipped.
 
-
 // Second, some constants that control the precision at which we compute.
 
 // When we compute the terms of the Rademacher series, we start by computing with
@@ -199,10 +198,7 @@ mpfr_t mptemp;
  *
  ****************************************************************************/
 
-
 // A listing of the main functions, in "conceptual" order.
-
-
 void part(mpz_t answer, unsigned int n);
 
 static void mp_t(mpfr_t result, unsigned int n);                                // Compute t(n,N) for an N large enough, and with a high enough precision, so that
@@ -364,7 +360,6 @@ static unsigned int compute_current_precision(unsigned int n, unsigned int N, un
     // extra should probably have been set by a call to compute_extra_precision()
     // before this function was called.
 
-
     // n = the number for which we are computing p(n)
     // N = the number of terms that have been computed so far
 
@@ -390,7 +385,6 @@ static unsigned int compute_current_precision(unsigned int n, unsigned int N, un
     mpfr_sqrt_ui(t1, N, MPFR_RNDF);                       // t1 = sqrt(N)
     mpfr_div(error, error, t1, MPFR_RNDF);                // error = A/sqrt(N)
 
-
     mpfr_sqrt_ui(t1, n, MPFR_RNDF);                       // t1 = sqrt(n)
     mpfr_mul(t1, t1, C, MPFR_RNDF);                       // t1 = C * sqrt(n)
     mpfr_div_ui(t1, t1, N, MPFR_RNDF);                    // t1 = C * sqrt(n) / N
@@ -415,7 +409,6 @@ static unsigned int compute_current_precision(unsigned int n, unsigned int N, un
                                                           // large enough so that the accumulated errors
                                                           // in all of the computations that we make
                                                           // are not big enough to matter.
-
     if (debug) {
         cout << "Error seems to be: ";
         mpfr_out_str(stdout, 10, 0, error, round_mode);
@@ -466,11 +459,9 @@ static int compute_extra_precision(unsigned int n, double error = .25) {
     // then the sum will be within .5 of the correct (integer) answer, and we
     // can correctly find it by rounding.
     unsigned int k = 1;
-    for ( ; compute_current_precision(n,k,0) > double_precision; k += 100) {
-    }
+    while (compute_current_precision(n, k, 0) > double_precision) k += 100;
+    while (compute_remainder(n, k) > error) k += 100;
 
-    for ( ; compute_remainder(n, k) > error ; k += 100)  {
-    }
     if (debug_precision) {
         cout << "To compute p(" << n << ") we will add up approximately " << k << " terms from the Rachemacher series." << endl;
     }
@@ -487,10 +478,6 @@ static int compute_extra_precision(unsigned int n, double error = .25) {
                                                           // be safe, we use 5 extra bits.
                                                           // (Extensive trial and error means compiling this file to get
                                                           // a.out and then running './a.out testforever' for a few hours.)
-
-
-
-
     return bits;
 }
 
@@ -534,7 +521,7 @@ static void initialize_globals(mp_prec_t prec, unsigned int n) {
     // corresponds roughly to losing 1 bit of precision).
     mpfr_prec_t p = prec;
     if (p < long_double_precision) p = long_double_precision;
-    p += 20;
+    p += 10;
 
     // Global constants
     mpfr_init2(mp_sqrt2, p);
@@ -667,6 +654,7 @@ static void mp_f(mpfr_t result, unsigned int k) {
     mpfr_sub(result, result, mptemp, round_mode);                   // result = RESULT!
 }
 
+
 // call the following when 4k < sqrt(UINT_MAX)
 
 // TODO: maybe a faster version of this can be written without using mpq_t,
@@ -675,7 +663,6 @@ static void mp_f(mpfr_t result, unsigned int k) {
 //       The actual value of the cosine that we compute using s(h,k)
 //       only depends on {s(h,k)/2}, that is, the fractional
 //       part of s(h,k)/2. It may be possible to make use of this somehow.
-
 static void q_s(mpq_t result, unsigned int h, unsigned int k) {
     if (k < 3) {
         mpq_set_ui(result, 0, 1);
@@ -697,7 +684,6 @@ static void q_s(mpq_t result, unsigned int h, unsigned int k) {
     // and also some more listed in some of the links mentioned in the introduction, but
     // it seems like there might not be much speed benefit to this, and putting in too
     // many seems to slow things down a little.
-
 
     // if h = 2 and k is odd, we have
     // s(h,k) = (k-1)*(k-5)/24k
@@ -741,9 +727,6 @@ static void q_s(mpq_t result, unsigned int h, unsigned int k) {
     //if(k % h == 2) {
     //}
 */
-
-
-
 
     mpq_set_ui(result, 0, 1);                             // result = 0
 
@@ -863,10 +846,8 @@ static void mp_t(mpfr_t result, unsigned int n) {
     // More specifically, it computes t(n,N) to within 1/2 of p(n), and then
     // we can find p(n) by rounding.
 
-
     // NOTE: result should NOT have been initialized when this is called,
     // as we initialize it to the proper precision in this function.
-
     double error = .25;
     int extra = compute_extra_precision(n, error);
 
@@ -882,7 +863,6 @@ static void mp_t(mpfr_t result, unsigned int n) {
     initialize_globals(initial_precision, n);                       // Now that we have the precision information, we initialize some constants
                                                                     // that will be used throughout, and also set the precision of the "temp"
                                                                     // variables that are used in individual functions.
-
     unsigned int current_precision = initial_precision;
     unsigned int new_precision;
 
@@ -893,7 +873,6 @@ static void mp_t(mpfr_t result, unsigned int n) {
     // that only involves doubles.
     unsigned int k = 1;                                             // (k holds the index of the summand that we are computing.)
     for (k = 1; current_precision > level_two_precision; k++) {
-
         mpfr_sqrt_ui(t1, k, round_mode);                            // t1 = sqrt(k)
 
         mp_a(t2, n, k);                                             // t2 = A_k(n)
@@ -1422,7 +1401,6 @@ int test(bool longtest, bool forever) {
 
         cout << " OK." << endl;
 
-
         for (int i = 0; i < 10; i++) {
             n = int(100000000 * double(rand())/double(RAND_MAX) + 1) + 1000000000;
             n = n - (n % 385) + 369;
@@ -1434,12 +1412,9 @@ int test(bool longtest, bool forever) {
             }
             cout << " OK." << endl;
         }
-
     }
 
-    if (forever) {
-        while(1) {
-
+    while (forever) {
         for (int i = 0; i < 100; i++) {
             n = int(900000 * double(rand())/double(RAND_MAX) + 1) + 100000;
             n = n - (n % 385) + 369;
@@ -1497,7 +1472,6 @@ int test(bool longtest, bool forever) {
                 return n;
             }
             cout << " OK." << endl;
-        }
         }
     }
 

@@ -959,7 +959,7 @@ class VectorField(MultivectorField):
         Return the curl of ``self`` with respect to a given metric, assuming
         that the domain of ``self`` is 3-dimensional.
 
-        If ``self`` is the vector field `v` on a 3-dimensional differentiable
+        If ``self`` is a vector field `v` on a 3-dimensional differentiable
         orientable manifold `M`, the curl of `v` with respect to a metric `g`
         on `M` is the vector field defined by
 
@@ -1127,10 +1127,90 @@ class VectorField(MultivectorField):
         # From the above operation the name of resu is "g(u,v')" where
         # g = metric._name, u = self._name, v = other._name
         # For a default metric, we change it to "u.v":
-        if (self._name is not None and other._name is not None and
-            default_metric):
+        if (default_metric and self._name is not None and
+            other._name is not None):
             resu._name = "{}.{}".format(self._name, other._name)
-            resu._latex_name = self._latex_name + r"\cdot" + other._latex_name
+            resu._latex_name = "{" + self._latex_name + r"}\cdot{" + \
+                               other._latex_name + "}"
+            # The name is propagated to possible restrictions of self:
+            for restrict in resu._restrictions.values():
+                restrict.set_name(resu._name, latex_name=resu._latex_name)
+        return resu
+
+
+    def norm(self, metric=None):
+        r"""
+        Return the norm of ``self`` (with respect to a given metric).
+
+        The *norm* of a vector field `u` with respect to a given
+        pseudo-Riemannian metric `g` is the scalar field `\|u\|` defined by
+
+        .. MATH::
+
+            \|u\| = \sqrt{g(u,u)}
+
+        .. NOTE::
+
+            If the metric `g` is not positive definite, it may be that `\|u\|`
+            takes imaginary values.
+
+        INPUT:
+
+        - ``metric`` -- (default: ``None``) the pseudo-Riemannian metric `g`
+          involved in the definition of the norm; if none is
+          provided, the domain of ``self`` is supposed to be endowed with a
+          default metric (i.e. is supposed to be pseudo-Riemannian manifold,
+          see
+          :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`)
+          and the latter is used to define the norm
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.scalarfield.DiffScalarField`
+          representing the norm of ``self``.
+
+        EXAMPLES:
+
+
+        Norm in the Euclidean plane::
+
+            sage: M = Manifold(2, 'M', structure='Riemannian')
+            sage: X.<x,y> = M.chart()
+            sage: g = M.metric()
+            sage: g[0,0], g[1,1] = 1, 1
+            sage: v = M.vector_field(name='v')
+            sage: v[:] = -y, x
+            sage: s = v.norm(); s
+            Scalar field |v| on the 2-dimensional Riemannian manifold M
+            sage: s.display()
+            |v|: M --> R
+               (x, y) |--> sqrt(x^2 + y^2)
+
+        Norm with respect to a metric that is not the default one::
+
+            sage: h = M.riemannian_metric('h')
+            sage: h[0,0], h[1,1] = 1/(1+y^2), 1/(1+x^2)
+            sage: s = v.norm(metric=h); s
+            Scalar field |v|_h on the 2-dimensional Riemannian manifold M
+            sage: s.display()
+            |v|_h: M --> R
+               (x, y) |--> sqrt((2*x^2 + 1)*y^2 + x^2)/(sqrt(x^2 + 1)*sqrt(y^2 + 1))
+
+        """
+        default_metric = metric is None
+        if default_metric:
+            metric = self._domain.metric()
+        resu = metric(self, self).sqrt()
+        if self._name is not None:
+            if default_metric:
+                resu._name = "|{}|".format(self._name)
+                resu._latex_name = r"\left\|" + self._latex_name + \
+                                   r"\right\|"
+            else:
+                resu._name = "|{}|_{}".format(self._name, metric._name)
+                resu._latex_name = r"\left\|" + self._latex_name + \
+                                   r"\right\| _{" + metric._latex_name + "}"
             # The name is propagated to possible restrictions of self:
             for restrict in resu._restrictions.values():
                 restrict.set_name(resu._name, latex_name=resu._latex_name)
@@ -1139,17 +1219,22 @@ class VectorField(MultivectorField):
     def cross(self, other, metric=None):
         r"""
         Return the cross product of ``self`` with another vector field (with
-        respect to a given metric).
+        respect to a given metric),  assuming that the domain of ``self`` is
+        3-dimensional.
 
-        If ``self`` is the vector field `u` and other is the vector field `v`,
-        the *cross product of* `u` *by* `v` with respect to a given
-        pseudo-Riemannian metric `g` is the vector field `w = u\times v`
-        defined by
+        If ``self`` is a vector field `u` on a 3-dimensional differentiable
+        orientable manifold `M` and ``other`` is a vector field `v` on `M`,
+        the *cross product* (also called *vector product*) *of* `u` *by* `v`
+        with respect to a pseudo-Riemannian metric `g` on `M` is the vector
+        field `w = u\times v` defined by
 
         .. MATH::
 
-            w^i = \epsilon^i_{\phantom{i}\, jk} u^j v^k
+            w^i = \epsilon^i_{\phantom{i} jk} u^j v^k
                 = g^{il} \epsilon_{ljk} u^j v^k
+
+        where `\epsilon` is the volume 3-form (Levi-Civita tensor) of `g` (cf.
+        :meth:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric.volume_form`)
 
         .. NOTE::
 
@@ -1174,12 +1259,50 @@ class VectorField(MultivectorField):
 
         EXAMPLES:
 
+        Cross product in the Euclidean 3-space::
+
+            sage: M = Manifold(3, 'M', structure='Riemannian')
+            sage: X.<x,y,z> = M.chart()
+            sage: g = M.metric()
+            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
+            sage: u = M.vector_field(name='u')
+            sage: u[:] = -y, x, 0
+            sage: v = M.vector_field(name='v')
+            sage: v[:] = x, y, 0
+            sage: w = u.cross(v); w
+            Vector field u x v on the 3-dimensional Riemannian manifold M
+            sage: w.display()
+            u x v = (-x^2 - y^2) d/dz
+
+        The cross product of a vector field with itself is zero::
+
+            sage: u.cross(u).display()
+            u x u = 0
+
+        Cross product with respect to a metric that is not the default one::
+
+            sage: h = M.riemannian_metric('h')
+            sage: h[0,0], h[1,1], h[2,2] = 1/(1+y^2), 1/(1+z^2), 1/(1+x^2)
+            sage: w = u.cross(v, metric=h); w
+            Vector field on the 3-dimensional Riemannian manifold M
+            sage: w.display()
+            -(x^2 + y^2)*sqrt(x^2 + 1)/(sqrt(y^2 + 1)*sqrt(z^2 + 1)) d/dz
+
         """
         default_metric = metric is None
         if default_metric:
             metric = self._domain.metric()
         eps = metric.volume_form(1)
-        resu = eps.contract(1, 2, self.wedge(other), 0, 1)
+        resu = eps.contract(1, 2, self.wedge(other), 0, 1) / 2
+        # The result is named "u x v" only for a default metric:
+        if (default_metric and self._name is not None and
+            other._name is not None):
+            resu._name = "{} x {}".format(self._name, other._name)
+            resu._latex_name = "{" + self._latex_name + r"}\times{" + \
+                               other._latex_name + "}"
+            # The name is propagated to possible restrictions of self:
+            for restrict in resu._restrictions.values():
+                restrict.set_name(resu._name, latex_name=resu._latex_name)
         return resu
 
 #******************************************************************************

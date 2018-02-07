@@ -10,9 +10,10 @@ called the *metric tensor*, or simply the *metric* (see
 
 Two important subcases are
 
-- *Riemannian manifold*: the metric `g` is definite-positive
+- *Riemannian manifold*: the metric `g` is positive definite, i.e. its
+  signature is `n = \dim M`;
 - *Lorentzian manifold*: the metric `g` has signature `n-2` (positive
-  convention) or `2-n` (negative convention), where `n = \dim M`.
+  convention) or `2-n` (negative convention).
 
 All pseudo-Riemannian manifolds are implemented via the class
 :class:`PseudoRiemannianManifold`.
@@ -216,9 +217,10 @@ class PseudoRiemannianManifold(DifferentiableManifold):
 
     Two important subcases are
 
-    - *Riemannian manifold*: the metric `g` is definite-positive
+    - *Riemannian manifold*: the metric `g` is positive definite, i.e. its
+      signature is `n = \dim M`;
     - *Lorentzian manifold*: the metric `g` has signature `n-2` (positive
-      convention) or `2-n` (negative convention), where `n = \dim M`.
+      convention) or `2-n` (negative convention).
 
     INPUT:
 

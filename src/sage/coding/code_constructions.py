@@ -189,8 +189,6 @@ def _is_a_splitting(S1, S2, n, return_automorphism=False):
     else:
         return False
 
-is_a_splitting = deprecated_function_alias(21165, _is_a_splitting)
-
 def _lift2smallest_field(a):
     """
     INPUT: a is an element of a finite field GF(q)
@@ -200,12 +198,10 @@ def _lift2smallest_field(a):
 
     EXAMPLES::
 
-        sage: from sage.coding.code_constructions import lift2smallest_field
+        sage: from sage.coding.code_constructions import _lift2smallest_field
         sage: FF.<z> = GF(3^4,"z")
         sage: a = z^10
-        sage: lift2smallest_field(a)
-        doctest:...: DeprecationWarning: lift2smallest_field is deprecated. Please use sage.coding.code_constructions._lift2smallest_field instead.
-        See http://trac.sagemath.org/21165 for details.
+        sage: _lift2smallest_field(a)
         (2*z + 1, Finite Field in z of size 3^2)
         sage: a = z^40
         sage: lift2smallest_field(a)
@@ -227,51 +223,6 @@ def _lift2smallest_field(a):
     F = GF(p**d,"z")
     b = pol.roots(F,multiplicities=False)[0]
     return b, F
-
-
-lift2smallest_field = deprecated_function_alias(21165, _lift2smallest_field)
-
-def lift2smallest_field2(a):
-    """
-    INPUT: a is an element of a finite field GF(q)
-
-    OUTPUT: the element b of the smallest subfield F of GF(q) for which F(b)=a.
-
-    EXAMPLES::
-
-        sage: from sage.coding.code_constructions import lift2smallest_field2
-        sage: FF.<z> = GF(3^4,"z")
-        sage: a = z^40
-        sage: lift2smallest_field2(a)
-        doctest:...: DeprecationWarning: lift2smallest_field2 will be removed in a future release of Sage. Consider using sage.coding.code_constructions._lift2smallest_field instead, though this is private and may be removed in the future without deprecation warning. If you care about this functionality being in Sage, consider opening a Trac ticket for promoting the function to public.
-        See http://trac.sagemath.org/21165 for details.
-        (2, Finite Field of size 3)
-        sage: FF.<z> = GF(2^4,"z")
-        sage: a = z^15
-        sage: lift2smallest_field2(a)
-        (1, Finite Field of size 2)
-
-    .. warning::
-
-       Since coercion (the FF(b) step) has a bug in it, this
-       *only works* in the case when you *know* F is a prime field.
-
-    AUTHORS:
-
-    - David Joyner
-    """
-    deprecation(21165, "lift2smallest_field2 will be removed in a future release of Sage. Consider using sage.coding.code_constructions._lift2smallest_field instead, though this is private and may be removed in the future without deprecation warning. If you care about this functionality being in Sage, consider opening a Trac ticket for promoting the function to public.")
-    FF = a.parent()
-    q = FF.order()
-    if q.is_prime():
-        return a,FF
-    p = q.factor()[0][0]
-    k = q.factor()[0][1]
-    for d in divisors(k):
-        F = GF(p**d,"zz")
-        for b in F:
-            if FF(b) == a:
-                return b, F
 
 
 def permutation_action(g,v):
@@ -659,8 +610,6 @@ def from_parity_check_matrix(H):
     Cd = LinearCode(H)
     return Cd.dual_code()
 
-LinearCodeFromCheckMatrix = deprecated_function_alias(21165, from_parity_check_matrix)
-
 
 def QuadraticResidueCode(n,F):
     r"""
@@ -853,23 +802,6 @@ def random_linear_code(F, length, dimension):
         G = random_matrix(F, dimension, length)
         if G.rank() == dimension:
             return LinearCode(G)
-    
-def RandomLinearCode(n, k, F):
-    r"""
-    Deprecated alias of :func:`random_linear_code`.
-
-    EXAMPLES::
-
-        sage: C = codes.RandomLinearCode(10, 3, GF(2))
-        doctest:...: DeprecationWarning: codes.RandomLinearCode(n, k, F) is deprecated. Please use codes.random_linear_code(F, n, k) instead
-        See http://trac.sagemath.org/21165 for details.
-        sage: C
-        [10, 3] linear code over GF(2)
-        sage: C.generator_matrix().rank()
-        3
-    """
-    deprecation(21165, "codes.RandomLinearCode(n, k, F) is deprecated. Please use codes.random_linear_code(F, n, k) instead")
-    return random_linear_code(F, n, k)
 
 def ReedSolomonCode(n,k,F,pts = None):
     from sage.coding.grs import GeneralizedReedSolomonCode

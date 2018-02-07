@@ -12,15 +12,5 @@ _lazy_import("sage.coding.linear_code", [
 
 # Functions removed from the global namespace
 
-_lazy_import('sage.coding.delsarte_bounds','krawtchouk', "Krawtchouk",
-    deprecation=(20908, "Krawtchouk will be removed from the global namespace. Please use codes.bounds.krawtchouk instead."))
-_lazy_import('sage.coding.delsarte_bounds','krawtchouk', "Kravchuk",
-    deprecation=(20908, "Kravchuk will be removed from the global namespace. Please use codes.bounds.krawtchouk instead."))
-
-_lazy_import('sage.coding.delsarte_bounds',
-    ["delsarte_bound_hamming_space", "delsarte_bound_additive_hamming_space"],
-    deprecation=(20908, "This function will soon be removed from the global namespace. "
-                "Please call it using codes.bounds.... instead"))
-
 _lazy_import('sage.coding', 'codes_catalog', 'codes')
 _lazy_import('sage.coding', 'channels_catalog', 'channels')

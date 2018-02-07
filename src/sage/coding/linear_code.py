@@ -288,14 +288,6 @@ def _dump_code_in_leon_format(C):
 
     return file_loc
 
-def wtdist_gap(Gmat, n, F):
-    from sage.misc.superseded import deprecation
-    deprecation(20565, "wtdist_gap is now deprecated. You should simply call AbstractLinearCode.weight_distribution instead.")
-    G_gap = gap(Gmat)
-    G = G_gap._matrix_(F)
-    C = LinearCode(G)
-    return C._spectrum_from_gap()
-
 def _explain_constructor(cl):
     r"""
     Internal function for use error messages when constructing encoders and decoders.

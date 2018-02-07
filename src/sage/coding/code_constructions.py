@@ -201,7 +201,7 @@ def _lift2smallest_field(a):
         sage: _lift2smallest_field(a)
         (2*z + 1, Finite Field in z of size 3^2)
         sage: a = z^40
-        sage: lift2smallest_field(a)
+        sage: _lift2smallest_field(a)
         (2, Finite Field of size 3)
 
     AUTHORS:

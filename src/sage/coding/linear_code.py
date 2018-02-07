@@ -746,19 +746,19 @@ class AbstractLinearCode(Module):
 
             sage: C.add_encoder("MyEncoder", MyEncoder)
             sage: sorted(C.encoders_available())
-            ['MyEncoder', 'ParityCheck', 'Systematic']
+            ['MyEncoder', 'Systematic']
 
         We can verify that any new code will not know MyEncoder::
 
             sage: C2 = codes.HammingCode(GF(2), 3)
             sage: sorted(C2.encoders_available())
-            ['ParityCheck', 'Systematic']
+            ['Systematic']
 
         TESTS:
 
         It is impossible to use a name which is in the dictionary of available encoders::
 
-            sage: C.add_encoder("ParityCheck", MyEncoder)
+            sage: C.add_encoder("Systematic", MyEncoder)
             Traceback (most recent call last):
             ...
             ValueError: There is already a registered encoder with this name

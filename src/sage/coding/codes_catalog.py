@@ -39,17 +39,10 @@ from .linear_code import LinearCode
 from sage.coding.linear_code import LinearCode
 
 lazy_import('sage.coding.code_constructions',
-        ['BCHCode', 'BinaryGolayCode', 'CyclicCodeFromGeneratingPolynomial',
-         'CyclicCode', 'CyclicCodeFromCheckPolynomial', 'DuadicCodeEvenPair',
-         'DuadicCodeOddPair', 'ExtendedBinaryGolayCode',
-         'ExtendedQuadraticResidueCode', 'ExtendedTernaryGolayCode',
-         'from_parity_check_matrix',
-         'LinearCodeFromCheckMatrix', #deprecated
+        ['DuadicCodeEvenPair', 'DuadicCodeOddPair',
+         'ExtendedQuadraticResidueCode', 'from_parity_check_matrix',
          'QuadraticResidueCode', 'QuadraticResidueCodeEvenPair',
-         'QuadraticResidueCodeOddPair',
-         'random_linear_code',
-         'RandomLinearCode', #deprecated
-         'ReedSolomonCode', 'TernaryGolayCode',
+         'QuadraticResidueCodeOddPair', 'random_linear_code',
          'ToricCode', 'WalshCode'])
 
 lazy_import('sage.coding.bch', 'BCHCode')

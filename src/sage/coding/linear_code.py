@@ -2155,9 +2155,6 @@ class AbstractLinearCode(Module):
         systematic_positions = tuple(systematic_positions) if systematic_positions else None
         return self.encoder("Systematic", systematic_positions=systematic_positions).generator_matrix()
 
-    generator_matrix_systematic = deprecated_function_alias(20835,
-            systematic_generator_matrix)
-
     @cached_method
     def gens(self):
         r"""
@@ -4104,89 +4101,6 @@ class LinearCodeGeneratorMatrixEncoder(Encoder):
 
 
 
-
-
-
-class LinearCodeParityCheckEncoder(Encoder):
-    r"""
-    Encoder based on :meth:`parity_check_matrix` for Linear codes.
-
-    It constructs the generator matrix through the parity check matrix.
-
-    INPUT:
-
-    - ``code`` -- The associated code of this encoder.
-    """
-
-    def __init__(self, code):
-        r"""
-        EXAMPLES::
-
-            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
-            sage: C = LinearCode(G)
-            sage: E = codes.encoders.LinearCodeParityCheckEncoder(C)
-            doctest:...: DeprecationWarning: LinearCodeParityCheckEncoder is now deprecated. Please use LinearCodeSystematicEncoder instead.
-            See http://trac.sagemath.org/20835 for details.
-            sage: E
-            Parity check matrix-based encoder for [7, 4] linear code over GF(2)
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(20835, "LinearCodeParityCheckEncoder is now deprecated. Please use LinearCodeSystematicEncoder instead.")
-        super(LinearCodeParityCheckEncoder, self).__init__(code)
-
-    def _repr_(self):
-        r"""
-        Return a string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
-            sage: C = LinearCode(G)
-            sage: E = codes.encoders.LinearCodeParityCheckEncoder(C)
-            doctest:...: DeprecationWarning: LinearCodeParityCheckEncoder is now deprecated. Please use LinearCodeSystematicEncoder instead.
-            See http://trac.sagemath.org/20835 for details.
-            sage: E
-            Parity check matrix-based encoder for [7, 4] linear code over GF(2)
-        """
-        return "Parity check matrix-based encoder for %s" % self.code()
-
-    def _latex_(self):
-        r"""
-        Return a latex representation of ``self``.
-
-        EXAMPLES::
-
-            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
-            sage: C = LinearCode(G)
-            sage: E = codes.encoders.LinearCodeParityCheckEncoder(C)
-            doctest:...: DeprecationWarning: LinearCodeParityCheckEncoder is now deprecated. Please use LinearCodeSystematicEncoder instead.
-            See http://trac.sagemath.org/20835 for details.
-            sage: latex(E)
-            \textnormal{Parity check matrix-based encoder for }[7, 4]\textnormal{ Linear code over }\Bold{F}_{2}
-        """
-        return "\\textnormal{Parity check matrix-based encoder for }%s" % self.code()._latex_()
-
-    @cached_method
-    def generator_matrix(self):
-        r"""
-        Returns a generator matrix of the associated code of ``self``.
-
-        EXAMPLES::
-
-            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
-            sage: C = LinearCode(G)
-            sage: E = codes.encoders.LinearCodeParityCheckEncoder(C)
-            doctest:...: DeprecationWarning: LinearCodeParityCheckEncoder is now deprecated. Please use LinearCodeSystematicEncoder instead.
-            See http://trac.sagemath.org/20835 for details.
-            sage: E.generator_matrix()
-            [1 0 0 0 0 1 1]
-            [0 1 0 0 1 0 1]
-            [0 0 1 0 1 1 0]
-            [0 0 0 1 1 1 1]
-        """
-        g = self.code().parity_check_matrix().right_kernel_matrix()
-        g.set_immutable()
-        return g
 
 
 

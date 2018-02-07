@@ -3328,7 +3328,7 @@ class AbstractLinearCode(Module):
         E = self.encoder(encoder_name, **kwargs)
         return E.unencode(c, nocheck)
 
-    def weight_enumerator(self, names=None, name2=None, bivariate=True):
+    def weight_enumerator(self, names=None, bivariate=True):
         """
         Return the weight enumerator polynomial of ``self``.
 
@@ -3341,9 +3341,6 @@ class AbstractLinearCode(Module):
         - ``names`` - (default: ``"xy"``) The names of the variables in the
           homogeneous polynomial. Can be given as a single string of length 2,
           or a single string with a comma, or as a tuple or list of two strings.
-
-        - ``name2`` - Deprecated, (default: ``None``) The string name of the
-          second variable.
 
         - ``bivariate`` - (default: `True`) Whether to return a bivariate,
           homogeneous polynomial or just a univariate polynomial. If set to
@@ -3379,11 +3376,6 @@ class AbstractLinearCode(Module):
                 names = "xy"
             else:
                 names = "x"
-        else:
-            if name2 is not None:
-                from sage.misc.superseded import deprecation
-                deprecation(21576, "Optional argument name2 is deprecated. You should just give a tuple to `names`.")
-                names = (names, name2)
         spec = self.weight_distribution()
         n = self.length()
         if bivariate:

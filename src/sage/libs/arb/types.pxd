@@ -51,7 +51,7 @@ cdef extern from "acb_calc.h":
         long eval_limit
         long depth_limit
         bint use_heap
-        bint verbose
+        int verbose
     ctypedef acb_calc_integrate_opt_struct acb_calc_integrate_opt_t[1]
     ctypedef int (*acb_calc_func_t)(acb_ptr out,
             const acb_t inp, void * param, long order, long prec)

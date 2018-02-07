@@ -693,23 +693,6 @@ def random_linear_code(F, length, dimension):
         if G.rank() == dimension:
             return LinearCode(G)
 
-def ReedSolomonCode(n,k,F,pts = None):
-    from sage.coding.grs import GeneralizedReedSolomonCode
-    deprecation(18928, "codes.ReedSolomonCode is now deprecated. Please use codes.GeneralizedReedSolomonCode instead.")
-    q = F.order()
-    if n>q or k>n or k>q:
-        raise ValueError("RS codes does not exist with the given input.")
-    if pts is not None and len(pts) != n:
-        raise ValueError("You must provide exactly %s distinct points of %s"%(n,F))
-    if (pts is None):
-        pts = []
-        i = 0
-        for x in F:
-            if i<n:
-                pts.append(x)
-                i = i+1
-    return GeneralizedReedSolomonCode(pts, k)
-
 
 def ToricCode(P,F):
     r"""

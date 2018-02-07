@@ -1511,6 +1511,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         EXAMPLES::
 
             sage: R.<XX> = QQ
+            sage: R._remove_from_coerce_cache(QQ)
             sage: R._is_coercion_cached(QQ)
             False
             sage: _ = R.coerce_map_from(QQ)

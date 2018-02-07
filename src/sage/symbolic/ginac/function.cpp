@@ -730,7 +730,7 @@ void function::print(const print_context & c, unsigned level) const
 			    << std::hex << ", hash=0x" << hashvalue << ", flags=0x" << flags << std::dec
 			    << ", nops=" << nops()
 			    << std::endl;
-			unsigned delta_indent = static_cast<const print_tree &>(c).delta_indent;
+			unsigned delta_indent = dynamic_cast<const print_tree &>(c).delta_indent;
 			for (auto term : seq)
 				term.print(c, level + delta_indent);
 			c.s << std::string(level + delta_indent, ' ') << "=====" << std::endl;
@@ -788,7 +788,7 @@ next_context:
 			    << std::hex << ", hash=0x" << hashvalue << ", flags=0x" << flags << std::dec
 			    << ", nops=" << nops()
 			    << std::endl;
-			unsigned delta_indent = static_cast<const print_tree &>(c).delta_indent;
+			unsigned delta_indent = dynamic_cast<const print_tree &>(c).delta_indent;
 			for (auto & elem : seq)
 				elem.print(c, level + delta_indent);
 			c.s << std::string(level + delta_indent, ' ') << "=====" << std::endl;

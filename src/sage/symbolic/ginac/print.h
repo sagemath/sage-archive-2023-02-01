@@ -26,6 +26,7 @@
 #include <iosfwd>
 #include <string>
 #include <memory>
+#include <typeinfo>
 
 #include "class_info.h"
 
@@ -59,29 +60,6 @@ public:
 	};
 };
 
-
-/** Macro for inclusion in the declaration of a print_context class.
- *  It declares some functions that are common to all classes derived
- *  from 'print_context' as well as all required stuff for the GiNaC
- *  registry. */
-#define GINAC_DECLARE_PRINT_CONTEXT(classname) \
-public: \
-	typedef print_context inherited; \
-public: \
-	static const print_context_class_info &get_class_info_static() \
-        { \
-	        static print_context_options o(#classname, "print_context", GiNaC::next_print_context_id++); \
-	        static print_context_class_info reg_info(o); \
-        	return reg_info; \
-        } \
-	virtual const GiNaC::print_context_class_info &get_class_info() const { return classname::get_class_info_static(); } \
-	virtual const char *class_name() const { return classname::get_class_info_static().options.get_name(); } \
-	\
-	classname(); \
-	virtual classname * duplicate() const { return new classname(*this); } \
-private:
-
-
 extern unsigned next_print_context_id;
 
 
@@ -114,45 +92,68 @@ public:
 	unsigned options; /**< option flags */
 };
 
-/** Context for default (ginsh-parsable) output. */
-class print_dflt : public print_context
+template <class C>
+class print_context_base : public virtual print_context
 {
-	GINAC_DECLARE_PRINT_CONTEXT(print_dflt)
 public:
+	typedef class print_context inherited;
+	static const print_context_class_info &get_class_info_static()
+        {
+	        static print_context_options o(typeid(C).name(),
+                                "print_context", next_print_context_id++);
+	        static print_context_class_info reg_info(o);
+        	return reg_info;
+        }
+	virtual const print_context_class_info &get_class_info() const
+            { return C::get_class_info_static(); }
+	virtual const char *class_name() const
+            { return C::get_class_info_static().options.get_name(); } \
+};
+
+/** Context for default (ginsh-parsable) output. */
+class print_dflt : public print_context_base<print_dflt>
+{
+public:
+        print_dflt();
 	print_dflt(std::ostream &, unsigned options = 0);
+	virtual print_dflt * duplicate() const { return new print_dflt(*this); }
 };
 
 /** Context for latex-parsable output. */
-class print_latex : public print_context
+class print_latex : public print_context_base<print_latex>
 {
-	GINAC_DECLARE_PRINT_CONTEXT(print_latex)
 public:
-	print_latex(std::ostream &, unsigned options = 0);
+	print_latex();
+        print_latex(std::ostream &, unsigned options = 0);
+	virtual print_latex * duplicate() const { return new print_latex(*this); }
 };
 
 /** Context for python pretty-print output. */
-class print_python : public print_context
+class print_python : public print_context_base<print_python>
 {
-	GINAC_DECLARE_PRINT_CONTEXT(print_python)
 public:
+        print_python();
 	print_python(std::ostream &, unsigned options = 0);
+	virtual print_python * duplicate() const { return new print_python(*this); }
 };
 
 /** Context for python-parsable output. */
-class print_python_repr : public print_context
+class print_python_repr : public print_context_base<print_python_repr>
 {
-	GINAC_DECLARE_PRINT_CONTEXT(print_python_repr)
 public:
+        print_python_repr();
 	print_python_repr(std::ostream &, unsigned options = 0);
+	virtual print_python_repr * duplicate() const { return new print_python_repr(*this); }
 };
 
 /** Context for tree-like output for debugging. */
-class print_tree : public print_context
+class print_tree : public print_context_base<print_tree>
 {
-	GINAC_DECLARE_PRINT_CONTEXT(print_tree)
 public:
+        print_tree();
 	print_tree(unsigned d);
 	print_tree(std::ostream &, unsigned options = 0, unsigned d = 4);
+	virtual print_tree * duplicate() const { return new print_tree(*this); }
 
 	const unsigned delta_indent; /**< size of indentation step */
 };

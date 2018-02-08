@@ -108,6 +108,7 @@ public:
             { return C::get_class_info_static(); }
 	virtual const char *class_name() const
             { return C::get_class_info_static().options.get_name(); } \
+	virtual print_context * duplicate() const { return new C(*dynamic_cast<const C*>(this)); }
 };
 
 /** Context for default (ginsh-parsable) output. */
@@ -116,7 +117,6 @@ class print_dflt : public print_context_base<print_dflt>
 public:
         print_dflt();
 	print_dflt(std::ostream &, unsigned options = 0);
-	virtual print_dflt * duplicate() const { return new print_dflt(*this); }
 };
 
 /** Context for latex-parsable output. */
@@ -125,7 +125,6 @@ class print_latex : public print_context_base<print_latex>
 public:
 	print_latex();
         print_latex(std::ostream &, unsigned options = 0);
-	virtual print_latex * duplicate() const { return new print_latex(*this); }
 };
 
 /** Context for python pretty-print output. */
@@ -134,7 +133,6 @@ class print_python : public print_context_base<print_python>
 public:
         print_python();
 	print_python(std::ostream &, unsigned options = 0);
-	virtual print_python * duplicate() const { return new print_python(*this); }
 };
 
 /** Context for python-parsable output. */
@@ -143,7 +141,6 @@ class print_python_repr : public print_context_base<print_python_repr>
 public:
         print_python_repr();
 	print_python_repr(std::ostream &, unsigned options = 0);
-	virtual print_python_repr * duplicate() const { return new print_python_repr(*this); }
 };
 
 /** Context for tree-like output for debugging. */
@@ -153,7 +150,6 @@ public:
         print_tree();
 	print_tree(unsigned d);
 	print_tree(std::ostream &, unsigned options = 0, unsigned d = 4);
-	virtual print_tree * duplicate() const { return new print_tree(*this); }
 
 	const unsigned delta_indent; /**< size of indentation step */
 };

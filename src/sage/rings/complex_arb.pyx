@@ -1543,6 +1543,23 @@ cdef class ComplexBall(RingElement):
         """
         return 2 * self.rad()
 
+    def union(self, other):
+        r"""
+        Return a ball containing the convex hull of ``self`` and ``other``.
+
+        EXAMPLES::
+
+            sage: b = CBF(1 + i).union(0)
+            sage: b.real().endpoints()
+            (-9.31322574615479e-10, 1.00000000093133)
+        """
+        cdef ComplexBall my_other = self._parent.coerce(other)
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_union(res.value, self.value, my_other.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
     # Precision and accuracy
 
     def round(self):

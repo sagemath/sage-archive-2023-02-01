@@ -1859,7 +1859,7 @@ class EllipticCurveIsogeny(Morphism):
         to P.order(), since such calls involve factoring the group order which
         could take a long time. ::
 
-            sage: p = 12 * next_prime(2^180) * next_prime(2^194) - 1  
+            sage: p = 12 * next_prime(2^180) * next_prime(2^194) - 1
             sage: F = FiniteField(p, proof=False)
             sage: E = EllipticCurve([F(1), F(0)])
             sage: P = E(0).division_points(3)[1]

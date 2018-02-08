@@ -153,12 +153,6 @@ private:
 	GiNaC::registered_class_info classname::reg_info = GiNaC::registered_class_info(GiNaC::registered_class_options(#classname, #supername, &classname::tinfo_static, &classname::unarchive).options); \
 	const GiNaC::tinfo_static_t classname::tinfo_static = {};
 
-/** Macro for inclusion in the implementation of each registered class.
- *  Additional options can be specified. */
-#define GINAC_IMPLEMENT_REGISTERED_CLASS_OPT_T(classname, supername, options) \
-	template<> const GiNaC::tinfo_static_t classname::tinfo_static = {};\
-	template<> GiNaC::registered_class_info classname::reg_info = GiNaC::registered_class_info(GiNaC::registered_class_options(#classname, #supername, &classname::tinfo_static, &classname::unarchive).options);
-
 /** Find type information key by class name. */
 extern tinfo_t find_tinfo_key(const std::string &class_name);
 

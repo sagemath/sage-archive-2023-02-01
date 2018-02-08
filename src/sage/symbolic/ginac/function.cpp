@@ -512,7 +512,13 @@ void function_options::set_print_dflt_func(PyObject* f)
 unsigned function::current_serial = 0;
 
 
-GINAC_IMPLEMENT_REGISTERED_CLASS(function, exprseq)
+registered_class_info function::reg_info = \
+        registered_class_info(registered_class_options("function",
+                                "exprseq",
+                                &function::tinfo_static,
+                                &function::unarchive));
+
+const tinfo_static_t function::tinfo_static = {};
 
 //////////
 // default constructor

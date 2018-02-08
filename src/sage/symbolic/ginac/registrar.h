@@ -142,11 +142,6 @@ protected: \
 private:
 
 
-/** Macro for inclusion in the implementation of each registered class. */
-#define GINAC_IMPLEMENT_REGISTERED_CLASS(classname, supername) \
-	GiNaC::registered_class_info classname::reg_info = GiNaC::registered_class_info(GiNaC::registered_class_options(#classname, #supername, &classname::tinfo_static, &classname::unarchive)); \
-	const GiNaC::tinfo_static_t classname::tinfo_static = {};
-
 /** Macro for inclusion in the implementation of each registered class.
  *  Additional options can be specified. */
 #define GINAC_IMPLEMENT_REGISTERED_CLASS_OPT(classname, supername, options) \

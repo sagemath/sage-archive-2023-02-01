@@ -631,7 +631,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             ALGORITHM:
 
             The Cartan invariant matrix of `A` is computed from the
-            dimension of the summands of its peirce decomposition.
+            dimension of the summands of its Peirce decomposition.
 
             .. SEEALSO::
 
@@ -796,7 +796,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             TESTS:
 
-            We check each idempotent belong to its own peirce summand
+            We check each idempotent belong to its own Peirce summand
             (see :trac:`24687`)::
 
                 sage: from sage.monoids.hecke_monoid import HeckeMonoid

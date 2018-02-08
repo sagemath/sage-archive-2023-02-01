@@ -1598,12 +1598,14 @@ class PseudoRiemannianMetric(TensorField):
           an instance of
           :class:`~sage.manifolds.differentiable.diff_form.DiffForm`
         - if ``contra = k``, with `1\leq k \leq n`, the tensor field of type
-          (k,n-k) formed from `\epsilon` by raising the first k indices with the
-          metric (see method
+          (k,n-k) formed from `\epsilon` by raising the first k indices with
+          the metric (see method
           :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.up`);
           the output is then an instance of
-          :class:`~sage.manifolds.differentiable.tensorfield.TensorField`, with the
-          appropriate antisymmetries
+          :class:`~sage.manifolds.differentiable.tensorfield.TensorField`, with
+          the appropriate antisymmetries, or of the subclass
+          :class:`~sage.manifolds.differentiable.multivectorfield.MultivectorField`
+          if `k=n`
 
         EXAMPLES:
 

@@ -514,6 +514,89 @@ class PseudoRiemannianManifold(DifferentiableManifold):
                                              latex_name=latex_name,
                                              dest_map=dest_map)
 
+    def volume_form(self, contra=0):
+        r"""
+        Volume form (Levi-Civita tensor) `\epsilon` associated with ``self``.
+
+        This assumes that ``self`` is an orientable manifold.
+
+        The volume form `\epsilon` is a `n`-form (`n` being the manifold's
+        dimension) such that for any vector basis `(e_i)` that is orthonormal
+        with respect to the metric of the pseudo-Riemannian manifold ``self``,
+
+        .. MATH::
+
+            \epsilon(e_1,\ldots,e_n) = \pm 1
+
+        There are only two such `n`-forms, which are opposite of each other.
+        The volume form `\epsilon` is selected such that the default frame
+        of ``self`` is right-handed with respect to it.
+
+        INPUT:
+
+        - ``contra`` -- (default: 0) number of contravariant indices of the
+          returned tensor
+
+        OUTPUT:
+
+        - if ``contra = 0`` (default value): the volume `n`-form `\epsilon`, as
+          an instance of
+          :class:`~sage.manifolds.differentiable.diff_form.DiffForm`
+        - if ``contra = k``, with `1\leq k \leq n`, the tensor field of type
+          (k,n-k) formed from `\epsilon` by raising the first k indices with
+          the metric (see method
+          :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.up`);
+          the output is then an instance of
+          :class:`~sage.manifolds.differentiable.tensorfield.TensorField`, with
+          the appropriate antisymmetries, or of the subclass
+          :class:`~sage.manifolds.differentiable.multivectorfield.MultivectorField`
+          if `k=n`
+
+        EXAMPLES:
+
+        Volume form of the Euclidean 3-space::
+
+            sage: M = Manifold(3, 'M', structure='Riemannian', start_index=1)
+            sage: X.<x,y,z> = M.chart()
+            sage: g = M.metric()
+            sage: g[1,1], g[2,2], g[3,3] = 1, 1, 1
+            sage: eps = M.volume_form(); eps
+            3-form eps_g on the 3-dimensional Riemannian manifold M
+            sage: eps.display()
+            eps_g = dx/\dy/\dz
+
+        Raising the first index::
+
+            sage: eps1 = M.volume_form(1); eps1
+            Tensor field of type (1,2) on the 3-dimensional Riemannian
+             manifold M
+            sage: eps1.display()
+            d/dx*dy*dz - d/dx*dz*dy - d/dy*dx*dz + d/dy*dz*dx + d/dz*dx*dy
+             - d/dz*dy*dx
+            sage: eps1.symmetries()
+            no symmetry; antisymmetry: (1, 2)
+
+        Raising the first and second indices::
+
+            sage: eps2 = M.volume_form(2); eps2
+            Tensor field of type (2,1) on the 3-dimensional Riemannian
+             manifold M
+            sage: eps2.display()
+            d/dx*d/dy*dz - d/dx*d/dz*dy - d/dy*d/dx*dz + d/dy*d/dz*dx
+             + d/dz*d/dx*dy - d/dz*d/dy*dx
+            sage: eps2.symmetries()
+            no symmetry; antisymmetry: (0, 1)
+
+        Fully contravariant version::
+
+            sage: eps3 = M.volume_form(3); eps3
+            3-vector field on the 3-dimensional Riemannian manifold M
+            sage: eps3.display()
+            d/dx/\d/dy/\d/dz
+
+        """
+        return self.metric().volume_form(contra=contra)
+
     def open_subset(self, name, latex_name=None, coord_def={}):
         r"""
         Create an open subset of ``self``.

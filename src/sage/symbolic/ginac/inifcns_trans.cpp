@@ -175,7 +175,7 @@ static void exp_print(const ex & arg, const print_context & c,
 		if (latex) {
 			tcontext_p.reset(new print_latex(tstream, c.options));
 		} else {
-			tcontext_p.reset(new print_dflt(tstream, c.options));
+			tcontext_p.reset(new print_context(tstream, c.options));
 		}
 		arg.print(*tcontext_p);
 		std::string argstr = tstream.str();
@@ -202,7 +202,7 @@ static void exp_print(const ex & arg, const print_context & c,
 	}
 }
 
-static void exp_print_dflt(const ex & arg, const print_context & c)
+static void exp_print_norm(const ex & arg, const print_context & c)
 {
 	exp_print(arg, c, false);
 }
@@ -224,7 +224,7 @@ REGISTER_FUNCTION(exp, eval_func(exp_eval).
                        imag_part_func(exp_imag_part).
                        power_func(exp_power).
                        conjugate_func(exp_conjugate).
-                       print_func<print_dflt>(exp_print_dflt).
+                       print_func<print_context>(exp_print_norm).
                        print_func<print_latex>(exp_print_latex));
 
 //////////

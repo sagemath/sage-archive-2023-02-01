@@ -51,7 +51,7 @@
 namespace GiNaC {
 
 GINAC_IMPLEMENT_REGISTERED_CLASS_OPT(power, basic,
-  print_func<print_dflt>(&power::do_print_dflt).
+  print_func<print_context>(&power::do_print).
   print_func<print_latex>(&power::do_print_latex).
   print_func<print_python>(&power::do_print_python).
   print_func<print_python_repr>(&power::do_print_python_repr))
@@ -116,7 +116,7 @@ void power::print_power(const print_context & c, const char *powersymbol, const 
 	c.s << closebrace;
 }
 
-void power::do_print_dflt(const print_dflt & c, unsigned level) const
+void power::do_print(const print_context & c, unsigned level) const
 {
        if (exponent.is_minus_one()) {
 		// inverses printed in a special way
@@ -139,7 +139,7 @@ void power::do_print_dflt(const print_dflt & c, unsigned level) const
 	} else {
 
 		std::stringstream tstream;
-		print_dflt tcontext(tstream, c.options);
+		print_context tcontext(tstream, c.options);
 		exponent.print(tcontext, precedence());
 		std::string expstr = tstream.str();
                 if (expstr[0] == '-') {

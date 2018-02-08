@@ -220,9 +220,6 @@ static ex gamma_series(const ex & arg,
 	return (gamma(arg+m+_ex1)/ser_denom).series(rel, order, options);
 }
 
-static void gamma_print_dflt(const ex & arg, const print_context & c)
-{  c.s << "gamma("; arg.print(c); c.s << ")"; }
-
 static ex gamma_conjugate(const ex & x)
 {
 	// conjugate(gamma(x))==gamma(conjugate(x))
@@ -234,8 +231,7 @@ REGISTER_FUNCTION(gamma, eval_func(gamma_eval).
                           derivative_func(gamma_deriv).
                           series_func(gamma_series).
                           conjugate_func(gamma_conjugate).
-                          latex_name("\\Gamma").
-		          print_func<print_dflt>(gamma_print_dflt));
+                          latex_name("\\Gamma"));
 
 
 //////////

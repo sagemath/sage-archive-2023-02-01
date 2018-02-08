@@ -91,7 +91,6 @@ static ex factorial_imag_part(const ex & x)
 }
 
 REGISTER_FUNCTION(factorial, evalf_func(factorial_evalf).
-                           //print_func<print_dflt>(factorial_print_dflt_latex).
                              print_func<print_latex>(factorial_print_dflt_latex).
                              conjugate_func(factorial_conjugate).
                              real_part_func(factorial_real_part).

@@ -70,14 +70,10 @@ import math
 
 from sage.env import SAGE_ROOT, SAGE_SRC, SAGE_DOC_SRC, SAGE_LOCAL, DOT_SAGE, SAGE_ENV
 
-# Add SAGE_SRC at the end of sys.path to enable Cython tracebacks
-# (which use paths relative to SAGE_SRC)
-sys.path.append(SAGE_SRC)
-
 
 ###################################################################
 
-# This import also setups the interrupt handler
+# This import also sets up the interrupt handler
 from cysignals.signals import (AlarmInterrupt, SignalError,
         sig_on_reset as sig_on_count)
 

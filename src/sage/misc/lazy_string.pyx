@@ -405,7 +405,7 @@ cdef class _LazyString(object):
         else:
             return self * (<_LazyString>other).val()
 
-    def __richcmp__(self, other, int op):
+    def __richcmp__(_LazyString self, other, int op):
         """
         EXAMPLES::
 
@@ -449,8 +449,7 @@ cdef class _LazyString(object):
             sage: s >= s
             True
         """
-        self = (<_LazyString?>self).val()
-        return PyObject_RichCompare(self, other, op)
+        return PyObject_RichCompare(self.val(), other, op)
 
     def __getattr__(self, name):
         """

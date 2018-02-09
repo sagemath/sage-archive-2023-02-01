@@ -1105,8 +1105,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: K(123/567).continued_fraction_list()
             ((0, 4, 1, 1, 1, 1, 3, 2), ())
         """
-        cdef NumberFieldElement_quadratic x
-
         if mpz_sgn(self.b) == 0:
             return tuple(Rational(self).continued_fraction_list()),()
 

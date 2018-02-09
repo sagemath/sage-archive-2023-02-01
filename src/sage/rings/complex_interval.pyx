@@ -1748,7 +1748,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         im = theta.sin() * mag
         return ComplexIntervalFieldElement(self._parent, re, im)
 
-    def log(self,base=None):
+    def log(self, base=None):
         """
         Complex logarithm of `z`.
 
@@ -1790,17 +1790,21 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         If a base is passed from another function, we can accommodate this::
 
             sage: CIF(-1,1).log(2)
-            0.500000000000000? + 3.399270106370396?*I
+            0.500000000000000? + 3.39927010637040?*I
         """
-        if self == 0:
+        if not self:
             from .real_mpfi import RIF
             return RIF(0).log()
-        theta = self.argument()
-        rho = abs(self)
-        if base is None or base == 'e':
-            return ComplexIntervalFieldElement(self._parent, rho.log(), theta)
-        else:
-            return ComplexIntervalFieldElement(self._parent, rho.log()/RealNumber(RealField(self.prec()),base).log(), theta/RealNumber(RealField(self.prec()),base).log())
+        re = abs(self).log()
+        im = self.argument()
+        if base == 'e':
+            base = None
+        if base is not None:
+            base = self._parent._real_field()(base)
+            f = base.log()
+            re /= f
+            im /= f
+        return ComplexIntervalFieldElement(self._parent, re, im)
 
     def sqrt(self, bint all=False, **kwds):
         """

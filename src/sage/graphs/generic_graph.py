@@ -4124,6 +4124,7 @@ class GenericGraph(GenericGraph_pyx):
           - "Measuring non-planarity": :meth:`~genus`, :meth:`~crossing_number`
           - :meth:`planar_dual`
           - :meth:`faces`
+          - :meth:`~sage.graphs.graph.Graph.is_polyhedral`
 
         INPUT:
 
@@ -4556,7 +4557,6 @@ class GenericGraph(GenericGraph_pyx):
                         raise ValueError('provided embedding is not a valid embedding for %s. Try putting set_embedding=True'%self)
                 else:
                     G.is_planar(set_embedding=True)
-
         # The following is what was breaking the code.  It is where we were specifying the external
         #       face ahead of time.  This is definitely a TODO:
         #
@@ -5189,8 +5189,8 @@ class GenericGraph(GenericGraph_pyx):
 
         .. TODO::
 
-            Implement the method for graphs that are not 3-vertex-connected
-            (or at least have a faster 3-vertex-connectivity test).
+            Implement the method for graphs that are not 3-vertex-connected,
+            or at least have a faster 3-vertex-connectivity test (:trac:`24635`).
 
         """
         self._scream_if_not_simple()
@@ -5200,6 +5200,7 @@ class GenericGraph(GenericGraph_pyx):
 
         from sage.graphs.graph import Graph
         return Graph([[tuple(_) for _ in self.faces()], lambda f, g: not set([tuple(reversed(e)) for e in f]).isdisjoint(g)], loops=False)
+
 
     ### Connectivity
 
@@ -8108,7 +8109,7 @@ class GenericGraph(GenericGraph_pyx):
                 # There is a circuit left. Let's add the corresponding
                 # constraint !
                 while not isok:
-                    
+
                     p.add_constraint(p.sum(b[v] for v in certificate), min=1)
                     if verbose:
                         print("Adding a constraint on circuit: ", certificate)

@@ -12,8 +12,6 @@ exec </dev/null
 export EMACS=no
 
 
-CUR=`pwd`
-
 cd src/
 
 # Use newer version of config.guess and config.sub (see Trac #19734)
@@ -38,7 +36,7 @@ sdh_configure --enable-ecl git_found=false
 # to be later than include-maxima.texi which is generated at
 # configuration time
 for i in doc/info/*.html ; do
-   touch "${i}"
+    touch "${i}"
 done
 touch doc/info/maxima.info*
 #---------------------------------------------------------------
@@ -47,25 +45,16 @@ sdh_make
 sdh_make_install
 
 
-if [[ -f "$DOT_SAGE/maxima_commandlist_cache.sobj" ]]; then
-    echo
-    echo "Deleting Maxima commandlist cache."
-    echo "It will be recreated at the next start of Sage."
-    rm -f "$DOT_SAGE"/maxima_commandlist_cache.sobj
-fi
-
-
 # Install Maxima into ECL's library directory:
 ECLLIB=`ecl -eval "(princ (SI:GET-LIBRARY-PATHNAME))" -eval "(quit)"`
 echo
 echo "Now installing the Maxima library as '$ECLLIB/maxima.fas'..."
-cp -f "$CUR/src/src/binary-ecl/maxima.fas" "$ECLLIB/maxima.fas"
-check_error "Failed to install '$CUR/src/src/binary-ecl/maxima.fas' as '$ECLLIB/maxima.fas'."
+cp -f "src/binary-ecl/maxima.fas" "$ECLLIB/maxima.fas" \
+    || sdh_die "Failed to install 'src/binary-ecl/maxima.fas' as '$ECLLIB/maxima.fas'."
 
 
 if [[ "$SAGE_SPKG_INSTALL_DOCS" = yes ]] ; then
     # Install a copy of the Maxima HTML documentation locally.
-    cd "${CUR}/src"
 
     # The Maxima HTML docs are already built, we just need to copy
     # them to the sage installation.

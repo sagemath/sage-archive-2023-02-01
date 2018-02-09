@@ -6120,7 +6120,7 @@ class Polyhedron_base(Element):
             sage: A = L.affine_hull(orthonormal=True)
             Traceback (most recent call last):
             ...
-            ValueError: The base ring needs to be extented; try with "extend=True"
+            ValueError: The base ring needs to be extended; try with "extend=True"
             sage: A = L.affine_hull(orthonormal=True, extend=True); A
             A 1-dimensional polyhedron in AA^1 defined as the convex hull of 2 vertices
             sage: A.vertices()
@@ -6185,7 +6185,7 @@ class Polyhedron_base(Element):
             sage: A = P.affine_hull(orthonormal=True)
             Traceback (most recent call last):
             ...
-            ValueError: The base ring needs to be extented; try with "extend=True"
+            ValueError: The base ring needs to be extended; try with "extend=True"
             sage: A = P.affine_hull(orthonormal=True, extend=True); A
             A 1-dimensional polyhedron in AA^1 defined as the convex hull of 2 vertices
             sage: A.vertices()
@@ -6340,7 +6340,7 @@ class Polyhedron_base(Element):
                 A = M.gram_schmidt(orthonormal=orthonormal)[0]
             except TypeError:
                 if not extend:
-                    raise ValueError('The base ring needs to be extented; try with "extend=True"')
+                    raise ValueError('The base ring needs to be extended; try with "extend=True"')
                 M = matrix(AA, M)
                 A = M.gram_schmidt(orthonormal=orthonormal)[0]
             if as_affine_map:

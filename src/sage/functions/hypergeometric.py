@@ -168,11 +168,6 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.infinity import Infinity
 from sage.arith.all import binomial, rising_factorial, factorial
-from sage.functions.other import sqrt, gamma, real_part
-from sage.functions.log import exp, log
-from sage.functions.trig import sin
-from sage.functions.hyperbolic import cosh, sinh
-from sage.functions.error import erf
 from sage.symbolic.constants import pi
 from sage.symbolic.all import I
 from sage.symbolic.function import BuiltinFunction
@@ -185,6 +180,12 @@ from sage.symbolic.expression import Expression
 from sage.calculus.functional import derivative
 from functools import reduce
 
+from .gamma import gamma
+from .other import sqrt, real_part
+from .log import exp, log
+from .trig import sin
+from .hyperbolic import cosh, sinh
+from .error import erf
 
 def rational_param_as_tuple(x):
     r"""

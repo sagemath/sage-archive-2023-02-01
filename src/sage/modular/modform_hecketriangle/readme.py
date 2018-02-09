@@ -248,7 +248,7 @@ Hecke triangle groups and elements:
   Note that for hyperbolic (and parabolic) fixed points there is a
   1-1 correspondence with primitive hyperbolic/parabolic group
   elements (at least if ``n < infinity``). The group action on
-  fixed points resp. on matrices is compatible with this correpondence.
+  fixed points resp. on matrices is compatible with this correspondence.
 
   EXAMPLES::
 

@@ -409,8 +409,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         # NOTE!! having the same newform level, isogeny class number,
         # and degen_t does not imply two abelian varieties are equal.
         # See the docstring for self.label.
-
-        return richcmp(self.lattice(), other.lattice(), op)
+        return self.lattice()._echelon_matrix_richcmp(other.lattice(), op)
 
     def __radd__(self,other):
         """

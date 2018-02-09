@@ -91,6 +91,7 @@ from sage.misc.flatten import flatten
 from sage.interfaces.gp import gp
 import sage.libs.mpmath.all as mpall
 import operator
+from sage.arith.misc import GCD
 
 def voronoi_ghost(cpoints, n=6, CC=CDF):
     r"""
@@ -248,6 +249,54 @@ class ConvergenceError(ValueError):
     """
     pass
 
+def differential_basis_baker(f):
+    r"""
+    Compute a differential bases for a curve that is nonsingular outside (1:0:0),(0:1:0),(0:0:1)
+
+    Baker's theorem tells us that if a curve has its singularities at the coordinate vertices,
+    then we can read off a basis for the regular differentials from the interior of the
+    Newton polygon spanned by the monomials. While this theorem only applies to special plane curves
+    it is worth implementing because the analysis is relatively cheap and it applies to a lot of
+    commonly encountered curves (e.g., curves given by a hyperelliptic model). Other advantages include
+    that we can do the computation over any exact base ring (the alternative Singular based method for
+    computing the adjoint ideal requires the rationals), and that we can avoid being affected by subtle bugs
+    in the Singular code.
+
+    `None` is returned when `f` does not describe a curve of the relevant type. If `f` is of the relevant
+    type, but is of genus `0` then `[]` is returned (which are both False values, but they are not equal).
+
+    INPUT:
+
+    - `f` -- a bivariate polynomial
+
+    EXAMPLES::
+
+        sage: from sage.schemes.riemann_surfaces.riemann_surface import differential_basis_baker
+        sage: R.<x,y>=QQ[]
+        sage: f=x^3+y^3+x^5*y^5
+        sage: differential_basis_baker(f)
+        [y^2, x*y, x*y^2, x^2, x^2*y, x^2*y^2, x^2*y^3, x^3*y^2, x^3*y^3]
+        sage: f=y^2-(x-3)^2*x
+        sage: differential_basis_baker(f) is None
+        True
+        sage: differential_basis_baker(x^2+y^2-1)
+        []
+
+    """
+    k = f.base_ring()
+    R = PolynomialRing(k,3,"x,y,z")
+    x,y,z = R.gens()
+    F = f(x/z,y/z).numerator()
+    W = [F] + [F.derivative(v) for v in R.gens()]
+    for c in R.gens():
+        B = GCD([W[i].resultant(W[j],c) for i in range(4) for j in range(i)])
+        if len(B.monomials()) > 1:
+            return None
+    from sage.geometry.polyhedron.constructor import Polyhedron
+    P = Polyhedron(f.dict().keys())
+    x,y = f.parent().gens()
+    return [x**(a[0]-1)*y**(a[1]-1) for a in P.integral_points() if P.interior_contains(a)]
+
 class RiemannSurface(object):
     r"""
     Construct a Riemann Surface. This is specified by the zeroes of a bivariate
@@ -355,10 +404,15 @@ class RiemannSurface(object):
             self._differentials = [self._R(a) for a in differentials]
             self.genus = len(self._differentials)
         else:
-            self._differentials = None
-            self.genus = self._R.ideal(self.f).genus()
-            if self.genus < 0:
-                raise ValueError("Singular reports negative genus. Specify differentials manually.")
+            B = differential_basis_baker(f)
+            if B is not None:
+                self._differentials = B
+                self.genus = len(B)
+            else:
+                self._differentials = None
+                self.genus = self._R.ideal(self.f).genus()
+                if self.genus < 0:
+                    raise ValueError("Singular reports negative genus. Specify differentials manually.")
         self.degree = self.f.degree(w)
         self._dfdw = self.f.derivative(w)
         self._dfdz = self.f.derivative(z)
@@ -1767,8 +1821,8 @@ class RiemannSurface(object):
             sage: Rs = S.endomorphism_basis()
             sage: S.tangent_representation_algebraic(Rs)
             [
-            [1 0]  [-1  0]  [    0 1/2*a]  [    0 1/2*a]
-            [0 1], [ 0  1], [    a     0], [   -a     0]
+            [1 0]  [    0 1/2*a]  [-1  0]  [    0 1/2*a]
+            [0 1], [    a     0], [ 0  1], [   -a     0]
             ]
 
         """
@@ -1831,10 +1885,10 @@ class RiemannSurface(object):
             sage: S = RiemannSurface(y^2 - (x^6 + 2*x^4 + 4*x^2 + 8), prec = 100)
             sage: Rs = S.endomorphism_basis()
             sage: S.rosati_involution(Rs[1])
-            [ 0  1  0  0]
-            [ 1  0  0  0]
             [ 0  1  0  1]
-            [-1  0  1  0]
+            [ 0  0 -1  0]
+            [ 0 -1  0  0]
+            [ 1  0  1  0]
 
         """
         def standard_symplectic_matrix(n):
@@ -1877,10 +1931,10 @@ class RiemannSurface(object):
             sage: Rs = S.symplectic_isomorphisms()
             sage: Rs
             [
-            [ 0  0  1  0]  [ 0  1  0  1]  [ 0  1  0  0]  [1 0 0 0]
-            [ 0 -1  0 -1]  [ 0  0 -1  0]  [ 1  0  0  0]  [0 1 0 0]
-            [-1  0  0  0]  [ 0 -1  0  0]  [ 0  1  0  1]  [0 0 1 0]
-            [ 0  2  0  1], [ 1  0  1  0], [-1  0  1  0], [0 0 0 1]
+            [ 0  0  1  0]  [ 0  1  0  0]  [ 0  1  0  1]  [1 0 0 0]
+            [ 0 -1  0 -1]  [ 1  0  0  0]  [ 0  0 -1  0]  [0 1 0 0]
+            [-1  0  0  0]  [ 0  1  0  1]  [ 0 -1  0  0]  [0 0 1 0]
+            [ 0  2  0  1], [-1  0  1  0], [ 1  0  1  0], [0 0 0 1]
             ]
 
         """

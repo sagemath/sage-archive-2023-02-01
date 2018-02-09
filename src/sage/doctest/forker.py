@@ -50,7 +50,6 @@ from .parsing import OriginalSource, reduce_hex
 from sage.structure.sage_object import SageObject
 from .parsing import SageOutputChecker, pre_hash, get_source
 from sage.repl.user_globals import set_globals
-from sage.interfaces.process import ContainChildren
 
 
 # All doctests run as if the following future imports are present
@@ -110,15 +109,12 @@ def init_sage():
         {'a': 23, 'aaa': 234, 'au': 56, 'b': 34, 'bbf': 234}
     """
     # We need to ensure that the Matplotlib font cache is built to
-    # avoid spurious warnings (see Trac #20222). We don't want to
-    # import matplotlib in the main process because we want the
-    # doctesting environment to be as close to a real Sage session
-    # as possible.
-    with ContainChildren():
-        pid = os.fork()
-        if not pid:
-            # Child process
-            from matplotlib.font_manager import fontManager
+    # avoid spurious warnings (see Trac #20222).
+    import matplotlib.font_manager
+
+    # Make sure that the agg backend is selected during doctesting.
+    # This needs to be done before any other matplotlib calls.
+    matplotlib.use('agg')
 
     # Do this once before forking off child processes running the tests.
     # This is more efficient because we only need to wait once for the
@@ -150,9 +146,6 @@ def init_sage():
     # Disable SymPy terminal width detection
     from sympy.printing.pretty.stringpict import stringPict
     stringPict.terminal_width = lambda self:0
-
-    # Wait for the child process created above
-    os.waitpid(pid, 0)
 
 
 def showwarning_with_traceback(message, category, filename, lineno, file=sys.stdout, line=None):

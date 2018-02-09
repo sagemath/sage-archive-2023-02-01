@@ -792,7 +792,7 @@ class ComplexBallField(UniqueRepresentation, Field):
           about the overall integration process is printed to standard
           output. If set to 2, information about each subinterval is printed.
 
-        EXAMPLES::
+        EXAMPLES:
 
         Some analytic integrands::
 
@@ -876,7 +876,7 @@ class ComplexBallField(UniqueRepresentation, Field):
 
         ALGORITHM:
 
-        Uses the `acb_calc <http://arblib.org/acb_calc.html>` module of the Arb
+        Uses the `acb_calc <http://arblib.org/acb_calc.html>`_ module of the Arb
         library.
 
         TESTS::

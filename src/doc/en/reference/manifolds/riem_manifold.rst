@@ -9,3 +9,5 @@ Pseudo-Riemannian Manifolds
    sage/manifolds/differentiable/metric
 
    sage/manifolds/differentiable/levi_civita_connection
+
+   sage/manifolds/differentiable/operators

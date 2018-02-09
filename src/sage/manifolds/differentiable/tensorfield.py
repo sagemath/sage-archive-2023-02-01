@@ -3439,6 +3439,13 @@ class TensorField(ModuleElement):
             sage: v.div() == s
             True
 
+        The global function
+        :func:`~sage.manifolds.differentiable.operators.div` can be used
+        instead of the method ``divergence()``::
+
+            sage: div(v) == s
+            True
+
         The divergence can be taken with respect to a metric tensor that is
         not the default one::
 
@@ -3564,10 +3571,17 @@ class TensorField(ModuleElement):
             sage: Dv.display()
             Delta(v) = (6*x + 2) d/dx
 
+        The global function
+        :func:`~sage.manifolds.differentiable.operators.laplacian` can be used
+        instead of the method ``laplacian()``::
+
+            sage: laplacian(v) == Dv
+            True
+
         In the present case (Euclidean metric and Cartesian coordinates), the
         components of the Laplacian are the Laplacians of the components::
 
-            sage: all([Dv[[i]] == v[[i]].laplacian() for i in M.irange()])
+            sage: all([Dv[[i]] == laplacian(v[[i]]) for i in M.irange()])
             True
 
         The Laplacian can be taken with respect to a metric tensor that is
@@ -3659,6 +3673,13 @@ class TensorField(ModuleElement):
             e = cos(t - z) d/dx
             sage: De = e.dalembertian(); De
             Vector field Box(e) on the 4-dimensional Lorentzian manifold M
+
+        The global function
+        :func:`~sage.manifolds.differentiable.operators.dalembertian` can be used
+        instead of the method ``dalembertian()``::
+
+            sage: dalembertian(e) == De
+            True
 
         We check that the electric field obeys the wave equation::
 

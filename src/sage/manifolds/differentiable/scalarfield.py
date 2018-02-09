@@ -1103,9 +1103,11 @@ class DiffScalarField(ScalarField):
             sage: v.display()
             grad(f) = -y*sin(x*y) d/dx - x*sin(x*y) d/dy
 
-        A shortcut alias of ``gradient`` is ``grad``::
+        The global function
+        :func:`~sage.manifolds.differentiable.operators.grad` can be used
+        instead of the method ``gradient()``::
 
-            sage: f.grad() == v
+            sage: grad(f) == f.gradient()
             True
 
         The gradient can be taken with respect to a metric tensor that is
@@ -1138,8 +1140,6 @@ class DiffScalarField(ScalarField):
             for restrict in resu._restrictions.values():
                 restrict.set_name(resu._name, latex_name=resu._latex_name)
         return resu
-
-    grad = gradient
 
     def laplacian(self, metric=None):
         r"""
@@ -1184,6 +1184,13 @@ class DiffScalarField(ScalarField):
             sage: s.display()
             Delta(f): M --> R
                (x, y) |--> d^2(F)/dx^2 + d^2(F)/dy^2
+
+        The global function
+        :func:`~sage.manifolds.differentiable.operators.laplacian` can be used
+        instead of the method ``laplacian()``::
+
+            sage: laplacian(f) == s
+            True
 
         The Laplacian can be taken with respect to a metric tensor that is
         not the default one::
@@ -1278,6 +1285,13 @@ class DiffScalarField(ScalarField):
             sage: s.display()
             Box(f): M --> R
                (t, x, y, z) |--> 6*t^2*y - 2*y^3 - 12*x*z^2 + 2
+
+        The global function
+        :func:`~sage.manifolds.differentiable.operators.dalembertian` can be
+        used instead of the method ``dalembertian()``::
+
+            sage: dalembertian(f) == s
+            True
 
         """
         default_metric = metric is None

@@ -196,6 +196,7 @@ REFERENCES:
 
 from sage.rings.infinity import infinity
 from sage.rings.integer import Integer
+from sage.repl.user_globals import get_globals, set_global
 from sage.manifolds.structure import (PseudoRiemannianStructure,
                                       RiemannianStructure, LorentzianStructure)
 from sage.manifolds.differentiable.manifold import DifferentiableManifold
@@ -388,6 +389,16 @@ class PseudoRiemannianManifold(DifferentiableManifold):
             if not isinstance(metric_latex_name, str):
                 raise TypeError("{} is not a string".format(metric_latex_name))
             self._metric_latex_name = metric_latex_name
+        # Import differential operators in the user global namespace:
+        if 'grad' not in get_globals():
+            from sage.manifolds.differentiable.operators import (grad, div,
+                                                 curl, laplacian, dalembertian)
+            set_global('grad', grad)
+            set_global('div', div)
+            set_global('curl', curl)
+            set_global('rot', curl)
+            set_global('laplacian', laplacian)
+            set_global('dalembertian', dalembertian)
 
     def metric(self, name=None, signature=None, latex_name=None,
                dest_map=None):

@@ -983,7 +983,6 @@ class VectorField(MultivectorField):
 
           (\mathrm{curl}\, v)^i = \epsilon^{ijk} \nabla_j v_k
 
-
         where `\nabla` is the Levi-Civita connection of `g` (cf.
         :class:`~sage.manifolds.differentiable.levi_civita_connection.LeviCivitaConnection`)
         and `\epsilon` the volume 3-form (Levi-Civita tensor) of `g` (cf.
@@ -1024,13 +1023,25 @@ class VectorField(MultivectorField):
             sage: s.display()
             curl(v) = 2 d/dz
 
+        The global function
+        :func:`~sage.manifolds.differentiable.operators.curl` can be used
+        instead of the method ``curl()``::
+
+            sage: curl(v) == s
+            True
+
+        An alias is ``rot()``::
+
+            sage: rot(v) == s
+            True
+
         The curl of a gradient vanishes identically::
 
             sage: f = M.scalar_field(function('F')(x,y,z))
-            sage: gradf = f.grad()
+            sage: gradf = grad(f)
             sage: gradf.display()
             d(F)/dx d/dx + d(F)/dy d/dy + d(F)/dz d/dz
-            sage: s = gradf.curl(); s
+            sage: s = curl(gradf); s
             Vector field on the 3-dimensional Riemannian manifold M
             sage: s.display()
             0
@@ -1186,6 +1197,12 @@ class VectorField(MultivectorField):
             sage: s.display()
             |v|: M --> R
                (x, y) |--> sqrt(x^2 + y^2)
+
+        The global function :func:`~sage.misc.functional.norm` can be used
+        instead of the method ``norm()``::
+
+            sage: norm(v) == s
+            True
 
         Norm with respect to a metric that is not the default one::
 

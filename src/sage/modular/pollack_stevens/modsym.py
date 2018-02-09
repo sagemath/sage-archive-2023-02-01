@@ -951,7 +951,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
 
     def p_stabilize(self, p=None, M=20, alpha=None, ap=None, new_base_ring=None, ordinary=True, check=True):
         r"""
-        Return the `p`-stablization of self to level `N p` on which `U_p` acts by `\alpha`.
+        Return the `p`-stabilization of self to level `N p` on which `U_p` acts by `\alpha`.
 
         Note that since `\alpha` is `p`-adic, the resulting symbol
         is just an approximation to the true `p`-stabilization

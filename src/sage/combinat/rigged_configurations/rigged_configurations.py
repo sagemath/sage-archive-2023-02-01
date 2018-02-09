@@ -811,8 +811,12 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
                 if dim[0] == self._rc_index[a]:
                     vac_num += min(dim[1], i)
 
-        for b in range(self._cartan_matrix.ncols()):
-            vac_num -= self._cartan_matrix[a,b] * partitions[b].get_num_cells_to_column(i)
+        if i == float('inf'):
+            vac_num -= sum(self._cartan_matrix[a,b] * sum(nu)
+                           for b,nu in enumerate(partitions))
+        else:
+            vac_num -= sum(self._cartan_matrix[a,b] * nu.get_num_cells_to_column(i)
+                           for b,nu in enumerate(partitions))
 
         return vac_num
 
@@ -1147,11 +1151,15 @@ class RCNonSimplyLaced(RiggedConfigurations):
                 if dim[0] == self._rc_index[a]:
                     vac_num += min(dim[1], i)
 
-        gamma = self._folded_ct.scaling_factors()
-        for b in range(self._cartan_matrix.ncols()):
-            vac_num -= (self._cartan_matrix[a,b]
-                        * partitions[b].get_num_cells_to_column(gamma[a+1]*i, gamma[b+1])
-                        // gamma[b+1])
+        if i == float('inf'):
+            vac_num -= sum(self._cartan_matrix[a,b] * sum(nu)
+                           for b,nu in enumerate(partitions))
+        else:
+            gamma = self._folded_ct.scaling_factors()
+            vac_num -= sum(self._cartan_matrix[a,b]
+                           * nu.get_num_cells_to_column(gamma[a+1]*i, gamma[b+1])
+                           // gamma[b+1]
+                           for b,nu in enumerate(partitions))
 
         return vac_num
 
@@ -1493,8 +1501,12 @@ class RCTypeA2Even(RCNonSimplyLaced):
                     vac_num += min(dim[1], i)
 
         gamma = self._folded_ct.scaling_factors()
-        for b in range(self._cartan_matrix.ncols()):
-            vac_num -= self._cartan_matrix[a,b] * partitions[b].get_num_cells_to_column(i) // gamma[b+1]
+        if i == float('inf'):
+            vac_num -= sum(self._cartan_matrix[a,b] * sum(nu) // gamma[b+1]
+                           for b, nu in enumerate(partitions))
+        else:
+            vac_num -= sum(self._cartan_matrix[a,b] * nu.get_num_cells_to_column(i) // gamma[b+1]
+                           for b, nu in enumerate(partitions))
 
         return vac_num
 
@@ -1641,8 +1653,12 @@ class RCTypeA2Dual(RCTypeA2Even):
                 if dim[0] == self._rc_index[a]:
                     vac_num += min(dim[1], i)
 
-        for b in range(self._cartan_matrix.ncols()):
-            vac_num -= self._cartan_matrix[a,b] * partitions[b].get_num_cells_to_column(i) / 2
+        if i == float('inf'):
+            vac_num -= sum(self._cartan_matrix[a,b] * sum(nu) / 2
+                           for b,nu in enumerate(partitions))
+        else:
+            vac_num -= sum(self._cartan_matrix[a,b] * nu.get_num_cells_to_column(i) / 2
+                           for b,nu in enumerate(partitions))
 
         return vac_num
 

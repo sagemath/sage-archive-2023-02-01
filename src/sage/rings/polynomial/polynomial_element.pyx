@@ -1559,6 +1559,29 @@ cdef class Polynomial(CommutativeAlgebraElement):
             current = current + current - z
         return current
 
+    def revert_series(self, n):
+        r"""
+        Return a polynomial ``f`` such that
+        ``f(self(x)) = self(f(x)) = x mod x^n``.
+
+        Currently, this is only implemented over some coefficient rings.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = QQ[]
+            sage: (x + x^3/6 + x^5/120).revert_series(6)
+            3/40*x^5 - 1/6*x^3 + x
+            sage: Pol.<x> = CBF[]
+            sage: (x + x^3/6 + x^5/120).revert_series(6)
+            ([0.075000000000000 +/- 9.75e-17])*x^5 + ([-0.166666666666667 +/- 4.45e-16])*x^3 + x
+            sage: Pol.<x> = SR[]
+            sage: x.revert_series(6)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: only implemented for certain base rings
+        """
+        raise NotImplementedError("only implemented for certain base rings")
+
     def __long__(self):
         """
         EXAMPLES::
@@ -2441,7 +2464,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         We verify that :trac:`23020` has been resolved. (There are no elements
         in the Sage library yet that do not implement ``__nonzero__``, so we
-        have to create one artifically.)::
+        have to create one artificially.)::
 
             sage: class PatchedAlgebraicNumber(sage.rings.qqbar.AlgebraicNumber):
             ....:     def __nonzero__(self): raise NotImplementedError()

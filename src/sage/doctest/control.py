@@ -42,6 +42,11 @@ optionaltag_regex = re.compile(r'^\w+$')
 # Optional tags which are always automatically added
 auto_optional_tags = set(['py2' if six.PY2 else 'py3'])
 
+# Make sure the agg backend is selected during doctesting
+# This needs to be done before any other matplotlib calls.
+import matplotlib
+matplotlib.use('agg')
+
 
 class DocTestDefaults(SageObject):
     """

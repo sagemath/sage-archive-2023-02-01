@@ -38,10 +38,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.combinat.combinat import CombinatorialObject
 from sage.misc.latex import latex
+from sage.structure.richcmp cimport richcmp
 
-class RiggedPartition(CombinatorialObject):
+cdef class RiggedPartition(SageObject):
     r"""
     The RiggedPartition class which is the data structure of a rigged (i.e.
     marked or decorated) Young diagram of a partition.
@@ -58,8 +58,6 @@ class RiggedPartition(CombinatorialObject):
          0[ ][ ]0
         -1[ ]-1
         <BLANKLINE>
-        sage: type(RP)
-        <class 'sage.combinat.rigged_configurations.rigged_partition.RiggedPartition'>
     """
 
     def __init__(self, shape=None, rigging_list=None, vacancy_nums=None):
@@ -70,47 +68,49 @@ class RiggedPartition(CombinatorialObject):
 
         INPUT:
 
-        - ``shape`` -- (Default: ``None``) The shape
-
-        - ``rigging_list`` -- (Default: ``None``) The riggings
-
-        - ``vacancy_nums`` -- (Default: ``None``) The vacancy numbers
+        - ``shape`` -- (default: ``None``) the shape
+        - ``rigging_list`` -- (default: ``None``) the riggings
+        - ``vacancy_nums`` -- (default: ``None``) the vacancy numbers
 
         TESTS::
 
-            sage: sage.combinat.rigged_configurations.rigged_partition.RiggedPartition()
+            sage: from sage.combinat.rigged_configurations.rigged_partition import RiggedPartition
+            sage: RiggedPartition()
             (/)
             <BLANKLINE>
-            sage: RP = sage.combinat.rigged_configurations.rigged_partition.RiggedPartition([2,1], [0,0], [1, 0])
+            sage: RP = RiggedPartition([2,1], [0,0], [1, 0])
             sage: RP
             1[ ][ ]0
             0[ ]0
             <BLANKLINE>
             sage: TestSuite(RP).run()
         """
+        self._hash = 0
+
         if shape is None:
-            CombinatorialObject.__init__(self, [])
+            self._list = []
             self.vacancy_numbers = []
             self.rigging = []
+            return
+
+        self._list = list(shape)
+
+        if vacancy_nums is not None:
+            if len(shape) != len(vacancy_nums):
+                raise ValueError("mismatch between shape and vacancy numbers")
+
+            self.vacancy_numbers = list(vacancy_nums)
         else:
-            CombinatorialObject.__init__(self, shape)
+            self.vacancy_numbers = [None] * len(shape)
 
-            if vacancy_nums is not None:
-                if len(shape) != len(vacancy_nums):
-                    raise ValueError("Mismatch between shape and vacancy numbers")
+        if rigging_list is not None:
 
-                self.vacancy_numbers = list(vacancy_nums)
-            else:
-                self.vacancy_numbers = [None] * len(shape)
+            if len(shape) != len(rigging_list):
+                raise ValueError("mismatch between shape and rigging list")
 
-            if rigging_list is not None:
-
-                if len(shape) != len(rigging_list):
-                    raise ValueError("Mismatch between shape and rigging list")
-
-                self.rigging = list(rigging_list)
-            else:
-                self.rigging = [None] * len(shape)
+            self.rigging = list(rigging_list)
+        else:
+            self.rigging = [None] * len(shape)
 
     def _repr_(self):
         """
@@ -132,7 +132,7 @@ class RiggedPartition(CombinatorialObject):
             sage: Partitions.options._reset()
         """
         # If it is empty, return saying so
-        if len(self._list) == 0:
+        if not self._list:
             return("(/)\n")
 
         from sage.combinat.partition import Partitions
@@ -243,9 +243,18 @@ class RiggedPartition(CombinatorialObject):
             sage: RP is RP2
             False
         """
-        return self.__class__(self._list[:], self.rigging[:], self.vacancy_numbers[:])
+        # TODO: Perhaps we can be better by not copying data as much and do it
+        #   more on-demand
+        cdef RiggedPartition res
+        cdef type t = type(self)
+        res = t.__new__(t)
+        res._list = self._list[:]
+        res.rigging = self.rigging[:]
+        res.vacancy_numbers = self.vacancy_numbers[:]
+        res._hash = self._hash
+        return res
 
-    def __eq__(self, rhs):
+    def __richcmp__(self, other, int op):
         r"""
         Return true if ``self`` equals ``rhs``.
 
@@ -257,14 +266,94 @@ class RiggedPartition(CombinatorialObject):
             sage: x == y
             False
         """
-        if isinstance(rhs, RiggedPartition):
-            return self._list == rhs._list and self.rigging == rhs.rigging
+        if not (isinstance(self, RiggedPartition) and isinstance(other, RiggedPartition)):
+            return False
 
-        return False
+        cdef left = <RiggedPartition> self
+        cdef right = <RiggedPartition> other
+        return richcmp((left._list, left.rigging), (right._list, right.rigging), op)
+
+    # TODO: Cythonize CombinatorialObject?
+
+    def __hash__(self):
+        """
+        TESTS::
+
+            sage: from sage.combinat.rigged_configurations.rigged_partition import RiggedPartition
+            sage: nu = RiggedPartition()
+            sage: h = hash(nu)
+            sage: _ = nu.insert_cell(2)
+            sage: h == hash(nu)
+            False
+        """
+        if self._hash == 0:
+            self._hash = hash(tuple(self._list))
+        return self._hash
+
+    def __nonzero__(self):
+        """
+        TESTS::
+
+            sage: from sage.combinat.rigged_configurations.rigged_partition import RiggedPartition
+            sage: nu = RiggedPartition()
+            sage: bool(nu)
+            False
+            sage: nu = RiggedPartition([1])
+            sage: bool(nu)
+            True
+        """
+        return bool(self._list)
+
+    def __len__(self):
+        """
+        TESTS::
+
+            sage: from sage.combinat.rigged_configurations.rigged_partition import RiggedPartition
+            sage: nu = RiggedPartition()
+            sage: len(nu)
+            0
+            sage: nu = RiggedPartition([3,2,2,1])
+            sage: len(nu)
+            4
+        """
+        return len(self._list)
+
+    def __getitem__(self, key):
+        """
+        TESTS::
+
+            sage: from sage.combinat.rigged_configurations.rigged_partition import RiggedPartition
+            sage: nu = RiggedPartition([3,2,1])
+            sage: nu[2]
+            1
+        """
+        return self._list[key]
+
+    def __iter__(self):
+        """
+        TESTS::
+
+            sage: from sage.combinat.rigged_configurations.rigged_partition import RiggedPartition
+            sage: nu = RiggedPartition([3,2,1])
+            sage: list(nu)
+            [3, 2, 1]
+        """
+        return iter(self._list)
+
+    def __reduce__(self):
+        """
+        TESTS::
+
+            sage: from sage.combinat.rigged_configurations.rigged_partition import RiggedPartition
+            sage: nu = RiggedPartition([3,2,1])
+            sage: loads(dumps(nu)) == nu
+            True
+        """
+        return type(self), (self._list, self.rigging, self.vacancy_numbers)
 
     # Should we move these functions to the CP -> RC bijections?
 
-    def get_num_cells_to_column(self, end_column, t=1):
+    cpdef get_num_cells_to_column(self, int end_column, t=1):
         r"""
         Get the number of cells in all columns before the ``end_column``.
 
@@ -291,9 +380,9 @@ class RiggedPartition(CombinatorialObject):
             sage: RP.get_num_cells_to_column(3, 2)
             5
         """
-        sum_cells = 0
+        cdef Py_ssize_t sum_cells = 0
         # Sum up from the reverse (the smallest row sizes)
-        i = len(self._list) - 1
+        cdef Py_ssize_t i = len(self._list) - 1
         while i >= 0 and self._list[i]*t < end_column:
             sum_cells += self._list[i]*t
             i -= 1
@@ -304,7 +393,7 @@ class RiggedPartition(CombinatorialObject):
 
         return sum_cells
 
-    def insert_cell(self, max_width):
+    cpdef insert_cell(self, int max_width):
         r"""
         Insert a cell given at a singular value as long as its less than the
         specified width.
@@ -333,7 +422,9 @@ class RiggedPartition(CombinatorialObject):
             -1[ ]-1
             <BLANKLINE>
         """
-        max_pos = -1
+        cdef Py_ssize_t max_pos = -1
+        cdef Py_ssize_t i
+        self._hash = 0 # Reset the cached hash value
         if max_width > 0:
             for i, vac_num in enumerate(self.vacancy_numbers):
                 if self._list[i] <= max_width and vac_num == self.rigging[i]:
@@ -354,7 +445,7 @@ class RiggedPartition(CombinatorialObject):
         self.rigging[max_pos] = None # State that we've changed this row
         return self._list[max_pos] - 1
 
-    def remove_cell(self, row, num_cells=1):
+    cpdef remove_cell(self, row, int num_cells=1):
         r"""
         Removes a cell at the specified ``row``.
 
@@ -384,31 +475,34 @@ class RiggedPartition(CombinatorialObject):
             -1[ ]-1
             <BLANKLINE>
         """
+        self._hash = 0 # Reset the cached hash value
         if row is None:
             return None
 
-        if self._list[row] <= num_cells:
-            self._list.pop(row)
-            self.vacancy_numbers.pop(row)
-            self.rigging.pop(row)
+        cdef Py_ssize_t r = row
+        if self._list[r] <= num_cells:
+            self._list.pop(r)
+            self.vacancy_numbers.pop(r)
+            self.rigging.pop(r)
             return None
 
         # Find the beginning of the next block we want
-        block_len = self._list[row] - num_cells # The length of the desired block
+        cdef Py_ssize_t block_len = self._list[r] - num_cells # The length of the desired block
         if row + 1 == len(self._list):
             # If we are at the end, just do a simple remove
-            self._list[row] = block_len
-            self.vacancy_numbers[row] = None
-            self.rigging[row] = None
-            return row
+            self._list[r] = block_len
+            self.vacancy_numbers[r] = None
+            self.rigging[r] = None
+            return r
 
-        for i in range(row + 1, len(self._list)):
+        cdef Py_ssize_t i
+        for i in range(r + 1, len(self._list)):
             if self._list[i] <= block_len:
-                if i == row + 1:
+                if i == r + 1:
                     # If the next row is a block change, just reduce by num_cells
-                    self._list[row] = block_len
-                    self.vacancy_numbers[row] = None
-                    self.rigging[row] = None
+                    self._list[r] = block_len
+                    self.vacancy_numbers[r] = None
+                    self.rigging[r] = None
                     return row
 
                 # Otherwise we need to "move" the row
@@ -417,15 +511,15 @@ class RiggedPartition(CombinatorialObject):
                 self.vacancy_numbers.insert(i, None)
                 self.rigging.insert(i, None)
 
-                self._list.pop(row)
-                self.vacancy_numbers.pop(row)
-                self.rigging.pop(row)
+                self._list.pop(r)
+                self.vacancy_numbers.pop(r)
+                self.rigging.pop(r)
                 return i - 1
 
         # We need to "move" the row to the end of the partition
-        self._list.pop(row)
-        self.vacancy_numbers.pop(row)
-        self.rigging.pop(row)
+        self._list.pop(r)
+        self.vacancy_numbers.pop(r)
+        self.rigging.pop(r)
 
         self._list.append(block_len)
         # Placeholders as above
@@ -433,7 +527,7 @@ class RiggedPartition(CombinatorialObject):
         self.rigging.append(None)
         return len(self._list) - 1
 
-class RiggedPartitionTypeB(RiggedPartition):
+cdef class RiggedPartitionTypeB(RiggedPartition):
     r"""
     Rigged partitions for type `B_n^{(1)}` which has special printing rules
     which comes from the fact that the `n`-th partition can have columns of

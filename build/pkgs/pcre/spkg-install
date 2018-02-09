@@ -1,5 +1,22 @@
 cd src
 
-sdh_configure --enable-utf --enable-unicode-properties --enable-jit
+PCRE_CONFIGURE="--enable-utf --enable-unicode-properties $PCRE_CONFIGURE"
+
+sdh_configure $PCRE_CONFIGURE --enable-jit
 sdh_make
+
+# The JIT feature of pcre is known to be broken on some systems, in
+# particular on Solaris. We run the testsuite of pcre (this takes only
+# a few seconds). It the testsuite fails, we rebuild pcre without JIT
+# support. See https://trac.sagemath.org/ticket/24628
+if ! $MAKE check; then
+    echo >&2 "*** Rebuilding pcre without JIT support ***"
+    $MAKE clean
+
+    sdh_configure $PCRE_CONFIGURE --disable-jit
+    sdh_make
+
+    $MAKE check || sdh_die "Error checking $PKG_NAME"
+fi
+
 sdh_make_install

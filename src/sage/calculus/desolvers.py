@@ -1178,7 +1178,7 @@ def desolve_rk4(de, dvar, ics=None, ivar=None, end_points=None, step=0.1, output
         [[0, 1], [0.5, 1.12419127424558], [1.0, 1.461590162288825]]
 
     Variant 1 for input - we can pass ODE in the form used by
-    desolve function In this example we integrate bakwards, since
+    desolve function In this example we integrate backwards, since
     ``end_points < ics[0]``::
 
         sage: y = function('y')(x)
@@ -1732,10 +1732,10 @@ def desolve_tides_mpfr(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-1
 
     REFERENCES:
 
-    .. A. Abad, R. Barrio, F. Blesa, M. Rodriguez. Algorithm 924. *ACM
+    .. [ABBR1] \A. Abad, R. Barrio, F. Blesa, M. Rodriguez. Algorithm 924. *ACM
        Transactions on Mathematical Software* , *39* (1), 1-28.
 
-    .. A. Abad, R. Barrio, F. Blesa, M. Rodriguez.
+    .. [ABBR2] \A. Abad, R. Barrio, F. Blesa, M. Rodriguez.
       `TIDES tutorial: Integrating ODEs by using the Taylor Series Method.
       <http://www.unizar.es/acz/05Publicaciones/Monografias/MonografiasPublicadas/Monografia36/IndMonogr36.htm>`_
 

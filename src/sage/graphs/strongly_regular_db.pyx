@@ -1043,7 +1043,7 @@ def is_polhill(int v,int k,int l,int mu):
         [(1,0),(3,0),(0,2),(1,3),(3,1)],
         [(1,2),(3,2),(2,1),(2,3),(2,2)]
         ]
-    D = [map(G,x) for x in D]
+    D = [[G(e) for e in x] for x in D]
 
     # The K_i are hyperplanes partitionning the nonzero elements of
     # GF(2^s)^2. See section 6.
@@ -1113,8 +1113,8 @@ def is_polhill(int v,int k,int l,int mu):
                     product(D[0],PQ[1,i]),
                     product(D[1],PQ[2,i]),
                     product(D[2],PQ[3,i])]
-            Dtmp = map(set,Dtmp)
-            Dtmp = map(Gprod,sum(map(list,Dtmp),[]))
+            Dtmp = map(set, Dtmp)
+            Dtmp = [Gprod(e) for e in sum(map(list, Dtmp), [])]
             DD.append(Dtmp)
 
     # Now that we have the data, we can return the graphs.
@@ -1453,7 +1453,7 @@ def is_twograph_descendant_of_srg(int v, int k0, int l, int mu):
     `\lambda^*-\mu^*=\lambda-\mu`.  Further, there is a quadratic relation
     `2 k^2-(v+1+4 \mu) k+ 2 v \mu=0`.
 
-    If we can contruct such `G` then we return a function to build a
+    If we can construct such `G` then we return a function to build a
     `(v,k_0,\lambda,\mu)`-s.r.g.  For more information,
     see 10.3 in http://www.win.tue.nl/~aeb/2WF02/spectra.pdf
 
@@ -1649,9 +1649,8 @@ def is_switch_OA_srg(int v, int k, int l, int mu):
         not orthogonal_array(c+1,n,existence=True,resolvable=True)):
         return None
 
-    def switch_OA_srg(c,n):
-        from builtins import zip
-        OA = map(tuple,orthogonal_array(c+1,n,resolvable=True))
+    def switch_OA_srg(c, n):
+        OA = map(tuple, orthogonal_array(c+1, n, resolvable=True))
         g = Graph([OA, lambda x,y: any(xx==yy for xx,yy in zip(x,y))],
                   loops=False)
         g.add_vertex(0)
@@ -1659,6 +1658,7 @@ def is_switch_OA_srg(int v, int k, int l, int mu):
         return g
 
     return (switch_OA_srg,c,n)
+
 
 def is_nowhere0_twoweight(int v, int k, int l, int mu):
     r"""
@@ -2343,7 +2343,7 @@ def SRG_280_117_44_52():
     """
     from sage.graphs.hypergraph_generators import hypergraphs
 
-    # V is the set of partions {{a,b,c},{d,e,f},{g,h,i}} of {0,...,8}
+    # V is the set of partitions {{a,b,c},{d,e,f},{g,h,i}} of {0,...,8}
     H = hypergraphs.CompleteUniform(9,3)
     g = H.intersection_graph()
     V = g.complement().cliques_maximal()

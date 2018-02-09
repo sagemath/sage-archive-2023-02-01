@@ -387,7 +387,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         **********************************************************************
         Previously executed commands:
             s...: assert True == False
-        In [1]:
+        sage:
         <BLANKLINE>
         Returning to doctests...
         **********************************************************************

@@ -200,6 +200,7 @@ class PSModularSymbolElement(ModuleElement):
         forms!
 
         EXAMPLES::
+
             sage: E = EllipticCurve('11a')
             sage: phi = E.pollack_stevens_modular_symbol()
             sage: phi.weight()

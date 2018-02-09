@@ -1092,7 +1092,7 @@ class Algebras(AlgebrasCategory):
                     sage: T = KL.twisted_demazure_lusztig_operators(q1,q2, convention="dominant")
                     sage: T._test_relations()
                     Traceback (most recent call last):
-                    ... tester.assert_(Ti(Ti(x,i,-q2),i,-q1).is_zero()) ...
+                    ... tester.assertTrue(Ti(Ti(x,i,-q2),i,-q1).is_zero()) ...
                     AssertionError: False is not true
 
             Comparison with T0::

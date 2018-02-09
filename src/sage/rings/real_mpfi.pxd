@@ -1,4 +1,5 @@
-from sage.libs.mpfi cimport *
+from sage.libs.mpfr.types cimport mpfr_prec_t
+from sage.libs.mpfi.types cimport mpfi_t
 
 from sage.rings.ring cimport Field
 
@@ -10,7 +11,7 @@ from .real_mpfr cimport RealField_class
 cdef class RealIntervalFieldElement(RingElement)  # forward decl
 
 cdef class RealIntervalField_class(Field):
-    cdef int __prec
+    cdef mpfr_prec_t __prec
     cdef bint sci_not
     # Cache RealField instances for the lower, upper, and middle bounds.
     # These have the same precision as the interval field;
@@ -29,6 +30,7 @@ cdef class RealIntervalField_class(Field):
     cdef RealField_class __lower_field
     cdef RealField_class __middle_field
     cdef RealField_class __upper_field
+
     cdef inline RealIntervalFieldElement _new(self):
         """Return a new real interval with parent ``self``."""
         return RealIntervalFieldElement.__new__(RealIntervalFieldElement, self)

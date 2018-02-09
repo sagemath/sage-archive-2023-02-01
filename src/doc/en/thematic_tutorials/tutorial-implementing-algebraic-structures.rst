@@ -612,7 +612,7 @@ Here is a brief template highlighting the overall structure::
         def __init__(self, R, ...):
             category = Algebras(R).Commutative()
             Parent.__init__(self, category=category.WithRealizations())
-            # attribute initalization, construction of the morphisms
+            # attribute initialization, construction of the morphisms
             # between the bases, ...
 
         class Bases(Category_realization_of_parent):

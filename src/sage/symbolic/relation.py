@@ -526,7 +526,7 @@ def test_relation_maxima(relation):
         return False
 
     difference = relation.lhs() - relation.rhs()
-    if repr(difference) == '0':
+    if difference.is_trivial_zero():
         return True
 
     # Try to apply some simplifications to see if left - right == 0.
@@ -543,7 +543,7 @@ def test_relation_maxima(relation):
                  difference.simplify_trig()]
     for f in simp_list:
         try:
-            if repr( f() ).strip() == "0":
+            if f().is_trivial_zero():
                 return True
                 break
         except Exception:
@@ -1669,7 +1669,7 @@ def solve_ineq_fourier(ineq,vars=None):
     Solves system of inequalities using Maxima and Fourier elimination
 
     Can be used for system of linear inequalities and for some types
-    of nonlinear inequalities. For examples see the section EXAMPLES
+    of nonlinear inequalities. For examples, see the example section
     below and http://maxima.cvs.sourceforge.net/viewvc/maxima/maxima/share/contrib/fourier_elim/rtest_fourier_elim.mac
 
 

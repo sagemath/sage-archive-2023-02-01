@@ -386,6 +386,10 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
         """
         Compute the characteristic polynomial of self, using maxima.
 
+        .. NOTE::
+
+            The characteristic polynomial is defined as `\det(xI-A)`.
+
         INPUT:
 
         - ``var`` - (default: 'x') name of variable of charpoly

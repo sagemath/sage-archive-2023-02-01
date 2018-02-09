@@ -118,6 +118,7 @@ from sage.structure.element cimport parent, coercion_model
 cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
 from .category_object import CategoryObject
+from .coerce cimport parent_is_integers
 from .coerce_exceptions import CoercionException
 from sage.structure.debug_options cimport debug
 from sage.structure.richcmp cimport rich_to_bool
@@ -660,7 +661,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         tester = self._tester(**options)
         SageObject._test_category(self, tester = tester)
         category = self.category()
-        tester.assert_(category.is_subcategory(Sets()))
+        tester.assertTrue(category.is_subcategory(Sets()))
         # Tests that self inherits methods from the categories
         if can_assign_class(self):
             # For usual Python classes, that should be done with
@@ -694,7 +695,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             sage: CCls()._test_eq()
             Traceback (most recent call last):
             ...
-            AssertionError: broken equality: <class '__main__.CCls'> == None
+            AssertionError: broken equality: <__main__.CCls object at ...> == None
 
         Let us now break inequality::
 
@@ -704,7 +705,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             sage: CCls()._test_eq()
             Traceback (most recent call last):
             ...
-            AssertionError: broken non-equality: <class '__main__.CCls'> != itself
+            AssertionError: broken non-equality: <__main__.CCls object at ...> != itself
         """
         tester = self._tester(**options)
 
@@ -855,25 +856,6 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             }
         return defaults[key]
 
-    def is_atomic_repr(self):
-        """
-        The old way to signal atomic string reps.
-
-        True if the elements have atomic string representations, in the
-        sense that if they print at s, then -s means the negative of s. For
-        example, integers are atomic but polynomials are not.
-
-        EXAMPLES::
-
-            sage: Parent().is_atomic_repr()
-            doctest:...: DeprecationWarning: Use _repr_option to return metadata about string rep
-            See http://trac.sagemath.org/14040 for details.
-            False
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(14040, 'Use _repr_option to return metadata about string rep')
-        return False
-
     def __call__(self, x=0, *args, **kwds):
         """
         This is the generic call method for all parents.
@@ -888,9 +870,11 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
 
         TESTS:
 
-        We check that the invariant::
+        We check that the invariant
 
-                self._element_init_pass_parent == guess_pass_parent(self, self._element_constructor)
+        ::
+
+            self._element_init_pass_parent == guess_pass_parent(self, self._element_constructor)
 
         is preserved (see :trac:`5979`)::
 
@@ -900,7 +884,6 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             ....:         return sage.structure.element.Element(parent = self)
             ....:     def _repr_(self):
             ....:         return "my_parent"
-            ....:
             sage: my_parent = MyParent()
             sage: x = my_parent("bla")
             my_parent bla
@@ -911,17 +894,9 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             my_parent 0
             sage: x = my_parent(3)   # todo: not implemented  why does this one fail???
             my_parent 3
-
-
         """
         if self._element_constructor is None:
-            # Neither __init__ nor _populate_coercion_lists_ have been called...
-            try:
-                assert callable(self._element_constructor_)
-                self._element_constructor = self._element_constructor_
-                self._element_init_pass_parent = guess_pass_parent(self, self._element_constructor)
-            except (AttributeError, AssertionError):
-                raise NotImplementedError
+            raise NotImplementedError(f"cannot construct elements of {self}")
         cdef Py_ssize_t i
         cdef R = parent(x)
         cdef bint no_extra_args = len(args) == 0 and len(kwds) == 0
@@ -1438,11 +1413,6 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         - ``convert_method_name`` -- a name to look for that other elements
           can implement to create elements of self (e.g. _integer_)
 
-        - ``element_constructor`` -- A callable object used by the
-          __call__ method to construct new elements. Typically the
-          element class or a bound method (defaults to
-          self._element_constructor_).
-
         - ``init_no_parent`` -- if True omit passing self in as the
           first argument of element_constructor for conversion. This
           is useful if parents are unique, or element_constructor is a
@@ -1451,11 +1421,15 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         """
         self.init_coerce(False)
 
-        if element_constructor is None and not unpickling:
-            try:
-                element_constructor = self._element_constructor_
-            except AttributeError:
-                raise RuntimeError("element_constructor must be provided, either as an _element_constructor_ method or via the _populate_coercion_lists_ call")
+        if not unpickling:
+            if element_constructor is None:
+                try:
+                    element_constructor = self._element_constructor_
+                except AttributeError:
+                    raise RuntimeError("an _element_constructor_ method must be defined")
+            else:
+                from sage.misc.superseded import deprecation
+                deprecation(24363, "the 'element_constructor' keyword of _populate_coercion_lists_ is deprecated: override the _element_constructor_ method or define an Element attribute instead")
         self._element_constructor = element_constructor
         self._element_init_pass_parent = guess_pass_parent(self, element_constructor)
 
@@ -1572,7 +1546,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             sage: P._is_conversion_cached(P)
             False
             sage: P.convert_map_from(P)
-            Identity endomorphism of <type 'sage.structure.parent.Parent'>
+            Identity endomorphism of <sage.structure.parent.Parent object at ...>
             sage: P._is_conversion_cached(P)
             True
         """
@@ -1879,10 +1853,9 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         We check that :trac:`23184` has been resolved::
 
             sage: QQ['x', 'y']._generic_coerce_map(QQ).category_for()
-            Category of unique factorization domains
+            Category of infinite unique factorization domains
             sage: QQ[['x']].coerce_map_from(QQ).category_for()
             Category of euclidean domains
-
         """
         if isinstance(S, type):
             category = None
@@ -2521,8 +2494,39 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         self._action_hash.set(S, op, self_on_left, action)
         return action
 
-
     cdef discover_action(self, S, op, bint self_on_left, self_el=None, S_el=None):
+        """
+        TESTS::
+
+            sage: E = EllipticCurve([1,0])
+            sage: coercion_model.get_action(E, ZZ, operator.mul)
+            Right Integer Multiplication by Integer Ring on Elliptic Curve defined by y^2 = x^3 + x over Rational Field
+            sage: coercion_model.get_action(ZZ, E, operator.mul)
+            Left Integer Multiplication by Integer Ring on Elliptic Curve defined by y^2 = x^3 + x over Rational Field
+            sage: coercion_model.get_action(E, int, operator.mul)
+            Right Integer Multiplication by Set of Python objects of class 'int' on Elliptic Curve defined by y^2 = x^3 + x over Rational Field
+            sage: coercion_model.get_action(int, E, operator.mul)
+            Left Integer Multiplication by Set of Python objects of class 'int' on Elliptic Curve defined by y^2 = x^3 + x over Rational Field
+
+        ::
+
+            sage: R.<x> = CDF[]
+            sage: coercion_model.get_action(R, ZZ, operator.pow)
+            Right Integer Powering by Integer Ring on Univariate Polynomial Ring in x over Complex Double Field
+            sage: print(coercion_model.get_action(ZZ, R, operator.pow))
+            None
+            sage: coercion_model.get_action(R, int, operator.pow)
+            Right Integer Powering by Set of Python objects of class 'int' on Univariate Polynomial Ring in x over Complex Double Field
+            sage: print(coercion_model.get_action(int, R, operator.pow))
+            None
+            sage: coercion_model.get_action(R, IntegerModRing(7), operator.pow)
+            Right Integer Powering by Ring of integers modulo 7 on Univariate Polynomial Ring in x over Complex Double Field
+
+        ::
+
+            sage: print(coercion_model.get_action(E, ZZ, operator.pow))
+            None
+        """
         # G acts on S, G -> G', R -> S => G' acts on R (?)
         # NO! ZZ[x,y] acts on Matrices(ZZ[x]) but ZZ[y] does not.
         # What may be true is that if the action's destination is S, then this can be allowed.
@@ -2589,19 +2593,32 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
                 if action is not None:
                     return action
 
-                try:
-                    # maybe there is a more clever way of detecting ZZ than importing here...
-                    from sage.rings.integer_ring import ZZ
-                    if S is ZZ and not self.has_coerce_map_from(ZZ):
-                        from sage.structure.coerce_actions import IntegerMulAction
-                        action = IntegerMulAction(S, self, not self_on_left, self_el)
-                        return action
-                except (CoercionException, TypeError):
-                    _record_exception()
-
+                if parent_is_integers(S) and not self.has_coerce_map_from(S):
+                    from sage.structure.coerce_actions import IntegerMulAction
+                    try:
+                        return IntegerMulAction(S, self, not self_on_left, self_el)
+                    except TypeError:
+                        _record_exception()
             finally:
                 _unregister_pair(self, S, "action")
-
+        elif self_on_left and op is operator.pow:
+            S_is_int = parent_is_integers(S)
+            if not S_is_int:
+                from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
+                if is_IntegerModRing(S):
+                    # We allow powering by an IntegerMod by treating it
+                    # as an integer.
+                    #
+                    # TODO: this makes sense in a few cases that we want
+                    # to support. But in general this should not be
+                    # allowed. See Trac #15709
+                    S_is_int = True
+            if S_is_int:
+                from sage.structure.coerce_actions import IntegerPowAction
+                try:
+                    return IntegerPowAction(S, self, False, self_el)
+                except TypeError:
+                    _record_exception()
 
     cpdef _get_action_(self, S, op, bint self_on_left):
         """
@@ -3061,10 +3078,9 @@ cdef class EltPair:
         Verify that :trac:`16341` has been resolved::
 
             sage: K.<a> = Qq(9)
-            sage: E=EllipticCurve_from_j(0).base_extend(K)
+            sage: E = EllipticCurve_from_j(0).base_extend(K)
             sage: E.get_action(ZZ)
             Right Integer Multiplication by Integer Ring on Elliptic Curve defined by y^2 + (1+O(3^20))*y = x^3 over Unramified Extension in a defined by x^2 + 2*x + 2 with capped relative precision 20 over 3-adic Field
-
         """
         return hash((id(self.x), id(self.y), id(self.tag)))
 

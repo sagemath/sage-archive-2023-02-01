@@ -93,7 +93,7 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
         ....:        color='green') + line3d([(0,1,0), (1,0,2)])
         Graphics3d Object
 
-    A Dodecahedral complex of 5 tetrahedrons (a more elaborate example
+    A Dodecahedral complex of 5 tetrahedra (a more elaborate example
     from Peter Jipsen)::
 
         sage: def tetra(col):

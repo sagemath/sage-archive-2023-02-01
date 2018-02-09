@@ -1073,6 +1073,12 @@ REFERENCES:
              fundamental domains for the subgroups of the modular
              group", preprint :arxiv:`0901.1340`
 
+.. [GP2012] Eddy Godelle and Luis Paris.
+            *Basic questions on Artin-Tits groups*. A. Bjorner et al. (eds)
+            Configuration spaces, CRM series. (2012) pp. 299--311.
+            Edizioni della Normale, Pisa.
+            :doi:`10.1007/978-88-7642-431-1_13`
+
 .. [GPV2008] Craig Gentry, Chris Peikert, Vinod Vaikuntanathan. *How
              to Use a Short Basis: Trapdoors for Hard Lattices and New
              Cryptographic

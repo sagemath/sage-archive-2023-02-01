@@ -771,7 +771,7 @@ class ComplexBallField(UniqueRepresentation, Field):
           the ball field) -- absolute accuracy goal
 
         The following optional parameters can be used to control the integration
-        algorithm. See the `Arb documentation <http://arblib.org/acb_calc.html>`
+        algorithm. See the `Arb documentation <http://arblib.org/acb_calc.html>`_
         for more information.
 
         - ``deg_limit`` -- maximum quadrature degree for each

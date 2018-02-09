@@ -2060,12 +2060,17 @@ class FunctionField_global(FunctionField_polymod):
     @cached_method
     def _inversion_isomorphism(self):
         r"""
-        Return an inverted function field and isomorphisms.
+        Return an inverted function field isomorphic to ``self`` and isomorphisms
+        between them.
 
-        Here we define an isomorphism of ``self`` with a function field `M`
-        over `k(1/x)`, mapping `x \to 1/x` and `t` to `y`. We call this
-        inversion isomorphism. Also note that `K = k(1/x) == k(x)`. We
-        also require `M` to be canonical.
+        An *inverted* function field `M` is an extension of the base rational
+        function field `k(x)` of ``self``, and isomorphic to ``self`` by an
+        isomorphism sending `x` to `1/x`, which we call an *inversion*
+        isomorphism.  Also the defining polynomial of the function field `M` is
+        required to be monic and integral.
+
+        The inversion isomorphism is for internal use to reposition infinite
+        places to finite places.
 
         EXAMPLES::
 
@@ -2103,9 +2108,10 @@ class FunctionField_global(FunctionField_polymod):
         K = self.base_field()
         R = PolynomialRing(K,'T')
         x = K.gen()
-
         xinv = 1/x
-        F_poly = R([K.hom(xinv)(c) for c in self.polynomial().list()])
+
+        h = K.hom(xinv)
+        F_poly = R([h(c) for c in self.polynomial().list()])
         F = K.extension(F_poly)
 
         self2F = self.hom([F.gen(),xinv])

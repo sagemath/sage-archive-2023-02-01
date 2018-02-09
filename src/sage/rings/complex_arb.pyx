@@ -117,6 +117,11 @@ Check that :trac:`19839` is fixed::
     sage: log(SR(CBF(0.42))).pyobject().parent()
     Complex ball field with 53 bits of precision
 
+:trac:`24621`::
+
+    sage: CBF(NumberField(polygen(QQ, 'y')^3 + 20, 'a', embedding=CC(1.35,2.35)).gen())
+    [1.357208808297453 +/- 4.96e-16] + [2.350754612451197 +/- 7.67e-16]*I
+
 Classes and Methods
 ===================
 """
@@ -135,6 +140,7 @@ import operator
 from cysignals.signals cimport sig_on, sig_str, sig_off, sig_error
 
 import sage.categories.fields
+import sage.rings.number_field.number_field as number_field
 
 cimport sage.rings.integer
 cimport sage.rings.rational
@@ -457,15 +463,13 @@ class ComplexBallField(UniqueRepresentation, Field):
             return other._prec >= self._prec
         elif isinstance(other, ComplexBallField):
             return other._prec >= self._prec
+        elif isinstance(other, number_field.NumberField_quadratic):
+            emb = other.coerce_embedding()
+            return emb is not None and self.has_coerce_map_from(emb.codomain())
 
         from sage.rings.all import QQ, AA, QQbar, RLF, CLF
         if other in [AA, QQbar, RLF, CLF]:
             return True
-
-        from sage.rings.number_field.number_field_base import is_NumberField
-        if is_NumberField(other):
-            emb = other.coerce_embedding()
-            return emb is not None and self.has_coerce_map_from(emb.codomain())
 
     def _element_constructor_(self, x=None, y=None):
         r"""

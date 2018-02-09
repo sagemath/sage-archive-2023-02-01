@@ -393,9 +393,11 @@ class ParentLibGAP(SageObject):
             a*b
         """
         from sage.misc.all import prod
-        return prod(self.gens())
-
-
+        gens = self.gens()
+        if gens:
+            return prod(gens)
+        else:
+            return self.one()
 
 cdef class ElementLibGAP(MultiplicativeGroupElement):
     """

@@ -2888,11 +2888,11 @@ class FreeModule_generic_pid(FreeModule_generic):
 
         Check that :trac:`24702` is fixed::
 
-        sage: L = FreeQuadraticModule(ZZ,2,matrix.identity(2))
-        sage: S1 = L.submodule([(1,0)])
-        sage: S2 = L.submodule([(0,1)])
-        sage: S1.intersection(S2).ambient_module() == S1.ambient_module()
-        True
+            sage: L = FreeQuadraticModule(ZZ,2,matrix.identity(2))
+            sage: S1 = L.submodule([(1,0)])
+            sage: S2 = L.submodule([(0,1)])
+            sage: S1.intersection(S2).ambient_module() == S1.ambient_module()
+            True
         """
         if not isinstance(other, FreeModule_generic):
             raise TypeError("other must be a free module")

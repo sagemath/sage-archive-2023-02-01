@@ -6751,7 +6751,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         Return ``True`` if the poset is greedy, and ``False`` otherwise.
 
-        A poset is ''greedy'' if every greedy linear extension
+        A poset is *greedy* if every greedy linear extension
         has the same number of jumps.
 
         INPUT:

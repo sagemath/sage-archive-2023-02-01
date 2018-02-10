@@ -6780,7 +6780,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         Getting a certificate::
 
             sage: N = Poset({1: [3], 2: [3, 4]})
-            sage: L.is_greedy(certificate=True)
+            sage: N.is_greedy(certificate=True)
             (False, ([1, 2, 4, 3], [2, 4, 1, 3]))
 
         TESTS::
@@ -6792,7 +6792,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: posets.ChainPoset(3).is_greedy()
             True
         """
-        H = P._hasse_diagram
+        H = self._hasse_diagram
         N1 = H.order()-1
         it = H.greedy_linear_extensions_iterator()
         A = next(it)

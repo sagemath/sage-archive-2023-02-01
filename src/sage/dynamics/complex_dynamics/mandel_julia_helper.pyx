@@ -682,6 +682,7 @@ cpdef polynomial_mandelbrot(f, parameter=None, double x_center=0,
         I = CDF.gen()
         constant_c = True
 
+    # Is this needed in cython file also? This parsing is done in python file.
     if parameter is None:
         c = var('c')
         parameter = c
@@ -698,7 +699,7 @@ cpdef polynomial_mandelbrot(f, parameter=None, double x_center=0,
         variable = P.base().gen()
 
     else:
-        return ValueError
+        return ValueError("Base ring must be a complex field.")
 
 
     # Make sure image_width is positive
@@ -724,6 +725,8 @@ cpdef polynomial_mandelbrot(f, parameter=None, double x_center=0,
 
     # Split function into real and imaginary parts
     R = PolynomialRing(CC, [variable,parameter])
+    if len(R.gens()) > 2:
+        return NotImplementedError("Base ring must have only 2 variables")
     z, c = R.gens()
     f = R(f)
     S = PolynomialRing(f.base_ring(), 'x,y,J,cr,ci')

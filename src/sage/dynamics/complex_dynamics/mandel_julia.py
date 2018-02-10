@@ -65,37 +65,37 @@ def mandelbrot_plot(f=None, **kwds):
     kwds:
 
     - ``f`` -- map (optional - default: ``z^2 + c``), polynomial map used to
-     plot the Mandelbrot set.
+    plot the Mandelbrot set.
 
     - ``parameter`` -- variable (optional - default: ``c``), parameter variable
-     used to plot the Mandelbrot set.
+    used to plot the Mandelbrot set.
 
     - ``x_center`` -- double (optional - default: ``-1.0``), Real part of center
-     point.
+    point.
 
     - ``y_center`` -- double (optional - default: ``0.0``), Imaginary part of
-     center point.
+    center point.
 
     - ``image_width`` -- double (optional - default: ``4.0``), width of image
-     in the complex plane.
+    in the complex plane.
 
     - ``max_iteration`` -- long (optional - default: ``500``), maximum number of
-     iterations the map ``Q_c(z)``.
+    iterations the map ``Q_c(z)``.
 
     - ``pixel_count`` -- long (optional - default: ``500``), side length of
-     image in number of pixels.
+    image in number of pixels.
 
     - ``base_color`` -- RGB color (optional - default: ``[40, 40, 40]``) color
-     used to determine the coloring of set.
+    used to determine the coloring of set.
 
     - ``iteration_level`` -- long (optional - default: 1) number of iterations
-     between each color level.
+    between each color level.
 
     - ``number_of_colors`` -- long (optional - default: 30) number of colors
-     used to plot image.
+    used to plot image.
 
     - ``interact`` -- boolean (optional - default: ``False``), controls whether
-     plot will have interactive functionality.
+    plot will have interactive functionality.
 
     OUTPUT:
 
@@ -204,17 +204,17 @@ def mandelbrot_plot(f=None, **kwds):
 
         P = f.parent()
 
-        if P.base() is CC:
+        if P.base_ring() is CC or P.base_ring() is CDF:
             gen_list = list(P.gens())
             parameter = gen_list.pop(gen_list.index(parameter))
             variable = gen_list.pop()
 
-        elif P.base().base() is CC:
+        elif P.base_ring().base_ring() is CC or P.base_ring().base_ring() is CDF:
             parameter = P.gen()
             variable = P.base().gen()
 
         else:
-            raise ValueError
+            raise ValueError("Base ring must be a complex field")
 
         if f == variable**2 + parameter:
             # Quadratic map f = z^2 + c

@@ -2886,7 +2886,7 @@ class FreeModule_generic_pid(FreeModule_generic):
 
         TESTS:
 
-        We check that :trac:24702 is resolved::
+        Check that :trac:`24702` is fixed::
 
         sage: L = FreeQuadraticModule(ZZ,2,matrix.identity(2))
         sage: S1 = L.submodule([(1,0)])
@@ -3063,13 +3063,22 @@ class FreeModule_generic_pid(FreeModule_generic):
             Free module of degree 3 and rank 1 over Integer Ring
             Echelon basis matrix:
             [1 2 6]
+
+        TESTS:
+
+        We check that :trac:`24702` is fixed::
+
+            sage: L = FreeQuadraticModule(ZZ,1,matrix.identity(1))
+            sage: S = 2*L
+            sage: S.saturation().ambient_module() == L
+            True
         """
         R = self.base_ring()
         if R.is_field():
             return self
         try:
             A, _ = self.basis_matrix()._clear_denom()
-            S = A.saturation().row_space()
+            S = self.span(A.saturation())
         except AttributeError:
             # fallback in case _clear_denom isn't written
             V = self.vector_space()

@@ -2884,6 +2884,15 @@ class FreeModule_generic_pid(FreeModule_generic):
             Echelon basis matrix:
             [  0 2/5   0]
 
+        TESTS:
+
+        We check that :trac:24702 is resolved::
+
+        sage: L = FreeQuadraticModule(ZZ,2,matrix.identity(2))
+        sage: S1 = L.submodule([(1,0)])
+        sage: S2 = L.submodule([(0,1)])
+        sage: S1.intersection(S2).ambient_module() == S1.ambient_module()
+        True
         """
         if not isinstance(other, FreeModule_generic):
             raise TypeError("other must be a free module")
@@ -2919,7 +2928,7 @@ class FreeModule_generic_pid(FreeModule_generic):
         n  = int(V1.dimension())
         K = K.matrix_from_columns(range(n))
         B = K*A1
-        return B.row_module(self.base_ring())
+        return self.span(B)
 
     def __and__(self, other):
         r"""

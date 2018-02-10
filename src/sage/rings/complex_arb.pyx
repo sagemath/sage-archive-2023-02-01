@@ -850,6 +850,8 @@ class ComplexBallField(UniqueRepresentation, Field):
             ....:         return -z
             sage: CBF.integral(real_abs, -1, 1)
             [1.00000000000...]
+            sage: CBF.integral(lambda z, analytic: real_abs(z.sin(), analytic), 0, 2*CBF.pi())
+            [4.00000000000...]
 
         Here the integrand has a pole on or very close to the integration path,
         but there is no need to explicitly handle the ``analytic`` flag since
@@ -864,10 +866,14 @@ class ComplexBallField(UniqueRepresentation, Field):
 
         Tolerances::
 
+            sage: CBF.integral(lambda x, _: x.exp(), -1020, -1010)
+            [+/- 2.31e-438]
             sage: CBF.integral(lambda x, _: x.exp(), -1020, -1010, abs_tol=1e-450)
             [2.304377150950e-439 +/- 9.74e-452]
             sage: CBF.integral(lambda x, _: x.exp(), -1020, -1010, abs_tol=0)
             [2.304377150949e-439 +/- 7.53e-452]
+            sage: CBF.integral(lambda x, _: x.exp(), -1020, -1010, rel_tol=1e-4, abs_tol=0)
+            [2.30438e-439 +/- 3.90e-445]
 
             sage: CBF.integral(lambda x, _: x*(1/x).sin(), 0, 1)
             [+/- 0.644]

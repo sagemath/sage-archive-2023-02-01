@@ -2884,6 +2884,15 @@ class FreeModule_generic_pid(FreeModule_generic):
             Echelon basis matrix:
             [  0 2/5   0]
 
+        TESTS:
+
+        Check that :trac:`24702` is fixed::
+
+            sage: L = FreeQuadraticModule(ZZ,2,matrix.identity(2))
+            sage: S1 = L.submodule([(1,0)])
+            sage: S2 = L.submodule([(0,1)])
+            sage: S1.intersection(S2).ambient_module() == S1.ambient_module()
+            True
         """
         if not isinstance(other, FreeModule_generic):
             raise TypeError("other must be a free module")
@@ -2919,7 +2928,7 @@ class FreeModule_generic_pid(FreeModule_generic):
         n  = int(V1.dimension())
         K = K.matrix_from_columns(range(n))
         B = K*A1
-        return self.ambient_module().span(B)
+        return self.span(B)
 
     def __and__(self, other):
         r"""
@@ -3054,13 +3063,22 @@ class FreeModule_generic_pid(FreeModule_generic):
             Free module of degree 3 and rank 1 over Integer Ring
             Echelon basis matrix:
             [1 2 6]
+
+        TESTS:
+
+        We check that :trac:`24702` is fixed::
+
+            sage: L = FreeQuadraticModule(ZZ,1,matrix.identity(1))
+            sage: S = 2*L
+            sage: S.saturation().ambient_module() == L
+            True
         """
         R = self.base_ring()
         if R.is_field():
             return self
         try:
             A, _ = self.basis_matrix()._clear_denom()
-            S = A.saturation().row_space()
+            S = self.span(A.saturation())
         except AttributeError:
             # fallback in case _clear_denom isn't written
             V = self.vector_space()

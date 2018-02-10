@@ -1547,7 +1547,7 @@ class IntegerListsLexIter(object):
         ``self._current_list``. The current algorithm computes,
         for `k = j, j+1, \ldots`, a lower bound `l_k` and an upper
         bound `u_k` for `v_0+\dots+v_k`, and stops if none of the
-        invervals `[l_k, u_k]` intersect ``[min_sum, max_sum]``.
+        intervals `[l_k, u_k]` intersect ``[min_sum, max_sum]``.
 
         The lower bound `l_k` is given by the area below
         `v_0,\dots,v_{j-1}` prolongated by the lower envelope

@@ -294,7 +294,7 @@ class OpenInterval(DifferentiableManifold):
                  name=None, latex_name=None,
                  coordinate=None, names=None, start_index=0):
         r"""
-        Construct an open inverval.
+        Construct an open interval.
 
         TESTS::
 

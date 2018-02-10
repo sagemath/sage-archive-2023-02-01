@@ -37,6 +37,8 @@ from sage.rings.finite_rings.finite_field_givaro import FiniteField_givaro
 from sage.rings.finite_rings.finite_field_ntl_gf2e import FiniteField_ntl_gf2e
 from sage.libs.pari.all import pari
 from sage.libs.gmp.all cimport *
+from sage.cpython.string import FS_ENCODING
+from sage.cpython.string cimport str_to_bytes
 
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular
 
@@ -774,7 +776,9 @@ cdef init_libsingular():
     if not os.path.exists(lib):
         raise ImportError("cannot locate Singular library ({})".format(lib))
 
-    handle = dlopen(lib, RTLD_GLOBAL|RTLD_LAZY)   
+    lib = str_to_bytes(lib, FS_ENCODING, "surrogateescape")
+
+    handle = dlopen(lib, RTLD_GLOBAL|RTLD_LAZY)
     if not handle:
         err = dlerror()
         raise ImportError("cannot load Singular library ({})".format(err))

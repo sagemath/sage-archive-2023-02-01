@@ -15,6 +15,11 @@ Two important subcases are
 - *Lorentzian manifold*: the metric `g` has signature `n-2` (positive
   convention) or `2-n` (negative convention).
 
+On a pseudo-Riemannian manifold, one may use various standard
+:mod:`~sage.manifolds.differentiable.operators` acting on scalar and tensor
+fields, like :func:`~sage.manifolds.differentiable.operators.grad` or
+:func:`~sage.manifolds.differentiable.operators.div`.
+
 All pseudo-Riemannian manifolds are implemented via the class
 :class:`PseudoRiemannianManifold`.
 
@@ -98,7 +103,7 @@ Let us consider a scalar field `f` on `S^2`::
 
 The gradient of `f` (with respect to the metric `g`) is::
 
-    sage: gradf = f.grad()
+    sage: gradf = grad(f)
     sage: gradf
     Vector field grad(f) on the 2-dimensional Riemannian manifold S^2
     sage: gradf.display(eU)
@@ -108,7 +113,7 @@ The gradient of `f` (with respect to the metric `g`) is::
 
 The Laplacian of `f`  (with respect to the metric `g`) is::
 
-    sage: Df = f.laplacian()
+    sage: Df = laplacian(f)
     sage: Df
     Scalar field Delta(f) on the 2-dimensional Riemannian manifold S^2
     sage: Df.display()
@@ -119,7 +124,7 @@ The Laplacian of `f`  (with respect to the metric `g`) is::
 Let us check the standard formula
 `\Delta f = \mathrm{div}( \mathrm{grad}\,  f )`::
 
-    sage: Df == f.grad().div()
+    sage: Df == div(gradf)
     True
 
 Since each open subset of `S^2` inherits the structure of a Riemannian

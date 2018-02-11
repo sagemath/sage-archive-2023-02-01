@@ -1047,6 +1047,9 @@ class VectorField(MultivectorField):
             0
 
         """
+        if self._domain.dim() < 3:
+            raise ValueError("the curl is not defined in dimension lower " +
+                             "than 3")
         default_metric = metric is None
         if default_metric:
             metric = self._domain.metric()
@@ -1066,7 +1069,7 @@ class VectorField(MultivectorField):
                 restrict.set_name(resu._name, latex_name=resu._latex_name)
         return resu
 
-    def dot(self, other, metric=None):
+    def dot_product(self, other, metric=None):
         r"""
         Return the scalar product of ``self`` with another vector field (with
         respect to a given metric).
@@ -1108,23 +1111,28 @@ class VectorField(MultivectorField):
             sage: u[:] = x, y
             sage: v = M.vector_field(name='v')
             sage: v[:] = y, x
-            sage: s = u.dot(v); s
+            sage: s = u.dot_product(v); s
             Scalar field u.v on the 2-dimensional Riemannian manifold M
             sage: s.display()
             u.v: M --> R
                (x, y) |--> 2*x*y
 
+        A shortcut alias of ``dot_product`` is ``dot``::
+
+            sage: u.dot(v) == s
+            True
+
         A test of orthogonality::
 
             sage: v[:] = -y, x
-            sage: u.dot(v) == 0
+            sage: u.dot_product(v) == 0
             True
 
         Scalar product with respect to a metric that is not the default one::
 
             sage: h = M.riemannian_metric('h')
             sage: h[0,0], h[1,1] = 1/(1+y^2), 1/(1+x^2)
-            sage: s = u.dot(v, metric=h); s
+            sage: s = u.dot_product(v, metric=h); s
             Scalar field h(u,v) on the 2-dimensional Riemannian manifold M
             sage: s.display()
             h(u,v): M --> R
@@ -1148,21 +1156,22 @@ class VectorField(MultivectorField):
                 restrict.set_name(resu._name, latex_name=resu._latex_name)
         return resu
 
+    dot = dot_product
 
     def norm(self, metric=None):
         r"""
         Return the norm of ``self`` (with respect to a given metric).
 
-        The *norm* of a vector field `u` with respect to a given
-        pseudo-Riemannian metric `g` is the scalar field `\|u\|` defined by
+        The *norm* of a vector field `v` with respect to a given
+        pseudo-Riemannian metric `g` is the scalar field `\|v\|` defined by
 
         .. MATH::
 
-            \|u\| = \sqrt{g(u,u)}
+            \|v\| = \sqrt{g(v,v)}
 
         .. NOTE::
 
-            If the metric `g` is not positive definite, it may be that `\|u\|`
+            If the metric `g` is not positive definite, it may be that `\|v\|`
             takes imaginary values.
 
         INPUT:
@@ -1182,7 +1191,6 @@ class VectorField(MultivectorField):
           representing the norm of ``self``.
 
         EXAMPLES:
-
 
         Norm in the Euclidean plane::
 
@@ -1233,7 +1241,7 @@ class VectorField(MultivectorField):
                 restrict.set_name(resu._name, latex_name=resu._latex_name)
         return resu
 
-    def cross(self, other, metric=None):
+    def cross_product(self, other, metric=None):
         r"""
         Return the cross product of ``self`` with another vector field (with
         respect to a given metric),  assuming that the domain of ``self`` is
@@ -1255,7 +1263,7 @@ class VectorField(MultivectorField):
 
         .. NOTE::
 
-            The method ``cross`` is meaningful only if for vector fields on a
+            The method ``cross_product`` is meaningful only if for vector fields on a
             3-dimensional manifold.
 
         INPUT:
@@ -1286,26 +1294,34 @@ class VectorField(MultivectorField):
             sage: u[:] = -y, x, 0
             sage: v = M.vector_field(name='v')
             sage: v[:] = x, y, 0
-            sage: w = u.cross(v); w
+            sage: w = u.cross_product(v); w
             Vector field u x v on the 3-dimensional Riemannian manifold M
             sage: w.display()
             u x v = (-x^2 - y^2) d/dz
 
+        A shortcut alias of ``cross_product`` is ``cross``::
+
+            sage: u.cross(v) == w
+            True
+
         The cross product of a vector field with itself is zero::
 
-            sage: u.cross(u).display()
+            sage: u.cross_product(u).display()
             u x u = 0
 
         Cross product with respect to a metric that is not the default one::
 
             sage: h = M.riemannian_metric('h')
             sage: h[0,0], h[1,1], h[2,2] = 1/(1+y^2), 1/(1+z^2), 1/(1+x^2)
-            sage: w = u.cross(v, metric=h); w
+            sage: w = u.cross_product(v, metric=h); w
             Vector field on the 3-dimensional Riemannian manifold M
             sage: w.display()
             -(x^2 + y^2)*sqrt(x^2 + 1)/(sqrt(y^2 + 1)*sqrt(z^2 + 1)) d/dz
 
         """
+        if self._domain.dim() != 3:
+            raise ValueError("the cross product is not defined in dimension " +
+                             "different from 3")
         default_metric = metric is None
         if default_metric:
             metric = self._domain.metric()
@@ -1321,6 +1337,8 @@ class VectorField(MultivectorField):
             for restrict in resu._restrictions.values():
                 restrict.set_name(resu._name, latex_name=resu._latex_name)
         return resu
+
+    cross = cross_product
 
 #******************************************************************************
 

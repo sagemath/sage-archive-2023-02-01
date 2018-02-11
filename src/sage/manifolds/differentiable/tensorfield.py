@@ -3382,8 +3382,8 @@ class TensorField(ModuleElement):
         .. MATH::
 
             (\mathrm{div}\, t)^{a_1\ldots a_{k-1}} =
-                \nabla_i t^{a_1\ldots a_{k-1}\, i} =
-                (\nabla t)^{a_1\ldots a_{k-1}\, i}_{\phantom{a_1\ldots a_{k-1}\, i}\, i}
+                \nabla_i t^{a_1\ldots a_{k-1} i} =
+                (\nabla t)^{a_1\ldots a_{k-1} i}_{\phantom{a_1\ldots a_{k-1} i}\, i}
 
         where `\nabla` is the Levi-Civita connection of `g` (cf.
         :class:`~sage.manifolds.differentiable.levi_civita_connection.LeviCivitaConnection`).
@@ -3395,8 +3395,8 @@ class TensorField(ModuleElement):
         .. MATH::
 
           (\mathrm{div}\, t)^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\, b_1\ldots b_{l-1}}
-          = \nabla_i (g^{ij} t^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\, b_1\ldots b_{l-1}\, j})
-          = (\nabla t^\sharp)^{a_1\ldots a_k\, i}_{\phantom{a_1\ldots a_k\, i}\,  b_1\ldots b_{l-1}\, i}
+          = \nabla_i (g^{ij} t^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\, b_1\ldots b_{l-1} j})
+          = (\nabla t^\sharp)^{a_1\ldots a_k i}_{\phantom{a_1\ldots a_k i}\, b_1\ldots b_{l-1} i}
 
         where `t^\sharp` is the tensor field deduced from `t` by raising the
         last index with the metric `g` (see :meth:`up`).

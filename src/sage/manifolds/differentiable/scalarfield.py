@@ -1172,7 +1172,7 @@ class DiffScalarField(ScalarField):
 
         EXAMPLES:
 
-        Laplacian of a scalar field in the Euclidean plane::
+        Laplacian of a scalar field on the Euclidean plane::
 
             sage: M = Manifold(2, 'M', structure='Riemannian')
             sage: X.<x,y> = M.chart()

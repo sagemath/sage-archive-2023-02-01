@@ -710,7 +710,8 @@ cdef class RealField_class(sage.rings.ring.Field):
 
             sage: 1.0 - ZZ(1) - int(1) - long(1) - QQ(1) - RealField(100)(1) - AA(1) - RLF(1)
             -6.00000000000000
-            sage: RR['x'].get_action(ZZ)
+            sage: R = RR['x']   # Hold reference to avoid garbage collection, see Trac #24709
+            sage: R.get_action(ZZ)
             Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Real Field with 53 bits of precision
         """
         if S is ZZ:

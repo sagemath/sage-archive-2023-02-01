@@ -6803,7 +6803,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             if A_jumps != B_jumps:
                 if certificate:
                     if A_jumps > B_jumps:
-                        tmp = A; A = B; B = tmp
+                        A, B = B, A
                     return (False,
                             (self.linear_extension([self[v] for v in A]),
                              self.linear_extension([self[v] for v in B])))

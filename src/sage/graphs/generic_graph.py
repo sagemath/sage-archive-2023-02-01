@@ -7298,7 +7298,9 @@ class GenericGraph(GenericGraph_pyx):
             return path if path[1].order() == self.order() else (0, None)
         return path if path.order() == self.order() else None
 
-    def traveling_salesman_problem(self, use_edge_labels = False, solver = None, constraint_generation = None, verbose = 0, verbose_constraints = False):
+    def traveling_salesman_problem(self, use_edge_labels=False, maximize=False,
+                                       solver=None, constraint_generation=None,
+                                       verbose=0, verbose_constraints=False):
         r"""
         Solves the traveling salesman problem (TSP)
 
@@ -7320,6 +7322,11 @@ class GenericGraph(GenericGraph_pyx):
               - If set to ``True``, the weights are taken into account, and the
                 circuit returned is the one minimizing the sum of the weights
                 (an edge with no label is assumed to have weight `1`).
+
+        - ``maximize`` -- boolean (default: ``False``). When set to ``True``
+          search for a Hamiltonian cycle (res. circuit) of maximum weight
+          instead of minimum weight. This paramter is used only when
+          ``use_edge_labels`` is ``True``.
 
         - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
           solver to be used. If set to ``None``, the default one is used. For
@@ -7416,6 +7423,16 @@ class GenericGraph(GenericGraph_pyx):
             sage: tsp = g.traveling_salesman_problem(use_edge_labels = True)
             sage: sum( tsp.edge_labels() ) == (1/2)*10
             True
+
+        Search for a minimum and a maximum weight Hamiltonian cycle::
+
+            sage: G = Graph([(0, 1, 1), (0, 2, 2), (0, 3, 1), (1, 2, 1), (1, 3, 2), (2, 3, 1)])
+            sage: tsp = G.traveling_salesman_problem(use_edge_labels=True, maximize=False)
+            sage: print(sum(tsp.edge_labels()))
+            4
+            sage: tsp = G.traveling_salesman_problem(use_edge_labels=True, maximize=True)
+            sage: print(sum(tsp.edge_labels()))
+            6
 
         TESTS:
 
@@ -7518,7 +7535,15 @@ class GenericGraph(GenericGraph_pyx):
         """
         from sage.categories.sets_cat import EmptySetError
 
-        weight = lambda l : 1 if l is None else l
+        # Associating a weight to a label
+        if use_edge_labels:
+            M = 1
+            L = [l for l in self.edge_labels() if l is not None]
+            if L:
+                M = min(L) if maximize else max(L)
+            weight = lambda l: M if l is None else l
+        else:
+            weight = lambda l: 1
 
         ########################
         # 0 or 1 vertex graphs #
@@ -7536,8 +7561,12 @@ class GenericGraph(GenericGraph_pyx):
             if self.is_directed():
                 if self.has_edge(u,v) and self.has_edge(v,u):
                     if self.has_multiple_edges():
-                        edges = [(u,v,min(self.edge_label(u,v), key=weight)),
-                                 (v,u,min(self.edge_label(v,u), key=weight))]
+                        if maximize:
+                            edges = [(u,v,max(self.edge_label(u,v), key=weight)),
+                                    (v,u,max(self.edge_label(v,u), key=weight))]
+                        else:
+                            edges = [(u,v,min(self.edge_label(u,v), key=weight)),
+                                    (v,u,min(self.edge_label(v,u), key=weight))]
                     else:
                         edges = [(u,v,self.edge_label(u,v)),
                                  (v,u,self.edge_label(v,u))]
@@ -7578,37 +7607,16 @@ class GenericGraph(GenericGraph_pyx):
             if not self.strong_orientation().is_strongly_connected():
                 raise EmptySetError("the given graph is not Hamiltonian")
 
-        ############################
-        # Deal with multiple edges #
-        ############################
+        ######################################
+        # Deal with loops and multiple edges #
+        ######################################
 
         if self.has_loops() or self.has_multiple_edges():
-            g = copy(self)
+            keep_label = 'max' if (use_edge_labels and maximize) else 'min'
+            g = self.to_simple(to_undirected=False, keep_label=keep_label, immutable=False)
         else:
             g = self
 
-        if g.has_multiple_edges():
-            multi = g.multiple_edges()
-            g.delete_edges(multi)
-            g.allow_multiple_edges(False)
-            if use_edge_labels:
-                e = {}
-
-                # The weight of an edge is the minimum over the weights of the parallel edges
-                for u,v,l in multi:
-                    if (u,v) in e:
-                        e[u,v] = weight(l) if weight(l) < e[u,v] else e[u,v]
-                    else:
-                        e[u,v] = l
-
-                g.add_edges([(u,v) for (u,v),l in iteritems(e)])
-
-            else:
-                g.add_edges(multi)
-
-        if g.has_loops():
-            g.remove_loops()
-            g.allow_loops(False)
 
         if constraint_generation is None:
             if g.density() > .7:
@@ -7625,10 +7633,9 @@ class GenericGraph(GenericGraph_pyx):
 
         if constraint_generation:
 
-            p = MixedIntegerLinearProgram(maximization = False,
-                                          solver = solver,
-                                          constraint_generation = True)
-
+            p = MixedIntegerLinearProgram(maximization=maximize,
+                                          solver=solver,
+                                          constraint_generation=True)
 
             # Directed Case #
             #################
@@ -7640,14 +7647,14 @@ class GenericGraph(GenericGraph_pyx):
                 # Objective function
                 if use_edge_labels:
                     p.set_objective(p.sum([ weight(l)*b[u,v]
-                                          for u,v,l in g.edges()]))
+                                          for u,v,l in g.edge_iterator()]))
 
                 # All the vertices have in-degree 1 and out-degree 1
                 for v in g:
-                    p.add_constraint(p.sum([b[u,v] for u in g.neighbors_in(v)]),
+                    p.add_constraint(p.sum([b[u,v] for u in g.neighbor_in_iterator(v)]),
                                      min = 1,
                                      max = 1)
-                    p.add_constraint(p.sum([b[v,u] for u in g.neighbors_out(v)]),
+                    p.add_constraint(p.sum([b[v,u] for u in g.neighbor_out_iterator(v)]),
                                      min = 1,
                                      max = 1)
 
@@ -7660,7 +7667,7 @@ class GenericGraph(GenericGraph_pyx):
                 while True:
                     # We build the DiGraph representing the current solution
                     h = DiGraph()
-                    for u,v,l in g.edges():
+                    for u,v,l in g.edge_iterator():
                         if p.get_values(b[u,v]) == 1:
                             h.add_edge(u,v,l)
 
@@ -7692,12 +7699,11 @@ class GenericGraph(GenericGraph_pyx):
 
                 # Objective function
                 if use_edge_labels:
-                    p.set_objective(p.sum([ weight(l)*B(u,v)
-                                          for u,v,l in g.edges()]) )
+                    p.set_objective(p.sum( weight(l)*B(u,v) for u,v,l in g.edge_iterator()) )
 
                 # All the vertices have degree 2
                 for v in g:
-                    p.add_constraint(p.sum([ B(u,v) for u in g.neighbors(v)]),
+                    p.add_constraint(p.sum( B(u,v) for u in g.neighbor_iterator(v)),
                                      min = 2,
                                      max = 2)
 
@@ -7710,7 +7716,7 @@ class GenericGraph(GenericGraph_pyx):
                 while True:
                     # We build the DiGraph representing the current solution
                     h = Graph()
-                    for u,v,l in g.edges():
+                    for u,v,l in g.edge_iterator():
                         if p.get_values(B(u,v)) == 1:
                             h.add_edge(u,v,l)
 
@@ -7744,7 +7750,7 @@ class GenericGraph(GenericGraph_pyx):
         # ILP formulation without constraint generation #
         #################################################
 
-        p = MixedIntegerLinearProgram(maximization = False, solver = solver)
+        p = MixedIntegerLinearProgram(maximization=maximize, solver=solver)
 
         f = p.new_variable(binary=True)
         r = p.new_variable(nonnegative=True)
@@ -7760,11 +7766,11 @@ class GenericGraph(GenericGraph_pyx):
 
             # All the vertices have in-degree 1 and out-degree 1
             for v in g:
-                p.add_constraint(p.sum([ f[(u,v)] for u in g.neighbors_in(v)]),
+                p.add_constraint(p.sum(f[(u,v)] for u in g.neighbor_in_iterator(v)),
                                  min = 1,
                                  max = 1)
 
-                p.add_constraint(p.sum([ f[(v,u)] for u in g.neighbors_out(v)]),
+                p.add_constraint(p.sum(f[(v,u)] for u in g.neighbor_out_iterator(v)),
                                  min = 1,
                                  max = 1)
 
@@ -7793,12 +7799,12 @@ class GenericGraph(GenericGraph_pyx):
 
             # All the vertices have degree 2
             for v in g:
-                p.add_constraint(p.sum([ E(u,v) for u in g.neighbors(v)]),
+                p.add_constraint(p.sum( E(u,v) for u in g.neighbor_iterator(v)),
                                  min = 2,
                                  max = 2)
 
             # r is greater than f
-            for u,v in g.edges(labels = None):
+            for u,v in g.edge_iterator(labels = None):
                 p.add_constraint( r[(u,v)] + r[(v,u)] - E(u,v), min = 0)
 
             from sage.graphs.all import Graph
@@ -7809,20 +7815,18 @@ class GenericGraph(GenericGraph_pyx):
         # no cycle which does not contain x
         for v in g:
             if v != x:
-                p.add_constraint(p.sum([ r[(u,v)] for u in g.neighbors(v)]),max = 1-eps)
+                p.add_constraint(p.sum( r[(u,v)] for u in g.neighbor_iterator(v)),max = 1-eps)
 
         if use_edge_labels:
-            p.set_objective(p.sum([ weight(l)*E(u,v) for u,v,l in g.edges()]) )
-        else:
-            p.set_objective(None)
+            p.set_objective(p.sum( weight(l)*E(u,v) for u,v,l in g.edge_iterator()) )
 
         try:
-            obj = p.solve(log = verbose)
+            obj = p.solve(log=verbose)
             f = p.get_values(f)
             tsp.add_vertices(g.vertices())
             tsp.set_pos(g.get_pos())
             tsp.name("TSP from "+g.name())
-            tsp.add_edges([(u,v,l) for u,v,l in g.edges() if E(u,v) == 1])
+            tsp.add_edges([(u,v,l) for u,v,l in g.edge_iterator() if E(u,v) == 1])
 
             return tsp
 

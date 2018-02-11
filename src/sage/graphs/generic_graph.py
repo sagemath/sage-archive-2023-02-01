@@ -7399,7 +7399,7 @@ class GenericGraph(GenericGraph_pyx):
         #
         # We now search for an Hamiltonian Cycle in g
         #
-        from sage.categories.sets_cat import EmptySetError        
+        from sage.categories.sets_cat import EmptySetError
         try:
             tsp = g.traveling_salesman_problem(use_edge_labels=use_edge_labels,
                                                    maximize=maximize,

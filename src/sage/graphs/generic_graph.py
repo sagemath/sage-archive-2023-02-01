@@ -7183,7 +7183,7 @@ class GenericGraph(GenericGraph_pyx):
             return g
 
     def hamiltonian_path(self, s=None, t=None, use_edge_labels=False,
-                         algorithm='MILP', solver=None, verbose=0):
+                         maximize=False, algorithm='MILP', solver=None, verbose=0):
         r"""
         Return a Hamiltonian path of the current graph/digraph.
 
@@ -7191,8 +7191,9 @@ class GenericGraph(GenericGraph_pyx):
         once. Computing a Hamiltonian path being NP-Complete, this
         algorithm could run for some time depending on the instance.
 
-        When ``use_edge_labels == True``, this method returns a minimum
-        weight hamiltonian path.
+        When ``use_edge_labels == True``, this method returns either a minimum
+        weight hamiltonian path or a maximum weight Hamiltonian path (if
+        ``maximize == True``).
 
         .. SEEALSO::
 
@@ -7212,6 +7213,11 @@ class GenericGraph(GenericGraph_pyx):
         - ``use_edge_labels`` -- boolean (default: ``False``); whether the
           labels on the edges are to be considered as weights (a label set
           to ``None`` or ``{}`` being considered as a weight of `1`)
+
+        - ``maximize`` -- boolean (default: ``False``); whether to compute a
+          minimum (default) of a maximum (when ``maximize == True``) weight
+          hamiltonian path. This parameter is considered only if
+          ``use_edge_labels == True``.
 
         - ``algorithm`` -- one of ``"MILP"`` (default) or ``"backtrack"``;
           two remarks on this respect:
@@ -7246,11 +7252,11 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = graphs.Grid2dGraph(3, 3)
             sage: g.hamiltonian_path()
-            Subgraph of (2D Grid Graph for [3, 3]): Graph on 9 vertices
+            Hamiltonian path from 2D Grid Graph for [3, 3]: Graph on 9 vertices
             sage: g.hamiltonian_path(s=(0,0), t=(2,2))
-            Subgraph of (2D Grid Graph for [3, 3]): Graph on 9 vertices
+            Hamiltonian path from 2D Grid Graph for [3, 3]: Graph on 9 vertices
             sage: g.hamiltonian_path(s=(0,0), t=(2,2), use_edge_labels=True)
-            (8, Subgraph of (2D Grid Graph for [3, 3]): Graph on 9 vertices)
+            (8, Hamiltonian path from 2D Grid Graph for [3, 3]: Graph on 9 vertices)
             sage: g.hamiltonian_path(s=(0,0), t=(0,1)) is None
             True
             sage: g.hamiltonian_path(s=(0,0), t=(0,1), use_edge_labels=True)
@@ -7283,6 +7289,14 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = DiGraph(2)
             sage: g.hamiltonian_path() is None
             True
+
+        Asking for a minimum (resp., maximum) weight Hamiltonian path::
+
+            sage: G = Graph([(0, 1, 1), (0, 2, 2), (0, 3, 1), (1, 2, 1), (1, 3, 2), (2, 3, 1)])
+            sage: print(G.hamiltonian_path(s=0, t=1, use_edge_labels=True, maximize=False)[0])
+            3
+            sage: print(G.hamiltonian_path(s=0, t=1, use_edge_labels=True, maximize=True)[0])
+            5
         """
         if self.order() < 2:
             raise ValueError('the Hamiltonian path problem is not well ' +
@@ -7291,12 +7305,113 @@ class GenericGraph(GenericGraph_pyx):
         if not self.is_connected():
             return (0, None) if use_edge_labels else None
 
-        path = self.longest_path(s=s, t=t, use_edge_labels=use_edge_labels,
-                                 algorithm=algorithm, solver=solver,
-                                 verbose=verbose)
-        if use_edge_labels:
-            return path if path[1].order() == self.order() else (0, None)
-        return path if path.order() == self.order() else None
+        #
+        # Deal with loops and multiple edges
+        #
+        if self.has_loops() or self.has_multiple_edges():
+            keep_label = 'max' if (use_edge_label and maximize) else 'min'
+            g = self.to_simple(to_undirected=False, keep_label=keep_label, immutable=False)
+        else:
+            g = copy(self)
+
+
+        new_s, new_t = s, t
+        if g.is_directed():
+            #
+            # Deal with vertices with no in|out-neighbors
+            #
+            zeros = [u for u in g if g.in_degree(u)==0]
+            if len(zeros) > 1:
+                return (0, None) if use_edge_labels else None
+            elif len(zeros) == 1:
+                if new_s is None:
+                    new_s = zeros.pop()
+                elif not new_s in zeros:
+                    return (0, None) if use_edge_labels else None
+
+            zeros = [u for u in g if g.out_degree(u)==0]
+            if len(zeros) > 1:
+                return (0, None) if use_edge_labels else None
+            elif len(zeros) == 1:
+                if new_t is None:
+                    new_t = zeros.pop()
+                elif not new_t in zeros:
+                    return (0, None) if use_edge_labels else None
+
+        else:
+            #
+            # Deal with vertices of degree one
+            #
+            ones = [u for u in g if g.degree(u)==1]
+            if len(ones) > 2:
+                return (0, None) if use_edge_labels else None
+
+            elif len(ones) == 2:
+                if not new_s is None and not new_s in ones:
+                    return (0, None) if use_edge_labels else None
+                if not new_t is None and not new_t in ones:
+                    return (0, None) if use_edge_labels else None
+
+                # Set new_s and new_t if possible
+                if new_s is None and new_t is None:
+                    new_s,new_t = ones
+                elif not new_s is None and new_t is None:
+                    new_t = ones[1] if new_s == ones[0] else ones[0]
+                elif new_s is None and not new_t is None:
+                    new_s = ones[1] if new_t == ones[0] else ones[0]
+
+            elif len(ones) == 1:
+                if not new_s is None and not new_t is None and not (new_s in ones or new_t in ones):
+                    return (0, None) if use_edge_labels else None
+                elif new_s is None and (new_t is None or (not new_t is None and not new_t in ones)):
+                    new_s = ones.pop()
+                elif new_t is None and not new_s is None and not new_s in ones:
+                    new_t = ones.pop()
+
+
+        if not use_edge_labels and algorithm == "backtrack":
+            path = g.longest_path(s=new_s, t=new_t, algorithm="backtrack")
+            return path if path.order() == g.order() else None
+
+
+        # We modify the graph to search for a Hamiltonian Cycle starting from
+        # new_s (if determined) and ending at new_t (if determined)
+        extra_vertices = []
+        if new_s is None:
+            new_s = g.add_vertex()
+            extra_vertices.append(new_s)
+            for u in self: # in original set of vertices
+                g.add_edge(new_s, u, 0)
+
+        if new_t is None:
+            new_t = g.add_vertex()
+            extra_vertices.append(new_t)
+            for u in self:
+                g.add_edge(u, new_t, 0)
+
+        # We force the Hamiltonian cycle to visit new_s right after new_t by
+        # inserting an intermediate vertex
+        v = g.add_vertex()
+        extra_vertices.append(v)
+        g.add_edge(new_t, v, 0)
+        g.add_edge(v, new_s, 0)
+
+        #
+        # We now search for an Hamiltonian Cycle in g
+        #
+        from sage.categories.sets_cat import EmptySetError        
+        try:
+            tsp = g.traveling_salesman_problem(use_edge_labels=use_edge_labels,
+                                                   maximize=maximize,
+                                                   solver=solver, verbose=verbose)
+        except EmptySetError:
+            return (0, None) if use_edge_labels else None
+
+        tsp.delete_vertices(extra_vertices)
+        tsp.name("Hamiltonian path from {}".format(self.name()))
+        weight = lambda l: 1 if l is None else l
+        return (sum(map(weight,tsp.edge_labels())), tsp) if use_edge_labels else tsp
+
 
     def traveling_salesman_problem(self, use_edge_labels=False, maximize=False,
                                        solver=None, constraint_generation=None,
@@ -7537,11 +7652,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # Associating a weight to a label
         if use_edge_labels:
-            M = 1
-            L = [l for l in self.edge_labels() if l is not None]
-            if L:
-                M = min(L) if maximize else max(L)
-            weight = lambda l: M if l is None else l
+            weight = lambda l: 1 if l is None else l
         else:
             weight = lambda l: 1
 

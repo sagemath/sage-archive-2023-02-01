@@ -1406,15 +1406,15 @@ def structure_description(G, latex=False):
         'A8'
     """
     import re
-    from sage.misc.package import is_package_installed, PackageNotFoundError
     def correct_dihedral_degree(match):
         return "%sD%d" % (match.group(1), int(match.group(2))/2)
 
     try:
         description = str(G._gap_().StructureDescription())
     except RuntimeError:
-        if not is_package_installed('database_gap'):
-            raise PackageNotFoundError("database_gap")
+        from sage.misc.feature_test import SmallGroupsLibrary
+        SmallGroupsLibrary().require()
+        # the Small Groups Library is installed. The command failed for a different reason
         raise
 
     description = re.sub(r"(\A|\W)D(\d+)", correct_dihedral_degree, description)

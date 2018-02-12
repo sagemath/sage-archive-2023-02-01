@@ -49,7 +49,6 @@ cdef extern from "bliss/graph.hh" namespace "bliss":
                     const unsigned int*), void*)
 
     cdef cppclass Digraph(AbstractGraph):
-
         Digraph(const unsigned int)
         void add_edge(const unsigned int, const unsigned int)
         void find_automorphisms(Stats&, void (*)(void* , unsigned int,

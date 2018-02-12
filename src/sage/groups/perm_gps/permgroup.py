@@ -145,7 +145,6 @@ from sage.groups.perm_gps.permgroup_element import PermutationGroupElement, stan
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.misc.cachefunc import cached_method
 from sage.groups.class_function import ClassFunction
-from sage.misc.package import is_package_installed, PackageNotFoundError
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.categories.all import FiniteEnumeratedSets
 from sage.groups.conjugacy_classes import ConjugacyClassGAP
@@ -154,18 +153,16 @@ from sage.structure.richcmp import (richcmp_method, richcmp_not_equal,
 
 
 def load_hap():
-    """
-    Load the GAP hap package into the default GAP interpreter
-    interface. If this fails, try one more time to load it.
+    r"""
+    Load the GAP hap package into the default GAP interpreter interface.
 
     EXAMPLES::
 
         sage: sage.groups.perm_gps.permgroup.load_hap() # optional - gap_packages
     """
-    try:
-        gap.load_package("hap")
-    except Exception:
-        gap.load_package("hap")
+    from sage.misc.feature_test import GapPackage
+    GapPackage("hap", spkg="gap_packages").require()
+    gap.load_package("hap")
 
 def hap_decorator(f):
     """
@@ -191,8 +188,6 @@ def hap_decorator(f):
     """
     @wraps(f)
     def wrapped(self, n, p=0):
-        if not is_package_installed('gap_packages'):
-            raise PackageNotFoundError("gap_packages")
         load_hap()
         from sage.arith.all import is_prime
         if not (p == 0 or is_prime(p)):
@@ -1727,8 +1722,10 @@ class PermutationGroup_generic(group.FiniteGroup):
         try:
             return [Integer(n) for n in self._gap_().IdGroup()]
         except RuntimeError:
-            if not is_package_installed('database_gap'):
-                raise PackageNotFoundError("database_gap")
+            from sage.misc.feature_test import SmallGroupsLibrary
+            SmallGroupsLibrary().require()
+            # if the small groups library is installed, then something else caused
+            # the call to fail - reraise the original exception
             raise
 
     def id(self):
@@ -1780,8 +1777,10 @@ class PermutationGroup_generic(group.FiniteGroup):
         try:
             return Integer(self._gap_().PrimitiveIdentification())
         except RuntimeError:
-            if not is_package_installed('database_gap'):
-                raise PackageNotFoundError("database_gap")
+            from sage.misc.feature_test import SmallGroupsLibrary
+            SmallGroupsLibrary().require()
+            # if the small groups library is installed, then something else caused
+            # the call to fail - reraise the original exception
             raise
 
     def center(self):
@@ -4154,8 +4153,6 @@ class PermutationGroup_generic(group.FiniteGroup):
         - David Joyner and Graham Ellis
 
         """
-        if not is_package_installed('gap_packages'):
-            raise PackageNotFoundError("gap_packages")
         load_hap()
         from sage.arith.all import is_prime
         if not (p == 0 or is_prime(p)):

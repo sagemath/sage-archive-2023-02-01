@@ -2753,34 +2753,79 @@ cdef class ComplexBall(RingElement):
             -1024.000000000000
             sage: CBF(1,1) ^ -1r
             0.5000000000000000 - 0.5000000000000000*I
+            sage: CBF(2)**SR.var('x')
+            2.000000000000000^x
+        """
+        if (isinstance(base, ComplexBall)
+                # explicit whitelist due to difference in semantics:
+                # ball**non_ball may need to coerce both its arguments
+                and isinstance(expo, (int, Integer, RealBall, ComplexBall))):
+            return (<ComplexBall> base).pow(expo)
+        else:
+            return sage.structure.element.bin_op(base, expo, operator.pow)
 
+    cpdef pow(self, expo, analytic=False):
+        r"""
+        Raise this ball to the power of ``expo``.
+
+        INPUT:
+
+        - ``analytic`` (optional, boolean) -- if ``True``, return an
+          indeterminate (not-a-number) value when the exponent is not an
+          integer and the base ball touches the branch cut of the logarithm
+
+        EXAMPLES::
+
+            sage: CBF(-1).pow(CBF(i))
+            [0.0432139182637723 +/- 7.52e-17]
+            sage: CBF(-1).pow(CBF(i), analytic=True)
+            nan + nan*I
+            sage: CBF(-10).pow(-2)
+            [0.0100000000000000 +/- 7.78e-18]
+            sage: CBF(-10).pow(-2, analytic=True)
+            [0.0100000000000000 +/- 7.78e-18]
+
+        TESTS::
+
+            sage: CBF(2).pow(SR.var('x'))
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Symbolic Ring to Complex ball
+            field with 53 bits of precision
         """
         cdef fmpz_t tmpz
-        if not isinstance(base, ComplexBall):
-            return sage.structure.element.bin_op(base, expo, operator.pow)
-        cdef ComplexBall self = base
         cdef ComplexBall res = self._new()
         if isinstance(expo, int):
             if _do_sig(prec(self)): sig_on()
             acb_pow_si(res.value, self.value, PyInt_AS_LONG(expo), prec(self))
             if _do_sig(prec(self)): sig_off()
-        elif isinstance(expo, sage.rings.integer.Integer):
+        elif isinstance(expo, Integer):
             if _do_sig(prec(self)): sig_on()
             fmpz_init(tmpz)
-            fmpz_set_mpz(tmpz, (<sage.rings.integer.Integer> expo).value)
+            fmpz_set_mpz(tmpz, (<Integer> expo).value)
             acb_pow_fmpz(res.value, self.value, tmpz, prec(self))
             fmpz_clear(tmpz)
             if _do_sig(prec(self)): sig_off()
-        elif isinstance(expo, ComplexBall):
-            if _do_sig(prec(self)): sig_on()
-            acb_pow(res.value, self.value, (<ComplexBall> expo).value, prec(self))
-            if _do_sig(prec(self)): sig_off()
         elif isinstance(expo, RealBall):
-            if _do_sig(prec(self)): sig_on()
-            acb_pow_arb(res.value, self.value, (<RealBall> expo).value, prec(self))
-            if _do_sig(prec(self)): sig_off()
+            if (analytic and not arb_is_int((<RealBall> expo).value)
+                    and arb_contains_zero(acb_imagref(self.value))
+                    and arb_contains_nonpositive(acb_realref(self.value))):
+                acb_indeterminate(res.value)
+            else:
+                if _do_sig(prec(self)): sig_on()
+                acb_pow_arb(res.value, self.value, (<RealBall> expo).value, prec(self))
+                if _do_sig(prec(self)): sig_off()
         else:
-            return sage.structure.element.bin_op(base, expo, operator.pow)
+            if not isinstance(expo, ComplexBall):
+                expo = self._parent.coerce(expo)
+            if (analytic and not acb_is_int((<ComplexBall> expo).value)
+                    and arb_contains_zero(acb_imagref(self.value))
+                    and arb_contains_nonpositive(acb_realref(self.value))):
+                acb_indeterminate(res.value)
+            else:
+                if _do_sig(prec(self)): sig_on()
+                acb_pow(res.value, self.value, (<ComplexBall> expo).value, prec(self))
+                if _do_sig(prec(self)): sig_off()
         return res
 
     def sqrt(self, analytic=False):

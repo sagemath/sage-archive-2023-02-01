@@ -250,11 +250,16 @@ PyObject* Integer(const long int& x) {
 
         // Slow version since we can't call Cython-exported code yet.
         PyObject* m = PyImport_ImportModule("sage.rings.integer");
-        if (m == nullptr)
+        if (m == nullptr) {
                 py_error("Error importing sage.rings.integer");
+                throw std::runtime_error("");
+        }
         PyObject* Integer = PyObject_GetAttrString(m, "Integer");
-        if (Integer == nullptr)
+        if (Integer == nullptr) {
+                Py_DECREF(m);
                 py_error("Error getting Integer attribute");
+                throw std::runtime_error("");
+        }
         PyObject* ans = PyObject_CallFunction(Integer, const_cast<char*> ("l"), x);
         Py_DECREF(m);
         Py_DECREF(Integer);

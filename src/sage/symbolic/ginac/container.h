@@ -807,6 +807,14 @@ std::unique_ptr<typename container<C>::STLT> container<C>::subschildren(const ex
 	return std::unique_ptr<STLT>(nullptr); // nothing has changed
 }
 
+typedef container<std::vector> exprseq;
+template<> const tinfo_static_t exprseq::tinfo_static;
+template<> registered_class_info exprseq::reg_info;
+
+typedef container<std::list> lst;
+template<> const tinfo_static_t lst::tinfo_static;
+template<> registered_class_info lst::reg_info;
+
 } // namespace GiNaC
 
 #endif // ndef __GINAC_CONTAINER_H__

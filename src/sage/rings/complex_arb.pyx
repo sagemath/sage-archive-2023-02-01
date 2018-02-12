@@ -1731,13 +1731,9 @@ cdef class ComplexBall(RingElement):
         rt = right
 
         if op == Py_EQ:
-            return lt is rt or (
-                acb_is_exact(lt.value) and acb_is_exact(rt.value)
-                and acb_equal(lt.value, rt.value))
-
-        if op == Py_NE:
-            return not acb_overlaps(lt.value, rt.value)
-
+            return acb_eq(lt.value, rt.value)
+        elif op == Py_NE:
+            return acb_ne(lt.value, rt.value)
         elif op == Py_GT or op == Py_GE or op == Py_LT or op == Py_LE:
             raise TypeError("No order is defined for ComplexBalls.")
 

@@ -149,7 +149,6 @@ from cysignals.signals cimport sig_on, sig_str, sig_off, sig_error
 import sage.categories.fields
 import sage.rings.number_field.number_field as number_field
 
-cimport sage.rings.integer
 cimport sage.rings.rational
 
 from cpython.float cimport PyFloat_AS_DOUBLE
@@ -178,6 +177,7 @@ from sage.libs.gmp.mpz cimport mpz_fits_ulong_p, mpz_fits_slong_p, mpz_get_ui, m
 from sage.libs.gsl.complex cimport gsl_complex_rect
 from sage.rings.real_double cimport RealDoubleElement
 from sage.rings.complex_double cimport ComplexDoubleElement
+from sage.rings.integer cimport Integer
 from sage.rings.polynomial.polynomial_complex_arb cimport Polynomial_complex_arb
 from sage.rings.real_arb cimport mpfi_to_arb, arb_to_mpfi
 from sage.rings.real_arb import RealBallField
@@ -720,7 +720,7 @@ class ComplexBallField(UniqueRepresentation, Field):
              [+/- inf] + nan*I]
         """
         return [self(1), self(0, -1./2), self(1, 1./3), self(-1./3, 1./4),
-                -self(1, 1)**(sage.rings.integer.Integer(2)**80),
+                -self(1, 1)**(Integer(2)**80),
                 self('inf'), self(1./3, 'inf'), self('inf', 'inf'),
                 self('nan'), self('nan', 'nan'), self('inf', 'nan')]
 
@@ -1510,12 +1510,12 @@ cdef class ComplexBall(RingElement):
             ...
             ValueError: 1.000000000000000*I does not contain a unique integer
         """
-        cdef sage.rings.integer.Integer res
+        cdef Integer res
         cdef fmpz_t tmp
         fmpz_init(tmp)
         try:
             if acb_get_unique_fmpz(tmp, self.value):
-                res = sage.rings.integer.Integer.__new__(sage.rings.integer.Integer)
+                res = Integer.__new__(Integer)
                 fmpz_get_mpz(res.value, tmp)
             else:
                 raise ValueError("{} does not contain a unique integer".format(self))
@@ -2439,9 +2439,9 @@ cdef class ComplexBall(RingElement):
         try:
             if isinstance(other, ComplexBall):
                 res = acb_contains(self.value, (<ComplexBall> other).value)
-            elif isinstance(other, sage.rings.integer.Integer):
+            elif isinstance(other, Integer):
                 fmpz_init(tmpz)
-                fmpz_set_mpz(tmpz, (<sage.rings.integer.Integer> other).value)
+                fmpz_set_mpz(tmpz, (<Integer> other).value)
                 res = acb_contains_fmpz(self.value, tmpz)
                 fmpz_clear(tmpz)
             elif isinstance(other, sage.rings.rational.Rational):
@@ -2477,7 +2477,7 @@ cdef class ComplexBall(RingElement):
         """
         if not isinstance(other, (
                 ComplexBall,
-                sage.rings.integer.Integer,
+                Integer,
                 sage.rings.rational.Rational)):
             other = self._parent(other)
         return self.contains_exact(other)
@@ -2656,10 +2656,10 @@ cdef class ComplexBall(RingElement):
         cdef ComplexBall res = self._new()
         if isinstance(shift, int):
              acb_mul_2exp_si(res.value, self.value, PyInt_AS_LONG(shift))
-        elif isinstance(shift, sage.rings.integer.Integer):
+        elif isinstance(shift, Integer):
             sig_on()
             fmpz_init(tmpz)
-            fmpz_set_mpz(tmpz, (<sage.rings.integer.Integer> shift).value)
+            fmpz_set_mpz(tmpz, (<Integer> shift).value)
             acb_mul_2exp_fmpz(res.value, self.value, tmpz)
             fmpz_clear(tmpz)
             sig_off()
@@ -3430,7 +3430,7 @@ cdef class ComplexBall(RingElement):
             [+/- 4.65e-15] + [-3.14159265358979 +/- 8.15e-15]*I
         """
         cdef ComplexBall s_as_ball
-        cdef sage.rings.integer.Integer s_as_Integer
+        cdef Integer s_as_Integer
         cdef ComplexBall res = self._new()
         try:
             s_as_Integer = ZZ.coerce(s)

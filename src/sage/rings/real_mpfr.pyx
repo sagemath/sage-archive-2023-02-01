@@ -5925,12 +5925,15 @@ cdef class int_toRR(Map):
         cdef RealNumber y = parent._new()
         cdef int err = 0
         cdef long x_long
-        cdef Integer x_int
-        integer_check_long_py(x, &x_long, &err)
+        cdef mpz_t x_mpz
+
+        if not integer_check_long_py(x, &x_long, &err):
+            raise TypeError("must be a Python int object")
+
         if not err:
-            mpfr_set_si(y.value, x, parent.rnd)
+            mpfr_set_si(y.value, x_long, parent.rnd)
         else:
-            x_int = PY_NEW(Integer)
-            mpz_set_pylong(x_int.value, x)
-            mpfr_set_z(y.value, x_int.value, parent.rnd)
+            mpz_init(x_mpz)
+            mpz_set_pylong(x_mpz, x)
+            mpfr_set_z(y.value, x_mpz, parent.rnd)
         return y

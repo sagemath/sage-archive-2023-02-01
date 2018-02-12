@@ -916,7 +916,7 @@ class FractionField_1poly_field(FractionField_generic):
             sage: K = R.fraction_field()
             sage: L = K.function_field()
             sage: f = K.coerce_map_from(L); f # indirect doctest
-            Isomorphism morphism:
+            Isomorphism:
               From: Rational function field in t over Finite Field of size 5
               To:   Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 5
             sage: f(~L.gen())

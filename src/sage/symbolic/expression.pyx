@@ -8323,7 +8323,7 @@ cdef class Expression(CommutativeRingElement):
             arctan2(I, 1)
             sage: SR(CDF(0,1)).arctan2(1)
             NaN + +infinity*I
-            sage: SR(1).arctan2(CDF(0,1))
+            sage: SR(1).arctan2(CDF(0,1))   # known bug
             0.7853981633974484 - 19.012501686914433*I
 
             sage: arctan2(0,oo)

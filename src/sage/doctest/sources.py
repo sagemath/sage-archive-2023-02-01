@@ -26,6 +26,7 @@ import re
 import random
 import doctest
 from Cython.Utils import is_package_dir
+from sage.cpython.string import bytes_to_str
 from sage.repl.preparse import preparse
 from sage.repl.load import load
 from sage.misc.lazy_attribute import lazy_attribute
@@ -575,7 +576,7 @@ class FileDocTestSource(DocTestSource):
                 if lineno < 2:
                     match = pep_0263.search(line)
                     if match:
-                        self.encoding = match.group(1).decode('ascii')
+                        self.encoding = bytes_to_str(match.group(1), 'ascii')
                 yield lineno, line.decode(self.encoding)
 
     @lazy_attribute

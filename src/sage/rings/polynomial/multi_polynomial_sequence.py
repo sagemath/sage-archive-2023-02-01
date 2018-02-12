@@ -1441,7 +1441,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
 
         if S != []:
             if algorithm == "exhaustive_search":
-                from sage.misc.feature_test import LibFES
+                from sage.features.fes import LibFES
                 LibFES().require()
                 from sage.libs.fes import exhaustive_search
                 solutions = exhaustive_search(S, max_sols=n, verbose=verbose, **kwds)

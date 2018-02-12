@@ -660,9 +660,10 @@ AC_MSG_ERROR([["found Fink in $FINK_PATH. Either:
     fi
 fi
 
-# if GCC needs to be installed GFORTRAN shouldn't be installed
-# GCC will provide GFORTRAN in that case
-if test $need_to_install_gcc = yes ; then
+# if GCC needs to be installed GFORTRAN shouldn't be installed.
+# if GCC is already installed GFORTRAN shouldn't be installed either.
+# GCC will provide GFORTRAN in both cases.
+if test x$need_to_install_gcc = xyes -o x$SAGE_INSTALL_GCC = xexists ; then
     need_to_install_gfortran=no
 fi
 

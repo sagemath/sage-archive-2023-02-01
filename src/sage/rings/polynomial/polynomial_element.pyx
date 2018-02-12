@@ -990,13 +990,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: a != b
             False
 
-        For ``RBF``, identical elements are considered equal::
-
             sage: R.<x> = RBF[]
             sage: pol = RBF(1.0, 0.1)
             sage: pol == pol
-            True
-            sage: pol == copy(pol)
             False
         """
         cdef Polynomial pol = <Polynomial?>other

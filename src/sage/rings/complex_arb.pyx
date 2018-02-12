@@ -49,15 +49,20 @@ Comparison
     x*x`` sets `z` to a ball enclosing the set `\{t^2 : t \in x\}` and not the
     (generally larger) set `\{tu : t \in x, u \in x\}`.
 
-Two elements are equal if and only if they are the same object
-or if both are exact and equal::
+Two elements are equal if and only if they are exact and equal (in spite of the
+above warning, inexact balls are not considered equal to themselves)::
 
     sage: a = CBF(1, 2)
     sage: b = CBF(1, 2)
     sage: a is b
     False
+    sage: a == a
+    True
     sage: a == b
     True
+
+::
+
     sage: a = CBF(1/3, 1/5)
     sage: b = CBF(1/3, 1/5)
     sage: a.is_exact()
@@ -65,6 +70,8 @@ or if both are exact and equal::
     sage: b.is_exact()
     False
     sage: a is b
+    False
+    sage: a == a
     False
     sage: a == b
     False

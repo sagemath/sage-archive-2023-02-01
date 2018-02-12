@@ -7103,7 +7103,7 @@ cdef class int_to_Z(Morphism):
             100
         """
         if type(a) is not int:
-            raise ValueError("must be a Python int object")
+            raise TypeError("must be a Python int object")
 
         return smallInteger(PyInt_AS_LONG(a))
 

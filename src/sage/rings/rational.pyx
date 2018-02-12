@@ -64,7 +64,6 @@ import fractions
 from sage.misc.mathml import mathml
 from sage.cpython.string cimport char_to_str
 from sage.arith.long cimport pyobject_to_long, integer_check_long_py
-from sage.ext.stdsage cimport PY_NEW
 
 import sage.misc.misc as misc
 from sage.structure.sage_object cimport SageObject
@@ -4208,15 +4207,15 @@ cdef class int_to_Q(Morphism):
             sage: f(4^100)  # py2 - this will crash on Python 3
             Traceback (most recent call last):
             ...
-            ValueError: must be a Python int object
+            TypeError: must be a Python int object
         """
 
         cdef Rational rat
 
         if type(a) is not int:
-            raise ValueError("must be a Python int object")
+            raise TypeError("must be a Python int object")
 
-        rat = <Rational>PY_NEW(Rational)
+        rat = <Rational> Rational.__new__(Rational)
         mpq_set_si(rat.value, PyInt_AS_LONG(a), 1)
         return rat
 
@@ -4274,7 +4273,7 @@ cdef class long_to_Q(Morphism):
         cdef long a_long
         cdef int err = 0
 
-        rat = <Rational>PY_NEW(Rational)
+        rat = <Rational> Rational.__new__(Rational)
 
         integer_check_long_py(a, &a_long, &err)
 

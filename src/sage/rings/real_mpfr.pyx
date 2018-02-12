@@ -362,7 +362,8 @@ mpfr_set_exp_max(mpfr_get_emax_max())
 # The real field is in Cython, so mpfr elements will have access to
 # their parent via direct C calls, which will be faster.
 
-from sage.arith.long cimport pyobject_to_long, integer_check_long_py
+from sage.arith.long cimport (pyobject_to_long, integer_check_long_py,
+                              ERR_OVERFLOW)
 cdef dict rounding_modes = dict(RNDN=MPFR_RNDN, RNDZ=MPFR_RNDZ,
         RNDD=MPFR_RNDD, RNDU=MPFR_RNDU, RNDA=MPFR_RNDA, RNDF=MPFR_RNDF)
 
@@ -720,7 +721,9 @@ cdef class RealField_class(sage.rings.ring.Field):
             return QQtoRR(QQ, self)
         elif (S is RDF or S is float) and self.__prec <= 53:
             return double_toRR(S, self)
-        elif S is int or S is long:
+        elif S is long:
+            return int_toRR(long, self)
+        elif S is int:
             return int_toRR(int, self)
         elif isinstance(S, RealField_class) and S.prec() >= self.__prec:
             return RRtoRR(S, self)
@@ -5914,7 +5917,7 @@ cdef class int_toRR(Map):
             sage: f(2^75)
             3.77789318629572e22
 
-        ::
+        Also accepts objects that can be converted to int/long::
 
             sage: R.<x> = ZZ[]
             sage: f = int_toRR(R, RR)
@@ -5927,13 +5930,18 @@ cdef class int_toRR(Map):
         cdef long x_long
         cdef mpz_t x_mpz
 
-        if not integer_check_long_py(x, &x_long, &err):
-            raise TypeError("must be a Python int object")
+        if not isinstance(x, (int, long)):
+            x = long(x)
+
+        integer_check_long_py(x, &x_long, &err)
 
         if not err:
             mpfr_set_si(y.value, x_long, parent.rnd)
-        else:
+        elif err == ERR_OVERFLOW:
             mpz_init(x_mpz)
             mpz_set_pylong(x_mpz, x)
             mpfr_set_z(y.value, x_mpz, parent.rnd)
+        else:
+            raise TypeError("argument cannot be converted to a Python int/long")
+
         return y

@@ -7309,7 +7309,7 @@ class GenericGraph(GenericGraph_pyx):
         # Deal with loops and multiple edges
         #
         if self.has_loops() or self.has_multiple_edges():
-            keep_label = 'max' if (use_edge_label and maximize) else 'min'
+            keep_label = 'max' if (use_edge_labels and maximize) else 'min'
             g = self.to_simple(to_undirected=False, keep_label=keep_label, immutable=False)
         else:
             g = copy(self)

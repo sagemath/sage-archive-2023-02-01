@@ -322,23 +322,23 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: zz.imag().endpoints() == z.imag().endpoints()
             True
         """
-        cdef ComplexIntervalFieldElement a00 = self._new()
+        a00 = self._new()
         mpfr_set(&a00.__re.left, &self.__re.left, MPFR_RNDN)
         mpfi_mid(&a00.__re.right, self.__re)
         mpfr_set(&a00.__im.left, &self.__im.left, MPFR_RNDN)
         mpfi_mid(&a00.__im.right, self.__im)
 
-        cdef ComplexIntervalFieldElement a01 = self._new()
+        a01 = self._new()
         mpfr_set(&a01.__re.left, &a00.__re.right, MPFR_RNDN)
         mpfr_set(&a01.__re.right, &self.__re.right, MPFR_RNDN)
         mpfi_set(a01.__im, a00.__im)
 
-        cdef ComplexIntervalFieldElement a10 = self._new()
+        a10 = self._new()
         mpfi_set(a10.__re, a00.__re)
         mpfi_mid(&a10.__im.left, self.__im)
         mpfr_set(&a10.__im.right, &self.__im.right, MPFR_RNDN)
 
-        cdef ComplexIntervalFieldElement a11 = self._new()
+        a11 = self._new()
         mpfi_set(a11.__re, a01.__re)
         mpfi_set(a11.__im, a10.__im)
 
@@ -425,10 +425,10 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
              0.693147? + 3.1415902?*I,
              0.693147? + 3.1415940?*I)
         """
-        cdef ComplexIntervalFieldElement left = self._new()
-        cdef ComplexIntervalFieldElement right = self._new()
-        cdef ComplexIntervalFieldElement lower = self._new()
-        cdef ComplexIntervalFieldElement upper = self._new()
+        left = self._new()
+        right = self._new()
+        lower = self._new()
+        upper = self._new()
         cdef mpfr_t x
         mpfr_init2(x, self.prec())
 
@@ -471,7 +471,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             2.00000000000000
         """
         cdef RealNumber diam
-        diam = RealNumber(self._parent._real_field().middle_field(), None)
+        diam = RealNumber(self._parent.real_field().middle_field(), None)
         cdef mpfr_t tmp
         mpfr_init2(tmp, self.prec())
         mpfi_diam(diam.value, self.__re)
@@ -511,8 +511,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             ...
             ValueError: intersection of non-overlapping intervals
         """
-
-        cdef ComplexIntervalFieldElement x = self._new()
+        x = self._new()
         cdef ComplexIntervalFieldElement other_intv
         if isinstance(other, ComplexIntervalFieldElement):
             other_intv = other
@@ -538,7 +537,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: CIF(0).union(CIF(5, 5)).str(style='brackets')
             '[0.00000000000000000 .. 5.0000000000000000] + [0.00000000000000000 .. 5.0000000000000000]*I'
         """
-        cdef ComplexIntervalFieldElement x = self._new()
+        x = self._new()
         cdef ComplexIntervalFieldElement other_intv
         if isinstance(other, ComplexIntervalFieldElement):
             other_intv = other
@@ -566,7 +565,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: parent(CIF(1).magnitude())
             Real Field with 53 bits of precision and rounding RNDU
         """
-        cdef real_mpfi.RealIntervalField_class RIF = self._parent._real_field()
+        cdef real_mpfi.RealIntervalField_class RIF = self._parent.real_field()
         cdef RealNumber x = RIF.__upper_field._new()
         cdef RealNumber y = RIF.__upper_field._new()
         mpfi_mag(x.value, self.__re)
@@ -590,7 +589,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: parent(CIF(1).mignitude())
             Real Field with 53 bits of precision and rounding RNDD
         """
-        cdef real_mpfi.RealIntervalField_class RIF = self._parent._real_field()
+        cdef real_mpfi.RealIntervalField_class RIF = self._parent.real_field()
         cdef RealNumber x = RIF.__lower_field._new()
         cdef RealNumber y = RIF.__lower_field._new()
         mpfi_mig(x.value, self.__re)
@@ -649,7 +648,6 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: CIF(2,-3)._add_(CIF(1,-2))
             3 - 5*I
         """
-        cdef ComplexIntervalFieldElement x
         x = self._new()
         mpfi_add(x.__re, self.__re, (<ComplexIntervalFieldElement>right).__re)
         mpfi_add(x.__im, self.__im, (<ComplexIntervalFieldElement>right).__im)
@@ -664,7 +662,6 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: CIF(2,-3)._sub_(CIF(1,-2))
             1 - 1*I
         """
-        cdef ComplexIntervalFieldElement x
         x = self._new()
         mpfi_sub(x.__re, self.__re, (<ComplexIntervalFieldElement>right).__re)
         mpfi_sub(x.__im, self.__im, (<ComplexIntervalFieldElement>right).__im)
@@ -679,7 +676,6 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: CIF(2,-3)._mul_(CIF(1,-2))
             -4 - 7*I
         """
-        cdef ComplexIntervalFieldElement x
         x = self._new()
         cdef mpfi_t t0, t1
         mpfi_init2(t0, self._prec)
@@ -728,41 +724,17 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: CIF(1, -2).norm()
             5
         """
-        return self.norm_c()
+        x = self._new_real()
 
-    cdef real_mpfi.RealIntervalFieldElement norm_c(ComplexIntervalFieldElement self):
-        cdef real_mpfi.RealIntervalFieldElement x
-        x = real_mpfi.RealIntervalFieldElement(self._parent._real_field(), None)
+        cdef mpfi_t t
+        mpfi_init2(t, self._prec)
 
-        cdef mpfi_t t0, t1
-        mpfi_init2(t0, self._prec)
-        mpfi_init2(t1, self._prec)
+        mpfi_sqr(x.value, self.__re)
+        mpfi_sqr(t, self.__im)
 
-        mpfi_sqr(t0, self.__re)
-        mpfi_sqr(t1, self.__im)
+        mpfi_add(x.value, x.value, t)
 
-        mpfi_add(x.value, t0, t1)
-
-        mpfi_clear(t0)
-        mpfi_clear(t1)
-        return x
-
-    cdef real_mpfi.RealIntervalFieldElement abs_c(ComplexIntervalFieldElement self):
-        cdef real_mpfi.RealIntervalFieldElement x
-        x = real_mpfi.RealIntervalFieldElement(self._parent._real_field(), None)
-
-        cdef mpfi_t t0, t1
-        mpfi_init2(t0, self._prec)
-        mpfi_init2(t1, self._prec)
-
-        mpfi_sqr(t0, self.__re)
-        mpfi_sqr(t1, self.__im)
-
-        mpfi_add(x.value, t0, t1)
-        mpfi_sqrt(x.value, x.value)
-
-        mpfi_clear(t0)
-        mpfi_clear(t1)
+        mpfi_clear(t)
         return x
 
     cpdef _div_(self, right):
@@ -789,17 +761,6 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             0.841176470588236 + 0.317647058823529*I)
         """
         return self * right.__invert__()
-
-    def __rdiv__(self, left):
-        """
-        Divide ``left`` by ``self``.
-
-        EXAMPLES::
-
-            sage: CIF(2,-3).__rdiv__(CIF(1,-2))
-            0.6153846153846154? - 0.0769230769230770?*I
-        """
-        return ComplexIntervalFieldElement(self._parent, left)/self
 
     def __pow__(self, right, modulus):
         r"""
@@ -1040,8 +1001,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: x.parent()
             Real Interval Field with 100 bits of precision
         """
-        cdef real_mpfi.RealIntervalFieldElement x
-        x = real_mpfi.RealIntervalFieldElement(self._parent._real_field(), None)
+        x = self._new_real()
         mpfi_set(x.value, self.__re)
         return x
 
@@ -1058,8 +1018,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: x.parent()
             Real Interval Field with 100 bits of precision
         """
-        cdef real_mpfi.RealIntervalFieldElement x
-        x = real_mpfi.RealIntervalFieldElement(self._parent._real_field(), None)
+        x = self._new_real()
         mpfi_set(x.value, self.__im)
         return x
 
@@ -1072,7 +1031,6 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: CIF(1.5, 2.5).__neg__()
             -1.5000000000000000? - 2.5000000000000000?*I
         """
-        cdef ComplexIntervalFieldElement x
         x = self._new()
         mpfi_neg(x.__re, self.__re)
         mpfi_neg(x.__im, self.__im)
@@ -1095,10 +1053,24 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
+            sage: abs(CIF(1.5, 2.5))
+            2.915475947422650?
             sage: CIF(1.5, 2.5).__abs__()
             2.915475947422650?
         """
-        return self.abs_c()
+        x = self._new_real()
+
+        cdef mpfi_t t
+        mpfi_init2(t, self._prec)
+
+        mpfi_sqr(x.value, self.__re)
+        mpfi_sqr(t, self.__im)
+
+        mpfi_add(x.value, x.value, t)
+        mpfi_sqrt(x.value, x.value)
+
+        mpfi_clear(t)
+        return x
 
     def __invert__(self):
         """
@@ -1135,8 +1107,6 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         .. [RL] \J. Rokne, P. Lancaster. Complex interval arithmetic.
            Communications of the ACM 14. 1971.
         """
-
-        cdef ComplexIntervalFieldElement x
         x = self._new()
 
         cdef mpfr_t a, b, c, d
@@ -1631,7 +1601,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
                     upper = i
                     break
 
-            fld = self.parent()._real_field()
+            fld = self._parent.real_field()
             return fld.pi() * fld(lower, upper) * fld(0.5)
 
         else:
@@ -1641,7 +1611,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             # We'll handle the "bounded away in the imaginary direction"
             # case first.
 
-            fld = self.parent()._real_field()
+            fld = self._parent.real_field()
 
             if mpfi_is_strictly_pos(self.__im):
                 return (-self.real() / self.imag()).arctan() + fld.pi()/2
@@ -1704,7 +1674,6 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: (1+i).conjugate()
             1 - 1*I
         """
-        cdef ComplexIntervalFieldElement x
         x = self._new()
 
         mpfi_set(x.__re, self.__re)
@@ -1888,7 +1857,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
             \cos(x + iy) = \cos(x) \cosh(y) - i \sin(x) \sinh(y)
         """
-        cdef ComplexIntervalFieldElement res = self._new()
+        res = self._new()
         cdef mpfi_t tmp
         mpfi_init2(tmp, self._parent.prec())
         sig_on()
@@ -1930,7 +1899,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
             \sin(x + iy) = \sin(x) \cosh(y) + i \cos (x) \sinh(y)
         """
-        cdef ComplexIntervalFieldElement res = self._new()
+        res = self._new()
         cdef mpfi_t tmp
         mpfi_init2(tmp, self._parent.prec())
         sig_on()
@@ -1981,7 +1950,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
             \cosh(x+iy) = \cos(y) \cosh(x) + i \sin(y) \sinh(x)
         """
-        cdef ComplexIntervalFieldElement res = self._new()
+        res = self._new()
         cdef mpfi_t tmp
         mpfi_init2(tmp, self._parent.prec())
         sig_on()
@@ -2017,7 +1986,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
             \sinh(x+iy) = \cos(y) \sinh(x) + i \sin(y) \cosh(x)
         """
-        cdef ComplexIntervalFieldElement res = self._new()
+        res = self._new()
         cdef mpfi_t tmp
         mpfi_init2(tmp, self._parent.prec())
         sig_on()
@@ -2077,9 +2046,7 @@ def make_ComplexIntervalFieldElement0( fld, re, im ):
         sage: loads(dumps(a)) == a # indirect doctest
         True
     """
-    x = ComplexIntervalFieldElement( fld, re, im )
-    return x
-
+    return fld(re, im)
 
 
 def create_ComplexIntervalFieldElement(s_real, s_imag=None, int pad=0, min_prec=53):

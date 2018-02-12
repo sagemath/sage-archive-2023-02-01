@@ -55,7 +55,7 @@ from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 from sage.categories.morphism cimport Morphism
 from sage.rings.number_field.number_field_element import _inverse_mod_generic
-from sage.rings.real_mpfi cimport RealIntervalFieldElement
+from sage.rings.real_mpfi cimport RealIntervalField_class
 from sage.rings.complex_interval cimport ComplexIntervalFieldElement
 from sage.rings.real_arb cimport RealBall
 from sage.rings.complex_arb cimport ComplexBall
@@ -576,7 +576,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
               From: Number Field in a with defining polynomial x^2 - 5
               To:   Real Interval Field with 53 bits of precision
         """
-        ans = <RealIntervalFieldElement>RealIntervalFieldElement.__new__(RealIntervalFieldElement, R)
+        ans = (<RealIntervalField_class?>R)._new()
 
         if mpz_cmp_ui(self.b, 0):
             if mpz_cmp_ui(self.D.value, 0) < 0:

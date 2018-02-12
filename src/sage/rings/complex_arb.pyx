@@ -243,8 +243,8 @@ cdef int acb_calc_func_callback(acb_ptr out, const acb_t inp, void * param,
         sage: CBF.integral(lambda x, flag: "a", 0, 1)
         Traceback (most recent call last):
         ...
-        TypeError: no canonical coercion from <type 'str'> to Complex ball
-        field with 53 bits of precision
+        TypeError: no canonical coercion ... to Complex ball field with 53 bits
+        of precision
 
         sage: def foo(*args):
         ....:     raise RuntimeError
@@ -770,8 +770,8 @@ class ComplexBallField(UniqueRepresentation, Field):
         - ``abs_tol`` (optional, default `2^{-p}` where `p` is the precision of
           the ball field) -- absolute accuracy goal
 
-        The following optional parameters can be used to control the integration
-        algorithm. See the `Arb documentation <http://arblib.org/acb_calc.html>`_
+        Additionally, the following optional parameters can be used to control
+        the integration algorithm. See the `Arb documentation <http://arblib.org/acb_calc.html>`_
         for more information.
 
         - ``deg_limit`` -- maximum quadrature degree for each
@@ -825,7 +825,7 @@ class ComplexBallField(UniqueRepresentation, Field):
             [+/- 1.14e-14] + [-0.4752076627926 +/- 5.18e-14]*I
 
         Note, though, that proper handling of the ``analytic`` flag is required
-        even when the integration does not touch the branch cut::
+        even when the path does not touch the branch cut::
 
             sage: correct = CBF.integral(my_sqrt, 1, 2); correct
             [1.21895141649746 +/- 3.73e-15]

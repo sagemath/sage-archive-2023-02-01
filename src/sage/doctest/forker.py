@@ -185,6 +185,7 @@ def showwarning_with_traceback(message, category, filename, lineno, file=sys.std
     lines.extend(traceback.format_exception_only(category, message))
     try:
         file.writelines(lines)
+        file.flush()
     except IOError:
         pass # the file is invalid
 

@@ -7386,17 +7386,24 @@ class GenericGraph(GenericGraph_pyx):
             path = g.longest_path(s=new_s, t=new_t, algorithm="backtrack")
             return path if path.order() == g.order() else None
 
-
-        # We modify the graph to search for a Hamiltonian Cycle starting from
-        # new_s (if determined) and ending at new_t (if determined)
+        #
+        # We modify the graph to turn the Hamiltonian Path problem into a
+        # Hamiltonian Cycle problem. The modification ensures that the computed
+        # Hamiltonian Cycle will visit new_s (if determined) right after new_t
+        # (if determined). Hence the extraction of the Hamiltonian Path is easy.
+        #
         extra_vertices = []
         if new_s is None:
+            # If the source is not specified or determined, we add a virtual
+            # source and an edge from it to each vertex of the (di)graph.
             new_s = g.add_vertex()
             extra_vertices.append(new_s)
             for u in self: # in original set of vertices
                 g.add_edge(new_s, u, 0)
 
         if new_t is None:
+            # If the source is not specified or determined, we add a virtual
+            # destination and an edge from each vertex of the (di)graph to it.
             new_t = g.add_vertex()
             extra_vertices.append(new_t)
             for u in self:

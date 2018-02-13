@@ -95,7 +95,7 @@ pseries::pseries(const archive_node &n, lst &sym_lst) : inherited(n, sym_lst)
 		ex coef;
 		n.find_ex_by_loc(loc++, rest, sym_lst);
 		n.find_ex_by_loc(loc++, coef, sym_lst);
-		seq.push_back(expair(rest, coef));
+		seq.emplace_back(rest, coef);
 	}
 
 	n.find_ex("var", var, sym_lst);
@@ -388,7 +388,7 @@ ex pseries::eval(int level) const
 	epvector new_seq;
 	new_seq.reserve(seq.size());
         for (const auto & elem : seq)
-		new_seq.push_back(expair(elem.rest.eval(level-1), elem.coeff));
+		new_seq.emplace_back(elem.rest.eval(level-1), elem.coeff);
 	return (new pseries(relational(var,point), new_seq))->setflag(status_flags::dynallocated | status_flags::evaluated);
 }
 
@@ -405,8 +405,8 @@ ex pseries::evalf(int level, PyObject* parent) const
 	epvector new_seq;
 	new_seq.reserve(seq.size());
         for (const auto & elem : seq)
-		new_seq.push_back(expair(elem.rest.evalf(level-1, parent),
-					elem.coeff));
+		new_seq.emplace_back(elem.rest.evalf(level-1, parent),
+					elem.coeff);
 	return (new pseries(relational(var,point), new_seq))->setflag(status_flags::dynallocated | status_flags::evaluated);
 }
 
@@ -437,7 +437,7 @@ ex pseries::real_part() const
 	epvector v;
 	v.reserve(seq.size());
 	for(const auto & elem : seq)
-		v.push_back(expair((elem.rest).real_part(), elem.coeff));
+		v.emplace_back((elem.rest).real_part(), elem.coeff);
 	return (new pseries(var==point, v))->setflag(status_flags::dynallocated);
 }
 
@@ -452,7 +452,7 @@ ex pseries::imag_part() const
 	epvector v;
 	v.reserve(seq.size());
 	for(const auto & elem : seq)
-		v.push_back(expair((elem.rest).imag_part(), elem.coeff));
+		v.emplace_back((elem.rest).imag_part(), elem.coeff);
 	return (new pseries(var==point, v))->setflag(status_flags::dynallocated);
 }
 
@@ -469,7 +469,7 @@ ex pseries::subs(const exmap & m, unsigned options) const
 	epvector newseq;
 	newseq.reserve(seq.size());
         for (const auto & elem : seq)
-		newseq.push_back(expair(elem.rest.subs(m, options), elem.coeff));
+		newseq.emplace_back(elem.rest.subs(m, options), elem.coeff);
 	return (new pseries(relational(var,point.subs(m, options)), newseq))->setflag(status_flags::dynallocated);
 }
 
@@ -481,7 +481,7 @@ ex pseries::expand(unsigned options) const
         for (const auto & elem : seq) {
 		ex restexp = elem.rest.expand();
 		if (!restexp.is_zero())
-			newseq.push_back(expair(restexp, elem.coeff));
+			newseq.emplace_back(restexp, elem.coeff);
 	}
 	return (new pseries(relational(var,point), newseq))
 	        ->setflag(status_flags::dynallocated | (options == 0 ? status_flags::expanded : 0));
@@ -498,11 +498,11 @@ ex pseries::derivative(const symbol & s) const
 		// FIXME: coeff might depend on var
                 for (const auto & elem : seq) {
 			if (is_order_function(elem.rest)) {
-				new_seq.push_back(expair(elem.rest, elem.coeff - 1));
+				new_seq.emplace_back(elem.rest, elem.coeff - 1);
 			} else {
 				const ex& c = elem.rest * elem.coeff;
 				if (!c.is_zero())
-					new_seq.push_back(expair(c, elem.coeff - 1));
+					new_seq.emplace_back(c, elem.coeff - 1);
 			}
 		}
 
@@ -514,7 +514,7 @@ ex pseries::derivative(const symbol & s) const
 			} else {
 				const ex& c = elem.rest.diff(s);
 				if (!c.is_zero())
-					new_seq.push_back(expair(c, elem.coeff));
+					new_seq.emplace_back(c, elem.coeff);
 			}
 		}
 	}
@@ -569,7 +569,7 @@ ex basic::series(const relational & r, int order, unsigned options) const
 
 	// default for order-values that make no sense for Taylor expansion
 	if ((order <= 0) && this->has(s)) {
-		seq.push_back(expair(Order(_ex1), order));
+		seq.emplace_back(Order(_ex1), order);
 		return pseries(r, seq);
 	}
 
@@ -578,7 +578,7 @@ ex basic::series(const relational & r, int order, unsigned options) const
 	ex deriv = *this;
 	const ex co = deriv.subs(r, subs_options::no_pattern);
 	if (not co.is_zero()) {
-		seq.push_back(expair(co, _ex0));
+		seq.emplace_back(co, _ex0);
 	}
 
 	int n;
@@ -593,13 +593,13 @@ ex basic::series(const relational & r, int order, unsigned options) const
 
 		const ex coef = deriv.subs(r, subs_options::no_pattern);
 		if (!coef.is_zero())
-			seq.push_back(expair(fac.inverse() * coef, n));
+			seq.emplace_back(fac.inverse() * coef, n);
 	}
 	
 	// Higher-order terms, if present
 	deriv = deriv.diff(s);
         if (!deriv.expand(expand_options::expand_only_numerators).is_zero())
-		seq.push_back(expair(Order(_ex1), n));
+		seq.emplace_back(Order(_ex1), n);
 	return pseries(r, seq);
 }
 
@@ -608,8 +608,8 @@ ex numeric::series(const relational & r, int order, unsigned options) const
 {
 	epvector seq;
         if (not is_zero())
-                seq.push_back(expair(*this, _ex0));
-        seq.push_back(expair(Order(_ex1), numeric(order)));
+                seq.emplace_back(*this, _ex0);
+        seq.emplace_back(Order(_ex1), numeric(order));
 	return pseries(r, seq);
 }
 
@@ -623,13 +623,13 @@ ex symbol::series(const relational & r, int order, unsigned options) const
 
 	if (this->is_equal_same_type(ex_to<symbol>(r.lhs()))) {
 		if (order > 0 && !point.is_zero())
-			seq.push_back(expair(point, _ex0));
+			seq.emplace_back(point, _ex0);
 		if (order > 1)
-			seq.push_back(expair(_ex1, _ex1));
+			seq.emplace_back(_ex1, _ex1);
 		else
-			seq.push_back(expair(Order(_ex1), numeric(order)));
+			seq.emplace_back(Order(_ex1), numeric(order));
 	} else
-		seq.push_back(expair(*this, _ex0));
+		seq.emplace_back(*this, _ex0);
 	return pseries(r, seq);
 }
 
@@ -645,7 +645,7 @@ ex pseries::add_series(const pseries &other) const
 	// results in an empty (constant) series 
 	if (!is_compatible_to(other)) {
 		epvector nul;
-		nul.push_back(expair(Order(_ex1), _ex0));
+		nul.emplace_back(Order(_ex1), _ex0);
 		return pseries(relational(var,point), nul);
 	}
 	
@@ -693,12 +693,12 @@ ex pseries::add_series(const pseries &other) const
 		} else {
 			// Add coefficient of a and b
 			if (is_order_function((*a).rest) || is_order_function((*b).rest)) {
-				new_seq.push_back(expair(Order(_ex1), (*a).coeff));
+				new_seq.emplace_back(Order(_ex1), (*a).coeff);
 				break;  // Order term ends the sequence
 			} else {
 				ex sum = (*a).rest + (*b).rest;
 				if (!(sum.is_zero()))
-					new_seq.push_back(expair(sum, numeric(pow_a)));
+					new_seq.emplace_back(sum, numeric(pow_a));
 				++a;
 				++b;
 			}
@@ -747,7 +747,7 @@ ex pseries::mul_const(const numeric &other) const
 	
         for (const auto & elem : seq) {
 		if (!is_order_function(elem.rest))
-			new_seq.push_back(expair(elem.rest * other, elem.coeff));
+			new_seq.emplace_back(elem.rest * other, elem.coeff);
 		else
 			new_seq.push_back(elem);
 	}
@@ -766,7 +766,7 @@ ex pseries::mul_series(const pseries &other) const
 	// results in an empty (constant) series 
 	if (!is_compatible_to(other)) {
 		epvector nul;
-		nul.push_back(expair(Order(_ex1), _ex0));
+		nul.emplace_back(Order(_ex1), _ex0);
 		return pseries(relational(var,point), nul);
 	}
 
@@ -816,10 +816,10 @@ ex pseries::mul_series(const pseries &other) const
 				co += it1->second * it2->second;
 		}
 		if (!co.is_zero())
-			new_seq.push_back(expair(co, numeric(cdeg)));
+			new_seq.emplace_back(co, numeric(cdeg));
 	}
 	if (higher_order_c < std::numeric_limits<int>::max())
-		new_seq.push_back(expair(Order(_ex1), numeric(higher_order_c)));
+		new_seq.emplace_back(Order(_ex1), numeric(higher_order_c));
 	return pseries(relational(var, point), new_seq);
 }
 
@@ -915,7 +915,7 @@ ex mul::series(const relational & r, int order, unsigned options) const
 
 	if (degsum >= order) {
 		epvector epv;
-		epv.push_back(expair(Order(_ex1), order));
+		epv.emplace_back(Order(_ex1), order);
 		return (new pseries(r, epv))->setflag(status_flags::dynallocated);
 	}
 
@@ -984,7 +984,7 @@ ex pseries::power_const(const numeric &p, int deg) const
 	if (numcoeff <= 0) {
 		epvector epv;
 		epv.reserve(1);
-		epv.push_back(expair(Order(_ex1), deg));
+		epv.emplace_back(Order(_ex1), deg);
 		return (new pseries(relational(var,point), epv))
 		       ->setflag(status_flags::dynallocated);
 	}
@@ -996,13 +996,13 @@ ex pseries::power_const(const numeric &p, int deg) const
 	// Compute coefficients of the powered series
 	exvector co;
 	co.reserve(numcoeff);
-	co.push_back(power(coeff(var, ldeg), p));
+	co.emplace_back(power(coeff(var, ldeg), p));
 	for (int i=1; i<numcoeff; ++i) {
 		ex sum = _ex0;
 		for (int j=1; j<=i; ++j) {
 			ex c = coeff(var, j + ldeg);
 			if (is_order_function(c)) {
-				co.push_back(Order(_ex1));
+				co.emplace_back(Order(_ex1));
 				break;
 			} else
 				sum += (p * j - (i - j)) * co[i - j] * c;
@@ -1015,14 +1015,14 @@ ex pseries::power_const(const numeric &p, int deg) const
 	bool higher_order = false;
 	for (int i=0; i<numcoeff; ++i) {
 		if (!co[i].is_zero())
-			new_seq.push_back(expair(co[i], p * ldeg + i));
+			new_seq.emplace_back(co[i], p * ldeg + i);
 		if (is_order_function(co[i])) {
 			higher_order = true;
 			break;
 		}
 	}
 	if (!higher_order)
-		new_seq.push_back(expair(Order(_ex1), p * ldeg + numcoeff));
+		new_seq.emplace_back(Order(_ex1), p * ldeg + numcoeff);
 
 	return pseries(relational(var,point), new_seq);
 }
@@ -1100,9 +1100,9 @@ ex power::series(const relational & r, int order, unsigned options) const
 		epvector new_seq;
 		if (is_exactly_a<numeric>(exponent)
                     and ex_to<numeric>(exponent).to_int() < order)
-			new_seq.push_back(expair(_ex1, exponent));
+			new_seq.emplace_back(_ex1, exponent);
 		else
-			new_seq.push_back(expair(Order(_ex1), exponent));
+			new_seq.emplace_back(Order(_ex1), exponent);
 		return pseries(r, new_seq);
 	}
 
@@ -1137,7 +1137,7 @@ ex power::series(const relational & r, int order, unsigned options) const
 		result = ex_to<pseries>(e).power_const(numexp, order);
 	} catch (pole_error) {
 		epvector ser;
-		ser.push_back(expair(Order(_ex1), order));
+		ser.emplace_back(Order(_ex1), order);
 		result = pseries(r, ser);
 	}
 
@@ -1160,7 +1160,7 @@ ex pseries::series(const relational & r, int order, unsigned options) const
                         for (const auto & elem : seq) {
 				int o = ex_to<numeric>(elem.coeff).to_int();
 				if (o >= order) {
-					new_seq.push_back(expair(Order(_ex1), o));
+					new_seq.emplace_back(Order(_ex1), o);
 					break;
 				}
 				new_seq.push_back(elem);

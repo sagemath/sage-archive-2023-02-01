@@ -1360,8 +1360,8 @@ static ex atan_series(const ex &arg,
 		else
 			Order0correction += log((I*arg_pt+_ex1)/(I*arg_pt+_ex_1))*I*_ex1_2;
 		epvector seq;
-		seq.push_back(expair(Order0correction, _ex0));
-		seq.push_back(expair(Order(_ex1), order));
+		seq.emplace_back(Order0correction, _ex0);
+		seq.emplace_back(Order(_ex1), order);
 		return series(replarg - pseries(rel, seq), rel, order);
 	}
 	throw do_taylor();

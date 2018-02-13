@@ -412,7 +412,7 @@ ex useries(ex the_ex, const symbol& x, int order, unsigned options)
 
         epvector epv;
         if (ldeg >= order) {
-                epv.push_back(expair(Order(_ex1), order));
+                epv.emplace_back(Order(_ex1), order);
                 return pseries(relational(x,_ex0), epv);
         }
 
@@ -446,11 +446,11 @@ ex useries(ex the_ex, const symbol& x, int order, unsigned options)
                         mpq_init(gc);
                         fmpq_get_mpq(gc, c);
                         numeric nc(gc); // numeric clears gc
-                        epv.push_back(expair(nc, numeric(n + fp.offset)));
+                        epv.emplace_back(nc, numeric(n + fp.offset));
                 }
                 fmpq_clear(c);
         }
-        epv.push_back(expair(Order(_ex1), order));
+        epv.emplace_back(Order(_ex1), order);
         return pseries(relational(x,_ex0), epv);
 }
 

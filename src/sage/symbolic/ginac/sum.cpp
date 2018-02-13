@@ -534,7 +534,7 @@ ex gosper_term(ex e, ex n)
                 throw gosper_domain_error();
         exvector syms;
         for (int i=0; i<d+1; ++i)
-                syms.push_back((new symbol)->setflag(status_flags::dynallocated));
+                syms.emplace_back((new symbol)->setflag(status_flags::dynallocated));
         ex xshifted = binomial_poly(syms, n);
         ex x = diagonal_poly(syms, n);
         ex H = A*xshifted - B*x -C;

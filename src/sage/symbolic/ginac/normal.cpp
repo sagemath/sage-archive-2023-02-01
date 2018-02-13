@@ -250,7 +250,7 @@ ex add::smod(const numeric &xi) const
 		GINAC_ASSERT(!is_exactly_a<numeric>(it->rest));
 		numeric num_coeff = GiNaC::smod(ex_to<numeric>(it->coeff), xi);
 		if (!num_coeff.is_zero())
-			newseq.push_back(expair(it->rest, num_coeff));
+			newseq.emplace_back(it->rest, num_coeff);
 		it++;
 	}
 	numeric num_coeff = GiNaC::smod(overall_coeff, xi);
@@ -630,7 +630,7 @@ ex pseries::normal(exmap & repl, exmap & rev_lookup, int level, unsigned options
 	while (i != end) {
 		ex restexp = i->rest.normal();
 		if (!restexp.is_zero())
-			newseq.push_back(expair(restexp, i->coeff));
+			newseq.emplace_back(restexp, i->coeff);
 		++i;
 	}
 	ex n = pseries(relational(var,point), newseq);
@@ -909,7 +909,7 @@ ex expairseq::to_rational(exmap & repl) const
 	if (oc.info(info_flags::numeric))
 		return thisexpairseq(s, overall_coeff);
 	else
-		s.push_back(expair(oc, _ex1));
+		s.emplace_back(oc, _ex1);
 	return thisexpairseq(s, default_overall_coeff());
 }
 
@@ -927,7 +927,7 @@ ex expairseq::to_polynomial(exmap & repl) const
 	if (oc.info(info_flags::numeric))
 		return thisexpairseq(s, overall_coeff);
 	else
-		s.push_back(expair(oc, _ex1));
+		s.emplace_back(oc, _ex1);
 	return thisexpairseq(s, default_overall_coeff());
 }
 

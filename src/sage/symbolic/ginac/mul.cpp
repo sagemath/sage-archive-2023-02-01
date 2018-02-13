@@ -560,7 +560,7 @@ ex mul::coeff(const ex & s, const ex & n) const
 		// if a non-zero power of s is found, the resulting product will be 0
                 for (const auto & elem : seq)
 			coeffseq.push_back(recombine_pair_to_ex(elem).coeff(s,n));
-		coeffseq.push_back(overall_coeff);
+		coeffseq.emplace_back(overall_coeff);
 		return (new mul(coeffseq))->setflag(status_flags::dynallocated);
 	}
 	
@@ -576,7 +576,7 @@ ex mul::coeff(const ex & s, const ex & n) const
 		}
 	}
 	if (coeff_found) {
-		coeffseq.push_back(overall_coeff);
+		coeffseq.emplace_back(overall_coeff);
 		return (new mul(coeffseq))->setflag(status_flags::dynallocated);
 	}
 	
@@ -753,7 +753,7 @@ ex mul::eval(int level) const
 			for (auto & elem : primitive->seq)
 				elem.coeff = ex_to<numeric>(elem.coeff).div_dyn(c);
 
-			s.push_back(expair(*primitive, _ex1));
+			s.emplace_back(*primitive, _ex1);
 
 			++i;
 			++j;
@@ -796,7 +796,7 @@ ex mul::eval_exponentials() const
 	if (is_exactly_a<numeric>(new_exp))
 		oc = oc.mul(ex_to<numeric>(new_exp));
 	else
-		s.push_back(expair(new_exp, _ex1));
+		s.emplace_back(new_exp, _ex1);
 
 	mul * result = new mul(s, overall_coeff.mul(oc));
 	return result->setflag(status_flags::dynallocated);
@@ -1056,7 +1056,7 @@ ex mul::derivative(const symbol & s) const
 		expair ep = split_ex_to_pair(power(i->rest, i->coeff - _ex1) *
 		                             i->rest.diff(s));
 		ep.swap(*i2);
-		addseq.push_back((new mul(mulseq,
+		addseq.emplace_back((new mul(mulseq,
                      overall_coeff.mul(ex_to<numeric>(i->coeff))))->setflag(status_flags::dynallocated));
 		ep.swap(*i2);
 		++i; ++i2;
@@ -1331,8 +1331,8 @@ ex mul::expand(unsigned options) const
 						distrseq.insert(distrseq.end(),add2begin,add2end);
 					else
                                                 for (const auto & elem2 : add2.seq)
-							distrseq.push_back(expair(elem2.rest,
-                                                                ex_to<numeric>(elem2.coeff).mul_dyn(add1.overall_coeff)));
+							distrseq.emplace_back(elem2.rest,
+                                                                ex_to<numeric>(elem2.coeff).mul_dyn(add1.overall_coeff));
 				}
 
 				// Multiply add1 with the overall coefficient of add2 and append it to distrseq:
@@ -1341,7 +1341,7 @@ ex mul::expand(unsigned options) const
 						distrseq.insert(distrseq.end(),add1begin,add1end);
 					else
                                                 for (const auto & elem1 : add1.seq)
-							distrseq.push_back(expair(elem1.rest, ex_to<numeric>(elem1.coeff).mul_dyn(add2.overall_coeff)));
+							distrseq.emplace_back(elem1.rest, ex_to<numeric>(elem1.coeff).mul_dyn(add2.overall_coeff));
 				}
 
 				// Compute the new overall coefficient and put it together:
@@ -1363,7 +1363,7 @@ ex mul::expand(unsigned options) const
 						if (is_exactly_a<numeric>(rest)) {
 							oc += ex_to<numeric>(rest).mul(ex_to<numeric>(elem1.coeff).mul(ex_to<numeric>(elem2.coeff)));
 						} else {
-							distrseq2.push_back(expair(rest, ex_to<numeric>(elem1.coeff).mul_dyn(ex_to<numeric>(elem2.coeff))));
+							distrseq2.emplace_back(rest, ex_to<numeric>(elem1.coeff).mul_dyn(ex_to<numeric>(elem2.coeff)));
 						}
 					}
 					tmp_accu += (new add(distrseq2, oc))->setflag(status_flags::dynallocated);

@@ -316,7 +316,7 @@ ex add::coeff(const ex & s, const ex & n) const
         for (const auto & elem : seq) {
 		ex restcoeff = elem.rest.coeff(s, n);
  		if (!restcoeff.is_zero()) {
-			coeffseq.push_back(expair(restcoeff, elem.coeff));
+			coeffseq.emplace_back(restcoeff, elem.coeff);
 		}
 	}
 
@@ -448,7 +448,7 @@ ex add::real_part() const
 		if ((elem.coeff).info(info_flags::real)) {
 			ex rp = (elem.rest).real_part();
 			if (!rp.is_zero())
-				v.push_back(expair(rp, elem.coeff));
+				v.emplace_back(rp, elem.coeff);
 		} else {
 			ex rp=recombine_pair_to_ex(elem).real_part();
 			if (!rp.is_zero())
@@ -466,7 +466,7 @@ ex add::imag_part() const
 		if ((elem.coeff).info(info_flags::real)) {
 			ex ip = (elem.rest).imag_part();
 			if (!ip.is_zero())
-				v.push_back(expair(ip, elem.coeff));
+				v.emplace_back(ip, elem.coeff);
 		} else {
 			ex ip=recombine_pair_to_ex(elem).imag_part();
 			if (!ip.is_zero())
@@ -489,7 +489,7 @@ ex add::derivative(const symbol & y) const
 	// than the default implementation in basic::derivative() although
 	// if performs the same function (differentiate each term).
 	for (const auto & elem : seq)
-		s.push_back(expair(elem.rest.diff(y), elem.coeff));
+		s.emplace_back(elem.rest.diff(y), elem.coeff);
 	return (new add(s, *_num0_p))->setflag(status_flags::dynallocated);
 }
 

@@ -66,7 +66,7 @@ static ex chebyt_eval(const ex& n_, const ex& x)
                 fmpz_poly_get_coeff_mpz(bigint, p, i);
                 numeric coeff(bigint);
                 if (not coeff.is_zero())
-                        vec.push_back(expair(currx, coeff));
+                        vec.emplace_back(currx, coeff);
                 currx *= x;
         }
         fmpz_poly_clear(p);
@@ -125,7 +125,7 @@ static ex chebyu_eval(const ex& n_, const ex& x)
                 fmpz_poly_get_coeff_mpz(bigint, p, i);
                 numeric coeff(bigint);
                 if (not coeff.is_zero())
-                        vec.push_back(expair(currx, coeff));
+                        vec.emplace_back(currx, coeff);
                 currx *= x;
         }
         fmpz_poly_clear(p);
@@ -229,7 +229,7 @@ static ex legp_eval(const ex& n_, const ex& x)
                 curr_coeff = curr_coeff.negative();
 
         epvector vec;
-        vec.push_back(expair(power(x, numeric(index)), curr_coeff / den));
+        vec.emplace_back(power(x, numeric(index)), curr_coeff / den);
         for (k = 1; k <= L; k++)
         {
                 curr_coeff *= L + 1 - k;
@@ -238,7 +238,7 @@ static ex legp_eval(const ex& n_, const ex& x)
                 curr_coeff /= 2*k - 1 + 2*odd;
                 curr_coeff = curr_coeff.negative();
                 index += 2;
-                vec.push_back(expair(power(x, numeric(index)), curr_coeff / den));
+                vec.emplace_back(power(x, numeric(index)), curr_coeff / den);
         }
 
         return add(vec);
@@ -305,7 +305,7 @@ static ex hermite_eval(const ex& n, const ex& x)
         int fac = 1;
         epvector vec;
         while (numn >= 0) {
-                vec.push_back(expair(power(x, numn), coeff));
+                vec.emplace_back(power(x, numn), coeff);
                 coeff /= *_num_4_p;
                 coeff *= numn;
                 --numn;

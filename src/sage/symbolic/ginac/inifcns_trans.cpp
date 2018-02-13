@@ -331,9 +331,9 @@ static ex log_series(const ex &arg,
 		// expand the log, but only if coeff is real and > 0, since otherwise
 		// it would make the branch cut run into the wrong direction
 		if (coeff.info(info_flags::positive))
-			seq.push_back(expair(n*log(s-point)+log(coeff), _ex0));
+			seq.emplace_back(n*log(s-point)+log(coeff), _ex0);
 		else
-			seq.push_back(expair(log(coeff*pow(s-point, n)), _ex0));
+			seq.emplace_back(log(coeff*pow(s-point, n)), _ex0);
 
 		if (!argser.is_terminating() || argser.nops()!=1) {
 			// in this case n more (or less) terms are needed
@@ -342,13 +342,13 @@ static ex log_series(const ex &arg,
 				epvector epv;
 				ex acc = (new pseries(rel, epv))->setflag(status_flags::dynallocated);
 				epv.reserve(2);
-				epv.push_back(expair(-1, _ex0));
-				epv.push_back(expair(Order(_ex1), order));
+				epv.emplace_back(-1, _ex0);
+				epv.emplace_back(Order(_ex1), order);
 				ex rest = pseries(rel, epv).add_series(argser);
 				for (int i = order-1; i>0; --i) {
 					epvector cterm;
 					cterm.reserve(1);
-					cterm.push_back(expair((i%2) != 0 ? _ex1/i : _ex_1/i, _ex0));
+					cterm.emplace_back((i%2) != 0 ? _ex1/i : _ex_1/i, _ex0);
 					acc = pseries(rel, cterm).add_series(ex_to<pseries>(acc));
 					acc = (ex_to<pseries>(rest)).mul_series(ex_to<pseries>(acc));
 				}
@@ -369,8 +369,8 @@ static ex log_series(const ex &arg,
 		const symbol foo;
 		const ex replarg = series(log(arg), s==foo, order).subs(foo==point, subs_options::no_pattern);
 		epvector seq;
-		seq.push_back(expair(-I*csgn(arg*I)*Pi, _ex0));
-		seq.push_back(expair(Order(_ex1), order));
+		seq.emplace_back(-I*csgn(arg*I)*Pi, _ex0);
+		seq.emplace_back(Order(_ex1), order);
 		return series(replarg - I*Pi + pseries(rel, seq), rel, order);
 	}
 	throw do_taylor();  // caught by function::series()
@@ -557,7 +557,7 @@ static ex Li2_series(const ex &x, const relational &rel, int order, unsigned opt
 			ser = ser.subs(s==x.series(rel, order), subs_options::no_pattern);
 			// maybe that was terminating, so add a proper order term
 			epvector nseq;
-			nseq.push_back(expair(Order(_ex1), order));
+			nseq.emplace_back(Order(_ex1), order);
 			ser += pseries(rel, nseq);
 			// reexpanding it will collapse the series again
 			return ser.series(rel, order);
@@ -582,7 +582,7 @@ static ex Li2_series(const ex &x, const relational &rel, int order, unsigned opt
 			ser = ser.subs(s==x.series(rel, order), subs_options::no_pattern);
 			// maybe that was terminating, so add a proper order term
 			epvector nseq;
-			nseq.push_back(expair(Order(_ex1), order));
+			nseq.emplace_back(Order(_ex1), order);
 			ser += pseries(rel, nseq);
 			// reexpanding it will collapse the series again
 			return ser.series(rel, order);
@@ -598,18 +598,18 @@ static ex Li2_series(const ex &x, const relational &rel, int order, unsigned opt
 			const symbol foo;
 			epvector seq;
 			// zeroth order term:
-			seq.push_back(expair(Li2(x_pt), _ex0));
+			seq.emplace_back(Li2(x_pt), _ex0);
 			// compute the intermediate terms:
 			ex replarg = series(Li2(x), s==foo, order);
 			for (unsigned i=1; i < replarg.nops()-1; ++i) {
 				ex term = replarg.op(i) / power(s-foo, i);
                                 term = term.series(foo==point,1,options).op(0);
                                 term.subs(foo==s, subs_options::no_pattern);
-				seq.push_back(expair(term, numeric(i)));
+				seq.emplace_back(term, numeric(i));
                         }
 			// append an order term:
-			seq.push_back(expair(Order(_ex1),
-                                                long(replarg.nops()-1)));
+			seq.emplace_back(Order(_ex1),
+                                                long(replarg.nops()-1));
 			return pseries(rel, seq);
 		}
 	}
@@ -710,7 +710,7 @@ static ex Li_series(const ex& m, const ex& x, const relational& rel, int order, 
 			ser = ser.subs(s==x.series(rel, order), subs_options::no_pattern);
 			// maybe that was terminating, so add a proper order term
 			epvector nseq;
-			nseq.push_back(expair(Order(_ex1), order));
+			nseq.emplace_back(Order(_ex1), order);
 			ser += pseries(rel, nseq);
 			// reexpanding it will collapse the series again
 			return ser.series(rel, order);

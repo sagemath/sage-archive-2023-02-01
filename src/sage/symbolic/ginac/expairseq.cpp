@@ -157,7 +157,7 @@ expairseq::expairseq(const archive_node &n, lst &sym_lst) : inherited(n, sym_lst
 		ex lcoeff;
 		n.find_ex_by_loc(loc++, lrest, sym_lst);
 		n.find_ex_by_loc(loc++, lcoeff, sym_lst);
-		seq.push_back(expair(lrest, lcoeff));
+		seq.emplace_back(lrest, lcoeff);
 	}
 
         ex oc;
@@ -923,7 +923,7 @@ void expairseq::construct_from_2_expairseq(const expairseq &s1,
 				const numeric &newcoeff = ex_to<numeric>(first1->coeff).
 					add(ex_to<numeric>(first2->coeff));
 				if (!newcoeff.is_zero()) {
-					seq.push_back(expair(first1->rest,newcoeff));
+					seq.emplace_back(first1->rest,newcoeff);
 					if (expair_needs_further_processing(seq.end()-1)) {
 						needs_further_processing = true;
 					}
@@ -990,7 +990,7 @@ void expairseq::construct_from_expairseq_ex(const expairseq &s,
 			const numeric &newcoeff = ex_to<numeric>(first->coeff).
 			                           add(ex_to<numeric>(p.coeff));
 			if (!newcoeff.is_zero()) {
-				seq.push_back(expair(first->rest,newcoeff));
+				seq.emplace_back(first->rest,newcoeff);
 				if (expair_needs_further_processing(seq.end()-1))
 					needs_further_processing = true;
 			}
@@ -1132,8 +1132,8 @@ void expairseq::make_flat(const epvector &v, bool do_index_renaming)
 			combine_overall_coeff(subseqref.overall_coeff,
 			                      ex_to<numeric>(elem.coeff));
                         for (const auto & elem2 : subseqref.seq)
-				seq.push_back(expair(elem2.rest,
-                                        ex_to<numeric>(elem2.coeff).mul_dyn(ex_to<numeric>(elem.coeff))));
+				seq.emplace_back(elem2.rest,
+                                        ex_to<numeric>(elem2.coeff).mul_dyn(ex_to<numeric>(elem.coeff)));
 		} else {
 			if (elem.is_canonical_numeric())
 				combine_overall_coeff(ex_to<numeric>(mf.handle_factor(elem.rest, _ex1)));
@@ -1145,7 +1145,7 @@ void expairseq::make_flat(const epvector &v, bool do_index_renaming)
 				else if (are_ex_trivially_equal(newrest, rest))
 					seq.push_back(elem);
 				else
-					seq.push_back(expair(newrest, elem.coeff));
+					seq.emplace_back(newrest, elem.coeff);
 			}
 		}
 	}

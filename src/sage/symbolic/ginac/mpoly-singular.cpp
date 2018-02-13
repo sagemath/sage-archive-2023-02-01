@@ -525,7 +525,7 @@ factored_b:
         ex_int_map map;
         exvector revmap;
         map.insert(std::make_pair(symbol_E, 1));
-        revmap.push_back(exp(1));
+        revmap.emplace_back(exp(1));
         On(SW_RATIONAL);
         setCharacteristic(0);
         power_ocvector_map pomap;
@@ -603,7 +603,7 @@ bool factorpoly(const ex& the_ex, ex& res_prod)
         ex_int_map map;
         exvector revmap;
         map.insert(std::make_pair(symbol_E, 1));
-        revmap.push_back(exp(1));
+        revmap.emplace_back(exp(1));
 
         On(SW_RATIONAL);
         power_ocvector_map pomap;
@@ -656,7 +656,7 @@ ex resultantpoly(const ex & ee1, const ex & ee2, const ex & s)
         ex_int_map map;
         exvector revmap;
         map.insert(std::make_pair(symbol_E, 1));
-        revmap.push_back(exp(1));
+        revmap.emplace_back(exp(1));
         On(SW_RATIONAL);
         setCharacteristic(0);
         power_ocvector_map pomap;

@@ -835,7 +835,7 @@ ex matrix::determinant(unsigned algo) const
 				for (unsigned rr=0; rr<row; ++rr)
 					if (m[rr*col+c].is_zero())
 						++acc;
-				c_zeros.push_back(uintpair(acc,c));
+				c_zeros.emplace_back(acc,c);
 			}
 			std::sort(c_zeros.begin(),c_zeros.end());
 			std::vector<unsigned> pre_sort;

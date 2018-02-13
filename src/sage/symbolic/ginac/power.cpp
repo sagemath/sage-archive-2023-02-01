@@ -890,8 +890,8 @@ ex power::derivative(const symbol & s) const
 		// D(b^r) = r * b^(r-1) * D(b) (faster than the formula below)
 		epvector newseq;
 		newseq.reserve(2);
-		newseq.push_back(expair(basis, exponent - _ex1));
-		newseq.push_back(expair(basis.diff(s), _ex1));
+		newseq.emplace_back(basis, exponent - _ex1);
+		newseq.emplace_back(basis.diff(s), _ex1);
 		return mul(newseq, ex_to<numeric>(exponent));
 	} else {
 	    // If the exponent is not a function of s, we have the following nice
@@ -966,10 +966,10 @@ ex power::expand(unsigned options) const
 		ex coef = (possign? _ex1 : _ex_1);
 		if (m.overall_coeff.is_positive()
                                 and not m.overall_coeff.is_one())
-			prodseq.push_back(power(m.overall_coeff, exponent));
+			prodseq.emplace_back(power(m.overall_coeff, exponent));
 		else if (m.overall_coeff.is_negative()
                          and not m.overall_coeff.is_minus_one())
-			prodseq.push_back(power(-m.overall_coeff, exponent));
+			prodseq.emplace_back(power(-m.overall_coeff, exponent));
 		else
 			coef *= m.overall_coeff;
 
@@ -993,7 +993,7 @@ ex power::expand(unsigned options) const
 		exvector distrseq;
 		distrseq.reserve(a.seq.size() + 1);
                 for (const auto & elem : a.seq)
-			distrseq.push_back(power(expanded_basis, a.recombine_pair_to_ex(elem)));
+			distrseq.emplace_back(power(expanded_basis, a.recombine_pair_to_ex(elem)));
 		
 		// Make sure that e.g. (x+y)^(2+a) expands the (x+y)^2 factor
 		if (a.overall_coeff.is_integer()) {
@@ -1002,9 +1002,9 @@ ex power::expand(unsigned options) const
 			if (int_exponent > 0 && is_exactly_a<add>(expanded_basis))
 				distrseq.push_back(expand_add(ex_to<add>(expanded_basis), int_exponent, options));
 			else
-				distrseq.push_back(power(expanded_basis, a.overall_coeff));
+				distrseq.emplace_back(power(expanded_basis, a.overall_coeff));
 		} else
-			distrseq.push_back(power(expanded_basis, a.overall_coeff));
+			distrseq.emplace_back(power(expanded_basis, a.overall_coeff));
 		
 		// Make sure that e.g. (x+y)^(1+a) -> x*(x+y)^a + y*(x+y)^a
 		ex r = (new mul(distrseq))->setflag(status_flags::dynallocated);
@@ -1375,16 +1375,16 @@ ex power::expand_add(const add & a, long n, unsigned options) const
 						// optimize away
 					} else if (the_exponent[i] == 1) {
 						// optimized
-						monomial.push_back(expair(r, _ex1));
+						monomial.emplace_back(r, _ex1);
 						if (not c.is_one())
 							factor = factor.mul(c);
 					} else { // general case exponent[i] > 1
-						monomial.push_back(expair(r, the_exponent[i]));
+						monomial.emplace_back(r, the_exponent[i]);
 						if (not c.is_one())
 							factor = factor.mul(c.power(the_exponent[i]));
 					}
 				}
-				result.push_back(expair(mul(std::move(monomial)).expand(options), factor));
+				result.emplace_back(mul(std::move(monomial)).expand(options), factor);
 			} while (compositions.next());
 		} while (partitions.next());
 	}
@@ -1430,27 +1430,27 @@ ex power::expand_add_2(const add & a, unsigned options) const
 		
 		if (c.is_one()) {
 			if (is_exactly_a<mul>(r)) {
-				result.push_back(expair(expand_mul(ex_to<mul>(r), *_num2_p, options, true),
-				                        _ex1));
+				result.emplace_back(expand_mul(ex_to<mul>(r), *_num2_p, options, true),
+				                        _ex1);
 			} else {
-				result.push_back(expair(dynallocate<power>(r, _ex2),
-				                        _ex1));
+				result.emplace_back(dynallocate<power>(r, _ex2),
+				                        _ex1);
 			}
 		} else {
 			if (is_exactly_a<mul>(r)) {
-				result.push_back(expair(expand_mul(ex_to<mul>(r), *_num2_p, options, true),
-				                        nc.pow_intexp(*_num2_p)));
+				result.emplace_back(expand_mul(ex_to<mul>(r), *_num2_p, options, true),
+				                        nc.pow_intexp(*_num2_p));
 			} else {
-				result.push_back(expair(dynallocate<power>(r, _ex2),
-				                        nc.pow_intexp(*_num2_p)));
+				result.emplace_back(dynallocate<power>(r, _ex2),
+				                        nc.pow_intexp(*_num2_p));
 			}
 		}
 
 		for (auto cit1=cit0+1; cit1!=last; ++cit1) {
 			const ex & r1 = cit1->rest;
 			const ex & c1 = cit1->coeff;
-			result.push_back(expair(mul(r,r1).expand(options),
-			                        _num2_p->mul(ex_to<numeric>(c)).mul_dyn(ex_to<numeric>(c1))));
+			result.emplace_back(mul(r,r1).expand(options),
+			                        _num2_p->mul(ex_to<numeric>(c)).mul_dyn(ex_to<numeric>(c1)));
 		}
 	}
 	

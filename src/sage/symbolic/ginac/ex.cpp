@@ -593,7 +593,7 @@ void ex::coefficients(const ex & s, expairvec & vec) const
                 const add& addref = ex_to<add>(sub);
                 const numeric& oc = addref.get_overall_coeff();
                 if (not oc.is_zero())
-                        vec.push_back(std::make_pair(oc, _ex0));
+                        vec.emplace_back(std::make_pair(oc, _ex0));
                 for (const auto& term : addref.seq) {
                         ex tmp = addref.recombine_pair_to_ex(term);
                         if (has_nonposint_power(tmp, symb)

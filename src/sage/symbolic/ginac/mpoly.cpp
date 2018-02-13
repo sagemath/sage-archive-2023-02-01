@@ -99,7 +99,7 @@ ex multiply_lcm(const ex &e, const numeric &lcm)
 			v.push_back(multiply_lcm(e.op(i), op_lcm));
 			lcm_accum *= op_lcm;
 		}
-		v.push_back(lcm / lcm_accum);
+		v.emplace_back(lcm / lcm_accum);
 		return (new mul(v))->setflag(status_flags::dynallocated);
 	} else if (is_exactly_a<add>(e)) {
 		size_t num = e.nops();

@@ -424,7 +424,7 @@ static ex unit_step_series(const ex & arg,
 		throw (std::domain_error("unit_step_series(): on imaginary axis"));
 	
 	epvector seq;
-	seq.push_back(expair(unit_step(arg_pt), _ex0));
+	seq.emplace_back(unit_step(arg_pt), _ex0);
 	return pseries(rel,seq);
 }
 
@@ -508,7 +508,7 @@ static ex heaviside_series(const ex & arg,
 		throw (std::domain_error("heaviside_series(): on imaginary axis"));
 	
 	epvector seq;
-	seq.push_back(expair(heaviside(arg_pt), _ex0));
+	seq.emplace_back(heaviside(arg_pt), _ex0);
 	return pseries(rel,seq);
 }
 
@@ -586,7 +586,7 @@ static ex csgn_series(const ex & arg,
 		throw (std::domain_error("csgn_series(): on imaginary axis"));
 	
 	epvector seq;
-	seq.push_back(expair(csgn(arg_pt), _ex0));
+	seq.emplace_back(csgn(arg_pt), _ex0);
 	return pseries(rel,seq);
 }
 
@@ -694,7 +694,7 @@ static ex eta_series(const ex & x, const ex & y,
 	    ((x_pt*y_pt).info(info_flags::numeric) && (x_pt*y_pt).info(info_flags::negative)))
 			throw (std::domain_error("eta_series(): on discontinuity"));
 	epvector seq;
-	seq.push_back(expair(eta(x_pt,y_pt), _ex0));
+	seq.emplace_back(eta(x_pt,y_pt), _ex0);
 	return pseries(rel,seq);
 }
 
@@ -749,7 +749,7 @@ static ex Order_series(const ex & x, const relational & r, int order, unsigned o
 	GINAC_ASSERT(is_a<symbol>(r.lhs()));
 	const symbol &s = ex_to<symbol>(r.lhs());
         int ldeg = x.ldegree(s).to_int();
-	new_seq.push_back(expair(Order(_ex1), numeric(std::min(ldeg, order))));
+	new_seq.emplace_back(Order(_ex1), numeric(std::min(ldeg, order)));
 	return pseries(r, new_seq);
 }
 

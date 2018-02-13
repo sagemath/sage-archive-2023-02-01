@@ -1597,11 +1597,11 @@ unsigned function::register_new(function_options const & opt)
 	registered_functions().push_back(opt);
 	if (opt.use_remember) {
 		remember_table::remember_tables().
-			push_back(remember_table(opt.remember_size,
+			emplace_back(opt.remember_size,
 			                         opt.remember_assoc_size,
-			                         opt.remember_strategy));
+			                         opt.remember_strategy);
 	} else {
-		remember_table::remember_tables().push_back(remember_table());
+		remember_table::remember_tables().emplace_back();
 	}
 	return registered_functions().size()-1;
 }

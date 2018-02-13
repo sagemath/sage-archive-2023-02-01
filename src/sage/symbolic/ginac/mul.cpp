@@ -317,7 +317,7 @@ void mul::do_print_rat_func(const print_context & c, unsigned level,
 			c.s << "}";
 		} else {
 			print_overall_coeff(overall_coeff, c,
-					others.size() == 0 ? "" : sep,
+					others.empty() ? "" : sep,
 					latex_tags);
 			if (others.empty()
                             and (overall_coeff.is_one()
@@ -675,7 +675,7 @@ ex mul::eval(int level) const
 		                addref.overall_coeff.mul(overall_coeff))
 		       )->setflag(status_flags::dynallocated | status_flags::evaluated);
                 const add & result = ex_to<add>(x);
-                if (result.seq.size()==0)
+                if (result.seq.empty())
                         return result.overall_coeff;
                 else
                         return x;

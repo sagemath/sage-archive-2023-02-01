@@ -690,13 +690,13 @@ ex power::eval(int level) const
                                         else
                                                 inner.push_back(fac);
                                 }
-                                if (outer.size() > 0) {
+                                if (!outer.empty()) {
                                         ex outex, innex;
                                         if (outer.size() == 1)
                                                 outex = outer[0];
                                         else
                                                 outex = mul(outer).hold();
-                                        if (inner.size() > 0) {
+                                        if (!inner.empty()) {
                                                 if (inner.size() == 1)
                                                         innex = inner[0];
                                                 else
@@ -976,7 +976,7 @@ ex power::expand(unsigned options) const
 		// If positive/negative factors are found, then extract them.
 		// In either case we set a flag to avoid the second run on a part
 		// which does not have positive/negative terms.
-		if (prodseq.size() > 0) {
+		if (!prodseq.empty()) {
 			ex newbasis = coef*mul(powseq);
 			ex_to<basic>(newbasis).setflag(status_flags::purely_indefinite);
 			return ((new mul(prodseq))->setflag(status_flags::dynallocated)*(new power(newbasis, exponent))->setflag(status_flags::dynallocated).expand(options)).expand(options);
@@ -1166,7 +1166,7 @@ private:
 		explicit coolmulti(const std::vector<int>& partition)
 		  : head(nullptr), i(nullptr), after_i(nullptr)
 		{
-                        if (partition.size() <= 0)
+                        if (partition.empty())
                                 throw std::runtime_error("can't happn in coolmuli");
                         head = new element(partition[0], head);
                         i = head;

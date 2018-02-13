@@ -80,7 +80,7 @@ public:
 	bool is_compatible_to(const pseries &other) const {return var.is_equal(other.var) && point.is_equal(other.point);}
 
 	/** Check whether series has the value zero. */
-	bool is_zero() const {return seq.size() == 0;}
+	bool is_zero() const {return seq.empty();}
 
 	/** Returns true if there is no order term, i.e. the series terminates and
 	 *  false otherwise. */

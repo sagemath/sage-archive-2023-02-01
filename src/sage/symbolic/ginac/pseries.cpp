@@ -285,13 +285,13 @@ numeric pseries::degree(const ex &s) const
 {
 	if (var.is_equal(s)) {
 		// Return last exponent
-		if (seq.size() != 0u)
+		if (!seq.empty())
 			return ex_to<numeric>((seq.end()-1)->coeff).to_int();
 		else
 			return 0;
 	} else {
                 
-		if (seq.size() == 0)
+		if (seq.empty())
 			return 0;
 		int max_pow = std::numeric_limits<int>::min();
                 for (const auto & elem : seq) {
@@ -312,12 +312,12 @@ numeric pseries::ldegree(const ex &s) const
 {
 	if (var.is_equal(s)) {
 		// Return first exponent
-		if (seq.size() != 0u)
+		if (!seq.empty())
 			return ex_to<numeric>((seq.begin())->coeff);
 		else
 			return 0;
 	} else {
-		if (seq.size() == 0)
+		if (seq.empty())
 			return 0;
 		int min_pow = std::numeric_limits<int>::max();
                 for (const auto & elem : seq) {

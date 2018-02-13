@@ -154,7 +154,7 @@ class HeckeModule_generic(sage.modules.module.Module):
         if eps is None:
             raise NotImplementedError("either character or _compute_hecke_matrix_prime_power must be overloaded in a derived class")
         k = self.weight()
-        Tpr2 = self._hecke_matrices[pow/p]
+        Tpr2 = self._hecke_matrices[pow // p]
         return Tp*Tpr1 - eps(p)*(p**(k-1)) * Tpr2
 
     def _compute_hecke_matrix_general_product(self, F, **kwds):
@@ -1026,8 +1026,9 @@ class HeckeModule_free_module(HeckeModule_generic):
         self.__is_splittable = len(D) > 1
         if anemic:
             self.__is_splittable_anemic = len(D) > 1
-
-        D.sort(key = None if not sort_by_basis else lambda ss: ss.free_module())
+        from sage.modules.free_module import EchelonMatrixKey
+        D.sort(key=None if not sort_by_basis
+                        else lambda ss: EchelonMatrixKey(ss.free_module()))
         D.set_immutable()
         self.__decomposition[key] = D
         for i in range(len(D)):

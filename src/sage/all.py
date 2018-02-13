@@ -313,8 +313,6 @@ warnings.filters.remove(('ignore', None, DeprecationWarning, None, 0))
 # Ignore all deprecations from IPython etc.
 warnings.filterwarnings('ignore',
     module='.*(IPython|ipykernel|jupyter_client|jupyter_core|nbformat|notebook|ipywidgets|storemagic)')
-# Ignore warnings due to matplotlib-1.5 together with numpy-1.13
-warnings.filterwarnings('ignore', module='matplotlib[.]contour|numpy[.]ma[.]core')
 # However, be sure to keep OUR deprecation warnings
 warnings.filterwarnings('default',
     '[\s\S]*See http://trac.sagemath.org/[0-9]* for details.')

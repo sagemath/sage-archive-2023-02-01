@@ -100,14 +100,6 @@ cdef class FiniteRingElement(CommutativeRingElement):
         else:
             raise ValueError("unknown algorithm")
 
-    cpdef _add_(self, other):
-        """Abstract addition method"""
-        raise NotImplementedError
-
-    cpdef _mul_(self, other):
-        """Abstract multiplication method"""
-        raise NotImplementedError
-
 
 cdef class FinitePolyExtElement(FiniteRingElement):
     """

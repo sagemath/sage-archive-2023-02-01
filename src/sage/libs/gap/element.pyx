@@ -24,7 +24,7 @@ from cysignals.signals cimport sig_on, sig_off
 from sage.misc.cachefunc import cached_method
 from sage.structure.sage_object cimport SageObject
 from sage.structure.parent import Parent
-from sage.rings.all import ZZ, QQ
+from sage.rings.all import ZZ, QQ, RDF
 
 decode_type_number = {
     libGAP_T_INT: 'T_INT (integer)',
@@ -197,6 +197,8 @@ cdef GapElement make_any_gap_element(parent, libGAP_Obj obj):
     cdef int num = libGAP_TNUM_OBJ(obj)
     if num == libGAP_T_INT or num == libGAP_T_INTPOS or num == libGAP_T_INTNEG:
         return make_GapElement_Integer(parent, obj)
+    elif num == libGAP_T_MACFLOAT:
+        return make_GapElement_Float(parent, obj)
     elif num == libGAP_T_CYC:
         return make_GapElement_Cyclotomic(parent, obj)
     elif num == libGAP_T_FFE:
@@ -1320,6 +1322,80 @@ cdef class GapElement_Integer(GapElement):
         """
         return int(self)
 
+
+##########################################################################
+### GapElement_Float #####################################################
+##########################################################################
+
+cdef GapElement_Float make_GapElement_Float(parent, libGAP_Obj obj):
+    r"""
+    Turn a Gap macfloat object into a GapElement_Float Sage object
+
+    EXAMPLES::
+
+        sage: libgap(123.5)
+        123.5
+        sage: type(_)
+        <type 'sage.libs.gap.element.GapElement_Float'>
+    """
+    cdef GapElement_Float r = GapElement_Float.__new__(GapElement_Float)
+    r._initialize(parent, obj)
+    return r
+
+cdef class GapElement_Float(GapElement):
+    r"""
+    Derived class of GapElement for GAP floating point numbers.
+
+    EXAMPLES::
+
+        sage: i = libgap(123.5)
+        sage: type(i)
+        <type 'sage.libs.gap.element.GapElement_Float'>
+        sage: RDF(i)
+        123.5
+        sage: float(i)
+        123.5
+
+    TESTS::
+
+        sage: a = RDF.random_element()
+        sage: libgap(a).sage() == a
+        True
+    """
+    def sage(self, ring=None):
+        r"""
+        Return the Sage equivalent of the :class:`GapElement_Float`
+
+        - ``ring`` -- a floating point field or ``None`` (default). If not
+          specified, the default Sage ``RDF`` is used.
+
+        OUTPUT:
+
+        A Sage double precision floating point number
+
+        EXAMPLES::
+
+            sage: a = libgap.eval("Float(3.25)").sage()
+            sage: a
+            3.25
+            sage: parent(a)
+            Real Double Field
+        """
+        if ring is None:
+            ring = RDF
+        return ring(libGAP_VAL_MACFLOAT(self.value))
+
+    def __float__(self):
+        r"""
+        TESTS::
+
+            sage: float(libgap.eval("Float(3.5)"))
+            3.5
+        """
+        return libGAP_VAL_MACFLOAT(self.value)
+
+
+
 ############################################################################
 ### GapElement_IntegerMod #####################################################
 ############################################################################
@@ -1548,6 +1624,24 @@ cdef class GapElement_FiniteField(GapElement):
             gap_field = make_GapElement_Ring(self.parent(), gap_eval(ring._gap_init_()))
             exp = self.LogFFE(gap_field.PrimitiveRoot())
             return ring.multiplicative_generator() ** exp.sage()
+
+    def __int__(self):
+        r"""
+        TESTS::
+
+            sage: int(libgap.eval("Z(53)"))
+            2
+        """
+        return int(self.Int())
+
+    def _integer_(self, R):
+        r"""
+        TESTS::
+
+            sage: ZZ(libgap.eval("Z(53)"))
+            2
+        """
+        return R(self.Int())
 
 
 ############################################################################
@@ -2617,7 +2711,7 @@ cdef class GapElement_List(GapElement):
         """
         Return the list as a vector.
 
-        GAP does not have a special vetor data type, they are just
+        GAP does not have a special vector data type, they are just
         lists. This function converts a GAP list to a Sage vector.
 
         OUTPUT:

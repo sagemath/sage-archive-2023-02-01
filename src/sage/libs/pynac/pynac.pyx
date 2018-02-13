@@ -27,6 +27,8 @@ from sage.libs.gsl.gamma cimport gsl_sf_lngamma_complex_e
 from sage.libs.mpmath import utils as mpmath_utils
 from sage.libs.pari.all import pari
 
+from sage.cpython.string cimport str_to_bytes
+
 from sage.arith.all import gcd, lcm, is_prime, factorial, bernoulli
 
 from sage.structure.element cimport Element, parent, coercion_model
@@ -340,7 +342,7 @@ cdef stdstring* py_repr(o, int level):
         else:
             t = s
         # Python complexes are always printed with parentheses
-        # we try to avoid double parantheses
+        # we try to avoid double parentheses
         if type(o) is not complex and \
                 (' ' in t or '/' in t or '+' in t or '-' in t or '*' in t \
                 or '^' in t):
@@ -370,6 +372,10 @@ cdef stdstring* string_from_pystr(py_str) except NULL:
     cdef bytes s
     if isinstance(py_str, bytes):
         s = <bytes>py_str
+    elif isinstance(py_str, str):
+        # Note: This should only by the case on Python 3 since on Python 2
+        # bytes is str
+        s = str_to_bytes(py_str)
     else:
         s = b"(INVALID)"  # Avoid segfaults for invalid input
     return new stdstring(s)

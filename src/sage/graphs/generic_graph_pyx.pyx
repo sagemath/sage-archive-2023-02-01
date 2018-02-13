@@ -31,6 +31,7 @@ include "sage/data_structures/binary_matrix.pxi"
 from libc.math cimport sqrt, fabs
 from libc.string cimport memset
 
+from sage.cpython.string cimport char_to_str
 from sage.libs.gmp.mpz cimport *
 from sage.misc.prandom import random
 from sage.ext.memory_allocator cimport MemoryAllocator
@@ -398,10 +399,11 @@ def int_to_binary_string(n):
         '11111010111'
     """
     cdef mpz_t i
+    cdef char* s
     mpz_init(i)
-    mpz_set_ui(i,n)
-    cdef char* s=mpz_get_str(NULL, 2, i)
-    t=str(s)
+    mpz_set_ui(i, n)
+    s = mpz_get_str(NULL, 2, i)
+    t = char_to_str(s)
     sig_free(s)
     mpz_clear(i)
     return t
@@ -913,6 +915,7 @@ cdef class SubgraphSearch:
         # Free the memory
         sig_free(self.busy)
         sig_free(self.stack)
+        sig_free(self.tmp_array)
         sig_free(self.vertices)
         sig_free(self.line_h_out)
         sig_free(self.line_h_in)

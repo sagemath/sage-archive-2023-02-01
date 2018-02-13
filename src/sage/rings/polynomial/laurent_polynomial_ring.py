@@ -555,10 +555,21 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
             -x^-1 + 1
             sage: 1/PP(f)
             -x - x^2 - x^3 - x^4 - x^5 - x^6 - x^7 - x^8 - x^9 - x^10 - x^11 - x^12 - x^13 - x^14 - x^15 - x^16 - x^17 - x^18 - x^19 - x^20 + O(x^21)
+
+        TESTS:
+
+        Check that the precision is taken into account (:trac:`24431`)::
+
+            sage: L = LaurentPolynomialRing(QQ, 'x')
+            sage: L.completion('x', 100).default_prec()
+            100
+            sage: L.completion('x', 20).default_prec()
+            20
         """
         if str(p) == self._names[0] and self._n == 1:
             from sage.rings.laurent_series_ring import LaurentSeriesRing
-            return LaurentSeriesRing(self.base_ring(), name=self._names[0])
+            R = self.polynomial_ring().completion(self._names[0], prec)
+            return LaurentSeriesRing(R)
         else:
             raise TypeError("Cannot complete %s with respect to %s" % (self, p))
 
@@ -849,11 +860,16 @@ class LaurentPolynomialRing_univariate(LaurentPolynomialRing_generic):
             <class 'sage.rings.polynomial.laurent_polynomial_ring.LaurentPolynomialRing_univariate_with_category'>
             sage: L == loads(dumps(L))
             True
+
+
+        TESTS::
+
+            sage: TestSuite(LaurentPolynomialRing(Zmod(4), 'y')).run()
+            sage: TestSuite(LaurentPolynomialRing(ZZ, 'u')).run()
+            sage: TestSuite(LaurentPolynomialRing(Zmod(4)['T'], 'u')).run()
         """
         if R.ngens() != 1:
             raise ValueError("must be 1 generator")
-        if not R.base_ring().is_integral_domain():
-            raise ValueError("base ring must be an integral domain")
         LaurentPolynomialRing_generic.__init__(self, R)
 
     def _repr_(self):

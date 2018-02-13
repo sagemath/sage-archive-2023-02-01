@@ -400,7 +400,8 @@ class Singular(ExtraTabCompletion, Expect):
 
     def set_seed(self,seed=None):
         """
-        Sets the seed for singular interpeter.
+        Set the seed for singular interpreter.
+
         The seed should be an integer at least 1
         and not more than 30 bits.
         See

@@ -39,6 +39,8 @@ TESTS::
     True
     sage: RationalField() is RationalField()
     True
+    sage: Q in Fields().Infinite()
+    True
 
 AUTHORS:
 
@@ -531,8 +533,8 @@ class RationalField(Singleton, number_field_base.NumberField):
         except (TypeError, AttributeError):
             raise TypeError("%s is not valid bound on prime ideals" % B)
 
-        if B<2:
-            raise StopIteration
+        if B < 2:
+            return
 
         from sage.arith.all import primes
         for p in primes(B+1):

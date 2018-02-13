@@ -579,7 +579,7 @@ cdef class Riemann_Map:
         the interior of the mapped region, ``riemann_map`` will return
         the point on the unit disk that ``pt`` maps to. Note that this
         method only works for interior points; accuracy breaks down very close
-        to the boundary. To get boundary corrospondance, use
+        to the boundary. To get boundary correspondance, use
         :meth:`get_theta_points`.
 
         INPUT:

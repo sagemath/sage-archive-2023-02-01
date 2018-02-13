@@ -147,8 +147,6 @@ This base class provides a lot more methods than a general parent::
      'gcd',
      'gen',
      'gens',
-     'get_action_c',
-     'get_action_impl',
      'has_coerce_map_from_c',
      'ideal',
      'ideal_monoid',
@@ -875,7 +873,8 @@ The four axioms requested for coercions
       rational field is a homomorphism of euclidean domains::
 
           sage: QQ.coerce_map_from(ZZ).category_for()
-          Join of Category of euclidean domains and Category of metric spaces
+          Join of Category of euclidean domains and Category of infinite sets
+          and Category of metric spaces
 
       .. end of output
 

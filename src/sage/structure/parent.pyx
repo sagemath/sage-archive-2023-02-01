@@ -127,6 +127,8 @@ from sage.structure.misc import is_extension_type
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.sets_cat import Sets, EmptySetError
 from sage.misc.lazy_format import LazyFormat
+from .coerce_maps cimport (NamedConvertMap, DefaultConvertMap,
+        DefaultConvertMap_unique, CallableConvertMap)
 
 
 cdef _record_exception():
@@ -1847,16 +1849,14 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
                 From: Integer Ring
                 To:   Univariate Polynomial Ring in x over Rational Field
 
-
         TESTS:
 
         We check that :trac:`23184` has been resolved::
 
             sage: QQ['x', 'y']._generic_coerce_map(QQ).category_for()
-            Category of unique factorization domains
+            Category of infinite unique factorization domains
             sage: QQ[['x']].coerce_map_from(QQ).category_for()
             Category of euclidean domains
-
         """
         if isinstance(S, type):
             category = None
@@ -1886,6 +1886,10 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             Conversion map:
               From: Finite Field of size 7
               To:   Finite Field of size 11
+            sage: ZZ._generic_convert_map(RDF)
+            Conversion via _integer_ method map:
+              From: Real Double Field
+              To:   Integer Ring
 
         TESTS:
 
@@ -1893,27 +1897,45 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
 
             sage: QQ[['x']].coerce_map_from(QQ).category_for()
             Category of euclidean domains
-
         """
-        from . import coerce_maps
-        if self._convert_method_name is not None:
-            # handle methods like _integer_
-            if isinstance(S, type):
-                element_constructor = S
-            elif isinstance(S, Parent):
-                element_constructor = (<Parent>S)._element_constructor
-                if not isinstance(element_constructor, type):
-                    # if element_constructor is not an actual class, get the element class
-                    element_constructor = type(S.an_element())
-            else:
-                element_constructor = None
-            if element_constructor is not None and hasattr(element_constructor, self._convert_method_name):
-                return coerce_maps.NamedConvertMap(S, self, self._convert_method_name)
-
+        m = self._convert_method_name
+        if m is not None:
+            f = self.convert_method_map(S, m)
+            if f is not None:
+                return f
         if self._element_init_pass_parent:
-            return coerce_maps.DefaultConvertMap(S, self, category=category)
+            return DefaultConvertMap(S, self, category=category)
         else:
-            return coerce_maps.DefaultConvertMap_unique(S, self, category=category)
+            return DefaultConvertMap_unique(S, self, category=category)
+
+    def _convert_method_map(self, S, method_name=None):
+        """
+        Return a map to convert from ``S`` to ``self`` using a convert
+        method like ``_integer_`` on elements of ``S``.
+
+        OUTPUT: either an instance of :class:`NamedConvertMap` or
+        ``None`` if ``S`` does not have the method.
+        """
+        # NOTE: in Cython code, call convert_method_map() directly
+        if method_name is None:
+            method_name = self._convert_method_name
+        return self.convert_method_map(S, method_name)
+
+    cdef convert_method_map(self, S, method_name):
+        # Cython implementation of _convert_method_map()
+        cdef Parent P
+        if isinstance(S, Parent):
+            P = <Parent>S
+            try:
+                element_cls = P.Element
+            except AttributeError:
+                element_cls = type(P.an_element())
+        else:
+            element_cls = S
+        if hasattr(element_cls, method_name):
+            return NamedConvertMap(S, self, method_name)
+        else:
+            return None
 
     def _coerce_map_via(self, v, S):
         """
@@ -2274,43 +2296,32 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
               From: Number Field in b with defining polynomial x^2 + 2
               To:   Power Series Ring in x over Number Field in b with defining polynomial x^2 + 2
         """
-        best_mor = None
         if isinstance(S, Parent) and (<Parent>S)._embedding is not None:
             if (<Parent>S)._embedding.codomain() is self:
                 return (<Parent>S)._embedding
 
-        cdef map.Map mor
         user_provided_mor = self._coerce_map_from_(S)
 
-        if user_provided_mor is False:
-            user_provided_mor = None
-
-        elif user_provided_mor is not None:
-
-            from sage.categories.map import Map
-            from .coerce_maps import DefaultConvertMap, DefaultConvertMap_unique, NamedConvertMap, CallableConvertMap
-
-            if user_provided_mor is True:
-                mor = self._generic_coerce_map(S)
-            elif isinstance(user_provided_mor, Map):
-                mor = <map.Map>user_provided_mor
-            elif callable(user_provided_mor):
-                mor = CallableConvertMap(S, self, user_provided_mor)
-            else:
-                raise TypeError("_coerce_map_from_ must return None, a boolean, a callable, or an explicit Map (called on %s, got %s)" % (type(self), type(user_provided_mor)))
-
-            if (type(mor) is DefaultConvertMap or
-                  type(mor) is DefaultConvertMap_unique or
-                  type(mor) is NamedConvertMap) and not mor._force_use:
-                # If there is something better in the list, try to return that instead
-                # This is so, for example, _coerce_map_from_ can return True but still
-                # take advantage of the _populate_coercion_lists_ data.
-                best_mor = mor
-            else:
-                return mor
+        if user_provided_mor is None or user_provided_mor is False:
+            best_mor = None
+        elif user_provided_mor is True:
+            best_mor = self._generic_coerce_map(S)
+            if not isinstance(best_mor, DefaultConvertMap):
+                return best_mor
+            # Continue searching for better maps.  If there is something
+            # better in the list, return that instead.  This is so, for
+            # example, _coerce_map_from_ can return True but still take
+            # advantage of the _populate_coercion_lists_ data.
+        elif isinstance(user_provided_mor, map.Map):
+            return user_provided_mor
+        elif callable(user_provided_mor):
+            return CallableConvertMap(S, self, user_provided_mor)
+        else:
+            raise TypeError("_coerce_map_from_ must return None, a boolean, a callable, or an explicit Map (called on %s, got %s)" % (type(self), type(user_provided_mor)))
 
         from sage.categories.homset import Hom
 
+        cdef map.Map mor
         cdef int num_paths = 1 # this is the number of paths we find before settling on the best (the one with lowest coerce_cost).
                                # setting this to 1 will make it return the first path found.
         cdef int mor_found = 0
@@ -2372,7 +2383,6 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             Integer Ring
         """
         return copy(self._internal_convert_map_from(S))
-
 
     cpdef _internal_convert_map_from(self, S):
         """
@@ -2439,7 +2449,6 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             if isinstance(user_provided_mor, map.Map):
                 return user_provided_mor
             elif callable(user_provided_mor):
-                from .coerce_maps import CallableConvertMap
                 return CallableConvertMap(S, self, user_provided_mor)
             else:
                 raise TypeError("_convert_map_from_ must return a map or callable (called on %s, got %s)" % (type(self), type(user_provided_mor)))
@@ -2488,7 +2497,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         if action is not None:
             from sage.categories.action import Action
             if not isinstance(action, Action):
-                raise TypeError("get_action_impl must return None or an Action")
+                raise TypeError("_get_action_ must return None or an Action")
             # We do NOT add to the list, as this would lead to errors as in
             # the example above.
 

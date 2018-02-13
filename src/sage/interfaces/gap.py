@@ -966,7 +966,8 @@ class Gap_generic(ExtraTabCompletion, Expect):
 
 
 # We need to inherit from ModuleElement to support
-# sage.structure.coerce_actions.ModuleAction
+# sage.structure.coerce_actions.ModuleAction and it needs to be first
+# in the MRO because extension types should always come first.
 @instancedoc
 class GapElement_generic(ModuleElement, ExtraTabCompletion, ExpectElement):
     r"""
@@ -978,8 +979,19 @@ class GapElement_generic(ModuleElement, ExtraTabCompletion, ExpectElement):
 
     - Franco Saliola (Feb 2010): refactored to separate out the generic
       code
-
     """
+    def _add_(self, other):
+        """
+        EXAMPLES::
+
+            sage: a = gap(1)
+            sage: a + a
+            2
+        """
+        # This is just a copy of ExpectElement._add_ to fix the fact
+        # that the abtract method ModuleElement._add_ comes first in
+        # the MRO.
+        return self._operation("+", other)
 
     def bool(self):
         """
@@ -1129,7 +1141,8 @@ class Gap(Gap_generic):
 
     def set_seed(self,seed=None):
         """
-        Sets the seed for gap interpeter.
+        Set the seed for gap interpreter.
+
         The seed should be an integer.
 
         EXAMPLES::

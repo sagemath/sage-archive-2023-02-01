@@ -3318,7 +3318,8 @@ can then be queried for invariant and covariants. For example,
 
         INPUT:
 
-        - ``quadratic1``, ``quadratic2`` -- two polynomias. Either homogeneous quadratic
+        - ``quadratic1``, ``quadratic2`` -- two polynomials.
+          Either homogeneous quadratic
           in 4 homogeneous variables, or inhomogeneous quadratic
           in 3 variables.
 

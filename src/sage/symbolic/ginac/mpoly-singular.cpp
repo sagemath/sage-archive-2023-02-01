@@ -220,7 +220,7 @@ const CanonicalForm ex::to_canonical(ex_int_map& amap,
         {
                 const power& pow = ex_to<power>(*this);
                 if (is_exactly_a<numeric>(pow.exponent)) {
-                        numeric expo = ex_to<numeric>(pow.exponent);
+                        const numeric& expo = ex_to<numeric>(pow.exponent);
                         if (expo.is_rational()) {
                                 CanonicalForm var;
                                 power_ocvector_map::iterator it;

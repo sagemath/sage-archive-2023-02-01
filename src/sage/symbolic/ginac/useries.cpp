@@ -282,7 +282,7 @@ static bool unhandled_elements_in(const ex& the_ex, const symbol& symb)
         }
         if (is_exactly_a<function>(the_ex)) {
                 rational_ex_f = false;
-                function f = ex_to<function>(the_ex);
+                const function& f = ex_to<function>(the_ex);
                 if (funcmap().find(f.get_serial()) == funcmap().end())
                         return true;
                 for (unsigned int i=0; i<f.nops(); i++)
@@ -291,7 +291,7 @@ static bool unhandled_elements_in(const ex& the_ex, const symbol& symb)
                 return false;
         }
         if (is_exactly_a<power>(the_ex)) {
-                power pow = ex_to<power>(the_ex);
+                const power& pow = ex_to<power>(the_ex);
                 if (not is_exactly_a<numeric>(pow.op(1)))
                         rational_ex_f = false;
                 return (unhandled_elements_in(pow.op(0), symb)
@@ -358,7 +358,7 @@ static int low_series_degree(const ex& the_ex) {
         if (is_exactly_a<symbol>(the_ex))
                 return 1;
         if (is_exactly_a<function>(the_ex)) {
-                function f = ex_to<function>(the_ex);
+                const function& f = ex_to<function>(the_ex);
                 unsigned int ser = f.get_serial();
                 if (ser == log_SERIAL::serial)
                         return 1;
@@ -372,10 +372,10 @@ static int low_series_degree(const ex& the_ex) {
                 return low_series_degree(f.op(0));
         }
         if (is_exactly_a<power>(the_ex)) {
-                power pow = ex_to<power>(the_ex);
+                const power& pow = ex_to<power>(the_ex);
                 ex expo = pow.op(1);
                 if (is_exactly_a<numeric>(expo)) {
-                        numeric n = ex_to<numeric>(expo);
+                        const numeric& n = ex_to<numeric>(expo);
                         if (n.is_integer())
                                 return (low_series_degree(pow.op(0))
                                       * n.to_int());
@@ -527,7 +527,7 @@ void power::useries(flint_series_t& fp, int order) const
                 fmpq_poly_exp_series(fp.ft, fp.ft, order);
                 return;
         }
-        numeric nexp = ex_to<numeric>(exponent);
+        const numeric& nexp = ex_to<numeric>(exponent);
         if (nexp.is_mpq()) {
                 int num = nexp.numer().to_int();
                 int den = nexp.denom().to_int();

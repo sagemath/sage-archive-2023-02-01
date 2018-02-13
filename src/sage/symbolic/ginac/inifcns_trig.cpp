@@ -194,7 +194,7 @@ static ex sin_eval(const ex & x)
                 if (ExOverPi.info(info_flags::integer))
                         return _ex0;
                 if (is_exactly_a<numeric>(ExOverPi)) {
-                        const numeric c = ex_to<numeric>(ExOverPi);
+                        const numeric& c = ex_to<numeric>(ExOverPi);
                         if (c.is_rational()) {
                                 numeric den = c.denom();
                                 numeric num = c.numer().mod(den * *_num2_p);
@@ -403,7 +403,7 @@ static ex cos_eval(const ex & x)
                 // Reflection at Pi/2
                 const ex ExOverPi = x_red/Pi;
                 if (is_exactly_a<numeric>(ExOverPi)) {
-                        const numeric c = ex_to<numeric>(ExOverPi);
+                        const numeric& c = ex_to<numeric>(ExOverPi);
                         // cos(integer*pi) --> (-1)^integer
                         if (c.info(info_flags::integer))
                                 return pow(*_num_1_p, c);
@@ -622,7 +622,7 @@ static ex tan_eval(const ex & x)
                 // Reflection at Pi/2
                 const ex ExOverPi = x_red/Pi;
                 if (is_exactly_a<numeric>(ExOverPi)) {
-                        const numeric c = ex_to<numeric>(ExOverPi);
+                        const numeric& c = ex_to<numeric>(ExOverPi);
                         if (c.is_rational()) {
                                 numeric den = c.denom();
                                 numeric num = c.numer().mod(den);
@@ -802,7 +802,7 @@ static ex cot_eval(const ex & x)
         if(is_exactly_a<numeric>(ExOverPi)) {
 		ex coef_pi = x.coeff(Pi,_ex1).expand();
 		if (is_exactly_a<numeric>(coef_pi)) {
-			const numeric c = ex_to<numeric>(coef_pi);
+			const numeric& c = ex_to<numeric>(coef_pi);
 		        if (c.is_rational()) {
 	                        const numeric num = c.numer();
 		                const numeric den = c.denom();
@@ -1298,7 +1298,7 @@ static ex atan_eval(const ex & x)
 	// arctan(-oo) -> -Pi/2
 	// arctan(UnsignedInfinity) -> error
 	if (is_exactly_a<infinity>(x)) {
-	        infinity xinf = ex_to<infinity>(x);
+	        const infinity& xinf = ex_to<infinity>(x);
 		if (xinf.is_plus_infinity())
 		        return _ex1_2*Pi;
 		if (xinf.is_minus_infinity())
@@ -1585,7 +1585,7 @@ static ex asec_evalf(const ex & x, PyObject* parent)
 {
 	if (is_exactly_a<numeric>(x))
         {
-                numeric num = ex_to<numeric>(x);
+                const numeric& num = ex_to<numeric>(x);
                 if (num.is_real()
                     and (num > *_num_1_p and num < *_num1_p))
                         return NaN;
@@ -1598,7 +1598,7 @@ static ex asec_evalf(const ex & x, PyObject* parent)
 static ex asec_eval(const ex & x)
 {
 	if (is_exactly_a<numeric>(x)) {
-                numeric num = ex_to<numeric>(x);
+                const numeric& num = ex_to<numeric>(x);
                 if (num.is_zero())
                         return NaN;
                 if (num.is_equal(*_num1_p))
@@ -1668,7 +1668,7 @@ static ex acsc_evalf(const ex & x, PyObject* parent)
 static ex acsc_eval(const ex & x)
 {
 	if (is_exactly_a<numeric>(x)) {
-                numeric num = ex_to<numeric>(x);
+                const numeric& num = ex_to<numeric>(x);
                 if (num.is_zero())
                         return NaN;
                 if (num.is_equal(*_num1_p))

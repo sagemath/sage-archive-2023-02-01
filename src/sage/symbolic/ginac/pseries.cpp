@@ -345,7 +345,7 @@ ex pseries::coeff(const ex &s, const ex & n) const
 		// Binary search in sequence for given power
                 if (not is_exactly_a<numeric>(n))
                         throw std::runtime_error("can't happen in pseries::coeff");
-		numeric looking_for = ex_to<numeric>(n);
+		const numeric& looking_for = ex_to<numeric>(n);
 		int lo = 0, hi = seq.size() - 1;
 		while (lo <= hi) {
 			int mid = (lo + hi) / 2;

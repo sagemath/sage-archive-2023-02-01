@@ -640,8 +640,8 @@ static ex eta_evalf(const ex &x, const ex &y, PyObject* parent)
 		return _ex0;
 
 	if (x.info(info_flags::numeric) &&	y.info(info_flags::numeric)) {
-		const numeric nx = ex_to<numeric>(x);
-		const numeric ny = ex_to<numeric>(y);
+		const numeric& nx = ex_to<numeric>(x);
+		const numeric& ny = ex_to<numeric>(y);
 		const numeric nxy = ex_to<numeric>(x*y);
 		int cut = 0;
 		if (nx.is_real() && nx.is_negative())
@@ -665,8 +665,8 @@ static ex eta_eval(const ex &x, const ex &y)
 
 	if (x.info(info_flags::numeric) &&	y.info(info_flags::numeric)) {
 		// don't call eta_evalf here because it would call Pi.evalf()!
-		const numeric nx = ex_to<numeric>(x);
-		const numeric ny = ex_to<numeric>(y);
+		const numeric& nx = ex_to<numeric>(x);
+		const numeric& ny = ex_to<numeric>(y);
 		const numeric nxy = ex_to<numeric>(x*y);
 		int cut = 0;
 		if (nx.is_real() && nx.is_negative())

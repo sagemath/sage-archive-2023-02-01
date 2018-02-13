@@ -116,7 +116,7 @@ ex multiply_lcm(const ex &e, const numeric &lcm)
 			ex t = lcm.power(ex_to<numeric>(e.op(1)).inverse());
                         if (not is_exactly_a<numeric>(t))
 				return e * lcm;
-			numeric root_of_lcm = ex_to<numeric>(t);
+			const numeric& root_of_lcm = ex_to<numeric>(t);
 			if (root_of_lcm.is_rational())
 				return pow(multiply_lcm(e.op(0), root_of_lcm), e.op(1));
 			else

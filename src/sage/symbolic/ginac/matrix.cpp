@@ -1509,7 +1509,7 @@ int matrix::pivot(unsigned ro, unsigned co, bool symbolic)
 		numeric mmax = abs(ex_to<numeric>(m[kmax*col+co]));
 		while (kmax<row) {
 			GINAC_ASSERT(is_exactly_a<numeric>(this->m[kmax*col+co]));
-			numeric tmp = ex_to<numeric>(this->m[kmax*col+co]);
+			const numeric& tmp = ex_to<numeric>(this->m[kmax*col+co]);
 			if (abs(tmp) > mmax) {
 				mmax = tmp;
 				k = kmax;

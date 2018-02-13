@@ -494,7 +494,7 @@ static bool match_monom(const ex& term, const symbol& symb,
                         // we expand only those with integer exponent
                         if (is_exactly_a<numeric>(expo)
                                         and has_free_symbol(p.op(0), symb)) {
-                                numeric ee = ex_to<numeric>(expo);
+                                const numeric& ee = ex_to<numeric>(expo);
                                 if (ee.is_integer() and ee.to_int() > 1) {
                                         expairvec tmpvec;
                                         expand(term).coefficients(symb, tmpvec);

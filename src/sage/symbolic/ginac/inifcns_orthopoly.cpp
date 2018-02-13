@@ -106,7 +106,7 @@ static ex chebyu_eval(const ex& n_, const ex& x)
             or not n_.info(info_flags::integer))
                 return chebyshev_U(n_, x).hold();
 
-        numeric numn = ex_to<numeric>(n_);
+        const numeric& numn = ex_to<numeric>(n_);
         if (numn.is_zero())
                 return _ex1;
         if (numn.is_one())
@@ -154,8 +154,8 @@ static ex legp_evalf(const ex& n, const ex& x, PyObject* parent)
                 return legendre_P(n,x).hold();
 
         // see http://dlmf.nist.gov/15.9.E7
-        numeric numn = ex_to<numeric>(n);
-        numeric numx = ex_to<numeric>(x);
+        const numeric& numn = ex_to<numeric>(n);
+        const numeric& numx = ex_to<numeric>(x);
         std::vector<numeric> numveca, numvecb;
         numveca.push_back(numn.negative());
         numveca.push_back(numn + *_num1_p);
@@ -171,7 +171,7 @@ static ex legp_eval(const ex& n_, const ex& x)
         else
                 n = n_;
 	if (is_exactly_a<numeric>(x)) {
-                numeric numx = ex_to<numeric>(x);
+                const numeric& numx = ex_to<numeric>(x);
                 if (numx.is_one())
                         return _ex1;
                 if (numx.is_zero())
@@ -184,7 +184,7 @@ static ex legp_eval(const ex& n_, const ex& x)
                                         return _ex0;
                                 if (n.info(info_flags::even)) {
                                         if (is_exactly_a<numeric>(n)) {
-                                                numeric numn = ex_to<numeric>(n);
+                                                const numeric& numn = ex_to<numeric>(n);
                                                 return (numn+*_num_1_p).factorial() / numn.mul(*_num1_2_p).factorial().pow_intexp(2) * numn / _num2_p->pow_intexp(numn.to_int());
                                         }
                                         else
@@ -201,7 +201,7 @@ static ex legp_eval(const ex& n_, const ex& x)
             or not n.info(info_flags::integer))
                 return legendre_P(n, x).hold();
 
-        numeric numn = ex_to<numeric>(n);
+        const numeric& numn = ex_to<numeric>(n);
         if (numn.is_zero())
                 return _ex1;
         if (numn.is_one())
@@ -267,8 +267,8 @@ static ex hermite_evalf(const ex& n, const ex& x, PyObject* parent)
                 return hermite(n,x).hold();
 
         // see http://dlmf.nist.gov/18.5.E13
-        numeric numn = ex_to<numeric>(n);
-        numeric numx = ex_to<numeric>(x);
+        const numeric& numn = ex_to<numeric>(n);
+        const numeric& numx = ex_to<numeric>(x);
         std::vector<numeric> numveca, numvecb;
         numveca.push_back(numn / *_num_2_p);
         numveca.push_back(*_num1_2_p + (numn / *_num_2_p));
@@ -278,7 +278,7 @@ static ex hermite_evalf(const ex& n, const ex& x, PyObject* parent)
 static ex hermite_eval(const ex& n, const ex& x)
 {
 	if (is_exactly_a<numeric>(x)) {
-                numeric numx = ex_to<numeric>(x);
+                const numeric& numx = ex_to<numeric>(x);
                 if (numx.is_zero())
                         if (n.info(info_flags::integer)
                                 and n.info(info_flags::odd))
@@ -340,9 +340,9 @@ static ex gegenb_evalf(const ex& n, const ex &a, const ex& x, PyObject* parent)
                 return gegenbauer(n,a,x).hold();
 
         // see http://dlmf.nist.gov/18.5.E9
-        numeric numn = ex_to<numeric>(n);
-        numeric numx = ex_to<numeric>(x);
-        numeric numa = ex_to<numeric>(a);
+        const numeric& numn = ex_to<numeric>(n);
+        const numeric& numx = ex_to<numeric>(x);
+        const numeric& numa = ex_to<numeric>(a);
         numeric num2a = numa * (*_num2_p);
         std::vector<numeric> numveca, numvecb;
         numveca.push_back(-numn);
@@ -358,7 +358,7 @@ static ex gegenb_eval(const ex& n, const ex &a, const ex& x)
 	numeric numa = 1;
 
 	if (is_exactly_a<numeric>(x)) {
-                numeric numx = ex_to<numeric>(x);
+                const numeric& numx = ex_to<numeric>(x);
                 if (is_exactly_a<numeric>(n)
 			and is_exactly_a<numeric>(a)
 			and numx.info(info_flags::inexact))
@@ -368,7 +368,7 @@ static ex gegenb_eval(const ex& n, const ex &a, const ex& x)
         if (not is_exactly_a<numeric>(n))
                 return gegenbauer(n, a, x).hold();
 
-        numeric numn = ex_to<numeric>(n);
+        const numeric& numn = ex_to<numeric>(n);
         if (not numn.info(info_flags::integer) or numn < 0)
                 throw std::runtime_error("gegenb_eval: The index n must be a nonnegative integer");
 

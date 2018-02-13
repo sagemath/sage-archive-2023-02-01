@@ -69,7 +69,7 @@ static ex exp_eval(const ex & x)
 	// exp(-oo) -> 0
 	// exp(UnsignedInfinity) -> error
 	if (is_exactly_a<infinity>(x)) {
-	        infinity xinf = ex_to<infinity>(x);
+	        const infinity& xinf = ex_to<infinity>(x);
 		if (xinf.is_plus_infinity())
 			return Infinity;
 		if (xinf.is_minus_infinity())
@@ -235,7 +235,7 @@ static ex log_eval(const ex & x)
 {
 	if (is_exactly_a<numeric>(x)) {
 		// log(float) -> float
-                numeric n = ex_to<numeric>(x);
+                const numeric& n = ex_to<numeric>(x);
 		if (x.info(info_flags::crational)) {
                         if (n.is_zero())         // log(0) -> infinity
                                 //throw(pole_error("log_eval(): log(0)",0));
@@ -435,8 +435,8 @@ static ex logb_eval(const ex & x, const ex & base)
 {
 	if (is_exactly_a<numeric>(x) and not x.info(info_flags::inexact)
 	    and is_exactly_a<numeric>(base) and not base.info(info_flags::inexact)) {
-                numeric a = ex_to<numeric>(x);
-                numeric b = ex_to<numeric>(base);
+                const numeric& a = ex_to<numeric>(x);
+                const numeric& b = ex_to<numeric>(base);
                 if (b.info(info_flags::real) and a.info(info_flags::real)) {
                         bool israt;
                         numeric ret = a.ratlog(b, israt);
@@ -729,8 +729,8 @@ static ex Li_deriv(const ex& m_, const ex& x_, unsigned deriv_param)
 	if (deriv_param == 0) {
 		return _ex0;
 	}
-	ex m = m_;
-	ex x = x_;
+	const ex& m = m_;
+	const ex& x = x_;
 	if (m > 0) {
 		return Li(m-1, x) / x;
 	} else {

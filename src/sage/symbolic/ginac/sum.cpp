@@ -73,7 +73,7 @@ static ex binomial_to_gamma(const function& f)
         const ex& a = f.op(0);
         const ex& k = f.op(1);
         if (is_exactly_a<numeric>(a)) {
-                numeric anum = ex_to<numeric>(a);
+                const numeric& anum = ex_to<numeric>(a);
                 if (anum.info(info_flags::integer)
                     and anum.info(info_flags::negative))
                         return pow(_ex_1, k) * 
@@ -113,7 +113,7 @@ static bool has_suitable_form(const ex& the_ex)
         if (is_rational_linear(the_ex))
                 return true;
         if (is_exactly_a<power>(the_ex)) {
-                power pow = ex_to<power>(the_ex);
+                const power& pow = ex_to<power>(the_ex);
                 const ex& expo = pow.op(1);
                 if (is_exactly_a<numeric>(expo)
                     and expo.info(info_flags::integer))
@@ -122,7 +122,7 @@ static bool has_suitable_form(const ex& the_ex)
                      and is_rational_linear(pow.op(1)));
         }
         if (is_exactly_a<function>(the_ex)) {
-                function f = ex_to<function>(the_ex);
+                const function& f = ex_to<function>(the_ex);
                 if (funcmap.find(f.get_serial()) == funcmap.end())
                         return false;
                 for (unsigned int i=0; i<f.nops(); i++)
@@ -162,7 +162,7 @@ ex to_gamma(const ex& the_ex)
         if (is_rational_linear(the_ex))
                 return the_ex;
         if (is_exactly_a<power>(the_ex)) {
-                power pow = ex_to<power>(the_ex);
+                const power& pow = ex_to<power>(the_ex);
                 const ex& expo = pow.op(1);
                 if (is_exactly_a<numeric>(expo)
                     and expo.info(info_flags::integer))
@@ -243,7 +243,7 @@ using ex_intset_map = std::map<GiNaC::ex, std::unordered_set<int>, GiNaC::ex_is_
 static void collect_gamma_args(const ex& the_ex, ex_intset_map& map)
 {
         if (is_exactly_a<function>(the_ex)) {
-                function f = ex_to<function>(the_ex);
+                const function& f = ex_to<function>(the_ex);
                 if (f.get_serial() == gamma_SERIAL::serial) {
                         ex arg = f.op(0).expand();
                         if (is_exactly_a<numeric>(arg))
@@ -275,7 +275,7 @@ static void collect_gamma_args(const ex& the_ex, ex_intset_map& map)
                         collect_gamma_args(f.op(i), map);
         }
         else if (is_exactly_a<power>(the_ex)) {
-                power pow = ex_to<power>(the_ex);
+                const power& pow = ex_to<power>(the_ex);
                 collect_gamma_args(pow.op(0), map);
                 collect_gamma_args(pow.op(1), map);
         }
@@ -378,7 +378,7 @@ static matrix solve_system(ex mpoly,
                 const ex& expo = pair.second;
                 if (not is_exactly_a<numeric>(expo))
                         throw std::runtime_error("can't happen in solve_system()");
-                numeric nume = ex_to<numeric>(expo);
+                const numeric& nume = ex_to<numeric>(expo);
                 if (not nume.is_mpz() and not nume.is_long())
                         throw std::runtime_error("can't happen in solve_system()");
                 int e = nume.to_int();

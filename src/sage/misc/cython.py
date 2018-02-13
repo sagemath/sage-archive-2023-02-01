@@ -36,7 +36,7 @@ from sage.misc.misc import SPYX_TMP, sage_makedirs
 from .temporary_file import tmp_filename
 from sage.misc.superseded import deprecated_function_alias
 from sage.repl.user_globals import get_globals
-from sage.misc.sage_ostools import restore_cwd
+from sage.misc.sage_ostools import restore_cwd, redirection
 
 
 # CBLAS can be one of multiple implementations
@@ -367,7 +367,8 @@ def cython(filename, verbose=0, compile_message=False,
     - ``filename`` -- the name of the file to be compiled. Should end with
       'pyx'.
 
-    - ``verbose`` (integer, default 0) -- level of verbosity.
+    - ``verbose`` (integer, default 0) -- level of verbosity. A negative
+      value ensures complete silence.
 
     - ``compile_message`` (bool, default False) -- if True, print
       ``'Compiling <filename>...'`` to the standard error.
@@ -461,6 +462,11 @@ def cython(filename, verbose=0, compile_message=False,
         ------------------------------------------------------------
         <BLANKLINE>
         ...:1:6: undeclared name not builtin: bar
+
+        sage: cython("cdef extern from 'no_such_header_file': pass")
+        Traceback (most recent call last):
+        ...
+        RuntimeError: ...
 
     Sage used to automatically include various ``.pxi`` files. Since
     :trac:`22805`, we no longer do this. But we make sure to give a
@@ -633,7 +639,23 @@ def cython(filename, verbose=0, compile_message=False,
     buildcmd = dist.get_command_obj("build")
     buildcmd.build_base = build_dir
     buildcmd.build_lib = target_dir
-    dist.run_command("build")
+
+    try:
+        # Capture errors from distutils and its child processes
+        with open(os.path.join(target_dir, name + ".err"), 'w+') as errfile:
+            try:
+                with redirection(sys.stderr, errfile, close=False):
+                    dist.run_command("build")
+            finally:
+                errfile.seek(0)
+                distutils_messages = errfile.read()
+    except Exception as msg:
+        msg = str(msg) + "\n" + distutils_messages
+        raise RuntimeError(msg.strip())
+
+    if verbose >= 0:
+        sys.stderr.write(distutils_messages)
+        sys.stderr.flush()
 
     if create_local_so_file:
         # Copy module to current directory

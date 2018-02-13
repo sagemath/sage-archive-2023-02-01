@@ -7297,7 +7297,20 @@ class GenericGraph(GenericGraph_pyx):
             3
             sage: print(G.hamiltonian_path(s=0, t=1, use_edge_labels=True, maximize=True)[0])
             5
+
+        Parameter ``algorithm`` must be either ``'backtrack'`` or ``'MILP'``::
+
+            sage: Graph().hamiltonian_path(algorithm='noname')
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm must be either 'backtrack' or 'MILP'
         """
+        if use_edge_labels or algorithm is None:
+            # We force the algorithm to 'MILP'
+            algorithm = 'MILP'
+        elif not algorithm in ['MILP', 'backtrack']:
+            raise ValueError("algorithm must be either 'backtrack' or 'MILP'")
+
         if self.order() < 2:
             raise ValueError('the Hamiltonian path problem is not well ' +
                              'defined for empty and one-element (di)graphs')

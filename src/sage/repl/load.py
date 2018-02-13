@@ -172,7 +172,7 @@ def load(filename, globals, attach=False):
         sage: load_attach_path()
         ['.']
         sage: t_dir = tmp_dir()
-        sage: fname = tmp_filename(ext='.py')
+        sage: fname = 'test.py'
         sage: fullpath = os.path.join(t_dir, fname)
         sage: with open(fullpath, 'w') as f:
         ....:     _ = f.write("print(37 * 3)")

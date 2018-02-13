@@ -55,7 +55,8 @@ from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 from sage.categories.morphism cimport Morphism
 from sage.rings.number_field.number_field_element import _inverse_mod_generic
-from sage.rings.real_mpfi cimport RealIntervalFieldElement, RealIntervalField_class
+from sage.rings.real_mpfi cimport RealIntervalField_class
+from sage.rings.complex_interval cimport ComplexIntervalFieldElement
 from sage.rings.real_arb cimport RealBall
 from sage.rings.complex_arb cimport ComplexBall
 
@@ -533,7 +534,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         (<NumberFieldElement_absolute>x)._reduce_c_()
         return x
 
-    def _real_mpfi_(self, RealIntervalField_class R):
+    def _real_mpfi_(self, R):
         r"""
         Conversion to a real interval field
 
@@ -555,7 +556,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: RIF(K3.gen())
             Traceback (most recent call last):
             ...
-            ValueError: can not convert complex algebraic number to real interval
+            ValueError: unable to convert complex algebraic number a to real interval
             sage: RIF(K3(2))
             2
 
@@ -568,32 +569,89 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: RealIntervalField(128)(u).is_zero()
             False
 
-        The following is a bug due to the fact that ``RIF`` does not play
-        nicely with coercions (it should have been a conversion map
-        via _real_mpfi_ method map)::
+        This was fixed in :trac:`24371`::
 
             sage: RIF.convert_map_from(QuadraticField(5))
-            Call morphism:
+            Conversion via _real_mpfi_ method map:
               From: Number Field in a with defining polynomial x^2 - 5
               To:   Real Interval Field with 53 bits of precision
         """
-        cdef RealIntervalFieldElement ans = R._new()
+        ans = (<RealIntervalField_class?>R)._new()
 
         if mpz_cmp_ui(self.b, 0):
             if mpz_cmp_ui(self.D.value, 0) < 0:
-                raise ValueError("can not convert complex algebraic number to real interval")
+                raise ValueError(f"unable to convert complex algebraic number {self!r} to real interval")
             mpfi_set_z(ans.value, self.D.value)
             mpfi_sqrt(ans.value, ans.value)
             if not self.standard_embedding:
                 mpfi_neg(ans.value, ans.value)
             mpfi_mul_z(ans.value, ans.value, self.b)
-
             mpfi_add_z(ans.value, ans.value, self.a)
-
         else:
             mpfi_set_z(ans.value, self.a)
 
         mpfi_div_z(ans.value, ans.value, self.denom)
+        return ans
+
+    def _complex_mpfi_(self, R):
+        r"""
+        Conversion to a complex interval field
+
+        TESTS::
+
+            sage: K.<a> = QuadraticField(2)
+            sage: CIF(a)
+            1.414213562373095?
+            sage: CIF(K(1/5))
+            0.2000000000000000?
+            sage: CIF(1/5 + 3/5*a)
+            1.048528137423857?
+
+            sage: K.<a> = QuadraticField(-2)
+            sage: CIF(a)
+            1.414213562373095?*I
+            sage: CIF(K(1/5))
+            0.2000000000000000?
+            sage: CIF(1/5 + 3/5*a)
+            0.2000000000000000? + 0.848528137423857?*I
+
+            sage: K.<a> = QuadraticField(-2, embedding=-CLF(-2).sqrt())
+            sage: CIF(a)
+            -1.414213562373095?*I
+
+        This was fixed in :trac:`24371`::
+
+            sage: CIF.convert_map_from(QuadraticField(-5))
+            Conversion via _complex_mpfi_ method map:
+              From: Number Field in a with defining polynomial x^2 + 5
+              To:   Complex Interval Field with 53 bits of precision
+        """
+        ans = <ComplexIntervalFieldElement>ComplexIntervalFieldElement.__new__(ComplexIntervalFieldElement, R)
+
+        if mpz_cmp_ui(self.b, 0):
+            mpfi_set_z(ans.__re, self.D.value)
+            if mpfi_is_neg(ans.__re):
+                # Imaginary quadratic
+                mpfi_neg(ans.__re, ans.__re)
+                mpfi_sqrt(ans.__im, ans.__re)
+                if not self.standard_embedding:
+                    mpfi_neg(ans.__im, ans.__im)
+                mpfi_set_z(ans.__re, self.a)
+                mpfi_mul_z(ans.__im, ans.__im, self.b)
+                mpfi_div_z(ans.__im, ans.__im, self.denom)
+            else:
+                # Real quadratic
+                mpfi_sqrt(ans.__re, ans.__re)
+                if not self.standard_embedding:
+                    mpfi_neg(ans.__re, ans.__re)
+                mpfi_mul_z(ans.__re, ans.__re, self.b)
+                mpfi_add_z(ans.__re, ans.__re, self.a)
+                mpfi_set_ui(ans.__im, 0)
+        else:
+            mpfi_set_z(ans.__re, self.a)
+            mpfi_set_ui(ans.__im, 0)
+
+        mpfi_div_z(ans.__re, ans.__re, self.denom)
         return ans
 
     cdef int arb_set_real(self, arb_t x, long prec) except -1:

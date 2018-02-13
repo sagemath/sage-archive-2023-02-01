@@ -9705,9 +9705,9 @@ class GenericGraph(GenericGraph_pyx):
 
     def vertex_connectivity(self, value_only=True, sets=False, k=None, solver=None, verbose=0):
         r"""
-        Return the vertex connectivity of the graph. 
+        Return the vertex connectivity of the graph.
 
-        For more information, see the :wikipedia:`Connectivity_(graph_theory)>`.
+        For more information, see the :wikipedia:`Connectivity_(graph_theory)`.
 
         .. NOTE::
 
@@ -9735,8 +9735,8 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``sets`` -- boolean (default: ``False``)
 
-          - When set to ``True``, also returns the two sets of vertices that are
-            disconnected by the cut.  Implies ``value_only=False``
+          - When set to ``True``, also returns the two sets of vertices that
+            are disconnected by the cut.  Implies ``value_only=False``
 
         - ``k`` -- integer (default: ``None``) When specified, check if the
           vertex connectivity of the (di)graph is larger or equal to `k`. The
@@ -9810,8 +9810,8 @@ class GenericGraph(GenericGraph_pyx):
            sage: g.vertex_connectivity()
            9
 
-        When parameter ``k`` is set, we only check for the existence of a vertex
-        cut of order at least ``k``::
+        When parameter ``k`` is set, we only check for the existence of a
+        vertex cut of order at least ``k``::
 
            sage: g = graphs.PappusGraph()
            sage: g.vertex_connectivity(k=3)
@@ -9836,11 +9836,11 @@ class GenericGraph(GenericGraph_pyx):
         """
         g = self
 
-        if not k is None:
+        if k is not None:
             if k < 1:
                 raise ValueError("parameter k must be strictly positive")
             if (g.is_directed() and k > min(min(g.in_degree()), min(g.out_degree()))) \
-                or (not g.is_directed() and (k > min(g.degree()))):
+               or (not g.is_directed() and (k > min(g.degree()))):
                 return False
             value_only = True
             sets = False
@@ -9850,14 +9850,14 @@ class GenericGraph(GenericGraph_pyx):
 
         # When the graph is complete, the MILP below is infeasible.
         if g.is_clique(directed_clique=g.is_directed()):
-            if not k is None:
+            if k is not None:
                 return g.order() > k
             if value_only:
                 return max(g.order()-1, 0)
             elif not sets:
                 return max(g.order()-1, 0), []
             else:
-                return max(g.order()-1, 0), [], [[],[]]
+                return max(g.order()-1, 0), [], [[], []]
 
         if value_only:
             if self.is_directed():
@@ -9869,10 +9869,9 @@ class GenericGraph(GenericGraph_pyx):
                     return 0 if k is None else False
 
                 if len(self.blocks_and_cut_vertices()[0]) > 1:
-                    return 1 if k is None else (k==1)
+                    return 1 if k is None else (k == 1)
 
-
-        from sage.numerical.mip import MixedIntegerLinearProgram,MIPSolverException
+        from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
 
         p = MixedIntegerLinearProgram(maximization=False, solver=solver)
 
@@ -9881,28 +9880,28 @@ class GenericGraph(GenericGraph_pyx):
 
         # A vertex has to be in some set
         for v in g:
-            p.add_constraint(in_set[0,v] + in_set[1,v] + in_set[2,v], max=1, min=1)
+            p.add_constraint(in_set[0, v] + in_set[1, v] + in_set[2, v], max=1, min=1)
 
         # There is no empty set
-        p.add_constraint(p.sum(in_set[0,v] for v in g), min=1)
-        p.add_constraint(p.sum(in_set[2,v] for v in g), min=1)
+        p.add_constraint(p.sum(in_set[0, v] for v in g), min=1)
+        p.add_constraint(p.sum(in_set[2, v] for v in g), min=1)
 
         if g.is_directed():
             # There is no edge from set 0 to set 1 which is not in the cut
-            for u,v in g.edge_iterator(labels=None):
-                p.add_constraint(in_set[0,u] + in_set[2,v], max=1)
+            for u, v in g.edge_iterator(labels=None):
+                p.add_constraint(in_set[0, u] + in_set[2, v], max=1)
         else:
             # Two adjacent vertices are in different sets if and only if
             # the edge between them is in the cut
-            for u,v in g.edge_iterator(labels=None):
-                p.add_constraint(in_set[0,u] + in_set[2,v], max=1)
-                p.add_constraint(in_set[2,u] + in_set[0,v], max=1)
+            for u, v in g.edge_iterator(labels=None):
+                p.add_constraint(in_set[0, u] + in_set[2, v], max=1)
+                p.add_constraint(in_set[2, u] + in_set[0, v], max=1)
 
-        if not k is None:
+        if k is not None:
             # To check if the vertex connectivity is at least k, we check if
             # there exists a cut of order at most k-1. If the ILP is infeasible,
             # the vertex connectivity is >= k.
-            p.add_constraint(p.sum(in_set[1,v] for v in g) <= k-1)
+            p.add_constraint(p.sum(in_set[1, v] for v in g) <= k-1)
             try:
                 p.solve(objective_only=True, log=verbose)
                 return False
@@ -9910,7 +9909,7 @@ class GenericGraph(GenericGraph_pyx):
                 return True
 
         else:
-            p.set_objective(p.sum(in_set[1,v] for v in g))
+            p.set_objective(p.sum(in_set[1, v] for v in g))
 
         if value_only:
             return Integer(round(p.solve(objective_only=True, log=verbose)))
@@ -9924,9 +9923,9 @@ class GenericGraph(GenericGraph_pyx):
         b = []
 
         for v in g:
-            if in_set[0,v]:
+            if in_set[0, v]:
                 a.append(v)
-            elif in_set[1,v]:
+            elif in_set[1, v]:
                 cut.append(v)
             else:
                 b.append(v)

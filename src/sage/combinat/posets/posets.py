@@ -2845,6 +2845,12 @@ class FinitePoset(UniqueRepresentation, Parent):
         series-parallel contains a subposet isomorphic to the 4-element
         N-shaped poset where `a > c, d` and `b > d`.
 
+        .. NOTE::
+
+            Some papers use the term N-free for posets having no
+            N-shaped poset as a *cover-preserving subposet*. This definition
+            is not used here.
+
         See :wikipedia:`Series-parallel partial order`.
 
         EXAMPLES::

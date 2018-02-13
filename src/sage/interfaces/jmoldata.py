@@ -132,9 +132,9 @@ class JmolData(SageObject):
 
             sage: from sage.interfaces.jmoldata import JmolData
             sage: JData = JmolData()
-            sage: D=dodecahedron()
+            sage: D = dodecahedron()
             sage: from sage.misc.misc import SAGE_TMP
-            sage: archive_name=os.path.join(SAGE_TMP, "archive.jmol.zip")
+            sage: archive_name = os.path.join(SAGE_TMP, "archive.jmol.zip")
             sage: D.export_jmol(archive_name)  #not scaled properly...need some more steps.
             sage: archive_native = archive_name
             sage: import sys
@@ -153,13 +153,13 @@ class JmolData(SageObject):
         target_native = targetfile
         import sys
         if sys.platform == 'cygwin':
-            jmolpath      = subprocess.check_output(['cygpath', '-w', jmolpath],
-                                                    stderr=subprocess.STDOUT).decode('utf-8').rstrip()
-            target_native = subprocess.check_output(['cygpath', '-w', target_native],
-                                                    stderr=subprocess.STDOUT).decode('utf-8').rstrip()
+            jmolpath = bytes_to_str(subprocess.check_output(['cygpath', '-w', jmolpath],
+                                                    stderr=subprocess.STDOUT)).rstrip()
+            target_native = bytes_to_str(subprocess.check_output(['cygpath', '-w', target_native],
+                                                    stderr=subprocess.STDOUT)).rstrip()
             if (datafile_cmd != 'script'):
-                datafile  = subprocess.check_output(['cygpath', '-w', datafile],
-                                                    stderr=subprocess.STDOUT).decode('utf-8').rstrip()
+                datafile  = bytes_to_str(subprocess.check_output(['cygpath', '-w', datafile],
+                                                    stderr=subprocess.STDOUT)).rstrip()
         launchscript = ""
         if (datafile_cmd!='script'):
             launchscript = "load "

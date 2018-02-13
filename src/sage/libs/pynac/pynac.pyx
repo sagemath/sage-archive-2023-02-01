@@ -13,10 +13,7 @@ Pynac interface
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
 from __future__ import absolute_import, division, print_function
-
-from six import integer_types
 
 from cpython cimport *
 from libc cimport math
@@ -986,7 +983,7 @@ cdef py_real(x):
         sage: py_real(complex(2,2))
         2.0
     """
-    if type(x) is float or type(x) in integer_types:
+    if type(x) is float or type(x) in [int, long]:
         return x
     elif type(x) is complex:
         return x.real
@@ -1083,7 +1080,7 @@ cdef py_conjugate(x):
 cdef bint py_is_rational(x):
     return (type(x) is Rational or
             type(x) is Integer or
-            isinstance(x, integer_types))
+            isinstance(x, (int, long)))
 
 cdef bint py_is_equal(x, y):
     """
@@ -1117,7 +1114,7 @@ cdef bint py_is_integer(x):
         sage: py_is_integer(3.0r)
         False
     """
-    return (isinstance(x, integer_types + (Integer,)) or
+    return (isinstance(x, (int, long, Integer,)) or
             (isinstance(x, Element) and
              ((<Element>x)._parent.is_exact() or
               (<Element>x)._parent == ring.SR) and (x in ZZ)))
@@ -1177,7 +1174,7 @@ def py_is_crational_for_doctest(x):
     return py_is_crational(x)
 
 cdef bint py_is_real(a):
-    if (type(a) in integer_types or isinstance(a, Integer) or
+    if (type(a) in [int, long] or isinstance(a, Integer) or
             type(a) is float):
         return True
     try:
@@ -1203,7 +1200,7 @@ cdef bint py_is_prime(n):
 
 
 cdef bint py_is_exact(x):
-    return (isinstance(x, integer_types + (Integer,)) or
+    return (isinstance(x, (int, long, Integer,)) or
             (isinstance(x, Element) and
              ((<Element>x)._parent.is_exact() or
               (<Element>x)._parent == ring.SR)))
@@ -1235,7 +1232,7 @@ cdef py_numer(n):
         sage: py_numer(no_numer())
         42
     """
-    if isinstance(n, integer_types + (Integer,)):
+    if isinstance(n, (int, long, Integer,)):
         return n
     try:
         return n.numerator()
@@ -1273,7 +1270,7 @@ cdef py_denom(n):
         sage: py_denom(2/3*i)
         3
     """
-    if isinstance(n, integer_types + (Integer,)):
+    if isinstance(n, (int, long, Integer,)):
         return 1
     try:
         return n.denominator()
@@ -1394,7 +1391,7 @@ cdef py_tgamma(x):
         sage: py_tgamma(1/2)
         1.77245385090552
     """
-    if type(x) in integer_types:
+    if type(x) in [int, long]:
         x = float(x)
     if type(x) is float:
         return math.tgamma(PyFloat_AS_DOUBLE(x))
@@ -1715,7 +1712,7 @@ cdef py_log(x):
     """
     cdef gsl_complex res
     cdef double real, imag
-    if type(x) in integer_types:
+    if type(x) in [int, long]:
         x = float(x)
     if type(x) is float:
         real = PyFloat_AS_DOUBLE(x)

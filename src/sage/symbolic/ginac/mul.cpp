@@ -133,7 +133,7 @@ DEFAULT_ARCHIVING(mul)
 // functions overriding virtual functions from base classes
 //////////
 
-void mul::print_overall_coeff(const ex coeff_ex, const print_context & c,
+void mul::print_overall_coeff(const ex& coeff_ex, const print_context & c,
 		const char *mul_sym, bool latex) const
 {
         if (not is_exactly_a<numeric>(coeff_ex))

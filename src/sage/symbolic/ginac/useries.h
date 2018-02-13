@@ -29,8 +29,8 @@
 
 namespace GiNaC {
 
-bool useries_can_handle(ex the_ex, const symbol& s);
-ex useries(ex the_ex, const symbol& s, int order, unsigned options = 0);
+bool useries_can_handle(const ex& the_ex, const symbol& s);
+ex useries(const ex& the_ex, const symbol& s, int order, unsigned options = 0);
 
 } // namespace GiNaC
 

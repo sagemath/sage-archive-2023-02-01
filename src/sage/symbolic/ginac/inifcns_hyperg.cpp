@@ -38,6 +38,7 @@
 #include "pseries.h"
 #include "utils.h"
 
+#include <utility>
 #include <vector>
 #include <stdexcept>
 #include <sstream>
@@ -56,7 +57,7 @@ inline void py_error(const char* errmsg) {
 }
 
 // Creates the hypergeometric Python BuiltinFunction object
-ex _2F1(ex a, ex b, ex c, ex x)
+ex _2F1(const ex& a, const ex& b, const ex& c, ex x)
 {
         exvector avec, bvec;
         avec.push_back(a);
@@ -64,7 +65,7 @@ ex _2F1(ex a, ex b, ex c, ex x)
         bvec.push_back(c);
         PyObject *lista = py_funcs.exvector_to_PyTuple(avec);
         PyObject *listb = py_funcs.exvector_to_PyTuple(bvec);
-        PyObject *z = py_funcs.ex_to_pyExpression(x);
+        PyObject *z = py_funcs.ex_to_pyExpression(std::move(x));
 
         PyObject* m = PyImport_ImportModule("sage.functions.hypergeometric");
         if (m == nullptr)

@@ -269,7 +269,7 @@ static bool rational_ex_f;
 // The helper uses recurrence to check that all numerics are from QQ,
 // that there is not more than one symbol, no constants, and all
 // function serial numbers are in the funcmap keys.
-static bool unhandled_elements_in(ex the_ex, const symbol& symb)
+static bool unhandled_elements_in(const ex& the_ex, const symbol& symb)
 {
         if (is_exactly_a<constant>(the_ex))
                 return true;
@@ -310,7 +310,7 @@ static bool unhandled_elements_in(ex the_ex, const symbol& symb)
         return true;
 }
 
-bool useries_can_handle(ex the_ex, const symbol& s)
+bool useries_can_handle(const ex& the_ex, const symbol& s)
 {
         rational_ex_f = true;
         bool ok = (not unhandled_elements_in(the_ex, s));
@@ -340,7 +340,7 @@ class ldegree_error : public std::runtime_error {
 // series computation the precision may have to be increased. This
 // is the case if we encounter an add in the treewalk. If not we
 // can exactly determine the low degree.
-static int low_series_degree(ex the_ex) {
+static int low_series_degree(const ex& the_ex) {
         static std::unordered_set<unsigned int> funcset {{
                 sin_SERIAL::serial,
                 tan_SERIAL::serial,
@@ -396,7 +396,7 @@ static int low_series_degree(ex the_ex) {
         return 0;
 }
 
-ex useries(ex the_ex, const symbol& x, int order, unsigned options)
+ex useries(const ex& the_ex, const symbol& x, int order, unsigned options)
 {
         if (order <= 0)
                 // send residues to the old code

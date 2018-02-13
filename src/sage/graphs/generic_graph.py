@@ -7460,7 +7460,7 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``maximize`` -- boolean (default: ``False``). When set to ``True``
           search for a Hamiltonian cycle (res. circuit) of maximum weight
-          instead of minimum weight. This paramter is used only when
+          instead of minimum weight. This parameter is used only when
           ``use_edge_labels`` is ``True``.
 
         - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)

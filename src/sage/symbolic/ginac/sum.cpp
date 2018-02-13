@@ -408,7 +408,7 @@ static bool check_root(const matrix& M,
         map[v] = ex(numeric(root));
         std::srand(std::time(0));
         for (int i=0; i<NCHECKS; ++i) {
-                for (const auto s : sy)
+                for (const auto& s : sy)
                         if (not v.is_equal(s))
                                 map[s] = numeric((std::rand()%9)+1);
                 for (int l = 0; l<msize; ++l)
@@ -544,7 +544,7 @@ ex gosper_term(ex e, ex n)
                 ex val = ex_to<numeric>(solution(i,0));
                 x = x.subs(sym == val);
         }
-        for (auto sym : syms)
+        for (const auto& sym : syms)
                 x = x.subs(sym == _ex0);
         return B*x / C;
 }

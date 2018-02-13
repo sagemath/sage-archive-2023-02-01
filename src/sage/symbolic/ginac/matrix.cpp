@@ -747,7 +747,7 @@ ex matrix::determinant(unsigned algo) const
 	bool numeric_flag = true;
 	bool normal_flag = false;
 	unsigned sparse_count = 0;  // counts non-zero elements
-        for (const auto elem : m) {
+        for (const auto& elem : m) {
 		if (not elem.info(info_flags::numeric))
 			numeric_flag = false;
 		exmap srl;  // symbol replacement list

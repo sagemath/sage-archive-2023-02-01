@@ -170,7 +170,7 @@ ex ex::subs(const ex & e, unsigned options) const
 		// Argument is a list: convert it to a map
 		exmap m;
 		GINAC_ASSERT(is_a<lst>(e));
-		for (auto r : ex_to<lst>(e)) {
+		for (const auto& r : ex_to<lst>(e)) {
 			
 			if (!r.info(info_flags::relation_equal))
 				throw(std::invalid_argument("basic::subs(ex): argument must be a list of equations"));

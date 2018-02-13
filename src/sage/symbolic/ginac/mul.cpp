@@ -631,7 +631,7 @@ ex mul::eval(int level) const
                                 { return is_exactly_a<infinity>(p.rest); })) {
                 infinity result = infinity::from_sign(1);
                 result *= overall_coeff;
-                for (auto p : seq)
+                for (const auto& p : seq)
 		        result *= recombine_pair_to_ex(p);
                 return result;
         }

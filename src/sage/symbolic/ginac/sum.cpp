@@ -286,7 +286,7 @@ static void collect_gamma_args(const ex& the_ex, ex_intset_map& map)
         }
 }
 
-ex gamma_normalize(const ex& the_ex)
+ex gamma_normalize(ex the_ex)
 {
         ex_intset_map map;
         collect_gamma_args(the_ex, map);
@@ -315,7 +315,7 @@ ex gamma_normalize(const ex& the_ex)
                 return subsed;
 }
 
-ex hypersimp(const ex& e, const ex& k)
+ex hypersimp(ex e, ex k)
 // See Algorithm 2.1 in the Koepf reference
 {
         ex f = e.expand();
@@ -481,7 +481,7 @@ static std::set<int> resultant_roots(const ex& ee1, const ex& ee2,
         return roots;
 }
 
-ex gosper_term(const ex& e, const ex& n)
+ex gosper_term(ex e, ex n)
 {
         ex the_ex = hypersimp(e, n);
         ex num = the_ex.numer().expand();
@@ -550,7 +550,7 @@ ex gosper_term(const ex& e, const ex& n)
         return B*x / C;
 }
 
-ex gosper_sum_definite(const ex& f, const ex& s, const ex& a, const ex& b, int* success)
+ex gosper_sum_definite(ex f, ex s, ex a, ex b, int* success)
 {
         try {
                 ex g = gosper_term(f, s);
@@ -569,7 +569,7 @@ ex gosper_sum_definite(const ex& f, const ex& s, const ex& a, const ex& b, int* 
         }
 }
 
-ex gosper_sum_indefinite(const ex& f, ex s, int* success)
+ex gosper_sum_indefinite(ex f, ex s, int* success)
 {
         try {
                 ex t = f*gosper_term(f, std::move(s));

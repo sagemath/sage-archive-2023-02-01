@@ -16,7 +16,7 @@
 
 namespace GiNaC {
 
-void assume(const ex& rel) {
+void assume(ex rel) {
         // It was already checked that rel is a relational.
         const relational& r = ex_to<relational>(rel);
         if (r.the_operator() == relational::equal
@@ -40,7 +40,7 @@ void assume(ex x, char* flag_desc) {
                 x.set_domain(domain::even);
 }
 
-void forget(const ex& rel) {
+void forget(ex rel) {
         // It was already checked that rel is a relational.
         const relational& r = ex_to<relational>(rel);
         if (r.the_operator() == relational::equal

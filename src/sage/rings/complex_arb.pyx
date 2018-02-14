@@ -262,26 +262,29 @@ cdef int acb_calc_func_callback(acb_ptr out, const acb_t inp, void * param,
         sage: points
         [[+/- 1.01], ..., [0.788...], [0.211...]]
     """
-    cdef IntegrationContext ctx = <IntegrationContext>param
-    if ctx.exn_type is not None or order >= 2:
-        acb_indeterminate(out)
-        return 0
-    cdef ComplexBall x = ComplexBall.__new__(ComplexBall)
-    assert prec == ctx.parent._prec
-    x._parent = ctx.parent
-    acb_set(x.value, inp)
+    cdef IntegrationContext ctx
+    cdef ComplexBall x
     sig_off()
     try:
-        y = ctx.f(x, (order == 1))
-        if not isinstance(y, ComplexBall):
-            y = ctx.parent.coerce(y)
-        acb_set(out, (<ComplexBall> y).value)
-    except:
-        ctx.exn_type, ctx.exn_obj, ctx.exn_tb = sys.exc_info()
-        acb_indeterminate(out)
+        ctx = <IntegrationContext>param
+        if ctx.exn_type is not None or order >= 2:
+            acb_indeterminate(out)
+            return 0
+        x = ComplexBall.__new__(ComplexBall)
+        assert prec == ctx.parent._prec
+        x._parent = ctx.parent
+        acb_set(x.value, inp)
+        try:
+            y = ctx.f(x, (order == 1))
+            if not isinstance(y, ComplexBall):
+                y = ctx.parent.coerce(y)
+            acb_set(out, (<ComplexBall> y).value)
+        except:
+            ctx.exn_type, ctx.exn_obj, ctx.exn_tb = sys.exc_info()
+            acb_indeterminate(out)
+        return 0
     finally:
         sig_on()
-        return 0
 
 class ComplexBallField(UniqueRepresentation, Field):
     r"""

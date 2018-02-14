@@ -174,9 +174,11 @@ void infinity::do_print_latex(const print_latex & c, unsigned level) const
 	}
 }
 
-void infinity::do_print_python_repr(const print_python_repr & c, unsigned /*level*/) const
+void infinity::do_print_python_repr(const print_python_repr & c,
+                unsigned level) const
 {
-	c.s << class_name() << "('" << "Infinity" << "'" << direction;
+	c.s << class_name() << "('" << "Infinity" << "'";
+        direction.print(c, level);
 	c.s << ')';
 }
 

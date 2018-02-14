@@ -17,8 +17,6 @@ void assume(ex x, char* flag_desc);
 void forget(ex rel);
 void forget(ex x, char* flag_desc);
 
-void set_state(const std::string&, bool);
-
 } // namespace GiNaC
 
 #endif	/* ASSUME_H */

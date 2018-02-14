@@ -346,8 +346,6 @@ extern numeric I;
 
 // global functions
 
-void coerce(numeric& new_left, numeric& new_right, const numeric& left, const numeric& right);
-
 const numeric exp(const numeric &x);
 const numeric log(const numeric &x);
 const numeric log(const numeric &x, const numeric &b);

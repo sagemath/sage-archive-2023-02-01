@@ -49,12 +49,6 @@ ex & operator-=(ex & lh, const ex & rh);
 ex & operator*=(ex & lh, const ex & rh);
 ex & operator/=(ex & lh, const ex & rh);
 
-// binary arithmetic assignment operators with numeric
-numeric & operator+=(numeric & lh, const numeric & rh);
-numeric & operator-=(numeric & lh, const numeric & rh);
-numeric & operator*=(numeric & lh, const numeric & rh);
-numeric & operator/=(numeric & lh, const numeric & rh);
-
 // unary operators
 const ex operator+(const ex & lh);
 const ex operator-(const ex & lh);

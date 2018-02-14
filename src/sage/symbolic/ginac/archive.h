@@ -254,10 +254,6 @@ private:
 };
 
 
-std::ostream &operator<<(std::ostream &os, const archive &ar);
-std::istream &operator>>(std::istream &is, archive &ar);
-
-
 } // namespace GiNaC
 
 #endif // ndef __GINAC_ARCHIVE_H__

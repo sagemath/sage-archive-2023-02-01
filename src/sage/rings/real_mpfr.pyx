@@ -653,7 +653,7 @@ cdef class RealField_class(sage.rings.ring.Field):
         from sage.structure.element import parent 
         if hasattr(x, '_mpfr_'):
             return x._mpfr_(self)
-        if parent(x) is complex and x.imag == 0:
+        if isinstance(x, complex) and x.imag == 0:
             x = x.real
         cdef RealNumber z
         z = self._new()

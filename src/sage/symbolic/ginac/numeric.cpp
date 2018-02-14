@@ -742,7 +742,7 @@ numeric::numeric(PyObject* o, bool force_py) : basic(&numeric::tinfo_static) {
                 if (PyLong_Check(o)) {
                     t = MPZ;
                     mpz_init(v._bigint);
-                    _mpz_set_pylong(v._bigint, (PyLongObject*) o);
+                    _mpz_set_pylong(v._bigint, reinterpret_cast<PyLongObject*>( o));
                     hash = _mpz_pythonhash(v._bigint);
                     setflag(status_flags::evaluated | status_flags::expanded);
                     Py_DECREF(o);
@@ -770,7 +770,7 @@ numeric::numeric(PyObject* o, bool force_py) : basic(&numeric::tinfo_static) {
         }
 
         t = PYOBJECT;
-        hash = (long)PyObject_Hash(o);
+        hash = PyObject_Hash(o);
         if (hash == -1 && (PyErr_Occurred() != nullptr)) {
             // error is thrown on first hash request
             PyErr_Clear();
@@ -893,7 +893,7 @@ inherited(n, sym_lst) {
                         if (PyErr_Occurred() != nullptr) {
                                 throw (std::runtime_error("archive error: caught exception in py_loads"));
                         }
-                        hash = (long)PyObject_Hash(v._pyobject);
+                        hash = PyObject_Hash(v._pyobject);
                         if (hash == -1 && (PyErr_Occurred() != nullptr)) {
                             PyErr_Clear();
                             is_hashable = false;
@@ -1733,7 +1733,7 @@ const ex numeric::power(const numeric &exponent) const {
             if (PyLong_Check(exponent.v._pyobject)) {
                 expo.t = MPZ;
                 _mpz_set_pylong(expo.v._bigint,
-                               (PyLongObject*) exponent.v._pyobject);
+                               reinterpret_cast<PyLongObject*>( exponent.v._pyobject));
             }
         }
         if (expo.t == LONG or expo.t == MPZ)
@@ -1978,7 +1978,7 @@ numeric & operator+=(numeric & lh, const numeric & rh)
                                 lh.v._pyobject = p;
                                 py_error("numeric operator+=");
                         }
-                        lh.hash = (long)PyObject_Hash(lh.v._pyobject);
+                        lh.hash = PyObject_Hash(lh.v._pyobject);
                         Py_DECREF(p);
                         Py_INCREF(lh.v._pyobject);
                         return lh;
@@ -2058,7 +2058,7 @@ numeric & operator-=(numeric & lh, const numeric & rh)
                                 lh.v._pyobject = p;
                                 py_error("numeric operator-=");
                         }
-                        lh.hash = (long)PyObject_Hash(lh.v._pyobject);
+                        lh.hash = PyObject_Hash(lh.v._pyobject);
                         Py_DECREF(p);
                         Py_INCREF(lh.v._pyobject);
                         return lh;
@@ -2140,7 +2140,7 @@ numeric & operator*=(numeric & lh, const numeric & rh)
                                 lh.v._pyobject = p;
                                 py_error("numeric operator*=");
                         }
-                        lh.hash = (long)PyObject_Hash(lh.v._pyobject);
+                        lh.hash = PyObject_Hash(lh.v._pyobject);
                         Py_DECREF(p);
                         Py_INCREF(lh.v._pyobject);
                         return lh;
@@ -2273,7 +2273,7 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                                                 lh.v._pyobject = p;
                                                 py_error("numeric operator/=");
                                         }
-                                        lh.hash = (long)PyObject_Hash(lh.v._pyobject);
+                                        lh.hash = PyObject_Hash(lh.v._pyobject);
                                         Py_DECREF(p);
                                         Py_INCREF(lh.v._pyobject);
                                         return lh;
@@ -2285,7 +2285,7 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                                                 lh.v._pyobject = p;
                                                 py_error("numeric operator/=");
                                         }
-                                        lh.hash = (long)PyObject_Hash(lh.v._pyobject);
+                                        lh.hash = PyObject_Hash(lh.v._pyobject);
                                         Py_DECREF(d);
                                         Py_DECREF(p);
                                         Py_INCREF(lh.v._pyobject);
@@ -2298,7 +2298,7 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                                         lh.v._pyobject = p;
                                         py_error("numeric operator/=");
                                 }
-                                lh.hash = (long)PyObject_Hash(lh.v._pyobject);
+                                lh.hash = PyObject_Hash(lh.v._pyobject);
                                 Py_DECREF(n);
                                 Py_DECREF(p);
                                 Py_INCREF(lh.v._pyobject);
@@ -2327,7 +2327,7 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                                 lh.v._pyobject = p;
                                 py_error("numeric operator/=");
                         }
-                        lh.hash = (long)PyObject_Hash(lh.v._pyobject);
+                        lh.hash = PyObject_Hash(lh.v._pyobject);
                         Py_DECREF(p);
                         Py_INCREF(lh.v._pyobject);
                         return lh;

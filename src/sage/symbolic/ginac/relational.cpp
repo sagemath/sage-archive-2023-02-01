@@ -63,7 +63,7 @@ relational::relational(const archive_node &n, lst &sym_lst) : inherited(n, sym_l
 	unsigned int opi;
 	if (!(n.find_unsigned("op", opi)))
 		throw (std::runtime_error("unknown relational operator in archive"));
-	o = (operators)opi;
+	o = static_cast<operators>(opi);
 	n.find_ex("lh", lh, sym_lst);
 	n.find_ex("rh", rh, sym_lst);
 }

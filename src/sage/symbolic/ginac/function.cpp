@@ -812,17 +812,17 @@ next_context:
 		// Method found, call it
 		current_serial = serial;
 		if (opt.print_use_exvector_args)
-			((print_funcp_exvector)pdt[id])(seq, c);
+			(reinterpret_cast<print_funcp_exvector>(pdt[id]))(seq, c);
 		else switch (opt.nparams) {
 			// the following lines have been generated for max. 14 parameters
 		case 1:
-			((print_funcp_1)(pdt[id]))(seq[1-1], c);
+			(reinterpret_cast<print_funcp_1>(pdt[id]))(seq[1-1], c);
 			break;
 		case 2:
-			((print_funcp_2)(pdt[id]))(seq[1-1], seq[2-1], c);
+			(reinterpret_cast<print_funcp_2>(pdt[id]))(seq[1-1], seq[2-1], c);
 			break;
 		case 3:
-			((print_funcp_3)(pdt[id]))(seq[1-1], seq[2-1], seq[3-1], c);
+			(reinterpret_cast<print_funcp_3>(pdt[id]))(seq[1-1], seq[2-1], seq[3-1], c);
 			break;
 
 			// end of generated lines
@@ -868,7 +868,7 @@ ex function::eval(int level) const
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 		// call opt.eval_f with this list
-		PyObject* pyresult = PyObject_CallMethod((PyObject*)eval_f,
+		PyObject* pyresult = PyObject_CallMethod(reinterpret_cast<PyObject*>(eval_f),
 				const_cast<char*>("_eval_"), const_cast<char*>("O"), args);
 		Py_DECREF(args);
 		if (pyresult == nullptr) { 
@@ -885,21 +885,21 @@ ex function::eval(int level) const
 		}
 	}
 	else if (opt.eval_use_exvector_args)
-		eval_result = ((eval_funcp_exvector)(eval_f))(seq);
+		eval_result = (reinterpret_cast<eval_funcp_exvector>(eval_f))(seq);
 	else
 	switch (opt.nparams) {
 		// the following lines have been generated for max. 14 parameters
 	case 1:
-		eval_result = ((eval_funcp_1)(eval_f))(seq[1-1]);
+		eval_result = (reinterpret_cast<eval_funcp_1>(eval_f))(seq[1-1]);
 		break;
 	case 2:
-		eval_result = ((eval_funcp_2)(eval_f))(seq[1-1], seq[2-1]);
+		eval_result = (reinterpret_cast<eval_funcp_2>(eval_f))(seq[1-1], seq[2-1]);
 		break;
 	case 3:
-		eval_result = ((eval_funcp_3)(eval_f))(seq[1-1], seq[2-1], seq[3-1]);
+		eval_result = (reinterpret_cast<eval_funcp_3>(eval_f))(seq[1-1], seq[2-1], seq[3-1]);
 		break;
 	case 6:
-		eval_result = ((eval_funcp_6)(eval_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1]);
+		eval_result = (reinterpret_cast<eval_funcp_6>(eval_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1]);
 		break;
 
 		// end of generated lines
@@ -955,7 +955,7 @@ ex function::evalf(int level, PyObject* kwds) const
 		PyObject* args = py_funcs.exvector_to_PyTuple(eseq);
 		// call opt.evalf_f with this list
 		PyObject* pyresult = PyEval_CallObjectWithKeywords(
-			PyObject_GetAttrString((PyObject*)opt.evalf_f,
+			PyObject_GetAttrString(reinterpret_cast<PyObject*>(opt.evalf_f),
 				"_evalf_"), args, kwds);
 		Py_DECREF(args);
 		if (pyresult == nullptr) { 
@@ -970,17 +970,17 @@ ex function::evalf(int level, PyObject* kwds) const
 		return result;
 	}
 	if (opt.evalf_use_exvector_args)
-		return ((evalf_funcp_exvector)(opt.evalf_f))(seq, kwds);
+		return (reinterpret_cast<evalf_funcp_exvector>(opt.evalf_f))(seq, kwds);
 	switch (opt.nparams) {
 		// the following lines have been generated for max. 14 parameters
 	case 1:
-		return ((evalf_funcp_1)(opt.evalf_f))(eseq[1-1], kwds);
+		return (reinterpret_cast<evalf_funcp_1>(opt.evalf_f))(eseq[1-1], kwds);
 	case 2:
-		return ((evalf_funcp_2)(opt.evalf_f))(eseq[1-1], eseq[2-1], kwds);
+		return (reinterpret_cast<evalf_funcp_2>(opt.evalf_f))(eseq[1-1], eseq[2-1], kwds);
 	case 3:
-		return ((evalf_funcp_3)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], kwds);
+		return (reinterpret_cast<evalf_funcp_3>(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], kwds);
 	case 6:
-		return ((evalf_funcp_6)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], eseq[5-1], eseq[6-1], kwds);
+		return (reinterpret_cast<evalf_funcp_6>(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], eseq[5-1], eseq[6-1], kwds);
 
 		// end of generated lines
 	}
@@ -1035,7 +1035,7 @@ ex function::series(const relational & r, int order, unsigned options) const
 		PyDict_SetItemString(kwds, "at", py_funcs.ex_to_pyExpression(r.rhs()));
 		// call opt.series_f with this list
 		PyObject* pyresult = PyEval_CallObjectWithKeywords(
-			PyObject_GetAttrString((PyObject*)opt.series_f,
+			PyObject_GetAttrString(reinterpret_cast<PyObject*>(opt.series_f),
 				"_series_"), args, kwds);
 		Py_DECREF(args);
 		Py_DECREF(kwds);
@@ -1052,7 +1052,7 @@ ex function::series(const relational & r, int order, unsigned options) const
 	}
 	if (opt.series_use_exvector_args) {
 		try {
-			res = ((series_funcp_exvector)(opt.series_f))(seq, r, order, options);
+			res = (reinterpret_cast<series_funcp_exvector>(opt.series_f))(seq, r, order, options);
 		} catch (do_taylor) {
 			res = basic::series(r, order, options);
 		}
@@ -1062,21 +1062,21 @@ ex function::series(const relational & r, int order, unsigned options) const
 		// the following lines have been generated for max. 14 parameters
 	case 1:
 		try {
-			res = ((series_funcp_1)(opt.series_f))(seq[1-1],r,order,options);
+			res = (reinterpret_cast<series_funcp_1>(opt.series_f))(seq[1-1],r,order,options);
 		} catch (do_taylor) {
 			res = basic::series(r, order, options);
 		}
 		return res;
 	case 2:
 		try {
-			res = ((series_funcp_2)(opt.series_f))(seq[1-1], seq[2-1],r,order,options);
+			res = (reinterpret_cast<series_funcp_2>(opt.series_f))(seq[1-1], seq[2-1],r,order,options);
 		} catch (do_taylor) {
 			res = basic::series(r, order, options);
 		}
 		return res;
 	case 3:
 		try {
-			res = ((series_funcp_3)(opt.series_f))(seq[1-1], seq[2-1], seq[3-1],r,order,options);
+			res = (reinterpret_cast<series_funcp_3>(opt.series_f))(seq[1-1], seq[2-1], seq[3-1],r,order,options);
 		} catch (do_taylor) {
 			res = basic::series(r, order, options);
 		}
@@ -1099,7 +1099,7 @@ ex function::subs(const exmap & m, unsigned options) const
 		PyObject* args = py_funcs.subs_args_to_PyTuple(m, options, seq);
 		// call opt.subs_f with this list
 		PyObject* pyresult = PyObject_CallMethod(
-				(PyObject*)opt.subs_f,
+				reinterpret_cast<PyObject*>(opt.subs_f),
 				const_cast<char*>("_subs_"), const_cast<char*>("O"), args);
 		Py_DECREF(args);
 		if (pyresult == nullptr) { 
@@ -1131,7 +1131,7 @@ ex function::conjugate() const
 		PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 		// call opt.conjugate_f with this list
 		PyObject* pyresult = PyObject_CallMethod(
-				(PyObject*)opt.conjugate_f,
+				reinterpret_cast<PyObject*>(opt.conjugate_f),
 				const_cast<char*>("_conjugate_"), const_cast<char*>("O"), args);
 		Py_DECREF(args);
 		if (pyresult == nullptr) { 
@@ -1146,17 +1146,17 @@ ex function::conjugate() const
 		return result;
 	}
 	if (opt.conjugate_use_exvector_args) {
-		return ((conjugate_funcp_exvector)(opt.conjugate_f))(seq);
+		return (reinterpret_cast<conjugate_funcp_exvector>(opt.conjugate_f))(seq);
 	}
 
 	switch (opt.nparams) {
 		// the following lines have been generated for max. 14 parameters
 	case 1:
-		return ((conjugate_funcp_1)(opt.conjugate_f))(seq[1-1]);
+		return (reinterpret_cast<conjugate_funcp_1>(opt.conjugate_f))(seq[1-1]);
 	case 2:
-		return ((conjugate_funcp_2)(opt.conjugate_f))(seq[1-1], seq[2-1]);
+		return (reinterpret_cast<conjugate_funcp_2>(opt.conjugate_f))(seq[1-1], seq[2-1]);
 	case 3:
-		return ((conjugate_funcp_3)(opt.conjugate_f))(seq[1-1], seq[2-1], seq[3-1]);
+		return (reinterpret_cast<conjugate_funcp_3>(opt.conjugate_f))(seq[1-1], seq[2-1], seq[3-1]);
 
 		// end of generated lines
 	}
@@ -1176,7 +1176,7 @@ ex function::real_part() const
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 		// call opt.real_part_f with this list
-		PyObject* pyresult = PyObject_CallMethod((PyObject*)opt.real_part_f,
+		PyObject* pyresult = PyObject_CallMethod(reinterpret_cast<PyObject*>(opt.real_part_f),
 				const_cast<char*>("_real_part_"), const_cast<char*>("O"), args);
 		Py_DECREF(args);
 		if (pyresult == nullptr) { 
@@ -1191,16 +1191,16 @@ ex function::real_part() const
 		return result;
 	}
 	if (opt.real_part_use_exvector_args)
-		return ((real_part_funcp_exvector)(opt.real_part_f))(seq);
+		return (reinterpret_cast<real_part_funcp_exvector>(opt.real_part_f))(seq);
 
 	switch (opt.nparams) {
 		// the following lines have been generated for max. 14 parameters
 	case 1:
-		return ((real_part_funcp_1)(opt.real_part_f))(seq[1-1]);
+		return (reinterpret_cast<real_part_funcp_1>(opt.real_part_f))(seq[1-1]);
 	case 2:
-		return ((real_part_funcp_2)(opt.real_part_f))(seq[1-1], seq[2-1]);
+		return (reinterpret_cast<real_part_funcp_2>(opt.real_part_f))(seq[1-1], seq[2-1]);
 	case 3:
-		return ((real_part_funcp_3)(opt.real_part_f))(seq[1-1], seq[2-1], seq[3-1]);
+		return (reinterpret_cast<real_part_funcp_3>(opt.real_part_f))(seq[1-1], seq[2-1], seq[3-1]);
 
 		// end of generated lines
 	}
@@ -1220,7 +1220,7 @@ ex function::imag_part() const
 		// convert seq to a PyTuple of Expressions
 		PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 		// call opt.imag_part_f with this list
-		PyObject* pyresult = PyObject_CallMethod((PyObject*)opt.imag_part_f,
+		PyObject* pyresult = PyObject_CallMethod(reinterpret_cast<PyObject*>(opt.imag_part_f),
 				const_cast<char*>("_imag_part_"), const_cast<char*>("O"), args);
 		Py_DECREF(args);
 		if (pyresult == nullptr) { 
@@ -1235,16 +1235,16 @@ ex function::imag_part() const
 		return result;
 	}
 	if (opt.imag_part_use_exvector_args)
-		return ((imag_part_funcp_exvector)(opt.imag_part_f))(seq);
+		return (reinterpret_cast<imag_part_funcp_exvector>(opt.imag_part_f))(seq);
 
 	switch (opt.nparams) {
 		// the following lines have been generated for max. 14 parameters
 	case 1:
-		return ((imag_part_funcp_1)(opt.imag_part_f))(seq[1-1]);
+		return (reinterpret_cast<imag_part_funcp_1>(opt.imag_part_f))(seq[1-1]);
 	case 2:
-		return ((imag_part_funcp_2)(opt.imag_part_f))(seq[1-1], seq[2-1]);
+		return (reinterpret_cast<imag_part_funcp_2>(opt.imag_part_f))(seq[1-1], seq[2-1]);
 	case 3:
-		return ((imag_part_funcp_3)(opt.imag_part_f))(seq[1-1], seq[2-1], seq[3-1]);
+		return (reinterpret_cast<imag_part_funcp_3>(opt.imag_part_f))(seq[1-1], seq[2-1], seq[3-1]);
 
 		// end of generated lines
 	}
@@ -1288,7 +1288,7 @@ ex function::derivative(const symbol & s) const
 			// call opt.derivative_f with this list
 			PyObject* pyresult = PyEval_CallObjectWithKeywords(
 				PyObject_GetAttrString(
-					(PyObject*)opt.derivative_f,
+					reinterpret_cast<PyObject*>(opt.derivative_f),
 					"_tderivative_"), args, kwds);
 			Py_DECREF(symb);
 			Py_DECREF(args);
@@ -1308,7 +1308,7 @@ ex function::derivative(const symbol & s) const
 		if (!opt.derivative_use_exvector_args)
 			throw(std::runtime_error("function::derivative(): cannot call C++ function without exvector args"));
 		
-		return ((derivative_funcp_exvector_symbol)(opt.derivative_f))(seq, s);
+		return (reinterpret_cast<derivative_funcp_exvector_symbol>(opt.derivative_f))(seq, s);
 
 	} 
         // Chain rule
@@ -1424,7 +1424,7 @@ ex function::pderivative(unsigned diff_param) const // partial differentiation
 		PyObject* kwds = Py_BuildValue("{s:I}","diff_param",diff_param);
 		// call opt.derivative_f with this list
 		PyObject* pyresult = PyEval_CallObjectWithKeywords(
-			PyObject_GetAttrString((PyObject*)opt.derivative_f,
+			PyObject_GetAttrString(reinterpret_cast<PyObject*>(opt.derivative_f),
 				"_derivative_"), args, kwds);
 		Py_DECREF(args);
 		Py_DECREF(kwds);
@@ -1443,17 +1443,17 @@ ex function::pderivative(unsigned diff_param) const // partial differentiation
 		return result;
 	}
 	if (opt.derivative_use_exvector_args)
-		return ((derivative_funcp_exvector)(opt.derivative_f))(seq, diff_param);
+		return (reinterpret_cast<derivative_funcp_exvector>(opt.derivative_f))(seq, diff_param);
 	switch (opt.nparams) {
 		// the following lines have been generated for max. 14 parameters
 	case 1:
-		return ((derivative_funcp_1)(opt.derivative_f))(seq[1-1],diff_param);
+		return (reinterpret_cast<derivative_funcp_1>(opt.derivative_f))(seq[1-1],diff_param);
 	case 2:
-		return ((derivative_funcp_2)(opt.derivative_f))(seq[1-1], seq[2-1],diff_param);
+		return (reinterpret_cast<derivative_funcp_2>(opt.derivative_f))(seq[1-1], seq[2-1],diff_param);
 	case 3:
-		return ((derivative_funcp_3)(opt.derivative_f))(seq[1-1], seq[2-1], seq[3-1],diff_param);
+		return (reinterpret_cast<derivative_funcp_3>(opt.derivative_f))(seq[1-1], seq[2-1], seq[3-1],diff_param);
 	case 6:
-		return ((derivative_funcp_6)(opt.derivative_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], diff_param);
+		return (reinterpret_cast<derivative_funcp_6>(opt.derivative_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], diff_param);
 
 		// end of generated lines
 	}
@@ -1469,15 +1469,15 @@ ex function::expl_derivative(const symbol & s) const // explicit differentiation
 		// Invoke the defined explicit derivative function.
 		current_serial = serial;
 		if (opt.expl_derivative_use_exvector_args)
-			return ((expl_derivative_funcp_exvector)(opt.expl_derivative_f))(seq, s);
+			return (reinterpret_cast<expl_derivative_funcp_exvector>(opt.expl_derivative_f))(seq, s);
 		switch (opt.nparams) {
 			// the following lines have been generated for max. 14 parameters
 			case 1:
-				return ((expl_derivative_funcp_1)(opt.expl_derivative_f))(seq[0], s);
+				return (reinterpret_cast<expl_derivative_funcp_1>(opt.expl_derivative_f))(seq[0], s);
 			case 2:
-				return ((expl_derivative_funcp_2)(opt.expl_derivative_f))(seq[0], seq[1], s);
+				return (reinterpret_cast<expl_derivative_funcp_2>(opt.expl_derivative_f))(seq[0], seq[1], s);
 			case 3:
-				return ((expl_derivative_funcp_3)(opt.expl_derivative_f))(seq[0], seq[1], seq[2], s);
+				return (reinterpret_cast<expl_derivative_funcp_3>(opt.expl_derivative_f))(seq[0], seq[1], seq[2], s);
 		}
 	}
 	// There is no fallback for explicit derivative.
@@ -1503,7 +1503,7 @@ ex function::power(const ex & power_param) const // power of function
 		PyDict_SetItemString(kwds, "power_param", py_funcs.ex_to_pyExpression(power_param));
 		// call opt.power_f with this list
 		PyObject* pyresult = PyEval_CallObjectWithKeywords(
-			PyObject_GetAttrString((PyObject*)opt.power_f,
+			PyObject_GetAttrString(reinterpret_cast<PyObject*>(opt.power_f),
 				"_power_"), args, kwds);
 		Py_DECREF(args);
 		Py_DECREF(kwds);
@@ -1519,15 +1519,15 @@ ex function::power(const ex & power_param) const // power of function
 		return result;
 	}
 	if (opt.power_use_exvector_args)
-		return ((power_funcp_exvector)(opt.power_f))(seq,  power_param);
+		return (reinterpret_cast<power_funcp_exvector>(opt.power_f))(seq,  power_param);
 	switch (opt.nparams) {
 		// the following lines have been generated for max. 14 parameters
 	case 1:
-		return ((power_funcp_1)(opt.power_f))(seq[1-1],power_param);
+		return (reinterpret_cast<power_funcp_1>(opt.power_f))(seq[1-1],power_param);
 	case 2:
-		return ((power_funcp_2)(opt.power_f))(seq[1-1], seq[2-1],power_param);
+		return (reinterpret_cast<power_funcp_2>(opt.power_f))(seq[1-1], seq[2-1],power_param);
 	case 3:
-		return ((power_funcp_3)(opt.power_f))(seq[1-1], seq[2-1], seq[3-1],power_param);
+		return (reinterpret_cast<power_funcp_3>(opt.power_f))(seq[1-1], seq[2-1], seq[3-1],power_param);
 
 		// end of generated lines
 	}

@@ -122,6 +122,120 @@ class HasseDiagram(DiGraph):
         """
         return self.topological_sort_generator()
 
+    def greedy_linear_extensions_iterator(self):
+        """
+        Return an iterator over greedy linear extensions of the Hasse diagram.
+
+        A linear extension `[e_1, e_2, \ldots, e_n]` is *greedy* if for
+        every `i` either `e_{i+1}` covers `e_i` or all upper covers
+        of `e_i` have at least one lower cover that is not in
+        `[e_1, e_2, \ldots, e_i]`.
+
+        Informally said a linear extension is greedy if it "always
+        goes up when possible" and so has no unnecessary jumps.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: N5 = HasseDiagram({0: [1, 2], 2: [3], 1: [4], 3: [4]})
+            sage: for l in N5.greedy_linear_extensions_iterator():
+            ....:     print(l)
+            [0, 1, 2, 3, 4]
+            [0, 2, 3, 1, 4]
+
+        TESTS:
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: list(HasseDiagram({}).greedy_linear_extensions_iterator())
+            [[]]
+            sage: H = HasseDiagram({0: []})
+            sage: list(H.greedy_linear_extensions_iterator())
+            [[0]]
+        """
+        N = self.order()
+
+        def greedy_rec(H, linext):
+            if len(linext) == N:
+                yield linext
+
+            S = []
+            if linext:
+                S = [x for x in H.neighbors_out(linext[-1]) if all(low in linext for low in H.neighbors_in(x))]
+            if not S:
+                S_ = set(self).difference(set(linext))
+                S = [x for x in S_ if
+                not any(low in S_ for low in self.neighbors_in(x))]
+
+            for e in S:
+                # Python3-todo: use yield from
+                for tmp in greedy_rec(H, linext+[e]):
+                    yield tmp
+
+        return greedy_rec(self, [])
+
+    def supergreedy_linear_extensions_iterator(self):
+        """
+        Return an iterator over supergreedy linear extensions of the Hasse diagram.
+
+        A linear extension `[e_1, e_2, \ldots, e_n]` is *supergreedy* if,
+        for every `i` and `j` where `i > j`, `e_i` covers `e_j` if for
+        every `i > k > j` at least one lower cover of `e_k` is not in
+        `[e_1, e_2, \ldots, e_k]`.
+
+        Informally said a linear extension is supergreedy if it "always
+        goes as high possible, and withdraw so less as possible".
+        These are also called depth-first linear extensions.
+
+        EXAMPLES:
+
+        We show the difference between "only greedy" and supergreedy
+        extensions::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1, 2], 2: [3, 4]})
+            sage: G_ext = list(H.greedy_linear_extensions_iterator())
+            sage: SG_ext = list(H.supergreedy_linear_extensions_iterator())
+            sage: [0, 2, 3, 1, 4] in G_ext
+            True
+            sage: [0, 2, 3, 1, 4] in SG_ext
+            False
+
+            sage: len(SG_ext)
+            4
+
+        TESTS::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: list(HasseDiagram({}).supergreedy_linear_extensions_iterator())
+            [[]]
+            sage: list(HasseDiagram({0: [], 1: []}).supergreedy_linear_extensions_iterator())
+            [[0, 1], [1, 0]]
+        """
+        N = self.order()
+        self_as_set = set(self)
+
+        def supergreedy_rec(H, linext):
+            k = len(linext)
+
+            if k == N:
+                yield linext
+
+            else:
+                S = []
+                while not S:
+                    if not k:  # Start from new minimal element
+                        S = [x for x in self.sources() if x not in linext]
+                    else:
+                        S = [x for x in self.neighbors_out(linext[k-1]) if x not in linext and all(low in linext for low in self.neighbors_in(x))]
+                        k -= 1
+
+                for e in S:
+                # Python3-todo: use yield from
+                    for tmp in supergreedy_rec(H, linext+[e]):
+                        yield tmp
+
+        return supergreedy_rec(self, [])
+
     def is_linear_extension(self, lin_ext=None):
         r"""
         Test if an ordering is a linear extension.

@@ -116,7 +116,7 @@ import sys
 from sage.libs.gmp.mpz cimport *
 from sage.libs.pari.all import pari
 from cypari2.gen cimport Gen as pari_gen
-from cypari2.convert cimport new_t_POL_from_int_star
+from sage.libs.pari.misc cimport new_t_POL_from_int_star
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
@@ -172,6 +172,7 @@ cpdef double odlyzko_bound_totallyreal(int n):
     else:
         dB = 33.9508
     return dB
+
 
 def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False,
                                       phc=False, keep_fields=False, t_2=False,

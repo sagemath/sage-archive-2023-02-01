@@ -147,8 +147,6 @@ This base class provides a lot more methods than a general parent::
      'gcd',
      'gen',
      'gens',
-     'get_action_c',
-     'get_action_impl',
      'has_coerce_map_from_c',
      'ideal',
      'ideal_monoid',

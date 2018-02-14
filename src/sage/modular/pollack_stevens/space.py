@@ -769,7 +769,7 @@ class PollackStevensModularSymbolspace(Module):
         ## If k = 0, then t has total measure zero.  However, this is not true when k != 0
         ## (unlike Prop 5.1 of [PS1] this is not a lift of classical symbol).
         ## So instead we simply add (const)*mu_1 to some (non-torsion) v[j] to fix this
-        ## here since (mu_1 |_k ([a,b,c,d]-1))(trival char) = chi(a) k a^{k-1} c ,
+        ## here since (mu_1 |_k ([a,b,c,d]-1))(trivial char) = chi(a) k a^{k-1} c ,
         ## we take the constant to be minus the total measure of t divided by (chi(a) k a^{k-1} c)
 
         if k != 0:

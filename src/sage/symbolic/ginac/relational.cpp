@@ -227,7 +227,7 @@ ex relational::map(map_function & f) const
 	if (!are_ex_trivially_equal(lh, mapped_lh)
 	 || !are_ex_trivially_equal(rh, mapped_rh))
 		return (new relational(mapped_lh, mapped_rh, o))->setflag(status_flags::dynallocated);
-	else
+	
 		return *this;
 }
 
@@ -249,7 +249,7 @@ ex relational::subs(const exmap & m, unsigned options) const
 
 	if (!are_ex_trivially_equal(lh, subsed_lh) || !are_ex_trivially_equal(rh, subsed_rh))
 		return relational(subsed_lh, subsed_rh, o).subs_one_level(m, options);
-	else
+	
 		return subs_one_level(m, options);
 }
 
@@ -452,7 +452,7 @@ relational::result relational::decide() const
                         return result::notimplemented;
                 if (inf.compare_other_type(other, oper))
                         return result::True;
-                else
+                
                         return result::False;
         }
 

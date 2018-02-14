@@ -267,8 +267,7 @@ ex symbol::conjugate() const
 {
 	if (iflags.get(info_flags::real))
 		return *this;
-	else
-		return conjugate_function(*this).hold();
+        return conjugate_function(*this).hold();
 }
 
 ex symbol::real_part() const
@@ -300,34 +299,8 @@ ex symbol::derivative(const symbol & s) const
 {
 	if (compare_same_type(s) != 0)
 		return _ex0;
-	else
-		return _ex1;
+	return _ex1;
 }
-
-/*
-int symbol::compare(const basic& other) const
-{
-	static const tinfo_t pow_id = find_tinfo_key("power");
-	static const tinfo_t mul_id = find_tinfo_key("mul");
-	static const tinfo_t function_id = find_tinfo_key("function");
-	static const tinfo_t fderivative_id = find_tinfo_key("fderivative");
-	const tinfo_t typeid_this = tinfo();
-	const tinfo_t typeid_other = other.tinfo();
-	if (typeid_this==typeid_other) {
-		GINAC_ASSERT(typeid(*this)==typeid(other));
-		return compare_same_type(other);
-	} else if (typeid_other == pow_id) {
-		return -static_cast<const power&>(other).compare_symbol(*this);
-	} else if (typeid_other == mul_id) {
-		return -static_cast<const mul&>(other).compare_symbol(*this);
-	} else if (typeid_other == function_id ||
-			typeid_other == fderivative_id) {
-		return -1;
-	} else {
-		return (typeid_this<typeid_other ? -1 : 1);
-	}
-}
-*/
 
 int symbol::compare_same_type(const basic & other) const
 {
@@ -392,8 +365,8 @@ std::string symbol::default_TeX_name() const
 	 || name=="Sigma"        || name=="Upsilon"      || name=="Phi"
 	 || name=="Psi"          || name=="Omega")
 		return "\\" + name;
-	else
-		return name;
+	
+	return name;
 }
 
 //////////
@@ -412,9 +385,7 @@ const symbol & get_symbol(const std::string & s)
 	if (i != directory.end()) {
 		return i->second;
 	}
-	else {
-		return directory.insert(make_pair(s, symbol(s))).first->second;
-	}
+	return directory.insert(make_pair(s, symbol(s))).first->second;
 }
 
 bool has_symbol(const ex & x)

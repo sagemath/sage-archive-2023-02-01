@@ -80,8 +80,8 @@ ex ex::expand(unsigned options) const
 {
 	if (options == 0 && ((bp->flags & status_flags::expanded) != 0u)) // The "expanded" flag only covers the standard options; someone might want to re-expand with different options
 		return *this;
-	else
-		return bp->expand(options);
+
+        return bp->expand(options);
 }
 
 /** Compute partial derivative of an expression.
@@ -93,8 +93,8 @@ ex ex::diff(const symbol & s, unsigned nth) const
 {
 	if (nth == 0u)
 		return *this;
-	else
-		return bp->diff(s, nth);
+
+	return bp->diff(s, nth);
 }
 
 /** Check whether expression matches a specified pattern. */
@@ -165,7 +165,9 @@ ex ex::subs(const ex & e, unsigned options) const
 
 		return bp->subs(m, options);
 
-	} else if (e.info(info_flags::list)) {
+	}
+        
+        if (e.info(info_flags::list)) {
 
 		// Argument is a list: convert it to a map
 		exmap m;
@@ -304,8 +306,8 @@ bool ex::is_polynomial(const ex & vars) const
 				return false;
 		return true;
 	}
-	else
-		return bp->is_polynomial(vars);
+
+	return bp->is_polynomial(vars);
 }
 
 bool ex::is_zero() const {
@@ -319,18 +321,18 @@ bool ex::is_zero() const {
 
 bool ex::is_one() const
 {
-    if (!is_exactly_a<numeric>(*this))
-        return false;
-    const numeric& num = ex_to<numeric>(*this);
-    return num.is_one();
+        if (!is_exactly_a<numeric>(*this))
+                return false;
+        const numeric& num = ex_to<numeric>(*this);
+        return num.is_one();
 }
   
 bool ex::is_minus_one() const
 {
-    if (!is_exactly_a<numeric>(*this))
-        return false;
-    const numeric& num = ex_to<numeric>(*this);
-    return num.is_minus_one();
+        if (!is_exactly_a<numeric>(*this))
+                return false;
+        const numeric& num = ex_to<numeric>(*this);
+        return num.is_minus_one();
 }
 
 void ex::set_domain(unsigned d)
@@ -370,7 +372,8 @@ bool ex::get_first_symbol(ex &x) const
 	if (is_exactly_a<symbol>(*this)) {
 		x = *this;
 		return true;
-	} else if (is_exactly_a<add>(*this) || is_exactly_a<mul>(*this)) {
+	} 
+        if (is_exactly_a<add>(*this) || is_exactly_a<mul>(*this)) {
 		for (size_t i=0; i<nops(); i++)
 			if (sorted_op(i).get_first_symbol(x))
 				return true;
@@ -449,8 +452,8 @@ ex ex::sorted_op(size_t i) const
 {
 	if (is_a<expairseq>(*this))
 		return dynamic_cast<const expairseq&>(*bp).stable_op(i);
-	else
-		return bp->op(i);
+
+        return bp->op(i);
 }
 
 static bool has_nonposint_power(const ex& x, const symbol& symb)
@@ -489,20 +492,19 @@ static bool match_monom(const ex& term, const symbol& symb,
                         vec.push_back(std::make_pair(_ex1, expo.subs(map)));
                         return true;
                 }
-                else {
-                        // of form (...+...)^expo
-                        // we expand only those with integer exponent
-                        if (is_exactly_a<numeric>(expo)
-                                        and has_free_symbol(p.op(0), symb)) {
-                                const numeric& ee = ex_to<numeric>(expo);
-                                if (ee.is_integer() and ee.to_int() > 1) {
-                                        expairvec tmpvec;
-                                        expand(term).coefficients(symb, tmpvec);
-                                        for (const auto& pair : tmpvec)
-                                                vec.push_back(std::make_pair(pair.first.subs(map),
-                                                                        pair.second.subs(map)));
-                                        return true;
-                                }
+
+                // of form (...+...)^expo
+                // we expand only those with integer exponent
+                if (is_exactly_a<numeric>(expo)
+                                and has_free_symbol(p.op(0), symb)) {
+                        const numeric& ee = ex_to<numeric>(expo);
+                        if (ee.is_integer() and ee.to_int() > 1) {
+                                expairvec tmpvec;
+                                expand(term).coefficients(symb, tmpvec);
+                                for (const auto& pair : tmpvec)
+                                        vec.push_back(std::make_pair(pair.first.subs(map),
+                                                                pair.second.subs(map)));
+                                return true;
                         }
                 }
         }
@@ -659,29 +661,27 @@ ex ex::deep_combine_fractions(ex e)
                                 is_exactly_a<constant>(e) or
                                 is_exactly_a<numeric>(e))
                         return e;
-                else
-                        for (unsigned int i=0; i<e.nops(); ++i) {
-                                e.let_op(i) = deep_combine_fractions(e.op(i));
-                        }
+                
+                for (unsigned int i=0; i<e.nops(); ++i) {
+                        e.let_op(i) = deep_combine_fractions(e.op(i));
+                }
         }
 
         if (is_exactly_a<add>(e)) {
                 ex t = ex_to<add>(e).combine_fractions();
                 return t;
         }
-        else
-                return e;
+
+        return e;
 }
 
 ex ex::combine_fractions(bool deep) const
 {
-        if (not deep) {
-                if (is_exactly_a<add>(*this))
-                        return ex_to<add>(*this).combine_fractions();
-                else
-                        return *this;
-        }
-        return deep_combine_fractions(*this);
+        if (deep)
+                return deep_combine_fractions(*this);
+        if (is_exactly_a<add>(*this))
+                return ex_to<add>(*this).combine_fractions();
+        return *this;
 }
 
 // private
@@ -747,26 +747,22 @@ ptr<basic> ex::construct_from_basic(const basic & other)
 		// soon as we leave the function, which would deallocate the
 		// evaluated object.
 		return tmpex.bp;
+	} 
 
-	} else {
+        // The easy case: making an "ex" out of an evaluated object.
+        if ((other.flags & status_flags::dynallocated) != 0u) {
 
-		// The easy case: making an "ex" out of an evaluated object.
-		if ((other.flags & status_flags::dynallocated) != 0u) {
+                // The object is already heap-allocated, so we can just make
+                // another reference to it.
+                return ptr<basic>(const_cast<basic &>(other));
+        } 
 
-			// The object is already heap-allocated, so we can just make
-			// another reference to it.
-			return ptr<basic>(const_cast<basic &>(other));
-
-		} else {
-
-			// The object is not heap-allocated, so we create a duplicate
-			// on the heap.
-			basic *bp = other.duplicate();
-			bp->setflag(status_flags::dynallocated);
-			GINAC_ASSERT(bp->get_refcount() == 0);
-			return bp;
-		}
-	}
+        // The object is not heap-allocated, so we create a duplicate
+        // on the heap.
+        basic *bp = other.duplicate();
+        bp->setflag(status_flags::dynallocated);
+        GINAC_ASSERT(bp->get_refcount() == 0);
+        return bp;
 }
 
 basic & ex::construct_from_int(int i)

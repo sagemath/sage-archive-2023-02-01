@@ -464,8 +464,7 @@ const numeric numeric::arbfunc_0arg(const char* name, PyObject* parent) const
         numeric rnum(ret);
         if (is_real() or imag().is_zero())
                 return ex_to<numeric>(rnum.real().evalf(0, parent));
-        else
-                return ex_to<numeric>(rnum.evalf(0, parent));
+        return ex_to<numeric>(rnum.evalf(0, parent));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -613,7 +612,7 @@ int numeric::compare_same_type(const numeric& right) const {
                                         right.v._pyobject, Py_LT);
                         if (result == 1)
                                 return -1;
-                        else if (result == -1)
+                        if (result == -1)
                                 py_error("richcmp failed");
                         else { // result == 0
                                 result = PyObject_RichCompareBool(v._pyobject,
@@ -738,7 +737,7 @@ numeric::numeric(PyObject* o, bool force_py) : basic(&numeric::tinfo_static) {
                         setflag(status_flags::evaluated | status_flags::expanded);
                         Py_DECREF(o);
                         return;
-                } else
+                } 
 #endif
                 if (PyLong_Check(o)) {
                     t = MPZ;
@@ -758,7 +757,7 @@ numeric::numeric(PyObject* o, bool force_py) : basic(&numeric::tinfo_static) {
                                 Py_DECREF(o);
                                 return;
                         }
-                        else if (py_funcs.py_is_Rational(o) != 0) {
+                        if (py_funcs.py_is_Rational(o) != 0) {
                                 t = MPQ;
                                 mpq_init(v._bigrat);
                                 mpq_set(v._bigrat, py_funcs.py_mpq_from_rational(o));
@@ -1118,14 +1117,15 @@ bool numeric::has(const ex &other, unsigned /*options*/) const {
                         if (this->imag().is_equal(o) || this->imag().is_equal(-o))
                                 return true;
                 return false;
-        } else {
-                if (o.is_equal(I)) // e.g scan for I in 42*I
-                        return !this->is_real();
-                if (o.real().is_zero()) // e.g. scan for 2*I in 2*I+1
-                        if (!this->imag().is_equal(*_num0_p))
-                                if (this->imag().is_equal(o * I) || this->imag().is_equal(-o * I))
-                                        return true;
-        }
+        } 
+        if (o.is_equal(I)) // e.g scan for I in 42*I
+                return !this->is_real();
+        if (o.real().is_zero() // e.g. scan for 2*I in 2*I+1
+            and not this->imag().is_equal(*_num0_p)
+            and (this->imag().is_equal(o * I)
+                 or this->imag().is_equal(-o * I)))
+                return true;
+        
         return false;
 }
 
@@ -1220,7 +1220,7 @@ const numeric numeric::add(const numeric &other) const {
                         mpq_add(bigrat, bigrat, other.v._bigrat);
                         return bigrat;
                 }
-                else if (t == MPQ and other.t == MPZ) {
+                if (t == MPQ and other.t == MPZ) {
                         mpq_t bigrat;
                         mpq_init(bigrat);
                         mpq_set_z(bigrat, other.v._bigint);
@@ -1279,7 +1279,7 @@ const numeric numeric::sub(const numeric &other) const {
                         mpq_sub(bigrat, bigrat, other.v._bigrat);
                         return bigrat;
                 }
-                else if (t == MPQ and other.t == MPZ) {
+                if (t == MPQ and other.t == MPZ) {
                         mpq_t bigrat, tmp;
                         mpq_init(bigrat);
                         mpq_init(tmp);
@@ -1388,40 +1388,41 @@ const numeric numeric::div(const numeric &other) const {
                         auto ld = std::div(v._long, other.v._long);
                         if (ld.rem == 0)
                                 return ld.quot;
-                        else {
-                                mpq_t bigrat, obigrat;
-                                mpq_init(bigrat);
-                                mpq_init(obigrat);
-                                mpq_set_si(bigrat, v._long, 1);
-                                mpq_set_si(obigrat, other.v._long, 1);
-                                mpq_div(bigrat, bigrat, obigrat);
-                                mpq_clear(obigrat);
-                                return bigrat;
-                        }
+
+                        mpq_t bigrat, obigrat;
+                        mpq_init(bigrat);
+                        mpq_init(obigrat);
+                        mpq_set_si(bigrat, v._long, 1);
+                        mpq_set_si(obigrat, other.v._long, 1);
+                        mpq_div(bigrat, bigrat, obigrat);
+                        mpq_clear(obigrat);
+                        return bigrat;
                         }
                 case MPZ:
+                        {
                         if (mpz_divisible_p(v._bigint, other.v._bigint)) {
                                 mpz_t bigint;
                                 mpz_init(bigint);
-                                mpz_divexact(bigint, v._bigint, other.v._bigint);
+                                mpz_divexact(bigint, v._bigint,
+                                                other.v._bigint);
                                 return bigint;
                         }
-                        else {
-                                mpq_t bigrat, obigrat;
-                                mpq_init(bigrat);
-                                mpq_init(obigrat);
-                                mpq_set_z(bigrat, v._bigint);
-                                mpq_set_z(obigrat, other.v._bigint);
-                                mpq_div(bigrat, bigrat, obigrat);
-                                mpq_clear(obigrat);
-                                return bigrat;
+                        mpq_t bigrat, obigrat;
+                        mpq_init(bigrat);
+                        mpq_init(obigrat);
+                        mpq_set_z(bigrat, v._bigint);
+                        mpq_set_z(obigrat, other.v._bigint);
+                        mpq_div(bigrat, bigrat, obigrat);
+                        mpq_clear(obigrat);
+                        return bigrat;
                         }
                 case MPQ:
-                                mpq_t bigrat;
-                                mpq_init(bigrat);
-                                mpq_div(bigrat, v._bigrat, other.v._bigrat);
-                                return bigrat;
-
+                        {
+                        mpq_t bigrat;
+                        mpq_init(bigrat);
+                        mpq_div(bigrat, v._bigrat, other.v._bigrat);
+                        return bigrat;
+                        }
                 case PYOBJECT:
 #if PY_MAJOR_VERSION < 3
                         if (PyObject_Compare(other.v._pyobject, ONE) == 0
@@ -1437,16 +1438,16 @@ const numeric numeric::div(const numeric &other) const {
                                         // but if I don't, Sage crashes on exit.
                                         Py_INCREF(o);
                                         return o;
-                                } else if (PyLong_Check(other.v._pyobject)) {
+                                }
+                                if (PyLong_Check(other.v._pyobject)) {
                                         PyObject* d = py_funcs.py_integer_from_python_obj(other.v._pyobject);
                                         PyObject* ans = PyNumber_TrueDivide(v._pyobject, d);
                                         Py_DECREF(d);
                                         return ans;
                                 }
-                        } else if (PyLong_Check(v._pyobject)) {
-#else
-                        if (PyLong_Check(v._pyobject)) {
+                        }
 #endif
+                        if (PyLong_Check(v._pyobject)) {
                                 PyObject* n = py_funcs.py_integer_from_python_obj(v._pyobject);
                                 PyObject* ans = PyNumber_TrueDivide(n, other.v._pyobject);
                                 Py_DECREF(n);
@@ -1470,17 +1471,16 @@ bool numeric::integer_rational_power(numeric& res,
                 throw std::runtime_error("integer_rational_power: bad input");
         if (a.t == LONG) {
                 if (a.v._long == 1
-                    or mpz_cmp_ui(mpq_numref(b.v._bigrat), 0) == 0)
-                {
+                    or mpz_cmp_ui(mpq_numref(b.v._bigrat), 0) == 0) {
                         res = 1;
                         return true;
                 }
-                else if (a.v._long == 0) {
+                if (a.v._long == 0) {
                         res = 0;
                         return true;
                 }
-                else if (a.v._long < 0
-                         and mpz_cmp_ui(mpq_denref(b.v._bigrat), 1))
+                if (a.v._long < 0
+                    and mpz_cmp_ui(mpq_denref(b.v._bigrat), 1))
                         return false;
                 long z;
                 if (not mpz_fits_ulong_p(mpq_numref(b.v._bigrat))
@@ -1493,8 +1493,7 @@ bool numeric::integer_rational_power(numeric& res,
                                 res = numeric(z);
                                 return true;
                         }
-                        else
-                                return false;
+                        return false;
                 }
                 return integer_rational_power(res, a.to_bigint(), b);
         }
@@ -1518,7 +1517,7 @@ bool numeric::integer_rational_power(numeric& res,
                     or not mpz_fits_ulong_p(mpq_denref(b.v._bigrat)))
                 // too big to take roots/powers
                         return false;
-                else if (mpz_cmp_ui(mpq_denref(b.v._bigrat), 2) == 0) {
+                if (mpz_cmp_ui(mpq_denref(b.v._bigrat), 2) == 0) {
                         if (mpz_perfect_square_p(a.v._bigint))
                                 mpz_sqrt(z, a.v._bigint);
                         else
@@ -1749,7 +1748,7 @@ const ex numeric::power(const numeric &exponent) const {
                 rational_power_parts(*this, expo, c, d, c_unit);
                 if (d.is_one())
                         return c;
-                else if (d.is_minus_one()
+                if (d.is_minus_one()
                                 and expo.denom().is_equal(*_num2_p)) {
                         switch (expo.numer().to_long() % 4) {
                                 case 0: return c;
@@ -1770,15 +1769,23 @@ const ex numeric::power(const numeric &exponent) const {
         }
         if (t == PYOBJECT) {
                 if (exponent.t == PYOBJECT) 
-                        return numeric(PyNumber_Power(v._pyobject, exponent.v._pyobject, Py_None));
-                else
-                        return numeric(PyNumber_Power(v._pyobject, exponent.to_pyobject(), Py_None));
+                        return numeric(PyNumber_Power(v._pyobject,
+                                                exponent.v._pyobject,
+                                                Py_None));
+                
+                return numeric(PyNumber_Power(v._pyobject,
+                                        exponent.to_pyobject(),
+                                        Py_None));
         }
         if (exponent.t == PYOBJECT) {
                 if (t == PYOBJECT) 
-                        return numeric(PyNumber_Power(v._pyobject, exponent.v._pyobject, Py_None));
-                else
-                        return numeric(PyNumber_Power(to_pyobject(), exponent.v._pyobject, Py_None));
+                        return numeric(PyNumber_Power(v._pyobject,
+                                                exponent.v._pyobject,
+                                                Py_None));
+                
+                return numeric(PyNumber_Power(to_pyobject(),
+                                        exponent.v._pyobject,
+                                        Py_None));
         }
         throw std::runtime_error("numeric::power: can't happen");
 }
@@ -1792,7 +1799,7 @@ const numeric &numeric::add_dyn(const numeric &other) const {
         // is supposed to keep the number of distinct numeric objects low.
         if (this == _num0_p)
                 return other;
-        else if (&other == _num0_p)
+        if (&other == _num0_p)
                 return *this;
 
         return static_cast<const numeric &> ((new numeric(*this + other))->
@@ -1822,7 +1829,7 @@ const numeric &numeric::mul_dyn(const numeric &other) const {
         // is supposed to keep the number of distinct numeric objects low.
         if (this == _num1_p)
                 return other;
-        else if (&other == _num1_p)
+        if (&other == _num1_p)
                 return *this;
 
         return static_cast<const numeric &> ((new numeric(*this * other))->
@@ -1917,7 +1924,7 @@ numeric & operator+=(numeric & lh, const numeric & rh)
                         mpz_clear(bigint);
                         return lh;
                 }
-                else if (lh.t == MPQ and rh.t == MPZ) {
+                if (lh.t == MPQ and rh.t == MPZ) {
                         mpq_t tmp;
                         mpq_init(tmp);
                         mpq_set_z(tmp, rh.v._bigint);
@@ -1997,7 +2004,7 @@ numeric & operator-=(numeric & lh, const numeric & rh)
                         mpz_clear(bigint);
                         return lh;
                 }
-                else if (lh.t == MPQ and rh.t == MPZ) {
+                if (lh.t == MPQ and rh.t == MPZ) {
                         mpq_t tmp;
                         mpq_init(tmp);
                         mpq_set_z(tmp, rh.v._bigint);
@@ -2084,7 +2091,7 @@ numeric & operator*=(numeric & lh, const numeric & rh)
                         mpq_clear(tmp);
                         return lh;
                 }
-                else if (lh.t == MPQ and rh.t == MPZ) {
+                if (lh.t == MPQ and rh.t == MPZ) {
                         mpq_t tmp;
                         mpq_init(tmp);
                         mpq_set_z(tmp, rh.v._bigint);
@@ -2173,7 +2180,7 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                         mpq_clear(tmp);
                         return lh;
                 }
-                else if (lh.t == MPQ and rh.t == MPZ) {
+                if (lh.t == MPQ and rh.t == MPZ) {
                         mpq_t tmp;
                         mpq_init(tmp);
                         mpq_set_z(tmp, rh.v._bigint);
@@ -2207,25 +2214,25 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                                 lh.hash = (ld.quot==-1) ? -2 : ld.quot;
                                 return lh;
                         }
-                        else {
-                                mpq_t obigrat;
-                                lh.t = MPQ;
-                                unsigned long l = std::labs(lh.v._long);
-                                unsigned long r = std::labs(rh.v._long);
-                                int sign = sgn(lh.v._long) * sgn(rh.v._long);
-                                mpq_init(obigrat);
-                                mpq_init(lh.v._bigrat);
-                                mpq_set_ui(lh.v._bigrat, l, 1);
-                                mpq_set_ui(obigrat, r, 1);
-                                mpq_div(lh.v._bigrat, lh.v._bigrat, obigrat);
-                                if (sign == -1)
-                                        mpq_neg(lh.v._bigrat, lh.v._bigrat);
-                                mpq_clear(obigrat);
-                                lh.hash = _mpq_pythonhash(lh.v._bigrat);
-                                return lh;
-                        }
+                        
+                        mpq_t obigrat;
+                        lh.t = MPQ;
+                        unsigned long l = std::labs(lh.v._long);
+                        unsigned long r = std::labs(rh.v._long);
+                        int sign = sgn(lh.v._long) * sgn(rh.v._long);
+                        mpq_init(obigrat);
+                        mpq_init(lh.v._bigrat);
+                        mpq_set_ui(lh.v._bigrat, l, 1);
+                        mpq_set_ui(obigrat, r, 1);
+                        mpq_div(lh.v._bigrat, lh.v._bigrat, obigrat);
+                        if (sign == -1)
+                                mpq_neg(lh.v._bigrat, lh.v._bigrat);
+                        mpq_clear(obigrat);
+                        lh.hash = _mpq_pythonhash(lh.v._bigrat);
+                        return lh;
                         }
                 case MPZ:
+                        {
                         if (mpz_divisible_p(lh.v._bigint, rh.v._bigint)) {
                                 mpz_divexact(lh.v._bigint,
                                                 lh.v._bigint,
@@ -2233,20 +2240,19 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                                 lh.hash = _mpz_pythonhash(lh.v._bigint);
                                 return lh;
                         }
-                        else {
-                                mpq_t bigrat, obigrat;
-                                mpq_init(bigrat);
-                                mpq_init(obigrat);
-                                mpq_set_z(bigrat, lh.v._bigint);
-                                mpq_set_z(obigrat, rh.v._bigint);
-                                mpz_clear(lh.v._bigint);
-                                lh.t = MPQ;
-                                mpq_init(lh.v._bigrat);
-                                mpq_div(lh.v._bigrat, bigrat, obigrat);
-                                lh.hash = _mpq_pythonhash(lh.v._bigrat);
-                                mpq_clear(bigrat);
-                                mpq_clear(obigrat);
-                                return lh;
+                        mpq_t bigrat, obigrat;
+                        mpq_init(bigrat);
+                        mpq_init(obigrat);
+                        mpq_set_z(bigrat, lh.v._bigint);
+                        mpq_set_z(obigrat, rh.v._bigint);
+                        mpz_clear(lh.v._bigint);
+                        lh.t = MPQ;
+                        mpq_init(lh.v._bigrat);
+                        mpq_div(lh.v._bigrat, bigrat, obigrat);
+                        lh.hash = _mpq_pythonhash(lh.v._bigrat);
+                        mpq_clear(bigrat);
+                        mpq_clear(obigrat);
+                        return lh;
                         }
                 case MPQ:
                         mpq_div(lh.v._bigrat, lh.v._bigrat, rh.v._bigrat);
@@ -2272,7 +2278,8 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                                         Py_DECREF(p);
                                         Py_INCREF(lh.v._pyobject);
                                         return lh;
-                                } else if (PyLong_Check(rh.v._pyobject)) {
+                                }
+                                if (PyLong_Check(rh.v._pyobject)) {
                                         PyObject* d = py_funcs.py_integer_from_python_obj(rh.v._pyobject);
                                         lh.v._pyobject = PyNumber_TrueDivide(p, d);
                                         if (lh.v._pyobject == nullptr) {
@@ -2376,22 +2383,23 @@ int numeric::csgn() const {
                 case MPQ:
                         return mpq_sgn(v._bigrat);
                 case PYOBJECT:
+                {
                         int result;
                         if (is_real()) {
                                 numeric z(ZERO);
                                 Py_INCREF(ZERO);
                                 return compare_same_type(z);
-                        } else {
-                                numeric re = real();
-                                numeric z(ZERO);
-                                Py_INCREF(ZERO);
-                                result = re.compare_same_type(z);
-                                if (result == 0) {
-                                        numeric im = imag();
-                                        result = im.compare_same_type(z);
-                                }
+                        } 
+                        numeric re = real();
+                        numeric z(ZERO);
+                        Py_INCREF(ZERO);
+                        result = re.compare_same_type(z);
+                        if (result == 0) {
+                                numeric im = imag();
+                                result = im.compare_same_type(z);
                         }
                         return result;
+                }
                 default:
                         stub("invalid type: csgn() type not handled");
         }
@@ -2490,7 +2498,7 @@ bool numeric::is_positive() const {
                             result = PyObject_RichCompareBool(v._pyobject, ZERO, Py_GT);
                             if (result == 1)
                                 return true;
-                            else if (result == -1)
+                            if (result == -1)
                                 PyErr_Clear();
                         }
                         return false;
@@ -2515,7 +2523,7 @@ bool numeric::is_negative() const {
                             result = PyObject_RichCompareBool(v._pyobject, ZERO, Py_LT);
                             if (result == 1)
                                 return true;
-                            else if (result == -1)
+                            if (result == -1)
                                 PyErr_Clear();
                         }
                         return false;
@@ -2581,7 +2589,7 @@ bool numeric::is_nonneg_integer() const {
                             result = PyObject_RichCompareBool(v._pyobject, ZERO, Py_GE);
                             if (result == 1)
                                 return true;
-                            else if (result == -1)
+                            if (result == -1)
                                 PyErr_Clear();
                         }
                         return false;
@@ -2788,7 +2796,7 @@ bool numeric::operator==(const numeric &right) const {
                                 return false;
                         return mpz_cmp(v._bigint, mpq_numref(right.v._bigrat)) ==0;
                 }
-                else if (t == MPQ and right.t == MPZ) {
+                if (t == MPQ and right.t == MPZ) {
                         if (mpz_cmp_ui(mpq_denref(v._bigrat), 1) != 0)
                                 return false;
                         return mpz_cmp(right.v._bigint, mpq_numref(v._bigrat)) ==0;
@@ -2825,7 +2833,7 @@ bool numeric::operator!=(const numeric &right) const {
                                 return true;
                         return mpz_cmp(v._bigint, mpq_numref(right.v._bigrat)) !=0;
                 }
-                else if (t == MPQ and right.t == MPZ) {
+                if (t == MPQ and right.t == MPZ) {
                         if (mpz_cmp_ui(mpq_denref(v._bigrat), 1) != 0)
                                 return true;
                         return mpz_cmp(right.v._bigint, mpq_numref(v._bigrat)) !=0;
@@ -3484,14 +3492,13 @@ const numeric numeric::log(const numeric &b) const {
         if ((t != LONG and t != MPZ and t != MPQ)
             or (b.t != LONG and b.t != MPZ and b.t != MPQ))
                 return log()/b.log();
-        else {
-                bool israt;
-                numeric ret = ratlog(b, israt);
-                if (not israt)
-                        return log()/b.log();
-                else
-                        return ret;
-        }
+        
+        bool israt;
+        numeric ret = ratlog(b, israt);
+        if (not israt)
+                return log()/b.log();
+        
+        return ret;
 }
 
 // General log
@@ -3555,18 +3562,16 @@ const numeric numeric::ratlog(const numeric &b, bool& israt) const {
         if (t == MPZ) {
                 if (b.numer().is_one())
                         return -ratlog(b.denom(), israt);
-                else {
-                        israt = false;
-                        return *_num0_p;
-                }
+                
+                israt = false;
+                return *_num0_p;
         }
         if (b.t == MPZ) {
                 if (numer().is_one())
                         return -denom().ratlog(b, israt);
-                else {
-                        israt = false;
-                        return *_num0_p;
-                }
+                
+                israt = false;
+                return *_num0_p;
         }
 
         // from here both MPQ
@@ -3600,8 +3605,8 @@ const numeric numeric::acos(PyObject* parent) const {
         // https://github.com/fredrik-johansson/arb/issues/198
         if ((is_real() or imag().is_zero()) and *this > (*_num1_p))
                 return ex_to<numeric>((rnum.imag()*I).evalf(0, parent));
-        else
-                return ex_to<numeric>(rnum.evalf(0, parent));
+        
+        return ex_to<numeric>(rnum.evalf(0, parent));
 }
 
 const numeric numeric::atan(PyObject* parent) const {
@@ -3639,8 +3644,8 @@ const numeric numeric::acosh(PyObject* parent) const {
         // https://github.com/fredrik-johansson/arb/issues/198
         if ((is_real() or imag().is_zero()) and abs()<(*_num1_p))
                 return ex_to<numeric>((rnum.imag()*I).evalf(0, parent));
-        else
-                return ex_to<numeric>(rnum.evalf(0, parent));
+        
+        return ex_to<numeric>(rnum.evalf(0, parent));
 }
 
 const numeric numeric::atanh(PyObject* parent) const {
@@ -3653,8 +3658,8 @@ const numeric numeric::atanh(PyObject* parent) const {
         if ((is_real() or imag().is_zero())
             and abs()<(*_num1_p))
                 return ex_to<numeric>(rnum.real().evalf(0, parent));
-        else
-                return ex_to<numeric>(rnum.evalf(0, parent));
+        
+        return ex_to<numeric>(rnum.evalf(0, parent));
 }
 
 const numeric numeric::Li2(const numeric &n, PyObject* parent) const {
@@ -3866,7 +3871,7 @@ bool numeric::is_square() const
                 long rt = std::lround(std::sqrt(v._long));
                 return rt*rt == v._long;
         }
-        else if (t == MPZ) {
+        if (t == MPZ) {
                 return mpz_perfect_square_p(v._bigint);
         }
         else if (t == MPQ) {

@@ -353,16 +353,14 @@ ex basic::normal(exmap & repl, exmap & rev_lookup, int level, unsigned options) 
 {
 	if (nops() == 0)
 		return (new lst(replace_with_symbol(*this, repl, rev_lookup), _ex1))->setflag(status_flags::dynallocated);
-	else {
-		if (level == 1)
-			return (new lst(replace_with_symbol(*this, repl, rev_lookup), _ex1))->setflag(status_flags::dynallocated);
-		else if (level == -max_recursion_level)
-			throw(std::runtime_error("max recursion level reached"));
-		else {
-			normal_map_function map_normal(level - 1);
-			return (new lst(replace_with_symbol(map(map_normal), repl, rev_lookup), _ex1))->setflag(status_flags::dynallocated);
-		}
-	}
+        if (level == 1)
+                return (new lst(replace_with_symbol(*this, repl, rev_lookup), _ex1))->setflag(status_flags::dynallocated);
+        if (level == -max_recursion_level)
+                throw(std::runtime_error("max recursion level reached"));
+        else {
+                normal_map_function map_normal(level - 1);
+                return (new lst(replace_with_symbol(map(map_normal), repl, rev_lookup), _ex1))->setflag(status_flags::dynallocated);
+        }
 }
 
 
@@ -466,7 +464,7 @@ ex function::normal(exmap & repl, exmap & rev_lookup, int level, unsigned option
         }
         if (level == 1)
                 return (new lst(replace_with_symbol(*this, repl, rev_lookup), _ex1))->setflag(status_flags::dynallocated);
-        else if (level == -max_recursion_level)
+        if (level == -max_recursion_level)
                 throw(std::runtime_error("max recursion level reached"));
         else {
                 normal_map_function map_normal(level - 1);
@@ -481,7 +479,7 @@ ex add::normal(exmap & repl, exmap & rev_lookup, int level, unsigned options) co
 {
 	if (level == 1)
 		return (new lst(replace_with_symbol(*this, repl, rev_lookup), _ex1))->setflag(status_flags::dynallocated);
-	else if (level == -max_recursion_level)
+	if (level == -max_recursion_level)
 		throw(std::runtime_error("max recursion level reached"));
 
 	// Normalize children and split each one into numerator and denominator
@@ -541,7 +539,7 @@ ex mul::normal(exmap & repl, exmap & rev_lookup, int level, unsigned options) co
 {
 	if (level == 1)
 		return (new lst(replace_with_symbol(*this, repl, rev_lookup), _ex1))->setflag(status_flags::dynallocated);
-	else if (level == -max_recursion_level)
+	if (level == -max_recursion_level)
 		throw(std::runtime_error("max recursion level reached"));
 
 	// Normalize children, separate into numerator and denominator
@@ -572,7 +570,7 @@ ex power::normal(exmap & repl, exmap & rev_lookup, int level, unsigned options) 
 {
 	if (level == 1)
 		return (new lst(replace_with_symbol(*this, repl, rev_lookup), _ex1))->setflag(status_flags::dynallocated);
-	else if (level == -max_recursion_level)
+	if (level == -max_recursion_level)
 		throw(std::runtime_error("max recursion level reached"));
 
 	// Normalize basis and exponent (exponent gets reassembled)
@@ -583,40 +581,52 @@ ex power::normal(exmap & repl, exmap & rev_lookup, int level, unsigned options) 
 	if (n_exponent.info(info_flags::integer)) {
 
 		if (n_exponent.info(info_flags::positive)) {
-
 			// (a/b)^n -> {a^n, b^n}
-			return (new lst(power(n_basis.op(0), n_exponent), power(n_basis.op(1), n_exponent)))->setflag(status_flags::dynallocated);
+			return (new lst(power(n_basis.op(0), n_exponent),
+                                              power(n_basis.op(1), n_exponent)))
+                                ->setflag(status_flags::dynallocated);
 
-		} else if (n_exponent.info(info_flags::negative)) {
-
-			// (a/b)^-n -> {b^n, a^n}
-			return (new lst(power(n_basis.op(1), -n_exponent), power(n_basis.op(0), -n_exponent)))->setflag(status_flags::dynallocated);
 		}
-
+                if (n_exponent.info(info_flags::negative)) {
+			// (a/b)^-n -> {b^n, a^n}
+			return (new lst(power(n_basis.op(1), -n_exponent),
+                                              power(n_basis.op(0), -n_exponent)))
+                                ->setflag(status_flags::dynallocated);
+		}
 	} else {
 
 		if (n_exponent.info(info_flags::positive)) {
-
 			// (a/b)^x -> {sym((a/b)^x), 1}
-			return (new lst(replace_with_symbol(power(n_basis.op(0) / n_basis.op(1), n_exponent), repl, rev_lookup), _ex1))->setflag(status_flags::dynallocated);
-
-		} else if (n_exponent.info(info_flags::negative)) {
+			return (new lst(replace_with_symbol(power(n_basis.op(0) / n_basis.op(1),
+                                                                n_exponent),
+                                                            repl, rev_lookup),
+                                                _ex1))
+                                ->setflag(status_flags::dynallocated);
+		}
+                if (n_exponent.info(info_flags::negative)) {
 
 			if (n_basis.op(1).is_one()) {
 
 				// a^-x -> {1, sym(a^x)}
-				return (new lst(_ex1, replace_with_symbol(power(n_basis.op(0), -n_exponent), repl, rev_lookup)))->setflag(status_flags::dynallocated);
-
-			} else {
-
-				// (a/b)^-x -> {sym((b/a)^x), 1}
-				return (new lst(replace_with_symbol(power(n_basis.op(1) / n_basis.op(0), -n_exponent), repl, rev_lookup), _ex1))->setflag(status_flags::dynallocated);
+				return (new lst(_ex1,
+                                                replace_with_symbol(power(n_basis.op(0), -n_exponent),
+                                                        repl, rev_lookup)))
+                                        ->setflag(status_flags::dynallocated);
 			}
+
+                // (a/b)^-x -> {sym((b/a)^x), 1}
+                return (new lst(replace_with_symbol(power(n_basis.op(1) / n_basis.op(0), -n_exponent),
+                                                repl, rev_lookup), _ex1))
+                        ->setflag(status_flags::dynallocated);
+			
 		}
 	}
 
 	// (a/b)^x -> {sym((a/b)^x, 1}
-	return (new lst(replace_with_symbol(power(n_basis.op(0) / n_basis.op(1), n_exponent), repl, rev_lookup), _ex1))->setflag(status_flags::dynallocated);
+	return (new lst(replace_with_symbol(power(n_basis.op(0) / n_basis.op(1), 
+                                                n_exponent),
+                                        repl, rev_lookup), _ex1))
+                ->setflag(status_flags::dynallocated);
 }
 
 
@@ -670,8 +680,8 @@ ex ex::normal(int level, bool noexpand_combined, bool noexpand_numer) const
         // Convert {numerator, denominator} form back to fraction
         if ((options & normal_options::no_expand_fraction_numer) == 0u)
                 return e.op(0).expand() / e.op(1);
-        else
-        	return e.op(0) / e.op(1);
+
+        return e.op(0) / e.op(1);
 }
 
 /** Get numerator of an expression. If the expression is not of the normal
@@ -869,8 +879,8 @@ ex power::to_rational(exmap & repl) const
 {
 	if (exponent.info(info_flags::integer))
 		return power(basis.to_rational(repl), exponent);
-	else
-		return replace_with_symbol(*this, repl);
+
+	return replace_with_symbol(*this, repl);
 }
 
 /** Implementation of ex::to_polynomial() for powers. It replaces non-posint
@@ -879,19 +889,19 @@ ex power::to_polynomial(exmap & repl) const
 {
 	if (exponent.info(info_flags::posint))
 		return power(basis.to_rational(repl), exponent);
-	else if (exponent.info(info_flags::negint))
+	if (exponent.info(info_flags::negint))
 	{
 		ex basis_pref = collect_common_factors(basis);
-		if (is_exactly_a<mul>(basis_pref) || is_exactly_a<power>(basis_pref)) {
+		if (is_exactly_a<mul>(basis_pref)
+                    or is_exactly_a<power>(basis_pref)) {
 			// (A*B)^n will be automagically transformed to A^n*B^n
 			ex t = power(basis_pref, exponent);
 			return t.to_polynomial(repl);
 		}
-		else
-			return power(replace_with_symbol(power(basis, _ex_1), repl), -exponent);
+		return power(replace_with_symbol(power(basis, _ex_1), repl),
+                                -exponent);
 	} 
-	else
-		return replace_with_symbol(*this, repl);
+	return replace_with_symbol(*this, repl);
 }
 
 
@@ -908,8 +918,8 @@ ex expairseq::to_rational(exmap & repl) const
 	ex oc = overall_coeff.to_rational(repl);
 	if (oc.info(info_flags::numeric))
 		return thisexpairseq(s, overall_coeff);
-	else
-		s.emplace_back(oc, _ex1);
+
+	s.emplace_back(oc, _ex1);
 	return thisexpairseq(s, default_overall_coeff());
 }
 
@@ -926,7 +936,7 @@ ex expairseq::to_polynomial(exmap & repl) const
 	ex oc = overall_coeff.to_polynomial(repl);
 	if (oc.info(info_flags::numeric))
 		return thisexpairseq(s, overall_coeff);
-	else
+	
 		s.emplace_back(oc, _ex1);
 	return thisexpairseq(s, default_overall_coeff());
 }
@@ -1001,8 +1011,8 @@ static ex find_common_factor(const ex & e, ex & factor, exmap & repl)
 term_done:	;
 		}
 		return (new add(terms))->setflag(status_flags::dynallocated);
-
-	} else if (is_exactly_a<mul>(e)) {
+	}
+        if (is_exactly_a<mul>(e)) {
 
 		size_t num = e.nops();
 		exvector v; v.reserve(num);
@@ -1011,8 +1021,8 @@ term_done:	;
 			v.push_back(find_common_factor(e.op(i), factor, repl));
 
 		return (new mul(v))->setflag(status_flags::dynallocated);
-
-	} else if (is_exactly_a<power>(e)) {
+	}
+        if (is_exactly_a<power>(e)) {
 		const ex e_exp(e.op(1));
 		if (e_exp.info(info_flags::integer)) {
 			ex eb = e.op(0).to_polynomial(repl);
@@ -1020,12 +1030,10 @@ term_done:	;
 			ex pre_res = find_common_factor(eb, factor_local, repl);
 			factor *= power(factor_local, e_exp);
 			return power(pre_res, e_exp);
-			
-		} else
-			return e.to_polynomial(repl);
-
-	} else
-		return e;
+		} 
+		return e.to_polynomial(repl);
+        }
+        return e;
 }
 
 
@@ -1040,7 +1048,7 @@ ex collect_common_factors(const ex & e)
 		ex r = find_common_factor(e, factor, repl);
 		return factor.subs(repl, subs_options::no_pattern) * r.subs(repl, subs_options::no_pattern);
 
-	} else
+	} 
 		return e;
 }
 
@@ -1078,7 +1086,7 @@ bool factor(const ex& the_ex, ex& res_ex)
                         res_ex = mul(ev);
                 return mchanged;
         }
-        else if (is_exactly_a<power>(the_ex)) {
+        if (is_exactly_a<power>(the_ex)) {
                 const power& p = ex_to<power>(the_ex);
                 ex r;
                 bool pchanged = factor(p.op(0), r);

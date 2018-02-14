@@ -216,8 +216,8 @@ int fderivative::compare_same_type(const basic & other) const
 
 	if (parameter_set != o.parameter_set)
 		return parameter_set < o.parameter_set ? -1 : 1;
-	else
-		return inherited::compare_same_type(o);
+
+	return inherited::compare_same_type(o);
 }
 
 bool fderivative::is_equal_same_type(const basic & other) const
@@ -227,8 +227,8 @@ bool fderivative::is_equal_same_type(const basic & other) const
 
 	if (parameter_set != o.parameter_set)
 		return false;
-	else
-		return inherited::is_equal_same_type(o);
+
+        return inherited::is_equal_same_type(o);
 }
 
 bool fderivative::match_same_type(const basic & other) const

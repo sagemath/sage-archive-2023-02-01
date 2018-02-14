@@ -280,8 +280,7 @@ size_t expairseq::nops() const
 {
 	if (overall_coeff_equals_default())
 		return seq.size();
-	else
-		return seq.size()+1;
+        return seq.size()+1;
 }
 
 const ex expairseq::op(size_t i) const
@@ -311,16 +310,13 @@ ex expairseq::map(map_function &f) const
 
 	if (overall_coeff_equals_default())
 		return thisexpairseq(std::move(v), default_overall_coeff(), true);
-	else {
-		ex newcoeff = f(overall_coeff);
-		if(is_exactly_a<numeric>(newcoeff))
-			return thisexpairseq(std::move(v),
-                                        ex_to<numeric>(newcoeff), true);
-		else {
-			v->push_back(split_ex_to_pair(newcoeff));
-			return thisexpairseq(std::move(v), default_overall_coeff(), true);
-		}
-	}
+        ex newcoeff = f(overall_coeff);
+        if(is_exactly_a<numeric>(newcoeff))
+                return thisexpairseq(std::move(v),
+                                ex_to<numeric>(newcoeff), true);
+
+        v->push_back(split_ex_to_pair(newcoeff));
+        return thisexpairseq(std::move(v), default_overall_coeff(), true);
 }
 
 /** Perform coefficient-wise automatic term rewriting rules in this class. */
@@ -425,8 +421,7 @@ bool expairseq::match(const ex & pattern, lst & repl_lst) const
 					++next_el;
 					if(next_el == repl_lst.end())
 						break;
-					else
-						repl_lst.remove_last();
+					repl_lst.remove_last();
 				}
 				++it;
 			}
@@ -457,17 +452,15 @@ found:		;
                         repl_lst = tmp_repl;
 			repl_lst.append(global_wildcard == rest);
 			return true;
+		} 
 
-		} else {
-
-			// No global wildcard, then the match fails if there are any
-			// unmatched terms left
-			if (ops.empty()) {
-				repl_lst = tmp_repl;
-				return true;
-			}
-			return false;
-		}
+                // No global wildcard, then the match fails if there are any
+                // unmatched terms left
+                if (ops.empty()) {
+                        repl_lst = tmp_repl;
+                        return true;
+                }
+                return false;
 	}
 	return inherited::match(pattern, repl_lst);
 }
@@ -477,7 +470,7 @@ ex expairseq::subs(const exmap & m, unsigned options) const
 	std::unique_ptr<epvector> vp = subschildren(m, options);
 	if (vp.get() != nullptr)
 		return ex_to<basic>(thisexpairseq(std::move(vp), overall_coeff, (options & subs_options::no_index_renaming) == 0));
-	else if (((options & subs_options::algebraic) != 0u) && is_exactly_a<mul>(*this))
+	if (((options & subs_options::algebraic) != 0u) && is_exactly_a<mul>(*this))
 		return static_cast<const mul *>(this)->algebraic_subs_mul(m, options);
 	else
 		return subs_one_level(m, options);
@@ -656,10 +649,9 @@ ex expairseq::expand(unsigned options) const
 	std::unique_ptr<epvector> vp = expandchildren(options);
 	if (vp.get() != nullptr)
 		return thisexpairseq(std::move(vp), overall_coeff);
-	else {
-		// The terms have not changed, so it is safe to declare this expanded
-		return (options == 0) ? setflag(status_flags::expanded) : *this;
-	}
+
+        // The terms have not changed, so it is safe to declare this expanded
+        return (options == 0) ? setflag(status_flags::expanded) : *this;
 }
 
 //////////
@@ -818,19 +810,19 @@ void expairseq::construct_from_2_ex(const ex &lh, const ex &rh)
 			}
 #endif // EXPAIRSEQ_USE_HASHTAB
 			return;
-		} else {
+		} 
 #if EXPAIRSEQ_USE_HASHTAB
-			unsigned totalsize = ex_to<expairseq>(lh).seq.size()+1;
-			if (calc_hashtabsize(totalsize)!=0) {
-				construct_from_2_ex_via_exvector(lh, rh);
-			} else {
+                unsigned totalsize = ex_to<expairseq>(lh).seq.size()+1;
+                if (calc_hashtabsize(totalsize)!=0) {
+                        construct_from_2_ex_via_exvector(lh, rh);
+                } else {
 #endif // EXPAIRSEQ_USE_HASHTAB
-				construct_from_expairseq_ex(ex_to<expairseq>(lh), rh);
+                        construct_from_expairseq_ex(ex_to<expairseq>(lh), rh);
 #if EXPAIRSEQ_USE_HASHTAB
 			}
 #endif // EXPAIRSEQ_USE_HASHTAB
 			return;
-		}
+		
 	} else if (ex_to<basic>(rh).tinfo()==this->tinfo()) {
 #if EXPAIRSEQ_USE_HASHTAB
 		unsigned totalsize=ex_to<expairseq>(rh).seq.size()+1;
@@ -997,7 +989,8 @@ void expairseq::construct_from_expairseq_ex(const expairseq &s,
 			++first;
 			p_pushed = true;
 			break;
-		} else if (cmpval<0) {
+		}
+                if (cmpval<0) {
 			seq.push_back(*first);
 			++first;
 		} else {
@@ -1732,8 +1725,8 @@ const epvector & expairseq::get_sorted_seq() const
 {
 	if (seq_sorted.empty())
 		return seq;
-	else
-		return seq_sorted;
+
+        return seq_sorted;
 }
 
 //////////

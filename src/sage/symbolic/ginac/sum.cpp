@@ -311,8 +311,7 @@ ex gamma_normalize(ex the_ex)
         bool res = factor(subsed, res_ex);
         if (res)
                 return res_ex;
-        else
-                return subsed;
+        return subsed;
 }
 
 ex hypersimp(ex e, ex k)
@@ -560,8 +559,7 @@ ex gosper_sum_definite(ex f, ex s, ex a, ex b, int* success)
                 bool changed = factor(t, res);
                 if (changed)
                         return res;
-                else
-                        return t;
+                return t;
         }
         catch (gosper_domain_error) {
                 *success = 0;
@@ -578,8 +576,7 @@ ex gosper_sum_indefinite(ex f, ex s, int* success)
                 bool changed = factor(t, res);
                 if (changed)
                         return res;
-                else
-                        return t;
+                return t;
         }
         catch (gosper_domain_error) {
                 *success = 0;

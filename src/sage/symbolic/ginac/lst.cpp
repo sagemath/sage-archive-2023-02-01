@@ -36,8 +36,8 @@ template <> bool lst::info(unsigned inf) const
 {
 	if (inf == info_flags::list)
 		return true;
-	else
-		return inherited::info(inf);
+
+	return inherited::info(inf);
 }
 
 } // namespace GiNaC

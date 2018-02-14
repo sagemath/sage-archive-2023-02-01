@@ -205,8 +205,7 @@ static ex sin_eval(const ex & x)
                                 }
                                 if (num*(*_num2_p) > den)
                                         return fac*sin_eval((den-num)*Pi/den);
-                                else
-                                        return fac*sin((num*Pi)/den).hold();
+                                return fac*sin((num*Pi)/den).hold();
                         }
                 }
         }
@@ -414,7 +413,7 @@ static ex cos_eval(const ex & x)
                                         num = den * *_num2_p - num;
                                 if (num*(*_num2_p) > den)
                                         return mul(_ex_1, cos_eval((den-num)*Pi/den));
-                                else
+                                
                                         return cos((num*Pi)/den).hold();
                         }
                 }
@@ -628,8 +627,7 @@ static ex tan_eval(const ex & x)
                                 numeric num = c.numer().mod(den);
                                 if (num*(*_num2_p) > den)
                                         return mul(_ex_1, tan((den-num)*Pi/den).hold());
-                                else
-                                        return tan((num*Pi)/den).hold();
+                                return tan((num*Pi)/den).hold();
                         }
                 }
         }
@@ -794,7 +792,7 @@ static ex cot_eval(const ex & x)
                 if (not res.is_zero()) {     
 			return tan_eval(Pi/2-x);
                 }
-                else
+                
                         return UnsignedInfinity;
         }
         // Reflection at Pi/2
@@ -932,13 +930,12 @@ static ex sec_eval(const ex & x)
         if (not is_ex_the_function(res, cos) && not is_ex_the_function(_ex_1*res, cos)) {
                 if (res.is_zero())
                         return UnsignedInfinity;
-                else
-                        return power(res, _ex_1);
+                return power(res, _ex_1);
         }
         // cos has reflected also the argument so take it
         if (is_ex_the_function(res, cos))
                 return sec(res.op(0)).hold();
-        else
+        
                 return -sec((-res).op(0)).hold();
 }
 
@@ -1046,14 +1043,13 @@ static ex csc_eval(const ex & x)
         if (not is_ex_the_function(res, sin) && not is_ex_the_function(_ex_1*res, sin)) {
                 if (res.is_zero())
                         return UnsignedInfinity;
-                else
+                
                         return power(res, _ex_1);
         }
         // sin has reflected also the argument so take it
         if (is_ex_the_function(res, sin))
                 return csc(res.op(0)).hold();
-        else
-                return -csc((-res).op(0)).hold();
+        return -csc((-res).op(0)).hold();
 }
 
 static ex csc_deriv(const ex & x, unsigned deriv_param)
@@ -1140,9 +1136,9 @@ static ex asin_eval(const ex & x)
                         if (num.is_real()
                             and (num < *_num_1_p or num > *_num1_p))
                                 return NaN;
-                        else
-        		        // asin(float) -> float
-	        		return asin(ex_to<numeric>(x));
+
+                        // asin(float) -> float
+                        return asin(num);
                 }
 
 	}
@@ -1222,9 +1218,9 @@ static ex acos_eval(const ex & x)
                         if (num.is_real()
                             and (num < *_num_1_p or num > *_num1_p))
                                 return NaN;
-                        else
-        		        // acos(float) -> float
-	        		return acos(ex_to<numeric>(x));
+
+                        // acos(float) -> float
+                        return acos(num);
                 }
 
 		// acos(-x) -> Pi-acos(x)

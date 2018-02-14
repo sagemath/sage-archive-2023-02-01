@@ -65,8 +65,7 @@ public:
 		int restcmp = rest.compare(other.rest);
 		if (restcmp!=0)
 			return restcmp;
-		else
-			return other.coeff.compare(coeff);
+                return other.coeff.compare(coeff);
 	}
 	
 	void print(std::ostream & os) const;

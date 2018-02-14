@@ -119,8 +119,7 @@ ex rem(const ex &a, const ex &b, const ex &x, bool check_args)
 	if (is_exactly_a<numeric>(a)) {
 		if  (is_exactly_a<numeric>(b))
 			return _ex0;
-		else
-			return a;
+		return a;
 	}
 #if FAST_COMPARE
 	if (a.is_equal(b))
@@ -191,8 +190,7 @@ ex prem(const ex &a, const ex &b, const ex &x, bool check_args)
 	if (is_exactly_a<numeric>(a)) {
 		if (is_exactly_a<numeric>(b))
 			return _ex0;
-		else
-			return b;
+		return b;
 	}
 	if (check_args && (!a.info(info_flags::rational_polynomial) || !b.info(info_flags::rational_polynomial)))
 		throw(std::invalid_argument("prem: arguments must be polynomials over the rationals"));
@@ -243,8 +241,7 @@ ex sprem(const ex &a, const ex &b, const ex &x, bool check_args)
 	if (is_exactly_a<numeric>(a)) {
 		if (is_exactly_a<numeric>(b))
 			return _ex0;
-		else
-			return b;
+		return b;
 	}
 	if (check_args && (!a.info(info_flags::rational_polynomial) || !b.info(info_flags::rational_polynomial)))
 		throw(std::invalid_argument("prem: arguments must be polynomials over the rationals"));
@@ -298,7 +295,8 @@ bool divide(const ex &a, const ex &b, ex &q, bool check_args)
 	if (is_exactly_a<numeric>(b)) {
 		q = a / b;
 		return true;
-	} else if (is_exactly_a<numeric>(a))
+	}
+        if (is_exactly_a<numeric>(a))
 		return false;
 #if FAST_COMPARE
 	if (a.is_equal(b)) {
@@ -329,7 +327,8 @@ bool divide(const ex &a, const ex &b, ex &q, bool check_args)
 		}
 		q = rem_new;
 		return true;
-	} else if (is_exactly_a<power>(b)) {
+	}
+        if (is_exactly_a<power>(b)) {
 		const ex& bb(b.op(0));
 		int exp_b = ex_to<numeric>(b.op(1)).to_int();
 		ex rem_new, rem_old = a;

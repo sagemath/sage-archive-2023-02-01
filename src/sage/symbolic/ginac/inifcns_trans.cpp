@@ -160,8 +160,8 @@ static ex exp_power(const ex & arg, const ex & p)
 	// the simplification code in mul::eval accordingly
 	if (is_exactly_a<numeric>(p) && ex_to<numeric>(p).is_integer())
 		return exp(p*arg);
-	else
-		return power(exp(arg), p).hold();
+
+	return power(exp(arg), p).hold();
 }
 
 static void exp_print(const ex & arg, const print_context & c,
@@ -356,8 +356,8 @@ static ex log_series(const ex &arg,
 			}
 			const ex newarg = ex_to<pseries>((arg/coeff).series(rel, order+n, options)).shift_exponents(-n).convert_to_poly(true);
 			return pseries(rel, seq).add_series(ex_to<pseries>(log(newarg).series(rel, order, options)));
-		} else  // it was a monomial
-			return pseries(rel, seq);
+		}  // it was a monomial
+		return pseries(rel, seq);
 	}
 	if (((options & series_options::suppress_branchcut) == 0u) &&
 	     arg_pt.info(info_flags::negative)) {
@@ -422,8 +422,7 @@ static ex logb_evalf(const ex & x, const ex & base, PyObject* parent)
         if ((base - exp(_ex1).hold()).is_zero()) {
                 if (is_exactly_a<numeric>(x))
                         return log(ex_to<numeric>(x), parent);
-                else
-                        return log(x);
+                return log(x);
         }
 	if (is_exactly_a<numeric>(x) and is_exactly_a<numeric>(base))
 		return log(ex_to<numeric>(x), ex_to<numeric>(base));
@@ -733,9 +732,8 @@ static ex Li_deriv(const ex& m_, const ex& x_, unsigned deriv_param)
 	const ex& x = x_;
 	if (m > 0) {
 		return Li(m-1, x) / x;
-	} else {
-		return 1/(1-x);
-	}
+	} 
+	return 1/(1-x);
 }
 
 

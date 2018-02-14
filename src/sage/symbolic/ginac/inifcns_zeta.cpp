@@ -40,10 +40,10 @@ static ex stieltjes1_eval(const ex& arg)
 
         if (ex_to<numeric>(arg).is_zero())
                 return Euler;
-        else if (not ex_to<numeric>(arg).is_negative())
-                return stieltjes(arg).hold();
-        else
+
+        if (ex_to<numeric>(arg).is_negative())
                 throw std::runtime_error("Stieltjes constant of negative index");
+        return stieltjes(arg).hold();
 }
 
 static void stieltjes1_print_latex(const ex& arg, const print_context& c)
@@ -112,7 +112,8 @@ static ex zeta1_evalf(const ex& x, PyObject* parent)
 	// single zeta value
 	if (x == 1) {
 		return UnsignedInfinity;
-	} else	if (is_exactly_a<numeric>(x)) {
+	}
+        if (is_exactly_a<numeric>(x)) {
 		try {
 			return zeta(ex_to<numeric>(x.evalf(0, parent)));
 		} catch (const dunno &e) { }
@@ -145,15 +146,13 @@ static ex zeta1_eval(const ex& m)
 			if (y.info(info_flags::posint)) {
 				if (y.info(info_flags::odd)) {
 					return zeta(m).hold();
-				} else {
-					return abs(bernoulli(y)) * pow(Pi, y) * pow(*_num2_p, y-(*_num1_p)) / factorial(y);
-				}
+				} 
+				return abs(bernoulli(y)) * pow(Pi, y) * pow(*_num2_p, y-(*_num1_p)) / factorial(y);
 			} else {
 				if (y.info(info_flags::odd)) {
 					return -bernoulli((*_num1_p)-y) / ((*_num1_p)-y);
-				} else {
-					return _ex0;
-				}
+				} 
+				return _ex0;
 			}
 		}
 		// zeta(float)
@@ -161,7 +160,7 @@ static ex zeta1_eval(const ex& m)
 			if (y.is_equal(*_num1_p)) {
 				return UnsignedInfinity;
 			}
-			return zeta(y); // y is numeric
+		        return zeta(y); // y is numeric
 		}
 	}
 	return zeta(m).hold();
@@ -189,9 +188,9 @@ static ex zeta1_deriv(const ex& m, unsigned deriv_param)
 
 	if (is_exactly_a<lst>(m)) {
 		return _ex0;
-	} else {
+	} 
 		return zetaderiv(_ex1, m);
-	}
+	
 }
 
 
@@ -289,7 +288,8 @@ static ex zeta2_eval(const ex& m, const ex& s_)
 			return zeta(m, s_).hold();
 		}
 		return zeta(m);
-	} else if (s_.info(info_flags::positive)) {
+	}
+        if (s_.info(info_flags::positive)) {
 		return zeta(m);
 	}
 
@@ -303,12 +303,12 @@ static ex zeta2_deriv(const ex& m, const ex& s, unsigned deriv_param)
 
 	if (is_exactly_a<lst>(m)) {
 		return _ex0;
-	} else {
-		if ((is_exactly_a<lst>(s) && s.op(0).info(info_flags::positive)) || s.info(info_flags::positive)) {
-			return zetaderiv(_ex1, m);
-		}
-		return _ex0;
-	}
+	} 
+        
+        if ((is_exactly_a<lst>(s) && s.op(0).info(info_flags::positive)) || s.info(info_flags::positive)) {
+                return zetaderiv(_ex1, m);
+        }
+        return _ex0;
 }
 
 

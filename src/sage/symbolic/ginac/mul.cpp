@@ -444,7 +444,7 @@ bool mul::info(unsigned inf) const
 				const ex& factor = recombine_pair_to_ex(elem);
 				if (factor.info(info_flags::positive))
 					continue;
-				else if (factor.info(info_flags::negative))
+				if (factor.info(info_flags::negative))
 					pos = !pos;
 				else
 					return false;
@@ -461,7 +461,7 @@ bool mul::info(unsigned inf) const
 				const ex& factor = recombine_pair_to_ex(elem);
 				if (factor.info(info_flags::nonnegative) || factor.info(info_flags::positive))
 					continue;
-				else if (factor.info(info_flags::negative))
+				if (factor.info(info_flags::negative))
 					pos = !pos;
 				else
 					return false;
@@ -477,7 +477,7 @@ bool mul::info(unsigned inf) const
 				const ex& factor = recombine_pair_to_ex(elem);
 				if (factor.info(info_flags::posint))
 					continue;
-				else if (factor.info(info_flags::negint))
+				if (factor.info(info_flags::negint))
 					pos = !pos;
 				else
 					return false;
@@ -496,7 +496,7 @@ bool mul::info(unsigned inf) const
 				const ex& factor = recombine_pair_to_ex(elem);
 				if (factor.info(info_flags::nonnegint) || factor.info(info_flags::posint))
 					continue;
-				else if (factor.info(info_flags::negint))
+				if (factor.info(info_flags::negint))
 					pos = !pos;
 				else
 					return false;
@@ -654,17 +654,20 @@ ex mul::eval(int level) const
 	if (overall_coeff.is_zero()) {
 		// *(...,x;0) -> 0
 		return overall_coeff;
-	} else if (seq_size==0) {
+	}
+        if (seq_size == 0) {
 		// *(;c) -> c
 		return overall_coeff;
-	} else if (seq_size==1
-                   and overall_coeff.is_one()) {
+	}
+        if (seq_size == 1
+            and overall_coeff.is_one()) {
 		// *(x;1) -> x
 		// except in positive characteristic: 1*(x+2) = x in F_2
 		return recombine_pair_to_ex(*(seq.begin()));
-	} else if ((seq_size==1) &&
-	           is_exactly_a<add>((*seq.begin()).rest) &&
-	           ex_to<numeric>((*seq.begin()).coeff).is_one()) {
+	}
+        if (seq_size == 1
+	     and is_exactly_a<add>((*seq.begin()).rest)
+	     and ex_to<numeric>((*seq.begin()).coeff).is_one()) {
 		// *(+(x,y,...);c) -> +(*(x,c),*(y,c),...) (c numeric(), no powers of +())
 		const add & addref = ex_to<add>((*seq.begin()).rest);
 		epvector distrseq;
@@ -677,12 +680,12 @@ ex mul::eval(int level) const
                 const add & result = ex_to<add>(x);
                 if (result.seq.empty())
                         return result.overall_coeff;
-                else
-                        return x;
-	} else if ((seq_size >= 2) && ((flags & status_flags::expanded) == 0u)) {
+                return x;
+	}
+        if (seq_size >= 2
+            and ((flags & status_flags::expanded) == 0u)) {
 		// Strip the content and the unit part from each term. Thus
-		// things like (-x+a)*(3*x-3*a) automagically turn into - 3*(x-a)2
-
+		// things like (-x+a)*(3*x-3*a) automagically turn into - 3*(x-a)^2
 		auto last = seq.end();
 		auto i = seq.begin();
 		auto j = seq.begin();
@@ -931,8 +934,7 @@ bool algebraic_match_mul_with_mul(const mul &e, const ex &pat, lst &repls,
 				nummatches = newnummatches;
 				return true;
 			}
-			else
-				matched[i] = false;
+			matched[i] = false;
 		}
 	}
 
@@ -1198,8 +1200,7 @@ ex mul::recombine_pair_to_ex(const expair & p) const
         }
 	if (p.coeff.is_one()) 
 		return p.rest;
-	else
-		return (new power(p.rest,p.coeff))->setflag(status_flags::dynallocated);
+	return (new power(p.rest,p.coeff))->setflag(status_flags::dynallocated);
 }
 
 bool mul::expair_needs_further_processing(epp it)
@@ -1405,14 +1406,14 @@ ex mul::expand(unsigned options) const
 	}
 
 	non_adds.push_back(split_ex_to_pair(last_expanded));
-	ex result = (new mul(non_adds, overall_coeff))->setflag(status_flags::dynallocated);
+	ex result = (new mul(non_adds, overall_coeff))->
+                setflag(status_flags::dynallocated);
 	if (can_be_further_expanded(result)) {
 		return result.expand();
-	} else {
-		if (options == 0)
-			ex_to<basic>(result).setflag(status_flags::expanded);
-		return result;
-	}
+	} 
+        if (options == 0)
+                ex_to<basic>(result).setflag(status_flags::expanded);
+        return result;
 }
 
 const epvector & mul::get_sorted_seq() const

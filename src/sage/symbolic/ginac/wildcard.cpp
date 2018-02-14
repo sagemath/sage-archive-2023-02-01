@@ -81,8 +81,7 @@ int wildcard::compare_same_type(const basic & other) const
 
 	if (label == o.label)
 		return 0;
-	else
-		return label < o.label ? -1 : 1;
+	return label < o.label ? -1 : 1;
 }
 
 void wildcard::do_print(const print_context & c, unsigned level) const

@@ -306,8 +306,8 @@ ex power::map(map_function & f) const
 	if (!are_ex_trivially_equal(basis, mapped_basis)
 	 || !are_ex_trivially_equal(exponent, mapped_exponent))
 		return (new power(mapped_basis, mapped_exponent))->setflag(status_flags::dynallocated);
-	else
-		return *this;
+	
+	return *this;
 }
 
 bool power::is_polynomial(const ex & var) const
@@ -316,9 +316,9 @@ bool power::is_polynomial(const ex & var) const
 		if (basis.has(var))
 			// basis is non-constant polynomial in var
 			return exponent.info(info_flags::nonnegint);
-		else
-			// basis is constant in var
-			return !exponent.has(var);
+		
+                // basis is constant in var
+                return !exponent.has(var);
 	}
 	// basis is a non-polynomial function of var
 	return false;
@@ -328,11 +328,11 @@ numeric power::degree(const ex & s) const
 {
 	if (is_equal(ex_to<basic>(s)))
 		return 1;
-	else if (is_exactly_a<numeric>(exponent) && ex_to<numeric>(exponent).is_real()) {
+	if (is_exactly_a<numeric>(exponent)
+            and ex_to<numeric>(exponent).is_real()) {
 		if (basis.is_equal(s))
 			return ex_to<numeric>(exponent);
-		else
-			return basis.degree(s) * ex_to<numeric>(exponent);
+                return basis.degree(s) * ex_to<numeric>(exponent);
 	} else if (basis.has(s))
 		throw(std::runtime_error("power::degree(): undefined degree because of non-integer exponent"));
 	else
@@ -343,11 +343,11 @@ numeric power::ldegree(const ex & s) const
 {
 	if (is_equal(ex_to<basic>(s)))
 		return 1;
-	else if (is_exactly_a<numeric>(exponent) && ex_to<numeric>(exponent).is_real()) {
+	if (is_exactly_a<numeric>(exponent)
+            and ex_to<numeric>(exponent).is_real()) {
 		if (basis.is_equal(s))
 			return ex_to<numeric>(exponent);
-		else
-			return basis.ldegree(s) * ex_to<numeric>(exponent);
+		return basis.ldegree(s) * ex_to<numeric>(exponent);
 	} else if (basis.has(s))
 		throw(std::runtime_error("power::ldegree(): undefined degree because of non-integer exponent"));
 	else
@@ -358,21 +358,17 @@ ex power::coeff(const ex & s, const ex & n) const
 {
 	if (is_equal(ex_to<basic>(s)))
 		return n.is_one() ? _ex1 : _ex0;
-	else if (!basis.is_equal(s)) {
+	if (!basis.is_equal(s)) {
 		// basis not equal to s
 		if (n.is_zero())
 			return *this;
-		else
-			return _ex0;
 	} else {
 		// basis equal to s
-                if (n.is_zero())
-                        return _ex0;
-                else if (exponent.is_equal(n))
+                if (not n.is_zero()
+                    and exponent.is_equal(n))
                         return _ex1;
-                else
-                        return _ex0;
 	}
+        return _ex0;
 }
 
 /** Perform automatic term rewriting rules in this class.  In the following
@@ -394,7 +390,7 @@ ex power::eval(int level) const
 {
 	if (level == 1 and is_evaluated())
 		return *this;
-	else if (level == -max_recursion_level)
+	if (level == -max_recursion_level)
 		throw(std::runtime_error("max recursion level reached"));
 	
 	const ex & ebasis    = level==1 ? basis    : basis.eval(level-1);
@@ -432,7 +428,7 @@ ex power::eval(int level) const
 		if (eexponent.info(info_flags::positive)) {
 			if (basis_inf.is_unsigned_infinity())
 				return UnsignedInfinity;
-			else
+			
 				return mul(pow(basis_inf.get_direction(), eexponent), Infinity);
                 }
 		throw(std::domain_error("power::eval(): pow(Infinity, c)"
@@ -451,7 +447,7 @@ ex power::eval(int level) const
 		if (abs_base > _ex1) {
 			if (ebasis.info(info_flags::positive))
 				return Infinity;
-			else
+			
 				return UnsignedInfinity;
                         }
 		if (abs_base < _ex1) return _ex0;
@@ -525,7 +521,7 @@ ex power::eval(int level) const
                                 if (not is_exactly_a<numeric>(e))
 	                                return (new power(ebasis, eexponent))->setflag(status_flags::dynallocated |
 	                                               status_flags::evaluated);
-                                else
+                                
         				return e;
 			}
 
@@ -563,7 +559,7 @@ ex power::eval(int level) const
 						return result;
 					}
 					return this->hold();
-				} else if (r.is_zero()) {
+				} if (r.is_zero()) {
 					// if r == 0, the following else clause causes the power
 					// constructor to be called again with the same parameter
 					// leading to an infinite loop
@@ -663,7 +659,7 @@ ex power::eval(int level) const
 						mulp->seq_sorted.resize(0);
 						return (new mul(power(*mulp,exponent),
 						                power(num_coeff, num_exponent)))->setflag(status_flags::dynallocated);
-					} else {
+					} 
 						GINAC_ASSERT(num_coeff.is_negative());
 						if (not num_coeff.is_minus_one()) {
 							auto mulp = new mul(mulref);
@@ -675,7 +671,7 @@ ex power::eval(int level) const
 							return (new mul(power(*mulp, exponent),
 							                power(abs(num_coeff), num_exponent)))->setflag(status_flags::dynallocated);
 						}
-					}
+					
 				}
 			}
                         else {
@@ -714,7 +710,7 @@ ex power::eval(int level) const
 	if (ebasis.info(info_flags::positive)) {
 		if (eexponent.is_equal(1/log(ebasis)))
 			return exp(log(basis)*exponent);
-		else if (is_exactly_a<mul>(eexponent) and
+		if (is_exactly_a<mul>(eexponent) and
 			 std::any_of(eexponent.begin(), eexponent.end(),
                                 [ebasis](ex e)
                                 { return e.is_equal(1/log(ebasis)); }))
@@ -893,7 +889,7 @@ ex power::derivative(const symbol & s) const
 		newseq.emplace_back(basis, exponent - _ex1);
 		newseq.emplace_back(basis.diff(s), _ex1);
 		return mul(newseq, ex_to<numeric>(exponent));
-	} else {
+	} 
 	    // If the exponent is not a function of s, we have the following nice
 	    // looking formula.  We use this to avoid getting ugly and hard to
 	    // read output.
@@ -907,7 +903,7 @@ ex power::derivative(const symbol & s) const
 	    return mul(*this,
 		       add(mul(ediff, log(basis)),
 			   mul(mul(exponent, basis.diff(s)), power(basis, _ex_1))));
-	}
+	
 }
 
 int power::compare_same_type(const basic & other) const
@@ -918,7 +914,7 @@ int power::compare_same_type(const basic & other) const
 	int cmpval = basis.compare(o.basis);
 	if (cmpval != 0)
 		return cmpval;
-	else
+	
 		return exponent.compare(o.exponent);
 }
 
@@ -980,7 +976,7 @@ ex power::expand(unsigned options) const
 			ex newbasis = coef*mul(powseq);
 			ex_to<basic>(newbasis).setflag(status_flags::purely_indefinite);
 			return ((new mul(prodseq))->setflag(status_flags::dynallocated)*(new power(newbasis, exponent))->setflag(status_flags::dynallocated).expand(options)).expand(options);
-		} else
+		} 
 			ex_to<basic>(basis).setflag(status_flags::purely_indefinite);
 	}
 
@@ -1015,9 +1011,9 @@ ex power::expand(unsigned options) const
 		!ex_to<numeric>(expanded_exponent).is_integer()) {
 		if (are_ex_trivially_equal(basis,expanded_basis) && are_ex_trivially_equal(exponent,expanded_exponent)) {
 			return this->hold();
-		} else {
+		} 
 			return (new power(expanded_basis,expanded_exponent))->setflag(status_flags::dynallocated | (options == 0 ? status_flags::expanded : 0));
-		}
+		
 	}
 	
 	// integer numeric exponent
@@ -1039,7 +1035,7 @@ ex power::expand(unsigned options) const
                         (options & expand_options::expand_only_numerators) != 0)
 		        return expand_add(ex_to<add>(expanded_basis),
                                         int_exponent, options);
-                else
+                
                         return dynallocate<power>(expand_add(ex_to<add>(expanded_basis),
                                         -int_exponent, options), _ex_1).
                         setflag(status_flags::expanded|status_flags::evaluated);
@@ -1052,7 +1048,7 @@ ex power::expand(unsigned options) const
 	// cannot expand further
 	if (are_ex_trivially_equal(basis,expanded_basis) && are_ex_trivially_equal(exponent,expanded_exponent))
 		return this->hold();
-	else
+	
 		return (new power(expanded_basis,expanded_exponent))->setflag(status_flags::dynallocated | (options == 0 ? status_flags::expanded : 0));
 }
 
@@ -1393,9 +1389,9 @@ ex power::expand_add(const add & a, long n, unsigned options) const
 	GINAC_ASSERT(result.size() == result_size);
 	if (a.overall_coeff.is_zero()) {
 		return dynallocate<add>(std::move(result)).setflag(status_flags::expanded).eval();
-	} else {
+	} 
 		return dynallocate<add>(std::move(result), a.overall_coeff.power(n)).setflag(status_flags::expanded).eval();
-	}
+	
 }
 
 
@@ -1464,9 +1460,9 @@ ex power::expand_add_2(const add & a, unsigned options) const
 
 	if (a.overall_coeff.is_zero()) {
 		return dynallocate<add>(std::move(result)).setflag(status_flags::expanded);
-	} else {
+	} 
 		return dynallocate<add>(std::move(result), a.overall_coeff.pow_intexp(*_num2_p)).setflag(status_flags::expanded);
-	}
+	
 }
 
 /** Expand factors of m in m^n where m is a mul and n is an integer.

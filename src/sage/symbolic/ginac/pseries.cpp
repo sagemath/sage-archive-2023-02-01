@@ -287,7 +287,7 @@ numeric pseries::degree(const ex &s) const
 		// Return last exponent
 		if (!seq.empty())
 			return ex_to<numeric>((seq.end()-1)->coeff).to_int();
-		else
+		
 			return 0;
 	} else {
                 
@@ -314,7 +314,7 @@ numeric pseries::ldegree(const ex &s) const
 		// Return first exponent
 		if (!seq.empty())
 			return ex_to<numeric>((seq.begin())->coeff);
-		else
+		
 			return 0;
 	} else {
 		if (seq.empty())
@@ -365,7 +365,7 @@ ex pseries::coeff(const ex &s, const ex & n) const
 			}
 		}
 		return _ex0;
-	} else
+	} 
 		return convert_to_poly().coeff(s, n);
 }
 
@@ -664,7 +664,7 @@ ex pseries::add_series(const pseries &other) const
 				++b;
 			}
 			break;
-		} else
+		} 
 			pow_a = ex_to<numeric>((*a).coeff).to_int();
 		
 		// If b is empty, fill up with elements from a and stop
@@ -674,7 +674,7 @@ ex pseries::add_series(const pseries &other) const
 				++a;
 			}
 			break;
-		} else
+		} 
 			pow_b = ex_to<numeric>((*b).coeff).to_int();
 		
 		// a and b are non-empty, compare powers
@@ -695,13 +695,13 @@ ex pseries::add_series(const pseries &other) const
 			if (is_order_function((*a).rest) || is_order_function((*b).rest)) {
 				new_seq.emplace_back(Order(_ex1), (*a).coeff);
 				break;  // Order term ends the sequence
-			} else {
+			} 
 				ex sum = (*a).rest + (*b).rest;
 				if (!(sum.is_zero()))
 					new_seq.emplace_back(sum, numeric(pow_a));
 				++a;
 				++b;
-			}
+			
 		}
 	}
 	return pseries(relational(var,point), new_seq);
@@ -1004,7 +1004,7 @@ ex pseries::power_const(const numeric &p, int deg) const
 			if (is_order_function(c)) {
 				co.emplace_back(Order(_ex1));
 				break;
-			} else
+			} 
 				sum += (p * j - (i - j)) * co[i - j] * c;
 		}
 		co.push_back(sum / coeff(var, ldeg) / i);
@@ -1155,7 +1155,7 @@ ex pseries::series(const relational & r, int order, unsigned options) const
 	if (var.is_equal(s) && point.is_equal(p)) {
 		if (order > degree(s))
 			return *this;
-		else {
+		
 			epvector new_seq;
                         for (const auto & elem : seq) {
 				int o = ex_to<numeric>(elem.coeff).to_int();
@@ -1166,7 +1166,7 @@ ex pseries::series(const relational & r, int order, unsigned options) const
 				new_seq.push_back(elem);
 			}
 			return pseries(r, new_seq);
-		}
+		
 	} else
 		return convert_to_poly().series(r, order, options);
 }

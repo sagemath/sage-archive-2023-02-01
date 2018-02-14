@@ -70,11 +70,10 @@ static ex lgamma_eval(const ex & x)
                                 return lgamma(x).hold();
                         return lgamma(num);
                 }
-                else
-                        if (num.is_integer())
-                                return Infinity;
-                        //throw (pole_error("lgamma_eval(): logarithmic pole",0));
-		if (not num.is_exact())
+                if (num.is_integer())
+                        return Infinity;
+
+                if (not num.is_exact())
 			return lgamma(num);
                 }
 	
@@ -158,10 +157,9 @@ static ex gamma_eval(const ex & x)
 			// gamma(n) -> (n-1)! for positive n
 			if (two_x.is_positive()) {
 				return factorial(ex_to<numeric>(x).sub(*_num1_p));
-			} else {
-				//throw (pole_error("gamma_eval(): simple pole",1));
-				return UnsignedInfinity;
-			}
+			} 
+                        return UnsignedInfinity;
+			
 		}
 		// trap half integer arguments:
 		if (two_x.is_integer()) {
@@ -170,12 +168,11 @@ static ex gamma_eval(const ex & x)
 			if (two_x.is_positive()) {
 				long n = ex_to<numeric>(x).sub(*_num1_2_p).to_long();
 				return (doublefactorial(n+n-1).div(_num2_p->pow_intexp(n))) * sqrt(Pi);
-			} else {
-				// trap negative x==(-n+1/2)
-				// gamma(-n+1/2) -> Pi^(1/2)*(-2)^n/(1*3*..*(2*n-1))
-				long n = std::labs(ex_to<numeric>(x).sub(*_num1_2_p).to_long());
-				return _num_2_p->pow_intexp(n).div(doublefactorial(n+n-1))*sqrt(Pi);
-			}
+			} 
+                        // trap negative x==(-n+1/2)
+                        // gamma(-n+1/2) -> Pi^(1/2)*(-2)^n/(1*3*..*(2*n-1))
+                        long n = std::labs(ex_to<numeric>(x).sub(*_num1_2_p).to_long());
+                        return _num_2_p->pow_intexp(n).div(doublefactorial(n+n-1))*sqrt(Pi);
 		}
 		if (!ex_to<numeric>(x).is_exact())
 			return gamma(ex_to<numeric>(x), nullptr);
@@ -269,13 +266,12 @@ static ex beta_eval(const ex & x, const ex & y)
 			if (nx.is_negative()) {
 				if (nx<=-ny)
 					return pow(*_num_1_p, ny)*beta(1-x-y, y);
-				else
-					throw (pole_error("beta_eval(): simple pole",1));
+                                throw (pole_error("beta_eval(): simple pole",1));
 			}
 			if (ny.is_negative()) {
 				if (ny<=-nx)
 					return pow(*_num_1_p, nx)*beta(1-y-x, x);
-				else
+				
 					throw (pole_error("beta_eval(): simple pole",1));
 			}
 			return gamma(x)*gamma(y)/gamma(x+y);
@@ -384,10 +380,9 @@ static ex psi1_eval(const ex & x)
 					rat += i.inverse();
                                 }
 				return rat-Euler;
-			} else {
-				// for non-positive integers there is a pole:
-				throw (pole_error("psi_eval(): simple pole",1));
-			}
+			} 
+			// for non-positive integers there is a pole:
+			throw (pole_error("psi_eval(): simple pole",1));
 		}
 		if (((*_num2_p)*nx).is_integer()) {
 			// half integer case
@@ -398,17 +393,17 @@ static ex psi1_eval(const ex & x)
 					rat += (*_num2_p)*i.inverse();
                                 }
 				return rat-Euler-_ex2*log(_ex2);
-			} else {
-				// use the recurrence relation
-				//   psi(-m-1/2) == psi(-m-1/2+1) - 1 / (-m-1/2)
-				// to relate psi(-m-1/2) to psi(1/2):
-				//   psi(-m-1/2) == psi(1/2) + r
-				// where r == ((-1/2)^(-1) + ... + (-m-1/2)^(-1))
-				numeric recur = 0;
-				for (numeric p = nx; p<0; ++p)
-					recur -= p.inverse();
-				return recur+psi(_ex1_2);
-			}
+                        }
+
+                        // use the recurrence relation
+                        //   psi(-m-1/2) == psi(-m-1/2+1) - 1 / (-m-1/2)
+                        // to relate psi(-m-1/2) to psi(1/2):
+                        //   psi(-m-1/2) == psi(1/2) + r
+                        // where r == ((-1/2)^(-1) + ... + (-m-1/2)^(-1))
+                        numeric recur = 0;
+                        for (numeric p = nx; p<0; ++p)
+                                recur -= p.inverse();
+                        return recur+psi(_ex1_2);
 		}
 		if (not nx.is_exact())
 			return psi(nx);
@@ -506,10 +501,9 @@ static ex psi2_eval(const ex & n, const ex & x)
 					recur += p.pow_intexp(-nn+(*_num_1_p));
 				recur *= factorial(nn)*(_num_1_p->pow_intexp(nn));
 				return recur+psi(n,_ex1);
-			} else {
-				// for non-positive integers there is a pole:
-				throw (pole_error("psi2_eval(): pole",1));
-			}
+			} 
+			// for non-positive integers there is a pole:
+			throw (pole_error("psi2_eval(): pole",1));
 		}
 		if (((*_num2_p)*nx).is_integer()) {
 			// half integer case
@@ -522,18 +516,17 @@ static ex psi2_eval(const ex & n, const ex & x)
 				//   psi(n,2*m) == (psi(n,m) + psi(n,m+1/2)) / 2^(n+1)
 				// to revert to positive integer case
 				return psi(n,(*_num2_p)*m)*_num2_p->pow_intexp(nn+(*_num1_p))-psi(n,m);
-			} else {
-				// use the recurrence relation
-				//   psi(n,-m-1/2) == psi(n,-m-1/2+1) - (-)^n * n! / (-m-1/2)^(n+1)
-				// to relate psi(n,-m-1/2) to psi(n,1/2):
-				//   psi(n,-m-1/2) == psi(n,1/2) + r
-				// where r == (-)^(n+1) * n! * ((-1/2)^(-n-1) + ... + (-m-1/2)^(-n-1))
-				numeric recur = 0;
-				for (numeric p = nx; p<0; ++p)
-					recur += p.pow_intexp(-nn+(*_num_1_p));
-				recur *= factorial(nn)*_num_1_p->pow_intexp(nn+(*_num_1_p));
-				return recur+psi(n,_ex1_2);
-			}
+			} 
+                        // use the recurrence relation
+                        //   psi(n,-m-1/2) == psi(n,-m-1/2+1) - (-)^n * n! / (-m-1/2)^(n+1)
+                        // to relate psi(n,-m-1/2) to psi(n,1/2):
+                        //   psi(n,-m-1/2) == psi(n,1/2) + r
+                        // where r == (-)^(n+1) * n! * ((-1/2)^(-n-1) + ... + (-m-1/2)^(-n-1))
+                        numeric recur = 0;
+                        for (numeric p = nx; p<0; ++p)
+                                recur += p.pow_intexp(-nn+(*_num_1_p));
+                        recur *= factorial(nn)*_num_1_p->pow_intexp(nn+(*_num_1_p));
+                        return recur+psi(n,_ex1_2);
 		}
 		//  psi2_evalf should be called here once it becomes available
 	}

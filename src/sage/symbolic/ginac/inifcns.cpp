@@ -75,11 +75,11 @@ static ex conjugate_expl_derivative(const ex & arg, const symbol & s)
 {
 	if (s.info(info_flags::real))
 		return conjugate(arg.diff(s));
-	else {
-		exvector vec_arg;
-		vec_arg.push_back(arg);
-		return fderivative(ex_to<function>(conjugate(arg)).get_serial(),0,vec_arg).hold()*arg.diff(s);
-	}
+
+        exvector vec_arg;
+        vec_arg.push_back(arg);
+        return fderivative(ex_to<function>(conjugate(arg)).get_serial(),
+                        0, vec_arg).hold() * arg.diff(s);
 }
 
 static ex conjugate_real_part(const ex & arg)
@@ -122,8 +122,8 @@ static ex real_part_eval(const ex & arg)
         if (arg.find(pat, l))
                 // real parts of powers can be expensive
                 return arg.expand().real_part();
-        else
-                return arg.real_part();
+
+        return arg.real_part();
 }
 
 static void real_part_print_latex(const ex & arg, const print_context & c)
@@ -151,11 +151,11 @@ static ex real_part_expl_derivative(const ex & arg, const symbol & s)
 {
 	if (s.info(info_flags::real))
 		return real_part_function(arg.diff(s));
-	else {
-		exvector vec_arg;
-		vec_arg.push_back(arg);
-		return fderivative(ex_to<function>(real_part(arg)).get_serial(),0,vec_arg).hold()*arg.diff(s);
-	}
+	
+        exvector vec_arg;
+        vec_arg.push_back(arg);
+        return fderivative(ex_to<function>(real_part(arg)).get_serial(),
+                        0, vec_arg).hold() * arg.diff(s);
 }
 
 REGISTER_FUNCTION(real_part_function, eval_func(real_part_eval).
@@ -188,8 +188,8 @@ static ex imag_part_eval(const ex & arg)
         if (arg.find(pat, l))
                 // imag parts of powers can be expensive
                 return arg.expand().imag_part();
-        else
-                return arg.imag_part();
+
+        return arg.imag_part();
 }
 
 static void imag_part_print_latex(const ex & arg, const print_context & c)
@@ -217,11 +217,11 @@ static ex imag_part_expl_derivative(const ex & arg, const symbol & s)
 {
 	if (s.info(info_flags::real))
 		return imag_part_function(arg.diff(s));
-	else {
-		exvector vec_arg;
-		vec_arg.push_back(arg);
-		return fderivative(ex_to<function>(imag_part(arg)).get_serial(),0,vec_arg).hold()*arg.diff(s);
-	}
+
+        exvector vec_arg;
+        vec_arg.push_back(arg);
+        return fderivative(ex_to<function>(imag_part(arg)).get_serial(),
+                        0, vec_arg).hold() * arg.diff(s);
 }
 
 REGISTER_FUNCTION(imag_part_function, eval_func(imag_part_eval).
@@ -339,8 +339,8 @@ static ex abs_power(const ex & arg, const ex & exp)
                 or exp.info(info_flags::even))
                 and (arg.info(info_flags::real) or arg.is_equal(arg.conjugate())))
 	        return power(arg, exp);
-	else
-	        return power(abs(arg), exp).hold();
+
+        return power(abs(arg), exp).hold();
 }
 
 static ex abs_deriv(const ex & x, unsigned deriv_param)
@@ -388,24 +388,23 @@ static ex unit_step_eval(const ex & arg)
                 return _ex0;
 	if (is_exactly_a<numeric>(arg))
 		return unit_step_evalf(arg, nullptr);
-	
-	else if (is_exactly_a<mul>(arg)) {
+	if (is_exactly_a<mul>(arg)) {
 		const numeric& oc = ex_to<mul>(arg).get_overall_coeff();
 		if (oc.is_real()) {
 			if (oc > 0)
 				// step(42*x) -> step(x)
 				return unit_step(arg/oc).hold();
-			else
-				// step(-42*x) -> step(-x)
-				return unit_step(-arg/oc).hold();
+
+                        // step(-42*x) -> step(-x)
+                        return unit_step(-arg/oc).hold();
 		}
 		if (oc.real().is_zero()) {
 			if (oc.imag() > 0)
 				// step(42*I*x) -> step(I*x)
 				return unit_step(I*arg/oc).hold();
-			else
-				// step(-42*I*x) -> step(-I*x)
-				return unit_step(-I*arg/oc).hold();
+
+                        // step(-42*I*x) -> step(-I*x)
+                        return unit_step(-I*arg/oc).hold();
 		}
 	}
 	
@@ -473,23 +472,23 @@ static ex heaviside_eval(const ex & arg)
 	if (is_exactly_a<numeric>(arg))
 		return heaviside_evalf(arg, nullptr);
 	
-	else if (is_exactly_a<mul>(arg)) {
+	if (is_exactly_a<mul>(arg)) {
 		const numeric& oc = ex_to<mul>(arg).get_overall_coeff();
 		if (oc.is_real()) {
 			if (oc > 0)
 				// step(42*x) -> step(x)
 				return heaviside(arg/oc).hold();
-			else
-				// step(-42*x) -> step(-x)
-				return heaviside(-arg/oc).hold();
+
+                        // step(-42*x) -> step(-x)
+                        return heaviside(-arg/oc).hold();
 		}
 		if (oc.real().is_zero()) {
 			if (oc.imag() > 0)
 				// step(42*I*x) -> step(I*x)
 				return heaviside(I*arg/oc).hold();
-			else
-				// step(-42*I*x) -> step(-I*x)
-				return heaviside(-I*arg/oc).hold();
+
+                        // step(-42*I*x) -> step(-I*x)
+                        return heaviside(-I*arg/oc).hold();
 		}
 	}
 	
@@ -551,23 +550,23 @@ static ex csgn_eval(const ex & arg)
 	if (is_exactly_a<numeric>(arg))
 		return csgn(ex_to<numeric>(arg));
 	
-	else if (is_exactly_a<mul>(arg)) {
+	if (is_exactly_a<mul>(arg)) {
 		const numeric& oc = ex_to<mul>(arg).get_overall_coeff();
 		if (oc.is_real()) {
 			if (oc > 0)
 				// csgn(42*x) -> csgn(x)
 				return csgn(arg/oc).hold();
-			else
-				// csgn(-42*x) -> -csgn(x)
-				return -csgn(arg/oc).hold();
+
+                        // csgn(-42*x) -> -csgn(x)
+                        return -csgn(arg/oc).hold();
 		}
 		if (oc.real().is_zero()) {
 			if (oc.imag() > 0)
 				// csgn(42*I*x) -> csgn(I*x)
 				return csgn(I*arg/oc).hold();
-			else
-				// csgn(-42*I*x) -> -csgn(I*x)
-				return -csgn(I*arg/oc).hold();
+
+                        // csgn(-42*I*x) -> -csgn(I*x)
+                        return -csgn(I*arg/oc).hold();
 		}
 	}
 	
@@ -610,10 +609,10 @@ static ex csgn_power(const ex & arg, const ex & exp)
 	if (is_a<numeric>(exp) && exp.info(info_flags::positive) && ex_to<numeric>(exp).is_integer()) {
 		if (ex_to<numeric>(exp).is_odd())
 			return csgn(arg).hold();
-		else
-			return power(csgn(arg), _ex2).hold();
-	} else
-		return power(csgn(arg), exp).hold();
+
+                return power(csgn(arg), _ex2).hold();
+        }
+        return power(csgn(arg), exp).hold();
 }
 
 
@@ -732,9 +731,9 @@ static ex Order_eval(const ex & x)
 		// O(c) -> O(1) or 0
 		if (!x.is_zero())
 			return Order(_ex1).hold();
-		else
-			return _ex0;
-	} else if (is_exactly_a<mul>(x)) {
+                return _ex0;
+	}
+        if (is_exactly_a<mul>(x)) {
 		const mul &m = ex_to<mul>(x);
 		// O(c*expr) -> O(expr)
 		return Order(x / m.get_overall_coeff()).hold();
@@ -820,7 +819,7 @@ static ex cases_eval(const ex & arg)
                         auto res = ex_to<relational>(cond).decide();
                         if (res == relational::result::True)
                                 return seq[1];
-                        else if (res == relational::result::False)
+                        if (res == relational::result::False)
                                 continue;
                         // undecidable relation
                         return cases(arg).hold();

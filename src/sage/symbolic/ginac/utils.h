@@ -54,7 +54,7 @@ inline int compare_pointers(const T * a, const T * b)
 	// but std::less is.
 	if (std::less<const T *>()(a, b))
 		return -1;
-	else if (std::less<const T *>()(b, a))
+	if (std::less<const T *>()(b, a))
 		return 1;
 	return 0;
 }

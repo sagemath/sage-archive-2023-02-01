@@ -248,7 +248,7 @@ bool add::info(unsigned inf) const
                                 if (not is_pos
                                     and not t.info(info_flags::nonnegative))
 					return false;
-                                else if (not positive_seen and is_pos)
+                                if (not positive_seen and is_pos)
                                         positive_seen = true;
 			}
                         return positive_seen;
@@ -263,7 +263,7 @@ bool add::info(unsigned inf) const
                                 if (not is_neg
                                     and not t.is_zero())
 					return false;
-                                else if (not negative_seen and is_neg)
+                                if (not negative_seen and is_neg)
                                         negative_seen = true;
 			}
                         return negative_seen;
@@ -365,7 +365,8 @@ ex add::eval(int level) const
 	if (seq_size == 0) {
 		// +(;c) -> c
 		return overall_coeff;
-	} else if (seq_size == 1 && overall_coeff.is_zero()) {
+	}
+        if (seq_size == 1 && overall_coeff.is_zero()) {
 		// +(x;0) -> x
 		return recombine_pair_to_ex(*(seq.begin()));
 	} else if (!overall_coeff.is_zero() && seq[0].rest.return_type() != return_types::commutative) {
@@ -502,16 +503,16 @@ unsigned add::return_type() const
 {
 	if (seq.empty())
 		return return_types::commutative;
-	else
-		return seq.begin()->rest.return_type();
+	
+        return seq.begin()->rest.return_type();
 }
 
 tinfo_t add::return_type_tinfo() const
 {
 	if (seq.empty())
 		return this;
-	else
-		return seq.begin()->rest.return_type_tinfo();
+	
+        return seq.begin()->rest.return_type_tinfo();
 }
 
 // Note: do_index_renaming is ignored because it makes no sense for an add.
@@ -558,9 +559,7 @@ expair add::combine_ex_with_coeff_to_pair(const ex & e,
 		mulcopyp->setflag(status_flags::dynallocated);
 		if (c.is_one())
 			return expair(*mulcopyp, numfactor);
-		else
-			return expair(*mulcopyp,
-                                        numfactor*c);
+                return expair(*mulcopyp, numfactor*c);
 	} else if (is_exactly_a<numeric>(e)) {
 		if (c.is_one())
 			return expair(e, _ex1);
@@ -578,7 +577,7 @@ expair add::combine_pair_with_coeff_to_pair(const expair & p,
 
 	if (is_exactly_a<numeric>(p.rest)) {
 		GINAC_ASSERT(ex_to<numeric>(p.coeff).is_one()); // should be normalized
-		return expair(ex_to<numeric>(p.rest).mul_dyn(c),_ex1);
+                return expair(ex_to<numeric>(p.rest).mul_dyn(c),_ex1);
 	}
 
 	return expair(p.rest,ex_to<numeric>(p.coeff).mul_dyn(c));
@@ -588,8 +587,8 @@ ex add::recombine_pair_to_ex(const expair & p) const
 {
 	if (ex_to<numeric>(p.coeff).is_one())
 		return p.rest;
-	else
-		return (new mul(p.rest,p.coeff))->setflag(status_flags::dynallocated);
+	
+        return (new mul(p.rest,p.coeff))->setflag(status_flags::dynallocated);
 }
 
 ex add::expand(unsigned options) const
@@ -619,9 +618,9 @@ ex add::lead_coeff() const {
 	if (seq_sorted.empty() and not seq.empty()) {
 		return min_element(seq.begin(), seq.end(),
 				print_order_pair())->coeff;
-	} else {
+	} 
 		return seq_sorted.begin()->coeff;
-	}
+	
 }
 
 ex add::combine_fractions() const

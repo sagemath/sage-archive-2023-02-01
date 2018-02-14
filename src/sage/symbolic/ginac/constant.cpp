@@ -93,24 +93,19 @@ ex constant::unarchive(const archive_node &n, lst &sym_lst)
 	if (n.find_string("name", s)) {
 		if (s == Pi.name)
 			return Pi;
-		else if (s == Catalan.name)
+		if (s == Catalan.name)
 			return Catalan;
-		else if (s == Euler.name)
+		if (s == Euler.name)
 			return Euler;
-		else if (s == NaN.name)
+		if (s == NaN.name)
 			return NaN;
-		else {
-			ans = py_funcs.py_get_constant(s.c_str());
-			if (PyErr_Occurred() != nullptr) {
-				throw std::runtime_error("error while unarchiving constant");
-			}
-		}
+                ans = py_funcs.py_get_constant(s.c_str());
 
-		
-            //throw (std::runtime_error("unknown constant '" + s + "' in archive"));
-			return ans;      
-	} else
-		throw (std::runtime_error("unnamed constant in archive"));
+                if (PyErr_Occurred() != nullptr)
+                        throw std::runtime_error("error while unarchiving constant");
+		return ans;      
+	} 
+        throw (std::runtime_error("unnamed constant in archive"));
 }
 
 void constant::archive(archive_node &n) const
@@ -176,12 +171,10 @@ bool constant::info(unsigned inf) const
 
 ex constant::evalf(int level, PyObject* parent) const
 {
-	if (ef!=nullptr) {
-        return ef(serial, parent);
-	} else {
-		return number.evalf(level, parent);
-	}
-	return *this;
+	if (ef!=nullptr)
+                return ef(serial, parent);
+
+        return number.evalf(level, parent);
 }
 
 bool constant::is_polynomial(const ex & var) const
@@ -227,7 +220,7 @@ int constant::compare_same_type(const basic & other) const
 
 	if (serial == o.serial)
 		return 0;
-	else
+	
 		return serial < o.serial ? -1 : 1;
 }
 

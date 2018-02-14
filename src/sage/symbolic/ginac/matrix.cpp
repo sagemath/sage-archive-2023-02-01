@@ -778,8 +778,7 @@ ex matrix::determinant(unsigned algo) const
 		// for consistency with non-trivial determinants...
 		if (normal_flag)
 			return m[0].normal();
-		else
-			return m[0].expand();
+                return m[0].expand();
 	}
 
 	// Compute the determinant
@@ -792,8 +791,7 @@ ex matrix::determinant(unsigned algo) const
 				det *= tmp.m[d*col+d];
 			if (normal_flag)
 				return (sign*det).normal();
-			else
-				return (sign*det).normal().expand();
+                        return (sign*det).normal().expand();
 		}
 		case determinant_algo::bareiss: {
 			matrix tmp(*this);
@@ -801,8 +799,7 @@ ex matrix::determinant(unsigned algo) const
 			sign = tmp.fraction_free_elimination(true);
 			if (normal_flag)
 				return (sign*tmp.m[row*col-1]).normal();
-			else
-				return (sign*tmp.m[row*col-1]).expand();
+			return (sign*tmp.m[row*col-1]).expand();
 		}
 		case determinant_algo::divfree: {
 			matrix tmp(*this);
@@ -853,8 +850,7 @@ ex matrix::determinant(unsigned algo) const
 			
 			if (normal_flag)
 				return (sign*matrix(row,col,result).determinant_minor()).normal();
-			else
-				return sign*matrix(row,col,result).determinant_minor();
+			return sign*matrix(row,col,result).determinant_minor();
 		}
 	}
 }
@@ -878,8 +874,7 @@ ex matrix::trace() const
 	if (tr.info(info_flags::rational_function) &&
 	   !tr.info(info_flags::crational_polynomial))
 		return tr.normal();
-	else
-		return tr.expand();
+	return tr.expand();
 }
 
 
@@ -923,7 +918,7 @@ ex matrix::charpoly(const ex & lambda) const
 		}
 		if ((row%2) != 0u)
 			return -poly;
-		else
+		
 			return poly;
 
 	} else {

@@ -107,8 +107,7 @@ static CanonicalForm num2canonical(const numeric& n, ex_int_map& map, exvector& 
                 }
                 if (n.is_positive())
                         return replace_with_symbol(n, map, revmap);
-                else
-                        return -replace_with_symbol(n.negative(), map, revmap);
+                return -replace_with_symbol(n.negative(), map, revmap);
         }
 }
 
@@ -201,11 +200,11 @@ const CanonicalForm ex::to_canonical(ex_int_map& amap,
                 p = p + num2canonical(a.overall_coeff, amap, revmap);
                 return p;
         }
-        else if (is_exactly_a<numeric>(*this))
+        if (is_exactly_a<numeric>(*this))
         {
                 return num2canonical(ex_to<numeric>(*this), amap, revmap);
         }
-        else if (is_exactly_a<mul>(*this))
+        if (is_exactly_a<mul>(*this))
         {
                 const mul& m = ex_to<mul>(*this);
                 CanonicalForm p = num2canonical(*_num1_p, amap, revmap);
@@ -216,7 +215,7 @@ const CanonicalForm ex::to_canonical(ex_int_map& amap,
                 p = p * oc;
                 return p;
         }
-        else if (is_exactly_a<power>(*this))
+        if (is_exactly_a<power>(*this))
         {
                 const power& pow = ex_to<power>(*this);
                 if (is_exactly_a<numeric>(pow.exponent)) {
@@ -335,9 +334,7 @@ static ex canonical_to_ex(const CanonicalForm& f, const exvector& revmap)
                         numeric d(bigintden);
                         return n/d;
                 }
-                else {
-                        throw std::runtime_error("can't happen in canonical_to_ex #2");
-                }
+                throw std::runtime_error("can't happen in canonical_to_ex #2");
         }
 
         ex e = _ex0;
@@ -397,7 +394,8 @@ factored_a:
 		if (cb != nullptr)
 			*cb = part_b;
 		return (new mul(g))->setflag(status_flags::dynallocated);
-	} else if (is_exactly_a<mul>(b)) {
+	}
+        if (is_exactly_a<mul>(b)) {
 		if (is_exactly_a<mul>(a) && a.nops() > b.nops())
 			goto factored_a;
 factored_b:
@@ -433,39 +431,39 @@ factored_b:
 					if (cb != nullptr)
 						*cb = power(p, exp_b - exp_a);
 					return power(p, exp_a);
-				} else {
-					if (ca != nullptr)
-						*ca = power(p, exp_a - exp_b);
-					if (cb != nullptr)
-						*cb = _ex1;
-					return power(p, exp_b);
-				}
-			} else {
-				ex p_co, pb_co;
-				ex p_gcd = gcdpoly(p, pb, &p_co, &pb_co, check_args);
-				if (p_gcd.is_one()) {
-					// a(x) = p(x)^n, b(x) = p_b(x)^m, gcd (p, p_b) = 1 ==>
-					// gcd(a,b) = 1
-					if (ca != nullptr)
-						*ca = a;
-					if (cb != nullptr)
-						*cb = b;
-					return _ex1;
-					// XXX: do I need to check for p_gcd = -1?
-				} else {
-					// there are common factors:
-					// a(x) = g(x)^n A(x)^n, b(x) = g(x)^m B(x)^m ==>
-					// gcd(a, b) = g(x)^n gcd(A(x)^n, g(x)^(n-m) B(x)^m
-					if (exp_a < exp_b) {
-						return power(p_gcd, exp_a)*
-							gcdpoly(power(p_co, exp_a), power(p_gcd, exp_b-exp_a)*power(pb_co, exp_b), ca, cb, false);
-					} else {
-						return power(p_gcd, exp_b)*
-							gcdpoly(power(p_gcd, exp_a - exp_b)*power(p_co, exp_a), power(pb_co, exp_b), ca, cb, false);
-					}
-				} // p_gcd.is_equal(_ex1)
-			} // p.is_equal(pb)
+				} 
+                                if (ca != nullptr)
+                                        *ca = power(p, exp_a - exp_b);
+                                if (cb != nullptr)
+                                        *cb = _ex1;
+                                return power(p, exp_b);
+			}
 
+                        ex p_co, pb_co;
+                        ex p_gcd = gcdpoly(p, pb, &p_co, &pb_co, check_args);
+                        if (p_gcd.is_one()) {
+                                // a(x) = p(x)^n, b(x) = p_b(x)^m, gcd (p, p_b) = 1 ==>
+                                // gcd(a,b) = 1
+                                if (ca != nullptr)
+                                        *ca = a;
+                                if (cb != nullptr)
+                                        *cb = b;
+                                return _ex1;
+                                // XXX: do I need to check for p_gcd = -1?
+                        } 
+                        // there are common factors:
+                        // a(x) = g(x)^n A(x)^n, b(x) = g(x)^m B(x)^m ==>
+                        // gcd(a, b) = g(x)^n gcd(A(x)^n, g(x)^(n-m) B(x)^m
+                        if (exp_a < exp_b) {
+                                return power(p_gcd, exp_a)*
+                                        gcdpoly(power(p_co, exp_a),
+                                                power(p_gcd, exp_b-exp_a)*power(pb_co, exp_b),
+                                                ca, cb, false);
+                        } 
+                        return power(p_gcd, exp_b)*
+                                gcdpoly(power(p_gcd, exp_a - exp_b)*power(p_co, exp_a),
+                                        power(pb_co, exp_b),
+                                        ca, cb, false);
 		} else {
 			if (p.is_equal(b)) {
 				// a = p^n, b = p, gcd = p
@@ -486,10 +484,11 @@ factored_b:
 				if (cb != nullptr)
 					*cb = b;
 				return _ex1;
-			} else {
-				// a(x) = g(x)^n A(x)^n, b(x) = g(x) B(x) ==> gcd(a, b) = g(x) gcd(g(x)^(n-1) A(x)^n, B(x))
-				return p_gcd*gcdpoly(power(p_gcd, exp_a-1)*power(p_co, exp_a), bpart_co, ca, cb, false);
 			}
+                        // a(x) = g(x)^n A(x)^n, b(x) = g(x) B(x) ==> gcd(a, b) = g(x) gcd(g(x)^(n-1) A(x)^n, B(x))
+                        return p_gcd * gcdpoly(power(p_gcd, exp_a-1)*power(p_co, exp_a),
+                                        bpart_co, ca, cb, false);
+			
 		} // is_exactly_a<power>(b)
 
 	} else if (is_exactly_a<power>(b)) {
@@ -513,12 +512,14 @@ factored_b:
 			if (cb != nullptr)
 				*cb = b;
 			return _ex1;
-		} else {
-			// there are common factors:
-			// a(x) = g(x) A(x), b(x) = g(x)^n B(x)^n ==> gcd = g(x) gcd(g(x)^(n-1) A(x)^n, B(x))
+		} 
+                // there are common factors:
+                // a(x) = g(x) A(x), b(x) = g(x)^n B(x)^n ==> gcd = g(x) gcd(g(x)^(n-1) A(x)^n, B(x))
 
-			return p_gcd*gcdpoly(apart_co, power(p_gcd, exp_b-1)*power(p_co, exp_b), ca, cb, false);
-		} // p_gcd.is_equal(_ex1)
+                return p_gcd * gcdpoly(apart_co,
+                                power(p_gcd, exp_b-1)*power(p_co, exp_b),
+                                ca, cb, false);
+		// p_gcd.is_equal(_ex1)
 	}
 
 

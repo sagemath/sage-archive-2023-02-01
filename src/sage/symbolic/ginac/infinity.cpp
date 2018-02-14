@@ -112,8 +112,8 @@ ex infinity::unarchive(const archive_node &n, lst &sym_lst)
 	ex value;
 	if (n.find_ex("direction", value, sym_lst))
 		return infinity::from_direction(value);
-	else
-		throw(std::runtime_error("infinity without direction in archive"));
+
+        throw(std::runtime_error("infinity without direction in archive"));
 }
 
 void infinity::archive(archive_node &n) const
@@ -202,9 +202,9 @@ ex infinity::evalf(int /*level*/, PyObject* /*parent*/) const
 {
 	if (is_unsigned_infinity())
 		return py_funcs.py_eval_unsigned_infinity();
-	else if (is_plus_infinity())
+	if (is_plus_infinity())
 		return py_funcs.py_eval_infinity();
-	else if (is_minus_infinity())
+	if (is_minus_infinity())
 		return py_funcs.py_eval_neg_infinity();
 	return *this;
 }
@@ -265,15 +265,17 @@ bool infinity::compare_other_type(const ex & other,
         const numeric& num = ex_to<numeric>(e);
         if (num.imag() > 0)
                 return false;
-        if (o == relational::not_equal)
-                return true;
-        else if (o == relational::equal)
-                return false;
-        else if (o == relational::less_or_equal or
-                o == relational::less)
-                return is_minus_infinity();
-        else
-                return is_plus_infinity();
+        switch (o) {
+                case relational::not_equal:
+                        return true;
+                case relational::equal:
+                        return false;
+                case relational::less_or_equal:
+                case relational::less:
+                        return is_minus_infinity();
+                default:
+                        return is_plus_infinity();
+        }
 }
 
 //////////
@@ -322,15 +324,17 @@ const infinity & infinity::operator *= (const ex & rhs)
 		set_direction(mul(direction, rhs_direction));
 		return *this;
 	}
-	else if (rhs.is_zero())
+	if (rhs.is_zero())
 		throw(std::runtime_error("indeterminate expression: "
 					 "0 * infinity encountered."));
 	else if (rhs.info(info_flags::positive)) {
 		return *this;
-	} else if (rhs.info(info_flags::negative)) {
+	}
+        if (rhs.info(info_flags::negative)) {
 		set_direction(mul(-1, direction));
 		return *this;
-	} else if (rhs.nsymbols()==0) {
+	}
+        if (rhs.nsymbols()==0) {
 		set_direction(mul(direction, rhs));
 		return *this;
 	}

@@ -1112,8 +1112,8 @@ ex function::subs(const exmap & m, unsigned options) const
 			throw(std::runtime_error("function::subs(): python function (pyExpression_to_ex) raised exception"));
 		}
 		return result;
-	} else
-		return exprseq::subs(m, options);
+	} 
+	return exprseq::subs(m, options);
 }
 
 /** Implementation of ex::conjugate for functions. */
@@ -1310,43 +1310,23 @@ ex function::derivative(const symbol & s) const
 		
 		return ((derivative_funcp_exvector_symbol)(opt.derivative_f))(seq, s);
 
-	} else {
-		// Chain rule
-		ex arg_diff;
-		size_t num = seq.size();
-		for (size_t i=0; i<num; i++) {
-			arg_diff = seq[i].diff(s);
-			// We apply the chain rule only when it makes sense.  This is not
-			// just for performance reasons but also to allow functions to
-			// throw when differentiated with respect to one of its arguments
-			// without running into trouble with our automatic full
-			// differentiation:
-			if (!arg_diff.is_zero())
-				result += pderivative(i)*arg_diff;
-		}
-	}
+	} 
+        // Chain rule
+        ex arg_diff;
+        size_t num = seq.size();
+        for (size_t i=0; i<num; i++) {
+                arg_diff = seq[i].diff(s);
+                // We apply the chain rule only when it makes sense.  This is not
+                // just for performance reasons but also to allow functions to
+                // throw when differentiated with respect to one of its arguments
+                // without running into trouble with our automatic full
+                // differentiation:
+                if (!arg_diff.is_zero())
+                        result += pderivative(i)*arg_diff;
+        }
+
 	return result;
 }
-
-/*
-int function::compare(const basic& other) const
-{
-	static const tinfo_t function_id = find_tinfo_key("function");
-	static const tinfo_t fderivative_id = find_tinfo_key("fderivative");
-
-	const tinfo_t typeid_this = tinfo();
-	const tinfo_t typeid_other = other.tinfo();
-	if (typeid_this==typeid_other) {
-		GINAC_ASSERT(typeid(*this)==typeid(other));
-		return compare_same_type(other);
-	} else if (typeid_this == function_id &&
-			typeid_other == fderivative_id) {
-		return -1;
-	} else {
-		return 1;
-	}
-}
-*/
 
 int function::compare_same_type(const basic & other) const
 {
@@ -1355,8 +1335,8 @@ int function::compare_same_type(const basic & other) const
 
 	if (serial != o.serial)
 		return serial < o.serial ? -1 : 1;
-	else
-		return exprseq::compare_same_type(o);
+
+        return exprseq::compare_same_type(o);
 }
 
 
@@ -1367,8 +1347,8 @@ bool function::is_equal_same_type(const basic & other) const
 
 	if (serial != o.serial)
 		return false;
-	else
-		return exprseq::is_equal_same_type(o);
+
+	return exprseq::is_equal_same_type(o);
 }
 
 bool function::match_same_type(const basic & other) const
@@ -1387,14 +1367,14 @@ unsigned function::return_type() const
 	if (opt.use_return_type) {
 		// Return type was explicitly specified
 		return opt.return_type;
-	} else {
-		// Default behavior is to use the return type of the first
-		// argument. Thus, exp() of a matrix behaves like a matrix, etc.
-		if (seq.empty())
-			return return_types::commutative;
-		else
-			return seq.begin()->return_type();
-	}
+	} 
+        // Default behavior is to use the return type of the first
+        // argument. Thus, exp() of a matrix behaves like a matrix, etc.
+        if (seq.empty())
+                return return_types::commutative;
+
+        return seq.begin()->return_type();
+	
 }
 
 tinfo_t function::return_type_tinfo() const
@@ -1405,14 +1385,14 @@ tinfo_t function::return_type_tinfo() const
 	if (opt.use_return_type) {
 		// Return type was explicitly specified
 		return opt.return_type_tinfo;
-	} else {
+	} 
 		// Default behavior is to use the return type of the first
 		// argument. Thus, exp() of a matrix behaves like a matrix, etc.
 		if (seq.empty())
 			return this;
-		else
+		
 			return seq.begin()->return_type_tinfo();
-	}
+	
 }
 
 //////////

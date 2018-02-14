@@ -42,7 +42,7 @@ template <> bool exprseq::info(unsigned inf) const
 {
 	if (inf == info_flags::exprseq)
 		return true;
-	else
+	
 		return inherited::info(inf);
 }
 

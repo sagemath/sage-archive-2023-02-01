@@ -319,12 +319,12 @@ ex basic::map(map_function & f) const
 		}
 	}
 
-	if (copy != nullptr) {
-		copy->setflag(status_flags::dynallocated);
-		copy->clearflag(status_flags::hash_calculated | status_flags::expanded);
-		return *copy;
-	} else
-		return *this;
+	if (copy == nullptr)
+	        return *this;
+
+        copy->setflag(status_flags::dynallocated);
+        copy->clearflag(status_flags::hash_calculated | status_flags::expanded);
+	return *copy;
 }
 
 /** Check whether this is a polynomial in the given variables. */
@@ -350,8 +350,8 @@ ex basic::coeff(const ex & s, const ex & n) const
 {
 	if (is_equal(ex_to<basic>(s)))
 		return n.is_one() ? _ex1 : _ex0;
-	else
-		return n.is_zero() ? *this : _ex0;
+
+        return n.is_zero() ? *this : _ex0;
 }
 
 /** Sort expanded expression in terms of powers of some object(s).
@@ -367,9 +367,7 @@ ex basic::collect(const ex & s, bool distributed) const
 			return *this;
 		if (s.nops() == 1)
 			return collect(s.op(0));
-
-		else if (distributed) {
-
+		if (distributed) {
 			x = this->expand();
 			if (! is_exactly_a<add>(x))
 				return x; 
@@ -443,16 +441,13 @@ ex basic::evalf(int level, PyObject* parent) const
 {
 	if (nops() == 0)
 		return *this;
-	else {
-		if (level == 1)
-			return *this;
-		else if (level == -max_recursion_level)
-			throw(std::runtime_error("max recursion level reached"));
-		else {
-			evalf_map_function map_evalf(level - 1, parent);
-			return map(map_evalf);
-		}
-	}
+        if (level == 1)
+                return *this;
+        if (level == -max_recursion_level)
+                throw(std::runtime_error("max recursion level reached"));
+
+        evalf_map_function map_evalf(level - 1, parent);
+        return map(map_evalf);
 }
 
 /** Evaluate sums, products and integer powers of matrices. */
@@ -549,34 +544,32 @@ bool basic::match(const ex & pattern, lst & repl_lst) const
 		}
 		repl_lst.append(pattern == *this);
 		return true;
+	} 
 
-	} else {
+        // Expression must be of the same type as the pattern
+        if (tinfo() != ex_to<basic>(pattern).tinfo())
+                return false;
 
-		// Expression must be of the same type as the pattern
-		if (tinfo() != ex_to<basic>(pattern).tinfo())
-			return false;
+        // Number of subexpressions must match
+        if (nops() != pattern.nops())
+                return false;
 
-		// Number of subexpressions must match
-		if (nops() != pattern.nops())
-			return false;
+        // No subexpressions? Then just compare the objects (there can't be
+        // wildcards in the pattern)
+        if (nops() == 0)
+                return is_equal_same_type(ex_to<basic>(pattern));
 
-		// No subexpressions? Then just compare the objects (there can't be
-		// wildcards in the pattern)
-		if (nops() == 0)
-			return is_equal_same_type(ex_to<basic>(pattern));
+        // Check whether attributes that are not subexpressions match
+        if (!match_same_type(ex_to<basic>(pattern)))
+                return false;
 
-		// Check whether attributes that are not subexpressions match
-		if (!match_same_type(ex_to<basic>(pattern)))
-			return false;
+        // Otherwise the subexpressions must match one-to-one
+        for (size_t i=0; i<nops(); i++)
+                if (!op(i).match(pattern.sorted_op(i), repl_lst))
+                        return false;
 
-		// Otherwise the subexpressions must match one-to-one
-		for (size_t i=0; i<nops(); i++)
-			if (!op(i).match(pattern.sorted_op(i), repl_lst))
-				return false;
-
-		// Looks similar enough, match found
-		return true;
-	}
+        // Looks similar enough, match found
+        return true;
 }
 
 /** Helper function for subs(). Does not recurse into subexpressions. */
@@ -693,10 +686,9 @@ ex basic::derivative(const symbol & s) const
 {
 	if (nops() == 0)
 		return _ex0;
-	else {
-		derivative_map_function map_derivative(s);
-		return map(map_derivative);
-	}
+
+        derivative_map_function map_derivative(s);
+        return map(map_derivative);
 }
 
 /** Returns order relation between two objects of same type.  This needs to be
@@ -782,10 +774,10 @@ ex basic::expand(unsigned options) const
 {
 	if (nops() == 0)
 		return (options == 0) ? setflag(status_flags::expanded) : *this;
-	else {
-		expand_map_function map_expand(options);
-		return ex_to<basic>(map(map_expand)).setflag(options == 0 ? status_flags::expanded : 0);
-	}
+
+        expand_map_function map_expand(options);
+        return ex_to<basic>(map(map_expand)).setflag(options == 0 ? status_flags::expanded : 0);
+	
 }
 
 
@@ -811,33 +803,15 @@ int basic::compare(const basic & other) const
 	compare_statistics.compare_same_hashvalue++;
 #endif
 
-	const tinfo_t& typeid_this = tinfo();//typeid(*this);
-	const tinfo_t& typeid_other = other.tinfo();//typeid(other);
+	const tinfo_t& typeid_this = tinfo();
+	const tinfo_t& typeid_other = other.tinfo();
 	if (typeid_this == typeid_other) {
-//		int cmpval = compare_same_type(other);
-//		if (cmpval!=0) {
-//			std::cout << "hash collision, same type: " 
-//			          << *this << " and " << other << std::endl;
-//			this->print(print_tree(std::cout));
-//			std::cout << " and ";
-//			other.print(print_tree(std::cout));
-//			std::cout << std::endl;
-//		}
-//		return cmpval;
 #ifdef GINAC_COMPARE_STATISTICS
 		compare_statistics.compare_same_type++;
 #endif
 		return compare_same_type(other);
-	} else {
-//		std::cout << "hash collision, different types: " 
-//		          << *this << " and " << other << std::endl;
-//		this->print(print_tree(std::cout));
-//		std::cout << " and ";
-//	 	other.print(print_tree(std::cout));
-//	 	std::cout << std::endl;
-		//return (typeid_this.before(typeid_other) ? -1 : 1);
-		return (typeid_this<typeid_other ? -1 : 1);
-	}
+	} 
+        return (typeid_this<typeid_other ? -1 : 1);
 }
 
 /** Test for syntactic equality.

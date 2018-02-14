@@ -187,8 +187,8 @@ static ex legp_eval(const ex& n_, const ex& x)
                                                 const numeric& numn = ex_to<numeric>(n);
                                                 return (numn+*_num_1_p).factorial() / numn.mul(*_num1_2_p).factorial().pow_intexp(2) * numn / _num2_p->pow_intexp(numn.to_int());
                                         }
-                                        else
-                                                return gamma(n) / pow(gamma(n/_ex2), _ex2) / pow(_ex2, n-_ex2) / n;
+                                        return gamma(n) / pow(gamma(n/_ex2),
+                                                        _ex2) / pow(_ex2, n-_ex2) / n;
                                 }
                         }
                 if (is_exactly_a<numeric>(n)

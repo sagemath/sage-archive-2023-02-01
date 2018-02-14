@@ -569,8 +569,8 @@ ex container<C>::eval(int level) const
 {
 	if (level == 1)
 		return hold();
-	else
-		return thiscontainer(evalchildren(level));
+
+        return thiscontainer(evalchildren(level));
 }
 
 template <template <class T, class = std::allocator<T> > class C>
@@ -589,12 +589,12 @@ ex container<C>::subs(const exmap & m, unsigned options) const
 		ex result(thiscontainer(std::move(vp)));
 		if (is_a<container<C> >(result))
 			return ex_to<basic>(result).subs_one_level(m, options);
-		else
+		
 			return result;
 	} else {
 		if (is_a<container<C> >(*this))
 			return subs_one_level(m, options);
-		else
+		
 			return *this;
 	}
 }
@@ -758,7 +758,7 @@ typename container<C>::STLT container<C>::evalchildren(int level) const
 {
 	if (level == 1)
 		return this->seq;
-	else if (level == -max_recursion_level)
+	if (level == -max_recursion_level)
 		throw std::runtime_error("max recursion level reached");
 
 	STLT s;

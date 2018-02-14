@@ -53,7 +53,7 @@ static void check_poly_ccoeff_zero(const flint_series_t& fp)
 {
         if (fp.offset > 0)
                 return;
-        else if (fp.offset < 0)
+        if (fp.offset < 0)
                 throw flint_error();
         fmpq_t c;
         fmpq_init(c);
@@ -578,7 +578,7 @@ void power::useries(flint_series_t& fp, int order) const
                 fmpq_poly_truncate(fp.ft, fp.offset + order + 2);
                 return;
         }
-        else if (expint < 0) {
+        if (expint < 0) {
                 if (fmpq_poly_is_zero(fp1.ft))
                         throw flint_error();
                 if (ldeg) {

@@ -47,26 +47,25 @@ static numeric lcmcoeff(const ex &e, const numeric &l)
 	if (is_exactly_a<numeric>(e)
             and e.info(info_flags::rational))
 		return lcm(ex_to<numeric>(e).denom(), l);
-	else if (is_exactly_a<add>(e)) {
+	if (is_exactly_a<add>(e)) {
 		numeric c = *_num1_p;
 		for (size_t i=0; i<e.nops(); i++)
 			c = lcmcoeff(e.op(i), c);
 		return lcm(c, l);
-	} else if (is_exactly_a<mul>(e)) {
+	}
+        if (is_exactly_a<mul>(e)) {
 		numeric c = *_num1_p;
 		for (size_t i=0; i<e.nops(); i++)
 			c *= lcmcoeff(e.op(i), *_num1_p);
 		return lcm(c, l);
-	} else if (is_exactly_a<power>(e)) {
+	}
+        if (is_exactly_a<power>(e)) {
 		if (is_exactly_a<symbol>(e.op(0)))
 			return l;
-		else {
-			ex t = pow(lcmcoeff(e.op(0), l), ex_to<numeric>(e.op(1)));
-                        if (is_exactly_a<numeric>(t))
-                                return ex_to<numeric>(t);
-                        else
-                                return l;
-                }
+
+                ex t = pow(lcmcoeff(e.op(0), l), ex_to<numeric>(e.op(1)));
+                if (is_exactly_a<numeric>(t))
+                        return ex_to<numeric>(t);
 	}
 	return l;
 }
@@ -101,29 +100,27 @@ ex multiply_lcm(const ex &e, const numeric &lcm)
 		}
 		v.emplace_back(lcm / lcm_accum);
 		return (new mul(v))->setflag(status_flags::dynallocated);
-	} else if (is_exactly_a<add>(e)) {
+	}
+        if (is_exactly_a<add>(e)) {
 		size_t num = e.nops();
 		exvector v; v.reserve(num);
 		for (size_t i=0; i<num; i++)
 			v.push_back(multiply_lcm(e.op(i), lcm));
 		return (new add(v))->setflag(status_flags::dynallocated);
-	} else if (is_exactly_a<power>(e)) {
+	}
+        if (is_exactly_a<power>(e)) {
 		if (is_exactly_a<symbol>(e.op(0)))
 			return e * lcm;
-		else {
-                        if (not is_exactly_a<numeric>(e.op(1)))
-				return e * lcm;
-			ex t = lcm.power(ex_to<numeric>(e.op(1)).inverse());
-                        if (not is_exactly_a<numeric>(t))
-				return e * lcm;
-			const numeric& root_of_lcm = ex_to<numeric>(t);
-			if (root_of_lcm.is_rational())
-				return pow(multiply_lcm(e.op(0), root_of_lcm), e.op(1));
-			else
-				return e * lcm;
-		}
-	} else
-		return e * lcm;
+                if (not is_exactly_a<numeric>(e.op(1)))
+                        return e * lcm;
+                ex t = lcm.power(ex_to<numeric>(e.op(1)).inverse());
+                if (not is_exactly_a<numeric>(t))
+                        return e * lcm;
+                const numeric& root_of_lcm = ex_to<numeric>(t);
+                if (root_of_lcm.is_rational())
+                        return pow(multiply_lcm(e.op(0), root_of_lcm), e.op(1));
+	}
+        return e * lcm;
 }
 
 /*
@@ -142,13 +139,12 @@ ex ex::unit(const ex &x) const
 	ex c = expand().lcoeff(x);
 	if (is_exactly_a<numeric>(c))
 		return c.info(info_flags::negative) ?_ex_1 : _ex1;
-	else {
-		ex y;
-		if (c.get_first_symbol(y))
-			return c.unit(y);
-		else
-			throw(std::invalid_argument("invalid expression in unit()"));
-	}
+
+        ex y;
+        if (c.get_first_symbol(y))
+                return c.unit(y);
+
+        throw(std::invalid_argument("invalid expression in unit()"));
 }
 
 
@@ -207,8 +203,7 @@ ex ex::primpart(const ex &x, const ex &c) const
 	ex u = unit(x);
 	if (is_exactly_a<numeric>(c))
 		return *this / (c * u);
-	else
-		return quo(*this, c * u, x, false);
+	return quo(*this, c * u, x, false);
 }
 
 

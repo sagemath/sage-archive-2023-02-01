@@ -301,9 +301,8 @@ public:
 			compare_statistics.gethash_cached++;
 #endif
 			return hashvalue;
-		} else {
-			return calchash();
-		}
+		} 
+                return calchash();
 	}
 
 	tinfo_t tinfo() const {return tinfo_key;}

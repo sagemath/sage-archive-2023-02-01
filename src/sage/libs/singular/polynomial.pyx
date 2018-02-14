@@ -462,14 +462,14 @@ cdef object singular_polynomial_latex(poly *p, ring *r, object base, object late
         \left(z + 1\right) v w - z w^{2} + z v + \left(-z - 1\right) w + z + 1
     """
     poly = ""
-    cdef unsigned long e,j
-    cdef int n = r.N
+    cdef unsigned long e
+    cdef int n = r.N, j
     cdef int atomic_repr = base._repr_option('element_is_atomic')
     while p:
 
         # First determine the multinomial:
         multi = ""
-        for j in range(1,n+1):
+        for j in range(1, n+1):
             e = p_GetExp(p, j, r)
             if e > 0:
                 multi += " "+latex_gens[j-1]
@@ -530,7 +530,6 @@ cdef object singular_polynomial_str_with_changed_varnames(poly *p, ring *r, obje
     return s
 
 cdef long singular_polynomial_deg(poly *p, poly *x, ring *r):
-    cdef int  i
     cdef long _deg, deg
 
     deg = -1
@@ -547,6 +546,7 @@ cdef long singular_polynomial_deg(poly *p, poly *x, ring *r):
             p = pNext(p)
         return deg
 
+    cdef int i = 0
     for i in range(1,r.N+1):
         if p_GetExp(x, i, r):
             break

@@ -546,7 +546,7 @@ cdef class Converter(SageObject):
 
             elif isinstance(a, Matrix_generic_dense) and\
                 is_sage_wrapper_for_singular_ring(a.parent().base_ring()):
-                self.append_matrix(a)
+                v = self.append_matrix(a)
 
             elif isinstance(a, Resolution):
                 v = self.append_resolution(a)
@@ -594,8 +594,8 @@ cdef class Converter(SageObject):
             if attributes and a in attributes:
                 for attrib in attributes[a]:
                     if attrib == "isSB" :
-                        val = int(attributes[a][attrib])
-                        atSet(v, omStrDup("isSB"), <void*><int>val, INT_CMD)
+                        val = <long>(attributes[a][attrib])
+                        atSet(v, omStrDup("isSB"), <void*>val, INT_CMD)
                         setFlag(v, FLAG_STD)
                     else:
                         raise NotImplementedError("Support for attribute '%s' not implemented yet."%attrib)
@@ -920,9 +920,8 @@ cdef class Converter(SageObject):
         """
         Append the string ``n`` to the list.
         """
-        n = str_to_bytes(n)
-        cdef char *_n = <char *>n
-        return self._append(omStrDup(_n), STRING_CMD)
+        b = str_to_bytes(n)
+        return self._append(omStrDup(b), STRING_CMD)
 
     cdef to_python(self, leftv* to_convert):
         """

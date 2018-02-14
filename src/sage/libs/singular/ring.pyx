@@ -315,26 +315,23 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
             exponent = ch.nbits() -1
             cexponent = exponent
 
-            if exponent <= 30:  ringtype = n_Z2m
-            else:               ringtype = n_Znm
+            if exponent <= 30:
+                ringtype = n_Z2m
+            else:
+                ringtype = n_Znm
 
             if ringtype == n_Znm:
+                F = ch.factor()
 
-              F = ch.factor()
+                modbase = F[0][0]
+                cexponent = F[0][1]
 
-              modbase = F[0][0]
-              cexponent = F[0][1]
-
-              _info.base = <__mpz_struct*>omAlloc(sizeof(__mpz_struct))
-              mpz_init_set_ui(_info.base, modbase)
-              _info.exp = cexponent
-              _cf = nInitChar( n_Znm, <void *>&_info )
-
-            elif  ringtype == n_Z2m:
-                _cf = nInitChar( n_Z2m, <void *>cexponent )
-            else:
-                raise NotImplementedError(f"polynomials over {base_ring} are not supported in Singular")
-
+                _info.base = <__mpz_struct*>omAlloc(sizeof(__mpz_struct))
+                mpz_init_set_ui(_info.base, modbase)
+                _info.exp = cexponent
+                _cf = nInitChar(ringtype, <void *>&_info)
+            else:  # ringtype == n_Z2m
+                _cf = nInitChar(ringtype, <void *>cexponent)
 
         elif not isprime and ch.is_prime_power() and ch < ZZ(2)**160:
             F = ch.factor()
@@ -462,7 +459,9 @@ cdef class ring_wrapper_Py(object):
         """
         return 'The ring pointer '+hex(self.__hash__())
 
-    def __richcmp__(self, other, op):
+    # This could be written using __eq__ but that does not work
+    # due to https://github.com/cython/cython/issues/2019
+    def __richcmp__(ring_wrapper_Py self, other, int op):
         """
         Equality comparison between two ``ring_wrapper_Py`` instances,
         for use when hashing.
@@ -491,21 +490,17 @@ cdef class ring_wrapper_Py(object):
             True
             sage: t2 != t3
             False
+            sage: t2 == None
+            False
         """
-
-        cdef ring_wrapper_Py l, r
-
         if not (op == Py_EQ or op == Py_NE):
             return NotImplemented
 
         if type(other) is not ring_wrapper_Py:
             return op != Py_EQ
 
-        l = <ring_wrapper_Py>self
         r = <ring_wrapper_Py>other
-
-        return ((l._ring == r._ring and op == Py_EQ) or
-                (l._ring != r._ring and op == Py_NE))
+        return (self._ring == r._ring) == (op == Py_EQ)
 
 
 cdef wrap_ring(ring* R):
@@ -571,7 +566,7 @@ cdef ring *singular_ring_reference(ring *existing_ring) except NULL:
         sage: ring_ptr in ring_refcount_dict
         True
     """
-    if existing_ring == NULL:
+    if existing_ring is NULL:
         raise ValueError('singular_ring_reference(ring*) called with NULL pointer.')
 
     cdef object r = wrap_ring(existing_ring)

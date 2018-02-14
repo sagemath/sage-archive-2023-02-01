@@ -511,8 +511,7 @@ cdef number *sa2si_NF(object elem, ring *_ring):
     # so we hace to get/create one :
     #
     # todo: reuse qqr/ get an existing Singular polynomial ring over Q.
-    varname = b"a"
-    _name = omStrDup(varname)
+    _name = omStrDup("a")
     cdef char **_ext_names
     _ext_names = <char**>omAlloc0(sizeof(char*))
     _ext_names[0] = omStrDup(_name)
@@ -608,7 +607,6 @@ cdef inline number *sa2si_ZZmod(IntegerMod_abstract d, ring *_ring):
     cdef int64_t _d
     cdef char *_name
     cdef char **_ext_names
-    varname = b"a"
 
     cdef nMapFunc nMapFuncPtr = NULL;
 
@@ -623,7 +621,7 @@ cdef inline number *sa2si_ZZmod(IntegerMod_abstract d, ring *_ring):
         # create ZZr, a plain polynomial ring over ZZ with one variable.
         #
         # todo (later): reuse ZZr
-        _name = omStrDup(varname)
+        _name = omStrDup("a")
         _ext_names = <char**>omAlloc0(sizeof(char*))
         _ext_names[0] = omStrDup(_name)
         _cf = nInitChar( n_Z, NULL) # integer coefficient ring

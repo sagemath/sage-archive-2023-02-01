@@ -468,7 +468,7 @@ found:		;
 ex expairseq::subs(const exmap & m, unsigned options) const
 {
 	std::unique_ptr<epvector> vp = subschildren(m, options);
-	if (vp.get() != nullptr)
+	if (vp != nullptr)
 		return ex_to<basic>(thisexpairseq(std::move(vp), overall_coeff, (options & subs_options::no_index_renaming) == 0));
 	if (((options & subs_options::algebraic) != 0u) && is_exactly_a<mul>(*this))
 		return static_cast<const mul *>(this)->algebraic_subs_mul(m, options);
@@ -647,7 +647,7 @@ long expairseq::calchash() const
 ex expairseq::expand(unsigned options) const
 {
 	std::unique_ptr<epvector> vp = expandchildren(options);
-	if (vp.get() != nullptr)
+	if (vp != nullptr)
 		return thisexpairseq(std::move(vp), overall_coeff);
 
         // The terms have not changed, so it is safe to declare this expanded

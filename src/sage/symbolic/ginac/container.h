@@ -585,7 +585,7 @@ ex container<C>::subs(const exmap & m, unsigned options) const
 	//   -> f(f^-1(x))  [subschildren]
 	//   -> x           [eval]   /* must not subs(x==f^-1(x))! */
 	std::unique_ptr<STLT> vp = subschildren(m, options);
-	if (vp.get()) {
+	if (vp) {
 		ex result(thiscontainer(std::move(vp)));
 		if (is_a<container<C> >(result))
 			return ex_to<basic>(result).subs_one_level(m, options);

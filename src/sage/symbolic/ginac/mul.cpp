@@ -1283,7 +1283,7 @@ ex mul::expand(unsigned options) const
 
 	// First, expand the children
 	std::unique_ptr<epvector> expanded_seqp = expandchildren(options);
-	const epvector & expanded_seq = (expanded_seqp.get() != nullptr ? *expanded_seqp : seq);
+	const epvector & expanded_seq = (expanded_seqp != nullptr ? *expanded_seqp : seq);
 
 	// Now, look for all the factors that are sums and multiply each one out
 	// with the next one that is found while collecting the factors which are

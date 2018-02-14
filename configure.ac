@@ -954,6 +954,16 @@ cat >&7 <<EOF
 
 EOF
 
+
+# To deal with ABI incompatibilities when gcc is upgraded, every package
+# (except gcc) should depend on gcc if gcc is already installed.
+# See https://trac.sagemath.org/ticket/24703
+if test x$SAGE_INSTALL_GCC = xexists; then
+    GCC_DEP=' $(SAGE_LOCAL)/bin/gcc'
+else
+    GCC_DEP=''
+fi
+
 # Add a Makefile target corresponding to a given package
 filtered_packages_list all | {
 while read PKG_NAME PKG_VERSION PKG_VAR; do
@@ -978,6 +988,7 @@ while read PKG_NAME PKG_VERSION PKG_VAR; do
     else
         DEPS=""
     fi
+    test "$PKG_NAME" = gcc || DEPS="$GCC_DEP$DEPS"
 
     # Below we have to obscure A""M_V_at, or autoconf would complain:
     # "error: possibly undefined macro: A""M_V_at"

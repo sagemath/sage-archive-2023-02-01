@@ -13016,7 +13016,7 @@ class GenericGraph(GenericGraph_pyx):
                 vertices.append(v)
         return self.subgraph(vertices=vertices, inplace=inplace)
 
-    def is_chordal(self, certificate = False, algorithm = "B"):
+    def is_chordal(self, certificate=False, algorithm="B"):
         r"""
         Tests whether the given graph is chordal.
 
@@ -13160,6 +13160,9 @@ class GenericGraph(GenericGraph_pyx):
           Pacific J. Math 1965
           Vol. 15, number 3, pages 835--855
         """
+        if algorithm not in ['A', 'B']:
+            raise ValueError('unknown algorithm "{}"'.format(algorithm))
+
         self._scream_if_not_simple()
 
         # If the graph is not connected, we are computing the result on each component
@@ -22364,7 +22367,7 @@ class GenericGraph(GenericGraph_pyx):
             deprecation(19517, "Verbosity-parameter is removed.")
 
         # Check parameter combinations
-        if algorithm and algorithm not in ['sage', 'bliss']:
+        if algorithm not in [None, 'sage', 'bliss']:
             raise ValueError("'algorithm' must be equal to 'bliss', 'sage', or None")
         if algorithm != 'bliss' and not return_graph:
             raise ValueError("return_graph=False can only be used with algorithm='bliss'")

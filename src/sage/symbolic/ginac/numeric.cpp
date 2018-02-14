@@ -968,7 +968,6 @@ void numeric::print_numeric(const print_context & c, const char* /*unused*/,
         }
         c.s << *out;
         delete out;
-        return;
 }
 
 void numeric::do_print(const print_context & c, unsigned level) const {

@@ -95,6 +95,11 @@ TESTS::
     sage: p = matrix(R,[[84, 97, 55, 58, 51]])
     sage: 2*p.row(0)
     (168, 194, 110, 116, 102)
+
+This is a test from :trac:`20211`::
+
+    sage: MatrixSpace(ZZ, 1, 1)(vector([1]))
+    [1]
 """
 
 #*****************************************************************************
@@ -1061,33 +1066,6 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             return self
         return self.change_ring(R)
 
-    def _matrix_(self, R=None):
-        r"""
-        Return self as a row matrix.
-
-        EXAMPLES::
-
-            sage: v = vector(ZZ, [2, 12, 22])
-            sage: v._matrix_()
-            [ 2 12 22]
-            sage: v._matrix_(GF(7))
-            [2 5 1]
-            sage: v._matrix_(ZZ['x', 'y'])
-            [ 2 12 22]
-            sage: v = ((ZZ^3)*(1/2))( (1/2, -1, 3/2) )
-            sage: v._matrix_()
-            [1/2  -1 3/2]
-            sage: v._matrix_(ZZ)
-            Traceback (most recent call last):
-            ...
-            TypeError: no conversion of this rational to integer
-        """
-        if R is None:
-            R = self.coordinate_ring()
-        sparse = self.is_sparse()
-        from sage.matrix.constructor import matrix
-        return matrix(R, [list(self)], sparse=sparse)
-
     def _sage_input_(self, sib, coerce):
         r"""
         Produce an expression which will reproduce this value when evaluated.
@@ -1336,7 +1314,10 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: w.parent()
             Full MatrixSpace of 1 by 0 dense matrices over Integer Ring
         """
-        return self._matrix_(R=None)
+        from sage.matrix.args import MatrixArgs
+        ma = MatrixArgs(self._parent._base, 1, self.degree(),
+                list(self), sparse=self.is_sparse())
+        return ma.matrix()
 
     def column(self):
         r"""
@@ -1405,23 +1386,10 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: w.parent()
             Full MatrixSpace of 0 by 1 dense matrices over Integer Ring
         """
-        return self._matrix_(R=None).transpose()
-
-    def _hash(self):
-        """
-        Return hash of an immutable form of self (works even if self
-        is mutable).
-
-        EXAMPLES::
-
-            sage: v = vector([1,2/3,pi])
-            sage: v.__hash__()
-            Traceback (most recent call last):
-            ...
-            TypeError: mutable vectors are unhashable
-            sage: v._hash()  # random output
-        """
-        return hash(tuple(list(self)))
+        from sage.matrix.args import MatrixArgs
+        ma = MatrixArgs(self._parent._base, self.degree(), 1,
+                [(x,) for x in self], sparse=self.is_sparse())
+        return ma.matrix()
 
     def __copy__(self):
         """

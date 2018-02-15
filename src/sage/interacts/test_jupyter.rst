@@ -86,7 +86,7 @@ Test all interacts from the Sage interact library::
       a: IntSlider(value=5, min=0, max=10, step=1, description=u'$a$')
       x0: IntSlider(value=2, min=0, max=10, step=1, description=u'$x_0$ (start point)')
     <h2>Difference Quotient</h2>
-    <div style="white-space: normal;">         <a href="http://en.wikipedia.org/wiki/Difference_quotient" target="_blank">         Wikipedia article about difference quotient</a></div>
+    <div style="white-space: normal;">         <a href="https://en.wikipedia.org/wiki/Difference_quotient" target="_blank">         Wikipedia article about difference quotient</a></div>
     <h2>Difference Quotient</h2>
     <br><script type="math/tex">\text{Line's equation:}</script>
     <script type="math/tex">y = 1/3*(x - 5)*(sin(5) - sin(2)) + sin(5)</script><br>

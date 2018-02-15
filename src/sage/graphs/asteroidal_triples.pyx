@@ -1,3 +1,4 @@
+# cython: binding=True
 r"""
 Asteroidal triples
 
@@ -105,26 +106,25 @@ def is_asteroidal_triple_free(G, certificate=False):
 
     The complete graph is AT-free, as well as its line graph::
 
-        sage: from sage.graphs.asteroidal_triples import *
         sage: G = graphs.CompleteGraph(5)
-        sage: is_asteroidal_triple_free(G)
+        sage: G.is_asteroidal_triple_free()
         True
-        sage: is_asteroidal_triple_free(G, certificate=True)
+        sage: G.is_asteroidal_triple_free(certificate=True)
         (True, [])
         sage: LG = G.line_graph()
-        sage: is_asteroidal_triple_free(LG)
+        sage: LG.is_asteroidal_triple_free()
         True
         sage: LLG = LG.line_graph()
-        sage: is_asteroidal_triple_free(LLG)
+        sage: LLG.is_asteroidal_triple_free()
         False
 
     The PetersenGraph is not AT-free::
 
         sage: from sage.graphs.asteroidal_triples import *
         sage: G = graphs.PetersenGraph()
-        sage: is_asteroidal_triple_free(G)
+        sage: G.is_asteroidal_triple_free()
         False
-        sage: is_asteroidal_triple_free(G, certificate=True)
+        sage: G.is_asteroidal_triple_free(certificate=True)
         (False, [0, 2, 6])
 
     TESTS:
@@ -136,7 +136,6 @@ def is_asteroidal_triple_free(G, certificate=False):
         Traceback (most recent call last):
         ...
         ValueError: The first parameter must be a Graph.
-
     """
     from sage.graphs.graph import Graph
     if not isinstance(G, Graph):

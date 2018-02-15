@@ -9742,13 +9742,14 @@ class GenericGraph(GenericGraph_pyx):
           vertex connectivity of the (di)graph is larger or equal to `k`. The
           method thus outputs a boolean only.
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method
-          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
-          of the class
-          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers, see the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.  Use method
+          :meth:`sage.numberical.backends.generic_backend.default_mip_solver` to
+          know which default solver is used or to set the default solver.
 
         - ``verbose`` -- integer (default: ``0``). Sets the level of
           verbosity. Set to 0 by default, which means quiet.
@@ -9870,6 +9871,10 @@ class GenericGraph(GenericGraph_pyx):
 
                 if len(self.blocks_and_cut_vertices()[0]) > 1:
                     return 1 if k is None else (k == 1)
+
+            if k == 1:
+                # We know that the (di)graph is (strongly) connected
+                return True
 
         from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
 

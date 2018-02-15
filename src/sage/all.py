@@ -104,6 +104,7 @@ from sage.sat.all        import *
 from sage.schemes.all    import *
 from sage.graphs.all     import *
 from sage.groups.all     import *
+from sage.arith.power    import generic_power as power
 from sage.databases.all  import *
 from sage.categories.all import *
 from sage.sets.all       import *

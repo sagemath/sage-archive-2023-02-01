@@ -37,6 +37,7 @@ The infinite set of all posets can be used to find minimal examples::
     :meth:`~posets.IntegerPartitionsDominanceOrder` | Return the lattice of integer partitions on the integer `n` ordered by dominance.
     :meth:`~posets.NoncrossingPartitions` | Return the poset of noncrossing partitions of a finite Coxeter group ``W``.
     :meth:`~posets.PentagonPoset` | Return the Pentagon poset.
+    :meth:`~posets.PowerPoset` | Return a power poset.
     :meth:`~posets.RandomLattice` | Return a random lattice on `n` elements.
     :meth:`~posets.RandomPoset` | Return a random poset on `n` elements.
     :meth:`~posets.RestrictedIntegerPartitions` | Return the poset of integer partitions of `n`, ordered by restricted refinement.
@@ -560,6 +561,58 @@ class Posets(object):
             raise ValueError('n must be an integer')
         from sage.combinat.partition import Partitions, Partition
         return LatticePoset((Partitions(n), Partition.dominates)).dual()
+
+    @staticmethod
+    def PowerPoset(n):
+        """
+        Return the power poset on `n` element posets.
+
+        Elements of the power poset are all posets on
+        the set `\{0, 1, \ldots, n-1\}` ordered by extension.
+        That is, the antichain of `n` elements is the bottom and
+        `P_a \le P_b` in the power poset if `P_b` is an extension
+        of `P_a`.
+
+        These were studied in [Bru1994]_.
+
+        EXAMPLES::
+
+            sage: P3 = posets.PowerPoset(3); P3
+            Finite poset containing 19 elements
+            sage: all(P.is_chain() for P in P3.maximal_elements())
+            True
+
+        TESTS::
+
+            sage: P0 = posets.PowerPoset(0); P0
+            Finite poset containing 1 elements
+            sage: P0[0]
+            Finite poset containing 0 elements
+            sage: P1 = posets.PowerPoset(1); P1
+            Finite poset containing 1 elements
+            sage: P1[0]
+            Finite poset containing 1 elements
+            sage: P1[0][0]
+            0
+        """
+        # Todo: Make this faster.
+
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise TypeError("parameter n must be an integer, not {0}".format(n))
+        if n < 0:
+            raise ValueError("parameter n must be non-negative, not {0}".format(n))
+
+        all_pos_n = set()
+        Pn = list(Posets(n))
+        for P in Pn:
+            for r in Permutations(P):
+                all_pos_n.add(P.relabel(list(r)))
+
+        return Poset((all_pos_n,
+                      lambda A, B: all(B.is_lequal(x, y) for x,y in A.cover_relations_iterator())
+                    ))
 
     @staticmethod
     def RandomPoset(n, p):

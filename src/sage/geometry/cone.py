@@ -6168,12 +6168,15 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
         generators. Please decrease min_rays.
 
     Ensure that we can obtain a cone in three dimensions with a large
-    number (in particular, more than 2*dim) rays::
+    number (in particular, more than 2*dim) rays. The ``max_rays`` is
+    not strictly necessary, but it minimizes the number of times that
+    we will loop with an absurd, unattainable, number of rays::
 
         sage: set_random_seed()                  # long time
         sage: K = random_cone(min_ambient_dim=3, # long time
         ....:                 max_ambient_dim=3, # long time
-        ....:                 min_rays=7)        # long time
+        ....:                 min_rays=7,        # long time
+        ....:                 max_rays=9)        # long time
         sage: K.nrays() >= 7                     # long time
         True
         sage: K.lattice_dim()                    # long time
@@ -6448,23 +6451,45 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
             # No lattice given, make our own.
             d = random_min_max(min_ambient_dim, max_ambient_dim)
             L = ToricLattice(d)
+        else:
+            d = L.dimension()
 
+        # The number of rays that we will try to attain in this iteration.
         r = random_min_max(min_rays, max_rays)
 
         # The rays are trickier to generate, since we could generate v and
         # 2*v as our "two rays." In that case, the resulting cone would
-        # have one generating ray. To avoid such a situation, we start by
-        # generating ``r`` rays where ``r`` is the number we want to end
-        # up with...
-        rays = [L.random_element() for i in range(r)]
+        # have only one generating ray -- not what we want.
+        #
+        # Let's begin with an easier question: how many rays should we
+        # start with? If we want to attain r rays in this iteration,
+        # then surely r is a good number to start with, even if some
+        # of them will be redundant?
+        #
+        # Not quite, because after 2*d rays, there is a greater
+        # tendency for them to be redundant. If, for example, the
+        # maximum number of rays is unbounded, then r could be enormous
+        # Ultimately that won't be a problem, because almost all of
+        # those rays will be thrown out. However, as we discovered in
+        # Trac #24517, simply generating the random rays in the first
+        # place (and storing them in a list) is problematic.
+        #
+        # Since the returns fall off around 2*d, we start with the
+        # smaller of the two numbers 2*d or r to ensure that we don't
+        # pay a huge performance penalty for things we're going to
+        # throw out anyway. This has a side effect, namely that if you
+        # ask for more than 2*d rays, then you'll probably get the
+        # minimum amount, because we'll start with 2*d and add them
+        # one-at-a-time (see below).
+        rays = [L.random_element() for i in range(min(r,2*d))]
 
         # The lattice parameter is required when no rays are given, so
-        # we pass it in case ``r == 0`` or ``d == 0`` (or ``d == 1``
-        # but we're making a strictly convex cone).
+        # we pass it in case r == 0 or d == 0 (or d == 1 but we're
+        # making a strictly convex cone).
         K = Cone(rays, lattice=L)
 
         # Now, some of the rays that we generated were probably redundant,
-        # so we need to come up with more. We can obviously stop if ``K``
+        # so we need to come up with more. We can obviously stop if K
         # becomes the entire ambient vector space.
         #
         # We're still not guaranteed to have the correct number of

@@ -11,10 +11,14 @@ default: all
 
 build: all-build
 
+# The --stop flag below is just a random flag to induce graceful
+# breakage with non-GNU versions of make.
+# See https://trac.sagemath.org/ticket/24617
+
 # Defer unknown targets to build/make/Makefile
 %::
 	@if [ -x relocate-once.py ]; then ./relocate-once.py; fi
-	$(MAKE) build/make/Makefile
+	$(MAKE) build/make/Makefile --stop
 	+build/bin/sage-logger \
 		"cd build/make && ./install '$@'" logs/install.log
 

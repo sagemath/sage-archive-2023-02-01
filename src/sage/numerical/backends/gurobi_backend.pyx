@@ -33,6 +33,8 @@ from __future__ import print_function
 
 from cysignals.memory cimport sig_malloc, sig_free
 
+from sage.cpython.string cimport char_to_str, str_to_bytes
+from sage.cpython.string import FS_ENCODING
 from sage.numerical.mip import MIPSolverException
 
 cdef class GurobiBackend(GenericBackend):
@@ -336,14 +338,14 @@ cdef class GurobiBackend(GenericBackend):
             check(self.env, error)
             return value[0]
 
-    cpdef problem_name(self, char * name = NULL):
+    cpdef problem_name(self, name=None):
         """
         Return or define the problem's name
 
         INPUT:
 
-        - ``name`` (``char *``) -- the problem's name. When set to
-          ``NULL`` (default), the method returns the problem's name.
+        - ``name`` (``str``) -- the problem's name. When set to
+          ``None`` (default), the method returns the problem's name.
 
         EXAMPLES::
 
@@ -363,7 +365,7 @@ cdef class GurobiBackend(GenericBackend):
         cdef char * pp_name[1]
 
         if name:
-            error = GRBsetstrattr(self.model, "ModelName", name)
+            error = GRBsetstrattr(self.model, "ModelName", str_to_bytes(name))
             check(self.env, error)
             check(self.env,GRBupdatemodel(self.model))
 
@@ -372,7 +374,7 @@ cdef class GurobiBackend(GenericBackend):
             if pp_name[0] == NULL:
                 value = ""
             else:
-                value = str(pp_name[0])
+                value = char_to_str(pp_name[0])
 
             return value
 
@@ -1041,7 +1043,7 @@ cdef class GurobiBackend(GenericBackend):
             check(self.env, error)
             return None if b[0] <= -GRB_INFINITY else b[0]
 
-    cpdef write_lp(self, char * filename):
+    cpdef write_lp(self, filename):
         """
         Write the problem to a .lp file
 
@@ -1059,9 +1061,10 @@ cdef class GurobiBackend(GenericBackend):
             sage: p.set_objective([2, 5])                                           # optional - Gurobi
             sage: p.write_lp(os.path.join(SAGE_TMP, "lp_problem.lp"))               # optional - Gurobi
         """
+        filename = str_to_bytes(filename, FS_ENCODING, 'surrogateescape')
         check(self.env, GRBwrite(self.model, filename))
 
-    cpdef write_mps(self, char * filename, int modern):
+    cpdef write_mps(self, filename, int modern):
         """
         Write the problem to a .mps file
 
@@ -1079,6 +1082,7 @@ cdef class GurobiBackend(GenericBackend):
             sage: p.set_objective([2, 5])                                           # optional - Gurobi
             sage: p.write_lp(os.path.join(SAGE_TMP, "lp_problem.lp"))               # optional - Gurobi
         """
+        filename = str_to_bytes(filename, FS_ENCODING, 'surrogateescape')
         check(self.env, GRBwrite(self.model, filename))
 
     cpdef solver_parameter(self, name, value = None):

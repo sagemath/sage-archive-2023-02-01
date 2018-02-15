@@ -138,7 +138,7 @@ def warning(trac_number, message, warning_class=Warning, stacklevel=3):
     """
     _check_trac_number(trac_number)
     message += '\n'
-    if trac_number < 24700:  # to avoid changing all previous doctests
+    if trac_number < 24800:  # to avoid changing all previous doctests
         message += 'See http://trac.sagemath.org/'+ str(trac_number) + ' for details.'
     else:
         message += 'See https://trac.sagemath.org/'+ str(trac_number) + ' for details.'

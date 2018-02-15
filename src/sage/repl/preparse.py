@@ -1520,19 +1520,17 @@ def handle_encoding_declaration(contents, out):
         '#!/usr/local/bin/python\nimport os, sys'
 
 
-    NOTES:
+    .. NOTES::
 
-    - PEP 263: http://www.python.org/dev/peps/pep-0263/
+        - PEP 263 (:pep:`0263`) says that Python will interpret a UTF-8
+          byte order mark as a declaration of UTF-8 encoding, but I don't
+          think we do that; this function only sees a Python string so it
+          can't account for a BOM.
 
-    - PEP 263 says that Python will interpret a UTF-8 byte order mark
-      as a declaration of UTF-8 encoding, but I don't think we do
-      that; this function only sees a Python string so it can't
-      account for a BOM.
+        - We default to UTF-8 encoding even though PEP 263 says that
+          Python files should default to ASCII.
 
-    - We default to UTF-8 encoding even though PEP 263 says that
-      Python files should default to ASCII.
-
-    - Also see http://docs.python.org/ref/encodings.html.
+        - Also see https://docs.python.org/ref/encodings.html.
 
     AUTHORS:
 

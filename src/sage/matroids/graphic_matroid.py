@@ -1483,7 +1483,7 @@ class GraphicMatroid(Matroid):
         - ``u`` -- the vertex to be split
         - ``v`` -- (optional) the name of the new vertex after splitting
         - ``X`` -- (optional) a list of the matroid elements corresponding to
-          edges of ``u`` that move to the new vertex after splitting
+          edges incident to ``u`` that move to the new vertex after splitting
         - ``element`` -- (optional) The name of the newly added element
 
         OUTPUT:

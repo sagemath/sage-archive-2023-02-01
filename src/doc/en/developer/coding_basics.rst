@@ -35,8 +35,8 @@ Python Code Style
 Follow the standard Python formatting rules when writing code for
 Sage, as explained at the following URLs:
 
-* https://www.python.org/dev/peps/pep-0008
-* https://www.python.org/dev/peps/pep-0257
+* :pep:`0008`
+* :pep:`0257`
 
 In particular,
 

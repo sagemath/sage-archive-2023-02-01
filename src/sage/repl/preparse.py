@@ -1522,7 +1522,7 @@ def handle_encoding_declaration(contents, out):
 
     .. NOTES::
 
-        - PEP 263 (:pep:`0263`) says that Python will interpret a UTF-8
+        - PEP 263 (:pep:`263`) says that Python will interpret a UTF-8
           byte order mark as a declaration of UTF-8 encoding, but I don't
           think we do that; this function only sees a Python string so it
           can't account for a BOM.

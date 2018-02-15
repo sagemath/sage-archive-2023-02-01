@@ -330,7 +330,7 @@ cdef class _LazyString(object):
         ``self`` is a path.
 
         This is for Python 3 compatibility: see :trac:`24046`, and also
-        :pep:`0519` and
+        :pep:`519` and
         https://docs.python.org/3/library/os.html#os.fspath
 
         Test :trac:`24046`::

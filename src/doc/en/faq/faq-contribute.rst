@@ -181,7 +181,7 @@ Are there any coding conventions I need to follow?
 """"""""""""""""""""""""""""""""""""""""""""""""""
 
 You should follow the standard Python conventions as documented at
-:pep:`0008` and :pep:`0257`.
+:pep:`8` and :pep:`257`.
 Also consult the Sage Developer's Guide, especially the chapter
 `Conventions for Coding in Sage <http://doc.sagemath.org/html/en/developer/conventions.html>`_.
 

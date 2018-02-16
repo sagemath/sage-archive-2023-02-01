@@ -170,21 +170,22 @@ static ex gen2ex(const giac::gen& gen)
 {
         // we need to handle giac types _INT_, _ZINT, and _CPLX
         switch (gen.type) {
-                case giac::_INT_:
-                        return numeric(gen.val);
-                case giac::_ZINT:
-                        mpz_t bigint;
-                        mpz_init_set(bigint, *(gen.ref_ZINTptr()));
-                        return numeric(bigint);
-                case giac::_CPLX:
-                        return gen2ex(gen.ref_CPLXptr()[0]) + I*gen2ex(gen.ref_CPLXptr()[1]);
-                case giac::_FRAC:
-                        return gen2ex(gen.ref_FRACptr()->num) /
-                                                gen2ex(gen.ref_FRACptr()->den);
-                default:
-                        std::ostringstream os;
-                        os << "gen2ex: can't happen: " << int(gen.type) << std::flush;
-                        throw std::runtime_error(os.str());
+        case giac::_INT_:
+                return numeric(gen.val);
+        case giac::_ZINT:
+                mpz_t bigint;
+                mpz_init_set(bigint, *(gen.ref_ZINTptr()));
+                return numeric(bigint);
+        case giac::_CPLX:
+                return (gen2ex(gen.ref_CPLXptr()[0])
+                                + I * gen2ex(gen.ref_CPLXptr()[1]));
+        case giac::_FRAC:
+                return (gen2ex(gen.ref_FRACptr()->num)
+                                / gen2ex(gen.ref_FRACptr()->den));
+        default:
+                std::ostringstream os;
+                os << "gen2ex: can't happen: " << int(gen.type) << std::flush;
+                throw std::runtime_error(os.str());
         }
 }
 

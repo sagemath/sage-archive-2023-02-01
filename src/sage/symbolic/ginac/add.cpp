@@ -201,75 +201,77 @@ void add::do_print_python_repr(const print_python_repr & c, unsigned /*level*/) 
 
 bool add::info(unsigned inf) const
 {
-	switch (inf) {
-		case info_flags::nonzero:
-                        return info(info_flags::positive)
-                                or info(info_flags::negative);
-		case info_flags::polynomial:
-		case info_flags::integer_polynomial:
-		case info_flags::cinteger_polynomial:
-		case info_flags::rational_polynomial:
-		case info_flags::real:
-		case info_flags::rational:
-		case info_flags::integer:
-		case info_flags::crational:
-		case info_flags::cinteger:
-		case info_flags::nonnegative:
-		case info_flags::posint:
-		case info_flags::nonnegint:
-		case info_flags::even:
-		case info_flags::crational_polynomial:
-		case info_flags::rational_function: {
-			for (const auto & elem : seq) {
-				if (!(recombine_pair_to_ex(elem).info(inf)))
-					return false;
-			}
-			if (overall_coeff.is_zero() && (inf == info_flags::positive || inf == info_flags::posint))
-                                return true;
-                        return overall_coeff.info(inf);
-		}
-		case info_flags::inexact:
-		case info_flags::algebraic: {
-                        if (overall_coeff.info(inf))
-                                return true;
-                        for (const auto & elem : seq) {
-				if ((recombine_pair_to_ex(elem).info(inf)))
-					return true;
-			}
-			return false;
-		}
-		case info_flags::positive: {
-                        bool positive_seen = overall_coeff.is_positive();
-                        if (not positive_seen and not overall_coeff.is_zero())
+        switch (inf) {
+        case info_flags::nonzero:
+                return info(info_flags::positive)
+                or info(info_flags::negative);
+        case info_flags::polynomial:
+        case info_flags::integer_polynomial:
+        case info_flags::cinteger_polynomial:
+        case info_flags::rational_polynomial:
+        case info_flags::real:
+        case info_flags::rational:
+        case info_flags::integer:
+        case info_flags::crational:
+        case info_flags::cinteger:
+        case info_flags::nonnegative:
+        case info_flags::posint:
+        case info_flags::nonnegint:
+        case info_flags::even:
+        case info_flags::crational_polynomial:
+        case info_flags::rational_function: {
+                for (const auto &elem : seq) {
+                        if (!(recombine_pair_to_ex(elem).info(inf)))
                                 return false;
-			for (const auto & elem : seq) {
-				ex t = recombine_pair_to_ex(elem);
-                                bool is_pos = t.info(info_flags::positive);
-                                if (not is_pos
-                                    and not t.info(info_flags::nonnegative))
-					return false;
-                                if (not positive_seen and is_pos)
-                                        positive_seen = true;
-			}
-                        return positive_seen;
                 }
-		case info_flags::negative: {
-                        bool negative_seen = overall_coeff.is_negative();
-                        if (not negative_seen and not overall_coeff.is_zero())
+                if (overall_coeff.is_zero()
+                    and (inf == info_flags::positive
+                         or inf == info_flags::posint))
+                        return true;
+                return overall_coeff.info(inf);
+        }
+        case info_flags::inexact:
+        case info_flags::algebraic: {
+                if (overall_coeff.info(inf))
+                        return true;
+                for (const auto &elem : seq) {
+                        if ((recombine_pair_to_ex(elem).info(inf)))
+                                return true;
+                }
+                return false;
+        }
+        case info_flags::positive: {
+                bool positive_seen = overall_coeff.is_positive();
+                if (not positive_seen and not overall_coeff.is_zero())
+                        return false;
+                for (const auto &elem : seq) {
+                        ex t = recombine_pair_to_ex(elem);
+                        bool is_pos = t.info(info_flags::positive);
+                        if (not is_pos
+                        and not t.info(info_flags::nonnegative))
                                 return false;
-			for (const auto & elem : seq) {
-				ex t = recombine_pair_to_ex(elem);
-                                bool is_neg = t.info(info_flags::negative);
-                                if (not is_neg
-                                    and not t.is_zero())
-					return false;
-                                if (not negative_seen and is_neg)
-                                        negative_seen = true;
-			}
-                        return negative_seen;
+                        if (not positive_seen and is_pos)
+                                positive_seen = true;
                 }
-	}
-	return inherited::info(inf);
+                return positive_seen;
+        }
+        case info_flags::negative: {
+                bool negative_seen = overall_coeff.is_negative();
+                if (not negative_seen and not overall_coeff.is_zero())
+                        return false;
+                for (const auto &elem : seq) {
+                        ex t = recombine_pair_to_ex(elem);
+                        bool is_neg = t.info(info_flags::negative);
+                        if (not is_neg
+                        and not t.is_zero())
+                                return false;
+                        if (not negative_seen and is_neg)
+                                negative_seen = true;
+                }
+                return negative_seen;
+        }
+        }
+        return inherited::info(inf);
 }
 
 bool add::is_polynomial(const ex & var) const

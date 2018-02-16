@@ -185,18 +185,18 @@ void infinity::do_print_python_repr(const print_python_repr & c,
 bool infinity::info(unsigned inf) const
 {
         switch (inf) {
-                case info_flags::infinity:
-        		return true;
-                case info_flags::real:
-                        return not direction.is_zero()
-                                and direction.info(info_flags::real);
-                case info_flags::positive:
-	        case info_flags::negative:
-        		return direction.info(inf);
-	        case info_flags::nonnegative:
-        		return direction.info(info_flags::positive);
-                default:
-                	return inherited::info(inf);
+        case info_flags::infinity:
+                return true;
+        case info_flags::real:
+                return not direction.is_zero()
+                and direction.info(info_flags::real);
+        case info_flags::positive:
+        case info_flags::negative:
+                return direction.info(inf);
+        case info_flags::nonnegative:
+                return direction.info(info_flags::positive);
+        default:
+                return inherited::info(inf);
         }
 }
 
@@ -268,15 +268,15 @@ bool infinity::compare_other_type(const ex & other,
         if (num.imag() > 0)
                 return false;
         switch (o) {
-                case relational::not_equal:
-                        return true;
-                case relational::equal:
-                        return false;
-                case relational::less_or_equal:
-                case relational::less:
-                        return is_minus_infinity();
-                default:
-                        return is_plus_infinity();
+        case relational::not_equal:
+                return true;
+        case relational::equal:
+                return false;
+        case relational::less_or_equal:
+        case relational::less:
+                return is_minus_infinity();
+        default:
+                return is_plus_infinity();
         }
 }
 

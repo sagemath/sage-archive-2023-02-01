@@ -351,19 +351,19 @@ ex pseries::coeff(const ex &s, const ex & n) const
 			int mid = (lo + hi) / 2;
 			GINAC_ASSERT(is_exactly_a<numeric>(seq[mid].coeff));
 			int cmp = ex_to<numeric>(seq[mid].coeff).compare(looking_for);
-			switch (cmp) {
-				case -1:
-					lo = mid + 1;
-					break;
-				case 0:
-					return seq[mid].rest;
-				case 1:
-					hi = mid - 1;
-					break;
-				default:
-					throw(std::logic_error("pseries::coeff: compare() didn't return -1, 0 or 1"));
-			}
-		}
+                        switch (cmp) {
+                        case -1:
+                                lo = mid + 1;
+                                break;
+                        case 0:
+                                return seq[mid].rest;
+                        case 1:
+                                hi = mid - 1;
+                                break;
+                        default:
+                                throw(std::logic_error("pseries::coeff: compare() didn't return -1, 0 or 1"));
+                        }
+                }
 		return _ex0;
 	} 
 		return convert_to_poly().coeff(s, n);

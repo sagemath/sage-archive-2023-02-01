@@ -811,25 +811,26 @@ next_context:
 
 		// Method found, call it
 		current_serial = serial;
-		if (opt.print_use_exvector_args)
-			(reinterpret_cast<print_funcp_exvector>(pdt[id]))(seq, c);
-		else switch (opt.nparams) {
-			// the following lines have been generated for max. 14 parameters
-		case 1:
-			(reinterpret_cast<print_funcp_1>(pdt[id]))(seq[1-1], c);
-			break;
-		case 2:
-			(reinterpret_cast<print_funcp_2>(pdt[id]))(seq[1-1], seq[2-1], c);
-			break;
-		case 3:
-			(reinterpret_cast<print_funcp_3>(pdt[id]))(seq[1-1], seq[2-1], seq[3-1], c);
-			break;
+                if (opt.print_use_exvector_args)
+                        (reinterpret_cast<print_funcp_exvector>(pdt[id]))(seq, c);
+                else
+                        switch (opt.nparams) {
+                        // the following lines have been generated for max. 14 parameters
+                        case 1:
+                                (reinterpret_cast<print_funcp_1>(pdt[id]))(seq[1 - 1], c);
+                                break;
+                        case 2:
+                                (reinterpret_cast<print_funcp_2>(pdt[id]))(seq[1 - 1], seq[2 - 1], c);
+                                break;
+                        case 3:
+                                (reinterpret_cast<print_funcp_3>(pdt[id]))(seq[1 - 1], seq[2 - 1], seq[3 - 1], c);
+                                break;
 
-			// end of generated lines
-		default:
-			throw(std::logic_error("function::print(): invalid nparams"));
-		}
-	}
+                        // end of generated lines
+                        default:
+                                throw(std::logic_error("function::print(): invalid nparams"));
+                        }
+        }
 	}
 }
 
@@ -1611,19 +1612,19 @@ void function::set_domain(unsigned d)
         domain = d;
         iflags.clear();
         switch (d) {
-                case domain::complex:
-                        break;
-                case domain::real:
-                        iflags.set(info_flags::real, true);
-                        break;
-                case domain::positive:
-                        iflags.set(info_flags::real, true);
-                        iflags.set(info_flags::positive, true);
-                        break;
-                case domain::integer:
-                        iflags.set(info_flags::real, true);
-                        iflags.set(info_flags::integer, true);
-                        break;
+        case domain::complex:
+                break;
+        case domain::real:
+                iflags.set(info_flags::real, true);
+                break;
+        case domain::positive:
+                iflags.set(info_flags::real, true);
+                iflags.set(info_flags::positive, true);
+                break;
+        case domain::integer:
+                iflags.set(info_flags::real, true);
+                iflags.set(info_flags::integer, true);
+                break;
         }
 }
 

@@ -179,36 +179,36 @@ void symbol::set_domain(unsigned d)
         if (not (d == domain::complex))
                 nb = iflags;
         switch (d) {
-                case domain::complex:
-                        break;
-                case domain::real:
-                        nb.set(info_flags::real, true);
-                        break;
-                case domain::positive:
-                        nb.set(info_flags::real, true);
-                        nb.set(info_flags::positive, true);
-                        nb.set(info_flags::nonzero, true);
-                        break;
-                case domain::negative:
-                        nb.set(info_flags::real, true);
-                        nb.set(info_flags::negative, true);
-                        nb.set(info_flags::nonzero, true);
-                        break;
-                case domain::rational:
-                        nb.set(info_flags::real, true);
-                        nb.set(info_flags::rational, true);
-                        break;
-                case domain::integer:
-                        nb.set(info_flags::real, true);
-                        nb.set(info_flags::rational, true);
-                        nb.set(info_flags::integer, true);
-                        break;
-                case domain::even:
-                        nb.set(info_flags::real, true);
-                        nb.set(info_flags::rational, true);
-                        nb.set(info_flags::integer, true);
-                        nb.set(info_flags::even, true);
-                        break;
+        case domain::complex:
+                break;
+        case domain::real:
+                nb.set(info_flags::real, true);
+                break;
+        case domain::positive:
+                nb.set(info_flags::real, true);
+                nb.set(info_flags::positive, true);
+                nb.set(info_flags::nonzero, true);
+                break;
+        case domain::negative:
+                nb.set(info_flags::real, true);
+                nb.set(info_flags::negative, true);
+                nb.set(info_flags::nonzero, true);
+                break;
+        case domain::rational:
+                nb.set(info_flags::real, true);
+                nb.set(info_flags::rational, true);
+                break;
+        case domain::integer:
+                nb.set(info_flags::real, true);
+                nb.set(info_flags::rational, true);
+                nb.set(info_flags::integer, true);
+                break;
+        case domain::even:
+                nb.set(info_flags::real, true);
+                nb.set(info_flags::rational, true);
+                nb.set(info_flags::integer, true);
+                nb.set(info_flags::even, true);
+                break;
         }
         iflags = nb;
 }
@@ -233,26 +233,26 @@ void symbol::set_domain_from_ex(const ex& expr)
 
 bool symbol::info(unsigned inf) const
 {
-	switch (inf) {
-		case info_flags::symbol:
-		case info_flags::polynomial:
-		case info_flags::integer_polynomial: 
-		case info_flags::cinteger_polynomial: 
-		case info_flags::rational_polynomial: 
-		case info_flags::crational_polynomial: 
-		case info_flags::rational_function: 
-		case info_flags::expanded:
-			return true;
-                case info_flags::nonzero:
-                        return iflags.get(info_flags::nonzero)
-                            or iflags.get(info_flags::positive)
-                            or iflags.get(info_flags::negative);
-                case info_flags::infinity:
-                        return false;
-                default:
-                        return iflags.get(inf);
-	}
-	return false;
+        switch (inf) {
+        case info_flags::symbol:
+        case info_flags::polynomial:
+        case info_flags::integer_polynomial:
+        case info_flags::cinteger_polynomial:
+        case info_flags::rational_polynomial:
+        case info_flags::crational_polynomial:
+        case info_flags::rational_function:
+        case info_flags::expanded:
+                return true;
+        case info_flags::nonzero:
+                return iflags.get(info_flags::nonzero)
+                or iflags.get(info_flags::positive)
+                or iflags.get(info_flags::negative);
+        case info_flags::infinity:
+                return false;
+        default:
+                return iflags.get(inf);
+        }
+        return false;
 }
 
 ex symbol::eval(int level) const

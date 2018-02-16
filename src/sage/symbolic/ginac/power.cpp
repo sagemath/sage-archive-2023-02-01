@@ -228,55 +228,57 @@ void power::do_print_python_repr(const print_python_repr & c, unsigned level) co
 
 bool power::info(unsigned inf) const
 {
-	switch (inf) {
-		case info_flags::polynomial:
-		case info_flags::integer_polynomial:
-		case info_flags::cinteger_polynomial:
-		case info_flags::rational_polynomial:
-		case info_flags::crational_polynomial:
-                case info_flags::integer:
-			return exponent.info(info_flags::nonnegint)
-			        and basis.info(inf);
-                case info_flags::even:
-			return exponent.info(info_flags::posint)
-                                and basis.info(info_flags::integer);
-		case info_flags::rational_function:
-                case info_flags::rational:
-			return exponent.info(info_flags::integer) &&
-			       basis.info(inf);
-                case info_flags::inexact:
-                        return exponent.info(info_flags::inexact) or
-                                basis.info(info_flags::inexact);
-		case info_flags::algebraic:
-			return !exponent.info(info_flags::integer) ||
-			       basis.info(inf);
-		case info_flags::expanded:
-			return (flags & status_flags::expanded) != 0u;
-		case info_flags::positive:
-                        if (exponent.info(info_flags::even))
-                                return basis.info(info_flags::real)
-                                   and basis.info(info_flags::nonzero);
-                        if (exponent.info(info_flags::odd))
-                                return basis.info(info_flags::positive);
-			return basis.info(info_flags::positive) && exponent.info(info_flags::real);
-		case info_flags::nonnegative:
-			return (basis.info(info_flags::positive) && exponent.info(info_flags::real)) ||
-			       (basis.info(info_flags::real) && exponent.info(info_flags::integer) && exponent.info(info_flags::even));
-		case info_flags::negative:
-                        if (exponent.info(info_flags::odd))
-                                return basis.info(inf);
-                        return false;
-		case info_flags::real:
-			return ((basis.info(inf) and
-                                 (exponent.info(info_flags::integer))) or
-                                (basis.info(info_flags::positive) and
-                                 exponent.info(inf)));
-                case info_flags::nonzero:
-                        return (basis.info(inf)
-                                or exponent.is_zero()
-                                or exponent.info(info_flags::negative));
-	}
-	return inherited::info(inf);
+        switch (inf) {
+        case info_flags::polynomial:
+        case info_flags::integer_polynomial:
+        case info_flags::cinteger_polynomial:
+        case info_flags::rational_polynomial:
+        case info_flags::crational_polynomial:
+        case info_flags::integer:
+                return exponent.info(info_flags::nonnegint)
+                and basis.info(inf);
+        case info_flags::even:
+                return exponent.info(info_flags::posint)
+                and basis.info(info_flags::integer);
+        case info_flags::rational_function:
+        case info_flags::rational:
+                return exponent.info(info_flags::integer)
+                       and basis.info(inf);
+        case info_flags::inexact:
+                return exponent.info(inf) or basis.info(inf);
+        case info_flags::algebraic:
+                return !exponent.info(info_flags::integer) || basis.info(inf);
+        case info_flags::expanded:
+                return (flags & status_flags::expanded) != 0u;
+        case info_flags::positive:
+                if (exponent.info(info_flags::even))
+                        return basis.info(info_flags::real)
+                        and basis.info(info_flags::nonzero);
+                if (exponent.info(info_flags::odd))
+                        return basis.info(info_flags::positive);
+                return basis.info(info_flags::positive)
+                       and exponent.info(info_flags::real);
+        case info_flags::nonnegative:
+                return (basis.info(info_flags::positive)
+                        and exponent.info(info_flags::real))
+                    or (basis.info(info_flags::real)
+                        and exponent.info(info_flags::integer)
+                        and exponent.info(info_flags::even));
+        case info_flags::negative:
+                if (exponent.info(info_flags::odd))
+                        return basis.info(inf);
+                return false;
+        case info_flags::real:
+                return ((basis.info(inf)
+                         and exponent.info(info_flags::integer))
+                     or (basis.info(info_flags::positive)
+                         and exponent.info(inf)));
+        case info_flags::nonzero:
+                return (basis.info(inf)
+                     or exponent.is_zero()
+                     or exponent.info(info_flags::negative));
+        }
+        return inherited::info(inf);
 }
 
 size_t power::nops() const

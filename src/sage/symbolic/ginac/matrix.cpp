@@ -782,77 +782,80 @@ ex matrix::determinant(unsigned algo) const
 	}
 
 	// Compute the determinant
-	switch(algo) {
-		case determinant_algo::gauss: {
-			ex det = 1;
-			matrix tmp(*this);
-			int sign = tmp.gauss_elimination(true);
-			for (unsigned d=0; d<row; ++d)
-				det *= tmp.m[d*col+d];
-			if (normal_flag)
-				return (sign*det).normal();
-                        return (sign*det).normal().expand();
-		}
-		case determinant_algo::bareiss: {
-			matrix tmp(*this);
-			int sign;
-			sign = tmp.fraction_free_elimination(true);
-			if (normal_flag)
-				return (sign*tmp.m[row*col-1]).normal();
-			return (sign*tmp.m[row*col-1]).expand();
-		}
-		case determinant_algo::divfree: {
-			matrix tmp(*this);
-			int sign;
-			sign = tmp.division_free_elimination(true);
-			if (sign==0)
-				return _ex0;
-			ex det = tmp.m[row*col-1];
-			// factor out accumulated bogus slag
-			for (unsigned d=0; d<row-2; ++d)
-				for (unsigned j=0; j<row-d-2; ++j)
-					det = (det/tmp.m[d*col+d]).normal();
-			return (sign*det);
-		}
-		case determinant_algo::laplace:
-		default: {
-			// This is the minor expansion scheme.  We always develop such
-			// that the smallest minors (i.e, the trivial 1x1 ones) are on the
-			// rightmost column.  For this to be efficient, empirical tests
-			// have shown that the emptiest columns (i.e. the ones with most
-			// zeros) should be the ones on the right hand side -- although
-			// this might seem counter-intuitive (and in contradiction to some
-			// literature like the FORM manual).  Please go ahead and test it
-			// if you don't believe me!  Therefore we presort the columns of
-			// the matrix:
-			typedef std::pair<unsigned,unsigned> uintpair;
-			std::vector<uintpair> c_zeros;  // number of zeros in column
-			for (unsigned c=0; c<col; ++c) {
-				unsigned acc = 0;
-				for (unsigned rr=0; rr<row; ++rr)
-					if (m[rr*col+c].is_zero())
-						++acc;
-				c_zeros.emplace_back(acc,c);
-			}
-			std::sort(c_zeros.begin(),c_zeros.end());
-			std::vector<unsigned> pre_sort;
-			for (std::vector<uintpair>::const_iterator i=c_zeros.begin(); i!=c_zeros.end(); ++i)
-				pre_sort.push_back(i->second);
-			std::vector<unsigned> pre_sort_test(pre_sort); // permutation_sign() modifies the vector so we make a copy here
-			int sign = permutation_sign(pre_sort_test.begin(), pre_sort_test.end());
-			exvector result(row*col);  // represents sorted matrix
-			unsigned c = 0;
-                        for (const auto & elem : pre_sort) {
-				for (unsigned rr=0; rr<row; ++rr)
-					result[rr*col + c] = m[rr*col + elem];
-                                ++c;
-			}
-			
-			if (normal_flag)
-				return (sign*matrix(row,col,result).determinant_minor()).normal();
-			return sign*matrix(row,col,result).determinant_minor();
-		}
-	}
+        switch (algo) {
+        case determinant_algo::gauss: {
+                ex det = 1;
+                matrix tmp(*this);
+                int sign = tmp.gauss_elimination(true);
+                for (unsigned d = 0; d < row; ++d)
+                        det *= tmp.m[d * col + d];
+                if (normal_flag)
+                        return (sign * det).normal();
+                return (sign * det).normal().expand();
+        }
+        case determinant_algo::bareiss: {
+                matrix tmp(*this);
+                int sign;
+                sign = tmp.fraction_free_elimination(true);
+                if (normal_flag)
+                        return (sign * tmp.m[row * col - 1]).normal();
+                return (sign * tmp.m[row * col - 1]).expand();
+        }
+        case determinant_algo::divfree: {
+                matrix tmp(*this);
+                int sign;
+                sign = tmp.division_free_elimination(true);
+                if (sign == 0)
+                        return _ex0;
+                ex det = tmp.m[row * col - 1];
+                // factor out accumulated bogus slag
+                for (unsigned d = 0; d < row - 2; ++d)
+                        for (unsigned j = 0; j < row - d - 2; ++j)
+                                det = (det / tmp.m[d * col + d]).normal();
+                return (sign * det);
+        }
+        case determinant_algo::laplace:
+        default: {
+                // This is the minor expansion scheme.  We always develop such
+                // that the smallest minors (i.e, the trivial 1x1 ones) are on the
+                // rightmost column.  For this to be efficient, empirical tests
+                // have shown that the emptiest columns (i.e. the ones with most
+                // zeros) should be the ones on the right hand side -- although
+                // this might seem counter-intuitive (and in contradiction to some
+                // literature like the FORM manual).  Please go ahead and test it
+                // if you don't believe me!  Therefore we presort the columns of
+                // the matrix:
+                typedef std::pair<unsigned, unsigned> uintpair;
+                std::vector<uintpair> c_zeros; // number of zeros in column
+                for (unsigned c = 0; c < col; ++c) {
+                        unsigned acc = 0;
+                        for (unsigned rr = 0; rr < row; ++rr)
+                                if (m[rr * col + c].is_zero())
+                                        ++acc;
+                        c_zeros.emplace_back(acc, c);
+                }
+                std::sort(c_zeros.begin(), c_zeros.end());
+                std::vector<unsigned> pre_sort;
+                for (std::vector<uintpair>::const_iterator i = c_zeros.begin(); 
+                                i != c_zeros.end(); ++i)
+                        pre_sort.push_back(i->second);
+                std::vector<unsigned> pre_sort_test(pre_sort); // permutation_sign() modifies the vector so we make a copy here
+                int sign = permutation_sign(pre_sort_test.begin(),
+                                pre_sort_test.end());
+                exvector result(row * col); // represents sorted matrix
+                unsigned c = 0;
+                for (const auto &elem : pre_sort) {
+                        for (unsigned rr = 0; rr < row; ++rr)
+                                result[rr * col + c] = m[rr * col + elem];
+                        ++c;
+                }
+
+                if (normal_flag)
+                        return (sign * matrix(row, col, result).
+                                        determinant_minor()).normal();
+                return sign * matrix(row, col, result).determinant_minor();
+        }
+        }
 }
 
 
@@ -1029,19 +1032,19 @@ matrix matrix::solve(const matrix & vars,
 	}
 	
 	// Eliminate the augmented matrix:
-	switch(algo) {
-		case solve_algo::gauss:
-			aug.gauss_elimination();
-			break;
-		case solve_algo::divfree:
-			aug.division_free_elimination();
-			break;
-		case solve_algo::bareiss:
-		default:
-			aug.fraction_free_elimination();
-	}
-	
-	// assemble the solution matrix:
+        switch (algo) {
+        case solve_algo::gauss:
+                aug.gauss_elimination();
+                break;
+        case solve_algo::divfree:
+                aug.division_free_elimination();
+                break;
+        case solve_algo::bareiss:
+        default:
+                aug.fraction_free_elimination();
+        }
+
+        // assemble the solution matrix:
 	matrix sol(n,p);
 	for (unsigned co=0; co<p; ++co) {
 		unsigned last_assigned_sol = n+1;

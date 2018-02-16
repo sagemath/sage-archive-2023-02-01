@@ -483,61 +483,59 @@ PyObject* TWO = PyLong_FromLong(2); // todo: never freed
 
 std::ostream& operator<<(std::ostream& os, const numeric& s) {
         switch (s.t) {
-                case LONG:
-                        return os << s.v._long;
-                case MPZ:
-                {
-                        std::vector<char> cp(2 + mpz_sizeinbase(s.v._bigint, 10));
-                        mpz_get_str(&cp[0], 10, s.v._bigint);
-                        return os << &cp[0];
-                }
-                case MPQ:
-                {
-                        size_t size = mpz_sizeinbase(mpq_numref(s.v._bigrat), 10)
-                             + mpz_sizeinbase(mpq_denref(s.v._bigrat), 10) + 5;
-                        std::vector<char> cp(size);
-                        mpq_get_str(&cp[0], 10, s.v._bigrat);
-                        return os << &cp[0];
-                }
-                case PYOBJECT:
-                        return os << *py_funcs.py_repr(s.v._pyobject, 0);
-                default:
-                        stub("operator <<: type not yet handled");
+        case LONG:
+                return os << s.v._long;
+        case MPZ: {
+                std::vector<char> cp(2 + mpz_sizeinbase(s.v._bigint, 10));
+                mpz_get_str(&cp[0], 10, s.v._bigint);
+                return os << &cp[0];
+        }
+        case MPQ: {
+                size_t size = mpz_sizeinbase(mpq_numref(s.v._bigrat), 10)
+                + mpz_sizeinbase(mpq_denref(s.v._bigrat), 10) + 5;
+                std::vector<char> cp(size);
+                mpq_get_str(&cp[0], 10, s.v._bigrat);
+                return os << &cp[0];
+        }
+        case PYOBJECT:
+                return os << *py_funcs.py_repr(s.v._pyobject, 0);
+        default:
+                stub("operator <<: type not yet handled");
         }
 }
 
 const numeric& numeric::operator=(const numeric& x) {
         switch (t) {
-                case LONG:
-                        break;
-                case MPZ:
-                        mpz_clear(v._bigint);
-                        break;
-                case MPQ:
-                        mpq_clear(v._bigrat);
-                        break;
-                case PYOBJECT:
-                        Py_DECREF(v._pyobject);
-                        break;
+        case LONG:
+                break;
+        case MPZ:
+                mpz_clear(v._bigint);
+                break;
+        case MPQ:
+                mpq_clear(v._bigrat);
+                break;
+        case PYOBJECT:
+                Py_DECREF(v._pyobject);
+                break;
         }
         t = x.t;
         hash = x.hash;
         switch (x.t) {
-                case LONG:
-                        v._long = x.v._long;
-                        break;
-                case MPZ:
-                        mpz_init(v._bigint);
-                        mpz_set(v._bigint, x.v._bigint);
-                        break;
-                case MPQ:
-                        mpq_init(v._bigrat);
-                        mpq_set(v._bigrat, x.v._bigrat);
-                        break;
-                case PYOBJECT:
-                        v = x.v;
-                        Py_INCREF(v._pyobject);
-                        break;
+        case LONG:
+                v._long = x.v._long;
+                break;
+        case MPZ:
+                mpz_init(v._bigint);
+                mpz_set(v._bigint, x.v._bigint);
+                break;
+        case MPQ:
+                mpq_init(v._bigrat);
+                mpq_set(v._bigrat, x.v._bigrat);
+                break;
+        case PYOBJECT:
+                v = x.v;
+                Py_INCREF(v._pyobject);
+                break;
         }
         return *this;
 }
@@ -585,47 +583,45 @@ int numeric::compare_same_type(const numeric& right) const {
         }
         int ret;
         switch (t) {
-                case LONG:
-                        if (v._long > right.v._long)
-                                return 1;
-                        else if (v._long < right.v._long)
-                                return -1;
-                        else
-                                return 0;
-                case MPZ:
-                        ret = mpz_cmp(v._bigint, right.v._bigint);
-                        if (ret > 0)
-                                ret = 1;
-                        else if (ret < 0)
-                                ret = -1;
-                        return ret;
-                case MPQ:
-                        ret = mpq_cmp(v._bigrat, right.v._bigrat);
-                        if (ret > 0)
-                                ret = 1;
-                        else if (ret < 0)
-                                ret = -1;
-                        return ret;
-                case PYOBJECT:
-                        {
-                        int result = PyObject_RichCompareBool(v._pyobject,
-                                        right.v._pyobject, Py_LT);
-                        if (result == 1)
-                                return -1;
+        case LONG:
+                if (v._long > right.v._long)
+                        return 1;
+                else if (v._long < right.v._long)
+                        return -1;
+                else
+                        return 0;
+        case MPZ:
+                ret = mpz_cmp(v._bigint, right.v._bigint);
+                if (ret > 0)
+                        ret = 1;
+                else if (ret < 0)
+                        ret = -1;
+                return ret;
+        case MPQ:
+                ret = mpq_cmp(v._bigrat, right.v._bigrat);
+                if (ret > 0)
+                        ret = 1;
+                else if (ret < 0)
+                        ret = -1;
+                return ret;
+        case PYOBJECT: {
+                int result = PyObject_RichCompareBool(v._pyobject,
+                right.v._pyobject, Py_LT);
+                if (result == 1)
+                        return -1;
+                if (result == -1)
+                        py_error("richcmp failed");
+                else { // result == 0
+                        result = PyObject_RichCompareBool(v._pyobject,
+                        right.v._pyobject, Py_GT);
                         if (result == -1)
                                 py_error("richcmp failed");
-                        else { // result == 0
-                                result = PyObject_RichCompareBool(v._pyobject,
-                                        right.v._pyobject, Py_GT);
-                                if (result == -1)
-                                        py_error("richcmp failed");
-                        }
-                        return result;
-                        }
-                default:
-                        stub("invalid type: compare_same_type type not handled");
+                }
+                return result;
         }
-
+        default:
+                stub("invalid type: compare_same_type type not handled");
+        }
 }
 
 /* By convention hashes of PyObjects must be identical
@@ -708,21 +704,21 @@ numeric::numeric(const numeric& other) : basic(&numeric::tinfo_static) {
         t = other.t;
         hash = other.hash;
         switch (t) {
-                case LONG:
-                        v._long = other.v._long;
-                        return;
-                case PYOBJECT:
-                        v = other.v;
-                        Py_INCREF(v._pyobject);
-                        return;
-                case MPZ:
-                        mpz_init(v._bigint);
-                        mpz_set(v._bigint, other.v._bigint);
-                        return;
-                case MPQ:
-                        mpq_init(v._bigrat);
-                        mpq_set(v._bigrat, other.v._bigrat);
-                        return;
+        case LONG:
+                v._long = other.v._long;
+                return;
+        case PYOBJECT:
+                v = other.v;
+                Py_INCREF(v._pyobject);
+                return;
+        case MPZ:
+                mpz_init(v._bigint);
+                mpz_set(v._bigint, other.v._bigint);
+                return;
+        case MPQ:
+                mpq_init(v._bigrat);
+                mpq_set(v._bigrat, other.v._bigrat);
+                return;
         }
 }
 
@@ -837,18 +833,18 @@ numeric::numeric(double d) : basic(&numeric::tinfo_static) {
 
 numeric::~numeric() {
         switch (t) {
-                case LONG:
-                        return;
-                case PYOBJECT:
-                        Py_DECREF(v._pyobject);
-                        return;
-                case MPZ:
-                        mpz_clear(v._bigint);
-                        return;
-                case MPQ:
-                        mpq_clear(v._bigrat);
-                        return;
-        }       
+        case LONG:
+                return;
+        case PYOBJECT:
+                Py_DECREF(v._pyobject);
+                return;
+        case MPZ:
+                mpz_clear(v._bigint);
+                return;
+        case MPQ:
+                mpq_clear(v._bigrat);
+                return;
+        }
 }
 
 //////////
@@ -868,41 +864,41 @@ inherited(n, sym_lst) {
                 throw (std::runtime_error("archive error: cannot read object data"));
         PyObject *arg;
         switch (t) {
-                case LONG:
-                        v._long = std::stol(str);
-                        hash = (v._long==-1) ? -2 : v._long;
-                        return;
-                case MPZ:
-                        mpz_init(v._bigint);
-                        mpz_set_str(v._bigint, str.c_str(), 10);
-                        hash = _mpz_pythonhash(v._bigint);
-                        return;
-                case MPQ:
-                        mpq_init(v._bigrat);
-                        mpq_set_str(v._bigrat, str.c_str(), 10);
-                        hash = _mpq_pythonhash(v._bigrat);
-                        return;
-                case PYOBJECT:
-                        // read pickled python object to a string
-                        if (!n.find_string("S", str))
-                                throw (std::runtime_error("archive error: cannot read pyobject data"));
-                        arg = Py_BuildValue("s#", str.c_str(), str.size());
-                        // unpickle
-                        v._pyobject = py_funcs.py_loads(arg);
-                        Py_DECREF(arg);
-                        if (PyErr_Occurred() != nullptr) {
-                                throw (std::runtime_error("archive error: caught exception in py_loads"));
-                        }
-                        hash = PyObject_Hash(v._pyobject);
-                        if (hash == -1 && (PyErr_Occurred() != nullptr)) {
-                            PyErr_Clear();
-                            is_hashable = false;
-                            }
-                        Py_INCREF(v._pyobject);
-                        return;
-                default:
-                        stub("unarchiving numeric");
-                        return;
+        case LONG:
+                v._long = std::stol(str);
+                hash = (v._long == -1) ? -2 : v._long;
+                return;
+        case MPZ:
+                mpz_init(v._bigint);
+                mpz_set_str(v._bigint, str.c_str(), 10);
+                hash = _mpz_pythonhash(v._bigint);
+                return;
+        case MPQ:
+                mpq_init(v._bigrat);
+                mpq_set_str(v._bigrat, str.c_str(), 10);
+                hash = _mpq_pythonhash(v._bigrat);
+                return;
+        case PYOBJECT:
+                // read pickled python object to a string
+                if (!n.find_string("S", str))
+                        throw(std::runtime_error("archive error: cannot read pyobject data"));
+                arg = Py_BuildValue("s#", str.c_str(), str.size());
+                // unpickle
+                v._pyobject = py_funcs.py_loads(arg);
+                Py_DECREF(arg);
+                if (PyErr_Occurred() != nullptr) {
+                        throw(std::runtime_error("archive error: caught exception in py_loads"));
+                }
+                hash = PyObject_Hash(v._pyobject);
+                if (hash == -1 && (PyErr_Occurred() != nullptr)) {
+                        PyErr_Clear();
+                        is_hashable = false;
+                }
+                Py_INCREF(v._pyobject);
+                return;
+        default:
+                stub("unarchiving numeric");
+                return;
         }
         setflag(status_flags::evaluated | status_flags::expanded);
 }
@@ -914,33 +910,31 @@ void numeric::archive(archive_node &n) const {
         // create a string representation of this object
         std::string *tstr;
         switch (t) {
-                case LONG:
-                        tstr = new std::string(std::to_string(v._long));
-                        break;
-                case MPZ:
-                {
-                        std::vector<char> cp(2 + mpz_sizeinbase(v._bigint, 10));
-                        mpz_get_str(&cp[0], 10, v._bigint);
-                        tstr = new std::string(&cp[0]);
-                        break;
+        case LONG:
+                tstr = new std::string(std::to_string(v._long));
+                break;
+        case MPZ: {
+                std::vector<char> cp(2 + mpz_sizeinbase(v._bigint, 10));
+                mpz_get_str(&cp[0], 10, v._bigint);
+                tstr = new std::string(&cp[0]);
+                break;
+        }
+        case MPQ: {
+                size_t size = mpz_sizeinbase(mpq_numref(v._bigrat), 10)
+                + mpz_sizeinbase(mpq_denref(v._bigrat), 10) + 5;
+                std::vector<char> cp(size);
+                mpq_get_str(&cp[0], 10, v._bigrat);
+                tstr = new std::string(&cp[0]);
+                break;
+        }
+        case PYOBJECT:
+                tstr = py_funcs.py_dumps(v._pyobject);
+                if (PyErr_Occurred() != nullptr) {
+                        throw(std::runtime_error("archive error: exception in py_dumps"));
                 }
-                case MPQ:
-                {
-                        size_t size = mpz_sizeinbase(mpq_numref(v._bigrat), 10)
-                             + mpz_sizeinbase(mpq_denref(v._bigrat), 10) + 5;
-                        std::vector<char> cp(size);
-                        mpq_get_str(&cp[0], 10, v._bigrat);
-                        tstr = new std::string(&cp[0]);
-                        break;
-                }
-                case PYOBJECT:
-                        tstr = py_funcs.py_dumps(v._pyobject);
-                        if (PyErr_Occurred() != nullptr) {
-                                throw (std::runtime_error("archive error: exception in py_dumps"));
-                        }
-                        break;
-                default:
-                        stub("archive numeric");
+                break;
+        default:
+                stub("archive numeric");
         }
 
         n.add_string("S", *tstr);
@@ -994,32 +988,34 @@ void numeric::do_print_python_repr(const print_python_repr & c, unsigned level) 
 void numeric::dbgprint() const
 {
         std::string ts;
-        switch(t) {
-                case LONG: ts = "LONG";
-                          break;
-                case MPZ: ts = "MPZ";
-                          break;
-                case MPQ: ts = "MPQ";
-                          break;
-                case PYOBJECT:
-                {
-                        ts = "PYOBJECT: ";
-                        PyObject* to = PyObject_Type(v._pyobject);
-                        if (to == nullptr)
+        switch (t) {
+        case LONG:
+                ts = "LONG";
+                break;
+        case MPZ:
+                ts = "MPZ";
+                break;
+        case MPQ:
+                ts = "MPQ";
+                break;
+        case PYOBJECT: {
+                ts = "PYOBJECT: ";
+                PyObject *to = PyObject_Type(v._pyobject);
+                if (to == nullptr)
+                        ts.append("NULL");
+                else {
+                        PyObject *ro = PyObject_Repr(to);
+                        if (ro == nullptr)
                                 ts.append("NULL");
                         else {
-                                PyObject* ro = PyObject_Repr(to);
-                                if (ro == nullptr)
-                                        ts.append("NULL");
-                                else {
-                                        ts.append(*py_funcs.py_repr(ro, 0));
-                                        Py_DECREF(ro);
-                                }
-                                Py_DECREF(to);
+                                ts.append(*py_funcs.py_repr(ro, 0));
+                                Py_DECREF(ro);
                         }
-                        break;
+                        Py_DECREF(to);
                 }
-                default: stub("typestr()");
+                break;
+        }
+        default: stub("typestr()");
         }
         std::cerr << *this << " (numeric)" << " @" << this
                 << std::hex << ", hash=0x" << hash << ", flags=0x" << flags << std::dec
@@ -1028,53 +1024,53 @@ void numeric::dbgprint() const
 
 bool numeric::info(unsigned inf) const {
         switch (inf) {
-                case info_flags::numeric:
-                case info_flags::polynomial:
-                case info_flags::rational_function:
-                case info_flags::expanded:
-                        return true;
-                case info_flags::real:
-                        return is_real();
-                case info_flags::rational:
-                case info_flags::rational_polynomial:
-                        return is_rational();
-                case info_flags::crational:
-                case info_flags::crational_polynomial:
-                        return is_crational();
-                case info_flags::integer:
-                case info_flags::integer_polynomial:
-                        return is_integer();
-                case info_flags::cinteger:
-                case info_flags::cinteger_polynomial:
-                        return is_cinteger();
-                case info_flags::positive:
-                        return is_positive();
-                case info_flags::negative:
-                        return is_negative();
-                case info_flags::nonnegative:
-                        return is_zero() || is_positive();
-                case info_flags::nonzero:
-                        return not is_zero();
-                case info_flags::posint:
-                        return is_pos_integer();
-                case info_flags::negint:
-                        return is_integer() && is_negative();
-                case info_flags::nonnegint:
-                        return is_nonneg_integer();
-                case info_flags::even:
-                        return is_even();
-                case info_flags::odd:
-                        return is_odd();
-                case info_flags::prime:
-                        return is_prime();
-                case info_flags::algebraic:
-                        return !is_real();
-                case info_flags::infinity:
-                        return false;
-                case info_flags::inexact:
-                        return not is_exact();
-                default:
-                        throw (std::runtime_error("numeric::info()"));
+        case info_flags::numeric:
+        case info_flags::polynomial:
+        case info_flags::rational_function:
+        case info_flags::expanded:
+                return true;
+        case info_flags::real:
+                return is_real();
+        case info_flags::rational:
+        case info_flags::rational_polynomial:
+                return is_rational();
+        case info_flags::crational:
+        case info_flags::crational_polynomial:
+                return is_crational();
+        case info_flags::integer:
+        case info_flags::integer_polynomial:
+                return is_integer();
+        case info_flags::cinteger:
+        case info_flags::cinteger_polynomial:
+                return is_cinteger();
+        case info_flags::positive:
+                return is_positive();
+        case info_flags::negative:
+                return is_negative();
+        case info_flags::nonnegative:
+                return is_zero() || is_positive();
+        case info_flags::nonzero:
+                return not is_zero();
+        case info_flags::posint:
+                return is_pos_integer();
+        case info_flags::negint:
+                return is_integer() && is_negative();
+        case info_flags::nonnegint:
+                return is_nonneg_integer();
+        case info_flags::even:
+                return is_even();
+        case info_flags::odd:
+                return is_odd();
+        case info_flags::prime:
+                return is_prime();
+        case info_flags::algebraic:
+                return !is_real();
+        case info_flags::infinity:
+                return false;
+        case info_flags::inexact:
+                return not is_exact();
+        default:
+                throw(std::runtime_error("numeric::info()"));
         }
         return false;
 }
@@ -1129,23 +1125,22 @@ bool numeric::has(const ex &other, unsigned /*options*/) const {
 }
 
 numeric numeric::conj() const {
-        switch(t) {
-                case LONG:
-                case MPZ:
-                case MPQ: return *this;
-                case PYOBJECT:
-                {
-                        PyObject* obj = PyObject_GetAttrString(v._pyobject,
-                                        "conjugate");
-                        if (obj == nullptr)
-                                return *this;
-                        obj = PyObject_CallObject(obj, NULL);
-                        if (obj == nullptr)
-                                py_error("Error calling Python conjugate");
-                        return obj;
-                }
-                default:
-                        stub("invalid type: ::conjugate() type not handled");
+        switch (t) {
+        case LONG:
+        case MPZ:
+        case MPQ: return *this;
+        case PYOBJECT: {
+                PyObject *obj = PyObject_GetAttrString(v._pyobject,
+                "conjugate");
+                if (obj == nullptr)
+                        return *this;
+                obj = PyObject_CallObject(obj, NULL);
+                if (obj == nullptr)
+                        py_error("Error calling Python conjugate");
+                return obj;
+        }
+        default:
+                stub("invalid type: ::conjugate() type not handled");
         }
 }
 
@@ -1181,16 +1176,16 @@ bool numeric::is_equal_same_type(const basic &other) const {
 
 long numeric::calchash() const {
         switch (t) {
-                case LONG:
-                        return (v._long==-1) ? -2 : v._long;
-                case MPZ:
-                case MPQ:
-                case PYOBJECT:
-                        if (is_hashable)
-                            return hash;
-                        throw (std::runtime_error("Python object not hashable"));
-                default:
-                        stub("invalid type: ::hash() type not handled");
+        case LONG:
+                return (v._long == -1) ? -2 : v._long;
+        case MPZ:
+        case MPQ:
+        case PYOBJECT:
+                if (is_hashable)
+                        return hash;
+                throw(std::runtime_error("Python object not hashable"));
+        default:
+                stub("invalid type: ::hash() type not handled");
         }
 }
 
@@ -1232,37 +1227,36 @@ const numeric numeric::add(const numeric &other) const {
                 return a + b;
         }
         switch (t) {
-                case LONG:
-                        {
-                        if ((v._long > 0
-                             and v._long < std::numeric_limits<long>::max()/2
-                             and other.v._long < std::numeric_limits<long>::max()/2)
-                            or (v._long < 0
-                             and v._long > std::numeric_limits<long>::min()/2
-                             and other.v._long > std::numeric_limits<long>::min()/2))
-                                return v._long + other.v._long;
-                        mpz_t bigint;
-                        mpz_init_set_si(bigint, v._long);
-                        if (other.v._long < 0)
-                                mpz_sub_ui(bigint, bigint, -other.v._long);
-                        else
-                                mpz_add_ui(bigint, bigint, other.v._long);
-                        return bigint;
-                        }
-                case MPZ:
-                        mpz_t bigint;
-                        mpz_init(bigint);
-                        mpz_add(bigint, v._bigint, other.v._bigint);
-                        return bigint;
-                case MPQ:
-                        mpq_t bigrat;
-                        mpq_init(bigrat);
-                        mpq_add(bigrat, v._bigrat, other.v._bigrat);
-                        return bigrat;
-                case PYOBJECT:
-                        return PyNumber_Add(v._pyobject, other.v._pyobject);
-                default:
-                        stub("invalid type: operator+() type not handled");
+        case LONG: {
+                if ((v._long > 0
+                    and v._long < std::numeric_limits<long>::max() / 2
+                    and other.v._long < std::numeric_limits<long>::max() / 2)
+                or (v._long < 0
+                   and v._long > std::numeric_limits<long>::min() / 2
+                   and other.v._long > std::numeric_limits<long>::min() / 2))
+                        return v._long + other.v._long;
+                mpz_t bigint;
+                mpz_init_set_si(bigint, v._long);
+                if (other.v._long < 0)
+                        mpz_sub_ui(bigint, bigint, -other.v._long);
+                else
+                        mpz_add_ui(bigint, bigint, other.v._long);
+                return bigint;
+        }
+        case MPZ:
+                mpz_t bigint;
+                mpz_init(bigint);
+                mpz_add(bigint, v._bigint, other.v._bigint);
+                return bigint;
+        case MPQ:
+                mpq_t bigrat;
+                mpq_init(bigrat);
+                mpq_add(bigrat, v._bigrat, other.v._bigrat);
+                return bigrat;
+        case PYOBJECT:
+                return PyNumber_Add(v._pyobject, other.v._pyobject);
+        default:
+                stub("invalid type: operator+() type not handled");
         }
 }
 
@@ -1294,37 +1288,36 @@ const numeric numeric::sub(const numeric &other) const {
                 return a - b;
         }
         switch (t) {
-                case LONG:
-                        {
-                        if ((v._long > 0
-                             and v._long < std::numeric_limits<long>::max()/2
-                             and -other.v._long < std::numeric_limits<long>::max()/2)
-                            or (v._long < 0
-                             and v._long > std::numeric_limits<long>::min()/2
-                             and -other.v._long > std::numeric_limits<long>::min()/2))
-                                return v._long - other.v._long;
-                        mpz_t bigint;
-                        mpz_init_set_si(bigint, v._long);
-                        if (other.v._long < 0)
-                                mpz_add_ui(bigint, bigint, -other.v._long);
-                        else
-                                mpz_sub_ui(bigint, bigint, other.v._long);
-                        return bigint;
-                        }
-                case MPZ:
-                        mpz_t bigint;
-                        mpz_init(bigint);
-                        mpz_sub(bigint, v._bigint, other.v._bigint);
-                        return bigint;
-                case MPQ:
-                        mpq_t bigrat;
-                        mpq_init(bigrat);
-                        mpq_sub(bigrat, v._bigrat, other.v._bigrat);
-                        return bigrat;
-                case PYOBJECT:
-                        return PyNumber_Subtract(v._pyobject, other.v._pyobject);
-                default:
-                        stub("invalid type: operator-() type not handled");
+        case LONG: {
+                if ((v._long > 0
+                    and v._long < std::numeric_limits<long>::max() / 2
+                    and -other.v._long < std::numeric_limits<long>::max() / 2)
+                or (v._long < 0
+                   and v._long > std::numeric_limits<long>::min() / 2
+                   and -other.v._long > std::numeric_limits<long>::min() / 2))
+                        return v._long - other.v._long;
+                mpz_t bigint;
+                mpz_init_set_si(bigint, v._long);
+                if (other.v._long < 0)
+                        mpz_add_ui(bigint, bigint, -other.v._long);
+                else
+                        mpz_sub_ui(bigint, bigint, other.v._long);
+                return bigint;
+        }
+        case MPZ:
+                mpz_t bigint;
+                mpz_init(bigint);
+                mpz_sub(bigint, v._bigint, other.v._bigint);
+                return bigint;
+        case MPQ:
+                mpq_t bigrat;
+                mpq_init(bigrat);
+                mpq_sub(bigrat, v._bigrat, other.v._bigrat);
+                return bigrat;
+        case PYOBJECT:
+                return PyNumber_Subtract(v._pyobject, other.v._pyobject);
+        default:
+                stub("invalid type: operator-() type not handled");
         }
 }
 
@@ -1338,27 +1331,26 @@ const numeric numeric::mul(const numeric &other) const {
                 return a * b;
         }
         switch (t) {
-                case LONG:
-                        {
-                        mpz_t bigint;
-                        mpz_init_set_si(bigint, v._long);
-                        mpz_mul_si(bigint, bigint, other.v._long);
-                        return bigint;
-                        }
-                case MPZ:
-                        mpz_t bigint;
-                        mpz_init(bigint);
-                        mpz_mul(bigint, v._bigint, other.v._bigint);
-                        return bigint;
-                case MPQ:
-                        mpq_t bigrat;
-                        mpq_init(bigrat);
-                        mpq_mul(bigrat, v._bigrat, other.v._bigrat);
-                        return bigrat;
-                case PYOBJECT:
-                        return PyNumber_Multiply(v._pyobject, other.v._pyobject);
-                default:
-                        stub("invalid type: operator*() type not handled");
+        case LONG: {
+                mpz_t bigint;
+                mpz_init_set_si(bigint, v._long);
+                mpz_mul_si(bigint, bigint, other.v._long);
+                return bigint;
+        }
+        case MPZ:
+                mpz_t bigint;
+                mpz_init(bigint);
+                mpz_mul(bigint, v._bigint, other.v._bigint);
+                return bigint;
+        case MPQ:
+                mpq_t bigrat;
+                mpq_init(bigrat);
+                mpq_mul(bigrat, v._bigrat, other.v._bigrat);
+                return bigrat;
+        case PYOBJECT:
+                return PyNumber_Multiply(v._pyobject, other.v._pyobject);
+        default:
+                stub("invalid type: operator*() type not handled");
         }
 }
 
@@ -1380,82 +1372,83 @@ const numeric numeric::div(const numeric &other) const {
                 return a / b;
         }
         switch (t) {
-                case LONG:
-                        {
-                        if (v._long == 1 and other.v._long == 2)
-                                return *_num1_2_p;
-                        auto ld = std::div(v._long, other.v._long);
-                        if (ld.rem == 0)
-                                return ld.quot;
+        case LONG: {
+                if (v._long == 1 and other.v._long == 2)
+                        return *_num1_2_p;
+                auto ld = std::div(v._long, other.v._long);
+                if (ld.rem == 0)
+                        return ld.quot;
 
-                        mpq_t bigrat, obigrat;
-                        mpq_init(bigrat);
-                        mpq_init(obigrat);
-                        mpq_set_si(bigrat, v._long, 1);
-                        mpq_set_si(obigrat, other.v._long, 1);
-                        mpq_div(bigrat, bigrat, obigrat);
-                        mpq_clear(obigrat);
-                        return bigrat;
-                        }
-                case MPZ:
-                        {
-                        if (mpz_divisible_p(v._bigint, other.v._bigint)) {
-                                mpz_t bigint;
-                                mpz_init(bigint);
-                                mpz_divexact(bigint, v._bigint,
-                                                other.v._bigint);
-                                return bigint;
-                        }
-                        mpq_t bigrat, obigrat;
-                        mpq_init(bigrat);
-                        mpq_init(obigrat);
-                        mpq_set_z(bigrat, v._bigint);
-                        mpq_set_z(obigrat, other.v._bigint);
-                        mpq_div(bigrat, bigrat, obigrat);
-                        mpq_clear(obigrat);
-                        return bigrat;
-                        }
-                case MPQ:
-                        {
-                        mpq_t bigrat;
-                        mpq_init(bigrat);
-                        mpq_div(bigrat, v._bigrat, other.v._bigrat);
-                        return bigrat;
-                        }
-                case PYOBJECT:
+                mpq_t bigrat, obigrat;
+                mpq_init(bigrat);
+                mpq_init(obigrat);
+                mpq_set_si(bigrat, v._long, 1);
+                mpq_set_si(obigrat, other.v._long, 1);
+                mpq_div(bigrat, bigrat, obigrat);
+                mpq_clear(obigrat);
+                return bigrat;
+        }
+        case MPZ: {
+                if (mpz_divisible_p(v._bigint, other.v._bigint)) {
+                        mpz_t bigint;
+                        mpz_init(bigint);
+                        mpz_divexact(bigint, v._bigint,
+                        other.v._bigint);
+                        return bigint;
+                }
+                mpq_t bigrat, obigrat;
+                mpq_init(bigrat);
+                mpq_init(obigrat);
+                mpq_set_z(bigrat, v._bigint);
+                mpq_set_z(obigrat, other.v._bigint);
+                mpq_div(bigrat, bigrat, obigrat);
+                mpq_clear(obigrat);
+                return bigrat;
+        }
+        case MPQ: {
+                mpq_t bigrat;
+                mpq_init(bigrat);
+                mpq_div(bigrat, v._bigrat, other.v._bigrat);
+                return bigrat;
+        }
+        case PYOBJECT:
 #if PY_MAJOR_VERSION < 3
-                        if (PyObject_Compare(other.v._pyobject, ONE) == 0
-                                and py_funcs.py_is_integer(other.v._pyobject) != 0) {
-                                return *this;
+                if (PyObject_Compare(other.v._pyobject, ONE) == 0
+                and py_funcs.py_is_integer(other.v._pyobject) != 0) {
+                        return *this;
+                }
+                if (PyInt_Check(v._pyobject)) {
+                        if (PyInt_Check(other.v._pyobject)) {
+                                // This branch happens at startup.
+                                PyObject *o = PyNumber_TrueDivide(Integer(PyInt_AsLong(v._pyobject)),
+                                Integer(PyInt_AsLong(other.v._pyobject)));
+                                // I don't 100% understand why I have to incref this,
+                                // but if I don't, Sage crashes on exit.
+                                Py_INCREF(o);
+                                return o;
                         }
-                        if (PyInt_Check(v._pyobject)) {
-                                if (PyInt_Check(other.v._pyobject)) {
-                                        // This branch happens at startup.
-                                        PyObject* o = PyNumber_TrueDivide(Integer(PyInt_AsLong(v._pyobject)),
-                                                Integer(PyInt_AsLong(other.v._pyobject)));
-                                        // I don't 100% understand why I have to incref this, 
-                                        // but if I don't, Sage crashes on exit.
-                                        Py_INCREF(o);
-                                        return o;
-                                }
-                                if (PyLong_Check(other.v._pyobject)) {
-                                        PyObject* d = py_funcs.py_integer_from_python_obj(other.v._pyobject);
-                                        PyObject* ans = PyNumber_TrueDivide(v._pyobject, d);
-                                        Py_DECREF(d);
-                                        return ans;
-                                }
-                        }
-#endif
-                        if (PyLong_Check(v._pyobject)) {
-                                PyObject* n = py_funcs.py_integer_from_python_obj(v._pyobject);
-                                PyObject* ans = PyNumber_TrueDivide(n, other.v._pyobject);
-                                Py_DECREF(n);
+                        if (PyLong_Check(other.v._pyobject)) {
+                                PyObject *d = py_funcs.
+                                        py_integer_from_python_obj(other.v._pyobject);
+                                PyObject *ans = PyNumber_TrueDivide(v._pyobject,
+                                                d);
+                                Py_DECREF(d);
                                 return ans;
                         }
-                        return PyNumber_TrueDivide(v._pyobject, other.v._pyobject);
+                }
+#endif
+                if (PyLong_Check(v._pyobject)) {
+                        PyObject *n = py_funcs.
+                                py_integer_from_python_obj(v._pyobject);
+                        PyObject *ans = PyNumber_TrueDivide(n,
+                                        other.v._pyobject);
+                        Py_DECREF(n);
+                        return ans;
+                }
+                return PyNumber_TrueDivide(v._pyobject, other.v._pyobject);
 
-                default:
-                        stub("invalid type: operator/() type not handled");
+        default:
+                stub("invalid type: operator/() type not handled");
         }
 }
 
@@ -1632,74 +1625,71 @@ const numeric numeric::power(signed long exp_si) const
         if (exp_si == 1)
                 return *this;
         switch (t) {
-                case LONG:
-                        if (exp_si >= 0) {
-                                mpz_t bigint;
-                                mpz_init(bigint);
-                                mpz_set_si(bigint, v._long);
-                                mpz_pow_ui(bigint, bigint, exp_si);
-                                return numeric(bigint);
-                        }
-                        else {
-                                mpz_t bigint;
-                                mpz_init_set_si(bigint, v._long);
-                                if (exp_si != -1)
-                                        mpz_pow_ui(bigint, bigint, -exp_si);
-                                mpq_t bigrat;
-                                mpq_init(bigrat);
-                                mpq_set_z(bigrat, bigint);
-                                mpq_inv(bigrat, bigrat);
-                                mpz_clear(bigint);
-                                return numeric(bigrat);
-                        }
-                case MPZ:
-                        if (exp_si >= 0) {
-                                mpz_t bigint;
-                                mpz_init(bigint);
-                                mpz_pow_ui(bigint, v._bigint, exp_si);
-                                return numeric(bigint);
-                        }
-                        else {
-                                mpz_t bigint;
-                                mpz_init_set(bigint, v._bigint);
-                                mpz_pow_ui(bigint, bigint, -exp_si);
-                                mpq_t bigrat;
-                                mpq_init(bigrat);
-                                mpq_set_z(bigrat, bigint);
-                                mpq_inv(bigrat, bigrat);
-                                mpz_clear(bigint);
-                                return numeric(bigrat);
-                        }
-                case MPQ:
+        case LONG:
+                if (exp_si >= 0) {
                         mpz_t bigint;
-                        mpq_t bigrat, obigrat;
                         mpz_init(bigint);
+                        mpz_set_si(bigint, v._long);
+                        mpz_pow_ui(bigint, bigint, exp_si);
+                        return numeric(bigint);
+                } else {
+                        mpz_t bigint;
+                        mpz_init_set_si(bigint, v._long);
+                        if (exp_si != -1)
+                                mpz_pow_ui(bigint, bigint, -exp_si);
+                        mpq_t bigrat;
                         mpq_init(bigrat);
-                        mpq_init(obigrat);
-                        if (exp_si >= 0) {
-                                mpz_pow_ui(bigint, mpq_numref(v._bigrat), exp_si);
-                                mpq_set_z(bigrat, bigint);
-                                mpz_pow_ui(bigint, mpq_denref(v._bigrat), exp_si);
-                                mpq_set_z(obigrat, bigint);
-                                mpq_div(bigrat, bigrat, obigrat);
-                        }
-                        else {
-                                mpz_pow_ui(bigint, mpq_denref(v._bigrat), -exp_si);
-                                mpq_set_z(bigrat, bigint);
-                                mpz_pow_ui(bigint, mpq_numref(v._bigrat), -exp_si);
-                                mpq_set_z(obigrat, bigint);
-                                mpq_div(bigrat, bigrat, obigrat);
-                        }
+                        mpq_set_z(bigrat, bigint);
+                        mpq_inv(bigrat, bigrat);
                         mpz_clear(bigint);
-                        mpq_clear(obigrat);
                         return numeric(bigrat);
-                case PYOBJECT:
-                        o = Integer(exp_si);
-                        r = PyNumber_Power(v._pyobject, o, Py_None);
-                        Py_DECREF(o);
-                        return numeric(r);
-                default:
-                        stub("invalid type: pow_intexp numeric");
+                }
+        case MPZ:
+                if (exp_si >= 0) {
+                        mpz_t bigint;
+                        mpz_init(bigint);
+                        mpz_pow_ui(bigint, v._bigint, exp_si);
+                        return numeric(bigint);
+                } else {
+                        mpz_t bigint;
+                        mpz_init_set(bigint, v._bigint);
+                        mpz_pow_ui(bigint, bigint, -exp_si);
+                        mpq_t bigrat;
+                        mpq_init(bigrat);
+                        mpq_set_z(bigrat, bigint);
+                        mpq_inv(bigrat, bigrat);
+                        mpz_clear(bigint);
+                        return numeric(bigrat);
+                }
+        case MPQ:
+                mpz_t bigint;
+                mpq_t bigrat, obigrat;
+                mpz_init(bigint);
+                mpq_init(bigrat);
+                mpq_init(obigrat);
+                if (exp_si >= 0) {
+                        mpz_pow_ui(bigint, mpq_numref(v._bigrat), exp_si);
+                        mpq_set_z(bigrat, bigint);
+                        mpz_pow_ui(bigint, mpq_denref(v._bigrat), exp_si);
+                        mpq_set_z(obigrat, bigint);
+                        mpq_div(bigrat, bigrat, obigrat);
+                } else {
+                        mpz_pow_ui(bigint, mpq_denref(v._bigrat), -exp_si);
+                        mpq_set_z(bigrat, bigint);
+                        mpz_pow_ui(bigint, mpq_numref(v._bigrat), -exp_si);
+                        mpq_set_z(obigrat, bigint);
+                        mpq_div(bigrat, bigrat, obigrat);
+                }
+                mpz_clear(bigint);
+                mpq_clear(obigrat);
+                return numeric(bigrat);
+        case PYOBJECT:
+                o = Integer(exp_si);
+                r = PyNumber_Power(v._pyobject, o, Py_None);
+                Py_DECREF(o);
+                return numeric(r);
+        default:
+                stub("invalid type: pow_intexp numeric");
         }
 }
 
@@ -1750,10 +1740,10 @@ const ex numeric::power(const numeric &exponent) const {
                 if (d.is_minus_one()
                                 and expo.denom().is_equal(*_num2_p)) {
                         switch (expo.numer().to_long() % 4) {
-                                case 0: return c;
-                                case 1: return I*c;
-                                case 2: return -c;
-                                case 3: return -I*c;
+                        case 0: return c;
+                        case 1: return I * c;
+                        case 2: return -c;
+                        case 3: return -I * c;
                         };
                 }
                 else if (not c_unit)
@@ -1886,23 +1876,23 @@ const numeric &numeric::operator=(double d) {
 const numeric numeric::negative() const {
         verbose("operator-");
         switch (t) {
-                case LONG:
-                        return -v._long;
-                case MPZ:
-                        mpz_t bigint;
-                        mpz_init_set(bigint, v._bigint);
-                        mpz_neg(bigint, bigint);
-                        return bigint;
-                case MPQ:
-                        mpq_t bigrat;
-                        mpq_init(bigrat);
-                        mpq_set(bigrat, v._bigrat);
-                        mpq_neg(bigrat, bigrat);
-                        return bigrat;
-                case PYOBJECT:
-                        return PyNumber_Negative(v._pyobject);
-                default:
-                        stub("invalid type: operator-() type not handled");
+        case LONG:
+                return -v._long;
+        case MPZ:
+                mpz_t bigint;
+                mpz_init_set(bigint, v._bigint);
+                mpz_neg(bigint, bigint);
+                return bigint;
+        case MPQ:
+                mpq_t bigrat;
+                mpq_init(bigrat);
+                mpq_set(bigrat, v._bigrat);
+                mpq_neg(bigrat, bigrat);
+                return bigrat;
+        case PYOBJECT:
+                return PyNumber_Negative(v._pyobject);
+        default:
+                stub("invalid type: operator-() type not handled");
         }
 }
 
@@ -1939,52 +1929,50 @@ numeric & operator+=(numeric & lh, const numeric & rh)
                 return lh;
         }
         switch (lh.t) {
-                case LONG:
-                        {
+        case LONG: {
                 if ((lh.v._long > 0
-                     and lh.v._long < std::numeric_limits<long>::max()/2
-                             and rh.v._long < std::numeric_limits<long>::max()/2)
-                            or (lh.v._long < 0
-                             and lh.v._long > std::numeric_limits<long>::min()/2
-                             and rh.v._long > std::numeric_limits<long>::min()/2)) {
-                                lh.v._long += rh.v._long;
-                                lh.hash = (lh.v._long==-1) ? -2 : lh.v._long;
-                                return lh;
-                        }
-                        lh.t = MPZ;
-                        mpz_init_set_si(lh.v._bigint, lh.v._long);
-                        if (rh.v._long < 0)
-                                mpz_sub_ui(lh.v._bigint,
-                                                lh.v._bigint, -rh.v._long);
-                        else
-                                mpz_add_ui(lh.v._bigint, lh.v._bigint,
-                                                rh.v._long);
-                        lh.hash = _mpz_pythonhash(lh.v._bigint);
+                    and lh.v._long < std::numeric_limits<long>::max() / 2
+                    and rh.v._long < std::numeric_limits<long>::max() / 2)
+                or (lh.v._long < 0
+                   and lh.v._long > std::numeric_limits<long>::min() / 2
+                   and rh.v._long > std::numeric_limits<long>::min() / 2)) {
+                        lh.v._long += rh.v._long;
+                        lh.hash = (lh.v._long == -1) ? -2 : lh.v._long;
                         return lh;
-                        }
-                case MPZ:
-                        mpz_add(lh.v._bigint, lh.v._bigint, rh.v._bigint);
-                        lh.hash = _mpz_pythonhash(lh.v._bigint);
-                        return lh;
-                case MPQ:
-                        mpq_add(lh.v._bigrat, lh.v._bigrat, rh.v._bigrat);
-                        lh.hash = _mpq_pythonhash(lh.v._bigrat);
-                        return lh;
-                case PYOBJECT:
-                        {
-                        PyObject* p = lh.v._pyobject;
-                        lh.v._pyobject = PyNumber_Add(p, rh.v._pyobject);
-                        if (lh.v._pyobject == nullptr) {
-                                lh.v._pyobject = p;
-                                py_error("numeric operator+=");
-                        }
-                        lh.hash = PyObject_Hash(lh.v._pyobject);
-                        Py_DECREF(p);
-                        Py_INCREF(lh.v._pyobject);
-                        return lh;
-                        }
-                default:
-                        stub("invalid type: operator+=() type not handled");
+                }
+                lh.t = MPZ;
+                mpz_init_set_si(lh.v._bigint, lh.v._long);
+                if (rh.v._long < 0)
+                        mpz_sub_ui(lh.v._bigint,
+                        lh.v._bigint, -rh.v._long);
+                else
+                        mpz_add_ui(lh.v._bigint, lh.v._bigint,
+                        rh.v._long);
+                lh.hash = _mpz_pythonhash(lh.v._bigint);
+                return lh;
+        }
+        case MPZ:
+                mpz_add(lh.v._bigint, lh.v._bigint, rh.v._bigint);
+                lh.hash = _mpz_pythonhash(lh.v._bigint);
+                return lh;
+        case MPQ:
+                mpq_add(lh.v._bigrat, lh.v._bigrat, rh.v._bigrat);
+                lh.hash = _mpq_pythonhash(lh.v._bigrat);
+                return lh;
+        case PYOBJECT: {
+                PyObject *p = lh.v._pyobject;
+                lh.v._pyobject = PyNumber_Add(p, rh.v._pyobject);
+                if (lh.v._pyobject == nullptr) {
+                        lh.v._pyobject = p;
+                        py_error("numeric operator+=");
+                }
+                lh.hash = PyObject_Hash(lh.v._pyobject);
+                Py_DECREF(p);
+                Py_INCREF(lh.v._pyobject);
+                return lh;
+        }
+        default:
+                stub("invalid type: operator+=() type not handled");
         }
 }
 
@@ -2019,52 +2007,50 @@ numeric & operator-=(numeric & lh, const numeric & rh)
                 return lh;
         }
         switch (lh.t) {
-                case LONG:
-                        {
-                        if ((lh.v._long > 0
-                             and lh.v._long < std::numeric_limits<long>::max()/2
-                             and -rh.v._long < std::numeric_limits<long>::max()/2)
-                            or (lh.v._long < 0
-                             and lh.v._long > std::numeric_limits<long>::min()/2
-                             and -rh.v._long > std::numeric_limits<long>::min()/2)) {
-                                lh.v._long -= rh.v._long;
-                                lh.hash = (lh.v._long==-1) ? -2 : lh.v._long;
-                                return lh;
-                        }
-                        lh.t = MPZ;
-                        mpz_init_set_si(lh.v._bigint, lh.v._long);
-                        if (rh.v._long < 0)
-                                mpz_add_ui(lh.v._bigint,
-                                                lh.v._bigint, -rh.v._long);
-                        else
-                                mpz_sub_ui(lh.v._bigint, lh.v._bigint,
-                                                rh.v._long);
-                        lh.hash = _mpz_pythonhash(lh.v._bigint);
+        case LONG: {
+                if ((lh.v._long > 0
+                    and lh.v._long < std::numeric_limits<long>::max() / 2
+                    and -rh.v._long < std::numeric_limits<long>::max() / 2)
+                or (lh.v._long < 0
+                   and lh.v._long > std::numeric_limits<long>::min() / 2
+                   and -rh.v._long > std::numeric_limits<long>::min() / 2)) {
+                        lh.v._long -= rh.v._long;
+                        lh.hash = (lh.v._long == -1) ? -2 : lh.v._long;
                         return lh;
-                        }
-                case MPZ:
-                        mpz_sub(lh.v._bigint, lh.v._bigint, rh.v._bigint);
-                        lh.hash = _mpz_pythonhash(lh.v._bigint);
-                        return lh;
-                case MPQ:
-                        mpq_sub(lh.v._bigrat, lh.v._bigrat, rh.v._bigrat);
-                        lh.hash = _mpq_pythonhash(lh.v._bigrat);
-                        return lh;
-                case PYOBJECT:
-                        {
-                        PyObject* p = lh.v._pyobject;
-                        lh.v._pyobject = PyNumber_Subtract(p, rh.v._pyobject);
-                        if (lh.v._pyobject == nullptr) {
-                                lh.v._pyobject = p;
-                                py_error("numeric operator-=");
-                        }
-                        lh.hash = PyObject_Hash(lh.v._pyobject);
-                        Py_DECREF(p);
-                        Py_INCREF(lh.v._pyobject);
-                        return lh;
-                        }
-                default:
-                        stub("invalid type: operator-() type not handled");
+                }
+                lh.t = MPZ;
+                mpz_init_set_si(lh.v._bigint, lh.v._long);
+                if (rh.v._long < 0)
+                        mpz_add_ui(lh.v._bigint,
+                        lh.v._bigint, -rh.v._long);
+                else
+                        mpz_sub_ui(lh.v._bigint, lh.v._bigint,
+                        rh.v._long);
+                lh.hash = _mpz_pythonhash(lh.v._bigint);
+                return lh;
+        }
+        case MPZ:
+                mpz_sub(lh.v._bigint, lh.v._bigint, rh.v._bigint);
+                lh.hash = _mpz_pythonhash(lh.v._bigint);
+                return lh;
+        case MPQ:
+                mpq_sub(lh.v._bigrat, lh.v._bigrat, rh.v._bigrat);
+                lh.hash = _mpq_pythonhash(lh.v._bigrat);
+                return lh;
+        case PYOBJECT: {
+                PyObject *p = lh.v._pyobject;
+                lh.v._pyobject = PyNumber_Subtract(p, rh.v._pyobject);
+                if (lh.v._pyobject == nullptr) {
+                        lh.v._pyobject = p;
+                        py_error("numeric operator-=");
+                }
+                lh.hash = PyObject_Hash(lh.v._pyobject);
+                Py_DECREF(p);
+                Py_INCREF(lh.v._pyobject);
+                return lh;
+        }
+        default:
+                stub("invalid type: operator-() type not handled");
         }
 }
 
@@ -2116,37 +2102,35 @@ numeric & operator*=(numeric & lh, const numeric & rh)
                 return lh;
         }
         switch (lh.t) {
-                case LONG:
-                        {
-                        lh.t = MPZ;
-                        mpz_init_set_si(lh.v._bigint, lh.v._long);
-                        mpz_mul_si(lh.v._bigint, lh.v._bigint, rh.v._long);
-                        lh.hash = _mpz_pythonhash(lh.v._bigint);
-                        return lh;
-                        }
-                case MPZ:
-                        mpz_mul(lh.v._bigint, lh.v._bigint, rh.v._bigint);
-                        lh.hash = _mpz_pythonhash(lh.v._bigint);
-                        return lh;
-                case MPQ:
-                        mpq_mul(lh.v._bigrat, lh.v._bigrat, rh.v._bigrat);
-                        lh.hash = _mpq_pythonhash(lh.v._bigrat);
-                        return lh;
-                case PYOBJECT:
-                        {
-                        PyObject* p = lh.v._pyobject;
-                        lh.v._pyobject = PyNumber_Multiply(p, rh.v._pyobject);
-                        if (lh.v._pyobject == nullptr) {
-                                lh.v._pyobject = p;
-                                py_error("numeric operator*=");
-                        }
-                        lh.hash = PyObject_Hash(lh.v._pyobject);
-                        Py_DECREF(p);
-                        Py_INCREF(lh.v._pyobject);
-                        return lh;
-                        }
-                default:
-                        stub("invalid type: operator*=() type not handled");
+        case LONG: {
+                lh.t = MPZ;
+                mpz_init_set_si(lh.v._bigint, lh.v._long);
+                mpz_mul_si(lh.v._bigint, lh.v._bigint, rh.v._long);
+                lh.hash = _mpz_pythonhash(lh.v._bigint);
+                return lh;
+        }
+        case MPZ:
+                mpz_mul(lh.v._bigint, lh.v._bigint, rh.v._bigint);
+                lh.hash = _mpz_pythonhash(lh.v._bigint);
+                return lh;
+        case MPQ:
+                mpq_mul(lh.v._bigrat, lh.v._bigrat, rh.v._bigrat);
+                lh.hash = _mpq_pythonhash(lh.v._bigrat);
+                return lh;
+        case PYOBJECT: {
+                PyObject *p = lh.v._pyobject;
+                lh.v._pyobject = PyNumber_Multiply(p, rh.v._pyobject);
+                if (lh.v._pyobject == nullptr) {
+                        lh.v._pyobject = p;
+                        py_error("numeric operator*=");
+                }
+                lh.hash = PyObject_Hash(lh.v._pyobject);
+                Py_DECREF(p);
+                Py_INCREF(lh.v._pyobject);
+                return lh;
+        }
+        default:
+                stub("invalid type: operator*=() type not handled");
         }
 }
 
@@ -2205,69 +2189,66 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                 return lh;
         }
         switch (lh.t) {
-                case LONG:
-                        {
-                        auto ld = std::div(lh.v._long, rh.v._long);
-                        if (ld.rem == 0) {
-                                lh.v._long = ld.quot;
-                                lh.hash = (ld.quot==-1) ? -2 : ld.quot;
-                                return lh;
-                        }
-                        
-                        mpq_t obigrat;
-                        lh.t = MPQ;
-                        unsigned long l = std::labs(lh.v._long);
-                        unsigned long r = std::labs(rh.v._long);
-                        int sign = sgn(lh.v._long) * sgn(rh.v._long);
-                        mpq_init(obigrat);
-                        mpq_init(lh.v._bigrat);
-                        mpq_set_ui(lh.v._bigrat, l, 1);
-                        mpq_set_ui(obigrat, r, 1);
-                        mpq_div(lh.v._bigrat, lh.v._bigrat, obigrat);
-                        if (sign == -1)
-                                mpq_neg(lh.v._bigrat, lh.v._bigrat);
-                        mpq_clear(obigrat);
-                        lh.hash = _mpq_pythonhash(lh.v._bigrat);
+        case LONG: {
+                auto ld = std::div(lh.v._long, rh.v._long);
+                if (ld.rem == 0) {
+                        lh.v._long = ld.quot;
+                        lh.hash = (ld.quot == -1) ? -2 : ld.quot;
                         return lh;
-                        }
-                case MPZ:
-                        {
-                        if (mpz_divisible_p(lh.v._bigint, rh.v._bigint)) {
-                                mpz_divexact(lh.v._bigint,
-                                                lh.v._bigint,
-                                                rh.v._bigint);
-                                lh.hash = _mpz_pythonhash(lh.v._bigint);
-                                return lh;
-                        }
-                        mpq_t bigrat, obigrat;
-                        mpq_init(bigrat);
-                        mpq_init(obigrat);
-                        mpq_set_z(bigrat, lh.v._bigint);
-                        mpq_set_z(obigrat, rh.v._bigint);
-                        mpz_clear(lh.v._bigint);
-                        lh.t = MPQ;
-                        mpq_init(lh.v._bigrat);
-                        mpq_div(lh.v._bigrat, bigrat, obigrat);
-                        lh.hash = _mpq_pythonhash(lh.v._bigrat);
-                        mpq_clear(bigrat);
-                        mpq_clear(obigrat);
+                }
+
+                mpq_t obigrat;
+                lh.t = MPQ;
+                unsigned long l = std::labs(lh.v._long);
+                unsigned long r = std::labs(rh.v._long);
+                int sign = sgn(lh.v._long) * sgn(rh.v._long);
+                mpq_init(obigrat);
+                mpq_init(lh.v._bigrat);
+                mpq_set_ui(lh.v._bigrat, l, 1);
+                mpq_set_ui(obigrat, r, 1);
+                mpq_div(lh.v._bigrat, lh.v._bigrat, obigrat);
+                if (sign == -1)
+                        mpq_neg(lh.v._bigrat, lh.v._bigrat);
+                mpq_clear(obigrat);
+                lh.hash = _mpq_pythonhash(lh.v._bigrat);
+                return lh;
+        }
+        case MPZ: {
+                if (mpz_divisible_p(lh.v._bigint, rh.v._bigint)) {
+                        mpz_divexact(lh.v._bigint,
+                        lh.v._bigint,
+                        rh.v._bigint);
+                        lh.hash = _mpz_pythonhash(lh.v._bigint);
                         return lh;
-                        }
-                case MPQ:
-                        mpq_div(lh.v._bigrat, lh.v._bigrat, rh.v._bigrat);
-                        lh.hash = _mpq_pythonhash(lh.v._bigrat);
-                        return lh;
-                case PYOBJECT:
-                        {
-                        PyObject* p = lh.v._pyobject;
+                }
+                mpq_t bigrat, obigrat;
+                mpq_init(bigrat);
+                mpq_init(obigrat);
+                mpq_set_z(bigrat, lh.v._bigint);
+                mpq_set_z(obigrat, rh.v._bigint);
+                mpz_clear(lh.v._bigint);
+                lh.t = MPQ;
+                mpq_init(lh.v._bigrat);
+                mpq_div(lh.v._bigrat, bigrat, obigrat);
+                lh.hash = _mpq_pythonhash(lh.v._bigrat);
+                mpq_clear(bigrat);
+                mpq_clear(obigrat);
+                return lh;
+        }
+        case MPQ:
+                mpq_div(lh.v._bigrat, lh.v._bigrat, rh.v._bigrat);
+                lh.hash = _mpq_pythonhash(lh.v._bigrat);
+                return lh;
+        case PYOBJECT: {
+                PyObject *p = lh.v._pyobject;
 #if PY_MAJOR_VERSION < 3
-                        {
+                {
                         if (PyInt_Check(p)) {
                                 if (PyInt_Check(rh.v._pyobject)) {
                                         // This branch happens at startup.
                                         lh.v._pyobject = PyNumber_TrueDivide(Integer(PyInt_AsLong(p)),
-                                                Integer(PyInt_AsLong(rh.v._pyobject)));
-                                        // I don't 100% understand why I have to incref this, 
+                                        Integer(PyInt_AsLong(rh.v._pyobject)));
+                                        // I don't 100% understand why I have to incref this,
                                         // but if I don't, Sage crashes on exit.
                                         if (lh.v._pyobject == nullptr) {
                                                 lh.v._pyobject = p;
@@ -2279,7 +2260,7 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                                         return lh;
                                 }
                                 if (PyLong_Check(rh.v._pyobject)) {
-                                        PyObject* d = py_funcs.py_integer_from_python_obj(rh.v._pyobject);
+                                        PyObject *d = py_funcs.py_integer_from_python_obj(rh.v._pyobject);
                                         lh.v._pyobject = PyNumber_TrueDivide(p, d);
                                         if (lh.v._pyobject == nullptr) {
                                                 lh.v._pyobject = p;
@@ -2292,7 +2273,7 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                                         return lh;
                                 }
                         } else if (PyLong_Check(p)) {
-                                PyObject* n = py_funcs.py_integer_from_python_obj(p);
+                                PyObject *n = py_funcs.py_integer_from_python_obj(p);
                                 lh.v._pyobject = PyNumber_TrueDivide(n, rh.v._pyobject);
                                 if (lh.v._pyobject == nullptr) {
                                         lh.v._pyobject = p;
@@ -2304,11 +2285,11 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                                 Py_INCREF(lh.v._pyobject);
                                 return lh;
                         }
-                        }
+                }
 #else
-                        {
+                {
                         if (PyLong_Check(p)) {
-                                PyObject* n = py_funcs.py_integer_from_python_obj(p);
+                                PyObject *n = py_funcs.py_integer_from_python_obj(p);
                                 lh.v._pyobject = PyNumber_TrueDivide(n, rh.v._pyobject);
                                 if (lh.v._pyobject == nullptr) {
                                         lh.v._pyobject = p;
@@ -2320,20 +2301,20 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                                 Py_INCREF(lh.v._pyobject);
                                 return lh;
                         }
-                        }
+                }
 #endif
-                        lh.v._pyobject = PyNumber_TrueDivide(p, rh.v._pyobject);
-                        if (lh.v._pyobject == nullptr) {
-                                lh.v._pyobject = p;
-                                py_error("numeric operator/=");
-                        }
-                        lh.hash = PyObject_Hash(lh.v._pyobject);
-                        Py_DECREF(p);
-                        Py_INCREF(lh.v._pyobject);
-                        return lh;
-                        }
-                default:
-                        stub("invalid type: operator/=() type not handled");
+                lh.v._pyobject = PyNumber_TrueDivide(p, rh.v._pyobject);
+                if (lh.v._pyobject == nullptr) {
+                        lh.v._pyobject = p;
+                        py_error("numeric operator/=");
+                }
+                lh.hash = PyObject_Hash(lh.v._pyobject);
+                Py_DECREF(p);
+                Py_INCREF(lh.v._pyobject);
+                return lh;
+        }
+        default:
+                stub("invalid type: operator/=() type not handled");
         }
 }
 
@@ -2351,17 +2332,17 @@ const numeric numeric::inverse() const {
  */
 const numeric numeric::step() const {
         switch (t) {
-                case LONG: return v._long > 0;
-                case MPZ:
-                case MPQ:
-                        if (is_positive())
-                                return 1;
-                        else
-                                return 0;
-                case PYOBJECT:
-                        return py_funcs.py_step(v._pyobject);
-                default:
-                        stub("invalid type: step() type not handled");
+        case LONG: return v._long > 0;
+        case MPZ:
+        case MPQ:
+                if (is_positive())
+                        return 1;
+                else
+                        return 0;
+        case PYOBJECT:
+                return py_funcs.py_step(v._pyobject);
+        default:
+                stub("invalid type: step() type not handled");
         }
 }
 
@@ -2373,34 +2354,33 @@ const numeric numeric::step() const {
 int numeric::csgn() const {
         verbose("csgn");
         switch (t) {
-                case LONG:
-                        if (v._long == 0)
-                                return 0;
-                        return v._long < 0 ? -1:1;
-                case MPZ:
-                        return mpz_sgn(v._bigint);
-                case MPQ:
-                        return mpq_sgn(v._bigrat);
-                case PYOBJECT:
-                {
-                        int result;
-                        if (is_real()) {
-                                numeric z(ZERO);
-                                Py_INCREF(ZERO);
-                                return compare_same_type(z);
-                        } 
-                        numeric re = real();
+        case LONG:
+                if (v._long == 0)
+                        return 0;
+                return v._long < 0 ? -1 : 1;
+        case MPZ:
+                return mpz_sgn(v._bigint);
+        case MPQ:
+                return mpq_sgn(v._bigrat);
+        case PYOBJECT: {
+                int result;
+                if (is_real()) {
                         numeric z(ZERO);
                         Py_INCREF(ZERO);
-                        result = re.compare_same_type(z);
-                        if (result == 0) {
-                                numeric im = imag();
-                                result = im.compare_same_type(z);
-                        }
-                        return result;
+                        return compare_same_type(z);
                 }
-                default:
-                        stub("invalid type: csgn() type not handled");
+                numeric re = real();
+                numeric z(ZERO);
+                Py_INCREF(ZERO);
+                result = re.compare_same_type(z);
+                if (result == 0) {
+                        numeric im = imag();
+                        result = im.compare_same_type(z);
+                }
+                return result;
+        }
+        default:
+                stub("invalid type: csgn() type not handled");
         }
 }
 
@@ -2413,71 +2393,71 @@ bool numeric::is_zero() const {
         verbose("is_zero");
         int a;
         switch (t) {
-                case LONG:
-                        return v._long == 0;
-                case MPZ:
-                        return mpz_cmp_si(v._bigint, 0) == 0;
-                case MPQ:
-                        return mpq_cmp_si(v._bigrat, 0, 1) == 0;
-                case PYOBJECT:
-                        a = PyObject_Not(v._pyobject);
-                        if (a == -1)
-                                py_error("is_zero");
-                        return a == 1;
-                default:
-                        std::cerr << "type = " << t << "\n";
-                        stub("invalid type: is_zero() type not handled");
+        case LONG:
+                return v._long == 0;
+        case MPZ:
+                return mpz_cmp_si(v._bigint, 0) == 0;
+        case MPQ:
+                return mpq_cmp_si(v._bigrat, 0, 1) == 0;
+        case PYOBJECT:
+                a = PyObject_Not(v._pyobject);
+                if (a == -1)
+                        py_error("is_zero");
+                return a == 1;
+        default:
+                std::cerr << "type = " << t << "\n";
+                stub("invalid type: is_zero() type not handled");
         }
 }
 
 bool numeric::is_inexact_one() const {
         verbose("is_one");
         switch (t) {
-                case LONG:
-                        return v._long == 1;
-                case MPZ:
-                        return mpz_cmp_si(v._bigint, 1) == 0;
-                case MPQ:
-                        return mpq_cmp_si(v._bigrat, 1, 1) == 0;
-                case PYOBJECT:
-                        return is_equal(*_num1_p);
-                default:
-                        std::cerr << "type = " << t << "\n";
-                        stub("invalid type: is_one() type not handled");
+        case LONG:
+                return v._long == 1;
+        case MPZ:
+                return mpz_cmp_si(v._bigint, 1) == 0;
+        case MPQ:
+                return mpq_cmp_si(v._bigrat, 1, 1) == 0;
+        case PYOBJECT:
+                return is_equal(*_num1_p);
+        default:
+                std::cerr << "type = " << t << "\n";
+                stub("invalid type: is_one() type not handled");
         }
 }
 
 bool numeric::is_one() const {
         verbose("is_one");
         switch (t) {
-                case LONG:
-                        return v._long == 1;
-                case MPZ:
-                        return mpz_cmp_si(v._bigint, 1) == 0;
-                case MPQ:
-                        return mpq_cmp_si(v._bigrat, 1, 1) == 0;
-                case PYOBJECT:
-                        return is_exact() and is_equal(*_num1_p);
-                default:
-                        std::cerr << "type = " << t << "\n";
-                        stub("invalid type: is_one() type not handled");
+        case LONG:
+                return v._long == 1;
+        case MPZ:
+                return mpz_cmp_si(v._bigint, 1) == 0;
+        case MPQ:
+                return mpq_cmp_si(v._bigrat, 1, 1) == 0;
+        case PYOBJECT:
+                return is_exact() and is_equal(*_num1_p);
+        default:
+                std::cerr << "type = " << t << "\n";
+                stub("invalid type: is_one() type not handled");
         }
 }
 
 bool numeric::is_minus_one() const {
         verbose("is_one");
         switch (t) {
-                case LONG:
-                        return v._long == -1;
-                case MPZ:
-                        return mpz_cmp_si(v._bigint, -1) == 0;
-                case MPQ:
-                        return mpq_cmp_si(v._bigrat, -1, 1) == 0;
-                case PYOBJECT:
-                        return is_exact() and is_equal(*_num_1_p);
-                default:
-                        std::cerr << "type = " << t << "\n";
-                        stub("invalid type: is_minus_one() type not handled");
+        case LONG:
+                return v._long == -1;
+        case MPZ:
+                return mpz_cmp_si(v._bigint, -1) == 0;
+        case MPQ:
+                return mpq_cmp_si(v._bigrat, -1, 1) == 0;
+        case PYOBJECT:
+                return is_exact() and is_equal(*_num_1_p);
+        default:
+                std::cerr << "type = " << t << "\n";
+                stub("invalid type: is_minus_one() type not handled");
         }
 }
 
@@ -2485,24 +2465,25 @@ bool numeric::is_minus_one() const {
 bool numeric::is_positive() const {
         verbose("is_positive");
         switch (t) {
-                case LONG:
-                        return v._long > 0;
-                case MPZ:
-                        return mpz_cmp_si(v._bigint, 0) > 0;
-                case MPQ:
-                        return mpq_cmp_si(v._bigrat, 0, 1) > 0;
-                case PYOBJECT:
-                        if (is_real()) {
-                            int result;
-                            result = PyObject_RichCompareBool(v._pyobject, ZERO, Py_GT);
-                            if (result == 1)
+        case LONG:
+                return v._long > 0;
+        case MPZ:
+                return mpz_cmp_si(v._bigint, 0) > 0;
+        case MPQ:
+                return mpq_cmp_si(v._bigrat, 0, 1) > 0;
+        case PYOBJECT:
+                if (is_real()) {
+                        int result;
+                        result = PyObject_RichCompareBool(v._pyobject,
+                                        ZERO, Py_GT);
+                        if (result == 1)
                                 return true;
-                            if (result == -1)
+                        if (result == -1)
                                 PyErr_Clear();
-                        }
-                        return false;
-                default:
-                        stub("invalid type: is_positive() type not handled");
+                }
+                return false;
+        default:
+                stub("invalid type: is_positive() type not handled");
         }
 }
 
@@ -2510,24 +2491,25 @@ bool numeric::is_positive() const {
 bool numeric::is_negative() const {
         verbose("is_negative");
         switch (t) {
-                case LONG:
-                        return v._long < 0;
-                case MPZ:
-                        return mpz_cmp_si(v._bigint, 0) < 0;
-                case MPQ:
-                        return mpq_cmp_si(v._bigrat, 0, 1) < 0;
-                case PYOBJECT:
-                        if (is_real()) {
-                            int result;
-                            result = PyObject_RichCompareBool(v._pyobject, ZERO, Py_LT);
-                            if (result == 1)
+        case LONG:
+                return v._long < 0;
+        case MPZ:
+                return mpz_cmp_si(v._bigint, 0) < 0;
+        case MPQ:
+                return mpq_cmp_si(v._bigrat, 0, 1) < 0;
+        case PYOBJECT:
+                if (is_real()) {
+                        int result;
+                        result = PyObject_RichCompareBool(v._pyobject,
+                                        ZERO, Py_LT);
+                        if (result == 1)
                                 return true;
-                            if (result == -1)
+                        if (result == -1)
                                 PyErr_Clear();
-                        }
-                        return false;
-                default:
-                        stub("invalid type: is_negative() type not handled");
+                }
+                return false;
+        default:
+                stub("invalid type: is_negative() type not handled");
         }
 }
 
@@ -2537,21 +2519,22 @@ bool numeric::is_integer() const {
 
         bool ret;
         switch (t) {
-                case LONG:
-                case MPZ:
-                        return true;
-                case MPQ:
-                        mpq_t bigrat;
-                        mpq_init(bigrat);
-                        mpq_set(bigrat, v._bigrat);
-                        mpq_canonicalize(bigrat);
-                        ret = mpz_cmp_ui(mpq_denref(bigrat), 1) ==0;
-                        mpq_clear(bigrat);
-                        return ret;
-                case PYOBJECT:
-                        return py_funcs.py_is_integer(v._pyobject) != 0;
-                default:
-                        stub("invalid type: is_integer() type not handled");
+        case LONG:
+        case MPZ:
+                return true;
+        case MPQ: {
+                mpq_t bigrat;
+                mpq_init(bigrat);
+                mpq_set(bigrat, v._bigrat);
+                mpq_canonicalize(bigrat);
+                ret = mpz_cmp_ui(mpq_denref(bigrat), 1) == 0;
+                mpq_clear(bigrat);
+                return ret;
+        }
+        case PYOBJECT:
+                return py_funcs.py_is_integer(v._pyobject) != 0;
+        default:
+                stub("invalid type: is_integer() type not handled");
         }
 }
 
@@ -2559,16 +2542,16 @@ bool numeric::is_integer() const {
 bool numeric::is_pos_integer() const {
         verbose("is_pos_integer");
         switch (t) {
-                case LONG:
-                        return v._long > 0;
-                case MPZ:
-                        return is_positive();
-                case MPQ:
-                        return (is_integer() && is_positive());
-                case PYOBJECT:
-                        return (is_integer() && is_positive());
-                default:
-                        stub("invalid type: is_pos_integer() type not handled");
+        case LONG:
+                return v._long > 0;
+        case MPZ:
+                return is_positive();
+        case MPQ:
+                return (is_integer() && is_positive());
+        case PYOBJECT:
+                return (is_integer() && is_positive());
+        default:
+                stub("invalid type: is_pos_integer() type not handled");
         }
 }
 
@@ -2576,24 +2559,25 @@ bool numeric::is_pos_integer() const {
 bool numeric::is_nonneg_integer() const {
         verbose("is_nonneg_integer");
         switch (t) {
-                case LONG:
-                        return v._long >= 0;
-                case MPZ:
-                        return is_positive() or is_zero();
-                case MPQ:
-                        return (is_integer() and (is_positive() or is_zero()));
-                case PYOBJECT:
-                        if (is_integer()) {
-                            int result;
-                            result = PyObject_RichCompareBool(v._pyobject, ZERO, Py_GE);
-                            if (result == 1)
+        case LONG:
+                return v._long >= 0;
+        case MPZ:
+                return is_positive() or is_zero();
+        case MPQ:
+                return (is_integer() and (is_positive() or is_zero()));
+        case PYOBJECT:
+                if (is_integer()) {
+                        int result;
+                        result = PyObject_RichCompareBool(v._pyobject,
+                                        ZERO, Py_GE);
+                        if (result == 1)
                                 return true;
-                            if (result == -1)
+                        if (result == -1)
                                 PyErr_Clear();
-                        }
-                        return false;
-                default:
-                        stub("invalid type: is_nonneg_integer() type not handled");
+                }
+                return false;
+        default:
+                stub("invalid type: is_nonneg_integer() type not handled");
         }
 }
 
@@ -2605,34 +2589,34 @@ bool numeric::is_even() const {
                 return false;
 
         switch (t) {
-                case LONG:
-                        return v._long % 2 == 0;
-                case MPZ:
-                        return mpz_tstbit(v._bigint, 0) == 0;
-                case MPQ:
-                        return is_integer()
-                                and mpz_tstbit(mpq_numref(v._bigrat), 0) == 0;
-                case PYOBJECT:
-                        return py_funcs.py_is_even(v._pyobject) != 0;
-                default:
-                        stub("invalid type: is_even() type not handled");
+        case LONG:
+                return v._long % 2 == 0;
+        case MPZ:
+                return mpz_tstbit(v._bigint, 0) == 0;
+        case MPQ:
+                return is_integer()
+                and mpz_tstbit(mpq_numref(v._bigrat), 0) == 0;
+        case PYOBJECT:
+                return py_funcs.py_is_even(v._pyobject) != 0;
+        default:
+                stub("invalid type: is_even() type not handled");
         }
 }
 
 /** True if object is an exact odd integer. */
 bool numeric::is_odd() const {
         switch (t) {
-                case LONG:
-                        return v._long & 1;
-                case MPZ:
-                        return mpz_tstbit(v._bigint, 0) == 1;
-                case MPQ:
-                        return is_integer()
-                                and mpz_tstbit(mpq_numref(v._bigrat), 0) == 1;
-                case PYOBJECT:
-                        return !is_even();
-                default:
-                        stub("invalid type: is_odd() type not handled");
+        case LONG:
+                return v._long & 1;
+        case MPZ:
+                return mpz_tstbit(v._bigint, 0) == 1;
+        case MPQ:
+                return is_integer()
+                and mpz_tstbit(mpq_numref(v._bigrat), 0) == 1;
+        case PYOBJECT:
+                return !is_even();
+        default:
+                stub("invalid type: is_odd() type not handled");
         }
 }
 
@@ -2642,23 +2626,22 @@ bool numeric::is_odd() const {
 bool numeric::is_prime() const {
         verbose("is_prime");
         switch (t) {
-                case LONG:
-                        {
-                        mpz_t bigint;
-                        mpz_init_set_si(bigint, v._long);
-                        bool ret = mpz_probab_prime_p(bigint, 25) > 0;
-                        mpz_clear(bigint);
-                        return ret;
-                        }
-                case MPZ:
-                        return mpz_probab_prime_p(v._bigint, 25) > 0;
-                case MPQ:
-                        return is_integer() and
-                                mpz_probab_prime_p(mpq_numref(v._bigrat), 25) > 0;
-                case PYOBJECT:
-                        return py_funcs.py_is_prime(v._pyobject) != 0;
-                default:
-                        stub("invalid type: is_prime() type not handled");
+        case LONG: {
+                mpz_t bigint;
+                mpz_init_set_si(bigint, v._long);
+                bool ret = mpz_probab_prime_p(bigint, 25) > 0;
+                mpz_clear(bigint);
+                return ret;
+        }
+        case MPZ:
+                return mpz_probab_prime_p(v._bigint, 25) > 0;
+        case MPQ:
+                return is_integer()
+                        and mpz_probab_prime_p(mpq_numref(v._bigrat), 25) > 0;
+        case PYOBJECT:
+                return py_funcs.py_is_prime(v._pyobject) != 0;
+        default:
+                stub("invalid type: is_prime() type not handled");
         }
 }
 
@@ -2667,14 +2650,14 @@ bool numeric::is_prime() const {
 bool numeric::is_rational() const {
         verbose("is_rational");
         switch (t) {
-                case LONG:
-                case MPZ:
-                case MPQ:
-                        return true;
-                case PYOBJECT:
-                        return py_funcs.py_is_rational(v._pyobject) != 0;
-                default:
-                        stub("invalid type -- is_rational() type not handled");
+        case LONG:
+        case MPZ:
+        case MPQ:
+                return true;
+        case PYOBJECT:
+                return py_funcs.py_is_rational(v._pyobject) != 0;
+        default:
+                stub("invalid type -- is_rational() type not handled");
         }
 }
 
@@ -2682,14 +2665,14 @@ bool numeric::is_rational() const {
 bool numeric::is_real() const {
         verbose("is_real");
         switch (t) {
-                case LONG:
-                case MPZ:
-                case MPQ:
-                        return true;
-                case PYOBJECT:
-                        return py_funcs.py_is_real(v._pyobject) != 0;
-                default:
-                        stub("invalid type -- is_real() type not handled");
+        case LONG:
+        case MPZ:
+        case MPQ:
+                return true;
+        case PYOBJECT:
+                return py_funcs.py_is_real(v._pyobject) != 0;
+        default:
+                stub("invalid type -- is_real() type not handled");
         }
 }
 
@@ -2698,14 +2681,14 @@ bool numeric::is_real() const {
 bool numeric::is_exact() const {
         verbose("is_exact");
         switch (t) {
-                case LONG:
-                case MPZ:
-                case MPQ:
-                        return true;
-                case PYOBJECT:
-                        return py_funcs.py_is_exact(v._pyobject) != 0;
-                default:
-                        stub("invalid type -- is_exact() type not handled");
+        case LONG:
+        case MPZ:
+        case MPQ:
+                return true;
+        case PYOBJECT:
+                return py_funcs.py_is_exact(v._pyobject) != 0;
+        default:
+                stub("invalid type -- is_exact() type not handled");
         }
 }
 
@@ -2729,23 +2712,23 @@ bool numeric::is_small_power(std::pair<int,int>& p) const
 {
         int i;
         switch (t) {
-                case LONG:
-                        if (v._long < 2)
-                                return false;
-                        i = v._long;
-                        break;
-                case MPZ:
-                        if (not mpz_fits_sint_p(v._bigint))
-                                return false;
-                        i = mpz_get_si(v._bigint);
-                        if (i<2)
-                                return false;
-                        break;
-                case MPQ:
-                case PYOBJECT:
+        case LONG:
+                if (v._long < 2)
                         return false;
-                default:
-                        stub("invalid type -- is_small_power() type not handled");
+                i = v._long;
+                break;
+        case MPZ:
+                if (not mpz_fits_sint_p(v._bigint))
+                        return false;
+                i = mpz_get_si(v._bigint);
+                if (i < 2)
+                        return false;
+                break;
+        case MPQ:
+        case PYOBJECT:
+                return false;
+        default:
+                stub("invalid type -- is_small_power() type not handled");
         }
         if (small_powers.empty())
                 fill_small_powers();
@@ -2781,18 +2764,19 @@ bool numeric::operator==(const numeric &right) const {
                 return a == b;
         }
         switch (t) {
-                case LONG:
-                        return v._long == right.v._long;
-                case MPZ:
-                        return mpz_cmp(v._bigint, right.v._bigint) ==0;
-                case MPQ:
-                        return mpq_equal(v._bigrat, right.v._bigrat) !=0;
-                case PYOBJECT:
-                        if (v._pyobject == right.v._pyobject)
-                                return true;
-                        return py_funcs.py_is_equal(v._pyobject, right.v._pyobject) != 0;
-                default:
-                        stub("invalid type: operator== type not handled");
+        case LONG:
+                return v._long == right.v._long;
+        case MPZ:
+                return mpz_cmp(v._bigint, right.v._bigint) == 0;
+        case MPQ:
+                return mpq_equal(v._bigrat, right.v._bigrat) != 0;
+        case PYOBJECT:
+                if (v._pyobject == right.v._pyobject)
+                        return true;
+                return py_funcs.py_is_equal(v._pyobject,
+                                right.v._pyobject) != 0;
+        default:
+                stub("invalid type: operator== type not handled");
         }
 }
 
@@ -2818,16 +2802,17 @@ bool numeric::operator!=(const numeric &right) const {
                 return a != b;
         }
         switch (t) {
-                case LONG:
-                        return v._long != right.v._long;
-                case MPZ:
-                        return mpz_cmp(v._bigint, right.v._bigint) !=0;
-                case MPQ:
-                        return mpq_equal(v._bigrat, right.v._bigrat) ==0;
-                case PYOBJECT:
-                        return (py_funcs.py_is_equal(v._pyobject, right.v._pyobject) == 0);
-                default:
-                        stub("invalid type: operator!= type not handled");
+        case LONG:
+                return v._long != right.v._long;
+        case MPZ:
+                return mpz_cmp(v._bigint, right.v._bigint) != 0;
+        case MPQ:
+                return mpq_equal(v._bigrat, right.v._bigrat) == 0;
+        case PYOBJECT:
+                return (py_funcs.py_is_equal(v._pyobject,
+                                        right.v._pyobject) == 0);
+        default:
+                stub("invalid type: operator!= type not handled");
         }
 }
 
@@ -2836,16 +2821,16 @@ bool numeric::operator!=(const numeric &right) const {
 bool numeric::is_cinteger() const {
         verbose("is_crational");
         switch (t) {
-                case LONG:
-                case MPZ:
-                        return true;
-                case MPQ:
-                        return is_integer();
-                case PYOBJECT:
-                        return real().is_integer()
-                           and imag().is_integer();
-                default:
-                        stub("invalid type -- is_cinteger() type not handled");
+        case LONG:
+        case MPZ:
+                return true;
+        case MPQ:
+                return is_integer();
+        case PYOBJECT:
+                return real().is_integer()
+                and imag().is_integer();
+        default:
+                stub("invalid type -- is_cinteger() type not handled");
         }
 }
 
@@ -2854,15 +2839,15 @@ bool numeric::is_cinteger() const {
 bool numeric::is_crational() const {
         verbose("is_crational");
         switch (t) {
-                case LONG:
-                case MPZ:
-                case MPQ:
-                        return true;
-                case PYOBJECT:
-                        return real().is_rational()
-                           and imag().is_rational();
-                default:
-                        stub("invalid type -- is_crational() type not handled");
+        case LONG:
+        case MPZ:
+        case MPQ:
+                return true;
+        case PYOBJECT:
+                return real().is_rational()
+                and imag().is_rational();
+        default:
+                stub("invalid type -- is_crational() type not handled");
         }
 }
 
@@ -2882,21 +2867,23 @@ bool numeric::operator<(const numeric &right) const {
         }
 
         switch (t) {
-                case LONG:
-                        return v._long < right.v._long;
-                case MPZ:
-                        return mpz_cmp(v._bigint, right.v._bigint) < 0;
-                case MPQ:
-                        return mpq_cmp(v._bigrat, right.v._bigrat) < 0;
-                case PYOBJECT:
-                        int result;
-                        result = PyObject_RichCompareBool(v._pyobject, right.v._pyobject, Py_LT);
-                        if (result == -1)
-                            py_error("richcmp failed");
+        case LONG:
+                return v._long < right.v._long;
+        case MPZ:
+                return mpz_cmp(v._bigint, right.v._bigint) < 0;
+        case MPQ:
+                return mpq_cmp(v._bigrat, right.v._bigrat) < 0;
+        case PYOBJECT: {
+                int result;
+                result = PyObject_RichCompareBool(v._pyobject,
+                                right.v._pyobject, Py_LT);
+                if (result == -1)
+                        py_error("richcmp failed");
 
-                        return (result == 1);
-                default:
-                        stub("invalid type: operator< type not handled");
+                return (result == 1);
+        }
+        default:
+                stub("invalid type: operator< type not handled");
         }
 }
 
@@ -2915,21 +2902,22 @@ bool numeric::operator<=(const numeric &right) const {
                 return a <= b;
         }
         switch (t) {
-                case LONG:
-                        return v._long <= right.v._long;
-                case MPZ:
-                        return mpz_cmp(v._bigint, right.v._bigint) <= 0;
-                case MPQ:
-                        return mpq_cmp(v._bigrat, right.v._bigrat) <= 0;
-                case PYOBJECT:
-                        int result;
-                        result = PyObject_RichCompareBool(v._pyobject, right.v._pyobject, Py_LE);
-                        if (result == -1)
-                            py_error("richcmp failed");
+        case LONG:
+                return v._long <= right.v._long;
+        case MPZ:
+                return mpz_cmp(v._bigint, right.v._bigint) <= 0;
+        case MPQ:
+                return mpq_cmp(v._bigrat, right.v._bigrat) <= 0;
+        case PYOBJECT:
+                int result;
+                result = PyObject_RichCompareBool(v._pyobject,
+                                right.v._pyobject, Py_LE);
+                if (result == -1)
+                        py_error("richcmp failed");
 
-                        return (result == 1);
-                default:
-                        stub("invalid type: operator<= type not handled");
+                return (result == 1);
+        default:
+                stub("invalid type: operator<= type not handled");
         }
 }
 
@@ -2948,21 +2936,22 @@ bool numeric::operator>(const numeric &right) const {
                 return a > b;
         }
         switch (t) {
-                case LONG:
-                        return v._long > right.v._long;
-                case MPZ:
-                        return mpz_cmp(v._bigint, right.v._bigint) > 0;
-                case MPQ:
-                        return mpq_cmp(v._bigrat, right.v._bigrat) > 0;
-                case PYOBJECT:
-                        int result;
-                        result = PyObject_RichCompareBool(v._pyobject, right.v._pyobject, Py_GT);
-                        if (result == -1)
-                            py_error("richcmp failed");
+        case LONG:
+                return v._long > right.v._long;
+        case MPZ:
+                return mpz_cmp(v._bigint, right.v._bigint) > 0;
+        case MPQ:
+                return mpq_cmp(v._bigrat, right.v._bigrat) > 0;
+        case PYOBJECT:
+                int result;
+                result = PyObject_RichCompareBool(v._pyobject,
+                                right.v._pyobject, Py_GT);
+                if (result == -1)
+                        py_error("richcmp failed");
 
-                        return (result == 1);
-                default:
-                        stub("invalid type: operator> type not handled");
+                return (result == 1);
+        default:
+                stub("invalid type: operator> type not handled");
         }
 }
 
@@ -2981,51 +2970,54 @@ bool numeric::operator>=(const numeric &right) const {
                 return a >= b;
         }
         switch (t) {
-                case LONG:
-                        return v._long >= right.v._long;
-                case MPZ:
-                        return mpz_cmp(v._bigint, right.v._bigint) >= 0;
-                case MPQ:
-                        return mpq_cmp(v._bigrat, right.v._bigrat) >= 0;
-                case PYOBJECT:
-                        int result;
-                        result = PyObject_RichCompareBool(v._pyobject, right.v._pyobject, Py_GE);
-                        if (result == -1)
-                            py_error("richcmp failed");
+        case LONG:
+                return v._long >= right.v._long;
+        case MPZ:
+                return mpz_cmp(v._bigint, right.v._bigint) >= 0;
+        case MPQ:
+                return mpq_cmp(v._bigrat, right.v._bigrat) >= 0;
+        case PYOBJECT:
+                int result;
+                result = PyObject_RichCompareBool(v._pyobject,
+                                right.v._pyobject, Py_GE);
+                if (result == -1)
+                        py_error("richcmp failed");
 
-                        return (result == 1);
-                default:
-                        stub("invalid type: operator!= type not handled");
+                return (result == 1);
+        default:
+                stub("invalid type: operator!= type not handled");
         }
 }
 
 int numeric::to_int() const
 {
         switch (t) {
-                case LONG:
-                        if (v._long < std::numeric_limits<int>::max()
-                            and v._long > std::numeric_limits<int>::min())
-                                return v._long;
-                        throw std::runtime_error("to_int");
-                case MPZ:
-                        if (mpz_fits_sint_p(v._bigint))
-                                return mpz_get_si(v._bigint);
-                        throw conversion_error();
-                case MPQ:
-                        mpz_t bigint;
-                        mpz_init(bigint);
-                        mpz_fdiv_q(bigint, mpq_numref(v._bigrat), mpq_denref(v._bigrat));
-                        if (mpz_fits_sint_p(bigint)) {
-                                int n = mpz_get_si(bigint);
-                                mpz_clear(bigint);
-                                return n;
-                        }
+        case LONG:
+                if (v._long < std::numeric_limits<int>::max()
+                and v._long > std::numeric_limits<int>::min())
+                        return v._long;
+                throw std::runtime_error("to_int");
+        case MPZ:
+                if (mpz_fits_sint_p(v._bigint))
+                        return mpz_get_si(v._bigint);
+                throw conversion_error();
+        case MPQ: {
+                mpz_t bigint;
+                mpz_init(bigint);
+                mpz_fdiv_q(bigint, mpq_numref(v._bigrat),
+                                mpq_denref(v._bigrat));
+                if (mpz_fits_sint_p(bigint)) {
+                        int n = mpz_get_si(bigint);
                         mpz_clear(bigint);
-                        throw conversion_error();
-                case PYOBJECT:
-                        return to_bigint().to_int();
-                default:
-                        stub("invalid type: operator long int() type not handled");
+                        return n;
+                }
+                mpz_clear(bigint);
+                throw conversion_error();
+        }
+        case PYOBJECT:
+                return to_bigint().to_int();
+        default:
+                stub("invalid type: operator long int() type not handled");
         }
 }
 /** Converts numeric types to machine's long.  You should check with
@@ -3034,61 +3026,62 @@ int numeric::to_int() const
 long numeric::to_long() const {
         verbose("operator long int");
         switch (t) {
-                case LONG:
-                        return v._long;
-                case MPZ:
-                        if (mpz_fits_slong_p(v._bigint))
-                                return (long int) mpz_get_si(v._bigint);
-                        throw conversion_error();
-                case MPQ:
-                        mpz_t bigint;
-                        mpz_init(bigint);
-                        mpz_fdiv_q(bigint, mpq_numref(v._bigrat), mpq_denref(v._bigrat));
-                        if (mpz_fits_sint_p(v._bigint)) {
-                                long n = mpz_get_si(bigint);
-                                mpz_clear(bigint);
-                                return n;
-                        }
+        case LONG:
+                return v._long;
+        case MPZ:
+                if (mpz_fits_slong_p(v._bigint))
+                        return (long int)mpz_get_si(v._bigint);
+                throw conversion_error();
+        case MPQ: {
+                mpz_t bigint;
+                mpz_init(bigint);
+                mpz_fdiv_q(bigint, mpq_numref(v._bigrat),
+                                mpq_denref(v._bigrat));
+                if (mpz_fits_sint_p(v._bigint)) {
+                        long n = mpz_get_si(bigint);
                         mpz_clear(bigint);
-                        throw conversion_error();
-                case PYOBJECT:
-                        return to_bigint().to_long();
-                default:
-                        stub("invalid type: operator long int() type not handled");
+                        return n;
+                }
+                mpz_clear(bigint);
+                throw conversion_error();
+        }
+        case PYOBJECT:
+                return to_bigint().to_long();
+        default:
+                stub("invalid type: operator long int() type not handled");
         }
 }
 
 // Use this only if o was tested integer.
 const numeric numeric::to_bigint() const {
         switch (t) {
-                case LONG:
-                {
-                        numeric nu;
-                        mpz_init_set_si(nu.v._bigint, v._long);
-                        nu.t = MPZ;
-                        nu.hash = _mpz_pythonhash(nu.v._bigint);
-                        return nu;
-                }
-                case MPZ: return *this;
-                case MPQ: 
-                        if (not denom().is_one())
-                                throw std::runtime_error("not integer in numeric::to_mpz_num()");
-                        return numer();
-                case PYOBJECT:
-                {
-                        PyObject* m = PyImport_ImportModule("sage.rings.integer");
-                        if (m == nullptr)
-                                py_error("Error importing sage.rings.integer");
-                        PyObject* Integer = PyObject_GetAttrString(m, "Integer");
-                        if (Integer == nullptr)
-                                py_error("Error getting Integer attribute");
-                        PyObject* ans = PyObject_CallFunctionObjArgs(Integer, v._pyobject, NULL);
-                        Py_DECREF(m);
-                        Py_DECREF(Integer);
-                        return ans;
-                }
-                default:
-                        stub("invalid type: operator long int() type not handled");
+        case LONG: {
+                numeric nu;
+                mpz_init_set_si(nu.v._bigint, v._long);
+                nu.t = MPZ;
+                nu.hash = _mpz_pythonhash(nu.v._bigint);
+                return nu;
+        }
+        case MPZ: return *this;
+        case MPQ:
+                if (not denom().is_one())
+                        throw std::runtime_error("not integer in numeric::to_mpz_num()");
+                return numer();
+        case PYOBJECT: {
+                PyObject *m = PyImport_ImportModule("sage.rings.integer");
+                if (m == nullptr)
+                        py_error("Error importing sage.rings.integer");
+                PyObject *Integer = PyObject_GetAttrString(m, "Integer");
+                if (Integer == nullptr)
+                        py_error("Error getting Integer attribute");
+                PyObject *ans = PyObject_CallFunctionObjArgs(Integer,
+                                v._pyobject, NULL);
+                Py_DECREF(m);
+                Py_DECREF(Integer);
+                return ans;
+        }
+        default:
+                stub("invalid type: operator long int() type not handled");
         }
 }
 
@@ -3168,40 +3161,37 @@ PyObject* numeric::to_pyobject() const {
         // Returns a New Reference
         PyObject* o;
         switch (t) {
-                case LONG:
-                        {
-                        mpz_t bigint;
-                        mpz_init_set_si(bigint, v._long);
-                        o = py_funcs.py_integer_from_mpz(bigint);
-                        mpz_clear(bigint);
-                        return o;
-                        }
-                case MPZ:
-                        {
-                        mpz_t bigint;
-                        mpz_init_set(bigint, v._bigint);
-                        o = py_funcs.py_integer_from_mpz(bigint);
-                        mpz_clear(bigint);
-                        return o;
-                        }
-                case MPQ:
-                        {
-                        mpq_t bigrat;
-                        mpq_init(bigrat);
-                        mpq_set(bigrat, v._bigrat);
-                        mpq_canonicalize(bigrat);
-                        o = py_funcs.py_rational_from_mpq(bigrat);
-                        mpq_clear(bigrat);
-                        return o;
-                        }
-                case PYOBJECT:
-                        Py_INCREF(v._pyobject);
-                        return v._pyobject;
+        case LONG: {
+                mpz_t bigint;
+                mpz_init_set_si(bigint, v._long);
+                o = py_funcs.py_integer_from_mpz(bigint);
+                mpz_clear(bigint);
+                return o;
+        }
+        case MPZ: {
+                mpz_t bigint;
+                mpz_init_set(bigint, v._bigint);
+                o = py_funcs.py_integer_from_mpz(bigint);
+                mpz_clear(bigint);
+                return o;
+        }
+        case MPQ: {
+                mpq_t bigrat;
+                mpq_init(bigrat);
+                mpq_set(bigrat, v._bigrat);
+                mpq_canonicalize(bigrat);
+                o = py_funcs.py_rational_from_mpq(bigrat);
+                mpq_clear(bigrat);
+                return o;
+        }
+        case PYOBJECT:
+                Py_INCREF(v._pyobject);
+                return v._pyobject;
 
-                default:
-                        std::cout << t << std::endl;
-                        stub("numeric::to_pyobject -- not able to do conversion to pyobject; everything else will be nonsense");
-                        return nullptr;
+        default:
+                std::cout << t << std::endl;
+                stub("numeric::to_pyobject -- not able to do conversion to pyobject; everything else will be nonsense");
+                return nullptr;
         }
 }
 
@@ -3213,20 +3203,20 @@ double numeric::to_double() const {
         verbose("operator double");
         double d;
         switch (t) {
-                case LONG:
-                        return v._long;
-                case MPZ:
-                        return mpz_get_d(v._bigint);
-                case MPQ:
-                        return mpq_get_d(v._bigrat);
-                case PYOBJECT:
-                        d = PyFloat_AsDouble(v._pyobject);
-                        if (d == -1 && (PyErr_Occurred() != nullptr))
-                                py_error("Error converting to a double.");
-                        return d;
-                default:
-                        std::cerr << "type = " << t << std::endl;
-                        stub("invalid type: operator double() type not handled");
+        case LONG:
+                return v._long;
+        case MPZ:
+                return mpz_get_d(v._bigint);
+        case MPQ:
+                return mpq_get_d(v._bigrat);
+        case PYOBJECT:
+                d = PyFloat_AsDouble(v._pyobject);
+                if (d == -1 && (PyErr_Occurred() != nullptr))
+                        py_error("Error converting to a double.");
+                return d;
+        default:
+                std::cerr << "type = " << t << std::endl;
+                stub("invalid type: operator double() type not handled");
         }
 }
 
@@ -3339,17 +3329,17 @@ const numeric numeric::real() const {
         verbose("real_part(a)");
         PyObject *ans;
         switch (t) {
-                case LONG:
-                case MPZ:
-                case MPQ:
-                        return *this;
-                case PYOBJECT:
-                        ans = py_funcs.py_real(v._pyobject);
-                        if (ans == nullptr) py_error("real_part");
-                        return ans;
-                default:
-                        std::cerr << "type = " << t << std::endl;
-                        stub("invalid type: operator double() type not handled");
+        case LONG:
+        case MPZ:
+        case MPQ:
+                return *this;
+        case PYOBJECT:
+                ans = py_funcs.py_real(v._pyobject);
+                if (ans == nullptr) py_error("real_part");
+                return ans;
+        default:
+                std::cerr << "type = " << t << std::endl;
+                stub("invalid type: operator double() type not handled");
         }
 }
 
@@ -3370,59 +3360,50 @@ const numeric numeric::imag() const {
  *  (i.e numer(4/3+5/6*I) == 8+5*I), the number carrying the sign in all other
  *  cases. */
 const numeric numeric::numer() const {
-        verbose2("numer -- in:", *this);
-        numeric ans;
-        PyObject* a;
 
         switch (t) {
-                case LONG:
-                case MPZ:
-                        return *this;
-                case MPQ:
-                        mpz_t bigint;
-                        mpz_init_set(bigint, mpq_numref(v._bigrat));
-                        return bigint;
-                case PYOBJECT:
-                        a = py_funcs.py_numer(v._pyobject);
-                        if (a == nullptr) py_error("numer");
-                        ans = a;
-                        break;
-                default:
-                        stub("invalid type -- numer() type not handled");
-                        ans = *this;
+        case LONG:
+        case MPZ:
+                return *this;
+        case MPQ: {
+                mpz_t bigint;
+                mpz_init_set(bigint, mpq_numref(v._bigrat));
+                return bigint;
         }
-        verbose2("numer -- out:", ans);
-        return ans;
+        case PYOBJECT: {
+                PyObject *a;
+                a = py_funcs.py_numer(v._pyobject);
+                if (a == nullptr) py_error("numer");
+                return a;
+        }
+        default:
+                stub("invalid type -- numer() type not handled");
+        }
 }
 
 /** Denominator.  Computes the denominator of rational numbers, common integer
  *  denominator of complex if real and imaginary part are both rational numbers
  *  (i.e denom(4/3+5/6*I) == 6), one in all other cases. */
 const numeric numeric::denom() const {
-        verbose2("denom -- in:", *this);
-        numeric ans;
-        PyObject* a;
 
         switch (t) {
-                case LONG:
-                case MPZ:
-                        return 1;
-                case MPQ:
-                        mpz_t bigint;
-                        mpz_init_set(bigint, mpq_denref(v._bigrat));
-                        return bigint;
-                case PYOBJECT:
-                        a = py_funcs.py_denom(v._pyobject);
-                        if (a == nullptr) py_error("denom");
-                        ans = a;
-                        break;
-
-                default:
-                        stub("invalid type -- denom() type not handled");
-                        ans = ONE;
+        case LONG:
+        case MPZ:
+                return 1;
+        case MPQ: {
+                mpz_t bigint;
+                mpz_init_set(bigint, mpq_denref(v._bigrat));
+                return bigint;
         }
-        verbose2("denom -- out:", ans);
-        return ans;
+        case PYOBJECT: {
+                PyObject *a;
+                a = py_funcs.py_denom(v._pyobject);
+                if (a == nullptr) py_error("denom");
+                return a;
+        }
+        default:
+                stub("invalid type -- denom() type not handled");
+        }
 }
 
 const numeric numeric::fibonacci() const {
@@ -3835,23 +3816,18 @@ bool numeric::is_square() const
         if (is_zero() or is_one())
                 return true;
         switch (t) {
-                case LONG:
-                case MPZ:
-                case MPQ:
-                case PYOBJECT:
-                default:
-                        stub("invalid type: type not handled");
-        }
-        if (t == LONG) {
+        case LONG: {
                 long rt = std::lround(std::sqrt(v._long));
-                return rt*rt == v._long;
+                return rt * rt == v._long;
         }
-        if (t == MPZ) {
+        case MPZ:
                 return mpz_perfect_square_p(v._bigint);
-        }
-        else if (t == MPQ) {
+        case MPQ:
                 return (mpz_perfect_square_p(mpq_numref(v._bigrat))
-                    and mpz_perfect_square_p(mpq_denref(v._bigrat)));
+                and mpz_perfect_square_p(mpq_denref(v._bigrat)));
+        case PYOBJECT:
+        default:
+                stub("invalid type: type not handled");
         }
         return false;
 }
@@ -3866,109 +3842,101 @@ const ex numeric::sqrt_as_ex() const
         if (is_one())
                 return _ex1;
         switch (t) {
-                case LONG:
-                {
-                        long rt = std::lround(std::sqrt(v._long));
-                        if (rt*rt == v._long)
-                                return ex(numeric(rt));
-                        break;
+        case LONG: {
+                long rt = std::lround(std::sqrt(v._long));
+                if (rt * rt == v._long)
+                        return ex(numeric(rt));
+                break;
+        }
+        case MPZ: {
+                if (mpz_perfect_square_p(v._bigint)) {
+                        mpz_t bigint;
+                        mpz_init(bigint);
+                        mpz_sqrt(bigint, v._bigint);
+                        return ex(numeric(bigint));
                 }
-                case MPZ:
-                {
-                        if (mpz_perfect_square_p(v._bigint)) {
-                                mpz_t bigint;
-                                mpz_init(bigint);
-                                mpz_sqrt(bigint, v._bigint);
-                                return ex(numeric(bigint));
-                        }
-                        break;
+                break;
+        }
+        case MPQ: {
+                if (mpz_perfect_square_p(mpq_numref(v._bigrat))
+                and mpz_perfect_square_p(mpq_denref(v._bigrat))) {
+                        mpz_t bigint;
+                        mpq_t bigrat, obigrat;
+                        mpz_init(bigint);
+                        mpq_init(bigrat);
+                        mpq_init(obigrat);
+                        mpz_sqrt(bigint, mpq_numref(v._bigrat));
+                        mpq_set_z(bigrat, bigint);
+                        mpz_sqrt(bigint, mpq_denref(v._bigrat));
+                        mpq_set_z(obigrat, bigint);
+                        mpq_div(bigrat, bigrat, obigrat);
+                        mpz_clear(bigint);
+                        mpq_clear(obigrat);
+                        return ex(numeric(bigrat));
                 }
-                case MPQ:
-                {
-                        if (mpz_perfect_square_p(mpq_numref(v._bigrat))
-                            and mpz_perfect_square_p(mpq_denref(v._bigrat))) {
-                                mpz_t bigint;
-                                mpq_t bigrat, obigrat;
-                                mpz_init(bigint);
-                                mpq_init(bigrat);
-                                mpq_init(obigrat);
-                                mpz_sqrt(bigint, mpq_numref(v._bigrat));
-                                mpq_set_z(bigrat, bigint);
-                                mpz_sqrt(bigint, mpq_denref(v._bigrat));
-                                mpq_set_z(obigrat, bigint);
-                                mpq_div(bigrat, bigrat, obigrat);
-                                mpz_clear(bigint);
-                                mpq_clear(obigrat);
-                                return ex(numeric(bigrat));
-                        }
-                        break;
-                }
-                case PYOBJECT:
-                        return sqrt();
-                default:
-                        stub("invalid type: type not handled");
+                break;
+        }
+        case PYOBJECT:
+                return sqrt();
+        default:
+                stub("invalid type: type not handled");
         }
         return (new GiNaC::power(ex(*this), _ex1_2))->setflag(status_flags::dynallocated | status_flags::evaluated);
 }
 
 const numeric numeric::abs() const {
         switch (t) {
-                case LONG:
-                        return std::labs(v._long);
-                case MPZ:
-                {
-                        mpz_t bigint;
-                        mpz_init(bigint);
-                        mpz_abs(bigint, v._bigint);
-                        return bigint;
+        case LONG:
+                return std::labs(v._long);
+        case MPZ: {
+                mpz_t bigint;
+                mpz_init(bigint);
+                mpz_abs(bigint, v._bigint);
+                return bigint;
+        }
+        case MPQ: {
+                mpq_t bigrat;
+                mpq_init(bigrat);
+                mpq_abs(bigrat, v._bigrat);
+                return bigrat;
+        }
+        case PYOBJECT: {
+                PyObject *ret = PyNumber_Absolute(v._pyobject);
+                if (ret == NULL) {
+                        PyErr_Clear();
+                        return *this;
                 }
-                case MPQ:
-                {
-                        mpq_t bigrat;
-                        mpq_init(bigrat);
-                        mpq_abs(bigrat, v._bigrat);
-                        return bigrat;
-                }
-                case PYOBJECT:
-                {
-                        PyObject* ret = PyNumber_Absolute(v._pyobject);
-                        if (ret == NULL) {
-                                PyErr_Clear();
-                                return *this;
-                        }
-                        return ret;
-                }
-                default:
-                        stub("invalid type: type not handled");
+                return ret;
+        }
+        default:
+                stub("invalid type: type not handled");
         }
 }
 
 const numeric numeric::mod(const numeric &b) const {
         switch (t) {
-                case LONG:
-                        if (b.t == LONG)
-                                return v._long % b.v._long;
-                        if (b.t == MPZ)
-                                return to_bigint().mod(b);
-                        throw std::runtime_error("unsupported type in numeric::md");
-                case MPZ:
-                        if (b.t == LONG)
-                                return mod(b.to_bigint());
-                        if (b.t == MPZ)
-                        {
-                                mpz_t bigint;
-                                mpz_init(bigint);
-                                mpz_mod(bigint, v._bigint, b.v._bigint);
-                                return bigint;
-                        }
-                        throw std::runtime_error("unsupported type in numeric::md");
-                case MPQ:
-                case PYOBJECT:
-                {
-                        PY_RETURN2(py_funcs.py_mod, b);
+        case LONG:
+                if (b.t == LONG)
+                        return v._long % b.v._long;
+                if (b.t == MPZ)
+                        return to_bigint().mod(b);
+                throw std::runtime_error("unsupported type in numeric::md");
+        case MPZ:
+                if (b.t == LONG)
+                        return mod(b.to_bigint());
+                if (b.t == MPZ) {
+                        mpz_t bigint;
+                        mpz_init(bigint);
+                        mpz_mod(bigint, v._bigint, b.v._bigint);
+                        return bigint;
                 }
-                default:
-                        stub("invalid type: type not handled");
+                throw std::runtime_error("unsupported type in numeric::md");
+        case MPQ:
+        case PYOBJECT: {
+                PY_RETURN2(py_funcs.py_mod, b);
+        }
+        default:
+                stub("invalid type: type not handled");
         }
 }
 
@@ -3978,100 +3946,98 @@ const numeric numeric::_smod(const numeric &b) const {
 
 const numeric numeric::irem(const numeric &b) const {
         switch (t) {
-                case LONG:
-                        if (b.t == LONG)
-                                return std::remainder(v._long, b.v._long);
-                        if (b.t == MPZ)
-                                return to_bigint().irem(b);
-                        throw std::runtime_error("unsupported type in numeric::irem");
-                case MPZ:
-                        if (b.t == LONG)
-                                return irem(b.to_bigint());
-                        if (b.t == MPZ)
-                        {
-                                mpz_t bigint;
-                                mpz_init(bigint);
-                                mpz_fdiv_r(bigint, v._bigint, b.v._bigint);
-                                return bigint;
-                        }
-                        throw std::runtime_error("unsupported type in numeric::irem");
-                case MPQ:
-                case PYOBJECT:
-                {
-                        PY_RETURN2(py_funcs.py_irem, b);
+        case LONG:
+                if (b.t == LONG)
+                        return std::remainder(v._long, b.v._long);
+                if (b.t == MPZ)
+                        return to_bigint().irem(b);
+                throw std::runtime_error("unsupported type in numeric::irem");
+        case MPZ:
+                if (b.t == LONG)
+                        return irem(b.to_bigint());
+                if (b.t == MPZ) {
+                        mpz_t bigint;
+                        mpz_init(bigint);
+                        mpz_fdiv_r(bigint, v._bigint, b.v._bigint);
+                        return bigint;
                 }
-                default:
-                        stub("invalid type: type not handled");
+                throw std::runtime_error("unsupported type in numeric::irem");
+        case MPQ:
+        case PYOBJECT: {
+                PY_RETURN2(py_funcs.py_irem, b);
+        }
+        default:
+                stub("invalid type: type not handled");
         }
 }
 
 const numeric numeric::iquo(const numeric &b) const {
         switch (t) {
-                case LONG:
-                        if (b.t == LONG)
-                                return v._long / b.v._long;
-                        if (b.t == MPZ)
-                                return to_bigint().iquo(b);
-                        throw std::runtime_error("unsupported type in numeric::iquo");
-                case MPZ:
-                        if (b.t == LONG) {
-                                mpz_t bigint;
-                                mpz_init(bigint);
-                                mpz_fdiv_q_ui(bigint, v._bigint,
-                                              std::labs(b.v._long));
-                                if (b.v._long < 0)
-                                        mpz_neg(bigint, bigint);
-                                return bigint;
-                        }
-                        if (b.t == MPZ) {
-                                mpz_t bigint;
-                                mpz_init(bigint);
-                                mpz_fdiv_q(bigint, v._bigint, b.v._bigint);
-                                return bigint;
-                        }
-                        throw std::runtime_error("unsupported type in numeric::iquo");
-                case MPQ:
-                case PYOBJECT:
-                default:
-                        stub("invalid type: type not handled");
+        case LONG:
+                if (b.t == LONG)
+                        return v._long / b.v._long;
+                if (b.t == MPZ)
+                        return to_bigint().iquo(b);
+                throw std::runtime_error("unsupported type in numeric::iquo");
+        case MPZ:
+                if (b.t == LONG) {
+                        mpz_t bigint;
+                        mpz_init(bigint);
+                        mpz_fdiv_q_ui(bigint, v._bigint,
+                        std::labs(b.v._long));
+                        if (b.v._long < 0)
+                                mpz_neg(bigint, bigint);
+                        return bigint;
+                }
+                if (b.t == MPZ) {
+                        mpz_t bigint;
+                        mpz_init(bigint);
+                        mpz_fdiv_q(bigint, v._bigint, b.v._bigint);
+                        return bigint;
+                }
+                throw std::runtime_error("unsupported type in numeric::iquo");
+        case MPQ:
+        case PYOBJECT:
+        default:
+                stub("invalid type: type not handled");
         }
         throw std::runtime_error("iquo: bad input");
 }
 
 const numeric numeric::iquo(const numeric &b, numeric& r) const {
         switch (t) {
-                case LONG:
-                        if (b.t == LONG) {
-                                auto ld = std::ldiv(v._long, b.v._long);
-                                r = ld.rem;
-                                return ld.quot;
-                        }
-                        if (b.t == MPZ)
-                                return to_bigint().iquo(b, r);
-                        throw std::runtime_error("unsupported type in numeric::iquo");
-                case MPZ:
-                        if (b.t == LONG) {
-                                mpz_t bigint;
-                                mpz_init(bigint);
-                                r = long(mpz_fdiv_q_ui(bigint, v._bigint,
-                                                 std::labs(b.v._long)));
-                                return bigint;
-                        }
-                        if (b.t == MPZ) {
-                                mpz_t bigint, tmp;
-                                mpz_init(bigint);
-                                mpz_init(tmp);
-                                mpz_fdiv_q(bigint, v._bigint, b.v._bigint);
-                                mpz_mul(tmp, bigint, b.v._bigint);
-                                mpz_sub(tmp, v._bigint, tmp);
-                                r = numeric(tmp);
-                                return bigint;
-                        }
-                        throw std::runtime_error("unsupported type in numeric::iquo");
-                case MPQ:
-                case PYOBJECT:
-                default:
-                        stub("invalid type: type not handled");
+        case LONG:
+                if (b.t == LONG) {
+                        auto ld = std::ldiv(v._long, b.v._long);
+                        r = ld.rem;
+                        return ld.quot;
+                }
+                if (b.t == MPZ)
+                        return to_bigint().iquo(b, r);
+                throw std::runtime_error("unsupported type in numeric::iquo");
+        case MPZ:
+                if (b.t == LONG) {
+                        mpz_t bigint;
+                        mpz_init(bigint);
+                        r = long(mpz_fdiv_q_ui(bigint, v._bigint,
+                        std::labs(b.v._long)));
+                        return bigint;
+                }
+                if (b.t == MPZ) {
+                        mpz_t bigint, tmp;
+                        mpz_init(bigint);
+                        mpz_init(tmp);
+                        mpz_fdiv_q(bigint, v._bigint, b.v._bigint);
+                        mpz_mul(tmp, bigint, b.v._bigint);
+                        mpz_sub(tmp, v._bigint, tmp);
+                        r = numeric(tmp);
+                        return bigint;
+                }
+                throw std::runtime_error("unsupported type in numeric::iquo");
+        case MPQ:
+        case PYOBJECT:
+        default:
+                stub("invalid type: type not handled");
         }
         throw std::runtime_error("iquo2: bad input");
 }
@@ -4093,63 +4059,68 @@ const numeric numeric::gcd(const numeric &B) const
                 b = B;
         if (a.is_one() or b.is_one())
                 return *_num1_p;
+
         switch (a.t) {
-                case LONG:
-                        if (b.t == LONG) {
-                                // C++17 will have a function for this
-                                long al = a.v._long;
-                                long bl = b.v._long;
-                                long c;
-                                while ( al != 0 ) {
-                                        c = al; al = bl % al;  bl = c;
-                                }
-                                return bl;
+        case LONG:
+                switch (b.t) {
+                case LONG: {
+                        // C++17 will have a function for this
+                        long al = a.v._long;
+                        long bl = b.v._long;
+                        long c;
+                        while (al != 0) {
+                                c = al;
+                                al = bl % al;
+                                bl = c;
                         }
-                        else if (b.t == MPZ)
-                                return a.to_bigint().gcd(b);
-                        else if (b.t == MPQ)
-                                return (a*b.denom()).gcd(b.numer()) / b.denom();
-                        else if (b.t == PYOBJECT) {
-                                PY_RETURN2(py_funcs.py_gcd, b);
-                        }
-                        stub("invalid type: type not handled");
+                        return bl;
+                }
                 case MPZ:
-                        if (b.t == LONG) {
-                                mpz_t bigint;
-                                mpz_init(bigint);
-                                long l = mpz_gcd_ui(bigint,
-                                                  a.v._bigint,
-                                                  std::labs(b.v._long));
-                                mpz_clear(bigint);
-                                return l;
-                        }
-                        else if (b.t == MPZ) {
-                                mpz_t bigint;
-                                mpz_init(bigint);
-                                mpz_gcd(bigint, a.v._bigint, b.v._bigint);
-                                return bigint;
-                        }
-                        else if (b.t == MPQ)
-                                return (a*b.denom()).gcd(b.numer()) / b.denom();
-                        else if (b.t == PYOBJECT) {
-                                PY_RETURN2(py_funcs.py_gcd, b);
-                        }
-                        stub("invalid type: type not handled");
+                        return a.to_bigint().gcd(b);
                 case MPQ:
-                        if (b.t == PYOBJECT) {
-                                PY_RETURN2(py_funcs.py_gcd, b);
-                        }
-                        return (a.numer()*b.denom()).gcd(a.denom()*b.numer()) /
-                                (a.denom()*b.denom());
-                        stub("invalid type: type not handled");
-                case PYOBJECT:
-                {
+                        return (a * b.denom()).gcd(b.numer()) / b.denom();
+                case PYOBJECT: {
+                        PY_RETURN2(py_funcs.py_gcd, b);
+                }
+                default: stub("invalid type: type not handled");
+                }
+        case MPZ:
+                switch (b.t) {
+                case LONG: {
+                        mpz_t bigint;
+                        mpz_init(bigint);
+                        long l = mpz_gcd_ui(bigint,
+                        a.v._bigint,
+                        std::labs(b.v._long));
+                        mpz_clear(bigint);
+                        return l;
+                }
+                case MPZ: {
+                        mpz_t bigint;
+                        mpz_init(bigint);
+                        mpz_gcd(bigint, a.v._bigint, b.v._bigint);
+                        return bigint;
+                }
+                case MPQ:
+                        return (a * b.denom()).gcd(b.numer()) / b.denom();
+                case PYOBJECT: {
                         PY_RETURN2(py_funcs.py_gcd, b);
                 }
                 default:
                         stub("invalid type: type not handled");
+                }
+        case MPQ:
+                if (b.t == PYOBJECT) {
+                        PY_RETURN2(py_funcs.py_gcd, b);
+                }
+                return (a.numer() * b.denom()).gcd(a.denom() * b.numer()) / (a.denom() * b.denom());
+                stub("invalid type: type not handled");
+        case PYOBJECT: {
+                PY_RETURN2(py_funcs.py_gcd, b);
         }
-        
+        default:
+                stub("invalid type: type not handled");
+        }
 }
 
 const numeric numeric::lcm(const numeric &b) const
@@ -4161,37 +4132,38 @@ const numeric numeric::lcm(const numeric &b) const
         if (b.is_one())
                 return *this;
         switch (t) {
-                case LONG:
-                        if (b.t == LONG) {
-                                // C++17 will have a function for this
-                                long a = v._long;
-                                long bl = b.v._long;
-                                long c;
-                                while ( a != 0 ) {
-                                        c = a; a = bl % a;  bl = c;
-                                }
-                                return (v._long / bl) * b.v._long;
+        case LONG:
+                if (b.t == LONG) {
+                        // C++17 will have a function for this
+                        long a = v._long;
+                        long bl = b.v._long;
+                        long c;
+                        while (a != 0) {
+                                c = a;
+                                a = bl % a;
+                                bl = c;
                         }
-                        if (b.t == MPZ)
-                                return to_bigint().lcm(b);
-                        throw std::runtime_error("unsupported type in numeric::lcm");
-                case MPZ:
-                        if (b.t == LONG)
-                                return lcm(b.to_bigint());
-                        if (b.t == MPZ) {
-                                mpz_t bigint;
-                                mpz_init(bigint);
-                                mpz_lcm(bigint, v._bigint, b.v._bigint);
-                                return bigint;
-                        }
-                        throw std::runtime_error("unsupported type in numeric::lcm");
-                case MPQ:
-                case PYOBJECT:
-                {
-                        PY_RETURN2(py_funcs.py_lcm, b);
+                        return (v._long / bl) * b.v._long;
                 }
-                default:
-                        stub("invalid type: type not handled");
+                if (b.t == MPZ)
+                        return to_bigint().lcm(b);
+                throw std::runtime_error("unsupported type in numeric::lcm");
+        case MPZ:
+                if (b.t == LONG)
+                        return lcm(b.to_bigint());
+                if (b.t == MPZ) {
+                        mpz_t bigint;
+                        mpz_init(bigint);
+                        mpz_lcm(bigint, v._bigint, b.v._bigint);
+                        return bigint;
+                }
+                throw std::runtime_error("unsupported type in numeric::lcm");
+        case MPQ:
+        case PYOBJECT: {
+                PY_RETURN2(py_funcs.py_lcm, b);
+        }
+        default:
+                stub("invalid type: type not handled");
         }
 }
 
@@ -4201,37 +4173,36 @@ void numeric::factorsmall(std::vector<std::pair<long, int>>& factors, long range
         if (is_one() or is_zero() or is_minus_one())
                 return;
         switch (t) {
-                case LONG:
-                        return to_bigint().factorsmall(factors, range);
-                case MPZ:
-                {
-                        fmpz_t f;
-                        fmpz_init(f);
-                        mpz_t bigint;
-                        mpz_init(bigint);
-                        mpz_abs(bigint, v._bigint);
-                        fmpz_set_mpz(f, bigint);
-                        fmpz_factor_t fs;
-                        fmpz_factor_init(fs);
-                        if (range == 0)
-                                fmpz_factor(fs, f);
-                        else
-                                fmpz_factor_trial_range(fs, f, 0, range);
-                        for (slong i=0; i<fs->num; ++i) {
-                                fmpz_get_mpz(bigint, fs->p + i);
-                                factors.push_back(std::make_pair(mpz_get_si(bigint),
-                                                              int(*(fs->exp+i))));
-                        }
-                        mpz_clear(bigint);
-                        fmpz_factor_clear(fs);
-                        fmpz_clear(f);
-                        return;
+        case LONG:
+                return to_bigint().factorsmall(factors, range);
+        case MPZ: {
+                fmpz_t f;
+                fmpz_init(f);
+                mpz_t bigint;
+                mpz_init(bigint);
+                mpz_abs(bigint, v._bigint);
+                fmpz_set_mpz(f, bigint);
+                fmpz_factor_t fs;
+                fmpz_factor_init(fs);
+                if (range == 0)
+                        fmpz_factor(fs, f);
+                else
+                        fmpz_factor_trial_range(fs, f, 0, range);
+                for (slong i = 0; i < fs->num; ++i) {
+                        fmpz_get_mpz(bigint, fs->p + i);
+                        factors.push_back(std::make_pair(mpz_get_si(bigint),
+                        int(*(fs->exp + i))));
                 }
-                case MPQ:
-                        return to_bigint().factorsmall(factors);
-                case PYOBJECT:
-                default:
-                        stub("invalid type: type not handled");
+                mpz_clear(bigint);
+                fmpz_factor_clear(fs);
+                fmpz_clear(f);
+                return;
+        }
+        case MPQ:
+                return to_bigint().factorsmall(factors);
+        case PYOBJECT:
+        default:
+                stub("invalid type: type not handled");
         }
 }
 
@@ -4241,54 +4212,52 @@ void numeric::factor(std::vector<std::pair<numeric, int>>& factors, long range) 
         if (is_one() or is_minus_one())
                 return;
         switch (t) {
-                case LONG:
-                {
-                        std::vector<std::pair<long, int>> f;
-                        factorsmall(f, range);
-                        for (auto p : f)
-                                factors.push_back(std::make_pair(numeric(p.first), p.second));
-                        return;
+        case LONG: {
+                std::vector<std::pair<long, int>> f;
+                factorsmall(f, range);
+                for (const auto& p : f)
+                        factors.emplace_back(numeric(p.first), p.second);
+                return;
+        }
+        case MPZ: {
+                fmpz_t f;
+                fmpz_init(f);
+                mpz_t bigint, tmp;
+                mpz_init(bigint);
+                mpz_abs(bigint, v._bigint);
+                fmpz_set_mpz(f, bigint);
+                fmpz_factor_t fs;
+                fmpz_factor_init(fs);
+                if (range == 0)
+                        fmpz_factor(fs, f);
+                else
+                        fmpz_factor_trial_range(fs, f, 0, range);
+                for (slong i = 0; i < fs->num; ++i) {
+                        mpz_init(tmp);
+                        fmpz_get_mpz(tmp, fs->p + i);
+                        if (range != 0)
+                                for (int j = 0; j < int(*(fs->exp + i)); ++j) {
+                                        mpz_divexact(bigint,
+                                        bigint,
+                                        tmp);
+                                }
+                        factors.emplace_back(numeric(tmp),
+                                        int(*(fs->exp + i)));
                 }
-                case MPZ:
-                {
-                        fmpz_t f;
-                        fmpz_init(f);
-                        mpz_t bigint, tmp;
-                        mpz_init(bigint);
-                        mpz_abs(bigint, v._bigint);
-                        fmpz_set_mpz(f, bigint);
-                        fmpz_factor_t fs;
-                        fmpz_factor_init(fs);
-                        if (range == 0)
-                                fmpz_factor(fs, f);
-                        else
-                                fmpz_factor_trial_range(fs, f, 0, range);
-                        for (slong i=0; i<fs->num; ++i) {
-                                mpz_init(tmp);
-                                fmpz_get_mpz(tmp, fs->p + i);
-                                if (range != 0)
-                                        for (int j=0; j<int(*(fs->exp+i)); ++j)
-                                        {
-                                                mpz_divexact(bigint,
-                                                             bigint,
-                                                             tmp);
-                                        }
-                                factors.push_back(std::make_pair(numeric(tmp),
-                                                              int(*(fs->exp+i))));
-                        }
-                        fmpz_clear(f);
-                        fmpz_factor_clear(fs);
-                        if (range != 0 and mpz_cmp_ui(bigint, 1) != 0)
-                                factors.push_back(std::make_pair(numeric(bigint), 1));
-                        else
-                                mpz_clear(bigint);
-                        return;
-                }
-                case MPQ:
-                        return to_bigint().factor(factors);
-                case PYOBJECT:
-                default:
-                        stub("invalid type: type not handled");
+                fmpz_clear(f);
+                fmpz_factor_clear(fs);
+                if (range != 0 and mpz_cmp_ui(bigint, 1) != 0)
+                        factors.push_back(std::make_pair(numeric(bigint), 1));
+                else
+                        mpz_clear(bigint);
+                return;
+        }
+        case MPQ:
+                to_bigint().factor(factors);
+                return;
+        case PYOBJECT:
+        default:
+                stub("invalid type: type not handled");
         }
 }
 
@@ -4313,19 +4282,18 @@ void numeric::divisors(std::set<int>& divs) const
         if (is_one() or is_zero() or is_minus_one())
                 return;
         switch (t) {
-                case LONG:
-                case MPZ:
-                {
-                        std::vector<std::pair<long, int>> factors;
-                        factorsmall(factors);
-                        setDivisors(1, 0, divs, factors);
-                        return;
-                }
-                case MPQ:
-                        return to_bigint().divisors(divs);
-                case PYOBJECT:
-                default:
-                        stub("invalid type: type not handled");
+        case LONG:
+        case MPZ: {
+                std::vector<std::pair<long, int>> factors;
+                factorsmall(factors);
+                setDivisors(1, 0, divs, factors);
+                return;
+        }
+        case MPQ:
+                return to_bigint().divisors(divs);
+        case PYOBJECT:
+        default:
+                stub("invalid type: type not handled");
         }
 }
 
@@ -4341,133 +4309,150 @@ void coerce(numeric& new_left, numeric& new_right, const numeric& left, const nu
                 new_right = right;
                 return;
         }
-        mpz_t bigint;
-        mpq_t bigrat;
         PyObject *o;
         switch (left.t) {
-                case LONG:
-                        switch (right.t) {
-                                case MPZ:
-                                        if (mpz_fits_sint_p(right.v._bigint)) {
-                                                new_right = numeric(mpz_get_si(right.v._bigint));
-                                                new_left = left;
-                                        }
-                                        else {
-                                                numeric n;
-                                                mpz_init(n.v._bigint);
-                                                n.t = MPZ;
-                                                mpz_set_si(n.v._bigint, left.v._long);
-                                                n.hash = (left.v._long==-1) ? -2 : left.v._long;
-                                                new_left = n;
-                                                new_right = right;
-                                        }
-                                        return;
-                                case MPQ:
-                                        mpq_init(bigrat);
-                                        mpq_set_si(bigrat, left.v._long, 1);
-                                        new_left = numeric(bigrat);
-                                        new_right = right;
-                                        return;
-                                case PYOBJECT:
-                                        mpz_init_set_si(bigint, left.v._long);
-                                        o = py_funcs.py_integer_from_mpz(bigint);
-                                        new_left = numeric(o, true);
-                                        new_right = right;
-                                        mpz_clear(bigint);
-                                        return;
-                                default:
-                                        std::cerr << "type = " << right.t << "\n";
-                                        stub("** invalid coercion -- left MPZ**");
-                        }
+        case LONG:
+                switch (right.t) {
                 case MPZ:
-                        switch (right.t) {
-                                case LONG:
-                                        if (mpz_fits_sint_p(left.v._bigint)) {
-                                                new_left = numeric(mpz_get_si(left.v._bigint));
-                                                new_right = right;
-                                        }
-                                        else {
-                                                numeric n;
-                                                mpz_init(n.v._bigint);
-                                                n.t = MPZ;
-                                                mpz_set_si(n.v._bigint, right.v._long);
-                                                n.hash = (right.v._long==-1) ? -2 : right.v._long;
-                                                new_right = n;
-                                                new_left = left;
-                                        }
-                                        return;
-                                case MPQ:
-                                        mpq_init(bigrat);
-                                        mpq_set_z(bigrat, left.v._bigint);
-                                        new_left = numeric(bigrat);
-                                        new_right = right;
-                                        return;
-                                case PYOBJECT:
-                                        mpz_init_set(bigint, left.v._bigint);
-                                        o = py_funcs.py_integer_from_mpz(bigint);
-                                        new_left = numeric(o, true);
-                                        new_right = right;
-                                        mpz_clear(bigint);
-                                        return;
-                                default:
-                                        std::cerr << "type = " << right.t << "\n";
-                                        stub("** invalid coercion -- left MPZ**");
+                        if (mpz_fits_sint_p(right.v._bigint)) {
+                                new_right = numeric(mpz_get_si(right.v._bigint));
+                                new_left = left;
+                        } else {
+                                numeric n;
+                                mpz_init(n.v._bigint);
+                                n.t = MPZ;
+                                mpz_set_si(n.v._bigint, left.v._long);
+                                n.hash = (left.v._long == -1) ? -2 : left.v._long;
+                                new_left = n;
+                                new_right = right;
                         }
-                case MPQ:
-                        switch (right.t) {
-                                case LONG:
-                                        mpq_init(bigrat);
-                                        mpq_set_si(bigrat, right.v._long, 1);
-                                        new_right = numeric(bigrat);
-                                        new_left = left;
-                                        return;
-                                case MPZ:
-                                        mpq_init(bigrat);
-                                        mpq_set_z(bigrat, right.v._bigint);
-                                        new_left = left;
-                                        new_right = numeric(bigrat);
-                                        return;
-                                case PYOBJECT:
-                                        mpq_init(bigrat);
-                                        mpq_set(bigrat, left.v._bigrat);
-                                        o = py_funcs.py_rational_from_mpq(bigrat);
-                                        mpq_clear(bigrat);
-                                        new_left = numeric(o, true);
-                                        new_right = right;
-                                        return;
-                                default:
-                                        std::cerr << "type = " << right.t << "\n";
-                                        stub("** invalid coercion -- left MPQ**");
+                        return;
+                case MPQ: {
+                        mpq_t bigrat;
+                        mpq_init(bigrat);
+                        mpq_set_si(bigrat, left.v._long, 1);
+                        new_left = numeric(bigrat);
+                        new_right = right;
+                        return;
+                }
+                case PYOBJECT: {
+                        mpz_t bigint;
+                        mpz_init_set_si(bigint, left.v._long);
+                        o = py_funcs.py_integer_from_mpz(bigint);
+                        new_left = numeric(o, true);
+                        new_right = right;
+                        mpz_clear(bigint);
+                        return;
+                }
+                default:
+                        std::cerr << "type = " << right.t << "\n";
+                        stub("** invalid coercion -- left MPZ**");
+                }
+        case MPZ:
+                switch (right.t) {
+                case LONG:
+                        if (mpz_fits_sint_p(left.v._bigint)) {
+                                new_left = numeric(mpz_get_si(left.v._bigint));
+                                new_right = right;
+                        } else {
+                                numeric n;
+                                mpz_init(n.v._bigint);
+                                n.t = MPZ;
+                                mpz_set_si(n.v._bigint, right.v._long);
+                                n.hash = (right.v._long == -1) ? -2 : right.v._long;
+                                new_right = n;
+                                new_left = left;
                         }
-                case PYOBJECT:
+                        return;
+                case MPQ: {
+                        mpq_t bigrat;
+                        mpq_init(bigrat);
+                        mpq_set_z(bigrat, left.v._bigint);
+                        new_left = numeric(bigrat);
+                        new_right = right;
+                        return;
+                }
+                case PYOBJECT: {
+                        mpz_t bigint;
+                        mpz_init_set(bigint, left.v._bigint);
+                        o = py_funcs.py_integer_from_mpz(bigint);
+                        new_left = numeric(o, true);
+                        new_right = right;
+                        mpz_clear(bigint);
+                        return;
+                }
+                default:
+                        std::cerr << "type = " << right.t << "\n";
+                        stub("** invalid coercion -- left MPZ**");
+                }
+        case MPQ:
+                switch (right.t) {
+                case LONG: {
+                        mpq_t bigrat;
+                        mpq_init(bigrat);
+                        mpq_set_si(bigrat, right.v._long, 1);
+                        new_right = numeric(bigrat);
                         new_left = left;
-                        switch (right.t) {
-                                case LONG:
-                                        mpz_init_set_si(bigint, right.v._long);
-                                        o = py_funcs.py_integer_from_mpz(bigint);
-                                        mpz_clear(bigint);
-                                        new_right = numeric(o, true);
-                                        return;
-                                case MPZ:
-                                        mpz_init_set(bigint, right.v._bigint);
-                                        o = py_funcs.py_integer_from_mpz(bigint);
-                                        mpz_clear(bigint);
-                                        new_right = numeric(o, true);
-                                        return;
-                                case MPQ:
-                                        mpq_init(bigrat);
-                                        mpq_set(bigrat, right.v._bigrat);
-                                        o = py_funcs.py_rational_from_mpq(bigrat);
-                                        mpq_clear(bigrat);
-                                        new_right = numeric(o, true);
-                                        return;
-                                default:
-                                        std::cerr << "type = " << right.t << "\n";
-                                        stub("** invalid coercion -- left PYOBJECT**");
-                        }
+                        return;
+                }
+                case MPZ: {
+                        mpq_t bigrat;
+                        mpq_init(bigrat);
+                        mpq_set_z(bigrat, right.v._bigint);
+                        new_left = left;
+                        new_right = numeric(bigrat);
+                        return;
+                }
+                case PYOBJECT: {
+                        mpq_t bigrat;
+                        mpq_init(bigrat);
+                        mpq_set(bigrat, left.v._bigrat);
+                        o = py_funcs.py_rational_from_mpq(bigrat);
+                        mpq_clear(bigrat);
+                        new_left = numeric(o, true);
+                        new_right = right;
+                        return;
+                }
+                default:
+                        std::cerr << "type = " << right.t << "\n";
+                        stub("** invalid coercion -- left MPQ**");
+                }
+        case PYOBJECT:
+                new_left = left;
+                switch (right.t) {
+                case LONG: {
+                        mpz_t bigint;
+                        mpz_init_set_si(bigint, right.v._long);
+                        o = py_funcs.py_integer_from_mpz(bigint);
+                        mpz_clear(bigint);
+                        new_right = numeric(o, true);
+                        return;
+                }
+                case MPZ: {
+                        mpz_t bigint;
+                        mpz_init_set(bigint, right.v._bigint);
+                        o = py_funcs.py_integer_from_mpz(bigint);
+                        mpz_clear(bigint);
+                        new_right = numeric(o, true);
+                        return;
+                }
+                case MPQ: {
+                        mpq_t bigrat;
+                        mpq_init(bigrat);
+                        mpq_set(bigrat, right.v._bigrat);
+                        o = py_funcs.py_rational_from_mpq(bigrat);
+                        mpq_clear(bigrat);
+                        new_right = numeric(o, true);
+                        return;
+                }
+                default:
+                        std::cerr << "type = " << right.t << "\n";
+                        stub("** invalid coercion -- left PYOBJECT**");
+                }
+        default:
+                std::cerr << "type = " << left.t << "\n";
+                stub("** invalid coercion **");
         }
-        std::cerr << "type = " << left.t << "\n";
-        stub("** invalid coercion **");
 }
 
 /** Imaginary unit.  This is not a constant but a numeric since we are

@@ -390,125 +390,126 @@ void mul::do_print_python_repr(const print_python_repr & c, unsigned level) cons
 
 bool mul::info(unsigned inf) const
 {
-	switch (inf) {
-		case info_flags::nonzero:
-                        return info(info_flags::positive)
-                                or info(info_flags::negative);
-		case info_flags::polynomial:
-		case info_flags::integer_polynomial:
-		case info_flags::cinteger_polynomial:
-		case info_flags::rational_polynomial:
-		case info_flags::real:
-		case info_flags::rational:
-		case info_flags::integer:
-		case info_flags::crational:
-		case info_flags::cinteger:
-		case info_flags::crational_polynomial:
-		case info_flags::rational_function: {
-                        if (not overall_coeff.info(info_flags::real))
+        switch (inf) {
+        case info_flags::nonzero:
+                return info(info_flags::positive)
+                or info(info_flags::negative);
+        case info_flags::polynomial:
+        case info_flags::integer_polynomial:
+        case info_flags::cinteger_polynomial:
+        case info_flags::rational_polynomial:
+        case info_flags::real:
+        case info_flags::rational:
+        case info_flags::integer:
+        case info_flags::crational:
+        case info_flags::cinteger:
+        case info_flags::crational_polynomial:
+        case info_flags::rational_function: {
+                if (not overall_coeff.info(info_flags::real))
+                        return false;
+                for (const auto &elem : seq)
+                        if (!(recombine_pair_to_ex(elem).info(inf)))
                                 return false;
-                        for (const auto & elem : seq)
-				if (!(recombine_pair_to_ex(elem).info(inf)))
-					return false;
-			if (overall_coeff.is_one() && inf == info_flags::even)
-				return true;
-			return overall_coeff.info(inf);
-		}
-		case info_flags::even:
-                {
-                        bool even_seen = false;
-                        for (const auto & elem : seq) {
-				const ex& e = recombine_pair_to_ex(elem);
-                                if (not e.info(info_flags::integer))
-					return false;
-                                if (e.info(info_flags::even))
-                                        even_seen = true;
-                        }
-                        return even_seen or overall_coeff.is_even();
+                if (overall_coeff.is_one() && inf == info_flags::even)
+                        return true;
+                return overall_coeff.info(inf);
+        }
+        case info_flags::even: {
+                bool even_seen = false;
+                for (const auto &elem : seq) {
+                        const ex &e = recombine_pair_to_ex(elem);
+                        if (not e.info(info_flags::integer))
+                                return false;
+                        if (e.info(info_flags::even))
+                                even_seen = true;
                 }
-		case info_flags::inexact:
-		case info_flags::algebraic: {
-                        if (overall_coeff.info(inf))
+                return even_seen or overall_coeff.is_even();
+        }
+        case info_flags::inexact:
+        case info_flags::algebraic: {
+                if (overall_coeff.info(inf))
+                        return true;
+                for (const auto &elem : seq)
+                        if ((recombine_pair_to_ex(elem).info(inf)))
                                 return true;
-                        for (const auto & elem : seq)
-				if ((recombine_pair_to_ex(elem).info(inf)))
-					return true;
-			return false;
-		}
-		case info_flags::positive:
-		case info_flags::negative: {
-                        if (not overall_coeff.info(info_flags::real))
+                return false;
+        }
+        case info_flags::positive:
+        case info_flags::negative: {
+                if (not overall_coeff.info(info_flags::real))
+                        return false;
+                bool pos = true;
+                for (const auto &elem : seq) {
+                        const ex &factor = recombine_pair_to_ex(elem);
+                        if (factor.info(info_flags::positive))
+                                continue;
+                        if (factor.info(info_flags::negative))
+                                pos = !pos;
+                        else
                                 return false;
-			bool pos = true;
-                        for (const auto & elem : seq) {
-				const ex& factor = recombine_pair_to_ex(elem);
-				if (factor.info(info_flags::positive))
-					continue;
-				if (factor.info(info_flags::negative))
-					pos = !pos;
-				else
-					return false;
-			}
-			if (overall_coeff.info(info_flags::negative))
-				pos = !pos;
-			return (inf ==info_flags::positive? pos : !pos);
-		}
-		case info_flags::nonnegative: {
-                        if (not overall_coeff.info(info_flags::real))
+                }
+                if (overall_coeff.info(info_flags::negative))
+                        pos = !pos;
+                return (inf == info_flags::positive ? pos : !pos);
+        }
+        case info_flags::nonnegative: {
+                if (not overall_coeff.info(info_flags::real))
+                        return false;
+                bool pos = true;
+                for (const auto &elem : seq) {
+                        const ex &factor = recombine_pair_to_ex(elem);
+                        if (factor.info(info_flags::nonnegative)
+                            or factor.info(info_flags::positive))
+                                continue;
+                        if (factor.info(info_flags::negative))
+                                pos = !pos;
+                        else
                                 return false;
-			bool pos = true;
-                        for (const auto & elem : seq) {
-				const ex& factor = recombine_pair_to_ex(elem);
-				if (factor.info(info_flags::nonnegative) || factor.info(info_flags::positive))
-					continue;
-				if (factor.info(info_flags::negative))
-					pos = !pos;
-				else
-					return false;
-			}
-			return (overall_coeff.info(info_flags::negative)? !pos : pos);
-		}
-		case info_flags::posint:
-		case info_flags::negint: {
-                        if (not overall_coeff.info(info_flags::real))
+                }
+                return (overall_coeff.info(info_flags::negative) ? !pos : pos);
+        }
+        case info_flags::posint:
+        case info_flags::negint: {
+                if (not overall_coeff.info(info_flags::real))
+                        return false;
+                bool pos = true;
+                for (const auto &elem : seq) {
+                        const ex &factor = recombine_pair_to_ex(elem);
+                        if (factor.info(info_flags::posint))
+                                continue;
+                        if (factor.info(info_flags::negint))
+                                pos = !pos;
+                        else
                                 return false;
-			bool pos = true;
-                        for (const auto & elem : seq) {
-				const ex& factor = recombine_pair_to_ex(elem);
-				if (factor.info(info_flags::posint))
-					continue;
-				if (factor.info(info_flags::negint))
-					pos = !pos;
-				else
-					return false;
-			}
-			if (overall_coeff.info(info_flags::negint))
-				pos = !pos;
-			else if (!overall_coeff.info(info_flags::posint))
-				return false;
-			return (inf ==info_flags::posint? pos : !pos); 
-		}
-		case info_flags::nonnegint: {
-                        if (not overall_coeff.info(info_flags::real))
+                }
+                if (overall_coeff.info(info_flags::negint))
+                        pos = !pos;
+                else if (!overall_coeff.info(info_flags::posint))
+                        return false;
+                return (inf == info_flags::posint ? pos : !pos);
+        }
+        case info_flags::nonnegint: {
+                if (not overall_coeff.info(info_flags::real))
+                        return false;
+                bool pos = true;
+                for (const auto &elem : seq) {
+                        const ex &factor = recombine_pair_to_ex(elem);
+                        if (factor.info(info_flags::nonnegint)
+                            or factor.info(info_flags::posint))
+                                continue;
+                        if (factor.info(info_flags::negint))
+                                pos = !pos;
+                        else
                                 return false;
-			bool pos = true;
-                        for (const auto & elem : seq) {
-				const ex& factor = recombine_pair_to_ex(elem);
-				if (factor.info(info_flags::nonnegint) || factor.info(info_flags::posint))
-					continue;
-				if (factor.info(info_flags::negint))
-					pos = !pos;
-				else
-					return false;
-			}
-			if (overall_coeff.info(info_flags::negint))
-				pos = !pos;
-			else if (!overall_coeff.info(info_flags::posint))
-				return false;
-			return pos; 
-		}
-	}
-	return inherited::info(inf);
+                }
+                if (overall_coeff.info(info_flags::negint))
+                        pos = !pos;
+                else if (!overall_coeff.info(info_flags::posint))
+                        return false;
+                return pos;
+        }
+        }
+        return inherited::info(inf);
 }
 
 bool mul::is_polynomial(const ex & var) const

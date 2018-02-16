@@ -544,8 +544,12 @@ class ClusterQuiver(SageObject):
         EXAMPLES::
 
             sage: Q = ClusterQuiver(['A',5])
-            sage: pl = Q.plot()
-            sage: pl = Q.plot(circular=True)
+            sage: Q.plot()
+            Graphics object consisting of 15 graphics primitives
+            sage: Q.plot(circular=True)
+            Graphics object consisting of 15 graphics primitives
+            sage: Q.plot(circular=True, mark=1)
+            Graphics object consisting of 15 graphics primitives
         """
         from sage.plot.colors import rainbow
         from sage.graphs.graph_generators import GraphGenerators
@@ -600,9 +604,11 @@ class ClusterQuiver(SageObject):
         if mark is not None:
 
             if mark in nlist:
-                partition = (nlist.remove(mark), mlist, [mark])
+                nlist.remove(mark)
+                partition = (nlist, mlist, [mark])
             elif mark in mlist:
-                partition = (nlist, mlist.remove(mark), [mark])
+                mlist.remove(mark)
+                partition = (nlist, mlist, [mark])
             else:
                 raise ValueError("The given mark is not a vertex of self.")
         else:

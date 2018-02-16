@@ -988,10 +988,13 @@ class ClusterSeed(SageObject):
         EXAMPLES::
 
             sage: S = ClusterSeed(['A',5])
-            sage: pl = S.plot()
-            sage: pl = S.plot(circular=True)
+            sage: S.plot()
+            Graphics object consisting of 15 graphics primitives
+            sage: S.plot(circular=True)
+            Graphics object consisting of 15 graphics primitives
+            sage: S.plot(circular=True, mark=1)
+            Graphics object consisting of 15 graphics primitives
         """
-
         greens = []
         if with_greens:
             greens = self.green_vertices()
@@ -1004,7 +1007,8 @@ class ClusterSeed(SageObject):
         else:
             quiver = self.quiver()
 
-        return quiver.plot(circular=circular,mark=mark,save_pos=save_pos, greens=greens)
+        return quiver.plot(circular=circular, mark=mark, save_pos=save_pos,
+                           greens=greens)
 
     def show(self, fig_size=1, circular=False, mark=None, save_pos=False, force_c = False, with_greens= False, add_labels = False):
         r"""
@@ -1042,12 +1046,17 @@ class ClusterSeed(SageObject):
 
     def interact(self, fig_size=1, circular=True):
         r"""
-        Only in *notebook mode*. Starts an interactive window for cluster seed mutations.
+        Start an interactive window for cluster seed mutations.
+
+        Only in *Jupyter notebook mode*.
 
         INPUT:
 
-        - ``fig_size`` -- (default: 1) factor by which the size of the plot is multiplied.
-        - ``circular`` -- (default: True) if True, the circular plot is chosen, otherwise >>spring<< is used.
+        - ``fig_size`` -- (default: 1) factor by which the size of the
+          plot is multiplied.
+
+        - ``circular`` -- (default: ``True``) if ``True``, the circular plot
+          is chosen, otherwise >>spring<< is used.
 
         TESTS::
 
@@ -1055,64 +1064,78 @@ class ClusterSeed(SageObject):
             sage: S.interact() # long time
             'The interactive mode only runs in the Sage notebook.'
         """
-        # Also update so works in cloud and not just notebook
-        from sage.plot.plot import EMBEDDED_MODE
-        from sagenb.notebook.interact import interact, selector
-        from sage.misc.all import html,latex
+        import ipywidgets as widgets
+        from sage.misc.all import html, latex
         from sage.repl.rich_output.pretty_print import pretty_print
+        from IPython.display import clear_output
 
-        if not EMBEDDED_MODE:
-            return "The interactive mode only runs in the Sage notebook."
-        else:
-            seq = []
-            sft = [True]
-            sss = [True]
-            ssv = [True]
-            ssm = [True]
-            ssl = [True]
-            @interact
-            def player(k=selector(values=list(range(self._n)), nrows = 1,
-                                  label='Mutate at: '),
-                       show_seq=("Mutation sequence:", True),
-                       show_vars=("Cluster variables:", True),
-                       show_matrix=("B-Matrix:", True),
-                       show_lastmutation=("Show last mutation:", True)):
-                ft, ss, sv, sm, sl = sft.pop(), sss.pop(), ssv.pop(), ssm.pop(), ssl.pop()
-                if ft:
-                    self.show(fig_size=fig_size, circular=circular)
-                elif show_seq is not ss or show_vars is not sv or show_matrix is not sm or show_lastmutation is not sl:
-                    if seq and show_lastmutation:
-                        self.show(fig_size=fig_size, circular=circular,
-                                  mark=seq[len(seq) - 1])
-                    else:
-                        self.show(fig_size=fig_size, circular=circular )
+        show_seq = widgets.Checkbox(value=True,
+                                    description="Mutation sequence:")
+
+        show_vars = widgets.Checkbox(value=True,
+                                     description="Cluster variables:")
+
+        show_matrix = widgets.Checkbox(value=True,
+                                       description="B-matrix:")
+
+        show_lastmutation = widgets.Checkbox(value=True,
+                                             description="Show last mutation:")
+
+        mut_buttons = widgets.ToggleButtons(options=list(range(self._n)),
+                                           button_style='',
+                                           description='Mutate at: ')
+
+        out = widgets.Output()
+
+        seq = []
+
+        def print_data():
+            if show_seq.value:
+                pretty_print(html("Mutation sequence: ${}$".format(seq)))
+
+            if show_vars.value:
+                pretty_print(html("Cluster variables:"))
+                table = "$\\begin{align*}\n"
+                for i in range(self._n):
+                    table += "\tv_{%s} &= " % i + latex(self.cluster_variable(i)) + "\\\\ \\\\\n"
+                table += "\\end{align*}$"
+                pretty_print(html(table))
+
+            if show_matrix.value:
+                pretty_print(html("B-Matrix:"))
+                pretty_print(html(self._M))
+
+        def refresh(w):
+            k = mut_buttons.value
+            with out:
+                clear_output(wait=True)
+                if show_lastmutation.value:
+                    self.show(fig_size=fig_size, circular=circular, mark=k)
                 else:
-                    self.mutate(k)
-                    seq.append(k)
-                    if not show_lastmutation:
-                        self.show(fig_size=fig_size, circular=circular)
-                    else:
-                        self.show(fig_size=fig_size, circular=circular, mark=k)
-                sft.append(False)
-                sss.append(show_seq)
-                ssv.append(show_vars)
-                ssm.append(show_matrix)
-                ssl.append(show_lastmutation)
-                if show_seq:
-                    pretty_print(html("Mutation sequence: $" + str( [ seq[i] for i in range(len(seq)) ] ).strip('[]') + "$"))
-                if show_vars:
-                    pretty_print(html("Cluster variables:"))
-                    table = "$\\begin{align*}\n"
-                    for i in range(self._n):
-                        table += "\tv_{%s} &= " % i + latex(self.cluster_variable(i)) + "\\\\ \\\\\n"
-                    table += "\\end{align*}$"
-                    pretty_print(html("$ $"))
-                    pretty_print(html(table))
-                    pretty_print(html("$ $"))
-                if show_matrix:
-                    pretty_print(html("B-Matrix:"))
-                    pretty_print(html(self._M))
-                    pretty_print(html("$ $"))
+                    self.show(fig_size=fig_size, circular=circular)
+                print_data()
+                
+        def do_mutation(w):
+            k = mut_buttons.value
+            self.mutate(k)
+            seq.append(k)
+            with out:
+                clear_output(wait=True)
+                if show_lastmutation.value:
+                    self.show(fig_size=fig_size, circular=circular, mark=k)
+                else:
+                    self.show(fig_size=fig_size, circular=circular)
+                print_data()
+
+        # mut_buttons.on_msg(do_mutation)
+        mut_buttons.observe(do_mutation, 'value')
+        show_seq.observe(refresh, 'value')
+        show_vars.observe(refresh, 'value')
+        show_matrix.observe(refresh, 'value')
+        show_lastmutation.observe(refresh, 'value')
+
+        return widgets.VBox([show_seq, show_vars, show_matrix,
+                             show_lastmutation, mut_buttons, out])
 
     def save_image(self, filename, circular=False, mark=None, save_pos=False):
         r"""

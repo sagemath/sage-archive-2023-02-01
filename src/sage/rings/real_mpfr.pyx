@@ -5931,17 +5931,19 @@ cdef class int_toRR(Map):
         cdef mpz_t x_mpz
 
         if not isinstance(x, (int, long)):
-            x = long(x)
+            x = int(x)
 
         integer_check_long_py(x, &x_long, &err)
 
         if not err:
             mpfr_set_si(y.value, x_long, parent.rnd)
-        elif err == ERR_OVERFLOW:
+        elif isinstance(x, long):
             mpz_init(x_mpz)
             mpz_set_pylong(x_mpz, x)
             mpfr_set_z(y.value, x_mpz, parent.rnd)
+            mpz_clear(x_mpz)
         else:
+            # This should never happen
             raise TypeError("argument cannot be converted to a Python int/long")
 
         return y

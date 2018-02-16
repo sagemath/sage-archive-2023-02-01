@@ -591,7 +591,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: f(a)
             Traceback (most recent call last):
             ...
-            ValueError: must be a Python int object
+            TypeError: must be a Python int object
         """
         if S is long:
             return sage.rings.integer.long_to_Z()

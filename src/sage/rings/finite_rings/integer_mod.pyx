@@ -170,7 +170,7 @@ def IntegerMod(parent, value):
             res = value % modulus.int64
             if res < 0:
                 res = res + modulus.int64
-            a = modulus.lookup(res)
+            a = modulus.table[res]
             if (<Element>a)._parent is not parent:
                (<Element>a)._parent = parent
             return a
@@ -196,17 +196,13 @@ def is_IntegerMod(x):
     """
     return isinstance(x, IntegerMod_abstract)
 
-def makeNativeIntStruct(sage.rings.integer.Integer z):
-    """
-    Function to convert a Sage Integer into class NativeIntStruct.
 
-    .. NOTE::
+cdef inline inverse_or_None(x):
+    try:
+        return ~x
+    except ArithmeticError:
+        return None
 
-       This function is only used for the unpickle override below.
-    """
-    return NativeIntStruct(z)
-
-register_unpickle_override('sage.rings.integer_mod', 'makeNativeIntStruct', makeNativeIntStruct)
 
 cdef class NativeIntStruct:
     """
@@ -216,27 +212,50 @@ cdef class NativeIntStruct:
     We may also store a cached table of all elements of a given ring in
     this class.
     """
-    def __init__(NativeIntStruct self, sage.rings.integer.Integer z):
-        self.int64 = -1
+    def __cinit__(self):
         self.int32 = -1
-        self.table = None # NULL
-        self.sageInteger = z
-        if mpz_cmp_si(z.value, INTEGER_MOD_INT64_LIMIT) <= 0:
-            self.int64 = mpz_get_si(z.value)
+        self.int64 = -1
+
+    def __init__(self, m):
+        self.sageInteger = Integer(m)
+        cdef mpz_srcptr z = self.sageInteger.value
+        if mpz_cmp_si(z, INTEGER_MOD_INT64_LIMIT) <= 0:
+            self.int64 = mpz_get_si(z)
             if use_32bit_type(self.int64):
                 self.int32 = self.int64
 
-    def __reduce__(NativeIntStruct self):
-        return sage.rings.finite_rings.integer_mod.makeNativeIntStruct, (self.sageInteger, )
+    def __repr__(self):
+        return f"{type(self).__name__}({self.sageInteger})"
 
-    def precompute_table(NativeIntStruct self, parent, inverses=True):
+    def __reduce__(self):
+        """
+        TESTS::
+
+            sage: from sage.rings.finite_rings.integer_mod import NativeIntStruct
+            sage: M = NativeIntStruct(12345); M
+            NativeIntStruct(12345)
+            sage: loads(dumps(M))
+            NativeIntStruct(12345)
+        """
+        return type(self), (self.sageInteger, )
+
+    def precompute_table(self, parent):
         """
         Function to compute and cache all elements of this class.
 
         If ``inverses == True``, also computes and caches the inverses
         of the invertible elements.
 
-        EXAMPLES:
+        EXAMPLES::
+
+            sage: from sage.rings.finite_rings.integer_mod import NativeIntStruct
+            sage: R = IntegerModRing(10)
+            sage: M = NativeIntStruct(R.order())
+            sage: M.precompute_table(R)
+            sage: M.table
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+            sage: M.inverses
+            [None, 1, None, 7, None, None, None, 3, None, 9]
 
         This is used by the :class:`sage.rings.finite_rings.integer_mod_ring.IntegerModRing_generic` constructor::
 
@@ -255,36 +274,35 @@ cdef class NativeIntStruct:
             sage: R = IntegerModRing_generic(1, cache=True)  # indirect doctest
             sage: R(0)^-1 is R(0)
             True
+
+        TESTS::
+
+            sage: R = IntegerModRing(10^50)
+            sage: M = NativeIntStruct(R.order())
+            sage: M.precompute_table(R)
+            Traceback (most recent call last):
+            ...
+            OverflowError: precompute_table() is only supported for small moduli
         """
-        self.table = PyList_New(self.int64)
-        cdef Py_ssize_t i
-        if self.int32 != -1:
-            for i from 0 <= i < self.int32:
-                z = IntegerMod_int(parent, i)
-                Py_INCREF(z); PyList_SET_ITEM(self.table, i, z)
+        cdef Py_ssize_t i, m = self.int64
+
+        # Verify that the modulus m fits in a Py_ssize_t
+        if m <= 0 or (<int_fast64_t>m != self.int64):
+            raise OverflowError("precompute_table() is only supported for small moduli")
+
+        t = self.element_class()
+        self.table = [t(parent, i) for i in range(m)]
+
+        if m == 1:
+            # Special case for integers modulo 1
+            self.inverses = self.table
         else:
-            for i from 0 <= i < self.int64:
-                z = IntegerMod_int64(parent, i)
-                Py_INCREF(z); PyList_SET_ITEM(self.table, i, z)
+            self.inverses = [inverse_or_None(x) for x in self.table]
 
-        if inverses:
-            if self.int64 == 1:
-                # Special case for integers modulo 1
-                self.inverses = self.table
-            else:
-                tmp = [None] * self.int64
-                for i from 1 <= i < self.int64:
-                    try:
-                        tmp[i] = ~self.table[i]
-                    except ZeroDivisionError:
-                        pass
-                self.inverses = tmp
 
-    def _get_table(self):
-        return self.table
-
-    cdef lookup(NativeIntStruct self, Py_ssize_t value):
-        return <object>PyList_GET_ITEM(self.table, value)
+# For unpickling
+makeNativeIntStruct = NativeIntStruct
+register_unpickle_override('sage.rings.integer_mod', 'makeNativeIntStruct', NativeIntStruct)
 
 
 cdef class IntegerMod_abstract(FiniteRingElement):
@@ -2275,7 +2293,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
 
     cdef IntegerMod_int _new_c(self, int_fast32_t value):
         if self.__modulus.table is not None:
-            return self.__modulus.lookup(value)
+            return self.__modulus.table[value]
         cdef IntegerMod_int x = IntegerMod_int.__new__(IntegerMod_int)
         x._parent = self._parent
         x.__modulus = self.__modulus
@@ -4236,7 +4254,7 @@ cdef class Integer_to_IntegerMod(IntegerMod_hom):
             res = x % self.modulus.int64
             if res < 0:
                 res += self.modulus.int64
-            a = self.modulus.lookup(res)
+            a = self.modulus.table[res]
 #            if a._parent is not self._codomain:
             a._parent = self._codomain
             return a
@@ -4347,7 +4365,7 @@ cdef class Int_to_IntegerMod(IntegerMod_hom):
             if res < 0:
                 res += self.modulus.int64
             if self.modulus.table is not None:
-                a = self.modulus.lookup(res)
+                a = self.modulus.table[res]
                 a._parent = self._codomain
                 return a
             else:

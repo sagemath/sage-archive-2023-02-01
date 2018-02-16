@@ -3,13 +3,21 @@ from sage.rings.finite_rings.stdint cimport *
 from sage.rings.finite_rings.element_base cimport FiniteRingElement
 from sage.rings.integer cimport Integer
 
+
 cdef class NativeIntStruct:
     cdef Integer sageInteger
     cdef int_fast32_t int32
     cdef int_fast64_t int64
-    cdef object table # a list
-    cdef object inverses # also a list
-    cdef lookup(NativeIntStruct self, Py_ssize_t value)
+    cdef readonly list table     # list of elements of IntegerModRing(n)
+    cdef readonly list inverses  # list of inverses (None if not invertible)
+    cdef inline type element_class(self):
+        if self.int32 > 0:
+            return IntegerMod_int
+        elif self.int64 > 0:
+            return IntegerMod_int64
+        else:
+            return IntegerMod_gmp
+
 
 cdef class IntegerMod_abstract(FiniteRingElement):
     cdef NativeIntStruct __modulus

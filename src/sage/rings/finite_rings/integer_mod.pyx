@@ -4166,14 +4166,19 @@ cdef class IntegerMod_to_IntegerMod(IntegerMod_hom):
 
     cpdef Element _call_(self, x):
         cdef IntegerMod_abstract a
+        zero = <IntegerMod_abstract>self.zero
+        cdef unsigned long value
         if isinstance(x, IntegerMod_int):
-            return (<IntegerMod_int>self.zero)._new_c((<IntegerMod_int>x).ivalue % self.modulus.int32)
+            value = (<IntegerMod_int>x).ivalue
+            value %= <unsigned long>self.modulus.int32
+            return zero._new_c_fast(value)
         elif isinstance(x, IntegerMod_int64):
-            return self.zero._new_c_from_long((<IntegerMod_int64>x).ivalue  % self.modulus.int64)
-        else: # isinstance(x, IntegerMod_gmp)
-            a = self.zero._new_c_from_long(0)
-            a.set_from_mpz((<IntegerMod_gmp>x).value)
-            return a
+            value = (<IntegerMod_int64>x).ivalue
+            value %= <unsigned long>self.modulus.int64
+            return zero._new_c_fast(value)
+        a = zero._new_c_fast(0)
+        a.set_from_mpz((<IntegerMod_gmp?>x).value)
+        return a
 
     def _repr_type(self):
         return "Natural"
@@ -4271,6 +4276,7 @@ cdef class Integer_to_IntegerMod(IntegerMod_hom):
         """
         return False
 
+
 cdef class IntegerMod_to_Integer(Map):
     """
     Map to lift elements to :class:`~sage.rings.integer.Integer`.
@@ -4301,13 +4307,14 @@ cdef class IntegerMod_to_Integer(Map):
         if isinstance(x, IntegerMod_gmp):
             mpz_set(ans.value, (<IntegerMod_gmp>x).value)
         elif isinstance(x, IntegerMod_int):
-            mpz_set_si(ans.value, (<IntegerMod_int>x).ivalue)
+            mpz_set_ui(ans.value, (<IntegerMod_int>x).ivalue)
         elif isinstance(x, IntegerMod_int64):
-            mpz_set_si(ans.value, (<IntegerMod_int64>x).ivalue)
+            mpz_set_ui(ans.value, (<IntegerMod_int64>x).ivalue)
         return ans
 
     def _repr_type(self):
         return "Lifting"
+
 
 cdef class Int_to_IntegerMod(IntegerMod_hom):
     """
@@ -4332,29 +4339,21 @@ cdef class Int_to_IntegerMod(IntegerMod_hom):
 
     cpdef Element _call_(self, x):
         cdef IntegerMod_abstract a
+        zero = <IntegerMod_abstract>self.zero
+
         cdef long res
         cdef int err
 
         if not integer_check_long_py(x, &res, &err):
             raise TypeError(f"{x} is not an integer")
-        elif err == ERR_OVERFLOW:
-            return IntegerMod_gmp(self.zero._parent, x)
 
-        if isinstance(self.zero, IntegerMod_gmp):
-            if 0 <= res < INTEGER_MOD_INT64_LIMIT:
-                return self.zero._new_c_from_long(res)
-            else:
-                return IntegerMod_gmp(self.zero._parent, x)
-        else:
-            res %= self.modulus.int64
-            if res < 0:
-                res += self.modulus.int64
-            if self.modulus.table is not None:
-                a = self.modulus.table[res]
-                a._parent = self._codomain
-                return a
-            else:
-                return self.zero._new_c_from_long(res)
+        if not err:
+            return zero._new_c_from_long(res)
+
+        cdef Integer z = Integer(x)
+        a = zero._new_c_fast(0)
+        a.set_from_mpz(z.value)
+        return a
 
     def _repr_type(self):
         return "Native"

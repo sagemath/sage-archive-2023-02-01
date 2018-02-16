@@ -85,6 +85,8 @@ import operator
 cdef bint use_32bit_type(int_fast64_t modulus):
     return modulus <= INTEGER_MOD_INT32_LIMIT
 
+from sage.arith.long cimport integer_check_long, integer_check_long_py, ERR_OVERFLOW
+
 import sage.rings.rational as rational
 from sage.libs.pari.all import pari, PariError
 import sage.rings.integer_ring as integer_ring
@@ -144,12 +146,10 @@ def Mod(n, m, parent=None):
 
     # m is non-zero, so return n mod m
     cdef IntegerMod_abstract x
-    from .integer_mod_ring import IntegerModRing
-    x = IntegerMod(IntegerModRing(m), n)
     if parent is None:
-        return x
-    x._parent = parent
-    return x
+        from .integer_mod_ring import IntegerModRing
+        parent = IntegerModRing(m)
+    return IntegerMod(parent, n)
 
 
 mod = Mod
@@ -162,25 +162,40 @@ def IntegerMod(parent, value):
     Create an integer modulo `n` with the given parent.
 
     This is mainly for internal use.
+
+    EXAMPLES::
+
+        sage: from sage.rings.finite_rings.integer_mod import IntegerMod
+        sage: R = IntegerModRing(100)
+        sage: type(R._pyx_order.table)
+        <type 'list'>
+        sage: IntegerMod(R, 42)
+        42
+        sage: IntegerMod(R, 142)
+        42
+        sage: IntegerMod(R, 10^100 + 42)
+        42
+        sage: IntegerMod(R, -9158)
+        42
     """
-    cdef NativeIntStruct modulus
-    cdef Py_ssize_t res
-    modulus = parent._pyx_order
+    cdef NativeIntStruct modulus = parent._pyx_order
+
+    cdef long val = 0
+    cdef int err
+
     if modulus.table is not None:
-        if isinstance(value, sage.rings.integer.Integer) or isinstance(value, int) or isinstance(value, long):
-            res = value % modulus.int64
-            if res < 0:
-                res = res + modulus.int64
-            a = modulus.table[res]
-            if (<Element>a)._parent is not parent:
-               (<Element>a)._parent = parent
+        # Try to return an element from the precomputed table
+        integer_check_long(value, &val, &err)
+        if not err:
+            val = (<int_fast64_t>val) % modulus.int64
+            if val < 0:
+                val += modulus.int64
+            a = <Element>modulus.table[val]
+            assert a._parent is parent
             return a
-    if modulus.int32 != -1:
-        return IntegerMod_int(parent, value)
-    elif modulus.int64 != -1:
-        return IntegerMod_int64(parent, value)
-    else:
-        return IntegerMod_gmp(parent, value)
+    t = modulus.element_class()
+    return t(parent, value)
+
 
 def is_IntegerMod(x):
     """

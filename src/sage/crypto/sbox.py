@@ -1225,6 +1225,63 @@ class SBox(SageObject):
 
         return A
 
+    @cached_method
+    def boomerang_connectivity_matrix(self):
+        r"""
+        Return the boomerang connectivity matrix for this S-Box.
+
+        Boomerang connectivity matrix of an invertible `m \times m`
+        S-Box `S` is an `2^m \times 2^m` matrix with entry at row
+        `\Delta_i \in \mathbb{F}_2^m` and column `\Delta_o \in \mathbb{F}_2^m`
+        equal to
+
+        .. MATH::
+
+            |\{ x \in \mathbb{F}_2^m | S^{-1}( S(x) \oplus \Delta_o) \oplus S^{-1}( S(x \oplus \Delta_i) \oplus \Delta_o) = \Delta_i\}|.
+
+        For more results concering boomerang connectivity matrix, see [CHPSS18]_ .
+
+        EXAMPLES::
+
+            sage: from sage.crypto.sboxes import PRESENT
+            sage: PRESENT.boomerang_connectivity_matrix()
+            [16 16 16 16 16 16 16 16 16 16 16 16 16 16 16 16]
+            [16  0  4  4  0 16  4  4  4  4  0  0  4  4  0  0]
+            [16  0  0  6  0  4  6  0  0  0  2  0  2  2  2  0]
+            [16  2  0  6  2  4  4  2  0  0  2  2  0  0  0  0]
+            [16  0  0  0  0  4  2  2  0  6  2  0  6  0  2  0]
+            [16  2  0  0  2  4  0  0  0  6  2  2  4  2  0  0]
+            [16  4  2  0  4  0  2  0  2  0  0  4  2  0  4  8]
+            [16  4  2  0  4  0  2  0  2  0  0  4  2  0  4  8]
+            [16  4  0  2  4  0  0  2  0  2  0  4  0  2  4  8]
+            [16  4  2  0  4  0  2  0  2  0  0  4  2  0  4  8]
+            [16  0  2  2  0  4  0  0  6  0  2  0  0  6  2  0]
+            [16  2  0  0  2  4  0  0  4  2  2  2  0  6  0  0]
+            [16  0  6  0  0  4  0  6  2  2  2  0  0  0  2  0]
+            [16  2  4  2  2  4  0  6  0  0  2  2  0  0  0  0]
+            [16  0  2  2  0  0  2  2  2  2  0  0  2  2  0  0]
+            [16  8  0  0  8  0  0  0  0  0  0  8  0  0  8 16]
+        """
+        Si = self.inverse()
+
+        m = self.m
+        n = self.n
+
+        nrows = 1 << m
+        ncols = 1 << n
+
+        A = Matrix(ZZ, nrows, ncols)
+
+        for x in range(nrows):
+            for di in range(nrows):
+                for do in range(ncols):
+                    l = Si( self(x) ^ do )
+                    r = Si( self(x ^ di) ^ do )
+                    if (l ^ r == di):
+                        A[di, do] += 1
+        return A
+
+
     def linear_structures(self):
         r"""
         Return a list of 3-valued tuple `(b, \alpha, c)` such that `\alpha` is

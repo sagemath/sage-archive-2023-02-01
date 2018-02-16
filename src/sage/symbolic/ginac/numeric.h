@@ -236,8 +236,6 @@ public:
 	bool operator<=(const numeric &other) const;
 	bool operator>(const numeric &other) const;
 	bool operator>=(const numeric &other) const;
-	bool is_parent_pos_char() const;
-	int get_parent_char() const;
 	int to_int() const;
 	long to_long() const;
 	double to_double() const;

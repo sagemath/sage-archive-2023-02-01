@@ -2693,30 +2693,6 @@ bool numeric::is_real() const {
         }
 }
 
-/** True if the parent of the object has positive characteristic. */
-bool numeric::is_parent_pos_char() const {
-        return get_parent_char() > 0;
-}
-
-/** Returns the characteristic of the parent of this object. */
-int numeric::get_parent_char() const {
-        verbose("get_parent_char");
-        switch (t) {
-                case LONG:
-                case MPZ:
-                case MPQ:
-                        return 0;
-                case PYOBJECT:
-                {
-                        int c = py_funcs.py_get_parent_char(v._pyobject);
-                        if (c == -1) py_error("error in py_get_parent_char");
-                        return c;
-                }
-                default:
-                        stub("invalid type -- is_parent_pos_char() type not handled");
-        }
-}
-
 /** True if object is an exact rational number, may even be complex
  *  (denominator may be unity). */
 bool numeric::is_exact() const {

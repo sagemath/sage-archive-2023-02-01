@@ -736,15 +736,10 @@ ex mul::eval(int level) const
 				++j;
 			}
 
-			if (! unit_normal) {
-				if(unlikely(c.get_parent_char() == 2) && c.is_one()) {
-					c = *_num_1_p;
-				} else {
-					c = c.mul(*_num_1_p);
-				}
-			}
+                        if (!unit_normal)
+                                c = c.mul(*_num_1_p);
 
-			oc = oc.mul(c);
+                        oc = oc.mul(c);
 
 			// divide add by the number in place to save at least 2 .eval() calls
 			const add& addref = ex_to<add>(i->rest);

@@ -1,8 +1,8 @@
 r"""
 SemiDefinite Programming
 
-A semidefinite program (`SDP <https://en.wikipedia.org/wiki/Semidefinite_programming>`_)
-is an `optimization problem <https://en.wikipedia.org/wiki/Optimization_%28mathematics%29>`_
+A semidefinite program (:wikipedia:`SDP <Semidefinite_programming>`)
+is an optimization problem (:wikipedia:`Optimization_(mathematics)>`)
 of the following form
 
 .. MATH::

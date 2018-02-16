@@ -15,7 +15,8 @@ size of the modulus.
 -  ``IntegerMod_int64`` stores its value in a
    ``int_fast64_t`` (typically a ``long
    long``); this is used if the modulus is less than
-   `2^{31}-1`.
+   `2^{31}-1`. In many places, we assume that the values and the modulus
+   actually fit inside an ``unsigned long``.
 
 -  ``IntegerMod_gmp`` stores its value in a
    ``mpz_t``; this can be used for an arbitrarily large
@@ -320,6 +321,14 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         self.__modulus = parent._pyx_order
 
 
+    cdef IntegerMod_abstract _new_c_fast(self, unsigned long value):
+        cdef type t = type(self)
+        x = <IntegerMod_abstract>t.__new__(t)
+        x._parent = self._parent
+        x.__modulus = self.__modulus
+        x.set_from_ulong_fast(value)
+        return x
+
     cdef _new_c_from_long(self, long value):
         cdef type t = type(self)
         cdef IntegerMod_abstract x = <IntegerMod_abstract>t.__new__(t)
@@ -331,10 +340,17 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         return x
 
     cdef void set_from_mpz(self, mpz_t value):
-        raise NotImplementedError("Must be defined in child class.")
+        raise NotImplementedError("must be defined in child class")
 
     cdef void set_from_long(self, long value):
-        raise NotImplementedError("Must be defined in child class.")
+        raise NotImplementedError("must be defined in child class")
+
+    cdef void set_from_ulong_fast(self, unsigned long value):
+        """
+        Set ``self`` to the value in ``value`` where ``value`` is
+        assumed to be less than the modulus
+        """
+        raise NotImplementedError("must be defined in child class")
 
     def __abs__(self):
         """
@@ -1855,8 +1871,10 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         """
         cdef sage.rings.integer.Integer modulus
         mpz_set_si(self.value, value)
-        if value < 0 or mpz_cmp_si(self.__modulus.sageInteger.value, value) <= 0:
-            mpz_mod(self.value, self.value, self.__modulus.sageInteger.value)
+        mpz_mod(self.value, self.value, self.__modulus.sageInteger.value)
+
+    cdef void set_from_ulong_fast(self, unsigned long value):
+        mpz_set_ui(self.value, value)
 
     def __lshift__(IntegerMod_gmp self, k):
         r"""
@@ -2308,6 +2326,9 @@ cdef class IntegerMod_int(IntegerMod_abstract):
 
     cdef void set_from_long(self, long value):
         self.ivalue = value % self.__modulus.int32
+
+    cdef void set_from_ulong_fast(self, unsigned long value):
+        self.ivalue = value
 
     cdef void set_from_int(IntegerMod_int self, int_fast32_t ivalue):
         if ivalue < 0:
@@ -3138,6 +3159,9 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
 
     cdef void set_from_long(self, long value):
         self.ivalue = value % self.__modulus.int64
+
+    cdef void set_from_ulong_fast(self, unsigned long value):
+        self.ivalue = value
 
     cdef void set_from_int(IntegerMod_int64 self, int_fast64_t ivalue):
         if ivalue < 0:

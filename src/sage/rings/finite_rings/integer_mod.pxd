@@ -22,8 +22,10 @@ cdef class NativeIntStruct:
 cdef class IntegerMod_abstract(FiniteRingElement):
     cdef NativeIntStruct __modulus
     cdef _new_c_from_long(self, long value)
+    cdef IntegerMod_abstract _new_c_fast(self, unsigned long value)
     cdef void set_from_mpz(self, mpz_t value)
     cdef void set_from_long(self, long value)
+    cdef void set_from_ulong_fast(self, unsigned long value)
     cdef bint is_square_c(self) except -2
     cpdef bint is_one(self)
     cpdef bint is_unit(self)

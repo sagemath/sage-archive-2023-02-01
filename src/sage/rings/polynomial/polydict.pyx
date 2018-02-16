@@ -46,6 +46,8 @@ from cysignals.memory cimport sig_malloc, sig_free
 
 import copy
 from functools import reduce
+from pprint import pformat
+
 from sage.structure.element import generic_power
 from sage.misc.misc import cputime
 from sage.misc.latex import latex
@@ -73,7 +75,7 @@ cdef class PolyDict:
 
             sage: from sage.rings.polynomial.polydict import PolyDict
             sage: PolyDict({(2,3):2, (1,2):3, (2,1):4})
-            PolyDict with representation {(1, 2): 3, (2, 3): 2, (2, 1): 4}
+            PolyDict with representation {(1, 2): 3, (2, 1): 4, (2, 3): 2}
 
             # I've removed fractional exponent support in ETuple when moving to a sparse C integer array
             #sage: PolyDict({(2/3,3,5):2, (1,2,1):3, (2,1):4}, force_int_exponents=False)
@@ -247,7 +249,8 @@ cdef class PolyDict:
         return self.__repn[ETuple(e)]
 
     def __repr__(PolyDict self):
-        return 'PolyDict with representation %s' % self.__repn
+        repn = ' '.join(pformat(self.__repn).splitlines())
+        return 'PolyDict with representation %s' % repn
 
     def degree(PolyDict self, PolyDict x=None):
         if x is None:
@@ -338,10 +341,10 @@ cdef class PolyDict:
             sage: from sage.rings.polynomial.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: f.polynomial_coefficient([2,None])
-            PolyDict with representation {(0, 3): 2, (0, 1): 4}
+            PolyDict with representation {(0, 1): 4, (0, 3): 2}
             sage: f = PolyDict({(0,3):2, (0,2):3, (2,1):4})
             sage: f.polynomial_coefficient([0,None])
-            PolyDict with representation {(0, 3): 2, (0, 2): 3}
+            PolyDict with representation {(0, 2): 3, (0, 3): 2}
         """
         nz = []
         cdef int i
@@ -605,8 +608,8 @@ cdef class PolyDict:
             sage: from sage.rings.polynomial.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: g = PolyDict({(1,5):-3, (2,3):-2, (1,1):3})
-            sage: f+g
-            PolyDict with representation {(1, 2): 3, (2, 1): 4, (1, 1): 3, (1, 5): -3}
+            sage: f + g
+            PolyDict with representation {(1, 1): 3, (1, 2): 3, (1, 5): -3, (2, 1): 4}
 
         Next we add two polynomials with fractional exponents in 3 variables::
 
@@ -639,7 +642,7 @@ cdef class PolyDict:
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: g = PolyDict({(1,5):-3, (2,3):-2, (1,1):3})
             sage: f*g
-            PolyDict with representation {(2, 3): 9, (3, 2): 12, (2, 7): -9, (3, 5): -6, (4, 6): -4, (3, 4): 6, (3, 6): -12, (4, 4): -8, (3, 8): -6}
+            PolyDict with representation {(2, 3): 9, (2, 7): -9, (3, 2): 12, (3, 4): 6, (3, 5): -6, (3, 6): -12, (3, 8): -6, (4, 4): -8, (4, 6): -4}
 
         Next we multiply two polynomials with fractional exponents in 3 variables::
 
@@ -684,9 +687,9 @@ cdef class PolyDict:
             PolyDict with representation {(2, 3): x*y}
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: f.scalar_rmult(-2)
-            PolyDict with representation {(1, 2): -6, (2, 3): -4, (2, 1): -8}
+            PolyDict with representation {(1, 2): -6, (2, 1): -8, (2, 3): -4}
             sage: f.scalar_rmult(RIF(-1,1))
-            PolyDict with representation {(1, 2): 0.?e1, (2, 3): 0.?e1, (2, 1): 0.?e1}
+            PolyDict with representation {(1, 2): 0.?e1, (2, 1): 0.?e1, (2, 3): 0.?e1}
         """
         v = {}
         # if s is 0, then all the products will be zero
@@ -729,9 +732,9 @@ cdef class PolyDict:
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: g = PolyDict({(2,3):2, (1,1):-10})
             sage: f - g
-            PolyDict with representation {(1, 2): 3, (2, 1): 4, (1, 1): 10}
+            PolyDict with representation {(1, 2): 3, (1, 1): 10, (2, 1): 4}
             sage: g - f
-            PolyDict with representation {(1, 2): -3, (1, 1): -10, (2, 1): -4}
+            PolyDict with representation {(1, 1): -10, (1, 2): -3, (2, 1): -4}
         """
 
         # TODO: should refactor add, make abstract operator, so can do both +/-; or copy code.
@@ -754,7 +757,7 @@ cdef class PolyDict:
             sage: from sage.rings.polynomial.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: f**2
-            PolyDict with representation {(4, 2): 16, (3, 3): 24, (3, 5): 12, (4, 6): 4, (2, 4): 9, (4, 4): 16}
+            PolyDict with representation {(2, 4): 9, (3, 3): 24, (3, 5): 12, (4, 2): 16, (4, 4): 16, (4, 6): 4}
             sage: f**0
             PolyDict with representation {(0, 0): 1}
             sage: (f-f)**0

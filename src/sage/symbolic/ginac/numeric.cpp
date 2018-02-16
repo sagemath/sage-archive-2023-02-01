@@ -178,8 +178,7 @@ inline void py_error(const char* errmsg) {
 #define PyNumber_TrueDivide PyNumber_Divide
 
 #else
-#define PyString_FromString PyBytes_FromString
-#define PyString_AsString PyBytes_AsString
+#define PyString_FromString PyUnicode_FromString
 #endif
 
 // The following variable gets changed to true once

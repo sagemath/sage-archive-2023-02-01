@@ -1237,7 +1237,8 @@ class SBox(SageObject):
 
         .. MATH::
 
-            |\{ x \in \mathbb{F}_2^m | S^{-1}( S(x) \oplus \Delta_o) \oplus S^{-1}( S(x \oplus \Delta_i) \oplus \Delta_o) = \Delta_i\}|.
+            |\{ x \in \mathbb{F}_2^m | S^{-1}( S(x) \oplus \Delta_o) \oplus
+               S^{-1}( S(x \oplus \Delta_i) \oplus \Delta_o) = \Delta_i\}|.
 
         For more results concering boomerang connectivity matrix, see [CHPSS18]_ .
 

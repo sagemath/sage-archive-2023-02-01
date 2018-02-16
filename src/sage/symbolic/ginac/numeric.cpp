@@ -1968,7 +1968,6 @@ numeric & operator+=(numeric & lh, const numeric & rh)
                 }
                 lh.hash = PyObject_Hash(lh.v._pyobject);
                 Py_DECREF(p);
-                Py_INCREF(lh.v._pyobject);
                 return lh;
         }
         default:
@@ -2046,7 +2045,6 @@ numeric & operator-=(numeric & lh, const numeric & rh)
                 }
                 lh.hash = PyObject_Hash(lh.v._pyobject);
                 Py_DECREF(p);
-                Py_INCREF(lh.v._pyobject);
                 return lh;
         }
         default:
@@ -2126,7 +2124,6 @@ numeric & operator*=(numeric & lh, const numeric & rh)
                 }
                 lh.hash = PyObject_Hash(lh.v._pyobject);
                 Py_DECREF(p);
-                Py_INCREF(lh.v._pyobject);
                 return lh;
         }
         default:
@@ -2256,7 +2253,6 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                                         }
                                         lh.hash = PyObject_Hash(lh.v._pyobject);
                                         Py_DECREF(p);
-                                        Py_INCREF(lh.v._pyobject);
                                         return lh;
                                 }
                                 if (PyLong_Check(rh.v._pyobject)) {
@@ -2269,7 +2265,6 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                                         lh.hash = PyObject_Hash(lh.v._pyobject);
                                         Py_DECREF(d);
                                         Py_DECREF(p);
-                                        Py_INCREF(lh.v._pyobject);
                                         return lh;
                                 }
                         } else if (PyLong_Check(p)) {
@@ -2282,7 +2277,6 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                                 lh.hash = PyObject_Hash(lh.v._pyobject);
                                 Py_DECREF(n);
                                 Py_DECREF(p);
-                                Py_INCREF(lh.v._pyobject);
                                 return lh;
                         }
                 }
@@ -2298,7 +2292,6 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                                 lh.hash = (long)PyObject_Hash(lh.v._pyobject);
                                 Py_DECREF(n);
                                 Py_DECREF(p);
-                                Py_INCREF(lh.v._pyobject);
                                 return lh;
                         }
                 }
@@ -2310,7 +2303,6 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                 }
                 lh.hash = PyObject_Hash(lh.v._pyobject);
                 Py_DECREF(p);
-                Py_INCREF(lh.v._pyobject);
                 return lh;
         }
         default:

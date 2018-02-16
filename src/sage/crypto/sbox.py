@@ -1280,6 +1280,8 @@ class SBox(SageObject):
                     r = Si( self(x ^ di) ^ do )
                     if (l ^ r == di):
                         A[di, do] += 1
+
+        A.set_immutable()
         return A
 
 

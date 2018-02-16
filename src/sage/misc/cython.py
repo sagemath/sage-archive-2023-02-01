@@ -7,13 +7,17 @@ AUTHORS:
 - William Stein (2007-07-28): update from sagex to cython
 - Martin Albrecht & William Stein (2011-08): cfile & cargs
 """
+
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from __future__ import print_function, absolute_import
 from six.moves import builtins
 from six import iteritems
@@ -32,6 +36,7 @@ from sage.misc.misc import SPYX_TMP, sage_makedirs
 from .temporary_file import tmp_filename
 from sage.misc.superseded import deprecated_function_alias
 from sage.repl.user_globals import get_globals
+from sage.misc.sage_ostools import restore_cwd
 
 
 # CBLAS can be one of multiple implementations
@@ -298,13 +303,6 @@ def _pyx_preparse(s):
 
     TESTS::
 
-        sage: module = sage.misc.cython.import_test("trac11680")  # long time (7s on sage.math, 2012)
-        sage: R.<x> = QQ[]
-        sage: module.evaluate_at_power_of_gen(x^3 + x - 7, 5)  # long time
-        x^15 + x^5 - 7
-
-    ::
-
         sage: from sage.misc.cython import pyx_preparse
         sage: _ = pyx_preparse("")
         doctest:...: DeprecationWarning: pyx_preparse is deprecated. Please use sage.misc.cython._pyx_preparse instead.
@@ -393,6 +391,10 @@ def cython(filename, verbose=0, compile_message=False,
     - ``create_local_so_file`` (bool, default False) -- if True, save a
       copy of the compiled .so file in the current directory.
 
+    OUTPUT: a tuple ``(name, dir)`` where ``name`` is the name
+    of the compiled module and ``dir`` is the directory containing
+    the generated files.
+
     TESTS:
 
     Before :trac:`12975`, it would have been needed to write ``#clang c++``,
@@ -460,9 +462,9 @@ def cython(filename, verbose=0, compile_message=False,
     # the same session).
     if create_local_so_file:
         base, ext = os.path.splitext(os.path.basename(filename))
-        base = sanitize(base)
     else:
-        base = sanitize(os.path.abspath(filename))
+        base = os.path.abspath(filename)
+    base = sanitize(base)
 
     # This is the *temporary* directory where we store the pyx file.
     # This is deleted when Sage exits, which means pyx files must be
@@ -509,6 +511,7 @@ def cython(filename, verbose=0, compile_message=False,
 
     if compile_message:
         print("Compiling {}...".format(filename), file=sys.stderr)
+        sys.stderr.flush()
 
     with open(filename) as f:
         (preparsed, libs, includes, language, additional_source_files,
@@ -547,15 +550,14 @@ def cython(filename, verbose=0, compile_message=False,
                     extra_compile_args=extra_args,
                     language=language)
 
-    orig_cwd = os.getcwd()
     try:
         # Change directories to target_dir so that Cython produces the correct
         # relative path; https://trac.sagemath.org/ticket/24097
-        os.chdir(target_dir)
-        ext, = cythonize([ext],
-                         aliases=cython_aliases(),
-                         include_path=includes,
-                         quiet=not verbose)
+        with restore_cwd(target_dir):
+            ext, = cythonize([ext],
+                             aliases=cython_aliases(),
+                             include_path=includes,
+                             quiet=not verbose)
     except CompileError:
         # Check for names in old_pxi_names
         note = ''
@@ -570,8 +572,6 @@ def cython(filename, verbose=0, compile_message=False,
                         """.format(pxd, name))
         raise RuntimeError("Error converting {} to C".format(filename) +
                            note)
-    finally:
-        os.chdir(orig_cwd)
 
     if create_local_c_file:
         shutil.copy(os.path.join(target_dir, ext.sources[0]),
@@ -631,10 +631,7 @@ def subtract_from_line_numbers(s, n):
 ################################################################
 # COMPILE
 ################################################################
-def cython_lambda(vars, expr,
-                 verbose=False,
-                 compile_message=False,
-                 use_cache=False):
+def cython_lambda(vars, expr, verbose=0, **kwds):
     """
     Create a compiled function which evaluates ``expr`` assuming machine values
     for ``vars``.
@@ -706,16 +703,14 @@ sage = _s()
 def f(%s):
     return %s
     """%(v, expr)
-    if verbose:
+    if verbose > 0:
         print(s)
-    tmpfile = tmp_filename(ext=".spyx")
-    open(tmpfile,'w').write(s)
+    tmpfile = tmp_filename(ext=".pyx")
+    with open(tmpfile,'w') as f:
+        f.write(s)
 
     d = {}
-    cython_import_all(tmpfile, d,
-                      verbose=verbose, compile_message=compile_message,
-                      use_cache=use_cache,
-                      create_local_c_file=False)
+    cython_import_all(tmpfile, d, verbose=verbose, **kwds)
     return d['f']
 
 
@@ -751,6 +746,8 @@ def cython_create_local_so(filename):
         sage: _ = f.write(s)
         sage: f.close()
         sage: cython_create_local_so('hello.spyx')
+        doctest:...: DeprecationWarning: cython_create_local_so is deprecated, call cython() with the create_local_so_file=True keyword
+        See http://trac.sagemath.org/24722 for details.
         Compiling hello.spyx...
         sage: sys.path.append('.')
         sage: import hello
@@ -762,14 +759,15 @@ def cython_create_local_so(filename):
 
     - David Fu (2008-04-09): initial version
     """
+    from sage.misc.superseded import deprecation
+    deprecation(24722, "cython_create_local_so is deprecated, call cython() with the create_local_so_file=True keyword")
     cython(filename, compile_message=True, use_cache=False, create_local_so_file=True)
 
 
 ################################################################
 # IMPORT
 ################################################################
-def cython_import(filename, verbose=False, compile_message=False,
-                 use_cache=False, create_local_c_file=True, **kwds):
+def cython_import(filename, **kwds):
     """
     Compile a file containing Cython code, then import and return the
     module.  Raises an ``ImportError`` if anything goes wrong.
@@ -786,17 +784,17 @@ def cython_import(filename, verbose=False, compile_message=False,
 
     - the module that contains the compiled Cython code.
     """
-    name, build_dir = cython(filename, verbose=verbose,
-                             compile_message=compile_message,
-                             use_cache=use_cache,
-                             create_local_c_file=create_local_c_file,
-                             **kwds)
-    sys.path.append(build_dir)
-    return builtins.__import__(name)
+    name, build_dir = cython(filename, **kwds)
+
+    oldpath = sys.path
+    try:
+        sys.path.append(build_dir)
+        return builtins.__import__(name)
+    finally:
+        sys.path = oldpath
 
 
-def cython_import_all(filename, globals, verbose=False, compile_message=False,
-                     use_cache=False, create_local_c_file=True):
+def cython_import_all(filename, globals, **kwds):
     """
     Imports all non-private (i.e., not beginning with an underscore)
     attributes of the specified Cython module into the given context.
@@ -811,9 +809,7 @@ def cython_import_all(filename, globals, verbose=False, compile_message=False,
     - ``filename`` - a string; name of a file that contains Cython
       code
     """
-    m = cython_import(filename, verbose=verbose, compile_message=compile_message,
-                     use_cache=use_cache,
-                     create_local_c_file=create_local_c_file)
+    m = cython_import(filename, **kwds)
     for k, x in iteritems(m.__dict__):
         if k[0] != '_':
             globals[k] = x
@@ -848,7 +844,7 @@ def sanitize(f):
     return s
 
 
-def compile_and_load(code):
+def compile_and_load(code, **kwds):
     r"""
     INPUT:
 
@@ -860,18 +856,40 @@ def compile_and_load(code):
 
     EXAMPLES::
 
-        sage: module = sage.misc.cython.compile_and_load("def f(int n):\n    return n*n")
+        sage: from sage.misc.cython import compile_and_load
+        sage: module = compile_and_load("def f(int n):\n    return n*n")
         sage: module.f(10)
         100
+
+    TESTS::
+
+        sage: code = '''
+        ....: from sage.rings.rational cimport Rational
+        ....: from sage.rings.polynomial.polynomial_rational_flint cimport Polynomial_rational_flint
+        ....: from sage.libs.flint.fmpq_poly cimport fmpq_poly_length, fmpq_poly_get_coeff_mpq, fmpq_poly_set_coeff_mpq
+        ....:
+        ....: def evaluate_at_power_of_gen(Polynomial_rational_flint f, unsigned long n):
+        ....:     assert n >= 1
+        ....:     cdef Polynomial_rational_flint res = f._new()
+        ....:     cdef unsigned long k
+        ....:     cdef Rational z = Rational(0)
+        ....:     for k in range(fmpq_poly_length(f.__poly)):
+        ....:         fmpq_poly_get_coeff_mpq(z.value, f.__poly, k)
+        ....:         fmpq_poly_set_coeff_mpq(res.__poly, n*k, z.value)
+        ....:     return res
+        ....: '''
+        sage: module = compile_and_load(code)  # long time
+        sage: R.<x> = QQ[]
+        sage: module.evaluate_at_power_of_gen(x^3 + x - 7, 5)  # long time
+        x^15 + x^5 - 7
     """
-    file = tmp_filename(ext=".pyx")
-    open(file,'w').write(code)
-    return cython_import(file, create_local_c_file=False)
+    tmpfile = tmp_filename(ext=".pyx")
+    with open(tmpfile, 'w') as f:
+        f.write(code)
+    return cython_import(tmpfile, **kwds)
 
 
-def cython_compile(code,
-          verbose=False, compile_message=False,
-          make_c_file_nice=False, use_cache=False):
+def cython_compile(code, **kwds):
     """
     Given a block of Cython code (as a text string), this function
     compiles it using a C compiler, and includes it into the global
@@ -879,7 +897,7 @@ def cython_compile(code,
 
     AUTHOR: William Stein, 2006-10-31
 
-    .. warn:
+    .. WARNING::
 
         Only use this from Python code, not from extension code, since
         from extension code you would change the global scope (i.e.,
@@ -893,58 +911,12 @@ def cython_compile(code,
         library would greatly slow down startup time, since currently
         there is no caching.
 
-    .. todo:
+    .. TODO::
 
         Need to create a clever caching system so code only gets
         compiled once.
     """
     tmpfile = tmp_filename(ext=".pyx")
-    open(tmpfile,'w').write(code)
-    cython_import_all(tmpfile, get_globals(),
-                      verbose=verbose, compile_message=compile_message,
-                      use_cache=use_cache,
-                      create_local_c_file=False)
-
-
-TESTS = {
-'trac11680':"""
-from sage.rings.rational cimport Rational
-from sage.rings.polynomial.polynomial_rational_flint cimport Polynomial_rational_flint
-from sage.libs.flint.fmpq_poly cimport fmpq_poly_length, fmpq_poly_get_coeff_mpq, fmpq_poly_set_coeff_mpq
-
-def evaluate_at_power_of_gen(Polynomial_rational_flint f, unsigned long n):
-    assert n >= 1
-    cdef Polynomial_rational_flint res = f._new()
-    cdef unsigned long k
-    cdef Rational z = Rational(0)
-    for k in range(fmpq_poly_length(f.__poly)):
-        fmpq_poly_get_coeff_mpq(z.value, f.__poly, k)
-        fmpq_poly_set_coeff_mpq(res.__poly, n*k, z.value)
-    return res
-""",
-
-'trac11680b':"""
-def f(int a, int b, int c):
-    return a+b+c
-"""
-}
-
-def import_test(name):
-    """
-    This is used by the testing infrastructure to test building
-    Cython programs.
-
-    INPUT:
-
-    - ``name`` -- string; name of a key to the TESTS dictionary above
-
-    OUTPUT: a module, which results from compiling the given code and importing it
-
-    EXAMPLES::
-
-        sage: module = sage.misc.cython.import_test("trac11680b")
-        sage: module.f(2,3,4)
-        9
-    """
-    return compile_and_load(TESTS[name])
-
+    with open(tmpfile,'w') as f:
+        f.write(code)
+    return cython_import_all(tmpfile, get_globals(), **kwds)

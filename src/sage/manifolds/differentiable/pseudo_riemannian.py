@@ -206,7 +206,6 @@ from sage.manifolds.structure import (PseudoRiemannianStructure,
                                       RiemannianStructure, LorentzianStructure)
 from sage.manifolds.differentiable.manifold import DifferentiableManifold
 from sage.manifolds.differentiable.metric import PseudoRiemannianMetric
-from sage.manifolds.differentiable.tensorfield import TensorField
 
 ###############################################################################
 

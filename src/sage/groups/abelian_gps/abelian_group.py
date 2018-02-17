@@ -884,11 +884,11 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             sage: gap(G)
             Group( [ f1, f2, f3 ] )
 
-        Requires the optional `gap_packages` for infinite groups::
+        Requires the optional ``gap_packages`` for infinite groups::
 
-            sage: G = AbelianGroup(3,[0,3,4],names="abc"); G
+            sage: G = AbelianGroup(3,[0,3,4], names="abc"); G
             Multiplicative Abelian group isomorphic to Z x C3 x C4
-            sage: G._gap_init_()   # optional gap_packages
+            sage: G._gap_init_()   # optional - gap_packages
             'AbelianPcpGroup([0, 3, 4])'
         """
         if self.is_finite():

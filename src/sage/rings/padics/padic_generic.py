@@ -211,9 +211,6 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         """
         return self._printer._print_mode()
 
-    #def element_class(self):
-    #    return self._element_class
-
     def characteristic(self):
         r"""
         Returns the characteristic of self, which is always 0.

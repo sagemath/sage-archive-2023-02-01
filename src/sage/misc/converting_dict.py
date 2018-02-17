@@ -54,7 +54,7 @@ import collections
 
 class KeyConvertingDict(dict):
     r"""
-    A dictionary which automatically applys a conversions to its keys.
+    A dictionary which automatically applies a conversions to its keys.
 
     The most common application is the case where the conversion
     function is the object representing some category, so that key

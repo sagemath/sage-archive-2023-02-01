@@ -163,7 +163,8 @@ from sage.rings.real_mpfr import RealField
 from sage.rings.complex_field import ComplexField
 from sage.misc.latex import latex
 from sage.rings.all import ZZ, RR, RDF, CDF
-from sage.functions.other import real, imag, log_gamma
+from .gamma import log_gamma
+from .other import real, imag
 from sage.symbolic.constants import pi
 from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.expression import Expression

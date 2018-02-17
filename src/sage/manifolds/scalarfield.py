@@ -3112,7 +3112,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         OUTPUT:
 
-        - the scalar field `\mathrm{arcosh}\, f`, where `f` is the current
+        - the scalar field `\mathrm{arccosh}\, f`, where `f` is the current
           scalar field
 
         EXAMPLES::
@@ -3123,7 +3123,7 @@ class ScalarField(CommutativeAlgebraElement):
             sage: g = arccosh(f) ; g
             Scalar field arccosh(f) on the 2-dimensional topological manifold M
             sage: latex(g)
-            \,\mathrm{arcosh}\left(\Phi\right)
+            \,\mathrm{arccosh}\left(\Phi\right)
             sage: g.display()
             arccosh(f): M --> R
                (x, y) |--> arccosh(x*y)
@@ -3143,7 +3143,7 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        name, latex_name = self._function_name("arccosh", r"\,\mathrm{arcosh}")
+        name, latex_name = self._function_name("arccosh", r"\,\mathrm{arccosh}")
         resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.items():
             resu._express[chart] = func.arccosh()
@@ -3155,7 +3155,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         OUTPUT:
 
-        - the scalar field `\mathrm{arsinh}\, f`, where `f` is the current
+        - the scalar field `\mathrm{arcsinh}\, f`, where `f` is the current
           scalar field
 
         EXAMPLES::
@@ -3166,7 +3166,7 @@ class ScalarField(CommutativeAlgebraElement):
             sage: g = arcsinh(f) ; g
             Scalar field arcsinh(f) on the 2-dimensional topological manifold M
             sage: latex(g)
-            \,\mathrm{arsinh}\left(\Phi\right)
+            \,\mathrm{arcsinh}\left(\Phi\right)
             sage: g.display()
             arcsinh(f): M --> R
                (x, y) |--> arcsinh(x*y)
@@ -3186,7 +3186,7 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        name, latex_name = self._function_name("arcsinh", r"\,\mathrm{arsinh}")
+        name, latex_name = self._function_name("arcsinh", r"\,\mathrm{arcsinh}")
         resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.items():
             resu._express[chart] = func.arcsinh()
@@ -3198,7 +3198,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         OUTPUT:
 
-        - the scalar field `\mathrm{artanh}\, f`, where `f` is the current
+        - the scalar field `\mathrm{arctanh}\, f`, where `f` is the current
           scalar field
 
         EXAMPLES::
@@ -3209,7 +3209,7 @@ class ScalarField(CommutativeAlgebraElement):
             sage: g = arctanh(f) ; g
             Scalar field arctanh(f) on the 2-dimensional topological manifold M
             sage: latex(g)
-            \,\mathrm{artanh}\left(\Phi\right)
+            \,\mathrm{arctanh}\left(\Phi\right)
             sage: g.display()
             arctanh(f): M --> R
                (x, y) |--> arctanh(x*y)
@@ -3231,7 +3231,7 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        name, latex_name = self._function_name("arctanh", r"\,\mathrm{artanh}")
+        name, latex_name = self._function_name("arctanh", r"\,\mathrm{arctanh}")
         resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.items():
             resu._express[chart] = func.arctanh()

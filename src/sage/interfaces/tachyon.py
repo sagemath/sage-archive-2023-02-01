@@ -510,7 +510,7 @@ TRI
 
 \subsubsection{Smoothed Triangles}
   Smoothed triangles are just like regular triangles, except that the
-  surface normal for each of the three vertexes is used to determine the
+  surface normal for each of the three vertices is used to determine the
   surface normal across the triangle by linear interpolation.
   Smoothed triangles yield curved looking objects and have nice
   reflections.

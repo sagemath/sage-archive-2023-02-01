@@ -711,9 +711,9 @@ cdef class PolyDict:
             PolyDict with representation {(2, 3): y*x}
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: f.scalar_lmult(-2)
-            PolyDict with representation {(1, 2): -6, (2, 3): -4, (2, 1): -8}
+            PolyDict with representation {(1, 2): -6, (2, 1): -8, (2, 3): -4}
             sage: f.scalar_lmult(RIF(-1,1))
-            PolyDict with representation {(1, 2): 0.?e1, (2, 3): 0.?e1, (2, 1): 0.?e1}
+            PolyDict with representation {(1, 2): 0.?e1, (2, 1): 0.?e1, (2, 3): 0.?e1}
         """
         v = {}
         # if s is 0, then all the products will be zero
@@ -732,7 +732,7 @@ cdef class PolyDict:
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: g = PolyDict({(2,3):2, (1,1):-10})
             sage: f - g
-            PolyDict with representation {(1, 2): 3, (1, 1): 10, (2, 1): 4}
+            PolyDict with representation {(1, 1): 10, (1, 2): 3, (2, 1): 4}
             sage: g - f
             PolyDict with representation {(1, 1): -10, (1, 2): -3, (2, 1): -4}
         """

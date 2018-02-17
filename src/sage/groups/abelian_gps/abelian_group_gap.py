@@ -378,9 +378,16 @@ class AbelianGroup_gap(UniqueRepresentation, GroupMixinLibGAP, ParentLibGAP, Abe
     @cached_method
     def automorphism_group(self):
         r"""
+        Return the group of automorphisms of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
+            sage: G = AbelianGroupGap([2, 3])
+            sage: G.aut()
         """
-        from sage.groups.abelian_gps.abelian_aut import AbelianGroupAutomorphismGroup_ambient
-        return AbelianGroupAutomorphismGroup_ambient(self)
+        from sage.groups.abelian_gps.abelian_aut import AbelianGroupAutomorphismGroup
+        return AbelianGroupAutomorphismGroup(self)
 
     aut=automorphism_group
 

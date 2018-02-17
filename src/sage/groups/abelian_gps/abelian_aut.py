@@ -56,7 +56,7 @@ or create subgroups and do the same for them::
 Only automorphism groups of finite abelian groups are supported::
 
     sage: G = AbelianGroupGap([0,2])        # optional gap_packages
-    sage: autG = G.aut()
+    sage: autG = G.aut()                    # optional gap_packages
     Traceback (most recent call last):
     ...
     ValueError: Only finite abelian groups are supported.
@@ -67,7 +67,7 @@ AUTHORS:
 """
 
 # ****************************************************************************
-#       Copyright (C) 2013 YOUR NAME <your email>
+#       Copyright (C) 2018 Simon Brandhorst <sbrandhorst@web.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -75,23 +75,25 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
+from sage.categories.groups import Groups
+from sage.groups.abelian_gps.abelian_group_gap import AbelianGroup_gap
 from sage.groups.group import Group
 from sage.groups.libgap_wrapper import ParentLibGAP, ElementLibGAP
 from sage.groups.libgap_mixin import GroupMixinLibGAP
 from sage.libs.gap.element import GapElement
 from sage.libs.gap.libgap import libgap
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.rings.all import ZZ
 from sage.matrix.matrix_space import MatrixSpace
+from sage.rings.all import ZZ
+from sage.structure.unique_representation import UniqueRepresentation
 
-class AbelianGroupAutomorphismGroupElement(ElementLibGAP):
+class AbelianGroupAutomorphism(ElementLibGAP):
     """
     Automorphisms of abelian groups with gap.
 
     INPUT:
 
     - ``x`` -- a libgap element
-    - ``parent`` -- the parent :class:`AbelianGroupAutomorphismGroup_generic`
+    - ``parent`` -- the parent :class:`AbelianGroupAutomorphismGroup_gap`
     - ``check`` -- bool (default:True) checks if ``x`` is an element of the group
 
     EXAMPLES::
@@ -205,7 +207,7 @@ class AbelianGroupAutomorphismGroupElement(ElementLibGAP):
         m.set_immutable()
         return m
 
-class AbelianGroupAutomorphismGroup_generic(UniqueRepresentation,
+class AbelianGroupAutomorphismGroup_gap(UniqueRepresentation,
                                             GroupMixinLibGAP,
                                             Group,
                                             ParentLibGAP):
@@ -219,7 +221,8 @@ class AbelianGroupAutomorphismGroup_generic(UniqueRepresentation,
     - ``domain`` -- :class:`~sage.groups.abelian_gps.abelian_group_gap.AbelianGroup_gap`
     - ``libgap_parent`` -- the libgap element that is the parent in
       GAP.
-    - ``ambient`` -- An instance of a  derived class of
+    -``category`` -- a category
+    - ``ambient`` -- an instance of a  derived class of
       :class:`~sage.groups.libgap_wrapper.ParentLibGAP`
       or ``None`` (default). The ambient group if ``libgap_parent`` has
       been defined as a subgroup
@@ -227,15 +230,15 @@ class AbelianGroupAutomorphismGroup_generic(UniqueRepresentation,
     EXAMPLES::
 
         sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
-        sage: from sage.groups.abelian_gps.abelian_aut import AbelianGroupAutomorphismGroup_generic
+        sage: from sage.groups.abelian_gps.abelian_aut import AbelianGroupAutomorphismGroup_gap
         sage: domain = AbelianGroupGap([2,3,4,5])
         sage: aut = domain.gap().AutomorphismGroupAbelianGroup()
-        sage: AbelianGroupAutomorphismGroup_generic(domain, aut)
+        sage: AbelianGroupAutomorphismGroup_gap(domain, aut, Groups().Finite())
         <group with 6 generators>
     """
-    Element = AbelianGroupAutomorphismGroupElement
+    Element = AbelianGroupAutomorphism
 
-    def __init__(self, domain, gap_group, ambient=None):
+    def __init__(self, domain, gap_group, category, ambient=None):
         """
         Constructor.
 
@@ -254,7 +257,7 @@ class AbelianGroupAutomorphismGroup_generic(UniqueRepresentation,
         n = len(self._domain.gens())
         self._covering_matrix_ring = MatrixSpace(ZZ, n)
         ParentLibGAP.__init__(self, gap_group, ambient=ambient)
-        Group.__init__(self)
+        Group.__init__(self, category=category)
 
     def _element_constructor_(self, x, check=True):
         r"""
@@ -314,7 +317,7 @@ class AbelianGroupAutomorphismGroup_generic(UniqueRepresentation,
 
         INPUT:
 
-        - ``S`` -- anything.
+        - ``S`` -- anything
 
         OUTPUT:
 
@@ -331,7 +334,7 @@ class AbelianGroupAutomorphismGroup_generic(UniqueRepresentation,
             sage: S._coerce_map_from_(G)
             False
         """
-        if isinstance(S, AbelianGroupAutomorphismGroup_generic):
+        if isinstance(S, AbelianGroupAutomorphismGroup_gap):
             return S.is_subgroup_of(self)
 
     def _subgroup_constructor(self, libgap_subgroup):
@@ -354,6 +357,23 @@ class AbelianGroupAutomorphismGroup_generic(UniqueRepresentation,
         generators = libgap_subgroup.GeneratorsOfGroup()
         generators = tuple(ambient(g) for g in generators)
         return AbelianGroupAutomorphismGroup_subgroup(ambient, generators)
+
+    def covering_matrix_ring(self):
+        r"""
+        Return the covering matrix ring of this group.
+
+        This is the ring of `n \times n` matrices over `\ZZ` where
+        `n` is the number of (independent) generators.
+
+        EXAMPLES::
+
+            sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
+            sage: G = AbelianGroupGap([2,3,4,5])
+            sage: aut = G.aut()
+            sage: aut.covering_matrix_ring()
+            Full MatrixSpace of 4 by 4 dense matrices over Integer Ring
+        """
+        return self._covering_matrix_ring
 
     def domain(self):
         r"""
@@ -386,17 +406,15 @@ class AbelianGroupAutomorphismGroup_generic(UniqueRepresentation,
             sage: S2.is_subgroup_of(S1)
             False
         """
-        if not isinstance(G, AbelianGroupAutomorphismGroup_generic):
+        if not isinstance(G, AbelianGroupAutomorphismGroup_gap):
             raise ValueError("Input must be an instance of AbelianGroup_gap.")
         if not self.ambient() is G.ambient():
             return False
         return G.gap().IsSubsemigroup(self).sage()
 
-class AbelianGroupAutomorphismGroup_ambient(AbelianGroupAutomorphismGroup_generic):
+class AbelianGroupAutomorphismGroup(AbelianGroupAutomorphismGroup_gap):
     r"""
-    Full automorphism group of a finite abelian group.
-
-    Do not use this directly. Rather use :meth:`~sage.groups.abelian_gps.abelian_group_gap.AbelianGroup_gap.automorphism_group`
+    The full automorphism group of a finite abelian group.
 
     INPUT:
 
@@ -405,25 +423,21 @@ class AbelianGroupAutomorphismGroup_ambient(AbelianGroupAutomorphismGroup_generi
     EXAMPLES::
 
             sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
-            sage: from sage.groups.abelian_gps.abelian_aut import AbelianGroupAutomorphismGroup_ambient
+            sage: from sage.groups.abelian_gps.abelian_aut import AbelianGroupAutomorphismGroup
             sage: G = AbelianGroupGap([2,3,4,5])
             sage: aut = G.aut()
 
     Equivalently::
 
-            sage: aut1 = AbelianGroupAutomorphismGroup_ambient(G)
+            sage: aut1 = AbelianGroupAutomorphismGroup(G)
             sage: aut is aut1
             True
     """
-    Element = AbelianGroupAutomorphismGroupElement
+    Element = AbelianGroupAutomorphism
 
     def __init__(self, AbelianGroupGap):
         """
-        Group interface for LibGAP-based groups.
-
-        INPUT:
-
-        Same as :class:`~sage.groups.libgap_wrapper.ParentLibGAP`.
+        Constructor.
 
         EXAMPLES::
 
@@ -433,12 +447,16 @@ class AbelianGroupAutomorphismGroup_ambient(AbelianGroupAutomorphismGroup_generi
             sage: TestSuite(aut).run()
         """
         self._domain = AbelianGroupGap
+        if not isinstance(AbelianGroupGap, AbelianGroup_gap):
+            raise ValueError("Not an abelian group with GAP backend.")
         if not self._domain.is_finite():
             raise ValueError("Only finite abelian groups are supported.")
+        category = Groups().Finite().Enumerated()
         G = libgap.AutomorphismGroup(self._domain.gap())
-        AbelianGroupAutomorphismGroup_generic.__init__(self,
+        AbelianGroupAutomorphismGroup_gap.__init__(self,
                                                        self._domain,
                                                        G,
+                                                       category,
                                                        ambient=None)
         Group.__init__(self)
 
@@ -455,13 +473,16 @@ class AbelianGroupAutomorphismGroup_ambient(AbelianGroupAutomorphismGroup_generi
         s = "Full group of automorphisms of %s"%self.domain()
         return s
 
-class AbelianGroupAutomorphismGroup_subgroup(AbelianGroupAutomorphismGroup_generic):
+class AbelianGroupAutomorphismGroup_subgroup(AbelianGroupAutomorphismGroup_gap):
     r"""
     Groups of automorphisms of abelian groups.
 
     They are subgroups of the full automorphism group.
-    Do not use this class directly instead use.
-    meth:`subgroup`.
+
+    .. Note::
+
+        Do not use this class directly instead use.
+        meth:`subgroup`.
 
     INPUT:
 
@@ -480,7 +501,7 @@ class AbelianGroupAutomorphismGroup_subgroup(AbelianGroupAutomorphismGroup_gener
         Subgroup of automorphisms of Abelian group with gap, generator orders (2, 3, 4, 5)
         generated by 6 automorphisms
     """
-    Element = AbelianGroupAutomorphismGroupElement
+    Element = AbelianGroupAutomorphism
 
     def __init__(self, ambient, generators):
         """
@@ -498,14 +519,16 @@ class AbelianGroupAutomorphismGroup_subgroup(AbelianGroupAutomorphismGroup_gener
         self._domain = ambient.domain()
         generators = tuple(g.gap() for g in generators)
         H = ambient.gap().Subgroup(generators)
-        AbelianGroupAutomorphismGroup_generic.__init__(self,
+        category = Groups().Finite().Enumerated()
+        AbelianGroupAutomorphismGroup_gap.__init__(self,
                                                        self._domain,
                                                        H,
+                                                       category,
                                                        ambient=ambient)
         Group.__init__(self)
         self._covering_matrix_ring = ambient._covering_matrix_ring
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         The string representation of ``self``.
 

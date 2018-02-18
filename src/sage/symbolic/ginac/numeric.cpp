@@ -2656,7 +2656,7 @@ bool numeric::is_rational() const {
         case MPQ:
                 return true;
         case PYOBJECT:
-                return py_funcs.py_is_rational(v._pyobject) != 0;
+                return false;
         default:
                 stub("invalid type -- is_rational() type not handled");
         }

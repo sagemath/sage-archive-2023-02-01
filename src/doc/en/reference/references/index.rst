@@ -556,6 +556,11 @@ REFERENCES:
              Experience, 4:1-10 (2001).
              http://www.hipersoft.rice.edu/grads/publications/dom14.pdf
 
+.. [CHPSS18] C. Cid, T. Huang, T. Peyrin, Y. Sasaki, L. Song.
+             *Boomerang Connectivity Table: A New Cryptanalysis Tool* (2018)
+             IACR Transactions on Symmetric Cryptology. Vol 2017, Issue 4.
+             pre-print available at https://eprint.iacr.org/2018/161.pdf
+
 .. [CK1999] David A. Cox and Sheldon Katz. *Mirror symmetry and
             algebraic geometry*, volume 68 of *Mathematical Surveys
             and Monographs*. American Mathematical Society,

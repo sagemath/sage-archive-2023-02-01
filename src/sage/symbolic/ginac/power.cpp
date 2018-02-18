@@ -559,44 +559,16 @@ ex power::eval(int level) const
 			}
 		}
 	
-		if (num_exponent.is_integer()) {
+		if (num_exponent.is_integer())
                         // ^(*(x,y,z),c1) -> *(x^c1,y^c1,z^c1) (c1 integer)
                         if (is_exactly_a<mul>(ebasis)) {
-                                return expand_mul(ex_to<mul>(ebasis), num_exponent, 0);
+                                return expand_mul(ex_to<mul>(ebasis),
+                                                num_exponent, 0);
                         }
 
                         // (2*x + 6*y)^(-4) -> 1/16*(x + 3*y)^(-4)
                         if (is_exactly_a<add>(ebasis)) {
-                                numeric icont = ebasis.integer_content();
-                                const numeric lead_coeff = 
-                                        ex_to<numeric>(ex_to<add>(ebasis).\
-                                                        lead_coeff()).div(icont);
-
-                                const bool canonicalizable = lead_coeff.is_integer();
-                                const add& addref = ex_to<add>(ebasis);
-                                const bool unit_normal = lead_coeff.is_positive();
-                                if (canonicalizable
-                                    and (! unit_normal)
-                                    and num_exponent.denom().is_one())
-                                        icont = icont.negative();
-
-                                if (canonicalizable
-                                    and not icont.is_one()) {
-                                        auto  addp = new add(addref);
-                                        addp->setflag(status_flags::dynallocated);
-                                        addp->clearflag(status_flags::hash_calculated);
-                                        addp->overall_coeff = addp->overall_coeff.div_dyn(icont);
-                                        addp->seq_sorted.resize(0);
-                                        for (auto & elem : addp->seq)
-                                                elem.coeff = ex_to<numeric>(elem.coeff).div_dyn(icont);
-                                        const numeric c = icont.pow_intexp(num_exponent.to_long());
-                                        if (likely(not c.is_one()))
-                                                return (new mul(power(*addp, num_exponent), c))->setflag(status_flags::dynallocated |
-	                                               status_flags::evaluated);
-                                        return (new power(*addp, eexponent))->setflag(status_flags::dynallocated |
-	                                               status_flags::evaluated);
-                                }
-                        }
+                                return ex_to<add>(ebasis).pow_intexp(num_exponent);
                 }
 
 		// ^(*(...,x;c1),c2) -> *(^(*(...,x;1),c2),c1^c2)  (c1, c2 numeric(), c1>0)

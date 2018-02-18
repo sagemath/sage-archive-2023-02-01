@@ -76,6 +76,7 @@ protected:
 	expair combine_pair_with_coeff_to_pair(const expair & p,
 	                                     const numeric & c) const override;
 	ex recombine_pair_to_ex(const expair & p) const override;
+	ex pow_intexp(const numeric& expo) const;
 	ex expand(unsigned options=0) const override;
 	ex eval_infinity(epvector::const_iterator infinity_iter) const;
 

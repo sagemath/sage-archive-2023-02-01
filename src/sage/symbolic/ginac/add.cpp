@@ -593,6 +593,35 @@ ex add::recombine_pair_to_ex(const expair & p) const
         return (new mul(p.rest,p.coeff))->setflag(status_flags::dynallocated);
 }
 
+ex add::pow_intexp(const numeric& expo) const
+{
+        numeric icont = integer_content();
+        if (not lcoeff.is_positive())
+                throw std::runtime_error();
+        const numeric lcoeff = ex_to<numeric>(lead_coeff()).div(icont);
+        if (icont.is_one())
+            or not lcoeff.is_integer())
+                return (new power(*this, expo))->
+                        setflag(status_flags::dynallocated
+                                | status_flags::evaluated);
+
+        auto addp = new add(*this);
+        addp->setflag(status_flags::dynallocated);
+        addp->clearflag(status_flags::hash_calculated);
+        addp->overall_coeff = addp->overall_coeff.div_dyn(icont);
+        addp->seq_sorted.resize(0);
+        for (auto &elem : addp->seq)
+                elem.coeff = ex_to<numeric>(elem.coeff).div_dyn(icont);
+        const numeric c = icont.pow_intexp(expo.to_long());
+        if (likely(not c.is_one()))
+                return (new mul(power(*addp, expo), c))->
+                        setflag(status_flags::dynallocated
+                                | status_flags::evaluated);
+        return (new power(*addp, expo))->
+                setflag(status_flags::dynallocated
+                        | status_flags::evaluated);
+}
+
 ex add::expand(unsigned options) const
 {
 	std::unique_ptr<epvector> vp = expandchildren(options);

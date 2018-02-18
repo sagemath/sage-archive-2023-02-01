@@ -32,6 +32,6 @@ export CONFIGURED_OBJCXX="@OBJCXX@"
 # Other configuration
 #######################################
 export SAGE_PYTHON_VERSION=@SAGE_PYTHON_VERSION@
-if [ $SAGE_PYTHON_VERSION != 2 ]; then
+if [ "$SAGE_PYTHON_VERSION" = 3 ]; then
     export SAGE_PYTHON3=yes
 fi

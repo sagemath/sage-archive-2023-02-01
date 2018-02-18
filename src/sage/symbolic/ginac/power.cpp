@@ -513,71 +513,26 @@ ex power::eval(int level) const
 	if (exponent_is_numerical) {
 		// ^(c1,c2) -> c1^c2  (c1, c2 numeric(),
 		// except if c1,c2 are rational, but c1^c2 is not)
-		if (basis_is_numerical) {
-			const bool basis_is_crational = num_basis.is_crational();
+                if (basis_is_numerical) {
+                        const bool basis_is_crational = num_basis.is_crational();
                         const bool exponent_is_rational = num_exponent.is_rational();
-			const bool exponent_is_crational = exponent_is_rational || num_exponent.is_crational();
-			if (!basis_is_crational || !exponent_is_crational) {
-				// return a plain float
-				ex e = num_basis.power(num_exponent);
-                                if (not is_exactly_a<numeric>(e))
-	                                return (new power(ebasis, eexponent))->setflag(status_flags::dynallocated |
-	                                               status_flags::evaluated);
-                                
-        				return e;
-			}
-
-			if (exponent_is_rational) {
+                        const bool exponent_is_crational = num_exponent.is_crational();
+                        if (not basis_is_crational
+                            or not exponent_is_crational) {
+                                // return a plain float
                                 ex e = num_basis.power(num_exponent);
-                                if (is_exactly_a<numeric>(e)
-                                                and ex_to<numeric>(e).is_crational()) {
-                                        return e;
-                                }
-			}
-			GINAC_ASSERT(!num_exponent->is_integer());  // has been handled by now
+                                if (not is_exactly_a<numeric>(e))
+                                        return (new power(ebasis, eexponent))->
+                                                setflag(status_flags::dynallocated
+                                                     | status_flags::evaluated);
+                                return e;
+                        }
 
-			// ^(c1,n/m) -> *(c1^q,c1^(n/m-q)), 0<(n/m-q)<1, q integer
-			if (basis_is_crational && exponent_is_rational) {
-				const numeric n = num_exponent.numer();
-				const numeric m = num_exponent.denom();
-				numeric r;
-				numeric q = iquo(n, m, r);
-				if (r.is_negative()) {
-					r += m;
-					--q;
-				}
-				if (q.is_zero()) {  // the exponent was in the allowed range 0<(n/m)<1
-					if (num_basis.is_rational()) {
-						bool ppower_equals_one;
-                                                numeric newbasis, ppower;
-                                                rational_power_parts(num_basis,
-                                                                num_exponent, 
-                                                                ppower, 
-                                                                newbasis, 
-                                                                ppower_equals_one);
-						ex result = (new power(newbasis,exponent))->setflag(status_flags::dynallocated | status_flags::evaluated);
-						if (not ppower_equals_one)
-							result = (new mul(result, ppower))->setflag(status_flags::dynallocated | status_flags::evaluated);
-						return result;
-					}
-					return this->hold();
-				} if (r.is_zero()) {
-					// if r == 0, the following else clause causes the power
-					// constructor to be called again with the same parameter
-					// leading to an infinite loop
-					return num_basis.power(q);
-				} else {
-					// assemble resulting product, but allowing for a re-evaluation,
-					// because otherwise we'll end up with something like
-					//    (7/8)^(4/3)  ->  7/8*(1/2*7^(1/3))
-					// instead of 7/16*7^(1/3).
-					ex prod = power(num_basis, r.div(m));
-					return prod * power(num_basis, q);
-				}
-			}
-		}
-	
-		// ^(^(x,c1),c2) -> ^(x,c1*c2)
+                        if (exponent_is_rational)
+                                return num_basis.power(num_exponent);
+                }
+
+                // ^(^(x,c1),c2) -> ^(x,c1*c2)
 		// (c1, c2 numeric(), c2 integer or -1 < c1 <= 1 or (c1=-1 and c2>0),
 		// case c1==1 should not happen, see below!)
 		if (is_exactly_a<power>(ebasis)) {

@@ -1713,12 +1713,18 @@ const numeric numeric::pow_intexp(const numeric &exponent) const
 const ex numeric::power(const numeric &exponent) const {
         verbose("pow");
         numeric expo(exponent);
+
+        // any PyObjects castable to long are casted
         if (exponent.t == PYOBJECT) {
 #if PY_MAJOR_VERSION < 3
             if (PyInt_Check(exponent.v._pyobject)) {
-                expo.t = MPZ;
                 long si = PyInt_AsLong(exponent.v._pyobject);
-                mpz_set_si(expo.v._bigint, si);
+                if (si == -1 and PyErr_Occurred())
+                        PyErr_Clear();
+                else {
+                        expo.t = MPZ;
+                        mpz_set_si(expo.v._bigint, si);
+                }
             } else
 #endif
             if (PyLong_Check(exponent.v._pyobject)) {
@@ -1727,11 +1733,28 @@ const ex numeric::power(const numeric &exponent) const {
                                reinterpret_cast<PyLongObject*>( exponent.v._pyobject));
             }
         }
+
+        // handle all integer exponents
         if (expo.t == LONG or expo.t == MPZ)
                 return pow_intexp(expo);
         if (expo.t == MPQ and expo.is_integer())
                 return power(exponent.to_long());
 
+        // PyObjects in base or exponent
+        if (t == PYOBJECT and expo.t == PYOBJECT) 
+                return numeric(PyNumber_Power(v._pyobject,
+                                        exponent.v._pyobject,
+                                        Py_None));
+        if (t == PYOBJECT) 
+                return numeric(PyNumber_Power(v._pyobject,
+                                        exponent.to_pyobject(),
+                                        Py_None));
+        if (expo.t == PYOBJECT)
+                return numeric(PyNumber_Power(to_pyobject(),
+                                        exponent.v._pyobject,
+                                        Py_None));
+
+        // rational exponent
         if ((t == LONG or t == MPZ or t == MPQ) and expo.t == MPQ) {
                 numeric c, d;
                 bool c_unit;
@@ -1752,31 +1775,16 @@ const ex numeric::power(const numeric &exponent) const {
                 if (exponent.is_negative()) {
                         long int_exp = -(expo.to_long());
                         numeric nexp = expo + numeric(int_exp);
-                        ex p = (new GiNaC::power(*this, nexp))->setflag(status_flags::dynallocated | status_flags::evaluated);
+                        ex p = (new GiNaC::power(*this, nexp))->
+                                setflag(status_flags::dynallocated
+                                                | status_flags::evaluated);
                         return p * pow_intexp(int_exp).inverse();
                 }
-                return (new GiNaC::power(*this, expo))->setflag(status_flags::dynallocated | status_flags::evaluated);
+                return (new GiNaC::power(*this, expo))->
+                        setflag(status_flags::dynallocated
+                                        | status_flags::evaluated);
         }
-        if (t == PYOBJECT) {
-                if (exponent.t == PYOBJECT) 
-                        return numeric(PyNumber_Power(v._pyobject,
-                                                exponent.v._pyobject,
-                                                Py_None));
-                
-                return numeric(PyNumber_Power(v._pyobject,
-                                        exponent.to_pyobject(),
-                                        Py_None));
-        }
-        if (exponent.t == PYOBJECT) {
-                if (t == PYOBJECT) 
-                        return numeric(PyNumber_Power(v._pyobject,
-                                                exponent.v._pyobject,
-                                                Py_None));
-                
-                return numeric(PyNumber_Power(to_pyobject(),
-                                        exponent.v._pyobject,
-                                        Py_None));
-        }
+
         throw std::runtime_error("numeric::power: can't happen");
 }
 

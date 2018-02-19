@@ -333,11 +333,18 @@ cdef class Matrix_complex_ball_dense(Matrix_dense):
             Traceback (most recent call last):
             ...
             TypeError: No order is defined on complex ball matrices.
+
+        TESTS::
+
+            sage: a = matrix(CBF, [1/3])
+            sage: b = matrix(CBF, [1/3])
+            sage: a == a or b == b or a[0,0] == a[0,0] or a[0,0] == b[0,0]
+            False
         """
         cdef Matrix_complex_ball_dense lt = <Matrix_complex_ball_dense> left
         cdef Matrix_complex_ball_dense rt = <Matrix_complex_ball_dense> right
         if op == Py_EQ:
-            return lt is rt or acb_mat_eq(lt.value, rt.value)
+            return acb_mat_eq(lt.value, rt.value)
         elif op == Py_NE:
             return acb_mat_ne(lt.value, rt.value)
         elif op == Py_GT or op == Py_GE or op == Py_LT or op == Py_LE:

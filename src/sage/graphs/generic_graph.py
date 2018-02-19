@@ -4011,7 +4011,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: m = g.size()
             sage: edge_space = VectorSpace(FiniteField(2),m)
             sage: edge_vector = dict( zip( g.edges(labels = False), edge_space.basis() ) )
-            sage: for (u,v),vec in edge_vector.items():
+            sage: for (u,v),vec in list(edge_vector.items()):
             ....:    edge_vector[(v,u)] = vec
 
         Defining a lambda function associating a vector to the

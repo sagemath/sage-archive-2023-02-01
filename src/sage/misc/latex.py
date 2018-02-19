@@ -1009,7 +1009,7 @@ class Latex(LatexCall):
         EXAMPLES::
 
             sage: s = 2
-            sage: sage.misc.latex.Latex()._latex_preparse('\sage{s}', locals())
+            sage: sage.misc.latex.Latex()._latex_preparse(r'\sage{s}', locals())
             '2'
         """
         i0 = -1

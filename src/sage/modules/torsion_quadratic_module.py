@@ -412,7 +412,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         """
         return self._gens
 
-    def is_Genus(self, signature_pair, even):
+    def is_genus(self, signature_pair, even):
         r"""
         Return if there is an even lattice with this signature and discriminant form.
 
@@ -454,17 +454,17 @@ class TorsionQuadraticModule(FGP_Module_class):
             u = det.prime_to_m_part(p)
             up = gram_p.det().numerator().prime_to_m_part(p)
             if p!=2 and length_p==rank:
-                if legendre_symbol(u,p) != legendre_symbol(up, p):
+                if legendre_symbol(u, p) != legendre_symbol(up, p):
                     return False
             if p == 2:
                 if mod(rank, 2) != mod(length_p, 2):
                     return False
-                n = (rank - length_p)/2
+                n = (rank - length_p) / 2
                 if mod(u, 4) != mod((-1)**(n % 2) * up, 4):
                     return False
                 if rank == length_p:
-                    a = QQ(1)/QQ(2)
-                    b = QQ(3)/QQ(2)
+                    a = QQ(1) / QQ(2)
+                    b = QQ(3) / QQ(2)
                     diag = gram_p.diagonal()
                     if not (a in diag or b in diag):
                         if mod(u, 8) != mod(up, 8):

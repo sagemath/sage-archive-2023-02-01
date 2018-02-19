@@ -5267,8 +5267,6 @@ cdef class Expression(CommutativeRingElement):
 
         INPUT:
 
-        - ``self`` -- a :class:`sage.symbolic.expression.Expression`
-
         - ``pattern`` -- a :class:`sage.symbolic.expression.Expression`, usually
           containing wildcards.
 

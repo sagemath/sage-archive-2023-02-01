@@ -602,7 +602,7 @@ def ReedSolomonCode(base_field, length, dimension, primitive_root=None):
     This code is cyclic as can be seen by coercing it into a cyclic code::
 
         sage: Ccyc = codes.CyclicCode(code=C); Ccyc
-        [6, 3, 4] Cyclic Code over GF(7)
+        [6, 3] Cyclic Code over GF(7)
 
         sage: Ccyc.generator_polynomial()
         x^3 + 3*x^2 + x + 6

@@ -696,11 +696,26 @@ EOF
 
 
 # Python version
-if test "$SAGE_PYTHON3" = yes; then
-    echo >&7 'PYTHON = $(inst_python3)'
-else
-    echo >&7 'PYTHON = $(inst_python2)'
-fi
+AC_MSG_CHECKING([Python version to install])
+AC_ARG_WITH([python],
+[AS_HELP_STRING([--with-python=2],
+    [build and use Python 2 (default)])]
+[AS_HELP_STRING([--with-python=3],
+    [build and use Python 3])])
+
+case "$with_python" in
+    2*) SAGE_PYTHON_VERSION=2;;
+    3*) SAGE_PYTHON_VERSION=3;;
+    "") SAGE_PYTHON_VERSION=2;;
+    *)
+        AC_MSG_ERROR([allowed values for --with-python are 2 and 3]);;
+esac
+
+AC_MSG_RESULT([$SAGE_PYTHON_VERSION])
+AC_SUBST(SAGE_PYTHON_VERSION)
+
+echo >&7 "PYTHON = \$(inst_python${SAGE_PYTHON_VERSION})"
+
 
 # Sage MP library
 AC_MSG_CHECKING([multiprecision library])

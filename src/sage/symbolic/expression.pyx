@@ -5261,6 +5261,49 @@ cdef class Expression(CommutativeRingElement):
         from sage.symbolic.expression_conversions import SubstituteFunction
         return SubstituteFunction(self, original, new)()
 
+    def delayed_substitution(self, pattern, replacement):
+        """
+        Replace all occurrences of pattern by the result of replacement.
+
+        INPUT:
+
+        - ``self`` -- a :class:`sage.symbolic.expression.Expression`
+
+        - ``pattern`` -- a :class:`sage.symbolic.expression.Expression`, usually
+          containing wildcards.
+
+        - ``replacement`` -- a function. Its argument is a dictionary
+          mapping the wildcard occurring in ``pattern`` to the actual
+          values.  If it returns ``None``, this occurrence of ``pattern`` is
+          not replaced. Otherwise, it is replaced by the output of
+          ``replacement``.
+
+        OUTPUT:
+
+        A :class:`sage.symbolic.expression.Expression`.
+
+        EXAMPLES::
+
+            sage: var('x y')
+            (x, y)
+            sage: w0 = SR.wild(0)
+            sage: def r(d):
+            ....:    if x not in d[w0].variables():
+            ....:        return cos(d[w0])
+            sage: (sin(x^2 + x)+sin(y^2 + y)).delayed_substitution(sin(w0), r)
+            cos(y^2 + y) + sin(x^2 + x)
+
+        .. SEEALSO:
+
+            :meth:`sage.symbolic.expression.Expression.match`
+        """
+        result = self
+        for matched in self.find(pattern):
+            r = replacement(matched.match(pattern))
+            if r is not None:
+                result = result.subs({matched: r})
+        return result
+
     def __call__(self, *args, **kwds):
         """
         Call the :meth:`subs` on this expression.

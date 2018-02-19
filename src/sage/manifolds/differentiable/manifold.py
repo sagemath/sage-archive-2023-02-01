@@ -2358,10 +2358,11 @@ class DifferentiableManifold(TopologicalManifold):
 
         INPUT:
 
-        - ``symbol`` -- either a string, to be used as a common base for the
-          symbols of the vector fields constituting the vector frame, or a
-          list/tuple of strings, representing the individual symbols of the
-          vector fields
+        - ``symbol`` -- (default: ``None``) either a string, to be used as a
+          common base for the symbols of the vector fields constituting the
+          vector frame, or a list/tuple of strings, representing the individual
+          symbols of the vector fields; can be ``None`` only if ``from_frame``
+          is not ``None`` (see below)
         - ``latex_symbol`` -- (default: ``None``) either a string, to be used
           as a common base for the LaTeX symbols of the vector fields
           constituting the vector frame, or a list/tuple of strings,

@@ -510,47 +510,29 @@ class VectorFrame(FreeModuleBasis):
         self._dest_map = vector_field_module._dest_map
         self._from_frame = from_frame
         self._manifold = self._domain.manifold()
+        if from_frame is not None:
+            if not from_frame._domain.is_subset(self._dest_map._codomain):
+                raise ValueError("the domain of the frame 'from_frame' is " +
+                                 "not included in the codomain of the " +
+                                 "destination map")
         if symbol is None:
             if from_frame is None:
                 raise TypeError("some frame symbol must be provided")
-            symbol = 'X'  # provisory symbol
+            symbol = from_frame._symbol
+            latex_symbol = from_frame._latex_symbol
+            indices = from_frame._indices
+            latex_indices = from_frame._latex_indices
+            symbol_dual = from_frame._symbol_dual
+            latex_symbol_dual = from_frame._latex_symbol_dual
         FreeModuleBasis.__init__(self, vector_field_module,
                                  symbol, latex_symbol=latex_symbol,
                                  indices=indices, latex_indices=latex_indices,
                                  symbol_dual=symbol_dual,
                                  latex_symbol_dual=latex_symbol_dual)
         # Redefinition of the name and the LaTeX name to include the domain:
-        if from_frame is None:
-            self._name = "({}, {})".format(self._domain._name, self._name)
-            self._latex_name = r"\left({}, {}\right)".format(
+        self._name = "({}, {})".format(self._domain._name, self._name)
+        self._latex_name = r"\left({}, {}\right)".format(
                                     self._domain._latex_name, self._latex_name)
-        else:
-            if not from_frame._domain.is_subset(self._dest_map._codomain):
-                raise ValueError("the domain of the frame 'from_frame' is " +
-                                 "not included in the codomain of the " +
-                                 "destination map")
-            n = self._fmodule.rank()
-            for i in range(n):
-                self._vec[i]._name = from_frame._vec[i]._name
-                self._vec[i]._latex_name = from_frame._vec[i]._latex_name
-            self._name = "({}, ({}))".format(self._domain._name,
-                                             ",".join(val._name for val in self._vec))
-            self._latex_name = r"\left({}, \left({}\right)\right)".format(
-                                    self._domain._latex_name,
-                                    ",".join(val._latex_name for val in self._vec))
-            self._symbol = from_frame._symbol
-            self._latex_symbol = from_frame._latex_symbol
-            # Names of the dual coframe:
-            self_dual = self.dual_basis()
-            from_dual = from_frame.dual_basis()
-            for i in range(n):
-                self_dual._vec[i]._name = from_dual._vec[i]._name
-                self_dual._vec[i]._latex_name = from_dual._vec[i]._latex_name
-            self_dual._name = "({}, ({}))".format(self._domain._name,
-                                  ",".join(val._name for val in self_dual._vec))
-            self_dual._latex_name = r"\left({}, \left({}\right)\right)".format(
-                            self._domain._latex_name,
-                            ",".join(val._latex_name for val in self_dual._vec))
         # The frame is added to the domain's set of frames, as well as to all
         # the superdomains' sets of frames; moreover the first defined frame
         # is considered as the default one
@@ -1503,8 +1485,6 @@ class CoordFrame(VectorFrame):
         # In the above:
         # - force_free=True ensures that a free module is constructed in case
         #   it is the first call to the vector field module on chart._domain
-        self._symbol = self._name
-        self._latex_symbol = self._latex_name
 
 
     ###### Methods that must be redefined by derived classes of ######

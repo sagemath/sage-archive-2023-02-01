@@ -39,7 +39,7 @@ class Basis_abstract(UniqueRepresentation, SageObject):
     """
     Abstract base class for (dual) bases of free modules.
     """
-    def __init__(self, fmodule, symbol, latex_symbol):
+    def __init__(self, fmodule, symbol, latex_symbol, indices, latex_indices):
         """
         Initialize ``self``.
 
@@ -53,6 +53,8 @@ class Basis_abstract(UniqueRepresentation, SageObject):
         self._fmodule = fmodule
         self._symbol = symbol
         self._latex_symbol = latex_symbol
+        self._indices = indices
+        self._latex_indices = latex_indices
 
     def __iter__(self):
         r"""
@@ -381,7 +383,8 @@ class FreeModuleCoBasis(Basis_abstract):
 
         """
         self._basis = basis
-        Basis_abstract.__init__(self, basis._fmodule, symbol, latex_symbol)
+        Basis_abstract.__init__(self, basis._fmodule, symbol, latex_symbol,
+                                indices, latex_indices)
         # The individual linear forms:
         vl = list()
         for i in self._fmodule.irange():
@@ -573,7 +576,8 @@ class FreeModuleBasis(Basis_abstract):
             sage: TestSuite(e).run()
 
         """
-        Basis_abstract.__init__(self, fmodule, symbol, latex_symbol)
+        Basis_abstract.__init__(self, fmodule, symbol, latex_symbol, indices,
+                                latex_indices)
         # The basis is added to the module list of bases
         for other in fmodule._known_bases:
             if symbol == other._symbol:
@@ -609,6 +613,8 @@ class FreeModuleBasis(Basis_abstract):
         for t in fmodule._dual_exterior_powers.values():
             t._zero_element._components[self] = t._zero_element._new_comp(self)
         # The dual basis:
+        self._symbol_dual = symbol_dual
+        self._latex_symbol_dual = latex_symbol_dual
         if symbol_dual is None:
             if isinstance(symbol, (list, tuple)):
                 raise ValueError("symbol_dual must be provided")

@@ -4137,7 +4137,7 @@ class Graph(GenericGraph):
 
 
     @doc_index("Algorithmically hard stuff")
-    def chromatic_number(self, algorithm="DLX", verbose = 0):
+    def chromatic_number(self, algorithm="DLX", solver=None, verbose=0):
         r"""
         Returns the minimal number of colors needed to color the vertices
         of the graph `G`.
@@ -4163,6 +4163,14 @@ class Graph(GenericGraph):
             is affected by whether optional MILP solvers have been installed
             (see the :mod:`MILP module <sage.numerical.mip>`, or Sage's tutorial
             on Linear Programming).
+
+          - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+            solver to be used. If set to ``None``, the default one is used. For
+            more information on LP solvers and which default solver is used, see
+            the method :meth:`solve
+            <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+            :class:`MixedIntegerLinearProgram
+            <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``). Sets the level of verbosity
           for the MILP algorithm. Its default value is 0, which means *quiet*.
@@ -4225,7 +4233,7 @@ class Graph(GenericGraph):
         # package: choose any of GLPK or CBC.
         elif algorithm == "MILP":
             from sage.graphs.graph_coloring import vertex_coloring
-            return vertex_coloring(self, value_only=True, verbose = verbose)
+            return vertex_coloring(self, value_only=True, solver=solver, verbose=verbose)
         # another algorithm with bad performance; only good for small graphs
         elif algorithm == "CP":
             f = self.chromatic_polynomial()

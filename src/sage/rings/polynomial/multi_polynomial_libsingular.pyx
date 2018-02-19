@@ -178,6 +178,8 @@ from cpython.object cimport Py_NE
 from cysignals.memory cimport sig_malloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
 
+from sage.cpython.string cimport char_to_str, str_to_bytes
+
 # singular types
 from sage.libs.singular.decl cimport ring, poly, ideal, intvec, number, currRing
 from sage.libs.singular.decl cimport n_unknown,  n_Zp,  n_Q,   n_R,   n_GF,  n_long_R,  n_algExt,n_transExt,n_long_C,   n_Z,   n_Zn,  n_Znm,  n_Z2m,  n_CF
@@ -965,7 +967,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                 gens_map = dict(zip(Q.variable_names(),self.gens()[:Q.ngens()]))
                 return eval(str(element),gens_map)
 
-        if isinstance(element, basestring):
+        if isinstance(element, str):
             # let python do the parsing
             d = self.gens_dict()
             if self.base_ring().gen() != 1:
@@ -1035,8 +1037,9 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: P # indirect doctest
             Multivariate Polynomial Ring in x, y over Rational Field
         """
-        varstr = ", ".join([ rRingVar(i,self._ring)  for i in range(self.__ngens) ])
-        return "Multivariate Polynomial Ring in %s over %s"%(varstr,self.base_ring())
+        varstr = ", ".join(char_to_str(rRingVar(i,self._ring))
+                           for i in range(self.__ngens))
+        return "Multivariate Polynomial Ring in %s over %s" % (varstr, self.base_ring())
 
     def ngens(self):
         """
@@ -1582,7 +1585,6 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         cdef ring *_ring = self._ring
         cdef char **_names
         cdef char **_orig_names
-        cdef char *_name
         cdef int i
 
         if len(names) != _ring.N:
@@ -1593,7 +1595,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
         _names = <char**>omAlloc0(sizeof(char*)*_ring.N)
         for i from 0 <= i < _ring.N:
-            _name = names[i]
+            _name = str_to_bytes(names[i])
             _names[i] = omStrDup(_name)
 
         _orig_names = _ring.names
@@ -2553,7 +2555,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             _ring.ShortOut = 0
         else:
             s = p_String(self._poly, _ring, _ring)
-        return s
+        return char_to_str(s)
 
     def _latex_(self):
         """

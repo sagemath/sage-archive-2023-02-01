@@ -2071,7 +2071,7 @@ def integer_matrix_relations(M1,M2,b=None,r=None):
         raise ValueError("insufficient precision for b=%s"%b)
     g1 = M1.ncols()
     g2 = M2.ncols()
-    CC = M1.base_ring()
+    CC = M1.base_ring() if (M1.base_ring().precision() <= M2.base_ring().precision()) else M2.base_ring()
     V = ["%s%s"%(n,i) for n in ["a","b","c","d"] for i in srange(1,1+g1*g2)]
     R = PolynomialRing(CC,V)
     A = Matrix(R,g1,g2,V[:g1*g2])

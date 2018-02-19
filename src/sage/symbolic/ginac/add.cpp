@@ -596,10 +596,11 @@ ex add::recombine_pair_to_ex(const expair & p) const
 ex add::pow_intexp(const numeric& expo) const
 {
         numeric icont = integer_content();
-        if (not lcoeff.is_positive())
-                throw std::runtime_error();
         const numeric lcoeff = ex_to<numeric>(lead_coeff()).div(icont);
-        if (icont.is_one())
+        if (not lcoeff.is_positive())
+                icont = icont.negative();
+        if (icont.is_one()
+            or not expo.is_integer()
             or not lcoeff.is_integer())
                 return (new power(*this, expo))->
                         setflag(status_flags::dynallocated
@@ -608,7 +609,7 @@ ex add::pow_intexp(const numeric& expo) const
         auto addp = new add(*this);
         addp->setflag(status_flags::dynallocated);
         addp->clearflag(status_flags::hash_calculated);
-        addp->overall_coeff = addp->overall_coeff.div_dyn(icont);
+        addp->overall_coeff /= icont;
         addp->seq_sorted.resize(0);
         for (auto &elem : addp->seq)
                 elem.coeff = ex_to<numeric>(elem.coeff).div_dyn(icont);

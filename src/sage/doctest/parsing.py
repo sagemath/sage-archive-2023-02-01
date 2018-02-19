@@ -410,7 +410,7 @@ def make_marked_output(s, D):
     return ans
 
 
-class OriginalSource:
+class OriginalSource(object):
     r"""
     Context swapping out the pre-parsed source with the original for
     better reporting.
@@ -454,7 +454,7 @@ class OriginalSource:
             sage: ex = doctests[0].examples[0]
             sage: from sage.doctest.parsing import OriginalSource
             sage: OriginalSource(ex)
-            <sage.doctest.parsing.OriginalSource instance at ...>
+            <sage.doctest.parsing.OriginalSource object at ...>
         """
         self.example = example
 
@@ -501,6 +501,7 @@ class OriginalSource:
         """
         if hasattr(self.example, 'sage_source'):
             self.example.source = self.old_source
+
 
 class SageDocTestParser(doctest.DocTestParser):
     """

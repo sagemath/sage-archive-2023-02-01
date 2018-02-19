@@ -385,6 +385,7 @@ class AbelianGroup_gap(UniqueRepresentation, GroupMixinLibGAP, ParentLibGAP, Abe
             sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
             sage: G = AbelianGroupGap([2, 3])
             sage: G.aut()
+            Full group of automorphisms of Abelian group with gap, generator orders (2, 3)
         """
         from sage.groups.abelian_gps.abelian_aut import AbelianGroupAutomorphismGroup
         return AbelianGroupAutomorphismGroup(self)

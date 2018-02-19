@@ -753,7 +753,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
 
             if isinstance(wait_for_prompt, string_types) and normal.ends_with(wait_for_prompt):
                 n = len(wait_for_prompt)
-            elif normal.endswith(self._prompt):
+            elif normal.endswith(bytes_to_str(self._prompt)):
                 n = len(self._prompt)
             elif normal.endswith(self._continuation_prompt()):
                 n = len(self._continuation_prompt())

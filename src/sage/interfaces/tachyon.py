@@ -124,7 +124,8 @@ class TachyonRT(SageObject):
 
             sage: from sage.env import SAGE_EXTCODE
             sage: filename = os.path.join(SAGE_EXTCODE, 'doctest', 'invalid', 'syntax_error.tachyon')
-            sage: syntax_error = open(filename, 'r').read()
+            sage: with open(filename, 'r') as f:
+            ....:    syntax_error = f.read()
             sage: t(syntax_error, outfile=os.devnull)
             Traceback (most recent call last):
             ...

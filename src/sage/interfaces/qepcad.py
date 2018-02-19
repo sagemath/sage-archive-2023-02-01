@@ -530,7 +530,8 @@ TESTS:
 
 Check the qepcad configuration file::
 
-    sage: open('%s/default.qepcadrc'%SAGE_LOCAL).readlines()[-1]
+    sage: with open(os.path.join(SAGE_LOCAL, 'default.qepcadrc')) as f:
+    ....:     f.readlines()[-1]
     'SINGULAR .../bin\n'
 
 Tests related to the not tested examples (nondeterministic order of atoms)::

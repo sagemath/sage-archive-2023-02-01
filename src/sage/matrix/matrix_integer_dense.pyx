@@ -63,6 +63,7 @@ from __future__ import absolute_import, print_function
 from libc.stdint cimport int64_t
 from libc.string cimport strcpy, strlen
 
+from sage.cpython.string cimport char_to_str, str_to_bytes
 from sage.ext.stdsage cimport PY_NEW
 from cysignals.signals cimport sig_check, sig_on, sig_str, sig_off
 from cysignals.memory cimport sig_malloc, sig_free, check_allocarray
@@ -536,7 +537,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             ('1 61 f', 0)
 
         """
-        return self._export_as_string(32)
+        return str_to_bytes(self._export_as_string(32), 'ascii')
 
     cpdef _export_as_string(self, int base=10):
         """
@@ -591,13 +592,13 @@ cdef class Matrix_integer_dense(Matrix_dense):
                     t[1] = <char>0
                     t = t + 1
             sig_off()
-            data = str(s)[:-1]
+            data = char_to_str(s)[:-1]
             sig_free(s)
         return data
 
     def _unpickle(self, data, int version):
         if version == 0:
-            if isinstance(data, str):
+            if isinstance(data, bytes):
                 self._unpickle_version0(data)
             elif isinstance(data, list):
                 self._unpickle_matrix_2x2_version0(data)

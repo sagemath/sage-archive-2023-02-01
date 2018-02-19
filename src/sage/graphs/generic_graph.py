@@ -9830,16 +9830,28 @@ class GenericGraph(GenericGraph_pyx):
            ...
            ValueError: parameter k must be strictly positive
 
-        The vertex connectivity of an empty graph is 0::
+        The empty graph has vertex connectivity 0, is considered connected but
+        not biconnected. The empty digraph is considered strongly connected::
 
-           sage: Graph().vertex_connectivity()
+           sage: empty = Graph()
+           sage: empty.vertex_connectivity()
            0
+           sage: empty.vertex_connectivity(k=1) == empty.is_connected()
+           True
+           sage: Graph().vertex_connectivity(k=2) == empty.is_biconnected()
+           True
+           sage: DiGraph().vertex_connectivity(k=1) == DiGraph().is_strongly_connected()
+           True
         """
         g = self
 
         if k is not None:
             if k < 1:
                 raise ValueError("parameter k must be strictly positive")
+            if g.order() == 0:
+                # We follow the convention of is_connected, is_biconnected and
+                # is_strongly_connected
+                return k == 1
             if (g.is_directed() and k > min(min(g.in_degree()), min(g.out_degree()))) \
                or (not g.is_directed() and (k > min(g.degree()))):
                 return False

@@ -412,9 +412,9 @@ class TorsionQuadraticModule(FGP_Module_class):
         """
         return self._gens
 
-    def is_genus(self, signature_pair, even):
+    def is_genus(self, signature_pair, even=True):
         r"""
-        Return if there is an even lattice with this signature and discriminant form.
+        Return ``True`` if there is a lattice with this signature and discriminant form.
 
         TODO:
 
@@ -422,13 +422,23 @@ class TorsionQuadraticModule(FGP_Module_class):
 
         INPUT:
 
-        - signature_pair -- a tuple of integers ``(s_plus,s_minus)``
-        - even -- bool (default: ``True`)
+        - signature_pair -- a tuple of non negative integers ``(s_plus, s_minus)``
+        - even -- bool (default: ``True``)
 
         EXAMPLES::
 
-            sage:
-            sage:
+            sage: L = IntegralLattice("D4").direct_sum(IntegralLattice(3 * Matrix(ZZ,2,[2,1,1,2])))
+            sage: D = L.discriminant_group()
+            sage: D.is_genus((6,0))
+            True
+
+        Let us see if there is a lattice in the genus defined by the same discriminant form
+        but with a different signature::
+
+            sage: D.is_genus((4,2))
+            False
+            sage: D.is_genus((16,2))
+            True
         """
         s_plus = signature_pair[0]
         s_minus = signature_pair[1]

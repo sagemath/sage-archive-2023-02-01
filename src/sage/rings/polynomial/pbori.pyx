@@ -191,6 +191,8 @@ from sage.ext.cplusplus cimport ccrepr
 
 import operator
 
+from sage.cpython.string cimport str_to_bytes
+
 from sage.misc.cachefunc import cached_method
 
 from sage.misc.randstate import current_randstate
@@ -367,7 +369,6 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             raise ValueError("Number of variables must be greater than 1.")
 
         self.pbind = <Py_ssize_t*>sig_malloc(n*sizeof(Py_ssize_t))
-        cdef char *_n
 
         order = TermOrder(order, n)
 
@@ -431,7 +432,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             pbnames = self._names
 
         for i from 0 <= i < n:
-            _n = pbnames[self.pbind[i]]
+            _n = str_to_bytes(pbnames[self.pbind[i]])
             self._pbring.setVariableName(i, _n)
 
         self._zero_element = new_BP(self)

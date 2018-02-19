@@ -4217,7 +4217,7 @@ class Graph(GenericGraph):
 
         TESTS::
 
-            sage: G = Graph().G.chromatic_number()
+            sage: G = Graph()
             sage: G.chromatic_number(algorithm="DLX")
             0
             sage: G.chromatic_number(algorithm="MILP")

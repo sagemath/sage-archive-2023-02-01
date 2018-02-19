@@ -4134,9 +4134,8 @@ const numeric numeric::gcd(const numeric &B) const
                         return a.to_bigint().gcd(b);
                 case MPQ:
                         return (a * b.denom()).gcd(b.numer()) / b.denom();
-                case PYOBJECT: {
-                        PY_RETURN2(py_funcs.py_gcd, b);
-                }
+                case PYOBJECT:
+                        return *_num1_p;
                 default: stub("invalid type: type not handled");
                 }
         case MPZ:
@@ -4158,21 +4157,18 @@ const numeric numeric::gcd(const numeric &B) const
                 }
                 case MPQ:
                         return (a * b.denom()).gcd(b.numer()) / b.denom();
-                case PYOBJECT: {
-                        PY_RETURN2(py_funcs.py_gcd, b);
-                }
+                case PYOBJECT:
+                        return *_num1_p;
                 default:
                         stub("invalid type: type not handled");
                 }
         case MPQ:
-                if (b.t == PYOBJECT) {
-                        PY_RETURN2(py_funcs.py_gcd, b);
-                }
+                if (b.t == PYOBJECT)
+                        return *_num1_p;
                 return (a.numer() * b.denom()).gcd(a.denom() * b.numer()) / (a.denom() * b.denom());
                 stub("invalid type: type not handled");
-        case PYOBJECT: {
-                PY_RETURN2(py_funcs.py_gcd, b);
-        }
+        case PYOBJECT:
+                        return *_num1_p;
         default:
                 stub("invalid type: type not handled");
         }

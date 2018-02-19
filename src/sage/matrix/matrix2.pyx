@@ -8002,7 +8002,7 @@ cdef class Matrix(Matrix1):
 
         ``None``.  A new subdivision is created between ``top`` and
         ``bottom`` for ``self``.  If possible, column subdivisions are
-        preserved in ``self``, but if the two sets of solumn subdivisions
+        preserved in ``self``, but if the two sets of column subdivisions
         are incompatible, they are removed.
 
         EXAMPLES::

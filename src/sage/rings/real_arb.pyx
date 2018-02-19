@@ -225,6 +225,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfi import RealIntervalField, RealIntervalField_class
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.cpython.string cimport char_to_str
 
 cdef void mpfi_to_arb(arb_t target, const mpfi_t source, const long precision):
     """
@@ -1412,11 +1413,10 @@ cdef class RealBall(RingElement):
            [2e+0 +/- 0.101]
         """
         cdef char* c_result
-        cdef bytes py_string
 
         c_result = arb_get_str(self.value, (prec(self) * 31) // 100, 0)
         try:
-            py_string = c_result
+            py_string = char_to_str(c_result)
         finally:
             flint_free(c_result)
 
@@ -3456,7 +3456,7 @@ cdef class RealBall(RingElement):
             sage: RBF(1/2).polylog(1)
             [0.6931471805599 +/- 5.02e-14]
             sage: RBF(1/3).polylog(1/2)
-            [0.44210883528067 +/- 6.75e-15]
+            [0.44210883528067 +/- 6.7...e-15]
             sage: RBF(1/3).polylog(RLF(pi))
             [0.34728895057225 +/- 5.51e-15]
 
@@ -3556,7 +3556,7 @@ cdef class RealBall(RingElement):
             sage: RBF(1).agm(1)
             1.000000000000000
             sage: RBF(sqrt(2)).agm(1)^(-1)
-            [0.83462684167407 +/- 4.31e-15]
+            [0.83462684167407 +/- 3.9...e-15]
         """
         cdef RealBall other_as_ball
         cdef RealBall res = self._new()

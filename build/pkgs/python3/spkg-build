@@ -95,10 +95,10 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-if [ "$UNAME" = "Linux" ]; then
-    export LD_LIBRARY_PATH="."
-elif [ "$UNAME" = "Darwin" ]; then
+if [ "$UNAME" = "Darwin" ]; then
     export DYLD_LIBRARY_PATH="."
+else
+    export LD_LIBRARY_PATH="."
 fi
 
 # When building on a case-insensitive filesystem (on any OS, not just Windows)

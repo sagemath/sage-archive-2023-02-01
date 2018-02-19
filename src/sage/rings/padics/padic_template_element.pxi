@@ -1142,7 +1142,7 @@ cdef class ExpansionIterable(object):
         Returns an iterator, based on a corresponding :class:`ExpansionIter`.
 
         If ``val_shift`` is positive, will first emit that many zeros
-        (of the approrpiate type: ``[]`` instead when the inertia degree
+        (of the appropriate type: ``[]`` instead when the inertia degree
         is larger than one.
 
         If ``val_shift`` is negative, will truncate that many terms at

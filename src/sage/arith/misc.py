@@ -25,7 +25,7 @@ from sage.misc.misc_c import prod
 from sage.libs.pari.all import pari
 import sage.libs.flint.arith as flint_arith
 
-from sage.structure.element import parent
+from sage.structure.element import parent, Element
 from sage.structure.coerce import py_scalar_to_element
 
 from sage.rings.rational_field import QQ
@@ -2279,25 +2279,48 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
         sage: [p^e for p,e in f]
         [4, 3, 5, 7]
 
+    We can factor Python and numpy numbers::
+
+        sage: factor(math.pi)
+        3.141592653589793
+        sage: import numpy
+        sage: factor(numpy.int8(30))
+        2 * 3 * 5
+
+    TESTS::
+
+        sage: factor(Mod(4, 100))
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to factor 4
+        sage: factor("xyz")
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to factor 'xyz'
     """
-    if isinstance(n, integer_types):
-        n = ZZ(n)
+    try:
+        m = n.factor
+    except AttributeError:
+        # Maybe n is not a Sage Element, try to convert it
+        e = py_scalar_to_element(n)
+        if e is n:
+            # Either n was a Sage Element without a factor() method
+            # or we cannot it convert it to Sage
+            raise TypeError("unable to factor {!r}".format(n))
+        n = e
+        m = n.factor
 
     if isinstance(n, Integer):
-        return n.factor(proof=proof, algorithm=algorithm,
-                        int_ = int_, verbose=verbose)
-    else:
-        # e.g. n = x**2 + y**2 + 2*x*y
-        try:
-            return n.factor(proof=proof, **kwds)
-        except AttributeError:
-            raise TypeError("unable to factor n")
-        except TypeError:
-            # Just in case factor method doesn't have a proof option.
-            try:
-                return n.factor(**kwds)
-            except AttributeError:
-                raise TypeError("unable to factor n")
+        return m(proof=proof, algorithm=algorithm, int_=int_,
+                 verbose=verbose, **kwds)
+
+    # Polynomial or other factorable object
+    try:
+        return m(proof=proof, **kwds)
+    except TypeError:
+        # Maybe the factor() method doesn't have a proof option
+        return m(**kwds)
+
 
 def radical(n, *args, **kwds):
     """

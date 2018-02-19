@@ -50,6 +50,10 @@ AUTHORS:
 - Travis Scrimshaw (2012-10-18): Added doctests to get full coverage
 
 - Jeroen Demeyer (2013-02-27): fixed all PARI calls (:trac:`14082`)
+
+- Vincent Klein (2017-11-15) : add __mpc__() to class ComplexDoubleElement.
+  ComplexDoubleElement constructor support and gmpy2.mpc parameter.
+
 """
 
 #*****************************************************************************
@@ -103,6 +107,9 @@ from .real_double cimport RealDoubleElement, double_repr, double_str
 from .real_double import RDF
 from sage.rings.integer_ring import ZZ
 
+IF HAVE_GMPY2:
+    cimport gmpy2
+    gmpy2.import_gmpy2()
 
 def is_ComplexDoubleField(x):
     """
@@ -293,6 +300,9 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             1.0*I
             sage: CDF(pari("x^2 + x + 1").polroots()[0])
             -0.5 - 0.8660254037844386*I
+            sage: from gmpy2 import mpc     # optional - gmpy2
+            sage: CDF(mpc('2.0+1.0j'))      # optional - gmpy2
+            2.0 + 1.0*I
 
         A ``TypeError`` is raised if the coercion doesn't make sense::
 
@@ -342,6 +352,8 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             return ComplexDoubleElement(x.real(), x.imag())
         elif isinstance(x, pari_gen):
             return pari_to_cdf(x)
+        elif HAVE_GMPY2 and type(x) is gmpy2.mpc:
+            return ComplexDoubleElement((<gmpy2.mpc>x).real, (<gmpy2.mpc>x).imag)
         elif isinstance(x, str):
             t = cdf_parser.parse_expression(x)
             if isinstance(t, float):
@@ -1122,6 +1134,31 @@ cdef class ComplexDoubleElement(FieldElement):
             return new_gen_from_double(self._complex.dat[0])
         else:
             return new_t_COMPLEX_from_double(self._complex.dat[0], self._complex.dat[1])
+
+    def __mpc__(self):
+        """
+        Convert Sage ``ComplexDoubleElement`` to gmpy2 ``mpc``.
+
+        EXAMPLES::
+
+            sage: c = CDF(2,1)
+            sage: c.__mpc__()            # optional - gmpy2
+            mpc('2.0+1.0j')
+            sage: from gmpy2 import mpc  # optional - gmpy2
+            sage: mpc(c)                 # optional - gmpy2
+            mpc('2.0+1.0j')
+
+        TESTS::
+
+            sage: c.__mpc__(); raise NotImplementedError("gmpy2 is not installed")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: gmpy2 is not installed
+        """
+        IF HAVE_GMPY2:
+            return gmpy2.mpc(self._complex.dat[0], self._complex.dat[1])
+        ELSE:
+            raise NotImplementedError("gmpy2 is not installed")
 
     #######################################################################
     # Arithmetic

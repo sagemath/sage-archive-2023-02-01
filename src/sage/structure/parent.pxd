@@ -48,6 +48,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
     cpdef convert_map_from(self, S)
     cpdef _internal_convert_map_from(self, S)
     cpdef _convert_map_from_(self, S)
+    cdef convert_method_map(self, S, method_name)
 
     # returns the Action by/on self on/by S
     # corresponding to op and self_on_left

@@ -447,9 +447,9 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
             sage: len(C)
             Traceback (most recent call last):
             ...
-            TypeError: 'NoneType' object cannot be interpreted as an index
+            TypeError: cannot compute length of A recursively enumerated set (breadth first search)
         """
-        return None
+        raise TypeError(f"cannot compute length of {self}")
 
     def __iter__(self):
         r"""

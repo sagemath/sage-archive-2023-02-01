@@ -674,15 +674,10 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                 return False
             return self._base.has_coerce_map_from(S.base())
 
-    cdef _coerce_c_impl(self, rhs):
+    cdef _convert(self, other):
         r"""
         Canonical conversion of elements from other domains to
         this boolean polynomial ring.
-
-        NOTE:
-
-        Inspite of its name, we use this method for conversion,
-        not coercion.
 
         EXAMPLES:
 
@@ -806,7 +801,6 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         cdef BooleanPolynomial p
         # we check for other PolyBoRi types first since this conversion
         # is used by the PolyBoRi python code often
-        other = rhs
         if isinstance(other, BooleSet):
             other = new_BP_from_PBSet(other.ring(), (<BooleSet>other)._pbset)
 
@@ -937,7 +931,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         cdef int i
 
         try:
-            return self._coerce_c_impl(other)
+            return self._convert(other)
         except TypeError:
             pass
 
@@ -1008,7 +1002,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             i = int(other)
         except Exception:
             try:    # last chance: try Sage's conversions over GF(2), Trac #13284
-                return self._coerce_c_impl(self.cover_ring()(other))
+                return self._convert(self.cover_ring()(other))
             except Exception:
                 raise TypeError("cannot convert %s to BooleanPolynomial" % (type(other)))
 

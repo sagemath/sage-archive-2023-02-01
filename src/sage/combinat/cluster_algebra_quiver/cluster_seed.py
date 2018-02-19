@@ -1070,16 +1070,16 @@ class ClusterSeed(SageObject):
         from IPython.display import clear_output
 
         show_seq = widgets.Checkbox(value=True,
-                                    description="Mutation sequence:")
+                                    description="Display mutation sequence")
 
         show_vars = widgets.Checkbox(value=True,
-                                     description="Cluster variables:")
+                                     description="Display cluster variables")
 
         show_matrix = widgets.Checkbox(value=True,
-                                       description="B-matrix:")
+                                       description="Display B-matrix")
 
         show_lastmutation = widgets.Checkbox(value=True,
-                                             description="Show last mutation:")
+                                             description="Show last mutation vertex")
 
         mut_buttons = widgets.ToggleButtons(options=list(range(self._n)),
                                            button_style='',
@@ -1115,7 +1115,7 @@ class ClusterSeed(SageObject):
                     self.show(fig_size=fig_size, circular=circular)
                 print_data()
                 
-        def do_mutation(w):
+        def do_mutation(*args, **kwds):
             k = mut_buttons.value
             self.mutate(k)
             seq.append(k)
@@ -1127,7 +1127,7 @@ class ClusterSeed(SageObject):
                     self.show(fig_size=fig_size, circular=circular)
                 print_data()
 
-        # mut_buttons.on_msg(do_mutation)
+        mut_buttons.on_msg(do_mutation)
         mut_buttons.observe(do_mutation, 'value')
         show_seq.observe(refresh, 'value')
         show_vars.observe(refresh, 'value')

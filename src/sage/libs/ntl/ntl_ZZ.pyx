@@ -252,8 +252,10 @@ cdef class ntl_ZZ(object):
 
             sage: ntl.ZZ(10^30).__int__()
             1000000000000000000000000000000L
-            sage: type(ntl.ZZ(10^30).__int__())
+            sage: type(ntl.ZZ(10^30).__int__())  # py2
             <type 'long'>
+            sage: type(ntl.ZZ(10^30).__int__())  # py3
+            <class 'int'>
         """
         return int(self._integer_())
 

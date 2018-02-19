@@ -337,7 +337,8 @@ cpdef bint is_numpy_type(t):
         sage: 1 + object()
         Traceback (most recent call last):
         ...
-        TypeError: unsupported operand parent(s) for +: 'Integer Ring' and '<... 'object'>'
+        TypeError: unsupported operand parent(s) for +: 'Integer Ring' and
+        '<type 'object'>'
     """
     if not isinstance(t, type):
         return False
@@ -425,13 +426,13 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         sage: numpy.uint8('2') + 3
         5
         sage: type(_)
-        <... 'numpy.int32'>  # 32-bit
-        <... 'numpy.int64'>  # 64-bit
+        <type 'numpy.int32'>  # 32-bit
+        <type 'numpy.int64'>  # 64-bit
 
         sage: numpy.int8('12') + 1/3
         12.333333333333334
         sage: type(_)
-        <... 'numpy.float64'>
+        <type 'numpy.float64'>
 
     AUTHOR:
 
@@ -742,12 +743,12 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             Right operand is numeric, will attempt coercion in both directions.
             Unknown result parent.
             sage: parent(R100(1) + float(1))
-            <... 'float'>
+            <type 'float'>
             sage: cm.explain(QQ, float, operator.add)
             Right operand is numeric, will attempt coercion in both directions.
             Unknown result parent.
             sage: parent(QQ(1) + float(1))
-            <... 'float'>
+            <type 'float'>
 
         Special care is taken to deal with division::
 
@@ -844,7 +845,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: res
             Finite Field of size 7
             sage: f = steps[1]; type(f)
-            <... 'sage.rings.finite_rings.integer_mod.Integer_to_IntegerMod'>
+            <type 'sage.rings.finite_rings.integer_mod.Integer_to_IntegerMod'>
             sage: f(100)
             2
         """
@@ -951,9 +952,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm.common_parent(ZZT, QQT, RDF)
             Power Series Ring in T over Real Double Field
             sage: cm.common_parent(4r, 5r)
-            <... 'int'>
+            <type 'int'>
             sage: cm.common_parent(int, float, ZZ)
-            <... 'float'>
+            <type 'float'>
             sage: real_fields = [RealField(prec) for prec in [10,20..100]]
             sage: cm.common_parent(*real_fields)
             Real Field with 10 bits of precision
@@ -1195,12 +1196,12 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
             sage: x, y = cm.canonical_coercion(int(5), 10)
             sage: type(x), type(y)
-            (<... 'sage.rings.integer.Integer'>, <... 'sage.rings.integer.Integer'>)
+            (<type 'sage.rings.integer.Integer'>, <type 'sage.rings.integer.Integer'>)
 
 
             sage: x, y = cm.canonical_coercion(int(5), complex(3))
             sage: type(x), type(y)
-            (<... 'complex'>, <... 'complex'>)
+            (<type 'complex'>, <type 'complex'>)
 
             sage: class MyClass:
             ....:     def _sage_(self):
@@ -1209,7 +1210,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: a, b
             (13, 1/3)
             sage: type(a)
-            <... 'sage.rings.rational.Rational'>
+            <type 'sage.rings.rational.Rational'>
 
         We also make an exception for 0, even if $\ZZ$ does not map in::
 
@@ -1679,7 +1680,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 R = Real Double Field
                 S = Univariate Polynomial Ring in x over Integer Ring
                 (should be Univariate Polynomial Ring in x over Integer Ring, Rational Field)
-                action = Right scalar multiplication by Rational Field on Univariate Polynomial Ring in x over Integer Ring (<... 'sage.structure.coerce_actions.RightModuleAction'>)
+                action = Right scalar multiplication by Rational Field on
+                Univariate Polynomial Ring in x over Integer Ring (<type 'sage.structure.coerce_actions.RightModuleAction'>)
         """
         if action is None:
             return action

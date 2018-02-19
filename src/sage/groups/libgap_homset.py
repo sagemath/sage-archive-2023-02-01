@@ -24,6 +24,7 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.groups.group_homset import GroupHomset_generic
+from sage.groups.libgap_morphism import LibGAPGroupMorphism
 from sage.categories.groups import Groups
 
 class GroupHomset(GroupHomset_generic):
@@ -99,4 +100,4 @@ class GroupHomset(GroupHomset_generic):
         except (NotImplementedError, ValueError) as err:
             raise TypeError('images do not define a group homomorphism')
 
-
+    Element = LibGAPGroupMorphism

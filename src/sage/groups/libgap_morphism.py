@@ -1,7 +1,5 @@
 r"""
-Group homomorphisms gap
-
-
+Group homomorphisms for ``LibGAPGroup``.
 
 EXAMPLES::
 
@@ -37,17 +35,17 @@ class LibGAPGroupMorphism(Morphism):
 
         EXAMPLES::
 
-            sage: from sage.groups.matrix_gps.morphism import MatrixGroupMap
-            sage: MatrixGroupMap(ZZ.Hom(ZZ))   # mathematical nonsense
-            MatrixGroup endomorphism of Integer Ring
+
         """
         from sage.libs.gap.libgap import libgap
         Morphism.__init__(self, homset)
-        G = homset.domain()
-        H = homset.codomain()
-        gens = [x.gap() for x in G.gens()]
+        dom = homset.domain()
+        codom = homset.codomain()
+        gens = [x.gap() for x in dom.gens()]
         imgs = [H(x).gap() for x in imgs]
         if check:
+            if not len(gens) == len(imgs):
+                raise ValueError("provide an image for each generator")
             self._phi = libgap.GroupHomomorphismByImages(G.gap(), H.gap(), gens, imgs)
             if not self._phi.IsGroupHomomorphism():
                 raise ValueError('the map {}-->{} is not a homomorphism'.format(G.gens(), imgsH))
@@ -60,9 +58,6 @@ class LibGAPGroupMorphism(Morphism):
 
         EXAMPLES::
 
-            sage: from sage.groups.matrix_gps.morphism import MatrixGroupMap
-            sage: MatrixGroupMap(ZZ.Hom(ZZ))._repr_type()
-            'MatrixGroup'
         """
         return "GroupHomomorphism"
 
@@ -76,15 +71,7 @@ class LibGAPGroupMorphism(Morphism):
 
         EXAMPLES::
 
-            sage: F = GF(5); MS = MatrixSpace(F,2,2)
-            sage: G = MatrixGroup([MS([1,1,0,1])])
-            sage: H = MatrixGroup([MS([1,0,1,1])])
-            sage: phi = G.hom(H.gens())
-            sage: phi.gap()
-            CompositionMapping( [ (6,7,8,10,9)(11,13,14,12,15)(16,19,20,18,17)(21,25,22,24,23) ]
-            -> [ [ [ Z(5)^0, 0*Z(5) ], [ Z(5)^0, Z(5)^0 ] ] ], <action isomorphism> )
-            sage: type(_)
-            <type 'sage.libs.gap.element.GapElement'>
+
         """
         return self._phi
 
@@ -92,21 +79,7 @@ class LibGAPGroupMorphism(Morphism):
         r"""
         EXAMPLES::
 
-            sage: F = GF(5); MS = MatrixSpace(F,2,2)
-            sage: G = MatrixGroup([MS([1,1,0,1])])
-            sage: H = MatrixGroup([MS([1,0,1,1])])
-            sage: phi = G.hom(H.gens())
-            sage: phi
-            Homomorphism : Matrix group over Finite Field of size 5 with 1 generators (
-            [1 1]
-            [0 1]
-            ) --> Matrix group over Finite Field of size 5 with 1 generators (
-            [1 0]
-            [1 1]
-            )
-            sage: phi(MS([1,1,0,1]))
-            [1 0]
-            [1 1]
+
         """
         return "Homomorphism : %s --> %s"%(self.domain(),self.codomain())
 
@@ -123,11 +96,15 @@ class LibGAPGroupMorphism(Morphism):
 
         EXAMPLES::
 
+            sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
+            sage: A1 = AbelianGroupGap([6,6])
+            sage: A2 = AbelianGroupGap([3,3])
+            sage: f = A1.hom(A2)
 
         """
-        gap_ker = self.gap().Kernel()
-        G = self.domain()
-        return G._subgroup_constructor(gap_ker)
+        dom = self.domain()
+        ker_gen = [dom(g) for g in self.gap().Kernel().GeneratorsOfGroup()]
+        return dom.subgroup(ker_gen)
 
     def pushforward(self, J, *args,**kwds):
         r"""
@@ -150,12 +127,18 @@ class LibGAPGroupMorphism(Morphism):
         EXAMPLES::
 
         """
-        G = self.domain()
-        H = self.codomain()
+        dom = self.domain()
+        codom = self.codomain()
         phi = self.gap()
-        C = self.codomain()
-        if G.is_subgroup(H):
-            return C._subgroup_constructor(phi.Image(gapJ).GeneratorsOfGroup())
+        if J in self.domain():
+            return self(J)
+        try:
+            if J.is_subgroup(dom):
+                im_gens = phi.Image(gapJ).GeneratorsOfGroup()
+                im_gens = [self.codomain()(g) for g in im_gens]
+                return codom.subgroup(im_gens)
+        except AttributeError:
+            pass
         # how hard do we want to try?
         try:
             gen = [H(g) for g in J.gens()]
@@ -179,21 +162,24 @@ class LibGAPGroupMorphism(Morphism):
 
 
         """
-        phi = self.gap()
-        C = self.codomain()
-        h = g.gap()
-        return C(phi.Image(h))
+        return self.codomain()(self.gap().Image(g.gap()))
 
     def lift(self, h):
         r"""
+        Return an element of the tomain that maps to ``h``.
         """
-        phi = self._phi
+        phi = self.gap()
         return self.domain()(phi.PreImagesRepresentative())
 
     def preimage(self, S):
         r"""
         """
-        phi = self._phi
-        gapS = S.gap()
+        phi = self.gap()
+        try:
+            gapS = S.gap()
+        except AttributeError:
+            gapS = self.codomain(S).gap()
+
         if self.domain().is_subgroup(S):
-            return self.codomain()._subgroup_constructor(phi.PreImage(gapS))
+            gens = phi.PreImage(gapS)
+            return self.codomain().subgroup(gens)

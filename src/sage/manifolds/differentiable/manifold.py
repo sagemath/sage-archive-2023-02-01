@@ -2343,7 +2343,8 @@ class DifferentiableManifold(TopologicalManifold):
                     sdom._frame_changes[(frame2, frame1)] = change_of_frame.inverse()
 
     def vector_frame(self, symbol=None, latex_symbol=None, dest_map=None,
-                     from_frame=None):
+                     from_frame=None, indices=None, latex_indices=None,
+                     symbol_dual=None, latex_symbol_dual=None):
         r"""
         Define a vector frame on ``self``.
 
@@ -2357,11 +2358,15 @@ class DifferentiableManifold(TopologicalManifold):
 
         INPUT:
 
-        - ``symbol`` -- (default: ``None``) a letter (of a few letters) to
-          denote a generic vector of the frame; can be set to ``None`` if the
-          parameter ``from_frame`` is filled
-        - ``latex_symbol`` -- (default: ``None``) symbol to denote a generic
-          vector of the frame; if None, the value of ``symbol`` is used.
+        - ``symbol`` -- either a string, to be used as a common base for the
+          symbols of the vector fields constituting the vector frame, or a
+          list/tuple of strings, representing the individual symbols of the
+          vector fields
+        - ``latex_symbol`` -- (default: ``None``) either a string, to be used
+          as a common base for the LaTeX symbols of the vector fields
+          constituting the vector frame, or a list/tuple of strings,
+          representing the individual LaTeX symbols of the vector fields;
+          if ``None``, ``symbol`` is used in place of ``latex_symbol``
         - ``dest_map`` -- (default: ``None``)
           :class:`~sage.manifolds.differentiable.diff_map.DiffMap`;
           destination map `\Phi:\ U \rightarrow V`; if ``None``, the
@@ -2370,6 +2375,19 @@ class DifferentiableManifold(TopologicalManifold):
           on the codomain `V` of the destination map `\Phi`; the returned
           frame `e` is then such that for all `p \in U`,
           we have `e(p) = \tilde{e}(\Phi(p))`
+        - ``indices`` -- (default: ``None``; used only if ``symbol`` is a
+          single string) tuple of strings representing the indices labelling
+          the vector fields of the frame; if ``None``, the indices will be
+          generated as integers within the range declared on ``self``
+        - ``latex_indices`` -- (default: ``None``) tuple of strings
+          representing the indices for the LaTeX symbols of the vector fields;
+          if ``None``, ``indices`` is used instead
+        - ``symbol_dual`` -- (default: ``None``) same as ``symbol`` but for the
+          dual coframe; if ``None``, ``symbol`` must be a string and is used
+          for the common base of the symbols of the elements of the dual
+          coframe
+        - ``latex_symbol_dual`` -- (default: ``None``) same as ``latex_symbol``
+          but for the dual coframe
 
         OUTPUT:
 
@@ -2383,7 +2401,7 @@ class DifferentiableManifold(TopologicalManifold):
             sage: M = Manifold(3, 'M')
             sage: A = M.open_subset('A', latex_name=r'\mathcal{A}'); A
             Open subset A of the 3-dimensional differentiable manifold M
-            sage: c_xyz.<x,y,z> = A.chart()
+            sage: X.<x,y,z> = A.chart()
             sage: e = A.vector_frame('e'); e
             Vector frame (A, (e_0,e_1,e_2))
             sage: e[0]
@@ -2397,10 +2415,26 @@ class DifferentiableManifold(TopologicalManifold):
 
         """
         from sage.manifolds.differentiable.vectorframe import VectorFrame
+        # Only tuples are valid entries for the unique representation of
+        # VectorFrame:
+        if isinstance(symbol, list):
+            symbol = tuple(symbol)
+        if isinstance(latex_symbol, list):
+            latex_symbol = tuple(latex_symbol)
+        if isinstance(indices, list):
+            indices = tuple(indices)
+        if isinstance(latex_indices, list):
+            latex_indices = tuple(latex_indices)
+        if isinstance(symbol_dual, list):
+            symbol_dual = tuple(symbol_dual)
+        if isinstance(latex_symbol_dual, list):
+            latex_symbol_dual = tuple(latex_symbol_dual)
         return VectorFrame(self.vector_field_module(dest_map=dest_map,
                                                     force_free=True),
                            symbol=symbol, latex_symbol=latex_symbol,
-                           from_frame=from_frame)
+                           from_frame=from_frame, indices=indices,
+                           latex_indices=latex_indices, symbol_dual=symbol_dual,
+                           latex_symbol_dual=latex_symbol_dual)
 
     def _set_covering_frame(self, frame):
         r"""

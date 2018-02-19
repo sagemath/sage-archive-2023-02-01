@@ -56,6 +56,8 @@ include "point_c.pxi"
 from math import sin, cos, sqrt
 from random import randint
 
+from sage.cpython.string cimport bytes_to_str
+
 from sage.rings.real_double import RDF
 
 from sage.matrix.constructor import matrix
@@ -76,7 +78,7 @@ cdef inline format_tachyon_texture(color_c rgb):
     cdef Py_ssize_t cr = sprintf_3d(rs,
                                    "TEXTURE\n AMBIENT 0.3 DIFFUSE 0.7 SPECULAR 0 OPACITY 1.0\n COLOR %g %g %g \n TEXFUNC 0",
                                    rgb.r, rgb.g, rgb.b)
-    return PyBytes_FromStringAndSize(rs, cr)
+    return bytes_to_str(PyBytes_FromStringAndSize(rs, cr))
 
 
 cdef inline format_tachyon_triangle(point_c P, point_c Q, point_c R):
@@ -87,23 +89,24 @@ cdef inline format_tachyon_triangle(point_c P, point_c Q, point_c R):
                                    P.x, P.y, P.z,
                                    Q.x, Q.y, Q.z,
                                    R.x, R.y, R.z )
-    return PyBytes_FromStringAndSize(ss, r)
+    return bytes_to_str(PyBytes_FromStringAndSize(ss, r))
 
 
 cdef inline format_json_vertex(point_c P):
     cdef char ss[100]
     cdef Py_ssize_t r = sprintf_3d(ss, '{"x":%g,"y":%g,"z":%g}', P.x, P.y, P.z)
-    return PyBytes_FromStringAndSize(ss, r)
+    return bytes_to_str(PyBytes_FromStringAndSize(ss, r))
 
 cdef inline format_json_face(face_c face):
-    return "[{}]".format(",".join([str(face.vertices[i])
+    s = "[{}]".format(",".join([str(face.vertices[i])
                                    for i from 0 <= i < face.n]))
+    return s
 
 cdef inline format_obj_vertex(point_c P):
     cdef char ss[100]
     # PyBytes_FromFormat doesn't do floats?
     cdef Py_ssize_t r = sprintf_3d(ss, "v %g %g %g", P.x, P.y, P.z)
-    return PyBytes_FromStringAndSize(ss, r)
+    return bytes_to_str(PyBytes_FromStringAndSize(ss, r))
 
 cdef inline format_obj_face(face_c face, int off):
     cdef char ss[100]
@@ -115,7 +118,7 @@ cdef inline format_obj_face(face_c face, int off):
     else:
         return "f " + " ".join([str(face.vertices[i] + off) for i from 0 <= i < face.n])
     # PyBytes_FromFormat is almost twice as slow
-    return PyBytes_FromStringAndSize(ss, r)
+    return bytes_to_str(PyBytes_FromStringAndSize(ss, r))
 
 cdef inline format_obj_face_back(face_c face, int off):
     cdef char ss[100]
@@ -126,13 +129,13 @@ cdef inline format_obj_face_back(face_c face, int off):
         r = sprintf_4i(ss, "f %d %d %d %d", face.vertices[3] + off, face.vertices[2] + off, face.vertices[1] + off, face.vertices[0] + off)
     else:
         return "f " + " ".join([str(face.vertices[i] + off) for i from face.n > i >= 0])
-    return PyBytes_FromStringAndSize(ss, r)
+    return bytes_to_str(PyBytes_FromStringAndSize(ss, r))
 
 cdef inline format_pmesh_vertex(point_c P):
     cdef char ss[100]
     # PyBytes_FromFormat doesn't do floats?
     cdef Py_ssize_t r = sprintf_3d(ss, "%g %g %g", P.x, P.y, P.z)
-    return PyBytes_FromStringAndSize(ss, r)
+    return bytes_to_str(PyBytes_FromStringAndSize(ss, r))
 
 cdef inline format_pmesh_face(face_c face, int has_color):
     cdef char ss[100]
@@ -195,9 +198,9 @@ cdef inline format_pmesh_face(face_c face, int has_color):
                                face.vertices[i + 1],
                                face.vertices[0], color)
                 PyList_Append(all, PyBytes_FromStringAndSize(ss, r))
-        return "\n".join(all)
+        return bytes_to_str(b"\n".join(all))
     # PyBytes_FromFormat is almost twice as slow
-    return PyBytes_FromStringAndSize(ss, r)
+    return bytes_to_str(PyBytes_FromStringAndSize(ss, r))
 
 
 cdef class IndexFaceSet(PrimitiveObject):

@@ -1367,13 +1367,14 @@ class Gap(Gap_generic):
             (sline,) = match.groups()
             if self.is_remote():
                 self._get_tmpfile()
-            F = io.open(self._local_tmpfile(), "r", encoding=gap_encoding)
-            help = F.read()
-            if pager:
-                from IPython.core.page import page
-                page(help, start = int(sline)-1)
-            else:
-                return help
+            with io.open(self._local_tmpfile(), "r",
+                         encoding=gap_encoding) as fobj:
+                help = fobj.read()
+                if pager:
+                    from IPython.core.page import page
+                    page(help, start=int(sline) - 1)
+                else:
+                    return help
 
     def set(self, var, value):
         """

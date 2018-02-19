@@ -45,19 +45,6 @@ class GroupHomset(GroupHomset_generic):
 
         EXAMPLES::
 
-            sage: F = GF(5)
-            sage: gens = [matrix(F,2,[1,2, -1, 1]), matrix(F,2, [1,1, 0,1])]
-            sage: G = MatrixGroup(gens)
-            sage: from sage.groups.matrix_gps.homset import MatrixGroupHomset
-            sage: MatrixGroupHomset(G, G)
-            Set of Homomorphisms from
-            Matrix group over Finite Field of size 5 with 2 generators (
-            [1 2]  [1 1]
-            [4 1], [0 1]
-            ) to Matrix group over Finite Field of size 5 with 2 generators (
-            [1 2]  [1 1]
-            [4 1], [0 1]
-            )
         """
         from sage.categories.homset import Homset
         Homset.__init__(self, G, H, category)
@@ -80,24 +67,10 @@ class GroupHomset(GroupHomset_generic):
 
         EXAMPLES::
 
-            sage: F = GF(5)
-            sage: gens = [matrix(F,2,[1,2, -1, 1]), matrix(F,2, [1,1, 0,1])]
-            sage: G = MatrixGroup(gens)
-            sage: from sage.groups.matrix_gps.homset import MatrixGroupHomset
-            sage: M = MatrixGroupHomset(G, G)
-            sage: M(gens)
-            Homomorphism : Matrix group over Finite Field of size 5 with 2 generators (
-            [1 2]  [1 1]
-            [4 1], [0 1]
-            ) --> Matrix group over Finite Field of size 5 with 2 generators (
-            [1 2]  [1 1]
-            [4 1], [0 1]
-            )
+
         """
         from sage.groups.libgap_morphism import LibGAPGroupMorphism
         try:
             return LibGAPGroupMorphism(self, im_gens, check=check)
         except (NotImplementedError, ValueError) as err:
             raise TypeError('images do not define a group homomorphism')
-
-    Element = LibGAPGroupMorphism

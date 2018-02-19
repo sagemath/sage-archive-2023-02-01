@@ -593,18 +593,41 @@ ex add::recombine_pair_to_ex(const expair & p) const
         return (new mul(p.rest,p.coeff))->setflag(status_flags::dynallocated);
 }
 
-ex add::pow_intexp(const numeric& expo) const
+ex add::power(const numeric& expo) const
 {
+        using POW = class power;
         numeric icont = integer_content();
         const numeric lcoeff = ex_to<numeric>(lead_coeff()).div(icont);
         if (not lcoeff.is_positive())
                 icont = icont.negative();
         if (icont.is_one()
-            or not expo.is_integer()
             or not lcoeff.is_integer())
-                return (new power(*this, expo))->
+                return (new POW(*this, expo))->
                         setflag(status_flags::dynallocated
                                 | status_flags::evaluated);
+
+        ex c;
+        if (expo.is_integer()) {
+                c = icont.pow_intexp(expo.to_long());
+        }
+        else {
+                bool ppower_equals_one;
+                numeric newbasis, ppower;
+                rational_power_parts(icont,
+                                     expo,
+                                     ppower,
+                                     newbasis,
+                                     ppower_equals_one);
+                if (not newbasis.is_one()
+                    and (ppower_equals_one or icont.is_negative()))
+                        return (new POW(*this, expo))->
+                                setflag(status_flags::dynallocated
+                                      | status_flags::evaluated);
+                if (ppower_equals_one)
+                        c = *_num1_p;
+                else
+                        c = ppower * POW(newbasis, expo).hold();
+        }
 
         auto addp = new add(*this);
         addp->setflag(status_flags::dynallocated);
@@ -613,12 +636,11 @@ ex add::pow_intexp(const numeric& expo) const
         addp->seq_sorted.resize(0);
         for (auto &elem : addp->seq)
                 elem.coeff = ex_to<numeric>(elem.coeff).div_dyn(icont);
-        const numeric c = icont.pow_intexp(expo.to_long());
         if (likely(not c.is_one()))
-                return (new mul(power(*addp, expo), c))->
+                return (new mul(POW(*addp, expo), c))->
                         setflag(status_flags::dynallocated
                                 | status_flags::evaluated);
-        return (new power(*addp, expo))->
+        return (new POW(*addp, expo))->
                 setflag(status_flags::dynallocated
                         | status_flags::evaluated);
 }
@@ -661,9 +683,10 @@ ex add::combine_fractions() const
         exmap fmap;
         ex oc = overall_coeff;
         for (const auto& pair : seq) {
+                using POW = class power;
                 const ex &e = recombine_pair_to_ex(pair);
-                if (is_exactly_a<power>(e)) {
-                        const power& p = ex_to<power>(e);
+                if (is_exactly_a<POW>(e)) {
+                        const POW& p = ex_to<POW>(e);
                         const ex& eexp = p.op(1);
                         if (eexp.info(info_flags::negative)) {
                                 auto it = fmap.find(p);

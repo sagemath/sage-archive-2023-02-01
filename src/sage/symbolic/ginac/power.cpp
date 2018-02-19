@@ -530,10 +530,16 @@ ex power::eval(int level) const
 
                         if (exponent_is_rational)
                                 return num_basis.power(num_exponent);
+		        return this->hold();
                 }
 
+                // (2*x + 6*y)^(-4) -> 1/16*(x + 3*y)^(-4)
+                if (is_exactly_a<add>(ebasis))
+                        return ex_to<add>(ebasis).power(num_exponent);
+
                 // ^(^(x,c1),c2) -> ^(x,c1*c2)
-		// (c1, c2 numeric(), c2 integer or -1 < c1 <= 1 or (c1=-1 and c2>0),
+		// (c1, c2 numeric(), c2 integer or -1 < c1 <= 1 or
+                // (c1=-1 and c2>0),
 		// case c1==1 should not happen, see below!)
 		if (is_exactly_a<power>(ebasis)) {
 			const power & sub_power = ex_to<power>(ebasis);
@@ -559,22 +565,17 @@ ex power::eval(int level) const
 			}
 		}
 	
-		if (num_exponent.is_integer())
-                        // ^(*(x,y,z),c1) -> *(x^c1,y^c1,z^c1) (c1 integer)
-                        if (is_exactly_a<mul>(ebasis)) {
-                                return expand_mul(ex_to<mul>(ebasis),
-                                                num_exponent, 0);
-                        }
-
-                        // (2*x + 6*y)^(-4) -> 1/16*(x + 3*y)^(-4)
-                        if (is_exactly_a<add>(ebasis)) {
-                                return ex_to<add>(ebasis).pow_intexp(num_exponent);
-                }
-
-		// ^(*(...,x;c1),c2) -> *(^(*(...,x;1),c2),c1^c2)  (c1, c2 numeric(), c1>0)
-		// ^(*(...,x;c1),c2) -> *(^(*(...,x;-1),c2),(-c1)^c2)  (c1, c2 numeric(), c1<0)
+		// ^(*(...,x;c1),c2) -> *(^(*(...,x;1),c2),c1^c2)
+                // (c1, c2 numeric(), c1>0)
+		// ^(*(...,x;c1),c2) -> *(^(*(...,x;-1),c2),(-c1)^c2)
+                // (c1, c2 numeric(), c1<0)
 		if (is_exactly_a<mul>(ebasis)) {
-			GINAC_ASSERT(!num_exponent.is_integer()); // should have been handled above
+                        if (num_exponent.is_integer())
+                                // ^(*(x,y,z),c1) -> *(x^c1,y^c1,z^c1)
+                                // (c1 integer)
+                                return expand_mul(ex_to<mul>(ebasis),
+                                                  num_exponent, 0);
+
 			const mul & mulref = ex_to<mul>(ebasis);
 			if (not mulref.overall_coeff.is_one()) {
 				const numeric & num_coeff = mulref.overall_coeff;

@@ -5261,7 +5261,7 @@ cdef class Expression(CommutativeRingElement):
         from sage.symbolic.expression_conversions import SubstituteFunction
         return SubstituteFunction(self, original, new)()
 
-    def delayed_substitution(self, pattern, replacement):
+    def substitution_delayed(self, pattern, replacement):
         """
         Replace all occurrences of pattern by the result of replacement.
 
@@ -5288,7 +5288,7 @@ cdef class Expression(CommutativeRingElement):
             sage: def r(d):
             ....:    if x not in d[w0].variables():
             ....:        return cos(d[w0])
-            sage: (sin(x^2 + x)+sin(y^2 + y)).delayed_substitution(sin(w0), r)
+            sage: (sin(x^2 + x)+sin(y^2 + y)).substitution_delayed(sin(w0), r)
             cos(y^2 + y) + sin(x^2 + x)
 
         .. SEEALSO::

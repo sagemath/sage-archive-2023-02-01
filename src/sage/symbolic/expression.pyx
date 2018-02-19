@@ -5291,9 +5291,9 @@ cdef class Expression(CommutativeRingElement):
             sage: (sin(x^2 + x)+sin(y^2 + y)).delayed_substitution(sin(w0), r)
             cos(y^2 + y) + sin(x^2 + x)
 
-        .. SEEALSO:
+        .. SEEALSO::
 
-            :meth:`Expression.match`
+            :meth:`match`
         """
         result = self
         for matched in self.find(pattern):

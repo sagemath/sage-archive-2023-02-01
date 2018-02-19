@@ -5267,7 +5267,7 @@ cdef class Expression(CommutativeRingElement):
 
         INPUT:
 
-        - ``pattern`` -- a :class:`sage.symbolic.expression.Expression`, usually
+        - ``pattern`` -- an :class:`Expression`, usually
           containing wildcards.
 
         - ``replacement`` -- a function. Its argument is a dictionary
@@ -5278,7 +5278,7 @@ cdef class Expression(CommutativeRingElement):
 
         OUTPUT:
 
-        A :class:`sage.symbolic.expression.Expression`.
+        An :class:`Expression`.
 
         EXAMPLES::
 
@@ -5293,7 +5293,7 @@ cdef class Expression(CommutativeRingElement):
 
         .. SEEALSO:
 
-            :meth:`sage.symbolic.expression.Expression.match`
+            :meth:`Expression.match`
         """
         result = self
         for matched in self.find(pattern):

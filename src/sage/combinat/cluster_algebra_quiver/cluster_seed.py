@@ -1137,6 +1137,8 @@ class ClusterSeed(SageObject):
         show_matrix.observe(refresh, 'value')
         show_lastmutation.observe(refresh, 'value')
 
+        refresh(None)
+
         return widgets.VBox([widgets.HBox([show_seq, show_vars]),
                              widgets.HBox([show_matrix, show_lastmutation]),
                              mut_buttons, out])

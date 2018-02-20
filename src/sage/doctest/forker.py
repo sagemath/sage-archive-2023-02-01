@@ -121,6 +121,15 @@ def init_sage():
     # Sage imports.
     import sage.doctest
     sage.doctest.DOCTEST_MODE=True
+
+    # Set the Python PRNG class to the Python 2 implementation for consistency
+    # of 'random' test results that use it; see
+    # https://trac.sagemath.org/ticket/24508
+    if six.PY3:
+        import sage.misc.randstate
+        from sage.cpython._py2_random import Random
+        sage.misc.randstate.DEFAULT_PYTHON_RANDOM = Random
+
     import sage.all_cmdline
     sage.interfaces.quit.invalidate_all()
 

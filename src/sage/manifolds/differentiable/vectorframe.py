@@ -26,7 +26,7 @@ AUTHORS:
 - Eric Gourgoulhon, Michal Bejger (2013-2015): initial version
 - Travis Scrimshaw (2016): review tweaks
 - Eric Gourgoulhon (2018): some refactoring and more functionalities in the
-  choice of symbols of vector frame elements
+  choice of symbols for vector frame elements (:trac:`24792`)
 
 REFERENCES:
 
@@ -34,10 +34,10 @@ REFERENCES:
 
 EXAMPLES:
 
-Setting a vector frame on a 3-dimensional manifold::
+Defining a vector frame on a 3-dimensional manifold::
 
     sage: M = Manifold(3, 'M')
-    sage: c_xyz.<x,y,z> = M.chart()
+    sage: X.<x,y,z> = M.chart()
     sage: e = M.vector_frame('e') ; e
     Vector frame (M, (e_0,e_1,e_2))
     sage: latex(e)
@@ -45,7 +45,7 @@ Setting a vector frame on a 3-dimensional manifold::
 
 The first frame defined on a manifold is its default frame; in the present
 case it is the coordinate frame defined when introducing the chart
-``c_xyz``::
+``X``::
 
     sage: M.default_frame()
     Coordinate frame (M, (d/dx,d/dy,d/dz))
@@ -84,7 +84,7 @@ The slice operator ``:`` can be used to access to more than one element::
 The index range depends on the starting index defined on the manifold::
 
     sage: M = Manifold(3, 'M', start_index=1)
-    sage: c_xyz.<x,y,z> = M.chart()
+    sage: X.<x,y,z> = M.chart()
     sage: e = M.vector_frame('e')
     sage: [e[i] for i in M.irange()]
     [Vector field e_1 on the 3-dimensional differentiable manifold M,
@@ -112,6 +112,8 @@ coframe, which, by default, bares the same name (here `e`)::
     [Coordinate coframe (M, (dx,dy,dz)), Coframe (M, (e^1,e^2,e^3))]
     sage: f = M.coframes()[1] ; f
     Coframe (M, (e^1,e^2,e^3))
+    sage: f is e.coframe()
+    True
 
 Each element of the coframe is a 1-form::
 
@@ -231,7 +233,7 @@ class CoFrame(FreeModuleCoBasis):
     Coframe on a 3-dimensional manifold::
 
         sage: M = Manifold(3, 'M', start_index=1)
-        sage: c_xyz.<x,y,z> = M.chart()
+        sage: X.<x,y,z> = M.chart()
         sage: v = M.vector_frame('v')
         sage: from sage.manifolds.differentiable.vectorframe import CoFrame
         sage: e = CoFrame(v, 'e') ; e
@@ -316,7 +318,7 @@ class CoFrame(FreeModuleCoBasis):
         Test with a nontrivial destination map::
 
             sage: N = Manifold(3, 'N', start_index=1)
-            sage: phi = M.diff_map(N, name='phi')
+            sage: phi = M.diff_map(N)
             sage: h = M.vector_frame('h', dest_map=phi)
             sage: h.coframe()._repr_()
             'Coframe (M, (h^1,h^2,h^3)) with values on the 3-dimensional differentiable manifold N'
@@ -423,22 +425,73 @@ class VectorFrame(FreeModuleBasis):
 
     EXAMPLES:
 
-    Setting a vector frame on a 3-dimensional manifold::
+    Defining a vector frame on a 3-dimensional manifold::
 
-        sage: M = Manifold(3, 'M')
-        sage: c_xyz.<x,y,z> = M.chart()
+        sage: M = Manifold(3, 'M', start_index=1)
+        sage: X.<x,y,z> = M.chart()
         sage: e = M.vector_frame('e') ; e
-        Vector frame (M, (e_0,e_1,e_2))
+        Vector frame (M, (e_1,e_2,e_3))
         sage: latex(e)
-        \left(M, \left(e_{0},e_{1},e_{2}\right)\right)
+        \left(M, \left(e_{1},e_{2},e_{3}\right)\right)
+
+    The individual elements of the vector frame are accessed via square
+    brackets, with the possibility to invoke the slice operator '``:``' to
+    get more than a single element::
+
+        sage: e[2]
+        Vector field e_2 on the 3-dimensional differentiable manifold M
+        sage: e[1:3]
+        (Vector field e_1 on the 3-dimensional differentiable manifold M,
+         Vector field e_2 on the 3-dimensional differentiable manifold M)
+        sage: e[:]
+        (Vector field e_1 on the 3-dimensional differentiable manifold M,
+         Vector field e_2 on the 3-dimensional differentiable manifold M,
+         Vector field e_3 on the 3-dimensional differentiable manifold M)
 
     The LaTeX symbol can be specified::
 
-        sage: e = M.vector_frame('E', r"\epsilon")
-        sage: latex(e)
-        \left(M, \left(\epsilon_{0},\epsilon_{1},\epsilon_{2}\right)\right)
+        sage: E = M.vector_frame('E', latex_symbol=r"\epsilon")
+        sage: latex(E)
+        \left(M, \left(\epsilon_{1},\epsilon_{2},\epsilon_{3}\right)\right)
 
-    Example with a non-trivial map `\Phi`; a vector frame along a curve::
+    By default, the elements of the vector frame are labelled by integers
+    within the range specified at the manifold declaration. It is however
+    possible to fully customize the labels, via the argument ``indices``::
+
+        sage: u = M.vector_frame('u', indices=('x', 'y', 'z')) ; u
+        Vector frame (M, (u_x,u_y,u_z))
+        sage: u[1]
+        Vector field u_x on the 3-dimensional differentiable manifold M
+        sage: u.coframe()
+        Coframe (M, (u^x,u^y,u^z))
+
+    The LaTeX format of the indices can be adjusted::
+
+        sage: v = M.vector_frame('v', indices=('a', 'b', 'c'),
+        ....:                    latex_indices=(r'\alpha', r'\beta', r'\gamma'))
+        sage: v
+        Vector frame (M, (v_a,v_b,v_c))
+        sage: latex(v)
+        \left(M, \left(v_{\alpha},v_{\beta},v_{\gamma}\right)\right)
+        sage: latex(v.coframe())
+        \left(M, \left(v^{\alpha},v^{\beta},v^{\gamma}\right)\right)
+
+    The symbol of each element of the vector frame can also be freely chosen,
+    by providing a tuple of symbols as the first argument of ``vector_frame``;
+    it is then mandatory to specify as well some symbols for the dual coframe::
+
+        sage: h = M.vector_frame(('a', 'b', 'c'), symbol_dual=('A', 'B', 'C'))
+        sage: h
+        Vector frame (M, (a,b,c))
+        sage: h[1]
+        Vector field a on the 3-dimensional differentiable manifold M
+        sage: h.coframe()
+        Coframe (M, (A,B,C))
+        sage: h.coframe()[1]
+        1-form A on the 3-dimensional differentiable manifold M
+
+    Example with a non-trivial map `\Phi` (see above); a vector frame along a
+    curve::
 
         sage: U = Manifold(1, 'U')  # open interval (-1,1) as a 1-dimensional manifold
         sage: T.<t> = U.chart('t:(-1,1)')  # canonical chart on U
@@ -448,7 +501,7 @@ class VectorFrame(FreeModuleBasis):
         Differentiable map Phi from the 1-dimensional differentiable manifold U
          to the 3-dimensional differentiable manifold M
         sage: f = U.vector_frame('f', dest_map=Phi) ; f
-        Vector frame (U, (f_0,f_1,f_2)) with values on the 3-dimensional
+        Vector frame (U, (f_1,f_2,f_3)) with values on the 3-dimensional
          differentiable manifold M
         sage: f.domain()
         1-dimensional differentiable manifold U
@@ -461,7 +514,7 @@ class VectorFrame(FreeModuleBasis):
         sage: p = U((0,), name='p') ; p
         Point p on the 1-dimensional differentiable manifold U
         sage: f.at(p)
-        Basis (f_0,f_1,f_2) on the Tangent space at Point Phi(p) on the
+        Basis (f_1,f_2,f_3) on the Tangent space at Point Phi(p) on the
          3-dimensional differentiable manifold M
 
     Vector frames are bases of free modules formed by vector fields::
@@ -602,7 +655,7 @@ class VectorFrame(FreeModuleBasis):
         Test with a nontrivial destination map::
 
             sage: N = Manifold(3, 'N', start_index=1)
-            sage: phi = M.diff_map(N, name='phi')
+            sage: phi = M.diff_map(N)
             sage: h = M.vector_frame('h', dest_map=phi)
             sage: h._repr_()
             'Vector frame (M, (h_1,h_2,h_3)) with values on the 3-dimensional differentiable manifold N'
@@ -853,7 +906,7 @@ class VectorFrame(FreeModuleBasis):
         Frame resulting from a `\pi/3`-rotation in the Euclidean plane::
 
             sage: M = Manifold(2, 'R^2')
-            sage: c_xy.<x,y> = M.chart()
+            sage: X.<x,y> = M.chart()
             sage: e = M.vector_frame('e') ; M.set_default_frame(e)
             sage: M._frame_changes
             {}
@@ -1340,7 +1393,7 @@ class CoordCoFrame(CoFrame):
     Coordinate coframe on a 3-dimensional manifold::
 
         sage: M = Manifold(3, 'M', start_index=1)
-        sage: c_xyz.<x,y,z> = M.chart()
+        sage: X.<x,y,z> = M.chart()
         sage: M.frames()
         [Coordinate frame (M, (d/dx,d/dy,d/dz))]
         sage: M.coframes()
@@ -1365,7 +1418,7 @@ class CoordCoFrame(CoFrame):
 
     The coframe is the dual of the coordinate frame::
 
-        sage: e = c_xyz.frame() ; e
+        sage: e = X.frame() ; e
         Coordinate frame (M, (d/dx,d/dy,d/dz))
         sage: dX[1](e[1]).expr(), dX[1](e[2]).expr(), dX[1](e[3]).expr()
         (1, 0, 0)

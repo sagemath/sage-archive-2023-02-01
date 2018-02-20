@@ -12,7 +12,7 @@ AUTHORS:
 - Travis Scrimshaw (2016): ABC Basis_abstract and list functionality for bases
   (:trac:`20770`)
 - Eric Gourgoulhon (2018): some refactoring and more functionalities in the
-  choice of symbols of basis elements
+  choice of symbols for basis elements (:trac:`24792`)
 
 REFERENCES:
 
@@ -266,6 +266,8 @@ class Basis_abstract(UniqueRepresentation, SageObject):
             pos = "_"
         else:
             pos = "^"
+        if latex_symbol is None:
+            latex_symbol = symbol
         # Text symbols:
         if isinstance(symbol, (list, tuple)):
             if len(symbol) != n:
@@ -279,12 +281,8 @@ class Basis_abstract(UniqueRepresentation, SageObject):
                 raise ValueError("indices must contain {} elements".format(n))
             symbol0 = symbol + pos
             symbol = [symbol0 + i for i in indices]
-            if latex_symbol is None:
-                latex_symbol = [symbol0 + "{" + i + "}" for i in indices]
         # LaTeX symbols:
-        if latex_symbol is None:
-            latex_symbol = symbol
-        elif isinstance(latex_symbol, (list, tuple)):
+        if isinstance(latex_symbol, (list, tuple)):
             if len(latex_symbol) != n:
                 raise ValueError(
                               "latex_symbol must contain {} strings".format(n))
@@ -481,12 +479,11 @@ class FreeModuleBasis(Basis_abstract):
          Element e_1 of the Rank-3 free module M over the Integer Ring,
          Element e_2 of the Rank-3 free module M over the Integer Ring)
 
-    The LaTeX symbol can be set explicitely, as the second argument of
-    :meth:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule.basis`::
+    The LaTeX symbol can be set explicitely::
 
         sage: latex(e)
         \left(e_{0},e_{1},e_{2}\right)
-        sage: eps = M.basis('eps', r'\epsilon') ; eps
+        sage: eps = M.basis('eps', latex_symbol=r'\epsilon') ; eps
         Basis (eps_0,eps_1,eps_2) on the Rank-3 free module M over the Integer
          Ring
         sage: latex(eps)

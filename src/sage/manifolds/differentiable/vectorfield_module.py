@@ -216,15 +216,18 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         if dest_map is None:
             dest_map = domain.identity_map()
         self._dest_map = dest_map
-        if dest_map is domain.identity_map():
-            name += ")"
-            latex_name += r"\right)"
-        else:
-            name += "," + self._dest_map._name + ")"
-            latex_name += "," + self._dest_map._latex_name + r"\right)"
+        if dest_map is not domain.identity_map():
+            dm_name = dest_map._name
+            dm_latex_name = dest_map._latex_name
+            if dm_name is None:
+                dm_name = "unnamed map"
+            if dm_latex_name is None:
+                dm_latex_name = r"\mathrm{unnamed\; map}"
+            name += "," + dm_name
+            latex_name += "," + dm_latex_name
+        self._name = name + ")"
+        self._latex_name = latex_name + r"\right)"
         self._ambient_domain = self._dest_map._codomain
-        self._name = name
-        self._latex_name = latex_name
         # The member self._ring is created for efficiency (to avoid
         # calls to self.base_ring()):
         self._ring = domain.scalar_field_algebra()
@@ -1334,12 +1337,17 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         self._ambient_domain = self._dest_map._codomain
         name = "X(" + domain._name
         latex_name = r"\mathfrak{X}\left(" + domain._latex_name
-        if self._dest_map == domain.identity_map():
-            name += ")"
-            latex_name += r"\right)"
-        else:
-            name += "," + self._dest_map._name + ")"
-            latex_name += "," + self._dest_map._latex_name + r"\right)"
+        if dest_map is not domain.identity_map():
+            dm_name = dest_map._name
+            dm_latex_name = dest_map._latex_name
+            if dm_name is None:
+                dm_name = "unnamed map"
+            if dm_latex_name is None:
+                dm_latex_name = r"\mathrm{unnamed\; map}"
+            name += "," + dm_name
+            latex_name += "," + dm_latex_name
+        name += ")"
+        latex_name += r"\right)"
         manif = self._ambient_domain.manifold()
         cat = Modules(domain.scalar_field_algebra()).FiniteDimensional()
         FiniteRankFreeModule.__init__(self, domain.scalar_field_algebra(),

@@ -46,7 +46,7 @@
 #include <memory>
 
 #if PY_MAJOR_VERSION > 2
-#define PyString_FromString PyBytes_FromString
+#define PyString_FromString PyUnicode_FromString
 #endif
 
 namespace GiNaC {

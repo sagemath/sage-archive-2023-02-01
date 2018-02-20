@@ -205,14 +205,12 @@ class TangentSpace(FiniteRankFreeModule):
             # only if it is a frame on the current manifold:
             if frame.destination_map().is_identity():
                 if point in frame._domain:
-                    symbol = tuple(v._name for v in frame._vec)
-                    latex_symbol = tuple(v._latex_name for v in frame._vec)
-                    dual_forms = frame.coframe()._vec
-                    symbol_dual = tuple(f._name for f in dual_forms)
-                    latex_symbol_dual = tuple(f._latex_name for f in dual_forms)
-                    basis = self.basis(symbol, latex_symbol=latex_symbol,
-                                       symbol_dual=symbol_dual,
-                                       latex_symbol_dual=latex_symbol_dual)
+                    basis = self.basis(frame._symbol,
+                                       latex_symbol=frame._latex_symbol,
+                                       indices=frame._indices,
+                                       latex_indices=frame._latex_indices,
+                                       symbol_dual=frame._symbol_dual,
+                                       latex_symbol_dual=frame._latex_symbol_dual)
                     self._frame_bases[frame] = basis
         # The basis induced by the default frame of the manifold subset
         # in which the point has been created is declared the default
@@ -338,4 +336,3 @@ class TangentSpace(FiniteRankFreeModule):
 
         """
         return self._point
-

@@ -295,10 +295,6 @@ class CoFrame(FreeModuleCoBasis):
         # The coframe is added to the domain's set of coframes, as well as to
         # all the superdomains' sets of coframes
         for sd in self._domain._supersets:
-            for other in sd._coframes:
-                if repr(self) == repr(other):
-                    raise ValueError("the {} already exist on".format(self) +
-                                     " the {}".format(sd))
             sd._coframes.append(self)
 
     def _repr_(self):
@@ -317,8 +313,20 @@ class CoFrame(FreeModuleCoBasis):
             sage: f  # indirect doctest
             Coframe (M, (e^0,e^1))
 
+        Test with a nontrivial destination map::
+
+            sage: N = Manifold(3, 'N', start_index=1)
+            sage: phi = M.diff_map(N, name='phi')
+            sage: h = M.vector_frame('h', dest_map=phi)
+            sage: h.coframe()._repr_()
+            'Coframe (M, (h^1,h^2,h^3)) with values on the 3-dimensional differentiable manifold N'
+
         """
-        return "Coframe " + self._name
+        description = "Coframe " + self._name
+        dest_map = self._basis.destination_map()
+        if dest_map is not self._domain.identity_map():
+            description += " with values on the {}".format(dest_map.codomain())
+        return description
 
     def at(self, point):
         r"""
@@ -538,10 +546,6 @@ class VectorFrame(FreeModuleBasis):
         # is considered as the default one
         dest_map = self._dest_map
         for sd in self._domain._supersets:
-            for other in sd._frames:
-                if repr(self) == repr(other):
-                    raise ValueError("the {} already exists ".format(self) +
-                                     "on the {}".format(sd))
             sd._frames.append(self)
             sd._top_frames.append(self)
             if sd._def_frame is None:
@@ -595,10 +599,18 @@ class VectorFrame(FreeModuleBasis):
             sage: e  # indirect doctest
             Vector frame (M, (e_0,e_1))
 
+        Test with a nontrivial destination map::
+
+            sage: N = Manifold(3, 'N', start_index=1)
+            sage: phi = M.diff_map(N, name='phi')
+            sage: h = M.vector_frame('h', dest_map=phi)
+            sage: h._repr_()
+            'Vector frame (M, (h_1,h_2,h_3)) with values on the 3-dimensional differentiable manifold N'
+
         """
         description = "Vector frame " + self._name
         if self._dest_map is not self._domain.identity_map():
-            description += " with values on the {}".format(self._dest_map._codomain)
+            description += " with values on the {}".format(self._dest_map.codomain())
         return description
 
     def _new_instance(self, symbol, latex_symbol=None, indices=None,
@@ -946,16 +958,13 @@ class VectorFrame(FreeModuleBasis):
                 raise ValueError("the provided domain is not a subdomain of " +
                                  "the current frame's domain")
             sdest_map = self._dest_map.restrict(subdomain)
-            symbol = tuple(v._name for v in self._vec)
-            latex_symbol = tuple(v._latex_name for v in self._vec)
-            dual_forms = self._coframe._vec
-            symbol_dual = tuple(f._name for f in dual_forms)
-            latex_symbol_dual = tuple(f._latex_name for f in dual_forms)
             res = VectorFrame(subdomain.vector_field_module(sdest_map,
                                                             force_free=True),
-                              symbol, latex_symbol=latex_symbol,
-                              symbol_dual=symbol_dual,
-                              latex_symbol_dual=latex_symbol_dual)
+                              self._symbol, latex_symbol=self._latex_symbol,
+                              indices=self._indices,
+                              latex_indices=self._latex_indices,
+                              symbol_dual=self._symbol_dual,
+                              latex_symbol_dual=self._latex_symbol_dual)
             for dom in subdomain._supersets:
                 if dom is not subdomain:
                     dom._top_frames.remove(res)  # since it was added by
@@ -1244,14 +1253,11 @@ class VectorFrame(FreeModuleBasis):
         # scratch.
         # The names of the basis vectors set to those of the frame vector
         # fields:
-        symbol = tuple(v._name for v in self._vec)
-        latex_symbol = tuple(v._latex_name for v in self._vec)
-        dual_forms = self._coframe._vec
-        symbol_dual = tuple(f._name for f in dual_forms)
-        latex_symbol_dual = tuple(f._latex_name for f in dual_forms)
-        basis = ts.basis(symbol, latex_symbol=latex_symbol,
-                         symbol_dual=symbol_dual,
-                         latex_symbol_dual=latex_symbol_dual)
+        basis = ts.basis(self._symbol, latex_symbol=self._latex_symbol,
+                         indices=self._indices,
+                         latex_indices=self._latex_indices,
+                         symbol_dual=self._symbol_dual,
+                         latex_symbol_dual=self._latex_symbol_dual)
         ts_frame_bases[self] = basis
         # Update of the change of bases in the tangent space:
         for frame_pair, automorph in self._domain._frame_changes.items():

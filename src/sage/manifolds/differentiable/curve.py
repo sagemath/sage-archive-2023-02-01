@@ -477,7 +477,6 @@ class DifferentiableCurve(DiffMap):
 
         Tangent vector field to a circle curve in `\RR^2`::
 
-            sage: RealLine._clear_cache_() # for doctests only
             sage: M = Manifold(2, 'R^2')
             sage: X.<x,y> = M.chart()
             sage: R.<t> = RealLine()

@@ -1127,15 +1127,19 @@ class ClusterSeed(SageObject):
                     self.show(fig_size=fig_size, circular=circular)
                 print_data()
 
+        # not clear how to get the right behaviour here
+        # doing both has some side effects (one click : two mutations)
         mut_buttons.on_msg(do_mutation)
         mut_buttons.observe(do_mutation, 'value')
+
         show_seq.observe(refresh, 'value')
         show_vars.observe(refresh, 'value')
         show_matrix.observe(refresh, 'value')
         show_lastmutation.observe(refresh, 'value')
 
-        return widgets.VBox([show_seq, show_vars, show_matrix,
-                             show_lastmutation, mut_buttons, out])
+        return widgets.VBox([widgets.HBox([show_seq, show_vars]),
+                             widgets.HBox([show_matrix, show_lastmutation]),
+                             mut_buttons, out])
 
     def save_image(self, filename, circular=False, mark=None, save_pos=False):
         r"""

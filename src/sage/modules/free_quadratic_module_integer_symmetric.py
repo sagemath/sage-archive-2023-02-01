@@ -673,3 +673,46 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         from sage.quadratic_forms.genera.genus import Genus
         return Genus(self.gram_matrix())
 
+    def mul(self, other):
+        r"""
+        Multiplication of the Inner product matrix by ``other``.
+
+        EXAMPLES::
+
+            sage: L = IntegralLattice("A4")
+            sage: L.mul(3)
+            Lattice of degree 4 and rank 4 over Integer Ring
+            Basis matrix:
+            [1 0 0 0]
+            [0 1 0 0]
+            [0 0 1 0]
+            [0 0 0 1]
+            Inner product matrix:
+            [ 6 -3  0  0]
+            [-3  6 -3  0]
+            [ 0 -3  6 -3]
+            [ 0  0 -3  6]
+
+            sage: L = IntegralLattice(3,[[2,1,0],[0,1,1]])
+            sage: L
+            Lattice of degree 3 and rank 2 over Integer Ring
+            Basis matrix:
+            [2 1 0]
+            [0 1 1]
+            Inner product matrix:
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            sage: L.mul(1)
+            Lattice of degree 2 and rank 2 over Integer Ring
+            Basis matrix:
+            [1 0]
+            [0 1]
+            Inner product matrix:
+            [5 1]
+            [1 2]
+
+        """
+        return IntegralLattice(other*self.gram_matrix())
+
+

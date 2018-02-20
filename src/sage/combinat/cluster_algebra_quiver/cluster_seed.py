@@ -1061,8 +1061,8 @@ class ClusterSeed(SageObject):
         TESTS::
 
             sage: S = ClusterSeed(['A',4])
-            sage: S.interact() # long time
-            'The interactive mode only runs in the Sage notebook.'
+            sage: S.interact()
+            VBox(children=...
         """
         import ipywidgets as widgets
         from sage.misc.all import html, latex
@@ -3510,7 +3510,7 @@ class ClusterSeed(SageObject):
         Check that :trac:`14638` is fixed::
 
             sage: S = ClusterSeed(['E',6])
-            sage: MC = S.mutation_class(depth=7); len(MC)
+            sage: MC = S.mutation_class(depth=7); len(MC)  # long time
             534
 
         Infinite type examples::

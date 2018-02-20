@@ -187,7 +187,7 @@ cdef class FastHashable_class:
     """
     A class that has a fast hash method, returning a pre-assigned value.
 
-    .. NOTE:
+    .. NOTE::
 
         This is for internal use only. The class has a cdef attribute
         ``_hash``, that needs to be assigned (for example, by calling

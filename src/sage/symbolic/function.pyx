@@ -1282,9 +1282,8 @@ cdef class SymbolicFunction(Function):
         """
         return (2, self._name, self._nargs, self._latex_name, self._conversions,
                 self._evalf_params_first,
-                map(pickle_wrapper, [getattr(self, '_%s_'%fname) \
-                        if hasattr(self, '_%s_'%fname) else None \
-                        for fname in sfunctions_funcs]))
+                [pickle_wrapper(getattr(self, '_%s_' % fname, None))
+                 for fname in sfunctions_funcs])
 
     def __setstate__(self, state):
         """

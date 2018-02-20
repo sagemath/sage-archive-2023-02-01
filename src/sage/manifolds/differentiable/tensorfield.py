@@ -3087,9 +3087,9 @@ class TensorField(ModuleElement):
 
         .. MATH::
 
-            (T^\sharp)^{a_1\ldots a_{k+1}}_{\qquad\ \ b_1 \ldots b_{l-1}}
-            = g^{a_{k+1} i} \,
-            T^{a_1\ldots a_k}_{\qquad\   b_1 \ldots b_{p-k} \, i \, b_{p-k+1}\ldots b_{l-1}},
+          (T^\sharp)^{a_1\ldots a_{k+1}}_{\phantom{a_1\ldots a_{k+1}}\, b_1 \ldots b_{l-1}}
+          = g^{a_{k+1} i} \,
+          T^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\, b_1 \ldots b_{p-k} \, i \, b_{p-k+1}\ldots b_{l-1}},
 
         `g^{ab}` being the components of the inverse metric.
 
@@ -3235,9 +3235,9 @@ class TensorField(ModuleElement):
 
         .. MATH::
 
-            (T^\flat)^{a_1\ldots a_{k-1}}_{\qquad\ \  b_1 \ldots b_{l+1}}
-            = g_{b_1 i} \,
-            T^{a_1\ldots a_{p} \, i \, a_{p+1}\ldots a_{k-1}}_{\qquad\qquad\quad\; b_2 \ldots b_{l+1}},
+          (T^\flat)^{a_1\ldots a_{k-1}}_{\phantom{a_1\ldots a_{k-1}}\, b_1 \ldots b_{l+1}}
+          = g_{b_1 i} \,
+          T^{a_1\ldots a_{p} \, i \, a_{p+1}\ldots a_{k-1}}_{\phantom{a_1\ldots a_{p} \, i \, a_{p+1}\ldots a_{k-1}}\, b_2 \ldots b_{l+1}},
 
         `g_{ab}` being the components of the metric tensor.
 
@@ -3368,3 +3368,343 @@ class TensorField(ModuleElement):
             print("pos = {}".format(pos))
             raise ValueError("position out of range")
         return metric.contract(1, self, pos)
+
+    def divergence(self, metric=None):
+        r"""
+        Return the divergence of ``self`` (with respect to a given
+        metric).
+
+        The divergence is taken on the *last* index: if
+        ``self`` is a tensor field `t` of type `(k,0)` with `k\geq 1`, the
+        divergence of `t` with respect to the metric `g` is the tensor field
+        of type `(k-1,0)` defined by
+
+        .. MATH::
+
+            (\mathrm{div}\, t)^{a_1\ldots a_{k-1}} =
+                \nabla_i t^{a_1\ldots a_{k-1} i} =
+                (\nabla t)^{a_1\ldots a_{k-1} i}_{\phantom{a_1\ldots a_{k-1} i}\, i}
+
+        where `\nabla` is the Levi-Civita connection of `g` (cf.
+        :class:`~sage.manifolds.differentiable.levi_civita_connection.LeviCivitaConnection`).
+
+        This definition is extended to tensor fields of type `(k,l)` with
+        `k\geq 0` and `l\geq 1`, by raising the last index with the metric `g`:
+        `\mathrm{div}\, t` is then the tensor field of type `(k,l-1)` defined by
+
+        .. MATH::
+
+          (\mathrm{div}\, t)^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\, b_1\ldots b_{l-1}}
+          = \nabla_i (g^{ij} t^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\, b_1\ldots b_{l-1} j})
+          = (\nabla t^\sharp)^{a_1\ldots a_k i}_{\phantom{a_1\ldots a_k i}\, b_1\ldots b_{l-1} i}
+
+        where `t^\sharp` is the tensor field deduced from `t` by raising the
+        last index with the metric `g` (see :meth:`up`).
+
+        INPUT:
+
+        - ``metric`` -- (default: ``None``) the pseudo-Riemannian metric `g`
+          involved in the definition of the divergence; if none is provided,
+          the domain of ``self`` is supposed to be endowed with a default
+          metric (i.e. is supposed to be pseudo-Riemannian manifold, see
+          :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`)
+          and the latter is used to define the divergence.
+
+        OUTPUT:
+
+        - instance of either
+          :class:`~sage.manifolds.differentiable.scalarfield.DiffScalarField`
+          if `(k,l)=(1,0)` (``self`` is a vector field) or `(k,l)=(0,1)`
+          (``self`` is a 1-form) or of :class:`TensorField` if `k+l\geq 2`
+          representing the divergence of ``self`` with respect to ``metric``
+
+        EXAMPLES:
+
+        Divergence of a vector field in the Euclidean plane::
+
+            sage: M = Manifold(2, 'M', structure='Riemannian')
+            sage: X.<x,y> = M.chart()
+            sage: g = M.metric()
+            sage: g[0,0], g[1,1] = 1, 1
+            sage: v = M.vector_field('v')
+            sage: v[:] = x, y
+            sage: s = v.divergence(); s
+            Scalar field div(v) on the 2-dimensional Riemannian manifold M
+            sage: s.display()
+            div(v): M --> R
+               (x, y) |--> 2
+
+        A shortcut alias of ``divergence`` is ``div``::
+
+            sage: v.div() == s
+            True
+
+        The global function
+        :func:`~sage.manifolds.differentiable.operators.div` can be used
+        instead of the method ``divergence()``::
+
+            sage: div(v) == s
+            True
+
+        The divergence can be taken with respect to a metric tensor that is
+        not the default one::
+
+            sage: h = M.lorentzian_metric('h')
+            sage: h[0,0], h[1,1] = -1, 1/(1+x^2+y^2)
+            sage: s = v.div(h); s
+            Scalar field div_h(v) on the 2-dimensional Riemannian manifold M
+            sage: s.display()
+            div_h(v): M --> R
+               (x, y) |--> (x^2 + y^2 + 2)/(x^2 + y^2 + 1)
+
+        The standard formula
+
+        .. MATH::
+
+            \mathrm{div}_h \, v = \frac{1}{\sqrt{\det h}}
+                \frac{\partial}{\partial x^i}
+                \left( \sqrt{\det h} \, v^i \right)
+
+        is checked as follows::
+
+            sage: sqrth = h.sqrt_abs_det().expr(); sqrth
+            1/sqrt(x^2 + y^2 + 1)
+            sage: s == 1/sqrth * sum( (sqrth*v[i]).diff(i) for i in M.irange())
+            True
+
+        A divergence-free vector::
+
+            sage: w = M.vector_field('w')
+            sage: w[:] = -y, x
+            sage: w.div().display()
+            div(w): M --> R
+               (x, y) |--> 0
+            sage: w.div(h).display()
+            div_h(w): M --> R
+               (x, y) |--> 0
+
+        Divergence of a type-``(2,0)`` tensor field::
+
+            sage: t = v*w; t
+            Tensor field v*w of type (2,0) on the 2-dimensional Riemannian
+             manifold M
+            sage: s = t.div(); s
+            Vector field div(v*w) on the 2-dimensional Riemannian manifold M
+            sage: s.display()
+            div(v*w) = -y d/dx + x d/dy
+
+        """
+        n_con = self._tensor_type[0] # number of contravariant indices = k
+        n_cov = self._tensor_type[1] # number of covariant indices = l
+        default_metric = metric is None
+        if default_metric:
+            metric = self._domain.metric()
+        nabla = metric.connection()
+        if n_cov == 0:
+            resu =  nabla(self).trace(n_con-1, n_con)
+        else:
+            tup = self.up(metric, self._tensor_rank-1)
+            resu = nabla(tup).trace(n_con, self._tensor_rank)
+        if self._name is not None:
+            if default_metric:
+                resu._name = "div({})".format(self._name)
+                resu._latex_name = r"\mathrm{div}\left(" + self._latex_name + \
+                                   r"\right)"
+            else:
+                resu._name = "div_{}({})".format(metric._name, self._name)
+                resu._latex_name = r"\mathrm{div}_{" + metric._latex_name + \
+                                   r"}\left(" + self._latex_name + r"\right)"
+            # The name is propagated to possible restrictions of self:
+            for restrict in resu._restrictions.values():
+                restrict.set_name(resu._name, latex_name=resu._latex_name)
+        return resu
+
+    div = divergence
+
+    def laplacian(self, metric=None):
+        r"""
+        Return the Laplacian of ``self`` with respect to a given
+        metric (Laplace-Beltrami operator).
+
+        If ``self`` is a tensor field `t` of type `(k,l)`, the Laplacian of `t`
+        with respect to the metric `g` is the tensor field of type `(k,l)`
+        defined by
+
+        .. MATH::
+
+          (\Delta t)^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\,{b_1\ldots b_k}}
+           = \nabla_i \nabla^i
+           t^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\,{b_1\ldots b_k}}
+
+        where `\nabla` is the Levi-Civita connection of `g` (cf.
+        :class:`~sage.manifolds.differentiable.levi_civita_connection.LeviCivitaConnection`)
+        and `\nabla^i := g^{ij} \nabla_j`. The operator
+        `\Delta = \nabla_i \nabla^i` is called the *Laplace-Beltrami operator*
+        of metric `g`.
+
+        INPUT:
+
+        - ``metric`` -- (default: ``None``) the pseudo-Riemannian metric `g`
+          involved in the definition of the Laplacian; if none is provided, the
+          domain of ``self`` is supposed to be endowed with a default metric
+          (i.e. is supposed to be pseudo-Riemannian manifold, see
+          :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`)
+          and the latter is used to define the Laplacian
+
+        OUTPUT:
+
+        - instance of :class:`TensorField` representing the Laplacian of
+          ``self``
+
+        EXAMPLES:
+
+        Laplacian of a vector field in the Euclidean plane::
+
+            sage: M = Manifold(2, 'M', structure='Riemannian')
+            sage: X.<x,y> = M.chart()
+            sage: g = M.metric()
+            sage: g[0,0], g[1,1] = 1, 1
+            sage: v = M.vector_field(name='v')
+            sage: v[:] = x^3 + y^2, x*y
+            sage: Dv = v.laplacian(); Dv
+            Vector field Delta(v) on the 2-dimensional Riemannian manifold M
+            sage: Dv.display()
+            Delta(v) = (6*x + 2) d/dx
+
+        The global function
+        :func:`~sage.manifolds.differentiable.operators.laplacian` can be used
+        instead of the method ``laplacian()``::
+
+            sage: laplacian(v) == Dv
+            True
+
+        In the present case (Euclidean metric and Cartesian coordinates), the
+        components of the Laplacian are the Laplacians of the components::
+
+            sage: all([Dv[[i]] == laplacian(v[[i]]) for i in M.irange()])
+            True
+
+        The Laplacian can be taken with respect to a metric tensor that is
+        not the default one::
+
+            sage: h = M.lorentzian_metric('h')
+            sage: h[0,0], h[1,1] = -1, 1+x^2
+            sage: Dv = v.laplacian(h); Dv
+            Vector field Delta_h(v) on the 2-dimensional Riemannian manifold M
+            sage: Dv.display()
+            Delta_h(v) = -(8*x^5 - 2*x^4 - x^2*y^2 + 15*x^3 - 4*x^2
+             + 6*x - 2)/(x^4 + 2*x^2 + 1) d/dx - 3*x^3*y/(x^4 + 2*x^2 + 1) d/dy
+
+        """
+        n_con = self._tensor_type[0] # number of contravariant indices = k
+        trank = self._tensor_rank    # k + l
+        default_metric = metric is None
+        if default_metric:
+            metric = self._domain.metric()
+        nabla = metric.connection()
+        tmp = nabla(nabla(self).up(metric, pos=trank))
+        resu = tmp.trace(n_con, trank+1)
+        if self._name is not None:
+            if default_metric:
+                resu._name = "Delta({})".format(self._name)
+                resu._latex_name = r"\Delta\left(" + self._latex_name + \
+                                   r"\right)"
+            else:
+                resu._name = "Delta_{}({})".format(metric._name, self._name)
+                resu._latex_name = r"\Delta_{" + metric._latex_name + \
+                                   r"}\left(" + self._latex_name + r"\right)"
+            # The name is propagated to possible restrictions of self:
+            for restrict in resu._restrictions.values():
+                restrict.set_name(resu._name, latex_name=resu._latex_name)
+        return resu
+
+    def dalembertian(self, metric=None):
+        r"""
+        Return the d'Alembertian of ``self`` with respect to a given
+        Lorentzian metric.
+
+        The *d'Alembertian* of a tensor field `t` with respect to a Lorentzian
+        metric `g` is nothing but the Laplace-Beltrami operator of `g` applied
+        to `t` (see :meth:`laplacian`); if ``self`` a tensor field `t` of type
+        `(k,l)`, the d'Alembertian of `t` with respect to `g` is then the
+        tensor field of type `(k,l)` defined by
+
+        .. MATH::
+
+          (\Box t)^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\,{b_1\ldots b_k}}
+           = \nabla_i \nabla^i
+           t^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\,{b_1\ldots b_k}}
+
+        where `\nabla` is the Levi-Civita connection of `g` (cf.
+        :class:`~sage.manifolds.differentiable.levi_civita_connection.LeviCivitaConnection`)
+        and `\nabla^i := g^{ij} \nabla_j`.
+
+        .. NOTE::
+
+            If the metric `g` is not Lorentzian, the name *d'Alembertian* is
+            not appropriate and one should use instead :meth:`laplacian`.
+
+        INPUT:
+
+        - ``metric`` -- (default: ``None``) the Lorentzian metric `g`
+          involved in the definition of the d'Alembertian; if none is provided,
+          the domain of ``self`` is supposed to be endowed with a default
+          Lorentzian metric (i.e. is supposed to be Lorentzian manifold, see
+          :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`)
+          and the latter is used to define the d'Alembertian
+
+        OUTPUT:
+
+        - instance of :class:`TensorField` representing the d'Alembertian of
+          ``self``
+
+        EXAMPLES:
+
+        d'Alembertian of a vector field in Minkowski spacetime, representing
+        the electric field of a simple plane electromagnetic wave::
+
+            sage: M = Manifold(4, 'M', structure='Lorentzian')
+            sage: X.<t,x,y,z> = M.chart()
+            sage: g = M.metric()
+            sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1, 1, 1, 1
+            sage: e = M.vector_field(name='e')
+            sage: e[1] = cos(t-z)
+            sage: e.display()  # plane wave propagating in the z direction
+            e = cos(t - z) d/dx
+            sage: De = e.dalembertian(); De
+            Vector field Box(e) on the 4-dimensional Lorentzian manifold M
+
+        The global function
+        :func:`~sage.manifolds.differentiable.operators.dalembertian` can be used
+        instead of the method ``dalembertian()``::
+
+            sage: dalembertian(e) == De
+            True
+
+        We check that the electric field obeys the wave equation::
+
+            sage: De.display()
+            Box(e) = 0
+
+        """
+        default_metric = metric is None
+        if default_metric:
+            metric = self._domain.metric()
+        nm2 = self._domain.dim() - 2
+        if metric.signature() not in [nm2, -nm2]:
+            raise TypeError("the {} is not a Lorentzian ".format(metric) +
+                            "metric; use laplacian() instead")
+        resu = self.laplacian(metric=metric)
+        if self._name is not None:
+            if default_metric:
+                resu._name = "Box({})".format(self._name)
+                resu._latex_name = r"\Box\left(" + self._latex_name + \
+                                   r"\right)"
+            else:
+                resu._name = "Box_{}({})".format(metric._name, self._name)
+                resu._latex_name = r"\Box_{" + metric._latex_name + \
+                                   r"}\left(" + self._latex_name + r"\right)"
+            # The name is propagated to possible restrictions of self:
+            for restrict in resu._restrictions.values():
+                restrict.set_name(resu._name, latex_name=resu._latex_name)
+        return resu

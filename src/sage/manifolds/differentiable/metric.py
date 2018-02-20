@@ -1410,6 +1410,16 @@ class PseudoRiemannianMetric(TensorField):
             sage: s.expr()
             -x^2*y^2 - (x + 1)*y + x + 1
 
+        A shortcut is ``det()``::
+
+            sage: g.det() == g.determinant()
+            True
+
+        The notation ``det(g)`` can be used::
+
+            sage: det(g) == g.determinant()
+            True
+
         Determinant in a frame different from the default's one::
 
             sage: Y.<u,v> = M.chart()
@@ -1468,6 +1478,8 @@ class PseudoRiemannianMetric(TensorField):
                 resu.add_expr(detgm, chart=chart)
             self._determinants[frame] = resu
         return self._determinants[frame]
+
+    det = determinant
 
     def sqrt_abs_det(self, frame=None):
         r"""
@@ -1598,12 +1610,14 @@ class PseudoRiemannianMetric(TensorField):
           an instance of
           :class:`~sage.manifolds.differentiable.diff_form.DiffForm`
         - if ``contra = k``, with `1\leq k \leq n`, the tensor field of type
-          (k,n-k) formed from `\epsilon` by raising the first k indices with the
-          metric (see method
+          (k,n-k) formed from `\epsilon` by raising the first k indices with
+          the metric (see method
           :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.up`);
           the output is then an instance of
-          :class:`~sage.manifolds.differentiable.tensorfield.TensorField`, with the
-          appropriate antisymmetries
+          :class:`~sage.manifolds.differentiable.tensorfield.TensorField`, with
+          the appropriate antisymmetries, or of the subclass
+          :class:`~sage.manifolds.differentiable.multivectorfield.MultivectorField`
+          if `k=n`
 
         EXAMPLES:
 

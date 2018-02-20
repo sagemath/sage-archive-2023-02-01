@@ -603,10 +603,10 @@ class CachedRepresentation(six.with_metaclass(ClasscallMetaclass)):
         sage: class MyClass(CachedRepresentation):
         ....:     def __init__(self, value):
         ....:         self.value = value
-        ....:     def __cmp__(self, other):
-        ....:         c = cmp(type(self),type(other))
-        ....:         if c: return c
-        ....:         return cmp(self.value, other.value)
+        ....:     def __eq__(self, other):
+        ....:         if type(self) != type(other):
+        ....:             return False
+        ....:         return self.value == other.value
 
     Two coexisting instances of ``MyClass`` created with the same argument data
     are guaranteed to share the same identity. Since :trac:`12215`, this is
@@ -1257,15 +1257,18 @@ class UniqueRepresentation(CachedRepresentation, WithEqualityById):
     argument. This pattern is similar to what is done in
     :class:`sage.combinat.sf.sf.SymmetricFunctions`::
 
-        sage: class MyClass(UniqueRepresentation):
+        sage: from sage.structure.richcmp import (
+        ....:     richcmp_method, richcmp, op_EQ, op_NE)
+        sage: @richcmp_method
+        ....: class MyClass(UniqueRepresentation):
         ....:     def __init__(self, value):
         ....:         self.value = value
-        ....:     def __cmp__(self, other):
-        ....:         c = cmp(type(self),type(other))
-        ....:         if c: return c
-        ....:         print("custom cmp")
-        ....:         return cmp(self.value, other.value)
-        ....:
+        ....:     def __richcmp__(self, other, op):
+        ....:         if op in (op_EQ, op_NE):
+        ....:             if type(self) != type(other):
+        ....:                 return op == op_NE
+        ....:         print("custom richcmp")
+        ....:         return richcmp(self.value, other.value, op)
 
     Two coexisting instances of ``MyClass`` created with the same argument
     data are guaranteed to share the same identity. Since :trac:`12215`, this
@@ -1305,10 +1308,10 @@ class UniqueRepresentation(CachedRepresentation, WithEqualityById):
         sage: x != z
         True
         sage: x <= z
-        custom cmp
+        custom richcmp
         True
         sage: x > z
-        custom cmp
+        custom richcmp
         False
 
     A hash function equivalent to :meth:`object.__hash__` is used, which is

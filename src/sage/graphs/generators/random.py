@@ -30,7 +30,7 @@ def RandomGNP(n, p, seed=None, fast=True, algorithm='Sage'):
 
     - ``p`` -- probability of an edge
 
-    - ``seed`` -- integer seed for random number generator (default=None).
+    - ``seed`` -- integer seed for random number generator (default ``None``).
 
     - ``fast`` -- boolean set to True (default) to use the algorithm with
       time complexity in `O(n+m)` proposed in [BatBra2005]_. It is designed
@@ -140,7 +140,7 @@ def RandomBarabasiAlbert(n, m, seed=None):
 
     - ``m`` - number of edges to attach from each new node
 
-    - ``seed`` - for random number generator
+    - ``seed`` -- integer seed for random number generator (default ``None``).
 
     EXAMPLES:
 
@@ -447,13 +447,14 @@ def RandomGNM(n, m, dense=False, seed=None):
 
     INPUT:
 
-    -  ``n`` - number of vertices.
+    - ``n`` - number of vertices.
 
-    -  ``m`` - number of edges.
+    - ``m`` - number of edges.
 
-    -  ``dense`` - whether to use NetworkX's
-       dense_gnm_random_graph or gnm_random_graph
+    - ``dense`` - whether to use NetworkX's
+      dense_gnm_random_graph or gnm_random_graph
 
+    - ``seed`` -- integer seed for random number generator (default ``None``).
 
     EXAMPLES: We show the edge list of a random graph on 5 nodes with
     10 edges.
@@ -508,16 +509,15 @@ def RandomNewmanWattsStrogatz(n, k, p, seed=None):
 
     INPUT:
 
-    -  ``n`` - number of vertices.
+    - ``n`` - number of vertices.
 
-    -  ``k`` - each vertex is connected to its k nearest
-       neighbors
+    - ``k`` - each vertex is connected to its k nearest
+      neighbors
 
-    -  ``p`` - the probability of adding a new edge for
-       each edge
+    - ``p`` - the probability of adding a new edge for
+      each edge
 
-    -  ``seed`` - for the random number generator
-
+    - ``seed`` -- integer seed for random number generator (default ``None``).
 
     EXAMPLES: We show the edge list of a random graph on 7 nodes with 2
     "nearest neighbors" and probability `p = 0.2`::
@@ -549,16 +549,15 @@ def RandomHolmeKim(n, m, p, seed=None):
 
     INPUT:
 
-    -  ``n`` - number of vertices.
+    - ``n`` - number of vertices.
 
-    -  ``m`` - number of random edges to add for each new
-       node.
+    - ``m`` - number of random edges to add for each new
+      node.
 
-    -  ``p`` - probability of adding a triangle after
-       adding a random edge.
+    - ``p`` - probability of adding a triangle after
+      adding a random edge.
 
-    -  ``seed`` - for the random number generator.
-
+    - ``seed`` -- integer seed for random number generator (default ``None``).
 
     From the NetworkX documentation: The average clustering has a hard
     time getting above a certain cutoff that depends on m. This cutoff
@@ -659,16 +658,15 @@ def RandomLobster(n, p, q, seed=None):
 
     INPUT:
 
-    -  ``n`` - expected number of vertices in the backbone
+    - ``n`` - expected number of vertices in the backbone
 
-    -  ``p`` - probability of adding an edge to the
-       backbone
+    - ``p`` - probability of adding an edge to the
+      backbone
 
-    -  ``q`` - probability of adding an edge (claw) to the
-       arms
+    - ``q`` - probability of adding an edge (claw) to the
+      arms
 
-    -  ``seed`` - for the random number generator
-
+    - ``seed`` -- integer seed for random number generator (default ``None``).
 
     EXAMPLES: We show the edge list of a random graph with 3 backbone
     nodes and probabilities `p = 0.7` and `q = 0.3`::
@@ -765,15 +763,14 @@ def RandomTreePowerlaw(n, gamma=3, tries=100, seed=None):
 
     INPUT:
 
-    -  ``n`` - number of vertices
+    - ``n`` - number of vertices
 
-    -  ``gamma`` - exponent of power law
+    - ``gamma`` - exponent of power law
 
-    -  ``tries`` - number of attempts to adjust sequence to
-       make a tree
+    - ``tries`` - number of attempts to adjust sequence to
+      make a tree
 
-    -  ``seed`` - for the random number generator
-
+    - ``seed`` -- integer seed for random number generator (default ``None``).
 
     EXAMPLES: We show the edge list of a random graph with 10 nodes and
     a power law exponent of 2.
@@ -806,11 +803,11 @@ def RandomRegular(d, n, seed=None):
 
     INPUT:
 
-    -  ``n`` - number of vertices
+    - ``n`` - number of vertices
 
-    -  ``d`` - degree
+    - ``d`` - degree
 
-    -  ``seed`` - for the random number generator
+    - ``seed`` -- integer seed for random number generator (default ``None``).
 
 
     EXAMPLES: We show the edge list of a random graph with 8 nodes each
@@ -853,18 +850,17 @@ def RandomShell(constructor, seed=None):
 
     INPUT:
 
-    -  ``constructor`` - a list of 3-tuples (n,m,d), each
-       representing a shell
+    - ``constructor`` - a list of 3-tuples (n,m,d), each
+      representing a shell
 
-    -  ``n`` - the number of vertices in the shell
+    - ``n`` - the number of vertices in the shell
 
-    -  ``m`` - the number of edges in the shell
+    - ``m`` - the number of edges in the shell
 
-    -  ``d`` - the ratio of inter (next) shell edges to
-       intra shell edges
+    - ``d`` - the ratio of inter (next) shell edges to
+      intra shell edges
 
-    -  ``seed`` - for the random number generator
-
+    - ``seed`` -- integer seed for random number generator (default ``None``).
 
     EXAMPLES::
 

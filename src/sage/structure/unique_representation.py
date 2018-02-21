@@ -1257,18 +1257,9 @@ class UniqueRepresentation(CachedRepresentation, WithEqualityById):
     argument. This pattern is similar to what is done in
     :class:`sage.combinat.sf.sf.SymmetricFunctions`::
 
-        sage: from sage.structure.richcmp import (
-        ....:     richcmp_method, richcmp, op_EQ, op_NE)
-        sage: @richcmp_method
-        ....: class MyClass(UniqueRepresentation):
+        sage: class MyClass(UniqueRepresentation):
         ....:     def __init__(self, value):
         ....:         self.value = value
-        ....:     def __richcmp__(self, other, op):
-        ....:         if op in (op_EQ, op_NE):
-        ....:             if type(self) != type(other):
-        ....:                 return op == op_NE
-        ....:         print("custom richcmp")
-        ....:         return richcmp(self.value, other.value, op)
 
     Two coexisting instances of ``MyClass`` created with the same argument
     data are guaranteed to share the same identity. Since :trac:`12215`, this
@@ -1294,24 +1285,14 @@ class UniqueRepresentation(CachedRepresentation, WithEqualityById):
         (1, 1)
 
     Comparison by identity is used for ``==`` and for ``!=``. For other
-    operators, the custom comparison is called::
+    comparisons, the relevant custom comparison is called if defined for either
+    the left-hand side or the right-hand side::
 
         sage: x == y
         True
         sage: z = MyClass(2)
         sage: x == z, x is z
         (False, False)
-        sage: x <= x
-        custom cmp
-        True
-        sage: x != z
-        True
-        sage: x <= z
-        custom richcmp
-        True
-        sage: x > z
-        custom richcmp
-        False
 
     A hash function equivalent to :meth:`object.__hash__` is used, which is
     compatible with comparison by identity. However this means that the hash

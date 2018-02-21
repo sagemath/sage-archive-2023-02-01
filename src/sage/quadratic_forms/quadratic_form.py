@@ -656,11 +656,6 @@ class QuadraticForm(SageObject):
         except Exception:
             raise RuntimeError("Oops!  This coefficient can't be coerced to an element of the base ring for the quadratic form.")
 
-
-######################################
-# TO DO:    def __cmp__(self, other):
-######################################
-
     def __hash__(self):
         r"""
         TESTS::

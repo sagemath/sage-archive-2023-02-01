@@ -1474,16 +1474,16 @@ class GraphicMatroid(Matroid):
         Return a matroid coextended by a new element.
 
         A coextension in a graphic matroid is the opposite of contracting an edge;
-        that is, vertices are merged, and a new edge is added between them. This
-        method will split a vertex, and move the edges indicated by ``X`` to the
-        new vertex.
+        that is, a vertex is split, and a new edge is added between the resulting
+        vertices. This method will create a new vertex `v` adjacent to `u`,
+        and move the edges indicated by `X` from `u` to `v`.
 
         INPUT:
 
         - ``u`` -- the vertex to be split
         - ``v`` -- (optional) the name of the new vertex after splitting
         - ``X`` -- (optional) a list of the matroid elements corresponding to
-          edges of ``u`` that move to the new vertex after splitting
+          edges incident to ``u`` that move to the new vertex after splitting
         - ``element`` -- (optional) The name of the newly added element
 
         OUTPUT:

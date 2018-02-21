@@ -1293,10 +1293,8 @@ class UniqueRepresentation(CachedRepresentation, WithEqualityById):
         sage: x.value, y.value
         (1, 1)
 
-    Rich comparison by identity is used when possible (hence, for ``==``, for
-    ``!=``, and for identical arguments in the case of ``<``, ``<=``, ``>=``
-    and ``>``), which is as fast as it can get. Only if identity is not enough
-    to decide the answer of a comparison, the custom comparison is called::
+    Comparison by identity is used for ``==`` and for ``!=``. For other
+    operators, the custom comparison is called::
 
         sage: x == y
         True
@@ -1304,6 +1302,7 @@ class UniqueRepresentation(CachedRepresentation, WithEqualityById):
         sage: x == z, x is z
         (False, False)
         sage: x <= x
+        custom cmp
         True
         sage: x != z
         True

@@ -1853,7 +1853,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         for gen in basis:
             A = A.augment(gen.q_expansion_vector(min_exp=min_exp, max_exp=prec-1))
 
-        # So far this case never happened but potentiall A could be singular!
+        # So far this case never happened but potentially A could be singular!
         # In this case we want to increase the row size until A has maximal
         # rank (i.e. column size).
 

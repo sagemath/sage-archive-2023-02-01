@@ -11,6 +11,8 @@
 
 from __future__ import print_function, absolute_import
 
+import six
+
 from .base import StackInterpreter
 from ..instructions import (params_gen, instr_funcall_2args, instr_unary,
                             InstrSpec)
@@ -257,11 +259,21 @@ class PythonInterpreter(StackInterpreter):
                            o0 = PyObject_CallObject(i0, py_args);
                            Py_DECREF(py_args);
                            """))
-            ]
-        for (name, op) in [('add', 'PyNumber_Add'),
-                           ('sub', 'PyNumber_Subtract'),
-                           ('mul', 'PyNumber_Multiply'),
-                           ('div', 'PyNumber_Divide')]:
+        ]
+
+        binops = [
+            ('add', 'PyNumber_Add'),
+            ('sub', 'PyNumber_Subtract'),
+            ('mul', 'PyNumber_Multiply'),
+            ('floordiv', 'PyNumber_FloorDivide')
+        ]
+
+        if six.PY2:
+            binops.append(('div', 'PyNumber_Divide'))
+        else:
+            binops.append(('div', 'PyNumber_TrueDivide'))
+
+        for (name, op) in binops:
             instrs.append(instr_funcall_2args(name, pg('SS', 'S'), op))
         instrs.append(InstrSpec('pow', pg('SS', 'S'),
                                 code='o0 = PyNumber_Power(i0, i1, Py_None);'))

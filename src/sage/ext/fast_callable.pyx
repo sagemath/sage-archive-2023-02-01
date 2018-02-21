@@ -301,7 +301,6 @@ AUTHOR:
 #*****************************************************************************
 from __future__ import absolute_import
 
-
 import operator
 from copy import copy
 from sage.rings.real_mpfr cimport RealField_class, RealNumber
@@ -398,7 +397,7 @@ def fast_callable(x, domain=None, vars=None,
         sage: fc = fast_callable(expr, domain=float)
         sage: fc(5, 7)
         0.5514266812416906
-         
+
     Check that fast_callable also works for symbolic functions with evaluation
     functions::
 
@@ -947,9 +946,9 @@ cdef class Expression:
             div(v_0, 1)
             sage: 1/x
             div(1, v_0)
-            sage: x.__div__(1)
+            sage: x.__div__(1)  # py2
             div(v_0, 1)
-            sage: x.__rdiv__(1)
+            sage: x.__rdiv__(1)  # py2
             div(1, v_0)
         """
         return _expression_binop_helper(s, o, op_div)
@@ -1677,7 +1676,8 @@ cpdef dict get_builtin_functions():
         op_neg: 'neg',
         op_inv: 'inv',
         op_pow: 'pow',
-        }
+    }
+
     # not handled: atan2, log2, log10
     import sage.functions.all as func_all
     for fn in ('sqrt', 'ceil', 'floor',

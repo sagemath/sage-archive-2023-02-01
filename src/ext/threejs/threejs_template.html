@@ -252,8 +252,8 @@ SAGE_SCRIPTS
         for ( var i=0 ; i < json.faces.length ; i++ ) {
             var f = json.faces[i];
             for ( var j=0 ; j < f.length - 2 ; j++ ) {
-                var tri = THREE.Face3( f[0], f[j+1], f[j+2] )
-                tri.color.setHex(json.face_colors[i])
+                var tri = new THREE.Face3( f[0], f[j+1], f[j+2] )
+                tri.color.set(json.face_colors[i])
                 geometry.faces.push( tri );
             }
         }
@@ -267,7 +267,6 @@ SAGE_SCRIPTS
             shininess: 20 } );
 
         var c = geometry.center().multiplyScalar( -1 );
-        geometry.colorsNeedUpdate = true;
         var mesh = new THREE.Mesh( geometry, material );
         mesh.position.set( c.x, c.y, c.z );
         scene.add( mesh );

@@ -1599,7 +1599,7 @@ def gcd(a, b=None, **kwargs):
     from sage.structure.sequence import Sequence
     seq = Sequence(a)
     U = seq.universe()
-    if U is ZZ or U is int or U is long:# ZZ.has_coerce_map_from(U):
+    if U is ZZ or U in integer_types:  # ZZ.has_coerce_map_from(U):
         return GCD_list(a)
     return __GCD_sequence(seq, **kwargs)
 

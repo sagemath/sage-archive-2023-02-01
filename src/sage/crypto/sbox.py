@@ -498,23 +498,37 @@ class SBox(SageObject):
         return self.maximal_difference_probability_absolute()/(2.0**self.n)
 
     @cached_method
-    def linear_approximation_matrix(self):
+    def linear_approximation_matrix(self, scale="absolute_bias"):
         """
-        Return linear approximation matrix ``A`` for this S-box.
+        Return linear approximation matrix (LAT) ``A`` for this S-box.
 
-        Let ``i_b`` be the ``b``-th bit of ``i`` and ``o_b`` the
-        ``b``-th bit of ``o``. Then ``v = A[i,o]`` encodes the bias of
-        the equation ``sum( i_b * x_i ) = sum( o_b * y_i )`` if
-        ``x_i`` and ``y_i`` represent the input and output variables
-        of the S-box.
+        The entry A[alpha,beta] corresponds to the probability
+        ``Pr[<alpha, x> = <beta, S(x)>]``, where ``S`` is this S-box.
+        There are three typical notations for this probability used in
+        the literature:
+            - ``Pr[<alpha, x> = <beta, S(x)>] = 1/2 + e(alpha, beta)``,
+              where ``e(alpha, beta)`` is called the bias,
+            - ``2 * Pr[<alpha, x> = <beta, S(x)>] = 1 + c(alpha, beta)``,
+              where ``c(alpha, beta) = 2*e(alpha, beta)`` is the correlation, and
+            - ``2^(n+1)*Pr[<alpha, x> = <beta, S(x)>] = 1 + \hat{S}(alpha, beta)``,
+              where ``\hat{S}(alpha, beta)`` is the Fourier coefficient of S.
 
         See [He2002]_ for an introduction to linear cryptanalysis.
+
+        INPUT:
+
+        - ``scale`` - string to choose the scaling for the LAT, one of
+            "bias": elements are ``e(alpha, beta)``
+            "correlation": elements are ``c(alpha, beta)``
+            "absolute_bias": elements are ``e(alpha, beta) * 2^m``
+            "fourier_coefficient": elements are ``\hat{S}(alpha, beta)``
 
         EXAMPLES::
 
             sage: from sage.crypto.sbox import SBox
             sage: S = SBox(7,6,0,4,2,5,1,3)
-            sage: S.linear_approximation_matrix()
+            sage: lat_abs_bias = S.linear_approximation_matrix()
+            sage: lat_abs_bias
             [ 4  0  0  0  0  0  0  0]
             [ 0  0  0  0  2  2  2 -2]
             [ 0  0 -2 -2 -2  2  0  0]
@@ -523,6 +537,15 @@ class SBox(SageObject):
             [ 0 -2  0  2  0  2  0  2]
             [ 0 -2 -2  0  0 -2  2  0]
             [ 0 -2  2  0 -2  0  0 -2]
+
+            sage: lat_abs_bias/(1<<S.m) == S.linear_approximation_matrix(scale="bias")
+            True
+
+            sage: lat_abs_bias/(1<<(S.m-1)) == S.linear_approximation_matrix(scale="correlation")
+            True
+
+            sage: lat_abs_bias*2 == S.linear_approximation_matrix(scale="fourier_coefficient")
+            True
 
         According to this matrix the first bit of the input is equal
         to the third bit of the output 6 out of 8 times::
@@ -543,6 +566,18 @@ class SBox(SageObject):
         nrows = 1<<m
         ncols = 1<<n
 
+        scale_factor = 1
+        if (scale is None) or (scale == "absolute_bias"):
+            scale_factor = 2
+        elif scale == "bias":
+            scale_factor = 1<<(m+1)
+        elif scale == "correlation":
+            scale_factor = 1<<m
+        elif scale == "fourier_coefficient":
+            pass
+        else:
+            raise ValueError("no such scaling for the LAT: %s" % scale)
+
         B = BooleanFunction(self.m)
         L = []
         for j in range(ncols):
@@ -551,7 +586,7 @@ class SBox(SageObject):
             L.append(B.walsh_hadamard_transform())
 
         A = Matrix(ZZ, ncols, nrows, L)
-        A = A.transpose()/2
+        A = A.transpose()/scale_factor
         A.set_immutable()
 
         return A

@@ -722,6 +722,48 @@ class ComplexBallField(UniqueRepresentation, Field):
                 self('inf'), self(1./3, 'inf'), self('inf', 'inf'),
                 self('nan'), self('nan', 'nan'), self('inf', 'nan')]
 
+    def _sum_of_products(self, terms):
+        r"""
+        Compute a sum of product of complex balls without creating temporary
+        Python objects
+
+        The input objects should be complex balls, but need not belong to this
+        parent. The computation is performed at the precision of this parent.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = ComplexBallField(1000)[]
+            sage: pol = (x + 1/3)^100
+            sage: CBF._sum_of_products((c, c) for c in pol)
+            [6.3308767660842e+23 +/- 4.59e+9]
+
+        TESTS::
+
+            sage: CBF._sum_of_products([])
+            0
+            sage: CBF._sum_of_products([[]])
+            1.000000000000000
+            sage: CBF._sum_of_products([["a"]])
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot convert str to sage.rings.complex_arb.ComplexBall
+        """
+        cdef ComplexBall res = ComplexBall.__new__(ComplexBall)
+        cdef ComplexBall factor
+        cdef acb_t tmp
+        res._parent = self
+        acb_zero(res.value)
+        acb_init(tmp)
+        try:
+            for term in terms:
+                acb_one(tmp)
+                for factor in term:
+                    acb_mul(tmp, tmp, factor.value, self._prec)
+                acb_add(res.value, res.value, tmp, self._prec)
+        finally:
+            acb_clear(tmp)
+        return res
+
     # Constants
 
     def pi(self):

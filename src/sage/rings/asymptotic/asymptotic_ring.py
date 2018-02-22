@@ -2106,6 +2106,10 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             False
             sage: (log(y-1)/log(y) - 1).is_little_o_of_one()
             True
+
+        .. SEEALSO::
+
+            :meth:`limit`
         """
         return all(term.is_little_o_of_one() for term in self.summands.maximal_elements())
 

@@ -3249,6 +3249,50 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             raise NotImplementedOZero(self)
         return result
 
+    def limit(self):
+        """
+        Compute the limit of this asymptotic expansion.
+
+        OUTPUT:
+
+        An element of the coefficient ring.
+
+        EXAMPLES::
+
+            sage: A.<S> = AsymptoticRing("S^ZZ", SR, default_prec=3)
+            sage: (3 + 1/S + O(1/S^2)).limit()
+            3
+            sage: ((1+1/S)^S).limit()
+            e
+            sage: (1/S).limit()
+            0
+            sage: (S + 3 + 1/S + O(1/S^2)).limit()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot determine limit of S + 3 + S^(-1) + O(S^(-2))
+            sage: (O(S^0)).limit()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot determine limit of O(1)
+
+        .. SEEALSO::
+
+            :meth:`is_little_o_of_one`
+        """
+        non_o_one_terms = list(
+            term for term in self.summands
+            if not term.is_little_o_of_one()
+        )
+        if not non_o_one_terms:
+            return self.parent().base_ring()(0)
+        elif (
+            len(non_o_one_terms) == 1
+            and non_o_one_terms[0].growth.is_one()
+            and non_o_one_terms[0].is_exact()
+            ):
+            return non_o_one_terms[0].coefficient
+        else:
+            raise ValueError("Cannot determine limit of {}".format(self))
 
 class AsymptoticRing(Algebra, UniqueRepresentation):
     r"""

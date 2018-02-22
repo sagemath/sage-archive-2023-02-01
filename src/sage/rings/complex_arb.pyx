@@ -1067,10 +1067,6 @@ cdef class ComplexBall(RingElement):
             1.000000000000000000000000000000 + 2.000000000000000000000000000000*I
             sage: ComplexBall(CBF100, RBF(1/3), RBF(1))
             [0.3333333333333333 +/- 7.04e-17] + 1.000000000000000000000000000000*I
-            sage: ComplexBall(CBF100, 1, 2)
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported initializer
             sage: NF.<a> = QuadraticField(-1, embedding=CC(0, -1))
             sage: CBF(a)
             -1.000000000000000*I
@@ -1086,42 +1082,82 @@ cdef class ComplexBall(RingElement):
             sage: NF.<a> = QuadraticField(-2)
             sage: CBF(1/3 + a).real()
             [0.3333333333333333 +/- 7.04e-17]
+
+            sage: ComplexBall(CBF, 1, 1/2)
+            1.000000000000000 + 0.5000000000000000*I
+            sage: ComplexBall(CBF, 1, 1)
+            1.000000000000000 + 1.000000000000000*I
+            sage: ComplexBall(CBF, 1, 1/2)
+            1.000000000000000 + 0.5000000000000000*I
+            sage: ComplexBall(CBF, 1/2, 1)
+            0.5000000000000000 + 1.000000000000000*I
+            sage: ComplexBall(CBF, 1/2, 1/2)
+            0.5000000000000000 + 0.5000000000000000*I
+            sage: ComplexBall(CBF, 1/2, 'a')
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported initializer
+            sage: ComplexBall(CBF, 'a')
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported initializer
+
         """
         cdef fmpz_t tmpz
         cdef fmpq_t tmpq
         cdef long myprec
+        cdef bint cplx = False
 
         Element.__init__(self, parent)
 
         if x is None:
             return
-        elif y is None:
-            if isinstance(x, ComplexBall):
-                acb_set(self.value, (<ComplexBall> x).value)
-            elif isinstance(x, RealBall):
-                acb_set_arb(self.value, (<RealBall> x).value)
-            elif isinstance(x, sage.rings.integer.Integer):
-                if _do_sig(prec(self)): sig_on()
-                fmpz_init(tmpz)
-                fmpz_set_mpz(tmpz, (<sage.rings.integer.Integer> x).value)
-                acb_set_fmpz(self.value, tmpz)
-                fmpz_clear(tmpz)
-                if _do_sig(prec(self)): sig_off()
-            elif isinstance(x, sage.rings.rational.Rational):
-                if _do_sig(prec(self)): sig_on()
-                fmpq_init(tmpq)
-                fmpq_set_mpq(tmpq, (<sage.rings.rational.Rational> x).value)
-                acb_set_fmpq(self.value, tmpq, prec(self))
-                fmpq_clear(tmpq)
-                if _do_sig(prec(self)): sig_off()
-            elif isinstance(x, ComplexIntervalFieldElement):
-                ComplexIntervalFieldElement_to_acb(self.value,
-                                                   <ComplexIntervalFieldElement> x)
-            else:
-                raise TypeError("unsupported initializer")
-        elif isinstance(x, RealBall) and isinstance(y, RealBall):
+        elif isinstance(x, ComplexBall):
+            acb_set(self.value, (<ComplexBall> x).value)
+            cplx = True
+        elif isinstance(x, RealBall):
             arb_set(acb_realref(self.value), (<RealBall> x).value)
+        elif isinstance(x, sage.rings.integer.Integer):
+            if _do_sig(prec(self)): sig_on()
+            fmpz_init(tmpz)
+            fmpz_set_mpz(tmpz, (<sage.rings.integer.Integer> x).value)
+            arb_set_fmpz(acb_realref(self.value), tmpz)
+            fmpz_clear(tmpz)
+            if _do_sig(prec(self)): sig_off()
+        elif isinstance(x, sage.rings.rational.Rational):
+            if _do_sig(prec(self)): sig_on()
+            fmpq_init(tmpq)
+            fmpq_set_mpq(tmpq, (<sage.rings.rational.Rational> x).value)
+            arb_set_fmpq(acb_realref(self.value), tmpq, prec(self))
+            fmpq_clear(tmpq)
+            if _do_sig(prec(self)): sig_off()
+        elif isinstance(x, ComplexIntervalFieldElement):
+            ComplexIntervalFieldElement_to_acb(self.value,
+                                               <ComplexIntervalFieldElement> x)
+            cplx = True
+        else:
+            raise TypeError("unsupported initializer")
+
+        if y is None:
+            return
+        elif cplx:
+            raise TypeError("unsupported initializer")
+        elif isinstance(y, RealBall):
             arb_set(acb_imagref(self.value), (<RealBall> y).value)
+        elif isinstance(y, sage.rings.integer.Integer):
+            if _do_sig(prec(self)): sig_on()
+            fmpz_init(tmpz)
+            fmpz_set_mpz(tmpz, (<sage.rings.integer.Integer> y).value)
+            arb_set_fmpz(acb_imagref(self.value), tmpz)
+            fmpz_clear(tmpz)
+            if _do_sig(prec(self)): sig_off()
+        elif isinstance(y, sage.rings.rational.Rational):
+            if _do_sig(prec(self)): sig_on()
+            fmpq_init(tmpq)
+            fmpq_set_mpq(tmpq, (<sage.rings.rational.Rational> y).value)
+            arb_set_fmpq(acb_imagref(self.value), tmpq, prec(self))
+            fmpq_clear(tmpq)
+            if _do_sig(prec(self)): sig_off()
         else:
             raise TypeError("unsupported initializer")
 

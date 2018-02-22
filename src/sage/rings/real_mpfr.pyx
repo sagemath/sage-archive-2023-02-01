@@ -5937,7 +5937,7 @@ cdef class int_toRR(Map):
 
         if not err:
             mpfr_set_si(y.value, x_long, parent.rnd)
-        elif isinstance(x, long):
+        elif err == ERR_OVERFLOW:
             mpz_init(x_mpz)
             mpz_set_pylong(x_mpz, x)
             mpfr_set_z(y.value, x_mpz, parent.rnd)

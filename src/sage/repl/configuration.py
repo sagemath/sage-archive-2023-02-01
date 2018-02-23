@@ -10,7 +10,7 @@ the IPython simple prompt is being used::
     sage: import pexpect
     sage: output = pexpect.run(
     ....:     'bash -c \'echo "{0}" | sage\''.format(cmd),
-    ....: )
+    ....: ).decode('utf-8', 'surrogateescape')
     sage: 'sage: [False, True]' in output
     True
 """

@@ -44,6 +44,6 @@ by spkg-install:
   its data and messages from the Sage installation tree
 - makefile.patch: handle compilation flags for Darwin and Cygwin
 - warning.patch: remove deprecation warnings
-- sage.cpp: add a function for Bruhat invervals which is simpler to
+- sage.cpp: add a function for Bruhat intervals which is simpler to
   code in C++ than Cython
 

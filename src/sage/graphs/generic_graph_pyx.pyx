@@ -915,6 +915,7 @@ cdef class SubgraphSearch:
         # Free the memory
         sig_free(self.busy)
         sig_free(self.stack)
+        sig_free(self.tmp_array)
         sig_free(self.vertices)
         sig_free(self.line_h_out)
         sig_free(self.line_h_in)

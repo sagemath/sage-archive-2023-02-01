@@ -96,7 +96,7 @@ from sage.functions.log import log
 
 import sage.matrix.all as matrix
 from   sage.libs.pari.all import pari, PariError
-from sage.functions.other import gamma_inc
+from sage.functions.gamma import gamma_inc
 from math import sqrt
 from sage.interfaces.all import gp
 from sage.misc.cachefunc import cached_method

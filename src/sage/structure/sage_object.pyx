@@ -1599,9 +1599,9 @@ def unpickle_all(dir, debug=False, run_test_suite=False):
     for A in sorted(os.listdir(dir)):
         if A.endswith('.sobj'):
             try:
-                object = load(os.path.join(dir,A))
+                obj = load(os.path.join(dir,A))
                 if run_test_suite:
-                    TestSuite(object).run(catch = False)
+                    TestSuite(obj).run(catch = False)
                 i += 1
             except Exception:
                 j += 1

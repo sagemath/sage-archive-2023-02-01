@@ -2953,7 +2953,7 @@ class Graph(GenericGraph):
                 v = next(T[0].vertex_iterator())
                 for t in T[1:]:
                     tree.add_edge(next(t.vertex_iterator()),v)
-                return tree 
+                return tree
 
         # Forcing k to be defined
         if k is None:
@@ -4131,7 +4131,7 @@ class Graph(GenericGraph):
         """
         if self.order() == 0 or self.size() == 0:
             return 0
-        
+
         from sage.graphs.graph_coloring import edge_coloring
         return edge_coloring(self, value_only=True, solver=solver, verbose=verbose)
 
@@ -7187,6 +7187,224 @@ class Graph(GenericGraph):
         return relabel(D)
 
     @doc_index("Graph properties")
+    def is_polyhedral(self):
+        """
+        Test whether the graph is the graph of the polyhedron.
+
+        By a theorem of Steinitz (Satz 43, p. 77 of [St1922]_),
+        graphs of three-dimensional polyhedra are exactly
+        the simple 3-vertex-connected planar graphs.
+
+        EXAMPLES::
+
+            sage: C = graphs.CubeGraph(3)
+            sage: C.is_polyhedral()
+            True
+            sage: K33=graphs.CompleteBipartiteGraph(3, 3)
+            sage: K33.is_polyhedral()
+            False
+            sage: graphs.CycleGraph(17).is_polyhedral()
+            False
+            sage: [i for i in range(9) if graphs.CompleteGraph(i).is_polyhedral()]
+            [4]
+
+
+        .. SEEALSO::
+
+            * :meth:`~sage.graphs.generic_graph.GenericGraph.vertex_connectivity`
+            * :meth:`~sage.graphs.generic_graph.GenericGraph.is_planar`
+            * :meth:`is_circumscribable`
+            * :meth:`is_inscribable`
+            * :wikipedia:`Polyhedral_graph`
+
+        TESTS::
+
+            sage: G = Graph([[1, 2, 3, 4], [[1, 2], [1,1]]], loops=True)
+            sage: G.is_polyhedral()
+            False
+
+            sage: G = Graph([[1, 2, 3], [[1, 2], [3, 1], [1, 2], [2, 3]]], multiedges=True)
+            sage: G.is_polyhedral()
+            False
+
+        .. TODO::
+
+            Implement a faster 3-vertex-connectivity test: :trac:`24635`.
+        """
+
+        return (not self.has_loops()
+                and not self.has_multiple_edges()
+                and (self.vertex_connectivity() >= 3)
+                and self.is_planar())
+
+    @doc_index("Graph properties")
+    def is_circumscribable(self):
+        """
+        Test whether the graph is the graph of a circumscribed polyhedron.
+
+        A polyhedron is circumscribed if all of its facets are tangent to a
+        sphere. By a theorem of Rivin ([HRS1993]_), this can be checked by
+        solving a linear program that assigns weights between 0 and 1/2 on each
+        edge of the polyhedron, so that the weights on any face add to exactly
+        one and the weights on any non-facial cycle add to more than one.
+        If and only if this can be done, the polyhedron can be circumscribed.
+
+        EXAMPLES::
+
+            sage: C = graphs.CubeGraph(3)
+            sage: C.is_circumscribable()
+            True
+
+            sage: O = graphs.OctahedralGraph()
+            sage: O.is_circumscribable()
+            True
+
+            sage: TT = polytopes.truncated_tetrahedron().graph()
+            sage: TT.is_circumscribable()
+            False
+
+
+        Stellating in a face of the octahedral graph is not circumscribable::
+
+            sage: f = set(flatten(choice(O.faces())))
+            sage: O.add_edges([[6, i] for i in f])
+            sage: O.is_circumscribable()
+            False
+
+
+        .. SEEALSO::
+
+            * :meth:`is_polyhedral`
+            * :meth:`is_inscribable`
+
+        TESTS::
+
+            sage: G = graphs.CompleteGraph(5)
+            sage: G.is_circumscribable()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this method only works for polyhedral graphs
+
+        .. TODO::
+
+            Allow the use of other, inexact but faster solvers.
+        """
+        if not self.is_polyhedral():
+            raise NotImplementedError('this method only works for polyhedral graphs')
+
+        from sage.numerical.mip import MixedIntegerLinearProgram
+        # For a description of the algorithm see paper by Rivin and:
+        # https://www.ics.uci.edu/~eppstein/junkyard/uninscribable/
+        # In order to simulate strict inequalities in the following LP, we
+        # introduce a variable c[0] and maximize it. If it is positive, then
+        # the LP has a solution, such that all inequalities are strict
+        # after removing the auxiliary variable c[0].
+        M = MixedIntegerLinearProgram(maximization=True, solver="ppl")
+        e = M.new_variable(nonnegative=True)
+        c = M.new_variable()
+        M.set_min(c[0], -1)
+        M.set_max(c[0], 1)
+        M.set_objective(c[0])
+
+        for u, v in self.edge_iterator(labels=0):
+            if u > v:
+                u, v = v, u
+            M.set_max(e[u, v], ZZ(1)/ZZ(2))
+            M.add_constraint(e[u, v] - c[0], min=0)
+            M.add_constraint(e[u, v] + c[0], max=ZZ(1)/ZZ(2))
+
+        # The faces are completely determined by the graph structure:
+        # for polyhedral graph, there is only one way to choose the faces.
+        # We add an equality constraint for each face.
+        efaces = self.faces()
+        vfaces = set(frozenset([_[0] for _ in face]) for face in efaces)
+        for edges in efaces:
+            M.add_constraint(M.sum(e[tuple(sorted(_))] for _ in edges) == 1)
+
+        # In order to generate all simple cycles of G, which are not faces,
+        # we use the "all_simple_cycles" method of directed graphs, generating
+        # each cycle twice (in both directions). The set below make sure only
+        # one direction gives rise to an (in)equality
+        D = self.to_directed()
+        inequality_constraints = set()
+        for cycle in D.all_simple_cycles():
+            if len(cycle) > 3:
+                scycle = frozenset(cycle)
+                if scycle not in vfaces:
+                    edges = (tuple(sorted([cycle[i], cycle[i+1]])) for i in range(len(cycle)-1))
+                    inequality_constraints.add(frozenset(edges))
+
+        for ieq in inequality_constraints:
+            M.add_constraint(M.sum(e[_] for _ in ieq) - c[0] >= 1)
+
+        from sage.numerical.mip import MIPSolverException
+        try:
+            solution = M.solve()
+        except MIPSolverException as e:
+            if str(e) == "PPL : There is no feasible solution":
+                return False
+        return solution > 0
+
+    @doc_index("Graph properties")
+    def is_inscribable(self):
+        """
+        Test whether the graph is the graph of an inscribed polyhedron.
+
+        A polyhedron is inscribed if all of its vertices are on a sphere.
+        This is dual to the notion of circumscribed polyhedron: A Polyhedron is
+        inscribed if and only if its polar dual is circumscribed and hence a
+        graph is inscribable if and only if its planar dual is circumscribable.
+
+        EXAMPLES::
+
+            sage: H = graphs.HerschelGraph()
+            sage: H.is_inscribable()               # long time (> 1 sec)
+            False
+            sage: H.planar_dual().is_inscribable() # long time (> 1 sec)
+            True
+
+            sage: C = graphs.CubeGraph(3)
+            sage: C.is_inscribable()
+            True
+
+        Cutting off a vertex from the cube yields an uninscribable graph::
+
+            sage: C = graphs.CubeGraph(3)
+            sage: v = next(C.vertex_iterator())
+            sage: triangle = [_ + v for _ in C.neighbors(v)]
+            sage: C.add_edges(Combinations(triangle, 2))
+            sage: C.add_edges(zip(triangle, C.neighbors(v)))
+            sage: C.delete_vertex(v)
+            sage: C.is_inscribable()
+            False
+
+        Breaking a face of the cube yields an uninscribable graph::
+
+            sage: C = graphs.CubeGraph(3)
+            sage: face = choice(C.faces())
+            sage: C.add_edge([face[0][0], face[2][0]])
+            sage: C.is_inscribable()
+            False
+
+
+        .. SEEALSO::
+
+            * :meth:`is_polyhedral`
+            * :meth:`is_circumscribable`
+
+        TESTS::
+
+            sage: G = graphs.CompleteBipartiteGraph(3,3)
+            sage: G.is_inscribable()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this method only works for polyhedral graphs
+        """
+        if not self.is_polyhedral():
+            raise NotImplementedError('this method only works for polyhedral graphs')
+        return self.planar_dual().is_circumscribable()
+
+    @doc_index("Graph properties")
     def is_prime(self):
         r"""
         Tests whether the current graph is prime.
@@ -7832,12 +8050,12 @@ class Graph(GenericGraph):
             problem: put a binary variable ``b[e]`` on each edge ``e``, and for
             each vertex ``v``, require that the sum of the values of the edges
             incident to ``v`` is 1.
-            
+
         - ``solver`` -- (default: ``None``) specify a Linear Program (LP)
           solver to be used; if set to ``None``, the default one is used
 
         - ``verbose`` -- integer (default: ``0``); sets the level of verbosity:
-          set to 0 by default, which means quiet (only useful when 
+          set to 0 by default, which means quiet (only useful when
           ``algorithm == "LP_matching"`` or ``algorithm == "LP"``)
 
         For more information on LP solvers and which default solver is
@@ -7872,7 +8090,7 @@ class Graph(GenericGraph):
             False
 
         TESTS::
-    
+
             sage: G = graphs.EmptyGraph()
             sage: all(G.has_perfect_matching(algorithm=algo) for algo in ['Edmonds', 'LP_matching', 'LP'])
             True

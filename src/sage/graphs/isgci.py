@@ -226,6 +226,10 @@ Predefined classes
 
      - :meth:`~sage.graphs.generic_graph.GenericGraph.is_planar`
 
+   * - Polyhedral
+
+     - :meth:`~sage.graphs.generic_graph.Graph.is_polyhedral`
+
    * - Split
 
      - :meth:`~sage.graphs.graph.Graph.is_split`
@@ -1074,6 +1078,7 @@ graph_classes.Modular = GraphClass("Modular", "gc_50")
 graph_classes.Outerplanar = GraphClass("Outerplanar", "gc_110")
 graph_classes.Perfect = GraphClass("Perfect", "gc_56", recognition_function = lambda x:x.is_perfect())
 graph_classes.Planar = GraphClass("Planar", "gc_43", recognition_function = lambda x:x.is_planar())
+graph_classes.Polyhedral = GraphClass("Polyhedral", "gc_986", recognition_function = lambda x:x.is_polyhedral())
 graph_classes.Split = GraphClass("Split", "gc_39", recognition_function = lambda x:x.is_split())
 graph_classes.Tree = GraphClass("Tree", "gc_342", recognition_function = lambda x:x.is_tree())
 graph_classes.UnitDisk = GraphClass("UnitDisk", "gc_389")

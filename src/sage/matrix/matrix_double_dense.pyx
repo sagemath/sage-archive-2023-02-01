@@ -2685,7 +2685,7 @@ cdef class Matrix_double_dense(Matrix_dense):
 
         ALGORITHMS:
 
-        The naive algorithm simply compares corresponing entries on either
+        The naive algorithm simply compares corresponding entries on either
         side of the diagonal (and on the diagonal itself) to see if they are
         conjugates, with equality controlled by the tolerance parameter.
 

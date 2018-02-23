@@ -167,7 +167,7 @@ cdef class LazyField(Field):
             # discovery algorithm and when trying to convert LazyWrappers,
             # so we only consider direct coercions.
             if mor is not None and not isinstance(mor, sage.categories.map.FormalCompositeMap):
-                mor = ivf._middle_field().coerce_map_from(R)
+                mor = ivf.middle_field().coerce_map_from(R)
                 if mor is not None and not isinstance(mor, sage.categories.map.FormalCompositeMap):
                     return LazyWrapperMorphism(R, self)
             # We can skip the test for a coercion to RDF/CDF since RR/CC
@@ -805,7 +805,7 @@ cdef class LazyFieldElement(FieldElement):
         """
         return self.eval(R)
 
-    _mpfi_ = _mpfr_ = _complex_mpfr_field_ = _complex_mpfi_field_ = _generic_
+    _real_mpfi_ = _complex_mpfi_ =_mpfr_ = _complex_mpfr_field_ = _generic_
 
     def __complex__(self):
         """
@@ -1379,7 +1379,7 @@ cdef class LazyNamedUnop(LazyUnop):
             # not everything defined on interval fields
             # this is less info though, but mostly just want to print it
             interval_field = self._parent.interval_field()
-            return self.eval(interval_field._middle_field())
+            return self.eval(interval_field.middle_field())
 
     def __hash__(self):
         """
@@ -1530,7 +1530,7 @@ cdef class LazyConstant(LazyFieldElement):
             3.141592653589793
         """
         interval_field = self._parent.interval_field()
-        return <double>self.eval(interval_field._middle_field())
+        return <double>self.eval(interval_field.middle_field())
 
     def __reduce__(self):
         """

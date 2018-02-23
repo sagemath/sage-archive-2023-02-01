@@ -676,12 +676,12 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
     def scale(self, s, discard_basis=False):
         r"""
         Return the lattice with the inner product matrix scaled by ``s``.
-        The lattice will have a new basis if the optional argument ``discard_basis`` is True.
-        
+
         INPUT:
 
         - ``s`` -- a nonzero integer
-        - ``discard_basis`` -- (optional) a boolean
+        - ``discard_basis`` -- a boolean (default: ``False``). If ``True``,
+         then the lattice returned is equipped with the standard basis.
 
         EXAMPLES::
 
@@ -726,12 +726,15 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             Inner product matrix:
             [5 1]
             [1 2]
-
         """
+        try:
+            s = self.base_ring()(s)
+        except:
+            ValueError("the scaling factor must be an element of the base ring.")
         if (s==0):
-            raise ValueError("the scale factor must be non zero")
-        if (discard_basis):
-            return IntegralLattice(s * self.gram_matrix()) 
+            raise ValueError("the scaling factor must be non zero")
+        if discard_basis:
+            return IntegralLattice(s * self.gram_matrix())
         else:
             n = self.degree()
             inner_product_matrix = s * self.inner_product_matrix()

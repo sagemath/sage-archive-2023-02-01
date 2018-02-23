@@ -673,14 +673,20 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         from sage.quadratic_forms.genera.genus import Genus
         return Genus(self.gram_matrix())
 
-    def mul(self, other):
+    def scale(self, s, discard_basis=False):
         r"""
-        Multiplication of the Inner product matrix by ``other``.
+        Return the lattice with the inner product matrix scaled by ``s``.
+        The lattice will have a new basis if the optional argument ``discard_basis`` is True.
+        
+        INPUT:
+
+        - ``s`` -- a nonzero integer
+        - ``discard_basis`` -- (optional) a boolean
 
         EXAMPLES::
 
             sage: L = IntegralLattice("A4")
-            sage: L.mul(3)
+            sage: L.scale(3)
             Lattice of degree 4 and rank 4 over Integer Ring
             Basis matrix:
             [1 0 0 0]
@@ -703,7 +709,16 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             [1 0 0]
             [0 1 0]
             [0 0 1]
-            sage: L.mul(1)
+            sage: L.scale(1)
+            Lattice of degree 3 and rank 2 over Integer Ring
+            Basis matrix:
+            [2 1 0]
+            [0 1 1]
+            Inner product matrix:
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            sage: L.scale(1,True)
             Lattice of degree 2 and rank 2 over Integer Ring
             Basis matrix:
             [1 0]
@@ -713,6 +728,12 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             [1 2]
 
         """
-        return IntegralLattice(other*self.gram_matrix())
-
-
+        if (s==0):
+            raise ValueError("the scale factor must be non zero")
+        if (discard_basis):
+            return IntegralLattice(s * self.gram_matrix()) 
+        else:
+            n = self.degree()
+            inner_product_matrix = s * self.inner_product_matrix()
+            ambient = FreeQuadraticModule(self.base_ring(), n, inner_product_matrix)
+            return FreeQuadraticModule_integer_symmetric(ambient=ambient, basis=self.basis(), inner_product_matrix=inner_product_matrix)

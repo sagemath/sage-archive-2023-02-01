@@ -1851,10 +1851,10 @@ class ChainComplex_class(Parent):
         deg = self.degree_of_differential()
         ring = self.base_ring()
         if self.grading_group() != ZZ:
-            guess = next(iter(dict.keys()))
+            guess = next(iter(dict))
             if guess - deg in dict:
                 string += "\\dots \\xrightarrow{d_{%s}} " % latex(guess-deg)
-            string += _latex_module(ring, mat.ncols())
+            string += _latex_module(ring, dict[guess].ncols())
             string += " \\xrightarrow{d_{%s}} \\dots" % latex(guess)
         else:
             backwards = (deg < 0)

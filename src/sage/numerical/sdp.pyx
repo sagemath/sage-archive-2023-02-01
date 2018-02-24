@@ -1,8 +1,8 @@
 r"""
 SemiDefinite Programming
 
-A semidefinite program (`SDP <http://en.wikipedia.org/wiki/Semidefinite_programming>`_)
-is an `optimization problem <http://en.wikipedia.org/wiki/Optimization_%28mathematics%29>`_
+A semidefinite program (:wikipedia:`SDP <Semidefinite_programming>`)
+is an optimization problem (:wikipedia:`Optimization_(mathematics)>`)
 of the following form
 
 .. MATH::
@@ -740,8 +740,7 @@ cdef class SemidefiniteProgram(SageObject):
         for l in lists:
             if isinstance(l, SDPVariable):
                     c = {}
-                    for (k,v) in l.items():
-                        #c[k] = self._values[v] if self._values.has_key(v) else None
+                    for k, v in l.items():
                         c[k] = self._backend.get_variable_value(self._variables[v])
                     val.append(c)
             elif isinstance(l, list):

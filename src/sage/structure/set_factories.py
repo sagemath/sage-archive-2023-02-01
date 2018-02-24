@@ -797,12 +797,12 @@ class FacadeParentPolicy(SetFactoryPolicy):
 
 class BareFunctionPolicy(SetFactoryPolicy):
     r"""
-    Policy where element are contructed using a bare function.
+    Policy where element are constructed using a bare function.
 
     INPUT:
 
     - ``factory`` -- an instance of :class:`SetFactory`
-    - ``contructor`` -- a function
+    - ``constructor`` -- a function
 
     Given a factory ``F`` and a function ``c``, returns a policy for
     parent ``P`` creating element using the function ``f``.

@@ -147,8 +147,6 @@ This base class provides a lot more methods than a general parent::
      'gcd',
      'gen',
      'gens',
-     'get_action_c',
-     'get_action_impl',
      'has_coerce_map_from_c',
      'ideal',
      'ideal_monoid',
@@ -398,15 +396,6 @@ we stay inside a single parent structure::
     ((10):(8), (2):(8), (3):(8), (6):(4))
     sage: a-b == MyElement(P, 1, 4)
     True
-
-.. end of output
-
-We didn't implement exponentiation\---but it just works::
-
-    sage: a^3
-    (27):(64)
-
-.. end of output
 
 There is a default implementation of element tests. We can already do
 ::
@@ -661,7 +650,12 @@ This little change provides several benefits:
       sage: P.sum([a,b,c])
       (36):(16)
 
-.. end of output
+- Exponentiation now works out of the box using the multiplication
+  that we defined::
+
+    sage: a^3
+    (729):(64)
+
 
 What did happen behind the scenes to make this work?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -879,7 +873,8 @@ The four axioms requested for coercions
       rational field is a homomorphism of euclidean domains::
 
           sage: QQ.coerce_map_from(ZZ).category_for()
-          Join of Category of euclidean domains and Category of metric spaces
+          Join of Category of euclidean domains and Category of infinite sets
+          and Category of metric spaces
 
       .. end of output
 
@@ -1270,7 +1265,7 @@ functors are shuffled.
 ::
 
     sage: Compl, R = RR.construction(); Compl
-    Completion[+Infinity]
+    Completion[+Infinity, prec=53]
 
 .. end of output
 
@@ -1300,7 +1295,7 @@ When we apply ``Compl``, ``Matr`` and ``Poly`` to the ring of integers, we
 obtain::
 
     sage: (Poly*Matr*Compl)(ZZ)
-    Univariate Polynomial Ring in x over Full MatrixSpace of 3 by 3 dense matrices over Real Field with 53 bits of precision
+    Univariate Polynomial Ring in x over Full MatrixSpace of 3 by 3 dense matrices over Integer Ring
 
 .. end of output
 
@@ -1308,14 +1303,14 @@ Applying the shuffling procedure yields
 ::
 
     sage: (Poly*Matr*Fract*Poly*AlgClos*Fract*Compl)(ZZ)
-    Univariate Polynomial Ring in x over Full MatrixSpace of 3 by 3 dense matrices over Fraction Field of Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
+    Univariate Polynomial Ring in x over Full MatrixSpace of 3 by 3 dense matrices over Fraction Field of Univariate Polynomial Ring in x over Algebraic Field
 
 .. end of output
 
 and this is indeed equal to the pushout found by Sage::
 
     sage: pushout((Fract*Poly*AlgClos*Fract)(ZZ), (Poly*Matr*Compl)(ZZ))
-    Univariate Polynomial Ring in x over Full MatrixSpace of 3 by 3 dense matrices over Fraction Field of Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
+    Univariate Polynomial Ring in x over Full MatrixSpace of 3 by 3 dense matrices over Fraction Field of Univariate Polynomial Ring in x over Algebraic Field
 
 .. end of output
 

@@ -2547,7 +2547,8 @@ class ClusterSeed(SageObject):
         is_vertices = set(seqq).issubset(set(seed._nlist))
         is_indices = set(seqq).issubset(set(range(n)))
 
-        # Note - this does not guarantee that the sequence consists of cluster variables, it only rules out some posibilities.
+        # Note - this does not guarantee that the sequence consists of
+        # cluster variables, it only rules out some possibilities.
         is_cluster_vars = reduce(lambda x, y: isinstance(y, str), seqq, 1) and seed._use_fpolys
 
         # Ensures the sequence has elements of type input_type.
@@ -4673,7 +4674,7 @@ class ClusterSeed(SageObject):
             for s in psetvect:
                 pass1 = True
         #The first possible failure for compatibility is if any entry in s is larger than the corresponding entry of a.
-        #Only checks for the mutable verices since all entries in a_i i>num_cols are zero. 
+        #Only checks for the mutable vertices since all entries in a_i i>num_cols are zero. 
                 for k in range(num_cols):
                     if s[k] > a[0][k]:
                         pass1 = False
@@ -4921,7 +4922,7 @@ def is_LeeLiZel_allowable(T,n,m,b,c):
 
 def get_green_vertices(C):
     r"""
-    Get the green vertices from a matrix. Will go through each clumn and return
+    Get the green vertices from a matrix. Will go through each column and return
     the ones where no entry is greater than 0.
 
     INPUT:

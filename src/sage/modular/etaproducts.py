@@ -556,9 +556,10 @@ class EtaGroupElement(MultiplicativeGroupElement):
         eta_n = max([ (n/d).floor() for d in self._keys if self.r(d) != 0])
         eta = qexp_eta(R, eta_n)
         for d in self._keys:
-            if self.r(d) != 0:
-                pr *= eta(q**d)**self.r(d)
-        return pr*q**(self._sumDR / ZZ(24))*( R(1).add_bigoh(n))
+            rd = self.r(d)
+            if rd:
+                pr *= eta(q ** d) ** ZZ(rd)
+        return pr * q**ZZ(self._sumDR / ZZ(24)) * R(1).add_bigoh(n)
 
     def qexp(self, n):
         """

@@ -434,8 +434,14 @@ REFERENCES:
 .. [Br2016] *Bresenham's Line Algorithm*, Python, 26 December 2016.
             http://www.roguebasin.com/index.php?title=Bresenham%27s_Line_Algorithm
 
+.. [Bru1994] Richard A. Brualdi, Hyung Chan Jung, William T.Trotter Jr
+             *On the poset of all posets on `n` elements*
+             Volume 50, Issue 2, 6 May 1994, Pages 111-123
+             Discrete Applied Mathematics
+             http://www.sciencedirect.com/science/article/pii/0166218X9200169M
+
 .. [Bruin-Molnar] \N. Bruin and A. Molnar, *Minimal models for rational
-            functions in a dynamical setting*, 
+            functions in a dynamical setting*,
             LMS Journal of Computation and Mathematics, Volume 15 (2012),
             pp 400-417.
 
@@ -575,6 +581,11 @@ REFERENCES:
               and Clifford Stein, *Section 22.4: Topological sort*,
               Introduction to Algorithms (2nd ed.), MIT Press and
               McGraw-Hill, 2001, 549-552, ISBN 0-262-03293-7.
+
+.. [CLS2014] \C. Ceballos, J.-P. Labbé, C. Stump, *Subword complexes,
+             cluster complexes, and generalized multi-associahedra*,
+             \J. Algebr. Comb. **39** (2014) pp. 17-51.
+             :doi:`10.1007/s10801-013-0437-x`, :arxiv:`1108.1776`.
 
 .. [CLS2011] David A. Cox, John Little, and Hal Schenck. *Toric
              Varieties*. Volume 124 of *Graduate Studies in
@@ -1042,6 +1053,9 @@ REFERENCES:
             of Hecke points. Forum Mathematicum, 15:2, pp. 165--189,
             De Gruyter, 2003.
 
+.. [GMN2008] Jordi Guardia, Jesus Montes, Enric Nart. *Newton polygons of higher
+             order in algebraic number theory* (2008). arXiv:0807.2620 [math.NT]
+
 .. [GNL2011] \Z. Gong, S. Nikova, and Y. W. Law,
              *KLEIN: A new family of lightweight block ciphers*; in
              RFIDSec, (2011), p. 1-18.
@@ -1058,6 +1072,12 @@ REFERENCES:
 .. [Gor2009] Alexey G. Gorinov, "Combinatorics of double cosets and
              fundamental domains for the subgroups of the modular
              group", preprint :arxiv:`0901.1340`
+
+.. [GP2012] Eddy Godelle and Luis Paris.
+            *Basic questions on Artin-Tits groups*. A. Bjorner et al. (eds)
+            Configuration spaces, CRM series. (2012) pp. 299--311.
+            Edizioni della Normale, Pisa.
+            :doi:`10.1007/978-88-7642-431-1_13`
 
 .. [GPV2008] Craig Gentry, Chris Peikert, Vinod Vaikuntanathan. *How
              to Use a Short Basis: Trapdoors for Hard Lattices and New
@@ -1178,6 +1198,10 @@ REFERENCES:
              Introduction to Mathematical
              Cryptography*. Springer, 2008.
 
+.. [HPS2017] Graham Hawkes, Kirill Paramonov, and Anne Schilling.
+             *Crystal analysis of type* `C` *Stanley symmetric functions*.
+             Electronic J. Comb. 24(3) (2017) #P3.51. :arxiv:`1704.00889`.
+
 .. [HOLM2016] Tristan Holmes and \J. \B. Nation,
               *Inflation of finite lattices along all-or-nothing sets*.
               http://www.math.hawaii.edu/~jb/inflation.pdf
@@ -1185,6 +1209,12 @@ REFERENCES:
 .. [HR2016]  Clemens Heuberger and Roswitha Rissner, "Computing
              `J`-Ideals of a Matrix Over a Principal Ideal Domain",
              :arxiv:`1611.10308`, 2016.
+
+.. [HRS1993] \C. D. Hodgson, I. Rivin and W. D. Smith.
+             *A characterization of convex hyperbolic polyhedra
+             and of convex polyhedra inscribed in the sphere.*
+             Bulletin of the American Mathematical Society
+             27.2 (1992): 246-251.
 
 .. [HRT2000] \R.B. Howlett, L.J. Rylands, and D.E. Taylor.
              *Matrix generators for exceptional groups of Lie type*.
@@ -1215,6 +1245,10 @@ REFERENCES:
 .. _ref-I:
 
 **I**
+
+.. [IK2010] Kenji Iohara and Yoshiyuki Koga.
+            *Representation Theory of the Virasoro Algebra*.
+            Springer, (2010).
 
 .. [ILS2012] Giuseppe F. Italiano, Luigi Laura, and Federico
              Santaroni. *Finding strong bridges and strong
@@ -1604,11 +1638,15 @@ REFERENCES:
              group*. Mathematische Zeitschrift 264(4) (2010) 765-811
              (:arxiv:`0710.2720`)
 
+.. [LS2017] Xuan Liu and Travis Scrimshaw. *A uniform approach to soliton
+            cellular automata using rigged configurations*.
+            Preprint (2017) :arxiv:`1706.02443`
+
 .. [LT1998] \B. Leclerc, J.-Y. Thibon, Littlewood-Richardson
             coefficients and Kazhdan-Lusztig polynomials,
             http://front.math.ucdavis.edu/9809.5122
 
-.. [LT2009] G.I. Lehrer and D.E. Taylor. *Unitary reflection
+.. [LT2009] \G. I. Lehrer and D. E. Taylor. *Unitary reflection
             groups*. Australian Mathematical Society Lecture
             Series, 2009.
 
@@ -1644,6 +1682,12 @@ REFERENCES:
 
 **M**
 
+.. [Mac1987] Maciej M. SysŁo,
+             *Minimizing the jump number for partially-ordered sets: a
+             graph-theoretic approach, II*.
+             Discrete Mathematics,
+             Volume 63, Issues 2-3, 1987, Pages 279-295.
+
 .. [MagmaHGM] *Hypergeometric motives* in Magma,
    http://magma.maths.usyd.edu.au/~watkins/papers/HGM-chapter.pdf
 
@@ -1652,12 +1696,24 @@ REFERENCES:
            FSE’93, Volume 809 of LNCS, pages 1-17.
            Springer, Heidelberg, December 1994.
 
+.. [Mat1992] \O. Mathieu. *Classification of Harish-Chandra
+             modules over the Virasoro Lie algebra*.
+             Invent. Math. **107(2)** (1992), pp. 225-234.
+
 .. [Mat2002] Jiří Matousek, "Lectures on Discrete Geometry", Springer,
              2002
 
 .. [Ma2009] Sarah Mason, An Explicit Construction of Type A Demazure
             Atoms, Journal of Algebraic Combinatorics, Vol. 29,
             (2009), No. 3, p.295-313. :arXiv:`0707.4267`
+
+.. [Mac1936I] Saunders MacLane, *A construction for prime ideals as absolute
+             values of an algebraic field*. Duke Mathematical Journal, 2(3)
+             (1936), 492-510.
+
+.. [Mac1936II] Saunders MacLane, *A construction for absolute values in
+              polynomial rings*. Transactions of the American Mathematical
+              Society, 40(3)(1936), 363-395.
 
 .. [Mac1915] Percy A. MacMahon, *Combinatory Analysis*,
              Cambridge University Press (1915--1916).
@@ -1694,6 +1750,9 @@ REFERENCES:
 
 .. [Mil1958] \J. W. Milnor, "The Steenrod algebra and its dual,"
              Ann. of Math. (2) 67 (1958), 150-171.
+
+.. [MirMor2009] \R. Miranda, D.R. Morrison, "Embeddings of Integral Quadratic Forms"
+                http://www.math.ucsb.edu/~drm/manuscripts/eiqf.pdf .
 
 .. [MMIB2012] \Y. Matsumoto, S. Moriyama, H. Imai, D. Bremner:
               Matroid Enumeration for Incidence Geometry,
@@ -1870,7 +1929,7 @@ REFERENCES:
 .. [Pos2005] \A. Postnikov, Affine approach to quantum Schubert
              calculus, Duke Math. J. 128 (2005) 473-509
 
-.. [PPW2013] D. Perkinson, J. Perlman, and J. Wilmes.
+.. [PPW2013] \D. Perkinson, J. Perlman, and J. Wilmes.
              *Primer for the algebraic geometry of sandpiles*.
              Tropical and Non-Archimedean
              Geometry, Contemp. Math., 605, Amer. Math. Soc.,
@@ -2006,6 +2065,10 @@ REFERENCES:
 .. [Rud1958] \M. E. Rudin. *An unshellable triangulation of a
              tetrahedron*. Bull. Amer. Math. Soc. 64 (1958), 90-91.
 
+.. [Rüt2014] Julian Rüth, *Models of Curves and Valuations*. Open Access
+             Repositorium der Universität Ulm. Dissertation (2014).
+             http://dx.doi.org/10.18725/OPARU-3275
+
 .. _ref-S:
 
 **S**
@@ -2052,11 +2115,12 @@ REFERENCES:
             Reduction*. Advances in Cryptology - EUROCRYPT '95. LNCS
             Volume 921, 1995, pp 1-12.
 
-.. [Shi1971]  Shimura, Goro. *Introduction to the arithmetic theory of
-            automorphic functions*. Princeton University Press, 1971. 
+.. [Shi1971] Goro Shimura, *Introduction to the arithmetic theory of
+             automorphic functions*. Publications of the Mathematical
+             Society of Japan and Princeton University Press, 1971.
 
-.. [Shr2004] Shreve, S. Stochastic Calculus for Finance II:
-             Continuous-Time Models.  New York: Springer, 2004
+.. [Shr2004] \S. Shreve, *Stochastic Calculus for Finance II:
+             Continuous-Time Models*.  New York: Springer, 2004
 
 .. [SIHMAS2011] \K. Shibutani, T. Isobe, H. Hiwatari, A. Mitsuda, T. Akishita,
                 and T. Shirai, *Piccolo: An ultra-lightweight block-cipher*; in
@@ -2218,6 +2282,11 @@ REFERENCES:
             (ANTS V), Sydney, 2002*, Lecture Notes in Computer Science
             2369, Springer, 2002,
             p267--275. http://modular.math.washington.edu/papers/stein-watkins/
+
+.. [St1922] Ernst Steinitz, *Polyeder und Raumeinteilungen*.
+            In *Encyclopädie der Mathematischen Wissenschaften*, Franz Meyer
+            and Hand Mohrmann, eds., volume 3, *Geometrie, erster Teil, zweite Hälfte*,
+            pp. 1--139, Teubner, Leipzig, 1922
 
 .. [Swe1969] Moss Sweedler. Hopf algebras. W.A. Benjamin, Math Lec
              Note Ser., 1969.
@@ -2413,6 +2482,10 @@ REFERENCES:
 .. _ref-Y:
 
 **Y**
+
+.. [Yamada2007] Daisuke Yamada. *Scattering rule in soliton cellular automaton
+                associated with crystal base of* `U_q(D_4^{(3)})`.
+                \J. Math. Phys., **48** (4):043509, 28, (2007).
 
 .. [Yoc2005] Jean-Christophe Yoccoz "Echange d'Intervalles", Cours au
              college de France

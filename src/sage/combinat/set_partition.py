@@ -34,7 +34,7 @@ from __future__ import print_function, absolute_import, division
 from six.moves import range
 from six import add_metaclass
 
-from sage.sets.set import Set, is_Set
+from sage.sets.set import Set, Set_generic
 
 import itertools
 
@@ -1583,7 +1583,7 @@ class SetPartitions(UniqueRepresentation, Parent):
             True
         """
         # x must be a set
-        if not (isinstance(x, (SetPartition, set, frozenset)) or is_Set(x)):
+        if not isinstance(x, (SetPartition, set, frozenset, Set_generic)):
             return False
 
         # Check that all parts are disjoint
@@ -1593,7 +1593,7 @@ class SetPartitions(UniqueRepresentation, Parent):
 
         # Check to make sure each element of x is a set
         for s in x:
-            if not (isinstance(s, (set, frozenset)) or is_Set(s)):
+            if not isinstance(s, (set, frozenset, Set_generic)):
                 return False
 
         return True

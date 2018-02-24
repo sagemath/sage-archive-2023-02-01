@@ -22,13 +22,11 @@ reciprocal_trig_functions = {'sec': cos, 'csc': sin, 'cot': tan, 'sech': cosh, '
 
 
 
-from .other import ( ceil, floor, gamma, psi, factorial, beta, binomial,
-                    abs_symbolic, sqrt, log_gamma,
-                    gamma_inc, incomplete_gamma, gamma_inc_lower,
+from .other import ( ceil, floor, abs_symbolic, sqrt,
                     arg, real_part, real, frac,
+                    factorial, binomial,
                     imag_part, imag, imaginary, conjugate, cases,
                     complex_root_of)
-
 from .log import (exp, exp_polar, log, ln, polylog, dilog, lambert_w, harmonic_number)
 
 
@@ -87,3 +85,5 @@ from .exp_integral import (exp_integral_e, exp_integral_e1, log_integral, li, Li
 
 from .hypergeometric import hypergeometric, hypergeometric_M, hypergeometric_U
 
+from .gamma import (gamma, psi, beta, log_gamma,
+                    gamma_inc, incomplete_gamma, gamma_inc_lower)

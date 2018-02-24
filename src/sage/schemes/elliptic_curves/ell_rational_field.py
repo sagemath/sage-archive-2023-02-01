@@ -96,7 +96,7 @@ from sage.functions.log import log
 
 import sage.matrix.all as matrix
 from   sage.libs.pari.all import pari, PariError
-from sage.functions.other import gamma_inc
+from sage.functions.gamma import gamma_inc
 from math import sqrt
 from sage.interfaces.all import gp
 from sage.misc.cachefunc import cached_method
@@ -4979,7 +4979,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 #     The following function can be implemented once composition of
 #     isogenies has been implemented.
 #
-#     def contruct_isogeny(self, other):
+#     def construct_isogeny(self, other):
 #         """
 #         Return an isogeny from self to other if the two curves are in
 #         the same isogeny class.

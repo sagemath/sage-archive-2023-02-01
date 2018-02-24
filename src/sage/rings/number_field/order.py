@@ -1003,6 +1003,67 @@ class Order(IntegralDomain):
         """
         return self.number_field().absolute_degree()
 
+    def valuation(self, p):
+        r"""
+        Return the ``p``-adic valuation on this order.
+
+        EXAMPLES:
+
+        The valuation can be specified with an integer ``prime`` that is
+        completely ramified or unramified::
+
+            sage: K.<a> = NumberField(x^2 + 1)
+            sage: O = K.order(2*a)
+            sage: valuations.pAdicValuation(O, 2)
+            2-adic valuation
+
+            sage: GaussianIntegers().valuation(2)
+            2-adic valuation
+
+        ::
+
+            sage: GaussianIntegers().valuation(3)
+            3-adic valuation
+
+        A ``prime`` that factors into pairwise distinct factors, results in an error::
+
+            sage: GaussianIntegers().valuation(5)
+            Traceback (most recent call last):
+            ...
+            ValueError: The valuation Gauss valuation induced by 5-adic valuation does not approximate a unique extension of 5-adic valuation with respect to x^2 + 1
+
+        The valuation can also be selected by giving a valuation on the base
+        ring that extends uniquely::
+
+            sage: CyclotomicField(5).ring_of_integers().valuation(ZZ.valuation(5))
+            5-adic valuation
+
+        When the extension is not unique, this does not work::
+
+            sage: GaussianIntegers().valuation(ZZ.valuation(5))
+            Traceback (most recent call last):
+            ...
+            ValueError: The valuation Gauss valuation induced by 5-adic valuation does not approximate a unique extension of 5-adic valuation with respect to x^2 + 1
+
+        If the fraction field is of the form `K[x]/(G)`, you can specify a
+        valuation by providing a discrete pseudo-valuation on `K[x]` which
+        sends `G` to infinity::
+
+            sage: R.<x> = QQ[]
+            sage: v = GaussianIntegers().valuation(GaussValuation(R, QQ.valuation(5)).augmentation(x + 2, infinity))
+            sage: w = GaussianIntegers().valuation(GaussValuation(R, QQ.valuation(5)).augmentation(x + 1/2, infinity))
+            sage: v == w
+            False
+
+        .. SEEALSO::
+
+            :meth:`NumberField_generic.valuation() <sage.rings.number_field.number_field.NumberField_generic.valuation>`,
+            :meth:`pAdicGeneric.valuation() <sage.rings.padics.padic_generic.pAdicGeneric.valuation>`
+
+        """
+        from sage.rings.padics.padic_valuation import pAdicValuation
+        return pAdicValuation(self, p)
+
     def some_elements(self):
         """
         Return a list of elements of the given order.
@@ -1129,6 +1190,7 @@ class AbsoluteOrder(Order):
 
         EXAMPLES::
 
+            sage: x = polygen(QQ)
             sage: k.<z> = NumberField(x^2 - 389)
             sage: m = k.order(3*z); m
             Order in Number Field in z with defining polynomial x^2 - 389
@@ -1136,9 +1198,26 @@ class AbsoluteOrder(Order):
             6*z
             sage: k(m(6*z))
             6*z
+
+        If ``x`` is a list or tuple the element constructed is the
+        linear combination of the generators with these coefficients
+        (see :trac:`10017`)::
+
+            sage: x = polygen(QQ)
+            sage: K.<a> = NumberField(x^3-10)
+            sage: ZK = K.ring_of_integers()
+            sage: ZK.basis()
+            [1/3*a^2 + 1/3*a + 1/3, a, a^2]
+            sage: ZK([1,2,3])
+            10/3*a^2 + 7/3*a + 1/3
+            sage: K([1,2,3])
+            3*a^2 + 2*a + 1
+
         """
         if is_Element(x) and x.parent() is self:
             return x
+        if isinstance(x, (tuple, list)):
+            x = sum(xi*gi for xi,gi in zip(x,self.gens()))
         if not is_Element(x) or x.parent() is not self._K:
             x = self._K(x)
         V, _, embedding = self._K.vector_space()

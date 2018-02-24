@@ -122,19 +122,18 @@ cdef class SatSolver:
             [((1, -3), False, None), ((2, 3, -1), False, None)]
         """
         if isinstance(filename,str):
-            file_object = open(filename,"r")
+            file_object = open(filename, "r")
         else:
             file_object = filename
         for line in file_object:
             if line.startswith("c"):
-                continue # comment
+                continue  # comment
             if line.startswith("p"):
-                continue # header
+                continue  # header
             line = line.split(" ")
-            clause = map(int,[e for e in line if e])
+            clause = [int(e) for e in line if e]
             clause = clause[:-1] # strip trailing zero
             self.add_clause(clause)
-
 
     def __call__(self, assumptions=None):
         """

@@ -81,6 +81,7 @@ With power series the behavior is the same.
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
+#                     2017 Vincent Delecroix <20100.delecroix@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -1034,32 +1035,6 @@ cdef class PowerSeries(AlgebraElement):
             num = self
         return num*inv
 
-    cpdef _floordiv_(self, denom):
-        """
-        Euclidean division (over fields) or ordinary division (over
-        other rings; deprecated).
-
-        EXAMPLES::
-
-            sage: A.<q> = GF(7)[[]]
-            sage: (q^2 - 1) // (q + 1)
-            doctest:...: UserWarning: the operator // now returns the Euclidean quotient for power series over fields, use / for the true quotient
-            6 + q + O(q^20)
-
-            sage: R.<t> = ZZ[[]]
-            sage: (t**10 - 1) // (1 + t + t^7)
-            doctest:...: DeprecationWarning: the operator // is deprecated for power series over non-fields, use / instead
-            See http://trac.sagemath.org/20062 for details.
-            -1 + t - t^2 + t^3 - t^4 + t^5 - t^6 + 2*t^7 - 3*t^8 + 4*t^9 - 4*t^10 + 5*t^11 - 6*t^12 + 7*t^13 - 9*t^14 + 12*t^15 - 16*t^16 + 20*t^17 - 25*t^18 + 31*t^19 + O(t^20)
-        """
-        try:
-            q, r = self.quo_rem(denom)
-            warn("the operator // now returns the Euclidean quotient for power series over fields, use / for the true quotient")
-            return q
-        except (AttributeError, NotImplementedError):
-            deprecation(20062, "the operator // is deprecated for power series over non-fields, use / instead")
-            return self._div_(denom)
-
     def __mod__(self, other):
         """
         EXAMPLES::
@@ -1346,7 +1321,7 @@ cdef class PowerSeries(AlgebraElement):
 
         ans = s
         if val != 0:
-            ans *= P.gen(0)**(val/2)
+            ans *= P.gen(0) ** (val // 2)
         if test_exact and ans.degree() < prec/2:
             if ans*ans == self:
                 (<PowerSeries>ans)._prec = infinity
@@ -1405,6 +1380,58 @@ cdef class PowerSeries(AlgebraElement):
                 return self.parent()(self.sqrt())
             except TypeError:
                 raise ValueError("Square root does not live in this ring.")
+
+    def nth_root(self, n, prec=None):
+        r"""
+        Return the ``n``-th root of this power series.
+
+        INPUT:
+
+        - ``n`` -- integer
+
+        - ``prec`` -- integer (optional) - precision of the result. Though, if
+          this series has finite precision, then the result can not have larger
+          precision.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[[]]
+            sage: (1+x).nth_root(5)
+            1 + 1/5*x - 2/25*x^2 + ... + 12039376311816/2384185791015625*x^19 + O(x^20)
+
+            sage: (1 + x + O(x^5)).nth_root(5)
+            1 + 1/5*x - 2/25*x^2 + 6/125*x^3 - 21/625*x^4 + O(x^5)
+
+        Check that the results are consistent with taking log and exponential::
+
+            sage: R.<x> = PowerSeriesRing(QQ, default_prec=100)
+            sage: p = (1 + 2*x - x^4)**200
+            sage: p1 = p.nth_root(1000, prec=100)
+            sage: p2 = (p.log()/1000).exp()
+            sage: p1.prec() == p2.prec() == 100
+            True
+            sage: p1.polynomial() == p2.polynomial()
+            True
+
+        Positive characteristic::
+
+            sage: R.<u> = GF(3)[[]]
+            sage: p = 1 + 2 * u^2
+            sage: p.nth_root(4)
+            1 + 2*u^2 + u^6 + 2*u^8 + u^12 + 2*u^14 + O(u^20)
+            sage: p.nth_root(4)**4
+            1 + 2*u^2 + O(u^20)
+        """
+        if prec is None:
+            prec = self.prec()
+            if prec == infinity:
+                prec = self.parent().default_prec()
+        else:
+            prec = min(self.prec(), prec)
+
+        p = self.polynomial()
+        q = p._nth_root_series(n, prec)
+        return self.parent()(q) + self.parent()(0).O(prec)
 
     def cos(self, prec=infinity):
         r"""

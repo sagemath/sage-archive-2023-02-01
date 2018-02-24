@@ -39,6 +39,8 @@ TESTS::
     True
     sage: RationalField() is RationalField()
     True
+    sage: Q in Fields().Infinite()
+    True
 
 AUTHORS:
 
@@ -531,8 +533,8 @@ class RationalField(Singleton, number_field_base.NumberField):
         except (TypeError, AttributeError):
             raise TypeError("%s is not valid bound on prime ideals" % B)
 
-        if B<2:
-            raise StopIteration
+        if B < 2:
+            return
 
         from sage.arith.all import primes
         for p in primes(B+1):
@@ -1316,6 +1318,26 @@ class RationalField(Singleton, number_field_base.NumberField):
 
         from sage.structure.factorization import Factorization
         return Factorization(F, f.leading_coefficient())
+
+    def valuation(self, p):
+        r"""
+        Return the discrete valuation with uniformizer ``p``.
+
+        EXAMPLES::
+
+            sage: v = QQ.valuation(3); v
+            3-adic valuation
+            sage: v(1/3)
+            -1
+
+        .. SEEALSO::
+
+            :meth:`NumberField_generic.valuation() <sage.rings.number_field.number_field.NumberField_generic.valuation>`,
+            :meth:`IntegerRing_class.valuation() <sage.rings.integer_ring.IntegerRing_class.valuation>`
+
+        """
+        from sage.rings.padics.padic_valuation import pAdicValuation
+        return pAdicValuation(self, p)
 
 QQ = RationalField()
 Q = QQ

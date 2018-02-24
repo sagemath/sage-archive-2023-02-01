@@ -38,6 +38,7 @@ from __future__ import absolute_import
 import __future__
 
 import hashlib, multiprocessing, os, sys, time, warnings, signal, linecache
+import errno
 import doctest, traceback
 import tempfile
 import six
@@ -48,7 +49,7 @@ from .sources import DictAsObject
 from .parsing import OriginalSource, reduce_hex
 from sage.structure.sage_object import SageObject
 from .parsing import SageOutputChecker, pre_hash, get_source
-from sage.repl.user_globals import set_globals, get_globals
+from sage.repl.user_globals import set_globals
 
 
 # All doctests run as if the following future imports are present
@@ -107,7 +108,17 @@ def init_sage():
         sage: {'a':23, 'b':34, 'au':56, 'bbf':234, 'aaa':234}
         {'a': 23, 'aaa': 234, 'au': 56, 'b': 34, 'bbf': 234}
     """
-    # Do this once before forking.
+    # We need to ensure that the Matplotlib font cache is built to
+    # avoid spurious warnings (see Trac #20222).
+    import matplotlib.font_manager
+
+    # Make sure that the agg backend is selected during doctesting.
+    # This needs to be done before any other matplotlib calls.
+    matplotlib.use('agg')
+
+    # Do this once before forking off child processes running the tests.
+    # This is more efficient because we only need to wait once for the
+    # Sage imports.
     import sage.doctest
     sage.doctest.DOCTEST_MODE=True
     import sage.all_cmdline
@@ -135,7 +146,6 @@ def init_sage():
     # Disable SymPy terminal width detection
     from sympy.printing.pretty.stringpict import stringPict
     stringPict.terminal_width = lambda self:0
-
 
 
 def showwarning_with_traceback(message, category, filename, lineno, file=sys.stdout, line=None):
@@ -168,6 +178,7 @@ def showwarning_with_traceback(message, category, filename, lineno, file=sys.std
     lines.extend(traceback.format_exception_only(category, message))
     try:
         file.writelines(lines)
+        file.flush()
     except IOError:
         pass # the file is invalid
 
@@ -1163,7 +1174,8 @@ class SageDocTestRunner(doctest.DocTestRunner):
                 34
             **********************************************************************
             Previously executed commands:
-            ...
+            sage: sage0._expect.expect('sage: ')   # sage0 just mis-identified the output as prompt, synchronize
+            0
             sage: sage0.eval("a")
             '...17'
             sage: sage0.eval("quit")
@@ -1747,12 +1759,8 @@ class DocTestDispatcher(SageObject):
 
             # Kill all remaining workers (in case we got interrupted)
             for w in workers:
-                try:
-                    w.kill()
-                except Exception:
-                    pass
-                else:
-                    log("Killing test %s"%w.source.printpath)
+                if w.kill():
+                    log("Killing test %s" % w.source.printpath)
             # Fork a child process with the specific purpose of
             # killing the remaining workers.
             if len(workers) > 0 and os.fork() == 0:
@@ -1762,10 +1770,7 @@ class DocTestDispatcher(SageObject):
                         from time import sleep
                         sleep(die_timeout)
                         for w in workers:
-                            try:
-                                w.kill()
-                            except Exception:
-                                pass
+                            w.kill()
                     finally:
                         os._exit(0)
 
@@ -2060,7 +2065,8 @@ class DocTestWorker(multiprocessing.Process):
 
     def kill(self):
         """
-        Kill this worker
+        Kill this worker.  Returns ``True`` if the signal(s) are sent
+        successfully or ``False`` if the worker process no longer exists.
 
         This method is only called if there is something wrong with the
         worker. Under normal circumstances, the worker is supposed to
@@ -2098,10 +2104,12 @@ class DocTestWorker(multiprocessing.Process):
             sage: W.killed
             False
             sage: W.kill()
+            True
             sage: W.killed
             True
             sage: time.sleep(0.2)  # Worker doesn't die
             sage: W.kill()         # Worker dies now
+            True
             sage: time.sleep(0.2)
             sage: W.is_alive()
             False
@@ -2109,11 +2117,23 @@ class DocTestWorker(multiprocessing.Process):
         if self.rmessages is not None:
             os.close(self.rmessages)
             self.rmessages = None
-        if not self.killed:
-            self.killed = True
-            os.killpg(self.pid, signal.SIGQUIT)
-        else:
-            os.killpg(self.pid, signal.SIGKILL)
+
+        try:
+            if not self.killed:
+                self.killed = True
+                os.killpg(self.pid, signal.SIGQUIT)
+            else:
+                os.killpg(self.pid, signal.SIGKILL)
+        except OSError as exc:
+            # Handle a race condition where the process has exited on
+            # its own by the time we get here, and ESRCH is returned
+            # indicating no processes in the specified process group
+            if exc.errno != errno.ESRCH:
+                raise
+
+            return False
+
+        return True
 
 
 class DocTestTask(object):

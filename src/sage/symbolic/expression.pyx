@@ -2208,7 +2208,7 @@ cdef class Expression(CommutativeRingElement):
 
     def _is_registered_constant_(self):
         """
-        Return True if this symbolic expression is interally represented as
+        Return True if this symbolic expression is internally represented as
         a constant.
 
         This function is intended to provide an interface to query the internal
@@ -3068,6 +3068,9 @@ cdef class Expression(CommutativeRingElement):
         """
         Return True if this expression is a unit of the symbolic ring.
 
+        Note that a proof may be attempted to get the result. To avoid
+        this use ``(ex-1).is_trivial_zero()``.
+
         EXAMPLES::
 
             sage: SR(1).is_unit()
@@ -3292,7 +3295,7 @@ cdef class Expression(CommutativeRingElement):
         Check if Pynac can compute inverses of Python longs (:trac:`13107`)::
 
             sage: SR(4L)*SR(2L)^(-1)
-            2.0
+            2
 
         Check for simplifications when multiplying instances of exp::
 
@@ -3379,6 +3382,15 @@ cdef class Expression(CommutativeRingElement):
             -1.00000000000000
             sage: sin(1.0*pi)
             sin(1.00000000000000*pi)
+
+        Check that infinities multiply correctly (:trac:`23427`)::
+
+            sage: SR(-oo) * SR(-oo)
+            +Infinity
+            sage: SR(-oo) * SR(oo)
+            -Infinity
+            sage: SR(-oo) * SR(unsigned_infinity)
+            Infinity
         """
         cdef GEx x
         cdef Expression _right = <Expression>right
@@ -3484,7 +3496,7 @@ cdef class Expression(CommutativeRingElement):
         Check if Pynac can compute divisions of Python longs (:trac:`13107`)::
 
             sage: SR(1L)/SR(2L)
-            0.5
+            1/2
         """
         cdef GEx x
         cdef Expression _right = <Expression>right
@@ -3772,23 +3784,17 @@ cdef class Expression(CommutativeRingElement):
         """
         return print_order_compare_mul(left._gobj, right._gobj)
 
-    def __pow__(self, exp, ignored):
+    cpdef _pow_(self, other):
         """
-        Return self raised to the power of exp.
+        Return ``self`` raised to the power ``other``.
 
-        INPUT:
-
-        - ``exp`` -- something that coerces to a symbolic expression.
-
-        OUTPUT:
-
-        A symbolic expression.
+        OUTPUT: a symbolic expression
 
         EXAMPLES::
 
             sage: var('x,y')
             (x, y)
-            sage: x.__pow__(y)
+            sage: x._pow_(y)
             x^y
             sage: x^(3/5)
             x^(3/5)
@@ -3909,7 +3915,7 @@ cdef class Expression(CommutativeRingElement):
         Test if we can compute inverses of Python longs (:trac:`13107`)::
 
             sage: SR(2L)^(-1)
-            0.5
+            1/2
 
         Symbolic powers with ``None`` shouldn't crash (:trac:`17523`)::
 
@@ -3949,27 +3955,30 @@ cdef class Expression(CommutativeRingElement):
             sage: (elem, elem.parent())
             (2^n, Asymptotic Ring <SR^n * n^SR> over Symbolic Ring)
         """
-        cdef Expression base, nexp
-
-        cdef int cl = classify_elements(self, exp)
+        cdef Expression nexp = <Expression>other
         cdef GEx x
-        if HAVE_SAME_PARENT(cl):
-            base = <Expression>self
-            nexp = <Expression>exp
-            if is_a_relational(base._gobj):
-                x = relational(g_pow(base._gobj.lhs(), nexp._gobj),
-                               g_pow(base._gobj.rhs(), nexp._gobj),
-                               relational_operator(base._gobj))
-            else:
-                x = g_pow(base._gobj, nexp._gobj)
-            return new_Expression_from_GEx(base._parent, x)
-        if BOTH_ARE_ELEMENT(cl):
-            return coercion_model.bin_op(self, exp, pow)
+        if is_a_relational(self._gobj):
+            x = relational(g_pow(self._gobj.lhs(), nexp._gobj),
+                           g_pow(self._gobj.rhs(), nexp._gobj),
+                           relational_operator(self._gobj))
+        else:
+            x = g_pow(self._gobj, nexp._gobj)
+        return new_Expression_from_GEx(self._parent, x)
 
-        try:
-            return coercion_model.bin_op(self, exp, pow)
-        except TypeError:
-            return NotImplemented
+    cpdef _pow_int(self, other):
+        """
+        TESTS::
+
+            sage: var('x')
+            x
+            sage: cos(x)._pow_int(-3)
+            cos(x)^(-3)
+            sage: SR(-oo)._pow_int(2)
+            +Infinity
+            sage: pi._pow_int(4)
+            pi^4
+        """
+        return self._pow_(self._parent(other))
 
     def derivative(self, *args):
         """
@@ -5557,7 +5566,7 @@ cdef class Expression(CommutativeRingElement):
             sage: abs(x).operator()
             abs
             sage: r = gamma(x).operator(); type(r)
-            <class 'sage.functions.other.Function_gamma'>
+            <class 'sage.functions.gamma.Function_gamma'>
 
             sage: psi = function('psi', nargs=1)
             sage: psi(x).operator()
@@ -5806,6 +5815,11 @@ cdef class Expression(CommutativeRingElement):
             162.000000000000
             sage: (ex+1).n()
             163.000000000000
+
+        Check if :trac:`24418` is fixed::
+
+            sage: numerical_approx(2^(450232897/4888643760))
+            1.06591892580915
         """
         if prec is None:
             prec = digits_to_bits(digits)
@@ -6250,6 +6264,17 @@ cdef class Expression(CommutativeRingElement):
             [[sin(x^2 + 1)*sin(x + 1), 0]]
             sage: (sin(1+x)*sin(1+x^2)*x).coefficients(x)
             [[sin(x^2 + 1)*sin(x + 1), 1]]
+
+        Check that :trac:`23545` is fixed::
+
+            sage: (x^2/(1+x)).coefficients()
+            [[x^2/(x + 1), 0]]
+            sage: (1+x+exp(x^2/(1+x))).coefficients()
+            [[e^(x^2/(x + 1)) + 1, 0], [1, 1]]
+            sage: (1/x).coefficients()
+            [[1, -1]]
+            sage: ((1+x)^pi).coefficients()
+            [[(x + 1)^pi, 0]]
         """
         cdef vector[pair[GEx,GEx]] vec
         cdef pair[GEx,GEx] gexpair
@@ -6631,8 +6656,8 @@ cdef class Expression(CommutativeRingElement):
         for Z in G:
             coeff = SR(Z[0])
             n = SR(Z[1])
-            if repr(coeff) != '0':
-                if repr(n) == '0':
+            if not coeff.is_trivial_zero():
+                if n.is_trivial_zero():
                     xpow = SR(1)
                 elif repr(n) == '1':
                     xpow = x
@@ -6950,7 +6975,7 @@ cdef class Expression(CommutativeRingElement):
 
     def gcd(self, b):
         r"""
-        Return the gcd of self and b.
+        Return the symbolic gcd of self and b.
 
         Note that the polynomial GCD is unique up to the multiplication
         by an invertible constant. The following examples make sure all
@@ -6977,6 +7002,22 @@ cdef class Expression(CommutativeRingElement):
             sage: r = gcd(expand( (x^2+17*x+3/7*y)*(x^5 - 17*y + 2/3) ), expand((x^13+17*x+3/7*y)*(x^5 - 17*y + 2/3)) )
             sage: r / (x^5 - 17*y + 2/3) in QQ
             True
+
+        Embedded Sage objects of all kinds get basic support. Note that
+        full algebraic GCD is not implemented yet::
+
+            sage: gcd(I - I*x, x^2 - 1)
+            x - 1
+            sage: gcd(I + I*x, x^2 - 1)
+            x + 1
+            sage: alg = SR(QQbar(sqrt(2) + I*sqrt(3)))
+            sage: gcd(alg + alg*x, x^2 - 1)
+            x + 1
+            sage: gcd(alg - alg*x, x^2 - 1)
+            x - 1
+            sage: sqrt2 = SR(QQbar(sqrt(2)))
+            sage: gcd(sqrt2 + x, x^2 - 2)    # known bug
+            1
 
         TESTS:
 
@@ -7009,6 +7050,12 @@ cdef class Expression(CommutativeRingElement):
  
             sage: gcd(I + I*x, x^2 - 1)
             x + 1
+
+        Check that arguments are expanded before GCD (:trac:`23845`)::
+
+            sage: P = (x+1)^2 + 1
+            sage: gcd(P, P.expand())
+            x^2 + 2*x + 2
         """
         cdef Expression r = self.coerce_in(b)
         cdef GEx x
@@ -7233,7 +7280,7 @@ cdef class Expression(CommutativeRingElement):
         """
         sb = self * b
         try:
-            return 0 if sb == 0 else sb / self.gcd(b)
+            return 0 if sb.is_trivial_zero() else sb / self.gcd(b)
         except ValueError:
             # make the error message refer to lcm, not gcd
             raise ValueError("lcm: arguments must be polynomials over the rationals")
@@ -8280,9 +8327,9 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(I).arctan2(1)
             arctan2(I, 1)
             sage: SR(CDF(0,1)).arctan2(1)
-            arctan2(1.0*I, 1)
-            sage: SR(1).arctan2(CDF(0,1))
-            arctan2(1, 1.0*I)
+            NaN + +infinity*I
+            sage: SR(1).arctan2(CDF(0,1))   # known bug
+            0.7853981633974484 - 19.012501686914433*I
 
             sage: arctan2(0,oo)
             0
@@ -8591,7 +8638,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(0).arctanh()
             0
             sage: SR(1/2).arctanh()
-            arctanh(1/2)
+            1/2*log(3)
             sage: SR(0.5).arctanh()
             0.549306144334055
             sage: SR(0.5).arctanh().tanh()
@@ -8602,7 +8649,7 @@ cdef class Expression(CommutativeRingElement):
         To prevent automatic evaluation use the ``hold`` argument::
 
             sage: SR(-1/2).arctanh()
-            -arctanh(1/2)
+            -1/2*log(3)
             sage: SR(-1/2).arctanh(hold=True)
             arctanh(-1/2)
 
@@ -8611,12 +8658,12 @@ cdef class Expression(CommutativeRingElement):
             sage: arctanh(-1/2,hold=True)
             arctanh(-1/2)
             sage: arctanh(-1/2)
-            -arctanh(1/2)
+            -1/2*log(3)
 
         To then evaluate again, we use :meth:`unhold`::
 
             sage: a = SR(-1/2).arctanh(hold=True); a.unhold()
-            -arctanh(1/2)
+            -1/2*log(3)
 
         TESTS::
 
@@ -11608,7 +11655,7 @@ cdef class Expression(CommutativeRingElement):
             raise ValueError("Symbolic equation must be an equality.")
         from sage.numerical.optimize import find_root
         if self.number_of_arguments() == 0:
-            if bool(self == 0):
+            if self.is_trivial_zero():
                 return a
             else:
                 raise RuntimeError("no zero in the interval, since constant expression is not 0.")

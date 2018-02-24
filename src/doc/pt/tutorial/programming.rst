@@ -341,7 +341,7 @@ Sage):
 
 ::
 
-    sage: range(1, 15)
+    sage: range(1, 15)  # py2
     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
 
 Isso é útil quando se usa "list comprehensions" para construir listas:
@@ -693,7 +693,7 @@ o int ``1`` do Python é único, mas o Inteiro ``1`` do Sage não é.
 
     sage: 1 is 2/2
     False
-    sage: int(1) is int(2)/int(2)  # optional - python2
+    sage: int(1) is int(2)/int(2)  # py2
     True
     sage: 1 is 1
     False

@@ -225,6 +225,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfi import RealIntervalField, RealIntervalField_class
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.cpython.string cimport char_to_str
 
 cdef void mpfi_to_arb(arb_t target, const mpfi_t source, const long precision):
     """
@@ -558,7 +559,7 @@ class RealBallField(UniqueRepresentation, Field):
             sage: RBF = RealBallField(42)
             sage: functor, base = RBF.construction()
             sage: functor, base
-            (Completion[+Infinity], Rational Field)
+            (Completion[+Infinity, prec=42], Rational Field)
             sage: functor(base) is RBF
             True
         """
@@ -654,11 +655,85 @@ class RealBallField(UniqueRepresentation, Field):
                 self(sage.rings.infinity.Infinity), ~self(0),
                 self.element_class(self, sage.symbolic.constants.NotANumber())]
 
+    # Constants
+
+    def pi(self):
+        r"""
+        Return a ball enclosing `\pi`.
+
+        EXAMPLES::
+
+            sage: RBF.pi()
+            [3.141592653589793 +/- 5.61e-16]
+            sage: RealBallField(128).pi()
+            [3.1415926535897932384626433832795028842 +/- 1.65e-38]
+        """
+        cdef RealBall res = RealBall.__new__(RealBall)
+        res._parent = self
+        if _do_sig(self._prec): sig_on()
+        arb_const_pi(res.value, self._prec)
+        if _do_sig(self._prec): sig_off()
+        return res
+
+    def log2(self):
+        r"""
+        Return a ball enclosing `\log(2)`.
+
+        EXAMPLES::
+
+            sage: RBF.log2()
+            [0.693147180559945 +/- 3.98e-16]
+            sage: RealBallField(128).log2()
+            [0.69314718055994530941723212145817656807 +/- 7.70e-39]
+        """
+        cdef RealBall res = RealBall.__new__(RealBall)
+        res._parent = self
+        if _do_sig(self._prec): sig_on()
+        arb_const_log2(res.value, self._prec)
+        if _do_sig(self._prec): sig_off()
+        return res
+
+    def euler_constant(self):
+        r"""
+        Return a ball enclosing the Euler constant.
+
+        EXAMPLES::
+
+            sage: RBF.euler_constant()
+            [0.577215664901533 +/- 3.57e-16]
+            sage: RealBallField(128).euler_constant()
+            [0.57721566490153286060651209008240243104 +/- 3.25e-39]
+        """
+        cdef RealBall res = RealBall.__new__(RealBall)
+        res._parent = self
+        if _do_sig(self._prec): sig_on()
+        arb_const_euler(res.value, self._prec)
+        if _do_sig(self._prec): sig_off()
+        return res
+
+    def catalan_constant(self):
+        r"""
+        Return a ball enclosing the Catalan constant.
+
+        EXAMPLES::
+
+            sage: RBF.catalan_constant()
+            [0.915965594177219 +/- 1.23e-16]
+            sage: RealBallField(128).catalan_constant()
+            [0.91596559417721901505460351493238411077 +/- 6.37e-39]
+        """
+        cdef RealBall res = RealBall.__new__(RealBall)
+        res._parent = self
+        if _do_sig(self._prec): sig_on()
+        arb_const_catalan(res.value, self._prec)
+        if _do_sig(self._prec): sig_off()
+        return res
+
     # Ball functions of non-ball arguments
 
     def sinpi(self, x):
         """
-        Return a ball enclosing sin(πx).
+        Return a ball enclosing `\sin(\pi x)`.
 
         This works even if ``x`` itself is not a ball, and may be faster or
         more accurate where ``x`` is a rational number.
@@ -704,7 +779,7 @@ class RealBallField(UniqueRepresentation, Field):
 
     def cospi(self, x):
         """
-        Return a ball enclosing cos(πx).
+        Return a ball enclosing `\cos(\pi x)`.
 
         This works even if ``x`` itself is not a ball, and may be faster or
         more accurate where ``x`` is a rational number.
@@ -1338,11 +1413,10 @@ cdef class RealBall(RingElement):
            [2e+0 +/- 0.101]
         """
         cdef char* c_result
-        cdef bytes py_string
 
         c_result = arb_get_str(self.value, (prec(self) * 31) // 100, 0)
         try:
-            py_string = c_result
+            py_string = char_to_str(c_result)
         finally:
             flint_free(c_result)
 
@@ -3382,7 +3456,7 @@ cdef class RealBall(RingElement):
             sage: RBF(1/2).polylog(1)
             [0.6931471805599 +/- 5.02e-14]
             sage: RBF(1/3).polylog(1/2)
-            [0.44210883528067 +/- 6.75e-15]
+            [0.44210883528067 +/- 6.7...e-15]
             sage: RBF(1/3).polylog(RLF(pi))
             [0.34728895057225 +/- 5.51e-15]
 
@@ -3482,7 +3556,7 @@ cdef class RealBall(RingElement):
             sage: RBF(1).agm(1)
             1.000000000000000
             sage: RBF(sqrt(2)).agm(1)^(-1)
-            [0.83462684167407 +/- 4.31e-15]
+            [0.83462684167407 +/- 3.9...e-15]
         """
         cdef RealBall other_as_ball
         cdef RealBall res = self._new()

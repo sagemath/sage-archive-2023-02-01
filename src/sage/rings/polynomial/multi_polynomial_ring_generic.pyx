@@ -12,6 +12,7 @@ from sage.structure.parent cimport Parent
 from sage.structure.richcmp cimport rich_to_bool, richcmp
 from cpython.object cimport Py_NE
 
+import sage.categories as categories
 from sage.categories.commutative_rings import CommutativeRings
 _CommutativeRings = CommutativeRings()
 
@@ -69,7 +70,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         if n < 0:
             raise ValueError("Multivariate Polynomial Rings must " + \
                   "have more than 0 variables.")
-        order = TermOrder(order,n)
+        order = TermOrder(order, n)
         self.__ngens = n
         self.__term_order = order
         self._has_singular = False #cannot convert to Singular by default
@@ -78,8 +79,12 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         # It would be a mistake to call ParentWithGens.__init__
         # as well, assigning the names twice.
         #ParentWithGens.__init__(self, base_ring, names)
-        sage.rings.ring.Ring.__init__(self, base_ring, names,
-                                      category=polynomial_default_category(base_ring.category(),n>1))
+        if base_ring.is_zero():
+            category = categories.rings.Rings().Finite()
+        else:
+            category = polynomial_default_category(base_ring.category(), n)
+
+        sage.rings.ring.Ring.__init__(self, base_ring, names, category=category)
 
     def is_integral_domain(self, proof = True):
         """
@@ -553,36 +558,46 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         return 'PolynomialRing(%s,[%s])'%(self.base_ring()._gap_init_(),','.join(L))
 
     def is_finite(self):
-        """
-        Tell whether ``self`` is finite.
+        r"""
+        Test whether this multivariate polynomial ring is finite.
 
-        NOTE:
+        .. TODO::
 
-        ``self`` is finite if and only if it has no variables
-        and the base ring is finite.
+            This should be handled by categories but ``sage.rings.Ring`` does
+            implement a ``is_finite`` method that overrides that category
+            implementation.
 
         EXAMPLES::
 
-            sage: P = PolynomialRing(QQ,names=[])
-            sage: P.is_finite()
+            sage: PolynomialRing(QQ, names=[]).is_finite()
             False
-            sage: P = PolynomialRing(GF(5),names=[])
-            sage: P.is_finite()
+            sage: PolynomialRing(GF(5), names=[]).is_finite()
             True
-            sage: P = PolynomialRing(GF(5),names=['x'])
-            sage: P.is_finite()
+            sage: PolynomialRing(GF(5),names=['x']).is_finite()
             False
+            sage: PolynomialRing(Zmod(1), names=['x','y']).is_finite()
+            True
         """
-        if self.ngens() == 0:
-            return self.base_ring().is_finite()
-        return False
+        category = self.category()
+        return category is category.Finite()
 
     def is_field(self, proof = True):
         """
-        Return True if this multivariate polynomial ring is a field, i.e.,
-        it is a ring in 0 generators over a field.
+        Test whether this multivariate polynomial ring is a field.
+
+        A polynomial ring is a field when there are no variable and the base
+        ring is a field.
+
+        EXAMPLES::
+
+            sage: PolynomialRing(QQ, 'x', 2).is_field()
+            False
+            sage: PolynomialRing(QQ, 'x', 0).is_field()
+            True
+            sage: PolynomialRing(ZZ, 'x', 0).is_field()
+            False
         """
-        if self.ngens() == 0:
+        if not self.ngens():
             return self.base_ring().is_field(proof)
         return False
 

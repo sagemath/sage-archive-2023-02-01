@@ -241,7 +241,7 @@ The following should not timeout even on a very slow machine::
 
 As for ``reduce_locally``, one should not see any difference, except for speed
 during normal usage. Most of the time the user should leave it to ``True``,
-unless he sets up a mecanism to consume the partial results as soon as they
+unless he sets up a mechanism to consume the partial results as soon as they
 arrive. See :class:`RESetParallelIterator` and in particular the ``__iter__``
 method for a example of consumer use.
 

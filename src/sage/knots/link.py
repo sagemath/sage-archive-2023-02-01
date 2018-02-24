@@ -559,6 +559,18 @@ class Link(object):
                 return True
         return self.braid() == other.braid()
 
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(8)
+            sage: L1 = Link(B([-1, -1, -1, -2, 1, -2, 3, -2, 5, 4]))
+            sage: H = hash(L1)
+        """
+        return hash(self.braid())
+
     def __ne__(self, other):
         """
         Check inequality.
@@ -2774,7 +2786,7 @@ class Link(object):
         values = MLP.get_values(v)
         for i in range(len(edges)):
             s[i] = int(values[2*i] - values[2*i + 1])
-        # segments represents the different parts of the previos edges after bending
+        # segments represents the different parts of the previous edges after bending
         segments = {e: [(e,i) for i in range(abs(s[edges.index(e)])+1)] for e in edges}
         pieces = {tuple(i): [i] for j in segments.values() for i in j}
         nregions = []

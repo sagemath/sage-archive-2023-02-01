@@ -2,7 +2,7 @@ r"""
 Similarity class types of matrices with entries in a finite field
 
 The notion of a matrix conjugacy class type was introduced by J. A. Green in
-[Green55]_, in the context of computing the irreducible charcaters of finite
+[Green55]_, in the context of computing the irreducible characters of finite
 general linear groups. The class types are equivalence classes of similarity
 classes of square matrices with entries in a finite field which, roughly
 speaking, have the same qualitative properties.

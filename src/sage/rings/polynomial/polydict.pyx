@@ -46,7 +46,7 @@ from cysignals.memory cimport sig_malloc, sig_free
 
 import copy
 from functools import reduce
-from sage.structure.element import generic_power
+from sage.arith.power import generic_power
 from sage.misc.misc import cputime
 from sage.misc.latex import latex
 from sage.misc.superseded import deprecation
@@ -164,7 +164,7 @@ cdef class PolyDict:
 
     def list(PolyDict self):
         """
-        Return a list that defines self. It is safe to change this.
+        Return a list that defines ``self``. It is safe to change this.
 
         EXAMPLES::
 
@@ -303,7 +303,7 @@ cdef class PolyDict:
         return min(_min)
 
     def total_degree(PolyDict self):
-        return max([-1] + map(sum, self.__repn.keys()))
+        return max([-1] + [sum(k) for k in self.__repn.keys()])
 
     def monomial_coefficient(PolyDict self, mon):
         """
@@ -408,7 +408,7 @@ cdef class PolyDict:
         return PolyDict(H, zero=self.__zero, force_etuples=False)
 
     def latex(PolyDict self, vars, atomic_exponents=True,
-              atomic_coefficients=True, cmpfn=None, sortkey=None):
+              atomic_coefficients=True, sortkey=None):
         r"""
         Return a nice polynomial latex representation of this PolyDict, where
         the vars are substituted in.
@@ -416,8 +416,8 @@ cdef class PolyDict:
         INPUT:
 
         - ``vars`` -- list
-        - ``atomic_exponents`` -- bool (default: True)
-        - ``atomic_coefficients`` -- bool (default: True)
+        - ``atomic_exponents`` -- bool (default: ``True``)
+        - ``atomic_coefficients`` -- bool (default: ``True``)
 
         EXAMPLES::
 
@@ -445,12 +445,9 @@ cdef class PolyDict:
         """
         n = len(vars)
         poly = ""
-        E = self.__repn.keys()
+        E = list(self.__repn)
         if sortkey:
             E.sort(key=sortkey, reverse=True)
-        elif cmpfn:
-            deprecation(21766, 'the cmpfn keyword is deprecated, use sortkey')
-            E.sort(cmp=cmpfn, reverse=True)
         else:
             E.sort(reverse=True)
         try:
@@ -498,7 +495,7 @@ cdef class PolyDict:
         return poly
 
     def poly_repr(PolyDict self, vars, atomic_exponents=True,
-                  atomic_coefficients=True, cmpfn=None, sortkey=None):
+                  atomic_coefficients=True, sortkey=None):
         """
         Return a nice polynomial string representation of this PolyDict, where
         the vars are substituted in.
@@ -538,12 +535,9 @@ cdef class PolyDict:
         """
         n = len(vars)
         poly = ""
-        E = self.__repn.keys()
+        E = list(self.__repn)
         if sortkey:
             E.sort(key=sortkey, reverse=True)
-        elif cmpfn:
-            deprecation(21766, 'the cmpfn keyword is deprecated, use sortkey')
-            E.sort(cmp=cmpfn, reverse=True)
         else:
             E.sort(reverse=True)
         try:
@@ -646,20 +640,6 @@ cdef class PolyDict:
             sage: g = PolyDict({(1,5):-3, (2,3):-2, (1,1):3})
             sage: f*g
             PolyDict with representation {(2, 3): 9, (3, 2): 12, (2, 7): -9, (3, 5): -6, (4, 6): -4, (3, 4): 6, (3, 6): -12, (4, 4): -8, (3, 8): -6}
-
-        Next we multiply two polynomials with fractional exponents in 3 variables::
-
-            # I've removed fractional exponent support in ETuple when moving to a sparse C integer array
-            #sage: f = PolyDict({(2/3,3,5):2, (1,2,1):3, (2,1,1):4}, force_int_exponents=False)
-            #sage: g = PolyDict({(2/3,3,5):3}, force_int_exponents=False)
-            #sage: f*g
-            #PolyDict with representation {(8/3, 4, 6): 12, (5/3, 5, 6): 9, (4/3, 6, 10): 6}
-
-        Finally we print the result in a nice format. ::
-
-            # I've removed fractional exponent support in ETuple when moving to a sparse C integer array
-            #sage: (f*g).poly_repr(['a', 'b', 'c'], atomic_exponents = False)
-            #'12*a^(8/3)*b^(4)*c^(6) + 9*a^(5/3)*b^(5)*c^(6) + 6*a^(4/3)*b^(6)*c^(10)'
         """
         cdef PyObject *cc
         newpoly = {}
@@ -766,7 +746,9 @@ cdef class PolyDict:
             sage: (f-f)**0
             PolyDict with representation {0: 1}
         """
-        return generic_power(self, n, self.__one())
+        if not n:
+            return self.__one()
+        return generic_power(self, n)
 
     def lcmt(PolyDict self, greater_etuple):
         """

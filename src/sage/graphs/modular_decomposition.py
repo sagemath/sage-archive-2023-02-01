@@ -250,8 +250,8 @@ def modular_decomposition(graph):
 
     INPUT:
 
-    - ``graph`` -- The graph for which modular decompostion
-                   tree needs to be computed
+    - ``graph`` -- The graph for which modular decomposition
+      tree needs to be computed
 
     OUTPUT:
 
@@ -2505,7 +2505,7 @@ def test_modular_decomposition(tree_root, graph):
             if not test_modular_decomposition(module,
                                               graph.subgraph(
                                                   get_vertices(module))):
-                # recursively test the modular decompostion subtrees
+                # recursively test the modular decomposition subtrees
                 return False
 
         if not test_maximal_modules(tree_root, graph):
@@ -2622,7 +2622,7 @@ def form_module(index, other_index, tree_root, graph):
     OUTPUT:
 
     ``[module_formed, vertices]`` where ``module_formed`` is ``True`` if
-    module is formed else ``False`` and ``vertices`` is a list of verices
+    module is formed else ``False`` and ``vertices`` is a list of vertices
     included in the formed module
 
     EXAMPLES::

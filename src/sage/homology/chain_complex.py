@@ -1837,6 +1837,15 @@ class ChainComplex_class(Parent):
             sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
             sage: C._latex_()
             '\\Bold{Z}^{3} \\xrightarrow{d_{0}} \\Bold{Z}^{2}'
+
+            sage: ChainComplex()._latex_()
+            '0'
+
+            sage: G = AdditiveAbelianGroup([0, 0])
+            sage: m = matrix([0])
+            sage: C = ChainComplex(grading_group=G, degree=G(vector([1,2])), data={G.zero(): m})
+            sage: C._latex_()
+            '\\dots \\xrightarrow{d_{\\text{\\texttt{(0,{ }0)}}}} \\Bold{Z}^{1} \\xrightarrow{d_{\\text{\\texttt{(1,{ }2)}}}} \\dots'
         """
 #         Warning: this is likely to screw up if, for example, the
 #         degree of the differential is 2 and there are nonzero terms
@@ -1847,34 +1856,36 @@ class ChainComplex_class(Parent):
 #         dimension 3, etc.  I don't know how much effort should be
 #         put into trying to fix this.
         string = ""
-        dict = self._diff
+        diffs = self._diff
+        if len(diffs) == 0:
+            return "0"
         deg = self.degree_of_differential()
         ring = self.base_ring()
         if self.grading_group() != ZZ:
-            guess = next(iter(dict))
-            if guess - deg in dict:
+            guess = next(iter(diffs))
+            if guess - deg in diffs:
                 string += "\\dots \\xrightarrow{d_{%s}} " % latex(guess-deg)
-            string += _latex_module(ring, dict[guess].ncols())
+            string += _latex_module(ring, diffs[guess].ncols())
             string += " \\xrightarrow{d_{%s}} \\dots" % latex(guess)
         else:
             backwards = (deg < 0)
-            sorted_list = sorted(dict.keys(), reverse=backwards)
-            if len(dict) <= 6:
+            sorted_list = sorted(diffs.keys(), reverse=backwards)
+            if len(diffs) <= 6:
                 for n in sorted_list[1:-1]:
-                    mat = dict[n]
+                    mat = diffs[n]
                     string += _latex_module(ring, mat.ncols())
                     string += " \\xrightarrow{d_{%s}} " % latex(n)
-                mat = dict[sorted_list[-1]]
+                mat = diffs[sorted_list[-1]]
                 string += _latex_module(ring, mat.ncols())
             else:
                 for n in sorted_list[:2]:
-                    mat = dict[n]
+                    mat = diffs[n]
                     string += _latex_module(ring, mat.ncols())
                     string += " \\xrightarrow{d_{%s}} " % latex(n)
                 string += "\\dots "
                 n = sorted_list[-2]
                 string += "\\xrightarrow{d_{%s}} " % latex(n)
-                mat = dict[sorted_list[-1]]
+                mat = diffs[sorted_list[-1]]
                 string += _latex_module(ring, mat.ncols())
         return string
 

@@ -3600,9 +3600,16 @@ const numeric numeric::tan() const {
 }
 
 const numeric numeric::asin(PyObject* parent) const {
-        if (is_real() and (*this < (*_num_1_p) or *this > (*_num1_p)))
-                return ex_to<numeric>(NaN.evalf(0, parent));
-        return arbfunc_0arg("arcsin", parent);
+        int prec = precision(*this, parent);
+        PyObject* field = CBF(prec+15);
+        PyObject* ret = CallBallMethod0Arg(field, const_cast<char*>("arcsin"), *this);
+        Py_DECREF(field);
+
+        numeric rnum(ret);
+        if ((is_real() or imag().is_zero()) and *this > (*_num1_p))
+                return ex_to<numeric>((rnum.imag()*I).evalf(0, parent));
+        
+        return ex_to<numeric>(rnum.evalf(0, parent));
 }
 
 const numeric numeric::acos(PyObject* parent) const {
@@ -3612,8 +3619,6 @@ const numeric numeric::acos(PyObject* parent) const {
         Py_DECREF(field);
 
         numeric rnum(ret);
-        // necessary because of
-        // https://github.com/fredrik-johansson/arb/issues/198
         if ((is_real() or imag().is_zero()) and *this > (*_num1_p))
                 return ex_to<numeric>((rnum.imag()*I).evalf(0, parent));
         

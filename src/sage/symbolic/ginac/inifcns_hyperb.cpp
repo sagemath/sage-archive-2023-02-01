@@ -848,10 +848,6 @@ static ex atanh_eval(const ex & x)
 		if (num.is_minus_one())
 			return NegInfinity;
 
-                // atanh(real) outside (-1,1)
-                if (num.is_real() and abs(num) > *_num1_p)
-                        return NaN;
-
 		// atanh() is odd
 		if (num.is_negative())
 			return -atanh(-x);
@@ -966,9 +962,6 @@ static ex acoth_eval(const ex & x)
                 //acoth(float) -> float 
                 if (not num.is_exact())
                         return atanh(num.inverse());
-                // acoth(real) inside (-1,1)
-                if (num.is_real() and abs(num) < *_num1_p)
-                        return NaN;
                 // acoth() is odd
                 if (num.is_negative())
                         return -acoth(num.negative());

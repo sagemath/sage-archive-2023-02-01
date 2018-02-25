@@ -1133,9 +1133,6 @@ static ex asin_eval(const ex & x)
 
 		if (x.info(info_flags::inexact)) {
                         const numeric& num = ex_to<numeric>(x);
-                        if (num.is_real()
-                            and (num < *_num_1_p or num > *_num1_p))
-                                return NaN;
 
                         // asin(float) -> float
                         return asin(num);
@@ -1215,9 +1212,6 @@ static ex acos_eval(const ex & x)
 
 		if (x.info(info_flags::inexact)) {
                         const numeric& num = ex_to<numeric>(x);
-                        if (num.is_real()
-                            and (num < *_num_1_p or num > *_num1_p))
-                                return NaN;
 
                         // acos(float) -> float
                         return acos(num);
@@ -1582,9 +1576,6 @@ static ex asec_evalf(const ex & x, PyObject* parent)
 	if (is_exactly_a<numeric>(x))
         {
                 const numeric& num = ex_to<numeric>(x);
-                if (num.is_real()
-                    and (num > *_num_1_p and num < *_num1_p))
-                        return NaN;
                 return acos(num.inverse());
         }
 
@@ -1652,9 +1643,6 @@ static ex acsc_evalf(const ex & x, PyObject* parent)
 {
 	if (is_exactly_a<numeric>(x)) {
                 const numeric& num = ex_to<numeric>(x);
-                if (num.is_real()
-                    and (num > *_num_1_p and num < *_num1_p))
-                        return NaN;
 		return asin(num.inverse());
         }
 

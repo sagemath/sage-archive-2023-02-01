@@ -109,7 +109,7 @@ WORKDIR $SAGE_ROOT
 RUN git fetch "$HOME/sage-context" HEAD \
     && if [ -e docker/commit ]; then \
           git reset `cat docker/commit` \
-          || ( echo "Could not find commit `cat docker/commit` in your local Git history. Please merge in the latest develop branch to fix this: git fetch trac && git merge trac/develop." && exit 1 ) \
+          || ( echo "Could not find commit `cat docker/commit` in your local Git history. Please merge in the latest built develop branch to fix this: git fetch trac && git merge `cat docker/commit`." && exit 1 ) \
        else \
           echo "You are building from $ARTIFACT_BASE which has no docker/commit file. That's a bug unless you are building from source-clean or something similar." \
           && git reset FETCH_HEAD \

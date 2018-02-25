@@ -587,11 +587,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         Note that the input *MUST* be an ``int``::
 
-            sage: a = 10000000000000000000000r
-            sage: type(a)
-            <type 'long'>
-            sage: f(a) # random
-            5
+            sage: a = 10000000000000000000000rL
+            sage: f(a)
+            Traceback (most recent call last):
+            ...
+            TypeError: must be a Python int object
         """
         if S is long:
             return sage.rings.integer.long_to_Z()

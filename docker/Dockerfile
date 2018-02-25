@@ -1,0 +1,176 @@
+################################################################################
+# SageMath images for Docker                                                   #
+################################################################################
+# This is a description of the layout of this Dockerfile; for details on the   #
+# created docker images, see the README.md please.                             #
+#                                                                              #
+# This Dockerfile builds sagemath (for end-users) and sagemath-dev (for        #
+# developers) it consists of lots of intermediate targets, mostly to shrink    #
+# the resulting images but also to make this hopefully easier to maintain.     #
+# The aims of this Dockerfile are:                                             #
+# (1) Make it build in reasonable time.                                        #
+# (2) It should be self-contained and work on its own, i.e., just by invoking  #
+# docker build without any external orchestration script.                      #
+#                                                                              #
+# The idea to achieve (1) is to reuse the build artifacts from the latest      #
+# master build. This is slightly against the philosophy of a Dockerfile (which #
+# should produce perfectly reproducible outputs) but building Sage from scratch#
+# just takes too long at the moment to do this all the time. ARTIFACT_BASE     #
+# controls which build artifacts are used. You probably want to set this to    #
+# sagemath/sagemath-dev:latest which takes the latest build from the official  #
+# master branch. The default is source-clean which builds Sage from scratch.   #
+# If you want to understand how this works, have a look at source-from-context #
+# which merges ARTIFACT_BASE with the context, i.e., the contents of the sage  #
+# source directory.                                                            #
+################################################################################
+
+
+ARG ARTIFACT_BASE=source-clean
+
+################################################################################
+# Image containing the run-time dependencies for Sage                          #
+################################################################################
+FROM ubuntu:xenial as run-time-dependencies
+LABEL maintainer="Erik M. Bray <erik.bray@lri.fr>, Julian Rüth <julian.rueth@fsfe.org>"
+# Set sane defaults for common environment variables.
+ENV LC_ALL C.UTF-8
+ENV LANG C.UTF-8
+ENV SHELL /bin/bash
+# Create symlinks for sage and sagemath - we copy a built sage to the target of these symlinks later.
+ARG SAGE_ROOT=/home/sage/sage
+RUN ln -s "$SAGE_ROOT/sage" /usr/bin/sage
+RUN ln -s /usr/bin/sage /usr/bin/sagemath
+# Sage needs the fortran libraries at run-time because we do not build gfortran
+# with Sage but use the system's.
+# We also install sudo for the sage user, see below.
+RUN apt-get update -qq \
+    && apt-get install -y --no-install-recommends gfortran sudo \
+    && apt-get clean \
+    && rm -r /var/lib/apt/lists/*
+# Sage refuses to build as root, so we add a "sage" user that can sudo without a password.
+# We also want this user at runtime as some commands in sage know about the user that was used during build.
+ARG HOME=/home/sage
+RUN adduser --quiet --shell /bin/bash --gecos "Sage user,101,," --disabled-password --home "$HOME" sage \
+    && echo "sage ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/01-sage \
+    && chmod 0440 /etc/sudoers.d/01-sage
+# Run everything from now on as the sage user in sage's home
+USER sage
+ENV HOME $HOME
+WORKDIR $HOME
+
+################################################################################
+# Image containing everything so that a make in a clone of the Sage repository #
+# completes without errors                                                     #
+################################################################################
+FROM run-time-dependencies as build-time-dependencies
+# Install the build time dependencies & git
+RUN sudo apt-get update -qq \
+    && sudo apt-get install -y wget build-essential automake m4 dpkg-dev sudo python libssl-dev git \
+    && sudo apt-get clean \
+    && sudo rm -r /var/lib/apt/lists/*
+
+################################################################################
+# Image with an empty git repository in $SAGE_ROOT.                            #
+################################################################################
+FROM build-time-dependencies as source-clean
+ARG SAGE_ROOT=/home/sage/sage
+RUN mkdir -p "$SAGE_ROOT"
+WORKDIR $SAGE_ROOT
+RUN git init
+RUN git remote add trac git@trac.sagemath.org:sage.git
+
+################################################################################
+# Image with the build context added, i.e., the directory from which `docker   #
+# build` has been called in a separate directory so we can copy files from     #
+# there.                                                                       #
+# This blows up the size of this docker image significantly, but we only use   #
+# this image to create artifacts for our final image.                          #
+# Warning: If you set ARTIFACT_BASE to something else than source-clean, the   #
+# build is not going to use the build-time-dependencies target but rely on     #
+# whatever tools are installed in ARTIFACT_BASE.                               #
+################################################################################
+FROM $ARTIFACT_BASE as source-from-context
+WORKDIR $HOME
+COPY --chown=sage:sage . sage-context
+# Checkout the commit that is in $HOME/sage-context
+ARG SAGE_ROOT=/home/sage/sage
+WORKDIR $SAGE_ROOT
+RUN git fetch "$HOME/sage-context" HEAD \
+    && git reset FETCH_HEAD \
+    && git checkout -f FETCH_HEAD \
+    && git log -1 --format=%H > docker/commit \
+    && rm -rf .git
+# Copy over all the untracked/staged/unstaged changes from sage-context
+WORKDIR $HOME/sage-context
+RUN if git status --porcelain | read CHANGES; then \
+        git -c user.name=docker-build -c user.email=docker-build@sage.invalid stash -u \
+        && git stash show -p > "$HOME"/sage-context.patch; \
+    else \
+        touch "$HOME"/sage-context.patch; \
+    fi
+WORKDIR $SAGE_ROOT
+RUN patch -p1 < "$HOME"/sage-context.patch
+
+################################################################################
+# Image with a built sage but without sage's documentation.                    #
+################################################################################
+FROM source-from-context as make-build
+# Make sure that the results runs on most CPUs.
+ENV SAGE_FAT_BINARY yes
+# Just to be sure Sage doesn't try to build its own GCC (even though
+# it shouldn't with a recent GCC package from the system and with gfortran)
+ENV SAGE_INSTALL_GCC no
+# Make everything in the build use multiple cores (this causes trouble for some packages outside Sage but it still seems to be they way Sage is doing this.)
+ARG MAKE="make -j2"
+ENV MAKE $MAKE
+RUN make build
+
+################################################################################
+# Image with a full build of sage and its documentation.                       #
+################################################################################
+FROM make-build as make-all
+RUN make
+
+################################################################################
+# Image with a full build of sage and its documentation but everything         #
+# stripped that can be quickly rebuild by make.                                #
+################################################################################
+FROM make-all as make-fast-rebuild-clean
+RUN make fast-rebuild-clean
+
+################################################################################
+# A releasable (relatively small, but still huge) image of this build with all #
+# the build artifacts intact so developers can make changes and rebuild        #
+# quickly                                                                      #
+################################################################################
+FROM source-clean as sagemath-dev
+ARG SAGE_ROOT=/home/sage/sage
+COPY --chown=sage:sage --from=make-fast-rebuild-clean $SAGE_ROOT $SAGE_ROOT
+COPY ./docker/entrypoint-dev.sh /usr/local/bin/sage-entrypoint
+ENTRYPOINT ["/usr/local/bin/sage-entrypoint"]
+CMD ["bash"]
+
+################################################################################
+# Image with a full build of sage, ready to release, i.e., with stripped       #
+# binaries and some extras to run the jupyter notebook.                        #
+################################################################################
+FROM make-all as make-release
+RUN sage -pip install terminado "notebook>=5" "ipykernel>=4.6"
+RUN sage -i gap_jupyter singular_jupyter pari_jupyter
+RUN make micro_release
+
+################################################################################
+# A releasable (relatively small) image which contains a copy of sage without  #
+# temporary build artifacts which is set up to start the command line          #
+# interface if no parameters are passed in.                                    #
+################################################################################
+FROM run-time-dependencies as sagemath
+ARG SAGE_ROOT=/home/sage/sage
+COPY --chown=sage:sage --from=make-release $SAGE_ROOT/ $SAGE_ROOT/
+# Put scripts to start gap, gp, maxima, ... in /usr/bin
+WORKDIR $SAGE_ROOT
+RUN sudo sage --nodotsage -c "install_scripts('/usr/bin')"
+COPY ./docker/entrypoint.sh /usr/local/bin/sage-entrypoint
+ENTRYPOINT ["/usr/local/bin/sage-entrypoint"]
+EXPOSE 8888
+CMD ["sage"]

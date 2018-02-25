@@ -68,6 +68,7 @@ misc-clean:
 	rm -f build/make/Makefile build/make/Makefile-auto
 	rm -f .BUILDSTART
 
+# TODO: What is a "bdist"? A binary distribution?
 bdist-clean: clean
 	$(MAKE) misc-clean
 
@@ -89,6 +90,31 @@ maintainer-clean: distclean bootstrap-clean
 micro_release: bdist-clean sagelib-clean
 	@echo "Stripping binaries ..."
 	LC_ALL=C find local/lib local/bin -type f -exec strip '{}' ';' 2>&1 | grep -v "File format not recognized" |  grep -v "File truncated" || true
+	@echo "Removing .py files that have a corresponding .pyc or .pyo file as they are not needed when running code with CPython..."
+	find local/lib/python* -name '*.py' | while IFS= read -r fname; do [ -e "$${fname}c" -o -e "$${fname}o" ] && rm "$$fname"; done || true
+	@echo "Removing sphinx artifacts..."
+	rm -rf local/share/doc/sage/doctrees local/share/doc/sage/inventory
+	@echo "Removing unnecessary files & directories - make will not be functional afterwards anymore"
+	@# We need src/sage/ for introspection with "??"
+	@# We need src/sage/bin/ for the scripts that invoke Sage
+	@# We need sage, the script to start Sage
+	@# We need local/, the dependencies and the built Sage library itself.
+	@# We keep VERSION.txt.
+	@# We keep COPYING.txt so we ship a license with this distribution.
+	find . -name . -o -prune ! -name src ! -name sage ! -name local ! -name VERSION.txt ! -name COPYING.txt ! -name build -exec rm -rf \{\} \;
+	cd src && find . -name . -o -prune ! -name sage ! -name bin -exec rm -rf \{\} \;
+
+# Leaves everything that is needed to make the next "make" fast but removes
+# all the cheap build artifacts that can be quickly regenerated.
+fast-rebuild-clean: misc-clean bdist-clean
+	rm -rf upstream/
+	rm -rf src/build/temp.*
+	# Without site-packages/sage sage does not start but copying/compiling
+	# them from src/build is very fast.
+	rm -rf local/lib/python*/site-packages/sage
+	# The .py files in src/build are restored from src/sage without their
+	# mtimes changed.
+	find src/build -name '*.py' -exec rm \{\} \;
 
 TESTALL = ./sage -t --all
 PTESTALL = ./sage -t -p --all

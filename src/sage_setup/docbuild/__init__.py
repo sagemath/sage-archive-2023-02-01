@@ -911,7 +911,12 @@ class ReferenceSubBuilder(DocBuilder):
             except ImportError as err:
                 logger.error("Warning: Could not import %s %s", module_name, err)
                 raise
-            newtime = os.path.getmtime(sys.modules[module_name].__file__)
+
+            module_filename = sys.modules[module_name].__file__
+            if (module_filename.endswith('.pyc') or module_filename.endswith('.pyo')):
+                source_filename = module_filename[:-1]
+                if (os.path.exists(source_filename)): module_filename = source_filename
+            newtime = os.path.getmtime(module_filename)
 
             if newtime > mtime:
                 updated_modules.append(module_name)

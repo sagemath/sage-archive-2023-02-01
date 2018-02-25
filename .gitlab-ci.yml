@@ -1,0 +1,99 @@
+# This file configures automatic builds of Sage on [GitLab](https://gitlab.com).
+# To make the build time not too excessive, we seed the build cache with
+# sagemath/sagemath-dev:latest. When basic SPKGs changed, this does not help
+# much and the full build might the set time limit in GitLab.  You can increase
+# that limit in Settings → CI/CD.
+# You can also provision your own private more powerful runner in the same
+# place; or set up your favourite cloud service to provide an on-demand
+# autoscale runner.
+
+image: docker:latest
+
+stages:
+  - build
+  - test
+  - release
+
+variables:
+  DOCKER_TAG: $CI_COMMIT_REF_SLUG
+  # Builds are very I/O intensive; make sure we have a fast file system.
+  DOCKER_DRIVER: overlay2
+  # TODO: Change this line to sagemath/sagemath-dev:latest
+  ARTIFACT_BASE: saraedum/sagemath-dev:gitlabci
+
+before_script:
+  # GitLab has no mechanism yet to hide secret variables: https://gitlab.com/gitlab-org/gitlab-ce/issues/13784
+  # So we roll our own which protects all variables that start with SECRET_
+  - . .ci/protect-secrets.sh
+
+# We use docker-in-docker to build our docker images.  It can be faster to
+# expose your outer docker daemon by mounting /var/run/docker.sock to
+# /var/run/docker.sock and setting DOCKER_HOST in Settings -> CI/CD -> Secret
+# variable to unix:///var/run/docker.sock
+services:
+- docker:dind
+
+# Build Sage and its documentation.
+# The build starts from the build artifacts of ARTIFACT_BASE which is usually
+# much faster than building from a clean checkout of Sage.
+build-from-latest: &build
+  stage: build
+  artifacts:
+    when: always
+    paths:
+    - gitlab-build-docker.log
+    expire_in: 1 month
+  script:
+    # The output of the build can get larger than gitlab.com's limit; only print the first 3MB.
+    - . .ci/build-docker.sh | tee gitlab-build-docker.log | head -c 3m
+    - . .ci/push-gitlab.sh sagemath-dev
+    - . .ci/push-gitlab.sh sagemath
+  except:
+    - master
+
+# Build Sage and its documentation from a clean checkout of Sage.
+# Note that this takes a very long time. You probably want to run this on your
+# own gitlab-runner and increase the standard GitLab time limit for CI runs.
+build-from-clean:
+  << : *build
+  variables:
+    ARTIFACT_BASE: "source-clean"
+  only:
+    - master
+
+test-dev:
+  stage: test
+  script:
+    - . .ci/pull-gitlab.sh sagemath-dev
+    - . .ci/test-dev.sh "$DOCKER_IMAGE"
+
+test-cli:
+  stage: test
+  script:
+    - . .ci/pull-gitlab.sh sagemath
+    - . .ci/test-cli.sh "$DOCKER_IMAGE"
+
+test-jupyter:
+  stage: test
+  script:
+    # Force usage of docker-in-docker (and don't start docker on a bind-mounted
+    # /var/run/docker.sock set through a proivate GitLab CI variable) so that
+    # the -p flag to docker run works as expected.
+    - export DOCKER_HOST='tcp://docker:2375'
+    - apk update
+    - apk add wget
+    - . .ci/pull-gitlab.sh sagemath
+    - . .ci/test-jupyter.sh "$DOCKER_IMAGE" docker
+
+# Pushes the built images to Docker Hub if the Settings -> CI/CD -> Secret
+# variables DOCKER_USER and SECRET_DOCKER_PASS have been set up.
+dockerhub:
+  stage: release
+  only:
+    - branches
+    - tags
+  script:
+    - . .ci/pull-gitlab.sh sagemath-dev
+    - . .ci/push-dockerhub.sh sagemath-dev
+    - . .ci/pull-gitlab.sh sagemath
+    - . .ci/push-dockerhub.sh sagemath

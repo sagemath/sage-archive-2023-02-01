@@ -81,3 +81,9 @@ $RECYCLE.BIN/
 ###########
 .ipynb_checkpoints
 Untitled*.ipynb
+
+#############################
+# GitLab CI generated files #
+#############################
+gitlab-build-docker.log
+

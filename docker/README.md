@@ -26,7 +26,7 @@ There are several flavours of this image.
     ```
 * [`sagemath/sagemath-dev`![image size](https://img.shields.io/microbadger/image-size/sagemath/sagemath-dev.svg)](https://hub.docker.com/sagemath/sagemath-dev) contains all the build artifacts to rebuild Sage quickly. This version is probably only relevant for Sage developers. Run this image with:
     ```
-    docker run -it sagemath/sagemath-dev:latest
+    docker run -it sagemath/sagemath-dev:develop
     ```
     This triggers a rebuild and drops you in a shell afterwards. Note that the git repository has been emptied to save space. If you want to use git, fetch from your git repository with `git fetch trac` and go to the commit that was used to create this image with
     ```

@@ -1,6 +1,6 @@
 # This file configures automatic builds of Sage on [GitLab](https://gitlab.com).
 # To make the build time not too excessive, we seed the build cache with
-# sagemath/sagemath-dev:latest. When basic SPKGs changed, this does not help
+# sagemath/sagemath-dev:develop. When basic SPKGs changed, this does not help
 # much and the full build might the set time limit in GitLab.  You can increase
 # that limit in Settings → CI/CD.
 # You can also provision your own private more powerful runner in the same
@@ -18,8 +18,8 @@ variables:
   DOCKER_TAG: $CI_COMMIT_REF_SLUG
   # Builds are very I/O intensive; make sure we have a fast file system.
   DOCKER_DRIVER: overlay2
-  # TODO: Change this line to sagemath/sagemath-dev:latest
-  ARTIFACT_BASE: saraedum/sagemath-dev:gitlabci
+  # TODO: Change this line to sagemath/sagemath-dev:develop
+  ARTIFACT_BASE: saraedum/sagemath-dev:develop
 
 before_script:
   # GitLab has no mechanism yet to hide secret variables: https://gitlab.com/gitlab-org/gitlab-ce/issues/13784
@@ -50,6 +50,7 @@ build-from-latest: &build
     - . .ci/push-gitlab.sh sagemath
   except:
     - master
+    - develop
 
 # Build Sage and its documentation from a clean checkout of Sage.
 # Note that this takes a very long time. You probably want to run this on your
@@ -60,6 +61,8 @@ build-from-clean:
     ARTIFACT_BASE: "source-clean"
   only:
     - master
+    - develop
+  except: []
 
 test-dev:
   stage: test

@@ -13,12 +13,12 @@
 # docker build without any external orchestration script.                      #
 #                                                                              #
 # The idea to achieve (1) is to reuse the build artifacts from the latest      #
-# master build. This is slightly against the philosophy of a Dockerfile (which #
+# develop build. This is slightly against the philosophy of a Dockerfile (which#
 # should produce perfectly reproducible outputs) but building Sage from scratch#
 # just takes too long at the moment to do this all the time. ARTIFACT_BASE     #
 # controls which build artifacts are used. You probably want to set this to    #
-# sagemath/sagemath-dev:latest which takes the latest build from the official  #
-# master branch. The default is source-clean which builds Sage from scratch.   #
+# sagemath/sagemath-dev:develop which takes the latest build from the official #
+# develop branch. The default is source-clean which builds Sage from scratch.  #
 # If you want to understand how this works, have a look at source-from-context #
 # which merges ARTIFACT_BASE with the context, i.e., the contents of the sage  #
 # source directory.                                                            #
@@ -92,15 +92,34 @@ RUN git remote add trac git@trac.sagemath.org:sage.git
 FROM $ARTIFACT_BASE as source-from-context
 WORKDIR $HOME
 COPY --chown=sage:sage . sage-context
-# Checkout the commit that is in $HOME/sage-context
+# Checkout the commit that checked out in $HOME/sage-context
+# This is a bit complicated because our local .git/ is empty and we want to
+# make sure that we only change the mtimes of a minimal number of files.
+# 1) Restore the git checkout ARTIFACT_BASE was built from, recorded in
+#    docker/commit. (Or go directly to FETCH_HEAD if there is no history to
+#    restore.)
+# 2) Merge in FETCH_HEAD but only if it is a fast-forward, i.e., if it is an
+#    ancestor of the commit restored in 1. If we would not do that we would get
+#    a new commit hash in docker/commit that is not known outside of this build
+#    run. Since docker/commit was in the history of FETCH_HEAD this should
+#    automatically be a fast-forward.
+# 3) Trash .git again to save some space.
 ARG SAGE_ROOT=/home/sage/sage
 WORKDIR $SAGE_ROOT
 RUN git fetch "$HOME/sage-context" HEAD \
-    && git reset FETCH_HEAD \
-    && git checkout -f FETCH_HEAD \
+    && if [ -e docker/commit ]; then \
+          git reset `cat docker/commit` \
+          || ( echo "Could not find commit `cat docker/commit` in your local Git history. Please merge in the latest develop branch to fix this: git fetch trac && git merge trac/develop." && exit 1 ) \
+       else \
+          echo "You are building from $ARTIFACT_BASE which has no docker/commit file. That's a bug unless you are building from source-clean or something similar." \
+          && git reset FETCH_HEAD \
+          && git checkout -f FETCH_HEAD; \
+       fi \
+    && git merge --ff-only FETCH_HEAD \
     && git log -1 --format=%H > docker/commit \
     && rm -rf .git
-# Copy over all the untracked/staged/unstaged changes from sage-context
+# Copy over all the untracked/staged/unstaged changes from sage-context. This
+# is relevant for non-CI invocations of this Dockerfile.
 WORKDIR $HOME/sage-context
 RUN if git status --porcelain | read CHANGES; then \
         git -c user.name=docker-build -c user.email=docker-build@sage.invalid stash -u \

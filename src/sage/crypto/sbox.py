@@ -503,25 +503,23 @@ class SBox(SageObject):
         Return linear approximation matrix (LAT) `A` for this S-box.
 
         The entry A[alpha,beta] corresponds to the probability
-        `Pr[<alpha, x> = <beta, S(x)>]`, where `S` is this S-box.
+        `Pr[<\\alpha, x> = <\\beta, S(x)>]`, where `S` is this S-box.
         There are three typical notations for this probability used in
         the literature:
-            - `Pr[<alpha, x> = <beta, S(x)>] = 1/2 + e(alpha, beta)`,
-              where `e(alpha, beta)` is called the bias,
-            - `2 * Pr[<alpha, x> = <beta, S(x)>] = 1 + c(alpha, beta)`,
-              where `c(alpha, beta) = 2*e(alpha, beta)` is the correlation, and
-            - `2^(n+1)*Pr[<alpha, x> = <beta, S(x)>] = 1 + \hat{S}(alpha, beta)`,
-              where `\hat{S}(alpha, beta)` is the Fourier coefficient of S.
+
+        - `Pr[<\\alpha, x> = <\\beta, S(x)>] = 1/2 + e(\\alpha, \\beta)`, where `e(\\alpha, \\beta)` is called the bias,
+        - `2\cdot Pr[<\\alpha, x> = <\\beta, S(x)>] = 1 + c(\\alpha, \\beta)`, where `c(\\alpha, \\beta) = 2\cdot e(\\alpha, \\beta)` is the correlation, and
+        - `2^{(n+1)}\cdot Pr[<\\alpha, x> = <\\beta, S(x)>] = 2^n + \hat{S}(\\alpha, \\beta)`, where `\hat{S}(\\alpha, \\beta)` is the Fourier coefficient of S.
 
         See [He2002]_ for an introduction to linear cryptanalysis.
 
         INPUT:
 
         - ``scale`` - string to choose the scaling for the LAT, one of
-            - "bias": elements are `e(alpha, beta)`
-            - "correlation": elements are `c(alpha, beta)`
-            - "absolute_bias": elements are `e(alpha, beta) * 2^m`
-            - "fourier_coefficient": elements are `\hat{S}(alpha, beta)`
+            - "bias": elements are `e(\\alpha, \\beta)`
+            - "correlation": elements are `c(\\alpha, \\beta)`
+            - "absolute_bias": elements are `2^m\cdot e(\\alpha, \\beta)` (default)
+            - "fourier_coefficient": elements are `\hat{S}(\\alpha, \\beta)`
 
         EXAMPLES::
 

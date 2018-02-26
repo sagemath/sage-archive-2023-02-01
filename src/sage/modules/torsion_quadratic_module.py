@@ -32,10 +32,11 @@ def TorsionQuadraticForm(q):
     Create a torsion quadratic form module from a rational matrix.
 
     The resulting torsion quadratic form is non-degenerate
-    and takes values in QQ/ZZ or QQ/(2*ZZ) (depending on ``q``).
+    and takes values in `\QQ / \ZZ` or `\QQ / 2 \ZZ` (depending on ``q``).
 
     INPUT:
-        - ``q`` -- a symmetric rational matrix
+
+    - ``q`` -- a symmetric rational matrix
 
     EXAMPLES::
 
@@ -61,9 +62,9 @@ def TorsionQuadraticForm(q):
     Q, d = q._clear_denom()
     S, U, V = Q.smith_form()
     D = U * q * V
-    Q = FreeQuadraticModule(ZZ, q.ncols(), inner_product_matrix=(d**2) * q)
+    Q = FreeQuadraticModule(ZZ, q.ncols(), inner_product_matrix=d**2 * q)
     denoms = [D[i,i].denominator() for i in range(D.ncols())]
-    rels = Q.span(diagonal_matrix(ZZ,denoms) * U)
+    rels = Q.span(diagonal_matrix(ZZ, denoms) * U)
     return TorsionQuadraticModule((1/d)*Q, (1/d)*rels)
 
 class TorsionQuadraticModuleElement(FGP_Element):

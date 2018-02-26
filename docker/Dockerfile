@@ -24,6 +24,22 @@
 # source directory.                                                            #
 ################################################################################
 
+################################################################################
+# HOWTO use this file for local builds                                         #
+################################################################################
+# If you don't mind downloading a 2GB docker image from time to time, you      #
+# could use this file for local Sage development. As of early 2018 each build  #
+# takes about five minutes but you don't have to through the sadly frequent    #
+# rebuilds of Sage the whole Sage distribution...                              #
+# To build Sage, run this command from your sage/ directory:                   #
+# $ docker build --build-arg MAKE="make -j4" --build-arg ARTIFACT_BASE="sagemath/sagemath-dev:develop" -f docker/Dockerfile --target=make-build --tag sage .
+# To run Sage:                                                                 #
+# $ docker run -it sage                                                        #
+# To run doctests:                                                             #
+# $ docker run -e "MAKE=make -j4" -it sage sage -tp src/sage                   #
+# Make sure that you always have the latest develop branch merged into your    #
+# local branch for this to work.                                               #
+################################################################################
 
 ARG ARTIFACT_BASE=source-clean
 

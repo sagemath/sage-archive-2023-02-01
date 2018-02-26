@@ -49,7 +49,7 @@ class GroupOfIsometries(FinitelyGeneratedMatrixGroup_gap):
     A base class for Orthogonal matrix groups with a gap backend.
 
     Main difference to :class:`~sage.groups.matrix_gps.orthogonal.OrthogonalMatrixGroup_gap` is that we can
-    specify generators and a bilinear form.
+    specify generators and a bilinear form. Following gap the group action is from the right.
 
     INPUT:
 
@@ -112,8 +112,14 @@ class GroupOfIsometries(FinitelyGeneratedMatrixGroup_gap):
         self._invariant_submodule = invariant_submodule
         self._invariant_quotient_module = invariant_quotient_module
         if check:
+            I = invariant_submodule
+            Q = invariant_quotient_module
             for f in gens:
                 self._check_matrix(f)
+                if (not I is None) and I*f != I:
+                    raise ValueError("the submodule is not preserved")
+                if not Q is None and (Q.W() != Q.W()*f or Q.V()*f != Q.V()):
+                    raise ValueError("the quotient module is not preserved")
         if len(gens) == 0:    # handle the trivial group
             gens = [G.parent().identity_matrix()]
         from sage.libs.gap.libgap import libgap
@@ -317,7 +323,10 @@ class GroupActionOnSubmodule(Action):
             Basis matrix:
             [0 1]
         """
-        return(a.parent()(a*g.matrix()))
+        if self.is_left():
+            return a.parent()(g.matrix()*a)
+        else:
+            return a.parent()(a*g.matrix())
 
 class GroupActionOnQuotientModule(Action):
     r"""
@@ -327,7 +336,7 @@ class GroupActionOnQuotientModule(Action):
 
     - ``MatrixGroup`` --  the group acting
       :class:`GroupOfIsometries`
-    - ``submodule`` -- an invariant submodule
+    - ``submodule`` -- an invariant quotient module
     - ``is_left`` -- bool (default: ``False``)
 
     EXAMPLES::
@@ -394,4 +403,7 @@ class GroupActionOnQuotientModule(Action):
             sage: A(q,g).parent()
             Finitely generated module V/W over Integer Ring with invariants (6)
         """
-        return(a.parent()(a.lift()*g.matrix()))
+        if self.is_left():
+            return a.parent()(g.matrix()*a.lift())
+        else:
+            return a.parent()(a.lift()*g.matrix())

@@ -66,14 +66,12 @@ AUTHORS:
 - William Stein (2006-12-09): rewrite
 
 - Volker Braun (2013-1) port to new Parent, libGAP, extreme refactoring.
-
-- Simon Brandhorst (2017-9) added OrthogonalMatrixGroup_with_gap
 """
 
 #*****************************************************************************
 #       Copyright (C) 2006 David Joyner and William Stein
 #       Copyright (C) 2013 Volker Braun <vbraun.name@gmail.com>
-#       Copyright (C) 2017 Simon Brandhorst <sbrandhorst@web.de>
+#
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
@@ -84,8 +82,6 @@ from sage.misc.latex import latex
 from sage.misc.cachefunc import cached_method
 from sage.groups.matrix_gps.named_group import (
     normalize_args_vectorspace, NamedMatrixGroup_generic, NamedMatrixGroup_gap )
-from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGroup_gap
-from sage.categories.action import Action
 
 def normalize_args_e(degree, ring, e):
     """

@@ -26,7 +26,7 @@ variables:
   DOCKER_TAG: $CI_COMMIT_REF_SLUG
   # Builds are very I/O intensive; make sure we have a fast file system.
   DOCKER_DRIVER: overlay2
-  ARTIFACT_BASE: sagemath/sagemath-dev:develop
+  DEFAULT_ARTIFACT_BASE: sagemath/sagemath-dev:develop
 
 before_script:
   # GitLab has no mechanism yet to hide secret variables: https://gitlab.com/gitlab-org/gitlab-ce/issues/13784
@@ -45,6 +45,8 @@ services:
 # much faster than building from a clean checkout of Sage.
 build-from-latest: &build
   stage: build
+  variables:
+    ARTIFACT_BASE: $DEFAULT_ARTIFACT_BASE
   artifacts:
     when: always
     paths:

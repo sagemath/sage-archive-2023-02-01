@@ -46,7 +46,7 @@ import six
 from subprocess import Popen, PIPE
 
 
-class Gfan:
+class Gfan(object):
     """
     Interface to Anders Jensen's Groebner Fan program.
     """

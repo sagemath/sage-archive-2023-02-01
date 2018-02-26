@@ -317,22 +317,6 @@ class UnramifiedExtensionRingFixedMod(UnramifiedExtensionGeneric, pAdicFixedModR
             self.register_coercion(pAdicCoercion_ZZ_FM(self))
             self.register_conversion(pAdicConvert_QQ_FM(self))
 
-    def tracks_precision(self):
-        """
-        Return whether this parent tracks precision
-
-        EXAMPLES::
-
-            sage: R = Zp(5)
-            sage: R.tracks_precision()
-            True
-
-            sage: R = ZpFP(5)
-            sage: R.tracks_precision()
-            False
-        """
-        return False
-
     #def coerce_map_explicit(self, S):
     #    from sage.rings.padics.morphism import Morphism_ZZ_UnrFM, Morphism_ZpFM_UnrFM
     #    if S is ZZ:
@@ -397,22 +381,6 @@ class UnramifiedExtensionRingFloatingPoint(UnramifiedExtensionGeneric, pAdicFloa
         self.register_coercion(pAdicCoercion_ZZ_FP(self))
         self.register_conversion(pAdicConvert_QQ_FP(self))
 
-    def tracks_precision(self):
-        """
-        Return whether this parent tracks precision
-
-        EXAMPLES::
-
-            sage: R = Zp(5)
-            sage: R.tracks_precision()
-            True
-
-            sage: R = ZpFP(5)
-            sage: R.tracks_precision()
-            False
-        """
-        return False
-
 class UnramifiedExtensionFieldFloatingPoint(UnramifiedExtensionGeneric, pAdicFloatingPointFieldGeneric):
     """
     TESTS::
@@ -461,22 +429,6 @@ class UnramifiedExtensionFieldFloatingPoint(UnramifiedExtensionGeneric, pAdicFlo
         from .qadic_flint_FP import pAdicCoercion_ZZ_FP, pAdicCoercion_QQ_FP
         self.register_coercion(pAdicCoercion_ZZ_FP(self))
         self.register_coercion(pAdicCoercion_QQ_FP(self))
-
-    def tracks_precision(self):
-        """
-        Return whether this parent tracks precision
-
-        EXAMPLES::
-
-            sage: R = Qp(5)
-            sage: R.tracks_precision()
-            True
-
-            sage: R = QpFP(5)
-            sage: R.tracks_precision()
-            False
-        """
-        return False
 
 class EisensteinExtensionRingCappedRelative(EisensteinExtensionGeneric, pAdicCappedRelativeRingGeneric):
     """
@@ -712,22 +664,6 @@ class EisensteinExtensionRingFixedMod(EisensteinExtensionGeneric, pAdicFixedModR
             TypeError: This implementation of the p-adic ring does not support fields of fractions.
         """
         raise TypeError("This implementation of the p-adic ring does not support fields of fractions.")
-
-    def tracks_precision(self):
-        """
-        Return whether this parent tracks precision.
-
-        EXAMPLES::
-
-            sage: R = Zp(5)
-            sage: R.tracks_precision()
-            True
-
-            sage: R = ZpFP(5)
-            sage: R.tracks_precision()
-            False
-        """
-        return False
 
     #def coerce_map_explicit(self, S):
     #    from sage.rings.padics.morphism import Morphism_ZZ_EisFM, Morphism_ZpFM_EisFM

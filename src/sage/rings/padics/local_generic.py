@@ -977,10 +977,20 @@ class LocalGeneric(CommutativeRing):
             [         ...1 ...2222222214]
             [            0          ...1]
 
-        An error is raised if the precision on the entries is
-        not enough to determine the Smith normal form::
+        If some of the elementary divisors have valuation larger than the
+        minimum precision of any entry in the matrix, then they are
+        reported as an inexact zero::
 
+            sage: A = Zp(5, prec=10, print_mode="terse")
             sage: M = matrix(A, 2, 2, [1, 1, 1, 1])
+            sage: M.smith_form(transformation=False)  # indirect doctest
+            [ 5 + O(5^10) O(5^10)]
+            [     O(5^10) O(5^10)]
+
+        However, an error is raised if the precision on the entries is
+        not enough to determine which column to use as a pivot at some point::
+
+            sage: M = matrix(A, 2, 2, [A(0,5), A(5^6,10), A(0,8), A(5^7,10)])
             sage: M.smith_form()  # indirect doctest
             Traceback (most recent call last):
             ...
@@ -999,8 +1009,12 @@ class LocalGeneric(CommutativeRing):
         S = M.parent()(M.list())
         smith = M.parent()(0)
         R = M.base_ring()
-        if R.tracks_precision():
+        ball_prec = R._prec_type() in ['capped-rel','capped-abs']
+        inexact = R._prec_type() not in ['fixed-mod','floating-point']
+        if ball_prec:
             precM = min([ x.precision_absolute() for x in M.list() ])
+        else:
+            precM = Infinity
 
         if transformation:
             from sage.matrix.special import identity_matrix
@@ -1012,9 +1026,12 @@ class LocalGeneric(CommutativeRing):
         for piv in range(min(n,m)):
             curval = Infinity
             pivi = pivj = piv
+            allzero = True
             for i in range(piv,n):
                 for j in range(piv,m):
-                    v = S[i,j].valuation()
+                    Sij = S[i,j]
+                    v = Sij.valuation()
+                    allzero = allzero and Sij.is_zero()
                     if v < curval:
                         pivi = i; pivj = j
                         curval = v
@@ -1024,11 +1041,11 @@ class LocalGeneric(CommutativeRing):
                 break
             val = curval
 
-            if R.tracks_precision() and precM is not Infinity and val >= precM:
+            if inexact and not allzero and precM is not Infinity and val >= precM:
                 from .precision_error import PrecisionError
                 raise PrecisionError("not enough precision to compute Smith normal form")
 
-            if val is Infinity:
+            if allzero:
                 break
 
             S.swap_rows(pivi,piv)
@@ -1041,7 +1058,7 @@ class LocalGeneric(CommutativeRing):
             inv = ~(S[piv,piv] >> val)
             for i in range(piv+1,n):
                 scalar = -inv * (S[i,piv] >> val)
-                if R.tracks_precision():
+                if ball_prec:
                     scalar = scalar.lift_to_precision()
                 S.add_multiple_of_row(i,piv,scalar,piv+1)
                 if transformation:
@@ -1050,12 +1067,12 @@ class LocalGeneric(CommutativeRing):
                 left.rescale_row(piv,inv)
                 for j in range(piv+1,m):
                     scalar = -inv * (S[piv,j] >> val)
-                    if R.tracks_precision():
+                    if ball_prec:
                         scalar = scalar.lift_to_precision()
                     right.add_multiple_of_column(j,piv,scalar)
 
         if transformation:
-            if R.tracks_precision() and precM is not Infinity:
+            if ball_prec and precM is not Infinity:
                 left = left.apply_map(lambda x: x.add_bigoh(precM-val))
             left = left.change_ring(integral)
             right = right.change_ring(integral)
@@ -1089,7 +1106,7 @@ class LocalGeneric(CommutativeRing):
                 except PrecisionError:
                     continue
 
-                if self.is_exact() or self.tracks_precision():
+                if self.is_exact() or self._prec_type() not in ['fixed-mod','floating-point']:
                     tester.assertEqual(U*M*V, S)
 
                 tester.assertEqual(U.nrows(), U.ncols())

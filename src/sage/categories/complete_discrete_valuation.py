@@ -156,23 +156,6 @@ class CompleteDiscreteValuationFields(Category_singleton):
         """
         return [DiscreteValuationFields()]
 
-    class ParentMethods:
-        @abstract_method
-        def tracks_precision(self):
-            r"""
-            Return whether elements in this parent track precision.
-
-            EXAMPLES::
-
-                sage: R = Zp(5)
-                sage: R.tracks_precision()
-                True
-
-                sage: R = ZpFP(5)
-                sage: R.tracks_precision()
-                False
-            """
-
     class ElementMethods:
         @abstract_method
         def valuation(self):

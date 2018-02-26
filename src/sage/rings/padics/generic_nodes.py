@@ -66,19 +66,6 @@ class CappedAbsoluteGeneric(LocalGeneric):
         """
         return 'capped-abs'
 
-    def tracks_precision(self):
-        r"""
-        Return whether elements in this parent track precision.
-
-        EXAMPLES::
-
-            sage: R = ZpCA(5)
-            sage: R.tracks_precision()
-            True
-
-        """
-        return True
-
 class CappedRelativeGeneric(LocalGeneric):
     def is_capped_relative(self):
         """
@@ -115,19 +102,6 @@ class CappedRelativeGeneric(LocalGeneric):
             'capped-rel'
         """
         return 'capped-rel'
-
-    def tracks_precision(self):
-        r"""
-        Return whether elements in this parent track precision.
-
-        EXAMPLES::
-
-            sage: R = ZpCR(5)
-            sage: R.tracks_precision()
-            True
-
-        """
-        return True
 
 class FixedModGeneric(LocalGeneric):
     def is_fixed_mod(self):
@@ -166,19 +140,6 @@ class FixedModGeneric(LocalGeneric):
             'fixed-mod'
         """
         return 'fixed-mod'
-
-    def tracks_precision(self):
-        r"""
-        Return whether elements in this parent track precision.
-
-        EXAMPLES::
-
-            sage: R = ZpFM(5)
-            sage: R.tracks_precision()
-            False
-
-        """
-        return False
 
 class FloatingPointGeneric(LocalGeneric):
     def is_floating_point(self):
@@ -291,19 +252,6 @@ class FloatingPointGeneric(LocalGeneric):
         from sage.misc.misc import some_tuples
         for x,y,z in some_tuples(S, 3, tester._max_runs):
             tester.assertTrue(((x + y) + z).is_equal_to(x + (y + z), min(x.precision_absolute(), y.precision_absolute(), z.precision_absolute())))
-
-    def tracks_precision(self):
-        r"""
-        Return whether elements in this parent track precision.
-
-        EXAMPLES::
-
-            sage: R = ZpFP(5)
-            sage: R.tracks_precision()
-            False
-
-        """
-        return False
 
 class FloatingPointRingGeneric(FloatingPointGeneric):
     pass

@@ -7,7 +7,7 @@
 Draw polytopes in LateX using TikZ
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. MODULEAUTHOR:: Jean-Philippe Labbé <labbe@math.huji.ac.il>
+.. MODULEAUTHOR:: Jean-Philippe Labbé <labbe@math.fu-berlin.de>
 
 
 It is sometimes very helpful to draw 3-dimensional polytopes in a

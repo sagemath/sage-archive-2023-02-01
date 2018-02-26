@@ -379,7 +379,8 @@ class CoFrame(FreeModuleCoBasis):
         INPUT:
 
         - ``symbol`` -- either a string, to be used as a common base for the
-          symbols of the 1-forms constituting the coframe, or a list/tuple of strings, representing the individual symbols of the 1-forms
+          symbols of the 1-forms constituting the coframe, or a list/tuple of
+          strings, representing the individual symbols of the 1-forms
         - ``latex_symbol`` -- (default: ``None``) either a string, to be used
           as a common base for the LaTeX symbols of the 1-forms constituting
           the coframe, or a list/tuple of strings, representing the individual
@@ -1422,7 +1423,8 @@ class VectorFrame(FreeModuleBasis):
         INPUT:
 
         - ``symbol`` -- either a string, to be used as a common base for the
-          symbols of the vector fields constituting the vector frame, or a list/tuple of strings, representing the individual symbols of the
+          symbols of the vector fields constituting the vector frame, or a
+          list/tuple of strings, representing the individual symbols of the
           vector fields
         - ``latex_symbol`` -- (default: ``None``) either a string, to be used
           as a common base for the LaTeX symbols of the vector fields
@@ -1470,7 +1472,8 @@ class VectorFrame(FreeModuleBasis):
         """
         super(VectorFrame, self).set_name(symbol, latex_symbol=latex_symbol,
                                           indices=indices,
-                                          latex_indices=latex_indices, index_position=index_position)
+                                          latex_indices=latex_indices,
+                                          index_position=index_position)
         if include_domain:
             # Redefinition of the name and the LaTeX name to include the domain
             self._name = "({}, {})".format(self._domain._name, self._name)

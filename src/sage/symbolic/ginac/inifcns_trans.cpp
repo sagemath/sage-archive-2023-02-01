@@ -124,10 +124,61 @@ static ex exp_eval(const ex & x)
 	else
 		x_red = x;
 
-	// exp(log(x)) -> x
-	if (is_ex_the_function(x_red, log))
-		return x_red.op(0);
-	
+        if (is_exactly_a<function>(x_red)) {
+                const ex& arg = x_red.op(0);
+                // exp(log(x)) -> x
+                if (is_ex_the_function(x_red, log))
+                        return arg;
+                // exp(asinh(num)) etc.
+                if (is_exactly_a<numeric>(arg)) {
+                        if (is_ex_the_function(x_red, asinh))
+                                return arg + sqrt(power(arg, _ex2) + _ex1);
+                        if (is_ex_the_function(x_red, acosh))
+                                return arg + sqrt(power(arg, _ex2) - _ex1);
+                        if (is_ex_the_function(x_red, atanh))
+                                return sqrt((arg+_ex1) / (arg-_ex1));
+                        if (is_ex_the_function(x_red, acoth))
+                                return sqrt((arg-_ex1) / (arg+_ex1));
+                        if (is_ex_the_function(x_red, asech))
+                                return (_ex1/arg +
+                                        sqrt(_ex1-power(arg, _ex2))/arg);
+                        if (is_ex_the_function(x_red, acsch))
+                                return (_ex1/arg +
+                                        sqrt(_ex1+power(arg, _ex2))/arg);
+                }
+        }
+
+        if (is_exactly_a<mul>(x_red)
+            and x_red.nops() == 2) {
+                const ex& fac = x_red.op(0);
+                if (is_exactly_a<function>(fac)) {
+                        const ex& arg = fac.op(0);
+                        const numeric& c = ex_to<mul>(x_red).get_overall_coeff();
+                        // exp(c*log(x)) -> x^c
+                        if (is_ex_the_function(fac, log))
+                                return power(arg, c);
+                        // exp(c*asinh(num)) etc.
+                        if (is_exactly_a<numeric>(arg)) {
+                                if (is_ex_the_function(fac, asinh))
+                                        return power(arg + sqrt(power(arg, _ex2) + _ex1), c);
+                                if (is_ex_the_function(fac, acosh))
+                                        return power(arg + sqrt(power(arg, _ex2) - _ex1), c);
+                                if (is_ex_the_function(fac, atanh))
+                                        return power((arg+_ex1) / (arg-_ex1), c/ *_num2_p);
+                                if (is_ex_the_function(fac, acoth))
+                                        return power((arg-_ex1) / (arg+_ex1), c/ *_num2_p);
+                                if (is_ex_the_function(fac, asech))
+                                        return power(_ex1/arg +
+                                                sqrt(_ex1-power(arg, _ex2))/arg,
+                                                c);
+                                if (is_ex_the_function(fac, acsch))
+                                        return power(_ex1/arg +
+                                                sqrt(_ex1+power(arg, _ex2))/arg,
+                                                c);
+                        }
+                }
+        }
+
 	// exp(float) -> float
 	if (is_exactly_a<numeric>(x_red)
             and x_red.info(info_flags::inexact))

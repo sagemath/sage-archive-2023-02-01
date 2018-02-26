@@ -377,7 +377,7 @@ def _sympysage_lgamma(self):
         sage: assert log_gamma(x)._sympy_() == loggamma(Symbol('x'))
         sage: assert log_gamma(x) == loggamma(Symbol('x'))._sage_()
     """
-    from sage.functions.other import log_gamma
+    from sage.functions.gamma import log_gamma
     return log_gamma(self.args[0]._sage_())
 
 def _sympysage_polygamma(self):
@@ -394,7 +394,7 @@ def _sympysage_polygamma(self):
         sage: integrate(psi(x), x, algorithm='sympy')
         integrate(psi(x), x)
     """
-    from sage.functions.other import psi
+    from sage.functions.gamma import psi
     return psi(self.args[0]._sage_(),self.args[1]._sage_())
 
 def _sympysage_dirac_delta(self):

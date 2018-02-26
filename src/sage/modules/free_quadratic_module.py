@@ -114,16 +114,6 @@ def FreeQuadraticModule(
 
     EXAMPLES::
 
-        sage: M1 = FreeQuadraticModule(ZZ,2,inner_product_matrix=1)
-        sage: M1 is FreeModule(ZZ,2,inner_product_matrix=1)
-        True
-        sage: M1.inner_product_matrix()
-        [1 0]
-        [0 1]
-        sage: M1 == ZZ^2
-        True
-        sage: M1 is ZZ^2
-        False
         sage: M2 = FreeQuadraticModule(ZZ,2,inner_product_matrix=[1,2,3,4])
         sage: M2 is FreeQuadraticModule(ZZ,2,inner_product_matrix=[1,2,3,4])
         True
@@ -247,24 +237,27 @@ def is_FreeQuadraticModule(M):
 class FreeQuadraticModule_generic(free_module.FreeModule_generic):
     """
     Base class for all free quadratic modules.
-    
-    Modules are ordered by their ambient spaces, then by
-    dimension, then in order by their echelon matrices.
+
+    Modules are ordered by inclusion in the same ambient space.
 
     TESTS:
 
-    We compare rank three free modules over the integers and
-    rationals::
-    
+    We compare rank three free modules over the integers,
+    rationals, and complex numbers::
+
         sage: Q3 = FreeQuadraticModule(QQ,3,matrix.identity(3)) 
         sage: C3 = FreeQuadraticModule(CC,3,matrix.identity(3))
         sage: Z3 = FreeQuadraticModule(ZZ,3,matrix.identity(3))
         sage: Q3 < C3
-        True
+        doctest:warning
+        ...
+        DeprecationWarning: The default order on free modules has changed. The old ordering is in sage.modules.free_module.EchelonMatrixKey
+        See http://trac.sagemath.org/23878 for details.
+        False
         sage: C3 < Q3
         False
         sage: C3 > Q3
-        True
+        False
         sage: Q3 > Z3
         True
         sage: Q3 < Z3
@@ -284,14 +277,14 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
         sage: Q3 < V
         False
 
-    The inner_product_matrix is part of the comparison::
-    
+    The :meth:`inner_product_matrix` is part of the comparison::
+
         sage: Q3zero = FreeQuadraticModule(QQ,3,matrix.zero(3))
         sage: Q3zero == Q3
         False
-        
+
     We test that :trac:`23915` is fixed::
-        
+
         sage: M1 = FreeQuadraticModule(ZZ,1,matrix.identity(1))
         sage: M2 = FreeQuadraticModule(ZZ,1,matrix.identity(1)*2)
         sage: M1 == M2
@@ -1167,14 +1160,8 @@ class FreeQuadraticModule_submodule_with_basis_pid(
     """
     An `R`-submodule of `K^n` with distinguished basis, where `K` is
     the fraction field of a principal ideal domain `R`.
-    
-    Modules are ordered by their ambient spaces, then by
-    dimension, then in order by their echelon matrices.
 
-    .. NOTE::
-
-        Use the \code{is_submodule} to determine if one module
-        is a submodule of another.
+    Modules are ordered by inclusion.
 
     EXAMPLES:
 
@@ -1193,13 +1180,18 @@ class FreeQuadraticModule_submodule_with_basis_pid(
         sage: V == M
         False
         sage: M < V
+        doctest:warning
+        ...
+        DeprecationWarning: The default order on free modules has changed. The old ordering is in sage.modules.free_module.EchelonMatrixKey
+        See http://trac.sagemath.org/23878 for details.
         True
         sage: V < M
         False
 
     We compare a `\ZZ`-module to the one-dimensional space above::
 
-        sage: V = span([[5,6,7]], ZZ).scale(1/11);
+        sage: V = A.span([[5,6,7]])
+        sage: V = V.change_ring(ZZ).scale(1/11);
         sage: V < M
         True
         sage: M < V
@@ -1233,9 +1225,9 @@ class FreeQuadraticModule_submodule_with_basis_pid(
             [1 0 0]
             [0 2 0]
             [0 0 2]
-            
+
         TESTS:
-        
+
         We test that :trac:`23703` is fixed::
 
             sage: A=FreeQuadraticModule(ZZ,1,matrix.identity(1))

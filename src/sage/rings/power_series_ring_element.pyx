@@ -1035,32 +1035,6 @@ cdef class PowerSeries(AlgebraElement):
             num = self
         return num*inv
 
-    cpdef _floordiv_(self, denom):
-        """
-        Euclidean division (over fields) or ordinary division (over
-        other rings; deprecated).
-
-        EXAMPLES::
-
-            sage: A.<q> = GF(7)[[]]
-            sage: (q^2 - 1) // (q + 1)
-            doctest:...: UserWarning: the operator // now returns the Euclidean quotient for power series over fields, use / for the true quotient
-            6 + q + O(q^20)
-
-            sage: R.<t> = ZZ[[]]
-            sage: (t**10 - 1) // (1 + t + t^7)
-            doctest:...: DeprecationWarning: the operator // is deprecated for power series over non-fields, use / instead
-            See http://trac.sagemath.org/20062 for details.
-            -1 + t - t^2 + t^3 - t^4 + t^5 - t^6 + 2*t^7 - 3*t^8 + 4*t^9 - 4*t^10 + 5*t^11 - 6*t^12 + 7*t^13 - 9*t^14 + 12*t^15 - 16*t^16 + 20*t^17 - 25*t^18 + 31*t^19 + O(t^20)
-        """
-        try:
-            q, r = self.quo_rem(denom)
-            warn("the operator // now returns the Euclidean quotient for power series over fields, use / for the true quotient")
-            return q
-        except (AttributeError, NotImplementedError):
-            deprecation(20062, "the operator // is deprecated for power series over non-fields, use / instead")
-            return self._div_(denom)
-
     def __mod__(self, other):
         """
         EXAMPLES::

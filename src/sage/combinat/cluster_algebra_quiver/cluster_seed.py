@@ -4674,7 +4674,7 @@ class ClusterSeed(SageObject):
             for s in psetvect:
                 pass1 = True
         #The first possible failure for compatibility is if any entry in s is larger than the corresponding entry of a.
-        #Only checks for the mutable verices since all entries in a_i i>num_cols are zero. 
+        #Only checks for the mutable vertices since all entries in a_i i>num_cols are zero. 
                 for k in range(num_cols):
                     if s[k] > a[0][k]:
                         pass1 = False

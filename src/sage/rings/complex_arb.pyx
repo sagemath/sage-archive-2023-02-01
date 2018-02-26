@@ -117,6 +117,11 @@ Check that :trac:`19839` is fixed::
     sage: log(SR(CBF(0.42))).pyobject().parent()
     Complex ball field with 53 bits of precision
 
+:trac:`24621`::
+
+    sage: CBF(NumberField(polygen(QQ, 'y')^3 + 20, 'a', embedding=CC(1.35,2.35)).gen())
+    [1.357208808297453 +/- 4.96e-16] + [2.350754612451197 +/- 7.67e-16]*I
+
 Classes and Methods
 ===================
 """
@@ -135,6 +140,7 @@ import operator
 from cysignals.signals cimport sig_on, sig_str, sig_off, sig_error
 
 import sage.categories.fields
+import sage.rings.number_field.number_field as number_field
 
 cimport sage.rings.integer
 cimport sage.rings.rational
@@ -457,15 +463,13 @@ class ComplexBallField(UniqueRepresentation, Field):
             return other._prec >= self._prec
         elif isinstance(other, ComplexBallField):
             return other._prec >= self._prec
+        elif isinstance(other, number_field.NumberField_quadratic):
+            emb = other.coerce_embedding()
+            return emb is not None and self.has_coerce_map_from(emb.codomain())
 
         from sage.rings.all import QQ, AA, QQbar, RLF, CLF
         if other in [AA, QQbar, RLF, CLF]:
             return True
-
-        from sage.rings.number_field.number_field_base import is_NumberField
-        if is_NumberField(other):
-            emb = other.coerce_embedding()
-            return emb is not None and self.has_coerce_map_from(emb.codomain())
 
     def _element_constructor_(self, x=None, y=None):
         r"""
@@ -2725,7 +2729,7 @@ cdef class ComplexBall(RingElement):
         EXAMPLES::
 
             sage: CBF(0, -1).agm1()
-            [0.5990701173678 +/- 1.15e-14] + [-0.5990701173678 +/- 1.19e-14]*I
+            [0.599070117367796 +/- 3.9...e-16] + [-0.599070117367796 +/- 5.5...e-16]*I
         """
         cdef ComplexBall res = self._new()
         if _do_sig(prec(self)): sig_on()
@@ -3440,9 +3444,9 @@ cdef class ComplexBall(RingElement):
              [0.002473055794309 +/- 5.01e-16] + [0.003859554040267 +/- 4.45e-16]*I,
              [-0.01299087561709 +/- 4.72e-15] + [0.00725027521915 +/- 4.32e-15]*I]
             sage: (z + 3 + 4*tau).elliptic_p(tau, 3)
-            [[-3.2892099677271 +/- 2.29e-14] + [-0.00036737673029 +/- 8.58e-15]*I,
-             [0.002473055794 +/- 6.59e-13] + [0.003859554040 +/- 6.17e-13]*I,
-             [-0.0129908756 +/- 3.39e-11] + [0.0072502752 +/- 3.60e-11]*I]
+            [[-3.28920996772709 +/- 8.4...e-15] + [-0.00036737673029 +/- 4.1...e-15]*I,
+             [0.0024730557943 +/- 6.6...e-14] + [0.0038595540403 +/- 8.8...e-14]*I,
+             [-0.01299087562 +/- 5.6...e-12] + [0.00725027522 +/- 3.5...e-12]*I]
 
         """
         cdef ComplexBall my_tau = self._parent.coerce(tau)
@@ -3478,7 +3482,7 @@ cdef class ComplexBall(RingElement):
         EXAMPLES::
 
             sage: CBF(2,3).elliptic_k()
-            [1.0429132919285 +/- 3.65e-14] + [0.6296824723086 +/- 6.15e-14]*I
+            [1.04291329192852 +/- 5.9...e-15] + [0.62968247230864 +/- 3.4...e-15]*I
 
         """
         cdef ComplexBall result = self._new()
@@ -3495,7 +3499,7 @@ cdef class ComplexBall(RingElement):
         EXAMPLES::
 
             sage: CBF(2,3).elliptic_e()
-            [1.472797144959 +/- 4.82e-13] + [-1.231604783936 +/- 1.25e-13]*I
+            [1.472797144959 +/- 4.5...e-13] + [-1.231604783936 +/- 9.5...e-14]*I
 
         """
         cdef ComplexBall result = self._new()
@@ -3642,7 +3646,7 @@ cdef class ComplexBall(RingElement):
         EXAMPLES::
 
             sage: CBF(1/2).legendre_P(5)
-            0.08984375000000000
+            [0.08984375000000000 +/- 4.5...e-18]
             sage: CBF(1,2).legendre_P(CBF(2,3), CBF(0,1))
             [0.10996180744364 +/- 7.45e-15] + [0.14312767804055 +/- 8.38e-15]*I
             sage: CBF(-10).legendre_P(5, 325/100)

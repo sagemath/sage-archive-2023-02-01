@@ -38,6 +38,9 @@ from sage.rings.finite_rings.finite_field_ntl_gf2e import FiniteField_ntl_gf2e
 from sage.libs.pari.all import pari
 from sage.libs.gmp.all cimport *
 
+from sage.cpython.string import FS_ENCODING
+from sage.cpython.string cimport str_to_bytes, char_to_str
+
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular
 
 _saved_options = (int(0),0,0)
@@ -508,15 +511,14 @@ cdef number *sa2si_NF(object elem, ring *_ring):
     # so we hace to get/create one :
     #
     # todo: reuse qqr/ get an existing Singular polynomial ring over Q.
-    varname = "a"
-    _name = omStrDup(varname)
+    _name = omStrDup("a")
     cdef char **_ext_names
     _ext_names = <char**>omAlloc0(sizeof(char*))
     _ext_names[0] = omStrDup(_name)
     qqr = rDefault( 0, 1, _ext_names);
     rComplete(qqr,1)
     qqr.ShortOut = 0
-    
+
 
     nMapFuncPtr =  naSetMap( qqr.cf , _ring.cf ) # choose correct mapping function
     cdef poly *_p
@@ -605,7 +607,6 @@ cdef inline number *sa2si_ZZmod(IntegerMod_abstract d, ring *_ring):
     cdef int64_t _d
     cdef char *_name
     cdef char **_ext_names
-    varname = "a"
 
     cdef nMapFunc nMapFuncPtr = NULL;
 
@@ -620,7 +621,7 @@ cdef inline number *sa2si_ZZmod(IntegerMod_abstract d, ring *_ring):
         # create ZZr, a plain polynomial ring over ZZ with one variable.
         #
         # todo (later): reuse ZZr
-        _name = omStrDup(varname)
+        _name = omStrDup("a")
         _ext_names = <char**>omAlloc0(sizeof(char*))
         _ext_names[0] = omStrDup(_name)
         _cf = nInitChar( n_Z, NULL) # integer coefficient ring
@@ -774,7 +775,9 @@ cdef init_libsingular():
     if not os.path.exists(lib):
         raise ImportError("cannot locate Singular library ({})".format(lib))
 
-    handle = dlopen(lib, RTLD_GLOBAL|RTLD_LAZY)   
+    lib = str_to_bytes(lib, FS_ENCODING, "surrogateescape")
+
+    handle = dlopen(lib, RTLD_GLOBAL|RTLD_LAZY)
     if not handle:
         err = dlerror()
         raise ImportError("cannot load Singular library ({})".format(err))
@@ -803,5 +806,5 @@ cdef init_libsingular():
 init_libsingular()
 
 cdef void libsingular_error_callback(const_char_ptr s):
-    _s = s
+    _s = char_to_str(s)
     error_messages.append(_s)

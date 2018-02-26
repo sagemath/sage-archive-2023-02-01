@@ -135,6 +135,7 @@ from sage.structure.sequence import Sequence
 
 from sage.structure.category_object import normalize_names
 import sage.structure.parent_gens
+import sage.structure.coerce_exceptions
 
 from sage.structure.proof.proof import get_flag
 from . import maps
@@ -4620,6 +4621,16 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: Hom(Q1, F).order()
             4
 
+        Note that even with ``preserve_embedding=True``, this method may fail
+        to recognize that the two number fields have compatible embeddings, and
+        hence return several composite number fields::
+
+            sage: x = polygen(ZZ)
+            sage: A.<a> = NumberField(x^3 - 7, embedding=CC(-0.95+1.65*I))
+            sage: B.<a> = NumberField(x^9 - 7, embedding=QQbar.polynomial_root(x^9 - 7, RIF(1.2, 1.3)))
+            sage: len(A.composite_fields(B, preserve_embedding=True))
+            2
+
         TESTS:
 
         Let's check that embeddings are being respected::
@@ -4705,6 +4716,20 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             32
             sage: F.gen() == map2(F2.gen()) + k*map1(F1.gen())
             True
+
+        Check that the bugs reported at :trac:`24357` are fixed::
+
+            sage: A.<a> = NumberField(x^9 - 7)
+            sage: B.<b> = NumberField(x^3-7, embedding=a^3)
+            sage: C.<c> = QuadraticField(-1)
+            sage: B.composite_fields(C)
+            [Number Field in bc with defining polynomial x^6 + 3*x^4 + 14*x^3 + 3*x^2 - 42*x + 50]
+
+            sage: y = polygen(QQ, 'y')
+            sage: A.<a> = NumberField(x^3 - 7, embedding=CC(-0.95+1.65*I))
+            sage: B.<b> = NumberField(y^9 - 7, embedding=CC(-1.16+0.42*I))
+            sage: A.composite_fields(B)
+            [Number Field in b with defining polynomial y^9 - 7]
         """
         if not isinstance(other, NumberField_generic):
             raise TypeError("other must be a number field.")
@@ -4724,13 +4749,13 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             try:
                 from sage.categories.pushout import pushout
                 ambient_field = pushout(self.coerce_embedding().codomain(), other.coerce_embedding().codomain())
-            except CoercionException:
+            except sage.structure.coerce_exceptions.CoercionException:
                 ambient_field = None
             if ambient_field is None:
                 subfields_have_embeddings = False
 
         f = self.absolute_polynomial()
-        g = other.absolute_polynomial()
+        g = other.absolute_polynomial().change_variable_name(f.variable_name())
         R = f.parent()
         f = f.__pari__(); f /= f.content()
         g = g.__pari__(); g /= g.content()
@@ -6809,6 +6834,92 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         if check and not all([x-xi in Ii for xi,Ii in zip(reslist, Ilist)]):
             raise RuntimeError("Error in number field solve_CRT()")
         return self(x)
+
+    def valuation(self, prime):
+        r"""
+        Return the valuation on this field defined by ``prime``.
+
+        INPUT:
+
+        - ``prime`` -- a prime that does not split, a discrete
+          (pseudo-)valuation or a fractional ideal
+
+        EXAMPLES:
+    
+        The valuation can be specified with an integer ``prime`` that is
+        completely ramified in ``R``::
+
+            sage: K.<a> = NumberField(x^2 + 1)
+            sage: K.valuation(2)
+            2-adic valuation
+
+        It can also be unramified in ``R``::
+
+            sage: K.valuation(3)
+            3-adic valuation
+
+        A ``prime`` that factors into pairwise distinct factors, results in an error::
+
+            sage: K.valuation(5)
+            Traceback (most recent call last):
+            ...
+            ValueError: The valuation Gauss valuation induced by 5-adic valuation does not approximate a unique extension of 5-adic valuation with respect to x^2 + 1
+
+        The valuation can also be selected by giving a valuation on the base
+        ring that extends uniquely::
+
+            sage: CyclotomicField(5).valuation(ZZ.valuation(5))
+            5-adic valuation
+
+        When the extension is not unique, this does not work::
+
+            sage: K.valuation(ZZ.valuation(5))
+            Traceback (most recent call last):
+            ...
+            ValueError: The valuation Gauss valuation induced by 5-adic valuation does not approximate a unique extension of 5-adic valuation with respect to x^2 + 1
+
+        For a number field which is of the form `K[x]/(G)`, you can specify a
+        valuation by providing a discrete pseudo-valuation on `K[x]` which sends
+        `G` to infinity. This lets us specify which extension of the 5-adic
+        valuation we care about in the above example::
+
+            sage: R.<x> = QQ[]
+            sage: v = K.valuation(GaussValuation(R, QQ.valuation(5)).augmentation(x + 2, infinity))
+            sage: w = K.valuation(GaussValuation(R, QQ.valuation(5)).augmentation(x + 1/2, infinity))
+            sage: v == w
+            False
+
+        Note that you get the same valuation, even if you write down the
+        pseudo-valuation differently::
+
+            sage: ww = K.valuation(GaussValuation(R, QQ.valuation(5)).augmentation(x + 3, infinity))
+            sage: w is ww
+            True
+
+        The valuation ``prime`` does not need to send the defining polynomial `G`
+        to infinity. It is sufficient if it singles out one of the valuations on
+        the number field.  This is important if the prime only factors over the
+        completion, i.e., if it is not possible to write down one of the factors
+        within the number field::
+
+            sage: v = GaussValuation(R, QQ.valuation(5)).augmentation(x + 3, 1)
+            sage: K.valuation(v)
+            [ 5-adic valuation, v(x + 3) = 1 ]-adic valuation
+
+        Finally, ``prime`` can also be a fractional ideal of a number field if it
+        singles out an extension of a `p`-adic valuation of the base field::
+
+            sage: K.valuation(K.fractional_ideal(a + 1))
+            2-adic valuation
+
+        .. SEEALSO::
+
+            :meth:`Order.valuation() <sage.rings.number_field.order.Order.valuation>`,
+            :meth:`pAdicGeneric.valuation() <sage.rings.padics.padic_generic.pAdicGeneric.valuation>`
+
+        """
+        from sage.rings.padics.padic_valuation import pAdicValuation
+        return pAdicValuation(self, prime)
 
     def some_elements(self):
         """

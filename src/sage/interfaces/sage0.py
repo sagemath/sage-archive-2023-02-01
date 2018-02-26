@@ -223,7 +223,7 @@ class Sage(ExtraTabCompletion, Expect):
             sage: 'gcd' in t
             True
         """
-        return eval(self.eval('print(repr(globals().keys()))'))
+        return eval(self.eval('print(repr(list(globals())))'))
 
     def __call__(self, x):
         """
@@ -507,11 +507,11 @@ class SageElement(ExpectElement):
         """
         P = self.parent()
         if P.is_remote():
-            P.eval('save(%s, "%s")' % (self.name(), P._remote_tmpfile()))
+            P.eval('save({}, {!r})'.format(self.name(), P._remote_tmpfile()))
             P._get_tmpfile_from_server(self)
             return load(P._local_tmp_file())
         else:
-            P.eval('save(%s, "%s")' % (self.name(), P._local_tmpfile()))
+            P.eval('save({}, {!r})'.format(self.name(), P._local_tmpfile()))
             return load(P._local_tmpfile())
 
 
@@ -526,19 +526,23 @@ class SageFunction(FunctionElement):
             2
         """
         P = self._obj.parent()
+
+        # Important! Keep references to the argument values or else they may
+        # get cleared from the interpreter before we complete the function
+        # call.
         args = [P(x) for x in args]
-        args = ','.join([x.name() for x in args])
-        kwds = ",".join(["%s=%s" % (k, P(v).name())
-                         for k, v in iteritems(kwds)])
-        if args != "" and kwds != "":
-            callstr = '%s.%s(%s,%s)' % (self._obj._name, self._name, args, kwds)
-        elif kwds != "":
-            callstr = '%s.%s(%s)' % (self._obj._name, self._name, kwds)
-        elif args != "":
-            callstr = '%s.%s(%s)' % (self._obj._name, self._name, args)
+        kwds = [(k, P(v)) for k, v in iteritems(kwds)]
+
+        arg_str = ','.join(x.name() for x in args)
+        kwd_str = ",".join("%s=%s" % (k, v.name()) for k, v in kwds)
+
+        if arg_str and kwd_str:
+            args_str = '%s,%s' % (arg_str, kwd_str)
         else:
-            callstr = '%s.%s()' % (self._obj._name, self._name)
-        return SageElement(P, callstr)
+            args_str = arg_str + kwd_str  # At least one of these is empty
+
+        call_str = '%s.%s(%s)' % (self._obj._name, self._name, args_str)
+        return SageElement(P, call_str)
 
     def _repr_(self):
         """
@@ -579,7 +583,7 @@ def reduce_load_element(s):
     import base64
     s = base64.b32encode(s)
     sage0.eval('import base64')
-    return sage0('loads(base64.b32decode("%s"))' % s)
+    return sage0('loads(base64.b32decode({!r}))'.format(s))
 
 
 def sage0_console():

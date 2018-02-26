@@ -24,29 +24,47 @@ from sage.arith.misc import gcd
 from sage.rings.all import ZZ, QQ
 from sage.groups.additive_abelian.qmodnz import QmodnZ
 from sage.matrix.constructor import matrix
+from sage.matrix.special import diagonal_matrix
 from sage.misc.cachefunc import cached_method
 
 def TorsionQuadraticForm(q):
-    """
-    Create a torsion quadratic form module from a rational matrix
-    
+    r"""
+    Create a torsion quadratic form module from a rational matrix.
+
+    The resulting torsion quadratic form is non-degenerate
+    and takes values in QQ/ZZ or QQ/(2*ZZ) (depending on ``q``).
+
     INPUT:
+        - ``q`` -- a symmetric rational matrix
+
+    EXAMPLES::
+
+        sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticForm
+        sage: q1 = Matrix(QQ,2,[1,1/2,1/2,1])
+        sage: TorsionQuadraticForm(q1)
+        Finite quadratic module over Integer Ring with invariants (2, 2)
+        Gram matrix of the quadratic form with values in Q/2Z:
+        [  1 1/2]
+        [1/2   1]
+        sage: q2 = diagonal_matrix(QQ,[1/2,1/3])
+        sage: TorsionQuadraticForm(q2)
+        Finite quadratic module over Integer Ring with invariants (6,)
+        Gram matrix of the quadratic form with values in Q/Z:
+        [5/6]
     """
-    # ? check if q is a square matrix ?
-    q = matrix(QQ,q)
-    Q,d = q._clear_denom()
-    S,U,V = Q.smith_form()
+    q = matrix(QQ, q)
+    if q.nrows() != q.ncols():
+        raise ValueError("the input must be a square matrix")
+    if q != q.transpose():
+        raise ValueError("the input must be a symmetric matrix")
+
+    Q, d = q._clear_denom()
+    S, U, V = Q.smith_form()
     D = U * q * V
-    gens_indices = []
-    for i in range(D.ncols()):
-        if D[i,i]!=0 and D[i,i].denominator()!=1:
-            gens_indices.append(i)
-    gens = U[gens_indices]
-    qf = gens*q*gens.T
-    rels = D[gens_indices,gens_indices].inverse()
-    Q = FreeQuadraticModule(ZZ,qf.ncols(),inner_product_matrix=(d**2)*qf)
-    rels = Q.span(rels)
-    return TorsionQuadraticModule((1/d)*Q,(1/d)*rels)
+    Q = FreeQuadraticModule(ZZ, q.ncols(), inner_product_matrix=(d**2) * q)
+    denoms = [D[i,i].denominator() for i in range(D.ncols())]
+    rels = Q.span(diagonal_matrix(ZZ,denoms) * U)
+    return TorsionQuadraticModule((1/d)*Q, (1/d)*rels)
 
 class TorsionQuadraticModuleElement(FGP_Element):
     r"""

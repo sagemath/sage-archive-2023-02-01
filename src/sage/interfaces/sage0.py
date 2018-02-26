@@ -20,6 +20,7 @@ from six.moves import cPickle
 
 import os
 import re
+import textwrap
 
 from .expect import Expect, ExpectElement, FunctionElement
 import sage.repl.preparse
@@ -144,12 +145,16 @@ class Sage(ExtraTabCompletion, Expect):
             sage: sage0 == loads(dumps(sage0))
             True
         """
+
+        if init_code is None:
+            init_code = []
+        elif isinstance(init_code, list):
+            init_code = list(init_code)
+
         if python:
             command = "python -u"
-            prompt = ">>>"
-            if init_code is None:
-                init_code = ['from sage.all import *',
-                             'from six.moves import cPickle']
+            prompt = re.compile(b">>> ")
+            init_code.append('from sage.all import *')
         else:
             command = ' '.join([
                 'sage-ipython',
@@ -161,9 +166,19 @@ class Sage(ExtraTabCompletion, Expect):
                 '--no-term-title',
                 '--simple-prompt',
             ])
-            prompt = re.compile('sage: ')
-            if init_code is None:
-                init_code = ['from six.moves import cPickle']
+            prompt = re.compile(b'sage: ')
+
+        init_code.append('from six.moves import cPickle')
+        init_code.append(textwrap.dedent("""
+            def _sage0_load_local(filename):
+                with open(filename, 'rb') as f:
+                    return cPickle.load(f)
+        """))
+        init_code.append(textwrap.dedent("""
+            def _sage0_load_remote(filename):
+                with open(filename, 'rb') as f:
+                    return loads(f.read())
+        """))
 
         Expect.__init__(self,
                         name='sage',
@@ -236,12 +251,16 @@ class Sage(ExtraTabCompletion, Expect):
             return SageElement(self, x)
 
         if self.is_local():
-            open(self._local_tmpfile(), 'w').write(cPickle.dumps(x, 2))
-            return SageElement(self, 'cPickle.load(open("%s"))' % self._local_tmpfile())
+            with open(self._local_tmpfile(), 'wb') as fobj:
+                fobj.write(cPickle.dumps(x, 2))
+            code = "_sage0_load_local({!r})".format(self._local_tmpfile())
+            return SageElement(self, code)
         else:
-            open(self._local_tmpfile(), 'w').write(dumps(x))   # my dumps is compressed by default
+            with open(self._local_tmpfile(), 'wb') as fobj:
+                fobj.write(dumps(x))   # my dumps is compressed by default
             self._send_tmpfile_to_server()
-            return SageElement(self, 'loads(open("%s").read())' % self._remote_tmpfile())
+            code = "_sage0_load_remote({!r})".format(self._remote_tmpfile())
+            return SageElement(self, code)
 
     def __reduce__(self):
         """

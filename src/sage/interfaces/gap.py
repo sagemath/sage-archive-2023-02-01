@@ -1840,10 +1840,14 @@ def gap_console():
 
     TESTS::
 
-        sage: import subprocess
+        sage: import subprocess as sp
         sage: from sage.interfaces.gap import gap_command
         sage: cmd = 'echo "quit;" | ' + gap_command(use_workspace_cache=False)[0]
-        sage: gap_startup = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+        sage: gap_startup = sp.check_output(cmd, shell=True,  # py2
+        ....:                               stderr=sp.STDOUT)
+        sage: gap_startup = sp.check_output(cmd, shell=True,  # py3
+        ....:                               stderr=sp.STDOUT,
+        ....:                               encoding='latin1')
         sage: 'www.gap-system.org' in gap_startup
         True
         sage: 'Error' not in gap_startup

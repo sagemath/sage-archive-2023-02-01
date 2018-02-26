@@ -36,7 +36,7 @@ There are several flavours of this image.
 
 # How to build your own SageMath images
 
-Run `docker build -f docker/Dockerfile --target TARGET .` in the Sage repository with `TARGET` one of `sage`, `sage-jupyter`, or `dev`.
+Run `docker build -f docker/Dockerfile --build-arg ARTIFACT_BASE=saraedum/sagemath-dev:develop --target TARGET .` in the Sage repository with `TARGET` one of `sagemath` or `sagemath-dev`.
 
 # How these images get updated
 

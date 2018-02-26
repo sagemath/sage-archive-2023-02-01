@@ -19,6 +19,10 @@ The classic litterature on the topic includes:
  - *An Introduction to Convex Polytopes*, Arne Brøndsted, [Bro1983]_
  - *Lectures on Polytopes*, Günter M. Ziegler, [Zie2007]_
 
+For the nomenclature, Sage tries to follow:
+
+ - *Handbook of Discrete and Computational Geometry*, Chapter 15, [Goo2004]_
+
 Preparation of this document was supported in part by the OpenDreamKit project and written
 during the SageDays 84 in Olot (Spain).
 
@@ -775,6 +779,9 @@ Bibliography
 .. [Bro1983] Brondsted, A., An Introduction to Convex Polytopes, volume 90
              of Graduate Texts in Mathematics. Springer-Verlag, New York, 1983. ISBN
              978-1-4612-7023-2
+
+.. [Goo2004] J.E. Goodman and J. O'Rourke, editors, CRC Press LLC, Boca Raton, FL, 2004.
+             ISBN 978-1584883012 (65 chapters, xvii + 1539 pages).
 
 .. [Gru1967] Grünbaum, B., Convex polytopes, volume 221 of Graduate Texts in
              Mathematics. Springer-Verlag, New York, 2003. ISBN

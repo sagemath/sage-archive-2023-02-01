@@ -40,19 +40,19 @@ List of Polyhedron methods
     :widths: 30, 70
     :delim: |
 
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_empty` | test emptyness
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_universe` | test whether a polyhedra is the whole ambient space
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_full_dimensional` | test if the polyhedron has the same dimension has the ambient space
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_combinatorially_isomorphic` | test whether two polyhedra are combinatorially isomorphic
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_compact` | test compactness of a polyhedron
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_lattice_polytope` | test whether a polyhedron is a lattice polytope
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_inscribed` | test whether the polyhedron is inscribed in a sphere
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_Minkowski_summand` | WTH?test if the polyhedron can be used to produce another using a Minkowski sum.
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_neighborly` | test whether the polyhedron has full skeleton until half of the dimension
-    :meth:`~sage.geometry.polyhedron.base_ZZ.Polyhedron_ZZ.is_reflexive` | test if the polar of a lattice polytope is also a lattice polytope (only for :class:`Polyhedron over ZZ <sage.geometry.polyhedron.base_ZZ.Polyhedron_ZZ>`)
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_empty` | tests emptyness
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_universe` | tests whether a polyhedra is the whole ambient space
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_full_dimensional` | tests if the polyhedron has the same dimension has the ambient space
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_combinatorially_isomorphic` | tests whether two polyhedra are combinatorially isomorphic
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_compact` | tests compactness of a polyhedron
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_lattice_polytope` | tests whether a polyhedron is a lattice polytope
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_inscribed` | tests whether the polyhedron is inscribed in a sphere
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_minkowski_summand` | tests if the polyhedron can be used to produce another given polyhedron using a Minkowski sum.
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_neighborly` | tests whether the polyhedron has full skeleton until half of the dimension (or up to a certain dimension)
+    :meth:`~sage.geometry.polyhedron.base_ZZ.Polyhedron_ZZ.is_reflexive` | tests if the polar of a lattice polytope is also a lattice polytope (only for :class:`Polyhedron over ZZ <sage.geometry.polyhedron.base_ZZ.Polyhedron_ZZ>`)
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_simple` |  checks whether the degree of all vertices is equal to the dimension of the polytope
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_simplex` | test whether a polytope is a simplex
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_simplicial` |  check whether a polyhedra has all its faces being simplices
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_simplicial` |  checks whether all faces of the polyhedron are simplices
 
 **Enumerative properties**
 
@@ -67,6 +67,16 @@ List of Polyhedron methods
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.f_vector` |  the `f`-vector (number of faces of each dimension)
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.neighborliness` | highest cardinality for which all `k`-subsets of the vertices are faces of the polyhedron
 
+**Implementation properties**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.backend` | gives the backend used
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.base_ring` | gives the base ring used
+
 **Transforming polyhedra**
 
 .. csv-table::
@@ -74,24 +84,24 @@ List of Polyhedron methods
     :widths: 30, 70
     :delim: |
 
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.Minkowski_sum` | Minkowski sum of two polyhedra
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.Minkowski_difference` | Minkowski difference of two polyhedra
-    :meth:`~sage.geometry.polyhedron.base_ZZ.Polyhedron_ZZ.Minkowski_decompositions` | Minkowski decomposition (only for :class:`Polyhedron over ZZ <sage.geometry.polyhedron.base_ZZ.Polyhedron_ZZ>`)
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.minkowski_sum` | Minkowski sum of two polyhedra
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.minkowski_difference` | Minkowski difference of two polyhedra
+    :meth:`~sage.geometry.polyhedron.base_ZZ.Polyhedron_ZZ.minkowski_decompositions` | Minkowski decomposition (only for :class:`Polyhedron over ZZ <sage.geometry.polyhedron.base_ZZ.Polyhedron_ZZ>`)
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.product` | cartesian product of two polyhedra
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.intersection` | intersection of two polyhedra
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.convex_hull` | convex hull of the union of two polyhedra
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.affine_hull` | construct an affinely equivalent full dimensional polyhedra
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.affine_hull` | constructs an affinely equivalent full dimensional polyhedra
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.faces` | the list of faces
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.barycentric_subdivision` | the list of faces
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.barycentric_subdivision` | constructs a geometric realization of the barycentric subdivision
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.dilation` |  scalar dilation
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.face_truncation` | truncate a specific face
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.lattice_polytope` | return an encompassing lattice polytope.
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.polar` | return the polar of a polytope (needs to be compact)
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.prism` | the prism of a polyhedron (increases both the dimension of the polyhedron and the dimension of the ambient space)
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.pyramid` | the pyramid of a polyhedron (increases both the dimension of the polyhedron and the dimension of the ambient space)
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.bipyramid` | construct the bipyramid of te polyhedron (increases both the dimension of the polyhedron and the dimension of the ambient space by 1)
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.translation` | translation by a given vector
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.truncation` | truncate all vertices
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.face_truncation` | truncates a specific face
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.lattice_polytope` | returns an encompassing lattice polytope.
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.polar` | returns the polar of a polytope (needs to be compact)
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.prism` | prism over a polyhedron (increases both the dimension of the polyhedron and the dimension of the ambient space)
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.pyramid` | pyramid over a polyhedron (increases both the dimension of the polyhedron and the dimension of the ambient space)
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.bipyramid` | bipyramid over a polyhedron (increases both the dimension of the polyhedron and the dimension of the ambient)
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.translation` | translates by a given vector
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.truncation` | truncates all vertices simultaneously
 
 **Combinatorics**
 
@@ -104,6 +114,7 @@ List of Polyhedron methods
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.combinatorial_automorphism_group` | the automorphism group of the underlying combinatorial polytope
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.graph`, :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.vertex_graph` | underlying graph
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.vertex_digraph` | digraph (orientation of edges determined by a linear form)
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.vertex_facet_graph` | bipartite digraph given vertex-facet adjacency
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.adjacency_matrix` | adjacency matrix
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.incidence_matrix` | incidence matrix
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.facet_adjacency_matrix` | adjacency matrix of the facets
@@ -119,6 +130,27 @@ List of Polyhedron methods
     :meth:`~sage.geometry.polyhedron.base_ZZ.Polyhedron_ZZ.ehrhart_polynomial` | the Ehrhart polynomial (only for :class:`Polyhedron over ZZ <sage.geometry.polyhedron.base_ZZ.Polyhedron_ZZ>`)
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.integral_points` | list of integral points
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.integral_points_count` | number of integral points
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.get_integral_point` | get the i-th integral point without computing all interior lattice points
+    :meth:`~sage.geometry.polyhedron.base_ZZ.Polyhedron_ZZ.has_IP_property` | checks whether the origin is an interior lattice point and compactness (only for :class:`Polyhedron over ZZ <sage.geometry.polyhedron.base_ZZ.Polyhedron_ZZ>`)
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.random_integral_point` | get a random integral point
+
+
+**Getting related geometric objects**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.center` | returns the average of the vertices of the polyhedron
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.representative_point` | returns the sum of the center and the rays
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.face_fan` | returns the fan spanned by the faces of the polyhedron
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.normal_fan` | returns the fan spanned by the normals of the supporting hyperplanes of the polyhedron
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.gale_transform` | returns the (affine) Gale transform of the vertices of the polyhedron
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.hyperplane_arrangement` | returns the hyperplane arrangement given by the defining facets of the polyhedron
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.to_linear_program` | transform the polyhedra into a Linear Program
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.triangulate` | returns a triangulation of the polyhedron
+    :meth:`~sage.geometry.polyhedron.base_ZZ.Polyhedron_ZZ.fibration_generator` | returns an iterator of the fibrations of the lattice polytope (only for :class:`Polyhedron over ZZ <sage.geometry.polyhedron.base_ZZ.Polyhedron_ZZ>`)
 
 **Other**
 
@@ -127,21 +159,17 @@ List of Polyhedron methods
     :widths: 30, 70
     :delim: |
 
+
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.bounded_edges` | generator for bouded edges
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.bounding_box` | ?
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.center` | ?
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.representative_point` | ?
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.interior_contains` | ?
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.contains` | ?
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.relative_interior_contains` | ?
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.gale_transform` | ?
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.hyperplane_arrangement` | ?
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.radius` | ?
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.radius_square` | ?
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.to_linear_program` | transform the polyhedra into a Linear Program
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.radius_square` | ?
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.triangulate` | ?
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.volume` | ?
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.restricted_automorphism_group` | ?
-    :meth:`~sage.geometry.polyhedron.ppl_lattice_polytope.LatticePolytope_PPL_class.lattice_automorphism_group` | Only for :class:`PPL Lattice Polytope <sage.geometry.polyhedron.ppl_lattice_polytope.LatticePolytope_PPL_class>`
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.bounding_box` | returns the vertices of an emcompassing cube
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.contains` | tests whether the polyhedron contains a vector
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.interior_contains` | tests whether the polyhedron contains a vector in its interior using the ambiant topology
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.relative_interior_contains` | tests whether the polyhedron contains a vector in its relative interior
+    :meth:`~sage.geometry.polyhedron.base_ZZ.Polyhedron_ZZ.find_translation` | returns the translation vector between two translation of two polyhedron (only for :class:`Polyhedron over ZZ <sage.geometry.polyhedron.base_ZZ.Polyhedron_ZZ>`)
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.integrate` | computes the integral of a polynomial over the polyhedron
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.radius` | returns the radius of the smallest sphere containing the polyhedron
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.radius_square` | returns the square of the radius of the smallest sphere containing the polyhedron
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.volume` | computes different volumes of the polyhedron
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.restricted_automorphism_group` | returns the restricted automorphism group
+    :meth:`~sage.geometry.polyhedron.ppl_lattice_polytope.LatticePolytope_PPL_class.lattice_automorphism_group` | returns the lattice automorphism group. Only for :class:`PPL Lattice Polytope <sage.geometry.polyhedron.ppl_lattice_polytope.LatticePolytope_PPL_class>`
 

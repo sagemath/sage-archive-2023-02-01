@@ -23,7 +23,7 @@ parameter.
 
     sage: Cube = polytopes.cube()
     sage: Cube.render_solid(opacity=0.7)
-    Launched jmol viewer for Graphics3d Object
+    Graphics3d Object
 
 .. end of output
 
@@ -35,7 +35,7 @@ This plots the graph (with unbounded edges) of the polyhedron
 ::
 
     sage: Cube.render_wireframe()
-    Launched jmol viewer for Graphics3d Object
+    Graphics3d Object
 
 .. end of output
 
@@ -48,7 +48,7 @@ polyhedron all together.
 ::
 
     sage: Cube.plot()
-    Launched jmol viewer for Graphics3d Object
+    Graphics3d Object
 
 .. end of output
 
@@ -70,7 +70,7 @@ It is possible to visualize 4-dimensional polytopes using a schlegel diagram.
     sage: HC.schlegel_projection()
     The projection of a polyhedron into 3 dimensions
     sage: HC.schlegel_projection().plot()
-    Launched jmol viewer for Graphics3d Object
+    Graphics3d Object
 
 .. end of output
 
@@ -79,6 +79,6 @@ We can see it from a different perspective:
 ::
 
     sage: HC.schlegel_projection([2,5,11,17]).plot()
-    Launched jmol viewer for Graphics3d Object
+    Graphics3d Object
 
 .. end of output

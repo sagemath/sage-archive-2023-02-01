@@ -103,7 +103,7 @@ Of course, you want to know what this object looks like:
 ::
 
     sage: P1.plot()
-    Launched png viewer for Graphics object consisting of 5 graphics primitives
+    Graphics object consisting of 5 graphics primitives
 
 .. end of output
 
@@ -117,11 +117,11 @@ We can also add a lineality space.
     sage: P2
     A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 2 vertices, 1 ray, 1 line
     sage: P2.plot()
-    Launched jmol viewer for Graphics3d Object
+    Graphics3d Object
 
 .. end of output
 
-Notice that the base ring change because of the value :math:`\frac{1}{2}`.
+Notice that the base ring changes because of the value :math:`\frac{1}{2}`.
 Indeed, Sage finds an appropriate ring to define the object.
 
 ::
@@ -162,6 +162,16 @@ The following example demonstrates the limitations of :code:`RDF`.
     sage: D_RDF = Polyhedron(vertices = [n(v.vector(),digits=6) for v in D.vertices()], base_ring=RDF)
     sage: D_RDF
     A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 17 vertices
+
+.. end of output
+
+If the input of the polyhedron consists of python :code:`float`, it
+automatically converts the data to :code:`RDF`:
+
+::
+
+    sage: Polyhedron(vertices=[[float(1.1)]])
+    A 0-dimensional polyhedron in RDF^1 defined as the convex hull of 1 vertex
 
 .. end of output
 
@@ -213,12 +223,12 @@ polyhedron over it:
     sage: Polyhedron(vertices = [[sqrt_2s, 0], [0, cbrt_2s]])
     Traceback (most recent call last):
     ...
-    ValueError: no appropriate backend for computations with Symbolic Ring
+    ValueError: for polyhedra with floating point numbers, the only allowed ring is RDF with backend 'cdd'
 
 .. end of output
 
-Similarly, it is not possible to create polyhedron objects over :code:`floats`
-or over :code:`RR` (no matter how many bits of precision).
+Similarly, it is not possible to create polyhedron objects over :code:`RR` 
+(no matter how many bits of precision).
 
 ::
 
@@ -228,15 +238,13 @@ or over :code:`RR` (no matter how many bits of precision).
     sage: Polyhedron(vertices=[[F45(f)]])
     Traceback (most recent call last):
     ...
-    ValueError: no appropriate backend for computations with Real Field with 45
-    bits of precision
+    ValueError: for polyhedra with floating point numbers, the only allowed
+    ring is RDF with backend 'cdd'
     sage: Polyhedron(vertices=[[F100(f)]])
     Traceback (most recent call last):
     ...
-    ValueError: no appropriate backend for computations with Real Field with
-    100 bits of precision
-    
-    sage: FLOATS EXAMPLE
+    ValueError: for polyhedra with floating point numbers, the only allowed
+    ring is RDF with backend 'cdd'
 
 .. end of output
 
@@ -249,7 +257,7 @@ base ring is converted to :code:`RDF`:
     sage: Polyhedron(vertices=[[F53(f)]])
     A 0-dimensional polyhedron in RDF^1 defined as the convex hull of 1 vertex
     sage: type(Polyhedron(vertices=[[F53(f)]]))
-    <class 'sage.geometry.polyhedron.backend_cdd.Polyhedra_RDF_cdd_with_category.element_class'>
+    <class 'sage.geometry.polyhedron.parent.Polyhedra_RDF_cdd_with_category.element_class'>
 
 .. end of output
 
@@ -275,7 +283,7 @@ the :math:`H`-representation of the object.
 ::
 
     sage: for h in P1.Hrepresentation():
-    ....:     print h
+    ....:     print(h)
     An inequality (1, 1) x - 1 >= 0
     An inequality (1, -1) x + 1 >= 0
     An inequality (-1, 1) x + 1 >= 0
@@ -365,7 +373,7 @@ inequalities and equalities as objects.
     An equation (2, 2) x - 1 == 0
     sage: H2 = HRep[1]; H2
     An inequality (0, -2) x + 1 >= 0
-    sage: H1.<tab>
+    sage: H1.<tab>   # not tested
     sage: H1.A()
     (2, 2)
     sage: H1.b()
@@ -471,6 +479,10 @@ These backends offer various functionalities and have their own specific strengt
 
    - `The Parma Polyhedra Library homepage <http://bugseng.com/products/ppl/>`_
 
+ - :ref:`sage.geometry.polyhedron.backend_polymake`
+
+   - `The polymake project for convex geometry <https://polymake.org>`_
+
  - :ref:`sage.geometry.polyhedron.backend_field`
 
    - This is a :code:`python` backend that provides an implementation of
@@ -483,7 +495,8 @@ These backends offer various functionalities and have their own specific strengt
 
 The default backend is :code:`ppl`. Whenever one needs **speed** it is good to try out 
 the different backends. The backend :code:`field` is **not** specifically designed
-for dealing with extremal computations.
+for dealing with extremal computations but can do computations in exact
+coordinates.
 
 The :code:`cdd` backend
 -----------------------
@@ -514,9 +527,9 @@ backend :code:`cdd`. We can also check the backend and the parent using
 ::
 
     sage: type(P1_cdd)
-    <class 'sage.geometry.polyhedron.backend_cdd.Polyhedra_QQ_cdd_with_category.element_class'>
+    <class 'sage.geometry.polyhedron.parent.Polyhedra_QQ_cdd_with_category.element_class'>
     sage: type(P1)
-    <class 'sage.geometry.polyhedron.backend_ppl.Polyhedra_ZZ_ppl_with_category.element_class'>
+    <class 'sage.geometry.polyhedron.parent.Polyhedra_ZZ_ppl_with_category.element_class'>
 
 .. end of output
 
@@ -550,7 +563,7 @@ but not algebraic or symbolic values:
     sage: P5_cdd = Polyhedron(vertices = [[sqrt_2s, 0], [0, cbrt_2s]], backend='cdd')
     Traceback (most recent call last):
     ...
-    ValueError: No such backend (=cdd) implemented for given basering (=Symbolic Ring).
+    ValueError: for polyhedra with floating point numbers, the only allowed ring is RDF with backend 'cdd'
 
 .. end of output
 
@@ -559,7 +572,7 @@ over :math:`\mathbb{Z}`, :math:`\mathbb{Q}`, or :code:`RDF`:
 
 ::
 
-    sage: print P1.cdd_Vrepresentation()
+    sage: print(P1.cdd_Vrepresentation())
     V-representation
     begin
      3 3 rational
@@ -567,13 +580,14 @@ over :math:`\mathbb{Z}`, :math:`\mathbb{Q}`, or :code:`RDF`:
      1 0 1
      1 1 0
     end
-    sage: print P3.cdd_Hrepresentation()
+    sage: print(P3.cdd_Hrepresentation())
     H-representation
+    linearity 1 1
     begin
      3 3 real
-     1.5 -1.0 1.0
-     -1.5 1.0 1.5
-     1.0 1.0 -1.0
+     -0.5 1.0 1.0
+     1.0 -2.0 0.0
+     0.0 1.0 0.0
     end
 
 .. end of output
@@ -586,22 +600,45 @@ string containing a path to a file to be written.
 The :code:`ppl` backend
 -----------------------
 
-The :code:`ppl` is the default backend for polyhedron objects.
+The default backend for polyhedron objects i :code:`ppl`.
 
 ::
 
     sage: type(P1)
-    <class 'sage.geometry.polyhedron.backend_ppl.Polyhedra_ZZ_ppl_with_category.element_class'>
+    <class 'sage.geometry.polyhedron.parent.Polyhedra_ZZ_ppl_with_category.element_class'>
     sage: type(P2)
-    <class 'sage.geometry.polyhedron.backend_ppl.Polyhedra_QQ_ppl_with_category.element_class'>
+    <class 'sage.geometry.polyhedron.parent.Polyhedra_QQ_ppl_with_category.element_class'>
     sage: type(P3)  # has entries like 0.5
-    <class 'sage.geometry.polyhedron.backend_cdd.Polyhedra_RDF_cdd_with_category.element_class'>
+    <class 'sage.geometry.polyhedron.parent.Polyhedra_RDF_cdd_with_category.element_class'>
 
 .. end of output
 
 As you see, it does not accepts values in :code:`RDF` and the polyhedron constructor 
 used the :code:`cdd` backend.
 
+The :code:`polymake` backend
+----------------------------
+
+The :code:`polymake` backend is provided when the experimental package polymake
+for sage is installed.
+
+::
+
+    sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)],             # optional - polymake
+    ....:                rays=[(1,1)], lines=[],
+    ....:                backend='polymake', base_ring=QQ)
+
+.. end of output
+
+An example with quadratic field:
+
+::
+
+    sage: V = polytopes.dodecahedron().vertices_list()
+    sage: Polyhedron(vertices=V, backend='polymake')               # optional - polymake
+    A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^3 defined as the convex hull of 20 vertices
+
+.. end of output
 
 The :code:`field` backend
 -------------------------
@@ -620,7 +657,7 @@ examples.
 ::
 
     sage: type(D)
-    <class 'sage.geometry.polyhedron.backend_field.Polyhedra_field_with_category.element_class'>
+    <class 'sage.geometry.polyhedron.parent.Polyhedra_field_with_category.element_class'>
 
 .. end of output
 
@@ -634,9 +671,9 @@ backend :code:`field` is called.
     sage: P5.parent()
     Polyhedra in AA^2
     sage: type(P4)
-    <class 'sage.geometry.polyhedron.backend_field.Polyhedra_field_with_category.element_class'>
+    <class 'sage.geometry.polyhedron.parent.Polyhedra_field_with_category.element_class'>
     sage: type(P5)
-    <class 'sage.geometry.polyhedron.backend_field.Polyhedra_field_with_category.element_class'>
+    <class 'sage.geometry.polyhedron.parent.Polyhedra_field_with_category.element_class'>
 
 .. end of output
 
@@ -649,12 +686,12 @@ The fourth backend is :code:`normaliz` and is an optional Sage package.
 
     sage: P1_normaliz = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]], backend='normaliz')  # optional - pynormaliz
     sage: type(P1_normaliz)                                                                           # optional - pynormaliz
-    <class 'sage.geometry.polyhedron.backend_normaliz.Polyhedra_ZZ_normaliz_with_category.element_class'>
+    <class 'sage.geometry.polyhedron.parent.Polyhedra_ZZ_normaliz_with_category.element_class'>
     sage: P2_normaliz = Polyhedron(vertices = [[1/2, 0, 0], [0, 1/2, 0]],                             # optional - pynormaliz
     ....:                 rays = [[1, 1, 0]],
     ....:                 lines = [[0, 0, 1]], backend='normaliz')
     sage: type(P2_normaliz)                                                                           # optional - pynormaliz
-    <class 'sage.geometry.polyhedron.backend_normaliz.Polyhedra_QQ_normaliz_with_category.element_class'>
+    <class 'sage.geometry.polyhedron.parent.Polyhedra_QQ_normaliz_with_category.element_class'>
 
 .. end of output
 
@@ -675,7 +712,7 @@ This backend does not work with :code:`RDF`, or algebraic numbers or the :code:`
     sage: P5_normaliz = Polyhedron(vertices = [[sqrt_2s, 0], [0, cbrt_2s]], backend='normaliz')     # optional - pynormaliz
     Traceback (most recent call last):
     ...
-    ValueError: No such backend (=normaliz) implemented for given basering (=Symbolic Ring).
+    ValueError: for polyhedra with floating point numbers, the only allowed ring is RDF with backend 'cdd'
 
 .. end of output
 
@@ -688,7 +725,7 @@ The backend :code:`normaliz` provides other methods such as
     sage: IH = P6.integral_hull(); IH                                                             # optional - pynormaliz
     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
     sage: P6.plot(color='blue')+IH.plot(color='red')                                              # optional - pynormaliz
-    Launched png viewer for Graphics object consisting of 12 graphics primitives
+    Graphics object consisting of 12 graphics primitives
     sage: P1_normaliz.integral_hull()                                                             # optional - pynormaliz
     A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices and 1 ray
 
@@ -700,8 +737,8 @@ Lecture 3: To every polyhedron, the proper parent class
 In order to **know all the methods that a polyhedron object has** one has to look into its :code:`base class`:
 
  - :ref:`sage.geometry.polyhedron.base` : This is the generic class for Polyhedron related objects.
- - :ref:`sage.geometry.polyhedron.base_ZZ`
- - :ref:`sage.geometry.polyhedron.base_QQ`
+ - :ref:`Base class for polyhedra over Z <sage.geometry.polyhedron.base_ZZ>`
+ - :ref:`Base class for polyhedra over Q <sage.geometry.polyhedron.base_QQ>`
  - :ref:`sage.geometry.polyhedron.base_RDF`
 
 Don't be surprised if the classes look empty! The classes mainly contain private
@@ -719,7 +756,7 @@ polytope is already defined!
 
 ::
 
-    sage: A = polytopes.buckyball(); A  # long time up to 20sec
+    sage: A = polytopes.buckyball(); A  # can take long
     A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^3 defined as the convex hull of 60 vertices
     sage: B = polytopes.cross_polytope(4); B
     A 4-dimensional polyhedron in ZZ^4 defined as the convex hull of 8 vertices
@@ -727,7 +764,7 @@ polytope is already defined!
     A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 10 vertices
     sage: E = polytopes.snub_cube(); E
     A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 24 vertices
-    sage: polytopes.<tab>  # to view all the possible polytopes
+    sage: polytopes.<tab>  # not tested, to view all the possible polytopes
 
 .. end of output
 

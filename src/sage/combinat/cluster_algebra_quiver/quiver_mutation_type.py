@@ -637,23 +637,18 @@ Reducible types::
 """
 
 
-class QuiverMutationType_abstract(UniqueRepresentation,SageObject):
-    def __eq__(self,other):
-        """
-        Return ``True`` iff ``self`` and ``other`` represent the same quiver
-        mutation type.
+class QuiverMutationType_abstract(UniqueRepresentation, SageObject):
+    """
+    EXAMPLES::
 
-        EXAMPLES::
-
-            sage: mut_type1 = QuiverMutationType('A',5)
-            sage: mut_type2 = QuiverMutationType('A',5)
-            sage: mut_type3 = QuiverMutationType('A',6)
-            sage: mut_type1.__eq__( mut_type2 )
-            True
-            sage: mut_type1.__eq__( mut_type3 )
-            False
-        """
-        return self is other
+        sage: mut_type1 = QuiverMutationType('A',5)
+        sage: mut_type2 = QuiverMutationType('A',5)
+        sage: mut_type3 = QuiverMutationType('A',6)
+        sage: mut_type1 == mut_type2
+        True
+        sage: mut_type1 == mut_type3
+        False
+    """
 
     def _repr_(self):
         """

@@ -468,6 +468,36 @@ cdef class PowerSeries(AlgebraElement):
         """
         raise NotImplementedError
 
+    def lift_to_precision(self, absprec=None):
+        """
+        Return a congruent power series with absolute precision at least
+        ``absprec``.
+
+        INPUT:
+
+        - ``absprec`` -- an integer or ``None`` (default: ``None``), the
+          absolute precision of the result. If ``None``, lifts to an exact
+          element.
+
+        EXAMPLES::
+
+            sage: A.<t> = PowerSeriesRing(GF(5))
+            sage: x = t + t^2 + O(t^5)
+            sage: x.lift_to_precision(10)
+            t + t^2 + O(t^10)
+            sage: x.lift_to_precision()
+            t + t^2
+
+        """
+        if absprec is not None and absprec <= self.precision_absolute():
+            return self
+
+        exact = self._parent(self.list())
+        if absprec is None:
+            return exact
+        else:
+            return exact.add_bigoh(absprec)
+
     def __copy__(self):
         """
         Return this power series. Power series are immutable so copy can

@@ -1616,7 +1616,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
             The ordering for the factors `d_{i} | d_{i+1}` and for
             the placement of zeroes was chosen to agree with the output of
-            ``smith_form``.
+            :meth:`smith_form`.
 
             See the example for a pictorial description of such a basis.
 
@@ -2165,10 +2165,9 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         Return the elementary divisors of self, in order.
 
-
         .. warning::
 
-           This is MUCH faster than the smith_form function.
+           This is MUCH faster than the :meth:`smith_form` function.
 
         The elementary divisors are the invariants of the finite abelian
         group that is the cokernel of *left* multiplication of this matrix.
@@ -2249,16 +2248,25 @@ cdef class Matrix_integer_dense(Matrix_dense):
         self.cache('elementary_divisors', d)
         return d[:]
 
-    def smith_form(self):
+    def smith_form(self, transformation=True, integral=None):
         r"""
-        Returns matrices S, U, and V such that S = U\*self\*V, and S is in
-        Smith normal form. Thus S is diagonal with diagonal entries the
-        ordered elementary divisors of S.
+        Return the smith normal form of this matrix, that is the diagonal
+        matrix `S` with diagonal entries the ordered elementary divisors of
+        this matrix.
 
-        .. warning::
+        INPUT:
 
-           The elementary_divisors function, which returns the
-           diagonal entries of S, is VASTLY faster than this function.
+        - ``transformation`` -- a boolean (default: ``True``); whether to
+          return the transformation matrices `U` and `V` such that `S=U\cdot
+          self\cdot V`.
+
+        - ``integral`` -- a subring of the base ring or ``True`` (default:
+          ``None``); ignored for matrices with integer entries.
+
+        .. NOTE::
+
+           The :meth:`elementary_divisors` function, which returns the diagonal
+           entries of `S`, is VASTLY faster than this function.
 
         The elementary divisors are the invariants of the finite abelian
         group that is the cokernel of this matrix. They are ordered in
@@ -2319,10 +2327,14 @@ cdef class Matrix_integer_dense(Matrix_dense):
            :meth:`elementary_divisors`
         """
         v = self.__pari__().matsnf(1).sage()
-        if self._ncols == 0: v[0] = self.matrix_space(ncols = self._nrows)(1)
-        if self._nrows == 0: v[1] = self.matrix_space(nrows = self._ncols)(1)
         # need to reverse order of rows of U, columns of V, and both of D.
         D = self.matrix_space()([v[2][i,j] for i in xrange(self._nrows-1,-1,-1) for j in xrange(self._ncols-1,-1,-1)])
+
+        if not transformation:
+            return D
+
+        if self._ncols == 0: v[0] = self.matrix_space(ncols = self._nrows)(1)
+        if self._nrows == 0: v[1] = self.matrix_space(nrows = self._ncols)(1)
 
         if self._ncols == 0:
             # silly special cases for matrices with 0 columns (PARI has a unique empty matrix)

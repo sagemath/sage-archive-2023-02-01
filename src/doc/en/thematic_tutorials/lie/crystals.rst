@@ -336,6 +336,12 @@ can be installed via::
 
     sage -i dot2tex
 
+This also requires various LaTeX packages. The following command
+checks whether those are available::
+
+    sage: from sage.graphs.graph_latex import check_tkz_graph
+    sage: check_tkz_graph() # random
+
 
 Crystals of tableaux in Sage
 ----------------------------

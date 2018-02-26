@@ -1,12 +1,24 @@
 r"""
 Crystals
+
+TESTS:
+
+Catch warnings produced by :func:`check_tkz_graph`::
+
+    sage: from sage.graphs.graph_latex import check_tkz_graph
+    sage: check_tkz_graph()  # random
 """
+
 #*****************************************************************************
-#  Copyright (C) 2010    Anne Schilling <anne at math.ucdavis.edu>
+#       Copyright (C) 2010 Anne Schilling <anne at math.ucdavis.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#******************************************************************************
+#*****************************************************************************
+
 from __future__ import print_function
 from builtins import zip
 from six import itervalues

@@ -94,6 +94,8 @@ micro_release: bdist-clean sagelib-clean
 	find local/lib/python* -name '*.py' | while IFS= read -r fname; do [ -e "$${fname}c" -o -e "$${fname}o" ] && rm "$$fname"; done || true
 	@echo "Removing sphinx artifacts..."
 	rm -rf local/share/doc/sage/doctrees local/share/doc/sage/inventory
+	@echo "Removing documentation. Inspection in IPython still works."
+	rm -rf local/share/doc local/share/*/doc local/share/*/examples local/share/singular/html
 	@echo "Removing unnecessary files & directories - make will not be functional afterwards anymore"
 	@# We need src/sage/ for introspection with "??"
 	@# We need src/sage/bin/ for the scripts that invoke Sage

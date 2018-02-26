@@ -1440,6 +1440,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             return self.list()[x]
         return Rings.ParentMethods.__getitem__.__func__(self, x)
 
+
     def basis(self):
         """
         Return a basis for this matrix space.

@@ -40,7 +40,10 @@ jobs:
               export ARTIFACT_BASE=source-clean
               ;;
             *)
-              export ARTIFACT_BASE=sagemath/sagemath-dev:develop
+              # Select sagemath/sagemath-dev:develop as the ARTIFACT_BASE
+              # unless the user has explicitly selected a differnt one as a
+              # CircleCI environment variable.
+              export ARTIFACT_BASE=${ARTIFACT_BASE:-sagemath/sagemath-dev:develop}
               ;;
             esac
             . .ci/build-docker.sh

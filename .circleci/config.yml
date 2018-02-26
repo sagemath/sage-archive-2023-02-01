@@ -34,8 +34,7 @@ jobs:
               export ARTIFACT_BASE=source-clean
               ;;
             *)
-              # TODO: Change this line to sagemath/sagemath-dev:develop
-              export ARTIFACT_BASE=saraedum/sagemath-dev:develop
+              export ARTIFACT_BASE=sagemath/sagemath-dev:develop
               ;;
             esac
             . .ci/build-docker.sh

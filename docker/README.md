@@ -2,9 +2,9 @@
 
 # Supported tags
 
-* `latest` — the stable `master` branch [![GitHub last commit (branch)](https://img.shields.io/github/last-commit/saraedum/sage/master.svg)](https://github.com/saraedum/sage/commits/master) [![CircleCI branch](https://img.shields.io/circleci/project/github/saraedum/sage/master.svg)](https://circleci.com/gh/saraedum/sage/tree/master) [![GitLab CI](https://gitlab.com/saraedum/sage/badges/master/pipeline.svg)](https://gitlab.com/saraedum/sage/commits/master)
+* `latest` — the stable `master` branch [![GitHub last commit (branch)](https://img.shields.io/github/last-commit/sagemath/sage/master.svg)](https://github.com/sagemath/sage/commits/master) [![CircleCI branch](https://img.shields.io/circleci/project/github/sagemath/sage/master.svg)](https://circleci.com/gh/sagemath/sage/tree/master) [![GitLab CI](https://gitlab.com/sagemath/sage/badges/master/pipeline.svg)](https://gitlab.com/sagemath/sage/commits/master)
 * `x.x.x` — all stable releases of Sage are tagged with their version number.
-* `develop` — the current development version of Sage which gets merged into the `master` branch when a new version of Sage is released [![GitHub last commit (branch)](https://img.shields.io/github/last-commit/saraedum/sage/develop.svg)](https://github.com/saraedum/sage/commits/develop) [![CircleCI branch](https://img.shields.io/circleci/project/github/saraedum/sage/master.svg)](https://circleci.com/gh/saraedum/sage/tree/master) [![GitLab CI](https://gitlab.com/saraedum/sage/badges/develop/pipeline.svg)](https://gitlab.com/saraedum/sage/commits/develop)
+* `develop` — the current development version of Sage which gets merged into the `master` branch when a new version of Sage is released [![GitHub last commit (branch)](https://img.shields.io/github/last-commit/sagemath/sage/develop.svg)](https://github.com/sagemath/sage/commits/develop) [![CircleCI branch](https://img.shields.io/circleci/project/github/sagemath/sage/master.svg)](https://circleci.com/gh/sagemath/sage/tree/master) [![GitLab CI](https://gitlab.com/sagemath/sage/badges/develop/pipeline.svg)](https://gitlab.com/sagemath/sage/commits/develop)
 
 
 # What is SageMath
@@ -17,7 +17,7 @@ SageMath is a free open-source mathematics software system licensed under the GP
 
 There are several flavours of this image.
 
-* [`sagemath/sagemath`![image size](https://img.shields.io/microbadger/image-size/saraedum/sagemath:latest.svg)](https://hub.docker.com/saraedum/sagemath) contains everything necessary to run Sage on the command line. Run it with:
+* [`sagemath/sagemath`![image size](https://img.shields.io/microbadger/image-size/sagemath/sagemath:latest.svg)](https://hub.docker.com/sagemath/sagemath) contains everything necessary to run Sage on the command line. Run it with:
     ```
     docker run -it sagemath/sagemath:latest
     ```
@@ -25,7 +25,7 @@ There are several flavours of this image.
     ```
     docker run -p8888:8888 sagemath/sagemath:latest "sage -n jupyter --no-browser --ip='*' --port=8888"
     ```
-* [`sagemath/sagemath-dev`![image size](https://img.shields.io/microbadger/image-size/saraedum/sagemath-dev:develop.svg)](https://hub.docker.com/saraedum/sagemath-dev) contains all the build artifacts to rebuild Sage quickly. This version is probably only relevant for Sage developers. Run this image with:
+* [`sagemath/sagemath-dev`![image size](https://img.shields.io/microbadger/image-size/sagemath/sagemath-dev:develop.svg)](https://hub.docker.com/sagemath/sagemath-dev) contains all the build artifacts to rebuild Sage quickly. This version is probably only relevant for Sage developers. Run this image with:
     ```
     docker run -it sagemath/sagemath-dev:develop
     ```
@@ -36,7 +36,7 @@ There are several flavours of this image.
 
 # How to build your own SageMath images
 
-Run `docker build -f docker/Dockerfile --build-arg ARTIFACT_BASE=saraedum/sagemath-dev:develop --target TARGET .` in the Sage repository with `TARGET` one of `sagemath` or `sagemath-dev`.
+Run `docker build -f docker/Dockerfile --build-arg ARTIFACT_BASE=sagemath/sagemath-dev:develop --target TARGET .` in the Sage repository with `TARGET` one of `sagemath` or `sagemath-dev`.
 
 # How these images get updated
 

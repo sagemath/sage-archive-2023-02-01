@@ -290,10 +290,6 @@ class CoFrame(FreeModuleCoBasis):
         FreeModuleCoBasis.__init__(self, frame, symbol,
                                    latex_symbol=latex_symbol, indices=indices,
                                    latex_indices=latex_indices)
-        # Redefinition of the name and LaTeX name to include the domain:
-        self._name = "({}, {})".format(self._domain._name, self._name)
-        self._latex_name = r"\left({}, {}\right)".format(self._domain._latex_name,
-                                                         self._latex_name)
         # The coframe is added to the domain's set of coframes, as well as to
         # all the superdomains' sets of coframes
         for sd in self._domain._supersets:
@@ -373,6 +369,69 @@ class CoFrame(FreeModuleCoBasis):
 
         """
         return self._basis.at(point).dual_basis()
+
+    def set_name(self, symbol, latex_symbol=None, indices=None,
+                 latex_indices=None, index_position='up',
+                 include_domain=True):
+        r"""
+        Set (or change) the text name and LaTeX name of ``self``.
+
+        INPUT:
+
+        - ``symbol`` -- either a string, to be used as a common base for the
+          symbols of the 1-forms constituting the coframe, or a list/tuple of
+          strings, representing the individual symbols of the 1-forms
+        - ``latex_symbol`` -- (default: ``None``) either a string, to be used
+          as a common base for the LaTeX symbols of the 1-forms constituting
+          the coframe, or a list/tuple of strings, representing the individual
+          LaTeX symbols of the 1-forms; if ``None``, ``symbol`` is used in
+          place of ``latex_symbol``
+        - ``indices`` -- (default: ``None``; used only if ``symbol`` is a
+          single string) tuple of strings representing the indices labelling
+          the 1-forms of the coframe; if ``None``, the indices will be
+          generated as integers within the range declared on ``self``
+        - ``latex_indices`` -- (default: ``None``) tuple of strings
+          representing the indices for the LaTeX symbols of the 1-forms;
+          if ``None``, ``indices`` is used instead
+        - ``index_position`` -- (default: ``'up'``) determines the position
+          of the indices labelling the 1-forms of the coframe; can be
+          either ``'down'`` or ``'up'``
+        - ``include_domain`` -- (default: ``True``) boolean determining whether
+          the name of the domain is included in the beginning of the coframe
+          name
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: e = M.vector_frame('e').coframe(); e
+            Coframe (M, (e^0,e^1))
+            sage: e.set_name('f'); e
+            Coframe (M, (f^0,f^1))
+            sage: e.set_name('e', latex_symbol=r'\epsilon')
+            sage: latex(e)
+            \left(M, \left(\epsilon^{0},\epsilon^{1}\right)\right)
+            sage: e.set_name('e', include_domain=False); e
+            Coframe (e^0,e^1)
+            sage: e.set_name(['a', 'b'], latex_symbol=[r'\alpha', r'\beta']); e
+            Coframe (M, (a,b))
+            sage: latex(e)
+            \left(M, \left(\alpha,\beta\right)\right)
+            sage: e.set_name('e', indices=['x','y'],
+            ....:            latex_indices=[r'\xi', r'\zeta']); e
+            Coframe (M, (e^x,e^y))
+            sage: latex(e)
+            \left(M, \left(e^{\xi},e^{\zeta}\right)\right)
+
+        """
+        super(CoFrame, self).set_name(symbol, latex_symbol=latex_symbol,
+                                      indices=indices,
+                                      latex_indices=latex_indices,
+                                      index_position=index_position)
+        if include_domain:
+            # Redefinition of the name and the LaTeX name to include the domain
+            self._name = "({}, {})".format(self._domain._name, self._name)
+            self._latex_name = r"\left({}, {}\right)".format(
+                                    self._domain._latex_name, self._latex_name)
 
 #******************************************************************************
 
@@ -590,10 +649,6 @@ class VectorFrame(FreeModuleBasis):
                                  indices=indices, latex_indices=latex_indices,
                                  symbol_dual=symbol_dual,
                                  latex_symbol_dual=latex_symbol_dual)
-        # Redefinition of the name and the LaTeX name to include the domain:
-        self._name = "({}, {})".format(self._domain._name, self._name)
-        self._latex_name = r"\left({}, {}\right)".format(
-                                    self._domain._latex_name, self._latex_name)
         # The frame is added to the domain's set of frames, as well as to all
         # the superdomains' sets of frames; moreover the first defined frame
         # is considered as the default one
@@ -1358,6 +1413,73 @@ class VectorFrame(FreeModuleBasis):
                                 cauto._comp[ind] = val(point)
                     ts._basis_changes[(basis1, basis2)] = auto
         return basis
+
+    def set_name(self, symbol, latex_symbol=None, indices=None,
+                 latex_indices=None, index_position='down',
+                 include_domain=True):
+        r"""
+        Set (or change) the text name and LaTeX name of ``self``.
+
+        INPUT:
+
+        - ``symbol`` -- either a string, to be used as a common base for the
+          symbols of the vector fields constituting the vector frame, or a
+          list/tuple of strings, representing the individual symbols of the
+          vector fields
+        - ``latex_symbol`` -- (default: ``None``) either a string, to be used
+          as a common base for the LaTeX symbols of the vector fields
+          constituting the vector frame, or a list/tuple of strings,
+          representing the individual LaTeX symbols of the vector fields;
+          if ``None``, ``symbol`` is used in place of ``latex_symbol``
+        - ``indices`` -- (default: ``None``; used only if ``symbol`` is a
+          single string) tuple of strings representing the indices labelling
+          the vector fields of the frame; if ``None``, the indices will be
+          generated as integers within the range declared on ``self``
+        - ``latex_indices`` -- (default: ``None``) tuple of strings
+          representing the indices for the LaTeX symbols of the vector fields;
+          if ``None``, ``indices`` is used instead
+        - ``index_position`` -- (default: ``'down'``) determines the position
+          of the indices labelling the vector fields of the frame; can be
+          either ``'down'`` or ``'up'``
+        - ``include_domain`` -- (default: ``True``) boolean determining whether
+          the name of the domain is included in the beginning of the vector
+          frame name
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: e = M.vector_frame('e'); e
+            Vector frame (M, (e_0,e_1))
+            sage: e.set_name('f'); e
+            Vector frame (M, (f_0,f_1))
+            sage: e.set_name('e', include_domain=False); e
+            Vector frame (e_0,e_1)
+            sage: e.set_name(['a', 'b']); e
+            Vector frame (M, (a,b))
+            sage: e.set_name('e', indices=['x', 'y']); e
+            Vector frame (M, (e_x,e_y))
+            sage: e.set_name('e', latex_symbol=r'\epsilon')
+            sage: latex(e)
+            \left(M, \left(\epsilon_{0},\epsilon_{1}\right)\right)
+            sage: e.set_name('e', latex_symbol=[r'\alpha', r'\beta'])
+            sage: latex(e)
+            \left(M, \left(\alpha,\beta\right)\right)
+            sage: e.set_name('e', latex_symbol='E',
+            ....:            latex_indices=[r'\alpha', r'\beta'])
+            sage: latex(e)
+            \left(M, \left(E_{\alpha},E_{\beta}\right)\right)
+
+        """
+        super(VectorFrame, self).set_name(symbol, latex_symbol=latex_symbol,
+                                          indices=indices,
+                                          latex_indices=latex_indices,
+                                          index_position=index_position)
+        if include_domain:
+            # Redefinition of the name and the LaTeX name to include the domain
+            self._name = "({}, {})".format(self._domain._name, self._name)
+            self._latex_name = r"\left({}, {}\right)".format(
+                                    self._domain._latex_name, self._latex_name)
+
 
 #******************************************************************************
 

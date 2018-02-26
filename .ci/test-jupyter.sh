@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # This script gets called from CI to run minimal tests on the sagemath-jupyter
 # image.
@@ -14,6 +14,7 @@
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
+
 set -ex
 
 docker run --name sage-jupyter -p 8888:8888 -d "$1" "sage -n jupyter --no-browser --ip='*' --port=8888"

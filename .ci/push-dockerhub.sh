@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # This script gets called from CI to push our docker images to
 # $DOCKER_USER/sagemath* on the Docker Hub.

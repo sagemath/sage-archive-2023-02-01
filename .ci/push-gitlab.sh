@@ -1,5 +1,4 @@
-#!/bin/bash
-set -ex
+#!/bin/sh
 
 # This script gets called from CI to push our docker images to registry
 # configured in GitLab. (Mostly, so we can pull them again to push them to the
@@ -16,6 +15,8 @@ set -ex
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
+
+set -ex
 
 [[ -z "$DOCKER_TAG" ]] && (echo "Can not push untagged build."; exit 0)
 [[ "$DOCKER_TAG" = "master" ]] && DOCKER_TAG=latest

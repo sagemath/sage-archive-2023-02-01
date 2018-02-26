@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # This script gets called from CI to pull the Sage docker images that were
 # built during the "build" phase to pull all the connected docker daemon

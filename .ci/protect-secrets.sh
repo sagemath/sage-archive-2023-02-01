@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # This script protects all environment variables that start with "SECRET_".
 # It puts them in a temporary file. The name of the variable contains the path

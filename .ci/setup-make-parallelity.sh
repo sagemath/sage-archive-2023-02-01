@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # ****************************************************************************
 #       Copyright (C) 2018 Julian Rüth <julian.rueth@fsfe.org>
@@ -9,6 +9,7 @@
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
+
 set -ex
 
 # Determine the number of threads that can run simultaneously on this system

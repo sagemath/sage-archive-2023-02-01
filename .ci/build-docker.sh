@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # This script gets called from CI to build several flavours of docker images
 # which contain Sage.
@@ -12,6 +12,7 @@
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
+
 set -ex
 
 [[ -z "$DOCKER_TAG" ]] && DOCKER_TAG=none

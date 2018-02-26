@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # This script gets called from CI to run minimal tests on the sagemath-dev image.
 # This script expects a single argument, the full name of the docker image to
@@ -13,6 +13,7 @@
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
+
 set -exo pipefail
 
 IMAGE="$1"

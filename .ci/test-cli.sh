@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # This script gets called from CI to run minimal tests on the sagemath image.
 
@@ -13,6 +13,7 @@
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
+
 set -exo pipefail
 
 echo "Checking that Sage starts and can calculate 1+1…"

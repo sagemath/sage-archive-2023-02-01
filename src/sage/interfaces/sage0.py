@@ -295,6 +295,7 @@ class Sage(ExtraTabCompletion, Expect):
         """
         if self._preparse:
             line = self.preparse(line)
+        line = self._wrap_multiline(line)
         return Expect.eval(self, line, **kwds).strip()
 
     def set(self, var, value):
@@ -396,6 +397,35 @@ class Sage(ExtraTabCompletion, Expect):
             Sage
         """
         return SageElement(self, x)
+
+    @staticmethod
+    def _wrap_multiline(s):
+        r"""
+        The Sage interface does not currently handle multi-line Python
+        statements well.
+
+        So given a multi-line Python statement, it is converted to an
+        equivalent ``eval()`` call.
+
+        EXAMPLES::
+
+            sage: import textwrap
+            sage: code = textwrap.dedent('''
+            ....:     def foo():
+            ....:         return 'foo'
+            ....: ''')
+            sage: print(sage0._wrap_multiline(code))
+            eval(compile("def foo():\n    return 'foo'", '<stdin>', 'single'))
+            sage: sage0.eval(code)
+            ''
+            sage: sage0.eval('foo()')
+            "'foo'"
+        """
+
+        if '\n' in s:
+            return "eval(compile({!r}, '<stdin>', 'single'))".format(s.strip())
+        else:
+            return s
 
 
 @instancedoc

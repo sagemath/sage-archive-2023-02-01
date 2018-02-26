@@ -672,9 +672,9 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
         INPUT:
 
-            - ``gens`` -- a list of matrices (default:``None``)
-            - ``is_finite`` -- bool (default: ``None``) If set to ``True``, the group is placed in
-             the category of finite groups. Sage does not check this.
+        - ``gens`` -- a list of matrices (default:``None``)
+        - ``is_finite`` -- bool (default: ``None``) If set to ``True``,
+          then the group is placed in the category of finite groups. Sage does not check this.
 
         OUTPUT:
 

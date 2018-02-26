@@ -19,6 +19,7 @@ AUTHORS:
 
 from sage.modules.fg_pid.fgp_module import FGP_Module_class
 from sage.modules.fg_pid.fgp_element import DEBUG, FGP_Element
+from sage.modules.free_quadratic_module import FreeQuadraticModule
 from sage.arith.misc import gcd
 from sage.rings.all import ZZ, QQ
 from sage.groups.additive_abelian.qmodnz import QmodnZ
@@ -31,7 +32,8 @@ def TorsionQuadraticForm(q):
     
     INPUT:
     """
-    q = Matrix(QQ,q)
+    # ? check if q is a square matrix ?
+    q = matrix(QQ,q)
     Q,d = q._clear_denom()
     S,U,V = Q.smith_form()
     D = U * q * V
@@ -42,9 +44,9 @@ def TorsionQuadraticForm(q):
     gens = U[gens_indices]
     qf = gens*q*gens.T
     rels = D[gens_indices,gens_indices].inverse()
-    Q = FreeQuadraticModule(ZZ,qf.ncols(),qf)
+    Q = FreeQuadraticModule(ZZ,qf.ncols(),inner_product_matrix=(d**2)*qf)
     rels = Q.span(rels)
-    return TorsionQuadraticModule(Q,rels)
+    return TorsionQuadraticModule((1/d)*Q,(1/d)*rels)
 
 class TorsionQuadraticModuleElement(FGP_Element):
     r"""

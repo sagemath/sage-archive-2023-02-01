@@ -7,6 +7,14 @@
 # place; or set up your favourite cloud service to provide an on-demand
 # autoscale runner.
 
+# As of early 2018 a run on GitLab CI takes about 50 minutes (with
+# build-from-latest.) We could probably save 5 minutes by not pushing the
+# sagemath-dev image for branches other than develop and master. We could
+# save another 10 minutes by not building/pushing/testing that image in these
+# cases.
+# Note that most of the time during CI is spent with pulling and pushing of
+# docker images and copying files locally as part of the docker build.
+
 image: docker:latest
 
 stages:

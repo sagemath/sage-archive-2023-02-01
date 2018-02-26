@@ -1,8 +1,8 @@
 # This file configures automatic builds of Sage on [CircleCI](https://circleci.com).
 # To make the build time not too excessive, we seed the build cache with
-# sagemath/sagemath-dev:develop. When basic SPKGs change, this does not help much
-# and the full build might exceed CircleCI's limits for open source projcets (five
-# hours on 2 vCPUs as of early 2018.)
+# sagemath/sagemath-dev:develop. When basic SPKGs change, this does not help much,
+# still the full build does usually not exceed CircleCI's limits for open
+# source projcets (five hours on 2 vCPUs as of early 2018.)
 # You might want to try to build locally or with GitLab CI, see
 # `.gitlab-ci.yml` for more options.
 # Note that we do not use workflows because it was not clear whether the docker
@@ -10,6 +10,12 @@
 # workflows would not make things faster. We do not get more machines for free
 # and the frequent loading of docker images probably exceeds the cost of the
 # actual tests.
+
+# As of early 2018, a run on CircleCI takes usually about 35 minutes. Most of
+# the time is spent pulling/pushing from/to Docker Hub and copying files
+# locally during the docker build. We could probably save 5 minutes by not
+# pushing the sagemath-dev image to Docker Hub.  We could save another five
+# minutes by not building and testing the sagemath-dev image in these cases.
 
 version: 2
 jobs:

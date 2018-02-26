@@ -187,7 +187,7 @@ symbolic ring. This is currently not supported as SR is not exact::
     Traceback (most recent call last):
     ...
     ValueError: the only allowed inexact ring is 'RDF' with backend 'cdd'
-    
+
     sage: SR.is_exact()
     False
 
@@ -202,13 +202,13 @@ triangle, that would be::
 
 .. WARNING::
 
-    Be careful when you construct polyhedra with floating point numbers. The only 
-    available backend for such computation is `cdd` which uses machine floating 
-    point numbers which have have limited precision. If the input consists of 
-    floating point numbers and the `base_ring` is not specified, the base ring is 
-    set to be the `RealField` with the precision given by the minimal bit precision 
-    of the input. Then, if the obtained minimum is 53 bits of precision, the 
-    constructor converts automatically the base ring to `RDF`. Otherwise, 
+    Be careful when you construct polyhedra with floating point numbers. The only
+    available backend for such computation is `cdd` which uses machine floating
+    point numbers which have have limited precision. If the input consists of
+    floating point numbers and the `base_ring` is not specified, the base ring is
+    set to be the `RealField` with the precision given by the minimal bit precision
+    of the input. Then, if the obtained minimum is 53 bits of precision, the
+    constructor converts automatically the base ring to `RDF`. Otherwise,
     it returns an error::
 
         sage: Polyhedron(vertices = [[1.12345678901234, 2.12345678901234]])
@@ -482,9 +482,9 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         Traceback (most recent call last):
         ...
         ValueError: the only allowed inexact ring is 'RDF' with backend 'cdd'
-    
+
     Check that setting ``base_ring`` to a ``RealField`` returns an error (see :trac:`22552`)::
-    
+
         sage: Polyhedron(vertices =[(8.3, 7.0), (6.4, 4.8)], base_ring=RealField(40))
         Traceback (most recent call last):
         ...
@@ -566,7 +566,7 @@ def Polyhedron(vertices=None, rays=None, lines=None,
                 raise ValueError("the only allowed inexact ring is 'RDF' with backend 'cdd'")
 
     # Add the origin if necessary
-    if got_Vrep and len(vertices)==0:
+    if got_Vrep and len(vertices) == 0:
         vertices = [ [0]*ambient_dim ]
 
     # Specific backends can override the base_ring

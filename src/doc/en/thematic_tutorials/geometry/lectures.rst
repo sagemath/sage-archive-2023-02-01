@@ -223,7 +223,7 @@ polyhedron over it:
     sage: Polyhedron(vertices = [[sqrt_2s, 0], [0, cbrt_2s]])
     Traceback (most recent call last):
     ...
-    ValueError: for polyhedra with floating point numbers, the only allowed ring is RDF with backend 'cdd'
+    ValueError: the only allowed inexact ring is 'RDF' with backend 'cdd'
 
 .. end of output
 
@@ -238,13 +238,11 @@ Similarly, it is not possible to create polyhedron objects over :code:`RR`
     sage: Polyhedron(vertices=[[F45(f)]])
     Traceback (most recent call last):
     ...
-    ValueError: for polyhedra with floating point numbers, the only allowed
-    ring is RDF with backend 'cdd'
+    ValueError: the only allowed inexact ring is 'RDF' with backend 'cdd'
     sage: Polyhedron(vertices=[[F100(f)]])
     Traceback (most recent call last):
     ...
-    ValueError: for polyhedra with floating point numbers, the only allowed
-    ring is RDF with backend 'cdd'
+    ValueError: the only allowed inexact ring is 'RDF' with backend 'cdd'
 
 .. end of output
 
@@ -563,7 +561,7 @@ but not algebraic or symbolic values:
     sage: P5_cdd = Polyhedron(vertices = [[sqrt_2s, 0], [0, cbrt_2s]], backend='cdd')
     Traceback (most recent call last):
     ...
-    ValueError: for polyhedra with floating point numbers, the only allowed ring is RDF with backend 'cdd'
+    ValueError: the only allowed inexact ring is 'RDF' with backend 'cdd'
 
 .. end of output
 
@@ -712,7 +710,7 @@ This backend does not work with :code:`RDF`, or algebraic numbers or the :code:`
     sage: P5_normaliz = Polyhedron(vertices = [[sqrt_2s, 0], [0, cbrt_2s]], backend='normaliz')     # optional - pynormaliz
     Traceback (most recent call last):
     ...
-    ValueError: for polyhedra with floating point numbers, the only allowed ring is RDF with backend 'cdd'
+    ValueError: the only allowed inexact ring is 'RDF' with backend 'cdd'
 
 .. end of output
 

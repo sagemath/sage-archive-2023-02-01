@@ -32,10 +32,11 @@ function docker_build {
 }
 
 # We use a multi-stage build /docker/Dockerfile. For the caching to be
-# effective, we populate the cache by building the make-all target. (Just
-# building the last target is not enough as intermediate targets would be
-# discarded from the cache and therefore the caching would fail for our actual
-# builds below.)
+# effective, we populate the cache by building the build-time-dependencies and
+# the make-all target. (Just building the last target is not enough as
+# intermediate targets would be discarded from the cache and therefore the
+# caching would fail for our actual builds below.)
+docker_build --pull --target build-time-dependencies .
 docker_build --pull --tag make-all --target make-all .
 
 # Build the release image without build artifacts.

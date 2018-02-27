@@ -33,4 +33,4 @@ function timed_run {
 
 timed_run 60 true # runs make build
 # TODO: Can't we get this faster than that?
-timed_run 300 make # runs make build and then make
+timed_run $(( 600/$NTHREADS )) make # runs make build and then make

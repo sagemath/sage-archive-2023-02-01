@@ -3062,6 +3062,57 @@ class Polyhedron_base(Element):
 
     _mul_ = product
 
+    def join(self, other):
+        """
+        Return the join of ``self`` and ``other``. The join of two polyhedron is
+        obtained by placing the two objects in skew subspaces and taking their
+        convex hull.
+
+        INPUT:
+
+        - ``other`` -- a :class:`Polyhedron_base`.
+
+        OUTPUT:
+
+        The join of ``self`` and ``other`` with a suitable base ring to 
+        encompass the two.
+
+        EXAMPLES::
+
+            sage: P1 = Polyhedron([[0],[1]], base_ring=ZZ)
+            sage: P2 = Polyhedron([[0],[1]], base_ring=QQ)
+            sage: P1.join(P2)
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 4 vertices
+            sage: P1.join(P1)
+            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 4 vertices
+            sage: P2.join(P2)
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 4 vertices
+        """
+        try:
+            new_ring = self.parent()._coerce_base_ring(other)
+        except TypeError:
+            raise TypeError("no common canonical parent for objects with parents: " + str(self.parent()) \
+                     + " and " + str(other.parent()))
+
+        dim_self = self.ambient_dim()
+        dim_other = other.ambient_dim()
+
+        new_vertices = [list(x)+[0]*dim_other+[0] for x in self.vertex_generator()] + \
+                       [[0]*dim_self+list(x)+[1] for x in other.vertex_generator()]
+        new_rays = []
+        new_rays.extend( [ r+[0]*dim_other+[0]
+                           for r in self.ray_generator() ] )
+        new_rays.extend( [ [0]*dim_self+r+[1]
+                           for r in other.ray_generator() ] )
+        new_lines = []
+        new_lines.extend( [ l+[0]*dim_other+[0]
+                            for l in self.line_generator() ] )
+        new_lines.extend( [ [0]*dim_self+l+[1]
+                            for l in other.line_generator() ] )
+        return Polyhedron(vertices=new_vertices,
+                          rays=new_rays, lines=new_lines,
+                          base_ring=new_ring)
+
     def dilation(self, scalar):
         """
         Return the dilated (uniformly stretched) polyhedron.

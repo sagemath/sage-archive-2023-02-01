@@ -697,7 +697,6 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             [-3  6 -3  0]
             [ 0 -3  6 -3]
             [ 0  0 -3  6]
-
             sage: L = IntegralLattice(3,[[2,1,0],[0,1,1]])
             sage: L
             Lattice of degree 3 and rank 2 over Integer Ring

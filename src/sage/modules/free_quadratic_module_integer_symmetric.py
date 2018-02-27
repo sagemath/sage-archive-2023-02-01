@@ -680,8 +680,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         INPUT:
 
         - ``s`` -- a nonzero integer
-        - ``discard_basis`` -- a boolean (default: ``False``). If ``True``,
-         then the lattice returned is equipped with the standard basis.
+        - ``discard_basis`` -- a boolean (default: ``False``). If ``True``, then the lattice returned is equipped with the standard basis.
 
         EXAMPLES::
 

@@ -1,7 +1,7 @@
 r"""
 Euclidean spaces
 
-An *Euclidean space of dimension `n`* is a Riemannian manifold diffeomorphic to
+An *Euclidean space of dimension* `n` is a Riemannian manifold diffeomorphic to
 `\RR^n` equipped with a flat metric.
 
 Euclidean spaces are implemented via the following classes
@@ -28,7 +28,7 @@ Cartesian coordinates::
 
     sage: E.atlas()
     [Chart (E^2, (x, y))]
-    sage: E.default_chart()
+    sage: X_cartesian = E.default_chart(); X_cartesian
     Chart (E^2, (x, y))
 
 Thanks to the use of ``<x,y>`` when declaring ``E``, the coordinates `(x,y)`
@@ -61,51 +61,118 @@ It is a *flat* metric, i.e. it has a vanishing Riemann tensor::
 
 Polar coordinates are introduced by::
 
-    sage: r, ph = E.polar_coordinates()
-
-They belong to the polar chart::
-
-    sage: E.polar_chart()
+    sage: X_polar.<r,ph> = E.polar_coordinates()
+    sage: X_polar
     Chart (E^2, (r, ph))
 
-which is part of the atlas of ``E``::
+``E`` is now endowed with two coordinate charts::
 
     sage: E.atlas()
     [Chart (E^2, (x, y)), Chart (E^2, (r, ph))]
 
 The ranges of the coordinates introduced so far are::
 
-    sage: E.polar_chart().coord_range()
-    r: (0, +oo); ph: (0, 2*pi)
-    sage: E.cartesian_chart().coord_range()
+    sage: X_cartesian.coord_range()
     x: (-oo, +oo); y: (-oo, +oo)
+    sage: X_polar.coord_range()
+    r: (0, +oo); ph: (0, 2*pi)
 
-The transition map from polar coordinates to Cartesian one is::
+The transition map from polar coordinates to Cartesian ones is::
 
-    sage: E.coord_change(E.polar_chart(), E.cartesian_chart()).display()
+    sage: E.coord_change(X_polar, X_cartesian).display()
     x = r*cos(ph)
     y = r*sin(ph)
 
 while the reverse is::
 
-    sage: E.coord_change(E.cartesian_chart(), E.polar_chart()).display()
+    sage: E.coord_change(X_cartesian, X_polar).display()
     r = sqrt(x^2 + y^2)
     ph = arctan2(y, x)
 
 At this stage, ``E`` is endowed with three vector frames::
 
     sage: E.frames()
-    [Coordinate frame (E^2, (d/dx,d/dy)),
+    [Coordinate frame (E^2, (e_x,e_y)),
      Coordinate frame (E^2, (d/dr,d/dph)),
      Vector frame (E^2, (e_r,e_ph))]
 
 The third one is the standard orthonormal frame associated with polar
-coordinates.
+coordinates, as we can check from the metric coefficients in it::
+
+    sage: F_polar = E.polar_frame(); F_polar
+    Vector frame (E^2, (e_r,e_ph))
+    sage: g[F_polar,:]
+    [1 0]
+    [0 1]
 
 The expression of the metric tensor in terms of the polar coordinates is::
 
-    sage: g.display(E.polar_chart().frame(), E.polar_chart())
+    sage: g.display(X_polar.frame(), X_polar)
     g = dr*dr + r^2 dph*dph
+
+A vector field on ``E``::
+
+    sage: v = E.vector_field(-y, x, name='v'); v
+    Vector field v on the Euclidean plane E^2
+    sage: v.display()
+    v = -y e_x + x e_y
+    sage: v[:]
+    [-y, x]
+
+By default, the components of ``v``, as returned by ``display`` or the bracket
+operator, refer to the Cartesian frame on ``E``; to get the components with
+respect to the orthonormal polar frame, one has to specify it explicitly,
+generally along with the polar chart for the coordinate expression of the
+components::
+
+    sage: v.display(F_polar, X_polar)
+    v = r e_ph
+    sage: v[F_polar,:,X_polar]
+    [0, r]
+
+A scalar field on ``E``::
+
+    sage: f = E.scalar_field(x*y, name='f'); f
+    Scalar field f on the Euclidean plane E^2
+    sage: f.display()
+    f: E^2 --> R
+       (x, y) |--> x*y
+       (r, ph) |--> r^2*cos(ph)*sin(ph)
+
+The gradient of ``f``::
+
+    sage: w = grad(f); w
+    Vector field grad(f) on the Euclidean plane E^2
+    sage: w.display()
+    grad(f) = y e_x + x e_y
+    sage: w.display(F_polar, X_polar)
+    grad(f) = 2*r*cos(ph)*sin(ph) e_r + (2*cos(ph)^2 - 1)*r e_ph
+
+The dot product of two vector fields::
+
+    sage: s = v.dot(w); s
+    Scalar field v.grad(f) on the Euclidean plane E^2
+    sage: s.display()
+    v.grad(f): E^2 --> R
+       (x, y) |--> x^2 - y^2
+       (r, ph) |--> (2*cos(ph)^2 - 1)*r^2
+    sage: s.expr()
+    x^2 - y^2
+
+The norm is related to the dot product by the standard formula::
+
+    sage: norm(v)^2 == v.dot(v)
+    True
+
+The divergence of the vector field ``v``::
+
+    sage: s = div(v); s
+    Scalar field div(v) on the Euclidean plane E^2
+    sage: s.display()
+    div(v): E^2 --> R
+       (x, y) |--> 0
+       (r, ph) |--> 0
+
 
 AUTHORS:
 
@@ -229,8 +296,7 @@ class EuclideanSpaceGeneric(PseudoRiemannianManifold):
                     raise TypeError("unkown coordinate type")
             else:
                 raise NotImplementedError("dimension not implemented yet")
-        self._named_charts = {}
-        self._named_frames = {}
+        self._cartesian_chart = None  # to be constructed later if necessary
         if init_coord_methods is None:
             self._init_coordinates = {'Cartesian':
                                       self._init_coordinates_cartesian}
@@ -287,9 +353,13 @@ class EuclideanSpaceGeneric(PseudoRiemannianManifold):
 
         """
         chart = self.chart(coordinates=symbols)
-        self._named_charts['Cartesian'] = chart
+        self._cartesian_chart = chart
         frame = chart.frame()
-        self._named_frames['Cartesian'] = frame
+        # Renaming (d/dx, d/dy, ...) to (e_x, e_y, ...):
+        coords = chart[:]
+        frame.set_name('e',
+                       indices=tuple(str(x) for x in coords),
+                       latex_indices=tuple(latex(x) for x in coords))
         g = self.metric()
         gc = g.add_comp(frame)
         for i in self.irange():
@@ -297,7 +367,7 @@ class EuclideanSpaceGeneric(PseudoRiemannianManifold):
         nabla = g.connection(init_coef=False)  # False to avoid any computation
         nabla.add_coef(frame)  # initialize a zero set of coefficients
 
-    def cartesian_chart(self, symbols=None):
+    def cartesian_coordinates(self, symbols=None, names=None):
         r"""
         Return the chart of Cartesian coordinates, possibly creating it if it
         does not already exist.
@@ -306,9 +376,14 @@ class EuclideanSpaceGeneric(PseudoRiemannianManifold):
 
         - ``symbols`` -- (default: ``None``) string defining the coordinate
           text symbols and LaTeX symbols, with the same conventions as
-          the argument ``coordinates`` in  :class:`~sage.manifolds.differentiable.chart.RealDiffChart`; this is
+          the argument ``coordinates`` in
+          :class:`~sage.manifolds.differentiable.chart.RealDiffChart`; this is
           used only if the Cartesian chart has not been already defined; if
           ``None`` the symbols are generated as `(x_1,\ldots,x_n)`.
+        - ``names`` -- (default: ``None``) unused argument, except if
+          ``symbols`` is not provided; it must be a tuple containing
+          the coordinate symbols (this is guaranteed if the shortcut operator
+          ``<,>`` is used)
 
         OUTPUT:
 
@@ -318,65 +393,213 @@ class EuclideanSpaceGeneric(PseudoRiemannianManifold):
         EXAMPLES::
 
             sage: E = EuclideanSpace(4)
-            sage: X = E.cartesian_chart(); X
+            sage: X = E.cartesian_coordinates(); X
             Chart (E^4, (x1, x2, x3, x4))
-            sage: X in E.atlas()
-            True
-
-        """
-        if 'Cartesian' not in self._named_charts:
-            if symbols is None:
-                symbols = ''
-                for i in self.irange():
-                    symbols += "x{}".format(i) + r":x_{" + str(i) + r"} "
-                symbols = symbols[:-1]
-            self._init_coordinates_cartesian(symbols)
-        return self._named_charts['Cartesian']
-
-    def cartesian_coordinates(self, symbols=None):
-        r"""
-        Return Cartesian coordinates, possibly creating them if they do not
-        already exist.
-
-        INPUT:
-
-        - ``symbols`` -- (default: ``None``) string defining the coordinate
-          text symbols and LaTeX symbols, with the same conventions as
-          the argument ``coordinates`` in  :class:`~sage.manifolds.differentiable.chart.RealDiffChart`; this is
-          used only if the Cartesian chart has not been already defined; if
-          ``None`` the symbols are generated as `(x_1,\ldots,x_n)`.
-
-        OUTPUT:
-
-        - tuple of symbolic variables representing the Cartesian coordinates
-
-        EXAMPLES::
-
-            sage: E = EuclideanSpace(2)
-            sage: E.cartesian_coordinates()
-            (x, y)
+            sage: X[2]
+            x2
+            sage: X[:]
+            (x1, x2, x3, x4)
 
         An example where the Cartesian coordinates have not been previously
         created::
 
-            sage: F.<r,phi> = EuclideanSpace(2, coordinates='polar')
-            sage: F.atlas()  # only polar coordinates exist
+            sage: E.<r,phi> = EuclideanSpace(2, coordinates='polar')
+            sage: E.atlas()  # only polar coordinates exist
             [Chart (E^2, (r, phi))]
-            sage: F.cartesian_coordinates(symbols='u v')
-            (u, v)
-            sage: F.atlas()  # the Cartesian chart has been added to the atlas
+            sage: E.cartesian_coordinates(symbols='u v')
+            Chart (E^2, (u, v))
+            sage: E.atlas()  # the Cartesian chart has been added to the atlas
             [Chart (E^2, (r, phi)), Chart (E^2, (u, v))]
 
-        Note that if the Cartesian coordinates have been previously created,
+        Note that if the Cartesian coordinates have been already initialized,
         the argument ``symbols`` has not effect::
 
-            sage: E.cartesian_coordinates(symbols='u v')
-            (x, y)
-            sage: E.atlas()
-            [Chart (E^2, (x, y))]
+            sage: E.cartesian_coordinates(symbols='X Y')
+            Chart (E^2, (u, v))
 
         """
-        return self.cartesian_chart(symbols=symbols)[:]
+        if self._cartesian_chart is None:
+            if symbols is None:
+                symbols = ''
+                if names is None:
+                    for i in self.irange():
+                        symbols += "x{}".format(i) + r":x_{" + str(i) + r"} "
+                else:
+                    for x in names:
+                        symbols += x + ' '
+                symbols = symbols[:-1]
+            self._init_coordinates_cartesian(symbols)
+        return self._cartesian_chart
+
+    def cartesian_frame(self):
+        r"""
+        Return the orthonormal vector frame associated with Cartesian
+        coordinates.
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.vectorframe.CoordFrame`
+
+        EXAMPLES::
+
+            sage: E = EuclideanSpace(2)
+            sage: E.cartesian_frame()
+            Coordinate frame (E^2, (e_x,e_y))
+            sage: E.cartesian_frame()[1]
+            Vector field e_x on the Euclidean plane E^2
+            sage: E.cartesian_frame()[:]
+            (Vector field e_x on the Euclidean plane E^2,
+             Vector field e_y on the Euclidean plane E^2)
+
+        """
+        if self._cartesian_chart is None:
+            self.cartesian_coordinates()  # creates the Cartesian chart
+        return self._cartesian_chart.frame()
+
+    def vector_field(self, *args, **kwargs):
+        r"""
+        Define a vector field on ``self``.
+
+        INPUT:
+
+        - ``args`` -- components of the vector field with respect to the
+          vector frame specified by the argument ``frame`` or a dictionary
+          of components (see examples below)
+        - ``frame`` -- (default: ``None``) vector frame in which the components
+          are given; if ``None``, the default vector frame on ``self`` is
+          assumed
+        - ``chart`` -- (default: ``None``) coordinate chart in which the
+          components are expressed; if ``None``, the default chart on ``self``
+          is assumed
+        - ``name`` -- (default: ``None``) name given to the vector field
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          vector field; if none is provided, the LaTeX symbol is set to
+          ``name``
+        - ``dest_map`` -- (default: ``None``) the destination map
+          `\Phi:\ M \rightarrow N`; if ``None``, it is assumed that `N = M`
+          and that `\Phi` is the identity map (case of a vector field
+          *on* `M`), otherwise ``dest_map`` must be a
+          :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
+
+        OUTPUT:
+
+        - a
+          :class:`~sage.manifolds.differentiable.vectorfield.VectorFieldParal`)
+          representing the defined vector field
+
+        EXAMPLES:
+
+        A vector field in the Euclidean plane::
+
+            sage: E.<x,y> = EuclideanSpace(2)
+            sage: v = E.vector_field(x*y, x+y)
+            sage: v.display()
+            x*y e_x + (x + y) e_y
+            sage: v[:]
+            [x*y, x + y]
+
+        A name can be provided; it is then used for displaying the vector
+        field::
+
+            sage: v = E.vector_field(x*y, x+y, name='v')
+            sage: v.display()
+            v = x*y e_x + (x + y) e_y
+
+        If the components are relative to a vector frame different from the
+        default one (here the Cartesian frame `(e_x,e_y)`), the vector
+        frame has to be specified explicitly::
+
+            sage: F_polar = E.polar_frame(); F_polar
+            Vector frame (E^2, (e_r,e_ph))
+            sage: v = E.vector_field(1, 0, frame=F_polar)
+            sage: v.display(F_polar)
+            e_r
+            sage: v.display()
+            x/sqrt(x^2 + y^2) e_x + y/sqrt(x^2 + y^2) e_y
+
+        The argument ``chart`` must be used to specify in which coordinate
+        chart the components are expressed::
+
+            sage: X_polar.<r, ph> = E.polar_coordinates()
+            sage: v = E.vector_field(0, r, frame=F_polar, chart=X_polar)
+            sage: v.display(F_polar, X_polar)
+            r e_ph
+            sage: v.display()
+            -y e_x + x e_y
+
+        It is also possible to pass the components as a dictionary, with
+        a pair (vector frame, chart) as a key::
+
+            sage: v = E.vector_field({(F_polar, X_polar): (0, r)})
+            sage: v.display(F_polar, X_polar)
+            r e_ph
+
+        The key can be reduced to the vector frame if the chart is the default
+        one::
+
+            sage: v = E.vector_field({F_polar: (0, 1)})
+            sage: v.display(F_polar)
+            e_ph
+
+        Finally, it is possible to construct the vector field without
+        initializing any component::
+
+            sage: v = E.vector_field(); v
+            Vector field on the Euclidean plane E^2
+
+        The components can then by set in a second stage, via the square
+        bracket operator, the unset components being assumed to be zero::
+
+            sage: v[1] = x*y
+            sage: v.display()  # v[2] is zero
+            x*y e_x
+            sage: v[2] = x+y
+            sage: v.display()
+            x*y e_x + (x + y) e_y
+
+        The above is equivalent to::
+
+            sage: v[:] = x*y, x+y
+            sage: v.display()
+            x*y e_x + (x + y) e_y
+
+        The square bracket operator can also be used to set components in a
+        vector frame that is not the default one::
+
+            sage: v = E.vector_field(name='v')
+            sage: v[F_polar, 1, X_polar] = r
+            sage: v.display(F_polar, X_polar)
+            v = r e_r
+            sage: v.display()
+            v = x e_x + y e_y
+
+        """
+        name = kwargs.get('name')
+        latex_name = kwargs.get('latex_name')
+        dest_map = kwargs.get('dest_map')
+        resu = super(EuclideanSpaceGeneric, self).vector_field(name=name,
+                                      latex_name=latex_name, dest_map=dest_map)
+        if args:
+            # Some components are to be initialized
+            args0 = args[0]
+            if isinstance(args0, dict):
+                for frame, components in args0.items():
+                    chart = None
+                    if isinstance(frame, tuple):
+                        # a pair (frame, chart) has been provided:
+                        frame, chart = frame
+                    resu.add_comp(frame)[:, chart] = components
+            else:
+                # args is the tuple of components in a specific vector frame
+                if len(args) != self._dim:
+                    raise ValueError("{} components must ".format(len(args)) +
+                                     "be provided")
+                frame = kwargs.get('frame')
+                chart = kwargs.get('chart')
+                resu.add_comp(frame)[:, chart] = args
+        return resu
+
 
 ###############################################################################
 
@@ -463,6 +686,8 @@ class EuclideanPlane(EuclideanSpaceGeneric):
                 symbols = 'r ph:\\phi'
             else:
                 raise TypeError("unkown coordinate type")
+        self._polar_chart = None   # to be constructed later if necessary
+        self._polar_frame = None   #
         init_coord_methods = {'Cartesian': self._init_coordinates_cartesian,
                               'polar': self._init_coordinates_polar}
         EuclideanSpaceGeneric.__init__(self, 2, name=name,
@@ -512,9 +737,8 @@ class EuclideanPlane(EuclideanSpaceGeneric):
         # Adding the coordinate ranges:
         coordinates = coords[0] + ':(0,+oo) ' + coords[1] + ':(0,2*pi)'
         chart = self.chart(coordinates=coordinates)
-        self._named_charts['polar'] = chart
+        self._polar_chart = chart
         frame = chart.frame()
-        self._named_frames['polar_coord'] = frame
         # Initialization of the metric components and the associated
         # Christoffel symbols
         g = self.metric()
@@ -533,7 +757,7 @@ class EuclideanPlane(EuclideanSpaceGeneric):
         oframe = frame.new_frame(to_orthonormal, 'e',
                                  indices=(str(r), str(ph)),
                                  latex_indices=(latex(r), latex(ph)))
-        self._named_frames['polar_ortho'] = oframe
+        self._polar_frame = oframe
         g.comp(oframe)
         nabla.coef(oframe)
 
@@ -560,15 +784,15 @@ class EuclideanPlane(EuclideanSpaceGeneric):
 
             """
         # Transition maps polar chart <-> Cartesian chart
-        chart_cart = self._named_charts['Cartesian']
-        chart_pol = self._named_charts['polar']
+        chart_cart = self._cartesian_chart
+        chart_pol = self._polar_chart
         x, y = chart_cart[:]
         r, ph = chart_pol[:]
         pol_to_cart = chart_pol.transition_map(chart_cart,
                                                [r*cos(ph), r*sin(ph)])
         pol_to_cart.set_inverse(sqrt(x**2+y**2), atan2(y,x))
         # Automorphisms ortho polar frame <-> Cartesian frame
-        oframe = self._named_frames['polar_ortho']
+        oframe = self._polar_frame
         cframe = chart_cart.frame()
         sframe = chart_pol.frame()
         changes = self._frame_changes
@@ -582,96 +806,7 @@ class EuclideanPlane(EuclideanSpaceGeneric):
         vmodule._basis_changes[(cframe, oframe)] = cframe_to_oframe
         vmodule._basis_changes[(oframe, cframe)] = oframe_to_cframe
 
-    def polar_chart(self, symbols=None):
-        r"""
-        Return the chart of polar coordinates, possibly creating it if it
-        does not already exist.
-
-        INPUT:
-
-        - ``symbols`` -- (default: ``None``) string defining the coordinate
-          text symbols and LaTeX symbols, with the same conventions as
-          the argument ``coordinates`` in  :class:`~sage.manifolds.differentiable.chart.RealDiffChart`; this is
-          used only if the polar chart has not been already defined; if
-          ``None`` the symbols are generated as `(r,\phi)`.
-
-        OUTPUT:
-
-        - the chart of polar coordinates, as an instance of
-          :class:`~sage.manifolds.differentiable.chart.RealDiffChart`
-
-        EXAMPLES::
-
-            sage: E = EuclideanSpace(2)
-            sage: E.polar_chart()
-            Chart (E^2, (r, ph))
-            sage: latex(E.polar_chart())
-            \left(\mathbb{E}^{2},(r, {\phi})\right)
-
-        Customizing the coordinate symbols::
-
-            sage: E = EuclideanSpace(2)
-            sage: E.polar_chart(symbols=r"r th:\theta")
-            Chart (E^2, (r, th))
-            sage: latex(E.polar_chart())
-            \left(\mathbb{E}^{2},(r, {\theta})\right)
-
-        Note that if the polar chart has been already defined, the argument
-        ``symbols`` has no effect::
-
-            sage: E.polar_chart(symbols=r"R Th:\Theta")
-            Chart (E^2, (r, th))
-
-        """
-        if 'polar' not in self._named_charts:
-            if symbols is None:
-                symbols = 'r ph:\\phi'
-            self._init_coordinates_polar(symbols)
-            if 'Cartesian' in self._named_charts:
-                self._transition_polar_cartesian()
-        return self._named_charts['polar']
-
-    def polar_coordinates(self, symbols=None):
-        r"""
-        Return polar coordinates, possibly creating them if they do not already
-        exist.
-
-        INPUT:
-
-        - ``symbols`` -- (default: ``None``) string defining the coordinate
-          text symbols and LaTeX symbols, with the same conventions as
-          the argument ``coordinates`` in  :class:`~sage.manifolds.differentiable.chart.RealDiffChart`; this is
-          used only if the polar chart has not been already defined; if
-          ``None`` the symbols are generated as `(r,\phi)`.
-
-        OUTPUT:
-
-        - tuple of symbolic variables representing the Cartesian coordinates
-
-        EXAMPLES::
-
-            sage: E = EuclideanSpace(2)
-            sage: E.polar_coordinates()
-            (r, ph)
-
-        The coordinate symbols can be customized::
-
-            sage: E = EuclideanSpace(2)
-            sage: E.polar_coordinates(symbols=r"r th:\theta")
-            (r, th)
-            sage: latex(_)
-            \left(r, {\theta}\right)
-
-        Note that if the polar coordinates have been already initialized, the
-        argument ``symbols`` has no effect::
-
-            sage: E.polar_coordinates(symbols=r"R Ph:\Phi")
-            (r, th)
-
-        """
-        return self.polar_chart(symbols=symbols)[:]
-
-    def cartesian_chart(self, symbols=None):
+    def cartesian_coordinates(self, symbols=None, names=None):
         r"""
         Return the chart of Cartesian coordinates, possibly creating it if it
         does not already exist.
@@ -679,10 +814,15 @@ class EuclideanPlane(EuclideanSpaceGeneric):
         INPUT:
 
         - ``symbols`` -- (default: ``None``) string defining the coordinate
-          text symbols and LaTeX symbols, with the same conventions as
-          the argument ``coordinates`` in  :class:`~sage.manifolds.differentiable.chart.RealDiffChart`; this is
+          text symbols and LaTeX symbols, with the same conventions as the
+          argument ``coordinates`` in
+          :class:`~sage.manifolds.differentiable.chart.RealDiffChart`; this is
           used only if the Cartesian chart has not been already defined; if
           ``None`` the symbols are generated as `(x,y)`.
+        - ``names`` -- (default: ``None``) unused argument, except if
+          ``symbols`` is not provided; it must be a tuple containing
+          the coordinate symbols (this is guaranteed if the shortcut operator
+          ``<,>`` is used)
 
         OUTPUT:
 
@@ -692,7 +832,7 @@ class EuclideanPlane(EuclideanSpaceGeneric):
         EXAMPLES::
 
             sage: E = EuclideanSpace(2)
-            sage: E.cartesian_chart()
+            sage: E.cartesian_coordinates()
             Chart (E^2, (x, y))
 
         An example where the Cartesian coordinates have not been previously
@@ -701,20 +841,157 @@ class EuclideanPlane(EuclideanSpaceGeneric):
             sage: E = EuclideanSpace(2, coordinates='polar')
             sage: E.atlas()  # only polar coordinates exist
             [Chart (E^2, (r, ph))]
-            sage: E.cartesian_chart(symbols='X Y')
+            sage: E.cartesian_coordinates(symbols='X Y')
             Chart (E^2, (X, Y))
             sage: E.atlas()  # the Cartesian chart has been added to the atlas
             [Chart (E^2, (r, ph)), Chart (E^2, (X, Y))]
 
-        """
-        if 'Cartesian' not in self._named_charts:
-            if symbols is None:
-                symbols = 'x y'
-            self._init_coordinates_cartesian(symbols)
-            if 'polar' in self._named_charts:
-                self._transition_polar_cartesian()
-        return self._named_charts['Cartesian']
+        The coordinates themselves are obtained via the square bracket
+        operator::
 
+            sage: E.cartesian_coordinates()[1]
+            X
+            sage: E.cartesian_coordinates()[2]
+            Y
+            sage: E.cartesian_coordinates()[:]
+            (X, Y)
+
+        It is also possible to use the operator ``<,>`` to set symbolic
+        variable containing the coordinates::
+
+            sage: E = EuclideanSpace(2, coordinates='polar')
+            sage: cartesian_coord.<u,v> = E.cartesian_coordinates()
+            sage: cartesian_coord
+            Chart (E^2, (u, v))
+            sage: u,v
+            (u, v)
+
+        The command ``cartesian_coord.<u,v> = E.cartesian_coordinates()``
+        is actually a shortcut for::
+
+            sage: cartesian_coord = E.cartesian_coordinates(symbols='u v')
+            sage: u, v = cartesian_coord[:]
+
+        """
+        if self._cartesian_chart is None:
+            if symbols is None:
+                if names is None:
+                    symbols = 'x y'
+                else:
+                    symbols = names[0] + ' ' + names[1]
+            self._init_coordinates_cartesian(symbols)
+            if self._polar_chart:
+                self._transition_polar_cartesian()
+        return self._cartesian_chart
+
+    def polar_coordinates(self, symbols=None, names=None):
+        r"""
+        Return the chart of polar coordinates, possibly creating it if it
+        does not already exist.
+
+        INPUT:
+
+        - ``symbols`` -- (default: ``None``) string defining the coordinate
+          text symbols and LaTeX symbols, with the same conventions as the
+          argument ``coordinates`` in
+          :class:`~sage.manifolds.differentiable.chart.RealDiffChart`; this is
+          used only if the polar chart has not been already defined; if
+          ``None`` the symbols are generated as `(r,\phi)`.
+        - ``names`` -- (default: ``None``) unused argument, except if
+          ``symbols`` is not provided; it must be a tuple containing
+          the coordinate symbols (this is guaranteed if the shortcut operator
+          ``<,>`` is used)
+
+        OUTPUT:
+
+        - the chart of polar coordinates, as an instance of
+          :class:`~sage.manifolds.differentiable.chart.RealDiffChart`
+
+        EXAMPLES::
+
+            sage: E = EuclideanSpace(2)
+            sage: E.polar_coordinates()
+            Chart (E^2, (r, ph))
+            sage: latex(E.polar_coordinates())
+            \left(\mathbb{E}^{2},(r, {\phi})\right)
+
+        The coordinates can be obtained via the square bracket operator::
+
+            sage: E.polar_coordinates()[1]
+            r
+            sage: E.polar_coordinates()[2]
+            ph
+            sage: E.polar_coordinates()[:]
+            (r, ph)
+
+        They can also be obtained via the operator ``<,>``::
+
+            sage: E = EuclideanSpace(2)
+            sage: polar.<r,ph> = E.polar_coordinates(); polar
+            Chart (E^2, (r, ph))
+            sage: r, ph
+            (r, ph)
+
+        Actually, ``polar.<r,ph> = E.polar_coordinates()`` is a shortcut for::
+
+            sage: polar = E.polar_coordinates()
+            sage: r, ph = polar[:]
+
+        The coordinate symbols can be customized::
+
+            sage: E = EuclideanSpace(2)
+            sage: E.polar_coordinates(symbols=r"r th:\theta")
+            Chart (E^2, (r, th))
+            sage: latex(E.polar_coordinates())
+            \left(\mathbb{E}^{2},(r, {\theta})\right)
+
+        Note that if the polar coordinates have been already initialized, the
+        argument ``symbols`` has no effect::
+
+            sage: E.polar_coordinates(symbols=r"R Th:\Theta")
+            Chart (E^2, (r, th))
+
+        """
+        if self._polar_chart is None:
+            if symbols is None:
+                if names is None:
+                    symbols = 'r ph:\\phi'
+                else:
+                    symbols = names[0] + ' ' + names[1]
+                    if names[1] in ['p', 'ph', 'phi']:
+                        symbols += ':\\phi'
+                    elif names[1] in ['t', 'th', 'theta']:
+                        symbols += ':\\theta'
+            self._init_coordinates_polar(symbols)
+            if self._cartesian_chart:
+                self._transition_polar_cartesian()
+        return self._polar_chart
+
+    def polar_frame(self):
+        r"""
+        Return the orthonormal vector frame associated with polar
+        coordinates.
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.vectorframe.VectorFrame`
+
+        EXAMPLES::
+
+            sage: E = EuclideanSpace(2)
+            sage: E.polar_frame()
+            Vector frame (E^2, (e_r,e_ph))
+            sage: E.polar_frame()[1]
+            Vector field e_r on the Euclidean plane E^2
+            sage: E.polar_frame()[:]
+            (Vector field e_r on the Euclidean plane E^2,
+             Vector field e_ph on the Euclidean plane E^2)
+
+        """
+        if self._polar_frame is None:
+            self.polar_coordinates()  # creates the polar chart
+        return self._polar_frame
 
 ###############################################################################
 

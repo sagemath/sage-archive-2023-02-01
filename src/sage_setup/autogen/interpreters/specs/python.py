@@ -242,11 +242,10 @@ class PythonInterpreter(StackInterpreter):
                     return PyNumber_TrueDivide(left, right)
                 except TypeError:
                     IF PY_MAJOR_VERSION < 3:
-                        try:
-                            return PyNumber_Divide(left, right)
-                        finally:
-                            deprecation(24805, "use of __truediv__ should be "
-                                               "preferred over __div__")
+                        res = PyNumber_Divide(left, right)
+                        deprecation(24805, "use of __truediv__ should be "
+                                           "preferred over __div__")
+                        return res
                     ELSE:
                         raise
             """)

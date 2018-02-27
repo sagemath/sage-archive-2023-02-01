@@ -163,11 +163,11 @@ def DegreeSequenceConfigurationModel(deg_sequence, seed=None):
 
         sage: G = graphs.DegreeSequenceConfigurationModel([3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3])
         sage: sorted(G.edges(labels=False))
-        [(0, 7), (0, 11), (0, 19), (1, 3), (1, 14), (1, 18), (2, 6), (2, 10),
-         (2, 12), (3, 15), (3, 19), (4, 11), (4, 12), (4, 13), (5, 10),
-         (5, 11), (5, 16), (6, 14), (6, 18), (7, 8), (7, 13), (8, 12),
-         (8, 15), (9, 10), (9, 14), (9, 17), (13, 18), (15, 17), (16, 16),
-         (17, 19)]
+        [(0, 2), (0, 10), (0, 15), (1, 6), (1, 16), (1, 17), (2, 5), (2, 19),
+        (3, 7), (3, 14), (3, 14), (4, 9), (4, 13), (4, 19), (5, 6),
+        (5, 15), (6, 11), (7, 11), (7, 17), (8, 11), (8, 18), (8, 19),
+        (9, 12), (9, 13), (10, 15), (10, 18), (12, 13), (12, 16), (14, 17),
+        (16, 18)]
         sage: G.show()  # long time
 
     REFERENCE:
@@ -179,6 +179,7 @@ def DegreeSequenceConfigurationModel(deg_sequence, seed=None):
         seed = current_randstate().long_seed()
     import networkx
     return Graph(networkx.configuration_model([int(i) for i in deg_sequence], seed=seed), loops=True, multiedges=True, sparse=True)
+
 
 def DegreeSequenceTree(deg_sequence):
     """

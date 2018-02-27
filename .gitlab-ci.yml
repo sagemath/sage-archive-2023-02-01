@@ -5,7 +5,8 @@
 # that limit in Settings → CI/CD.
 # You can also provision your own private more powerful runner in the same
 # place; or set up your favourite cloud service to provide an on-demand
-# autoscale runner.
+# autoscale runner. (Make sure to tag them as "2gb", otherwise the build step
+# is not going to run on them.)
 
 # As of early 2018 a run on GitLab CI takes about 50 minutes (with
 # build-from-latest.) We could probably save 5 minutes by not pushing the
@@ -57,6 +58,11 @@ build-from-latest: &build
     - . .ci/build-docker.sh | tee gitlab-build-docker.log | head -c 3m
     - . .ci/push-gitlab.sh sagemath-dev
     - . .ci/push-gitlab.sh sagemath
+  tags:
+    # We need enough disk space for the build to work.
+    # The 2gb instances on gitlab.com have 50GB of disk:
+    # https://www.digitalocean.com/pricing/
+    - 2gb
   except:
     - master
     - develop

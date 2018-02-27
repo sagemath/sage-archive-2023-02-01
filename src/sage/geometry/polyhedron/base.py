@@ -3074,7 +3074,7 @@ class Polyhedron_base(Element):
 
         OUTPUT:
 
-        The join of ``self`` and ``other`` with a suitable base ring to 
+        The join of ``self`` and ``other`` with a suitable base ring to
         encompass the two.
 
         EXAMPLES::
@@ -3091,7 +3091,7 @@ class Polyhedron_base(Element):
         try:
             new_ring = self.parent()._coerce_base_ring(other)
         except TypeError:
-            raise TypeError("no common canonical parent for objects with parents: " + str(self.parent()) \
+            raise TypeError("no common canonical parent for objects with parents: " + str(self.parent())
                      + " and " + str(other.parent()))
 
         dim_self = self.ambient_dim()

@@ -25,10 +25,13 @@ EXAMPLES::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.all import QQ, ZZ, infinity
 from sage.misc.cachefunc import cached_method
+
 
 class DiscreteValuationCodomain(UniqueRepresentation, Parent):
     r"""

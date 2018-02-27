@@ -54,10 +54,13 @@ send more than just zero to infinity::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+
 from sage.categories.morphism import Morphism
 from sage.structure.richcmp import op_EQ, op_NE, op_LE, op_LT, op_GE, op_GT
 
 from sage.misc.cachefunc import cached_method
+
 
 class DiscretePseudoValuation(Morphism):
     r"""
@@ -287,7 +290,7 @@ class DiscretePseudoValuation(Morphism):
 
         """
         if self == other: return True
-        from scaled_valuation import ScaledValuation_generic
+        from .scaled_valuation import ScaledValuation_generic
         if isinstance(other, ScaledValuation_generic):
             return other <= self
         raise NotImplementedError("Operator not implemented for this valuation")

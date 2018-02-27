@@ -286,7 +286,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         r"""
         Return the Brown invariant of this torsion quadratic form.
 
-        Let `(D,q)` be a torsion quadratic module with values in `\QQ / \2 \ZZ`.
+        Let `(D,q)` be a torsion quadratic module with values in `\QQ / 2 \ZZ`.
         The Brown invariant `Br(D,q) \in \Zmod{8}` is defined by the equation
 
         .. MATH::

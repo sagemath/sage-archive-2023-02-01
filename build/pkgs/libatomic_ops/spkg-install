@@ -13,7 +13,7 @@ if [ "$SAGE64" = "yes" ]; then
 fi
 
 if [ "$UNAME" = "CYGWIN" ]; then
-    LIBATOMIC_OPS_CONFIGURE="$CONFIGURE_FLAGS --enable-shared --disable-static"
+    LIBATOMIC_OPS_CONFIGURE="$LIBATOMIC_OPS_CONFIGURE --enable-shared --disable-static"
 fi
 
 sdh_configure $LIBATOMIC_OPS_CONFIGURE

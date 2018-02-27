@@ -968,7 +968,9 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             sage: EK(0).division_points(9)
             [(0 : 1 : 0), (5 : 9 : 1), (5 : -10 : 1), (-150/121*t^8 + 414/121*t^7 + 1481/242*t^6 - 2382/121*t^5 - 103/242*t^4 + 629/22*t^3 - 367/242*t^2 - 1307/121*t + 625/121 : 35/484*t^8 - 133/242*t^7 + 445/242*t^6 - 799/242*t^5 + 373/484*t^4 + 113/22*t^3 - 2355/484*t^2 - 753/242*t + 1165/484 : 1), (-150/121*t^8 + 414/121*t^7 + 1481/242*t^6 - 2382/121*t^5 - 103/242*t^4 + 629/22*t^3 - 367/242*t^2 - 1307/121*t + 625/121 : -35/484*t^8 + 133/242*t^7 - 445/242*t^6 + 799/242*t^5 - 373/484*t^4 - 113/22*t^3 + 2355/484*t^2 + 753/242*t - 1649/484 : 1), (-1383/484*t^8 + 970/121*t^7 + 3159/242*t^6 - 5211/121*t^5 + 37/484*t^4 + 654/11*t^3 - 909/484*t^2 - 4831/242*t + 6791/484 : 927/121*t^8 - 5209/242*t^7 - 8187/242*t^6 + 27975/242*t^5 - 1147/242*t^4 - 1729/11*t^3 + 1566/121*t^2 + 12873/242*t - 10871/242 : 1), (-1383/484*t^8 + 970/121*t^7 + 3159/242*t^6 - 5211/121*t^5 + 37/484*t^4 + 654/11*t^3 - 909/484*t^2 - 4831/242*t + 6791/484 : -927/121*t^8 + 5209/242*t^7 + 8187/242*t^6 - 27975/242*t^5 + 1147/242*t^4 + 1729/11*t^3 - 1566/121*t^2 - 12873/242*t + 10629/242 : 1), (-4793/484*t^8 + 6791/242*t^7 + 10727/242*t^6 - 18301/121*t^5 + 2347/484*t^4 + 2293/11*t^3 - 7311/484*t^2 - 17239/242*t + 26767/484 : 30847/484*t^8 - 21789/121*t^7 - 34605/121*t^6 + 117164/121*t^5 - 10633/484*t^4 - 29437/22*t^3 + 39725/484*t^2 + 55428/121*t - 176909/484 : 1), (-4793/484*t^8 + 6791/242*t^7 + 10727/242*t^6 - 18301/121*t^5 + 2347/484*t^4 + 2293/11*t^3 - 7311/484*t^2 - 17239/242*t + 26767/484 : -30847/484*t^8 + 21789/121*t^7 + 34605/121*t^6 - 117164/121*t^5 + 10633/484*t^4 + 29437/22*t^3 - 39725/484*t^2 - 55428/121*t + 176425/484 : 1)]
 
-        TESTS::
+        TESTS:
+
+        Check that :trac:`24844` is fixed::
 
             sage: p = next_prime(1000000)
             sage: E = EllipticCurve(GF(p), 123, 456)
@@ -989,8 +991,6 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             else:
                 return []
 
-        # let us decide if we will be able to set the orders
-        set_order_flag = (m.is_prime() and self == 0)
         # ans will contain the list of division points.
         ans = []
 
@@ -1046,9 +1046,6 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
                 Q = E.lift_x(x)
                 nQ = -Q
                 mQ = m*Q
-                if set_order_flag:
-                    Q._order = m
-                    nQ._order = m
                 # if P==-P then Q works iff -Q works, so we include
                 # both unless they are equal:
                 if P_is_2_torsion:
@@ -1063,6 +1060,21 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
                         ans.append(Q)
                     elif mQ == nP:
                         ans.append(nQ)
+
+        # set orders of points found when self's order is known:
+        if self.is_zero():
+            self._order = Integer(1)
+        try:
+            n = self._order # do not compute, just use if already known
+            if n==oo:
+                for Q in ans:
+                    Q._order = oo
+            else:
+                for Q in ans:
+                    R = n*Q
+                    Q._order = n*generic.order_from_multiple(R, m, operation='+')
+        except AttributeError: # do nothing about order if self's order unknown
+            pass
 
         # Finally, sort and return
         ans.sort()

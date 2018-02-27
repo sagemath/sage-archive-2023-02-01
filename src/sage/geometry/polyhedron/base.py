@@ -3152,7 +3152,7 @@ class Polyhedron_base(Element):
         .. SEEALSO::
 
             :meth:`join`
-            :meth:`direct_sum`
+            :meth:`subdirect_sum`
         """
         translated_self = self - self.center()
         translated_other = other - other.center()

@@ -60,9 +60,9 @@ build-from-latest: &build
     - . .ci/push-gitlab.sh sagemath
   tags:
     # We need enough disk space for the build to work.
-    # The 2gb instances on gitlab.com have 50GB of disk:
-    # https://www.digitalocean.com/pricing/
-    - 2gb
+    # The do(=digitalocean) instances on gitlab.com should be the 4GB instances
+    # with 80GB of disk: https://www.digitalocean.com/pricing/
+    - do
   except:
     - master
     - develop

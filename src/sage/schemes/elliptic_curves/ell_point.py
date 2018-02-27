@@ -1061,6 +1061,9 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
                     elif mQ == nP:
                         ans.append(nQ)
 
+        if  not ans:
+            return ans
+
         # set orders of points found when self's order is known:
         if self.is_zero():
             self._order = Integer(1)
@@ -1070,9 +1073,10 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
                 for Q in ans:
                     Q._order = oo
             else:
+                mfac = m.factor()
                 for Q in ans:
                     R = n*Q
-                    Q._order = n*generic.order_from_multiple(R, m, operation='+')
+                    Q._order = n*generic.order_from_multiple(R, m, factorization=mfac, operation='+')
         except AttributeError: # do nothing about order if self's order unknown
             pass
 

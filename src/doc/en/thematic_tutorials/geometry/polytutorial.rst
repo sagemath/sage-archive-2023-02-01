@@ -11,7 +11,7 @@ A Brief Introduction to Polytopes in Sage
 
 If you already know some convex geometry  *a la*  Grünbaum or
 Brøndsted, then you may have itched to get your hands dirty with some
-polytope calculations.  Here is a mini\-guide to doing just that. 
+polytope calculations.  Here is a mini\-guide to doing just that.
 
 Basics
 """"""
@@ -114,7 +114,7 @@ Surely you want to compute the polar dual:
 Check it out\-\-\-we started with an integer\-lattice polytope and dualized
 to a rational\-lattice polytope.  Let's look at that.
 
- 
+
 
 
 ::
@@ -171,7 +171,7 @@ at this...
 
 .. end of output
 
-Here is what's going on. 
+Here is what's going on.
 
 If a polytope ``P`` is in `\ZZ`, then...
 
@@ -190,7 +190,7 @@ However, if a polytope is  *not*  in `\ZZ`, for example if it's in `\QQ` or
 
 Keep all of this in mind as you take polar duals.
 
- 
+
 
 Polytope Constructions
 """"""""""""""""""""""
@@ -350,7 +350,7 @@ Once you've constructed some polytope, you can ask Sage questions about it.
 
 .. end of output
 
-Face information can be useful.  
+Face information can be useful.
 
 
 ::

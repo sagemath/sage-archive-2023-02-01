@@ -39,7 +39,7 @@ This plots the graph (with unbounded edges) of the polyhedron
 
 .. end of output
 
-:code:`plot` 
+:code:`plot`
 ==================================================
 
 The :code:`plot` method draws the graph, the polygons and vertices of the

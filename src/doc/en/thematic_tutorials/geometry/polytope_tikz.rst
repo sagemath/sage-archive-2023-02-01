@@ -45,7 +45,7 @@ Then, you can either copy-paste it to your article by typing ``Img`` in Sage or 
 
 .. end of output
 
-Then in the pwd (present working directory of sage, the one of your article) 
+Then in the pwd (present working directory of sage, the one of your article)
 you will have a file named ``Img_poly.tex`` containing the tikzpicture of your polytope.
 
 Customization
@@ -77,7 +77,7 @@ In Sage, you type:
 
 Then, you visualize the polytope by typing ``P.show(aspect_ratio=1)``
 
-When you found a good angle, follow the above procedure to obtain the values 
+When you found a good angle, follow the above procedure to obtain the values
 [674,108,-731] and angle=112, for example.
 
 ::
@@ -117,7 +117,7 @@ It is also possible to replace it by the following 4 lines (and adding ``\usetik
 
 .. end of output
 
-Finally, you may want to tweak your picture my adding labels, elements on 
+Finally, you may want to tweak your picture my adding labels, elements on
 vertices, edges, facets, etc.
 
 Automatize using SageTex
@@ -129,7 +129,7 @@ For this you need to put
 
 in the preamble of your article
 
-There are different ways to use sagetex and you may create your own. Here are 
+There are different ways to use sagetex and you may create your own. Here are
 some possibilities.
 
 1) You can directly type in a sagestr in the article:

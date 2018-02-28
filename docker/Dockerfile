@@ -193,6 +193,7 @@ CMD ["bash"]
 FROM make-all as make-release
 RUN sage -pip install terminado "notebook>=5" "ipykernel>=4.6"
 RUN sage -i gap_jupyter singular_jupyter pari_jupyter
+RUN apt-get update && apt-get install rdfind
 RUN make micro_release
 
 ################################################################################

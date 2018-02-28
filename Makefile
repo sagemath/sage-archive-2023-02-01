@@ -90,8 +90,6 @@ maintainer-clean: distclean bootstrap-clean
 micro_release: bdist-clean sagelib-clean
 	@echo "Stripping binaries ..."
 	LC_ALL=C find local/lib local/bin -type f -exec strip '{}' ';' 2>&1 | grep -v "File format not recognized" |  grep -v "File truncated" || true
-	@echo "Removing .py files that have a corresponding .pyc or .pyo file as they are not needed when running code with CPython..."
-	find local/lib/python* -name '*.py' | while IFS= read -r fname; do [ -e "$${fname}c" -o -e "$${fname}o" ] && rm "$$fname"; done || true
 	@echo "Removing sphinx artifacts..."
 	rm -rf local/share/doc/sage/doctrees local/share/doc/sage/inventory
 	@echo "Removing documentation. Inspection in IPython still works."
@@ -105,6 +103,12 @@ micro_release: bdist-clean sagelib-clean
 	@# We keep COPYING.txt so we ship a license with this distribution.
 	find . -name . -o -prune ! -name src ! -name sage ! -name local ! -name VERSION.txt ! -name COPYING.txt ! -name build -exec rm -rf \{\} \;
 	cd src && find . -name . -o -prune ! -name sage ! -name bin -exec rm -rf \{\} \;
+	if command -v rdfind > /dev/null; then \
+		@echo "Hardlinking identical files."; \
+		rdfind -makeresultsfile false -makehardlinks true .; \
+	else \
+		@echo "rdfind not installed. Not hardlinking identical files."; \
+	fi
 
 # Leaves everything that is needed to make the next "make" fast but removes
 # all the cheap build artifacts that can be quickly regenerated.

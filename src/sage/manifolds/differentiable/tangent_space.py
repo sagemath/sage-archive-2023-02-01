@@ -205,12 +205,13 @@ class TangentSpace(FiniteRankFreeModule):
             # only if it is a frame on the current manifold:
             if frame.destination_map().is_identity():
                 if point in frame._domain:
+                    coframe = frame.coframe()
                     basis = self.basis(frame._symbol,
                                        latex_symbol=frame._latex_symbol,
                                        indices=frame._indices,
                                        latex_indices=frame._latex_indices,
-                                       symbol_dual=frame._symbol_dual,
-                                       latex_symbol_dual=frame._latex_symbol_dual)
+                                       symbol_dual=coframe._symbol,
+                                       latex_symbol_dual=coframe._latex_symbol)
                     self._frame_bases[frame] = basis
         # The basis induced by the default frame of the manifold subset
         # in which the point has been created is declared the default

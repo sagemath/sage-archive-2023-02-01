@@ -268,6 +268,10 @@ class Basis_abstract(UniqueRepresentation, SageObject):
             pos = "^"
         if latex_symbol is None:
             latex_symbol = symbol
+        self._symbol = symbol
+        self._latex_symbol = latex_symbol
+        self._indices = indices
+        self._latex_indices = latex_indices
         # Text symbols:
         if isinstance(symbol, (list, tuple)):
             if len(symbol) != n:
@@ -576,9 +580,6 @@ class FreeModuleBasis(Basis_abstract):
         Basis_abstract.__init__(self, fmodule, symbol, latex_symbol, indices,
                                 latex_indices)
         # The basis is added to the module list of bases
-        for other in fmodule._known_bases:
-            if symbol == other._symbol:
-                raise ValueError("the {} already exist on the {}".format(other, fmodule))
         fmodule._known_bases.append(self)
         # The individual vectors:
         vl = list()
@@ -696,9 +697,6 @@ class FreeModuleBasis(Basis_abstract):
             Dual basis (E^x,E^y,E^z) on the Rank-3 free module M over the Integer Ring
 
         """
-        if isinstance(symbol, list):
-            symbol = tuple(symbol)  # must be a tuple for unique representation
-                                    # of FreeModuleBasis
         return FreeModuleBasis(self._fmodule, symbol, latex_symbol=latex_symbol,
                                indices=indices, latex_indices=latex_indices,
                                symbol_dual=symbol_dual,

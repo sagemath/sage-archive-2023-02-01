@@ -82,7 +82,7 @@ WORKDIR $HOME
 FROM run-time-dependencies as build-time-dependencies
 # Install the build time dependencies & git
 RUN sudo apt-get update -qq \
-    && sudo apt-get install -y wget build-essential automake m4 dpkg-dev sudo python libssl-dev git \
+    && sudo apt-get install -y wget build-essential automake m4 dpkg-dev sudo python libssl-dev git rdfind \
     && sudo apt-get clean \
     && sudo rm -r /var/lib/apt/lists/*
 
@@ -193,7 +193,6 @@ CMD ["bash"]
 FROM make-all as make-release
 RUN sage -pip install terminado "notebook>=5" "ipykernel>=4.6"
 RUN sage -i gap_jupyter singular_jupyter pari_jupyter
-RUN apt-get update && apt-get install rdfind
 RUN make micro_release
 
 ################################################################################

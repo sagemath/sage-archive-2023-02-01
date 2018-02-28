@@ -70,7 +70,7 @@ ext_table['u', pAdicFieldFloatingPoint] = UnramifiedExtensionFieldFloatingPoint
 #ext_table['u', pAdicRingLazy] = UnramifiedExtensionRingLazy
 
 def _canonicalize_show_prec(type, print_mode, show_prec=None):
-    """
+    r"""
     Return a canonical string value for show_prec depending of the type,
     the print_mode and the given value.
 
@@ -129,7 +129,7 @@ def _canonicalize_show_prec(type, print_mode, show_prec=None):
 
 
 def get_key_base(p, prec, type, print_mode, names, ram_name, print_pos, print_sep, print_alphabet, print_max_terms, show_prec, check, valid_non_lazy_types):
-    """
+    r"""
     This implements create_key for Zp and Qp: moving it here prevents code duplication.
 
     It fills in unspecified values and checks for contradictions in the input.  It also standardizes irrelevant options so that duplicate parents are not created.
@@ -244,7 +244,7 @@ def get_key_base(p, prec, type, print_mode, names, ram_name, print_pos, print_se
 padic_field_cache = {}
 DEFAULT_PREC = Integer(20)
 class Qp_class(UniqueFactory):
-    """
+    r"""
     A creation function for `p`-adic fields.
 
     INPUT:
@@ -605,7 +605,7 @@ class Qp_class(UniqueFactory):
     def create_key(self, p, prec = None, type = 'capped-rel', print_mode = None,
                    names = None, ram_name = None, print_pos = None,
                    print_sep = None, print_alphabet = None, print_max_terms = None, show_prec=None, check = True):
-        """
+        r"""
         Creates a key from input parameters for ``Qp``.
 
         See the documentation for ``Qp`` for more information.
@@ -626,7 +626,7 @@ class Qp_class(UniqueFactory):
         return get_key_base(p, prec, type, print_mode, names, ram_name, print_pos, print_sep, print_alphabet, print_max_terms, show_prec, check, ['capped-rel', 'floating-point'])
 
     def create_object(self, version, key):
-        """
+        r"""
         Creates an object using a given key.
 
         See the documentation for ``Qp`` for more information.
@@ -689,7 +689,7 @@ def Qq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
           print_mode=None, ram_name = None, res_name = None, print_pos = None,
        print_sep = None, print_max_ram_terms = None,
        print_max_unram_terms = None, print_max_terse_terms = None, show_prec=None, check = True, implementation = 'FLINT'):
-    """
+    r"""
     Given a prime power `q = p^n`, return the unique unramified
     extension of `\mathbb{Q}_p` of degree `n`.
 
@@ -1230,7 +1230,7 @@ def Qq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
 ######################################################
 
 def QpCR(p, prec = None, *args, **kwds):
-    """
+    r"""
     A shortcut function to create capped relative `p`-adic fields.
 
     Same functionality as ``Qp``.  See documentation for ``Qp`` for a
@@ -1244,7 +1244,7 @@ def QpCR(p, prec = None, *args, **kwds):
     return Qp(p, prec, 'capped-rel', *args, **kwds)
 
 def QpFP(p, prec = None, *args, **kwds):
-    """
+    r"""
     A shortcut function to create floating point `p`-adic fields.
 
     Same functionality as ``Qp``.  See documentation for ``Qp`` for a
@@ -1258,7 +1258,7 @@ def QpFP(p, prec = None, *args, **kwds):
     return Qp(p, prec, 'floating-point', *args, **kwds)
 
 def QqCR(q, prec = None, *args, **kwds):
-    """
+    r"""
     A shortcut function to create capped relative unramified `p`-adic
     fields.
 
@@ -1273,7 +1273,7 @@ def QqCR(q, prec = None, *args, **kwds):
     return Qq(q, prec, 'capped-rel', *args, **kwds)
 
 def QqFP(q, prec = None, *args, **kwds):
-    """
+    r"""
     A shortcut function to create floating point unramified `p`-adic
     fields.
 
@@ -1297,7 +1297,7 @@ def QqFP(q, prec = None, *args, **kwds):
 #######################################################################################################
 
 class Zp_class(UniqueFactory):
-    """
+    r"""
     A creation function for `p`-adic rings.
 
     INPUT:
@@ -1699,7 +1699,7 @@ class Zp_class(UniqueFactory):
     def create_key(self, p, prec = None, type = 'capped-rel', print_mode = None,
                    names = None, ram_name = None, print_pos = None, print_sep = None, print_alphabet = None,
                    print_max_terms = None, show_prec = None, check = True):
-        """
+        r"""
         Creates a key from input parameters for ``Zp``.
 
         See the documentation for ``Zp`` for more information.
@@ -1732,7 +1732,7 @@ class Zp_class(UniqueFactory):
                             print_max_terms, show_prec, check, ['capped-rel', 'fixed-mod', 'capped-abs', 'floating-point'])
 
     def create_object(self, version, key):
-        """
+        r"""
         Creates an object using a given key.
 
         See the documentation for ``Zp`` for more information.
@@ -1793,7 +1793,7 @@ def Zq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
           print_mode=None, ram_name = None, res_name = None, print_pos = None,
        print_sep = None, print_max_ram_terms = None,
        print_max_unram_terms = None, print_max_terse_terms = None, show_prec = None, check = True, implementation = 'FLINT'):
-    """
+    r"""
     Given a prime power `q = p^n`, return the unique unramified
     extension of `\mathbb{Z}_p` of degree `n`.
 
@@ -2351,7 +2351,7 @@ def Zq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
 ######################################################
 
 def ZpCR(p, prec = None, *args, **kwds):
-    """
+    r"""
     A shortcut function to create capped relative `p`-adic rings.
 
     Same functionality as ``Zp``.  See documentation for ``Zp`` for a
@@ -2365,7 +2365,7 @@ def ZpCR(p, prec = None, *args, **kwds):
     return Zp(p, prec, 'capped-rel', *args, **kwds)
 
 def ZpCA(p, prec = None, *args, **kwds):
-    """
+    r"""
     A shortcut function to create capped absolute `p`-adic rings.
 
     See documentation for ``Zp`` for a description of the input parameters.
@@ -2378,7 +2378,7 @@ def ZpCA(p, prec = None, *args, **kwds):
     return Zp(p, prec, 'capped-abs', *args, **kwds)
 
 def ZpFM(p, prec = None, *args, **kwds):
-    """
+    r"""
     A shortcut function to create fixed modulus `p`-adic rings.
 
     See documentation for ``Zp`` for a description of the input parameters.
@@ -2391,7 +2391,7 @@ def ZpFM(p, prec = None, *args, **kwds):
     return Zp(p, prec, 'fixed-mod', *args, **kwds)
 
 def ZpFP(p, prec = None, *args, **kwds):
-    """
+    r"""
     A shortcut function to create floating point `p`-adic rings.
 
     Same functionality as ``Zp``.  See documentation for ``Zp`` for a
@@ -2405,7 +2405,7 @@ def ZpFP(p, prec = None, *args, **kwds):
     return Zp(p, prec, 'floating-point', *args, **kwds)
 
 def ZqCR(q, prec = None, *args, **kwds):
-    """
+    r"""
     A shortcut function to create capped relative unramified `p`-adic rings.
 
     Same functionality as ``Zq``.  See documentation for ``Zq`` for a
@@ -2419,7 +2419,7 @@ def ZqCR(q, prec = None, *args, **kwds):
     return Zq(q, prec, 'capped-rel', *args, **kwds)
 
 def ZqCA(q, prec = None, *args, **kwds):
-    """
+    r"""
     A shortcut function to create capped absolute unramified `p`-adic rings.
 
     See documentation for ``Zq`` for a description of the input parameters.
@@ -2432,7 +2432,7 @@ def ZqCA(q, prec = None, *args, **kwds):
     return Zq(q, prec, 'capped-abs', *args, **kwds)
 
 def ZqFM(q, prec = None, *args, **kwds):
-    """
+    r"""
     A shortcut function to create fixed modulus unramified `p`-adic rings.
 
     See documentation for ``Zq`` for a description of the input parameters.
@@ -2445,7 +2445,7 @@ def ZqFM(q, prec = None, *args, **kwds):
     return Zq(q, prec, 'fixed-mod', *args, **kwds)
 
 def ZqFP(q, prec = None, *args, **kwds):
-    """
+    r"""
     A shortcut function to create floating point unramified `p`-adic rings.
 
     Same functionality as ``Zq``.  See documentation for ``Zq`` for a
@@ -2465,7 +2465,7 @@ def ZqFP(q, prec = None, *args, **kwds):
 #######################################################################################################
 
 class pAdicExtension_class(UniqueFactory):
-    """
+    r"""
     A class for creating extensions of `p`-adic rings and fields.
 
     EXAMPLES::
@@ -2484,7 +2484,7 @@ class pAdicExtension_class(UniqueFactory):
                                   print_sep = None, print_alphabet = None, print_max_ram_terms = None,
                                   print_max_unram_terms = None, print_max_terse_terms = None,
                                   show_prec = None, check = True, unram = False, implementation='FLINT'):
-        """
+        r"""
         Creates a key from input parameters for pAdicExtension.
 
         See the documentation for ``Qq`` for more information.
@@ -2620,7 +2620,7 @@ class pAdicExtension_class(UniqueFactory):
         return key, {'approx_modulus': approx_modulus}
 
     def create_object(self, version, key, approx_modulus=None, shift_seed=None):
-        """
+        r"""
         Creates an object using a given key.
 
         See the documentation for pAdicExtension for more information.
@@ -2672,7 +2672,7 @@ ExtensionFactory = pAdicExtension = pAdicExtension_class("pAdicExtension")
 ######################################################
 
 def split(poly, prec):
-    """
+    r"""
     Given a polynomial ``poly`` and a desired precision ``prec``, computes
     ``upoly`` and epoly so that the extension defined by ``poly`` is isomorphic
     to the extension defined by first taking an extension by the unramified
@@ -2708,7 +2708,7 @@ def split(poly, prec):
     raise NotImplementedError("Extensions by general polynomials not yet supported.  Please use an unramified or Eisenstein polynomial.")
 
 def truncate_to_prec(poly, R, absprec):
-    """
+    r"""
     Truncates the unused precision off of a polynomial.
 
     EXAMPLES::
@@ -2723,7 +2723,7 @@ def truncate_to_prec(poly, R, absprec):
     return R[poly.variable_name()]([R(a, absprec=absprec) for a in poly.list()]) # Is this quite right?  We don't want flat necessarily...
 
 def krasner_check(poly, prec):
-    """
+    r"""
     Returns True iff poly determines a unique isomorphism class of
     extensions at precision prec.
 
@@ -2740,7 +2740,7 @@ def krasner_check(poly, prec):
     return True #This needs to be implemented
 
 def is_eisenstein(poly):
-    """
+    r"""
     Returns True iff this monic polynomial is Eisenstein.
 
     A polynomial is Eisenstein if it is monic, the constant term has
@@ -2768,7 +2768,7 @@ def is_eisenstein(poly):
     return True
 
 def is_unramified(poly):
-    """
+    r"""
     Returns true iff this monic polynomial is unramified.
 
     A polynomial is unramified if its reduction modulo the maximal

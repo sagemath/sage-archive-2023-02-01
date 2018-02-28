@@ -12,7 +12,7 @@ We need to setup a proper test environment for widgets::
     sage: setup_test_comm()
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2017 Jeroen Demeyer <jdemeyer@cage.ugent.be>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -20,13 +20,14 @@ We need to setup a proper test environment for widgets::
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 
 from __future__ import unicode_literals
 
-from ipywidgets.widgets import (IntSlider, IntRangeSlider, FloatSlider,
-        FloatRangeSlider, Text, Textarea, ColorPicker, HTML,
-        Label, HBox, VBox, ValueWidget)
+from ipywidgets.widgets import (IntSlider, IntRangeSlider,
+                                FloatSlider, FloatRangeSlider, Text,
+                                Textarea, ColorPicker, HTML, Label,
+                                HBox, VBox, ValueWidget)
 from traitlets import List, Unicode, link
 
 from sage.misc.sage_eval import sage_eval
@@ -80,6 +81,7 @@ class HTMLText(HTML):
             u''
         """
         pass
+
 
 class TransformWidget(object):
     """
@@ -140,7 +142,7 @@ class TransformWidget(object):
         Return the transformed value of this widget, by calling
         the ``transform`` function.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from ipywidgets import Checkbox
             sage: from sage.repl.ipython_kernel.widgets import TransformWidget
@@ -178,7 +180,7 @@ class EvalWidget(TransformWidget):
         """
         Evaluate the bare widget value using :func:`sage_eval`.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from ipywidgets import Dropdown
             sage: from sage.repl.ipython_kernel.widgets import EvalWidget

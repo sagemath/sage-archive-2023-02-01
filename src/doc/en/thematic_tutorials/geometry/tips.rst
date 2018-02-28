@@ -59,7 +59,7 @@ object, you can!
 :code:`repr_pretty_Hrepresentation`
 ==============================================================
 
-If you would like to visualize the :math:`H`-representation nicely and even get
+If you would like to visualize the `H`-representation nicely and even get
 the latex presentation, there is a method for that!
 
 ::

@@ -17,7 +17,7 @@ Basics
 """"""
 
 First, let's define a polytope as the convex hull of a set of points,
-i.e. given  :math:`S` we compute  :math:`P={\rm conv}(S)`:
+i.e. given  `S` we compute  `P={\rm conv}(S)`:
 
 
 ::
@@ -60,11 +60,11 @@ That notation is not immediately parseable, because seriously,
 those do not look like equations of lines (or of halfspaces, which is
 really what they are).
 
-``(-4, 1) x + 12 >= 0`` really means  :math:`(-4, 1)\cdot\vec{x} + 12 \geq 0`.
+``(-4, 1) x + 12 >= 0`` really means  `(-4, 1)\cdot\vec{x} + 12 \geq 0`.
 
 So... if you want to define a polytope via inequalities, you have to
 translate each inequality into a vector.  For example,
-:math:`(-4, 1)\cdot\vec{x} + 12 \geq 0` becomes (12, \-4, 1).
+`(-4, 1)\cdot\vec{x} + 12 \geq 0` becomes (12, \-4, 1).
 
 
 ::

@@ -608,6 +608,47 @@ class VectorFrame(FreeModuleBasis):
     # The following class attribute must be redefined by any derived class:
     _cobasis_class = CoFrame
 
+    @staticmethod
+    def __classcall_private__(cls, vector_field_module, symbol,
+                              latex_symbol=None, from_frame=None, indices=None,
+                              latex_indices=None, symbol_dual=None,
+                              latex_symbol_dual=None):
+        """
+        Transform input lists into tuples for the unique representation of
+        VectorFrame.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M')
+            sage: XM = M.vector_field_module(force_free=True)
+            sage: from sage.manifolds.differentiable.vectorframe import VectorFrame
+            sage: e = VectorFrame(XM, ['a', 'b'], symbol_dual=['A', 'B']); e
+            Vector frame (M, (a,b))
+            sage: e.dual_basis()
+            Coframe (M, (A,B))
+            sage: e is VectorFrame(XM, ('a', 'b'), symbol_dual=('A', 'B'))
+            True
+
+        """
+        if isinstance(symbol, list):
+            symbol = tuple(symbol)
+        if isinstance(latex_symbol, list):
+            latex_symbol = tuple(latex_symbol)
+        if isinstance(indices, list):
+            indices = tuple(indices)
+        if isinstance(latex_indices, list):
+            latex_indices = tuple(latex_indices)
+        if isinstance(symbol_dual, list):
+            symbol_dual = tuple(symbol_dual)
+        if isinstance(latex_symbol_dual, list):
+            latex_symbol_dual = tuple(latex_symbol_dual)
+        return super(VectorFrame, cls).__classcall__(cls, vector_field_module,
+                                        symbol, latex_symbol=latex_symbol,
+                                        from_frame=from_frame, indices=indices,
+                                        latex_indices=latex_indices,
+                                        symbol_dual=symbol_dual,
+                                        latex_symbol_dual=latex_symbol_dual)
+
     def __init__(self, vector_field_module, symbol, latex_symbol=None,
                  from_frame=None, indices=None, latex_indices=None,
                  symbol_dual=None, latex_symbol_dual=None):
@@ -769,20 +810,6 @@ class VectorFrame(FreeModuleBasis):
             Vector frame (M, (f_0,f_1))
 
         """
-        # Only tuples are valid entries for the unique representation of
-        # VectorFrame:
-        if isinstance(symbol, list):
-            symbol = tuple(symbol)
-        if isinstance(latex_symbol, list):
-            latex_symbol = tuple(latex_symbol)
-        if isinstance(indices, list):
-            indices = tuple(indices)
-        if isinstance(latex_indices, list):
-            latex_indices = tuple(latex_indices)
-        if isinstance(symbol_dual, list):
-            symbol_dual = tuple(symbol_dual)
-        if isinstance(latex_symbol_dual, list):
-            latex_symbol_dual = tuple(latex_symbol_dual)
         return VectorFrame(self._fmodule, symbol, latex_symbol=latex_symbol,
                            indices=indices, latex_indices=latex_indices,
                            symbol_dual=symbol_dual,

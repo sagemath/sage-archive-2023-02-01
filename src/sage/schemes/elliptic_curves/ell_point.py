@@ -979,6 +979,43 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             (389063 : 124244 : 1)
             sage: P._order
             3
+
+        When we sucessfully divide a point known to have infinite
+        order, the points returned know that they also have infinite
+        order::
+
+           sage: E = EllipticCurve([0,0,1,-1,0])
+           sage: P = E(-1,0)
+           sage: P.order()
+           +Infinity
+           sage: pts = P.division_points(3);   len(pts)
+           1
+           sage: [(Q,Q._order) for Q in pts]
+           [((0 : -1 : 1), +Infinity)]
+
+        When we sucessfully divide a point of known finite order `n`,
+        the points returned know that they also have finite order `nk`
+        for some divisor `k` of `m`::
+
+          sage: E = EllipticCurve([1, 0, 1, -19, 26])
+          sage: [(Q,Q._order) for Q in E(0).division_points(12)]
+          [((-5 : 2 : 1), 2),
+          ((-2 : -7 : 1), 6),
+          ((-2 : 8 : 1), 6),
+          ((0 : 1 : 0), 1),
+          ((1 : -4 : 1), 6),
+          ((1 : 2 : 1), 6),
+          ((7/4 : -11/8 : 1), 2),
+          ((3 : -2 : 1), 2),
+          ((4 : -7 : 1), 3),
+          ((4 : 2 : 1), 3),
+          ((13 : -52 : 1), 6),
+          ((13 : 38 : 1), 6)]
+          sage: P = E(4,-7)
+          sage: P.order()
+          3
+          sage: [(Q,Q._order) for Q in P.division_points(4)]
+          [((-2 : -7 : 1), 6), ((1 : 2 : 1), 6), ((4 : -7 : 1), 3), ((13 : 38 : 1), 6)]
         """
         # Coerce the input m to an integer
         m = Integer(m)

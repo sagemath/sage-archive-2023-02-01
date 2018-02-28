@@ -260,9 +260,9 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
             sage: R = Zp(3, 5, 'fixed-mod')
             sage: R.uniformizer_pow(3)
-            3^3 + O(3^5)
+            3^3
             sage: R.uniformizer_pow(infinity)
-            O(3^5)
+            0
         """
         if n is infinity:
             return self(0)
@@ -366,7 +366,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
             sage: R = Zp(3, 5,'fixed-mod')
             sage: R.residue_system()
-            [O(3^5), 1 + O(3^5), 2 + O(3^5)]
+            [0, 1, 2]
         """
         return [self(i) for i in self.residue_class_field()]
 
@@ -395,8 +395,6 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: R = Zp(5, print_mode='digits')
             sage: K = R.fraction_field(); repr(K(1/3))[3:]
             '31313131313131313132'
-            sage: L = R.fraction_field({'max_ram_terms':4}); repr(L(1/3))[3:]
-            '3132'
             sage: U.<a> = Zq(17^4, 6, print_mode='val-unit', print_max_terse_terms=3)
             sage: U.fraction_field()
             Unramified Extension in a defined by x^4 + 7*x^2 + 10*x + 3 with capped relative precision 6 over 17-adic Field
@@ -432,8 +430,6 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: K = Qp(5, print_mode='digits')
             sage: R = K.integer_ring(); repr(R(1/3))[3:]
             '31313131313131313132'
-            sage: S = K.integer_ring({'max_ram_terms':4}); repr(S(1/3))[3:]
-            '3132'
             sage: U.<a> = Qq(17^4, 6, print_mode='val-unit', print_max_terse_terms=3)
             sage: U.integer_ring()
             Unramified Extension in a defined by x^4 + 7*x^2 + 10*x + 3 with capped relative precision 6 over 17-adic Ring
@@ -474,7 +470,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10)
             sage: R = Zp(5, 10, 'fixed-mod', 'series')
             sage: R.teichmuller(2)
-            2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10)
+            2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9
             sage: R = Zp(5,5)
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
@@ -529,7 +525,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
             sage: R = Zp(3, 5,'fixed-mod', 'terse')
             sage: R.teichmuller_system()
-            [1 + O(3^5), 242 + O(3^5)]
+            [1, 242]
 
         Check that :trac:`20457` is fixed::
 

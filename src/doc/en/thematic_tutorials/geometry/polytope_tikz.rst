@@ -4,7 +4,7 @@
 
 .. _polytikz:
 
-Draw polytopes in LateX using TikZ
+Draw polytopes in LaTeX using TikZ
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. MODULEAUTHOR:: Jean-Philippe Labbé <labbe@math.fu-berlin.de>

@@ -1039,6 +1039,25 @@ cdef class BooleanFunction(SageObject):
                         return i
         raise ValueError("you just found a bug!")
 
+    def degree(self):
+        r"""
+        Return the degree of this Boolean function, i.e. the degree of its
+        algebraic normal form. Note that the degree of a zero function is
+        defined to be equal to -1.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.boolean_function import BooleanFunction
+            sage: B.<x0, x1, x2, x3> = BooleanPolynomialRing()
+            sage: f = BooleanFunction(x1*x2 + x1*x2*x3 + x1)
+            sage: f.degree()
+            3
+            sage: g = BooleanFunction([0, 0])
+            sage: g.degree()
+            -1
+        """
+        return self.algebraic_normal_form().degree()
+
     def is_plateaued(self):
         r"""
         Return ``True`` if this function is plateaued, i.e. its Walsh transform

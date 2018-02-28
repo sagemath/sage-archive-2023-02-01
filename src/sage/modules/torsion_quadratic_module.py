@@ -20,7 +20,7 @@ AUTHORS:
 from sage.modules.fg_pid.fgp_module import FGP_Module_class
 from sage.modules.fg_pid.fgp_element import DEBUG, FGP_Element
 from sage.arith.misc import gcd
-from sage.rings.all import ZZ
+from sage.rings.all import ZZ, Zp
 from sage.groups.additive_abelian.qmodnz import QmodnZ
 from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_method
@@ -461,6 +461,40 @@ class TorsionQuadraticModule(FGP_Module_class):
 
         EXAMPLES::
 
+            sage: L1=IntegralLattice(matrix([[-2,0,0],[0,1,0],[0,0,4]]))
+            sage: L1.discriminant_group().normal_form()
+            Finite quadratic module over Integer Ring with invariants (2, 4)
+            Gram matrix of the quadratic form with values in Q/Z:
+            [1/2   0]
+            [  0 1/4]
+            sage: L2=IntegralLattice(matrix([[-2,0,0],[0,1,0],[0,0,-4]]))
+            sage: L2.discriminant_group().normal_form()
+            Finite quadratic module over Integer Ring with invariants (2, 4)
+            Gram matrix of the quadratic form with values in Q/Z:
+            [1/2   0]
+            [  0 1/4]
+
+        We check that :trac:`#24864` is fixed::
+
+            sage: L1=IntegralLattice(matrix([[-4,0,0],[0,4,0],[0,0,-2]]))
+            sage: AL1=L1.discriminant_group()
+            sage: L2=IntegralLattice(matrix([[-4,0,0],[0,-4,0],[0,0,2]]))
+            sage: AL2=L2.discriminant_group()
+            sage: AL1.normal_form()
+            Finite quadratic module over Integer Ring with invariants (2, 4, 4)
+            Gram matrix of the quadratic form with values in Q/2Z:
+            [1/2   0   0]
+            [  0 1/4   0]
+            [  0   0 5/4]
+            sage: AL2.normal_form()
+            Finite quadratic module over Integer Ring with invariants (2, 4, 4)
+            Gram matrix of the quadratic form with values in Q/2Z:
+            [1/2   0   0]
+            [  0 1/4   0]
+            [  0   0 5/4]
+
+        Some exotic cases::
+
             sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
             sage: D4_gram = Matrix(ZZ,4,4,[2,0,0,-1,0,2,0,-1,0,0,2,-1,-1,-1,-1,2])
             sage: D4 = FreeQuadraticModule(ZZ,4,D4_gram)
@@ -476,26 +510,71 @@ class TorsionQuadraticModule(FGP_Module_class):
             sage: T.normal_form()
             Finite quadratic module over Integer Ring with invariants (6, 6, 12, 12)
             Gram matrix of the quadratic form with values in Q/(1/3)Z:
-            [1/12 1/24    0    0    0    0    0    0]
-            [1/24 1/12    0    0    0    0    0    0]
-            [   0    0  1/6 1/12    0    0    0    0]
-            [   0    0 1/12  1/6    0    0    0    0]
+            [ 1/6 1/12    0    0    0    0    0    0]
+            [1/12  1/6    0    0    0    0    0    0]
+            [   0    0 1/12 1/24    0    0    0    0]
+            [   0    0 1/24 1/12    0    0    0    0]
             [   0    0    0    0  1/9    0    0    0]
             [   0    0    0    0    0  1/9    0    0]
             [   0    0    0    0    0    0  1/9    0]
             [   0    0    0    0    0    0    0  1/9]
+
+        TESTS:
+
+        A degenerate case::
+
+            sage: T = TorsionQuadraticModule((1/6)*D4dual, D4, modulus=1/36)
+            sage: T.normal_form()
+            Finite quadratic module over Integer Ring with invariants (6, 6, 12, 12)
+            Gram matrix of the quadratic form with values in Q/(1/18)Z:
+            [1/36 1/72    0    0    0    0    0    0]
+            [1/72 1/36    0    0    0    0    0    0]
+            [   0    0    0    0    0    0    0    0]
+            [   0    0    0    0    0    0    0    0]
+            [   0    0    0    0    0    0    0    0]
+            [   0    0    0    0    0    0    0    0]
+            [   0    0    0    0    0    0    0    0]
+            [   0    0    0    0    0    0    0    0]
         """
         gens = []
-        from sage.quadratic_forms.genera.normal_form import p_adic_normal_form
+        from sage.quadratic_forms.genera.normal_form import p_adic_normal_form, _normalize
         for p in self.annihilator().gen().prime_divisors():
             D_p = self.primary_part(p)
             q_p = D_p.gram_matrix_quadratic()
             q_p = q_p / D_p._modulus_qf
+
+            # continue with the non-degenerate part
+            r = q_p.rank()
+            if r != q_p.ncols():
+                U = q_p._clear_denom()[0].hermite_form(transformation=True)[1]
+            else:
+                U = q_p.parent().identity_matrix()
+            kernel = U[r:,:]
+            nondeg = U[:r,:]
+            q_p = nondeg * q_p * nondeg.T
+
+            # the normal form is implemented for p-adic lattices
+            # so we should work with the lattice q_p --> q_p^-1
+            q_p1 = q_p.inverse()
             prec = self.annihilator().gen().valuation(p) + 5
-            D, U = p_adic_normal_form(q_p, p, precision=prec, partial=False)
+            D, U = p_adic_normal_form(q_p1, p, precision=prec + 5, partial=partial)
+            # if we compute the inverse in the p-adics everything explodes --> go to ZZ
+            U = U.change_ring(ZZ).inverse().transpose()
+
+            # the inverse is in normal form - so to get a normal form for the original one
+            # it is enough to massage each 1x1 resp. 2x2 block.
+            U = U.change_ring(Zp(p, type='fixed-mod', prec=prec)).change_ring(ZZ)
+            D = U * q_p * U.T * p**q_p.denominator().valuation(p)
+            D = D.change_ring(Zp(p, type='fixed-mod', prec=prec))
+            _, U1 = _normalize(D, normal_odd=False)
+            U = U1.change_ring(ZZ) * U
+
+            # reattach the degenerate part
+            nondeg = U * nondeg
+            U = nondeg.stack(kernel)
+
             #apply U to the generators
             n = U.ncols()
-            U = U.change_ring(ZZ)
             gens_p = []
             for i in range(n):
                 g = self.V().zero()

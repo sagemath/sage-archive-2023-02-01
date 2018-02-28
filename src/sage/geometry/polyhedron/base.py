@@ -3064,18 +3064,17 @@ class Polyhedron_base(Element):
 
     def join(self, other):
         """
-        Return the join of ``self`` and ``other``. The join of two polyhedron is
-        obtained by placing the two objects in skew subspaces and taking their
-        convex hull.
+        Return the join of ``self`` and ``other``.
+
+        The join of two polyhedron is obtained by first placing the two objects in
+        two non-intersecting affine subspaces `V`, and `W` whose affine hull is
+        the whole ambient space, and finally by taking the convex hull of their
+        union. The dimension of the join is the sum of the dimensions of the
+        two polyhedron plus 1.
 
         INPUT:
 
-        - ``other`` -- a :class:`Polyhedron_base`.
-
-        OUTPUT:
-
-        The join of ``self`` and ``other`` with a suitable base ring to
-        encompass the two.
+        - ``other`` -- a polyhedron
 
         EXAMPLES::
 

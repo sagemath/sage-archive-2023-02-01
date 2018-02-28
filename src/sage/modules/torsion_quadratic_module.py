@@ -474,7 +474,7 @@ class TorsionQuadraticModule(FGP_Module_class):
             [1/2   0]
             [  0 1/4]
 
-        We check that :trac:`#24864` is fixed::
+        We check that :trac:`24864` is fixed::
 
             sage: L1=IntegralLattice(matrix([[-4,0,0],[0,4,0],[0,0,-2]]))
             sage: AL1=L1.discriminant_group()

@@ -506,15 +506,13 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             [1 0]
             [0 1]
             Inner product matrix:
-            [1|0]
-            [-+-]
-            [0|1]
+            [1 0]
+            [0 1]
         """
         IM = matrix.block_diagonal([self.inner_product_matrix(),
                                     M.inner_product_matrix()])
         ambient = FreeQuadraticModule(ZZ,
-                                      self.degree() + M.degree(),
-                                    inner_product_matrix=IM)
+                                      self.degree() + M.degree(), IM)
         smzero = matrix.zero(self.rank(), M.degree())
         mszero = matrix.zero(M.rank(), self.degree())
         basis = self.basis_matrix().augment(smzero).stack(

@@ -1617,9 +1617,9 @@ cdef class Matrix(Matrix0):
         a more expansive ring.  Here we mix the rationals with a ring of
         polynomials with rational coefficients.  ::
 
-            sage: R = PolynomialRing(QQ, 'y')
+            sage: R.<y> = PolynomialRing(QQ)
             sage: A = matrix(QQ, 1, [1,2])
-            sage: B = matrix(R, 1, ['y', 'y^2'])
+            sage: B = matrix(R, 1, [y, y^2])
 
             sage: C = B.augment(A); C
             [  y y^2   1   2]

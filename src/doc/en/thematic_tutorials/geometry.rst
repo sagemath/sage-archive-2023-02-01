@@ -11,8 +11,8 @@ Here you can find various documents that explain how to perform polyhedral compu
 .. toctree::
    :maxdepth: 1
 
-   geometry/polytutorial
-   geometry/lectures
+   geometry/polyhedra_quicktutorial
+   geometry/polyhedra_tutorial
    geometry/polyhedra_quickref
    geometry/tips
    geometry/visualization

@@ -4565,6 +4565,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return True
 
+    def is_rational(self):
+        r"""
+        Return ``True`` as an integer is a rational number.
+
+        EXAMPLES::
+
+            sage: 5.is_rational()
+            True
+        """
+        return True
+
     def is_integer(self):
         """
         Returns ``True`` as they are integers

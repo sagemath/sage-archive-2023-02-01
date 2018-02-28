@@ -3573,6 +3573,16 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return mpz_cmp_si(mpq_denref(self.value), 1) == 0
 
+    def is_rational(self):
+        r"""
+        Return ``True`` since this is a rational number.
+
+        EXAMPLES::
+
+            sage: (3/4).is_rational()
+            True
+        """
+        return True
 
     #Function alias for checking if the number is a integer.Added to solve ticket 15500    
     is_integer = is_integral

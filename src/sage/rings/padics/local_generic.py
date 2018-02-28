@@ -916,7 +916,7 @@ class LocalGeneric(CommutativeRing):
             z = y.residue()
             tester.assertEqual(x, z)
 
-    def _matrix_smith_form(self, M, transformation, integral):
+    def _matrix_smith_form(self, M, transformation, integral, exact):
         r"""
         Return the Smith normal form of the matrix ``M``.
 
@@ -938,6 +938,11 @@ class LocalGeneric(CommutativeRing):
         of the transformation matrices are in this ring.  If ``True``, the
         entries are in the ring of integers of the base ring.
 
+        - ``exact`` -- boolean.  If ``True``, the diagonal smith form will
+          be exact, or raise a ``PrecisionError`` if this is not posssible.
+          If ``False``, the diagonal entries will be inexact, but the
+          transformation matrices will be exact.
+
         EXAMPLES::
 
             sage: A = Zp(5, prec=10, print_mode="digits")
@@ -951,8 +956,8 @@ class LocalGeneric(CommutativeRing):
             [...222222223          ...]
             [...444444444         ...2]
             sage: R
-            [         ...1 ...2222222214]
-            [            0          ...1]
+            [...0000000001 ...2222222214]
+            [            0 ...0000000001]
 
         If not needed, it is possible to avoid the computation of
         the transformations matrices `L` and `R`::
@@ -974,90 +979,135 @@ class LocalGeneric(CommutativeRing):
             [...444444444         ...2          ...]
             [...444444443         ...1         ...1]
             sage: R
-            [         ...1 ...2222222214]
-            [            0          ...1]
+            [...0000000001 ...2222222214]
+            [            0 ...0000000001]
 
         If some of the elementary divisors have valuation larger than the
         minimum precision of any entry in the matrix, then they are
         reported as an inexact zero::
 
-            sage: A = Zp(5, prec=10, print_mode="terse")
-            sage: M = matrix(A, 2, 2, [1, 1, 1, 1])
-            sage: M.smith_form(transformation=False)  # indirect doctest
-            [ 5 + O(5^10) O(5^10)]
-            [     O(5^10) O(5^10)]
+            sage: A = ZpCA(5, prec=10)
+            sage: M = matrix(A, 2, 2, [5, 5, 5, 5])
+            sage: M.smith_form(transformation=False, exact=False)  # indirect doctest
+            [5 + O(5^10)     O(5^10)]
+            [    O(5^10)     O(5^10)]
 
         However, an error is raised if the precision on the entries is
         not enough to determine which column to use as a pivot at some point::
 
-            sage: M = matrix(A, 2, 2, [A(0,5), A(5^6,10), A(0,8), A(5^7,10)])
-            sage: M.smith_form()  # indirect doctest
+            sage: M = matrix(A, 2, 2, [A(0,5), A(5^6,10), A(0,8), A(5^7,10)]); M
+            [       O(5^5) 5^6 + O(5^10)]
+            [       O(5^8) 5^7 + O(5^10)]
+            sage: M.smith_form(transformation=False, exact=False)  # indirect doctest
             Traceback (most recent call last):
             ...
             PrecisionError: not enough precision to compute Smith normal form
 
         """
-        if integral is None:
-            integral = self
-        if integral is True:
-            integral = self.integer_ring()
-        if integral is not self and integral is not self.integer_ring():
-            raise NotImplementedError("Smith normal form over this subring")
-
+        from sage.rings.all import infinity
+        from sage.matrix.constructor import matrix
+        from .precision_error import PrecisionError
+        from copy import copy
         n = M.nrows()
         m = M.ncols()
-        S = M.parent()(M.list())
+        if m > n:
+            ## It's easier below if we can always deal with precision on left.
+            if transformation:
+                d, u, v = self._matrix_smith_form(M.transpose(), True, integral, exact)
+                return d.transpose(), v.transpose(), u.transpose()
+            else:
+                return self._matrix_smith_form(M.transpose(), False, integral, exact).transpose()
         smith = M.parent()(0)
-        R = M.base_ring()
-        ball_prec = R._prec_type() in ['capped-rel','capped-abs']
-        inexact = R._prec_type() not in ['fixed-mod','floating-point']
-        if ball_prec:
-            precM = min([ x.precision_absolute() for x in M.list() ])
+        S = copy(M)
+        Z = self.integer_ring()
+        if integral is None or integral is self or integral is (not self.is_field()):
+            integral = not self.is_field()
+            R = self
+        elif integral is True or integral is Z:
+            # This is a field, but we want the integral smith form
+            # The diagonal matrix may not be integral, but the transformations should be
+            R = Z
+            integral = True
+        elif integral is False or integral is self.fraction_field():
+            # This is a ring, but we want the field smith form
+            # The diagonal matrix should be over this ring, but the transformations should not
+            R = self.fraction_field()
+            integral = False
         else:
-            precM = Infinity
+            raise NotImplementedError("Smith normal form over this subring")
+        ## the difference between ball_prec and inexact_ring is just for lattice precision.
+        ball_prec = R._prec_type() in ['capped-rel','capped-abs']
+        inexact_ring = R._prec_type() not in ['fixed-mod','floating-point']
+        if ball_prec:
+            precM = min(x.precision_absolute() for x in M.list())
 
         if transformation:
             from sage.matrix.special import identity_matrix
             left = identity_matrix(R,n)
             right = identity_matrix(R,m)
 
-        from sage.rings.all import Infinity
-        val = -Infinity
-        for piv in range(min(n,m)):
-            curval = Infinity
+        if ball_prec and precM is infinity: # capped-rel and M = 0 exactly
+            return (smith, left, right) if transformation else smith
+
+        val = -infinity
+        for piv in range(m): # m <= n
+            curval = infinity
             pivi = pivj = piv
+            # allzero tracks whether every possible pivot is zero.
+            # if so, we can stop.  allzero is also used in detecting some
+            # precision problems: if we can't determine what pivot has
+            # the smallest valuation, or if exact=True and some elementary
+            # divisor is zero modulo the working precision
             allzero = True
+            # allexact is tracked because there is one case where we can correctly
+            # deduce the exact smith form even with some elementary divisors zero:
+            # if the bottom right block consists entirely of exact zeros.
+            allexact = True
             for i in range(piv,n):
                 for j in range(piv,m):
                     Sij = S[i,j]
                     v = Sij.valuation()
                     allzero = allzero and Sij.is_zero()
+                    if exact: # we only care in this case
+                        allexact = allexact and Sij.precision_absolute() is infinity
                     if v < curval:
                         pivi = i; pivj = j
                         curval = v
                         if v == val: break
-                else:
-                    continue
+                else: continue
                 break
             val = curval
 
-            if inexact and not allzero and precM is not Infinity and val >= precM:
-                from .precision_error import PrecisionError
+            if inexact_ring and not allzero and val >= precM:
                 raise PrecisionError("not enough precision to compute Smith normal form")
 
             if allzero:
+                if exact:
+                    if allexact:
+                        # We need to finish checking allexact since we broke out of the loop early
+                        for i in range(i,n):
+                            for j in range(piv,m):
+                                allexact = allexact and S[i,j].precision_absolute() is infinity
+                                if not allexact: break
+                            else: continue
+                            break
+                    if not allexact:
+                        raise PrecisionError("some elementary divisors indistinguishable from zero (try exact=False)")
                 break
 
+            # We swap the lowest valuation pivot into position
             S.swap_rows(pivi,piv)
             S.swap_columns(pivj,piv)
             if transformation:
                 left.swap_rows(pivi,piv)
                 right.swap_columns(pivj,piv)
 
-            smith[piv,piv] = R(1) << val
-            inv = ~(S[piv,piv] >> val)
+            # ... and clear out this row and column.  Note that we
+            # will deal with precision later, thus the call to lift_to_precision
+            smith[piv,piv] = self(1) << val
+            inv = (S[piv,piv] >> val).inverse_of_unit()
             for i in range(piv+1,n):
-                scalar = -inv * (S[i,piv] >> val)
+                scalar = -inv * Z(S[i,piv] >> val)
                 if ball_prec:
                     scalar = scalar.lift_to_precision()
                 S.add_multiple_of_row(i,piv,scalar,piv+1)
@@ -1066,16 +1116,40 @@ class LocalGeneric(CommutativeRing):
             if transformation:
                 left.rescale_row(piv,inv)
                 for j in range(piv+1,m):
-                    scalar = -inv * (S[piv,j] >> val)
+                    scalar = -inv * Z(S[piv,j] >> val)
                     if ball_prec:
                         scalar = scalar.lift_to_precision()
                     right.add_multiple_of_column(j,piv,scalar)
-
+        else:
+            # We use piv as an upper bound on a range below, and need to set it correctly
+            # in the case that we didn't break out of the loop
+            piv = m
+        # We update the precision on left
+        # The bigoh measures the effect of multiplying by row operations
+        # on the left in order to clear out the digits in the smith form
+        # with valuation at least precM
+        if ball_prec and exact and transformation:
+            for j in range(n):
+                delta = min(left[i,j].valuation() - smith[i,i].valuation() for i in range(piv))
+                if delta is not infinity:
+                    for i in range(n):
+                        left[i,j] = left[i,j].add_bigoh(precM + delta)
+        ## Otherwise, we update the precision on smith
+        if ball_prec and not exact:
+            smith = smith.apply_map(lambda x: x.add_bigoh(precM))
+        ## We now have to adjust the elementary divisors (and precision) in the non-integral case
+        if not integral:
+            for i in range(piv):
+                v = smith[i,i].valuation()
+                if transformation:
+                    for j in range(n):
+                        left[i,j] = left[i,j] >> v
+                if exact:
+                    smith[i,i] = self(1)
+                else:
+                    for j in range(n):
+                        smith[i,j] = smith[i,j] >> v
         if transformation:
-            if ball_prec and precM is not Infinity:
-                left = left.apply_map(lambda x: x.add_bigoh(precM-val))
-            left = left.change_ring(integral)
-            right = right.change_ring(integral)
             return smith, left, right
         else:
             return smith

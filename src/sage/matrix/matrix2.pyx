@@ -13230,7 +13230,7 @@ cdef class Matrix(Matrix1):
         r = min(self.nrows(), self.ncols())
         return [d[i,i] for i in xrange(r)]
 
-    def smith_form(self, transformation=True, integral=None):
+    def smith_form(self, transformation=True, integral=None, exact=True):
         r"""
         Return a Smith normal form of this matrix.
 
@@ -13246,7 +13246,7 @@ cdef class Matrix(Matrix1):
         Note that the matrices `U` and `V` are not uniquely determined and the
         `d_i` are only uniquely determined up to units. For some base rings,
         such as local rings, the `d_i` might be further normalized, see
-        ``ALGORITHM`` below.
+        ``LOCAL RINGS`` below.
 
         If the base ring is not a PID, the routine might work, or else it will
         fail having found an example of a non-principal ideal. Note that we do
@@ -13259,10 +13259,17 @@ cdef class Matrix(Matrix1):
         - ``transformation`` -- a boolean (default: ``True``); whether the
           matrices `U` and `V` should be returned
 
-        - ``integral`` -- a subring of the base ring or ``True``
+        - ``integral`` -- a subring of the base ring, boolean or ``None``
           (default: ``None``); the entries of `U` and `V` are taken
-          from this subring. If ``True``, then the entries are taken
-          from the canonical ring of integers of the base ring.
+          from this subring. If ``True``, the ring is taken to be the
+          ring of integers of the base ring; if ``False`` the fraction field
+          of the base ring; if ``None`` the base ring itself.
+          When a subring is specified, multiplying
+          by the denominator must map the entries into the subring; in this
+          case the transformation matrices will have entries in this subring.
+
+        - ``exact`` -- a boolean (default: ``True``), only used for local rings/fields.
+          See ``LOCAL RINGS`` for more details.
 
         OUTPUT:
 
@@ -13272,11 +13279,29 @@ cdef class Matrix(Matrix1):
         ALGORITHM:
 
         If the base ring has a method ``_matrix_smith_form``, use it; note that
-        ``_matrix_smith_form`` might choose to further normalize the output,
-        e.g., over local rings, the diagonal of `S` only contains powers of the
-        uniformizer. See ``_matrix_smith_form`` for more detail.
+        ``_matrix_smith_form`` might choose to further normalize the output.
 
-        Otherwise, use the algorithm from :wikipedia:`Smith_normal_form`
+        Otherwise, use the algorithm from :wikipedia:`Smith_normal_form`.
+
+        LOCAL RINGS:
+
+        Over local rings, we normalize `S` to only contain powers of the uniformizer.
+
+        In order to simplify the precision handling, we truncate the absolute precision
+        of the input matrix to the minimum absolute precision of any of its entries.
+        As long as all of the elementary divisors are nonzero modulo this precision,
+        they can be determined exactly since they are defined to be powers of the
+        uniformizer.  In this case, which is specified by the keyword ``exact=True``,
+        one of the transformation matrices will be inexact: `U` in the case that
+        the number of rows is at least the number of columns, and `V` otherwise.
+
+        If ``exact=False``, we instead return an inexact Smith form.  Now the
+        transformation matrices are exact and we can deal gracefully with
+        elementary divisors that are zero modulo the working precision.  However,
+        the off-diagonal entries of the smith form carry a precision that
+        can affect the precision of future calculations.
+
+        See ``_matrix_smith_form`` on the base ring for more detail.
 
         AUTHORS:
 
@@ -13320,6 +13345,21 @@ cdef class Matrix(Matrix1):
             sage: u*m*v == d
             True
 
+        When the base ring has a ``ring_of_integers`` method and supports denominators,
+        you can get an integral version of the smith form::
+
+            sage: m = matrix(QQ, 2, 2, [17/6, 47/6, 25/6, 23/2])
+            sage: m.smith_form()
+            (
+            [1 0]  [6/17    0]  [     1 -47/17]
+            [0 1], [  75  -51], [     0      1]
+            )
+            sage: m.smith_form(integral=True)
+            (
+            [1/6   0]  [  3  -2]  [ 1  3]
+            [  0 1/3], [-25  17], [ 0 -1]
+            )
+
         Some examples over non-PID's work anyway::
 
             sage: R.<s> = EquationOrder(x^2 + 5) # class number 2
@@ -13362,20 +13402,28 @@ cdef class Matrix(Matrix1):
             sage: M = matrix(K, 2, 3, [1/2, 1, 2, 1/3, 1, 3])
             sage: M.smith_form(integral=True)
             (
-            [1/2 + O(2^4)            0            0]  [ 1 + O(2^4)  0 + O(2^4)]
-            [           0   1 + O(2^5)            0], [14 + O(2^4)  3 + O(2^4)],
-
-            [ 1 + O(2^5) 62 + O(2^6)  6 + O(2^6)]
-            [          0  1 + O(2^5) 27 + O(2^5)]
+            [1/2 + O(2^4)            0            0]  [ 1 + O(2^5)           0]
+            [           0   1 + O(2^5)            0], [42 + O(2^6)  1 + O(2^5)],
+            <BLANKLINE>
+            [ 1 + O(2^5) 26 + O(2^5)  6 + O(2^5)]
+            [ 0 + O(2^4)  3 + O(2^4) 11 + O(2^4)]
             [          0           0  1 + O(2^5)]
             )
 
         """
         R = self.base_ring()
         if hasattr(R, '_matrix_smith_form'):
-            return R._matrix_smith_form(self,transformation=transformation,integral=integral)
-        if not (integral is None or integral is R):
-            raise NotImplementedError("Smith normal form with integral coefficients not implemented for this ring")
+            return R._matrix_smith_form(self, transformation=transformation, integral=integral, exact=exact)
+        if integral is True:
+            integral = R.ring_of_integers()
+        elif integral is R:
+            integral = None
+        if integral is False:
+            self = self.change_ring(R.fraction_field())
+        elif integral is not None:
+            # Try to clear denominators
+            den = self.denominator()
+            self = (den * self).change_ring(integral)
         if transformation:
             left_mat = self.new_matrix(self.nrows(), self.nrows(), 1)
             right_mat = self.new_matrix(self.ncols(), self.ncols(), 1)
@@ -13407,6 +13455,10 @@ cdef class Matrix(Matrix1):
             u = uu.new_matrix(1,1,[1]).block_sum(uu) * u
             v = v * vv.new_matrix(1,1,[1]).block_sum(vv)
         dp, up, vp = _smith_diag(d, transformation=transformation)
+        if integral is False:
+            dp = dp.change_ring(R)
+        elif integral is not None:
+            dp = dp.change_ring(R) / den
         if transformation:
             return dp, up*u, v*vp
         else:

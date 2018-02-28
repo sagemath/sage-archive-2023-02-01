@@ -574,6 +574,7 @@ cdef class LaurentSeries(AlgebraElement):
             sage: A.<t> = LaurentSeriesRing(GF(5))
             sage: x = t^(-1) + t^2 + O(t^5)
             sage: x.lift_to_precision(10)
+            t^-1 + t^2 + O(t^10)
             sage: x.lift_to_precision()
             t^-1 + t^2
         """

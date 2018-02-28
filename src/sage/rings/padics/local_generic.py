@@ -918,7 +918,7 @@ class LocalGeneric(CommutativeRing):
 
     def _matrix_smith_form(self, M, transformation, integral, exact):
         r"""
-        Return the Smith normal form of the matrix ``M``.
+        Return the Smith normal form of the matrix `M`.
 
         This method gets called by
         :meth:`sage.matrix.matrix2.Matrix.smith_form` to compute the Smith
@@ -1003,6 +1003,22 @@ class LocalGeneric(CommutativeRing):
             ...
             PrecisionError: not enough precision to compute Smith normal form
 
+        TESTS::
+
+            sage: A = ZpCR(5, prec=10)
+            sage: M = zero_matrix(A, 2)
+            sage: M.smith_form(transformation=False)  # indirect doctest
+            [0 0]
+            [0 0]
+
+            sage: M = matrix(2, 2, [ A(0,10), 0, 0, 0] )
+            sage: M.smith_form(transformation=False)  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            PrecisionError: some elementary divisors indistinguishable from zero (try exact=False)
+            sage: M.smith_form(transformation=False, exact=False)  # indirect doctest
+            [O(5^10) O(5^10)]
+            [O(5^10) O(5^10)]
         """
         from sage.rings.all import infinity
         from sage.matrix.constructor import matrix

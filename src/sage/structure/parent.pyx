@@ -1554,6 +1554,34 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         """
         return domain in self._convert_from_hash
 
+    def _remove_from_coerce_cache(self, domain):
+        r"""
+        Remove the coercion and the conversion from ``domain`` to self from the cache.
+
+        EXAMPLES::
+
+            sage: R.<XX> = QQ
+            sage: R._remove_from_coerce_cache(QQ)
+            sage: R._is_coercion_cached(QQ)
+            False
+            sage: _ = R.coerce_map_from(QQ)
+            sage: R._is_coercion_cached(QQ)
+            True
+            sage: R._remove_from_coerce_cache(QQ)
+            sage: R._is_coercion_cached(QQ)
+            False
+            sage: R._is_conversion_cached(QQ)
+            False
+        """
+        try:
+            del self._coerce_from_hash[domain]
+        except KeyError:
+            pass
+        try:
+            del self._convert_from_hash[domain]
+        except KeyError:
+            pass
+
     cpdef register_coercion(self, mor):
         r"""
         Update the coercion model to use `mor : P \to \text{self}` to coerce

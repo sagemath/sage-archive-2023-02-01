@@ -330,7 +330,7 @@ cdef class _LazyString(object):
         ``self`` is a path.
 
         This is for Python 3 compatibility: see :trac:`24046`, and also
-        https://www.python.org/dev/peps/pep-0519/ and
+        :pep:`519` and
         https://docs.python.org/3/library/os.html#os.fspath
 
         Test :trac:`24046`::
@@ -405,7 +405,7 @@ cdef class _LazyString(object):
         else:
             return self * (<_LazyString>other).val()
 
-    def __richcmp__(self, other, int op):
+    def __richcmp__(_LazyString self, other, int op):
         """
         EXAMPLES::
 
@@ -449,8 +449,7 @@ cdef class _LazyString(object):
             sage: s >= s
             True
         """
-        self = (<_LazyString?>self).val()
-        return PyObject_RichCompare(self, other, op)
+        return PyObject_RichCompare(self.val(), other, op)
 
     def __getattr__(self, name):
         """

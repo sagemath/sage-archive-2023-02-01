@@ -1106,6 +1106,8 @@ class LocalGeneric(CommutativeRing):
             # will deal with precision later, thus the call to lift_to_precision
             smith[piv,piv] = self(1) << val
             inv = (S[piv,piv] >> val).inverse_of_unit()
+            if ball_prec:
+                inv = inv.lift_to_precision()
             for i in range(piv+1,n):
                 scalar = -inv * Z(S[i,piv] >> val)
                 if ball_prec:

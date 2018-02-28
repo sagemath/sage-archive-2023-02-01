@@ -1418,7 +1418,7 @@ class Polytopes():
         pts += [[s1 * (-alpha/phi + beta * phi - 1), s2 * (alpha - beta/phi - phi), s3 * (alpha * phi + beta + 1/phi)]
                 for s1, s2, s3 in signs]
 
-        #the vertices are all ever permutations of the lists in pts
+        # the vertices are all ever permutations of the lists in pts
         verts = pts
         verts += [[v[1], v[2], v[0]] for v in pts]
         verts += [[v[2], v[0], v[1]] for v in pts]
@@ -1453,7 +1453,7 @@ class Polytopes():
             A vertex at (1/2, -1/2, -1/2, -1/2)
 
             sage: p24.volume()
-            2 
+            2
 
         TESTS::
 

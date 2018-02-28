@@ -75,10 +75,10 @@ cdef class FMElement(pAdicTemplateElement):
 
             sage: R = ZpFM(5)
             sage: a = R(17,5); a #indirect doctest
-            2 + 3*5 + O(5^20)
+            2 + 3*5
             sage: R = ZpFM(5,5)
             sage: a = R(25/9); a #indirect doctest
-            4*5^2 + 2*5^3 + O(5^5)
+            4*5^2 + 2*5^3
         """
         cconstruct(self.value, self.prime_pow)
         if isinstance(x,FMElement) and x.parent() is self.parent():
@@ -93,7 +93,7 @@ cdef class FMElement(pAdicTemplateElement):
         TESTS::
 
             sage: R = ZpFM(5); R(6) * R(7) #indirect doctest
-            2 + 3*5 + 5^2 + O(5^20)
+            2 + 3*5 + 5^2
         """
         cdef type t = type(self)
         cdef FMElement ans = t.__new__(t)
@@ -126,7 +126,7 @@ cdef class FMElement(pAdicTemplateElement):
         TESTS::
 
             sage: ZpFM(5)(1).lift_to_precision(30) # indirect doctest
-            1 + O(5^20)
+            1
         """
         pass
 
@@ -181,7 +181,7 @@ cdef class FMElement(pAdicTemplateElement):
 
             sage: R = Zp(7, 4, 'fixed-mod', 'series')
             sage: -R(7) #indirect doctest
-            6*7 + 6*7^2 + 6*7^3 + O(7^4)
+            6*7 + 6*7^2 + 6*7^3
         """
         cdef FMElement ans = self._new_c()
         cneg(ans.value, self.value, ans.prime_pow.prec_cap, ans.prime_pow)
@@ -196,11 +196,11 @@ cdef class FMElement(pAdicTemplateElement):
 
             sage: R = Zp(7, 4, 'fixed-mod', 'series')
             sage: x = R(1721); x
-            6 + 5*7^3 + O(7^4)
+            6 + 5*7^3
             sage: y = R(1373); y
-            1 + 4*7^3 + O(7^4)
+            1 + 4*7^3
             sage: x + y #indirect doctest
-            7 + 2*7^3 + O(7^4)
+            7 + 2*7^3
         """
         cdef FMElement right = _right
         cdef FMElement ans = self._new_c()
@@ -216,11 +216,11 @@ cdef class FMElement(pAdicTemplateElement):
 
             sage: R = Zp(7, 4, 'fixed-mod', 'series')
             sage: x = R(1721); x
-            6 + 5*7^3 + O(7^4)
+            6 + 5*7^3
             sage: y = R(1373); y
-            1 + 4*7^3 + O(7^4)
+            1 + 4*7^3
             sage: x - y #indirect doctest
-            5 + 7^3 + O(7^4)
+            5 + 7^3
         """
         cdef FMElement right = _right
         cdef FMElement ans = self._new_c()
@@ -237,7 +237,7 @@ cdef class FMElement(pAdicTemplateElement):
 
             sage: R = Zp(7, 4, 'fixed-mod', 'series')
             sage: ~R(2)
-            4 + 3*7 + 3*7^2 + 3*7^3 + O(7^4)
+            4 + 3*7 + 3*7^2 + 3*7^3
             sage: ~R(0)
             Traceback (most recent call last):
             ...
@@ -261,9 +261,9 @@ cdef class FMElement(pAdicTemplateElement):
 
             sage: R = Zp(7, 4, 'fixed-mod', 'series')
             sage: R(3) * R(2) #indirect doctest
-            6 + O(7^4)
+            6
             sage: R(1/2) * R(2)
-            1 + O(7^4)
+            1
         """
         cdef FMElement right = _right
         cdef FMElement ans = self._new_c()
@@ -280,7 +280,7 @@ cdef class FMElement(pAdicTemplateElement):
 
             sage: R = Zp(7, 4, 'fixed-mod', 'series')
             sage: R(3) / R(2) #indirect doctest
-            5 + 3*7 + 3*7^2 + 3*7^3 + O(7^4)
+            5 + 3*7 + 3*7^2 + 3*7^3
             sage: R(5) / R(0)
             Traceback (most recent call last):
             ...
@@ -306,13 +306,13 @@ cdef class FMElement(pAdicTemplateElement):
 
             sage: R = ZpFM(11, 5)
             sage: R(1/2)^5
-            10 + 7*11 + 11^2 + 5*11^3 + 4*11^4 + O(11^5)
+            10 + 7*11 + 11^2 + 5*11^3 + 4*11^4
             sage: R(1/32)
-            10 + 7*11 + 11^2 + 5*11^3 + 4*11^4 + O(11^5)
+            10 + 7*11 + 11^2 + 5*11^3 + 4*11^4
             sage: R(1/2)^5 == R(1/32)
             True
             sage: R(3)^1000 #indirect doctest
-            1 + 4*11^2 + 3*11^3 + 7*11^4 + O(11^5)
+            1 + 4*11^2 + 3*11^3 + 7*11^4
 
         TESTS:
 
@@ -343,29 +343,29 @@ cdef class FMElement(pAdicTemplateElement):
         We create a fixed modulus ring::
 
             sage: R = ZpFM(5, 20); a = R(1000); a
-            3*5^3 + 5^4 + O(5^20)
+            3*5^3 + 5^4
 
         Shifting to the right is the same as dividing by a power of
         the uniformizer `\pi` of the `p`-adic ring.::
 
             sage: a >> 1
-            3*5^2 + 5^3 + O(5^20)
+            3*5^2 + 5^3
 
         Shifting to the left is the same as multiplying by a power of
         `\pi`::
 
             sage: a << 2
-            3*5^5 + 5^6 + O(5^20)
+            3*5^5 + 5^6
             sage: a*5^2
-            3*5^5 + 5^6 + O(5^20)
+            3*5^5 + 5^6
 
         Shifting by a negative integer to the left is the same as
         right shifting by the absolute value::
 
             sage: a << -3
-            3 + 5 + O(5^20)
+            3 + 5
             sage: a >> 3
-            3 + 5 + O(5^20)
+            3 + 5
         """
         if shift < 0:
             return self._rshift_c(-shift)
@@ -388,18 +388,18 @@ cdef class FMElement(pAdicTemplateElement):
         EXAMPLES::
 
             sage: R = ZpFM(997, 7); a = R(123456878908); a
-            964*997 + 572*997^2 + 124*997^3 + O(997^7)
+            964*997 + 572*997^2 + 124*997^3
 
         Shifting to the right divides by a power of `\pi`, but
         dropping terms with negative valuation::
 
             sage: a >> 3
-            124 + O(997^7)
+            124
 
         A negative shift multiplies by that power of `\pi`::
 
             sage: a >> -3
-            964*997^4 + 572*997^5 + 124*997^6 + O(997^7)
+            964*997^4 + 572*997^5 + 124*997^6
         """
         if shift < 0:
             return self._lshift_c(-shift)
@@ -427,7 +427,7 @@ cdef class FMElement(pAdicTemplateElement):
         EXAMPLES::
 
             sage: R = Zp(7,4,'fixed-mod','series'); a = R(8); a.add_bigoh(1)
-            1 + O(7^4)
+            1
 
         TESTS:
 
@@ -435,7 +435,7 @@ cdef class FMElement(pAdicTemplateElement):
 
             sage: a = R(7)
             sage: a.add_bigoh(2^1000)
-            7 + O(7^4)
+            7
             sage: a.add_bigoh(-2^1000)
             0
 
@@ -611,9 +611,9 @@ cdef class FMElement(pAdicTemplateElement):
 
             sage: R = ZpFM(5);
             sage: a = R(77, 2); a
-            2 + 3*5^2 + O(5^20)
+            2 + 3*5^2
             sage: a.lift_to_precision(17) # indirect doctest
-            2 + 3*5^2 + O(5^20)
+            2 + 3*5^2
         """
         return self
 
@@ -631,21 +631,21 @@ cdef class FMElement(pAdicTemplateElement):
 
             sage: R = ZpFM(17,5); a = R(11)
             sage: a
-            11 + O(17^5)
+            11
             sage: a._teichmuller_set_unsafe(); a
-            11 + 14*17 + 2*17^2 + 12*17^3 + 15*17^4 + O(17^5)
+            11 + 14*17 + 2*17^2 + 12*17^3 + 15*17^4
             sage: E = a.expansion(lift_mode='teichmuller'); E
-            17-adic expansion of 11 + 14*17 + 2*17^2 + 12*17^3 + 15*17^4 + O(17^5) (teichmuller)
+            17-adic expansion of 11 + 14*17 + 2*17^2 + 12*17^3 + 15*17^4 (teichmuller)
             sage: list(E)
-            [11 + 14*17 + 2*17^2 + 12*17^3 + 15*17^4 + O(17^5), O(17^5), O(17^5), O(17^5), O(17^5)]
+            [11 + 14*17 + 2*17^2 + 12*17^3 + 15*17^4, 0, 0, 0, 0]
 
         Note that if you set an element which is congruent to 0 you
         get 0 to maximum precision::
 
             sage: b = R(17*5); b
-            5*17 + O(17^5)
+            5*17
             sage: b._teichmuller_set_unsafe(); b
-            O(17^5)
+            0
         """
         if cisunit(self.value, self.prime_pow):
             cteichmuller(self.value, self.value, self.prime_pow.prec_cap, self.prime_pow)
@@ -665,11 +665,11 @@ cdef class FMElement(pAdicTemplateElement):
 
             sage: R.<a> = ZqFM(5^3)
             sage: a.polynomial()
-            (1 + O(5^20))*x + (O(5^20))
+            (1)*x + (0)
             sage: a.polynomial(var='y')
-            (1 + O(5^20))*y + (O(5^20))
+            (1)*y + (0)
             sage: (5*a^2 + 25).polynomial()
-            (5 + O(5^20))*x^2 + (O(5^20))*x + (5^2 + O(5^20))
+            (5)*x^2 + (0)*x + (5^2)
         """
         R = self.base_ring()
         S = R[var]
@@ -721,15 +721,15 @@ cdef class FMElement(pAdicTemplateElement):
 
             sage: R = Zp(17, 4, 'fixed-mod')
             sage: R(5).unit_part()
-            5 + O(17^4)
+            5
             sage: R(18*17).unit_part()
-            1 + 17 + O(17^4)
+            1 + 17
             sage: R(0).unit_part()
-            O(17^4)
+            0
             sage: type(R(5).unit_part())
             <type 'sage.rings.padics.padic_fixed_mod_element.pAdicFixedModElement'>
             sage: R = ZpFM(5, 5); a = R(75); a.unit_part()
-            3 + O(5^5)
+            3
         """
         cdef FMElement ans = (<FMElement>self)._new_c()
         cremove(ans.value, (<FMElement>self).value, (<FMElement>self).prime_pow.prec_cap, (<FMElement>self).prime_pow)
@@ -778,9 +778,9 @@ cdef class FMElement(pAdicTemplateElement):
             sage: R = ZpFM(5,5)
             sage: a = R(75); b = a - a
             sage: a.val_unit()
-            (2, 3 + O(5^5))
+            (2, 3)
             sage: b.val_unit()
-            (5, O(5^5))
+            (5, 0)
         """
         cdef FMElement unit = self._new_c()
         cdef Integer valuation = Integer.__new__(Integer)
@@ -839,7 +839,7 @@ cdef class pAdicCoercion_ZZ_FM(RingHomomorphism):
             sage: g == f
             True
             sage: g(6)
-            1 + 5 + O(5^20)
+            1 + 5
             sage: g(6) == f(6)
             True
         """
@@ -859,7 +859,7 @@ cdef class pAdicCoercion_ZZ_FM(RingHomomorphism):
             sage: g == f
             True
             sage: g(6)
-            1 + 5 + O(5^20)
+            1 + 5
             sage: g(6) == f(6)
             True
         """
@@ -877,7 +877,7 @@ cdef class pAdicCoercion_ZZ_FM(RingHomomorphism):
             sage: f(0).parent()
             5-adic Ring of fixed modulus 5^20
             sage: f(5)
-            5 + O(5^20)
+            5
         """
         if mpz_sgn((<Integer>x).value) == 0:
             return self._zero
@@ -906,17 +906,17 @@ cdef class pAdicCoercion_ZZ_FM(RingHomomorphism):
             sage: type(R(10,2))
             <type 'sage.rings.padics.padic_fixed_mod_element.pAdicFixedModElement'>
             sage: R(30,2)
-            5 + 5^2 + O(5^4)
+            5 + 5^2
             sage: R(30,3,1)
-            5 + 5^2 + O(5^4)
+            5 + 5^2
             sage: R(30,absprec=2)
-            5 + 5^2 + O(5^4)
+            5 + 5^2
             sage: R(30,relprec=2)
-            5 + 5^2 + O(5^4)
+            5 + 5^2
             sage: R(30,absprec=1)
-            5 + 5^2 + O(5^4)
+            5 + 5^2
             sage: R(30,empty=True)
-            5 + 5^2 + O(5^4)
+            5 + 5^2
         """
         if mpz_sgn((<Integer>x).value) == 0:
             return self._zero
@@ -1023,7 +1023,7 @@ cdef class pAdicConvert_QQ_FM(Morphism):
             sage: g == f # todo: comparison not implemented
             True
             sage: g(1/6)
-            1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19 + O(5^20)
+            1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19
             sage: g(1/6) == f(1/6)
             True
         """
@@ -1042,7 +1042,7 @@ cdef class pAdicConvert_QQ_FM(Morphism):
             sage: g == f # todo: comparison not implemented
             True
             sage: g(1/6)
-            1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19 + O(5^20)
+            1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19
             sage: g(1/6) == f(1/6)
             True
         """
@@ -1057,9 +1057,9 @@ cdef class pAdicConvert_QQ_FM(Morphism):
 
             sage: f = ZpFM(5,4).convert_map_from(QQ)
             sage: f(1/7)
-            3 + 3*5 + 2*5^3 + O(5^4)
+            3 + 3*5 + 2*5^3
             sage: f(0)
-            O(5^4)
+            0
         """
         if mpq_sgn((<Rational>x).value) == 0:
             return self._zero
@@ -1088,17 +1088,17 @@ cdef class pAdicConvert_QQ_FM(Morphism):
             sage: type(R(1/7,2))
             <type 'sage.rings.padics.padic_fixed_mod_element.pAdicFixedModElement'>
             sage: R(1/7,2)
-            3 + 3*5 + 2*5^3 + O(5^4)
+            3 + 3*5 + 2*5^3
             sage: R(1/7,3,1)
-            3 + 3*5 + 2*5^3 + O(5^4)
+            3 + 3*5 + 2*5^3
             sage: R(1/7,absprec=2)
-            3 + 3*5 + 2*5^3 + O(5^4)
+            3 + 3*5 + 2*5^3
             sage: R(1/7,relprec=2)
-            3 + 3*5 + 2*5^3 + O(5^4)
+            3 + 3*5 + 2*5^3
             sage: R(1/7,absprec=1)
-            3 + 3*5 + 2*5^3 + O(5^4)
+            3 + 3*5 + 2*5^3
             sage: R(1/7,empty=True)
-            3 + 3*5 + 2*5^3 + O(5^4)
+            3 + 3*5 + 2*5^3
         """
         if mpq_sgn((<Rational>x).value) == 0:
             return self._zero
@@ -1215,7 +1215,7 @@ cdef class pAdicCoercion_FM_frac_field(RingHomomorphism):
             sage: K = R.fraction_field()
             sage: f = K.coerce_map_from(R)
             sage: f.section()(K.gen())
-            a + O(3^20)
+            a
         """
         from sage.misc.constant_function import ConstantFunction
         if not isinstance(self._section.domain, ConstantFunction):
@@ -1347,7 +1347,7 @@ cdef class pAdicConvert_FM_frac_field(Morphism):
             sage: K = R.fraction_field()
             sage: f = R.convert_map_from(K)
             sage: f(K.gen())
-            a + O(3^20)
+            a
         """
         cdef FPElement x = _x
         if x.ordp < 0: raise ValueError("negative valuation")
@@ -1371,22 +1371,22 @@ cdef class pAdicConvert_FM_frac_field(Morphism):
             sage: K = R.fraction_field()
             sage: f = R.convert_map_from(K); a = K(a)
             sage: f(a, 3)
-            a + O(3^20)
+            a
             sage: b = 117*a
             sage: f(b, 3)
-            a*3^2 + O(3^20)
+            a*3^2
             sage: f(b, 4, 1)
-            a*3^2 + O(3^20)
+            a*3^2
             sage: f(b, 4, 3)
-            a*3^2 + a*3^3 + O(3^20)
+            a*3^2 + a*3^3
             sage: f(b, absprec=4)
-            a*3^2 + a*3^3 + O(3^20)
+            a*3^2 + a*3^3
             sage: f(b, relprec=3)
-            a*3^2 + a*3^3 + a*3^4 + O(3^20)
+            a*3^2 + a*3^3 + a*3^4
             sage: f(b, absprec=1)
-            O(3^20)
+            0
             sage: f(K(0))
-            O(3^20)
+            0
         """
         cdef long aprec, rprec
         cdef FPElement x = _x
@@ -1422,7 +1422,7 @@ cdef class pAdicConvert_FM_frac_field(Morphism):
             sage: g is f
             False
             sage: g(a)
-            a + O(3^20)
+            a
             sage: g(a) == f(a)
             True
         """
@@ -1450,7 +1450,7 @@ cdef class pAdicConvert_FM_frac_field(Morphism):
             sage: g is f
             False
             sage: g(a)
-            a + O(3^20)
+            a
             sage: g(a) == f(a)
             True
 
@@ -1467,7 +1467,7 @@ def unpickle_fme_v2(cls, parent, value):
         sage: from sage.rings.padics.padic_fixed_mod_element import pAdicFixedModElement, unpickle_fme_v2
         sage: R = ZpFM(5)
         sage: a = unpickle_fme_v2(pAdicFixedModElement, R, 17*25); a
-        2*5^2 + 3*5^3 + O(5^20)
+        2*5^2 + 3*5^3
         sage: a.parent() is R
         True
     """

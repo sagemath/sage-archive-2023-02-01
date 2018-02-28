@@ -910,16 +910,13 @@ cdef class pAdicPrinter_class(SageObject):
         s = ""
         if self.show_prec == "dots":
             unknown_digit = "?"
-        else:   
+        else:
             unknown_digit = "0"
         if elt._is_exact_zero():
             return "0"
         elif elt._is_inexact_zero():
+            prec = elt.precision_absolute()
             if mode == digits and self.show_prec == "dots":
-                if self.max_ram_terms == -1:
-                    prec = elt.precision_absolute()
-                else:
-                    prec = min(elt.precision_relative(), self.max_ram_terms)
                 if prec > 0:
                     s = (self.alphabet[0] * prec)
                 else:
@@ -929,15 +926,11 @@ cdef class pAdicPrinter_class(SageObject):
                     zero = '0'
                 else:
                     zero = '[]'
-                if self.max_ram_terms == -1:
-                    prec = elt.precision_absolute()
-                else:
-                    prec = min(elt.precision_relative(), self.max_ram_terms)
                 if prec > 0:
                     L = [zero] * prec
                     s = self.sep.join(L)
                 else:
-                    L = ['.'] + (['?'] * (-prec)) + [zero]
+                    L = ['.'] + ([unknown_digit] * (-prec)) + [zero]
                     s = self.sep + self.sep.join(L)
         elif mode == val_unit:
             if do_latex:

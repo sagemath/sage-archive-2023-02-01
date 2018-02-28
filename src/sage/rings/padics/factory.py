@@ -80,7 +80,11 @@ def _canonicalize_show_prec(type, print_mode, show_prec=None):
 
     - ``print_mode`` -- a string: ``'series'``, ``'terse'``, ``'val-unit'``, ``'digits'``, ``'bars'``
 
-    - ``show_prec`` -- a boolean or a string
+    - ``show_prec`` -- a boolean, string or ``None``
+
+    OUTPUT:
+
+    A string, either ``'bigoh'``, ``'dots'`` or ``'none'``
 
     EXAMPLES::
 
@@ -105,6 +109,7 @@ def _canonicalize_show_prec(type, print_mode, show_prec=None):
         ...
         ValueError: show_prec must be either a boolean, 'none', 'bigoh' or 'dots' when printing mode is digits
     """
+    # Note that None means "choose the default for this ring", while 'none' means "don't print precision".
     if show_prec is None:
         show_prec = type not in ('floating-point', 'fixed-mod')
     if show_prec is False:
@@ -2216,10 +2221,6 @@ def Zq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
         (-a^2 - 2*a - 1) - 2*5 - a^2*5^2 + ... + O(5^20)
         sage: 5*(a-5)^6 + 50
         (-a^2 - 2*a - 1)*5 - a^2*5^3 + (2*a^2 - a - 2)*5^4 + ... + O(5^21)
-
-    However, if the element has negative valuation, digits are shown
-    up to the decimal point.::
-
         sage: (a-1/5)^6
         5^-6 - a*5^-5 - a*5^-4 + ... + O(5^14)
 

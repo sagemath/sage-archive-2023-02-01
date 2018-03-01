@@ -2299,7 +2299,7 @@ class TamariIntervalPoset(Element):
 
         a triple (``left``, ``right``, ``r``) where ``left`` and
         ``right`` are interval-posets and ``r`` (an integer) is the
-        parameter of the composition.
+        parameter of the decomposition.
 
         EXAMPLES::
 
@@ -2308,7 +2308,6 @@ class TamariIntervalPoset(Element):
             (The Tamari interval of size 3 induced by relations [(1, 2), (3, 2)],
             The Tamari interval of size 4 induced by relations [(2, 3), (4, 3)],
             2)
-
         """
         n = self.size()
         if n == 0:
@@ -2418,7 +2417,7 @@ class TamariIntervalPoset(Element):
 
         This condition is invariant under complementation.
 
-        .. SEEALSO:: :meth:`is_new`
+        .. SEEALSO:: :meth:`is_new`, :meth:`is_infinitely_modern`
 
         EXAMPLES::
 
@@ -2438,9 +2437,11 @@ class TamariIntervalPoset(Element):
         Return whether ``self`` is an infinitely-modern Tamari interval.
 
         This is defined by the exclusion of the configuration
-        ``i --> i + 1`` and ``j + 1 --> j`` with `i < j`.
+        `i \rightarrow i + 1` and `j + 1 \rightarrow j` with `i < j`.
 
         This condition is invariant under complementation.
+
+        .. SEEALSO:: :meth:`is_new`, :meth:`is_modern`
 
         EXAMPLES::
 
@@ -2967,7 +2968,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
 
         - ``left`` -- an interval-poset
         - ``right`` -- an interval-poset
-        - ``r`` -- the parameter of the recomposition, an integer
+        - ``r`` -- the parameter of the decomposition, an integer
 
         OUTPUT: an interval-poset
 
@@ -2991,7 +2992,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
     @staticmethod
     def from_grafting_tree(tree):
         """
-        Return a Tamari interval from a grafting tree.
+        Return an interval-poset from a grafting tree.
 
         For the inverse method,
         see :meth:`TamariIntervalPoset.grafting_tree`.

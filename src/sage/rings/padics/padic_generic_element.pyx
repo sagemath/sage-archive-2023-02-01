@@ -2666,7 +2666,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         return ans.add_bigoh(aprec)
         
 
-    def square_root(self, extend = True, all = False):
+    def square_root(self, extend=True, all=False, algorithm=None):
         r"""
         Returns the square root of this p-adic number
 
@@ -2712,6 +2712,10 @@ cdef class pAdicGenericElement(LocalGenericElement):
             1 + O(2^19)
             sage: R2(4).square_root()
             2 + O(2^20)
+            sage: R.<t>=Zq(2^10, 10)
+            sage: sqrt(1+8*t)
+            1 + t*2^2 + t^2*2^3 + t^2*2^4 + (t^4 + t^3 + t^2)*2^5 + (t^4 + t^2)*2^6 + (t^5 + t^2)*2^7 + (t^6 + t^5 + t^4 + t^2)*2^8 + O(2^9)
+
 
             sage: R2(9).square_root() == R2(3, 19) or R2(9).square_root() == R2(-3, 19)
             True
@@ -2753,6 +2757,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
             True
             sage: R2(17).square_root()
             1 + 2^3 + 2^5 + 2^6 + 2^7 + 2^9 + 2^10 + 2^13 + 2^16 + 2^17 + O(2^19)
+            sage: R2.<t>=Zq(2^10, 10)
+            sage: sqrt(1+8*t)
+            1 + t*2^2 + t^2*2^3 + t^2*2^4 + (t^4 + t^3 + t^2)*2^5 + (t^4 + t^2)*2^6 + (t^5 + t^2)*2^7 + (t^6 + t^5 + t^4 + t^2)*2^8 + O(2^9)
 
             sage: R3 = Qp(5,20,'capped-rel')
             sage: R3(0).square_root()
@@ -2789,24 +2796,89 @@ cdef class pAdicGenericElement(LocalGenericElement):
         # whose square root is a real number....!
         if self.valuation() is infinity:
             return self
+        if algorithm is None:
+            if self.parent().prime() == 2 and self.parent().degree() > 1 and self.parent().e() == 1:
+                algorithm = "sage"
+            else:
+                algorithm = "pari"
 
-        from sage.libs.pari.all import PariError
-        try:
-            # use pari
-            ans = self.parent()(self.__pari__().sqrt())
-            if all:
-                return [ans, -ans]
+        if algorithm == "pari":
+            from sage.libs.pari.all import PariError
+            try:
+                # use pari
+                ans = self.parent()(self.__pari__().sqrt())
+                if all:
+                    return [ans, -ans]
+                else:
+                    return ans
+            except PariError:
+                # todo: should eventually change to return an element of
+                # an extension field
+                pass
+        elif algorithm == "sage":
+            val=self.valuation()
+            if val%2 == 0:
+                self = self>>val
+                self_modp = self.residue()
+                sq_modp = self_modp**(2**(self_modp.parent().degree()-1))
+                prec = self.parent().precision_cap()
+                sq = self.parent()(sq_modp).lift_to_precision(prec)
+                self = self/(sq**2)
+                z = self._inv_sqrt(prec)
+                if z is not None:
+                    ans = (sq/z)<<(val / 2)
+                    if all:
+                        return [ans, -ans]
+                    else:
+                        return ans
+        if extend:
+            raise NotImplementedError("extending using the sqrt function not yet implemented")
+        elif all:
+            return []
+        else:
+            raise ValueError("element is not a square")
+
+    def _inv_sqrt(self, prec):
+        r"""
+        Returns the inverse square root of this `p`-adic number
+
+        INPUT:
+
+        - ``prec`` -- integer, the precision at inverse square root is computed
+
+        OUTPUT:
+
+        `p`-adic element -- the inverse square root of this `p`-adic number
+        or ``None`` if this element does not have a square root in the ring
+        """
+        from sage.functions.other import ceil
+
+
+        if prec <= 2:
+            R = self.parent()
+            F = R.residue_class_field()
+            z = R(1/self.residue(1).sqrt()).lift_to_precision(3)
+            a = z.residue(1)
+            b = 1/self-z**2
+            if b.valuation() < 2:
+                return None
             else:
-                return ans
-        except PariError:
-            # todo: should eventually change to return an element of
-            # an extension field
-            if extend:
-                raise NotImplementedError("extending using the sqrt function not yet implemented")
-            elif all:
-                return []
+                b = (b>>2).residue(1)
+                delta1, delta2 = _artin_schreier(a,b)
+                if delta1 is None:
+                    return None
+                else:
+                    z0 = z+2*R(delta1).lift_to_precision(3)
+                    return z0
+        else:
+            prec0 = ceil((prec+1)/2.0)
+            z = self._inv_sqrt(prec0)
+            if z is None:
+                return None
             else:
-                raise ValueError("element is not a square")
+                z = z.lift_to_precision(prec)
+                z = (z+((z*(1-self*z**2))>>1))
+                return z
 
     def __abs__(self):
         """
@@ -3221,3 +3293,44 @@ def _compute_g(p, n, prec, terms):
     for i in range(n):
         g[i+1] = -(g[i]/(v-v**2)).integral()
     return [x.truncate(terms) for x in g]
+
+def _artin_schreier(a, b):
+    r"""
+    Solve Artin Schreier equation `X^2+a*X+b=0`.
+
+    INPUT:
+
+    - ``a,b`` -- elements of a finite field of characteristic 2
+
+
+    OUTPUT:
+
+    elements of the same field ``x0,x1`` verifying the equation `X^2+a*X+b=0` 
+    or ``None,None`` if the equation does not have a solution in ``parent(a)``.
+    """
+    def trace_one_element(F):
+        x = F.random_element()
+        while x.trace() != 1:
+            x = F.random_element()
+        return x
+
+    if a == 0:
+        return (-b).sqrt(), -(-b).sqrt()
+    else:
+        c = b/a**2
+        if c.trace() != 0:
+            return None, None
+        else:
+            d = c.parent().degree()
+            if d % 2 == 0:
+                y = trace_one_element(c.parent())
+                sum0 = 0
+                sum = 0
+                for i in range(d):
+                    sum0 += c**(2**i)
+                    sum += sum0*y**(2**i)
+            else:
+                sum = 0
+                for i in range((d-3)/2+1):
+                    sum += c**(2**(2*i+1))
+            return a*sum, a*(1+sum)

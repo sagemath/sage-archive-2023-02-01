@@ -44,6 +44,13 @@ REFERENCES:
    *From generalized Tamari intervals to non-separable planar maps*.
    :arxiv:`1511.05937`
 
+.. [Pons2018] Viviane Pons,
+   *The Rise-Contact involution on Tamari intervals*
+
+.. [Rog2018] Baptiste Rognerud,
+   *Exceptional and modern intervals of the Tamari lattice*.
+   :arxiv:`1801.04097`
+
 AUTHORS:
 
 - Viviane Pons 2014: initial implementation
@@ -273,7 +280,7 @@ class TamariIntervalPoset(Element):
 
         - ``tikz_scale`` -- (default: 1) scale for use with the tikz package
 
-        - ``line_width`` -- (default: 1*``tikz_scale``) value representing the
+        - ``line_width`` -- (default: 1 * ``tikz_scale``) value representing the
           line width
 
         - ``color_decreasing`` -- (default: red) the color for decreasing
@@ -971,6 +978,59 @@ class TamariIntervalPoset(Element):
         new_covers = [[N - i[0], N - i[1]]
                       for i in self._poset.cover_relations_iterator()]
         return TamariIntervalPoset(N - 1, new_covers, check=False)
+
+    def left_branch_involution(self):
+        """
+        Return the image of ``self`` by the left-branch involution.
+
+        OUTPUT: an interval-poset
+
+        .. SEEALSO:: :meth:`rise_contact_involution`
+
+        EXAMPLES::
+
+            sage: tip = TamariIntervalPoset(8, [(1,2), (2,4), (3,4), (6,7), (3,2), (5,4), (6,4), (8,7)])
+            sage: t = tip.left_branch_involution(); t
+            The Tamari interval of size 8 induced by relations [(1, 6), (2, 6),
+            (3, 5), (4, 5), (5, 6), (6, 8), (7, 8), (7, 6), (4, 3), (3, 1),
+            (2, 1)]
+            sage: t.left_branch_involution() == tip
+            True
+
+        REFERENCES:
+
+        - [Pons2018]_
+        """
+        gt = self.grafting_tree().left_border_symmetry()
+        return TamariIntervalPosets.from_grafting_tree(gt)
+
+    def rise_contact_involution(self):
+        """
+        Return the image of ``self`` by the rise-contact involution.
+
+        OUTPUT: an interval-poset
+
+        This is defined by conjugating the complement involution
+        by the left-branch involution
+
+        .. SEEALSO:: :meth:`left_branch_involution`, :meth:`complement`
+
+        EXAMPLES::
+
+            sage: tip = TamariIntervalPoset(8, [(1,2), (2,4), (3,4), (6,7), (3,2), (5,4), (6,4), (8,7)])
+            sage: t = tip.rise_contact_involution(); t
+            The Tamari interval of size 8 induced by relations [(2, 8), (3, 8),
+            (4, 5), (5, 7), (6, 7), (7, 8), (8, 1), (7, 2), (6, 2), (5, 3),
+            (4, 3), (3, 2), (2, 1)]
+            sage: t.rise_contact_involution() == tip
+            True
+
+        REFERENCES:
+
+        - [Pons2018]_
+        """
+        t = self.left_branch_involution().complement()
+        return t.left_branch_involution()
 
     def insertion(self, i):
         r"""
@@ -2097,7 +2157,9 @@ class TamariIntervalPoset(Element):
 
     def tamari_inversions(self):
         r"""
-        Return the Tamari inversions of ``self``. A Tamari inversion is
+        Return the Tamari inversions of ``self``.
+
+        A Tamari inversion is
         a pair of vertices `(a,b)` with `a < b` such that:
 
         - the decreasing parent of `b` is strictly smaller than `a` (or
@@ -2125,7 +2187,7 @@ class TamariIntervalPoset(Element):
 
         .. SEEALSO::
 
-            :meth:`tamari_inversions_iter`.
+            :meth:`tamari_inversions_iter`, :meth:`number_of_tamari_inversions`
 
         EXAMPLES::
 
@@ -2204,9 +2266,10 @@ class TamariIntervalPoset(Element):
 
     def number_of_tamari_inversions(self):
         r"""
-        Return the number of Tamari inversions of ``self``. This is also
-        the length the longest chain of the Tamari interval represented
-        by ``self``.
+        Return the number of Tamari inversions of ``self``.
+
+        This is also the length the longest chain of the Tamari
+        interval represented by ``self``.
 
         EXAMPLES::
 
@@ -2317,7 +2380,7 @@ class TamariIntervalPoset(Element):
         Decompose an interval-poset into a triple (``left``, ``right``, ``r``).
 
         For the inverse method, see
-        :meth:`TamariIntervalPosets.recomposition_from_triple`
+        :meth:`TamariIntervalPosets.recomposition_from_triple`.
 
         OUTPUT:
 
@@ -2436,7 +2499,7 @@ class TamariIntervalPoset(Element):
         Return whether ``self`` is a modern Tamari interval.
 
         This is defined by exclusion of a simple pattern in the Hasse diagram,
-        namely there is no configuration ``y --> x <-- z``
+        namely there is no configuration `y \rightarrow x \leftarrow z`
         with `1 \leq y < x < z \leq n`.
 
         This condition is invariant under complementation.
@@ -2447,6 +2510,10 @@ class TamariIntervalPoset(Element):
 
             sage: len([T for T in TamariIntervalPosets(3) if T.is_modern()])
             12
+
+        REFERENCES:
+
+        - [Rog2018]_
         """
         G = self.poset().hasse_diagram()
         for x in G:
@@ -2472,6 +2539,10 @@ class TamariIntervalPoset(Element):
             sage: len([T for T in TamariIntervalPosets(3)
             ....:     if T.is_infinitely_modern()])
             12
+
+        REFERENCES:
+
+        - [Rog2018]_
         """
         n = self.size()
         found = False
@@ -2596,9 +2667,10 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
     # add options to class
     class options(GlobalOptions):
         r"""
-        Set and display the options for Tamari interval-posets. If no
-        parameters are set, then the function returns a copy of the options
-        dictionary.
+        Set and display the options for Tamari interval-posets.
+
+        If no parameters are set, then the function returns a copy of
+        the options dictionary.
 
         The ``options`` to Tamari interval-posets can be accessed as the method
         :meth:`TamariIntervalPosets.options` of :class:`TamariIntervalPosets`
@@ -3058,7 +3130,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
 
         OUTPUT:
 
-        a Tamari interval poset
+        a Tamari interval-poset
 
         EXAMPLES:
 

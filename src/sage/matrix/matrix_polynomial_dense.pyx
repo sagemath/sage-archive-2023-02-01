@@ -378,8 +378,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         polynomials, the shifted leading matrix of $M$ can also be described as
         the coefficient of degree $0$ of the polynomial matrix
         $\mathrm{diag}(x^{-d_1},\ldots,x^{-d_m}) M
-        \mathrm{diag}(x^{s_1},\ldots,x^{s_m})$ (which only has entries of
-        nonpositive degree).
+        \mathrm{diag}(x^{s_1},\ldots,x^{s_m})$ (whose entries have nonpositive
+        degree).
 
         If working column-wise, let $s_1,\ldots,s_m \in \ZZ$ be a shift,
         and let $(d_1,\ldots,d_n)$ denote the shifted column degree of $M$.
@@ -389,7 +389,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         leading matrix of $M$ can also be described as the coefficient of
         degree $0$ of the polynomial matrix
         $\mathrm{diag}(x^{s_1},\ldots,x^{s_m}) M
-        \mathrm{diag}(x^{-d_1},\ldots,x^{-d_m})$ (which only has entries of
+        \mathrm{diag}(x^{-d_1},\ldots,x^{-d_m})$ (whose entries have
         nonpositive degree).
 
         INPUT:
@@ -455,20 +455,25 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                 for j in range(self.ncols()) ]
                 for i in range(self.nrows()) ])
 
-    def is_reduced(self, shifts=None, row_wise=True):
-        #TODO should use def with zero rows
+    def is_reduced(self, shifts=None, row_wise=True, include_zero_vectors=True ):
         r"""
         Return ``True`` if and only if this matrix is in (shifted) reduced
         form.
 
         An $m \times n$ univariate polynomial matrix $M$ is said to be in
-        shifted row (resp.  column) reduced form if its shifted leading matrix
-        has rank $m$, with $m \leq n$ (resp. $n$, with $n \leq m$).
-        
-        Equivalently, when considering all the matrices obtained by
-        left-multiplying (resp. right-multiplying) $M$ by a unimodular matrix,
-        then the shifted row (resp. column) degree of $M$ -- once sorted in
+        shifted row reduced form if it has $k$ nonzero rows with $k \leq n$ and
+        its shifted leading matrix has rank $k$. Equivalently, when considering
+        all the matrices obtained by left-multiplying $M$ by a unimodular
+        matrix, then the shifted row degree of $M$ -- once sorted in
         nondecreasing order -- is lexicographically minimal.
+
+        Similarly, $M$ is said to be in shifted column reduced form if it has
+        $k$ nonzero columns with $k \leq m$ and its shifted leading matrix has
+        rank $k$.
+
+        Note that sometimes one forbids $M$ to have zero rows (resp. columns)
+        in the above definitions; an optional parameter allows one to adopt
+        this more restrictive setting.
 
         INPUT:
 
@@ -477,6 +482,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         - ``row_wise`` -- (optional, default: ``True``) boolean, ``True`` if
           working row-wise (see the class description)
+
+        - ``include_zero_vectors`` -- (optional, default: ``True``) boolean,
+          ``False`` if one does not allow zero rows in row reduced forms (resp.
+          zero columns in column reduced forms).
 
         OUTPUT: a boolean value.
 
@@ -495,6 +504,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             True
 
             sage: M.is_reduced(shifts=[2,0], row_wise=False)
+            True
+
+            sage: M.is_reduced(shifts=[2,0], row_wise=False, \
+                                            include_zero_vectors=False)
             False
 
             sage: M = Matrix(pR, [ [3*x+1, 0, 1], [x^3+3, 0, 0], [0, 1, 0] ])
@@ -502,8 +515,19 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             True
         """
         self._check_shift_dimension(shifts,row_wise)
-        number_generators = self.nrows() if row_wise else self.ncols()
-        return number_generators == self.leading_matrix(shifts, row_wise).rank()
+        if include_zero_vectors:
+            number_generators =                                \
+                self.nrows() -                                      \
+                [all([self[i,j] == 0 for j in range(self.ncols())]) \
+                        for i in range(self.nrows())].count(True)   \
+                if row_wise else                                    \
+                self.ncols() -                                      \
+                [all([self[i,j] == 0 for i in range(self.nrows())]) \
+                        for j in range(self.ncols())].count(True)
+        else:
+            number_generators = self.nrows() if row_wise else self.ncols()
+        return number_generators == \
+            self.leading_matrix(shifts, row_wise).rank()
 
     def leading_positions(self, shifts=None, row_wise=True, return_degree=False):
         r"""

@@ -449,13 +449,14 @@ class TorsionQuadraticModule(FGP_Module_class):
         if rank < len(self.invariants()):
             return False
         if even and self._modulus_qf != 2:
-            raise ValueError("The discriminant form of an even lattice has"
+            raise ValueError("the discriminant form of an even lattice has"
                                  "values modulo 2.")
         if (not even) and not (self.modulus == self._modulus_qf == 1):
-            raise ValueError("The discriminant form of an odd lattice has"
+            raise ValueError("the discriminant form of an odd lattice has"
                              "values modulo 1.")
         if not even:
-            raise NotImplementedError()
+            raise NotImplementedError("at the moment sage knows how to do this only for even genera. " +
+                                      " Help us to implement this for odd genera.")
         for p in D.prime_divisors():
             # check the determinat conditions
             Q_p = self.primary_part(p)

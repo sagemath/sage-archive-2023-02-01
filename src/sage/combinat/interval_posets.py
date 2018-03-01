@@ -2497,11 +2497,12 @@ class TamariIntervalPoset(Element):
             12
         """
         G = self.poset().hasse_diagram()
-        for x in G:
+        n = self.size()
+        for x in range(2, n):
             nx = G.neighbors_out(x)
             nx.append(x)
             y = min(nx)
-            if y < x and any(z > x for z in G.neighbors_out(y)):
+            if y < x and any(z > x for z in G.neighbor_out_iterator(y)):
                 return False
         return True
 

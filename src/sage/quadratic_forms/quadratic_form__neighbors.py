@@ -255,9 +255,9 @@ def find_p_neighbor_from_vec(self, p, v):
 
 #def find_classes_in_genus(self):
 
-def apply_p_neighbor_method(self, p):
+def neighbor_method(self, p):
     r"""
-    Apply neighbor method for a prime number ``p``.
+    Return all classes in the `p`-neighbor graph of ``self``.
 
     Starting from the given quadratic form, this function successively
     finds p-neighbors untill no new quadratic form (class) is obtained.
@@ -265,11 +265,13 @@ def apply_p_neighbor_method(self, p):
     INPUT:
 
     - ``p`` -- a prime number
-    
+
     OUTPUT:
 
+    - a list of quadratic forms
+
     EXAMPLES::
-    
+
         sage: Q = QuadraticForm(ZZ,3,[1,0,0,2,1,3])
         sage: Q.det()
         46
@@ -289,9 +291,9 @@ def apply_p_neighbor_method(self, p):
     waiting_list = [isom_classes[0]]
     while len(waiting_list)>0:
         # find all p-neighbors of Q
-        Q = waiting_list[0]
+        Q = waiting_list.pop()
         v = Q.find_primitive_p_divisible_vector__next(p)
-        while v != None:
+        while not v is None:
             Q_neighbor = Q.find_p_neighbor_from_vec(p, v).lll()
             for S in isom_classes:
                 if Q_neighbor.is_globally_equivalent_to(S):
@@ -300,6 +302,5 @@ def apply_p_neighbor_method(self, p):
                 isom_classes.append(Q_neighbor)
                 waiting_list.append(Q_neighbor)
             v = Q.find_primitive_p_divisible_vector__next(p, v)
-        waiting_list.remove(Q)
     return isom_classes
 

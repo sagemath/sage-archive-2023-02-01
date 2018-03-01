@@ -59,7 +59,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
     condition is that the leading matrix of this basis has full rank (see the
     description of :meth:`leading_matrix`). There is a unique minimal basis,
     called the Popov basis of the module, which satisfies some additional
-    normalization condition (see the description of :meth:`row_degree`).
+    normalization condition (see the description of :meth:`row_degrees`).
 
     These notions can be extended via a more general degree measure, involving
     a tuple of integers which is called shift and acts as column degree shifts
@@ -217,7 +217,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                 if self[i,j]!=0 else zero_degree
                 for j in range(self.ncols()) ] for i in range(self.nrows())] )
 
-    def row_degree(self, shifts=None):
+    def row_degrees(self, shifts=None):
         r"""
         Return the (shifted) row degree of this matrix.
 
@@ -250,40 +250,40 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
             sage: pR.<x> = GF(7)[]
             sage: M = Matrix(pR, [ [3*x+1, 0, 1], [x^3+3, 0, 0] ])
-            sage: M.row_degree()
+            sage: M.row_degrees()
             [1, 3]
 
-            sage: M.row_degree(shifts=[0,1,2])
+            sage: M.row_degrees(shifts=[0,1,2])
             [2, 3]
 
         A zero row in a polynomial matrix can be identified in the (shifted)
         row degree as the entries equal to ``min(shifts)-1``::
 
             sage: M = Matrix(pR, [[3*x+1, 0, 1], [x^3+3, 0, 0], [0, 0, 0]])
-            sage: M.row_degree()
+            sage: M.row_degrees()
             [1, 3, -1]
 
-            sage: M.row_degree(shifts=[-2,1,2])
+            sage: M.row_degrees(shifts=[-2,1,2])
             [2, 1, -3]
 
         The row degree of an empty matrix ($0\times n$ or $m\times 0$) is
         not defined::
             
             sage: M = Matrix( pR, 0, 3 )
-            sage: M.row_degree()
+            sage: M.row_degrees()
             Traceback (most recent call last):
             ...
-            ValueError: Empty matrix does not have a row degree.
+            ValueError: Empty matrix does not have row degrees.
 
             sage: M = Matrix( pR, 3, 0 )
-            sage: M.row_degree()
+            sage: M.row_degrees()
             Traceback (most recent call last):
             ...
-            ValueError: Empty matrix does not have a row degree.
+            ValueError: Empty matrix does not have row degrees.
         """
         self._check_shift_dimension(shifts,row_wise=True)
         if self.ncols()==0 or self.nrows()==0:
-            raise ValueError('Empty matrix does not have a row degree.')
+            raise ValueError('Empty matrix does not have row degrees.')
         if shifts is None:
             return [ max([ self[i,j].degree() for j in range(self.ncols()) ])
                     for i in range(self.nrows()) ]
@@ -292,7 +292,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             if self[i,j]!=0 else zero_degree
             for j in range(self.ncols()) ]) for i in range(self.nrows()) ]
 
-    def column_degree(self, shifts=None):
+    def column_degrees(self, shifts=None):
         r"""
         Return the (shifted) column degree of this matrix.
 
@@ -315,41 +315,41 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         REFERENCES:
         
-        see the documentation of :meth:`row_degree`.
+        see the documentation of :meth:`row_degrees`.
 
         EXAMPLES::
 
             sage: pR.<x> = GF(7)[]
             sage: M = Matrix(pR, [ [3*x+1, 0, 1], [x^3+3, 0, 0] ])
-            sage: M.column_degree()
+            sage: M.column_degrees()
             [3, -1, 0]
 
-            sage: M.column_degree(shifts=[0,2])
+            sage: M.column_degrees(shifts=[0,2])
             [5, -1, 0]
 
         A zero column in a polynomial matrix can be identified in the (shifted)
         column degree as the entries equal to ``min(shifts)-1``::
 
-            sage: M.column_degree(shifts=[-2,1])
+            sage: M.column_degrees(shifts=[-2,1])
             [4, -3, -2]
 
         The column degree of an empty matrix ($0\times n$ or $m\times 0$) is
         not defined::
 
             sage: M = Matrix( pR, 0, 3 )
-            sage: M.column_degree()
+            sage: M.column_degrees()
             Traceback (most recent call last):
             ...
-            ValueError: Empty matrix does not have a column degree.
+            ValueError: Empty matrix does not have column degrees.
 
             sage: M = Matrix( pR, 3, 0 )
-            sage: M.column_degree()
+            sage: M.column_degrees()
             Traceback (most recent call last):
             ...
-            ValueError: Empty matrix does not have a column degree.
+            ValueError: Empty matrix does not have column degrees.
         """
         if self.ncols()==0 or self.nrows()==0:
-            raise ValueError('Empty matrix does not have a column degree.')
+            raise ValueError('Empty matrix does not have column degrees.')
         self._check_shift_dimension(shifts,row_wise=False)
         if self.nrows()==0:
             return [None]*(self.ncols())
@@ -433,25 +433,25 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         self._check_shift_dimension(shifts,row_wise)
         from sage.matrix.constructor import Matrix
         if row_wise:
-            row_degree = self.row_degree(shifts)
+            row_degrees = self.row_degrees(shifts)
             if shifts is None:
                 return Matrix([ [ self[i,j].leading_coefficient()
-                    if self[i,j].degree() == row_degree[i] else 0
+                    if self[i,j].degree() == row_degrees[i] else 0
                     for j in range(self.ncols()) ]
                     for i in range(self.nrows()) ])
             return Matrix([ [ self[i,j].leading_coefficient()
-                if self[i,j].degree() + shifts[j] == row_degree[i] else 0
+                if self[i,j].degree() + shifts[j] == row_degrees[i] else 0
                 for j in range(self.ncols()) ]
                 for i in range(self.nrows()) ])
         else:
-            column_degree = self.column_degree(shifts)
+            column_degrees = self.column_degrees(shifts)
             if shifts is None:
                 return Matrix([ [ self[i,j].leading_coefficient()
-                    if self[i,j].degree() == column_degree[j] else 0
+                    if self[i,j].degree() == column_degrees[j] else 0
                     for j in range(self.ncols()) ]
                     for i in range(self.nrows()) ])
             return Matrix([ [ self[i,j].leading_coefficient()
-                if self[i,j].degree() + shifts[i] == column_degree[j] else 0
+                if self[i,j].degree() + shifts[i] == column_degrees[j] else 0
                 for j in range(self.ncols()) ]
                 for i in range(self.nrows()) ])
 
@@ -596,18 +596,18 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             raise ValueError('Empty matrix does not have leading positions.')
 
         if row_wise:
-            row_degree = self.row_degree(shifts)
+            row_degrees = self.row_degrees(shifts)
             if shifts is None:
-                pivot_index = [ (-1 if row_degree[i]==-1 else
+                pivot_index = [ (-1 if row_degrees[i]==-1 else
                     max( [ j for j in range(self.ncols()) if
-                    (self[i,j].degree() == row_degree[i]) ] ))
+                    (self[i,j].degree() == row_degrees[i]) ] ))
                     for i in range(self.nrows()) ]
             else:
                 zero_degree=min(shifts)-1
-                pivot_index = [ (-1 if row_degree[i]==zero_degree else
+                pivot_index = [ (-1 if row_degrees[i]==zero_degree else
                     max( [ j for j in range(self.ncols()) if
                     (self[i,j]!=0 and
-                    self[i,j].degree()+shifts[j] == row_degree[i]) ] ))
+                    self[i,j].degree()+shifts[j] == row_degrees[i]) ] ))
                     for i in range(self.nrows()) ]
             pivot_degree = [ (-1 if pivot_index[i]==-1 else
                 self[i,pivot_index[i]].degree())
@@ -615,18 +615,18 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             return (pivot_index,pivot_degree) if return_degree else pivot_index
                     
         # now in the column-wise case
-        column_degree = self.column_degree(shifts)
+        column_degrees = self.column_degrees(shifts)
         if shifts is None:
-            pivot_index = [ (-1 if column_degree[j]==-1 else
+            pivot_index = [ (-1 if column_degrees[j]==-1 else
                 max( [ i for i in range(self.nrows()) if
-                (self[i,j].degree() == column_degree[j]) ] ))
+                (self[i,j].degree() == column_degrees[j]) ] ))
                 for j in range(self.ncols()) ]
         else:
             zero_degree=min(shifts)-1
-            pivot_index = [ (-1 if column_degree[j]==zero_degree else
+            pivot_index = [ (-1 if column_degrees[j]==zero_degree else
                 max( [ i for i in range(self.nrows()) if
                 (self[i,j]!=0 and
-                self[i,j].degree()+shifts[i] == column_degree[j]) ] ))
+                self[i,j].degree()+shifts[i] == column_degrees[j]) ] ))
                 for j in range(self.ncols()) ]
         pivot_degree = [ (-1 if pivot_index[j]==-1 else
             self[pivot_index[j],j].degree())

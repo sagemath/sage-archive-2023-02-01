@@ -2413,7 +2413,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         # multiply the result by N!
         return series_unit*nfactorial_unit.inverse_of_unit()<<(series_val-nfactorial_val)
 
-    def square_root(self, extend = True, all = False):
+    def square_root(self, extend=True, all=False, algorithm=None):
         r"""
         Returns the square root of this p-adic number
 
@@ -2459,6 +2459,10 @@ cdef class pAdicGenericElement(LocalGenericElement):
             1 + O(2^19)
             sage: R2(4).square_root()
             2 + O(2^20)
+            sage: R.<t>=Zq(2^10, 10)
+            sage: sqrt(1+8*t)
+            1 + t*2^2 + t^2*2^3 + t^2*2^4 + (t^4 + t^3 + t^2)*2^5 + (t^4 + t^2)*2^6 + (t^5 + t^2)*2^7 + (t^6 + t^5 + t^4 + t^2)*2^8 + O(2^9)
+
 
             sage: R2(9).square_root() == R2(3, 19) or R2(9).square_root() == R2(-3, 19)
             True
@@ -2500,6 +2504,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
             True
             sage: R2(17).square_root()
             1 + 2^3 + 2^5 + 2^6 + 2^7 + 2^9 + 2^10 + 2^13 + 2^16 + 2^17 + O(2^19)
+            sage: R2.<t>=Zq(2^10, 10)
+            sage: sqrt(1+8*t)
+            1 + t*2^2 + t^2*2^3 + t^2*2^4 + (t^4 + t^3 + t^2)*2^5 + (t^4 + t^2)*2^6 + (t^5 + t^2)*2^7 + (t^6 + t^5 + t^4 + t^2)*2^8 + O(2^9)
 
             sage: R3 = Qp(5,20,'capped-rel')
             sage: R3(0).square_root()
@@ -2536,24 +2543,89 @@ cdef class pAdicGenericElement(LocalGenericElement):
         # whose square root is a real number....!
         if self.valuation() is infinity:
             return self
+        if algorithm is None:
+            if self.parent().prime() == 2 and self.parent().degree() > 1 and self.parent().e() == 1:
+                algorithm = "sage"
+            else:
+                algorithm = "pari"
 
-        from sage.libs.pari.all import PariError
-        try:
-            # use pari
-            ans = self.parent()(self.__pari__().sqrt())
-            if all:
-                return [ans, -ans]
+        if algorithm == "pari":
+            from sage.libs.pari.all import PariError
+            try:
+                # use pari
+                ans = self.parent()(self.__pari__().sqrt())
+                if all:
+                    return [ans, -ans]
+                else:
+                    return ans
+            except PariError:
+                # todo: should eventually change to return an element of
+                # an extension field
+                pass
+        elif algorithm == "sage":
+            val=self.valuation()
+            if val%2 == 0:
+                self = self>>val
+                self_modp = self.residue()
+                sq_modp = self_modp**(2**(self_modp.parent().degree()-1))
+                prec = self.parent().precision_cap()
+                sq = self.parent()(sq_modp).lift_to_precision(prec)
+                self = self/(sq**2)
+                z = self._inv_sqrt(prec)
+                if z is not None:
+                    ans = (sq/z)<<(val / 2)
+                    if all:
+                        return [ans, -ans]
+                    else:
+                        return ans
+        if extend:
+            raise NotImplementedError("extending using the sqrt function not yet implemented")
+        elif all:
+            return []
+        else:
+            raise ValueError("element is not a square")
+
+    def _inv_sqrt(self, prec):
+        r"""
+        Returns the inverse square root of this `p`-adic number
+
+        INPUT:
+
+        - ``prec`` -- integer, the precision at inverse square root is computed
+
+        OUTPUT:
+
+        `p`-adic element -- the inverse square root of this `p`-adic number
+        or ``None`` if this element does not have a square root in the ring
+        """
+        from sage.functions.other import ceil
+
+
+        if prec <= 2:
+            R = self.parent()
+            F = R.residue_class_field()
+            z = R(1/self.residue(1).sqrt()).lift_to_precision(3)
+            a = z.residue(1)
+            b = 1/self-z**2
+            if b.valuation() < 2:
+                return None
             else:
-                return ans
-        except PariError:
-            # todo: should eventually change to return an element of
-            # an extension field
-            if extend:
-                raise NotImplementedError("extending using the sqrt function not yet implemented")
-            elif all:
-                return []
+                b = (b>>2).residue(1)
+                delta1, delta2 = _artin_schreier(a,b)
+                if delta1 is None:
+                    return None
+                else:
+                    z0 = z+2*R(delta1).lift_to_precision(3)
+                    return z0
+        else:
+            prec0 = ceil((prec+1)/2.0)
+            z = self._inv_sqrt(prec0)
+            if z is None:
+                return None
             else:
-                raise ValueError("element is not a square")
+                z = z.lift_to_precision(prec)
+                z = (z+((z*(1-self*z**2))>>1))
+                return z
 
     def __abs__(self):
         """
@@ -2661,3 +2733,353 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         """
         raise NotImplementedError
+
+    def _polylog_res_1(self, n):
+        """
+        Return `Li_n(`self`)` , the `n`th `p`-adic polylogarithm of ``self``, assuming that self is congruent to 1 mod p.
+        This is an internal function, used by :meth:`polylog`.
+
+        INPUT:
+
+            - ``n`` -- a non-negative integer
+
+        OUTPUT:
+
+            - Li_n(self)
+
+        EXAMPLES ::
+
+            sage: Qp(2)(-1)._polylog_res_1(6) == 0
+            True
+
+        ::
+            sage: Qp(5)(1)._polylog_res_1(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: Polylogarithm is not defined for 1.
+        """
+        from sage.rings.power_series_ring import PowerSeriesRing
+        from sage.functions.other import ceil,floor
+        from sage.rings.padics.factory import Qp
+        from sage.misc.all import verbose
+
+        if self == 1:
+            raise ValueError('Polylogarithm is not defined for 1.')
+
+        p = self.parent().prime()
+        prec = self.precision_absolute()
+
+        K = self.parent().fraction_field()
+        z = K(self)
+
+        hsl = max(prec / ((z - 1).valuation()) + 1, prec*(p == 2))
+        N = floor(prec - n*(hsl - 1).log(p))
+
+        verbose(hsl, level=3)
+
+        def bound(m):
+            return prec - m + Integer(1-2**(m-1)).valuation(p) - m*(hsl - 1).log(p)
+
+        gsl = max([_findprec(1/(p-1), 1, _polylog_c(m,p) + bound(m), p) for m in range(2,n+1)])
+        verbose(gsl, level=3)
+        g = _compute_g(p, n, max([bound(m) + m*floor((gsl-1).log(p)) for m in range(2, n+1)]), gsl)
+        verbose(g, level=3)
+        S = PowerSeriesRing(K, default_prec = ceil(hsl), names='t')
+        t = S.gen()
+        log1plust = (1+t).log()
+        log1plusti = 1
+
+        G = (n+1)*[0]
+        for i in range(n+1):
+            G[i] = (log1plusti)/Integer(i).factorial()
+            log1plusti *= log1plust
+
+        verbose(G, level=3)
+
+        H = (n+1)*[0]
+        H[2] = -sum([((-t)**i)/Integer(i)**2 for i in range(1,hsl+2)])
+        for i in range(2, n):
+            H[i+1] = (H[i]/(1+t) + G[i]/t).integral()
+            if (i + 1) % 2 == 1:
+                if p != 2:
+                    H[i+1] += (2**i*p**(i+1)*g[i+1](1/K(2)))/((1-2**i)*(p**(i+1) - 1))
+                else:
+                    H[i+1] += (2**i*H[i+1](K(-2)))/(1 - 2**(i+1))
+
+        verbose(H, level=3)
+        return (H[n](z - 1) - ((z.log(0))**(n-1)*(1 - z).log(0))/Integer(n-1).factorial()).add_bigoh(N)
+
+    def polylog(self, n):
+        """
+        Return `Li_n(self)` , the `n`th `p`-adic polylogarithm of this element.
+
+        INPUT:
+
+            - ``n`` -- a non-negative integer
+
+        OUTPUT:
+
+            - `Li_n(self)`
+
+        EXAMPLES:
+
+        The `n`-th polylogarithm of `-1` is `0` for even `n` ::
+
+            sage: Qp(13)(-1).polylog(6) == 0
+            True
+
+        We can check some identities, for example those mentioned in [DCW2016]_ ::
+
+            sage: x = Qp(7, prec=30)(1/3)
+            sage: (x^2).polylog(4) - 8*x.polylog(4) - 8*(-x).polylog(4) == 0
+            True
+
+        ::
+
+            sage: x = Qp(5, prec=30)(4)
+            sage: x.polylog(2) + (1/x).polylog(2) + x.log(0)**2/2 == 0
+            True
+
+        ::
+
+            sage: x = Qp(11, prec=30)(2)
+            sage: x.polylog(2) + (1-x).polylog(2) + x.log(0)**2*(1-x).log(0) == 0
+            True
+
+        `Li_1(z) = -\log(1-z)` for `|z| < 1` ::
+
+            sage: Qp(5)(10).polylog(1) == -Qp(5)(1-10).log(0)
+            True
+
+        The polylogarithm of 1 is not defined ::
+
+            sage: Qp(5)(1).polylog(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: Polylogarithm is not defined for 1.
+
+
+        The polylogarithm of 0 is 0 ::
+
+            sage: Qp(11)(0).polylog(7)
+            0
+
+        ALGORITHM:
+
+        The algorithm of Besser-de Jeu, as described in [BdJ2008]_ is used.
+
+        REFERENCES:
+
+        .. [BdJ2008] Besser, Amnon, and Rob de Jeu. "Li^(p)-Service? An Algorithm
+             for Computing p-Adic Polylogarithms." Mathematics of Computation
+             (2008): 1105-1134.
+
+        .. [DCW2016] Dan-Cohen, Ishai, and Stefan Wewers. "Mixed Tate motives and the
+             unit equation." International Mathematics Research Notices
+             2016.17 (2016): 5291-5354.
+
+        AUTHORS:
+
+        - Jennifer Balakrishnan - Initial implementation
+        - Alex J. Best (2017-07-21) - Extended to other residue disks
+
+        .. TODO::
+
+            - Implement for extensions
+            - Use the change method to create K from self.parent()
+
+
+        """
+        from sage.rings.power_series_ring import PowerSeriesRing
+        from sage.rings.padics.factory import Qp
+        from sage.misc.all import verbose
+        from sage.functions.other import ceil,floor
+        from sage.rings.infinity import PlusInfinity
+
+        if self.parent().degree() != 1:
+            raise NotImplementedError("Polylogarithms are not currently implemented for elements of extensions")
+            # TODO implement this (possibly after the change method for padic generic elements is added).
+
+        prec = self.precision_absolute()
+
+        p = self.parent().prime()
+        K = self.parent().fraction_field()
+
+        z = K(self)
+        n = Integer(n)
+
+        if z.valuation() < 0:
+            verbose("residue oo, using functional equation for reciprocal. %d %s"%(n,str(self)), level=2)
+            return (-1)**(n+1)*(1/z).polylog(n)-(z.log(0)**n)/K(n.factorial())
+
+        zeta = K.teichmuller(z)
+
+        # Which residue disk are we in?
+        if zeta == 0:
+            if z.precision_absolute() == PlusInfinity():
+                return K(0)
+            verbose("residue 0, using series. %d %s"%(n,str(self)), level=2)
+            M = ceil((prec/z.valuation()).log(p))
+            N = prec - n*M
+            ret = K(0)
+            for m in range(M + 1):
+                zpm = z**(p**m)
+                ret += p**(-m*n)*sum(zpm**k/Integer(k)**n for k in
+                        range(1, _findprec(p**m*z.valuation(), 0, N + n*m, p)) if k % p != 0)
+
+            return ret.add_bigoh(N)
+
+        if zeta == 1:
+            if z == 1:
+                raise ValueError("Polylogarithm is not defined for 1.")
+            verbose("residue 1, using _polylog_res_1. %d %s"%(n,str(self)), level=2)
+            return self._polylog_res_1(n)
+
+        # Set up precision bounds
+        tsl = prec / (z - zeta).valuation() + 1
+        N = floor(prec - n*(tsl - 1).log(p))
+        gsl = max([_findprec(1/(p-1), 1, prec - m + _polylog_c(m,p) - m*(tsl - 1).log(p), p) for m in range(1,n+1)])
+
+        gtr = _compute_g(p, n, prec + n*(gsl - 1).log(p), gsl)
+
+        K = Qp(p, prec)
+
+        # Residue disk around zeta
+        verbose("general case. %d %s"%(n, str(self)), level=2)
+        Li_i_zeta = [0] + [p**i/(p**i-1)*gtr[i](1/(1-zeta)) for i in range(1,n+1)]
+
+        T = PowerSeriesRing(K, default_prec=ceil(tsl), names='t')
+        t = T.gen()
+        F = (n+1)*[0]
+        F[0] = (zeta+t)/(1-zeta-t)
+        for i in range(n):
+            F[i+1] = Li_i_zeta[i+1] + (F[i]/(zeta + t)).integral()
+
+        return (F[n](z - zeta)).add_bigoh(N)
+
+
+# Module functions used by polylog
+def _polylog_c(n, p):
+    """
+    Return c(n, p) = p/(p-1) - (n-1)/log(p) + (n-1)*log(n*(p-1)/log(p),p) + log(2*p*(p-1)*n/log(p), p)
+    as defined in Prop 6.1 of [BdJ2008]_ which is used as a precision bound.
+    This is an internal function, used by :meth:`polylog`.
+
+    EXAMPLES::
+
+        sage: sage.rings.padics.padic_generic_element._polylog_c(1, 2)
+        log(4/log(2))/log(2) + 2
+
+    REFERENCES:
+
+    Prop. 6.1 of
+
+        .. [BdJ2008] Besser, Amnon, and Rob de Jeu. "Li^(p)-Service? An Algorithm
+             for Computing p-Adic Polylogarithms." Mathematics of Computation
+             (2008): 1105-1134.
+
+    """
+    return p/(p-1) - (n-1)/p.log() + (n-1)*(n*(p-1)/p.log()).log(p) + (2*p*(p-1)*n/p.log()).log(p)
+
+def _findprec(c_1, c_2, c_3, p):
+    """
+    Return an integer k such that c_1*k - c_2*log_p(k) > c_3.
+    This is an internal function, used by :meth:`polylog`.
+
+    INPUT:
+
+    - `c_1`, `c_2`, `c_3` - positive integers
+    - `p` - prime
+
+    OUTPUT:
+
+    ``sl`` such that `kc_1 - c_2 \log_p(k) > c_3` for all `k \ge sl`
+
+    EXAMPLES::
+
+        sage: sage.rings.padics.padic_generic_element._findprec(1, 1, 2, 2)
+        5
+        sage: 5*1 - 5*log(1, 2) > 2
+        True
+
+    REFERENCES:
+
+    Remark 7.11 of
+
+        .. [BdJ2008] Besser, Amnon, and Rob de Jeu. "Li^(p)-Service? An Algorithm
+             for Computing p-Adic Polylogarithms." Mathematics of Computation
+             (2008): 1105-1134.
+    """
+    from sage.functions.other import ceil
+    k = Integer(max(ceil(c_2/c_1), 2))
+    while True:
+        if c_1*k - c_2*k.log(p) > c_3:
+            return k
+        k += 1
+
+def _compute_g(p, n, prec, terms):
+    """
+    Return the list of power series `g_i = \int(-g_{i-1}/(v-v^2))` used in the computation of polylogarithms.
+    This is an internal function, used by :meth:`polylog`.
+
+    EXAMPLES::
+
+        sage: sage.rings.padics.padic_generic_element._compute_g(7, 3, 3, 3)[0]
+        (O(7^3))*v^2 + (1 + O(7^3))*v + (O(7^3))
+
+    """
+    from sage.rings.power_series_ring import PowerSeriesRing
+    from sage.functions.other import ceil
+    from sage.rings.padics.factory import Qp
+
+    # Compute the sequence of power series g
+    R = PowerSeriesRing(Qp(p, ceil(prec)), default_prec=terms, names='v')
+    v = R.gen()
+    g = (n+1)*[0]
+    g[0] = v - 1 - ((v-1)**p)/(v**p-(v-1)**p)
+    for i in range(n):
+        g[i+1] = -(g[i]/(v-v**2)).integral()
+    return [x.truncate(terms) for x in g]
+
+def _artin_schreier(a, b):
+    r"""
+    Solve Artin Schreier equation `X^2+a*X+b=0`.
+
+    INPUT:
+
+    - ``a,b`` -- elements of a finite field of characteristic 2
+
+
+    OUTPUT:
+
+    elements of the same field ``x0,x1`` verifying the equation `X^2+a*X+b=0` 
+    or ``None,None`` if the equation does not have a solution in ``parent(a)``.
+    """
+    def trace_one_element(F):
+        x = F.random_element()
+        while x.trace() != 1:
+            x = F.random_element()
+        return x
+
+    if a == 0:
+        return (-b).sqrt(), -(-b).sqrt()
+    else:
+        c = b/a**2
+        if c.trace() != 0:
+            return None, None
+        else:
+            d = c.parent().degree()
+            if d % 2 == 0:
+                y = trace_one_element(c.parent())
+                sum0 = 0
+                sum = 0
+                for i in range(d):
+                    sum0 += c**(2**i)
+                    sum += sum0*y**(2**i)
+            else:
+                sum = 0
+                for i in range((d-3)/2+1):
+                    sum += c**(2**(2*i+1))
+            return a*sum, a*(1+sum)
+
+

@@ -1,6 +1,9 @@
 Functions
 =========
 
+Built-in Functions
+==================
+
 .. toctree::
    :maxdepth: 2
 
@@ -23,5 +26,15 @@ Functions
    sage/functions/generalized
    sage/functions/prime_pi
    sage/functions/min_max
+
+Developer documentation
+=======================
+
+.. toctree::
+   :maxdepth: 2
+
+   function
+   function_factory
+   callable
 
 .. include:: ../footer.txt

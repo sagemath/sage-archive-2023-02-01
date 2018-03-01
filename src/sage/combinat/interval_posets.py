@@ -69,7 +69,7 @@ from sage.categories.posets import Posets
 from sage.combinat.posets.posets import Poset, FinitePoset
 from sage.categories.finite_posets import FinitePosets
 from sage.combinat.binary_tree import BinaryTrees
-from sage.combinat.binary_tree import LabelledBinaryTrees
+from sage.combinat.binary_tree import LabelledBinaryTrees, LabelledBinaryTree
 from sage.combinat.dyck_word import DyckWords
 from sage.combinat.permutation import Permutation
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
@@ -2288,6 +2288,57 @@ class TamariIntervalPoset(Element):
                                       extract_tree(cx, cy, t_up, common))
                 for cx, cy in common]
 
+    def decomposition_to_triple(self):
+        """
+        Decompose an interval-poset into a triple (``left``, ``right``, ``r``).
+
+        For the inverse method, see
+        :meth:`TamariIntervalPosets.recomposition_from_triple`
+
+        OUTPUT:
+
+        a triple (``left``, ``right``, ``r``) where ``left`` and
+        ``right`` are interval-posets and ``r`` (an integer) is the
+        parameter of the composition.
+
+        EXAMPLES::
+
+            sage: tip = TamariIntervalPoset(8, [(1,2), (2,4), (3,4), (6,7), (3,2), (5,4), (6,4), (8,7)])
+            sage: tip.decomposition_to_triple()
+            (The Tamari interval of size 3 induced by relations [(1, 2), (3, 2)],
+            The Tamari interval of size 4 induced by relations [(2, 3), (4, 3)],
+            2)
+
+        """
+        n = self.size()
+        if n == 0:
+            return None
+        root = self.increasing_roots()[-1]
+        r = len(self.decreasing_children(root))
+        left = self.sub_poset(1, root)
+        right = self.sub_poset(root + 1, n + 1)
+        return left, right, r
+
+    def grafting_tree(self):
+        """
+        Return the grafting tree of the interval-poset.
+
+        For the inverse method,
+        see :meth:`TamariIntervalPosets.from_grafting_tree`.
+
+        EXAMPLES::
+
+            sage: tip = TamariIntervalPoset(8, [(1,2), (2,4), (3,4), (6,7), (3,2), (5,4), (6,4), (8,7)])
+            sage: tip.grafting_tree()
+            2[1[0[., .], 0[., .]], 0[., 1[0[., .], 0[., .]]]]
+        """
+        n = self.size()
+        if n == 0:
+            return LabelledBinaryTree(None)
+        left, right, r = self.decomposition_to_triple()
+        return LabelledBinaryTree([left.grafting_tree(),
+                                   right.grafting_tree()], label=r)
+
     def is_new(self):
         """
         Return whether ``self`` is a new Tamari interval.
@@ -2376,9 +2427,34 @@ class TamariIntervalPoset(Element):
         """
         G = self.poset().hasse_diagram()
         for x in G:
-            nx = list(G.neighbors_in(x))
+            nx = G.neighbors_in(x)
             nx.append(x)
-            if min(nx) < x and max(nx) > x:
+            if min(nx) < x < max(nx):
+                return False
+        return True
+
+    def is_infinitely_modern(self):
+        r"""
+        Return whether ``self`` is an infinitely-modern Tamari interval.
+
+        This is defined by the exclusion of the configuration
+        ``i --> i + 1`` and ``j + 1 --> j`` with `i < j`.
+
+        This condition is invariant under complementation.
+
+        EXAMPLES::
+
+            sage: len([T for T in TamariIntervalPosets(3)
+            ....:     if T.is_infinitely_modern()])
+            12
+        """
+        n = self.size()
+        found = False
+        for i in range(1, n):
+            if self.le(i, i + 1):
+                found = True
+                continue
+            if self.le(i + 1, i) and found:
                 return False
         return True
 
@@ -2400,9 +2476,9 @@ class TamariIntervalPoset(Element):
         """
         G = self.poset().hasse_diagram()
         for x in G:
-            nx = list(G.neighbors_out(x))
+            nx = G.neighbors_out(x)
             nx.append(x)
-            if min(nx) < x and max(nx) > x:
+            if min(nx) < x < max(nx):
                 return False
         return True
 
@@ -2422,7 +2498,7 @@ class TamariIntervalPoset(Element):
         """
         G = self.poset().hasse_diagram()
         for x in G:
-            nx = list(G.neighbors_out(x))
+            nx = G.neighbors_out(x)
             nx.append(x)
             y = min(nx)
             if y < x and any(z > x for z in G.neighbors_out(y)):
@@ -2877,6 +2953,61 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
             return TamariIntervalPosets.from_binary_trees(tree1, tree2)
         except Exception:
             raise ValueError("The two Dyck words are not comparable on the Tamari lattice.")
+
+    @staticmethod
+    def recomposition_from_triple(left, right, r):
+        """
+        Recompose an interval-poset from a triple (``left``, ``right``, ``r``).
+
+        For the inverse method,
+        see :meth:`TamariIntervalPoset.decomposition_to_triple`.
+
+        INPUT:
+
+        - ``left`` -- an interval-poset
+        - ``right`` -- an interval-poset
+        - ``r`` -- the parameter of the recomposition, an integer
+
+        OUTPUT: an interval-poset
+
+        EXAMPLES::
+
+            sage: T1 = TamariIntervalPoset(3, [(1, 2), (3, 2)])
+            sage: T2 = TamariIntervalPoset(4, [(2, 3), (4, 3)])
+            sage: TamariIntervalPosets.recomposition_from_triple(T1, T2, 2)
+            The Tamari interval of size 8 induced by relations [(1, 2), (2, 4),
+            (3, 4), (6, 7), (8, 7), (6, 4), (5, 4), (3, 2)]
+        """
+        root = left.size() + 1
+        rel = left.poset().cover_relations()
+        rel.extend((i, root) for i in left)
+        rel.extend((root + a, root + b)
+                   for a, b in right.poset().cover_relations())
+        decroot = right.decreasing_roots()[:r]
+        rel.extend((root + i, root) for i in decroot)
+        return TamariIntervalPoset(left.size() + right.size() + 1, rel)
+
+    @staticmethod
+    def from_grafting_tree(tree):
+        """
+        Return a Tamari interval from a grafting tree.
+
+        For the inverse method,
+        see :meth:`TamariIntervalPoset.grafting_tree`.
+
+        EXAMPLES::
+
+            sage: tip = TamariIntervalPoset(8, [(1,2), (2,4), (3,4), (6,7), (3,2), (5,4), (6,4), (8,7)])
+            sage: t = tip.grafting_tree()
+            sage: TamariIntervalPosets.from_grafting_tree(t) == tip
+            True
+        """
+        if tree.is_empty():
+            return TamariIntervalPoset(0, [])
+        r = tree.label()
+        left = TamariIntervalPosets.from_grafting_tree(tree[0])
+        right = TamariIntervalPosets.from_grafting_tree(tree[1])
+        return TamariIntervalPosets.recomposition_from_triple(left, right, r)
 
     @staticmethod
     def from_minimal_schnyder_wood(graph):

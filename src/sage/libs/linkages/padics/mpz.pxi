@@ -29,6 +29,8 @@ from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
 from sage.rings.padics.common_conversion cimport cconv_mpz_t_out_shared, cconv_mpz_t_shared, cconv_mpq_t_out_shared, cconv_mpq_t_shared, cconv_shared
 import sage.rings.finite_rings.integer_mod
 
+DEF CELEMENT_IS_PY_OBJECT = False
+
 cdef Integer holder = PY_NEW(Integer)
 cdef Integer holder2 = PY_NEW(Integer)
 

@@ -1443,6 +1443,8 @@ class TamariIntervalPoset(Element):
 
         - ``binary_tree`` -- a binary tree
 
+        .. SEEALSO:: :meth:`contains_dyck_word`
+
         EXAMPLES::
 
             sage: ip = TamariIntervalPoset(4,[(2,4),(3,4),(2,1),(3,1)])
@@ -1470,6 +1472,8 @@ class TamariIntervalPoset(Element):
         INPUT:
 
         - ``dyck_word`` -- a Dyck word
+
+        .. SEEALSO:: :meth:`contains_binary_tree`
 
         EXAMPLES::
 
@@ -1528,6 +1532,8 @@ class TamariIntervalPoset(Element):
         Return the initial forest of ``self``, i.e., the interval-poset
         formed from only the increasing relations of ``self``.
 
+        .. SEEALSO:: :meth:`final_forest`
+
         EXAMPLES::
 
             sage: TamariIntervalPoset(4,[(1,2),(3,2),(2,4),(3,4)]).initial_forest()
@@ -1542,6 +1548,8 @@ class TamariIntervalPoset(Element):
         r"""
         Return the final forest of ``self``, i.e., the interval-poset
         formed with only the decreasing relations of ``self``.
+
+        .. SEEALSO:: :meth:`initial_forest`
 
         EXAMPLES::
 
@@ -1559,6 +1567,8 @@ class TamariIntervalPoset(Element):
         lattice, i.e. if its lower end is the smallest element of the lattice.
         It consists of checking that ``self`` does not contain any decreasing
         relations.
+
+        .. SEEALSO:: :meth:`is_final_interval`
 
         EXAMPLES::
 
@@ -1583,6 +1593,8 @@ class TamariIntervalPoset(Element):
         lattice, i.e. if its upper end is the largest element of the lattice.
         It consists of checking that ``self`` does not contain any increasing
         relations.
+
+        .. SEEALSO:: :meth:`is_initial_interval`
 
         EXAMPLES::
 
@@ -1612,6 +1624,8 @@ class TamariIntervalPoset(Element):
         :meth:`~sage.combinat.binary_tree.BinaryTree.to_ordered_tree_left_branch`
         and cutting off the root) is the final forest of ``self``.
 
+        .. SEEALSO:: :meth:`lower_dyck_word`
+
         EXAMPLES::
 
             sage: ip = TamariIntervalPoset(6,[(3,2),(4,3),(5,2),(6,5),(1,2),(4,5)]); ip
@@ -1629,6 +1643,8 @@ class TamariIntervalPoset(Element):
         r"""
         Return the lowest Dyck word in the interval of the Tamari lattice
         represented by ``self``.
+
+        .. SEEALSO:: :meth:`lower_binary_tree`
 
         EXAMPLES::
 
@@ -1654,6 +1670,8 @@ class TamariIntervalPoset(Element):
         :meth:`~sage.combinat.binary_tree.BinaryTree.to_ordered_tree_right_branch`
         and cutting off the root) is the initial forest of ``self``.
 
+        .. SEEALSO:: :meth:`upper_dyck_word`
+
         EXAMPLES::
 
             sage: ip = TamariIntervalPoset(6,[(3,2),(4,3),(5,2),(6,5),(1,2),(4,5)]); ip
@@ -1671,6 +1689,8 @@ class TamariIntervalPoset(Element):
         r"""
         Return the highest Dyck word in the interval of the Tamari lattice
         represented by ``self``.
+
+        .. SEEALSO:: :meth:`upper_binary_tree`
 
         EXAMPLES::
 
@@ -1938,6 +1958,8 @@ class TamariIntervalPoset(Element):
         Not to be confused with :meth:`size` which is the number of
         vertices.
 
+        .. SEEALSO:: :meth:`binary_trees`
+
         EXAMPLES::
 
             sage: TamariIntervalPoset(4,[(2,4),(3,4),(2,1),(3,1)]).interval_cardinality()
@@ -1953,6 +1975,8 @@ class TamariIntervalPoset(Element):
         r"""
         Return an iterator on all the binary trees in the interval
         represented by ``self``.
+
+        .. SEEALSO:: :meth:`interval_cardinality`
 
         EXAMPLES::
 

@@ -673,3 +673,99 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         from sage.quadratic_forms.genera.genus import Genus
         return Genus(self.gram_matrix())
 
+    def tensor_product(self, other, discard_basis=False):
+        r"""
+        Return the tensor product of ``self`` and ``other``.
+        
+        INPUT:
+
+        - ``other`` -- a nonzero integer or an integral lattice
+        - ``discard_basis`` -- a boolean (default: ``False``). If ``True``, then the lattice 
+                            returned is equipped with the standard basis.
+        
+        EXAMPLES::
+        
+            sage: L = IntegralLattice("D4",[[1,2,1,0],[0,1,1,0,],[1,2,3,1]])
+            sage: L1 = L.tensor_product(L)
+            sage: L2 = L.tensor_product(L, True)
+            sage: L1
+            Lattice of degree 16 and rank 9 over Integer Ring
+            Basis matrix:
+            [1 2 1 0 2 4 2 0 1 2 1 0 0 0 0 0]
+            [0 1 1 0 0 2 2 0 0 1 1 0 0 0 0 0]
+            [1 2 3 1 2 4 6 2 1 2 3 1 0 0 0 0]
+            [0 0 0 0 1 2 1 0 1 2 1 0 0 0 0 0]
+            [0 0 0 0 0 1 1 0 0 1 1 0 0 0 0 0]
+            [0 0 0 0 1 2 3 1 1 2 3 1 0 0 0 0]
+            [1 2 1 0 2 4 2 0 3 6 3 0 1 2 1 0]
+            [0 1 1 0 0 2 2 0 0 3 3 0 0 1 1 0]
+            [1 2 3 1 2 4 6 2 3 6 9 3 1 2 3 1]
+            Inner product matrix:
+            [ 4 -2  0  0|-2  1  0  0| 0  0  0  0| 0  0  0  0]
+            [-2  4 -2 -2| 1 -2  1  1| 0  0  0  0| 0  0  0  0]
+            [ 0 -2  4  0| 0  1 -2  0| 0  0  0  0| 0  0  0  0]
+            [ 0 -2  0  4| 0  1  0 -2| 0  0  0  0| 0  0  0  0]
+            [-----------+-----------+-----------+-----------]
+            [-2  1  0  0| 4 -2  0  0|-2  1  0  0|-2  1  0  0]
+            [ 1 -2  1  1|-2  4 -2 -2| 1 -2  1  1| 1 -2  1  1]
+            [ 0  1 -2  0| 0 -2  4  0| 0  1 -2  0| 0  1 -2  0]
+            [ 0  1  0 -2| 0 -2  0  4| 0  1  0 -2| 0  1  0 -2]
+            [-----------+-----------+-----------+-----------]
+            [ 0  0  0  0|-2  1  0  0| 4 -2  0  0| 0  0  0  0]
+            [ 0  0  0  0| 1 -2  1  1|-2  4 -2 -2| 0  0  0  0]
+            [ 0  0  0  0| 0  1 -2  0| 0 -2  4  0| 0  0  0  0]
+            [ 0  0  0  0| 0  1  0 -2| 0 -2  0  4| 0  0  0  0]
+            [-----------+-----------+-----------+-----------]
+            [ 0  0  0  0|-2  1  0  0| 0  0  0  0| 4 -2  0  0]
+            [ 0  0  0  0| 1 -2  1  1| 0  0  0  0|-2  4 -2 -2]
+            [ 0  0  0  0| 0  1 -2  0| 0  0  0  0| 0 -2  4  0]
+            [ 0  0  0  0| 0  1  0 -2| 0  0  0  0| 0 -2  0  4]
+            sage: L1.gram_matrix()
+            [ 16   8   8   8   4   4   8   4   4]
+            [  8   8  12   4   4   6   4   4   6]
+            [  8  12  40   4   6  20   4   6  20]
+            [  8   4   4   8   4   4  12   6   6]
+            [  4   4   6   4   4   6   6   6   9]
+            [  4   6  20   4   6  20   6   9  30]
+            [  8   4   4  12   6   6  40  20  20]
+            [  4   4   6   6   6   9  20  20  30]
+            [  4   6  20   6   9  30  20  30 100]
+            sage: L2
+            Lattice of degree 9 and rank 9 over Integer Ring
+            Basis matrix:
+            [1 0 0 0 0 0 0 0 0]
+            [0 1 0 0 0 0 0 0 0]
+            [0 0 1 0 0 0 0 0 0]
+            [0 0 0 1 0 0 0 0 0]
+            [0 0 0 0 1 0 0 0 0]
+            [0 0 0 0 0 1 0 0 0]
+            [0 0 0 0 0 0 1 0 0]
+            [0 0 0 0 0 0 0 1 0]
+            [0 0 0 0 0 0 0 0 1]
+            Inner product matrix:
+            [ 16   8   8|  8   4   4|  8   4   4]
+            [  8   8  12|  4   4   6|  4   4   6]
+            [  8  12  40|  4   6  20|  4   6  20]
+            [-----------+-----------+-----------]
+            [  8   4   4|  8   4   4| 12   6   6]
+            [  4   4   6|  4   4   6|  6   6   9]
+            [  4   6  20|  4   6  20|  6   9  30]
+            [-----------+-----------+-----------]
+            [  8   4   4| 12   6   6| 40  20  20]
+            [  4   4   6|  6   6   9| 20  20  30]
+            [  4   6  20|  6   9  30| 20  30 100]
+        """
+        if not isinstance(other, FreeQuadraticModule_integer_symmetric):
+            raise ValueError("other (=%s) must be an integral lattice" % other)
+        if discard_basis:
+            gram_matrix = matrix(self.base_ring(),self.gram_matrix().tensor_product(other.gram_matrix()))
+            return IntegralLattice(gram_matrix)
+        else:
+            inner_product_matrix = matrix(self.base_ring(), 
+                                   self.inner_product_matrix().tensor_product(other.inner_product_matrix()))
+            basis_matrix = matrix(self.base_ring(),self.basis_matrix().tensor_product(other.basis_matrix()))
+            n = self.degree()
+            m = other.degree()
+            ambient = FreeQuadraticModule(self.base_ring(), m * n, inner_product_matrix)
+            return FreeQuadraticModule_integer_symmetric(ambient=ambient, basis=basis_matrix,                       
+                   inner_product_matrix=inner_product_matrix)

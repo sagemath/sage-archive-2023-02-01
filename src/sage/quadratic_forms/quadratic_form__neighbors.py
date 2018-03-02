@@ -255,7 +255,7 @@ def find_p_neighbor_from_vec(self, p, v):
 
 #def find_classes_in_genus(self):
 
-def neighbor_method(self, p):
+def neighbor_method(self, p=None):
     r"""
     Return all classes in the `p`-neighbor graph of ``self``.
 
@@ -289,7 +289,9 @@ def neighbor_method(self, p):
     """
     isom_classes = [self.lll()]
     waiting_list = [isom_classes[0]]
-    while len(waiting_list)>0:
+    c_mass = isom_classes[0].number_of_automorphisms()**(-1)
+    c_mass_0 = isom_classes[0].conway_mass()
+    while len(waiting_list) > 0 and c_mass < c_mass_0:
         # find all p-neighbors of Q
         Q = waiting_list.pop()
         v = Q.find_primitive_p_divisible_vector__next(p)
@@ -301,6 +303,9 @@ def neighbor_method(self, p):
             else:
                 isom_classes.append(Q_neighbor)
                 waiting_list.append(Q_neighbor)
+                c_mass += Q_neighbor.number_of_automorphisms()**(-1)
             v = Q.find_primitive_p_divisible_vector__next(p, v)
+    # sanity check
+    assert c_mass == c_mass_0, "some classes are missed!"
     return isom_classes
 

@@ -922,8 +922,140 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                             return False
         return True
 
-    #def is_hermite(self, row_wise=True, lower_tri=True):
-    # TODO
+    def is_hermite(self,
+            row_wise=True,
+            zero_vectors_first=False,
+            lower_echelon=False,
+            include_zero_vectors=True):
+        r"""
+        Return a boolean indicating whether this matrix is in Hermite form.
+
+        If working row-wise, a polynomial matrix is said to be in Hermite form
+        if it is in row echelon form with all pivot entries monic and such that
+        all entries above a pivot have degree less than this pivot. Being in
+        row echelon form means that all zero rows are gathered at the bottom of
+        the matrix, and in each nonzero row the pivot (leftmost nonzero entry)
+        is strictly to the right of the pivot of the row just above this row.
+
+        If working column-wise, a polynomial matrix is said to be in Hermite
+        form if it is in column echelon form with all pivot entries monic and
+        such that all entries to the left of a pivot have degree less than this
+        pivot. Being in column echelon form means that all zero columns are
+        gathered at the right-hand side of the matrix, and in each nonzero
+        column the pivot (topmost nonzero entry) is strictly below the pivot of
+        the column just to the left of this row.
+
+        Since several definitions coexist concerning the location of the zero
+        rows (resp. columns), concerning the choice of upper or lower echelon
+        forms, and also concerning whether zero rows (resp. columns) are
+        allowed. Optional arguments are provided in order to allow flexibility
+        and support these alternative definitions.
+
+        INPUT:
+
+        - ``row_wise`` -- (optional, default: ``True``) boolean, ``True`` if
+          working row-wise (see the class description).
+
+        - ``zero_vectors_first`` -- (option, default: ``False``) boolean,
+          ``True`` if zero rows should rather be at the top of the matrix if
+          working row-wise, and in the left-hand side of the matrix if working
+          column-wise.
+
+        - ``lower_echelon`` -- (optional, default: ``False``) boolean,
+          ``False`` if TODO.
+
+        - ``include_zero_vectors`` -- (optional, default: ``True``) boolean,
+          ``False`` if one does not allow zero rows (resp. zero columns) in
+          Hermite forms.
+
+        OUTPUT: a boolean.
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+            sage: M = Matrix(pR, [ [x^4+6*x^3+4*x+4, 3*x+6,     3  ], \
+                                   [0,               x^2+5*x+5, 2  ], \
+                                   [0,               0,         x+5] ])
+
+            sage: M.is_hermite()
+            True
+            sage: M.is_hermite(row_wise=False)
+            False
+            sage: M.is_hermite(row_wise=False, lower_echelon=True)
+            True
+
+            sage: N = Matrix(pR, [ [x^2+5*x+5, 3*x^3+6,         3  ], \
+                                   [0,         x^4+6*x^3+4*x+4, 2  ], \
+                                   [0,         0,               x+5] ])
+            sage: N.is_hermite()
+            True
+            sage: N.is_hermite(row_wise=False)
+            False
+            sage: N.is_hermite(row_wise=False, lower_echelon=True)
+            False
+
+        Rectangular matrices with zero rows are supported. Zero rows should
+        be either at the top or at the bottom of the matrix (if working
+        row-wise), depending on the parameter ``zero_vectors_first``::
+
+            sage: N[:,:2].is_hermite()
+            True
+            sage: N[:,:2].is_hermite(zero_vectors_first=True)
+            False
+            sage: N[:,1:].is_hermite()
+            True
+            sage: N[1:,:].is_hermite(row_wise=False, zero_vectors_first=True)
+            True
+
+        One can forbid zero rows (or columns if not working row-wise)::
+
+            sage: N[:,:2].is_hermite(include_zero_vectors=False)
+            False
+
+        One can verify Hermite form::
+        """
+        # TODO example with other orientation of echelon
+
+        number_zero_vectors =                                         \
+            [self[i,:] == 0 for i in range(self.nrows())].count(True) \
+            if row_wise else                                          \
+            [self[:,j] == 0 for j in range(self.ncols())].count(True)
+
+        # if there is no zero row or if they should be first
+        # -> just call is_popov with the right shift
+        if zero_first or number_zero_vectors == 0:
+            shift = [j*self.degree()+1 for j in range(self.ncols())] \
+                    if row_wise else \
+                    [j*self.degree()+1 for j in range(self.nrows())]
+            if not lower_echelon:
+                shift.reverse()
+            return self.is_popov(shifts=shift, row_wise)
+
+        # now, there are zero rows and they should appear last (that is, either
+        # at the bottom or in the right-hand side, depending on row_wise)
+
+        # if zero rows (resp. columns) are not allowed, this is wrong
+        if (not include_zero_vectors):
+            return False
+
+
+        # TODO TODO
+
+        # now zero rows are allowed.
+        if row_wise:
+            if zero_first:
+                return self.is_popov(shift)
+            else:
+                # check: all zero rows are at the bottom of the matrix
+                number_nonzero = 0
+                # TODO
+        else:
+            if zero_first:
+                return self.is_popov(shift,row_wise=False)
+            else:
+                # check: all zero columns are in the right-hand side of the matrix
+                # TODO
+
 
     def weak_popov_form(self, transformation=False, shifts=None):
         r"""

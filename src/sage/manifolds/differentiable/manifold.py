@@ -2418,20 +2418,6 @@ class DifferentiableManifold(TopologicalManifold):
 
         """
         from sage.manifolds.differentiable.vectorframe import VectorFrame
-        # Only tuples are valid entries for the unique representation of
-        # VectorFrame:
-        if isinstance(symbol, list):
-            symbol = tuple(symbol)
-        if isinstance(latex_symbol, list):
-            latex_symbol = tuple(latex_symbol)
-        if isinstance(indices, list):
-            indices = tuple(indices)
-        if isinstance(latex_indices, list):
-            latex_indices = tuple(latex_indices)
-        if isinstance(symbol_dual, list):
-            symbol_dual = tuple(symbol_dual)
-        if isinstance(latex_symbol_dual, list):
-            latex_symbol_dual = tuple(latex_symbol_dual)
         return VectorFrame(self.vector_field_module(dest_map=dest_map,
                                                     force_free=True),
                            symbol=symbol, latex_symbol=latex_symbol,

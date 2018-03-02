@@ -3064,19 +3064,15 @@ class Polyhedron_base(Element):
 
     def subdirect_sum(self, other):
         """
-        Return the subdirect sum of ``self`` and ``other``. The subdirect sum of two 
-        polyhedron is a projection of the join of the two polytopes. It is
-        obtained by placing the two objects in orthogonal subspaces
+        Return the subdirect sum of ``self`` and ``other``. 
+        
+        The subdirect sum of two polyhedron is a projection of the join of the 
+        two polytopes. It is obtained by placing the two objects in orthogonal subspaces
         intersecting at the origin. 
 
         INPUT:
 
         - ``other`` -- a :class:`Polyhedron_base`.
-
-        OUTPUT:
-
-        The subdirect sum of ``self`` and ``other`` with a suitable base ring to
-        encompass the two.
 
         EXAMPLES::
 

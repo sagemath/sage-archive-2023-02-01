@@ -4178,7 +4178,7 @@ class Polyhedron_base(Element):
     def face_split(self, face):
         """
         Return the face splitting the face ``face``.
-        
+
         Splitting a face correspond to the bipyramid ``self`` where the two new
         vertices are placed above and below the center of ``face``.
 

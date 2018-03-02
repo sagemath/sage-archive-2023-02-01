@@ -1082,7 +1082,7 @@ class ClusterSeed(SageObject):
                                              description="Show last mutation vertex")
 
         mut_buttons = widgets.ToggleButtons(options=list(range(self._n)),
-                                           button_style='',
+                                           style={'button_width':'initial'},
                                            description='Mutate at: ')
 
         out = widgets.Output()

@@ -506,6 +506,13 @@ class EuclideanSpaceGeneric(PseudoRiemannianManifold):
             sage: v.display()
             v = x*y e_x + (x + y) e_y
 
+        It is also possible to initialize a vector field from a vector of
+        symbolic expressions::
+
+            sage: v = E.vector_field(vector([x*y, x+y]))
+            sage: v.display()
+            x*y e_x + (x + y) e_y
+
         If the components are relative to a vector frame different from the
         default one (here the Cartesian frame `(e_x,e_y)`), the vector
         frame has to be specified explicitly::
@@ -591,10 +598,13 @@ class EuclideanSpaceGeneric(PseudoRiemannianManifold):
                         frame, chart = frame
                     resu.add_comp(frame)[:, chart] = components
             else:
-                # args is the tuple of components in a specific vector frame
-                if len(args) != self._dim:
-                    raise ValueError("{} components must ".format(len(args)) +
+                if hasattr(args0, '__getitem__') and len(args0) == self._dim:
+                    # args0 is a list/vector of components
+                    args = args0
+                elif len(args) != self._dim:
+                    raise ValueError("{} components must ".format(self._dim) +
                                      "be provided")
+                    # args is the tuple of components in a specific frame
                 frame = kwargs.get('frame')
                 chart = kwargs.get('chart')
                 resu.add_comp(frame)[:, chart] = args

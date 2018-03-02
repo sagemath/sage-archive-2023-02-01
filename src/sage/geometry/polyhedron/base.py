@@ -4143,6 +4143,39 @@ class Polyhedron_base(Element):
         return Polyhedron(vertices=new_verts, rays=new_rays, lines=new_lines,
                           base_ring=self.base_ring())
 
+    def one_point_suspension(self, vertex, check=True):
+        """
+        Return the one-point suspension of ``self`` by splitting the vertex
+        ``vertex``.
+
+        The resulting polyhedron has one more vertex and its dimension
+        increases by one.
+
+        INPUT:
+
+        - ``vertex`` -- a vertex of ``self``.
+
+        - ``check`` -- a boolean, to check if vertex is a vertex of ``self``.
+
+        EXAMPLES::
+
+        """
+        if check and list(vertex) not in self.vertices_list():
+            raise ValueError("The face {} should be a vertex of {}.".format(vertex,self))
+
+        new_vertices = [list(x) + [0] for x in self.vertex_generator()] + \
+                       [list(vertex) + list(x) for x in [-1,1]]  # Splitting the vertex
+
+        new_rays = []
+        new_rays.extend( [ r + [0] for r in self.ray_generator() ] )
+
+        new_lines = []
+        new_lines.extend( [ l + [0] for l in self.line_generator() ] )
+
+        return Polyhedron(vertices=new_vertices,
+                          rays=new_rays, lines=new_lines,
+                          base_ring=new_ring)
+
     def projection(self):
         """
         Return a projection object.
@@ -5299,7 +5332,7 @@ class Polyhedron_base(Element):
         box_points = prod(max_coord-min_coord+1 for min_coord, max_coord in zip(box_min, box_max))
         if  not self.is_lattice_polytope() or \
                 (self.is_simplex() and box_points < 1000) or \
-                box_points<threshold:
+                box_points < threshold:
             from sage.geometry.integral_points import rectangular_box_points
             return rectangular_box_points(list(box_min), list(box_max), self)
 

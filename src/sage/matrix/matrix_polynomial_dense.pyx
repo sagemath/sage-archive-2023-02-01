@@ -676,7 +676,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         be in weak Popov form if the leading positions of its nonzero rows
         (resp. columns) are pairwise distinct (for the ordered weak Popov form,
         this pivot index must be strictly increasing, except for the possibly
-        repeated -1 entries at the beginning).
+        repeated -1 entries which are at the beginning).
 
         Sometimes, one forbids $M$ to have zero rows (resp. columns) in the
         above definitions; an optional parameter allows one to adopt this more
@@ -749,9 +749,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         Zero rows (resp. columns) can be forbidden::
 
             sage: M = Matrix([ \
-                    [      6*x+4,       0,             5*x+1, 0], \
-                    [          2, 5*x + 1,       6*x^2+3*x+1, 0], \
-                    [2*x^2+5*x+5,       1, 2*x^3+4*x^2+6*x+4, 0]  \
+                    [0,       6*x+4,       0,             5*x+1], \
+                    [0,           2, 5*x + 1,       6*x^2+3*x+1], \
+                    [0, 2*x^2+5*x+5,       1, 2*x^3+4*x^2+6*x+4]  \
                     ])
             sage: M.is_weak_popov(shifts=[2,1,0], row_wise=False, ordered=True)
             True
@@ -782,27 +782,34 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         # --> it remains to test whether leading_positions is strictly
         # increasing (except for its "-1" entries, if allowed)
         for index,next_leading_position in enumerate(leading_positions[1:]):
-            if next_leading_position >= 0 and \
+            if leading_positions[index] >= 0 and \
                     next_leading_position <= leading_positions[index]:
                 return False
         return True
 
-    def is_popov(self, shifts=None, row_wise=True, ordered_by_degree=False):
-        #TODO should use def with zero rows
-        #TODO order by degree version
+    def is_popov(self,
+            shifts=None,
+            row_wise=True,
+            up_to_permutation=False,
+            include_zero_vectors=True):
         r"""
         Return a boolean indicating whether this matrix is in (shifted) Popov
         form.
 
         If working row-wise (resp. column-wise), a polynomial matrix is said to
-        be in Popov form if it has no zero row (resp. column), its pivot index
-        is strictly increasing, and for each row (resp. column) the pivot entry
-        is monic and has degree strictly larger than the other entries in its
-        column (resp. row).
+        be in Popov form if it has no zero row below a nonzero row (resp. no
+        zero column to the right of a nonzero column), the leading positions of
+        its nonzero rows (resp. columns) are strictly increasing, and for each
+        row (resp. column) the pivot entry is monic and has degree strictly
+        larger than the other entries in its column (resp. row).
 
-        TODO. There is another convention, which replaces "pivot index strictly
-        increasing" by "row (resp. column) degree nondecreasing, and for rows
-        (resp. columns) of same degree, pivot indices increasing".
+        Since other conventions concerning the ordering of the rows (resp.
+        columns) are sometimes useful, an optional argument allows one to test
+        whether the matrix is in Popov form up to row (resp. column)
+        permutation. For example, there is an alternative definition which
+        replaces "leading positions strictly increasing" by "row (resp. column)
+        degree nondecreasing, and for rows (resp. columns) of same degree,
+        leading positions increasing".
 
         INPUT:
 
@@ -811,6 +818,14 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         - ``row_wise`` -- (optional, default: ``True``) boolean, ``True`` if
           working row-wise (see the class description).
+
+        - ``up_to_permutation`` -- (option, default: ``False``) boolean,
+          ``True`` if testing Popov form up to row permutation (if working
+          row-wise).
+
+        - ``include_zero_vectors`` -- (optional, default: ``True``) boolean,
+          ``False`` if one does not allow zero rows (resp. zero columns) in
+          Popov forms.
 
         OUTPUT: a boolean.
 
@@ -838,45 +853,75 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             True
 
             sage: M = Matrix(pR, [ [x^4+3*x^3+x^2+2*x+6, x^3+5*x^2+5*x+1], \
-                                   [6*x+1,               x^2 + 4*x + 1  ], \
+                                   [6*x+1,               x^2+4*x+1      ], \
                                    [6,                   6              ] ])
             sage: M.is_popov(row_wise=False)
             False
 
             sage: M.is_popov(shifts=[0,2,3], row_wise=False)
             True
+
+        One can forbid zero rows (or columns if not working row-wise)::
+
+            sage: N = Matrix(pR, [ [0,                   0         ], \
+                                   [x^4+3*x^3+x^2+2*x+6, 6*x+1     ], \
+                                   [5*x^2+5*x+1,         x^2+4*x+1 ] ])
+
+            sage: N.is_popov()
+            True
+
+            sage: N.is_popov(include_zero_vectors=False)
+            False
+
+        One can verify Popov form up to row permutation (or column permutation
+        if not working row-wise)::
+
+            sage: M.swap_columns(0,1)
+            sage: M.is_popov(shifts=[0,2,3], row_wise=False)
+            False
+
+            sage: M.is_popov(shifts=[0,2,3], row_wise=False, \
+                    up_to_permutation=True)
+            True
+
+            sage: N.swap_rows(0,2)
+
+            sage: N.is_popov()
+            False
+
+            sage: N.is_popov(up_to_permutation=True)
+            True
         """
-        self._check_shift_dimension(shifts,row_wise)
-        pivot_index,pivot_degree = self.leading_positions(shifts, row_wise,
-                return_degree=True)
-        # there should be no zero row (or column if not row_wise)
-        # and the matrix should not be m x 0 (or 0 x n if not row_wise)
-        if len(pivot_index) > 0 and \
-            (pivot_index[0] == None or pivot_index[0] < 0):
+        # the matrix should be in weak Popov form (ordered except if
+        # up_to_permutation==True)
+        if not self.is_weak_popov(shifts, \
+                row_wise, \
+                not up_to_permutation, \
+                include_zero_vectors):
             return False
-        # pivot_index should be strictly increasing
-        for index,next_pivot_index in enumerate(pivot_index[1:]):
-            if next_pivot_index <= pivot_index[index]:
-                return False
+
         # pivot entries should be monic, and pivot degrees must be the greatest
         # in their column (or in their row if column-wise)
-        for i,index in enumerate(pivot_index):
-            if row_wise:
-                if not self[i,index].is_monic():
-                    return False
-                for k in range(self.nrows()):
-                    if k==i:
-                        continue
-                    if self[k,index].degree() >= pivot_degree[i]:
+        leading_positions,pivot_degree = self.leading_positions(shifts, row_wise,
+                return_degree=True)
+        for i,index in enumerate(leading_positions):
+            if index>=0:
+                if row_wise:
+                    if not self[i,index].is_monic():
                         return False
-            else: # now column-wise
-                if not self[index,i].is_monic():
-                    return False
-                for k in range(self.ncols()):
-                    if k==i:
-                        continue
-                    if self[index,k].degree() >= pivot_degree[i]:
+                    for k in range(self.nrows()):
+                        if k==i:
+                            continue
+                        if self[k,index].degree() >= pivot_degree[i]:
+                            return False
+                else: # now column-wise
+                    if not self[index,i].is_monic():
                         return False
+                    for k in range(self.ncols()):
+                        if k==i:
+                            continue
+                        if self[index,k].degree() >= pivot_degree[i]:
+                            return False
         return True
 
     #def is_hermite(self, row_wise=True, lower_tri=True):

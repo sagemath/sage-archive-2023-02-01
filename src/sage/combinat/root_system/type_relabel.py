@@ -43,12 +43,13 @@ class CartanType(cartan_type.CartanType_decorator):
         if isinstance(relabelling, (list, tuple, dict, FiniteFamily)):
             # allows for using relabellings with more entries than in the index_set
             # and by the way makes a copy of relabelling
-            relabelling = dict( (i, relabelling[i]) for i in type.index_set() )
+            relabelling = {i: relabelling[i] for i in type.index_set()}
         else:
-            relabelling = dict( (i, relabelling(i)) for i in type.index_set() )
+            relabelling = {i: relabelling(i) for i in type.index_set()}
 
         if isinstance(type, CartanType): # type is already a relabelled type
-            relabelling = dict( (i, relabelling[type._relabelling[i]]) for i in type._type.index_set() )
+            relabelling = {i: relabelling[type._relabelling[i]]
+                           for i in type._type.index_set()}
             type = type._type
 
         if all( relabelling[i] == i for i in type.index_set() ):
@@ -190,7 +191,7 @@ class CartanType(cartan_type.CartanType_decorator):
         cartan_type.CartanType_simply_laced,
         cartan_type.CartanType_crystallographic]
 
-    def _repr_(self, compact = False):
+    def _repr_(self, compact=False):
         """
         EXAMPLES::
 
@@ -199,10 +200,15 @@ class CartanType(cartan_type.CartanType_decorator):
 
            sage: CartanType(['F', 4]).relabel(lambda x: 5-x)._repr_(compact = True)
            'F4 relabelled by {1: 4, 2: 3, 3: 2, 4: 1}'
+
+        TESTS::
+
+            sage: CoxeterType(['I',5]).relabel({1:0,2:1})
+            Coxeter type of ['I', 5] relabelled by {1: 0, 2: 1}
         """
         # Special case for type D_4^3
-        if self._type.dual().type() == 'G' and self._type.is_affine() \
-                and self.options("notation") == "Kac":
+        if (self._type.is_affine() and self._type.dual().type() == 'G'
+                and self.options("notation") == "Kac"):
             if compact:
                 return 'D4^3'
             return "['D', 4, 3]"
@@ -232,11 +238,16 @@ class CartanType(cartan_type.CartanType_decorator):
             sage: latex(CartanType(['D',4,3]))
             D_4^{(3)}
             sage: CartanType.options._reset()
+
+        TESTS::
+
+            sage: latex(CoxeterType(['I',5]).relabel({1:0,2:1}))
+            I_2(5) \text{ relabelled by } \left\{1 : 0, 2 : 1\right\}
         """
         from sage.misc.latex import latex
         # Special case for type D_4^{(3)}
-        if self._type.dual().type() == 'G' and self._type.is_affine() \
-                and self.options("notation") == "Kac":
+        if (self._type.is_affine() and self._type.dual().type() == 'G'
+                and self.options("notation") == "Kac"):
             return 'D_4^{(3)}'
         ret = self._type._latex_()
         if self.options('latex_relabel'):

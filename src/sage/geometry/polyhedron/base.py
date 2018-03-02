@@ -4143,7 +4143,7 @@ class Polyhedron_base(Element):
         return Polyhedron(vertices=new_verts, rays=new_rays, lines=new_lines,
                           base_ring=self.base_ring())
 
-    def one_point_suspension(self, vertex, check=True):
+    def one_point_suspension(self, vertex):
         """
         Return the one-point suspension of ``self`` by splitting the vertex
         ``vertex``.
@@ -4153,18 +4153,61 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``vertex`` -- a vertex of ``self``.
-
-        - ``check`` -- a boolean, to check if vertex is a vertex of ``self``.
+        - ``vertex`` -- a Vertex of ``self``.
 
         EXAMPLES::
 
-        """
-        if check and list(vertex) not in self.vertices_list():
-            raise ValueError("The face {} should be a vertex of {}.".format(vertex,self))
+            sage: cube = polytopes.cube()
+            sage: v = cube.vertices()[0]
+            sage: ops_cube = cube.one_point_suspension(v)
+            sage: ops_cube.f_vector()
+            (1, 9, 24, 24, 9, 1)
 
-        new_vertices = [list(x) + [0] for x in self.vertex_generator()] + \
-                       [list(vertex) + list(x) for x in [-1,1]]  # Splitting the vertex
+            sage: pentagon  = polytopes.regular_polygon(5)
+            sage: v = pentagon.vertices()[0]
+            sage: ops_pentagon = pentagon.one_point_suspension(v)
+            sage: ops_pentagon.f_vector()
+            (1, 6, 12, 8, 1)
+
+        .. SEEALSO::
+
+            :meth:`face_split`
+        """
+        return self.face_split(vertex)
+
+    def face_split(self, face):
+        """
+        Return the face splitting the face ``face``.
+        
+        Splitting a face correspond to the bipyramid ``self`` where the two new
+        vertices are placed above and below the center of ``face``.
+
+        INPUT:
+
+        - ``face`` -- a PolyhedronFace or a Vertex.
+
+        EXAMPLES::
+
+            sage: pentagon  = polytopes.regular_polygon(5)
+            sage: f = pentagon.faces(1)[0]
+            sage: fsplit_pentagon = pentagon.face_split(f)
+            sage: fsplit_pentagon.f_vector()
+            (1, 7, 14, 9, 1)
+
+        .. SEEALSO::
+
+            :meth:`one_point_suspension`
+        """
+        from sage.geometry.polyhedron.representation import Vertex
+        from sage.geometry.polyhedron.face import PolyhedronFace
+        if isinstance(face,Vertex):
+            new_vertices = [list(x) + [0] for x in self.vertex_generator()] + \
+                           [list(face) + [x] for x in [-1,1]]  # Splitting the vertex
+        elif isinstance(face,PolyhedronFace):
+            new_vertices = [list(x) + [0] for x in self.vertex_generator()] + \
+                           [list(face.as_polyhedron().center()) + [x] for x in [-1,1]]  # Splitting the face
+        else:
+            raise TypeError("The face {} should be a Vertex or PolyhedronFace".format(face)) 
 
         new_rays = []
         new_rays.extend( [ r + [0] for r in self.ray_generator() ] )
@@ -4173,8 +4216,7 @@ class Polyhedron_base(Element):
         new_lines.extend( [ l + [0] for l in self.line_generator() ] )
 
         return Polyhedron(vertices=new_vertices,
-                          rays=new_rays, lines=new_lines,
-                          base_ring=new_ring)
+                          rays=new_rays, lines=new_lines)
 
     def projection(self):
         """

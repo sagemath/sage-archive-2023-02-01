@@ -3124,8 +3124,8 @@ class Polyhedron_base(Element):
     def direct_sum(self, other):
         """
         Return the direct sum of ``self`` and ``other``.
-        
-        The direct sum of two polyhedron is the subdirect sum of the two, when 
+
+        The direct sum of two polyhedron is the subdirect sum of the two, when
         they have the origin in their interior. To avoid checking if the origin
         is contained in both, we place the affine subspace containing ``other``
         at the center of ``self``.

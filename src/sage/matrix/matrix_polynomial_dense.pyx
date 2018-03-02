@@ -519,14 +519,12 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         """
         self._check_shift_dimension(shifts,row_wise)
         if include_zero_vectors:
-            number_generators =                                \
-                self.nrows() -                                      \
-                [all([self[i,j] == 0 for j in range(self.ncols())]) \
-                        for i in range(self.nrows())].count(True)   \
-                if row_wise else                                    \
-                self.ncols() -                                      \
-                [all([self[i,j] == 0 for i in range(self.nrows())]) \
-                        for j in range(self.ncols())].count(True)
+            number_generators =                                           \
+                self.nrows() -                                            \
+                [self[i,:] == 0 for i in range(self.nrows())].count(True) \
+                if row_wise else                                          \
+                self.ncols() -                                            \
+                [self[:,j] == 0 for j in range(self.ncols())].count(True)
         else:
             number_generators = self.nrows() if row_wise else self.ncols()
         return number_generators == \

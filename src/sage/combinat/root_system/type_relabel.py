@@ -115,6 +115,8 @@ class CartanType(cartan_type.CartanType_decorator):
             1   2   3   4
             B4
 
+        TESTS:
+
         Test that the produced Cartan type is in the appropriate
         abstract classes (see :trac:`13724`)::
 
@@ -162,6 +164,15 @@ class CartanType(cartan_type.CartanType_decorator):
             ['G', 2]
             sage: ct.symmetrizer()
             Finite family {1: 1, 2: 3}
+
+        Check the underlying issue of :trac:`24892`, that the root system
+        of a relabelled non-crystallographic Cartan type has an
+        ``ambient_space()`` that does not result in an error (note that
+        this should actually return a valid ambient space, which requires
+        the non-crystallographic finite types to have them implemented)::
+
+            sage: rI5 = CartanType(['I',5]).relabel({1:0,2:1})
+            sage: rI5.root_system().ambient_space()
         """
         assert isinstance(relabelling, FiniteFamily)
         cartan_type.CartanType_decorator.__init__(self, type)
@@ -171,7 +182,10 @@ class CartanType(cartan_type.CartanType_decorator):
         # TODO: design an appropriate infrastructure to handle this
         # automatically? Maybe using categories and axioms?
         # See also type_dual.CartanType.__init__
-        if type.is_finite():
+        if type.is_finite() and type.is_crystallographic():
+            # FIXME: Remove the is_crystallographic check once the
+            #   non-crystallographic finite types (i.e., H_3, H_4, I_2(p))
+            #   have an implementation of the ambient space. See ticket #24892.
             self.__class__ = CartanType_finite
         elif type.is_affine():
             self.__class__ = CartanType_affine

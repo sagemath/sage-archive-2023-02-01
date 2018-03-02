@@ -1086,6 +1086,16 @@ def recognize_coxeter_type_from_matrix(coxeter_matrix, index_set):
         Coxeter type of ['I', 9]
         sage: CoxeterMatrix(matrix([[1,-1],[-1,1]]), index_set=[0,1]).coxeter_type()
         Coxeter type of ['A', 1, 1]
+
+    Check that this works for reducible types with relabellings
+    (:trac:`24892`)::
+
+        sage: CM = CoxeterMatrix([[1,2,5],[2,1,2],[5,2,1]]); CM
+        [1 2 5]
+        [2 1 2]
+        [5 2 1]
+        sage: CM.coxeter_type()
+        Coxeter type of I5 relabelled by {1: 1, 2: 3}xA1 relabelled by {1: 2}
     """
     # First, we build the Coxeter graph of the group without the edge labels
     n = ZZ(coxeter_matrix.nrows())

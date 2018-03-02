@@ -455,7 +455,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                 for j in range(self.ncols()) ]
                 for i in range(self.nrows()) ])
 
-    def is_reduced(self, shifts=None, row_wise=True, include_zero_vectors=True ):
+    def is_reduced(self,
+            shifts=None,
+            row_wise=True,
+            include_zero_vectors=True):
         r"""
         Return ``True`` if and only if this matrix is in (shifted) reduced
         form.
@@ -471,9 +474,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         $k$ nonzero columns with $k \leq m$ and its shifted leading matrix has
         rank $k$.
 
-        Note that sometimes one forbids $M$ to have zero rows (resp. columns)
-        in the above definitions; an optional parameter allows one to adopt
-        this more restrictive setting.
+        Sometimes, one forbids $M$ to have zero rows (resp. columns) in the
+        above definitions; an optional parameter allows one to adopt this more
+        restrictive setting.
 
         INPUT:
 
@@ -529,7 +532,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         return number_generators == \
             self.leading_matrix(shifts, row_wise).rank()
 
-    def leading_positions(self, shifts=None, row_wise=True, return_degree=False):
+    def leading_positions(self,
+            shifts=None,
+            row_wise=True,
+            return_degree=False):
         r"""
         Return the (shifted) leading positions (also known as the pivot index),
         and optionally the (shifted) pivot degree of this matrix.
@@ -657,19 +663,24 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             for j in range(self.ncols()) ]
         return (pivot_index,pivot_degree) if return_degree else pivot_index
 
-    def is_weak_popov(self, shifts=None, row_wise=True, ordered=False):
-        #TODO should use def with zero rows
+    def is_weak_popov(self,
+            shifts=None,
+            row_wise=True,
+            ordered=False,
+            include_zero_vectors=True):
         r"""
         Return a boolean indicating whether this matrix is in (shifted)
         (ordered) weak Popov form.
 
         If working row-wise (resp. column-wise), a polynomial matrix is said to
-        be in weak Popov form if it has no zero row (resp. column) and its
-        pivot index has pairwise distinct entries (for the ordered weak Popov
-        form, this pivot index must be strictly increasing).
+        be in weak Popov form if the leading positions of its nonzero rows
+        (resp. columns) are pairwise distinct (for the ordered weak Popov form,
+        this pivot index must be strictly increasing, except for the possibly
+        repeated -1 entries at the beginning).
 
-        Concerning square matrices, the ordered weak Popov form is sometimes
-        also called the quasi-Popov form.
+        Sometimes, one forbids $M$ to have zero rows (resp. columns) in the
+        above definitions; an optional parameter allows one to adopt this more
+        restrictive setting.
 
         INPUT:
 
@@ -681,6 +692,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         - ``ordered`` -- (optional, default: ``False``) boolean, ``True`` if
           checking for an ordered weak Popov form.
+
+        - ``include_zero_vectors`` -- (optional, default: ``True``) boolean,
+          ``False`` if one does not allow zero rows (resp. zero columns) in
+          (ordered) weak Popov forms.
 
         OUTPUT: a boolean.
 
@@ -730,21 +745,45 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
             sage: M.is_weak_popov(shifts=[0,2,1,3],ordered=True)
             True
+
+        Zero rows (resp. columns) can be forbidden::
+
+            sage: M = Matrix([ \
+                    [      6*x+4,       0,             5*x+1, 0], \
+                    [          2, 5*x + 1,       6*x^2+3*x+1, 0], \
+                    [2*x^2+5*x+5,       1, 2*x^3+4*x^2+6*x+4, 0]  \
+                    ])
+            sage: M.is_weak_popov(shifts=[2,1,0], row_wise=False, ordered=True)
+            True
+
+            sage: M.is_weak_popov(shifts=[2,1,0], row_wise=False, \
+                    include_zero_vectors=False)
+            False
         """
         self._check_shift_dimension(shifts,row_wise)
-        pivot_index = self.leading_positions(shifts, row_wise)
+        leading_positions = self.leading_positions(shifts, row_wise)
         # pivot index should not have duplicates, which is equivalent to:
         # once sorted, it doesn't contain a pair of equal successive entries
         if not ordered:
-            pivot_index.sort()
-        # there should be no zero row (or column if not row_wise)
-        # and the matrix should not be m x 0 (or 0 x n if not row_wise)
-        if len(pivot_index) > 0 and \
-            (pivot_index[0] == None or pivot_index[0] < 0):
-            return False
-        # pivot_index should be strictly increasing
-        for index,next_pivot_index in enumerate(pivot_index[1:]):
-            if next_pivot_index <= pivot_index[index]:
+            leading_positions.sort()
+        if not include_zero_vectors:
+            # there should be no zero row (or column if not row_wise)
+            # and the matrix should not be m x 0 (or 0 x n if not row_wise)
+            if len(leading_positions) > 0 and \
+                (leading_positions[0] == None or leading_positions[0] < 0):
+                return False
+        else:
+            # if the matrix is m x 0 (or 0 x n) and zero rows (or columns)
+            # are allowed, then the matrix is in ordered weak Popov form
+            if len(leading_positions) == 0:
+                return True
+        # now leading_positions is nondecreasing and has length >= 1;
+        # it does not contain "-1" entries if include_zero_vectors=False
+        # --> it remains to test whether leading_positions is strictly
+        # increasing (except for its "-1" entries, if allowed)
+        for index,next_leading_position in enumerate(leading_positions[1:]):
+            if next_leading_position >= 0 and \
+                    next_leading_position <= leading_positions[index]:
                 return False
         return True
 

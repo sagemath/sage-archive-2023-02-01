@@ -17,7 +17,99 @@ from sage.rings.integer_ring import IntegerRing
 from sage.rings.rational_field import RationalField
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
-import copy
+from copy import deepcopy
+
+def all_genera_of_given_det(sig_vec, determinant, max_scale=None, even=True):
+    r"""
+    Return a list of all global genera with the given conditions.
+
+    INPUT:
+
+    - ``sig_vec`` --
+    - ``determinant`` --
+    - ``max_scale`` --
+    - ``even`` --
+    """
+    from sage.misc.mrange import mrange_iter
+    from sage.matrix.constructor import matrix
+    genera = []
+    rank = sig_vec[0] + sig_vec[1]
+    local_genus_symbols = []
+    for pn in determinant.factor():
+        p = pn[0]
+        det_val = pn[1]
+        mscale_p = max_scale.valuation(p)
+        local_genus_symbols.append(_all_p_adic_genera(p, rank, det_val, mscale_p))
+    if determinant % 2 != 0:
+        local_genus_symbols.append(_all_p_adic_genera(2, rank, 0, 0, even=even))
+    for g in mrange_iter(local_genus_symbols):
+        # create a Genus form a list of local symbols
+        G = GenusSymbol_global_ring(matrix.identity(1))
+        G._signature = sig_vec
+        G._representative = None
+        G._local_symbols = deepcopy(g)
+        # discard the empty genera
+        if is_GlobalGenus(G):
+            genera.append(G)
+    return(genera)
+
+def _all_p_adic_genera(p, rank, det_val, max_level, even=None):
+    r"""
+    """
+    from sage.misc.mrange import cantor_product
+    from sage.combinat.integer_lists.invlex import IntegerListsLex
+    from copy import deepcopy
+    def cantor_product1(L, repeat):
+        if repeat == 1:
+            return [tuple([g]) for g in L]
+        else:
+            return cantor_product(L,repeat=repeat)
+    if max_level > det_val:
+        max_level = det_val
+    symbols0 = [] # will contain possibilities for scales and ranks
+    for rkseq in IntegerListsLex(rank, length=max_level+1):   # rank sequences
+        # sum(rkseq) = rank
+        # len(rkseq) = max_level + 1
+        # now assure that we get the right determinant
+        d = 0
+        pgensymbol = []
+        for i in range(max_level + 1):
+            d += i * rkseq[i]
+            if rkseq[i] != 0:
+                pgensymbol.append([i, rkseq[i], 0])
+        if d == det_val:
+            symbols0.append(pgensymbol)
+    # we have to fill in the determinants and for p=2 the oddities
+    symbols = []
+    if p != 2:
+        for g in symbols0:
+            n = len(g)
+            for v in cantor_product1([-1, 1], repeat=n):
+                g1 = deepcopy(g)
+                for k in range(n):
+                    g1[k][2] = v[k]
+                g1 = Genus_Symbol_p_adic_ring(p, g1)
+                symbols.append(g1)
+    if p == 2:
+        for g in symbols0:
+            n = len(g)
+            # recall: 2-genus_symbol [level, rank, det, even/odd, oddity]
+            for det in cantor_product1([1, 3, 5, 7], repeat=n):
+                for parity in cantor_product1([0, 1], repeat=n):
+                    for oddity in cantor_product1(range(8), repeat=n):
+                        g1 = deepcopy(g)
+                        for k in range(n):
+                            g1[k] += [0, 0]
+                            g1[k][2] = det[k]
+                            g1[k][3] = parity[k]
+                            g1[k][4] = oddity[k]
+                        flag1 = not(even) or g1[0][0] != 0 or g1[0][3]==g1[0][4]==0
+                        if flag1 and is_2_adic_genus(g1):
+                            g1 = Genus_Symbol_p_adic_ring(p, g1)
+                            if not g1 in symbols:
+                                symbols.append(g1)
+    return(symbols)
+
 
 def Genus(A):
     r"""
@@ -103,14 +195,14 @@ def is_GlobalGenus(G):
         sage: G = Genus(A)
         sage: is_GlobalGenus(G)
         True
-      
+
         sage: from sage.quadratic_forms.genera.genus import Genus,is_GlobalGenus
         sage: G=Genus(matrix.diagonal([2,2,2,2]))
         sage: G._local_symbols[0]._symbol=[[0,2,3,0,0],[1,2,5,1,0]]
         sage: G._representative=None
         sage: is_GlobalGenus(G)
         False
- 
+
     """
     D = G.determinant()
     r, s = G.signature_pair_of_matrix()
@@ -443,7 +535,7 @@ def canonical_2_adic_reduction(genus_symbol_quintuple_list):
         Add an example where sign walking occurs!
     """
     # Protect the input from unwanted modification
-    genus_symbol_quintuple_list = copy.deepcopy(genus_symbol_quintuple_list)
+    genus_symbol_quintuple_list = deepcopy(genus_symbol_quintuple_list)
     canonical_symbol = genus_symbol_quintuple_list
     # Canonical determinants:
     for i in range(len(genus_symbol_quintuple_list)):
@@ -1008,7 +1100,7 @@ class Genus_Symbol_p_adic_ring(object):
             sage: symbol = [[0, 4, -1, 0, 0],[1, 2, 1, 1, 2],[2, 1, 1, 1, 1],[4, 4, 1, 0, 0],[5, 1, 1, 1, 1]]
             sage: g = Genus_Symbol_p_adic_ring(2,symbol)
             sage: g._canonical_symbol = [[0, 4, 1, 0, 0],[1, 2, 1, 1, 3],[2, 1, 1, 1, 0],[4, 4, 1, 0, 0],[5, 1, 1, 1, 1]]
-            sage: g    
+            sage: g
             Genus symbol at 2:    1^4 [2^2 4^1]_1 :16^4 [32^1]_1
 
 
@@ -1020,7 +1112,7 @@ class Genus_Symbol_p_adic_ring(object):
             CS = self.canonical_symbol()
             for train in self.trains():
                 #mark the beginning of a train with a colon
-                CS_string += " :" 
+                CS_string += " :"
                 #collect the indices where compartments begin and end
                 compartment_begins = []
                 compartment_ends = []
@@ -1039,22 +1131,22 @@ class Genus_Symbol_p_adic_ring(object):
                         #close this compartment with ] and remove a space
                         CS_string = CS_string[:-1] + "]"
                         #the oddity belongs to the compartment
-                        oddity = CS[comp[0]][4] 
+                        oddity = CS[comp[0]][4]
                         CS_string +="_%s" % oddity
             #remove the first colon
             CS_string = CS_string[2:]
-            
+
         else:
             for s in self._symbol:
                 CS_string += " %s^%s" % (p**s[0], s[2]*s[1])
         return "Genus symbol at %s:    %s" % (p, CS_string)
-    
+
     def _latex_(self):
         """
         The LaTeX representation of this local genus symbol.
-        
+
         EXAMPLES::
-        
+
             sage: from sage.quadratic_forms.genera.genus import Genus_Symbol_p_adic_ring
             sage: symbol = [[0, 4, -1, 0, 0],[1, 2, 1, 1, 2],[2, 1, 1, 1, 1],[4, 4, 1, 0, 0],[5, 1, 1, 1, 1]]
             sage: g = Genus_Symbol_p_adic_ring(2,symbol)
@@ -1070,7 +1162,7 @@ class Genus_Symbol_p_adic_ring(object):
             CS = self.canonical_symbol()
             for train in self.trains():
                 #mark the beginning of a train with a colon
-                CS_string += " :" 
+                CS_string += " :"
                 #collect the indices where compartments begin and end
                 compartment_begins = []
                 compartment_ends = []
@@ -1089,18 +1181,18 @@ class Genus_Symbol_p_adic_ring(object):
                         #close this compartment with ] and remove a space
                         CS_string = CS_string[:-1] + "]"
                         #the oddity belongs to the compartment
-                        oddity = CS[comp[0]][4] 
+                        oddity = CS[comp[0]][4]
                         CS_string +="_{%s}" % oddity
             #remove the first colon
             CS_string = CS_string[2:]
-            
+
         else:
             for s in self._symbol:
                 CS_string += " {%s}^{%s}" % (p**s[0], s[2]*s[1])
         return "\\mbox{Genus symbol at } %s\mbox{: }%s" % (p,CS_string)
-        
-        
-    
+
+
+
     def __eq__(self, other):
         """
         Determines if two genus symbols are equal (not just equivalent!).
@@ -1183,7 +1275,7 @@ class Genus_Symbol_p_adic_ring(object):
     #def len(self):
     #    return len(self._symbol)
     ## ------------------------------------------------------
-        
+
     def canonical_symbol(self):
         """
         Return (and cache) the canonical p-adic genus symbol.  This is
@@ -1657,7 +1749,7 @@ class GenusSymbol_global_ring(object):
         a string
 
         EXAMPLES::
-        
+
             sage: from sage.quadratic_forms.genera.genus import GenusSymbol_global_ring
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
             sage: GS = GenusSymbol_global_ring(A)
@@ -1669,13 +1761,13 @@ class GenusSymbol_global_ring(object):
             [0 0 0 8]
             Genus symbol at 2:    [2^-2 4^1 8^1]_6
             Genus symbol at 3:     1^3 3^-1
-        
+
             sage: A2 = Matrix(ZZ,2,2,[2,-1,-1,2])
             sage: GenusSymbol_global_ring(A2)
             Genus of
             [ 2 -1]
             [-1  2]
-            Genus symbol at 2:    1^-2 
+            Genus symbol at 2:    1^-2
             Genus symbol at 3:     1^-1 3^-1
 
         """
@@ -1683,13 +1775,13 @@ class GenusSymbol_global_ring(object):
         for s in self._local_symbols:
             local_symbols += "\n" + s.__repr__()
         return "Genus of\n%s\n%s" % (self._representative,local_symbols[1:])
-    
+
     def _latex_(self):
         """
         The Latex representation of this lattice.
-        
+
         EXAMPLES::
-        
+
             sage: D4=QuadraticForm(Matrix(ZZ,4,4,[2,0,0,-1,0,2,0,-1,0,0,2,-1,-1,-1,-1,2]))
             sage: G=D4.global_genus_symbol()
             sage: G._latex_()
@@ -1699,8 +1791,8 @@ class GenusSymbol_global_ring(object):
         for s in self._local_symbols:
             local_symbols += "\\\\" + s._latex_()
         return "\\mbox{Genus of}\\\\%s\\\\%s" % (self._representative._latex_(),local_symbols)
-    
-    
+
+
 
     def __eq__(self, other):
         """
@@ -1734,9 +1826,9 @@ class GenusSymbol_global_ring(object):
 
             sage: GS2 == GS2
             True
-            
+
         TESTS::
-        
+
             sage: D4=QuadraticForm(Matrix(ZZ,4,4,[2,0,0,-1,0,2,0,-1,0,0,2,-1,-1,-1,-1,2]))
             sage: G=D4.global_genus_symbol()
             sage: sage.quadratic_forms.genera.genus.is_GlobalGenus(G)

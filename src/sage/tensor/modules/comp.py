@@ -753,18 +753,24 @@ class Components(SageObject):
 
     def _get_list(self, ind_slice, no_format=True, format_type=None):
         r"""
-        Return the list of components.
+        Return the list of components (as nested list or matrix).
 
         INPUT:
 
-        - ``ind_slice`` --  a slice object
+        - ``ind_slice`` --  a slice object. Unless the dimension is 1,
+          this must be ``[:]``.
 
         OUTPUT:
 
-        - the full list of components if  ``ind_slice = [:]``, or a slice
-          of it if ``ind_slice = [a:b]`` (1-D case), in the form
-          ``T[i][j]...`` for the components `T_{ij...}` (for a 2-indices
-          object, a matrix is returned).
+        - general case: the nested list of components in the form
+          ``T[i][j]...`` for the components `T_{ij...}`.
+
+        - in the 1-dim case, a slice of that list if
+          ``ind_slice = [a:b]``.
+
+        - in the 2-dim case, a matrix (over ``SR``) is returned instead.
+          As a special exception, if ``str`` is used as output
+          formatter, a list is returned anyway.
 
         EXAMPLES::
 
@@ -785,7 +791,6 @@ class Components(SageObject):
             [4, 5]
             sage: v._get_list(slice(2,3))
             [6]
-
         """
         from sage.matrix.constructor import matrix
         si = self._sindex
@@ -810,17 +815,17 @@ class Components(SageObject):
                       "implemented for components with {} indices".format(self._nid))
         resu = [self._gen_list([i], no_format, format_type)
                 for i in range(si, nsi)]
-        if self._nid == 2:
-            try:
-                for i in range(self._dim):
-                    for j in range(self._dim):
-                        a = resu[i][j]
-                        if hasattr(a, '_express'):
-                            resu[i][j] = a.expr()
-                resu = matrix(resu)  # for a nicer output
-            except TypeError:
-                pass
-        return resu
+        if self._nid != 2 or (not no_format and self._output_formatter is str):
+            return resu
+
+        # 2-dim case: convert to matrix for a nicer output
+        for i in range(self._dim):
+            for j in range(self._dim):
+                a = resu[i][j]
+                if hasattr(a, '_express'):
+                    resu[i][j] = a.expr()
+        from sage.symbolic.ring import SR
+        return matrix(SR, resu)
 
     def _gen_list(self, ind, no_format=True, format_type=None):
         r"""

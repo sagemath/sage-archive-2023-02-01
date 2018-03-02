@@ -2246,9 +2246,8 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             [ x + 1    x*y]
             [   x*y -x + 1]
             sage: g.inverse()[:]
-            [[(x - 1)/(x**2*y**2 + x**2 - 1), x*y/(x**2*y**2 + x**2 - 1)],
-             [x*y/(x**2*y**2 + x**2 - 1), -(x + 1)/(x**2*y**2 + x**2 - 1)]]
-
+            [ (x - 1)/(x^2*y^2 + x^2 - 1)      x*y/(x^2*y^2 + x^2 - 1)]
+            [     x*y/(x^2*y^2 + x^2 - 1) -(x + 1)/(x^2*y^2 + x^2 - 1)]
         """
         from sage.matrix.constructor import matrix
         from sage.tensor.modules.comp import CompFullySym

@@ -1,7 +1,7 @@
 r"""
 Orthogonal Linear Groups
 
-The general orthogonal group `GO(n,R)` consists of all `n\times n`
+The general orthogonal group `GO(n,R)` consists of all `n \times n`
 matrices over the ring `R` preserving an `n`-ary positive definite
 quadratic form. In cases where there are multiple non-isomorphic
 quadratic forms, additional data needs to be specified to
@@ -83,8 +83,6 @@ from sage.misc.cachefunc import cached_method
 from sage.groups.matrix_gps.named_group import (
     normalize_args_vectorspace, NamedMatrixGroup_generic, NamedMatrixGroup_gap )
 
-
-
 def normalize_args_e(degree, ring, e):
     """
     Normalize the arguments that relate the choice of quadratic form
@@ -138,7 +136,7 @@ def GO(n, R, e=0, var='a'):
     """
     Return the general orthogonal group.
 
-    The general orthogonal group `GO(n,R)` consists of all `n\times n`
+    The general orthogonal group `GO(n,R)` consists of all `n \times n`
     matrices over the ring `R` preserving an `n`-ary positive definite
     quadratic form. In cases where there are multiple non-isomorphic
     quadratic forms, additional data needs to be specified to
@@ -211,7 +209,7 @@ def SO(n, R, e=None, var='a'):
     """
     Return the special orthogonal group.
 
-    The special orthogonal group `GO(n,R)` consists of all `n\times n`
+    The special orthogonal group `GO(n,R)` consists of all `n \times n`
     matrices with determinant one over the ring `R` preserving an
     `n`-ary positive definite quadratic form. In cases where there are
     multiple non-isomorphic quadratic forms, additional data needs to
@@ -352,7 +350,6 @@ class OrthogonalMatrixGroup_generic(NamedMatrixGroup_generic):
             raise TypeError('matrix must be orthogonal with respect to the invariant form')
         # TODO: check that quadratic form is preserved in characteristic two
 
-
 class OrthogonalMatrixGroup_gap(OrthogonalMatrixGroup_generic, NamedMatrixGroup_gap):
 
     @cached_method
@@ -410,7 +407,7 @@ class OrthogonalMatrixGroup_gap(OrthogonalMatrixGroup_generic, NamedMatrixGroup_
 
         The matrix `Q` defining "orthogonal" as follows. The matrix
         determines a quadratic form `q` on the natural vector space
-        `V`, on which `G` acts, by `q(v) = v Q v^t`. A matrix `M' is
+        `V`, on which `G` acts, by `q(v) = v Q v^t`. A matrix `M` is
         an element of the orthogonal group if `q(v) = q(v M)` for all
         `v \in V`.
 
@@ -447,6 +444,3 @@ class OrthogonalMatrixGroup_gap(OrthogonalMatrixGroup_generic, NamedMatrixGroup_
         m = self.gap().InvariantQuadraticForm()['matrix'].matrix()
         m.set_immutable()
         return m
-
-
-

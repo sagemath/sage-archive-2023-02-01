@@ -81,7 +81,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         sage: P.n_inequalities()                                           # optional - pynormaliz
         1
         sage: P.equations()                                                # optional - pynormaliz
-        (An equation (1, 0) x - 1 == 0,)
+        (An equation (-1, 0) x + 1 == 0,)
 
     The empty polyhedron::
 
@@ -419,7 +419,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: PI.Vrepresentation()                                     # optional - pynormaliz
             (A vertex at (1, 0),
              A ray in the direction (1, 0),
-             A line in the direction (1, -1))
+             A line in the direction (-1, 1))
 
         Empty polyhedron::
 

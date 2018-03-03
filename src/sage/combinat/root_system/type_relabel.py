@@ -182,10 +182,12 @@ class CartanType(cartan_type.CartanType_decorator):
         # TODO: design an appropriate infrastructure to handle this
         # automatically? Maybe using categories and axioms?
         # See also type_dual.CartanType.__init__
-        if type.is_finite() and type.is_crystallographic():
-            # FIXME: Remove the is_crystallographic check once the
-            #   non-crystallographic finite types (i.e., H_3, H_4, I_2(p))
-            #   have an implementation of the ambient space. See ticket #24892.
+        if type.is_finite() and (isinstance(type, cartan_type.SuperCartanType_standard)
+                                 or type.is_crystallographic()):
+            # FIXME: Remove the is_crystallographic (and the short-circuiting
+            #   super) check once the non-crystallographic finite types
+            #   (i.e., H_3, H_4, I_2(p)) have an implementation of an
+            #   ambient space. See ticket #24892.
             self.__class__ = CartanType_finite
         elif type.is_affine():
             self.__class__ = CartanType_affine

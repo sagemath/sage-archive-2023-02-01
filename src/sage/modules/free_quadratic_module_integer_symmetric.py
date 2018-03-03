@@ -679,13 +679,13 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         
         INPUT:
 
-        - ``other`` -- a nonzero integer or an integral lattice
+        - ``other`` -- an integral lattice
         - ``discard_basis`` -- a boolean (default: ``False``). If ``True``, then the lattice 
                             returned is equipped with the standard basis.
         
         EXAMPLES::
         
-            sage: L = IntegralLattice("D4",[[1,2,1,0],[0,1,1,0,],[1,2,3,1]])
+            sage: L = IntegralLattice("D4", [[1,2,1,0], [0,1,1,0,], [1,2,3,1]])
             sage: L1 = L.tensor_product(L)
             sage: L2 = L.tensor_product(L, True)
             sage: L1
@@ -758,7 +758,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         if not isinstance(other, FreeQuadraticModule_integer_symmetric):
             raise ValueError("other (=%s) must be an integral lattice" % other)
         if discard_basis:
-            gram_matrix = matrix(self.base_ring(),self.gram_matrix().tensor_product(other.gram_matrix()))
+            gram_matrix = matrix(self.base_ring(), self.gram_matrix().tensor_product(other.gram_matrix()))
             return IntegralLattice(gram_matrix)
         else:
             inner_product_matrix = matrix(self.base_ring(), 

@@ -745,7 +745,7 @@ def RSHCD_324(e):
 
 def _helper_payley_matrix(n, zero_position=True):
     r"""
-    Return the marix constructed in Lemma 1.19 page 291 of [SWW72]_.
+    Return the matrix constructed in Lemma 1.19 page 291 of [SWW72]_.
 
     This function return a `n^2` matrix `M` whose rows/columns are indexed by
     the element of a finite field on `n` elements `x_1,...,x_n`. The value

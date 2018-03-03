@@ -2504,7 +2504,7 @@ class Partition(CombinatorialElement):
         The degree of a partition `\lambda` is the sum of the
         `e`-:meth:`degree` of the standard tableaux of shape `\lambda`, for
         `e` a poer of the prime `p`. The prime degree gives the exponent of
-        `p` in the Gram determinant of the integal Specht module of the
+        `p` in the Gram determinant of the integral Specht module of the
         symmetric group.
 
         EXAMPLES::

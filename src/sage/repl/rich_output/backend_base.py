@@ -173,7 +173,7 @@ class BackendBase(SageObject):
         internally by the display manager.
 
         You may return backend-specific subclasses of existing output
-        containers. This allows you to attach backend-specifc
+        containers. This allows you to attach backend-specific
         functionality to the output container.
 
         EXAMPLES::

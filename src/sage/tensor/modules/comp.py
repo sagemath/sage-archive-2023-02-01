@@ -139,7 +139,7 @@ the :class:`Components` constructor::
 
 If some formatter function or unbound method is provided via the argument
 ``output_formatter`` in the :class:`Components` constructor, it is used to
-change the ouput of the access operator ``[...]``::
+change the output of the access operator ``[...]``::
 
     sage: a = Components(QQ, basis, 2, output_formatter=Rational.numerical_approx)
     sage: a[1,2] = 1/3
@@ -331,7 +331,7 @@ class Components(SageObject):
         -3
 
     If some formatter function or unbound method is provided via the argument
-    ``output_formatter``, it is used to change the ouput of the access
+    ``output_formatter``, it is used to change the output of the access
     operator ``[...]``::
 
         sage: a = Components(QQ, basis, 2, output_formatter=Rational.numerical_approx)
@@ -1081,7 +1081,7 @@ class Components(SageObject):
             c_111 = 3
 
         By default, all indices are printed as subscripts, but any index
-        position can be specifed::
+        position can be specified::
 
             sage: c.display('c', index_positions='udd')
             c^0_10 = -2

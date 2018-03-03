@@ -718,7 +718,7 @@ def TD_product(k,TD1,n1,TD2,n2, check=True):
 
         This function uses transversal designs with
         `V_1=\{0,\dots,n-1\},\dots,V_k=\{(k-1)n,\dots,kn-1\}` both as input and
-        ouptut.
+        output.
 
     EXAMPLES::
 

@@ -92,7 +92,7 @@ def _iterate_Up(Phi, p, M, ap, q, aq, check):
     if ap.valuation(p) > 0:
         raise ValueError("Lifting non-ordinary eigensymbols not implemented (issue #20)")
 
-    ## Act by Hecke to ensure values are in D and not D^dag after sovling difference equation
+    ## Act by Hecke to ensure values are in D and not D^dag after solving difference equation
     verbose("Applying Hecke", level = 2)
 
     apinv = ~ap

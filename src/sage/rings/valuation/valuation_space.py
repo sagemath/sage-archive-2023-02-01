@@ -777,7 +777,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             .. NOTE::
             
-                Overriding this method tends to be a nuissance as you need to
+                Overriding this method tends to be a nuisance as you need to
                 handle all possible types (as in Python type) of valuations.
                 This is essentially the same problem that you have when
                 implementing operators such as ``+`` or ``>=``. A sufficiently
@@ -858,8 +858,8 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             ``other``.
 
             .. NOTE::
-            
-                Overriding this method tends to be a nuissance as you need to
+
+                Overriding this method tends to be a nuisance as you need to
                 handle all possible types (as in Python type) of valuations.
                 This is essentially the same problem that you have when
                 implementing operators such as ``+`` or ``>=``. A sufficiently

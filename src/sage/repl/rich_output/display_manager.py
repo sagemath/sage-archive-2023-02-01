@@ -362,7 +362,7 @@ class DisplayManager(SageObject):
         Boolean.
         """
         return self._backend.is_in_terminal()
-    
+
     def check_backend_class(self, backend_class):
         """
         Check that the current backend is an instance of
@@ -574,7 +574,7 @@ class DisplayManager(SageObject):
             sage: from sage.repl.rich_output import get_display_manager
             sage: dm = get_display_manager()
             sage: dm._call_rich_repr(Foo(), {})
-            doctest:...: RichReprWarning: Exception in _rich_repr_ while displaying object: reason
+            doctest:...: ...RichReprWarning: Exception in _rich_repr_ while displaying object: reason
         """
         if rich_repr_kwds:
             # do not ignore errors from invalid options
@@ -690,7 +690,7 @@ class DisplayManager(SageObject):
             sage: out = dm.graphics_from_save(plt.save, dict(), '.png', dm.types.OutputImagePng)
             sage: out
             OutputImagePng container
-            sage: out.png.get().startswith('\x89PNG')
+            sage: out.png.get().startswith(b'\x89PNG')
             True
             sage: out.png.filename()   # random
             '/home/user/.sage/temp/localhost.localdomain/23903/tmp_pu5woK.png'

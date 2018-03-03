@@ -43,6 +43,7 @@ from sage.rings.finite_rings.integer_mod cimport IntegerMod_gmp, IntegerMod_int,
 
 from sage.libs.ntl.ntl_lzz_pContext import ntl_zz_pContext
 from sage.libs.ntl.ntl_lzz_pContext cimport ntl_zz_pContext_class
+from sage.arith.power cimport generic_power_pos
 
 ZZ_sage = IntegerRing()
 
@@ -253,37 +254,44 @@ cdef class ntl_zz_p(object):
         """
         Return the n-th nonnegative power of self.
 
-        EXAMPLES:
-            sage: g = ntl.zz_p(5,13)
-            sage: g**10
+        EXAMPLES::
+
+            sage: g = ntl.zz_p(5, 13)
+            sage: g ^ 10
             12
-            sage: g**(-1)
+            sage: g ^ (-1)
             8
-            sage: g**(-5)
+            sage: g ^ (-5)
             8
+            sage: g ^ 0
+            1
+            sage: z = ntl.zz_p(0, 13)
+            sage: z ^ 0
+            1
+            sage: z ^ 1
+            0
+            sage: z ^ (-1)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: inverse does not exist
         """
-        cdef ntl_zz_p y
+        self.c.restore_c()
+        if n == 0:
+            return ntl_zz_p(1, self.c)
+
         if self.is_zero():
-            if n == 0:
-                raise ArithmeticError("0^0 is undefined.")
-            elif n < 0:
-                raise ZeroDivisionError
-            else:
+            if n > 0:
                 return self
+            raise ZeroDivisionError("inverse does not exist")
+
+        cdef ntl_zz_p y
+        if n > 0:
+            return generic_power_pos(self, <unsigned long>n)
         else:
-            from sage.groups.generic import power
-
-            self.c.restore_c()
-
-            if n == 0:
-                return self
-            elif n < 0:
-                y = ntl_zz_p.__new__(ntl_zz_p)
-                y.c = self.c
-                zz_p_inv(y.x, self.x)
-                return power(y, -n, ntl_zz_p(1,self.c))
-            else:
-                return power(self, n, ntl_zz_p(1,self.c))
+            y = ntl_zz_p.__new__(ntl_zz_p)
+            y.c = self.c
+            zz_p_inv(y.x, self.x)
+            return generic_power_pos(y, -<unsigned long>n)
 
     def __neg__(self):
         """

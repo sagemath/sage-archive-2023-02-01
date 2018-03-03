@@ -1125,8 +1125,11 @@ class Factorization(SageObject):
             return Factorization([])
         if self.is_commutative():
             return Factorization([(p, n*e) for p, e in self], unit=self.unit()**n, cr=self.__cr, sort=False, simplify=False)
-        from sage.groups.generic import power
-        return power(self, n, Factorization([]))
+        if n < 0:
+            self = ~self
+            n = -n
+        from sage.arith.power import generic_power
+        return generic_power(self, n)
 
     def __invert__(self):
         r"""

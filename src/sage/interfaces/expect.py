@@ -482,7 +482,8 @@ If this all works, you can then make calls like:
                         timeout=None,  # no timeout
                         env=pexpect_env,
                         name=self._repr_(),
-                        # work around python #1652
+                        echo=self._terminal_echo,
+                        # Work around https://bugs.python.org/issue1652
                         preexec_fn=lambda: signal.signal(signal.SIGPIPE, signal.SIG_DFL),
                         quit_string=self._quit_string())
             except (ExceptionPexpect, pexpect.EOF) as e:
@@ -506,13 +507,6 @@ If this all works, you can then make calls like:
             self._session_number = BAD_SESSION
             raise RuntimeError("unable to start %s" % self.name())
         self._expect.timeout = None
-
-        # Calling tcsetattr earlier exposes bugs in various pty
-        # implementations, see trac #16474. Since we haven't
-        # **written** anything so far it is safe to wait with
-        # switching echo off until now.
-        if not self._terminal_echo:
-            self._expect.setecho(0)
 
         with gc_disabled():
             if block_during_init:

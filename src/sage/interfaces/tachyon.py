@@ -21,6 +21,7 @@ import os
 from sage.misc.pager import pager
 from sage.misc.temporary_file import tmp_filename
 from sage.structure.sage_object import SageObject
+from sage.cpython.string import bytes_to_str
 
 
 class TachyonRT(SageObject):
@@ -153,7 +154,7 @@ class TachyonRT(SageObject):
         if verbose:
             print(' '.join(cmd))
         import subprocess
-        out = subprocess.check_output(cmd)
+        out = bytes_to_str(subprocess.check_output(cmd))
         if verbose >= 1:
             print(out)
         if out.rstrip().endswith('Aborting render.'):

@@ -71,6 +71,7 @@ import sage.rings.infinity as infinity
 from sage.misc.sage_eval import sage_eval
 from sage.misc.abstract_method import abstract_method
 from sage.misc.latex import latex
+from sage.arith.power cimport generic_power
 from sage.arith.long cimport pyobject_to_long
 from sage.structure.factorization import Factorization
 from sage.structure.richcmp cimport (richcmp, richcmp_item,
@@ -88,7 +89,7 @@ from sage.rings.real_double import is_RealDoubleField, RDF
 from sage.rings.complex_double import is_ComplexDoubleField, CDF
 from sage.rings.real_mpfi import is_RealIntervalField
 
-from sage.structure.element import generic_power, coerce_binop
+from sage.structure.element import coerce_binop
 from sage.structure.element cimport (parent, have_same_parent,
         Element, RingElement, coercion_model)
 
@@ -2249,7 +2250,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Check that the algorithm used is indeed correct::
 
-            sage: from sage.structure.element import generic_power
+            sage: from sage.arith.power import generic_power
             sage: R1 = PolynomialRing(GF(8,'a'), 'x')
             sage: R2 = PolynomialRing(GF(9,'b'), 'x', sparse=True)
             sage: R3 = PolynomialRing(R2, 'y')
@@ -2257,7 +2258,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: for d in range(20,40): # long time
             ....:     for R in [R1, R2, R3, R3]:
             ....:         a = R.random_element()
-            ....:         assert a^d == generic_power(a,d)
+            ....:         assert a^d == generic_power(a, d)
 
         Test the powering modulo ``x^n`` (calling :meth:`power_trunc`)::
 
@@ -2317,8 +2318,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 p = -1
             if 0 < p <= right and (self.base_ring() in sage.categories.integral_domains.IntegralDomains() or p.is_prime()):
                 x = self.parent().gen()
-                one = self.parent().one()
-                ret = one
+                ret = self.parent().one()
                 e = 1
                 q = right
                 sparse = self.parent().is_sparse()
@@ -2336,11 +2336,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
                             for i in range(len(c)):
                                 tmp[e*i] = c[i]**e
                             tmp = self.parent()(tmp)
-                        ret *= generic_power(tmp, r, one=one)
+                        ret *= generic_power(tmp, r)
                     e *= p
                 return ret
 
-        return generic_power(self,right)
+        return generic_power(self, right)
 
     def power_trunc(self, n, prec):
         r"""

@@ -759,6 +759,11 @@ class Components(SageObject):
 
         - ``ind_slice`` --  a slice object. Unless the dimension is 1,
           this must be ``[:]``.
+        - ``no_format`` -- (default: ``True``) determines whether some
+          formatting of the components is to be performed
+        - ``format_type`` -- (default: ``None``) argument to be passed
+          to the formatting function ``self._output_formatter``, as the
+          second (optional) argument
 
         OUTPUT:
 
@@ -768,9 +773,10 @@ class Components(SageObject):
         - in the 1-dim case, a slice of that list if
           ``ind_slice = [a:b]``.
 
-        - in the 2-dim case, a matrix (over ``SR``) is returned instead.
-          As a special exception, if ``str`` is used as output
-          formatter, a list is returned anyway.
+        - in the 2-dim case, a matrix (over the base ring of the components or
+          of the formatted components if ``no_format`` is ``False``) is
+          returned instead, except if the formatted components do not belong
+          to any ring (for instance if they are strings).
 
         EXAMPLES::
 
@@ -792,7 +798,6 @@ class Components(SageObject):
             sage: v._get_list(slice(2,3))
             [6]
         """
-        from sage.matrix.constructor import matrix
         si = self._sindex
         nsi = si + self._dim
         if self._nid == 1:
@@ -815,17 +820,14 @@ class Components(SageObject):
                       "implemented for components with {} indices".format(self._nid))
         resu = [self._gen_list([i], no_format, format_type)
                 for i in range(si, nsi)]
-        if self._nid != 2 or (not no_format and self._output_formatter is str):
-            return resu
-
-        # 2-dim case: convert to matrix for a nicer output
-        for i in range(self._dim):
-            for j in range(self._dim):
-                a = resu[i][j]
-                if hasattr(a, '_express'):
-                    resu[i][j] = a.expr()
-        from sage.symbolic.ring import SR
-        return matrix(SR, resu)
+        if self._nid == 2:
+            # 2-dim case: convert to matrix for a nicer output
+            from sage.matrix.constructor import matrix
+            from sage.structure.element import parent
+            from sage.categories.rings import Rings
+            if parent(resu[0][0]) in Rings():
+                return matrix(resu)
+        return resu
 
     def _gen_list(self, ind, no_format=True, format_type=None):
         r"""

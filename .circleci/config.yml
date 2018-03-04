@@ -32,6 +32,8 @@ jobs:
             # CircleCI has no mechanism to hide secret variables.
             # Therefore we roll our own to protect $SECRET_* variables.
             . .ci/protect-secrets.sh
+            # Collect debug infos about the system we are running on
+            . .ci/describe-system.sh
 
             # Build docker images
             export DOCKER_TAG=${CIRCLE_TAG:-$CIRCLE_BRANCH}

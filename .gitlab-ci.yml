@@ -36,6 +36,8 @@ before_script:
   # GitLab has no mechanism yet to hide secret variables: https://gitlab.com/gitlab-org/gitlab-ce/issues/13784
   # So we roll our own which protects all variables that start with SECRET_
   - . .ci/protect-secrets.sh
+  # Collect debug infos about the system we are running on
+  - . .ci/describe-system.sh
 
 # We use docker-in-docker to build our docker images.  It can be faster to
 # expose your outer docker daemon by mounting /var/run/docker.sock to

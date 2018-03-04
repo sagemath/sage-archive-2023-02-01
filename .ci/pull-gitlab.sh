@@ -20,9 +20,6 @@
 
 set -ex
 
-[[ -z "$DOCKER_TAG" ]] && (echo "Can not pull untagged build."; exit 0)
-[[ "$DOCKER_TAG" = "master" ]] && DOCKER_TAG=latest
-
 # Pull the built images from the gitlab registry and give them the original
 # names they had after built.
 # Note that "set -x" prints the $CI_BUILD_TOKEN here but GitLab removes it

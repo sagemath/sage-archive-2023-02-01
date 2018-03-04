@@ -15,11 +15,6 @@
 
 set -ex
 
-[[ -z "$DOCKER_TAG" ]] && DOCKER_TAG=none
-[[ "$DOCKER_TAG" = "master" ]] && DOCKER_TAG=latest
-
-. .ci/setup-make-parallelity.sh
-
 # We speed up the build process by copying built artifacts from ARTIFACT_BASE
 # during docker build. See /docker/Dockerfile for more details.
 ARTIFACT_BASE=${ARTIFACT_BASE:-sagemath/sagemath-dev:develop}
@@ -40,9 +35,7 @@ docker_build --pull --target build-time-dependencies .
 docker_build --pull --tag make-all --target make-all .
 
 # Build the release image without build artifacts.
-DOCKER_IMAGE_CLI=${DOCKER_USER:-sagemath}/sagemath:$DOCKER_TAG
 docker_build --target sagemath --tag "$DOCKER_IMAGE_CLI" .
 # Build the developer image with the build artifacts intact.
 # Note: It's important to build the dev image last because it might be tagged as ARTIFACT_BASE.
-DOCKER_IMAGE_DEV=${DOCKER_USER:-sagemath}/sagemath-dev:$DOCKER_TAG
 docker_build --target sagemath-dev --tag "$DOCKER_IMAGE_DEV" .

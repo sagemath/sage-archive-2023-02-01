@@ -38,6 +38,10 @@ before_script:
   - . .ci/protect-secrets.sh
   # Collect debug infos about the system we are running on
   - . .ci/describe-system.sh
+  # Set DOCKER_TAG according to the current branch/tag
+  - . .ci/update-env.sh
+  # Set MAKE and NTHREADS according to the machine we are running on
+  - . .ci/setup-make-parallelity.sh
 
 # We use docker-in-docker to build our docker images.  It can be faster to
 # expose your outer docker daemon by mounting /var/run/docker.sock to
@@ -110,13 +114,22 @@ test-jupyter:
 
 # Pushes the built images to Docker Hub if the Settings -> CI/CD -> Secret
 # variables DOCKER_USER and SECRET_DOCKER_PASS have been set up.
-dockerhub:
+push-dockerhub:
   stage: release
   only:
     - branches
     - tags
   script:
-    - . .ci/pull-gitlab.sh sagemath-dev
-    - . .ci/push-dockerhub.sh sagemath-dev
     - . .ci/pull-gitlab.sh sagemath
     - . .ci/push-dockerhub.sh sagemath
+
+# Pushes the built dev images to Docker Hub if the Settings -> CI/CD -> Secret
+# variables DOCKER_USER and SECRET_DOCKER_PASS have been set up.
+push-dockerhub-dev:
+  stage: release
+  only:
+    - master
+    - develop
+  script:
+    - . .ci/pull-gitlab.sh sagemath-dev
+    - . .ci/push-dockerhub.sh sagemath-dev

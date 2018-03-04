@@ -95,14 +95,15 @@ micro_release: bdist-clean sagelib-clean
 	@echo "Removing documentation. Inspection in IPython still works."
 	rm -rf local/share/doc local/share/*/doc local/share/*/examples local/share/singular/html
 	@echo "Removing unnecessary files & directories - make will not be functional afterwards anymore"
-	@# We need src/sage/ for introspection with "??"
+	@# We need src/sage/ and src/doc/common for introspection with "??"
 	@# We need src/sage/bin/ for the scripts that invoke Sage
 	@# We need sage, the script to start Sage
 	@# We need local/, the dependencies and the built Sage library itself.
 	@# We keep VERSION.txt.
 	@# We keep COPYING.txt so we ship a license with this distribution.
 	find . -name . -o -prune ! -name src ! -name sage ! -name local ! -name VERSION.txt ! -name COPYING.txt ! -name build -exec rm -rf \{\} \;
-	cd src && find . -name . -o -prune ! -name sage ! -name bin -exec rm -rf \{\} \;
+	cd src && find . -name . -o -prune ! -name sage ! -name bin ! -name doc -exec rm -rf \{\} \;
+	cd doc && find . -name . -o -prune ! -name common -exec rm -rf \{\} \;
 	if command -v rdfind > /dev/null; then \
 		@echo "Hardlinking identical files."; \
 		rdfind -makeresultsfile false -makehardlinks true .; \

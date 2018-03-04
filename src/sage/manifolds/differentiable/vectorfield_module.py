@@ -216,15 +216,18 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         if dest_map is None:
             dest_map = domain.identity_map()
         self._dest_map = dest_map
-        if dest_map is domain.identity_map():
-            name += ")"
-            latex_name += r"\right)"
-        else:
-            name += "," + self._dest_map._name + ")"
-            latex_name += "," + self._dest_map._latex_name + r"\right)"
+        if dest_map is not domain.identity_map():
+            dm_name = dest_map._name
+            dm_latex_name = dest_map._latex_name
+            if dm_name is None:
+                dm_name = "unnamed map"
+            if dm_latex_name is None:
+                dm_latex_name = r"\mathrm{unnamed\; map}"
+            name += "," + dm_name
+            latex_name += "," + dm_latex_name
+        self._name = name + ")"
+        self._latex_name = latex_name + r"\right)"
         self._ambient_domain = self._dest_map._codomain
-        self._name = name
-        self._latex_name = latex_name
         # The member self._ring is created for efficiency (to avoid
         # calls to self.base_ring()):
         self._ring = domain.scalar_field_algebra()
@@ -1334,12 +1337,17 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         self._ambient_domain = self._dest_map._codomain
         name = "X(" + domain._name
         latex_name = r"\mathfrak{X}\left(" + domain._latex_name
-        if self._dest_map == domain.identity_map():
-            name += ")"
-            latex_name += r"\right)"
-        else:
-            name += "," + self._dest_map._name + ")"
-            latex_name += "," + self._dest_map._latex_name + r"\right)"
+        if dest_map is not domain.identity_map():
+            dm_name = dest_map._name
+            dm_latex_name = dest_map._latex_name
+            if dm_name is None:
+                dm_name = "unnamed map"
+            if dm_latex_name is None:
+                dm_latex_name = r"\mathrm{unnamed\; map}"
+            name += "," + dm_name
+            latex_name += "," + dm_latex_name
+        name += ")"
+        latex_name += r"\right)"
         manif = self._ambient_domain.manifold()
         cat = Modules(domain.scalar_field_algebra()).FiniteDimensional()
         FiniteRankFreeModule.__init__(self, domain.scalar_field_algebra(),
@@ -1768,7 +1776,9 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
                                                     AutomorphismFieldParalGroup
         return AutomorphismFieldParalGroup(self)
 
-    def basis(self, symbol=None, latex_symbol=None, from_frame=None):
+    def basis(self, symbol=None, latex_symbol=None, from_frame=None,
+              indices=None, latex_indices=None, symbol_dual=None,
+              latex_symbol_dual=None):
         r"""
         Define a basis of ``self``.
 
@@ -1782,16 +1792,31 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
         INPUT:
 
-        - ``symbol`` -- (string; default: ``None``) a letter (of a few
-          letters) to denote a generic element of the basis; if ``None``
-          and ``from_frame = None`` the module's default basis is returned
-        - ``latex_symbol`` -- (string; default: ``None``) symbol to denote a
-          generic element of the basis; if ``None``, the value of ``symbol``
-          is used
+        - ``symbol`` -- (default: ``None``) either a string, to be used as a
+          common base for the symbols of the elements of the basis, or a
+          tuple of strings, representing the individual symbols of the
+          elements of the basis
+        - ``latex_symbol`` -- (default: ``None``) either a string, to be used
+          as a common base for the LaTeX symbols of the elements of the basis,
+          or a tuple of strings, representing the individual LaTeX symbols
+          of the elements of the basis; if ``None``, ``symbol`` is used in
+          place of ``latex_symbol``
         - ``from_frame`` -- (default: ``None``) vector frame `\tilde{e}`
           on the codomain `M` of the destination map `\Phi` of ``self``;
           the returned basis `e` is then such that for all `p \in U`,
           we have `e(p) = \tilde{e}(\Phi(p))`
+        - ``indices`` -- (default: ``None``; used only if ``symbol`` is a
+          single string) tuple of strings representing the indices
+          labelling the elements of the basis; if ``None``, the indices will be
+          generated as integers within the range declared on ``self``
+        - ``latex_indices`` -- (default: ``None``) tuple of strings
+          representing the indices for the LaTeX symbols of the elements of
+          the basis; if ``None``, ``indices`` is used instead
+        - ``symbol_dual`` -- (default: ``None``) same as ``symbol`` but for the
+          dual basis; if ``None``, ``symbol`` must be a string and is used
+          for the common base of the symbols of the elements of the dual basis
+        - ``latex_symbol_dual`` -- (default: ``None``) same as ``latex_symbol``
+          but for the dual basis
 
         OUTPUT:
 
@@ -1817,11 +1842,18 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             else:
                 symbol = from_frame._symbol
                 latex_symbol = from_frame._latex_symbol
+                indices = from_frame._indices
+                latex_indices = from_frame._latex_indices
+                symbol_dual = from_frame._symbol_dual
+                latex_symbol_dual = from_frame._latex_symbol_dual
         for other in self._known_bases:
             if symbol == other._symbol:
                 return other
-        return VectorFrame(self, symbol=symbol, latex_symbol=latex_symbol,
-                           from_frame=from_frame)
+        return VectorFrame(self, symbol, latex_symbol=latex_symbol,
+                           from_frame=from_frame, indices=indices,
+                           latex_indices=latex_indices,
+                           symbol_dual=symbol_dual,
+                           latex_symbol_dual=latex_symbol_dual)
 
     def tensor(self, tensor_type, name=None, latex_name=None, sym=None,
                antisym=None, specific_type=None):

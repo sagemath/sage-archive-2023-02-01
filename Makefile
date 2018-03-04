@@ -103,7 +103,7 @@ micro_release: bdist-clean sagelib-clean
 	@# We keep COPYING.txt so we ship a license with this distribution.
 	find . -name . -o -prune ! -name src ! -name sage ! -name local ! -name VERSION.txt ! -name COPYING.txt ! -name build -exec rm -rf \{\} \;
 	cd src && find . -name . -o -prune ! -name sage ! -name bin ! -name doc -exec rm -rf \{\} \;
-	cd doc && find . -name . -o -prune ! -name common -exec rm -rf \{\} \;
+	cd src/doc && find . -name . -o -prune ! -name common -exec rm -rf \{\} \;
 	if command -v rdfind > /dev/null; then \
 		@echo "Hardlinking identical files."; \
 		rdfind -makeresultsfile false -makehardlinks true .; \

@@ -27,14 +27,7 @@ Built-in Functions
    sage/functions/prime_pi
    sage/functions/min_max
 
-Developer documentation
-=======================
-
-.. toctree::
-   :maxdepth: 2
-
-   function
-   function_factory
-   callable
+Please find extensive developer documentation for creating new functions
+in the symbolic calculus module.
 
 .. include:: ../footer.txt

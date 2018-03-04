@@ -117,7 +117,7 @@ class ElementInterpreter(PythonInterpreter):
             }
             """)
 
-        self.pyx_header = ri(0, """
+        self.pyx_header += ri(0, """
             from sage.structure.element cimport Element
 
             cdef public object el_check_element(object v, parent):

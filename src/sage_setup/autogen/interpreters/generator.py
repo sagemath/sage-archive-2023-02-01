@@ -80,7 +80,7 @@ class InterpreterGenerator(object):
             sage: instrs = dict([(ins.name, ins) for ins in interp.instr_descs])
             sage: gen.gen_code(instrs['div'], buff.write)
             sage: print(buff.getvalue())
-                case 8: /* div */
+                case ...: /* div */
                   {
                     double i1 = *--stack;
                     double i0 = *--stack;
@@ -602,7 +602,7 @@ class InterpreterGenerator(object):
 
             sage: print(rdf_interp)
             /* ... */ ...
-                case 10: /* neg */
+                case ...: /* neg */
                   {
                     double i0 = *--stack;
                     double o0;
@@ -621,7 +621,7 @@ class InterpreterGenerator(object):
 
             sage: print(rr_interp)
             /* ... */ ...
-                case 10: /* neg */
+                case ...: /* neg */
                   {
                     mpfr_ptr i0 = *--stack;
                     mpfr_ptr o0 = *stack++;
@@ -641,7 +641,7 @@ class InterpreterGenerator(object):
 
             sage: print(el_interp)
             /* ... */ ...
-                case 10: /* neg */
+                case ...: /* neg */
                   {
                     PyObject* i0 = *--stack;
                     *stack = NULL;

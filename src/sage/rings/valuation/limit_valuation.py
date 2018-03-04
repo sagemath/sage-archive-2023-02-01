@@ -80,9 +80,12 @@ overview can also be found in Section 4.6 of [Rüt2014]_.
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+
 from sage.misc.abstract_method import abstract_method
-from valuation import DiscretePseudoValuation, InfiniteDiscretePseudoValuation, DiscreteValuation
+from .valuation import DiscretePseudoValuation, InfiniteDiscretePseudoValuation, DiscreteValuation
 from sage.structure.factory import UniqueFactory
+
 
 class LimitValuationFactory(UniqueFactory):
     r"""
@@ -145,7 +148,7 @@ class LimitValuationFactory(UniqueFactory):
 
         """
         base_valuation, G = key
-        from valuation_space import DiscretePseudoValuationSpace
+        from .valuation_space import DiscretePseudoValuationSpace
         parent = DiscretePseudoValuationSpace(base_valuation.domain())
         return parent.__make_element_class__(MacLaneLimitValuation)(parent, base_valuation, G)
 
@@ -345,7 +348,7 @@ class LimitValuation_generic(DiscretePseudoValuation):
 
         """
         from sage.rings.all import infinity
-        from augmented_valuation import AugmentedValuation_base
+        from .augmented_valuation import AugmentedValuation_base
         if self._initial_approximation(self._G) is not infinity:
             if isinstance(self._initial_approximation, AugmentedValuation_base):
                 return repr(self._initial_approximation)[:-1] + ", … ]"
@@ -772,7 +775,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             sage: u.separating_element([ww,w,v,uu]) # not tested, takes forever
 
         """
-        from scaled_valuation import ScaledValuation_generic
+        from .scaled_valuation import ScaledValuation_generic
         v = self.restriction(self.domain().base())
         if isinstance(v, ScaledValuation_generic):
             v = v._base_valuation

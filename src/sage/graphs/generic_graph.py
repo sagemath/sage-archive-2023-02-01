@@ -5195,7 +5195,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         self._scream_if_not_simple()
 
-        if self.vertex_connectivity() < 3:
+        if not self.vertex_connectivity(k=3):
             raise NotImplementedError("the graph must be 3-vertex-connected.")
 
         from sage.graphs.graph import Graph
@@ -9838,27 +9838,26 @@ class GenericGraph(GenericGraph_pyx):
 
             return val
 
-    def vertex_connectivity(self, value_only=True, sets=False, solver=None, verbose=0):
+    def vertex_connectivity(self, value_only=True, sets=False, k=None, solver=None, verbose=0):
         r"""
-        Returns the vertex connectivity of the graph. For more information,
-        see the
-        `Wikipedia article on connectivity
-        <http://en.wikipedia.org/wiki/Connectivity_(graph_theory)>`_.
+        Return the vertex connectivity of the graph.
+
+        For more information, see the :wikipedia:`Connectivity_(graph_theory)`.
 
         .. NOTE::
 
-            * When the graph is a directed graph, this method actually computes
-              the *strong* connectivity, (i.e. a directed graph is strongly
-              `k`-connected if there are `k` disjoint paths between any two
-              vertices `u, v`). If you do not want to consider strong
+            * When the graph is directed, this method actually computes the
+              *strong* connectivity, (i.e. a directed graph is strongly
+              `k`-connected if there are `k` vertex disjoint paths between any
+              two vertices `u, v`). If you do not want to consider strong
               connectivity, the best is probably to convert your ``DiGraph``
               object to a ``Graph`` object, and compute the connectivity of this
               other graph.
 
             * By convention, a complete graph on `n` vertices is `n-1`
               connected. In this case, no certificate can be given as there is
-              no pair of vertices split by a cut of size `k-1`. For this reason,
-              the certificates returned in this situation are empty.
+              no pair of vertices split by a cut of order `k-1`. For this
+              reason, the certificates returned in this situation are empty.
 
         INPUT:
 
@@ -9871,17 +9870,21 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``sets`` -- boolean (default: ``False``)
 
-          - When set to ``True``, also returns the two sets of
-            vertices that are disconnected by the cut.
-            Implies ``value_only=False``
+          - When set to ``True``, also returns the two sets of vertices that
+            are disconnected by the cut.  Implies ``value_only=False``
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method
-          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
-          of the class
-          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+        - ``k`` -- integer (default: ``None``) When specified, check if the
+          vertex connectivity of the (di)graph is larger or equal to `k`. The
+          method thus outputs a boolean only.
+
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers, see the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.  Use method
+          :meth:`sage.numberical.backends.generic_backend.default_mip_solver` to
+          know which default solver is used or to set the default solver.
 
         - ``verbose`` -- integer (default: ``0``). Sets the level of
           verbosity. Set to 0 by default, which means quiet.
@@ -9894,9 +9897,8 @@ class GenericGraph(GenericGraph_pyx):
            sage: g.vertex_connectivity()
            3
 
-        In a grid, the vertex connectivity is equal to the
-        minimum degree, in which case one of the two sets is
-        of cardinality `1`::
+        In a grid, the vertex connectivity is equal to the minimum degree, in
+        which case one of the two sets is of cardinality `1`::
 
            sage: g = graphs.GridGraph([ 3,3 ])
            sage: [value, cut, [ setA, setB ]] = g.vertex_connectivity(sets=True)
@@ -9905,10 +9907,8 @@ class GenericGraph(GenericGraph_pyx):
 
         A vertex cut in a tree is any internal vertex::
 
-           sage: g = graphs.RandomGNP(15,.5)
-           sage: tree = Graph()
-           sage: tree.add_edges(g.min_spanning_tree())
-           sage: [val, [cut_vertex]] = tree.vertex_connectivity(value_only=False)
+           sage: tree = graphs.RandomTree(15)
+           sage: val, [cut_vertex] = tree.vertex_connectivity(value_only=False)
            sage: tree.degree(cut_vertex) > 1
            True
 
@@ -9945,44 +9945,85 @@ class GenericGraph(GenericGraph_pyx):
            sage: g = DiGraph(graphs.CompleteGraph(10))
            sage: g.vertex_connectivity()
            9
-        """
-        g=self
 
-        if sets:
-            value_only=False
+        When parameter ``k`` is set, we only check for the existence of a
+        vertex cut of order at least ``k``::
+
+           sage: g = graphs.PappusGraph()
+           sage: g.vertex_connectivity(k=3)
+           True
+           sage: g.vertex_connectivity(k=4)
+           False
+
+        TESTS:
+
+        Giving negative value to parameter ``k``::
+
+           sage: g = graphs.PappusGraph()
+           sage: g.vertex_connectivity(k=-1)
+           Traceback (most recent call last):
+           ...
+           ValueError: parameter k must be strictly positive
+
+        The empty graph has vertex connectivity 0, is considered connected but
+        not biconnected. The empty digraph is considered strongly connected::
+
+           sage: empty = Graph()
+           sage: empty.vertex_connectivity()
+           0
+           sage: empty.vertex_connectivity(k=1) == empty.is_connected()
+           True
+           sage: Graph().vertex_connectivity(k=2) == empty.is_biconnected()
+           True
+           sage: DiGraph().vertex_connectivity(k=1) == DiGraph().is_strongly_connected()
+           True
+        """
+        g = self
+
+        if k is not None:
+            if k < 1:
+                raise ValueError("parameter k must be strictly positive")
+            if g.order() == 0:
+                # We follow the convention of is_connected, is_biconnected and
+                # is_strongly_connected
+                return k == 1
+            if (g.is_directed() and k > min(min(g.in_degree()), min(g.out_degree()))) \
+               or (not g.is_directed() and (k > min(g.degree()))):
+                return False
+            value_only = True
+            sets = False
+
+        elif sets:
+            value_only = False
 
         # When the graph is complete, the MILP below is infeasible.
-        if ((not g.is_directed() and g.is_clique())
-            or
-            (g.is_directed() and g.size() >= (g.order()-1)*g.order() and
-             ((not g.allows_loops() and not g.allows_multiple_edges())
-              or
-              all(g.has_edge(u,v) for u in g for v in g if v != u)))):
+        if g.is_clique(directed_clique=g.is_directed()):
+            if k is not None:
+                return g.order() > k
             if value_only:
-                return g.order()-1
+                return max(g.order()-1, 0)
             elif not sets:
-                return g.order()-1, []
+                return max(g.order()-1, 0), []
             else:
-                return g.order()-1, [], [[],[]]
+                return max(g.order()-1, 0), [], [[], []]
 
         if value_only:
             if self.is_directed():
                 if not self.is_strongly_connected():
-                    return 0
+                    return 0 if k is None else False
 
             else:
                 if not self.is_connected():
-                    return 0
+                    return 0 if k is None else False
 
                 if len(self.blocks_and_cut_vertices()[0]) > 1:
-                    return 1
+                    return 1 if k is None else (k == 1)
 
-        if g.is_directed():
-            reorder_edge = lambda x,y : (x,y)
-        else:
-            reorder_edge = lambda x,y : (x,y) if x<= y else (y,x)
+            if k == 1:
+                # We know that the (di)graph is (strongly) connected
+                return True
 
-        from sage.numerical.mip import MixedIntegerLinearProgram
+        from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
 
         p = MixedIntegerLinearProgram(maximization=False, solver=solver)
 
@@ -9991,55 +10032,60 @@ class GenericGraph(GenericGraph_pyx):
 
         # A vertex has to be in some set
         for v in g:
-            p.add_constraint(in_set[0,v]+in_set[1,v]+in_set[2,v],max=1,min=1)
+            p.add_constraint(in_set[0, v] + in_set[1, v] + in_set[2, v], max=1, min=1)
 
         # There is no empty set
-        p.add_constraint(p.sum([in_set[0,v] for v in g]),min=1)
-        p.add_constraint(p.sum([in_set[2,v] for v in g]),min=1)
+        p.add_constraint(p.sum(in_set[0, v] for v in g), min=1)
+        p.add_constraint(p.sum(in_set[2, v] for v in g), min=1)
 
         if g.is_directed():
-            # There is no edge from set 0 to set 1 which
-            # is not in the cut
-            for (u,v) in g.edge_iterator(labels=None):
-                p.add_constraint(in_set[0,u] + in_set[2,v], max = 1)
+            # There is no edge from set 0 to set 1 which is not in the cut
+            for u, v in g.edge_iterator(labels=None):
+                p.add_constraint(in_set[0, u] + in_set[2, v], max=1)
         else:
-
             # Two adjacent vertices are in different sets if and only if
             # the edge between them is in the cut
+            for u, v in g.edge_iterator(labels=None):
+                p.add_constraint(in_set[0, u] + in_set[2, v], max=1)
+                p.add_constraint(in_set[2, u] + in_set[0, v], max=1)
 
-            for (u,v) in g.edge_iterator(labels=None):
-                p.add_constraint(in_set[0,u]+in_set[2,v],max=1)
-                p.add_constraint(in_set[2,u]+in_set[0,v],max=1)
+        if k is not None:
+            # To check if the vertex connectivity is at least k, we check if
+            # there exists a cut of order at most k-1. If the ILP is infeasible,
+            # the vertex connectivity is >= k.
+            p.add_constraint(p.sum(in_set[1, v] for v in g) <= k-1)
+            try:
+                p.solve(objective_only=True, log=verbose)
+                return False
+            except MIPSolverException:
+                return True
 
-        p.set_binary(in_set)
-
-        p.set_objective(p.sum([in_set[1,v] for v in g]))
+        else:
+            p.set_objective(p.sum(in_set[1, v] for v in g))
 
         if value_only:
             return Integer(round(p.solve(objective_only=True, log=verbose)))
-        else:
-            val = [Integer(round(p.solve(log=verbose)))]
 
-            in_set = p.get_values(in_set)
+        val = Integer(round(p.solve(log=verbose)))
 
-            cut = []
-            a = []
-            b = []
+        in_set = p.get_values(in_set)
 
-            for v in g:
-                if in_set[0,v] == 1:
-                    a.append(v)
-                elif in_set[1,v]==1:
-                    cut.append(v)
-                else:
-                    b.append(v)
+        cut = []
+        a = []
+        b = []
 
-            val.append(cut)
+        for v in g:
+            if in_set[0, v]:
+                a.append(v)
+            elif in_set[1, v]:
+                cut.append(v)
+            else:
+                b.append(v)
 
-            if sets:
-                val.append([a,b])
+        if sets:
+            return val, cut, [a, b]
 
-            return val
+        return val, cut
 
     ### Vertex handlers
 

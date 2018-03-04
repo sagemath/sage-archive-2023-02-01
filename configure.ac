@@ -696,11 +696,26 @@ EOF
 
 
 # Python version
-if test "$SAGE_PYTHON3" = yes; then
-    echo >&7 'PYTHON = $(inst_python3)'
-else
-    echo >&7 'PYTHON = $(inst_python2)'
-fi
+AC_MSG_CHECKING([Python version to install])
+AC_ARG_WITH([python],
+[AS_HELP_STRING([--with-python=2],
+    [build and use Python 2 (default)])]
+[AS_HELP_STRING([--with-python=3],
+    [build and use Python 3])])
+
+case "$with_python" in
+    2*) SAGE_PYTHON_VERSION=2;;
+    3*) SAGE_PYTHON_VERSION=3;;
+    "") SAGE_PYTHON_VERSION=2;;
+    *)
+        AC_MSG_ERROR([allowed values for --with-python are 2 and 3]);;
+esac
+
+AC_MSG_RESULT([$SAGE_PYTHON_VERSION])
+AC_SUBST(SAGE_PYTHON_VERSION)
+
+echo >&7 "PYTHON = \$(inst_python${SAGE_PYTHON_VERSION})"
+
 
 # Sage MP library
 AC_MSG_CHECKING([multiprecision library])
@@ -954,6 +969,16 @@ cat >&7 <<EOF
 
 EOF
 
+
+# To deal with ABI incompatibilities when gcc is upgraded, every package
+# (except gcc) should depend on gcc if gcc is already installed.
+# See https://trac.sagemath.org/ticket/24703
+if test x$SAGE_INSTALL_GCC = xexists; then
+    GCC_DEP=' $(SAGE_LOCAL)/bin/gcc'
+else
+    GCC_DEP=''
+fi
+
 # Add a Makefile target corresponding to a given package
 filtered_packages_list all | {
 while read PKG_NAME PKG_VERSION PKG_VAR; do
@@ -978,6 +1003,7 @@ while read PKG_NAME PKG_VERSION PKG_VAR; do
     else
         DEPS=""
     fi
+    test "$PKG_NAME" = gcc || DEPS="$GCC_DEP$DEPS"
 
     # Below we have to obscure A""M_V_at, or autoconf would complain:
     # "error: possibly undefined macro: A""M_V_at"

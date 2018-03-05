@@ -3610,7 +3610,11 @@ const numeric numeric::atan(PyObject* parent) const {
 }
 
 const numeric numeric::atan(const numeric& y) const {
-        PY_RETURN2(py_funcs.py_atan2, y);
+        if (is_real() and y.is_real()) {
+                PY_RETURN2(py_funcs.py_atan2, y);
+        }
+        else
+                throw (std::runtime_error("atan2() with complex argument not supported"));
 }
 
 const numeric numeric::sinh() const {

@@ -123,6 +123,7 @@ COPY --chown=sage:sage . sage-context
 # 3) Trash .git again to save some space.
 ARG SAGE_ROOT=/home/sage/sage
 WORKDIR $SAGE_ROOT
+RUN find . -type f > $HOME/artifact-base.manifest
 RUN git fetch "$HOME/sage-context" HEAD \
     && if [ -e docker/commit ]; then \
           git reset `cat docker/commit` \
@@ -175,13 +176,42 @@ FROM make-all as make-fast-rebuild-clean
 RUN make fast-rebuild-clean
 
 ################################################################################
+# Depending on whether we built from source-clean or not, this image is either #
+# identical to make-fast-rebuild-clean or contains a patch which can be used   #
+# to upgrade ARTIFACT_BASE to make-fast-rebuild-clean.                         #
+################################################################################
+FROM make-fast-rebuild-clean as sagemath-dev-patch
+ARG ARTIFACT_BASE=source-clean
+ARG SAGE_ROOT=/home/sage/sage
+# Build a patch containing of a tar file which contains all the modified files
+# and a list of all modified files (added/updated/removed).
+RUN if [ x"$ARTIFACT_BASE" != x"source-clean" ]; then \
+        mkdir -p $HOME/patch \
+        && find . -type f > $HOME/make-fast-rebuild-clean.manifest \
+        && cat $HOME/make-fast-rebuild-clean.manifest $HOME/artifact-base.manifest | sort | uniq -u > $HOME/obsolete \
+        && find . -type f -cnewer $HOME/artifact-base.manifest > $HOME/modified \
+        && tar -cJf $HOME/patch/modified.tar.xz -T $HOME/modified \
+        && cat $HOME/obsolete $HOME/modified | xz > $HOME/patch/modified.xz \
+        && rm -rf $SAGE_ROOT \
+        && mkdir -p $SAGE_ROOT \
+        && mv $HOME/patch $SAGE_ROOT/; \
+    fi
+
+################################################################################
 # A releasable (relatively small, but still huge) image of this build with all #
 # the build artifacts intact so developers can make changes and rebuild        #
 # quickly                                                                      #
 ################################################################################
-FROM source-clean as sagemath-dev
+FROM $ARTIFACT_BASE as sagemath-dev
 ARG SAGE_ROOT=/home/sage/sage
-COPY --chown=sage:sage --from=make-fast-rebuild-clean $SAGE_ROOT $SAGE_ROOT
+COPY --chown=sage:sage --from=sagemath-dev-patch $SAGE_ROOT $SAGE_ROOT
+ARG ARTIFACT_BASE=source-clean
+# Apply the patch from sagemath-dev-patch if we created one.
+RUN if [ x"$ARTIFACT_BASE" != x"source-clean" ]; then \
+        xzcat patch/modified.xz | xargs rm -rf \
+        && tar -Jxf patch/modified.tar.xz \
+        && rm -rf patch; \
+    fi
 COPY ./docker/entrypoint-dev.sh /usr/local/bin/sage-entrypoint
 ENTRYPOINT ["/usr/local/bin/sage-entrypoint"]
 CMD ["bash"]

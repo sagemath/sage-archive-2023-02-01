@@ -267,9 +267,9 @@ public:
 	const numeric denom() const;
 
         const numeric arbfunc_0arg(const char* name, PyObject* parent) const;
-	const numeric exp() const;
-	const numeric log() const;
-	const numeric log(const numeric &b) const;
+	const numeric exp(PyObject*) const;
+	const numeric log(PyObject*) const;
+	const numeric log(const numeric &b, PyObject*) const;
 	const numeric ratlog(const numeric &b, bool& israt) const;
 	const numeric sin() const;
 	const numeric cos() const;
@@ -278,9 +278,9 @@ public:
 	const numeric acos(PyObject*) const;
 	const numeric atan(PyObject*) const;
 	const numeric atan(const numeric &y) const;
-	const numeric sinh() const;
-	const numeric cosh() const;
-	const numeric tanh() const;
+	const numeric sinh(PyObject*) const;
+	const numeric cosh(PyObject*) const;
+	const numeric tanh(PyObject*) const;
 	const numeric asinh(PyObject*) const;
 	const numeric acosh(PyObject*) const;
 	const numeric atanh(PyObject*) const;
@@ -344,9 +344,9 @@ extern numeric I;
 
 // global functions
 
-const numeric exp(const numeric &x);
-const numeric log(const numeric &x);
-const numeric log(const numeric &x, const numeric &b);
+const numeric exp(const numeric &x, PyObject* parent=nullptr);
+const numeric log(const numeric &x, PyObject* parent=nullptr);
+const numeric log(const numeric &x, const numeric &b, PyObject* parent=nullptr);
 const numeric sin(const numeric &x);
 const numeric cos(const numeric &x);
 const numeric tan(const numeric &x);
@@ -354,9 +354,9 @@ const numeric asin(const numeric &x, PyObject* parent=nullptr);
 const numeric acos(const numeric &x, PyObject* parent=nullptr);
 const numeric atan(const numeric &x, PyObject* parent=nullptr);
 const numeric atan(const numeric &y, const numeric &x);
-const numeric sinh(const numeric &x);
-const numeric cosh(const numeric &x);
-const numeric tanh(const numeric &x);
+const numeric sinh(const numeric &x, PyObject* parent=nullptr);
+const numeric cosh(const numeric &x, PyObject* parent=nullptr);
+const numeric tanh(const numeric &x, PyObject* parent=nullptr);
 const numeric asinh(const numeric &x, PyObject* parent=nullptr);
 const numeric acosh(const numeric &x, PyObject* parent=nullptr);
 const numeric atanh(const numeric &x, PyObject* parent=nullptr);

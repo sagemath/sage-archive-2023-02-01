@@ -3463,32 +3463,16 @@ const numeric numeric::fibonacci() const {
     PY_RETURN(py_funcs.py_fibonacci);
 }
 
-const numeric numeric::sin() const {
-        PY_RETURN(py_funcs.py_sin);
+const numeric numeric::exp(PyObject* parent) const {
+        return arbfunc_0arg("exp", parent);
 }
 
-const numeric numeric::cos() const {
-        PY_RETURN(py_funcs.py_cos);
-}
-
-const numeric numeric::zeta() const {
-        PY_RETURN(py_funcs.py_zeta);
-}
-
-const numeric numeric::stieltjes() const {
-        PY_RETURN(py_funcs.py_stieltjes);
-}
-
-const numeric numeric::exp() const {
-        PY_RETURN(py_funcs.py_exp);
-}
-
-const numeric numeric::log() const {
-        PY_RETURN(py_funcs.py_log);
+const numeric numeric::log(PyObject* parent) const {
+        return arbfunc_0arg("log", parent);
 }
 
 // General log
-const numeric numeric::log(const numeric &b) const {
+const numeric numeric::log(const numeric &b, PyObject* parent) const {
         if (b.is_one()) {
                 if (is_one())
 		        throw (std::runtime_error("log(1,1) encountered"));
@@ -3500,12 +3484,12 @@ const numeric numeric::log(const numeric &b) const {
 
         if ((t != LONG and t != MPZ and t != MPQ)
             or (b.t != LONG and b.t != MPZ and b.t != MPQ))
-                return log()/b.log();
+                return log(parent)/b.log(parent);
         
         bool israt;
         numeric ret = ratlog(b, israt);
         if (not israt)
-                return log()/b.log();
+                return log(parent)/b.log(parent);
         
         return ret;
 }
@@ -3584,13 +3568,21 @@ const numeric numeric::ratlog(const numeric &b, bool& israt) const {
         }
 
         // from here both MPQ
-        numeric d = denom().log(b.denom());
+        numeric d = GiNaC::log(denom(), b.denom(), nullptr);
         if (numer().is_one() and b.numer().is_one())
                 return d;
-        numeric n = numer().log(b.numer());
+        numeric n = GiNaC::log(numer(), b.numer(), nullptr);
         if (n == d)
                 return n;
-        return log()/b.log();
+        return log(nullptr)/b.log(nullptr);
+}
+
+const numeric numeric::sin() const {
+        PY_RETURN(py_funcs.py_sin);
+}
+
+const numeric numeric::cos() const {
+        PY_RETURN(py_funcs.py_cos);
 }
 
 const numeric numeric::tan() const {
@@ -3617,16 +3609,18 @@ const numeric numeric::atan(const numeric& y) const {
                 throw (std::runtime_error("atan2() with complex argument not supported"));
 }
 
-const numeric numeric::sinh() const {
-        PY_RETURN(py_funcs.py_sinh);
+const numeric numeric::sinh(PyObject* parent) const {
+        return (exp(parent) - negative().exp(parent)) / *_num2_p;
 }
 
-const numeric numeric::cosh() const {
-        PY_RETURN(py_funcs.py_cosh);
+const numeric numeric::cosh(PyObject* parent) const {
+        return (exp(parent) + negative().exp(parent)) / *_num2_p;
 }
 
-const numeric numeric::tanh() const {
-        PY_RETURN(py_funcs.py_tanh);
+const numeric numeric::tanh(PyObject* parent) const {
+        const numeric& e2x = exp(parent);
+        const numeric& e2nx = negative().exp(parent);
+        return (e2x - e2nx)/(e2x + e2nx);
 }
 
 const numeric numeric::asinh(PyObject* parent) const {
@@ -3694,6 +3688,14 @@ const numeric numeric::psi(PyObject* parent) const {
 
 const numeric numeric::psi(const numeric& y) const {
         PY_RETURN2(py_funcs.py_psi2, y);
+}
+
+const numeric numeric::zeta() const {
+        PY_RETURN(py_funcs.py_zeta);
+}
+
+const numeric numeric::stieltjes() const {
+        PY_RETURN(py_funcs.py_stieltjes);
 }
 
 const numeric numeric::factorial() const {
@@ -4491,8 +4493,8 @@ void coerce(numeric& new_left, numeric& new_right, const numeric& left, const nu
 /** Exponential function.
  *
  *  @return  arbitrary precision numerical exp(x). */
-const numeric exp(const numeric &x) {
-        return x.exp();
+const numeric exp(const numeric &x, PyObject* parent) {
+        return x.exp(parent);
 }
 
 /** Natural logarithm.
@@ -4500,17 +4502,13 @@ const numeric exp(const numeric &x) {
  *  @param x complex number
  *  @return  arbitrary precision numerical log(x).
  *  @exception pole_error("log(): logarithmic pole",0) */
-const numeric log(const numeric &x) {
-        /*
-  if (x.is_zero())
-    throw pole_error("log(): logarithmic pole",0);
-         */
-        return x.log();
+const numeric log(const numeric &x, PyObject* parent) {
+        return x.log(parent);
 }
 
 // General log
-const numeric log(const numeric &x, const numeric &b) {
-        return x.log(b);
+const numeric log(const numeric &x, const numeric &b, PyObject* parent) {
+        return x.log(b, parent);
 }
 
 /** Numeric sine (trigonometric function).
@@ -4575,22 +4573,22 @@ const numeric atan(const numeric &y, const numeric &x) {
 /** Numeric hyperbolic sine (trigonometric function).
  *
  *  @return  arbitrary precision numerical sinh(x). */
-const numeric sinh(const numeric &x) {
-        return x.sinh();
+const numeric sinh(const numeric &x, PyObject* parent) {
+        return x.sinh(parent);
 }
 
 /** Numeric hyperbolic cosine (trigonometric function).
  *
  *  @return  arbitrary precision numerical cosh(x). */
-const numeric cosh(const numeric &x) {
-        return x.cosh();
+const numeric cosh(const numeric &x, PyObject* parent) {
+        return x.cosh(parent);
 }
 
 /** Numeric hyperbolic tangent (trigonometric function).
  *
  *  @return  arbitrary precision numerical tanh(x). */
-const numeric tanh(const numeric &x) {
-        return x.tanh();
+const numeric tanh(const numeric &x, PyObject* parent) {
+        return x.tanh(parent);
 }
 
 /** Numeric inverse hyperbolic sine (trigonometric function).

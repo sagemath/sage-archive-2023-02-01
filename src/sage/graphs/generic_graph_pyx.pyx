@@ -712,9 +712,11 @@ cdef class SubgraphSearch:
             [0, 1, 2]
         """
 
-        memset(self.busy, 0, self.ng * sizeof(int))
-        # 0 is the first vertex we use, so it is at first busy
-        self.busy[0] = 1
+        if self.ng > 0:
+            # 0 is the first vertex we use, so it is at first busy
+            self.busy[0] = 1
+            for 0 < i < self.ng:
+                self.busy[i] = 0
         # stack -- list of the vertices which are part of the partial copy of H
         # in G.
         #
@@ -743,6 +745,7 @@ cdef class SubgraphSearch:
             sage: g.subgraph_search(graphs.CycleGraph(5))
             Subgraph of (Petersen graph): Graph on 5 vertices
         """
+        self.mem = MemoryAllocator()
 
         # Storing the number of vertices
         self.ng = G.order()
@@ -759,21 +762,21 @@ cdef class SubgraphSearch:
 
         # A vertex is said to be busy if it is already part of the partial copy
         # of H in G.
-        self.busy       = <int *>  sig_malloc(self.ng * sizeof(int))
-        self.tmp_array  = <int *>  sig_malloc(self.ng * sizeof(int))
-        self.stack      = <int *>  sig_malloc(self.nh * sizeof(int))
-        self.vertices   = <int *>  sig_malloc(self.nh * sizeof(int))
-        self.line_h_out = <int **> sig_malloc(self.nh * sizeof(int *))
-        self.line_h_in  = <int **> sig_malloc(self.nh * sizeof(int *)) if self.directed else NULL
+        self.busy       = <int *>  self.mem.allocarray(self.ng, sizeof(int))
+        self.tmp_array  = <int *>  self.mem.allocarray(self.ng, sizeof(int))
+        self.stack      = <int *>  self.mem.allocarray(self.nh, sizeof(int))
+        self.vertices   = <int *>  self.mem.allocarray(self.nh, sizeof(int))
+        self.line_h_out = <int **> self.mem.allocarray(self.nh, sizeof(int *))
+        self.line_h_in  = <int **> self.mem.allocarray(self.nh, sizeof(int *)) if self.directed else NULL
 
         if self.line_h_out is not NULL:
-            self.line_h_out[0] = <int *> sig_malloc(self.nh*self.nh*sizeof(int))
+            self.line_h_out[0] = <int *> self.mem.allocarray(self.nh*self.nh,
+                                            sizeof(int))
         if self.line_h_in is not NULL:
-            self.line_h_in[0]  = <int *> sig_malloc(self.nh*self.nh*sizeof(int))
+            self.line_h_in[0]  = <int *> self.mem.allocarray(self.nh*self.nh,
+                                            sizeof(int))
 
-        if (self.tmp_array     == NULL or
-            self.busy          == NULL or
-            self.stack         == NULL or
+        if (self.stack         == NULL or
             self.vertices      == NULL or
             self.line_h_out    == NULL or
             self.line_h_out[0] == NULL or
@@ -833,6 +836,8 @@ cdef class SubgraphSearch:
             sage: S.__next__()
             [0, 1, 2]
         """
+        if self.ng == 0:
+            raise StopIteration
         sig_on()
         cdef bint is_admissible
         cdef int * tmp_array = self.tmp_array
@@ -868,7 +873,7 @@ cdef class SubgraphSearch:
                         self.i += 1
 
             # If we have found a good representant of H's i-th vertex in G
-            if self.i < self.ng:
+            if self.ng > 0 and self.i < self.ng:
 
                 # updating the last vertex of the stack
                 if self.stack[self.active] != -1:
@@ -895,30 +900,13 @@ cdef class SubgraphSearch:
             # the previous vertex.
 
             else:
-                if self.stack[self.active] != -1:
+                if self.ng > 0 and self.stack[self.active] != -1:
                     self.busy[self.stack[self.active]] = 0
                 self.stack[self.active] = -1
                 self.active -= 1
 
         sig_off()
         raise StopIteration
-
-    def __dealloc__(self):
-        r"""
-        Freeing the allocated memory.
-        """
-        if self.line_h_in  is not NULL:
-            sig_free(self.line_h_in[0])
-        if self.line_h_out is not NULL:
-            sig_free(self.line_h_out[0])
-
-        # Free the memory
-        sig_free(self.busy)
-        sig_free(self.stack)
-        sig_free(self.tmp_array)
-        sig_free(self.vertices)
-        sig_free(self.line_h_out)
-        sig_free(self.line_h_in)
 
 cdef inline bint vectors_equal(int n, int *a, int *b):
     r"""

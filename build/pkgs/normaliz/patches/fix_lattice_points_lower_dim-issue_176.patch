@@ -12,3 +12,17 @@
              return;
          Sublattice_Representation<Integer> HelpCoord=LLL_coordinates_dual<Integer,nmz_float>(SuppHelp);
          convert(HelpA,HelpCoord.getEmbeddingMatrix()); convert(HelpB,HelpCoord.getProjectionMatrix()); convert(HelpC,HelpCoord.getAnnihilator());
+--- src/source/libnormaliz/cone.cpp	2018-03-05 08:44:58.528530226 +1000
++++ src/source/libnormaliz/cone.cpp	2018-03-06 08:01:42.841754602 +1000
+@@ -3963,7 +3963,10 @@
+             is_Computed.set(ConeProperty::IsPointed);
+         }
+     }
+-    
++
++    if(!is_parallelotope)
++        Pair.clear();
++
+     if(!inhomogeneous && !isComputed(ConeProperty::Grading))
+         return;
+     

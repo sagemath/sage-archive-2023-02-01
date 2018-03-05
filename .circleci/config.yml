@@ -34,6 +34,10 @@ jobs:
             . .ci/protect-secrets.sh
             # Collect debug infos about the system we are running on
             . .ci/describe-system.sh
+            # Set DOCKER_TAG according to the current branch/tag
+            . .ci/update-env.sh
+            # Set MAKE and NTHREADS according to the machine we are running on
+            . .ci/setup-make-parallelity.sh
 
             # Build docker images
             export DOCKER_TAG=${CIRCLE_TAG:-$CIRCLE_BRANCH}

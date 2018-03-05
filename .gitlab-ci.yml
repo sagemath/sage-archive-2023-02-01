@@ -27,7 +27,7 @@ stages:
   - release
 
 variables:
-  DOCKER_TAG: $CI_COMMIT_REF_SLUG
+  DOCKER_TAG: $CI_COMMIT_REF_NAME
   # Builds are very I/O intensive; make sure we have a fast file system.
   DOCKER_DRIVER: overlay2
   DEFAULT_ARTIFACT_BASE: sagemath/sagemath-dev:develop

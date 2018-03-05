@@ -15,6 +15,12 @@
 
 set -ex
 
+# From the docker documentation: "A tag name must be valid ASCII and may
+# contain lowercase and uppercase letters, digits, underscores, periods and
+# dashes. A tag name may not start with a period or a dash and may contain a
+# maximum of 128 characters."
+DOCKER_TAG=`echo $DOCKER_TAG | tr -d '[:space:]' | tr -c '[:alnum:]_.-' '-' | sed 's/^[-.]*//' | cut -c1-128`
+
 [[ -z "$DOCKER_TAG" ]] && DOCKER_TAG=none
 [[ "$DOCKER_TAG" = "master" ]] && DOCKER_TAG=latest
 

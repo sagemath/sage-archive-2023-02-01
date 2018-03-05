@@ -5,7 +5,7 @@
 # created docker images, see the README.md please.                             #
 #                                                                              #
 # This Dockerfile builds sagemath (for end-users) and sagemath-dev (for        #
-# developers) it consists of lots of intermediate targets, mostly to shrink    #
+# developers.) It consists of lots of intermediate targets, mostly to shrink   #
 # the resulting images but also to make this hopefully easier to maintain.     #
 # The aims of this Dockerfile are:                                             #
 # (1) Make it build in reasonable time.                                        #
@@ -29,8 +29,8 @@
 ################################################################################
 # If you don't mind downloading a 2GB docker image from time to time, you      #
 # could use this file for local Sage development. As of early 2018 each build  #
-# takes about five minutes but you don't have to through the sadly frequent    #
-# rebuilds of Sage the whole Sage distribution...                              #
+# takes about five minutes but you don't have to go through the sadly frequent #
+# rebuilds the whole Sage distribution...                                      #
 # To build Sage, run this command from your sage/ directory:                   #
 # $ docker build --build-arg MAKE="make -j4" --build-arg ARTIFACT_BASE="sagemath/sagemath-dev:develop" -f docker/Dockerfile --target=make-build --tag sage .
 # To run Sage:                                                                 #
@@ -123,6 +123,8 @@ COPY --chown=sage:sage . sage-context
 # 3) Trash .git again to save some space.
 ARG SAGE_ROOT=/home/sage/sage
 WORKDIR $SAGE_ROOT
+# We create a list of all files present in the artifact-base (with a timestamp
+# of now) so we can find out later which files were added/changed/removed.
 RUN find . -type f > $HOME/artifact-base.manifest
 RUN git fetch "$HOME/sage-context" HEAD \
     && if [ -e docker/commit ]; then \
@@ -152,12 +154,14 @@ RUN patch -p1 < "$HOME"/sage-context.patch
 # Image with a built sage but without sage's documentation.                    #
 ################################################################################
 FROM source-from-context as make-build
-# Make sure that the results runs on most CPUs.
+# Make sure that the result runs on most CPUs.
 ENV SAGE_FAT_BINARY yes
 # Just to be sure Sage doesn't try to build its own GCC (even though
 # it shouldn't with a recent GCC package from the system and with gfortran)
 ENV SAGE_INSTALL_GCC no
-# Make everything in the build use multiple cores (this causes trouble for some packages outside Sage but it still seems to be they way Sage is doing this.)
+# Make everything in the build use multiple cores (setting this variable causes
+# trouble for some packages outside Sage but it still seems to be they way Sage
+# is doing this.)
 ARG MAKE="make -j2"
 ENV MAKE $MAKE
 RUN make build
@@ -177,7 +181,7 @@ RUN make fast-rebuild-clean
 
 ################################################################################
 # Depending on whether we built from source-clean or not, this image is either #
-# identical to make-fast-rebuild-clean or contains a patch which can be used   #
+# identical to make-fast-rebuild-clean or contains a "patch" which can be used #
 # to upgrade ARTIFACT_BASE to make-fast-rebuild-clean.                         #
 ################################################################################
 FROM make-fast-rebuild-clean as sagemath-dev-patch

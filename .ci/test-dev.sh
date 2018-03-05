@@ -32,5 +32,9 @@ function timed_run {
 }
 
 timed_run 60 true # runs make build
-# TODO: Can't we get this faster than that?
+# Building the documentation is quite slow at the moment:
+# Currently, this detects some dependencies as changed that have not changed.
+# The parser in Sphinx fails to parse some .py files and adds the (more
+# recently modified) .pyc files as dependencies instead. (Have a look the
+# changeset that introduced this comment for more details.)
 timed_run $(( 1200/$NTHREADS )) make # runs make build and then make

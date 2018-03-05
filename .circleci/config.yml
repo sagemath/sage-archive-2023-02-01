@@ -34,13 +34,14 @@ jobs:
             . .ci/protect-secrets.sh
             # Collect debug infos about the system we are running on
             . .ci/describe-system.sh
-            # Set DOCKER_TAG according to the current branch/tag
-            . .ci/update-env.sh
             # Set MAKE and NTHREADS according to the machine we are running on
             . .ci/setup-make-parallelity.sh
 
-            # Build docker images
+            # Set DOCKER_TAG according to the current branch/tag
             export DOCKER_TAG=${CIRCLE_TAG:-$CIRCLE_BRANCH}
+            . .ci/update-env.sh
+
+            # Select ARTIFACT_BASE depending on the current branch/tag
             case $DOCKER_TAG in
             "develop" | "latest")
               export ARTIFACT_BASE=source-clean
@@ -52,6 +53,8 @@ jobs:
               export ARTIFACT_BASE=${ARTIFACT_BASE:-sagemath/sagemath-dev:develop}
               ;;
             esac
+
+            # Build docker images
             . .ci/build-docker.sh
 
             # Test that the images work

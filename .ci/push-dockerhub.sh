@@ -18,7 +18,6 @@
 set -ex
 
 [[ -z "$DOCKER_TAG" ]] && (echo "Can not push untagged build."; exit 0)
-[[ "$DOCKER_TAG" = "master" ]] && DOCKER_TAG=latest
 
 # Push the built images to the docker hub (and fail silently if
 # DOCKER_USER/SECRET_DOCKER_PASS have not been configured.)

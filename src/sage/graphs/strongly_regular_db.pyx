@@ -1947,7 +1947,7 @@ def SRG_105_32_4_12():
     .. [GS70] \J.-M. Goethals and J. J. Seidel,
        Strongly regular graphs derived from combinatorial designs,
        Can. J. Math. 22 (1970) 597-614.
-       http://dx.doi.org/10.4153/CJM-1970-067-9
+       :doi:`10.4153/CJM-1970-067-9`
 
     .. [Co06] \K. Coolsaet,
        The uniqueness of the strongly regular graph srg(105,32,4,12),
@@ -2159,7 +2159,7 @@ def SRG_243_110_37_60():
     .. [GS75] \J.M. Goethals, and J. J. Seidel,
        The regular two-graph on 276 vertices,
        Discrete Mathematics 12, no. 2 (1975): 143-158.
-       http://dx.doi.org/10.1016/0012-365X(75)90029-1
+       :doi:`10.1016/0012-365X(75)90029-1`
     """
     from sage.coding.golay_code import GolayCode
     M = GolayCode(GF(3), False).generator_matrix()
@@ -2339,7 +2339,7 @@ def SRG_280_117_44_52():
     .. [MR85] \R. Mathon and A. Rosa,
        A new strongly regular graph,
        Journal of Combinatorial Theory, Series A 38, no. 1 (1985): 84-86.
-       http://dx.doi.org/10.1016/0097-3165(85)90025-1
+       :doi:`10.1016/0097-3165(85)90025-1`
     """
     from sage.graphs.hypergraph_generators import hypergraphs
 
@@ -2394,7 +2394,7 @@ def strongly_regular_from_two_weight_code(L):
     .. [Delsarte72] Ph. Delsarte,
       Weights of linear codes and strongly regular normed spaces,
       Discrete Mathematics (1972), Volume 3, Issue 1, Pages 47-64,
-      http://dx.doi.org/10.1016/0012-365X(72)90024-6.
+      :doi:`10.1016/0012-365X(72)90024-6`
 
     """
     from sage.structure.element import is_Matrix
@@ -2680,9 +2680,9 @@ def SRG_1288_792_476_504():
     REFERENCE:
 
     .. [BvE92] \A. Brouwer and C. Van Eijl,
-      On the p-Rank of the Adjacency Matrices of Strongly Regular Graphs
+      *On the p-Rank of the Adjacency Matrices of Strongly Regular Graphs*
       Journal of Algebraic Combinatorics (1992), vol.1, n.4, pp329-346,
-      http://dx.doi.org/10.1023/A%3A1022438616684
+      :doi:`10.1023/A%3A1022438616684`
     """
     from sage.coding.golay_code import GolayCode
     C = GolayCode(GF(2), False)

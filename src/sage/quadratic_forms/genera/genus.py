@@ -32,16 +32,19 @@ def all_genera_of_given_det(sig_vec, determinant, max_scale=None, even=True):
     """
     from sage.misc.mrange import mrange_iter
     from sage.matrix.constructor import matrix
-    genera = []
+    determinant = IntegerRing()(determinant)
     rank = sig_vec[0] + sig_vec[1]
+    if max_scale == None:
+        max_scale = determinant
+    genera = []
     local_genus_symbols = []
+    if determinant % 2 != 0:
+        local_genus_symbols.append(_all_p_adic_genera(2, rank, 0, 0, even=even))
     for pn in determinant.factor():
         p = pn[0]
         det_val = pn[1]
         mscale_p = max_scale.valuation(p)
         local_genus_symbols.append(_all_p_adic_genera(p, rank, det_val, mscale_p))
-    if determinant % 2 != 0:
-        local_genus_symbols.append(_all_p_adic_genera(2, rank, 0, 0, even=even))
     for g in mrange_iter(local_genus_symbols):
         # create a Genus form a list of local symbols
         G = GenusSymbol_global_ring(matrix.identity(1))
@@ -64,8 +67,6 @@ def _all_p_adic_genera(p, rank, det_val, max_level, even=None):
             return [tuple([g]) for g in L]
         else:
             return cantor_product(L,repeat=repeat)
-    if max_level > det_val:
-        max_level = det_val
     symbols0 = [] # will contain possibilities for scales and ranks
     for rkseq in IntegerListsLex(rank, length=max_level+1):   # rank sequences
         # sum(rkseq) = rank

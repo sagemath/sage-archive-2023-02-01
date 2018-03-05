@@ -1150,12 +1150,7 @@ class Permutation(CombinatorialElement):
             sage: Permutation([2,1,3]).is_even()
             False
         """
-
-        if self.signature() == 1:
-            return True
-        else:
-            return False
-
+        return self.signature() == 1
 
     def to_matrix(self):
         r"""

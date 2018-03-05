@@ -202,7 +202,7 @@ This example illustrates switching between the built-in styles when using the tk
 This example illustrates using the optional dot2tex module::
 
     sage: g = graphs.PetersenGraph()
-    sage: g.set_latex_options(format='dot2tex',prog='neato') # optional - dot2tex
+    sage: g.set_latex_options(format='dot2tex', prog='neato')
     sage: from sage.graphs.graph_latex import check_tkz_graph
     sage: check_tkz_graph()  # random - depends on TeX installation
     sage: latex(g)  # optional - dot2tex graphviz

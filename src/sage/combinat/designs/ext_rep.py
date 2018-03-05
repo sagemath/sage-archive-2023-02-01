@@ -561,8 +561,7 @@ def open_extrep_url(url):
 
     root, ext = os.path.splitext(url)
     if ext == '.gz':
-        # f = gzip.GzipFile(f_url)
-        raise NotImplemented
+        raise NotImplementedError
     elif ext == '.bz2':
         return bz2.decompress(f.read())
     else:

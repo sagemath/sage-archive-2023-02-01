@@ -364,10 +364,6 @@ def canonical_2_adic_compartments(genus_symbol_quintuple_list):
             i += 1
     return compartments
 
-
-
-
-
 def canonical_2_adic_trains(genus_symbol_quintuple_list, compartments=None):
     """
     Given a 2-adic local symbol (as the underlying list of quintuples)
@@ -423,6 +419,11 @@ def canonical_2_adic_trains(genus_symbol_quintuple_list, compartments=None):
         sage: canonical_2_adic_trains(symbol)
         [[0, 1, 2, 3, 4, 5], [6], [7, 8, 9]]
 
+    Check that :trac:`24818` is fixed::
+
+        sage: symbol = [[0, 1,  1, 1, 1],[1, 3, 1, 1, 1]]
+        sage: canonical_2_adic_trains(symbol)
+        [[0, 1]]
 
     .. NOTE::
 
@@ -433,51 +434,37 @@ def canonical_2_adic_trains(genus_symbol_quintuple_list, compartments=None):
         from sage.misc.superseded import deprecation
         deprecation(23955, "the compartments keyword has been deprecated")
 
-    #avoid a special case for the end of symbol
-    #if a jordan component has rank zero it is considered even.
+    # avoid a special case for the end of symbol
+    # if a jordan component has rank zero it is considered even.
     symbol = genus_symbol_quintuple_list
     symbol.append([symbol[-1][0]+1, 0, 1, 0, 0]) #We have just modified the input globally!
-    #Hence, we have to remove the last entry of symbol at the end.
+    # Hence, we have to remove the last entry of symbol at the end.
     try:
 
         trains = []
         new_train = [0]
         for i in range(1,len(symbol)-1):
-            prev, cur, next = symbol[i-1:i+2]
-            if cur[0] - prev[0] > 1:
-                #the train ends here since there is a gap of at least 2
+            # start a new train if there are two adjacent even symbols
+            prev, cur = symbol[i-1:i+1]
+            if  cur[0] - prev[0] > 2:
                 trains.append(new_train)
-                #create a new train starting at i
+                new_train = [i]    # create a new train starting at
+            elif (cur[0] - prev[0] == 2) and cur[3]*prev[3] == 0:
+                trains.append(new_train)
+                new_train = [i]
+            elif prev[3] == 0 and cur[3] == 0:
+                trains.append(new_train)
                 new_train = [i]
             else:
-                if prev[0] == cur[0] - 1:
-                    left_neighbor = prev[3]
-                else:
-                    left_neighbor = 0
-
-                if next[0] == cur[0] + 1:
-                    right_neighbor = next[3]
-                else:
-                    right_neighbor = 0
-
-                if left_neighbor == 1 or cur[3] == 1 or right_neighbor==1:
-                    #there is an odd jordan block adjacent to this jordan block
-                    #the train continues
-                    new_train.append(i)
-                else:
-                    #the train ends
-                    trains.append(new_train)
-                    #create a new train starting at i
-                    new_train = [i]
-        #the last train was never added.
+                # there is an odd jordan block adjacent to this jordan block
+                # the train continues
+                new_train.append(i)
+        # the last train was never added.
         trains.append(new_train)
         return trains
     finally:
         #revert the input list to its original state
         symbol.pop()
-
-
-
 
 def canonical_2_adic_reduction(genus_symbol_quintuple_list):
     """

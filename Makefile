@@ -41,6 +41,13 @@ build/make/Makefile: configure build/make/deps build/pkgs/*/*
 			echo "Since 'SAGE_PORT' is set, we will try to build anyway."; \
 		fi; )
 
+# This is used to monitor progress towards Python 3 and prevent
+# regressions. The target "build" should be upgraded to reflect the
+# level of Python 3 support that is known to work.
+buildbot-python3: configure
+	./configure --with-python=3
+	$(MAKE) build
+
 # Preemptively download all standard upstream source tarballs.
 download:
 	export SAGE_ROOT=$$(pwd) && \
@@ -146,4 +153,5 @@ install: all
 .PHONY: default build install micro_release \
 	misc-clean bdist-clean distclean bootstrap-clean maintainer-clean \
 	test check testoptional testall testlong testoptionallong testallong \
-	ptest ptestoptional ptestall ptestlong ptestoptionallong ptestallong
+	ptest ptestoptional ptestall ptestlong ptestoptionallong ptestallong \
+	buildbot-python3

@@ -160,18 +160,12 @@ class ParentLibGAP(SageObject):
         """
         return self._ambient is not None
 
-    def _Hom_(self, G, category = None):
+    def _Hom_(self, G, category):
         r"""
 
         """
-        if not isinstance(G, ParentLibGAP):
-            raise TypeError("G (=%s) must be a ParentLibGAP group." %G)
-        from sage.groups.libgap_homset import GroupHomset
-        from sage.categories.groups import Groups
-        cat = Groups()
-        if self.is_finite() and G.is_finite():
-            cat = cat.Finite()
-        return GroupHomset(self, G, category=cat)
+        from sage.groups.libgap_morphism import GroupHomset_libgap
+        return GroupHomset_libgap(self, G, category=category)
 
     def _subgroup_constructor(self, libgap_subgroup):
         """

@@ -11,11 +11,10 @@
 # and the frequent loading of docker images probably exceeds the cost of the
 # actual tests.
 
-# As of early 2018, a run on CircleCI takes usually about 35 minutes. Most of
+# As of early 2018, a run on CircleCI takes usually about 25 minutes. Most of
 # the time is spent pulling/pushing from/to Docker Hub and copying files
-# locally during the docker build. We could probably save 5 minutes by not
-# pushing the sagemath-dev image to Docker Hub.  We could save another five
-# minutes by not building and testing the sagemath-dev image in these cases.
+# locally during the docker build. We could probably save five minutes by not
+# building and testing the sagemath-dev image for most branches.
 
 version: 2
 jobs:

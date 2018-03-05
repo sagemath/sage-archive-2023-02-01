@@ -110,7 +110,10 @@ def banner(full=None):
         │ Type "help()" for help.                                            │
         ...
     """
-    print(banner_text(full=full))
+    try:
+        print(banner_text(full=full))
+    except UnicodeEncodeError:
+        print(banner_text(full=False))
 
 
 def version_dict():

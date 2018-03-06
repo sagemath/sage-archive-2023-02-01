@@ -844,7 +844,11 @@ cdef class LocalGenericElement(CommutativeRingElement):
             if self.valuation() is not infinity:
                 shift = shift << v
 
-        for mode in ['simple', 'smallest', 'teichmuller']:
+        if self.parent().is_lattice_prec():
+            modes = ['simple']
+        else:
+            modes = ['simple', 'smallest', 'teichmuller']
+        for mode in modes:
             expansion = self.expansion(lift_mode=mode)
             expansion_sum = sum(self.parent().maximal_unramified_subextension()(c) *
                                 (self.parent().one()<<i)

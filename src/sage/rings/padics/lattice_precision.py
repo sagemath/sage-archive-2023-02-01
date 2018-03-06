@@ -1,5 +1,5 @@
 r"""
-Lattice precision for the parents ``ZpLC``/``QpLC`` and ``ZpLF``/``QpLC``
+Lattice precision for the parents ``ZpLC``/``QpLC`` and ``ZpLF``/``QpLF``
 
 AUTHOR:
 
@@ -693,7 +693,7 @@ class DifferentialPrecisionGeneric(SageObject):
         r"""
         Return the underlying prime number attached to this precision lattice.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R = ZpLC(2, label="mylabel")
             sage: R.precision().prime()
@@ -1141,9 +1141,9 @@ class DifferentialPrecisionGeneric(SageObject):
 
             sage: x = R(1, 10); y = R(1, 5)
             sage: x, y = x+y, x-y
-            sage: print(prec.history())
+            sage: print(prec.history())  # somewhat random
              Timings
-               ...     oooo
+            0.000213s  oooo
 
         When we clear history, only the last line is kept::
 
@@ -1154,10 +1154,10 @@ class DifferentialPrecisionGeneric(SageObject):
 
             sage: prec.del_elements()
 
-            sage: print(prec.history())
+            sage: print(prec.history())  # somewhat random
              Timings   oooo
-               ...     ~~oo
-               ...     oo
+            0.000005s  ~~oo
+            0.000285s  oo
 
         .. SEEALSO::
 
@@ -1254,11 +1254,11 @@ class DifferentialPrecisionGeneric(SageObject):
             ....:    if is_prime(p): L[p] = None
             sage: prec.del_elements()
 
-            sage: print(prec.history())
-             Timings    
-               ...   oooooooooooooooooooo
-               ...   oo~~o~o~ooo~o~ooo~o~
-               ...   oooooooooooo
+            sage: print(prec.history())  # somewhat random
+             Timings
+            0.001108s  oooooooooooooooooooo
+            0.000009s  oo~~o~o~ooo~o~ooo~o~
+            0.014250s  oooooooooooo
 
         The legend is the following::
         - the symbol ``o`` represents a tracked element,

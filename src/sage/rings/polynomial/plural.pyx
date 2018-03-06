@@ -2724,8 +2724,7 @@ cpdef MPolynomialRing_libsingular new_CRing(RingWrap rw, base_ring):
     self._ring = rw._ring
 
     wrapped_ring = wrap_ring(self._ring)
-    cur_refcnt = sage.libs.singular.ring.ring_refcount_dict.get(wrapped_ring, 0)
-    sage.libs.singular.ring.ring_refcount_dict[wrapped_ring] = cur_refcnt + 1
+    sage.libs.singular.ring.ring_refcount_dict[wrapped_ring] += 1
 
     self._ring.ShortOut = 0
 
@@ -2795,8 +2794,7 @@ cpdef NCPolynomialRing_plural new_NRing(RingWrap rw, base_ring):
     self._ring = rw._ring
 
     wrapped_ring = wrap_ring(self._ring)
-    cur_refcnt = sage.libs.singular.ring.ring_refcount_dict.get(wrapped_ring, 0)
-    sage.libs.singular.ring.ring_refcount_dict[wrapped_ring] = cur_refcnt + 1
+    sage.libs.singular.ring.ring_refcount_dict[wrapped_ring] += 1
 
     self._ring.ShortOut = 0
 

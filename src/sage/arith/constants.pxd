@@ -21,3 +21,5 @@ cdef extern from *:
     double M_1_LN2 "0x1.71547652b82fep+0"    # 1/log(2)
     double M_1_LN10 "0x6.f2dec549b9438p-4"   # 1/log(10)
     double M_1_LNPI "0xd.fa22fdd8cfd98p-4"   # 1/log(π)
+
+    double LOG_TEN_TWO_PLUS_EPSILON "0x3.5269e12f346e4p+0"  # log(10,2) rounded up

@@ -18,31 +18,23 @@ AUTHOR:
 
 """
 
-#******************************************************************************
-#  Copyright (C) 2013 Simon A. King <simon.king at uni-jena.de>
+#*****************************************************************************
+#       Copyright (C) 2013 Simon A. King <simon.king at uni-jena.de>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#******************************************************************************
-from __future__ import print_function
+#*****************************************************************************
+
+from __future__ import absolute_import, print_function
 
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.misc.constant_function import ConstantFunction
-from sage.misc.lazy_attribute import lazy_class_attribute
 
-from cpython.bool cimport *
-from cpython.ref cimport *
+from cpython.object cimport Py_EQ, Py_NE
 
-cdef extern from "Python.h":
-    cdef size_t SIZEOF_VOID_P
 
 cdef class WithEqualityById:
     """
@@ -161,7 +153,7 @@ cdef class WithEqualityById:
         # This is the default hash function in Python's object.c:
         return hash_by_id(<void *>self)
 
-    def __richcmp__(self, other, int m):
+    def __richcmp__(self, other, int op):
         """
         Equality test provided by this class is by identity.
 
@@ -199,24 +191,37 @@ cdef class WithEqualityById:
             sage: a < b
             False
 
+        When comparing with an object which is not an instance of
+        ``WithEqualityById``, the other object determines the
+        comparison::
+
+            sage: class AlwaysEqual:
+            ....:     def __eq__(self, other):
+            ....:         return True
+            sage: AlwaysEqual() == a
+            True
+            sage: a == AlwaysEqual()
+            True
+
+        Check that :trac:`19628` is fixed::
+
+            sage: from sage.misc.lazy_import import LazyImport
+            sage: lazyQQ = LazyImport('sage.all', 'QQ')
+            sage: PolynomialRing(lazyQQ, 'ijk') is PolynomialRing(QQ, 'ijk')
+            True
+            sage: PolynomialRing(QQ, 'ijkl') is PolynomialRing(lazyQQ, 'ijkl')
+            True
         """
-        cdef object out
-        if self is other:
-            if m == 2: # ==
-                return True
-            elif m == 3: # !=
-                return False
-            else:
-                # <= or >= or NotImplemented
-                return m==1 or m==5 or NotImplemented
-        else:
-            if m == 2:
-                return False
-            elif m == 3:
-                return True
-            else:
+        # This only makes sense if "other" is also of type WithEqualityById
+        if type(self) is not type(other):
+            if not isinstance(other, WithEqualityById):
                 return NotImplemented
 
+        if op == Py_EQ:
+            return self is other
+        elif op == Py_NE:
+            return self is not other
+        return NotImplemented
 
 
 cdef class FastHashable_class:

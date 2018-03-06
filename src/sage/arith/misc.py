@@ -25,7 +25,7 @@ from sage.misc.misc_c import prod
 from sage.libs.pari.all import pari
 import sage.libs.flint.arith as flint_arith
 
-from sage.structure.element import parent
+from sage.structure.element import parent, Element
 from sage.structure.coerce import py_scalar_to_element
 
 from sage.rings.rational_field import QQ
@@ -1524,11 +1524,11 @@ def gcd(a, b=None, **kwargs):
     :trac:`4988` the following wrongly returned 3 since the third parameter
     was just ignored::
 
-        sage: gcd(3,6,2)
+        sage: gcd(3, 6, 2)
         Traceback (most recent call last):
         ...
-        TypeError: gcd() takes at most 2 arguments (3 given)
-        sage: gcd([3,6,2])
+        TypeError: gcd() takes ...
+        sage: gcd([3, 6, 2])
         1
 
     Similarly, giving just one element (which is not a list) gives an error::
@@ -1599,7 +1599,7 @@ def gcd(a, b=None, **kwargs):
     from sage.structure.sequence import Sequence
     seq = Sequence(a)
     U = seq.universe()
-    if U is ZZ or U is int or U is long:# ZZ.has_coerce_map_from(U):
+    if U is ZZ or U in integer_types:  # ZZ.has_coerce_map_from(U):
         return GCD_list(a)
     return __GCD_sequence(seq, **kwargs)
 
@@ -2279,25 +2279,48 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
         sage: [p^e for p,e in f]
         [4, 3, 5, 7]
 
+    We can factor Python and numpy numbers::
+
+        sage: factor(math.pi)
+        3.141592653589793
+        sage: import numpy
+        sage: factor(numpy.int8(30))
+        2 * 3 * 5
+
+    TESTS::
+
+        sage: factor(Mod(4, 100))
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to factor 4
+        sage: factor("xyz")
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to factor 'xyz'
     """
-    if isinstance(n, integer_types):
-        n = ZZ(n)
+    try:
+        m = n.factor
+    except AttributeError:
+        # Maybe n is not a Sage Element, try to convert it
+        e = py_scalar_to_element(n)
+        if e is n:
+            # Either n was a Sage Element without a factor() method
+            # or we cannot it convert it to Sage
+            raise TypeError("unable to factor {!r}".format(n))
+        n = e
+        m = n.factor
 
     if isinstance(n, Integer):
-        return n.factor(proof=proof, algorithm=algorithm,
-                        int_ = int_, verbose=verbose)
-    else:
-        # e.g. n = x**2 + y**2 + 2*x*y
-        try:
-            return n.factor(proof=proof, **kwds)
-        except AttributeError:
-            raise TypeError("unable to factor n")
-        except TypeError:
-            # Just in case factor method doesn't have a proof option.
-            try:
-                return n.factor(**kwds)
-            except AttributeError:
-                raise TypeError("unable to factor n")
+        return m(proof=proof, algorithm=algorithm, int_=int_,
+                 verbose=verbose, **kwds)
+
+    # Polynomial or other factorable object
+    try:
+        return m(proof=proof, **kwds)
+    except TypeError:
+        # Maybe the factor() method doesn't have a proof option
+        return m(**kwds)
+
 
 def radical(n, *args, **kwds):
     """

@@ -1818,16 +1818,16 @@ class HasseDiagram(DiGraph):
         # Special cases first
         if n == 0:
             yield []
-            raise(StopIteration)
+            return
         if n == 1:
             yield [0]
-            raise(StopIteration)
+            return
         if n % 2 == 1:
-            raise(StopIteration)
+            return
 
         dual_isomorphism = self.is_isomorphic(self.reverse(), certificate=True)[1]
         if dual_isomorphism is None:  # i.e. if the lattice is not self-dual.
-            raise(StopIteration)
+            return
 
         # We compute possible orthocomplements, i.e. elements
         # with "dual position" and complement to each other.
@@ -1876,7 +1876,7 @@ class HasseDiagram(DiGraph):
         # A little optimization
         for e in range(n):
             if len(comps[e]) == 0:  # Not any possible orthocomplement
-                raise(StopIteration)
+                return
             if len(comps[e]) == 1:  # Do not re-fit this every time
                 e_ = comps[e][0]
                 # Every element might have one possible orthocomplement,
@@ -1884,7 +1884,7 @@ class HasseDiagram(DiGraph):
                 for lc in self.lower_covers_iterator(e):
                     if start[lc] is not None:
                         if not self.has_edge(e_, start[lc]):
-                            raise(StopIteration)
+                            return
                 if start[e_] is None:
                     start[e] = e_
                     start[e_] = e

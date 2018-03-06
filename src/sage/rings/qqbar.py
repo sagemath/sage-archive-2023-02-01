@@ -3722,7 +3722,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: x.interval_fast(RIF)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert 0.7071067811865475244? + 0.7071067811865475244?*I to real interval
+            TypeError: unable to convert complex interval 0.7071067811865475244? + 0.7071067811865475244?*I to real interval
         """
         while self._value.prec() < field.prec():
             self._more_precision()
@@ -3818,7 +3818,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         else:
             return field(val)
 
-    _real_mpfi_ = interval
+    _complex_mpfi_ = _real_mpfi_ = interval
 
     def radical_expression(self):
         r"""
@@ -4275,27 +4275,18 @@ class AlgebraicNumber(AlgebraicNumber_base):
 
     def _complex_mpfr_field_(self, field):
         r"""
-        Compute an approximation to self in the given field, which may be
-        either an interval field (in which case ``self.interval()`` is called)
-        or any other complex field (in which case ``self.complex_number()`` is
-        called).
+        Compute an approximation to self in the given field, which must
+        be a complex field.
 
         EXAMPLES::
 
             sage: a = QQbar(1 + I).sqrt()
-            sage: t = a._complex_mpfr_field_(CIF); t
-            1.098684113467810? + 0.4550898605622274?*I
-            sage: parent(t)
-            Complex Interval Field with 53 bits of precision
             sage: t = a._complex_mpfr_field_(ComplexField(100)); t
             1.0986841134678099660398011952 + 0.45508986056222734130435775782*I
             sage: parent(t)
             Complex Field with 100 bits of precision
         """
-        if is_ComplexIntervalField(field):
-            return self.interval(field)
-        else:
-            return self.complex_number(field)
+        return self.complex_number(field)
 
     def complex_number(self, field):
         r"""

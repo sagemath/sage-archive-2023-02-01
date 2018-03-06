@@ -60,7 +60,7 @@ class UnknownClass(UniqueRepresentation, SageObject):
 
     def __bool__(self):
         """
-        When evaluated in a boolean context ``Unknown()`` is evalutated into
+        When evaluated in a boolean context ``Unknown()`` is evaluated into
         ``False``.
 
         EXAMPLES::

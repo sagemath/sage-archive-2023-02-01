@@ -5195,7 +5195,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         self._scream_if_not_simple()
 
-        if self.vertex_connectivity() < 3:
+        if not self.vertex_connectivity(k=3):
             raise NotImplementedError("the graph must be 3-vertex-connected.")
 
         from sage.graphs.graph import Graph
@@ -7183,7 +7183,7 @@ class GenericGraph(GenericGraph_pyx):
             return g
 
     def hamiltonian_path(self, s=None, t=None, use_edge_labels=False,
-                         algorithm='MILP', solver=None, verbose=0):
+                         maximize=False, algorithm='MILP', solver=None, verbose=0):
         r"""
         Return a Hamiltonian path of the current graph/digraph.
 
@@ -7191,8 +7191,9 @@ class GenericGraph(GenericGraph_pyx):
         once. Computing a Hamiltonian path being NP-Complete, this
         algorithm could run for some time depending on the instance.
 
-        When ``use_edge_labels == True``, this method returns a minimum
-        weight hamiltonian path.
+        When ``use_edge_labels == True``, this method returns either a minimum
+        weight hamiltonian path or a maximum weight Hamiltonian path (if
+        ``maximize == True``).
 
         .. SEEALSO::
 
@@ -7212,6 +7213,11 @@ class GenericGraph(GenericGraph_pyx):
         - ``use_edge_labels`` -- boolean (default: ``False``); whether the
           labels on the edges are to be considered as weights (a label set
           to ``None`` or ``{}`` being considered as a weight of `1`)
+
+        - ``maximize`` -- boolean (default: ``False``); whether to compute a
+          minimum (default) of a maximum (when ``maximize == True``) weight
+          hamiltonian path. This parameter is considered only if
+          ``use_edge_labels == True``.
 
         - ``algorithm`` -- one of ``"MILP"`` (default) or ``"backtrack"``;
           two remarks on this respect:
@@ -7246,11 +7252,11 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = graphs.Grid2dGraph(3, 3)
             sage: g.hamiltonian_path()
-            Subgraph of (2D Grid Graph for [3, 3]): Graph on 9 vertices
+            Hamiltonian path from 2D Grid Graph for [3, 3]: Graph on 9 vertices
             sage: g.hamiltonian_path(s=(0,0), t=(2,2))
-            Subgraph of (2D Grid Graph for [3, 3]): Graph on 9 vertices
+            Hamiltonian path from 2D Grid Graph for [3, 3]: Graph on 9 vertices
             sage: g.hamiltonian_path(s=(0,0), t=(2,2), use_edge_labels=True)
-            (8, Subgraph of (2D Grid Graph for [3, 3]): Graph on 9 vertices)
+            (8, Hamiltonian path from 2D Grid Graph for [3, 3]: Graph on 9 vertices)
             sage: g.hamiltonian_path(s=(0,0), t=(0,1)) is None
             True
             sage: g.hamiltonian_path(s=(0,0), t=(0,1), use_edge_labels=True)
@@ -7283,7 +7289,28 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = DiGraph(2)
             sage: g.hamiltonian_path() is None
             True
+
+        Asking for a minimum (resp., maximum) weight Hamiltonian path::
+
+            sage: G = Graph([(0, 1, 1), (0, 2, 2), (0, 3, 1), (1, 2, 1), (1, 3, 2), (2, 3, 1)])
+            sage: print(G.hamiltonian_path(s=0, t=1, use_edge_labels=True, maximize=False)[0])
+            3
+            sage: print(G.hamiltonian_path(s=0, t=1, use_edge_labels=True, maximize=True)[0])
+            5
+
+        Parameter ``algorithm`` must be either ``'backtrack'`` or ``'MILP'``::
+
+            sage: Graph().hamiltonian_path(algorithm='noname')
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm must be either 'backtrack' or 'MILP'
         """
+        if use_edge_labels or algorithm is None:
+            # We force the algorithm to 'MILP'
+            algorithm = 'MILP'
+        elif not algorithm in ['MILP', 'backtrack']:
+            raise ValueError("algorithm must be either 'backtrack' or 'MILP'")
+
         if self.order() < 2:
             raise ValueError('the Hamiltonian path problem is not well ' +
                              'defined for empty and one-element (di)graphs')
@@ -7291,14 +7318,124 @@ class GenericGraph(GenericGraph_pyx):
         if not self.is_connected():
             return (0, None) if use_edge_labels else None
 
-        path = self.longest_path(s=s, t=t, use_edge_labels=use_edge_labels,
-                                 algorithm=algorithm, solver=solver,
-                                 verbose=verbose)
-        if use_edge_labels:
-            return path if path[1].order() == self.order() else (0, None)
-        return path if path.order() == self.order() else None
+        #
+        # Deal with loops and multiple edges
+        #
+        if self.has_loops() or self.has_multiple_edges():
+            keep_label = 'max' if (use_edge_labels and maximize) else 'min'
+            g = self.to_simple(to_undirected=False, keep_label=keep_label, immutable=False)
+        else:
+            g = copy(self)
 
-    def traveling_salesman_problem(self, use_edge_labels = False, solver = None, constraint_generation = None, verbose = 0, verbose_constraints = False):
+
+        new_s, new_t = s, t
+        if g.is_directed():
+            #
+            # Deal with vertices with no in|out-neighbors
+            #
+            zeros = [u for u in g if g.in_degree(u)==0]
+            if len(zeros) > 1:
+                return (0, None) if use_edge_labels else None
+            elif len(zeros) == 1:
+                if new_s is None:
+                    new_s = zeros.pop()
+                elif not new_s in zeros:
+                    return (0, None) if use_edge_labels else None
+
+            zeros = [u for u in g if g.out_degree(u)==0]
+            if len(zeros) > 1:
+                return (0, None) if use_edge_labels else None
+            elif len(zeros) == 1:
+                if new_t is None:
+                    new_t = zeros.pop()
+                elif not new_t in zeros:
+                    return (0, None) if use_edge_labels else None
+
+        else:
+            #
+            # Deal with vertices of degree one
+            #
+            ones = [u for u in g if g.degree(u)==1]
+            if len(ones) > 2:
+                return (0, None) if use_edge_labels else None
+
+            elif len(ones) == 2:
+                if not new_s is None and not new_s in ones:
+                    return (0, None) if use_edge_labels else None
+                if not new_t is None and not new_t in ones:
+                    return (0, None) if use_edge_labels else None
+
+                # Set new_s and new_t if possible
+                if new_s is None and new_t is None:
+                    new_s,new_t = ones
+                elif not new_s is None and new_t is None:
+                    new_t = ones[1] if new_s == ones[0] else ones[0]
+                elif new_s is None and not new_t is None:
+                    new_s = ones[1] if new_t == ones[0] else ones[0]
+
+            elif len(ones) == 1:
+                if not new_s is None and not new_t is None and not (new_s in ones or new_t in ones):
+                    return (0, None) if use_edge_labels else None
+                elif new_s is None and (new_t is None or (not new_t is None and not new_t in ones)):
+                    new_s = ones.pop()
+                elif new_t is None and not new_s is None and not new_s in ones:
+                    new_t = ones.pop()
+
+
+        if not use_edge_labels and algorithm == "backtrack":
+            path = g.longest_path(s=new_s, t=new_t, algorithm="backtrack")
+            return path if path.order() == g.order() else None
+
+        #
+        # We modify the graph to turn the Hamiltonian Path problem into a
+        # Hamiltonian Cycle problem. The modification ensures that the computed
+        # Hamiltonian Cycle will visit new_s (if determined) right after new_t
+        # (if determined). Hence the extraction of the Hamiltonian Path is easy.
+        #
+        extra_vertices = []
+        if new_s is None:
+            # If the source is not specified or determined, we add a virtual
+            # source and an edge from it to each vertex of the (di)graph.
+            new_s = g.add_vertex()
+            extra_vertices.append(new_s)
+            for u in self: # in original set of vertices
+                g.add_edge(new_s, u, 0)
+
+        if new_t is None:
+            # If the source is not specified or determined, we add a virtual
+            # destination and an edge from each vertex of the (di)graph to it.
+            new_t = g.add_vertex()
+            extra_vertices.append(new_t)
+            for u in self:
+                g.add_edge(u, new_t, 0)
+
+        # We force the Hamiltonian cycle to visit new_s right after new_t by
+        # inserting an intermediate vertex
+        v = g.add_vertex()
+        extra_vertices.append(v)
+        g.add_edge(new_t, v, 0)
+        g.add_edge(v, new_s, 0)
+
+        #
+        # We now search for an Hamiltonian Cycle in g
+        #
+        from sage.categories.sets_cat import EmptySetError
+        try:
+            tsp = g.traveling_salesman_problem(use_edge_labels=use_edge_labels,
+                                                   maximize=maximize,
+                                                   solver=solver, verbose=verbose)
+        except EmptySetError:
+            return (0, None) if use_edge_labels else None
+
+        tsp.delete_vertices(extra_vertices)
+        tsp.name("Hamiltonian path from {}".format(self.name()))
+        weight = lambda l: 1 if l is None else l
+        return (sum(map(weight,tsp.edge_labels())), tsp) if use_edge_labels else tsp
+
+
+    def traveling_salesman_problem(self, use_edge_labels=False, maximize=False,
+                                       solver=None, constraint_generation=None,
+                                       verbose=0, verbose_constraints=False):
         r"""
         Solves the traveling salesman problem (TSP)
 
@@ -7320,6 +7457,11 @@ class GenericGraph(GenericGraph_pyx):
               - If set to ``True``, the weights are taken into account, and the
                 circuit returned is the one minimizing the sum of the weights
                 (an edge with no label is assumed to have weight `1`).
+
+        - ``maximize`` -- boolean (default: ``False``). When set to ``True``
+          search for a Hamiltonian cycle (res. circuit) of maximum weight
+          instead of minimum weight. This parameter is used only when
+          ``use_edge_labels`` is ``True``.
 
         - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
           solver to be used. If set to ``None``, the default one is used. For
@@ -7416,6 +7558,16 @@ class GenericGraph(GenericGraph_pyx):
             sage: tsp = g.traveling_salesman_problem(use_edge_labels = True)
             sage: sum( tsp.edge_labels() ) == (1/2)*10
             True
+
+        Search for a minimum and a maximum weight Hamiltonian cycle::
+
+            sage: G = Graph([(0, 1, 1), (0, 2, 2), (0, 3, 1), (1, 2, 1), (1, 3, 2), (2, 3, 1)])
+            sage: tsp = G.traveling_salesman_problem(use_edge_labels=True, maximize=False)
+            sage: print(sum(tsp.edge_labels()))
+            4
+            sage: tsp = G.traveling_salesman_problem(use_edge_labels=True, maximize=True)
+            sage: print(sum(tsp.edge_labels()))
+            6
 
         TESTS:
 
@@ -7518,7 +7670,11 @@ class GenericGraph(GenericGraph_pyx):
         """
         from sage.categories.sets_cat import EmptySetError
 
-        weight = lambda l : 1 if l is None else l
+        # Associating a weight to a label
+        if use_edge_labels:
+            weight = lambda l: 1 if l is None else l
+        else:
+            weight = lambda l: 1
 
         ########################
         # 0 or 1 vertex graphs #
@@ -7536,8 +7692,12 @@ class GenericGraph(GenericGraph_pyx):
             if self.is_directed():
                 if self.has_edge(u,v) and self.has_edge(v,u):
                     if self.has_multiple_edges():
-                        edges = [(u,v,min(self.edge_label(u,v), key=weight)),
-                                 (v,u,min(self.edge_label(v,u), key=weight))]
+                        if maximize:
+                            edges = [(u,v,max(self.edge_label(u,v), key=weight)),
+                                    (v,u,max(self.edge_label(v,u), key=weight))]
+                        else:
+                            edges = [(u,v,min(self.edge_label(u,v), key=weight)),
+                                    (v,u,min(self.edge_label(v,u), key=weight))]
                     else:
                         edges = [(u,v,self.edge_label(u,v)),
                                  (v,u,self.edge_label(v,u))]
@@ -7578,37 +7738,16 @@ class GenericGraph(GenericGraph_pyx):
             if not self.strong_orientation().is_strongly_connected():
                 raise EmptySetError("the given graph is not Hamiltonian")
 
-        ############################
-        # Deal with multiple edges #
-        ############################
+        ######################################
+        # Deal with loops and multiple edges #
+        ######################################
 
         if self.has_loops() or self.has_multiple_edges():
-            g = copy(self)
+            keep_label = 'max' if (use_edge_labels and maximize) else 'min'
+            g = self.to_simple(to_undirected=False, keep_label=keep_label, immutable=False)
         else:
             g = self
 
-        if g.has_multiple_edges():
-            multi = g.multiple_edges()
-            g.delete_edges(multi)
-            g.allow_multiple_edges(False)
-            if use_edge_labels:
-                e = {}
-
-                # The weight of an edge is the minimum over the weights of the parallel edges
-                for u,v,l in multi:
-                    if (u,v) in e:
-                        e[u,v] = weight(l) if weight(l) < e[u,v] else e[u,v]
-                    else:
-                        e[u,v] = l
-
-                g.add_edges([(u,v) for (u,v),l in iteritems(e)])
-
-            else:
-                g.add_edges(multi)
-
-        if g.has_loops():
-            g.remove_loops()
-            g.allow_loops(False)
 
         if constraint_generation is None:
             if g.density() > .7:
@@ -7625,10 +7764,9 @@ class GenericGraph(GenericGraph_pyx):
 
         if constraint_generation:
 
-            p = MixedIntegerLinearProgram(maximization = False,
-                                          solver = solver,
-                                          constraint_generation = True)
-
+            p = MixedIntegerLinearProgram(maximization=maximize,
+                                          solver=solver,
+                                          constraint_generation=True)
 
             # Directed Case #
             #################
@@ -7640,14 +7778,14 @@ class GenericGraph(GenericGraph_pyx):
                 # Objective function
                 if use_edge_labels:
                     p.set_objective(p.sum([ weight(l)*b[u,v]
-                                          for u,v,l in g.edges()]))
+                                          for u,v,l in g.edge_iterator()]))
 
                 # All the vertices have in-degree 1 and out-degree 1
                 for v in g:
-                    p.add_constraint(p.sum([b[u,v] for u in g.neighbors_in(v)]),
+                    p.add_constraint(p.sum([b[u,v] for u in g.neighbor_in_iterator(v)]),
                                      min = 1,
                                      max = 1)
-                    p.add_constraint(p.sum([b[v,u] for u in g.neighbors_out(v)]),
+                    p.add_constraint(p.sum([b[v,u] for u in g.neighbor_out_iterator(v)]),
                                      min = 1,
                                      max = 1)
 
@@ -7660,7 +7798,7 @@ class GenericGraph(GenericGraph_pyx):
                 while True:
                     # We build the DiGraph representing the current solution
                     h = DiGraph()
-                    for u,v,l in g.edges():
+                    for u,v,l in g.edge_iterator():
                         if p.get_values(b[u,v]) == 1:
                             h.add_edge(u,v,l)
 
@@ -7692,12 +7830,11 @@ class GenericGraph(GenericGraph_pyx):
 
                 # Objective function
                 if use_edge_labels:
-                    p.set_objective(p.sum([ weight(l)*B(u,v)
-                                          for u,v,l in g.edges()]) )
+                    p.set_objective(p.sum( weight(l)*B(u,v) for u,v,l in g.edge_iterator()) )
 
                 # All the vertices have degree 2
                 for v in g:
-                    p.add_constraint(p.sum([ B(u,v) for u in g.neighbors(v)]),
+                    p.add_constraint(p.sum( B(u,v) for u in g.neighbor_iterator(v)),
                                      min = 2,
                                      max = 2)
 
@@ -7710,7 +7847,7 @@ class GenericGraph(GenericGraph_pyx):
                 while True:
                     # We build the DiGraph representing the current solution
                     h = Graph()
-                    for u,v,l in g.edges():
+                    for u,v,l in g.edge_iterator():
                         if p.get_values(B(u,v)) == 1:
                             h.add_edge(u,v,l)
 
@@ -7744,7 +7881,7 @@ class GenericGraph(GenericGraph_pyx):
         # ILP formulation without constraint generation #
         #################################################
 
-        p = MixedIntegerLinearProgram(maximization = False, solver = solver)
+        p = MixedIntegerLinearProgram(maximization=maximize, solver=solver)
 
         f = p.new_variable(binary=True)
         r = p.new_variable(nonnegative=True)
@@ -7760,11 +7897,11 @@ class GenericGraph(GenericGraph_pyx):
 
             # All the vertices have in-degree 1 and out-degree 1
             for v in g:
-                p.add_constraint(p.sum([ f[(u,v)] for u in g.neighbors_in(v)]),
+                p.add_constraint(p.sum(f[(u,v)] for u in g.neighbor_in_iterator(v)),
                                  min = 1,
                                  max = 1)
 
-                p.add_constraint(p.sum([ f[(v,u)] for u in g.neighbors_out(v)]),
+                p.add_constraint(p.sum(f[(v,u)] for u in g.neighbor_out_iterator(v)),
                                  min = 1,
                                  max = 1)
 
@@ -7793,12 +7930,12 @@ class GenericGraph(GenericGraph_pyx):
 
             # All the vertices have degree 2
             for v in g:
-                p.add_constraint(p.sum([ E(u,v) for u in g.neighbors(v)]),
+                p.add_constraint(p.sum( E(u,v) for u in g.neighbor_iterator(v)),
                                  min = 2,
                                  max = 2)
 
             # r is greater than f
-            for u,v in g.edges(labels = None):
+            for u,v in g.edge_iterator(labels = None):
                 p.add_constraint( r[(u,v)] + r[(v,u)] - E(u,v), min = 0)
 
             from sage.graphs.all import Graph
@@ -7809,20 +7946,18 @@ class GenericGraph(GenericGraph_pyx):
         # no cycle which does not contain x
         for v in g:
             if v != x:
-                p.add_constraint(p.sum([ r[(u,v)] for u in g.neighbors(v)]),max = 1-eps)
+                p.add_constraint(p.sum( r[(u,v)] for u in g.neighbor_iterator(v)),max = 1-eps)
 
         if use_edge_labels:
-            p.set_objective(p.sum([ weight(l)*E(u,v) for u,v,l in g.edges()]) )
-        else:
-            p.set_objective(None)
+            p.set_objective(p.sum( weight(l)*E(u,v) for u,v,l in g.edge_iterator()) )
 
         try:
-            obj = p.solve(log = verbose)
+            obj = p.solve(log=verbose)
             f = p.get_values(f)
             tsp.add_vertices(g.vertices())
             tsp.set_pos(g.get_pos())
             tsp.name("TSP from "+g.name())
-            tsp.add_edges([(u,v,l) for u,v,l in g.edges() if E(u,v) == 1])
+            tsp.add_edges([(u,v,l) for u,v,l in g.edge_iterator() if E(u,v) == 1])
 
             return tsp
 
@@ -9703,27 +9838,26 @@ class GenericGraph(GenericGraph_pyx):
 
             return val
 
-    def vertex_connectivity(self, value_only=True, sets=False, solver=None, verbose=0):
+    def vertex_connectivity(self, value_only=True, sets=False, k=None, solver=None, verbose=0):
         r"""
-        Returns the vertex connectivity of the graph. For more information,
-        see the
-        `Wikipedia article on connectivity
-        <http://en.wikipedia.org/wiki/Connectivity_(graph_theory)>`_.
+        Return the vertex connectivity of the graph.
+
+        For more information, see the :wikipedia:`Connectivity_(graph_theory)`.
 
         .. NOTE::
 
-            * When the graph is a directed graph, this method actually computes
-              the *strong* connectivity, (i.e. a directed graph is strongly
-              `k`-connected if there are `k` disjoint paths between any two
-              vertices `u, v`). If you do not want to consider strong
+            * When the graph is directed, this method actually computes the
+              *strong* connectivity, (i.e. a directed graph is strongly
+              `k`-connected if there are `k` vertex disjoint paths between any
+              two vertices `u, v`). If you do not want to consider strong
               connectivity, the best is probably to convert your ``DiGraph``
               object to a ``Graph`` object, and compute the connectivity of this
               other graph.
 
             * By convention, a complete graph on `n` vertices is `n-1`
               connected. In this case, no certificate can be given as there is
-              no pair of vertices split by a cut of size `k-1`. For this reason,
-              the certificates returned in this situation are empty.
+              no pair of vertices split by a cut of order `k-1`. For this
+              reason, the certificates returned in this situation are empty.
 
         INPUT:
 
@@ -9736,17 +9870,21 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``sets`` -- boolean (default: ``False``)
 
-          - When set to ``True``, also returns the two sets of
-            vertices that are disconnected by the cut.
-            Implies ``value_only=False``
+          - When set to ``True``, also returns the two sets of vertices that
+            are disconnected by the cut.  Implies ``value_only=False``
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method
-          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
-          of the class
-          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+        - ``k`` -- integer (default: ``None``) When specified, check if the
+          vertex connectivity of the (di)graph is larger or equal to `k`. The
+          method thus outputs a boolean only.
+
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers, see the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.  Use method
+          :meth:`sage.numberical.backends.generic_backend.default_mip_solver` to
+          know which default solver is used or to set the default solver.
 
         - ``verbose`` -- integer (default: ``0``). Sets the level of
           verbosity. Set to 0 by default, which means quiet.
@@ -9759,9 +9897,8 @@ class GenericGraph(GenericGraph_pyx):
            sage: g.vertex_connectivity()
            3
 
-        In a grid, the vertex connectivity is equal to the
-        minimum degree, in which case one of the two sets is
-        of cardinality `1`::
+        In a grid, the vertex connectivity is equal to the minimum degree, in
+        which case one of the two sets is of cardinality `1`::
 
            sage: g = graphs.GridGraph([ 3,3 ])
            sage: [value, cut, [ setA, setB ]] = g.vertex_connectivity(sets=True)
@@ -9770,10 +9907,8 @@ class GenericGraph(GenericGraph_pyx):
 
         A vertex cut in a tree is any internal vertex::
 
-           sage: g = graphs.RandomGNP(15,.5)
-           sage: tree = Graph()
-           sage: tree.add_edges(g.min_spanning_tree())
-           sage: [val, [cut_vertex]] = tree.vertex_connectivity(value_only=False)
+           sage: tree = graphs.RandomTree(15)
+           sage: val, [cut_vertex] = tree.vertex_connectivity(value_only=False)
            sage: tree.degree(cut_vertex) > 1
            True
 
@@ -9810,44 +9945,85 @@ class GenericGraph(GenericGraph_pyx):
            sage: g = DiGraph(graphs.CompleteGraph(10))
            sage: g.vertex_connectivity()
            9
-        """
-        g=self
 
-        if sets:
-            value_only=False
+        When parameter ``k`` is set, we only check for the existence of a
+        vertex cut of order at least ``k``::
+
+           sage: g = graphs.PappusGraph()
+           sage: g.vertex_connectivity(k=3)
+           True
+           sage: g.vertex_connectivity(k=4)
+           False
+
+        TESTS:
+
+        Giving negative value to parameter ``k``::
+
+           sage: g = graphs.PappusGraph()
+           sage: g.vertex_connectivity(k=-1)
+           Traceback (most recent call last):
+           ...
+           ValueError: parameter k must be strictly positive
+
+        The empty graph has vertex connectivity 0, is considered connected but
+        not biconnected. The empty digraph is considered strongly connected::
+
+           sage: empty = Graph()
+           sage: empty.vertex_connectivity()
+           0
+           sage: empty.vertex_connectivity(k=1) == empty.is_connected()
+           True
+           sage: Graph().vertex_connectivity(k=2) == empty.is_biconnected()
+           True
+           sage: DiGraph().vertex_connectivity(k=1) == DiGraph().is_strongly_connected()
+           True
+        """
+        g = self
+
+        if k is not None:
+            if k < 1:
+                raise ValueError("parameter k must be strictly positive")
+            if g.order() == 0:
+                # We follow the convention of is_connected, is_biconnected and
+                # is_strongly_connected
+                return k == 1
+            if (g.is_directed() and k > min(min(g.in_degree()), min(g.out_degree()))) \
+               or (not g.is_directed() and (k > min(g.degree()))):
+                return False
+            value_only = True
+            sets = False
+
+        elif sets:
+            value_only = False
 
         # When the graph is complete, the MILP below is infeasible.
-        if ((not g.is_directed() and g.is_clique())
-            or
-            (g.is_directed() and g.size() >= (g.order()-1)*g.order() and
-             ((not g.allows_loops() and not g.allows_multiple_edges())
-              or
-              all(g.has_edge(u,v) for u in g for v in g if v != u)))):
+        if g.is_clique(directed_clique=g.is_directed()):
+            if k is not None:
+                return g.order() > k
             if value_only:
-                return g.order()-1
+                return max(g.order()-1, 0)
             elif not sets:
-                return g.order()-1, []
+                return max(g.order()-1, 0), []
             else:
-                return g.order()-1, [], [[],[]]
+                return max(g.order()-1, 0), [], [[], []]
 
         if value_only:
             if self.is_directed():
                 if not self.is_strongly_connected():
-                    return 0
+                    return 0 if k is None else False
 
             else:
                 if not self.is_connected():
-                    return 0
+                    return 0 if k is None else False
 
                 if len(self.blocks_and_cut_vertices()[0]) > 1:
-                    return 1
+                    return 1 if k is None else (k == 1)
 
-        if g.is_directed():
-            reorder_edge = lambda x,y : (x,y)
-        else:
-            reorder_edge = lambda x,y : (x,y) if x<= y else (y,x)
+            if k == 1:
+                # We know that the (di)graph is (strongly) connected
+                return True
 
-        from sage.numerical.mip import MixedIntegerLinearProgram
+        from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
 
         p = MixedIntegerLinearProgram(maximization=False, solver=solver)
 
@@ -9856,55 +10032,60 @@ class GenericGraph(GenericGraph_pyx):
 
         # A vertex has to be in some set
         for v in g:
-            p.add_constraint(in_set[0,v]+in_set[1,v]+in_set[2,v],max=1,min=1)
+            p.add_constraint(in_set[0, v] + in_set[1, v] + in_set[2, v], max=1, min=1)
 
         # There is no empty set
-        p.add_constraint(p.sum([in_set[0,v] for v in g]),min=1)
-        p.add_constraint(p.sum([in_set[2,v] for v in g]),min=1)
+        p.add_constraint(p.sum(in_set[0, v] for v in g), min=1)
+        p.add_constraint(p.sum(in_set[2, v] for v in g), min=1)
 
         if g.is_directed():
-            # There is no edge from set 0 to set 1 which
-            # is not in the cut
-            for (u,v) in g.edge_iterator(labels=None):
-                p.add_constraint(in_set[0,u] + in_set[2,v], max = 1)
+            # There is no edge from set 0 to set 1 which is not in the cut
+            for u, v in g.edge_iterator(labels=None):
+                p.add_constraint(in_set[0, u] + in_set[2, v], max=1)
         else:
-
             # Two adjacent vertices are in different sets if and only if
             # the edge between them is in the cut
+            for u, v in g.edge_iterator(labels=None):
+                p.add_constraint(in_set[0, u] + in_set[2, v], max=1)
+                p.add_constraint(in_set[2, u] + in_set[0, v], max=1)
 
-            for (u,v) in g.edge_iterator(labels=None):
-                p.add_constraint(in_set[0,u]+in_set[2,v],max=1)
-                p.add_constraint(in_set[2,u]+in_set[0,v],max=1)
+        if k is not None:
+            # To check if the vertex connectivity is at least k, we check if
+            # there exists a cut of order at most k-1. If the ILP is infeasible,
+            # the vertex connectivity is >= k.
+            p.add_constraint(p.sum(in_set[1, v] for v in g) <= k-1)
+            try:
+                p.solve(objective_only=True, log=verbose)
+                return False
+            except MIPSolverException:
+                return True
 
-        p.set_binary(in_set)
-
-        p.set_objective(p.sum([in_set[1,v] for v in g]))
+        else:
+            p.set_objective(p.sum(in_set[1, v] for v in g))
 
         if value_only:
             return Integer(round(p.solve(objective_only=True, log=verbose)))
-        else:
-            val = [Integer(round(p.solve(log=verbose)))]
 
-            in_set = p.get_values(in_set)
+        val = Integer(round(p.solve(log=verbose)))
 
-            cut = []
-            a = []
-            b = []
+        in_set = p.get_values(in_set)
 
-            for v in g:
-                if in_set[0,v] == 1:
-                    a.append(v)
-                elif in_set[1,v]==1:
-                    cut.append(v)
-                else:
-                    b.append(v)
+        cut = []
+        a = []
+        b = []
 
-            val.append(cut)
+        for v in g:
+            if in_set[0, v]:
+                a.append(v)
+            elif in_set[1, v]:
+                cut.append(v)
+            else:
+                b.append(v)
 
-            if sets:
-                val.append([a,b])
+        if sets:
+            return val, cut, [a, b]
 
-            return val
+        return val, cut
 
     ### Vertex handlers
 
@@ -13016,7 +13197,7 @@ class GenericGraph(GenericGraph_pyx):
                 vertices.append(v)
         return self.subgraph(vertices=vertices, inplace=inplace)
 
-    def is_chordal(self, certificate = False, algorithm = "B"):
+    def is_chordal(self, certificate=False, algorithm="B"):
         r"""
         Tests whether the given graph is chordal.
 
@@ -13160,6 +13341,9 @@ class GenericGraph(GenericGraph_pyx):
           Pacific J. Math 1965
           Vol. 15, number 3, pages 835--855
         """
+        if algorithm not in ['A', 'B']:
+            raise ValueError('unknown algorithm "{}"'.format(algorithm))
+
         self._scream_if_not_simple()
 
         # If the graph is not connected, we are computing the result on each component
@@ -22364,7 +22548,7 @@ class GenericGraph(GenericGraph_pyx):
             deprecation(19517, "Verbosity-parameter is removed.")
 
         # Check parameter combinations
-        if algorithm and algorithm not in ['sage', 'bliss']:
+        if algorithm not in [None, 'sage', 'bliss']:
             raise ValueError("'algorithm' must be equal to 'bliss', 'sage', or None")
         if algorithm != 'bliss' and not return_graph:
             raise ValueError("return_graph=False can only be used with algorithm='bliss'")

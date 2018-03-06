@@ -62,10 +62,6 @@ AUTHORS:
   that have been introduced in :trac:`14711`.
 """
 
-# Historical note: in trac #11599, V.B. renamed
-# * _point_morphism_class -> _morphism
-# * _homset_class -> _point_homset
-
 #*****************************************************************************
 #       Copyright (C) 2013 Simon King <simon.king@uni-jena.de>
 #       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
@@ -82,7 +78,8 @@ from __future__ import absolute_import, print_function
 
 import operator
 from sage.structure.element import (AdditiveGroupElement, RingElement,
-        Element, generic_power, parent, coercion_model)
+        Element, parent, coercion_model)
+from sage.arith.power import generic_power
 from sage.structure.richcmp import richcmp
 from sage.structure.sequence import Sequence
 from sage.categories.homset import Homset, Hom, End
@@ -142,13 +139,9 @@ class SchemeMorphism(Element):
 
     .. TODO::
 
-        Currently, :class:`SchemeMorphism` copies code from
-        :class:`~sage.categories.map.Map` rather than inheriting from it. This
-        is to work around a bug in Cython: We want to create a common
-        sub-class of :class:`~sage.structure.element.ModuleElement` and
-        :class:`SchemeMorphism`, but Cython would currently confuse cpdef
-        attributes of the two base classes. Proper inheritance should be used
-        as soon as this bug is fixed. See :trac:`14711`.
+        For historical reasons, :class:`SchemeMorphism` copies code from
+        :class:`~sage.categories.map.Map` rather than inheriting from it.
+        Proper inheritance should be used instead. See :trac:`14711`.
 
     EXAMPLES::
 

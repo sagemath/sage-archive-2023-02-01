@@ -19,7 +19,7 @@ definitions, etc., are informed by how the corresponding objects are
 used in everyday mathematics.
 
 .. [1]
-   See http://www.sagemath.org/links-components.html for a full list
+   See https://www.sagemath.org/links-components.html for a full list
    of packages shipped with every copy of Sage
 
 To meet the goal of making Sage easy to read, maintain, and improve,
@@ -35,8 +35,8 @@ Python Code Style
 Follow the standard Python formatting rules when writing code for
 Sage, as explained at the following URLs:
 
-* http://www.python.org/dev/peps/pep-0008
-* http://www.python.org/dev/peps/pep-0257
+* :pep:`0008`
+* :pep:`0257`
 
 In particular,
 
@@ -206,7 +206,7 @@ The top of each Sage code file should follow this format::
     # it under the terms of the GNU General Public License as published by
     # the Free Software Foundation, either version 2 of the License, or
     # (at your option) any later version.
-    #                  http://www.gnu.org/licenses/
+    #                  https://www.gnu.org/licenses/
     # ****************************************************************************
 
 As an example, see ``SAGE_ROOT/src/sage/rings/integer.pyx``, which contains the

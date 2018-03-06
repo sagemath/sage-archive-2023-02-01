@@ -693,8 +693,12 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                 [1, 2, 3]
                               
                 sage: W = WeylGroup("A3", prefix='s')
-                sage: AS = W.domain(); r1 = AS.roots()[4]; print(r1); r2 = AS.roots()[5]; print(r2)
+                sage: AS = W.domain()
+                sage: r1 = AS.roots()[4]
+                sage: r1
                 (0, 1, 0, -1)
+                sage: r2 = AS.roots()[5]
+                sage: r2
                 (0, 0, 1, -1)
                 sage: W.from_reduced_word([r1, r2], word_type='all')
                 s3*s2
@@ -1064,8 +1068,12 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                 sage: W = WeylGroup("A3", prefix='s')
                 sage: w = W.an_element(); w
                 s1*s2*s3
-                sage: AS = W.domain(); r1 = AS.roots()[4]; print(r1); r2 = AS.roots()[5]; print(r2)
+                sage: AS = W.domain()
+                sage: r1 = AS.roots()[4]
+                sage: r1
                 (0, 1, 0, -1)
+                sage: r2 = AS.roots()[5]
+                sage: r2
                 (0, 0, 1, -1)
                 sage: w.apply_reflections([r1, r2], word_type='all')
                 s1

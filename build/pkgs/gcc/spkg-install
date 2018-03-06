@@ -124,7 +124,7 @@ $MAKE install
 
 # Mark gfortran as not installed in case gfortran was installed earlier
 cd "$SAGE_SPKG_INST"
-rm -f gmp-* mpir-* mpfr-* mpc-* gfortran-*
+rm -f gfortran-*
 
 # Force re-configuration: the next time that "make" is run, we need to
 # rebuild all packages (#24703) but we should not rebuild gcc (#19324)

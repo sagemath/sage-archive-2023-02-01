@@ -403,7 +403,7 @@ cpdef boruvka(G, wfunction=None, bint check=False):
     - ``check`` -- Whether to first perform sanity checks on the input
       graph ``G``. Default: ``check=False``. If we toggle ``check=True``, the
       following sanity checks are first performed on ``G`` prior to running
-      Kruskal's algorithm on that input graph:
+      Boruvka's algorithm on that input graph:
 
       - Is ``G`` the null graph?
       - Is ``G`` disconnected?

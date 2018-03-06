@@ -39,7 +39,7 @@ character-by-character::
     ....:     traceback.print_exc()
     Traceback (most recent call last):
     ...
-        exec(preparse_file(open(fpath).read()) + "\n", globals)
+        exec(preparse_file(f.read()) + "\n", globals)
       File "<string>", line 3, in <module>
     ValueError: third
     sage: detach(src)

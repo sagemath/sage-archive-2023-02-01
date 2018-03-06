@@ -7227,14 +7227,11 @@ class Graph(GenericGraph):
             sage: G.is_polyhedral()
             False
 
-        .. TODO::
-
-            Implement a faster 3-vertex-connectivity test: :trac:`24635`.
         """
 
         return (not self.has_loops()
                 and not self.has_multiple_edges()
-                and (self.vertex_connectivity() >= 3)
+                and self.vertex_connectivity(k=3)
                 and self.is_planar())
 
     @doc_index("Graph properties")

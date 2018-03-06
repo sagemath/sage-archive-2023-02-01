@@ -400,6 +400,19 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
        sage: g = graphs.PetersenGraph()
        sage: vertex_coloring(g, value_only=True)
        3
+
+    TESTS:
+
+    Empty graph::
+
+       sage: from sage.graphs.graph_coloring import vertex_coloring
+       sage: empty = Graph()
+       sage: vertex_coloring(empty, value_only=True)
+       0
+       sage: vertex_coloring(empty, hex_colors=True)
+       {}
+       sage: vertex_coloring(empty)
+       []
     """
     g._scream_if_not_simple(allow_multiple_edges=True)
     from sage.numerical.mip import MixedIntegerLinearProgram
@@ -408,7 +421,15 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
     # If k is None, tries to find an optimal coloring
     if k is None:
         # No need to start a linear program if the graph is an
-        # independent set or bipartite.
+        # independent set, is bipartite, or is empty.
+        # - Empty graph
+        if g.order() ==0:
+            if value_only:
+                return 0
+            elif hex_colors:
+                return dict()
+            else:
+                return []
         # - Independent set
         if g.size() == 0:
             if value_only:

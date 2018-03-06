@@ -69,7 +69,7 @@ def strong_orientations_iterator(G):
 
     EXAMPLES:
 
-    A cycle has one possible (non-symetric) strong orientation::
+    A cycle has one possible (non-symmetric) strong orientation::
 
         sage: g = graphs.CycleGraph(4)
         sage: it = g.strong_orientations_iterator()
@@ -109,7 +109,7 @@ def strong_orientations_iterator(G):
         sage: g = graphs.PetersenGraph()
         sage: nr1 = len(list(g.strong_orientations_iterator()))
         sage: nr2 = g.tutte_polynomial()(0,2)
-        sage: nr1 == nr2/2 # The Tutte polynomial counts also the symetrical orientations
+        sage: nr1 == nr2/2 # The Tutte polynomial counts also the symmetrical orientations
         True
 
     """

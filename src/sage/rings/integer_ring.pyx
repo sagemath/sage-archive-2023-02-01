@@ -587,11 +587,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         Note that the input *MUST* be an ``int``::
 
-            sage: a = 10000000000000000000000r
-            sage: type(a)
-            <type 'long'>
-            sage: f(a) # random
-            5
+            sage: a = 10000000000000000000000rL
+            sage: f(a)
+            Traceback (most recent call last):
+            ...
+            TypeError: must be a Python int object
         """
         if S is long:
             return sage.rings.integer.long_to_Z()
@@ -1481,6 +1481,26 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             {atomic:ZZ}
         """
         return sib.name('ZZ')
+
+    def valuation(self, p):
+        r"""
+        Return the discrete valuation with uniformizer ``p``.
+
+        EXAMPLES::
+
+            sage: v = ZZ.valuation(3); v
+            3-adic valuation
+            sage: v(3)
+            1
+
+        .. SEEALSO::
+
+            :meth:`Order.valuation() <sage.rings.number_field.order.Order.valuation>`,
+            :meth:`RationalField.valuation() <sage.rings.rational_field.RationalField.valuation>`
+
+        """
+        from sage.rings.padics.padic_valuation import pAdicValuation
+        return pAdicValuation(self, p)
 
 ZZ = IntegerRing_class()
 Z = ZZ

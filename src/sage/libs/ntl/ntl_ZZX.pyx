@@ -28,6 +28,7 @@ from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring cimport IntegerRing_class
+from sage.arith.power cimport generic_power_pos
 
 ZZ = IntegerRing()
 
@@ -414,16 +415,26 @@ cdef class ntl_ZZX(object):
         """
         Return the n-th nonnegative power of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: g = ntl.ZZX([-1,0,1])
-            sage: g**10
+            sage: g ^ 10
             [1 0 -10 0 45 0 -120 0 210 0 -252 0 210 0 -120 0 45 0 -10 0 1]
+            sage: g ^ 0
+            [1]
+            sage: g ^ 1
+            [-1 0 1]
+            sage: g ^ (-1)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError
         """
+        if n == 0:
+            from copy import copy
+            return copy(one_ZZX)
         if n < 0:
-            raise NotImplementedError
-        import sage.groups.generic as generic
-        from copy import copy
-        return generic.power(self, n, copy(one_ZZX))
+            raise ArithmeticError
+        return generic_power_pos(self, <unsigned long>n)
 
     def __richcmp__(ntl_ZZX self, other, int op):
         """

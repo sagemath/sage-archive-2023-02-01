@@ -907,14 +907,8 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             return False
         return True
 
-#    Polynomial rings should be unique parents. Hence,
-#    no need for __cmp__. Or actually, having a __cmp__
-#    method that identifies a dense with a sparse ring
-#    is a bad bad idea!
-#    def __cmp__(left, right):
-#        c = cmp(type(left),type(right))
-#        if c: return c
-#        return cmp((left.base_ring(), left.variable_name()), (right.base_ring(), right.variable_name()))
+    #    Polynomial rings should be unique parents. Hence,
+    #    no need for any comparison method
 
     def __hash__(self):
         # should be faster than just relying on the string representation

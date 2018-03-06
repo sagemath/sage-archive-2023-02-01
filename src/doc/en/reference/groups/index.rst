@@ -33,6 +33,7 @@ Abelian Groups
    :maxdepth: 2
 
    sage/groups/abelian_gps/abelian_group
+   sage/groups/abelian_gps/abelian_group_gap
    sage/groups/abelian_gps/values
    sage/groups/abelian_gps/dual_abelian_group
    sage/groups/abelian_gps/element_base

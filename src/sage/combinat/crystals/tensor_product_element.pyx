@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Tensor Products of Crystal Elements
 
@@ -211,6 +212,38 @@ cdef class TensorProductOfCrystalsElement(ImmutableListWithParent):
             s = ascii_art(tableau)
             s._baseline = s._h // 2
             ret += AsciiArt([" # "]) + s
+        return ret
+
+    def _unicode_art_(self):
+        """
+        Return a unicode art representation of ``self``.
+
+        EXAMPLES::
+
+            sage: KT = crystals.TensorProductOfKirillovReshetikhinTableaux(['D',4,1],[[3,3],[2,1],[1,2]])
+            sage: unicode_art(KT.module_generators[0])
+            ┌───┬───┬───┐
+            │ 1 │ 1 │ 1 │
+            ├───┼───┼───┤      ┌───┐
+            │ 2 │ 2 │ 2 │      │ 1 │   ┌───┬───┐
+            ├───┼───┼───┤    ⊗ ├───┤ ⊗ │ 1 │ 1 │
+            │ 3 │ 3 │ 3 │      │ 2 │   └───┴───┘
+            ├───┼───┼───┤      └───┘
+            │ 4̄ │ 4̄ │ 4̄ │
+            └───┴───┴───┘
+        """
+        if self._parent.options.convention == "Kashiwara":
+            lst = list(reversed(self))
+        else:
+            lst = self
+        from sage.typeset.unicode_art import unicode_art, UnicodeArt
+        s = unicode_art(lst[0])
+        s._baseline = s._h // 2
+        ret = s
+        for tableau in lst[1:]:
+            s = unicode_art(tableau)
+            s._baseline = s._h // 2
+            ret += UnicodeArt([u" ⊗ "]) + s
         return ret
 
     def _repr_diagram(self):
@@ -840,6 +873,44 @@ cdef class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
         """
         return self.to_tableau()._ascii_art_()
 
+    def _unicode_art_(self):
+        """
+        Return a unicode art version of ``self``.
+
+        EXAMPLES::
+
+            sage: T = crystals.Tableaux(['B',4], shape=[1]*3)
+            sage: unicode_art(T.module_generators[0])
+            ┌───┐
+            │ 1 │
+            ├───┤
+            │ 2 │
+            ├───┤
+            │ 3 │
+            └───┘
+            sage: T = crystals.Tableaux(['D',4], shape=[2,1])
+            sage: t = T.module_generators[0].f_string([1,2,3,4,2,2,3,4])
+            sage: unicode_art(t)
+            ┌───┬───┐
+            │ 1 │ 2̄ │
+            ├───┼───┘
+            │ 3̄ │
+            └───┘
+        """
+        if not self._list:
+            return Tableau([])._unicode_art_()
+        cdef list lst = self._list
+        cdef list tab = [ [lst[0]] ]
+        cdef int i
+        for i in range(1,len(self)):
+            if lst[i-1] < lst[i] or (lst[i-1].value != 0 and lst[i-1] == lst[i]):
+                tab.append([lst[i]])
+            else:
+                tab[len(tab)-1].append(lst[i])
+        for x in tab:
+            x.reverse()
+        return Tableau(tab).conjugate()._unicode_art_()
+
     def _latex_(self):
         r"""
         EXAMPLES::
@@ -1321,6 +1392,23 @@ cdef class CrystalOfBKKTableauxElement(TensorProductOfSuperCrystalsElement):
             -1
         """
         return self.to_tableau()._ascii_art_()
+
+    def _unicode_art_(self):
+        """
+        Return a unicode art version of ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Tableaux(['A',[1,2]], shape=[1,1])
+            sage: c = C.an_element()
+            sage: unicode_art(c)
+            ┌───┐
+            │ 2̄ │
+            ├───┤
+            │ 1̄ │
+            └───┘
+        """
+        return self.to_tableau()._unicode_art_()
 
     def _latex_(self):
         r"""

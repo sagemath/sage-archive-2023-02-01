@@ -761,13 +761,16 @@ cdef class IntegerMulAction(IntegerAction):
             AlarmInterrupt
 
         """
+        cdef int err = 0
+        cdef long n_long
+
         if not self._is_left:
             a, nn = nn, a
-        if type(nn) is not int:
-            nn = PyNumber_Int(nn)
-            if type(nn) is not int:
-                return fast_mul(a, nn)
-        return fast_mul_long(a, PyInt_AS_LONG(nn))
+
+        if integer_check_long(nn, &n_long, &err) and not err:
+            return fast_mul_long(a, n_long)
+
+        return fast_mul(a, nn)
 
     def _repr_name_(self):
         """

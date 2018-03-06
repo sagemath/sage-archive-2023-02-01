@@ -92,7 +92,7 @@ TESTS::
 
     sage: -1e30
     -1.00000000000000e30
-    sage: hex(-1. + 2^-52)
+    sage: (-1. + 2^-52).hex()
     '-0xf.ffffffffffffp-4'
 
 Make sure we don't have a new field for every new literal::
@@ -127,10 +127,12 @@ from cpython.object cimport Py_NE
 from cysignals.signals cimport sig_on, sig_off
 
 from sage.ext.stdsage cimport PY_NEW
+from sage.libs.gmp.pylong cimport mpz_set_pylong
 from sage.libs.gmp.mpz cimport *
 from sage.libs.mpfr cimport *
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.cpython.string cimport char_to_str
+from sage.misc.superseded import deprecation
 
 from sage.structure.element cimport RingElement, Element, ModuleElement
 from sage.structure.richcmp cimport rich_to_bool_sgn
@@ -361,7 +363,8 @@ mpfr_set_exp_max(mpfr_get_emax_max())
 # The real field is in Cython, so mpfr elements will have access to
 # their parent via direct C calls, which will be faster.
 
-from sage.arith.long cimport pyobject_to_long
+from sage.arith.long cimport (pyobject_to_long, integer_check_long_py,
+                              ERR_OVERFLOW)
 cdef dict rounding_modes = dict(RNDN=MPFR_RNDN, RNDZ=MPFR_RNDZ,
         RNDD=MPFR_RNDD, RNDU=MPFR_RNDU, RNDA=MPFR_RNDA, RNDF=MPFR_RNDF)
 
@@ -710,7 +713,8 @@ cdef class RealField_class(sage.rings.ring.Field):
 
             sage: 1.0 - ZZ(1) - int(1) - long(1) - QQ(1) - RealField(100)(1) - AA(1) - RLF(1)
             -6.00000000000000
-            sage: RR['x'].get_action(ZZ)
+            sage: R = RR['x']   # Hold reference to avoid garbage collection, see Trac #24709
+            sage: R.get_action(ZZ)
             Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Real Field with 53 bits of precision
         """
         if S is ZZ:
@@ -719,6 +723,8 @@ cdef class RealField_class(sage.rings.ring.Field):
             return QQtoRR(QQ, self)
         elif (S is RDF or S is float) and self.__prec <= 53:
             return double_toRR(S, self)
+        elif S is long:
+            return int_toRR(long, self)
         elif S is int:
             return int_toRR(int, self)
         elif isinstance(S, RealField_class) and S.prec() >= self.__prec:
@@ -2040,23 +2046,23 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         return z
 
-    def __hex__(self):
+    def hex(self):
         """
         Return a hexadecimal floating-point representation of ``self``, in the
         style of C99 hexadecimal floating-point constants.
 
         EXAMPLES::
 
-            sage: hex(RR(-1/3))
+            sage: RR(-1/3).hex()
             '-0x5.5555555555554p-4'
-            sage: hex(Reals(100)(123.456e789))
+            sage: Reals(100)(123.456e789).hex()
             '0xf.721008e90630c8da88f44dd2p+2624'
-            sage: hex((-0.))
+            sage: (-0.).hex()
             '-0x0p+0'
 
         ::
 
-            sage: [(hex(a), float(a).hex()) for a in [.5, 1., 2., 16.]]
+            sage: [(a.hex(), float(a).hex()) for a in [.5, 1., 2., 16.]]
             [('0x8p-4', '0x1.0000000000000p-1'),
             ('0x1p+0', '0x1.0000000000000p+0'),
             ('0x2p+0', '0x1.0000000000000p+1'),
@@ -2064,7 +2070,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         Special values::
 
-            sage: [hex(RR(s)) for s in ['+inf', '-inf', 'nan']]
+            sage: [RR(s).hex() for s in ['+inf', '-inf', 'nan']]
             ['inf', '-inf', 'nan']
         """
         cdef char *s
@@ -2074,9 +2080,22 @@ cdef class RealNumber(sage.structure.element.RingElement):
         sig_off()
         if r < 0:  # MPFR free()s its buffer itself in this case
             raise RuntimeError("unable to convert an mpfr number to a string")
-        t = str(s)
+        t = char_to_str(s)
         mpfr_free_str(s)
         return t
+
+    def __hex__(self):
+        """
+        TESTS::
+
+            sage: hex(RR(-1/3))  # py2
+            doctest:...:
+            DeprecationWarning: use the method .hex instead
+            See http://trac.sagemath.org/24568 for details.
+            '-0x5.5555555555554p-4'
+        """
+        deprecation(24568, 'use the method .hex instead')
+        return self.hex()
 
     def __copy__(self):
         """
@@ -3055,10 +3074,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: RR(pi).__long__()
+            sage: long(RR(pi))
             3L
-            sage: type(RR(pi).__long__())
-            <type 'long'>
         """
         if not mpfr_number_p(self.value):
             raise ValueError('Cannot convert infinity or NaN to Python long')
@@ -3895,7 +3912,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         Return ``True`` if this number is a integer.
 
         EXAMPLES::
-        
+
             sage: RR(1).is_integer()
             True
             sage: RR(0.1).is_integer()
@@ -5904,7 +5921,7 @@ cdef class double_toRR(Map):
 cdef class int_toRR(Map):
     cpdef Element _call_(self, x):
         """
-        Takes anything that can be converted to a long.
+        Takes Python int/long instances.
 
         EXAMPLES::
 
@@ -5913,11 +5930,9 @@ cdef class int_toRR(Map):
             sage: f(-10r) # indirect doctest
             -10.0000000000000
             sage: f(2^75)
-            Traceback (most recent call last):
-            ...
-            OverflowError: Python int too large to convert to C long
+            3.77789318629572e22
 
-        ::
+        Also accepts objects that can be converted to int/long::
 
             sage: R.<x> = ZZ[]
             sage: f = int_toRR(R, RR)
@@ -5926,5 +5941,24 @@ cdef class int_toRR(Map):
         """
         cdef RealField_class parent = <RealField_class>self._codomain
         cdef RealNumber y = parent._new()
-        mpfr_set_si(y.value, x, parent.rnd)
+        cdef int err = 0
+        cdef long x_long
+        cdef mpz_t x_mpz
+
+        if not isinstance(x, (int, long)):
+            x = int(x)
+
+        integer_check_long_py(x, &x_long, &err)
+
+        if not err:
+            mpfr_set_si(y.value, x_long, parent.rnd)
+        elif err == ERR_OVERFLOW:
+            mpz_init(x_mpz)
+            mpz_set_pylong(x_mpz, x)
+            mpfr_set_z(y.value, x_mpz, parent.rnd)
+            mpz_clear(x_mpz)
+        else:
+            # This should never happen
+            raise TypeError("argument cannot be converted to a Python int/long")
+
         return y

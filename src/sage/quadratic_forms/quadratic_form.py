@@ -656,11 +656,6 @@ class QuadraticForm(SageObject):
         except Exception:
             raise RuntimeError("Oops!  This coefficient can't be coerced to an element of the base ring for the quadratic form.")
 
-
-######################################
-# TO DO:    def __cmp__(self, other):
-######################################
-
     def __hash__(self):
         r"""
         TESTS::
@@ -1174,7 +1169,7 @@ class QuadraticForm(SageObject):
 
             sage: Q = DiagonalQuadraticForm(QQ,[1, 3, 5, 7])
             sage: P = Q.polynomial(); P
-            2*x0^2 + 6*x1^2 + 10*x2^2 + 14*x3^2
+            x0^2 + 3*x1^2 + 5*x2^2 + 7*x3^2
 
         ::
 
@@ -1182,23 +1177,25 @@ class QuadraticForm(SageObject):
             sage: Z = F.ring_of_integers()
             sage: Q = QuadraticForm(Z,3,[2*a, 3*a, 0 , 1 - a, 0, 2*a + 4])
             sage: P = Q.polynomial(names='y'); P
-            4*a*y0^2 + 6*a*y0*y1 + (-2*a + 2)*y1^2 + (4*a + 8)*y2^2
+            2*a*y0^2 + 3*a*y0*y1 + (-a + 1)*y1^2 + (2*a + 4)*y2^2
             sage: Q = QuadraticForm(F,4,[a, 3*a, 0, 1 - a, a - 3, 0, 2*a + 4, 4 + a, 0, 1])
             sage: Q.polynomial(names='z')
-            (2*a)*z0^2 + (6*a)*z0*z1 + (2*a - 6)*z1^2 + (2*a + 8)*z2^2 + (-2*a + 2)*z0*z3 + (4*a + 8)*z1*z3 + 2*z3^2
+            (a)*z0^2 + (3*a)*z0*z1 + (a - 3)*z1^2 + (a + 4)*z2^2 + (-a + 1)*z0*z3 + (2*a + 4)*z1*z3 + z3^2
             sage: B.<i,j,k> = QuaternionAlgebra(F,-1,-1)
             sage: Q = QuadraticForm(B, 3, [2*a, 3*a, i, 1 - a, 0, 2*a + 4])
             sage: Q.polynomial()
             Traceback (most recent call last):
             ...
             ValueError: Can only create polynomial rings over commutative rings.
-
         """
-        M = self.matrix()
-        n = self.dim()
         B = self.base_ring()
+        n = self.dim()
+        M = matrix(B, n)
+        for i in range(n):
+            for j in range(i, n):
+                M[i,j] = self[i,j]
         try:
-            R = PolynomialRing(self.base_ring(),names,n)
+            R = PolynomialRing(self.base_ring(), names, n)
         except Exception:
             raise ValueError('Can only create polynomial rings over commutative rings.')
         V = vector(R.gens())

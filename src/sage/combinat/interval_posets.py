@@ -2290,10 +2290,11 @@ class TamariIntervalPoset(Element):
 
     def is_new(self):
         """
-        Return ``True`` if ``self`` is a new Tamari interval.
+        Return whether ``self`` is a new Tamari interval.
 
         Here 'new' means that the interval is not contained in any
         facet of the associahedron.
+        This condition is invariant under complementation.
 
         They have been considered in section 9 of [ChapTamari08]_.
 
@@ -2315,7 +2316,7 @@ class TamariIntervalPoset(Element):
 
     def is_simple(self):
         """
-        Return ``True`` if ``self`` is a simple Tamari interval.
+        Return whether ``self`` is a simple Tamari interval.
 
         Here 'simple' means that the interval contains a unique binary tree.
 
@@ -2338,9 +2339,10 @@ class TamariIntervalPoset(Element):
 
     def is_synchronized(self):
         """
-        Return ``True`` if ``self`` is a synchronized Tamari interval.
+        Return whether ``self`` is a synchronized Tamari interval.
 
         This means that the upper and lower binary trees have the same canopee.
+        This condition is invariant under complementation.
 
         This has been considered in [FPR15]_. The numbers of
         synchronized intervals are given by the sequence :oeis:`A000139`.
@@ -2357,11 +2359,13 @@ class TamariIntervalPoset(Element):
 
     def is_modern(self):
         r"""
-        Return ``True`` if ``self`` is a modern Tamari interval.
+        Return whether ``self`` is a modern Tamari interval.
 
         This is defined by exclusion of a simple pattern in the Hasse diagram,
         namely there is no configuration ``y --> x <-- z``
         with `1 \leq y < x < z \leq n`.
+
+        This condition is invariant under complementation.
 
         .. SEEALSO:: :meth:`is_new`
 
@@ -2380,11 +2384,13 @@ class TamariIntervalPoset(Element):
 
     def is_exceptional(self):
         r"""
-        Return ``True`` if ``self`` is an exceptional Tamari interval.
+        Return whether ``self`` is an exceptional Tamari interval.
 
         This is defined by exclusion of a simple pattern in the Hasse diagram,
         namely there is no configuration ``y <-- x --> z``
         with `1 \leq y < x < z \leq n`.
+
+        This condition is invariant under complementation.
 
         EXAMPLES::
 
@@ -2399,6 +2405,42 @@ class TamariIntervalPoset(Element):
             if min(nx) < x and max(nx) > x:
                 return False
         return True
+
+    def is_dexter(self):
+        r"""
+        Return whether ``self`` is a dexter Tamari interval.
+
+        This is defined by an exclusion pattern in the Hasse diagram.
+        See the code for the exact description.
+
+        This condition is not invariant under complementation.
+
+        EXAMPLES::
+
+            sage: len([T for T in TamariIntervalPosets(3) if T.is_dexter()])
+            12
+        """
+        G = self.poset().hasse_diagram()
+        for x in G:
+            nx = list(G.neighbors_out(x))
+            nx.append(x)
+            y = min(nx)
+            if y < x and any(z > x for z in G.neighbors_out(y)):
+                return False
+        return True
+
+    def is_connected(self):
+        """
+        Return whether ``self`` is a connected Tamari interval.
+
+        This means that the Hasse diagram is connected.
+
+        EXAMPLES::
+
+            sage: len([T for T in TamariIntervalPosets(3) if T.is_connected()])
+            8
+        """
+        return self.poset().is_connected()
 
 
 # Abstract class to serve as a Factory ; no instances are created.
@@ -3230,23 +3272,23 @@ class TamariIntervalPosets_size(TamariIntervalPosets):
         """
         n = self._size
         if n <= 1:
-            yield TamariIntervalPoset(n, [])
+            yield TamariIntervalPoset(n, [], check=False)
             return
 
         for tip in TamariIntervalPosets(n - 1):
-            new_tip = TamariIntervalPoset(n, tip._cover_relations)
+            new_tip = TamariIntervalPoset(n, tip._cover_relations, check=False)
             yield new_tip  # we have added an extra vertex but no relations
 
             # adding a decreasing relation n>>m2 with m2<n and no
             # increasing relations
             for m2 in range(n - 1, 0, -1):
                 if new_tip.le(n - 1, m2):
-                    yield TamariIntervalPoset(n, new_tip._cover_relations + ((n, m2),))
+                    yield TamariIntervalPoset(n, new_tip._cover_relations + ((n, m2),), check=False)
 
             for m in range(n - 1, 0, -1):
                 # adding an increasing relation m>>n
                 if not new_tip.le(m, n):
-                    new_tip = TamariIntervalPoset(n, new_tip._cover_relations + ((m, n),))
+                    new_tip = TamariIntervalPoset(n, new_tip._cover_relations + ((m, n),), check=False)
                     yield new_tip
                 else:
                     continue
@@ -3254,7 +3296,7 @@ class TamariIntervalPosets_size(TamariIntervalPosets):
                 # further adding a decreasing relation n>>m2 with m2<m
                 for m2 in range(m - 1, 0, -1):
                     if new_tip.le(n - 1, m2):
-                        yield TamariIntervalPoset(n, new_tip._cover_relations + ((n, m2),))
+                        yield TamariIntervalPoset(n, new_tip._cover_relations + ((n, m2),), check=False)
 
     def random_element(self):
         """

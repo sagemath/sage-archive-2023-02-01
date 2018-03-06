@@ -274,7 +274,7 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
         elif t is not None:
             self.add_vertices(t.index_set())
 
-    def _repr_(self):
+    def _repr_(self, compact=False):
         """
         EXAMPLES::
 

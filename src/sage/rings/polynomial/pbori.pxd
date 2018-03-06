@@ -18,6 +18,8 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
     # it is very important to keep this cached, since otherwise the magma interface will break
     cdef public object __cover_ring
 
+    cdef _convert(self, rhs)
+
 cdef class BooleanPolynomial(MPolynomial):
     cdef PBPoly _pbpoly
     cpdef _add_(self, other)

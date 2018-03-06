@@ -22,6 +22,7 @@ AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2013-2015) : initial version
 - Travis Scrimshaw (2016): review tweaks
+- Eric Gourgoulhon (2018): operators divergence, Laplacian and d'Alembertian
 
 REFERENCES:
 
@@ -3087,13 +3088,14 @@ class TensorField(ModuleElement):
 
         .. MATH::
 
-          (T^\sharp)^{a_1\ldots a_{k+1}}_{\phantom{a_1\ldots a_{k+1}}\, b_1 \ldots b_{l-1}}
-          = g^{a_{k+1} i} \,
-          T^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\, b_1 \ldots b_{p-k} \, i \, b_{p-k+1}\ldots b_{l-1}},
+            (T^\sharp)^{a_1\ldots a_{k+1}}_{\phantom{a_1\ldots a_{k+1}}\,
+            b_1 \ldots b_{l-1}} = g^{a_{k+1} i} \,
+            T^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\, b_1 \ldots b_{p-k}
+            \, i \, b_{p-k+1}\ldots b_{l-1}},
 
         `g^{ab}` being the components of the inverse metric.
 
-        The reverse operation is :meth:`TensorField.down`
+        The reverse operation is :meth:`TensorField.down`.
 
         INPUT:
 
@@ -3235,13 +3237,14 @@ class TensorField(ModuleElement):
 
         .. MATH::
 
-          (T^\flat)^{a_1\ldots a_{k-1}}_{\phantom{a_1\ldots a_{k-1}}\, b_1 \ldots b_{l+1}}
-          = g_{b_1 i} \,
-          T^{a_1\ldots a_{p} \, i \, a_{p+1}\ldots a_{k-1}}_{\phantom{a_1\ldots a_{p} \, i \, a_{p+1}\ldots a_{k-1}}\, b_2 \ldots b_{l+1}},
+            (T^\flat)^{a_1\ldots a_{k-1}}_{\phantom{a_1\ldots a_{k-1}}
+            \, b_1 \ldots b_{l+1}} = g_{b_1 i} \,
+            T^{a_1\ldots a_{p} \, i \, a_{p+1}\ldots a_{k-1}}_{\phantom{a_1
+            \ldots a_{p} \, i \, a_{p+1}\ldots a_{k-1}}\, b_2 \ldots b_{l+1}},
 
         `g_{ab}` being the components of the metric tensor.
 
-        The reverse operation is :meth:`TensorField.up`
+        The reverse operation is :meth:`TensorField.up`.
 
         INPUT:
 
@@ -3382,8 +3385,8 @@ class TensorField(ModuleElement):
         .. MATH::
 
             (\mathrm{div}\, t)^{a_1\ldots a_{k-1}} =
-                \nabla_i t^{a_1\ldots a_{k-1} i} =
-                (\nabla t)^{a_1\ldots a_{k-1} i}_{\phantom{a_1\ldots a_{k-1} i}\, i}
+            \nabla_i t^{a_1\ldots a_{k-1} i} =
+            (\nabla t)^{a_1\ldots a_{k-1} i}_{\phantom{a_1\ldots a_{k-1} i}\, i}
 
         where `\nabla` is the Levi-Civita connection of `g` (cf.
         :class:`~sage.manifolds.differentiable.levi_civita_connection.LeviCivitaConnection`).
@@ -3394,9 +3397,11 @@ class TensorField(ModuleElement):
 
         .. MATH::
 
-          (\mathrm{div}\, t)^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\, b_1\ldots b_{l-1}}
-          = \nabla_i (g^{ij} t^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\, b_1\ldots b_{l-1} j})
-          = (\nabla t^\sharp)^{a_1\ldots a_k i}_{\phantom{a_1\ldots a_k i}\, b_1\ldots b_{l-1} i}
+            (\mathrm{div}\, t)^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\, b_1
+            \ldots b_{l-1}} = \nabla_i (g^{ij} t^{a_1\ldots a_k}_{\phantom{a_1
+            \ldots a_k}\, b_1\ldots b_{l-1} j})
+            = (\nabla t^\sharp)^{a_1\ldots a_k i}_{\phantom{a_1\ldots a_k i}\,
+            b_1\ldots b_{l-1} i}
 
         where `t^\sharp` is the tensor field deduced from `t` by raising the
         last index with the metric `g` (see :meth:`up`).
@@ -3439,10 +3444,10 @@ class TensorField(ModuleElement):
             sage: v.div() == s
             True
 
-        The global function
-        :func:`~sage.manifolds.differentiable.operators.div` can be used
+        The global function :func:`~sage.manifolds.operators.div` can be used
         instead of the method ``divergence()``::
 
+            sage: from sage.manifolds.operators import div
             sage: div(v) == s
             True
 
@@ -3462,8 +3467,7 @@ class TensorField(ModuleElement):
         .. MATH::
 
             \mathrm{div}_h \, v = \frac{1}{\sqrt{\det h}}
-                \frac{\partial}{\partial x^i}
-                \left( \sqrt{\det h} \, v^i \right)
+            \frac{\partial}{\partial x^i} \left( \sqrt{\det h} \, v^i \right)
 
         is checked as follows::
 
@@ -3532,9 +3536,9 @@ class TensorField(ModuleElement):
 
         .. MATH::
 
-          (\Delta t)^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\,{b_1\ldots b_k}}
-           = \nabla_i \nabla^i
-           t^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\,{b_1\ldots b_k}}
+            (\Delta t)^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\,{b_1\ldots b_k}}
+            = \nabla_i \nabla^i
+            t^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\,{b_1\ldots b_k}}
 
         where `\nabla` is the Levi-Civita connection of `g` (cf.
         :class:`~sage.manifolds.differentiable.levi_civita_connection.LeviCivitaConnection`)
@@ -3571,10 +3575,10 @@ class TensorField(ModuleElement):
             sage: Dv.display()
             Delta(v) = (6*x + 2) d/dx
 
-        The global function
-        :func:`~sage.manifolds.differentiable.operators.laplacian` can be used
-        instead of the method ``laplacian()``::
+        The global function :func:`~sage.manifolds.operators.laplacian` can be
+        used instead of the method ``laplacian()``::
 
+            sage: from sage.manifolds.operators import laplacian
             sage: laplacian(v) == Dv
             True
 
@@ -3631,9 +3635,9 @@ class TensorField(ModuleElement):
 
         .. MATH::
 
-          (\Box t)^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\,{b_1\ldots b_k}}
-           = \nabla_i \nabla^i
-           t^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\,{b_1\ldots b_k}}
+            (\Box t)^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\,{b_1\ldots b_k}}
+            = \nabla_i \nabla^i
+            t^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\,{b_1\ldots b_k}}
 
         where `\nabla` is the Levi-Civita connection of `g` (cf.
         :class:`~sage.manifolds.differentiable.levi_civita_connection.LeviCivitaConnection`)
@@ -3674,10 +3678,10 @@ class TensorField(ModuleElement):
             sage: De = e.dalembertian(); De
             Vector field Box(e) on the 4-dimensional Lorentzian manifold M
 
-        The global function
-        :func:`~sage.manifolds.differentiable.operators.dalembertian` can be used
-        instead of the method ``dalembertian()``::
+        The global function :func:`~sage.manifolds.operators.dalembertian` can
+        be used instead of the method ``dalembertian()``::
 
+            sage: from sage.manifolds.operators import dalembertian
             sage: dalembertian(e) == De
             True
 

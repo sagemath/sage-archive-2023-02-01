@@ -17,7 +17,7 @@ Differentiable scalar fields are implemented by the class
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2013-2015): initial version
-- Eric Gourgoulhon (2018): add gradient and Laplacian
+- Eric Gourgoulhon (2018): operators gradient, Laplacian and d'Alembertian
 
 REFERENCES:
 
@@ -1103,10 +1103,10 @@ class DiffScalarField(ScalarField):
             sage: v.display()
             grad(f) = -y*sin(x*y) d/dx - x*sin(x*y) d/dy
 
-        The global function
-        :func:`~sage.manifolds.differentiable.operators.grad` can be used
+        The global function :func:`~sage.manifolds.operators.grad` can be used
         instead of the method ``gradient()``::
 
+            sage: from sage.manifolds.operators import grad
             sage: grad(f) == f.gradient()
             True
 
@@ -1151,7 +1151,7 @@ class DiffScalarField(ScalarField):
 
         .. MATH::
 
-            \Delta f  = g^{ij} \nabla_i \nabla_j f =  = \nabla_i \nabla^i f
+            \Delta f  = g^{ij} \nabla_i \nabla_j f = \nabla_i \nabla^i f
 
         where `\nabla` is the Levi-Civita connection of `g`.
         `\Delta` is also called the *Laplace-Beltrami operator*.
@@ -1185,10 +1185,10 @@ class DiffScalarField(ScalarField):
             Delta(f): M --> R
                (x, y) |--> d^2(F)/dx^2 + d^2(F)/dy^2
 
-        The global function
-        :func:`~sage.manifolds.differentiable.operators.laplacian` can be used
-        instead of the method ``laplacian()``::
+        The global function :func:`~sage.manifolds.operators.laplacian` can be
+        used instead of the method ``laplacian()``::
 
+            sage: from sage.manifolds.operators import laplacian
             sage: laplacian(f) == s
             True
 
@@ -1286,10 +1286,10 @@ class DiffScalarField(ScalarField):
             Box(f): M --> R
                (t, x, y, z) |--> 6*t^2*y - 2*y^3 - 12*x*z^2 + 2
 
-        The global function
-        :func:`~sage.manifolds.differentiable.operators.dalembertian` can be
-        used instead of the method ``dalembertian()``::
+        The global function :func:`~sage.manifolds.operators.dalembertian` can
+        be used instead of the method ``dalembertian()``::
 
+            sage: from sage.manifolds.operators import dalembertian
             sage: dalembertian(f) == s
             True
 

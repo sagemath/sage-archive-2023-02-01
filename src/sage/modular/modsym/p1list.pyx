@@ -7,6 +7,7 @@ from cysignals.memory cimport check_allocarray, sig_free
 from cysignals.signals cimport sig_check
 
 from sage.misc.search import search
+from sage.structure.richcmp cimport rich_to_bool
 
 cimport sage.rings.fast_arith
 import sage.rings.fast_arith
@@ -653,7 +654,8 @@ cdef int p1_normalize_xgcdtable(int N, int u, int v,
         ss[0] = t_a[(s*min_t)%N]
     return 0
 
-cdef class P1List:
+
+cdef class P1List(object):
     """
     The class for `\mathbb{P}^1(\ZZ/N\ZZ)`, the projective line modulo `N`.
 
@@ -731,7 +733,7 @@ cdef class P1List:
         sig_free(self.s)
         sig_free(self.t)
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, int op):
         """
         Comparison function for objects of the class P1List.
 
@@ -754,14 +756,14 @@ cdef class P1List:
             [23, 45, 100]
         """
         if not isinstance(other, P1List):
-            return -1
-        cdef P1List O
-        O = other
-        if self.__N < O.__N:
-            return -1
-        elif self.__N > O.__N:
-            return 1
-        return 0
+            return NotImplemented
+        cdef P1List S = <P1List> self
+        cdef P1List O = <P1List> other
+        if S.__N < O.__N:
+            return rich_to_bool(op, -1)
+        elif S.__N > O.__N:
+            return rich_to_bool(op, 1)
+        return rich_to_bool(op, 0)
 
     def __reduce__(self):
         """

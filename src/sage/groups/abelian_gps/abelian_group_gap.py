@@ -375,7 +375,6 @@ class AbelianGroup_gap(UniqueRepresentation, GroupMixinLibGAP, ParentLibGAP, Abe
             subgroups_sage.append(S)
         return subgroups_sage
 
-    @cached_method
     def automorphism_group(self):
         r"""
         Return the group of automorphisms of ``self``.
@@ -390,7 +389,7 @@ class AbelianGroup_gap(UniqueRepresentation, GroupMixinLibGAP, ParentLibGAP, Abe
         from sage.groups.abelian_gps.abelian_aut import AbelianGroupAutomorphismGroup
         return AbelianGroupAutomorphismGroup(self)
 
-    aut=automorphism_group
+    aut = automorphism_group
 
     def is_trivial(self):
         r"""

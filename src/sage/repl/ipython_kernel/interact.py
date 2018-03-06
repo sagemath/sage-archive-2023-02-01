@@ -137,8 +137,10 @@ class sage_interactive(interactive):
 
             sage: from sage.repl.ipython_kernel.interact import sage_interactive
             sage: def myfunc(x=[1,2,3], auto_update=False): pass
-            sage: sage_interactive(myfunc).signature().parameters
+            sage: sage_interactive(myfunc).signature().parameters  # py2
             OrderedDict([('x', <Parameter ... 'x'>)])
+            sage: sage_interactive(myfunc).signature().parameters  # py3
+            mappingproxy({'x': <Parameter "x=[1, 2, 3]">})
         """
         return self.__signature
 

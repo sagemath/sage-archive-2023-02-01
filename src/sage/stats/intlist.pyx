@@ -287,8 +287,10 @@ cdef class IntList:
 
 
             sage: v = stats.IntList([1,-3])
-            sage: v.__reduce__()
+            sage: v.__reduce__()  # py2
             (<built-in function unpickle_intlist_v1>, ('...', 2))
+            sage: v.__reduce__()  # py3
+            (<built-in function unpickle_intlist_v1>, (b'...', 2))
             sage: loads(dumps(v)) == v
             True
 

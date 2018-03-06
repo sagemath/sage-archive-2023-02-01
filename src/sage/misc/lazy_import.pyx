@@ -569,7 +569,7 @@ cdef class LazyImport(object):
             sage: type(version_info)
             <type 'sage.misc.lazy_import.LazyImport'>
             sage: iter(version_info)
-            <iterator object at ...>
+            <...iterator object at ...>
         """
         return iter(self.get_object())
 

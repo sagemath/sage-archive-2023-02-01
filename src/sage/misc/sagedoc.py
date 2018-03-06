@@ -20,9 +20,10 @@ see :trac:`12849`::
 
     sage: from sage.env import SAGE_DOC
     sage: docfilename = os.path.join(SAGE_DOC, 'html', 'en', 'reference', 'calculus', 'sage', 'symbolic', 'expression.html')
-    sage: for line in open(docfilename):
-    ....:     if "#sage.symbolic.expression.Expression.numerical_approx" in line:
-    ....:         print(line)
+    sage: with open(docfilename) as fobj:
+    ....:     for line in fobj:
+    ....:         if "#sage.symbolic.expression.Expression.numerical_approx" in line:
+    ....:             print(line)
     <code class="descname">numerical_approx</code><span class="sig-paren">(</span><em>prec=None</em>, <em>digits=None</em>, <em>algorithm=None</em><span class="sig-paren">)</span>...
 
 Check that sphinx is not imported at Sage start-up::
@@ -275,7 +276,7 @@ def skip_TESTS_block(docstring):
         sage: skip_TESTS_block(start + test + refs).rstrip() == (start + refs).rstrip()
         True
         sage: skip_TESTS_block(start + test + test2 + refs).rstrip() == (start + refs).rstrip()
-        True 
+        True
         sage: skip_TESTS_block(start + test + refs + test2).rstrip() == (start + refs).rstrip()
         True
 
@@ -365,7 +366,7 @@ def skip_TESTS_block(docstring):
                 s += "\n"
                 s += l
         previous = l
-    return s[1:] # Remove empty line from the beginning. 
+    return s[1:] # Remove empty line from the beginning.
 
 def process_dollars(s):
     r"""nodetex
@@ -771,7 +772,7 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
     EXAMPLES::
 
         sage: from sage.misc.sagedoc import _search_src_or_doc
-        sage: print(_search_src_or_doc('src', 'matrix\(', 'incidence_structures', 'self', '^combinat', interact=False)) # random # long time
+        sage: print(_search_src_or_doc('src', r'matrix\(', 'incidence_structures', 'self', '^combinat', interact=False)) # random # long time
         misc/sagedoc.py:        sage: _search_src_or_doc('src', 'matrix(', 'incidence_structures', 'self', '^combinat', interact=False)
         combinat/designs/incidence_structures.py:        M1 = self.incidence_matrix()
         combinat/designs/incidence_structures.py:        A = self.incidence_matrix()
@@ -789,7 +790,7 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
 
     ::
 
-        sage: len(_search_src_or_doc('src', 'matrix\(', 'incidence_structures', 'self', 'combinat', interact=False).splitlines()) > 1
+        sage: len(_search_src_or_doc('src', r'matrix\(', 'incidence_structures', 'self', 'combinat', interact=False).splitlines()) > 1
         True
         sage: 'abvar/homology' in _search_src_or_doc('doc', 'homology', 'variety', interact=False)  # long time (4s on sage.math, 2012)
         True

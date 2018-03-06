@@ -7163,10 +7163,17 @@ class Graph(GenericGraph):
           Christophe Paul
           https://arxiv.org/pdf/0710.3901.pdf
 
-        TESTS::
+        TESTS:
+
+        empty graph is OK::
 
             sage: graphs.EmptyGraph().modular_decomposition()
             ()
+
+        vertices may be arbitrary --- check that :trac:`24898` is fixed::
+
+            sage: Graph({(1,2):[(2,3)],(2,3):[(1,2)]}).modular_decomposition()
+            (SERIES, [(2, 3), (1, 2)])
         """
         from sage.graphs.modular_decomposition import modular_decomposition, NodeType
 
@@ -7180,9 +7187,7 @@ class Graph(GenericGraph):
 
         D = modular_decomposition(self)
 
-        id_label = dict(enumerate(self.vertices()))
-
-        relabel = lambda x : (x.node_type, [relabel(_) for _ in x.children]) if x.node_type != NodeType.NORMAL else id_label[x.children[0]]
+        relabel = lambda x : (x.node_type, [relabel(_) for _ in x.children]) if x.node_type != NodeType.NORMAL else x.children[0]
 
         return relabel(D)
 

@@ -117,11 +117,10 @@ cdef class IndexedFreeModuleElement(ModuleElement):
             6920829894162680369           # 64-bit
             -528971215                    # 32-bit
 
-        This uses the recipe that was proposed for frozendicts in `PEP
-        0416 <http://legacy.python.org/dev/peps/pep-0416/>`_ (and adds
-        the hash of the parent). This recipe relies on the hash
-        function for frozensets which uses tricks to mix the hash
-        values of the items in case they are similar.
+        This uses the recipe that was proposed for frozendicts in
+        :pep:`416` (and adds the hash of the parent). This recipe
+        relies on the hash function for frozensets which uses tricks
+        to mix the hash values of the items in case they are similar.
 
         .. TODO::
 

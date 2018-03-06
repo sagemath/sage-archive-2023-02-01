@@ -340,6 +340,39 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
                 raise ValueError("lattices must be integral; "
                             "use FreeQuadraticModule instead")
 
+    def _mul_(self, other, switch_sides=False):
+        r"""
+        Multiplication of the basis by ``other``.
+
+        EXAMPLES::
+
+            sage: M = Matrix(ZZ,2,[1,2,2,-1])
+            sage: L = IntegralLattice(M)
+            sage: 2 * L
+            Lattice of degree 2 and rank 2 over Integer Ring
+            Basis matrix:
+            [2 0]
+            [0 2]
+            Inner product matrix:
+            [ 1  2]
+            [ 2 -1]
+            sage: L * matrix(ZZ,2,[1,2,3,4])
+            Lattice of degree 2 and rank 2 over Integer Ring
+            Basis matrix:
+            [1 2]
+            [3 4]
+            Inner product matrix:
+            [ 1  2]
+            [ 2 -1]
+        """
+        B = self.basis_matrix()
+        B = other * B if switch_sides else B * other
+        # check whether it is integral
+        if other in ZZ or other.denominator()==1:
+            return self.sublattice(B.rows())
+        else:
+            return self.span(B.rows())
+
     def _repr_(self):
         r"""
         The print representation of this lattice.

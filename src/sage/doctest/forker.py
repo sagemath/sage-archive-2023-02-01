@@ -51,6 +51,7 @@ from sage.structure.sage_object import SageObject
 from .parsing import SageOutputChecker, pre_hash, get_source
 from sage.repl.user_globals import set_globals
 from sage.interfaces.process import ContainChildren
+from sage.cpython.string import bytes_to_str, str_to_bytes
 
 
 # All doctests run as if the following future imports are present
@@ -110,15 +111,12 @@ def init_sage():
         {'a': 23, 'aaa': 234, 'au': 56, 'b': 34, 'bbf': 234}
     """
     # We need to ensure that the Matplotlib font cache is built to
-    # avoid spurious warnings (see Trac #20222). We don't want to
-    # import matplotlib in the main process because we want the
-    # doctesting environment to be as close to a real Sage session
-    # as possible.
-    with ContainChildren():
-        pid = os.fork()
-        if not pid:
-            # Child process
-            from matplotlib.font_manager import fontManager
+    # avoid spurious warnings (see Trac #20222).
+    import matplotlib.font_manager
+
+    # Make sure that the agg backend is selected during doctesting.
+    # This needs to be done before any other matplotlib calls.
+    matplotlib.use('agg')
 
     # Do this once before forking off child processes running the tests.
     # This is more efficient because we only need to wait once for the
@@ -151,11 +149,8 @@ def init_sage():
     from sympy.printing.pretty.stringpict import stringPict
     stringPict.terminal_width = lambda self:0
 
-    # Wait for the child process created above
-    os.waitpid(pid, 0)
 
-
-def showwarning_with_traceback(message, category, filename, lineno, file=sys.stdout, line=None):
+def showwarning_with_traceback(message, category, filename, lineno, file=None, line=None):
     r"""
     Displays a warning message with a traceback.
 
@@ -182,9 +177,13 @@ def showwarning_with_traceback(message, category, filename, lineno, file=sys.std
     lines = ["doctest:warning\n"]  # Match historical warning messages in doctests
     lines.extend(traceback.format_list(tb))
     lines.append(":\n")            # Match historical warning messages in doctests
-    lines.extend(traceback.format_exception_only(category, message))
+    lines.extend(traceback.format_exception_only(category, category(message)))
+
+    if file is None:
+        file = sys.stderr
     try:
         file.writelines(lines)
+        file.flush()
     except IOError:
         pass # the file is invalid
 
@@ -224,7 +223,7 @@ class SageSpoofInOut(SageObject):
         ....:
         sage: S.getvalue()
         'hello world\n'
-        sage: O.seek(0)
+        sage: _ = O.seek(0)
         sage: S = SageSpoofInOut(outfile=sys.stdout, infile=O)
         sage: try:
         ....:     S.start_spoofing()
@@ -233,6 +232,7 @@ class SageSpoofInOut(SageObject):
         ....:     S.stop_spoofing()
         ....:
         hello world
+        sage: O.close()
     """
     def __init__(self, outfile=None, infile=None):
         """
@@ -240,9 +240,11 @@ class SageSpoofInOut(SageObject):
 
         TESTS::
 
-            sage: import tempfile
+            sage: from tempfile import TemporaryFile
             sage: from sage.doctest.forker import SageSpoofInOut
-            sage: SageSpoofInOut(tempfile.TemporaryFile(), tempfile.TemporaryFile())
+            sage: with TemporaryFile() as outfile:
+            ....:     with TemporaryFile() as infile:
+            ....:         SageSpoofInOut(outfile, infile)
             <sage.doctest.forker.SageSpoofInOut object at ...>
         """
         if infile is None:
@@ -294,7 +296,7 @@ class SageSpoofInOut(SageObject):
             ....:
             sage: S.getvalue()
             'this is not printed\n'
-            sage: O.seek(0)
+            sage: _ = O.seek(0)
             sage: S = SageSpoofInOut(infile=O)
             sage: try:
             ....:     S.start_spoofing()
@@ -315,6 +317,7 @@ class SageSpoofInOut(SageObject):
             ....:
             sage: S.getvalue()
             'Hello there\ngood\n'
+            sage: O.close()
         """
         if not self.spoofing:
             sys.stdout.flush()
@@ -382,12 +385,12 @@ class SageSpoofInOut(SageObject):
         self.outfile.seek(self.position)
         result = self.outfile.read()
         self.position = self.outfile.tell()
-        if not result.endswith("\n"):
-            result += "\n"
-        return result
+        if not result.endswith(b"\n"):
+            result += b"\n"
+        return bytes_to_str(result)
 
 
-class SageDocTestRunner(doctest.DocTestRunner):
+class SageDocTestRunner(doctest.DocTestRunner, object):
     def __init__(self, *args, **kwds):
         """
         A customized version of DocTestRunner that tracks dependencies
@@ -414,7 +417,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: import doctest, sys, os
             sage: DTR = SageDocTestRunner(SageOutputChecker(), verbose=False, sage_options=DD, optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)
             sage: DTR
-            <sage.doctest.forker.SageDocTestRunner instance at ...>
+            <sage.doctest.forker.SageDocTestRunner object at ...>
         """
         O = kwds.pop('outtmpfile', None)
         self.msgfile = kwds.pop('msgfile', None)
@@ -540,11 +543,17 @@ class SageDocTestRunner(doctest.DocTestRunner):
                 if self.debugger is not None:
                     self.debugger.set_continue() # ==== Example Finished ====
             got = self._fakeout.getvalue()
-            try:
+
+            if not isinstance(got, six.text_type):
+                # On Python 3 got should already be unicode text, but on Python
+                # 2 it is not.  For comparison's sake we want the unicode text
+                # decoded from UTF-8. If there was some error such that the
+                # output is so malformed that it does not even decode from
+                # UTF-8 at all there will be an error in the test framework
+                # here. But this shouldn't happen at all, so we want it to be
+                # understood as an error in the test framework, and not some
+                # subtle error in the code under test.
                 got = got.decode('utf-8')
-            except UnicodeDecodeError:
-                got = got.decode('latin1')
-            # the actual output
 
             outcome = FAILURE   # guilty until proved innocent or insane
 
@@ -833,12 +842,13 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: DTR.running_global_digest.hexdigest()
             '3cb44104292c3a3ab4da3112ce5dc35c'
         """
-        s = pre_hash(get_source(example)).encode('utf-8')
+        s = str_to_bytes(pre_hash(get_source(example)), 'utf-8')
         self.running_global_digest.update(s)
         self.running_doctest_digest.update(s)
         if example.predecessors is not None:
             digest = hashlib.md5(s)
-            digest.update(reduce_hex(e.running_state for e in example.predecessors))
+            gen = (e.running_state for e in example.predecessors)
+            digest.update(str_to_bytes(reduce_hex(gen), 'ascii'))
             example.running_state = digest.hexdigest()
 
     def compile_and_execute(self, example, compiler, globs):
@@ -1353,6 +1363,11 @@ class SageDocTestRunner(doctest.DocTestRunner):
                         os.tcsetpgrp(0, os.getpgrp())
 
                     exc_type, exc_val, exc_tb = exc_info
+                    if exc_tb is None:
+                        raise RuntimeError(
+                            "could not start the debugger for an unexpected "
+                            "exception, probably due to an unhandled error "
+                            "in a C extension module")
                     self.debugger.reset()
                     self.debugger.interaction(None, exc_tb)
                 except KeyboardInterrupt:
@@ -1494,7 +1509,7 @@ class DocTestDispatcher(SageObject):
                 result = DocTestTask(source)(self.controller.options,
                         outtmpfile, self.controller.logger)
                 outtmpfile.seek(0)
-                output = outtmpfile.read()
+                output = bytes_to_str(outtmpfile.read())
 
             self.controller.reporter.report(source, False, 0, result, output)
             if self.controller.options.exitfirst and result[1].failures:
@@ -1537,9 +1552,9 @@ class DocTestDispatcher(SageObject):
             sage: test1 = os.path.join(SAGE_TMP, 'test1.py')
             sage: test2 = os.path.join(SAGE_TMP, 'test2.py')
             sage: with open(test1, 'w') as f:
-            ....:     f.write("'''\nsage: import time; time.sleep(60)\n'''")
+            ....:     _ = f.write("'''\nsage: import time; time.sleep(60)\n'''")
             sage: with open(test2, 'w') as f:
-            ....:     f.write("'''\nsage: True\nFalse\n'''")
+            ....:     _ = f.write("'''\nsage: True\nFalse\n'''")
             sage: DC = DocTestController(DocTestDefaults(exitfirst=True,
             ....:                                        nthreads=2),
             ....:                        [test1, test2])
@@ -1934,7 +1949,7 @@ class DocTestWorker(multiprocessing.Process):
 
         # Write one byte to the pipe to signal to the master process
         # that we have started properly.
-        os.write(self.wmessages, "X")
+        os.write(self.wmessages, b"X")
 
         task = DocTestTask(self.source)
 
@@ -2027,7 +2042,7 @@ class DocTestWorker(multiprocessing.Process):
         # correctly, one read() will not block.
         if self.rmessages is not None:
             s = os.read(self.rmessages, 4096)
-            self.messages += s
+            self.messages += bytes_to_str(s)
             if len(s) == 0:  # EOF
                 os.close(self.rmessages)
                 self.rmessages = None

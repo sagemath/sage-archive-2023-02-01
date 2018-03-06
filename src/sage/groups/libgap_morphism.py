@@ -57,10 +57,19 @@ class GroupMorphism_libgap(Morphism):
         [0 1]
         [1 0]
         )
+        sage: G.<a,b> = FreeGroup()
+        sage: H = G / (G([1]), G([2])^3)
+        sage: f = G.hom(H.gens())
+        sage: f
+        Group morphism:
+          From: Free Group on generators {a, b}
+          To:   Finitely presented group < a, b | a, b^3 >
+
     """
+
     def __init__(self, homset, imgs, check=True):
         r"""
-        Constructor method
+        Constructor method.
 
         TESTS:
 
@@ -72,7 +81,7 @@ class GroupMorphism_libgap(Morphism):
             sage: A.hom([G.0])
             Traceback (most recent call last):
             ...
-            ValueError: the map (f1,)-->[[ [ 0, 1 ], [ -1, 0 ] ]] is not a homomorphism
+            ValueError: images do not define a group homomorphism
         """
         from sage.libs.gap.libgap import libgap
         Morphism.__init__(self, homset)
@@ -85,7 +94,7 @@ class GroupMorphism_libgap(Morphism):
                 raise ValueError("provide an image for each generator")
             self._phi = libgap.GroupHomomorphismByImages(dom.gap(), codom.gap(), gens, imgs)
             if not self._phi.IsGroupHomomorphism():
-                raise ValueError('the map {}-->{} is not a homomorphism'.format(dom.gens(), imgs))
+                raise ValueError("images do not define a group homomorphism")
         else:
             self._phi = libgap.GroupHomomorphismByImagesNC(dom.gap(), codom.gap(), gens, imgs)
 
@@ -169,18 +178,27 @@ class GroupMorphism_libgap(Morphism):
 
         EXAMPLES::
 
-
-
+            sage: G.<a,b> = FreeGroup()
+            sage: H = G / (G([1]), G([2])^3)
+            sage: f = G.hom(H.gens())
+            sage: S = G.subgroup([a.gap()])
+            sage: f.pushforward(S)
+            Group([ a ])
+            sage: x = f.image(a)
+            sage: x
+            a
+            sage: x.parent()
+            Finitely presented group < a, b | a, b^3 >
         """
         dom = self.domain()
         codom = self.codomain()
         phi = self.gap()
-        if J in self.domain():
-            return self(J)
+        if isinstance(J, dom.Element):
+            return self.codomain()(self.gap().Image(J.gap()))
         if not isinstance(J, ParentLibGAP):
             raise TypeError("J(=%s) must be a libgap group" %J)
-        if self.gap().IsSubgroup(J.gap()).sage():
-                im_gens = phi.Image(gapJ).GeneratorsOfGroup()
+        if dom.gap().IsSubgroup(J.gap()).sage():
+                im_gens = phi.Image(J.gap()).GeneratorsOfGroup()
                 im_gens = [self.codomain()(g) for g in im_gens]
                 return codom.subgroup(im_gens)
 
@@ -281,9 +299,12 @@ class GroupHomset_libgap(GroupHomset_generic):
             raise TypeError("G (=%s) must be a ParentLibGAP group." %G)
         if not isinstance(H, ParentLibGAP):
             raise TypeError("H (=%s) must be a ParentLibGAP group." %G)
-        category = Groups().or_subcategory(category)
-        if G.is_finite() and H.is_finite():
-            category = category.Finite()
+        category = Groups() & category
+        try:
+            if G.is_finite() and H.is_finite():
+                category = category.Finite()
+        except NotImplementedError:
+            pass
         from sage.categories.homset import Homset
         Homset.__init__(self, G, H, category)
 

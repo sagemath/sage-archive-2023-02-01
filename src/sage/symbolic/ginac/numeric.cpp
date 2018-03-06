@@ -3602,7 +3602,8 @@ const numeric numeric::atan(PyObject* parent) const {
 }
 
 const numeric numeric::atan(const numeric& y) const {
-        if (is_real() and y.is_real()) {
+        if ((is_real() and y.is_real())
+            or (imag().is_zero() and y.imag().is_zero())) {
                 PY_RETURN2(py_funcs.py_atan2, y);
         }
         else

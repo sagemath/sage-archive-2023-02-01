@@ -12,4 +12,4 @@ Pseudo-Riemannian Manifolds
 
    sage/manifolds/differentiable/levi_civita_connection
 
-   sage/manifolds/differentiable/operators
+   sage/manifolds/operators

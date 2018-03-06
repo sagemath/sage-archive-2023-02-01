@@ -37,6 +37,7 @@ AUTHORS:
 - Marco Mancini (2015): parallelization of vector field plots
 - Travis Scrimshaw (2016): review tweaks
 - Eric Gourgoulhon (2017): vector fields inherit from multivector fields
+- Eric Gourgoulhon (2018): dot and cross products, operators norm and curl
 
 REFERENCES:
 
@@ -965,7 +966,7 @@ class VectorField(MultivectorField):
 
         .. MATH::
 
-           \mathrm{curl}\, v = (*(\mathrm{d} v^\flat))^\sharp
+            \mathrm{curl}\, v = (*(\mathrm{d} v^\flat))^\sharp
 
         where `v^\flat` is the 1-form associated to `v` by the metric `g` (see
         :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.down`),
@@ -981,7 +982,7 @@ class VectorField(MultivectorField):
 
         .. MATH::
 
-          (\mathrm{curl}\, v)^i = \epsilon^{ijk} \nabla_j v_k
+            (\mathrm{curl}\, v)^i = \epsilon^{ijk} \nabla_j v_k
 
         where `\nabla` is the Levi-Civita connection of `g` (cf.
         :class:`~sage.manifolds.differentiable.levi_civita_connection.LeviCivitaConnection`)
@@ -1023,22 +1024,23 @@ class VectorField(MultivectorField):
             sage: s.display()
             curl(v) = 2 d/dz
 
-        The global function
-        :func:`~sage.manifolds.differentiable.operators.curl` can be used
+        The global function :func:`~sage.manifolds.operators.curl` can be used
         instead of the method ``curl()``::
 
+            sage: from sage.manifolds.operators import curl
             sage: curl(v) == s
             True
 
-        An alias is ``rot()``::
+        If one prefers the notation ``rot`` over ``curl``, it suffices to do::
 
+            sage: from sage.manifolds.operators import curl as rot
             sage: rot(v) == s
             True
 
         The curl of a gradient vanishes identically::
 
             sage: f = M.scalar_field(function('F')(x,y,z))
-            sage: gradf = grad(f)
+            sage: gradf = f.gradient()
             sage: gradf.display()
             d(F)/dx d/dx + d(F)/dy d/dy + d(F)/dz d/dz
             sage: s = curl(gradf); s

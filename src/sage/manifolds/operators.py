@@ -15,9 +15,8 @@ fields on any pseudo-Riemannian manifold (see
   vector field, or more generally a tensor field, on a Lorentzian manifold
 
 All these operators are implemented as functions that call the appropriate
-method of the field given in argument. The purpose is to allow one
-to use standard mathematical notations, e.g. to write ``curl(v)`` instead of
-``v.curl()``.
+method on their argument. The purpose is to allow one to use standard
+mathematical notations, e.g. to write ``curl(v)`` instead of ``v.curl()``.
 
 Note that the :func:`~sage.misc.functional.norm` operator is defined in the
 module :mod:`~sage.misc.functional`.
@@ -77,14 +76,16 @@ def grad(scalar):
         sage: g = M.metric()
         sage: g[0,0], g[1,1] = 1, 1
         sage: f = M.scalar_field(sin(x*y), name='f')
+        sage: from sage.manifolds.operators import grad
         sage: grad(f)
         Vector field grad(f) on the 2-dimensional Riemannian manifold M
         sage: grad(f).display()
         grad(f) = y*cos(x*y) d/dx + x*cos(x*y) d/dy
 
-    See
+    See the method
     :meth:`~sage.manifolds.differentiable.scalarfield.DiffScalarField.gradient`
-    for more details and examples.
+    of :class:`~sage.manifolds.differentiable.scalarfield.DiffScalarField` for
+    more details and examples.
 
     """
     return scalar.gradient()
@@ -113,9 +114,9 @@ def div(tensor):
 
     .. MATH::
 
-      (\mathrm{div}\, t)^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\, b_1\ldots b_{l-1}}
-      = \nabla_i (g^{ij} t^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\, b_1\ldots b_{l-1} j})
-      = (\nabla t^\sharp)^{a_1\ldots a_k i}_{\phantom{a_1\ldots a_k i}\, b_1\ldots b_{l-1} i}
+        (\mathrm{div}\, t)^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\, b_1\ldots b_{l-1}}
+        = \nabla_i (g^{ij} t^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\, b_1\ldots b_{l-1} j})
+        = (\nabla t^\sharp)^{a_1\ldots a_k i}_{\phantom{a_1\ldots a_k i}\, b_1\ldots b_{l-1} i}
 
     where `t^\sharp` is the tensor field deduced from `t` by raising the
     last index with the metric `g` (see
@@ -150,15 +151,17 @@ def div(tensor):
         sage: v[:] = cos(x*y), sin(x*y)
         sage: v.display()
         v = cos(x*y) d/dx + sin(x*y) d/dy
+        sage: from sage.manifolds.operators import div
         sage: s = div(v); s
         Scalar field div(v) on the 2-dimensional Riemannian manifold M
         sage: s.display()
         div(v): M --> R
            (x, y) |--> x*cos(x*y) - y*sin(x*y)
 
-    See
+    See the method
     :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.divergence`
-    for more details and examples.
+    of :class:`~sage.manifolds.differentiable.tensorfield.TensorField` for
+    more details and examples.
 
     """
     return tensor.divergence()
@@ -172,7 +175,7 @@ def curl(vector):
 
     .. MATH::
 
-       \mathrm{curl}\, v = (*(\mathrm{d} v^\flat))^\sharp
+        \mathrm{curl}\, v = (*(\mathrm{d} v^\flat))^\sharp
 
     where `v^\flat` is the 1-form associated to `v` by the metric `g` (see
     :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.down`),
@@ -188,7 +191,7 @@ def curl(vector):
 
     .. MATH::
 
-      (\mathrm{curl}\, v)^i = \epsilon^{ijk} \nabla_j v_k
+        (\mathrm{curl}\, v)^i = \epsilon^{ijk} \nabla_j v_k
 
     where `\nabla` is the Levi-Civita connection of `g` (cf.
     :class:`~sage.manifolds.differentiable.levi_civita_connection.LeviCivitaConnection`)
@@ -219,14 +222,16 @@ def curl(vector):
         sage: v[0], v[1] = sin(y), sin(x)
         sage: v.display()
         v = sin(y) d/dx + sin(x) d/dy
+        sage: from sage.manifolds.operators import curl
         sage: s = curl(v); s
         Vector field curl(v) on the 3-dimensional Riemannian manifold M
         sage: s.display()
         curl(v) = (cos(x) - cos(y)) d/dz
 
-    See
+    See the method
     :meth:`~sage.manifolds.differentiable.vectorfield.VectorField.curl`
-    for more details and examples.
+    of :class:`~sage.manifolds.differentiable.vectorfield.VectorField` for more
+    details and examples.
 
     """
     return vector.curl()
@@ -269,6 +274,7 @@ def laplacian(field):
         sage: g = M.metric()
         sage: g[0,0], g[1,1] = 1, 1
         sage: f = M.scalar_field(sin(x*y), name='f')
+        sage: from sage.manifolds.operators import laplacian
         sage: Df = laplacian(f); Df
         Scalar field Delta(f) on the 2-dimensional Riemannian manifold M
         sage: Df.display()
@@ -277,14 +283,17 @@ def laplacian(field):
 
     The Laplacian of a scalar field is the divergence of its gradient::
 
+        sage: from sage.manifolds.operators import div, grad
         sage: Df == div(grad(f))
         True
 
-    See
+    See the method
     :meth:`~sage.manifolds.differentiable.scalarfield.DiffScalarField.laplacian`
-    (scalar field case) or
+    of :class:`~sage.manifolds.differentiable.scalarfield.DiffScalarField` and
+    the method
     :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.laplacian`
-    (tensor field case) for more details and examples.
+    of :class:`~sage.manifolds.differentiable.tensorfield.TensorField` for
+    more details and examples.
 
     """
     return field.laplacian()
@@ -327,17 +336,20 @@ def dalembertian(field):
         sage: g = M.metric()
         sage: g[0,0], g[1,1] = -1, 1
         sage: f = M.scalar_field((x-t)^3 + (x+t)^2, name='f')
+        sage: from sage.manifolds.operators import dalembertian
         sage: Df = dalembertian(f); Df
         Scalar field Box(f) on the 2-dimensional Lorentzian manifold M
         sage: Df.display()
         Box(f): M --> R
            (t, x) |--> 0
 
-    See
+    See the method
     :meth:`~sage.manifolds.differentiable.scalarfield.DiffScalarField.dalembertian`
-    (scalar field case) or
+    of :class:`~sage.manifolds.differentiable.scalarfield.DiffScalarField` and
+    the method
     :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.dalembertian`
-    (tensor field case) for more details and examples.
+    of :class:`~sage.manifolds.differentiable.tensorfield.TensorField` for
+    more details and examples.
 
     """
     return field.dalembertian()

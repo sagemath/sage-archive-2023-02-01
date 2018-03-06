@@ -68,7 +68,7 @@ AC_MSG_RESULT([])
 # Usage: newest_version $pkg
 # Print version number of latest package $pkg
 newest_version() {
-    PKG=$1
+    PKG=$[1]
     if test -f "$SAGE_ROOT/build/pkgs/$PKG/package-version.txt" ; then
         cat "$SAGE_ROOT/build/pkgs/$PKG/package-version.txt"
     else

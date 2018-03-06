@@ -9,7 +9,7 @@ Euclidean spaces are implemented via the following classes
 - :class:`EuclideanSpaceGeneric`
 
   - :class:`EuclideanPlane` (case `n=2`)
-  - :class:`EuclideanSpace3dim` (case `n=3`)
+  - :class:`Euclidean3dimSpace` (case `n=3`)
 
 The user interface is provided by the generic function :func:`EuclideanSpace`.
 
@@ -28,11 +28,11 @@ Cartesian coordinates::
 
     sage: E.atlas()
     [Chart (E^2, (x, y))]
-    sage: X_cartesian = E.default_chart(); X_cartesian
+    sage: cartesian = E.default_chart(); cartesian
     Chart (E^2, (x, y))
 
 Thanks to the use of ``<x,y>`` when declaring ``E``, the coordinates `(x,y)`
-have been injected in the global name space, i.e. the Python variables ``x``
+have been injected in the global namespace, i.e. the Python variables ``x``
 and ``y`` have been created and are available to form symbolic expressions::
 
     sage: y
@@ -59,10 +59,10 @@ It is a *flat* metric, i.e. it has a vanishing Riemann tensor::
     sage: g.riemann().display()
     Riem(g) = 0
 
-Polar coordinates are introduced by::
+Polar coordinates `(r,\phi)` are introduced by::
 
-    sage: X_polar.<r,ph> = E.polar_coordinates()
-    sage: X_polar
+    sage: polar.<r,ph> = E.polar_coordinates()
+    sage: polar
     Chart (E^2, (r, ph))
 
 ``E`` is now endowed with two coordinate charts::
@@ -72,20 +72,20 @@ Polar coordinates are introduced by::
 
 The ranges of the coordinates introduced so far are::
 
-    sage: X_cartesian.coord_range()
+    sage: cartesian.coord_range()
     x: (-oo, +oo); y: (-oo, +oo)
-    sage: X_polar.coord_range()
+    sage: polar.coord_range()
     r: (0, +oo); ph: (0, 2*pi)
 
 The transition map from polar coordinates to Cartesian ones is::
 
-    sage: E.coord_change(X_polar, X_cartesian).display()
+    sage: E.coord_change(polar, cartesian).display()
     x = r*cos(ph)
     y = r*sin(ph)
 
 while the reverse is::
 
-    sage: E.coord_change(X_cartesian, X_polar).display()
+    sage: E.coord_change(cartesian, polar).display()
     r = sqrt(x^2 + y^2)
     ph = arctan2(y, x)
 
@@ -99,15 +99,15 @@ At this stage, ``E`` is endowed with three vector frames::
 The third one is the standard orthonormal frame associated with polar
 coordinates, as we can check from the metric coefficients in it::
 
-    sage: F_polar = E.polar_frame(); F_polar
+    sage: polar_frame = E.polar_frame(); polar_frame
     Vector frame (E^2, (e_r,e_ph))
-    sage: g[F_polar,:]
+    sage: g[polar_frame,:]
     [1 0]
     [0 1]
 
-The expression of the metric tensor in terms of the polar coordinates is::
+The expression of the metric tensor in terms of polar coordinates is::
 
-    sage: g.display(X_polar.frame(), X_polar)
+    sage: g.display(polar.frame(), polar)
     g = dr*dr + r^2 dph*dph
 
 A vector field on ``E``::
@@ -125,9 +125,9 @@ respect to the orthonormal polar frame, one has to specify it explicitly,
 generally along with the polar chart for the coordinate expression of the
 components::
 
-    sage: v.display(F_polar, X_polar)
+    sage: v.display(polar_frame, polar)
     v = r e_ph
-    sage: v[F_polar,:,X_polar]
+    sage: v[polar_frame,:,polar]
     [0, r]
 
 A scalar field on ``E``::
@@ -141,11 +141,12 @@ A scalar field on ``E``::
 
 The gradient of ``f``::
 
+    sage: from sage.manifolds.operators import * # to get grad, div, etc.
     sage: w = grad(f); w
     Vector field grad(f) on the Euclidean plane E^2
     sage: w.display()
     grad(f) = y e_x + x e_y
-    sage: w.display(F_polar, X_polar)
+    sage: w.display(polar_frame, polar)
     grad(f) = 2*r*cos(ph)*sin(ph) e_r + (2*cos(ph)^2 - 1)*r e_ph
 
 The dot product of two vector fields::
@@ -173,6 +174,74 @@ The divergence of the vector field ``v``::
        (x, y) |--> 0
        (r, ph) |--> 0
 
+.. RUBRIC:: Example 2: Vector calculus in the Euclidean 3-space
+
+We start by declaring the 3-dimensional Euclidean space ``E``, with
+``(x,y,z)`` as Cartesian coordinates::
+
+    sage: E.<x,y,z> = EuclideanSpace(3)
+    sage: E
+    Euclidean space E^3
+
+A simple vector field on ``E``::
+
+    sage: v = E.vector_field(-y, x, 0, name='v')
+    sage: v.display()
+    v = -y e_x + x e_y
+
+The Euclidean norm of ``v``::
+
+    sage: s = norm(v); s
+    Scalar field |v| on the Euclidean space E^3
+    sage: s.display()
+    |v|: E^3 --> R
+       (x, y, z) |--> sqrt(x^2 + y^2)
+    sage: s.expr()
+    sqrt(x^2 + y^2)
+
+The divergence of ``v`` is zero::
+
+    sage: from sage.manifolds.operators import *
+    sage: div(v)
+    Scalar field div(v) on the Euclidean space E^3
+    sage: div(v).display()
+    div(v): E^3 --> R
+       (x, y, z) |--> 0
+
+while its curl is a constant vector field along `e_z`::
+
+    sage: w = curl(v); w
+    Vector field curl(v) on the Euclidean space E^3
+    sage: w.display()
+    curl(v) = 2 e_z
+
+The gradient of a scalar field::
+
+    sage: f = E.scalar_field(sin(x*y*z), name='f')
+    sage: u = grad(f); u
+    Vector field grad(f) on the Euclidean space E^3
+    sage: u.display()
+    grad(f) = y*z*cos(x*y*z) e_x + x*z*cos(x*y*z) e_y + x*y*cos(x*y*z) e_z
+
+The curl of a gradient is zero::
+
+    sage: curl(u).display()
+    curl(grad(f)) = 0
+
+The dot product of two vector fields::
+
+    sage: s = u.dot(v); s
+    Scalar field grad(f).v on the Euclidean space E^3
+    sage: s.expr()
+    (x^2 - y^2)*z*cos(x*y*z)
+
+The cross product of two vector fields::
+
+    sage: a = u.cross(v); a
+    Vector field grad(f) x v on the Euclidean space E^3
+    sage: a.display()
+    grad(f) x v = -x^2*y*cos(x*y*z) e_x - x*y^2*cos(x*y*z) e_y
+     + 2*x*y*z*cos(x*y*z) e_z
 
 AUTHORS:
 
@@ -363,7 +432,7 @@ class EuclideanSpaceGeneric(PseudoRiemannianManifold):
         g = self.metric()
         gc = g.add_comp(frame)
         for i in self.irange():
-            gc[i, i, chart] = 1
+            gc[[i, i]] = self.one_scalar_field()
         nabla = g.connection(init_coef=False)  # False to avoid any computation
         nabla.add_coef(frame)  # initialize a zero set of coefficients
 
@@ -517,10 +586,10 @@ class EuclideanSpaceGeneric(PseudoRiemannianManifold):
         default one (here the Cartesian frame `(e_x,e_y)`), the vector
         frame has to be specified explicitly::
 
-            sage: F_polar = E.polar_frame(); F_polar
+            sage: polar_frame = E.polar_frame(); polar_frame
             Vector frame (E^2, (e_r,e_ph))
-            sage: v = E.vector_field(1, 0, frame=F_polar)
-            sage: v.display(F_polar)
+            sage: v = E.vector_field(1, 0, frame=polar_frame)
+            sage: v.display(polar_frame)
             e_r
             sage: v.display()
             x/sqrt(x^2 + y^2) e_x + y/sqrt(x^2 + y^2) e_y
@@ -528,9 +597,9 @@ class EuclideanSpaceGeneric(PseudoRiemannianManifold):
         The argument ``chart`` must be used to specify in which coordinate
         chart the components are expressed::
 
-            sage: X_polar.<r, ph> = E.polar_coordinates()
-            sage: v = E.vector_field(0, r, frame=F_polar, chart=X_polar)
-            sage: v.display(F_polar, X_polar)
+            sage: polar.<r, ph> = E.polar_coordinates()
+            sage: v = E.vector_field(0, r, frame=polar_frame, chart=polar)
+            sage: v.display(polar_frame, polar)
             r e_ph
             sage: v.display()
             -y e_x + x e_y
@@ -538,15 +607,15 @@ class EuclideanSpaceGeneric(PseudoRiemannianManifold):
         It is also possible to pass the components as a dictionary, with
         a pair (vector frame, chart) as a key::
 
-            sage: v = E.vector_field({(F_polar, X_polar): (0, r)})
-            sage: v.display(F_polar, X_polar)
+            sage: v = E.vector_field({(polar_frame, polar): (0, r)})
+            sage: v.display(polar_frame, polar)
             r e_ph
 
         The key can be reduced to the vector frame if the chart is the default
         one::
 
-            sage: v = E.vector_field({F_polar: (0, 1)})
-            sage: v.display(F_polar)
+            sage: v = E.vector_field({polar_frame: (0, 1)})
+            sage: v.display(polar_frame)
             e_ph
 
         Finally, it is possible to construct the vector field without
@@ -575,8 +644,8 @@ class EuclideanSpaceGeneric(PseudoRiemannianManifold):
         vector frame that is not the default one::
 
             sage: v = E.vector_field(name='v')
-            sage: v[F_polar, 1, X_polar] = r
-            sage: v.display(F_polar, X_polar)
+            sage: v[polar_frame, 1, polar] = r
+            sage: v.display(polar_frame, polar)
             v = r e_r
             sage: v.display()
             v = x e_x + y e_y
@@ -679,6 +748,8 @@ class EuclideanPlane(EuclideanSpaceGeneric):
             sage: TestSuite(E).run()
 
         """
+        if coordinates not in ['Cartesian', 'polar']:
+            raise TypeError("unkown coordinate type")
         if names is not None and symbols is None:
             symbols = ''
             for x in names:
@@ -694,10 +765,8 @@ class EuclideanPlane(EuclideanSpaceGeneric):
                 symbols = 'x y'
             elif coordinates == 'polar':
                 symbols = 'r ph:\\phi'
-            else:
-                raise TypeError("unkown coordinate type")
-        self._polar_chart = None   # to be constructed later if necessary
-        self._polar_frame = None   #
+        self._polar_chart = None  # to be constructed later if necessary
+        self._polar_frame = None  # orthonormal frame associated to polar coord
         init_coord_methods = {'Cartesian': self._init_coordinates_cartesian,
                               'polar': self._init_coordinates_polar}
         EuclideanSpaceGeneric.__init__(self, 2, name=name,
@@ -709,6 +778,10 @@ class EuclideanPlane(EuclideanSpaceGeneric):
                                        start_index=start_index,
                                        ambient=ambient, category=category,
                                        init_coord_methods=init_coord_methods)
+        if coordinates == 'polar':
+            # The default frame is the polar coordinate frame; we change it
+            # to the orthornomal polar frame
+            self.set_default_frame(self.polar_frame())
 
     def _repr_(self):
         r"""
@@ -738,7 +811,7 @@ class EuclideanPlane(EuclideanSpaceGeneric):
             sage: E = EuclideanSpace(2)
             sage: E.atlas()
             [Chart (E^2, (x, y))]
-            sage: E._init_coordinates_polar(symbols=r"R Phi:\Phi")
+            sage: E._init_coordinates_polar(r"R Phi:\Phi")
             sage: E.atlas()
             [Chart (E^2, (x, y)), Chart (E^2, (R, Phi))]
 
@@ -753,23 +826,20 @@ class EuclideanPlane(EuclideanSpaceGeneric):
         # Christoffel symbols
         g = self.metric()
         gc = g.add_comp(frame)
-        i0 = self._sindex
-        i1 = i0 + 1
+        i1 = self._sindex
+        i2 = i1 + 1
         r, ph = chart[:]
-        gc[i0, i0, chart] = 1
-        gc[i1, i1, chart] = r**2
-        nabla = g.connection()
-        nabla.coef(frame)
+        gc[i1, i1, chart] = 1
+        gc[i2, i2, chart] = r**2
         # Orthonormal frame associated with polar coordinates:
         to_orthonormal = self.automorphism_field()
-        to_orthonormal[frame, i0, i0, chart] = 1
-        to_orthonormal[frame, i1, i1, chart] = 1/r
+        to_orthonormal[frame, i1, i1, chart] = 1
+        to_orthonormal[frame, i2, i2, chart] = 1/r
         oframe = frame.new_frame(to_orthonormal, 'e',
                                  indices=(str(r), str(ph)),
                                  latex_indices=(latex(r), latex(ph)))
         self._polar_frame = oframe
         g.comp(oframe)
-        nabla.coef(oframe)
 
     def _transition_polar_cartesian(self):
         r"""
@@ -778,12 +848,14 @@ class EuclideanPlane(EuclideanSpaceGeneric):
         TESTS::
 
             sage: E = EuclideanSpace(2)
-            sage: E._init_coordinates_polar(symbols=r"r ph:\phi")
+            sage: E._init_coordinates_polar(r"r ph:\phi")
             sage: E.atlas()
             [Chart (E^2, (x, y)), Chart (E^2, (r, ph))]
             sage: E.coord_changes() # no transition map has been defined yet
             {}
             sage: E._transition_polar_cartesian()
+            sage: len(E.coord_changes())
+            2
             sage: E.coord_changes()  # random (dictionary output)
             {(Chart (E^2, (r, ph)),
               Chart (E^2, (x, y))): Change of coordinates from
@@ -801,7 +873,7 @@ class EuclideanPlane(EuclideanSpaceGeneric):
         pol_to_cart = chart_pol.transition_map(chart_cart,
                                                [r*cos(ph), r*sin(ph)])
         pol_to_cart.set_inverse(sqrt(x**2+y**2), atan2(y,x))
-        # Automorphisms ortho polar frame <-> Cartesian frame
+        # Automorphisms orthonormal polar frame <-> Cartesian frame
         oframe = self._polar_frame
         cframe = chart_cart.frame()
         sframe = chart_pol.frame()
@@ -870,17 +942,17 @@ class EuclideanPlane(EuclideanSpaceGeneric):
         variable containing the coordinates::
 
             sage: E = EuclideanSpace(2, coordinates='polar')
-            sage: cartesian_coord.<u,v> = E.cartesian_coordinates()
-            sage: cartesian_coord
+            sage: cartesian.<u,v> = E.cartesian_coordinates()
+            sage: cartesian
             Chart (E^2, (u, v))
             sage: u,v
             (u, v)
 
-        The command ``cartesian_coord.<u,v> = E.cartesian_coordinates()``
-        is actually a shortcut for::
+        The command ``cartesian.<u,v> = E.cartesian_coordinates()`` is actually
+        a shortcut for::
 
-            sage: cartesian_coord = E.cartesian_coordinates(symbols='u v')
-            sage: u, v = cartesian_coord[:]
+            sage: cartesian = E.cartesian_coordinates(symbols='u v')
+            sage: u, v = cartesian[:]
 
         """
         if self._cartesian_chart is None:
@@ -936,7 +1008,6 @@ class EuclideanPlane(EuclideanSpaceGeneric):
 
         They can also be obtained via the operator ``<,>``::
 
-            sage: E = EuclideanSpace(2)
             sage: polar.<r,ph> = E.polar_coordinates(); polar
             Chart (E^2, (r, ph))
             sage: r, ph
@@ -1000,8 +1071,716 @@ class EuclideanPlane(EuclideanSpaceGeneric):
 
         """
         if self._polar_frame is None:
-            self.polar_coordinates()  # creates the polar chart
+            self.polar_coordinates()  # creates the polar chart and the
+                                      # associated orthonormal frame
         return self._polar_frame
+
+
+###############################################################################
+
+class Euclidean3dimSpace(EuclideanSpaceGeneric):
+    r"""
+    3-dimensional Euclidean space.
+
+    INPUT:
+
+    - ``name`` -- (default: ``None``) string; name (symbol) given to the
+      Euclidean 3-space; if ``None``, the name will be set to ``'E^3'``
+    - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote the
+      Euclidean 3-space; if ``None``, it is set to ``'\mathbb{E}^{3}'`` if
+      ``name`` is  ``None`` and to ``name`` otherwise
+    - ``coordinates`` -- (default: ``'Cartesian'``) type of coordinates to
+      be initialized at the Euclidean 3-space creation
+    - ``symbols`` -- (default: ``None``) string defining the coordinate text
+      symbols and LaTeX symbols, with the same conventions as the argument
+      ``coordinates`` in
+      :class:`~sage.manifolds.differentiable.chart.RealDiffChart`; if ``None``,
+      the symbols will be automatically generated
+    - ``metric_name`` -- (default: ``'g'``) string; name (symbol) given to the
+      Euclidean metric tensor
+    - ``metric_latex_name`` -- (default: ``None``) string; LaTeX symbol to
+      denote the Euclidean metric tensor; if none is provided, it is set to
+      ``metric_name``
+    - ``start_index`` -- (default: 1) integer; lower value of the range of
+      indices used for "indexed objects" in the Euclidean 3-space, e.g.
+      coordinates of a chart
+    - ``ambient`` -- (default: ``None``) if not ``None``, must be an
+      Euclidean 3-space; the created object is then an open subset of
+      ``ambient``
+    - ``category`` -- (default: ``None``) to specify the category; if ``None``,
+      ``Manifolds(RR).Differentiable()`` (or ``Manifolds(RR).Smooth()``
+      if ``diff_degree`` = ``infinity``) is assumed (see the category
+      :class:`~sage.categories.manifolds.Manifolds`)
+    - ``names`` -- (default: ``None``) unused argument, except if
+      ``symbols`` is not provided; it must then be a tuple containing
+      the coordinate symbols (this is guaranteed if the shortcut operator
+      ``<,>`` is used)
+    - ``init_coord_methods`` -- (default: ``None``) dictionary of methods
+      to initialize the various type of coordinates, with each key being a
+      string describing the type of coordinates; to be used by derived classes
+      only
+    - ``unique_tag`` -- (default: ``None``) tag used to force the construction
+      of a new object when all the other arguments have been used previously
+      (without ``unique_tag``, the
+      :class:`~sage.structure.unique_representation.UniqueRepresentation`
+      behavior inherited from
+      :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`
+      would return the previously constructed object corresponding to these
+      arguments)
+
+    """
+    def __init__(self, name=None, latex_name=None, coordinates='Cartesian',
+                 symbols=None, metric_name='g', metric_latex_name=None,
+                 start_index=1, ambient=None, category=None, names=None,
+                 unique_tag=None):
+        r"""
+        Construct an Euclidean 3-space.
+
+        TESTS::
+
+            sage: E = EuclideanSpace(3); E
+            Euclidean space E^3
+            sage: E.metric()
+            Riemannian metric g on the Euclidean space E^3
+            sage: TestSuite(E).run()
+
+        """
+        if coordinates not in ['Cartesian', 'spherical', 'cylindrical']:
+            raise TypeError("unkown coordinate type")
+        if names is not None and symbols is None:
+            # We add the LaTeX symbols when relevant:
+            if coordinates == 'spherical':
+                names = list(names)
+                if names[1] in ['t', 'th', 'theta']:
+                    names[1] = names[1] + ':\\theta'
+                if names[2] in ['p', 'ph', 'phi']:
+                    names[2] = names[2] + ':\\phi'
+            elif coordinates == 'cylindrical':
+                names = list(names)
+                if names[0] in ['rh', 'rho']:
+                    names[0] = names[0] + ':\\rho'
+                if names[1] in ['p', 'ph', 'phi']:
+                    names[1] = names[1] + ':\\phi'
+            symbols = ''
+            for x in names:
+                symbols += x + ' '
+            symbols = symbols[:-1]
+        if symbols is None:
+            if coordinates == 'Cartesian':
+                symbols = 'x y z'
+            elif coordinates == 'spherical':
+                symbols = 'r th:\\theta ph:\\phi'
+            elif coordinates == 'cylindrical':
+                symbols = 'r ph:\\phi z'
+        self._spherical_chart = None    # to be constructed later if necessary
+        self._spherical_frame = None    # orthonormal frame
+        self._cylindrical_chart = None  #
+        self._cylindrical_frame = None  # orthonormal frame
+        init_coord_methods = {'Cartesian': self._init_coordinates_cartesian,
+                              'spherical': self._init_coordinates_spherical,
+                              'cylindrical': self._init_coordinates_cylindrical}
+        EuclideanSpaceGeneric.__init__(self, 3, name=name,
+                                       latex_name=latex_name,
+                                       coordinates=coordinates,
+                                       symbols=symbols,
+                                       metric_name=metric_name,
+                                       metric_latex_name=metric_latex_name,
+                                       start_index=start_index,
+                                       ambient=ambient, category=category,
+                                       init_coord_methods=init_coord_methods)
+        if coordinates == 'spherical':
+            # The default frame is the spherical coordinate frame; we change it
+            # to the orthornomal spherical frame
+            self.set_default_frame(self.spherical_frame())
+        if coordinates == 'cylindrical':
+            # The default frame is the cylindrical coordinate frame; we change
+            # it to the orthornomal cylindrical frame
+            self.set_default_frame(self.cylindrical_frame())
+
+    def _repr_(self):
+        r"""
+        Return a string representation of ``self``.
+
+        TESTS::
+
+            sage: E = EuclideanSpace(3)
+            sage: E._repr_()
+            'Euclidean space E^3'
+            sage: E  # indirect doctest
+            Euclidean space E^3
+            sage: E = EuclideanSpace(3, name='E')
+            sage: E._repr_()
+            'Euclidean space E'
+
+        """
+        return "Euclidean space {}".format(self._name)
+
+    def _init_coordinates_spherical(self, symbols):
+        r"""
+        Construct the chart of spherical coordinates and initialize the
+        components of the metric tensor in it.
+
+        TESTS::
+
+            sage: E = EuclideanSpace(3)
+            sage: E.atlas()
+            [Chart (E^3, (x, y, z))]
+            sage: E._init_coordinates_spherical(r"R Th:\Theta Ph:\Phi")
+            sage: E.atlas()
+            [Chart (E^3, (x, y, z)), Chart (E^3, (R, Th, Ph))]
+
+        """
+        coords = symbols.split()  # list of strings, one per coordinate
+        # Adding the coordinate ranges:
+        coordinates = coords[0] + ':(0,+oo) ' + coords[1] + ':(0,pi) ' + \
+                      coords[2] + ':(0,2*pi)'
+        chart = self.chart(coordinates=coordinates)
+        self._spherical_chart = chart
+        frame = chart.frame()
+        # Initialization of the metric components and the associated
+        # Christoffel symbols
+        g = self.metric()
+        gc = g.add_comp(frame)
+        i1 = self._sindex
+        i2 = i1 + 1
+        i3 = i1 + 2
+        r, th, ph = chart[:]
+        gc[i1, i1, chart] = 1
+        gc[i2, i2, chart] = r**2
+        gc[i3, i3, chart] = (r*sin(th))**2
+        # Orthonormal frame associated with spherical coordinates:
+        to_orthonormal = self.automorphism_field()
+        to_orthonormal[frame, i1, i1, chart] = 1
+        to_orthonormal[frame, i2, i2, chart] = 1/r
+        to_orthonormal[frame, i3, i3, chart] = 1/(r*sin(th))
+        oframe = frame.new_frame(to_orthonormal, 'e',
+                                 indices=(str(r), str(th), str(ph)),
+                                 latex_indices=(latex(r), latex(th), latex(ph)))
+        self._spherical_frame = oframe
+        g.comp(oframe)
+
+    def _init_coordinates_cylindrical(self, symbols):
+        r"""
+        Construct the chart of cylindrical coordinates and initialize the
+        components of the metric tensor in it.
+
+        TESTS::
+
+            sage: E = EuclideanSpace(3)
+            sage: E.atlas()
+            [Chart (E^3, (x, y, z))]
+            sage: E._init_coordinates_cylindrical(r"r ph:\phi z")
+            sage: E.atlas()
+            [Chart (E^3, (x, y, z)), Chart (E^3, (r, ph, z))]
+
+        """
+        coords = symbols.split()  # list of strings, one per coordinate
+        # Adding the coordinate ranges:
+        coordinates = coords[0] + ':(0,+oo) ' + coords[1] + ':(0,2*pi) ' +  \
+                      coords[2]
+        chart = self.chart(coordinates=coordinates)
+        self._cylindrical_chart = chart
+        frame = chart.frame()
+        # Initialization of the metric components and the associated
+        # Christoffel symbols
+        g = self.metric()
+        gc = g.add_comp(frame)
+        i1 = self._sindex
+        i2 = i1 + 1
+        i3 = i1 + 2
+        rh, ph, z = chart[:]
+        gc[i1, i1, chart] = 1
+        gc[i2, i2, chart] = rh**2
+        gc[i3, i3, chart] = 1
+        # Orthonormal frame associated with cylindrical coordinates:
+        to_orthonormal = self.automorphism_field()
+        to_orthonormal[frame, i1, i1, chart] = 1
+        to_orthonormal[frame, i2, i2, chart] = 1/rh
+        to_orthonormal[frame, i3, i3, chart] = 1
+        oframe = frame.new_frame(to_orthonormal, 'e',
+                                 indices=(str(rh), str(ph), str(z)),
+                                 latex_indices=(latex(rh), latex(ph), latex(z)))
+        self._cylindrical_frame = oframe
+        g.comp(oframe)
+
+    def _transition_spherical_cartesian(self):
+        r"""
+        Transitions between spherical and Cartesian coordinates.
+
+        TESTS::
+
+            sage: E = EuclideanSpace(3)
+            sage: E._init_coordinates_spherical(r"r th:\theta ph:\phi")
+            sage: E.atlas()
+            [Chart (E^3, (x, y, z)), Chart (E^3, (r, th, ph))]
+            sage: E.coord_changes() # no transition map has been defined yet
+            {}
+            sage: E._transition_spherical_cartesian()
+            sage: len(E.coord_changes())
+            2
+            sage: E.coord_changes()  # random (dictionary output)
+            {(Chart (E^3, (x, y, z)),
+              Chart (E^3, (r, th, ph))): Change of coordinates from
+              Chart (E^3, (x, y, z)) to Chart (E^3, (r, th, ph)),
+             (Chart (E^3, (r, th, ph)),
+              Chart (E^3, (x, y, z))): Change of coordinates from
+              Chart (E^3, (r, th, ph)) to Chart (E^3, (x, y, z))}
+
+        """
+        # Transition maps spherical chart <-> Cartesian chart
+        chart_cart = self._cartesian_chart
+        chart_spher = self._spherical_chart
+        x, y, z = chart_cart[:]
+        r, th, ph = chart_spher[:]
+        spher_to_cart = chart_spher.transition_map(chart_cart,
+                             [r*sin(th)*cos(ph), r*sin(th)*sin(ph), r*cos(th)])
+        spher_to_cart.set_inverse(sqrt(x**2+y**2+z**2),
+                                  atan2(sqrt(x**2+y**2),z), atan2(y, x))
+        # Automorphisms orthonormal spherical frame <-> Cartesian frame
+        oframe = self._spherical_frame
+        cframe = chart_cart.frame()
+        sframe = chart_spher.frame()
+        changes = self._frame_changes
+        cframe_to_oframe = changes[(sframe, oframe)] * \
+                           changes[(cframe, sframe)]
+        oframe_to_cframe = changes[(sframe, cframe)] * \
+                           changes[(oframe, sframe)]
+        changes[(cframe, oframe)] = cframe_to_oframe
+        changes[(oframe, cframe)] = oframe_to_cframe
+        vmodule = self.vector_field_module()
+        vmodule._basis_changes[(cframe, oframe)] = cframe_to_oframe
+        vmodule._basis_changes[(oframe, cframe)] = oframe_to_cframe
+
+    def _transition_cylindrical_cartesian(self):
+        r"""
+        Transitions between cylindrical and Cartesian coordinates.
+
+        TESTS::
+
+            sage: E = EuclideanSpace(3)
+            sage: E._init_coordinates_cylindrical(r"r ph:\phi z")
+            sage: E.atlas()
+            [Chart (E^3, (x, y, z)), Chart (E^3, (r, ph, z))]
+            sage: E.coord_changes() # no transition map has been defined yet
+            {}
+            sage: E._transition_cylindrical_cartesian()
+            sage: len(E.coord_changes())
+            2
+            sage: E.coord_changes()  # random (dictionary output)
+            {(Chart (E^3, (r, ph, z)),
+              Chart (E^3, (x, y, z))): Change of coordinates from
+              Chart (E^3, (r, ph, z)) to Chart (E^3, (x, y, z)),
+             (Chart (E^3, (x, y, z)),
+              Chart (E^3, (r, ph, z))): Change of coordinates from
+              Chart (E^3, (x, y, z)) to Chart (E^3, (r, ph, z))}
+
+        """
+        # Transition maps cylindrical chart <-> Cartesian chart
+        chart_cart = self._cartesian_chart
+        chart_cylind = self._cylindrical_chart
+        x, y, z = chart_cart[:]
+        rh, ph, z = chart_cylind[:]
+        cylind_to_cart = chart_cylind.transition_map(chart_cart,
+                                                   [rh*cos(ph), rh*sin(ph), z])
+        cylind_to_cart.set_inverse(sqrt(x**2+y**2), atan2(y, x), z)
+        # Automorphisms orthonormal cylindrical frame <-> Cartesian frame
+        oframe = self._cylindrical_frame
+        cframe = chart_cart.frame()
+        sframe = chart_cylind.frame()
+        changes = self._frame_changes
+        cframe_to_oframe = changes[(sframe, oframe)] * \
+                           changes[(cframe, sframe)]
+        oframe_to_cframe = changes[(sframe, cframe)] * \
+                           changes[(oframe, sframe)]
+        changes[(cframe, oframe)] = cframe_to_oframe
+        changes[(oframe, cframe)] = oframe_to_cframe
+        vmodule = self.vector_field_module()
+        vmodule._basis_changes[(cframe, oframe)] = cframe_to_oframe
+        vmodule._basis_changes[(oframe, cframe)] = oframe_to_cframe
+
+    def _transition_spherical_cylindrical(self):
+        r"""
+        Transitions between spherical and cylindrical coordinates.
+
+        TESTS::
+
+            sage: E = EuclideanSpace(3, coordinates='cylindrical')
+            sage: E._init_coordinates_spherical(r"r th:\theta ph:\phi")
+            sage: E.atlas()
+            [Chart (E^3, (r, ph, z)), Chart (E^3, (r, th, ph))]
+            sage: E.coord_changes()  # no transition map has been defined yet
+            {}
+            sage: E._transition_spherical_cylindrical()
+            sage: len(E.coord_changes())
+            2
+            sage: E.coord_changes()  # random (dictionary output)
+            {(Chart (E^3, (r, ph, z)),
+              Chart (E^3, (r, th, ph))): Change of coordinates from
+              Chart (E^3, (r, ph, z)) to Chart (E^3, (r, th, ph)),
+             (Chart (E^3, (r, th, ph)),
+              Chart (E^3, (r, ph, z))): Change of coordinates from
+              Chart (E^3, (r, th, ph)) to Chart (E^3, (r, ph, z))}
+
+        """
+        # Transition maps spherical chart <-> cylindrical chart
+        cylind = self._cylindrical_chart
+        spher = self._spherical_chart
+        rh, ph, z = cylind[:]
+        r, th, ph = spher[:]
+        rc = sqrt(rh**2 + z**2)
+        spher_to_cylind = spher.transition_map(cylind,
+                                               [r*sin(th), ph, r*cos(th)])
+        spher_to_cylind.set_inverse(rc, atan2(rh,z), ph)
+        # Automorphism orthon. cylindrical frame -> orthon. spherical frame
+        sframe = self._spherical_frame
+        cframe = self._cylindrical_frame
+        cframe_to_sframe = self.automorphism_field()
+        aut = cframe_to_sframe.add_comp(cframe)
+        i1 = self._sindex
+        i2 = i1 + 1
+        i3 = i1 + 2
+        aut[i1, i1] = self.scalar_field({spher: sin(th), cylind: rh/rc})
+        aut[i1, i2] = self.scalar_field({spher: cos(th), cylind: z/rc})
+        aut[i2, i3] = self.one_scalar_field()
+        aut[i3, i1] = self.scalar_field({spher: cos(th), cylind: z/rc})
+        aut[i3, i2] = self.scalar_field({spher: -sin(th), cylind: -rh/rc})
+        # Same matrix in sframe:
+        saut = cframe_to_sframe.add_comp(sframe)
+        for i in self.irange():
+            for j in self.irange():
+                saut[[i,j]] = aut[[i,j]]
+        self._frame_changes[(cframe, sframe)] = cframe_to_sframe
+        # The inverse automorphism:
+        sframe_to_cframe = self.automorphism_field()
+        aut = sframe_to_cframe.add_comp(cframe)
+        i1 = self._sindex
+        i2 = i1 + 1
+        i3 = i1 + 2
+        aut[i1, i1] = self.scalar_field({spher: sin(th), cylind: rh/rc})
+        aut[i1, i3] = self.scalar_field({spher: cos(th), cylind: z/rc})
+        aut[i2, i1] = self.scalar_field({spher: cos(th), cylind: z/rc})
+        aut[i2, i3] = self.scalar_field({spher: -sin(th), cylind: -rh/rc})
+        aut[i3, i2] = self.one_scalar_field()
+        # Same matrix in sframe:
+        saut = sframe_to_cframe.add_comp(sframe)
+        for i in self.irange():
+            for j in self.irange():
+                saut[[i,j]] = aut[[i,j]]
+        self._frame_changes[(sframe, cframe)] = sframe_to_cframe
+        vmodule = self.vector_field_module()
+        vmodule._basis_changes[(cframe, sframe)] = cframe_to_sframe
+        vmodule._basis_changes[(sframe, cframe)] = sframe_to_cframe
+
+    def cartesian_coordinates(self, symbols=None, names=None):
+        r"""
+        Return the chart of Cartesian coordinates, possibly creating it if it
+        does not already exist.
+
+        INPUT:
+
+        - ``symbols`` -- (default: ``None``) string defining the coordinate
+          text symbols and LaTeX symbols, with the same conventions as the
+          argument ``coordinates`` in
+          :class:`~sage.manifolds.differentiable.chart.RealDiffChart`; this is
+          used only if the Cartesian chart has not been already defined; if
+          ``None`` the symbols are generated as `(x,y,z)`.
+        - ``names`` -- (default: ``None``) unused argument, except if
+          ``symbols`` is not provided; it must be a tuple containing
+          the coordinate symbols (this is guaranteed if the shortcut operator
+          ``<,>`` is used)
+
+        OUTPUT:
+
+        - the chart of Cartesian coordinates, as an instance of
+          :class:`~sage.manifolds.differentiable.chart.RealDiffChart`
+
+        EXAMPLES::
+
+            sage: E = EuclideanSpace(3)
+            sage: E.cartesian_coordinates()
+            Chart (E^3, (x, y, z))
+
+        An example where the Cartesian coordinates have not been previously
+        created::
+
+            sage: E = EuclideanSpace(3, coordinates='spherical')
+            sage: E.atlas()  # only spherical coordinates exist
+            [Chart (E^3, (r, th, ph))]
+            sage: E.cartesian_coordinates(symbols='X Y Z')
+            Chart (E^3, (X, Y, Z))
+            sage: E.atlas()  # the Cartesian chart has been added to the atlas
+            [Chart (E^3, (r, th, ph)), Chart (E^3, (X, Y, Z))]
+
+        The coordinates themselves are obtained via the square bracket
+        operator::
+
+            sage: E.cartesian_coordinates()[1]
+            X
+            sage: E.cartesian_coordinates()[3]
+            Z
+            sage: E.cartesian_coordinates()[:]
+            (X, Y, Z)
+
+        It is also possible to use the operator ``<,>`` to set symbolic
+        variable containing the coordinates::
+
+            sage: E = EuclideanSpace(3, coordinates='spherical')
+            sage: cartesian.<u,v,w> = E.cartesian_coordinates()
+            sage: cartesian
+            Chart (E^3, (u, v, w))
+            sage: u, v, w
+            (u, v, w)
+
+        The command ``cartesian.<u,v,w> = E.cartesian_coordinates()``
+        is actually a shortcut for::
+
+            sage: cartesian = E.cartesian_coordinates(symbols='u v w')
+            sage: u, v, w = cartesian[:]
+
+        """
+        if self._cartesian_chart is None:
+            if symbols is None:
+                if names is None:
+                    symbols = 'x y z'
+                else:
+                    symbols = names[0] + ' ' + names[1] + ' ' + names[2]
+            self._init_coordinates_cartesian(symbols)
+            if self._spherical_chart:
+                self._transition_spherical_cartesian()
+            if self._cylindrical_chart:
+                self._transition_cylindrical_cartesian()
+        return self._cartesian_chart
+
+    def spherical_coordinates(self, symbols=None, names=None):
+        r"""
+        Return the chart of spherical coordinates, possibly creating it if it
+        does not already exist.
+
+        INPUT:
+
+        - ``symbols`` -- (default: ``None``) string defining the coordinate
+          text symbols and LaTeX symbols, with the same conventions as the
+          argument ``coordinates`` in
+          :class:`~sage.manifolds.differentiable.chart.RealDiffChart`; this is
+          used only if the spherical chart has not been already defined; if
+          ``None`` the symbols are generated as `(r,\theta,\phi)`.
+        - ``names`` -- (default: ``None``) unused argument, except if
+          ``symbols`` is not provided; it must be a tuple containing
+          the coordinate symbols (this is guaranteed if the shortcut operator
+          ``<,>`` is used)
+
+        OUTPUT:
+
+        - the chart of spherical coordinates, as an instance of
+          :class:`~sage.manifolds.differentiable.chart.RealDiffChart`
+
+        EXAMPLES::
+
+            sage: E = EuclideanSpace(3)
+            sage: E.spherical_coordinates()
+            Chart (E^3, (r, th, ph))
+            sage: latex(E.spherical_coordinates())
+            \left(\mathbb{E}^{3},(r, {\theta}, {\phi})\right)
+
+        The coordinates can be obtained via the square bracket operator::
+
+            sage: E.spherical_coordinates()[1]
+            r
+            sage: E.spherical_coordinates()[3]
+            ph
+            sage: E.spherical_coordinates()[:]
+            (r, th, ph)
+
+        They can also be obtained via the operator ``<,>``::
+
+            sage: spherical.<r,th,ph> = E.spherical_coordinates()
+            sage: spherical
+            Chart (E^3, (r, th, ph))
+            sage: r, th, ph
+            (r, th, ph)
+
+        Actually, ``spherical.<r,th,ph> = E.spherical_coordinates()`` is a
+        shortcut for::
+
+            sage: spherical = E.spherical_coordinates()
+            sage: r, th, ph = spherical[:]
+
+        The coordinate symbols can be customized::
+
+            sage: E = EuclideanSpace(3)
+            sage: E.spherical_coordinates(symbols=r"R T:\Theta F:\Phi")
+            Chart (E^3, (R, T, F))
+            sage: latex(E.spherical_coordinates())
+            \left(\mathbb{E}^{3},(R, {\Theta}, {\Phi})\right)
+
+        Note that if the spherical coordinates have been already initialized,
+        the argument ``symbols`` has no effect::
+
+            sage: E.spherical_coordinates(symbols=r"r th:\theta ph:\phi")
+            Chart (E^3, (R, T, F))
+
+        """
+        if self._spherical_chart is None:
+            if symbols is None:
+                if names is None:
+                    symbols = 'r th:\\theta ph:\\phi'
+                else:
+                    names = list(names)
+                    if names[1] in ['t', 'th', 'theta']:
+                        names[1] = names[1] + ':\\theta'
+                    if names[2] in ['p', 'ph', 'phi']:
+                        names[2] = names[2] + ':\\phi'
+                    symbols = names[0] + ' ' + names[1] + ' ' + names[2]
+            self._init_coordinates_spherical(symbols)
+            if self._cartesian_chart:
+                self._transition_spherical_cartesian()
+            if self._cylindrical_chart:
+                self._transition_spherical_cylindrical()
+        return self._spherical_chart
+
+    def spherical_frame(self):
+        r"""
+        Return the orthonormal vector frame associated with spherical
+        coordinates.
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.vectorframe.VectorFrame`
+
+        EXAMPLES::
+
+            sage: E = EuclideanSpace(3)
+            sage: E.spherical_frame()
+            Vector frame (E^3, (e_r,e_th,e_ph))
+            sage: E.spherical_frame()[1]
+            Vector field e_r on the Euclidean space E^3
+            sage: E.spherical_frame()[:]
+            (Vector field e_r on the Euclidean space E^3,
+             Vector field e_th on the Euclidean space E^3,
+             Vector field e_ph on the Euclidean space E^3)
+
+        """
+        if self._spherical_frame is None:
+            self.spherical_coordinates()  # creates the spherical chart and the
+                                          # associated orthonormal frame
+        return self._spherical_frame
+
+    def cylindrical_coordinates(self, symbols=None, names=None):
+        r"""
+        Return the chart of cylindrical coordinates, possibly creating it if it
+        does not already exist.
+
+        INPUT:
+
+        - ``symbols`` -- (default: ``None``) string defining the coordinate
+          text symbols and LaTeX symbols, with the same conventions as the
+          argument ``coordinates`` in
+          :class:`~sage.manifolds.differentiable.chart.RealDiffChart`; this is
+          used only if the cylindrical chart has not been already defined; if
+          ``None`` the symbols are generated as `(\rho,\phi,z)`.
+        - ``names`` -- (default: ``None``) unused argument, except if
+          ``symbols`` is not provided; it must be a tuple containing
+          the coordinate symbols (this is guaranteed if the shortcut operator
+          ``<,>`` is used)
+
+        OUTPUT:
+
+        - the chart of cylindrical coordinates, as an instance of
+          :class:`~sage.manifolds.differentiable.chart.RealDiffChart`
+
+        EXAMPLES::
+
+            sage: E = EuclideanSpace(3)
+            sage: E.cylindrical_coordinates()
+            Chart (E^3, (rh, ph, z))
+            sage: latex(E.cylindrical_coordinates())
+            \left(\mathbb{E}^{3},({\rho}, {\phi}, z)\right)
+
+        The coordinates can be obtained via the square bracket operator::
+
+            sage: E.cylindrical_coordinates()[1]
+            rh
+            sage: E.cylindrical_coordinates()[3]
+            z
+            sage: E.cylindrical_coordinates()[:]
+            (rh, ph, z)
+
+        They can also be obtained via the operator ``<,>``::
+
+            sage: cylindrical.<rh,ph,z> = E.cylindrical_coordinates()
+            sage: cylindrical
+            Chart (E^3, (rh, ph, z))
+            sage: rh, ph, z
+            (rh, ph, z)
+
+        Actually, ``cylindrical.<rh,ph,z> = E.cylindrical_coordinates()`` is a
+        shortcut for::
+
+            sage: cylindrical = E.cylindrical_coordinates()
+            sage: rh, ph, z = cylindrical[:]
+
+        The coordinate symbols can be customized::
+
+            sage: E = EuclideanSpace(3)
+            sage: E.cylindrical_coordinates(symbols=r"R Phi:\Phi Z")
+            Chart (E^3, (R, Phi, Z))
+            sage: latex(E.cylindrical_coordinates())
+            \left(\mathbb{E}^{3},(R, {\Phi}, Z)\right)
+
+        Note that if the cylindrical coordinates have been already initialized,
+        the argument ``symbols`` has no effect::
+
+            sage: E.cylindrical_coordinates(symbols=r"rh:\rho ph:\phi z")
+            Chart (E^3, (R, Phi, Z))
+
+        """
+        if self._cylindrical_chart is None:
+            if symbols is None:
+                if names is None:
+                    symbols = 'rh:\\rho ph:\\phi z'
+                else:
+                    names = list(names)
+                    if names[0] in ['rh', 'rho']:
+                        names[0] = names[0] + ':\\rho'
+                    if names[1] in ['p', 'ph', 'phi']:
+                        names[1] = names[1] + ':\\phi'
+                    symbols = names[0] + ' ' + names[1] + ' ' + names[2]
+            self._init_coordinates_cylindrical(symbols)
+            if self._cartesian_chart:
+                self._transition_cylindrical_cartesian()
+            if self._spherical_chart:
+                self._transition_spherical_cylindrical()
+        return self._cylindrical_chart
+
+    def cylindrical_frame(self):
+        r"""
+        Return the orthonormal vector frame associated with cylindrical
+        coordinates.
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.vectorframe.VectorFrame`
+
+        EXAMPLES::
+
+            sage: E = EuclideanSpace(3)
+            sage: E.cylindrical_frame()
+            Vector frame (E^3, (e_rh,e_ph,e_z))
+            sage: E.cylindrical_frame()[1]
+            Vector field e_rh on the Euclidean space E^3
+            sage: E.cylindrical_frame()[:]
+            (Vector field e_rh on the Euclidean space E^3,
+             Vector field e_ph on the Euclidean space E^3,
+             Vector field e_z on the Euclidean space E^3)
+
+        """
+        if self._cylindrical_frame is None:
+            self.cylindrical_coordinates()  # creates the cylindrical chart and
+                                            # the associated orthonormal frame
+        return self._cylindrical_frame
+
 
 ###############################################################################
 
@@ -1050,10 +1829,16 @@ def EuclideanSpace(n, name=None, latex_name=None, coordinates='Cartesian',
                               metric_latex_name=metric_latex_name,
                               start_index=start_index, names=names,
                               unique_tag=getrandbits(128)*time())
+    if n == 3:
+        return Euclidean3dimSpace(name=name, latex_name=latex_name,
+                                  coordinates=coordinates, symbols=symbols,
+                                  metric_name=metric_name,
+                                  metric_latex_name=metric_latex_name,
+                                  start_index=start_index, names=names,
+                                  unique_tag=getrandbits(128)*time())
     return EuclideanSpaceGeneric(n, name=name, latex_name=latex_name,
                               coordinates=coordinates, symbols=symbols,
                               metric_name=metric_name,
                               metric_latex_name=metric_latex_name,
                               start_index=start_index, names=names,
                               unique_tag=getrandbits(128)*time())
-

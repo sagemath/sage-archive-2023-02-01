@@ -68,11 +68,6 @@ from sage.rings.real_mpfi cimport RealIntervalFieldElement
 
 from sage.rings.polynomial.evaluation cimport fmpz_poly_evaluation_mpfr, fmpz_poly_evaluation_mpfi
 
-cdef extern from "limits.h":
-    long LONG_MAX
-
-cdef extern from "flint/flint.h":
-    int FLINT_BITS
 
 cdef class Polynomial_integer_dense_flint(Polynomial):
     r"""

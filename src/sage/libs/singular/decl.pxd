@@ -79,24 +79,6 @@ cdef extern from "singular/Singular/libsingular.h":
     cdef int OPT_NOTREGULARITY
     cdef int OPT_WEIGHTM
 
-
-
-    cdef int V_SHOW_MEM
-    cdef int V_YACC
-    cdef int V_REDEFINE
-    cdef int V_READING
-    cdef int V_LOAD_LIB
-    cdef int V_DEBUG_LIB
-    cdef int V_LOAD_PROC
-    cdef int V_DEF_RES
-    cdef int V_SHOW_USE
-    cdef int V_IMAP
-    cdef int V_PROMPT
-    cdef int V_NSB
-    cdef int V_CONTENTSB
-    cdef int V_CANCELUNIT
-    cdef int V_DEG_STOP
-
     # getter/setter functions
     int Sy_bit(int)
     int Sy_inset(int x,int s)
@@ -924,7 +906,6 @@ cdef extern from "singular/Singular/libsingular.h":
     cdef int PROC_CMD
     cdef int RING_CMD
     cdef int QRING_CMD
-
     cdef int STRING_CMD
     cdef int VECTOR_CMD
     cdef int IDEAL_CMD
@@ -932,7 +913,6 @@ cdef extern from "singular/Singular/libsingular.h":
     cdef int NUMBER_CMD
     cdef int MATRIX_CMD
     cdef int LIST_CMD
-    cdef int RING_CMD
     cdef int INTVEC_CMD
     cdef int NONE
     cdef int RESOLUTION_CMD

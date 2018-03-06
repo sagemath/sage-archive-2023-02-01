@@ -241,7 +241,7 @@ cdef class LinearFunctionOrConstraint(ModuleElement):
     This class exists solely to implement chaining of inequalities
     in constraints.
     """
-    def __richcmp__(py_left, py_right, int op):
+    def __richcmp__(self, other, int op):
         """
         Create an inequality or equality object, possibly chaining
         several together.
@@ -343,7 +343,7 @@ cdef class LinearFunctionOrConstraint(ModuleElement):
             sage: int(1) >= b[0] >= int(2)
             2 <= x_0 <= 1
             sage: int(1) == b[0] == int(2)
-            x_0 == 1 == 2
+            1 == x_0 == 2
             sage: float(0) <= b[0] <= int(1) <= b[1] <= float(2)
             0 <= x_0 <= 1 <= x_1 <= 2
         """
@@ -362,13 +362,15 @@ cdef class LinearFunctionOrConstraint(ModuleElement):
         chained_comparator_right = None
         chained_comparator_replace = None
 
-        # Check op and change >= to <=
+        # Assign {self, other} to {py_left, py_right} such that
+        # py_left <= py_right.
         cdef bint equality = False
         if op == Py_LE:
-            pass
+            py_left, py_right = self, other
         elif op == Py_GE:
-            py_left, py_right = py_right, py_left
+            py_left, py_right = other, self
         elif op == Py_EQ:
+            py_left, py_right = self, other
             equality = True
         elif op == Py_LT:
             raise ValueError("strict < is not allowed, use <= instead")
@@ -405,23 +407,29 @@ cdef class LinearFunctionOrConstraint(ModuleElement):
         # and temp in the call to __nonzero__. Then we can replace x
         # or y by x <= y in the second call to __richcmp__.
         if chain_replace is not None:
+            if chain_replace.equality != equality:
+                raise ValueError("cannot mix equations and inequalities")
+
             # First, check for correctly-chained inequalities
             # x <= y <= z or z <= y <= x.
             if py_left is chain_right:
                 left = chain_replace
             elif py_right is chain_left:
                 right = chain_replace
-            # Next, check for wrongly-chained inequalities like
-            # x <= y >= z. In case of equality, these are accepted
-            # anyway.
+            # Next, check for incorrectly chained inequalities like
+            # x <= y >= z. If we are dealing with inequalities, this
+            # is an error. For an equality, we fix the chaining by
+            # reversing one of the sides.
             elif py_left is chain_left:
                 if not equality:
                     raise ValueError("incorrectly chained inequality")
+                chain_replace.constraints.reverse()
                 left = chain_replace
             elif py_right is chain_right:
                 if not equality:
                     raise ValueError("incorrectly chained inequality")
-                right = chain_replace
+                left = chain_replace
+                py_right = py_left
 
         # Figure out the correct parent to work with: if we did a
         # replacement, its parent takes priority.
@@ -430,12 +438,7 @@ cdef class LinearFunctionOrConstraint(ModuleElement):
         elif right is not None:
             LC = right._parent
         else:
-            # At least one of the inputs must be of type
-            # LinearFunctionOrConstraint
-            try:
-                LC = (<LinearFunctionOrConstraint?>py_left)._parent
-            except TypeError:
-                LC = (<LinearFunctionOrConstraint>py_right)._parent
+            LC = (<LinearFunctionOrConstraint>self)._parent
 
             # We want the parent to be a LinearConstraintsParent
             if not isinstance(LC, LinearConstraintsParent_class):

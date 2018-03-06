@@ -89,7 +89,7 @@ try:
 except ImportError:
     div = object()  # Unique object not equal to anything else
 
-from .richcmp cimport rich_to_bool
+from .richcmp cimport rich_to_bool, revop
 from .sage_object cimport SageObject
 from .parent cimport Set_PythonType, Parent_richcmp_element_without_coercion
 from .element cimport bin_op_exception, parent, Element
@@ -1934,7 +1934,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         # x.__richcmp__ would already have been called)
         if y_is_Element:
             if (<Element>y)._parent.get_flag(Parent_richcmp_element_without_coercion):
-                return Py_TYPE(y).tp_richcompare(x, y, op)
+                return Py_TYPE(y).tp_richcompare(y, x, revop(op))
 
         # Coerce to a common parent
         try:
@@ -1954,10 +1954,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         # operation (<= becomes >=).
         # This only makes sense when y is not a Sage Element, otherwise
         # we would end up trying the same coercion again.
-        cdef int revop
         if not y_is_Element and Py_TYPE(y).tp_richcompare:
-            revop = (5 - op) ^ 1
-            res = Py_TYPE(y).tp_richcompare(y, x, revop)
+            res = Py_TYPE(y).tp_richcompare(y, x, revop(op))
             if res is not NotImplemented:
                 return res
 

@@ -3601,13 +3601,37 @@ const numeric numeric::atan(PyObject* parent) const {
         return arbfunc_0arg("arctan", parent);
 }
 
-const numeric numeric::atan(const numeric& y) const {
-        if ((is_real() and y.is_real())
-            or (imag().is_zero() and y.imag().is_zero())) {
-                PY_RETURN2(py_funcs.py_atan2, y);
-        }
-        else
+const numeric numeric::atan(const numeric& y, PyObject* parent) const {
+        if (not imag().is_zero()
+            or not y.imag().is_zero()) 
                 throw (std::runtime_error("atan2() with complex argument not supported"));
+        PyObject *cparent = common_parent(*this, y);
+        if (parent == nullptr)
+               parent = cparent;
+        numeric rnum;
+        if (y.is_zero()) {
+                if (is_zero())
+                        // should have been caught earlier
+                        throw (std::runtime_error("atan2(): can't happen"));
+                if (real().is_positive())
+                        rnum = *_num0_p;
+                else
+                        rnum = ex_to<numeric>(Pi.evalf(0, parent));
+        }
+        else {
+                if (is_zero())
+                        rnum = ex_to<numeric>(Pi.evalf(0, parent)) / *_num2_p;
+                else if (real().is_positive())
+                        rnum = (y/(*this)).abs().atan(parent);
+                else
+                        rnum = (ex_to<numeric>(Pi.evalf(0, parent))
+                                        - (y/(*this)).abs().atan(parent));
+                if (not y.real().is_positive())
+                        rnum = rnum.negative();
+        }
+        rnum = ex_to<numeric>(rnum.evalf(0, parent));
+        Py_DECREF(cparent);
+        return rnum;
 }
 
 const numeric numeric::sinh(PyObject* parent) const {
@@ -4567,8 +4591,8 @@ const numeric atan(const numeric &x, PyObject* parent) {
  *  @return -I*log((x+I*y)/sqrt(x^2+y^2)), which is equal to atan(y/x) if y and
  *    x are both real.
  *  @exception pole_error("atan(): logarithmic pole",0) if y/x==+I or y/x==-I. */
-const numeric atan(const numeric &y, const numeric &x) {
-        return x.atan(y);
+const numeric atan(const numeric &y, const numeric &x, PyObject* parent) {
+        return x.atan(y, parent);
 }
 
 /** Numeric hyperbolic sine (trigonometric function).

@@ -277,7 +277,7 @@ public:
 	const numeric asin(PyObject*) const;
 	const numeric acos(PyObject*) const;
 	const numeric atan(PyObject*) const;
-	const numeric atan(const numeric &y) const;
+	const numeric atan(const numeric &y, PyObject*) const;
 	const numeric sinh(PyObject*) const;
 	const numeric cosh(PyObject*) const;
 	const numeric tanh(PyObject*) const;
@@ -353,7 +353,7 @@ const numeric tan(const numeric &x);
 const numeric asin(const numeric &x, PyObject* parent=nullptr);
 const numeric acos(const numeric &x, PyObject* parent=nullptr);
 const numeric atan(const numeric &x, PyObject* parent=nullptr);
-const numeric atan(const numeric &y, const numeric &x);
+const numeric atan(const numeric &y, const numeric &x, PyObject* parent=nullptr);
 const numeric sinh(const numeric &x, PyObject* parent=nullptr);
 const numeric cosh(const numeric &x, PyObject* parent=nullptr);
 const numeric tanh(const numeric &x, PyObject* parent=nullptr);

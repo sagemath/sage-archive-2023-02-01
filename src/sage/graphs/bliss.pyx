@@ -323,3 +323,61 @@ def canonical_form(G, partition=None, return_graph=False, certificate=False):
 
     return sorted(edges)
 
+#####################################################
+# constucting the canonical form from a list of edges
+
+cdef Digraph *bliss_digraph_from_edges(Vnr, edges, partition):
+    r"""
+    Return a bliss copy of a digraph G
+
+    INPUT:
+
+    - ``edges`` (a list of edges)
+
+    - ``partition`` -- a partition of the vertex set.
+
+    - ``vert2int, int2vert`` -- Two empty dictionaries. The entries of the
+      dictionary are later set to record the labeling of our graph. They are
+      taken as arguments to avoid technicalities of returning Python objects in
+      Cython functions.
+    """
+    cdef Digraph *g = new Digraph(Vnr)
+    cdef int x,y
+
+    if g == NULL:
+        raise MemoryError("Allocation Failed")
+
+    for x,y in edges:
+        g.add_edge(x,y)
+
+    if partition:
+        for i in range(1, len(partition)):
+            for v in partition[i]:
+                g.change_color(v, i)
+    return g
+
+def canonical_form_from_edge_list(Vnr, edges, partition=None, certificate=False):
+    # We need this to convert the numbers from <unsigned int> to
+    # <long>. This assertion should be true simply for memory reasons.
+    assert <unsigned long>(Vnr) <= <unsigned long>LONG_MAX
+
+    cdef const unsigned int* aut
+    cdef Digraph* d
+    cdef Stats s
+    cdef dict relabel
+
+    cdef list new_edges = []
+    cdef long e, f
+
+    d = bliss_digraph_from_edges(Vnr, edges, partition)
+    aut = d.canonical_form(s, empty_hook, NULL)
+    for x,y in edges:
+        e,f = aut[x], aut[y]
+        new_edges.append( (e,f) )
+    relabel = {v: <long>aut[v] for v in range(Vnr)}
+    del d
+
+    if certificate:
+        return new_edges, relabel
+
+    return new_edges

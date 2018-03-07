@@ -710,7 +710,15 @@ cdef class SubgraphSearch:
             sage: S._initialization()
             sage: S.__next__()
             [0, 1, 2]
+
+        TESTS:
+
+        Check that :trac:`21828` is fixed::
+
+            sage: Poset().is_incomparable_chain_free(1,1)   # indirect doctest
+            True
         """
+        cdef int i
 
         if self.ng > 0:
             # 0 is the first vertex we use, so it is at first busy
@@ -769,20 +777,11 @@ cdef class SubgraphSearch:
         self.line_h_out = <int **> self.mem.allocarray(self.nh, sizeof(int *))
         self.line_h_in  = <int **> self.mem.allocarray(self.nh, sizeof(int *)) if self.directed else NULL
 
-        if self.line_h_out is not NULL:
-            self.line_h_out[0] = <int *> self.mem.allocarray(self.nh*self.nh,
+        self.line_h_out[0] = <int *> self.mem.allocarray(self.nh*self.nh,
                                             sizeof(int))
-        if self.line_h_in is not NULL:
+        if self.directed:
             self.line_h_in[0]  = <int *> self.mem.allocarray(self.nh*self.nh,
                                             sizeof(int))
-
-        if (self.stack         == NULL or
-            self.vertices      == NULL or
-            self.line_h_out    == NULL or
-            self.line_h_out[0] == NULL or
-            (self.directed and self.line_h_in == NULL) or
-            (self.directed and self.line_h_in[0] == NULL)):
-            raise MemoryError()
 
         # Should we look for induced subgraphs ?
         if induced:
@@ -873,7 +872,7 @@ cdef class SubgraphSearch:
                         self.i += 1
 
             # If we have found a good representant of H's i-th vertex in G
-            if self.ng > 0 and self.i < self.ng:
+            if self.i < self.ng:
 
                 # updating the last vertex of the stack
                 if self.stack[self.active] != -1:
@@ -900,7 +899,7 @@ cdef class SubgraphSearch:
             # the previous vertex.
 
             else:
-                if self.ng > 0 and self.stack[self.active] != -1:
+                if self.stack[self.active] != -1:
                     self.busy[self.stack[self.active]] = 0
                 self.stack[self.active] = -1
                 self.active -= 1

@@ -723,7 +723,7 @@ cdef class SubgraphSearch:
         if self.ng > 0:
             # 0 is the first vertex we use, so it is at first busy
             self.busy[0] = 1
-            for 0 < i < self.ng:
+            for i in range(1, self.ng):
                 self.busy[i] = 0
         # stack -- list of the vertices which are part of the partial copy of H
         # in G.

@@ -220,7 +220,7 @@ class AbelianGroupAutomorphismGroup_gap(UniqueRepresentation,
 
     - ``domain`` -- :class:`~sage.groups.abelian_gps.abelian_group_gap.AbelianGroup_gap`
     - ``libgap_parent`` -- the libgap element that is the parent in GAP
-    -``category`` -- a category
+    - ``category`` -- a category
     - ``ambient`` -- an instance of a derived class of
       :class:`~sage.groups.libgap_wrapper.ParentLibGAP` or ``None`` (default);
       the ambient group if ``libgap_parent`` has been defined as a subgroup

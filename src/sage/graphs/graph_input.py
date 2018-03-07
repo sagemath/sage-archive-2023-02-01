@@ -102,7 +102,7 @@ def from_sparse6(G, g6_string):
         x = []
         for i in range(len(bits)//(k+1)):
             b.append(int(bits[(k+1)*i:(k+1)*i+1],2))
-            x.append(int(bits[(k+1)*i+1:(k+1)*i+k+1],2))
+            x.append(0 if k == 0 else int(bits[(k+1)*i+1:(k+1)*i+k+1],2))
         v = 0
         edges = []
         for i in range(len(b)):

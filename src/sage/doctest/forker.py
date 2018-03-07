@@ -2252,9 +2252,6 @@ class DocTestTask(object):
             sage: ntests >= 200 or ntests
             True
         """
-        # Store all existing atexit() functions and clear them,
-        # so we know that all newly registered functions come from
-        # doctests.
         result = None
         try:
             runner = SageDocTestRunner(
@@ -2269,18 +2266,15 @@ class DocTestTask(object):
             N = options.file_iterations
             results = DictAsObject(dict(walltime=[],cputime=[],err=None))
 
-            with restore_atexit(clear=True):
+            # multiprocessing.Process instances don't run exit
+            # functions, so we run the functions added by doctests
+            # when exiting this context.
+            with restore_atexit(run=True):
                 for it in range(N):
                     doctests, extras = self._run(runner, options, results)
                     runner.summarize(options.verbose)
                     if runner.update_results(results):
                         break
-
-                # multiprocessing.Process instances don't run exit
-                # functions, so we run the functions added by doctests
-                # now manually and restore the old exit functions.
-                import atexit
-                atexit._run_exitfuncs()
 
             if extras['tab']:
                 results.err = 'tab'
@@ -2303,7 +2297,9 @@ class DocTestTask(object):
         return result
 
     def _run(self, runner, options, results):
-        # Make the right set of globals available to doctests
+        """
+        Actually run the doctests with the right set of globals
+        """
         if self.source.basename.startswith("sagenb."):
             import sage.all_notebook as sage_all
         else:

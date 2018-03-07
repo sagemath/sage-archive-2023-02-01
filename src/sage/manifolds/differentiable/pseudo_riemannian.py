@@ -4,7 +4,7 @@ Pseudo-Riemannian Manifolds
 A *pseudo-Riemannian manifold* is a pair `(M,g)` where `M` is a real
 differentiable manifold `M` (see
 :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`)
-and `g` is a field non-degenerate symmetric bilinear forms on `M`, which is
+and `g` is a field of non-degenerate symmetric bilinear forms on `M`, which is
 called the *metric tensor*, or simply the *metric* (see
 :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`).
 
@@ -20,8 +20,8 @@ On a pseudo-Riemannian manifold, one may use various standard
 fields, like :func:`~sage.manifolds.operators.grad` or
 :func:`~sage.manifolds.operators.div`.
 
-All pseudo-Riemannian manifolds are implemented via the class
-:class:`PseudoRiemannianManifold`.
+All pseudo-Riemannian manifolds, whatever the metric signature, are implemented
+via the class :class:`PseudoRiemannianManifold`.
 
 .. RUBRIC:: Example 1: the sphere as a Riemannian manifold of dimension 2
 
@@ -58,7 +58,7 @@ We get the metric defining the Riemannian structure by::
     sage: g
     Riemannian metric g on the 2-dimensional Riemannian manifold S^2
 
-At this stage, the metric `g` is defined a Python object but there remains to
+At this stage, the metric `g` is defined as a Python object but there remains to
 initialize it by setting its components with respect to the vector frames
 associated with the stereographic coordinates. Let us begin with the frame
 of chart ``stereoN``::
@@ -145,7 +145,7 @@ manifold, we can get the metric on it via the method ``metric()``::
     sage: gU.display()
     g = 4/(x^2 + y^2 + 1)^2 dx*dx + 4/(x^2 + y^2 + 1)^2 dy*dy
 
-On course, ``gU`` is nothing but the restriction of `g` to `U`::
+Of course, ``gU`` is nothing but the restriction of `g` to `U`::
 
     sage: gU is g.restrict(U)
     True
@@ -153,17 +153,17 @@ On course, ``gU`` is nothing but the restriction of `g` to `U`::
 .. RUBRIC:: Example 2: Minkowski spacetime as a Lorentzian manifold of
   dimension 4
 
-We start by declaring 4-dimensional Lorentzian manifold::
+We start by declaring a 4-dimensional Lorentzian manifold `M`::
 
     sage: M = Manifold(4, 'M', structure='Lorentzian')
     sage: M
     4-dimensional Lorentzian manifold M
 
-We define Minkowskian coordinates on ``M``::
+We define Minkowskian coordinates on `M`::
 
     sage: X.<t,x,y,z> = M.chart()
 
-We get the metric by::
+We construct the metric tensor by::
 
     sage: g = M.metric()
     sage: g
@@ -186,6 +186,67 @@ tensor::
     sage: g.riemann().display()
     Riem(g) = 0
 
+A vector field on `M`::
+
+    sage: u = M.vector_field(name='u')
+    sage: u[0] = cosh(t)
+    sage: u[1] = sinh(t)
+    sage: u.display()
+    u = cosh(t) d/dt + sinh(t) d/dx
+
+The scalar square of `u` is::
+
+    sage: s = u.dot(u); s
+    Scalar field u.u on the 4-dimensional Lorentzian manifold M
+
+Scalar products are taken with respect to the metric tensor::
+
+    sage: u.dot(u) == g(u,u)
+    True
+
+`u` is a unit timelike vector, i.e. its scalar square is identically `-1`::
+
+    sage: s.display()
+    u.u: M --> R
+       (t, x, y, z) |--> -1
+    sage: s.expr()
+    -1
+
+Let us consider a unit spacelike vector::
+
+    sage: v = M.vector_field(name='v')
+    sage: v[0] = sinh(t)
+    sage: v[1] = cosh(t)
+    sage: v.display()
+    v = sinh(t) d/dt + cosh(t) d/dx
+    sage: v.dot(v).display()
+    v.v: M --> R
+       (t, x, y, z) |--> 1
+    sage: v.dot(v).expr()
+    1
+
+`u` and `v` are orthogonal vectors with respect to Minkowski metric::
+
+    sage: u.dot(v).display()
+        u.v: M --> R
+       (t, x, y, z) |--> 0
+    sage: u.dot(v).expr()
+    0
+
+The divergence of `u` is::
+
+    sage: s = u.div(); s
+    Scalar field div(u) on the 4-dimensional Lorentzian manifold M
+    sage: s.display()
+    div(u): M --> R
+       (t, x, y, z) |--> sinh(t)
+
+while its d'Alembertian is::
+
+    sage: Du = u.dalembertian(); Du
+    Vector field Box(u) on the 4-dimensional Lorentzian manifold M
+    sage: Du.display()
+    Box(u) = -cosh(t) d/dt - sinh(t) d/dx
 
 AUTHORS:
 
@@ -223,8 +284,8 @@ class PseudoRiemannianManifold(DifferentiableManifold):
     A *pseudo-Riemannian manifold* is a pair `(M,g)` where `M` is a real
     differentiable manifold `M` (see
     :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`)
-    and `g` is a field non-degenerate symmetric bilinear forms on `M`, which is
-    called the *metric tensor*, or simply the *metric* (see
+    and `g` is a field of non-degenerate symmetric bilinear forms on `M`, which
+    is called the *metric tensor*, or simply the *metric* (see
     :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`).
 
     Two important subcases are
@@ -405,7 +466,7 @@ class PseudoRiemannianManifold(DifferentiableManifold):
                dest_map=None):
         r"""
         Return the metric giving the pseudo-Riemannian structure to the
-        manifold, or defines a new metric tensor on the manifold.
+        manifold, or define a new metric tensor on the manifold.
 
         INPUT:
 

@@ -1024,8 +1024,9 @@ class VectorField(MultivectorField):
             sage: s.display()
             curl(v) = 2 d/dz
 
-        The global function :func:`~sage.manifolds.operators.curl` can be used
-        instead of the method ``curl()``::
+        The function :func:`~sage.manifolds.operators.curl` from the
+        :mod:`~sage.manifolds.operators` module can be used instead of the
+        method :meth:`curl`::
 
             sage: from sage.manifolds.operators import curl
             sage: curl(v) == s

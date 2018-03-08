@@ -503,7 +503,8 @@ class SBox(SageObject):
         Return linear approximation matrix (LAM) `A` for this S-box.
 
         The entry `A[\alpha,\beta]` corresponds to the probability
-        `Pr[\alpha\cdot x = \beta\cdot S(x)]`, where `S` is this S-box.
+        `Pr[\alpha\cdot x = \beta\cdot S(x)]`, where `S` is this S-box
+        mapping `n`-bit inputs to `m`-bit outputs.
         There are three typical notations for this probability used in
         the literature:
 
@@ -511,7 +512,7 @@ class SBox(SageObject):
           where `e(\alpha, \beta)` is called the bias,
         - `2\cdot Pr[\alpha\cdot x = \beta\cdot S(x)] = 1 + c(\alpha, \beta)`,
           where `c(\alpha, \beta) = 2\cdot e(\alpha, \beta)` is the correlation, and
-        - `2^{(n+1)}\cdot Pr[\alpha\cdot x = \beta\cdot S(x)] = 2^n + \hat{S}(\alpha,
+        - `2^{(m+1)}\cdot Pr[\alpha\cdot x = \beta\cdot S(x)] = 2^m + \hat{S}(\alpha,
           \beta)`, where `\hat{S}(\alpha, \beta)` is the Fourier coefficient of S.
 
         See [He2002]_ for an introduction to linear cryptanalysis.

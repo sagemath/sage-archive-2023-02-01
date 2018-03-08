@@ -432,7 +432,7 @@ cdef Graph *bliss_graph_from_labelled_edges(int Vnr, int Lnr, list Vout, list Vi
                     print "color",(j*Vnr+v, j*Pnr+i) 
     return g
 
-cpdef canonical_form_from_edge_list(int Vnr, list Vout, list Vin, int Enr=1, list labels=[], list partition=[], bint directed=False, bint certificate=False):
+cpdef canonical_form_from_edge_list(int Vnr, list Vout, list Vin, int Lnr=1, list labels=[], list partition=[], bint directed=False, bint certificate=False):
     # We need this to convert the numbers from <unsigned int> to
     # <long>. This assertion should be true simply for memory reasons.
     assert <unsigned long>(Vnr) <= <unsigned long>LONG_MAX
@@ -455,19 +455,23 @@ cpdef canonical_form_from_edge_list(int Vnr, list Vout, list Vin, int Enr=1, lis
 #            new_edges.append( (e,f) )
 #        del d
     else:
-        g = bliss_graph_from_labelled_edges(Vnr, Enr, Vout, Vin, labels, partition)
+        g = bliss_graph_from_labelled_edges(Vnr, Lnr, Vout, Vin, labels, partition)
         aut = g.canonical_form(s, empty_hook, NULL)
-        print [aut[i] for i in range(8)]
         for i from 0 <= i < len(Vout):
             x = Vout[i]
             y = Vin[i]
             e = aut[x]
             f = aut[y]
-            new_edges.append( (e,f) if e > f else (f,e))
+            if Lnr == 1:
+                new_edges.append( (e,f) if e > f else (f,e))
+            else:
+                lab = labels[i]
+                new_edges.append( (e,f,lab) if e > f else (f,e,lab))
+        if certificate:
+            relabel = {v: <long>aut[v] for v in range(Vnr)}
         del g
 
     if certificate:
-        relabel = {v: <long>aut[v] for v in range(Vnr)}
         return new_edges, relabel
-
-    return new_edges
+    else:
+        return new_edges

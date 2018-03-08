@@ -2282,7 +2282,7 @@ def SRG_276_140_58_84():
     g.add_vertex(-1)
     g.seidel_switching(sum(C,[]))
     g.relabel()
-    g.name('')
+    g.name('Haemers-Tonchev')
     return g
 
 def SRG_280_135_70_60():

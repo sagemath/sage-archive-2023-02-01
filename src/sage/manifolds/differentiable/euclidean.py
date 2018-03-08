@@ -1,15 +1,29 @@
 r"""
 Euclidean spaces
 
-An *Euclidean space of dimension* `n` is a Riemannian manifold diffeomorphic to
-`\RR^n` equipped with a flat metric.
+An *Euclidean space of dimension* `n` is an affine space `E`, whose associated
+vector space is `\RR^n` and is equipped with a positive definite symmetric
+bilinear form, called the *scalar product* or *dot product*.
+An Euclidean space of dimension `n` can also be viewed as a Riemannian manifold
+diffeomorphic to `\RR^n` and whose metric `g` is flat. The Euclidean scalar
+product is then that defined by the Riemannian metric `g`.
+
+The current implementation of Euclidean spaces is based on the second point of
+view. In particular, this allows for the introduction of various coordinate
+systems on `E`, besides the Cartesian ones. Standard curvilinear systems
+(planar, spherical and cylindrical coordinates) are predefined for
+2-dimensional and 3-dimensionl Euclidean spaces, along with the corresponding
+transition maps between them.
 
 Euclidean spaces are implemented via the following classes
 
-- :class:`EuclideanSpaceGeneric`
-
-  - :class:`EuclideanPlane` (case `n=2`)
-  - :class:`Euclidean3dimSpace` (case `n=3`)
+- :class:`EuclideanSpaceGeneric`, which inherits from
+  :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`
+  (in agreement with the Riemannian manifold point of view mentioned above)
+- :class:`EuclideanPlane`, which inherits from :class:`EuclideanSpaceGeneric`
+  (case `n=2`)
+- :class:`Euclidean3dimSpace`, which inherits from
+  :class:`EuclideanSpaceGeneric` (case `n=3`)
 
 The user interface is provided by the generic function :func:`EuclideanSpace`.
 
@@ -249,6 +263,11 @@ AUTHORS:
 
 - Eric Gourgoulhon (2018): initial version
 
+
+REFERENCES:
+
+- \M. Berger: *Geometry I* [Ber1987]_
+
 """
 
 #*****************************************************************************
@@ -329,7 +348,7 @@ class EuclideanSpaceGeneric(PseudoRiemannianManifold):
         \mathbb{E}^{4}
 
     ``E`` belongs to the class :class:`EuclideanSpaceGeneric` (actually to
-    a subclass of it via SageMath's category mechanism)::
+    a dynamically generated subclass of it via SageMath's category framework)::
 
         sage: type(E)
         <class 'sage.manifolds.differentiable.euclidean.EuclideanSpaceGeneric_with_category'>
@@ -728,13 +747,19 @@ class EuclideanPlane(EuclideanSpaceGeneric):
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote the
       Euclidean plane; if ``None``, it is set to ``'\mathbb{E}^{2}'`` if
       ``name`` is  ``None`` and to ``name`` otherwise
-    - ``coordinates`` -- (default: ``'Cartesian'``) type of coordinates to
-      be initialized at the Euclidean plane creation
+    - ``coordinates`` -- (default: ``'Cartesian'``) string describing the type
+      of coordinates to be initialized at the Euclidean plane creation;
+      allowed values are ``'Cartesian'`` and ``'polar'``
     - ``symbols`` -- (default: ``None``) string defining the coordinate text
       symbols and LaTeX symbols, with the same conventions as the argument
       ``coordinates`` in
-      :class:`~sage.manifolds.differentiable.chart.RealDiffChart`; if ``None``,
-      the symbols will be automatically generated
+      :class:`~sage.manifolds.differentiable.chart.RealDiffChart`, namely
+      ``symbols`` is a string of coordinate fields separated by a blank space,
+      where each field contains the coordinate's text symbol and possibly the
+      coordinate's LaTeX symbol (when the latter is different from the text
+      symbol), both symbols being separated by a colon (``:``); if ``None``,
+      the symbols will be automatically generated according to the value of
+      ``coordinates``
     - ``metric_name`` -- (default: ``'g'``) string; name (symbol) given to the
       Euclidean metric tensor
     - ``metric_latex_name`` -- (default: ``None``) string; LaTeX symbol to
@@ -1037,7 +1062,7 @@ class EuclideanPlane(EuclideanSpaceGeneric):
             sage: E = EuclideanSpace(2)
             sage: E.polar_coordinates()
             Chart (E^2, (r, ph))
-            sage: latex(E.polar_coordinates())
+            sage: latex(_)
             \left(\mathbb{E}^{2},(r, {\phi})\right)
 
         The relation to Cartesian coordinates is::
@@ -1046,6 +1071,10 @@ class EuclideanPlane(EuclideanSpaceGeneric):
             ....:                E.cartesian_coordinates()).display()
             x = r*cos(ph)
             y = r*sin(ph)
+            sage: E.coord_change(E.cartesian_coordinates(),
+            ....:                E.polar_coordinates()).display()
+            r = sqrt(x^2 + y^2)
+            ph = arctan2(y, x)
 
         The coordinate variables are returned by the square bracket operator::
 
@@ -1139,13 +1168,19 @@ class Euclidean3dimSpace(EuclideanSpaceGeneric):
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote the
       Euclidean 3-space; if ``None``, it is set to ``'\mathbb{E}^{3}'`` if
       ``name`` is  ``None`` and to ``name`` otherwise
-    - ``coordinates`` -- (default: ``'Cartesian'``) type of coordinates to
-      be initialized at the Euclidean 3-space creation
+    - ``coordinates`` -- (default: ``'Cartesian'``) string describing the type
+      of coordinates to be initialized at the Euclidean 3-space creation;
+      allowed values are ``'Cartesian'``, ``'spherical'`` and ``'cylindrical'``
     - ``symbols`` -- (default: ``None``) string defining the coordinate text
       symbols and LaTeX symbols, with the same conventions as the argument
       ``coordinates`` in
-      :class:`~sage.manifolds.differentiable.chart.RealDiffChart`; if ``None``,
-      the symbols will be automatically generated
+      :class:`~sage.manifolds.differentiable.chart.RealDiffChart`, namely
+      ``symbols`` is a string of coordinate fields separated by a blank space,
+      where each field contains the coordinate's text symbol and possibly the
+      coordinate's LaTeX symbol (when the latter is different from the text
+      symbol), both symbols being separated by a colon (``:``); if ``None``,
+      the symbols will be automatically generated according to the value of
+      ``coordinates``
     - ``metric_name`` -- (default: ``'g'``) string; name (symbol) given to the
       Euclidean metric tensor
     - ``metric_latex_name`` -- (default: ``None``) string; LaTeX symbol to
@@ -1636,7 +1671,7 @@ class Euclidean3dimSpace(EuclideanSpaceGeneric):
             sage: E = EuclideanSpace(3)
             sage: E.spherical_coordinates()
             Chart (E^3, (r, th, ph))
-            sage: latex(E.spherical_coordinates())
+            sage: latex(_)
             \left(\mathbb{E}^{3},(r, {\theta}, {\phi})\right)
 
         The relation to Cartesian coordinates is::
@@ -1768,7 +1803,7 @@ class Euclidean3dimSpace(EuclideanSpaceGeneric):
             sage: E = EuclideanSpace(3)
             sage: E.cylindrical_coordinates()
             Chart (E^3, (rh, ph, z))
-            sage: latex(E.cylindrical_coordinates())
+            sage: latex(_)
             \left(\mathbb{E}^{3},({\rho}, {\phi}, z)\right)
 
         The relation to Cartesian coordinates is::
@@ -1883,15 +1918,25 @@ def EuclideanSpace(n, name=None, latex_name=None, coordinates='Cartesian',
 
     INPUT:
 
-        - ``n`` -- positive integer; dimension of the space over the real field
+        - ``n`` -- positive integer; dimension of the Euclidean space
         - ``name`` -- (default: ``None``) string; name (symbol) given to the
           Euclidean space; if ``None``, the name will be set to ``'E^n'``
         - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to
           denote the Euclidean space; if ``None``, it is set to
           ``'\mathbb{E}^{n}'`` if ``name`` is  ``None`` and to ``name``
           otherwise
-        - ``coordinates`` -- (default: ``'Cartesian'``) type of coordinates to
-          be initialized at the Euclidean space creation
+        - ``coordinates`` -- (default: ``'Cartesian'``) string describing the
+          type of coordinates to be initialized at the Euclidean space
+          creation; allowed values are
+
+          - ``'Cartesian'`` (canonical coordinates on `\RR^n`)
+          - ``'polar'`` for ``n=2`` only (see
+            :meth:`~sage.manifolds.differentiable.euclidean.EuclideanPlane.polar_coordinates`)
+          - ``'spherical'`` for ``n=3`` only (see
+            :meth:`~sage.manifolds.differentiable.euclidean.Euclidean3dimSpace.spherical_coordinates`)
+          - ``'cylindrical'`` for ``n=3`` only (see
+            :meth:`~sage.manifolds.differentiable.euclidean.Euclidean3dimSpace.cylindrical_coordinates`)
+
         - ``symbols`` -- (default: ``None``) string defining the coordinate
           text symbols and LaTeX symbols, with the same conventions as the
           argument ``coordinates`` in
@@ -1914,6 +1959,12 @@ def EuclideanSpace(n, name=None, latex_name=None, coordinates='Cartesian',
           ``symbols`` is not provided; it must then be a tuple containing
           the coordinate symbols (this is guaranteed if the shortcut operator
           ``<,>`` is used)
+
+    OUTPUT:
+
+    - an Euclidean space, as an instance of :class:`EuclideanSpaceGeneric` or
+      one of its subclasses: :class:`EuclideanPlane` (case ``n=2``) and
+      :class:`Euclidean3dimSpace` (case ``n=3``)
 
     EXAMPLES:
 

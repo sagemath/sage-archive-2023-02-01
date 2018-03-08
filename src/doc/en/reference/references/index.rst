@@ -267,6 +267,9 @@ REFERENCES:
 .. [Benasque2009] Fernando Rodriguez Villegas, *The L-function of the quintic*,
    http://users.ictp.it/~villegas/hgm/benasque-2009-report.pdf
 
+.. [Ber1987] \M. Berger, *Geometry I*, Springer (Berlin) (1987);
+             :doi:`10.1007/978-3-540-93815-6`
+
 .. [Ber2008] \W. Bertram : *Differential Geometry, Lie Groups and
              Symmetric Spaces over General Base Fields and Rings*,
              Memoirs of the American Mathematical Society, vol. 192

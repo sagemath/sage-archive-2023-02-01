@@ -1,0 +1,7 @@
+cd src/
+./configure.py --bootstrap
+if [ $? -ne 0 ]; then
+    echo >&2 "Error building ninja."
+    exit 1
+fi
+cp ninja "$SAGE_LOCAL"/bin

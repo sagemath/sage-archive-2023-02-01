@@ -584,7 +584,7 @@ def remove_redundant_automorphisms(automorphisms, order_elts, moduli, integral_a
         to_del_temp = []
         for psi in integral_autos:
             #The return_functions boolean determines if the automorphisms
-            #are matricies or linear fractional transformations
+            #are matrices or linear fractional transformations
             if is_Matrix(psi):
                 ppsi = psi.change_ring(GF(p))
                 B = [ppsi[0,0], ppsi[0,1], ppsi[1,0], psi[1,1]]

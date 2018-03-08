@@ -1019,11 +1019,11 @@ class GaloisRepresentation(SageObject):
                         misc.verbose("the image cannot be exceptional, found u=%s"%u,2)
                         could_be_exc = 0
                     if a_ell != 0 and arith.kronecker(a_ell**2 - 4*ell,p) == 1 and could_be_non_split == 1:
-                        # it can not be in the noramlizer of the non-split Cartan
+                        # it can not be in the normalizer of the non-split Cartan
                         misc.verbose("the image cannot be non-split, found u=%s"%u,2)
                         could_be_non_split = 0
                     if a_ell != 0 and arith.kronecker(a_ell**2 - 4*ell,p) == -1 and could_be_split == 1:
-                        # it can not be in the noramlizer of the split Cartan
+                        # it can not be in the normalizer of the split Cartan
                         misc.verbose("the image cannot be split, found u=%s"%u,2)
                         could_be_split = 0
 

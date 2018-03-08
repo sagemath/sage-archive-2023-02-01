@@ -455,7 +455,7 @@ cdef class FPElement(pAdicTemplateElement):
         cdef FPElement right = _right
         if very_pos_val(self.ordp):
             if very_neg_val(right.ordp):
-                raise ZeroDivisionError("Cannot multipy 0 by infinity")
+                raise ZeroDivisionError("Cannot multiply 0 by infinity")
             return self
         elif very_pos_val(right.ordp):
             if very_neg_val(self.ordp):

@@ -298,7 +298,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
     @lazy_attribute
     def _fastpolys(self):
         """
-        Lazy attribute for fast_callable polynomials for affine morphsims.
+        Lazy attribute for fast_callable polynomials for affine morphisms.
 
         EXAMPLES::
 

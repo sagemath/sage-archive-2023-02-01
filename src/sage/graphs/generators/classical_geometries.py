@@ -3,7 +3,7 @@ r"""
 Families of graphs derived from classical geometries over finite fields
 
 These include graphs of polar spaces, affine polar graphs, graphs
-related to Hermitean unitals, graphs on nonistropic points, etc
+related to Hermitean unitals, graphs on nonisotropic points, etc
 
 The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 """

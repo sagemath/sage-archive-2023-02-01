@@ -9883,7 +9883,7 @@ class GenericGraph(GenericGraph_pyx):
           <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
           :class:`MixedIntegerLinearProgram
           <sage.numerical.mip.MixedIntegerLinearProgram>`.  Use method
-          :meth:`sage.numberical.backends.generic_backend.default_mip_solver` to
+          :meth:`sage.numerical.backends.generic_backend.default_mip_solver` to
           know which default solver is used or to set the default solver.
 
         - ``verbose`` -- integer (default: ``0``). Sets the level of

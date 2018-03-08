@@ -138,7 +138,7 @@ class DiscretePseudoValuation(Morphism):
         Return a hash value for this valuation.
 
         We override the strange default provided by
-        :class:`sage.categories.marphism.Morphism` here and implement equality by
+        :class:`sage.categories.morphism.Morphism` here and implement equality by
         ``id``. This works fine for objects which use unique representation.
 
         Note that the vast majority of valuations come out of a
@@ -212,7 +212,7 @@ class DiscretePseudoValuation(Morphism):
         Return whether this valuation and ``other`` are indistinguishable.
 
         We override the strange default provided by
-        :class:`sage.categories.marphism.Morphism` here and implement equality by
+        :class:`sage.categories.morphism.Morphism` here and implement equality by
         ``id``. This is the right behaviour in many cases.
 
         Note that the vast majority of valuations come out of a

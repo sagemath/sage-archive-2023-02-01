@@ -35,6 +35,7 @@ from cysignals.signals cimport sig_on, sig_off
 from sage.rings.integer import Integer
 from sage.finance.time_series cimport TimeSeries
 from cpython.bytes cimport PyBytes_FromStringAndSize, PyBytes_AsString
+from sage.structure.richcmp cimport rich_to_bool
 
 
 cdef class IntList:
@@ -116,7 +117,7 @@ cdef class IntList:
             for i in range(self._length):
                 self._values[i] = values[i]
 
-    def __cmp__(self, _other):
+    def __richcmp__(self, other, int op):
         """
         Compare self and other.  This has the same semantics
         as list comparison.
@@ -133,19 +134,18 @@ cdef class IntList:
             sage: w == w
             True
         """
-        cdef IntList other
-        cdef Py_ssize_t c, i
-        cdef int d
-        if not isinstance(_other, IntList):
-            _other = IntList(_other)
-        other = _other
-        for i in range(min(self._length, other._length)):
-            d = self._values[i] - other._values[i]
-            if d: return -1 if d < 0 else 1
-        c = self._length - other._length
-        if c < 0: return -1
-        elif c > 0: return 1
-        return 0
+        cdef IntList _self = self
+        cdef IntList _other
+        cdef Py_ssize_t i
+        if not isinstance(other, IntList):
+            _other = IntList(other)
+        else:
+            _other = other
+        for i in range(min(_self._length, _other._length)):
+            d = _self._values[i] - _other._values[i]
+            if d:
+                return rich_to_bool(op, d)
+        return rich_to_bool(op, _self._length - _other._length)
 
     def  __dealloc__(self):
         """

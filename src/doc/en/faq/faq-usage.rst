@@ -737,3 +737,22 @@ You will need to do this from the command line.  Just run a command like this.
 
     BROWSER='open -a Firefox' ./sage --notebook
     BROWSER='open -a Google\ Chrome' ./sage --notebook
+
+
+Where is the source code for ``<function>``?
+""""""""""""""""""""""""""""""""""""""""""""
+
+Functions and classes written in Python or Cython are in general accessible
+on the IPython command line with the ``??`` shortcut::
+
+    sage: plot??                            # not tested
+    Signature: plot(*args, **kwds)
+    Source:   
+    ...
+
+Objects that are built into Python or IPython are compiled and will
+not show, however. There are many functions in Sage implemented as
+symbolic functions, i.e., they can be used unevaluated as part of
+symbolic expressions. Their source code may also not be accessible
+from the command line, especially with elementary functions, because
+they are coded in C++ for efficiency reasons.

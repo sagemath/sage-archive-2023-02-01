@@ -38,6 +38,7 @@ from sage.rings.integer cimport Integer
 from sage.rings.infinity import infinity
 from sage.structure.element import coerce_binop
 
+
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
 
 cdef class pAdicGenericElement(LocalGenericElement):
@@ -2797,40 +2798,30 @@ cdef class pAdicGenericElement(LocalGenericElement):
         if self.valuation() is infinity:
             return self
         if algorithm is None:
-            if self.parent().prime() == 2 and self.parent().degree() > 1 and self.parent().e() == 1:
-                algorithm = "sage"
-            else:
+            if self.parent().degree() == 1 and self.parent().e() == 1:
                 algorithm = "pari"
+            else:
+                algorithm = "sage"
 
         if algorithm == "pari":
             from sage.libs.pari.all import PariError
+            ans = None
             try:
                 # use pari
                 ans = self.parent()(self.__pari__().sqrt())
-                if all:
-                    return [ans, -ans]
-                else:
-                    return ans
             except PariError:
                 # todo: should eventually change to return an element of
                 # an extension field
                 pass
         elif algorithm == "sage":
-            val=self.valuation()
-            if val%2 == 0:
-                self = self>>val
-                self_modp = self.residue()
-                sq_modp = self_modp**(2**(self_modp.parent().degree()-1))
-                prec = self.parent().precision_cap()
-                sq = self.parent()(sq_modp).lift_to_precision(prec)
-                self = self/(sq**2)
-                z = self._inv_sqrt(prec)
-                if z is not None:
-                    ans = (sq/z)<<(val / 2)
-                    if all:
-                        return [ans, -ans]
-                    else:
-                        return ans
+            ans = self._square_root()
+        if ans is not None:
+            if all:
+                ans = [ans, -ans]
+                ans.sort()
+                return ans
+            else:
+                return min(ans, -ans)
         if extend:
             raise NotImplementedError("extending using the sqrt function not yet implemented")
         elif all:
@@ -2838,47 +2829,62 @@ cdef class pAdicGenericElement(LocalGenericElement):
         else:
             raise ValueError("element is not a square")
 
-    def _inv_sqrt(self, prec):
-        r"""
-        Returns the inverse square root of this `p`-adic number
+    def _square_root(self):
+        parent = self.parent()
+        p = parent.prime()
+        if p == 2 and parent.e() > 1:
+            raise NotImplementedError("square root is not implemented over ramified extensions of Q2")
 
-        INPUT:
+        if self._is_exact_zero():
+            return self
+        if self.is_zero():
+            raise PrecisionError("not enough precision to be sure that this element has a square root")
 
-        - ``prec`` -- integer, the precision at inverse square root is computed
+        # First, we check valuation and renormalize if needed
+        val = self.valuation()
+        if val % 2 == 1:
+            return None
+        a = self >> val
+        prec = a.precision_absolute()
 
-        OUTPUT:
+        # We compute the square root in the residue field
+        abar = a.residue()
+        try:
+            xbar = 1/abar.sqrt(extend=False)
+        except ValueError:
+            return None
+        x = parent(xbar)
+        curprec = 1
 
-        `p`-adic element -- the inverse square root of this `p`-adic number
-        or ``None`` if this element does not have a square root in the ring
-        """
-        from sage.functions.other import ceil
-
-
-        if prec <= 2:
-            R = self.parent()
-            F = R.residue_class_field()
-            z = R(1/self.residue(1).sqrt()).lift_to_precision(3)
-            a = z.residue(1)
-            b = 1/self-z**2
+        # When p is 2, we lift the solution modulo 4
+        if p == 2:
+            if prec < 3:
+                raise PrecisionError("not enough precision to be sure that this element has a square root")
+            # We first check that a*x^2 = 1 (mod 4)
+            x = x.lift_to_precision(3)
+            b = a*x*x - 1
             if b.valuation() < 2:
                 return None
-            else:
-                b = (b>>2).residue(1)
-                delta1, delta2 = _artin_schreier(a,b)
-                if delta1 is None:
-                    return None
-                else:
-                    z0 = z+2*R(delta1).lift_to_precision(3)
-                    return z0
-        else:
-            prec0 = ceil((prec+1)/2.0)
-            z = self._inv_sqrt(prec0)
-            if z is None:
+            # We solve the Artin-Schreier equation
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+            S = PolynomialRing(parent.residue_field(), name='x')
+            AS = S([ (b>>2).residue(), abar*xbar, abar ])
+            roots = AS.roots()
+            if len(roots) == 0:
                 return None
-            else:
-                z = z.lift_to_precision(prec)
-                z = (z+((z*(1-self*z**2))>>1))
-                return z
+            x += parent(roots[0][0]) << 1
+            curprec = 3
+
+        # We perform Newton iteration
+        while curprec < prec:
+            if p == 2:
+                curprec -= 1
+            curprec <<= 1
+            x = x.lift_to_precision(min(prec,curprec))
+            x += x * (1 - a*x*x) / 2
+
+        return (a*x) << (val // 2)
+
 
     def __abs__(self):
         """
@@ -3293,44 +3299,3 @@ def _compute_g(p, n, prec, terms):
     for i in range(n):
         g[i+1] = -(g[i]/(v-v**2)).integral()
     return [x.truncate(terms) for x in g]
-
-def _artin_schreier(a, b):
-    r"""
-    Solve Artin Schreier equation `X^2+a*X+b=0`.
-
-    INPUT:
-
-    - ``a,b`` -- elements of a finite field of characteristic 2
-
-
-    OUTPUT:
-
-    elements of the same field ``x0,x1`` verifying the equation `X^2+a*X+b=0` 
-    or ``None,None`` if the equation does not have a solution in ``parent(a)``.
-    """
-    def trace_one_element(F):
-        x = F.random_element()
-        while x.trace() != 1:
-            x = F.random_element()
-        return x
-
-    if a == 0:
-        return (-b).sqrt(), -(-b).sqrt()
-    else:
-        c = b/a**2
-        if c.trace() != 0:
-            return None, None
-        else:
-            d = c.parent().degree()
-            if d % 2 == 0:
-                y = trace_one_element(c.parent())
-                sum0 = 0
-                sum = 0
-                for i in range(d):
-                    sum0 += c**(2**i)
-                    sum += sum0*y**(2**i)
-            else:
-                sum = 0
-                for i in range((d-3)/2+1):
-                    sum += c**(2**(2*i+1))
-            return a*sum, a*(1+sum)

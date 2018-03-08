@@ -508,34 +508,33 @@ cpdef canonical_form_from_edge_list(int Vnr, list Vout, list Vin, int Lnr=1, lis
     if directed:
         d = bliss_digraph_from_labelled_edges(Vnr, Lnr, Vout, Vin, labels, partition)
         aut = d.canonical_form(s, empty_hook, NULL)
-        for i from 0 <= i < len(Vout):
-            x = Vout[i]
-            y = Vin[i]
-            e = aut[x]
-            f = aut[y]
-            if Lnr == 1:
-                new_edges.append( (e,f) )
-            else:
-                lab = labels[i]
-                new_edges.append( (e,f,lab) )
-        if certificate:
-            relabel = {v: <long>aut[v] for v in range(Vnr)}
-        del d
     else:
         g = bliss_graph_from_labelled_edges(Vnr, Lnr, Vout, Vin, labels, partition)
         aut = g.canonical_form(s, empty_hook, NULL)
-        for i from 0 <= i < len(Vout):
-            x = Vout[i]
-            y = Vin[i]
-            e = aut[x]
-            f = aut[y]
-            if Lnr == 1:
-                new_edges.append( (e,f) if e > f else (f,e))
+
+    for i from 0 <= i < len(Vout):
+        x = Vout[i]
+        y = Vin[i]
+        e = aut[x]
+        f = aut[y]
+        if Lnr == 1:
+            if directed:
+                new_edges.append( (e,f) )
             else:
-                lab = labels[i]
+                new_edges.append( (e,f) if e > f else (f,e))
+        else:
+            lab = labels[i]
+            if directed:
+                new_edges.append( (e,f,lab) )
+            else:
                 new_edges.append( (e,f,lab) if e > f else (f,e,lab))
-        if certificate:
-            relabel = {v: <long>aut[v] for v in range(Vnr)}
+
+    if certificate:
+        relabel = {v: <long>aut[v] for v in range(Vnr)}
+
+    if directed:
+        del d
+    else:
         del g
 
     if certificate:

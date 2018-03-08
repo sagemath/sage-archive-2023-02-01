@@ -3444,8 +3444,9 @@ class TensorField(ModuleElement):
             sage: v.div() == s
             True
 
-        The global function :func:`~sage.manifolds.operators.div` can be used
-        instead of the method ``divergence()``::
+        The function :func:`~sage.manifolds.operators.div` from the
+        :mod:`~sage.manifolds.operators` module can be used instead of the
+        method :meth:`divergence`::
 
             sage: from sage.manifolds.operators import div
             sage: div(v) == s
@@ -3575,8 +3576,9 @@ class TensorField(ModuleElement):
             sage: Dv.display()
             Delta(v) = (6*x + 2) d/dx
 
-        The global function :func:`~sage.manifolds.operators.laplacian` can be
-        used instead of the method ``laplacian()``::
+        The function :func:`~sage.manifolds.operators.laplacian` from the
+        :mod:`~sage.manifolds.operators` module can be used instead of the
+        method :meth:`laplacian`::
 
             sage: from sage.manifolds.operators import laplacian
             sage: laplacian(v) == Dv
@@ -3646,7 +3648,7 @@ class TensorField(ModuleElement):
         .. NOTE::
 
             If the metric `g` is not Lorentzian, the name *d'Alembertian* is
-            not appropriate and one should use instead :meth:`laplacian`.
+            not appropriate and one should use :meth:`laplacian` instead.
 
         INPUT:
 
@@ -3678,8 +3680,9 @@ class TensorField(ModuleElement):
             sage: De = e.dalembertian(); De
             Vector field Box(e) on the 4-dimensional Lorentzian manifold M
 
-        The global function :func:`~sage.manifolds.operators.dalembertian` can
-        be used instead of the method ``dalembertian()``::
+        The function :func:`~sage.manifolds.operators.dalembertian` from the
+        :mod:`~sage.manifolds.operators` module can be used instead of the
+        method :meth:`dalembertian`::
 
             sage: from sage.manifolds.operators import dalembertian
             sage: dalembertian(e) == De

@@ -745,7 +745,7 @@ class DiffScalarField(ScalarField):
             sage: latex(df)
             \mathrm{d}f
 
-        One may also use the global function
+        One may also use the function
         :func:`~sage.manifolds.utilities.exterior_derivative`
         or its alias :func:`~sage.manifolds.utilities.xder` instead
         of the method ``exterior_derivative()``::
@@ -1103,8 +1103,9 @@ class DiffScalarField(ScalarField):
             sage: v.display()
             grad(f) = -y*sin(x*y) d/dx - x*sin(x*y) d/dy
 
-        The global function :func:`~sage.manifolds.operators.grad` can be used
-        instead of the method ``gradient()``::
+        The function :func:`~sage.manifolds.operators.grad` from the
+        :mod:`~sage.manifolds.operators` module can be used instead of the
+        method :meth:`gradient`::
 
             sage: from sage.manifolds.operators import grad
             sage: grad(f) == f.gradient()
@@ -1185,8 +1186,9 @@ class DiffScalarField(ScalarField):
             Delta(f): M --> R
                (x, y) |--> d^2(F)/dx^2 + d^2(F)/dy^2
 
-        The global function :func:`~sage.manifolds.operators.laplacian` can be
-        used instead of the method ``laplacian()``::
+        The function :func:`~sage.manifolds.operators.laplacian` from the
+        :mod:`~sage.manifolds.operators` module can be used instead of the
+        method :meth:`laplacian`::
 
             sage: from sage.manifolds.operators import laplacian
             sage: laplacian(f) == s
@@ -1255,7 +1257,7 @@ class DiffScalarField(ScalarField):
         .. NOTE::
 
             If the metric `g` is not Lorentzian, the name *d'Alembertian* is
-            not appropriate and one should use instead :meth:`laplacian`.
+            not appropriate and one should use :meth:`laplacian` instead.
 
         INPUT:
 
@@ -1286,8 +1288,9 @@ class DiffScalarField(ScalarField):
             Box(f): M --> R
                (t, x, y, z) |--> 6*t^2*y - 2*y^3 - 12*x*z^2 + 2
 
-        The global function :func:`~sage.manifolds.operators.dalembertian` can
-        be used instead of the method ``dalembertian()``::
+        The function :func:`~sage.manifolds.operators.dalembertian` from the
+        :mod:`~sage.manifolds.operators` module can be used instead of the
+        method :meth:`dalembertian`::
 
             sage: from sage.manifolds.operators import dalembertian
             sage: dalembertian(f) == s

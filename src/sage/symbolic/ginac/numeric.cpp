@@ -3377,6 +3377,58 @@ ex numeric::to_dict_parent(const numeric& num, PyObject* obj)
         return numeric(ret);
 }
 
+ex numeric::subs(const exmap & m, unsigned) const
+{
+        const numeric& im = imag();
+        if (im.is_zero()) {
+                if (is_zero() or is_one() or is_minus_one())
+                        return *this;
+                for (const auto & pair : m)
+                        if (is_exactly_a<numeric>(pair.first)
+                            and is_equal(ex_to<numeric>(pair.first)))
+                                return pair.second;
+                return *this;
+        }
+
+        const numeric& re = real();
+        ex ret1 = re;
+        ex ret2 = im;
+        ex ret3 = I;
+        bool changed1=false, changed2=false, changed3=false;
+        for (const auto & pair : m) {
+                if (not is_exactly_a<numeric>(pair.first))
+                        continue;
+                const numeric& p = ex_to<numeric>(pair.first);
+                const numeric& pim = p.imag();
+                const numeric& pre = p.real();
+                if (pim.is_zero()) {
+                        if (p.is_zero() or p.is_one() or p.is_minus_one())
+                                continue;
+                        if (re.is_equal(pre)) {
+                                ret1 = pair.second;
+                                changed1 = true;
+                        }
+                        if (im.is_equal(pre)) {
+                                ret2 = pair.second;
+                                changed2 = true;
+                        }
+                        continue;
+                }
+                if (pim.is_one() and pre.is_zero()) {
+                        ret3 = pair.second;
+                        changed3 = true;
+                        continue;
+                }
+                if (re.is_equal(pre) and im.is_equal(pim))
+                        return pair.second;
+        }
+        if (changed1 or changed2 or changed3)
+                return ret1 + ret2*ret3;
+        return *this;
+}
+        
+///////////////////////////////////////////////////////////////////////
+
 /** Real part of a number. */
 const numeric numeric::real() const {
         verbose("real_part(a)");

@@ -579,6 +579,8 @@ ex basic::subs_one_level(const exmap & m, unsigned options) const
 
         if (options & subs_options::no_pattern) {
                 ex thisex = *this;
+                if (is_exactly_a<numeric>(thisex))
+                        return ex_to<numeric>(thisex).subs(m, options);
                 for (const auto & pair : m)
                         if (thisex.is_equal(pair.first))
                                 return pair.second;

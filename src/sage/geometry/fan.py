@@ -3201,7 +3201,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
         ``cone`` and the coefficient indicates whether their (chosen)
         orientation argrees or disagrees with the "outward normal
         first" boundary orientation. Note that the orientation of any
-        individial cone is arbitrary. This method once and for all
+        individual cone is arbitrary. This method once and for all
         picks orientations for all cones and then computes the
         boundaries relative to that chosen orientation.
 

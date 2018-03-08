@@ -1524,11 +1524,11 @@ def gcd(a, b=None, **kwargs):
     :trac:`4988` the following wrongly returned 3 since the third parameter
     was just ignored::
 
-        sage: gcd(3,6,2)
+        sage: gcd(3, 6, 2)
         Traceback (most recent call last):
         ...
-        TypeError: gcd() takes at most 2 arguments (3 given)
-        sage: gcd([3,6,2])
+        TypeError: gcd() takes ...
+        sage: gcd([3, 6, 2])
         1
 
     Similarly, giving just one element (which is not a list) gives an error::
@@ -1599,7 +1599,7 @@ def gcd(a, b=None, **kwargs):
     from sage.structure.sequence import Sequence
     seq = Sequence(a)
     U = seq.universe()
-    if U is ZZ or U is int or U is long:# ZZ.has_coerce_map_from(U):
+    if U is ZZ or U in integer_types:  # ZZ.has_coerce_map_from(U):
         return GCD_list(a)
     return __GCD_sequence(seq, **kwargs)
 

@@ -68,7 +68,6 @@ misc-clean:
 	rm -f build/make/Makefile build/make/Makefile-auto
 	rm -f .BUILDSTART
 
-# TODO: What is a "bdist"? A binary distribution?
 bdist-clean: clean
 	$(MAKE) misc-clean
 
@@ -87,6 +86,8 @@ bootstrap-clean:
 maintainer-clean: distclean bootstrap-clean
 	rm -rf upstream
 
+# Remove everything that is not necessary to run Sage and pass all its
+# doctests.
 micro_release: bdist-clean sagelib-clean
 	@echo "Stripping binaries ..."
 	LC_ALL=C find local/lib local/bin -type f -exec strip '{}' ';' 2>&1 | grep -v "File format not recognized" |  grep -v "File truncated" || true
@@ -95,7 +96,9 @@ micro_release: bdist-clean sagelib-clean
 	@echo "Removing documentation. Inspection in IPython still works."
 	rm -rf local/share/doc local/share/*/doc local/share/*/examples local/share/singular/html
 	@echo "Removing unnecessary files & directories - make will not be functional afterwards anymore"
-	@# We need src/sage/, src/doc/common, src/doc/en/introspect for introspection with "??"
+	@# We need src/doc/common, src/doc/en/introspect for introspection with "??"
+	@# We keep src/sage for some doctests that it expect it to be there and
+	@# also because it does not add any weight with rdfind below.
 	@# We need src/sage/bin/ for the scripts that invoke Sage
 	@# We need sage, the script to start Sage
 	@# We need local/, the dependencies and the built Sage library itself.

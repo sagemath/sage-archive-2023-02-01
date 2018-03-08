@@ -606,7 +606,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             if n or mpz_cmp_si(mpq_denref(self.value), 0) == 0:
                 raise TypeError("unable to convert {!r} to a rational".format(x))
             mpq_canonicalize(self.value)
-        elif isinstance(x, str):
+        elif isinstance(x, unicode):
             n = mpq_set_str(self.value, str_to_bytes(x), base)
             if n or mpz_cmp_si(mpq_denref(self.value), 0) == 0:
                 raise TypeError("unable to convert {!r} to a rational".format(x))

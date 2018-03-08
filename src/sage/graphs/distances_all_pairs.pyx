@@ -120,7 +120,7 @@ REFERENCE:
 
 .. [CGH+13] \P. Crescenzi, R. Grossi, M. Habib, L. Lanzi, A. Marino. On computing
   the diameter of real-world undirected graphs. *Theor. Comput. Sci.* 514: 84-95
-  (2013) http://dx.doi.org/10.1016/j.tcs.2012.09.018
+  (2013) :doi:`10.1016/j.tcs.2012.09.018`
 
 .. [CGI+10] \P. Crescenzi, R. Grossi, C. Imbrenda, L. Lanzi, and A. Marino.
   Finding the Diameter in Real-World Graphs: Experimentally Turning a Lower

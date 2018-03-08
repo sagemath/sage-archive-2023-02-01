@@ -3149,7 +3149,7 @@ def DM_12_6_1():
 
     .. [Hanani75] Haim Hanani,
       Balanced incomplete block designs and related designs,
-      http://dx.doi.org/10.1016/0012-365X(75)90040-0,
+      :doi:`10.1016/0012-365X(75)90040-0`,
       Discrete Mathematics, Volume 11, Issue 3, 1975, Pages 255-369.
     """
     from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup

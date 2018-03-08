@@ -584,7 +584,7 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
       Strongly regular graphs with parameters `(4m^4,2m^4+m^2,m^4+m^2,m^4+m^2)` exist for all `m>1`,
       European Journal of Combinatorics,
       Volume 31, Issue 6, August 2010, Pages 1553-1559,
-      http://dx.doi.org/10.1016/j.ejc.2009.07.009.
+      :doi:`10.1016/j.ejc.2009.07.009`
     """
     if existence and (n,e) in _rshcd_cache:
         return _rshcd_cache[n,e]

@@ -2083,7 +2083,7 @@ REFERENCES:
 
 .. [Rüt2014] Julian Rüth, *Models of Curves and Valuations*. Open Access
              Repositorium der Universität Ulm. Dissertation (2014).
-             http://dx.doi.org/10.18725/OPARU-3275
+             :doi:`10.18725/OPARU-3275`
 
 .. _ref-S:
 

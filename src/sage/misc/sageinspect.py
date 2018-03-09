@@ -1702,16 +1702,20 @@ def sage_getdoc_original(obj):
             integers can be used as ring elements anywhere in Sage.
         ...
 
-    Here is a class that does not have its own docstring, so that the
-    docstring of the ``__init__`` method is used::
+    If the class does not have a docstring, the docstring of the
+    ``__init__`` method is used, but not the ``__init__`` method
+    of the base class (this was fixed in :trac:`24936`)::
 
-        sage: print(sage_getdoc_original(Parent))
-        <BLANKLINE>
-        Base class for all parents.
-        <BLANKLINE>
-        Parents are the Sage/mathematical analogues of container
-        objects in computer science.
-        ...
+        sage: from sage.categories.category import Category
+        sage: class A(Category):
+        ....:     def __init__(self):
+        ....:         '''The __init__ docstring'''
+        sage: sage_getdoc_original(A)
+        'The __init__ docstring'
+        sage: class B(Category):
+        ....:     pass
+        sage: sage_getdoc_original(B)
+        ''
 
     Old-style classes are supported::
 
@@ -1749,20 +1753,14 @@ def sage_getdoc_original(obj):
         if pos is not None:
             s = pos[0]
     if not s:
-        try:
-            init = typ.__init__
-        except AttributeError:
-            pass
-        else:
-            # The docstring of obj is empty. To get something, we want to use
-            # the documentation of the __init__ method, but only if it belongs
-            # to (the type of) obj. The type for which a method is defined is
-            # either stored in the attribute `__objclass__` (cython) or
-            # `im_class` (python) of the method.
-            if (getattr(init, '__objclass__', None) or
-                getattr(init, 'im_class', None)) == typ:
-                return sage_getdoc_original(init)
+        # The docstring of obj is empty. To get something, we want to use
+        # the documentation of the __init__ method, but only if it belongs
+        # to (the type of) obj.
+        init = typ.__dict__.get("__init__")
+        if init:
+            return sage_getdoc_original(init)
     return s
+
 
 def sage_getdoc(obj, obj_name='', embedded_override=False):
     r"""

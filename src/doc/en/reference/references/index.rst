@@ -270,13 +270,13 @@ REFERENCES:
 .. [Ber1987] \M. Berger, *Geometry I*, Springer (Berlin) (1987);
              :doi:`10.1007/978-3-540-93815-6`
 
+.. [Ber1991] \C. Berger, "Une version effective du théorème de
+             Hurewicz", https://tel.archives-ouvertes.fr/tel-00339314/en/.
+
 .. [Ber2008] \W. Bertram : *Differential Geometry, Lie Groups and
              Symmetric Spaces over General Base Fields and Rings*,
              Memoirs of the American Mathematical Society, vol. 192
              (2008); :doi:`10.1090/memo/0900`; :arxiv:`math/0502168`
-
-.. [Ber1991] \C. Berger, "Une version effective du théorème de
-             Hurewicz", https://tel.archives-ouvertes.fr/tel-00339314/en/.
 
 .. [BeukersHeckman] \F. Beukers and \G. Heckman,
    *Monodromy for the hypergeometric function `{}_n F_{n-1}`*,

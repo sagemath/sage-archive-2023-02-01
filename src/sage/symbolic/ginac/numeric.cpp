@@ -3467,33 +3467,58 @@ ex numeric::subs(const exmap & m, unsigned) const
 
 /** Real part of a number. */
 const numeric numeric::real() const {
-        verbose("real_part(a)");
-        PyObject *ans;
         switch (t) {
         case LONG:
         case MPZ:
         case MPQ:
                 return *this;
         case PYOBJECT:
-                ans = py_funcs.py_real(v._pyobject);
-                if (ans == nullptr) py_error("real_part");
-                return ans;
+        {
+                if (PyFloat_Check(v._pyobject))
+                        return *this;
+                if (PyComplex_Check(v._pyobject))
+                        return PyComplex_RealAsDouble(v._pyobject);
+                try {
+                        return try_py_method("real");
+                }
+                catch (std::logic_error) {}
+                try {
+                        return try_py_method("real_part");
+                }
+                catch (std::logic_error) {}
+                return *this;
+        }
         default:
-                std::cerr << "type = " << t << std::endl;
-                stub("invalid type: operator double() type not handled");
+                stub("invalid type");
         }
 }
 
 /** Imaginary part of a number. */
 const numeric numeric::imag() const {
-        if (is_real())
-                return 0;
-        verbose("imag_part(a)");
-        PyObject *a = to_pyobject();
-        PyObject *ans = py_funcs.py_imag(a);
-        if (ans == nullptr) py_error("imag_part");
-        Py_DECREF(a);
-        return ans;
+        switch (t) {
+        case LONG:
+        case MPZ:
+        case MPQ:
+                return *_num0_p;
+        case PYOBJECT:
+        {
+                if (PyFloat_Check(v._pyobject))
+                        return *_num0_p;
+                if (PyComplex_Check(v._pyobject))
+                        return PyComplex_ImagAsDouble(v._pyobject);
+                try {
+                        return try_py_method("imag");
+                }
+                catch (std::logic_error) {}
+                try {
+                        return try_py_method("imag_part");
+                }
+                catch (std::logic_error) {}
+                return *_num0_p;
+        }
+        default:
+                stub("invalid type");
+        }
 }
 
 /** Numerator.  Computes the numerator of rational numbers, rationalized

@@ -3310,9 +3310,9 @@ ex numeric::evalf(int /*level*/, PyObject* parent) const {
         return ans;
 }
 
-ex numeric::try_py_method(const numeric& num, const std::string& s)
+const numeric numeric::try_py_method(const std::string& s) const
 {
-        PyObject *obj = num.to_pyobject();
+        PyObject *obj = to_pyobject();
         PyObject* ret = PyObject_CallMethod(obj,
                         const_cast<char*>(s.c_str()), NULL);
         Py_DECREF(obj);
@@ -3321,14 +3321,13 @@ ex numeric::try_py_method(const numeric& num, const std::string& s)
                 throw std::logic_error("");
         }
         
-        return ex(numeric(ret));
+        return numeric(ret);
 }
 
-ex numeric::try_py_method(const numeric& num1,
-                const std::string& s,
-                const numeric& num2)
+const numeric numeric::try_py_method(const std::string& s,
+                const numeric& num2) const
 {
-        PyObject *obj1 = num1.to_pyobject();
+        PyObject *obj1 = to_pyobject();
         PyObject *obj2 = num2.to_pyobject();
         PyObject *mstr = PyString_FromString(const_cast<char*>(s.c_str()));
         PyObject* ret = PyObject_CallMethodObjArgs(obj1, mstr, obj2, NULL);
@@ -3339,14 +3338,14 @@ ex numeric::try_py_method(const numeric& num1,
                 PyErr_Clear();
                 throw std::logic_error("");
         }
-        return ex(numeric(ret));
+        return numeric(ret);
 }
 
-ex numeric::to_dict_parent(const numeric& num, PyObject* obj)
+const numeric numeric::to_dict_parent(PyObject* obj) const
 {
         PyObject *ret = nullptr;
         PyObject *the_parent = nullptr;
-        PyObject *the_arg = num.to_pyobject();
+        PyObject *the_arg = to_pyobject();
         if (obj != nullptr and PyDict_Check(obj)) {
                 PyObject* pkey = PyString_FromString(const_cast<char*>("parent"));
                 the_parent = PyDict_GetItem(obj, pkey);
@@ -4691,6 +4690,15 @@ const numeric atanh(const numeric &x, PyObject* parent) {
 
 
 const numeric Li2(const numeric &x, PyObject* parent) {
+        try {
+                return x.try_py_method("dilog");
+        }
+        catch (std::logic_error) {}
+        try {
+                return x.try_py_method("polylog", *_num2_p);
+        }
+        catch (std::logic_error) {}
+
         return x.Li2(*_num2_p, parent);
 }
 

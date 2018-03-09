@@ -248,11 +248,10 @@ public:
                 return t == PYOBJECT;
         }
         bool is_small_power(std::pair<int,int>& p) const;
-        static ex try_py_method(const numeric& x, const std::string& s);
-        static ex try_py_method(const numeric& x1,
-                        const std::string& s,
-                        const numeric& x2);
-        static ex to_dict_parent(const numeric& e, PyObject* dict);
+        const numeric try_py_method(const std::string& s) const;
+        const numeric try_py_method(const std::string& s,
+                        const numeric& x2) const;
+        const numeric to_dict_parent(PyObject* dict) const;
 #ifdef PYNAC_HAVE_LIBGIAC
         giac::gen* to_giacgen(giac::context*) const;
 #endif

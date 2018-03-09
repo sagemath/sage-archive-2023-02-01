@@ -935,15 +935,12 @@ ex function::evalf(int level, PyObject* kwds) const
                 if (opt.nparams == 1 and is_exactly_a<numeric>(eseq[1-1])) {
                         const numeric& n = ex_to<numeric>(eseq[1-1]);
                         try {
-                                return numeric::try_py_method(n, get_name());
+                                return n.try_py_method(get_name());
                         }
                         catch (std::logic_error) {
                                 try {
-                                        ex e = numeric::try_py_method(ex_to<numeric>(n.evalf()),
-                                                           get_name());
-                                        if (not is_exactly_a<numeric>(e))
-                                                throw std::runtime_error("can't happen in function::evalf");
-                                        return numeric::to_dict_parent(ex_to<numeric>(e), kwds);
+                                        const numeric& nn = ex_to<numeric>(n.evalf()).try_py_method(get_name());
+                                        return nn.to_dict_parent(kwds);
                                 }
                                 catch (std::logic_error) {}
                         }

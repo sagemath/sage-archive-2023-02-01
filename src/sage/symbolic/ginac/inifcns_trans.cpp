@@ -527,17 +527,7 @@ static ex Li2_evalf(const ex & x, PyObject* parent)
 	if (not is_exactly_a<numeric>(x))
 	        return Li2(x).hold();
 
-        const numeric& num = ex_to<numeric>(x);
-        try {
-                return numeric::try_py_method(num, "dilog");
-        }
-        catch (std::logic_error) {}
-        try {
-                return numeric::try_py_method(num, "polylog", *_num2_p);
-        }
-        catch (std::logic_error) {}
-
-        return Li2(num, parent);
+        return Li2(ex_to<numeric>(x), parent);
 }
 
 static ex Li2_eval(const ex & x)
@@ -703,11 +693,6 @@ static ex Li_evalf(const ex& m_, const ex& x_, PyObject* parent)
         const numeric& num_m = ex_to<numeric>(m_);
         const numeric& num_x = ex_to<numeric>(x_);
         
-        try {
-                return numeric::try_py_method(num_x, "polylog", num_m);
-        }
-        catch (std::logic_error) {}
-
         return Li2(num_m, num_x, parent);
 }
 

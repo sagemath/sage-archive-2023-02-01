@@ -1367,6 +1367,19 @@ class Graph(GenericGraph):
             sage: Graph(graphs.KneserGraph(5,2).sparse6_string()).size()
             15
 
+        Graphs with 1 vertex are correctly handled (:trac:`24923`)::
+
+            sage: Graph([(0, 0)], loops=True).sparse6_string()
+            ':@^'
+            sage: G = Graph(_)
+            sage: G.order(), G.size()
+            (1, 1)
+            sage: Graph([(0, 0), (0, 0)], loops=True, multiedges=True).sparse6_string()
+            ':@N'
+            sage: H = Graph(_)
+            sage: H.order(), H.size()
+            (1, 2)
+
         """
         n = self.order()
         if n == 0:

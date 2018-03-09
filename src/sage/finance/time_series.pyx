@@ -191,7 +191,7 @@ cdef class TimeSeries:
         buf = PyBytes_FromStringAndSize(<char*>self._values, self._length*sizeof(double)/sizeof(char))
         return unpickle_time_series_v1, (buf, self._length)
 
-    def __richcmp__(self, other, int op):
+    def __richcmp__(TimeSeries self, other, int op):
         """
         Compare ``self`` and ``other``.  This has the same semantics
         as list comparison.
@@ -208,19 +208,19 @@ cdef class TimeSeries:
             sage: w == w
             True
         """
-        cdef TimeSeries _self = self
-        cdef TimeSeries _other
         cdef Py_ssize_t i
         cdef double d
         if not isinstance(other, TimeSeries):
-            _other = TimeSeries(other)
-        else:
-            _other = other
-        for i in range(min(_self._length, _other._length)):
-            d = _self._values[i] - _other._values[i]
+            return NotImplemented
+        _other = <TimeSeries>other
+        for i in range(min(self._length, _other._length)):
+            d = self._values[i] - _other._values[i]
             if d:
-                return rich_to_bool(op, -1) if d < 0 else rich_to_bool(op, 1)
-        return rich_to_bool(op, _self._length - _other._length)
+                return rich_to_bool(op, -1 if d < 0 else 1)
+        c = self._length - _other._length
+        if c:
+            return rich_to_bool(op, -1 if c < 0 else 1)
+        return rich_to_bool(op, 0)
 
     def  __dealloc__(self):
         """

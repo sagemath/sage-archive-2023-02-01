@@ -598,7 +598,7 @@ cdef class BooleanFunction(SageObject):
         """
         return 2**self._nvariables
 
-    def __richcmp__(self, other, int op):
+    def __richcmp__(BooleanFunction self, other, int op):
         """
         Boolean functions are considered to be equal if the number of
         input variables is the same, and all the values are equal.
@@ -617,9 +617,10 @@ cdef class BooleanFunction(SageObject):
             sage: b1 == b4
             False
         """
-        cdef BooleanFunction o = other
-        cdef BooleanFunction s = self
-        return rich_to_bool(op, bitset_cmp(s._truth_table, o._truth_table))
+        if not isinstance(other, BooleanFunction):
+            return NotImplemented
+        o = <BooleanFunction>other
+        return rich_to_bool(op, bitset_cmp(self._truth_table, o._truth_table))
 
     def __call__(self, x):
         """

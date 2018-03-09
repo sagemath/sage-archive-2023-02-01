@@ -1780,7 +1780,7 @@ def _sage_getdoc_unformatted(obj):
 
     # Check if the __doc__ attribute was actually a string, and
     # not a 'getset_descriptor' or similar.
-    if isinstance(r, str):
+    if isinstance(r, string_types):
         return r
     else:
         # Not a string of any kind

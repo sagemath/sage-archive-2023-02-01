@@ -4444,7 +4444,9 @@ cdef class MPolynomial_libsingular(MPolynomial):
         fI.m[0]= p_Copy(self._poly, r)
 
         if r!=currRing: rChangeCurrRing(r)  # idLift
+        sig_on()
         res = idLift(_I, fI, NULL, 0, 0, 0)
+        sig_off()
         if errorreported != 0 :
             errorcode = errorreported
             errorreported = 0

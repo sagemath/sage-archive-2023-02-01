@@ -123,7 +123,7 @@ import math # for log
 import sys
 import re
 
-from cpython.object cimport Py_NE
+from cpython.object cimport Py_NE, Py_EQ
 from cysignals.signals cimport sig_on, sig_off
 
 from sage.ext.stdsage cimport PY_NEW
@@ -737,7 +737,7 @@ cdef class RealField_class(sage.rings.ring.Field):
             return self.convert_method_map(S, "_mpfr_")
         return self._coerce_map_via([RLF], S)
 
-    def __richcmp__(self, other, int op):
+    def __richcmp__(RealField_class self, other, int op):
         """
         Compare two real fields, returning ``True`` if they are equivalent
         and ``False`` if they are not.
@@ -768,13 +768,13 @@ cdef class RealField_class(sage.rings.ring.Field):
             sage: RR == RS
             True
         """
-        cdef RealField_class _self = self
-        cdef RealField_class _other
+        if op != Py_EQ and op != Py_NE:
+            return NotImplemented
         if not isinstance(other, RealField_class):
-            return rich_to_bool(op, -1)
+            return NotImplemented
 
-        _other = other  # to access C structure
-        if _self.__prec == _other.__prec and _self.rnd == _other.rnd:
+        _other = <RealField_class>other  # to access C structure
+        if self.__prec == _other.__prec and self.rnd == _other.rnd:
             return rich_to_bool(op, 0)
         return rich_to_bool(op, 1)
 

@@ -468,8 +468,17 @@ found:		;
 ex expairseq::subs(const exmap & m, unsigned options) const
 {
 	std::unique_ptr<epvector> vp = subschildren(m, options);
-	if (vp != nullptr)
-		return ex_to<basic>(thisexpairseq(std::move(vp), overall_coeff, (options & subs_options::no_index_renaming) == 0));
+	if (vp != nullptr) {
+                const ex& ocs = overall_coeff.subs(m, options);
+                if (is_exactly_a<numeric>(ocs))
+                        return ex_to<basic>(thisexpairseq(std::move(vp),
+                                            ex_to<numeric>(ocs),
+                                            (options & subs_options::no_index_renaming) == 0));
+                else
+                        return ex_to<basic>(add(ocs, thisexpairseq(std::move(vp),
+                                            *_num0_p,
+                                            (options & subs_options::no_index_renaming) == 0)));
+        }
 	if (((options & subs_options::algebraic) != 0u) && is_exactly_a<mul>(*this))
 		return static_cast<const mul *>(this)->algebraic_subs_mul(m, options);
 	else
@@ -1686,11 +1695,13 @@ std::unique_ptr<epvector> expairseq::subschildren(const exmap & m, unsigned opti
 
 	} else {
 
-		// Substitute only in the "rest" part of the pairs
 		auto cit = seq.begin(), last = seq.end();
 		while (cit != last) {
-			const ex &subsed_ex = cit->rest.subs(m, options);
-			if (!are_ex_trivially_equal(cit->rest, subsed_ex)) {
+                        const ex &subsed_exr = cit->rest.subs(m, options);
+                        const ex &subsed_exc = ex_to<numeric>(cit->coeff).subs(m, options);
+                        if (not are_ex_trivially_equal(cit->rest, subsed_exr)
+                            or not are_ex_trivially_equal(cit->coeff,
+                                    subsed_exc)) {
 
                                 // Something changed, copy seq, subs and return it
 				std::unique_ptr<epvector> s(new epvector);
@@ -1700,14 +1711,21 @@ std::unique_ptr<epvector> expairseq::subschildren(const exmap & m, unsigned opti
 				s->insert(s->begin(), seq.begin(), cit);
 			
 				// Copy first changed element
-				s->push_back(combine_ex_with_coeff_to_pair(subsed_ex,
-                                                        ex_to<numeric>(cit->coeff)));
+                                if (is_exactly_a<numeric>(subsed_exc))
+        				s->push_back(combine_ex_with_coeff_to_pair(subsed_exr, ex_to<numeric>(subsed_exc)));
+                                else
+        				s->push_back(split_ex_to_pair(mul(subsed_exr, subsed_exc)));
 				++cit;
 
 				// Copy rest
 				while (cit != last) {
-					s->push_back(combine_ex_with_coeff_to_pair(cit->rest.subs(m, options), ex_to<numeric>(cit->coeff)));
-					++cit;
+                                        const ex &sr = cit->rest.subs(m, options);
+                                        const ex &sc = ex_to<numeric>(cit->coeff).subs(m, options);
+					if (is_exactly_a<numeric>(sc))
+                                                s->push_back(combine_ex_with_coeff_to_pair(sr, ex_to<numeric>(sc)));
+                                        else
+                                                s->push_back(split_ex_to_pair(mul(sr, sc)));
+                                        ++cit;
 				}
 				return s;
 			}

@@ -446,10 +446,14 @@ PyObject* common_parent(const numeric& x, const numeric& y)
                 py_error("Error getting coercion_model attribute");
 
         PyObject* mname = PyString_FromString("common_parent");
+        PyObject* xobj = x.to_pyobject();
+        PyObject* yobj = y.to_pyobject();
         PyObject* ret = PyObject_CallMethodObjArgs(f, mname,
-                          x.to_pyobject(), y.to_pyobject(), NULL);
+                                                   xobj, yobj, NULL);
         if (ret == nullptr)
                 throw(std::runtime_error("GiNaC::common_parent: PyObject_CallMethodObjArgs unsuccessful"));
+        Py_DECREF(xobj);
+        Py_DECREF(yobj);
         Py_DECREF(m);
         Py_DECREF(f);
         Py_DECREF(mname);
@@ -465,6 +469,21 @@ const numeric numeric::arbfunc_0arg(const char* name, PyObject* parent) const
 
         numeric rnum(ret);
         return ex_to<numeric>(rnum.evalf(0, parent));
+}
+
+static PyObject* py_tuple_from_numvector(const std::vector<numeric>& vec)
+{
+        PyObject* list = PyTuple_New(vec.size());
+        if (list == nullptr)
+                throw(std::runtime_error("py_list_from_numvector(): PyList_New returned NULL"));
+        int pos = 0;
+        for (const numeric& num : vec) {
+                PyObject *numobj = num.to_pyobject();
+                int ret = PyTuple_SetItem(list, pos++, numobj);
+                if (ret != 0)
+                        throw(std::runtime_error("py_list_from_numvector(): PyList_Append unsuccessful"));
+        }
+        return list;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -955,12 +974,14 @@ void numeric::print_numeric(const print_context & c, const char* /*unused*/,
                             const char* /*unused*/, const char* /*unused*/, const char* /*unused*/,
                             unsigned level, bool latex = false) const {
         std::string* out;
+        PyObject* obj = to_pyobject();
         if (latex) {
-                out = py_funcs.py_latex(to_pyobject(), level);
+                out = py_funcs.py_latex(obj, level);
         } else {
-                out = py_funcs.py_repr(to_pyobject(), level);
+                out = py_funcs.py_repr(obj, level);
         }
         c.s << *out;
+        Py_DECREF(obj);
         delete out;
 }
 
@@ -1739,20 +1760,28 @@ const ex numeric::power(const numeric &exponent) const {
                         return numeric(PyNumber_Power(v._pyobject,
                                         exponent.v._pyobject,
                                         Py_None));
-                else
-                        return numeric(PyNumber_Power(v._pyobject,
-                                        exponent.to_pyobject(),
+                else {
+                        PyObject* obj = exponent.to_pyobject();
+                        const numeric& ret = numeric(PyNumber_Power(v._pyobject,
+                                        obj,
                                         Py_None));
+                        Py_DECREF(obj);
+                        return ret;
+                }
         }
         if (expo.t == PYOBJECT and not expo.is_exact()) {
                 if (t == PYOBJECT)
                         return numeric(PyNumber_Power(v._pyobject,
                                         exponent.v._pyobject,
                                         Py_None));
-                else
-                        return numeric(PyNumber_Power(to_pyobject(),
+                else {
+                        PyObject* obj = to_pyobject();
+                        const numeric& ret = numeric(PyNumber_Power(obj,
                                         exponent.v._pyobject,
                                         Py_None));
+                        Py_DECREF(obj);
+                        return ret;
+                }
         }
 
         // handle all integer exponents
@@ -1828,14 +1857,22 @@ const ex numeric::power(const numeric &exponent) const {
                 return numeric(PyNumber_Power(v._pyobject,
                                         exponent.v._pyobject,
                                         Py_None));
-        if (t == PYOBJECT) 
-                return numeric(PyNumber_Power(v._pyobject,
-                                        exponent.to_pyobject(),
+        if (t == PYOBJECT) {
+                PyObject* obj = exponent.to_pyobject();
+                const numeric& ret = numeric(PyNumber_Power(v._pyobject,
+                                        obj,
                                         Py_None));
-        if (expo.t == PYOBJECT)
-                return numeric(PyNumber_Power(to_pyobject(),
-                                        exponent.v._pyobject,
+                Py_DECREF(obj);
+                return ret;
+        }
+        if (expo.t == PYOBJECT) {
+                PyObject* obj = to_pyobject();
+                const numeric& ret = numeric(PyNumber_Power(to_pyobject(),
+                                        obj,
                                         Py_None));
+                Py_DECREF(obj);
+                return ret;
+        }
 
         throw std::runtime_error("numeric::power: can't happen");
 }
@@ -3862,21 +3899,6 @@ const numeric numeric::bernoulli() const {
         PY_RETURN(py_funcs.py_bernoulli);
 }
 
-static PyObject* py_tuple_from_numvector(const std::vector<numeric>& vec)
-{
-        PyObject* list = PyTuple_New(vec.size());
-        if (list == nullptr)
-                throw(std::runtime_error("py_list_from_numvector(): PyList_New returned NULL"));
-        int pos = 0;
-        for (const numeric& num : vec) {
-                PyObject *numobj = num.to_pyobject();
-                int ret = PyTuple_SetItem(list, pos++, numobj);
-                if (ret != 0)
-                        throw(std::runtime_error("py_list_from_numvector(): PyList_Append unsuccessful"));
-        }
-        return list;
-}
-
 const numeric numeric::hypergeometric_pFq(const std::vector<numeric>& a, const std::vector<numeric>& b, PyObject *parent) const {
         PyObject *lista = py_tuple_from_numvector(a);
         PyObject *listb = py_tuple_from_numvector(b);
@@ -3890,11 +3912,14 @@ const numeric numeric::hypergeometric_pFq(const std::vector<numeric>& a, const s
         if (hypfunc == nullptr)
                 py_error("Error getting hypergeometric attribute");
 
-        if ((parent != nullptr) and PyDict_CheckExact(parent))
+        if ((parent != nullptr) and PyDict_CheckExact(parent)) {
+                Py_DECREF(z);
                 z = ex_to<numeric>(this->evalf(0, parent)).to_pyobject();
+        }
         PyObject* name = PyString_FromString(const_cast<char*>("_evalf_try_"));
         PyObject* pyresult = PyObject_CallMethodObjArgs(hypfunc, name, lista, listb, z, NULL);
         Py_DECREF(m);
+        Py_DECREF(z);
         Py_DECREF(name);
         Py_DECREF(hypfunc);
         if (pyresult == nullptr) {

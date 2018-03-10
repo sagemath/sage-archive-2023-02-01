@@ -1,3 +1,4 @@
+#cython: profile=True
 r"""
 Interface with bliss: graph (iso/auto)morphism
 
@@ -108,76 +109,6 @@ cdef void add_gen(void *user_param, unsigned int n, const unsigned int *aut):
 
 cdef void empty_hook(void *user_param , unsigned int n, const unsigned int *aut):
     return
-
-#####################################################
-# constucting bliss graphs from graphs
-#####################################################
-
-cdef Graph *bliss_graph(G, partition, vert2int, int2vert):
-    r"""
-    Return a bliss copy of a graph G
-
-    INPUT:
-
-    - ``G`` (a graph)
-
-    - ``partition`` -- a partition of the vertex set.
-
-    - ``vert2int, int2vert`` -- Two empty dictionaries. The entries of the
-      dictionary are later set to record the labeling of our graph. They are
-      taken as arguments to avoid technicalities of returning Python objects in
-      Cython functions.
-    """
-    cdef Graph *g = new Graph(G.order())
-
-    if g == NULL:
-        raise MemoryError("Allocation Failed")
-
-    for i,v in enumerate(G.vertices()):
-        vert2int[v] = i
-        int2vert[i] = v
-
-    for x,y in G.edges(labels=False):
-       g.add_edge(vert2int[x],vert2int[y])
-
-    if partition:
-        for i in xrange(1, len(partition)):
-            for v in partition[i]:
-                g.change_color(vert2int[v], i)
-    return g
-
-cdef Digraph *bliss_digraph(G, partition, vert2int, int2vert):
-    r"""
-    Return a bliss copy of a digraph G
-
-    INPUT:
-
-    - ``G`` (a digraph)
-
-    - ``partition`` -- a partition of the vertex set.
-
-    - ``vert2int, int2vert`` -- Two empty dictionaries. The entries of the
-      dictionary are later set to record the labeling of our graph. They are
-      taken as arguments to avoid technicalities of returning Python objects in
-      Cython functions.
-    """
-    cdef Digraph *g = new Digraph(G.order())
-
-    for i,v in enumerate(G.vertices()):
-        vert2int[v] = i
-        int2vert[i] = v
-
-    if g == NULL:
-        raise MemoryError("Allocation Failed")
-
-    for x,y in G.edges(labels=False):
-        g.add_edge(vert2int[x],vert2int[y])
-
-    if partition:
-        for i in xrange(1, len(partition)):
-            for v in partition[i]:
-                g.change_color(vert2int[v], i)
-    return g
 
 #####################################################
 # constucting bliss graphs from edge lists
@@ -359,6 +290,82 @@ cdef Digraph *bliss_digraph_from_labelled_edges(int Vnr, int Lnr, list Vout, lis
 # canonical form from graph or edge list
 #####################################################
 
+cpdef canonical_form_from_edge_list(int Vnr, list Vout, list Vin, int Lnr=1, list labels=[], list partition=None, bint directed=False, bint certificate=False):
+    r"""
+    Return an unsorted list of labelled edges of a canonical form.
+
+    INPUT:
+
+    - ``Vnr`` -- number of vertices such that the vertices are 0 ... Vnr-1
+
+    - ``Vout`` -- the list of vertices of outgoing edges
+
+    - ``Vin`` -- the list of vertices of ingoing edges
+
+    - ``Lnr`` -- number of labels such that the labels are 0 ... Lnr-1
+
+    - ``labels`` -- the list of edge labels)
+
+    - ``partition`` -- a partition of the vertex set
+
+    - ``directed`` -- boolean flag whether the edges are directed or not
+
+    - ``certificate`` -- boolean flag whether to return the isomorphism to obtain the canonical labelling
+    """
+    # We need this to convert the numbers from <unsigned int> to
+    # <long>. This assertion should be true simply for memory reasons.
+    assert <unsigned long>(Vnr) <= <unsigned long>LONG_MAX
+
+    cdef const unsigned int* aut
+    cdef Graph* g
+    cdef Digraph* d
+    cdef Stats s
+    cdef dict relabel
+
+    cdef list new_edges = []
+    cdef long e, f
+
+    if directed:
+        d = bliss_digraph_from_labelled_edges(Vnr, Lnr, Vout, Vin, labels, partition)
+        aut = d.canonical_form(s, empty_hook, NULL)
+    else:
+        g = bliss_graph_from_labelled_edges(Vnr, Lnr, Vout, Vin, labels, partition)
+        aut = g.canonical_form(s, empty_hook, NULL)
+
+    for i from 0 <= i < len(Vout):
+        x = Vout[i]
+        y = Vin[i]
+        e = aut[x]
+        f = aut[y]
+        if Lnr == 1:
+            if not bool(labels):
+                lab = None
+            else:
+                lab = labels[0]
+            if directed:
+                new_edges.append( (e,f,lab) )
+            else:
+                new_edges.append( (e,f,lab) if e > f else (f,e,lab))
+        else:
+            lab = labels[i]
+            if directed:
+                new_edges.append( (e,f,lab) )
+            else:
+                new_edges.append( (e,f,lab) if e > f else (f,e,lab))
+
+    if certificate:
+        relabel = {v: <long>aut[v] for v in range(Vnr)}
+
+    if directed:
+        del d
+    else:
+        del g
+
+    if certificate:
+        return new_edges, relabel
+    else:
+        return new_edges
+
 cpdef canonical_form(G, partition=None, return_graph=False, certificate=False):
     r"""
     Return the canonical label of ``G``.
@@ -480,7 +487,11 @@ cpdef canonical_form(G, partition=None, return_graph=False, certificate=False):
 
     return (sorted(new_edges), relabel) if certificate else sorted(new_edges)
 
-cpdef canonical_form_from_edge_list(int Vnr, list Vout, list Vin, int Lnr=1, list labels=[], list partition=None, bint directed=False, bint certificate=False):
+#####################################################
+# automorphism group from graphs
+#####################################################
+
+cpdef automorphism_group_from_edge_list(int Vnr, list Vout, list Vin, int Lnr=1, list labels=[], list int2vert=[], list partition=None, bint directed=False):
     r"""
     Return an unsorted list of labelled edges of a canonical form.
 
@@ -499,12 +510,268 @@ cpdef canonical_form_from_edge_list(int Vnr, list Vout, list Vin, int Lnr=1, lis
     - ``partition`` -- a partition of the vertex set
 
     - ``directed`` -- boolean flag whether the edges are directed or not
-
-    - ``certificate`` -- boolean flag whether to return the isomorphism to obtain the canonical labelling
     """
     # We need this to convert the numbers from <unsigned int> to
     # <long>. This assertion should be true simply for memory reasons.
     assert <unsigned long>(Vnr) <= <unsigned long>LONG_MAX
+
+    cdef Graph* g
+    cdef Digraph* d
+    cdef Stats s
+
+    if not bool(int2vert):
+        int2vert = list(range(Vnr))
+
+    gens = []
+    data = (gens, int2vert)
+
+    if directed:
+        d = bliss_digraph_from_labelled_edges(Vnr, Lnr, Vout, Vin, labels, partition)
+#        d.find_automorphisms(s, add_gen, <PyObject *> data)
+        del d
+    else:
+        g = bliss_graph_from_labelled_edges(Vnr, Lnr, Vout, Vin, labels, partition)
+#        g.find_automorphisms(s, add_gen, <PyObject *> data)
+        del g
+
+    return gens
+
+cpdef automorphism_group(G, partition=None):
+    r"""
+    Return the canonical label of ``G``.
+
+    A canonical label ``canonical_form(G)`` of ``G`` is a (di)graph defined on
+    `\{0,...,n-1\}` such that ``G`` is isomorphic to ``H`` if and only if
+    ``canonical_form(G)`` is equal to ``canonical_form(H)``.
+
+    INPUT:
+
+    - ``G`` -- A graph or digraph.
+
+    - ``partition`` -- A partition of the vertices of ``G`` into color classes.
+      Defaults to ``None``.
+
+    - ``return_graph`` -- If set to ``True``, ``canonical_form`` returns the
+      canonical graph of ``G``. Otherwise, it returns its set of edges.
+
+    - ``certificate`` -- If set to ``True`` returns the labeling of G into a
+      canonical graph.
+
+    TESTS::
+
+        sage: from sage.graphs.bliss import canonical_form                  # optional - bliss
+        sage: G = graphs.PetersenGraph()                                    # optional - bliss
+        sage: canonical_form(G)                                             # optional - bliss
+        [(2, 0, None),
+         (2, 1, None),
+         (3, 0, None),
+         (4, 1, None),
+         (5, 3, None),
+         (5, 4, None),
+         (6, 0, None),
+         (6, 4, None),
+         (7, 1, None),
+         (7, 3, None),
+         (8, 2, None),
+         (8, 5, None),
+         (9, 6, None),
+         (9, 7, None),
+         (9, 8, None)]
+
+        sage: P = graphs.GeneralizedPetersenGraph(5,2)                      # optional - bliss
+        sage: Q = graphs.PetersenGraph()                                    # optional - bliss
+        sage: canonical_form(P) == canonical_form(Q)                        # optional - bliss
+        True
+
+        sage: canonical_form(Graph(15),return_graph=True)                   # optional - bliss
+        Graph on 15 vertices
+        sage: g = digraphs.RandomTournament(40)                             # optional - bliss
+        sage: g.is_isomorphic(canonical_form(g,return_graph=True))          # optional - bliss
+        True
+
+        sage: g1 = graphs.RandomGNP(100,.4)                                 # optional - bliss
+        sage: r = Permutations(range(100)).random_element()                 # optional - bliss
+        sage: g2 = Graph([(r[u],r[v]) for u,v in g1.edges(labels=False)])   # optional - bliss
+        sage: g1 = canonical_form(g1,return_graph=True)                     # optional - bliss
+        sage: g2 = canonical_form(g2,return_graph=True)                     # optional - bliss
+        sage: g2 == g2                                                      # optional - bliss
+        True
+
+        sage: g = Graph({1: [2]})
+        sage: g_ = canonical_form(g, return_graph=True, certificate=True)    # optional - bliss
+        sage: 0 in g_[0]                                                 # optional - bliss
+        True
+    """
+    # We need this to convert the numbers from <unsigned int> to
+    # <long>. This assertion should be true simply for memory reasons.
+    cdef unsigned long Vnr = G.order()
+    assert Vnr <= <unsigned long>LONG_MAX
+
+    cdef bint directed = G.is_directed()
+
+    cdef int labInd
+    cdef list Vout   = []
+    cdef list Vin    = []
+    cdef list labels = []
+
+    vert2int         = {}
+    int2vert         = [None]*Vnr
+    edge_labels      = []
+    edge_labels_rev  = {}
+    cdef int Lnr     = 0
+
+    for i,v in enumerate(G.vertices()):
+        vert2int[v] = i
+        int2vert[i] = v
+
+    for x,y,lab in G.edges(labels=True):
+        try:
+            labInd = edge_labels_rev[lab]
+        except KeyError:
+            labInd = Lnr
+            Lnr    = Lnr+1
+            edge_labels_rev[lab] = labInd
+            edge_labels.append(lab)
+
+        Vout.append(vert2int[x])
+        Vin.append(vert2int[y])
+        labels.append(labInd)
+
+    lab_relabels = [ lab for _,lab in sorted(edge_labels_rev.iteritems(), key=itemgetter(0)) ]
+    labels = [lab_relabels[i] for i in labels]
+    gens = automorphism_group_from_edge_list(Vnr, Vout, Vin, Lnr, labels, int2vert, partition, directed)
+
+    return gens
+    from sage.groups.perm_gps.permgroup import PermutationGroup
+    return PermutationGroup(gens,domain=G)
+
+#####################################################
+# old direct interactions graphs <-> bliss graphs
+# currently unused
+#####################################################
+
+cdef Graph *bliss_graph(G, partition, vert2int, int2vert):
+    r"""
+    Return a bliss copy of a graph G
+
+    INPUT:
+
+    - ``G`` (a graph)
+
+    - ``partition`` -- a partition of the vertex set.
+
+    - ``vert2int, int2vert`` -- Two empty dictionaries. The entries of the
+      dictionary are later set to record the labeling of our graph. They are
+      taken as arguments to avoid technicalities of returning Python objects in
+      Cython functions.
+    """
+    cdef Graph *g = new Graph(G.order())
+
+    if g == NULL:
+        raise MemoryError("Allocation Failed")
+
+    for i,v in enumerate(G.vertices()):
+        vert2int[v] = i
+        int2vert[i] = v
+
+    for x,y in G.edges(labels=False):
+       g.add_edge(vert2int[x],vert2int[y])
+
+    if partition:
+        for i in xrange(1, len(partition)):
+            for v in partition[i]:
+                g.change_color(vert2int[v], i)
+    return g
+
+cdef Digraph *bliss_digraph(G, partition, vert2int, int2vert):
+    r"""
+    Return a bliss copy of a digraph G
+
+    INPUT:
+
+    - ``G`` (a digraph)
+
+    - ``partition`` -- a partition of the vertex set.
+
+    - ``vert2int, int2vert`` -- Two empty dictionaries. The entries of the
+      dictionary are later set to record the labeling of our graph. They are
+      taken as arguments to avoid technicalities of returning Python objects in
+      Cython functions.
+    """
+    cdef Digraph *g = new Digraph(G.order())
+
+    for i,v in enumerate(G.vertices()):
+        vert2int[v] = i
+        int2vert[i] = v
+
+    if g == NULL:
+        raise MemoryError("Allocation Failed")
+
+    for x,y in G.edges(labels=False):
+        g.add_edge(vert2int[x],vert2int[y])
+
+    if partition:
+        for i in xrange(1, len(partition)):
+            for v in partition[i]:
+                g.change_color(vert2int[v], i)
+    return g
+
+def canonical_form_old(G, partition=None, return_graph=False, certificate=False):
+    r"""
+    Return the canonical label of ``G``.
+
+    A canonical label ``canonical_form_old(G)`` of ``G`` is a (di)graph defined on
+    `\{0,...,n-1\}` such that ``G`` is isomorphic to ``H`` if and only if
+    ``canonical_form_old(G)`` is equal to ``canonical_form_old(H)``.
+
+    INPUT:
+
+    - ``G`` -- A graph or digraph.
+
+    - ``partition`` -- A partition of the vertices of ``G`` into color classes.
+      Defaults to ``None``.
+
+    - ``return_graph`` -- If set to ``True``, ``canonical_form_old`` returns the
+      canonical graph of ``G``. Otherwise, it returns its set of edges.
+
+    - ``certificate`` -- If set to ``True`` returns the labeling of G into a
+      canonical graph.
+
+    TESTS::
+
+        sage: from sage.graphs.bliss import canonical_form_old                  # optional - bliss
+        sage: G = graphs.PetersenGraph()                                    # optional - bliss
+        sage: canonical_form_old(G)                                             # optional - bliss
+        [(2, 0), (2, 1), (3, 0), (4, 1), (5, 3), (5, 4), (6, 0), (6, 4),
+         (7, 1), (7, 3), (8, 2), (8, 5), (9, 6), (9, 7), (9, 8)]
+
+        sage: P = graphs.GeneralizedPetersenGraph(5,2)                      # optional - bliss
+        sage: Q = graphs.PetersenGraph()                                    # optional - bliss
+        sage: canonical_form_old(P) == canonical_form_old(Q)                        # optional - bliss
+        True
+
+        sage: canonical_form_old(Graph(15),return_graph=True)                   # optional - bliss
+        Graph on 15 vertices
+        sage: g = digraphs.RandomTournament(40)                             # optional - bliss
+        sage: g.is_isomorphic(canonical_form_old(g,return_graph=True))          # optional - bliss
+        True
+
+        sage: g1 = graphs.RandomGNP(100,.4)                                 # optional - bliss
+        sage: r = Permutations(range(100)).random_element()                 # optional - bliss
+        sage: g2 = Graph([(r[u],r[v]) for u,v in g1.edges(labels=False)])   # optional - bliss
+        sage: g1 = canonical_form_old(g1,return_graph=True)                     # optional - bliss
+        sage: g2 = canonical_form_old(g2,return_graph=True)                     # optional - bliss
+        sage: g2 == g2                                                      # optional - bliss
+        True
+
+        sage: g = Graph({1: [2]})
+        sage: g_ = canonical_form_old(g, return_graph=True, certificate=True)    # optional - bliss
+        sage: 0 in g_[0]                                                 # optional - bliss
+        True
+    """
+    # We need this to convert the numbers from <unsigned int> to
+    # <long>. This assertion should be true simply for memory reasons.
+    assert <unsigned long>(G.order()) <= <unsigned long>LONG_MAX
 
     cdef const unsigned int* aut
     cdef Graph* g
@@ -512,55 +779,45 @@ cpdef canonical_form_from_edge_list(int Vnr, list Vout, list Vin, int Lnr=1, lis
     cdef Stats s
     cdef dict relabel
 
-    cdef list new_edges = []
+    cdef list edges = []
     cdef long e, f
 
-    if directed:
-        d = bliss_digraph_from_labelled_edges(Vnr, Lnr, Vout, Vin, labels, partition)
+    vert2int = {}
+
+    if G.is_directed():
+        d = bliss_digraph(G, partition, vert2int, {})
         aut = d.canonical_form(s, empty_hook, NULL)
-    else:
-        g = bliss_graph_from_labelled_edges(Vnr, Lnr, Vout, Vin, labels, partition)
-        aut = g.canonical_form(s, empty_hook, NULL)
-
-    for i from 0 <= i < len(Vout):
-        x = Vout[i]
-        y = Vin[i]
-        e = aut[x]
-        f = aut[y]
-        if Lnr == 1:
-            if not bool(labels):
-                lab = None
-            else:
-                lab = labels[0]
-            if directed:
-                new_edges.append( (e,f,lab) )
-            else:
-                new_edges.append( (e,f,lab) if e > f else (f,e,lab))
-        else:
-            lab = labels[i]
-            if directed:
-                new_edges.append( (e,f,lab) )
-            else:
-                new_edges.append( (e,f,lab) if e > f else (f,e,lab))
-
-    if certificate:
-        relabel = {v: <long>aut[v] for v in range(Vnr)}
-
-    if directed:
+        for x,y in G.edges(labels=False):
+            e,f = aut[ vert2int[x] ], aut[ vert2int[y] ]
+            edges.append( (e,f) )
+        relabel = {v: <long>aut[vert2int[v]] for v in G}
         del d
     else:
+        g = bliss_graph(G, partition, vert2int, {})
+        aut = g.canonical_form(s, empty_hook, NULL)
+        for x,y in G.edges(labels=False):
+            e,f = aut[ vert2int[x] ], aut[ vert2int[y] ]
+            edges.append( (e,f) if e > f else (f,e))
+        relabel = {v: <long>aut[vert2int[v]] for v in G}
         del g
 
+    if return_graph:
+        if G.is_directed():
+            from sage.graphs.graph import DiGraph
+            G = DiGraph(edges,loops=G.allows_loops(),multiedges=G.allows_multiple_edges())
+        else:
+            from sage.graphs.graph import Graph
+            G = Graph(edges,loops=G.allows_loops(),multiedges=G.allows_multiple_edges())
+
+        G.add_vertices(vert2int.values())
+        return (G, relabel) if certificate else G
+
     if certificate:
-        return new_edges, relabel
-    else:
-        return new_edges
+        return sorted(edges),relabel
 
-#####################################################
-# automorphism group from graphs
-#####################################################
+    return sorted(edges)
 
-def automorphism_group(G, partition=None):
+def automorphism_group_old(G, partition=None):
     """
     Computes the automorphism group of ``G`` subject to the coloring ``partition.``
 
@@ -584,7 +841,6 @@ def automorphism_group(G, partition=None):
         sage: automorphism_group(G, partition=p).is_isomorphic(A)               # optional - bliss
         True
     """
-
     cv = 0
     n = G.order()
     vert2int = {}
@@ -599,14 +855,13 @@ def automorphism_group(G, partition=None):
 
     if G.is_directed():
         d = bliss_digraph(G, partition, vert2int, int2vert)
-        d.find_automorphisms(s, add_gen, <PyObject *> data)
+#        d.find_automorphisms(s, add_gen, <PyObject *> data)
         del d
     else:
         g = bliss_graph(G, partition, vert2int, int2vert)
-        g.find_automorphisms(s, add_gen, <PyObject *> data)
+#        g.find_automorphisms(s, add_gen, <PyObject *> data)
         del g
-
+#    return
+    return gens
     from sage.groups.perm_gps.permgroup import PermutationGroup
     return PermutationGroup(gens,domain=G)
-
-

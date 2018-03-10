@@ -741,7 +741,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
             where the `k^{th}` entry denotes whether the `k^{th}` step was
             positive or negative.
 
-            See equation 3.4, of Ram: Alcove walks ..., arxiv:math/0601343v1 [math.RT]
+            See equation 3.4, of Ram: Alcove walks ..., :arxiv:`math/0601343v1`
 
             EXAMPLES::
 

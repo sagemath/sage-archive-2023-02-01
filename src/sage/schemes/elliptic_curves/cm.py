@@ -136,7 +136,7 @@ def hilbert_class_polynomial(D, algorithm=None):
 
     # compute needed precision
     #
-    # NB: [http://arxiv.org/abs/0802.0979v1], quoting Enge (2006), is
+    # NB: [https://arxiv.org/abs/0802.0979v1], quoting Enge (2006), is
     # incorrect.  Enge writes (2009-04-20 email to John Cremona) "The
     # source is my paper on class polynomials
     # [http://hal.inria.fr/inria-00001040] It was pointed out to me by

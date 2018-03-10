@@ -4640,7 +4640,7 @@ class Permutation(CombinatorialElement):
 
         .. [OkounkovVershik2] \A. M. Vershik, A. Yu. Okounkov.
            *A New Approach to the Representation Theory of the Symmetric
-           Groups. 2*. http://uk.arxiv.org/abs/math/0503040v3.
+           Groups. 2*. :arxiv:`math/0503040v3`.
 
         .. [CST10] Tullio Ceccherini-Silberstein, Fabio Scarabotti,
            Filippo Tolli.

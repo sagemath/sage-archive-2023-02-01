@@ -5206,7 +5206,7 @@ def U42Graph216():
 
     .. [CRS16] \Dean Crnković, Sanja Rukavina, Andrea Švob,
        Strongly regular graphs from orthogonal groups `O^+(6,2)` and `O^-(6,2)`.
-       https://arxiv.org/abs/1609.07133
+       :arxiv:`1609.07133`
     """
     from sage.libs.gap.libgap import libgap
     from sage.misc.package import is_package_installed, PackageNotFoundError

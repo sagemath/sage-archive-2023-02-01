@@ -2194,9 +2194,9 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
         REFERENCES:
 
         .. [FSS07] \G. Fourier, A. Schilling, and M. Shimozono,
-           Demazure structure inside Kirillov-Reshetikhin crystals,
+           *Demazure structure inside Kirillov-Reshetikhin crystals*,
            J. Algebra, Vol. 309, (2007), p. 386-404
-           http://arxiv.org/abs/math/0605451
+           :arxiv:`math/0605451`
         """
         a = self.a()
         acheck = self.acheck()
@@ -2361,9 +2361,9 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
         REFERENCES:
 
         .. [HST09] \F. Hivert, A. Schilling, and N. M. Thiery,
-           Hecke group algebras as quotients of affine Hecke
-           algebras at level 0, JCT A, Vol. 116, (2009) p. 844-863
-           http://arxiv.org/abs/0804.3781
+           *Hecke group algebras as quotients of affine Hecke
+           algebras at level 0*, JCT A, Vol. 116, (2009) p. 844-863
+           :arxiv:`0804.3781`
         """
         a = self.a()
         acheck = self.acheck()

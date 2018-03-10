@@ -7161,7 +7161,7 @@ class Graph(GenericGraph):
 
         .. [TedCorHabPaul08] Marc Tedder, Derek Corneil, Michel Habib and
           Christophe Paul
-          https://arxiv.org/pdf/0710.3901.pdf
+          :arxiv:`0710.3901`
 
         TESTS::
 

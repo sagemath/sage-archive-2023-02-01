@@ -16,7 +16,6 @@ including minimum spanning trees.
 * Rewrite :func:`kruskal` to use priority queues. Once Cython has support
   for generators and the ``yield`` statement, rewrite :func:`kruskal` to use
   ``yield``.
-* Prim's algorithm.
 * Parallel version of Boruvka's algorithm.
 * Randomized spanning tree construction.
 
@@ -337,37 +336,7 @@ cpdef kruskal(G, wfunction=None, bint check=False):
 
 
 
-def find(parent, i):
-    """
-    Helper function used for Boruvka's algorithm.
-    To find the parent of the connected component to which i belongs to.
-    """
-    if parent[i] == i:
-        return i
-    return find(parent, parent[i])
-
-
-def union(parent, rank, x, y):
-    """
-    Helper function used for Boruvka's algorithm.
-    To merge two connected components.
-    """
-    xroot = find(parent, x)
-    yroot = find(parent, y)
-
-    # Attach smaller rank tree under root of high rank tree
-    # (Union by Rank)
-    if rank[xroot] < rank[yroot]:
-        parent[xroot] = yroot
-    elif rank[xroot] > rank[yroot]:
-        parent[yroot] = xroot
-    # If ranks are same, then make one as root and increment
-    # its rank by one
-    else :
-        parent[yroot] = xroot
-        rank[xroot] += 1
- 
-
+from sage.sets.disjoint_set import *
 
 cpdef boruvka(G, wfunction=None, bint check=False):
     r"""
@@ -595,64 +564,76 @@ cpdef boruvka(G, wfunction=None, bint check=False):
         if G.num_verts() == G.num_edges() + 1:
             # G is a tree
             return G.edges()
-        g = G.to_simple(to_undirected=False, keep_label='min')
-    else:
-        g = G
+        G = G.to_simple(to_undirected=False, keep_label='min')
 
     # Boruvka's algorithm
-    parent = {} # to store the parent in connected component
-    rank = {}
-    cheapest = {} # a temporary dictionary to store the least weight outgoing edge
-    T = [] # stores the edges in minimum spanning tree
-    
-    numConnectedComponents = len(g.vertices()) 
 
     # initially, each vertex is a connected component
-    # initialise the required variables
-    for v in g.vertices():
-        parent[v] = v
-        rank[v] = 0
-        cheapest[v] = -1
+    partitions = DisjointSet(G.vertices())
+    cheapest = {} # a dictionary to store the least weight outgoing edge for each component
+    T = [] # stores the edges in minimum spanning tree
+    numConnectedComponents = len(G.vertices()) 
+    
+    # Store two edge lists to keep track of active edges
+    edge_list = G.edges()
+    edge_temp = []
 
     while numConnectedComponents > 1:
-        for e in g.edges():
-            component1 = find(parent, e[0])
-            component2 = find(parent, e[1])
+        for e in edge_list:
+            component1 = partitions.find(e[0])
+            component2 = partitions.find(e[1])
 
             # If the two endpoints of current edge belong to
             # same component, ignore the edge. 
             # Else check if current edge has lesser weight than previous
             # cheapest edges of component1 and component2
-            if component1 != component2 :   
+            # Before that, check if component1 and 2 are present in 'cheapest' dict
+            if component1 != component2 : 
+                edge_temp.append(e) #active edge
                 if wfunction is None:
-                    if cheapest[component1] == -1 or cheapest[component1][2] > e[2] :
+                    if component1 in cheapest:
+                        if cheapest[component1][2] > e[2]:
+                            cheapest[component1] = e
+                    else:
                         cheapest[component1] = e
 
-                    if cheapest[component2] == -1 or cheapest[component2][2] > e[2] :
+                    if component2 in cheapest:
+                        if cheapest[component2][2] > e[2]:
+                            cheapest[component2] = e
+                    else:
                         cheapest[component2] = e
-                else: #is a weight function is provided
+                    
+                else: #is a weight function provided
                     e_weight = wfunction(e)
-                    if cheapest[component1] == -1 or wfunction(cheapest[component1]) > e_weight :
+                    if component1 in cheapest:
+                        if wfunction(cheapest[component1]) > e_weight:
+                            cheapest[component1] = e
+                    else:
                         cheapest[component1] = e
 
-                    if cheapest[component2] == -1 or wfunction(cheapest[component2]) > e_weight :
+                    if component2 in cheapest:
+                        if wfunction(cheapest[component2]) > e_weight:
+                            cheapest[component2] = e
+                    else:
                         cheapest[component2] = e
+        
+        edge_list = edge_temp #consider active edges in next iteration
+        edge_temp = []
 
-        for v in g.vertices():
+        for v in cheapest:
             # Go through all the current connected components
             # and merge wherever possible
-            if cheapest[v] != -1:
-                e = cheapest[v]
-                component1 = find(parent, e[0])
-                component2 = find(parent, e[1])
+            e = cheapest[v]
+            component1 = partitions.find(e[0])
+            component2 = partitions.find(e[1])
 
-                if component1 != component2 :
-                    union(parent, rank, component1, component2)
-                    T.append(e)
-                    numConnectedComponents = numConnectedComponents - 1
+            if component1 != component2 :
+                partitions.union(component1, component2)
+                T.append(e)
+                numConnectedComponents = numConnectedComponents - 1
          
         #reset cheapest array for next iteration
-        cheapest = cheapest.fromkeys(cheapest, -1)
+        cheapest = {}
 
     return sorted(T)
 

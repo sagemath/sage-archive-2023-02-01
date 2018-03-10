@@ -468,7 +468,7 @@ REFERENCES:
              Polyhedral representation conversion up to symmetries,
              Proceedings of the 2006 CRM workshop on polyhedral
              computation, AMS/CRM Lecture Notes, 48 (2009),
-             45-71. :arxiv.org:`math/0702239`
+             45-71. :arxiv:`math/0702239`
 
 .. [BSV2010] \M. Bolt, S. Snoeyink, E. Van Andel. "Visual
              representation of the Riemann map and Ahlfors map via the

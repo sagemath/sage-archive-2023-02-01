@@ -7503,14 +7503,26 @@ cdef class Expression(CommutativeRingElement):
 
             sage: SR(0.1)._evaluate_polynomial(pol)
             0.123400000000000
+
+            sage: Pol.<x> = SR[]
+            sage: pol = x^2 - 1
+            sage: pol(1)
+            0
+            sage: pol(1).parent()
+            Symbolic Ring
         """
         cdef Expression zero
-        try:
-            return new_Expression_from_pyobject(self._parent, pol(self.pyobject()))
-        except TypeError:
-            zero = self._parent.zero()
-            return zero.add(*(pol[i]*self**i
-                              for i in xrange(pol.degree() + 1)))
+        if not isinstance(pol[0], Expression): # avoid infinite recursion
+            try:
+                x = self.pyobject()
+                y = pol(x) # may fail if x is a symbolic constant
+            except TypeError:
+                pass
+            else:
+                return new_Expression_from_pyobject(self._parent, y)
+        zero = self._parent.zero()
+        return zero.add(*(pol[i]*self**i for i in xrange(pol.degree() + 1)))
+
     def collect_common_factors(self):
         """
         This function does not perform a full factorization but only

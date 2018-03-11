@@ -169,6 +169,9 @@ def showwarning_with_traceback(message, category, filename, lineno, file=None, l
         :
         UserWarning: bad stuff
     """
+    # Flush stdout to get predictable ordering of output and warnings
+    sys.stdout.flush()
+
     # Get traceback to display in warning
     tb = traceback.extract_stack()
     tb = tb[:-1]  # Drop this stack frame for showwarning_with_traceback()

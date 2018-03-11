@@ -527,11 +527,11 @@ cpdef automorphism_group_from_edge_list(int Vnr, list Vout, list Vin, int Lnr=1,
 
     if directed:
         d = bliss_digraph_from_labelled_edges(Vnr, Lnr, Vout, Vin, labels, partition)
-#        d.find_automorphisms(s, add_gen, <PyObject *> data)
+        d.find_automorphisms(s, add_gen, <PyObject *> data)
         del d
     else:
         g = bliss_graph_from_labelled_edges(Vnr, Lnr, Vout, Vin, labels, partition)
-#        g.find_automorphisms(s, add_gen, <PyObject *> data)
+        g.find_automorphisms(s, add_gen, <PyObject *> data)
         del g
 
     return gens
@@ -620,11 +620,11 @@ cpdef automorphism_group(G, partition=None):
     edge_labels_rev  = {}
     cdef int Lnr     = 0
 
-    for i,v in enumerate(G.vertices()):
+    for i, v in enumerate(G.vertex_iterator()):
         vert2int[v] = i
         int2vert[i] = v
 
-    for x,y,lab in G.edges(labels=True):
+    for x,y,lab in G.edge_iterator(labels=True):
         try:
             labInd = edge_labels_rev[lab]
         except KeyError:
@@ -639,9 +639,9 @@ cpdef automorphism_group(G, partition=None):
 
     lab_relabels = [ lab for _,lab in sorted(edge_labels_rev.iteritems(), key=itemgetter(0)) ]
     labels = [lab_relabels[i] for i in labels]
+
     gens = automorphism_group_from_edge_list(Vnr, Vout, Vin, Lnr, labels, int2vert, partition, directed)
 
-    return gens
     from sage.groups.perm_gps.permgroup import PermutationGroup
     return PermutationGroup(gens,domain=G)
 
@@ -855,13 +855,12 @@ def automorphism_group_old(G, partition=None):
 
     if G.is_directed():
         d = bliss_digraph(G, partition, vert2int, int2vert)
-#        d.find_automorphisms(s, add_gen, <PyObject *> data)
+        d.find_automorphisms(s, add_gen, <PyObject *> data)
         del d
     else:
         g = bliss_graph(G, partition, vert2int, int2vert)
-#        g.find_automorphisms(s, add_gen, <PyObject *> data)
+        g.find_automorphisms(s, add_gen, <PyObject *> data)
         del g
-#    return
     return gens
     from sage.groups.perm_gps.permgroup import PermutationGroup
     return PermutationGroup(gens,domain=G)

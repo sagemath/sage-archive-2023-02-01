@@ -1028,7 +1028,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         printed. The output would look the same without this function applied::
 
             sage: def reorder_constraint(lb,indcoef,ub):
-            ....:    ind, coeff = indcoeff
+            ....:    ind, coef = indcoef
             ....:    d = dict(zip(ind, coef))
             ....:    ind.sort()
             ....:    return (lb, (ind, [d[i] for i in ind]), ub)
@@ -1040,11 +1040,10 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.add_constraint(p[0] - 2*p[1], min = 1)
             sage: sorted(reorder_constraint(*c) for c in p.constraints())
             [(1.0, ([0, 1], [1.0, -1.0]), 4.0), (1.0, ([0, 2], [1.0, -2.0]), None)]
-            sage: reorder_constraint(p.constraints(0))
+            sage: reorder_constraint(*p.constraints(0))
             (1.0, ([0, 1], [1.0, -1.0]), 4.0)
-            sage: sorted(map(reorder_constraint,p.constraints([1])))
+            sage: sorted(reorder_constraint(*c) for c in p.constraints([1]))
             [(1.0, ([0, 2], [1.0, -2.0]), None)]
-
         """
         from sage.rings.integer import Integer as Integer
         cdef int i

@@ -187,7 +187,7 @@ in the same vein, the default coordinates can be changed via the method
 The value of ``v`` at point ``p``::
 
     sage: vp = v.at(p); vp
-    Tangent vector v at Point p on the Euclidean plane E^2
+    Vector v at Point p on the Euclidean plane E^2
     sage: vp.display()
     v = -e_x - e_y
     sage: vp.display(polar_frame.at(p))
@@ -315,15 +315,15 @@ The cross product of two vector fields::
     grad(f) x v = -x^2*y*cos(x*y*z) e_x - x*y^2*cos(x*y*z) e_y
      + 2*x*y*z*cos(x*y*z) e_z
 
-The triple product of three vector fields::
+The scalar triple product of three vector fields::
 
-    sage: triple_product = E.volume_form()
+    sage: triple_product = E.scalar_triple_product()
     sage: s = triple_product(u, v, w); s
-    Scalar field eps_g(grad(f),v,curl(v)) on the Euclidean space E^3
+    Scalar field epsilon(grad(f),v,curl(v)) on the Euclidean space E^3
     sage: s.expr()
     4*x*y*z*cos(x*y*z)
 
-Let us check that the triple product of `u`, `v` and `w` is
+Let us check that the scalar triple product of `u`, `v` and `w` is
 `u\cdot(v\times w)`::
 
     sage: s == u.dot(v.cross(w))
@@ -680,18 +680,22 @@ class EuclideanSpaceGeneric(PseudoRiemannianManifold):
           is assumed
         - ``name`` -- (default: ``None``) name given to the vector field
         - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
-          vector field; if none is provided, the LaTeX symbol is set to
+          vector field; if ``None``, the LaTeX symbol is set to
           ``name``
         - ``dest_map`` -- (default: ``None``) the destination map
-          `\Phi:\ M \rightarrow N`; if ``None``, it is assumed that `N = M`
-          and that `\Phi` is the identity map (case of a vector field
-          *on* `M`), otherwise ``dest_map`` must be a
+          `\Phi:\ E \rightarrow F`, where `E` is ``self`` and `F` is the
+          differentiable manifold where the vector field takes its values
+          (see
+          :class:`~sage.manifolds.differentiable.vectorfield.VectorField`
+          for details); if ``None``, it is assumed that `E = F` and that `\Phi`
+          is the identity map (case of a vector field *on* `E`), otherwise
+          ``dest_map`` must be a
           :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
 
         OUTPUT:
 
-        - a
-          :class:`~sage.manifolds.differentiable.vectorfield.VectorFieldParal`)
+        - an instance of
+          :class:`~sage.manifolds.differentiable.vectorfield.VectorFieldParal`
           representing the defined vector field
 
         EXAMPLES:
@@ -2260,6 +2264,85 @@ class Euclidean3dimSpace(EuclideanSpaceGeneric):
                                             # the associated orthonormal frame
         return self._cylindrical_frame
 
+    def scalar_triple_product(self, name=None, latex_name=None):
+        r"""
+        Return the scalar triple product operator, as a 3-form.
+
+        The *scalar triple product* (also called *mixed product*) of three
+        vector fields `u`, `v` and `w` defined on an Euclidean space `E`
+        is the scalar field
+
+        .. MATH::
+
+            \epsilon(u,v,w) = u\cdot(v\times w)
+
+        The scalar triple product operator $\epsilon$ is a *3-form*, i.e. a
+        field of fully antisymmetric trilinear forms; it is also called the
+        *volume form* of `E` or the *Levi-Civita tensor* of `E`.
+
+        INPUT:
+
+        - ``name`` -- (default: ``None``) string; name given to the scalar
+          triple product operator; if ``None``, ``'epsilon'`` is used
+        - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote
+          the scalar triple product; if ``None``, it is set to ``r'\epsilon'``
+          if ``name`` is ``None`` and to ``name`` otherwise.
+
+        OUTPUT:
+
+        - the scalar triple product operator $\epsilon$, as an instance of
+          :class:`~sage.manifolds.differentiable.diff_form.DiffFormParal`
+
+        EXAMPLES::
+
+            sage: E.<x,y,z> = EuclideanSpace(3)
+            sage: triple_product = E.scalar_triple_product()
+            sage: triple_product
+            3-form epsilon on the Euclidean space E^3
+            sage: latex(triple_product)
+            \epsilon
+            sage: u = E.vector_field(x, y, z, name='u')
+            sage: v = E.vector_field(-y, x, 0, name='v')
+            sage: w = E.vector_field(y*z, x*z, x*y, name='w')
+            sage: s = triple_product(u, v, w); s
+            Scalar field epsilon(u,v,w) on the Euclidean space E^3
+            sage: s.display()
+            epsilon(u,v,w): E^3 --> R
+               (x, y, z) |--> x^3*y + x*y^3 - 2*x*y*z^2
+            sage: s.expr()
+            x^3*y + x*y^3 - 2*x*y*z^2
+            sage: latex(s)
+            \epsilon\left(u,v,w\right)
+            sage: s == - triple_product(w, v, u)
+            True
+
+        Check of the identity `\epsilon(u,v,w) = u\cdot(v\times w)`::
+
+            sage: s == u.dot(v.cross(w))
+            True
+
+        Customizing the name::
+
+            sage: E.scalar_triple_product(name='S')
+            3-form S on the Euclidean space E^3
+            sage: latex(_)
+            S
+            sage: E.scalar_triple_product(name='Omega', latex_name=r'\Omega')
+            3-form Omega on the Euclidean space E^3
+            sage: latex(_)
+            \Omega
+
+        """
+        eps = self.volume_form()
+        if latex_name is None:
+            if name is None:
+                latex_name = r'\epsilon'
+            else:
+                latex_name = name
+        if name is None:
+            name = 'epsilon'
+        eps.set_name(name=name, latex_name=latex_name)
+        return eps
 
 ###############################################################################
 

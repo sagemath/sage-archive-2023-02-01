@@ -930,7 +930,7 @@ fi
 
 if [ "$1" = '-installed' -o "$1" = "--installed" ]; then
     shift
-    exec sage-list-packages installed $@
+    exec sage-list-packages all --installed-only $@
 fi
 
 if [ "$1" = '-p' ]; then

@@ -131,7 +131,7 @@ from sage.libs.gmp.pylong cimport mpz_set_pylong
 from sage.libs.gmp.mpz cimport *
 from sage.libs.mpfr cimport *
 from sage.misc.randstate cimport randstate, current_randstate
-from sage.cpython.string cimport char_to_str
+from sage.cpython.string cimport char_to_str, str_to_bytes
 from sage.misc.superseded import deprecation
 
 from sage.structure.element cimport RingElement, Element, ModuleElement
@@ -525,7 +525,7 @@ cdef class RealField_class(sage.rings.ring.Field):
         cdef const char* rnd_str = mpfr_print_rnd_mode(self.rnd)
         if rnd_str is NULL:
             raise ValueError("unknown rounding mode {}".format(rnd))
-        self.rnd_str = (rnd_str + 5)  # Strip "MPFR_"
+        self.rnd_str = char_to_str(rnd_str + 5)  # Strip "MPFR_"
 
         from sage.categories.fields import Fields
         ParentWithGens.__init__(self, self, tuple([]), False, category=Fields().Metric().Complete())
@@ -1457,7 +1457,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             if isinstance(x, RealLiteral):
                 s = (<RealLiteral>x).literal
                 base = (<RealLiteral>x).base
-                if mpfr_set_str(self.value, s, base, parent.rnd):
+                if mpfr_set_str(self.value, str_to_bytes(s), base, parent.rnd):
                     self._set(s, base)
             else:
                 mpfr_set(self.value, (<RealNumber>x).value, parent.rnd)
@@ -1488,7 +1488,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             s_lower = s.lower()
             if s_lower == 'infinity':
                 raise ValueError('can only convert signed infinity to RR')
-            elif mpfr_set_str(self.value, s, base, parent.rnd) == 0:
+            elif mpfr_set_str(self.value, str_to_bytes(s), base, parent.rnd) == 0:
                 pass
             elif s == 'NaN' or s == '@NaN@' or s == '[..NaN..]' or s == 'NaN+NaN*I':
                 mpfr_set_nan(self.value)
@@ -5848,7 +5848,8 @@ cdef class RRtoRR(Map):
         cdef RealField_class parent = <RealField_class>self._codomain
         cdef RealNumber y = parent._new()
         if type(x) is RealLiteral:
-            mpfr_set_str(y.value, (<RealLiteral>x).literal, (<RealLiteral>x).base, parent.rnd)
+            mpfr_set_str(y.value, str_to_bytes((<RealLiteral>x).literal),
+                         (<RealLiteral>x).base, parent.rnd)
         else:
             mpfr_set(y.value, (<RealNumber>x).value, parent.rnd)
         return y

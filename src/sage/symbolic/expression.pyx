@@ -145,7 +145,10 @@ import operator
 from . import ring
 import sage.rings.integer
 import sage.rings.rational
+
 from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
+
+from sage.cpython.string cimport str_to_bytes
 from sage.structure.element cimport ModuleElement, RingElement, Element, \
   classify_elements, HAVE_SAME_PARENT, BOTH_ARE_ELEMENT, coercion_model
 from sage.symbolic.comparison import mixed_order
@@ -1919,7 +1922,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x.is_real()
             True
         """
-        pynac_assume_gdecl(self._gobj, decl)
+        pynac_assume_gdecl(self._gobj, str_to_bytes(decl))
 
     def decl_forget(self, decl):
         """
@@ -1936,7 +1939,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x.is_integer()
             False
         """
-        pynac_forget_gdecl(self._gobj, decl)
+        pynac_forget_gdecl(self._gobj, str_to_bytes(decl))
 
     def has_wild(self):
         """

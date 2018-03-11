@@ -173,7 +173,7 @@ REFERENCES:
 
 .. [BB2009] Tomas J. Boothby and Robert W. Bradshaw. *Bitslicing and
             the Method of Four Russians Over Larger Finite
-            Fields*. arXiv:0901.1413v1, 2009. :arxiv:`0901.1413`
+            Fields*. :arxiv:`0901.1413`, 2009.
 
 .. [BBISHAR2015] \S. Banik, A. Bogdanov, T. Isobe, K. Shibutani, H. Hiwatari,
                  \T. Akishita, and F. Regazzoni,
@@ -351,9 +351,9 @@ REFERENCES:
             Poincaré homology 3-sphere", Experiment. Math. 9 (2000),
             no. 2, 275-289.
 
-.. [BL2008] Corentin Boissy and Erwan Lanneau, "Dynamics and geometry
-            of the Rauzy-Veech induction for quadratic differentials"
-            (arxiv:0710.5614) to appear in Ergodic Theory and
+.. [BL2008] Corentin Boissy and Erwan Lanneau, *Dynamics and geometry
+            of the Rauzy-Veech induction for quadratic differentials*
+            (:arxiv:`0710.5614`) to appear in Ergodic Theory and
             Dynamical Systems.
 
 .. [BM1940] Becker, M. F., and Saunders MacLane. The minimum number of
@@ -377,7 +377,7 @@ REFERENCES:
             geometry, number theory, representation theory, algebra,
             optimization, statistics*, volume 452 of *Contemp. Math.*,
             pages 35--66. Amer. Math. Soc., Providence,
-            RI, 2008. arXiv:math/0703456v2 [math.CO].
+            RI, 2008. :arxiv:`math/0703456v2`.
 
 .. [Bob2013] \J.W. Bober. Conditionally bounding analytic ranks of
              elliptic curves. ANTS
@@ -468,7 +468,7 @@ REFERENCES:
              Polyhedral representation conversion up to symmetries,
              Proceedings of the 2006 CRM workshop on polyhedral
              computation, AMS/CRM Lecture Notes, 48 (2009),
-             45-71. http://arxiv.org/abs/math/0702239
+             45-71. :arxiv:`math/0702239`
 
 .. [BSV2010] \M. Bolt, S. Snoeyink, E. Van Andel. "Visual
              representation of the Riemann map and Ahlfors map via the
@@ -820,7 +820,7 @@ REFERENCES:
 
 .. [DP2008] Jean-Guillaume Dumas and Clement Pernet. Memory efficient
             scheduling of Strassen-Winograd's matrix multiplication
-            algorithm. arXiv:0707.2347v1, 2008.
+            algorithm. :arxiv:`0707.2347v1`, 2008.
 
 .. [DPVAR2000] \J. Daemen, M. Peeters, G. Van Assche, and V. Rijmen,
                *Nessie proposal: NOEKEON*; in First Open NESSIE Workshop, (2000).
@@ -837,7 +837,7 @@ REFERENCES:
             (2003), 103–127.
 
 .. [Du2009] Du Ye. *On the Complexity of Deciding Degeneracy in
-            Games*. http://arxiv.org/pdf/0905.3012v1.pdf (2009)
+            Games*. :arxiv:`0905.3012v1` (2009)
 
 .. [DW1995] Andreas W.M. Dress and Walter Wenzel, *A Simple Proof of
             an Identity Concerning Pfaffians of Skew Symmetric
@@ -1047,7 +1047,7 @@ REFERENCES:
               Software*. Addison-Wesley (1994). ISBN 0-201-63361-2.
 
 .. [GK2013] Roland Grinis and Alexander Kasprzyk, Normal forms of
-            convex lattice polytopes, arXiv:1301.6641
+            convex lattice polytopes, :arxiv:`1301.6641`
 
 .. [GKZ1994] Gelfand, I. M.; Kapranov, M. M.; and
              Zelevinsky, A. V. "Discriminants, Resultants and
@@ -1066,7 +1066,7 @@ REFERENCES:
             De Gruyter, 2003.
 
 .. [GMN2008] Jordi Guardia, Jesus Montes, Enric Nart. *Newton polygons of higher
-             order in algebraic number theory* (2008). arXiv:0807.2620 [math.NT]
+             order in algebraic number theory* (2008). :arxiv:`0807.2620`
 
 .. [GNL2011] \Z. Gong, S. Nikova, and Y. W. Law,
              *KLEIN: A new family of lightweight block ciphers*; in
@@ -1194,7 +1194,7 @@ REFERENCES:
 .. [HLY2002] Yi Hu, Chien-Hao Liu, and Shing-Tung Yau. Toric morphisms
              and fibrations of toric Calabi-Yau
              hypersurfaces. *Adv. Theor. Math. Phys.*,
-             6(3):457-506, 2002. arXiv:math/0010082v2 [math.AG].
+             6(3):457-506, 2002. :arxiv:`math/0010082v2` [math.AG].
 
 .. [Hoc] Winfried Hochstaettler, "About the Tic-Tac-Toe Matroid",
          preprint.
@@ -1461,7 +1461,7 @@ REFERENCES:
             Computational Geometry: Theory and Applications, Volume
             23, Issue 3 (November 2002), 281-290.  Available at
             http://portal.acm.org/citation.cfm?id=763203 and free of
-            charge at http://arxiv.org/abs/math/0106043
+            charge at :arxiv:`math/0106043`
 
 .. [Kra2006] Christian Krattenthaler.  *Growth diagrams, and
              increasing and decreasing chains in fillings of Ferrers
@@ -1473,15 +1473,15 @@ REFERENCES:
 
 .. [Kr2016] Stefan Kranich, An epsilon-delta bound for plane algebraic curves
             and its use for certified homotopy continuation of systems of plane
-            algebraic curves, arXiv:1505.03432
+            algebraic curves, :arxiv:`1505.03432`
 
 .. [KR2001] \J. Kahane and A. Ryba. *The hexad game*, Electronic
             Journal of Combinatorics, **8**
             (2001). http://www.combinatorics.org/Volume_8/Abstracts/v8i2r11.html
 
-.. [KS1998] Maximilian Kreuzer and Harald Skarke, Classification of
-            Reflexive Polyhedra in Three Dimensions,
-            arXiv:hep-th/9805190
+.. [KS1998] Maximilian Kreuzer and Harald Skarke, *Classification of
+            Reflexive Polyhedra in Three Dimensions*,
+            :arXiv:`hep-th/9805190`
 
 .. [KS2002] \A. Khare and U. Sukhatme. "Cyclic Identities Involving
             Jacobi Elliptic Functions",
@@ -1610,7 +1610,7 @@ REFERENCES:
 .. [LLMSSZ2013] Thomas Lam, Luc Lapointe, Jennifer Morse, Anne
                 Schilling, Mark Shimozono and Mike Zabrocki.
                 *k-Schur functions and affine Schubert calculus*.
-                https://arxiv.org/pdf/1301.3569.pdf
+                :arxiv:`1301.3569`.
 
 .. [LM2006] Vadim Lyubashevsky and Daniele Micciancio. Generalized
             compact knapsacks are collision resistant. ICALP,
@@ -1626,7 +1626,7 @@ REFERENCES:
 
 .. [Loe2007] David Loeffler, *Spectral expansions of overconvergent
              modular functions*, Int. Math. Res. Not 2007 (050).
-             `Arxiv preprint <http://uk.arxiv.org/abs/math/0701168>`_.
+             :arxiv:`math/0701168`.
 
 .. [Lot2005] \M. Lothaire, *Applied combinatorics on
              words*. Cambridge University Press (2005).

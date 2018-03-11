@@ -2669,136 +2669,119 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     def square_root(self, extend=True, all=False, algorithm=None):
         r"""
-        Returns the square root of this p-adic number
+        Return the square root of this `p`-adic number.
 
         INPUT:
 
-        - ``self`` -- a p-adic element
-        - ``extend`` -- bool (default: True); if True, return a square root in
-          an extension if necessary; if False and no root exists in the given
-          ring or field, raise a ValueError
-        - ``all`` -- bool (default: False); if True, return a list of all
-          square roots
+        - ``self`` -- a `p`-adic element.
+
+        - ``extend`` -- a boolean (default: ``True``); if ``True``, return a 
+          square root in an extension if necessary; if ``False`` and no root 
+          exists in the given ring or field, raise a ValueError.
+
+        - ``all`` -- a boolean (default: ``False``); if ``True``, return a 
+          list of all square roots.
+
+        - ``algorithm`` -- ``"pari"``, ``"sage"`` or ``None`` (default: 
+          ``None``); Sage provides an implementation for any extension of 
+          `Q_p` whereas only square roots over `Q_p` is implemented in Pari;
+          the default is ``"pari"`` if the ground field is `Q_p`, ``"sage"``
+          otherwise.
 
         OUTPUT:
 
-        p-adic element -- the square root of this p-adic number
+        The square root or the list of all square roots of this `p`-adic 
+        number.
 
-        If ``all=False``, the square root chosen is the one whose
-        reduction mod `p` is in the range `[0, p/2)`.
+        NOTE:
+
+        The square root is chosen (resp. the square roots are ordered) in
+        a deterministic way.
 
         EXAMPLES::
 
-            sage: R = Zp(3,20,'capped-rel', 'val-unit')
+            sage: R = Zp(3, 20)
             sage: R(0).square_root()
             0
+
             sage: R(1).square_root()
             1 + O(3^20)
-            sage: R(2).square_root(extend = False)
+
+            sage: R(2).square_root(extend=False)
             Traceback (most recent call last):
             ...
             ValueError: element is not a square
-            sage: R(4).square_root() == R(-2)
-            True
-            sage: R(9).square_root()
-            3 * 1 + O(3^21)
 
-        When p = 2, the precision of the square root is one less
+            sage: R(4).square_root()
+            2 + O(3^20)
+
+            sage: R(9).square_root()
+            3 + O(3^21)
+
+        When `p = 2`, the precision of the square root is less
         than the input::
 
-            sage: R2 = Zp(2,20,'capped-rel')
-            sage: R2(0).square_root()
-            0
+            sage: R2 = Zp(2, 20)
             sage: R2(1).square_root()
             1 + O(2^19)
             sage: R2(4).square_root()
             2 + O(2^20)
-            sage: R.<t>=Zq(2^10, 10)
-            sage: sqrt(1+8*t)
+
+            sage: R.<t> = Zq(2^10, 10)
+            sage: u = 1 + 8*t
+            sage: u.square_root()
             1 + t*2^2 + t^2*2^3 + t^2*2^4 + (t^4 + t^3 + t^2)*2^5 + (t^4 + t^2)*2^6 + (t^5 + t^2)*2^7 + (t^6 + t^5 + t^4 + t^2)*2^8 + O(2^9)
 
+            sage: R.<a> = Zp(2).extension(x^3 - 2)
+            sage: u = R(1 + a^4 + a^5 + a^7 + a^8, 10); u
+            1 + a^4 + a^5 + a^7 + a^8 + O(a^10)
+            sage: v = u.square_root(); v
+            1 + a^2 + a^4 + a^6 + O(a^7)
 
-            sage: R2(9).square_root() == R2(3, 19) or R2(9).square_root() == R2(-3, 19)
-            True
+        However, observe that the precision increases to its original value 
+        when we recompute the square of the square root::
 
-            sage: R2(17).square_root()
-            1 + 2^3 + 2^5 + 2^6 + 2^7 + 2^9 + 2^10 + 2^13 + 2^16 + 2^17 + O(2^19)
+            sage: v^2
+            1 + a^4 + a^5 + a^7 + a^8 + O(a^10)
 
-            sage: R3 = Zp(5,20,'capped-rel')
-            sage: R3(0).square_root()
-            0
-            sage: R3(1).square_root()
-            1 + O(5^20)
-            sage: R3(-1).square_root() == R3.teichmuller(2) or R3(-1).square_root() == R3.teichmuller(3)
-            True
+        If the input does not have enough precision in order to determine if
+        the given element has a square root in the ground field, an error is 
+        raised::
 
+            sage: R(1, 6).square_root()
+            Traceback (most recent call last):
+            ...
+            PrecisionError: not enough precision to be sure that this element has a square root
+
+            sage: R(1, 7).square_root()
+            1 + O(a^4)
+
+            sage: R(1+a^6, 7).square_root(extend=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: element is not a square
+
+        In particular, an error is raised when we try to compute the square
+        root of an inexact
 
         TESTS::
 
-            sage: R = Qp(3,20,'capped-rel')
-            sage: R(0).square_root()
-            0
-            sage: R(1).square_root()
-            1 + O(3^20)
-            sage: R(4).square_root() == R(-2)
-            True
-            sage: R(9).square_root()
-            3 + O(3^21)
-            sage: R(1/9).square_root()
-            3^-1 + O(3^19)
-
-            sage: R2 = Qp(2,20,'capped-rel')
-            sage: R2(0).square_root()
-            0
-            sage: R2(1).square_root()
-            1 + O(2^19)
-            sage: R2(4).square_root()
-            2 + O(2^20)
-            sage: R2(9).square_root() == R2(3,19) or R2(9).square_root() == R2(-3,19)
-            True
-            sage: R2(17).square_root()
-            1 + 2^3 + 2^5 + 2^6 + 2^7 + 2^9 + 2^10 + 2^13 + 2^16 + 2^17 + O(2^19)
-            sage: R2.<t>=Zq(2^10, 10)
-            sage: sqrt(1+8*t)
-            1 + t*2^2 + t^2*2^3 + t^2*2^4 + (t^4 + t^3 + t^2)*2^5 + (t^4 + t^2)*2^6 + (t^5 + t^2)*2^7 + (t^6 + t^5 + t^4 + t^2)*2^8 + O(2^9)
-
-            sage: R3 = Qp(5,20,'capped-rel')
-            sage: R3(0).square_root()
-            0
-            sage: R3(1).square_root()
-            1 + O(5^20)
-            sage: R3(-1).square_root() == R3.teichmuller(2) or R3(-1).square_root() == R3.teichmuller(3)
-            True
-
-            sage: R = Zp(3,20,'capped-abs')
-            sage: R(1).square_root()
-            1 + O(3^20)
-            sage: R(4).square_root() == R(-2)
-            True
-            sage: R(9).square_root()
-            3 + O(3^19)
-            sage: R2 = Zp(2,20,'capped-abs')
-            sage: R2(1).square_root()
-            1 + O(2^19)
-            sage: R2(4).square_root()
-            2 + O(2^18)
-            sage: R2(9).square_root() == R2(3) or R2(9).square_root() == R2(-3)
-            True
-            sage: R2(17).square_root()
-            1 + 2^3 + 2^5 + 2^6 + 2^7 + 2^9 + 2^10 + 2^13 + 2^16 + 2^17 + O(2^19)
-            sage: R3 = Zp(5,20,'capped-abs')
-            sage: R3(1).square_root()
-            1 + O(5^20)
-            sage: R3(-1).square_root() == R3.teichmuller(2) or R3(-1).square_root() == R3.teichmuller(3)
+            sage: R = Qp(5, 100)
+            sage: c = R.random_element()
+            sage: s = (c^2).square_root()
+            sage: s == c or s == -c
             True
 
         """
-        # need special case for zero since pari(self) is the *integer* zero
-        # whose square root is a real number....!
-        if self.valuation() is infinity:
+        # We first check trivial cases and precision
+        if self._is_exact_zero():
             return self
+        parent = self.parent()
+        if self.is_zero() or (parent.prime() == 2 and self.precision_relative() < 1 + 2*parent.e()):
+            raise PrecisionError("not enough precision to be sure that this element has a square root")
+
         if algorithm is None:
-            if self.parent().degree() == 1 and self.parent().e() == 1:
+            if parent.degree() == 1:
                 algorithm = "pari"
             else:
                 algorithm = "sage"
@@ -2808,7 +2791,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             ans = None
             try:
                 # use pari
-                ans = self.parent()(self.__pari__().sqrt())
+                ans = parent(self.__pari__().sqrt())
             except PariError:
                 # todo: should eventually change to return an element of
                 # an extension field
@@ -2830,15 +2813,61 @@ cdef class pAdicGenericElement(LocalGenericElement):
             raise ValueError("element is not a square")
 
     def _square_root(self):
+        """
+        Return the square root of this `p`-adic number
+        or ``None`` if this number does not have a square root
+
+        NOTE:
+
+        This is the Sage implementation used in :meth:`square_root`.
+
+        This method assumes that the input is given at relative precision
+        at least 1 if `p > 2` and relative precision at least `2e + 1` if
+        `p = 2` (where `e` is the absolute ramification index).
+        This is the minimal precision to be sure whether this number has
+        or has not a square root.
+
+        TESTS::
+
+            sage: Q2 = Qp(2,20,'capped-rel')
+            sage: Q2(1)._square_root()
+            1 + O(2^19)
+            sage: Q2(4)._square_root()
+            2 + O(2^20)
+
+            sage: Q5 = Qp(5,20,'capped-rel')
+            sage: Q5(1)._square_root()
+            1 + O(5^20)
+            sage: Q5(-1)._square_root() == Q5.teichmuller(2) or Q5(-1).square_root() == Q5.teichmuller(3)
+            True
+
+            sage: Z3 = Zp(3,20,'capped-abs')
+            sage: Z3(1).square_root()
+            1 + O(3^20)
+            sage: Z3(4).square_root() == Z3(2)
+            True
+            sage: Z3(9).square_root()
+            3 + O(3^19)
+
+            sage: Z2 = Zp(2,20,'capped-abs')
+            sage: Z2(1).square_root()
+            1 + O(2^19)
+            sage: Z2(4).square_root()
+            2 + O(2^18)
+            sage: Z2(9).square_root() == Z2(3)
+            True
+            sage: Z2(17).square_root()
+            1 + 2^3 + 2^5 + 2^6 + 2^7 + 2^9 + 2^10 + 2^13 + 2^16 + 2^17 + O(2^19)
+
+            sage: Z5 = Zp(5,20,'capped-abs')
+            sage: Z5(1).square_root()
+            1 + O(5^20)
+            sage: Z5(-1).square_root() == Z5.teichmuller(2) or Z5(-1).square_root() == Z5.teichmuller(3)
+            True
+        """
         parent = self.parent()
         p = parent.prime()
-        if p == 2 and parent.e() > 1:
-            raise NotImplementedError("square root is not implemented over ramified extensions of Q2")
-
-        if self._is_exact_zero():
-            return self
-        if self.is_zero():
-            raise PrecisionError("not enough precision to be sure that this element has a square root")
+        e = parent.e()
 
         # First, we check valuation and renormalize if needed
         val = self.valuation()
@@ -2847,7 +2876,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         a = self >> val
         prec = a.precision_absolute()
 
-        # We compute the square root in the residue field
+        # We compute the square root of 1/a in the residue field
         abar = a.residue()
         try:
             xbar = 1/abar.sqrt(extend=False)
@@ -2856,29 +2885,52 @@ cdef class pAdicGenericElement(LocalGenericElement):
         x = parent(xbar)
         curprec = 1
 
-        # When p is 2, we lift the solution modulo 4
-        if p == 2:
-            if prec < 3:
-                raise PrecisionError("not enough precision to be sure that this element has a square root")
-            # We first check that a*x^2 = 1 (mod 4)
-            x = x.lift_to_precision(3)
-            b = a*x*x - 1
-            if b.valuation() < 2:
-                return None
-            # We solve the Artin-Schreier equation
+        # When p is 2, we lift sqrt(1/a) modulo 2*pi (pi = uniformizer)
+        if p == 2:   # We assume here that the relative precision is at least 2*e + 1
+            x = x.lift_to_precision(e+1)
+
+            # We will need 1/a at higher precision
+            ainv = ~(a.add_bigoh(2*e+1))
+
+            # We lift modulo 2
+            k = parent.residue_field()
+            while curprec < e:   # curprec is the number of correct digits of x
+                # recomputing x^2 is not necessary:
+                # we can alternatively update it after each update of x
+                # (which is theoretically a bit faster)
+                b = (ainv - x**2) >> (2*curprec)
+                if b == 0: break
+                for i in range(e - curprec):
+                    if i % 2 == 0:
+                        try:
+                            cbar = k(b.expansion(i)).sqrt(extend=False)
+                        except ValueError:
+                            return None
+                        c = parent(cbar).lift_to_precision()
+                        x += c << (curprec + i//2)
+                    else:
+                        if b.expansion(i) != 0:
+                            return None
+                curprec = (curprec + e + 1) // 2
+
+            # We lift one step further
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-            S = PolynomialRing(parent.residue_field(), name='x')
-            AS = S([ (b>>2).residue(), abar*xbar, abar ])
+            S = PolynomialRing(k, name='x')
+            b = (ainv - x**2) >> (2*e)
+            AS = S([ b.residue(), parent(2, e+1).expansion(e), 1 ])
             roots = AS.roots()
             if len(roots) == 0:
                 return None
-            x += parent(roots[0][0]) << 1
-            curprec = 3
+            x += parent(roots[0][0]) << e
+
+            # For Newton iteration, we redefine curprec
+            # as (a lower bound on) valuation(a*x^2 - 1)
+            curprec = 2*e + 1
 
         # We perform Newton iteration
         while curprec < prec:
             if p == 2:
-                curprec -= 1
+                curprec -= e
             curprec <<= 1
             x = x.lift_to_precision(min(prec,curprec))
             x += x * (1 - a*x*x) / 2

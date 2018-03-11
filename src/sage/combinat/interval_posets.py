@@ -405,7 +405,7 @@ class TamariIntervalPoset(Element):
         EXAMPLES::
 
             sage: ti = TamariIntervalPosets(4)[2]
-            sage: ti._find_node_positions().values()
+            sage: list(ti._find_node_positions().values())
             [[0, 0], [0, -1], [0, -2], [1, -2]]
         """
         node_positions = {}

@@ -34,6 +34,7 @@ Abelian Groups
 
    sage/groups/abelian_gps/abelian_group
    sage/groups/abelian_gps/abelian_group_gap
+   sage/groups/abelian_gps/abelian_aut
    sage/groups/abelian_gps/values
    sage/groups/abelian_gps/dual_abelian_group
    sage/groups/abelian_gps/element_base
@@ -73,6 +74,7 @@ Matrix and Affine Groups
    sage/groups/matrix_gps/coxeter_group
    sage/groups/matrix_gps/linear
    sage/groups/matrix_gps/orthogonal
+   sage/groups/matrix_gps/isometries
    sage/groups/matrix_gps/symplectic
    sage/groups/matrix_gps/unitary
    sage/groups/matrix_gps/heisenberg

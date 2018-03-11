@@ -133,7 +133,7 @@ This decomposition turns out to be very easy to implement :-)
   Characterizations of derived graphs,
   Journal of Combinatorial Theory,
   Vol. 9(2), pages 129-135, 1970
-  http://dx.doi.org/10.1016/S0021-9800(70)80019-9
+  :doi:`10.1016/S0021-9800(70)80019-9`
 
 Functions
 ---------

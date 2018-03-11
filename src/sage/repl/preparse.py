@@ -1157,9 +1157,9 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
         sage: 9^^1
         8
 
-        sage: preparse("A \ B")
+        sage: preparse("A \\ B")
         'A  * BackslashOperator() * B'
-        sage: preparse("A^2 \ B + C")
+        sage: preparse("A^2 \\ B + C")
         'A**Integer(2)  * BackslashOperator() * B + C'
         sage: preparse("a \\ b \\") # There is really only one backslash here, it's just being escaped.
         'a  * BackslashOperator() * b \\'

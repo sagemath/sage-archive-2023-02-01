@@ -253,10 +253,6 @@ class CartanType(SageObject, CartanType_abstract):
         reducibility but the subdivision can be suppressed with
         the option ``subdivide = False``.
 
-        .. TODO::
-
-            Currently ``subdivide`` is currently ignored.
-
         EXAMPLES::
 
             sage: ct = CartanType("A2","B2")

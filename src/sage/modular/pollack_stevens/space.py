@@ -127,7 +127,7 @@ class PollackStevensModularSymbols_factory(UniqueFactory):
         sage: M = PollackStevensModularSymbols(Gamma0(7), weight=0, prec_cap = None); M
         Space of modular symbols for Congruence Subgroup Gamma0(7) with sign 0 and values in Sym^0 Q^2
 
-    An example with an explict coefficient module::
+    An example with an explicit coefficient module::
 
         sage: D = OverconvergentDistributions(3, 7, prec_cap=10)
         sage: M = PollackStevensModularSymbols(Gamma0(7), coefficients=D); M

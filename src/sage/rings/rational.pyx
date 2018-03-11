@@ -1973,7 +1973,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         When a rational number `n/d` with `(n,d)=1` is
         expanded, the period begins after `s` terms and has length
         `t`, where `s` and `t` are the smallest numbers satisfying
-        `10^s=10^{s+t} \mod d`. In general if `d=2^a3^bm` where `m`
+        `10^s=10^{s+t} \mod d`. In general if `d=2^a 5^b m` where `m`
         is coprime to 10, then `s=\max(a,b)` and `t` is the order of
         10 modulo `d`.
 
@@ -3574,6 +3574,16 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return mpz_cmp_si(mpq_denref(self.value), 1) == 0
 
+    def is_rational(self):
+        r"""
+        Return ``True`` since this is a rational number.
+
+        EXAMPLES::
+
+            sage: (3/4).is_rational()
+            True
+        """
+        return True
 
     #Function alias for checking if the number is a integer.Added to solve ticket 15500    
     is_integer = is_integral

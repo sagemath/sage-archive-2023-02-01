@@ -1474,8 +1474,8 @@ class ClusterQuiver(SageObject):
             raise ValueError('The quiver can only be mutated at a vertex or at a sequence of vertices')
         if not isinstance(inplace, bool):
             raise ValueError('The second parameter must be boolean.  To mutate at a sequence of length 2, input it as a list.')
-        if any( v not in V for v in seq ):
-            v = filter( lambda v: v not in V, seq )[0]
+        if any(v not in V for v in seq):
+            v = next(v for v in seq if v not in V)
             raise ValueError('The quiver cannot be mutated at the vertex %s'%v)
 
         for v in seq:
@@ -1529,8 +1529,8 @@ class ClusterQuiver(SageObject):
             sequence = list( sequence )
         if not isinstance(sequence, list):
             raise ValueError('The quiver can only be mutated at a vertex or at a sequence of vertices')
-        if any( v not in V for v in sequence ):
-            v = filter( lambda v: v not in V, sequence )[0]
+        if any(v not in V for v in sequence):
+            v = next(v for v in sequence if v not in V)
             raise ValueError('The quiver can only be mutated at the vertex %s'%v )
 
         quiver = copy( self )
@@ -1559,17 +1559,21 @@ class ClusterQuiver(SageObject):
             plot_obj.show(axes=False, figsize=[fig_size*len(quiver_sequence),fig_size])
         return quiver_sequence
 
-    def reorient( self, data ):
+    def reorient(self, data):
         """
-        Reorients ``self`` with respect to the given total order, or with respect to an iterator of edges in ``self`` to be reverted.
+        Reorient ``self`` with respect to the given total order, or
+        with respect to an iterator of edges in ``self`` to be
+        reverted.
 
-        WARNING::
+        .. WARNING::
 
             This operation might change the mutation type of ``self``.
 
         INPUT:
 
-        - ``data`` -- an iterator defining a total order on ``self.vertices()``, or an iterator of edges in ``self`` to be reoriented.
+        - ``data`` -- an iterator defining a total order on
+          ``self.vertices()``, or an iterator of edges in ``self`` to
+          be reoriented.
 
         EXAMPLES::
 
@@ -1584,30 +1588,49 @@ class ClusterQuiver(SageObject):
             sage: Q.reorient([0,1,2,3,4])
             sage: Q.mutation_type()
             ['A', [1, 4], 1]
+
+        TESTS::
+
+            sage: Q = ClusterQuiver(['A',2])
+            sage: Q.reorient([])
+            Traceback (most recent call last):
+            ...
+            ValueError: empty input
+            sage: Q.reorient([3,4])
+            Traceback (most recent call last):
+            ...
+            ValueError: not a total order on the vertices of the quiver or
+            a list of edges to be oriented
         """
-        if all( 0 <= i and i < self._n + self._m for i in data ) and len( set( data ) ) == self._n+self._m :
+        if not data:
+            raise ValueError('empty input')
+        first = data[0]
+
+        if set(data) == set(range(self._n + self._m)):
             dg_new = DiGraph()
             for edge in self._digraph.edges():
-                if data.index( edge[0] ) < data.index( edge[1] ):
-                    dg_new.add_edge( edge[0],edge[1],edge[2] )
+                if data.index(edge[0]) < data.index(edge[1]):
+                    dg_new.add_edge(edge[0], edge[1], edge[2])
                 else:
-                    dg_new.add_edge( edge[1],edge[0],edge[2] )
+                    dg_new.add_edge(edge[1], edge[0], edge[2])
             self._digraph = dg_new
-            self._M = _edge_list_to_matrix(dg_new.edges(), self._nlist, self._mlist)
+            self._M = _edge_list_to_matrix(dg_new.edges(),
+                                           self._nlist, self._mlist)
             self._M.set_immutable()
             self._mutation_type = None
-        elif all( type(edge) in [list,tuple] and len(edge)==2 for edge in data ):
+        elif isinstance(first, (list, tuple)) and len(first) == 2:
             edges = self._digraph.edges(labels=False)
             for edge in data:
-                if (edge[1],edge[0]) in edges:
-                    label = self._digraph.edge_label(edge[1],edge[0])
-                    self._digraph.delete_edge(edge[1],edge[0])
-                    self._digraph.add_edge(edge[0],edge[1],label)
-            self._M = _edge_list_to_matrix(self._digraph.edges(), self._nlist, self._mlist)
+                if (edge[1], edge[0]) in edges:
+                    label = self._digraph.edge_label(edge[1], edge[0])
+                    self._digraph.delete_edge(edge[1], edge[0])
+                    self._digraph.add_edge(edge[0], edge[1], label)
+            self._M = _edge_list_to_matrix(self._digraph.edges(),
+                                           self._nlist, self._mlist)
             self._M.set_immutable()
             self._mutation_type = None
         else:
-            raise ValueError('The order is no total order on the vertices of the quiver or a list of edges to be oriented.')
+            raise ValueError('not a total order on the vertices of the quiver or a list of edges to be oriented')
 
     def mutation_class_iter( self, depth=infinity, show_depth=False, return_paths=False, data_type="quiver", up_to_equivalence=True, sink_source=False ):
         """

@@ -200,7 +200,9 @@ def precprint(prec_type, prec_cap, p):
     precD = {'capped-rel':'with capped relative precision %s'%prec_cap,
              'capped-abs':'with capped absolute precision %s'%prec_cap,
              'floating-point':'with floating precision %s'%prec_cap,
-             'fixed-mod':'of fixed modulus %s^%s'%(p, prec_cap)}
+             'fixed-mod':'of fixed modulus %s^%s'%(p, prec_cap),
+             'lattice-cap':'with lattice-cap precision',
+             'lattice-float':'with lattice-float precision'}
     return precD[prec_type]
 
 def trim_zeros(L):

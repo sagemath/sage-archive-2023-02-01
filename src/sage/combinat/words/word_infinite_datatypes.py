@@ -290,14 +290,14 @@ class WordDatatype_callable(WordDatatype):
             sage: w = Word(lambda n : n%3+10, caching=False)
             sage: w.__reduce__()
             (Infinite words over Set of Python objects of class 'object',
-             ("csage.misc.fpickle...<lambda>...", 'pickled_function', False))
+             (...csage.misc.fpickle...<lambda>..., 'pickled_function', False))
 
         ::
 
             sage: w = Word(lambda n : n%3+10, caching=False, length=8)
             sage: w.__reduce__()
             (Finite words over Set of Python objects of class 'object',
-             ("csage.misc.fpickle...<lambda>...", 8, 'pickled_function', False))
+             (...csage.misc.fpickle...<lambda>..., 8, 'pickled_function', False))
         """
         from sage.misc.fpickle import pickle_function
         try:
@@ -529,14 +529,14 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
             sage: w = Word(lambda n : n%3+10, caching=True)
             sage: w.__reduce__()
             (Infinite words over Set of Python objects of class 'object',
-             ("csage.misc.fpickle...<lambda>...", 'pickled_function', True))
+             (...csage.misc.fpickle...<lambda>..., 'pickled_function', True))
 
         ::
 
             sage: w = Word(lambda n : n%3+10, caching=True, length=8)
             sage: w.__reduce__()
             (Finite words over Set of Python objects of class 'object',
-             ("csage.misc.fpickle...<lambda>...", 8, 'pickled_function', True))
+             (...csage.misc.fpickle...<lambda>..., 8, 'pickled_function', True))
 
         Because ``pickle_function`` fails on CallableFromListOfWords,
         then concatenation of words are expanded as a list::
@@ -906,7 +906,7 @@ class WordDatatype_iter(WordDatatype):
 
             sage: w = Word(iter('ab'*10000), caching=False, length='unknown')
             sage: w.__reduce__()
-            (Finite and infinite words over Set of Python objects of class 'object', (<generator object __iter__ at ...>, 'iter', False))
+            (Finite and infinite words over Set of Python objects of class 'object', (<generator object ...__iter__ at ...>, 'iter', False))
         """
         if self.is_finite():
             return self._parent, (list(self),)
@@ -1184,7 +1184,7 @@ class WordDatatype_iter_with_caching(WordDatatype_iter):
             sage: w = Word(iter('ab'*10000), caching=True, length='unknown')
             sage: w.__reduce__()
             (Finite and infinite words over Set of Python objects of class 'object',
-             (<generator object __iter__ at ...>, 'iter', True))
+             (<generator object ...__iter__ at ...>, 'iter', True))
         """
         if self.is_finite():
             return self._parent, (list(self),)

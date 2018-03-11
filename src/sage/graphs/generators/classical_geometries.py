@@ -3,7 +3,7 @@ r"""
 Families of graphs derived from classical geometries over finite fields
 
 These include graphs of polar spaces, affine polar graphs, graphs
-related to Hermitean unitals, graphs on nonistropic points, etc
+related to Hermitean unitals, graphs on nonisotropic points, etc
 
 The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 """
@@ -688,7 +688,7 @@ def NonisotropicUnitaryPolarGraph(m, q):
     .. [Hu75] \X. L. Hubaut.
       Strongly regular graphs.
       Disc. Math. 13(1975), pp 357--381.
-      http://dx.doi.org/10.1016/0012-365X(75)90057-6
+      :doi:`10.1016/0012-365X(75)90057-6`
     """
     p, k = is_prime_power(q,get_data=True)
     if k==0:

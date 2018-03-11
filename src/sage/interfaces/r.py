@@ -1630,7 +1630,7 @@ class RElement(ExtraTabCompletion, ExpectElement):
         return P('%s %%*%% %s'%(self.name(), Q.name()))
 
     def _subs_dots(self, x):
-        """
+        r"""
         Replace dots by underscores; used internally to implement
         conversation from R expression to Sage objects.
 
@@ -1644,14 +1644,14 @@ class RElement(ExtraTabCompletion, ExpectElement):
 
             sage: import re
             sage: a = r([1,2,3])
-            sage: rel_re_param = re.compile('\s([\w\.]+)\s=')
+            sage: rel_re_param = re.compile(r'\s([\w\.]+)\s=')
             sage: rel_re_param.sub(a._subs_dots, ' test.test =')
              ' test_test ='
         """
         return x.group().replace('.','_')
 
     def _subs_range(self, x):
-        """
+        r"""
         Change endpoints of ranges.  This is used internally in the
         code for converting R expressions to Sage objects.
 
@@ -1665,7 +1665,7 @@ class RElement(ExtraTabCompletion, ExpectElement):
 
             sage: import re
             sage: a = r([1,2,3])
-            sage: rel_re_range = re.compile('([\d]+):([\d]+)')
+            sage: rel_re_range = re.compile(r'([\d]+):([\d]+)')
             sage: rel_re_range.sub(a._subs_range, ' 1:10')
             ' range(1,11)'
         """
@@ -1674,7 +1674,7 @@ class RElement(ExtraTabCompletion, ExpectElement):
         return 'range(%s,%s)' % (g[0],  g1)
 
     def _subs_integer(self, x):
-        """
+        r"""
         Replaces strings like 'dL' with 'Integer(d)' where d is some
         integer.  This is used internally in the code for converting R
         expressions to Sage objects.
@@ -1683,7 +1683,7 @@ class RElement(ExtraTabCompletion, ExpectElement):
 
             sage: import re
             sage: a = r([1,2,3])
-            sage: rel_re_integer = re.compile('([^\d])([\d]+)L')
+            sage: rel_re_integer = re.compile(r'([^\d])([\d]+)L')
             sage: rel_re_integer.sub(a._subs_integer, ' 1L 2L')
             ' Integer(1) Integer(2)'
             sage: rel_re_integer.sub(a._subs_integer, '1L 2L')
@@ -2033,7 +2033,7 @@ class RFunction(ExpectFunction):
             False
             sage: r.mean != r.lr
             True
-        """        
+        """
         return not (self == other)
 
     def _instancedoc_(self):

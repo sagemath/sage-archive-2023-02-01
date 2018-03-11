@@ -10,7 +10,7 @@ from sphinx.builders.html import StandaloneHTMLBuilder
 from sphinx.util.console import bold
 from os import path
 
-import six
+from six import iteritems, text_type
 
 
 try:
@@ -27,12 +27,14 @@ class InventoryBuilder(StandaloneHTMLBuilder):
     name = "inventory"
 
     def get_outdated_docs(self):
+        def md5hash_obj(obj):
+            return md5(text_type(obj).encode('utf-8')).hexdigest()
+
         cfgdict = dict((name, self.config[name])
-                       for (name, desc) in six.iteritems(self.config.values)
+                       for (name, desc) in iteritems(self.config.values)
                        if desc[1] == 'html')
-        self.config_hash = md5(unicode(cfgdict).encode('utf-8')).hexdigest()
-        self.tags_hash = md5(unicode(sorted(self.tags)).encode('utf-8')) \
-                .hexdigest()
+        self.config_hash = md5hash_obj(cfgdict)
+        self.tags_hash = md5hash_obj(sorted(self.tags))
         old_config_hash = old_tags_hash = ''
         try:
             fp = open(path.join(self.outdir, '.buildinfo'))

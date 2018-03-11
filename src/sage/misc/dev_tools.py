@@ -556,7 +556,7 @@ def import_statements(*objects, **kwds):
                 for o in obj:
                     modules.update(find_object_modules(o))
                 print("# **Warning**: distinct objects with name '{}' in:".format(name))
-                for module_name in modules:
+                for module_name in sorted(modules):
                     print("#   - {}".format(module_name))
 
             # choose a random object among the potentially enormous list of

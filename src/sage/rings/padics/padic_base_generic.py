@@ -20,6 +20,9 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+
 from .padic_generic import pAdicGeneric
 from .misc import precprint
 from sage.rings.padics.pow_computer import PowComputer
@@ -44,9 +47,14 @@ class pAdicBaseGeneric(pAdicGeneric):
             if self.is_capped_relative():
                 coerce_list = [pAdicCoercion_ZZ_CR(self), pAdicCoercion_QQ_CR(self)]
                 convert_list = []
-            else:
+            elif self.is_floating_point():
                 coerce_list = [pAdicCoercion_ZZ_FP(self), pAdicCoercion_QQ_FP(self)]
                 convert_list = []
+            elif self.is_lattice_prec():
+                coerce_list = [QQ]
+                convert_list = []
+            else:
+                raise RuntimeError
         elif self.is_capped_relative():
             coerce_list = [pAdicCoercion_ZZ_CR(self)]
             convert_list = [pAdicConvert_QQ_CR(self)]
@@ -59,6 +67,9 @@ class pAdicBaseGeneric(pAdicGeneric):
         elif self.is_floating_point():
             coerce_list = [pAdicCoercion_ZZ_FP(self)]
             convert_list = [pAdicConvert_QQ_FP(self)]
+        elif self.is_lattice_prec():
+            coerce_list = [ZZ]
+            convert_list = [QQ]
         else:
             raise RuntimeError
         self.Element = element_class
@@ -86,6 +97,12 @@ class pAdicBaseGeneric(pAdicGeneric):
             7-adic Ring of fixed modulus 7^20
             sage: latex(K) #indirect doctest
             \ZZ_{7}
+            sage: K = ZpLF(2); K   # indirect doctest
+            doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+            See http://trac.sagemath.org/23505 for details.
+            2-adic Ring with lattice-float precision
+            sage: latex(K)
+            \ZZ_{2}
             sage: K = Qp(17); K #indirect doctest
             17-adic Field with capped relative precision 20
             sage: latex(K)
@@ -94,13 +111,24 @@ class pAdicBaseGeneric(pAdicGeneric):
             17-adic Field with floating precision 20
             sage: latex(K)
             \QQ_{17}
+            sage: K = QpLC(2); K   # indirect doctest
+            2-adic Field with lattice-cap precision
+            sage: latex(K)
+            \QQ_{2}
         """
         if do_latex:
             if self.is_field():
-                return r"\QQ_{%s}" % self.prime()
+                s = r"\QQ_{%s}" % self.prime()
             else:
-                return r"\ZZ_{%s}" % self.prime()
-        return "%s-adic %s %s"%(self.prime(), "Field" if self.is_field() else "Ring", precprint(self._prec_type(), self.precision_cap(), self.prime()))
+                s = r"\ZZ_{%s}" % self.prime()
+            if hasattr(self, '_label') and self._label:
+                s = r"\verb'%s' (\simeq %s)"%(self._label, s)
+        else:
+            s = "Field " if self.is_field() else "Ring "
+            s = "%s-adic "%self.prime() + s + precprint(self._prec_type(), self.precision_cap(), self.prime())
+            if hasattr(self, '_label') and self._label:
+                s+= " (label: %s)"%self._label
+        return s
 
     def exact_field(self):
         """
@@ -118,11 +146,11 @@ class pAdicBaseGeneric(pAdicGeneric):
 
     def exact_ring(self):
         """
-        Returns the integer ring.  
+        Returns the integer ring.
 
         EXAMPLES::
 
-            sage: Zp(5).exact_ring() 
+            sage: Zp(5).exact_ring()
             Integer Ring
         """
         from sage.rings.integer_ring import ZZ

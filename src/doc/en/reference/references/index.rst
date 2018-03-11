@@ -673,6 +673,13 @@ REFERENCES:
 .. [Crossproduct] Algebraic Properties of the Cross Product
                   :wikipedia:`Cross_product`
 
+.. [CRV2018] Xavier Caruso, David Roe and Tristan Vaccon.
+            *ZpL: a p-adic precision package*, (2018) :arxiv:`1802.08532`.
+
+.. [CRV2014] Xavier Caruso, David Roe and Tristan Vaccon.
+            *Tracking p-adic precision*,
+            LMS J. Comput. Math. **17** (2014), 274-294.
+
 .. [CS1986] \J. Conway and N. Sloane. *Lexicographic codes:
             error-correcting codes from game theory*, IEEE
             Trans. Infor. Theory **32** (1986) 337-348.
@@ -1147,6 +1154,10 @@ REFERENCES:
             http://osdir.com/ml/python.db.pysqlite.user/2005-11/msg00047.html
 
 .. [Hac2016] \M. Hachimori. http://infoshako.sk.tsukuba.ac.jp/~hachi/math/library/dunce_hat_eng.html
+
+.. [Hai1989] M.D. Haiman, *On mixed insertion, symmetry, and shifted
+             Young tableaux*. Journal of Combinatorial Theory, Series
+             A Volume 50, Number 2 (1989), pp. 196-225.
 
 .. [Hat2002] Allen Hatcher, "Algebraic Topology", Cambridge University
              Press (2002).
@@ -2072,7 +2083,7 @@ REFERENCES:
 
 .. [Rüt2014] Julian Rüth, *Models of Curves and Valuations*. Open Access
              Repositorium der Universität Ulm. Dissertation (2014).
-             http://dx.doi.org/10.18725/OPARU-3275
+             :doi:`10.18725/OPARU-3275`
 
 .. _ref-S:
 
@@ -2174,6 +2185,10 @@ REFERENCES:
 .. [SPRQL2004] \F.-X. Standaert, G. Piret, G. Rouvroy, J.-J. Quisquarter,
                and J.-D. Legat, *ICEBERG: An involutional cipher efficient for block
                encryption in reconfigurable hardware*; in FSE, (2004), pp. 279-299.
+
+.. [SS1990] Bruce E. Sagan and Richard P. Stanley.
+            *Robinson-Schensted algorithms for skew tableaux*.
+            Journal of Combinatorial Theory, Series A 55.2 (1990) pp. 161-193.
 
 .. [SS1992] \M. A. Shtan'ko and M. I. Shtogrin, "Embedding cubic
             manifolds and complexes into a cubic lattice", *Uspekhi
@@ -2454,6 +2469,10 @@ REFERENCES:
 
 .. [Woo1998] \R. M. W. Wood, "Problems in the Steenrod algebra,"
              Bull. London Math. Soc. 30 (1998), no. 5, 449-517.
+
+.. [Wor1984] Worley, Dale Raymond, *A theory of shifted Young
+             tableaux*. Dissertation, Massachusetts Institute of
+             Technology, 1984.
 
 .. [WP-Bessel] :wikipedia:`Bessel_function`
 

@@ -1675,7 +1675,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
     def sigma_invariants(self, n, formal=False, embedding=None, type='point'):
         r"""
         Computes the values of the elementary symmetric polynomials of the ``n``
-        multilpier spectra of this dynamical system.
+        multiplier spectra of this dynamical system.
 
         EXAMPLES::
 
@@ -2206,7 +2206,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
     def normal_form(self, return_conjugation=False):
         """
-        Return a normla form conjugate to this map.
+        Return a normal form conjugate to this map.
 
         EXAMPLES::
 

@@ -55,8 +55,6 @@ cdef class WithEqualityById:
         sage: class MyParent(Parent):
         ....:   def __init__(self, x):
         ....:       self.x = x
-        ....:   def __cmp__(self,other):
-        ....:       return cmp(self.x^2,other.x^2)
         ....:   def __hash__(self):
         ....:       return hash(self.x)
         sage: class MyUniqueParent(UniqueRepresentation, MyParent): pass
@@ -64,8 +62,7 @@ cdef class WithEqualityById:
         True
 
     Inheriting from :class:`WithEqualityById` provides unique representation
-    behaviour. In particular, the comparison inherited from ``MyParent``
-    is overloaded::
+    behaviour::
 
         sage: a = MyUniqueParent(1)
         sage: b = MyUniqueParent(2)
@@ -75,20 +72,6 @@ cdef class WithEqualityById:
         sage: d = MyUniqueParent(-1)
         sage: a == d
         False
-
-    Note, however, that Python distinguishes between "comparison by cmp"
-    and "comparison by binary relations"::
-
-        sage: cmp(a,d)
-        0
-
-    The comparison inherited from ``MyParent`` will be used in those cases
-    in which identity does not give sufficient information to find the relation::
-
-        sage: a < b
-        True
-        sage: b > d
-        True
 
     The hash inherited from ``MyParent`` is replaced by a hash that coincides
     with :class:`object`'s hash::
@@ -131,8 +114,6 @@ cdef class WithEqualityById:
             sage: class MyParent(Parent):
             ....:   def __init__(self, x):
             ....:       self.x = x
-            ....:   def __cmp__(self,other):
-            ....:       return cmp(self.x^2,other.x^2)
             ....:   def __hash__(self):
             ....:       return hash(self.x)
             sage: class MyUniqueParent(UniqueRepresentation, MyParent): pass
@@ -162,8 +143,6 @@ cdef class WithEqualityById:
             sage: class MyParent(Parent):
             ....:   def __init__(self, x):
             ....:       self.x = x
-            ....:   def __cmp__(self,other):
-            ....:       return cmp(self.x^2,other.x^2)
             ....:   def __hash__(self):
             ....:       return hash(self.x)
             sage: class MyUniqueParent(UniqueRepresentation, MyParent): pass
@@ -172,23 +151,9 @@ cdef class WithEqualityById:
             sage: a = MyUniqueParent(1)
             sage: b = MyUniqueParent(-1)
 
-        Comparison with ``cmp`` is still using what is inherited
-        from ``MyParent``::
-
-            sage: cmp(a,b)
-            0
-
-        However, equality test takes into account identity::
+        Equality test takes into account identity::
 
             sage: a == b
-            False
-
-        In cases in which rich comparison by identity gives no final answer,
-        the comparison inherited from ``MyParent`` is consulted again::
-
-            sage: a <= b and b >= a
-            True
-            sage: a < b
             False
 
         When comparing with an object which is not an instance of
@@ -228,13 +193,14 @@ cdef class FastHashable_class:
     """
     A class that has a fast hash method, returning a pre-assigned value.
 
-    NOTE:
+    .. NOTE::
 
-    This is for internal use only. The class has a cdef attribute ``_hash``,
-    that needs to be assigned (for example, by calling the init method, or by
-    a direct assignement using cython). This is slower than using
-    :func:`provide_hash_by_id`, but has the advantage that the hash can be
-    prescribed, by assigning a cdef attribute ``_hash``.
+        This is for internal use only. The class has a cdef attribute
+        ``_hash``, that needs to be assigned (for example, by calling
+        the init method, or by a direct assignement using
+        cython). This is slower than using :func:`provide_hash_by_id`,
+        but has the advantage that the hash can be prescribed, by
+        assigning a cdef attribute ``_hash``.
 
     TESTS::
 
@@ -242,7 +208,6 @@ cdef class FastHashable_class:
         sage: H = FastHashable_class(123)
         sage: hash(H)
         123
-
     """
     def __init__(self, h):
         """
@@ -252,9 +217,9 @@ cdef class FastHashable_class:
             sage: H = FastHashable_class(123)
             sage: hash(H)   # indirect doctest
             123
-
         """
         self._hash = h
+
     def __hash__(self):
         """
         TESTS::
@@ -388,4 +353,3 @@ class Singleton(WithEqualityById, metaclass=ClasscallMetaclass):
         in :class:`Singleton`.
         """ 
         return self.__class__, ()
-

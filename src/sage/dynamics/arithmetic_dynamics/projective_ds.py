@@ -3331,7 +3331,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
     def sigma_invariants(self, n, formal=False, embedding=None, type='point'):
         r"""
         Computes the values of the elementary symmetric polynomials of
-        the ``n`` multilpier spectra of this dynamical system.
+        the ``n`` multiplier spectra of this dynamical system.
 
         Can specify to instead compute the values corresponding to the
         elementary symmetric polynomials of the formal ``n`` multiplier

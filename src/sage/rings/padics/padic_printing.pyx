@@ -1034,13 +1034,12 @@ cdef class pAdicPrinter_class(SageObject):
                 v = elt.valuation()
                 if v >= 0:
                     lift_z = <Integer> elt.lift()
+                    pprec = self.prime_pow.pow_Integer(mpz_get_ui((<Integer>elt.precision_absolute()).value))
                 else:
                     lift_z = <Integer> elt.unit_part().lift()
+                    pprec = self.prime_pow.pow_Integer(mpz_get_ui((<Integer>elt.precision_relative()).value))
+                mpz_mod(lift_z.value, lift_z.value, pprec.value)
                 if not pos:
-                    if v >= 0:
-                        pprec = self.prime_pow.pow_Integer(mpz_get_ui((<Integer>elt.precision_absolute()).value))
-                    else:
-                        pprec = self.prime_pow.pow_Integer(mpz_get_ui((<Integer>elt.precision_relative()).value))
                     if lift_z > pprec / 2:
                         mpz_sub(lift_z.value, lift_z.value, pprec.value)
                     else:

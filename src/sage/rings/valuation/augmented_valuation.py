@@ -151,13 +151,16 @@ overview can also be found in Chapter 4 of [Rüt2014]_.
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from inductive_valuation import _lift_to_maximal_precision
-from inductive_valuation import FinalInductiveValuation, NonFinalInductiveValuation, FiniteInductiveValuation, InfiniteInductiveValuation, InductiveValuation
-from valuation import InfiniteDiscretePseudoValuation, DiscreteValuation
+from __future__ import absolute_import
+
+from .inductive_valuation import _lift_to_maximal_precision
+from .inductive_valuation import FinalInductiveValuation, NonFinalInductiveValuation, FiniteInductiveValuation, InfiniteInductiveValuation, InductiveValuation
+from .valuation import InfiniteDiscretePseudoValuation, DiscreteValuation
 
 from sage.misc.cachefunc import cached_method
 from sage.rings.all import infinity, QQ, ZZ
 from sage.structure.factory import UniqueFactory
+
 
 class AugmentedValuationFactory(UniqueFactory):
     r"""
@@ -238,7 +241,7 @@ class AugmentedValuationFactory(UniqueFactory):
         """
         base_valuation, phi, mu = key
 
-        from valuation_space import DiscretePseudoValuationSpace
+        from .valuation_space import DiscretePseudoValuationSpace
         parent = DiscretePseudoValuationSpace(base_valuation.domain())
         if mu is not infinity:
             if base_valuation.is_trivial():
@@ -675,7 +678,7 @@ class AugmentedValuation_base(InductiveValuation):
             False
 
         """
-        from gauss_valuation import GaussValuation_generic
+        from .gauss_valuation import GaussValuation_generic
         if other.is_trivial():
             return other.is_discrete_valuation()
         if isinstance(other, GaussValuation_generic):

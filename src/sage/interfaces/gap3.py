@@ -302,7 +302,7 @@ class Gap3(Gap_generic):
         self.__gap3_command_string = command
         # Explanation of additional command-line options passed to gap3:
         #
-        #     -p invokes the internal programmatic interace, which is how Sage
+        #     -p invokes the internal programmatic interface, which is how Sage
         #     talks to GAP4. This allows reuse some of the GAP4 interface code.
         #
         #     -y -- sets the number of lines of the terminal; controls how many

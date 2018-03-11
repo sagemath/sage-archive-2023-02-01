@@ -35,7 +35,7 @@ def set_state(bint mode):
         sage: sage.misc.stopgap.set_state(True)
         sage: sage.misc.stopgap.stopgap("Displays something.", 123456)
         doctest:...:
-        StopgapWarning: Displays something.
+        ...StopgapWarning: Displays something.
         This issue is being tracked at http://trac.sagemath.org/sage_trac/ticket/123456.
         sage: sage.misc.stopgap.set_state(False)
     """
@@ -69,7 +69,7 @@ def stopgap(message, int ticket_no):
         sage: sage.misc.stopgap.set_state(True)
         sage: sage.misc.stopgap.stopgap("Computation of heights on elliptic curves over number fields can return very imprecise results.", 12509)
         doctest:...
-        StopgapWarning: Computation of heights on elliptic curves over number fields can return very imprecise results.
+        ...StopgapWarning: Computation of heights on elliptic curves over number fields can return very imprecise results.
         This issue is being tracked at http://trac.sagemath.org/sage_trac/ticket/12509.
         sage: sage.misc.stopgap.stopgap("This is not printed", 12509)
         sage: sage.misc.stopgap.set_state(False)  # so rest of doctesting fine

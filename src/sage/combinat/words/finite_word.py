@@ -4709,7 +4709,7 @@ class FiniteWord_class(Word_class):
         -   [2] S. Marcus, Quasiperiodic infinite words, Bull. Eur. Assoc.
             Theor. Comput. Sci. 82 (2004) 170-174.
         -   [3] A. Glen, F. Levé, G. Richomme, Quasiperiodic and Lyndon
-            episturmian words, Preprint, 2008, arXiv:0805.0730.
+            episturmian words, Preprint, 2008, :arxiv:`0805.0730`.
         """
         l = self.length()
         if l <= 1:
@@ -4748,7 +4748,7 @@ class FiniteWord_class(Word_class):
         -   [2] S. Marcus, Quasiperiodic infinite words, Bull. Eur. Assoc.
             Theor. Comput. Sci. 82 (2004) 170-174.
         -   [3] A. Glen, F. Levé, G. Richomme, Quasiperiodic and Lyndon
-            episturmian words, Preprint, 2008, arXiv:0805.0730.
+            episturmian words, Preprint, 2008, :arxiv:`0805.0730`.
         """
         l = self.length()
         if l <= 1:
@@ -5289,7 +5289,7 @@ class FiniteWord_class(Word_class):
 
         [2] A. Lascoux, L. Lapointe, and J. Morse.  *Tableau atoms and a new
         Macdonald positivity conjecture.* Duke Math Journal, **116 (1)**,
-        2003.  Available at: [http://arxiv.org/abs/math/0008073]
+        2003.  :arxiv:`math/0008073`
 
         [3] A. Lascoux, B. Leclerc, and J.Y. Thibon.  *The Plactic Monoid*.
         Survey article available at

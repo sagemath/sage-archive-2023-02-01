@@ -6,13 +6,13 @@ REFERENCES:
 .. [LLT1997] Alain Lascoux, Bernard Leclerc, Jean-Yves Thibon,
    Ribbon tableaux, Hall-Littlewood functions, quantum affine algebras, and unipotent varieties,
    J. Math. Phys. 38 (1997), no. 2, 1041-1068,
-   arXiv:q-alg/9512-31v1 [math.q.alg]
+   :arxiv:`q-alg/9512-31v1` [math.q.alg]
 
 .. [LT2000] Bernard Leclerc and Jean-Yves Thibon,
    Littlewood-Richardson coefficients and Kazhdan-Lusztig polynomials,
    in: Combinatorial methods in representation theory (Kyoto)
    Adv. Stud. Pure Math., vol. 28, Kinokuniya, Tokyo, 2000, pp 155-220
-   arXiv:math/9809122v3 [math.q-alg]
+   :arxiv:`math/9809122v3` [math.q-alg]
 """
 from __future__ import absolute_import
 #*****************************************************************************

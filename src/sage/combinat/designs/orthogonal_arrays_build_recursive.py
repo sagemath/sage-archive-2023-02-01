@@ -978,7 +978,7 @@ def three_factor_product(k,n1,n2,n3,check=False,explain_construction=False):
 
     .. [DukesLing14] A three-factor product construction for mutually orthogonal latin squares,
       Peter J. Dukes, Alan C.H. Ling,
-      http://arxiv.org/abs/1401.1466
+      :arxiv:`1401.1466`
 
     .. [Rees00] Truncated Transversal Designs: A New Lower Bound on the Number of Idempotent MOLS of Side,
       Rolf S. Rees,

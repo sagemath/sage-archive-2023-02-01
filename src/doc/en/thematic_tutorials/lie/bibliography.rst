@@ -5,9 +5,9 @@ Bibliography
 .. [Bourbaki46] Nicolas Bourbaki. *Lie Groups and Lie Algebras: Chapters 4-6*.
    Springer, reprint edition, 1998.
 
-.. [BumpNakasuji2010] \D. Bump and M. Nakasuji. Casselman's basis of
-   Iwahori vectors and the Bruhat order. arXiv:1002.2996,
-   http://arxiv.org/abs/1002.2996.
+.. [BumpNakasuji2010] \D. Bump and M. Nakasuji. *Casselman's basis of
+   Iwahori vectors and the Bruhat order*. :arxiv:`1002.2996`,
+   :arxiv:`1002.2996`.
 
 .. [Carrell1994] \J. B. Carrell. The Bruhat graph of a Coxeter group, a
    conjecture of Deodhar, and rational smoothness of Schubert varieties. In
@@ -46,8 +46,7 @@ Bibliography
    Boston, MA 2002, pp. 205--272.
 
 .. [HainesEtAl2009] \T. J. Haines, R. E. Kottwitz, and
-   A. Prasad. Iwahori-Hecke Algebras. arXiv:math/0309168,
-   http://arxiv.org/abs/math/0309168.
+   A. Prasad. *Iwahori-Hecke Algebras*. :arxiv:`math/0309168`.
 
 .. [HongKang2002] \J. Hong and S.-J. Kang. *Introduction to Quantum
    Groups and Crystal Bases*. AMS Graduate Studies in Mathematics,
@@ -149,8 +148,8 @@ Bibliography
    *Int. Math. Res. Not.*, Volume 2006. (2006) Article ID 97376. Pages 1-27.
 
 .. [SchillingTingley2011] \A. Schilling, P. Tingley.
-   Demazure crystals, Kirillov-Reshetikhin crystals, and the energy function.
-   preprint arXiv:1104.2359
+   *Demazure crystals, Kirillov-Reshetikhin crystals, and the energy function*.
+   preprint :arXiv:`1104.2359`
 
 .. [Stanley1999] \R. P. Stanley. *Enumerative Combinatorics, Volume
    2*. Cambridge University Press, 1999.

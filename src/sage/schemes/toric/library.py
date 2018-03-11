@@ -1039,8 +1039,8 @@ class ToricVarietyFactory(SageObject):
         REFERENCES:
 
         ..  [FS]
-            William Fulton, Bernd Sturmfels, "Intersection Theory on
-            Toric Varieties", http://arxiv.org/abs/alg-geom/9403002
+            William Fulton, Bernd Sturmfels, *Intersection Theory on
+            Toric Varieties*, :arxiv:`alg-geom/9403002`
         """
         # We are going to eventually switch off consistency checks, so we need
         # to be sure that the input is acceptable.
@@ -1105,9 +1105,9 @@ class ToricVarietyFactory(SageObject):
 
         ..  [BCdlOG]
             Volker Braun, Philip Candelas, Xendia de la Ossa,
-            Antonella Grassi, "Toric Calabi-Yau Fourfolds, Duality
+            Antonella Grassi, *Toric Calabi-Yau Fourfolds, Duality
             Between N=1 Theories and Divisors that Contribute to the
-            Superpotential", http://arxiv.org/abs/hep-th/0001208
+            Superpotential*, :arxiv:`hep-th/0001208`
 
         - [HLY2002]_
         """

@@ -33,25 +33,25 @@ REFERENCES:
     "Dual polyhedra and mirror symmetry for Calabi-Yau hypersurfaces in toric
     varieties",
     J. Algebraic Geom. 3 (1994), no. 3, 493-535.
-    arXiv:alg-geom/9310003v1
+    :arxiv:`alg-geom/9310003v1`
 
 ..  [Borisov1993]
     Lev A. Borisov,
     "Towards the mirror symmetry for Calabi-Yau complete intersections in
     Gorenstein Fano toric varieties", 1993.
-    arXiv:alg-geom/9310001v1
+    :arxiv:`alg-geom/9310001v1`
 
 ..  [CD2007]
     Adrian Clingher and Charles F. Doran,
     "Modular invariants for lattice polarized K3 surfaces",
     Michigan Math. J. 55 (2007), no. 2, 355-393.
-    arXiv:math/0602146v1 [math.AG]
+    :arxiv:`math/0602146v1` [math.AG]
 
 ..  [Nill2005]
     Benjamin Nill,
     "Gorenstein toric Fano varieties",
     Manuscripta Math. 116 (2005), no. 2, 183-210.
-    arXiv:math/0405448v1 [math.AG]
+    :arxiv:`math/0405448v1` [math.AG]
 
 AUTHORS:
 

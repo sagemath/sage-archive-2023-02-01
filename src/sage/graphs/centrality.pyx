@@ -579,9 +579,8 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
     REFERENCES:
 
     .. [BCM15] Michele Borassi, Pierluigi Crescenzi, and Andrea Marino,
-       Fast and Simple Computation of Top-k Closeness Centralities.
-       Preprint on arXiv.
-       http://arxiv.org/abs/1507.01490
+       *Fast and Simple Computation of Top-k Closeness Centralities*.
+       :arxiv:`1507.01490`
 
     EXAMPLES::
 

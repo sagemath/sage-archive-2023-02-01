@@ -12,7 +12,7 @@ Mathématique in Montreal by Franco Saliola during winter 2011.
 The solution uses the dancing links code which is in Sage and is based on
 the more general code available in the module :mod:`sage.combinat.tiling`.
 Dancing links were originally introduced by Donald Knuth in 2000
-(`arXiv:cs/0011047 <http://arxiv.org/abs/cs/0011047>`_). In particular,
+(:arxiv:`cs/0011047`). In particular,
 Knuth used dancing links to solve tilings of a region by 2D pentaminos.
 Here we extend the method for 3D pentaminos.
 
@@ -165,8 +165,7 @@ REFERENCES:
 - [1] `Family Games America's Quantumino
   <http://familygamesamerica.com/mainsite/consumers/productview.php?pro_id=274&search=quantumino>`_
 - [2] `Quantumino - How to Play <http://www.youtube.com/watch?v=jX_VKzakZi8>`_ on Youtube
-- [3] Knuth, Donald (2000). "Dancing links". `arXiv:cs/0011047
-  <http://arxiv.org/abs/cs/0011047>`_.
+- [3] Knuth, Donald (2000). *Dancing links*. :arxiv:`cs/0011047`.
 
 """
 #*****************************************************************************

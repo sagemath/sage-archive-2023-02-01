@@ -287,7 +287,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
        groups. Algebraic geometry, 94--121, Lecture Notes in Math., 1479,
        Springer, Berlin, 1991.
     .. [LawsonWuthrich] \T. Lawson and C. Wuthrich, Vanishing of some Galois
-       cohomology groups for elliptic curves, http://arxiv.org/abs/1505.02940
+       cohomology groups for elliptic curves, :arxiv:`1505.02940`
     .. [LumStein] \A. Lum, W. Stein. Verification of the Birch and
        Swinnerton-Dyer Conjecture for Elliptic Curves with Complex
        Multiplication (unpublished)

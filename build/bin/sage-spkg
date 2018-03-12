@@ -814,6 +814,9 @@ export rsync_proxy=$http_proxy
 ##################################################################
 
 if [ "$UNAME" = "CYGWIN" ]; then
+    if [ ! -d "$SAGE_LOCAL/var/lock" ]; then
+        mkdir -p "$SAGE_LOCAL/var/lock"
+    fi
     exec 200>"$SAGE_LOCAL/var/lock/rebase.lock"
     sage-flock -s $lock_type 200
 fi

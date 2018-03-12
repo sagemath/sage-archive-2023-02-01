@@ -1284,7 +1284,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             # coercion to work properly.
             except SingularError as x:
                 self._session_number = -1
-                raise_(TypeError, x, sys.exc_info()[2])
+                raise_(TypeError, TypeError(x), sys.exc_info()[2])
             except BaseException:
                 self._session_number = -1
                 raise

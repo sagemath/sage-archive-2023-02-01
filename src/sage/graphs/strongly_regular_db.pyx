@@ -30,7 +30,7 @@ REFERENCES:
 Functions
 ---------
 """
-from __future__ import print_function, absolute_import
+from __future__ import print_function, absolute_import, division
 
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
@@ -75,9 +75,9 @@ def is_paley(int v,int k,int l,int mu):
         sage: t = is_paley(5,5,5,5); t
     """
     if (v%4 == 1 and is_prime_power(v) and
-        k   == (v-1)/2 and
-        l   == (v-5)/4 and
-        mu  == (v-1)/4):
+        k   == (v-1)//2 and
+        l   == (v-5)//4 and
+        mu  == (v-1)//4):
         from sage.graphs.generators.families import PaleyGraph
         return (PaleyGraph,v)
 
@@ -122,9 +122,9 @@ def is_mathon_PC_srg(int v,int k,int l,int mu):
     """
     cdef int t
     if (v%4 == 1 and
-        k   == (v-1)/2 and
-        l   == (v-5)/4 and
-        mu  == (v-1)/4):
+        k   == (v-1)//2 and
+        l   == (v-5)//4 and
+        mu  == (v-1)//4):
         from sage.rings.integer_ring import ZZ
         K = ZZ['x']
         x = K.gen()
@@ -169,9 +169,9 @@ def is_muzychuk_S6(int v, int k, int l, int mu):
     n_list = [n for n in range(l-1) if ZZ(n).is_prime_power()]
     for n in n_list:
         d = 2
-        while n**d * ((n**d-1)/(n-1)+1) <= v:
-            if v == n**d * ((n**d-1)/(n-1)+1) and k == n**(d-1)*(n**d-1)/(n-1) - 1\
-            and l == mu - 2 and mu == n**(d-1) * (n**(d-1)-1) / (n-1):
+        while n**d * ((n**d-1)//(n-1)+1) <= v:
+            if v == n**d * ((n**d-1)//(n-1)+1) and k == n**(d-1)*(n**d-1)//(n-1) - 1\
+            and l == mu - 2 and mu == n**(d-1) * (n**(d-1)-1) // (n-1):
                 from sage.graphs.generators.families import MuzychukS6Graph
                 return (MuzychukS6Graph, n, d)
             d += 1
@@ -243,13 +243,13 @@ def is_orthogonal_array_block_graph(int v,int k,int l,int mu):
         return (lambda m,n : OrthogonalArrayBlockGraph(m, n), m,n)
 
     elif n>2 and skew_hadamard_matrix(n+1, existence=True):
-        if m==(n+1)/2:
+        if m==(n+1)//2:
             from sage.graphs.generators.families import SquaredSkewHadamardMatrixGraph as G
-        elif m==(n-1)/2:
+        elif m==(n-1)//2:
             from sage.graphs.generators.families import PasechnikGraph as G
         else:
             return
-        return (G, (n+1)/4)
+        return (G, (n+1)//4)
 
 @cached_function
 def is_johnson(int v,int k,int l,int mu):
@@ -283,7 +283,7 @@ def is_johnson(int v,int k,int l,int mu):
     m = l + 2
     if (mu == 4 and
         k  == 2*(m-2) and
-        v  == m*(m-1)/2):
+        v  == m*(m-1)//2):
         from sage.graphs.generators.families import JohnsonGraph
         return (lambda m: JohnsonGraph(m,2), m)
 
@@ -324,9 +324,9 @@ def is_steiner(int v,int k,int l,int mu):
         return
     m = int(sqrt(mu))
     n = (k*(m-1))//m+m
-    if (v == (n*(n-1))/(m*(m-1)) and
-        k == m*(n-m)/(m-1) and
-        l == (m-1)**2 + (n-1)/(m-1)-2 and
+    if (v == (n*(n-1))//(m*(m-1)) and
+        k == m*(n-m)//(m-1) and
+        l == (m-1)**2 + (n-1)//(m-1)-2 and
         balanced_incomplete_block_design(n,m,existence=True)):
         from sage.graphs.generators.intersection import IntersectionGraph
         return (lambda n,m: IntersectionGraph(map(frozenset,balanced_incomplete_block_design(n,m))),n,m)
@@ -438,26 +438,26 @@ def is_orthogonal_polar(int v,int k,int l,int mu):
             m = (power//d)+1
 
             # O(2m+1,q)
-            if (v == (q**(2*m)-1)/(q-1)              and
-                k == q*(q**(2*m-2)-1)/(q-1)          and
-                l == q**2*(q**(2*m-4)-1)/(q-1) + q-1 and
-                mu== (q**(2*m-2)-1)/(q-1)):
+            if (v == (q**(2*m)-1)//(q-1)              and
+                k == q*(q**(2*m-2)-1)//(q-1)          and
+                l == q**2*(q**(2*m-4)-1)//(q-1) + q-1 and
+                mu== (q**(2*m-2)-1)//(q-1)):
                 from sage.graphs.generators.classical_geometries import OrthogonalPolarGraph
                 return (OrthogonalPolarGraph, 2*m+1, q, "")
 
             # O^+(2m,q)
-            if (v ==   (q**(2*m-1)-1)/(q-1) + q**(m-1)   and
-                k == q*(q**(2*m-3)-1)/(q-1) + q**(m-1) and
+            if (v ==   (q**(2*m-1)-1)//(q-1) + q**(m-1)   and
+                k == q*(q**(2*m-3)-1)//(q-1) + q**(m-1) and
                 k == q**(2*m-3) + l + 1                  and
-                mu== k/q):
+                mu== k//q):
                 from sage.graphs.generators.classical_geometries import OrthogonalPolarGraph
                 return (OrthogonalPolarGraph, 2*m, q, "+")
 
             # O^+(2m+1,q)
-            if (v ==   (q**(2*m-1)-1)/(q-1) - q**(m-1)   and
-                k == q*(q**(2*m-3)-1)/(q-1) - q**(m-1) and
+            if (v ==   (q**(2*m-1)-1)//(q-1) - q**(m-1)   and
+                k == q*(q**(2*m-3)-1)//(q-1) - q**(m-1) and
                 k == q**(2*m-3) + l + 1                  and
-                mu== k/q):
+                mu== k//q):
                 from sage.graphs.generators.classical_geometries import OrthogonalPolarGraph
                 return (OrthogonalPolarGraph, 2*m, q, "-")
 
@@ -527,7 +527,7 @@ def is_goethals_seidel(int v,int k,int l,int mu):
 
     r_bibd = k - (v-1-k)
     v_bibd = v//(r_bibd+1)
-    k_bibd = (v_bibd-1)/r_bibd + 1 if r_bibd>0 else -1
+    k_bibd = (v_bibd-1)//r_bibd + 1 if r_bibd>0 else -1
 
     if (v   == v_bibd*(r_bibd+1)                  and
         2*k == v+r_bibd-1                         and
@@ -594,13 +594,13 @@ def is_NOodd(int v,int k,int l,int mu):
     s += 1
     if abs(r)>abs(s):
         (r,s) = (s,r) # r=-eq^(n-1) s= eq^(n-1)(q-2)
-    q = 2 - s/r
+    q = 2 - s//r
     p, t = is_prime_power(q, get_data=True)
     pp, kk = is_prime_power(abs(r), get_data=True)
     if p == pp and t != 0:
-        n  = kk/t + 1
-        e = 1 if v  == (q**n)*(q**n+1)/2 else -1
-        if (v  == (q**n)*(q**n+e)/2                 and
+        n  = kk//t + 1
+        e = 1 if v  == (q**n)*(q**n+1)//2 else -1
+        if (v  == (q**n)*(q**n+e)//2                 and
             k  == (q**n-e)*(q**(n-1)+e)             and
             l  == 2*(q**(2*n-2)-1)+e*q**(n-1)*(q-1) and
             mu == 2*q**(n-1)*(q**(n-1)+e)):
@@ -655,10 +655,10 @@ def is_NOperp_F5(int v,int k,int l,int mu):
     p, n = is_prime_power(abs(s), get_data=True)
     if (5 == p and n != 0) or (abs(r)==2 and abs(s)==1):
         n += 1
-        if (v  == (5**n)*(5**n+e)/2           and
-            k  == (5**n-e)*5**(n-1)/2         and
-            l  == 5**(n-1)*(5**(n-1)+e)/2     and
-            mu == 5**(n-1)*(5**(n-1)-e)/2):
+        if (v  == (5**n)*(5**n+e)//2           and
+            k  == (5**n-e)*5**(n-1)//2         and
+            l  == 5**(n-1)*(5**(n-1)+e)//2     and
+            mu == 5**(n-1)*(5**(n-1)-e)//2):
             from sage.graphs.generators.classical_geometries import NonisotropicOrthogonalPolarGraph
             return (NonisotropicOrthogonalPolarGraph, 2*n+1, 5, '+' if e==1 else '-', 1)
 
@@ -702,8 +702,8 @@ def is_NO_F2(int v,int k,int l,int mu):
     cdef int n, e, p
     p, n = is_prime_power(k+1, get_data=True) # k+1==2**(2*n-2)
     if 2 == p and n != 0 and n % 2 == 0:
-        n = (n+2)/2
-        e = (2**(2*n-1)-v)/2**(n-1)
+        n = (n+2)//2
+        e = (2**(2*n-1)-v)//2**(n-1)
         if (abs(e) == 1                           and
             v  == 2**(2*n-1)-e*2**(n-1)           and
             k  == 2**(2*n-2)-1                    and
@@ -759,10 +759,10 @@ def is_NO_F3(int v,int k,int l,int mu):
     p, n = is_prime_power(abs(r), get_data=True)
     if (3 == p and n != 0):
         n += 1
-        if (v  == 3**(n-1)*(3**n-e)/2           and
-            k  == 3**(n-1)*(3**(n-1)-e)/2           and
-            l  == 3**(n-2)*(3**(n-1)+e)/2           and
-            mu == 3**(n-1)*(3**(n-2)-e)/2):
+        if (v  == 3**(n-1)*(3**n-e)//2           and
+            k  == 3**(n-1)*(3**(n-1)-e)//2           and
+            l  == 3**(n-2)*(3**(n-1)+e)//2           and
+            mu == 3**(n-1)*(3**(n-2)-e)//2):
             from sage.graphs.generators.classical_geometries import NonisotropicOrthogonalPolarGraph
             return (NonisotropicOrthogonalPolarGraph, 2*n, 3, '+' if e==1 else '-')
 
@@ -820,13 +820,13 @@ def is_NU(int v,int k,int l,int mu):
             p, t = is_prime_power(abs(r), get_data=True)
     if r==1:
         return
-    kr = k/(r-1) # eq^{n-1}+1
+    kr = k//(r-1) # eq^{n-1}+1
     e = 1 if kr>0 else -1
-    q = (kr-1)/r
+    q = (kr-1)//r
     pp, kk = is_prime_power(q, get_data=True)
     if p == pp and kk != 0:
-        n  = t/kk + 2
-        if (v  == q**(n-1)*(q**n - e)/(q + 1)               and
+        n  = t//kk + 2
+        if (v  == q**(n-1)*(q**n - e)//(q + 1)               and
             k  == (q**(n-1) + e)*(q**(n-2) - e)             and
             l  == q**(2*n-5)*(q+1) - e*q**(n-2)*(q-1) - 2  and
             mu == q**(n-3)*(q + 1)*(q**(n-2) - e)):
@@ -913,9 +913,9 @@ def is_cossidente_penttila(int v,int k,int l,int mu):
     q = 2*l+3
     p, n = is_prime_power(q, get_data=True)
     if 2 < p and n != 0:
-        if (v  == (q**3+1)*(q+1)/2     and
-            k  == (q**2+1)*(q-1)/2      and
-            mu  == (q-1)**2/2):
+        if (v  == (q**3+1)*(q+1)//2     and
+            k  == (q**2+1)*(q-1)//2      and
+            mu  == (q-1)**2//2):
             from sage.graphs.generators.classical_geometries import CossidentePenttilaGraph
             return (CossidentePenttilaGraph, q)
 
@@ -958,7 +958,7 @@ def is_complete_multipartite(int v,int k,int l,int mu):
         (20, 16, 12, 16)
     """
     if v>k:
-        r = v/(v-k) # number of parts (of size v-k each)
+        r = v//(v-k) # number of parts (of size v-k each)
         if l==(v-k)*(r-2) and k==mu and v == r*(v-k):
             from sage.graphs.generators.basic import CompleteMultipartiteGraph
             def CompleteMultipartiteSRG(nparts, partsize):
@@ -1215,9 +1215,9 @@ def SRG_from_RSHCD(v,k,l,mu, existence=False,check=True):
     t = abs(a//2)
 
     if (e**2 == 1              and
-        k == (n-1-a+e)/2       and
-        l == (n-2*a)/4 - (1-e) and
-        mu== (n-2*a)/4         and
+        k == (n-1-a+e)//2       and
+        l == (n-2*a)//4 - (1-e) and
+        mu== (n-2*a)//4         and
         regular_symmetric_hadamard_matrix_with_constant_diagonal(n,sgn(a)*e,existence=True)):
         if existence:
             return True
@@ -1280,7 +1280,7 @@ def is_unitary_polar(int v,int k,int l,int mu):
     r,s = eigenvalues(v,k,l,mu)
     if r is None:
         return
-    q = k/mu
+    q = k//mu
     if q*mu != k or q < 2:
         return
     p,t = is_prime_power(q, get_data=True)
@@ -1292,21 +1292,21 @@ def is_unitary_polar(int v,int k,int l,int mu):
     else:
         q_pow_d_minus_one = -s-1
     ppp,ttt = is_prime_power(q_pow_d_minus_one, get_data=True)
-    d = ttt/t + 1
+    d = ttt//t + 1
     if ppp != p or (d-1)*t != ttt:
         return
-    t /= 2
+    t //= 2
     # U(2d+1,q); write q^(1/2) as p^t
-    if (v == (q**d - 1)*((q**d)*p**t + 1)/(q - 1)               and
-        k == q*(q**(d-1) - 1)*((q**d)/(p**t) + 1)/(q - 1)       and
-        l == q*q*(q**(d-2)-1)*((q**(d-1))/(p**t) + 1)/(q - 1) + q - 1):
+    if (v == (q**d - 1)*((q**d)*p**t + 1)//(q - 1)               and
+        k == q*(q**(d-1) - 1)*((q**d)//(p**t) + 1)//(q - 1)       and
+        l == q*q*(q**(d-2)-1)*((q**(d-1))//(p**t) + 1)//(q - 1) + q - 1):
         from sage.graphs.generators.classical_geometries import UnitaryPolarGraph
         return (UnitaryPolarGraph, 2*d+1, p**t)
 
     # U(2d,q);
-    if (v == (q**d - 1)*((q**d)/(p**t) + 1)/(q - 1)             and
-        k == q*(q**(d-1) - 1)*((q**(d-1))/(p**t) + 1)/(q - 1)   and
-        l == q*q*(q**(d-2)-1)*((q**(d-2))/(p**t) + 1)/(q - 1) + q - 1):
+    if (v == (q**d - 1)*((q**d)//(p**t) + 1)//(q - 1)             and
+        k == q*(q**(d-1) - 1)*((q**(d-1))//(p**t) + 1)//(q - 1)   and
+        l == q*q*(q**(d-2)-1)*((q**(d-2))//(p**t) + 1)//(q - 1) + q - 1):
         from sage.graphs.generators.classical_geometries import UnitaryPolarGraph
         return (UnitaryPolarGraph, 2*d, p**t)
 
@@ -1354,7 +1354,7 @@ def is_unitary_dual_polar(int v,int k,int l,int mu):
         return
     if (r < 0 and q != -r - 1) or (s < 0 and q != -s - 1):
        return
-    t /= 2
+    t //= 2
     # we have correct mu, negative eigenvalue, and q=p^(2t)
     if (v == (q**2*p**t + 1)*(q*p**t + 1)  and
         k == q*p**t*(q + 1)                and
@@ -1427,7 +1427,7 @@ def is_GQqmqp(int v,int k,int l,int mu):
     if (v == (S+1)*(S*T+1)      and
         k == S*(T+1)            and
         q == p**w               and
-        (S+T)/2 == q):
+        (S+T)//2 == q):
         if p % 2 == 0:
             from sage.graphs.generators.classical_geometries\
                     import T2starGeneralizedQuadrangleGraph as F
@@ -1490,7 +1490,7 @@ def is_twograph_descendant_of_srg(int v, int k0, int l, int mu):
     b = v+1+4*mu
     D = sqrt(b**2-16*v*mu)
     if int(D)==D:
-        for kf in [(-D+b)/4, (D+b)/4]:
+        for kf in [(-D+b)//4, (D+b)//4]:
             k = int(kf)
             if k == kf and \
                 strongly_regular_graph(v+1, k, l - 2*mu + k , k - mu,  existence=True):
@@ -1544,7 +1544,7 @@ def is_taylor_twograph_srg(int v,int k,int l,int mu):
     if p**t+1 != v or t % 3 != 0 or p % 2 == 0:
         return
     q = p**(t//3)
-    if (k, l, mu) == (q*(q**2+1)/2, (q**2+3)*(q-1)/4, (q**2+1)*(q+1)/4):
+    if (k, l, mu) == (q*(q**2+1)//2, (q**2+3)*(q-1)//4, (q**2+1)*(q+1)//4):
         from sage.graphs.generators.classical_geometries import TaylorTwographSRG
         return (TaylorTwographSRG, q)
     return
@@ -1642,7 +1642,7 @@ def is_switch_OA_srg(int v, int k, int l, int mu):
     if n*n != n_2_p_1-1: # is it a square?
         return None
 
-    cdef int c = k/n
+    cdef int c = k//n
     if (k % n                            or
         l != c*c-1                       or
         k != 1+(c-1)*(c+1)+(n-c)*(n-c-1) or
@@ -2742,11 +2742,11 @@ cdef bint seems_feasible(int v, int k, int l, int mu):
         return False
 
     if mu == k: # complete multipartite graph
-        r = v/(v-k) # number of parts (of size v-k each)
+        r = v//(v-k) # number of parts (of size v-k each)
         return (l == (v-k)*(r-2) and v == r*(v-k))
 
     if mu == 0: # the complement of a complete multipartite graph
-        r = v/(k+1) # number of parts (of size k+1 each)
+        r = v//(k+1) # number of parts (of size k+1 each)
         return (l == k-1 and v == r*(k+1))
 
     # Conference graphs. Only possible if 'v' is a sum of two squares (3.A of
@@ -2774,8 +2774,8 @@ cdef bint seems_feasible(int v, int k, int l, int mu):
     # multiplicity of eigenvalues 'r,s' (f=lambda_r, g=lambda_s)
     #
     # They are integers (checked by the 'integrality condition').
-    f = -k*(s+1)*(k-s)/(mu*(r-s))
-    g =  k*(r+1)*(k-r)/(mu*(r-s))
+    f = -k*(s+1)*(k-s)//(mu*(r-s))
+    g =  k*(r+1)*(k-r)//(mu*(r-s))
     if 1+f+g != v: # the only other eigenvalue, k, has multiplicity 1
         return False
 
@@ -3219,7 +3219,7 @@ def _build_small_srg_database():
         N = q**k
         K_O = n*(q-1)
         l_O = K_O**2+3*K_O-q*(w1+w2)-K_O*q*(w1+w2)+w1*w2*q**2
-        m_O = (w1*w2*q**2)/N
+        m_O = (w1*w2*q**2)//N
 
         em = eigenmatrix(N,K_O,l_O,m_O) # 1st eigenmatrix
         assert((not em is None) and (em.det() != 0))

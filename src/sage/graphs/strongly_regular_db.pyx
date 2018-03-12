@@ -2228,7 +2228,7 @@ def SRG_196_91_42_42():
 
 def SRG_220_84_38_28():
     r"""
-    Return a `(280, 135, 70, 60)`-strongly regular graph.
+    Return a `(220, 84, 38, 28)`-strongly regular graph.
 
     This graph is obtained from the
     :meth:`~IncidenceStructure.intersection_graph` of a

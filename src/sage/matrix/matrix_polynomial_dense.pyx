@@ -491,6 +491,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             Traceback (most recent call last):
             ...
             ValueError: The matrix should be empty in call to _check_empty_popov.
+
+        .. SEEALSO::
+        
+            :meth:`is_popov` .
         """
         if self.nrows() > 0 and self.ncols() > 0:
             raise ValueError('The matrix should be empty in call to _check_empty_popov.')
@@ -561,6 +565,11 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M = Matrix(pR, [ [3*x+1, 0, 1], [x^3+3, 0, 0], [0, 1, 0] ])
             sage: M.is_reduced(shifts=[2,0,0], row_wise=False)
             True
+
+        .. SEEALSO::
+
+            :meth:`leading_matrix` ,
+            :meth:`reduced_form` .
         """
         self._check_shift_dimension(shifts,row_wise)
         if self.ncols()==0 or self.nrows()==0:
@@ -749,8 +758,6 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         [Kai1980]_ (Section 6.7.2, square case without shifts), [MS2003]_
         (without shifts), [BLV1999]_ .
 
-        SEEALSO:  :meth:`weak_popov_form` .
-
         EXAMPLES::
 
             sage: pR.<x> = GF(7)[]
@@ -804,6 +811,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M.is_weak_popov(shifts=[2,1,0], row_wise=False, \
                     include_zero_vectors=False)
             False
+
+        .. SEEALSO::
+
+            :meth:`weak_popov_form` .
         """
         self._check_shift_dimension(shifts,row_wise)
         if self.ncols()==0 or self.nrows()==0:
@@ -1055,6 +1066,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             False
             sage: N[1:,:].is_hermite(row_wise=False)
             True
+
+        .. SEEALSO:
+        
+            :meth:`hermite_form` .
         """
         # shift for lower echelon
         shift = [j*self.degree()+1 for j in range(self.ncols())] \
@@ -1137,7 +1152,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         .. SEEALSO::
 
-            :meth:`is_weak_popov <sage.matrix.matrix_polynomial_dense.is_weak_popov>`
+            :meth:`is_weak_popov` .
         """
         self._check_shift_dimension(shifts,row_wise=True)
         M = self.__copy__()
@@ -1361,6 +1376,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: U.is_invertible()
             True
 
+        .. SEEALSO::
+
+            :meth:`is_reduced` .
         """
         self._check_shift_dimension(shifts,row_wise)
         if not row_wise:
@@ -1389,7 +1407,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         - the Hermite normal form `H` of this matrix `A`
 
         - (optional) transformation matrix `U` such that `UA = H`
-
+ 
         EXAMPLES::
 
             sage: M.<x> = GF(7)[]
@@ -1417,6 +1435,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [  x   1 2*x]
             sage: U * A == H
             True
+
+        .. SEEALSO::
+        
+            :meth:`is_hermite` .
         """
         A = self.__copy__()
         U = A._hermite_form_euclidean(transformation=transformation,

@@ -9,6 +9,8 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+import inspect
+
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
 from sage.misc.abstract_method import abstract_method
@@ -20,6 +22,7 @@ from sage.categories.category_singleton import Category_singleton
 import sage.categories.coercion_methods
 from sage.categories.sets_cat import Sets
 from sage.categories.realizations import RealizationsCategory
+from sage.cpython.getattr import raw_getattr
 
 class Magmas(Category_singleton):
     """
@@ -818,7 +821,9 @@ class Magmas(Category_singleton):
                 sage: S = Semigroups().example("free")
                 sage: S('a') * S('b') # indirect doctest
                 'ab'
-                sage: S('a').__class__._mul_ == S('a').__class__._mul_parent
+                sage: S('a').__class__._mul_ == S('a').__class__._mul_parent  # py2
+                True
+                sage: S('a').__class__._mul_ == S('a').__class__._mul_parent.__func__  # py3
                 True
             """
             # This should instead register the multiplication to the coercion model
@@ -832,17 +837,25 @@ class Magmas(Category_singleton):
             #
             # So, in addition, it should be tested whether the element class exists
             # *and* has a custom _mul_, because in this case it must not be overridden.
+
             if (self.product.__func__ == self.product_from_element_class_mul.__func__):
                 return
             if not (hasattr(self, "element_class") and hasattr(self.element_class, "_mul_parent")):
                 return
+
             E = self.element_class
-            if hasattr(E._mul_,'__func__'):
+            E_mul_func = raw_getattr(E, '_mul_')
+            if inspect.isfunction(E_mul_func):
+                C = self.category().element_class
                 try:
-                    el_class_mul = self.category().element_class._mul_.__func__
-                except AttributeError: # abstract method
+                    C_mul_func = raw_getattr(C, '_mul_')
+                except AttributeError:  # Doesn't have _mul_
                     return
-                if E._mul_.__func__ is el_class_mul:
+
+                if not inspect.isfunction(C_mul_func):
+                    return  # abstract method
+
+                if E_mul_func is C_mul_func:
                     # self.product is custom, thus, we rely on it
                     E._mul_ = E._mul_parent
             else: # E._mul_ has so far been abstract

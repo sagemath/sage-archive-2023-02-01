@@ -1263,10 +1263,10 @@ class Singular(ExtraTabCompletion, Expect):
         self._start()
         raise KeyboardInterrupt("Restarting %s (WARNING: all variables defined in previous session are now invalid)" % self)
 
-    
+
 @instancedoc
 class SingularElement(ExtraTabCompletion, ExpectElement):
-    
+
     def __init__(self, parent, type, value, is_name=False):
         """
         EXAMPLES::
@@ -1279,7 +1279,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         if parent is None: return
         if not is_name:
             try:
-                self._name = parent._create( value, type)
+                self._name = parent._create(value, type)
             # Convert SingularError to TypeError for
             # coercion to work properly.
             except SingularError as x:
@@ -2105,7 +2105,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             sage: list(iter(A))
             [[1,3], [2,4]]
         """
-        if self.type()=='matrix':
+        if self.type() == 'matrix':
             l = self.ncols()
         else:
             l = len(self)

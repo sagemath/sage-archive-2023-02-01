@@ -947,11 +947,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         column the pivot (topmost nonzero entry) is strictly below the pivot of
         the column just to the left of this row.
 
-        Since several definitions coexist concerning the location of the zero
-        rows (resp. columns), concerning the choice of upper or lower echelon
-        forms, and also concerning whether zero rows (resp. columns) are
-        allowed. Optional arguments are provided in order to allow flexibility
-        and support these alternative definitions.
+        Optional arguments provide support of alternative definitions,
+        concerning the choice of upper or lower echelon forms and concerning
+        whether zero rows (resp. columns) are allowed.
 
         INPUT:
 
@@ -959,7 +957,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
           working row-wise (see the class description).
 
         - ``lower_echelon`` -- (optional, default: ``False``) boolean,
-          ``False`` if TODO.
+          ``False`` if working with upper triangular Hermite forms, ``True`` if
+          working with lower triangular Hermite forms.
 
         - ``include_zero_vectors`` -- (optional, default: ``True``) boolean,
           ``False`` if one does not allow zero rows (resp. zero columns) in
@@ -977,9 +976,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M.is_hermite()
             True
             sage: M.is_hermite(row_wise=False)
-            False
-            sage: M.is_hermite(row_wise=False, lower_echelon=True)
             True
+            sage: M.is_hermite(row_wise=False, lower_echelon=True)
+            False
 
             sage: N = Matrix(pR, [ [x^2+5*x+5, 3*x^3+6,         3  ], \
                                    [0,         x^4+6*x^3+4*x+4, 2  ], \
@@ -1002,21 +1001,15 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: N[:,:2].is_hermite(include_zero_vectors=False)
             False
             sage: N[1:,[1,2,0]].is_hermite(row_wise=False, lower_echelon=True)
-            True
-            sage: N[1:,:].is_hermite(row_wise=False)
             False
+            sage: N[1:,:].is_hermite(row_wise=False)
+            True
         """
-        #number_zero_vectors =                                         \
-        #    [self[i,:] == 0 for i in range(self.nrows())].count(True) \
-        #    if row_wise else                                          \
-        #    [self[:,j] == 0 for j in range(self.ncols())].count(True)
-
-        ## if there is no zero row or if they should be first
-        ## -> just call is_popov with the right shift
-        #if zero_first or number_zero_vectors == 0:
+        # shift for lower echelon
         shift = [j*self.degree()+1 for j in range(self.ncols())] \
                 if row_wise else \
-                [j*self.degree()+1 for j in range(self.nrows())]
+                [(self.nrows()-j)*self.degree()+1 for j in range(self.nrows())]
+        # if upper echelon, reverse shift
         if not lower_echelon:
             shift.reverse()
         return self.is_popov(shifts=shift,

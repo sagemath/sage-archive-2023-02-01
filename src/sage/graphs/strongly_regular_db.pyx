@@ -1939,7 +1939,7 @@ def SRG_105_32_4_12():
 
         sage: from sage.graphs.strongly_regular_db import SRG_105_32_4_12
         sage: G = SRG_105_32_4_12(); G
-        Graph on 105 vertices
+        Aut L(3,4) on flags: Graph on 105 vertices
         sage: G.is_strongly_regular(parameters=True)
         (105, 32, 4, 12)
 
@@ -1964,6 +1964,7 @@ def SRG_105_32_4_12():
     e = a.orbit((a.domain()[0],o),action="OnSets")
     G = Graph()
     G.add_edges(e)
+    G.name('Aut L(3,4) on flags')
     return G
 
 def SRG_120_77_52_44():
@@ -1986,7 +1987,9 @@ def SRG_120_77_52_44():
     from sage.combinat.designs.incidence_structures import IncidenceStructure
     W = WittDesign(23)
     H = IncidenceStructure([x for x in W if 22 not in x and 21 not in x])
-    return H.intersection_graph(3)
+    g = H.intersection_graph(3)
+    g.name('PG(2,2)s in PG(2,4)')
+    return g
 
 def SRG_144_39_6_12():
     r"""
@@ -2014,6 +2017,7 @@ def SRG_144_39_6_12():
         h.add_edges(G.Orbit([1,o[0]],libgap.OnSets))
         if h.is_strongly_regular():
             h.relabel()
+            h.name('PGL_3(3) on cosets of 13:3')
             return h
 
 def SRG_176_49_12_14():
@@ -2057,6 +2061,7 @@ def SRG_176_49_12_14():
                 all(i in aut(i) for i in d.ground_set())):
             g = Graph()
             g.add_edges(((u,v) for u in d.ground_set() for v in aut(u)), loops=False)
+            g.name('Higman symmetric 2-design')
             return g
 
 def SRG_176_105_68_54():
@@ -2079,7 +2084,9 @@ def SRG_176_105_68_54():
     from sage.combinat.designs.incidence_structures import IncidenceStructure
     W = WittDesign(23)
     H = IncidenceStructure([x for x in W if 22 not in x])
-    return H.intersection_graph(3)
+    g = H.intersection_graph(3)
+    g.name('Witt 3-(22,7,4)')
+    return g
 
 def SRG_210_99_48_45():
     r"""
@@ -2132,6 +2139,7 @@ def SRG_210_99_48_45():
     for g in kd[1:]:
         G.add_edges(libgap.Orbit(sa,[libgap.Position(O,kd[0]),\
                                      libgap.Position(O,g)],libgap.OnSets))
+    G.name('merging of S_7 on Circulant(6,[1,4])s')
     return G
 
 def SRG_243_110_37_60():
@@ -2165,7 +2173,9 @@ def SRG_243_110_37_60():
     from sage.coding.golay_code import GolayCode
     M = GolayCode(GF(3), False).generator_matrix()
     V = list(M.right_kernel())
-    return Graph([list(xrange(len(V))), lambda x,y:(V[x]-V[y]).hamming_weight() == 9 ])
+    g = Graph([list(xrange(len(V))), lambda x,y:(V[x]-V[y]).hamming_weight() == 9 ])
+    g.name('Ternary Golay code')
+    return g
 
 def SRG_253_140_87_65():
     r"""
@@ -2186,7 +2196,9 @@ def SRG_253_140_87_65():
     from sage.combinat.designs.block_design import WittDesign
     from sage.combinat.designs.incidence_structures import IncidenceStructure
     W = WittDesign(23)
-    return W.intersection_graph(3)
+    g = W.intersection_graph(3)
+    g.name('Witt 4-(23,7,1)')
+    return g
 
 def SRG_196_91_42_42():
     r"""
@@ -2224,6 +2236,7 @@ def SRG_196_91_42_42():
 
     G.add_edges((-1,x) for x in U)
     G.relabel()
+    G.name('RSHCD+')
     return G
 
 def SRG_220_84_38_28():
@@ -2246,6 +2259,7 @@ def SRG_220_84_38_28():
     from sage.combinat.designs.incidence_structures import IncidenceStructure
     G = IncidenceStructure(BIBD_45_9_8()).intersection_graph(3)
     G.relabel()
+    G.name('Tonchev: quasisymmetric 2-(45,9,8)')
     return G
 
 def SRG_276_140_58_84():
@@ -2290,8 +2304,7 @@ def SRG_280_135_70_60():
     r"""
     Return a strongly regular graph with parameters `(280, 135, 70, 60)`.
 
-    This graph is built from the action of `J_2` on a `3.PGL(2,9)` subgroup it
-    contains.
+    This graph is built from the action of `J_2` on the cosets of a `3.PGL(2,9)`-subgroup.
 
     EXAMPLES::
 
@@ -2312,6 +2325,7 @@ def SRG_280_135_70_60():
     g     = Graph()
     g.add_edges(edges)
     g.relabel()
+    g.name('J_2 on cosets of 3.PGL(2,9)')
     return g
 
 def SRG_280_117_44_52():
@@ -2355,6 +2369,7 @@ def SRG_280_117_44_52():
     G = Graph([V, lambda x,y:
                sum(any(xxx in yy for xxx in xx) for xx in x for yy in y) != 7],
               loops=False)
+    G.name('Mathon-Rosa')
     return G
 
 def strongly_regular_from_two_weight_code(L):
@@ -2405,6 +2420,7 @@ def strongly_regular_from_two_weight_code(L):
     w1, w2 = sorted(set(sum(map(bool,x)) for x in V).difference([0]))
     G = Graph([V,lambda u,v: sum(uu!=vv for uu,vv in zip(u,v)) == w1])
     G.relabel()
+    G.name('two-weight code: '+str(L))
     return G
 
 def SRG_416_100_36_20():
@@ -2430,6 +2446,7 @@ def SRG_416_100_36_20():
     h = Graph()
     h.add_edges(g.Orbit([1,5],libgap.OnSets))
     h.relabel()
+    h.name('G_2(4) on cosets of HS')
     return h
 
 def SRG_560_208_72_80():
@@ -2437,7 +2454,7 @@ def SRG_560_208_72_80():
     Return a `(560,208,72,80)`-strongly regular graph
 
     This graph is obtained as the union of 4 orbits of sets of cardinality 2
-    (among the 13 that exists) of the group `Sz(8)`.
+    (among the 13 that exist) of the group `Sz(8)`.
 
     EXAMPLES::
 
@@ -2456,6 +2473,7 @@ def SRG_560_208_72_80():
     h.add_edges(g.Orbit([1,8],libgap.OnSets))
     h.add_edges(g.Orbit([1,27],libgap.OnSets))
     h.relabel()
+    h.name('Sz(8)-graph')
     return h
 
 def strongly_regular_from_two_intersection_set(M):
@@ -2491,7 +2509,8 @@ def strongly_regular_from_two_intersection_set(M):
 
         sage: from sage.graphs.strongly_regular_db import strongly_regular_from_two_intersection_set
         sage: S = Matrix([(0,0,1),(0,1,0)] + [(1,x^2,x) for x in GF(4,'b')])
-        sage: g = strongly_regular_from_two_intersection_set(S)
+        sage: g = strongly_regular_from_two_intersection_set(S); g
+        two-intersection set in PG(3,4): Graph on 64 vertices
         sage: g.is_strongly_regular(parameters=True)
         (64, 18, 2, 6)
 
@@ -2503,6 +2522,7 @@ def strongly_regular_from_two_intersection_set(M):
       https://biblio.ugent.be/publication/4241842/file/4241845.pdf
     """
     from itertools import product
+    from sage.rings.rational_field import QQ
     K = M.base_ring()
     k = M.ncols()
     g = Graph()
@@ -2517,6 +2537,9 @@ def strongly_regular_from_two_intersection_set(M):
             g.add_edges([[u,tuple([u[i]+qq*v[i] for i in range(k)])] \
                                             for qq in K if not qq==K.zero()])
     g.relabel()
+    e = QQ((1,k))
+    qq = g.num_verts()**e
+    g.name('two-intersection set in PG('+str(k)+','+str(qq)+')')
     return g
 
 def SRG_120_63_30_36():
@@ -2603,6 +2626,7 @@ def SRG_176_90_38_54():
     j=g.disjoint_union(CompleteGraph(1))
     j.relabel()
     j.seidel_switching(r)
+    j.name('a Seidel switching of '+SRG_175_72_20_36().name())
     return j
 
 def SRG_630_85_20_10():
@@ -2645,7 +2669,8 @@ def SRG_126_50_13_24():
     EXAMPLES::
 
         sage: from sage.graphs.strongly_regular_db import SRG_126_50_13_24
-        sage: G = SRG_126_50_13_24()
+        sage: G = SRG_126_50_13_24(); G
+        Goethals graph: Graph on 126 vertices
         sage: G.is_strongly_regular(parameters=True)
         (126, 50, 13, 24)
     """
@@ -2653,7 +2678,9 @@ def SRG_126_50_13_24():
     from sage.graphs.generators.smallgraphs import HoffmanSingletonGraph
     hs = HoffmanSingletonGraph()
     s = set(hs.vertices()).difference(hs.neighbors(0)+[0])
-    return SRG_175_72_20_36().subgraph(hs.edge_boundary(s,s))
+    g = SRG_175_72_20_36().subgraph(hs.edge_boundary(s,s))
+    g.name('Goethals graph')
+    return g
 
 
 
@@ -2693,6 +2720,7 @@ def SRG_1288_792_476_504():
     G = Graph([map(frozenset,C),
                lambda x,y:len(x.symmetric_difference(y))==12])
     G.relabel()
+    G.name('binary Golay code')
     return G
 
 cdef bint seems_feasible(int v, int k, int l, int mu):
@@ -3066,49 +3094,50 @@ def _build_small_srg_database():
     expect::
 
         sage: graphs.strongly_regular_graph(81, 50, 31, 30)
-        Graph on 81 vertices
+        complement(two-intersection set in PG(4,3)): Graph on 81 vertices
         sage: graphs.strongly_regular_graph(243, 220, 199, 200) # long time
-        Graph on 243 vertices
+        two-weight code: [55, 5] linear code over GF(3): Graph on 243 vertices
         sage: graphs.strongly_regular_graph(256, 153, 92, 90)
-        Graph on 256 vertices
+        complement(two-intersection set in PG(4,4)): Graph on 256 vertices
         sage: graphs.strongly_regular_graph(256, 170, 114, 110)
-        Graph on 256 vertices
+        complement(two-intersection set in PG(8,2)): Graph on 256 vertices
         sage: graphs.strongly_regular_graph(256, 187, 138, 132)
-        Graph on 256 vertices
+        complement(two-intersection set in PG(8,2)): Graph on 256 vertices
         sage: graphs.strongly_regular_graph(512, 73, 12, 10)    # not tested (too long)
-        Graph on 512 vertices
-        sage: graphs.strongly_regular_graph(512, 219, 106, 84)  # not tested (too long)
-        Graph on 512 vertices
+        two-weight code: [219, 9] linear code over GF(2): Graph on 512 vertices
+        sage: graphs.strongly_regular_graph(512, 219, 106, 84)  # long time
+        two-intersection set in PG(9,2): Graph on 512 vertices
         sage: graphs.strongly_regular_graph(512, 315, 202, 180) # not tested (too long)
-        Graph on 512 vertices
+        two-weight code: [70, 9] linear code over GF(2): Graph on 512 vertices
         sage: graphs.strongly_regular_graph(625, 364, 213, 210) # long time
-        Graph on 625 vertices
+        complement(two-intersection set in PG(4,5)): Graph on 625 vertices
         sage: graphs.strongly_regular_graph(625, 416, 279, 272) # long time
-        Graph on 625 vertices
-        sage: graphs.strongly_regular_graph(625, 468, 353, 342) # not tested (too long)
-        Graph on 625 vertices
+        complement(two-intersection set in PG(4,5)): Graph on 625 vertices
+        sage: graphs.strongly_regular_graph(625, 468, 353, 342) # long time
+        complement(two-intersection set in PG(4,5)): Graph on 625 vertices
         sage: graphs.strongly_regular_graph(729, 336, 153,156)  # not tested (too long)
-        Graph on 729 vertices
+        two-intersection set in PG(6,3): Graph on 729 vertices
         sage: graphs.strongly_regular_graph(729, 420, 243, 240) # not tested (too long)
-        Graph on 729 vertices
+        complement(two-intersection set in PG(6,3)): Graph on 729 vertices
         sage: graphs.strongly_regular_graph(729, 448, 277, 272) # not tested (too long)
-        Graph on 729 vertices
+        complement(two-intersection set in PG(6,3)): Graph on 729 vertices
         sage: graphs.strongly_regular_graph(729, 476, 313, 306) # not tested (too long)
-        Graph on 729 vertices
+        complement(two-intersection set in PG(6,3)): Graph on 729 vertices
         sage: graphs.strongly_regular_graph(729, 532, 391, 380) # not tested (too long)
-        Graph on 729 vertices
+        complement(two-intersection set in PG(6,3)): Graph on 729 vertices
         sage: graphs.strongly_regular_graph(729, 560, 433, 420) # not tested (too long)
+        complement(two-intersection set in PG(6,3)): Graph on 729 vertices
         Graph on 729 vertices
         sage: graphs.strongly_regular_graph(729, 616, 523, 506) # not tested (too long)
-        Graph on 729 vertices
+        complement(two-intersection set in PG(6,3)): Graph on 729 vertices
         sage: graphs.strongly_regular_graph(1024, 363, 122, 132)# not tested (too long)
-        Graph on 1024 vertices
+        two-intersection set in PG(5,4): Graph on 1024 vertices
         sage: graphs.strongly_regular_graph(1024, 396, 148, 156)# not tested (too long)
-        Graph on 1024 vertices
+        two-intersection set in PG(5,4): Graph on 1024 vertices
         sage: graphs.strongly_regular_graph(1024, 429, 176, 182)# not tested (too long)
-        Graph on 1024 vertices
+        two-intersection set in PG(5,4): Graph on 1024 vertices
         sage: graphs.strongly_regular_graph(1024, 825, 668, 650)# not tested (too long)
-        Graph on 1024 vertices
+        complement(two-intersection set in PG(10,2)): Graph on 1024 vertices
 
     REFERENCES:
 

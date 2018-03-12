@@ -78,8 +78,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
     def _check_shift_dimension(self, shifts=None, row_wise=True):
         r"""
-        Return a boolean indicating if the ``shifts`` argument has the
-        right length.
+        Raises an exception if the ``shifts`` argument does not have the right
+        length.
 
         For an $m \times n$ polynomial matrix, if working row-wise then
         ``shifts`` should have $n$ entries; if working column-wise, it should
@@ -135,7 +135,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M.degree()
             -1
 
-        For an "empty" matrix, the degree is not defined::
+        For an empty matrix, the degree is not defined::
 
             sage: M = Matrix( pR, 3, 0 )
             sage: M.degree()
@@ -455,6 +455,51 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                 for j in range(self.ncols()) ]
                 for i in range(self.nrows()) ])
 
+    def is_empty_popov(self, row_wise=True):
+        r"""
+        Assuming that this matrix is empty, that is, of dimensions $0\times n$
+        or $m\times 0$, return a boolean indicating if it is in shifted Popov
+        form. By convention, if working row-wise, for $n\geq 0$ the $0\times n$
+        matrix is in shifted Popov form for all shifts, and for $m>0$ the $m
+        \times 0$ matrix is not in shifted Popov form for any shift. The
+        convention is similar if working column-wise.
+
+        INPUT:
+
+        - ``row_wise`` -- (optional, default: ``True``) boolean, ``True`` if
+          one considers the row-wise shifted Popov form.
+
+        OUTPUT: a boolean.
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+            sage: M = Matrix(pR, 0, 0)
+            sage: M.is_empty_popov()
+            True
+
+            sage: M = Matrix(pR, 0, 3)
+            sage: M.is_empty_popov()
+            True
+            sage: M.is_empty_popov(row_wise=False)
+            False
+
+        The input matrix should be empty::
+
+            sage: N = Matrix(pR, 1, 3)
+            sage: N.is_empty_popov()
+            Traceback (most recent call last):
+            ...
+            ValueError: The matrix should be empty in call to _check_empty_popov.
+        """
+        if self.nrows() > 0 and self.ncols() > 0:
+            raise ValueError('The matrix should be empty in call to _check_empty_popov.')
+        # now, either self.nrows()==0 or self.ncols()==0
+        # assume we work row-wise, self is in shifted Popov form iff self.nrows()==0:
+        # --> if self.nrows()==0, then self is in shifted Popov form
+        # --> if self.nrows()>0, then self.ncols()>0 and self is not in shifted Popov form
+        return self.nrows()==0 if row_wise else self.ncols()==0
+
     def is_reduced(self,
             shifts=None,
             row_wise=True,
@@ -518,6 +563,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             True
         """
         self._check_shift_dimension(shifts,row_wise)
+        if self.ncols()==0 or self.nrows()==0:
+            return self.is_empty_popov(row_wise)
         if include_zero_vectors:
             number_generators =                                           \
                 self.nrows() -                                            \
@@ -600,7 +647,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         The leading positions and pivot degree of an empty matrix ($0\times n$
         or $m\times 0$) is not defined::
-            
+
             sage: M = Matrix( pR, 0, 3 )
             sage: M.leading_positions(return_degree=True)
             Traceback (most recent call last):
@@ -759,6 +806,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             False
         """
         self._check_shift_dimension(shifts,row_wise)
+        if self.ncols()==0 or self.nrows()==0:
+            return self.is_empty_popov(row_wise)
         leading_positions = self.leading_positions(shifts, row_wise)
         # here, it will be convenient to have leading position
         # larger than ncols for zero/empty rows
@@ -895,6 +944,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         """
         # the matrix should be in weak Popov form (ordered except if
         # up_to_permutation==True)
+        if self.ncols()==0 or self.nrows()==0:
+            return self.is_empty_popov(row_wise)
         if not self.is_weak_popov(shifts, \
                 row_wise, \
                 not up_to_permutation, \

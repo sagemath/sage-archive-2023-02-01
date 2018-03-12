@@ -2109,7 +2109,8 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             l = self.ncols()
         else:
             l = len(self)
-        for i in range(1, l + 1):
+
+        for i in range(1, int(l + 1)):
             yield self[i]
 
     def _singular_(self):

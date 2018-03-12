@@ -322,6 +322,7 @@ from __future__ import absolute_import
 from six.moves import range
 from six import integer_types, string_types
 
+import io
 import os
 import re
 import sys
@@ -2265,24 +2266,27 @@ def generate_docstring_dictionary():
 
     L, in_node, curr_node = [], False, None
 
-    for line in open(singular_docdir + "singular.hlp"):
-        m = re.match(new_node,line)
-        if m:
-            # a new node starts
-            in_node = True
-            nodes[curr_node] = "".join(L)
-            L = []
-            curr_node, = m.groups()
-        elif in_node: # we are in a node
-           L.append(line)
-        else:
-           m = re.match(new_lookup, line)
-           if m:
-               a,b = m.groups()
-               node_names[a] = b.strip()
+    # singular.hlp contains a few iso-5559-1 encoded special characters
+    with io.open(os.path.join(singular_docdir, 'singular.hlp'),
+                 encoding='latin-1') as f:
+        for line in f:
+            m = re.match(new_node,line)
+            if m:
+                # a new node starts
+                in_node = True
+                nodes[curr_node] = "".join(L)
+                L = []
+                curr_node, = m.groups()
+            elif in_node: # we are in a node
+               L.append(line)
+            else:
+               m = re.match(new_lookup, line)
+               if m:
+                   a,b = m.groups()
+                   node_names[a] = b.strip()
 
-        if line == "6 Index\n":
-            in_node = False
+            if line == "6 Index\n":
+                in_node = False
 
     nodes[curr_node] = "".join(L) # last node
 

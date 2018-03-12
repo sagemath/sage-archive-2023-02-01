@@ -674,7 +674,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         be in weak Popov form if the leading positions of its nonzero rows
         (resp. columns) are pairwise distinct (for the ordered weak Popov form,
         this pivot index must be strictly increasing, except for the possibly
-        repeated -1 entries which are at the beginning).
+        repeated -1 entries which are at the end).
 
         Sometimes, one forbids $M$ to have zero rows (resp. columns) in the
         above definitions; an optional parameter allows one to adopt this more
@@ -747,9 +747,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         Zero rows (resp. columns) can be forbidden::
 
             sage: M = Matrix([ \
-                    [0,       6*x+4,       0,             5*x+1], \
-                    [0,           2, 5*x + 1,       6*x^2+3*x+1], \
-                    [0, 2*x^2+5*x+5,       1, 2*x^3+4*x^2+6*x+4]  \
+                    [      6*x+4,       0,             5*x+1, 0], \
+                    [          2, 5*x + 1,       6*x^2+3*x+1, 0], \
+                    [2*x^2+5*x+5,       1, 2*x^3+4*x^2+6*x+4, 0]  \
                     ])
             sage: M.is_weak_popov(shifts=[2,1,0], row_wise=False, ordered=True)
             True
@@ -760,6 +760,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         """
         self._check_shift_dimension(shifts,row_wise)
         leading_positions = self.leading_positions(shifts, row_wise)
+        # here, it will be convenient to have leading position
+        # larger than ncols for zero/empty rows
+        leading_positions = [pos if pos>=0 else self.ncols()+1 for pos in leading_positions]
         # pivot index should not have duplicates, which is equivalent to:
         # once sorted, it doesn't contain a pair of equal successive entries
         if not ordered:
@@ -767,20 +770,20 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         if not include_zero_vectors:
             # there should be no zero row (or column if not row_wise)
             # and the matrix should not be m x 0 (or 0 x n if not row_wise)
+            # (the latter is equivalent to leading_positions[-1] == None)
             if len(leading_positions) > 0 and \
-                (leading_positions[0] == None or leading_positions[0] < 0):
+                (leading_positions[-1] == None or leading_positions[-1] > self.ncols()):
                 return False
         else:
             # if the matrix is m x 0 (or 0 x n) and zero rows (or columns)
             # are allowed, then the matrix is in ordered weak Popov form
             if len(leading_positions) == 0:
                 return True
-        # now leading_positions is nondecreasing and has length >= 1;
-        # it does not contain "-1" entries if include_zero_vectors=False
-        # --> it remains to test whether leading_positions is strictly
-        # increasing (except for its "-1" entries, if allowed)
+        # now leading_positions is nondecreasing and has length >= 1:
+        # it remains to test whether leading_positions is strictly increasing 
+        # (at least until we reach the zero rows part, if it exists)
         for index,next_leading_position in enumerate(leading_positions[1:]):
-            if leading_positions[index] >= 0 and \
+            if leading_positions[index] < self.ncols() and \
                     next_leading_position <= leading_positions[index]:
                 return False
         return True
@@ -795,8 +798,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         form.
 
         If working row-wise (resp. column-wise), a polynomial matrix is said to
-        be in Popov form if it has no zero row below a nonzero row (resp. no
-        zero column to the right of a nonzero column), the leading positions of
+        be in Popov form if it has no zero row above a nonzero row (resp. no
+        zero column to the left of a nonzero column), the leading positions of
         its nonzero rows (resp. columns) are strictly increasing, and for each
         row (resp. column) the pivot entry is monic and has degree strictly
         larger than the other entries in its column (resp. row).
@@ -861,9 +864,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         One can forbid zero rows (or columns if not working row-wise)::
 
-            sage: N = Matrix(pR, [ [0,                   0         ], \
-                                   [x^4+3*x^3+x^2+2*x+6, 6*x+1     ], \
-                                   [5*x^2+5*x+1,         x^2+4*x+1 ] ])
+            sage: N = Matrix(pR, [ [x^4+3*x^3+x^2+2*x+6, 6*x+1     ], \
+                                   [5*x^2+5*x+1,         x^2+4*x+1 ], \
+                                   [0,                   0         ] ])
 
             sage: N.is_popov()
             True
@@ -922,139 +925,140 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                             return False
         return True
 
-    def is_hermite(self,
-            row_wise=True,
-            zero_vectors_first=False,
-            lower_echelon=False,
-            include_zero_vectors=True):
-        r"""
-        Return a boolean indicating whether this matrix is in Hermite form.
+    #def is_hermite(self,
+    #        row_wise=True,
+    #        zero_vectors_first=False,
+    #        lower_echelon=False,
+    #        include_zero_vectors=True):
+    #    r"""
+    #    Return a boolean indicating whether this matrix is in Hermite form.
 
-        If working row-wise, a polynomial matrix is said to be in Hermite form
-        if it is in row echelon form with all pivot entries monic and such that
-        all entries above a pivot have degree less than this pivot. Being in
-        row echelon form means that all zero rows are gathered at the bottom of
-        the matrix, and in each nonzero row the pivot (leftmost nonzero entry)
-        is strictly to the right of the pivot of the row just above this row.
+    #    If working row-wise, a polynomial matrix is said to be in Hermite form
+    #    if it is in row echelon form with all pivot entries monic and such that
+    #    all entries above a pivot have degree less than this pivot. Being in
+    #    row echelon form means that all zero rows are gathered at the bottom of
+    #    the matrix, and in each nonzero row the pivot (leftmost nonzero entry)
+    #    is strictly to the right of the pivot of the row just above this row.
 
-        If working column-wise, a polynomial matrix is said to be in Hermite
-        form if it is in column echelon form with all pivot entries monic and
-        such that all entries to the left of a pivot have degree less than this
-        pivot. Being in column echelon form means that all zero columns are
-        gathered at the right-hand side of the matrix, and in each nonzero
-        column the pivot (topmost nonzero entry) is strictly below the pivot of
-        the column just to the left of this row.
+    #    If working column-wise, a polynomial matrix is said to be in Hermite
+    #    form if it is in column echelon form with all pivot entries monic and
+    #    such that all entries to the left of a pivot have degree less than this
+    #    pivot. Being in column echelon form means that all zero columns are
+    #    gathered at the right-hand side of the matrix, and in each nonzero
+    #    column the pivot (topmost nonzero entry) is strictly below the pivot of
+    #    the column just to the left of this row.
 
-        Since several definitions coexist concerning the location of the zero
-        rows (resp. columns), concerning the choice of upper or lower echelon
-        forms, and also concerning whether zero rows (resp. columns) are
-        allowed. Optional arguments are provided in order to allow flexibility
-        and support these alternative definitions.
+    #    Since several definitions coexist concerning the location of the zero
+    #    rows (resp. columns), concerning the choice of upper or lower echelon
+    #    forms, and also concerning whether zero rows (resp. columns) are
+    #    allowed. Optional arguments are provided in order to allow flexibility
+    #    and support these alternative definitions.
 
-        INPUT:
+    #    INPUT:
 
-        - ``row_wise`` -- (optional, default: ``True``) boolean, ``True`` if
-          working row-wise (see the class description).
+    #    - ``row_wise`` -- (optional, default: ``True``) boolean, ``True`` if
+    #      working row-wise (see the class description).
 
-        - ``zero_vectors_first`` -- (option, default: ``False``) boolean,
-          ``True`` if zero rows should rather be at the top of the matrix if
-          working row-wise, and in the left-hand side of the matrix if working
-          column-wise.
+    #    - ``zero_vectors_first`` -- (option, default: ``False``) boolean,
+    #      ``True`` if zero rows should rather be at the top of the matrix if
+    #      working row-wise, and in the left-hand side of the matrix if working
+    #      column-wise.
 
-        - ``lower_echelon`` -- (optional, default: ``False``) boolean,
-          ``False`` if TODO.
+    #    - ``lower_echelon`` -- (optional, default: ``False``) boolean,
+    #      ``False`` if TODO.
 
-        - ``include_zero_vectors`` -- (optional, default: ``True``) boolean,
-          ``False`` if one does not allow zero rows (resp. zero columns) in
-          Hermite forms.
+    #    - ``include_zero_vectors`` -- (optional, default: ``True``) boolean,
+    #      ``False`` if one does not allow zero rows (resp. zero columns) in
+    #      Hermite forms.
 
-        OUTPUT: a boolean.
+    #    OUTPUT: a boolean.
 
-        EXAMPLES::
+    #    EXAMPLES::
 
-            sage: pR.<x> = GF(7)[]
-            sage: M = Matrix(pR, [ [x^4+6*x^3+4*x+4, 3*x+6,     3  ], \
-                                   [0,               x^2+5*x+5, 2  ], \
-                                   [0,               0,         x+5] ])
+    #        sage: pR.<x> = GF(7)[]
+    #        sage: M = Matrix(pR, [ [x^4+6*x^3+4*x+4, 3*x+6,     3  ], \
+    #                               [0,               x^2+5*x+5, 2  ], \
+    #                               [0,               0,         x+5] ])
 
-            sage: M.is_hermite()
-            True
-            sage: M.is_hermite(row_wise=False)
-            False
-            sage: M.is_hermite(row_wise=False, lower_echelon=True)
-            True
+    #        sage: M.is_hermite()
+    #        True
+    #        sage: M.is_hermite(row_wise=False)
+    #        False
+    #        sage: M.is_hermite(row_wise=False, lower_echelon=True)
+    #        True
 
-            sage: N = Matrix(pR, [ [x^2+5*x+5, 3*x^3+6,         3  ], \
-                                   [0,         x^4+6*x^3+4*x+4, 2  ], \
-                                   [0,         0,               x+5] ])
-            sage: N.is_hermite()
-            True
-            sage: N.is_hermite(row_wise=False)
-            False
-            sage: N.is_hermite(row_wise=False, lower_echelon=True)
-            False
+    #        sage: N = Matrix(pR, [ [x^2+5*x+5, 3*x^3+6,         3  ], \
+    #                               [0,         x^4+6*x^3+4*x+4, 2  ], \
+    #                               [0,         0,               x+5] ])
+    #        sage: N.is_hermite()
+    #        True
+    #        sage: N.is_hermite(row_wise=False)
+    #        False
+    #        sage: N.is_hermite(row_wise=False, lower_echelon=True)
+    #        False
 
-        Rectangular matrices with zero rows are supported. Zero rows should
-        be either at the top or at the bottom of the matrix (if working
-        row-wise), depending on the parameter ``zero_vectors_first``::
+    #    Rectangular matrices with zero rows are supported. Zero rows should
+    #    be either at the top or at the bottom of the matrix (if working
+    #    row-wise), depending on the parameter ``zero_vectors_first``::
 
-            sage: N[:,:2].is_hermite()
-            True
-            sage: N[:,:2].is_hermite(zero_vectors_first=True)
-            False
-            sage: N[:,1:].is_hermite()
-            True
-            sage: N[1:,:].is_hermite(row_wise=False, zero_vectors_first=True)
-            True
+    #        sage: N[:,:2].is_hermite()
+    #        True
+    #        sage: N[:,:2].is_hermite(zero_vectors_first=True)
+    #        False
+    #        sage: N[:,1:].is_hermite()
+    #        True
+    #        sage: N[1:,:].is_hermite(row_wise=False, zero_vectors_first=True)
+    #        True
 
-        One can forbid zero rows (or columns if not working row-wise)::
+    #    One can forbid zero rows (or columns if not working row-wise)::
 
-            sage: N[:,:2].is_hermite(include_zero_vectors=False)
-            False
+    #        sage: N[:,:2].is_hermite(include_zero_vectors=False)
+    #        False
 
-        One can verify Hermite form::
-        """
-        # TODO example with other orientation of echelon
+    #    One can verify Hermite form::
+    #    """
+    #    # TODO example with other orientation of echelon
 
-        number_zero_vectors =                                         \
-            [self[i,:] == 0 for i in range(self.nrows())].count(True) \
-            if row_wise else                                          \
-            [self[:,j] == 0 for j in range(self.ncols())].count(True)
+    #    number_zero_vectors =                                         \
+    #        [self[i,:] == 0 for i in range(self.nrows())].count(True) \
+    #        if row_wise else                                          \
+    #        [self[:,j] == 0 for j in range(self.ncols())].count(True)
 
-        # if there is no zero row or if they should be first
-        # -> just call is_popov with the right shift
-        if zero_first or number_zero_vectors == 0:
-            shift = [j*self.degree()+1 for j in range(self.ncols())] \
-                    if row_wise else \
-                    [j*self.degree()+1 for j in range(self.nrows())]
-            if not lower_echelon:
-                shift.reverse()
-            return self.is_popov(shifts=shift, row_wise)
+    #    # if there is no zero row or if they should be first
+    #    # -> just call is_popov with the right shift
+    #    if zero_first or number_zero_vectors == 0:
+    #        shift = [j*self.degree()+1 for j in range(self.ncols())] \
+    #                if row_wise else \
+    #                [j*self.degree()+1 for j in range(self.nrows())]
+    #        if not lower_echelon:
+    #            shift.reverse()
+    #        return self.is_popov(shifts=shift, row_wise)
 
-        # now, there are zero rows and they should appear last (that is, either
-        # at the bottom or in the right-hand side, depending on row_wise)
+    #    # now, there are zero rows and they should appear last (that is, either
+    #    # at the bottom or in the right-hand side, depending on row_wise)
 
-        # if zero rows (resp. columns) are not allowed, this is wrong
-        if (not include_zero_vectors):
-            return False
+    #    # if zero rows (resp. columns) are not allowed, this is wrong
+    #    if (not include_zero_vectors):
+    #        return False
 
 
-        # TODO TODO
+    #    # TODO TODO
 
-        # now zero rows are allowed.
-        if row_wise:
-            if zero_first:
-                return self.is_popov(shift)
-            else:
-                # check: all zero rows are at the bottom of the matrix
-                number_nonzero = 0
-                # TODO
-        else:
-            if zero_first:
-                return self.is_popov(shift,row_wise=False)
-            else:
-                # check: all zero columns are in the right-hand side of the matrix
-                # TODO
+    #    # now zero rows are allowed.
+    #    if row_wise:
+    #        if zero_first:
+    #            return self.is_popov(shift)
+    #        else:
+    #            # check: all zero rows are at the bottom of the matrix
+    #            number_nonzero = 0
+    #            # TODO
+    #    else:
+    #        if zero_first:
+    #            return self.is_popov(shift,row_wise=False)
+    #        else:
+
+    #            # check: all zero columns are in the right-hand side of the matrix
+    #            # TODO
 
 
     def weak_popov_form(self, transformation=False, shifts=None):

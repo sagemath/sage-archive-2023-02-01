@@ -1038,6 +1038,19 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return self.str()
 
+    def _symbolic_(self, sring):
+        """
+        Return this integer as symbolic expression.
+
+        EXAMPLES::
+
+            sage: ex = SR(ZZ(7)); ex
+            7
+            sage: parent(ex)
+            Symbolic Ring
+        """
+        return sring._force_pyobject(self, force=True)
+
     def _sympy_(self):
         """
         Convert Sage Integer() to SymPy Integer.

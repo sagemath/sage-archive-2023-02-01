@@ -336,9 +336,11 @@ cdef class SymbolicRing(CommutativeRing):
                 return x
             else:
                 return new_Expression_from_GEx(self, (<Expression>x)._gobj)
-        elif hasattr(x, '_symbolic_'):
+        try:
             return x._symbolic_(self)
-        elif isinstance(x, str):
+        except AttributeError:
+            pass
+        if isinstance(x, str):
             try:
                 from sage.calculus.calculus import symbolic_expression_from_string
                 return self(symbolic_expression_from_string(x))
@@ -360,7 +362,7 @@ cdef class SymbolicRing(CommutativeRing):
                 from sage.symbolic.constants import NaN
                 return NaN
             exp = x
-        elif isinstance(x, (Integer, long)):
+        elif isinstance(x, long):
             exp = x
         elif isinstance(x, int):
             exp = GEx(<long>x)

@@ -1291,8 +1291,12 @@ class UniqueRepresentation(CachedRepresentation, WithEqualityById):
         sage: x == y
         True
         sage: z = MyClass(2)
-        sage: x == z, x is z
-        (False, False)
+        sage: x == z
+        False
+        sage: x is z
+        False
+        sage: x != z
+        True
 
     A hash function equivalent to :meth:`object.__hash__` is used, which is
     compatible with comparison by identity. However this means that the hash

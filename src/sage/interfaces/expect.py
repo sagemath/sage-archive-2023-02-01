@@ -1075,6 +1075,21 @@ If this all works, you can then make calls like:
 
         return after
 
+    def _readline(self, size=-1, encoding=None, errors=None):
+        r"""
+        Wraps ``spawn.readline`` to pass the return values through
+        ``bytes_to_str``, like `Expect._before` and `Expect._after`.
+
+        EXAMPLES::
+
+            sage: a = singular(1)
+            sage: singular._expect.sendline('1+1;')
+            sage: singular._readline()
+            '2\r\n'
+        """
+
+        return bytes_to_str(self._expect.readline(size=size), encoding, errors)
+
     def _interrupt(self):
         for i in range(15):
             try:

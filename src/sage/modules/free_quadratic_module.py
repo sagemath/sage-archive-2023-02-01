@@ -127,15 +127,19 @@ def FreeQuadraticModule(
     global _cache
     rank = int(rank)
 
-    if inner_product_matrix is None:
-        raise ValueError("An inner_product_matrix must be specified.")
-
     # In order to use coercion into the inner_product_ring we need to pass
     # this ring into the vector classes.
     if inner_product_ring is not None:
         raise NotImplementedError("An inner_product_ring can not currently be defined.")
 
-    inner_product_matrix = sage.matrix.matrix_space.MatrixSpace(base_ring, rank)(inner_product_matrix)
+    # We intentionally create a new matrix instead of using the given
+    # inner_product_matrix. This ensures that the matrix has the correct
+    # parent space. It also gets rid of subdivisions which is good
+    # because matrices with and without subdivisions compare equal.
+    # Because of uniqueness, we need a canonical matrix, which is the one
+    # without subdivisions.
+    MS = sage.matrix.matrix_space.MatrixSpace(base_ring, rank)
+    inner_product_matrix = MS(list(inner_product_matrix))
     inner_product_matrix.set_immutable()
 
     key = (base_ring, rank, inner_product_matrix, sparse)

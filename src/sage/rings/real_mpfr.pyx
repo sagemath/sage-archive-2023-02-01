@@ -774,9 +774,8 @@ cdef class RealField_class(sage.rings.ring.Field):
             return NotImplemented
 
         _other = <RealField_class>other  # to access C structure
-        if self.__prec == _other.__prec and self.rnd == _other.rnd:
-            return rich_to_bool(op, 0)
-        return rich_to_bool(op, 1)
+        return (self.__prec == _other.__prec and
+                self.rnd == _other.rnd) == (op == Py_EQ)
 
     def __reduce__(self):
         """

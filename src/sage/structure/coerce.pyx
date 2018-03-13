@@ -115,7 +115,7 @@ cpdef py_scalar_parent(py_type):
         sage: from sage.structure.coerce import py_scalar_parent
         sage: py_scalar_parent(int)
         Integer Ring
-        sage: py_scalar_parent(long)
+        sage: py_scalar_parent(long)  # py2
         Integer Ring
         sage: py_scalar_parent(float)
         Real Double Field
@@ -1910,7 +1910,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             False
             sage: richcmp(x, y, op_NE)
             True
-            sage: richcmp(x, y, op_LT if cmp(type(x), type(y)) == -1 else op_GT)
+            sage: richcmp(x, y, op_LT if cmp(type(x), type(y)) == -1  # py2
+            ....:                     else op_GT)
             True
 
         We support non-Sage types with the usual Python convention::
@@ -1999,11 +2000,11 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             ...
             RuntimeError: There is a bug in the coercion code in Sage.
             Both x (='f(a)') and y (='g(b)') are supposed to have identical parents but they don't.
-            In fact, x has parent '<... 'str'>'
-            whereas y has parent '<... 'str'>'
-            Original elements 'a' (parent <... 'str'>) and 'b' (parent <... 'str'>) and maps
-            <... 'str'> 'f'
-            <... 'str'> 'g'
+            In fact, x has parent '<type 'str'>'
+            whereas y has parent '<type 'str'>'
+            Original elements 'a' (parent <type 'str'>) and 'b' (parent <type 'str'>) and maps
+            <type 'str'> 'f'
+            <type 'str'> 'g'
         """
         raise RuntimeError("""There is a bug in the coercion code in Sage.
 Both x (=%r) and y (=%r) are supposed to have identical parents but they don't.

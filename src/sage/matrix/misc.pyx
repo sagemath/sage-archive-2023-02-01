@@ -442,7 +442,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
 
 ###########################
 
-def cmp_pivots(x,y):
+def cmp_pivots(x, y):
     """
     Compare two sequences of pivot columns.
 
@@ -454,7 +454,7 @@ def cmp_pivots(x,y):
 
     INPUT:
 
-    - x, y -- list of integers
+    - x, y -- lists or tuples of integers
 
     EXAMPLES:
 
@@ -471,6 +471,8 @@ def cmp_pivots(x,y):
         sage: sage.matrix.misc.cmp_pivots([1,2,3], [1,2,4])
         1
     """
+    x = tuple(x)
+    y = tuple(y)
     if len(x) < len(y):
         return -1
     if len(x) > len(y):

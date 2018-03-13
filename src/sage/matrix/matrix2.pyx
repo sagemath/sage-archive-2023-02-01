@@ -14986,6 +14986,8 @@ def cmp_pivots(x,y):
       entries of x are correspondingly >= those of y with one being
       greater.
     """
+    x = tuple(x)
+    y = tuple(y)
     if len(x) < len(y):
         return -1
     if len(x) > len(y):

@@ -1967,10 +1967,16 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         # avoiding call to cmp() for compatibility with python3
         cdef type tx = type(x)
         cdef type ty = type(y)
-        if tx < ty:
-            return rich_to_bool(op, -1)
-        elif tx > ty:
-            return rich_to_bool(op, 1)
+
+        # Python 3 doesn't generally define < or > for types (though it could
+        # be defined in some unusual cases)
+        try:
+            if tx < ty:
+                return rich_to_bool(op, -1)
+            elif tx > ty:
+                return rich_to_bool(op, 1)
+        except TypeError:
+            pass
 
         # Final attempt: compare by id()
         if (<unsigned long><PyObject*>x) >= (<unsigned long><PyObject*>y):

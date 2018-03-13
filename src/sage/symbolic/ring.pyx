@@ -336,11 +336,9 @@ cdef class SymbolicRing(CommutativeRing):
                 return x
             else:
                 return new_Expression_from_GEx(self, (<Expression>x)._gobj)
-        try:
+        if hasattr(x, '_symbolic_'):
             return x._symbolic_(self)
-        except AttributeError:
-            pass
-        if isinstance(x, str):
+        elif isinstance(x, str):
             try:
                 from sage.calculus.calculus import symbolic_expression_from_string
                 return self(symbolic_expression_from_string(x))

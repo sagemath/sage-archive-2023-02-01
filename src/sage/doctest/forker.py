@@ -125,10 +125,12 @@ def init_sage():
     # Set the Python PRNG class to the Python 2 implementation for consistency
     # of 'random' test results that use it; see
     # https://trac.sagemath.org/ticket/24508
-    if six.PY3:
-        import sage.misc.randstate
-        from sage.cpython._py2_random import Random
-        sage.misc.randstate.DEFAULT_PYTHON_RANDOM = Random
+    # We use the baked in copy of the random module for both Python 2 and 3
+    # since, although the upstream copy is unlikely to change, this further
+    # ensures consistency of test results
+    import sage.misc.randstate
+    from sage.cpython._py2_random import Random
+    sage.misc.randstate.DEFAULT_PYTHON_RANDOM = Random
 
     import sage.all_cmdline
     sage.interfaces.quit.invalidate_all()

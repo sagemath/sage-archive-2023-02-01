@@ -593,7 +593,7 @@ cdef class randstate:
         if cls is None:
             cls = DEFAULT_PYTHON_RANDOM
 
-        if self._python_random is not None and type(self._python_random) is cls:
+        if type(self._python_random) is cls:
             return self._python_random
 
         from sage.rings.integer_ring import ZZ

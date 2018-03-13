@@ -1903,15 +1903,13 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: richcmp(int(1), float(2), op_GE)
             False
 
-        If there is no coercion, compare types::
+        If there is no coercion, only comparisons for equality make
+        sense::
 
             sage: x = QQ.one(); y = GF(2).one()
             sage: richcmp(x, y, op_EQ)
             False
             sage: richcmp(x, y, op_NE)
-            True
-            sage: richcmp(x, y, op_LT if cmp(type(x), type(y)) == -1  # py2
-            ....:                     else op_GT)
             True
 
         We support non-Sage types with the usual Python convention::
@@ -1963,21 +1961,6 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             res = Py_TYPE(y).tp_richcompare(y, x, revop)
             if res is not NotImplemented:
                 return res
-
-        # If types are not equal: compare types
-        # avoiding call to cmp() for compatibility with python3
-        cdef type tx = type(x)
-        cdef type ty = type(y)
-
-        # Python 3 doesn't generally define < or > for types (though it could
-        # be defined in some unusual cases)
-        try:
-            if tx < ty:
-                return rich_to_bool(op, -1)
-            elif tx > ty:
-                return rich_to_bool(op, 1)
-        except TypeError:
-            pass
 
         # Final attempt: compare by id()
         if (<unsigned long><PyObject*>x) >= (<unsigned long><PyObject*>y):

@@ -458,19 +458,26 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                 for j in range(self.ncols()) ]
                 for i in range(self.nrows()) ])
 
-    def is_empty_popov(self, row_wise=True):
+    def _is_empty_popov(self, row_wise=True, include_zero_vectors=True):
         r"""
         Assuming that this matrix is empty, that is, of dimensions $0\times n$
         or $m\times 0$, return a boolean indicating if it is in shifted Popov
-        form. By convention, if working row-wise, for $n\geq 0$ the $0\times n$
-        matrix is in shifted Popov form for all shifts, and for $m>0$ the $m
-        \times 0$ matrix is not in shifted Popov form for any shift. The
-        convention is similar if working column-wise.
+        form. If zero vectors are allowed in shifted reduced forms, this always
+        returns true. Otherwise, by convention and if working row-wise, for
+        $n\geq 0$ the $0\times n$ matrix is in shifted Popov form for all
+        shifts, and for $m>0$ the $m \times 0$ matrix is not in shifted Popov
+        form for any shift. The convention is similar if working column-wise.
+
+        The behaviour of this method for non-empty matrices is not defined.
 
         INPUT:
 
         - ``row_wise`` -- (optional, default: ``True``) boolean, ``True`` if
           one considers the row-wise shifted Popov form.
+
+        - ``include_zero_vectors`` -- (optional, default: ``True``) boolean,
+          ``False`` if one does not allow zero rows in row reduced forms (resp.
+          zero columns in column reduced forms).
 
         OUTPUT: a boolean.
 
@@ -478,34 +485,26 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
             sage: pR.<x> = GF(7)[]
             sage: M = Matrix(pR, 0, 0)
-            sage: M.is_empty_popov()
+            sage: M._is_empty_popov()
             True
 
             sage: M = Matrix(pR, 0, 3)
-            sage: M.is_empty_popov()
+            sage: M._is_empty_popov()
             True
-            sage: M.is_empty_popov(row_wise=False)
+            sage: M._is_empty_popov(row_wise=False)
             False
-
-        The input matrix should be empty::
-
-            sage: N = Matrix(pR, 1, 3)
-            sage: N.is_empty_popov()
-            Traceback (most recent call last):
-            ...
-            ValueError: The matrix should be empty in call to _check_empty_popov.
 
         .. SEEALSO::
         
             :meth:`is_popov` .
         """
-        if self.nrows() > 0 and self.ncols() > 0:
-            raise ValueError('The matrix should be empty in call to _check_empty_popov.')
-        # now, either self.nrows()==0 or self.ncols()==0
-        # assume we work row-wise, self is in shifted Popov form iff self.nrows()==0:
-        # --> if self.nrows()==0, then self is in shifted Popov form
-        # --> if self.nrows()>0, then self.ncols()>0 and self is not in shifted Popov form
-        return self.nrows() == 0 if row_wise else self.ncols() == 0
+        if not include_zero_vectors:
+            return True
+        else:
+            # assume we work row-wise, self is in shifted Popov form iff self.nrows()==0:
+            # --> if self.nrows()==0, then self is in shifted Popov form
+            # --> if self.nrows()>0, then self.ncols()>0 and self is not in shifted Popov form
+            return self.nrows() == 0 if row_wise else self.ncols() == 0
 
     def is_reduced(self,
             shifts=None,
@@ -536,7 +535,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
           ``None`` is interpreted as ``shifts=[0,...,0]``.
 
         - ``row_wise`` -- (optional, default: ``True``) boolean, ``True`` if
-          working row-wise (see the class description)
+          working row-wise (see the class description).
 
         - ``include_zero_vectors`` -- (optional, default: ``True``) boolean,
           ``False`` if one does not allow zero rows in row reduced forms (resp.
@@ -576,7 +575,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         """
         self._check_shift_dimension(shifts,row_wise)
         if self.ncols() == 0 or self.nrows() == 0:
-            return self.is_empty_popov(row_wise)
+            return self._is_empty_popov(row_wise)
         if include_zero_vectors:
             number_generators =                                           \
                 [self[i,:] != 0 for i in range(self.nrows())].count(True) \
@@ -823,7 +822,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         """
         self._check_shift_dimension(shifts,row_wise)
         if self.ncols() == 0 or self.nrows() == 0:
-            return self.is_empty_popov(row_wise)
+            return self._is_empty_popov(row_wise)
         leading_positions = self.leading_positions(shifts, row_wise)
         # here, it will be convenient to have leading position
         # larger than ncols for zero/empty rows
@@ -961,7 +960,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         # the matrix should be in weak Popov form (ordered except if
         # up_to_permutation==True)
         if self.ncols() == 0 or self.nrows() == 0:
-            return self.is_empty_popov(row_wise)
+            return self._is_empty_popov(row_wise)
         if not self.is_weak_popov(shifts, \
                 row_wise, \
                 not up_to_permutation, \
@@ -1047,10 +1046,12 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M.is_hermite(row_wise=False, lower_echelon=True)
             False
 
-            sage: N = Matrix(pR, [ [x^2+5*x+5, 3*x^3+6,         3  ], \
-                                   [0,         x^4+6*x^3+4*x+4, 2  ], \
-                                   [0,         0,               x+5] ])
+            sage: N = Matrix(pR, [ [x+5, 0,               0        ], \
+                                   [2,   x^4+6*x^3+4*x+4, 0        ], \
+                                   [3,   3*x^3+6,         x^2+5*x+5] ])
             sage: N.is_hermite()
+            False
+            sage: N.is_hermite(lower_echelon=True)
             True
             sage: N.is_hermite(row_wise=False)
             False
@@ -1061,16 +1062,16 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         columns) can be forbidden, and otherwise they should be at the bottom
         (resp. the right-hand side) of the matrix::
 
-            sage: N[:,1:].is_hermite()
+            sage: N[:,1:].is_hermite(lower_echelon=True)
             False
-            sage: N[:,:2].is_hermite()
+            sage: N[[1,2,0],1:].is_hermite(lower_echelon=True)
             True
-            sage: N[:,:2].is_hermite(include_zero_vectors=False)
-            False
-            sage: N[1:,[1,2,0]].is_hermite(row_wise=False, lower_echelon=True)
-            False
-            sage: N[1:,:].is_hermite(row_wise=False)
+            sage: N[:2,:].is_hermite(row_wise=False, lower_echelon=True)
             True
+            sage: N[:2,:].is_hermite(row_wise=False,    \
+                                    lower_echelon=True, \
+                                    include_zero_vectors=False)
+            False
 
         .. SEEALSO:
         

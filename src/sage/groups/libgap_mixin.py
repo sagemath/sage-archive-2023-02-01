@@ -8,7 +8,7 @@ the parent/element.
 If your group implementation uses libgap, then you should add
 :class:`GroupMixinLibGAP` as the first class that you are deriving
 from. This ensures that it properly overrides any default methods that
-just raise ``NotImplemented``.
+just raise ``NotImplementedError``.
 """
 
 from sage.libs.all import libgap

@@ -432,7 +432,7 @@ cdef class Riemann_Map:
             sage: hfprime(t) = 0.5*-I*e^(-I*t)
             sage: m = Riemann_Map([f, hf], [fprime, hfprime], 0.5 + 0.5*I)
 
-        Getting the szego for a specifc boundary::
+        Getting the szego for a specific boundary::
 
             sage: sz0 = m.get_szego(boundary=0)
             sage: sz1 = m.get_szego(boundary=1)
@@ -505,7 +505,7 @@ cdef class Riemann_Map:
             sage: hfprime(t) = 0.5*-I*e^(-I*t)
             sage: m = Riemann_Map([f, hf], [hf, hfprime], 0.5 + 0.5*I)
 
-        Getting the boundary correspondence for a specifc boundary::
+        Getting the boundary correspondence for a specific boundary::
 
             sage: tp0 = m.get_theta_points(boundary=0)
             sage: tp1 = m.get_theta_points(boundary=1)

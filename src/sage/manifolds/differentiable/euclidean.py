@@ -1,5 +1,5 @@
 r"""
-Euclidean spaces
+Euclidean Spaces
 
 An *Euclidean space of dimension* `n` is an affine space `E`, whose associated
 vector space is a `n`-dimensional vector space over `\RR` and is equipped with

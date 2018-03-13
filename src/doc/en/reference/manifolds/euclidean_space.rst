@@ -9,5 +9,3 @@ Euclidean Spaces and Vector Calculus
    sage/manifolds/differentiable/euclidean
 
    sage/manifolds/operators
-
-.. include:: ../footer.txt

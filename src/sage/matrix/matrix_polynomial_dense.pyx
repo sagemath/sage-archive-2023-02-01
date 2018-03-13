@@ -576,11 +576,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             return self.is_empty_popov(row_wise)
         if include_zero_vectors:
             number_generators =                                           \
-                self.nrows() -                                            \
-                [self[i,:] == 0 for i in range(self.nrows())].count(True) \
+                [self[i,:] != 0 for i in range(self.nrows())].count(True) \
                 if row_wise else                                          \
-                self.ncols() -                                            \
-                [self[:,j] == 0 for j in range(self.ncols())].count(True)
+                [self[:,j] != 0 for j in range(self.ncols())].count(True)
         else:
             number_generators = self.nrows() if row_wise else self.ncols()
         return number_generators == \

@@ -218,10 +218,10 @@ Use ``graphs(n)`` to iterate through all non-isomorphic graphs of given size::
 
     sage: for g in graphs(4):
     ....:     if g.is_hamiltonian():
-    ....:         print("Found a hamiltionian graph.")
-    Found a hamiltionian graph.
-    Found a hamiltionian graph.
-    Found a hamiltionian graph.
+    ....:         print("Found a hamiltonian graph.")
+    Found a hamiltonian graph.
+    Found a hamiltonian graph.
+    Found a hamiltonian graph.
 
 Similarly ``graphs()`` will iterate through all graphs. The complete
 graph of 4 vertices is of course the smallest graph with chromatic number

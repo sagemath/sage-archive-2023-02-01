@@ -376,7 +376,7 @@ cdef class Expression(CommutativeRingElement):
 
         Integers and Rationals are converted internally though, so you
         won't get back the same object::
-        
+
             sage: b = -17/3
             sage: a = SR(b)
             sage: a.pyobject()
@@ -1743,7 +1743,7 @@ cdef class Expression(CommutativeRingElement):
 
         In particular, it does not return a bool, so the following check does
         not hold anymore::
-        
+
             sage: (not x) == (x != 0)
             False
 
@@ -3363,7 +3363,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f(x) = matrix()
             sage: f(x)*1
             []
-        
+
         Check that floating point numbers +/- 1.0 are treated
         differently from integers +/- 1 (:trac:`12257`)::
 
@@ -3589,7 +3589,7 @@ cdef class Expression(CommutativeRingElement):
             x < y
             sage: mixed_order(x, y)
             1
- 
+
             sage: mixed_order(SR(0.5), SR(0.7))
             -1
             sage: SR(0.5) < SR(0.7)
@@ -4202,6 +4202,14 @@ cdef class Expression(CommutativeRingElement):
             (x, y) |--> (n*x^(n - 1), n*y^(n - 1))
             sage: f.gradient([y,x])
             (x, y) |--> (n*y^(n - 1), n*x^(n - 1))
+
+        .. SEEALSO::
+
+            :meth:`~sage.manifolds.differentiable.scalarfield.DiffScalarField.gradient`
+            of scalar fields on Euclidean spaces (and more generally
+            pseudo-Riemannian manifolds), in particular for computing the
+            gradient in curvilinear coordinates.
+
         """
         from sage.modules.free_module_element import vector
         if variables is None:
@@ -7096,7 +7104,7 @@ cdef class Expression(CommutativeRingElement):
             True
 
         Check that :trac:`23793` is fixed::
- 
+
             sage: gcd(I + I*x, x^2 - 1)
             x + 1
 
@@ -10913,7 +10921,7 @@ cdef class Expression(CommutativeRingElement):
     def distribute(self, recursive=True):
         """
         Distribute some indexed operators over similar operators in
-        order to allow further groupings or simplifications. 
+        order to allow further groupings or simplifications.
 
         Implemented cases (so far) :
 
@@ -12170,7 +12178,7 @@ cdef class Expression(CommutativeRingElement):
             sage: n = var('n')
             sage: sum(log(1-1/n^2),n,2,oo)
             -log(2)
-        
+
         Check that :trac:`21801` is fixed::
 
             sage: n = SR.var('n')
@@ -12783,21 +12791,21 @@ cdef class hold_class:
 
         sage: with hold:
         ....:     tan(1/12*pi)
-        ....:     
+        ....:
         tan(1/12*pi)
-        sage: tan(1/12*pi)    
+        sage: tan(1/12*pi)
         -sqrt(3) + 2
         sage: with hold:
         ....:     2^5
-        ....:     
+        ....:
         32
         sage: with hold:
         ....:     SR(2)^5
-        ....:     
+        ....:
         2^5
         sage: with hold:
         ....:     t=tan(1/12*pi)
-        ....:     
+        ....:
         sage: t
         tan(1/12*pi)
         sage: t.unhold()

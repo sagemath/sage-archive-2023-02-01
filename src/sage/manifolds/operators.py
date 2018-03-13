@@ -22,6 +22,12 @@ mathematical notations, e.g. to write ``curl(v)`` instead of ``v.curl()``.
 Note that the :func:`~sage.misc.functional.norm` operator is defined in the
 module :mod:`~sage.misc.functional`.
 
+.. SEEALSO::
+
+    Examples 1 and 2 in :mod:`~sage.manifolds.differentiable.euclidean` for
+    examples involving these operators in the Euclidean plane and in the
+    Euclidean 3-space.
+
 AUTHORS:
 
 - Eric Gourgoulhon (2018): initial version

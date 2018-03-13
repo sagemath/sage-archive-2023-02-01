@@ -4,7 +4,7 @@ Tamari Interval-posets
 
 This module implements Tamari interval-posets: combinatorial objects which
 represent intervals of the Tamari order. They have been introduced in
-[PCh2013]_ and allow for many combinatorial operations on Tamari intervals.
+[ChP2015]_ and allow for many combinatorial operations on Tamari intervals.
 In particular, they are linked to :class:`DyckWords` and :class:`BinaryTrees`.
 An introduction into Tamari interval-posets is given in Chapter 7
 of [Pons2013]_.
@@ -17,9 +17,9 @@ a pair of comparable elements. The number of intervals has been given in
 
 REFERENCES:
 
-.. [PCh2013] Grégory Châtel and Viviane Pons.
-   *Counting smaller trees in the Tamari order*.
-   FPSAC. (2013). :arxiv:`1212.0751v1`.
+.. [ChP2015] Grégory Châtel and Viviane Pons.
+   *Counting smaller elements in the tamari and m-tamari lattices*.
+   Journal of Combinatorial Theory, Series A. (2015). :arxiv:`1311.3922`.
 
 .. [Pons2013] Viviane Pons,
    *Combinatoire algébrique liée aux ordres sur les permutations*.
@@ -1023,6 +1023,10 @@ class TamariIntervalPoset(Element):
             (4, 5), (5, 7), (6, 7), (7, 8), (8, 1), (7, 2), (6, 2), (5, 3),
             (4, 3), (3, 2), (2, 1)]
             sage: t.rise_contact_involution() == tip
+            True
+            sage: tip.lower_dyck_word().number_of_touch_points() == t.upper_dyck_word().number_of_initial_rises()
+            True
+            sage: tip.number_of_tamari_inversions() == t.number_of_tamari_inversions()
             True
 
         REFERENCES:
@@ -2395,6 +2399,12 @@ class TamariIntervalPoset(Element):
             (The Tamari interval of size 3 induced by relations [(1, 2), (3, 2)],
             The Tamari interval of size 4 induced by relations [(2, 3), (4, 3)],
             2)
+            sage: tip == TamariIntervalPosets.recomposition_from_triple(*tip.decomposition_to_triple())
+            True
+
+        REFERENCES:
+
+        - [ChP2015]_
         """
         n = self.size()
         if n == 0:
@@ -2417,6 +2427,12 @@ class TamariIntervalPoset(Element):
             sage: tip = TamariIntervalPoset(8, [(1,2), (2,4), (3,4), (6,7), (3,2), (5,4), (6,4), (8,7)])
             sage: tip.grafting_tree()
             2[1[0[., .], 0[., .]], 0[., 1[0[., .], 0[., .]]]]
+            sage: tip == TamariIntervalPosets.from_grafting_tree(tip.grafting_tree())
+            True
+
+        REFERENCES:
+
+        - [Pons2018]_
         """
         n = self.size()
         if n == 0:
@@ -3075,6 +3091,10 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
             sage: TamariIntervalPosets.recomposition_from_triple(T1, T2, 2)
             The Tamari interval of size 8 induced by relations [(1, 2), (2, 4),
             (3, 4), (6, 7), (8, 7), (6, 4), (5, 4), (3, 2)]
+
+        REFERENCES:
+
+        - [Pons2018]_
         """
         root = left.size() + 1
         rel = left.poset().cover_relations()
@@ -3099,6 +3119,10 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
             sage: t = tip.grafting_tree()
             sage: TamariIntervalPosets.from_grafting_tree(t) == tip
             True
+
+        REFERENCES:
+
+        - [Pons2018]_
         """
         if tree.is_empty():
             return TamariIntervalPoset(0, [])

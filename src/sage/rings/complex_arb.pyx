@@ -49,15 +49,20 @@ Comparison
     x*x`` sets `z` to a ball enclosing the set `\{t^2 : t \in x\}` and not the
     (generally larger) set `\{tu : t \in x, u \in x\}`.
 
-Two elements are equal if and only if they are the same object
-or if both are exact and equal::
+Two elements are equal if and only if they are exact and equal (in spite of the
+above warning, inexact balls are not considered equal to themselves)::
 
     sage: a = CBF(1, 2)
     sage: b = CBF(1, 2)
     sage: a is b
     False
+    sage: a == a
+    True
     sage: a == b
     True
+
+::
+
     sage: a = CBF(1/3, 1/5)
     sage: b = CBF(1/3, 1/5)
     sage: a.is_exact()
@@ -65,6 +70,8 @@ or if both are exact and equal::
     sage: b.is_exact()
     False
     sage: a is b
+    False
+    sage: a == a
     False
     sage: a == b
     False
@@ -136,7 +143,7 @@ Classes and Methods
 #*****************************************************************************
 from __future__ import absolute_import
 
-import operator
+import operator, sys
 from cysignals.signals cimport sig_on, sig_str, sig_off, sig_error
 
 import sage.categories.fields
@@ -152,14 +159,17 @@ from cpython.complex cimport PyComplex_FromDoubles
 
 from sage.ext.stdsage cimport PY_NEW
 
-from sage.libs.mpfr cimport MPFR_RNDU
+from sage.libs.mpfr cimport MPFR_RNDU, MPFR_RNDD, mpfr_get_d_2exp
 from sage.libs.arb.types cimport ARF_RND_NEAR
 from sage.libs.arb.arb cimport *
 from sage.libs.arb.acb cimport *
+from sage.libs.arb.acb_calc cimport *
 from sage.libs.arb.acb_hypgeom cimport *
 from sage.libs.arb.acb_modular cimport *
 from sage.libs.arb.arf cimport arf_init, arf_get_d, arf_get_mpfr, arf_set_mpfr, arf_clear, arf_set_mag, arf_set, arf_is_nan
-from sage.libs.arb.mag cimport mag_init, mag_clear, mag_add, mag_set_d, MAG_BITS, mag_is_inf, mag_is_finite, mag_zero
+from sage.libs.arb.mag cimport (mag_init, mag_clear, mag_add, mag_set_d,
+        MAG_BITS, mag_is_inf, mag_is_finite, mag_zero, mag_set_ui_2exp_si,
+        mag_mul_2exp_si)
 from sage.libs.flint.fmpz cimport fmpz_t, fmpz_init, fmpz_get_mpz, fmpz_set_mpz, fmpz_clear, fmpz_abs
 from sage.libs.flint.fmpq cimport fmpq_t, fmpq_init, fmpq_set_mpq, fmpq_clear
 from sage.libs.gmp.mpz cimport mpz_fits_ulong_p, mpz_fits_slong_p, mpz_get_ui, mpz_get_si, mpz_sgn
@@ -221,6 +231,73 @@ cdef int acb_to_ComplexIntervalFieldElement(
     arb_to_mpfi(target.__im, acb_imagref(source), precision)
     return 0
 
+
+cdef class IntegrationContext:
+    r"""
+    Used to wrap the integrand and hold some context information during
+    numerical integration.
+    """
+    cdef object f
+    cdef object parent
+    cdef object exn_type
+    cdef object exn_obj
+    cdef object exn_tb
+
+cdef int acb_calc_func_callback(acb_ptr out, const acb_t inp, void * param,
+        long order, long prec):
+    r"""
+    Callback used for numerical integration
+
+    TESTS::
+
+        sage: CBF.integral(lambda x, flag: 24, 0, 2)
+        48.00000000000000
+
+        sage: CBF.integral(lambda x, flag: "a", 0, 1)
+        Traceback (most recent call last):
+        ...
+        TypeError: no canonical coercion ... to Complex ball field with 53 bits
+        of precision
+
+        sage: def foo(*args):
+        ....:     raise RuntimeError
+        sage: CBF.integral(foo, 0, 2)
+        Traceback (most recent call last):
+        ...
+        RuntimeError
+
+        sage: points = []
+        sage: def foo(x, flag):
+        ....:     points.append(x)
+        ....:     return x
+        sage: CBF.integral(foo, 0, 1)
+        [0.50000000000000...]
+        sage: points
+        [[+/- 1.01], ..., [0.788...], [0.211...]]
+    """
+    cdef IntegrationContext ctx
+    cdef ComplexBall x
+    sig_off()
+    try:
+        ctx = <IntegrationContext>param
+        if ctx.exn_type is not None or order >= 2:
+            acb_indeterminate(out)
+            return 0
+        x = ComplexBall.__new__(ComplexBall)
+        assert prec == ctx.parent._prec
+        x._parent = ctx.parent
+        acb_set(x.value, inp)
+        try:
+            y = ctx.f(x, (order == 1))
+            if not isinstance(y, ComplexBall):
+                y = ctx.parent.coerce(y)
+            acb_set(out, (<ComplexBall> y).value)
+        except:
+            ctx.exn_type, ctx.exn_obj, ctx.exn_tb = sys.exc_info()
+            acb_indeterminate(out)
+        return 0
+    finally:
+        sig_on()
 
 class ComplexBallField(UniqueRepresentation, Field):
     r"""
@@ -669,6 +746,252 @@ class ComplexBallField(UniqueRepresentation, Field):
         if _do_sig(self._prec): sig_off()
         return res
 
+    def integral(self, func, a, b, params=None,
+            rel_tol=None, abs_tol=None,
+            deg_limit=None, eval_limit=None, depth_limit=None,
+            use_heap=None, verbose=None):
+        r"""
+        Compute a rigorous enclosure of the integral of ``func`` on the
+        interval [``a``, ``b``].
+
+        INPUT:
+
+        - ``func`` -- a callable object accepting two parameters, a complex
+          ball ``x`` and a boolean flag ``analytic``, and returning an element
+          of this ball field (or some value that coerces into this ball field),
+          such that:
+
+          - ``func(x, False)`` evaluates the integrand `f` on the ball ``x``.
+            There are no restrictions on the behavior of `f` on ``x``; in
+            particular, it can be discontinuous.
+
+          - ``func(x, True)`` evaluates `f(x)` if  `f` is analytic on the
+            whole ``x``, and returns some non-finite ball (e.g., ``self(NaN)``)
+            otherwise.
+
+          (The ``analytic`` flag only needs to be checked for integrands that
+          are non-analytic but bounded in some regions, typically complex
+          functions with branch cuts, like `\sqrt{z}`. In particular, it can be
+          ignored for meromorphic functions.)
+
+        - ``a``, ``b`` -- integration bounds. The bounds can be real or complex
+          balls, or elements of any parent that coerces into this ball field,
+          e.g. rational or algebraic numbers.
+
+        - ``rel_tol`` (optional, default `2^{-p}` where `p` is the precision of
+          the ball field) -- relative accuracy goal
+
+        - ``abs_tol`` (optional, default `2^{-p}` where `p` is the precision of
+          the ball field) -- absolute accuracy goal
+
+        Additionally, the following optional parameters can be used to control
+        the integration algorithm. See the `Arb documentation <http://arblib.org/acb_calc.html>`_
+        for more information.
+
+        - ``deg_limit`` -- maximum quadrature degree for each
+          subinterval
+
+        - ``eval_limit`` -- maximum number of function
+          evaluations
+
+        - ``depth_limit`` -- maximum search depth for
+          adaptive subdivision
+
+        - ``use_heap`` (boolean, default ``False``) -- if ``True``, use a
+          priority queue instead of a stack to manage subintervals. This
+          sometimes gives better results for integrals with slow convergence but
+          may require more memory and increasing ``depth_limit``.
+
+        - ``verbose`` (integer, default 0) -- If set to 1, some information
+          about the overall integration process is printed to standard
+          output. If set to 2, information about each subinterval is printed.
+
+        EXAMPLES:
+
+        Some analytic integrands::
+
+            sage: CBF.integral(lambda x, _: x, 0, 1)
+            [0.500000000000000 +/- 2.09e-16]
+
+            sage: CBF.integral(lambda x, _: x.gamma(), 1 - CBF(i), 1 + CBF(i))
+            [+/- 3.95e-15] + [1.5723926694981 +/- 4.53e-14]*I
+
+            sage: C = ComplexBallField(100)
+            sage: C.integral(lambda x, _: x.cos() * x.sin(), 0, 1)
+            [0.35403670913678559674939205737 +/- 8.89e-30]
+
+            sage: CBF.integral(lambda x, _: (x + x.exp()).sin(), 0, 8)
+            [0.34740017266 +/- 6.36e-12]
+
+            sage: C = ComplexBallField(2000)
+            sage: C.integral(lambda x, _: (x + x.exp()).sin(), 0, 8) # long time
+            [0.34740017...55347713 +/- 6.72e-598]
+
+        Here the integration path crosses the branch cut of the square root::
+
+            sage: def my_sqrt(z, analytic):
+            ....:     if (analytic and not z.real() > 0
+            ....:                  and z.imag().contains_zero()):
+            ....:         return CBF(NaN)
+            ....:     else:
+            ....:         return z.sqrt()
+            sage: CBF.integral(my_sqrt, -1 + CBF(i), -1 - CBF(i))
+            [+/- 1.14e-14] + [-0.4752076627926 +/- 5.18e-14]*I
+
+        Note, though, that proper handling of the ``analytic`` flag is required
+        even when the path does not touch the branch cut::
+
+            sage: correct = CBF.integral(my_sqrt, 1, 2); correct
+            [1.21895141649746 +/- 3.73e-15]
+            sage: RBF(integral(sqrt(x), x, 1, 2))
+            [1.21895141649746 +/- 1.79e-15]
+            sage: wrong = CBF.integral(lambda z, _: z.sqrt(), 1, 2) # WRONG!
+            sage: correct - wrong
+            [-5.640636259e-5 +/- 6.80e-15]
+
+        We can integrate the real absolute value function by defining a
+        piecewise holomorphic extension::
+
+            sage: def real_abs(z, analytic):
+            ....:     if z.real().contains_zero():
+            ....:         if analytic:
+            ....:             return z.parent()(NaN)
+            ....:         else:
+            ....:             return z.union(-z)
+            ....:     elif z.real() > 0:
+            ....:         return z
+            ....:     else:
+            ....:         return -z
+            sage: CBF.integral(real_abs, -1, 1)
+            [1.00000000000...]
+            sage: CBF.integral(lambda z, analytic: real_abs(z.sin(), analytic), 0, 2*CBF.pi())
+            [4.00000000000...]
+
+        Here the integrand has a pole on or very close to the integration path,
+        but there is no need to explicitly handle the ``analytic`` flag since
+        the integrand is unbounded::
+
+            sage: CBF.integral(lambda x, _: 1/x, -1, 1)
+            [+/- inf] + [+/- inf]*I
+            sage: CBF.integral(lambda x, _: 1/x, 10^-1000, 1)
+            [+/- inf] + [+/- inf]*I
+            sage: CBF.integral(lambda x, _: 1/x, 10^-1000, 1, abs_tol=1e-10)
+            [2302.5850930 +/- 1.26e-8]
+
+        Tolerances::
+
+            sage: CBF.integral(lambda x, _: x.exp(), -1020, -1010)
+            [+/- 2.31e-438]
+            sage: CBF.integral(lambda x, _: x.exp(), -1020, -1010, abs_tol=1e-450)
+            [2.304377150950e-439 +/- 9.74e-452]
+            sage: CBF.integral(lambda x, _: x.exp(), -1020, -1010, abs_tol=0)
+            [2.304377150949e-439 +/- 7.53e-452]
+            sage: CBF.integral(lambda x, _: x.exp(), -1020, -1010, rel_tol=1e-4, abs_tol=0)
+            [2.30438e-439 +/- 3.90e-445]
+
+            sage: CBF.integral(lambda x, _: x*(1/x).sin(), 0, 1)
+            [+/- 0.644]
+            sage: CBF.integral(lambda x, _: x*(1/x).sin(), 0, 1, use_heap=True)
+            [0.3785300 +/- 4.32e-8]
+
+        ALGORITHM:
+
+        Uses the `acb_calc <http://arblib.org/acb_calc.html>`_ module of the Arb
+        library.
+
+        TESTS::
+
+            sage: CBF.integral(lambda x, _: x, 0, 10, rel_tol=1e-10,
+            ....:     abs_tol=1e-10, deg_limit=1, eval_limit=20, depth_limit=4,
+            ....:     use_heap=False)
+            [50.00000000 +/- 2.20e-9]
+
+            sage: i = QuadraticField(-1).gen()
+            sage: CBF.integral(lambda x, _: (1 + i*x).gamma(), -1, 1)
+            [1.5723926694981 +/- 4.53e-14] + [+/- 3.95e-15]*I
+
+            sage: ComplexBallField(10000).integral(lambda x, _: x.sin(), 0, 1, rel_tol=1e-400)
+            [0.459... +/- ...e-4...]
+            sage: CBF.integral(lambda x, _: x.sin(), 0, 100, rel_tol=10)
+            [+/- 7.61]
+
+            sage: ComplexBallField(10000).integral(lambda x, _: x.sin(), 0, 1, abs_tol=1e-400)
+            [0.459697... +/- ...e-4...]
+            sage: CBF.integral(lambda x, _: x.sin(), 0, 1, abs_tol=10)
+            [+/- 0.980]
+
+            sage: ComplexBallField(100).integral(lambda x, _: sin(x), RBF(0), RBF(1))
+            [0.4596976941318602825990633926 +/- 5.09e-29]
+        """
+        cdef IntegrationContext ctx = IntegrationContext()
+        cdef acb_calc_integrate_opt_t arb_opts
+        cdef long cgoal, expo
+        cdef mag_t ctol
+        cdef RealNumber tmp
+        cdef ComplexBall ca, cb
+
+        if isinstance(a, (RealBall, ComplexBall)):
+            ca = <ComplexBall> self(a)
+        else:
+            ca = <ComplexBall> self.coerce(a)
+        if isinstance(b, (RealBall, ComplexBall)):
+            cb = <ComplexBall> self(b)
+        else:
+            cb = <ComplexBall> self.coerce(b)
+
+        mag_init(ctol)
+
+        ctx.f = func
+        ctx.parent = self
+        ctx.exn_type = None
+
+        acb_calc_integrate_opt_init(arb_opts)
+        if deg_limit is not None:
+            arb_opts.deg_limit = deg_limit
+        if eval_limit is not None:
+            arb_opts.eval_limit = eval_limit
+        if depth_limit is not None:
+            arb_opts.depth_limit = depth_limit
+        if use_heap is not None:
+            arb_opts.use_heap = use_heap
+        if verbose is not None:
+            arb_opts.verbose = verbose
+
+        RR = RealField()
+        if rel_tol is None:
+            cgoal = self._prec
+        else:
+            tmp = <RealNumber> RR(rel_tol)
+            mpfr_get_d_2exp(&cgoal, tmp.value, MPFR_RNDD)
+            cgoal = -cgoal
+
+        if abs_tol is None:
+            mag_set_ui_2exp_si(ctol, 1, -self._prec)
+        else:
+            tmp = <RealNumber> RR(abs_tol)
+            mag_set_d(ctol, mpfr_get_d_2exp(&expo, tmp.value, MPFR_RNDD))
+            mag_mul_2exp_si(ctol, ctol, expo)
+
+        cdef ComplexBall res = ComplexBall.__new__(ComplexBall)
+        res._parent = self
+
+        try:
+            sig_on()
+            acb_calc_integrate(
+                    res.value,
+                    <acb_calc_func_t> acb_calc_func_callback,
+                    <void *> ctx,
+                    ca.value, cb.value,
+                    cgoal, ctol, arb_opts, self._prec)
+            sig_off()
+        finally:
+            mag_clear(ctol)
+
+        if ctx.exn_type is not None:
+            raise ctx.exn_type, ctx.exn_obj, ctx.exn_tb
+
+        return res
+
 cdef inline bint _do_sig(long prec):
     """
     Whether signal handlers should be installed for calls to arb.
@@ -751,10 +1074,6 @@ cdef class ComplexBall(RingElement):
             1.000000000000000000000000000000 + 2.000000000000000000000000000000*I
             sage: ComplexBall(CBF100, RBF(1/3), RBF(1))
             [0.3333333333333333 +/- 7.04e-17] + 1.000000000000000000000000000000*I
-            sage: ComplexBall(CBF100, 1, 2)
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported initializer
             sage: NF.<a> = QuadraticField(-1, embedding=CC(0, -1))
             sage: CBF(a)
             -1.000000000000000*I
@@ -770,42 +1089,82 @@ cdef class ComplexBall(RingElement):
             sage: NF.<a> = QuadraticField(-2)
             sage: CBF(1/3 + a).real()
             [0.3333333333333333 +/- 7.04e-17]
+
+            sage: ComplexBall(CBF, 1, 1/2)
+            1.000000000000000 + 0.5000000000000000*I
+            sage: ComplexBall(CBF, 1, 1)
+            1.000000000000000 + 1.000000000000000*I
+            sage: ComplexBall(CBF, 1, 1/2)
+            1.000000000000000 + 0.5000000000000000*I
+            sage: ComplexBall(CBF, 1/2, 1)
+            0.5000000000000000 + 1.000000000000000*I
+            sage: ComplexBall(CBF, 1/2, 1/2)
+            0.5000000000000000 + 0.5000000000000000*I
+            sage: ComplexBall(CBF, 1/2, 'a')
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported initializer
+            sage: ComplexBall(CBF, 'a')
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported initializer
+
         """
         cdef fmpz_t tmpz
         cdef fmpq_t tmpq
         cdef long myprec
+        cdef bint cplx = False
 
         Element.__init__(self, parent)
 
         if x is None:
             return
-        elif y is None:
-            if isinstance(x, ComplexBall):
-                acb_set(self.value, (<ComplexBall> x).value)
-            elif isinstance(x, RealBall):
-                acb_set_arb(self.value, (<RealBall> x).value)
-            elif isinstance(x, sage.rings.integer.Integer):
-                if _do_sig(prec(self)): sig_on()
-                fmpz_init(tmpz)
-                fmpz_set_mpz(tmpz, (<sage.rings.integer.Integer> x).value)
-                acb_set_fmpz(self.value, tmpz)
-                fmpz_clear(tmpz)
-                if _do_sig(prec(self)): sig_off()
-            elif isinstance(x, sage.rings.rational.Rational):
-                if _do_sig(prec(self)): sig_on()
-                fmpq_init(tmpq)
-                fmpq_set_mpq(tmpq, (<sage.rings.rational.Rational> x).value)
-                acb_set_fmpq(self.value, tmpq, prec(self))
-                fmpq_clear(tmpq)
-                if _do_sig(prec(self)): sig_off()
-            elif isinstance(x, ComplexIntervalFieldElement):
-                ComplexIntervalFieldElement_to_acb(self.value,
-                                                   <ComplexIntervalFieldElement> x)
-            else:
-                raise TypeError("unsupported initializer")
-        elif isinstance(x, RealBall) and isinstance(y, RealBall):
+        elif isinstance(x, ComplexBall):
+            acb_set(self.value, (<ComplexBall> x).value)
+            cplx = True
+        elif isinstance(x, RealBall):
             arb_set(acb_realref(self.value), (<RealBall> x).value)
+        elif isinstance(x, sage.rings.integer.Integer):
+            if _do_sig(prec(self)): sig_on()
+            fmpz_init(tmpz)
+            fmpz_set_mpz(tmpz, (<sage.rings.integer.Integer> x).value)
+            arb_set_fmpz(acb_realref(self.value), tmpz)
+            fmpz_clear(tmpz)
+            if _do_sig(prec(self)): sig_off()
+        elif isinstance(x, sage.rings.rational.Rational):
+            if _do_sig(prec(self)): sig_on()
+            fmpq_init(tmpq)
+            fmpq_set_mpq(tmpq, (<sage.rings.rational.Rational> x).value)
+            arb_set_fmpq(acb_realref(self.value), tmpq, prec(self))
+            fmpq_clear(tmpq)
+            if _do_sig(prec(self)): sig_off()
+        elif isinstance(x, ComplexIntervalFieldElement):
+            ComplexIntervalFieldElement_to_acb(self.value,
+                                               <ComplexIntervalFieldElement> x)
+            cplx = True
+        else:
+            raise TypeError("unsupported initializer")
+
+        if y is None:
+            return
+        elif cplx:
+            raise TypeError("unsupported initializer")
+        elif isinstance(y, RealBall):
             arb_set(acb_imagref(self.value), (<RealBall> y).value)
+        elif isinstance(y, sage.rings.integer.Integer):
+            if _do_sig(prec(self)): sig_on()
+            fmpz_init(tmpz)
+            fmpz_set_mpz(tmpz, (<sage.rings.integer.Integer> y).value)
+            arb_set_fmpz(acb_imagref(self.value), tmpz)
+            fmpz_clear(tmpz)
+            if _do_sig(prec(self)): sig_off()
+        elif isinstance(y, sage.rings.rational.Rational):
+            if _do_sig(prec(self)): sig_on()
+            fmpq_init(tmpq)
+            fmpq_set_mpq(tmpq, (<sage.rings.rational.Rational> y).value)
+            arb_set_fmpq(acb_imagref(self.value), tmpq, prec(self))
+            fmpq_clear(tmpq)
+            if _do_sig(prec(self)): sig_off()
         else:
             raise TypeError("unsupported initializer")
 
@@ -1413,6 +1772,23 @@ cdef class ComplexBall(RingElement):
         """
         return 2 * self.rad()
 
+    def union(self, other):
+        r"""
+        Return a ball containing the convex hull of ``self`` and ``other``.
+
+        EXAMPLES::
+
+            sage: b = CBF(1 + i).union(0)
+            sage: b.real().endpoints()
+            (-9.31322574615479e-10, 1.00000000093133)
+        """
+        cdef ComplexBall my_other = self._parent.coerce(other)
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_union(res.value, self.value, my_other.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
     # Precision and accuracy
 
     def round(self):
@@ -1735,13 +2111,9 @@ cdef class ComplexBall(RingElement):
         rt = right
 
         if op == Py_EQ:
-            return lt is rt or (
-                acb_is_exact(lt.value) and acb_is_exact(rt.value)
-                and acb_equal(lt.value, rt.value))
-
-        if op == Py_NE:
-            return not acb_overlaps(lt.value, rt.value)
-
+            return acb_eq(lt.value, rt.value)
+        elif op == Py_NE:
+            return acb_ne(lt.value, rt.value)
         elif op == Py_GT or op == Py_GE or op == Py_LT or op == Py_LE:
             raise TypeError("No order is defined for ComplexBalls.")
 
@@ -3721,5 +4093,6 @@ cdef class ComplexBall(RingElement):
             self.value, my_phi.value, prec(self))
         if _do_sig(prec(self)): sig_off()
         return result
+
 
 CBF = ComplexBallField()

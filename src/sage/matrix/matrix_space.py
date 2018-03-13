@@ -1659,7 +1659,8 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: MM.zero().is_mutable()
             False
         """
-        res = self._matrix_class(self, 0, coerce=False, copy=False)
+        zero = self.base_ring().zero()
+        res = self._matrix_class(self, zero, False, False)
         res.set_immutable()
         return res
 

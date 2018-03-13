@@ -1686,7 +1686,7 @@ cdef class GLPKBackend(GenericBackend):
         For example, both ``glp_gmi_cuts`` or ``"gmi_cuts"`` control whether
         to solve using Gomory cuts.
 
-        Parameter **values** are specificed as strings in upper case,
+        Parameter **values** are specified as strings in upper case,
         or as constants in lower case. For example, both ``glp_on`` and ``"GLP_ON"``
         specify the same thing.
 
@@ -1712,7 +1712,7 @@ cdef class GLPKBackend(GenericBackend):
 
          * - ``simplex_or_intopt``
 
-           - specifiy which of ``simplex``, ``exact`` and ``intopt`` routines
+           - specify which of ``simplex``, ``exact`` and ``intopt`` routines
              in GLPK to use.
              This is controlled by setting ``simplex_or_intopt`` to
              ``glp_simplex_only``, ``glp_exact_simplex_only``,

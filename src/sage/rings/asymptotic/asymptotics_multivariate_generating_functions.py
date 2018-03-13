@@ -1082,7 +1082,7 @@ class FractionWithFactoredDenominator(RingElement):
                      [Ss[j] ** df[j][1] - Ts[j] for j in range(m)])
         J = J.elimination_ideal(Xs + Ss)
 
-        # Coerce J into the polynomial ring in the indeteminates Ts[m:].
+        # Coerce J into the polynomial ring in the indeterminates Ts[m:].
         # I choose the negdeglex order because i find it useful in my work.
         RRR = PolynomialRing(F, [str(t) for t in Ts], order='negdeglex')
         return RRR.ideal(J)
@@ -2447,7 +2447,7 @@ class FractionWithFactoredDenominator(RingElement):
     def grads(self, p):
         r"""
         Return a list of the gradients of the polynomials
-        ``[q for (q, e) in self.denominator_factored()]`` evalutated at ``p``.
+        ``[q for (q, e) in self.denominator_factored()]`` evaluated at ``p``.
 
         INPUT:
 
@@ -2493,7 +2493,7 @@ class FractionWithFactoredDenominator(RingElement):
     def log_grads(self, p):
         r"""
         Return a list of the logarithmic gradients of the polynomials
-        ``[q for (q, e) in self.denominator_factored()]`` evalutated at ``p``.
+        ``[q for (q, e) in self.denominator_factored()]`` evaluated at ``p``.
 
         The logarithmic gradient of a function `f` at point `p` is the
         vector `(x_1 \partial_1 f(x), \ldots, x_d \partial_d f(x) )`

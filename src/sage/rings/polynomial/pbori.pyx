@@ -1831,7 +1831,7 @@ def get_var_mapping(ring, other):
     return var_mapping
 
 
-class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
+class BooleanMonomialMonoid(UniqueRepresentation, Monoid_class):
     """
     Construct a boolean monomial monoid given a boolean polynomial
     ring.
@@ -1884,7 +1884,7 @@ class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
         cdef BooleanMonomial m
         self._ring = polring
         from sage.categories.monoids import Monoids
-        Parent.__init__(self, GF(2), names=polring._names, category=Monoids())
+        Parent.__init__(self, GF(2), names=polring._names, category=Monoids().Commutative())
 
         m = new_BM(self, polring)
         m._pbmonom = PBMonom(polring._pbring)

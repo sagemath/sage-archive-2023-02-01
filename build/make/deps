@@ -1,6 +1,6 @@
 ## -*- Makefile -*- ###########################################################
 # This file ($SAGE_ROOT/build/make/deps) will be copied into
-# $SAGE_ROOT/build/make/Makefile by $SAGE_ROOT/build/make/install
+# $SAGE_ROOT/build/make/Makefile by config.status
 ###############################################################################
 
 # Silent rules
@@ -49,8 +49,8 @@ all-toolchain:
 # All targets except for the base packages
 all-sage: \
 		sagelib \
-		$(STANDARD_PACKAGES) \
-		$(OPTIONAL_INSTALLED_PACKAGES) \
+		$(STANDARD_PACKAGE_INSTS) \
+		$(OPTIONAL_INSTALLED_PACKAGE_INSTS) \
 		$(EXTCODE) \
 		$(SCRIPTS)
 
@@ -58,11 +58,11 @@ all-sage: \
 # option to make forces all targets to be built unconditionally)
 download-for-sdist: base
 	env SAGE_INSTALL_FETCH_ONLY=yes $(MAKE) -B SAGERUNTIME= \
-		$(SDIST_PACKAGES)
+		$(SDIST_PACKAGE_INSTS)
 
 # TOOLCHAIN consists of dependencies determined by configure.
 # These are built after the "base" target but before anything else.
-toolchain: $(TOOLCHAIN)
+toolchain: $(foreach pkgname,$(TOOLCHAIN),$(inst_$(pkgname)))
 
 # Build all packages that GCC links against serially, otherwise this
 # leads to race conditions where some library which is used by GCC gets
@@ -93,7 +93,7 @@ start: all-build
 # We make this depend on all standard packages because running
 # sage-starts runs sage-location, which should be run after installing
 # any package.
-$(STARTED): $(STANDARD_PACKAGES)
+$(STARTED): $(STANDARD_PACKAGE_INSTS)
 	$(AM_V_at)"$(SAGE_LOCAL)/bin/sage-starts"
 
 

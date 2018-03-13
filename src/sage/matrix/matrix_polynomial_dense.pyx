@@ -219,14 +219,14 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
     def row_degrees(self, shifts=None):
         r"""
-        Return the (shifted) row degree of this matrix.
+        Return the (shifted) row degrees of this matrix.
 
         For a given polynomial matrix $M = (M_{i,j})_{i,j}$ with $m$ rows and
-        $n$ columns, its row degree is the tuple $(d_1,\ldots,d_m)$ where $d_i
+        $n$ columns, its row degrees is the tuple $(d_1,\ldots,d_m)$ where $d_i
         = \max_j(\deg(M_{i,j}))$ for $1\leq i \leq m$. Thus, $d_i=-1$ if
         the $i$-th row of $M$ is zero, and $d_i \geq 0$ otherwise.
 
-        For given shifts $s_1,\ldots,s_n \in \ZZ$, the shifted row degree of
+        For given shifts $s_1,\ldots,s_n \in \ZZ$, the shifted row degrees of
         $M$ is $(d_1,\ldots,d_m)$ where $d_i = \max_j(\deg(M_{i,j})+s_j)$.
         Here, if the $i$-th row of $M$ is zero then $d_i
         =\min(s_1,\ldots,s_n)-1$; otherwise, $d_i$ is larger than this value.
@@ -257,7 +257,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [2, 3]
 
         A zero row in a polynomial matrix can be identified in the (shifted)
-        row degree as the entries equal to ``min(shifts)-1``::
+        row degrees as the entries equal to ``min(shifts)-1``::
 
             sage: M = Matrix(pR, [[3*x+1, 0, 1], [x^3+3, 0, 0], [0, 0, 0]])
             sage: M.row_degrees()
@@ -266,7 +266,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M.row_degrees(shifts=[-2,1,2])
             [2, 1, -3]
 
-        The row degree of an empty matrix ($0\times n$ or $m\times 0$) is
+        The row degrees of an empty matrix ($0\times n$ or $m\times 0$) is
         not defined::
             
             sage: M = Matrix( pR, 0, 3 )
@@ -294,14 +294,14 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
     def column_degrees(self, shifts=None):
         r"""
-        Return the (shifted) column degree of this matrix.
+        Return the (shifted) column degrees of this matrix.
 
         For a given polynomial matrix $M = (M_{i,j})_{i,j}$ with $m$ rows and
-        $n$ columns, its column degree is the tuple $(d_1,\ldots,d_n)$ where
+        $n$ columns, its column degrees is the tuple $(d_1,\ldots,d_n)$ where
         $d_j = \max_i(\deg(M_{i,j}))$ for $1\leq j \leq n$. Thus, $d_j=-1$ if
         the $j$-th column of $M$ is zero, and $d_j \geq 0$ otherwise.
 
-        For given shifts $s_1,\ldots,s_m \in \ZZ$, the shifted column degree of
+        For given shifts $s_1,\ldots,s_m \in \ZZ$, the shifted column degrees of
         $M$ is $(d_1,\ldots,d_n)$ where $d_j = \max_i(\deg(M_{i,j})+s_i)$.
         Here, if the $j$-th column of $M$ is zero then $d_j =
         \min(s_1,\ldots,s_m)-1$; otherwise $d_j$ is larger than this value.
@@ -328,12 +328,12 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [5, -1, 0]
 
         A zero column in a polynomial matrix can be identified in the (shifted)
-        column degree as the entries equal to ``min(shifts)-1``::
+        column degrees as the entries equal to ``min(shifts)-1``::
 
             sage: M.column_degrees(shifts=[-2,1])
             [4, -3, -2]
 
-        The column degree of an empty matrix ($0\times n$ or $m\times 0$) is
+        The column degrees of an empty matrix ($0\times n$ or $m\times 0$) is
         not defined::
 
             sage: M = Matrix( pR, 0, 3 )
@@ -371,7 +371,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         the entries of $M$ which reach the degree of the corresponding row.
   
         More precisely, if working row-wise, let $s_1,\ldots,s_n \in \ZZ$
-        be a shift, and let $(d_1,\ldots,d_m)$ denote the shifted row degree of
+        be a shift, and let $(d_1,\ldots,d_m)$ denote the shifted row degrees of
         $M$. Then, the shifted leading matrix of $M$ is the matrix in
         $\Bold{K}^{m \times n}$ whose entry $i,j$ is the coefficient of degree
         $d_i-s_j$ of the entry $i,j$ of $M$. Going over the Laurent
@@ -382,7 +382,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         degree).
 
         If working column-wise, let $s_1,\ldots,s_m \in \ZZ$ be a shift,
-        and let $(d_1,\ldots,d_n)$ denote the shifted column degree of $M$.
+        and let $(d_1,\ldots,d_n)$ denote the shifted column degrees of $M$.
         Then, the shifted leading matrix of $M$ is the matrix in $\Bold{K}^{m
         \times n}$ whose entry $i,j$ is the coefficient of degree $d_j-s_i$ of
         the entry $i,j$ of $M$. Going over the Laurent polynomials, the shifted
@@ -516,7 +516,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         shifted row reduced form if it has $k$ nonzero rows with $k \leq n$ and
         its shifted leading matrix has rank $k$. Equivalently, when considering
         all the matrices obtained by left-multiplying $M$ by a unimodular
-        matrix, then the shifted row degree of $M$ -- once sorted in
+        matrix, then the shifted row degrees of $M$ -- once sorted in
         nondecreasing order -- is lexicographically minimal.
 
         Similarly, $M$ is said to be in shifted column reduced form if it has

@@ -1089,25 +1089,33 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
     def weak_popov_form(self, transformation=False, shifts=None):
         r"""
-        Return a weak Popov form of this matrix.
+        Return a (row-wise) weak Popov form of this matrix.
 
-        A matrix is in weak Popov form if the leading positions of the nonzero
-        rows are all different. The leading position of a row is the right-most
-        position whose entry has the maximal degree in the row.
+        A polynomial matrix is said to be in (row-wise) weak Popov form if the
+        (shifted) leading positions of its nonzero rows are pairwise distinct.
+        The leading position of a row is the right-most position whose entry has
+        the maximal degree in the row, see :meth:`leading_positions`. See the
+        class description for an introduction to shifts.
 
         The weak Popov form is non-canonical, so an input matrix have many weak
-        Popov forms.
+        Popov forms (for any given shifts).
 
         INPUT:
 
-        - ``transformation`` -- boolean (default: ``False``) If ``True``, the
-          transformation matrix is returned together with the weak Popov form.
+        - ``transformation`` -- (optional, default: ``False``). If this
+          ``True``, the transformation matrix `U` will be returned as well: this
+          is a unimodular matrix over `\Bold{K}[x]` such that ``self`` equals
+          `UW`, where `W` is the output matrix.
 
-        - ``shifts`` -- (default: ``None``) A tuple or list of integers
-          `s_1, \ldots, s_n`, where `n` is the number of columns of the matrix.
-          If given, a "shifted weak Popov form" is computed, i.e. such that the
-          matrix `A\,\mathrm{diag}(x^{s_1}, \ldots, x^{s_n})` is in weak Popov
-          form, where `\mathrm{diag}` denotes a diagonal matrix.
+        - ``shifts`` -- (optional, default: ``None``) list of integers;
+          ``None`` is interpreted as ``shifts=[0,...,0]``.
+
+        OUTPUT:
+
+        - A polynomial matrix `W` which is a weak Popov form of ``self`` if
+          ``transformation=False``; otherwise two polynomial matrices `W, U`
+          such that `UA = W` and `W` is in weak Popov form and `U` is unimodular
+          where `A` is ``self``.
 
         ALGORITHM:
 
@@ -1115,49 +1123,39 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         EXAMPLES::
 
-            sage: F.<a> = GF(2^4,'a')
-            sage: PF.<x> = F[]
-            sage: A = matrix(PF,[[1,  a*x^17 + 1 ],\
-                                 [0,  a*x^11 + a^2*x^7 + 1 ]])
-            sage: M, U = A.weak_popov_form(transformation=True)
-            sage: U * A == M
+            sage: PF.<x> = GF(11)[]
+            sage: A = matrix(PF,[[1,  3*x^9 + x^2 + 1 ],\
+                                 [0,         x^11 + x ]])
+            sage: W, U = A.weak_popov_form(transformation=True); W
+            [              8*x^7 + 3*x^5 + 1    9*x^6 + 3*x^5 + 2*x^4 + x^2 + 1]
+            [                          7*x^2                  7*x^4 + 7*x^2 + x]
+            sage: U * A == W
             True
-            sage: M.is_weak_popov()
+            sage: W.is_weak_popov()
             True
             sage: U.is_invertible()
             True
 
+        Demonstrating shifts::
+
+            sage: A.weak_popov_form(shifts=[2, 0])
+            [              8*x^7 + 1 8*x^7 + 9*x^6 + x^2 + 1]
+            [                  7*x^2       7*x^4 + 7*x^2 + x]
+            sage: A.weak_popov_form(shifts=[10, 0]) == A
+            True
+
         A zero matrix will return itself::
 
-            sage: Z = matrix(PF,5,3)
+            sage: Z = matrix(PF,2,2)
             sage: Z.weak_popov_form()
-            [0 0 0]
-            [0 0 0]
-            [0 0 0]
-            [0 0 0]
-            [0 0 0]
-
-        A shifted weak popov form is computed if ``shifts`` is given::
-
-            sage: PF.<x> = QQ[]
-            sage: A = matrix(PF,3,[x,   x^2, x^3,\
-                                   x^2, x^1, 0,\
-                                   x^3, x^3, x^3])
-            sage: A.weak_popov_form()
-            [        x       x^2       x^3]
-            [      x^2         x         0]
-            [  x^3 - x x^3 - x^2         0]
-            sage: H,U = A.weak_popov_form(transformation=True, shifts=[16,8,0])
-            sage: H
-            [               x              x^2              x^3]
-            [               0         -x^2 + x       -x^4 + x^3]
-            [               0                0 -x^5 + x^4 + x^3]
-            sage: U * A == H
-            True
+            [0 0]
+            [0 0]
 
         .. SEEALSO::
 
-            :meth:`is_weak_popov` .
+            :meth:`is_weak_popov` ,
+            :meth:`reduced_form` ,
+            :meth:`hermite_form` .
         """
         self._check_shift_dimension(shifts,row_wise=True)
         M = self.__copy__()
@@ -1169,7 +1167,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
     def _weak_popov_form(self, transformation=False, shifts=None):
         """
-        Transform this matrix in place into weak Popov form.
+        Transform this matrix in-place into weak Popov form.
 
         EXAMPLES::
 
@@ -1390,7 +1388,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         .. SEEALSO::
 
-            :meth:`is_reduced` .
+            :meth:`is_reduced` ,
+            :meth:`weak_popov_form` .
         """
         self._check_shift_dimension(shifts,row_wise)
         if not row_wise:

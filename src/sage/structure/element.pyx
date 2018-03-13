@@ -2337,10 +2337,26 @@ cdef class ElementWithCachedMethod(Element):
             self.__cached_methods = {name : attr}
             return attr
 
+
 cdef class ModuleElement(Element):
     """
     Generic element of a module.
     """
+    cpdef _add_(self, other):
+        """
+        Abstract addition method
+
+        TESTS::
+
+            sage: from sage.structure.element import ModuleElement
+            sage: e = ModuleElement(Parent())
+            sage: e + e
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: addition not implemented for <sage.structure.parent.Parent object at ...>
+        """
+        raise NotImplementedError(f"addition not implemented for {self._parent}")
+
     cdef _add_long(self, long n):
         """
         Generic path for adding a C long, assumed to commute.
@@ -2526,6 +2542,21 @@ def is_RingElement(x):
     return isinstance(x, RingElement)
 
 cdef class RingElement(ModuleElement):
+    cpdef _mul_(self, other):
+        """
+        Abstract multiplication method
+
+        TESTS::
+
+            sage: from sage.structure.element import RingElement
+            sage: e = RingElement(Parent())
+            sage: e * e
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: multiplication not implemented for <sage.structure.parent.Parent object at ...>
+        """
+        raise NotImplementedError(f"multiplication not implemented for {self._parent}")
+
     def is_one(self):
         return self == self._parent.one()
 
@@ -4252,6 +4283,8 @@ def generic_power(a, n, one=None):
 
         sage: from sage.structure.element import generic_power
         sage: generic_power(int(12),int(0))
+        doctest:...: DeprecationWarning: import 'generic_power' from sage.arith.power instead
+        See http://trac.sagemath.org/24256 for details.
         1
         sage: generic_power(int(0),int(100))
         0
@@ -4273,8 +4306,8 @@ def generic_power(a, n, one=None):
         sage: generic_power(int(5), 0)
         1
     """
-    # from sage.misc.superseded import deprecation
-    # deprecation(24256, "import 'generic_power' from sage.arith.power instead")
+    from sage.misc.superseded import deprecation
+    deprecation(24256, "import 'generic_power' from sage.arith.power instead")
     if one is not None:
         # Special cases not handled by sage.arith.power
         if not n:

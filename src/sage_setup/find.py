@@ -114,6 +114,7 @@ def find_extra_files(packages, src_dir, cythonized_dir, special_filenames=[]):
           ['.../src/sage/ext/interpreters/wrapper_cdf.pxd', ...wrapper_cdf.h...])]
     """
     data_files = []
+    cy_exts = ('.pxd', '.pxi', '.pyx')
 
     for package in packages:
         dir = package.replace('.', os.path.sep)
@@ -121,7 +122,7 @@ def find_extra_files(packages, src_dir, cythonized_dir, special_filenames=[]):
         cydir = os.path.join(cythonized_dir, dir)
 
         files = [os.path.join(sdir, f) for f in os.listdir(sdir)
-                if f.endswith((".pxd", ".pxi")) or f in special_filenames]
+                if f.endswith(cy_exts) or f in special_filenames]
         if os.path.isdir(cydir):  # Not every directory contains Cython files
             files += [os.path.join(cydir, f) for f in os.listdir(cydir)
                     if f.endswith(".h")]

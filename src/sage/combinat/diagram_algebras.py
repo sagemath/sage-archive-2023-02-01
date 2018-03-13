@@ -25,7 +25,7 @@ from six.moves import range
 
 from sage.categories.algebras import Algebras
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.structure.element import generic_power
+from sage.arith.power import generic_power
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation

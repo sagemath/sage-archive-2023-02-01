@@ -1655,7 +1655,7 @@ cdef class Matrix_double_dense(Matrix_dense):
 
         INPUT:
 
-        - ``self`` - a square matrix that is nonsigular (of full rank).
+        - ``self`` - a square matrix that is nonsingular (of full rank).
         - ``b`` - a vector of the correct size.  Elements of the vector
           must coerce into the base ring of the coefficient matrix.  In
           particular, if ``b`` has entries from ``CDF`` then ``self``
@@ -1794,7 +1794,7 @@ cdef class Matrix_double_dense(Matrix_dense):
 
         INPUT:
 
-        - ``self`` - a square matrix that is nonsigular (of full rank).
+        - ``self`` - a square matrix that is nonsingular (of full rank).
         - ``b`` - a vector of the correct size.  Elements of the vector
           must coerce into the base ring of the coefficient matrix.  In
           particular, if ``b`` has entries from ``CDF`` then ``self``
@@ -2685,7 +2685,7 @@ cdef class Matrix_double_dense(Matrix_dense):
 
         ALGORITHMS:
 
-        The naive algorithm simply compares corresponing entries on either
+        The naive algorithm simply compares corresponding entries on either
         side of the diagonal (and on the diagonal itself) to see if they are
         conjugates, with equality controlled by the tolerance parameter.
 

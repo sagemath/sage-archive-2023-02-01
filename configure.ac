@@ -361,6 +361,19 @@ need_to_install_gfortran=no
 if test -f "$SAGE_LOCAL/bin/gcc"; then
     # Special value for SAGE_INSTALL_GCC if GCC is already installed
     SAGE_INSTALL_GCC=exists
+
+    # Check whether it actually works...
+    # See https://trac.sagemath.org/ticket/24599
+    if test -x "$SAGE_LOCAL/bin/g++"; then
+        echo '#include <complex>' >conftest.cpp
+        echo 'auto inf = 1.0 / std::complex<double>();' >>conftest.cpp
+
+        if ! bash -c "source '$SAGE_SRC/bin/sage-env' && g++ -O3 -c -o conftest.o conftest.cpp"; then
+            SAGE_INSTALL_GCC=yes
+            SAGE_MUST_INSTALL_GCC([installed g++ is broken])
+        fi
+        rm -f conftest.*
+    fi
 elif test -n "$SAGE_INSTALL_GCC"; then
     # Check the value of the environment variable SAGE_INSTALL_GCC
     case "$SAGE_INSTALL_GCC" in
@@ -473,7 +486,7 @@ fi
 # not a working Fortran compiler.
 AC_LANG(Fortran)
 if test -z "$FC"; then
-    SAGE_MUST_INSTALL_GCC([a Fortran compiler is missing])
+    need_to_install_gfortran=yes
 else
    # see http://www.gnu.org/software/hello/manual/autoconf/Fortran-Compiler.html
    AC_FC_FREEFORM([],
@@ -481,7 +494,7 @@ else
    AC_MSG_NOTICE([Your Fortran compiler does not accept free-format source code])
    AC_MSG_NOTICE([which means the compiler is either seriously broken, or])
    AC_MSG_NOTICE([is too old to build Sage.])
-   SAGE_MUST_INSTALL_GCC([the Fortran compiler is not suitable])
+   need_to_install_gfortran=yes
    ])
 fi
 
@@ -497,7 +510,7 @@ elif test $need_to_install_gcc = yes; then
 elif test x$GCC != xyes; then
     SAGE_SHOULD_INSTALL_GCC([your C compiler isn't GCC (GNU C)])
 elif test x$GFC != xyes; then
-    SAGE_SHOULD_INSTALL_GCC([your Fortran compiler isn't GCC (GNU Fortran)])
+    need_to_install_gfortran=yes
 else
     # Since need_to_install_gcc is "no", we know that
     # at least C, C++ and Fortran compilers are available.
@@ -507,13 +520,15 @@ else
     AX_GCC_VERSION()
     AX_GXX_VERSION()
 
-    # Add the .0 because Debian/Ubuntu gives version numbers like
-    # 4.6 instead of 4.6.4 (Trac #18885)
-    case "$GXX_VERSION.0" in
-        [[0-3]].*|4.[[0-7]].*)
-            # Install our own GCC if the system-provided one is older than gcc-4.8.
-            SAGE_SHOULD_INSTALL_GCC([you have $CXX version $GXX_VERSION, which is quite old]);;
-    esac
+    if test $IS_REALLY_GCC = yes ; then
+        # Add the .0 because Debian/Ubuntu gives version numbers like
+        # 4.6 instead of 4.6.4 (Trac #18885)
+        case "$GXX_VERSION.0" in
+            [[0-3]].*|4.[[0-7]].*)
+                # Install our own GCC if the system-provided one is older than gcc-4.8.
+                SAGE_SHOULD_INSTALL_GCC([you have $CXX version $GXX_VERSION, which is quite old]);;
+        esac
+    fi
 
     # The following tests check that the version of the compilers
     # are all the same.
@@ -521,43 +536,7 @@ else
         SAGE_SHOULD_INSTALL_GCC([$CC ($GCC_VERSION) and $CXX ($GXX_VERSION) are not the same version])
     fi
 
-    # In the paragraph below, 'gfortran' is used to indicate the GNU Fortran
-    # compiler, though it might be called something else.
-
-    # It's not easily possible to determine the Fortran version, as
-    # gfortran -dumpversion did not until GCC 4.5 return just the
-    # the version number, but the same as gfortran --version
-    # for example:
-
-    # drkirkby@hawk:~$ gcc -dumpversion
-    # 4.3.4
-
-    # drkirkby@hawk:~$ g++ -dumpversion
-    # 4.3.4
-
-    # drkirkby@hawk:~$ gfortran -dumpversion
-    # GNU Fortran (GCC) 4.3.4
-    # Copyright (C) 2008 Free Software Foundation, Inc.
-    # GNU Fortran comes with NO WARRANTY, to the extent permitted by law.
-    # You may redistribute copies of GNU Fortran
-    # under the terms of the GNU General Public License.
-    # For more information about these matters, see the file named COPYING
-
-    # This behaviour is fixed in the gcc 4.5 branch. Since we need to
-    # support older versions of the compiler, we can't change this.
-
-    # But I would expect that the version will be on the output
-    # of the compiler followed by -dumpversion (e.g. fortran -dumpversion)
-
-    # So we grep for the known gcc version on the output of gfortran -dumpversion.
-    # and hope we find the same string. If so, they are almost certainly
-    # the same version.
-    fortran_version_string="`$FC -dumpversion | grep $GCC_VERSION 2>&1`"
-
-    if test "x$fortran_version_string" = x
-    then
-        SAGE_SHOULD_INSTALL_GCC([the Fortran compiler is not the same version as the C compiler])
-    fi
+    # assuming gfortran does work.
 fi
 
 
@@ -681,40 +660,36 @@ AC_MSG_ERROR([["found Fink in $FINK_PATH. Either:
     fi
 fi
 
+# if GCC needs to be installed GFORTRAN shouldn't be installed.
+# if GCC is already installed GFORTRAN shouldn't be installed either.
+# GCC will provide GFORTRAN in both cases.
+if test x$need_to_install_gcc = xyes -o x$SAGE_INSTALL_GCC = xexists ; then
+    need_to_install_gfortran=no
+fi
+
 ###############################################################################
-# Create $SAGE_ROOT/build/make/Makefile starting from build/make/deps
+# Collect substitutions for build/make/Makefile.in
 ###############################################################################
-
-# Use file descriptor 7 since make uses 3 and 4 and configure uses 5 and 6
-exec 7>build/make/Makefile
-
-cat >&7 <<EOF
-#==============================================================================
-# This file has been automatically generated by
-#   $SAGE_ROOT/configure
-# You should not edit it by hand
-#==============================================================================
-
-# Always use bash for make rules
-SHELL = `command -v bash`
-
-ifndef SAGE_SPKG_INST
-\$(error This Makefile needs to be invoked by build/make/install)
-endif
-
-# Directory to keep track of which packages are installed
-INST = \$(SAGE_SPKG_INST)
-
-# Aliases for optional packages selected at configure time
-EOF
-
 
 # Python version
-if test "$SAGE_PYTHON3" = yes; then
-    echo >&7 'PYTHON = $(inst_python3)'
-else
-    echo >&7 'PYTHON = $(inst_python2)'
-fi
+AC_MSG_CHECKING([Python version to install])
+AC_ARG_WITH([python],
+[AS_HELP_STRING([--with-python=2],
+    [build and use Python 2 (default)])]
+[AS_HELP_STRING([--with-python=3],
+    [build and use Python 3])])
+
+case "$with_python" in
+    2*) SAGE_PYTHON_VERSION=2;;
+    3*) SAGE_PYTHON_VERSION=3;;
+    "") SAGE_PYTHON_VERSION=2;;
+    *)
+        AC_MSG_ERROR([allowed values for --with-python are 2 and 3]);;
+esac
+
+AC_MSG_RESULT([$SAGE_PYTHON_VERSION])
+AC_SUBST(SAGE_PYTHON_VERSION)
+
 
 # Sage MP library
 AC_MSG_CHECKING([multiprecision library])
@@ -735,9 +710,9 @@ esac
 AC_MSG_RESULT([$with_mp])
 
 if test $with_mp = MPIR; then
-    echo >&7 'MP_LIBRARY = $(inst_mpir)'
+    AC_SUBST([SAGE_MP_LIBRARY], [mpir])
 else
-    echo >&7 'MP_LIBRARY = $(inst_gmp)'
+    AC_SUBST([SAGE_MP_LIBRARY], [gmp])
 fi
 
 # BLAS library
@@ -757,298 +732,48 @@ case "$with_blas" in
 esac
 
 AC_MSG_RESULT([$with_blas])
-
-echo >&7 "BLAS = \$(inst_${with_blas})"
+AC_SUBST([SAGE_BLAS], [$with_blas])
 
 # $(TOOLCHAIN) variable containing prerequisites for the build
-AS_ECHO_N(>&7 ['TOOLCHAIN = $(inst_gcc)'])
+SAGE_TOOLCHAIN=gcc
 if test "$SAGE_INSTALL_CCACHE" = yes ; then
-    AS_ECHO_N(>&7 [' $(inst_ccache)'])
+    SAGE_TOOLCHAIN="$SAGE_TOOLCHAIN ccache"
 fi
-echo >&7
+AC_SUBST([SAGE_TOOLCHAIN])
 
-AC_MSG_CHECKING([package versions])
-AC_MSG_RESULT([])
-
-# Usage: newest_version $pkg
-# Print version number of latest package $pkg
-newest_version() {
-    PKG=$1
-    if test -f "$SAGE_ROOT/build/pkgs/$PKG/package-version.txt" ; then
-        AS_ECHO_N(["$PKG-"])
-        cat "$SAGE_ROOT/build/pkgs/$PKG/package-version.txt"
-    else
-        echo "$PKG"
-    fi
-}
-
-# Outputs the list of packages, filtered by 'type', e.g.:
-#
-#     filtered_packages_list base
-#     filtered_packages_list standard
-#     filtered_packages_list optional
-#     filtered_packages_list experimental
-#
-# Or, if you want all packages:
-#
-#     filtered_packages_list all
-#
-# Or, if you want all packages which should appear in the source tarball:
-#
-#     filtered_packages_list sdist
-#
-# The output consists of triples
-# PKG_NAME PKG_VERSION PKG_VAR
-#
-
-changequote(<,>)
-filtered_packages_list() {
-    # for each package in pkgs/
-    for DIR in $SAGE_ROOT/build/pkgs/*; do
-        test -d "$DIR" || continue
-
-        PKG_TYPE_FILE="$DIR/type"
-        if [ -f "$PKG_TYPE_FILE" ]; then
-            PKG_TYPE=`cat $PKG_TYPE_FILE`
-        else
-            # exit won't necessarily exit 'configure', so signal an error this way, too:
-            echo INVALID
-            changequote([,])
-            AC_MSG_ERROR(["$PKG_TYPE_FILE" is missing.])
-            changequote(<,>)
-        fi
-
-        # Check consistency of 'DIR/type' file
-        if [ "$PKG_TYPE" != "base" ] && \
-           [ "$PKG_TYPE" != "standard" ] && \
-           [ "$PKG_TYPE" != "optional" ] && \
-           [ "$PKG_TYPE" != "experimental" ] && \
-           [ "$PKG_TYPE" != "script" ] && \
-           [ "$PKG_TYPE" != "pip" ]; then
-            # exit won't necessarily exit 'configure', so signal an error this way, too:
-            echo INVALID
-            changequote([,])
-            AC_MSG_ERROR([The content of "$PKG_TYPE_FILE" must be 'base', 'standard', 'optional', 'experimental', 'script', or 'pip'])
-            changequote(<,>)
-        fi
-
-        PKG_NAME=$(basename $DIR)
-
-        # Filter
-        filter=no
-        if [ "$1" = all ]; then
-            filter=yes
-        elif [ "$1" = "$PKG_TYPE" ]; then
-            filter=yes
-        elif [ "$1" = sdist ]; then
-            # sdist packages are all standard packages, together with
-            # mpir and python2.
-            if [ "$PKG_TYPE" = standard ]; then
-                filter=yes
-            elif [ "$PKG_NAME" = mpir ]; then
-                filter=yes
-            elif [ "$PKG_NAME" = python2 ]; then
-                filter=yes
-            fi
-        fi
-        if [ $filter = yes ]; then
-            PKG_VAR="$(echo $PKG_NAME | sed 's/^/inst_/')"
-            PKG_VERSION=$(newest_version $PKG_NAME)
-            echo "$PKG_NAME $PKG_VERSION $PKG_VAR"
-        fi
-    done
-}
-changequote([,])
-
-echo >&7
-echo >&7 '# Files to track installation of packages'
-filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
-    if test "$PKG_NAME" = INVALID; then
-        # filtered_packages_list signals an error (already reported there)
-        exit 1 # this doesn't leave 'configure' (yet)
-    elif test "$PKG_NAME" != "$PKG_VERSION"; then
-        # If $need_to_install_{PKG_NAME} is set to no, then set $PKG_VAR
-        # to some dummy file to skip the installation. Note that an
-        # explicit "./sage -i PKG_NAME" will still install the package.
-        need_to_install="need_to_install_${PKG_NAME}"
-        if test "${!need_to_install}" != no ; then
-            echo >&7 "$PKG_VAR = \$(INST)/$PKG_VERSION"
-            AC_MSG_RESULT([    $PKG_VERSION])
-        else
-            echo >&7 "$PKG_VAR = \$(INST)/.dummy"
-            AC_MSG_RESULT([    $PKG_VERSION not installed (configure check)])
-        fi
-    fi
-done || exit 1
-
-echo >&7
-echo >&7
-
-[
-echo >&7 '# All standard packages'
-echo >&7 'STANDARD_PACKAGES = \'
-filtered_packages_list standard | while read PKG_NAME PKG_VERSION PKG_VAR; do
-    if test "$PKG_NAME" = INVALID; then
-        # filtered_packages_list signals an error (already reported there)
-        exit 1 # this doesn't leave 'configure' (yet)
-    fi
-    echo >&7 "    \$($PKG_VAR) \\"
-done || exit 1
-echo >&7
-echo >&7
-
-echo >&7 '# All optional installed packages (triggers the auto-update)'
-echo >&7 'OPTIONAL_INSTALLED_PACKAGES = \'
-filtered_packages_list optional | while read PKG_NAME PKG_VERSION PKG_VAR; do
-    if test "$PKG_NAME" = INVALID; then
-        # filtered_packages_list signals an error (already reported there)
-        exit 1 # this doesn't leave 'configure' (yet)
-    fi
-    if [ -f $SAGE_SPKG_INST/$PKG_NAME-* ]; then
-        echo >&7 "    \$($PKG_VAR) \\"
-    fi;
-done || exit 1
-echo >&7
-echo >&7
-
-echo >&7 '# All packages which should be downloaded'
-echo >&7 'SDIST_PACKAGES = \'
-filtered_packages_list sdist | while read PKG_NAME PKG_VERSION PKG_VAR; do
-    if test "$PKG_NAME" = INVALID; then
-        # filtered_packages_list signals an error (already reported there)
-        exit 1 # this doesn't leave 'configure' (yet)
-    fi
-    echo >&7 "    \$(INST)/$PKG_VERSION \\"
-done || exit 1
-echo >&7
-echo >&7
-
+SAGE_SPKG_COLLECT()
 
 # We need sage-env-config to exist before running this.
 # TODO: fix this in Trac #21524
 touch "$SAGE_SRC/bin/sage-env-config"
 
-echo >&7 'SCRIPTS = \'
+SAGE_SCRIPTS='\
+'
 for file in "$SAGE_SRC/bin/"*; do
     # Skip files with ".in" extension
     ext=${file##*.}
     if test "$ext" != in; then
-        echo >&7 "    \$(SAGE_LOCAL)${file#$SAGE_SRC} \\"
+        SAGE_SCRIPTS+="    \$(SAGE_LOCAL)${file#$SAGE_SRC} \\"$'\n'
     fi
 done
-echo >&7
-echo >&7 'EXTCODE = \'
+
+AC_SUBST([SAGE_SCRIPTS])
+
+SAGE_EXTCODE='\
+'
 for file in `find "$SAGE_SRC"/ext -type f`; do
-    echo >&7 "    \$(SAGE_EXTCODE)${file#$SAGE_SRC/ext} \\"
+    SAGE_EXTCODE+="    \$(SAGE_EXTCODE)${file#$SAGE_SRC/ext} \\"$'\n'
 done
-echo >&7
 
-# Copy build/make/deps
-cat >&7 <<EOF
+AC_SUBST([SAGE_EXTCODE])
 
-# Dummy target for packages which are not installed
-\$(INST)/.dummy:
-	touch \$@
-
-#==============================================================================
-# What follows now is a copy of
-#   $SAGE_ROOT/build/make/deps
-#==============================================================================
-
-EOF
-
-cat "$SAGE_ROOT/build/make/deps" >&7
-# Copy build/make/deps
-
-cat >&7 <<EOF
-
-#==============================================================================
-# Rules generated from pkgs/<package>/dependencies files
-#==============================================================================
-
-EOF
-
-# Add a Makefile target corresponding to a given package
-filtered_packages_list all | {
-while read PKG_NAME PKG_VERSION PKG_VAR; do
-    if test "$PKG_NAME" = INVALID; then
-        # filtered_packages_list signals an error (already reported there)
-        exit 1 # this doesn't leave 'configure' (yet)
-    fi
-    DEP_FILE="$SAGE_ROOT/build/pkgs/$PKG_NAME/dependencies"
-    TYPE=`cat "$SAGE_ROOT/build/pkgs/$PKG_NAME/type"`
-    if [ -f "$DEP_FILE" ]; then
-        # DEPS is first line of $DEP_FILE with some modifications:
-        # - start with a single space
-        # - the # symbol is treated as comment which is removed
-        # - lower-case words "foo" are replaced by "$(inst_foo)"
-        DEPS=`sed 's/^ */ /; s/ *#.*//; s/ \([a-z0-9][a-z0-9_]*\)/ $(inst_\1)/g; q' $DEP_FILE`
-    elif [ "$TYPE" = optional ]; then
-        DEPS=' | $(STANDARD_PACKAGES)' # default for optional packages
-    elif [ "$TYPE" = script ]; then
-        DEPS=' | $(STANDARD_PACKAGES)' # default for script-only packages
-    elif [ "$TYPE" = pip ]; then
-        DEPS=' | $(inst_pip)'
-    else
-        DEPS=""
-    fi
-
-    # Below we have to obscure A""M_V_at, or autoconf would complain:
-    # "error: possibly undefined macro: A""M_V_at"
-    if [ "$TYPE" = pip ]; then
-        # Special rules using PIP
-        echo >&7 "$PKG_NAME:$DEPS"
-        echo >&7 "	\$(A""M_V_at)sage-logger -p 'sage --pip install $PKG_NAME' \$(SAGE_LOGS)/$PKG_NAME.log"
-        echo >&7
-
-        # Add a target to remove the "installed" file for "sage -f"
-        echo >&7 "$PKG_NAME-clean:"
-        echo >&7 "	-sage --pip uninstall -y $PKG_NAME"
-        echo >&7
-    elif [ "$TYPE" = script ]; then
-        # Just run the spkg-install script
-        echo >&7 "$PKG_NAME:$DEPS"
-        echo >&7 "	\$(A""M_V_at)cd '$SAGE_ROOT' && \\"
-        echo >&7 "	    source '$SAGE_ROOT/src/bin/sage-env' && \\"
-        echo >&7 "	    sage-logger -p '$SAGE_ROOT/build/pkgs/$PKG_NAME/spkg-install' \$(SAGE_LOGS)/$PKG_NAME.log"
-        echo >&7
-
-        # Just run the spkg-uninstall script if it exists
-        echo >&7 "$PKG_NAME-clean:"
-        echo >&7 "	-\$(A""M_V_at)cd '$SAGE_ROOT' && \\"
-        echo >&7 "	    source '$SAGE_ROOT/src/bin/sage-env' && \\"
-        echo >&7 "	    '$SAGE_ROOT/build/pkgs/$PKG_NAME/spkg-uninstall'"
-        echo >&7
-    else
-        # Normal Sage packages
-        echo >&7 "\$(INST)/$PKG_VERSION:$DEPS"
-        echo >&7 "	+\$(A""M_V_at)sage-logger -p '\$(SAGE_SPKG) $PKG_VERSION' '\$(SAGE_LOGS)/$PKG_VERSION.log'"
-        echo >&7
-
-        # Add a target with just the bare package name for "sage -i"
-        echo >&7 "$PKG_NAME: \$(INST)/$PKG_VERSION"
-        echo >&7
-
-        # Add a target to remove the "installed" file for "sage -f"
-        echo >&7 "$PKG_NAME-clean:"
-        echo >&7 "	rm -f \$(INST)/$PKG_VERSION"
-        echo >&7
-    fi
-
-    PHONY="$PHONY $PKG_NAME"
-done || exit 1
-echo >&7 ".PHONY:$PHONY"
-}
-
-# Close the Makefile
-exec 7>&-
-]
+SAGE_MAKE_DEPS="$SAGE_ROOT/build/make/deps"
+AC_SUBST_FILE([SAGE_MAKE_DEPS])
 
 
 dnl AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([build/make/Makefile-auto src/Makefile])
+AC_CONFIG_FILES([build/make/Makefile-auto build/make/Makefile src/Makefile])
 AC_CONFIG_FILES([src/bin/sage-env-config])
-AC_CONFIG_MACRO_DIR([m4])
 
 dnl Create basic directories needed for Sage
 AC_CONFIG_COMMANDS(mkdirs,

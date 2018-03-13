@@ -2068,7 +2068,7 @@ class DyckWord_complete(DyckWord):
 
         It is shown in [EP2004]_ that it sends the number of centered tunnels
         to the number of fixed points, the number of right tunnels to the
-        number of exceedences, and the semilength plus the height of the middle
+        number of excedences, and the semilength plus the height of the middle
         point to 2 times the length of the longest increasing subsequence.
 
         REFERENCES:

@@ -492,7 +492,7 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
         target_point = chart2.domain().an_element()
         target_coord = list(target_point.coord(chart2))
         bounds = chart2._bounds[0]  # bounds of first coordinate
-        # Determination of an interval (x1, x2) arround target_point:
+        # Determination of an interval (x1, x2) around target_point:
         xmin = bounds[0][0]
         xmax = bounds[1][0]
         one_half = QQ(1) / QQ(2)
@@ -1411,7 +1411,7 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
         nab.set_coef()[i0,i0,i0+1] = 1
 
         y_bounds = chart2._bounds[1]  # bounds of second coordinate
-        # Determination of an interval (y_A, y_B) arround target_point:
+        # Determination of an interval (y_A, y_B) around target_point:
         y_min = y_bounds[0][0]
         y_max = y_bounds[1][0]
         one_half = QQ(1) / QQ(2)

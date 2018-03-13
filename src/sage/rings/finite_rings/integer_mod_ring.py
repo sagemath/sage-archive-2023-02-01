@@ -1156,6 +1156,13 @@ In the latter case, please inform the developers.""".format(self.order()))
             sage: a == R(gap(a))
             True
 
+        libgap interface (:trac:`23714`)::
+
+            sage: a = libgap.eval("Z(13)^2")
+            sage: a.sage()
+            4
+            sage: libgap(a.sage()) == a
+            True
         """
         try:
             return integer_mod.IntegerMod(self, x)

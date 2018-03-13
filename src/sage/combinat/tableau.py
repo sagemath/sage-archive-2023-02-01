@@ -68,7 +68,7 @@ For display options, see :meth:`Tableaux.options`.
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import range, zip
-from six import add_metaclass
+from six import add_metaclass, text_type
 
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
@@ -479,11 +479,11 @@ class Tableau(ClonableList):
             └┘
         """
         from sage.typeset.unicode_art import UnicodeArt
-        return UnicodeArt(self._ascii_art_table(unicode=True).splitlines())
+        return UnicodeArt(self._ascii_art_table(use_unicode=True).splitlines())
 
     _ascii_art_repr = _repr_diagram
 
-    def _ascii_art_table(self, unicode=False):
+    def _ascii_art_table(self, use_unicode=False):
         """
         TESTS:
 
@@ -544,7 +544,7 @@ class Tableau(ClonableList):
         Unicode version::
 
             sage: t = Tableau([[1,2,15,7],[12,5],[8,10],[9]])
-            sage: print(t._ascii_art_table(unicode=True))
+            sage: print(t._ascii_art_table(use_unicode=True))
             ┌────┬────┬────┬───┐
             │ 1  │ 2  │ 15 │ 7 │
             ├────┼────┼────┴───┘
@@ -556,7 +556,7 @@ class Tableau(ClonableList):
             └────┘
             sage: Tableaux().options.convention='french'
             sage: t = Tableau([[1,2,15,7],[12,5],[8,10],[9]])
-            sage: print(t._ascii_art_table(unicode=True))
+            sage: print(t._ascii_art_table(use_unicode=True))
             ┌────┐
             │ 9  │
             ├────┼────┐
@@ -568,7 +568,7 @@ class Tableau(ClonableList):
             └────┴────┴────┴───┘
             sage: Tableaux.options._reset()
         """
-        if unicode:
+        if use_unicode:
             import unicodedata
             v  = unicodedata.lookup('BOX DRAWINGS LIGHT VERTICAL')
             h  = unicodedata.lookup('BOX DRAWINGS LIGHT HORIZONTAL')
@@ -581,20 +581,28 @@ class Tableau(ClonableList):
             uh = unicodedata.lookup('BOX DRAWINGS LIGHT UP AND HORIZONTAL')
             dh = unicodedata.lookup('BOX DRAWINGS LIGHT DOWN AND HORIZONTAL')
             vh = unicodedata.lookup('BOX DRAWINGS LIGHT VERTICAL AND HORIZONTAL')
+            from sage.typeset.unicode_art import unicode_art as art
         else:
             v = '|'
             h = '-'
             dl = dr = ul = ur = vr = vl = uh = dh = vh = '+'
+            from sage.typeset.ascii_art import ascii_art as art
 
         if not self:
             return dr + dl + '\n' + ur + ul
 
         # Get the widths of the columns
-        str_tab = [[str(_) for _ in row] for row in self]
+        str_tab = [[art(_) for _ in row] for row in self]
         col_widths = [1]*len(str_tab[0])
+        if use_unicode:
+            # Special handling of overline not adding to printed length
+            def get_len(e):
+                return len(e) - list(text_type(e)).count(u"\u0304")
+        else:
+            get_len = len
         for row in str_tab:
             for i,e in enumerate(row):
-                col_widths[i] = max(col_widths[i], len(e))
+                col_widths[i] = max(col_widths[i], get_len(e))
 
         matr = []  # just the list of lines
         l1 = ""
@@ -615,7 +623,7 @@ class Tableau(ClonableList):
                     l1 += vh + h*(2+w)
                 else:
                     l1 += uh + h*(2+w)
-                if unicode:
+                if use_unicode:
                     l2 += u"{} {:^{width}} ".format(v, e, width=w)
                 else:
                     l2 += "{} {:^{width}} ".format(v, e, width=w)
@@ -631,7 +639,7 @@ class Tableau(ClonableList):
             return "\n".join(matr)
         else:
             output = "\n".join(reversed(matr))
-            if unicode:
+            if use_unicode:
                 tr = {
                     ord(dl): ul, ord(dr): ur,
                     ord(ul): dl, ord(ur): dr,
@@ -7165,7 +7173,7 @@ class Tableau_class(Tableau):
 
         TESTS::
 
-            sage: loads('x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\xd1+IL\xcaIM,\xe5\n\x81\xd0\xf1\xc99\x89\xc5\xc5\\\x85\x8c\x9a\x8d\x85L\xb5\x85\xcc\x1a\xa1\xac\xf1\x19\x89\xc5\x19\x85,~@VNfqI!kl![l!;\xc4\x9c\xa2\xcc\xbc\xf4b\xbd\xcc\xbc\x92\xd4\xf4\xd4"\xae\xdc\xc4\xec\xd4x\x18\xa7\x90#\x94\xd1\xb05\xa8\x9031\xb14I\x0f\x00\xf6\xae)7')
+            sage: loads(b'x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\xd1+IL\xcaIM,\xe5\n\x81\xd0\xf1\xc99\x89\xc5\xc5\\\x85\x8c\x9a\x8d\x85L\xb5\x85\xcc\x1a\xa1\xac\xf1\x19\x89\xc5\x19\x85,~@VNfqI!kl![l!;\xc4\x9c\xa2\xcc\xbc\xf4b\xbd\xcc\xbc\x92\xd4\xf4\xd4"\xae\xdc\xc4\xec\xd4x\x18\xa7\x90#\x94\xd1\xb05\xa8\x9031\xb14I\x0f\x00\xf6\xae)7')
             [[1]]
             sage: loads(dumps( Tableau([[1]]) ))
             [[1]]

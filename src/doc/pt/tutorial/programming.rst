@@ -341,7 +341,7 @@ Sage):
 
 ::
 
-    sage: range(1, 15)
+    sage: range(1, 15)  # py2
     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
 
 Isso é útil quando se usa "list comprehensions" para construir listas:

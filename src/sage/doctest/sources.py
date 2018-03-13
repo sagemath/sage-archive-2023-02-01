@@ -26,6 +26,7 @@ import re
 import random
 import doctest
 from Cython.Utils import is_package_dir
+from sage.cpython.string import bytes_to_str
 from sage.repl.preparse import preparse
 from sage.repl.load import load
 from sage.misc.lazy_attribute import lazy_attribute
@@ -61,7 +62,7 @@ sagestart = re.compile(r"^\s*(>>> |sage: )\s*[^#\s]")
 untested = re.compile("(not implemented|not tested)")
 
 # For parsing a PEP 0263 encoding declaration
-pep_0263 = re.compile(r'coding[:=]\s*([-\w.]+)')
+pep_0263 = re.compile(br'^[ \t\v]*#.*?coding[:=]\s*([-\w.]+)')
 
 # Source line number in warning output
 doctest_line_number = re.compile(r"^\s*doctest:[0-9]")
@@ -467,6 +468,7 @@ class StringDocTestSource(DocTestSource):
         """
         return self._create_doctests(namespace)
 
+
 class FileDocTestSource(DocTestSource):
     """
     This class creates doctests from a file.
@@ -533,7 +535,8 @@ class FileDocTestSource(DocTestSource):
             sage: from sage.doctest.sources import FileDocTestSource
             sage: filename = tmp_filename(ext=".py")
             sage: s = "'''\n    sage: 2 + 2\n    4\n'''"
-            sage: _ = open(filename, 'w').write(s)
+            sage: with open(filename, 'w') as f:
+            ....:     _ = f.write(s)
             sage: FDS = FileDocTestSource(filename, DocTestDefaults())
             sage: for n, line in FDS:
             ....:     print("{} {}".format(n, line))
@@ -549,30 +552,32 @@ class FileDocTestSource(DocTestSource):
 
         We create a file with a Latin-1 encoding without declaring it::
 
-            sage: s = "'''\nRegardons le polyn\xF4me...\n'''\n"
-            sage: open(filename, 'w').write(s)
+            sage: s = b"'''\nRegardons le polyn\xF4me...\n'''\n"
+            sage: with open(filename, 'wb') as f:
+            ....:     _ = f.write(s)
             sage: FDS = FileDocTestSource(filename, DocTestDefaults())
             sage: L = list(FDS)
             Traceback (most recent call last):
             ...
-            UnicodeDecodeError: 'utf8' codec can't decode byte 0xf4 in position 18: invalid continuation byte
+            UnicodeDecodeError: 'utf...8' codec can't decode byte 0xf4 in position 18: invalid continuation byte
 
         This works if we add a PEP 0263 encoding declaration::
 
-            sage: s = "#!/usr/bin/env python\n# -*- coding: latin-1 -*-\n" + s
-            sage: open(filename, 'w').write(s)
+            sage: s = b"#!/usr/bin/env python\n# -*- coding: latin-1 -*-\n" + s
+            sage: with open(filename, 'wb') as f:
+            ....:     _ = f.write(s)
             sage: FDS = FileDocTestSource(filename, DocTestDefaults())
             sage: L = list(FDS)
             sage: FDS.encoding
             'latin-1'
         """
-        with open(self.path) as source:
+        with open(self.path, 'rb') as source:
             for lineno, line in enumerate(source):
                 if lineno < 2:
                     match = pep_0263.search(line)
                     if match:
-                        self.encoding = match.group(1)
-                yield lineno, unicode(line, self.encoding)
+                        self.encoding = bytes_to_str(match.group(1), 'ascii')
+                yield lineno, line.decode(self.encoding)
 
     @lazy_attribute
     def printpath(self):
@@ -1035,23 +1040,23 @@ class PythonSource(SourceLanguage):
             sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: FDS._init()
             sage: FDS.starting_docstring("r'''")
-            <_sre.SRE_Match object at ...>
+            <_sre.SRE_Match object...>
             sage: FDS.ending_docstring("'''")
-            <_sre.SRE_Match object at ...>
+            <_sre.SRE_Match object...>
             sage: FDS.qualified_name = NestedName(FDS.basename)
             sage: FDS.starting_docstring("class MyClass(object):")
             sage: FDS.starting_docstring("    def hello_world(self):")
             sage: FDS.starting_docstring("        '''")
-            <_sre.SRE_Match object at ...>
+            <_sre.SRE_Match object...>
             sage: FDS.qualified_name
             sage.doctest.sources.MyClass.hello_world
             sage: FDS.ending_docstring("    '''")
-            <_sre.SRE_Match object at ...>
+            <_sre.SRE_Match object...>
             sage: FDS.starting_docstring("class NewClass(object):")
             sage: FDS.starting_docstring("    '''")
-            <_sre.SRE_Match object at ...>
+            <_sre.SRE_Match object...>
             sage: FDS.ending_docstring("    '''")
-            <_sre.SRE_Match object at ...>
+            <_sre.SRE_Match object...>
             sage: FDS.qualified_name
             sage.doctest.sources.NewClass
             sage: FDS.starting_docstring("print(")
@@ -1059,7 +1064,7 @@ class PythonSource(SourceLanguage):
             sage: FDS.starting_docstring("    ''')")
             sage: FDS.starting_docstring("def foo():")
             sage: FDS.starting_docstring("    '''This is a docstring'''")
-            <_sre.SRE_Match object at ...>
+            <_sre.SRE_Match object...>
         """
         indent = whitespace.match(line).end()
         quotematch = None
@@ -1113,7 +1118,7 @@ class PythonSource(SourceLanguage):
             sage: FDS._init()
             sage: FDS.quotetype = "'''"
             sage: FDS.ending_docstring("'''")
-            <_sre.SRE_Match object at ...>
+            <_sre.SRE_Match object...>
             sage: FDS.ending_docstring('\"\"\"')
         """
         quotematch = triple_quotes.match(line)

@@ -1552,8 +1552,8 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
     @staticmethod
     def _get_B(a):
         r"""
-        Helper function to get an appropiate matrix transforming
-        (0,1,inf)->(0,I,inf) based on the type of a
+        Helper function to get an appropriate matrix transforming
+        (0,1,inf) -> (0,I,inf) based on the type of a
 
         INPUT:
 

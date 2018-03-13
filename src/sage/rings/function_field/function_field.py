@@ -573,6 +573,123 @@ class FunctionField(Field):
         """
         return self if is_RationalFunctionField(self) else self.base_field().rational_function_field()
 
+    def valuation(self, prime):
+        r"""
+        Return the discrete valuation on this function field defined by
+        ``prime``.
+
+        INPUT:
+
+        - ``prime`` -- a place of the function field, a valuation on a subring,
+          or a valuation on another function field together with information
+          for isomorphisms to and from that function field
+
+        EXAMPLES:
+        
+        We create valuations that correspond to finite rational places of a
+        function field::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: v = K.valuation(1); v
+            (x - 1)-adic valuation
+            sage: v(x)
+            0
+            sage: v(x - 1)
+            1
+
+        A place can also be specified with an irreducible polynomial::
+
+            sage: v = K.valuation(x - 1); v
+            (x - 1)-adic valuation
+        
+        Similarly, for a finite non-rational place::
+            
+            sage: v = K.valuation(x^2 + 1); v
+            (x^2 + 1)-adic valuation
+            sage: v(x^2 + 1)
+            1
+            sage: v(x)
+            0
+
+        Or for the infinite place::
+        
+            sage: v = K.valuation(1/x); v
+            Valuation at the infinite place
+            sage: v(x)
+            -1
+
+        Instead of specifying a generator of a place, we can define a valuation on a
+        rational function field by giving a discrete valuation on the underlying
+        polynomial ring::
+        
+            sage: R.<x> = QQ[]
+            sage: w = valuations.GaussValuation(R, valuations.TrivialValuation(QQ)).augmentation(x - 1, 1)
+            sage: v = K.valuation(w); v
+            (x - 1)-adic valuation
+        
+        Note that this allows us to specify valuations which do not correspond to a
+        place of the function field::
+        
+            sage: w = valuations.GaussValuation(R, QQ.valuation(2))
+            sage: v = K.valuation(w); v
+            2-adic valuation
+
+        The same is possible for valuations with `v(1/x) > 0` by passing in an
+        extra pair of parameters, an isomorphism between this function field and an
+        isomorphic function field. That way you can, for example, indicate that the
+        valuation is to be understood as a valuation on `K[1/x]`, i.e., after
+        applying the substitution `x \mapsto 1/x` (here, the inverse map is also `x
+        \mapsto 1/x`)::
+
+            sage: w = valuations.GaussValuation(R, QQ.valuation(2)).augmentation(x, 1)
+            sage: w = K.valuation(w)
+            sage: v = K.valuation((w, K.hom([~K.gen()]), K.hom([~K.gen()]))); v
+            Valuation on rational function field induced by [ Gauss valuation induced by 2-adic valuation, v(x) = 1 ] (in Rational function field in x over Rational Field after x |--> 1/x)
+
+        Note that classical valuations at finite places or the infinite place are
+        always normalized such that the uniformizing element has valuation 1::
+
+            sage: K.<t> = FunctionField(GF(3))
+            sage: M.<x> = FunctionField(K)
+            sage: v = M.valuation(x^3 - t)
+            sage: v(x^3 - t)
+            1
+
+        However, if such a valuation comes out of a base change of the ground
+        field, this is not the case anymore. In the example below, the unique
+        extension of ``v`` to ``L`` still has valuation 1 on `x^3 - t` but it has
+        valuation ``1/3`` on its uniformizing element  `x - w`::
+
+            sage: R.<w> = K[]
+            sage: L.<w> = K.extension(w^3 - t)
+            sage: N.<x> = FunctionField(L)
+            sage: w = v.extension(N) # missing factorization, :trac:`16572`
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+            sage: w(x^3 - t) # not tested
+            1
+            sage: w(x - w) # not tested
+            1/3
+
+        There are several ways to create valuations on extensions of rational
+        function fields::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x); L
+            Function field in y defined by y^2 - x
+
+        A place that has a unique extension can just be defined downstairs::
+
+            sage: v = L.valuation(x); v
+            (x)-adic valuation
+
+        """
+        from sage.rings.function_field.function_field_valuation import FunctionFieldValuation
+        return FunctionFieldValuation(self, prime)
+
+
 class FunctionField_polymod(FunctionField):
     """
     A function field defined by a univariate polynomial, as an
@@ -2451,7 +2568,7 @@ class RationalFunctionField(FunctionField):
 
         INPUT:
 
-            - ``im_gens`` -- exactly one element of some ring.  It must be invertible and trascendental over
+            - ``im_gens`` -- exactly one element of some ring.  It must be invertible and transcendental over
                              the image of ``base_morphism``; this is not checked.
             - ``base_morphism`` -- a homomorphism from the base field into the other ring.
                                    If ``None``, try to use a coercion map.

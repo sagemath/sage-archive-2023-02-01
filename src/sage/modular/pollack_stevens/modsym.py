@@ -92,7 +92,7 @@ def _iterate_Up(Phi, p, M, ap, q, aq, check):
     if ap.valuation(p) > 0:
         raise ValueError("Lifting non-ordinary eigensymbols not implemented (issue #20)")
 
-    ## Act by Hecke to ensure values are in D and not D^dag after sovling difference equation
+    ## Act by Hecke to ensure values are in D and not D^dag after solving difference equation
     verbose("Applying Hecke", level = 2)
 
     apinv = ~ap
@@ -951,7 +951,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
 
     def p_stabilize(self, p=None, M=20, alpha=None, ap=None, new_base_ring=None, ordinary=True, check=True):
         r"""
-        Return the `p`-stablization of self to level `N p` on which `U_p` acts by `\alpha`.
+        Return the `p`-stabilization of self to level `N p` on which `U_p` acts by `\alpha`.
 
         Note that since `\alpha` is `p`-adic, the resulting symbol
         is just an approximation to the true `p`-stabilization

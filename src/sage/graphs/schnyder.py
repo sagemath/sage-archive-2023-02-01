@@ -171,7 +171,7 @@ def _normal_label(g, comb_emb, external_face):
         [(2, 0), (4, 2), (6, 4), (1, 3), (6, 1), (3, 5), (4, 0), (6, 3)]
         sage: tn = _normal_label(g, g._embedding, faces[0])
         sage: _realizer(g, tn)
-        ({0: [<sage.graphs.schnyder.TreeNode instance at ...>]},
+        ({0: [<sage.graphs.schnyder.TreeNode object at ...>]},
          (0, 1, 2))
     """
     contracted = []
@@ -377,7 +377,7 @@ def _realizer(g, x, example=False):
         [(2, 0), (4, 2), (6, 4), (1, 3), (6, 1), (3, 5), (4, 0), (6, 3)]
         sage: tn = _normal_label(g, g._embedding, faces[0])
         sage: _realizer(g, tn)
-        ({0: [<sage.graphs.schnyder.TreeNode instance at ...>]},
+        ({0: [<sage.graphs.schnyder.TreeNode object at ...>]},
          (0, 1, 2))
 
     """
@@ -532,7 +532,7 @@ def _compute_coordinates(g, x):
     g.set_pos(coordinates)  # Setting _pos attribute to store coordinates
 
 
-class TreeNode():
+class TreeNode(object):
     """
     A class to represent each node in the trees used by ``_realizer`` and
     ``_compute_coordinates`` when finding a planar geometric embedding in
@@ -785,7 +785,7 @@ def minimal_schnyder_wood(graph, root_edge=None, minimal=True, check=True):
             raise ValueError('not a triangulation')
         if not(a in graph.neighbors(b)):
             raise ValueError('not a valid root edge')
-        
+
     new_g = DiGraph()
     emb = graph.get_embedding()
 

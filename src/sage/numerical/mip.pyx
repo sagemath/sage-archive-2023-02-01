@@ -2,9 +2,9 @@ r"""
 Mixed Integer Linear Programming
 
 This module implements classes and methods for the efficient solving of Linear
-Programs (`LP <http://en.wikipedia.org/wiki/Linear_programming>`_) and Mixed
-Integer Linear Programs (`MILP
-<http://en.wikipedia.org/wiki/Mixed_integer_linear_programming>`_).
+Programs (:wikipedia:`LP <Linear_programming>`) and Mixed
+Integer Linear Programs (:wikipedia:`MILP
+<Mixed_integer_linear_programming>`).
 
 *Do you want to understand how the simplex method works?* See the
 :mod:`~sage.numerical.interactive_simplex_method` module (educational purposes
@@ -13,8 +13,8 @@ only)
 Definition
 ----------
 
-A linear program (`LP <http://en.wikipedia.org/wiki/Linear_programming>`_)
-is an `optimization problem <http://en.wikipedia.org/wiki/Optimization_%28mathematics%29>`_
+A linear program (:wikipedia:`LP <Linear_programming>`)
+is an optimization problem (:wikipedia:`Optimization_(mathematics)`)
 in the following form
 
 .. MATH::
@@ -24,7 +24,7 @@ with given `A \in \mathbb{R}^{m,n}`, `b \in \mathbb{R}^m`,
 `c \in \mathbb{R}^n` and unknown `x \in \mathbb{R}^{n}`.
 If some or all variables in the vector `x` are restricted over
 the integers `\mathbb{Z}`, the problem is called mixed integer
-linear program (`MILP <http://en.wikipedia.org/wiki/Mixed_integer_linear_programming>`_).
+linear program (:wikipedia:`MILP <Mixed_integer_linear_programming>`).
 A wide variety of problems in optimization
 can be formulated in this standard form. Then, solvers are
 able to calculate a solution.
@@ -1393,8 +1393,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
             Writing problem data to ...
             17 records were written
 
-        For information about the MPS file format :
-        http://en.wikipedia.org/wiki/MPS_%28format%29
+        For information about the MPS file format, see
+        :wikipedia:`MPS_(format)`
         """
         self._backend.write_mps(filename, modern)
 

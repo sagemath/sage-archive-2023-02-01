@@ -116,6 +116,9 @@ AUTHORS:
   in favour of :meth:`~sage.rings.integer.Integer.is_perfect_power` (see
   :trac:`12116`)
 
+- Vincent Klein (2017-05-11): add __mpz__() to class Integer
+
+- Vincent Klein (2017-05-22): Integer constructor support gmpy2.mpz parameter
 """
 #*****************************************************************************
 #       Copyright (C) 2004,2006 William Stein <wstein@gmail.com>
@@ -157,7 +160,9 @@ from sage.cpython.python_debug cimport if_Py_TRACE_REFS_then_PyObject_INIT
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
 from sage.misc.superseded import deprecated_function_alias
-from sage.arith.long cimport pyobject_to_long, integer_check_long
+from sage.cpython.string cimport char_to_str, str_to_bytes
+from sage.arith.long cimport (pyobject_to_long, integer_check_long,
+                              integer_check_long_py)
 
 from cpython.list cimport *
 from cpython.number cimport *
@@ -186,6 +191,11 @@ from sage.structure.coerce cimport is_numpy_type
 from sage.structure.element import coerce_binop
 
 from sage.libs.gmp.binop cimport mpq_add_z, mpq_mul_z, mpq_div_zz
+
+IF HAVE_GMPY2:
+    cimport gmpy2
+    gmpy2.import_gmpy2()
+
 
 cdef extern from *:
     int unlikely(int) nogil  # Defined by Cython
@@ -466,6 +476,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         sage: Integer(pari('Pol([-3])'))
         -3
 
+    Conversion from gmpy2::
+
+        sage: from gmpy2 import mpz  # optional - gmpy2
+        sage: Integer(mpz(3))        # optional - gmpy2
+        3
+
     .. automethod:: __pow__
     """
 
@@ -522,6 +538,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             0
             sage: ZZ('+10')
             10
+            sage: from gmpy2 import mpz  # optional - gmpy2
+            sage: ZZ(mpz(42))            # optional - gmpy2
+            42
 
         ::
 
@@ -687,8 +706,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     except AttributeError:
                         pass
 
-                elif isinstance(x, basestring):
+                elif isinstance(x, bytes):
                     mpz_set_str_python(self.value, x, base)
+                    return
+                elif isinstance(x, unicode):
+                    mpz_set_str_python(self.value, str_to_bytes(x), base)
                     return
 
                 elif (isinstance(x, list) or isinstance(x, tuple)) and base > 1:
@@ -715,8 +737,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 elif is_numpy_type(type(x)):
                     import numpy
                     if isinstance(x, numpy.integer):
-                        mpz_set_pylong(self.value, x.__long__())
+                        mpz_set_pylong(self.value, long(x))
                         return
+
+                elif HAVE_GMPY2 and type(x) is gmpy2.mpz:
+                    mpz_set(self.value, (<gmpy2.mpz>x).z)
+                    return
 
                 raise TypeError("unable to coerce %s to an integer" % type(x))
 
@@ -752,7 +778,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
            Integers are supposed to be immutable, so you should not
            use this function.
         """
-        mpz_set_str(self.value, s, 32)
+        mpz_set_str(self.value, str_to_bytes(s), 32)
 
     def __index__(self):
         """
@@ -1039,6 +1065,31 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return '<mn>%s</mn>'%self
 
+    def __mpz__(self):
+        """
+        Return a gmpy2 integer
+
+        EXAMPLES::
+
+            sage: a = 5
+            sage: a.__mpz__()            # optional - gmpy2
+            mpz(5)
+            sage: from gmpy2 import mpz  # optional - gmpy2
+            sage: mpz(a)                 # optional - gmpy2
+            mpz(5)
+
+        TESTS::
+
+            sage: a.__mpz__(); raise NotImplementedError("gmpy2 is not installed")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: gmpy2 is not installed
+        """
+        IF HAVE_GMPY2:
+            return gmpy2.GMPy_MPZ_From_mpz(self.value)
+        ELSE:
+            raise NotImplementedError("gmpy2 is not installed")
+
     def str(self, int base=10):
         r"""
         Return the string representation of ``self`` in the
@@ -1084,7 +1135,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         sig_on()
         mpz_get_str(s, base, self.value)
         sig_off()
-        k = <bytes>s
+        k = char_to_str(s)
         sig_free(s)
         return k
 
@@ -2673,7 +2724,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if mpz_sgn(self.value) <= 0:
             from sage.symbolic.all import SR
             return SR(self).log()
-        if m <= 0 and m is not None:
+        if m is not None and m <= 0:
             raise ValueError("m must be positive")
         if prec:
             from sage.rings.real_mpfr import RealField
@@ -3211,7 +3262,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         # Next: Integer % C long
         cdef long yy = 0
-        cdef int err
+        cdef int err = 0
         if not isinstance(y, Element):
             # x must be an Integer in this case
             if not integer_check_long(y, &yy, &err):
@@ -4511,6 +4562,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         EXAMPLES::
 
             sage: Integer(3).is_integral()
+            True
+        """
+        return True
+
+    def is_rational(self):
+        r"""
+        Return ``True`` as an integer is a rational number.
+
+        EXAMPLES::
+
+            sage: 5.is_rational()
             True
         """
         return True
@@ -6103,7 +6165,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def _xgcd(self, Integer n, bint minimal=0):
         r"""
-        Return the exteded gcd of ``self`` and ``n``.
+        Return the extended gcd of ``self`` and ``n``.
 
         INPUT:
 
@@ -6896,7 +6958,7 @@ cdef int mpz_set_str_python(mpz_ptr z, char* s, int base) except -1:
 
     assert base >= 2
     if mpz_set_str(z, x, base) != 0:
-        raise TypeError("unable to convert %r to an integer" % s)
+        raise TypeError("unable to convert %r to an integer" % char_to_str(s))
     if sign < 0:
         mpz_neg(z, z)
     if warnoctal and mpz_sgn(z) != 0:
@@ -6983,7 +7045,7 @@ def make_integer(s):
         sage: make_integer(29)
         Traceback (most recent call last):
         ...
-        TypeError: expected string or Unicode object, sage.rings.integer.Integer found
+        TypeError: expected str...Integer found
     """
     cdef Integer r = PY_NEW(Integer)
     r._reduce_set(s)
@@ -7050,18 +7112,10 @@ cdef class int_to_Z(Morphism):
             sage: f = ZZ.coerce_map_from(int)
             sage: f(100r)
             100
-
-        Note that, for performance reasons, the type of the input is not
-        verified; it is assumed to have the memory layout of a Python int::
-
-            sage: f._call_("abc")
-            3
-            sage: f._call_(5)    # random, the Integer 5
-            140031369085760
-
-        In practice, this precondition is verified by the caller (typically
-        the coercion system).
         """
+        if type(a) is not int:
+            raise TypeError("must be a Python int object")
+
         return smallInteger(PyInt_AS_LONG(a))
 
     def _repr_type(self):
@@ -7075,6 +7129,7 @@ cdef class int_to_Z(Morphism):
               To:   Integer Ring
         """
         return "Native"
+
 
 cdef class long_to_Z(Morphism):
     """
@@ -7093,11 +7148,20 @@ cdef class long_to_Z(Morphism):
         import sage.categories.homset
         from sage.structure.parent import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(long), integer_ring.ZZ))
+
     cpdef Element _call_(self, a):
         cdef Integer r
+        cdef long l
+        cdef int err = 0
+
+        integer_check_long_py(a, &l, &err)
+        if not err:
+            return smallInteger(l)
+
         r = <Integer>PY_NEW(Integer)
         mpz_set_pylong(r.value, a)
         return r
+
     def _repr_type(self):
         return "Native"
 

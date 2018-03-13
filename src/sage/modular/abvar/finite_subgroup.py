@@ -253,8 +253,10 @@ class FiniteSubgroup(Module):
         if not A.in_same_ambient_variety(B):
             return richcmp(A.ambient_variety(), B.ambient_variety(), op)
         L = A.lattice() + B.lattice()
+        lx = other.lattice() + L
+        rx = self.lattice() + L
         # order gets reversed in passing to lattices.
-        return richcmp(other.lattice() + L, self.lattice() + L, op)
+        return lx._echelon_matrix_richcmp(rx, op)
 
     def is_subgroup(self, other):
         """

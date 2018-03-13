@@ -1079,14 +1079,14 @@ class QuadraticForm(AlgebraicForm):
             sage: quadratic.as_QuadraticForm()
             Quadratic form in 3 variables over Multivariate Polynomial
             Ring in x, y, z over Rational Field with coefficients:
-            [ 1/2 1 3/2 ]
-            [ * 1/2 0 ]
-            [ * * 1/2 ]
+            [ 1 2 3 ]
+            [ * 1 0 ]
+            [ * * 1 ]
             sage: _.polynomial('X,Y,Z')
             X^2 + 2*X*Y + Y^2 + 3*X*Z + Z^2
        """
         R = self._ring
-        B = self._matrix_()
+        B = 2*self._matrix_()
         import sage.quadratic_forms.quadratic_form
         return sage.quadratic_forms.quadratic_form.QuadraticForm(R, B)
 

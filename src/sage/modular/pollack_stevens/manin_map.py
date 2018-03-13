@@ -822,7 +822,7 @@ class ManinMap(object):
 
     def p_stabilize(self, p, alpha, V):
         r"""
-        Return the `p`-stablization of self to level `N*p` on which
+        Return the `p`-stabilization of self to level `N*p` on which
         `U_p` acts by `\alpha`.
 
         INPUT:

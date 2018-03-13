@@ -2100,7 +2100,7 @@ class DocTestWorker(multiprocessing.Process):
         del self.result_queue
 
         self.outtmpfile.seek(0)
-        self.output = self.outtmpfile.read()
+        self.output = bytes_to_str(self.outtmpfile.read())
         del self.outtmpfile
 
     def kill(self):

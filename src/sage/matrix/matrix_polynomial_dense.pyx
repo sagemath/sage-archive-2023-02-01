@@ -414,6 +414,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [3 0 0]
             [1 0 0]
 
+            sage: M.leading_matrix().base_ring()
+            Finite Field of size 7
+
             sage: M.leading_matrix(shifts=[0,1,2])
             [0 0 1]
             [1 0 0]
@@ -509,7 +512,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             row_wise=True,
             include_zero_vectors=True):
         r"""
-        Return ``True`` if and only if this matrix is in (shifted) reduced
+        Return a boolean indicating whether this matrix is in (shifted) reduced
         form.
 
         An $m \times n$ univariate polynomial matrix $M$ is said to be in
@@ -594,11 +597,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         If working row-wise, for a given shift $s_1,\ldots,s_n \in
         \ZZ$, taken as $(0,\ldots,0)$ by default, and a row vector of
-        univariate polynomials $[p_1,\ldots,p_n]$, the leading positions of
+        univariate polynomials $[p_1,\ldots,p_n]$, the leading position of
         this vector is the index $j$ of the rightmost nonzero entry $p_j$ such
-        that $\deg(p_j) + s_j$ is equal to the row degree of the vector. Then,
-        for this index $j$, the pivot degree of the vector is the degree
-        $\deg(p_j)$.
+        that $\deg(p_j) + s_j$ is equal to the shifted row degree of the vector.
+        Then the pivot degree of the vector is the degree $\deg(p_j)$.
         
         For the zero row, both the leading positions and degree are $-1$.  For
         a $m \times n$ polynomial matrix, the leading positions and pivot
@@ -629,6 +631,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
             sage: pR.<x> = GF(7)[]
             sage: M = Matrix(pR, [ [3*x+1, 0, 1], [x^3+3, 0, 0] ])
+            sage: M.leading_positions()
+            [0, 0]
+
             sage: M.leading_positions(return_degree=True)
             ([0, 0], [1, 3])
 
@@ -656,18 +661,18 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         or $m\times 0$) is not defined::
 
             sage: M = Matrix( pR, 0, 3 )
-            sage: M.leading_positions(return_degree=True)
+            sage: M.leading_positions()
             Traceback (most recent call last):
             ...
             ValueError: Empty matrix does not have leading positions.
 
-            sage: M.leading_positions(row_wise=False,return_degree=True)
+            sage: M.leading_positions(row_wise=False)
             Traceback (most recent call last):
             ...
             ValueError: Empty matrix does not have leading positions.
 
             sage: M = Matrix( pR, 3, 0 )
-            sage: M.leading_positions(row_wise=False,return_degree=True)
+            sage: M.leading_positions(row_wise=False)
             Traceback (most recent call last):
             ...
             ValueError: Empty matrix does not have leading positions.
@@ -772,6 +777,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             True
 
             sage: N = M.with_swapped_rows(1,2)
+            sage: N.is_weak_popov()
+            True
             sage: N.is_weak_popov(ordered=True)
             False
 
@@ -966,7 +973,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         leading_positions,pivot_degree = self.leading_positions(shifts, row_wise,
                 return_degree=True)
         for i,index in enumerate(leading_positions):
-            if index>=0:
+            if index >= 0:
                 if row_wise:
                     if not self[i,index].is_monic():
                         return False
@@ -1130,7 +1137,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [0 0 0]
             [0 0 0]
 
-        Shifted weak popov form is computed if ``shifts`` is given::
+        A shifted weak popov form is computed if ``shifts`` is given::
 
             sage: PF.<x> = QQ[]
             sage: A = matrix(PF,3,[x,   x^2, x^3,\
@@ -1282,93 +1289,100 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         r"""
         Return a row reduced form of this matrix.
 
-        A matrix `M` is row reduced if the (row-wise) leading term matrix has
-        the same rank as `M`. The (row-wise) leading term matrix of a polynomial
-        matrix `M` is the matrix over `k` whose `(i,j)`'th entry is the
-        `x^{d_i}` coefficient of `M[i,j]`, where `d_i` is the greatest degree
-        among polynomials in the `i`'th row of `M_0`.
+        An $m \times n$ univariate polynomial matrix $M$ is said to be in
+        (shifted) row reduced form if it has $k$ nonzero rows with $k \leq n$
+        and its (shifted) leading matrix has rank $k$. See :meth:`is_reduced`
+        for more information.
 
-        A row reduced form is non-canonical so a given matrix has many row
-        reduced forms.
+        A row reduced form is non-canonical and a given matrix has many row
+        reduced forms; this method returns just one.
 
         INPUT:
 
-        - ``transformation`` -- (default: ``False``). If this ``True``, the
-          transformation matrix `U` will be returned as well: this is an
-          invertible matrix over `k[x]` such that ``self`` equals `UW`, where
-          `W` is the output matrix.
+        - ``transformation`` -- (optional, default: ``False``). If this
+          ``True``, the transformation matrix `U` will be returned as well: this
+          is a unimodular matrix over `\Bold{K}[x]` such that ``self`` equals
+          `UR`, where `R` is the output matrix.
 
-        - ``shifts`` -- (default: ``None``) A tuple or list of integers
-          `s_1, \ldots, s_n`, where `n` is the number of columns of the matrix.
-          If given, a "shifted row reduced form" is computed, i.e. such that the
-          matrix `A\,\mathrm{diag}(x^{s_1}, \ldots, x^{s_n})` is row reduced, where
-          `\mathrm{diag}` denotes a diagonal matrix.
+        - ``shifts`` -- (optional, default: ``None``) list of integers;
+          ``None`` is interpreted as ``shifts=[0,...,0]``.
 
         OUTPUT:
 
-        - `W` -- a row reduced form of this matrix.
+        - A polynomial matrix `R` which is a reduced form of ``self`` if
+          ``transformation=False``; otherwise two polynomial matrices `R, U`
+          such that `UA = R` and `R` is reduced and `U` is unimodular where `A`
+          is ``self``.
 
         EXAMPLES::
 
-            sage: R.<t> = GF(3)['t']
-            sage: M = matrix([[(t-1)^2],[(t-1)]])
-            sage: M.reduced_form()
-            [    0]
-            [t + 2]
+            sage: pR.<x> = GF(3)[]
+            sage: A = matrix(pR,3,[x,   x^2, x^3,\
+                                   x^2, x^1, 0,\
+                                   x^3, x^3, x^3])
+            sage: R = A.reduced_form(); R
+            [        x           x^2       x^3]
+            [      x^2             x         0]
+            [  x^3 + 2*x x^3 + 2*x^2         0]
+            sage: R.is_reduced()
+            True
+            sage: R2 = A.reduced_form(shifts=[6,3,0]); R2
+            [                x               x^2               x^3]
+            [                0         2*x^2 + x       2*x^4 + x^3]
+            [                0                 0 2*x^5 + x^4 + x^3]
+            sage: R2.is_reduced(shifts=[6,3,0])
+            True
+            sage: R2.is_reduced()
+            False
 
         If the matrix is an `n \times 1` matrix with at least one non-zero entry,
-        `W` has a single non-zero entry and that entry is a scalar multiple of
+        `R` has a single non-zero entry and that entry is a scalar multiple of
         the greatest-common-divisor of the entries of the matrix::
 
-            sage: M1 = matrix([[t*(t-1)*(t+1)],[t*(t-2)*(t+2)],[t]])
-            sage: output1 = M1.reduced_form()
-            sage: output1
+            sage: A = matrix([[x*(x-1)*(x+1)],[x*(x-2)*(x+2)],[x]])
+            sage: R = A.reduced_form()
+            sage: R
             [0]
             [0]
-            [t]
+            [x]
 
-        The following is the first half of example 5 in [Hes2002]_ *except* that we
-        have transposed the matrix; [Hes2002]_ uses column operations and we use row::
+        A zero matrix is already reduced::
 
-            sage: R.<t> = QQ['t']
-            sage: M = matrix([[t^3 - t,t^2 - 2],[0,t]]).transpose()
-            sage: M.reduced_form()
-            [      t    -t^2]
-            [t^2 - 2       t]
-
-        The next example demonstrates what happens when the matrix is a zero matrix::
-
-            sage: R.<t> = GF(5)['t']
-            sage: M = matrix(R, 2, [0,0,0,0])
-            sage: M.reduced_form()
+            sage: A = matrix(pR, 2, [0,0,0,0])
+            sage: A.reduced_form()
             [0 0]
             [0 0]
 
-        In the following example, the original matrix is already row reduced, but
-        the output is a different matrix. This is because currently this method
-        simply computes a weak Popov form, which is always also a row reduced matrix
-        (see :meth:`weak_popov_form`). This behavior is likely to change when a faster
-        algorithm designed specifically for row reduced form is implemented in Sage::
+        In the following example, the original matrix is already reduced, but
+        the output is a different matrix: currently this method is an alias for
+        :meth:`weak_popov_form`, which is a stronger reduced form::
 
-            sage: R.<t> = QQ['t']
-            sage: M = matrix([[t,t,t],[0,0,t]]); M
-            [t t t]
-            [0 0 t]
-            sage: M.reduced_form()
-            [ t  t  t]
-            [-t -t  0]
+            sage: R.<x> = QQ['x']
+            sage: A = matrix([[x,x,x],[0,0,x]]); A
+            [x x x]
+            [0 0 x]
+            sage: A.is_reduced()
+            True
+            sage: W = A.reduced_form(); W
+            [ x  x  x]
+            [-x -x  0]
+            sage: W.is_weak_popov()
+            True
 
         The last example shows the usage of the transformation parameter::
 
             sage: Fq.<a> = GF(2^3)
-            sage: Fx.<x> = Fq[]
-            sage: A = matrix(Fx,[[x^2+a,x^4+a],[x^3,a*x^4]])
+            sage: pR.<x> = Fq[]
+            sage: A = matrix(pR, [[x^2+a,  x^4+a], \
+                                  [  x^3,  a*x^4]])
             sage: W,U = A.reduced_form(transformation=True);
             sage: W,U
             (
             [          x^2 + a           x^4 + a]  [1 0]
             [x^3 + a*x^2 + a^2               a^2], [a 1]
             )
+            sage: W.is_reduced()
+            True
             sage: U*W == A
             True
             sage: U.is_invertible()

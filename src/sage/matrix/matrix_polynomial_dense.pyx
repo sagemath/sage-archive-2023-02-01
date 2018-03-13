@@ -73,7 +73,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
     triangular matrix satisfying a normalization condition similar to that for
     the Popov basis. In fact, if $d$ is the largest degree appearing in the
     Hermite basis, then the Hermite basis coincide with the shifted Popov basis
-    with the shift $(0,d,2d,\ldots,(n-1)d)$.
+    with the shifts $(0,d,2d,\ldots,(n-1)d)$.
     """
 
     def _check_shift_dimension(self, shifts=None, row_wise=True):
@@ -313,10 +313,6 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         OUTPUT: a list of integers.
 
-        REFERENCES:
-        
-        see the documentation of :meth:`row_degrees`.
-
         EXAMPLES::
 
             sage: pR.<x> = GF(7)[]
@@ -347,6 +343,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             Traceback (most recent call last):
             ...
             ValueError: Empty matrix does not have column degrees.
+
+        .. SEEALSO::
+
+            The documentation of :meth:`row_degrees`.
         """
         if self.ncols() == 0 or self.nrows() == 0:
             raise ValueError('Empty matrix does not have column degrees.')

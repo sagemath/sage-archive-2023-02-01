@@ -4174,10 +4174,9 @@ class Graph(GenericGraph):
           - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
             solver to be used. If set to ``None``, the default one is used. For
             more information on LP solvers and which default solver is used, see
-            the method :meth:`solve
-            <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
-            :class:`MixedIntegerLinearProgram
-            <sage.numerical.mip.MixedIntegerLinearProgram>`.
+            the method
+            :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve` of the
+            class :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
 
         - ``verbose`` -- integer (default: ``0``). Sets the level of verbosity
           for the MILP algorithm. Its default value is 0, which means *quiet*.

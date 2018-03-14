@@ -831,23 +831,13 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         # once sorted, it doesn't contain a pair of equal successive entries
         if not ordered:
             leading_positions.sort()
-        if not include_zero_vectors:
-            # there should be no zero row (or column if not row_wise)
-            # and the matrix should not be m x 0 (or 0 x n if not row_wise)
-            # (the latter is equivalent to leading_positions[-1] == None)
-            if len(leading_positions) > 0 and \
-                (leading_positions[-1] == None or leading_positions[-1] > self.ncols()):
-                return False
-        else:
-            # if the matrix is m x 0 (or 0 x n) and zero rows (or columns)
-            # are allowed, then the matrix is in ordered weak Popov form
-            if len(leading_positions) == 0:
-                return True
-        # now leading_positions is nondecreasing and has length >= 1:
-        # it remains to test whether leading_positions is strictly increasing 
-        # (at least until we reach the zero rows part, if it exists)
+        # check that there is no zero vector, if it is forbidden
+        if leading_positions[-1] > self.ncols() and not include_zero_vectors:
+            return False
+        # now leading_positions is nondecreasing: it remains to test whether
+        # it is strictly increasing (at least until the zero rows part)
         for index,next_leading_position in enumerate(leading_positions[1:]):
-            if leading_positions[index] < self.ncols() and \
+            if next_leading_position <= self.ncols() and \
                     next_leading_position <= leading_positions[index]:
                 return False
         return True

@@ -2,9 +2,9 @@
 r"""
 Comparability and permutation graphs
 
-This module implements method related to :wikipedia:`Comparability graphs
-<Comparability_graph>` and :wikipedia:`Permutation graphs <Permutation_graph>`,
-that is, for the moment, only recognition algorithms.
+This module implements method related to :wikipedia:`Comparability_graph` and
+:wikipedia:`Permutation_graph`, that is, for the moment, only recognition
+algorithms.
 
 Most of the information found here can alo be found in [Cleanup]_ or [ATGA]_.
 
@@ -36,8 +36,8 @@ edge between any two elements that are comparable. Co-comparability graph are
 complements of such graphs, i.e. graphs built from a poset by adding an edge
 between any two incomparable elements.
 
-For more information on comparability graphs, see the :wikipedia:`corresponding
-wikipedia page <Comparability_graph>`
+For more information on comparability graphs, see
+:wikipedia:`Comparability_graph`.
 
 **Permutation graphs**
 
@@ -54,8 +54,7 @@ Definitions:
 - A graph is a permutation graph if it is both a comparability graph and a
   co-comparability graph.
 
-For more information on permutation graphs, see the :wikipedia:`corresponding
-wikipedia page <Permutation_graph>`.
+For more information on permutation graphs, see :wikipedia:`Permutation_graph`.
 
 
 Recognition algorithm for comparability graphs
@@ -405,7 +404,7 @@ def greedy_is_comparability_with_certificate(g, certificate = False):
 # Integer Program #
 ###################
 
-def is_comparability_MILP(g, certificate = False):
+def is_comparability_MILP(g, certificate = False, solver=None, verbose=0):
     r"""
     Tests whether the graph is a comparability graph (MILP)
 
@@ -414,7 +413,16 @@ def is_comparability_MILP(g, certificate = False):
     - ``certificate`` (boolean) -- whether to return a certificate for
       yes instances. This method can not return negative certificates.
 
-    EXAMPLES:
+    - ``solver`` -- (default: ``None``); Specify a Linear Program (LP) solver to
+      be used. If set to ``None``, the default one is used. For more information
+      on LP solvers and which default solver is used, see the method
+      :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve` of the class
+      :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
+
+    - ``verbose`` -- integer (default: ``0``); sets the level of verbosity. Set
+      to 0 by default, which means quiet.
+
+     EXAMPLES:
 
     The 5-cycle or the Petersen Graph are not transitively orientable::
 
@@ -438,7 +446,7 @@ def is_comparability_MILP(g, certificate = False):
     from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
     cdef int i
 
-    p = MixedIntegerLinearProgram()
+    p = MixedIntegerLinearProgram(solver=solver)
     o = p.new_variable(binary = True)
 
     for u,v in g.edges(labels = False):
@@ -467,7 +475,7 @@ def is_comparability_MILP(g, certificate = False):
                     p.add_constraint(o[u,vv] + o[v,u] <= 1)
 
     try:
-        p.solve()
+        p.solve(log=verbose)
         if not certificate:
             return True
 
@@ -494,7 +502,8 @@ def is_comparability_MILP(g, certificate = False):
 # Empty shell #
 ###############
 
-def is_comparability(g, algorithm = "greedy", certificate = False, check = True):
+def is_comparability(g, algorithm="greedy", certificate=False, check=True,
+                         solver=None, verbose=0):
     r"""
     Tests whether the graph is a comparability graph
 
@@ -518,6 +527,15 @@ def is_comparability(g, algorithm = "greedy", certificate = False, check = True)
     - ``check`` (boolean) -- whether to check that the
       yes-certificates are indeed transitive. As it is very quick
       compared to the rest of the operation, it is enabled by default.
+
+    - ``solver`` -- (default: ``None``); Specify a Linear Program (LP) solver to
+      be used. If set to ``None``, the default one is used. For more information
+      on LP solvers and which default solver is used, see the method
+      :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve` of the class
+      :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
+
+    - ``verbose`` -- integer (default: ``0``); sets the level of verbosity. Set
+      to 0 by default, which means quiet.
 
     EXAMPLES::
 
@@ -546,17 +564,18 @@ def is_comparability(g, algorithm = "greedy", certificate = False, check = True)
             return True
 
     if algorithm == "greedy":
-        comparability_test = greedy_is_comparability_with_certificate
+        comparability_test = greedy_is_comparability_with_certificate(g, certificate=certificate)
     elif algorithm == "MILP":
-        comparability_test = is_comparability_MILP
+        comparability_test = is_comparability_MILP(g, certificate=certificate,
+                                                       solver=solver, verbose=verbose)
 
     if not certificate:
-        return comparability_test(g, certificate = certificate)
+        return comparability_test
 
     # Checking that the orientation found is indeed transitive. No
     # reason why it should not, but no reason why we should not check
     # anyway :-p
-    isit, certif = comparability_test(g, certificate = certificate)
+    isit, certif = comparability_test
 
     if check and isit and (not certif.is_transitive()):
         raise ValueError("Looks like there is a bug somewhere. The "+
@@ -567,7 +586,8 @@ def is_comparability(g, algorithm = "greedy", certificate = False, check = True)
 
     return isit, certif
 
-def is_permutation(g, algorithm = "greedy", certificate = False, check = True):
+def is_permutation(g, algorithm="greedy", certificate=False, check=True,
+                       solver=None, verbose=0):
     r"""
     Tests whether the graph is a permutation graph.
 
@@ -595,6 +615,15 @@ def is_permutation(g, algorithm = "greedy", certificate = False, check = True):
     - ``check`` (boolean) -- whether to check that the permutations returned
       indeed create the expected Permutation graph. Pretty cheap compared to the
       rest, hence a good investment. It is enabled by default.
+
+    - ``solver`` -- (default: ``None``); Specify a Linear Program (LP) solver to
+      be used. If set to ``None``, the default one is used. For more information
+      on LP solvers and which default solver is used, see the method
+      :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve` of the class
+      :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
+
+    - ``verbose`` -- integer (default: ``0``); sets the level of verbosity. Set
+      to 0 by default, which means quiet.
 
     .. NOTE::
 
@@ -659,12 +688,14 @@ def is_permutation(g, algorithm = "greedy", certificate = False, check = True):
     if certificate:
 
         # First poset, we stop if it fails
-        isit, certif = is_comparability(g, algorithm = algorithm, certificate = True)
+        isit, certif = is_comparability(g, algorithm=algorithm, certificate=True,
+                                            solver=solver, verbose=verbose)
         if not isit:
             return False, certif
 
         # Second poset
-        isit, co_certif = is_comparability(g.complement(), algorithm = algorithm, certificate = True)
+        isit, co_certif = is_comparability(g.complement(), algorithm=algorithm, certificate=True,
+                                               solver=solver, verbose=verbose)
         if not isit:
             return False, co_certif
 
@@ -691,7 +722,8 @@ def is_permutation(g, algorithm = "greedy", certificate = False, check = True):
 
     # No certificate... A piece of cake
     else:
-        return is_comparability(g) and is_comparability(g.complement())
+        return is_comparability(g, algorithm=algorithm, solver=solver, verbose=verbose) and \
+          is_comparability(g.complement(), algorithm=algorithm, solver=solver, verbose=verbose)
 
 from sage.graphs.distances_all_pairs cimport c_distances_all_pairs
 

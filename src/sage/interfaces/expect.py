@@ -63,6 +63,7 @@ from sage.misc.misc import SAGE_TMP_INTERFACE
 from sage.env import SAGE_EXTCODE, LOCAL_IDENTIFIER
 from sage.misc.object_multiplexer import Multiplex
 from sage.docs.instancedoc import instancedoc
+from sage.cpython.string import bytes_to_str
 
 from six import reraise as raise_
 
@@ -1013,9 +1014,14 @@ If this all works, you can then make calls like:
     # BEGIN Synchronization code.
     ###########################################################################
 
-    def _before(self):
+    def _before(self, encoding=None, errors=None):
         r"""
         Return the previous string that was sent through the interface.
+
+        Returns `str` objects on both Python 2 and Python 3.
+
+        The ``encoding`` and ``errors`` arguments are passed to
+        `sage.misc.cpython.bytes_to_str`.
 
         EXAMPLES::
 
@@ -1024,7 +1030,35 @@ If this all works, you can then make calls like:
             sage: singular._before()
             '5\r\n'
         """
-        return self._expect.before
+
+        return bytes_to_str(self._expect.before, encoding, errors)
+
+    def _after(self, encoding=None, errors=None):
+        r"""
+        Return trailing data in the buffer after the text matched by the expect
+        interface.
+
+        When the ``spawn.after`` attribute contains bytes, this returns `str`
+        objects on both Python 2 and Python 3.  There are also cases (such as
+        exceptions) where the ``.after`` attribute contains either an exception
+        type or ``None``, in which case those values are returned.
+
+        The ``encoding`` and ``errors`` arguments are passed to
+        `sage.misc.cpython.bytes_to_str`.
+
+        EXAMPLES::
+
+            sage: singular('2+3')
+            5
+            sage: singular._after()
+            '> '
+        """
+
+        after = self._expect.after
+        if isinstance(after, bytes):
+            return bytes_to_str(after, encoding, errors)
+
+        return after
 
     def _interrupt(self):
         for i in range(15):

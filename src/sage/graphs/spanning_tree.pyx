@@ -407,13 +407,13 @@ cpdef boruvka(G, wfunction=None, bint check=False):
         sage: G = Graph({1:{2:28, 6:10}, 2:{3:16, 7:14}, 3:{4:12}, 4:{5:22, 7:18}, 5:{6:25, 7:24}})
         sage: G.weighted(True)
         sage: E = boruvka(G, check=True); E
-        [(1, 6, 10), (2, 3, 16), (2, 7, 14), (3, 4, 12), (4, 5, 22), (5, 6, 25)]
+        [(1, 6, 10), (2, 7, 14), (3, 4, 12), (4, 5, 22), (5, 6, 25), (2, 3, 16)]
 
     Variants of the previous example. ::
 
         sage: H = Graph(G.edges(labels=False))
         sage: boruvka(H, check=True)
-        [(1, 2, None), (1, 6, None), (2, 3, None), (2, 7, None), (3, 4, None), (4, 5, None)]
+        [(1, 2, None), (2, 3, None), (3, 4, None), (4, 5, None), (1, 6, None), (2, 7, None)]
         sage: G.allow_loops(True)
         sage: G.allow_multiple_edges(True)
         sage: G
@@ -454,16 +454,14 @@ cpdef boruvka(G, wfunction=None, bint check=False):
         ....: "BWI":{"MIA":946}})
         sage: G.weighted(True)
         sage: boruvka(G, check=True)
-        [('BOS', 'JFK', 187),
-        ('BWI', 'JFK', 184),
+        [('JFK', 'PVD', 144),
         ('BWI', 'MIA', 946),
-        ('BWI', 'ORD', 621),
-        ('DFW', 'LAX', 1235),
         ('DFW', 'ORD', 802),
-        ('JFK', 'PVD', 144),
-        ('LAX', 'SFO', 337)]
-
-
+        ('BOS', 'JFK', 187),
+        ('LAX', 'SFO', 337),
+        ('BWI', 'JFK', 184),
+        ('BWI', 'ORD', 621),
+        ('DFW', 'LAX', 1235)]
 
     An example from pages 568--569 in [CormenEtAl2001]_. ::
 
@@ -472,7 +470,7 @@ cpdef boruvka(G, wfunction=None, bint check=False):
         ....: "e":{"f":10}, "f":{"g":2}, "g":{"h":1, "i":6}, "h":{"i":7}})
         sage: G.weighted(True)
         sage: boruvka(G, check=True)
-        [('a', 'b', 4), ('a', 'h', 8), ('c', 'd', 7), ('c', 'f', 4), ('c', 'i', 2), ('d', 'e', 9), ('f', 'g', 2), ('g', 'h', 1)]
+        [('a', 'b', 4), ('c', 'i', 2), ('d', 'e', 9), ('c', 'd', 7), ('g', 'h', 1), ('f', 'g', 2), ('b', 'c', 8), ('c', 'f', 4)]
 
     An example with custom edge labels::
 
@@ -564,7 +562,6 @@ cpdef boruvka(G, wfunction=None, bint check=False):
         if G.num_verts() == G.num_edges() + 1:
             # G is a tree
             return G.edges()
-        G = G.to_simple(to_undirected=False, keep_label='min')
 
     # Boruvka's algorithm
 
@@ -579,17 +576,17 @@ cpdef boruvka(G, wfunction=None, bint check=False):
     edge_temp = []
 
     while numConnectedComponents > 1:
+        # If the two endpoints of current edge belong to
+        # same component, ignore the edge. 
+        # Else check if current edge has lesser weight than previous
+        # cheapest edges of component1 and component2
+        # Before that, check if component1 and 2 are present in 'cheapest' dict
         for e in edge_list:
             component1 = partitions.find(e[0])
             component2 = partitions.find(e[1])
 
-            # If the two endpoints of current edge belong to
-            # same component, ignore the edge. 
-            # Else check if current edge has lesser weight than previous
-            # cheapest edges of component1 and component2
-            # Before that, check if component1 and 2 are present in 'cheapest' dict
             if component1 != component2 : 
-                edge_temp.append(e) #active edge
+                edge_temp.append(e) # active edge
                 if wfunction is None:
                     if component1 in cheapest:
                         if cheapest[component1][2] > e[2]:
@@ -603,7 +600,7 @@ cpdef boruvka(G, wfunction=None, bint check=False):
                     else:
                         cheapest[component2] = e
                     
-                else: #is a weight function provided
+                else: # if a weight function is provided
                     e_weight = wfunction(e)
                     if component1 in cheapest:
                         if wfunction(cheapest[component1]) > e_weight:
@@ -617,12 +614,12 @@ cpdef boruvka(G, wfunction=None, bint check=False):
                     else:
                         cheapest[component2] = e
         
-        edge_list = edge_temp #consider active edges in next iteration
+        edge_list = edge_temp
         edge_temp = []
 
+        # Go through all the current connected components
+        # and merge wherever possible
         for v in cheapest:
-            # Go through all the current connected components
-            # and merge wherever possible
             e = cheapest[v]
             component1 = partitions.find(e[0])
             component2 = partitions.find(e[1])
@@ -630,13 +627,329 @@ cpdef boruvka(G, wfunction=None, bint check=False):
             if component1 != component2 :
                 partitions.union(component1, component2)
                 T.append(e)
+                edge_temp.append(e)
                 numConnectedComponents = numConnectedComponents - 1
          
-        #reset cheapest array for next iteration
+        # reset cheapest dictionary for next iteration
         cheapest = {}
+        edge_list = list(set(edge_list) - set(edge_temp)) # remove the MST edges from active edges
+        edge_temp = []
 
-    return sorted(T)
+    return T
 
+
+cpdef boruvka_v2(G, wfunction=None, bint check=False):
+    r"""
+    Minimum spanning tree using Boruvka's algorithm.
+
+    This function assumes that we can only compute minimum spanning trees for
+    undirected graphs. Such graphs can be weighted or unweighted, and they can
+    have multiple edges (since we are computing the minimum spanning tree, only
+    the minimum weight among all `(u,v)`-edges is considered, for each pair
+    of vertices `u`, `v`).
+
+    INPUT:
+
+    - ``G`` -- an undirected graph.
+
+    - ``weight_function`` (function) - a function that inputs an edge ``e``
+      and outputs its weight. An edge has the form ``(u,v,l)``, where ``u``
+      and ``v`` are vertices, ``l`` is a label (that can be of any kind).
+      The ``weight_function`` can be used to transform the label into a
+      weight. In particular:
+
+      - if ``weight_function`` is not ``None``, the weight of an edge ``e``
+        is ``weight_function(e)``;
+
+      - if ``weight_function`` is ``None`` (default) and ``g`` is weighted
+        (that is, ``g.weighted()==True``), the weight of an edge
+        ``e=(u,v,l)`` is ``l``, independently on which kind of object ``l``
+        is: the ordering of labels relies on Python's operator ``<``;
+
+      - if ``weight_function`` is ``None`` and ``g`` is not weighted, we set
+        all weights to 1 (hence, the output can be any spanning tree).
+
+    - ``check`` -- Whether to first perform sanity checks on the input
+      graph ``G``. Default: ``check=False``. If we toggle ``check=True``, the
+      following sanity checks are first performed on ``G`` prior to running
+      Boruvka's algorithm on that input graph:
+
+      - Is ``G`` the null graph?
+      - Is ``G`` disconnected?
+      - Is ``G`` a tree?
+      - Does ``G`` have self-loops?
+      - Does ``G`` have multiple edges?
+
+      By default, we turn off the sanity checks for performance reasons. This
+      means that by default the function assumes that its input graph is
+      connected, and has at least one vertex. Otherwise, you should set
+      ``check=True`` to perform some sanity checks and preprocessing on the
+      input graph. If ``G`` has multiple edges or self-loops, the algorithm
+      still works, but the running-time can be improved if these edges are
+      removed. To further improve the runtime of this function, you should call
+      it directly instead of using it indirectly via
+      :meth:`sage.graphs.generic_graph.GenericGraph.min_spanning_tree`.
+
+    OUTPUT:
+
+    The edges of a minimum spanning tree of ``G``, if one exists, otherwise
+    returns the empty list.
+
+    .. SEEALSO::
+
+        - :meth:`sage.graphs.generic_graph.GenericGraph.min_spanning_tree`
+
+    EXAMPLES:
+
+    An example from pages 727--728 in [Sahni2000]_. ::
+
+        sage: from sage.graphs.spanning_tree import boruvka_v2
+        sage: G = Graph({1:{2:28, 6:10}, 2:{3:16, 7:14}, 3:{4:12}, 4:{5:22, 7:18}, 5:{6:25, 7:24}})
+        sage: G.weighted(True)
+        sage: E = boruvka_v2(G, check=True); E
+        [(1, 6, 10), (2, 7, 14), (3, 4, 12), (4, 5, 22), (5, 6, 25), (2, 3, 16)]
+
+    Variants of the previous example. ::
+
+        sage: H = Graph(G.edges(labels=False))
+        sage: boruvka_v2(H, check=True)
+        [(1, 2, None), (2, 3, None), (3, 4, None), (4, 5, None), (1, 6, None), (2, 7, None)]
+        sage: G.allow_loops(True)
+        sage: G.allow_multiple_edges(True)
+        sage: G
+        Looped multi-graph on 7 vertices
+        sage: for i in range(20):
+        ....:     u = randint(1, 7)
+        ....:     v = randint(1, 7)
+        ....:     w = randint(0, 20)
+        ....:     G.add_edge(u, v, w)
+        sage: H = copy(G)
+        sage: H
+        Looped multi-graph on 7 vertices
+        sage: def sanitize(G):
+        ....:     G.allow_loops(False)
+        ....:     E = {}
+        ....:     for u, v, _ in G.multiple_edges():
+        ....:         E.setdefault(u, v)
+        ....:     for u in E:
+        ....:         W = sorted(G.edge_label(u, E[u]))
+        ....:         for w in W[1:]:
+        ....:             G.delete_edge(u, E[u], w)
+        ....:     G.allow_multiple_edges(False)
+        sage: sanitize(H)
+        sage: H
+        Graph on 7 vertices
+        sage: boruvka_v2(G, check=True) == boruvka_v2(H, check=True)
+        True
+
+    An example from pages 599--601 in [GoodrichTamassia2001]_. ::
+
+        sage: G = Graph({"SFO":{"BOS":2704, "ORD":1846, "DFW":1464, "LAX":337},
+        ....: "BOS":{"ORD":867, "JFK":187, "MIA":1258},
+        ....: "ORD":{"PVD":849, "JFK":740, "BWI":621, "DFW":802},
+        ....: "DFW":{"JFK":1391, "MIA":1121, "LAX":1235},
+        ....: "LAX":{"MIA":2342},
+        ....: "PVD":{"JFK":144},
+        ....: "JFK":{"MIA":1090, "BWI":184},
+        ....: "BWI":{"MIA":946}})
+        sage: G.weighted(True)
+        sage: boruvka_v2(G, check=True)
+        [('JFK', 'PVD', 144),
+        ('BWI', 'MIA', 946),
+        ('DFW', 'ORD', 802),
+        ('BOS', 'JFK', 187),
+        ('LAX', 'SFO', 337),
+        ('BWI', 'JFK', 184),
+        ('BWI', 'ORD', 621),
+        ('DFW', 'LAX', 1235)]
+
+    An example from pages 568--569 in [CormenEtAl2001]_. ::
+
+        sage: G = Graph({"a":{"b":4, "h":8}, "b":{"c":8, "h":11},
+        ....: "c":{"d":7, "f":4, "i":2}, "d":{"e":9, "f":14},
+        ....: "e":{"f":10}, "f":{"g":2}, "g":{"h":1, "i":6}, "h":{"i":7}})
+        sage: G.weighted(True)
+        sage: boruvka_v2(G, check=True)
+        [('a', 'b', 4), ('c', 'i', 2), ('d', 'e', 9), ('c', 'd', 7), ('g', 'h', 1), ('f', 'g', 2), ('b', 'c', 8), ('c', 'f', 4)]
+
+    An example with custom edge labels::
+
+        sage: G = Graph([[0,1,1],[1,2,1],[2,0,10]], weighted=True)
+        sage: weight = lambda e:3-e[0]-e[1]
+        sage: boruvka_v2(G, check=True)
+        [(0, 1, 1), (1, 2, 1)]
+        sage: boruvka_v2(G, wfunction=weight, check=True)
+        [(0, 2, 10), (1, 2, 1)]
+        sage: boruvka_v2(G, wfunction=weight, check=False)
+        [(0, 2, 10), (1, 2, 1)]
+
+    TESTS:
+
+    The input graph must not be empty. ::
+
+        sage: from sage.graphs.spanning_tree import boruvka_v2
+        sage: boruvka_v2(graphs.EmptyGraph(), check=True)
+        []
+        sage: boruvka_v2(Graph(), check=True)
+        []
+        sage: boruvka_v2(Graph(multiedges=True), check=True)
+        []
+        sage: boruvka_v2(Graph(loops=True), check=True)
+        []
+        sage: boruvka_v2(Graph(multiedges=True, loops=True), check=True)
+        []
+
+    The input graph must be connected. ::
+
+        sage: def my_disconnected_graph(n, ntries, directed=False, multiedges=False, loops=False):
+        ....:     G = Graph()
+        ....:     k = randint(1, n)
+        ....:     G.add_vertices(range(k))
+        ....:     if directed:
+        ....:         G = G.to_directed()
+        ....:     if multiedges:
+        ....:         G.allow_multiple_edges(True)
+        ....:     if loops:
+        ....:         G.allow_loops(True)
+        ....:     for i in range(ntries):
+        ....:         u = randint(0, k-1)
+        ....:         v = randint(0, k-1)
+        ....:         if u != v or loops:
+        ....:             G.add_edge(u, v)
+        ....:     while G.is_connected():
+        ....:         u = randint(0, k-1)
+        ....:         v = randint(0, k-1)
+        ....:         G.delete_edge(u, v)
+        ....:     return G
+        sage: G = my_disconnected_graph(100, 50, directed=False, multiedges=False, loops=False)  # long time
+        sage: boruvka_v2(G, check=True)  # long time
+        []
+        sage: G = my_disconnected_graph(100, 50, directed=False, multiedges=True, loops=False)  # long time
+        sage: boruvka_v2(G, check=True)  # long time
+        []
+        sage: G = my_disconnected_graph(100, 50, directed=False, multiedges=True, loops=True)  # long time
+        sage: boruvka_v2(G, check=True)  # long time
+        []
+
+    If the input graph is a tree, then return its edges. ::
+
+        sage: T = graphs.RandomTree(randint(1, 50))  # long time
+        sage: T.edges() == boruvka_v2(T, check=True)  # long time
+        True
+
+    If the input is not a Graph::
+
+        sage: boruvka_v2("I am not a graph")
+        Traceback (most recent call last):
+        ...
+        ValueError: The input G must be an undirected graph.
+        sage: boruvka_v2(digraphs.Path(10))
+        Traceback (most recent call last):
+        ...
+        ValueError: The input G must be an undirected graph.
+    """
+    from sage.graphs.graph import Graph
+    if not isinstance(G, Graph):
+        raise ValueError("The input G must be an undirected graph.")
+
+    # sanity checks
+    if check:
+        if G.order() == 0:
+            return []
+        if not G.is_connected():
+            return []
+        # G is now assumed to be a nonempty connected graph
+        if G.num_verts() == G.num_edges() + 1:
+            # G is a tree
+            return G.edges()
+
+    # Boruvka's algorithm
+
+    # initially, each vertex is a connected component
+    partitions = DisjointSet(G.vertices())
+    cheapest = {} # a dictionary to store the least weight outgoing edge for each component
+    T = [] # stores the edges in minimum spanning tree
+    numConnectedComponents = len(G.vertices()) 
+    
+    # Store two edge lists to keep track of active edges
+    edge_list = G.edges()
+    edge_temp = []
+    components_dict = {} # to store the pairwise cheapest edges
+
+    while numConnectedComponents > 1:
+        # If the two endpoints of current edge belong to
+        # same component, ignore the edge. 
+        # Else check if current edge has lesser weight than previous
+        # cheapest edges of component1 and component2.
+        # Before that, check if component1 and 2 are present in 'cheapest' dict.
+        # Also, store a dictionary to maintain active cheapest edges between pairs of components
+        for e in edge_list:
+            component1 = partitions.find(e[0])
+            component2 = partitions.find(e[1])
+
+            if component1 != component2 : 
+                pair = (component1, component2) if (component1 < component2) else (component1 > component2)
+                if wfunction is None:
+                    if component1 in cheapest:
+                        if cheapest[component1][2] > e[2]:
+                            cheapest[component1] = e
+                    else:
+                        cheapest[component1] = e
+
+                    if component2 in cheapest:
+                        if cheapest[component2][2] > e[2]:
+                            cheapest[component2] = e
+                    else:
+                        cheapest[component2] = e
+                    # store the cheapest edge between the two components
+                    if pair in components_dict:
+                        if components_dict[pair][2] > e[2]:
+                            components_dict[pair] = e
+                    else:
+                        components_dict[pair] = e
+                    
+                else: # if a weight function is provided
+                    e_weight = wfunction(e)
+                    if component1 in cheapest:
+                        if wfunction(cheapest[component1]) > e_weight:
+                            cheapest[component1] = e
+                    else:
+                        cheapest[component1] = e
+
+                    if component2 in cheapest:
+                        if wfunction(cheapest[component2]) > e_weight:
+                            cheapest[component2] = e
+                    else:
+                        cheapest[component2] = e
+                    # store the cheapest edge between the two components
+                    if pair in components_dict:
+                        if wfunction(components_dict[pair]) > e_weight:
+                            components_dict[pair] = e
+                    else:
+                        components_dict[pair] = e
+        
+        edge_list = components_dict.values() # active edges
+
+        # Go through all the current connected components
+        # and merge wherever possible
+        for v in cheapest:
+            e = cheapest[v]
+            component1 = partitions.find(e[0])
+            component2 = partitions.find(e[1])
+
+            if component1 != component2 :
+                partitions.union(component1, component2)
+                T.append(e)
+                edge_temp.append(e) # MST edges from current iteration
+                numConnectedComponents = numConnectedComponents - 1
+         
+        # reset the dictionaries for next iteration
+        cheapest = {}
+        components_dict = {}
+        edge_list = list(set(edge_list) - set(edge_temp)) # remove the MST edges from active edges
+        edge_temp = []
+
+    return T
 
 @cython.binding(True)
 def random_spanning_tree(self, output_as_graph=False):

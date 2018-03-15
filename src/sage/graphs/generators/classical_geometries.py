@@ -520,13 +520,13 @@ def NonisotropicOrthogonalPolarGraph(m, q, sign="+", perp=None):
         deg = (q**n-e)*(q**(n-1)+e)   # k
         S=map(lambda x: libgap.Elements(libgap.Basis(x))[0], \
             libgap.Elements(libgap.Subspaces(W,1)))
-        V = filter(lambda x: len(x)==nvert, libgap.Orbits(g,S,libgap.OnLines))
-        assert len(V)==1
+        V = [x for x in libgap.Orbits(g, S, libgap.OnLines) if len(x) == nvert]
+        assert len(V) == 1
         V = V[0]
         gp = libgap.Action(g,V,libgap.OnLines)  # make a permutation group
         h = libgap.Stabilizer(gp,1)
-        Vh = filter(lambda x: len(x)==deg, libgap.Orbits(h,libgap.Orbit(gp,1)))
-        assert len(Vh)==1
+        Vh = [x for x in libgap.Orbits(h, libgap.Orbit(gp, 1)) if len(x) == deg]
+        assert len(Vh) == 1
         Vh = Vh[0][0]
         L = libgap.Orbit(gp, [1, Vh], libgap.OnSets)
         G = Graph()
@@ -637,7 +637,7 @@ def UnitaryPolarGraph(m, q, algorithm="gap"):
         def P(x, y):
             return sum(x[j] * y[m - 1 - j] ** q for j in range(m)) == 0
 
-        V = filter(lambda x: P(x,x), PG)
+        V = [x for x in PG if P(x,x)]
         G = Graph([V,lambda x,y:  # bottleneck is here, of course:
                      P(x,y)], loops=False)
     else:
@@ -886,7 +886,7 @@ def TaylorTwographDescendantSRG(q, clique_partition=None):
     def S(x, y):
         return sum(x[j] * y[2 - j] ** q for j in range(3))
 
-    V = filter(lambda x: S(x,x)==0, PG) # the points of the unital
+    V = [x for x in PG if S(x,x) == 0] # the points of the unital
     v0 = V[0]
     V.remove(v0)
     if mod(q,4)==1:

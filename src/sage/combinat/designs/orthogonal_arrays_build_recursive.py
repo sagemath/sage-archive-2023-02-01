@@ -694,7 +694,7 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False,explain_construction=False
     assert G_set[0] == G.zero() and G_set[1] == G.one(), "problem with the ordering of {}".format(G)
     G_to_int = {v:i for i,v in enumerate(G_set)}
 
-    # Builds an OA(n+1,n) whose last n-1 colums are
+    # Builds an OA(n+1,n) whose last n-1 columns are
     #
     # \forall x \in G and x!=0, C_x(i,j) = i+x*j
     #

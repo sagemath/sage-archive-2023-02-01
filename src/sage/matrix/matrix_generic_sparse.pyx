@@ -411,8 +411,8 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
 
         TESTS::
 
-            sage: R.<a,b> = Zmod(6)['a','b']
-            sage: M = MatrixSpace(R, 4,3)
+            sage: R.<a,b> = Zmod(6)[]
+            sage: M = MatrixSpace(R, 3, 4)
             sage: m = M({(0,3): a+3*b*a, (1,1): -b})
             sage: m == m    # indirect doctest
             True
@@ -471,7 +471,6 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
 def Matrix_sparse_from_rows(X):
     """
     INPUT:
-
 
     -  ``X`` - nonempty list of SparseVector rows
 

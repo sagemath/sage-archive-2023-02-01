@@ -2584,7 +2584,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         If the ambient :meth:`~IntegralRayCollection.lattice` of ``self`` is a
         :class:`toric lattice
-        <sage.geometry.toric_lattice.ToricLatticeFactory>`, the facet nomals
+        <sage.geometry.toric_lattice.ToricLatticeFactory>`, the facet normals
         will be elements of the dual lattice. If it is a general lattice (like
         ``ZZ^n``) that does not have a ``dual()`` method, the facet normals
         will be returned as integral vectors.

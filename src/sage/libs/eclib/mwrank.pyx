@@ -128,7 +128,8 @@ def initprimes(filename, verb=False):
     EXAMPLES::
 
         sage: file = os.path.join(SAGE_TMP, 'PRIMES')
-        sage: _ = open(file,'w').write(' '.join([str(p) for p in prime_range(10^7,10^7+20)]))
+        sage: with open(file, 'w') as fobj:
+        ....:     _ = fobj.write(' '.join([str(p) for p in prime_range(10^7,10^7+20)]))
         sage: mwrank_initprimes(file, verb=True)
         Computed 78519 primes, largest is 1000253
         reading primes from file ...
@@ -330,7 +331,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
             sage: E.silverman_bound()
             6.52226179519101...
             sage: type(E.silverman_bound())
-            <... 'float'>
+            <type 'float'>
         """
         return Curvedata_silverman_bound(self.x)
 

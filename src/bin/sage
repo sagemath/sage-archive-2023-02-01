@@ -355,7 +355,10 @@ if [ "$1" = '-i' ]; then
     for PKG in $PACKAGES; do
         echo
         # First check that $PKG is actually a Makefile target
-        if ! grep "^$PKG: " build/make/Makefile >/dev/null; then
+        # Since https://trac.sagemath.org/ticket/21524 there is not explicitly
+        # a target for the package, but if it has a vers_<pkgname> variable
+        # there will also be a generated rule for it
+        if !grep "^vers_$PKG = " build/make/Makefile >/dev/null; then
             echo >&2 "Error: package '$PKG' not found"
             echo >&2 "Note: if it is an old-style package, use -p instead of -i to install it"
             exit 1

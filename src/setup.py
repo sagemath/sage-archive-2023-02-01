@@ -340,9 +340,8 @@ class sage_build_cython(Command):
         if self.cythonized_files is not None:
             return self.cythonized_files
 
-        dist = self.distribution
-        self.cythonized_files = find_extra_files(dist.packages,
-            ".", self.build_dir, ["ntlwrap.cpp"])
+        self.cythonized_files = list(find_extra_files(
+            ".", ["sage"], self.build_dir, ["ntlwrap.cpp"]).items())
 
         return self.cythonized_files
 

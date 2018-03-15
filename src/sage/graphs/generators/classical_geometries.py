@@ -520,14 +520,13 @@ def NonisotropicOrthogonalPolarGraph(m, q, sign="+", perp=None):
         deg = (q**n-e)*(q**(n-1)+e)   # k
         S=map(lambda x: libgap.Elements(libgap.Basis(x))[0], \
             libgap.Elements(libgap.Subspaces(W,1)))
-        V = [x for x in libgap.Orbits(g, S, libgap.OnLines) if len(x) == nvert]
-        assert len(V) == 1
-        V = V[0]
+        (V,) = [x for x in libgap.Orbits(g, S, libgap.OnLines)
+                if len(x) == nvert]
         gp = libgap.Action(g,V,libgap.OnLines)  # make a permutation group
         h = libgap.Stabilizer(gp,1)
-        Vh = [x for x in libgap.Orbits(h, libgap.Orbit(gp, 1)) if len(x) == deg]
-        assert len(Vh) == 1
-        Vh = Vh[0][0]
+        (Vh,) = [x for x in libgap.Orbits(h, libgap.Orbit(gp, 1))
+                 if len(x) == deg]
+        Vh = Vh[0]
         L = libgap.Orbit(gp, [1, Vh], libgap.OnSets)
         G = Graph()
         G.add_edges(L)
@@ -895,11 +894,12 @@ def TaylorTwographDescendantSRG(q, clique_partition=None):
         G = Graph([V,lambda y,z:     (S(v0,y)*S(y,z)*S(z,v0)).is_square()], loops=False)
     G.name("Taylor two-graph descendant SRG")
     if clique_partition:
-        lines = map(lambda x: filter(lambda t: t[0]+x*t[1]==0, V),
-                     filter(lambda z: z != 0, Fq))
+        lines = [[t for t in V if t[0] + z * t[1] == 0]
+                 for z in Fq if z]
         return (G, lines, v0)
     else:
         return G
+
 
 def TaylorTwographSRG(q):
     r"""

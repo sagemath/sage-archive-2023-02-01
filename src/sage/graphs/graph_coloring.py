@@ -1526,6 +1526,13 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = N
         sage: len(colors)
         3
 
+    TESTS:
+
+    Ticket :trac:`24991` is fixed::
+
+        sage: from sage.graphs.graph_coloring import acyclic_edge_coloring
+        sage: [acyclic_edge_coloring(G, value_only=True) for G in graphs(4)]
+        [2, 3, 4, 4, 5, 3, 4, 5, 4, 5, 5]
     """
     g._scream_if_not_simple(allow_multiple_edges=True)
 
@@ -1589,10 +1596,9 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = N
     p.set_objective(None)
 
     try:
+        p.solve(objective_only=value_only, log=verbose)
         if value_only:
-            return p.solve(objective_only = True, log = verbose)
-        else:
-            p.solve(log = verbose)
+            return k
 
     except MIPSolverException:
         if k == max(g.degree()) + 2:

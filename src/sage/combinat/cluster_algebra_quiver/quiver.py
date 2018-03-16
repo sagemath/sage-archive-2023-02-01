@@ -677,64 +677,88 @@ class ClusterQuiver(SageObject):
             plot.show( figsize=[fig_size*n+1,fig_size*n+1] )
 
     def interact(self, fig_size=1, circular=True):
-        """
-        Only in notebook mode. Starts an interactive window for cluster seed mutations.
+        r"""
+        Start an interactive window for cluster mutations.
+
+        Only in *Jupyter notebook mode*.
 
         INPUT:
 
-        - ``fig_size`` -- (default: 1) factor by which the size of the plot is multiplied.
-        - ``circular`` -- (default: False) if True, the circular plot is chosen, otherwise >>spring<< is used.
+        - ``fig_size`` -- (default: 1) factor by which the size of the
+          plot is multiplied.
+
+        - ``circular`` -- (default: ``True``) if ``True``, the circular plot
+          is chosen, otherwise >>spring<< is used.
 
         TESTS::
 
-            sage: Q = ClusterQuiver(['A',4])
-            sage: Q.interact() # long time
-            'The interactive mode only runs in the Sage notebook.'
+            sage: S = ClusterQuiver(['A',4])
+            sage: S.interact()
+            VBox(children=...
         """
-        from sage.plot.plot import EMBEDDED_MODE
-        from sagenb.notebook.interact import interact, selector
-        from sage.misc.all import html,latex
+        import ipywidgets as widgets
+        from sage.misc.all import html, latex
+        from sage.repl.rich_output.pretty_print import pretty_print
+        from IPython.display import clear_output
 
-        if not EMBEDDED_MODE:
-            return "The interactive mode only runs in the Sage notebook."
-        else:
-            seq = []
-            sft = [True]
-            sss = [True]
-            ssm = [True]
-            ssl = [True]
-            @interact
-            def player(k=selector(values=list(range(self._n)),nrows = 1,label='Mutate at: '), show_seq=("Mutation sequence:", True), show_matrix=("B-Matrix:", True), show_lastmutation=("Show last mutation:", True) ):
-                ft,ss,sm,sl = sft.pop(), sss.pop(), ssm.pop(), ssl.pop()
-                if ft:
-                    self.show(fig_size=fig_size, circular=circular)
-                elif show_seq is not ss or show_matrix is not sm or show_lastmutation is not sl:
-                    if seq and show_lastmutation:
-                        self.show(fig_size=fig_size, circular=circular, mark=seq[len(seq)-1])
-                    else:
-                        self.show(fig_size=fig_size, circular=circular )
+        show_seq = widgets.Checkbox(value=True,
+                                    description="Display mutation sequence")
+
+        show_matrix = widgets.Checkbox(value=True,
+                                       description="Display B-matrix")
+
+        show_lastmutation = widgets.Checkbox(value=True,
+                                             description="Show last mutation vertex")
+
+        mut_buttons = widgets.ToggleButtons(options=list(range(self._n)),
+                                           style={'button_width':'initial'},
+                                           description='Mutate at: ')
+
+        out = widgets.Output()
+
+        seq = []
+
+        def print_data():
+            if show_seq.value:
+                pretty_print(html("Mutation sequence: ${}$".format(seq)))
+
+            if show_matrix.value:
+                pretty_print(html("B-Matrix:"))
+                pretty_print(html(self._M))
+
+        def refresh(w):
+            k = mut_buttons.value
+            with out:
+                clear_output(wait=True)
+                if show_lastmutation.value:
+                    self.show(fig_size=fig_size, circular=circular, mark=k)
                 else:
-                    self.mutate(k)
-                    seq.append(k)
-                    if not show_lastmutation:
-                        self.show(fig_size=fig_size, circular=circular)
-                    else:
-                        self.show(fig_size=fig_size, circular=circular,mark=k)
-                sft.append(False)
-                sss.append(show_seq)
-                ssm.append(show_matrix)
-                ssl.append(show_lastmutation)
-                if show_seq: html( "Mutation sequence: $" + str( [ seq[i] for i in range(len(seq)) ] ).strip('[]') + "$" )
-                if show_matrix:
-                    html( "B-Matrix:" )
-                    m = self._M
-                    #m = matrix(range(1,self._n+1),sparse=True).stack(m)
-                    m = latex(m)
-                    m = m.split('(')[1].split('\\right')[0]
-                    html( "$ $" )
-                    html( "$\\begin{align*} " + m + "\\end{align*}$" )
-                    #html( "$" + m + "$" )
-                    html( "$ $" )
+                    self.show(fig_size=fig_size, circular=circular)
+                print_data()
+                
+        def do_mutation(*args, **kwds):
+            k = mut_buttons.value
+            self.mutate(k)
+            seq.append(k)
+            with out:
+                clear_output(wait=True)
+                if show_lastmutation.value:
+                    self.show(fig_size=fig_size, circular=circular, mark=k)
+                else:
+                    self.show(fig_size=fig_size, circular=circular)
+                print_data()
+
+        mut_buttons.on_msg(do_mutation)
+
+        show_seq.observe(refresh, 'value')
+        show_matrix.observe(refresh, 'value')
+        show_lastmutation.observe(refresh, 'value')
+
+        mut_buttons.on_displayed(refresh)
+
+        return widgets.VBox([widgets.HBox([show_seq]),
+                             widgets.HBox([show_matrix, show_lastmutation]),
+                             mut_buttons, out])
 
     def save_image(self,filename,circular=False):
         """

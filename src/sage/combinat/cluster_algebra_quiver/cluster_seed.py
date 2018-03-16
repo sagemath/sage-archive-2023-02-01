@@ -1127,10 +1127,7 @@ class ClusterSeed(SageObject):
                     self.show(fig_size=fig_size, circular=circular)
                 print_data()
 
-        # not clear how to get the right behaviour here
-        # doing both has some side effects (one click : two mutations)
         mut_buttons.on_msg(do_mutation)
-        # mut_buttons.observe(do_mutation, 'value')
 
         show_seq.observe(refresh, 'value')
         show_vars.observe(refresh, 'value')

@@ -1420,66 +1420,59 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = N
     r"""
     Computes an acyclic edge coloring of the current graph.
 
-    An edge coloring of a graph is a assignment of colors
-    to the edges of a graph such that :
+    An edge coloring of a graph is a assignment of colors to the edges of a
+    graph such that :
 
-    - the coloring is proper (no adjacent edges share a
-      color)
-    - For any two colors `i,j`, the union of the edges
-      colored with `i` or `j` is a forest.
+    - the coloring is proper (no adjacent edges share a color)
+    - For any two colors `i,j`, the union of the edges colored with `i` or `j`
+      is a forest.
 
-    The least number of colors such that such a coloring
-    exists for a graph `G` is written `\chi'_a(G)`, also
-    called the acyclic chromatic index of `G`.
+    The least number of colors such that such a coloring exists for a graph `G`
+    is written `\chi'_a(G)`, also called the acyclic chromatic index of `G`.
 
-    It is conjectured that this parameter can not be too different
-    from the obvious lower bound `\Delta(G)\leq \chi'_a(G)`,
-    `\Delta(G)` being the maximum degree of `G`, which is given
-    by the first of the two constraints. Indeed, it is conjectured
-    that `\Delta(G)\leq \chi'_a(G) \leq \Delta(G) + 2`.
+    It is conjectured that this parameter can not be too different from the
+    obvious lower bound `\Delta(G)\leq \chi'_a(G)`, `\Delta(G)` being the
+    maximum degree of `G`, which is given by the first of the two
+    constraints. Indeed, it is conjectured that `\Delta(G)\leq \chi'_a(G) \leq
+    \Delta(G) + 2`.
 
     INPUT:
 
     - ``hex_colors`` (boolean)
 
-        - If ``hex_colors = True``, the function returns a
-          dictionary associating to each color a list
-          of edges (meant as an argument to the ``edge_colors``
-          keyword of the ``plot`` method).
+        - If ``hex_colors = True``, the function returns a dictionary
+          associating to each color a list of edges (meant as an argument to the
+          ``edge_colors`` keyword of the ``plot`` method).
 
-        - If ``hex_colors = False`` (default value), returns
-          a list of graphs corresponding to each color class.
+        - If ``hex_colors = False`` (default value), returns a list of graphs
+          corresponding to each color class.
 
     - ``value_only`` (boolean)
 
-        - If ``value_only = True``, only returns the acyclic
-          chromatic index as an integer value
+        - If ``value_only = True``, only returns the acyclic chromatic index as
+          an integer value
 
-        - If ``value_only = False``, returns the color classes
-          according to the value of ``hex_colors``
+        - If ``value_only = False``, returns the color classes according to the
+          value of ``hex_colors``
 
     - ``k`` (integer) -- the number of colors to use.
 
-        - If ``k>0``, computes an acyclic edge coloring using
-          `k` colors.
+        - If ``k>0``, computes an acyclic edge coloring using `k` colors.
 
-        - If ``k=0`` (default), computes a coloring of `G` into
-          `\Delta(G) + 2` colors,
-          which is the conjectured general bound.
+        - If ``k=0`` (default), computes a coloring of `G` into `\Delta(G) + 2`
+          colors, which is the conjectured general bound.
 
-        - If ``k=None``, computes a decomposition using the
-          least possible number of colors.
+        - If ``k=None``, computes a decomposition using the least possible
+          number of colors.
 
-    - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
-      solver to be used. If set to ``None``, the default one is
-      used. For more information on LP solvers and which default
-      solver is used, see the method :meth:`solve
-      <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the
-      class :class:`MixedIntegerLinearProgram
-      <sage.numerical.mip.MixedIntegerLinearProgram>`.
+    - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver to
+      be used. If set to ``None``, the default one is used. For more information
+      on LP solvers and which default solver is used, see the method
+      :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve` of the class
+      :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
 
-    - ``verbose`` -- integer (default: ``0``). Sets the level of
-      verbosity. Set to 0 by default, which means quiet.
+    - ``verbose`` -- integer (default: ``0``). Sets the level of verbosity of
+      the LP solver. Set to 0 by default, which means quiet.
 
     ALGORITHM:
 
@@ -1487,9 +1480,8 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = N
 
     EXAMPLES:
 
-    The complete graph on 8 vertices can not be acyclically
-    edge-colored with less `\Delta+1` colors, but it can be
-    colored with `\Delta+2=9`::
+    The complete graph on 8 vertices can not be acyclically edge-colored with
+    less `\Delta+1` colors, but it can be colored with `\Delta+2=9`::
 
         sage: from sage.graphs.graph_coloring import acyclic_edge_coloring
         sage: g = graphs.CompleteGraph(8)
@@ -1510,9 +1502,9 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = N
         sage: all([g1.union(g2).is_forest() for g1 in colors for g2 in colors])
         True
 
-    If one wants to acyclically color a cycle on `4` vertices,
-    at least 3 colors will be necessary. The function raises
-    an exception when asked to color it with only 2::
+    If one wants to acyclically color a cycle on `4` vertices, at least 3 colors
+    will be necessary. The function raises an exception when asked to color it
+    with only 2::
 
         sage: g = graphs.CycleGraph(4)
         sage: acyclic_edge_coloring(g, k=2)
@@ -1555,15 +1547,16 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = N
 
         raise RuntimeError("This should not happen. Please report a bug !")
 
-    elif k==0:
+    elif k == 0:
         k = max(g.degree())+2
 
     from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
     from sage.plot.colors import rainbow
 
-    p = MixedIntegerLinearProgram(solver = solver)
+    p = MixedIntegerLinearProgram(solver=solver)
 
-    # c is a boolean value such that c[i,(u,v)] = 1 if and only if (u,v) is colored with i
+    # c is a binary variable such that c[i,(u,v)] = 1 if and only if (u,v) is
+    # colored with i
     c = p.new_variable(binary = True)
 
     # relaxed value
@@ -1573,24 +1566,24 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = N
 
     MAD = 1-1/(Integer(g.order())*2)
 
-    # Partition of the edges
-    for u,v in g.edges(labels=None):
-        p.add_constraint(p.sum([c[i,E(u,v)] for i in range(k)]), max=1, min=1)
+    # Partition of the edges: each edge is assigned a unique color
+    for u,v in g.edge_iterator(labels=None):
+        p.add_constraint(p.sum(c[i,E(u,v)] for i in range(k)), max=1, min=1)
 
 
     for i in range(k):
 
         # Maximum degree 1
-        for u in g.vertices():
-            p.add_constraint(p.sum([c[i,E(u,v)] for v in g.neighbors(u)]),max = 1)
+        for u in g.vertex_iterator():
+            p.add_constraint(p.sum(c[i,E(u,v)] for v in g.neighbor_iterator(u)), max=1)
 
     for i,j in Subsets(range(k),2):
         # r is greater than c
-        for u in g.vertices():
-            p.add_constraint(p.sum([r[(i,j),(u,v)] for v in g.neighbors(u)]),max = MAD)
+        for u in g.vertex_iterator():
+            p.add_constraint(p.sum(r[(i,j),(u,v)] for v in g.neighbor_iterator(u)), max=MAD)
 
         # r greater than c
-        for u,v in g.edges(labels=None):
+        for u,v in g.edge_iterator(labels=None):
             p.add_constraint(r[(i,j),(u,v)] + r[(i,j),(v,u)] - c[i,E(u,v)] - c[j,E(u,v)], max=0, min=0)
 
     p.set_objective(None)

@@ -3941,7 +3941,7 @@ cdef class ComplexBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return result
 
-    def elliptic_f(self, m, pi=False):
+    def elliptic_f(self, m):
         r"""
         Return the incomplete elliptic integral of the first kind evaluated
         at *m*.
@@ -3951,9 +3951,6 @@ cdef class ComplexBall(RingElement):
         INPUT:
 
         - ``m`` - complex ball
-
-        - ``pi`` - (boolean: default ``False``) - if ``True`` multiplies the
-          argument by `\pi`
 
         EXAMPLES::
 
@@ -3977,13 +3974,12 @@ cdef class ComplexBall(RingElement):
         """
         cdef ComplexBall result = self._new()
         cdef ComplexBall my_m = self._parent.coerce(m)
-        cdef int c_pi = int(pi)
         if _do_sig(prec(self)): sig_on()
-        acb_elliptic_f(result.value, self.value, my_m.value, c_pi, prec(self))
+        acb_elliptic_f(result.value, self.value, my_m.value, 0, prec(self))
         if _do_sig(prec(self)): sig_off()
         return result
 
-    def elliptic_e_inc(self, m, pi=False):
+    def elliptic_e_inc(self, m):
         r"""
         Return the incomplete elliptic integral of the second kind evaluated
         at *m*.
@@ -3993,9 +3989,6 @@ cdef class ComplexBall(RingElement):
         INPUT:
 
         - ``m`` - complex ball
-
-        - ``pi`` - (boolean: default ``False``) - if ``True`` multiplies the
-          argument by `\pi`
 
         EXAMPLES::
 
@@ -4019,13 +4012,12 @@ cdef class ComplexBall(RingElement):
         """
         cdef ComplexBall result = self._new()
         cdef ComplexBall my_m = self._parent.coerce(m)
-        cdef int c_pi = int(pi)
         if _do_sig(prec(self)): sig_on()
-        acb_elliptic_e_inc(result.value, self.value, my_m.value, c_pi, prec(self))
+        acb_elliptic_e_inc(result.value, self.value, my_m.value, 0, prec(self))
         if _do_sig(prec(self)): sig_off()
         return result
 
-    def elliptic_pi_inc(self, phi, m, pi=False):
+    def elliptic_pi_inc(self, phi, m):
         r"""
         Return the Legendre incomplete elliptic integral of the third kind.
 
@@ -4036,9 +4028,6 @@ cdef class ComplexBall(RingElement):
         - ``phi`` - complex ball
 
         - ``m`` - complex ball
-
-        - ``pi`` - (boolean: default ``False``) - if ``True`` multiplies the
-          argument by `\pi`
 
         EXAMPLES::
 
@@ -4064,9 +4053,8 @@ cdef class ComplexBall(RingElement):
         cdef ComplexBall result = self._new()
         cdef ComplexBall my_phi = self._parent.coerce(phi)
         cdef ComplexBall my_m = self._parent.coerce(m)
-        cdef int c_pi = int(pi)
         if _do_sig(prec(self)): sig_on()
-        acb_elliptic_pi_inc(result.value, self.value, my_phi.value, my_m.value, c_pi, prec(self))
+        acb_elliptic_pi_inc(result.value, self.value, my_phi.value, my_m.value, 0, prec(self))
         if _do_sig(prec(self)): sig_off()
         return result
 

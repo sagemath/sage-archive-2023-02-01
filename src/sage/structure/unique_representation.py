@@ -1284,16 +1284,19 @@ class UniqueRepresentation(CachedRepresentation, WithEqualityById):
         sage: x.value, y.value
         (1, 1)
 
-    Comparison by identity is used for ``==`` and for ``!=``. For other
-    comparisons, the relevant custom comparison is called if defined for either
-    the left-hand side or the right-hand side::
+    When comparing two instances of a unique representation with ``==``
+    or ``!=`` comparison by identity is used::
 
         sage: x == y
+        True
+        sage: x is y
         True
         sage: z = MyClass(2)
         sage: x == z
         False
         sage: x is z
+        False
+        sage: x != y
         False
         sage: x != z
         True

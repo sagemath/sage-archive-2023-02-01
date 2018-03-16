@@ -165,6 +165,7 @@ from sage.libs.arb.arb cimport *
 from sage.libs.arb.acb cimport *
 from sage.libs.arb.acb_calc cimport *
 from sage.libs.arb.acb_hypgeom cimport *
+from sage.libs.arb.acb_elliptic cimport *
 from sage.libs.arb.acb_modular cimport *
 from sage.libs.arb.arf cimport arf_init, arf_get_d, arf_get_mpfr, arf_set_mpfr, arf_clear, arf_set_mag, arf_set, arf_is_nan
 from sage.libs.arb.mag cimport (mag_init, mag_clear, mag_add, mag_set_d,
@@ -3828,7 +3829,7 @@ cdef class ComplexBall(RingElement):
         if n is None:
             result = self._new()
             if _do_sig(prec(self)): sig_on()
-            acb_modular_elliptic_p(result.value, self.value,
+            acb_elliptic_p(result.value, self.value,
                 my_tau.value, prec(self))
             if _do_sig(prec(self)): sig_off()
             return result
@@ -3846,6 +3847,48 @@ cdef class ComplexBall(RingElement):
             _acb_vec_clear(vec_r, nn)
             return result_list
 
+    def elliptic_invariants(self):
+        r"""
+        Return the lattice invariants ``(g2, g3)``.
+
+        EXAMPLES::
+
+            sage: CBF(0,1).elliptic_invariants()
+            ([189.07272012923 +/- 4.43e-12], [+/- 6.48e-12])
+            sage: CBF(sqrt(2)/2, sqrt(2)/2).elliptic_invariants()
+            ([+/- 5.32e-12] + [-332.5338031465 +/- 5.03e-11]*I,
+             [1254.4684215774 +/- 9.65e-11] + [1254.468421577 +/- 4.96e-10]*I)
+        """
+        cdef ComplexBall g2 = self._new()
+        cdef ComplexBall g3 = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_elliptic_invariants(g2.value, g3.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return (g2, g3)
+
+    def elliptic_roots(self):
+        r"""
+        Return the lattice roots ``(e1, e2, e3)`` of `4 z^3 - g_2 z - g_3`.
+
+        EXAMPLES::
+
+            sage: e1, e2, e3 = CBF(0,1).elliptic_roots()
+            sage: e1, e2, e3
+            ([6.8751858180204 +/- 6.18e-14],
+             [+/- 1.20e-14],
+             [-6.8751858180204 +/- 6.24e-14])
+            sage: g2, g3 = CBF(0,1).elliptic_invariants()
+            sage: 4 * e1^3 - g2 * e1 - g3
+            [+/- 3.36e-11]
+        """
+        cdef ComplexBall e1 = self._new()
+        cdef ComplexBall e2 = self._new()
+        cdef ComplexBall e3 = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_elliptic_roots(e1.value, e2.value, e3.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return (e1, e2, e3)
+
     def elliptic_k(self):
         """
         Return the complete elliptic integral of the first kind evaluated
@@ -3859,7 +3902,7 @@ cdef class ComplexBall(RingElement):
         """
         cdef ComplexBall result = self._new()
         if _do_sig(prec(self)): sig_on()
-        acb_modular_elliptic_k(result.value, self.value, prec(self))
+        acb_elliptic_k(result.value, self.value, prec(self))
         if _do_sig(prec(self)): sig_off()
         return result
 
@@ -3876,7 +3919,273 @@ cdef class ComplexBall(RingElement):
         """
         cdef ComplexBall result = self._new()
         if _do_sig(prec(self)): sig_on()
-        acb_modular_elliptic_e(result.value, self.value, prec(self))
+        acb_elliptic_e(result.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def elliptic_pi(self, m):
+        """
+        Return the complete elliptic integral of the third kind evaluated
+        at *m* given by ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(2,3).elliptic_pi(CBF(1,1))
+            [0.27029997361983 +/- 1.31e-15] + [0.715676058329095 +/- 5.66e-16]*I
+
+        """
+        cdef ComplexBall result = self._new()
+        cdef ComplexBall my_m = self._parent.coerce(m)
+        if _do_sig(prec(self)): sig_on()
+        acb_elliptic_pi(result.value, self.value, my_m.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def elliptic_f(self, m, pi=False):
+        r"""
+        Return the incomplete elliptic integral of the first kind evaluated
+        at *m*.
+
+        See :meth:`elliptic_k` for the corresponding complete integral
+
+        INPUT:
+
+        - ``m`` - complex ball
+
+        - ``pi`` - (boolean: default ``False``) - if ``True`` multiplies the
+          argument by `\pi`
+
+        EXAMPLES::
+
+            sage: CBF(1,2).elliptic_f(CBF(0,1))
+            [0.6821522911854 +/- 2.96e-14] + [1.2482780628143 +/- 4.63e-14]*I
+
+        At parameter `\pi/2` it is a complete integral::
+
+            sage: phi = CBF(1,1)
+            sage: (CBF.pi()/2).elliptic_f(phi)
+            [1.5092369540513 +/- 6.62e-14] + [0.6251464152027 +/- 2.11e-14]*I
+            sage: phi.elliptic_k()
+            [1.50923695405127 +/- 5.07e-15] + [0.62514641520270 +/- 4.41e-15]*I
+
+            sage: phi = CBF(2, 3/7)
+            sage: (CBF.pi()/2).elliptic_f(phi)
+            [1.339358963909 +/- 5.02e-13] + [1.110436969072 +/- 1.37e-13]*I
+            sage: phi.elliptic_k()
+            [1.33935896390938 +/- 6.73e-15] + [1.11043696907194 +/- 6.41e-15]*I
+
+        """
+        cdef ComplexBall result = self._new()
+        cdef ComplexBall my_m = self._parent.coerce(m)
+        cdef int c_pi = int(pi)
+        if _do_sig(prec(self)): sig_on()
+        acb_elliptic_f(result.value, self.value, my_m.value, c_pi, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def elliptic_e_inc(self, m, pi=False):
+        r"""
+        Return the incomplete elliptic integral of the second kind evaluated
+        at *m*.
+
+        See :meth:`elliptic_e` for the corresponding complete integral
+
+        INPUT:
+
+        - ``m`` - complex ball
+
+        - ``pi`` - (boolean: default ``False``) - if ``True`` multiplies the
+          argument by `\pi`
+
+        EXAMPLES::
+
+            sage: CBF(1,2).elliptic_e_inc(CBF(0,1))
+            [1.906576998914 +/- 5.01e-13] + [3.6896645289411 +/- 6.93e-14]*I
+
+        At parameter `\pi/2` it is a complete integral::
+
+            sage: phi = CBF(1,1)
+            sage: (CBF.pi()/2).elliptic_e_inc(phi)
+            [1.283840957898 +/- 3.23e-13] + [-0.5317843366915 +/- 7.79e-14]*I
+            sage: phi.elliptic_e()
+            [1.2838409578982 +/- 5.90e-14] + [-0.5317843366915 +/- 3.35e-14]*I
+
+            sage: phi = CBF(2, 3/7)
+            sage: (CBF.pi()/2).elliptic_e_inc(phi)
+            [0.787564350925 +/- 6.56e-13] + [-0.686896129145 +/- 4.60e-13]*I
+            sage: phi.elliptic_e()
+            [0.7875643509254 +/- 6.97e-14] + [-0.686896129145 +/- 3.11e-13]*I
+
+        """
+        cdef ComplexBall result = self._new()
+        cdef ComplexBall my_m = self._parent.coerce(m)
+        cdef int c_pi = int(pi)
+        if _do_sig(prec(self)): sig_on()
+        acb_elliptic_e_inc(result.value, self.value, my_m.value, c_pi, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def elliptic_pi_inc(self, phi, m, pi=False):
+        r"""
+        Return the Legendre incomplete elliptic integral of the third kind.
+
+        See: :meth:`elliptic_pi` for the complete integral.
+
+        INPUT:
+
+        - ``phi`` - complex ball
+
+        - ``m`` - complex ball
+
+        - ``pi`` - (boolean: default ``False``) - if ``True`` multiplies the
+          argument by `\pi`
+
+        EXAMPLES::
+
+            sage: CBF(1,2).elliptic_pi_inc(CBF(0,1), CBF(2,-3))
+            [0.05738864021418 +/- 4.27e-15] + [0.55557494549951 +/- 5.71e-15]*I
+
+        At parameter `\pi/2` it is a complete integral::
+
+            sage: n = CBF(1,1)
+            sage: m = CBF(-2/3, 3/5)
+            sage: n.elliptic_pi_inc(CBF.pi()/2, m)
+            [0.8934793755173 +/- 5.65e-14] + [0.9570786871075 +/- 1.98e-14]*I
+            sage: n.elliptic_pi(m)
+            [0.89347937551733 +/- 4.07e-15] + [0.95707868710750 +/- 1.23e-15]*I
+
+            sage: n = CBF(2, 3/7)
+            sage: m = CBF(-1/3, 2/9)
+            sage: n.elliptic_pi_inc(CBF.pi()/2, m)
+            [0.296958874642 +/- 2.58e-13] + [1.318879533274 +/- 3.87e-13]*I
+            sage: n.elliptic_pi(m)
+            [0.29695887464189 +/- 4.98e-15] + [1.31887953327376 +/- 5.95e-15]*I
+        """
+        cdef ComplexBall result = self._new()
+        cdef ComplexBall my_phi = self._parent.coerce(phi)
+        cdef ComplexBall my_m = self._parent.coerce(m)
+        cdef int c_pi = int(pi)
+        if _do_sig(prec(self)): sig_on()
+        acb_elliptic_pi_inc(result.value, self.value, my_phi.value, my_m.value, c_pi, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def elliptic_rf(self, y, z):
+        r"""
+        Return the Carlson symmetric elliptic integral of the first kind evaluated
+        at ``(self, y, z)``.
+
+        INPUT:
+
+        - ``y`` - complex ball
+
+        - ``z`` - complex ball
+
+        EXAMPLES::
+
+            sage: CBF(0,1).elliptic_rf(CBF(-1/2,1), CBF(-1,-1))
+            [1.469800396738515 +/- 3.70e-16] + [-0.2358791199824196 +/- 4.40e-17]*I
+
+        """
+        cdef ComplexBall result = self._new()
+        cdef ComplexBall my_y = self._parent.coerce(y)
+        cdef ComplexBall my_z = self._parent.coerce(z)
+        if _do_sig(prec(self)): sig_on()
+        acb_elliptic_rf(result.value, self.value, my_y.value, my_z.value, 0, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def elliptic_rg(self, y, z):
+        r"""
+        Return the Carlson symmetric elliptic integral of the second kind evaluated
+        at ``(self, y, z)``.
+
+        INPUT:
+
+        - ``y`` - complex ball
+
+        - ``z`` - complex ball
+
+        EXAMPLES::
+
+            sage: CBF(0,1).elliptic_rg(CBF(-1/2,1), CBF(-1,-1))
+            [0.1586786770922370 +/- 4.31e-17] + [0.2239733128130531 +/- 3.35e-17]*I
+
+        """
+        cdef ComplexBall result = self._new()
+        cdef ComplexBall my_y = self._parent.coerce(y)
+        cdef ComplexBall my_z = self._parent.coerce(z)
+        if _do_sig(prec(self)): sig_on()
+        acb_elliptic_rg(result.value, self.value, my_y.value, my_z.value, 0, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def elliptic_rj(self, y, z, p):
+        r"""
+        Return the Carlson symmetric elliptic integral of the third kind evaluated
+        at ``(self, y, z)``.
+
+        INPUT:
+
+        - ``y`` - complex ball
+
+        - ``z`` - complex ball
+
+        - ``p`` - complex bamm
+
+        EXAMPLES::
+
+            sage: CBF(0,1).elliptic_rj(CBF(-1/2,1), CBF(-1,-1), CBF(2))
+            [1.004386756285733 +/- 5.21e-16] + [-0.2451626834391645 +/- 3.50e-17]*I
+
+        """
+        cdef ComplexBall result = self._new()
+        cdef ComplexBall my_y = self._parent.coerce(y)
+        cdef ComplexBall my_z = self._parent.coerce(z)
+        cdef ComplexBall my_p = self._parent.coerce(p)
+        if _do_sig(prec(self)): sig_on()
+        acb_elliptic_rj(result.value, self.value, my_y.value, my_z.value, my_p.value, 0, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def elliptic_zeta(self, tau):
+        r"""
+        Return the value of the Weierstrass zeta function at ``(self, tau)``
+
+        EXAMPLES::
+
+        - ``tau`` - a complex ball with positive imaginary part
+
+        EXAMPLES::
+
+            sage: CBF(1,1).elliptic_zeta(CBF(1,3))
+            [3.2898676194970 +/- 5.93e-14] + [0.1365414361782 +/- 7.27e-14]*I
+        """
+        cdef ComplexBall result = self._new()
+        cdef ComplexBall my_tau = self._parent.coerce(tau)
+        if _do_sig(prec(self)): sig_on()
+        acb_elliptic_zeta(result.value, self.value, my_tau.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def elliptic_sigma(self, tau):
+        r"""
+        Return the value of the Weierstrass sigma function at ``(self, tau)``
+
+        EXAMPLES::
+
+        - ``tau`` - a complex ball with positive imaginary part
+
+        EXAMPLES::
+
+            sage: CBF(1,1).elliptic_sigma(CBF(1,3))
+            [-0.543073363596 +/- 3.39e-13] + [3.635729118624 +/- 5.08e-13]*I
+
+        """
+        cdef ComplexBall result = self._new()
+        cdef ComplexBall my_tau = self._parent.coerce(tau)
+        if _do_sig(prec(self)): sig_on()
+        acb_elliptic_sigma(result.value, self.value, my_tau.value, prec(self))
         if _do_sig(prec(self)): sig_off()
         return result
 

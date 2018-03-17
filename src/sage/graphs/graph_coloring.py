@@ -1314,6 +1314,14 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
         sage: all([g1.has_edge(e) or g2.has_edge(e) for e in g.edges(labels = None)])
         True
 
+    TESTS:
+
+    Asking for the value of the linear arboricity only (:trac:`24991`)::
+
+        sage: from sage.graphs.graph_coloring import linear_arboricity
+        sage: [linear_arboricity(G, value_only=True) for G in graphs(4)]
+        [0, 1, 1, 2, 2, 1, 1, 2, 2, 2, 2]
+
     REFERENCES:
 
     .. [Aki80] Akiyama, J. and Exoo, G. and Harary, F.
@@ -1382,10 +1390,9 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
     p.set_objective(None)
 
     try:
+        p.solve(objective_only=value_only, log=verbose)
         if value_only:
-            return p.solve(objective_only = True, log = verbose)
-        else:
-            p.solve(log = verbose)
+            return k
 
     except MIPSolverException:
         if plus_one:

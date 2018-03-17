@@ -1225,7 +1225,7 @@ def round_robin(n):
         g.delete_vertex(n)
         return g
 
-def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solver = None, verbose = 0):
+def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solver=None, verbose=0):
     r"""
     Computes the linear arboricity of the given graph.
 
@@ -1233,39 +1233,38 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
     the edges of `G` can be partitioned into linear forests (i.e. into forests
     of paths).
 
-    Obviously, `la(G)\geq \lceil \frac {\Delta(G)} 2 \rceil`.
+    Obviously, `la(G)\geq \lceil \frac{\Delta(G)}{2} \rceil`.
 
-    It is conjectured in [Aki80]_ that `la(G)\leq \lceil \frac {\Delta(G)+1} 2
+    It is conjectured in [Aki80]_ that `la(G)\leq \lceil \frac{\Delta(G)+1}{2}
     \rceil`.
 
     INPUT:
 
     - ``hex_colors`` (boolean)
 
-      - If ``hex_colors = True``, the function returns a
-        dictionary associating to each color a list
-        of edges (meant as an argument to the ``edge_colors``
-        keyword of the ``plot`` method).
+      - If ``hex_colors = True``, the function returns a dictionary associating
+        to each color a list of edges (meant as an argument to the
+        ``edge_colors`` keyword of the ``plot`` method).
 
-      - If ``hex_colors = False`` (default value), returns
-        a list of graphs corresponding to each color class.
+      - If ``hex_colors = False`` (default value), returns a list of graphs
+        corresponding to each color class.
 
     - ``value_only`` (boolean)
 
-      - If ``value_only = True``, only returns the linear
-        arboricity as an integer value.
+      - If ``value_only = True``, only returns the linear arboricity as an
+        integer value.
 
-      - If ``value_only = False``, returns the color classes
-        according to the value of ``hex_colors``
+      - If ``value_only = False``, returns the color classes according to the
+        value of ``hex_colors``
 
-    - ``plus_one`` (integer) -- whether to use `\lceil \frac {\Delta(G)} 2
-      \rceil` or `\lceil \frac {\Delta(G)+1} 2 \rceil` colors.
+    - ``plus_one`` (integer) -- whether to use `\lceil \frac{\Delta(G)}{2}
+      \rceil` or `\lceil \frac{\Delta(G)+1}{2} \rceil` colors.
 
-      - If ``0``, computes a decomposition of `G` into `\lceil \frac
-        {\Delta(G)} 2 \rceil` forests of paths
+      - If ``0``, computes a decomposition of `G` into `\lceil
+        \frac{\Delta(G)}{2} \rceil` forests of paths
 
-      - If ``1``, computes a decomposition of `G` into `\lceil \frac
-        {\Delta(G)+1} 2 \rceil` colors, which is the conjectured general
+      - If ``1``, computes a decomposition of `G` into `\lceil
+        \frac{\Delta(G)+1}{2} \rceil` colors, which is the conjectured general
         bound.
 
       - If ``plus_one = None`` (default), computes a decomposition using the
@@ -1274,12 +1273,11 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
     - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver to
       be used. If set to ``None``, the default one is used. For more information
       on LP solvers and which default solver is used, see the method
-      :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the
-      class :class:`MixedIntegerLinearProgram
-      <sage.numerical.mip.MixedIntegerLinearProgram>`.
+      :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve` of the class
+      :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
 
-    - ``verbose`` -- integer (default: ``0``). Sets the level of verbosity. Set
-      to 0 by default, which means quiet.
+    - ``verbose`` -- integer (default: ``0``). Sets the level of verbosity of
+      the LP solver. Set to 0 by default, which means quiet.
 
     ALGORITHM:
 
@@ -1291,9 +1289,8 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
 
     EXAMPLES:
 
-    Obviously, a square grid has a linear arboricity of 2, as
-    the set of horizontal lines and the set of vertical lines
-    are an admissible partition::
+    Obviously, a square grid has a linear arboricity of 2, as the set of
+    horizontal lines and the set of vertical lines are an admissible partition::
 
         sage: from sage.graphs.graph_coloring import linear_arboricity
         sage: g = graphs.GridGraph([4,4])
@@ -1347,9 +1344,9 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
                                      hex_colors = hex_colors,
                                      solver = solver,
                                      verbose = verbose)
-    elif plus_one==1:
+    elif plus_one == 1:
         k = (Integer(1+max(g.degree()))/2).ceil()
-    elif plus_one==0:
+    elif plus_one == 0:
         k = (Integer(max(g.degree()))/2).ceil()
     else:
         raise ValueError("plus_one must be equal to 0,1, or to None !")
@@ -1360,7 +1357,7 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
     p = MixedIntegerLinearProgram(solver = solver)
 
     # c is a boolean value such that c[i,(u,v)] = 1 if and only if (u,v) is colored with i
-    c = p.new_variable(binary = True)
+    c = p.new_variable(binary=True)
 
     # relaxed value
     r = p.new_variable(nonnegative=True)
@@ -1370,24 +1367,22 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
     MAD = 1-1/(Integer(g.order())*2)
 
     # Partition of the edges
-    for u,v in g.edges(labels=None):
-        p.add_constraint(p.sum([c[i,E(u,v)] for i in range(k)]), max=1, min=1)
+    for u,v in g.edge_iterator(labels=None):
+        p.add_constraint(p.sum(c[i,E(u,v)] for i in range(k)), max=1, min=1)
 
     for i in range(k):
 
         # r greater than c
-        for u,v in g.edges(labels=None):
+        for u,v in g.edge_iterator(labels=None):
             p.add_constraint(r[i,(u,v)] + r[i,(v,u)] - c[i,E(u,v)], max=0, min=0)
 
 
         # Maximum degree 2
-        for u in g.vertices():
-            p.add_constraint(p.sum([c[i,E(u,v)] for v in g.neighbors(u)]),max = 2)
+        for u in g.vertex_iterator():
+            p.add_constraint(p.sum(c[i,E(u,v)] for v in g.neighbor_iterator(u)), max=2)
 
             # no cycles
-            p.add_constraint(p.sum([r[i,(u,v)] for v in g.neighbors(u)]),max = MAD)
-
-    p.set_objective(None)
+            p.add_constraint(p.sum(r[i,(u,v)] for v in g.neighbor_iterator(u)),max=MAD)
 
     try:
         p.solve(objective_only=value_only, log=verbose)
@@ -1414,7 +1409,7 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
             return answer[i].add_edge(uv)
 
     for i in range(k):
-        for u,v in g.edges(labels=None):
+        for u,v in g.edge_iterator(labels=None):
             if c[i,E(u,v)]  == 1:
                 add((u,v),i)
 

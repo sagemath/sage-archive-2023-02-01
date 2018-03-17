@@ -347,7 +347,7 @@ class InfinitePolynomial_sparse(RingElement):
         EXAMPLES::
 
             sage: X.<x> = InfinitePolynomialRing(QQ)
-            sage: import sagenb.misc.support as s
+            sage: import sage.interfaces.tab_completion as s
             sage: p = x[3]*x[2]
             sage: s.completions('p.co',globals(),system='python') # indirect doctest
             ['p.coefficient',
@@ -365,7 +365,7 @@ class InfinitePolynomial_sparse(RingElement):
         TESTS::
 
             sage: X.<x> = InfinitePolynomialRing(QQ)
-            sage: import sagenb.misc.support as s
+            sage: import sage.interfaces.tab_completion as s
             sage: p = x[3]*x[2]
             sage: s.completions('p.co',globals(),system='python') # indirect doc test
             ['p.coefficient',
@@ -401,7 +401,7 @@ class InfinitePolynomial_sparse(RingElement):
         ``__methods__`` is treated in a special way, which
         makes introspection and tab completion work::
 
-            sage: import sagenb.misc.support as s
+            sage: import sage.interfaces.tab_completion as s
             sage: p = alpha[3]*alpha[2]^2
             sage: s.completions('p.co',globals(),system='python') # indirect doc test
             ['p.coefficient',

@@ -1235,7 +1235,7 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
 
     Obviously, `la(G)\geq \lceil \frac{\Delta(G)}{2} \rceil`.
 
-    It is conjectured in [Aki80]_ that `la(G)\leq \lceil \frac{\Delta(G)+1}{2}
+    It is conjectured in [Aki1980]_ that `la(G)\leq \lceil \frac{\Delta(G)+1}{2}
     \rceil`.
 
     INPUT:
@@ -1318,13 +1318,6 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
         sage: from sage.graphs.graph_coloring import linear_arboricity
         sage: [linear_arboricity(G, value_only=True) for G in graphs(4)]
         [0, 1, 1, 2, 2, 1, 1, 2, 2, 2, 2]
-
-    REFERENCES:
-
-    .. [Aki80] Akiyama, J. and Exoo, G. and Harary, F.
-      Covering and packing in graphs. III: Cyclic and acyclic invariants
-      Mathematical Institute of the Slovak Academy of Sciences
-      Mathematica Slovaca vol30, n4, pages 405--417, 1980
     """
     g._scream_if_not_simple()
     from sage.rings.integer import Integer

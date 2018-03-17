@@ -78,6 +78,11 @@ REFERENCES:
              *The modular branching rule for affine Hecke algebras of type A*.
              Adv. Math. 228:481-526 (2011).
 
+.. [Aki1980] \J. Akiyama. and G. Exoo and F. Harary. Covering and packing in
+             graphs. III: Cyclic and acyclic invariants. Mathematical Institute
+             of the Slovak Academy of Sciences. Mathematica Slovaca vol 30, n 4,
+             pages 405--417, 1980
+
 .. [Al1947] \A. A. Albert, *A Structure Theory for Jordan
             Algebras*. Annals of Mathematics, Second Series, Vol. 48,
             No. 3 (Jul., 1947), pp. 546--567.

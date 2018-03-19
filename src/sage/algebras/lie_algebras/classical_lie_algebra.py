@@ -360,8 +360,7 @@ class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
 
 
             """
-            matrix_algebra =  self.parent().associative_algebra()
-            return matrix_algebra(dict(self))
+            return self.value
 
         _matrix_ = matrix
 

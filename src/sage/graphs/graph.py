@@ -217,11 +217,18 @@ Generators
 Use ``graphs(n)`` to iterate through all non-isomorphic graphs of given size::
 
     sage: for g in graphs(4):
-    ....:     if g.is_hamiltonian():
-    ....:         print("Found a hamiltonian graph.")
-    Found a hamiltonian graph.
-    Found a hamiltonian graph.
-    Found a hamiltonian graph.
+    ....:     print(g.degree_sequence())
+    [0, 0, 0, 0]
+    [1, 1, 0, 0]
+    [2, 1, 1, 0]
+    [2, 2, 2, 0]
+    [3, 1, 1, 1]
+    [1, 1, 1, 1]
+    [2, 2, 1, 1]
+    [3, 2, 2, 1]
+    [2, 2, 2, 2]
+    [3, 3, 2, 2]
+    [3, 3, 3, 3]
 
 Similarly ``graphs()`` will iterate through all graphs. The complete
 graph of 4 vertices is of course the smallest graph with chromatic number

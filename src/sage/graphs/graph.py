@@ -6733,7 +6733,6 @@ class Graph(GenericGraph):
             return cover_g
 
     def ear_decomposition(self):
-
       r"""
       This module implements the function for computing the Ear Decomposition
       of undirected connected graphs.
@@ -6807,39 +6806,33 @@ class Graph(GenericGraph):
 
       """
       graph                   : Input graph
-      time_of_visit           : List to store the order in which dfs visits vertices.
-      visited_vertice         : Boolean dict to mark vertices as visited or unvisited during Dfs traversal in graph.
-      traverse_visited_vertice: Boolean dict to mark vertices as visited or unvisited in Dfs tree traversal.
+      dfs_order               : List to store the order in which dfs visits vertices.
+      seen                    : Boolean dict to mark vertices as visited or unvisited during Dfs traversal in graph.
+      traversed               : Boolean dict to mark vertices as visited or unvisited in Dfs tree traversal.
       parent                  : Dict to store parent vertex of all the visited vertices.
       value                   : List to store visit_time of vertices in Dfs traversal.
       chains                  : List to store all the chains and cycles of the input graph G.
-      DFS()                   : Function that performs depth first search on input graph G.
+      DFS()                   : Function that performs depth first search on input graph G and stores DFS tree in parent array format.
+      Traverse()              : Function that use G-T(non -tree edges) to find cycles and chains by traversing in DFS tree.
       """
-      graph = self
-      time_of_visit = []
-      visited_vertice = {}
-      traverse_visited_vertice = {}
+      dfs_order = []
+      seen = {}
+      traversed = {}
       parent = {}
       value = {}
-      count = [0]
       chains = []
-
-      n = graph.num_verts()
-        
-      if graph.is_directed():
+  
+      if self.is_directed():
         raise ValueError("Graph must be undirected")
-
-      if not graph.is_connected():
-        raise ValueError("Graph must be undirected connected")
       
-      if(n<3):
-        raise ValueError("Please input a undirected connected graph with number of vertices > 2")
+      if self.order()<3:
+        raise ValueError("ear decomposition is defined for graphs of order at least 3")
 
 
-      vertices = graph.get_vertices().keys()
+      vertices = self.get_vertices().keys()
       for i in vertices:
-        visited_vertice[i] = False
-        traverse_visited_vertice[i] = False
+        seen[i] = False
+        traversed[i] = False
       
 
       parent[vertices[0]] = -1
@@ -6848,52 +6841,48 @@ class Graph(GenericGraph):
         """
           v = the current vertex need to expand.
         """
-        #make v are visited, update it's time of visited and value
-        visited_vertice[v] = True
-        time_of_visit.append(v)
-        value[v] = count[0]
-        count[0] += 1
+        # make v are visited, update it's time of visited and value
+        seen[v] = True
+        dfs_order.append(v)
         
-        #Traverse though all the neighbor vertices of v
-        for neighbor in graph.neighbors(v):
-          #if any neighbor is not visited, enter
-          if(not visited_vertice[neighbor]):
-            #Upated neighbor's parent as v and expand neighbor
+        # Traverse though all the neighbor vertices of v
+        for neighbor in self.neighbors(v):
+          # if any neighbor is not visited, enter
+          if(not seen[neighbor]):
+            # Upated neighbor's parent as v and expand neighbor
             parent[neighbor] = v
             DFS(neighbor)
 
-      def traverse(start, end):
-        #Make the firt end of non-tree edge visited
-        traverse_visited_vertice[start] = True
-        pointer = end
+      def traverse(start, pointer):
+        # Make the firt end of non-tree edge visited
+        traversed[start] = True
         chain = []
         chain.append(start)
 
-        #Traverse DFS Tree of G and print all the not visited vertices.
-        #Appending all the vertices in chain
+        # Traverse DFS Tree of G and print all the not visited vertices.
+        # Appending all the vertices in chain
         while True:
-          if(traverse_visited_vertice[pointer]):
-            chain.append(pointer)
+          chain.append(pointer)
+          if(traversed[pointer]):
             break
           if(pointer==start):
-            chain.append(pointer)
             break
-          chain.append(pointer)
-          traverse_visited_vertice[pointer] = True
+          traversed[pointer] = True
           pointer = parent[pointer]
         chains.append(chain)
 
 
+      for v in vertices:
+        if not seen[v]:
+          # start the depth first search from first vertex
+          DFS(v)
+          value = {u:i for i,u in enumerate(dfs_order)}
+          # Traverse all the non Tree edges, according to depth first traversal
+          for u in dfs_order:
+            for neighbor in self.neighbors(u):
+              if(value[u] < value[neighbor] and u != parent[neighbor]):
+                traverse(u,neighbor)
       
-      #start the depth first search from first vertex
-      DFS(vertices[0])
-
-      #Traverse all the non Tree edges, according to depth first traversal
-      for i in range(n):
-        for neighbor in graph.neighbors(time_of_visit[i]):
-          if(value[time_of_visit[i]] < value[neighbor] and time_of_visit[i] != parent[neighbor]):
-            traverse(time_of_visit[i],neighbor)
-
       return chains
 
     @doc_index("Clique-related methods")

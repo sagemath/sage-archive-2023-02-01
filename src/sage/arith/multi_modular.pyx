@@ -800,7 +800,7 @@ cdef class MultiModularBasis_base(object):
             sage: from sage.arith.multi_modular import MultiModularBasis_base
             sage: mm = MultiModularBasis_base([10007, 10009])
             sage: t = iter(mm); t
-            <listiterator object at ...>
+            <list...iterator object at ...>
             sage: list(mm.__iter__())
             [10007, 10009]
         """

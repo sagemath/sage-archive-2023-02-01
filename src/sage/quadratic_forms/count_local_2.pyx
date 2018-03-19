@@ -4,7 +4,7 @@ Optimised Cython code for counting congruence solutions
 from __future__ import print_function
 
 from sage.arith.all import valuation, kronecker_symbol, is_prime
-from sage.rings.finite_rings.integer_mod import IntegerMod, Mod
+from sage.rings.finite_rings.integer_mod import Mod
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 
 from sage.rings.integer_ring import ZZ

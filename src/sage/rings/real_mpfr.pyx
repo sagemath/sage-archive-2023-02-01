@@ -653,11 +653,8 @@ cdef class RealField_class(sage.rings.ring.Field):
             sage: R(complex(1.7))
             1.7000
         """
-        from sage.structure.element import parent 
         if hasattr(x, '_mpfr_'):
             return x._mpfr_(self)
-        if isinstance(x, complex) and x.imag == 0:
-            x = x.real
         cdef RealNumber z
         z = self._new()
         z._set(x, base)
@@ -1480,6 +1477,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
             mpfr_set_si(self.value, x, parent.rnd)
         elif isinstance(x, float):
             mpfr_set_d(self.value, x, parent.rnd)
+        elif isinstance(x, complex) and x.imag == 0:
+            mpfr_set_d(self.value, x.real, parent.rnd)
         elif isinstance(x, RealDoubleElement):
             mpfr_set_d(self.value, (<RealDoubleElement>x)._value, parent.rnd)
         elif HAVE_GMPY2 and type(x) is gmpy2.mpfr:

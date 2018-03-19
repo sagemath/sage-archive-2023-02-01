@@ -369,7 +369,7 @@ class sage_build_cython(Command):
             create_extension=self.create_extension,
             # Debugging
             gdb_debug=self.debug,
-            output_dir=self.build_dir,
+            output_dir=os.path.join(self.build_lib, "sage"),
             # Disable Cython caching, which is currently too broken to
             # use reliably: http://trac.sagemath.org/ticket/17851
             cache=False,

@@ -810,6 +810,13 @@ export rsync_proxy=$http_proxy
 # this in one place)
 export SAGE_DESTDIR="${SAGE_BUILD_DIR}/${PKG_NAME}/inst"
 
+# The actual prefix where the installation will be staged. This is the
+# directory that you need to work in if you want to change the staged
+# installation tree (before final installation to $SAGE_LOCAL) at the
+# end of spkg-install.
+export SAGE_DESTDIR_LOCAL="${SAGE_DESTDIR}${SAGE_LOCAL}"
+
+
 if [ -f spkg-build ]; then
     # Package has both spkg-build and spkg-install; execute the latter with SAGE_SUDO
     time ./spkg-build
@@ -835,7 +842,7 @@ fi
 # case DESTDIR=$SAGE_DESTDIR installation was not used
 echo "Copying package files from temporary location $SAGE_DESTDIR to $SAGE_LOCAL"
 if [ -d "$SAGE_DESTDIR" ]; then
-    PREFIX="${SAGE_DESTDIR}${SAGE_LOCAL%/}/"
+    PREFIX="${SAGE_DESTDIR_LOCAL%/}/"
 
     rm -f "$PREFIX"lib/*.la
     if [ $? -ne 0 ]; then

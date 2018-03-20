@@ -673,19 +673,21 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         from sage.quadratic_forms.genera.genus import Genus
         return Genus(self.gram_matrix())
 
-    def scale(self, s, discard_basis=False):
+    def twist(self, s, discard_basis=False):
         r"""
-        Return the lattice with the inner product matrix scaled by ``s``.
+        Return the lattice with inner product matrix scaled by ``s``.
 
         INPUT:
 
         - ``s`` -- a nonzero integer
-        - ``discard_basis`` -- a boolean (default: ``False``). If ``True``, then the lattice returned is equipped with the standard basis.
+        - ``discard_basis`` -- a boolean (default: ``False``).
+          If ``True``, then the lattice returned is equipped
+          with the standard basis.
 
         EXAMPLES::
 
             sage: L = IntegralLattice("A4")
-            sage: L.scale(3)
+            sage: L.twist(3)
             Lattice of degree 4 and rank 4 over Integer Ring
             Basis matrix:
             [1 0 0 0]
@@ -707,7 +709,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             [1 0 0]
             [0 1 0]
             [0 0 1]
-            sage: L.scale(1)
+            sage: L.twist(1)
             Lattice of degree 3 and rank 2 over Integer Ring
             Basis matrix:
             [2 1 0]
@@ -716,7 +718,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             [1 0 0]
             [0 1 0]
             [0 0 1]
-            sage: L.scale(1,True)
+            sage: L.twist(1, True)
             Lattice of degree 2 and rank 2 over Integer Ring
             Basis matrix:
             [1 0]

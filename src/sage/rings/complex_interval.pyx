@@ -241,7 +241,8 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
     def _mpfr_(self, parent):
         r"""
-        Try to convert this interval field element to a real number.
+        If the imaginary part is zero, convert this interval field element
+        to a real number.
 
         Fail if the imaginary part is not exactly zero.
 
@@ -257,12 +258,12 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: RR(CIF(1, 1/3) - CIF(0, 1/3))
             Traceback (most recent call last):
             ...
-            TypeError: can't convert complex interval to real number
+            TypeError: unable to convert complex interval 1 + 0.?e-16*I to real number
         """
         if self.imag() == 0:
             return parent(self.real())
         else:
-            raise TypeError("can't convert complex interval to real number")
+            raise TypeError(f"unable to convert complex interval {self} to real number")
 
     def plot(self, pointsize=10, **kwds):
         r"""

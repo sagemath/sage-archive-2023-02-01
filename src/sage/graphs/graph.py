@@ -6885,8 +6885,6 @@ class Graph(GenericGraph):
           chain.append(pointer)
           if(traversed[pointer]):
             break
-          if(pointer==start):
-            break
           traversed[pointer] = True
           pointer = parent[pointer]
         chains.append(chain)
@@ -6897,10 +6895,11 @@ class Graph(GenericGraph):
           # start the depth first search from first vertex
           DFS(v)
           value = {u:i for i,u in enumerate(dfs_order)}
+          
           # Traverse all the non Tree edges, according to depth first traversal
           for u in dfs_order:
             for neighbor in self.neighbor_iterator(u):
-              if(value[u] < value[neighbor] and u != parent[neighbor]):
+              if value[u] < value[neighbor] and u != parent[neighbor]:
                 traverse(u,neighbor)
       
       return chains

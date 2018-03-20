@@ -6735,11 +6735,11 @@ class Graph(GenericGraph):
     def ear_decomposition(self):
       r"""
       This module implements the function for computing the Ear Decomposition
-      of undirected connected graphs.
+      of undirected graphs.
 
       Input:     
 
-      - ``graph`` -- The undirected connected graph for which ear decomposition needs to be computed
+      - ``graph`` -- The undirected graph for which ear decomposition needs to be computed
 
       Output:
 
@@ -6763,16 +6763,36 @@ class Graph(GenericGraph):
         If input is one edge
         sage: g = Graph([[1,2]])
         sage: g.ear_decomposition()
-        ValueError: Please input a undirected connected graph with number of vertices > 2
+        ValueError: Please input a undirected  graph with number of vertices > 2
 
-        
 
-        If input graph is not connected
-        sage: g = Graph([[1,2], [3,4]])
+        If input graph is not connected, it will find ear decomposition in connected components.
+        sage: sage: g = Graph([[0, 1],[0, 7],[0, 3],[0, 11],[2, 3],[1, 2],[1, 12],[2, 12],[3, 
+        ....: 4],[3, 6],[4, 5],[4, 7],[4, 6],[5, 6],[7, 10],[7, 8],[7, 11],[8, 9],[8, 10
+        ....: ],[8, 11],[9, 11],[13, 14],[13, 15],[13, 16],[14, 15],[14, 16],[15, 16] ])
         sage: g.ear_decomposition()
-        ValueError: Graph must be undirected connected
+        [[0, 11, 7, 4, 3, 2, 1, 0],
+          [0, 3],
+          [0, 7],
+          [1, 12, 2],
+          [3, 6, 4],
+          [4, 5, 6],
+          [7, 10, 8, 11],
+          [7, 8],
+          [11, 9, 8],
+          [0, 11],
+          [0, 3],
+          [0, 7],
+          [1, 12],
+          [3, 6],
+          [4, 5],
+          [7, 10],
+          [7, 8],
+          [11, 9],
+          [13, 14, 16, 13],
+          [13, 15, 14],
+          [16, 15]]
 
-        
 
         sage: G.allow_loops(True)
         sage: G.allow_multiple_edges(True)
@@ -6829,7 +6849,7 @@ class Graph(GenericGraph):
         raise ValueError("ear decomposition is defined for graphs of order at least 3")
 
 
-      vertices = self.get_vertices().keys()
+      vertices = self.vertices()
       for i in vertices:
         seen[i] = False
         traversed[i] = False
@@ -6879,7 +6899,7 @@ class Graph(GenericGraph):
           value = {u:i for i,u in enumerate(dfs_order)}
           # Traverse all the non Tree edges, according to depth first traversal
           for u in dfs_order:
-            for neighbor in self.neighbors(u):
+            for neighbor in self.neighbor_iterator(u):
               if(value[u] < value[neighbor] and u != parent[neighbor]):
                 traverse(u,neighbor)
       

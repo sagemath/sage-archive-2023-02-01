@@ -6901,6 +6901,8 @@ class Graph(GenericGraph):
             for neighbor in self.neighbor_iterator(u):
               if value[u] < value[neighbor] and u != parent[neighbor]:
                 traverse(u,neighbor)
+
+          dfs_order = []
       
       return chains
 

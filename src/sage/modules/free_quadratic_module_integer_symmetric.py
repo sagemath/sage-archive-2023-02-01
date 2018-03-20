@@ -866,3 +866,70 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         from sage.quadratic_forms.genera.genus import Genus
         return Genus(self.gram_matrix())
 
+    def twist(self, s, discard_basis=False):
+        r"""
+        Return the lattice with inner product matrix scaled by ``s``.
+
+        INPUT:
+
+        - ``s`` -- a nonzero integer
+        - ``discard_basis`` -- a boolean (default: ``False``).
+          If ``True``, then the lattice returned is equipped
+          with the standard basis.
+
+        EXAMPLES::
+
+            sage: L = IntegralLattice("A4")
+            sage: L.twist(3)
+            Lattice of degree 4 and rank 4 over Integer Ring
+            Basis matrix:
+            [1 0 0 0]
+            [0 1 0 0]
+            [0 0 1 0]
+            [0 0 0 1]
+            Inner product matrix:
+            [ 6 -3  0  0]
+            [-3  6 -3  0]
+            [ 0 -3  6 -3]
+            [ 0  0 -3  6]
+            sage: L = IntegralLattice(3,[[2,1,0],[0,1,1]])
+            sage: L
+            Lattice of degree 3 and rank 2 over Integer Ring
+            Basis matrix:
+            [2 1 0]
+            [0 1 1]
+            Inner product matrix:
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            sage: L.twist(1)
+            Lattice of degree 3 and rank 2 over Integer Ring
+            Basis matrix:
+            [2 1 0]
+            [0 1 1]
+            Inner product matrix:
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            sage: L.twist(1, True)
+            Lattice of degree 2 and rank 2 over Integer Ring
+            Basis matrix:
+            [1 0]
+            [0 1]
+            Inner product matrix:
+            [5 1]
+            [1 2]
+        """
+        try:
+            s = self.base_ring()(s)
+        except:
+            ValueError("the scaling factor must be an element of the base ring.")
+        if (s==0):
+            raise ValueError("the scaling factor must be non zero")
+        if discard_basis:
+            return IntegralLattice(s * self.gram_matrix())
+        else:
+            n = self.degree()
+            inner_product_matrix = s * self.inner_product_matrix()
+            ambient = FreeQuadraticModule(self.base_ring(), n, inner_product_matrix)
+            return FreeQuadraticModule_integer_symmetric(ambient=ambient, basis=self.basis(), inner_product_matrix=inner_product_matrix)

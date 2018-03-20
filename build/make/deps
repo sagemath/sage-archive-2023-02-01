@@ -150,6 +150,7 @@ sagelib: \
 		$(inst_pkgconfig) \
 		$(inst_planarity) \
 		$(inst_ppl) \
+		$(inst_pycygwin) \
 		$(inst_pynac) \
 		$(inst_python2) \
 		$(inst_python3) \

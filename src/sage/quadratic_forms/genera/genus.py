@@ -92,6 +92,203 @@ def all_genera_by_det(sig_vec, determinant, max_scale=None, even=True):
             genera.append(G)
     return(genera)
 
+def _all_p_adic_genera_new(p, rank, det_val, max_scale, even):
+    r"""
+    Return all `p`-adic genera with the given conditions.
+
+    This is a helper function for :meth:`all_genera_by_det`.
+    No input checks are done.
+
+    INPUT:
+
+    - ``p`` -- a prime number
+    - ``rank`` -- the rank of this genus
+    - ``det_val`` -- valuation of the determinant at p
+    - ``max_scale`` -- an integer the maximal scale of a jordan block
+    - ``even`` -- bool; is igored if `p` is not `2`
+
+    EXAMPLES::
+
+        sage: from sage.quadratic_forms.genera.genus import _all_p_adic_genera
+        sage: _all_p_adic_genera(2,3,1,2,False)
+        [Genus symbol at 2:    1^-2 [2^1]_1,
+        Genus symbol at 2:    1^2 [2^1]_1,
+        Genus symbol at 2:    1^2 [2^1]_7,
+        Genus symbol at 2:    [1^2 2^1]_1,
+        Genus symbol at 2:    1^-2 [2^1]_7,
+        Genus symbol at 2:    [1^2 2^1]_3,
+        Genus symbol at 2:    [1^-2 2^1]_7,
+        Genus symbol at 2:    [1^2 2^1]_7,
+        Genus symbol at 2:    [1^-2 2^1]_1,
+        Genus symbol at 2:    [1^-2 2^1]_5,
+        Genus symbol at 2:    [1^-2 2^1]_3,
+        Genus symbol at 2:    [1^2 2^1]_5]
+
+    Setting a maximum scale::
+
+        sage: _all_p_adic_genera(5, 2, 2, 1, True)
+        [Genus symbol at 5:     5^-2, Genus symbol at 5:     5^2]
+        sage: _all_p_adic_genera(5, 2, 2, 2, True)
+        [Genus symbol at 5:     1^-1 25^-1,
+        Genus symbol at 5:     1^1 25^-1,
+        Genus symbol at 5:     1^-1 25^1,
+        Genus symbol at 5:     1^1 25^1,
+        Genus symbol at 5:     5^-2,
+        Genus symbol at 5:     5^2]
+    """
+    from sage.misc.mrange import cantor_product
+    from sage.combinat.integer_lists.invlex import IntegerListsLex
+    from copy import deepcopy
+    symbols0 = [] # contains possibilities for scales and ranks
+    for rkseq in IntegerListsLex(rank, length=max_scale+1):   # rank sequences
+        # sum(rkseq) = rank
+        # len(rkseq) = max_level + 1
+        # now assure that we get the right determinant
+        d = 0
+        pgensymbol = []
+        for i in range(max_scale + 1):
+            d += i * rkseq[i]
+            # blocks of rank 0 are omitted
+            if rkseq[i] != 0:
+                pgensymbol.append([i, rkseq[i], 0])
+        if d == det_val:
+            symbols0.append(pgensymbol)
+    symbols = []
+    if p != 2:
+        # add possible determinant square classes
+        for g in symbols0:
+            n = len(g)
+            for v in cantor_product([-1, 1], repeat=n):
+                g1 = deepcopy(g)
+                for k in range(n):
+                    g1[k][2] = v[k]
+                g1 = Genus_Symbol_p_adic_ring(p, g1)
+                symbols.append(g1)
+        return symbols
+
+    # for p == 2 we have to include determinant, even/odd, oddity
+    # we only enumerate canonical symbols to avoid duplicates
+    for sym0 in symbols0:
+        n = len(sym0)
+        for o in cantor_product([0, 1], repeat=n):
+            # fill in oddities
+            sym1 = deepcopy(sym0)
+            for k in range(n):
+                sym1[k] += [o[k], 0]
+            trains = canonical_2_adic_trains(sym1)
+            compartments = canonical_2_adic_compartments(sym1)
+            for dets in cantor_product([-1, 1], repeat=len(trains)):
+                sym2 = deepcopy(sym1)
+                for k in range(len(trains)):
+                    sym2[trains[k][0]][2] = dets[k]
+                for oddities in cantor_product(*_compartment_oddities(sym2, compartments)):
+                    sym3 = deepcopy(sym2)
+                    for k in range(len(compartments)):
+                        sym3[compartments[k][0]][4] = oddities[k]
+                    sym = Genus_Symbol_p_adic_ring(p, [[]])
+                    sym._canonical_symbol = sym3
+                    symbols.append(sym)
+    return symbols
+
+def _compartment_oddities(sym, compartments):
+    r"""
+    """
+    compartment_oddities = []
+    for comp in compartments:
+        n = len(comp)
+        if n == 1:
+            block = sym[comp[0]]
+            rk = block[1]
+            det = block[2]
+            if rk == 1:
+                if det == 1:
+                    compartment_oddities.append([1, 7])
+                else:
+                    compartment_oddities.append([3, 5])
+            elif rk == 2:
+                if det == 1:
+                    compartment_oddities.append([0, 2, 6])
+                else:
+                    compartment_oddities.append([2, 4, 6])
+            elif rk % 2 == 0:
+                compartment_oddities.append([0, 2, 6])
+            else:
+                compartment_oddities.append([0, 2, 6])
+        else:
+            if n % 2 == 0:
+                compartment_oddities.append([0, 2, 4, 6])
+            else:
+                compartment_oddities.append([1, 3, 5, 7])
+    return compartment_oddities
+
+def symbol_from_canonical_symbol(canonical_symbol):
+    r"""
+
+    INPUT:
+
+    - a canonical `2`-adic symbol tuple list
+
+    """
+    trains = canonical_2_adic_trains(symbol)
+    compartments = canonical_2_adic_compartments(symbol)
+    for train in trains:
+        det_sign = canonical_symbol[train[0]][2]
+        oddity = canonical_symbol[train[0]][4]
+
+    # rk 1
+    # det := t
+    if rk == 2:
+        t, det, sign in  [(0,-1,1), (2,1,1), (2,5,-1), (4,3,-1), (6,5,-1), (6,1,1)]
+    if rk % 2 == 1:
+
+def _canonical_block_to_block(block):
+    r"""
+    """
+    rk = block[1]
+    sign = block[2]
+    t = block[4]
+    if rk == 1:
+        det = t
+    elif rk % 2 == 0:
+        if (t, sign) == (0, 1):
+            det = 7
+        elif (t, sign) == (2, 1):
+            det = 1
+        elif (t, sign) == (2, -1):
+            det = 5
+        elif (t, sign) == (4, -1):
+            det = 3
+        elif (t, sign) == (6, -1):
+            det = 5
+        elif (t, sign) == (6, 1):
+            det = 1
+        else:
+            raise ValueError
+        if rk > 2:
+            if (t, sign) == (0, -1):
+                det = 7
+            if (t, sign) == (6, 1):
+                det = 3
+            if det in (1, 7):
+                sig = 1
+            else:
+                sig = -1
+            if sig != sign:
+                det *= (-1)**(rk/2 - 2) * 3
+            else
+                det *= (-1)**(rk/2 - 1)
+    elif rk % 2 == 1:
+        if t in (1, 7):
+            sig = 1
+        else:
+            sig = -1
+        if sig != sign:
+            e = 3
+        else:
+            e = -1
+        det = t*(-1)**((rk - 3) / 2)*e
+    return [block[0], rk, det, 1, t]
+
 def _all_p_adic_genera(p, rank, det_val, max_scale, even):
     r"""
     Return all `p`-adic genera with the given conditions.

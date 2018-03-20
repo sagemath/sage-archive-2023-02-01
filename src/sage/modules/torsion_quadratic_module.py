@@ -31,7 +31,7 @@ def TorsionQuadraticForm(q):
     r"""
     Create a torsion quadratic form module from a rational matrix.
 
-    The resulting quadratic form takes values in `\QQ / \ZZ` 
+    The resulting quadratic form takes values in `\QQ / \ZZ`
     or `\QQ / 2 \ZZ` (depending on ``q``).
     If it takes values modulo `2`, then it is non-degenerate.
     In any case the bilinear form is non-degenerate.
@@ -49,7 +49,7 @@ def TorsionQuadraticForm(q):
         [  1 1/2]
         [1/2   1]
 
-    In the following example the quadratic form is degenerate. 
+    In the following example the quadratic form is degenerate.
     But the bilinear form is still non-degenerate::
 
         sage: q2 = diagonal_matrix(QQ,[1/4,1/3])
@@ -668,6 +668,16 @@ class TorsionQuadraticModule(FGP_Module_class):
         T = self.submodule(gens)
         T._gens = [self(v) for v in gens]
         return T
+
+    def twist(self, s):
+        r"""
+        Return the torsion quadratic module with quadratic form scaled by ``s``.
+
+        INPUT:
+
+        - ``s`` - a rational number
+        """
+        return TorsionQuadraticModule(V.twist(s), W.twist(s))
 
     def value_module(self):
         r"""

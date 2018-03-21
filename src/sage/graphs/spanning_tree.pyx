@@ -374,21 +374,15 @@ cpdef boruvka(G, wfunction=None, bint check=False):
       following sanity checks are first performed on ``G`` prior to running
       Boruvka's algorithm on that input graph:
 
-      - Is ``G`` the null graph?
+      - Is ``G`` the null graph or graph on one vertex?
       - Is ``G`` disconnected?
       - Is ``G`` a tree?
-      - Does ``G`` have self-loops?
-      - Does ``G`` have multiple edges?
 
       By default, we turn off the sanity checks for performance reasons. This
       means that by default the function assumes that its input graph is
       connected, and has at least one vertex. Otherwise, you should set
       ``check=True`` to perform some sanity checks and preprocessing on the
-      input graph. If ``G`` has multiple edges or self-loops, the algorithm
-      still works, but the running-time can be improved if these edges are
-      removed. To further improve the runtime of this function, you should call
-      it directly instead of using it indirectly via
-      :meth:`sage.graphs.generic_graph.GenericGraph.min_spanning_tree`.
+      input graph. 
 
     OUTPUT:
 
@@ -552,10 +546,11 @@ cpdef boruvka(G, wfunction=None, bint check=False):
     if not isinstance(G, Graph):
         raise ValueError("The input G must be an undirected graph.")
 
+    if G.order() <= 1:
+            return []
+
     # sanity checks
     if check:
-        if G.order() == 0:
-            return []
         if not G.is_connected():
             return []
         # G is now assumed to be a nonempty connected graph
@@ -570,13 +565,20 @@ cpdef boruvka(G, wfunction=None, bint check=False):
     cheapest = {} # a dictionary to store the least weight outgoing edge for each component
     T = [] # stores the edges in minimum spanning tree
     numConnectedComponents = len(G.vertices()) 
-    
-    # Store two edge lists to keep track of active edges
+    numConnectedComponentsPrevIter = len(G.vertices()) + 1
+
+    # Store an edge list to keep track of active edges
     edge_list = G.edges()
-    edge_temp = []
     components_dict = {} # to store the pairwise cheapest edges
 
     while numConnectedComponents > 1:
+        # Check if number of connected components decreased.
+        # Otherwise, the graph is not connected.
+        if (numConnectedComponentsPrevIter == numConnectedComponents):
+            return []
+        else:
+            numConnectedComponentsPrevIter = numConnectedComponents
+
         # If the two endpoints of current edge belong to
         # same component, ignore the edge. 
         # Else check if current edge has lesser weight than previous
@@ -640,14 +642,11 @@ cpdef boruvka(G, wfunction=None, bint check=False):
             if component1 != component2 :
                 partitions.union(component1, component2)
                 T.append(e)
-                edge_temp.append(e) # MST edges from current iteration
                 numConnectedComponents = numConnectedComponents - 1
          
         # reset the dictionaries for next iteration
         cheapest = {}
         components_dict = {}
-        edge_list = list(set(edge_list) - set(edge_temp)) # remove the MST edges from active edges
-        edge_temp = []
 
     return T
 

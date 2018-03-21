@@ -115,7 +115,7 @@ cpdef py_scalar_parent(py_type):
         sage: from sage.structure.coerce import py_scalar_parent
         sage: py_scalar_parent(int)
         Integer Ring
-        sage: py_scalar_parent(long)
+        sage: py_scalar_parent(long)  # py2
         Integer Ring
         sage: py_scalar_parent(float)
         Real Double Field
@@ -1903,14 +1903,13 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: richcmp(int(1), float(2), op_GE)
             False
 
-        If there is no coercion, compare types::
+        If there is no coercion, only comparisons for equality make
+        sense::
 
             sage: x = QQ.one(); y = GF(2).one()
             sage: richcmp(x, y, op_EQ)
             False
             sage: richcmp(x, y, op_NE)
-            True
-            sage: richcmp(x, y, op_LT if cmp(type(x), type(y)) == -1 else op_GT)
             True
 
         We support non-Sage types with the usual Python convention::
@@ -1961,15 +1960,6 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             if res is not NotImplemented:
                 return res
 
-        # If types are not equal: compare types
-        # avoiding call to cmp() for compatibility with python3
-        cdef type tx = type(x)
-        cdef type ty = type(y)
-        if tx < ty:
-            return rich_to_bool(op, -1)
-        elif tx > ty:
-            return rich_to_bool(op, 1)
-
         # Final attempt: compare by id()
         if (<unsigned long><PyObject*>x) >= (<unsigned long><PyObject*>y):
             # It cannot happen that x is y, since they don't
@@ -1991,11 +1981,11 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             ...
             RuntimeError: There is a bug in the coercion code in Sage.
             Both x (='f(a)') and y (='g(b)') are supposed to have identical parents but they don't.
-            In fact, x has parent '<... 'str'>'
-            whereas y has parent '<... 'str'>'
-            Original elements 'a' (parent <... 'str'>) and 'b' (parent <... 'str'>) and maps
-            <... 'str'> 'f'
-            <... 'str'> 'g'
+            In fact, x has parent '<type 'str'>'
+            whereas y has parent '<type 'str'>'
+            Original elements 'a' (parent <type 'str'>) and 'b' (parent <type 'str'>) and maps
+            <type 'str'> 'f'
+            <type 'str'> 'g'
         """
         raise RuntimeError("""There is a bug in the coercion code in Sage.
 Both x (=%r) and y (=%r) are supposed to have identical parents but they don't.

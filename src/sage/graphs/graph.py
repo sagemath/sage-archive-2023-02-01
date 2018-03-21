@@ -1365,12 +1365,27 @@ class Graph(GenericGraph):
 
             sage: Graph(graphs.KneserGraph(5,2).sparse6_string()).size()
             15
+
+        Graphs with 1 vertex are correctly handled (:trac:`24923`)::
+
+            sage: Graph([(0, 0)], loops=True).sparse6_string()
+            ':@^'
+            sage: G = Graph(_)
+            sage: G.order(), G.size()
+            (1, 1)
+            sage: Graph([(0, 0), (0, 0)], loops=True, multiedges=True).sparse6_string()
+            ':@N'
+            sage: H = Graph(_)
+            sage: H.order(), H.size()
+            (1, 2)
         """
         n = self.order()
         if n == 0:
             return ':?'
         if n > 262143:
             raise ValueError('sparse6 format supports graphs on 0 to 262143 vertices only.')
+        if n == 1:
+            s = '0' * self.size()
         else:
             v_to_int = {v:i for i,v in enumerate(self.vertices())}
             edges = [sorted((v_to_int[u],v_to_int[v])) for u,v in self.edge_iterator(labels=False)]
@@ -1400,15 +1415,15 @@ class Graph(GenericGraph):
                     s += '0' + sp
                     m += 1
 
-            # encode s as a 6-string, as in R(x), but padding with 1's
-            # pad on the right to make a multiple of 6
-            s = s + ( '1' * ((6 - len(s))%6) )
+        # encode s as a 6-string, as in R(x), but padding with 1's
+        # pad on the right to make a multiple of 6
+        s = s + ( '1' * ((6 - len(s))%6) )
 
-            # split into groups of 6, and convert numbers to decimal, adding 63
-            six_bits = ''
-            for i in range(len(s)//6):
-                six_bits += chr( int( s[6*i:6*(i+1)], 2) + 63 )
-            return ':' + generic_graph_pyx.small_integer_to_graph6(n) + six_bits
+        # split into groups of 6, and convert numbers to decimal, adding 63
+        six_bits = ''
+        for i in range(0, len(s), 6):
+            six_bits += chr( int( s[i:i+6], 2) + 63 )
+        return ':' + generic_graph_pyx.small_integer_to_graph6(n) + six_bits
 
     ### Attributes
 

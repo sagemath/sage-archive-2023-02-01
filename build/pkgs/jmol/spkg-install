@@ -48,13 +48,13 @@ if [ ! -d "$SAGE_DESTDIR_LOCAL"/bin ]; then
 fi
 
 echo "Install the Jmol launcher to bin/..."
-cp -f jmol "$SAGE_DESTDIR_LOCAL"/bin/jmol && \
+cp -f "$SPKGDIR"/jmol "$SAGE_DESTDIR_LOCAL"/bin/jmol && \
     chmod ugo+x "$SAGE_DESTDIR_LOCAL"/bin/jmol || \
     sdh_die "Error installing the jmol launcher. Exiting."
 
 echo "Installing applet web directory"
 mkdir -p "$SAGE_DESTDIR_SHARE"/jmol/appletweb
-cp -r "$SPKGDIR"/patches/appletweb/* "$SAGE_DESTDIR_SHARE"/jmol/appletweb/ || \
+cp -r "$SPKGDIR"/appletweb/* "$SAGE_DESTDIR_SHARE"/jmol/appletweb/ || \
     sdh_die "Error installing the applet web directory"
 
 echo "New Jmol installed successfully."

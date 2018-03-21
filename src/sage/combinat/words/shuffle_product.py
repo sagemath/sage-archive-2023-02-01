@@ -21,7 +21,7 @@ Shuffle product of words
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.combinat.words.word import Word_class
+from sage.combinat.words.word import Word_class, Word
 from sage.combinat.combinat import CombinatorialClass
 from sage.arith.all import binomial
 from sage.combinat.integer_vector import IntegerVectors
@@ -211,7 +211,10 @@ class ShuffleProduct_w1w2(CombinatorialClass):
             # Special situation: the parent of w1 is too
             # restrictive to be cast on res.
             if isinstance(self._w1.parent(), Compositions_n):
-                return Compositions(res)
+                return Composition(res)
+            elif isinstance(self._w1, Word_class):
+                return Word(res)
+            return res
 
     def __iter__(self):
         """

@@ -3577,6 +3577,17 @@ const numeric numeric::fibonacci() const {
 }
 
 const numeric numeric::exp(PyObject* parent) const {
+        static numeric tentt20 = ex_to<numeric>(_num10_p->power(*_num20_p));
+        // avoid Flint aborts
+        if (real() > tentt20) {
+                if (imag().is_zero())
+                        return py_funcs.py_eval_infinity();
+                else
+                        return py_funcs.py_eval_unsigned_infinity();
+        }
+        if (real() < -tentt20)
+                return ex_to<numeric>(_num0_p->evalf(0, parent));
+
         return arbfunc_0arg("exp", parent);
 }
 

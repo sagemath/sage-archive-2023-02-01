@@ -456,6 +456,8 @@ class SBox(SageObject):
             si = self(i)
             for di in range(nrows):
                 A[ di , si^self(i^di)] += 1
+        A.set_immutable()
+
         return A
 
     def maximal_difference_probability_absolute(self):

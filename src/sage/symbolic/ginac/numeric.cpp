@@ -3715,17 +3715,25 @@ const numeric numeric::atan(PyObject* parent) const {
 }
 
 const numeric numeric::atan(const numeric& y, PyObject* parent) const {
-        if (not imag().is_zero()
-            or not y.imag().is_zero()) 
-                throw (std::runtime_error("atan2() with complex argument not supported"));
         PyObject *cparent = common_parent(*this, y);
-        if (parent == nullptr)
-               parent = cparent;
+        bool newdict = false;
+        if (parent == nullptr) {
+                parent = PyDict_New();
+                PyDict_SetItemString(parent, "parent", cparent);
+                newdict = true;
+        }
         numeric rnum;
+        if (not imag().is_zero()
+            or not y.imag().is_zero()) {
+                ex r = this->add(y.mul(I))
+                        / (mul(*this) + y*y).power(*_num1_2_p);
+                rnum = -ex_to<numeric>(r.evalf(0, parent)).log(parent) * I;
+                Py_DECREF(cparent);
+                return rnum;
+        }
         if (y.is_zero()) {
                 if (is_zero())
-                        // should have been caught earlier
-                        throw (std::runtime_error("atan2(): can't happen"));
+                        throw (std::runtime_error("atan2(): division by zero"));
                 if (real().is_positive())
                         rnum = *_num0_p;
                 else
@@ -3744,6 +3752,8 @@ const numeric numeric::atan(const numeric& y, PyObject* parent) const {
         }
         rnum = ex_to<numeric>(rnum.evalf(0, parent));
         Py_DECREF(cparent);
+        if (newdict)
+                Py_DECREF(parent);
         return rnum;
 }
 

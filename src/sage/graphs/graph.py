@@ -6733,178 +6733,193 @@ class Graph(GenericGraph):
             return cover_g
 
     def ear_decomposition(self):
-      r"""
-      This module implements the function for computing the Ear Decomposition
-      of undirected graphs.
-
-      Input:     
-
-      - ``graph`` -- The undirected graph for which ear decomposition needs to be computed
-
-      Output:
-
-      - A nested list representing the cycle and chains of input graph G.
-
-      Example:
+        r"""
+        Return the Ear decomposition of the graph.
         
-        sage: g = Graph([[0, 1],[0, 7],[0, 3],[0, 11],[2, 3],[1, 2],[1, 12],[2, 12],[3, 4],[3, 6],[4, 5],[4, 7],[4, 6],[5, 6],[7, 10],[7, 8],[7, 11],[8, 9],[8, 10],[8, 11],[9, 11]])
-        sage: g.ear_decomposition()
-        [[0, 11, 7, 4, 3, 2, 1, 0],
-         [0, 3],
-         [0, 7],
-         [1, 12, 2],
-         [3, 6, 4],
-         [4, 5, 6],
-         [7, 10, 8, 11],
-         [7, 8],
-         [11, 9, 8]]
+        An ear decomposition of an undirected graph G is a partition of its set of edges into a sequence of ears, 
+        such that the one or two endpoints of each ear belong to earlier ears in the sequence and such that the 
+        internal vertices of each ear do not belong to any earlier ear.
 
+        An ear of an undirected graph G is a path P where the two endpoints of the path may coincide, but where 
+        otherwise no repetition of edges or vertices is allowed, so every internal vertex of P has degree two in P.
         
-        If input is one edge
-        sage: g = Graph([[1,2]])
-        sage: g.ear_decomposition()
-        ValueError: Please input a undirected  graph with number of vertices > 2
+        For more information, see the
+        :wikipedia:`Ear_decomposition`.
 
-
-        If input graph is not connected, it will find ear decomposition in connected components.
-        sage: sage: g = Graph([[0, 1],[0, 7],[0, 3],[0, 11],[2, 3],[1, 2],[1, 12],[2, 12],[3, 
-        ....: 4],[3, 6],[4, 5],[4, 7],[4, 6],[5, 6],[7, 10],[7, 8],[7, 11],[8, 9],[8, 10
-        ....: ],[8, 11],[9, 11],[13, 14],[13, 15],[13, 16],[14, 15],[14, 16],[15, 16] ])
-        sage: g.ear_decomposition()
-        [[0, 11, 7, 4, 3, 2, 1, 0],
-          [0, 3],
-          [0, 7],
-          [1, 12, 2],
-          [3, 6, 4],
-          [4, 5, 6],
-          [7, 10, 8, 11],
-          [7, 8],
-          [11, 9, 8],
-          [0, 11],
-          [0, 3],
-          [0, 7],
-          [1, 12],
-          [3, 6],
-          [4, 5],
-          [7, 10],
-          [7, 8],
-          [11, 9],
-          [13, 14, 16, 13],
-          [13, 15, 14],
-          [16, 15]]
-
-
-        sage: G.allow_loops(True)
-        sage: G.allow_multiple_edges(True)
-        sage: for i in range(20):
-        ....: u = randint(1, 7)
-        ....: v = randint(1, 7)
-        ....: G.add_edge(u, v)
-        sage: G
-        Looped multi-graph on 7 vertices
-        sage: H = copy(G)
-        sage: H
-        Looped multi-graph on 7 vertices
-        sage: H = copy(G)
-        sage: H.allow_loops(False)
-        sage: H.allow_multiple_edges(False)
-        sage: H
-        Graph on 7 vertices
-        sage: H.ear_decomposition() == G.ear_decomposition()
-        [[1, 3, 2, 1], [1, 6, 5, 4, 3], [1, 7, 6], [2, 5], [2, 7], [3, 7], [4, 7], [5, 7]]
-        [[1, 3, 2, 1], [1, 6, 5, 4, 3], [1, 7, 6], [2, 5], [2, 7], [3, 7], [4, 7], [5, 7]]
-        True
-        
-        
-        sage: g = Graph([['0', '1'],['0', '7'],['0', '3'],['0', '11'],['2', '3'],['1', '2'],['1', '12'],['2', '12'],['3', '4'],['3', '6'],['4', '5'],['
-        ....: 4', '7'],['4', '6'],['5', '6'],['7', '10'],['7', '8'],['7', '11'],['8', '9'],['8', '10'],['8', '11'],['9', '11']])
-        sage: g.ear_decomposition()
-        [['11', '7', '4', '3', '2', '1', '0', '11'], ['11', '8', '10', '7'], ['11', '9', '8'], ['0', '7'], ['0', '3'], ['1', '12', '2'], ['3', '6', '4'], ['4', '5', '6'], ['7', '8']]
-
-
-      """
-
-      """
-      graph                   : Input graph
-      dfs_order               : List to store the order in which dfs visits vertices.
-      seen                    : Boolean dict to mark vertices as visited or unvisited during Dfs traversal in graph.
-      traversed               : Boolean dict to mark vertices as visited or unvisited in Dfs tree traversal.
-      parent                  : Dict to store parent vertex of all the visited vertices.
-      value                   : List to store visit_time of vertices in Dfs traversal.
-      chains                  : List to store all the chains and cycles of the input graph G.
-      DFS()                   : Function that performs depth first search on input graph G and stores DFS tree in parent array format.
-      Traverse()              : Function that use G-T(non -tree edges) to find cycles and chains by traversing in DFS tree.
-      """
-      dfs_order = []
-      seen = {}
-      traversed = {}
-      parent = {}
-      value = {}
-      chains = []
+        REFERENCES:
+        :doi:`10.2307/2303897`
+        Schmidt, Jens M. (2013a), "A Simple Test on 2-Vertex- and 2-Edge-Connectivity", 
+        Information Processing Letters, 113 (7): 241–244
   
-      if self.is_directed():
-        raise ValueError("Graph must be undirected")
-      
-      if self.order()<3:
-        raise ValueError("ear decomposition is defined for graphs of order at least 3")
-
-
-      vertices = self.vertices()
-      for i in vertices:
-        seen[i] = False
-        traversed[i] = False
-      
-
-      parent[vertices[0]] = -1
-
-      def DFS(v):
-        """
-          v = the current vertex need to expand.
-        """
-        # make v are visited, update it's time of visited and value
-        seen[v] = True
-        dfs_order.append(v)
-        
-        # Traverse though all the neighbor vertices of v
-        for neighbor in self.neighbors(v):
-          # if any neighbor is not visited, enter
-          if(not seen[neighbor]):
-            # Upated neighbor's parent as v and expand neighbor
-            parent[neighbor] = v
-            DFS(neighbor)
-
-      def traverse(start, pointer):
-        # Make the firt end of non-tree edge visited
-        traversed[start] = True
-        chain = []
-        chain.append(start)
-
-        # Traverse DFS Tree of G and print all the not visited vertices.
-        # Appending all the vertices in chain
-        while True:
-          chain.append(pointer)
-          if(traversed[pointer]):
-            break
-          traversed[pointer] = True
-          pointer = parent[pointer]
-        chains.append(chain)
-
-
-      for v in vertices:
-        if not seen[v]:
-          # start the depth first search from first vertex
-          DFS(v)
-          value = {u:i for i,u in enumerate(dfs_order)}
+        INPUT:     
+  
+        - ``graph`` -- The undirected graph for which ear decomposition needs to be computed.
+  
+        OUTPUT:
+  
+        - A nested list representing the cycle and chains of input graph G.
+  
+        EXAMPLES::
           
-          # Traverse all the non Tree edges, according to depth first traversal
-          for u in dfs_order:
-            for neighbor in self.neighbor_iterator(u):
-              if value[u] < value[neighbor] and u != parent[neighbor]:
-                traverse(u,neighbor)
+            sage: g = Graph([(0, 1),(0, 7),(0, 3),(0, 11),(2, 3),(1, 2),(1, 12),(2, 12),(3, 4),(3, 6),(4, 5),(4, 7),(4, 6),(5, 6),(7, 10),(7, 8),(7, 11),(8, 9),(8, 10),(8, 11),(9, 11)])
+            sage: g.ear_decomposition()
+            [[0, 11, 7, 4, 3, 2, 1, 0],
+             [0, 3],
+             [0, 7],
+             [1, 12, 2],
+             [3, 6, 4],
+             [4, 5, 6],
+             [7, 10, 8, 11],
+             [7, 8],
+             [11, 9, 8]]
+    
+            
+            sage: g = Graph([(0, 1),(0, 7),(0, 3),(0, 11),(2, 3),(1, 2),(1, 12),(2, 12),(3, 4),(3, 6),(4, 5),(4, 7),(4, 6),(5, 6),(7, 10),(7, 8),(7, 11),(8, 9),(8, 10),(8, 11),(9, 11), (12, 13)])
+            sage: g.ear_decomposition()
+            [[0, 11, 7, 4, 3, 2, 1, 0],
+             [0, 3],
+             [0, 7],
+             [1, 12, 2],
+             [3, 6, 4],
+             [4, 5, 6],
+             [7, 10, 8, 11],
+             [7, 8],
+             [11, 9, 8]]
 
-          dfs_order = []
-      
-      return chains
+
+            sage: d = {0 : [1, 11, 3, 7], 1 : [0, 2, 12], 2 : [1, 3, 12], 3 : [0, 2, 4, 6], 4 : [3, 7, 6, 5], 5 : [4, 6], 6 : [3, 4, 5], 7 : [0, 11, 4, 8, 10], 8 : [11, 7, 10, 9], 9 : [11, 8], 10 : [7, 8], 11 : [0, 7, 8, 9], 12 : [1, 2, 13], 13 : [16, 12, 14, 15], 14 : [16, 13, 15], 15 : [16, 13, 14], 16 : [13, 14, 15]}
+            sage: g = Graph(d)
+            sage: g.ear_decomposition()
+            [[0, 3, 2, 1, 0],
+             [0, 7, 4, 3],
+             [0, 11, 9, 8, 7],
+             [1, 12, 2],
+             [3, 6, 5, 4],
+             [4, 6],
+             [7, 10, 8],
+             [7, 11],
+             [8, 11],
+             [13, 14, 16, 13],
+             [13, 15, 14],
+             [16, 15]]
+    
+            sage: G = Graph()
+            sage: G.allow_loops(True)
+            sage: G.allow_multiple_edges(True)
+            sage: for i in range(20):
+            ....:     u = randint(1, 7)
+            ....:     v = randint(1, 7)
+            ....:     G.add_edge(u, v)
+            sage: G
+            Looped multi-graph on 7 vertices
+            sage: H = copy(G)
+            sage: H
+            Looped multi-graph on 7 vertices
+            sage: H = copy(G)
+            sage: H.allow_loops(False)
+            sage: H.allow_multiple_edges(False)
+            sage: H
+            Graph on 7 vertices
+            sage: H.ear_decomposition() == G.ear_decomposition()
+            True
+            
+            
+            sage: g = Graph([['0', '1'],['0', '7'],['0', '3'],['0', '11'],['2', '3'],['1', '2'],['1', '12'],['2', '12'],['3', '4'],['3', '6'],['4', '5'],['4', '7'],['4', '6'],['5', '6'],['7', '10'],['7', '8'],['7', '11'],['8', '9'],['8', '10'],['8', '11'],['9', '11']])
+            sage: g.ear_decomposition()
+            [['0', '7', '4', '3', '2', '1', '0'],
+             ['0', '3'],
+             ['0', '11', '7'],
+             ['1', '12', '2'],
+             ['3', '6', '4'],
+             ['4', '5', '6'],
+             ['7', '10', '8', '11'],
+             ['7', '8'],
+             ['11', '9', '8']]
+        
+        TESTS::
+            sage: g=Graph([])
+            sage: g
+            Graph on 0 vertices
+            sage: g.ear_decomposition()
+            Traceback (most recent call last):
+            ...
+            ValueError: Ear decomposition is defined for graphs of order at least 3.
+
+        """
+  
+        """
+        graph                   : Input graph
+        dfs_order               : List to store the order in which dfs visits vertices.
+        seen                    : Boolean dict to mark vertices as visited or unvisited during Dfs traversal in graph.
+        traversed               : Boolean dict to mark vertices as visited or unvisited in Dfs tree traversal.
+        parent                  : Dict to store parent vertex of all the visited vertices.
+        value                   : List to store visit_time of vertices in Dfs traversal.
+        chains                  : List to store all the chains and cycles of the input graph G.
+        DFS()                   : Function that performs depth first search on input graph G and stores DFS tree in parent array format.
+        Traverse()              : Function that use G-T(non -tree edges) to find cycles and chains by traversing in DFS tree.
+        """
+        dfs_order = []
+        seen = set()
+        traversed = set()
+        parent = {}
+        value = {}
+        chains = []
+        
+        if self.order()<3:
+            raise ValueError("Ear decomposition is defined for graphs of order at least 3.")
+  
+  
+        vertices = self.vertices()        
+  
+        parent[vertices[0]] = None
+  
+        def DFS(v):
+            """
+            Depth first search step from vertex v. 
+            """
+
+            # make v are visited, update it's time of visited and value
+            seen.add(v)
+            dfs_order.append(v)
+            
+            # Traverse though all the neighbor vertices of v
+            for u in self.neighbor_iterator(v):
+                # if any neighbor is not visited, enter
+                if u not in seen:
+                    # Set the parent of u in DFS tree as v and continue exploration
+                    parent[u] = v
+                    DFS(u)
+  
+        def traverse(start, pointer):
+            # Make the firt end of non-tree edge visited
+            traversed.add(start)
+            chain = [start]
+            
+            # Traverse DFS Tree of G and print all the not visited vertices.
+            # Appending all the vertices in chain
+            while True:
+                chain.append(pointer)
+                if pointer in traversed:
+                    break
+                traversed.add(pointer)
+                pointer = parent[pointer]
+            chains.append(chain)
+    
+        for v in vertices:
+            if v not in seen:
+              # start the depth first search from first vertex
+                DFS(v)
+                value = {u:i for i,u in enumerate(dfs_order)}
+                
+                # Traverse all the non Tree edges, according to depth first traversal
+                for u in dfs_order:
+                    for neighbor in self.neighbor_iterator(u):
+                        if value[u] < value[neighbor] and u != parent[neighbor]:
+                            traverse(u,neighbor)
+  
+                dfs_order = []
+        
+        return chains
 
     @doc_index("Clique-related methods")
     def cliques_vertex_clique_number(self, algorithm="cliquer", vertices=None,

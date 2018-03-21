@@ -500,7 +500,7 @@ def is_comparability(g, algorithm = "greedy", certificate = False, check = True)
 
     INPUT:
 
-    - ``algorithm`` -- chose the implementation used to do the test.
+    - ``algorithm`` -- choose the implementation used to do the test.
 
       - ``"greedy"`` -- a greedy algorithm (see the documentation of the
         :mod:`comparability module <sage.graphs.comparability>`).
@@ -576,7 +576,7 @@ def is_permutation(g, algorithm = "greedy", certificate = False, check = True):
 
     INPUT:
 
-    - ``algorithm`` -- chose the implementation used for the subcalls to
+    - ``algorithm`` -- choose the implementation used for the subcalls to
       :meth:`is_comparability`.
 
       - ``"greedy"`` -- a greedy algorithm (see the documentation of the

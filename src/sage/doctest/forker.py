@@ -51,6 +51,7 @@ from sage.structure.sage_object import SageObject
 from .parsing import SageOutputChecker, pre_hash, get_source
 from sage.repl.user_globals import set_globals
 from sage.interfaces.process import ContainChildren
+from sage.cpython.atexit import restore_atexit
 from sage.cpython.string import bytes_to_str, str_to_bytes
 
 
@@ -2274,17 +2275,8 @@ class DocTestTask(object):
             sage: ntests >= 200 or ntests
             True
         """
-        # Store all existing atexit() functions and clear them,
-        # so we know that all newly registered functions come from
-        # doctests.
-        import atexit
-        saved_exithandlers = atexit._exithandlers
-        atexit._exithandlers = []
-
         result = None
         try:
-            file = self.source.path
-            basename = self.source.basename
             runner = SageDocTestRunner(
                     SageOutputChecker(),
                     verbose=options.verbose,
@@ -2292,34 +2284,21 @@ class DocTestTask(object):
                     msgfile=msgfile,
                     sage_options=options,
                     optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)
-            runner.basename = basename
+            runner.basename = self.source.basename
+            runner.filename = self.source.path
             N = options.file_iterations
             results = DictAsObject(dict(walltime=[],cputime=[],err=None))
-            for it in range(N):
-                # Make the right set of globals available to doctests
-                if basename.startswith("sagenb."):
-                    import sage.all_notebook as sage_all
-                else:
-                    import sage.all_cmdline as sage_all
-                dict_all = sage_all.__dict__
-                # Remove '__package__' item from the globals since it is not
-                # always in the globals in an actual Sage session.
-                dict_all.pop('__package__', None)
-                sage_namespace = RecordingDict(dict_all)
-                sage_namespace['__name__'] = '__main__'
-                doctests, extras = self.source.create_doctests(sage_namespace)
-                timer = Timer().start()
 
-                for test in doctests:
-                    result = runner.run(test)
-                    if options.exitfirst and result.failed:
+            # multiprocessing.Process instances don't run exit
+            # functions, so we run the functions added by doctests
+            # when exiting this context.
+            with restore_atexit(run=True):
+                for it in range(N):
+                    doctests, extras = self._run(runner, options, results)
+                    runner.summarize(options.verbose)
+                    if runner.update_results(results):
                         break
 
-                runner.filename = file
-                failed, tried = runner.summarize(options.verbose)
-                timer.stop().annotate(runner)
-                if runner.update_results(results):
-                    break
             if extras['tab']:
                 results.err = 'tab'
                 results.tab_linenos = extras['tab']
@@ -2327,13 +2306,9 @@ class DocTestTask(object):
                 results.err = 'line_number'
             results.optionals = extras['optionals']
             # We subtract 1 to remove the sig_on_count() tests
-            result = (sum([max(0,len(test.examples) - 1) for test in doctests]), results)
+            result = (sum(max(0,len(test.examples) - 1) for test in doctests),
+                      results)
 
-            # multiprocessing.Process instances don't run exit
-            # functions, so we run the functions added by doctests
-            # now manually and restore the old exit functions.
-            atexit._run_exitfuncs()
-            atexit._exithandlers = saved_exithandlers
         except BaseException:
             exc_info = sys.exc_info()
             tb = "".join(traceback.format_exception(*exc_info))
@@ -2341,4 +2316,30 @@ class DocTestTask(object):
 
         if result_queue is not None:
             result_queue.put(result, False)
+
         return result
+
+    def _run(self, runner, options, results):
+        """
+        Actually run the doctests with the right set of globals
+        """
+        if self.source.basename.startswith("sagenb."):
+            import sage.all_notebook as sage_all
+        else:
+            import sage.all_cmdline as sage_all
+        dict_all = sage_all.__dict__
+        # Remove '__package__' item from the globals since it is not
+        # always in the globals in an actual Sage session.
+        dict_all.pop('__package__', None)
+        sage_namespace = RecordingDict(dict_all)
+        sage_namespace['__name__'] = '__main__'
+        doctests, extras = self.source.create_doctests(sage_namespace)
+        timer = Timer().start()
+
+        for test in doctests:
+            result = runner.run(test)
+            if options.exitfirst and result.failed:
+                break
+
+        timer.stop().annotate(runner)
+        return doctests, extras

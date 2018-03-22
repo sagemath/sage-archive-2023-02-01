@@ -284,6 +284,7 @@ class sage_build_cython(Command):
             cdivision=True,
             embedsignature=True,
             fast_getattr=True,
+            preliminary_late_includes_cy28=True,
             profile=self.profile,
         )
         self.compile_time_env = dict(

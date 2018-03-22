@@ -543,7 +543,11 @@ cdef automorphism_group_gens_from_edge_list(int Vnr, Vout, Vin, int Lnr=1, label
 
 cpdef automorphism_group(G, partition=None):
     """
-    Computes the automorphism group of ``G`` subject to the coloring ``partition.``
+    Computes the automorphism group of ``G`` subject to the vertex coloring ``partition``, if given.
+
+    The graph ``G`` can be a directed or undirected graph with or without edge labellings.
+
+    Observe the neither the vertex colorings nor the edge colorings are interchangeable.
 
     INPUT:
 
@@ -552,18 +556,11 @@ cpdef automorphism_group(G, partition=None):
     - ``partition`` -- A partition of the vertices of ``G`` into color classes.
       Defaults to ``None``, which is equivalent to a partition of size 1.
 
-    TESTS::
+    EXAMPLES::
 
         sage: from sage.graphs.bliss import automorphism_group                  # optional - bliss
-        sage: G = graphs.PetersenGraph()                                        # optional - bliss
-        sage: automorphism_group(G).is_isomorphic(G.automorphism_group())       # optional - bliss
-        True
 
-        sage: G = graphs.HeawoodGraph()                                         # optional - bliss
-        sage: p = G.bipartite_sets()                                            # optional - bliss
-        sage: A = G.automorphism_group(partition=[list(p[0]), list(p[1])])      # optional - bliss
-        sage: automorphism_group(G, partition=p).is_isomorphic(A)               # optional - bliss
-        True
+    Computing the automorphism group of a graph or digraph::
 
         sage: G = graphs.CompleteMultipartiteGraph([1,1,1,2])                   # optional - bliss
         sage: automorphism_group(G).cardinality()                               # optional - bliss
@@ -571,6 +568,12 @@ cpdef automorphism_group(G, partition=None):
         sage: D = DiGraph(G.edges())                                            # optional - bliss
         sage: automorphism_group(D).cardinality()                               # optional - bliss
         2
+
+    Observe that the order 12 is given by permuting the first three vertices, or the last two
+    in the case of a graph, while only the latter two are possible in the case of a directed
+    graph.
+
+    Partitioning the vertices into classes::
 
         sage: G = graphs.CompleteMultipartiteGraph([3,2])                       # optional - bliss
         sage: automorphism_group(G).cardinality()                               # optional - bliss
@@ -582,6 +585,8 @@ cpdef automorphism_group(G, partition=None):
 
         sage: automorphism_group(G,partition=[[1,2],[0,3],[4]]).cardinality()   # optional - bliss
         2
+
+    Partitioning the edges into classes::
 
         sage: G = Graph(graphs.CompleteMultipartiteGraph([8,2]), sparse=True)   # optional - bliss
         sage: for i,j,_ in G.edges():                                           # optional - bliss
@@ -596,6 +601,19 @@ cpdef automorphism_group(G, partition=None):
         2^4 * 3^2
         sage: automorphism_group(G,[[0],[1],[2,3],[4,5],[6,7],[8],[9]]).cardinality()   # optional - bliss
         4
+
+    TESTS::
+
+        sage: from sage.graphs.bliss import automorphism_group                  # optional - bliss
+        sage: G = graphs.PetersenGraph()                                        # optional - bliss
+        sage: automorphism_group(G).is_isomorphic(G.automorphism_group())       # optional - bliss
+        True
+
+        sage: G = graphs.HeawoodGraph()                                         # optional - bliss
+        sage: p = G.bipartite_sets()                                            # optional - bliss
+        sage: A = G.automorphism_group(partition=[list(p[0]), list(p[1])])      # optional - bliss
+        sage: automorphism_group(G, partition=p).is_isomorphic(A)               # optional - bliss
+        True
 
         sage: G = graphs.CompleteMultipartiteGraph([5,7,11])
         sage: B = automorphism_group(G)                                         # optional - bliss

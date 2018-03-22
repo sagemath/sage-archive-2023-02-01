@@ -565,9 +565,55 @@ cpdef automorphism_group(G, partition=None):
         sage: automorphism_group(G, partition=p).is_isomorphic(A)               # optional - bliss
         True
 
-        sage: G = graphs.CompleteMultipartiteGraph([5,7,11])                    # optional - bliss
+        sage: G = graphs.CompleteMultipartiteGraph([1,1,1,2])                   # optional - bliss
+        sage: automorphism_group(G).cardinality()                               # optional - bliss
+        12
+        sage: D = DiGraph(G.edges())                                            # optional - bliss
+        sage: automorphism_group(D).cardinality()                               # optional - bliss
+        2
+
+        sage: G = graphs.CompleteMultipartiteGraph([3,2])                       # optional - bliss
+        sage: automorphism_group(G).cardinality()                               # optional - bliss
+        12
+        sage: automorphism_group(G,partition=[[0],[1],[2],[3,4]]).cardinality() # optional - bliss
+        2
+        sage: automorphism_group(G,partition=[[0],[1,2],[3,4]]).cardinality()   # optional - bliss
+        4
+
+        sage: automorphism_group(G,partition=[[1,2],[0,3],[4]]).cardinality()   # optional - bliss
+        2
+
+        sage: G = Graph(graphs.CompleteMultipartiteGraph([8,2]), sparse=True)   # optional - bliss
+        sage: for i,j,_ in G.edges():                                           # optional - bliss
+        ....:     if 0 <= i < 3:                                                # optional - bliss
+        ....:         G.set_edge_label(i,j,"A")                                 # optional - bliss
+        ....:     if 3 <= i < 6:                                                # optional - bliss
+        ....:         G.set_edge_label(i,j,"B")                                 # optional - bliss
+        ....:     if 6 <= i < 8:                                                # optional - bliss
+        ....:         G.set_edge_label(i,j,"C")                                 # optional - bliss
+
+        sage: factor(automorphism_group(G).cardinality())                       # optional - bliss
+        2^4 * 3^2
+        sage: automorphism_group(G,[[0],[1],[2,3],[4,5],[6,7],[8],[9]]).cardinality()   # optional - bliss
+        4
+
+        sage: G = graphs.CompleteMultipartiteGraph([5,7,11])
         sage: B = automorphism_group(G)                                         # optional - bliss
         sage: B.cardinality() == prod(factorial(n) for n in [5,7,11])           # optional - bliss
+        True
+
+        sage: G = Graph(graphs.CompleteMultipartiteGraph([8,8,8,5]),sparse=True)# optional - bliss
+        sage: for i,j,_ in G.edges():                                           # optional - bliss
+        ....:     if 0 <= i < 3:                                                # optional - bliss
+        ....:         G.set_edge_label(i,j,"A")                                 # optional - bliss
+        ....:     if 3 <= i < 6:                                                # optional - bliss
+        ....:         G.set_edge_label(i,j,"B")                                 # optional - bliss
+        ....:     if 6 <= i < 8:                                                # optional - bliss
+        ....:         G.set_edge_label(i,j,"C")                                 # optional - bliss
+        ....:
+        sage: automorphism_group(G).cardinality() == prod( factorial(n) for n in [3,3,2,8,8,5,2] )  # optional - bliss
+        True
+        sage: automorphism_group(G,[[0 .. 7],[8 .. 11],[12 .. 28]]).cardinality() == prod( factorial(n) for n in [3,3,2,4,4,8,5] )  # optional - bliss
         True
 
         sage: G = Graph()                                                       # optional - bliss
@@ -591,7 +637,7 @@ cpdef automorphism_group(G, partition=None):
         sage: A = automorphism_group(G)                                         # optional - bliss
         sage: print(A.gens())                                                   # random, optional - bliss
         [('r','t'), ('s','r'), ('p','s'), ('q','p'), ('o','q'), ('l','n'), ('m','l'), ('j','m'), ('k','j'), ('i','h'), ('f','i'), ('g','f'), ('e','d'), ('c','e'), ('a','b')]
-        sage: A.cardinality() == prod(factorial(n) for n in [2,3,4,5,6])        # optional - bliss    
+        sage: A.cardinality() == prod(factorial(n) for n in [2,3,4,5,6])        # optional - bliss
         True
     """
     # We need this to convert the numbers from <unsigned int> to

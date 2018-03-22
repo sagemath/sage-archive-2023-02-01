@@ -337,11 +337,11 @@ class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
     class Element(LieAlgebraFromAssociative.Element):
         def matrix(self):
             r"""
-            Return self as element of the underlying matrix algebra
+            Return ``self`` as element of the underlying matrix algebra.
 
-            OUTPUT::
-     
-               an instance of the element class of MatrixSpace
+            OUTPUT:
+
+            An instance of the element class of MatrixSpace.
 
             EXAMPLES::
 
@@ -357,8 +357,13 @@ class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
                 [ 0  0  0]
                 [ 0  1  0]
                 [ 0  0 -1]
-
-
+                sage: L = lie_algebras.so(QQ['z'], 5, representation='matrix')
+                sage: matrix(L.an_element())
+                [ 1  1  0  0  0]
+                [ 1  1  0  0  2]
+                [ 0  0 -1 -1  0]
+                [ 0  0 -1 -1 -1]
+                [ 0  1  0 -2  0]
             """
             return self.value
 

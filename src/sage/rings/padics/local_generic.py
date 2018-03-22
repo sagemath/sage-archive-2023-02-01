@@ -1054,8 +1054,7 @@ class LocalGeneric(CommutativeRing):
         ## the difference between ball_prec and inexact_ring is just for lattice precision.
         ball_prec = R._prec_type() in ['capped-rel','capped-abs']
         inexact_ring = R._prec_type() not in ['fixed-mod','floating-point']
-        if ball_prec:
-            precM = min(x.precision_absolute() for x in M.list())
+        precM = min(x.precision_absolute() for x in M.list())
 
         if transformation:
             from sage.matrix.special import identity_matrix
@@ -1095,7 +1094,11 @@ class LocalGeneric(CommutativeRing):
             val = curval
 
             if inexact_ring and not allzero and val >= precM:
-                raise PrecisionError("not enough precision to compute Smith normal form")
+                if ball_prec:
+                    raise PrecisionError("not enough precision to compute Smith normal form")
+                precM = min([ S[i,j].precision_absolute() for i in range(piv,n) for j in range(piv,m) ])
+                if val >= precM:
+                    raise PrecisionError("not enough precision to compute Smith normal form")
 
             if allzero:
                 if exact:

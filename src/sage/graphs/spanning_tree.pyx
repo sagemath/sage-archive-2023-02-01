@@ -338,7 +338,7 @@ cpdef kruskal(G, wfunction=None, bint check=False):
 
 from sage.sets.disjoint_set import *
 
-cpdef boruvka(G, wfunction=None, bint check=False):
+cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
     r"""
     Minimum spanning tree using Boruvka's algorithm.
 
@@ -383,6 +383,13 @@ cpdef boruvka(G, wfunction=None, bint check=False):
       connected, and has at least one vertex. Otherwise, you should set
       ``check=True`` to perform some sanity checks and preprocessing on the
       input graph. 
+    
+    - ``by_weight`` -- Whether to find MST by using weights of edges provided.
+      Default: ``by_weight=True``. If wfunction is given, MST is calculated
+      using the weights of edges as per the function. If wfunction is None, and 
+      graph is weighted, the default edge weights are used. Otherwise all edge
+      weights are considered 1. If we toggle ``by_weight=False``, all weights
+      are considered as 1 and MST is calculated.
 
     OUTPUT:
 
@@ -436,6 +443,30 @@ cpdef boruvka(G, wfunction=None, bint check=False):
         sage: boruvka(G, check=True) == boruvka(H, check=True)
         True
 
+    An example of disconnected graph with check disabled:
+
+        sage: from sage.graphs.spanning_tree import boruvka
+        sage: G = Graph({1:{2:28, 6:10}, 2:{3:16, 7:14}, 3:{4:12}, 4:{5:22, 7:18}, 5:{6:25, 7:24}, 8:{9:10}})
+        sage: G.weighted(True)
+        sage: E = boruvka(G, check=False); E
+        []
+
+    An example of unweighted graph (edge weights are considered to be 1):
+
+        sage: from sage.graphs.spanning_tree import boruvka
+        sage: G = Graph({1:{2:28, 6:10}, 2:{3:16, 7:14}, 3:{4:12}, 4:{5:22, 7:18}, 5:{6:25, 7:24}})
+        sage: G.weighted(False)
+        sage: E = boruvka(G, check=True); E
+        [(1, 2, 28), (2, 3, 16), (3, 4, 12), (4, 5, 22), (1, 6, 10), (2, 7, 14)]
+
+    An example where parameter by_weight is set to False:
+
+        sage: from sage.graphs.spanning_tree import boruvka
+        sage: G = Graph({1:{2:28, 6:10}, 2:{3:16, 7:14}, 3:{4:12}, 4:{5:22, 7:18}, 5:{6:25, 7:24}})
+        sage: G.weighted(True)
+        sage: E = boruvka(G, check=True, by_weight=False); E
+        [(1, 2, 28), (2, 3, 16), (3, 4, 12), (4, 5, 22), (1, 6, 10), (2, 7, 14)]
+    
     An example from pages 599--601 in [GoodrichTamassia2001]_. ::
 
         sage: G = Graph({"SFO":{"BOS":2704, "ORD":1846, "DFW":1464, "LAX":337},
@@ -464,7 +495,8 @@ cpdef boruvka(G, wfunction=None, bint check=False):
         ....: "e":{"f":10}, "f":{"g":2}, "g":{"h":1, "i":6}, "h":{"i":7}})
         sage: G.weighted(True)
         sage: boruvka(G, check=True)
-        [('a', 'b', 4), ('c', 'i', 2), ('d', 'e', 9), ('c', 'd', 7), ('g', 'h', 1), ('f', 'g', 2), ('b', 'c', 8), ('c', 'f', 4)]
+        [('a', 'b', 4), ('c', 'i', 2), ('d', 'e', 9), ('c', 'd', 7), 
+            ('g', 'h', 1), ('f', 'g', 2), ('b', 'c', 8), ('c', 'f', 4)]
 
     An example with custom edge labels::
 
@@ -560,89 +592,80 @@ cpdef boruvka(G, wfunction=None, bint check=False):
 
     # Boruvka's algorithm
 
+    # Store the list of active edges as (e,e_weight) in a list 
+    if by_weight:
+        if wfunction is None:
+            if G.weighted():
+                edge_list = [(e, e[2]) for e in G.edges()]
+            else:
+                edge_list = [(e, 1) for e in G.edges()]
+        else:
+            edge_list = [(e, wfunction(e)) for e in G.edges()]
+    else:
+        edge_list = [(e, 1) for e in G.edges()]
+
     # initially, each vertex is a connected component
     partitions = DisjointSet(G.vertices())
-    cheapest = {} # a dictionary to store the least weight outgoing edge for each component
+    # a dictionary to store the least weight outgoing edge for each component
+    cheapest = {}
     T = [] # stores the edges in minimum spanning tree
-    numConnectedComponents = len(G.vertices()) 
-    numConnectedComponentsPrevIter = len(G.vertices()) + 1
+    numConComp = len(G.vertices()) 
+    numConCompPrevIter = len(G.vertices()) + 1
 
-    # Store an edge list to keep track of active edges
-    edge_list = G.edges()
-    components_dict = {} # to store the pairwise cheapest edges
+    # Dictionary to maintain active cheapest edges between pairs of components
+    components_dict = {}
 
-    while numConnectedComponents > 1:
+    while numConComp > 1:
         # Check if number of connected components decreased.
         # Otherwise, the graph is not connected.
-        if (numConnectedComponentsPrevIter == numConnectedComponents):
+        if (numConCompPrevIter == numConComp):
             return []
         else:
-            numConnectedComponentsPrevIter = numConnectedComponents
+            numConCompPrevIter = numConComp
 
         # If the two endpoints of current edge belong to
         # same component, ignore the edge. 
         # Else check if current edge has lesser weight than previous
         # cheapest edges of component1 and component2.
-        # Before that, check if component1 and 2 are present in 'cheapest' dict.
-        # Also, store a dictionary to maintain active cheapest edges between pairs of components
-        for e in edge_list:
+        # Before that, check if component1 and 2 are present in 'cheapest' dict
+        # Also, update active cheapest edges between pairs of components
+        for e, e_weight in edge_list:
             component1 = partitions.find(e[0])
             component2 = partitions.find(e[1])
 
             if component1 != component2 : 
                 pair = (component1, component2) if (component1 < component2) else (component2, component1)
-                if wfunction is None:
-                    if component1 in cheapest:
-                        if cheapest[component1][2] > e[2]:
-                            cheapest[component1] = e
-                    else:
-                        cheapest[component1] = e
+                if component1 in cheapest:
+                    if cheapest[component1][1] > e_weight:
+                        cheapest[component1] = (e, e_weight)
+                else:
+                    cheapest[component1] = (e, e_weight)
 
-                    if component2 in cheapest:
-                        if cheapest[component2][2] > e[2]:
-                            cheapest[component2] = e
-                    else:
-                        cheapest[component2] = e
-                    # store the cheapest edge between the two components
-                    if pair in components_dict:
-                        if components_dict[pair][2] > e[2]:
-                            components_dict[pair] = e
-                    else:
-                        components_dict[pair] = e
-                    
-                else: # if a weight function is provided
-                    e_weight = wfunction(e)
-                    if component1 in cheapest:
-                        if wfunction(cheapest[component1]) > e_weight:
-                            cheapest[component1] = e
-                    else:
-                        cheapest[component1] = e
-
-                    if component2 in cheapest:
-                        if wfunction(cheapest[component2]) > e_weight:
-                            cheapest[component2] = e
-                    else:
-                        cheapest[component2] = e
-                    # store the cheapest edge between the two components
-                    if pair in components_dict:
-                        if wfunction(components_dict[pair]) > e_weight:
-                            components_dict[pair] = e
-                    else:
-                        components_dict[pair] = e
+                if component2 in cheapest:
+                    if cheapest[component2][1] > e_weight:
+                        cheapest[component2] = (e, e_weight)
+                else:
+                    cheapest[component2] = (e, e_weight)
+                # store the cheapest edge between the two components
+                if pair in components_dict:
+                    if components_dict[pair][1] > e_weight:
+                        components_dict[pair] = (e, e_weight)
+                else:
+                    components_dict[pair] = (e, e_weight)
         
         edge_list = components_dict.values() # active edges
 
         # Go through all the current connected components
         # and merge wherever possible
         for v in cheapest:
-            e = cheapest[v]
+            e, e_weight = cheapest[v]
             component1 = partitions.find(e[0])
             component2 = partitions.find(e[1])
 
             if component1 != component2 :
                 partitions.union(component1, component2)
                 T.append(e)
-                numConnectedComponents = numConnectedComponents - 1
+                numConComp = numConComp - 1
          
         # reset the dictionaries for next iteration
         cheapest = {}

@@ -4861,7 +4861,7 @@ def JankoKharaghaniGraph(v):
     .. [JK02] Janko, Kharaghani,
        A block negacyclic Bush-type Hadamard matrix and two strongly regular graphs.
        J. Combin. Theory Ser. A 98 (2002), no. 1, 118--126.
-       http://dx.doi.org/10.1006/jcta.2001.3231
+       :doi:`10.1006/jcta.2001.3231`
 
     .. [GM87] Gibbons, Mathon,
        Construction methods for Bhaskar Rao and related designs,

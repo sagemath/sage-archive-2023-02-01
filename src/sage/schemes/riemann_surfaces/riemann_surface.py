@@ -1712,14 +1712,14 @@ def integer_matrix_relations(M1,M2,b=None,r=None):
         raise ValueError("insufficient precision for b=%s"%b)
     g = M1.ncols()
     CC = M1.base_ring()
-    V = ["%s%s"%(n,i) for n in ["a","b","c","d"] for i in srange(1,1+g**2)]
-    R = PolynomialRing(CC,V)
-    A = Matrix(R,g,g,V[:g**2])
-    B = Matrix(R,g,g,V[g**2:2*g**2])
-    C = Matrix(R,g,g,V[2*g**2:3*g**2])
-    D = Matrix(R,g,g,V[3*g**2:4*g**2])
-    W = ((M1*A+B) - (M1*C+D)*M2).list()
+    names = ["%s%s"%(n, i+1) for n in ["a","b","c","d"] for i in range(g**2)]
+    R = PolynomialRing(CC, names)
     vars = R.gens()
+    A = Matrix(R, g, g, vars[:g**2])
+    B = Matrix(R, g, g, vars[g**2:2*g**2])
+    C = Matrix(R, g, g, vars[2*g**2:3*g**2])
+    D = Matrix(R, g, g, vars[3*g**2:4*g**2])
+    W = ((M1*A+B) - (M1*C+D)*M2).list()
     mt = Matrix(ZZ,[[1 if i==j else 0 for j in range(4*g**2)] +
       [(S*w.monomial_coefficient(vars[i]).real_part()).round() for w in W] +
       [(S*w.monomial_coefficient(vars[i]).imag_part()).round() for w in W] for i in range(len(vars))])

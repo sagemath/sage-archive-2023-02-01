@@ -1138,19 +1138,6 @@ Here are some of the more commonly used variables affecting the build process:
   supports :envvar:`SAGE_SUDO`, into a root-owned installation
   hierarchy (:envvar:`SAGE_LOCAL`).
 
-- :envvar:`SAGE_PYTHON3` - set this to ``yes`` to build Sage using
-  Python 3 rather than Python 2.
-
-  .. WARNING::
-
-     This will probably break your Sage installation!
-
-  .. WARNING::
-
-     This environment variable may not be supported in future versions
-     of Sage; it may be replaced by (for example) ``configure``
-     options.
-
 Variables to set if you're trying to build Sage with an unusual setup, e.g.,
 an unsupported machine or an unusual compiler:
 

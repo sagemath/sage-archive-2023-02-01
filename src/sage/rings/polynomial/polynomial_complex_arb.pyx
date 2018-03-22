@@ -577,7 +577,7 @@ cdef class Polynomial_complex_arb(Polynomial):
             sage: (x^2 + 1)._power_trunc(10^20, 0)
             Traceback (most recent call last):
                 ...
-            OverflowError: long int too large to convert
+            OverflowError: ... int too large to convert...
 
         TESTS::
 

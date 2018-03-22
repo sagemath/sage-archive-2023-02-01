@@ -3331,7 +3331,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
     def sigma_invariants(self, n, formal=False, embedding=None, type='point'):
         r"""
         Computes the values of the elementary symmetric polynomials of
-        the ``n`` multilpier spectra of this dynamical system.
+        the ``n`` multiplier spectra of this dynamical system.
 
         Can specify to instead compute the values corresponding to the
         elementary symmetric polynomials of the formal ``n`` multiplier
@@ -4841,7 +4841,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         Conj = []
         for i in Arrangements(K,(n+2)):
             # try all possible conjugations between invariant sets
-            try: # need all n+1 subsets linearly independenet
+            try: # need all n+1 subsets linearly independent
                 s = f.domain().point_transformation_matrix(i,Tf)# finds elements of PGL that maps one map to another
                 if self.conjugate(s) == other:
                     Conj.append(s)
@@ -4961,7 +4961,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                         break
         for i in Arrangements(K, n+2):
             # try all possible conjugations between invariant sets
-            try: # need all n+1 subsets linearly independenet
+            try: # need all n+1 subsets linearly independent
                 s = f.domain().point_transformation_matrix(i,Tf) # finds elements of PGL that maps one map to another
                 if self.conjugate(s) == other:
                     return True

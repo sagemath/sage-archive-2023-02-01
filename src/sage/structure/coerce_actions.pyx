@@ -525,7 +525,7 @@ cdef class ModuleAction(Action):
             sage: cm.explain(x, 1, operator.truediv)
             Action discovered.
                 Right inverse action by Symbolic Constants Subring on Univariate Polynomial Ring in x over Symbolic Constants Subring
-                with precomposition on right by Coercion map:
+                with precomposition on right by Conversion via _symbolic_ method map:
                   From: Integer Ring
                   To:   Symbolic Constants Subring
             Result lives in Univariate Polynomial Ring in x over Symbolic Constants Subring

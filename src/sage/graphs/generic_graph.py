@@ -21674,8 +21674,7 @@ class GenericGraph(GenericGraph_pyx):
            respecting the partition.
 
         -  ``edge_labels`` - default False, otherwise allows
-           only permutations respecting edge labels. Note that this option
-           is not supported if ``algorithm="bliss"``
+           only permutations respecting edge labels.
 
         -  ``order`` - (default False) if True, compute the
            order of the automorphism group

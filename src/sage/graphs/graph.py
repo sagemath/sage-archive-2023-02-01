@@ -6732,24 +6732,23 @@ class Graph(GenericGraph):
             cover_g.sort()
             return cover_g
 
+    @doc_index("Connectivity, orientations, trees")
     def ear_decomposition(self):
         r"""
-        Return the Ear decomposition of the graph.
+        Return an Ear decomposition of the graph.
         
-        An ear decomposition of an undirected graph G is a partition of its set of edges into a sequence of ears, 
-        such that the one or two endpoints of each ear belong to earlier ears in the sequence and such that the 
-        internal vertices of each ear do not belong to any earlier ear.
+        An ear of an undirected graph `G` is a path `P` where the two endpoints of the
+        path may coincide (i.e., form a cycle), but where otherwise no repetition of 
+        edges or vertices is allowed, so every internal vertex of P has degree two in `P`.
 
-        An ear of an undirected graph G is a path P where the two endpoints of the path may coincide, but where 
-        otherwise no repetition of edges or vertices is allowed, so every internal vertex of P has degree two in P.
-        
+        An ear decomposition of an undirected graph `G` is a partition of its set of
+        edges into a sequence of ears, such that the one or two endpoints of each ear 
+        belong to earlier ears in the sequence and such that the internal vertices of 
+        each ear do not belong to any earlier ear.
+
         For more information, see the
         :wikipedia:`Ear_decomposition`.
 
-        REFERENCES:
-        :doi:`10.2307/2303897`
-        Schmidt, Jens M. (2013a), "A Simple Test on 2-Vertex- and 2-Edge-Connectivity", 
-        Information Processing Letters, 113 (7): 241–244
   
         INPUT:     
   
@@ -6757,23 +6756,27 @@ class Graph(GenericGraph):
   
         OUTPUT:
   
-        - A nested list representing the cycle and chains of input graph G.
+        - A nested list representing the cycles and chains of the ear decomposition of the graph.
   
-        EXAMPLES::
+        EXAMPLES:
           
-            sage: g = Graph([(0, 1),(0, 7),(0, 3),(0, 11),(2, 3),(1, 2),(1, 12),(2, 12),(3, 4),(3, 6),(4, 5),(4, 7),(4, 6),(5, 6),(7, 10),(7, 8),(7, 11),(8, 9),(8, 10),(8, 11),(9, 11)])
+        Ear decomposition of an outer plananr graph of order 13::
+
+            sage: g = Graph('LlCG{O@?GBOMW?')
             sage: g.ear_decomposition()
-            [[0, 11, 7, 4, 3, 2, 1, 0],
-             [0, 3],
-             [0, 7],
+            [[0, 3, 2, 1, 0],
+             [0, 7, 4, 3],
+             [0, 11, 9, 8, 7],
              [1, 12, 2],
-             [3, 6, 4],
-             [4, 5, 6],
-             [7, 10, 8, 11],
-             [7, 8],
-             [11, 9, 8]]
-    
+             [3, 6, 5, 4],
+             [4, 6],
+             [7, 10, 8],
+             [7, 11],
+             [8, 11]]
             
+
+        Ear decomposition of a disconnected graph in which one connected component order is < 3::
+
             sage: g = Graph([(0, 1),(0, 7),(0, 3),(0, 11),(2, 3),(1, 2),(1, 12),(2, 12),(3, 4),(3, 6),(4, 5),(4, 7),(4, 6),(5, 6),(7, 10),(7, 8),(7, 11),(8, 9),(8, 10),(8, 11),(9, 11), (12, 13)])
             sage: g.ear_decomposition()
             [[0, 11, 7, 4, 3, 2, 1, 0],
@@ -6786,6 +6789,8 @@ class Graph(GenericGraph):
              [7, 8],
              [11, 9, 8]]
 
+
+        Ear decomposition of a disconnected graph of order 17::
 
             sage: d = {0 : [1, 11, 3, 7], 1 : [0, 2, 12], 2 : [1, 3, 12], 3 : [0, 2, 4, 6], 4 : [3, 7, 6, 5], 5 : [4, 6], 6 : [3, 4, 5], 7 : [0, 11, 4, 8, 10], 8 : [11, 7, 10, 9], 9 : [11, 8], 10 : [7, 8], 11 : [0, 7, 8, 9], 12 : [1, 2, 13], 13 : [16, 12, 14, 15], 14 : [16, 13, 15], 15 : [16, 13, 14], 16 : [13, 14, 15]}
             sage: g = Graph(d)
@@ -6803,6 +6808,8 @@ class Graph(GenericGraph):
              [13, 15, 14],
              [16, 15]]
     
+        Ear decomposition of multigraph(g) is same as ear decomposition on simple graph(g)::
+
             sage: G = Graph()
             sage: G.allow_loops(True)
             sage: G.allow_multiple_edges(True)
@@ -6822,19 +6829,6 @@ class Graph(GenericGraph):
             Graph on 7 vertices
             sage: H.ear_decomposition() == G.ear_decomposition()
             True
-            
-            
-            sage: g = Graph([['0', '1'],['0', '7'],['0', '3'],['0', '11'],['2', '3'],['1', '2'],['1', '12'],['2', '12'],['3', '4'],['3', '6'],['4', '5'],['4', '7'],['4', '6'],['5', '6'],['7', '10'],['7', '8'],['7', '11'],['8', '9'],['8', '10'],['8', '11'],['9', '11']])
-            sage: g.ear_decomposition()
-            [['0', '7', '4', '3', '2', '1', '0'],
-             ['0', '3'],
-             ['0', '11', '7'],
-             ['1', '12', '2'],
-             ['3', '6', '4'],
-             ['4', '5', '6'],
-             ['7', '10', '8', '11'],
-             ['7', '8'],
-             ['11', '9', '8']]
         
         TESTS::
             sage: g=Graph([])
@@ -6845,26 +6839,33 @@ class Graph(GenericGraph):
             ...
             ValueError: Ear decomposition is defined for graphs of order at least 3.
 
+        REFERENCES:
+        
+        .. [Sch2013] Schmidt, Jens M. (2013a), "A Simple Test on 2-Vertex- and 2-Edge-Connectivity", 
+                     Information Processing Letters, 113 (7): 241–244
+                     :doi:`10.2307/2303897`
+
         """
   
-        """
-        graph                   : Input graph
-        dfs_order               : List to store the order in which dfs visits vertices.
-        seen                    : Boolean dict to mark vertices as visited or unvisited during Dfs traversal in graph.
-        traversed               : Boolean dict to mark vertices as visited or unvisited in Dfs tree traversal.
-        parent                  : Dict to store parent vertex of all the visited vertices.
-        value                   : List to store visit_time of vertices in Dfs traversal.
-        chains                  : List to store all the chains and cycles of the input graph G.
-        DFS()                   : Function that performs depth first search on input graph G and stores DFS tree in parent array format.
-        Traverse()              : Function that use G-T(non -tree edges) to find cycles and chains by traversing in DFS tree.
-        """
+        # List to store the order in which dfs visits vertices.
         dfs_order = []
+        
+        # Boolean dict to mark vertices as visited or unvisited during Dfs traversal in graph.
         seen = set()
+        
+        # Boolean dict to mark vertices as visited or unvisited in Dfs tree traversal.
         traversed = set()
+        
+        # Dict to store parent vertex of all the visited vertices.
         parent = {}
+        
+        # List to store visit_time of vertices in Dfs traversal.
         value = {}
+        
+        # List to store all the chains and cycles of the input graph G.
         chains = []
         
+        # Ear decomposition of a graph of order < 3 is [].
         if self.order()<3:
             raise ValueError("Ear decomposition is defined for graphs of order at least 3.")
   
@@ -6873,6 +6874,8 @@ class Graph(GenericGraph):
   
         parent[vertices[0]] = None
   
+        # DFS() : Function that performs depth first search on input graph G and stores 
+        #         DFS tree in parent array format.
         def DFS(v):
             """
             Depth first search step from vertex v. 
@@ -6890,6 +6893,8 @@ class Graph(GenericGraph):
                     parent[u] = v
                     DFS(u)
   
+        # Traverse() : Function that use G-T(non -tree edges) to find cycles and chains by
+        #              traversing in DFS tree.
         def traverse(start, pointer):
             # Make the firt end of non-tree edge visited
             traversed.add(start)
@@ -6905,6 +6910,7 @@ class Graph(GenericGraph):
                 pointer = parent[pointer]
             chains.append(chain)
     
+        # Perform ear decomposition on each connected component of input graph.
         for v in vertices:
             if v not in seen:
               # start the depth first search from first vertex

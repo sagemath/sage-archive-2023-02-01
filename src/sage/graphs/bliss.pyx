@@ -657,6 +657,15 @@ cpdef automorphism_group(G, partition=None):
         [('r','t'), ('s','r'), ('p','s'), ('q','p'), ('o','q'), ('l','n'), ('m','l'), ('j','m'), ('k','j'), ('i','h'), ('f','i'), ('g','f'), ('e','d'), ('c','e'), ('a','b')]
         sage: A.cardinality() == prod(factorial(n) for n in [2,3,4,5,6])        # optional - bliss
         True
+
+        sage: gg = graphs.CompleteGraph(5)
+        sage: gg.allow_loops(True)
+        sage: gg.add_edge(0,0)
+        sage: gg.add_edge(1,1)
+        sage: automorphism_group(gg).cardinality()
+        12
+        sage: automorphism_group(gg,[[0],[1,2,3,4]]).cardinality()
+        6
     """
     # We need this to convert the numbers from <unsigned int> to
     # <long>. This assertion should be true simply for memory reasons.

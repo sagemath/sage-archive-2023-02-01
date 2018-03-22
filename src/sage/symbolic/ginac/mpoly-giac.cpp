@@ -93,6 +93,7 @@ static giac::polynome replace_with_symbol(const ex& e, ex_int_map& map, exvector
 
 const giac::polynome basic::to_polynome(ex_int_map& map, exvector& revmap)
 {
+        std::cerr << *this << std::endl;
         throw std::runtime_error("basic::to_polynome: can't happen");
 }
 
@@ -157,8 +158,6 @@ const giac::polynome ex::to_polynome(ex_int_map& map, exvector& revmap) const
                         numeric expo = ex_to<numeric>(pow.exponent);
                         if (pow.exponent.info(info_flags::posint))
                                 return std::move(giac::pow(pow.basis.to_polynome(map, revmap), expo.to_int()));
-                        else if (pow.exponent.info(info_flags::negint))
-                                return std::move(giac::pow(power(pow.basis, _ex_1).to_polynome(map, revmap), -expo.to_int()));
                 }
                 return replace_with_symbol(*this, map, revmap);
         }

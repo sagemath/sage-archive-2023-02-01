@@ -5478,7 +5478,7 @@ cdef class Matroid(SageObject):
         T = spanning_stars(M)
         for (x1,y1) in T:
             # The whiting out
-            B = matrix(M)
+            B = M
             for (x,y) in product(range(n),range(m)):
                 if (x1!=x and y1!=y):
                     if(M[x1,y]==1 and

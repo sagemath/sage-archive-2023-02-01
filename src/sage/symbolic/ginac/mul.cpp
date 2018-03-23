@@ -527,13 +527,20 @@ numeric mul::degree(const ex & s) const
 {
 	// Sum up degrees of factors
 	numeric deg_sum(0);
-        for (const auto & elem : seq)
-		if (ex_to<numeric>(elem.coeff).is_real())
-			deg_sum += recombine_pair_to_ex(elem).degree(s);
-		else {
-			if (elem.rest.has(s))
-				throw std::runtime_error("mul::degree() undefined degree because of non-integer exponent");
-		}
+        for (const auto & elem : seq) {
+		if (is_exactly_a<numeric>(elem.coeff)) {
+                        const numeric& n = ex_to<numeric>(elem.coeff);
+                        if (n.is_real()) {
+			        deg_sum += n * elem.rest.degree(s);
+                        }
+                        else {
+                                if (elem.rest.has(s))
+                                        throw std::runtime_error("mul::degree() undefined degree because of complex exponent");
+		        }
+                }
+                else
+		        throw std::runtime_error("mul::degree() undefined degree because of non-integer exponent");
+        }
 	return deg_sum;
 }
 
@@ -541,13 +548,20 @@ numeric mul::ldegree(const ex & s) const
 {
 	// Sum up degrees of factors
 	numeric deg_sum(0);
-        for (const auto & elem : seq)
-		if (ex_to<numeric>(elem.coeff).is_real())
-			deg_sum += recombine_pair_to_ex(elem).ldegree(s);
-		else {
-			if (elem.rest.has(s))
-				throw std::runtime_error("mul::ldegree() undefined degree because of non-integer exponent");
-		}
+        for (const auto & elem : seq) {
+		if (is_exactly_a<numeric>(elem.coeff)) {
+                        const numeric& n = ex_to<numeric>(elem.coeff);
+                        if (n.is_real()) {
+			        deg_sum += n * elem.rest.ldegree(s);
+                        }
+                        else {
+                                if (elem.rest.has(s))
+                                        throw std::runtime_error("mul::ldegree() undefined degree because of complex exponent");
+		        }
+                }
+                else
+		        throw std::runtime_error("mul::ldegree() undefined degree because of non-integer exponent");
+        }
 	return deg_sum;
 }
 

@@ -1227,6 +1227,10 @@ long numeric::calchash() const {
  *  a numeric object. */
 const numeric numeric::add(const numeric &other) const {
         verbose("operator+");
+        if (other.is_zero())
+                return *this;
+        if (is_zero())
+                return other;
         if (t != other.t) {
                 if (t == MPZ and other.t == MPQ) {
                         mpq_t bigrat;
@@ -1285,6 +1289,10 @@ const numeric numeric::add(const numeric &other) const {
  *  result as a numeric object. */
 const numeric numeric::sub(const numeric &other) const {
         verbose("operator-");
+        if (other.is_zero())
+                return *this;
+        if (is_zero())
+                return other.negative();
         if (t != other.t) {
                 if (t == MPZ and other.t == MPQ) {
                         mpq_t bigrat;
@@ -1346,6 +1354,13 @@ const numeric numeric::sub(const numeric &other) const {
  *  result as a numeric object. */
 const numeric numeric::mul(const numeric &other) const {
         verbose("operator*");
+        if ((is_zero() and t != PYOBJECT)
+            or (other.is_zero() and other.t != PYOBJECT))
+                return *_num0_p;
+        if (other.is_one())
+                return *this;
+        if (is_one())
+                return other;
         if (t != other.t) {
                 numeric a, b;
                 coerce(a, b, *this, other);
@@ -1353,6 +1368,10 @@ const numeric numeric::mul(const numeric &other) const {
         }
         switch (t) {
         case LONG: {
+                static long lsqrt = std::lround(std::sqrt(
+                                        std::numeric_limits<long>::max()));
+                if (v._long < lsqrt and other.v._long < lsqrt)
+                        return v._long * other.v._long;
                 mpz_t bigint;
                 mpz_init_set_si(bigint, v._long);
                 mpz_mul_si(bigint, bigint, other.v._long);
@@ -1998,6 +2017,12 @@ const numeric numeric::negative() const {
 
 numeric & operator+=(numeric & lh, const numeric & rh)
 {
+        if (rh.is_zero())
+                return lh;
+        if (lh.is_zero()) {
+                lh = rh;
+                return lh;
+        }
         if (lh.t != rh.t) {
                 if (lh.t == MPZ and rh.t == MPQ) {
                         mpz_t bigint;
@@ -2075,6 +2100,12 @@ numeric & operator+=(numeric & lh, const numeric & rh)
 
 numeric & operator-=(numeric & lh, const numeric & rh)
 {
+        if (rh.is_zero())
+                return lh;
+        if (lh.is_zero()) {
+                lh = rh.negative();
+                return lh;
+        }
         if (lh.t != rh.t) {
                 if (lh.t == MPZ and rh.t == MPQ) {
                         mpz_t bigint;
@@ -2152,6 +2183,17 @@ numeric & operator-=(numeric & lh, const numeric & rh)
 
 numeric & operator*=(numeric & lh, const numeric & rh)
 {
+        if (rh.is_one())
+                return lh;
+        if (lh.is_one()) {
+                lh = rh;
+                return lh;
+        }
+        if ((lh.is_zero() and lh.t != PYOBJECT)
+            or (rh.is_zero() and rh.t != PYOBJECT)) {
+                lh = *_num0_p;
+                return lh;
+        }
         if (lh.t != rh.t) {
                 if (lh.t == MPZ and rh.t == MPQ) {
                         mpq_t tmp;
@@ -2199,6 +2241,12 @@ numeric & operator*=(numeric & lh, const numeric & rh)
         }
         switch (lh.t) {
         case LONG: {
+                static long lsqrt = std::lround(std::sqrt(
+                                        std::numeric_limits<long>::max()));
+                if (lh.v._long < lsqrt and rh.v._long < lsqrt) {
+                        lh.v._long *= rh.v._long;
+                        return lh;
+                }
                 lh.t = MPZ;
                 mpz_init_set_si(lh.v._bigint, lh.v._long);
                 mpz_mul_si(lh.v._bigint, lh.v._bigint, rh.v._long);

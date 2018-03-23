@@ -336,13 +336,13 @@ bool basic::is_polynomial(const ex & var) const
 /** Return degree of highest power in object s. */
 numeric basic::degree(const ex & s) const
 {
-	return is_equal(ex_to<basic>(s)) ? 1 : 0;
+	return is_equal(ex_to<basic>(s)) ? *_num1_p : *_num0_p;
 }
 
 /** Return degree of lowest power in object s. */
 numeric basic::ldegree(const ex & s) const
 {
-	return is_equal(ex_to<basic>(s)) ? 1 : 0;
+	return is_equal(ex_to<basic>(s)) ? *_num1_p : *_num0_p;
 }
 
 /** Return coefficient of degree n in object s. */

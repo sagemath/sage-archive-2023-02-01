@@ -329,7 +329,7 @@ bool power::is_polynomial(const ex & var) const
 numeric power::degree(const ex & s) const
 {
 	if (is_equal(ex_to<basic>(s)))
-		return 1;
+		return *_num1_p;
 	if (is_exactly_a<numeric>(exponent)
             and ex_to<numeric>(exponent).is_real()) {
 		if (basis.is_equal(s))
@@ -338,13 +338,13 @@ numeric power::degree(const ex & s) const
 	} else if (basis.has(s))
 		throw(std::runtime_error("power::degree(): undefined degree because of non-integer exponent"));
 	else
-		return 0;
+		return *_num0_p;
 }
 
 numeric power::ldegree(const ex & s) const 
 {
 	if (is_equal(ex_to<basic>(s)))
-		return 1;
+		return *_num1_p;
 	if (is_exactly_a<numeric>(exponent)
             and ex_to<numeric>(exponent).is_real()) {
 		if (basis.is_equal(s))
@@ -353,7 +353,7 @@ numeric power::ldegree(const ex & s) const
 	} else if (basis.has(s))
 		throw(std::runtime_error("power::ldegree(): undefined degree because of non-integer exponent"));
 	else
-		return 0;
+		return *_num0_p;
 }
 
 ex power::coeff(const ex & s, const ex & n) const

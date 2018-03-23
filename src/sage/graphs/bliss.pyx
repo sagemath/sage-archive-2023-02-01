@@ -1,4 +1,3 @@
-#cython: profile=True
 r"""
 Interface with bliss: graph (iso/auto)morphism
 

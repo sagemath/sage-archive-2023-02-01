@@ -863,6 +863,14 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: f = x^2 + z*y
             sage: f.change_ring(K.embeddings(CC)[1])
             x^2 + (-0.500000000000000 + 0.866025403784439*I)*y
+
+        TESTS:
+
+        Check that :trac:`25022` is fixed::
+
+            sage: K.<x,y> = ZZ[]
+            sage: (x*y).change_ring(SR).monomials()
+            [x*y]
         """
         if isinstance(R, Map):
         #if we're given a hom of the base ring extend to a poly hom
@@ -870,7 +878,7 @@ cdef class MPolynomial(CommutativeRingElement):
                 R = self.parent().hom(R, self.parent().change_ring(R.codomain()))
             return R(self)
         else:
-            return self.parent().change_ring(R)(self)
+            return self.parent().change_ring(R)(self.dict())
 
     def _gap_(self, gap):
         """

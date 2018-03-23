@@ -6751,7 +6751,7 @@ class Graph(GenericGraph):
         For more information, see the
         :wikipedia:`Ear_decomposition`.
 
-        This method implements the linear time algorithm presented in [Sch2013].
+        This method implements the linear time algorithm presented in [Sch2013]_.
   
         INPUT:     
   
@@ -6765,7 +6765,7 @@ class Graph(GenericGraph):
   
         EXAMPLES:
           
-        Ear decomposition of an outer plananr graph of order 13::
+        Ear decomposition of an outer planar graph of order 13::
 
             sage: g = Graph('LlCG{O@?GBOMW?')
             sage: g.ear_decomposition()
@@ -6782,28 +6782,20 @@ class Graph(GenericGraph):
 
         Ear decomposition of a biconnected graph::
 
-            sage: g = g = graphs.CubeGraph(2)
+            sage: g = graphs.CubeGraph(2)
             sage: g.ear_decomposition()
             [['00', '01', '11', '10', '00']]
 
 
         Ear decomposition of a disconnected graph of order 17::
 
-            sage: d = {0 : [1, 11, 3, 7], 1 : [0, 2, 12], 2 : [1, 3, 12], 3 : [0, 2, 4, 6], 4 : [3, 7, 6, 5], 5 : [4, 6], 6 : [3, 4, 5], 7 : [0, 11, 4, 8, 10], 8 : [11, 7, 10, 9], 9 : [11, 8], 10 : [7, 8], 11 : [0, 7, 8, 9], 12 : [1, 2, 13], 13 : [16, 12, 14, 15], 14 : [16, 13, 15], 15 : [16, 13, 14], 16 : [13, 14, 15]}
-            sage: g = Graph(d)
-            sage: g.ear_decomposition()
-            [[0, 3, 2, 1, 0],
-             [0, 7, 4, 3],
-             [0, 11, 9, 8, 7],
-             [1, 12, 2],
-             [3, 6, 5, 4],
-             [4, 6],
-             [7, 10, 8],
-             [7, 11],
-             [8, 11],
-             [13, 14, 16, 13],
-             [13, 15, 14],
-             [16, 15]]
+            sage: G = Graph()
+            sage: G.add_cycle([0,1,2])
+            sage: G.add_edge(0,3)
+            sage: G.add_cycle([3,4,5,6])
+            sage: G.ear_decomposition()
+            [[0, 2, 1, 0], [3, 6, 5, 4, 3]]
+
     
         Ear decomposition of multigraph(g) is same as ear decomposition on simple graph(g)::
 
@@ -6822,13 +6814,14 @@ class Graph(GenericGraph):
             True
         
         TESTS::
-            sage: g=Graph([])
+
+            sage: g=Graph()
             sage: g
             Graph on 0 vertices
             sage: g.ear_decomposition()
             Traceback (most recent call last):
             ...
-            ValueError: Ear decomposition is defined for graphs of order at least 3.
+            ValueError: ear decomposition is defined for graphs of order at least 3
 
         """
   
@@ -6853,8 +6846,8 @@ class Graph(GenericGraph):
         chains = []
         
         # Ear decomposition of a graph of order < 3 is [].
-        if self.order()<3:
-            raise ValueError("Ear decomposition is defined for graphs of order at least 3.")
+        if self.order() < 3:
+            raise ValueError("ear decomposition is defined for graphs of order at least 3")
   
   
         vertices = self.vertices()        

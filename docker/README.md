@@ -50,3 +50,5 @@ Have a look at `.circleci/` and `.gitlab-ci.yml` if you want to setup either con
 # License
 
 The whole Sage software distribution is licensed under the General Public License, version 3. More details can be found in our [COPYING.txt](https://github.com/sagemath/sage/blob/master/COPYING.txt)
+
+[//]: # (Please don't break long lines in this files as dockerhub then gets the formatting of this file wrong.)

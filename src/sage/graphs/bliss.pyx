@@ -116,7 +116,7 @@ cdef Graph *bliss_graph_from_labelled_edges(int Vnr, int Lnr, Vout, Vin, labels,
     r"""
     Return a bliss graph from the input data
 
-    For edge labelled graphs, the bliss graph is constructed using Vnr * log(Lnr) many vertices as described in Sect 14 in the `nauty reference manual <​http://pallini.di.uniroma1.it/Guide.html>`_.
+    For edge labelled graphs, the bliss graph is constructed using Vnr * log(Lnr) many vertices as described in Sect 14 in the `nauty reference manual <http://pallini.di.uniroma1.it/Guide.html>`_.
 
     .. WARNING::
 
@@ -194,7 +194,8 @@ cdef Digraph *bliss_digraph_from_labelled_edges(int Vnr, int Lnr, Vout, Vin, lab
     r"""
     Return a bliss digraph from the input data
 
-    For edge labelled graphs, the bliss graph is constructed using Vnr * log(Lnr) many vertices as described in Sect 14 in the `nauty reference manual <​http://pallini.di.uniroma1.it/Guide.html>`_.
+    For edge labelled graphs, the bliss graph is constructed using Vnr * log(Lnr) many vertices as described in Sect 14 in the `nauty reference manual
+    <http://pallini.di.uniroma1.it/Guide.html>`_.
 
     .. WARNING::
 

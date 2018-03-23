@@ -35,7 +35,7 @@ before_script:
   # So we roll our own which protects all variables that start with SECRET_
   - . .ci/protect-secrets.sh
   # Collect debug infos about the system we are running on
-  - . .ci/describe-system.sh
+  - sh .ci/describe-system.sh
   # Set DOCKER_TAG according to the current branch/tag
   - . .ci/update-env.sh
   # Set MAKE and NTHREADS according to the machine we are running on
@@ -62,9 +62,9 @@ build-from-latest: &build
     expire_in: 1 month
   script:
     # The output of the build can get larger than gitlab.com's limit; only print the first 3MB.
-    - . .ci/build-docker.sh | tee gitlab-build-docker.log | head -c 3m
-    - . .ci/push-gitlab.sh sagemath-dev
-    - . .ci/push-gitlab.sh sagemath
+    - sh .ci/build-docker.sh | tee gitlab-build-docker.log | head -c 3m
+    - sh .ci/push-gitlab.sh sagemath-dev
+    - sh .ci/push-gitlab.sh sagemath
   tags:
     # We need enough disk space for the build to work.
     # The do(=digitalocean) instances on gitlab.com should be the 4GB instances
@@ -90,13 +90,13 @@ test-dev:
   stage: test
   script:
     - . .ci/pull-gitlab.sh sagemath-dev
-    - . .ci/test-dev.sh "$DOCKER_IMAGE"
+    - sh .ci/test-dev.sh "$DOCKER_IMAGE"
 
 test-cli:
   stage: test
   script:
     - . .ci/pull-gitlab.sh sagemath
-    - . .ci/test-cli.sh "$DOCKER_IMAGE"
+    - sh .ci/test-cli.sh "$DOCKER_IMAGE"
 
 test-jupyter:
   stage: test
@@ -108,7 +108,7 @@ test-jupyter:
     - apk update
     - apk add wget
     - . .ci/pull-gitlab.sh sagemath
-    - . .ci/test-jupyter.sh "$DOCKER_IMAGE" docker
+    - sh .ci/test-jupyter.sh "$DOCKER_IMAGE" docker
 
 # Pushes the built images to Docker Hub if the Settings -> CI/CD -> Secret
 # variables DOCKER_USER and SECRET_DOCKER_PASS have been set up.
@@ -119,7 +119,7 @@ push-dockerhub:
     - tags
   script:
     - . .ci/pull-gitlab.sh sagemath
-    - . .ci/push-dockerhub.sh sagemath
+    - sh .ci/push-dockerhub.sh sagemath
 
 # Pushes the built dev images to Docker Hub if the Settings -> CI/CD -> Secret
 # variables DOCKER_USER and SECRET_DOCKER_PASS have been set up.
@@ -130,4 +130,4 @@ push-dockerhub-dev:
     - develop
   script:
     - . .ci/pull-gitlab.sh sagemath-dev
-    - . .ci/push-dockerhub.sh sagemath-dev
+    - sh .ci/push-dockerhub.sh sagemath-dev

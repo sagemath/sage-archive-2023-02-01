@@ -32,7 +32,7 @@ jobs:
             # Therefore we roll our own to protect $SECRET_* variables.
             . .ci/protect-secrets.sh
             # Collect debug infos about the system we are running on
-            . .ci/describe-system.sh
+            sh .ci/describe-system.sh
             # Set MAKE and NTHREADS according to the machine we are running on
             . .ci/setup-make-parallelity.sh
 
@@ -57,10 +57,10 @@ jobs:
             . .ci/build-docker.sh
 
             # Test that the images work
-            . .ci/test-dev.sh $DOCKER_IMAGE_DEV
-            . .ci/test-cli.sh $DOCKER_IMAGE_CLI
-            . .ci/test-jupyter.sh $DOCKER_IMAGE_CLI localhost
+            sh .ci/test-dev.sh $DOCKER_IMAGE_DEV
+            sh .ci/test-cli.sh $DOCKER_IMAGE_CLI
+            sh .ci/test-jupyter.sh $DOCKER_IMAGE_CLI localhost
 
             # Push docker images to dockerhub if a dockerhub user has been configured
-            . .ci/push-dockerhub.sh sagemath-dev
-            . .ci/push-dockerhub.sh sagemath
+            sh .ci/push-dockerhub.sh sagemath-dev
+            sh .ci/push-dockerhub.sh sagemath

@@ -623,7 +623,7 @@ cpdef automorphism_group(G, partition=None):
         sage: G.add_edges((i,j,"B") for i in range(2, 5) for j in range(14,20)) # optional - bliss
         sage: G.add_edges((i,j,"C") for i in range(5, 9) for j in range(14,20)) # optional - bliss
         sage: G.add_edges((i,j,"D") for i in range(9,14) for j in range(14,20)) # optional - bliss
-        sage: A = automorphism_group(G)
+        sage: A = automorphism_group(G)                                         # optional - bliss
         sage: print(A.gens())                                                   # random, optional - bliss
         [(9,13), (18,19), (17,18), (16,17), (15,16), (14,15), (12,9), (11,12), (10,11), (7,8), (6,7), (5,6), (3,4), (2,3), (0,1)]
         sage: A.cardinality() == prod(factorial(n) for n in [2,3,4,5,6])        # optional - bliss
@@ -642,13 +642,13 @@ cpdef automorphism_group(G, partition=None):
         sage: A.cardinality() == prod(factorial(n) for n in [2,3,4,5,6])        # optional - bliss
         True
 
-        sage: gg = graphs.CompleteGraph(5)
-        sage: gg.allow_loops(True)
-        sage: gg.add_edge(0,0)
-        sage: gg.add_edge(1,1)
-        sage: automorphism_group(gg).cardinality()
+        sage: gg = graphs.CompleteGraph(5)                                      # optional - bliss
+        sage: gg.allow_loops(True)                                              # optional - bliss
+        sage: gg.add_edge(0,0)                                                  # optional - bliss
+        sage: gg.add_edge(1,1)                                                  # optional - bliss
+        sage: automorphism_group(gg).cardinality()                              # optional - bliss
         12
-        sage: automorphism_group(gg,[[0],[1,2,3,4]]).cardinality()
+        sage: automorphism_group(gg,[[0],[1,2,3,4]]).cardinality()              # optional - bliss
         6
     """
     # We need this to convert the numbers from <unsigned int> to

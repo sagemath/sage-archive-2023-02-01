@@ -352,21 +352,21 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
 
     - ``G`` -- an undirected graph.
 
-    - ``weight_function`` (function) - a function that inputs an edge ``e``
+    - ``wfunction`` (weight function) - a function that inputs an edge ``e``
       and outputs its weight. An edge has the form ``(u,v,l)``, where ``u``
       and ``v`` are vertices, ``l`` is a label (that can be of any kind).
-      The ``weight_function`` can be used to transform the label into a
+      The ``wfunction`` can be used to transform the label into a
       weight. In particular:
 
-      - if ``weight_function`` is not ``None``, the weight of an edge ``e``
-        is ``weight_function(e)``;
+      - if ``wfunction`` is not ``None``, the weight of an edge ``e``
+        is ``wfunction(e)``;
 
-      - if ``weight_function`` is ``None`` (default) and ``g`` is weighted
+      - if ``wfunction`` is ``None`` (default) and ``g`` is weighted
         (that is, ``g.weighted()==True``), the weight of an edge
         ``e=(u,v,l)`` is ``l``, independently on which kind of object ``l``
         is: the ordering of labels relies on Python's operator ``<``;
 
-      - if ``weight_function`` is ``None`` and ``g`` is not weighted, we set
+      - if ``wfunction`` is ``None`` and ``g`` is not weighted, we set
         all weights to 1 (hence, the output can be any spanning tree).
 
     - ``check`` -- Whether to first perform sanity checks on the input
@@ -385,11 +385,12 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
       input graph. 
     
     - ``by_weight`` -- Whether to find MST by using weights of edges provided.
-      Default: ``by_weight=True``. If wfunction is given, MST is calculated
-      using the weights of edges as per the function. If wfunction is None, and 
-      graph is weighted, the default edge weights are used. Otherwise all edge
-      weights are considered 1. If we toggle ``by_weight=False``, all weights
-      are considered as 1 and MST is calculated.
+      Default: ``by_weight=True``. If ``wfunction`` is given, MST is calculated
+      using the weights of edges as per the function. If ``wfunction`` is 
+      ``None``, the weight of an edge ``e=(u,v,l)``  is ``l`` if graph is 
+      weighted, or all edge weights are considered ``1`` if graph is 
+      unweighted. If we toggle ``by_weight=False``, all weights are considered
+      as ``1`` and MST is calculated.
 
     OUTPUT:
 
@@ -398,7 +399,7 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
 
     .. SEEALSO::
 
-        - :meth:`sage.graphs.generic_graph.GenericGraph.min_spanning_tree`
+        - :meth:`~sage.graphs.generic_graph.GenericGraph.min_spanning_tree`
 
     EXAMPLES:
 
@@ -409,158 +410,33 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
         sage: G.weighted(True)
         sage: E = boruvka(G, check=True); E
         [(1, 6, 10), (2, 7, 14), (3, 4, 12), (4, 5, 22), (5, 6, 25), (2, 3, 16)]
-
-    Variants of the previous example. ::
-
-        sage: H = Graph(G.edges(labels=False))
-        sage: boruvka(H, check=True)
-        [(1, 2, None), (2, 3, None), (3, 4, None), (4, 5, None), (1, 6, None), (2, 7, None)]
-        sage: G.allow_loops(True)
-        sage: G.allow_multiple_edges(True)
-        sage: G
-        Looped multi-graph on 7 vertices
-        sage: for i in range(20):
-        ....:     u = randint(1, 7)
-        ....:     v = randint(1, 7)
-        ....:     w = randint(0, 20)
-        ....:     G.add_edge(u, v, w)
-        sage: H = copy(G)
-        sage: H
-        Looped multi-graph on 7 vertices
-        sage: def sanitize(G):
-        ....:     G.allow_loops(False)
-        ....:     E = {}
-        ....:     for u, v, _ in G.multiple_edges():
-        ....:         E.setdefault(u, v)
-        ....:     for u in E:
-        ....:         W = sorted(G.edge_label(u, E[u]))
-        ....:         for w in W[1:]:
-        ....:             G.delete_edge(u, E[u], w)
-        ....:     G.allow_multiple_edges(False)
-        sage: sanitize(H)
-        sage: H
-        Graph on 7 vertices
-        sage: boruvka(G, check=True) == boruvka(H, check=True)
-        True
-
-    An example of disconnected graph with check disabled:
-
-        sage: from sage.graphs.spanning_tree import boruvka
-        sage: G = Graph({1:{2:28, 6:10}, 2:{3:16, 7:14}, 3:{4:12}, 4:{5:22, 7:18}, 5:{6:25, 7:24}, 8:{9:10}})
-        sage: G.weighted(True)
-        sage: E = boruvka(G, check=False); E
-        []
-
-    An example of unweighted graph (edge weights are considered to be 1):
-
-        sage: from sage.graphs.spanning_tree import boruvka
-        sage: G = Graph({1:{2:28, 6:10}, 2:{3:16, 7:14}, 3:{4:12}, 4:{5:22, 7:18}, 5:{6:25, 7:24}})
-        sage: G.weighted(False)
-        sage: E = boruvka(G, check=True); E
+        sage: boruvka(G, by_weight=True)
+        [(1, 6, 10), (2, 7, 14), (3, 4, 12), (4, 5, 22), (5, 6, 25), (2, 3, 16)]
+        sage: boruvka(G, by_weight=False)
         [(1, 2, 28), (2, 3, 16), (3, 4, 12), (4, 5, 22), (1, 6, 10), (2, 7, 14)]
 
-    An example where parameter by_weight is set to False:
-
-        sage: from sage.graphs.spanning_tree import boruvka
-        sage: G = Graph({1:{2:28, 6:10}, 2:{3:16, 7:14}, 3:{4:12}, 4:{5:22, 7:18}, 5:{6:25, 7:24}})
-        sage: G.weighted(True)
-        sage: E = boruvka(G, check=True, by_weight=False); E
-        [(1, 2, 28), (2, 3, 16), (3, 4, 12), (4, 5, 22), (1, 6, 10), (2, 7, 14)]
-    
-    An example from pages 599--601 in [GoodrichTamassia2001]_. ::
-
-        sage: G = Graph({"SFO":{"BOS":2704, "ORD":1846, "DFW":1464, "LAX":337},
-        ....: "BOS":{"ORD":867, "JFK":187, "MIA":1258},
-        ....: "ORD":{"PVD":849, "JFK":740, "BWI":621, "DFW":802},
-        ....: "DFW":{"JFK":1391, "MIA":1121, "LAX":1235},
-        ....: "LAX":{"MIA":2342},
-        ....: "PVD":{"JFK":144},
-        ....: "JFK":{"MIA":1090, "BWI":184},
-        ....: "BWI":{"MIA":946}})
-        sage: G.weighted(True)
-        sage: boruvka(G, check=True)
-        [('JFK', 'PVD', 144),
-        ('BWI', 'MIA', 946),
-        ('DFW', 'ORD', 802),
-        ('BOS', 'JFK', 187),
-        ('LAX', 'SFO', 337),
-        ('BWI', 'JFK', 184),
-        ('BWI', 'ORD', 621),
-        ('DFW', 'LAX', 1235)]
-
-    An example from pages 568--569 in [CormenEtAl2001]_. ::
-
-        sage: G = Graph({"a":{"b":4, "h":8}, "b":{"c":8, "h":11},
-        ....: "c":{"d":7, "f":4, "i":2}, "d":{"e":9, "f":14},
-        ....: "e":{"f":10}, "f":{"g":2}, "g":{"h":1, "i":6}, "h":{"i":7}})
-        sage: G.weighted(True)
-        sage: boruvka(G, check=True)
-        [('a', 'b', 4), ('c', 'i', 2), ('d', 'e', 9), ('c', 'd', 7), 
-            ('g', 'h', 1), ('f', 'g', 2), ('b', 'c', 8), ('c', 'f', 4)]
-
-    An example with custom edge labels::
+    An example with custom edge labels ::
 
         sage: G = Graph([[0,1,1],[1,2,1],[2,0,10]], weighted=True)
         sage: weight = lambda e:3-e[0]-e[1]
-        sage: boruvka(G, check=True)
-        [(0, 1, 1), (1, 2, 1)]
-        sage: boruvka(G, wfunction=weight, check=True)
+        sage: boruvka(G, wfunction=lambda e:3-e[0]-e[1], by_weight=True)
         [(0, 2, 10), (1, 2, 1)]
-        sage: boruvka(G, wfunction=weight, check=False)
-        [(0, 2, 10), (1, 2, 1)]
+        sage: boruvka(G, wfunction=lambda e:float(1/e[2]), by_weight=True)
+        [(0, 2, 10), (0, 1, 1)]
 
-    TESTS:
-
-    The input graph must not be empty. ::
+    An example of disconnected graph with ``check`` disabled ::
 
         sage: from sage.graphs.spanning_tree import boruvka
-        sage: boruvka(graphs.EmptyGraph(), check=True)
-        []
-        sage: boruvka(Graph(), check=True)
-        []
-        sage: boruvka(Graph(multiedges=True), check=True)
-        []
-        sage: boruvka(Graph(loops=True), check=True)
-        []
-        sage: boruvka(Graph(multiedges=True, loops=True), check=True)
+        sage: G = Graph({1:{2:28}, 3:{4:16}}, weighted=True)
+        sage: boruvka(G, check=False)
         []
 
-    The input graph must be connected. ::
-
-        sage: def my_disconnected_graph(n, ntries, directed=False, multiedges=False, loops=False):
-        ....:     G = Graph()
-        ....:     k = randint(1, n)
-        ....:     G.add_vertices(range(k))
-        ....:     if directed:
-        ....:         G = G.to_directed()
-        ....:     if multiedges:
-        ....:         G.allow_multiple_edges(True)
-        ....:     if loops:
-        ....:         G.allow_loops(True)
-        ....:     for i in range(ntries):
-        ....:         u = randint(0, k-1)
-        ....:         v = randint(0, k-1)
-        ....:         if u != v or loops:
-        ....:             G.add_edge(u, v)
-        ....:     while G.is_connected():
-        ....:         u = randint(0, k-1)
-        ....:         v = randint(0, k-1)
-        ....:         G.delete_edge(u, v)
-        ....:     return G
-        sage: G = my_disconnected_graph(100, 50, directed=False, multiedges=False, loops=False)  # long time
-        sage: boruvka(G, check=True)  # long time
-        []
-        sage: G = my_disconnected_graph(100, 50, directed=False, multiedges=True, loops=False)  # long time
-        sage: boruvka(G, check=True)  # long time
-        []
-        sage: G = my_disconnected_graph(100, 50, directed=False, multiedges=True, loops=True)  # long time
-        sage: boruvka(G, check=True)  # long time
-        []
-
+    TESTS:
+    
     If the input graph is a tree, then return its edges. ::
 
-        sage: T = graphs.RandomTree(randint(1, 50))  # long time
-        sage: T.edges() == boruvka(T, check=True)  # long time
+        sage: T = graphs.RandomTree(randint(1, 10))
+        sage: T.edges() == boruvka(T, check=True)
         True
 
     If the input is not a Graph::
@@ -596,21 +472,21 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
     if by_weight:
         if wfunction is None:
             if G.weighted():
-                edge_list = [(e, e[2]) for e in G.edges()]
+                edge_list = [(e, e[2]) for e in G.edge_iterator()]
             else:
-                edge_list = [(e, 1) for e in G.edges()]
+                edge_list = [(e, 1) for e in G.edge_iterator()]
         else:
-            edge_list = [(e, wfunction(e)) for e in G.edges()]
+            edge_list = [(e, wfunction(e)) for e in G.edge_iterator()]
     else:
-        edge_list = [(e, 1) for e in G.edges()]
+        edge_list = [(e, 1) for e in G.edge_iterator()]
 
     # initially, each vertex is a connected component
     partitions = DisjointSet(G.vertices())
     # a dictionary to store the least weight outgoing edge for each component
     cheapest = {}
     T = [] # stores the edges in minimum spanning tree
-    numConComp = len(G.vertices()) 
-    numConCompPrevIter = len(G.vertices()) + 1
+    numConComp = G.order()
+    numConCompPrevIter = numConComp + 1
 
     # Dictionary to maintain active cheapest edges between pairs of components
     components_dict = {}

@@ -6737,13 +6737,12 @@ class Graph(GenericGraph):
         r"""
         Return an Ear decomposition of the graph.
 
-        
-        An ear of an undirected graph `G` is a path `P` where the two endpoints 
+        An ear of an undirected graph `G` is a path `P` where the two endpoints
         of the path may coincide (i.e., form a cycle), but where otherwise no 
         repetition of  edges or vertices is allowed, so every internal vertex 
         of P has degree two in `P`.
 
-        An ear decomposition of an undirected graph `G` is a partition of its 
+        An ear decomposition of an undirected graph `G` is a partition of its
         set of edges into a sequence of ears, such that the one or two endpoints
         of each ear  belong to earlier ears in the sequence and such that the 
         internal vertices of  each ear do not belong to any earlier ear.
@@ -6752,19 +6751,19 @@ class Graph(GenericGraph):
         :wikipedia:`Ear_decomposition`.
 
         This method implements the linear time algorithm presented in [Sch2013]_.
-  
-        INPUT:     
-  
-        - ``self`` -- The undirected graph for which ear decomposition needs to 
+
+        INPUT:
+
+        - ``self`` -- The undirected graph for which ear decomposition needs to
                       be computed.
-  
+
         OUTPUT:
-  
+
         - A nested list representing the cycles and chains of the
           ear decomposition of the graph.
-  
+
         EXAMPLES:
-          
+
         Ear decomposition of an outer planar graph of order 13::
 
             sage: g = Graph('LlCG{O@?GBOMW?')
@@ -6778,7 +6777,6 @@ class Graph(GenericGraph):
              [7, 10, 8],
              [7, 11],
              [8, 11]]
-            
 
         Ear decomposition of a biconnected graph::
 
@@ -6786,8 +6784,7 @@ class Graph(GenericGraph):
             sage: g.ear_decomposition()
             [['00', '01', '11', '10', '00']]
 
-
-        Ear decomposition of a disconnected graph of order 17::
+        Ear decomposition of a connected but not biconnected graph::
 
             sage: G = Graph()
             sage: G.add_cycle([0,1,2])
@@ -6796,8 +6793,8 @@ class Graph(GenericGraph):
             sage: G.ear_decomposition()
             [[0, 2, 1, 0], [3, 6, 5, 4, 3]]
 
-    
-        Ear decomposition of multigraph(g) is same as ear decomposition on simple graph(g)::
+        The ear decomposition of a multigraph with loops is the same as the
+        ear decomposition of the underlying simple graph::
 
             sage: g = graphs.BullGraph()
             sage: g.allow_multiple_edges(True)
@@ -6808,11 +6805,10 @@ class Graph(GenericGraph):
             sage: g
             Bull graph: Looped multi-graph on 5 vertices
             sage: h = copy(g)
-            sage: h.allow_multiple_edges(False)
-            sage: h.allow_loops(False)
+            sage: h = g.to_simple()
             sage: g.ear_decomposition() == h.ear_decomposition()
             True
-        
+
         TESTS::
 
             sage: g=Graph()
@@ -6824,47 +6820,46 @@ class Graph(GenericGraph):
             ValueError: ear decomposition is defined for graphs of order at least 3
 
         """
-  
+
         # List to store the order in which dfs visits vertices.
         dfs_order = []
-        
+
         # Boolean dict to mark vertices as visited or unvisited during
         # Dfs traversal in graph.
         seen = set()
-        
+
         # Boolean dict to mark vertices as visited or unvisited in 
         # Dfs tree traversal.
         traversed = set()
-        
+
         # Dict to store parent vertex of all the visited vertices.
         parent = {}
-        
+
         # List to store visit_time of vertices in Dfs traversal.
         value = {}
-        
+
         # List to store all the chains and cycles of the input graph G.
         chains = []
-        
+
         # Ear decomposition of a graph of order < 3 is [].
         if self.order() < 3:
             raise ValueError("ear decomposition is defined for graphs of order at least 3")
-  
-  
-        vertices = self.vertices()        
-  
+
+        vertices = self.vertices()
+
         parent[vertices[0]] = None
-  
+
         # DFS() : Function that performs depth first search on input graph G and
         #         stores DFS tree in parent array format.
         def DFS(v):
             """
-            Depth first search step from vertex v. 
+            Depth first search step from vertex v.
             """
 
             # make v are visited, update it's time of visited and value
             seen.add(v)
             dfs_order.append(v)
-            
+
             # Traverse though all the neighbor vertices of v
             for u in self.neighbor_iterator(v):
                 # if any neighbor is not visited, enter
@@ -6872,14 +6867,14 @@ class Graph(GenericGraph):
                     # Set the parent of u in DFS tree as v and continue exploration
                     parent[u] = v
                     DFS(u)
-  
+
         # Traverse() : Function that use G-T(non -tree edges) to find cycles and
         #              chains by traversing in DFS tree.
         def traverse(start, pointer):
             # Make the firt end of non-tree edge visited
             traversed.add(start)
             chain = [start]
-            
+
             # Traverse DFS Tree of G and print all the not visited vertices.
             # Appending all the vertices in chain
             while True:
@@ -6889,22 +6884,22 @@ class Graph(GenericGraph):
                 traversed.add(pointer)
                 pointer = parent[pointer]
             chains.append(chain)
-    
+
         # Perform ear decomposition on each connected component of input graph.
         for v in vertices:
             if v not in seen:
               # start the depth first search from first vertex
                 DFS(v)
                 value = {u:i for i,u in enumerate(dfs_order)}
-                
+
                 # Traverse all the non Tree edges, according to depth first traversal
                 for u in dfs_order:
                     for neighbor in self.neighbor_iterator(u):
                         if value[u] < value[neighbor] and u != parent[neighbor]:
                             traverse(u,neighbor)
-  
+
                 dfs_order = []
-        
+
         return chains
 
     @doc_index("Clique-related methods")

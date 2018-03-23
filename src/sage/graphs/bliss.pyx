@@ -191,7 +191,7 @@ cdef Graph *bliss_graph_from_labelled_edges(int Vnr, int Lnr, Vout, Vin, labels,
                     g.change_color(j*Vnr+v, j*Pnr+i)
     return g
 
-cdef Digraph *bliss_digraph_from_labelled_edges(int Vnr, int Lnr, Vout, Vin, labels, partition, bint verbose=False):
+cdef Digraph *bliss_digraph_from_labelled_edges(int Vnr, int Lnr, Vout, Vin, labels, partition):
     r"""
     Return a bliss digraph from the input data
 
@@ -235,8 +235,6 @@ cdef Digraph *bliss_digraph_from_labelled_edges(int Vnr, int Lnr, Vout, Vin, lab
         for i from 0 <= i < Vnr:
             for j from 1 <= j < logLnr:
                 g.add_edge((j-1)*Vnr+i,j*Vnr+i)
-                if verbose:
-                    print "edge init", ((j-1)*Vnr+i,j*Vnr+i)
 
     cdef int Enr = len(Vout)
 
@@ -256,12 +254,8 @@ cdef Digraph *bliss_digraph_from_labelled_edges(int Vnr, int Lnr, Vout, Vin, lab
                 ind = binrep[j]
                 if ind == "1":
                     g.add_edge((logLnr-1-j)*Vnr+x,(logLnr-1-j)*Vnr+y)
-                    if verbose:
-                        print "edge", ((logLnr-1-j)*Vnr+x,(logLnr-1-j)*Vnr+y)
         else:
             g.add_edge(x,y)
-            if verbose:
-                print "edge unlab", (x,y)
 
     if not bool(partition):
         partition = [list(range(Vnr))]
@@ -270,13 +264,9 @@ cdef Digraph *bliss_digraph_from_labelled_edges(int Vnr, int Lnr, Vout, Vin, lab
         for v in partition[i]:
             if Lnr == 1:
                 g.change_color(v, i)
-                if verbose:
-                    print "color",(v, i)
             else:
                 for j from 0 <= j < logLnr:
                     g.change_color(j*Vnr+v, j*Pnr+i)
-                    if verbose:
-                        print "color",(j*Vnr+v, j*Pnr+i)
     return g
 
 #####################################################

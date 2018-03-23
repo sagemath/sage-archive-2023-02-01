@@ -699,7 +699,7 @@ class ClusterQuiver(SageObject):
             sage: S.interact()
             VBox(children=...
         """
-        return cluster_interact(self, fig_size, circular)
+        return cluster_interact(self, fig_size, circular, kind="quiver")
 
     def save_image(self,filename,circular=False):
         """

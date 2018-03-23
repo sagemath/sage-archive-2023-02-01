@@ -1065,7 +1065,7 @@ class ClusterSeed(SageObject):
             sage: S.interact()
             VBox(children=...
         """
-        return cluster_interact(self, fig_size, circular)
+        return cluster_interact(self, fig_size, circular, kind='seed')
 
     def save_image(self, filename, circular=False, mark=None, save_pos=False):
         r"""

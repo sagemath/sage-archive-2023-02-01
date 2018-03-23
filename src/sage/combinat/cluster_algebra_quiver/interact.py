@@ -4,7 +4,7 @@ from sage.repl.rich_output.pretty_print import pretty_print
 from IPython.display import clear_output
 
 
-def cluster_interact(self, fig_size=1, circular=True):
+def cluster_interact(self, fig_size=1, circular=True, kind='seed'):
     r"""
     Start an interactive window for cluster seed mutations.
 
@@ -21,12 +21,17 @@ def cluster_interact(self, fig_size=1, circular=True):
     - ``circular`` -- (default: ``True``) if ``True``, the circular plot
       is chosen, otherwise >>spring<< is used.
 
+    - ``kind`` -- either ``"seed"`` (default) or ``"quiver"``
+
     TESTS::
 
         sage: S = ClusterSeed(['A',4])
         sage: S.interact()   # indirect doctest
         VBox(children=...
     """
+    if kind not in ['seed', 'quiver']:
+        raise ValueError('kind must be "seed" or "quiver"')
+
     show_seq = widgets.Checkbox(value=True,
                                 description="Display mutation sequence")
 
@@ -51,7 +56,7 @@ def cluster_interact(self, fig_size=1, circular=True):
         if show_seq.value:
             pretty_print(html("Mutation sequence: ${}$".format(seq)))
 
-        if show_vars.value:
+        if show_vars.value and kind == 'seed':
             pretty_print(html("Cluster variables:"))
             table = "$\\begin{align*}\n"
             for i in range(self._n):
@@ -88,12 +93,18 @@ def cluster_interact(self, fig_size=1, circular=True):
     mut_buttons.on_msg(do_mutation)
 
     show_seq.observe(refresh, 'value')
-    show_vars.observe(refresh, 'value')
+    if kind == 'seed':
+        show_vars.observe(refresh, 'value')
     show_matrix.observe(refresh, 'value')
     show_lastmutation.observe(refresh, 'value')
 
     mut_buttons.on_displayed(refresh)
 
-    return widgets.VBox([widgets.HBox([show_seq, show_vars]),
+    if kind == 'seed':
+        top = widgets.HBox([show_seq, show_vars])
+    else:
+        top = widgets.HBox([show_seq])
+
+    return widgets.VBox([top,
                          widgets.HBox([show_matrix, show_lastmutation]),
                          mut_buttons, out])

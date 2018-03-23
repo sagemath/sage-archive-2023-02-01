@@ -2,7 +2,7 @@
 
 # This script gets called from CI to run minimal tests on the sagemath image.
 
-# Usage: ./test-cli.sh sage-cli-image
+# Usage: ./test-cli.sh IMAGE-NAME
 
 # ****************************************************************************
 #       Copyright (C) 2018 Julian Rüth <julian.rueth@fsfe.org>

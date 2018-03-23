@@ -6736,27 +6736,32 @@ class Graph(GenericGraph):
     def ear_decomposition(self):
         r"""
         Return an Ear decomposition of the graph.
-        
-        An ear of an undirected graph `G` is a path `P` where the two endpoints of the
-        path may coincide (i.e., form a cycle), but where otherwise no repetition of 
-        edges or vertices is allowed, so every internal vertex of P has degree two in `P`.
 
-        An ear decomposition of an undirected graph `G` is a partition of its set of
-        edges into a sequence of ears, such that the one or two endpoints of each ear 
-        belong to earlier ears in the sequence and such that the internal vertices of 
-        each ear do not belong to any earlier ear.
+        
+        An ear of an undirected graph `G` is a path `P` where the two endpoints 
+        of the path may coincide (i.e., form a cycle), but where otherwise no 
+        repetition of  edges or vertices is allowed, so every internal vertex 
+        of P has degree two in `P`.
+
+        An ear decomposition of an undirected graph `G` is a partition of its 
+        set of edges into a sequence of ears, such that the one or two endpoints
+        of each ear  belong to earlier ears in the sequence and such that the 
+        internal vertices of  each ear do not belong to any earlier ear.
 
         For more information, see the
         :wikipedia:`Ear_decomposition`.
 
+        This method implements the linear time algorithm presented in [Sch2013].
   
         INPUT:     
   
-        - ``graph`` -- The undirected graph for which ear decomposition needs to be computed.
+        - ``self`` -- The undirected graph for which ear decomposition needs to 
+                      be computed.
   
         OUTPUT:
   
-        - A nested list representing the cycles and chains of the ear decomposition of the graph.
+        - A nested list representing the cycles and chains of the
+          ear decomposition of the graph.
   
         EXAMPLES:
           
@@ -6775,19 +6780,11 @@ class Graph(GenericGraph):
              [8, 11]]
             
 
-        Ear decomposition of a disconnected graph in which one connected component order is < 3::
+        Ear decomposition of a biconnected graph::
 
-            sage: g = Graph([(0, 1),(0, 7),(0, 3),(0, 11),(2, 3),(1, 2),(1, 12),(2, 12),(3, 4),(3, 6),(4, 5),(4, 7),(4, 6),(5, 6),(7, 10),(7, 8),(7, 11),(8, 9),(8, 10),(8, 11),(9, 11), (12, 13)])
+            sage: g = g = graphs.CubeGraph(2)
             sage: g.ear_decomposition()
-            [[0, 11, 7, 4, 3, 2, 1, 0],
-             [0, 3],
-             [0, 7],
-             [1, 12, 2],
-             [3, 6, 4],
-             [4, 5, 6],
-             [7, 10, 8, 11],
-             [7, 8],
-             [11, 9, 8]]
+            [['00', '01', '11', '10', '00']]
 
 
         Ear decomposition of a disconnected graph of order 17::
@@ -6810,24 +6807,18 @@ class Graph(GenericGraph):
     
         Ear decomposition of multigraph(g) is same as ear decomposition on simple graph(g)::
 
-            sage: G = Graph()
-            sage: G.allow_loops(True)
-            sage: G.allow_multiple_edges(True)
-            sage: for i in range(20):
-            ....:     u = randint(1, 7)
-            ....:     v = randint(1, 7)
-            ....:     G.add_edge(u, v)
-            sage: G
-            Looped multi-graph on 7 vertices
-            sage: H = copy(G)
-            sage: H
-            Looped multi-graph on 7 vertices
-            sage: H = copy(G)
-            sage: H.allow_loops(False)
-            sage: H.allow_multiple_edges(False)
-            sage: H
-            Graph on 7 vertices
-            sage: H.ear_decomposition() == G.ear_decomposition()
+            sage: g = graphs.BullGraph()
+            sage: g.allow_multiple_edges(True)
+            sage: g.add_edges(g.edges())
+            sage: g.allow_loops(True)
+            sage: u = g.random_vertex()
+            sage: g.add_edge(u, u)
+            sage: g
+            Bull graph: Looped multi-graph on 5 vertices
+            sage: h = copy(g)
+            sage: h.allow_multiple_edges(False)
+            sage: h.allow_loops(False)
+            sage: g.ear_decomposition() == h.ear_decomposition()
             True
         
         TESTS::
@@ -6839,21 +6830,17 @@ class Graph(GenericGraph):
             ...
             ValueError: Ear decomposition is defined for graphs of order at least 3.
 
-        REFERENCES:
-        
-        .. [Sch2013] Schmidt, Jens M. (2013a), "A Simple Test on 2-Vertex- and 2-Edge-Connectivity", 
-                     Information Processing Letters, 113 (7): 241–244
-                     :doi:`10.2307/2303897`
-
         """
   
         # List to store the order in which dfs visits vertices.
         dfs_order = []
         
-        # Boolean dict to mark vertices as visited or unvisited during Dfs traversal in graph.
+        # Boolean dict to mark vertices as visited or unvisited during
+        # Dfs traversal in graph.
         seen = set()
         
-        # Boolean dict to mark vertices as visited or unvisited in Dfs tree traversal.
+        # Boolean dict to mark vertices as visited or unvisited in 
+        # Dfs tree traversal.
         traversed = set()
         
         # Dict to store parent vertex of all the visited vertices.
@@ -6874,8 +6861,8 @@ class Graph(GenericGraph):
   
         parent[vertices[0]] = None
   
-        # DFS() : Function that performs depth first search on input graph G and stores 
-        #         DFS tree in parent array format.
+        # DFS() : Function that performs depth first search on input graph G and
+        #         stores DFS tree in parent array format.
         def DFS(v):
             """
             Depth first search step from vertex v. 
@@ -6893,8 +6880,8 @@ class Graph(GenericGraph):
                     parent[u] = v
                     DFS(u)
   
-        # Traverse() : Function that use G-T(non -tree edges) to find cycles and chains by
-        #              traversing in DFS tree.
+        # Traverse() : Function that use G-T(non -tree edges) to find cycles and
+        #              chains by traversing in DFS tree.
         def traverse(start, pointer):
             # Make the firt end of non-tree edge visited
             traversed.add(start)

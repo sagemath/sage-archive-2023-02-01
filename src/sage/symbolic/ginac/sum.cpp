@@ -348,8 +348,9 @@ static ex binomial_poly(const exvector& syms, const ex& var)
         for (unsigned int row=0; row<n; ++row) {
                 const ex& v = power(var, row);
                 for (unsigned int col=0; col<n; ++col) {
-                        if (row+col < n)
+                        if (row+col < n) {
                                 res += v * binomial(row+col, col) * syms[n-col-row-1];
+                        }
                 }
         }
         return res;

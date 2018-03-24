@@ -220,7 +220,7 @@ static ex legp_eval(const ex& n_, const ex& x)
         L = n_long / 2;
         unsigned int odd = n_long % 2;
         unsigned long index = odd;
-        numeric curr_coeff = binomial(n_long, L);
+        numeric curr_coeff = numeric::binomial(n_long, L);
         curr_coeff *= den;
         if (odd)
                 curr_coeff *= L + 1;

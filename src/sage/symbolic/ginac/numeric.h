@@ -322,9 +322,9 @@ protected:
 
         static bool integer_rational_power(numeric& res,
                 const numeric& a, const numeric& b);
-//	numeric operator()(const int& x);
 
-	// member variables
+public:
+        static const numeric binomial(unsigned long n, unsigned long k);
 
 protected:
     Type t;
@@ -368,7 +368,6 @@ const numeric psi(const numeric &n, const numeric &x);
 const numeric beta(const numeric &x, const numeric &y, PyObject* parent=nullptr);
 const numeric factorial(const numeric &n);
 const numeric doublefactorial(const numeric &n);
-const numeric binomial(unsigned long n, unsigned long k);
 const numeric binomial(const numeric &n, const numeric &k);
 const numeric bernoulli(const numeric &n);
 const numeric hypergeometric_pFq(const std::vector<numeric>& a, const std::vector<numeric>& b, const numeric &z, PyObject* parent);

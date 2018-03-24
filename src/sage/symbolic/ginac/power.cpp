@@ -37,7 +37,7 @@
 #include "utils.h"
 #include "relational.h"
 #include "compiler.h"
-#include "function.h"
+//#include "function.h"
 
 #include <vector>
 #include <stdexcept>
@@ -1242,8 +1242,7 @@ ex power::expand_add(const add & a, long n, unsigned options) const
 	// which sum up to n.  It is frequently written as C_n(m) and directly
 	// related with binomial coefficients: binomial(n+m-1,m-1).
         long anops = a.nops() - 1;
-	long result_size = binomial(numeric(n + anops),
-                        numeric(anops)).to_long();
+	long result_size = numeric::binomial(n + anops, anops).to_long();
 	if (not a.overall_coeff.is_zero()) {
 		// the result's overall_coeff is one of the terms
 		--result_size;
@@ -1266,7 +1265,7 @@ ex power::expand_add(const add & a, long n, unsigned options) const
                         if (n == k)
                                 binomial_coefficient = *_num1_p;
                         else
-                                binomial_coefficient = binomial(numeric(n), numeric(k)) * a.overall_coeff.power(n-k);
+                                binomial_coefficient = a.overall_coeff.pow_intexp(n-k) * numeric::binomial(n, k);
 		}
 
 		// Multinomial expansion of power(+(x,...,z;0),k)*c^(n-k):
@@ -1307,7 +1306,7 @@ ex power::expand_add(const add & a, long n, unsigned options) const
 					} else { // general case exponent[i] > 1
 						monomial.emplace_back(r, the_exponent[i]);
 						if (not c.is_one())
-							factor = factor.mul(c.power(the_exponent[i]));
+							factor = factor.mul(c.pow_intexp(the_exponent[i]));
 					}
 				}
 				result.emplace_back(mul(std::move(monomial)).expand(options), factor);

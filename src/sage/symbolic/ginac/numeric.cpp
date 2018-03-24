@@ -1370,7 +1370,8 @@ const numeric numeric::mul(const numeric &other) const {
         case LONG: {
                 static long lsqrt = std::lround(std::sqrt(
                                         std::numeric_limits<long>::max()));
-                if (v._long < lsqrt and other.v._long < lsqrt)
+                if (std::abs(v._long) < lsqrt
+                    and std::abs(other.v._long) < lsqrt)
                         return v._long * other.v._long;
                 mpz_t bigint;
                 mpz_init_set_si(bigint, v._long);
@@ -2243,7 +2244,8 @@ numeric & operator*=(numeric & lh, const numeric & rh)
         case LONG: {
                 static long lsqrt = std::lround(std::sqrt(
                                         std::numeric_limits<long>::max()));
-                if (lh.v._long < lsqrt and rh.v._long < lsqrt) {
+                if (std::abs(lh.v._long) < lsqrt
+                    and std::abs(rh.v._long) < lsqrt) {
                         lh.v._long *= rh.v._long;
                         return lh;
                 }
@@ -3981,8 +3983,18 @@ const numeric numeric::binomial(const numeric &k) const {
         return ex_to<numeric>(eval_result);
 }
 
-const numeric binomial(unsigned long n, unsigned long k)
+const numeric numeric::binomial(unsigned long n, unsigned long k)
 {
+        if (n < 13) {
+                static long fac[] = {1, 1, 2, 6, 24, 120, 720,
+                        5040, 40320, 362880, 3628800, 39916800,
+                        479001600};
+                if (k == 0)
+                        return *_num1_p;
+                if (k > n)
+                        return *_num0_p;
+                return fac[n]/fac[k]/fac[n-k];
+        }
         mpz_t bigint;
         mpz_init(bigint);
         mpz_bin_uiui(bigint, n, k);

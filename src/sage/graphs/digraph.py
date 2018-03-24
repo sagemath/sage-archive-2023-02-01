@@ -123,6 +123,7 @@ import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.graphs.generic_graph import GenericGraph
 from sage.graphs.dot2tex_utils import have_dot2tex
 
+from sage.misc.superseded import deprecation
 
 class DiGraph(GenericGraph):
     r"""
@@ -3327,6 +3328,8 @@ class DiGraph(GenericGraph):
             sage: D = digraphs.Complete(4) * 2
             sage: D.add_edges([(0, 4), (7, 3)])
             sage: d = D.immediate_dominators(0)
+            doctest:...: DeprecationWarning: immediate_dominators is now deprecated. Please use method dominator_tree instead.
+            See https://trac.sagemath.org/25030 for details.
             sage: T = DiGraph([(d[u], u) for u in d if u != d[u]])
             sage: Graph(T).is_tree()
             True
@@ -3393,6 +3396,8 @@ class DiGraph(GenericGraph):
             sage: all(d[i] == dx[i] for i in d) and all(d[i] == dx[i] for i in dx)
             True
         """
+        deprecation(25030, "immediate_dominators is now deprecated."
+                        + " Please use method dominator_tree instead.")
         if r not in self:
             raise ValueError("the given root must be in the digraph")
 

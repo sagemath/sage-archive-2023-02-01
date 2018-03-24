@@ -500,7 +500,7 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
             numConCompPrevIter = numConComp
 
         # If the two endpoints of current edge belong to
-        # same component, ignore the edge. 
+        # same component, ignore the edge.
         # Else check if current edge has lesser weight than previous
         # cheapest edges of component1 and component2.
         # Before that, check if component1 and 2 are present in 'cheapest' dict
@@ -509,7 +509,7 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
             component1 = partitions.find(e[0])
             component2 = partitions.find(e[1])
 
-            if component1 != component2 : 
+            if component1 != component2:
                 pair = (component1, component2) if (component1 < component2) else (component2, component1)
                 if component1 in cheapest:
                     if cheapest[component1][1] > e_weight:
@@ -528,7 +528,7 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
                         components_dict[pair] = (e, e_weight)
                 else:
                     components_dict[pair] = (e, e_weight)
-        
+
         edge_list = components_dict.values() # active edges
 
         # Go through all the current connected components
@@ -542,7 +542,7 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
                 partitions.union(component1, component2)
                 T.append(e)
                 numConComp = numConComp - 1
-         
+
         # reset the dictionaries for next iteration
         cheapest = {}
         components_dict = {}

@@ -242,6 +242,7 @@ public:
         const numeric to_bigint() const;
         const mpz_t& as_mpz() const;
         const mpq_t& as_mpq() const;
+        void canonicalize();
         PyObject* to_pyobject() const;
         bool is_pyobject() const
         {

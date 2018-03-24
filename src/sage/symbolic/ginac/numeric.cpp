@@ -222,18 +222,18 @@ PyObject* RR_get()
 PyObject* CC_get()
 {
         static PyObject* ptr = nullptr;
-        if (ptr == nullptr) {
-                PyObject* m = PyImport_ImportModule("sage.rings.all");
-                if (m == nullptr)
-                        py_error("Error importing sage.rings.all");
-                ptr = PyObject_GetAttrString(m, "ComplexField");
-                if (ptr == nullptr)
-                        py_error("Error getting ComplexField attribute");
-                ptr = PyObject_CallObject(ptr, NULL);
-                if (ptr == nullptr)
-                        py_error("Error getting CC attribute");
-                Py_INCREF(ptr);
-        }
+        if (ptr)
+                return ptr;
+        PyObject* m = PyImport_ImportModule("sage.rings.all");
+        if (m == nullptr)
+                py_error("Error importing sage.rings.all");
+        ptr = PyObject_GetAttrString(m, "ComplexField");
+        if (ptr == nullptr)
+                py_error("Error getting ComplexField attribute");
+        ptr = PyObject_CallObject(ptr, NULL);
+        if (ptr == nullptr)
+                py_error("Error getting CC attribute");
+        Py_INCREF(ptr);
         return ptr;
 }
 
@@ -244,25 +244,28 @@ void ginac_pyinit_Integer(PyObject* f) {
         pyfunc_Integer = f;
 }
 
+PyObject* Integer_pyclass()
+{
+        if (not initialized)
+                throw std::runtime_error("can't happen");
+        static PyObject *ptr = nullptr;
+        if (ptr)
+                return ptr;
+        PyObject *m = PyImport_ImportModule("sage.rings.integer");
+        if (m == nullptr)
+                py_error("Error importing sage.rings.integer");
+        ptr = PyObject_GetAttrString(m, "Integer");
+        if (ptr == nullptr)
+                py_error("Error getting Integer attribute");
+        return ptr;
+}
+
 PyObject* Integer(const long int& x) {
         if (initialized)
                 return GiNaC::py_funcs.py_integer_from_long(x);
 
-        // Slow version since we can't call Cython-exported code yet.
-        PyObject* m = PyImport_ImportModule("sage.rings.integer");
-        if (m == nullptr) {
-                py_error("Error importing sage.rings.integer");
-                throw std::runtime_error("");
-        }
-        PyObject* Integer = PyObject_GetAttrString(m, "Integer");
-        if (Integer == nullptr) {
-                Py_DECREF(m);
-                py_error("Error getting Integer attribute");
-                throw std::runtime_error("");
-        }
+        PyObject *Integer = Integer_pyclass();
         PyObject* ans = PyObject_CallFunction(Integer, const_cast<char*> ("l"), x);
-        Py_DECREF(m);
-        Py_DECREF(Integer);
         return ans;
 }
 
@@ -741,6 +744,37 @@ numeric::numeric(const numeric& other) : basic(&numeric::tinfo_static) {
         }
 }
 
+bool is_Sage_Integer(PyObject* o)
+{
+        PyObject *Integer = Integer_pyclass();
+        int res = PyObject_IsInstance(o, Integer);
+        if (res < 0)
+                py_error("Error testing Integer attribute");
+        return res != 0;
+}
+
+void set_from(Type& t, Value& v, long& hash, mpz_t bigint)
+{
+        if (mpz_fits_sint_p(bigint)) {
+                t = LONG;
+                v._long = mpz_get_si(bigint);
+                hash = (v._long==-1) ? -2 : v._long;
+        }
+        else {
+                t = MPZ;
+                mpz_init_set(v._bigint, bigint);
+                hash = _mpz_pythonhash(v._bigint);
+        }
+}
+
+void set_from(Type& t, Value& v, long& hash, mpq_t bigrat)
+{
+        t = MPQ;
+        mpq_init(v._bigrat);
+        mpq_set(v._bigrat, bigrat);
+        hash = _mpq_pythonhash(v._bigrat);
+}
+
 numeric::numeric(PyObject* o, bool force_py) : basic(&numeric::tinfo_static) {
         if (o == nullptr) py_error("Error");
         if (not force_py) {
@@ -764,21 +798,20 @@ numeric::numeric(PyObject* o, bool force_py) : basic(&numeric::tinfo_static) {
                     return;
                 }
                 if (initialized) {
-                        if (py_funcs.py_is_Integer(o) != 0) {
-                                t = MPZ;
-                                mpz_init_set(v._bigint, py_funcs.py_mpz_from_integer(o));
-                                hash = _mpz_pythonhash(v._bigint);
-                                setflag(status_flags::evaluated | status_flags::expanded);
+                        if (is_Sage_Integer(o)) {
+                                mpz_ptr mpz = py_funcs.py_mpz_from_integer(o);
+                                set_from(t, v, hash, mpz);
                                 Py_DECREF(o);
+                                setflag(status_flags::evaluated
+                                                | status_flags::expanded);
                                 return;
                         }
                         if (py_funcs.py_is_Rational(o) != 0) {
-                                t = MPQ;
-                                mpq_init(v._bigrat);
-                                mpq_set(v._bigrat, py_funcs.py_mpq_from_rational(o));
-                                hash = _mpq_pythonhash(v._bigrat);
-                                setflag(status_flags::evaluated | status_flags::expanded);
+                                mpq_ptr mpq = py_funcs.py_mpq_from_rational(o);
+                                set_from(t, v, hash, mpq);
                                 Py_DECREF(o);
+                                setflag(status_flags::evaluated
+                                                | status_flags::expanded);
                                 return;
                         }
                 }
@@ -796,27 +829,16 @@ numeric::numeric(PyObject* o, bool force_py) : basic(&numeric::tinfo_static) {
 
 }
 
-numeric::numeric(mpz_t bigint) : basic(&numeric::tinfo_static) {
-        if (mpz_fits_sint_p(bigint)) {
-                t = LONG;
-                v._long = mpz_get_si(bigint);
-                hash = (v._long==-1) ? -2 : v._long;
-                mpz_clear(bigint);
-        }
-        else {
-                t = MPZ;
-                mpz_init_set(v._bigint, bigint);
-                mpz_clear(bigint);
-                hash = _mpz_pythonhash(v._bigint);
-        }
+numeric::numeric(mpz_t bigint) : basic(&numeric::tinfo_static)
+{
+        set_from(t, v, hash, bigint);
+        mpz_clear(bigint);
         setflag(status_flags::evaluated | status_flags::expanded);
 }
 
-numeric::numeric(mpq_t bigrat) : basic(&numeric::tinfo_static) {
-        t = MPQ;
-        mpq_init(v._bigrat);
-        mpq_set(v._bigrat, bigrat);
-        hash = _mpq_pythonhash(v._bigrat);
+numeric::numeric(mpq_t bigrat) : basic(&numeric::tinfo_static)
+{
+        set_from(t, v, hash, bigrat);
         mpq_clear(bigrat);
         setflag(status_flags::evaluated | status_flags::expanded);
 }
@@ -3208,16 +3230,9 @@ const numeric numeric::to_bigint() const {
                         throw std::runtime_error("not integer in numeric::to_mpz_num()");
                 return numer();
         case PYOBJECT: {
-                PyObject *m = PyImport_ImportModule("sage.rings.integer");
-                if (m == nullptr)
-                        py_error("Error importing sage.rings.integer");
-                PyObject *Integer = PyObject_GetAttrString(m, "Integer");
-                if (Integer == nullptr)
-                        py_error("Error getting Integer attribute");
+                PyObject *Integer = Integer_pyclass();
                 PyObject *ans = PyObject_CallFunctionObjArgs(Integer,
                                 v._pyobject, NULL);
-                Py_DECREF(m);
-                Py_DECREF(Integer);
                 return ans;
         }
         default:
@@ -3237,6 +3252,20 @@ const mpq_t& numeric::as_mpq() const
         if (t != MPQ)
                 throw std::runtime_error("mpq_t requested from non-mpq numeric");
         return v._bigrat;
+}
+
+void numeric::canonicalize()
+{
+        if (t == MPQ) {
+                mpq_canonicalize(v._bigrat);
+                if (mpz_cmp_ui(mpq_denref(v._bigrat), 1) == 0) {
+                        mpz_t tmp;
+                        mpz_init_set(tmp, mpq_numref(v._bigrat));
+                        mpq_clear(v._bigrat);
+                        set_from(t, v, hash, tmp);
+                        mpz_clear(tmp);
+                }
+        }
 }
 
 #ifdef PYNAC_HAVE_LIBGIAC

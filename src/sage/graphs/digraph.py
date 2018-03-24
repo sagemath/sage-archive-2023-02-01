@@ -3473,7 +3473,7 @@ class DiGraph(GenericGraph):
         .. SEEALSO::
 
             - :meth:`~DiGraph.strongly_connected_components`
-            - :meth:`~DiGraph.immediate_dominators`
+            - :meth:`~sage.graphs.base.boost_graph.dominator_tree`
 
         TESTS:
 
@@ -3532,14 +3532,14 @@ class DiGraph(GenericGraph):
             g.add_edges(E)
 
             # 2. Compute the set of non-trivial immediate dominators in g
-            Dr = set( g.immediate_dominators(r).values() )
+            Dr = set( g.dominator_tree(r, return_dict=True).values() )
 
             # 3. Compute the set of non-trivial immediate dominators in the
             # reverse digraph
-            DRr = set( g.immediate_dominators(r, reverse=True).values() )
+            DRr = set( g.dominator_tree(r, return_dict=True, reverse=True).values() )
 
             # 4. Store D(r) + DR(r) - r
-            SAP.extend( Dr.union(DRr).difference([r]) )
+            SAP.extend( Dr.union(DRr).difference([r, None]) )
 
         return SAP
 

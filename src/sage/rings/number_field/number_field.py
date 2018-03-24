@@ -113,6 +113,9 @@ import sage.rings.real_double
 import sage.rings.real_lazy
 
 from sage.rings.finite_rings.integer_mod import mod
+from sage.rings.finite_rings.residue_field import reduction_map
+from sage.rings.ideal import gens
+from sage.arith.misc import is_square, quadratic_residues
 
 from sage.misc.fast_methods import WithEqualityById
 from sage.misc.functional import is_odd, lift
@@ -144,6 +147,7 @@ from . import number_field_morphisms
 from itertools import count
 from builtins import zip
 from sage.misc.superseded import deprecated_function_alias
+
 
 _NumberFields = NumberFields()
 
@@ -11266,3 +11270,5 @@ def is_real_place(v):
         return True
     except TypeError:
         return False
+
+

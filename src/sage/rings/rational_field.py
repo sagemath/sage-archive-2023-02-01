@@ -69,6 +69,7 @@ from sage.structure.sequence import Sequence
 import sage.rings.number_field.number_field_base as number_field_base
 from sage.misc.fast_methods import Singleton
 
+
 class RationalField(Singleton, number_field_base.NumberField):
     r"""
     The class ``RationalField`` represents the field `\QQ` of rational numbers.
@@ -1184,6 +1185,52 @@ class RationalField(Singleton, number_field_base.NumberField):
         from itertools import product
         for ev in product(*[range(o) for o in ords]):
             yield prod((p**e for p,e in zip(KSgens, ev)), one)
+
+
+    def quadratic_defect(self,a,p):
+        r"""
+        Return the valuation of the quadratic defect of `a` at `p`.
+        This is an implementation of Algorithm 3.1.3 from Kirschmer's
+        "Definite quadratic and hermitian forms with small class number"
+
+        EXAMPLES::
+        
+            sage: QQ.quadratic_defect(0,7)
+            +Infinity
+            sage: QQ.quadratic_defect(5,7)
+            0
+            sage: QQ.quadratic_defect(5,2)
+            2
+            sage: QQ.quadratic_defect(5,5)
+            1
+        """
+        from sage.rings.all import Infinity
+        from sage.arith.misc import quadratic_residues
+        if not a in self:
+            raise TypeError(str(a)+" must be an element of "+str(self))
+        if not p.is_prime():
+            raise ValueError(str(p)+" must be prime")
+        if a.is_zero():
+            d = Infinity
+        else:
+            v = self(a).valuation(p)
+            if v % 2 == 1:
+                d = v
+            else:
+                a = a/(p**v)
+                if p != 2:
+                    if a in quadratic_residues(p):
+                        d = Infinity
+                    else:
+                        d = v
+                if p == 2:
+                    if a % 8 == 1:
+                        d = Infinity
+                    if a % 8 == 5:
+                        d = v+2
+                    if a % 8 in [3,7]:
+                        d = v+1
+        return d
 
 
     #################################

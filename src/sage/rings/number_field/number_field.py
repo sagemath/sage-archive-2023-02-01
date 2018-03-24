@@ -113,8 +113,8 @@ import sage.rings.real_double
 import sage.rings.real_lazy
 
 from sage.rings.finite_rings.integer_mod import mod
-from sage.rings.finite_rings.residue_field import reduction_map
-from sage.rings.ideal import gens
+
+
 from sage.arith.misc import is_square, quadratic_residues
 
 from sage.misc.fast_methods import WithEqualityById
@@ -10974,6 +10974,78 @@ class NumberField_quadratic(NumberField_absolute):
 
         from sage.schemes.elliptic_curves.all import hilbert_class_polynomial as HCP
         return QQ[name](HCP(D))
+
+
+    def quadratic_defect(self,a,p):
+        r"""
+        Return the valuation of the quadratic defect of `a` at `p`.
+        This is an implementation of Algorithm 3.1.3 from Kirschmer's
+        "Definite quadratic and hermitian forms with small class number"
+
+        EXAMPLES::
+        
+            sage: K.<a>=NumberField(x^2+2)
+            sage: p=K.primes_above(2)[0]
+            sage: K.quadratic_defect(5,p)
+            4
+            sage: K.quadratic_defect(0,p)
+            +Infinity
+            sage: K.quadratic_defect(a,p)
+            1
+
+        """
+        from sage.rings.all import PolynomialRing
+        from sage.calculus.var import var
+        if not a in self:
+            raise TypeError(str(a)+" must be an element of "+str(self))
+        if not self == QQ and not p.parent() == self.ideal_monoid():
+            raise TypeError(str(p)+" is not a prime ideal in "
+            +str(self.ideal_monoid()))
+        if not p.is_prime():
+            raise TypeError(str(p)+" must be prime")
+        if a.is_zero():
+            d = Infinity
+        else:
+            v = self(a).valuation(p)
+            if v % 2 == 1:
+                d = v
+            else:
+                for g in p.gens():
+                    if g.valuation(p) == 1:
+                        pi = g
+                        break
+                a = self(a)/(pi**v)
+                F = p.residue_field()
+                q = F.reduction_map()
+                # The non-dyadic case
+                if self(2).valuation(p) == 0:
+                    if q(a).is_square() == True:
+                        d = Infinity
+                    else:
+                        d = v
+                # The dyadic case
+                else:
+                    for s in F:
+                        if (s**2)*F(a)==1:
+                            break
+                    a = self(s**2)*a
+                    u = self(4).valuation(p)
+                    w = (a-1).valuation(p)
+                    x = var('x')
+                    R = PolynomialRing(F,x)
+                    f=R(x**2+x)
+                    while w < u and w % 2==0:
+                        s = self((q((a-1)/pi**w))**(1/2))
+                        a = a/(1+s*(pi**(w/2)))**2
+                        w = (a-1).valuation(p)
+                    if w < u and w % 2 ==1:
+                        d = v+w
+                    if w == u and (f+F((a-1)/4)).is_irreducible():
+                        d = v+w
+                    else:
+                        d = Infinity
+        return d
+
 
 def is_fundamental_discriminant(D):
     r"""

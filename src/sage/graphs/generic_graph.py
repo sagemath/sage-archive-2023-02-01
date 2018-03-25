@@ -3589,6 +3589,8 @@ class GenericGraph(GenericGraph_pyx):
 
           - ``"Kruskal_Boost"`` -- Kruskal's algorithm (Boost implementation).
 
+          - ``"Boruka"`` -- Boruvka's algorithm.
+
           - ``NetworkX`` -- Uses NetworkX's minimum spanning tree
             implementation.
 
@@ -3611,6 +3613,7 @@ class GenericGraph(GenericGraph_pyx):
         .. SEEALSO::
 
             - :func:`sage.graphs.spanning_tree.kruskal`
+            - :func:`sage.graphs.spanning_tree.boruvka`
             - :func:`sage.graphs.base.boost_graph.min_spanning_tree`
 
         EXAMPLES:
@@ -3630,6 +3633,11 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.add_edges(g.edges())
             sage: g.min_spanning_tree()
             [(0, 1, None), (0, 4, None), (0, 5, None), (1, 2, None), (1, 6, None), (3, 8, None), (5, 7, None), (5, 8, None), (6, 9, None)]
+
+        Boruvka's algorithm::
+
+            sage: g.min_spanning_tree(algorithm='Boruvka')
+            [(0, 1, None), (1, 2, None), (2, 3, None), (0, 4, None), (0, 5, None), (1, 6, None), (2, 7, None), (3, 8, None), (4, 9, None)]
 
         Prim's algorithm::
 
@@ -3782,7 +3790,7 @@ class GenericGraph(GenericGraph_pyx):
 
         wfunction_float = lambda e:float(weight_function(e))
 
-        if algorithm in ["Kruskal", "Kruskal_Boost", "Prim_Boost"]:
+        if algorithm in ["Kruskal", "Kruskal_Boost", "Prim_Boost", "Boruvka"]:
             if self.is_directed():
                 g = self.to_undirected()
             else:
@@ -3791,6 +3799,9 @@ class GenericGraph(GenericGraph_pyx):
             if algorithm == "Kruskal":
                 from .spanning_tree import kruskal
                 return kruskal(g, wfunction=wfunction_float, check=check)
+            elif algorithm == "Boruvka":
+                from .spanning_tree import boruvka
+                return boruvka(g, wfunction=wfunction_float, check=check)
             else:
                 from sage.graphs.base.boost_graph import min_spanning_tree
                 return min_spanning_tree(g,

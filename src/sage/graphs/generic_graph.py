@@ -21754,6 +21754,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.automorphism_group(edge_labels=True)
             Permutation Group with generators [(1,4)(2,3)]
 
+            sage: G.automorphism_group(edge_labels=True, algorithm="bliss")
+            Permutation Group with generators [(1,4)(2,3)]
+
+            sage: G.automorphism_group(edge_labels=True, algorithm="sage")
+            Permutation Group with generators [(1,4)(2,3)]
+
         ::
 
             sage: G = Graph({0 : {1 : 7}})
@@ -22489,11 +22495,14 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.add_edges( [(0,1,'a'),(1,2,'b'),(2,3,'c'),(3,4,'b'),(4,0,'a')] )
             sage: G.canonical_label(edge_labels=True)
             Graph on 5 vertices
-            sage: G.canonical_label(edge_labels=True, certificate=True)
+            sage: G.canonical_label(edge_labels=True, algorithm="bliss", certificate=True) # optional - bliss
             (Graph on 5 vertices, {0: 4, 1: 3, 2: 0, 3: 1, 4: 2})
 
-        Canonical forms can be computed by bliss as well. Different
-        canonization algorithms give different graphs::
+            sage: G.canonical_label(edge_labels=True, algorithm="sage", certificate=True)
+            (Graph on 5 vertices, {0: 4, 1: 3, 2: 0, 3: 1, 4: 2})
+
+        Another example where different canonization algorithms give
+        different graphs::
 
             sage: g = Graph({'a': ['b'], 'c': ['d']})
             sage: g_sage = g.canonical_label(algorithm='sage')

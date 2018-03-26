@@ -349,7 +349,7 @@ cdef canonical_form_from_edge_list(int Vnr, list Vout, list Vin, int Lnr=1, list
     else:
         return new_edges
 
-cpdef canonical_form(G, partition=None, return_graph=False, certificate=False):
+cpdef canonical_form(G, partition=None, return_graph=False, use_edge_labels=True, certificate=False):
     r"""
     Return the canonical label of ``G``.
 
@@ -366,6 +366,8 @@ cpdef canonical_form(G, partition=None, return_graph=False, certificate=False):
 
     - ``return_graph`` -- If set to ``True``, ``canonical_form`` returns the
       canonical graph of ``G``. Otherwise, it returns its set of edges.
+
+    - ``edge_labels`` -- A boolean whether or not to consider edge labels.
 
     - ``certificate`` -- If set to ``True`` returns the labeling of G into a
       canonical graph.
@@ -437,7 +439,12 @@ cpdef canonical_form(G, partition=None, return_graph=False, certificate=False):
         vert2int[v] = i
         int2vert[i] = v
 
+    if bool(partition):
+        partition = [ [ vert2int[i] for i in part ] for part in partition ]
+
     for x,y,lab in G.edges(labels=True):
+        if use_edge_labels is False:
+            lab = None
         try:
             labInd = edge_labels_rev[lab]
         except KeyError:
@@ -525,7 +532,7 @@ cdef automorphism_group_gens_from_edge_list(int Vnr, Vout, Vin, int Lnr=1, label
 
     return [ [ cyc for cyc in gen if cyc[0] is not None ] for gen in gens ]
 
-cpdef automorphism_group(G, partition=None):
+cpdef automorphism_group(G, partition=None, use_edge_labels=True):
     """
     Computes the automorphism group of ``G`` subject to the vertex coloring ``partition``, if given.
 
@@ -539,6 +546,8 @@ cpdef automorphism_group(G, partition=None):
 
     - ``partition`` -- A partition of the vertices of ``G`` into color classes.
       Defaults to ``None``, which is equivalent to a partition of size 1.
+
+    - ``edge_labels`` -- A boolean whether or not to consider edge labels.
 
     EXAMPLES::
 
@@ -615,6 +624,8 @@ cpdef automorphism_group(G, partition=None):
         ....:
         sage: automorphism_group(G).cardinality() == prod( factorial(n) for n in [3,3,2,8,8,5,2] )  # optional - bliss
         True
+        sage: automorphism_group(G, use_edge_labels=False).cardinality() == prod( factorial(n) for n in [8,8,8,5,3] )  # optional - bliss
+        True
         sage: automorphism_group(G,[[0 .. 7],[8 .. 11],[12 .. 28]]).cardinality() == prod( factorial(n) for n in [3,3,2,4,4,8,5] )  # optional - bliss
         True
 
@@ -673,7 +684,12 @@ cpdef automorphism_group(G, partition=None):
         vert2int[v] = i
         int2vert[i] = v
 
+    if bool(partition):
+        partition = [ [ vert2int[i] for i in part ] for part in partition ]
+
     for x,y,lab in G.edge_iterator(labels=True):
+        if use_edge_labels is False:
+            lab = None
         try:
             labInd = edge_labels_rev[lab]
         except KeyError:

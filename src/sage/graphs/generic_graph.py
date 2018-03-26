@@ -21870,7 +21870,7 @@ class GenericGraph(GenericGraph_pyx):
                 from sage.misc.package import PackageNotFoundError
                 raise PackageNotFoundError("bliss")
 
-            A = automorphism_group(self, partition)
+            A = automorphism_group(self, partition, use_edge_labels=edge_labels)
 
             # If the user only wants the automorphism group, lets return it
             # without much hassle
@@ -22496,7 +22496,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.canonical_label(edge_labels=True)
             Graph on 5 vertices
             sage: G.canonical_label(edge_labels=True, algorithm="bliss", certificate=True) # optional - bliss
-            (Graph on 5 vertices, {0: 4, 1: 3, 2: 0, 3: 1, 4: 2})
+            (Graph on 5 vertices, {0: 4, 1: 3, 2: 1, 3: 0, 4: 2})
 
             sage: G.canonical_label(edge_labels=True, algorithm="sage", certificate=True)
             (Graph on 5 vertices, {0: 4, 1: 3, 2: 0, 3: 1, 4: 2})

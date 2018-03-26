@@ -9,11 +9,9 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-import inspect
-
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
-from sage.misc.abstract_method import abstract_method
+from sage.misc.abstract_method import abstract_method, AbstractMethod
 from sage.categories.subquotients import SubquotientsCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.algebra_functor import AlgebrasCategory
@@ -821,10 +819,9 @@ class Magmas(Category_singleton):
                 sage: S = Semigroups().example("free")
                 sage: S('a') * S('b') # indirect doctest
                 'ab'
-                sage: S('a').__class__._mul_ == S('a').__class__._mul_parent  # py2
+                sage: S('a').__class__._mul_ == S('a').__class__._mul_parent
                 True
-                sage: S('a').__class__._mul_ == S('a').__class__._mul_parent.__func__  # py3
-                True
+
             """
             # This should instead register the multiplication to the coercion model
             # But this is not yet implemented in the coercion model
@@ -845,15 +842,15 @@ class Magmas(Category_singleton):
 
             E = self.element_class
             E_mul_func = raw_getattr(E, '_mul_')
-            if inspect.isfunction(E_mul_func):
+            if not isinstance(E_mul_func, AbstractMethod):
                 C = self.category().element_class
                 try:
                     C_mul_func = raw_getattr(C, '_mul_')
                 except AttributeError:  # Doesn't have _mul_
                     return
 
-                if not inspect.isfunction(C_mul_func):
-                    return  # abstract method
+                if isinstance(C_mul_func, AbstractMethod):
+                    return
 
                 if E_mul_func is C_mul_func:
                     # self.product is custom, thus, we rely on it

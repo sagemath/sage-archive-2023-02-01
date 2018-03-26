@@ -1160,6 +1160,19 @@ class RiemannSurface(object):
         # Forming a list of lists of zeroes. Later this will be converted into a
         # matrix.
         intersectionprod = [[0 for c in cycles] for c in cycles]
+
+        #as it turns out, in extreme examples argument computation can be quite dominant
+        #so we cache this (since we may end up using these values multiple times)
+        direction_cache = {}
+        def direction(center,neighbour):
+            k=(center,neighbour)
+            if k not in direction_cache:
+                theta=(self._vertices[neighbour]-self._vertices[center]).argument()
+                direction_cache[k]=theta
+                return theta
+            else:
+                return direction_cache[k]
+
         # This loop will start at the entry (0,1), and proceed along the row up
         # til (0,cn-1).
         # Then it will go to entry (1,2), and proceed along the row, etc.
@@ -1174,7 +1187,7 @@ class RiemannSurface(object):
                     i0 = cycles[i].index(v)
                     i1 = cycles[j].index(v)
                     # Get the complex value of the vertex v.
-                    vd = self._vertices[cycles[i][i0][0]]
+                    center = cycles[i][i0][0]
 
                     # We are in the following situation:
                     # We have two paths a_in->v->a_out and
@@ -1199,10 +1212,10 @@ class RiemannSurface(object):
                     # we can get the angles (and hence the rotation order)
                     # by taking the arguments of the differences.
 
-                    a_in_arg=(self._vertices[a_in]-vd).argument()
-                    a_out_arg=(self._vertices[a_out]-vd).argument()
-                    b_in_arg=(self._vertices[b_in]-vd).argument()
-                    b_out_arg=(self._vertices[b_out]-vd).argument()
+                    a_in_arg=direction(center,a_in)
+                    a_out_arg=direction(center,a_out)
+                    b_in_arg=direction(center,b_in)
+                    b_out_arg=direction(center,b_out)
 
                     # we make sure to test overlap on the indices, so no rounding
                     # problems occur with that.

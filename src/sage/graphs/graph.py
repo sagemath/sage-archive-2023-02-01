@@ -6739,18 +6739,19 @@ class Graph(GenericGraph):
 
         An ear of an undirected graph `G` is a path `P` where the two endpoints
         of the path may coincide (i.e., form a cycle), but where otherwise no 
-        repetition of  edges or vertices is allowed, so every internal vertex 
+        repetition of edges or vertices is allowed, so every internal vertex
         of P has degree two in `P`.
 
         An ear decomposition of an undirected graph `G` is a partition of its
         set of edges into a sequence of ears, such that the one or two endpoints
-        of each ear  belong to earlier ears in the sequence and such that the 
-        internal vertices of  each ear do not belong to any earlier ear.
+        of each ear belong to earlier ears in the sequence and such that the
+        internal vertices of each ear do not belong to any earlier ear.
 
         For more information, see the
         :wikipedia:`Ear_decomposition`.
 
-        This method implements the linear time algorithm presented in [Sch2013]_.
+        This method implements the linear time algorithm presented in
+        [Sch2013]_.
 
         INPUT:
 
@@ -6804,7 +6805,6 @@ class Graph(GenericGraph):
             sage: g.add_edge(u, u)
             sage: g
             Bull graph: Looped multi-graph on 5 vertices
-            sage: h = copy(g)
             sage: h = g.to_simple()
             sage: g.ear_decomposition() == h.ear_decomposition()
             True
@@ -6828,7 +6828,7 @@ class Graph(GenericGraph):
         # Dfs traversal in graph.
         seen = set()
 
-        # Boolean dict to mark vertices as visited or unvisited in 
+        # Boolean dict to mark vertices as visited or unvisited in
         # Dfs tree traversal.
         traversed = set()
 
@@ -6856,7 +6856,7 @@ class Graph(GenericGraph):
             Depth first search step from vertex v.
             """
 
-            # make v are visited, update it's time of visited and value
+            # make v are visited, update its time of visited and value
             seen.add(v)
             dfs_order.append(v)
 
@@ -6864,18 +6864,19 @@ class Graph(GenericGraph):
             for u in self.neighbor_iterator(v):
                 # if any neighbor is not visited, enter
                 if u not in seen:
-                    # Set the parent of u in DFS tree as v and continue exploration
+                    # Set the parent of u in DFS tree as v and
+                    # continue exploration
                     parent[u] = v
                     DFS(u)
 
-        # Traverse() : Function that use G-T(non -tree edges) to find cycles and
-        #              chains by traversing in DFS tree.
+        # Traverse() : Function that use G-T (non-tree edges) to find cycles
+        #              and chains by traversing in DFS tree.
         def traverse(start, pointer):
             # Make the firt end of non-tree edge visited
             traversed.add(start)
             chain = [start]
 
-            # Traverse DFS Tree of G and print all the not visited vertices.
+            # Traverse DFS Tree of G and print all the not visited vertices
             # Appending all the vertices in chain
             while True:
                 chain.append(pointer)
@@ -6888,11 +6889,12 @@ class Graph(GenericGraph):
         # Perform ear decomposition on each connected component of input graph.
         for v in vertices:
             if v not in seen:
-              # start the depth first search from first vertex
+              # Start the depth first search from first vertex
                 DFS(v)
                 value = {u:i for i,u in enumerate(dfs_order)}
 
-                # Traverse all the non Tree edges, according to depth first traversal
+                # Traverse all the non Tree edges, according to
+                # depth first traversal
                 for u in dfs_order:
                     for neighbor in self.neighbor_iterator(u):
                         if value[u] < value[neighbor] and u != parent[neighbor]:

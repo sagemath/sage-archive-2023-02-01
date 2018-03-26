@@ -149,7 +149,6 @@ public:
 	{
 		return 30;
 	}
-	void dbgprint() const override;
 	bool info(unsigned inf) const override;
 	bool is_polynomial(const ex & var) const override;
 	numeric degree(const ex & s) const override;
@@ -320,6 +319,7 @@ protected:
 	void do_print_latex(const print_latex & c, unsigned level) const;
 	void do_print_tree(const print_tree & c, unsigned level) const override;
 	void do_print_python_repr(const print_python_repr & c, unsigned level) const override;
+        void dbgprint() const override;
 
         static bool integer_rational_power(numeric& res,
                 const numeric& a, const numeric& b);
@@ -327,7 +327,6 @@ protected:
 public:
         static const numeric binomial(unsigned long n, unsigned long k);
 
-protected:
     Type t;
     Value v;
     long hash;

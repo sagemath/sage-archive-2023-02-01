@@ -312,14 +312,12 @@ public:
 	/** Clear some status_flags. */
 	const basic & clearflag(unsigned f) const {flags &= ~f; return *this;}
 
-protected:
 	void ensure_if_modifiable() const;
 #ifdef PYNAC_HAVE_LIBGIAC
         const giac::polynome to_polynome(ex_int_map& map, exvector& revmap);
 #endif
 
 	// member variables
-protected:
 	tinfo_t tinfo_key;                  ///< type info
 	mutable unsigned flags;             ///< of type status_flags
 	mutable long hashvalue=0;         ///< hash value

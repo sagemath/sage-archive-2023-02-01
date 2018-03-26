@@ -1015,23 +1015,16 @@ void numeric::do_print_latex(const print_latex & c, unsigned level) const {
         print_numeric(c, "{(", ")}", "i", " ", level, true);
 }
 
-void numeric::do_print_tree(const print_tree & c, unsigned level) const {
-        c.s << std::string(level, ' ') << *this
-                << " (" << class_name() << ")" << " @" << this
-                << std::hex << ", hash=0x" << hash << ", flags=0x" << flags << std::dec
-                << std::endl;
-}
-
 void numeric::do_print_python_repr(const print_python_repr & c, unsigned level) const {
         c.s << class_name() << "('";
         print_numeric(c, "(", ")", "I", "*", level);
         c.s << "')";
 }
 
-void numeric::dbgprint() const
+static std::string dbgstring(const numeric& num)
 {
         std::string ts;
-        switch (t) {
+        switch (num.t) {
         case LONG:
                 ts = "LONG";
                 break;
@@ -1041,9 +1034,10 @@ void numeric::dbgprint() const
         case MPQ:
                 ts = "MPQ";
                 break;
-        case PYOBJECT: {
+        case PYOBJECT:
+                {
                 ts = "PYOBJECT: ";
-                PyObject *to = PyObject_Type(v._pyobject);
+                PyObject *to = PyObject_Type(num.v._pyobject);
                 if (to == nullptr)
                         ts.append("NULL");
                 else {
@@ -1060,9 +1054,22 @@ void numeric::dbgprint() const
         }
         default: stub("typestr()");
         }
-        std::cerr << *this << " (numeric)" << " @" << this
-                << std::hex << ", hash=0x" << hash << ", flags=0x" << flags << std::dec
-                << ", type " << ts <<std::endl;
+
+        std::stringstream ss;
+        ss << num << " (numeric)" << " @" << &num << std::hex << ", hash=0x"
+                << num.hash << ", flags=0x" << num.flags << std::dec
+                << ", type " << ts;
+        return ss.str();
+}
+
+void numeric::do_print_tree(const print_tree & c, unsigned level) const
+{
+        c.s << std::string(level, ' ') << dbgstring(*this) << std::endl;
+}
+
+void numeric::dbgprint() const
+{
+        std::cerr << dbgstring(*this) << std::endl;
 }
 
 bool numeric::info(unsigned inf) const {

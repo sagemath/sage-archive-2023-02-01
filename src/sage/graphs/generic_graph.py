@@ -21858,10 +21858,7 @@ class GenericGraph(GenericGraph_pyx):
 
         if (algorithm == 'bliss'           or   # explicit choice from the user; or
             (algorithm is None             and  # by default
-             not edge_labels               and
              have_bliss)):
-            if edge_labels:
-                raise ValueError("bliss cannot be used when edge_labels is True")
 
             if not have_bliss:
                 from sage.misc.package import PackageNotFoundError
@@ -22424,8 +22421,7 @@ class GenericGraph(GenericGraph_pyx):
           currently available:
 
           * ``'bliss'``: use the optional package bliss
-            (http://www.tcs.tkk.fi/Software/bliss/index.html); can not
-            be combined with ``edge_labels``
+            (http://www.tcs.tkk.fi/Software/bliss/index.html);
           * ``'sage'``: always use Sage's implementation.
           * ``None`` (default): use bliss when available and possible
 
@@ -22554,8 +22550,6 @@ class GenericGraph(GenericGraph_pyx):
         has_multiedges = self.has_multiple_edges()
         if has_multiedges and algorithm == 'bliss':  # See trac #21704
             raise NotImplementedError("algorithm 'bliss' can not be used for graph with multiedges")
-        if edge_labels and algorithm == 'bliss':
-            raise NotImplementedError("algorithm 'bliss' can not be used when edge_labels=True")
 
         # Check bliss if explicitly requested, raise if not found.
         if algorithm == 'bliss':
@@ -22564,7 +22558,7 @@ class GenericGraph(GenericGraph_pyx):
         # By default use bliss when possible
         if algorithm is None:
             algorithm = 'sage'
-            if not has_multiedges and not edge_labels:
+            if not has_multiedges:
                 try:
                     from sage.graphs.bliss import canonical_form
                     algorithm = 'bliss'

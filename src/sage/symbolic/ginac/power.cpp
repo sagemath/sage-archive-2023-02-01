@@ -53,6 +53,7 @@ namespace GiNaC {
 GINAC_IMPLEMENT_REGISTERED_CLASS_OPT(power, basic,
   print_func<print_context>(&power::do_print).
   print_func<print_latex>(&power::do_print_latex).
+  print_func<print_tree>(&basic::do_print_tree).
   print_func<print_python>(&power::do_print_python).
   print_func<print_python_repr>(&power::do_print_python_repr))
 

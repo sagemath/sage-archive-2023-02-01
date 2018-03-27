@@ -32,6 +32,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 
+from libc.math cimport isfinite, INFINITY
 from libc.string cimport memset, memcpy
 from cysignals.memory cimport check_calloc, check_allocarray, check_reallocarray, sig_free
 from cysignals.signals cimport sig_check, sig_on, sig_off
@@ -44,8 +45,6 @@ cdef extern from *:
     int sprintf_6i "sprintf" (char*, char*, int, int, int, int, int, int)
     int sprintf_7i "sprintf" (char*, char*, int, int, int, int, int, int, int)
     int sprintf_9d "sprintf" (char*, char*, double, double, double, double, double, double, double, double, double)
-
-from libc.math cimport INFINITY
 
 from cpython.list cimport *
 from cpython.bytes cimport *
@@ -342,30 +341,87 @@ cdef class IndexFaceSet(PrimitiveObject):
         self.face_indices = <int *>check_reallocarray(self.face_indices, icount, sizeof(int))
 
     def _clean_point_list(self):
-        # TODO: There is still wasted space where quadrilaterals were
-        # converted to triangles...  but it's so little it's probably
-        # not worth bothering with
-        cdef int* point_map = <int *>check_calloc(self.vcount, sizeof(int))
-        cdef Py_ssize_t i, j
-        cdef face_c *face
-        for i from 0 <= i < self.fcount:
+        """
+        Clean up the vertices and faces as follows:
+
+        - Remove all vertices with a coordinate which is NaN or
+          infinity.
+
+        - If a removed vertex occurs in a face, remove it from that
+          face, but keep other vertices in that face.
+
+        - Remove faces with less than 3 vertices.
+
+        - Remove unused vertices.
+
+        - Free unused memory for vertices and faces (not indices).
+        """
+        cdef Py_ssize_t i, j, v
+
+        # point_map is an array old vertex index -> new vertex index.
+        # The special value -1 means that the vertex is not mapped yet.
+        # The special value -2 means that the vertex must be deleted
+        # because a coordinate is NaN or infinity.
+        # When we are done, all vertices with negative indices are not
+        # used and will be removed.
+        cdef int* point_map = <int*>check_allocarray(self.vcount, sizeof(int))
+
+        cdef Py_ssize_t nv = 0  # number of new vertices
+        for i in range(self.vcount):
+            point_map[i] = -1
+
+        # Process all faces
+        cdef Py_ssize_t nf = 0  # number of new faces
+        cdef Py_ssize_t fv      # number of new vertices on face
+        for i in range(self.fcount):
             face = &self._faces[i]
-            for j from 0 <= j < face.n:
-                point_map[face.vertices[j]] += 1
-        ix = 0
-        for i from 0 <= i < self.vcount:
-            if point_map[i] > 0:
-                point_map[i] = ix
-                self.vs[ix] = self.vs[i]
-                ix += 1
-        if ix != self.vcount:
-            for i from 0 <= i < self.fcount:
-                face = &self._faces[i]
-                for j from 0 <= j < face.n:
-                    face.vertices[j] = point_map[face.vertices[j]]
-            self.realloc(ix, self.fcount, self.icount)
-            self.vcount = ix
+
+            # Process vertices in face
+            fv = 0
+            for j in range(face.n):
+                v = face.vertices[j]
+                if point_map[v] == -1:
+                    pt = &self.vs[v]
+                    if isfinite(pt.x) and isfinite(pt.y) and isfinite(pt.z):
+                        point_map[v] = nv
+                        nv += 1
+                    else:
+                        point_map[v] = -2
+                if point_map[v] == -2:
+                    continue
+
+                face.vertices[fv] = point_map[face.vertices[j]]
+                fv += 1
+
+            # Skip faces with less than 3 vertices
+            if fv < 3:
+                continue
+
+            # Store in newface
+            newface = &self._faces[nf]
+            newface.n = fv
+            if newface is not face:
+                newface.vertices = face.vertices
+                newface.color = face.color
+            nf += 1
+
+        # Realloc face array
+        if nf < self.fcount:
+            self._faces = <face_c*>check_reallocarray(self._faces, nf, sizeof(face_c))
+            self.fcount = nf
+
+        # Realloc and map vertex array
+        # We cannot copy in-place since we permuted the vertices
+        new_vs = <point_c*>check_allocarray(nv, sizeof(point_c))
+        for i in range(self.vcount):
+            j = point_map[i]
+            if j >= 0:
+                new_vs[j] = self.vs[i]
+
         sig_free(point_map)
+        sig_free(self.vs)
+        self.vs = new_vs
+        self.vcount = nv
 
     def _separate_creases(self, threshold):
         """
@@ -545,7 +601,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             False
         """
         return not(self.global_texture)
-    
+
     def index_faces_with_colors(self):
         """
         Return the list over all faces of (indices of the vertices, color).
@@ -1058,7 +1114,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             s = 'pmesh {} "{}"\n{}'.format(name, filename,
                                            self.texture.jmol_str("pmesh"))
         else:
-            s = 'pmesh {} "{}"'.format(name, filename)            
+            s = 'pmesh {} "{}"'.format(name, filename)
 
         # Turn on display of the mesh lines or dots?
         if render_params.mesh:

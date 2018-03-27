@@ -235,6 +235,7 @@ public:
 	numeric max_coefficient() const;
         bool is_linear(const symbol& x, ex& a, ex& b) const;
         bool is_quadratic(const symbol& x, ex& a, ex& b, ex& c) const;
+        bool is_binomial(const symbol& x, ex& a, ex& j, ex& b, ex& n) const;
 
 	// domains
 	void set_domain(unsigned d);

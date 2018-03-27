@@ -132,7 +132,7 @@ typedef std::pair<ex, ex> ex2;
 typedef std::pair<ex, bool> exbool;
 
 struct ex2_less {
-	bool operator() (const ex2 &p, const ex2 &q) const 
+	bool operator() (const ex2 &p, const ex2 &q) const
 	{
 		int cmp = p.first.compare(q.first);
 		return ((cmp<0) || (!(cmp>0) && p.second.compare(q.second)<0));
@@ -196,19 +196,44 @@ numeric mul::max_coefficient() const
 
 bool ex::is_linear(const symbol& x, ex& a, ex& b) const
 {
-        if (degree(x) > 1)
+        expand();
+        if (not has_symbol(*this, x)) {
+                a = *this;
+                b = _ex0;
+                return true;
+        }
+        if (this->is_equal(x)) {
+                a = _ex0;
+                b = _ex1;
+                return true;
+        }
+        if (is_exactly_a<mul>(*this)) {
+                if (has_symbol(*this/x, x))
+                        return false;
+                a = _ex0;
+                b = *this/x;
+                return true;
+        }
+        if (not is_exactly_a<add>(*this))
                 return false;
-        b = coeff(x, 1);
-        if (has_symbol(b,x))
+        const add& A = ex_to<add>(*this);
+        exvector cterms, xterms;
+        for (unsigned i=0; i<A.nops(); ++i)
+                if (has_symbol(A.op(i), x))
+                        xterms.push_back(A.op(i));
+                else
+                        cterms.push_back(A.op(i));
+        ex xt = (add(xterms) / x).normal();
+        if (has_symbol(xt, x))
                 return false;
-        a = ((*this) - b*x).expand();
-        if (has_symbol(a,x))
-                return false;
+        a = add(cterms);
+        b = xt;
         return true;
 }
 
 bool ex::is_quadratic(const symbol& x, ex& a, ex& b, ex& c) const
 {
+        expand();
         if (degree(x) > 2)
                 return false;
         c = coeff(x, 2);
@@ -223,6 +248,85 @@ bool ex::is_quadratic(const symbol& x, ex& a, ex& b, ex& c) const
         return true;
 }
 
+bool ex::is_binomial(const symbol& x, ex& a, ex& j, ex& b, ex& n) const
+{
+        expand();
+        if (is_linear(x, a, b)) {
+                j = _ex0;
+                if (b.is_zero())
+                        n = _ex0;
+                else
+                        n = _ex1;
+                return true;
+        }
+        if (is_exactly_a<power>(*this)) {
+                const power& p = ex_to<power>(*this);
+                if (has_symbol(p.op(1), x)
+                    or not p.op(0).is_equal(x))
+                        return false;
+                a = _ex1;
+                j = p.op(1);
+                b = _ex0;
+                n = _ex0;
+                return true;
+        }
+        if (is_exactly_a<mul>(*this)) {
+                const mul& m = ex_to<mul>(*this);
+                ex cprod = _ex1;
+                j = _ex0;
+                b = _ex0;
+                n = _ex0;
+                for (unsigned i=0; i<m.nops(); ++i) {
+                        const ex& factor = m.op(i);
+                        if (not has_symbol(factor, x))
+                                cprod *= factor;
+                        else if (is_exactly_a<power>(factor)) {
+                                const power& pow = ex_to<power>(factor);
+                                if (has_symbol(pow.op(1), x)
+                                    or not pow.op(0).is_equal(x))
+                                        return false;
+                                j = pow.op(1);
+                        }
+                        else if (factor.is_equal(x))
+                                j = _ex1;
+                        else
+                                return false;
+                }
+                a = cprod;
+                return true;
+        }
+        if (not is_exactly_a<add>(*this))
+                return false;
+        const add& A = ex_to<add>(*this);
+        exvector cterms, xterms;
+        for (unsigned i=0; i<A.nops(); ++i)
+                if (has_symbol(A.op(i), x))
+                        xterms.push_back(A.op(i));
+                else
+                        cterms.push_back(A.op(i));
+        if (xterms.size() > 2
+            or (xterms.size() == 2
+                and cterms.size() > 0))
+                return false;
+
+        ex ta, tj, tb, tn;
+        bool r = xterms[0].is_binomial(x, ta, tj, tb, tn);
+        if (not r)
+                return false;
+        a = ta;
+        j = tj;
+        if (xterms.size() < 2) {
+                b = add(cterms);
+                n = _ex0;
+                return true;
+        }
+        r = xterms[1].is_binomial(x, ta, tj, tb, tn);
+        if (not r)
+                return false;
+        b = ta;
+        n = tj;
+        return true;
+}
 
 /** Apply symmetric modular homomorphism to an expanded multivariate
  *  polynomial.  This function was usually used internally by heur_gcd().
@@ -623,7 +727,7 @@ ex power::normal(exmap & repl, exmap & rev_lookup, int level, unsigned options) 
 	}
 
 	// (a/b)^x -> {sym((a/b)^x, 1}
-	return (new lst(replace_with_symbol(power(n_basis.op(0) / n_basis.op(1), 
+	return (new lst(replace_with_symbol(power(n_basis.op(0) / n_basis.op(1),
                                                 n_exponent),
                                         repl, rev_lookup), _ex1))
                 ->setflag(status_flags::dynallocated);
@@ -900,7 +1004,7 @@ ex power::to_polynomial(exmap & repl) const
 		}
 		return power(replace_with_symbol(power(basis, _ex_1), repl),
                                 -exponent);
-	} 
+	}
 	return replace_with_symbol(*this, repl);
 }
 
@@ -1030,7 +1134,7 @@ term_done:	;
 			ex pre_res = find_common_factor(eb, factor_local, repl);
 			factor *= power(factor_local, e_exp);
 			return power(pre_res, e_exp);
-		} 
+		}
 		return e.to_polynomial(repl);
         }
         return e;
@@ -1048,7 +1152,7 @@ ex collect_common_factors(const ex & e)
 		ex r = find_common_factor(e, factor, repl);
 		return factor.subs(repl, subs_options::no_pattern) * r.subs(repl, subs_options::no_pattern);
 
-	} 
+	}
 		return e;
 }
 

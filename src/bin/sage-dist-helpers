@@ -57,6 +57,18 @@
 #    Currently this is just a wrapper around the `sage-pip-install` command.
 #    If $SAGE_DESTDIR is not set then the command is run with $SAGE_SUDO, if
 #    set.
+#
+# - sdh_install [-T] SRC [SRC...] DEST
+#
+#    Copies one or more files or directories given as SRC (recursively in the
+#    case of directories) into the destination directory DEST, while ensuring
+#    that DEST and all its parent directories exist.  DEST should be a path
+#    under $SAGE_LOCAL, generally.  For DESTDIR installs the $SAGE_DESTDIR path
+#    is automatically prepended to the destination.
+#
+#    The -T option treats DEST as a normal file instead (e.g. for copying a
+#    file to a different filename).  All directory components are still created
+#    in this case.
 
 set -o allexport
 
@@ -160,6 +172,61 @@ sdh_pip_install() {
     fi
     $sudo sage-pip-install "$@" || \
         sdh_die "Error installing $PKG_NAME"
+}
+
+
+sdh_install() {
+    local T=0
+
+    if [ $# -eq 0 ]; then
+        sdh_die "At least a source and destination file are required"
+    fi
+
+    if [ "$1"="-T" ]; then
+        T=1
+        shift
+    fi
+
+    while [ $# -gt 1 ]; do
+        if [ ! -e "$1" ]; then
+            sdh_die "Error source file/directory $1 does not exist"
+        fi
+        src+=("$1")
+        shift
+    done
+
+    local dest="$1"
+
+    if [ -z "$src" ]; then
+        sdh_die "Error: no source file(s) for sdh_install_files given"
+    fi
+
+    if [ -z "$dest" ]; then
+        sdh_die "Error: destination for sdh_install_files not given"
+    else
+        dest="${SAGE_DESTDIR}$1"
+    fi
+
+    if [ -e "$dest" -a ! -d "$dest" ]; then
+        sdh_die "Error destination $dest for sdh_install_files exists and is not a directory"
+    fi
+
+    local destdir="$dest"
+    if [ $T -eq 1 ]; then
+        destdir="$(dirname $dest)"
+    fi
+
+    if [ ! -d "$destdir" ]; then
+        mkdir -p "$destdir" || \
+            sdh_die "Error creating destination directory $destdir"
+    fi
+
+    echo "Installing files for ${PKG_NAME}:"
+
+    for s in "${src[@]}"; do
+        echo "$s -> $dest"
+        cp -r -p "$s" "$dest" || sdh_die "Error copying source $s to $dest"
+    done
 }
 
 

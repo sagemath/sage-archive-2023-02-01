@@ -182,7 +182,7 @@ sdh_install() {
         sdh_die "At least a source and destination file are required"
     fi
 
-    if [ "$1"="-T" ]; then
+    if [ "$1" = "-T" ]; then
         T=1
         shift
     fi
@@ -204,7 +204,7 @@ sdh_install() {
     if [ -z "$dest" ]; then
         sdh_die "Error: destination for sdh_install_files not given"
     else
-        dest="${SAGE_DESTDIR}$1"
+        dest="${SAGE_DESTDIR}$dest"
     fi
 
     if [ -e "$dest" -a ! -d "$dest" ]; then

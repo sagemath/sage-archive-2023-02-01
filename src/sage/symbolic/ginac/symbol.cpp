@@ -218,7 +218,7 @@ void symbol::set_domain_from_ex(const ex& expr)
         iflags.clear();
         if (expr.info(info_flags::even))
                 set_domain(domain::even);
-        else if (expr.info(info_flags::integer))
+        else if (expr.is_integer())
                 set_domain(domain::integer);
         else if (expr.info(info_flags::rational))
                 set_domain(domain::rational);

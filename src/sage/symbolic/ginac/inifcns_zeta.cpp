@@ -35,7 +35,7 @@ static ex stieltjes1_eval(const ex& arg)
 	if (not is_exactly_a<numeric>(arg))
                 return stieltjes(arg).hold();
 
-	if (not arg.info(info_flags::integer))
+	if (not arg.is_integer())
                 return stieltjes(ex_to<numeric>(arg));
 
         if (ex_to<numeric>(arg).is_zero())

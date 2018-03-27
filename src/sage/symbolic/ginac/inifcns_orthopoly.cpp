@@ -44,7 +44,7 @@ static ex chebyt_eval(const ex& n_, const ex& x)
         if (x.is_zero())
                 return cos(Pi*n_/_ex2);
         if (not is_exactly_a<numeric>(n_)
-            or not n_.info(info_flags::integer))
+            or not n_.is_integer())
                 return chebyshev_T(n_, x).hold();
 
         numeric numn = ex_to<numeric>(n_);
@@ -103,7 +103,7 @@ static ex chebyu_eval(const ex& n_, const ex& x)
         if (x.is_zero())
                 return cos(Pi*n_/_ex2);
         if (not is_exactly_a<numeric>(n_)
-            or not n_.info(info_flags::integer))
+            or not n_.is_integer())
                 return chebyshev_U(n_, x).hold();
 
         const numeric& numn = ex_to<numeric>(n_);
@@ -175,7 +175,7 @@ static ex legp_eval(const ex& n_, const ex& x)
                 if (numx.is_one())
                         return _ex1;
                 if (numx.is_zero())
-                        if (n.info(info_flags::integer)) {
+                        if (n.is_integer()) {
                                 if (n.is_zero())
                                         return _ex1;
                                 if (n.is_one())
@@ -198,7 +198,7 @@ static ex legp_eval(const ex& n_, const ex& x)
         }
 
         if (not is_exactly_a<numeric>(n)
-            or not n.info(info_flags::integer))
+            or not n.is_integer())
                 return legendre_P(n, x).hold();
 
         const numeric& numn = ex_to<numeric>(n);
@@ -280,8 +280,7 @@ static ex hermite_eval(const ex& n, const ex& x)
 	if (is_exactly_a<numeric>(x)) {
                 const numeric& numx = ex_to<numeric>(x);
                 if (numx.is_zero())
-                        if (n.info(info_flags::integer)
-                                and n.info(info_flags::odd))
+                        if (n.is_integer() and n.info(info_flags::odd))
                                 return _ex0;
                 if (is_exactly_a<numeric>(n) and numx.info(info_flags::inexact))
                         return hermite_evalf(n, x, nullptr);
@@ -290,7 +289,7 @@ static ex hermite_eval(const ex& n, const ex& x)
         if (not is_exactly_a<numeric>(n))
                 return hermite(n, x).hold();
         numeric numn = ex_to<numeric>(n);
-        if (not numn.info(info_flags::integer) or numn < 0)
+        if (not numn.is_integer() or numn < 0)
                 throw std::runtime_error("hermite_eval: The index n must be a nonnegative integer");
 
         if (numn.is_zero())
@@ -369,7 +368,7 @@ static ex gegenb_eval(const ex& n, const ex &a, const ex& x)
                 return gegenbauer(n, a, x).hold();
 
         const numeric& numn = ex_to<numeric>(n);
-        if (not numn.info(info_flags::integer) or numn < 0)
+        if (not numn.is_integer() or numn < 0)
                 throw std::runtime_error("gegenb_eval: The index n must be a nonnegative integer");
 
         if (numn.is_zero())

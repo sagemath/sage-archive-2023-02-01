@@ -143,6 +143,7 @@ public:
 
 	// info
 	bool info(unsigned inf) const { return bp->info(inf); }
+	bool is_integer() const { return bp->is_integer(); }
 
 	// operand access
 	size_t nops() const { return bp->nops(); }

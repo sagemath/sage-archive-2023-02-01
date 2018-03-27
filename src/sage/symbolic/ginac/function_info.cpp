@@ -211,10 +211,10 @@ static bool gamma_info(const function& f, unsigned inf)
         case info_flags::nonzero:
                 return arg.info(info_flags::positive);
         case info_flags::integer:
-                return arg.info(info_flags::integer)
+                return arg.is_integer()
                    and arg.info(info_flags::positive);
         case info_flags::even:
-                return arg.info(info_flags::integer)
+                return arg.is_integer()
                    and (arg+_ex_2).info(info_flags::positive);
         }
         return false;
@@ -281,9 +281,9 @@ static bool factorial_info(const function& f, unsigned inf)
         case info_flags::integer:
                 return arg.info(inf);
         case info_flags::rational:
-                return arg.info(info_flags::integer);
+                return arg.is_integer();
         case info_flags::even:
-                return (arg.info(info_flags::integer)
+                return (arg.is_integer()
                         and (arg+_ex_1).info(info_flags::positive))
                        or (arg.info(info_flags::even)
                         and arg.info(info_flags::positive));

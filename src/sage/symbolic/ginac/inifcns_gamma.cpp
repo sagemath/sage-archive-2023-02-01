@@ -105,7 +105,7 @@ static ex lgamma_series(const ex & arg,
 	//   series(lgamma(x+m+1)-log(x)...-log(x+m)),x==-m,order);
 	const ex arg_pt = arg.subs(rel, subs_options::no_pattern);
 	if (not is_exactly_a<numeric>(arg_pt)
-            or not arg_pt.info(info_flags::integer)
+            or not arg_pt.is_integer()
             or arg_pt.info(info_flags::positive))
 		throw do_taylor();  // caught by function::series()
 	// if we got here we have to care for a simple pole of gamma(-m):
@@ -206,7 +206,7 @@ static ex gamma_series(const ex & arg,
 	//   series(gamma(x+m+1)/(x*(x+1)*...*(x+m)),x==-m,order);
 	const ex arg_pt = arg.subs(rel, subs_options::no_pattern);
 	if (not is_exactly_a<numeric>(arg_pt)
-            or not arg_pt.info(info_flags::integer)
+            or not arg_pt.is_integer()
             or arg_pt.info(info_flags::positive))
 		throw do_taylor();  // caught by function::series()
 	// if we got here we have to care for a simple pole at -m:
@@ -319,21 +319,21 @@ static ex beta_series(const ex & arg1,
 	GINAC_ASSERT(is_a<symbol>(rel.lhs()));
 	const symbol &s = ex_to<symbol>(rel.lhs());
 	ex arg1_ser, arg2_ser, arg1arg2_ser;
-	if ((!arg1_pt.info(info_flags::integer) || arg1_pt.info(info_flags::positive)) &&
-	    (!arg2_pt.info(info_flags::integer) || arg2_pt.info(info_flags::positive)))
+	if ((!arg1_pt.is_integer() || arg1_pt.info(info_flags::positive)) &&
+	    (!arg2_pt.is_integer() || arg2_pt.info(info_flags::positive)))
 		throw do_taylor();  // caught by function::series()
 	// trap the case where arg1 is on a pole:
-	if (arg1.info(info_flags::integer) && !arg1.info(info_flags::positive))
+	if (arg1.is_integer() && !arg1.info(info_flags::positive))
 		arg1_ser = gamma(arg1+s);
 	else
 		arg1_ser = gamma(arg1);
 	// trap the case where arg2 is on a pole:
-	if (arg2.info(info_flags::integer) && !arg2.info(info_flags::positive))
+	if (arg2.is_integer() && !arg2.info(info_flags::positive))
 		arg2_ser = gamma(arg2+s);
 	else
 		arg2_ser = gamma(arg2);
 	// trap the case where arg1+arg2 is on a pole:
-	if ((arg1+arg2).info(info_flags::integer) && !(arg1+arg2).info(info_flags::positive))
+	if ((arg1+arg2).is_integer() && !(arg1+arg2).info(info_flags::positive))
 		arg1arg2_ser = gamma(arg2+arg1+s);
 	else
 		arg1arg2_ser = gamma(arg2+arg1);
@@ -435,7 +435,7 @@ static ex psi1_series(const ex & arg,
 	//   series(psi(x+m+1) - 1/x - 1/(x+1) - 1/(x+m)),x==-m,order);
 	const ex arg_pt = arg.subs(rel, subs_options::no_pattern);
 	if (not is_exactly_a<numeric>(arg_pt)
-            or not arg_pt.info(info_flags::integer) 
+            or not arg_pt.is_integer() 
             or arg_pt.info(info_flags::positive))
 		throw do_taylor();  // caught by function::series()
 	// if we got here we have to care for a simple pole at -m:
@@ -563,7 +563,7 @@ static ex psi2_series(const ex & n,
 	//                                      ... + (x+m)^(-n-1))),x==-m,order);
 	const ex arg_pt = arg.subs(rel, subs_options::no_pattern);
 	if ((not is_exactly_a<numeric>(arg_pt)
-            and not arg_pt.info(info_flags::integer))
+            and not arg_pt.is_integer())
             or arg_pt.info(info_flags::positive))
 		throw do_taylor();  // caught by function::series()
 	// if we got here we have to care for a pole of order n+1 at -m:

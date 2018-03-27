@@ -215,7 +215,7 @@ public:
 	bool is_minus_one() const;
 	bool is_positive() const;
 	bool is_negative() const;
-	bool is_integer() const;
+	bool is_integer() const override;
 	bool is_pos_integer() const;
 	bool is_nonneg_integer() const;
 	bool is_even() const;

@@ -846,7 +846,7 @@ ex mul::series(const relational & r, int order, unsigned options) const
 		ex expon = elem.coeff;
 		int factor = 1;
 		ex buf;
-		if (expon.info(info_flags::integer)) {
+		if (expon.is_integer()) {
 			buf = elem.rest;
 			factor = ex_to<numeric>(expon).to_int();
 		} else {
@@ -892,7 +892,7 @@ ex mul::series(const relational & r, int order, unsigned options) const
 			ex expon = elem.coeff;
 			int factor = 1;
 			ex buf;
-			if (expon.info(info_flags::integer)) {
+			if (expon.is_integer()) {
 				buf = elem.rest;
 				factor = ex_to<numeric>(expon).to_int();
 			} else {

@@ -74,14 +74,14 @@ static ex binomial_to_gamma(const function& f)
         const ex& k = f.op(1);
         if (is_exactly_a<numeric>(a)) {
                 const numeric& anum = ex_to<numeric>(a);
-                if (anum.info(info_flags::integer)
+                if (anum.is_integer()
                     and anum.info(info_flags::negative))
                         return pow(_ex_1, k) * 
                                 (gamma(k - a) / (gamma(k+1) * (anum-*_num1_p).factorial()));
         }
         ex t = (k - a).expand();
         if (is_exactly_a<numeric>(t)
-            and ex_to<numeric>(t).info(info_flags::integer)
+            and ex_to<numeric>(t).is_integer()
             and ex_to<numeric>(t).info(info_flags::negative))
                 return _ex0;
 
@@ -116,7 +116,7 @@ static bool has_suitable_form(const ex& the_ex)
                 const power& pow = ex_to<power>(the_ex);
                 const ex& expo = pow.op(1);
                 if (is_exactly_a<numeric>(expo)
-                    and expo.info(info_flags::integer))
+                    and expo.is_integer())
                         return has_suitable_form(pow.op(0));
                 return (is_rational_linear(pow.op(0))
                      and is_rational_linear(pow.op(1)));
@@ -165,7 +165,7 @@ ex to_gamma(const ex& the_ex)
                 const power& pow = ex_to<power>(the_ex);
                 const ex& expo = pow.op(1);
                 if (is_exactly_a<numeric>(expo)
-                    and expo.info(info_flags::integer))
+                    and expo.is_integer())
                         return power(to_gamma(pow.op(0)), expo);
                 return the_ex;
         }
@@ -524,7 +524,7 @@ ex gosper_term(ex e, ex n)
                 D.insert(K - N + 1);
                 ex t = (B.coeff(n,N-1) - A.coeff(n,N-1)) / A.lcoeff(n);
                 if (is_exactly_a<numeric>(t)
-                    and ex_to<numeric>(t).info(info_flags::integer)
+                    and ex_to<numeric>(t).is_integer()
                     and ex_to<numeric>(t) >= *_num0_p)
                                 D.insert(ex_to<numeric>(t).to_int());
         }

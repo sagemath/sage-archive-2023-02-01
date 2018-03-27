@@ -191,6 +191,7 @@ public:
 
 	// info
 	virtual bool info(unsigned inf) const;
+        virtual bool is_integer() const { return info(info_flags::integer); }
 
 	// operand access
 	virtual size_t nops() const;

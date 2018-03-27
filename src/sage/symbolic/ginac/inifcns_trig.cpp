@@ -101,11 +101,11 @@ static ex sin_eval(const ex & x)
                 ex rem = _ex0;
                 if (is_exactly_a<add>(coef_pi)) {
                         for (size_t i=0; i < coef_pi.nops(); i++) {
-                                if ((coef_pi.op(i) / _ex2).info(info_flags::integer))
+                                if ((coef_pi.op(i) / _ex2).is_integer())
                                         rem += Pi * coef_pi.op(i);
                         }
                 }
-                else if ((coef_pi / _ex2).info(info_flags::integer))
+                else if ((coef_pi / _ex2).is_integer())
                         rem = Pi * coef_pi;
                 x_red = (x - rem).expand();
 
@@ -113,7 +113,7 @@ static ex sin_eval(const ex & x)
                 const ex SixtyExOverPi = _ex60*x_red/Pi;
                 ex sign = _ex1;
                 if (is_exactly_a<numeric>(SixtyExOverPi)
-                        and SixtyExOverPi.info(info_flags::integer)) {
+                        and SixtyExOverPi.is_integer()) {
                         numeric z = mod(ex_to<numeric>(SixtyExOverPi),*_num120_p);
                         if (z>=*_num60_p) {
                                 // wrap to interval [0, Pi)
@@ -164,7 +164,7 @@ static ex sin_eval(const ex & x)
                 const ex TwentyforExOverPi = _ex24*x_red/Pi;
                 sign = _ex1;
                 if (is_exactly_a<numeric>(TwentyforExOverPi)
-                        and TwentyforExOverPi.info(info_flags::integer)) {
+                        and TwentyforExOverPi.is_integer()) {
                         numeric z = mod(ex_to<numeric>(TwentyforExOverPi),*_num48_p);
                         if (z>=*_num24_p) {
                                 // wrap to interval [0, Pi)
@@ -191,7 +191,7 @@ static ex sin_eval(const ex & x)
                 
                 // Reflection at Pi/2
                 const ex ExOverPi = x_red/Pi;
-                if (ExOverPi.info(info_flags::integer))
+                if (ExOverPi.is_integer())
                         return _ex0;
                 if (is_exactly_a<numeric>(ExOverPi)) {
                         const numeric& c = ex_to<numeric>(ExOverPi);
@@ -315,11 +315,11 @@ static ex cos_eval(const ex & x)
                 ex rem = _ex0;
                 if (is_exactly_a<add>(coef_pi)) {
                         for (size_t i=0; i < coef_pi.nops(); i++) {
-                                if ((coef_pi.op(i) / _ex2).info(info_flags::integer))
+                                if ((coef_pi.op(i) / _ex2).is_integer())
                                         rem += Pi * coef_pi.op(i);
                         }
                 }
-                else if ((coef_pi / _ex2).info(info_flags::integer))
+                else if ((coef_pi / _ex2).is_integer())
                         rem = Pi * coef_pi;
                 x_red = (x - rem).expand();
 
@@ -327,7 +327,7 @@ static ex cos_eval(const ex & x)
                 const ex SixtyExOverPi = _ex60*x_red/Pi;
                 ex sign = _ex1;
                 if (is_exactly_a<numeric>(SixtyExOverPi)
-                        and SixtyExOverPi.info(info_flags::integer)) {
+                        and SixtyExOverPi.is_integer()) {
                         numeric z = mod(ex_to<numeric>(SixtyExOverPi),*_num120_p);
                         if (z>=*_num60_p) {
                                 // wrap to interval [0, Pi)
@@ -373,7 +373,7 @@ static ex cos_eval(const ex & x)
                 const ex TwentyforExOverPi = _ex24*x_red/Pi;
                 sign = _ex1;
                 if (is_exactly_a<numeric>(TwentyforExOverPi)
-                                and TwentyforExOverPi.info(info_flags::integer)) {
+                                and TwentyforExOverPi.is_integer()) {
                         numeric z = mod(ex_to<numeric>(TwentyforExOverPi),*_num48_p);
                         if (z>=*_num24_p) {
                                 // wrap to interval [0, Pi)
@@ -404,7 +404,7 @@ static ex cos_eval(const ex & x)
                 if (is_exactly_a<numeric>(ExOverPi)) {
                         const numeric& c = ex_to<numeric>(ExOverPi);
                         // cos(integer*pi) --> (-1)^integer
-                        if (c.info(info_flags::integer))
+                        if (c.is_integer())
                                 return pow(*_num_1_p, c);
                         if (c.is_rational()) {
                                 numeric den = c.denom();
@@ -525,11 +525,11 @@ static ex tan_eval(const ex & x)
                 ex rem = _ex0;
                 if (is_exactly_a<add>(coef_pi)) {
                         for (size_t i=0; i < coef_pi.nops(); i++) {
-                                if (coef_pi.op(i).info(info_flags::integer))
+                                if (coef_pi.op(i).is_integer())
                                         rem += Pi * coef_pi.op(i);
                         }
                 }
-                else if (coef_pi.info(info_flags::integer))
+                else if (coef_pi.is_integer())
                         rem = Pi * coef_pi;
                 x_red = (x - rem).expand();
 
@@ -538,7 +538,7 @@ static ex tan_eval(const ex & x)
                 const ex SixtyExOverPi = _ex60*x_red/Pi;
                 ex sign = _ex1;
                 if (is_exactly_a<numeric>(SixtyExOverPi)
-                        and SixtyExOverPi.info(info_flags::integer)) {
+                        and SixtyExOverPi.is_integer()) {
                         numeric z = mod(ex_to<numeric>(SixtyExOverPi),*_num60_p);
                         if (z>=*_num60_p) {
                                 // wrap to interval [0, Pi)
@@ -585,7 +585,7 @@ static ex tan_eval(const ex & x)
                 const ex FortyeightExOverPi = _ex48*x_red/Pi;
                 sign = _ex1;
                 if (is_exactly_a<numeric>(FortyeightExOverPi)
-                                and FortyeightExOverPi.info(info_flags::integer)) {
+                                and FortyeightExOverPi.is_integer()) {
                         numeric z = mod(ex_to<numeric>(FortyeightExOverPi),*_num48_p);
                         if (z>=*_num48_p) {
                                 // wrap to interval [0, Pi)

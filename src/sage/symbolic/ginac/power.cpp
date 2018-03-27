@@ -240,15 +240,17 @@ bool power::info(unsigned inf) const
                 and basis.info(inf);
         case info_flags::even:
                 return exponent.info(info_flags::posint)
-                and basis.info(info_flags::integer);
+                and basis.is_integer();
         case info_flags::rational_function:
         case info_flags::rational:
-                return exponent.info(info_flags::integer)
+                return exponent.is_integer()
                        and basis.info(inf);
         case info_flags::inexact:
-                return exponent.info(inf) or basis.info(inf);
+                return exponent.info(inf)
+                or basis.info(inf);
         case info_flags::algebraic:
-                return !exponent.info(info_flags::integer) || basis.info(inf);
+                return !exponent.is_integer()
+                or basis.info(inf);
         case info_flags::expanded:
                 return (flags & status_flags::expanded) != 0u;
         case info_flags::positive:
@@ -263,7 +265,7 @@ bool power::info(unsigned inf) const
                 return (basis.info(info_flags::positive)
                         and exponent.info(info_flags::real))
                     or (basis.info(info_flags::real)
-                        and exponent.info(info_flags::integer)
+                        and exponent.is_integer()
                         and exponent.info(info_flags::even));
         case info_flags::negative:
                 if (exponent.info(info_flags::odd))
@@ -271,7 +273,7 @@ bool power::info(unsigned inf) const
                 return false;
         case info_flags::real:
                 return ((basis.info(inf)
-                         and exponent.info(info_flags::integer))
+                         and exponent.is_integer())
                      or (basis.info(info_flags::positive)
                          and exponent.info(inf)));
         case info_flags::nonzero:

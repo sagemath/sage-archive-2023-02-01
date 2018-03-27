@@ -647,7 +647,7 @@ matrix matrix::pow(const ex & expn) const
 	if (is_exactly_a<numeric>(expn)) {
 		// Integer cases are computed by successive multiplication, using the
 		// obvious shortcut of storing temporaries, like A^4 == (A*A)*(A*A).
-		if (expn.info(info_flags::integer)) {
+		if (expn.is_integer()) {
 			numeric b = ex_to<numeric>(expn);
 			matrix A(row,col);
 			if (expn.info(info_flags::negative)) {

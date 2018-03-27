@@ -682,7 +682,7 @@ ex power::normal(exmap & repl, exmap & rev_lookup, int level, unsigned options) 
 	ex n_exponent = ex_to<basic>(exponent).normal(repl, rev_lookup, level-1);
 	n_exponent = n_exponent.op(0) / n_exponent.op(1);
 
-	if (n_exponent.info(info_flags::integer)) {
+	if (n_exponent.is_integer()) {
 
 		if (n_exponent.info(info_flags::positive)) {
 			// (a/b)^n -> {a^n, b^n}
@@ -981,7 +981,7 @@ ex numeric::to_polynomial(exmap & repl) const
  *  powers by temporary symbols. */
 ex power::to_rational(exmap & repl) const
 {
-	if (exponent.info(info_flags::integer))
+	if (exponent.is_integer())
 		return power(basis.to_rational(repl), exponent);
 
 	return replace_with_symbol(*this, repl);
@@ -1128,7 +1128,7 @@ term_done:	;
 	}
         if (is_exactly_a<power>(e)) {
 		const ex e_exp(e.op(1));
-		if (e_exp.info(info_flags::integer)) {
+		if (e_exp.is_integer()) {
 			ex eb = e.op(0).to_polynomial(repl);
 			ex factor_local(_ex1);
 			ex pre_res = find_common_factor(eb, factor_local, repl);

@@ -418,7 +418,7 @@ bool mul::info(unsigned inf) const
                 bool even_seen = false;
                 for (const auto &elem : seq) {
                         const ex &e = recombine_pair_to_ex(elem);
-                        if (not e.info(info_flags::integer))
+                        if (not e.is_integer())
                                 return false;
                         if (e.info(info_flags::even))
                                 even_seen = true;
@@ -875,7 +875,8 @@ bool tryfactsubs(const ex & origfactor, const ex & patternfactor, int & nummatch
 	int origexponent;
 	int origexpsign;
 
-	if (is_exactly_a<power>(origfactor) && origfactor.op(1).info(info_flags::integer)) {
+	if (is_exactly_a<power>(origfactor)
+            and origfactor.op(1).is_integer()) {
 		origbase = origfactor.op(0);
 		int expon = ex_to<numeric>(origfactor.op(1)).to_int();
 		origexponent = expon > 0 ? expon : -expon;
@@ -890,7 +891,8 @@ bool tryfactsubs(const ex & origfactor, const ex & patternfactor, int & nummatch
 	int patternexponent;
 	int patternexpsign;
 
-	if (is_exactly_a<power>(patternfactor) && patternfactor.op(1).info(info_flags::integer)) {
+	if (is_exactly_a<power>(patternfactor)
+            and patternfactor.op(1).is_integer()) {
 		patternbase = patternfactor.op(0);
 		int expon = ex_to<numeric>(patternfactor.op(1)).to_int();
 		patternexponent = expon > 0 ? expon : -expon;
@@ -1259,7 +1261,7 @@ bool mul::can_make_flat(const expair & p) const
 	GINAC_ASSERT(is_exactly_a<numeric>(p.coeff));
 
         // (x*y)^c == x^c*y^c  if c ∈ ℤ
-        return p.coeff.info(info_flags::integer);
+        return p.coeff.is_integer();
 }
 
 bool mul::can_be_further_expanded(const ex & e)
@@ -1281,7 +1283,8 @@ ex mul::expand(unsigned options) const
 	// trivial case: expanding the monomial (~ 30% of all calls)
         bool all_intsym = true;
         for (const auto & elem : seq) 
-                if (not is_exactly_a<symbol>(elem.rest) or not elem.coeff.info(info_flags::integer))
+                if (not is_exactly_a<symbol>(elem.rest)
+                    or not elem.coeff.is_integer())
                 {
                         all_intsym = false;
                         break;

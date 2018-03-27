@@ -448,6 +448,23 @@ symbolset ex::free_symbols() const
 	return the_set;
 }
 
+static void collect_functions(const ex& e, std::unordered_set<unsigned>& funs)
+{
+	if (is_exactly_a<function>(e)) {
+                const function& f = ex_to<function>(e);
+                funs.insert(f.get_serial());
+        }
+        for (size_t i=0; i < e.nops(); i++)
+                collect_functions(e.op(i), funs);
+}
+
+std::unordered_set<unsigned> ex::functions() const
+{
+        std::unordered_set<unsigned> the_set;
+        collect_functions(*this, the_set);
+        return the_set;
+}
+
 ex ex::sorted_op(size_t i) const
 {
 	if (is_a<expairseq>(*this))

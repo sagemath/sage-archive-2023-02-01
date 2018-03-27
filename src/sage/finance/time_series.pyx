@@ -548,10 +548,14 @@ cdef class TimeSeries:
             [1.0000, 2.0000, -5.0000, 1.0000, 2.0000, -5.0000, 1.0000, 2.0000, -5.0000]
             sage: 3*v
             [1.0000, 2.0000, -5.0000, 1.0000, 2.0000, -5.0000, 1.0000, 2.0000, -5.0000]
-            sage: v*v
+            sage: v*v  # py2
             Traceback (most recent call last):
             ...
             TypeError: 'sage.finance.time_series.TimeSeries' object cannot be interpreted as an index
+            sage: v*v  # py3
+            Traceback (most recent call last):
+            ...
+            TypeError: 'sage.finance.time_series.TimeSeries' object cannot be interpreted as an integer
         """
         cdef Py_ssize_t n, i
         cdef TimeSeries T
@@ -2572,13 +2576,15 @@ def unpickle_time_series_v1(bytes v, Py_ssize_t n):
 
         sage: v = finance.TimeSeries([1,2,3])
         sage: s = v.__reduce__()[1][0]
-        sage: type(s)
-        <... 'str'>
+        sage: type(s)  # py2
+        <type 'str'>
+        sage: type(s)  # py3
+        <type 'bytes'>
         sage: sage.finance.time_series.unpickle_time_series_v1(s,3)
         [1.0000, 2.0000, 3.0000]
         sage: sage.finance.time_series.unpickle_time_series_v1(s+s,6)
         [1.0000, 2.0000, 3.0000, 1.0000, 2.0000, 3.0000]
-        sage: sage.finance.time_series.unpickle_time_series_v1('',0)
+        sage: sage.finance.time_series.unpickle_time_series_v1(b'',0)
         []
     """
     cdef TimeSeries t = new_time_series(n)

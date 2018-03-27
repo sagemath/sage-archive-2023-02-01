@@ -1847,7 +1847,7 @@ class FormsRingElement(six.with_metaclass(
         (and fail) for certain (many) choices of
         (``base_ring``, ``tau.parent()``).
 
-        It is possible to evalutate at points of ``HyperbolicPlane()``.
+        It is possible to evaluate at points of ``HyperbolicPlane()``.
         In this case the coordinates of the upper half plane model are used.
 
         To obtain a precise and fast result the parameters

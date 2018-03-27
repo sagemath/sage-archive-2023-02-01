@@ -177,6 +177,7 @@ sdh_pip_install() {
 
 sdh_install() {
     local T=0
+    local src=()
 
     if [ $# -eq 0 ]; then
         sdh_die "At least a source and destination file are required"

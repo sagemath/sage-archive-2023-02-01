@@ -49,6 +49,8 @@ AUTHORS:
 
 - Travis Scrimshaw (2012-10-18): Added additional docstrings for full coverage.
   Removed duplicates of ``discriminant()`` and ``signature()``.
+  
+- Anna Haensch (2018-03): Added function ``quadratic_defect()``
 
 """
 from __future__ import print_function, absolute_import
@@ -1205,7 +1207,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             1
         """
         from sage.rings.all import Infinity
-        from sage.arith.misc import quadratic_residues
+        from sage.arith.misc import legendre_symbol
         if not a in self:
             raise TypeError(str(a)+" must be an element of "+str(self))
         if not p.is_prime():
@@ -1219,7 +1221,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             else:
                 a = a/(p**v)
                 if p != 2:
-                    if a in quadratic_residues(p):
+                    if legendre_symbol(a,p) == 1:
                         d = Infinity
                     else:
                         d = v

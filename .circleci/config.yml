@@ -54,7 +54,7 @@ jobs:
             esac
 
             # Build docker images
-            . .ci/build-docker.sh
+            sh .ci/build-docker.sh
 
             # Test that the images work
             sh .ci/test-dev.sh $DOCKER_IMAGE_DEV

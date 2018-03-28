@@ -114,7 +114,8 @@ COPY --chown=sage:sage . sage-context
 # make sure that we only change the mtimes of a minimal number of files.
 # 1) Restore the git checkout ARTIFACT_BASE was built from, recorded in
 #    docker/commit. (Or go directly to FETCH_HEAD if there is no history to
-#    restore.)
+#    restore, i.e., set ARTIFACT_BASE=source-clean if you want to build from
+#    scratch.)
 # 2) Merge in FETCH_HEAD but only if it is a fast-forward, i.e., if it is an
 #    ancestor of the commit restored in 1. If we would not do that we would get
 #    a new commit hash in docker/commit that is not known outside of this build

@@ -179,10 +179,6 @@ sdh_install() {
     local T=0
     local src=()
 
-    if [ $# -eq 0 ]; then
-        sdh_die "At least a source and destination file are required"
-    fi
-
     if [ "$1" = "-T" ]; then
         T=1
         shift
@@ -190,7 +186,7 @@ sdh_install() {
 
     while [ $# -gt 1 ]; do
         if [ ! -e "$1" ]; then
-            sdh_die "Error source file/directory $1 does not exist"
+            sdh_die "Error: source file/directory $1 does not exist"
         fi
         src+=("$1")
         shift
@@ -204,12 +200,13 @@ sdh_install() {
 
     if [ -z "$dest" ]; then
         sdh_die "Error: destination for sdh_install_files not given"
-    else
-        dest="${SAGE_DESTDIR}$dest"
     fi
 
+    # Prefix SAGE_DESTDIR to the destination for DESTDIR installs
+    dest="${SAGE_DESTDIR}$dest"
+
     if [ -e "$dest" -a ! -d "$dest" ]; then
-        sdh_die "Error destination $dest for sdh_install_files exists and is not a directory"
+        sdh_die "Error: destination $dest for sdh_install_files exists and is not a directory"
     fi
 
     local destdir="$dest"
@@ -218,15 +215,12 @@ sdh_install() {
     fi
 
     if [ ! -d "$destdir" ]; then
-        mkdir -p "$destdir" || \
-            sdh_die "Error creating destination directory $destdir"
+        mkdir -p "$destdir" || exit $?
     fi
-
-    echo "Installing files for ${PKG_NAME}:"
 
     for s in "${src[@]}"; do
         echo "$s -> $dest"
-        cp -r -p "$s" "$dest" || sdh_die "Error copying source $s to $dest"
+        cp -R -p "$s" "$dest" || exit $?
     done
 }
 

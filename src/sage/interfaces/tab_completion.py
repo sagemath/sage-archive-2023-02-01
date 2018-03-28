@@ -73,6 +73,14 @@ def completions(s, globs, format=False, width=90, system="None"):
     OUTPUT:
 
     - a list of strings, if ``format`` is False, or a string
+
+    EXAMPLES::
+
+         sage: X.<x> = PolynomialRing(QQ)
+         sage: import sage.interfaces.tab_completion as s
+         sage: p = x**2 + 1
+         sage: s.completions('p.co',globals(),system='python') # indirect doctest
+         ['p.coefficients',...]
     """
     if system not in ['sage', 'python']:
         prepend = system + '.'

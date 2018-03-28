@@ -6738,7 +6738,7 @@ class Graph(GenericGraph):
         Return an Ear decomposition of the graph.
 
         An ear of an undirected graph `G` is a path `P` where the two endpoints
-        of the path may coincide (i.e., form a cycle), but where otherwise no 
+        of the path may coincide (i.e., form a cycle), but where otherwise no
         repetition of edges or vertices is allowed, so every internal vertex
         of P has degree two in `P`.
 

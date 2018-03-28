@@ -674,7 +674,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         Return the torsion quadratic module with quadratic form scaled by ``s``.
 
         If the old form was defined modulo `n`, then the new form is defined
-        modulo `n * s`.
+        modulo `n s`.
 
         INPUT:
 

@@ -1,5 +1,5 @@
 r"""
-Ideals
+Ideals of function fields
 
 Ideals of an order of a function field include all fractional ideals of the order. Sage provides basic arithmetic with fractional ideals.
 

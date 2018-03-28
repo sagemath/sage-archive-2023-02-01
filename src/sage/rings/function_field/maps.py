@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 r"""
-Morphisms
+Morphisms of function fields
 
-Sage provides maps and morphisms useful for computations with function fields.
+Maps and morphisms useful for computations with function fields.
 
 EXAMPLES::
 
@@ -43,16 +43,10 @@ from __future__ import absolute_import
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.misc.lazy_import import lazy_import
 
 from sage.categories.morphism import Morphism
 from sage.categories.map import Map
 from sage.rings.morphism import RingHomomorphism
-from sage.modules.free_module_element import vector
-
-from sage.functions.other import binomial
-
-lazy_import('sage.matrix.constructor', 'matrix')
 
 class FunctionFieldDerivation(Map):
     r"""
@@ -66,9 +60,10 @@ class FunctionFieldDerivation(Map):
 
         sage: K.<x> = FunctionField(QQ)
         sage: d = K.derivation()
-        sage: isinstance(d, sage.rings.function_field.maps.FunctionFieldDerivation)
-        True
-
+        sage: d
+        Derivation map:
+          From: Rational function field in x over Rational Field
+          To:   Rational function field in x over Rational Field
     """
     def __init__(self, K):
         r"""
@@ -81,8 +76,14 @@ class FunctionFieldDerivation(Map):
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ)
-            sage: d = K.derivation() # indirect doctest
+            sage: d = K.derivation()
+            sage: TestSuite(d).run(skip=['_test_category', '_test_pickling'])
 
+        .. TODO::
+
+            Make the caching done at the map by subclassing
+            ``UniqueRepresentation``, which will then implement a
+            valid equality check. Then this will pass the pickling test.
         """
         from .function_field import is_FunctionField
         if not is_FunctionField(K):
@@ -116,13 +117,20 @@ class FunctionFieldDerivation(Map):
             sage: d = K.derivation()
             sage: d.is_injective()
             False
-
         """
         return False
 
 class FunctionFieldDerivation_rational(FunctionFieldDerivation):
     """
     Derivations on rational function fields.
+
+    EXAMPLES::
+
+        sage: K.<x> = FunctionField(QQ)
+        sage: K.derivation()
+        Derivation map:
+          From: Rational function field in x over Rational Field
+          To:   Rational function field in x over Rational Field
     """
     def __init__(self, K, u):
         """
@@ -138,10 +146,11 @@ class FunctionFieldDerivation_rational(FunctionFieldDerivation):
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ)
-            sage: K.derivation()
-            Derivation map:
-              From: Rational function field in x over Rational Field
-              To:   Rational function field in x over Rational Field
+            sage: d = K.derivation()
+            sage: TestSuite(d).run(skip=["_test_category", "_test_pickling"])
+
+        See the comment about the test suite run in
+        ``FunctionFieldDerivation.__init__``.
         """
         FunctionFieldDerivation.__init__(self, K)
 
@@ -178,6 +187,17 @@ class FunctionFieldDerivation_rational(FunctionFieldDerivation):
 class FunctionFieldDerivation_separable(FunctionFieldDerivation):
     """
     Derivations of separable extensions.
+
+    EXAMPLES::
+
+        sage: K.<x> = FunctionField(QQ)
+        sage: R.<y> = K[]
+        sage: L.<y> = K.extension(y^2 - x)
+        sage: L.derivation()
+        Derivation map:
+          From: Function field in y defined by y^2 - x
+          To:   Function field in y defined by y^2 - x
+          Defn: y |--> (-1/2/-x)*y
     """
     def __init__(self, L, d):
         """
@@ -194,22 +214,22 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
             sage: K.<x> = FunctionField(QQ)
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x)
-            sage: L.derivation()
-            Derivation map:
-              From: Function field in y defined by y^2 - x
-              To:   Function field in y defined by y^2 - x
-              Defn: y |--> (-1/2/-x)*y
+            sage: d = L.derivation()
+            sage: TestSuite(d).run(skip=["_test_category", "_test_pickling"])
+
+        See the comment about the test suite run in
+        ``FunctionFieldDerivation.__init__``.
         """
         FunctionFieldDerivation.__init__(self, L)
 
         f = self.domain().polynomial()
         if not f.gcd(f.derivative()).is_one():
-            raise ValueError("L must be a separable extension of its base field.")
+            raise ValueError("L must be a separable extension of its base field")
 
         x = self.domain().gen()
 
         self._d = d
-        self._gen_image = - f.map_coefficients(lambda c:d(c))(x) / f.derivative()(x)
+        self._gen_image = - f.map_coefficients(lambda c: d(c))(x) / f.derivative()(x)
 
     def _call_(self, x):
         r"""
@@ -492,6 +512,15 @@ class MapVectorSpaceToFunctionField(FunctionFieldVectorSpaceIsomorphism):
 class MapFunctionFieldToVectorSpace(FunctionFieldVectorSpaceIsomorphism):
     """
     Isomorphism from a function field to a vector space.
+
+    EXAMPLES::
+
+        sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+        sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
+        sage: V, f, t = L.vector_space(); t
+        Isomorphism:
+          From: Function field in y defined by y^2 - x*y + 4*x^3
+          To:   Vector space of dimension 2 over Rational function field in x over Rational Field
     """
     def __init__(self, K, V):
         """
@@ -507,10 +536,8 @@ class MapFunctionFieldToVectorSpace(FunctionFieldVectorSpaceIsomorphism):
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
-            sage: V, f, t = L.vector_space(); t
-            Isomorphism:
-              From: Function field in y defined by y^2 - x*y + 4*x^3
-              To:   Vector space of dimension 2 over Rational function field in x over Rational Field
+            sage: V, f, t = L.vector_space()
+            sage: TestSuite(t).run(skip="_test_category")
         """
         self._V = V
         self._K = K
@@ -558,6 +585,13 @@ class MapFunctionFieldToVectorSpace(FunctionFieldVectorSpaceIsomorphism):
 class FunctionFieldMorphism(RingHomomorphism):
     """
     Base class for morphisms between function fields.
+
+    EXAMPLES::
+
+        sage: K.<x> = FunctionField(QQ)
+        sage: f = K.hom(1/x); f
+        Function Field endomorphism of Rational function field in x over Rational Field
+          Defn: x |--> 1/x
     """
     def __init__(self, parent, im_gen, base_morphism):
         """
@@ -569,8 +603,7 @@ class FunctionFieldMorphism(RingHomomorphism):
             sage: f = K.hom(1/x); f
             Function Field endomorphism of Rational function field in x over Rational Field
               Defn: x |--> 1/x
-            sage: isinstance(f, sage.rings.function_field.maps.FunctionFieldMorphism)
-            True
+            sage: TestSuite(f).run(skip="_test_category")
         """
         RingHomomorphism.__init__(self, parent)
 
@@ -612,6 +645,18 @@ class FunctionFieldMorphism(RingHomomorphism):
 class FunctionFieldMorphism_polymod(FunctionFieldMorphism):
     """
     Morphism from a finite extension of a function field to a function field.
+
+    EXAMPLES::
+
+        sage: K.<x> = FunctionField(GF(7)); R.<y> = K[]
+        sage: L.<y> = K.extension(y^3 + 6*x^3 + x)
+        sage: f = L.hom(y*2); f
+        Function Field endomorphism of Function field in y defined by y^3 + 6*x^3 + x
+          Defn: y |--> 2*y
+        sage: factor(L.polynomial())
+        y^3 + 6*x^3 + x
+        sage: f(y).charpoly('y')
+        y^3 + 6*x^3 + x
     """
     def __init__(self, parent, im_gen, base_morphism):
         """
@@ -621,13 +666,8 @@ class FunctionFieldMorphism_polymod(FunctionFieldMorphism):
 
             sage: K.<x> = FunctionField(GF(7)); R.<y> = K[]
             sage: L.<y> = K.extension(y^3 + 6*x^3 + x)
-            sage: f = L.hom(y*2); f
-            Function Field endomorphism of Function field in y defined by y^3 + 6*x^3 + x
-              Defn: y |--> 2*y
-            sage: factor(L.polynomial())
-            y^3 + 6*x^3 + x
-            sage: f(y).charpoly('y')
-            y^3 + 6*x^3 + x
+            sage: f = L.hom(y*2)
+            sage: TestSuite(f).run(skip="_test_category")
         """
         FunctionFieldMorphism.__init__(self, parent, im_gen, base_morphism)
         # Verify that the morphism is valid:
@@ -715,18 +755,18 @@ class FunctionFieldMorphism_rational(FunctionFieldMorphism):
 class FunctionFieldConversionToConstantBaseField(Map):
     r"""
     Conversion map from the function field to its constant base field.
+
+    EXAMPLES::
+
+        sage: K.<x> = FunctionField(QQ)
+        sage: QQ.convert_map_from(K)
+        Conversion map:
+          From: Rational function field in x over Rational Field
+          To:   Rational Field
     """
     def __init__(self, parent):
         """
         Initialize.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(QQ)
-            sage: QQ.convert_map_from(K)
-            Conversion map:
-              From: Rational function field in x over Rational Field
-              To:   Rational Field
 
         TESTS::
 

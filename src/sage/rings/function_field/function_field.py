@@ -109,7 +109,6 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.misc.cachefunc import cached_method
-from sage.misc.lazy_import import lazy_import
 
 from sage.interfaces.all import singular
 
@@ -117,7 +116,6 @@ from sage.arith.all import lcm
 
 from sage.rings.ring import Field
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.modules.free_module_element import vector
 
 from sage.categories.homset import Hom
 from sage.categories.function_fields import FunctionFields
@@ -128,9 +126,6 @@ from .function_field_element import (
     FunctionFieldElement_rational,
     FunctionFieldElement_polymod,
     FunctionFieldElement_global)
-
-lazy_import('sage.matrix.constructor', 'matrix')
-lazy_import('sage.modules.free_module', 'FreeModule')
 
 def is_FunctionField(x):
     """
@@ -191,7 +186,6 @@ class FunctionField(Field):
         Field.__init__(self, base_field, names=names, category=category)
 
         # allow conversion into the constant base field
-        from sage.categories.homset import Hom
         from .maps import FunctionFieldConversionToConstantBaseField
         to_constant_base_field = FunctionFieldConversionToConstantBaseField(Hom(self, self.constant_base_field()))
         # the conversion map must not keep the field alive if that is the only reference to it
@@ -1147,7 +1141,7 @@ class FunctionField_polymod(FunctionField):
             if not isinstance(names, tuple):
                 names = (names,)
             if len(names) > 2:
-                raise ValueErorr("names must contain at most 2 entries")
+                raise ValueError("names must contain at most 2 entries")
 
         if self.base_field() is not self.rational_function_field():
             L,from_L,to_L = self.simple_model()
@@ -1208,7 +1202,6 @@ class FunctionField_polymod(FunctionField):
             f = f / c
 
         # find lcm of denominators
-        from sage.arith.all import lcm
         # would be good to replace this by minimal...
         d = lcm([b.denominator() for b in f.list() if b])
         if d != 1:
@@ -2001,7 +1994,6 @@ class FunctionField_polymod(FunctionField):
         if is_RationalFunctionField(self.base_field()):
             # the extension is simple already
             if name == self.variable_name():
-                from sage.categories.homset import Hom
                 id = Hom(self,self).identity()
                 return self, id, id
             else:
@@ -2138,7 +2130,6 @@ class FunctionField_polymod(FunctionField):
             raise ValueError("name must contain at least one string")
         elif len(name) == 1:
             base = self.base_field()
-            from sage.categories.homset import Hom
             from_base = to_base = Hom(base,base).identity()
         else:
             base, from_base, to_base = self.base_field().change_variable_name(name[1:])
@@ -2325,7 +2316,6 @@ class RationalFunctionField(FunctionField):
         self._ring = R
 
         self._field = R.fraction_field()
-        from sage.categories.all import Hom
         hom = Hom(self._field, self)
         from .maps import FractionFieldToFunctionField
         self.register_coercion(hom.__make_element_class__(FractionFieldToFunctionField)(hom.domain(), hom.codomain()))
@@ -2504,7 +2494,6 @@ class RationalFunctionField(FunctionField):
             (X^7*t^2 - X^4*t^5 - X^3 + t^3, t^3)
         """
         v = f.list()
-        from sage.arith.all import lcm
         denom = lcm([a.denominator() for a in v])
         S = denom.parent()
         x,t = S.base_ring()['%s,%s'%(f.parent().variable_name(),self.variable_name())].gens()
@@ -2974,7 +2963,6 @@ class RationalFunctionField(FunctionField):
                 raise ValueError("names must be a tuple with a single string")
             name = name[0]
         if name == self.variable_name():
-            from sage.categories.homset import Hom
             id = Hom(self,self).identity()
             return self,id,id
         else:

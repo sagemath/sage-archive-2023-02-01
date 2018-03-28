@@ -1,5 +1,5 @@
 r"""
-Orders
+Orders of function fields
 
 AUTHORS:
 

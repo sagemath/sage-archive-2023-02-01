@@ -1,5 +1,5 @@
 r"""
-Elements
+Elements of function fields
 
 Sage provides arithmetic with elements of function fields.
 
@@ -44,7 +44,7 @@ from sage.structure.richcmp cimport richcmp, richcmp_not_equal
 
 def is_FunctionFieldElement(x):
     """
-    Return True if ``x`` is any type of function field element.
+    Return ``True`` if ``x`` is any type of function field element.
 
     EXAMPLES::
 
@@ -54,7 +54,8 @@ def is_FunctionFieldElement(x):
         sage: sage.rings.function_field.function_field_element.is_FunctionFieldElement(0)
         False
     """
-    if isinstance(x, FunctionFieldElement): return True
+    if isinstance(x, FunctionFieldElement):
+        return True
     from .function_field import is_FunctionField
     return is_FunctionField(x.parent())
 
@@ -320,6 +321,13 @@ cdef class FunctionFieldElement(FieldElement):
 cdef class FunctionFieldElement_polymod(FunctionFieldElement):
     """
     Elements of a finite extension of a function field.
+
+    EXAMPLES::
+
+        sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+        sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
+        sage: x*y + 1/x^3
+        x*y + 1/x^3
     """
     def __init__(self, parent, x, reduce=True):
         """
@@ -329,8 +337,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
-            sage: x*y + 1/x^3
-            x*y + 1/x^3
+            sage: TestSuite(x*y + 1/x^3).run()
         """
         FieldElement.__init__(self, parent)
         if reduce:
@@ -538,6 +545,15 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
 cdef class FunctionFieldElement_rational(FunctionFieldElement):
     """
     Elements of a rational function field.
+
+    EXAMPLES::
+
+        sage: K.<t> = FunctionField(QQ); K
+        Rational function field in t over Rational Field
+        sage: t^2 + 3/2*t
+        t^2 + 3/2*t
+        sage: FunctionField(QQ,'t').gen()^3
+        t^3
     """
     def __init__(self, parent, x, reduce=True):
         """
@@ -545,10 +561,9 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
         EXAMPLES::
 
-            sage: K.<t> = FunctionField(QQ); K
-            Rational function field in t over Rational Field
-            sage: FunctionField(QQ,'t').gen()^3
-            t^3
+            sage: K.<t> = FunctionField(QQ)
+            sage: x = t^3
+            sage: TestSuite(x).run()
         """
         FieldElement.__init__(self, parent)
         self._x = x

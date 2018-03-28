@@ -102,6 +102,7 @@ usage_advanced() {
     echo "  -gp [...]           -- run Sage's PARI/GP calculator with given arguments"
     echo "  -ipython [...]      -- run Sage's IPython using the default environment (not"
     echo "                         Sage), passing additional options to IPython"
+    echo "  -ipython3 [...]     -- same as above, but using Python 3"
     echo "  -kash [...]         -- run Sage's Kash with given arguments"
     command -v kash &>/dev/null || \
     echo "                         (not installed currently, run sage -i kash)"
@@ -601,6 +602,11 @@ fi
 if [ "$1" = '-ipython' -o "$1" = '--ipython' ]; then
     shift
     exec ipython "$@"
+fi
+
+if [ "$1" = '-ipython3' -o "$1" = '--ipython3' ]; then
+    shift
+    exec ipython3 "$@"
 fi
 
 if [ "$1" = '-git' -o "$1" = '--git' ]; then

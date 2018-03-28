@@ -1,6 +1,5 @@
 r"""
-Computation of Riemann matrices and endomorphism rings of algebraic Riemann
-surfaces.
+Computation of Riemann matrices and endomorphism rings of algebraic Riemann surfaces.
 
 This module provides a class, RiemannSurface, to model the Riemann surface
 determined by a plane algebraic curve over a subfield of the complex numbers.
@@ -263,8 +262,8 @@ def differential_basis_baker(f):
     computing the adjoint ideal requires the rationals), and that we can avoid being affected by subtle bugs
     in the Singular code.
 
-    `None` is returned when `f` does not describe a curve of the relevant type. If `f` is of the relevant
-    type, but is of genus `0` then `[]` is returned (which are both False values, but they are not equal).
+    ``None`` is returned when ``f`` does not describe a curve of the relevant type. If ``f`` is of the relevant
+    type, but is of genus `0` then ``[]`` is returned (which are both False values, but they are not equal).
 
     INPUT:
 
@@ -660,7 +659,7 @@ class RiemannSurface(object):
 
         We check that continued values along an edge correspond (up to the
         appropriate permutation) to what is stored. Note that the permutation
-        was originally computed from this data.
+        was originally computed from this data::
 
             sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
             sage: R.<z,w> = QQ[]
@@ -1021,7 +1020,7 @@ class RiemannSurface(object):
         each branch point, with a fixed base point. This means the generators
         are properly conjugated to ensure that together they generate the global
         monodromy. The list has an entry for every finite point stored in
-        `self.branch_locus`, plus an entry for the ramification above infinity.
+        ``self.branch_locus``, plus an entry for the ramification above infinity.
 
         OUTPUT:
 
@@ -1525,7 +1524,7 @@ class RiemannSurface(object):
 
         A matrix of complex values.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
             sage: R.<z,w> = QQ[]
@@ -1534,8 +1533,8 @@ class RiemannSurface(object):
             sage: M = S.period_matrix()
 
         The results are highly arbitrary, so it is hard to check if the result
-        produced is correct. The closely related `riemann matrix` is somewhat
-        easier to test.
+        produced is correct. The closely related ``riemann_matrix`` is somewhat
+        easier to test.::
 
             sage: parent(M)
             Full MatrixSpace of 3 by 6 dense matrices over Complex Field with 30 bits of precision
@@ -2046,9 +2045,9 @@ def integer_matrix_relations(M1,M2,b=None,r=None):
 
     INPUT:
 
-    - `M1` -- square complex valued matrix
+    - ``M1`` -- square complex valued matrix
 
-    - `M2` -- square complex valued matrix of same size as M1
+    - ``M2`` -- square complex valued matrix of same size as M1
 
     - ``b`` -- integer (default provided). The equation coefficients are scaled
       by `2^b` before rounding to integers.

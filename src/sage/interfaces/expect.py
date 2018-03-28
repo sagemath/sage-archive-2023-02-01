@@ -1082,6 +1082,7 @@ If this all works, you can then make calls like:
 
             sage: a = singular(1)
             sage: singular._expect.sendline('1+1;')
+            5
             sage: singular._readline()
             '2\r\n'
         """

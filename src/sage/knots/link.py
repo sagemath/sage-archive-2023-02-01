@@ -614,6 +614,12 @@ class Link(object):
             sage: L = Link([[], []])
             sage: L.braid()
             1
+
+        Check that #25050 is solved::
+
+            sage: A = Link([[[1, 2, -2, -1, -3, -4, 4, 3]], [1, 1, 1, 1]])
+            sage: A.braid()
+            s0*s1*s2*s3
         """
         if self._braid is not None:
             return self._braid
@@ -1930,6 +1936,14 @@ class Link(object):
             sage: L = Link(B([1, 1, 1]))
             sage: L.seifert_circles()
             [[1, 3, 5], [2, 4, 6]]
+
+        TESTS:
+
+        Check that #25050 is solved::
+
+            sage: A = Link([[[1, 2, -2, -1, -3, -4, 4, 3]], [1, 1, 1, 1]])
+            sage: A.seifert_circles()
+            [[1, 5], [2, 4], [3], [6, 8], [7]]
         """
         available_segments = set(flatten(self.pd_code()))
         result = []
@@ -1943,8 +1957,9 @@ class Link(object):
                 par = []
                 while not a in par:
                     par.append(a)
-                    if tails[C[(C.index(a) + 1) % 4]] == C:
-                        a = C[(C.index(a) + 1) % 4]
+                    posnext = C[(C.index(a) + 1) % 4]
+                    if tails[posnext] == C and C.count(posnext) == 1:
+                        a = posnext
                     else:
                         a = C[(C.index(a) - 1) % 4]
                     if a in available_segments:

@@ -439,6 +439,16 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
         sage: T.edges() == boruvka(T, check=True)
         True
 
+    Check if the weight of MST returned by Prim's and Boruvka's is the same. ::
+
+        sage: G = Graph([(u,v,randint(1,5)) for u,v in graphs.CompleteGraph(4).edges(labels=0)], weighted=True)
+        sage: G.weighted()
+        True
+        sage: E1 = G.min_spanning_tree(algorithm='Boruvka')
+        sage: E2 = G.min_spanning_tree(algorithm='Prim_Boost')
+        sage: sum(e[2] for e in E1) == sum(e[2] for e in E2)
+        True
+
     If the input is not a Graph::
 
         sage: boruvka("I am not a graph")

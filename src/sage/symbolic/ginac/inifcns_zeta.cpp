@@ -282,14 +282,14 @@ static ex zeta2_eval(const ex& m, const ex& s_)
 	if (is_exactly_a<lst>(s_)) {
 		const lst& s = ex_to<lst>(s_);
 		for (const auto & elem : s) {
-			if ((elem).info(info_flags::positive)) {
+			if (elem.is_positive()) {
 				continue;
 			}
 			return zeta(m, s_).hold();
 		}
 		return zeta(m);
 	}
-        if (s_.info(info_flags::positive)) {
+        if (s_.is_positive()) {
 		return zeta(m);
 	}
 
@@ -305,7 +305,8 @@ static ex zeta2_deriv(const ex& m, const ex& s, unsigned deriv_param)
 		return _ex0;
 	} 
         
-        if ((is_exactly_a<lst>(s) && s.op(0).info(info_flags::positive)) || s.info(info_flags::positive)) {
+        if ((is_exactly_a<lst>(s) and s.op(0).is_positive())
+            or s.is_positive()) {
                 return zetaderiv(_ex1, m);
         }
         return _ex0;

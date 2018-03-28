@@ -381,7 +381,7 @@ static ex log_series(const ex &arg,
 		const ex coeff = argser.coeff(s, n);
 		// expand the log, but only if coeff is real and > 0, since otherwise
 		// it would make the branch cut run into the wrong direction
-		if (coeff.info(info_flags::positive))
+		if (coeff.is_positive())
 			seq.emplace_back(n*log(s-point)+log(coeff), _ex0);
 		else
 			seq.emplace_back(log(coeff*pow(s-point, n)), _ex0);
@@ -429,14 +429,14 @@ static ex log_series(const ex &arg,
 
 static ex log_real_part(const ex & x)
 {
-	if (x.info(info_flags::positive))
+	if (x.is_positive())
 		return log(x).hold();
 	return log(abs(x));
 }
 
 static ex log_imag_part(const ex & x)
 {
-	if (x.info(info_flags::positive))
+	if (x.is_positive())
 		return _ex0;
 	return atan2(GiNaC::imag_part(x), GiNaC::real_part(x));
 }
@@ -445,7 +445,7 @@ static ex log_conjugate(const ex & x)
 {
 	// conjugate(log(x))==log(conjugate(x)) unless on the branch cut which
 	// runs along the negative real axis.
-	if (x.info(info_flags::positive)) {
+	if (x.is_positive()) {
 		return log(x);
 	}
 	if (is_exactly_a<numeric>(x) &&

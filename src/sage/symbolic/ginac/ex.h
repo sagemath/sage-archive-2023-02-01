@@ -145,6 +145,7 @@ public:
 	bool info(unsigned inf) const { return bp->info(inf); }
 	bool is_integer() const { return bp->is_integer(); }
 	bool is_real() const { return bp->is_real(); }
+	bool is_positive() const { return bp->is_positive(); }
 
 	// operand access
 	size_t nops() const { return bp->nops(); }

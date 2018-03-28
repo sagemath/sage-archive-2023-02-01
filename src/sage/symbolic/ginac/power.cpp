@@ -258,11 +258,11 @@ bool power::info(unsigned inf) const
                         return basis.is_real()
                         and basis.info(info_flags::nonzero);
                 if (exponent.info(info_flags::odd))
-                        return basis.info(info_flags::positive);
-                return basis.info(info_flags::positive)
+                        return basis.is_positive();
+                return basis.is_positive()
                        and exponent.is_real();
         case info_flags::nonnegative:
-                return (basis.info(info_flags::positive)
+                return (basis.is_positive()
                         and exponent.is_real())
                     or (basis.is_real()
                         and exponent.is_integer()
@@ -274,7 +274,7 @@ bool power::info(unsigned inf) const
         case info_flags::real:
                 return ((basis.info(inf)
                          and exponent.is_integer())
-                     or (basis.info(info_flags::positive)
+                     or (basis.is_positive()
                          and exponent.info(inf)));
         case info_flags::nonzero:
                 return (basis.info(inf)
@@ -430,7 +430,7 @@ ex power::eval(int level) const
 			throw(std::domain_error("power::eval(): pow(Infinity, 0) is undefined."));
 		if (eexponent.info(info_flags::negative))
 			return _ex0;
-		if (eexponent.info(info_flags::positive)) {
+		if (eexponent.is_positive()) {
 			if (basis_inf.is_unsigned_infinity())
 				return UnsignedInfinity;
 			
@@ -450,7 +450,7 @@ ex power::eval(int level) const
 		// x^(c*oo) --> (x^c)^(+oo)
 		const ex abs_base = abs(pow(ebasis, exp_inf.get_direction()));
 		if (abs_base > _ex1) {
-			if (ebasis.info(info_flags::positive))
+			if (ebasis.is_positive())
 				return Infinity;
 			
 				return UnsignedInfinity;
@@ -499,9 +499,9 @@ ex power::eval(int level) const
         // or if d is integer (and positive to preserve fraction output).
         // Secondly, if both c,d are numeric negative then cancel minuses.
 	if (is_exactly_a<power>(ebasis)) {
-                if (((eexponent.info(info_flags::integer)
-                      and eexponent.info(info_flags::positive))
-                    or (ebasis.op(0).info(info_flags::positive)
+                if (((eexponent.is_integer()
+                      and eexponent.is_positive())
+                    or (ebasis.op(0).is_positive()
                       and ebasis.op(1).is_real())))
 		        return power(ebasis.op(0), ebasis.op(1) * eexponent);
         }
@@ -640,7 +640,7 @@ ex power::eval(int level) const
 	}
 
 	// Reduce x^(c/log(x)) to exp(c) if x is positive
-	if (ebasis.info(info_flags::positive)) {
+	if (ebasis.is_positive()) {
 		if (eexponent.is_equal(1/log(ebasis)))
 			return exp(log(basis)*exponent);
 		if (is_exactly_a<mul>(eexponent) and
@@ -736,14 +736,14 @@ ex power::conjugate() const
 {
 	// conjugate(pow(x,y))==pow(conjugate(x),conjugate(y)) unless on the
 	// branch cut which runs along the negative real axis.
-	if (basis.info(info_flags::positive)) {
+	if (basis.is_positive()) {
 		ex newexponent = exponent.conjugate();
 		if (are_ex_trivially_equal(exponent, newexponent)) {
 			return *this;
 		}
 		return (new power(basis, newexponent))->setflag(status_flags::dynallocated);
 	}
-	if (exponent.info(info_flags::integer)) {
+	if (exponent.is_integer()) {
 		ex newbasis = basis.conjugate();
 		if (are_ex_trivially_equal(basis, newbasis)) {
 			return *this;
@@ -755,7 +755,7 @@ ex power::conjugate() const
 
 ex power::real_part() const
 {
-	if (exponent.info(info_flags::integer)) {
+	if (exponent.is_integer()) {
 		ex basis_real = basis.real_part();
 		if (basis_real == basis)
 			return *this;
@@ -863,7 +863,8 @@ tinfo_t power::return_type_tinfo() const
 
 ex power::expand(unsigned options) const
 {
-	if (is_a<symbol>(basis) && exponent.info(info_flags::integer)) {
+	if (is_a<symbol>(basis)
+            and exponent.is_integer()) {
 		// A special case worth optimizing.
 		setflag(status_flags::expanded);
 		return *this;
@@ -871,7 +872,7 @@ ex power::expand(unsigned options) const
 
 	// (x*p)^c -> x^c * p^c, if p>0
 	// makes sense before expanding the basis
-	if (is_exactly_a<mul>(basis) && !basis.info(info_flags::indefinite)) {
+	if (is_exactly_a<mul>(basis)) {
 		const mul &m = ex_to<mul>(basis);
 		exvector prodseq;
 		epvector powseq;
@@ -882,7 +883,7 @@ ex power::expand(unsigned options) const
 		// search for positive/negative factors
                 for (const auto & elem : m.seq) {
 			const ex& e = m.recombine_pair_to_ex(elem);
-			if (e.info(info_flags::positive))
+			if (e.is_positive())
 				prodseq.push_back(pow(e, exponent).expand(options));
 			else if (e.info(info_flags::negative)) {
 				prodseq.push_back(pow(-e, exponent).expand(options));

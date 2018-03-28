@@ -684,7 +684,7 @@ ex power::normal(exmap & repl, exmap & rev_lookup, int level, unsigned options) 
 
 	if (n_exponent.is_integer()) {
 
-		if (n_exponent.info(info_flags::positive)) {
+		if (n_exponent.is_positive()) {
 			// (a/b)^n -> {a^n, b^n}
 			return (new lst(power(n_basis.op(0), n_exponent),
                                               power(n_basis.op(1), n_exponent)))
@@ -699,7 +699,7 @@ ex power::normal(exmap & repl, exmap & rev_lookup, int level, unsigned options) 
 		}
 	} else {
 
-		if (n_exponent.info(info_flags::positive)) {
+		if (n_exponent.is_positive()) {
 			// (a/b)^x -> {sym((a/b)^x), 1}
 			return (new lst(replace_with_symbol(power(n_basis.op(0) / n_basis.op(1),
                                                                 n_exponent),

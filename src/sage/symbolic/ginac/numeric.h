@@ -156,7 +156,7 @@ public:
 	bool is_inexact_one() const;
 	bool is_one() const;
 	bool is_minus_one() const;
-	bool is_positive() const;
+	bool is_positive() const override;
 	bool is_negative() const;
 	bool is_integer() const override;
 	bool is_pos_integer() const;

@@ -250,7 +250,8 @@ static ex abs_eval(const ex & arg)
 	if (is_exactly_a<numeric>(arg))
 		return abs(ex_to<numeric>(arg));
 
-	if (arg.info(info_flags::nonnegative) or arg.info(info_flags::positive))
+	if (arg.info(info_flags::nonnegative)
+            or arg.is_positive())
 		return arg;
 
 	if (arg.info(info_flags::negative) or (-arg).info(info_flags::nonnegative))
@@ -282,7 +283,7 @@ static ex abs_eval(const ex & arg)
                                         is_prod_neg = not is_prod_neg;
                                         prod *= factor;
                                 }
-                                else if (factor.info(info_flags::positive))                                        
+                                else if (factor.is_positive())                                        
                                         prod *= factor;
                                 else
                                         prod *= abs(factor).hold();
@@ -300,7 +301,7 @@ static ex abs_eval(const ex & arg)
 	if (is_exactly_a<power>(arg)) {
 		const ex& base = arg.op(0);
 		const ex& exponent = arg.op(1);
-		if (base.info(info_flags::positive)
+		if (base.is_positive()
                     or exponent.is_real())
 			return pow(abs(base), exponent.real_part());
 	}
@@ -383,7 +384,7 @@ static ex unit_step_evalf(const ex & arg, PyObject* parent)
 
 static ex unit_step_eval(const ex & arg)
 {
-        if (arg.info(info_flags::positive))
+        if (arg.is_positive())
                 return _ex1;
         if (arg.info(info_flags::negative))
                 return _ex0;
@@ -466,7 +467,7 @@ static ex heaviside_evalf(const ex & arg, PyObject* parent)
 
 static ex heaviside_eval(const ex & arg)
 {
-        if (arg.info(info_flags::positive))
+        if (arg.is_positive())
                 return _ex1;
         if (arg.info(info_flags::negative))
                 return _ex0;
@@ -607,7 +608,9 @@ static ex csgn_imag_part(const ex& arg)
 
 static ex csgn_power(const ex & arg, const ex & exp)
 {
-	if (is_a<numeric>(exp) && exp.info(info_flags::positive) && ex_to<numeric>(exp).is_integer()) {
+	if (is_a<numeric>(exp)
+            and exp.is_positive()
+            and exp.is_integer()) {
 		if (ex_to<numeric>(exp).is_odd())
 			return csgn(arg).hold();
 
@@ -636,7 +639,7 @@ static ex eta_evalf(const ex &x, const ex &y, PyObject* parent)
 {
 	// It seems like we basically have to replicate the eval function here,
 	// since the expression might not be fully evaluated yet.
-	if (x.info(info_flags::positive) || y.info(info_flags::positive))
+	if (x.is_positive() or y.is_positive())
 		return _ex0;
 
 	if (x.info(info_flags::numeric) &&	y.info(info_flags::numeric)) {
@@ -660,7 +663,7 @@ static ex eta_evalf(const ex &x, const ex &y, PyObject* parent)
 static ex eta_eval(const ex &x, const ex &y)
 {
 	// trivial:  eta(x,c) -> 0  if c is real and positive
-	if (x.info(info_flags::positive) || y.info(info_flags::positive))
+	if (x.is_positive() or y.is_positive())
 		return _ex0;
 
 	if (x.info(info_flags::numeric) &&	y.info(info_flags::numeric)) {

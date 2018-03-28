@@ -203,7 +203,7 @@ bool add::info(unsigned inf) const
 {
         switch (inf) {
         case info_flags::nonzero:
-                return info(info_flags::positive)
+                return is_positive()
                 or info(info_flags::negative);
         case info_flags::polynomial:
         case info_flags::integer_polynomial:
@@ -246,7 +246,7 @@ bool add::info(unsigned inf) const
                         return false;
                 for (const auto &elem : seq) {
                         ex t = recombine_pair_to_ex(elem);
-                        bool is_pos = t.info(info_flags::positive);
+                        bool is_pos = t.is_positive();
                         if (not is_pos
                         and not t.info(info_flags::nonnegative))
                                 return false;

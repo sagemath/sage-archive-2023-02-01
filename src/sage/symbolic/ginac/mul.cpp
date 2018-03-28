@@ -392,7 +392,7 @@ bool mul::info(unsigned inf) const
 {
         switch (inf) {
         case info_flags::nonzero:
-                return info(info_flags::positive)
+                return is_positive()
                 or info(info_flags::negative);
         case info_flags::polynomial:
         case info_flags::integer_polynomial:
@@ -441,7 +441,7 @@ bool mul::info(unsigned inf) const
                 bool pos = true;
                 for (const auto &elem : seq) {
                         const ex &factor = recombine_pair_to_ex(elem);
-                        if (factor.info(info_flags::positive))
+                        if (factor.is_positive())
                                 continue;
                         if (factor.info(info_flags::negative))
                                 pos = !pos;
@@ -459,7 +459,7 @@ bool mul::info(unsigned inf) const
                 for (const auto &elem : seq) {
                         const ex &factor = recombine_pair_to_ex(elem);
                         if (factor.info(info_flags::nonnegative)
-                            or factor.info(info_flags::positive))
+                            or factor.is_positive())
                                 continue;
                         if (factor.info(info_flags::negative))
                                 pos = !pos;

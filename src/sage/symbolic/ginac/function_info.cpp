@@ -30,13 +30,13 @@ static bool log_info(const function& f, unsigned inf)
         const ex& arg = f.op(0);
         switch (inf) {
         case info_flags::real:
-                return arg.info(info_flags::positive);
+                return arg.is_positive();
         case info_flags::positive:
                 return arg.is_real() and
-                        (arg-_ex1).info(info_flags::positive);
+                        (arg-_ex1).is_positive();
         case info_flags::negative:
                 return arg.is_real() and
-                        arg.info(info_flags::positive) and
+                        arg.is_positive() and
                         (arg-_ex1).info(info_flags::negative);
         }
         return false;
@@ -209,13 +209,13 @@ static bool gamma_info(const function& f, unsigned inf)
         case info_flags::real:
         case info_flags::positive:
         case info_flags::nonzero:
-                return arg.info(info_flags::positive);
+                return arg.is_positive();
         case info_flags::integer:
                 return arg.is_integer()
-                   and arg.info(info_flags::positive);
+                   and arg.is_positive();
         case info_flags::even:
                 return arg.is_integer()
-                   and (arg+_ex_2).info(info_flags::positive);
+                   and (arg+_ex_2).is_positive();
         }
         return false;
 }
@@ -284,9 +284,9 @@ static bool factorial_info(const function& f, unsigned inf)
                 return arg.is_integer();
         case info_flags::even:
                 return (arg.is_integer()
-                        and (arg+_ex_1).info(info_flags::positive))
+                        and (arg+_ex_1).is_positive())
                        or (arg.info(info_flags::even)
-                        and arg.info(info_flags::positive));
+                        and arg.is_positive());
         }
         return false;
 }

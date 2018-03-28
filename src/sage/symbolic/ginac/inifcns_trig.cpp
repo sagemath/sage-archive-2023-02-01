@@ -1400,7 +1400,7 @@ static ex atan2_eval(const ex & y, const ex & x)
 			return NaN;
 
 		// atan2(0, x), x real and positive -> 0
-		if (x.info(info_flags::positive))
+		if (x.is_positive())
 			return _ex0;
 
 		// atan2(0, x), x real and negative -> Pi
@@ -1411,7 +1411,7 @@ static ex atan2_eval(const ex & y, const ex & x)
 	if (x.is_zero()) {
 
 		// atan2(y, 0), y real and positive -> Pi/2
-		if (y.info(info_flags::positive))
+		if (y.is_positive())
 			return _ex1_2*Pi;
 
 		// atan2(y, 0), y real and negative -> -Pi/2
@@ -1422,7 +1422,7 @@ static ex atan2_eval(const ex & y, const ex & x)
 	if (y.is_equal(x)) {
 
 		// atan2(y, y), y real and positive -> Pi/4
-		if (y.info(info_flags::positive))
+		if (y.is_positive())
 			return _ex1_4*Pi;
 
 		// atan2(y, y), y real and negative -> -3/4*Pi
@@ -1433,7 +1433,7 @@ static ex atan2_eval(const ex & y, const ex & x)
 	if (y.is_equal(-x)) {
 
 		// atan2(y, -y), y real and positive -> 3*Pi/4
-		if (y.info(info_flags::positive))
+		if (y.is_positive())
 			return numeric(3, 4)*Pi;
 
 		// atan2(y, -y), y real and negative -> -Pi/4
@@ -1466,11 +1466,11 @@ static ex atan2_eval(const ex & y, const ex & x)
 
 	// atan2(real, real) -> atan(y/x) +/- Pi
 	if (y.is_real() && x.is_real()) {
-		if (x.info(info_flags::positive))
+		if (x.is_positive())
 			return atan(y/x);
 
 		if (x.info(info_flags::negative)) {
-			if (y.info(info_flags::positive))
+			if (y.is_positive())
 				return atan(y/x)+Pi;
 			if (y.info(info_flags::negative))
 				return atan(y/x)-Pi;

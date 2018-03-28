@@ -140,7 +140,7 @@ void pseries::print_series(const print_context & c, const char *openbrace, const
 
 			// print 'rest', i.e. the expansion coefficient
 			if (i->rest.info(info_flags::numeric) &&
-				i->rest.info(info_flags::positive)) {
+				i->rest.is_positive()) {
 				i->rest.print(c);
 			} else {
 				c.s << openbrace << '(';

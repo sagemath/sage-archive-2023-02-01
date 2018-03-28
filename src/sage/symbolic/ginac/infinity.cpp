@@ -194,7 +194,7 @@ bool infinity::info(unsigned inf) const
         case info_flags::negative:
                 return direction.info(inf);
         case info_flags::nonnegative:
-                return direction.info(info_flags::positive);
+                return direction.is_positive();
         default:
                 return inherited::info(inf);
         }
@@ -329,7 +329,7 @@ const infinity & infinity::operator *= (const ex & rhs)
 	if (rhs.is_zero())
 		throw(std::runtime_error("indeterminate expression: "
 					 "0 * infinity encountered."));
-	else if (rhs.info(info_flags::positive)) {
+	else if (rhs.is_positive()) {
 		return *this;
 	}
         if (rhs.info(info_flags::negative)) {

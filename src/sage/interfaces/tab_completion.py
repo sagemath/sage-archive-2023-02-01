@@ -24,8 +24,7 @@ EXAMPLES::
     sage: sorted(dir(f))
     [..., '_tab_completion', 'a', 'b', 'c', 'd']
 """
-
-import warnings
+import builtins
 
 
 class ExtraTabCompletion(object):
@@ -53,81 +52,57 @@ class ExtraTabCompletion(object):
         return dir(self.__class__) + list(self.__dict__) + tab_fn()
 
 
-def completions(s, globs, format=False, width=90, system="None"):
+def completions(s, globs, system=None):
     """
     Return a list of completions in the given context.
 
     INPUT:
 
-    - ``globs`` -- a string:object dictionary; context in which to
+    - ``s`` -- a string
+
+    - ``globs`` -- a string: object dictionary; context in which to
       search for completions, e.g., :func:`globals()`
 
-    - ``format`` -- a bool (default: ``False``); whether to tabulate the
-      list
-    
-    - ``width`` -- an int; character width of the table
-    
-    - ``system`` -- a string (default: 'None'); system prefix for the
-      completions
+    - ``system`` -- ignored
 
     OUTPUT:
 
-    - a list of strings, if ``format`` is False, or a string
+    a list of strings
 
     EXAMPLES::
 
          sage: X.<x> = PolynomialRing(QQ)
          sage: import sage.interfaces.tab_completion as s
          sage: p = x**2 + 1
-         sage: s.completions('p.co',globals(),system='python') # indirect doctest
+         sage: s.completions('p.co',globals()) # indirect doctest
          ['p.coefficients',...]
-    """
-    if system not in ['sage', 'python']:
-        prepend = system + '.'
-        s = prepend + s
-    else:
-        prepend = ''
-    n = len(s)
-    if not n:
-        return '(empty string)'
-    try:
-        if not '.' in s and not '(' in s:
-            v = [x for x in globs.keys() if x[:n] == s]
-            v += [x for x in __builtins__.keys() if x[:n] == s] 
-        else:
-            if not ')' in s:
-                i = s.rfind('.')
-                method = s[i + 1:]
-                obj = s[:i]
-                n = len(method)
-            else:
-                obj = preparse(s)
-                method = ''
-            try:
-                O = eval(obj, globs)
-                D = dir(O)
-                try:
-                    D += O.trait_names()
-                except (AttributeError, TypeError):
-                    pass
-                if method == '':
-                    v = [obj + '.'+x for x in D if x and x[0] != '_']
-                else:
-                    v = [obj + '.'+x for x in D if x[:n] == method]
-            except Exception:
-                v = []
-        v = list(set(v))   # make unique
-        v.sort()
-    except Exception:
-        v = []
 
-    if prepend:
-        i = len(prepend)
-        v = [x[i:] for x in v]
-        
-    if format:
-        if not v:
-            return "No completions of '%s' currently defined" % s
-        else:
-            return tabulate(v, width)
-    return v
+         sage: s.completions('dic',globals()) # indirect doctest
+         ['dickman_rho', 'dict']
+    """
+    if not s:
+        raise ValueError('empty string')
+
+    if '.' not in s:
+        n = len(s)
+        v = [x for x in globs if x[:n] == s]
+        v += [x for x in builtins.__dict__ if x[:n] == s]
+    else:
+        i = s.rfind('.')
+        method = s[i + 1:]
+        obj = s[:i]
+        n = len(method)
+        try:
+            O = eval(obj, globs)
+            D = dir(O)
+            try:
+                D += O.trait_names()
+            except (AttributeError, TypeError):
+                pass
+            if not method:
+                v = [obj + '.' + x for x in D if x and x[0] != '_']
+            else:
+                v = [obj + '.' + x for x in D if x[:n] == method]
+        except Exception:
+            v = []
+    return sorted(set(v))

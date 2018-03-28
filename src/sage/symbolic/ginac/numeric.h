@@ -90,6 +90,8 @@ union Value {
 	PyObject* _pyobject;
 };
 
+extern const ex _ex0;
+
 /** Exception class thrown when a singularity is encountered. */
 class pole_error : public std::domain_error {
 public:
@@ -141,17 +143,36 @@ public:
         friend numeric & operator/=(numeric & lh, const numeric & rh);
         friend void rational_power_parts(const numeric& a, const numeric& b,
                         numeric& c, numeric& d, bool& c_unit);
-	// functions overriding virtual functions from base classes
 public:
 
-	int compare_same_type(const numeric& right) const;
-	unsigned precedence() const override
-	{
-		return 30;
-	}
+	unsigned precedence() const override { return 30; }
 	bool info(unsigned inf) const override;
 	bool is_polynomial(const ex & var) const override;
-	numeric degree(const ex & s) const override;
+        bool is_long() const     { return t == LONG; }
+	bool is_mpz() const      { return t == MPZ; }
+	bool is_mpq() const      { return t == MPQ; }
+        bool is_pyobject() const { return t == PYOBJECT; }
+	bool is_zero() const;
+	bool is_inexact_one() const;
+	bool is_one() const;
+	bool is_minus_one() const;
+	bool is_positive() const;
+	bool is_negative() const;
+	bool is_integer() const override;
+	bool is_pos_integer() const;
+	bool is_nonneg_integer() const;
+	bool is_even() const;
+	bool is_odd() const;
+	bool is_prime() const;
+	bool is_rational() const;
+	bool is_real() const override;
+	bool is_cinteger() const;
+	bool is_crational() const;
+	bool is_exact() const;
+        bool is_small_power(std::pair<int,int>& p) const;
+
+	// functions overriding virtual functions from base classes
+        numeric degree(const ex & s) const override;
 	numeric ldegree(const ex & s) const override;
 	ex coeff(const ex & s, const ex & n) const override;
 	bool has(const ex &other, unsigned options = 0) const override;
@@ -169,23 +190,15 @@ public:
 	ex real_part() const override;
 	ex imag_part() const override;
         ex series(const relational & r, int order, unsigned options) const override;
-protected:
 
 	/** Implementation of ex::diff for a numeric always returns 0.
 	 *  @see ex::diff */
-	ex derivative(const symbol &s) const override
-	{
-		return 0;
-	}
+	ex derivative(const symbol &s) const override { return _ex0; }
         void useries(flint_series_t& fp, int order) const override;
 	bool is_equal_same_type(const basic &other) const override;
+	int compare_same_type(const numeric& right) const;
 	long calchash() const override;
 
-	// new virtual functions which can be overridden by derived classes
-	// (none)
-
-	// non-virtual functions in this class
-public:
 	const numeric add(const numeric &other) const;
 	const numeric sub(const numeric &other) const;
 	const numeric mul(const numeric &other) const;
@@ -209,23 +222,6 @@ public:
 	const numeric step() const;
 	int csgn() const;
 	bool is_equal(const numeric &other) const;
-	bool is_zero() const;
-	bool is_inexact_one() const;
-	bool is_one() const;
-	bool is_minus_one() const;
-	bool is_positive() const;
-	bool is_negative() const;
-	bool is_integer() const override;
-	bool is_pos_integer() const;
-	bool is_nonneg_integer() const;
-	bool is_even() const;
-	bool is_odd() const;
-	bool is_prime() const;
-	bool is_rational() const;
-	bool is_real() const;
-	bool is_cinteger() const;
-	bool is_crational() const;
-	bool is_exact() const;
 	bool operator==(const numeric &other) const;
 	bool operator!=(const numeric &other) const;
 	bool operator<(const numeric &other) const;
@@ -235,19 +231,11 @@ public:
 	int to_int() const;
 	long to_long() const;
 	double to_double() const;
-        bool is_long() const { return t == LONG; }
-	bool is_mpz() const { return t == MPZ; }
-	bool is_mpq() const { return t == MPQ; }
         const numeric to_bigint() const;
         const mpz_t& as_mpz() const;
         const mpq_t& as_mpq() const;
         void canonicalize();
         PyObject* to_pyobject() const;
-        bool is_pyobject() const
-        {
-                return t == PYOBJECT;
-        }
-        bool is_small_power(std::pair<int,int>& p) const;
         const numeric try_py_method(const std::string& s) const;
         const numeric try_py_method(const std::string& s,
                         const numeric& x2) const;

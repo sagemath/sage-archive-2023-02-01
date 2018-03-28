@@ -222,7 +222,7 @@ void symbol::set_domain_from_ex(const ex& expr)
                 set_domain(domain::integer);
         else if (expr.info(info_flags::rational))
                 set_domain(domain::rational);
-        else if (expr.info(info_flags::real))
+        else if (expr.is_real())
                 set_domain(domain::real);
 
         if (expr.info(info_flags::positive))

@@ -73,7 +73,7 @@ static ex conjugate_conjugate(const ex & arg)
 // and conjugate((U+I*V).diff(x))
 static ex conjugate_expl_derivative(const ex & arg, const symbol & s)
 {
-	if (s.info(info_flags::real))
+	if (s.is_real())
 		return conjugate(arg.diff(s));
 
         exvector vec_arg;
@@ -115,7 +115,7 @@ static ex real_part_evalf(const ex & arg, PyObject* parent)
 
 static ex real_part_eval(const ex & arg)
 {
-        if (arg.info(info_flags::real))
+        if (arg.is_real())
                 return arg;
         ex pat = pow(wild(1), wild(2));
         lst l;
@@ -149,7 +149,7 @@ static ex real_part_imag_part(const ex & arg)
 // If x is real then Re(e).diff(x) is equal to Re(e.diff(x)) 
 static ex real_part_expl_derivative(const ex & arg, const symbol & s)
 {
-	if (s.info(info_flags::real))
+	if (s.is_real())
 		return real_part_function(arg.diff(s));
 	
         exvector vec_arg;
@@ -181,7 +181,7 @@ static ex imag_part_evalf(const ex & arg, PyObject* parent)
 
 static ex imag_part_eval(const ex & arg)
 {
-        if (arg.info(info_flags::real))
+        if (arg.is_real())
                 return _ex0;
         ex pat = pow(wild(1), wild(2));
         lst l;
@@ -215,7 +215,7 @@ static ex imag_part_imag_part(const ex & arg)
 // If x is real then Im(e).diff(x) is equal to Im(e.diff(x)) 
 static ex imag_part_expl_derivative(const ex & arg, const symbol & s)
 {
-	if (s.info(info_flags::real))
+	if (s.is_real())
 		return imag_part_function(arg.diff(s));
 
         exvector vec_arg;
@@ -277,7 +277,7 @@ static ex abs_eval(const ex & arg)
                         const ex& factor = arg.op(i);
                         if (has_symbol(factor))
                                 prod_sy *= factor;
-                        else if (factor.info(info_flags::real)) {
+                        else if (factor.is_real()) {
                                 if (factor.info(info_flags::negative)) {                                        
                                         is_prod_neg = not is_prod_neg;
                                         prod *= factor;
@@ -300,7 +300,8 @@ static ex abs_eval(const ex & arg)
 	if (is_exactly_a<power>(arg)) {
 		const ex& base = arg.op(0);
 		const ex& exponent = arg.op(1);
-		if (base.info(info_flags::positive) || exponent.info(info_flags::real))
+		if (base.info(info_flags::positive)
+                    or exponent.is_real())
 			return pow(abs(base), exponent.real_part());
 	}
 
@@ -337,7 +338,7 @@ static ex abs_power(const ex & arg, const ex & exp)
 {
 	if (((is_exactly_a<numeric>(exp) and ex_to<numeric>(exp).is_even()) 
                 or exp.info(info_flags::even))
-                and (arg.info(info_flags::real) or arg.is_equal(arg.conjugate())))
+                and (arg.is_real() or arg.is_equal(arg.conjugate())))
 	        return power(arg, exp);
 
         return power(abs(arg), exp).hold();
@@ -374,7 +375,7 @@ static ex unit_step_evalf(const ex & arg, PyObject* parent)
         if (arg.is_zero())
                 return _ex1;
 
-        if (arg.info(info_flags::real))
+        if (arg.is_real())
 		return step(ex_to<numeric>(arg));
 	
 	return unit_step(arg).hold();
@@ -456,7 +457,7 @@ REGISTER_FUNCTION(unit_step, eval_func(unit_step_eval).
 static ex heaviside_evalf(const ex & arg, PyObject* parent)
 {
 	if (is_exactly_a<numeric>(arg)
-            and arg.info(info_flags::real)
+            and arg.is_real()
             and not arg.is_zero())
 		return step(ex_to<numeric>(arg));
 	
@@ -764,7 +765,7 @@ static ex Order_real_part(const ex & x)
 
 static ex Order_imag_part(const ex & x)
 {
-	if(x.info(info_flags::real))
+	if(x.is_real())
 		return 0;
 	return Order(x).hold();
 }

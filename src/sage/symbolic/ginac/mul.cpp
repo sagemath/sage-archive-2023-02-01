@@ -405,7 +405,7 @@ bool mul::info(unsigned inf) const
         case info_flags::cinteger:
         case info_flags::crational_polynomial:
         case info_flags::rational_function: {
-                if (not overall_coeff.info(info_flags::real))
+                if (not overall_coeff.is_real())
                         return false;
                 for (const auto &elem : seq)
                         if (!(recombine_pair_to_ex(elem).info(inf)))
@@ -436,7 +436,7 @@ bool mul::info(unsigned inf) const
         }
         case info_flags::positive:
         case info_flags::negative: {
-                if (not overall_coeff.info(info_flags::real))
+                if (not overall_coeff.is_real())
                         return false;
                 bool pos = true;
                 for (const auto &elem : seq) {
@@ -453,7 +453,7 @@ bool mul::info(unsigned inf) const
                 return (inf == info_flags::positive ? pos : !pos);
         }
         case info_flags::nonnegative: {
-                if (not overall_coeff.info(info_flags::real))
+                if (not overall_coeff.is_real())
                         return false;
                 bool pos = true;
                 for (const auto &elem : seq) {
@@ -470,7 +470,7 @@ bool mul::info(unsigned inf) const
         }
         case info_flags::posint:
         case info_flags::negint: {
-                if (not overall_coeff.info(info_flags::real))
+                if (not overall_coeff.is_real())
                         return false;
                 bool pos = true;
                 for (const auto &elem : seq) {
@@ -489,7 +489,7 @@ bool mul::info(unsigned inf) const
                 return (inf == info_flags::posint ? pos : !pos);
         }
         case info_flags::nonnegint: {
-                if (not overall_coeff.info(info_flags::real))
+                if (not overall_coeff.is_real())
                         return false;
                 bool pos = true;
                 for (const auto &elem : seq) {

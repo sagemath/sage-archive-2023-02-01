@@ -741,7 +741,7 @@ static ex asinh_conjugate(const ex & x)
 {
 	// conjugate(asinh(x))==asinh(conjugate(x)) unless on the branch cuts which
 	// run along the imaginary axis outside the interval [-I, +I].
-	if (x.info(info_flags::real))
+	if (x.is_real())
 		return asinh(x);
 	if (is_exactly_a<numeric>(x)) {
 		const numeric x_re = ex_to<numeric>(x.real_part());
@@ -899,9 +899,9 @@ static ex atanh_series(const ex &arg,
 	//     (log(1+x)-log(1-x))/2
 	// instead.
 	const ex arg_pt = arg.subs(rel, subs_options::no_pattern);
-	if (!(arg_pt).info(info_flags::real))
+	if (!(arg_pt).is_real())
 		throw do_taylor();     // Im(x) != 0
-	if ((arg_pt).info(info_flags::real) && abs(arg_pt)<_ex1)
+	if ((arg_pt).is_real() && abs(arg_pt)<_ex1)
 		throw do_taylor();     // Im(x) == 0, but abs(x)<1
 	// care for the poles, using the defining formula for atanh()...
 	if (arg_pt.is_equal(_ex1) || arg_pt.is_equal(_ex_1))
@@ -1055,7 +1055,7 @@ static ex acsch_conjugate(const ex & x)
 {
         // conjugate(acsch(x))==acsch(conjugate(x)) unless on the branch cuts which
         // run along the imaginary axis inside the interval [-I, +I].
-        if (x.info(info_flags::real))
+        if (x.is_real())
 		return acsch(x);
 	if (is_exactly_a<numeric>(x)) {
 		const numeric x_re = ex_to<numeric>(x.real_part());

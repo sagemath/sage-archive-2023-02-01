@@ -189,7 +189,7 @@ bool infinity::info(unsigned inf) const
                 return true;
         case info_flags::real:
                 return not direction.is_zero()
-                and direction.info(info_flags::real);
+                and direction.is_real();
         case info_flags::positive:
         case info_flags::negative:
                 return direction.info(inf);

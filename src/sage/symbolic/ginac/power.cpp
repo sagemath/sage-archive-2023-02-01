@@ -255,16 +255,16 @@ bool power::info(unsigned inf) const
                 return (flags & status_flags::expanded) != 0u;
         case info_flags::positive:
                 if (exponent.info(info_flags::even))
-                        return basis.info(info_flags::real)
+                        return basis.is_real()
                         and basis.info(info_flags::nonzero);
                 if (exponent.info(info_flags::odd))
                         return basis.info(info_flags::positive);
                 return basis.info(info_flags::positive)
-                       and exponent.info(info_flags::real);
+                       and exponent.is_real();
         case info_flags::nonnegative:
                 return (basis.info(info_flags::positive)
-                        and exponent.info(info_flags::real))
-                    or (basis.info(info_flags::real)
+                        and exponent.is_real())
+                    or (basis.is_real()
                         and exponent.is_integer()
                         and exponent.info(info_flags::even));
         case info_flags::negative:
@@ -413,7 +413,7 @@ ex power::eval(int level) const
                 // (negative num)^even --> (positive num)^even
                 if (num_basis.is_negative()
                     and eexponent.info(info_flags::even)
-                    and eexponent.info(info_flags::real))
+                    and eexponent.is_real())
                         return power(-num_basis, eexponent);
 	}
 	if (is_exactly_a<numeric>(eexponent)) {
@@ -502,7 +502,7 @@ ex power::eval(int level) const
                 if (((eexponent.info(info_flags::integer)
                       and eexponent.info(info_flags::positive))
                     or (ebasis.op(0).info(info_flags::positive)
-                      and ebasis.op(1).info(info_flags::real))))
+                      and ebasis.op(1).is_real())))
 		        return power(ebasis.op(0), ebasis.op(1) * eexponent);
         }
 
@@ -510,7 +510,7 @@ ex power::eval(int level) const
         if (is_exactly_a<mul>(ebasis)
             and ex_to<mul>(ebasis).overall_coeff.is_negative()
             and eexponent.info(info_flags::even)
-            and eexponent.info(info_flags::real))
+            and eexponent.is_real())
                 return power(-ebasis, eexponent);
 
 	if (exponent_is_numerical) {
@@ -563,7 +563,7 @@ ex power::eval(int level) const
                                 numeric pexp = num_sub_exponent * num_exponent;
                                 if (pexp.is_integer()
                                     and num_sub_exponent.is_even()
-                                    and sub_basis.info(info_flags::real))
+                                    and sub_basis.is_real())
                                         return power(abs(sub_basis), pexp);
 			}
 		}

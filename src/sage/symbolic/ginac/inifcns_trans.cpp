@@ -313,7 +313,7 @@ static ex log_eval(const ex & x)
 	// log(exp(t)) -> t (if -Pi < t.imag() <= Pi):
 	if (is_ex_the_function(x, exp)) {
 		const ex &t = x.op(0);
-		if (t.info(info_flags::real))
+		if (t.is_real())
 			return t;
 	}
 	
@@ -487,7 +487,7 @@ static ex logb_eval(const ex & x, const ex & base)
 	    and is_exactly_a<numeric>(base) and not base.info(info_flags::inexact)) {
                 const numeric& a = ex_to<numeric>(x);
                 const numeric& b = ex_to<numeric>(base);
-                if (b.info(info_flags::real) and a.info(info_flags::real)) {
+                if (b.is_real() and a.is_real()) {
                         bool israt;
                         numeric ret = a.ratlog(b, israt);
                         if (israt)
@@ -501,7 +501,7 @@ static ex logb_eval(const ex & x, const ex & base)
 
 	// log(base^t, base) -> t
 	if (is_exactly_a<power>(x)) {
-                if (x.op(0).is_equal(base) and x.op(1).info(info_flags::real))
+                if (x.op(0).is_equal(base) and x.op(1).is_real())
 			return x.op(1);
 	}
 

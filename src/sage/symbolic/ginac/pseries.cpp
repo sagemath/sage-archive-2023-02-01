@@ -412,7 +412,7 @@ ex pseries::evalf(int level, PyObject* parent) const
 
 ex pseries::conjugate() const
 {
-	if(!var.info(info_flags::real))
+	if (not var.is_real())
 		return conjugate_function(*this).hold();
 
 	std::unique_ptr<epvector> newseq(conjugateepvector(seq));
@@ -428,7 +428,7 @@ ex pseries::conjugate() const
 
 ex pseries::real_part() const
 {
-	if(!var.info(info_flags::real))
+	if (not var.is_real())
 		return real_part_function(*this).hold();
 	ex newpoint = point.real_part();
 	if(newpoint != point)
@@ -443,7 +443,7 @@ ex pseries::real_part() const
 
 ex pseries::imag_part() const
 {
-	if(!var.info(info_flags::real))
+	if (not var.is_real())
 		return imag_part_function(*this).hold();
 	ex newpoint = point.real_part();
 	if(newpoint != point)

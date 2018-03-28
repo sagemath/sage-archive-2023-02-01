@@ -431,8 +431,8 @@ ex add::conjugate() const
 	epvector v;
 	v.reserve(seq.size());
 	for (const auto & elem : seq)
-		if ((elem.coeff).info(info_flags::real)
-		    and (elem.rest).info(info_flags::real)) {
+		if ((elem.coeff).is_real()
+		    and (elem.rest).is_real()) {
 			v.push_back(elem);
 		} else {
 			ex cj=recombine_pair_to_ex(elem).conjugate();
@@ -448,7 +448,7 @@ ex add::real_part() const
 	epvector v;
 	v.reserve(seq.size());
 	for (const auto & elem : seq)
-		if ((elem.coeff).info(info_flags::real)) {
+		if ((elem.coeff).is_real()) {
 			ex rp = (elem.rest).real_part();
 			if (!rp.is_zero())
 				v.emplace_back(rp, elem.coeff);
@@ -466,7 +466,7 @@ ex add::imag_part() const
 	epvector v;
 	v.reserve(seq.size());
 	for (const auto & elem : seq)
-		if ((elem.coeff).info(info_flags::real)) {
+		if ((elem.coeff).is_real()) {
 			ex ip = (elem.rest).imag_part();
 			if (!ip.is_zero())
 				v.emplace_back(ip, elem.coeff);

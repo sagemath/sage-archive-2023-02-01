@@ -20,7 +20,7 @@ static bool exp_info(const function& f, unsigned inf)
                 return true;
         case info_flags::real:
         case info_flags::positive:
-                return arg.info(info_flags::real);
+                return arg.is_real();
         }
         return false;
 }
@@ -32,10 +32,10 @@ static bool log_info(const function& f, unsigned inf)
         case info_flags::real:
                 return arg.info(info_flags::positive);
         case info_flags::positive:
-                return arg.info(info_flags::real) and
+                return arg.is_real() and
                         (arg-_ex1).info(info_flags::positive);
         case info_flags::negative:
-                return arg.info(info_flags::real) and
+                return arg.is_real() and
                         arg.info(info_flags::positive) and
                         (arg-_ex1).info(info_flags::negative);
         }
@@ -47,7 +47,7 @@ static bool trig_info(const function& f, unsigned inf)
         const ex& arg = f.op(0);
         switch (inf) {
         case info_flags::real:
-                return arg.info(info_flags::real);
+                return arg.is_real();
         }
         return false;
 }
@@ -123,7 +123,7 @@ static bool cosh_info(const function& f, unsigned inf)
         case info_flags::nonnegative:
         case info_flags::positive:
         case info_flags::nonzero:
-                return f.op(0).info(info_flags::real);
+                return f.op(0).is_real();
         }
         return trig_info(f, inf);
 }
@@ -159,7 +159,7 @@ static bool sech_info(const function& f, unsigned inf)
         case info_flags::positive:
         case info_flags::nonnegative:
         case info_flags::nonzero:
-                return f.op(0).info(info_flags::real);
+                return f.op(0).is_real();
         }
         return trig_info(f, inf);
 }

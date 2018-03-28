@@ -1329,9 +1329,9 @@ static ex atan_series(const ex &arg,
 	//     (log(1+I*x)-log(1-I*x))/(2*I)
 	// instead.
 	const ex arg_pt = arg.subs(rel, subs_options::no_pattern);
-	if (!(I*arg_pt).info(info_flags::real))
+	if (not (I*arg_pt).is_real())
 		throw do_taylor();     // Re(x) != 0
-	if ((I*arg_pt).info(info_flags::real) && abs(I*arg_pt)<_ex1)
+	if ((I*arg_pt).is_real() && abs(I*arg_pt)<_ex1)
 		throw do_taylor();     // Re(x) == 0, but abs(x)<1
 	// care for the poles, using the defining formula for atan()...
 	if (arg_pt.is_equal(I) || arg_pt.is_equal(-I))
@@ -1361,7 +1361,7 @@ static ex atan_conjugate(const ex & x)
 {
 	// conjugate(atan(x))==atan(conjugate(x)) unless on the branch cuts which
 	// run along the imaginary axis outside the interval [-I, +I].
-	if (x.info(info_flags::real))
+	if (x.is_real())
 		return atan(x);
 	if (is_exactly_a<numeric>(x)) {
 		const numeric x_re = ex_to<numeric>(x.real_part());
@@ -1465,7 +1465,7 @@ static ex atan2_eval(const ex & y, const ex & x)
 	}
 
 	// atan2(real, real) -> atan(y/x) +/- Pi
-	if (y.info(info_flags::real) && x.info(info_flags::real)) {
+	if (y.is_real() && x.is_real()) {
 		if (x.info(info_flags::positive))
 			return atan(y/x);
 

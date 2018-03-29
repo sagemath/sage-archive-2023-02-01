@@ -1252,10 +1252,11 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
                 return R(0)
 
         #construct list
-        lookup = [int(0),]*len( monomial_coefficients.keys()[0] )
+        lookup = [int(0),] * len(next(iter(monomial_coefficients)))
         coefficients = []
-        for degree in range( 0 , max([ m[var_idx] for m in monomial_coefficients.keys() ])+1 ):
-            lookup[var_idx]=int(degree);
+        for degree in range(max(m[var_idx]
+                                for m in monomial_coefficients.keys()) + 1):
+            lookup[var_idx] = int(degree)
             try:
                 coefficients.append( monomial_coefficients[ polydict.ETuple(lookup) ] ) #if we find something, add the coefficient
             except KeyError:
@@ -2009,21 +2010,23 @@ def degree_lowest_rational_function(r,x):
     r = F(r)
     if r == 0:
         return (0, F(0))
-    L = x.dict().keys()[0]
+    L = next(iter(x.dict()))
     for ix in range(len(L)):
         if L[ix] != 0:
             break
     f = r.numerator()
     g = r.denominator()
     M = f.dict()
+    keys = list(M.keys())
     numtermsf = len(M)
-    degreesf = [M.keys()[j][ix] for j in range(numtermsf)]
+    degreesf = [keys[j][ix] for j in range(numtermsf)]
     lowdegf = min(degreesf)
-    cf = M[M.keys()[degreesf.index(lowdegf)]] ## constant coeff of lowest degree term
+    cf = M[keys[degreesf.index(lowdegf)]] ## constant coeff of lowest degree term
     M = g.dict()
+    keys = list(M.keys())
     numtermsg = len(M)
-    degreesg = [M.keys()[j][ix] for j in range(numtermsg)]
+    degreesg = [keys[j][ix] for j in range(numtermsg)]
     lowdegg = min(degreesg)
-    cg = M[M.keys()[degreesg.index(lowdegg)]] ## constant coeff of lowest degree term
+    cg = M[keys[degreesg.index(lowdegg)]] ## constant coeff of lowest degree term
     return (lowdegf-lowdegg,cf/cg)
 

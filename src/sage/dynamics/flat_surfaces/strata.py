@@ -1,6 +1,12 @@
 r"""
 Strata of differentials on Riemann surfaces
 
+.. WARNING::
+
+    This module is deprecated. You are advised to install and use the
+    surface_dynamics package instead available at
+    https://pypi.python.org/pypi/surface_dynamics/
+
 The space of Abelian (or quadratic) differentials is stratified by the
 degrees of the zeroes (and simple poles for quadratic
 differentials). Each stratum has one, two or three connected
@@ -45,6 +51,19 @@ EXAMPLES:
 Construction of a stratum from a list of singularity degrees::
 
     sage: a = AbelianStratum(1,1)
+    doctest:warning
+    ...
+    DeprecationWarning: AbelianStratum is deprecated and will be removed from Sage.
+    You are advised to install the surface_dynamics package via:
+    sage -pip install surface_dynamics
+    If you do not have write access to the Sage installation you can
+    alternatively do
+    sage -pip install surface_dynamics --user
+    The package surface_dynamics subsumes all flat surface related
+    computation that are currently available in Sage. See more
+    information at
+    http://www.labri.fr/perso/vdelecro/surface-dynamics/latest/
+    See http://trac.sagemath.org/20695 for details.
     sage: a
     H(1, 1)
     sage: a.genus()
@@ -92,6 +111,19 @@ of a representative::
 
     sage: for a in AbelianStrata(genus=3):
     ....:     print(a)
+    doctest:warning
+    ...
+    DeprecationWarning: AbelianStrata is deprecated and will be removed from Sage.
+    You are advised to install the surface_dynamics package via:
+        sage -pip install surface_dynamics
+    If you do not have write access to the Sage installation you can
+    alternatively do
+        sage -pip install surface_dynamics --user
+    The package surface_dynamics subsumes all flat surface related
+    computation that are currently available in Sage. See more
+    information at
+        http://www.labri.fr/perso/vdelecro/surface-dynamics/latest/
+    See http://trac.sagemath.org/20695 for details.
     H(4)
     H(3, 1)
     H(2, 2)
@@ -352,6 +384,9 @@ def AbelianStrata(genus=None, nintervals=None, marked_separatrix=None):
         H^out(2, 3, 3)
         H^out(3, 3, 2)
     """
+    from sage.dynamics.surface_dynamics_deprecation import surface_dynamics_deprecation
+    surface_dynamics_deprecation("AbelianStrata")
+
     if genus is None:
         if nintervals is None:
             return AbelianStrata_all()
@@ -750,6 +785,9 @@ class AbelianStratum(SageObject):
             ...
             ValueError: marked_separatrix must be one of 'no', 'in', 'out'
         """
+        from sage.dynamics.surface_dynamics_deprecation import surface_dynamics_deprecation
+        surface_dynamics_deprecation("AbelianStratum")
+
         if l == ():
             pass
 
@@ -1214,6 +1252,19 @@ class ConnectedComponentOfAbelianStratum(SageObject):
         EXAMPLES::
 
             sage: p = iet.Permutation('a b','b a')
+            doctest:warning
+            ...
+            DeprecationWarning: Permutation is deprecated and will be removed from Sage.
+            You are advised to install the surface_dynamics package via:
+                sage -pip install surface_dynamics
+            If you do not have write access to the Sage installation you can
+            alternatively do
+                sage -pip install surface_dynamics --user
+            The package surface_dynamics subsumes all flat surface related
+            computation that are currently available in Sage. See more
+            information at
+                http://www.labri.fr/perso/vdelecro/surface-dynamics/latest/
+            See http://trac.sagemath.org/20695 for details.
             sage: c = p.connected_component()
             sage: c.parent()
             H(0)

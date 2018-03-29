@@ -439,7 +439,7 @@ class HeckeAlgebraElement_matrix(HeckeAlgebraElement):
             TypeError: A must be a square matrix of rank 3
         """
         HeckeAlgebraElement.__init__(self, parent)
-        from sage.matrix.matrix import is_Matrix
+        from sage.structure.element import is_Matrix
         if not is_Matrix(A):
             raise TypeError("A must be a matrix")
         if not A.base_ring() == self.parent().base_ring():
@@ -461,7 +461,7 @@ class HeckeAlgebraElement_matrix(HeckeAlgebraElement):
             False
             sage: m == n.matrix_form()
             False
-            sage: n.matrix_form() == T(matrix(QQ, 2, [4051542498456, 384163586352000, 0, 401856]), check=False)
+            sage: n.matrix_form() == T(matrix(QQ, 2, [401856,0,0,4051542498456]), check=False)
             True
         """
         if not isinstance(other, HeckeAlgebraElement_matrix):

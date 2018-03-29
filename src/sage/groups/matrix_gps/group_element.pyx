@@ -82,7 +82,7 @@ from sage.structure.richcmp cimport richcmp
 from sage.libs.gap.element cimport GapElement, GapElement_List
 from sage.groups.libgap_wrapper cimport ElementLibGAP
 
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 from sage.structure.factorization import Factorization
 from sage.misc.cachefunc import cached_method
 from sage.rings.all import ZZ
@@ -177,7 +177,8 @@ cdef class MatrixGroupElement_generic(MultiplicativeGroupElement):
             sage: W = CoxeterGroup(['A',3], base_ring=ZZ)
             sage: g = W.an_element()
             sage: hash(g)
-            -2
+            660522311176098153  # 64-bit
+            -606138007          # 32-bit
         """
         return hash(self._matrix)
 
@@ -469,7 +470,8 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
             sage: G = MatrixGroup([MS([1,1,0,1]), MS([1,0,1,1])])
             sage: g = G.an_element()
             sage: hash(g)
-            0
+            -5306160029685893860  # 64-bit
+            -181258980            # 32-bit
         """
         return hash(self.matrix())
 

@@ -39,6 +39,18 @@ TESTS::
 
     sage: a = matrix(QQ, 2, range(4), sparse=False)
     sage: TestSuite(a).run()
+
+Test hashing::
+
+    sage: m = matrix(QQ, 2, [1/2, -1, 2, 3])
+    sage: hash(m)
+    Traceback (most recent call last):
+    ...
+    TypeError: mutable matrices are unhashable
+    sage: m.set_immutable()
+    sage: hash(m)
+    2212268000387745777  # 64-bit
+    1997752305           # 32-bit
 """
 
 #*****************************************************************************
@@ -56,6 +68,7 @@ from __future__ import absolute_import, print_function
 
 from libc.string cimport strcpy, strlen
 
+from sage.cpython.string cimport char_to_str, str_to_bytes
 
 from sage.modules.vector_rational_dense cimport Vector_rational_dense
 from sage.ext.stdsage cimport PY_NEW
@@ -110,17 +123,6 @@ from cypari2.paridecl cimport *
 #########################################################
 
 cdef class Matrix_rational_dense(Matrix_dense):
-
-    ########################################################################
-    # LEVEL 1 functionality
-    # x * __cinit__
-    # x * __dealloc__
-    # x * __init__
-    # x * set_unsafe
-    # x * get_unsafe
-    # x * cdef _pickle
-    # x * cdef _unpickle
-    ########################################################################
     def __cinit__(self, parent, entries, copy, coerce):
         """
         Create and allocate memory for the matrix.
@@ -362,7 +364,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
                     t[1] = <char>0
                     t = t + 1
             sig_off()
-            data = str(s)[:-1]
+            data = char_to_str(s)[:-1]
             sig_free(s)
         return data
 
@@ -384,29 +386,15 @@ cdef class Matrix_rational_dense(Matrix_dense):
                 s = data[k]
                 k += 1
                 if '/' in s:
-                    num, den = s.split('/')
+                    num, den = [str_to_bytes(n) for n in s.split('/')]
                     if fmpz_set_str(fmpq_mat_entry_num(self._matrix, i, j), num, 32) or \
                        fmpz_set_str(fmpq_mat_entry_den(self._matrix, i, j), den, 32):
                            raise RuntimeError("invalid pickle data")
                 else:
+                    s = str_to_bytes(s)
                     if fmpz_set_str(fmpq_mat_entry_num(self._matrix, i, j), s, 32):
                         raise RuntimeError("invalid pickle data")
                     fmpz_one(fmpq_mat_entry_den(self._matrix, i, j))
-
-    def __hash__(self):
-        r"""
-        TESTS::
-
-            sage: m = matrix(QQ, 2, [1/2, -1, 2, 3])
-            sage: hash(m)
-            Traceback (most recent call last):
-            ...
-            TypeError: mutable matrices are unhashable
-            sage: m.set_immutable()
-            sage: hash(m)
-            -13
-        """
-        return self._hash()
 
     ########################################################################
     # LEVEL 2 functionality
@@ -995,6 +983,10 @@ cdef class Matrix_rational_dense(Matrix_dense):
     def charpoly(self, var='x', algorithm=None):
         """
         Return the characteristic polynomial of this matrix.
+
+        .. NOTE::
+
+            The characteristic polynomial is defined as `\det(xI-A)`.
 
         INPUT:
 
@@ -1796,7 +1788,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
     def _echelonize_multimodular(self, height_guess=None, proof=None):
         """
-        Echelonize self using mutlimodular recomposition
+        Echelonize ``self`` using multimodular recomposition.
 
         REFERENCE:
 

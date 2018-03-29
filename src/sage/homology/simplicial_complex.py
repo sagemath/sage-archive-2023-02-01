@@ -839,7 +839,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
     (or tuples, etc.) of vertices.  Maximal faces are also known as
     'facets'.
 
-    Alternatively, the maximal faces can be defined from a monotome boolean
+    Alternatively, the maximal faces can be defined from a monotone boolean
     function on the subsets of a set `X`. While defining ``maximal_faces=None``,
     you can thus set ``from_characteristic_function=(f,X)`` where ``X`` is the
     set of points and ``f`` a boolean monotone hereditary function that accepts

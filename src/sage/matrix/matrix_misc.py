@@ -198,7 +198,7 @@ def permanental_minor_polynomial(A, permanent_only=False, var='t', prec=None):
     ``A.permanental_minor(i)``).
 
     The algorithm implemented by that function has been developed by P. Butera
-    and M. Pernici, see [BP2015]. Its complexity is `O(2^n m^2 n)` where `m` and
+    and M. Pernici, see [BP2015]_. Its complexity is `O(2^n m^2 n)` where `m` and
     `n` are the number of rows and columns of `A`.  Moreover, if `A` is a banded
     matrix with width `w`, that is `A_{ij}=0` for `|i - j| > w` and `w < n/2`,
     then the complexity of the algorithm is `O(4^w (w+1) n^2)`.

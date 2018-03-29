@@ -35,7 +35,8 @@ from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.rational cimport Rational
 
 from sage.structure.element cimport Element, ModuleElement, RingElement
-from sage.structure.element import parent, canonical_coercion, bin_op, coerce_binop
+from sage.structure.element cimport parent
+from sage.structure.element import coerce_binop
 from sage.libs.mpfr cimport *
 
 from sage.libs.all import pari_gen

@@ -259,13 +259,13 @@ class HopfAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
                 # antipode is an anti-homomorphism
                 for y in tester.some_elements():
-                    tester.assert_(S(x) * S(y) == S(y * x))
+                    tester.assertTrue(S(x) * S(y) == S(y * x))
 
                 # mu * (S # I) * delta == counit * unit
-                tester.assert_(SI(x) == self.counit(x) * self.one())
+                tester.assertTrue(SI(x) == self.counit(x) * self.one())
 
                 # mu * (I # S) * delta == counit * unit
-                tester.assert_(IS(x) == self.counit(x) * self.one())
+                tester.assertTrue(IS(x) == self.counit(x) * self.one())
 
     class ElementMethods:
         pass

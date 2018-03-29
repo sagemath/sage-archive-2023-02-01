@@ -40,7 +40,7 @@ include "sage/libs/ntl/decl.pxi"
 
 from cpython.int cimport PyInt_AS_LONG
 from sage.libs.gmp.mpz cimport *
-from sage.misc.long cimport pyobject_to_long
+from sage.arith.long cimport pyobject_to_long
 
 from sage.libs.flint.fmpz_poly cimport *
 from sage.rings.polynomial.polynomial_element cimport Polynomial
@@ -68,11 +68,6 @@ from sage.rings.real_mpfi cimport RealIntervalFieldElement
 
 from sage.rings.polynomial.evaluation cimport fmpz_poly_evaluation_mpfr, fmpz_poly_evaluation_mpfi
 
-cdef extern from "limits.h":
-    long LONG_MAX
-
-cdef extern from "flint/flint.h":
-    int FLINT_BITS
 
 cdef class Polynomial_integer_dense_flint(Polynomial):
     r"""

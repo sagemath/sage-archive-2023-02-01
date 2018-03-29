@@ -299,7 +299,7 @@ cdef class Graphics3d(SageObject):
             sage: out
             OutputSceneWavefront container
             sage: out.obj.get()
-            'mtllib ... 6 2 7 11\nf 7 8 12\nf 8 9 12\nf 9 10 12\nf 10 11 12\nf 11 7 12\n'
+            'mtllib ... 6 3 8 11\nf 8 7 12\nf 7 9 12\nf 9 10 12\nf 10 11 12\nf 11 8 12\n'
             sage: out.mtl.get()
             'newmtl texture...\nKd 0.4 0.4 1.0\nKs 0.0 0.0 0.0\nillum 1\nNs 1.0\nd 1.0\n'
         """
@@ -518,16 +518,16 @@ cdef class Graphics3d(SageObject):
             sage: D.aspect_ratio()
             [1.0, 1.0, 1.0]
         """
-        if not v is None:
+        if v is not None:
             if v == 1:
-                v = (1,1,1)
+                v = (1, 1, 1)
             if not isinstance(v, (tuple, list)):
                 raise TypeError("aspect_ratio must be a list or tuple of "
                                 "length 3 or the integer 1")
-            self._aspect_ratio = map(float, v)
+            self._aspect_ratio = [float(z) for z in v]
         else:
             if self._aspect_ratio is None:
-                self._aspect_ratio = [1.0,1.0,1.0]
+                self._aspect_ratio = [1.0, 1.0, 1.0]
             return self._aspect_ratio
 
     def frame_aspect_ratio(self, v=None):
@@ -552,16 +552,16 @@ cdef class Graphics3d(SageObject):
             sage: D.frame_aspect_ratio()
             [1.0, 1.0, 1.0]
         """
-        if not v is None:
+        if v is not None:
             if v == 1:
-                v = (1,1,1)
+                v = (1, 1, 1)
             if not isinstance(v, (tuple, list)):
                 raise TypeError("frame_aspect_ratio must be a list or tuple of "
                                 "length 3 or the integer 1")
-            self._frame_aspect_ratio = map(float, v)
+            self._frame_aspect_ratio = [float(z) for z in v]
         else:
             if self._frame_aspect_ratio is None:
-                self._frame_aspect_ratio = [1.0,1.0,1.0]
+                self._frame_aspect_ratio = [1.0, 1.0, 1.0]
             return self._frame_aspect_ratio
 
     def _determine_frame_aspect_ratio(self, aspect_ratio):

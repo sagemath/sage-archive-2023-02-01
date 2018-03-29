@@ -116,6 +116,7 @@ See :trac:`13394` for a discussion of some of the design considerations.
 from __future__ import absolute_import, print_function
 
 import weakref
+import six
 from weakref import KeyedRef
 from copy import deepcopy
 
@@ -335,7 +336,7 @@ cdef class WeakValueDictionary(dict):
         self._guard_level = 0
         self._pending_removals = []
         try:
-            data=data.iteritems()
+            data = six.iteritems(data)
         except AttributeError:
             pass
         for k,v in data:

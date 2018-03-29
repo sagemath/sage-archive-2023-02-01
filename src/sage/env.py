@@ -314,4 +314,14 @@ def cython_aliases():
         aliases[var + "LIBDIR"] = pc['library_dirs']
         aliases[var + "LIBRARIES"] = pc['libraries']
 
+    # LinBox needs special care because it actually requires C++11 with
+    # GNU extensions: -std=c++11 does not work, you need -std=gnu++11
+    # (this is true at least with GCC 7.2.0).
+    #
+    # Further, note that LinBox does not add any C++11 flag in its .pc
+    # file (possibly because of confusion between CFLAGS and CXXFLAGS?).
+    # This is not a problem in practice since LinBox depends on
+    # fflas-ffpack and fflas-ffpack does add such a C++11 flag.
+    aliases["LINBOX_CFLAGS"].append("-std=gnu++11")
+
     return aliases

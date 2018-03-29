@@ -97,7 +97,7 @@ def getattr_debug(obj, name, default=_no_default):
           returning log (<class 'sage.interfaces.expect.FunctionElement'>)
         sage: from ipywidgets import IntSlider
         sage: _ = getattr_debug(IntSlider(), "value")
-        getattr_debug(obj=IntSlider(value=0, min=0, max=100, step=1), name='value'):
+        getattr_debug(obj=IntSlider(value=0), name='value'):
           type(obj) = <class 'ipywidgets.widgets.widget_int.IntSlider'>
           object has __dict__ slot (<type 'dict'>)
           found 'value' in dict of <class 'ipywidgets.widgets.widget_int._Int'>

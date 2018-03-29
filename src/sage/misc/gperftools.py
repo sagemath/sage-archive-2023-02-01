@@ -242,7 +242,7 @@ class Profiler(SageObject):
             sage: from sage.misc.gperftools import Profiler
             sage: prof = Profiler()
             sage: prof._executable()
-            '.../python'
+            '.../python...'
         """
         import sys
         return sys.executable

@@ -84,17 +84,6 @@ echelon_verbose_level = 1
 
 
 cdef class Matrix_cyclo_dense(Matrix_dense):
-    ########################################################################
-    # LEVEL 1 functionality
-    # x * __cinit__
-    # x * __dealloc__     (not needed)
-    # x * __init__
-    # x * set_unsafe
-    # x * get_unsafe
-    # x * _pickle
-    # x * _unpickle
-    ########################################################################
-
     def __cinit__(self, parent, entries, coerce, copy):
         """
         Create a new dense cyclotomic matrix.
@@ -696,9 +685,10 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
         C._matrix = M
         return C
 
-    cdef long _hash(self) except -1:
+    cdef long _hash_(self) except -1:
         """
-        Return hash of this matrix.
+        Return hash of an immutable matrix. Raise a TypeError if input
+        matrix is mutable.
 
         EXAMPLES:
 
@@ -719,15 +709,8 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
 
             sage: hash(A)  # random
             3107179158321342168
-        """
-        return self._matrix._hash()
 
-    def __hash__(self):
-        """
-        Return hash of an immutable matrix. Raise a TypeError if input
-        matrix is mutable.
-
-        EXAMPLES::
+        ::
 
             sage: W.<z> = CyclotomicField(5)
             sage: A = matrix(W, 2, 2, [1,2/3*z+z^2,-z,1+z/2])
@@ -738,11 +721,9 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
             sage: A.set_immutable()
             sage: A.__hash__()  # random
             2347601038649299176
+
         """
-        if self._is_immutable:
-            return self._hash()
-        else:
-            raise TypeError("mutable matrices are unhashable")
+        return hash(self._matrix)
 
     cpdef _richcmp_(self, right, int op):
         """

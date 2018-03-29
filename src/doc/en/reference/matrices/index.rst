@@ -56,8 +56,6 @@ objects like operation tables (e.g. the multiplication table of a group).
 
    sage/matrix/special
 
-   sage/matrix/matrix
-
    sage/matrix/matrix0
 
    sage/matrix/matrix1

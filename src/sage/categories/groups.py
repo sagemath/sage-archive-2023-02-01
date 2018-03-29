@@ -147,8 +147,8 @@ class Groups(CategoryWithAxiom):
             """
             tester = self._tester(**options)
             for x in tester.some_elements():
-                tester.assertEquals(x * ~x, self.one())
-                tester.assertEquals(~x * x, self.one())
+                tester.assertEqual(x * ~x, self.one())
+                tester.assertEqual(~x * x, self.one())
 
         def semidirect_product(self, N, mapping, check = True):
             r"""

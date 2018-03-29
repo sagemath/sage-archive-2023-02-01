@@ -121,7 +121,7 @@ class HyperellipticJacobian_generic(Jacobian_generic):
             sage: g = HyperellipticCurve(x^6 + x - 1, x+a).jacobian().dimension(); g
             2
             sage: type(g)
-            <type 'sage.rings.integer.Integer'>
+            <... 'sage.rings.integer.Integer'>
         """
         return Integer(self.curve().genus())
 

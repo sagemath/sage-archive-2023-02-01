@@ -207,7 +207,7 @@ Minkowski sums!  Now with two syntaxes!
 
 ::
 
-    sage: P1.Minkowski_sum(P2)
+    sage: P1.minkowski_sum(P2)
     A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 8 vertices
 
 .. end of output

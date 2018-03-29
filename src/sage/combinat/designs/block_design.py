@@ -858,7 +858,7 @@ def AffineGeometryDesign(n, d, F, point_coordinates=True, check=True):
     points = {p:i for i,p in enumerate(reduced_echelon_matrix_iterator(F,1,n+1,copy=True,set_immutable=True)) if p[0,0]}
 
     blocks = []
-    l1 = q_binomial(n+1, d+1, q) - q_binomial(n, d+1, q)
+    l1 = int(q_binomial(n+1, d+1, q) - q_binomial(n, d+1, q))
     l2 = q**d
     for m1 in islice(reduced_echelon_matrix_iterator(F,d+1,n+1,copy=False), l1):
         b = []

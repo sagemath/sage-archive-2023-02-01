@@ -28,7 +28,7 @@ from operator import add, sub, mul, pow, neg, inv, truediv
 
 cdef canonical_coercion
 from sage.structure.element import canonical_coercion
-from sage.structure.all import parent
+from sage.structure.element cimport parent
 from sage.structure.richcmp cimport richcmp
 
 import sage.categories.map
@@ -95,6 +95,8 @@ cdef class LazyField(Field):
 
         """
         Field.__init__(self,base or self, names=names, normalize=normalize, category=category)
+
+    Element = LazyWrapper
 
     def __getattr__(self, name):
         """
@@ -165,7 +167,7 @@ cdef class LazyField(Field):
             # discovery algorithm and when trying to convert LazyWrappers,
             # so we only consider direct coercions.
             if mor is not None and not isinstance(mor, sage.categories.map.FormalCompositeMap):
-                mor = ivf._middle_field().coerce_map_from(R)
+                mor = ivf.middle_field().coerce_map_from(R)
                 if mor is not None and not isinstance(mor, sage.categories.map.FormalCompositeMap):
                     return LazyWrapperMorphism(R, self)
             # We can skip the test for a coercion to RDF/CDF since RR/CC
@@ -225,25 +227,17 @@ class RealLazyField_class(LazyField):
         sage: RealField(100)(a+5)
         5.3333333333333333333333333333
 
+    ::
+
+        sage: CC.0 + RLF(1/3)
+        0.333333333333333 + 1.00000000000000*I
+        sage: ComplexField(200).0 + RLF(1/3)
+        0.33333333333333333333333333333333333333333333333333333333333 + 1.0000000000000000000000000000000000000000000000000000000000*I
+
     TESTS::
 
         sage: TestSuite(RLF).run()
     """
-
-    def __init__(self):
-        """
-        Initialize ``self``.
-
-        EXAMPLES::
-
-            sage: CC.0 + RLF(1/3)
-            0.333333333333333 + 1.00000000000000*I
-            sage: ComplexField(200).0 + RLF(1/3)
-            0.33333333333333333333333333333333333333333333333333333333333 + 1.0000000000000000000000000000000000000000000000000000000000*I
-        """
-        LazyField.__init__(self)
-        self._populate_coercion_lists_(element_constructor=LazyWrapper)
-
     def interval_field(self, prec=None):
         """
         Returns the interval field that represents the same mathematical
@@ -398,7 +392,6 @@ class ComplexLazyField_class(LazyField):
             sage: x^2
             -0.9999999999999999? + 0.?e-15*I
     """
-
     def __init__(self):
         """
         This lazy field doesn't evaluate its elements until they are cast into
@@ -411,7 +404,7 @@ class ComplexLazyField_class(LazyField):
             0.33333333333333333333333333333333333333333333333333333333333
         """
         LazyField.__init__(self, base=RLF)
-        self._populate_coercion_lists_(coerce_list=[LazyWrapperMorphism(RLF, self)], element_constructor=LazyWrapper)
+        self._populate_coercion_lists_(coerce_list=[LazyWrapperMorphism(RLF, self)])
 
     def interval_field(self, prec=None):
         """
@@ -812,7 +805,7 @@ cdef class LazyFieldElement(FieldElement):
         """
         return self.eval(R)
 
-    _mpfi_ = _mpfr_ = _complex_mpfr_field_ = _complex_mpfi_field_ = _generic_
+    _real_mpfi_ = _complex_mpfi_ =_mpfr_ = _complex_mpfr_field_ = _generic_
 
     def __complex__(self):
         """
@@ -1386,7 +1379,7 @@ cdef class LazyNamedUnop(LazyUnop):
             # not everything defined on interval fields
             # this is less info though, but mostly just want to print it
             interval_field = self._parent.interval_field()
-            return self.eval(interval_field._middle_field())
+            return self.eval(interval_field.middle_field())
 
     def __hash__(self):
         """
@@ -1537,7 +1530,7 @@ cdef class LazyConstant(LazyFieldElement):
             3.141592653589793
         """
         interval_field = self._parent.interval_field()
-        return <double>self.eval(interval_field._middle_field())
+        return <double>self.eval(interval_field.middle_field())
 
     def __reduce__(self):
         """

@@ -1097,10 +1097,10 @@ def _run_it_on_static_instead(f):
         sage: from sage.graphs.base.static_sparse_backend import _run_it_on_static_instead
         sage: @_run_it_on_static_instead
         ....: def new_graph_method(g):
-        ....:    print("My backend is of type {}".format(g._backend))
+        ....:    print("My backend is of type {}".format(type(g._backend)))
         sage: Graph.new_graph_method = new_graph_method
         sage: g = Graph(5)
-        sage: print("My backend is of type {}".format(g._backend))
+        sage: print("My backend is of type {}".format(type(g._backend)))
         My backend is of type <type 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
         sage: g.new_graph_method()
         My backend is of type <type 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>

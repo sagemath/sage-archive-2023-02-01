@@ -302,6 +302,10 @@ cdef extern from "<gap/listfunc.h>":
     void libGAP_AddList(libGAP_Obj list, libGAP_Obj obj)
     void libGAP_AddPlist(libGAP_Obj list, libGAP_Obj obj)
 
+cdef extern from "<gap/macfloat.h>":
+    bint libGAP_IS_MACFLOAT(libGAP_Obj obj)
+    double libGAP_VAL_MACFLOAT(libGAP_Obj obj)
+
 cdef extern from "<gap/records.h>":
     char* libGAP_NAME_RNAM(libGAP_UInt rnam)
     libGAP_UInt libGAP_RNamIntg(int i)

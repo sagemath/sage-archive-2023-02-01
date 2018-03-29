@@ -3,11 +3,10 @@
 from sage.libs.gmp.types cimport mpz_t
 from .types cimport ZZ_c, vec_ZZ_c, ZZX_c
 
-cdef extern from "ccobject.h":
-    void ZZX_swap "swap"(ZZX_c x, ZZX_c y)
-
 
 cdef extern from "ntlwrap.cpp":
+    void ZZX_swap "swap"(ZZX_c& x, ZZX_c& y)
+
     ctypedef struct pair_ZZX_long_c "pair_ZZX_long":
         ZZX_c a
         long b

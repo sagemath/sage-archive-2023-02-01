@@ -3132,7 +3132,7 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
     - ``base_point`` (optional, default ``None``) -- 0-simplex in this
       simplicial set, its base point
 
-    - ``name`` (optional, defaul ``None``) -- string, the name of the
+    - ``name`` (optional, default ``None``) -- string, the name of the
       simplicial set
 
     - ``check`` (optional, default ``True``) -- boolean. If ``True``,
@@ -3222,7 +3222,7 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
             ...
             ValueError: simplicial identity d_i d_j = d_{j-1} d_i fails in dimension 2
 
-        Returning a copy of the orignal::
+        Returning a copy of the original::
 
             sage: v = AbstractSimplex(0)
             sage: e = AbstractSimplex(1)

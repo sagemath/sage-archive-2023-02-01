@@ -621,11 +621,12 @@ class DiGraph(GenericGraph):
             (not data[1] or callable(getattr(data[1][0],"__iter__",None)))):
             format = "vertices_and_edges"
 
-        if format is None and isinstance(data,dict):
-            keys = data.keys()
-            if len(keys) == 0: format = 'dict_of_dicts'
+        if format is None and isinstance(data, dict):
+            if not data:
+                format = 'dict_of_dicts'
             else:
-                if isinstance(data[keys[0]], dict):
+                val = next(iter(data.values()))
+                if isinstance(val, dict):
                     format = 'dict_of_dicts'
                 else:
                     format = 'dict_of_lists'
@@ -997,7 +998,7 @@ class DiGraph(GenericGraph):
         Immutable graphs yield immutable graphs (:trac:`17005`)::
 
             sage: DiGraph([[1, 2]], immutable=True).to_undirected()._backend
-            <type 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
+            <sage.graphs.base.static_sparse_backend.StaticSparseBackend object at ...>
         """
         if sparse is not None:
             if data_structure is not None:
@@ -1648,9 +1649,11 @@ class DiGraph(GenericGraph):
                         print("Adding a constraint on circuit : {}".format(certificate))
 
                     edges = zip(certificate, certificate[1:] + [certificate[0]])
-                    p.add_constraint( p.sum( b[u,v] for u,v in edges), min=1)
+                    p.add_constraint(p.sum(b[u, v] for u, v in edges), min=1)
 
                     # Is there another edge disjoint circuit ?
+                    # for python3, we need to recreate the zip iterator
+                    edges = zip(certificate, certificate[1:] + [certificate[0]])
                     h.delete_edges(edges)
                     isok, certificate = h.is_directed_acyclic(certificate=True)
 
@@ -1661,8 +1664,8 @@ class DiGraph(GenericGraph):
 
             else:
                 # listing the edges contained in the MFAS
-                return [(u,v) for u,v in self.edges(labels=False)
-                        if p.get_values(b[u,v]) > .5]
+                return [(u, v) for u, v in self.edges(labels=False)
+                        if p.get_values(b[u, v]) > .5]
 
         ######################################
         # Ordering-based MILP Implementation #
@@ -1842,7 +1845,7 @@ class DiGraph(GenericGraph):
             sage: D.edges()
             [(0, 1, 'A'), (0, 1, 'B'), (0, 1, 'mouse'), (1, 0, 'cat')]
 
-        Finally, an exception is raised when Sage does not know how to chose
+        Finally, an exception is raised when Sage does not know how to choose
         between allowing multiple edges and losing some data::
 
             sage: D = DiGraph([(0,1,'A'),(1,0,'B')])

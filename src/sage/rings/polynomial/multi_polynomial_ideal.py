@@ -248,7 +248,6 @@ from sage.rings.integer import Integer
 from sage.structure.sequence import Sequence
 from sage.structure.richcmp import (richcmp_method, op_EQ, op_NE,
                                     op_LT, op_GT, op_LE, op_GE, rich_to_bool)
-
 from sage.misc.cachefunc import cached_method
 from sage.misc.all import prod, verbose, get_verbose
 from sage.misc.method_decorator import MethodDecorator
@@ -3838,7 +3837,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I.subs(a=x, b=y)
             Ideal (x^2 + y^2 + x - y + 2) of Multivariate Polynomial Ring in x, y over Rational Field
 
-        The resulting ring need not be a mulitvariate polynomial ring::
+        The resulting ring need not be a multivariate polynomial ring::
 
             sage: T.<t> = PolynomialRing(QQ)
             sage: I.subs(a=t, b=t)

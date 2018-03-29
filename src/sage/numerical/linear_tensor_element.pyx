@@ -174,7 +174,7 @@ cdef class LinearTensor(ModuleElement):
                 raise ValueError('x is from a different linear functions module')
             if len((<LinearFunction>x)._f) != 1:
                 raise ValueError('x is a sum, must be a single variable')
-            i = (<LinearFunction>x)._f.keys()[0]
+            i, = (<LinearFunction>x)._f.keys()
             if (<LinearFunction>x)._f[i] != 1:
                 raise ValueError('x must have a unit coefficient')
         else:

@@ -139,9 +139,9 @@ def pip_installed_packages():
         sage: 'scipy' in d
         True
         sage: d['scipy']
-        '...'
+        u'...'
         sage: d['beautifulsoup']   # optional - beautifulsoup
-        '...'
+        u'...'
     """
     proc = subprocess.Popen(["pip", "list", "--no-index", "--format", "json"], stdout=subprocess.PIPE)
     stdout = proc.communicate()[0].decode()

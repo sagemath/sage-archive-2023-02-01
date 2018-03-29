@@ -1,28 +1,8 @@
-diff -ruN a/exports/Makefile b/exports/Makefile
---- a/exports/Makefile	2017-09-07 12:40:36.504486400 +0200
-+++ b/exports/Makefile	2017-09-07 13:28:39.665869200 +0200
-@@ -89,13 +89,13 @@
- # in their import table.  By instead using a stable name it is possible to
- # upgrade between library versions, without needing to re-link an application.
- # For more details see: https://github.com/xianyi/OpenBLAS/issues/127.
--../$(LIBDLLNAME) : ../$(LIBNAME) libopenblas.def dllinit.$(SUFFIX)
-+../$(LIBDLLNAME) : ../$(LIBNAME) $(LIBPREFIX).def dllinit.$(SUFFIX)
- 	$(RANLIB) ../$(LIBNAME)
--	$(CC) $(CFLAGS) $(LDFLAGS) libopenblas.def dllinit.$(SUFFIX) \
--	-shared -o ../$(LIBDLLNAME) -Wl,--out-implib,../$(LIBDLLNAME).a \
-+	$(CC) $(CFLAGS) $(LDFLAGS) $(LIBPREFIX).def dllinit.$(SUFFIX) \
-+	-shared -o ../$(LIBDLLNAME) -Wl,--out-implib,../$(IMPLIBNAME) \
- 	-Wl,--whole-archive ../$(LIBNAME) -Wl,--no-whole-archive $(FEXTRALIB) $(EXTRALIB)
- 
--libopenblas.def : gensymbol
-+$(LIBPREFIX).def : gensymbol
- 	perl ./gensymbol win2k    $(ARCH) dummy $(EXPRECISION) $(NO_CBLAS) $(NO_LAPACK) $(NO_LAPACKE) $(NEED2UNDERSCORES) $(ONLY_CBLAS) "$(SYMBOLPREFIX)" "$(SYMBOLSUFFIX)" $(BUILD_LAPACK_DEPRECATED) > $(@F)
- 
- libgoto_hpl.def : gensymbol
-diff -ruN a/Makefile.install b/Makefile.install
---- a/Makefile.install	2017-09-07 12:40:50.166767100 +0200
-+++ b/Makefile.install	2017-09-07 13:28:29.265353000 +0200
-@@ -88,10 +88,11 @@
+diff --git a/Makefile.install b/Makefile.install
+index 24fe8c8..4c79c07 100644
+--- a/Makefile.install
++++ b/Makefile.install
+@@ -90,10 +90,11 @@ ifeq ($(OSNAME), Darwin)
  endif
  ifeq ($(OSNAME), WINNT)
  	@-cp $(LIBDLLNAME) "$(DESTDIR)$(OPENBLAS_BINARY_DIR)"
@@ -30,16 +10,16 @@ diff -ruN a/Makefile.install b/Makefile.install
 +	@-cp $(IMPLIBNAME) "$(DESTDIR)$(OPENBLAS_LIBRARY_DIR)"
  endif
  ifeq ($(OSNAME), CYGWIN_NT)
--	@-cp $(LIBDLLNAME) $(OPENBLAS_BINARY_DIR)
-+	@-cp $(LIBDLLNAME) "$(DESTDIR)$(OPENBLAS_BINARY_DIR)"
+ 	@-cp $(LIBDLLNAME) "$(DESTDIR)$(OPENBLAS_BINARY_DIR)"
 +	@-cp $(IMPLIBNAME) "$(DESTDIR)$(OPENBLAS_LIBRARY_DIR)"
  endif
  endif
- #Generating OpenBLASConfig.cmake
-diff -ruN a/Makefile.system b/Makefile.system
---- a/Makefile.system	2017-09-07 12:40:47.348982600 +0200
-+++ b/Makefile.system	2017-09-07 13:29:01.062873600 +0200
-@@ -904,9 +904,15 @@
+ 
+diff --git a/Makefile.system b/Makefile.system
+index bd361a1..eaf9aed 100644
+--- a/Makefile.system
++++ b/Makefile.system
+@@ -948,9 +948,15 @@ SYMBOLSUFFIX =
  endif
  
  ifndef LIBNAMESUFFIX
@@ -57,7 +37,7 @@ diff -ruN a/Makefile.system b/Makefile.system
  endif
  
  KERNELDIR	= $(TOPDIR)/kernel/$(ARCH)
-@@ -1065,6 +1071,7 @@
+@@ -1109,6 +1115,7 @@ endif
  
  
  LIBDLLNAME   = $(LIBPREFIX).dll
@@ -65,3 +45,25 @@ diff -ruN a/Makefile.system b/Makefile.system
  LIBSONAME    = $(LIBNAME:.$(LIBSUFFIX)=.so)
  LIBDYNNAME   = $(LIBNAME:.$(LIBSUFFIX)=.dylib)
  LIBDEFNAME   = $(LIBNAME:.$(LIBSUFFIX)=.def)
+diff --git a/exports/Makefile b/exports/Makefile
+index c053895..637eaf8 100644
+--- a/exports/Makefile
++++ b/exports/Makefile
+@@ -89,13 +89,13 @@ dll  : ../$(LIBDLLNAME)
+ # in their import table.  By instead using a stable name it is possible to
+ # upgrade between library versions, without needing to re-link an application.
+ # For more details see: https://github.com/xianyi/OpenBLAS/issues/127.
+-../$(LIBDLLNAME) : ../$(LIBNAME) libopenblas.def dllinit.$(SUFFIX)
++../$(LIBDLLNAME) : ../$(LIBNAME) $(LIBPREFIX).def dllinit.$(SUFFIX)
+ 	$(RANLIB) ../$(LIBNAME)
+-	$(CC) $(CFLAGS) $(LDFLAGS) libopenblas.def dllinit.$(SUFFIX) \
+-	-shared -o ../$(LIBDLLNAME) -Wl,--out-implib,../$(LIBDLLNAME).a \
++	$(CC) $(CFLAGS) $(LDFLAGS) $(LIBPREFIX).def dllinit.$(SUFFIX) \
++	-shared -o ../$(LIBDLLNAME) -Wl,--out-implib,../$(IMPLIBNAME) \
+ 	-Wl,--whole-archive ../$(LIBNAME) -Wl,--no-whole-archive $(FEXTRALIB) $(EXTRALIB)
+ 
+-libopenblas.def : gensymbol
++$(LIBPREFIX).def : gensymbol
+ 	perl ./gensymbol win2k    $(ARCH) dummy $(EXPRECISION) $(NO_CBLAS) $(NO_LAPACK) $(NO_LAPACKE) $(NEED2UNDERSCORES) $(ONLY_CBLAS) "$(SYMBOLPREFIX)" "$(SYMBOLSUFFIX)" $(BUILD_LAPACK_DEPRECATED) > $(@F)
+ 
+ libgoto_hpl.def : gensymbol

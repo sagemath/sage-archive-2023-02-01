@@ -57,6 +57,7 @@ import sage.rings.rational
 import sage.rings.integer_ring
 import sage.rings.integer
 
+from sage.arith.power cimport generic_power
 from sage.rings.real_mpfi cimport RealIntervalFieldElement
 
 cimport sage.rings.number_field.number_field_base as number_field_base
@@ -68,8 +69,9 @@ from sage.categories.fields import Fields
 
 from sage.modules.free_module_element import vector
 
-from sage.structure.element cimport Element, generic_power_c, FieldElement
-from sage.structure.element import canonical_coercion, parent, coerce_binop
+from sage.structure.element cimport Element, FieldElement
+from sage.structure.element cimport parent
+from sage.structure.element import canonical_coercion, coerce_binop
 
 from sage.libs.pari import pari
 
@@ -2210,7 +2212,7 @@ cdef class NumberFieldElement(FieldElement):
         """
         if (isinstance(base, NumberFieldElement) and
             (isinstance(exp, Integer) or type(exp) is int or exp in ZZ)):
-            return generic_power_c(base, exp, None)
+            return generic_power(base, exp)
         else:
             cbase, cexp = canonical_coercion(base, exp)
             if not isinstance(cbase, NumberFieldElement):
@@ -5209,7 +5211,6 @@ class CoordinateFunction:
             ...
             TypeError: Cannot coerce element into this number field
         """
-        from sage.all import parent
         if not self.__K.has_coerce_map_from(parent(x)):
             raise TypeError("Cannot coerce element into this number field")
         return self.__W.coordinates(self.__to_V(self.__K(x)))

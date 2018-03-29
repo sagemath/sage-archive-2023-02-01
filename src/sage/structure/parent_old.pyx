@@ -32,9 +32,8 @@ from __future__ import absolute_import, print_function
 cimport sage.structure.sage_object as sage_object
 import operator
 from .parent import Set_PythonType, Set_PythonType_class
-from .coerce import py_scalar_parent
+from .coerce cimport py_scalar_parent
 from sage.ext.stdsage cimport HAS_DICTIONARY
-from sage.structure.coerce_dict import MonoDict, TripleDict
 
 from cpython.object cimport *
 from cpython.bool cimport *
@@ -67,34 +66,36 @@ cdef class Parent(parent.Parent):
         [0, a, a + 1, 1]
     """
 
-    def __init__(self, coerce_from=[], actions=[], embeddings=[], category=None):
-        # TODO: many classes don't call this at all, but __new__ crashes Sage
-#        if len(coerce_from):
-#            print(type(self), coerce_from)
+    def __init__(self, coerce_from=None, actions=None, embeddings=None, *, category=None):
         self.init_coerce(False)
-        self._coerce_from_list = list(coerce_from)
-        self._coerce_from_hash = MonoDict(23)
-        self._action_list = list(actions)
-        self._action_hash = TripleDict(23)
+        if coerce_from is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(24614, "the 'coerce_from' keyword is deprecated")
+            self._coerce_from_list = list(coerce_from)
+        self._coerce_from_hash = MonoDict()
+        if actions is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(24614, "the 'actions' keyword is deprecated")
+            self._action_list = list(actions)
+        self._action_hash = TripleDict()
 
         cdef parent.Parent other
-        for mor in embeddings:
-            other = mor.domain()
-            print("embedding", self, " --> ", other)
-            print(mor)
-            other.init_coerce() # TODO remove when we can
-            other._coerce_from_list.append(mor)
+        if embeddings is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(24614, "the 'embeddings' keyword is deprecated")
+            for mor in embeddings:
+                other = mor.domain()
+                print("embedding", self, " --> ", other)
+                print(mor)
+                other.init_coerce() # TODO remove when we can
+                other._coerce_from_list.append(mor)
 
         self._set_element_constructor()
 
         # old
-        self._has_coerce_map_from = MonoDict(23)
+        self._has_coerce_map_from = MonoDict()
         if category is not None:
             self._init_category_(category)
-
-    cdef int init_coerce(self, bint warn=False) except -1:
-        parent.Parent.init_coerce(self, warn)
-
 
     #################################################################################
     # New Coercion support functionality
@@ -194,33 +195,6 @@ cdef class Parent(parent.Parent):
         else:
             return None
 
-    cpdef get_action_c(self, S, op, bint self_on_left):
-        check_old_coerce(self)
-        try:
-            if self._action_hash is None: # this is because parent.__init__() does not always get called
-                self.init_coerce()
-            return self._action_hash.get(S, op, self_on_left)
-        except KeyError:
-            pass
-        if HAS_DICTIONARY(self):
-            action = self.get_action_impl(S, op, self_on_left)
-        else:
-            action = self.get_action_c_impl(S, op, self_on_left)
-        if action is not None:
-            from sage.categories.action import Action
-            if not isinstance(action, Action):
-                raise TypeError("get_action_impl must return None or an Action")
-            self._action_hash.set(S, op, self_on_left, action)
-        return action
-
-    def get_action_impl(self, S, op, self_on_left):
-        check_old_coerce(self)
-        return self.get_action_c_impl(S, op, self_on_left)
-
-    cdef get_action_c_impl(self, S, op, bint self_on_left):
-        check_old_coerce(self)
-        return self.discover_action(S, op, self_on_left, None, None)
-
     #################################################################################
     # Coercion support functionality
     #################################################################################
@@ -294,7 +268,7 @@ cdef class Parent(parent.Parent):
         if self == S:
             return True
         if self._has_coerce_map_from is None:
-            self._has_coerce_map_from = MonoDict(23)
+            self._has_coerce_map_from = MonoDict()
         else:
             try:
                 return self._has_coerce_map_from.get(S)
@@ -367,12 +341,6 @@ cdef class Parent(parent.Parent):
             return self.coerce_map_from_c(S)
         else:
             return parent.Parent._coerce_map_from_(self, S)
-
-    cpdef _get_action_(self, other, op, bint self_on_left):
-        if self._element_constructor is None:
-            return self.get_action_c(other, op, self_on_left)
-        else:
-            return parent.Parent._get_action_(self, other, op, self_on_left)
 
     def _an_element_(self):
         if self._element_constructor is None:

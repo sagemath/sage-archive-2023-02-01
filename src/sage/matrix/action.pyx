@@ -117,41 +117,85 @@ cdef class MatrixMulAction(Action):
 
 
 cdef class MatrixMatrixAction(MatrixMulAction):
+    """
+    Action of a matrix on another matrix.
+
+    EXAMPLES:
+
+    By :trac:`715`, there only is a weak reference on the underlying set,
+    so that it can be garbage collected if only the action itself is
+    explicitly referred to. Hence, we first assign the involved matrix
+    spaces to a variable::
+
+        sage: R.<x> = ZZ[]
+        sage: MSR = MatrixSpace(R, 3, 3)
+        sage: MSQ = MatrixSpace(QQ, 3, 2)
+        sage: from sage.matrix.action import MatrixMatrixAction
+        sage: A = MatrixMatrixAction(MSR, MSQ); A
+        Left action by Full MatrixSpace of 3 by 3 dense matrices over Univariate Polynomial Ring in x over Integer Ring on Full MatrixSpace of 3 by 2 dense matrices over Rational Field
+        sage: A.codomain()
+        Full MatrixSpace of 3 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field
+        sage: A(matrix(R, 3, 3, x), matrix(QQ, 3, 2, range(6)))
+        [  0   x]
+        [2*x 3*x]
+        [4*x 5*x]
+
+    .. NOTE::
+
+        The :func:`MatrixSpace` function caches the object it creates.
+        Therefore, the underlying set ``MSZ`` in the above example will not
+        be garbage collected, even if it is not strongly ref'ed.
+        Nonetheless, there is no guarantee that the set that is acted upon
+        will always be cached in such a way, so that following the above
+        example is good practice.
+    """
     def __init__(self, G, S):
         """
-        EXAMPLES:
+        TESTS:
 
-        By :trac:`715`, there only is a weak reference on the underlying set,
-        so that it can be garbage collected if only the action itself is
-        explicitly referred to. Hence, we first assign the involved matrix
-        spaces to a variable::
+        Check that multiplication for matrices with different backends are not allowed::
 
-            sage: R.<x> = ZZ[]
-            sage: MSR = MatrixSpace(R, 3, 3)
-            sage: MSQ = MatrixSpace(QQ, 3, 2)
-            sage: from sage.matrix.action import MatrixMatrixAction
-            sage: A = MatrixMatrixAction(MSR, MSQ); A
-            Left action by Full MatrixSpace of 3 by 3 dense matrices over Univariate Polynomial Ring in x over Integer Ring on Full MatrixSpace of 3 by 2 dense matrices over Rational Field
-            sage: A.codomain()
-            Full MatrixSpace of 3 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field
-            sage: A(matrix(R, 3, 3, x), matrix(QQ, 3, 2, range(6)))
-            [  0   x]
-            [2*x 3*x]
-            [4*x 5*x]
+            sage: M1 = MatrixSpace(ZZ, 2, implementation='flint')
+            sage: M2 = MatrixSpace(ZZ, 2, implementation='generic')
+            sage: M3 = MatrixSpace(ZZ, 2, implementation='gap')
+            sage: M4 = MatrixSpace(ZZ, 2, sparse=True)
+            sage: M = [M1, M2, M3, M4]
 
-        .. NOTE::
-
-            The :func:`MatrixSpace` function caches the object it creates.
-            Therefore, the underlying set ``MSZ`` in the above example will not
-            be garbage collected, even if it is not strongly ref'ed.
-            Nonetheless, there is no guarantee that the set that is acted upon
-            will always be cached in such a way, so that following the above
-            example is good practice.
-
+            sage: coercions = ''
+            sage: for M1 in M:
+            ....:     for M2 in M:
+            ....:         try:
+            ....:             s = M1.an_element() * M2.an_element()
+            ....:             coercions += 'X'
+            ....:         except TypeError:
+            ....:             coercions += ' '
+            ....:     coercions += '\n'
+            sage: print(coercions)
+            X  X
+             X
+              X
+            X  X
         """
         if not is_MatrixSpace(S):
             raise TypeError("Not a matrix space: %s" % S)
+
         MatrixMulAction.__init__(self, G, S, True)
+
+        # disallow multiplication on different backends (same size and rings)
+        if G.base_ring() is S.base_ring() and \
+           G.is_sparse() == S.is_sparse() and \
+           G._matrix_class != S._matrix_class:
+            raise TypeError("no matrix multiplication between different implementations")
+
+        # disallow multiplication (sparse) x (dense) when the densification is not the default
+        # implementation
+        if self.fix_sparseness:
+            if G.is_sparse():
+                if not S._has_default_implementation():
+                    raise TypeError("matrix multiplication not allowed")
+            else:
+                if not G._has_default_implementation():
+                    raise TypeError("matrix multiplication not allowed")
 
     def _create_codomain(self, base):
         """
@@ -252,6 +296,7 @@ cdef class MatrixMatrixAction(MatrixMulAction):
                 B = B.dense_matrix()
             else:
                 A = A.dense_matrix()
+        assert type(A) == type(B), (type(A), type(B))
         prod = A._matrix_times_matrix_(B)
         if A._subdivisions is not None or B._subdivisions is not None:
             Asubs = A.subdivisions()

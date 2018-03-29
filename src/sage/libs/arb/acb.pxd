@@ -45,6 +45,7 @@ cdef extern from "acb.h":
     bint acb_eq(const acb_t x, const acb_t y)
     bint acb_ne(const acb_t x, const acb_t y)
     bint acb_overlaps(const acb_t x, const acb_t y)
+    void acb_union(acb_t z, const acb_t x, const acb_t y, long prec)
     void acb_get_abs_ubound_arf(arf_t u, const acb_t z, long prec)
     void acb_get_abs_lbound_arf(arf_t u, const acb_t z, long prec)
     void acb_get_rad_ubound_arf(arf_t u, const acb_t z, long prec)

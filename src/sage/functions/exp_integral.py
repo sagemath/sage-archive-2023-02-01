@@ -329,7 +329,9 @@ class Function_exp_integral_e1(BuiltinFunction):
 
     def _derivative_(self, z, diff_param=None):
         """
-        The derivative of `E_1(z)` is `-e^{-z}/z`. See [AS1964], 5.1.26.
+        The derivative of `E_1(z)` is `-e^{-z}/z`.
+
+        See [AS1964]_ 5.1.26.
 
         EXAMPLES::
 

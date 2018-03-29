@@ -1,14 +1,27 @@
 r"""
 Crystals
+
+TESTS:
+
+Catch warnings produced by :func:`check_tkz_graph`::
+
+    sage: from sage.graphs.graph_latex import check_tkz_graph
+    sage: check_tkz_graph()  # random
 """
+
 #*****************************************************************************
-#  Copyright (C) 2010    Anne Schilling <anne at math.ucdavis.edu>
+#       Copyright (C) 2010 Anne Schilling <anne at math.ucdavis.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#******************************************************************************
+#*****************************************************************************
+
 from __future__ import print_function
 from builtins import zip
+from six import itervalues
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
@@ -775,7 +788,7 @@ class Crystals(Category_singleton):
                         codomain = on_gens[0].parent()
                 elif isinstance(on_gens, dict):
                     if on_gens:
-                        codomain = on_gens.values()[0].parent()
+                        codomain = next(itervalues(on_gens)).parent()
                 else:
                     for x in self.module_generators:
                         y = on_gens(x)
@@ -908,14 +921,17 @@ class Crystals(Category_singleton):
 
         def latex_file(self, filename):
             r"""
-            Exports a file, suitable for pdflatex, to 'filename'. This requires
+            Export a file, suitable for pdflatex, to 'filename'.
+
+            This requires
             a proper installation of ``dot2tex`` in sage-python. For more
             information see the documentation for ``self.latex()``.
 
             EXAMPLES::
 
                 sage: C = crystals.Letters(['A', 5])
-                sage: C.latex_file('/tmp/test.tex')  # optional - dot2tex graphviz
+                sage: fn = tmp_filename(ext='.tex')
+                sage: C.latex_file(fn)
             """
             header = r"""\documentclass{article}
             \usepackage[x11names, rgb]{xcolor}
@@ -945,14 +961,14 @@ class Crystals(Category_singleton):
             EXAMPLES::
 
                 sage: T = crystals.Tableaux(['A',2],shape=[1])
-                sage: T._latex_()  # optional - dot2tex graphviz
+                sage: T._latex_()
                 '...tikzpicture...'
                 sage: view(T) # optional - dot2tex graphviz, not tested (opens external window)
 
             One can for example also color the edges using the following options::
 
                 sage: T = crystals.Tableaux(['A',2],shape=[1])
-                sage: T._latex_(color_by_label = {0:"black", 1:"red", 2:"blue"})   #optional - dot2tex graphviz
+                sage: T._latex_(color_by_label={0:"black", 1:"red", 2:"blue"})
                 '...tikzpicture...'
             """
             G = self.digraph()

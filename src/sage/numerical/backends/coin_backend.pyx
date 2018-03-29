@@ -445,7 +445,7 @@ cdef class CoinBackend(GenericBackend):
 
         INPUT:
 
-        - ``constraints`` -- an interable containing the indices of the rows to remove
+        - ``constraints`` -- an iterable containing the indices of the rows to remove
 
         EXAMPLES::
 

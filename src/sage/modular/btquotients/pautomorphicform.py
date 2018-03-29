@@ -45,7 +45,7 @@ REFERENCES:
    Cameron Franc
    Ph.D. thesis, McGill University, 2011.
 """
-from __future__ import print_function
+from __future__ import print_function, division
 
 from builtins import zip
 
@@ -69,6 +69,7 @@ from sage.misc.misc import verbose
 from sage.rings.real_mpfr import RR
 from sage.modular.pollack_stevens.sigma0 import Sigma0ActionAdjuster
 from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
+from sage.misc.superseded import deprecated_function_alias
 
 # Need this to be pickleable
 
@@ -750,7 +751,7 @@ class BruhatTitsHarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         self._U = Symk(self._k - 2, base=self._R, act_on_left=True,
                        adjuster=_btquot_adjuster(),
-                       dettwist=-ZZ((self._k - 2) / 2), act_padic=True)
+                       dettwist=-ZZ((self._k - 2) // 2), act_padic=True)
 
         if basis_matrix is None:
             self.__rank = self._X.dimension_harmonic_cocycles(self._k)
@@ -1301,9 +1302,9 @@ class BruhatTitsHarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
         """
         HeckeData, alpha = self._X._get_hecke_data(l)
         if self.level() % l == 0:
-            factor = QQ(l ** (Integer((self._k - 2) / 2)) / (l + 1))
+            factor = QQ(l ** (Integer((self._k - 2) // 2)) / (l + 1))
         else:
-            factor = QQ(l ** (Integer((self._k - 2) / 2)))
+            factor = QQ(l ** (Integer((self._k - 2) // 2)))
         p = self._X._p
         alphamat = self.embed_quaternion(alpha)
         tmp = [self._U(0) for jj in range(len(self._E))]
@@ -1924,7 +1925,7 @@ class pAdicAutomorphicFormElement(ModuleElement):
                 delta = e.determinant()
                 verbose('%s' % (R2([e[0, 1], e[0, 0]])
                                 / R2([e[1, 1], e[1, 0]])))
-                tmp = ((c * x + d) ** n * delta ** -ZZ(n / 2)) * f((a * x + b) / (c * x + d))
+                tmp = ((c * x + d) ** n * delta ** -ZZ(n // 2)) * f((a * x + b) / (c * x + d))
                 exp = R1(tmp.numerator()) / R1(tmp.denominator())
                 new = eval_dist_at_powseries(self.evaluate(e), exp)
 
@@ -2282,12 +2283,12 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
                                         prec_cap=U - 1 + t,
                                         act_on_left=True,
                                         adjuster=_btquot_adjuster(),
-                                        dettwist=-ZZ((U - 2) / 2),
+                                        dettwist=-ZZ((U - 2) // 2),
                                         act_padic=True)
             else:
                 self._U = Symk(U - 2, base=self._R, act_on_left=True,
                                adjuster=_btquot_adjuster(),
-                               dettwist=-ZZ((U - 2) / 2),
+                               dettwist=-ZZ((U - 2) // 2),
                                act_padic=True)
         else:
             self._U = U
@@ -2320,7 +2321,7 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
         """
         return self._p
 
-    def zero_element(self):
+    def zero(self):
         r"""
         Return the zero element of ``self``.
 
@@ -2328,10 +2329,20 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
 
             sage: X = BruhatTitsQuotient(5, 7)
             sage: H1 = X.padic_automorphic_forms( 2, prec=10)
-            sage: H1.zero_element() == 0
+            sage: H1.zero() == 0
             True
+
+        TESTS::
+
+           sage: H1.zero_element() == 0
+           doctest:...:
+           DeprecationWarning: zero_element is deprecated. Please use zero instead.
+           See http://trac.sagemath.org/24203 for details.
+           True
         """
         return self.element_class(self, [self._U(0) for o in self._list])
+
+    zero_element = deprecated_function_alias(24203, zero)
 
     def __eq__(self, other):
         r"""
@@ -2478,7 +2489,7 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
             vals = self._make_invariant([self._U(o,normalize=False) for o in F])
             return self.element_class(self, vals)
         if data == 0:
-            return self.zero_element()
+            return self.zero()
 
     def _an_element_(self):
         r"""

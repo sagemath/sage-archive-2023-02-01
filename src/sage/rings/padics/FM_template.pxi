@@ -834,7 +834,7 @@ cdef class pAdicCoercion_ZZ_FM(RingHomomorphism):
         self._zero = R.element_class(R, 0)
         self._section = pAdicConvert_FM_ZZ(R)
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -849,9 +849,10 @@ cdef class pAdicCoercion_ZZ_FM(RingHomomorphism):
             sage: g(6) == f(6)
             True
         """
+        _slots = RingHomomorphism._extra_slots(self)
         _slots['_zero'] = self._zero
         _slots['_section'] = self.section() # use method since it copies coercion-internal sections.
-        return RingHomomorphism._extra_slots(self, _slots)
+        return _slots
 
     cdef _update_slots(self, dict _slots):
         """
@@ -1017,7 +1018,7 @@ cdef class pAdicConvert_QQ_FM(Morphism):
         Morphism.__init__(self, Hom(QQ, R, SetsWithPartialMaps()))
         self._zero = R.element_class(R, 0)
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -1032,8 +1033,9 @@ cdef class pAdicConvert_QQ_FM(Morphism):
             sage: g(1/6) == f(1/6)
             True
         """
+        _slots = Morphism._extra_slots(self)
         _slots['_zero'] = self._zero
-        return Morphism._extra_slots(self, _slots)
+        return _slots
 
     cdef _update_slots(self, dict _slots):
         """
@@ -1227,7 +1229,7 @@ cdef class pAdicCoercion_FM_frac_field(RingHomomorphism):
             self._section = copy.copy(self._section)
         return self._section
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -1249,11 +1251,11 @@ cdef class pAdicCoercion_FM_frac_field(RingHomomorphism):
             a
             sage: g(a) == f(a)
             True
-
         """
+        _slots = RingHomomorphism._extra_slots(self)
         _slots['_zero'] = self._zero
         _slots['_section'] = self.section() # use method since it copies coercion-internal sections.
-        return RingHomomorphism._extra_slots(self, _slots)
+        return _slots
 
     cdef _update_slots(self, dict _slots):
         """
@@ -1404,7 +1406,7 @@ cdef class pAdicConvert_FM_frac_field(Morphism):
         cshift(ans.value, x.unit, x.ordp, aprec, ans.prime_pow, x.ordp > 0)
         return ans
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -1427,10 +1429,10 @@ cdef class pAdicConvert_FM_frac_field(Morphism):
             a + O(3^20)
             sage: g(a) == f(a)
             True
-
         """
+        _slots = Morphism._extra_slots(self)
         _slots['_zero'] = self._zero
-        return Morphism._extra_slots(self, _slots)
+        return _slots
 
     cdef _update_slots(self, dict _slots):
         """

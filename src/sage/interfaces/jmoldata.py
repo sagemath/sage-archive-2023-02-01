@@ -24,6 +24,7 @@ from sage.structure.sage_object import SageObject
 
 from sage.env import SAGE_LOCAL
 from sage.misc.temporary_file import tmp_filename
+from sage.cpython.string import bytes_to_str
 
 import subprocess
 import os
@@ -60,7 +61,7 @@ class JmolData(SageObject):
             <... 'bool'>
         """
         try:
-            version = subprocess.check_output(['java', '-version'], stderr=subprocess.STDOUT)
+            version = bytes_to_str(subprocess.check_output(['java', '-version'], stderr=subprocess.STDOUT))
         except (subprocess.CalledProcessError, OSError):
             return False
 
@@ -131,16 +132,16 @@ class JmolData(SageObject):
 
             sage: from sage.interfaces.jmoldata import JmolData
             sage: JData = JmolData()
-            sage: D=dodecahedron()
+            sage: D = dodecahedron()
             sage: from sage.misc.misc import SAGE_TMP
-            sage: archive_name=os.path.join(SAGE_TMP, "archive.jmol.zip")
+            sage: archive_name = os.path.join(SAGE_TMP, "archive.jmol.zip")
             sage: D.export_jmol(archive_name)  #not scaled properly...need some more steps.
             sage: archive_native = archive_name
             sage: import sys
             sage: if sys.platform == 'cygwin':
             ....:     from subprocess import check_output, STDOUT
             ....:     archive_native = check_output(['cygpath', '-w', archive_native],
-            ....:                                   stderr=STDOUT).rstrip()
+            ....:                                   stderr=STDOUT).decode('utf-8').rstrip()
             sage: script = 'set defaultdirectory "{0}"\n script SCRIPT\n'.format(archive_native)
             sage: testfile = os.path.join(SAGE_TMP, "testimage.png")
             sage: JData.export_image(targetfile=testfile, datafile=script, image_type="PNG") # optional -- java
@@ -152,13 +153,13 @@ class JmolData(SageObject):
         target_native = targetfile
         import sys
         if sys.platform == 'cygwin':
-            jmolpath      = subprocess.check_output(['cygpath', '-w', jmolpath],
-                                                    stderr=subprocess.STDOUT).rstrip()
-            target_native = subprocess.check_output(['cygpath', '-w', target_native],
-                                                    stderr=subprocess.STDOUT).rstrip()
+            jmolpath = bytes_to_str(subprocess.check_output(['cygpath', '-w', jmolpath],
+                                                    stderr=subprocess.STDOUT)).rstrip()
+            target_native = bytes_to_str(subprocess.check_output(['cygpath', '-w', target_native],
+                                                    stderr=subprocess.STDOUT)).rstrip()
             if (datafile_cmd != 'script'):
-                datafile  = subprocess.check_output(['cygpath', '-w', datafile],
-                                                    stderr=subprocess.STDOUT).rstrip()
+                datafile  = bytes_to_str(subprocess.check_output(['cygpath', '-w', datafile],
+                                                    stderr=subprocess.STDOUT)).rstrip()
         launchscript = ""
         if (datafile_cmd!='script'):
             launchscript = "load "

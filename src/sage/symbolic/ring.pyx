@@ -24,6 +24,7 @@ from sage.rings.real_mpfr cimport RealNumber
 from sage.symbolic.expression cimport Expression, new_Expression_from_GEx, new_Expression_from_pyobject, is_Expression
 
 from sage.misc.latex import latex_variable_name
+from sage.cpython.string cimport str_to_bytes, char_to_str
 from sage.structure.element cimport RingElement, Element, Matrix
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
@@ -262,12 +263,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: SR._coerce_(RIF(pi))
             3.141592653589794?
 
-        A number modulo 7::
-
-            sage: a = SR(Mod(3,7)); a
-            3
-            sage: a^2
-            2
+        The complex number `I`::
 
             sage: si = SR.coerce(I)
             sage: si^2
@@ -300,14 +296,6 @@ cdef class SymbolicRing(CommutativeRing):
             sage: t.operator(), t.operands()
             (<function mul_vararg at 0x...>, [x^5, log(y), 3])
 
-        Check that :trac:`20162` is fixed::
-
-            sage: k.<a> = GF(9)
-            sage: SR(a).is_real()
-            False
-            sage: SR(a).is_positive()
-            False
-
         We get a sensible error message if conversion fails::
 
             sage: SR(int)
@@ -332,6 +320,15 @@ cdef class SymbolicRing(CommutativeRing):
             False
             sage: sin(x).subs(x=complex('NaN'))
             sin(NaN)
+
+        Check that :trac:`24072` is solved::
+
+            sage: x = polygen(GF(3))
+            sage: a = SR.var('a')
+            sage: (2*x + 1) * a
+            Traceback (most recent call last):
+            ...
+            TypeError: positive characteristic not allowed in symbolic computations
         """
         cdef GEx exp
         if is_Expression(x):
@@ -374,6 +371,8 @@ cdef class SymbolicRing(CommutativeRing):
         elif x is unsigned_infinity:
             return new_Expression_from_GEx(self, g_UnsignedInfinity)
         elif isinstance(x, (RingElement, Matrix)):
+            if x.parent().characteristic():
+                raise TypeError('positive characteristic not allowed in symbolic computations')
             exp = x
         elif isinstance(x, Factorization):
             from sage.misc.all import prod
@@ -686,7 +685,7 @@ cdef class SymbolicRing(CommutativeRing):
             # get symbol
             symb = ex_to_symbol(e._gobj)
             if latex_name is not None:
-                symb.set_texname(latex_name)
+                symb.set_texname(str_to_bytes(latex_name))
             if domain is not None:
                 symb.set_domain(sage_domain_to_ginac_domain(domain))
             e._gobj = GEx(symb)
@@ -711,7 +710,8 @@ cdef class SymbolicRing(CommutativeRing):
                     ginac_domain = sage_domain_to_ginac_domain(domain)
                 else:
                     ginac_domain = domain_complex
-                symb = ginac_symbol(name, latex_name, ginac_domain)
+                symb = ginac_symbol(str_to_bytes(name),
+                                    str_to_bytes(latex_name), ginac_domain)
                 self.symbols[name] = e
 
             e._gobj = GEx(symb)
@@ -896,7 +896,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: latex(var('theta') + 2)
             \theta + 2
         """
-        return GEx_to_str_latex(&x._gobj)
+        return char_to_str(GEx_to_str_latex(&x._gobj))
 
     def _call_element_(self, _the_element, *args, **kwds):
         """

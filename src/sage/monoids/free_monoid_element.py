@@ -27,7 +27,7 @@ from six import iteritems, integer_types
 
 from sage.rings.integer import Integer
 from sage.structure.element import MonoidElement
-from sage.structure.richcmp import richcmp
+from sage.structure.richcmp import richcmp, richcmp_not_equal
 
 
 def is_FreeMonoidElement(x):
@@ -304,7 +304,16 @@ class FreeMonoidElement(MonoidElement):
         if (not isinstance(right, FreeMonoidElement) or
              left.parent() != right.parent()):
             return NotImplemented
-        return richcmp(left._element_list, right._element_list, op)
+
+        v = tuple(x for x, i in left._element_list for j in range(i))
+        w = tuple(x for x, i in right._element_list for j in range(i))
+
+        m = len(v)
+        n = len(w)
+        if m != n:
+            return richcmp_not_equal(m, n, op)
+
+        return richcmp(v, w, op)
 
     def _acted_upon_(self, x, self_on_left):
         """

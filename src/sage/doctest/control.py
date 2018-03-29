@@ -187,11 +187,12 @@ def skipfile(filename):
         sage: from sage.doctest.control import skipfile
         sage: skipfile("skipme.c")
         True
-        sage: f = tmp_filename(ext=".pyx")
-        sage: skipfile(f)
+        sage: filename = tmp_filename(ext=".pyx")
+        sage: skipfile(filename)
         False
-        sage: _ = open(f, "w").write("# nodoctest")
-        sage: skipfile(f)
+        sage: with open(filename, "w") as f:
+        ....:     _ = f.write("# nodoctest")
+        sage: skipfile(filename)
         True
     """
     base, ext = os.path.splitext(filename)
@@ -216,12 +217,12 @@ class Logger(object):
     EXAMPLES::
 
         sage: from sage.doctest.control import Logger
-        sage: t = open(tmp_filename(), "w+")
-        sage: L = Logger(sys.stdout, t)
-        sage: _ = L.write("hello world\n")
+        sage: with open(tmp_filename(), "w+") as t:
+        ....:     L = Logger(sys.stdout, t)
+        ....:     _ = L.write("hello world\n")
+        ....:     _ = t.seek(0)
+        ....:     t.read()
         hello world
-        sage: t.seek(0)
-        sage: t.read()
         'hello world\n'
     """
     def __init__(self, *files):
@@ -365,19 +366,28 @@ class DocTestController(SageObject):
         # write to the actual standard output, regardless of
         # redirections.
         if options.serial:
-            real_stdout = os.fdopen(os.dup(sys.stdout.fileno()), "a")
+            self._real_stdout = os.fdopen(os.dup(sys.stdout.fileno()), "w")
+            self._close_stdout = True
         else:
             # Parallel mode: no special tricks needed
-            real_stdout = sys.stdout
+            self._real_stdout = sys.stdout
+            self._close_stdout = False
 
         if self.logfile is None:
-            self.logger = real_stdout
+            self.logger = self._real_stdout
         else:
-            self.logger = Logger(real_stdout, self.logfile)
+            self.logger = Logger(self._real_stdout, self.logfile)
 
         self.stats = {}
         self.load_stats(options.stats_path)
         self._init_warn_long()
+
+    def __del__(self):
+        if getattr(self, 'logfile', None) is not None:
+            self.logfile.close()
+
+        if getattr(self, '_close_stdout', False):
+            self._real_stdout.close()
 
     def _init_warn_long(self):
         """
@@ -473,7 +483,7 @@ class DocTestController(SageObject):
             sage: import json
             sage: filename = tmp_filename()
             sage: with open(filename, 'w') as stats_file:
-            ....:     json.dump({'sage.doctest.control':{u'walltime':1.0r}}, stats_file)
+            ....:     json.dump({'sage.doctest.control':{'walltime':1.0r}}, stats_file)
             sage: DC.load_stats(filename)
             sage: DC.stats['sage.doctest.control']
             {u'walltime': 1.0}
@@ -508,11 +518,12 @@ class DocTestController(SageObject):
 
             sage: from sage.doctest.control import DocTestDefaults, DocTestController
             sage: DC = DocTestController(DocTestDefaults(), [])
-            sage: DC.stats['sage.doctest.control'] = {u'walltime':1.0r}
+            sage: DC.stats['sage.doctest.control'] = {'walltime':1.0r}
             sage: filename = tmp_filename()
             sage: DC.save_stats(filename)
             sage: import json
-            sage: D = json.load(open(filename))
+            sage: with open(filename) as f:
+            ....:     D = json.load(f)
             sage: D['sage.doctest.control']
             {u'walltime': 1.0}
         """
@@ -533,7 +544,8 @@ class DocTestController(SageObject):
             sage: DC.log("hello world")
             hello world
             sage: DC.logfile.close()
-            sage: print(open(DD.logfile).read())
+            sage: with open(DD.logfile) as f:
+            ....:     print(f.read())
             hello world
 
         In serial mode, check that logging works even if ``stdout`` is
@@ -542,13 +554,15 @@ class DocTestController(SageObject):
             sage: DD = DocTestDefaults(logfile=tmp_filename(), serial=True)
             sage: DC = DocTestController(DD, [])
             sage: from sage.doctest.forker import SageSpoofInOut
-            sage: S = SageSpoofInOut(open(os.devnull, "w"))
-            sage: S.start_spoofing()
-            sage: DC.log("hello world")
+            sage: with open(os.devnull, 'w') as devnull:
+            ....:     S = SageSpoofInOut(devnull)
+            ....:     S.start_spoofing()
+            ....:     DC.log("hello world")
+            ....:     S.stop_spoofing()
             hello world
-            sage: S.stop_spoofing()
             sage: DC.logfile.close()
-            sage: print(open(DD.logfile).read())
+            sage: with open(DD.logfile) as f:
+            ....:     print(f.read())
             hello world
 
         Check that no duplicate logs appear, even when forking (:trac:`15244`)::
@@ -561,7 +575,8 @@ class DocTestController(SageObject):
             ....:     DC.logfile.close()
             ....:     os._exit(0)
             sage: DC.logfile.close()
-            sage: print(open(DD.logfile).read())
+            sage: with open(DD.logfile) as f:
+            ....:     print(f.read())
             hello world
 
         """
@@ -646,9 +661,9 @@ class DocTestController(SageObject):
 
             sage: DD = DocTestDefaults(sagenb = True)
             sage: DC = DocTestController(DD, [])
-            sage: DC.add_files()
+            sage: DC.add_files()  # py2
             Doctesting the Sage notebook.
-            sage: DC.files[0][-6:]
+            sage: DC.files[0][-6:]  # py2
             'sagenb'
         """
         opj = os.path.join
@@ -687,6 +702,12 @@ class DocTestController(SageObject):
                     and (filename.endswith(".py") or filename.endswith(".pyx"))):
                     self.files.append(os.path.relpath(opj(SAGE_ROOT,filename)))
         if self.options.sagenb:
+            if six.PY3:
+                if not self.options.all:
+                    self.log("Skipping doctesting of the Sage notebook: "
+                             "not installed on Python 3")
+                return
+
             if not self.options.all:
                 self.log("Doctesting the Sage notebook.")
             from pkg_resources import Requirement, working_set
@@ -822,7 +843,7 @@ class DocTestController(SageObject):
             def sort_key(source):
                 basename = source.basename
                 return -self.stats.get(basename, default).get('walltime'), basename
-            self.sources = [x[1] for x in sorted((sort_key(source), source) for source in self.sources)]
+            self.sources = sorted(self.sources, key=sort_key)
 
     def run_doctests(self):
         """

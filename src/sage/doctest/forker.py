@@ -50,6 +50,9 @@ from .parsing import OriginalSource, reduce_hex
 from sage.structure.sage_object import SageObject
 from .parsing import SageOutputChecker, pre_hash, get_source
 from sage.repl.user_globals import set_globals
+from sage.interfaces.process import ContainChildren
+from sage.cpython.atexit import restore_atexit
+from sage.cpython.string import bytes_to_str, str_to_bytes
 
 
 # All doctests run as if the following future imports are present
@@ -148,7 +151,7 @@ def init_sage():
     stringPict.terminal_width = lambda self:0
 
 
-def showwarning_with_traceback(message, category, filename, lineno, file=sys.stdout, line=None):
+def showwarning_with_traceback(message, category, filename, lineno, file=None, line=None):
     r"""
     Displays a warning message with a traceback.
 
@@ -167,6 +170,9 @@ def showwarning_with_traceback(message, category, filename, lineno, file=sys.std
         :
         UserWarning: bad stuff
     """
+    # Flush stdout to get predictable ordering of output and warnings
+    sys.stdout.flush()
+
     # Get traceback to display in warning
     tb = traceback.extract_stack()
     tb = tb[:-1]  # Drop this stack frame for showwarning_with_traceback()
@@ -175,7 +181,10 @@ def showwarning_with_traceback(message, category, filename, lineno, file=sys.std
     lines = ["doctest:warning\n"]  # Match historical warning messages in doctests
     lines.extend(traceback.format_list(tb))
     lines.append(":\n")            # Match historical warning messages in doctests
-    lines.extend(traceback.format_exception_only(category, message))
+    lines.extend(traceback.format_exception_only(category, category(message)))
+
+    if file is None:
+        file = sys.stderr
     try:
         file.writelines(lines)
         file.flush()
@@ -218,7 +227,7 @@ class SageSpoofInOut(SageObject):
         ....:
         sage: S.getvalue()
         'hello world\n'
-        sage: O.seek(0)
+        sage: _ = O.seek(0)
         sage: S = SageSpoofInOut(outfile=sys.stdout, infile=O)
         sage: try:
         ....:     S.start_spoofing()
@@ -227,6 +236,7 @@ class SageSpoofInOut(SageObject):
         ....:     S.stop_spoofing()
         ....:
         hello world
+        sage: O.close()
     """
     def __init__(self, outfile=None, infile=None):
         """
@@ -234,23 +244,29 @@ class SageSpoofInOut(SageObject):
 
         TESTS::
 
-            sage: import tempfile
+            sage: from tempfile import TemporaryFile
             sage: from sage.doctest.forker import SageSpoofInOut
-            sage: SageSpoofInOut(tempfile.TemporaryFile(), tempfile.TemporaryFile())
+            sage: with TemporaryFile() as outfile:
+            ....:     with TemporaryFile() as infile:
+            ....:         SageSpoofInOut(outfile, infile)
             <sage.doctest.forker.SageSpoofInOut object at ...>
         """
         if infile is None:
             self.infile = open(os.devnull)
+            self._close_infile = True
         else:
             self.infile = infile
+            self._close_infile = False
         if outfile is None:
             self.outfile = tempfile.TemporaryFile()
+            self._close_outfile = True
         else:
             self.outfile = outfile
+            self._close_outfile = False
         self.spoofing = False
         self.real_stdin = os.fdopen(os.dup(sys.stdin.fileno()), "r")
-        self.real_stdout = os.fdopen(os.dup(sys.stdout.fileno()), "a")
-        self.real_stderr = os.fdopen(os.dup(sys.stderr.fileno()), "a")
+        self.real_stdout = os.fdopen(os.dup(sys.stdout.fileno()), "w")
+        self.real_stderr = os.fdopen(os.dup(sys.stderr.fileno()), "w")
         self.position = 0
 
     def __del__(self):
@@ -268,6 +284,12 @@ class SageSpoofInOut(SageObject):
             Not spoofed!
         """
         self.stop_spoofing()
+        if self._close_infile:
+            self.infile.close()
+        if self._close_outfile:
+            self.outfile.close()
+        for stream in ('stdin', 'stdout', 'stderr'):
+            getattr(self, 'real_' + stream).close()
 
     def start_spoofing(self):
         r"""
@@ -288,7 +310,7 @@ class SageSpoofInOut(SageObject):
             ....:
             sage: S.getvalue()
             'this is not printed\n'
-            sage: O.seek(0)
+            sage: _ = O.seek(0)
             sage: S = SageSpoofInOut(infile=O)
             sage: try:
             ....:     S.start_spoofing()
@@ -309,6 +331,7 @@ class SageSpoofInOut(SageObject):
             ....:
             sage: S.getvalue()
             'Hello there\ngood\n'
+            sage: O.close()
         """
         if not self.spoofing:
             sys.stdout.flush()
@@ -376,12 +399,12 @@ class SageSpoofInOut(SageObject):
         self.outfile.seek(self.position)
         result = self.outfile.read()
         self.position = self.outfile.tell()
-        if not result.endswith("\n"):
-            result += "\n"
-        return result
+        if not result.endswith(b"\n"):
+            result += b"\n"
+        return bytes_to_str(result)
 
 
-class SageDocTestRunner(doctest.DocTestRunner):
+class SageDocTestRunner(doctest.DocTestRunner, object):
     def __init__(self, *args, **kwds):
         """
         A customized version of DocTestRunner that tracks dependencies
@@ -408,7 +431,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: import doctest, sys, os
             sage: DTR = SageDocTestRunner(SageOutputChecker(), verbose=False, sage_options=DD, optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)
             sage: DTR
-            <sage.doctest.forker.SageDocTestRunner instance at ...>
+            <sage.doctest.forker.SageDocTestRunner object at ...>
         """
         O = kwds.pop('outtmpfile', None)
         self.msgfile = kwds.pop('msgfile', None)
@@ -534,11 +557,17 @@ class SageDocTestRunner(doctest.DocTestRunner):
                 if self.debugger is not None:
                     self.debugger.set_continue() # ==== Example Finished ====
             got = self._fakeout.getvalue()
-            try:
+
+            if not isinstance(got, six.text_type):
+                # On Python 3 got should already be unicode text, but on Python
+                # 2 it is not.  For comparison's sake we want the unicode text
+                # decoded from UTF-8. If there was some error such that the
+                # output is so malformed that it does not even decode from
+                # UTF-8 at all there will be an error in the test framework
+                # here. But this shouldn't happen at all, so we want it to be
+                # understood as an error in the test framework, and not some
+                # subtle error in the code under test.
                 got = got.decode('utf-8')
-            except UnicodeDecodeError:
-                got = got.decode('latin1')
-            # the actual output
 
             outcome = FAILURE   # guilty until proved innocent or insane
 
@@ -827,12 +856,13 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: DTR.running_global_digest.hexdigest()
             '3cb44104292c3a3ab4da3112ce5dc35c'
         """
-        s = pre_hash(get_source(example)).encode('utf-8')
+        s = str_to_bytes(pre_hash(get_source(example)), 'utf-8')
         self.running_global_digest.update(s)
         self.running_doctest_digest.update(s)
         if example.predecessors is not None:
             digest = hashlib.md5(s)
-            digest.update(reduce_hex(e.running_state for e in example.predecessors))
+            gen = (e.running_state for e in example.predecessors)
+            digest.update(str_to_bytes(reduce_hex(gen), 'ascii'))
             example.running_state = digest.hexdigest()
 
     def compile_and_execute(self, example, compiler, globs):
@@ -1347,6 +1377,11 @@ class SageDocTestRunner(doctest.DocTestRunner):
                         os.tcsetpgrp(0, os.getpgrp())
 
                     exc_type, exc_val, exc_tb = exc_info
+                    if exc_tb is None:
+                        raise RuntimeError(
+                            "could not start the debugger for an unexpected "
+                            "exception, probably due to an unhandled error "
+                            "in a C extension module")
                     self.debugger.reset()
                     self.debugger.interaction(None, exc_tb)
                 except KeyboardInterrupt:
@@ -1488,7 +1523,7 @@ class DocTestDispatcher(SageObject):
                 result = DocTestTask(source)(self.controller.options,
                         outtmpfile, self.controller.logger)
                 outtmpfile.seek(0)
-                output = outtmpfile.read()
+                output = bytes_to_str(outtmpfile.read())
 
             self.controller.reporter.report(source, False, 0, result, output)
             if self.controller.options.exitfirst and result[1].failures:
@@ -1531,9 +1566,9 @@ class DocTestDispatcher(SageObject):
             sage: test1 = os.path.join(SAGE_TMP, 'test1.py')
             sage: test2 = os.path.join(SAGE_TMP, 'test2.py')
             sage: with open(test1, 'w') as f:
-            ....:     f.write("'''\nsage: import time; time.sleep(60)\n'''")
+            ....:     _ = f.write("'''\nsage: import time; time.sleep(60)\n'''")
             sage: with open(test2, 'w') as f:
-            ....:     f.write("'''\nsage: True\nFalse\n'''")
+            ....:     _ = f.write("'''\nsage: True\nFalse\n'''")
             sage: DC = DocTestController(DocTestDefaults(exitfirst=True,
             ....:                                        nthreads=2),
             ....:                        [test1, test2])
@@ -1928,7 +1963,7 @@ class DocTestWorker(multiprocessing.Process):
 
         # Write one byte to the pipe to signal to the master process
         # that we have started properly.
-        os.write(self.wmessages, "X")
+        os.write(self.wmessages, b"X")
 
         task = DocTestTask(self.source)
 
@@ -1953,6 +1988,10 @@ class DocTestWorker(multiprocessing.Process):
             task(self.options, self.outtmpfile, msgpipe, self.result_queue)
         finally:
             msgpipe.close()
+            # Note: This closes the tempfile in the child process, but in the
+            # parent process self.outtmpfile will not be closed yet, and can
+            # still be accessed in save_result_output
+            self.outtmpfile.close()
 
     def start(self):
         """
@@ -2021,7 +2060,7 @@ class DocTestWorker(multiprocessing.Process):
         # correctly, one read() will not block.
         if self.rmessages is not None:
             s = os.read(self.rmessages, 4096)
-            self.messages += s
+            self.messages += bytes_to_str(s)
             if len(s) == 0:  # EOF
                 os.close(self.rmessages)
                 self.rmessages = None
@@ -2051,6 +2090,11 @@ class DocTestWorker(multiprocessing.Process):
             ['cputime', 'err', 'failures', 'optionals', 'walltime']
             sage: len(W.output) > 0
             True
+
+        .. NOTE::
+
+            This method is called from the parent process, not from the
+            subprocess.
         """
         from six.moves.queue import Empty
         try:
@@ -2060,7 +2104,7 @@ class DocTestWorker(multiprocessing.Process):
         del self.result_queue
 
         self.outtmpfile.seek(0)
-        self.output = self.outtmpfile.read()
+        self.output = bytes_to_str(self.outtmpfile.read())
         del self.outtmpfile
 
     def kill(self):
@@ -2110,10 +2154,11 @@ class DocTestWorker(multiprocessing.Process):
             sage: time.sleep(0.2)  # Worker doesn't die
             sage: W.kill()         # Worker dies now
             True
-            sage: time.sleep(0.2)
+            sage: time.sleep(1)
             sage: W.is_alive()
             False
         """
+
         if self.rmessages is not None:
             os.close(self.rmessages)
             self.rmessages = None
@@ -2230,17 +2275,8 @@ class DocTestTask(object):
             sage: ntests >= 200 or ntests
             True
         """
-        # Store all existing atexit() functions and clear them,
-        # so we know that all newly registered functions come from
-        # doctests.
-        import atexit
-        saved_exithandlers = atexit._exithandlers
-        atexit._exithandlers = []
-
         result = None
         try:
-            file = self.source.path
-            basename = self.source.basename
             runner = SageDocTestRunner(
                     SageOutputChecker(),
                     verbose=options.verbose,
@@ -2248,34 +2284,21 @@ class DocTestTask(object):
                     msgfile=msgfile,
                     sage_options=options,
                     optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)
-            runner.basename = basename
+            runner.basename = self.source.basename
+            runner.filename = self.source.path
             N = options.file_iterations
             results = DictAsObject(dict(walltime=[],cputime=[],err=None))
-            for it in range(N):
-                # Make the right set of globals available to doctests
-                if basename.startswith("sagenb."):
-                    import sage.all_notebook as sage_all
-                else:
-                    import sage.all_cmdline as sage_all
-                dict_all = sage_all.__dict__
-                # Remove '__package__' item from the globals since it is not
-                # always in the globals in an actual Sage session.
-                dict_all.pop('__package__', None)
-                sage_namespace = RecordingDict(dict_all)
-                sage_namespace['__name__'] = '__main__'
-                doctests, extras = self.source.create_doctests(sage_namespace)
-                timer = Timer().start()
 
-                for test in doctests:
-                    result = runner.run(test)
-                    if options.exitfirst and result.failed:
+            # multiprocessing.Process instances don't run exit
+            # functions, so we run the functions added by doctests
+            # when exiting this context.
+            with restore_atexit(run=True):
+                for it in range(N):
+                    doctests, extras = self._run(runner, options, results)
+                    runner.summarize(options.verbose)
+                    if runner.update_results(results):
                         break
 
-                runner.filename = file
-                failed, tried = runner.summarize(options.verbose)
-                timer.stop().annotate(runner)
-                if runner.update_results(results):
-                    break
             if extras['tab']:
                 results.err = 'tab'
                 results.tab_linenos = extras['tab']
@@ -2283,13 +2306,9 @@ class DocTestTask(object):
                 results.err = 'line_number'
             results.optionals = extras['optionals']
             # We subtract 1 to remove the sig_on_count() tests
-            result = (sum([max(0,len(test.examples) - 1) for test in doctests]), results)
+            result = (sum(max(0,len(test.examples) - 1) for test in doctests),
+                      results)
 
-            # multiprocessing.Process instances don't run exit
-            # functions, so we run the functions added by doctests
-            # now manually and restore the old exit functions.
-            atexit._run_exitfuncs()
-            atexit._exithandlers = saved_exithandlers
         except BaseException:
             exc_info = sys.exc_info()
             tb = "".join(traceback.format_exception(*exc_info))
@@ -2297,4 +2316,30 @@ class DocTestTask(object):
 
         if result_queue is not None:
             result_queue.put(result, False)
+
         return result
+
+    def _run(self, runner, options, results):
+        """
+        Actually run the doctests with the right set of globals
+        """
+        if self.source.basename.startswith("sagenb."):
+            import sage.all_notebook as sage_all
+        else:
+            import sage.all_cmdline as sage_all
+        dict_all = sage_all.__dict__
+        # Remove '__package__' item from the globals since it is not
+        # always in the globals in an actual Sage session.
+        dict_all.pop('__package__', None)
+        sage_namespace = RecordingDict(dict_all)
+        sage_namespace['__name__'] = '__main__'
+        doctests, extras = self.source.create_doctests(sage_namespace)
+        timer = Timer().start()
+
+        for test in doctests:
+            result = runner.run(test)
+            if options.exitfirst and result.failed:
+                break
+
+        timer.stop().annotate(runner)
+        return doctests, extras

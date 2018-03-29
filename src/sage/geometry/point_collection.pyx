@@ -856,7 +856,7 @@ cdef class PointCollection(SageObject):
             [1 1 1 1]
             in 3-d lattice N
 
-        Note that the last two outpus are identical, separators are only
+        Note that the last two outputs are identical, separators are only
         inserted in the LaTeX mode::
 
             sage: latex(c)

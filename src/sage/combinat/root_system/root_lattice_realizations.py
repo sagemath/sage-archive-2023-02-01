@@ -2103,7 +2103,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: L = RootSystem(["A",2,1]).ambient_space()
                 sage: options = L.plot_parse_options()
                 sage: options
-                <sage.combinat.root_system.plot.PlotOptions instance at ...>
+                <sage.combinat.root_system.plot.PlotOptions object at ...>
 
             .. SEEALSO::
 

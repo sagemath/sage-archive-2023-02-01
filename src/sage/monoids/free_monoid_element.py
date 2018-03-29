@@ -109,28 +109,9 @@ class FreeMonoidElement(MonoidElement):
             sage: list(a[0]*a[1]*a[4]**3*a[0])
             [(a0, 1), (a1, 1), (a4, 3), (a0, 1)]
         """
-        gens=self.parent().gens()
-        return ((gens[index], exponent) \
+        gens = self.parent().gens()
+        return ((gens[index], exponent)
                 for (index, exponent) in self._element_list)
-
-##     def __cmp__(left, right):
-##         """
-##         Compare two free monoid elements with the same parents.
-
-##         The ordering is the one on the underlying sorted list of
-##         (monomial,coefficients) pairs.
-
-##         EXAMPLES::
-
-##             sage: R.<x,y> = FreeMonoid(2)
-##             sage: x < y
-##             True
-##             sage: x * y < y * x
-##             True
-##             sage: x * y * x^2 < x * y * x^3
-##             True
-##         """
-##         return cmp(left._element_list, right._element_list)
 
     def _repr_(self):
         s = ""

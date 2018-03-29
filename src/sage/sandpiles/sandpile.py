@@ -4236,7 +4236,7 @@ class SandpileDivisor(dict):
             is_q_reduced           -- Is the divisor q-reduced?
             is_symmetric           -- Is the divisor symmetric?
             is_weierstrass_pt      -- Is the given vertex a Weierstrass point?
-            polytope               -- The polytope determinining the complete linear system.
+            polytope               -- The polytope determining the complete linear system.
             polytope_integer_pts   -- The integer points inside divisor's polytope.
             q_reduced              -- The linearly equivalent q-reduced divisor.
             rank                   -- The rank of the divisor.
@@ -5245,7 +5245,7 @@ class SandpileDivisor(dict):
 
     def polytope(self):
         r"""
-        The polytope determinining the complete linear system.
+        The polytope determining the complete linear system.
 
         OUTPUT:
 

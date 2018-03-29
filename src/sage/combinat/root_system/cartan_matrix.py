@@ -288,7 +288,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
 
         # We can do the Cartan type initialization later as this is not
         #   a unique representation
-        mat = typecall(cls, MatrixSpace(ZZ, n, sparse=True), data, False, False)
+        mat = typecall(cls, MatrixSpace(ZZ, n, sparse=True), data, False, True)
         # FIXME: We have to initialize the CartanMatrix part separately because
         #   of the __cinit__ of the matrix. We should get rid of this workaround
         mat._CM_init(cartan_type, index_set, cartan_type_check)

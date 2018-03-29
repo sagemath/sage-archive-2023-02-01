@@ -855,11 +855,58 @@ static ex cases_imag_part(const ex & arg)
         return cases(arg).hold();
 }
 
+static ex cases_subs(const exmap& m, const ex & arg) {
+        bool default_seen = false;
+        ex deflt;
+        for (auto case_ : arg) {
+                if (not is_exactly_a<exprseq>(case_)) {
+                        if (not default_seen) {
+                                deflt = case_;
+                                default_seen = true;
+                        }
+                        continue;
+                }
+                const exprseq& seq = ex_to<exprseq>(case_);
+                if (seq.nops() == 1) {
+                        if (not default_seen) {
+                                deflt = seq[0];
+                                default_seen = true;
+                        }
+                        continue;
+                }
+                if (seq.nops() != 2)
+                        throw std::runtime_error("cases case not a pair");
+                const ex& cond = seq[0].subs(m);
+                if (is_exactly_a<numeric>(cond)) {
+                        if (not cond.is_zero()
+                            and not default_seen) {
+                                deflt = seq[1];
+                                default_seen = true;
+                        }
+                        continue;
+                }
+                if (is_exactly_a<relational>(cond)) {
+                        auto res = ex_to<relational>(cond).decide();
+                        if (res == relational::result::True)
+                                return seq[1].subs(m);
+                        if (res == relational::result::False)
+                                continue;
+                        // undecidable relation
+                        return cases(arg).hold();
+                }
+                throw std::runtime_error("cases with meaningless condition");
+        }
+        if (default_seen)
+                return deflt.subs(m);
+        return cases(arg).hold();
+}
+
 REGISTER_FUNCTION(cases, eval_func(cases_eval).
                        evalf_func(cases_evalf).
                        conjugate_func(cases_conjugate).
                        real_part_func(cases_real_part).
-                       imag_part_func(cases_imag_part));
+                       imag_part_func(cases_imag_part).
+                       subs_func(cases_subs));
 
 static std::string ex_to_str(const ex& e) {
         std::stringstream tstream;

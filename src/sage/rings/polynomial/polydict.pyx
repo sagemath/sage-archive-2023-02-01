@@ -43,6 +43,7 @@ from cpython.dict cimport *
 from cpython.object cimport (PyObject_RichCompare, Py_EQ, Py_NE,
                              Py_LT, Py_LE, Py_GT, Py_GE)
 from cysignals.memory cimport sig_malloc, sig_free
+from sage.structure.richcmp cimport rich_to_bool
 
 import copy
 from functools import reduce
@@ -160,7 +161,7 @@ cdef class PolyDict:
     def __richcmp__(PolyDict self, PolyDict right, int op):
         return PyObject_RichCompare(self.__repn, right.__repn, op)
 
-    def compare(PolyDict self, PolyDict other, key=None):
+    def rich_compare(PolyDict self, PolyDict other, int op, key=None):
         if key is not None:
             # start with biggest
             left = iter(sorted(self.__repn, key=key, reverse=True))
@@ -173,30 +174,30 @@ cdef class PolyDict:
             try:
                 n = next(right)
             except StopIteration:
-                return 1  # left has terms, right does not
+                return rich_to_bool(op, 1)  # left has terms, right does not
 
             # first compare the leading monomials
             keym = key(m)
             keyn = key(n)
             if keym > keyn:
-                return 1
+                return rich_to_bool(op, 1)
             elif keym < keyn:
-                return -1
+                return rich_to_bool(op, -1)
 
             # same leading monomial, compare their coefficients
             coefm = self.__repn[m]
             coefn = other.__repn[n]
             if coefm > coefn:
-                return 1
+                return rich_to_bool(op, 1)
             elif coefm < coefn:
-                return -1
+                return rich_to_bool(op, -1)
 
         # try next pair
         try:
             n = next(right)
-            return -1  # right has terms, left does not
+            return rich_to_bool(op, -1)  # right has terms, left does not
         except StopIteration:
-            return 0  # both have no terms
+            return rich_to_bool(op, 0)  # both have no terms
 
     def list(PolyDict self):
         """

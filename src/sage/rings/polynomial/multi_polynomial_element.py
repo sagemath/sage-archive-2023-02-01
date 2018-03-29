@@ -66,8 +66,10 @@ from sage.structure.sequence import Sequence
 from .multi_polynomial import MPolynomial
 from sage.categories.morphism import Morphism
 
+
 def is_MPolynomial(x):
     return isinstance(x, MPolynomial)
+
 
 class MPolynomial_element(MPolynomial):
     def __init__(self, parent, x):
@@ -150,9 +152,9 @@ class MPolynomial_element(MPolynomial):
             y += c*prod([ x[i]**m[i] for i in range(n) if m[i] != 0])
         return y
 
-    def __cmp__(self, right):
+    def _richcmp_(self, right, op):
         """
-        Compares right to self with respect to the term order of
+        Compare ``self`` to ``right`` with respect to the term order of
         self.parent().
 
         EXAMPLES::
@@ -180,10 +182,10 @@ class MPolynomial_element(MPolynomial):
             False
         """
         try:
-            return self.__element.compare(right.__element,
-                                          self.parent().term_order().sortkey)
+            return self.__element.rich_compare(right.__element, op,
+                                               self.parent().term_order().sortkey)
         except AttributeError:
-            return self.__element.compare(right.__element)
+            return self.__element.rich_compare(right.__element, op)
 
     def _im_gens_(self, codomain, im_gens):
         """

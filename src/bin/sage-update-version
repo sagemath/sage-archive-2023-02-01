@@ -59,11 +59,6 @@ SAGE_VERSION='$SAGE_VERSION'
 SAGE_RELEASE_DATE='$SAGE_RELEASE_DATE'
 EOF
 
-# Update the Sage banner
-"$SAGE_ROOT/sage" --python -c \
-    "import sage.misc.banner; sage.misc.banner.banner(full=True)" \
-    > "$SAGE_SRC/bin/sage-banner"
-
 # Regenerate auto-generated files tarball
 "$SAGE_ROOT/bootstrap" -i -s
 
@@ -72,7 +67,6 @@ git commit -m "Updated SageMath version to $SAGE_VERSION" -- \
     "$SAGE_ROOT/VERSION.txt" \
     "$SAGE_SRC/sage/version.py" \
     "$SAGE_SRC/bin/sage-version.sh" \
-    "$SAGE_SRC/bin/sage-banner" \
     "$SAGE_ROOT/build/pkgs/configure/checksums.ini" \
     "$SAGE_ROOT/build/pkgs/configure/package-version.txt" \
     || die "Error committing to the repository."

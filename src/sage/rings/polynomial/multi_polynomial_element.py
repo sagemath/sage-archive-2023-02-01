@@ -181,11 +181,8 @@ class MPolynomial_element(MPolynomial):
             sage: x^4*y^7*z^1 < x^4*y^2*z^3
             False
         """
-        try:
-            return self.__element.rich_compare(right.__element, op,
-                                               self.parent().term_order().sortkey)
-        except AttributeError:
-            return self.__element.rich_compare(right.__element, op)
+        return self.__element.rich_compare(right.__element, op,
+                                           self.parent().term_order().sortkey)
 
     def _im_gens_(self, codomain, im_gens):
         """

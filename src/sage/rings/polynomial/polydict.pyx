@@ -161,7 +161,7 @@ cdef class PolyDict:
     def __richcmp__(PolyDict self, PolyDict right, int op):
         return PyObject_RichCompare(self.__repn, right.__repn, op)
 
-    def rich_compare(PolyDict self, PolyDict other, int op, key=None):
+    def rich_compare(PolyDict self, PolyDict other, int op, key):
         if key is not None:
             # start with biggest
             left = iter(sorted(self.__repn, key=key, reverse=True))

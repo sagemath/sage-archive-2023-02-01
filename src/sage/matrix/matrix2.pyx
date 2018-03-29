@@ -6895,7 +6895,7 @@ cdef class Matrix(Matrix1):
         .. NOTE::
 
             This method returns an echelon form.  If the base ring
-            is not a field, no atttempt is made to move to the fraction field.
+            is not a field, no attempt is made to move to the fraction field.
             See an example below where the base ring is changed manually.
 
         EXAMPLES:

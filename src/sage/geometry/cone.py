@@ -1242,7 +1242,7 @@ def classify_cone_2d(ray0, ray1, check=True):
 
     A pair `(d,k)` of integers classifying the cone up to `GL(2, \ZZ)`
     equivalence. See Proposition 10.1.1 of [CLS]_ for the
-    definition. We return the unique `(d,k)` with minmial `k`, see
+    definition. We return the unique `(d,k)` with minimal `k`, see
     Proposition 10.1.3 of [CLS]_.
 
     EXAMPLES::

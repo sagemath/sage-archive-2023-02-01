@@ -1571,7 +1571,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             ...
             TypeError: Affine Space of dimension 3 over Integer Ring must be a projective space, product of projective spaces, or subscheme
         """
-        #This will catch any ambient space mistmatches
+        #This will catch any ambient space mismatches
         AS = self.ambient_space()*right.ambient_space()
         CR = AS.coordinate_ring()
         n = self.ambient_space().coordinate_ring().ngens()

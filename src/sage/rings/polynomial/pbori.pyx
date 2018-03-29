@@ -5943,7 +5943,7 @@ cdef class BooleSetIterator:
 
             sage: B.<a,b,c,d> = BooleanPolynomialRing()
             sage: f = B.random_element()
-            sage: it = iter(f.set()) # indirect doctesrt
+            sage: it = iter(f.set()) # indirect doctest
         """
         return self
 

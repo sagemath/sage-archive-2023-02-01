@@ -1504,7 +1504,7 @@ cdef class MPolynomial(CommutativeRingElement):
         is computed and returned. If this computation fails, the
         unit of the parent of self is returned.
 
-        Note that some subclases may implement its own denominator
+        Note that some subclasses may implement its own denominator
         function.
 
         .. warning::
@@ -1579,7 +1579,7 @@ cdef class MPolynomial(CommutativeRingElement):
         """
         Return a numerator of self computed as self * self.denominator()
 
-        Note that some subclases may implement its own numerator
+        Note that some subclasses may implement its own numerator
         function.
 
         .. warning::

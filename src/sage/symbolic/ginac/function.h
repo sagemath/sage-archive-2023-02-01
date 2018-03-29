@@ -79,7 +79,7 @@ typedef ex (* derivative_funcp)();
 typedef ex (* expl_derivative_funcp)();
 typedef ex (* power_funcp)();
 typedef ex (* series_funcp)();
-typedef ex (* subs_funcp)(PyObject* parent);
+typedef ex (* subs_funcp)();
 typedef void (* print_funcp)();
 
 // the following lines have been generated for max. 14 parameters
@@ -116,6 +116,9 @@ typedef ex (* power_funcp_3)(const ex &, const ex &, const ex &, const ex &);
 typedef ex (* series_funcp_1)(const ex &, const relational &, int, unsigned);
 typedef ex (* series_funcp_2)(const ex &, const ex &, const relational &, int, unsigned);
 typedef ex (* series_funcp_3)(const ex &, const ex &, const ex &, const relational &, int, unsigned);
+typedef ex (* subs_funcp_1)(const exmap&, const ex &);
+typedef ex (* subs_funcp_2)(const exmap&, const ex &, const ex &);
+typedef ex (* subs_funcp_3)(const exmap&, const ex &, const ex &, const ex &);
 
 typedef void (* print_funcp_1)(const ex &, const print_context &);
 typedef void (* print_funcp_2)(const ex &, const ex &, const print_context &);
@@ -193,6 +196,10 @@ public:
     function_options & series_func(series_funcp_2 s);
     function_options & series_func(series_funcp_3 s);
 
+    function_options & subs_func(subs_funcp_1 s);
+    function_options & subs_func(subs_funcp_2 s);
+    function_options & subs_func(subs_funcp_3 s);
+
     template <class Ctx> function_options & print_func(print_funcp_1 p)
     {
     	test_and_set_nparams(1);
@@ -220,7 +227,7 @@ public:
 	function_options & derivative_func(derivative_funcp_exvector d);
 	function_options & power_func(power_funcp_exvector d);
 	function_options & series_func(series_funcp_exvector s);
-
+	function_options & subs_func(series_funcp_exvector s);
 	function_options & derivative_func(derivative_funcp_exvector_symbol d);
 
 	template <class Ctx> function_options & print_func(print_funcp_exvector p)

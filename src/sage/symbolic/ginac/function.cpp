@@ -82,7 +82,8 @@ void function_options::initialize()
 	set_name(s1, s2);
 	nparams = 0;
 	eval_f = real_part_f = imag_part_f = conjugate_f = derivative_f
-            = pynac_eval_f = expl_derivative_f = power_f = series_f = nullptr;
+            = pynac_eval_f = expl_derivative_f = power_f = series_f
+            = subs_f = nullptr;
 	evalf_f = nullptr;
 	evalf_params_first = true;
 	apply_chain_rule = true;
@@ -314,6 +315,25 @@ function_options & function_options::series_func(series_funcp_3 s)
 {
 	test_and_set_nparams(3);
 	series_f = series_funcp(s);
+	return *this;
+}
+
+function_options & function_options::subs_func(subs_funcp_1 s)
+{
+	test_and_set_nparams(1);
+	subs_f = subs_funcp(s);
+	return *this;
+}
+function_options & function_options::subs_func(subs_funcp_2 s)
+{
+	test_and_set_nparams(2);
+	subs_f = subs_funcp(s);
+	return *this;
+}
+function_options & function_options::subs_func(subs_funcp_3 s)
+{
+	test_and_set_nparams(3);
+	subs_f = subs_funcp(s);
 	return *this;
 }
 
@@ -918,7 +938,7 @@ ex function::evalf(int level, PyObject* kwds) const
 	GINAC_ASSERT(serial<registered_functions().size());
 	const function_options &opt = registered_functions()[serial];
 
-	// Evaluate children first
+	// Evaluate children first?
 	exvector eseq;
 	if (level == 1 || !(opt.evalf_params_first))
 		eseq = seq;
@@ -1111,7 +1131,20 @@ ex function::subs(const exmap & m, unsigned options) const
 		}
 		return result;
 	} 
-	return exprseq::subs(m, options);
+	if (opt.subs_f==nullptr)
+        	return exprseq::subs(m, options);
+
+	switch (opt.nparams) {
+	case 1:
+		return (reinterpret_cast<subs_funcp_1>(opt.subs_f))(m, seq[1-1]);
+	case 2:
+		return (reinterpret_cast<subs_funcp_2>(opt.subs_f))(m, seq[1-1], seq[2-1]);
+	case 3:
+		return (reinterpret_cast<subs_funcp_3>(opt.subs_f))(m, seq[1-1], seq[2-1], seq[3-1]);
+
+		// end of generated lines
+	}
+	throw(std::logic_error("function::subs(): invalid nparams"));
 }
 
 /** Implementation of ex::conjugate for functions. */

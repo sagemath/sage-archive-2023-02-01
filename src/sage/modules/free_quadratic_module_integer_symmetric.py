@@ -55,6 +55,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from copy import copy
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ
@@ -289,17 +290,72 @@ def IntegralLattice(data, basis=None):
                                                  inner_product_matrix=inner_product_matrix,
                                                  already_echelonized=False)
                                                  
-def DirectSumLattices(Lattices, return_embeddings=False):
+def LatticeDirectSum(Lattices, return_embeddings=False):
     r"""
-    Return the direct sum of the lattices with
+    Return the direct sum of the lattices contained in the list ``Lattices`` and (optional) 
+    the list of embeddings from the lattices to the sum.
 
     INPUT:
 
     - ``Lattices`` - a list of lattices ``[L_1,...,L_n]`` 
-    - ``return_embeddings`` - a boolean
+    - ``return_embeddings`` - (otional) a boolean
+
+    OUTPUT:
+
+    The direct sum of `L_i` if ``return_embeddings`` is False or the tuple ``[L, phi]`` where `L`
+    is the direct sum of `L_i` and ``phi`` the list of embeddings from `L_i` to `L`
 
     EXAMPLES::
+    
+        sage: from sage.modules.free_quadratic_module_integer_symmetric import LatticeDirectSum
+        sage: L1 = IntegralLattice("D4") 
+        sage: L2 = IntegralLattice("A3", [[1,1,2]])  
+        sage: L3 = IntegralLattice("A4", [[0,1,1,2],[1,2,3,1]])
+        sage: Lattices = [L1, L2, L3]
+        sage: LatticeDirectSum([L1, L2, L3])
+        Lattice of degree 11 and rank 7 over Integer Ring
+        Basis matrix:
+        [1 0 0 0 0 0 0 0 0 0 0]
+        [0 1 0 0 0 0 0 0 0 0 0]
+        [0 0 1 0 0 0 0 0 0 0 0]
+        [0 0 0 1 0 0 0 0 0 0 0]
+        [0 0 0 0 1 1 2 0 0 0 0]
+        [0 0 0 0 0 0 0 0 1 1 2]
+        [0 0 0 0 0 0 0 1 2 3 1]
+        Inner product matrix:
+        [ 2 -1  0  0  0  0  0  0  0  0  0]
+        [-1  2 -1 -1  0  0  0  0  0  0  0]
+        [ 0 -1  2  0  0  0  0  0  0  0  0]
+        [ 0 -1  0  2  0  0  0  0  0  0  0]
+        [ 0  0  0  0  2 -1  0  0  0  0  0]
+        [ 0  0  0  0 -1  2 -1  0  0  0  0]
+        [ 0  0  0  0  0 -1  2  0  0  0  0]
+        [ 0  0  0  0  0  0  0  2 -1  0  0]
+        [ 0  0  0  0  0  0  0 -1  2 -1  0]
+        [ 0  0  0  0  0  0  0  0 -1  2 -1]
+        [ 0  0  0  0  0  0  0  0  0 -1  2]
+        sage: [L, phi] = LatticeDirectSum([L1, L2, L3], True)
+        sage: LL3 = L.sublattice(phi[2].image().basis_matrix())
+        sage: L3.discriminant()==LL3.discriminant()
+        sage: x = L3([1, 2, 3, 1])
+        sage: phi[2](x).inner_product(phi[2](x))==x.inner_product(x)
+        True
+        
+    TESTS::
 
+        sage: from sage.modules.free_quadratic_module_integer_symmetric import LatticeDirectSum
+        sage: LatticeDirectSum([IntegralLattice("D4")])
+        Lattice of degree 4 and rank 4 over Integer Ring
+        Basis matrix:
+        [1 0 0 0]
+        [0 1 0 0]
+        [0 0 1 0]
+        [0 0 0 1]
+        Inner product matrix:
+        [ 2 -1  0  0]
+        [-1  2 -1 -1]
+        [ 0 -1  2  0]
+        [ 0 -1  0  2]
     """
     N = len(Lattices)    
     dims = [L_i.dimension() for L_i in Lattices]
@@ -307,36 +363,33 @@ def DirectSumLattices(Lattices, return_embeddings=False):
     dim_tot = sum(dims)
     degree_tot = sum(degrees)
     sum_degree = [sum(degrees[:i]) for i in range(N+1)]
-        
-    inner_product_list = [L_i.inner_product_matrix() for L_i in Lattices]
+    inner_product_list = [copy(L_i.inner_product_matrix()) for L_i in Lattices]
     IM = matrix.block_diagonal(inner_product_list)
     ambient = FreeQuadraticModule(ZZ,
                                   degree_tot,
                                 inner_product_matrix=IM)
-    
     basis = [matrix.zero(dims[i], sum_degree[i]).augment(Lattices[i].basis_matrix()).augment(
             matrix.zero(dims[i], sum_degree[-1] - sum_degree[i+1])) for i in range(N)]
     IM = matrix.block_diagonal(inner_product_list)
     ambient = FreeQuadraticModule(ZZ,
                                   degree_tot,
                                 inner_product_matrix=IM)
-    basis_matrix = matrix.block(N,1,basis)
+    basis_matrix = matrix.block(N, 1, basis)
     ipm = ambient.inner_product_matrix()
-    
     direct_sum = FreeQuadraticModule_integer_symmetric(ambient=ambient,
                                                      basis=basis_matrix,
                                                      inner_product_matrix=ipm,
                                                      already_echelonized=False)
     if not return_embeddings:
         return direct_sum
-    HomSpaces = [Hom(Lattices[i], direct_sum) for i in range(N)]
+    HomSpaces = [Lattices[i].Hom(direct_sum) for i in range(N)]
     sum_dims = [sum(dims[:i]) for i in range(N+1)]
     embeddings = [matrix.zero(dims[i], sum_dims[i]).augment(matrix.identity(dims[i])).augment(
             matrix.zero(dims[i], sum_dims[-1] - sum_dims[i+1])) for i in range(N)]
     phi = [HomSpaces[i](embeddings[i]) for i in range(N)]
     return [direct_sum,phi]
 
-def GlueLattice(Lattices, glue, return_embeddings=False):
+def LatticeGluing(Lattices, glue, return_embeddings=False):
     r"""
     Return the overlattice of L1+...+Ln spanned by the elements of the discriminant group
     given by ``glue``
@@ -560,12 +613,12 @@ def GlueLattice(Lattices, glue, return_embeddings=False):
         True
     """
     N = len(Lattices)
-    [direct_sum, phi] = DirectSumLattices(Lattices, return_embeddings=True)
+    [direct_sum, phi] = LatticeDirectSum(Lattices, return_embeddings=True)
     generators = [sum(phi[i](g[i].lift()*g[i].order())/g[i].order() for i in range(N)) for g in glue]
     glued_lattice = direct_sum.overlattice(generators)
     if not return_embeddings:
         return glued_lattice
-    HomSpaces = [Hom(Lattices[i], glued_lattice) for i in range(N)]
+    HomSpaces = [Lattices[i].Hom(glued_lattice) for i in range(N)]
     f = [HomSpaces[i](phi[i].matrix()) for i in range(N)]
     return [glued_lattice, f]
 

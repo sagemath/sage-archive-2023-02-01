@@ -33,18 +33,3 @@ sage-python23 setup.py \
        --single-version-externally-managed \
        --root "$SAGE_DESTDIR" \
        ${NUMPY_FCONFIG} || sdh_die "Error building / installing numpy"
-
-# Touch all includes such that dependency checking works properly:
-# the timestamp of the includes should be *now*, not the time when
-# the numpy package was created.
-# Note: Setting PYTHONPATH here is something of a hack to support
-# installation into $SAGE_DESTDIR.  This might be better handled
-# as a post-install step
-SITE_PACKAGES="$(sage-python23 -c 'import site; print(site.getsitepackages()[0])')"
-PYTHONPATH="$SAGE_DESTDIR$SITE_PACKAGES" sage-python23 <<EOF
-import os
-os.chdir(os.environ["SAGE_ROOT"])  # Import numpy from safe location
-import numpy
-os.chdir(numpy.get_include())
-os.system("touch numpy/*")
-EOF

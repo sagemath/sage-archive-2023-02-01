@@ -2305,17 +2305,17 @@ class Permutation(CombinatorialElement):
         L = list(self)
         M = []
         for e in L:
-            M.append(e)
             k = len(M)
             if k <= 1:
+	        M.append(e)
                 continue
 
-            a = M[-2]
-            M_prime = [0]*k
+            a = M[-1]
+            M_prime = [0]*(k + 1)
             if a > e:
-                index_list = [-1] + [i for i in range(k - 1) if M[i] > e]
+                index_list = [-1] + [i for i in range(k) if M[i] > e]
             else:
-                index_list = [-1] + [i for i in range(k - 1) if M[i] < e]
+                index_list = [-1] + [i for i in range(k) if M[i] < e]
 
             for j in range(1, len(index_list)):
                 start = index_list[j-1] + 1
@@ -2323,7 +2323,7 @@ class Permutation(CombinatorialElement):
                 M_prime[start] = M[end]
                 for x in range(start + 1, end + 1):
                     M_prime[x] = M[x-1]
-            M_prime[k-1] = e
+            M_prime[k] = e
             M = M_prime
         return Permutations()(M)
 

@@ -297,7 +297,7 @@ def LatticeDirectSum(Lattices, return_embeddings=False):
 
     INPUT:
 
-    - ``Lattices`` - a list of lattices ``[L_1,...,L_n]`` 
+    - ``Lattices`` - a list of lattices ``[L_1,...,L_n]``
     - ``return_embeddings`` - (otional) a boolean
 
     OUTPUT:
@@ -306,11 +306,11 @@ def LatticeDirectSum(Lattices, return_embeddings=False):
     is the direct sum of `L_i` and ``phi`` the list of embeddings from `L_i` to `L`
 
     EXAMPLES::
-    
+
         sage: from sage.modules.free_quadratic_module_integer_symmetric import LatticeDirectSum
-        sage: L1 = IntegralLattice("D4") 
-        sage: L2 = IntegralLattice("A3", [[1,1,2]])  
-        sage: L3 = IntegralLattice("A4", [[0,1,1,2],[1,2,3,1]])
+        sage: L1 = IntegralLattice("D4")
+        sage: L2 = IntegralLattice("A3", [[1, 1, 2]])
+        sage: L3 = IntegralLattice("A4", [[0, 1, 1, 2], [1, 2, 3, 1]])
         sage: Lattices = [L1, L2, L3]
         sage: LatticeDirectSum([L1, L2, L3])
         Lattice of degree 11 and rank 7 over Integer Ring
@@ -337,10 +337,11 @@ def LatticeDirectSum(Lattices, return_embeddings=False):
         sage: [L, phi] = LatticeDirectSum([L1, L2, L3], True)
         sage: LL3 = L.sublattice(phi[2].image().basis_matrix())
         sage: L3.discriminant()==LL3.discriminant()
+        True
         sage: x = L3([1, 2, 3, 1])
         sage: phi[2](x).inner_product(phi[2](x))==x.inner_product(x)
         True
-        
+
     TESTS::
 
         sage: from sage.modules.free_quadratic_module_integer_symmetric import LatticeDirectSum
@@ -356,8 +357,24 @@ def LatticeDirectSum(Lattices, return_embeddings=False):
         [-1  2 -1 -1]
         [ 0 -1  2  0]
         [ 0 -1  0  2]
+
+        sage: from sage.modules.free_quadratic_module_integer_symmetric import LatticeDirectSum
+        sage: L1 = IntegralLattice(2*matrix.identity(2), [[1/2, 1/2]])
+        sage: L2 = IntegralLattice("A3", [[1, 1, 2]])
+        sage: [L, phi] = LatticeDirectSum([L1, L2], True)
+        sage: L
+        Lattice of degree 5 and rank 2 over Integer Ring
+        Basis matrix:
+        [1/2 1/2   0   0   0]
+        [  0   0   1   1   2]
+        Inner product matrix:
+        [ 2  0  0  0  0]
+        [ 0  2  0  0  0]
+        [ 0  0  2 -1  0]
+        [ 0  0 -1  2 -1]
+        [ 0  0  0 -1  2]
     """
-    N = len(Lattices)    
+    N = len(Lattices)
     dims = [L_i.dimension() for L_i in Lattices]
     degrees = [L_i.degree() for L_i in Lattices]
     dim_tot = sum(dims)
@@ -368,8 +385,10 @@ def LatticeDirectSum(Lattices, return_embeddings=False):
     ambient = FreeQuadraticModule(ZZ,
                                   degree_tot,
                                 inner_product_matrix=IM)
-    basis = [matrix.zero(dims[i], sum_degree[i]).augment(Lattices[i].basis_matrix()).augment(
-            matrix.zero(dims[i], sum_degree[-1] - sum_degree[i+1])) for i in range(N)]
+    basis = [matrix.block(1, 3, [matrix.zero(dims[i], sum_degree[i]), 
+                                 Lattices[i].basis_matrix(), 
+                                 matrix.zero(dims[i], sum_degree[-1] - sum_degree[i+1])
+                                ])  for i in range(N)]
     IM = matrix.block_diagonal(inner_product_list)
     ambient = FreeQuadraticModule(ZZ,
                                   degree_tot,
@@ -384,36 +403,54 @@ def LatticeDirectSum(Lattices, return_embeddings=False):
         return direct_sum
     HomSpaces = [Lattices[i].Hom(direct_sum) for i in range(N)]
     sum_dims = [sum(dims[:i]) for i in range(N+1)]
-    embeddings = [matrix.zero(dims[i], sum_dims[i]).augment(matrix.identity(dims[i])).augment(
-            matrix.zero(dims[i], sum_dims[-1] - sum_dims[i+1])) for i in range(N)]
+    embeddings = [matrix.block(1, 3, [matrix.zero(dims[i], sum_dims[i]), 
+                                     matrix.identity(dims[i]), 
+                                     matrix.zero(dims[i], sum_dims[-1] - sum_dims[i+1])
+                                     ]) for i in range(N)]
     phi = [HomSpaces[i](embeddings[i]) for i in range(N)]
-    return [direct_sum,phi]
+    return [direct_sum, phi]
 
 def LatticeGluing(Lattices, glue, return_embeddings=False):
     r"""
-    Return the overlattice of L1+...+Ln spanned by the elements of the discriminant group
-    given by ``glue``
+    Return the overlattice of the direct sum of `Li` spanned by the elements of the 
+    discriminant group given by ``glue`` and (optional) the list of embeddings from the 
+    lattices to the glued lattice.
     
-    INPUT::
-    
-    - ``Lattices`` - a list of lattices ``[L_1,...,L_n]`` 
+    INPUT:
+
+    - ``Lattices`` - a list of lattices ``[L_1,...,L_n]``
     - ``glue`` - a list where the elements are lists in the form ``[g_1,...,g_n]`` where ``g_i`` is an
       element of the discriminant group of ``L_i``
-      
+    - ``return_embeddings`` - (optional) a boolean
+
+    OUTPUT:
+
+    The glued lattice given by `L_i` and ``glue`` if ``return_embeddings`` is False or the tuple ``[L, phi]`` where `L`
+    is the glued lattice and ``phi`` the list of embeddings from `L_i` to `L`
+
     EXAMPLES::
-    
-    A glueing could be done with just one lattice::    
-        
-        sage: from sage.modules.free_quadratic_module_integer_symmetric import GlueLattice
+
+    A glueing could be done with just one lattice::
+
+        sage: from sage.modules.free_quadratic_module_integer_symmetric import LatticeGluing
         sage: L1 = IntegralLattice(matrix([[4]]))
         sage: g1 = L1.discriminant_group().gens()[0]
         sage: glue = [[2 * g1]]
-        sage: GlueLattice([L1], glue)
-        (Lattice of degree 1 and rank 1 over Integer Ring
+        sage: L = LatticeGluing([L1], glue)
+        sage: L
+        Lattice of degree 1 and rank 1 over Integer Ring
+        Basis matrix:
+        [1/2]
+        Inner product matrix:
+        [4]
+        sage: L.gram_matrix()
+        [1]
+        sage: LatticeGluing([L1], glue, return_embeddings=True)
+        [Lattice of degree 1 and rank 1 over Integer Ring
          Basis matrix:
-         [1]
+         [1/2]
          Inner product matrix:
-         [1], [Free module morphism defined by the matrix
+         [4], [Free module morphism defined by the matrix
           [2]
           Domain: Lattice of degree 1 and rank 1 over Integer Ring
           Basis matrix:
@@ -422,111 +459,85 @@ def LatticeGluing(Lattices, glue, return_embeddings=False):
           [4]
           Codomain: Lattice of degree 1 and rank 1 over Integer Ring
           Basis matrix:
-          [1]
+          [1/2]
           Inner product matrix:
-          [1]])
-        
-        sage: from sage.modules.free_quadratic_module_integer_symmetric import GlueLattice
+          [4]]]
+
+        sage: from sage.modules.free_quadratic_module_integer_symmetric import LatticeGluing
         sage: L1 = IntegralLattice([[2]])
         sage: L2 = IntegralLattice([[2]])
         sage: AL1 = L1.discriminant_group()
-        sage: AL2 = L2.discriminant_group()         
-        sage: AL1            
+        sage: AL2 = L2.discriminant_group()
+        sage: AL1
         Finite quadratic module over Integer Ring with invariants (2,)
         Gram matrix of the quadratic form with values in Q/2Z:
-        [1/2]                                   
-        sage: g1 = L1.discriminant_group().gens()[0] 
-        sage: g2 = L2.discriminant_group().gens()[0]      
-        sage: glue = [[g1, g2]]                       
-        sage: GlueLattice([L1, L2], glue)
-        (Lattice of degree 2 and rank 2 over Integer Ring
-         Basis matrix:
-         [1 0]
-         [0 1]
-         Inner product matrix:
-         [1 1]
-         [1 2], [Free module morphism defined by the matrix
-          [ 2 -1]
-          Domain: Lattice of degree 1 and rank 1 over Integer Ring
-          Basis matrix:
-          [1]
-          Inner product matrix:
-          [2]
-          Codomain: Lattice of degree 2 and rank 2 over Integer Ring
-          Basis matrix:
-          [1 0]
-          [0 1]
-          Inner product matrix:
-          [1 1]
-          [1 2], Free module morphism defined by the matrix
-          [0 1]
-          Domain: Lattice of degree 1 and rank 1 over Integer Ring
-          Basis matrix:
-          [1]
-          Inner product matrix:
-          [2]
-          Codomain: Lattice of degree 2 and rank 2 over Integer Ring
-          Basis matrix:
-          [1 0]
-          [0 1]
-          Inner product matrix:
-          [1 1]
-          [1 2]])
+        [1/2]
+        sage: g1 = L1.discriminant_group().gens()[0]
+        sage: g2 = L2.discriminant_group().gens()[0]
+        sage: glue = [[g1, g2]]
+        sage: LatticeGluing([L1, L2], glue)
+        Lattice of degree 2 and rank 2 over Integer Ring
+        Basis matrix:
+        [1/2 1/2]
+        [  0   1]
+        Inner product matrix:
+        [2 0]
+        [0 2]
 
-        sage: from sage.modules.free_quadratic_module_integer_symmetric import GlueLattice
+        sage: from sage.modules.free_quadratic_module_integer_symmetric import LatticeGluing
         sage: L1 = IntegralLattice("A4")
         sage: L2 = IntegralLattice("A4")
         sage: g1 = L1.discriminant_group().gens()[0]
         sage: g2 = L2.discriminant_group().gens()[0]
         sage: glue = [[g1, 2 * g2]]
-        sage: [V, phi] = GlueLattice([L1, L2],glue)
+        sage: [V, phi] = LatticeGluing([L1, L2], glue, True)
         sage: V
         Lattice of degree 8 and rank 8 over Integer Ring
+        Basis matrix:
+        [1/5 2/5 3/5 4/5 2/5 4/5 1/5 3/5]
+        [  0   1   0   0   0   0   0   0]
+        [  0   0   1   0   0   0   0   0]
+        [  0   0   0   1   0   0   0   0]
+        [  0   0   0   0   1   0   0   0]
+        [  0   0   0   0   0   1   0   0]
+        [  0   0   0   0   0   0   1   0]
+        [  0   0   0   0   0   0   0   1]
+        Inner product matrix:
+        [ 2 -1  0  0  0  0  0  0]
+        [-1  2 -1  0  0  0  0  0]
+        [ 0 -1  2 -1  0  0  0  0]
+        [ 0  0 -1  2  0  0  0  0]
+        [ 0  0  0  0  2 -1  0  0]
+        [ 0  0  0  0 -1  2 -1  0]
+        [ 0  0  0  0  0 -1  2 -1]
+        [ 0  0  0  0  0  0 -1  2]
+        sage: V.sublattice(phi[0].image().basis_matrix())
+        Lattice of degree 8 and rank 4 over Integer Ring
         Basis matrix:
         [1 0 0 0 0 0 0 0]
         [0 1 0 0 0 0 0 0]
         [0 0 1 0 0 0 0 0]
         [0 0 0 1 0 0 0 0]
-        [0 0 0 0 1 0 0 0]
-        [0 0 0 0 0 1 0 0]
-        [0 0 0 0 0 0 1 0]
-        [0 0 0 0 0 0 0 1]
         Inner product matrix:
-        [ 2  0  0  1  0  1 -1  1]
-        [ 0  2 -1  0  0  0  0  0]
+        [ 2 -1  0  0  0  0  0  0]
+        [-1  2 -1  0  0  0  0  0]
         [ 0 -1  2 -1  0  0  0  0]
-        [ 1  0 -1  2  0  0  0  0]
+        [ 0  0 -1  2  0  0  0  0]
         [ 0  0  0  0  2 -1  0  0]
-        [ 1  0  0  0 -1  2 -1  0]
-        [-1  0  0  0  0 -1  2 -1]
-        [ 1  0  0  0  0  0 -1  2]
-        sage: V.sublattice(phi[0].image().basis_matrix())
-        Lattice of degree 8 and rank 4 over Integer Ring
-        Basis matrix:
-        [ 5  0  0  0 -2 -4 -1 -3]
-        [ 0  1  0  0  0  0  0  0]
-        [ 0  0  1  0  0  0  0  0]
-        [ 0  0  0  1  0  0  0  0]
-        Inner product matrix:
-        [ 2  0  0  1  0  1 -1  1]
-        [ 0  2 -1  0  0  0  0  0]
-        [ 0 -1  2 -1  0  0  0  0]
-        [ 1  0 -1  2  0  0  0  0]
-        [ 0  0  0  0  2 -1  0  0]
-        [ 1  0  0  0 -1  2 -1  0]
-        [-1  0  0  0  0 -1  2 -1]
-        [ 1  0  0  0  0  0 -1  2]
-        
-    Different glueing could be composed::
-        
-        sage: from sage.modules.free_quadratic_module_integer_symmetric import GlueLattice
+        [ 0  0  0  0 -1  2 -1  0]
+        [ 0  0  0  0  0 -1  2 -1]
+        [ 0  0  0  0  0  0 -1  2]
+
+    Different gluings could be composed::
+
+        sage: from sage.modules.free_quadratic_module_integer_symmetric import LatticeGluing
         sage: D4 = IntegralLattice("D4")
         sage: D4.discriminant_group()
         Finite quadratic module over Integer Ring with invariants (2, 2)
         Gram matrix of the quadratic form with values in Q/2Z:
         [  1 1/2]
         [1/2   1] 
-        sage: L2 = IntegralLattice(2).scale(2, True)
+        sage: L2 = IntegralLattice(2 * matrix.identity(2))
         sage: L2.discriminant_group()
         Finite quadratic module over Integer Ring with invariants (2, 2)
         Gram matrix of the quadratic form with values in Q/2Z:
@@ -534,7 +545,7 @@ def LatticeGluing(Lattices, glue, return_embeddings=False):
         [  0 1/2]
         sage: g1 = D4.discriminant_group().gens()[0]
         sage: g2 = L2.discriminant_group().gens()[0] + L2.discriminant_group().gens()[1]
-        sage: [D6,phi] = GlueLattice([D4, L2], [[g1, g2]])
+        sage: [D6,phi] = LatticeGluing([D4, L2], [[g1, g2]], True)
         sage: AD6 = D6.discriminant_group()
         sage: AD6.normal_form()
         Finite quadratic module over Integer Ring with invariants (2, 2)
@@ -543,50 +554,53 @@ def LatticeGluing(Lattices, glue, return_embeddings=False):
         [  0 3/2]
         sage: [f1,g1] = AD6.normal_form().gens()
         sage: [f2,g2] = L2.discriminant_group().gens()
-        sage: [E8,psi] = GlueLattice([D6, L2], [[f1, f2], [g1, g2]])
+        sage: [E8,psi] = LatticeGluing([D6, L2], [[f1, f2], [g1, g2]], True)
         sage: D4embed = E8.sublattice(psi[0](phi[0].image()).basis_matrix())
+        sage: x = D4([1, 0, 0, 0])
+        sage: psi[0](phi[0](x)).inner_product(psi[0](phi[0](x)))==x.inner_product(x)
+        True
         sage: D4embed
         Lattice of degree 8 and rank 4 over Integer Ring
         Basis matrix:
-        [ 2  0  0  0  0 -1  0 -1]
-        [ 0  1  0  0  0  0  0  0]
-        [ 0  0  2  0 -2  0  1  1]
-        [ 0  0  0  1  0  0  0  0]
+        [1 0 0 0 0 0 0 0]
+        [0 1 0 0 0 0 0 0]
+        [0 0 1 0 0 0 0 0]
+        [0 0 0 1 0 0 0 0]
         Inner product matrix:
-        [ 2 -1  1  1  1  1  0  1]
+        [ 2 -1  0  0  0  0  0  0]
         [-1  2 -1 -1  0  0  0  0]
-        [ 1 -1  2  1  1  1  0  0]
-        [ 1 -1  1  2  0  0  0  0]
-        [ 1  0  1  0  2  1  1  1]
-        [ 1  0  1  0  1  2  0  0]
-        [ 0  0  0  0  1  0  2  0]
-        [ 1  0  0  0  1  0  0  2]
-        
-    A glueing could take as input a list of three or more lattices ::       
+        [ 0 -1  2  0  0  0  0  0]
+        [ 0 -1  0  2  0  0  0  0]
+        [ 0  0  0  0  2  0  0  0]
+        [ 0  0  0  0  0  2  0  0]
+        [ 0  0  0  0  0  0  2  0]
+        [ 0  0  0  0  0  0  0  2]
 
-        sage: from sage.modules.free_quadratic_module_integer_symmetric import GlueLattice
+    A gluing could take as input a list of three or more lattices ::
+
+        sage: from sage.modules.free_quadratic_module_integer_symmetric import LatticeGluing
         sage: A7 = IntegralLattice("A7")
         sage: D5 = IntegralLattice("D5")
         sage: gA7 = A7.discriminant_group().gens()[0]
         sage: gD5 = D5.discriminant_group().gens()[0]
-        sage: [L, phi] = GlueLattice([A7, A7, D5, D5], [[gA7, gA7, gD5, 2 * gD5], [gA7, 7 * gA7, 2 * gD5, gD5]])
+        sage: [L, phi] = LatticeGluing([A7, A7, D5, D5], [[gA7, gA7, gD5, 2 * gD5], [gA7, 7 * gA7, 2 * gD5, gD5]], True)
         sage: L.determinant()
         1
         sage: B = phi[0].matrix()
-        sage: B*L.inner_product_matrix()*B.transpose()==A7.gram_matrix()
+        sage: B*L.gram_matrix()*B.transpose()==A7.gram_matrix()
         True
-        
-    The glueing work with lattices with basis::
-    
-        sage: from sage.modules.free_quadratic_module_integer_symmetric import GlueLattice
-        sage: L1 = IntegralLattice("D4", [[1,1,0,0], [0,1,1,0]])
-        sage: L2 = IntegralLattice("E6", [[0,2,0,0,0,0], [0,0,0,0,1,1]])
-        sage: [f1,f2] = L1.discriminant_group().gens()
-        sage: [g1,g2] = L2.discriminant_group().gens()
-        sage: [L,phi] = GlueLattice([L1, L2], [[f1, g1], [f2, 2 * g2]])
+
+    The gluing works with lattices with basis::
+
+        sage: from sage.modules.free_quadratic_module_integer_symmetric import LatticeGluing
+        sage: L1 = IntegralLattice("D4", [[1, 1, 0, 0], [0, 1, 1, 0]])
+        sage: L2 = IntegralLattice("E6", [[0, 2, 0, 0, 0, 0], [0, 0, 0, 0, 1, 1]])
+        sage: [f1, f2] = L1.discriminant_group().gens()
+        sage: [g1, g2] = L2.discriminant_group().gens()
+        sage: [L, phi] = LatticeGluing([L1, L2], [[f1, g1], [f2, 2 * g2]], True)
         sage: phi[0]
         Free module morphism defined by the matrix
-        [ 2  0 -1  0]
+        [ 2  2 -1 -2]
         [ 0  2  0 -1]
         Domain: Lattice of degree 4 and rank 2 over Integer Ring
         Basis matrix:
@@ -597,19 +611,25 @@ def LatticeGluing(Lattices, glue, return_embeddings=False):
         [-1  2 -1 -1]
         [ 0 -1  2  0]
         [ 0 -1  0  2]
-        Codomain: Lattice of degree 4 and rank 4 over Integer Ring
+        Codomain: Lattice of degree 10 and rank 4 over Integer Ring
         Basis matrix:
-        [1 0 0 0]
-        [0 1 0 0]
-        [0 0 1 0]
-        [0 0 0 1]
+        [ 1/2    0 -1/2    0    0  1/2    0    0  1/2  1/2]
+        [   0  1/2  1/2    0    0    0    0    0  1/2  1/2]
+        [   0    0    0    0    0    1    0    0    0    0]
+        [   0    0    0    0    0    0    0    0    1    1]
         Inner product matrix:
-        [1 0 1 0]
-        [0 1 0 1]
-        [1 0 2 0]
-        [0 1 0 2]
+        [ 2 -1  0  0  0  0  0  0  0  0]
+        [-1  2 -1 -1  0  0  0  0  0  0]
+        [ 0 -1  2  0  0  0  0  0  0  0]
+        [ 0 -1  0  2  0  0  0  0  0  0]
+        [ 0  0  0  0  2  0 -1  0  0  0]
+        [ 0  0  0  0  0  2  0 -1  0  0]
+        [ 0  0  0  0 -1  0  2 -1  0  0]
+        [ 0  0  0  0  0 -1 -1  2 -1  0]
+        [ 0  0  0  0  0  0  0 -1  2 -1]
+        [ 0  0  0  0  0  0  0  0 -1  2]
         sage: B = phi[0].matrix()
-        sage: B * L.inner_product_matrix() * B.transpose()==L1.gram_matrix()
+        sage: B * L.gram_matrix() * B.transpose()==L1.gram_matrix()
         True
     """
     N = len(Lattices)
@@ -619,7 +639,8 @@ def LatticeGluing(Lattices, glue, return_embeddings=False):
     if not return_embeddings:
         return glued_lattice
     HomSpaces = [Lattices[i].Hom(glued_lattice) for i in range(N)]
-    f = [HomSpaces[i](phi[i].matrix()) for i in range(N)]
+    G = glued_lattice.basis_matrix().solve_left(direct_sum.basis_matrix())
+    f = [HomSpaces[i](phi[i].matrix() * G) for i in range(N)]
     return [glued_lattice, f]
 
 ###############################################################################

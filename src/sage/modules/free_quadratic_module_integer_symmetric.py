@@ -374,6 +374,9 @@ def LatticeDirectSum(Lattices, return_embeddings=False):
         [ 0  0 -1  2 -1]
         [ 0  0  0 -1  2]
     """
+    for L in Lattices:
+        if not isinstance(L, FreeQuadraticModule_integer_symmetric):
+            raise ValueError("Lattices must be a list of lattices")
     N = len(Lattices)
     dims = [L_i.dimension() for L_i in Lattices]
     degrees = [L_i.degree() for L_i in Lattices]
@@ -576,7 +579,7 @@ def LatticeGluing(Lattices, glue, return_embeddings=False):
         [ 0  0  0  0  0  0  2  0]
         [ 0  0  0  0  0  0  0  2]
 
-    A gluing could take as input a list of three or more lattices ::
+    A gluing could take as input a list of three or more lattices::
 
         sage: from sage.modules.free_quadratic_module_integer_symmetric import LatticeGluing
         sage: A7 = IntegralLattice("A7")
@@ -631,9 +634,19 @@ def LatticeGluing(Lattices, glue, return_embeddings=False):
         sage: B = phi[0].matrix()
         sage: B * L.gram_matrix() * B.transpose()==L1.gram_matrix()
         True
-    """
-    N = len(Lattices)
+    """      
     [direct_sum, phi] = LatticeDirectSum(Lattices, return_embeddings=True)
+    N = len(Lattices)
+    for g in glue:
+        if not len(g)==N:
+            raise ValueError("The lengths of the lists do not match")
+    for i in range(N):
+        ALi = Lattices[i].discriminant_group()
+        for g in glue:
+            try:
+                x = ALi(g[i])
+            except:
+                raise ValueError("Gluing vectors must be in their corresponding discriminant group")
     generators = [sum(phi[i](g[i].lift()*g[i].order())/g[i].order() for i in range(N)) for g in glue]
     glued_lattice = direct_sum.overlattice(generators)
     if not return_embeddings:

@@ -868,7 +868,7 @@ class Permutation(CombinatorialElement):
             w = w[i:]
         return tableau.Tableau(t)
 
-    def to_cycles(self, singletons=True):
+    def to_cycles(self, singletons=True, mins=True):
         """
         Return the permutation ``self`` as a list of disjoint cycles.
 
@@ -879,15 +879,32 @@ class Permutation(CombinatorialElement):
         If ``singletons=False`` is given, the list does not contain the
         singleton cycles.
 
+        If ``mins=False`` is given, the cycles are returned in the
+        order of increasing *largest* (not smallest) elements, and
+        each cycle starts with its largest element.
+
         EXAMPLES::
 
             sage: Permutation([2,1,3,4]).to_cycles()
             [(1, 2), (3,), (4,)]
             sage: Permutation([2,1,3,4]).to_cycles(singletons=False)
             [(1, 2)]
+            sage: Permutation([2,1,3,4]).to_cycles(mins=True)
+            [(1, 2), (3,), (4,)]
+            sage: Permutation([2,1,3,4]).to_cycles(mins=False)
+            [(4,), (3,), (2, 1)]
+            sage: Permutation([2,1,3,4]).to_cycles(singletons=False, mins=False)
+            [(2, 1)]
 
             sage: Permutation([4,1,5,2,6,3]).to_cycles()
             [(1, 4, 2), (3, 5, 6)]
+            sage: Permutation([4,1,5,2,6,3]).to_cycles(mins=False)
+            [(6, 3, 5), (4, 2, 1)]
+
+            sage: Permutation([6, 4, 5, 2, 3, 1]).to_cycles()
+            [(1, 6), (2, 4), (3, 5)]
+            sage: Permutation([6, 4, 5, 2, 3, 1]).to_cycles(mins=False)
+            [(6, 1), (5, 3), (4, 2)]
 
         The algorithm is of complexity `O(n)` where `n` is the size of the
         given permutation.
@@ -933,8 +950,13 @@ class Permutation(CombinatorialElement):
 
         l = self[:]
 
+        if mins:
+            groundset = range(len(l))
+        else:
+            groundset = reversed(range(len(l)))
+
         # Go through until we've considered every number between 1 and len(l)
-        for i in range(len(l)):
+        for i in groundset:
             if not l[i]:
                 continue
             cycleFirst = i + 1
@@ -2269,6 +2291,9 @@ class Permutation(CombinatorialElement):
         See section 2 of [FoSc78]_, and the proof of Proposition 1.4.6
         in [EnumComb1]_.
 
+        For the inverse of the Foata bijection, see
+        :meth:`foata_bijection_inverse`.
+
         REFERENCES:
 
         .. [FoSc78] Dominique Foata, Marcel-Paul Schuetzenberger.
@@ -2376,6 +2401,109 @@ class Permutation(CombinatorialElement):
                     L_prime[x] = L[x+1]
             L = L_prime
         return Permutations()(reversed(Mrev))
+
+    @combinatorial_map(name='fundamental_transformation')
+    def fundamental_transformation(self):
+        r"""
+        Return the image of the permutation ``self`` under the
+        Renyi-Foata-Schuetzenberger fundamental transformation.
+
+        The fundamental transformation is a bijection from the
+        set of all permutations of `\{1, 2, \ldots, n\}' to
+        itself, which transforms any such permutation `w`
+        as follows:
+        Write `w` in cycle form, with each cycle starting with
+        its highest element, and the cycles being sorted in
+        increasing order of their highest elements.
+        Drop the parentheses in the resulting expression, thus
+        reading it as a one-line notation of a new permutation
+        `u`.
+        Then, `u` is the image of `w` under the fundamental
+        transformation.
+
+        See [EnumComb1]_, Proposition 1.3.1.
+
+        The fundamental transformation is a bijection; for its
+        inverse, see :meth:`fundamental_transformation_inverse`.
+
+        EXAMPLES::
+
+            sage: Permutation([5,1,3,4,2]).fundamental_transformation()
+            [3, 4, 5, 2, 1]
+            sage: Permutation([8, 4, 7, 2, 9, 6, 5, 1, 3]).fundamental_transformation()
+            [4, 2, 6, 8, 1, 9, 3, 7, 5]
+
+        Border cases::
+
+            sage: Permutation([]).fundamental_transformation()
+            []
+            sage: Permutation([1]).fundamental_transformation()
+            [1]
+        """
+        cycles = self.to_cycles(mins=False)
+        return Permutations()([a for c in reversed(cycles) for a in c])
+
+    @combinatorial_map(name='fundamental_transformation_inverse')
+    def fundamental_transformation_inverse(self):
+        r"""
+        Return the image of the permutation ``self`` under the
+        inverse of the Renyi-Foata-Schuetzenberger fundamental
+        transformation.
+
+        The inverse of the fundamental transformation is a
+        bijection from the set of all permutations of 
+        `\{1, 2, \ldots, n\}' to itself, which transforms any
+        such permutation `w` as follows:
+        Let `I = \{ i_1 < i_2 < \cdots < i_k \}` be the set of
+        all left-to-right maxima of `w` (that is, of all indices
+        `j` such that `w(j)` is bigger than each of
+        `w(1), w(2), \ldots, w(j-1)`).
+        The image of `w` under the inverse of the fundamental
+        transformation is the permutation `u` that sends
+        `w(i-1)` to `w(i)` for all `i \notin I` (notice that
+        this makes sense, since `1 \in I` whenever `n > 0`),
+        while sending each `w(i_p - 1)` (with `p \geq 2`)
+        to `w(i_{p-1})`. Here, we set `i_{k+1} = n+1`.
+
+        See [EnumComb1]_, Proposition 1.3.1.
+
+        See :meth:`fundamental_transformation` for the map whose
+        inverse this is.
+
+        EXAMPLES::
+
+            sage: Permutation([3, 4, 5, 2, 1]).fundamental_transformation_inverse()
+            [5, 1, 3, 4, 2]
+            sage: Permutation([4, 2, 6, 8, 1, 9, 3, 7, 5]).fundamental_transformation_inverse()
+            [8, 4, 7, 2, 9, 6, 5, 1, 3]
+
+            sage: all( P.fundamental_transformation_inverse().fundamental_transformation()
+            ....:      == P
+            ....:      for P in Permutations(4))
+            True
+
+        Border cases::
+
+            sage: Permutation([]).fundamental_transformation_inverse()
+            []
+            sage: Permutation([1]).fundamental_transformation_inverse()
+            [1]
+        """
+        n = len(self)
+        record_value = 0
+        previous_record = None
+        res = [0] * (n+1) # We'll use res[1], res[2], ..., res[n] only.
+        for i in range(n):
+            if self[i] > record_value:
+                record_value = self[i]
+                if previous_record is not None:
+                    res[self[i-1]] = previous_record
+                previous_record = self[i]
+            else:
+                res[self[i-1]] = self[i]
+        if n > 0:
+            res[self[n-1]] = previous_record
+        return Permutations()(res[1:])
 
     def destandardize(self, weight, ordered_alphabet = None):
         r"""

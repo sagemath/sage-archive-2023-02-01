@@ -125,11 +125,6 @@ ntl_install()
     cd "$SRC"
 
     sdh_make_install
-
-    # Touch all includes such that dependency checking works properly:
-    # the timestamp of the includes should be *now*, not the time when
-    # the NTL package was created.
-    touch "$SAGE_DESTDIR_LOCAL"/include/NTL/*
 }
 
 ntl_configure

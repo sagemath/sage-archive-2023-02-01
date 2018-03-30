@@ -6012,7 +6012,7 @@ class GenericGraph(GenericGraph_pyx):
 
         .. [LPForm] Nathann Cohen,
           Several Graph problems and their Linear Program formulations,
-          http://hal.archives-ouvertes.fr/inria-00504914/en
+          https://hal.archives-ouvertes.fr/inria-00504914/en
 
         .. [KaisPacking] Thomas Kaiser
           A short proof of the tree-packing theorem

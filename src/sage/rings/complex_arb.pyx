@@ -834,25 +834,25 @@ class ComplexBallField(UniqueRepresentation, Field):
         cdef long initial_prec = min(32, maxprec)
         cdef long prec = initial_prec
         cdef long isolated = 0
-        sig_on()
+        cdef RealBall rb
+        cdef ComplexBall cb
         acb_poly_init(rounded_poly)
         cdef long deg = acb_poly_degree(poly.__poly)
         cdef acb_ptr roots = _acb_vec_init(deg)
-        while ((isolated < deg or any(acb_rel_accuracy_bits(&roots[i]) < tgtprec
-                                      for i in range(deg)))
-               and prec < maxprec):
-            acb_poly_set_round(rounded_poly, poly.__poly, prec)
-            maxiter = min(max(deg, 32), prec)
-            if (prec == initial_prec):
-                isolated = acb_poly_find_roots(roots, rounded_poly, NULL, maxiter, prec)
-            else:
-                isolated = acb_poly_find_roots(roots, rounded_poly, roots, maxiter, prec)
-            prec *= 2
-        sig_off()
-
-        cdef RealBall rb
-        cdef ComplexBall cb
         try:
+            sig_on()
+            while ((isolated < deg or any(acb_rel_accuracy_bits(&roots[i]) < tgtprec
+                                        for i in range(deg)))
+                and prec < maxprec):
+                acb_poly_set_round(rounded_poly, poly.__poly, prec)
+                maxiter = min(max(deg, 32), prec)
+                if (prec == initial_prec):
+                    isolated = acb_poly_find_roots(roots, rounded_poly, NULL, maxiter, prec)
+                else:
+                    isolated = acb_poly_find_roots(roots, rounded_poly, roots, maxiter, prec)
+                prec *= 2
+            sig_off()
+
             if isolated < deg:
                 if proof:
                     raise ValueError("unable to isolate the roots (try using "

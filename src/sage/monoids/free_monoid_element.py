@@ -278,12 +278,12 @@ class FreeMonoidElement(MonoidElement):
             s += x[1]
         return s
 
-    def _richcmp_(left, right, op):
+    def _richcmp_(self, right, op):
         """
         Compare two free monoid elements with the same parents.
 
-        The ordering is the one on the underlying sorted list of
-        (generator index, power) pairs.
+        The ordering is first by increasing length, then lexicographically
+        on the underlying word.
 
         EXAMPLES::
 
@@ -301,18 +301,12 @@ class FreeMonoidElement(MonoidElement):
             sage: x >= x*x
             False
         """
-        if (not isinstance(right, FreeMonoidElement) or
-             left.parent() != right.parent()):
-            return NotImplemented
-
-        v = tuple(x for x, i in left._element_list for j in range(i))
+        v = tuple(x for x, i in self._element_list for j in range(i))
         w = tuple(x for x, i in right._element_list for j in range(i))
-
         m = len(v)
         n = len(w)
         if m != n:
             return richcmp_not_equal(m, n, op)
-
         return richcmp(v, w, op)
 
     def _acted_upon_(self, x, self_on_left):

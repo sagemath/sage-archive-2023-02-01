@@ -160,4 +160,3 @@ def CoxeterGroup(data, implementation="reflection", base_ring=None, index_set=No
 
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.root_system.coxeter_group', 'CoxeterGroupAsPermutationGroup',  ReflectionGroup)
-

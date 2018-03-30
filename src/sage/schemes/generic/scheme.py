@@ -74,7 +74,7 @@ class Scheme(Parent):
 
         sage: from sage.schemes.generic.scheme import Scheme
         sage: Scheme(ZZ)
-        <class 'sage.schemes.generic.scheme.Scheme_with_category'>
+        <sage.schemes.generic.scheme.Scheme_with_category object at ...>
 
     A scheme is in the category of all schemes over its base::
 

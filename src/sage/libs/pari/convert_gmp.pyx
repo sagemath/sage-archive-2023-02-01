@@ -62,6 +62,9 @@ cdef inline GEN _new_GEN_from_mpz_t(mpz_t value):
     For internal use only; this directly uses the PARI stack.
     One should call ``sig_on()`` before and ``sig_off()`` after.
     """
+    if mpz_sgn(value) == 0:
+        return gen_0
+
     cdef unsigned long limbs = mpz_size(value)
 
     cdef GEN z = cgeti(limbs + 2)

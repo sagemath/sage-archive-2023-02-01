@@ -593,7 +593,6 @@ class RealReflectionGroup(ComplexReflectionGroup):
         """
         return self.cartan_type().coxeter_matrix()
 
-
     @cached_method
     def right_coset_representatives(self, J):
         r"""

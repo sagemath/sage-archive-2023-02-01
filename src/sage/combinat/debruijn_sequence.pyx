@@ -35,8 +35,7 @@ This sequence is of length `k^n`, which is best possible as it is the number of
 of parameters `k` and `n` as a cyclic sequence of length `k^n` in which all
 substring of length `n` are different.
 
-See also the `Wikipedia article on De Bruijn sequences
-<http://en.wikipedia.org/wiki/De_Bruijn_sequence>`_.
+See also :wikipedia:`De_Bruijn_sequence`.
 
 TESTS:
 

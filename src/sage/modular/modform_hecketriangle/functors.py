@@ -46,7 +46,7 @@ def _get_base_ring(ring, var_name="d"):
 
     Otherwise return ``ring``.
 
-    The base ring is used in the construction of the correponding
+    The base ring is used in the construction of the corresponding
     ``FormsRing`` or ``FormsSpace``. In particular in the construction
     of holomorphic forms of degree (0, 1). For (binary)
     operations a general ring element is considered (coerced to)

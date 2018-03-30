@@ -1712,7 +1712,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
 
         INPUT:
 
-        - x - an element of this algebra
+        - x -- an element of this algebra
 
         OUTPUT: x converted to the Milnor basis
 

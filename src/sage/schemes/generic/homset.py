@@ -456,9 +456,9 @@ class SchemeHomset_points(SchemeHomset_generic):
 
     def _coerce_map_from_(self, other):
         r"""
-        Return true if ``other`` canonically coerces to self.
+        Return true if ``other`` canonically coerces to ``self``.
 
-        EXAMPELS::
+        EXAMPLES::
 
             sage: R.<t> = QQ[]
             sage: P = ProjectiveSpace(QQ, 1, 'x')

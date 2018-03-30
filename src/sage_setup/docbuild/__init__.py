@@ -633,7 +633,7 @@ for a webpage listing all of the documents.''' % (output_dir,
             ['reference/algebras',
              'reference/arithgroup',
              ...,
-             'reference/tensor_free_modules']
+             'reference/valuations']
         """
         documents = []
 

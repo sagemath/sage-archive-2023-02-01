@@ -25,7 +25,7 @@ from sage.combinat.subset import Subsets
 from sage.functions.all import sqrt
 from itertools import permutations, combinations
 from sage.matrix.constructor import matrix
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 from sage.misc.misc_c import prod
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.finite_rings.integer_mod_ring import Integers
@@ -584,7 +584,7 @@ def remove_redundant_automorphisms(automorphisms, order_elts, moduli, integral_a
         to_del_temp = []
         for psi in integral_autos:
             #The return_functions boolean determines if the automorphisms
-            #are matricies or linear fractional transformations
+            #are matrices or linear fractional transformations
             if is_Matrix(psi):
                 ppsi = psi.change_ring(GF(p))
                 B = [ppsi[0,0], ppsi[0,1], ppsi[1,0], psi[1,1]]

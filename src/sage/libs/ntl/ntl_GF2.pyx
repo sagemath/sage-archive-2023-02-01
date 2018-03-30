@@ -16,6 +16,7 @@
 from __future__ import division
 
 from cysignals.signals cimport sig_on, sig_off
+from sage.ext.cplusplus cimport ccrepr, ccreadstr
 
 include 'misc.pxi'
 include 'decl.pxi'
@@ -52,10 +53,7 @@ cdef class ntl_GF2(object):
         elif isinstance(v, int) or isinstance(v, long) or isinstance(v, Integer):
             GF2_conv_long(self.x, int(v) % 2)
         elif v is not None:
-            v = str(v)
-            sig_on()
-            GF2_from_str(&self.x, v)
-            sig_off()
+            ccreadstr(self.x, str(v))
 
     def __repr__(self):
         """
@@ -65,7 +63,7 @@ cdef class ntl_GF2(object):
             sage: str(ntl.GF2(1)) # indirect doctest
             '1'
         """
-        return GF2_to_PyString(&self.x)
+        return ccrepr(self.x)
 
     def __reduce__(self):
         """

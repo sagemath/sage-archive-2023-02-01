@@ -16,7 +16,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-$PIP_INSTALL .
+sdh_pip_install .
 if [ $? -ne 0 ]; then
     echo "Error installing cysignals ... exiting"
     exit 1

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Crystals of letters
 """
@@ -431,6 +432,29 @@ cdef class Letter(Element):
         if self.value < 0:
             return "\\overline{" + repr(-self.value) + "}"
         return repr(self.value)
+
+    def _unicode_art_(self):
+        r"""
+        A unicode art representation of ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Letters(['D', 4])
+            sage: unicode_art(C(2))
+            2
+            sage: unicode_art(C(-3))
+            3̄
+
+            sage: C = crystals.Letters(['D',12])
+            sage: unicode_art(C(12))
+            12
+            sage: unicode_art(C(-11))
+            1̄1̄
+        """
+        from sage.typeset.unicode_art import UnicodeArt
+        if self.value < 0:
+            return UnicodeArt(["".join(let + u"̄" for let in unicode(-self.value))])
+        return UnicodeArt([unicode(self.value)])
 
     def __hash__(self):
         """
@@ -1384,6 +1408,20 @@ cdef class LetterTuple(Element):
         """
         return repr(self.value)
 
+    def _unicode_art_(self):
+        r"""
+        A unicode art representation of ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Letters(['E',6])
+            sage: unicode_art(C.list()[:5])
+            [ (1), (1̄, 3), (3̄, 4), (4̄, 2, 5), (2̄, 5) ]
+        """
+        from sage.typeset.unicode_art import UnicodeArt
+        return UnicodeArt([u"({})".format(u", ".join(unicode(x) if x > 0 else unicode(-x) + u"̄"
+                                                     for x in self.value))])
+
     def _latex_(self):
         r"""
         A latex representation of ``self``.
@@ -2317,6 +2355,30 @@ cdef class BKKLetter(Letter):
             ret = ret + '*'
         return ret
 
+    def _unicode_art_(self):
+        r"""
+        A unicode art representation of ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Letters(['A', [2, 1]])
+            sage: unicode_art(C(2))
+            2
+            sage: unicode_art(C(-3))
+            3̄
+
+            sage: C = crystals.Letters(['A', [2, 1]], dual=True)
+            sage: unicode_art(C(2))
+            2˅
+            sage: unicode_art(C(-3))
+            3̄˅
+        """
+        ret = Letter._unicode_art_(self)
+        from sage.typeset.unicode_art import UnicodeArt
+        if self._parent._dual:
+            ret = ret + UnicodeArt([u'˅'])
+        return ret
+
     def _latex_(self):
         r"""
         A latex representation of ``self``.
@@ -2628,6 +2690,20 @@ cdef class LetterWrapped(Element):
         """
         return repr(self._to_tuple())
 
+    def _unicode_art_(self):
+        r"""
+        A unicode art representation of ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Letters(['E', 8])
+            sage: unicode_art(C((1,-4,5)))
+            (1, 4̄, 5)
+        """
+        from sage.typeset.unicode_art import UnicodeArt
+        return UnicodeArt([u"({})".format(u", ".join(unicode(x) if x > 0 else unicode(-x) + u"̄"
+                                                     for x in self._to_tuple()))])
+
     def _latex_(self):
         r"""
         A latex representation of ``self``.
@@ -2731,7 +2807,7 @@ class ClassicalCrystalOfLettersWrapped(ClassicalCrystalOfLetters):
         EXAMPLES::
 
             sage: C = crystals.Letters(['E', 8])
-            sage: TestSuite(C).run()
+            sage: TestSuite(C).run()  # long time
 
             sage: C = crystals.Letters(['F', 4])
             sage: TestSuite(C).run()

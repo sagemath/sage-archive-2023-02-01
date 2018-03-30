@@ -329,7 +329,9 @@ class Function_exp_integral_e1(BuiltinFunction):
 
     def _derivative_(self, z, diff_param=None):
         """
-        The derivative of `E_1(z)` is `-e^{-z}/z`. See [AS1964], 5.1.26.
+        The derivative of `E_1(z)` is `-e^{-z}/z`.
+
+        See [AS1964]_ 5.1.26.
 
         EXAMPLES::
 
@@ -395,7 +397,7 @@ class Function_log_integral(BuiltinFunction):
 
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Logarithmic_integral_function
+    - :wikipedia:`Logarithmic_integral_function`
     - mpmath documentation: `logarithmic-integral`_
 
     .. _`logarithmic-integral`: http://mpmath.org/doc/current/functions/expintegrals.html#logarithmic-integral
@@ -583,7 +585,7 @@ class Function_log_integral_offset(BuiltinFunction):
 
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Logarithmic_integral_function
+    - :wikipedia:`Logarithmic_integral_function`
     - mpmath documentation: `logarithmic-integral`_
 
     .. _`logarithmic-integral`: http://mpmath.org/doc/current/functions/expintegrals.html#logarithmic-integral
@@ -754,7 +756,7 @@ class Function_sin_integral(BuiltinFunction):
 
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Trigonometric_integral
+    - :wikipedia:`Trigonometric_integral`
     - mpmath documentation: `si`_
 
     .. _`si`: http://mpmath.org/doc/current/functions/expintegrals.html#si
@@ -927,7 +929,7 @@ class Function_cos_integral(BuiltinFunction):
 
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Trigonometric_integral
+    - :wikipedia:`Trigonometric_integral`
     - mpmath documentation: `ci`_
 
     .. _`ci`: http://mpmath.org/doc/current/functions/expintegrals.html#ci
@@ -1060,7 +1062,7 @@ class Function_sinh_integral(BuiltinFunction):
 
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Trigonometric_integral
+    - :wikipedia:`Trigonometric_integral`
     - mpmath documentation: `shi`_
 
     .. _`shi`: http://mpmath.org/doc/current/functions/expintegrals.html#shi
@@ -1208,7 +1210,7 @@ class Function_cosh_integral(BuiltinFunction):
 
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Trigonometric_integral
+    - :wikipedia:`Trigonometric_integral`
     - mpmath documentation: `chi`_
 
     .. _`chi`: http://mpmath.org/doc/current/functions/expintegrals.html#chi

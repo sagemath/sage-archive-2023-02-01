@@ -456,7 +456,7 @@ class GraphPlot(SageObject):
                                                             clip=False)
                                                      for center in self._pos.values()]
             else:
-                self._plot_components['vertices'] = scatter_plot(self._pos.values(),
+                self._plot_components['vertices'] = scatter_plot(list(self._pos.values()),
                                                                  clip=False, **voptions)
         else:
             # Color list must be ordered:
@@ -600,6 +600,11 @@ class GraphPlot(SageObject):
             ....:         vn = vector(((x-(vx[v0]+vx[v1])/2.),y-(vy[v0]+vy[v1])/2.)).norm()
             ....:         assert vn < tol
 
+        Ticket :trac:`24051` is fixed::
+
+            sage: G = Graph([(0,1), (0,1)], multiedges=True)
+            sage: G.plot(edge_colors={"red":[(1,0)]})
+            Graphics object consisting of 5 graphics primitives
         """
         for arg in edge_options:
             self._options[arg] = edge_options[arg]
@@ -635,7 +640,8 @@ class GraphPlot(SageObject):
         if self._options['color_by_label'] or isinstance(self._options['edge_colors'], dict):
             if self._options['color_by_label']:
                 edge_colors = self._graph._color_by_label(format=self._options['color_by_label'])
-            else: edge_colors = self._options['edge_colors']
+            else:
+                edge_colors = self._options['edge_colors']
             edges_drawn = []
             for color in edge_colors:
                 for edge in edge_colors[color]:
@@ -669,7 +675,10 @@ class GraphPlot(SageObject):
 
             # Add unspecified edges (default color black set in DEFAULT_PLOT_OPTIONS)
             for edge in self._graph.edge_iterator():
-                if (edge[0],edge[1],edge[2]) not in edges_drawn:
+                if (edge[0],edge[1],edge[2]) not in edges_drawn and \
+                    ( self._graph.is_directed() or
+                      (edge[1],edge[0],edge[2]) not in edges_drawn
+                    ):
                     key = tuple(sorted([edge[0],edge[1]]))
                     if key == (edge[0],edge[1]): head = 1
                     else: head = 0

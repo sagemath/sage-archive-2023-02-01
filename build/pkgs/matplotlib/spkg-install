@@ -16,7 +16,7 @@ python make-setup-config.py
 cd src
 
 # Finally install
-$PIP_INSTALL .
+sdh_pip_install .
 
 if [ $? -ne 0 ]; then
     echo "Error installing matplotlib package."

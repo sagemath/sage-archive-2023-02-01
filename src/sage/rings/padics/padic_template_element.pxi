@@ -739,13 +739,20 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         """
         return self.prime_pow
 
-    def residue(self, absprec=1):
+    def residue(self, absprec=1, field=None, check_prec=True):
         r"""
         Reduce this element modulo `p^\mathrm{absprec}`.
 
         INPUT:
 
         - ``absprec`` -- ``0`` or ``1``.
+
+        - ``field`` -- boolean (default ``None``).  For precision 1, whether to return
+          an element of the residue field or a residue ring.  Currently unused.
+
+        - ``check_prec`` -- boolean (default ``True``).  Whether to raise an error if this
+          element has insufficient precision to determine the reduction.  Errors are never
+          raised for fixed-mod or floating-point types.
 
         OUTPUT:
 
@@ -754,7 +761,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
 
         EXAMPLES::
 
-            sage: R.<a> = ZqFM(27, 4)
+            sage: R.<a> = Zq(27, 4)
             sage: (3 + 3*a).residue()
             0
             sage: (a + 1).residue()
@@ -772,6 +779,10 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
             Traceback (most recent call last):
             ...
             PrecisionError: insufficient precision to reduce modulo p^10.
+            sage: a.residue(10, check_prec=False)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: reduction modulo p^n with n>1.
 
             sage: R.<a> = ZqCA(27, 4)
             sage: (3 + 3*a).residue()
@@ -788,19 +799,23 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
             Traceback (most recent call last):
             ...
             ValueError: element must have non-negative valuation in order to compute residue.
-            
         """
         if absprec < 0:
             raise ValueError("cannot reduce modulo a negative power of the uniformizer.")
         if self.valuation() < 0:
             raise ValueError("element must have non-negative valuation in order to compute residue.")
-        if absprec > self.precision_absolute():
+        R = self.parent()
+        if check_prec and (R.is_fixed_mod() or R.is_floating_point()):
+            check_prec = False
+        if check_prec and absprec > self.precision_absolute():
             raise PrecisionError("insufficient precision to reduce modulo p^%s."%absprec)
+        if field and absprec != 1:
+            raise ValueError("field keyword may only be set at precision 1")
         if absprec == 0:
             from sage.rings.all import IntegerModRing
             return IntegerModRing(1).zero()
         elif absprec == 1:
-            parent = self.parent().residue_field()
+            parent = R.residue_field()
             if self.valuation() > 0:
                 return parent.zero()
             return parent(self.expansion(0))
@@ -951,7 +966,7 @@ cdef class ExpansionIter(object):
     INPUT:
 
     - ``elt`` -- the `p`-adic element
-    - ``prec`` -- the nunmber of terms to be emitted
+    - ``prec`` -- the number of terms to be emitted
     - ``mode`` -- either ``simple_mode``, ``smallest_mode`` or ``teichmuller_mode``
 
     EXAMPLES::
@@ -1076,7 +1091,7 @@ cdef class ExpansionIterable(object):
     INPUT:
 
     - ``elt`` -- the `p`-adic element
-    - ``prec`` -- the nunmber of terms to be emitted
+    - ``prec`` -- the number of terms to be emitted
     - ``val_shift`` -- how many zeros to add at the beginning of the expansion,
       or the number of initial terms to truncate (if negative)
     - ``mode`` -- either ``simple_mode``, ``smallest_mode`` or ``teichmuller_mode``
@@ -1127,7 +1142,7 @@ cdef class ExpansionIterable(object):
         Returns an iterator, based on a corresponding :class:`ExpansionIter`.
 
         If ``val_shift`` is positive, will first emit that many zeros
-        (of the approrpiate type: ``[]`` instead when the inertia degree
+        (of the appropriate type: ``[]`` instead when the inertia degree
         is larger than one.
 
         If ``val_shift`` is negative, will truncate that many terms at

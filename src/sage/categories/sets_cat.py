@@ -10,8 +10,8 @@ Sets
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six.moves import range
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.sage_unittest import TestSuite
@@ -241,7 +241,7 @@ class Sets(Category_singleton):
            Proper forgetful functors will eventually be implemented, with
            another syntax.
         """
-        if enumerated_set and type(X) in (tuple,list):
+        if enumerated_set and type(X) in (tuple,list,range):
             from sage.categories.enumerated_sets import EnumeratedSets
             return EnumeratedSets()(X)
         from sage.sets.set import Set
@@ -1384,7 +1384,7 @@ class Sets(Category_singleton):
             tester = self._tester(**options)
             elements = self.some_elements()
             # Todo: enable this once
-            #tester.assert_(elements != iter(elements),
+            #tester.assertTrue(elements != iter(elements),
             #               "self.some_elements() should return an iterable, not an iterator")
             for x in elements:
                 tester.assertTrue(x in self, LazyFormat(
@@ -2548,7 +2548,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 """
                 tester = self._tester(**options)
                 for R in self.realizations():
-                    tester.assert_(R in self.Realizations())
+                    tester.assertTrue(R in self.Realizations())
                 # Could check that there are coerce maps between any two realizations
 
             @lazy_attribute

@@ -409,8 +409,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         # NOTE!! having the same newform level, isogeny class number,
         # and degen_t does not imply two abelian varieties are equal.
         # See the docstring for self.label.
-
-        return richcmp(self.lattice(), other.lattice(), op)
+        return self.lattice()._echelon_matrix_richcmp(other.lattice(), op)
 
     def __radd__(self,other):
         """
@@ -2230,6 +2229,35 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             T = T.block_sum(M[i].hecke_matrix(n))
         self.__ambient_hecke_matrix_on_modular_symbols[n] = T
         return T
+
+    def rational_torsion_order(self, proof=True):
+        """
+        Return the order of the rational torsion subgroup of this modular
+        abelian variety.
+
+        This function is really an alias for
+        :meth:`~sage.modular.abvar.torsion_subgroup.RationalTorsionSubgroup.order`
+        See the docstring there for a more in-depth reference and more
+        interesting examples.
+
+        INPUT:
+
+        - ``proof`` -- a boolean (default: True)
+
+        OUTPUT:
+
+        The order of the rational torsion subgroup of this modular abelian
+        variety.
+
+
+        EXAMPLES::
+
+            sage: J0(11).rational_torsion_subgroup().order()
+            5
+            sage: J0(11).rational_torsion_order()
+            5
+        """
+        return self.rational_torsion_subgroup().order(proof=proof)
 
     def number_of_rational_points(self):
         """

@@ -324,39 +324,46 @@ if [ "$1" = '-i' ]; then
     fi
 
     set -e
-
     cd "$SAGE_ROOT"
 
-    # First of all, make sure that the toolchain is up-to-date
-    # (which is a dependency of every package)
-    ./sage --location
-    $MAKE all-toolchain
-    echo
-
+    # Parse options
+    PACKAGES=""         # Packages to install
     INSTALL_OPTIONS=""  # Options to sage-spkg
-    for PKG in "$@"
-    do
-        case "$PKG" in
+    for OPT in "$@"; do
+        case "$OPT" in
             -info|--info)
-                echo >&2 "Error: 'sage -i $PKG <package>' is no longer supported, use 'sage --info <package>' instead."
+                echo >&2 "Error: 'sage -i $OPT <package>' is no longer supported, use 'sage --info <package>' instead."
                 exit 2;;
             -f) FORCE_INSTALL=yes;;
-            -*) INSTALL_OPTIONS="$INSTALL_OPTIONS $PKG";;
-            *)
-                # First check that $PKG is actually a Makefile target
-                if ! grep "^$PKG: " build/make/Makefile >/dev/null; then
-                    echo >&2 "Error: package '$PKG' not found"
-                    echo >&2 "Assuming it is an old-style package... (this is deprecated: use -p instead of -i to install old-style packages)"
-                    echo >&2
-                    sleep 5
-                    ./sage -p $INSTALL_OPTIONS "$PKG"
-                else
-                    if [ x$FORCE_INSTALL = xyes ]; then
-                        $MAKE "$PKG-clean"
-                    fi
-                    $MAKE SAGE_SPKG="sage-spkg $INSTALL_OPTIONS" "$PKG"
-                fi;;
+            -*) INSTALL_OPTIONS="$INSTALL_OPTIONS $OPT";;
+            *) PACKAGES="$PACKAGES $OPT";;
         esac
+    done
+
+    # First, uninstall the packages if -f was given
+    if [ "$FORCE_INSTALL" = yes ]; then
+        for PKG in $PACKAGES; do
+            $MAKE "$PKG-clean" || true  # Ignore errors
+        done
+    fi
+
+    # Make sure that the toolchain is up-to-date
+    # (which is a dependency of every package)
+    $MAKE all-toolchain
+
+    # Now install the packages
+    for PKG in $PACKAGES; do
+        echo
+        # First check that $PKG is actually a Makefile target
+        # Since https://trac.sagemath.org/ticket/21524 there is not explicitly
+        # a target for the package, but if it has a vers_<pkgname> variable
+        # there will also be a generated rule for it
+        if ! grep "^vers_$PKG = " build/make/Makefile >/dev/null; then
+            echo >&2 "Error: package '$PKG' not found"
+            echo >&2 "Note: if it is an old-style package, use -p instead of -i to install it"
+            exit 1
+        fi
+        $MAKE SAGE_SPKG="sage-spkg $INSTALL_OPTIONS" "$PKG"
     done
     exit 0
 fi
@@ -744,7 +751,7 @@ fi
 
 if [ "$1" = '-rst2ipynb' -o "$1" = '--rst2ipynb' ]; then
     shift
-    exec sage-rst2ipynb "$@"
+    exec rst2ipynb --kernel=sagemath "$@"
 fi
 
 if [ "$1" = '-rst2txt' -o "$1" = '--rst2txt' ]; then
@@ -790,15 +797,15 @@ if [ "$1" = "-inotebook" -o "$1" = '--inotebook' ]; then
 fi
 
 if [ "$1" = '-grep' -o "$1" = "--grep" -o "$1" = "-search_src" -o "$1" = "--search_src" ]; then
-   shift
-   sage-grep "$@"
-   exit 0
+    shift
+    sage-grep "$@"
+    exit 0
 fi
 
 if [ "$1" = '-grepdoc' -o "$1" = "--grepdoc" -o "$1" = "-search_doc" -o "$1" = "--search_doc" ]; then
-   shift
-   sage-grepdoc "$@"
-   exit 0
+    shift
+    sage-grepdoc "$@"
+    exit 0
 fi
 
 if [ "$1" = '-b' ]; then
@@ -812,8 +819,8 @@ if [ "$1" = '-br' -o "$1" = "--br" ]; then
 fi
 
 if [ "$1" = '-r' ]; then
-   shift
-   interactive_sage
+    shift
+    interactive_sage
 fi
 
 if [ "$1" = '-ba' -o "$1" = '-ba-force' -o "$1" = '--ba-force' ]; then
@@ -971,7 +978,7 @@ fi
 
 if [ "$1" = "-docbuild" -o "$1" = "--docbuild" ]; then
     shift
-    exec python -m "sage_setup.docbuild" "$@"
+    exec sage-python23 -m "sage_setup.docbuild" "$@"
 fi
 
 if [ "$1" = '-gdb' -o "$1" = "--gdb" ]; then

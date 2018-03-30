@@ -125,8 +125,8 @@ def gauss_sum(a, p, f, prec=20, factored=False):
     R = Zp(p, prec)
     digits = list(Zp(p)(a).expansion())
     n = len(digits)
-    digits = digits + [0] * (f - n)
     s = sum(digits)
+    digits = digits + [0] * (f - n)
     out = R(-1)
     for i in range(f):
         a_i = R.sum(digits[k] * p**((i + k) % f) for k in range(f))
@@ -200,7 +200,9 @@ def precprint(prec_type, prec_cap, p):
     precD = {'capped-rel':'with capped relative precision %s'%prec_cap,
              'capped-abs':'with capped absolute precision %s'%prec_cap,
              'floating-point':'with floating precision %s'%prec_cap,
-             'fixed-mod':'of fixed modulus %s^%s'%(p, prec_cap)}
+             'fixed-mod':'of fixed modulus %s^%s'%(p, prec_cap),
+             'lattice-cap':'with lattice-cap precision',
+             'lattice-float':'with lattice-float precision'}
     return precD[prec_type]
 
 def trim_zeros(L):

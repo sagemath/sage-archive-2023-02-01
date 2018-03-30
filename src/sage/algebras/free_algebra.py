@@ -235,10 +235,10 @@ class FreeAlgebraFactory(UniqueFactory):
         sage: c^3 * a * b^2
         a*b^2*c^3
     """
-    def create_key(self,base_ring, arg1=None, arg2=None,
-                                      sparse=False, order='degrevlex',
-                                      names=None, name=None,
-                                      implementation=None, degrees=None):
+    def create_key(self, base_ring, arg1=None, arg2=None,
+            sparse=None, order='degrevlex',
+            names=None, name=None,
+            implementation=None, degrees=None):
         """
         Create the key under which a free algebra is stored.
 
@@ -265,7 +265,6 @@ class FreeAlgebraFactory(UniqueFactory):
             if degrees is None:
                 return (base_ring,)
             return tuple(degrees),base_ring
-        PolRing = None
         # test if we can use libSingular/letterplace
         if implementation == "letterplace":
             args = [arg for arg in (arg1, arg2) if arg is not None]
@@ -275,7 +274,6 @@ class FreeAlgebraFactory(UniqueFactory):
             if names is not None:
                 kwds["names"] = names
             PolRing = PolynomialRing(base_ring, *args, **kwds)
-        if PolRing is not None:
             if degrees is None:
                 return (PolRing,)
             from sage.all import TermOrder
@@ -285,9 +283,10 @@ class FreeAlgebraFactory(UniqueFactory):
             while newname in varnames:
                 newname += '_'
             varnames.append(newname)
-            return tuple(degrees),PolynomialRing(PolRing.base(), varnames,
-                    sparse=sparse, order=T,
-                    implementation=implementation if implementation != 'letterplace' else None)
+            R = PolynomialRing(
+                    PolRing.base(), varnames,
+                    sparse=sparse, order=T)
+            return tuple(degrees), R
         # normalise the generator names
         from sage.all import Integer
         if isinstance(arg1, (Integer,) + integer_types):

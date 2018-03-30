@@ -512,11 +512,11 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def as_dynamical_system(self):
         """
-        Return this endomorpism as a :class:`DynamicalSystem_projective`.
+        Return this endomorphism as a :class:`DynamicalSystem_projective`.
 
         OUTPUT:
 
-        - :class:`DynamicalSystem_projective`.
+        - :class:`DynamicalSystem_projective`
 
         EXAMPLES::
 
@@ -1675,7 +1675,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
     def sigma_invariants(self, n, formal=False, embedding=None, type='point'):
         r"""
         Computes the values of the elementary symmetric polynomials of the ``n``
-        multilpier spectra of this dynamical system.
+        multiplier spectra of this dynamical system.
 
         EXAMPLES::
 
@@ -2072,12 +2072,9 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: H = End(P)
             sage: f = H([QQbar(3^(1/3))*x^2 + QQbar(sqrt(-2))*y^2, y^2])
             sage: f._number_field_from_algebraics()
-            Scheme endomorphism of Projective Space of dimension 1 over Number Field
-            in a with defining polynomial y^6 + 6*y^4 + 6*y^3 + 12*y^2 - 36*y + 17
+            Scheme endomorphism of Projective Space of dimension 1 over Number Field in a with defining polynomial y^6 + 6*y^4 - 6*y^3 + 12*y^2 + 36*y + 17
               Defn: Defined on coordinates by sending (z0 : z1) to
-                    ((48/269*a^5 + 27/269*a^4 + 320/269*a^3 + 468/269*a^2 + 772/269*a
-                    - 1092/269)*z0^2 + (48/269*a^5 + 27/269*a^4 + 320/269*a^3 + 468/269*a^2
-                    + 1041/269*a - 1092/269)*z1^2 : z1^2)
+                    ((-48/269*a^5 + 27/269*a^4 - 320/269*a^3 + 468/269*a^2 - 772/269*a - 1092/269)*z0^2 + (48/269*a^5 - 27/269*a^4 + 320/269*a^3 - 468/269*a^2 + 1041/269*a + 1092/269)*z1^2 : z1^2)
 
         ::
 
@@ -2209,7 +2206,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
     def normal_form(self, return_conjugation=False):
         """
-        Return a normla form conjugate to this map.
+        Return a normal form conjugate to this map.
 
         EXAMPLES::
 

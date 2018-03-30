@@ -39,6 +39,8 @@ TESTS::
     True
     sage: RationalField() is RationalField()
     True
+    sage: Q in Fields().Infinite()
+    True
 
 AUTHORS:
 
@@ -50,6 +52,12 @@ AUTHORS:
 
 """
 from __future__ import print_function, absolute_import
+
+import six
+if six.PY2:
+    _long_type = long
+else:
+    _long_type = int
 
 from .rational import Rational
 from .integer import Integer
@@ -221,13 +229,17 @@ class RationalField(Singleton, number_field_base.NumberField):
             'x'
             sage: QQ.variable_names()
             ('x',)
+            sage: QQ._element_constructor_((2, 3))
+            2/3
         """
         from sage.categories.basic import QuotientFields
         from sage.categories.number_fields import NumberFields
         ParentWithGens.__init__(self, self, category=[QuotientFields().Metric(),
                                                       NumberFields()])
         self._assign_names(('x',),normalize=False) # ???
-        self._populate_coercion_lists_(element_constructor=Rational, init_no_parent=True)
+        self._populate_coercion_lists_(init_no_parent=True)
+
+    _element_constructor_ = Rational
 
     def _repr_(self):
         """
@@ -350,17 +362,10 @@ class RationalField(Singleton, number_field_base.NumberField):
 
         ::
 
-            sage: QQ.coerce_map_from(long) # indirect doctest
-            Composite map:
+            sage: QQ.coerce_map_from(long) # indirect doctest py2
+            Native morphism:
               From: Set of Python objects of class 'long'
               To:   Rational Field
-              Defn:   Native morphism:
-                      From: Set of Python objects of class 'long'
-                      To:   Integer Ring
-                    then
-                      Natural morphism:
-                      From: Integer Ring
-                      To:   Rational Field
         """
         global ZZ
         from . import rational
@@ -369,6 +374,8 @@ class RationalField(Singleton, number_field_base.NumberField):
             ZZ = integer_ring.ZZ
         if S is ZZ:
             return rational.Z_to_Q()
+        elif S is _long_type:
+            return rational.long_to_Q()
         elif S is int:
             return rational.int_to_Q()
         elif ZZ.has_coerce_map_from(S):
@@ -425,6 +432,24 @@ class RationalField(Singleton, number_field_base.NumberField):
                     yield self(-other/height)
                     yield self(height/other)
                     yield self(-height/other)
+
+    def __truediv__(self, I):
+        """
+        Form the quotient by an integral ideal.
+
+        EXAMPLES::
+
+            sage: QQ / ZZ
+            Q/Z
+        """
+        from sage.rings.ideal import Ideal_generic
+        from sage.groups.additive_abelian.qmodnz import QmodnZ
+        if I is ZZ:
+            return QmodnZ(1)
+        elif isinstance(I, Ideal_generic) and I.base_ring() is ZZ:
+            return QmodnZ(I.gen())
+        else:
+            return super(RationalField, self).__truediv__(I)
 
     def range_by_height(self, start, end=None):
         r"""
@@ -509,8 +534,8 @@ class RationalField(Singleton, number_field_base.NumberField):
         except (TypeError, AttributeError):
             raise TypeError("%s is not valid bound on prime ideals" % B)
 
-        if B<2:
-            raise StopIteration
+        if B < 2:
+            return
 
         from sage.arith.all import primes
         for p in primes(B+1):
@@ -1294,6 +1319,26 @@ class RationalField(Singleton, number_field_base.NumberField):
 
         from sage.structure.factorization import Factorization
         return Factorization(F, f.leading_coefficient())
+
+    def valuation(self, p):
+        r"""
+        Return the discrete valuation with uniformizer ``p``.
+
+        EXAMPLES::
+
+            sage: v = QQ.valuation(3); v
+            3-adic valuation
+            sage: v(1/3)
+            -1
+
+        .. SEEALSO::
+
+            :meth:`NumberField_generic.valuation() <sage.rings.number_field.number_field.NumberField_generic.valuation>`,
+            :meth:`IntegerRing_class.valuation() <sage.rings.integer_ring.IntegerRing_class.valuation>`
+
+        """
+        from sage.rings.padics.padic_valuation import pAdicValuation
+        return pAdicValuation(self, p)
 
 QQ = RationalField()
 Q = QQ

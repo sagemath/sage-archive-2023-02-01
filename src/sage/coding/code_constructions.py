@@ -370,7 +370,7 @@ def walsh_matrix(m0):
 
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Hadamard_matrix
+    - :wikipedia:`Hadamard_matrix`
     """
     m = int(m0)
     if m == 1:
@@ -975,7 +975,9 @@ def ToricCode(P,F):
 
 def WalshCode(m):
     r"""
-    Returns the binary Walsh code of length `2^m`. The matrix
+    Return the binary Walsh code of length `2^m`.
+
+    The matrix
     of codewords correspond to a Hadamard matrix. This is a (constant
     rate) binary linear `[2^m,m,2^{m-1}]` code.
 
@@ -994,8 +996,8 @@ def WalshCode(m):
 
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Hadamard_matrix
+    - :wikipedia:`Hadamard_matrix`
 
-    - http://en.wikipedia.org/wiki/Walsh_code
+    - :wikipedia:`Walsh_code`
     """
-    return LinearCode(walsh_matrix(m), d=2**(m-1))
+    return LinearCode(walsh_matrix(m), d=2**(m - 1))

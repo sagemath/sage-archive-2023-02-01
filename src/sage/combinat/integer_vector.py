@@ -61,7 +61,7 @@ def is_gale_ryser(r,s):
     If, given a binary matrix, these two vectors are easy to compute,
     the Gale-Ryser theorem lets us decide whether, given two
     non-negative vectors `r,s`, there exists a binary matrix
-    whose row/colum sums vectors are `r` and `s`.
+    whose row/column sums vectors are `r` and `s`.
 
     This functions answers accordingly.
 
@@ -581,6 +581,17 @@ class IntegerVectors(Parent):
         sage: iv = [ IntegerVectors(x[0], x[1], max_part = x[2]-1) for x in essai ]
         sage: all(map(lambda x: x.cardinality() == len(x.list()), iv))
         True
+
+    An example showing the same output by using IntegerListsLex::
+
+        sage: IntegerVectors(4, max_length=2).list()
+        [[4], [3, 1], [2, 2], [1, 3], [0, 4]]
+        sage: list(IntegerListsLex(4, max_length=2))
+        [[4], [3, 1], [2, 2], [1, 3], [0, 4]]
+
+    .. SEEALSO::
+    
+        :class: `sage.combinat.integer_lists.invlex.IntegerListsLex`.
     """
     @staticmethod
     def __classcall_private__(cls, n=None, k=None, **kwargs):

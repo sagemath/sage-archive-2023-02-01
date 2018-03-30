@@ -1907,7 +1907,7 @@ class ExteriorAlgebra(CliffordAlgebra):
                     if m != n:
                         continue
                     MS = MatrixSpace(R, n, n)
-                    MC = MS._get_matrix_class()
+                    MC = MS._matrix_class
                     matrix_list = [M[mx[i], my[j]]
                                    for i in range(n)
                                    for j in range(n)]

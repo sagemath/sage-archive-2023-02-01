@@ -10,4 +10,4 @@ cd src
 
 export RHOMES="$SAGE_LOCAL"/lib/R
 
-$PIP_INSTALL .
+sdh_pip_install .

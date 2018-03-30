@@ -60,10 +60,11 @@ fi
 # We should avoid running pip2/3 while uninstalling a package because that
 # is prone to race conditions. Therefore, we use a lockfile while
 # running pip. This is implemented in the Python script pip2/3-lock.
+LOCK="$SAGE_LOCAL/var/lock/$PIP.lock"
 
 # Keep uninstalling as long as it succeeds
 while true; do
-    out=$($PIP-lock uninstall --disable-pip-version-check -y "$name" 2>&1)
+    out=$(sage-flock -x $LOCK $PIP uninstall --disable-pip-version-check -y "$name" 2>&1)
     if [ $? -ne 0 ]; then
         break
     fi
@@ -83,9 +84,8 @@ fi
 # to apply a shared lock)
 echo "Installing package $name using $PIP"
 
-$PIP-lock SHARED install $pip_install_flags .
+sage-flock -s $LOCK $PIP install $pip_install_flags .
 if [ $? -ne 0 ]; then
     echo >&2 "Error: installing with $PIP failed"
     exit 3
 fi
-

@@ -8,4 +8,4 @@ export MAKE=make
 
 cd src
 
-$PIP_INSTALL .
+sdh_pip_install .

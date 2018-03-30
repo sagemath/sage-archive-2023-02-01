@@ -17,6 +17,7 @@ from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
 import sage.matrix.matrix_space
 import sage.structure.sequence
 
+
 cdef class Matrix_dense(matrix.Matrix):
     cdef bint is_sparse_c(self):
         return 0
@@ -33,54 +34,6 @@ cdef class Matrix_dense(matrix.Matrix):
         if self._subdivisions is not None:
             A.subdivide(*self.subdivisions())
         return A
-
-    def __hash__(self):
-        """
-        Return the hash of this matrix.
-
-        Equal matrices should have equal hashes, even if one is sparse and
-        the other is dense.
-
-        EXAMPLES::
-
-            sage: m = matrix(2, range(24), sparse=True)
-            sage: m.set_immutable()
-            sage: hash(m)
-            976
-
-        ::
-
-            sage: d = m.dense_matrix()
-            sage: d.set_immutable()
-            sage: hash(d)
-            976
-
-        ::
-
-            sage: hash(m) == hash(d)
-            True
-        """
-        return self._hash()
-
-    cdef long _hash(self) except -1:
-        x = self.fetch('hash')
-        if not x is None: return x
-
-        if not self._is_immutable:
-            raise TypeError("mutable matrices are unhashable")
-
-        v = self._list()
-        cdef Py_ssize_t i
-        cdef long h = 0
-
-        for i from 0 <= i < len(v):
-            h = h ^ (i * hash(v[i]))
-
-        if h == -1:
-            h = -2
-
-        self.cache('hash', h)
-        return h
 
     cdef set_unsafe_int(self, Py_ssize_t i, Py_ssize_t j, int value):
         self[i][j] = value

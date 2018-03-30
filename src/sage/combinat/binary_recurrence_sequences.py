@@ -374,7 +374,7 @@ class BinaryRecurrenceSequence(SageObject):
         Return the period of the binary recurrence sequence modulo
         an integer ``m``.
 
-        If `n_1` is congruent to `n_2` modulu ``period(m)``, then `u_{n_1}` is
+        If `n_1` is congruent to `n_2` modulo ``period(m)``, then `u_{n_1}` is
         is congruent to `u_{n_2}` modulo ``m``.
 
         INPUT:
@@ -534,7 +534,7 @@ class BinaryRecurrenceSequence(SageObject):
 
         Let `u_n` be a binary recurrence sequence.  A ``p`` th power in `u_n` is a solution
         to `u_n = y^p` for some integer `y`.  There are only finitely many ``p`` th powers in
-        any recurrence sequence [SS].
+        any recurrence sequence [SS]_.
 
         INPUT:
 

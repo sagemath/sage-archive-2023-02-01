@@ -4549,7 +4549,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
     @classmethod
     def transpositions_to_standard_strong( self, transeq, k, emptyTableau=[] ):
         """
-        Return a strong tableau correponding to a sequence of transpositions.
+        Return a strong tableau corresponding to a sequence of transpositions.
 
         This method returns the action by left multiplication on the empty strong tableau
         by transpositions specified by ``transeq``.

@@ -26,7 +26,7 @@ if [ "$UNAME" = FreeBSD ]; then
     export CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
 fi
 
-$PIP_INSTALL .
+sdh_pip_install .
 
 if [ $? -ne 0 ]; then
     echo "Error building/installing cvxopt"

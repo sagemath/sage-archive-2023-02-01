@@ -691,9 +691,9 @@ def random_vector(ring, degree=None, *args, **kwds):
 
     INPUT:
 
-    - ring - default: ``ZZ`` - the base ring for the entries
-    - degree - a non-negative integer for the number of entries in the vector
-    - sparse - default: ``False`` - whether to use a sparse implementation
+    - ring -- default: ``ZZ`` - the base ring for the entries
+    - degree -- a non-negative integer for the number of entries in the vector
+    - sparse -- default: ``False`` - whether to use a sparse implementation
     - args, kwds - additional arguments and keywords are passed
       to the ``random_element()`` method of the ring
 
@@ -1585,11 +1585,12 @@ cdef class FreeModuleElement(Vector):   # abstract base class
 
             sage: v = vector([1,2/3,pi])
             sage: v.iteritems()
-            <dictionary-itemiterator object at ...>
+            <generator object at ...>
             sage: list(v.iteritems())
             [(0, 1), (1, 2/3), (2, pi)]
         """
-        return self.dict(copy=False).iteritems()
+        cdef dict d = self.dict(copy=False)
+        yield from d.iteritems()
 
     def __abs__(self):
         """
@@ -2583,8 +2584,8 @@ cdef class FreeModuleElement(Vector):   # abstract base class
 
         The cross product is defined for degree seven vectors as well.
         [Crossproduct]_
-        The 3-D cross product is achieved using the quaternians,
-        whereas the 7-D cross product is achieved using the octions. ::
+        The 3-D cross product is achieved using the quaternions,
+        whereas the 7-D cross product is achieved using the octonions. ::
 
             sage: u = vector(QQ, [1, -1/3, 57, -9, 56/4, -4,1])
             sage: v = vector(QQ, [37, 55, -99/57, 9, -12, 11/3, 4/98])
@@ -2671,7 +2672,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         and also `w \cdot \hat{v} = w \times v` for all vectors `w`.
         The basis vectors are assumed to be orthonormal.
 
-        .. _hat operator: http://en.wikipedia.org/wiki/Hat_operator#Cross_product
+        .. _hat operator: :wikipedia:`Hat_operator#Cross_product`
 
         OUTPUT:
 

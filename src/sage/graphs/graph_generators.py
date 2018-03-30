@@ -15,7 +15,7 @@ To get a path with 4 vertices, and the house graph::
 More interestingly, one can get the list of all graphs that Sage knows how to
 build by typing ``graphs.`` in Sage and then hitting tab.
 """
-from __future__ import print_function, absolute_import
+from __future__ import print_function, absolute_import, division
 from six.moves import range
 
 # This method appends a list of methods to the doc as a 3xN table.
@@ -335,7 +335,9 @@ __doc__ += """
 """
 
 __append_to_doc(
-    ["WorldMap"]
+    ["WorldMap",
+     "EuropeMap",
+     "AfricaMap"]
     )
 
 __doc__ += """
@@ -450,7 +452,8 @@ class GraphGenerators():
 
     INPUT:
 
-    - ``vertices`` -- natural number.
+    - ``vertices`` -- a natural number or ``None`` to infinitely generate
+      bigger and bigger graphs.
 
     - ``property`` -- (default: ``lambda x: True``) any property to be
       tested on graphs before generation, but note that in general the
@@ -468,7 +471,7 @@ class GraphGenerators():
     - ``augment`` -- (default: ``'edges'``) possible values:
 
       - ``'edges'`` -- augments a fixed number of vertices by
-        adding one edge. In this case, all graphs on exactly ``n=vertices`` are
+        adding one edge. In this case, all graphs on *exactly* ``n=vertices`` are
         generated. If for any graph G satisfying the property, every
         subgraph, obtained from G by deleting one edge but not the vertices
         incident to that edge, satisfies the property, then this will
@@ -477,7 +480,7 @@ class GraphGenerators():
         be some missing.
 
       - ``'vertices'`` -- augments by adding a vertex and
-        edges incident to that vertex. In this case, all graphs up to
+        edges incident to that vertex. In this case, all graphs *up to*
         ``n=vertices`` are generated. If for any graph G satisfying the
         property, every subgraph, obtained from G by deleting one vertex
         and only edges incident to that vertex, satisfies the property,
@@ -507,7 +510,7 @@ class GraphGenerators():
       is working on. The second alternative is faster, but modifying
       any of the graph instances returned by the method may break
       the function's behaviour, as it is using these graphs to
-      compute the next ones : only use ``copy_graph = False`` when
+      compute the next ones: only use ``copy = False`` when
       you stick to *reading* the graphs returned.
 
     EXAMPLES:
@@ -856,7 +859,7 @@ class GraphGenerators():
             sage: next(gen)
             Traceback (most recent call last):
             ...
-            StopIteration: Exhausted list of graphs from nauty geng
+            StopIteration
 
         A list of all graphs on 7 vertices.  This agrees with
         :oeis:`A000088`.  ::
@@ -893,7 +896,8 @@ class GraphGenerators():
             try:
                 s = next(gen)
             except StopIteration:
-                raise StopIteration("Exhausted list of graphs from nauty geng")
+                # Exhausted list of graphs from nauty geng
+                return
             G = graph.Graph(s[:-1], format='graph6')
             yield G
 
@@ -1115,7 +1119,7 @@ class GraphGenerators():
             for i, di in enumerate(g):
                 Ni = di.count(i + 1)
                 if Ni > 1:
-                    edges_g[i + 1] += [i + 1] * (Ni / 2)
+                    edges_g[i + 1] += [i + 1] * (Ni // 2)
                     has_loops = True
             G = graph.Graph(edges_g, loops=has_loops)
 
@@ -2043,7 +2047,6 @@ class GraphGenerators():
     NonisotropicUnitaryPolarGraph = staticmethod(sage.graphs.generators.classical_geometries.NonisotropicUnitaryPolarGraph)
     OrthogonalPolarGraph   = staticmethod(sage.graphs.generators.classical_geometries.OrthogonalPolarGraph)
     SymplecticDualPolarGraph = staticmethod(sage.graphs.generators.classical_geometries.SymplecticDualPolarGraph)
-    SymplecticGraph   = staticmethod(sage.graphs.generators.classical_geometries.SymplecticGraph)
     SymplecticPolarGraph   = staticmethod(sage.graphs.generators.classical_geometries.SymplecticPolarGraph)
     TaylorTwographDescendantSRG = \
              staticmethod(sage.graphs.generators.classical_geometries.TaylorTwographDescendantSRG)
@@ -2099,10 +2102,12 @@ class GraphGenerators():
     RandomTriangulation      = staticmethod(sage.graphs.generators.random.RandomTriangulation)
 
 ###########################################################################
-# World Map
+# Maps
 ###########################################################################
     import sage.graphs.generators.world_map
     WorldMap = staticmethod(sage.graphs.generators.world_map.WorldMap)
+    EuropeMap = staticmethod(sage.graphs.generators.world_map.EuropeMap)
+    AfricaMap = staticmethod(sage.graphs.generators.world_map.AfricaMap)
 
 ###########################################################################
 # Degree Sequence
@@ -2228,7 +2233,7 @@ def canaug_traverse_vert(g, aut_gens, max_verts, property, dig=False, loops=Fals
             edges = []
             if dig:
                 index = 0
-                while index < possibilities/2:
+                while 2 * index < possibilities:
                     if (1 << index)&i:
                         edges.append((index,n))
                     index += 1

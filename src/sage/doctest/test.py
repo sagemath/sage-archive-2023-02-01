@@ -379,7 +379,7 @@ Test the ``--debug`` option::
         s...: b = 5
         s...: a + b
         8
-    In [1]:
+    sage:
     <BLANKLINE>
     Returning to doctests...
     **********************************************************************
@@ -397,7 +397,7 @@ Test running under gdb, without and with a timeout::
     sage: subprocess.call(["sage", "-t",  "--warn-long", "0", "--gdb", "1second.rst"], stdin=open(os.devnull), **kwds)  # long time, optional: gdb
     exec gdb ...
     Running doctests...
-    Doctesting 1 file.
+    Doctesting 1 file...
     sage -t... 1second.rst...
         [2 tests, ... s]
     ----------------------------------------------------------------------

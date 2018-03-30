@@ -852,7 +852,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             their greatest common divisor is in general not unique (not even up
             to units). For example `O(3)` is a representative for the elements
             0 and 3 in the 3-adic ring `\ZZ_3`. The greatest common
-            divisior of `O(3)` and `O(3)` could be (among others) 3 or 0 which
+            divisor of `O(3)` and `O(3)` could be (among others) 3 or 0 which
             have different valuation. The algorithm implemented here, will
             return an element of minimal valuation among the possible greatest
             common divisors.
@@ -1005,7 +1005,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             greatest common divisor is in general not unique (not even up to
             units). For example `O(3)` is a representative for the elements 0
             and 3 in the 3-adic ring `\ZZ_3`. The greatest common
-            divisior of `O(3)` and `O(3)` could be (among others) 3 or 0 which
+            divisor of `O(3)` and `O(3)` could be (among others) 3 or 0 which
             have different valuation. The algorithm implemented here, will
             return an element of minimal valuation among the possible greatest
             common divisors.

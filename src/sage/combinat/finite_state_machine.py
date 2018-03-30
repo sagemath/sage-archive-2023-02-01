@@ -2706,7 +2706,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
       process.
 
     - ``store_states_dict`` -- If ``True``, then additionally the states
-      are stored in an interal dictionary for speed up.
+      are stored in an internal dictionary for speed up.
 
     - ``on_duplicate_transition`` -- A function which is called when a
       transition is inserted into ``self`` which already existed (same
@@ -2860,7 +2860,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         ``LookupError`` or return an empty list.
 
         When constructing a finite state machine in this way, some
-        inital states and an input alphabet have to be specified.
+        initial states and an input alphabet have to be specified.
 
         ::
 
@@ -10554,7 +10554,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         (x, y, z) = R.gens()
         try:
             M = get_matrix(self, x, y)
-        except TypeError:
+        except (TypeError, ValueError):
             sage.misc.misc.verbose(
                 "Non-integer output weights lead to "
                 "significant performance degradation.", level=0)

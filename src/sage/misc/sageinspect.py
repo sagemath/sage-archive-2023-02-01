@@ -201,9 +201,22 @@ def _extract_embedded_position(docstring):
        sage: _extract_embedded_position(inspect.getdoc(var))[1][-21:]
        'sage/calculus/var.pyx'
 
+    TESTS:
+
     The following has been fixed in :trac:`13916`::
 
         sage: cython('''cpdef test_funct(x,y): return''')
+        sage: print(open(_extract_embedded_position(inspect.getdoc(test_funct))[1]).read())
+        cpdef test_funct(x,y): return
+
+    Ensure that the embedded filename of the compiled function is correct.  In
+    particular it should be relative to ``SPYX_TMP`` in order for certain
+    docmentation functions to work properly.  See :trac:`24097`::
+
+        sage: from sage.env import DOT_SAGE
+        sage: from sage.misc.sage_ostools import restore_cwd
+        sage: with restore_cwd(DOT_SAGE):
+        ....:     cython('''cpdef test_funct(x,y): return''')
         sage: print(open(_extract_embedded_position(inspect.getdoc(test_funct))[1]).read())
         cpdef test_funct(x,y): return
 
@@ -222,10 +235,25 @@ def _extract_embedded_position(docstring):
         return None
 
     raw_filename = res.group('FILENAME')
-    filename = os.path.join(SAGE_SRC, raw_filename)
-    if not os.path.isfile(filename):
+    filename = raw_filename
+
+    if not os.path.isabs(filename):
+        # Try some common path prefixes for Cython modules built by/for Sage
+        # 1) Module in the sage src tree
+        # 2) Module compiled by Sage's inline cython() compiler
         from sage.misc.misc import SPYX_TMP
-        filename = os.path.join(SPYX_TMP, '_'.join(raw_filename.split('_')[:-1]), raw_filename)
+        try_filenames = [
+            os.path.join(SAGE_SRC, raw_filename),
+            os.path.join(SPYX_TMP, '_'.join(raw_filename.split('_')[:-1]),
+                         raw_filename)
+        ]
+        for try_filename in try_filenames:
+            if os.path.exists(try_filename):
+                filename = try_filename
+                break
+        # Otherwise we keep the relative path and just hope it's relative to
+        # the cwd; otherwise there's no way to be sure.
+
     lineno = int(res.group('LINENO'))
     original = res.group('ORIGINAL')
     return (original, filename, lineno)
@@ -652,7 +680,7 @@ class SageArgSpecVisitor(ast.NodeVisitor):
             sage: import ast, sage.misc.sageinspect as sms
             sage: visitor = sms.SageArgSpecVisitor()
             sage: vis = lambda x: visitor.visit(ast.parse(x).body[0].value)
-            sage: [vis(d) for d in ['(3+(2*4))', '7|8', '5^3', '7/3', '7//3', '3<<4']] #indirect doctest # optional - python2
+            sage: [vis(d) for d in ['(3+(2*4))', '7|8', '5^3', '7/3', '7//3', '3<<4']] #indirect doctest # py2
             [11, 15, 6, 2, 2, 48]
         """
         op = node.op.__class__.__name__
@@ -1674,16 +1702,20 @@ def sage_getdoc_original(obj):
             integers can be used as ring elements anywhere in Sage.
         ...
 
-    Here is a class that does not have its own docstring, so that the
-    docstring of the ``__init__`` method is used::
+    If the class does not have a docstring, the docstring of the
+    ``__init__`` method is used, but not the ``__init__`` method
+    of the base class (this was fixed in :trac:`24936`)::
 
-        sage: print(sage_getdoc_original(Parent))
-        <BLANKLINE>
-        Base class for all parents.
-        <BLANKLINE>
-        Parents are the Sage/mathematical analogues of container
-        objects in computer science.
-        ...
+        sage: from sage.categories.category import Category
+        sage: class A(Category):
+        ....:     def __init__(self):
+        ....:         '''The __init__ docstring'''
+        sage: sage_getdoc_original(A)
+        'The __init__ docstring'
+        sage: class B(Category):
+        ....:     pass
+        sage: sage_getdoc_original(B)
+        ''
 
     Old-style classes are supported::
 
@@ -1721,20 +1753,14 @@ def sage_getdoc_original(obj):
         if pos is not None:
             s = pos[0]
     if not s:
-        try:
-            init = typ.__init__
-        except AttributeError:
-            pass
-        else:
-            # The docstring of obj is empty. To get something, we want to use
-            # the documentation of the __init__ method, but only if it belongs
-            # to (the type of) obj. The type for which a method is defined is
-            # either stored in the attribute `__objclass__` (cython) or
-            # `im_class` (python) of the method.
-            if (getattr(init, '__objclass__', None) or
-                getattr(init, 'im_class', None)) == typ:
-                return sage_getdoc_original(init)
+        # The docstring of obj is empty. To get something, we want to use
+        # the documentation of the __init__ method, but only if it belongs
+        # to (the type of) obj.
+        init = typ.__dict__.get("__init__")
+        if init:
+            return sage_getdoc_original(init)
     return s
+
 
 def sage_getdoc(obj, obj_name='', embedded_override=False):
     r"""
@@ -1825,7 +1851,8 @@ def sage_getsource(obj):
     (source_lines, lineno) = t
     return ''.join(source_lines)
 
-def _sage_getsourcelines_name_with_dot(object):
+
+def _sage_getsourcelines_name_with_dot(obj):
     r"""
     Get the source lines of an object whose name
     contains a dot and whose source lines can not
@@ -1872,19 +1899,19 @@ def _sage_getsourcelines_name_with_dot(object):
     - Simon King (2011-09)
     """
     # First, split the name:
-    if '.' in object.__name__:
-        splitted_name = object.__name__.split('.')
-    elif hasattr(object,'__qualname__'):
-        splitted_name = object.__qualname__.split('.')
+    if '.' in obj.__name__:
+        splitted_name = obj.__name__.split('.')
+    elif hasattr(obj, '__qualname__'):
+        splitted_name = obj.__qualname__.split('.')
     else:
-        splitted_name = object.__name__
-    path = object.__module__.split('.')+splitted_name[:-1]
+        splitted_name = obj.__name__
+    path = obj.__module__.split('.')+splitted_name[:-1]
     name = splitted_name[-1]
     try:
         M = __import__(path.pop(0))
     except ImportError:
         try:
-            B = object.__base__
+            B = obj.__base__
             if B is None:
                 raise AttributeError
         except AttributeError:
@@ -1897,7 +1924,7 @@ def _sage_getsourcelines_name_with_dot(object):
             M = getattr(M, path.pop(0))
     except AttributeError:
         try:
-            B = object.__base__
+            B = obj.__base__
             if B is None:
                 raise AttributeError
         except AttributeError:
@@ -1910,10 +1937,10 @@ def _sage_getsourcelines_name_with_dot(object):
     if not lines:
         raise IOError('could not get source code')
 
-    if inspect.ismodule(object):
+    if inspect.ismodule(obj):
         return lines, base_lineno
 
-    if inspect.isclass(object):
+    if inspect.isclass(obj):
         pat = re.compile(r'^(\s*)class\s*' + name + r'\b')
         # make some effort to find the best matching class definition:
         # use the one with the least indentation, which is the one
@@ -1935,22 +1962,22 @@ def _sage_getsourcelines_name_with_dot(object):
         else:
             raise IOError('could not find class definition')
 
-    if inspect.ismethod(object):
-        object = object.__func__
-    if inspect.isfunction(object):
-        object = object.__code__
-    if inspect.istraceback(object):
-        object = object.tb_frame
-    if inspect.isframe(object):
-        object = object.f_code
-    if inspect.iscode(object):
-        if not hasattr(object, 'co_firstlineno'):
+    if inspect.ismethod(obj):
+        obj = obj.__func__
+    if inspect.isfunction(obj):
+        obj = obj.__code__
+    if inspect.istraceback(obj):
+        obj = obj.tb_frame
+    if inspect.isframe(obj):
+        obj = obj.f_code
+    if inspect.iscode(obj):
+        if not hasattr(obj, 'co_firstlineno'):
             raise IOError('could not find function definition')
         pat = re.compile(r'^(\s*def\s)|(.*(?<!\w)lambda(:|\s))|^(\s*@)')
         pmatch = pat.match
         # fperez - fix: sometimes, co_firstlineno can give a number larger than
         # the length of lines, which causes an error.  Safeguard against that.
-        lnum = min(object.co_firstlineno,len(lines))-1
+        lnum = min(obj.co_firstlineno,len(lines))-1
         while lnum > 0:
             if pmatch(lines[lnum]): break
             lnum -= 1

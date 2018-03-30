@@ -36,6 +36,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+import six
 from six import integer_types
 
 from sage.misc.latex import latex
@@ -187,7 +188,7 @@ def Set(X=[]):
         {}
     """
     if isinstance(X, CategoryObject):
-        if is_Set(X):
+        if isinstance(X, Set_generic):
             return X
         elif X in Sets().Finite():
             return Set_object_enumerated(X)
@@ -204,27 +205,6 @@ def Set(X=[]):
     else:
         return Set_object_enumerated(X)
 
-
-def is_Set(x):
-    """
-    Returns ``True`` if ``x`` is a Sage :class:`Set_object` (not to be confused
-    with a Python set).
-
-    EXAMPLES::
-
-        sage: from sage.sets.set import is_Set
-        sage: is_Set([1,2,3])
-        False
-        sage: is_Set(set([1,2,3]))
-        False
-        sage: is_Set(Set([1,2,3]))
-        True
-        sage: is_Set(Set(QQ))
-        True
-        sage: is_Set(Primes())
-        True
-    """
-    return isinstance(x, Set_generic)
 
 @richcmp_method
 class Set_object(Set_generic):
@@ -448,7 +428,7 @@ class Set_object(Set_generic):
             sage: Set(GF(7)) + Set(GF(3))
             {0, 1, 2, 3, 4, 5, 6, 1, 2, 0}
         """
-        if is_Set(X):
+        if isinstance(X, Set_generic):
             if self is X:
                 return self
             return Set_object_union(self, X)
@@ -508,7 +488,7 @@ class Set_object(Set_generic):
             sage: X
             {}
         """
-        if is_Set(X):
+        if isinstance(X, Set_generic):
             if self is X:
                 return self
             return Set_object_intersection(self, X)
@@ -538,7 +518,7 @@ class Set_object(Set_generic):
             sage: X
             {0, 1, 2, b, b + 1, b + 2, 2*b, 2*b + 1, 2*b + 2}
         """
-        if is_Set(X):
+        if isinstance(X, Set_generic):
             if self is X:
                 return Set([])
             return Set_object_difference(self, X)
@@ -555,7 +535,7 @@ class Set_object(Set_generic):
             {1, 2, 4}
         """
 
-        if is_Set(X):
+        if isinstance(X, Set_generic):
             if self is X:
                 return Set([])
             return Set_object_symmetric_difference(self, X)
@@ -837,7 +817,10 @@ class Set_object_enumerated(Set_object):
             {0, 1}
         """
         s = repr(self.set())
-        return "{" + s[5:-2] + "}"
+        if six.PY3:
+            return s
+        else:
+            return "{" + s[5:-2] + "}"
 
     def list(self):
         """
@@ -1237,7 +1220,7 @@ class Set_object_union(Set_object_binary):
             sage: Set(ZZ).union(Set(QQ)) == Set(QQ)
             False
         """
-        if not is_Set(right):
+        if not isinstance(right, Set_generic):
             return rich_to_bool(op, -1)
         if not isinstance(right, Set_object_union):
             return rich_to_bool(op, -1)
@@ -1371,7 +1354,7 @@ class Set_object_intersection(Set_object_binary):
             sage: Set(ZZ).intersection(Set(QQ)) == Set(QQ)
             False
         """
-        if not is_Set(right):
+        if not isinstance(right, Set_generic):
             return rich_to_bool(op, -1)
         if not isinstance(right, Set_object_intersection):
             return rich_to_bool(op, -1)
@@ -1517,7 +1500,7 @@ class Set_object_difference(Set_object_binary):
             sage: X == Set(QQ).difference(Set(ZZ))
             True
         """
-        if not is_Set(right):
+        if not isinstance(right, Set_generic):
             return rich_to_bool(op, -1)
         if not isinstance(right, Set_object_difference):
             return rich_to_bool(op, -1)
@@ -1644,7 +1627,7 @@ class Set_object_symmetric_difference(Set_object_binary):
             True
 
         """
-        if not is_Set(right):
+        if not isinstance(right, Set_generic):
             return rich_to_bool(op, -1)
         if not isinstance(right, Set_object_symmetric_difference):
             return rich_to_bool(op, -1)
@@ -1713,3 +1696,19 @@ class Set_object_symmetric_difference(Set_object_binary):
         """
         return (x in self._X and x not in self._Y) \
                or (x in self._Y and x not in self._X)
+
+def is_Set(x):
+    """
+    Deprecated. Use ``isinstance(x, Set_generic)`` instead.
+
+    TESTS::
+
+        sage: from sage.sets.set import is_Set
+        sage: is_Set(Primes())
+        doctest:...: DeprecationWarning: Please use isinstance(x, Set_generic)
+        See http://trac.sagemath.org/24443 for details.
+        True
+    """
+    from sage.misc.superseded import deprecation
+    deprecation(24443, "Please use isinstance(x, Set_generic)")
+    return isinstance(x, Set_generic)

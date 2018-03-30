@@ -197,7 +197,7 @@ def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL", isint
        [1, 0, 0, 0, 0, 0, 11, 0, 0, 0, 0, 0]
 
     The bound on the size of the `F_2`-codes of length 24 and minimal distance
-    8, i.e. parameters of the extened binary Golay code::
+    8, i.e. parameters of the extended binary Golay code::
 
        sage: a,p,x = codes.bounds.delsarte_bound_hamming_space(24,8,2,return_data=True)
        sage: x

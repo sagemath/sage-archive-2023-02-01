@@ -425,21 +425,22 @@ def import_statements(*objects, **kwds):
         from sage.modular.arithgroup.farey_symbol import Farey as FareySymbol
 
         sage: import_statements('power')
-        from sage.structure.element import generic_power as power
+        from sage.arith.power import generic_power as power
 
     In order to be able to detect functions that belong to a non-loaded module,
     you might call the helper :func:`load_submodules` as in the following::
 
-        sage: import_statements('EnumeratedSetFromIterator')
+        sage: import_statements('HeckeMonoid')
         Traceback (most recent call last):
         ...
-        LookupError: no object named 'EnumeratedSetFromIterator'
+        LookupError: no object named 'HeckeMonoid'
         sage: from sage.misc.dev_tools import load_submodules
-        sage: load_submodules(sage.sets)
-        load sage.sets.real_set... succeeded
-        load sage.sets.set_from_iterator... succeeded
-        sage: import_statements('EnumeratedSetFromIterator')
-        from sage.sets.set_from_iterator import EnumeratedSetFromIterator
+        sage: load_submodules(sage.monoids)
+        load sage.monoids.automatic_semigroup... succeeded
+        load sage.monoids.hecke_monoid... succeeded
+        load sage.monoids.indexed_free_monoid... succeeded
+        sage: import_statements('HeckeMonoid')
+        from sage.monoids.hecke_monoid import HeckeMonoid
 
     We test different objects which have no appropriate answer::
 
@@ -555,7 +556,7 @@ def import_statements(*objects, **kwds):
                 for o in obj:
                     modules.update(find_object_modules(o))
                 print("# **Warning**: distinct objects with name '{}' in:".format(name))
-                for module_name in modules:
+                for module_name in sorted(modules):
                     print("#   - {}".format(module_name))
 
             # choose a random object among the potentially enormous list of

@@ -1393,7 +1393,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
                 out = P.get(name).strip()
         return out
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         Comparison of polymake elements.
 

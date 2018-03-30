@@ -437,6 +437,10 @@ ext_modules = [
     ##
     ################################
 
+    OptionalExtension("sage.interfaces.primecount",
+              ["sage/interfaces/primecount.pyx"],
+              package = "primecount"),
+
     Extension('*', ['sage/interfaces/*.pyx']),
 
     ################################

@@ -2266,7 +2266,8 @@ class Permutation(CombinatorialElement):
 
         So `\phi([1,4,2,5,3]) = [4,5,1,2,3]`.
 
-        See section 2 of [FoSc78]_.
+        See section 2 of [FoSc78]_, and the proof of Proposition 1.4.6
+        in [EnumComb1]_.
 
         REFERENCES:
 
@@ -2307,11 +2308,12 @@ class Permutation(CombinatorialElement):
         for e in L:
             k = len(M)
             if k <= 1:
-	        M.append(e)
+                M.append(e)
                 continue
 
             a = M[-1]
             M_prime = [0]*(k + 1)
+            # Locate the positions of the vertical lines.
             if a > e:
                 index_list = [-1] + [i for i in range(k) if M[i] > e]
             else:
@@ -2326,6 +2328,54 @@ class Permutation(CombinatorialElement):
             M_prime[k] = e
             M = M_prime
         return Permutations()(M)
+
+    @combinatorial_map(name='foata_bijection_inverse')
+    def foata_bijection_inverse(self):
+        r"""
+        Return the image of the permutation ``self`` under the inverse
+        of the Foata bijection `\phi`.
+
+        See :meth:`foata_bijection` for the definition of the Foata
+        bijection.
+
+        EXAMPLES::
+
+            sage: all( P.foata_bijection().foata_bijection_inverse() == P
+            ....:      for P in Permutations(5) )
+            True
+
+        Border cases::
+
+            sage: Permutation([]).foata_bijection_inverse()
+            []
+            sage: Permutation([1]).foata_bijection_inverse()
+            [1]
+        """
+        L = list(self)
+        Mrev = [] # The resulting permutation, in reverse.
+        while L:
+            e = L.pop()
+            Mrev.append(e)
+            k = len(L)
+            if k <= 1:
+                continue
+            L_prime = [0]*(k)
+            a = L[0]
+            # Locate the positions of the vertical lines.
+            if a > e:
+                index_list = [i for i in range(k) if L[i] > e]
+            else:
+                index_list = [i for i in range(k) if L[i] < e]
+            index_list.append(k)
+
+            for j in range(1, len(index_list)):
+                start = index_list[j-1]
+                end = index_list[j] - 1
+                L_prime[end] = L[start]
+                for x in range(start, end):
+                    L_prime[x] = L[x+1]
+            L = L_prime
+        return Permutations()(reversed(Mrev))
 
     def destandardize(self, weight, ordered_alphabet = None):
         r"""

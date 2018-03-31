@@ -2258,7 +2258,8 @@ class Permutation(CombinatorialElement):
         Return the image of the permutation ``self`` under the Foata
         bijection `\phi`.
 
-        The bijection shows that `\mathrm{maj}` and `\mathrm{inv}` are
+        The bijection shows that `\mathrm{maj}` (the major index)
+        and `\mathrm{inv}` (the number of inversions) are
         equidistributed: if `\phi(P) = Q`, then `\mathrm{maj}(P) =
         \mathrm{inv}(Q)`.
 
@@ -2291,8 +2292,9 @@ class Permutation(CombinatorialElement):
         See section 2 of [FoSc78]_, and the proof of Proposition 1.4.6
         in [EnumComb1]_.
 
-        For the inverse of the Foata bijection, see
-        :meth:`foata_bijection_inverse`.
+        .. SEEALSO::
+
+            :meth:`foata_bijection_inverse` for the inverse map.
 
         REFERENCES:
 
@@ -2328,9 +2330,8 @@ class Permutation(CombinatorialElement):
             sage: Permutation([1]).foata_bijection()
             [1]
         """
-        L = list(self)
         M = []
-        for e in L:
+        for e in self:
             k = len(M)
             if k <= 1:
                 M.append(e)
@@ -2409,7 +2410,7 @@ class Permutation(CombinatorialElement):
         Renyi-Foata-Schuetzenberger fundamental transformation.
 
         The fundamental transformation is a bijection from the
-        set of all permutations of `\{1, 2, \ldots, n\}' to
+        set of all permutations of `\{1, 2, \ldots, n\}` to
         itself, which transforms any such permutation `w`
         as follows:
         Write `w` in cycle form, with each cycle starting with
@@ -2423,8 +2424,10 @@ class Permutation(CombinatorialElement):
 
         See [EnumComb1]_, Proposition 1.3.1.
 
-        The fundamental transformation is a bijection; for its
-        inverse, see :meth:`fundamental_transformation_inverse`.
+        .. SEEALSO::
+
+            :meth:`fundamental_transformation_inverse`
+            for the inverse map.
 
         EXAMPLES::
 
@@ -2452,7 +2455,7 @@ class Permutation(CombinatorialElement):
 
         The inverse of the fundamental transformation is a
         bijection from the set of all permutations of 
-        `\{1, 2, \ldots, n\}' to itself, which transforms any
+        `\{1, 2, \ldots, n\}` to itself, which transforms any
         such permutation `w` as follows:
         Let `I = \{ i_1 < i_2 < \cdots < i_k \}` be the set of
         all left-to-right maxima of `w` (that is, of all indices
@@ -2467,8 +2470,10 @@ class Permutation(CombinatorialElement):
 
         See [EnumComb1]_, Proposition 1.3.1.
 
-        See :meth:`fundamental_transformation` for the map whose
-        inverse this is.
+        .. SEEALSO::
+
+            :meth:`fundamental_transformation`
+            for the inverse map.
 
         EXAMPLES::
 

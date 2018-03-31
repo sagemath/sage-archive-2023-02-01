@@ -8909,7 +8909,7 @@ class GenericGraph(GenericGraph_pyx):
 
         directed = self.is_directed()
 
-        # Associated to each edge (u,v) of the flow graph its capacity
+        # Associates to each edge (u,v) of the flow graph its capacity
         capacity = {}
         # Associates to each edge (u,v) of the graph the (directed)
         # flow going through it
@@ -8941,7 +8941,7 @@ class GenericGraph(GenericGraph_pyx):
                     flow[(u,v)] = 0
                     flow[(v,u)] = 0
 
-        # Reqrites a path as a list of edges :
+        # Rewrites a path as a list of edges :
         # ex : [0,1,2,3,4,5] becomes [(0,1), (1,2), (2,3), (3,4), (4,5)]
         path_to_edges = lambda P : zip(P[:-1], P[1:])
 

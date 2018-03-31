@@ -120,14 +120,16 @@ class FreeMonoidElement(MonoidElement):
         v = self._element_list
         x = self.parent().variable_names()
         for i in range(len(v)):
-            if len(s) > 0: s += "*"
+            if len(s) > 0:
+                s += "*"
             g = x[int(v[i][0])]
             e = v[i][1]
             if e == 1:
                 s += "%s"%g
             else:
                 s += "%s^%s"%(g,e)
-        if len(s) == 0: s = "1"
+        if len(s) == 0:
+            s = "1"
         return s
 
     def _latex_(self):
@@ -154,7 +156,8 @@ class FreeMonoidElement(MonoidElement):
                 s += "%s"%(g,)
             else:
                 s += "%s^{%s}"%(g,e)
-        if len(s) == 0: s = "1"
+        if len(s) == 0:
+            s = "1"
         return s
 
     def __call__(self, *x, **kwds):
@@ -278,7 +281,7 @@ class FreeMonoidElement(MonoidElement):
             s += x[1]
         return s
 
-    def _richcmp_(self, right, op):
+    def _richcmp_(self, other, op):
         """
         Compare two free monoid elements with the same parents.
 
@@ -301,12 +304,12 @@ class FreeMonoidElement(MonoidElement):
             sage: x >= x*x
             False
         """
-        v = tuple(x for x, i in self._element_list for j in range(i))
-        w = tuple(x for x, i in right._element_list for j in range(i))
-        m = len(v)
-        n = len(w)
+        m = sum(i for x, i in self._element_list)
+        n = sum(i for x, i in other._element_list)
         if m != n:
             return richcmp_not_equal(m, n, op)
+        v = tuple([x for x, i in self._element_list for j in range(i)])
+        w = tuple([x for x, i in other._element_list for j in range(i)])
         return richcmp(v, w, op)
 
     def _acted_upon_(self, x, self_on_left):

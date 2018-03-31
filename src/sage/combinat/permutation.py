@@ -953,7 +953,7 @@ class Permutation(CombinatorialElement):
 
         l = self[:]
 
-        if mins:
+        if use_min:
             groundset = range(len(l))
         else:
             groundset = reversed(range(len(l)))
@@ -2448,8 +2448,8 @@ class Permutation(CombinatorialElement):
 
             sage: Permutation([5, 1, 3, 4, 2]).fundamental_transformation()
             [3, 4, 5, 2, 1]
-            sage: Permutations(5)([1, 5, 3, 4, 2]).forget_cycles()
-            [1, 2, 4, 3, 5]
+            sage: Permutations(5)([1, 5, 3, 4, 2]).fundamental_transformation()
+            [1, 3, 4, 5, 2]
             sage: Permutation([8, 4, 7, 2, 9, 6, 5, 1, 3]).fundamental_transformation()
             [4, 2, 6, 8, 1, 9, 3, 7, 5]
 

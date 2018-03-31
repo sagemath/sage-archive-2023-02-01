@@ -2341,9 +2341,9 @@ class Permutation(CombinatorialElement):
             M_prime = [0]*(k + 1)
             # Locate the positions of the vertical lines.
             if a > e:
-                index_list = [-1] + [i for i in range(k) if M[i] > e]
+                index_list = [-1] + [i for i, val in enumerate(M) if val > e]
             else:
-                index_list = [-1] + [i for i in range(k) if M[i] < e]
+                index_list = [-1] + [i for i, val in enumerate(M) if val < e]
 
             for j in range(1, len(index_list)):
                 start = index_list[j-1] + 1
@@ -2389,9 +2389,9 @@ class Permutation(CombinatorialElement):
             a = L[0]
             # Locate the positions of the vertical lines.
             if a > e:
-                index_list = [i for i in range(k) if L[i] > e]
+                index_list = [i for i, val in enumerate(L) if val > e]
             else:
-                index_list = [i for i in range(k) if L[i] < e]
+                index_list = [i for i, val in enumerate(L) if val < e]
             index_list.append(k)
 
             for j in range(1, len(index_list)):

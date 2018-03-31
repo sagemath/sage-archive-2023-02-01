@@ -2198,8 +2198,11 @@ class Permutation(CombinatorialElement):
 
         .. MATH::
 
-            \sigma = (a_{1,1}, \ldots, a_{1,k_1}) (a_{2,1}, \ldots, a_{2,k_2})
-            \cdots (a_{m,1}, \ldots, a_{m,k_m}),
+            \sigma
+            = (a_{1,1}, \ldots, a_{1,k_1})
+              (a_{2,1}, \ldots, a_{2,k_2})
+              \cdots
+              (a_{m,1}, \ldots, a_{m,k_m}),
 
         where `a_{1,1} < a_{2,1} < \cdots < a_{m,1}` and `a_{j,1} < a_{j,i}`
         for all `1 \leq j \leq m` and `2 \leq i \leq k_j` where we include
@@ -2208,7 +2211,7 @@ class Permutation(CombinatorialElement):
 
         .. MATH::
 
-            \phi(\sigma) = [a_{1,1}, \ldots, a_{1,k_1}, a_{2,1} \ldots,
+            \phi(\sigma) = [a_{1,1}, \ldots, a_{1,k_1}, a_{2,1}, \ldots,
             a_{2,k_2}, \ldots, a_{m,1}, \ldots, a_{m,k_m}],
 
         considered as a permutation in 1-line notation.
@@ -2216,7 +2219,8 @@ class Permutation(CombinatorialElement):
         .. SEEALSO::
 
             :meth:`fundamental_transformation`, which is a similar map that
-            defined by instead taking `a_{j,1} > a_{j,i}` and is bijective.
+            is defined by instead taking `a_{j,1} > a_{j,i}` and is
+            bijective.
 
         EXAMPLES::
 

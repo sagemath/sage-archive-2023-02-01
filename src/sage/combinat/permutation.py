@@ -2518,19 +2518,29 @@ class Permutation(CombinatorialElement):
             [1]
         """
         n = len(self)
+        # We shall iterate through ``self`` from left to right.
+        # At each step,
+        # ``entry`` will be the entry we are currently seeing;
+        # ``previous_entry`` will be the previous entry;
+        # ``record_value`` will be the largest entry
+        #                  encountered so far;
+        # ``previous_record`` will be the largest entry
+        #                     encountered before ``record_value``.
         record_value = 0
         previous_record = None
+        previous_entry = None
         res = [0] * (n+1) # We'll use res[1], res[2], ..., res[n] only.
-        for i in range(n):
-            if self[i] > record_value:
-                record_value = self[i]
+        for entry in self:
+            if entry > record_value:
+                record_value = entry
                 if previous_record is not None:
-                    res[self[i-1]] = previous_record
-                previous_record = self[i]
+                    res[previous_entry] = previous_record
+                previous_record = entry
             else:
-                res[self[i-1]] = self[i]
+                res[previous_entry] = entry
+            previous_entry = entry
         if n > 0:
-            res[self[n-1]] = previous_record
+            res[previous_entry] = previous_record
         return Permutations()(res[1:])
 
     def destandardize(self, weight, ordered_alphabet = None):

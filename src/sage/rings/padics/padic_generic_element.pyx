@@ -2865,9 +2865,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: Z5(-1).square_root() == Z5.teichmuller(2) or Z5(-1).square_root() == Z5.teichmuller(3)
             True
         """
-        parent = self.parent()
-        p = parent.prime()
-        e = parent.e()
+        ring = self.parent()
+        p = ring.prime()
+        e = ring.e()
 
         # First, we check valuation and renormalize if needed
         val = self.valuation()
@@ -2882,7 +2882,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             xbar = 1/abar.sqrt(extend=False)
         except ValueError:
             return None
-        x = parent(xbar)
+        x = ring(xbar)
         curprec = 1
 
         # When p is 2, we lift sqrt(1/a) modulo 2*pi (pi = uniformizer)
@@ -2893,7 +2893,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             ainv = ~(a.add_bigoh(2*e+1))
 
             # We lift modulo 2
-            k = parent.residue_field()
+            k = ring.residue_field()
             while curprec < e:   # curprec is the number of correct digits of x
                 # recomputing x^2 is not necessary:
                 # we can alternatively update it after each update of x
@@ -2906,7 +2906,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
                             cbar = k(b.expansion(i)).sqrt(extend=False)
                         except ValueError:
                             return None
-                        c = parent(cbar).lift_to_precision()
+                        c = ring(cbar).lift_to_precision()
                         x += c << (curprec + i//2)
                     else:
                         if b.expansion(i) != 0:
@@ -2917,11 +2917,11 @@ cdef class pAdicGenericElement(LocalGenericElement):
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             S = PolynomialRing(k, name='x')
             b = (ainv - x**2) >> (2*e)
-            AS = S([ b.residue(), parent(2, e+1).expansion(e), 1 ])
+            AS = S([ b.residue(), xbar*k(ring(2,e+1).expansion(e)), 1 ])
             roots = AS.roots()
             if len(roots) == 0:
                 return None
-            x += parent(roots[0][0]) << e
+            x += ring(roots[0][0]) << e
 
             # For Newton iteration, we redefine curprec
             # as (a lower bound on) valuation(a*x^2 - 1)

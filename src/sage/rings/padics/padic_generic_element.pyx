@@ -2712,7 +2712,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             ...
             ValueError: element is not a square
 
-            sage: R(4).square_root()
+            sage: -R(4).square_root()
             2 + O(3^20)
 
             sage: R(9).square_root()
@@ -2799,12 +2799,12 @@ cdef class pAdicGenericElement(LocalGenericElement):
         elif algorithm == "sage":
             ans = self._square_root()
         if ans is not None:
+            if list(ans.expansion()) > list((-ans).expansion()):
+                ans = -ans
             if all:
-                ans = [ans, -ans]
-                ans.sort()
-                return ans
+                return [ans, -ans]
             else:
-                return min(ans, -ans)
+                return ans
         if extend:
             raise NotImplementedError("extending using the sqrt function not yet implemented")
         elif all:
@@ -2844,7 +2844,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: Z3 = Zp(3,20,'capped-abs')
             sage: Z3(1).square_root()
             1 + O(3^20)
-            sage: Z3(4).square_root() == Z3(2)
+            sage: Z3(4).square_root() in [ Z3(2), -Z3(2) ]
             True
             sage: Z3(9).square_root()
             3 + O(3^19)
@@ -2854,7 +2854,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             1 + O(2^19)
             sage: Z2(4).square_root()
             2 + O(2^18)
-            sage: Z2(9).square_root() == Z2(3)
+            sage: Z2(9).square_root() in [ Z2(3), -Z2(3) ]
             True
             sage: Z2(17).square_root()
             1 + 2^3 + 2^5 + 2^6 + 2^7 + 2^9 + 2^10 + 2^13 + 2^16 + 2^17 + O(2^19)

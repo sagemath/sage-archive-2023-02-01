@@ -672,7 +672,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
         NOTE:
 
         The square root is chosen (resp. the square roots are ordered) in
-        a deterministic way.
+        a deterministic way, which is compatible with change of precision.
 
         EXAMPLES::
 
@@ -688,10 +688,10 @@ cdef class LocalGenericElement(CommutativeRingElement):
             ...
             ValueError: element is not a square
 
-            sage: sqrt(R(4))
+            sage: s = sqrt(R(4)); -s
             2 + O(3^20)
 
-            sage: sqrt(R(9))
+            sage: s = sqrt(R(9)); s
             3 + O(3^21)
 
         Over the `2`-adics, the precision of the square root is less
@@ -748,6 +748,10 @@ cdef class LocalGenericElement(CommutativeRingElement):
             sage: s == c or s == -c
             True
 
+            sage: c2 = c^2
+            sage: c2 = c2.add_bigoh(c2.valuation() + 50)
+            sage: s == sqrt(c2)
+            True
         """
         return self.square_root(extend, all)
 

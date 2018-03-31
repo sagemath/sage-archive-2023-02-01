@@ -2213,6 +2213,11 @@ class Permutation(CombinatorialElement):
 
         considered as a permutation in 1-line notation.
 
+        .. SEEALSO::
+
+            :meth:`fundamental_transformation`, which is a similar map that
+            defined by instead taking `a_{j,1} > a_{j,i}` and is bijective.
+
         EXAMPLES::
 
             sage: P = Permutations(5)
@@ -2442,7 +2447,7 @@ class Permutation(CombinatorialElement):
             for the inverse map.
 
             :meth:`forget_cycles` for a similar (but non-bijective)
-            map.
+            map where each cycle is starting from its lowest element.
 
         EXAMPLES::
 
@@ -2452,6 +2457,16 @@ class Permutation(CombinatorialElement):
             [1, 3, 4, 5, 2]
             sage: Permutation([8, 4, 7, 2, 9, 6, 5, 1, 3]).fundamental_transformation()
             [4, 2, 6, 8, 1, 9, 3, 7, 5]
+
+        Comparison with :meth:`forget_cycles`::
+
+            sage: P = Permutation([(1,3,4),(2,5)])
+            sage: P
+            [3, 5, 4, 1, 2]
+            sage: P.forget_cycles()
+            [1, 3, 4, 2, 5]
+            sage: P.fundamental_transformation()
+            [4, 1, 3, 5, 2]
 
         TESTS:
 

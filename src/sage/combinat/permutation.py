@@ -2246,6 +2246,10 @@ class Permutation(CombinatorialElement):
         .. [CC13] Mahir Bilen Can and Yonah Cherniavsky.
            *Omitting parentheses from the cyclic notation*. (2013).
            :arxiv:`1308.0936v2`.
+
+        .. SEEALSO::
+
+            :meth:`fundamental_transformation`.
         """
         ret = []
         for t in self.to_cycles():
@@ -2366,6 +2370,11 @@ class Permutation(CombinatorialElement):
 
         EXAMPLES::
 
+            sage: Permutation([4, 1, 2, 3]).foata_bijection()
+            [1, 2, 4, 3]
+
+        TESTS::
+
             sage: all( P.foata_bijection().foata_bijection_inverse() == P
             ....:      for P in Permutations(5) )
             True
@@ -2429,12 +2438,19 @@ class Permutation(CombinatorialElement):
             :meth:`fundamental_transformation_inverse`
             for the inverse map.
 
+            :meth:`forget_cycles` for a similar (but non-bijective)
+            map.
+
         EXAMPLES::
 
-            sage: Permutation([5,1,3,4,2]).fundamental_transformation()
+            sage: Permutation([5, 1, 3, 4, 2]).fundamental_transformation()
             [3, 4, 5, 2, 1]
+            sage: Permutations(5)([1, 5, 3, 4, 2]).forget_cycles()
+            [1, 2, 4, 3, 5]
             sage: Permutation([8, 4, 7, 2, 9, 6, 5, 1, 3]).fundamental_transformation()
             [4, 2, 6, 8, 1, 9, 3, 7, 5]
+
+        TESTS:
 
         Border cases::
 
@@ -2482,9 +2498,16 @@ class Permutation(CombinatorialElement):
             sage: Permutation([4, 2, 6, 8, 1, 9, 3, 7, 5]).fundamental_transformation_inverse()
             [8, 4, 7, 2, 9, 6, 5, 1, 3]
 
-            sage: all( P.fundamental_transformation_inverse().fundamental_transformation()
-            ....:      == P
+        TESTS::
+
+            sage: all( P.fundamental_transformation_inverse() \
+            ....:       .fundamental_transformation() == P
             ....:      for P in Permutations(4))
+            True
+
+            sage: all( P.fundamental_transformation() \
+            ....:       .fundamental_transformation_inverse() == P
+            ....:      for P in Permutations(3))
             True
 
         Border cases::

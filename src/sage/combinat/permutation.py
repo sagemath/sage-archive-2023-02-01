@@ -868,7 +868,7 @@ class Permutation(CombinatorialElement):
             w = w[i:]
         return tableau.Tableau(t)
 
-    def to_cycles(self, singletons=True, mins=True):
+    def to_cycles(self, singletons=True, use_min=True):
         """
         Return the permutation ``self`` as a list of disjoint cycles.
 
@@ -879,7 +879,7 @@ class Permutation(CombinatorialElement):
         If ``singletons=False`` is given, the list does not contain the
         singleton cycles.
 
-        If ``mins=False`` is given, the cycles are returned in the
+        If ``use_min=False`` is given, the cycles are returned in the
         order of increasing *largest* (not smallest) elements, and
         each cycle starts with its largest element.
 
@@ -889,21 +889,21 @@ class Permutation(CombinatorialElement):
             [(1, 2), (3,), (4,)]
             sage: Permutation([2,1,3,4]).to_cycles(singletons=False)
             [(1, 2)]
-            sage: Permutation([2,1,3,4]).to_cycles(mins=True)
+            sage: Permutation([2,1,3,4]).to_cycles(use_min=True)
             [(1, 2), (3,), (4,)]
-            sage: Permutation([2,1,3,4]).to_cycles(mins=False)
+            sage: Permutation([2,1,3,4]).to_cycles(use_min=False)
             [(4,), (3,), (2, 1)]
-            sage: Permutation([2,1,3,4]).to_cycles(singletons=False, mins=False)
+            sage: Permutation([2,1,3,4]).to_cycles(singletons=False, use_min=False)
             [(2, 1)]
 
             sage: Permutation([4,1,5,2,6,3]).to_cycles()
             [(1, 4, 2), (3, 5, 6)]
-            sage: Permutation([4,1,5,2,6,3]).to_cycles(mins=False)
+            sage: Permutation([4,1,5,2,6,3]).to_cycles(use_min=False)
             [(6, 3, 5), (4, 2, 1)]
 
             sage: Permutation([6, 4, 5, 2, 3, 1]).to_cycles()
             [(1, 6), (2, 4), (3, 5)]
-            sage: Permutation([6, 4, 5, 2, 3, 1]).to_cycles(mins=False)
+            sage: Permutation([6, 4, 5, 2, 3, 1]).to_cycles(use_min=False)
             [(6, 1), (5, 3), (4, 2)]
 
         The algorithm is of complexity `O(n)` where `n` is the size of the
@@ -2440,7 +2440,7 @@ class Permutation(CombinatorialElement):
             sage: Permutation([1]).fundamental_transformation()
             [1]
         """
-        cycles = self.to_cycles(mins=False)
+        cycles = self.to_cycles(use_min=False)
         return Permutations()([a for c in reversed(cycles) for a in c])
 
     @combinatorial_map(name='fundamental_transformation_inverse')

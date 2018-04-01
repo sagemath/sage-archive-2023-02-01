@@ -338,10 +338,15 @@ def pak_correspondence(M):
     # is a corner of lam.
     x = M[i][j]
     N = [row[:] for row in M]
+
+    # remove the corner (i, j):
     N[i].pop()
     if not N[i]:
         N.pop()
+
     N = pak_correspondence(N)
+
+    # toggling and inserting the new entry:
     for k in range(min(i, j) + 1):
         u = i - k
         v = j - k
@@ -361,9 +366,10 @@ def pak_correspondence(M):
             if len(N) <= u:
                 N.append([])
             N[u].append(lower_bound + x)
+
     return N
 
-def sulzgruber_correspondence(M):
+def sulzgruber_correspondence(M, deepcopy=True):
     r"""
     Return the image of a `\lambda-array ``M``
     under the Sulzgruber correspondence.
@@ -372,6 +378,12 @@ def sulzgruber_correspondence(M):
     from [Sulzgr2017]_ Section 7.
     It is the inverse of the Pak correspondence
     (:meth:`pak_correspondence`).
+
+    INPUT:
+
+    - ``deepcopy`` (default: ``True``) -- boolean;
+      if set to ``False``, the algorithm will clobber the
+      input (but be more efficient)
 
     EXAMPLES::
 
@@ -390,6 +402,16 @@ def sulzgruber_correspondence(M):
 
         sage: sulzgruber_correspondence([])
         []
+
+        sage: a = [[0, 2, 3], [1, 3, 3], [2, 4]]
+        sage: sulzgruber_correspondence(a)
+        [[1, 0, 2], [0, 2, 0], [1, 1]]
+        sage: a
+        [[0, 2, 3], [1, 3, 3], [2, 4]]
+        sage: sulzgruber_correspondence(a, deepcopy=False)
+        [[1, 0, 2], [0, 2, 0], [1, 1]]
+        sage: a
+        []
     """
     lam = [len(row) for row in M]
     l = len(lam)
@@ -406,7 +428,13 @@ def sulzgruber_correspondence(M):
     # has the same length as the first row; hence, (i, j)
     # is a corner of lam.
     x = M[i][j]
-    N = [row[:] for row in M] # make a deep copy of M to avoid vandalizing M
+
+    if deepcopy:
+        N = [row[:] for row in M] # make a deep copy of M to avoid vandalizing M
+    else:
+        N = M
+
+    # toggling and obtaining x (the corner entry of the output):
     for k in range(min(i, j) + 1):
         u = i - k
         v = j - k
@@ -424,10 +452,13 @@ def sulzgruber_correspondence(M):
             N[u][v] = lower_bound + upper_bound - val
         else:
             x -= lower_bound
+
+    # remove the corner (i, j):
     N[i].pop()
     if not N[i]:
         N.pop()
-    N = sulzgruber_correspondence(N)
+
+    N = sulzgruber_correspondence(N, deepcopy=False)
     if len(N) <= i:
         N.append([])
     N[i].append(x)

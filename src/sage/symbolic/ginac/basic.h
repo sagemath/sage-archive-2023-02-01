@@ -194,6 +194,7 @@ public:
         virtual bool is_integer() const { return info(info_flags::integer); }
         virtual bool is_real() const { return info(info_flags::real); }
         virtual bool is_positive() const { return info(info_flags::positive); }
+        virtual bool is_negative() const { return info(info_flags::negative); }
 
 	// operand access
 	virtual size_t nops() const;

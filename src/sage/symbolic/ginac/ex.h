@@ -146,6 +146,7 @@ public:
 	bool is_integer() const { return bp->is_integer(); }
 	bool is_real() const { return bp->is_real(); }
 	bool is_positive() const { return bp->is_positive(); }
+	bool is_negative() const { return bp->is_negative(); }
 
 	// operand access
 	size_t nops() const { return bp->nops(); }

@@ -157,7 +157,7 @@ public:
 	bool is_one() const;
 	bool is_minus_one() const;
 	bool is_positive() const override;
-	bool is_negative() const;
+	bool is_negative() const override;
 	bool is_integer() const override;
 	bool is_pos_integer() const;
 	bool is_nonneg_integer() const;
@@ -249,6 +249,8 @@ public:
 	const numeric imag() const;
 	const numeric numer() const;
 	const numeric denom() const;
+        const numeric floor() const;
+        const numeric frac() const;
 
         const numeric arbfunc_0arg(const char* name, PyObject* parent) const;
 	const numeric exp(PyObject*) const;

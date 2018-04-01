@@ -3658,6 +3658,20 @@ const numeric numeric::denom() const {
         }
 }
 
+const numeric numeric::floor() const {
+        numeric d = denom();
+        if (d.is_one())
+                return *this;
+        return numer().iquo(d);
+}
+
+const numeric numeric::frac() const {
+        numeric d = denom();
+        if (d.is_one())
+                return 0;
+        return *this - numer().iquo(d);
+}
+
 const numeric numeric::fibonacci() const {
     PY_RETURN(py_funcs.py_fibonacci);
 }

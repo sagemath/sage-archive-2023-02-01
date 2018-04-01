@@ -234,8 +234,13 @@ bool ex::is_linear(const symbol& x, ex& a, ex& b) const
 bool ex::is_quadratic(const symbol& x, ex& a, ex& b, ex& c) const
 {
         expand();
-        if (degree(x) > 2)
+        try {
+                if (degree(x) > 2)
+                        return false;
+        }
+        catch (std::runtime_error) {
                 return false;
+        }
         c = coeff(x, 2);
         if (has_symbol(c,x))
                 return false;

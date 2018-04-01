@@ -434,7 +434,6 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
                 sage: A.product_on_basis(x, x)
                 F[1, 2] + F[2, 1]
             """
-            n = len(x)
             basis = self.basis()
             return self.sum(basis[u] for u in x.shifted_shuffle(y))
 

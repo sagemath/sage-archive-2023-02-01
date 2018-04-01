@@ -101,6 +101,20 @@ REFERENCES:
 
 .. [EnumComb2]_
 
+.. [Sulzgr2017] Robin Sulzgruber,
+   *Inserting rim-hooks into reverse plane partitions*,
+   :arxiv:`1710.09695v1`.
+
+.. [Pak2002] Igor Pak,
+   *Hook length formula and geometric combinatorics*,
+   Seminaire Lotharingien de Combinatoire, 46 (2001),
+   B46f,
+   https://eudml.org/doc/121696
+
+.. [Hopkins17] Sam Hopkins,
+   *RSK via local transformations*,
+   http://web.mit.edu/~shopkins/docs/rsk.pdf
+
 AUTHORS:
 
 - Darij Grinberg and Tom Roby (2018): Initial implementation
@@ -115,10 +129,7 @@ AUTHORS:
 
     * Import this in the proper places.
 
-    * Sulzgruber's multiset-of-hooks algorithm.
-
-    * Perhaps Pak's and Hopkins's (are they equal on the nose?)
-      toggling algorithms too (they are not the same as HG).
+    * Sulzgruber correspondence (inverse of Pak).
 """
 #*****************************************************************************
 #       Copyright (C) 2018 Darij Grinberg <darijgrinberg@gmail.com>,
@@ -279,4 +290,67 @@ def hillman_grassl_inverse(M):
                 col_j = Mt[j]
         res[i][s] += 1
     return res
+
+def pak_correspondence(M):
+    r"""
+    Return the image of a `\lambda-array ``M``
+    under the Pak correspondence.
+
+    The Pak correspondence is the map `\xi_\lambda`
+    from [Sulzgr2017]_ Section 7.
+    It is the inverse of the Sulzgruber correspondence
+    (:meth:`sulzgruber_correspondence`).
+
+    EXAMPLES::
+
+        sage: pak_correspondence([[1, 0, 2], [0, 2, 0], [1, 1, 0]])
+        [[1, 2, 3], [1, 2, 3], [2, 4, 4]]
+        sage: pak_correspondence([[1, 1, 2], [0, 1, 0], [3, 0, 0]])
+        [[1, 1, 4], [2, 3, 4], [4, 4, 4]]
+        sage: pak_correspondence([[1, 0, 2], [0, 2, 0], [1, 1]])
+        [[0, 2, 3], [1, 3, 3], [2, 4]]
+        sage: pak_correspondence([[0, 2, 2], [1, 1], [2]])
+        [[1, 2, 4], [1, 3], [3]]
+    """
+    lam = [len(row) for row in M]
+    l = len(lam)
+    if l == 0:
+        return []
+    # Finding a corner of lam...
+    lam_0 = lam[0]
+    for i, lam_i in enumerate(lam):
+        if lam_i != lam_0:
+            i -= 1
+            break
+    j = lam_0 - 1
+    # Now, i is the index of the last row of ``M`` that
+    # has the same length as the first row; hence, (i, j)
+    # is a corner of lam.
+    x = M[i][j]
+    N = [row[:] for row in M]
+    N[i].pop()
+    if not N[i]:
+        N.pop()
+    N = pak_correspondence(N)
+    for k in range(min(i, j) + 1):
+        u = i - k
+        v = j - k
+        if u > 0 and v > 0:
+            lower_bound = max(N[u-1][v], N[u][v-1])
+        elif u > 0:
+            lower_bound = N[u-1][v]
+        elif v > 0:
+            lower_bound = N[u][v-1]
+        else:
+            lower_bound = 0
+        if k > 0:
+            val = N[u][v]
+            upper_bound = min(N[u+1][v], N[u][v+1])
+            N[u][v] = lower_bound + upper_bound - val
+        else:
+            if len(N) <= u:
+                N.append([])
+            N[u].append(lower_bound + x)
+    return N
+
 

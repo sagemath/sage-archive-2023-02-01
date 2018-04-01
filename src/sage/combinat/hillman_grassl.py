@@ -195,6 +195,11 @@ def hillman_grassl(M):
         [[1, 2, 4], [3, 5, 5], [4]]
         sage: hillman_grassl([[1, 1, 1, 1]]*3)
         [[1, 2, 3, 4], [2, 3, 4, 5], [3, 4, 5, 6]]
+
+    TESTS::
+
+        sage: hillman_grassl(((2, 2, 0), (1, 1, 1), (1,)))
+        [[1, 2, 4], [3, 5, 5], [4]]
     """
     lam = [len(row) for row in M]
     l = len(lam)
@@ -262,6 +267,9 @@ def hillman_grassl_inverse(M):
         [[3], [1], [2]]
         sage: a
         [[3], [4], [6]]
+
+        sage: hillman_grassl_inverse(((1,2),(3,4),(5,)))
+        [[1, 1], [2, 1], [2]]
     """
     lam = [len(row) for row in M]
     res = [[0] * rowlen for rowlen in lam]
@@ -321,6 +329,8 @@ def pak_correspondence(M):
 
         sage: pak_correspondence([])
         []
+        sage: pak_correspondence(((0, 2, 2), (1, 1), (2,)))
+        [[1, 2, 4], [1, 3], [3]]
     """
     lam = [len(row) for row in M]
     l = len(lam)
@@ -337,7 +347,7 @@ def pak_correspondence(M):
     # has the same length as the first row; hence, (i, j)
     # is a corner of lam.
     x = M[i][j]
-    N = [row[:] for row in M]
+    N = [list(row) for row in M]
 
     # remove the corner (i, j):
     N[i].pop()
@@ -402,6 +412,8 @@ def sulzgruber_correspondence(M, deepcopy=True):
 
         sage: sulzgruber_correspondence([])
         []
+        sage: sulzgruber_correspondence(((1, 2, 4), (1, 3), (3,)))
+        [[0, 2, 2], [1, 1], [2]]
 
         sage: a = [[0, 2, 3], [1, 3, 3], [2, 4]]
         sage: sulzgruber_correspondence(a)
@@ -430,7 +442,7 @@ def sulzgruber_correspondence(M, deepcopy=True):
     x = M[i][j]
 
     if deepcopy:
-        N = [row[:] for row in M] # make a deep copy of M to avoid vandalizing M
+        N = [list(row) for row in M] # make a deep copy of M to avoid vandalizing M
     else:
         N = M
 

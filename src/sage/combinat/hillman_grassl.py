@@ -300,7 +300,7 @@ def pak_correspondence(M):
 
     The Pak correspondence is the map `\xi_\lambda`
     from [Sulzgr2017]_ Section 7.
-    It is denoted by $RSK$ in [Hopkins2017]_.
+    It is denoted by $\mathcal{RSK}$ in [Hopkins2017]_.
     It is the inverse of the Sulzgruber correspondence
     (:meth:`sulzgruber_correspondence`).
 
@@ -314,6 +314,11 @@ def pak_correspondence(M):
         [[0, 2, 3], [1, 3, 3], [2, 4]]
         sage: pak_correspondence([[0, 2, 2], [1, 1], [2]])
         [[1, 2, 4], [1, 3], [3]]
+
+    TESTS::
+
+        sage: pak_correspondence([])
+        []
     """
     lam = [len(row) for row in M]
     l = len(lam)

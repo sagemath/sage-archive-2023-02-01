@@ -111,7 +111,7 @@ REFERENCES:
    B46f,
    https://eudml.org/doc/121696
 
-.. [Hopkins17] Sam Hopkins,
+.. [Hopkins2017] Sam Hopkins,
    *RSK via local transformations*,
    http://web.mit.edu/~shopkins/docs/rsk.pdf
 
@@ -130,6 +130,8 @@ AUTHORS:
     * Import this in the proper places.
 
     * Sulzgruber correspondence (inverse of Pak).
+
+    * Properly document Pak and Sulzgruber.
 """
 #*****************************************************************************
 #       Copyright (C) 2018 Darij Grinberg <darijgrinberg@gmail.com>,
@@ -298,6 +300,7 @@ def pak_correspondence(M):
 
     The Pak correspondence is the map `\xi_\lambda`
     from [Sulzgr2017]_ Section 7.
+    It is denoted by $RSK$ in [Hopkins2017]_.
     It is the inverse of the Sulzgruber correspondence
     (:meth:`sulzgruber_correspondence`).
 

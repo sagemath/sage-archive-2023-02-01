@@ -127,11 +127,7 @@ AUTHORS:
       class? two proper classes? Wait until Tableaux have
       been refactored?
 
-    * Import this in the proper places.
-
-    * Sulzgruber correspondence (inverse of Pak).
-
-    * Properly document Pak and Sulzgruber.
+    * Properly document Pak and Sulzgruber correspondences?
 """
 #*****************************************************************************
 #       Copyright (C) 2018 Darij Grinberg <darijgrinberg@gmail.com>,
@@ -197,6 +193,8 @@ def hillman_grassl(M):
         [[3, 4, 6]]
         sage: hillman_grassl([[2, 2, 0], [1, 1, 1], [1]])
         [[1, 2, 4], [3, 5, 5], [4]]
+        sage: hillman_grassl([[1, 1, 1, 1]]*3)
+        [[1, 2, 3, 4], [2, 3, 4, 5], [3, 4, 5, 6]]
     """
     lam = [len(row) for row in M]
     l = len(lam)
@@ -254,6 +252,8 @@ def hillman_grassl_inverse(M):
         [[1, 1], [2, 1], [2]]
         sage: hillman_grassl_inverse([[1, 2, 3], [1, 2, 3], [2, 4, 4]])
         [[1, 2, 0], [0, 1, 1], [1, 0, 1]]
+        sage: hillman_grassl_inverse([[1, 2, 3, 4], [2, 3, 4, 5], [3, 4, 5, 6]])
+        [[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]]
 
     TESTS::
 
@@ -314,6 +314,8 @@ def pak_correspondence(M):
         [[0, 2, 3], [1, 3, 3], [2, 4]]
         sage: pak_correspondence([[0, 2, 2], [1, 1], [2]])
         [[1, 2, 4], [1, 3], [3]]
+        sage: pak_correspondence([[1, 1, 1, 1]]*3)
+        [[1, 2, 3, 4], [2, 3, 4, 5], [3, 4, 5, 6]]
 
     TESTS::
 
@@ -359,6 +361,76 @@ def pak_correspondence(M):
             if len(N) <= u:
                 N.append([])
             N[u].append(lower_bound + x)
+    return N
+
+def sulzgruber_correspondence(M):
+    r"""
+    Return the image of a `\lambda-array ``M``
+    under the Sulzgruber correspondence.
+
+    The Sulzgruber correspondence is the map `\Phi_\lambda`
+    from [Sulzgr2017]_ Section 7.
+    It is the inverse of the Pak correspondence
+    (:meth:`pak_correspondence`).
+
+    EXAMPLES::
+
+        sage: sulzgruber_correspondence([[1, 2, 3], [1, 2, 3], [2, 4, 4]])
+        [[1, 0, 2], [0, 2, 0], [1, 1, 0]]
+        sage: sulzgruber_correspondence([[1, 1, 4], [2, 3, 4], [4, 4, 4]])
+        [[1, 1, 2], [0, 1, 0], [3, 0, 0]]
+        sage: sulzgruber_correspondence([[0, 2, 3], [1, 3, 3], [2, 4]])
+        [[1, 0, 2], [0, 2, 0], [1, 1]]
+        sage: sulzgruber_correspondence([[1, 2, 4], [1, 3], [3]])
+        [[0, 2, 2], [1, 1], [2]]
+        sage: sulzgruber_correspondence([[1, 2, 3, 4], [2, 3, 4, 5], [3, 4, 5, 6]])
+        [[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]]
+
+    TESTS::
+
+        sage: sulzgruber_correspondence([])
+        []
+    """
+    lam = [len(row) for row in M]
+    l = len(lam)
+    if l == 0:
+        return []
+    # Finding a corner of lam...
+    lam_0 = lam[0]
+    for i, lam_i in enumerate(lam):
+        if lam_i != lam_0:
+            i -= 1
+            break
+    j = lam_0 - 1
+    # Now, i is the index of the last row of ``M`` that
+    # has the same length as the first row; hence, (i, j)
+    # is a corner of lam.
+    x = M[i][j]
+    N = [row[:] for row in M] # make a deep copy of M to avoid vandalizing M
+    for k in range(min(i, j) + 1):
+        u = i - k
+        v = j - k
+        if u > 0 and v > 0:
+            lower_bound = max(N[u-1][v], N[u][v-1])
+        elif u > 0:
+            lower_bound = N[u-1][v]
+        elif v > 0:
+            lower_bound = N[u][v-1]
+        else:
+            lower_bound = 0
+        if k > 0:
+            val = N[u][v]
+            upper_bound = min(N[u+1][v], N[u][v+1])
+            N[u][v] = lower_bound + upper_bound - val
+        else:
+            x -= lower_bound
+    N[i].pop()
+    if not N[i]:
+        N.pop()
+    N = sulzgruber_correspondence(N)
+    if len(N) <= i:
+        N.append([])
+    N[i].append(x)
     return N
 
 

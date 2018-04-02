@@ -20,8 +20,11 @@ set -ex
 # too high can lead to RAM being insufficient, so it's best to set this
 # variable manually in your CI configuration.
 [[ -z "$NTHREADS" ]] && NTHREADS=`grep -E '^processor' /proc/cpuinfo | wc -l` || true
+export NTHREADS="$NTHREADS"
 # Set -j and -l for make (though -l is probably stripped by Sage)
 [[ -z "$MAKEOPTS" ]] && MAKEOPTS="-j $NTHREADS -l $((NTHREADS-1)).8" || true
+export MAKEOPTS="$MAKEOPTS"
 # Not all parts of Sage seem to honor MAKEOPTS, so the current way of telling
 # the system which concurrency to use, seems to be setting $MAKE.
 [[ -z "$MAKE" ]] && MAKE="make $MAKEOPTS" || true
+export MAKE="$MAKE"

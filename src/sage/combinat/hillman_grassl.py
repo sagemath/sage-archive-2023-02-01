@@ -88,14 +88,14 @@ multiplicities") and [EnumComb2]_ Section 7.22.
 
 REFERENCES:
 
-- [Gans1981] Emden R. Gansner,
+.. [Gans1981] Emden R. Gansner,
   *The Hillman-Grassl Correspondence and the
   Enumeration of Reverse Plane Partitions*,
   Journal of Combinatorial Theory, Series A
   30 (1981), pp. 71--89.
   :doi:`10.1016/0097-3165(81)90041-8`
 
-- [HilGra1976] A. P. Hillman, R. M. Grassl,
+.. [HilGra1976] \A. P. Hillman, R. M. Grassl,
   *Reverse plane partitions and tableau hook numbers*,
   Journal of Combinatorial Theory, Series A 21 (1976),
   pp. 216--221.
@@ -103,17 +103,17 @@ REFERENCES:
 
 - [EnumComb2]_
 
-- [Sulzgr2017] Robin Sulzgruber,
+.. [Sulzgr2017] Robin Sulzgruber,
   *Inserting rim-hooks into reverse plane partitions*,
   :arxiv:`1710.09695v1`.
 
-- [Pak2002] Igor Pak,
+.. [Pak2002] Igor Pak,
   *Hook length formula and geometric combinatorics*,
   Seminaire Lotharingien de Combinatoire, 46 (2001),
   B46f,
   https://eudml.org/doc/121696
 
-- [Hopkins2017] Sam Hopkins,
+.. [Hopkins2017] Sam Hopkins,
   *RSK via local transformations*,
   http://web.mit.edu/~shopkins/docs/rsk.pdf
 
@@ -181,6 +181,7 @@ def transpose(M):
             lj.append(r[j])
         res.append(lj)
     return res
+
 
 def hillman_grassl(M):
     r"""

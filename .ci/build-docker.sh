@@ -22,7 +22,7 @@ ARTIFACT_BASE=${ARTIFACT_BASE:-sagemath/sagemath-dev:develop}
 # Seed our cache with $ARTIFACT_BASE if it exists
 docker pull $ARTIFACT_BASE || true
 
-function docker_build {
+docker_build() {
     time docker build -f docker/Dockerfile --build-arg "MAKE=${MAKE}" --build-arg ARTIFACT_BASE=$ARTIFACT_BASE $@
 }
 

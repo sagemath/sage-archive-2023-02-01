@@ -110,6 +110,7 @@ List of Poset methods
     :meth:`~FinitePoset.completion_by_cuts` | Return the Dedekind-MacNeille completion of the poset.
     :meth:`~FinitePoset.intervals_poset` | Return the poset of intervals of the poset.
     :meth:`~FinitePoset.connected_components` | Return the connected components of the poset as subposets.
+    :meth:`~FinitePoset.factorize` | Return the decomposition of the poset as a Cartesian product.
     :meth:`~FinitePoset.ordinal_summands` | Return the ordinal summands of the poset.
     :meth:`~FinitePoset.subposet` | Return the subposet containing elements with partial order induced by this poset.
     :meth:`~FinitePoset.random_subposet` | Return a random subposet that contains each element with given probability.
@@ -283,6 +284,7 @@ from sage.combinat.posets.hasse_diagram import HasseDiagram
 from sage.combinat.posets.elements import PosetElement
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.misc.superseded import deprecated_function_alias
+from sage.combinat.subset import Subsets
 
 
 def Poset(data=None, element_labels=None, cover_relations=False, linear_extension=False, category=None, facade=None, key=None):
@@ -4292,6 +4294,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         Product of (semi)lattices are returned as a (semi)lattice.
 
+        .. SEEALSO:: :meth:`factorize`
+
         EXAMPLES::
 
             sage: P = posets.ChainPoset(3)
@@ -4349,6 +4353,99 @@ class FinitePoset(UniqueRepresentation, Parent):
         return constructor(self.hasse_diagram().cartesian_product(other.hasse_diagram()))
 
     _mul_ = product
+
+    def factorize(self):
+        """
+        Factorize the poset as a Cartesian product of smaller posets.
+
+        The decomposition of a poset as a Cartesian product of prime
+        posets is unique up to reordering and isomorphism.
+
+        OUTPUT:
+
+        a list of (prime) posets
+
+        EXAMPLES::
+
+            sage: P = posets.PentagonPoset()
+            sage: Q = P*P
+            sage: Q.factorize()
+            [Finite poset containing 5 elements,
+            Finite poset containing 5 elements]
+
+            sage: P1 = posets.ChainPoset(3)
+            sage: P2 = posets.ChainPoset(7)
+            sage: P1.factorize()
+            [Finite lattice containing 3 elements]
+            sage: (P1 * P2).factorize()
+            [Finite poset containing 7 elements,
+            Finite poset containing 3 elements]
+
+            sage: P = posets.TamariLattice(4)
+            sage: (P*P).factorize()
+            [Finite poset containing 14 elements,
+            Finite poset containing 14 elements]
+
+        .. SEEALSO:: :meth:`cartesian_product`
+
+        REFERENCES:
+
+        .. [Feig] Joan Feigenbaum, *Directed Cartesian-Product Graphs
+          have Unique Factorizations that can be computed in Polynomial Time*,
+          Discrete Applied Mathematics 15 (1986) 105-110
+        """
+        from sage.misc.mrange import cartesian_product_iterator
+        from sage.graphs.graph import Graph
+        from sage.misc.flatten import flatten
+        dg = self._hasse_diagram
+        if ZZ(dg.num_verts()).is_prime():
+            return [self]
+        G = dg.to_undirected()
+        is_product, dic = G.is_cartesian_product(relabeling=True)
+        if not is_product:
+            return [self]
+        dic = {key: tuple(flatten(dic[key])) for key in dic}
+
+        prod_dg = dg.relabel(dic, inplace=False)
+        v0 = next(iter(dic.values()))
+        n = len(v0)
+        factors_range = list(range(n))
+        fusion = Graph(n)
+
+        def edge_color(va, vb):
+            for i in range(n):
+                if va[i] != vb[i]:
+                    return i
+
+        for i0, i1 in Subsets(factors_range, 2):
+            for x in prod_dg:
+                neigh0 = [y for y in prod_dg.neighbors(x)
+                          if edge_color(x, y) == i0]
+                neigh1 = [z for z in prod_dg.neighbors(x)
+                          if edge_color(x, z) == i1]
+                for x0, x1 in cartesian_product_iterator([neigh0, neigh1]):
+                    x2 = list(x0)
+                    x2[i1] = x1[i1]
+                    x2 = tuple(x2)
+                    A0 = prod_dg.has_edge(x, x0)
+                    B0 = prod_dg.has_edge(x1, x2)
+                    if A0 != B0:
+                        fusion.add_edge([i0, i1])
+                        break
+                    A1 = prod_dg.has_edge(x, x1)
+                    B1 = prod_dg.has_edge(x0, x2)
+                    if A1 != B1:
+                        fusion.add_edge([i0, i1])
+                        break
+
+        fusion = fusion.transitive_closure()
+        resu = []
+        for s in fusion.connected_components():
+            subg = [x for x in prod_dg if all(x[i] == v0[i] for i in factors_range
+                                              if i not in s)]
+            resu.append(Poset(prod_dg.subgraph(subg)))
+
+        return resu
 
     def disjoint_union(self, other, labels='pairs'):
         """

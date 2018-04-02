@@ -31,6 +31,7 @@ from __future__ import print_function, absolute_import, division
 from cysignals.memory cimport check_realloc, check_malloc, sig_free
 from cpython.bytes cimport PyBytes_AsString, PyBytes_FromStringAndSize
 from cysignals.signals cimport sig_on, sig_off, sig_check
+cimport cython
 
 import os
 
@@ -1218,15 +1219,23 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
     cdef _mul_long(self, long n):
         """
         Multiply an MTX matrix with a field element represented by an integer.
+
+        TESTS::
+
+            sage: M = random_matrix(GF(9,'x'), 64,51)
+            sage: M == M*int(4) == int(4)*M
+            True
+            sage: M*int(-1)+M == 0
+            True
+
         """
         if self.Data == NULL:
             raise ValueError("The matrix must not be empty")
         cdef Matrix_gfpn_dense left
+        FfSetField(self.Data.Field)
         cdef FEL r
-        if n < 0:
-            r = mtx_taddinv[FfFromInt(-n)]
-        else:
-            r = FfFromInt(n)
+        with cython.cdivision(False):
+            r = FfFromInt(n%FfChar)
         left = self.__copy__()
         left._cache = {}
         MatMulScalar(left.Data, r)

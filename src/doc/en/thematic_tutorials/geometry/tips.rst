@@ -56,7 +56,7 @@ object, you can!
 .. end of output
 
 
-:code:`repr_pretty_Hrepresentation`
+:code:`Hrepresentation_str`
 ==============================================================
 
 If you would like to visualize the `H`-representation nicely and even get
@@ -64,24 +64,66 @@ the latex presentation, there is a method for that!
 
 ::
 
-    sage: Nice_repr = TCube.repr_pretty_Hrepresentation(separator='\n')
+    sage: Nice_repr = TCube.Hrepresentation_str()
     sage: print(Nice_repr)
-    1 >= x0
-    1 >= x1
-    3*x1 + 7 >= 3*x0 + 3*x2
-    x0 + 1 >= 0
-    x1 + 1 >= 0
-    3*x0 + 7 >= 3*x1 + 3*x2
-    3*x0 + 3*x1 + 7 >= 3*x2
-    3*x0 + 3*x2 + 7 >= 3*x1
-    3*x0 + 3*x1 + 3*x2 + 7 >= 0
-    x2 + 1 >= 0
-    1 >= x2
-    3*x1 + 3*x2 + 7 >= 3*x0
-    3*x2 + 7 >= 3*x0 + 3*x1
-    7 >= 3*x0 + 3*x1 + 3*x2
+                    -x0 >= -1
+                    -x1 >= -1
+    -3*x0 + 3*x1 - 3*x2 >= -7
+                     x0 >= -1
+                     x1 >= -1
+     3*x0 - 3*x1 - 3*x2 >= -7
+     3*x0 + 3*x1 - 3*x2 >= -7
+     3*x0 - 3*x1 + 3*x2 >= -7
+     3*x0 + 3*x1 + 3*x2 >= -7
+                     x2 >= -1
+                    -x2 >= -1
+    -3*x0 + 3*x1 + 3*x2 >= -7
+    -3*x0 - 3*x1 + 3*x2 >= -7
+    -3*x0 - 3*x1 - 3*x2 >= -7
 
-    sage: Latex_repr = LatexExpr(TCube.repr_pretty_Hrepresentation(separator=",\\\\", latex=True))
+    sage: print(TCube.Hrepresentation_str(latex=True))
+    \begin{array}{rcl}
+                                   -x_{0} & \geq & -1 \\
+                                   -x_{1} & \geq & -1 \\
+    -3 \, x_{0} + 3 \, x_{1} - 3 \, x_{2} & \geq & -7 \\
+                                    x_{0} & \geq & -1 \\
+                                    x_{1} & \geq & -1 \\
+     3 \, x_{0} - 3 \, x_{1} - 3 \, x_{2} & \geq & -7 \\
+     3 \, x_{0} + 3 \, x_{1} - 3 \, x_{2} & \geq & -7 \\
+     3 \, x_{0} - 3 \, x_{1} + 3 \, x_{2} & \geq & -7 \\
+     3 \, x_{0} + 3 \, x_{1} + 3 \, x_{2} & \geq & -7 \\
+                                    x_{2} & \geq & -1 \\
+                                   -x_{2} & \geq & -1 \\
+    -3 \, x_{0} + 3 \, x_{1} + 3 \, x_{2} & \geq & -7 \\
+    -3 \, x_{0} - 3 \, x_{1} + 3 \, x_{2} & \geq & -7 \\
+    -3 \, x_{0} - 3 \, x_{1} - 3 \, x_{2} & \geq & -7 
+    \end{array}
+
+    sage: Latex_repr = LatexExpr(TCube.Hrepresentation_str(latex=True))
     sage: view(Latex_repr)  # not tested
+
+.. end of output
+
+The `style` parameter allows to change the way to print the `H`-relations:
+
+::
+
+    sage: P = polytopes.permutahedron(3)
+    sage: print(P.Hrepresentation_str(style='<='))
+    -x0 - x1 - x2 == -6
+          x1 + x2 <=  5
+               x2 <=  3
+               x1 <=  3
+              -x1 <= -1
+         -x1 - x2 <= -3
+              -x2 <= -1
+    sage: print(P.Hrepresentation_str(style='positive'))
+    x0 + x1 + x2 == 6
+               5 >= x1 + x2
+               3 >= x2
+               3 >= x1
+              x1 >= 1
+         x1 + x2 >= 3
+              x2 >= 1
 
 .. end of output

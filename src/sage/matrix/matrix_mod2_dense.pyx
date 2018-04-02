@@ -104,8 +104,8 @@ from __future__ import absolute_import
 from cysignals.memory cimport check_malloc, sig_free
 from cysignals.signals cimport sig_check, sig_on, sig_str, sig_off
 
-from collections import Iterator, Sequence
 cimport sage.matrix.matrix_dense as matrix_dense
+from .args cimport SparseEntry, MatrixArgs_init
 from libc.stdio cimport *
 from sage.structure.element cimport (Matrix, Vector,
                                      ModuleElement, Element)
@@ -222,16 +222,20 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             mzd_free(self._entries)
             self._entries = NULL
 
-    def __init__(self, parent, entries, copy, coerce):
+    def __init__(self, parent, entries=None, copy=None, bint coerce=True):
         """
-        Dense matrix over GF(2) constructor.
+        Construct a dense matrix over GF(2).
 
         INPUT:
 
-        - ``parent`` - MatrixSpace.
-        - ``entries`` - may be list or 0 or 1
-        - ``copy`` - ignored, elements are always copied
-        - ``coerce`` - ignored, elements are always coerced to ints % 2
+        - ``parent`` -- a matrix space over ``GF(2)``
+
+        - ``entries`` -- see :func:`matrix`
+
+        - ``copy`` -- ignored (for backwards compatibility)
+
+        - ``coerce`` -- if False, assume without checking that the
+          entries lie in the base ring
 
         EXAMPLES::
 
@@ -265,32 +269,10 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: Matrix(GF(2),0,2)
             []
         """
-        cdef int i,j,e
-
-        if entries is None:
-            return
-
-        R = self.base_ring()
-
-        # scalar ?
-        if not isinstance(entries, (Iterator, Sequence)):
-            if self._nrows and self._ncols and R(entries) == 1:
-                mzd_set_ui(self._entries, 1)
-            return
-
-        # all entries are given as a long iterable
-        if not isinstance(entries, (list, tuple)):
-            entries = list(entries)
-        if len(entries) != self._nrows * self._ncols:
-            raise IndexError("The vector of entries has the wrong length.")
-
-        k = 0
-
-        for i from 0 <= i < self._nrows:
-            sig_check()
-            for j from 0 <= j < self._ncols:
-                mzd_write_bit(self._entries,i,j, R(entries[k]))
-                k = k + 1
+        ma = MatrixArgs_init(parent, entries)
+        for t in ma.iter(coerce, True):
+            se = <SparseEntry>t
+            mzd_write_bit(self._entries, se.i, se.j, se.entry)
 
     cdef long _hash_(self) except -1:
         r"""

@@ -36,6 +36,7 @@ from sage.libs.arb.acb_mat cimport *
 from sage.matrix.matrix cimport Matrix
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix_generic_sparse cimport Matrix_generic_sparse
+from .args cimport SparseEntry, MatrixArgs_init
 from sage.rings.complex_interval_field import ComplexIntervalField_class, ComplexIntervalField
 from sage.rings.complex_interval cimport ComplexIntervalFieldElement
 from sage.rings.complex_arb cimport (
@@ -159,30 +160,20 @@ cdef class Matrix_complex_ball_dense(Matrix_dense):
         """
         acb_mat_clear(self.value)
 
-
-    def __init__(self,
-                 parent,
-                 entries,
-                 copy,
-                 coerce):
+    def __init__(self, parent, entries=None, copy=None, bint coerce=True):
         r"""
         Initialize a dense matrix over the complex ball field.
 
         INPUT:
 
-        -  ``parent`` - a matrix space
+        - ``parent`` -- a matrix space over a complex ball field
 
-        -  ``entries`` - list - create the matrix with those
-           entries along the rows.
+        - ``entries`` -- see :func:`matrix`
 
-        -  ``other`` - a scalar; entries is coerced to a complex ball
-           and the diagonal entries of this matrix are set to that
-           complex ball.
+        - ``copy`` -- ignored (for backwards compatibility)
 
-        -  ``coerce`` - whether need to coerce entries to the
-           complex ball field (program may crash if you get this wrong)
-
-        -  ``copy`` - ignored (since complex balls are immutable)
+        - ``coerce`` -- if False, assume without checking that the
+          entries lie in the base ring
 
         EXAMPLES:
 
@@ -245,56 +236,12 @@ cdef class Matrix_complex_ball_dense(Matrix_dense):
             100 x 0 dense matrix over Complex ball field with 53 bits
             of precision (use the '.str()' method to see the entries)
         """
-        cdef Py_ssize_t i, j, k
-        cdef bint is_list
-        cdef ComplexBall x
-
-        if entries is None:
-            x = self._base_ring.zero()
-            is_list = False
-        elif isinstance(entries, (int, long, Element)):
-            try:
-                x = self._base_ring(entries)
-            except TypeError:
-                raise TypeError("unable to convert entry to a complex ball")
-            is_list = False
-        else:
-            entries = list(entries)
-            is_list = True
-
-        if is_list:
-            # Create the matrix whose entries are in the given entry list.
-            if len(entries) != self._nrows * self._ncols:
-                raise TypeError("entries has the wrong length")
-            if coerce:
-                k = 0
-                for i in range(self._nrows):
-                    for j in range(self._ncols):
-                        x = self._base_ring(entries[k])
-                        acb_set(acb_mat_entry(self.value, i, j),
-                                x.value)
-                        k += 1
-            else:
-                k = 0
-                for i in range(self._nrows):
-                    for j in range(self._ncols):
-                        acb_set(acb_mat_entry(self.value, i, j),
-                                (<ComplexBall> entries[k]).value)
-                        k += 1
-        else:
-            # If x is zero, make the zero matrix and be done.
-            if acb_is_zero(x.value):
-                acb_mat_zero(self.value)
-                return
-
-            # the matrix must be square:
-            if self._nrows != self._ncols:
-                raise TypeError("nonzero scalar matrix must be square")
-
-            # Now we set all the diagonal entries to x and all other entries to 0.
-            acb_mat_zero(self.value)
-            for i in range(self._nrows):
-                acb_set(acb_mat_entry(self.value, i, i), x.value)
+        ma = MatrixArgs_init(parent, entries)
+        cdef ComplexBall z
+        for t in ma.iter(coerce, True):
+            se = <SparseEntry>t
+            z = <ComplexBall>se.entry
+            acb_set(acb_mat_entry(self.value, se.i, se.j), z.value)
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, object x):
         """

@@ -4358,7 +4358,9 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         Factorize the poset as a Cartesian product of smaller posets.
 
-        The decomposition of a poset as a Cartesian product of prime
+        This only works for connected posets.
+
+        The decomposition of a connected poset as a Cartesian product of prime
         posets is unique up to reordering and isomorphism.
 
         OUTPUT:
@@ -4388,17 +4390,27 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         .. SEEALSO:: :meth:`cartesian_product`
 
+        TESTS::
+
+            sage: P = posets.AntichainPoset(4)
+            sage: P.factorize()
+            Traceback (most recent call last):
+            ...
+            ValueError: the poset is not connected
+
         REFERENCES:
 
         .. [Feig] Joan Feigenbaum, *Directed Cartesian-Product Graphs
-          have Unique Factorizations that can be computed in Polynomial Time*,
-          Discrete Applied Mathematics 15 (1986) 105-110
-          :doi:`10.1016/0166-218X(86)90023-5`
+           have Unique Factorizations that can be computed in Polynomial Time*,
+           Discrete Applied Mathematics 15 (1986) 105-110
+           :doi:`10.1016/0166-218X(86)90023-5`
         """
         from sage.misc.mrange import cartesian_product_iterator
         from sage.graphs.graph import Graph
         from sage.misc.flatten import flatten
         dg = self._hasse_diagram
+        if not dg.is_connected():
+            raise ValueError('the poset is not connected')
         if ZZ(dg.num_verts()).is_prime():
             return [self]
         G = dg.to_undirected()

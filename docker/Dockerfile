@@ -113,13 +113,13 @@ COPY --chown=sage:sage . sage-context
 # This is a bit complicated because our local .git/ is empty and we want to
 # make sure that we only change the mtimes of a minimal number of files.
 # 1) Restore the git checkout ARTIFACT_BASE was built from, recorded in
-#    docker/commit. (Or go directly to FETCH_HEAD if there is no history to
+#    docker/.commit. (Or go directly to FETCH_HEAD if there is no history to
 #    restore, i.e., set ARTIFACT_BASE=source-clean if you want to build from
 #    scratch.)
 # 2) Merge in FETCH_HEAD but only if it is a fast-forward, i.e., if it is an
 #    ancestor of the commit restored in 1. If we would not do that we would get
-#    a new commit hash in docker/commit that is not known outside of this build
-#    run. Since docker/commit was in the history of FETCH_HEAD this should
+#    a new commit hash in docker/.commit that is not known outside of this build
+#    run. Since docker/.commit was in the history of FETCH_HEAD this should
 #    automatically be a fast-forward.
 # 3) Trash .git again to save some space.
 ARG SAGE_ROOT=/home/sage/sage
@@ -128,16 +128,16 @@ WORKDIR $SAGE_ROOT
 # of now) so we can find out later which files were added/changed/removed.
 RUN find . -type f > $HOME/artifact-base.manifest
 RUN git fetch "$HOME/sage-context" HEAD \
-    && if [ -e docker/commit ]; then \
-          git reset `cat docker/commit` \
-          || ( echo "Could not find commit `cat docker/commit` in your local Git history. Please merge in the latest built develop branch to fix this: git fetch trac && git merge `cat docker/commit`." && exit 1 ) \
+    && if [ -e docker/.commit ]; then \
+          git reset `cat docker/.commit` \
+          || ( echo "Could not find commit `cat docker/.commit` in your local Git history. Please merge in the latest built develop branch to fix this: git fetch trac && git merge `cat docker/.commit`." && exit 1 ) \
        else \
-          echo "You are building from $ARTIFACT_BASE which has no docker/commit file. That's a bug unless you are building from source-clean or something similar." \
+          echo "You are building from $ARTIFACT_BASE which has no docker/.commit file. That's a bug unless you are building from source-clean or something similar." \
           && git reset FETCH_HEAD \
           && git checkout -f FETCH_HEAD; \
        fi \
     && git merge --ff-only FETCH_HEAD \
-    && git log -1 --format=%H > docker/commit \
+    && git log -1 --format=%H > docker/.commit \
     && rm -rf .git
 # Copy over all the untracked/staged/unstaged changes from sage-context. This
 # is relevant for non-CI invocations of this Dockerfile.

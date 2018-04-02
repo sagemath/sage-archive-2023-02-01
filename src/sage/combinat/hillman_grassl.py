@@ -5,17 +5,18 @@ The Hillman-Grassl correspondence
 Fix a partition `\lambda`.
 We draw all partitions and tableaux in English notation.
 
-A *`\lambda`-array* will mean a tableau of shape `\lambda` whose
+A `\lambda`-*array* will mean a tableau of shape `\lambda` whose
 entries are nonnegative integers. (No conditions on the order of
 these entries are made. Note that `0` is allowed.)
 
-A *reverse plane partition of shape `\lambda`* (short:
-*`\lambda`-rpp*) will mean a `\lambda`-array whose entries weakly
+A *reverse plane partition of shape* `\lambda` (short:
+`\lambda`-*rpp*) will mean a `\lambda`-array whose entries weakly
 increase along each row and weakly increase along each column.
 (Some authors -- like Stanley in [EnumComb2]_ Section 7.22 --
 call this a weak reverse plane partition.)
 
-The Hillman-Grassl correspondence `H` is the map that sends a
+The Hillman-Grassl correspondence `H`
+(:meth:`hillman_grassl`) is the map that sends a
 `\lambda`-array `M` to a `\lambda`-rpp `H(M)` defined recursively
 as follows:
 
@@ -48,7 +49,8 @@ as follows:
 
 See [Gans1981]_ (Section 3) for this construction.
 
-The inverse `H^{-1}` of the Hillman-Grassl correspondence sends
+The inverse `H^{-1}` of the Hillman-Grassl correspondence
+(:meth:`hillman_grassl`_inverse) sends
 a `\lambda`-rpp `\pi` to a `\lambda`-array `H^{-1}(\pi)` constructed
 recursively as follows:
 
@@ -86,34 +88,34 @@ multiplicities") and [EnumComb2]_ Section 7.22.
 
 REFERENCES:
 
-.. [Gans1981] Emden R. Gansner,
-   *The Hillman-Grassl Correspondence and the
-   Enumeration of Reverse Plane Partitions*,
-   Journal of Combinatorial Theory, Series A
-   30 (1981), pp. 71--89.
-   :doi:`10.1016/0097-3165(81)90041-8`
+- [Gans1981] Emden R. Gansner,
+  *The Hillman-Grassl Correspondence and the
+  Enumeration of Reverse Plane Partitions*,
+  Journal of Combinatorial Theory, Series A
+  30 (1981), pp. 71--89.
+  :doi:`10.1016/0097-3165(81)90041-8`
 
-.. [HilGra1976] A. P. Hillman, R. M. Grassl,
-   *Reverse plane partitions and tableau hook numbers*,
-   Journal of Combinatorial Theory, Series A 21 (1976),
-   pp. 216--221.
-   :doi:`10.1016/0097-3165(76)90065-0`
+- [HilGra1976] A. P. Hillman, R. M. Grassl,
+  *Reverse plane partitions and tableau hook numbers*,
+  Journal of Combinatorial Theory, Series A 21 (1976),
+  pp. 216--221.
+  :doi:`10.1016/0097-3165(76)90065-0`
 
-.. [EnumComb2]_
+- [EnumComb2]_
 
-.. [Sulzgr2017] Robin Sulzgruber,
-   *Inserting rim-hooks into reverse plane partitions*,
-   :arxiv:`1710.09695v1`.
+- [Sulzgr2017] Robin Sulzgruber,
+  *Inserting rim-hooks into reverse plane partitions*,
+  :arxiv:`1710.09695v1`.
 
-.. [Pak2002] Igor Pak,
-   *Hook length formula and geometric combinatorics*,
-   Seminaire Lotharingien de Combinatoire, 46 (2001),
-   B46f,
-   https://eudml.org/doc/121696
+- [Pak2002] Igor Pak,
+  *Hook length formula and geometric combinatorics*,
+  Seminaire Lotharingien de Combinatoire, 46 (2001),
+  B46f,
+  https://eudml.org/doc/121696
 
-.. [Hopkins2017] Sam Hopkins,
-   *RSK via local transformations*,
-   http://web.mit.edu/~shopkins/docs/rsk.pdf
+- [Hopkins2017] Sam Hopkins,
+  *RSK via local transformations*,
+  http://web.mit.edu/~shopkins/docs/rsk.pdf
 
 AUTHORS:
 
@@ -151,6 +153,21 @@ def transpose(M):
     
     The transpose of a `\lambda`-array `(m_{i, j})` is the
     `\lambda^t`-array `(m_{j, i})`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.hillman_grassl import transpose
+        sage: transpose([[1, 2, 3], [4, 5]])
+        [[1, 4], [2, 5], [3]]
+        sage: transpose([[5, 0, 3], [4, 1, 0], [7]])
+        [[5, 4, 7], [0, 1], [3, 0]]
+
+    TESTS::
+
+        sage: transpose(((2, 1), (3,)))
+        [[2, 3], [1]]
+        sage: transpose([])
+        []
     """
     if len(M) == 0:
         return []
@@ -167,7 +184,7 @@ def transpose(M):
 
 def hillman_grassl(M):
     r"""
-    Return the image of the `\lambda`-array ``T``
+    Return the image of the `\lambda`-array ``M``
     under the Hillman-Grassl correspondence.
 
     The Hillman-Grassl correspondence is a bijection
@@ -175,7 +192,7 @@ def hillman_grassl(M):
     (otherwise arbitrary) and the reverse plane
     partitions with nonnegative entries.
     This bijection preserves the shape of the
-    tableau. See the module doc.
+    tableau. See :mod:`~sage.combinat.hillman_grassl`.
 
     .. SEEALSO::
 
@@ -233,7 +250,7 @@ def hillman_grassl_inverse(M):
     Return the image of the `\lambda`-rpp ``M`` under the
     inverse of the Hillman-Grassl correspondence.
 
-    See the module doc.
+    See :mod:`~sage.combinat.hillman_grassl`.
 
     .. SEEALSO::
 
@@ -303,12 +320,13 @@ def hillman_grassl_inverse(M):
 
 def pak_correspondence(M):
     r"""
-    Return the image of a `\lambda-array ``M``
+    Return the image of a `\lambda`-array ``M``
     under the Pak correspondence.
 
     The Pak correspondence is the map `\xi_\lambda`
-    from [Sulzgr2017]_ Section 7.
-    It is denoted by $\mathcal{RSK}$ in [Hopkins2017]_.
+    from [Sulzgr2017]_ Section 7, and is the map
+    `\xi_\lambda^{-1}` from [Pak2002]_ Section 5.
+    It is denoted by `\mathcal{RSK}` in [Hopkins2017]_.
     It is the inverse of the Sulzgruber correspondence
     (:meth:`sulzgruber_correspondence`).
 
@@ -379,19 +397,20 @@ def pak_correspondence(M):
 
     return N
 
-def sulzgruber_correspondence(M, deepcopy=True):
+def sulzgruber_correspondence(M, copy=True):
     r"""
-    Return the image of a `\lambda-array ``M``
+    Return the image of a `\lambda`-array ``M``
     under the Sulzgruber correspondence.
 
     The Sulzgruber correspondence is the map `\Phi_\lambda`
-    from [Sulzgr2017]_ Section 7.
+    from [Sulzgr2017]_ Section 7, and is the map
+    `\xi_\lambda` from [Pak2002]_ Section 4.
     It is the inverse of the Pak correspondence
     (:meth:`pak_correspondence`).
 
     INPUT:
 
-    - ``deepcopy`` (default: ``True``) -- boolean;
+    - ``copy`` (default: ``True``) -- boolean;
       if set to ``False``, the algorithm will clobber the
       input (but be more efficient)
 
@@ -420,7 +439,7 @@ def sulzgruber_correspondence(M, deepcopy=True):
         [[1, 0, 2], [0, 2, 0], [1, 1]]
         sage: a
         [[0, 2, 3], [1, 3, 3], [2, 4]]
-        sage: sulzgruber_correspondence(a, deepcopy=False)
+        sage: sulzgruber_correspondence(a, copy=False)
         [[1, 0, 2], [0, 2, 0], [1, 1]]
         sage: a
         []
@@ -441,7 +460,7 @@ def sulzgruber_correspondence(M, deepcopy=True):
     # is a corner of lam.
     x = M[i][j]
 
-    if deepcopy:
+    if copy:
         N = [list(row) for row in M] # make a deep copy of M to avoid vandalizing M
     else:
         N = M
@@ -470,7 +489,7 @@ def sulzgruber_correspondence(M, deepcopy=True):
     if not N[i]:
         N.pop()
 
-    N = sulzgruber_correspondence(N, deepcopy=False)
+    N = sulzgruber_correspondence(N, copy=False)
     if len(N) <= i:
         N.append([])
     N[i].append(x)

@@ -4393,6 +4393,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         .. [Feig] Joan Feigenbaum, *Directed Cartesian-Product Graphs
           have Unique Factorizations that can be computed in Polynomial Time*,
           Discrete Applied Mathematics 15 (1986) 105-110
+          :doi:`10.1016/0166-218X(86)90023-5`
         """
         from sage.misc.mrange import cartesian_product_iterator
         from sage.graphs.graph import Graph

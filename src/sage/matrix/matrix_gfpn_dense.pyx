@@ -1120,9 +1120,9 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
         TESTS:
 
-        Make sure that :trac:`24742` remains fixed::
+        Make sure that :trac:`25076` remains fixed::
 
-            sage: M == M*int(4)
+            sage: M == M*int(4) == int(4)*M
             True
 
         """

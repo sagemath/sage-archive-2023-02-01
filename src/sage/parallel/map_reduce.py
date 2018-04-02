@@ -405,7 +405,7 @@ some work (ie: a node) from another worker. This is performed in the
 From the point of view of ``W`` here is what happens:
 
 - ``W`` signals to the master that it is idle :meth:`master._signal_task_done`;
-- ``W`` chose a victim ``V`` at random;
+- ``W`` chooses a victim ``V`` at random;
 - ``W`` sends a request to ``V`` : it puts its identifier into ``V._request``;
 - ``W`` tries to read a node from ``W._read_task``. Then three things may happen:
 

@@ -743,7 +743,7 @@ class DifferentiableCurve(DiffMap):
             sage: a, b = var('a b')
             sage: c = R2.curve([a*cos(t) + b, a*sin(t)], (t, 0, 2*pi), name='c')
 
-        To make a plot, we set spectific values for ``a`` and ``b`` by means
+        To make a plot, we set specific values for ``a`` and ``b`` by means
         of the Python dictionary ``parameters``::
 
             sage: c.plot(parameters={a: 2, b: -3}, aspect_ratio=1)

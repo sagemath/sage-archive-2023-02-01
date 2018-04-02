@@ -64,22 +64,26 @@ class SageBaseTarFile(tarfile.TarFile):
 
         return filter_os_files(self.getnames())
 
-    def chmod(self, tarinfo, target):
+    def chmod(self, tarinfo, targetpath):
         """Apply ``self.umask`` instead of the permissions in the TarInfo."""
         tarinfo = copy.copy(tarinfo)
         tarinfo.mode &= ~self.umask
         tarinfo.mode &= ~(stat.S_ISUID | stat.S_ISGID)
-        return super(SageBaseTarFile, self).chmod(tarinfo, target)
+        return super(SageBaseTarFile, self).chmod(tarinfo, targetpath)
 
-    def utime(self, tarinfo, target):
+    def utime(self, tarinfo, targetpath):
         """Override to keep the extraction time as the file's timestamp."""
         tarinfo.mtime = self._extracted_mtime
-        return super(SageBaseTarFile, self).utime(tarinfo, target)
+        return super(SageBaseTarFile, self).utime(tarinfo, targetpath)
 
-    def extractall(self, path='.', members=None):
+    def extractall(self, path='.', members=None, **kwargs):
         """
         Same as tarfile.TarFile.extractall but allows filenames for
         the members argument (like zipfile.ZipFile).
+
+        .. note::
+            The additional ``**kwargs`` are for Python 2/3 compatibility, since
+            different versions of this method accept additional arguments.
         """
         if members:
             name_to_member = dict([member.name, member] for member in self.getmembers())
@@ -87,7 +91,8 @@ class SageBaseTarFile(tarfile.TarFile):
                        else name_to_member[m]
                        for m in members]
         return super(SageBaseTarFile, self).extractall(path=path,
-                                                       members=members)
+                                                       members=members,
+                                                       **kwargs)
 
     def extractbytes(self, member):
         """
@@ -100,15 +105,20 @@ class SageBaseTarFile(tarfile.TarFile):
             reader = self.extractfile(member)
             return reader.read()
 
-    def _extract_member(self, tarinfo, targetpath):
+    def _extract_member(self, tarinfo, targetpath, **kwargs):
         """
         Override to ensure that our custom umask is applied over the entire
         directory tree, even for directories that are not explicitly listed in
         the tarball.
+
+        .. note::
+            The additional ``**kwargs`` are for Python 2/3 compatibility, since
+            different versions of this method accept additional arguments.
         """
         old_umask = os.umask(self.umask)
         try:
-            super(SageBaseTarFile, self)._extract_member(tarinfo, targetpath)
+            super(SageBaseTarFile, self)._extract_member(tarinfo, targetpath,
+                                                         **kwargs)
         finally:
             os.umask(old_umask)
 

@@ -15111,26 +15111,25 @@ def _matrix_power_symbolic(A, n):
 
     - ``A`` -- a square matrix over an exact field
 
-    - ``n`` -- the symbolic exponent
+    - ``n`` -- a symbolic exponent
 
     OUTPUT:
 
-    The matrix `A^n` (with symbolic entries).
+    The matrix `A^n` (with symbolic entries involving the exponent).
 
     EXAMPLES:
 
-    Powers of two by two matrix::
+    General power of a two by two matrix::
 
         sage: n = SR.var('n')
         sage: A = matrix(QQ, [[2, -1], [1,  0]])
-        sage: B = A^n
-        sage: B
+        sage: B = A^n; B
         [ n + 1     -n]
         [     n -n + 1]
         sage: all(A^k == B.subs({n: k}) for k in range(8))
         True
 
-    Powers of a three by three matrix in Jordan form::
+    General power of a three by three matrix in Jordan form::
 
         sage: n = SR.var('n')
         sage: A = matrix(QQ, 3, [[2, 1, 0], [0, 2, 0], [0, 0, 3]])
@@ -15145,15 +15144,14 @@ def _matrix_power_symbolic(A, n):
         sage: all(A^k == B.subs({n: k}) for k in range(8))
         True
 
-    Powers of a three by three matrix not in Jordan form::
+    General power of a three by three matrix not in Jordan form::
 
         sage: A = matrix([[4, 1, 2], [0, 2, -4], [0, 1, 6]])
         sage: A
         [ 4  1  2]
         [ 0  2 -4]
         [ 0  1  6]
-        sage: B = A^n
-        sage: B
+        sage: B = A^n; B
         [                 4^n          4^(n - 1)*n        2*4^(n - 1)*n]
         [                   0 -2*4^(n - 1)*n + 4^n       -4*4^(n - 1)*n]
         [                   0          4^(n - 1)*n  2*4^(n - 1)*n + 4^n]
@@ -15243,7 +15241,7 @@ def _matrix_power_symbolic(A, n):
               for i in range(nk)]
 
         # Form block Mk and insert it in M
-        Mk = matrix(SR, [[SR.zero()]*i + vk[:-i] for i in range(nk)])
+        Mk = matrix(SR, [[SR.zero()]*i + vk[:nk-i] for i in range(nk)])
         M.set_block(block_start[k], block_start[k], Mk)
 
     # Change entries of P and P^-1 into symbolic expressions

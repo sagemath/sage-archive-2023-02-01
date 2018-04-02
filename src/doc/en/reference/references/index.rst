@@ -1215,7 +1215,7 @@ REFERENCES:
                  *RSK via local transformations*,
                  http://web.mit.edu/~shopkins/docs/rsk.pdf
 
-.. [HilGra1976] A. P. Hillman, R. M. Grassl,
+.. [HilGra1976] \A. P. Hillman, R. M. Grassl,
                 *Reverse plane partitions and tableau hook numbers*,
                 Journal of Combinatorial Theory, Series A 21 (1976),
                 pp. 216--221.

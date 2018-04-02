@@ -168,6 +168,7 @@ def transpose(M):
         res.append(lj)
     return res
 
+
 def hillman_grassl(M):
     r"""
     Return the image of the `\lambda`-array ``M``

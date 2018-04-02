@@ -1102,7 +1102,7 @@ def norm(x):
 
     For complex numbers, the function returns the field norm. If
     `c = a + bi` is a complex number, then the norm of `c` is defined as the
-    product of `c` and its complex conjugate
+    product of `c` and its complex conjugate:
 
     .. MATH::
 
@@ -1120,6 +1120,13 @@ def norm(x):
     integral domain `\ZZ[i]` of Gaussian integers, where the norm of
     each Gaussian integer `c = a + bi` is defined as its complex norm.
 
+    For vector fields on a pseudo-Riemannian manifold `(M,g)`, the function
+    returns the norm with respect to the metric `g`:
+
+    .. MATH::
+
+        |v| = \sqrt{g(v,v)}
+
     .. SEEALSO::
 
         - :meth:`sage.matrix.matrix2.Matrix.norm`
@@ -1131,6 +1138,8 @@ def norm(x):
         - :meth:`sage.rings.complex_number.ComplexNumber.norm`
 
         - :meth:`sage.symbolic.expression.Expression.norm`
+
+        - :meth:`sage.manifolds.differentiable.vectorfield.VectorField.norm`
 
     EXAMPLES:
 

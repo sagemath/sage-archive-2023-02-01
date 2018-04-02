@@ -160,10 +160,10 @@ List of Polyhedron methods
     :delim: |
 
 
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.bounded_edges` | generator for bouded edges
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.bounding_box` | returns the vertices of an emcompassing cube
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.bounded_edges` | generator for bounded edges
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.bounding_box` | returns the vertices of an encompassing cube
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.contains` | tests whether the polyhedron contains a vector
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.interior_contains` | tests whether the polyhedron contains a vector in its interior using the ambiant topology
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.interior_contains` | tests whether the polyhedron contains a vector in its interior using the ambient topology
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.relative_interior_contains` | tests whether the polyhedron contains a vector in its relative interior
     :meth:`~sage.geometry.polyhedron.base_ZZ.Polyhedron_ZZ.find_translation` | returns the translation vector between two translation of two polyhedron (only for :class:`Polyhedron over ZZ <sage.geometry.polyhedron.base_ZZ.Polyhedron_ZZ>`)
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.integrate` | computes the integral of a polynomial over the polyhedron

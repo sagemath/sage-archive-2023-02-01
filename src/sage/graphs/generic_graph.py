@@ -1052,7 +1052,7 @@ class GenericGraph(GenericGraph_pyx):
                 raise ValueError("There is no dense immutable backend at the moment.")
         elif immutable is False:
             # If the users requests a mutable graph and input is immutable, we
-            # chose the 'sparse' cgraph backend. Unless the user explicitly
+            # choose the 'sparse' cgraph backend. Unless the user explicitly
             # asked for something different.
             if self.is_immutable():
                 data_structure = 'dense' if sparse is False else 'sparse'
@@ -4011,7 +4011,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: m = g.size()
             sage: edge_space = VectorSpace(FiniteField(2),m)
             sage: edge_vector = dict( zip( g.edges(labels = False), edge_space.basis() ) )
-            sage: for (u,v),vec in edge_vector.items():
+            sage: for (u,v),vec in list(edge_vector.items()):
             ....:    edge_vector[(v,u)] = vec
 
         Defining a lambda function associating a vector to the
@@ -9883,7 +9883,7 @@ class GenericGraph(GenericGraph_pyx):
           <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
           :class:`MixedIntegerLinearProgram
           <sage.numerical.mip.MixedIntegerLinearProgram>`.  Use method
-          :meth:`sage.numberical.backends.generic_backend.default_mip_solver` to
+          :meth:`sage.numerical.backends.generic_backend.default_mip_solver` to
           know which default solver is used or to set the default solver.
 
         - ``verbose`` -- integer (default: ``0``). Sets the level of
@@ -22319,6 +22319,16 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g.is_isomorphic(h, certificate=True)
             (True, None)
+
+        Ensure that :trac:`24964` is fixed ::
+
+            sage: A = DiGraph([(6,7,'a'), (6,7,'b')], multiedges=True)
+            sage: B = DiGraph([('x','y','u'), ('x','y','v')], multiedges=True)
+            sage: A.is_isomorphic(B, certificate=True)
+            (True, {6: 'x', 7: 'y'})
+            sage: A.is_isomorphic(B, certificate=True, edge_labels=True)
+            (False, None)
+
         """
 
         if self.order() == other.order() == 0:
@@ -22386,7 +22396,7 @@ class GenericGraph(GenericGraph_pyx):
             return True
         else:
             isom_trans = {}
-            if edge_labels:
+            if edge_labels or self.has_multiple_edges():
                 relabeling2_inv = {}
                 for x in relabeling2:
                     relabeling2_inv[relabeling2[x]] = x

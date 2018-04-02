@@ -2,7 +2,8 @@
 r"""
 The Hillman-Grassl correspondence
 
-Fix a partition `\lambda`.
+Fix a partition `\lambda`
+(see :meth:`~sage.combinat.partition.Partition`).
 We draw all partitions and tableaux in English notation.
 
 A `\lambda`-*array* will mean a tableau of shape `\lambda` whose
@@ -50,7 +51,7 @@ as follows:
 See [Gans1981]_ (Section 3) for this construction.
 
 The inverse `H^{-1}` of the Hillman-Grassl correspondence
-(:meth:`hillman_grassl`_inverse) sends
+(:meth:`hillman_grassl_inverse`) sends
 a `\lambda`-rpp `\pi` to a `\lambda`-array `H^{-1}(\pi)` constructed
 recursively as follows:
 
@@ -135,7 +136,9 @@ def transpose(M):
     Return the transpose of a `\lambda`-array.
     
     The transpose of a `\lambda`-array `(m_{i, j})` is the
-    `\lambda^t`-array `(m_{j, i})`.
+    `\lambda^t`-array `(m_{j, i})`
+    (where `\lambda^t` is the conjugate of the partition
+    `\lambda`).
 
     EXAMPLES::
 

@@ -2103,6 +2103,9 @@ REFERENCES:
              Combinatorial Theory, Series A Volume 45 (1987),
              pp. 62-103.
 
+.. [Sag2001] Bruce E. Sagan.  *The Symmetric Group*,
+             2nd edition, New York 2001.
+
 .. [Sch1996] \E. Schaefer. A simplified data encryption
              algorithm. Cryptologia, 20(1):77--84, 1996.
 
@@ -2235,6 +2238,11 @@ REFERENCES:
                Second Edition,
                Cambridge University Press (2011).
                http://math.mit.edu/~rstan/ec/ec1/
+
+.. [EnumComb2] Stanley, Richard P.
+               *Enumerative Combinatorics, volume 2*.
+               Cambridge University Press (1999).
+               http://math.mit.edu/~rstan/ec/
 
 .. [Stan2009] Richard Stanley,
               *Promotion and evacuation*,

@@ -89,17 +89,17 @@ multiplicities") and [EnumComb2]_ Section 7.22.
 
 REFERENCES:
 
-- [Gans1981]_
+.. [Gans1981]_
 
-- [HilGra1976]_
+.. [HilGra1976]_
 
-- [EnumComb2]_
+.. [EnumComb2]_
 
-- [Sulzgr2017]_
+.. [Sulzgr2017]_
 
-- [Pak2002]_
+.. [Pak2002]_
 
-- [Hopkins2017]_
+.. [Hopkins2017]_
 
 AUTHORS:
 

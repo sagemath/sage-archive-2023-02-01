@@ -1,9 +1,8 @@
 r"""
 Sage code for computing k-distant crossing numbers.
 
-This code accompanies the article :arxiv:`0812.2725` ; see
-http://arxiv.org/abs/0812.2725. It is being submitted because of a
-suggestion from
+This code accompanies the article :arxiv:`0812.2725`. It is being
+submitted because of a suggestion from
 http://groups.google.com/group/sage-support/msg/3ea7ed2eeab0824a.
 
 Right now, this code only computes k-dcrossings. If you are only
@@ -313,7 +312,7 @@ def dcrossvec_cm(n):
 
 def tablecolumn(n, k):
     """
-    Return column n of Table 1 or 2 from the paper arxiv:0812.2725.
+    Return column n of Table 1 or 2 from the paper :arxiv:`0812.2725`.
 
     INPUT:
 

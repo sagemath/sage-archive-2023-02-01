@@ -288,24 +288,33 @@ class Polyhedron_base(Element):
             [0 1 1]
             [1 0 1]
             [1 1 0]
+
+        Checks that :trac:`22455` is fixed::
+
+            sage: s = polytopes.simplex(2)
+            sage: s._facet_adjacency_matrix()
+            [0 1 1]
+            [1 0 1]
+            [1 1 0]
+
         """
         # TODO: This implementation computes the whole face lattice,
         # which is much more information than necessary.
-        M = matrix(ZZ, self.n_Hrepresentation(), self.n_Hrepresentation(), 0)
+        M = matrix(ZZ, self.n_facets(), self.n_facets(), 0)
+        codim = self.ambient_dim()-self.dim()
 
         def set_adjacent(h1, h2):
             if h1 is h2:
                 return
-            i = h1.index()
-            j = h2.index()
+            i = h1.index() - codim
+            j = h2.index() - codim
             M[i, j] = 1
             M[j, i] = 1
 
-        face_lattice = self.face_lattice()
-        for face in face_lattice:
+        for face in self.faces(self.dim()-2):
             Hrep = face.ambient_Hrepresentation()
-            if len(Hrep) == 2:
-                set_adjacent(Hrep[0], Hrep[1])
+            assert(len(Hrep) == codim+2)
+            set_adjacent(Hrep[-2], Hrep[-1])
         return M
 
     def _vertex_adjacency_matrix(self):

@@ -427,7 +427,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
 
         A tuple of pairs (one for each integral point) consisting of a
         pair ``(point, Hrep)``, where ``point`` is the coordinate
-        vector of the intgeral point and ``Hrep`` is the set of
+        vector of the integral point and ``Hrep`` is the set of
         indices of the :meth:`minimized_constraints` that are
         saturated at the point.
 

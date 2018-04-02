@@ -32,7 +32,7 @@ References:
    A survey of Kirkman triple systems and related designs,
    Volume 92, Issues 1-3, 17 November 1991, Pages 371-393,
    Discrete Mathematics,
-   http://dx.doi.org/10.1016/0012-365X(91)90294-C.
+   :doi:`10.1016/0012-365X(91)90294-C`
 
 .. [RCW71] \D. K. Ray-Chaudhuri, R. M. Wilson,
    Solution of Kirkman's schoolgirl problem,

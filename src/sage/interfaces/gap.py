@@ -179,6 +179,7 @@ from six import string_types
 
 from .expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from .gap_workspace import gap_workspace_file, prepare_workspace_dir
+from sage.cpython.string import bytes_to_str
 from sage.env import SAGE_LOCAL, SAGE_EXTCODE
 from sage.misc.misc import is_in_string
 from sage.misc.superseded import deprecation
@@ -753,7 +754,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
 
             if isinstance(wait_for_prompt, string_types) and normal.ends_with(wait_for_prompt):
                 n = len(wait_for_prompt)
-            elif normal.endswith(self._prompt):
+            elif normal.endswith(bytes_to_str(self._prompt)):
                 n = len(self._prompt)
             elif normal.endswith(self._continuation_prompt()):
                 n = len(self._continuation_prompt())
@@ -896,7 +897,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
 
             sage: g = Gap()
             sage: g.function_call("ConjugacyClassesSubgroups", sage.interfaces.gap.GapElement(g, 'SymmetricGroup(2)', name = 'a_variable_with_a_very_very_very_long_name'))
-            [ ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),Group( [ () ] )), 
+            [ ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),Group( [ () ] )),
               ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),SymmetricGroup( [ 1 .. 2 ] )) ]
 
         When the command itself is so long that it warrants use of a temporary
@@ -904,7 +905,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
         the file will contain a single command::
 
             sage: g.function_call("ConjugacyClassesSubgroups", sage.interfaces.gap.GapElement(g, 'SymmetricGroup(2)', name = 'a_variable_with_a_name_so_very_very_very_long_that_even_by_itself_will_make_expect_use_a_file'))
-            [ ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),Group( [ () ] )), 
+            [ ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),Group( [ () ] )),
               ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),SymmetricGroup( [ 1 .. 2 ] )) ]
 
         """
@@ -1778,13 +1779,14 @@ def intmod_gap_to_sage(x):
     """
     from sage.rings.finite_rings.all import FiniteField
     from sage.rings.finite_rings.integer_mod import Mod
+    from sage.rings.integer import Integer
     s = str(x)
     m = re.search(r'Z\(([0-9]*)\)', s)
     if m:
-        return gfq_gap_to_sage(x, FiniteField(m.group(1)))
+        return gfq_gap_to_sage(x, FiniteField(Integer(m.group(1))))
     m = re.match(r'Zmod[np]ZObj\( ([0-9]*), ([0-9]*) \)', s)
     if m:
-        return Mod(m.group(1), m.group(2))
+        return Mod(Integer(m.group(1)), Integer(m.group(2)))
     raise ValueError("Unable to convert Gap element '%s'" % s)
 
 #############

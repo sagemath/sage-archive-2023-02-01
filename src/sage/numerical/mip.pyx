@@ -1027,7 +1027,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
         solver used, we define a short function reordering it before it is
         printed. The output would look the same without this function applied::
 
-            sage: def reorder_constraint((lb,(ind,coef),ub)):
+            sage: def reorder_constraint(lb,indcoef,ub):
+            ....:    ind, coef = indcoef
             ....:    d = dict(zip(ind, coef))
             ....:    ind.sort()
             ....:    return (lb, (ind, [d[i] for i in ind]), ub)
@@ -1037,13 +1038,12 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p = MixedIntegerLinearProgram(solver = "GLPK")
             sage: p.add_constraint(p[0] - p[2], min = 1, max = 4)
             sage: p.add_constraint(p[0] - 2*p[1], min = 1)
-            sage: sorted(map(reorder_constraint,p.constraints()))
+            sage: sorted(reorder_constraint(*c) for c in p.constraints())
             [(1.0, ([0, 1], [1.0, -1.0]), 4.0), (1.0, ([0, 2], [1.0, -2.0]), None)]
-            sage: reorder_constraint(p.constraints(0))
+            sage: reorder_constraint(*p.constraints(0))
             (1.0, ([0, 1], [1.0, -1.0]), 4.0)
-            sage: sorted(map(reorder_constraint,p.constraints([1])))
+            sage: sorted(reorder_constraint(*c) for c in p.constraints([1]))
             [(1.0, ([0, 2], [1.0, -2.0]), None)]
-
         """
         from sage.rings.integer import Integer as Integer
         cdef int i
@@ -3124,42 +3124,42 @@ cdef class MIPVariable(SageObject):
 
     def keys(self):
         r"""
-        Returns the keys already defined in the dictionary.
+        Return the keys already defined in the dictionary.
 
         EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: v = p.new_variable(nonnegative=True)
             sage: p.set_objective(v[0] + v[1])
-            sage: v.keys()
+            sage: list(v.keys())
             [0, 1]
         """
         return self._dict.keys()
 
     def items(self):
         r"""
-        Returns the pairs (keys,value) contained in the dictionary.
+        Return the pairs (keys,value) contained in the dictionary.
 
         EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: v = p.new_variable(nonnegative=True)
             sage: p.set_objective(v[0] + v[1])
-            sage: v.items()
+            sage: list(v.items())
             [(0, x_0), (1, x_1)]
         """
         return self._dict.items()
 
     def values(self):
         r"""
-        Returns the symbolic variables associated to the current dictionary.
+        Return the symbolic variables associated to the current dictionary.
 
         EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: v = p.new_variable(nonnegative=True)
             sage: p.set_objective(v[0] + v[1])
-            sage: v.values()
+            sage: list(v.values())
             [x_0, x_1]
         """
         return self._dict.values()

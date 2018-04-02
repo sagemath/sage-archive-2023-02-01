@@ -81,7 +81,7 @@ def banner_text(full=None):
         a(red_in + u'┏' + bars2 + u'┓' + '\n')
         a(u"┃ %-66s ┃\n" % 'Warning: this is a prerelease version, and it may be unstable.')
         a(u'┗' + bars2 + u'┛' + red_out)
-    return ''.join(s).encode('utf8')
+    return u''.join(s)
 
 
 def banner(full=None):
@@ -110,7 +110,10 @@ def banner(full=None):
         │ Type "help()" for help.                                            │
         ...
     """
-    print(banner_text(full=full))
+    try:
+        print(banner_text(full=full))
+    except UnicodeEncodeError:
+        print(banner_text(full=False))
 
 
 def version_dict():

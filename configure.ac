@@ -369,6 +369,12 @@ if test -f "$SAGE_LOCAL/bin/gcc"; then
         echo 'auto inf = 1.0 / std::complex<double>();' >>conftest.cpp
 
         if ! bash -c "source '$SAGE_SRC/bin/sage-env' && g++ -O3 -c -o conftest.o conftest.cpp"; then
+            # Pretend that GCC is not installed: remove the gcc and g++
+            # binaries and remove the "installed" file such that GCC
+            # will be built as if it was never installed before.
+            rm -f "$SAGE_LOCAL"/bin/gcc
+            rm -f "$SAGE_LOCAL"/bin/g++
+            rm -f "$SAGE_SPKG_INST"/gcc-*
             SAGE_INSTALL_GCC=yes
             SAGE_MUST_INSTALL_GCC([installed g++ is broken])
         fi

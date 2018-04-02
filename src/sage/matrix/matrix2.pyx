@@ -15101,11 +15101,11 @@ def _jordan_form_vector_in_difference(V, W):
 
 def _matrix_power_symbolic(A, n):
     r"""
-    Symbolic matrix power.
+    Return the symbolic `n`-th power `A^n` of the matrix `A`
 
-    This function implements `f(A) = A^n` and relies in the Jordan normal form
-    of `A`, available for exact rings as ``jordan_form()``.
-    See Sec. 1.2 of [Hig2008]_ for further details.
+    This function implements the computation of `A^n` for symbolic `n`,
+    relying on the Jordan normal form of `A`, available for exact rings
+    as :meth:`jordan_form`. See [Hig2008]_, §1.2, for further details.
 
     INPUT:
 
@@ -15115,25 +15115,68 @@ def _matrix_power_symbolic(A, n):
 
     OUTPUT:
 
-    Matrix `A^n` (symbolic).
+    The matrix `A^n` (with symbolic entries).
 
-    EXAMPLES::
+    EXAMPLES:
 
+    Powers of two by two matrix::
+
+        sage: n = SR.var('n')
         sage: A = matrix(QQ, [[2, -1], [1,  0]])
-        sage: n = var('n')
-        sage: A^n
+        sage: B = A^n
+        sage: B
         [ n + 1     -n]
         [     n -n + 1]
+        sage: all(A^k == B.subs({n: k}) for k in range(8))
+        True
 
-    TESTS::
+    Powers of a three by three matrix in Jordan form::
+
+        sage: n = SR.var('n')
+        sage: A = matrix(QQ, 3, [[2, 1, 0], [0, 2, 0], [0, 0, 3]])
+        sage: A
+        [2 1 0]
+        [0 2 0]
+        [0 0 3]
+        sage: B = A^n; B
+        [        2^n 2^(n - 1)*n           0]
+        [          0         2^n           0]
+        [          0           0         3^n]
+        sage: all(A^k == B.subs({n: k}) for k in range(8))
+        True
+
+    Powers of a three by three matrix not in Jordan form::
+
+        sage: A = matrix([[4, 1, 2], [0, 2, -4], [0, 1, 6]])
+        sage: A
+        [ 4  1  2]
+        [ 0  2 -4]
+        [ 0  1  6]
+        sage: B = A^n
+        sage: B
+        [                 4^n          4^(n - 1)*n        2*4^(n - 1)*n]
+        [                   0 -2*4^(n - 1)*n + 4^n       -4*4^(n - 1)*n]
+        [                   0          4^(n - 1)*n  2*4^(n - 1)*n + 4^n]
+        sage: [B.subs({n: k}) for k in range(4)]
+        [
+        [1 0 0]  [ 4  1  2]  [ 16   8  16]  [  64   48   96]
+        [0 1 0]  [ 0  2 -4]  [  0   0 -32]  [   0  -32 -192]
+        [0 0 1], [ 0  1  6], [  0   8  32], [   0   48  160]
+        ]
+        sage: all(A^k == B.subs({n: k}) for k in range(8))
+        True
+
+    TESTS:
 
     Testing exponentiation in the symbolic ring::
 
         sage: n = var('n')
         sage: A = matrix([[pi, e],[0, -2*I]])
-        sage: A^n
-        [                                                              pi^n -(-2*I)^n/(pi*e^(-1) + 2*I*e^(-1)) + pi^n/(pi*e^(-1) + 2*I*e^(-1))]
-        [                                                                 0                                                           (-2*I)^n]
+        sage: (A^n).list()
+        [pi^n,
+         -(-2*I)^n/(pi*e^(-1) + 2*I*e^(-1)) + pi^n/(pi*e^(-1) + 2*I*e^(-1)),
+         0,
+         (-2*I)^n]
 
     If the base ring is inexact, the Jordan normal form is not available::
 
@@ -15153,9 +15196,11 @@ def _matrix_power_symbolic(A, n):
     Check if :trac:`23215` is fixed::
 
         sage: a, b, k = var('a, b, k')
-        sage: matrix(2, [a, b, -b, a])^k
-        [     1/2*(a + I*b)^k + 1/2*(a - I*b)^k -1/2*I*(a + I*b)^k + 1/2*I*(a - I*b)^k]
-        [ 1/2*I*(a + I*b)^k - 1/2*I*(a - I*b)^k      1/2*(a + I*b)^k + 1/2*(a - I*b)^k]
+        sage: (matrix(2, [a, b, -b, a])^k).list()
+        [1/2*(a + I*b)^k + 1/2*(a - I*b)^k,
+         -1/2*I*(a + I*b)^k + 1/2*I*(a - I*b)^k,
+         1/2*I*(a + I*b)^k - 1/2*I*(a - I*b)^k,
+         1/2*(a + I*b)^k + 1/2*(a - I*b)^k]
     """
     from sage.rings.qqbar import AlgebraicNumber
     from sage.matrix.constructor import matrix
@@ -15163,50 +15208,49 @@ def _matrix_power_symbolic(A, n):
     from sage.symbolic.ring import SR
     from sage.rings.qqbar import QQbar
 
-    got_SR = True if A.base_ring() == SR else False
+    got_SR = A.base_ring() == SR
 
-    # transform to QQbar if possible
+    # Change to QQbar if possible
     try:
         A = A.change_ring(QQbar)
     except (TypeError, NotImplementedError):
         pass
 
-    # returns jordan matrix J and invertible matrix P such that A = P*J*~P
-    [J, P] = A.jordan_form(transformation=True)
+    # Get Jordan matrix J and invertible matrix P such that A = P*J*~P
+    # From that, we will compute M = J^n, and obtain A^n = P*J^n*~P
+    J, P = A.jordan_form(transformation=True)
 
-    # the number of Jordan blocks
-    num_jordan_blocks = 1+len(J.subdivisions()[0])
+    # Where each Jordan block starts, and number of blocks
+    block_start = [0] + J.subdivisions()[0]
+    num_blocks = len(block_start)
 
-    # FJ stores the application of f = x^n to the Jordan blocks
-    FJ = matrix(SR, J.ncols())
-    FJ.subdivide(J.subdivisions())
+    # Prepare matrix M to store `J^n`, computed by Jordan block
+    M = matrix(SR, J.ncols())
+    M.subdivide(J.subdivisions())
 
-    for k in range(num_jordan_blocks):
+    for k in range(num_blocks):
 
-        # get Jordan block Jk
+        # Jordan block Jk, its dimension nk, the eigenvalue m
         Jk = J.subdivision(k, k)
+        nk = Jk.ncols()
+        mk = Jk[0,0]
 
-        # dimension of Jordan block Jk
-        mk = Jk.ncols()
+        # First row of block Mk; its entries are of the form
+        # D^i(f) / i! with f = x^n and D = differentiation wrt x
+        if hasattr(mk, 'radical_expression'):
+            mk = mk.radical_expression()
+        vk = [(binomial(n, i) * mk**(n-i)).simplify_full()
+              for i in range(nk)]
 
-        # compute the first row of f(Jk)
-        vk = []
-        for i in range(mk):
-            Jk_ii = Jk[i, i]
-            if hasattr(Jk_ii, 'radical_expression'):
-                Jk_ii = Jk_ii.radical_expression()
+        # Form block Mk and insert it in M
+        Mk = matrix(SR, [[SR.zero()]*i + vk[:-i] for i in range(nk)])
+        M.set_block(block_start[k], block_start[k], Mk)
 
-            # corresponds to \frac{D^i(f)}{i!}, with f = x^n and D the differential operator wrt x
-            vk += [(binomial(n, i) * Jk_ii**(n-i)).simplify_full()]
-
-        # insert vk into each row (above the main diagonal)
-        FJ.set_block(k, k, matrix(SR, [[SR.zero()]*i + vk[0:mk-i] for i in range(mk)]))
-
-    # we change the entries of P and P^-1 into symbolic expressions
+    # Change entries of P and P^-1 into symbolic expressions
     if not got_SR:
         Pinv = (~P).apply_map(AlgebraicNumber.radical_expression)
         P = P.apply_map(AlgebraicNumber.radical_expression)
     else:
         Pinv = ~P
 
-    return P * FJ * Pinv
+    return P * M * Pinv

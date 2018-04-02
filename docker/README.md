@@ -31,7 +31,7 @@ There are several flavours of this image.
     ```
     This triggers a rebuild and drops you in a shell afterwards. Note that the git repository has been emptied to save space. If you want to use git, fetch from your git repository with `git fetch trac` and go to the commit that was used to create this image with
     ```
-    git reset $(cat docker/commit)
+    git reset $(cat docker/.commit)
     ```
 
 # How to build your own SageMath images

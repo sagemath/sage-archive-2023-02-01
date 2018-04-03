@@ -335,9 +335,6 @@ def frame3d(lower_left, upper_right, **kwds):
     - ``upper_right`` -- the upper right corner of the frame, as a
       list, tuple, or vector.
 
-    Type ``line3d.options`` for a dictionary of the default
-    options for lines, which are also available.
-
     EXAMPLES:
 
     A frame::
@@ -394,9 +391,6 @@ def frame_labels(lower_left, upper_right,
 
     - ``eps`` -- (default: 1) a parameter for how far away from the frame
       to put the labels.
-
-    Type ``line3d.options`` for a dictionary of the default
-    options for lines, which are also available.
 
     EXAMPLES:
 
@@ -486,9 +480,6 @@ def ruler(start, end, ticks=4, sub_ticks=4, absolute=False, snap=False, **kwds):
 
     - ``snap`` -- (default: ``False``) if ``True``, snaps to an implied
       grid.
-
-    Type ``line3d.options`` for a dictionary of the default
-    options for lines, which are also available.
 
     EXAMPLES:
 
@@ -595,9 +586,6 @@ def ruler_frame(lower_left, upper_right, ticks=4, sub_ticks=4, **kwds):
 
     - ``sub_ticks`` -- (default: 4) the number of shown
       subdivisions between each major tick.
-
-    Type ``line3d.options`` for a dictionary of the default
-    options for lines, which are also available.
 
     EXAMPLES:
 

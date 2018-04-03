@@ -4100,7 +4100,7 @@ class Tableau(ClonableList):
 
         .. SEEALSO::
 
-            :meth:`~sage.combinat.hillman_grassl.hillman_grassl_inverse`
+            :meth:`~sage.combinat.hillman_grassl.WeakRPP.hillman_grassl_inverse`
             for the inverse map.
 
         EXAMPLES::
@@ -4127,7 +4127,7 @@ class Tableau(ClonableList):
 
         .. SEEALSO::
 
-            :meth:`~sage.combinat.hillman_grassl.pak_correspondence`
+            :meth:`~sage.combinat.hillman_grassl.WeakRPP.pak_correspondence`
             for the inverse map.
 
         EXAMPLES::

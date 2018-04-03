@@ -7,9 +7,11 @@ correspondences on them: the Hillman-Grassl correspondence and
 its inverse, as well as the Sulzgruber correspondence and its
 inverse (the Pak correspondence).
 
-# Definitions of the algorithms
+Definitions of the algorithms
+=============================
 
-## Arrays and rpps
+Arrays and rpps
+---------------
 
 Fix a partition `\lambda`
 (see :meth:`~sage.combinat.partition.Partition`).
@@ -27,7 +29,8 @@ increase along each row and weakly increase along each column.
 [Sulzgr2017]_, or Hillman and Grassl in [HilGra1976]_ -- just
 call it a reverse plane partition.)
 
-## The Hillman-Grassl correspondence and its inverse
+The Hillman-Grassl correspondence and its inverse
+-------------------------------------------------
 
 The Hillman-Grassl correspondence `H`
 (:meth:`hillman_grassl`) is the map that sends a
@@ -100,7 +103,8 @@ This construction appears in [HilGra1976]_ Section 6 (where
 `\lambda`-arrays are re-encoded as sequences of "hook number
 multiplicities") and [EnumComb2]_ Section 7.22.
 
-## The Sulzgruber correspondence and its inverse
+The Sulzgruber correspondence and its inverse
+---------------------------------------------
 
 The Sulzgruber correspondence `\Phi_\lambda` and the Pak
 correspondence `\xi_\lambda` are two further mutually
@@ -112,7 +116,8 @@ defining the same maps) in [Pak2002]_, [Hopkins2017]_ and
 
 .. TODO::
 
-    * Properly document Sulzgruber and Pak correspondences?
+    * Define Sulzgruber and Pak correspondences here,
+      rather than just referencing papers.
 
 EXAMPLES:
 
@@ -151,6 +156,20 @@ This is undone by the Sulzgruber correspondence::
 
     sage: Pp.sulzgruber_correspondence() == p
     True
+
+These four correspondences can also be accessed as standalone
+functions
+(:meth:`hillman_grassl_inverse`, :meth:`hillman_grassl`,
+:meth:`pak_correspondence` and :meth:`sulzgruber_correspondence`)
+that transform lists of lists into lists of lists;
+this may be more efficient. For example, the above computation
+of ``HGp`` can also be obtained as follows::
+
+    sage: HGp_bare = hillman_grassl_inverse([[0, 1, 3], [2, 4, 4], [3]])
+    sage: HGp_bare
+    [[1, 2, 0], [1, 0, 1], [1]]
+    sage: parent(HGp_bare)
+    <type 'list'>
 
 REFERENCES:
 
@@ -221,6 +240,17 @@ class WeakRPP(Tableau):
 
             sage: WeakRPP([[1, 2], [1, 3], [1]])
             [[1, 2], [1, 3], [1]]
+
+        TESTS::
+
+            sage: a1 = [[1, 2], [1, 3], [1]]
+            sage: a2 = [(1, 2), (1, 3), (1,)]
+            sage: A1 = WeakRPP(a1)
+            sage: A2 = WeakRPP(a2)
+            sage: A3 = WeakRPP(A1)
+            sage: A4 = Tableau(A1)
+            sage: A1 == A2 == A3 == A4
+            True
         """
         try:
             r = map(tuple, r)
@@ -269,8 +299,8 @@ class WeakRPP(Tableau):
 
         .. SEEALSO::
 
-            :meth:`~sage.combinat.tableau.hillman_grassl` for the
-            inverse map.
+            :meth:`~sage.combinat.tableau.Tableau.hillman_grassl`
+            for the inverse map.
 
         EXAMPLES::
 
@@ -305,7 +335,7 @@ class WeakRPP(Tableau):
 
         .. SEEALSO::
 
-            :meth:`~sage.combinat.tableau.sulzgruber_correspondence`
+            :meth:`~sage.combinat.tableau.Tableau.sulzgruber_correspondence`
             for the inverse map.
 
         EXAMPLES::
@@ -590,6 +620,14 @@ def sulzgruber_correspondence(M):
         sage: sulzgruber_correspondence([[1, 1, 1, 1]]*3)
         [[1, 2, 3, 4], [2, 3, 4, 5], [3, 4, 5, 6]]
 
+    The Sulzgruber correspondence can actually be
+    extended (by the same definition) to arrays
+    of nonnegative reals rather than nonnegative
+    integers. This implementation supports this::
+
+        sage: sulzgruber_correspondence([[1/2, 0, 1], [0, 1, 0], [1/2, 1/2]])
+        [[0, 1, 3/2], [1/2, 3/2, 3/2], [1, 2]]
+
     TESTS::
 
         sage: sulzgruber_correspondence([])
@@ -673,6 +711,14 @@ def pak_correspondence(M, copy=True):
         [[0, 2, 2], [1, 1], [2]]
         sage: pak_correspondence([[1, 2, 3, 4], [2, 3, 4, 5], [3, 4, 5, 6]])
         [[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]]
+
+    The Pak correspondence can actually be
+    extended (by the same definition) to "rpps"
+    of nonnegative reals rather than nonnegative
+    integers. This implementation supports this::
+
+        sage: pak_correspondence([[0, 1, 3/2], [1/2, 3/2, 3/2], [1, 2]])
+        [[1/2, 0, 1], [0, 1, 0], [1/2, 1/2]]
 
     TESTS::
 

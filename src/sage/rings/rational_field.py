@@ -1195,6 +1195,10 @@ class RationalField(Singleton, number_field_base.NumberField):
         This is an implementation of Algorithm 3.1.3 from Kirschmer's
         "Definite quadratic and hermitian forms with small class number"
 
+        REFERENCE::
+
+        [Kir2016]_
+
         EXAMPLES::
         
             sage: QQ.quadratic_defect(0,7)

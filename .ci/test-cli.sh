@@ -14,7 +14,7 @@
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
-set -exo pipefail
+set -ex
 
 echo "Checking that Sage starts and can calculate 1+1…"
 # Calculate 1+1 (remove startup messages and leading & trailing whitespace)

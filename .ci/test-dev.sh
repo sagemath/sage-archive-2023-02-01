@@ -29,11 +29,14 @@ function timed_run {
     docker run -e MAKE="$MAKE" "$IMAGE" "$2"
     END=`date +%s`
     TOTAL=$((END-START))
-    echo "Checking that \"$2\" was fast…"
+    echo "Checking whether running \"$2\" was fast…"
     [[ $TOTAL -lt $1 ]]
 }
 
-timed_run 60 true # runs make build
+# Most setup should be done in well under 120 seconds but some CI machines tend
+# to be really slow so we better give them some space here. Better miss a
+# regression at first than create a lot of noise.
+timed_run 120 true # runs make build
 # Building the documentation is quite slow at the moment:
 # Currently, this detects some dependencies as changed that have not changed.
 # The parser in Sphinx fails to parse some .py files and adds the (more

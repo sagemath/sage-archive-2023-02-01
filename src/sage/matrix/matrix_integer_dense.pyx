@@ -4111,28 +4111,44 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
     def _invert_unit(self):
         r"""
+        Deprecated method
+
+        TESTS::
+
+            sage: m = matrix(ZZ, [1])._invert_unit()
+            doctest:warning
+            ...
+            DeprecationWarning: _invert_unit() is deprecated, use inverse_of_unit() instead
+            See https://trac.sagemath.org/25084 for details.
+            sage: m
+            [1]
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(25084, "_invert_unit() is deprecated, use inverse_of_unit() instead")
+        return self.inverse_of_unit()
+
+    def inverse_of_unit(self):
+        r"""
         If self is a matrix with determinant `1` or `-1` return the inverse of
         ``self`` as a matrix over `ZZ`.
 
         EXAMPLES::
 
-            sage: a = matrix(2, [1,2,1,1])
-            sage: a^(-1)
-            [-1  2]
+            sage: m = matrix(ZZ, 2, [2,1,1,1]).inverse_of_unit()
+            sage: m
             [ 1 -1]
-            sage: m = a._invert_unit(); m
             [-1  2]
-            [ 1 -1]
-            sage: m.parent()
+            sage: parent(m)
             Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
-            sage: matrix(2, [2,1,0,1])._invert_unit()
+
+            sage: matrix(2, [2,1,0,1]).inverse_of_unit()
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: matrix is not invertible over Integer Ring
+            ArithmeticError: non-invertible matrix
         """
         A,d = self._invert_flint()
-        if d != ZZ.one():
-            raise ZeroDivisionError("matrix is not invertible over {}".format(self.base_ring()))
+        if not d.is_one():
+            raise ArithmeticError("non-invertible matrix")
         return A
 
     def _solve_right_nonsingular_square(self, B, check_rank=True, algorithm = 'iml'):

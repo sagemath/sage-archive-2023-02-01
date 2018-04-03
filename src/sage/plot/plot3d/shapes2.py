@@ -281,6 +281,11 @@ def polygon3d(points, **options):
 
     A bent transparent green triangle::
 
+        sage: polygon3d([[1, 2, 3], [0,1,0], [1,0,1], [3,0,0]], color=(0,1,0), opacity=0.7)
+        Graphics3d Object
+
+    This is the same as using ``alpha=0.7``::
+
         sage: polygon3d([[1, 2, 3], [0,1,0], [1,0,1], [3,0,0]], color=(0,1,0), alpha=0.7)
         Graphics3d Object
     """

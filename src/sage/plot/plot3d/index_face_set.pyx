@@ -266,6 +266,7 @@ cdef class IndexFaceSet(PrimitiveObject):
     def __init__(self, faces, point_list=None,
                  enclosed=False, texture_list=None, **kwds):
         PrimitiveObject.__init__(self, **kwds)
+        self._set_extra_kwds(kwds)
 
         self.global_texture = (texture_list is None)
 

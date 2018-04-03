@@ -255,7 +255,14 @@ cdef class ParametricSurface(IndexFaceSet):
             sage: P = plot3d(x^2-y^2, (x, -2, 2), (y, -2, 2))
             sage: s = P.obj_repr(P.default_render_params())
             sage: s[:2]+s[2][:3]+s[3][:3]
-            ['g obj_1', 'usemtl texture...', 'v -2 -2 0', 'v -2 -1.89744 0.399737', 'v -2 -1.79487 0.778435', 'f 1 2 42 41', 'f 2 3 43 42', 'f 3 4 44 43']
+            ['g obj_1',
+             'usemtl texture...',
+             'v -2 -2 0',
+             'v -2 -1.89744 0.399737',
+             'v -1.89744 -1.89744 0',
+             'f 1 2 3 4',
+             'f 2 5 6 3',
+             'f 5 7 8 6']
         """
         self.triangulate(render_params)
         return IndexFaceSet.obj_repr(self, render_params)
@@ -287,8 +294,8 @@ cdef class ParametricSurface(IndexFaceSet):
             sage: _ = var('x,y')
             sage: P = plot3d(x^2-y^2, (x, -2, 2), (y, -2, 2))
             sage: s = P.json_repr(P.default_render_params())
-            sage: s[0][:100]
-            '{"vertices":[{"x":-2,"y":-2,"z":0},{"x":-2,"y":-1.89744,"z":0.399737},{"x":-2,"y":-1.79487,"z":0.778'
+            sage: print(s[0][:100])
+            {"vertices":[{"x":-2,"y":-2,"z":0},{"x":-2,"y":-1.89744,"z":0.399737},{"x":-1.89744,"y":-1.89744,"z"
         """
         self.triangulate(render_params)
         return IndexFaceSet.json_repr(self, render_params)

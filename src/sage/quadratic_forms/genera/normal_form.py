@@ -755,7 +755,7 @@ def _min_nonsquare(p):
         if not R(i).is_square():
             return i
 
-def _normalize(G):
+def _normalize(G, normal_odd=True):
     r"""
     Return the transformation to sums of forms of types `U`, `V` and `W`.
 
@@ -763,8 +763,10 @@ def _normalize(G):
 
     INPUT:
 
-    - a symmetric matrix over `\ZZ_p` in jordan form --
+    - ``G`` -- a symmetric matrix over `\ZZ_p` in jordan form --
       the output of :meth:`p_adic_normal_form` or :meth:`_jordan_2_adic`
+    - ``normal_odd`` -- bool (default: True) if true and `p` is odd,
+      compute a normal form.
 
     OUTPUT:
 
@@ -804,7 +806,7 @@ def _normalize(G):
             if D[i,i].valuation() > val:
                 # a new block starts
                 val = D[i,i].valuation()
-                if len(non_squares) != 0:
+                if normal_odd and len(non_squares) != 0:
                     # move the non-square to
                     # the last entry of the previous block
                     j = non_squares.pop()
@@ -816,7 +818,7 @@ def _normalize(G):
             else:
                 D[i, i] = v
                 B[i, :] *= (v * d.inverse_of_unit()).sqrt()
-                if len(non_squares) != 0:
+                if normal_odd and len(non_squares) != 0:
                     # we combine two non-squares to get
                     # the 2 x 2 identity matrix
                     j = non_squares.pop()
@@ -826,7 +828,7 @@ def _normalize(G):
                     D[j,j] = 1
                 else:
                     non_squares.append(i)
-        if len(non_squares) != 0:
+        if normal_odd and len(non_squares) != 0:
             j=non_squares.pop()
             B.swap_rows(j,n-1)
     else:

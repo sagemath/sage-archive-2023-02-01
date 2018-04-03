@@ -284,6 +284,7 @@ class sage_build_cython(Command):
             cdivision=True,
             embedsignature=True,
             fast_getattr=True,
+            preliminary_late_includes_cy28=True,
             profile=self.profile,
         )
         self.compile_time_env = dict(
@@ -340,9 +341,8 @@ class sage_build_cython(Command):
         if self.cythonized_files is not None:
             return self.cythonized_files
 
-        dist = self.distribution
-        self.cythonized_files = find_extra_files(dist.packages,
-            ".", self.build_dir, ["ntlwrap.cpp"])
+        self.cythonized_files = list(find_extra_files(
+            ".", ["sage"], self.build_dir, ["ntlwrap.cpp"]).items())
 
         return self.cythonized_files
 
@@ -369,7 +369,7 @@ class sage_build_cython(Command):
             create_extension=self.create_extension,
             # Debugging
             gdb_debug=self.debug,
-            output_dir=self.build_dir,
+            output_dir=os.path.join(self.build_lib, "sage"),
             # Disable Cython caching, which is currently too broken to
             # use reliably: http://trac.sagemath.org/ticket/17851
             cache=False,

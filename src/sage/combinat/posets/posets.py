@@ -285,7 +285,6 @@ from sage.combinat.combinatorial_map import combinatorial_map
 from sage.misc.superseded import deprecated_function_alias
 
 
-
 def Poset(data=None, element_labels=None, cover_relations=False, linear_extension=False, category=None, facade=None, key=None):
     r"""
     Construct a finite poset from various forms of input data.
@@ -3642,7 +3641,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: p = posets.SymmetricGroupWeakOrderPoset(3)
             sage: p.coxeter_polynomial()
-            x^6 + x^5 - x^3 + x + 1 
+            x^6 + x^5 - x^3 + x + 1
 
         .. SEEALSO::
 
@@ -4948,7 +4947,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         if self.is_bounded():
             top = self.top()
             bottom = self.bottom()
-            return self.subposet(u for u in self if not u in (top, bottom))
+            return self.subposet(u for u in self if u not in (top, bottom))
         raise TypeError('the poset is missing either top or bottom')
 
     def relabel(self, relabeling=None):
@@ -5323,13 +5322,12 @@ class FinitePoset(UniqueRepresentation, Parent):
         random = current_randstate().python_random().random
         elements = []
         p = float(p)
-        if p<0 or p>1:
+        if p < 0 or p > 1:
             raise ValueError("probability p must be in [0..1]")
         for v in self:
             if random() <= p:
                 elements.append(v)
         return self.subposet(elements)
-
 
     def random_order_ideal(self, direction='down'):
         """
@@ -5899,7 +5897,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         weakly increasing sequences `x_1 \leq x_2 \leq \dots \leq x_{m-1}`
         of elements of the poset.
 
-        The polynomial `Z(q)` is integral-valued, but generally doesn't
+        The polynomial `Z(q)` is integral-valued, but generally does not
         have integer coefficients. It can be computed as
 
         .. MATH::
@@ -5939,15 +5937,18 @@ class FinitePoset(UniqueRepresentation, Parent):
             1
             sage: Poset({1: [], 2: []}).zeta_polynomial()
             2
+            sage: parent(_)
+            Univariate Polynomial Ring in q over Rational Field
         """
-        q = polygen(QQ, 'q')
-        g = sum(q**len(ch) for ch in self._hasse_diagram.chains())
+        R = PolynomialRing(QQ, 'q')
+        q = R.gen()
+        g = R.sum(q**len(ch) for ch in self._hasse_diagram.chains())
         n = g.degree()
-        f = g[max(n, 1)]
+        f = R(g[max(n, 1)])
         while n > 1:
-            f = (q - n)*f
-            n = n - 1
-            f = g[n] + f/n
+            f = (q - n) * f
+            n -= 1
+            f = g[n] + f / n
         return f
 
     def f_polynomial(self):
@@ -6121,7 +6122,6 @@ class FinitePoset(UniqueRepresentation, Parent):
         if rk is None:
             raise ValueError("the poset is not ranked")
         n = rk(maxi)
-        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         if n == 0:
             return PolynomialRing(ZZ, 'x', 1).one()
         anneau = PolynomialRing(ZZ, 'x', n+1)
@@ -6196,7 +6196,6 @@ class FinitePoset(UniqueRepresentation, Parent):
         if rk is None:
             raise ValueError("the poset is not ranked")
         n = rk(maxi)
-        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         if n == 0:
             return PolynomialRing(QQ, 'x', 1).one()
         anneau = PolynomialRing(QQ, 'x', n+1)
@@ -7248,11 +7247,13 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         min_elt = self.minimal_elements()[0]
         if canonical_labels:
-            sublat = lambda P: self.subposet(P).canonical_label()
+            def sublat(P):
+                return self.subposet(P).canonical_label()
         else:
-            sublat = lambda P: self.subposet(P)
-        poly = -sum(sublat(self.order_ideal([x])).characteristic_polynomial()
-                    * sublat(self.order_filter([x])).kazhdan_lusztig_polynomial()
+            def sublat(P):
+                return self.subposet(P)
+        poly = -sum(sublat(self.order_ideal([x])).characteristic_polynomial() *
+                    sublat(self.order_filter([x])).kazhdan_lusztig_polynomial()
                     for x in self if x != min_elt)
         tr = floor(self.rank()/2) + 1
         ret = poly.truncate(tr)

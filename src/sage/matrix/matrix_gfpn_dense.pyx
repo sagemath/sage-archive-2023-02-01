@@ -301,7 +301,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             MatFree(self.Data)
             self.Data = NULL
 
-    def __init__(self, parent, entries=None, *, bint copy=False, bint coerce=False, bint mutable=True):
+    def __init__(self, parent, entries=None, bint copy=False, bint coerce=False, *, bint mutable=True):
         """
         Matrix extension class using libmeataxe as backend.
 

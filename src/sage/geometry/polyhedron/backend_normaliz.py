@@ -230,13 +230,13 @@ class Polyhedron_normaliz(Polyhedron_base):
             #   All input matrices empty!
             self._init_empty_polyhedron()
         else:
-            data = ["vertices", nmz_vertices,
-                    "cone", nmz_rays,
-                    "subspace", nmz_lines]
+            data = {"vertices": nmz_vertices,
+                    "cone": nmz_rays,
+                    "subspace": nmz_lines}
             if verbose:
-                print("# Calling PyNormaliz.NmzCone({})".format(data))
-            cone = PyNormaliz.NmzCone(data)
-            assert cone, "NmzCone({}) did not return a cone".format(data)
+                print("# Calling PyNormaliz.NmzCone(**{})".format(data))
+            cone = PyNormaliz.NmzCone(**data)
+            assert cone, "NmzCone(**{}) did not return a cone".format(data)
             self._init_from_normaliz_cone(cone)
 
     def _init_from_Hrepresentation(self, ieqs, eqns, minimize=True, verbose=False):
@@ -286,13 +286,13 @@ class Polyhedron_normaliz(Polyhedron_base):
             b = deqn[0]
             A = deqn[1:]
             nmz_eqns.append(A + [b])
-        data = ["inhom_equations", nmz_eqns,
-                "inhom_inequalities", nmz_ieqs]
-        self._normaliz_cone = PyNormaliz.NmzCone(data)
+        data = {"inhom_equations": nmz_eqns,
+                "inhom_inequalities": nmz_ieqs}
+        self._normaliz_cone = PyNormaliz.NmzCone(**data)
         if verbose:
-            print("# Calling PyNormaliz.NmzCone({})".format(data))
-        cone = PyNormaliz.NmzCone(data)
-        assert cone, "NmzCone({}) did not return a cone".format(data)
+            print("# Calling PyNormaliz.NmzCone(**{})".format(data))
+        cone = PyNormaliz.NmzCone(**data)
+        assert cone, "NmzCone(**{}) did not return a cone".format(data)
         self._init_from_normaliz_cone(cone)
 
     def _init_Vrepresentation_from_normaliz(self):
@@ -375,7 +375,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         """
         super(Polyhedron_normaliz, self)._init_empty_polyhedron()
         # Can't seem to set up an empty _normaliz_cone.
-        # For example, PyNormaliz.NmzCone(['vertices', []]) gives
+        # For example, PyNormaliz.NmzCone(vertices=[]) gives
         # error: Some error in the normaliz input data detected: All input matrices empty!
         self._normaliz_cone = None
 

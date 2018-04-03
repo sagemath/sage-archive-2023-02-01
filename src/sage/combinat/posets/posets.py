@@ -110,7 +110,7 @@ List of Poset methods
     :meth:`~FinitePoset.completion_by_cuts` | Return the Dedekind-MacNeille completion of the poset.
     :meth:`~FinitePoset.intervals_poset` | Return the poset of intervals of the poset.
     :meth:`~FinitePoset.connected_components` | Return the connected components of the poset as subposets.
-    :meth:`~FinitePoset.factorize` | Return the decomposition of the poset as a Cartesian product.
+    :meth:`~FinitePoset.factor` | Return the decomposition of the poset as a Cartesian product.
     :meth:`~FinitePoset.ordinal_summands` | Return the ordinal summands of the poset.
     :meth:`~FinitePoset.subposet` | Return the subposet containing elements with partial order induced by this poset.
     :meth:`~FinitePoset.random_subposet` | Return a random subposet that contains each element with given probability.
@@ -4294,8 +4294,6 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         Product of (semi)lattices are returned as a (semi)lattice.
 
-        .. SEEALSO:: :meth:`factorize`
-
         EXAMPLES::
 
             sage: P = posets.ChainPoset(3)
@@ -4321,7 +4319,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         .. SEEALSO::
 
-            :class:`~sage.combinat.posets.cartesian_product.CartesianProductPoset`
+            :class:`~sage.combinat.posets.cartesian_product.CartesianProductPoset`, :meth:`factor`
 
         TESTS::
 
@@ -4354,55 +4352,57 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     _mul_ = product
 
-    def factorize(self):
+    def factor(self):
         """
-        Factorize the poset as a Cartesian product of smaller posets.
+        Factor the poset as a Cartesian product of smaller posets.
 
-        This only works for connected posets.
+        This only works for connected posets for the moment.
 
-        The decomposition of a connected poset as a Cartesian product of prime
-        posets is unique up to reordering and isomorphism.
+        The decomposition of a connected poset as a Cartesian product
+        of posets (prime in the sense that they cannot be written as
+        Cartesian products) is unique up to reordering and
+        isomorphism.
 
         OUTPUT:
 
-        a list of (prime) posets
+        a list of posets
 
         EXAMPLES::
 
             sage: P = posets.PentagonPoset()
             sage: Q = P*P
-            sage: Q.factorize()
+            sage: Q.factor()
             [Finite poset containing 5 elements,
             Finite poset containing 5 elements]
 
             sage: P1 = posets.ChainPoset(3)
             sage: P2 = posets.ChainPoset(7)
-            sage: P1.factorize()
+            sage: P1.factor()
             [Finite lattice containing 3 elements]
-            sage: (P1 * P2).factorize()
+            sage: (P1 * P2).factor()
             [Finite poset containing 7 elements,
             Finite poset containing 3 elements]
 
             sage: P = posets.TamariLattice(4)
-            sage: (P*P).factorize()
+            sage: (P*P).factor()
             [Finite poset containing 14 elements,
             Finite poset containing 14 elements]
 
-        .. SEEALSO:: :meth:`cartesian_product`
+        .. SEEALSO:: :meth:`product`
 
         TESTS::
 
             sage: P = posets.AntichainPoset(4)
-            sage: P.factorize()
+            sage: P.factor()
             Traceback (most recent call last):
             ...
-            ValueError: the poset is not connected
+            NotImplementedError: the poset is not connected
 
             sage: P = posets.Crown(2)
-            sage: P.factorize()
+            sage: P.factor()
             [Finite poset containing 4 elements]
 
-            sage: Poset().factorize()
+            sage: Poset().factor()
             [Finite poset containing 0 elements]
 
         REFERENCES:
@@ -4417,7 +4417,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         from sage.misc.flatten import flatten
         dg = self._hasse_diagram
         if not dg.is_connected():
-            raise ValueError('the poset is not connected')
+            raise NotImplementedError('the poset is not connected')
         if ZZ(dg.num_verts()).is_prime():
             return [self]
         G = dg.to_undirected()

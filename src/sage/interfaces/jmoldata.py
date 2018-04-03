@@ -26,8 +26,9 @@ from sage.env import SAGE_LOCAL
 from sage.misc.temporary_file import tmp_filename
 from sage.cpython.string import bytes_to_str
 
-import subprocess
 import os
+import re
+import subprocess
 
 class JmolData(SageObject):
     r"""
@@ -65,8 +66,7 @@ class JmolData(SageObject):
         except (subprocess.CalledProcessError, OSError):
             return False
 
-        import re
-        java_version = re.search("version.*[1][.][78]", version)
+        java_version = re.search('version.*([1][.][789]|"\d+")', version)
         return java_version is not None
 
     def export_image(self,

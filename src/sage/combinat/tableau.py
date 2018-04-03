@@ -4087,6 +4087,60 @@ class Tableau(ClonableList):
         data = list(self.conjugate().entries())
         return permutation.Permutation(data).inverse().reduced_word_lexmin()
 
+    def hillman_grassl(self):
+        """
+        Return the image of the `\lambda`-array ``self`` under the
+        Hillman-Grassl correspondence (as a
+        :cls:`~sage.combinat.hillman_grassl.WeakRPP`).
+
+        This relies on interpreting ``self`` as a `\lambda`-array
+        in the sense of :mod:`~sage.combinat.hillman_grassl`.
+        See :mod:`~sage.combinat.hillman_grassl` for definitions
+        of the objects involved.
+
+        .. SEEALSO::
+
+            :meth:`~sage.combinat.hillman_grassl.hillman_grassl_inverse`
+            for the inverse map.
+
+        EXAMPLES::
+
+            sage: a = Tableau([[2, 1, 1], [0, 2, 0], [1, 1]])
+            sage: A = a.hillman_grassl(); A
+            [[2, 2, 4], [2, 3, 4], [3, 5]]
+            sage: A.parent(), a.parent()
+            (Weak rpps, Tableaux)
+        """
+        from sage.combinat.hillman_grassl import hillman_grassl, WeakRPP
+        return WeakRPP(hillman_grassl(list(self)))
+
+    def sulzgruber_correspondence(self):
+        """
+        Return the image of the `\lambda`-array ``self`` under the
+        Sulzgruber correspondence (as a
+        :cls:`~sage.combinat.hillman_grassl.WeakRPP`).
+
+        This relies on interpreting ``self`` as a `\lambda`-array
+        in the sense of :mod:`~sage.combinat.hillman_grassl`.
+        See :mod:`~sage.combinat.hillman_grassl` for definitions
+        of the objects involved.
+
+        .. SEEALSO::
+
+            :meth:`~sage.combinat.hillman_grassl.pak_correspondence`
+            for the inverse map.
+
+        EXAMPLES::
+
+            sage: a = Tableau([[2, 1, 1], [0, 2, 0], [1, 1]])
+            sage: A = a.sulzgruber_correspondence(); A
+            [[0, 1, 4], [1, 5, 5], [3, 6]]
+            sage: A.parent(), a.parent()
+            (Weak rpps, Tableaux)
+        """
+        from sage.combinat.hillman_grassl import sulzgruber_correspondence, WeakRPP
+        return WeakRPP(sulzgruber_correspondence(list(self)))
+
 class SemistandardTableau(Tableau):
     """
     A class to model a semistandard tableau.

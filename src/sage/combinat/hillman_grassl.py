@@ -2,6 +2,15 @@
 r"""
 The Hillman-Grassl correspondence
 
+This module implements weak reverse plane partitions and four
+correspondences on them: the Hillman-Grassl correspondence and
+its inverse, as well as the Sulzgruber correspondence and its
+inverse (the Pak correspondence).
+
+# Definitions of the algorithms
+
+## Arrays and rpps
+
 Fix a partition `\lambda`
 (see :meth:`~sage.combinat.partition.Partition`).
 We draw all partitions and tableaux in English notation.
@@ -10,11 +19,15 @@ A `\lambda`-*array* will mean a tableau of shape `\lambda` whose
 entries are nonnegative integers. (No conditions on the order of
 these entries are made. Note that `0` is allowed.)
 
-A *reverse plane partition of shape* `\lambda` (short:
+A *weak reverse plane partition of shape* `\lambda` (short:
 `\lambda`-*rpp*) will mean a `\lambda`-array whose entries weakly
 increase along each row and weakly increase along each column.
-(Some authors -- like Stanley in [EnumComb2]_ Section 7.22 --
-call this a weak reverse plane partition.)
+(The name "weak reverse plane partition" comes from Stanley in
+[EnumComb2]_ Section 7.22; other authors -- such as Pak
+[Sulzgr2017]_, or Hillman and Grassl in [HilGra1976]_ -- just
+call it a reverse plane partition.)
+
+## The Hillman-Grassl correspondence and its inverse
 
 The Hillman-Grassl correspondence `H`
 (:meth:`hillman_grassl`) is the map that sends a
@@ -81,11 +94,63 @@ recursively as follows:
 * Let `N'` be the image `H^{-1}(\pi')` (which is already
   constructed by recursion).
   Then, `H^{-1}(\pi)` is obtained from `N'` by adding `1` to the
-  `(i_n, s)`-th entry of `N'`.
+  `(i_n, s)`-th entry of `N'`.[HilGra1976]_
 
 This construction appears in [HilGra1976]_ Section 6 (where
 `\lambda`-arrays are re-encoded as sequences of "hook number
 multiplicities") and [EnumComb2]_ Section 7.22.
+
+## The Sulzgruber correspondence and its inverse
+
+The Sulzgruber correspondence `\Phi_\lambda` and the Pak
+correspondence `\xi_\lambda` are two further mutually
+inverse bijections between the set of
+`\lambda`-arrays and the set of `\lambda`-rpps.
+They appear (sometimes with different definitions, but
+defining the same maps) in [Pak2002]_, [Hopkins2017]_ and
+[Sulzgr2017]_.
+
+.. TODO::
+
+    * Properly document Sulzgruber and Pak correspondences?
+
+EXAMPLES:
+
+We construct a `\lambda`-rpp for `\lambda = (3, 3, 1)`
+(note that `\lambda` needs not be specified explicitly)::
+
+    sage: p = WeakRPP([[0, 1, 3], [2, 4, 4], [3]])
+    sage: p.parent()
+    Weak rpps
+
+(This is the example in Section 7.22 of [EnumComb2]_.)
+
+Next, we apply the inverse of the Hillman-Grassl correspondence
+to it::
+
+    sage: HGp = p.hillman_grassl_inverse(); HGp
+    [[1, 2, 0], [1, 0, 1], [1]]
+    sage: HGp.parent()
+    Tableaux
+
+This is a `\lambda`-array, encoded as a tableau. We can
+recover our original `\lambda`-rpp from it using the
+Hillman-Grassl correspondence::
+
+    sage: HGp.hillman_grassl() == p
+    True
+
+We can also apply the Pak correspondence to our rpp::
+
+    sage: Pp = p.pak_correspondence(); Pp
+    [[2, 0, 1], [0, 2, 0], [1]]
+    sage: Pp.parent()
+    Tableaux
+
+This is undone by the Sulzgruber correspondence::
+
+    sage: Pp.sulzgruber_correspondence() == p
+    True
 
 REFERENCES:
 
@@ -95,9 +160,9 @@ REFERENCES:
 
 .. [EnumComb2]_
 
-.. [Sulzgr2017]_
-
 .. [Pak2002]_
+
+.. [Sulzgr2017]_
 
 .. [Hopkins2017]_
 
@@ -105,15 +170,6 @@ AUTHORS:
 
 - Darij Grinberg and Tom Roby (2018): Initial implementation
 
-.. TODO::
-
-    * Connect this up with the tableaux and plane partitions.
-      At the moment, everything is arrays. Probably tuples
-      should be preferred, but also this should be a proper
-      class? two proper classes? Wait until Tableaux have
-      been refactored?
-
-    * Properly document Pak and Sulzgruber correspondences?
 """
 #*****************************************************************************
 #       Copyright (C) 2018 Darij Grinberg <darijgrinberg@gmail.com>,
@@ -130,6 +186,210 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+from sage.combinat.tableau import Tableau, Tableaux
+from sage.categories.sets_cat import Sets
+from sage.combinat.combinatorial_map import combinatorial_map
+
+class WeakRPP(Tableau):
+    r"""
+    A weak reverse plane partition (short: rpp).
+
+    A weak reverse plane partition is a tableau with nonnegative
+    entries that are weakly increasing in each row and weakly
+    increasing in each column.
+
+    EXAMPLES::
+
+        sage: x = WeakRPP([[0, 1, 1], [0, 1, 3], [1, 2, 2], [1, 2, 3], [2]]); x
+        [[0, 1, 1], [0, 1, 3], [1, 2, 2], [1, 2, 3], [2]]
+        sage: x.pp()
+          0  1  1
+          0  1  3
+          1  2  2
+          1  2  3
+          2
+        sage: x.shape()
+        [3, 3, 3, 3, 1]
+    """
+    @staticmethod
+    def __classcall_private__(cls, r):
+        r"""
+        Return an rpp object.
+
+        EXAMPLES::
+
+            sage: WeakRPP([[1, 2], [1, 3], [1]])
+            [[1, 2], [1, 3], [1]]
+        """
+        try:
+            r = map(tuple, r)
+        except TypeError:
+            raise TypeError("r must be a list of positive integers")
+        return WeakRPPs()(r)
+
+    def __init__(self, parent, t):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: R = WeakRPP([[0, 1, 2], [0, 2]])
+            sage: TestSuite(R).run()
+        """
+        if not isinstance(t, Tableau):
+            t = [list(row) for row in t]
+        else:
+            t = list(t)
+
+        Tableau.__init__(self, parent, t)
+
+    @combinatorial_map(order=2,name='conjugate')
+    def conjugate(self):
+        """
+        Return the conjugate of ``self``.
+
+        EXAMPLES::
+
+            sage: c = WeakRPP([[1,1],[1,3],[2]]).conjugate(); c
+            [[1, 1, 2], [1, 3]]
+            sage: c.parent()
+            Weak rpps
+        """
+        C = super(WeakRPP, self).conjugate()
+        return WeakRPP(C)
+
+    def hillman_grassl_inverse(self):
+        """
+        Return the image of the `\lambda`-rpp ``self`` under the
+        inverse of the Hillman-Grassl correspondence (as a
+        :cls:`~sage.combinat.tableau.Tableau`).
+
+        See :mod:`~sage.combinat.hillman_grassl`.
+
+        .. SEEALSO::
+
+            :meth:`~sage.combinat.tableau.hillman_grassl` for the
+            inverse map.
+
+        EXAMPLES::
+
+            sage: a = WeakRPP([[2, 2, 4], [2, 3, 4], [3, 5]])
+            sage: a.hillman_grassl_inverse()
+            [[2, 1, 1], [0, 2, 0], [1, 1]]
+            sage: b = WeakRPP([[1, 1, 2, 2], [1, 1, 2, 2], [2, 2, 3, 3], [2, 2, 3, 3]])
+            sage: B = b.hillman_grassl_inverse(); B
+            [[1, 0, 1, 0], [0, 1, 0, 1], [1, 0, 1, 0], [0, 1, 0, 1]]
+            sage: b.parent(), B.parent()
+            (Weak rpps, Tableaux)
+
+        Applying the inverse of the Hillman-Grassl correspondence
+        to the transpose of a `\lambda`-rpp `M` yields the same
+        result as applying it to `M` and then transposing the
+        result ([Gans1981]_ Corollary 3.4)::
+
+            sage: a = WeakRPP([[1,3,5],[2,4]])
+            sage: a.hillman_grassl_inverse().conjugate() \
+            ....:     == a.conjugate().hillman_grassl_inverse()
+            True
+        """
+        return Tableau(hillman_grassl_inverse(list(self)))
+
+    def pak_correspondence(self):
+        """
+        Return the image of the `\lambda`-rpp ``self`` under the
+        Pak correspondence (as a
+        :cls:`~sage.combinat.tableau.Tableau`).
+
+        See :mod:`~sage.combinat.hillman_grassl`.
+
+        .. SEEALSO::
+
+            :meth:`~sage.combinat.tableau.sulzgruber_correspondence`
+            for the inverse map.
+
+        EXAMPLES::
+
+            sage: a = WeakRPP([[1, 2, 3], [1, 2, 3], [2, 4, 4]])
+            sage: A = a.pak_correspondence(); A
+            [[1, 0, 2], [0, 2, 0], [1, 1, 0]]
+            sage: a.parent(), A.parent()
+            (Weak rpps, Tableaux)
+
+        Applying the Pak correspondence to the transpose of a
+        `\lambda`-rpp `M` yields the same result as applying it to
+        `M` and then transposing the result::
+
+            sage: a = WeakRPP([[1,3,5],[2,4]])
+            sage: a.pak_correspondence().conjugate() \
+            ....:     == a.conjugate().pak_correspondence()
+            True
+        """
+        return Tableau(pak_correspondence(list(self)))
+
+class WeakRPPs(Tableaux):
+    """
+    The set of all weak rpps.
+    """
+    @staticmethod
+    def __classcall_private__(cls, shape=None, **kwds):
+        """
+        Normalize input to ensure a unique representation and pick the correct
+        class based on input.
+
+        The ``shape`` parameter is currently ignored.
+
+        EXAMPLES::
+
+            sage: S1 = WeakRPPs([4, 2, 2, 1])
+            sage: S2 = WeakRPPs((4, 2, 2, 1))
+            sage: S1 is S2
+            True
+        """
+        #if shape is not None:
+        #    from sage.combinat.partition import Partition
+        #    return RibbonShapedTableaux_shape(Partition(shape))
+
+        # Otherwise arg0 takes the place of the category in pickling
+        return super(WeakRPPs, cls).__classcall__(cls, **kwds)
+
+    def __init__(self, category=None):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: S = WeakRPPs()
+            sage: TestSuite(S).run()
+        """
+        if category is None:
+            category = Sets()
+
+        Tableaux.__init__(self, category=category)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: repr(WeakRPPs())    # indirect doctest
+            'Weak rpps'
+        """
+        return "Weak rpps"
+
+    Element = WeakRPP
+    options = Tableaux.options
+
+    def an_element(self):
+        r"""
+        Returns a particular element of the class.
+
+        TESTS::
+
+            sage: T = WeakRPPs()
+            sage: T.an_element()
+            [[0, 0, 1, 2], [0, 1, 1], [0], [2]]
+        """
+        return self.element_class(self, [[0, 0, 1, 2], [0, 1, 1], [0], [2]])
 
 def transpose(M):
     r"""
@@ -176,7 +436,7 @@ def hillman_grassl(M):
 
     The Hillman-Grassl correspondence is a bijection
     between the tableaux with nonnegative entries
-    (otherwise arbitrary) and the reverse plane
+    (otherwise arbitrary) and the weak reverse plane
     partitions with nonnegative entries.
     This bijection preserves the shape of the
     tableau. See :mod:`~sage.combinat.hillman_grassl`.
@@ -305,36 +565,36 @@ def hillman_grassl_inverse(M):
         res[i][s] += 1
     return res
 
-def pak_correspondence(M):
+def sulzgruber_correspondence(M):
     r"""
     Return the image of a `\lambda`-array ``M``
-    under the Pak correspondence.
+    under the Sulzgruber correspondence.
 
-    The Pak correspondence is the map `\xi_\lambda`
+    The Sulzgruber correspondence is the map `\Phi_\lambda`
     from [Sulzgr2017]_ Section 7, and is the map
     `\xi_\lambda^{-1}` from [Pak2002]_ Section 5.
     It is denoted by `\mathcal{RSK}` in [Hopkins2017]_.
-    It is the inverse of the Sulzgruber correspondence
-    (:meth:`sulzgruber_correspondence`).
+    It is the inverse of the Pak correspondence
+    (:meth:`pak_correspondence`).
 
     EXAMPLES::
 
-        sage: pak_correspondence([[1, 0, 2], [0, 2, 0], [1, 1, 0]])
+        sage: sulzgruber_correspondence([[1, 0, 2], [0, 2, 0], [1, 1, 0]])
         [[1, 2, 3], [1, 2, 3], [2, 4, 4]]
-        sage: pak_correspondence([[1, 1, 2], [0, 1, 0], [3, 0, 0]])
+        sage: sulzgruber_correspondence([[1, 1, 2], [0, 1, 0], [3, 0, 0]])
         [[1, 1, 4], [2, 3, 4], [4, 4, 4]]
-        sage: pak_correspondence([[1, 0, 2], [0, 2, 0], [1, 1]])
+        sage: sulzgruber_correspondence([[1, 0, 2], [0, 2, 0], [1, 1]])
         [[0, 2, 3], [1, 3, 3], [2, 4]]
-        sage: pak_correspondence([[0, 2, 2], [1, 1], [2]])
+        sage: sulzgruber_correspondence([[0, 2, 2], [1, 1], [2]])
         [[1, 2, 4], [1, 3], [3]]
-        sage: pak_correspondence([[1, 1, 1, 1]]*3)
+        sage: sulzgruber_correspondence([[1, 1, 1, 1]]*3)
         [[1, 2, 3, 4], [2, 3, 4, 5], [3, 4, 5, 6]]
 
     TESTS::
 
-        sage: pak_correspondence([])
+        sage: sulzgruber_correspondence([])
         []
-        sage: pak_correspondence(((0, 2, 2), (1, 1), (2,)))
+        sage: sulzgruber_correspondence(((0, 2, 2), (1, 1), (2,)))
         [[1, 2, 4], [1, 3], [3]]
     """
     lam = [len(row) for row in M]
@@ -359,7 +619,7 @@ def pak_correspondence(M):
     if not N[i]:
         N.pop()
 
-    N = pak_correspondence(N)
+    N = sulzgruber_correspondence(N)
 
     # toggling and inserting the new entry:
     for k in range(min(i, j) + 1):
@@ -384,16 +644,16 @@ def pak_correspondence(M):
 
     return N
 
-def sulzgruber_correspondence(M, copy=True):
+def pak_correspondence(M, copy=True):
     r"""
-    Return the image of a `\lambda`-array ``M``
-    under the Sulzgruber correspondence.
+    Return the image of a `\lambda`-rpp ``M``
+    under the Pak correspondence.
 
-    The Sulzgruber correspondence is the map `\Phi_\lambda`
+    The Pak correspondence is the map `\xi_\lambda`
     from [Sulzgr2017]_ Section 7, and is the map
     `\xi_\lambda` from [Pak2002]_ Section 4.
-    It is the inverse of the Pak correspondence
-    (:meth:`pak_correspondence`).
+    It is the inverse of the Sulzgruber correspondence
+    (:meth:`sulzgruber_correspondence`).
 
     INPUT:
 
@@ -403,30 +663,30 @@ def sulzgruber_correspondence(M, copy=True):
 
     EXAMPLES::
 
-        sage: sulzgruber_correspondence([[1, 2, 3], [1, 2, 3], [2, 4, 4]])
+        sage: pak_correspondence([[1, 2, 3], [1, 2, 3], [2, 4, 4]])
         [[1, 0, 2], [0, 2, 0], [1, 1, 0]]
-        sage: sulzgruber_correspondence([[1, 1, 4], [2, 3, 4], [4, 4, 4]])
+        sage: pak_correspondence([[1, 1, 4], [2, 3, 4], [4, 4, 4]])
         [[1, 1, 2], [0, 1, 0], [3, 0, 0]]
-        sage: sulzgruber_correspondence([[0, 2, 3], [1, 3, 3], [2, 4]])
+        sage: pak_correspondence([[0, 2, 3], [1, 3, 3], [2, 4]])
         [[1, 0, 2], [0, 2, 0], [1, 1]]
-        sage: sulzgruber_correspondence([[1, 2, 4], [1, 3], [3]])
+        sage: pak_correspondence([[1, 2, 4], [1, 3], [3]])
         [[0, 2, 2], [1, 1], [2]]
-        sage: sulzgruber_correspondence([[1, 2, 3, 4], [2, 3, 4, 5], [3, 4, 5, 6]])
+        sage: pak_correspondence([[1, 2, 3, 4], [2, 3, 4, 5], [3, 4, 5, 6]])
         [[1, 1, 1, 1], [1, 1, 1, 1], [1, 1, 1, 1]]
 
     TESTS::
 
-        sage: sulzgruber_correspondence([])
+        sage: pak_correspondence([])
         []
-        sage: sulzgruber_correspondence(((1, 2, 4), (1, 3), (3,)))
+        sage: pak_correspondence(((1, 2, 4), (1, 3), (3,)))
         [[0, 2, 2], [1, 1], [2]]
 
         sage: a = [[0, 2, 3], [1, 3, 3], [2, 4]]
-        sage: sulzgruber_correspondence(a)
+        sage: pak_correspondence(a)
         [[1, 0, 2], [0, 2, 0], [1, 1]]
         sage: a
         [[0, 2, 3], [1, 3, 3], [2, 4]]
-        sage: sulzgruber_correspondence(a, copy=False)
+        sage: pak_correspondence(a, copy=False)
         [[1, 0, 2], [0, 2, 0], [1, 1]]
         sage: a
         []
@@ -476,7 +736,7 @@ def sulzgruber_correspondence(M, copy=True):
     if not N[i]:
         N.pop()
 
-    N = sulzgruber_correspondence(N, copy=False)
+    N = pak_correspondence(N, copy=False)
     if len(N) <= i:
         N.append([])
     N[i].append(x)

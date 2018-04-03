@@ -4091,7 +4091,7 @@ class Tableau(ClonableList):
         """
         Return the image of the `\lambda`-array ``self`` under the
         Hillman-Grassl correspondence (as a
-        :cls:`~sage.combinat.hillman_grassl.WeakRPP`).
+        :class:`~sage.combinat.hillman_grassl.WeakRPP`).
 
         This relies on interpreting ``self`` as a `\lambda`-array
         in the sense of :mod:`~sage.combinat.hillman_grassl`.
@@ -4118,7 +4118,7 @@ class Tableau(ClonableList):
         """
         Return the image of the `\lambda`-array ``self`` under the
         Sulzgruber correspondence (as a
-        :cls:`~sage.combinat.hillman_grassl.WeakRPP`).
+        :class:`~sage.combinat.hillman_grassl.WeakRPP`).
 
         This relies on interpreting ``self`` as a `\lambda`-array
         in the sense of :mod:`~sage.combinat.hillman_grassl`.

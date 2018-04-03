@@ -263,7 +263,7 @@ class WeakRPP(Tableau):
         """
         Return the image of the `\lambda`-rpp ``self`` under the
         inverse of the Hillman-Grassl correspondence (as a
-        :cls:`~sage.combinat.tableau.Tableau`).
+        :class:`~sage.combinat.tableau.Tableau`).
 
         See :mod:`~sage.combinat.hillman_grassl`.
 
@@ -299,7 +299,7 @@ class WeakRPP(Tableau):
         """
         Return the image of the `\lambda`-rpp ``self`` under the
         Pak correspondence (as a
-        :cls:`~sage.combinat.tableau.Tableau`).
+        :class:`~sage.combinat.tableau.Tableau`).
 
         See :mod:`~sage.combinat.hillman_grassl`.
 

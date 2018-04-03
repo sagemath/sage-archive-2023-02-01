@@ -720,6 +720,38 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         return tuple(compact_part),tuple(recession_cone_part),tuple(lineality_part)
 
+    def _volume_normaliz(self, measure='euclidean'):
+        r"""
+        Computes the volume of a polytope using normaliz.
+
+        INPUT:
+
+        - ``measure`` -- (default: 'euclidean') the measure to take. 'euclidean'
+          correspond to ``EuclideanVolume`` in normaliz and 'induced_lattice'
+          correspond to ``Volume`` in normaliz.
+
+        OUTPUT:
+
+        A float value (when ``measure`` is 'euclidean') or a rational number
+        (when ``measure`` is 'induced_lattice').
+
+        .. NOTE::
+
+            This function depends on Normaliz (i.e., the ``pynormaliz`` optional
+            package). See the Normaliz documentation for further details.
+
+        EXAMPLE::
+
+        """
+        import PyNormaliz
+        cone = self._normaliz_cone
+        assert cone
+        if measure == 'euclidean':
+            return PyNormaliz.NmzResult(cone,'EuclideanVolume')
+        elif measure == 'induced_lattice':
+            n,d = PyNormaliz.NmzResult(cone,'Volume')
+            return ZZ(n) / ZZ(d)
+
 #########################################################################
 class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
     r"""

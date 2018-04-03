@@ -162,6 +162,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import polynomial_default
 import sage.misc.latex as latex
 from sage.misc.prandom import randint
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_attribute import lazy_attribute
 
 from sage.rings.real_mpfr import is_RealField
 from sage.rings.polynomial.polynomial_singular_interface import PolynomialRing_singular_repr
@@ -291,14 +292,6 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 #coerce_list = [base_inject],
                 #convert_list = [list, base_inject],
                 convert_method_name = '_polynomial_')
-        if is_PolynomialRing(base_ring):
-            self._Karatsuba_threshold = 0
-        else:
-            from sage.matrix.matrix_space import MatrixSpace
-            if isinstance(base_ring, MatrixSpace):
-                self._Karatsuba_threshold = 0
-            else:
-                self._Karatsuba_threshold = 8
 
     def __reduce__(self):
         from sage.rings.polynomial.polynomial_ring_constructor import unpickle_PolynomialRing
@@ -1393,6 +1386,30 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             coeffs.reverse()
             yield self(coeffs)
 
+    @lazy_attribute
+    def _Karatsuba_threshold(self):
+        """
+        Return the default Karatsuba threshold.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQbar[]
+            sage: R._Karatsuba_threshold
+            8
+            sage: MS = MatrixSpace(ZZ, 2, 2)
+            sage: R.<x> = MS[]
+            sage: R._Karatsuba_threshold
+            0
+        """
+        base_ring = self.base_ring()
+        if is_PolynomialRing(base_ring):
+            return 0
+        from sage.matrix.matrix_space import MatrixSpace
+        if isinstance(base_ring, MatrixSpace):
+            return 0
+        # Generic default value
+        return 8
+
     def karatsuba_threshold(self):
         """
         Return the Karatsuba threshold used for this ring by the method
@@ -1428,7 +1445,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: K.karatsuba_threshold()
             0
         """
-        self._Karatsuba_threshold = ZZ(Karatsuba_threshold)
+        self._Karatsuba_threshold = int(Karatsuba_threshold)
 
     def polynomials( self, of_degree = None, max_degree = None ):
         """

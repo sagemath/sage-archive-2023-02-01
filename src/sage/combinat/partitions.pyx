@@ -1,7 +1,7 @@
 # The actual algorithm is implemented in the C++ file partitions_c.cc
-# which requires the gmp and mpfr libraries.
+# which requires the GMP, MPFR and NTL libraries.
 #
-# distutils: libraries = gmp mpfr
+# distutils: libraries = gmp mpfr ntl
 # distutils: language = c++
 """
 Number of partitions of an integer

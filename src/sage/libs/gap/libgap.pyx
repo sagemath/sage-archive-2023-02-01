@@ -247,7 +247,7 @@ from .gap_includes cimport *
 
 from sage.structure.sage_object cimport SageObject
 from sage.structure.parent cimport Parent
-from sage.structure.element cimport ModuleElement, RingElement
+from sage.structure.element cimport ModuleElement, RingElement, Vector
 from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
@@ -342,10 +342,17 @@ class Gap(Parent):
             0
             sage: libgap(int(0))
             0
+            sage: libgap(vector((0,1,2)))
+            [ 0, 1, 2 ]
+            sage: libgap(vector((1/3,2/3,4/5)))
+            [ 1/3, 2/3, 4/5 ]
+            sage: libgap(vector((1/3, 0.8, 3)))
+            [ 0.333333, 0.8, 3. ]
+
         """
         if isinstance(x, GapElement):
             return x
-        elif isinstance(x, (list, tuple)):
+        elif isinstance(x, (list, tuple, Vector)):
             return make_GapElement_List(self, make_gap_list(x))
         elif isinstance(x, dict):
             return make_GapElement_Record(self, make_gap_record(x))

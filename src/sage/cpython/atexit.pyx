@@ -21,21 +21,31 @@ import atexit
 __all__ = ['restore_atexit']
 
 
-cdef class restore_atexit(object):
+cdef class restore_atexit:
     r"""
     Context manager that restores the state of the atexit module to its
     previous state when exiting the context.
 
     INPUT:
 
-    - ``clear`` (`bool`, default `False`) -- if `True`, clear already
-      registered atexit handlers upon entering the context.
+    - ``run`` (bool, default: False) -- if True, when exiting the
+      context (but before restoring the old exit functions), run all
+      atexit functions which were added inside the context.
+
+    - ``clear`` (bool, default: equal to ``run``) -- if True, clear
+      already registered atexit handlers upon entering the context.
+
+    .. WARNING::
+
+        The combination ``run=True`` and ``clear=False`` will cause
+        already-registered exit functions to be run twice: once when
+        exiting the context and again when exiting Python.
 
     EXAMPLES:
 
     For this example we will wrap the entire example with
-    ``restore_atexit(True)`` so as to start with a fresh atexit module state
-    for the sake of the example.
+    ``restore_atexit(clear=True)`` so as to start with a fresh atexit
+    module state for the sake of the example.
 
     Note that the function ``atexit._run_exitfuncs()`` runs all registered
     handlers, and then clears the list of handlers, so we can use it to test
@@ -58,7 +68,22 @@ cdef class restore_atexit(object):
         <function handler at 0x...>
         ((1, 2), {'c': 3})
         ((1, 2), {'c': 3})
-        sage: atexit._run_exitfuncs()  # The original handlers are run
+
+    We test the ``run`` option::
+
+        sage: with restore_atexit(run=True):
+        ....:     # this handler is run when exiting the context
+        ....:     _ = atexit.register(handler, 7, 8, e=9)
+        ((7, 8), {'e': 9})
+        sage: with restore_atexit(clear=False, run=True):
+        ....:     # original handlers are run when exiting the context
+        ....:     pass
+        ((4, 5), {'d': 6})
+        ((1, 2), {'c': 3})
+
+    The original handlers are still in place::
+
+        sage: atexit._run_exitfuncs()
         ((4, 5), {'d': 6})
         ((1, 2), {'c': 3})
 
@@ -98,10 +123,12 @@ cdef class restore_atexit(object):
     """
 
     cdef list _exithandlers
-    cdef int _clear
+    cdef bint _clear, _run
 
-    def __init__(self, clear=False):
-        self._clear = clear
+    def __init__(self, *, run=False, clear=None):
+        self._clear = self._run = run
+        if clear is not None:
+            self._clear = clear
         self._exithandlers = None
 
     def __enter__(self):
@@ -112,6 +139,8 @@ cdef class restore_atexit(object):
         return self
 
     def __exit__(self, *exc):
+        if self._run:
+            atexit._run_exitfuncs()
         _set_exithandlers(self._exithandlers)
 
 

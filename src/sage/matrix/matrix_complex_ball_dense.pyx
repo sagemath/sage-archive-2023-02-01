@@ -622,6 +622,8 @@ cdef class Matrix_complex_ball_dense(Matrix_dense):
 
     def charpoly(self, var='x', algorithm=None):
         r"""
+        Compute the characteristic polynomial of this matrix.
+
         EXAMPLES::
 
             sage: from sage.matrix.benchmark import hilbert_matrix

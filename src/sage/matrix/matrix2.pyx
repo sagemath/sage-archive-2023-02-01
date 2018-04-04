@@ -6652,9 +6652,9 @@ cdef class Matrix(Matrix1):
             [ 5 * 18 + O(5^5)     398 + O(5^5)    2483 + O(5^5)]
             sage: K = R.fraction_field()
             sage: A.change_ring(K).augment(identity_matrix(K,3)).echelon_form()
-            [1 + O(5^5)         O(5^5)      O(5^5)  5 * 212 + O(5^5)       3031 + O(5^5)    2201 + O(5^5)]
-            [    O(5^5)     1 + O(5^5)      O(5^5)     1348 + O(5^5)    5 * 306 + O(5^5)    2648 + O(5^5)]
-            [    O(5^5)         O(5^5)  1 + O(5^5)     1987 + O(5^5)    5 * 263 + O(5^5)     154 + O(5^5)]
+            [      1 + O(5^5)           O(5^5)           O(5^5) 5 * 212 + O(5^5)    3031 + O(5^5)    2201 + O(5^5)]
+            [          O(5^5)       1 + O(5^5)           O(5^5)    1348 + O(5^5) 5 * 306 + O(5^5)    2648 + O(5^5)]
+            [          O(5^5)           O(5^5)       1 + O(5^5)    1987 + O(5^5) 5 * 263 + O(5^5)     154 + O(5^5)]
 
         Echelon form is not defined over arbitrary rings::
 

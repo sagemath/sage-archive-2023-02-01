@@ -43,7 +43,7 @@ from .shapes import Text, Sphere
 
 from sage.structure.element import is_Vector
 
-
+@rename_keyword(alpha='opacity')
 def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
     r"""
     Draw a 3d line joining a sequence of points.
@@ -162,6 +162,7 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
         w._set_extra_kwds(kwds)
         return w
 
+@rename_keyword(alpha='opacity')
 @options(opacity=1, color="blue", aspect_ratio=[1,1,1], thickness=2)
 def bezier3d(path, **options):
     """
@@ -292,7 +293,7 @@ def polygon3d(points, **options):
     from sage.plot.plot3d.index_face_set import IndexFaceSet
     return IndexFaceSet([range(len(points))], points, **options)
 
-
+@rename_keyword(alpha='opacity')
 @options(opacity=1, color=(0,0,1))
 def polygons3d(faces, points, **options):
     """
@@ -609,7 +610,7 @@ def ruler_frame(lower_left, upper_right, ticks=4, sub_ticks=4, **kwds):
 
 ###########################
 
-
+@rename_keyword(alpha='opacity')
 def sphere(center=(0,0,0), size=1, **kwds):
     r"""
     Return a plot of a sphere of radius ``size`` centered at
@@ -1086,7 +1087,7 @@ class Line(PrimitiveObject):
                 count += 1
             return corners
 
-
+@rename_keyword(alpha='opacity')
 def point3d(v, size=5, **kwds):
     """
     Plot a point or list of points in 3d space.

@@ -21,6 +21,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from sage.misc.decorators import rename_keyword
 
 from sage.plot.plot3d.parametric_plot3d import parametric_plot3d
 

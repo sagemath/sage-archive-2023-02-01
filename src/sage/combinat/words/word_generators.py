@@ -1265,7 +1265,7 @@ class WordGenerator(object):
            morphisms, Theoret. Comput. Sci. 276 (2002) 281--313.
 
         .. [GJ07] \A. Glen, J. Justin, Episturmian words: a survey, Preprint,
-           2007, arXiv:0801.1655.
+           2007, :arxiv:`0801.1655`.
         """
         if not isinstance(directive_word, Word_class):
            raise TypeError("directive_word is not a word, so it cannot be used to build an episturmian word")

@@ -662,6 +662,47 @@ class RealBallField(UniqueRepresentation, Field):
                 self(sage.rings.infinity.Infinity), ~self(0),
                 self.element_class(self, sage.symbolic.constants.NotANumber())]
 
+    def _sum_of_products(self, terms):
+        r"""
+        Compute a sum of product of real balls without creating temporary
+        Python objects
+
+        The input objects should be real balls, but need not belong to this
+        parent. The computation is performed at the precision of this parent.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = RealBallField(1000)[]
+            sage: pol = (x + 1/3)^100
+            sage: RBF._sum_of_products((c, c) for c in pol)
+            [6.3308767660842e+23 +/- 4.59e+9]
+
+        TESTS::
+
+            sage: RBF._sum_of_products([])
+            0
+            sage: RBF._sum_of_products([[]])
+            1.000000000000000
+            sage: RBF._sum_of_products([["a"]])
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot convert str to sage.rings.real_arb.RealBall
+        """
+        cdef RealBall res = RealBall.__new__(RealBall)
+        cdef RealBall factor
+        cdef arb_t tmp
+        res._parent = self
+        arb_zero(res.value)
+        arb_init(tmp)
+        try:
+            for term in terms:
+                arb_one(tmp)
+                for factor in term:
+                    arb_mul(tmp, tmp, factor.value, self._prec)
+                arb_add(res.value, res.value, tmp, self._prec)
+        finally:
+            arb_clear(tmp)
+        return res
     # Constants
 
     def pi(self):

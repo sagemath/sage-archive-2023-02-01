@@ -57,7 +57,7 @@ AC_DEFUN_ONCE([SAGE_SPKG_COLLECT], [
 # (except gcc) should depend on gcc if gcc is already installed.
 # See https://trac.sagemath.org/ticket/24703
 if test x$SAGE_INSTALL_GCC = xexists; then
-    GCC_DEP=' $(SAGE_LOCAL)/bin/gcc'
+    GCC_DEP='$(SAGE_LOCAL)/bin/gcc'
 else
     GCC_DEP=''
 fi
@@ -193,7 +193,7 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
     fi
 
     # Special case for GCC; see definition of GCC_DEP above
-    test "$PKG_NAME" = gcc || DEPS="$GCC_DEP$DEPS"
+    test "$PKG_NAME" = gcc || DEPS="$GCC_DEP $DEPS"
 
     SAGE_PACKAGE_DEPENDENCIES+="deps_$PKG_NAME = $DEPS"$'\n'
 

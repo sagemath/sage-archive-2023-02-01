@@ -176,6 +176,14 @@ class Polyhedron_normaliz(Polyhedron_base):
             self._init_Vrepresentation_from_normaliz()
             self._init_Hrepresentation_from_normaliz()
 
+    def _init_from_normaliz_data(self, data, verbose=False):
+        import PyNormaliz
+        if verbose:
+            print("# Calling PyNormaliz.NmzCone(**{})".format(data))
+        cone = PyNormaliz.NmzCone(**data)
+        assert cone, "NmzCone(**{}) did not return a cone".format(data)
+        self._init_from_normaliz_cone(cone)
+
     def _init_from_Vrepresentation(self, vertices, rays, lines, minimize=True, verbose=False):
         r"""
         Construct polyhedron from V-representation data.
@@ -203,7 +211,6 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz   # optional - pynormaliz
             sage: Polyhedron_normaliz._init_from_Vrepresentation(p, [], [], [])   # optional - pynormaliz
         """
-        import PyNormaliz
         if vertices is None:
             vertices = []
         nmz_vertices = []
@@ -233,11 +240,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             data = {"vertices": nmz_vertices,
                     "cone": nmz_rays,
                     "subspace": nmz_lines}
-            if verbose:
-                print("# Calling PyNormaliz.NmzCone(**{})".format(data))
-            cone = PyNormaliz.NmzCone(**data)
-            assert cone, "NmzCone(**{}) did not return a cone".format(data)
-            self._init_from_normaliz_cone(cone)
+            self._init_from_normaliz_data(data, verbose=verbose)
 
     def _init_from_Hrepresentation(self, ieqs, eqns, minimize=True, verbose=False):
         r"""
@@ -264,7 +267,6 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz   # optional - pynormaliz
             sage: Polyhedron_normaliz._init_from_Hrepresentation(p, [], [])   # optional - pynormaliz
         """
-        import PyNormaliz
         if ieqs is None: ieqs = []
         nmz_ieqs = []
         for ieq in ieqs:
@@ -288,12 +290,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             nmz_eqns.append(A + [b])
         data = {"inhom_equations": nmz_eqns,
                 "inhom_inequalities": nmz_ieqs}
-        self._normaliz_cone = PyNormaliz.NmzCone(**data)
-        if verbose:
-            print("# Calling PyNormaliz.NmzCone(**{})".format(data))
-        cone = PyNormaliz.NmzCone(**data)
-        assert cone, "NmzCone(**{}) did not return a cone".format(data)
-        self._init_from_normaliz_cone(cone)
+        self._init_from_normaliz_data(data, verbose=verbose)
 
     def _init_Vrepresentation_from_normaliz(self):
         r"""

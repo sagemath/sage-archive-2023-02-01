@@ -397,6 +397,72 @@ class Polyhedron_normaliz(Polyhedron_base):
         """
         return cls(parent, None, None, normaliz_cone=normaliz_cone)
 
+    @staticmethod
+    def _make_normaliz_cone(data,verbose=False):
+        r"""
+        Returns a normaliz cone from ``data``.
+
+        INPUT:
+
+        - ``data`` -- a dictionary.
+
+        - ``verbose`` -- a boolean (default: ``False``).
+
+        TESTS::
+
+        """
+        import PyNormaliz
+        if verbose:
+            print("# Calling PyNormaliz.NmzCone(**{})".format(data))
+        cone = PyNormaliz.NmzCone(**data)
+        assert cone, "NmzCone(**{}) did not return a cone".format(data)
+        return cone
+
+    def _get_nmzcone_data(self):
+        r"""
+        Get the data necessary to reproduce the normaliz cone.
+
+        OUTPUT:
+
+        - ``data`` -- a dictionary.
+
+        TESTS:
+
+        The empty polyhedron::
+
+            sage: P = Polyhedron(backend='normaliz')
+            sage: P._get_nmzcone_data()
+            {}
+
+        Another simple example::
+
+            sage: C = Polyhedron(backend='normaliz',rays=[[1,2],[2,1]])
+            sage: C._get_nmzcone_data()
+            {'cone': [[1L, 2L], [2L, 1L]],
+             'inhom_equations': [],
+             'inhom_inequalities': [[-1L, 2L, 0L], [0L, 0L, 1L], [2L, -1L, 0L]],
+             'subspace': [],
+             'vertices': [[0L, 0L, 1L]]}
+        """
+        import PyNormaliz
+        if self.is_empty():
+            return {}
+
+        vertices = PyNormaliz.NmzResult(self._normaliz_cone, "VerticesOfPolyhedron")
+        # get rid of the last 0 in rays:
+        rays = [r[:-1] for r in PyNormaliz.NmzResult(self._normaliz_cone, "ExtremeRays")]
+        lines = PyNormaliz.NmzResult(self._normaliz_cone, "MaximalSubspace")
+        ineqs = PyNormaliz.NmzResult(self._normaliz_cone, "SupportHyperplanes")
+        eqs = PyNormaliz.NmzResult(self._normaliz_cone, "Equations")
+
+        data = {'vertices': vertices,
+                'cone': rays,
+                'subspace': lines,
+                'inhom_equations': eqs,
+                'inhom_inequalities': ineqs}
+
+        return data
+
     def _normaliz_format(self, data, file_output=None):
         r"""
         Return a string containing normaliz format.

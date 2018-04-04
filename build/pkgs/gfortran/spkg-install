@@ -68,10 +68,10 @@ fi
     --disable-libitm \
     $GCC_CONFIGURE "$CONFIGURE_AS" "$CONFIGURE_LD"
 
-$MAKE BOOT_LDFLAGS="-Wl,-rpath,$SAGE_LOCAL/lib"
+sdh_make BOOT_LDFLAGS="-Wl,-rpath,$SAGE_LOCAL/lib"
 
-$MAKE install
+sdh_make_install
 
 # The spkg still installs a minimal C compiler that needs to be removed
 # so it doesn't conflict with the configured C compiler.
-rm -f "$SAGE_LOCAL"/bin/gcc "$SAGE_LOCAL"/bin/cpp
+rm "$SAGE_DESTDIR_LOCAL"/bin/gcc "$SAGE_DESTDIR_LOCAL"/bin/cpp

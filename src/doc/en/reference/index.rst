@@ -94,7 +94,7 @@ Geometry and Topology
 
 * :doc:`Combinatorial and Discrete Geometry <discrete_geometry/index>`
 * :doc:`Cell Complexes and their Homology <homology/index>`
-* :doc:`Manifolds and differential geometry <manifolds/index>`
+* :doc:`Manifolds and Differential Geometry <manifolds/index>`
 * :doc:`Hyperbolic Geometry <hyperbolic_geometry/index>`
 * :doc:`Parametrized Surfaces <riemannian_geometry/index>`
 * :doc:`Knot Theory <knots/index>`

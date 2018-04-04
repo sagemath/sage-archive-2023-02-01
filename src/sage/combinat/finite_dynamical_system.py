@@ -74,21 +74,46 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet_generic
+from sage.structure.sage_object import SageObject
 
-class DiscreteDynamicalSystem(object):
+class DiscreteDynamicalSystem(SageObject):
     r"""
     A discrete dynamical system.
 
     A *discrete dynamical system* (henceforth *DDS*) is a
     pair `(S, \phi)` of a set `S` and a map `\phi : S \to S`.
-    This set `S` is called the *ground set* of the FDDS, while
-    the map `\phi` is called the *evolution* of the FDDS.
+    This set `S` is called the *ground set* of the DDS, while
+    the map `\phi` is called the *evolution* of the DDS.
 
     At the moment, support exists only for the case when `\phi`
     is invertible.
     """
-    def __init__(self, X, phi, invertible=True, cache_orbits=False):
+    def __init__(self, X, phi, invertible=True, cache_orbits=False, create_tuple=False):
         r"""
+        INPUT:
+
+        - ``X`` (set, list, tuple, or another iterable) --
+          the ground set for the DDS (but make sure to use
+          the ``create_tuple`` argument if this is an
+          iterator or a list in danger of mutation).
+
+        - ``phi`` (function) -- the evolution of the DDS.
+
+        - ``invertible`` (boolean) -- (default: ``True``)
+          whether or not the evolution of the DDS is known to
+          be invertible (various methods require this to be
+          ``True``).
+
+        - ``cache_orbits`` (boolean) -- (default: ``False``)
+          whether or not the orbits should be cached once they
+          are computed.
+
+        - ``create_tuple`` (boolean) -- (default: ``False``)
+          whether or not the input ``X`` should be translated
+          into a tuple (set this to ``True`` to prevent
+          mutation if ``X`` is a list, and to prevent
+          exhaustion if ``X`` is an iterator).
+
         EXAMPLES::
 
             sage: from sage.combinat.finite_dynamical_system import DiscreteDynamicalSystem
@@ -97,18 +122,45 @@ class DiscreteDynamicalSystem(object):
             Non negative integer semiring
             sage: D.evolution()(5)
             7
+
+            sage: X = [0, 1, 2, 3, 4]
+            sage: D_wrong = DiscreteDynamicalSystem(X, lambda x : (x**3) % 5)
+            sage: D_right = DiscreteDynamicalSystem(X, lambda x : (x**3) % 5, create_tuple=True)
+            sage: X[4] = 666 # evil
+            sage: D_wrong.ground_set()
+            [0, 1, 2, 3, 666]
+            sage: D_right.ground_set()
+            (0, 1, 2, 3, 4)
         """
-        # what if X is a list? tuple it?
+        if create_tuple:
+            X = tuple(X)
         self._X = X
         self._phi = phi
+        if not invertible:
+            raise ValueError("so far, only invertible DDS are supported")
         self._invertible = invertible
         self._cache_orbits = cache_orbits
 
     def ground_set(self):
-        # wrap it to avoid clobbering?
+        r"""
+        Return the ground set of ``self``.
+
+        .. WARNING::
+
+            Unless ``self`` has been constructed with the
+            ``create_tuple`` parameter set to ``True``,
+            this method will return whatever ground set was
+            provided to the constructor.
+            In particular, if a list was provided, then this
+            precise list will be returned; mutating this list
+            will then corrupt ``self``.
+        """
         return self._X
 
     def evolution(self):
+        r"""
+        Return the evolution of ``self``.
+        """
         return self._phi
 
     def __iter__(self):
@@ -125,19 +177,18 @@ class DiscreteDynamicalSystem(object):
     def __getitem__(self, i):
         return self._X[i]
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         EXAMPLES::
 
             sage: from sage.combinat.finite_dynamical_system import DiscreteDynamicalSystem
             sage: D = DiscreteDynamicalSystem(NN, lambda x : x + 2)
             sage: D # indirect doctest
-            Discrete dynamical system with ground set Non negative integer semiring
-            and evolution <function <lambda> at ...
+            A discrete dynamical system with ground set
+             Non negative integer semiring
         """
-        return "Discrete dynamical system with ground set " \
-               + repr(self._X) + " and evolution " + \
-               repr(self._phi)
+        return "A discrete dynamical system with ground set " \
+               + repr(self._X)
 
     def orbit(self, x):
         r"""
@@ -227,22 +278,43 @@ class FiniteDynamicalSystem(DiscreteDynamicalSystem):
         return orbs
 
     def orbit_lengths(self):
+        r"""
+        Return a list of the lengths of all orbits of
+        ``self``.
+        """
         return [len(orb) for orb in self.orbits()]
 
     def is_homomesic(self, h, average=None):
         r"""
-        Check if ``h`` is homomesic with respect to ``self``,
-        with average ``average`` along each orbit (if not provided,
-        then just checks that the averages are equal).
+        Check if ``h`` (a map from the ground set of ``self`` to
+        a `\QQ`-vector space) is homomesic with respect to ``self``.
+
+        If the optional argument ``average`` is provided, then
+        this also checks that the averages are equal to ``average``.
+
+        EXAMPLES::
+
+            sage: W = Words(2, 5)
+            sage: F = FiniteDynamicalSystem(W, lambda x : x[1:] + Word([x[0]]))
+            sage: F.is_homomesic(lambda w: sum(w))
+            False
+            sage: F.is_homomesic(lambda w: 1, average=1)
+            True
+            sage: F.is_homomesic(lambda w: 1, average=0)
+            False
+            sage: F.is_homomesic(lambda w: 1)
+            True
+            sage: F.is_homomesic(lambda w: w[0] - w[1], average=0)
+            True
         """
         orbavgs = []
         for orb in self.orbits():
             l = len(orb)
             avg = QQ(1) / QQ(l) * sum(h(i) for i in orb)
             if avg not in orbavgs:
+                if orbavgs:
+                    return False
                 orbavgs.append(avg)
-            if len(orbavgs) > 1:
-                return False
         if not orbavgs:
             return True
         if average is None:

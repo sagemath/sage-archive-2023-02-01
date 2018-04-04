@@ -4088,7 +4088,7 @@ class Tableau(ClonableList):
         return permutation.Permutation(data).inverse().reduced_word_lexmin()
 
     def hillman_grassl(self):
-        """
+        r"""
         Return the image of the `\lambda`-array ``self`` under the
         Hillman-Grassl correspondence (as a
         :class:`~sage.combinat.hillman_grassl.WeakReversePlanePartition`).
@@ -4115,7 +4115,7 @@ class Tableau(ClonableList):
         return WeakReversePlanePartition(hillman_grassl(list(self)))
 
     def sulzgruber_correspondence(self):
-        """
+        r"""
         Return the image of the `\lambda`-array ``self`` under the
         Sulzgruber correspondence (as a
         :class:`~sage.combinat.hillman_grassl.WeakReversePlanePartition`).

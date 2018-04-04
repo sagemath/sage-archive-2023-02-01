@@ -291,7 +291,7 @@ class WeakReversePlanePartition(Tableau):
         return WeakReversePlanePartition(C)
 
     def hillman_grassl_inverse(self):
-        """
+        r"""
         Return the image of the `\lambda`-rpp ``self`` under the
         inverse of the Hillman-Grassl correspondence (as a
         :class:`~sage.combinat.tableau.Tableau`).
@@ -327,7 +327,7 @@ class WeakReversePlanePartition(Tableau):
         return Tableau(hillman_grassl_inverse(list(self)))
 
     def pak_correspondence(self):
-        """
+        r"""
         Return the image of the `\lambda`-rpp ``self`` under the
         Pak correspondence (as a
         :class:`~sage.combinat.tableau.Tableau`).
@@ -359,7 +359,7 @@ class WeakReversePlanePartition(Tableau):
         return Tableau(pak_correspondence(list(self)))
 
 class WeakReversePlanePartitions(Tableaux):
-    """
+    r"""
     The set of all weak rpps.
     """
     @staticmethod

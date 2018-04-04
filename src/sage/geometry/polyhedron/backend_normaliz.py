@@ -240,6 +240,17 @@ class Polyhedron_normaliz(Polyhedron_base):
             data = {"vertices": nmz_vertices,
                     "cone": nmz_rays,
                     "subspace": nmz_lines}
+            if data['vertices']:
+                dim = len(data['vertices'][0]) - 1
+            elif data['cone']:
+                dim = len(data['cone'][0])
+            else:
+                dim = len(data['subspace'][0])
+            # Create a default grading
+            # TODO: make the backend lazy and compute things when
+            # necessary once normaliz allows to do so.
+            data["grading"] = [1] * dim
+
             self._init_from_normaliz_data(data, verbose=verbose)
 
     def _init_from_Hrepresentation(self, ieqs, eqns, minimize=True, verbose=False):
@@ -290,6 +301,14 @@ class Polyhedron_normaliz(Polyhedron_base):
             nmz_eqns.append(A + [b])
         data = {"inhom_equations": nmz_eqns,
                 "inhom_inequalities": nmz_ieqs}
+        if data['inhom_equations']:
+            dim = len(data['inhom_equations'][0]) - 1
+        elif data['inhom_inequalities']:
+            dim = len(data['inhom_inequalities'][0]) - 1
+        # Create a default grading
+        # TODO: make the backend lazy and compute things when
+        # necessary once normaliz allows to do so.
+        data["grading"] = [1] * dim
         self._init_from_normaliz_data(data, verbose=verbose)
 
     def _init_Vrepresentation_from_normaliz(self):
@@ -389,6 +408,27 @@ class Polyhedron_normaliz(Polyhedron_base):
         """
         return cls(parent, None, None, normaliz_cone=normaliz_cone)
 
+    @staticmethod
+    def _make_normaliz_cone(data,verbose=False):
+        r"""
+        Returns a normaliz cone from ``data``.
+
+        INPUT:
+
+        - ``data`` -- a dictionary.
+
+        - ``verbose`` -- a boolean (default: ``False``).
+
+        TESTS::
+
+        """
+        import PyNormaliz
+        if verbose:
+            print("# Calling PyNormaliz.NmzCone(**{})".format(data))
+        cone = PyNormaliz.NmzCone(**data)
+        assert cone, "NmzCone(**{}) did not return a cone".format(data)
+        return cone
+
     def integral_hull(self):
         r"""
         Return the integral hull in the polyhedron.
@@ -431,6 +471,105 @@ class Polyhedron_normaliz(Polyhedron_base):
         cone = PyNormaliz.NmzResult(self._normaliz_cone, "IntegerHull")
         return self.parent().element_class._from_normaliz_cone(parent=self.parent(),
                                                                normaliz_cone=cone)
+
+    def grading(self):
+        r"""
+        Return the grading used by normaliz.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(backend='normaliz')
+            sage: P.grading()
+            Traceback (most recent call last):
+            ...
+            ValueError: The empty polyhedron does not have a grading
+
+            sage: C = Polyhedron(backend='normaliz',rays=[[1,2],[2,1]])
+            sage: C.grading()
+            (1, 1)
+
+        """
+        import PyNormaliz
+        if self.is_empty():
+            raise ValueError("The empty polyhedron does not have a grading") 
+
+        g = PyNormaliz.NmzResult(self._normaliz_cone, "Grading")
+        return tuple(ZZ(i) for i in g[0][:-1])
+
+    def hilbert_series(self,grading=None,variable='t'):
+        r"""
+        Return the Hilbert series of the polyhedron.
+
+        INPUT:
+
+        - ``grading`` -- vector (default: ``None``). When set to ``None`` it
+          uses the grading `[1,\dots,1]`.
+
+        - ``variable`` -- string (default: ``'t'``). 
+
+        OUTPUT:
+
+        A rational function.
+
+        EXAMPLES::
+
+            sage: C = Polyhedron(backend='normaliz',rays=[[0,0,1],[0,1,1],[1,0,1],[1,1,1]])
+            sage: C.hilbert_series()
+            (t^4 - t^3 + 2*t^2 - t + 1)/(t^21 - t^20 - t^19 - 5*t^18 + 6*t^17 + \
+            6*t^16 + 9*t^15 - 15*t^14 - 15*t^13 - 5*t^12 + 20*t^11 + 20*t^10 - \
+            5*t^9 - 15*t^8 - 15*t^7 + 9*t^6 + 6*t^5 + 6*t^4 - 5*t^3 - t^2 - t + 1)
+
+            sage: C = Polyhedron(backend='normaliz',rays=[[1,2],[2,1]])
+            sage: C.hilbert_series()
+            (t^2 - t + 1)/(t^7 - t^6 - 3*t^5 + 3*t^4 + 3*t^3 - 3*t^2 - t + 1)
+            sage: C.hilbert_series(grading=[1,2])
+            (t^18 - t^17 + t^15 + t^10 - t^9 + t^8 + t^3 - t + 1)/(-t^41 + t^40 + \
+            20*t^39 - 20*t^38 - 190*t^37 + 190*t^36 + 1140*t^35 - 1140*t^34 - \
+            4845*t^33 + 4845*t^32 + 15504*t^31 - 15504*t^30 - 38760*t^29 + \
+            38760*t^28 + 77520*t^27 - 77520*t^26 - 125970*t^25 + 125970*t^24 + \
+            167960*t^23 - 167960*t^22 - 184756*t^21 + 184756*t^20 + 167960*t^19 - \
+            167960*t^18 - 125970*t^17 + 125970*t^16 + 77520*t^15 - 77520*t^14 - \
+            38760*t^13 + 38760*t^12 + 15504*t^11 - 15504*t^10 - 4845*t^9 + \
+            4845*t^8 + 1140*t^7 - 1140*t^6 - 190*t^5 + 190*t^4 + 20*t^3 - \
+            20*t^2 - t + 1)
+        """
+        import PyNormaliz
+        if self.is_empty():
+            return 0
+        
+        if not grading:
+            h = PyNormaliz.NmzResult(self._normaliz_cone, "HilbertSeries")
+        else:
+            vertices = PyNormaliz.NmzResult(self._normaliz_cone, "VerticesOfPolyhedron")
+            # get rid of the last 0 in rays:
+            rays = [r[:-1] for r in PyNormaliz.NmzResult(self._normaliz_cone, "ExtremeRays")]
+            lines = PyNormaliz.NmzResult(self._normaliz_cone, "MaximalSubspace")
+            ineqs = PyNormaliz.NmzResult(self._normaliz_cone, "SupportHyperplanes")
+            eqs = PyNormaliz.NmzResult(self._normaliz_cone, "Equations")
+
+            data = {'vertices': vertices,
+                    'cone': rays,
+                    'subspace': lines,
+                    'inhom_equations': eqs,
+                    'inhom_inequalities': ineqs,
+                    'grading': grading}
+
+            new_cone = self._make_normaliz_cone(data)
+            h = PyNormaliz.NmzResult(new_cone, "HilbertSeries")
+
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from sage.rings.fraction_field import FractionField
+        poly_ring = FractionField(PolynomialRing(ZZ,variable))
+        t = poly_ring.gens()[0]
+
+        hs = sum([h[0][i]*t**i for i in range(len(h[0]))])
+        for expo in range(len(h[1])):
+            hs = hs / (1 - t**(expo+1))**h[1][expo]
+
+        # The shift:
+        hs = hs * t**h[2]
+
+        return hs
 
     def integral_points(self, threshold=10000):
         r"""

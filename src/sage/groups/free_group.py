@@ -549,6 +549,14 @@ class FreeGroupElement(ElementLibGAP):
             1/2
             sage: w(i+1 for i in range(2))
             1/2
+
+        Check that :trac:`25017` is fixed::
+
+            sage: F = FreeGroup(2)
+            sage: x0, x1 = F.gens()
+            sage: u = F(1)
+            sage: parent(u.subs({x1:x0})) is F
+            True
         """
         if len(values) == 1:
             try:
@@ -559,8 +567,9 @@ class FreeGroupElement(ElementLibGAP):
         if len(values) != G.ngens():
             raise ValueError('number of values has to match the number of generators')
         replace = dict(zip(G.gens(), values))
-        from sage.misc.all import prod
-        return prod( replace[gen] ** power for gen, power in self.syllables() )
+        new_parent = values[0].parent()
+        return new_parent.prod(replace[gen] ** power
+                               for gen, power in self.syllables())
 
 
 def FreeGroup(n=None, names='x', index_set=None, abelian=False, **kwds):

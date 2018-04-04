@@ -7061,7 +7061,7 @@ cdef class Matrix(Matrix1):
             best_r = start_row - 1
             for r in range(start_row, nr):
                 if (scale_factors[r]):
-                    abs_val = (A[r,c] / scale_factors[r]).abs()
+                    abs_val = (A[r,c]).abs() / scale_factors[r]
                     if (abs_val > max_abs_val):
                         max_abs_val = abs_val
                         best_r = r

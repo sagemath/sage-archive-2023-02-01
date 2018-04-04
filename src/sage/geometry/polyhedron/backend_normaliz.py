@@ -180,6 +180,14 @@ class Polyhedron_normaliz(Polyhedron_base):
         import PyNormaliz
         if verbose:
             print("# Calling PyNormaliz.NmzCone(**{})".format(data))
+            import six
+            if isinstance(verbose, six.string_types):
+                print("# Wrote equivalent Normaliz input file to {}".format(verbose))
+                self._normaliz_format(data, file_output=verbose)
+            else:
+                print("# ----8<---- Equivalent Normaliz input file ----8<----")
+                print(self._normaliz_format(data), end='')
+                print("# ----8<-------------------8<-------------------8<----")
         cone = PyNormaliz.NmzCone(**data)
         assert cone, "NmzCone(**{}) did not return a cone".format(data)
         self._init_from_normaliz_cone(cone)
@@ -388,6 +396,48 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: PI = P.integral_hull()                 # indirect doctest; optional - pynormaliz
         """
         return cls(parent, None, None, normaliz_cone=normaliz_cone)
+
+    def _normaliz_format(self, data, file_output=None):
+        r"""
+        Return a string containing normaliz format.
+
+        INPUT:
+
+        - ``data`` -- a dictionary of PyNormaliz cone input properties.
+
+        - ``file_output`` (string; optional) -- a filename to which the
+          representation should be written. If set to ``None`` (default),
+          representation is returned as a string.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[[0, 0], [0, 1], [1, 0]], # indirect doctest; optional - pynormaliz
+            ....:                backend='normaliz', verbose=True)
+            # Calling ...
+            # ----8<---- Equivalent Normaliz input file ----8<----
+            amb_space 2
+            subspace 0
+            vertices 3
+             0 0 1
+             0 1 1
+             1 0 1
+            cone 0
+            # ----8<-------------------8<-------------------8<----
+        """
+        s = 'amb_space {}\n'.format(self.ambient_dim())
+        for key, value in dict.iteritems():
+            s += '{} {}\n'.format(key, len(value))
+            for e in value:
+                for x in e:
+                    s += ' ' + repr(x)
+                s += '\n'
+
+        if file_output is not None:
+            in_file = open(file_output, 'w')
+            in_file.write(s)
+            in_file.close()
+        else:
+            return s
 
     def integral_hull(self):
         r"""

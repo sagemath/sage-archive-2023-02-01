@@ -57,7 +57,7 @@ class MaximaWrapper(SageObject):
 
         Test tab completions::
 
-            sage: import sagenb.misc.support as s
+            sage: import sage.interfaces.tab_completion as s
             sage: u = t.maxima_methods()
             sage: s.completions('u.elliptic_',globals(),system='python')
             ['u.elliptic_e', 'u.elliptic_ec', 'u.elliptic_eu', 'u.elliptic_f', 'u.elliptic_kc', 'u.elliptic_pi']
@@ -77,7 +77,7 @@ class MaximaWrapper(SageObject):
             sage: t = sin(x)^2 + cos(x)^2; t
             cos(x)^2 + sin(x)^2
             sage: u = t.maxima_methods()
-            sage: import sagenb.misc.support as s
+            sage: import sage.interfaces.tab_completion as s
             sage: s.completions('u.airy_',globals(),system='python')
             ['u.airy_ai', 'u.airy_bi', 'u.airy_dai', 'u.airy_dbi']
             sage: type(u.airy_ai)

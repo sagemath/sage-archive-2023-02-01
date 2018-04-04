@@ -106,6 +106,11 @@ Or, we plot a very simple function indeed::
     
     sphinx_plot(plot3d(pi, (-1,1), (-1,1)))
 
+Transparent with fractional opacity value::
+
+    sage: plot3d(lambda x, y: x^2 + y^2, (-2,2), (-2,2), opacity=8/10)
+    Graphics3d Object
+
 .. TODO::
 
     Add support for smooth triangles.

@@ -265,6 +265,9 @@ cdef class IndexFaceSet(PrimitiveObject):
         self._faces = <face_c *>NULL
     def __init__(self, faces, point_list=None,
                  enclosed=False, texture_list=None, **kwds):
+        if 'alpha' in kwds:
+            opacity = float(kwds.pop('alpha'))
+            kwds['opacity'] = opacity
         PrimitiveObject.__init__(self, **kwds)
         self._set_extra_kwds(kwds)
 

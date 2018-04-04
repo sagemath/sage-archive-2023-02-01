@@ -994,7 +994,7 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         faces_str = "[{}]".format(",".join([format_json_face(self._faces[i])
                                             for i from 0 <= i < self.fcount]))
-        opacity = self._extra_kwds.get('opacity', 1)
+        opacity = float(self._extra_kwds.get('opacity', 1))
 
         if self.global_texture:
             color_str = '"#{}"'.format(self.texture.hex_rgb())

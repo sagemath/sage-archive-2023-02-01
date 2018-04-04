@@ -1137,7 +1137,7 @@ def plot3d_adaptive(f, x_range, y_range, color="automatic",
     xmin,xmax = ranges[0][:2]
     ymin,ymax = ranges[1][:2]
 
-    opacity = kwds.get('opacity',1)
+    opacity = float(kwds.get('opacity',1))
 
     if color == "automatic":
         texture = rainbow(num_colors, 'rgbtuple')

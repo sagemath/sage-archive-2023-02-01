@@ -1845,7 +1845,7 @@ class DiGraph(GenericGraph):
             sage: D.edges()
             [(0, 1, 'A'), (0, 1, 'B'), (0, 1, 'mouse'), (1, 0, 'cat')]
 
-        Finally, an exception is raised when Sage does not know how to chose
+        Finally, an exception is raised when Sage does not know how to choose
         between allowing multiple edges and losing some data::
 
             sage: D = DiGraph([(0,1,'A'),(1,0,'B')])

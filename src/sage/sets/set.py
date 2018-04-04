@@ -36,6 +36,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+import six
 from six import integer_types
 
 from sage.misc.latex import latex
@@ -816,7 +817,10 @@ class Set_object_enumerated(Set_object):
             {0, 1}
         """
         s = repr(self.set())
-        return "{" + s[5:-2] + "}"
+        if six.PY3:
+            return s
+        else:
+            return "{" + s[5:-2] + "}"
 
     def list(self):
         """

@@ -7,12 +7,8 @@ else
     export CFLAGS="-O2 -g $CFLAGS"
 fi
 
-if [ "$SAGE64" = "yes" ]; then
-    echo "Building a 64-bit version of BoehmGC."
-    export CFLAGS="-m64 $CFLAGS"
-fi
-
 GC_CONFIGURE="--enable-large-config"
+
 if [ "$UNAME" = "CYGWIN" ]; then
     # See https://trac.sagemath.org/ticket/22694
     GC_CONFIGURE="$GC_CONFIGURE --enable-threads=posix --enable-handle-fork --enable-shared --disable-static"

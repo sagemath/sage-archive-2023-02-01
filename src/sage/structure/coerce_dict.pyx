@@ -397,7 +397,7 @@ cdef class MonoDict:
         sage: len(M)
         1000
         sage: del a
-        Exception RuntimeError: 'maximum recursion depth exceeded while calling a Python object' in <function remove at ...> ignored
+        Exception RuntimeError: 'maximum recursion depth exceeded...' in <function remove at ...> ignored
         sage: len(M)>0
         True
 

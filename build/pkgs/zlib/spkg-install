@@ -21,11 +21,7 @@ if [ "$UNAME" = CYGWIN ]; then
     # We want to install shared objects
     sed -i 's/SHARED_MODE=0/SHARED_MODE=1/' Makefile
 else
-    if [ "$SAGE64" = yes ]; then
-        ./configure --64 --shared --prefix="$SAGE_LOCAL" --includedir="$SAGE_LOCAL/include"
-    else
-        ./configure --shared --prefix="$SAGE_LOCAL" --includedir="$SAGE_LOCAL/include"
-    fi
+    ./configure --shared --prefix="$SAGE_LOCAL" --includedir="$SAGE_LOCAL/include"
     if [ $? -ne 0 ]; then
         echo >&2 "Error configuring zlib."
         exit 1

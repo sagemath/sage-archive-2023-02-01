@@ -57,7 +57,7 @@ mpfr_configure()
     ###########################################################################
     echo "Checking what CC and CFLAGS MPFR would use if they were empty..."
     if (unset CC CFLAGS CPPFLAGS CXXFLAGS &&
-        sdh_configure --with-gmp="$SAGE_LOCAL" $SAGE_CONF_OPTS $MPFR_CONFIGURE) &>/dev/null;
+        ./configure --with-gmp="$SAGE_LOCAL" $SAGE_CONF_OPTS $MPFR_CONFIGURE) &>/dev/null;
     then
         mpfr_config_file=config.status
         if mpfr_get_upstream_selected_cflags "$mpfr_config_file"; then
@@ -145,14 +145,7 @@ mpfr_configure()
 
 mpfr_build()
 {
-    echo "Configuring MPFR..."
-    mpfr_configure || sdh_die << _EOF_
-Error configuring MPFR.
-See above for the options passed to it, and the file
-  $(pwd)/config.log
-for details.
-_EOF_
-
+    mpfr_configure
     sdh_make
 
     echo

@@ -124,7 +124,7 @@ EXAMPLES:
 We construct a `\lambda`-rpp for `\lambda = (3, 3, 1)`
 (note that `\lambda` needs not be specified explicitly)::
 
-    sage: p = WeakRPP([[0, 1, 3], [2, 4, 4], [3]])
+    sage: p = WeakReversePlanePartition([[0, 1, 3], [2, 4, 4], [3]])
     sage: p.parent()
     Weak rpps
 
@@ -210,7 +210,7 @@ from sage.combinat.tableau import Tableau, Tableaux
 from sage.categories.sets_cat import Sets
 from sage.combinat.combinatorial_map import combinatorial_map
 
-class WeakRPP(Tableau):
+class WeakReversePlanePartition(Tableau):
     r"""
     A weak reverse plane partition (short: rpp).
 
@@ -220,7 +220,7 @@ class WeakRPP(Tableau):
 
     EXAMPLES::
 
-        sage: x = WeakRPP([[0, 1, 1], [0, 1, 3], [1, 2, 2], [1, 2, 3], [2]]); x
+        sage: x = WeakReversePlanePartition([[0, 1, 1], [0, 1, 3], [1, 2, 2], [1, 2, 3], [2]]); x
         [[0, 1, 1], [0, 1, 3], [1, 2, 2], [1, 2, 3], [2]]
         sage: x.pp()
           0  1  1
@@ -238,16 +238,16 @@ class WeakRPP(Tableau):
 
         EXAMPLES::
 
-            sage: WeakRPP([[1, 2], [1, 3], [1]])
+            sage: WeakReversePlanePartition([[1, 2], [1, 3], [1]])
             [[1, 2], [1, 3], [1]]
 
         TESTS::
 
             sage: a1 = [[1, 2], [1, 3], [1]]
             sage: a2 = [(1, 2), (1, 3), (1,)]
-            sage: A1 = WeakRPP(a1)
-            sage: A2 = WeakRPP(a2)
-            sage: A3 = WeakRPP(A1)
+            sage: A1 = WeakReversePlanePartition(a1)
+            sage: A2 = WeakReversePlanePartition(a2)
+            sage: A3 = WeakReversePlanePartition(A1)
             sage: A4 = Tableau(A1)
             sage: A1 == A2 == A3 == A4
             True
@@ -256,7 +256,7 @@ class WeakRPP(Tableau):
             r = map(tuple, r)
         except TypeError:
             raise TypeError("r must be a list of positive integers")
-        return WeakRPPs()(r)
+        return WeakReversePlanePartitions()(r)
 
     def __init__(self, parent, t):
         """
@@ -264,7 +264,7 @@ class WeakRPP(Tableau):
 
         EXAMPLES::
 
-            sage: R = WeakRPP([[0, 1, 2], [0, 2]])
+            sage: R = WeakReversePlanePartition([[0, 1, 2], [0, 2]])
             sage: TestSuite(R).run()
         """
         if not isinstance(t, Tableau):
@@ -281,13 +281,13 @@ class WeakRPP(Tableau):
 
         EXAMPLES::
 
-            sage: c = WeakRPP([[1,1],[1,3],[2]]).conjugate(); c
+            sage: c = WeakReversePlanePartition([[1,1],[1,3],[2]]).conjugate(); c
             [[1, 1, 2], [1, 3]]
             sage: c.parent()
             Weak rpps
         """
-        C = super(WeakRPP, self).conjugate()
-        return WeakRPP(C)
+        C = super(WeakReversePlanePartition, self).conjugate()
+        return WeakReversePlanePartition(C)
 
     def hillman_grassl_inverse(self):
         """
@@ -304,10 +304,10 @@ class WeakRPP(Tableau):
 
         EXAMPLES::
 
-            sage: a = WeakRPP([[2, 2, 4], [2, 3, 4], [3, 5]])
+            sage: a = WeakReversePlanePartition([[2, 2, 4], [2, 3, 4], [3, 5]])
             sage: a.hillman_grassl_inverse()
             [[2, 1, 1], [0, 2, 0], [1, 1]]
-            sage: b = WeakRPP([[1, 1, 2, 2], [1, 1, 2, 2], [2, 2, 3, 3], [2, 2, 3, 3]])
+            sage: b = WeakReversePlanePartition([[1, 1, 2, 2], [1, 1, 2, 2], [2, 2, 3, 3], [2, 2, 3, 3]])
             sage: B = b.hillman_grassl_inverse(); B
             [[1, 0, 1, 0], [0, 1, 0, 1], [1, 0, 1, 0], [0, 1, 0, 1]]
             sage: b.parent(), B.parent()
@@ -318,7 +318,7 @@ class WeakRPP(Tableau):
         result as applying it to `M` and then transposing the
         result ([Gans1981]_ Corollary 3.4)::
 
-            sage: a = WeakRPP([[1,3,5],[2,4]])
+            sage: a = WeakReversePlanePartition([[1,3,5],[2,4]])
             sage: a.hillman_grassl_inverse().conjugate() \
             ....:     == a.conjugate().hillman_grassl_inverse()
             True
@@ -340,7 +340,7 @@ class WeakRPP(Tableau):
 
         EXAMPLES::
 
-            sage: a = WeakRPP([[1, 2, 3], [1, 2, 3], [2, 4, 4]])
+            sage: a = WeakReversePlanePartition([[1, 2, 3], [1, 2, 3], [2, 4, 4]])
             sage: A = a.pak_correspondence(); A
             [[1, 0, 2], [0, 2, 0], [1, 1, 0]]
             sage: a.parent(), A.parent()
@@ -350,14 +350,14 @@ class WeakRPP(Tableau):
         `\lambda`-rpp `M` yields the same result as applying it to
         `M` and then transposing the result::
 
-            sage: a = WeakRPP([[1,3,5],[2,4]])
+            sage: a = WeakReversePlanePartition([[1,3,5],[2,4]])
             sage: a.pak_correspondence().conjugate() \
             ....:     == a.conjugate().pak_correspondence()
             True
         """
         return Tableau(pak_correspondence(list(self)))
 
-class WeakRPPs(Tableaux):
+class WeakReversePlanePartitions(Tableaux):
     """
     The set of all weak rpps.
     """
@@ -371,8 +371,8 @@ class WeakRPPs(Tableaux):
 
         EXAMPLES::
 
-            sage: S1 = WeakRPPs([4, 2, 2, 1])
-            sage: S2 = WeakRPPs((4, 2, 2, 1))
+            sage: S1 = WeakReversePlanePartitions([4, 2, 2, 1])
+            sage: S2 = WeakReversePlanePartitions((4, 2, 2, 1))
             sage: S1 is S2
             True
         """
@@ -381,7 +381,7 @@ class WeakRPPs(Tableaux):
         #    return RibbonShapedTableaux_shape(Partition(shape))
 
         # Otherwise arg0 takes the place of the category in pickling
-        return super(WeakRPPs, cls).__classcall__(cls, **kwds)
+        return super(WeakReversePlanePartitions, cls).__classcall__(cls, **kwds)
 
     def __init__(self, category=None):
         """
@@ -389,7 +389,7 @@ class WeakRPPs(Tableaux):
 
         EXAMPLES::
 
-            sage: S = WeakRPPs()
+            sage: S = WeakReversePlanePartitions()
             sage: TestSuite(S).run()
         """
         if category is None:
@@ -401,12 +401,12 @@ class WeakRPPs(Tableaux):
         """
         TESTS::
 
-            sage: repr(WeakRPPs())    # indirect doctest
+            sage: repr(WeakReversePlanePartitions())    # indirect doctest
             'Weak rpps'
         """
         return "Weak rpps"
 
-    Element = WeakRPP
+    Element = WeakReversePlanePartition
     options = Tableaux.options
 
     def an_element(self):
@@ -415,7 +415,7 @@ class WeakRPPs(Tableaux):
 
         TESTS::
 
-            sage: T = WeakRPPs()
+            sage: T = WeakReversePlanePartitions()
             sage: T.an_element()
             [[0, 0, 1, 2], [0, 1, 1], [0], [2]]
         """

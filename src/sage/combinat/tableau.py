@@ -4091,7 +4091,7 @@ class Tableau(ClonableList):
         """
         Return the image of the `\lambda`-array ``self`` under the
         Hillman-Grassl correspondence (as a
-        :class:`~sage.combinat.hillman_grassl.WeakRPP`).
+        :class:`~sage.combinat.hillman_grassl.WeakReversePlanePartition`).
 
         This relies on interpreting ``self`` as a `\lambda`-array
         in the sense of :mod:`~sage.combinat.hillman_grassl`.
@@ -4100,7 +4100,7 @@ class Tableau(ClonableList):
 
         .. SEEALSO::
 
-            :meth:`~sage.combinat.hillman_grassl.WeakRPP.hillman_grassl_inverse`
+            :meth:`~sage.combinat.hillman_grassl.WeakReversePlanePartition.hillman_grassl_inverse`
             for the inverse map.
 
         EXAMPLES::
@@ -4111,14 +4111,14 @@ class Tableau(ClonableList):
             sage: A.parent(), a.parent()
             (Weak rpps, Tableaux)
         """
-        from sage.combinat.hillman_grassl import hillman_grassl, WeakRPP
-        return WeakRPP(hillman_grassl(list(self)))
+        from sage.combinat.hillman_grassl import hillman_grassl, WeakReversePlanePartition
+        return WeakReversePlanePartition(hillman_grassl(list(self)))
 
     def sulzgruber_correspondence(self):
         """
         Return the image of the `\lambda`-array ``self`` under the
         Sulzgruber correspondence (as a
-        :class:`~sage.combinat.hillman_grassl.WeakRPP`).
+        :class:`~sage.combinat.hillman_grassl.WeakReversePlanePartition`).
 
         This relies on interpreting ``self`` as a `\lambda`-array
         in the sense of :mod:`~sage.combinat.hillman_grassl`.
@@ -4127,7 +4127,7 @@ class Tableau(ClonableList):
 
         .. SEEALSO::
 
-            :meth:`~sage.combinat.hillman_grassl.WeakRPP.pak_correspondence`
+            :meth:`~sage.combinat.hillman_grassl.WeakReversePlanePartition.pak_correspondence`
             for the inverse map.
 
         EXAMPLES::
@@ -4138,8 +4138,8 @@ class Tableau(ClonableList):
             sage: A.parent(), a.parent()
             (Weak rpps, Tableaux)
         """
-        from sage.combinat.hillman_grassl import sulzgruber_correspondence, WeakRPP
-        return WeakRPP(sulzgruber_correspondence(list(self)))
+        from sage.combinat.hillman_grassl import sulzgruber_correspondence, WeakReversePlanePartition
+        return WeakReversePlanePartition(sulzgruber_correspondence(list(self)))
 
 class SemistandardTableau(Tableau):
     """

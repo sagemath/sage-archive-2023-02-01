@@ -41,17 +41,15 @@ object, you can!
 ::
 
     sage: Cube = polytopes.cube()
-    sage: TCube = Cube.truncation()
+    sage: TCube = Cube.truncation().dilation(1/2)
     sage: sage_input(TCube)
-    Polyhedron(backend='ppl', base_ring=QQ, vertices=[(-QQ(1), -QQ(1), -1/3),
-    (-QQ(1), -QQ(1), 1/3), (-QQ(1), -1/3, -QQ(1)), (-QQ(1), -1/3, QQ(1)),
-    (-QQ(1), 1/3, -QQ(1)), (-QQ(1), 1/3, QQ(1)), (-QQ(1), QQ(1), -1/3),
-    (-QQ(1), QQ(1), 1/3), (-1/3, -QQ(1), -QQ(1)), (-1/3, -QQ(1), QQ(1)), (-1/3,
-    QQ(1), -QQ(1)), (-1/3, QQ(1), QQ(1)), (1/3, -QQ(1), -QQ(1)), (1/3, -QQ(1),
-    QQ(1)), (1/3, QQ(1), -QQ(1)), (1/3, QQ(1), QQ(1)), (QQ(1), -QQ(1), -1/3),
-    (QQ(1), -QQ(1), 1/3), (QQ(1), -1/3, -QQ(1)), (QQ(1), -1/3, QQ(1)), (QQ(1),
-    1/3, -QQ(1)), (QQ(1), 1/3, QQ(1)), (QQ(1), QQ(1), -1/3), (QQ(1), QQ(1),
-    1/3)])
+    Polyhedron(backend='ppl', base_ring=QQ, vertices=[(-1/2, -1/2, -1/6),
+    (-1/2, -1/2, 1/6), (-1/2, -1/6, -1/2), (-1/2, -1/6, 1/2), (-1/2, 1/6,
+    -1/2), (-1/2, 1/6, 1/2), (-1/2, 1/2, -1/6), (-1/2, 1/2, 1/6), (-1/6, -1/2,
+    -1/2), (-1/6, -1/2, 1/2), (-1/6, 1/2, -1/2), (-1/6, 1/2, 1/2), (1/6, -1/2,
+    -1/2), (1/6, -1/2, 1/2), (1/6, 1/2, -1/2), (1/6, 1/2, 1/2), (1/2, -1/2,
+    -1/6), (1/2, -1/2, 1/6), (1/2, -1/6, -1/2), (1/2, -1/6, 1/2), (1/2, 1/6,
+    -1/2), (1/2, 1/6, 1/2), (1/2, 1/2, -1/6), (1/2, 1/2, 1/6)])
 
 .. end of output
 
@@ -66,20 +64,20 @@ the latex presentation, there is a method for that!
 
     sage: Nice_repr = TCube.repr_pretty_Hrepresentation(separator='\n')
     sage: print(Nice_repr)
-    1 >= x0
-    1 >= x1
-    3*x1 + 7 >= 3*x0 + 3*x2
-    x0 + 1 >= 0
-    x1 + 1 >= 0
-    3*x0 + 7 >= 3*x1 + 3*x2
-    3*x0 + 3*x1 + 7 >= 3*x2
-    3*x0 + 3*x2 + 7 >= 3*x1
-    3*x0 + 3*x1 + 3*x2 + 7 >= 0
-    x2 + 1 >= 0
-    1 >= x2
-    3*x1 + 3*x2 + 7 >= 3*x0
-    3*x2 + 7 >= 3*x0 + 3*x1
-    7 >= 3*x0 + 3*x1 + 3*x2
+    1 >= 2*x0
+    1 >= 2*x1
+    6*x1 + 7 >= 6*x0 + 6*x2
+    2*x0 + 1 >= 0
+    2*x1 + 1 >= 0
+    6*x0 + 7 >= 6*x1 + 6*x2
+    6*x0 + 6*x1 + 7 >= 6*x2
+    6*x0 + 6*x2 + 7 >= 6*x1
+    6*x0 + 6*x1 + 6*x2 + 7 >= 0
+    2*x2 + 1 >= 0
+    1 >= 2*x2
+    6*x1 + 6*x2 + 7 >= 6*x0
+    6*x2 + 7 >= 6*x0 + 6*x1
+    7 >= 6*x0 + 6*x1 + 6*x2
 
     sage: Latex_repr = LatexExpr(TCube.repr_pretty_Hrepresentation(separator=",\\\\", latex=True))
     sage: view(Latex_repr)  # not tested

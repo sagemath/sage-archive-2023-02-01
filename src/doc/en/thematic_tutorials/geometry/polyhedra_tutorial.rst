@@ -207,7 +207,7 @@ There is another way to create a polyhedron over algebraic numbers:
 
 .. end of output
 
-If the base ring is known it may be a good option to use the proper :code:`composite_field`:
+If the base ring is known it may be a good option to use the proper :meth:`sage.rings.number_field.number_field.number_field.composite_fields`:
 
 ::
 
@@ -219,8 +219,8 @@ If the base ring is known it may be a good option to use the proper :code:`compo
 
 .. end of output
 
-Since the :code:`Symbolic Ring` is not exact, it is not possible to define a
-polyhedron over it:
+Polyhedral computations with the :code:`Symbolic Ring` is not implemented.
+It is not possible to define a polyhedron over it:
 
 ::
 
@@ -416,7 +416,7 @@ as follows.
 `V`-representation
 ------------------
 
-Similarly, you can access to vertices, rays and lines of the polyhedron.
+Similarly, you can access vertices, rays and lines of the polyhedron.
 
 ::
 
@@ -537,7 +537,7 @@ backend :code:`cdd`. We can also check the backend and the parent using
 
 .. end of output
 
-We *clearly* (!) see
+We see
 
   - the backend used (ex: :code:`backend_cdd`)
   - followed by a dot '.'

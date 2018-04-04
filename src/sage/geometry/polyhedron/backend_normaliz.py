@@ -425,7 +425,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             # ----8<-------------------8<-------------------8<----
         """
         s = 'amb_space {}\n'.format(self.ambient_dim())
-        for key, value in dict.iteritems():
+        for key, value in data.iteritems():
             s += '{} {}\n'.format(key, len(value))
             for e in value:
                 for x in e:

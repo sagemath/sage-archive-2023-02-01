@@ -48,7 +48,7 @@ lazy_import('sage.combinat.baxter_permutations', ['BaxterPermutations'])
 from .rsk import RSK, RSK_inverse, robinson_schensted_knuth, robinson_schensted_knuth_inverse
 
 #HillmanGrassl
-lazy_import("sage.combinat.hillman_grassl", ["WeakRPP", "WeakRPPs", "hillman_grassl", "hillman_grassl_inverse", "pak_correspondence", "sulzgruber_correspondence"])
+lazy_import("sage.combinat.hillman_grassl", ["WeakRPP", "WeakRPPs"])
 
 #PerfectMatchings
 from .perfect_matching import PerfectMatching, PerfectMatchings

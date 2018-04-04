@@ -165,6 +165,7 @@ that transform lists of lists into lists of lists;
 this may be more efficient. For example, the above computation
 of ``HGp`` can also be obtained as follows::
 
+    sage: from sage.combinat.hillman_grassl import hillman_grassl_inverse
     sage: HGp_bare = hillman_grassl_inverse([[0, 1, 3], [2, 4, 4], [3]])
     sage: HGp_bare
     [[1, 2, 0], [1, 0, 1], [1]]
@@ -477,6 +478,7 @@ def hillman_grassl(M):
 
     EXAMPLES::
 
+        sage: from sage.combinat.hillman_grassl import hillman_grassl
         sage: hillman_grassl([[2, 1, 1], [0, 2, 0], [1, 1]])
         [[2, 2, 4], [2, 3, 4], [3, 5]]
         sage: hillman_grassl([[1, 2, 0], [1, 0, 1], [1]])
@@ -535,6 +537,7 @@ def hillman_grassl_inverse(M):
 
     EXAMPLES::
 
+        sage: from sage.combinat.hillman_grassl import hillman_grassl_inverse
         sage: hillman_grassl_inverse([[2, 2, 4], [2, 3, 4], [3, 5]])
         [[2, 1, 1], [0, 2, 0], [1, 1]]
         sage: hillman_grassl_inverse([[0, 1, 3], [2, 4, 4], [3]])
@@ -609,6 +612,7 @@ def sulzgruber_correspondence(M):
 
     EXAMPLES::
 
+        sage: from sage.combinat.hillman_grassl import sulzgruber_correspondence
         sage: sulzgruber_correspondence([[1, 0, 2], [0, 2, 0], [1, 1, 0]])
         [[1, 2, 3], [1, 2, 3], [2, 4, 4]]
         sage: sulzgruber_correspondence([[1, 1, 2], [0, 1, 0], [3, 0, 0]])
@@ -701,6 +705,7 @@ def pak_correspondence(M, copy=True):
 
     EXAMPLES::
 
+        sage: from sage.combinat.hillman_grassl import pak_correspondence
         sage: pak_correspondence([[1, 2, 3], [1, 2, 3], [2, 4, 4]])
         [[1, 0, 2], [0, 2, 0], [1, 1, 0]]
         sage: pak_correspondence([[1, 1, 4], [2, 3, 4], [4, 4, 4]])

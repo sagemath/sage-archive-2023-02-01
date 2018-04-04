@@ -17,7 +17,7 @@
 
 set -ex
 
-docker run --name sage-jupyter -p 8888:8888 -d "$1" jupyter
+docker run --name sage-jupyter -p 8888:8888 -d "$1" sage-jupyter
 echo "Checking that the Jupyter notebook is running…"
 sleep 10 # giving the server some time to start
 docker logs sage-jupyter

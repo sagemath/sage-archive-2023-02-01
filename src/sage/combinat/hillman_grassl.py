@@ -445,8 +445,12 @@ def transpose(M):
         [[2, 3], [1]]
         sage: transpose([])
         []
+        sage: transpose(WeakReversePlanePartition([[1, 2, 3], [4, 5]]))
+        [[1, 4], [2, 5], [3]]
+        sage: transpose(WeakReversePlanePartition([]))
+        []
     """
-    if len(M) == 0:
+    if not M: # empty array
         return []
     l = len(M[0])
     res = []

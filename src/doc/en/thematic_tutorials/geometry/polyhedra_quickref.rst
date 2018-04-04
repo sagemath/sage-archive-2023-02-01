@@ -42,9 +42,9 @@ List of Polyhedron methods
 
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_empty` | tests emptyness
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_universe` | tests whether a polyhedra is the whole ambient space
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_full_dimensional` | tests if the polyhedron has the same dimension has the ambient space
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_full_dimensional` | tests if the polyhedron has the same dimension as the ambient space
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_combinatorially_isomorphic` | tests whether two polyhedra are combinatorially isomorphic
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_compact` | tests compactness of a polyhedron
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_compact` | tests compactness, or boundedness of a polyhedron
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_lattice_polytope` | tests whether a polyhedron is a lattice polytope
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_inscribed` | tests whether the polyhedron is inscribed in a sphere
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.is_minkowski_summand` | tests if the polyhedron can be used to produce another given polyhedron using a Minkowski sum.

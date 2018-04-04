@@ -59,7 +59,7 @@ class MaximaWrapper(SageObject):
 
             sage: import sage.interfaces.tab_completion as s
             sage: u = t.maxima_methods()
-            sage: s.completions('u.elliptic_',globals(),system='python')
+            sage: s.completions('u.elliptic_',globals())
             ['u.elliptic_e', 'u.elliptic_ec', 'u.elliptic_eu', 'u.elliptic_f', 'u.elliptic_kc', 'u.elliptic_pi']
         """
         self._exp = exp
@@ -78,7 +78,7 @@ class MaximaWrapper(SageObject):
             cos(x)^2 + sin(x)^2
             sage: u = t.maxima_methods()
             sage: import sage.interfaces.tab_completion as s
-            sage: s.completions('u.airy_',globals(),system='python')
+            sage: s.completions('u.airy_',globals())
             ['u.airy_ai', 'u.airy_bi', 'u.airy_dai', 'u.airy_dbi']
             sage: type(u.airy_ai)
             <class 'sage.symbolic.maxima_wrapper.MaximaFunctionElementWrapper'>

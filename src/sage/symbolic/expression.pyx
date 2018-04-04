@@ -12680,7 +12680,7 @@ cdef get_dynamic_class_for_function(unsigned serial):
         sage: t.argp1()
         x + 1
         sage: import sage.interfaces.tab_completion as s
-        sage: s.completions('t.argp', globals(), system='python')
+        sage: s.completions('t.argp', globals())
         ['t.argp1']
         sage: t.argp1.__doc__.strip()
         'Some documentation about a bogus function.'

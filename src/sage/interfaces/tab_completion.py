@@ -52,7 +52,7 @@ class ExtraTabCompletion(object):
         return dir(self.__class__) + list(self.__dict__) + tab_fn()
 
 
-def completions(s, globs, system=None):
+def completions(s, globs):
     """
     Return a list of completions in the given context.
 
@@ -62,8 +62,6 @@ def completions(s, globs, system=None):
 
     - ``globs`` -- a string: object dictionary; context in which to
       search for completions, e.g., :func:`globals()`
-
-    - ``system`` -- ignored
 
     OUTPUT:
 

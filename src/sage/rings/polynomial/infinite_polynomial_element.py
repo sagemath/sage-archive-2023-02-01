@@ -349,7 +349,7 @@ class InfinitePolynomial_sparse(RingElement):
             sage: X.<x> = InfinitePolynomialRing(QQ)
             sage: import sage.interfaces.tab_completion as s
             sage: p = x[3]*x[2]
-            sage: s.completions('p.co',globals(),system='python') # indirect doctest
+            sage: s.completions('p.co',globals()) # indirect doctest
             ['p.coefficient',
              'p.coefficients',
              'p.constant_coefficient',
@@ -367,7 +367,7 @@ class InfinitePolynomial_sparse(RingElement):
             sage: X.<x> = InfinitePolynomialRing(QQ)
             sage: import sage.interfaces.tab_completion as s
             sage: p = x[3]*x[2]
-            sage: s.completions('p.co',globals(),system='python') # indirect doc test
+            sage: s.completions('p.co',globals()) # indirect doc test
             ['p.coefficient',
              'p.coefficients',
              'p.constant_coefficient',
@@ -403,7 +403,7 @@ class InfinitePolynomial_sparse(RingElement):
 
             sage: import sage.interfaces.tab_completion as s
             sage: p = alpha[3]*alpha[2]^2
-            sage: s.completions('p.co',globals(),system='python') # indirect doc test
+            sage: s.completions('p.co',globals()) # indirect doc test
             ['p.coefficient',
              'p.coefficients',
              'p.constant_coefficient',

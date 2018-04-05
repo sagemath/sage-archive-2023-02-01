@@ -7,12 +7,6 @@ correspondences on them: the Hillman-Grassl correspondence and
 its inverse, as well as the Sulzgruber correspondence and its
 inverse (the Pak correspondence).
 
-Definitions of the algorithms
-=============================
-
-Arrays and rpps
----------------
-
 Fix a partition `\lambda`
 (see :meth:`~sage.combinat.partition.Partition`).
 We draw all partitions and tableaux in English notation.
@@ -29,82 +23,12 @@ increase along each row and weakly increase along each column.
 [Sulzgr2017]_, or Hillman and Grassl in [HilGra1976]_ -- just
 call it a reverse plane partition.)
 
-The Hillman-Grassl correspondence and its inverse
--------------------------------------------------
-
-The Hillman-Grassl correspondence `H`
-(:meth:`hillman_grassl`) is the map that sends a
-`\lambda`-array `M` to a `\lambda`-rpp `H(M)` defined recursively
-as follows:
-
-* If all entries of `M` are `0`, then `H(M) = M`.
-
-* Otherwise, let `s` be the index of the leftmost column of `M`
-  containing a nonzero entry.
-  Let `r` be the index of the bottommost nonzero entry in the
-  `s`-th column of `M`.
-  Let `M'` be the `\lambda`-array obtained from `M` by removing
-  `1` from the `(r, s)`-th entry of `M`.
-  Let `Q = (q_{i, j})` be the image `H(M')` (which is already
-  defined by recursion).
-
-* Define a sequence `((i_1, j_1), (i_2, j_2), \ldots,
-  (i_n, j_n))` of boxes in the diagram of `\lambda` (actually a
-  lattice path made of southward and westward steps) as follows:
-  Set `(i_1, j_1) = (r, \lambda_r)` (the rightmost box in the
-  `r`-th row of `\lambda`).
-  If `(i_k, j_k)` is defined for some `k \geq 1`, then
-  `(i_{k+1}, j_{k+1})` is constructed as follows:
-  If `q_{i_k + 1, j_k}` is well-defined and equals `q_{i_k, j_k}`,
-  then we set `(i_{k+1}, j_{k+1}) = (i_k + 1, j_k)`.
-  Otherwise, if `j_k = s`, then the sequence ends here.
-  Otherwise, we set `(i_{k+1}, j_{k+1}) = (i_k, j_k - 1)`.
-
-* Let `H(M)` be the array obtained from `Q` by adding `1` to
-  the `(i_k, j_k)`-th entry of `Q` for each
-  `k \in \{1, 2, \ldots, n\}`.
-
-See [Gans1981]_ (Section 3) for this construction.
-
-The inverse `H^{-1}` of the Hillman-Grassl correspondence
-(:meth:`hillman_grassl_inverse`) sends
-a `\lambda`-rpp `\pi` to a `\lambda`-array `H^{-1}(\pi)` constructed
-recursively as follows:
-
-* If all entries of `\pi` are `0`, then `H^{-1}(\pi) = \pi`.
-
-* Otherwise, let `s` be the index of the leftmost column of `\pi`
-  containing a nonzero entry.
-  Write the `\lambda`-array `M` as `(m_{i, j})`.
-
-* Define a sequence `((i_1, j_1), (i_2, j_2), \ldots,
-  (i_n, j_n))` of boxes in the diagram of `\lambda` (actually a
-  lattice path made of northward and eastward steps) as follows:
-  Let `(i_1, j_1)` be the bottommost box in the `s`-th column
-  of `\pi`.
-  If `(i_k, j_k)` is defined for some `k \geq 1`, then
-  `(i_{k+1}, j_{k+1})` is constructed as follows:
-  If `q_{i_k - 1, j_k}` is well-defined and equals `q_{i_k, j_k}`,
-  then we set `(i_{k+1}, j_{k+1}) = (i_k - 1, j_k)`.
-  Otherwise, we set `(i_{k+1}, j_{k+1}) = (i_k, j_k + 1)` if
-  this is still a box of `\lambda`.
-  Otherwise, the sequence ends here.
-
-* Let `\pi'` be the `\lambda`-rpp obtained from `\pi` by
-  subtracting `1` from the `(i_k, j_k)`-th entry of `\pi` for each
-  `k \in \{1, 2, \ldots, n\}`.
-
-* Let `N'` be the image `H^{-1}(\pi')` (which is already
-  constructed by recursion).
-  Then, `H^{-1}(\pi)` is obtained from `N'` by adding `1` to the
-  `(i_n, s)`-th entry of `N'`.[HilGra1976]_
-
-This construction appears in [HilGra1976]_ Section 6 (where
-`\lambda`-arrays are re-encoded as sequences of "hook number
-multiplicities") and [EnumComb2]_ Section 7.22.
-
-The Sulzgruber correspondence and its inverse
----------------------------------------------
+The Hillman-Grassl correspondence is a bijection from the
+set of `\lambda`-arrays to the set of `\lambda`-rpps.
+For its definition, see
+:meth:`~sage.combinat.tableau.Tableau.hillman_grassl`; for
+its inverse, see
+:meth:`~sage.combinat.hillman_grassl.WeakReversePlanePartition.hillman_grassl_inverse`.
 
 The Sulzgruber correspondence `\Phi_\lambda` and the Pak
 correspondence `\xi_\lambda` are two further mutually
@@ -113,10 +37,14 @@ inverse bijections between the set of
 They appear (sometimes with different definitions, but
 defining the same maps) in [Pak2002]_, [Hopkins2017]_ and
 [Sulzgr2017]_.
+For their definitions, see
+:meth:`~sage.combinat.tableau.Tableau.sulzgruber_correspondence`
+and
+:meth:`~sage.combinat.hillman_grassl.WeakReversePlanePartition.pak_correspondence`.
 
 .. TODO::
 
-    * Define Sulzgruber and Pak correspondences here,
+    * Define Sulzgruber and Pak correspondences,
       rather than just referencing papers.
 
 EXAMPLES:
@@ -296,9 +224,60 @@ class WeakReversePlanePartition(Tableau):
         inverse of the Hillman-Grassl correspondence (as a
         :class:`~sage.combinat.tableau.Tableau`).
 
-        See :mod:`~sage.combinat.hillman_grassl`.
+        Fix a partition `\lambda`
+        (see :meth:`~sage.combinat.partition.Partition`).
+        We draw all partitions and tableaux in English notation.
+
+        A `\lambda`-*array* will mean a tableau of shape `\lambda` whose
+        entries are nonnegative integers. (No conditions on the order of
+        these entries are made. Note that `0` is allowed.)
+
+        A *weak reverse plane partition of shape* `\lambda` (short:
+        `\lambda`-*rpp*) will mean a `\lambda`-array whose entries weakly
+        increase along each row and weakly increase along each column.
+
+        The inverse `H^{-1}` of the Hillman-Grassl correspondence (see
+        (:meth:`~sage.combinat.tableau.Tableau.hillman_grassl` for the
+        latter) sends a `\lambda`-rpp `\pi` to a `\lambda`-array
+        `H^{-1}(\pi)` constructed recursively as follows:
+
+        * If all entries of `\pi` are `0`, then `H^{-1}(\pi) = \pi`.
+
+        * Otherwise, let `s` be the index of the leftmost column of `\pi`
+          containing a nonzero entry.
+          Write the `\lambda`-array `M` as `(m_{i, j})`.
+
+        * Define a sequence `((i_1, j_1), (i_2, j_2), \ldots,
+          (i_n, j_n))` of boxes in the diagram of `\lambda` (actually a
+          lattice path made of northward and eastward steps) as follows:
+          Let `(i_1, j_1)` be the bottommost box in the `s`-th column
+          of `\pi`.
+          If `(i_k, j_k)` is defined for some `k \geq 1`, then
+          `(i_{k+1}, j_{k+1})` is constructed as follows:
+          If `q_{i_k - 1, j_k}` is well-defined and equals `q_{i_k, j_k}`,
+          then we set `(i_{k+1}, j_{k+1}) = (i_k - 1, j_k)`.
+          Otherwise, we set `(i_{k+1}, j_{k+1}) = (i_k, j_k + 1)` if
+          this is still a box of `\lambda`.
+          Otherwise, the sequence ends here.
+
+        * Let `\pi'` be the `\lambda`-rpp obtained from `\pi` by
+          subtracting `1` from the `(i_k, j_k)`-th entry of `\pi` for each
+          `k \in \{1, 2, \ldots, n\}`.
+
+        * Let `N'` be the image `H^{-1}(\pi')` (which is already
+          constructed by recursion).
+          Then, `H^{-1}(\pi)` is obtained from `N'` by adding `1` to the
+          `(i_n, s)`-th entry of `N'`.
+
+        This construction appears in [HilGra1976]_ Section 6 (where
+        `\lambda`-arrays are re-encoded as sequences of "hook number
+        multiplicities") and [EnumComb2]_ Section 7.22.
 
         .. SEEALSO::
+
+            :meth:`~sage.combinat.hillman_grassl.hillman_grassl_inverse`
+            for the inverse of the Hillman-Grassl correspondence as a
+            standalone function.
 
             :meth:`~sage.combinat.tableau.Tableau.hillman_grassl`
             for the inverse map.
@@ -476,6 +455,10 @@ def hillman_grassl(M):
     This bijection preserves the shape of the
     tableau. See :mod:`~sage.combinat.hillman_grassl`.
 
+    See
+    :meth:`~sage.combinat.tableau.Tableau.hillman_grassl`
+    for a description of this map.
+
     .. SEEALSO::
 
         :meth:`hillman_grassl_inverse`.
@@ -534,6 +517,10 @@ def hillman_grassl_inverse(M):
     inverse of the Hillman-Grassl correspondence.
 
     See :mod:`~sage.combinat.hillman_grassl`.
+
+    See
+    :meth:`~sage.combinat.hillman_grassl.WeakReversePlanePartition.hillman_grassl_inverse`
+    for a description of this map.
 
     .. SEEALSO::
 
@@ -613,6 +600,10 @@ def sulzgruber_correspondence(M):
     It is denoted by `\mathcal{RSK}` in [Hopkins2017]_.
     It is the inverse of the Pak correspondence
     (:meth:`pak_correspondence`).
+
+    See
+    :meth:`~sage.combinat.tableau.Tableau.sulzgruber_correspondence`
+    for a description of this map.
 
     EXAMPLES::
 
@@ -700,6 +691,10 @@ def pak_correspondence(M, copy=True):
     `\xi_\lambda` from [Pak2002]_ Section 4.
     It is the inverse of the Sulzgruber correspondence
     (:meth:`sulzgruber_correspondence`).
+
+    See
+    :meth:`~sage.combinat.hillman_grassl.WeakReversePlanePartition.pak_correspondence`
+    for a description of this map.
 
     INPUT:
 

@@ -4095,10 +4095,57 @@ class Tableau(ClonableList):
 
         This relies on interpreting ``self`` as a `\lambda`-array
         in the sense of :mod:`~sage.combinat.hillman_grassl`.
-        See :mod:`~sage.combinat.hillman_grassl` for definitions
-        of the objects involved.
+
+        Fix a partition `\lambda`
+        (see :meth:`~sage.combinat.partition.Partition`).
+        We draw all partitions and tableaux in English notation.
+
+        A `\lambda`-*array* will mean a tableau of shape `\lambda` whose
+        entries are nonnegative integers. (No conditions on the order of
+        these entries are made. Note that `0` is allowed.)
+
+        A *weak reverse plane partition of shape* `\lambda` (short:
+        `\lambda`-*rpp*) will mean a `\lambda`-array whose entries weakly
+        increase along each row and weakly increase along each column.
+
+        The Hillman-Grassl correspondence `H` is the map that sends a
+        `\lambda`-array `M` to a `\lambda`-rpp `H(M)` defined recursively
+        as follows:
+
+        * If all entries of `M` are `0`, then `H(M) = M`.
+
+        * Otherwise, let `s` be the index of the leftmost column of `M`
+          containing a nonzero entry.
+          Let `r` be the index of the bottommost nonzero entry in the
+          `s`-th column of `M`.
+          Let `M'` be the `\lambda`-array obtained from `M` by
+          subtracting `1` from the `(r, s)`-th entry of `M`.
+          Let `Q = (q_{i, j})` be the image `H(M')` (which is already
+          defined by recursion).
+
+        * Define a sequence `((i_1, j_1), (i_2, j_2), \ldots,
+          (i_n, j_n))` of boxes in the diagram of `\lambda` (actually a
+          lattice path made of southward and westward steps) as follows:
+          Set `(i_1, j_1) = (r, \lambda_r)` (the rightmost box in the
+          `r`-th row of `\lambda`).
+          If `(i_k, j_k)` is defined for some `k \geq 1`, then
+          `(i_{k+1}, j_{k+1})` is constructed as follows:
+          If `q_{i_k + 1, j_k}` is well-defined and equals `q_{i_k, j_k}`,
+          then we set `(i_{k+1}, j_{k+1}) = (i_k + 1, j_k)`.
+          Otherwise, if `j_k = s`, then the sequence ends here.
+          Otherwise, we set `(i_{k+1}, j_{k+1}) = (i_k, j_k - 1)`.
+
+        * Let `H(M)` be the array obtained from `Q` by adding `1` to
+          the `(i_k, j_k)`-th entry of `Q` for each
+          `k \in \{1, 2, \ldots, n\}`.
+
+        See [Gans1981]_ (Section 3) for this construction.
 
         .. SEEALSO::
+
+            :meth:`~sage.combinat.hillman_grassl.hillman_grassl`
+            for the Hillman-Grassl correspondence as a standalone
+            function.
 
             :meth:`~sage.combinat.hillman_grassl.WeakReversePlanePartition.hillman_grassl_inverse`
             for the inverse map.

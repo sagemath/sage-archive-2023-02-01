@@ -1,6 +1,8 @@
 #ifndef __PYNAC_EXUTILS_H__
 #define __PYNAC_EXUTILS_H__
 
+#include <algorithm>
+
 #include "ex.h"
 #include "numeric.h"
 
@@ -8,6 +10,18 @@ namespace GiNaC {
 
 
 // utility functions
+
+inline void firsts(exvector& v, const expairvec& pv)
+{ std::transform(pv.begin(), pv.end(), std::back_inserter(v),
+                [](std::pair<ex,ex> p) -> ex { return p.first; } );  }
+
+inline void seconds(exvector& v, const expairvec& pv)
+{ std::transform(pv.begin(), pv.end(), std::back_inserter(v),
+                [](std::pair<ex,ex> p) -> ex { return p.second; } );  }
+
+inline bool ex_match_int(const exvector& ev, const std::vector<int>& iv)
+{ return std::equal(ev.begin(), ev.end(), iv.begin(),
+        [](ex e, int i) -> bool { return e.is_equal(numeric(i)); } ); }
 
 // wrapper functions around member functions
 inline size_t nops(const ex & thisex)

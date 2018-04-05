@@ -1,7 +1,7 @@
 From 0b79dea019a9b258014454ac527f04f7d76763fd Mon Sep 17 00:00:00 2001
 From: Matthias Koeppe <mkoeppe@math.ucdavis.edu>
 Date: Thu, 5 Apr 2018 12:01:25 -0500
-Subject: [PATCH] Use libhistory
+Subject: [PATCH 1/2] Use libhistory
 
 ---
  scip/cmake/Modules/FindReadline.cmake | 11 ++++++++---

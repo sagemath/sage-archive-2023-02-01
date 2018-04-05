@@ -1924,13 +1924,31 @@ def conjugate_shrink(v):
         return v.real()
     return v
 
-def number_field_elements_from_algebraics(numbers, minimal=False):
+def number_field_elements_from_algebraics(numbers, minimal=False, embedded=False, prec=53):
     r"""
     Given a sequence of elements of either ``AA`` or ``QQbar``
     (or a mixture), computes a number field containing all of these
     elements, these elements as members of that number field, and a
     homomorphism from the number field back to ``AA`` or
     ``QQbar``.
+
+    INPUT:
+
+    - ``numbers`` -- a number or list of numbers.
+
+    - ``minimal`` -- Boolean (default: ``False``). Whether to minimize the
+      degree of the extension.
+
+    - ``embedded`` -- Boolean (default: ``False``). Whether to make the
+      NumberField embedded.
+
+    - ``prec`` -- integer (default: ``53``). The number of bit of precision for
+      the embedding.
+
+    OUTPUT:
+
+    A tuple with the NumberField, the numbers inside the NumberField, 
+    and a homomorphism from the number field back to ``AA`` or ``QQbar``.
 
     This may not return the smallest such number field, unless
     ``minimal=True`` is specified.
@@ -2044,6 +2062,20 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
         sage: [hom(n) for n in nums] == [rt2, rt3, qqI, z3]
         True
 
+    It is also possible to have an embedded Number Field::
+
+        sage: x = polygen(ZZ)
+        sage: my_num = AA.polynomial_root(x^3-2, RIF(0,3))
+        sage: res = number_field_elements_from_algebraics(my_num,embedded=True)
+        sage: res[0].gen_embedding()
+        1.259921049894873?
+        sage: res[2]
+        Ring morphism:
+          From: Number Field in a with defining polynomial y^3 - 2
+          To:   Algebraic Real Field
+          Defn: a |--> 1.259921049894873?
+
+
     TESTS::
 
         sage: number_field_elements_from_algebraics(rt3)
@@ -2101,10 +2133,21 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
 
     nums = [gen(v._exact_value()) for v in numbers]
 
+    hom = fld.hom([gen.root_as_algebraic()])
+    
+    if embedded:
+        exact_generator = hom(fld.gen(0))
+        embedding_field = RealIntervalField(prec)
+        embedded_gen = embedding_field(exact_generator)
+        embedded_field = NumberField(fld.defining_polynomial(),fld.variable_name(),embedding=embedded_gen)
+        
+        inter_hom = fld.hom([embedded_field.gen(0)])
+        nums = map(inter_hom, nums)
+        hom = embedded_field.hom([gen.root_as_algebraic()])
+        fld = embedded_field
+    
     if single_number:
         nums = nums[0]
-
-    hom = fld.hom([gen.root_as_algebraic()])
 
     return (fld, nums, hom)
 

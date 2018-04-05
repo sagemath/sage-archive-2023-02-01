@@ -1637,7 +1637,7 @@ def __GCD_sequence(v, **kwargs):
         sage: __GCD_sequence(Sequence((1/1,1/2)))
         1/2
 
-    TESTS:
+    TESTS::
 
         sage: __GCD_sequence(Sequence((1,1/2,1/5)))
         1/10

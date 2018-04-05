@@ -42,11 +42,6 @@ For their definitions, see
 and
 :meth:`~sage.combinat.hillman_grassl.WeakReversePlanePartition.pak_correspondence`.
 
-.. TODO::
-
-    * Define Sulzgruber and Pak correspondences,
-      rather than just referencing papers.
-
 EXAMPLES:
 
 We construct a `\lambda`-rpp for `\lambda = (3, 3, 1)`
@@ -313,7 +308,97 @@ class WeakReversePlanePartition(Tableau):
 
         See :mod:`~sage.combinat.hillman_grassl`.
 
+        The Pak correspondence is the map `\xi_\lambda`
+        from [Sulzgr2017]_ Section 7, and is the map
+        `\xi_\lambda` from [Pak2002]_ Section 4.
+        It is the inverse of the Sulzgruber correspondence
+        (:meth:`sulzgruber_correspondence`).
+        The following description of the Pak correspondence follows
+        [Hopkins2017]_ (which denotes it by `\mathcal{RSK}^{-1}`):
+
+        Fix a partition `\lambda`
+        (see :meth:`~sage.combinat.partition.Partition`).
+        We draw all partitions and tableaux in English notation.
+
+        A `\lambda`-*array* will mean a tableau of shape `\lambda` whose
+        entries are nonnegative integers. (No conditions on the order of
+        these entries are made. Note that `0` is allowed.)
+
+        A *weak reverse plane partition of shape* `\lambda` (short:
+        `\lambda`-*rpp*) will mean a `\lambda`-array whose entries weakly
+        increase along each row and weakly increase along each column.
+
+        We shall also use the following notation:
+        If `(u, v)` is a cell of `\lambda`, and if `\pi` is a
+        `\lambda`-rpp, then:
+
+        * the *lower bound* of `\pi` at `(u, v)` (denoted by
+          `\pi_{<(u, v)}`) is defined to be
+          `\max \{ \pi_{u-1, v} , \pi_{u, v-1} \}`
+          (where `\pi_{0, v}` and `\pi_{u, 0}` are understood to
+          mean `0`).
+
+        * the *upper bound* of `\pi` at `(u, v)` (denoted by
+          `\pi_{>(u, v)}`) is defined to be
+          `\min \{ \pi_{u+1, v} , \pi_{u, v+1} \}`
+          (where `\pi_{i, j}` is understood to mean `+ \infty`
+          if `(i, j)` is not in `\lambda`; thus, the upper
+          bound at a corner cell is `+ \infty`).
+
+        * *toggling* `\pi` at `(u, v)` means replacing the entry
+          `\pi_{u, v}` of `\pi` at `(u, v)` by
+          `\pi_{<(u, v)} + \pi_{>(u, v)} - \pi_{u, v}`
+          (this is well-defined as long as `(u, v)` is not a
+          corner of `\lambda`).
+
+        Note that every `\lambda`-rpp `\pi` and every cell
+        `(u, v)` of `\lambda` satisfy
+        `\pi_{<(u, v)} \leq \pi_{u, v} \leq \pi_{>(u, v)}`.
+        Note that toggling a `\lambda`-rpp (at a cell that is not
+        a corner) always results in a `\lambda`-rpp. Also,
+        toggling is an involution).
+
+        Note also that the lower bound of `\pi` at `(u, v)` is
+        defined (and finite) even when `(u, v)` is not a cell of
+        `\lambda`, as long as both `(u-1, v)` and `(u, v-1)` are
+        cells of `\lambda`.
+
+        The Pak correspondence `\Phi_\lambda` sends a `\lambda`-array
+        `M = (m_{i, j})` to a `\lambda`-rpp `\Phi_\lambda(M)`. It
+        is defined by recursion on `\lambda` (that is, we assume that
+        `\Phi_\mu` is already defined for every partition `\mu`
+        smaller than `\lambda`), and its definition proceeds as
+        follows:
+
+        * If `\lambda = \varnothing`, then `\Phi_\lambda` is the
+          obvious bijection sending the only `\varnothing`-array
+          to the only `\varnothing`-rpp.
+
+        * Pick any corner `c = (i, j)` of `\lambda`, and let `\mu`
+          be the result of removing this corner `c` from the partition
+          `\lambda`.
+          (The exact choice of `c` is immaterial.)
+
+        * Let `M'` be what remains of `M` when the corner cell `c`
+          is removed.
+
+        * Let `\pi' = \Phi_\mu(M')`.
+
+        * For each positive integer `k` such that `(i-k, j-k)` is a
+          cell of `\lambda`, toggle `\pi'` at `(i-k, j-k)`.
+          (All these togglings commute, so the order in which they
+          are made is immaterial.)
+
+        * Extend the `\mu`-rpp `\pi'` to a `\lambda`-rpp `\pi` by
+          adding the cell `c` and writing the number
+          `m_{i, j} - \pi'_{<(i, j)}` into this cell.
+
+        * Set `\Phi_\lambda(M) = \pi`.
+
         .. SEEALSO::
+
+            :meth:`~sage.combinat.hillman_grassl.pak_correspondence`
+            for the Pak correspondence as a standalone function.
 
             :meth:`~sage.combinat.tableau.Tableau.sulzgruber_correspondence`
             for the inverse map.

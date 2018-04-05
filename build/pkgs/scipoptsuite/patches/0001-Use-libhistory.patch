@@ -1,0 +1,52 @@
+From f5d3082d53e88005864355858e42a7f4bcc3c236 Mon Sep 17 00:00:00 2001
+From: Matthias Koeppe <mkoeppe@math.ucdavis.edu>
+Date: Thu, 5 Apr 2018 12:01:25 -0500
+Subject: [PATCH] Use libhistory
+
+---
+ scip/cmake/Modules/FindReadline.cmake | 7 ++++++-
+ scip/src/CMakeLists.txt               | 3 ++-
+ 2 files changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/scip/cmake/Modules/FindReadline.cmake b/scip/cmake/Modules/FindReadline.cmake
+index 051a1e7..b5c6739 100644
+--- a/scip/cmake/Modules/FindReadline.cmake
++++ b/scip/cmake/Modules/FindReadline.cmake
+@@ -31,7 +31,12 @@ find_library(Readline_LIBRARY
+     HINTS ${Readline_ROOT_DIR}/lib
+ )
+ 
+-if(Readline_INCLUDE_DIR AND Readline_LIBRARY AND Ncurses_LIBRARY)
++find_library(History_LIBRARY
++    NAMES history
++    HINTS ${Readline_ROOT_DIR}/lib
++)
++
++if(Readline_INCLUDE_DIR AND Readline_LIBRARY AND History_LIBRARY AND Ncurses_LIBRARY)
+   set(READLINE_FOUND TRUE)
+ else(Readline_INCLUDE_DIR AND Readline_LIBRARY AND Ncurses_LIBRARY)
+   FIND_LIBRARY(Readline_LIBRARY NAMES readline)
+diff --git a/scip/src/CMakeLists.txt b/scip/src/CMakeLists.txt
+index bbe9c72..ef55fe7 100644
+--- a/scip/src/CMakeLists.txt
++++ b/scip/src/CMakeLists.txt
+@@ -803,6 +803,7 @@ setLibProperties(libscip "scip")
+ target_link_libraries(libscip PRIVATE
+     ${ZLIB_LIBRARIES}
+     ${Readline_LIBRARY}
++    ${History_LIBRARY}
+     ${GMP_LIBRARIES}
+     ${THREAD_LIBRARIES}
+     ${NLPI_LIBRARIES}
+@@ -824,7 +825,7 @@ endif()
+ 
+ target_compile_definitions(scip PRIVATE EXTERN=extern)
+ 
+-target_link_libraries(scip ${ZLIB_LIBRARIES} ${Readline_LIBRARY} ${GMP_LIBRARIES}
++target_link_libraries(scip ${ZLIB_LIBRARIES} ${Readline_LIBRARY} ${History_LIBRARY} ${GMP_LIBRARIES}
+    ${ZIMPL_LIBRARIES} ${LPS_LIBRARIES} ${SYM_LIBRARIES} ${THREAD_LIBRARIES} ${NLPI_LIBRARIES})
+ 
+ add_dependencies(libscip scip_update_githash)
+-- 
+2.11.0
+

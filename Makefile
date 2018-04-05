@@ -151,7 +151,7 @@ install: all
 	@echo "******************************************************************"
 
 list:
-	@$(MAKE) build/make/Makefile >&2
+	@$(MAKE) -q build/make/Makefile >&2
 	@$(MAKE) -s -f build/make/Makefile SAGE_SPKG_INST=local $@
 
 .PHONY: default build install micro_release \

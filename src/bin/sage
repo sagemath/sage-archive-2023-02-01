@@ -358,7 +358,7 @@ if [ "$1" = '-i' ]; then
         echo
         # First check that $PKG is actually a Makefile target
         # See https://trac.sagemath.org/ticket/25078
-        if ! echo $ALL_TARGETS | grep "$PKG" >/dev/null; then
+        if ! echo "$ALL_TARGETS" | grep "^${PKG}$" >/dev/null; then
             echo >&2 "Error: package '$PKG' not found"
             echo >&2 "Note: if it is an old-style package, use -p instead of -i to install it"
             exit 1

@@ -257,6 +257,16 @@ $(foreach pkgname,$(SCRIPT_PACKAGES),\
 	$(info $(call SCRIPT_PACKAGE_templ,$(pkgname),$(call pkg_deps,$(pkgname)))))
 endif
 
+
+# Use this target to list common targets of this Makefile (in particular for
+# installation with `sage -i`.
+list:
+	@for pkg in $(SAGE_I_TARGETS) $(NORMAL_PACKAGES) $(PIP_PACKAGES) $(SCRIPT_PACKAGES); do\
+		echo $$pkg;\
+	done
+
+
 .PHONY: $(NORMAL_PACKAGES) $(addsuffix -clean,$(NORMAL_PACKAGES)) \
         $(PIP_PACKAGES) $(addsuffix -clean,$(PIP_PACKAGES)) \
-        $(SCRIPT_PACKAGES) $(addsuffix -clean,$(SCRIPT_PACKAGES))
+        $(SCRIPT_PACKAGES) $(addsuffix -clean,$(SCRIPT_PACKAGES)) \
+		list

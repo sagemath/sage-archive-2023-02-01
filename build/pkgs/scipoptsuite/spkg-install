@@ -9,7 +9,7 @@ echo "Building scipoptsuite with cmake"
 cd src
 mkdir build
 cd build
-cmake .. -DCMAKE_INSTALL_PREFIX="$SAGE_LOCAL"/
+cmake .. -DCMAKE_INSTALL_PREFIX="$SAGE_LOCAL"/ -DCMAKE_VERBOSE_MAKEFILE=ON
 make
 make check
 make install

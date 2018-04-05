@@ -106,7 +106,7 @@ index 9556cf4..40127b6 100644
  # Either this is a bug in the code or in the compiler. The bug disappears by compiling with -fno-guess-branch-probability
  src/symmetrictraversal.o: src/symmetrictraversal.cpp
 -	$(CXX) $(CFLAGS) -fno-guess-branch-probability  -c src/symmetrictraversal.cpp -o src/symmetrictraversal.o
-+	$(CXX) $(CXXFLAGS) -fno-guess-branch-probability  -c src/symmetrictraversal.cpp -o src/symmetrictraversal.o
++	$(CXX) $(CXXFLAGS) -c src/symmetrictraversal.cpp -o src/symmetrictraversal.o
  # If compiling with clang, use the line below instead:
 -#	$(CXX) $(CFLAGS) -c src/symmetrictraversal.cpp -o src/symmetrictraversal.o
 +#	$(CXX) $(CXXFLAGS) -c src/symmetrictraversal.cpp -o src/symmetrictraversal.o

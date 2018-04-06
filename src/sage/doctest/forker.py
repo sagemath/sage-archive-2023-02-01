@@ -1991,6 +1991,14 @@ class DocTestWorker(multiprocessing.Process):
             # Note: This closes the tempfile in the child process, but in the
             # parent process self.outtmpfile will not be closed yet, and can
             # still be accessed in save_result_output
+            if hasattr(self.outtmpfile, 'delete'):
+                # On some platforms (notably Cygwin) tempfile.TemporaryFile
+                # is actually tempfile.NamedTemporaryFile with delete=True
+                # We don't want to delete the file here since the parent
+                # process is likely still using it, and will handle the
+                # deletion.  See https://trac.sagemath.org/ticket/25107
+                self.outtmpfile.delete = False
+
             self.outtmpfile.close()
 
     def start(self):

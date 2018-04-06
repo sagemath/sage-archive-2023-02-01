@@ -115,7 +115,7 @@ test-jupyter:
   stage: test
   script:
     # Force usage of docker-in-docker (and don't start docker on a bind-mounted
-    # /var/run/docker.sock set through a proivate GitLab CI variable) so that
+    # /var/run/docker.sock set through a private GitLab CI variable) so that
     # the -p flag to docker run works as expected.
     - export DOCKER_HOST='tcp://docker:2375'
     - apk update

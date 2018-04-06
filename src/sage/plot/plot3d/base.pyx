@@ -327,7 +327,7 @@ cdef class Graphics3d(SageObject):
             sage: out
             OutputSceneCanvas3d container
             sage: out.canvas3d.get()
-            '[{"vertices":[{"x":0,"y":0,"z":-1},..., "color":"#6666ff", "opacity":1}]'
+            '[{"vertices":[{"x":0,"y":0,"z":-1},..., "color":"#6666ff", "opacity":1.0}]'
         """
         opts = self._process_viewing_options(kwds)
         aspect_ratio = opts['aspect_ratio'] # this necessarily has a value now

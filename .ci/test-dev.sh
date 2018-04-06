@@ -24,7 +24,7 @@ IMAGE="$1"
 
 # Usage: timed_run limit args
 # Runs $IMAGE with args and check that it terminates with a zero exit code in at most limit seconds.
-function timed_run {
+timed_run() {
     START=`date +%s`
     docker run -e MAKE="$MAKE" "$IMAGE" "$2"
     END=`date +%s`

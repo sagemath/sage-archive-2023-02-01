@@ -3075,7 +3075,7 @@ class Polyhedron_base(Element):
         """
         Return the join of ``self`` and ``other``.
 
-        The join of two polyhedron is obtained by first placing the two objects in
+        The join of two polyhedra is obtained by first placing the two objects in
         two non-intersecting affine subspaces `V`, and `W` whose affine hull is
         the whole ambient space, and finally by taking the convex hull of their
         union. The dimension of the join is the sum of the dimensions of the
@@ -3095,6 +3095,19 @@ class Polyhedron_base(Element):
             A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 4 vertices
             sage: P2.join(P2)
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 4 vertices
+
+        An unbounded example::
+
+            sage: R1 = Polyhedron(rays=[[1]])
+            sage: R1.join(R1)
+            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 2 vertices and 2 rays
+
+        TESTS::
+
+            sage: C = polytopes.hypercube(5)
+            sage: S = Polyhedron([[1]])
+            sage: C.join(S).is_combinatorially_isomorphic(C.pyramid())
+            True
         """
         try:
             new_ring = self.parent()._coerce_base_ring(other)

@@ -23,7 +23,7 @@ There are several flavours of this image.
     ```
     You can start a graphical [Jupyter Notebook](https://jupyter.org) at http://localhost:8888 instead. To use the notebook, follow the instructions printed when you run:
     ```
-    docker run -p8888:8888 sagemath/sagemath:latest jupyter
+    docker run -p8888:8888 sagemath/sagemath:latest sage-jupyter
     ```
 * [`sagemath/sagemath-dev`![image size](https://img.shields.io/microbadger/image-size/sagemath/sagemath-dev:develop.svg)](https://hub.docker.com/sagemath/sagemath-dev) contains all the build artifacts to rebuild Sage quickly. This version is probably only relevant for Sage developers. Run this image with:
     ```

@@ -29,7 +29,7 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
+from cpython.object cimport Py_EQ, Py_NE
 from cysignals.signals cimport sig_on, sig_str, sig_off
 
 from sage.arith.power cimport generic_power_pos
@@ -332,7 +332,7 @@ cdef class Matrix_complex_ball_dense(Matrix_dense):
             sage: a < b
             Traceback (most recent call last):
             ...
-            TypeError: No order is defined on complex ball matrices.
+            TypeError: no order is defined on complex ball matrices
 
         TESTS::
 
@@ -347,8 +347,8 @@ cdef class Matrix_complex_ball_dense(Matrix_dense):
             return acb_mat_eq(lt.value, rt.value)
         elif op == Py_NE:
             return acb_mat_ne(lt.value, rt.value)
-        elif op == Py_GT or op == Py_GE or op == Py_LT or op == Py_LE:
-            raise TypeError("No order is defined on complex ball matrices.")
+        else:
+            raise TypeError("no order is defined on complex ball matrices")
 
     def identical(self, Matrix_complex_ball_dense other):
         r"""

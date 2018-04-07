@@ -2642,6 +2642,44 @@ class Polyhedron_base(Element):
 
         return FaceFan(self)
 
+    def _triangulate_normaliz(self):
+        r"""
+        Gives a triangulation of the polyhedron using normaliz
+
+        OUTPUT:
+
+        A tuple of pairs ``(simplex,simplex_volume)`` used in the
+        triangulation.
+
+        .. NOTE::
+
+            This function depends on Normaliz (i.e. the ``pynormaliz`` optional
+            package). See the Normaliz documentation for further details.
+
+        EXAMPLES::
+
+
+        """
+	raise(NotImplementedError,"The backend should be 'normaliz'")
+
+    def _triangulate_normaliz(self):
+        r"""
+        Gives a triangulation of the polyhedron using normaliz
+
+        OUTPUT:
+
+        A tuple of pairs ``(simplex,simplex_volume)`` used in the
+        triangulation.
+
+        .. NOTE::
+
+            This function depends on Normaliz (i.e. the ``pynormaliz`` optional
+            package). See the Normaliz documentation for further details.
+
+        EXAMPLES::
+
+
+        """
     def triangulate(self, engine='auto', connected=True, fine=False, regular=None, star=None):
         r"""
         Returns a triangulation of the polytope.

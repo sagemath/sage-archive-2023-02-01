@@ -419,6 +419,28 @@ class Polyhedron_normaliz(Polyhedron_base):
         assert cone, "NmzCone(**{}) did not return a cone".format(data)
         return cone
 
+    @staticmethod
+    def _cone_generators(pynormaliz_cone):
+        r"""
+        Returns the generators of a pynormaliz cone.
+
+        This is particularly useful to get the reordering of the vertices (or
+        rays) that is internally used by normaliz.
+
+        INPUT:
+
+        - ``pynormaliz_cone`` -- a pynormaliz cone object.
+
+        OUTPUT:
+
+        - a tuple of generators for the cone.
+
+        TESTS::
+
+        """
+        import PyNormaliz
+        return PyNormaliz.NmzResult(pynormaliz_cone,"Generators") 
+
     def _get_nmzcone_data(self):
         r"""
         Get the data necessary to reproduce the normaliz cone.
@@ -927,6 +949,68 @@ class Polyhedron_normaliz(Polyhedron_base):
         elif measure == 'induced_lattice':
             n,d = PyNormaliz.NmzResult(cone,'Volume')
             return ZZ(n) / ZZ(d)
+
+    def _triangulate_normaliz(self):
+        r"""
+        Gives a triangulation of the polyhedron using normaliz
+
+        OUTPUT:
+
+        A tuple of pairs ``(simplex,simplex_volume)`` used in the
+        triangulation.
+
+        .. NOTE::
+
+            This function depends on Normaliz (i.e. the ``pynormaliz`` optional
+            package). See the Normaliz documentation for further details.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[[0,0,1],[1,0,1],[0,1,1],[1,1,1]],backend='normaliz')  #  optional - pynormaliz
+            sage: P._triangulate_normaliz()  #  optional - pynormaliz
+            [(0, 1, 2), (1, 2, 3)]
+            sage: C1 = Polyhedron(rays=[[0,0,1],[1,0,1],[0,1,1],[1,1,1]],backend='normaliz')  #  optional - pynormaliz
+            sage: C1._triangulate_normaliz()  #  optional - pynormaliz
+            [(0, 1, 2), (1, 2, 3)]
+            sage: C2 = Polyhedron(rays=[[1,0,1],[0,0,1],[0,1,1],[1,1,10/9]],backend='normaliz')  #  optional - pynormaliz
+            sage: C2._triangulate_normaliz()  #  optional - pynormaliz
+            [(0, 1, 2), (1, 2, 3)]
+        """
+        import PyNormaliz
+        cone = self._normaliz_cone
+        assert cone
+        if self.lines():
+            # Handle this with a more recent version of Normaliz
+            raise(NotImplementedError, "Triangulation of non-compact not pointed polyhedron is not supported.")
+        if len(self.vertices_list()) >= 2 and self.rays_list(): # A mix of polytope and cone
+            raise(NotImplementedError, "Triangulation of non-compact not pointed polyhedron is not supported.")
+        
+        data = self._get_nmzcone_data()
+        # Recreates a pointed cone. This is a hack and should be fixed once
+        # Normaliz accepts compact polyhedron
+        # For now, we lose the information about the volume
+        if self.is_compact():
+            data['cone'] = data['vertices']
+        data.pop('vertices',None)
+        data.pop('inhom_equations',None)
+        data.pop('inhom_inequalities',None)
+        cone = self._make_normaliz_cone(data)
+        if self.is_compact():
+            generators = [list(vector(ZZ,g)[:-1]) for g in self._cone_generators(cone)]
+        else:
+            generators = [list(vector(ZZ,g)) for g in self._cone_generators(cone)]
+    
+        nmz_triangulation = PyNormaliz.NmzResult(cone,"Triangulation")
+        triang_indices = tuple(vector(ZZ,s[0]) for s in nmz_triangulation)
+
+        if self.is_compact():
+            poly_gen = self.vertices_list()
+        else:
+            poly_gen = self.rays_list()
+
+        triangulation = [tuple(sorted([poly_gen.index(generators[i]) for i in s])) for s in triang_indices]
+
+        return triangulation
 
 #########################################################################
 class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):

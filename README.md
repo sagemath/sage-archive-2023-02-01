@@ -230,19 +230,19 @@ someone there will have some helpful suggestions.
 Supported Compilers
 -------------------
 
-* Sage includes a GCC (_GNU Compiler Collection_) package. In order to
+Sage includes a GCC (_GNU Compiler Collection_) package. In order to
 build Sage, you need a C compiler which can build GCC and its
 prerequisites. gcc version 4.0.1 or later should probably work. On
 Solaris or OpenSolaris, building with the Sun compiler should also work.
 
-* The GCC package in Sage is not always installed. It is determined
+The GCC package in Sage is not always installed. It is determined
 automatically whether it needs to be installed. You can override this
 by setting the environment variable `SAGE_INSTALL_GCC=yes` (to force
 installation of GCC) or `SAGE_INSTALL_GCC=no` (to disable installation of
 GCC). If you don't want to install GCC, you need to have recent
 versions of gcc, g++ and gfortran; moreover, the versions must be equal.
 
-* There are some known problems with old assemblers, in particular when
+There are some known problems with old assemblers, in particular when
 building the ECM package. You should ensure that your assembler
 understands all instructions for your processor. On Linux, this means
 you need a recent version of binutils; on OS X you need a recent version

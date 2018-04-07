@@ -186,6 +186,7 @@ def minkowski_reduction(self):
         )
     """
     from sage.quadratic_forms.quadratic_form import QuadraticForm
+    from sage.quadratic_forms.quadratic_form import matrix
     if not self.is_positive_definite():
         raise TypeError("Minkowksi reduction only works for positive definite forms")
 
@@ -225,7 +226,7 @@ def minkowski_reduction(self):
 
                     ## Perform the reduction and restart the loop
                     #print "Q_before = ", Q
-                    Q = QuadraticForm(2*M_new.transpose()*Q.Gram_matrix()*M_new)
+                    Q = QuadraticForm(M_new.transpose()*Q.matrix()*M_new)
                     M = M * M_new
                     done_flag = False
 
@@ -286,6 +287,29 @@ def minkowski_reduction_for_4vars__SP(self):
         [ 1  0  0 -1]
         [ 0  0  1  0]
         [ 0  0  0  1]
+        )
+
+    ::
+
+        sage: Q=QuadraticForm(ZZ,4,[1,-2,0,0,2,0,0,2,0,2])
+        sage: Q
+        Quadratic form in 4 variables over Integer Ring with coefficients:
+        [ 1 -2 0 0 ]
+        [ * 2 0 0 ]
+        [ * * 2 0 ]
+        [ * * * 2 ]
+        sage: Q.minkowski_reduction()
+        (
+        Quadratic form in 4 variables over Integer Ring with coefficients:
+        [ 1 0 0 0 ]
+        [ * 1 0 0 ]
+        [ * * 2 0 ]
+        [ * * * 2 ]                                                        ,
+        <BLANKLINE>
+        [1 1 0 0]
+        [0 1 0 0]
+        [0 0 1 0]
+        [0 0 0 1]
         )
     """
     R = self.base_ring()

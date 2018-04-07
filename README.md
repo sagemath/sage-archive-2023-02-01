@@ -41,10 +41,8 @@ Mac OS X, Windows (using virtualization), as well as a number of
 Solaris and OpenSolaris releases.
 
 Ports are in progress to some other, less common platforms. The list of
-supported platforms and their current statuses are given at the
-following web page:
-
-   https://wiki.sagemath.org/SupportedPlatforms
+supported platforms and their current statuses are given at
+https://wiki.sagemath.org/SupportedPlatforms.
 
 If you are interested in helping port Sage to a new platform, please let
 us know at the [sage-devel mailing list](https://groups.google.com/group/sage-devel).
@@ -105,10 +103,7 @@ Environment Variables
 ---------------------
 
 There are a lot of environment variables which control the install
-process of Sage, see:
-
-   https://doc.sagemath.org/html/en/installation/source.html#environment-variables
-
+process of Sage, see https://doc.sagemath.org/html/en/installation/source.html#environment-variables.
 
 Implementation
 --------------
@@ -141,7 +136,7 @@ More Detailed Instructions to Build from Source
 
    * __Solaris and OpenSolaris:__ Building Sage on these platforms is more
    tricky than on Linux or OS X. For details on how to build Sage on
-   these platforms, see: https://wiki.sagemath.org/solaris
+   these platforms, see https://wiki.sagemath.org/solaris.
 
    * __Windows:__ [Download and install VirtualBox](https://www.virtualbox.org/wiki/Downloads),
    and then download the [Sage virtual appliance](https://wiki.sagemath.org/SageAppliance).
@@ -292,9 +287,7 @@ SAGE_ROOT                 Root directory (sage-x.y.z in Sage tarball)
 │   └── zn_poly-0.9.tar.bz2
 └── VERSION.txt
 ```
-For more details, see:
-
-    https://doc.sagemath.org/html/en/developer/coding_basics.html#files-and-directory-structure
+For more details see https://doc.sagemath.org/html/en/developer/coding_basics.html#files-and-directory-structure.
 
 
 Build System
@@ -386,7 +379,7 @@ do.
    The result is placed in the directory `dist/`.
 
 2. To make a binary distribution with your currently installed packages,
-   visit https://github.com/sagemath/binary-pkg
+   visit https://github.com/sagemath/binary-pkg.
 
 
 Changes to Included Software

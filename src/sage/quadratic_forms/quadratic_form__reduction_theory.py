@@ -185,6 +185,9 @@ def minkowski_reduction(self):
         [ 0  0  0  1]
         )
     """
+    if not self.is_positive_definite():
+        raise TypeError("Minkowksi reduction only works for positive definite forms")
+
     R = self.base_ring()
     n = self.dim()
     interior_reduced_flag = False

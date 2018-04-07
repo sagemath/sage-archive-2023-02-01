@@ -258,38 +258,38 @@ Simplified directory layout (only essential files/directories):
 ```
 SAGE_ROOT                 Root directory (sage-x.y.z in Sage tarball)
 ├── build
-|   ├── deps              Dependency information of packages
-|   └── pkgs              Every package is a subdirectory here
-|       ├── atlas
-|       ...
-|       └── zn_poly
+│   ├── deps              Dependency information of packages
+│   └── pkgs              Every package is a subdirectory here
+│       ├── atlas
+│       …
+│       └── zn_poly
 ├── COPYING.txt           Copyright information
 ├── local                 Compiled packages are installed here
-|   ├── bin               Executables
-|   ├── include           C/C++ headers
-|   ├── lib               Shared libraries
-|   ├── share             Databases, architecture-independent data
-|   └── var
-|       ├── sage          List of installed packages
-|       └── tmp           Temporary files when building Sage
+│   ├── bin               Executables
+│   ├── include           C/C++ headers
+│   ├── lib               Shared libraries
+│   ├── share             Databases, architecture-independent data
+│   └── var
+│       ├── sage          List of installed packages
+│       └── tmp           Temporary files when building Sage
 ├── logs
-|   ├── dochtml.log       Log of the documentation build
-|   ├── install.log       Full install log
-|   └── pkgs              Build logs of individual packages
-|       ├── atlas-3.10.1.p7.log
-|       ...
-|       └── zn_poly-0.9.p11.log
+│   ├── dochtml.log       Log of the documentation build
+│   ├── install.log       Full install log
+│   └── pkgs              Build logs of individual packages
+│       ├── atlas-3.10.1.p7.log
+│       …
+│       └── zn_poly-0.9.p11.log
 ├── Makefile              Running "make" uses this file
 ├── README.md             This file
 ├── sage                  Script to start Sage
 ├── src                   All of Sage source (not third-party packages)
-|   ├── bin               Scripts that Sage uses internally
-|   ├── doc               Sage documentation
-|   └── sage              The Sage library source code
+│   ├── bin               Scripts that Sage uses internally
+│   ├── doc               Sage documentation
+│   └── sage              The Sage library source code
 ├── upstream              Source tarballs of packages
-|   ├── atlas-3.10.1.tar.bz2
-|   ...
-|   └── zn_poly-0.9.tar.bz2
+│   ├── atlas-3.10.1.tar.bz2
+│   …
+│   └── zn_poly-0.9.tar.bz2
 └── VERSION.txt
 ```
 For more details, see:

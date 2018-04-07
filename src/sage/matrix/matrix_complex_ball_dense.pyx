@@ -400,11 +400,11 @@ cdef class Matrix_complex_ball_dense(Matrix_dense):
         """
         return acb_mat_contains(self.value, other.value)
 
-    cpdef _neg_(self):
+    def __neg__(self):
         r"""
         TESTS::
 
-            sage: matrix(CBF, [[1,2]])._neg_()
+            sage: -matrix(CBF, [[1,2]])
             [-1.000000000000000 -2.000000000000000]
         """
         cdef Matrix_complex_ball_dense res = self._new(self._nrows, self._ncols)

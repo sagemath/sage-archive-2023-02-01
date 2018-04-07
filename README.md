@@ -1,3 +1,5 @@
+<a href="https://sagemath.org"><img src="https://en.gravatar.com/userimage/135445388/91eb6b97b9c6dd43badf8db09aa3bd1b.png" align="right" /></a>
+
 #  Sage: Open Source Mathematical Software
 
 >   "Creating a Viable Open Source Alternative to

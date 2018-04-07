@@ -293,7 +293,7 @@ public:
         bool is_evaluated() const
             { return global_hold or ((flags & status_flags::evaluated) != 0u); }
 	const basic & hold() const;
-
+        void set_epseq_from(size_t i, ex e);
 	long gethash() const
 	{
 #ifdef GINAC_COMPARE_STATISTICS

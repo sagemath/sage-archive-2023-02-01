@@ -588,6 +588,80 @@ numeric ex::ldegree(const ex & s) const
         return bp->ldegree(s);
 }
 
+static bool _collect_powers(ex& e, ex& repl, bool& collected)
+{
+        bool is_changed = false;
+        if (is_exactly_a<symbol>(e)
+            or is_exactly_a<numeric>(e)
+            or is_exactly_a<constant>(e))
+                return is_changed;
+        if (is_a<expairseq>(e)) {
+                for (size_t i=0; i<e.nops(); ++i) {
+                        ex ee, et = e.op(i);
+                        bool c = false;
+                        bool changed = _collect_powers(et, ee, c);
+                        if (changed or c)
+                                is_changed = true;
+                        if (c)
+                                e.set_epseq_from(i, ee);
+                }
+        }
+        else {
+                for (size_t i=0; i<e.nops(); ++i) {
+                        ex ee;
+                        bool c = false;
+                        bool changed = _collect_powers(e.let_op(i), ee, c);
+                        if (changed or c)
+                                is_changed = true;
+                        if (c)
+                                e.let_op(i) = ee;
+                }
+        }
+
+        if (not is_exactly_a<mul>(e))
+                return is_changed;
+        exmap map;
+        for (auto term : e) {
+                if (is_exactly_a<power>(term)) {
+                        auto it = map.find(term.op(0));
+                        if (it == map.end())
+                                map.insert(std::make_pair(term.op(0),
+                                                          term.op(1)));
+                        else {
+                                it->second += term.op(1);
+                                collected = true;
+                        }
+                }
+                else {
+                        auto it = map.find(term);
+                        if (it == map.end())
+                                map.insert(std::make_pair(term, _ex1));
+                        else {
+                                it->second += _ex1;
+                                collected = true;
+                        }
+                }
+        }
+        if (not collected)
+                return is_changed;
+        exvector vec;
+        for (auto p : map)
+                vec.push_back(power(p.first, p.second));
+        repl = mul(vec);
+        return is_changed;
+}
+
+// Repeatedly: for any mul in the ex, add exponents of powers
+// with the same base
+ex ex::collect_powers() const
+{
+        ex the_ex = *this;
+        bool b;
+        ex r;
+        (void)_collect_powers(the_ex, r, b);
+        return b? r:the_ex;
+}
+
 /**
  * Return in vec a list of pairs with (coefficient, exponent) of ex
  * when interpreted as polynomial in s (with s any expression).

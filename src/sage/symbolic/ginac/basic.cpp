@@ -22,6 +22,7 @@
 
 #include "basic.h"
 #include "ex.h"
+#include "expairseq.h"
 #include "ex_utils.h"
 #include "numeric.h"
 #include "power.h"
@@ -282,6 +283,11 @@ ex & basic::operator[](const ex & index)
 ex & basic::operator[](size_t i)
 {
 	return let_op(i);
+}
+
+void basic::set_epseq_from(size_t i, ex e)
+{
+        dynamic_cast<expairseq&>(*this).set_pair_from(i, e);
 }
 
 /** Test for occurrence of a pattern.  An object 'has' a pattern if it matches

@@ -162,6 +162,7 @@ public:
 	ex & let_op(size_t i);
 	ex & operator[](const ex & index);
 	ex & operator[](size_t i);
+        void set_epseq_from(size_t i, ex e) { bp->set_epseq_from(i, e); }
 	ex lhs() const;
 	ex rhs() const;
 
@@ -204,6 +205,7 @@ public:
 	// expand/collect
 	ex expand(unsigned options=0) const;
 	ex collect(const ex & s, bool distributed = false) const { return bp->collect(s, distributed); }
+        ex collect_powers() const;
 
 	// differentiation and series expansion
 	ex diff(const symbol & s, unsigned nth = 1) const;

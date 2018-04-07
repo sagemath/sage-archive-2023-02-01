@@ -185,6 +185,7 @@ def minkowski_reduction(self):
         [ 0  0  0  1]
         )
     """
+    from sage.quadratic_forms.quadratic_form import QuadraticForm
     if not self.is_positive_definite():
         raise TypeError("Minkowksi reduction only works for positive definite forms")
 
@@ -205,7 +206,7 @@ def minkowski_reduction(self):
         done_flag = True
         #print " j_range = ", range(n-1, -1, -1)
         for j in range(n-1, -1, -1):
-            for a_first in mrange([2  for i in range(j)]):
+            for a_first in mrange([3  for i in range(j)]):
                 y = [x-1 for x in a_first] + [1] + [0 for k in range(n-1-j)]
                 e_j = [0  for k in range(n)]
                 e_j[j] = 1
@@ -224,7 +225,7 @@ def minkowski_reduction(self):
 
                     ## Perform the reduction and restart the loop
                     #print "Q_before = ", Q
-                    Q = Q(M_new)
+                    Q = QuadraticForm(2*M_new.transpose()*Q.Gram_matrix()*M_new)
                     M = M * M_new
                     done_flag = False
 

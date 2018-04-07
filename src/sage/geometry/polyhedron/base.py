@@ -2662,35 +2662,17 @@ class Polyhedron_base(Element):
         """
 	raise(NotImplementedError,"The backend should be 'normaliz'")
 
-    def _triangulate_normaliz(self):
-        r"""
-        Gives a triangulation of the polyhedron using normaliz
-
-        OUTPUT:
-
-        A tuple of pairs ``(simplex,simplex_volume)`` used in the
-        triangulation.
-
-        .. NOTE::
-
-            This function depends on Normaliz (i.e. the ``pynormaliz`` optional
-            package). See the Normaliz documentation for further details.
-
-        EXAMPLES::
-
-
-        """
     def triangulate(self, engine='auto', connected=True, fine=False, regular=None, star=None):
         r"""
         Returns a triangulation of the polytope.
 
         INPUT:
 
-        - ``engine`` -- either 'auto' (default), 'internal', or
-          'TOPCOM'.  The latter two instruct this package to always
-          use its own triangulation algorithms or TOPCOM's algorithms,
-          respectively. By default ('auto'), TOPCOM is used if it is
-          available and internal routines otherwise.
+        - ``engine`` -- either 'auto' (default), 'internal',
+          'TOPCOM', or 'normaliz'.  The 'internal' and 'TOPCOM' instruct 
+          this package to always use its own triangulation algorithms 
+          or TOPCOM's algorithms, respectively. By default ('auto'), 
+          TOPCOM is used if it is available and internal routines otherwise.
 
         The remaining keyword parameters are passed through to the
         :class:`~sage.geometry.triangulation.point_configuration.PointConfiguration`

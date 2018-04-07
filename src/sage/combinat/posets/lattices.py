@@ -757,7 +757,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         implies `x \le a` or `x \le b` for every `a, b \in L`.
 
         These are also called *coprime* in some books. Every join-prime
-        is join-irreducible; converse holds if and only if the lattise
+        is join-irreducible; converse holds if and only if the lattice
         is distributive.
 
         EXAMPLES::
@@ -794,7 +794,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         implies `x \ge a` or `x \ge b` for every `a, b \in L`.
 
         These are also called just *prime* in some books. Every meet-prime
-        is meet-irreducible; converse holds if and only if the lattise
+        is meet-irreducible; converse holds if and only if the lattice
         is distributive.
 
         EXAMPLES::

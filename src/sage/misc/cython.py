@@ -626,7 +626,6 @@ def cython(filename, verbose=0, compile_message=False,
                     cython_messages = "Error compiling Cython file"
     except CompileError:
         # Check for names in old_pxi_names
-        note = ''
         for pxd, names in old_pxi_names.items():
             for name in names:
                 if re.search(r"\b{}\b".format(name), cython_messages):

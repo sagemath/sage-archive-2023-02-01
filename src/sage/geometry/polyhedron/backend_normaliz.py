@@ -344,11 +344,10 @@ class Polyhedron_normaliz(Polyhedron_base):
         """
         import PyNormaliz
         self._Hrepresentation = []
-        base_ring = self.base_ring()
         cone = self._normaliz_cone
         parent = self.parent()
         for g in PyNormaliz.NmzResult(cone, "SupportHyperplanes"):
-            if all(x==0 for x in g[:-1]):
+            if all(x == 0 for x in g[:-1]):
                 # Ignore vertical inequality
                 pass
             else:

@@ -148,34 +148,55 @@ static ex exp_eval(const ex & x)
                 }
         }
 
-        if (is_exactly_a<mul>(x_red)
-            and x_red.nops() == 2) {
-                const ex& fac = x_red.op(0);
-                if (is_exactly_a<function>(fac)) {
+        static std::unordered_set<unsigned int> funcs = { log_SERIAL::serial,
+                asinh_SERIAL::serial, acosh_SERIAL::serial,
+                atanh_SERIAL::serial, acoth_SERIAL::serial,
+                asech_SERIAL::serial, acsch_SERIAL::serial };
+
+        if (is_exactly_a<mul>(x_red)) {
+                // Loop through factors finding and marking the function.
+                // Don't proceed if more than one function found.
+                bool function_seen = false, applicable = false;
+                size_t func_idx;
+                for (size_t i=0; i<x_red.nops(); ++i) {
+                        const ex& fac = x_red.op(i);
+                        if (is_exactly_a<function>(fac)
+                            and funcs.find(ex_to<function>(fac).get_serial()) != funcs.end()) {
+                                if (function_seen)
+                                        { applicable = false; break; }
+                                function_seen = applicable = true;
+                                func_idx = i;
+                        }
+                }
+                if (applicable) {
+                        ex c = _ex1;
+                        for (size_t i=0; i<x_red.nops(); ++i)
+                                if (i != func_idx)
+                                        c *= x_red.op(i);
+                        const ex& fac = x_red.op(func_idx);
                         const ex& arg = fac.op(0);
-                        const numeric& c = ex_to<mul>(x_red).get_overall_coeff();
-                        // exp(c*log(x)) -> x^c
+                        // exp(c*log(ex)) -> ex^c
                         if (is_ex_the_function(fac, log))
                                 return power(arg, c);
-                        // exp(c*asinh(num)) etc.
-                        if (is_exactly_a<numeric>(arg)) {
-                                if (is_ex_the_function(fac, asinh))
-                                        return power(arg + sqrt(power(arg, _ex2) + _ex1), c);
-                                if (is_ex_the_function(fac, acosh))
-                                        return power(arg + sqrt(power(arg, _ex2) - _ex1), c);
-                                if (is_ex_the_function(fac, atanh))
-                                        return power((arg+_ex1) / (arg-_ex1), c/ *_num2_p);
-                                if (is_ex_the_function(fac, acoth))
-                                        return power((arg-_ex1) / (arg+_ex1), c/ *_num2_p);
-                                if (is_ex_the_function(fac, asech))
-                                        return power(_ex1/arg +
-                                                sqrt(_ex1-power(arg, _ex2))/arg,
+                        // exp(c*asinh(ex)) etc.
+                        if (is_ex_the_function(fac, asinh))
+                                return power(arg + sqrt(power(arg, _ex2) + 1),
                                                 c);
-                                if (is_ex_the_function(fac, acsch))
-                                        return power(_ex1/arg +
-                                                sqrt(_ex1+power(arg, _ex2))/arg,
+                        if (is_ex_the_function(fac, acosh))
+                                return power(arg + sqrt(power(arg, _ex2) - 1),
                                                 c);
-                        }
+                        if (is_ex_the_function(fac, atanh))
+                                return power((arg+_ex1) / (arg-_ex1), c/2);
+                        if (is_ex_the_function(fac, acoth))
+                                return power((arg-_ex1) / (arg+_ex1), c/2);
+                        if (is_ex_the_function(fac, asech))
+                                return power(_ex1/arg +
+                                        sqrt(_ex1-power(arg, _ex2))/arg,
+                                        c);
+                        if (is_ex_the_function(fac, acsch))
+                                return power(_ex1/arg +
+                                        sqrt(_ex1+power(arg, _ex2))/arg,
+                                        c);
                 }
         }
 

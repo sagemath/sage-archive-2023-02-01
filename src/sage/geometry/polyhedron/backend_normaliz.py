@@ -980,7 +980,6 @@ class Polyhedron_normaliz(Polyhedron_base):
         cone = self._normaliz_cone
         assert cone
         if self.lines():
-            # Handle this with a more recent version of Normaliz
             raise(NotImplementedError, "Triangulation of non-compact not pointed polyhedron is not supported.")
         if len(self.vertices_list()) >= 2 and self.rays_list(): # A mix of polytope and cone
             raise(NotImplementedError, "Triangulation of non-compact not pointed polyhedron is not supported.")
@@ -988,7 +987,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         data = self._get_nmzcone_data()
         # Recreates a pointed cone. This is a hack and should be fixed once
         # Normaliz accepts compact polyhedron
-        # For now, we lose the information about the volume
+        # For now, we lose the information about the volume?
         if self.is_compact():
             data['cone'] = data['vertices']
         data.pop('vertices',None)
@@ -1008,6 +1007,9 @@ class Polyhedron_normaliz(Polyhedron_base):
         else:
             poly_gen = self.rays_list()
 
+        # When triangulating, Normaliz uses the indexing of 'Generators' and
+        # not necessarily the indexing of the V-representation. So we apply the
+        # appropriate relabeling into the V-representation inside sage.
         triangulation = [tuple(sorted([poly_gen.index(generators[i]) for i in s])) for s in triang_indices]
 
         return triangulation

@@ -2660,7 +2660,7 @@ class Polyhedron_base(Element):
 
 
         """
-	raise(NotImplementedError,"The backend should be 'normaliz'")
+	raise NotImplementedError("The backend should be 'normaliz'")
 
     def triangulate(self, engine='auto', connected=True, fine=False, regular=None, star=None):
         r"""
@@ -2728,14 +2728,47 @@ class Polyhedron_base(Element):
              A vertex at (-1, 1, -1), A vertex at (1, 1, 1)]
             sage: Polyhedron(simplex_vertices)
             A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 4 vertices
+
+        It is possible to use ``'normaliz'`` as an engine. For this, the
+        polyhedron should have the backend set to normaliz::
+
+            sage: P = Polyhedron(vertices=[[0,0,1],[1,0,1],[0,1,1],[1,1,1]])
+            sage: P.triangulate(engine='normaliz')
+            Traceback (most recent call last):
+            ...
+            NotImplementedError("The backend should be 'normaliz'")
+
+            sage: P = Polyhedron(vertices=[[0,0,1],[1,0,1],[0,1,1],[1,1,1]],backend='normaliz') # optional - pynormaliz
+            sage: P.triangulate(engine='normaliz')  # optional - pynormaliz
+            (<0,1,2>, <1,2,3>)
+
+        The normaliz engine can triangulate pointed cones::
+
+            sage: C1 = Polyhedron(rays=[[0,0,1],[1,0,1],[0,1,1],[1,1,1]],backend='normaliz') # optional - pynormaliz
+            sage: C1.triangulate(engine='normaliz')  # optional - pynormaliz
+            (<0,1,2>, <1,2,3>)
         """
-        if not self.is_compact():
-            raise NotImplementedError('I can only triangulate compact polytopes.')
+        if self.lines():
+            raise NotImplementedError('Triangulation of polyhedra with lines is not supported.')
+        if len(self.vertices_list()) >= 2 and self.rays_list():
+            raise NotImplementedError('Triangulation of non-compact not pointed polyhedra is not supported.')
+        if not self.is_compact() and engine != 'normaliz':
+            raise NotImplementedError("Triangulation of pointed cones requires 'normaliz'")
         from sage.geometry.triangulation.point_configuration import PointConfiguration
-        pc = PointConfiguration((v.vector() for v in self.vertex_generator()),
-                                connected=connected, fine=fine, regular=regular, star=star)
-        pc.set_engine(engine)
-        return pc.triangulate()
+        if self.is_compact():
+            pc = PointConfiguration((v.vector() for v in self.vertex_generator()),
+                                    connected=connected, fine=fine, regular=regular, star=star)
+            # If the engine is not normaliz, we pass directly to the
+            # PointConfiguration module.
+            if engine != 'normaliz':
+                pc.set_engine(engine)
+                return pc.triangulate()
+            else:
+                return pc(self._triangulate_normaliz())
+        else: # From above, we have a pointed cone and the engine is normaliz
+            pc = PointConfiguration((v.vector() for v in self.ray_generator()),
+                                    connected=connected, fine=fine, regular=regular, star=star)
+            return pc(self._triangulate_normaliz())
 
     @coerce_binop
     def minkowski_sum(self, other):

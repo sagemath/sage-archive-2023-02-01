@@ -2106,6 +2106,31 @@ def number_field_elements_from_algebraics(numbers, minimal=False, embedded=False
             To:   Algebraic Real Field
             Defn: a |--> 1.414213562373095?)
 
+    Tests trivial cases::
+
+        sage: number_field_elements_from_algebraics([], embedded=True)
+        (Rational Field, [], Ring morphism:
+           From: Rational Field
+           To:   Algebraic Real Field
+           Defn: 1 |--> 1)
+        sage: number_field_elements_from_algebraics([1], embedded=True)
+        (Rational Field, [1], Ring morphism:
+           From: Rational Field
+           To:   Algebraic Real Field
+           Defn: 1 |--> 1)
+
+    Tests more complicated combinations::
+
+        sage: UCF = UniversalCyclotomicField()
+        sage: E = UCF.gen(5)
+        sage: L.<b> = NumberField(x^2-189*x+16, embedding=200)
+        sage: x = polygen(ZZ)
+        sage: my_nums = [-52*E - 136*E^2 - 136*E^3 - 52*E^4, \ 
+                         L.gen()._algebraic_(AA), \
+                         sqrt(2), AA.polynomial_root(x^3-3, RIF(0,3)), 11/9, 1]
+        sage: res = number_field_elements_from_algebraics(my_nums, embedded=True)
+        sage: res[0]
+        Number Field in a with defining polynomial y^24 - 107010*y^22 - 24*y^21 + ... + 250678447193040618624307096815048024318853254384
     """
     gen = qq_generator
 
@@ -2122,13 +2147,22 @@ def number_field_elements_from_algebraics(numbers, minimal=False, embedded=False
             return x
         return QQbar(x)
 
+    # Try to cast into AA
+    try:
+        aa_numbers = [AA(_) for _ in numbers]
+        numbers = aa_numbers
+        real_case = True
+    except:
+        real_case = False
+        if embedded:
+            raise NotImplementedError
     # Make the numbers algebraic
     numbers = [mk_algebraic(_) for _ in numbers]
 
     # Make the numbers have a real root
     real_numbers = []
     for v in numbers:
-        if v._exact_field().is_complex():
+        if v._exact_field().is_complex() and real_case:
             # the number comes from a complex algebraic number field
             embedded_rt = v.interval_fast(RealIntervalField(prec))
             root = ANRoot(v.minpoly(), embedded_rt)
@@ -2149,8 +2183,9 @@ def number_field_elements_from_algebraics(numbers, minimal=False, embedded=False
     nums = [gen(v._exact_value()) for v in numbers]
 
     hom = fld.hom([gen.root_as_algebraic()])
-    
-    if embedded:
+
+    if fld is not QQ and embedded:
+        assert real_case
         exact_generator = hom(fld.gen(0))
         embedding_field = RealIntervalField(prec)
         embedded_gen = embedding_field(exact_generator)
@@ -3537,11 +3572,22 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
                 zlist.append(root)
             return zlist
 
-    def as_number_field_element(self, minimal=False):
+    def as_number_field_element(self, minimal=False, embedded=False, prec=53):
         r"""
         Returns a number field containing this value, a representation of
         this value as an element of that number field, and a homomorphism
         from the number field back to ``AA`` or ``QQbar``.
+
+        INPUT:
+
+        - ``minimal`` -- Boolean (default: ``False``). Whether to minimize the
+          degree of the extension.
+
+        - ``embedded`` -- Boolean (default: ``False``). Whether to make the
+          NumberField embedded.
+    
+        - ``prec`` -- integer (default: ``53``). The number of bit of precision for
+          the embedding.
 
         This may not return the smallest such number field, unless
         ``minimal=True`` is specified.

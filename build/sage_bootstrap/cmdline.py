@@ -68,7 +68,6 @@ EXAMPLE:
     4ti2
     arb
     atlas
-    autotools
     [...]
     zn_poly
 """

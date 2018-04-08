@@ -304,6 +304,51 @@ static bool binomial_info(const function& f, unsigned inf)
         return false;
 }
 
+static bool min_info(const function& f, unsigned inf)
+{
+        switch (inf) {
+        case info_flags::real:
+        case info_flags::integer:
+        case info_flags::even:
+        case info_flags::rational:
+        case info_flags::nonzero:
+        case info_flags::negative:
+                for (size_t i=0; i<f.nops(); ++i)
+                        if (not f.op(i).info(inf))
+                                return false;
+                return true;
+        case info_flags::positive:
+        case info_flags::nonnegative:
+                for (size_t i=0; i<f.nops(); ++i)
+                        if (f.op(i).info(inf))
+                                return true;
+                return false;
+        }
+        return false;
+}
+
+static bool max_info(const function& f, unsigned inf)
+{
+        switch (inf) {
+        case info_flags::real:
+        case info_flags::integer:
+        case info_flags::even:
+        case info_flags::rational:
+        case info_flags::nonzero:
+        case info_flags::positive:
+        case info_flags::nonnegative:
+                for (size_t i=0; i<f.nops(); ++i)
+                        if (not f.op(i).info(inf))
+                                return false;
+                return true;
+        case info_flags::negative:
+                for (size_t i=0; i<f.nops(); ++i)
+                        if (f.op(i).info(inf))
+                                return true;
+                return false;
+        }
+        return false;
+}
 
 bool function::info(unsigned inf) const
 {
@@ -335,6 +380,14 @@ bool function::info(unsigned inf) const
                 {binomial_SERIAL::serial, &binomial_info},
                 {factorial_SERIAL::serial, &factorial_info},
         }};
+        static bool initalized = false;
+        if (not initalized) {
+                auto ser = function::find_function("min", 0);
+                funcmap.insert(std::pair<unsigned int,ifun_t*>(ser, &min_info));
+                ser = function::find_function("max", 0);
+                funcmap.insert(std::pair<unsigned int,ifun_t*>(ser, &max_info));
+                initalized = true;
+        }
 
         auto search = funcmap.find(serial);
         if (search == funcmap.end())

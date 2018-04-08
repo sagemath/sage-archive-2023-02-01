@@ -1515,7 +1515,7 @@ cdef class ComplexBall(RingElement):
         fmpz_init(tmp)
         try:
             if acb_get_unique_fmpz(tmp, self.value):
-                res = Integer.__new__(Integer)
+                res = PY_NEW(Integer)
                 fmpz_get_mpz(res.value, tmp)
             else:
                 raise ValueError("{} does not contain a unique integer".format(self))

@@ -332,6 +332,8 @@ from .generic_graph_pyx import GenericGraph_pyx, spring_layout_fast
 from sage.graphs.dot2tex_utils import assert_have_dot2tex
 from sage.misc.superseded import deprecation, deprecated_function_alias
 
+to_hex = None   # overriden when needed in graphviz_string
+
 class GenericGraph(GenericGraph_pyx):
     """
     Base class for graphs and digraphs.
@@ -20317,12 +20319,22 @@ class GenericGraph(GenericGraph_pyx):
           the labels on edges.
 
         - ``edge_color`` -- (default: None) specify a default color
-          for the edges.
+          for the edges. The color could be one of
+
+          - a name given as a string such as ``"blue"`` or ``"orchid"``
+
+          - a HSV sequence in a string such as ``".52,.386,.22"``
+
+          - an hexadecimal code such as ``"#DA3305"``
+
+          - a 3-tuple of floating point (to be interpreted as RGB tuple). In
+            this case the 3-tuple is converted in hexadecimal code.
 
         - ``edge_colors`` -- (default: None) a dictionary whose keys
           are colors and values are list of edges. The list of edges
           need not to be complete in which case the default color is
-          used.
+          used. See the option ``edge_color`` for a description of
+          valid color formats.
 
         - ``color_by_label`` -- (default: False) a boolean or
           dictionary or function whether to color each edge with a
@@ -20330,6 +20342,8 @@ class GenericGraph(GenericGraph_pyx):
           chosen along a rainbow, unless they are specified by a
           function or dictionary mapping labels to colors; this option
           is incompatible with ``edge_color`` and ``edge_colors``.
+          See the option ``edge_color`` for a description of
+          valid color formats.
 
         - ``edge_options`` -- a function (or tuple thereof) mapping
           edges to a dictionary of options for this edge.
@@ -20669,6 +20683,22 @@ class GenericGraph(GenericGraph_pyx):
             'digraph {\n  node_0  [label="1"];\n  node_1  [label="2"];\n\n
               node_0 -> node_1 [color = "blue"];\n}'
 
+        Check that :trac:`25121` is fixed::
+
+            sage: G = Graph([(0,1)])
+            sage: G.graphviz_string(edge_colors={(0.25, 0.5, 1.0): [(0,1)]})
+            'graph {\n  node_0  [label="0"];\n  node_1  [label="1"];\n\n  node_0 -- node_1 [color = "#4080ff"];\n}'
+
+            sage: G = Graph([(0,1)])
+            sage: G.set_latex_options(edge_colors={(0,1): (0.25, 0.5, 1.0)})
+            sage: print(G.latex_options().dot2tex_picture()) # optional - dot2tex graphviz
+            \begin{tikzpicture}[>=latex,line join=bevel,]
+            ...
+              \definecolor{strokecolor}{rgb}{0.25,0.5,1.0};
+              \draw [strokecolor,] (node_0) ... (node_1);
+            ...
+            \end{tikzpicture}
+
         REFERENCES:
 
         .. [dotspec] http://www.graphviz.org/doc/info/lang.html
@@ -20789,7 +20819,15 @@ class GenericGraph(GenericGraph_pyx):
                     dot_options.append('label="%s"'% label)
 
             if edge_options['color'] != default_color:
-                dot_options.append('color = "%s"'%edge_options['color'])
+                col = edge_options['color']
+                if isinstance(col, (tuple, list)):
+                    # convert RGB triples in hexadecimal
+                    global to_hex
+                    if to_hex is None:
+                        from matplotlib.colors import to_hex
+                    col = str(to_hex(col, False))
+
+                dot_options.append('color = "%s"' % col)
 
             if edge_options['backward']:
                 v,u = u,v

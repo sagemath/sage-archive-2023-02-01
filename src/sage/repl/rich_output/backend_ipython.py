@@ -16,6 +16,7 @@ This module defines the IPython backends for
 #*****************************************************************************
 
 import os
+import sys
 from IPython.display import publish_display_data
 from sage.repl.rich_output.backend_base import BackendBase
 from sage.repl.rich_output.output_catalog import *
@@ -412,10 +413,16 @@ class BackendIPythonCommandline(BackendIPython):
             '...<script ...</script>...'
         """
         from sage.env import SAGE_SHARE
-        return """
-<script src="{0}/threejs/three.min.js"></script>
-<script src="{0}/threejs/OrbitControls.js"></script>
-        """.format(SAGE_SHARE)
+
+        scripts = [os.path.join(SAGE_SHARE, 'threejs', script)
+                   for script in ['three.min.js', 'OrbitControls.js']]
+
+        if sys.platform == 'cygwin':
+            import cygwin
+            scripts = [cygwin.cygpath(script, 'w') for script in scripts]
+
+        return '\n'.join('<script src="{0}"></script>'.format(script)
+                         for script in scripts)
 
 
 IFRAME_TEMPLATE = \

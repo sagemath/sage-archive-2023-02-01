@@ -653,8 +653,21 @@ class OrderedSetPartitions_all(OrderedSetPartitions):
             return False
 
         # Check to make sure each element of the list is a set
-        return all(isinstance(s, (set, frozenset, Set_generic))
-                   for s in x)
+        if any(not isinstance(s, (set, frozenset, list, tuple, Set_generic))
+               for s in x):
+            return False
+        if all(isinstance(s, (set, frozenset, Set_generic)) for s in x):
+            return True
+        return all(len(s) == len(set(s)) for s in x)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: OrderedSetPartitions()
+            Ordered set partitions
+        """
+        return "Ordered set partitions"
 
 ##########################################################
 # Deprecations

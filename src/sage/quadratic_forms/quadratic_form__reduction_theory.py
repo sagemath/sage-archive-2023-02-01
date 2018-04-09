@@ -164,7 +164,7 @@ def minkowski_reduction(self):
 
     EXAMPLES::
 
-        sage: Q = QuadraticForm(ZZ,4,[30,17,11,12,29,25,62,64,25,110])
+        sage: Q = QuadraticForm(ZZ,4,[30, 17, 11, 12, 29, 25, 62, 64, 25, 110])
         sage: Q
         Quadratic form in 4 variables over Integer Ring with coefficients:
         [ 30 17 11 12 ]
@@ -183,6 +183,29 @@ def minkowski_reduction(self):
         [ 0  1  0 -1]
         [ 0  0  1  0]
         [ 0  0  0  1]
+        )
+
+    ::
+
+        sage: Q=QuadraticForm(ZZ,4,[1, -2, 0, 0, 2, 0, 0, 2, 0, 2])
+        sage: Q
+        Quadratic form in 4 variables over Integer Ring with coefficients:
+        [ 1 -2 0 0 ]
+        [ * 2 0 0 ]
+        [ * * 2 0 ]
+        [ * * * 2 ]
+        sage: Q.minkowski_reduction()
+        (
+        Quadratic form in 4 variables over Integer Ring with coefficients:
+        [ 1 0 0 0 ]
+        [ * 1 0 0 ]
+        [ * * 2 0 ]
+        [ * * * 2 ]                                                        ,
+        <BLANKLINE>
+        [1 1 0 0]
+        [0 1 0 0]
+        [0 0 1 0]
+        [0 0 0 1]
         )
     """
     from sage.quadratic_forms.quadratic_form import QuadraticForm
@@ -287,29 +310,6 @@ def minkowski_reduction_for_4vars__SP(self):
         [ 1  0  0 -1]
         [ 0  0  1  0]
         [ 0  0  0  1]
-        )
-
-    ::
-
-        sage: Q=QuadraticForm(ZZ,4,[1,-2,0,0,2,0,0,2,0,2])
-        sage: Q
-        Quadratic form in 4 variables over Integer Ring with coefficients:
-        [ 1 -2 0 0 ]
-        [ * 2 0 0 ]
-        [ * * 2 0 ]
-        [ * * * 2 ]
-        sage: Q.minkowski_reduction()
-        (
-        Quadratic form in 4 variables over Integer Ring with coefficients:
-        [ 1 0 0 0 ]
-        [ * 1 0 0 ]
-        [ * * 2 0 ]
-        [ * * * 2 ]                                                        ,
-        <BLANKLINE>
-        [1 1 0 0]
-        [0 1 0 0]
-        [0 0 1 0]
-        [0 0 0 1]
         )
     """
     R = self.base_ring()

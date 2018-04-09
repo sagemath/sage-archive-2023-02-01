@@ -59,11 +59,11 @@ class BackendIPython(BackendBase):
         from sage.repl.display.formatter import SageDisplayFormatter
         shell.display_formatter = SageDisplayFormatter(parent=shell)
         shell.configurables.append(shell.display_formatter)
-    
+
     def set_underscore_variable(self, obj):
         """
         Set the ``_`` builtin variable.
-        
+
         Since IPython handles the history itself, this does nothing.
 
         INPUT:
@@ -109,7 +109,7 @@ class BackendIPython(BackendBase):
         if not formatted:
             return
         publish_display_data(data=formatted, metadata=metadata)
-                    
+
 
 class BackendIPythonCommandline(BackendIPython):
     """
@@ -164,7 +164,7 @@ class BackendIPythonCommandline(BackendIPython):
             'IPython command line'
         """
         return 'IPython command line'
-    
+
     def supported_output(self):
         """
         Return the outputs that are supported by the IPython commandline backend.
@@ -180,7 +180,7 @@ class BackendIPythonCommandline(BackendIPython):
             sage: from sage.repl.rich_output.backend_ipython import BackendIPythonCommandline
             sage: backend = BackendIPythonCommandline()
             sage: supp = backend.supported_output();  supp     # random output
-            set([<class 'sage.repl.rich_output.output_graphics.OutputImageGif'>, 
+            set([<class 'sage.repl.rich_output.output_graphics.OutputImageGif'>,
                  ...,
                  <class 'sage.repl.rich_output.output_graphics.OutputImagePng'>])
             sage: from sage.repl.rich_output.output_basic import OutputLatex
@@ -197,7 +197,7 @@ class BackendIPythonCommandline(BackendIPython):
     def displayhook(self, plain_text, rich_output):
         """
         Backend implementation of the displayhook
-        
+
         INPUT:
 
         - ``plain_text`` -- instance of
@@ -283,7 +283,7 @@ class BackendIPythonCommandline(BackendIPython):
         This method is similar to the rich output :meth:`displayhook`,
         except that it can be invoked at any time. On the Sage command
         line it launches viewers just like :meth:`displayhook`.
-        
+
         INPUT:
 
         Same as :meth:`displayhook`.
@@ -427,14 +427,14 @@ class BackendIPythonCommandline(BackendIPython):
 
 IFRAME_TEMPLATE = \
 """
-<iframe srcdoc="{escaped_html}" 
+<iframe srcdoc="{escaped_html}"
         width="{width}"
         height="{height}"
         style="border: 0;">
 </iframe>
 """
 
-    
+
 class BackendIPythonNotebook(BackendIPython):
     """
     Backend for the IPython Notebook
@@ -462,7 +462,7 @@ class BackendIPythonNotebook(BackendIPython):
             'IPython notebook'
         """
         return 'IPython notebook'
-    
+
     def supported_output(self):
         """
         Return the outputs that are supported by the IPython notebook backend.
@@ -478,7 +478,7 @@ class BackendIPythonNotebook(BackendIPython):
             sage: from sage.repl.rich_output.backend_ipython import BackendIPythonNotebook
             sage: backend = BackendIPythonNotebook()
             sage: supp = backend.supported_output();  supp     # random output
-            set([<class 'sage.repl.rich_output.output_graphics.OutputPlainText'>, 
+            set([<class 'sage.repl.rich_output.output_graphics.OutputPlainText'>,
                  ...,
                  <class 'sage.repl.rich_output.output_graphics.OutputImagePdf'>])
             sage: from sage.repl.rich_output.output_basic import OutputLatex
@@ -499,7 +499,7 @@ class BackendIPythonNotebook(BackendIPython):
     def displayhook(self, plain_text, rich_output):
         """
         Backend implementation of the displayhook
-        
+
         INPUT:
 
         - ``plain_text`` -- instance of
@@ -568,7 +568,7 @@ class BackendIPythonNotebook(BackendIPython):
             jsmol = JSMolHtml(rich_output, height=500)
             return ({u'text/html':  jsmol.iframe(),
                      u'text/plain': plain_text.text.get_unicode(),
-            }, {})            
+            }, {})
         elif isinstance(rich_output, OutputSceneThreejs):
             escaped_html = rich_output.html.get().replace('"', '&quot;')
             iframe = IFRAME_TEMPLATE.format(
@@ -578,7 +578,7 @@ class BackendIPythonNotebook(BackendIPython):
             )
             return ({u'text/html':  iframe,
                      u'text/plain': plain_text.text.get_unicode(),
-            }, {})            
+            }, {})
         else:
             raise TypeError('rich_output type not supported')
 

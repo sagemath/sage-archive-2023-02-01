@@ -89,6 +89,7 @@ List of Polyhedron methods
     :meth:`~sage.geometry.polyhedron.base_ZZ.Polyhedron_ZZ.minkowski_decompositions` | Minkowski decomposition (only for :class:`Polyhedron over ZZ <sage.geometry.polyhedron.base_ZZ.Polyhedron_ZZ>`)
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.product` | cartesian product of two polyhedra
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.intersection` | intersection of two polyhedra
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.join` | join of two polyhedra
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.convex_hull` | convex hull of the union of two polyhedra
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.affine_hull` | constructs an affinely equivalent full dimensional polyhedra
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.faces` | the list of faces

@@ -27,7 +27,8 @@ If you downloaded the [sources](http://www.sagemath.org/download-source.html),
 please read below on how to build Sage and work around common issues.
 
 If you have questions or encounter problems, please do not hesitate
-to email the [sage-support mailing list](https://groups.google.com/group/sage-support).
+to email the [sage-support mailing list](https://groups.google.com/group/sage-support)
+or ask on [ask.sagemath.org](https://ask.sagemath.org).
 
 Contributing to Sage
 --------------------

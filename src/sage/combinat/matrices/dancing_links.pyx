@@ -497,7 +497,7 @@ cdef class dancing_linksWrapper:
 
     def one_solution(self, ncpus=1, column=None):
         r"""
-        Return the first solution found after spliting the problem to
+        Return the first solution found after splitting the problem to
         allow parallel computation.
 
         Usefull when it is very hard just to find one solution to a given
@@ -577,7 +577,7 @@ cdef class dancing_linksWrapper:
 
     def all_solutions(self, ncpus=1, column=None):
         r"""
-        Return all solutions found after spliting the problem to allow
+        Return all solutions found after splitting the problem to allow
         parallel computation.
 
         INPUT:
@@ -600,7 +600,8 @@ cdef class dancing_linksWrapper:
             sage: [sorted(s) for s in S]
             [[0, 1], [2, 3], [4, 5]]
 
-        ::
+        The computations can be made parallel by giving to ``ncpus`` a
+        value greater than ``1``::
 
             sage: S = Subsets(range(4))
             sage: rows = map(list, S)
@@ -609,7 +610,7 @@ cdef class dancing_linksWrapper:
             Dancing links solver for 4 columns and 16 rows
             sage: dlx.number_of_solutions()
             15
-            sage: sorted([sorted(s) for s in dlx.all_solutions()])
+            sage: sorted([sorted(s) for s in dlx.all_solutions(ncpus=1)])
             [[1, 2, 3, 4],
              [1, 2, 10],
              [1, 3, 9],

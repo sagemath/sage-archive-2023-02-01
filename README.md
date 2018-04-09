@@ -119,8 +119,8 @@ included (OS X only), so you do not need them in order to build Sage.
 Docker Images
 -------------
 
-You can also have a look at our docker images to run Sage.
-To use these images [install docker](https://www.docker.com/community-edition#/download)
+You can also have a look at our Docker images to run Sage.
+To use these images [install Docker](https://www.docker.com/community-edition#/download)
 and follow the instructions on [our Docker Hub page](https://hub.docker.com/r/sagemath/sagemath/).
 
 More Detailed Instructions to Build from Source

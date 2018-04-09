@@ -282,6 +282,7 @@ Comprehensive Module list
     sage/combinat/sf/dual
     sage/combinat/sf/elementary
     sage/combinat/sf/hall_littlewood
+    sage/combinat/sf/hecke
     sage/combinat/sf/homogeneous
     sage/combinat/sf/jack
     sage/combinat/sf/k_dual

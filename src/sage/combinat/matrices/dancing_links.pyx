@@ -575,6 +575,94 @@ cdef class dancing_linksWrapper:
             if not val is None:
                 return val
 
+    def all_solutions(self, ncpus=1, column=None):
+        r"""
+        Return all solutions found after spliting the problem to allow
+        parallel computation.
+
+        INPUT:
+
+        - ``ncpus`` -- integer (default: ``1``), maximal number of
+          subprocesses to use at the same time
+        - ``column`` -- integer (default: ``None``), the column used to split
+          the problem, if ``None`` a random column is chosen
+
+        OUTPUT:
+
+            list of solutions
+
+        EXAMPLES::
+
+            sage: from sage.combinat.matrices.dancing_links import dlx_solver
+            sage: rows = [[0,1,2], [3,4,5], [0,1], [2,3,4,5], [0], [1,2,3,4,5]]
+            sage: d = dlx_solver(rows)
+            sage: S = d.all_solutions()
+            sage: [sorted(s) for s in S]
+            [[0, 1], [2, 3], [4, 5]]
+
+        ::
+
+            sage: S = Subsets(range(4))
+            sage: rows = map(list, S)
+            sage: dlx = dlx_solver(rows)
+            sage: dlx
+            Dancing links solver for 4 columns and 16 rows
+            sage: dlx.number_of_solutions()
+            15
+            sage: sorted([sorted(s) for s in dlx.all_solutions()])
+            [[1, 2, 3, 4],
+             [1, 2, 10],
+             [1, 3, 9],
+             [1, 4, 8],
+             [1, 14],
+             [2, 3, 7],
+             [2, 4, 6],
+             [2, 13],
+             [3, 4, 5],
+             [3, 12],
+             [4, 11],
+             [5, 10],
+             [6, 9],
+             [7, 8],
+             [15]]
+
+        TESTS:
+
+        When no solution is found::
+
+            sage: rows = [[0,1,2], [2,3,4,5], [0,1,2,3]]
+            sage: d = dlx_solver(rows)
+            sage: d.all_solutions()
+            []
+
+        ::
+
+            sage: [d.all_solutions(column=i) for i in range(6)]
+            [[], [], [], [], [], []]
+        """
+        if column is None:
+            from random import randrange
+            column = randrange(self.ncols())
+
+        if not 0 <= column < self.ncols():
+            raise ValueError("column(={}) must be in range(ncols) "
+                             "where ncols={}".format(column, self.ncols()))
+
+        from sage.parallel.decorate import parallel
+        @parallel(ncpus=ncpus)
+        def all_solutions(i):
+            dlx = self.restrict([i])
+            L = []
+            while dlx.search():
+                L.append(dlx.get_solution())
+            return L
+
+        indices = [i for (i,row) in enumerate(self._rows) if column in row]
+        L = []
+        for ((args, kwds), val) in all_solutions(indices):
+            L.extend(val)
+        return L
+
     def _number_of_solutions_iterator(self, ncpus=1, column=None):
         r"""
         Return an iterator over the number of solutions using each row

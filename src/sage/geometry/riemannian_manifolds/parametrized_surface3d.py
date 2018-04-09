@@ -1435,7 +1435,7 @@ class ParametrizedSurface3D(SageObject):
            [(-cos(v)/(r*cos(v) + R), [(1, 0)], 1), (-1/r, [(0, 1)], 1)]
 
         """
-        return self.shape_operator().eigenvectors_left()
+        return self.shape_operator().eigenvectors_right()
 
 
     @cached_method

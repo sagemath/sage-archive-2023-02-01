@@ -14,7 +14,7 @@ REFERENCE:
 .. [Eppstein2008] David Eppstein,
   "Recognizing partial cubes in quadratic time",
   J. Graph Algorithms and Applications 15 (2): 269-293, 2011.
-  Available at http://arxiv.org/abs/0705.1025
+  :arxiv:`0705.1025`
 
 Recognition algorithm
 ---------------------

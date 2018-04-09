@@ -122,7 +122,10 @@ $MAKE BOOT_LDFLAGS="-Wl,-rpath,$SAGE_LOCAL/lib"
 $MAKE install
 
 
-# Mark gfortran as not installed in case gfortran was installed earlier
+# Force re-installation of gmp, mpir, mpfr and mpc with the GCC that we
+# just built. This is needed in particular because gmp/mpir was first
+# built without C++ support. Also mark gfortran as not installed in case
+# somebody first built gfortran and then GCC.
 cd "$SAGE_SPKG_INST"
 rm -f gmp-* mpir-* mpfr-* mpc-* gfortran-*
 

@@ -1465,7 +1465,7 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
             Ind = [self._gens.index(g) for g in other._gens]
             if sorted(Ind)!=Ind:
                 return None
-            # OK, other merges into self. Now, chose the default dense implementation,
+            # OK, other merges into self. Now, choose the default dense implementation,
             # unless both functors refer to the sparse implementation
             if self._imple != other._imple:
                 return InfinitePolynomialFunctor(self._gens, self._order, 'dense')
@@ -2318,7 +2318,7 @@ class CompletionFunctor(ConstructionFunctor):
     """
     rank = 4
     _real_types = ['Interval', 'Ball', 'MPFR', 'RDF', 'RLF', 'RR']
-    _dvr_types = [None, 'fixed-mod','floating-point','capped-abs','capped-rel','lazy']
+    _dvr_types = [None, 'fixed-mod', 'floating-point', 'capped-abs', 'capped-rel', 'lattice-cap', 'lattice-float']
 
     def __init__(self, p, prec, extras=None):
         """
@@ -2329,14 +2329,15 @@ class CompletionFunctor(ConstructionFunctor):
         - ``prec``: an integer, yielding the precision in bits. Note that
           if ``p`` is prime then the ``prec`` is the *capped* precision,
           while it is the *set* precision if ``p`` is ``+Infinity``.
+          In the ``lattice-cap`` precision case, ``prec`` will be a tuple instead.
 
         - ``extras`` (optional dictionary): Information on how to print elements, etc.
           If 'type' is given as a key, the corresponding value should be a string among the following:
 
           - 'RDF', 'Interval', 'RLF', or 'RR' for completions at infinity
 
-          - 'capped-rel', 'capped-abs', 'fixed-mod' or 'lazy' for completions at a finite place
-            or ideal of a DVR.
+          - 'capped-rel', 'capped-abs', 'fixed-mod', 'lattice-cap' or 'lattice-float'
+            for completions at a finite place or ideal of a DVR.
 
         TESTS::
 

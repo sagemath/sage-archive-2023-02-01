@@ -264,7 +264,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
 
             David A. Cox, "The Homogeneous Coordinate Ring of a Toric
             Variety", Lemma 2.2.
-            http://www.arxiv.org/abs/alg-geom/9210008v2
+            :arxiv:`alg-geom/9210008v2`
 
         EXAMPLES::
 
@@ -640,7 +640,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
             sage: Y.is_nondegenerate()
             True
 
-         This example is from Hamm, arXiv:1106.1826v1. It addresses
+         This example is from Hamm, :arxiv:`1106.1826v1`. It addresses
          an issue raised at :trac:`15239`::
 
             sage: X = toric_varieties.WP([1,4,2,3], names='z0 z1 z2 z3')

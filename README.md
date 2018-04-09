@@ -18,12 +18,12 @@ Getting Started
 ---------------
 
 If you downloaded a [binary](http://www.sagemath.org/download.html),
-you do not need to do anything (as long as your system provides a SSL library,
-OpenSSL is recommended); just execute:
+you just need open a terminal in the directory where you extracted the binary
+archive and type:
 
     ./sage
 
-from the command line. If you downloaded the [sources](http://www.sagemath.org/download-source.html),
+If you downloaded the [sources](http://www.sagemath.org/download-source.html),
 please read below on how to build Sage and work around common issues.
 
 If you have questions or encounter problems, please do not hesitate

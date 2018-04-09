@@ -4207,13 +4207,13 @@ class Polyhedron_base(Element):
         elif isinstance(vertex,PolyhedronFace) and vertex.dim() == 0:
             return self.face_split(vertex)
         else:
-            raise TypeError("The vertex {} should be a Vertex or PolyhedronFace of dimension 0".format(vertex)) 
+            raise TypeError("The vertex {} should be a Vertex or PolyhedronFace of dimension 0".format(vertex))
 
     def face_split(self, face):
         """
         Return the face splitting of the face ``face``.
 
-        Splitting a face correspond to the bipyramid (see :meth:`bipyramid`) 
+        Splitting a face correspond to the bipyramid (see :meth:`bipyramid`)
         of ``self`` where the two new vertices are placed above and below 
         the center of ``face`` instead of the center of the whole polyhedron.
         The two new vertices are placed in the new dimension at height `-1` and

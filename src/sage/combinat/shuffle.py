@@ -56,6 +56,7 @@ Author:
 #*****************************************************************************
 import collections
 import itertools
+import operator
 
 from sage.arith.all import binomial
 from sage.structure.sage_object import SageObject
@@ -434,12 +435,28 @@ class ShuffleProduct(SageObject):
         return binomial(ll1 + ll2, ll1)
 
 class ShuffleProduct_overlapping_r(CombinatorialClass):
-    def __init__(self, w1, w2, r, element_constructor=None):
-        """
-        The overlapping shuffle product of the two words ``w1`` and ``w2``
-        with precisely ``r`` overlaps.
+    """
+    The overlapping shuffle product of the two words ``w1`` and ``w2``
+    with precisely ``r`` overlaps.
 
-        See :class:`ShuffleProduct_overlapping` for a definition.
+    See :class:`ShuffleProduct_overlapping` for a definition.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.shuffle import ShuffleProduct_overlapping_r
+        sage: w, u = map(Words(range(20)), [[2, 9], [9, 1]])
+        sage: S = ShuffleProduct_overlapping_r(w,u,1)
+        sage: list(S)
+        [word: 11,9,1,
+         word: 2,18,1,
+         word: 11,1,9,
+         word: 2,9,10,
+         word: 939,
+         word: 9,2,10]
+    """
+    def __init__(self, w1, w2, r, element_constructor=None, zero=0, add=operator.add):
+        """
+        Initialize ``self``.
 
         EXAMPLES::
 
@@ -452,6 +469,8 @@ class ShuffleProduct_overlapping_r(CombinatorialClass):
         self._w1 = w1
         self._w2 = w2
         self.r  = r
+        self.zero = zero
+        self.add = add
 
         if element_constructor is None:
             # Special case for words since their parent has a __call__ but
@@ -511,10 +530,11 @@ class ShuffleProduct_overlapping_r(CombinatorialClass):
         m = len(self._w1)
         n = len(self._w2)
         r = self.r
+        add = self.add
 
         wc1, wc2 = self._w1, self._w2
 
-        blank = [0]*(m+n-r)
+        blank = [self.zero for _ in range(m+n-r)]
         for iv in IntegerVectors(m, m+n-r, max_part=1):
             w = blank[:]
             filled_places = []
@@ -537,77 +557,113 @@ class ShuffleProduct_overlapping_r(CombinatorialClass):
                 i = 0
                 res = w[:]
                 for j in places_to_fill:
-                    res[j] += wc2[i]
+                    res[j] = add(res[j], wc2[i])
                     i += 1
 
                 yield EC(res)
 
 class ShuffleProduct_overlapping(CombinatorialClass):
-    def __init__(self, w1, w2, element_constructor=None):
-        r"""
-        The overlapping shuffle product of the two words ``w1`` and
-        ``w2``.
+    r"""
+    The overlapping shuffle product of the two words ``w1`` and
+    ``w2``.
 
-        If `u` and `v` are two words whose letters belong to an
-        additive monoid or to another kind of alphabet on which addition
-        is well-defined, then the *overlapping shuffle product* of
-        `u` and `v` is a certain multiset of words defined as follows:
-        Let `a` and `b` be the lengths of `u` and `v`, respectively.
-        Let `A` be the set `\{(0, 1), (0, 2), \cdots, (0, a)\}`, and
-        let `B` be the set `\{(1, 1), (1, 2), \cdots, (1, b)\}`.
-        Notice that the sets `A` and `B` are disjoint. We can make
-        `A` and `B` into posets by setting `(k, i) \leq (k, j)` for
-        all `k \in \{0, 1\}` and `i \leq j`. Then, `A \cup B` becomes
-        a poset by disjoint union (we don't set `(0, i) \leq (1, i)`).
-        Let `p` be the map from `A \cup B` to the set of all letters
-        which sends every `(0, i)` to the `i`-th letter of `u`, and
-        every `(1, j)` to the `j`-th letter of `v`. For every
-        nonnegative integer `c` and every surjective map
-        `f : A \cup B \to \{ 1, 2, \cdots, c \}` for which both
-        restrictions `f \mid_A` and `f \mid_B` are strictly increasing,
-        let `w(f)` be the length-`c` word such that for every
-        `1 \leq k \leq c`, the `k`-th letter of `w(f)` equals
-        `\sum_{j \in f^{-1}(k)} p(j)` (this sum always has either
-        one or two addends). The overlapping shuffle product of `u`
-        and `v` is then the multiset of all `w(f)` with `c` ranging
-        over all nonnegative integers and `f` ranging
-        over the surjective maps
-        `f : A \cup B \to \{ 1, 2, \cdots, c \}` for which both
-        restrictions `f \mid_A` and `f \mid_B` are strictly increasing.
+    If `u` and `v` are two words whose letters belong to an
+    additive monoid or to another kind of alphabet on which addition
+    is well-defined, then the *overlapping shuffle product* of
+    `u` and `v` is a certain multiset of words defined as follows:
+    Let `a` and `b` be the lengths of `u` and `v`, respectively.
+    Let `A` be the set `\{(0, 1), (0, 2), \cdots, (0, a)\}`, and
+    let `B` be the set `\{(1, 1), (1, 2), \cdots, (1, b)\}`.
+    Notice that the sets `A` and `B` are disjoint. We can make
+    `A` and `B` into posets by setting `(k, i) \leq (k, j)` for
+    all `k \in \{0, 1\}` and `i \leq j`. Then, `A \cup B` becomes
+    a poset by disjoint union (we don't set `(0, i) \leq (1, i)`).
+    Let `p` be the map from `A \cup B` to the set of all letters
+    which sends every `(0, i)` to the `i`-th letter of `u`, and
+    every `(1, j)` to the `j`-th letter of `v`. For every
+    nonnegative integer `c` and every surjective map
+    `f : A \cup B \to \{ 1, 2, \cdots, c \}` for which both
+    restrictions `f \mid_A` and `f \mid_B` are strictly increasing,
+    let `w(f)` be the length-`c` word such that for every
+    `1 \leq k \leq c`, the `k`-th letter of `w(f)` equals
+    `\sum_{j \in f^{-1}(k)} p(j)` (this sum always has either
+    one or two addends). The overlapping shuffle product of `u`
+    and `v` is then the multiset of all `w(f)` with `c` ranging
+    over all nonnegative integers and `f` ranging
+    over the surjective maps
+    `f : A \cup B \to \{ 1, 2, \cdots, c \}` for which both
+    restrictions `f \mid_A` and `f \mid_B` are strictly increasing.
 
-        If one restricts `c` to a particular fixed nonnegative
-        integer, then the multiset is instead called the *overlapping
-        shuffle product with precisely `a + b - c` overlaps*. This is
-        nonempty only if `\max \{a, b\} \leq c \leq a + b`.
+    If one restricts `c` to a particular fixed nonnegative
+    integer, then the multiset is instead called the *overlapping
+    shuffle product with precisely `a + b - c` overlaps*. This is
+    nonempty only if `\max \{a, b\} \leq c \leq a + b`.
 
-        If `c = a + b`, then the overlapping shuffle product with
-        precisely `a + b - c` overlaps is plainly the shuffle product
-        (:class:`ShuffleProduct_w1w2`).
+    If `c = a + b`, then the overlapping shuffle product with
+    precisely `a + b - c` overlaps is plainly the shuffle product
+    (:class:`ShuffleProduct_w1w2`).
 
-        EXAMPLES::
+    INPUT:
+
+    - ``w1``, ``w2`` -- iterables
+    - ``element_constructor`` -- (default: the parent of ``w1``)
+      the function used to construct the output
+    - ``zero`` -- (default: ``0``) the initial data of the overlap
+    - ``add`` -- (default: ``+``) the addition function
+
+    EXAMPLES::
+
+        sage: from sage.combinat.shuffle import ShuffleProduct_overlapping
+        sage: w, u = [[2, 9], [9, 1]]
+        sage: S = ShuffleProduct_overlapping(w, u)
+        sage: sorted(S)
+        [[2, 9, 1, 9],
+         [2, 9, 9, 1],
+         [2, 9, 9, 1],
+         [2, 9, 10],
+         [2, 18, 1],
+         [9, 1, 2, 9],
+         [9, 2, 1, 9],
+         [9, 2, 9, 1],
+         [9, 2, 10],
+         [9, 3, 9],
+         [11, 1, 9],
+         [11, 9, 1],
+         [11, 10]]
+        sage: A = [{1,2}, {3,4}]
+        sage: B = [{2,3}, {4,5,6}]
+        sage: S = ShuffleProduct_overlapping(A, B, zero=set(), add=lambda X,Y: X.union(Y))
+        sage: list(S)
+        [[{1, 2}, {3, 4}, {2, 3}, {4, 5, 6}],
+         [{1, 2}, {2, 3}, {3, 4}, {4, 5, 6}],
+         [{1, 2}, {2, 3}, {4, 5, 6}, {3, 4}],
+         [{2, 3}, {1, 2}, {3, 4}, {4, 5, 6}],
+         [{2, 3}, {1, 2}, {4, 5, 6}, {3, 4}],
+         [{2, 3}, {4, 5, 6}, {1, 2}, {3, 4}],
+         [{1, 2, 3}, {3, 4}, {4, 5, 6}],
+         [{1, 2}, {2, 3, 4}, {4, 5, 6}],
+         [{1, 2, 3}, {4, 5, 6}, {3, 4}],
+         [{1, 2}, {2, 3}, {3, 4, 5, 6}],
+         [{2, 3}, {1, 2, 4, 5, 6}, {3, 4}],
+         [{2, 3}, {1, 2}, {3, 4, 5, 6}],
+         [{1, 2, 3}, {3, 4, 5, 6}]]
+    """
+    def __init__(self, w1, w2, element_constructor=None, zero=0, add=operator.add):
+        """
+        Initialize ``self``.
+
+        TESTS::
 
             sage: from sage.combinat.shuffle import ShuffleProduct_overlapping
             sage: w, u = map(Words(range(20)), [[2, 9], [9, 1]])
             sage: S = ShuffleProduct_overlapping(w,u)
-            sage: sorted([list(i) for i in list(S)])
-            [[2, 9, 1, 9],
-             [2, 9, 9, 1],
-             [2, 9, 9, 1],
-             [2, 9, 10],
-             [2, 18, 1],
-             [9, 1, 2, 9],
-             [9, 2, 1, 9],
-             [9, 2, 9, 1],
-             [9, 2, 10],
-             [9, 3, 9],
-             [11, 1, 9],
-             [11, 9, 1],
-             [11, 10]]
             sage: S == loads(dumps(S))
             True
         """
         self._w1 = w1
         self._w2 = w2
+        self._zero = zero
+        self._add = add
 
         if element_constructor is None:
             # Special case for words since their parent has a __call__ but
@@ -656,6 +712,8 @@ class ShuffleProduct_overlapping(CombinatorialClass):
         n = len(self._w2)
         for r in range(min(m,n)+1):
             for w in ShuffleProduct_overlapping_r(self._w1, self._w2, r,
-                                                  self._element_constructor_):
+                                                  self._element_constructor_,
+                                                  zero=self._zero,
+                                                  add=self._add):
                 yield w
 

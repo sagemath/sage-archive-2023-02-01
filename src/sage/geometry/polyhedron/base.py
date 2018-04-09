@@ -2199,11 +2199,14 @@ class Polyhedron_base(Element):
             sage: p.center()
             (1, 0, 0)
         """
-        vertex_sum = vector(self.base_ring(), [0]*self.ambient_dim())
-        for v in self.vertex_generator():
-            vertex_sum += v.vector()
-        vertex_sum.set_immutable()
-        return vertex_sum / self.n_vertices()
+        if self.dim() == 0:
+            return self.vertices()[0].vector()
+        else:
+            vertex_sum = vector(self.base_ring(), [0]*self.ambient_dim())
+            for v in self.vertex_generator():
+                vertex_sum += v.vector()
+            vertex_sum.set_immutable()
+            return vertex_sum / self.n_vertices()
 
     @cached_method
     def representative_point(self):
@@ -4178,18 +4181,43 @@ class Polyhedron_base(Element):
             sage: ops_pentagon.f_vector()
             (1, 6, 12, 8, 1)
 
+        It works with a polyhedral face as well::
+
+            sage: vv = cube.faces(0)[0]
+            sage: ops_cube2 = cube.one_point_suspension(vv)
+            sage: ops_cube == ops_cube2
+            True
+
         .. SEEALSO::
 
             :meth:`face_split`
+
+        TESTS::
+
+            sage: e = cube.faces(1)[0]
+            sage: cube.one_point_suspension(e)
+            Traceback (most recent call last):
+            ...
+            TypeError: The vertex <0,1> should be a Vertex or PolyhedronFace of dimension 0
         """
-        return self.face_split(vertex)
+        from sage.geometry.polyhedron.representation import Vertex
+        from sage.geometry.polyhedron.face import PolyhedronFace
+        if isinstance(vertex,Vertex):
+            return self.face_split(vertex)
+        elif isinstance(vertex,PolyhedronFace) and vertex.dim() == 0:
+            return self.face_split(vertex)
+        else:
+            raise TypeError("The vertex {} should be a Vertex or PolyhedronFace of dimension 0".format(vertex)) 
 
     def face_split(self, face):
         """
-        Return the face splitting the face ``face``.
+        Return the face splitting of the face ``face``.
 
-        Splitting a face correspond to the bipyramid ``self`` where the two new
-        vertices are placed above and below the center of ``face``.
+        Splitting a face correspond to the bipyramid (see :meth:`bipyramid`) 
+        of ``self`` where the two new vertices are placed above and below 
+        the center of ``face`` instead of the center of the whole polyhedron.
+        The two new vertices are placed in the new dimension at height `-1` and
+        `1`.
 
         INPUT:
 

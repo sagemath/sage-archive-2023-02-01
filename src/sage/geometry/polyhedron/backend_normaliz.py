@@ -938,7 +938,26 @@ class Polyhedron_normaliz(Polyhedron_base):
             This function depends on Normaliz (i.e., the ``pynormaliz`` optional
             package). See the Normaliz documentation for further details.
 
-        EXAMPLE::
+        EXAMPLE:
+
+        For normaliz, the default is the euclidean volume in the ambient
+        space and the result is a float::
+
+            sage: s = polytopes.simplex(3,backend='normaliz')  # optional - pynormaliz
+            sage: s._volume_normaliz()                         # optional - pynormaliz
+            0.3333333333333333
+
+        The other possibility is to compute the scaled volume where a unimodual
+        simplex has volume 1::
+
+            sage: s._volume_normaliz(measure='induced_lattice')  # optional - pynormaliz
+            1
+            sage: v = [[0,0,0],[0,0,1],[0,1,0],[0,1,1],[1,0,0],[1,0,1],[1,1,0],[1,1,1]]
+            sage: cube = Polyhedron(vertices=v,backend='normaliz')  # optional - pynormaliz
+            sage: cube._volume_normaliz()  # optional - pynormaliz
+            1.0
+            sage: cube._volume_normaliz(measure='induced_lattice')  # optional - pynormaliz
+            6
 
         """
         import PyNormaliz

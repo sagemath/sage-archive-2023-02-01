@@ -115,7 +115,7 @@ class BipartiteGraph(Graph):
        is not bipartite, then Sage will raise an error. However, if one specifies
        ``check=False``, the offending edges are simply deleted (along with
        those vertices not appearing in either list).  We also lump creating
-       one bipartite graph from another into this category::::
+       one bipartite graph from another into this category::
 
         sage: P = graphs.PetersenGraph()
         sage: partition = [list(range(5)), list(range(5,10))]

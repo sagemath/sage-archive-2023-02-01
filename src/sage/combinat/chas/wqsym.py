@@ -36,7 +36,7 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
     - ``_basis_name`` -- the name of the basis (must match one
       of the names that the basis can be constructed from `WQSym`)
     """
-    def __init__(self, alg):
+    def __init__(self, alg, graded=True):
         r"""
         Initialize ``self``.
 
@@ -47,7 +47,7 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
         """
         CombinatorialFreeModule.__init__(self, alg.base_ring(),
                                          OrderedSetPartitions(),
-                                         category=WQSymBases(alg),
+                                         category=WQSymBases(alg, graded),
                                          bracket="", prefix=self._prefix)
 
     def _coerce_map_from_(self, R):
@@ -123,6 +123,36 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
             return self._coerce_map_via([target], R)
         return super(WQSymBasis_abstract, self)._coerce_map_from_(R)
 
+    @cached_method
+    def an_element(self):
+        """
+        Return an element of ``self``.
+
+        EXAMPLES::
+
+            sage: M = algebras.WQSym(QQ).M()
+            sage: M.an_element()
+            M[{1}] + 2*M[{1}, {2}]
+        """
+        return self([[1]]) + 2*self([[1],[2]])
+
+    def some_elements(self):
+        """
+        Return some elements of the word quasi-symmetric functions.
+
+        EXAMPLES::
+
+            sage: M = algebras.WQSym(QQ).M()
+            sage: M.some_elements()
+            [M[], M[{1}], M[{1, 2}],
+             M[{1}] + M[{1}, {2}],
+             M[] + 1/2*M[{1}]]
+        """
+        u = self.one()
+        o = self([[1]])
+        s = self.base_ring().an_element()
+        return [u, o, self([[1,2]]), o + self([[1],[2]]), u + s*o]
+
 class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
     r"""
     The word quasi-symmetric functions.
@@ -146,8 +176,6 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
     The span of these power series `\mathbf{M}_u` is a subring of the
     ring of all noncommutative power series; it is called the ring of
     word quasi-symmetric functions, and is denoted by `WQSym`.
-    It is endowed with a Hopf algebra structure (see Section 2.2 of
-    [NoThWi08]_, Section 1.1 of [FoiMal14]_ and Section 4.3.2 of [MeNoTh11]_).
 
     For each nonnegative integer `n`, there is a bijection between
     packed words of length `n` and ordered set partitions of
@@ -159,8 +187,18 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
     The basis element `\mathbf{M}_u` is also denoted as `\mathbf{M}_P`
     in this situation and is implemented using the latter indexing.
-    It is implemented at
+    The basis `(\mathbf{M}_P)_P` is implemented at
     :class:~sage.combinat.chas.wqsym.WordQuasisymmetricFunctions.M`.
+
+    `WQSym` is endowed with a connected Hopf algebra structure (see
+    Section 2.2 of [NoThWi08]_, Section 1.1 of [FoiMal14]_ and
+    Section 4.3.2 of [MeNoTh11]_) given by
+
+    .. MATH::
+
+        \Delta(\mathbf{M}_{(P_1,\ldots,P_{\ell})}) = \sum_{i=0}^{\ell}
+            \mathbf{M}_{(P_1, \ldots, P_i)} \otimes
+            \mathbf{M}_{(P_{i+1}, \ldots, P_{\ell})}.
 
     REFERENCES:
 
@@ -206,8 +244,8 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
             sage: A = algebras.WQSym(QQ)
             sage: TestSuite(A).run()  # long time
         """
-        self._category = HopfAlgebras(R).Graded().Connected()
-        Parent.__init__(self, base=R, category=self._category.WithRealizations())
+        category = HopfAlgebras(R).Graded().Connected()
+        Parent.__init__(self, base=R, category=category.WithRealizations())
 
     def _repr_(self):
         """
@@ -250,65 +288,6 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
         """
         _prefix = "M"
         _basis_name = "Monomial"
-
-        def degree_on_basis(self, t):
-            """
-            Return the degree of an ordered set partition in
-            the algebra of word quasi-symmetric functions.
-
-            This is the length of the ordered set partition.
-
-            EXAMPLES::
-
-                sage: A = algebras.WQSym(QQ).M()
-                sage: u = Permutation([2,1])
-                sage: A.degree_on_basis(u)
-                2
-            """
-            return len(t)
-
-        @cached_method
-        def an_element(self):
-            """
-            Return an element of ``self``.
-
-            EXAMPLES::
-
-                sage: M = algebras.WQSym(QQ).M()
-                sage: M.an_element()
-                M[{1}] + 2*M[{1}, {2}]
-            """
-            return self([[1]]) + 2*self([[1],[2]])
-
-        def some_elements(self):
-            """
-            Return some elements of the word quasi-symmetric functions.
-
-            EXAMPLES::
-
-                sage: M = algebras.WQSym(QQ).M()
-                sage: M.some_elements()
-                [M[], M[{1}], M[{1, 2}],
-                 M[{1}] + M[{1}, {2}],
-                 M[] + 1/2*M[{1}]]
-            """
-            u = self.one()
-            o = self([[1]])
-            s = self.base_ring().an_element()
-            return [u, o, self([[1,2]]), o + self([[1],[2]]), u + s*o]
-
-        def one_basis(self):
-            """
-            Return the index of the unit.
-
-            EXAMPLES::
-
-                sage: A = algebras.WQSym(QQ).M()
-                sage: A.one_basis()
-                []
-            """
-            OSP = self.basis().keys()
-            return OSP([])
 
         def product_on_basis(self, x, y):
             r"""
@@ -376,26 +355,156 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
     Monomial = M
 
+    class X(WQSymBasis_abstract):
+        r"""
+        The Characteristic basis of `WQSym`.
+
+        The *Characteristic basis* is defined as `X_P = (-1)^{\ell(P)}
+        \mathbf{M}_P`, where `(\mathbf{M}_P)_P` denotes the Monomial basis.
+
+        EXAMPLES::
+
+            sage: WQSym = algebras.WQSym(QQ)
+            sage: WQSym.X()
+            Word Quasi-symmetric functions over Rational Field in the Characteristic basis
+        """
+        _prefix = "X"
+        _basis_name = "Characteristic"
+
+        def __init__(self, alg):
+            """
+            Initialize ``self``.
+
+            EXAMPLES::
+
+                sage: X = algebras.WQSym(QQ).X()
+                sage: TestSuite(X).run()  # long time
+            """
+            WQSymBasis_abstract.__init__(self, alg)
+
+            M = self.realization_of().M()
+            mone = -self.base_ring().one()
+            def sgn(P): return mone**len(P)
+            self.module_morphism(codomain=M, diagonal=sgn).register_as_coercion()
+            M.module_morphism(codomain=self, diagonal=sgn).register_as_coercion()
+
+    Characteristic = X
+
+    class C(WQSymBasis_abstract):
+        r"""
+        The Cone basis of `WQSym`.
+
+        The *Cone basis* is defined as `C_P = (-1)^{\ell(P)}
+        X_P`, where `(X_P)_P` denotes the Characteristic basis.
+
+        EXAMPLES::
+
+            sage: WQSym = algebras.WQSym(QQ)
+            sage: WQSym.C()
+            Word Quasi-symmetric functions over Rational Field in the Cone basis
+        """
+        _prefix = "C"
+        _basis_name = "Cone"
+
+        def __init__(self, alg):
+            """
+            Initialize ``self``.
+
+            EXAMPLES::
+
+                sage: C = algebras.WQSym(QQ).C()
+                sage: TestSuite(C).run()  # long time
+            """
+            WQSymBasis_abstract.__init__(self, alg)
+
+            X = self.realization_of().X()
+            phi = self.module_morphism(self._C_to_X, codomain=X, unitriangular="upper")
+            phi.register_as_coercion()
+            (~phi).register_as_coercion()
+
+        def some_elements(self):
+            """
+            Return some elements of the word quasi-symmetric functions.
+
+            EXAMPLES::
+
+                sage: C = algebras.WQSym(QQ).C()
+                sage: C.some_elements()
+                [C[], C[{1}], C[{1, 2}], C[] + 1/2*C[{1}]]
+            """
+            u = self.one()
+            o = self([[1]])
+            s = self.base_ring().an_element()
+            return [u, o, self([[1,2]]), u + s*o]
+
+        def _C_to_X(self, P):
+            """
+            Return the image of the basis element indexed by ``P``
+            in the Characteristic basis.
+
+            EXAMPLES::
+
+                sage: C = algebras.WQSym(QQ).C()
+                sage: OSP = C.basis().keys()
+                sage: C._C_to_X(OSP([[2,3],[1,4]]))
+                X[{1, 2, 3, 4}] + X[{1, 4}, {2, 3}] + X[{2, 3}, {1, 4}]
+            """
+            X = self.realization_of().X()
+            if not P:
+                return X.one()
+
+            OSP = self.basis().keys()
+
+            # Convert to standard set of ordered set partitions
+            temp = list(P)
+            data = []
+            while temp:
+                i = min(min(X) for X in temp)
+                for j,A in enumerate(temp):
+                    if i in A:
+                        data.append(OSP(temp[j:]))
+                        temp = temp[:j]
+                        break
+
+            # Perform the shuffle product
+            cur = {data[0]: 1}
+            for B in data[1:]:
+                ret = {}
+                for A in cur:
+                    for C in ShuffleProduct_overlapping(A, B, element_constructor=OSP):
+                        if C in ret:
+                            ret[C] += cur[A]
+                        else:
+                            ret[C] = cur[A]
+                cur = ret
+
+            # Return the result in the X basis
+            return X._from_dict(cur, coerce=True)
+
+    Cone = C
+
 class WQSymBases(Category_realization_of_parent):
     r"""
     The category of bases of `WQSym`.
     """
-    def __init__(self, base):
+    def __init__(self, base, graded):
         r"""
         Initialize ``self``.
 
         INPUT:
 
         - ``base`` -- an instance of `WQSym`
+        - ``graded`` -- boolean; if the basis is graded or filtered
 
         TESTS::
 
             sage: from sage.combinat.chas.wqsym import WQSymBases
             sage: WQSym = algebras.WQSym(ZZ)
-            sage: bases = WQSymBases(WQSym)
+            sage: bases = WQSymBases(WQSym, True)
             sage: WQSym.M() in bases
             True
         """
+        self._graded = graded
         Category_realization_of_parent.__init__(self, base)
 
     def _repr_(self):
@@ -406,10 +515,16 @@ class WQSymBases(Category_realization_of_parent):
 
             sage: from sage.combinat.chas.wqsym import WQSymBases
             sage: WQSym = algebras.WQSym(ZZ)
-            sage: WQSymBases(WQSym)
-            Category of bases of Word Quasi-symmetric functions over Integer Ring
+            sage: WQSymBases(WQSym, True)
+            Category of graded bases of Word Quasi-symmetric functions over Integer Ring
+            sage: WQSymBases(WQSym, False)
+            Category of filtered bases of Word Quasi-symmetric functions over Integer Ring
         """
-        return "Category of bases of {}".format(self.base())
+        if self._graded:
+            type_str = "graded"
+        else:
+            type_str = "filtered"
+        return "Category of {} bases of {}".format(type_str, self.base())
 
     def super_categories(self):
         r"""
@@ -419,13 +534,30 @@ class WQSymBases(Category_realization_of_parent):
 
             sage: from sage.combinat.chas.wqsym import WQSymBases
             sage: WQSym = algebras.WQSym(ZZ)
-            sage: bases = WQSymBases(WQSym)
+            sage: bases = WQSymBases(WQSym, True)
             sage: bases.super_categories()
-            [Category of graded connected hopf algebras with basis over Integer Ring,
-             Category of realizations of Word Quasi-symmetric functions over Integer Ring]
+            [Category of realizations of Word Quasi-symmetric functions over Integer Ring,
+             Join of Category of realizations of hopf algebras over Integer Ring
+                 and Category of graded algebras over Integer Ring,
+             Category of graded connected hopf algebras with basis over Integer Ring]
+
+            sage: bases = WQSymBases(WQSym, False)
+            sage: bases.super_categories()
+            [Category of realizations of Word Quasi-symmetric functions over Integer Ring,
+             Join of Category of realizations of hopf algebras over Integer Ring
+                 and Category of graded algebras over Integer Ring,
+             Join of Category of filtered connected hopf algebras with basis over Integer Ring
+                 and Category of graded algebras over Integer Ring]
         """
-        return [self.base()._category.WithBasis().Graded(),
-                self.base().Realizations()]
+        R = self.base().base_ring()
+        cat = HopfAlgebras(R).Graded().WithBasis()
+        if self._graded:
+            cat = cat.Graded()
+        else:
+            cat = cat.Filtered()
+        return [self.base().Realizations(),
+                HopfAlgebras(R).Graded().Realizations(),
+                cat.Connected()]
 
     class ParentMethods:
         def _repr_(self):
@@ -486,6 +618,35 @@ class WQSymBases(Category_realization_of_parent):
                 False
             """
             return self.base_ring().is_zero()
+
+        def one_basis(self):
+            """
+            Return the index of the unit.
+
+            EXAMPLES::
+
+                sage: A = algebras.WQSym(QQ).M()
+                sage: A.one_basis()
+                []
+            """
+            OSP = self.basis().keys()
+            return OSP([])
+
+        def degree_on_basis(self, t):
+            """
+            Return the degree of an ordered set partition in
+            the algebra of word quasi-symmetric functions.
+
+            This is the length of the ordered set partition.
+
+            EXAMPLES::
+
+                sage: A = algebras.WQSym(QQ).M()
+                sage: u = Permutation([2,1])
+                sage: A.degree_on_basis(u)
+                2
+            """
+            return len(t)
 
     class ElementMethods:
         pass

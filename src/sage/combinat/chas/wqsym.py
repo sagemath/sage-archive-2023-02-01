@@ -228,6 +228,10 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
         M[{1, 2, 3}, {4, 5}, {6}] + M[{1, 2, 3, 4, 5}, {6}]
          + M[{4, 5}, {1, 2, 3}, {6}] + M[{4, 5}, {1, 2, 3, 6}]
          + M[{4, 5}, {6}, {1, 2, 3}]
+        sage: M[[1,2,3]].antipode()
+        -M[{1, 2, 3}]
+        sage: M[[1], [2], [3]].antipode()
+        -M[{1, 2, 3}] - M[{2, 3}, {1}] - M[{3}, {1, 2}] - M[{3}, {2}, {1}]
         sage: x = M[[1],[2],[3]] + 3*M[[2],[1]]
         sage: x.counit()
         0
@@ -360,13 +364,24 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
         The Characteristic basis of `WQSym`.
 
         The *Characteristic basis* is defined as `X_P = (-1)^{\ell(P)}
-        \mathbf{M}_P`, where `(\mathbf{M}_P)_P` denotes the Monomial basis.
+        \mathbf{M}_P`, where `(\mathbf{M}_P)_P` denotes the Monomial basis,
+        and where `\ell(P)` denotes the number of blocks in an ordered
+        set partition `P`.
 
         EXAMPLES::
 
             sage: WQSym = algebras.WQSym(QQ)
-            sage: WQSym.X()
+            sage: X = WQSym.X(); X
             Word Quasi-symmetric functions over Rational Field in the Characteristic basis
+
+            sage: X[[1,2,3]] * X[[1,2],[3]]
+            X[{1, 2, 3}, {4, 5}, {6}] - X[{1, 2, 3, 4, 5}, {6}]
+             + X[{4, 5}, {1, 2, 3}, {6}] - X[{4, 5}, {1, 2, 3, 6}]
+             + X[{4, 5}, {6}, {1, 2, 3}]
+
+            sage: X[[1, 4], [3], [2]].coproduct()
+            X[] # X[{1, 4}, {3}, {2}] + X[{1, 2}] # X[{2}, {1}]
+             + X[{1, 3}, {2}] # X[{1}] + X[{1, 4}, {3}, {2}] # X[]
         """
         _prefix = "X"
         _basis_name = "Characteristic"

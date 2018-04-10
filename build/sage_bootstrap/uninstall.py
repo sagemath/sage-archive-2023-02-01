@@ -140,8 +140,9 @@ def modern_uninstall(spkg_name, sage_local, files):
     files are removed then the directory is removed as well.
     """
 
-    spkg_scripts = pth.join(sage_local, 'var', 'lib', 'sage', 'scripts',
-                            spkg_name)
+    spkg_scripts = pth.join(sage_local, 'var', 'lib', 'sage', 'scripts')
+    spkg_scripts = os.environ.get('SAGE_SPKG_SCRIPTS', spkg_scripts)
+    spkg_scripts = pth.join(spkg_scripts, spkg_name)
 
     # Sort the given files first by the highest directory depth, then by name,
     # so that we can easily remove a directory once it's been emptied

@@ -25,7 +25,7 @@ AUTHORS:
 
 from __future__ import absolute_import
 
-from sage.combinat.partition import _Partitions
+from sage.combinat.partition import _Partitions, Partitions
 from sage.combinat.sf.multiplicative import SymmetricFunctionAlgebra_multiplicative
 from sage.matrix.all import matrix
 from sage.categories.morphism import SetMorphism
@@ -120,13 +120,69 @@ class HeckeCharacter(SymmetricFunctionAlgebra_multiplicative):
             basis_name="Hecke character with q={}".format(self.q),
             prefix="qbar")
         self._s = sym.schur()
+        self._p = sym.power()
         self._self_to_s_cache = {}
         self._s_to_self_cache = {}
 
         # temporary until Hom(GradedHopfAlgebrasWithBasis work better)
         category = ModulesWithBasis(self._sym.base_ring())
+        self   .register_coercion(self._p._module_morphism(self._p_to_self_on_basis, codomain = self))
+        self._p.register_coercion(self._module_morphism(self._self_to_p_on_basis, codomain = self._p))
         self   .register_coercion(SetMorphism(Hom(self._s, self, category), self._s_to_self))
         self._s.register_coercion(SetMorphism(Hom(self, self._s, category), self._self_to_s))
+
+    def _p_to_self_on_generator(self, n):
+        r"""
+        Convert `p_n` to ``self``
+
+        INPUT:
+
+        - ``n`` -- a non-negative integer
+
+        EXAMPLES::
+
+            sage: qbar = SymmetricFunctions(QQ['q'].fraction_field()).qbar('q')
+            sage: qbar._p_to_self_on_generator(3)
+            ((q^2-2*q+1)/(q^2+q+1))*qbar[1, 1, 1] + ((-q-1)/(q^2+q+1))*qbar[2, 1] + (3/(q^3-1))*qbar[3]
+            sage: qbar = SymmetricFunctions(QQ).qbar(-1)
+            sage: qbar._p_to_self_on_generator(3)
+            2*qbar[2, 1] - 3/2*qbar[3]
+        """
+        if n==1:
+            return self([1])
+        q=self.q
+        if q**n==self.base_ring().one():
+            raise ValueError("The parameter q=%s must not be a root of unity"%(q))
+        out=n*self([n]) - sum((q**i-1)*self._p_to_self_on_generator(i)*\
+            self([n-i]) for i in range(1,n) if q**i!=1)
+        return out*(q-1)/(q**n-1)
+
+    def _p_to_self_on_basis(self, mu):
+        r"""
+        Convert `p_\mu` to ``self``
+        INPUT:
+        - ``mu`` -- a partition or a list of non-negative integers
+        EXAMPLES::
+            sage: qbar = SymmetricFunctions(QQ['q'].fraction_field()).qbar('q')
+            sage: qbar._p_to_self_on_basis([3,1])
+        """
+        return self.prod(self._p_to_self_on_generator(p) for p in mu)
+
+    def _self_to_p_on_generator(self, n):
+        r"""
+        """
+        if n==1:
+            return self._p([1])
+        q=self.q
+        BR = self.base_ring()
+        return q**(n-1)*self._p.sum(sum(q**(-i) for i in range(mu[0]))*BR.prod((1-q**(-p))\
+            for p in mu[1:])*self._p(mu)/mu.centralizer_size() for mu in
+            Partitions(n) if not any(q**p==1 for p in mu[1:]))
+
+    def _self_to_p_on_basis(self, mu):
+        r"""
+        """
+        return self._p.prod(self._self_to_p_on_generator(p) for p in mu)
 
     def _s_to_self(self, x):
         r"""

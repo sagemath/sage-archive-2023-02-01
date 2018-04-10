@@ -207,15 +207,28 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
     element appearing in it by `1`, the second-smallest element by `2`,
     and so on.
 
-    A rule for multiplying elements of the monomial basis also exists:
+    A rule for multiplying elements of the monomial basis relies on the
+    *quasi-shuffle product* of two ordered set partitions.
+    The quasi-shuffle product `\Box` is given by
+    :class:`~sage.combinat.shuffle.ShuffleProduct_overlapping` with ``+``
+    being the union of the sets. The product `\mathbf{M}_P \mathbf{M}_Q`
+    for two ordered set partitions `P` and `Q` of `[n]` and `[m]`
+    is then given by
+
+    .. MATH::
+
+        \mathbf{M}_P \mathbf{M}_Q
+        = \sum_{R \in P \Box Q^+} \mathbf{M}_R ,
+
+    where `Q^+` means `Q` with all numbers shifted upwards by `n`.
 
     Sometimes, `WQSym` is also denoted as `NCQSym`.
 
     REFERENCES:
 
-    .. [FoiMal14]_
-    .. [MeNoTh11]_
-    .. [NoThWi08]_
+    - [FoiMal14]_
+    - [MeNoTh11]_
+    - [NoThWi08]_
 
     EXAMPLES::
 
@@ -325,7 +338,7 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
             of ``self`` indexed by the ordered set partitions `x` and
             `y`.
 
-            This is the shifted quasi-shuffle of `x` and `y`.
+            This is the shifted quasi-shuffle product of `x` and `y`.
 
             EXAMPLES::
 
@@ -467,7 +480,7 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
         Let `(X_P)_P` denote the Characteristic basis of `WQSym`.
         Denote the quasi-shuffle of two ordered set partitions `A` and
-        `B` by `A \box B`. For an ordered set partition
+        `B` by `A \Box B`. For an ordered set partition
         `P = (P_1, \ldots, P_{\ell})`, we form a list of ordered set
         partitions `[P] := (P'_1, \ldots, P'_k)` as follows.
         Define a strictly decreasing sequence of integers
@@ -482,7 +495,7 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
             C_P = \sum_Q X_Q,
 
         where the sum is over all elements `Q` of the quasi-shuffle
-        `P'_1 \box P'_2 \box \cdots \box P'_k` with
+        product `P'_1 \Box P'_2 \Box \cdots \Box P'_k` with
         `[P] = (P'_1, \ldots, P'_k)`.
 
         EXAMPLES::

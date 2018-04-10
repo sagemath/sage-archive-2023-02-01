@@ -62,10 +62,10 @@ def uninstall(spkg_name, sage_local):
     SAGE_LOCAL if it is currently installed.
     """
 
-    # TODO: I don't like that this is hard-coded here; there should be better
-    # centralization for this without having to load sage-env or sage.env;
-    # https://trac.sagemath.org/ticket/22652 would help here
+    # The default path to this directory; however its value should be read
+    # from the environment if possible
     spkg_inst = pth.join(sage_local, 'var', 'lib', 'sage', 'installed')
+    spkg_inst = os.environ.get('SAGE_SPKG_INST', spkg_inst)
 
     # Find all stamp files for the package; there should be only one, but if
     # there is somehow more than one we'll work with the most recent and delete

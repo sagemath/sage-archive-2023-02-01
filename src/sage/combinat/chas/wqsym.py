@@ -188,17 +188,25 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
     The basis element `\mathbf{M}_u` is also denoted as `\mathbf{M}_P`
     in this situation and is implemented using the latter indexing.
     The basis `(\mathbf{M}_P)_P` is implemented at
-    :class:~sage.combinat.chas.wqsym.WordQuasisymmetricFunctions.M`.
+    :class:`~sage.combinat.chas.wqsym.WordQuasisymmetricFunctions.M`.
 
-    `WQSym` is endowed with a connected Hopf algebra structure (see
+    `WQSym` is endowed with a connected graded Hopf algebra structure (see
     Section 2.2 of [NoThWi08]_, Section 1.1 of [FoiMal14]_ and
     Section 4.3.2 of [MeNoTh11]_) given by
 
     .. MATH::
 
         \Delta(\mathbf{M}_{(P_1,\ldots,P_{\ell})}) = \sum_{i=0}^{\ell}
-            \mathbf{M}_{(P_1, \ldots, P_i)} \otimes
-            \mathbf{M}_{(P_{i+1}, \ldots, P_{\ell})}.
+            \mathbf{M}_{\operatorname{st}(P_1, \ldots, P_i)} \otimes
+            \mathbf{M}_{\operatorname{st}(P_{i+1}, \ldots, P_{\ell})}.
+
+    Here, for any ordered set partition `(Q_1, \ldots, Q_k)` of a
+    finite set `Z` of integers, we let `\operatorname{st}(Q_1, \ldots, Q_k)`
+    denote the set partition obtained from `Z` by replacing the smallest
+    element appearing in it by `1`, the second-smallest element by `2`,
+    and so on.
+
+    Sometimes, `WQSym` is also denoted as `NCQSym`.
 
     REFERENCES:
 
@@ -238,6 +246,11 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
         sage: x.antipode()
         3*M[{1}, {2}] + 3*M[{1, 2}] - M[{1, 2, 3}] - M[{2, 3}, {1}]
          - M[{3}, {1, 2}] - M[{3}, {2}, {1}]
+
+    .. TODO::
+
+        Dendriform structure.
+        Bergeron-Zabrocki/Menous-Novelli-Thibon basis.
     """
     def __init__(self, R):
         """
@@ -274,6 +287,8 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
         """
         return self.M()
 
+    _shorthands = tuple(['M', 'X', 'C'])
+
     class M(WQSymBasis_abstract):
         r"""
         The Monomial basis of `WQSym`.
@@ -295,7 +310,9 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
         def product_on_basis(self, x, y):
             r"""
-            Return the `*` associative product of two permutations.
+            Return the (associative) `*` product of the basis elements
+            of ``self`` indexed by the ordered set partitions `x` and
+            `y`.
 
             This is the shifted quasi-shuffle of `x` and `y`.
 
@@ -319,11 +336,19 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
                  + M[{4, 5}, {6}, {1}, {2, 3}]
                 sage: A.product_on_basis(y, y)
                 M[{1, 2}, {3, 4}] + M[{1, 2, 3, 4}] + M[{3, 4}, {1, 2}]
+
+            TESTS::
+
+                sage: one = OrderedSetPartition([])
+                sage: all(A.product_on_basis(one, z) == A.basis()[z] for z in OrderedSetPartitions(3))
+                True
+                sage: all(A.product_on_basis(z, one) == A.basis()[z] for z in OrderedSetPartitions(3))
+                True
             """
             K = self.basis().keys()
             if not x:
                 return self.monomial(y)
-            m = max(max(part) for part in x)
+            m = max(max(part) for part in x) # The degree of x
             x = [set(part) for part in x]
             yshift = [[val + m for val in part] for part in y]
             def union(X,Y): return X.union(Y)
@@ -331,7 +356,8 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
         def coproduct_on_basis(self, x):
             r"""
-            Return the coproduct of the basis element indexed by ``x``.
+            Return the coproduct of ``self`` on the basis element
+            indexed by the ordered set partition ``x``.
 
             EXAMPLES::
 
@@ -348,10 +374,13 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
             """
             if not len(x):
                 return self.one().tensor(self.one())
-            def standardize(P):
+            K = self.indices()
+            def standardize(P): # standardize an ordered set partition
                 base = sorted(sum((list(part) for part in P), []))
+                # base is the ground set of P, as a sorted list.
                 d = {val: i+1 for i,val in enumerate(base)}
-                K = self.indices()
+                # d is the unique order isomorphism from base to
+                # {1, 2, ..., |base|} (encoded as dict).
                 return K([[d[x] for x in part] for part in P])
             T = self.tensor_square()
             return T.sum_of_monomials((standardize(x[:i]), standardize(x[i:]))
@@ -363,8 +392,14 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
         r"""
         The Characteristic basis of `WQSym`.
 
-        The *Characteristic basis* is defined as `X_P = (-1)^{\ell(P)}
-        \mathbf{M}_P`, where `(\mathbf{M}_P)_P` denotes the Monomial basis,
+        The *Characteristic basis* is a graded basis `(X_P)` of `WQSym`,
+        indexed by ordered set partitions `P`. It is defined by
+
+        .. MATH::
+
+            X_P = (-1)^{\ell(P)} \mathbf{M}_P ,
+
+        where `(\mathbf{M}_P)_P` denotes the Monomial basis,
         and where `\ell(P)` denotes the number of blocks in an ordered
         set partition `P`.
 
@@ -382,6 +417,16 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
             sage: X[[1, 4], [3], [2]].coproduct()
             X[] # X[{1, 4}, {3}, {2}] + X[{1, 2}] # X[{2}, {1}]
              + X[{1, 3}, {2}] # X[{1}] + X[{1, 4}, {3}, {2}] # X[]
+
+            sage: M = WQSym.M()
+            sage: M(X[[1, 2, 3]])
+            -M[{1, 2, 3}]
+            sage: M(X[[1, 3], [2]])
+            M[{1, 3}, {2}]
+            sage: X(M[[1, 2, 3]])
+            -X[{1, 2, 3}]
+            sage: X(M[[1, 3], [2]])
+            X[{1, 3}, {2}]
         """
         _prefix = "X"
         _basis_name = "Characteristic"

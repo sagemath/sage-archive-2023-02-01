@@ -33,8 +33,8 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
     This must define two attributes:
 
     - ``_prefix`` -- the basis prefix
-    - ``_basis_name`` -- the name of the basis and must match one
-      of the names that the basis can be constructed from `WQSym`
+    - ``_basis_name`` -- the name of the basis (must match one
+      of the names that the basis can be constructed from `WQSym`)
     """
     def __init__(self, alg):
         r"""
@@ -57,6 +57,11 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
         for the output of an element.
 
         EXAMPLES::
+
+            sage: M = algebras.WQSym(ZZ).M(); M
+            Word Quasi-symmetric functions over Integer Ring in the M basis
+            sage: M([[4,1], [3], [2]]) + M([[3,2], [4], [1]]) # indirect doctest
+            M[{1, 4}, {3}, {2}] + M[{2, 3}, {4}, {1}]
         """
         return [sorted(part) for part in X]
 
@@ -307,7 +312,7 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
             x = [set(part) for part in x]
             yshift = [[val + m for val in part] for part in y]
             def union(X,Y): return X.union(Y)
-            return self.sum_of_monomials(ShuffleProduct_overlapping(x, yshift, K, set(), union))
+            return self.sum_of_monomials(ShuffleProduct_overlapping(x, yshift, K, union))
 
         def coproduct_on_basis(self, x):
             r"""

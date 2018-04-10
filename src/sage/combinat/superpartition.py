@@ -30,6 +30,11 @@ two sets of variables, one commuting and one anti-commuting, and they
 are known as symmetric functions in super space (hence the origin of the
 name super partitions).
 
+REFERENCES:
+
+    .. [JL16] M. Jones, L. Lapointe, Pieri rules for Schur
+        functions in superspace, :arXiv:`1608.08577`
+
 EXAMPLES::
 
     sage: SuperPartitions()
@@ -543,12 +548,6 @@ class SuperPartition(CombinatorialElement):
         """
         return (-1)**(self.degree()-len(self.symmetric_part()))
 
-    def Bruhat_less(self):
-        return NotImplemented
-    def S_order_less(self):        
-        return NotImplemented
-    def T_order_less(self):        
-        return NotImplemented
     def dominates(self, other):
         r"""
         Return ``True`` if and only if ``self`` dominates ``other``.
@@ -574,7 +573,11 @@ class SuperPartition(CombinatorialElement):
 
     def add_horizontal_border_strip_star(self, h):
         r"""
-        a list of super partitions that differ from ``self`` by a horizontal strip
+        List super partitions that differ from ``self`` by a horizontal strip
+
+        The notion of horizontal strip comes from the Pieri rule for the
+        Schur-star basis of symmetric functions in super space (see Theorem
+        7 from [JL16]_).
 
         INPUT:
 
@@ -615,9 +618,13 @@ class SuperPartition(CombinatorialElement):
                 out+=[SuperPartition.from_circled_diagram(*new_sp)]
         return out
 
-    def add_horizontal_border_strip_bar(self, h):
+    def add_horizontal_border_strip_star_bar(self, h):
         r"""
-        a list of super partitions that differ from ``self`` by a horizontal strip
+        List super partitions that differ from ``self`` by a horizontal strip
+
+        The notion of horizontal strip comes from the Pieri rule for the
+        Schur-star-bar basis of symmetric functions in super space (see Theorem
+        10 from [JL16]_).
 
         INPUT:
 
@@ -629,7 +636,7 @@ class SuperPartition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: SuperPartition([[4,1],[5,4]]).add_horizontal_border_strip_bar(3)
+            sage: SuperPartition([[4,1],[5,4]]).add_horizontal_border_strip_star_bar(3)
             [[4, 3; 5, 4, 1],
              [4, 1; 5, 4, 3],
              [4, 2; 5, 5, 1],
@@ -644,7 +651,7 @@ class SuperPartition(CombinatorialElement):
              [4, 2; 7, 4],
              [4, 1; 7, 5],
              [4, 1; 8, 4]]
-            sage: SuperPartition([[3,1],[5]]).add_horizontal_border_strip_bar(2)
+            sage: SuperPartition([[3,1],[5]]).add_horizontal_border_strip_star_bar(2)
             [[3, 2; 5, 1],
              [3, 1; 5, 2],
              [4, 1; 5, 1],
@@ -661,7 +668,6 @@ class SuperPartition(CombinatorialElement):
         for asp in nsp:
             asp = asp+[0]
             change_in_rows = [asp[i]-sp1[i] for i in range(len(sp1))]
-            #map(operator.sub,asp[:len(sp1)],sp1)
             moved_circ_list= [[]for i in range(len(circ_list))]
             for i in range(len(circ_list)):
                 if change_in_rows[circ_list[i][0]]==0:

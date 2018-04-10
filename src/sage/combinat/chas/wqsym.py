@@ -247,6 +247,14 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
         3*M[{1}, {2}] + 3*M[{1, 2}] - M[{1, 2, 3}] - M[{2, 3}, {1}]
          - M[{3}, {1, 2}] - M[{3}, {2}, {1}]
 
+    TESTS::
+
+        sage: a = M[OrderedSetPartition([[1]])]
+        sage: b = M[OrderedSetPartitions(1)([[1]])]
+        sage: c = M[[1]]
+        sage: a == b == c
+        True
+
     .. TODO::
 
         Dendriform structure.
@@ -340,9 +348,9 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
             TESTS::
 
                 sage: one = OrderedSetPartition([])
-                sage: all(A.product_on_basis(one, z) == A.basis()[z] for z in OrderedSetPartitions(3))
+                sage: all(A.product_on_basis(one, z) == A(z) == A.basis()[z] for z in OrderedSetPartitions(3))
                 True
-                sage: all(A.product_on_basis(z, one) == A.basis()[z] for z in OrderedSetPartitions(3))
+                sage: all(A.product_on_basis(z, one) == A(z) == A.basis()[z] for z in OrderedSetPartitions(3))
                 True
             """
             K = self.basis().keys()
@@ -454,14 +462,15 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
         r"""
         The Cone basis of `WQSym`.
 
-        Let `(X_P)_P` denote the Characteristic basis. Denote the
-        quasi-shuffle of two ordered set partitions `A` and `B` by
-        `A \box B`. For a set partition `P = (P_1, \ldots, P_{\ell})`,
-        we form a set of set partitions `[P] := \{P'_1, \ldots, P'_k\}`
-        as follows. Let `i_1 > \cdots > i_k = 1` be such that
-        `\min P_{i_j} < \min P_a` for all `i_j < a < i_{j-1}`. Set
-        `P'_j = (P_{i_j}, \ldots, P_{i_{j-1}-1})` where we consider
-        `i_0 = \ell + 1`.
+        Let `(X_P)_P` denote the Characteristic basis of `WQSym`.
+        Denote the quasi-shuffle of two ordered set partitions `A` and
+        `B` by `A \box B`. For an ordered set partition
+        `P = (P_1, \ldots, P_{\ell})`, we form a list of ordered set
+        partitions `[P] := (P'_1, \ldots, P'_k)` as follows.
+        Define a strictly decreasing sequence of integers
+        `\ell + 1 = i_0 > i_1 > \cdots > i_k = 1` recursively by
+        requiring that `\min P_{i_j} \leq \min P_a` for all `a < i_{j-1}`.
+        Set `P'_j = (P_{i_j}, \ldots, P_{i_{j-1}-1})`.
 
         The *Cone basis* `(C_P)_P` is defined by
 
@@ -470,7 +479,8 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
             C_P = \sum_Q X_Q,
 
         where the sum is over all elements `Q` of the quasi-shuffle
-        `P'_1 \box P'_2 \box \cdots P'_k` with `[P] = (P'_1, \ldots, P'_k)`.
+        `P'_1 \box P'_2 \box \cdots \box P'_k` with
+        `[P] = (P'_1, \ldots, P'_k)`.
 
         EXAMPLES::
 
@@ -487,6 +497,15 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
             sage: X(C[[2,3],[1],[4]])
             X[{1}, {2, 3}, {4}] + X[{1}, {2, 3, 4}] + X[{1}, {4}, {2, 3}]
              + X[{1, 2, 3}, {4}] + X[{2, 3}, {1}, {4}]
+            sage: X(C[[3], [2, 5], [1, 4]])
+            X[{1, 2, 3, 4, 5}] + X[{1, 2, 4, 5}, {3}] + X[{1, 3, 4}, {2, 5}]
+             + X[{1, 4}, {2, 3, 5}] + X[{1, 4}, {2, 5}, {3}]
+             + X[{1, 4}, {3}, {2, 5}] + X[{2, 3, 5}, {1, 4}]
+             + X[{2, 5}, {1, 3, 4}] + X[{2, 5}, {1, 4}, {3}]
+             + X[{2, 5}, {3}, {1, 4}] + X[{3}, {1, 2, 4, 5}]
+             + X[{3}, {1, 4}, {2, 5}] + X[{3}, {2, 5}, {1, 4}]
+            sage: C(X[[2,3],[1,4]])
+            -C[{1, 2, 3, 4}] - C[{1, 4}, {2, 3}] + C[{2, 3}, {1, 4}]
 
         REFERENCES:
 

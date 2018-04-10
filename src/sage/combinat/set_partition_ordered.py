@@ -175,6 +175,20 @@ class OrderedSetPartition(ClonableArray):
         """
         assert self in self.parent()
 
+    def _hash_(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: OS = OrderedSetPartitions(4)
+            sage: s = OS([[1, 3], [2, 4]])
+            sage: OSP = OrderedSetPartitions()
+            sage: hash(s) == hash(OSP(s))
+            True
+        """
+        return hash(tuple(self))
+
     @combinatorial_map(name='to composition')
     def to_composition(self):
         r"""
@@ -677,6 +691,24 @@ class OrderedSetPartitions_all(OrderedSetPartitions):
             return False
         X = set(reduce(lambda A,B: A.union(B), x, set()))
         return len(X) == sum(len(s) for s in x) and X == set(range(1,len(X)+1))
+        
+    def _coerce_map_from_(self, X):
+        """
+        Return ``True`` if there is a coercion map from ``X``.
+
+        EXAMPLES::
+        
+            sage: OSP = OrderedSetPartitions()
+            sage: OSP._coerce_map_from_(OrderedSetPartitions(3))
+            True
+            sage: OSP._coerce_map_from_(OrderedSetPartitions(['a','b']))
+            False
+        """
+        if X is self:
+            return True
+        if isinstance(X, OrderedSetPartitions):
+            return X._set == frozenset(range(1,len(X._set)+1))
+        return super(OrderedSetPartitions_all, self)._coerce_map_from_(X)
 
     def _repr_(self):
         """

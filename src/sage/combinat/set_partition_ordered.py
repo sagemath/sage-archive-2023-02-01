@@ -197,6 +197,9 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
     """
     Return the combinatorial class of ordered set partitions of ``s``.
 
+    The optional argument ``c``, if specified, restricts the parts of
+    the partition to have certain sizes (the entries of ``c``).
+
     EXAMPLES::
 
         sage: OS = OrderedSetPartitions([1,2,3,4]); OS
@@ -261,7 +264,7 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
         """
         if s is None:
             if c is not None:
-                raise NotImplementedError("cannot specify both 's' and 'c'")
+                raise NotImplementedError("cannot specify 'c' without specifying 's'")
             return OrderedSetPartitions_all()
         if isinstance(s, (int, sage.rings.integer.Integer)):
             if s < 0:
@@ -601,7 +604,7 @@ class OrderedSetPartitions_all(OrderedSetPartitions):
         EXAMPLES::
 
             sage: OS = OrderedSetPartitions()
-            sage: TestSuite(OS).run()
+            sage: TestSuite(OS).run()  # long time
         """
         Parent.__init__(self, category=InfiniteEnumeratedSets())
 
@@ -620,7 +623,7 @@ class OrderedSetPartitions_all(OrderedSetPartitions):
         n = 0
         while True:
             for X in OrderedSetPartitions(n):
-                yield X
+                yield self.element_class(self, list(X))
             n += 1
 
     def _element_constructor_(self, s):
@@ -634,7 +637,8 @@ class OrderedSetPartitions_all(OrderedSetPartitions):
             [{1, 3}, {2, 4}]
         """
         if isinstance(s, OrderedSetPartition):
-            if all(x in ZZ for x in s.parent()._set):
+            gset = s.parent()._set
+            if gset == frozenset(range(1,len(gset)+1)):
                 return self.element_class(self, list(s))
             raise ValueError("cannot convert %s into an element of %s"%(s, self))
         return self.element_class(self, list(s))
@@ -647,18 +651,31 @@ class OrderedSetPartitions_all(OrderedSetPartitions):
             sage: AOS = OrderedSetPartitions()
             sage: all(sp in AOS for sp in OS)
             True
+            sage: [[1,3],[4],[5,2]] in AOS
+            True
+            sage: [[1,4],[3]] in AOS
+            False
+            sage: [[1,3],[4,2],[2,5]] in AOS
+            False
         """
-        # x must be a list
-        if not isinstance(x, (OrderedSetPartition, list, tuple)):
+        if isinstance(x, OrderedSetPartition):
+            if x.parent() is self:
+                return True
+            gset = x.parent()._set
+            return gset == frozenset(range(1, len(gset)+1))
+
+        # x must be a list or a tuple
+        if not isinstance(x, (list, tuple)):
             return False
 
         # Check to make sure each element of the list is a set
         if any(not isinstance(s, (set, frozenset, list, tuple, Set_generic))
                for s in x):
             return False
-        if all(isinstance(s, (set, frozenset, Set_generic)) for s in x):
-            return True
-        return all(len(s) == len(set(s)) for s in x)
+        if not all(isinstance(s, (set, frozenset, Set_generic)) or len(s) == len(set(s)) for s in x):
+            return False
+        X = set(reduce(lambda A,B: A.union(B), x, set()))
+        return len(X) == sum(len(s) for s in x) and X == set(range(1,len(X)+1))
 
     def _repr_(self):
         """

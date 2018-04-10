@@ -419,6 +419,18 @@ class BrauerDiagram(AbstractPartitionDiagram):
 
         @OPTIONS@
 
+        The compact representation ``[A/B;pi]`` of the Brauer algebra diagram
+        (see [GL1996]_) has the following components:
+
+        - ``A`` -- is a list of pairs of positive elements (upper row) that 
+          are connected, 
+
+        - ``B`` -- is a list of pairs of negative elements (lower row) that
+          are connected, and
+
+        - ``pi`` --  is a permutation that is to be interpreted as the relative
+          order of the remaining elements in the top row and the bottom row.
+
         EXAMPLES::
 
             sage: R.<q> = QQ[]
@@ -426,9 +438,14 @@ class BrauerDiagram(AbstractPartitionDiagram):
             sage: E = BA([[1,2],[-1,-2]])
             sage: E
             B{{-2, -1}, {1, 2}}
+            sage: BA8 = BrauerAlgebra(8, q)
+            sage: BA8([[1,-4],[2,4],[3,8],[-7,-2],[5,7],[6,-1],[-3,-5],[-6,-8]])
+            B{{-8, -6}, {-7, -2}, {-5, -3}, {-4, 1}, {-1, 6}, {2, 4}, {3, 8}, {5, 7}}
             sage: BrauerAlgebra.options.display = "compact"
             sage: E
             B[12/12;]
+            sage: B{{-8, -6}, {-7, -2}, {-5, -3}, {-4, 1}, {-1, 6}, {2, 4}, {3, 8}, {5, 7}}
+            B[24.38.57/35.27.68;21]
             sage: BrauerAlgebra.options._reset()
         """
         NAME = 'Brauer diagram'

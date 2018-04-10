@@ -48,22 +48,7 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
         CombinatorialFreeModule.__init__(self, alg.base_ring(),
                                          OrderedSetPartitions(),
                                          category=WQSymBases(alg),
-                                         sorting_key=self._basis_key,
                                          bracket="", prefix=self._prefix)
-
-    def _basis_key(self, X):
-        """
-        Return an object with a total order for sorting the basis
-        for the output of an element.
-
-        EXAMPLES::
-
-            sage: M = algebras.WQSym(ZZ).M(); M
-            Word Quasi-symmetric functions over Integer Ring in the Monomial basis
-            sage: M([[4,1], [3], [2]]) + M([[3,2], [4], [1]]) # indirect doctest
-            M[{1, 4}, {3}, {2}] + M[{2, 3}, {4}, {1}]
-        """
-        return [sorted(part) for part in X]
 
     def _coerce_map_from_(self, R):
         r"""
@@ -198,12 +183,9 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
         sage: M[[1,2],[3]]
         M[{1, 2}, {3}]
         sage: M[[2, 3], [5], [6], [4], [1]].coproduct()
-        M[] # M[{2, 3}, {5}, {6}, {4}, {1}]
-         + M[{2, 3}, {5}, {6}, {4}, {1}] # M[]
-         + M[{1, 2}] # M[{3}, {4}, {2}, {1}]
-         + M[{1, 2}, {3}] # M[{3}, {2}, {1}]
-         + M[{1, 2}, {3}, {4}] # M[{2}, {1}]
-         + M[{1, 2}, {4}, {5}, {3}] # M[{1}]
+        M[] # M[{2, 3}, {5}, {6}, {4}, {1}] + M[{1, 2}] # M[{3}, {4}, {2}, {1}]
+         + M[{1, 2}, {3}] # M[{3}, {2}, {1}] + M[{1, 2}, {3}, {4}] # M[{2}, {1}]
+         + M[{1, 2}, {4}, {5}, {3}] # M[{1}] + M[{2, 3}, {5}, {6}, {4}, {1}] # M[]
         sage: M[[1,2,3]] * M[[1,2],[3]]
         M[{1, 2, 3}, {4, 5}, {6}] + M[{1, 2, 3, 4, 5}, {6}]
          + M[{4, 5}, {1, 2, 3}, {6}] + M[{4, 5}, {1, 2, 3, 6}]

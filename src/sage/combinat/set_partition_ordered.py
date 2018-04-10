@@ -36,13 +36,13 @@ from sage.misc.all import prod
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableArray
+from sage.structure.richcmp import richcmp
 from sage.rings.integer_ring import ZZ
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.combinat import stirling_number2
 from sage.combinat.composition import Composition, Compositions
 import sage.combinat.permutation as permutation
 from functools import reduce
-
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class OrderedSetPartition(ClonableArray):
@@ -686,6 +686,21 @@ class OrderedSetPartitions_all(OrderedSetPartitions):
             Ordered set partitions
         """
         return "Ordered set partitions"
+
+    class Element(OrderedSetPartition):
+        def _richcmp_(left, right, op):
+            """
+            TESTS::
+
+                sage: OSP = OrderedSetPartitions()
+                sage: el1 = OSP([[1,3], [4], [2]])
+                sage: el2 = OSP([[3,1], [2], [4]])
+                sage: el1 == el1, el2 == el2, el1 == el2    # indirect doctest
+                (True, True, False)
+                sage: el1 <= el2, el1 >= el2, el2 <= el1    # indirect doctest
+                (False, True, True)
+            """
+            return richcmp([sorted(s) for s in left], [sorted(s) for s in right], op)
 
 ##########################################################
 # Deprecations

@@ -142,6 +142,53 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
     r"""
     The word quasi-symmetric functions.
 
+    The ring of word quasi-symmetric functions can be defined as a
+    subring of the ring of all bounded-degree noncommutative power
+    series in countably many indeterminates (i.e., elements in
+    `R \langle \langle x_1, x_2, x_3, \ldots \rangle \rangle` of bounded
+    degree). Namely, consider words over the alphabet `\{1, 2, 3, \ldots\}`;
+    every noncommutative power series is an infinite `R`-linear
+    combination of these words.
+    For each such word `w`, we define the *packing* of `w` to be the
+    word `\operatorname{pack}(w)` which is obtained from `w` by replacing
+    the smallest letter that appears in `w` by `1`, the second-smallest
+    letter that appears in `w` by `2`, etc. (for example,
+    `\operatorname{pack}(4112774) = 3112443`).
+    A word `w` is said to be *packed* if `\operatorname{pack}(w) = w`.
+    For each packed word `u`, we define the noncommutative power series
+    `\mathbf{M}_u = \sum w`, where the sum ranges over all words `w`
+    satisfying `\operatorname{pack}(w) = u`.
+    The span of these power series `\mathbf{M}_u` is a subring of the
+    ring of all noncommutative power series; it is called the ring of
+    word quasi-symmetric functions, and is denoted by `WQSym`.
+    It is endowed with a Hopf algebra structure (see Section 2.2 of
+    [NoThWi08]_, Section 1.1 of [FoiMal14]_ and Section 4.3.2 of [MeNoTh11]_).
+
+    The family `(\mathbf{M}_u)`, with `u` ranging over all packed words,
+    is a basis for the free `R`-module `WQSym`, called the *M basis*.
+    It is often labelled using ordered set partitions instead:
+    For each nonnegative integer `n`, there is a bijection between the
+    packed words of length `n` and the ordered set partitions
+    of `\{1, 2, \ldots, n\}`. Under this bijection, a packed word
+    `u = (u_1, u_2, \ldots, u_n)` of length `n` corresponds to the
+    ordered set partition `P = (P_1, P_2, \ldots, P_k)` of
+    `\{1, 2, \ldots, n\}` whose `i`-th part `P_i` (for each `i`) is the
+    set of all `j \in \{1, 2, \ldots, n\}` such that `u_j = i`.
+    The basis element `\mathbf{M}_u` is also denoted as `\mathbf{M}_P`
+    in this situation.
+
+    The M basis is implemented using the latter indexing (i.e.,
+    `\mathbf{M}_P`, for an ordered set partition `P`, can be computed by
+    ``WQSym.M()[P]``).
+
+    REFERENCES:
+
+    .. [FoiMal14]_
+
+    .. [MeNoTh11]_
+
+    .. [NoThWi08]_
+
     EXAMPLES::
 
         sage: WQSym = algebras.WQSym(ZZ)
@@ -156,6 +203,13 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
         M[{1, 2, 3}]
         sage: M[[1,2],[3]]
         M[{1, 2}, {3}]
+        sage: M[[2, 3], [5], [6], [4], [1]].coproduct()
+        M[] # M[{2, 3}, {5}, {6}, {4}, {1}]
+         + M[{2, 3}, {5}, {6}, {4}, {1}] # M[]
+         + M[{1, 2}] # M[{3}, {4}, {2}, {1}]
+         + M[{1, 2}, {3}] # M[{3}, {2}, {1}]
+         + M[{1, 2}, {3}, {4}] # M[{2}, {1}]
+         + M[{1, 2}, {4}, {5}, {3}] # M[{1}]
         sage: M[[1,2,3]] * M[[1,2],[3]]
         M[{1, 2, 3}, {4, 5}, {6}] + M[{1, 2, 3, 4, 5}, {6}]
          + M[{4, 5}, {1, 2, 3}, {6}] + M[{4, 5}, {1, 2, 3, 6}]

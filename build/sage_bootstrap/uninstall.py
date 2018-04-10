@@ -151,7 +151,6 @@ def modern_uninstall(spkg_name, sage_local, files, verbose=False):
     # Sort the given files first by the highest directory depth, then by name,
     # so that we can easily remove a directory once it's been emptied
     files.sort(key=lambda f: (-f.count(os.sep), f))
-    cur_dir = None
 
     print("Uninstalling existing '{0}'".format(spkg_name))
 
@@ -160,11 +159,11 @@ def modern_uninstall(spkg_name, sage_local, files, verbose=False):
     run_spkg_script(spkg_name, spkg_scripts, 'prerm', 'pre-uninstall')
 
     def rmdir(dirname):
-        if dirname and os.path.exists(dirname):
-            if not os.listdir(cur_dir):
+        if os.path.isdir(dirname):
+            if not os.listdir(dirname):
                 if verbose:
-                    print('rmdir "{}"'.format(cur_dir))
-                os.rmdir(cur_dir)
+                    print('rmdir "{}"'.format(dirname))
+                os.rmdir(dirname)
         else:
             print("Warning: Directory '{0}' not found".format(
                 cur_dir), file=sys.stderr)
@@ -172,13 +171,6 @@ def modern_uninstall(spkg_name, sage_local, files, verbose=False):
     for filename in files:
         filename = pth.join(sage_local, filename)
         dirname = pth.dirname(filename)
-
-        if cur_dir != dirname:
-            cur_dir = dirname
-
-            # New directory; see if the previous directory has been emptied out
-            rmdir(cur_dir)
-
         if os.path.exists(filename):
             if verbose:
                 print('rm "{}"'.format(filename))
@@ -187,8 +179,8 @@ def modern_uninstall(spkg_name, sage_local, files, verbose=False):
             print("Warning: File '{0}' not found".format(filename),
                   file=sys.stderr)
 
-    # Remove the last directory, if it was empty
-    rmdir(cur_dir)
+        # Remove file's directory if it is now empty
+        rmdir(dirname)
 
     # Run the package's postrm script, if it exists.
     # If an error occurs here print a warning, but complete the

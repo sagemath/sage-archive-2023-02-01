@@ -652,6 +652,74 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 codomain = SymmetricFunctionsNonCommutingVariables(self.base_ring()).monomial()
                 return self.module_morphism(self.to_ncsym_on_basis, codomain=codomain)
 
+            def to_fqsym_on_basis(self, I):
+                r"""
+                The image of the basis element indexed by ``I`` under the
+                algebra monomorphism `\iota : NSym \to FQSym` that sends
+                each `S_n` to `F_{[1, 2, \ldots, n]}`.
+
+                This monomorphism `\iota` is the inclusion map, if we
+                regard both `NSym` and `FQSym` as rings of noncommutative
+                power series.
+
+                This default implementation does a change of basis and
+                computes the image in the complete basis.
+
+                .. SEEALSO::
+
+                    :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Complete.to_fqsym_on_basis`
+
+                INPUT:
+
+                - ``I`` -- a composition
+
+                EXAMPLES::
+
+                    sage: S = NonCommutativeSymmetricFunctions(QQ).S()
+                    sage: S.to_fqsym(S[2,1])
+                    F[1, 2, 3] + F[1, 3, 2] + F[3, 1, 2]
+                    sage: R = NonCommutativeSymmetricFunctions(QQ).R()
+                    sage: R.to_fqsym_on_basis(Composition([2,1]))
+                    F[1, 3, 2] + F[3, 1, 2]
+                """
+                S = self.realization_of().complete()
+                return S.to_fqsym(S(self[I]))
+
+            @lazy_attribute
+            def to_fqsym(self):
+                r"""
+                Morphism `\iota` of ``self`` to the algebra `FQSym` of
+                free quasisymmetric functions.
+
+                This morphism is the algebra monomorphism `NSym \to FQSym`
+                that sends each `S_n` to `F_{[1, 2, \ldots, n]}`. It is
+                the inclusion map, if we regard both `NSym` and `FQSym` as
+                rings of noncommutative power series.
+
+                This is constructed by extending the method
+                :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Complete.to_fqsym_on_basis`
+                linearly.
+
+                EXAMPLES::
+
+                    sage: N = NonCommutativeSymmetricFunctions(QQ)
+                    sage: R = N.ribbon()
+                    sage: x = R.an_element(); x
+                    2*R[] + 2*R[1] + 3*R[1, 1]
+                    sage: R.to_fqsym(x)
+                    2*F[] + 2*F[1] + 3*F[2, 1]
+                    sage: S = N.complete()
+                    sage: S.to_fqsym(S[1,2])
+                    F[1, 2, 3] + F[2, 1, 3] + F[2, 3, 1]
+                    sage: R.to_fqsym
+                    Generic morphism:
+                      From: Non-Commutative Symmetric Functions over the Rational Field in the Ribbon basis
+                      To:   Free Quasi-symmetric functions over Rational Field in the F basis
+                """
+                from sage.combinat.fqsym import FreeQuasisymmetricFunctions
+                codomain = FreeQuasisymmetricFunctions(self.base_ring()).F()
+                return self.module_morphism(self.to_fqsym_on_basis, codomain=codomain)
+
             def immaculate_function(self, xs):
                 r"""
                 Return the immaculate function corresponding to the
@@ -1775,6 +1843,26 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     m{{1}, {2, 3}} + m{{1, 2, 3}}
                 """
                 return self.parent().to_ncsym(self)
+
+            def to_fqsym(self):
+                r"""
+                Return the image of ``self`` in the free quasisymmetric
+                functions under the map described in
+                :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Complete.to_fqsym_on_basis`.
+
+                EXAMPLES::
+
+                    sage: N = NonCommutativeSymmetricFunctions(QQ)
+                    sage: R = N.ribbon()
+                    sage: x = 2*R[[]] + 2*R[1] + 3*R[2]
+                    sage: x.to_fqsym()
+                    2*F[] + 2*F[1] + 3*F[1, 2]
+                    sage: y = N.Phi()[1,2]
+                    sage: y.to_fqsym()
+                    F[1, 2, 3] - F[1, 3, 2] + F[2, 1, 3] + F[2, 3, 1]
+                     - F[3, 1, 2] - F[3, 2, 1]
+                """
+                return self.parent().to_fqsym(self)
 
             def expand(self, n, alphabet='x'):
                 r"""
@@ -3040,6 +3128,31 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             c_num = lambda A: prod([factorial(i) for i in A.shape()], R.one())
             return prod(m.sum_of_terms([(P(A), R(c_num(A) / factorial(n))) for A in SetPartitions(n)], distinct=True)
                         for n in I)
+
+        def to_fqsym_on_basis(self, I):
+            r"""
+            Return the image of the complete non-commutative symmetric function
+            under the morphism `\iota : NSym \to FQSym`.
+
+            This morphism is the algebra monomorphism `NSym \to FQSym`
+            that sends each `S_n` to `F_{[1, 2, \ldots, n]}`. It is
+            the inclusion map, if we regard both `NSym` and `FQSym` as
+            rings of noncommutative power series.
+
+            EXAMPLES::
+
+                sage: S = NonCommutativeSymmetricFunctions(QQ).S()
+                sage: S.to_fqsym_on_basis(Composition([2]))
+                F[1, 2]
+                sage: S.to_fqsym_on_basis(Composition([1,2,1]))
+                F[1, 2, 3, 4] + F[1, 2, 4, 3] + F[1, 4, 2, 3] + F[2, 1, 3, 4]
+                 + F[2, 1, 4, 3] + F[2, 3, 1, 4] + F[2, 3, 4, 1]
+                 + F[2, 4, 1, 3] + F[2, 4, 3, 1] + F[4, 1, 2, 3]
+                 + F[4, 2, 1, 3] + F[4, 2, 3, 1]
+            """
+            from sage.combinat.fqsym import FreeQuasisymmetricFunctions
+            F = FreeQuasisymmetricFunctions(self.base_ring()).F()
+            return F.prod(F[Permutations(i)(range(1, i+1))] for i in I)
 
         class Element(CombinatorialFreeModule.Element):
             """

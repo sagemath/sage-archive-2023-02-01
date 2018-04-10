@@ -30,11 +30,13 @@ from sage.arith.all import factorial
 import sage.rings.integer
 from sage.sets.set import Set, Set_generic
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.all import prod
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableArray
+from sage.rings.integer_ring import ZZ
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.combinat import stirling_number2
 from sage.combinat.composition import Composition, Compositions
@@ -246,7 +248,7 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
          [{'a', 'c', 't'}]]
     """
     @staticmethod
-    def __classcall_private__(cls, s, c=None):
+    def __classcall_private__(cls, s=None, c=None):
         """
         Choose the correct parent based upon input.
 
@@ -257,6 +259,10 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
             sage: OrderedSetPartitions(4, [1, 2, 1])
             Ordered set partitions of {1, 2, 3, 4} into parts of size [1, 2, 1]
         """
+        if s is None:
+            if c is not None:
+                raise NotImplementedError("cannot specify both 's' and 'c'")
+            return OrderedSetPartitions_all()
         if isinstance(s, (int, sage.rings.integer.Integer)):
             if s < 0:
                 raise ValueError("s must be non-negative")
@@ -296,9 +302,7 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
             [{1, 3}, {2, 4}]
         """
         if isinstance(s, OrderedSetPartition):
-            if s.parent() == self:
-                return s
-            raise ValueError("Cannot convert %s into an element of %s"%(s, self))
+            raise ValueError("cannot convert %s into an element of %s"%(s, self))
         return self.element_class(self, list(s))
 
     Element = OrderedSetPartition
@@ -584,6 +588,86 @@ class OrderedSetPartitions_scomp(OrderedSetPartitions):
             res = [lset[x - 1] for x in res]
             yield self.element_class(self, [Set(res[dcomp[i]+1:dcomp[i+1]+1])
                                             for i in range(l)])
+
+class OrderedSetPartitions_all(OrderedSetPartitions):
+    r"""
+    Ordered set partitions of `\{1, \ldots, n\}` for all
+    `n \in \ZZ_{\geq 0}`.
+    """
+    def __init__(self):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: OS = OrderedSetPartitions()
+            sage: TestSuite(OS).run()
+        """
+        Parent.__init__(self, category=InfiniteEnumeratedSets())
+
+    def __iter__(self):
+        """
+        Iterate over ``self``.
+
+        EXAMPLES::
+
+            sage: it = iter(OrderedSetPartitions())
+            sage: [next(it) for _ in range(10)]
+            [[], [{1}], [{1}, {2}], [{2}, {1}], [{1, 2}],
+             [{1}, {2}, {3}], [{1}, {3}, {2}], [{2}, {1}, {3}],
+             [{3}, {1}, {2}], [{2}, {3}, {1}]]
+        """
+        n = 0
+        while True:
+            for X in OrderedSetPartitions(n):
+                yield X
+            n += 1
+
+    def _element_constructor_(self, s):
+        """
+        Construct an element of ``self`` from ``s``.
+
+        EXAMPLES::
+
+            sage: OS = OrderedSetPartitions()
+            sage: OS([[1,3],[2,4]])
+            [{1, 3}, {2, 4}]
+        """
+        if isinstance(s, OrderedSetPartition):
+            if all(x in ZZ for x in s.parent()._set):
+                return self.element_class(self, list(s))
+            raise ValueError("cannot convert %s into an element of %s"%(s, self))
+        return self.element_class(self, list(s))
+
+    def __contains__(self, x):
+        """
+        TESTS::
+
+            sage: OS = OrderedSetPartitions([1,2,3,4])
+            sage: AOS = OrderedSetPartitions()
+            sage: all(sp in AOS for sp in OS)
+            True
+        """
+        # x must be a list
+        if not isinstance(x, (OrderedSetPartition, list, tuple)):
+            return False
+
+        # Check to make sure each element of the list is a set
+        if any(not isinstance(s, (set, frozenset, list, tuple, Set_generic))
+               for s in x):
+            return False
+        if all(isinstance(s, (set, frozenset, Set_generic)) for s in x):
+            return True
+        return all(len(s) == len(set(s)) for s in x)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: OrderedSetPartitions()
+            Ordered set partitions
+        """
+        return "Ordered set partitions"
 
 ##########################################################
 # Deprecations

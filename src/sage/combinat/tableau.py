@@ -4117,9 +4117,8 @@ class Tableau(ClonableList):
         * Otherwise, let `s` be the index of the leftmost column of `M`
           containing a nonzero entry.
           Let `r` be the index of the bottommost nonzero entry in the
-          `s`-th column of `M`.
-          Let `M'` be the `\lambda`-array obtained from `M` by
-          subtracting `1` from the `(r, s)`-th entry of `M`.
+          `s`-th column of `M`. Let `M'` be the `\lambda`-array obtained
+          from `M` by subtracting `1` from the `(r, s)`-th entry of `M`.
           Let `Q = (q_{i, j})` be the image `H(M')` (which is already
           defined by recursion).
 
@@ -4127,9 +4126,8 @@ class Tableau(ClonableList):
           (i_n, j_n))` of boxes in the diagram of `\lambda` (actually a
           lattice path made of southward and westward steps) as follows:
           Set `(i_1, j_1) = (r, \lambda_r)` (the rightmost box in the
-          `r`-th row of `\lambda`).
-          If `(i_k, j_k)` is defined for some `k \geq 1`, then
-          `(i_{k+1}, j_{k+1})` is constructed as follows:
+          `r`-th row of `\lambda`). If `(i_k, j_k)` is defined for some
+          `k \geq 1`, then `(i_{k+1}, j_{k+1})` is constructed as follows:
           If `q_{i_k + 1, j_k}` is well-defined and equals `q_{i_k, j_k}`,
           then we set `(i_{k+1}, j_{k+1}) = (i_k + 1, j_k)`.
           Otherwise, if `j_k = s`, then the sequence ends here.
@@ -4158,7 +4156,8 @@ class Tableau(ClonableList):
             sage: A.parent(), a.parent()
             (Weak rpps, Tableaux)
         """
-        from sage.combinat.hillman_grassl import hillman_grassl, WeakReversePlanePartition
+        from sage.combinat.hillman_grassl import (hillman_grassl,
+                                                  WeakReversePlanePartition)
         return WeakReversePlanePartition(hillman_grassl(list(self)))
 
     def sulzgruber_correspondence(self):
@@ -4199,9 +4198,8 @@ class Tableau(ClonableList):
 
         * the *lower bound* of `\pi` at `(u, v)` (denoted by
           `\pi_{<(u, v)}`) is defined to be
-          `\max \{ \pi_{u-1, v} , \pi_{u, v-1} \}`
-          (where `\pi_{0, v}` and `\pi_{u, 0}` are understood to
-          mean `0`).
+          `\max \{ \pi_{u-1, v} , \pi_{u, v-1} \}` (where
+          `\pi_{0, v}` and `\pi_{u, 0}` are understood to mean `0`).
 
         * the *upper bound* of `\pi` at `(u, v)` (denoted by
           `\pi_{>(u, v)}`) is defined to be
@@ -4274,7 +4272,8 @@ class Tableau(ClonableList):
             sage: a.sulzgruber_correspondence()
             [[0, 4], [1, 5]]
         """
-        from sage.combinat.hillman_grassl import sulzgruber_correspondence, WeakReversePlanePartition
+        from sage.combinat.hillman_grassl import (sulzgruber_correspondence,
+                                                  WeakReversePlanePartition)
         return WeakReversePlanePartition(sulzgruber_correspondence(list(self)))
 
 class SemistandardTableau(Tableau):

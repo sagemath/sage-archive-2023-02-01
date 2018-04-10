@@ -26,8 +26,8 @@ call it a reverse plane partition.)
 The Hillman-Grassl correspondence is a bijection from the
 set of `\lambda`-arrays to the set of `\lambda`-rpps.
 For its definition, see
-:meth:`~sage.combinat.tableau.Tableau.hillman_grassl`; for
-its inverse, see
+:meth:`~sage.combinat.tableau.Tableau.hillman_grassl`;
+for its inverse, see
 :meth:`~sage.combinat.hillman_grassl.WeakReversePlanePartition.hillman_grassl_inverse`.
 
 The Sulzgruber correspondence `\Phi_\lambda` and the Pak
@@ -36,10 +36,8 @@ inverse bijections between the set of
 `\lambda`-arrays and the set of `\lambda`-rpps.
 They appear (sometimes with different definitions, but
 defining the same maps) in [Pak2002]_, [Hopkins2017]_ and
-[Sulzgr2017]_.
-For their definitions, see
-:meth:`~sage.combinat.tableau.Tableau.sulzgruber_correspondence`
-and
+[Sulzgr2017]_. For their definitions, see
+:meth:`~sage.combinat.tableau.Tableau.sulzgruber_correspondence` and
 :meth:`~sage.combinat.hillman_grassl.WeakReversePlanePartition.pak_correspondence`.
 
 EXAMPLES:
@@ -49,7 +47,7 @@ We construct a `\lambda`-rpp for `\lambda = (3, 3, 1)`
 
     sage: p = WeakReversePlanePartition([[0, 1, 3], [2, 4, 4], [3]])
     sage: p.parent()
-    Weak rpps
+    Weak Reverse Plane Partitions
 
 (This is the example in Section 7.22 of [EnumComb2]_.)
 
@@ -81,8 +79,7 @@ This is undone by the Sulzgruber correspondence::
     True
 
 These four correspondences can also be accessed as standalone
-functions
-(:meth:`hillman_grassl_inverse`, :meth:`hillman_grassl`,
+functions (:meth:`hillman_grassl_inverse`, :meth:`hillman_grassl`,
 :meth:`pak_correspondence` and :meth:`sulzgruber_correspondence`)
 that transform lists of lists into lists of lists;
 this may be more efficient. For example, the above computation
@@ -92,41 +89,31 @@ of ``HGp`` can also be obtained as follows::
     sage: HGp_bare = hillman_grassl_inverse([[0, 1, 3], [2, 4, 4], [3]])
     sage: HGp_bare
     [[1, 2, 0], [1, 0, 1], [1]]
-    sage: parent(HGp_bare)
-    <type 'list'>
+    sage: isinstance(HGp_bare, list)
+    True
 
 REFERENCES:
 
-.. [Gans1981]_
-
-.. [HilGra1976]_
-
-.. [EnumComb2]_
-
-.. [Pak2002]_
-
-.. [Sulzgr2017]_
-
-.. [Hopkins2017]_
+- [Gans1981]_
+- [HilGra1976]_
+- [EnumComb2]_
+- [Pak2002]_
+- [Sulzgr2017]_
+- [Hopkins2017]_
 
 AUTHORS:
 
 - Darij Grinberg and Tom Roby (2018): Initial implementation
-
 """
+
 #*****************************************************************************
 #       Copyright (C) 2018 Darij Grinberg <darijgrinberg@gmail.com>,
 #                     2018 Tom Roby <tomrobyuconn@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful, but
-#    WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -208,7 +195,7 @@ class WeakReversePlanePartition(Tableau):
             sage: c = WeakReversePlanePartition([[1,1],[1,3],[2]]).conjugate(); c
             [[1, 1, 2], [1, 3]]
             sage: c.parent()
-            Weak rpps
+            Weak Reverse Plane Partitions
         """
         C = super(WeakReversePlanePartition, self).conjugate()
         return WeakReversePlanePartition(C)
@@ -239,8 +226,8 @@ class WeakReversePlanePartition(Tableau):
         * If all entries of `\pi` are `0`, then `H^{-1}(\pi) = \pi`.
 
         * Otherwise, let `s` be the index of the leftmost column of `\pi`
-          containing a nonzero entry.
-          Write the `\lambda`-array `M` as `(m_{i, j})`.
+          containing a nonzero entry. Write the `\lambda`-array `M`
+          as `(m_{i, j})`.
 
         * Define a sequence `((i_1, j_1), (i_2, j_2), \ldots,
           (i_n, j_n))` of boxes in the diagram of `\lambda` (actually a
@@ -250,10 +237,9 @@ class WeakReversePlanePartition(Tableau):
           If `(i_k, j_k)` is defined for some `k \geq 1`, then
           `(i_{k+1}, j_{k+1})` is constructed as follows:
           If `q_{i_k - 1, j_k}` is well-defined and equals `q_{i_k, j_k}`,
-          then we set `(i_{k+1}, j_{k+1}) = (i_k - 1, j_k)`.
-          Otherwise, we set `(i_{k+1}, j_{k+1}) = (i_k, j_k + 1)` if
-          this is still a box of `\lambda`.
-          Otherwise, the sequence ends here.
+          then we set `(i_{k+1}, j_{k+1}) = (i_k - 1, j_k)`. Otherwise,
+          we set `(i_{k+1}, j_{k+1}) = (i_k, j_k + 1)` if this is still
+          a box of `\lambda`. Otherwise, the sequence ends here.
 
         * Let `\pi'` be the `\lambda`-rpp obtained from `\pi` by
           subtracting `1` from the `(i_k, j_k)`-th entry of `\pi` for each
@@ -286,7 +272,7 @@ class WeakReversePlanePartition(Tableau):
             sage: B = b.hillman_grassl_inverse(); B
             [[1, 0, 1, 0], [0, 1, 0, 1], [1, 0, 1, 0], [0, 1, 0, 1]]
             sage: b.parent(), B.parent()
-            (Weak rpps, Tableaux)
+            (Weak Reverse Plane Partitions, Tableaux)
 
         Applying the inverse of the Hillman-Grassl correspondence
         to the transpose of a `\lambda`-rpp `M` yields the same
@@ -302,9 +288,8 @@ class WeakReversePlanePartition(Tableau):
 
     def pak_correspondence(self):
         r"""
-        Return the image of the `\lambda`-rpp ``self`` under the
-        Pak correspondence (as a
-        :class:`~sage.combinat.tableau.Tableau`).
+        Return the image of the `\lambda`-rpp ``self`` under the Pak
+        correspondence (as a :class:`~sage.combinat.tableau.Tableau`).
 
         See :mod:`~sage.combinat.hillman_grassl`.
 
@@ -376,8 +361,7 @@ class WeakReversePlanePartition(Tableau):
 
         * Pick any corner `c = (i, j)` of `\lambda`, and let `\mu`
           be the result of removing this corner `c` from the partition
-          `\lambda`.
-          (The exact choice of `c` is immaterial.)
+          `\lambda`. (The exact choice of `c` is immaterial.)
 
         * Let `M'` be what remains of `M` when the corner cell `c`
           is removed.
@@ -409,7 +393,7 @@ class WeakReversePlanePartition(Tableau):
             sage: A = a.pak_correspondence(); A
             [[1, 0, 2], [0, 2, 0], [1, 1, 0]]
             sage: a.parent(), A.parent()
-            (Weak rpps, Tableaux)
+            (Weak Reverse Plane Partitions, Tableaux)
 
         Applying the Pak correspondence to the transpose of a
         `\lambda`-rpp `M` yields the same result as applying it to
@@ -424,31 +408,36 @@ class WeakReversePlanePartition(Tableau):
 
 class WeakReversePlanePartitions(Tableaux):
     r"""
-    The set of all weak rpps.
+    The set of all weak reverse plane partitions.
     """
     @staticmethod
     def __classcall_private__(cls, shape=None, **kwds):
         """
-        Normalize input to ensure a unique representation and pick the correct
-        class based on input.
+        Normalize input to ensure a unique representation and
+        return the correct class based on input.
 
-        The ``shape`` parameter is currently ignored.
+        The ``shape`` parameter is currently not implemented.
 
         EXAMPLES::
 
-            sage: S1 = WeakReversePlanePartitions([4, 2, 2, 1])
-            sage: S2 = WeakReversePlanePartitions((4, 2, 2, 1))
+            sage: S1 = WeakReversePlanePartitions()
+            sage: S2 = WeakReversePlanePartitions()
             sage: S1 is S2
             True
-        """
-        #if shape is not None:
-        #    from sage.combinat.partition import Partition
-        #    return RibbonShapedTableaux_shape(Partition(shape))
 
-        # Otherwise arg0 takes the place of the category in pickling
+            sage: S1 = WeakReversePlanePartitions([4, 2, 2, 1])  # not tested (not implemented)
+            sage: S2 = WeakReversePlanePartitions((4, 2, 2, 1))  # not tested (not implemented)
+            sage: S1 is S2  # not tested (not implemented)
+            True
+        """
+        if shape is not None:
+            raise NotImplementedError("shape cannot be specified")
+            #from sage.combinat.partition import Partition
+            #return RibbonShapedTableaux_shape(Partition(shape))
+
         return super(WeakReversePlanePartitions, cls).__classcall__(cls, **kwds)
 
-    def __init__(self, category=None):
+    def __init__(self):
         """
         Initialize ``self``.
 
@@ -457,22 +446,18 @@ class WeakReversePlanePartitions(Tableaux):
             sage: S = WeakReversePlanePartitions()
             sage: TestSuite(S).run()
         """
-        if category is None:
-            category = Sets()
-
-        Tableaux.__init__(self, category=category)
+        Tableaux.__init__(self, category=Sets())
 
     def _repr_(self):
         """
         TESTS::
 
-            sage: repr(WeakReversePlanePartitions())    # indirect doctest
-            'Weak rpps'
+            sage: WeakReversePlanePartitions()
+            Weak Reverse Plane Partitions
         """
-        return "Weak rpps"
+        return "Weak Reverse Plane Partitions"
 
     Element = WeakReversePlanePartition
-    options = Tableaux.options
 
     def an_element(self):
         r"""
@@ -540,13 +525,12 @@ def hillman_grassl(M):
     This bijection preserves the shape of the
     tableau. See :mod:`~sage.combinat.hillman_grassl`.
 
-    See
-    :meth:`~sage.combinat.tableau.Tableau.hillman_grassl`
+    See :meth:`~sage.combinat.tableau.Tableau.hillman_grassl`
     for a description of this map.
 
     .. SEEALSO::
 
-        :meth:`hillman_grassl_inverse`.
+        :meth:`hillman_grassl_inverse`
 
     EXAMPLES::
 
@@ -609,7 +593,7 @@ def hillman_grassl_inverse(M):
 
     .. SEEALSO::
 
-        :meth:`hillman_grassl`.
+        :meth:`hillman_grassl`
 
     EXAMPLES::
 
@@ -686,8 +670,7 @@ def sulzgruber_correspondence(M):
     It is the inverse of the Pak correspondence
     (:meth:`pak_correspondence`).
 
-    See
-    :meth:`~sage.combinat.tableau.Tableau.sulzgruber_correspondence`
+    See :meth:`~sage.combinat.tableau.Tableau.sulzgruber_correspondence`
     for a description of this map.
 
     EXAMPLES::
@@ -784,7 +767,7 @@ def pak_correspondence(M, copy=True):
     INPUT:
 
     - ``copy`` (default: ``True``) -- boolean;
-      if set to ``False``, the algorithm will clobber the
+      if set to ``False``, the algorithm will mutate the
       input (but be more efficient)
 
     EXAMPLES::
@@ -826,10 +809,9 @@ def pak_correspondence(M, copy=True):
         sage: a
         []
     """
-    lam = [len(row) for row in M]
-    l = len(lam)
-    if l == 0:
+    if not M:
         return []
+    lam = [len(row) for row in M]
     # Finding a corner of lam...
     lam_0 = lam[0]
     for i, lam_i in enumerate(lam):
@@ -876,5 +858,4 @@ def pak_correspondence(M, copy=True):
         N.append([])
     N[i].append(x)
     return N
-
 

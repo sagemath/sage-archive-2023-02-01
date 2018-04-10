@@ -322,17 +322,21 @@ from six.moves import range, zip
 from six import itervalues, iteritems, integer_types
 
 from copy import copy
+
+from .generic_graph_pyx import GenericGraph_pyx, spring_layout_fast
+from .dot2tex_utils import assert_have_dot2tex
+
 from sage.misc.decorators import options
 from sage.misc.cachefunc import cached_method
 from sage.misc.prandom import random
+from sage.misc.superseded import deprecation, deprecated_function_alias
+from sage.misc.lazy_import import LazyImport
+
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.rings.rational import Rational
-from .generic_graph_pyx import GenericGraph_pyx, spring_layout_fast
-from sage.graphs.dot2tex_utils import assert_have_dot2tex
-from sage.misc.superseded import deprecation, deprecated_function_alias
 
-to_hex = None   # overriden when needed in graphviz_string
+to_hex = LazyImport('matplotlib.colors', 'to_hex')
 
 class GenericGraph(GenericGraph_pyx):
     """
@@ -20822,9 +20826,6 @@ class GenericGraph(GenericGraph_pyx):
                 col = edge_options['color']
                 if isinstance(col, (tuple, list)):
                     # convert RGB triples in hexadecimal
-                    global to_hex
-                    if to_hex is None:
-                        from matplotlib.colors import to_hex
                     col = str(to_hex(col, False))
 
                 dot_options.append('color = "%s"' % col)

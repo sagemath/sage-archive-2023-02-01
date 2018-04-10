@@ -3494,7 +3494,7 @@ class Polyhedron_base(Element):
         new_ieqs = self.inequalities_list() + [ineq_vector]
         new_eqns = self.equations_list()
 
-        return Polyhedron(ieqs=new_ieqs, eqns=new_eqns, 
+        return Polyhedron(ieqs=new_ieqs, eqns=new_eqns,
                           base_ring=self.parent()._coerce_base_ring(cut_frac))
 
     def stack(self, face, position=None):
@@ -3563,7 +3563,8 @@ class Polyhedron_base(Element):
         barycenter = ZZ.one()*sum([v.vector() for v in face_vertices]) / n_vertices
 
         # Taking all facets that contain the face
-        face_star = set([facet for facet in self.Hrepresentation() if all(facet.contains(x) and not facet.interior_contains(x) for x in face_vertices)])
+        face_star = set([facet for facet in self.Hrepresentation()
+            if all(facet.contains(x) and not facet.interior_contains(x) for x in face_vertices)])
 
         neighboring_facets = set()
         for facet in face_star:

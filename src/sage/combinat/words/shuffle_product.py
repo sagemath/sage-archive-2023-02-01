@@ -266,6 +266,6 @@ class ShuffleProduct_shifted(ShuffleProduct_w1w2):
         """
         return "Shuffle product of %s and %s"% (repr(self._w1), repr(self._w2))
 
-lazy_import('sage.combinat.shuffle', 'ShuffleProduct_overlapping_r', deprecation=987654)
-lazy_import('sage.combinat.shuffle', 'ShuffleProduct_overlapping', deprecation=987654)
+lazy_import('sage.combinat.shuffle', 'ShuffleProduct_overlapping_r', deprecation=15597)
+lazy_import('sage.combinat.shuffle', 'ShuffleProduct_overlapping', deprecation=15597)
 

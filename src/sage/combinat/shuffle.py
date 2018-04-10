@@ -454,7 +454,7 @@ class ShuffleProduct_overlapping_r(CombinatorialClass):
          word: 939,
          word: 9,2,10]
     """
-    def __init__(self, w1, w2, r, element_constructor=None, zero=0, add=operator.add):
+    def __init__(self, w1, w2, r, element_constructor=None, add=operator.add):
         """
         Initialize ``self``.
 
@@ -469,7 +469,6 @@ class ShuffleProduct_overlapping_r(CombinatorialClass):
         self._w1 = w1
         self._w2 = w2
         self.r  = r
-        self.zero = zero
         self.add = add
 
         if element_constructor is None:
@@ -534,7 +533,7 @@ class ShuffleProduct_overlapping_r(CombinatorialClass):
 
         wc1, wc2 = self._w1, self._w2
 
-        blank = [self.zero for _ in range(m+n-r)]
+        blank = [None] * (m+n-r)
         for iv in IntegerVectors(m, m+n-r, max_part=1):
             w = blank[:]
             filled_places = []
@@ -557,7 +556,10 @@ class ShuffleProduct_overlapping_r(CombinatorialClass):
                 i = 0
                 res = w[:]
                 for j in places_to_fill:
-                    res[j] = add(res[j], wc2[i])
+                    if res[j] is not None:
+                        res[j] = add(res[j], wc2[i])
+                    else:
+                        res[j] = wc2[i]
                     i += 1
 
                 yield EC(res)
@@ -608,7 +610,6 @@ class ShuffleProduct_overlapping(CombinatorialClass):
     - ``w1``, ``w2`` -- iterables
     - ``element_constructor`` -- (default: the parent of ``w1``)
       the function used to construct the output
-    - ``zero`` -- (default: ``0``) the initial data of the overlap
     - ``add`` -- (default: ``+``) the addition function
 
     EXAMPLES::
@@ -632,7 +633,7 @@ class ShuffleProduct_overlapping(CombinatorialClass):
          [11, 10]]
         sage: A = [{1,2}, {3,4}]
         sage: B = [{2,3}, {4,5,6}]
-        sage: S = ShuffleProduct_overlapping(A, B, zero=set(), add=lambda X,Y: X.union(Y))
+        sage: S = ShuffleProduct_overlapping(A, B, add=lambda X,Y: X.union(Y))
         sage: list(S)
         [[{1, 2}, {3, 4}, {2, 3}, {4, 5, 6}],
          [{1, 2}, {2, 3}, {3, 4}, {4, 5, 6}],
@@ -648,7 +649,7 @@ class ShuffleProduct_overlapping(CombinatorialClass):
          [{2, 3}, {1, 2}, {3, 4, 5, 6}],
          [{1, 2, 3}, {3, 4, 5, 6}]]
     """
-    def __init__(self, w1, w2, element_constructor=None, zero=0, add=operator.add):
+    def __init__(self, w1, w2, element_constructor=None, add=operator.add):
         """
         Initialize ``self``.
 
@@ -662,7 +663,6 @@ class ShuffleProduct_overlapping(CombinatorialClass):
         """
         self._w1 = w1
         self._w2 = w2
-        self._zero = zero
         self._add = add
 
         if element_constructor is None:
@@ -713,7 +713,6 @@ class ShuffleProduct_overlapping(CombinatorialClass):
         for r in range(min(m,n)+1):
             for w in ShuffleProduct_overlapping_r(self._w1, self._w2, r,
                                                   self._element_constructor_,
-                                                  zero=self._zero,
                                                   add=self._add):
                 yield w
 

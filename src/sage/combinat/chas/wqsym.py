@@ -778,5 +778,36 @@ class WQSymBases(Category_realization_of_parent):
             return sum(len(part) for part in t)
 
     class ElementMethods:
-        pass
+        def to_quasisymmetric_function(self):
+            r"""
+            The projection of ``self`` to the ring `QSym` of
+            quasisymmetric functions.
+
+            There is a canonical projection `\pi : WQSym \to QSym`
+            that sends every element `\mathbf{M}_P` of the monomial
+            basis of `WQSym` to the monomial quasisymmetric function
+            `M_c`, where `c` is the composition whose parts are the
+            sizes of the blocks of `P`.
+            This `\pi` is a ring homomorphism.
+
+            OUTPUT:
+
+            - an element of the quasisymmetric functions in the monomial basis
+
+            EXAMPLES::
+
+                sage: M = algebras.WQSym(QQ).M()
+                sage: M[[1,3],[2]].to_quasisymmetric_function()
+                M[2, 1]
+                sage: (M[[1,3],[2]] + 3*M[[2,3],[1]] - M[[1,2,3]]).to_quasisymmetric_function()
+                4*M[2, 1] - M[3]
+                sage: X, Y = M[[1,3],[2]], M[[1,2,3]]
+                sage: X.to_quasisymmetric_function() * Y.to_quasisymmetric_function() == (X*Y).to_quasisymmetric_function()
+                True
+            """
+            from sage.combinat.ncsf_qsym.qsym import QuasiSymmetricFunctions
+            M = QuasiSymmetricFunctions(self.parent().base_ring()).Monomial()
+            return M.sum_of_terms((i.to_composition(), coeff)
+                                  for (i, coeff) in self)
+
 

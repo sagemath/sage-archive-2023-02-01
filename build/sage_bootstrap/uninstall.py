@@ -56,7 +56,7 @@ PKGS = pth.join(SAGE_ROOT, 'build', 'pkgs')
 """Directory where all spkg sources are found."""
 
 
-def uninstall(spkg_name, sage_local):
+def uninstall(spkg_name, sage_local, verbose=False):
     """
     Given a package name and path to SAGE_LOCAL, uninstall that package from
     SAGE_LOCAL if it is currently installed.
@@ -91,21 +91,23 @@ def uninstall(spkg_name, sage_local):
         print("Old-style or corrupt stamp file '{0}'".format(stamp_file),
               file=sys.stderr)
 
-        legacy_uninstall(spkg_name)
+        legacy_uninstall(spkg_name, verbose=verbose)
     else:
         files = spkg_meta['files']
         if not files:
             print("Warning: No files to uninstall for "
                   "'{0}'".format(spkg_name), file=sys.stderr)
 
-        modern_uninstall(spkg_name, sage_local, files)
+        modern_uninstall(spkg_name, sage_local, files, verbose=verbose)
 
     # Finally, if all went well, delete all the stamp files.
     for stamp_file in stamp_files:
+        if verbose:
+            print('rm "{}"'.format(stamp_file))
         os.remove(stamp_file)
 
 
-def legacy_uninstall(spkg_name):
+def legacy_uninstall(spkg_name, verbose=False):
     """
     Run the spkg's legacy uninstall script, if one exists; otherwise do
     nothing.
@@ -120,15 +122,17 @@ def legacy_uninstall(spkg_name):
               "do".format(spkg_name), file=sys.stderr)
         return
 
-    print("Uninstalling '{0}' with legacy uninstaller".format(spkg_name),
-          file=sys.stderr)
+    print("Uninstalling '{0}' with legacy uninstaller".format(spkg_name))
+    if verbose:
+        with open(legacy_uninstall) as f:
+            print(f.read())
 
     # Any errors from this, including a non-zero return code will
     # bubble up and exit the uninstaller
     subprocess.check_call([legacy_uninstall])
 
 
-def modern_uninstall(spkg_name, sage_local, files):
+def modern_uninstall(spkg_name, sage_local, files, verbose=False):
     """
     Remove all listed files from the given SAGE_LOCAL (all file paths should
     be assumed relative to SAGE_LOCAL).
@@ -149,7 +153,7 @@ def modern_uninstall(spkg_name, sage_local, files):
     files.sort(key=lambda f: (-f.count(os.sep), f))
     cur_dir = None
 
-    print("Uninstalling existing '{0}'".format(spkg_name), file=sys.stderr)
+    print("Uninstalling existing '{0}'".format(spkg_name))
 
     # Run the package's postrm script, if it exists
     # If an error occurs here we abort the uninstallation for now
@@ -158,6 +162,8 @@ def modern_uninstall(spkg_name, sage_local, files):
     def rmdir(dirname):
         if dirname and os.path.exists(dirname):
             if not os.listdir(cur_dir):
+                if verbose:
+                    print('rmdir "{}"'.format(cur_dir))
                 os.rmdir(cur_dir)
         else:
             print("Warning: Directory '{0}' not found".format(
@@ -174,6 +180,8 @@ def modern_uninstall(spkg_name, sage_local, files):
             rmdir(cur_dir)
 
         if os.path.exists(filename):
+            if verbose:
+                print('rm "{}"'.format(filename))
             os.remove(filename)
         else:
             print("Warning: File '{0}' not found".format(filename),
@@ -210,8 +218,7 @@ def run_spkg_script(spkg_name, path, script_name, script_descr):
 
     script = pth.join(path, 'spkg-{0}'.format(script_name))
     if pth.exists(script):
-        print("Running {0} script for '{1}'".format(script_descr, spkg_name),
-              file=sys.stderr)
+        print("Running {0} script for '{1}'".format(script_descr, spkg_name))
         subprocess.check_call([script])
 
 
@@ -257,6 +264,8 @@ def make_parser():
                         default=os.environ.get('SAGE_LOCAL'),
                         help='the SAGE_LOCAL path (default: the $SAGE_LOCAL '
                              'environment variable if set)')
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help='verbose output showing all files removed')
     parser.add_argument('--debug', action='store_true', help=argparse.SUPPRESS)
 
     return parser
@@ -274,7 +283,7 @@ def run(argv=None):
         sys.exit(1)
 
     try:
-        uninstall(args.spkg, args.sage_local)
+        uninstall(args.spkg, args.sage_local, verbose=args.verbose)
     except Exception as exc:
         print("Error during uninstallation of '{0}': {1}".format(
             args.spkg, exc), file=sys.stderr)

@@ -187,7 +187,8 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
     The basis element `\mathbf{M}_u` is also denoted as `\mathbf{M}_P`
     in this situation and is implemented using the latter indexing.
-    The basis `(\mathbf{M}_P)_P` is implemented at
+    The basis `(\mathbf{M}_P)_P` is called the *Monomial basis* and
+    is implemented at
     :class:`~sage.combinat.chas.wqsym.WordQuasisymmetricFunctions.M`.
 
     `WQSym` is endowed with a connected graded Hopf algebra structure (see
@@ -205,6 +206,8 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
     denote the set partition obtained from `Z` by replacing the smallest
     element appearing in it by `1`, the second-smallest element by `2`,
     and so on.
+
+    A rule for multiplying elements of the monomial basis also exists:
 
     Sometimes, `WQSym` is also denoted as `NCQSym`.
 
@@ -575,7 +578,7 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
                         temp = temp[:j]
                         break
 
-            # Perform the shuffle product
+            # Perform the quasi-shuffle product
             cur = {data[0]: 1}
             for B in data[1:]:
                 ret = {}
@@ -746,16 +749,20 @@ class WQSymBases(Category_realization_of_parent):
             Return the degree of an ordered set partition in
             the algebra of word quasi-symmetric functions.
 
-            This is the length of the ordered set partition.
+            This is the sum of the sizes of the blocks of the
+            ordered set partition.
 
             EXAMPLES::
 
                 sage: A = algebras.WQSym(QQ).M()
-                sage: u = Permutation([2,1])
+                sage: u = OrderedSetPartition([[2,1]])
+                sage: A.degree_on_basis(u)
+                2
+                sage: u = OrderedSetPartition([[2], [1]])
                 sage: A.degree_on_basis(u)
                 2
             """
-            return len(t)
+            return sum(len(part) for part in t)
 
     class ElementMethods:
         pass

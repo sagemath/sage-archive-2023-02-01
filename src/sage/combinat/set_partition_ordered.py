@@ -586,7 +586,8 @@ class OrderedSetPartitions_scomp(OrderedSetPartitions):
         for j in range(l):
             p += [j + 1] * comp[j]
 
-        for x in permutation.Permutations(p):
+        from sage.combinat.permutation import Permutations_mset
+        for x in Permutations_mset(p):
             res = permutation.to_standard(x).inverse()
             res = [lset[x - 1] for x in res]
             yield self.element_class(self, [Set(res[dcomp[i]+1:dcomp[i+1]+1])

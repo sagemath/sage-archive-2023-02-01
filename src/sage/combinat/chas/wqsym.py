@@ -804,10 +804,15 @@ class WQSymBases(Category_realization_of_parent):
                 sage: X, Y = M[[1,3],[2]], M[[1,2,3]]
                 sage: X.to_quasisymmetric_function() * Y.to_quasisymmetric_function() == (X*Y).to_quasisymmetric_function()
                 True
+
+                sage: C = algebras.WQSym(QQ).C()
+                sage: C[[2,3],[1,4]].to_quasisymmetric_function() == M(C[[2,3],[1,4]]).to_quasisymmetric_function()
+                True
             """
             from sage.combinat.ncsf_qsym.qsym import QuasiSymmetricFunctions
             M = QuasiSymmetricFunctions(self.parent().base_ring()).Monomial()
+            MW = self.parent().realization_of().M()
             return M.sum_of_terms((i.to_composition(), coeff)
-                                  for (i, coeff) in self)
+                                  for (i, coeff) in MW(self))
 
 

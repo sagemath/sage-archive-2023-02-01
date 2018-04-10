@@ -857,6 +857,9 @@ REFERENCES:
 
 **E**
 
+.. [Early2017] Nick Early. *Canonical bases for permutohedral plates*.
+               Preprint (2017). :arxiv:`1712.08520`.
+
 .. [Eb1989] \W. Eberly, "Computations for algebras and group
             representations". Ph.D. Thesis, University of
             Toronto, 1989. http://www.cpsc.ucalgary.ca/~eberly/Research/Papers/phdthesis.pdf

@@ -4,7 +4,7 @@ Word Quasi-symmetric functions
 
 AUTHORS:
 
-- Travis Scrimshaw (2018-04-09)
+- Travis Scrimshaw (2018-04-09): initial implementation
 """
 
 # ****************************************************************************
@@ -409,14 +409,43 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
         r"""
         The Cone basis of `WQSym`.
 
-        The *Cone basis* is defined as `C_P = (-1)^{\ell(P)}
-        X_P`, where `(X_P)_P` denotes the Characteristic basis.
+        Let `(X_P)_P` denote the Characteristic basis. Denote the
+        quasi-shuffle of two ordered set partitions `A` and `B` by
+        `A \box B`. For a set partition `P = (P_1, \ldots, P_{\ell})`,
+        we form a set of set partitions `[P] := \{P'_1, \ldots, P'_k\}`
+        as follows. Let `i_1 > \cdots > i_k = 1` be such that
+        `\min P_{i_j} < \min P_a` for all `i_j < a < i_{j-1}`. Set
+        `P'_j = (P_{i_j}, \ldots, P_{i_{j-1}-1})` where we consider
+        `i_0 = \ell + 1`.
+
+        The *Cone basis* `(C_P)_P` is defined by
+
+        .. MATH::
+
+            C_P = \sum_Q X_Q,
+
+        where the sum is over all elements `Q` of the quasi-shuffle
+        `P'_1 \box P'_2 \box \cdots P'_k` with `[P] = (P'_1, \ldots, P'_k)`.
 
         EXAMPLES::
 
             sage: WQSym = algebras.WQSym(QQ)
-            sage: WQSym.C()
+            sage: C = WQSym.C()
+            sage: C
             Word Quasi-symmetric functions over Rational Field in the Cone basis
+
+            sage: X = WQSym.X()
+            sage: X(C[[2,3],[1,4]])
+            X[{1, 2, 3, 4}] + X[{1, 4}, {2, 3}] + X[{2, 3}, {1, 4}]
+            sage: X(C[[1,4],[2,3]])
+            X[{1, 4}, {2, 3}]
+            sage: X(C[[2,3],[1],[4]])
+            X[{1}, {2, 3}, {4}] + X[{1}, {2, 3, 4}] + X[{1}, {4}, {2, 3}]
+             + X[{1, 2, 3}, {4}] + X[{2, 3}, {1}, {4}]
+
+        REFERENCES:
+
+        - Section 4 of [Early2017]_
         """
         _prefix = "C"
         _basis_name = "Cone"
@@ -439,7 +468,8 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
         def some_elements(self):
             """
-            Return some elements of the word quasi-symmetric functions.
+            Return some elements of the word quasi-symmetric functions
+            in the Cone basis.
 
             EXAMPLES::
 
@@ -454,8 +484,8 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
         def _C_to_X(self, P):
             """
-            Return the image of the basis element indexed by ``P``
-            in the Characteristic basis.
+            Return the image of the basis element of ``self`` indexed
+            by ``P`` in the Characteristic basis.
 
             EXAMPLES::
 

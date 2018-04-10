@@ -59,7 +59,7 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
         EXAMPLES::
 
             sage: M = algebras.WQSym(ZZ).M(); M
-            Word Quasi-symmetric functions over Integer Ring in the M basis
+            Word Quasi-symmetric functions over Integer Ring in the Monomial basis
             sage: M([[4,1], [3], [2]]) + M([[3,2], [4], [1]]) # indirect doctest
             M[{1, 4}, {3}, {2}] + M[{2, 3}, {4}, {1}]
         """
@@ -78,7 +78,7 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
         EXAMPLES::
 
             sage: M = algebras.WQSym(GF(7)).M(); M
-            Word Quasi-symmetric functions over Finite Field of size 7 in the M basis
+            Word Quasi-symmetric functions over Finite Field of size 7 in the Monomial basis
 
         Elements of the word quasi-symmetric functions canonically coerce in::
 
@@ -104,8 +104,8 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion from Word Quasi-symmetric functions
-             over Finite Field of size 7 in the M basis to
-             Word Quasi-symmetric functions over Integer Ring in the M basis
+             over Finite Field of size 7 in the Monomial basis to
+             Word Quasi-symmetric functions over Integer Ring in the Monomial basis
 
         TESTS::
 
@@ -150,7 +150,7 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
     every noncommutative power series is an infinite `R`-linear
     combination of these words.
     For each such word `w`, we define the *packing* of `w` to be the
-    word `\operatorname{pack}(w)` which is obtained from `w` by replacing
+    word `\operatorname{pack}(w)` that is obtained from `w` by replacing
     the smallest letter that appears in `w` by `1`, the second-smallest
     letter that appears in `w` by `2`, etc. (for example,
     `\operatorname{pack}(4112774) = 3112443`).
@@ -164,29 +164,23 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
     It is endowed with a Hopf algebra structure (see Section 2.2 of
     [NoThWi08]_, Section 1.1 of [FoiMal14]_ and Section 4.3.2 of [MeNoTh11]_).
 
-    The family `(\mathbf{M}_u)`, with `u` ranging over all packed words,
-    is a basis for the free `R`-module `WQSym`, called the *M basis*.
-    It is often labelled using ordered set partitions instead:
-    For each nonnegative integer `n`, there is a bijection between the
-    packed words of length `n` and the ordered set partitions
-    of `\{1, 2, \ldots, n\}`. Under this bijection, a packed word
+    For each nonnegative integer `n`, there is a bijection between
+    packed words of length `n` and ordered set partitions of
+    `\{1, 2, \ldots, n\}`. Under this bijection, a packed word
     `u = (u_1, u_2, \ldots, u_n)` of length `n` corresponds to the
     ordered set partition `P = (P_1, P_2, \ldots, P_k)` of
     `\{1, 2, \ldots, n\}` whose `i`-th part `P_i` (for each `i`) is the
     set of all `j \in \{1, 2, \ldots, n\}` such that `u_j = i`.
-    The basis element `\mathbf{M}_u` is also denoted as `\mathbf{M}_P`
-    in this situation.
 
-    The M basis is implemented using the latter indexing (i.e.,
-    `\mathbf{M}_P`, for an ordered set partition `P`, can be computed by
-    ``WQSym.M()[P]``).
+    The basis element `\mathbf{M}_u` is also denoted as `\mathbf{M}_P`
+    in this situation and is implemented using the latter indexing.
+    It is implemented at
+    :class:~sage.combinat.chas.wqsym.WordQuasisymmetricFunctions.M`.
 
     REFERENCES:
 
     .. [FoiMal14]_
-
     .. [MeNoTh11]_
-
     .. [NoThWi08]_
 
     EXAMPLES::
@@ -196,7 +190,7 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
         Word Quasi-symmetric functions over Integer Ring
         sage: M = WQSym.M()
         sage: M
-        Word Quasi-symmetric functions over Integer Ring in the M basis
+        Word Quasi-symmetric functions over Integer Ring in the Monomial basis
         sage: M[[]]
         M[]
         sage: M[[1,2,3]]
@@ -252,26 +246,28 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
             sage: WQSym = algebras.WQSym(QQ)
             sage: WQSym.a_realization()
-            Word Quasi-symmetric functions over Rational Field in the M basis
+            Word Quasi-symmetric functions over Rational Field in the Monomial basis
         """
         return self.M()
 
     class M(WQSymBasis_abstract):
         r"""
-        The `M`-basis of `WQSym`.
+        The Monomial basis of `WQSym`.
 
-        This is the basis `(M_P)`, with `P` ranging over all
-        ordered set partitions. See the documentation of
-        :class:`WQSym` for details.
+        The family `(\mathbf{M}_u)`, as defined in
+        :class:`~sage.combinat.chas.wqsym.WordQuasiSymmetricFunctions`
+        with `u` ranging over all packed words, is a basis for the
+        free `R`-module `WQSym` and called the *Monomial basis*.
+        Here it is labelled using ordered set partitions.
 
         EXAMPLES::
 
             sage: WQSym = algebras.WQSym(QQ)
             sage: WQSym.M()
-            Word Quasi-symmetric functions over Rational Field in the M basis
+            Word Quasi-symmetric functions over Rational Field in the Monomial basis
         """
         _prefix = "M"
-        _basis_name = "M"
+        _basis_name = "Monomial"
 
         def degree_on_basis(self, t):
             """
@@ -396,6 +392,8 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
             return T.sum_of_monomials((standardize(x[:i]), standardize(x[i:]))
                                       for i in range(len(x) + 1))
 
+    Monomial = M
+
 class WQSymBases(Category_realization_of_parent):
     r"""
     The category of bases of `WQSym`.
@@ -456,7 +454,7 @@ class WQSymBases(Category_realization_of_parent):
 
                 sage: WQSym = algebras.WQSym(ZZ)
                 sage: WQSym.M()
-                Word Quasi-symmetric functions over Integer Ring in the M basis
+                Word Quasi-symmetric functions over Integer Ring in the Monomial basis
             """
             return "{} in the {} basis".format(self.realization_of(), self._basis_name)
 

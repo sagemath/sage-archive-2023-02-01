@@ -1313,28 +1313,28 @@ class Polyhedron_base(Element):
 
             sage: P = polytopes.permutahedron(3)
             sage: print(P.Hrepresentation_str())
-            x0 + x1 + x2 ==  6 
-                -x1 - x2 >= -5 
-                     -x2 >= -3 
-                     -x1 >= -3 
-                      x1 >=  1 
-                 x1 + x2 >=  3 
-                      x2 >=  1 
+            x0 + x1 + x2 ==  6
+                -x1 - x2 >= -5
+                     -x2 >= -3
+                     -x1 >= -3
+                      x1 >=  1
+                 x1 + x2 >=  3
+                      x2 >=  1
             sage: print(P.Hrepresentation_str(style='<='))
-            -x0 - x1 - x2 == -6 
-                  x1 + x2 <=  5 
-                       x2 <=  3 
-                       x1 <=  3 
-                      -x1 <= -1 
-                 -x1 - x2 <= -3 
-                      -x2 <= -1 
+            -x0 - x1 - x2 == -6
+                  x1 + x2 <=  5
+                       x2 <=  3
+                       x1 <=  3
+                      -x1 <= -1
+                 -x1 - x2 <= -3
+                      -x2 <= -1
             sage: print(P.Hrepresentation_str(style='positive'))
-            x0 + x1 + x2 == 6       
-                       5 >= x1 + x2 
-                       3 >= x2      
-                       3 >= x1      
-                      x1 >= 1       
-                 x1 + x2 >= 3       
+            x0 + x1 + x2 == 6
+                       5 >= x1 + x2
+                       3 >= x2
+                       3 >= x1
+                      x1 >= 1
+                 x1 + x2 >= 3
                       x2 >= 1
             sage: print(P.Hrepresentation_str(latex=True))
             \begin{array}{rcl}
@@ -1344,16 +1344,18 @@ class Polyhedron_base(Element):
                            -x_{1} & \geq & -3 \\
                             x_{1} & \geq &  1 \\
                     x_{1} + x_{2} & \geq &  3 \\
-                            x_{2} & \geq &  1 
+                            x_{2} & \geq &  1
             \end{array}
 
         TESTS::
 
             sage: P1 = Polyhedron([[0],[1]], base_ring=ZZ)
             sage: P1.repr_pretty_Hrepresentation()
-            doctest:warning...:
-            DeprecationWarning: repr_pretty_Hrepresentation is deprecated.  Please use Hrepresentation_str instead.
-            See http://trac.sagemath.org/24837 for details.
+            doctest:warning
+            ...
+            :
+            DeprecationWarning: repr_pretty_Hrepresentation is deprecated. Please use Hrepresentation_str instead.
+            See https://trac.sagemath.org/24837 for details.
             ' x0 >=  0 \n-x0 >= -1 '
         """
 

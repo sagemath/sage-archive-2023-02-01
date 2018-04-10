@@ -39,19 +39,25 @@ class HeckeCharacter(SymmetricFunctionAlgebra_multiplicative):
     Hecke aglebra in analogy to the Frobenious formula for the
     symmetric group.
 
-    Consider the Hecke algebra `H_n(q)` with quadratic relations::
+    Consider the Hecke algebra `H_n(q)` with quadratic relations
+
+    .. MATH::
 
         T_i^2 = (q - 1) T_i + q.
 
     Let `\mu` be a partition of `n` with length `\ell`. The character
     `\chi` of a `H_n(q)`-representation is completely determined by
-    the elements `T_{\gamma_{\mu}}`, where::
+    the elements `T_{\gamma_{\mu}}`, where
+
+    .. MATH::
 
         \gamma_{\mu} = (\mu_1, \ldots, 1) (\mu_2 + \mu_1, \ldots, 1 + \mu_1)
         \cdots (n, \ldots, 1 + \sum_{i < \ell} \mu_i),
 
     (written in cycle notation). We define a basis of the symmetric
     functions by
+
+    .. MATH::
 
         \bar{q}_{\mu} = \sum_{\lambda \vdash n}
         \chi^{\lambda}(T_{\gamma_{\mu}}) s_{\lambda}.

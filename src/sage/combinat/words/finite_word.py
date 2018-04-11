@@ -870,6 +870,29 @@ class FiniteWord_class(Word_class):
         index = dict((b,a) for (a,b) in enumerate(ordered_alphabet))
         return [index[a] for a in self]
 
+    def to_ordered_set_partition(self):
+        r"""
+        Return the ordered set partition `(P_1, P_2, \ldots, P_k)`
+        of `\{1, 2, \ldots, n\}`, where `n` is the length of ``self``,
+        and where each block `P_i` is the set of positions at which
+        the `i`-th smallest letter occurring in ``self`` occurs in
+        ``self``.
+
+        EXAMPLES::
+
+            sage: w = Word('abbabaab')
+            sage: w.to_ordered_set_partition()
+            [{1, 4, 6, 7}, {8, 2, 3, 5}]
+            sage: Word([-10, 3, -10, 2]).to_ordered_set_partition()
+            [{1, 3}, {4}, {2}]
+            sage: Word([]).to_ordered_set_partition()
+            []
+            sage: Word('aaaaa').to_ordered_set_partition()
+            [{1, 2, 3, 4, 5}]
+        """
+        from sage.combinat.set_partition_ordered import OrderedSetPartition
+        return OrderedSetPartition(word_to_ordered_set_partition(self))
+
     # To fix : do not slice here ! (quite expensive in copy)
     def is_suffix(self, other):
         r"""
@@ -5069,8 +5092,8 @@ class FiniteWord_class(Word_class):
         r"""
         Return the standard permutation of the word
         ``self`` on the ordered alphabet. It is defined as
-        the permutation with exactly the same number of
-        inversions as w. Equivalently, it is the permutation
+        the permutation with exactly the same inversions as
+        ``self``. Equivalently, it is the permutation
         of minimal length whose inverse sorts ``self``.
 
         EXAMPLES::
@@ -6220,8 +6243,10 @@ class FiniteWord_class(Word_class):
             Shuffle product of word: 23 and word: 23
             sage: w.shuffle(u)
             Shuffle product of word: 01 and word: 23
-            sage: w.shuffle(u,2)
+            sage: sp2 = w.shuffle(u,2); sp2
             Overlapping shuffle product of word: 01 and word: 23 with 2 overlaps
+            sage: list(sp2)
+            [word: 24]
         """
         if overlap == 0:
             from sage.combinat.words.shuffle_product import ShuffleProduct_w1w2
@@ -6230,11 +6255,11 @@ class FiniteWord_class(Word_class):
             if any(a not in ZZ for a in self) or any(a not in ZZ for a in other):
                 raise ValueError("for a nonzero overlap, words must contain integers as letters")
             if overlap is True:
-                from sage.combinat.words.shuffle_product import ShuffleProduct_overlapping
-                return ShuffleProduct_overlapping(self, other)
+                from sage.combinat.shuffle import ShuffleProduct_overlapping
+                return ShuffleProduct_overlapping(self, other, self.parent())
             elif isinstance(overlap, (int,Integer)):
-                from sage.combinat.words.shuffle_product import ShuffleProduct_overlapping_r
-                return ShuffleProduct_overlapping_r(self, other, overlap)
+                from sage.combinat.shuffle import ShuffleProduct_overlapping_r
+                return ShuffleProduct_overlapping_r(self, other, overlap, self.parent())
             raise ValueError('overlapping must be True or an integer')
 
     def shifted_shuffle(self, other, shift=None):
@@ -7197,4 +7222,48 @@ def evaluation_dict(w):
     for a in w:
         d[a] += 1
     return dict(d)
+
+def word_to_ordered_set_partition(w):
+    r"""
+    Return the ordered set partition corresponding to a finite
+    word `w`.
+
+    If `w` is a finite word of length `n`, then the corresponding
+    ordered set partition is an ordered set partition
+    `(P_1, P_2, \ldots, P_k)` of `\{1, 2, \ldots, n\}`, where
+    each block `P_i` is the set of positions at which the `i`-th
+    smallest letter occurring in `w` occurs in `w`.
+
+    This is the same functionality that
+    :meth:`~sage.combinat.words.finite_word.FiniteWord_class.to_ordered_set_partition`
+    provides, but without the wrapping: The input `w` can be given as
+    a list or tuple, not necessarily as a word; and the output is
+    returned as a list of lists (which are the blocks of the ordered
+    set partition in increasing order), not as an ordered set partition.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.words.finite_word import word_to_ordered_set_partition
+        sage: word_to_ordered_set_partition([3, 6, 3, 1])
+        [[4], [1, 3], [2]]
+        sage: word_to_ordered_set_partition((1, 3, 3, 7))
+        [[1], [2, 3], [4]]
+        sage: word_to_ordered_set_partition("noob")
+        [[4], [1], [2, 3]]
+        sage: word_to_ordered_set_partition(Word("hell"))
+        [[2], [1], [3, 4]]
+        sage: word_to_ordered_set_partition([1])
+        [[1]]
+        sage: word_to_ordered_set_partition([])
+        []
+    """
+    from sage.misc.all import uniq
+    n = len(w)
+    vals = sorted(uniq(w))
+    dc = {val: i for (i, val) in enumerate(vals)}
+    P = [[] for _ in vals]
+    for i, val in enumerate(w):
+        P[dc[val]].append(i+1)
+    return P
+
 

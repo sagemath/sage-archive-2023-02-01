@@ -173,6 +173,20 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
     This is just a relabeling of the basis `(F_w)_{w \in S}`,
     but is a more natural choice from some viewpoints.
 
+    The algebra `FQSym` is often identified with ("realized as") a
+    subring of the ring of all bounded-degree noncommutative power
+    series in countably many indeterminates (i.e., elements in
+    `R \langle \langle x_1, x_2, x_3, \ldots \rangle \rangle` of bounded
+    degree). Namely, consider words over the alphabet `\{1, 2, 3, \ldots\}`;
+    every noncommutative power series is an infinite `R`-linear
+    combination of these words.
+    Consider the `R`-linear map that sends each `G_u` to the sum of
+    all words whose standardization (also known as "standard
+    permutation"; see
+    :meth:`~sage.combinat.words.finite_word.standard_permutation`)
+    is `u`. This map is an injective `R`-algebra homomorphism, and
+    thus embeds `FQSym` into the latter ring.
+
     As an associative algebra, `FQSym` has the richer structure
     of a dendriform algebra. This means that the associative
     product ``*`` is decomposed as a sum of two binary operations
@@ -732,10 +746,10 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: G = algebras.FQSym(QQ).F()
+                sage: G = algebras.FQSym(QQ).G()
                 sage: G[3, 2, 1]
                 G[3, 2, 1]
-                sage: F[1]
+                sage: G[1]
                 G[1]
             """
             if isinstance(r, tuple):
@@ -1123,4 +1137,52 @@ class FQSymBases(Category_realization_of_parent):
             """
             F = self.parent().realization_of().F()
             return F(self).to_symmetric_group_algebra(n=n)
+
+        def to_wqsym(self):
+            r"""
+            Return the image of ``self`` under the canonical
+            inclusion map `FQSym \to WQSym`.
+
+            The canonical inclusion map `FQSym \to WQSym` is
+            an injective homomorphism of algebras. It sends a
+            basis element `G_w` of `FQSym` to the sum of
+            basis elements `\mathbf{M}_u` of `WQSym`, where `u`
+            ranges over all packed words whose standardization
+            is `w`.
+
+            .. SEEALSO::
+
+                :class:`WordQuasisymmetricFunctions` for a
+                definition of `WQSym`.
+
+            EXAMPLES::
+
+                sage: G = algebras.FQSym(QQ).G()
+                sage: x = G[1, 3, 2]
+                sage: x.to_wqsym()
+                M[{1}, {3}, {2}] + M[{1, 3}, {2}]
+                sage: G[1, 2].to_wqsym()
+                M[{1}, {2}] + M[{1, 2}]
+                sage: F = algebras.FQSym(QQ).F()
+                sage: F[3, 1, 2].to_wqsym()
+                M[{3}, {1}, {2}] + M[{3}, {1, 2}]
+                sage: G[2, 3, 1].to_wqsym()
+                M[{3}, {1}, {2}] + M[{3}, {1, 2}]
+            """
+            parent = self.parent()
+            FQSym = parent.realization_of()
+            G = FQSym.G()
+            from sage.combinat.chas.wqsym import WordQuasisymmetricFunctions
+            M = WordQuasisymmetricFunctions(parent.base_ring()).M()
+            def to_wqsym_on_G_basis(w):
+                # Return the image of `G_w` under the inclusion
+                # map `FQSym \to WQSym`.
+                dc = w.inverse().descents_composition()
+                res = M.zero()
+                for comp in dc.finer():
+                    v = w.destandardize(comp)
+                    res += M[v.to_ordered_set_partition()]
+                return res
+            return M.sum(coeff * to_wqsym_on_G_basis(w)
+                         for w, coeff in G(self))
 

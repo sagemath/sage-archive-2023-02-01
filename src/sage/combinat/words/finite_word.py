@@ -890,15 +890,8 @@ class FiniteWord_class(Word_class):
             sage: Word('aaaaa').to_ordered_set_partition()
             [{1, 2, 3, 4, 5}]
         """
-        from sage.misc.all import uniq
-        n = len(self)
-        vals = sorted(uniq(self))
-        dc = {val: i for (i, val) in enumerate(vals)}
-        P = [[] for _ in vals]
-        for i, val in enumerate(self):
-            P[dc[val]].append(i+1)
         from sage.combinat.set_partition_ordered import OrderedSetPartition
-        return OrderedSetPartition(P)
+        return OrderedSetPartition(word_to_ordered_set_partition(self))
 
     # To fix : do not slice here ! (quite expensive in copy)
     def is_suffix(self, other):
@@ -7229,4 +7222,48 @@ def evaluation_dict(w):
     for a in w:
         d[a] += 1
     return dict(d)
+
+def word_to_ordered_set_partition(w):
+    r"""
+    Return the ordered set partition corresponding to a finite
+    word `w`.
+
+    If `w` is a finite word of length `n`, then the corresponding
+    ordered set partition is an ordered set partition
+    `(P_1, P_2, \ldots, P_k)` of `\{1, 2, \ldots, n\}`, where
+    each block `P_i` is the set of positions at which the `i`-th
+    smallest letter occurring in `w` occurs in `w`.
+
+    This is the same functionality that
+    :meth:`~sage.combinat.words.finite_word.FiniteWord_class.to_ordered_set_partition`
+    provides, but without the wrapping: The input `w` can be given as
+    a list or tuple, not necessarily as a word; and the output is
+    returned as a list of lists (which are the blocks of the ordered
+    set partition in increasing order), not as an ordered set partition.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.words.finite_word import word_to_ordered_set_partition
+        sage: word_to_ordered_set_partition([3, 6, 3, 1])
+        [[4], [1, 3], [2]]
+        sage: word_to_ordered_set_partition((1, 3, 3, 7))
+        [[1], [2, 3], [4]]
+        sage: word_to_ordered_set_partition("noob")
+        [[4], [1], [2, 3]]
+        sage: word_to_ordered_set_partition(Word("hell"))
+        [[2], [1], [3, 4]]
+        sage: word_to_ordered_set_partition([1])
+        [[1]]
+        sage: word_to_ordered_set_partition([])
+        []
+    """
+    from sage.misc.all import uniq
+    n = len(w)
+    vals = sorted(uniq(w))
+    dc = {val: i for (i, val) in enumerate(vals)}
+    P = [[] for _ in vals]
+    for i, val in enumerate(w):
+        P[dc[val]].append(i+1)
+    return P
+
 

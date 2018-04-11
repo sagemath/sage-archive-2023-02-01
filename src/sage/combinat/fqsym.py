@@ -1124,3 +1124,35 @@ class FQSymBases(Category_realization_of_parent):
             F = self.parent().realization_of().F()
             return F(self).to_symmetric_group_algebra(n=n)
 
+        def to_wqsym(self):
+            r"""
+            Return the image of ``self`` under the canonical
+            inclusion map `FQSym \to WQSym`.
+
+            XXX
+
+            EXAMPLES::
+
+                sage: G = algebras.FQSym(QQ).G()
+                sage: x = G[1, 3, 2]
+                sage: x.to_wqsym()
+                M[{1, 2, 3}] + M[{1, 3}, {2}]
+                sage: G[1, 2].to_wqsym()
+                M[{1}, {2}] + M[{1, 2}]
+                sage: F = algebras.FQSym(QQ).F()
+                sage: F[3, 1, 2].to_wqsym()
+                M[{3}, {1, 2}] + M[{3}, {1}, {2}]
+            """
+            parent = self.parent()
+            FQSym = parent.realization_of()
+            G = FQSym.G()
+            from sage.combinat.chas.wqsym import WordQuasisymmetricFunctions
+            M = WordQuasisymmetricFunctions(parent.base_ring()).M()
+            def to_wqsym_on_G_basis(w):
+                # Return the image of `G_w` under the inclusion
+                # map `FQSym \to WQSym`.
+                dc = w.inverse().descents_composition()
+                res = M.zero()
+                for u in dc.finer():
+                    v = w.destandardize(u)
+

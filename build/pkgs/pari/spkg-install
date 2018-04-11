@@ -2,12 +2,6 @@
 ## PARI
 ###########################################
 
-if [ -z "$SAGE_LOCAL" ]; then
-    echo "SAGE_LOCAL undefined ... exiting"
-    echo "Maybe run 'sage -sh'?"
-    exit 1
-fi
-
 TOP=`pwd`
 
 cd src
@@ -131,23 +125,12 @@ build()
     bash ./Configure --prefix="$SAGE_LOCAL" \
         --with-readline="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL" \
         --with-runtime-perl="/usr/bin/env perl" \
-        --kernel=gmp $PARI_CONFIGURE
+        --kernel=gmp $PARI_CONFIGURE || \
+        sdh_die "Error configuring PARI with readline and GMP kernel failed."
 
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error: Configuring PARI with readline and GMP kernel failed."
-        exit 1
-    fi
+    [ -f Makefile ] || sdh_die "Error: Unable to configure PARI: No Makefile generated!"
 
-    if [ ! -f Makefile ]; then
-        echo >&2 "Error: Unable to configure PARI: No Makefile generated!"
-        exit 1
-    fi
-
-    $MAKE $PARI_MAKEFLAGS gp
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error: Building PARI/GP failed."
-        exit 1
-    fi
+    sdh_make $PARI_MAKEFLAGS gp
 }
 
 
@@ -156,11 +139,7 @@ install()
     echo "Installing PARI/GP..."
 
     # install non-parallel (-j1) because of race conditions
-    $MAKE -j1 install install-lib-sta
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error installing PARI"
-        exit 1
-    fi
+    sdh_make_install -j1 install-lib-sta
 
     cd "$CUR"
 }
@@ -198,7 +177,5 @@ elif [ "$UNAME" = "CYGWIN" ]; then
 else
     pari_shlib="libpari.so"
 fi
-if [ ! -f "$SAGE_LOCAL/lib/$pari_shlib" ]; then
-    echo "Error: PARI's shared library '$pari_shlib' has not been installed!"
-    exit 1
-fi
+[ -f "$SAGE_DESTDIR$SAGE_LOCAL/lib/$pari_shlib" ] || \
+    sdh_die "Error: PARI's shared library '$pari_shlib' has not been installed!"

@@ -84,8 +84,49 @@ class QuantumGroupRepresentations(Category_module):
                 """
                 return [self.base_category()]
 
-            class ElementMethods:
+            class ParentMethods:
                 def e_on_basis(self, i, b):
+                    r"""
+                    Return the action of `e_i` on the basis element
+                    indexed by ``b``.
+
+                    INPUT:
+
+                    - ``i`` -- an element of the index set
+                    - ``b`` -- an element of basis keys
+
+                    EXAMPLES::
+
+                        sage: from sage.algebras.quantum_groups.representations import \
+                        ....:  MinusculeRepresentation, AdjointRepresentation
+                        sage: R = ZZ['q'].fraction_field()
+                        sage: CM = crystals.Tableaux(['D',4], shape=[1])
+                        sage: VM = MinusculeRepresentation(R, CM)
+                        sage: CA = crystals.Tableaux(['D',4], shape=[1,1])
+                        sage: VA = AdjointRepresentation(R, CA)
+                        sage: v = tensor([VM.an_element(), VA.an_element()]); v
+                        4*B[[[1]]] # B[[[1], [2]]] + 4*B[[[1]]] # B[[[1], [3]]]
+                         + 6*B[[[1]]] # B[[[2], [3]]] + 4*B[[[2]]] # B[[[1], [2]]]
+                         + 4*B[[[2]]] # B[[[1], [3]]] + 6*B[[[2]]] # B[[[2], [3]]]
+                         + 6*B[[[3]]] # B[[[1], [2]]] + 6*B[[[3]]] # B[[[1], [3]]]
+                         + 9*B[[[3]]] # B[[[2], [3]]]
+                        sage: v.e(1)  # indirect doctest
+                        4*B[[[1]]] # B[[[1], [2]]]
+                         + ((4*q+6)/q)*B[[[1]]] # B[[[1], [3]]]
+                         + 6*B[[[1]]] # B[[[2], [3]]]
+                         + 6*q*B[[[2]]] # B[[[1], [3]]]
+                         + 9*B[[[3]]] # B[[[1], [3]]]
+                        sage: v.e(2)  # indirect doctest
+                        4*B[[[1]]] # B[[[1], [2]]]
+                         + ((6*q+4)/q)*B[[[2]]] # B[[[1], [2]]]
+                         + 6*B[[[2]]] # B[[[1], [3]]]
+                         + 9*B[[[2]]] # B[[[2], [3]]]
+                         + 6*q*B[[[3]]] # B[[[1], [2]]]
+                        sage: v.e(3)  # indirect doctest
+                        0
+                        sage: v.e(4)  # indirect doctest
+                        0
+                    """
                     K_elt = [self._sets[k].K_on_basis(i, elt, -1) for k,elt in enumerate(b)]
                     mon = [self._sets[k].monomial(elt) for k,elt in enumerate(b)]
                     t = self.tensor_constructor(self._sets)
@@ -95,6 +136,59 @@ class QuantumGroupRepresentations(Category_module):
                     return ret
 
                 def f_on_basis(self, i, b):
+                    r"""
+                    Return the action of `f_i` on the basis element
+                    indexed by ``b``.
+
+                    INPUT:
+
+                    - ``i`` -- an element of the index set
+                    - ``b`` -- an element of basis keys
+
+                    EXAMPLES::
+
+                        sage: from sage.algebras.quantum_groups.representations import \
+                        ....:  MinusculeRepresentation, AdjointRepresentation
+                        sage: R = ZZ['q'].fraction_field()
+                        sage: KM = crystals.KirillovReshetikhin(['B',3,1], 3,1)
+                        sage: VM = MinusculeRepresentation(R, KM)
+                        sage: KA = crystals.KirillovReshetikhin(['B',3,1], 2,1)
+                        sage: VA = AdjointRepresentation(R, KA)
+                        sage: v = tensor([VM.an_element(), VA.an_element()]); v
+                        4*B[[+++, []]] # B[[]] + 4*B[[+++, []]] # B[[[1], [2]]]
+                         + 6*B[[+++, []]] # B[[[1], [3]]] + 4*B[[++-, []]] # B[[]]
+                         + 4*B[[++-, []]] # B[[[1], [2]]]
+                         + 6*B[[++-, []]] # B[[[1], [3]]] + 6*B[[+-+, []]] # B[[]]
+                         + 6*B[[+-+, []]] # B[[[1], [2]]]
+                         + 9*B[[+-+, []]] # B[[[1], [3]]]
+                        sage: v.f(0)  # indirect doctest
+                        ((4*q^4+4)/q^2)*B[[+++, []]] # B[[[1], [2]]]
+                         + ((4*q^4+4)/q^2)*B[[++-, []]] # B[[[1], [2]]]
+                         + ((6*q^4+6)/q^2)*B[[+-+, []]] # B[[[1], [2]]]
+                        sage: v.f(1)  # indirect doctest
+                        6*B[[+++, []]] # B[[[2], [3]]]
+                         + 6*B[[++-, []]] # B[[[2], [3]]]
+                         + 9*B[[+-+, []]] # B[[[2], [3]]]
+                         + 6*B[[-++, []]] # B[[]]
+                         + 6*B[[-++, []]] # B[[[1], [2]]]
+                         + 9*q^2*B[[-++, []]] # B[[[1], [3]]]
+                        sage: v.f(2)  # indirect doctest
+                        4*B[[+++, []]] # B[[[1], [3]]]
+                         + 4*B[[++-, []]] # B[[[1], [3]]]
+                         + 4*B[[+-+, []]] # B[[]]
+                         + 4*q^2*B[[+-+, []]] # B[[[1], [2]]]
+                         + ((6*q^2+6)/q^2)*B[[+-+, []]] # B[[[1], [3]]]
+                        sage: v.f(3)  # indirect doctest
+                        6*B[[+++, []]] # B[[[1], [0]]]
+                         + 4*B[[++-, []]] # B[[]]
+                         + 4*B[[++-, []]] # B[[[1], [2]]]
+                         + 6*q^2*B[[++-, []]] # B[[[1], [3]]]
+                         + 6*B[[++-, []]] # B[[[1], [0]]]
+                         + 9*B[[+-+, []]] # B[[[1], [0]]]
+                         + 6*B[[+--, []]] # B[[]]
+                         + 6*B[[+--, []]] # B[[[1], [2]]]
+                         + 9*q^2*B[[+--, []]] # B[[[1], [3]]]
+                    """
                     K_elt = [self._sets[k].K_on_basis(i, elt, 1) for k,elt in enumerate(b)]
                     mon = [self._sets[k].monomial(elt) for k,elt in enumerate(b)]
                     t = self.tensor_constructor(self._sets)
@@ -104,8 +198,41 @@ class QuantumGroupRepresentations(Category_module):
                     return ret
 
                 def K_on_basis(self, i, b, power=1):
+                    r"""
+                    Return the action of `K_i` on the basis element indexed by ``b``
+                    to the power ``power``.
+
+                    INPUT:
+
+                    - ``i`` -- an element of the index set
+                    - ``b`` -- an element of basis keys
+                    - ``power`` -- (default: 1) the power of `K_i`
+
+                    EXAMPLES::
+
+                        sage: from sage.algebras.quantum_groups.representations import \
+                        ....:  MinusculeRepresentation, AdjointRepresentation
+                        sage: R = ZZ['q'].fraction_field()
+                        sage: CM = crystals.Tableaux(['A',2], shape=[1])
+                        sage: VM = MinusculeRepresentation(R, CM)
+                        sage: CA = crystals.Tableaux(['A',2], shape=[2,1])
+                        sage: VA = AdjointRepresentation(R, CA)
+                        sage: v = tensor([sum(VM.basis()), VA.module_generator()]); v
+                        B[[[1]]] # B[[[1, 1], [2]]]
+                         + B[[[2]]] # B[[[1, 1], [2]]]
+                         + B[[[3]]] # B[[[1, 1], [2]]]
+                        sage: v.K(1)  # indirect doctest
+                        q^2*B[[[1]]] # B[[[1, 1], [2]]]
+                         + B[[[2]]] # B[[[1, 1], [2]]]
+                         + q*B[[[3]]] # B[[[1, 1], [2]]]
+                        sage: v.K(2, -1)  # indirect doctest
+                        1/q*B[[[1]]] # B[[[1, 1], [2]]]
+                         + 1/q^2*B[[[2]]] # B[[[1, 1], [2]]]
+                         + B[[[3]]] # B[[[1, 1], [2]]]
+                    """
                     t = self.tensor_constructor(self._sets)
-                    return t(*[self._sets[k].K_on_basis(i, elt, power) for k,elt in enumerate(b)])
+                    return t(*[self._sets[k].K_on_basis(i, elt, power)
+                               for k,elt in enumerate(b)])
 
         class ParentMethods:
             def tensor(*factors):
@@ -271,154 +398,6 @@ class QuantumGroupRepresentations(Category_module):
                     ['C', 2]
                 """
                 return self._sets[0].cartan_type()
-
-            def e_on_basis(self, i, b):
-                r"""
-                Return the action of `e_i` on the basis element
-                indexed by ``b``.
-
-                INPUT:
-
-                - ``i`` -- an element of the index set
-                - ``b`` -- an element of basis keys
-
-                EXAMPLES::
-
-                    sage: from sage.algebras.quantum_groups.representations import \
-                    ....:  MinusculeRepresentation, AdjointRepresentation
-                    sage: R = ZZ['q'].fraction_field()
-                    sage: CM = crystals.Tableaux(['D',4], shape=[1])
-                    sage: VM = MinusculeRepresentation(R, CM)
-                    sage: CA = crystals.Tableaux(['D',4], shape=[1,1])
-                    sage: VA = AdjointRepresentation(R, CA)
-                    sage: v = tensor([VM.an_element(), VA.an_element()]); v
-                    4*B[[[1]]] # B[[[1], [2]]] + 4*B[[[1]]] # B[[[1], [3]]]
-                     + 6*B[[[1]]] # B[[[2], [3]]] + 4*B[[[2]]] # B[[[1], [2]]]
-                     + 4*B[[[2]]] # B[[[1], [3]]] + 6*B[[[2]]] # B[[[2], [3]]]
-                     + 6*B[[[3]]] # B[[[1], [2]]] + 6*B[[[3]]] # B[[[1], [3]]]
-                     + 9*B[[[3]]] # B[[[2], [3]]]
-                    sage: v.e(1)  # indirect doctest
-                    4*B[[[1]]] # B[[[1], [2]]]
-                     + ((4*q+6)/q)*B[[[1]]] # B[[[1], [3]]]
-                     + 6*B[[[1]]] # B[[[2], [3]]]
-                     + 6*q*B[[[2]]] # B[[[1], [3]]]
-                     + 9*B[[[3]]] # B[[[1], [3]]]
-                    sage: v.e(2)  # indirect doctest
-                    4*B[[[1]]] # B[[[1], [2]]]
-                     + ((6*q+4)/q)*B[[[2]]] # B[[[1], [2]]]
-                     + 6*B[[[2]]] # B[[[1], [3]]]
-                     + 9*B[[[2]]] # B[[[2], [3]]]
-                     + 6*q*B[[[3]]] # B[[[1], [2]]]
-                    sage: v.e(3)  # indirect doctest
-                    0
-                    sage: v.e(4)  # indirect doctest
-                    0
-                """
-                K_elt = [self._sets[k].K_on_basis(i, elt, -1) for k,elt in enumerate(b)]
-                mon = [self._sets[k].monomial(elt) for k,elt in enumerate(b)]
-                t = self.tensor_constructor(self._sets)
-                ret = self.zero()
-                for k,elt in enumerate(b):
-                    ret += t(*(K_elt[:k] + [self._sets[k].e_on_basis(i, elt)] + mon[k+1:]))
-                return ret
-
-            def f_on_basis(self, i, b):
-                r"""
-                Return the action of `f_i` on the basis element
-                indexed by ``b``.
-
-                INPUT:
-
-                - ``i`` -- an element of the index set
-                - ``b`` -- an element of basis keys
-
-                EXAMPLES::
-
-                    sage: from sage.algebras.quantum_groups.representations import \
-                    ....:  MinusculeRepresentation, AdjointRepresentation
-                    sage: R = ZZ['q'].fraction_field()
-                    sage: KM = crystals.KirillovReshetikhin(['B',3,1], 3,1)
-                    sage: VM = MinusculeRepresentation(R, KM)
-                    sage: KA = crystals.KirillovReshetikhin(['B',3,1], 2,1)
-                    sage: VA = AdjointRepresentation(R, KA)
-                    sage: v = tensor([VM.an_element(), VA.an_element()]); v
-                    4*B[[+++, []]] # B[[]] + 4*B[[+++, []]] # B[[[1], [2]]]
-                     + 6*B[[+++, []]] # B[[[1], [3]]] + 4*B[[++-, []]] # B[[]]
-                     + 4*B[[++-, []]] # B[[[1], [2]]]
-                     + 6*B[[++-, []]] # B[[[1], [3]]] + 6*B[[+-+, []]] # B[[]]
-                     + 6*B[[+-+, []]] # B[[[1], [2]]]
-                     + 9*B[[+-+, []]] # B[[[1], [3]]]
-                    sage: v.f(0)  # indirect doctest
-                    ((4*q^4+4)/q^2)*B[[+++, []]] # B[[[1], [2]]]
-                     + ((4*q^4+4)/q^2)*B[[++-, []]] # B[[[1], [2]]]
-                     + ((6*q^4+6)/q^2)*B[[+-+, []]] # B[[[1], [2]]]
-                    sage: v.f(1)  # indirect doctest
-                    6*B[[+++, []]] # B[[[2], [3]]]
-                     + 6*B[[++-, []]] # B[[[2], [3]]]
-                     + 9*B[[+-+, []]] # B[[[2], [3]]]
-                     + 6*B[[-++, []]] # B[[]]
-                     + 6*B[[-++, []]] # B[[[1], [2]]]
-                     + 9*q^2*B[[-++, []]] # B[[[1], [3]]]
-                    sage: v.f(2)  # indirect doctest
-                    4*B[[+++, []]] # B[[[1], [3]]]
-                     + 4*B[[++-, []]] # B[[[1], [3]]]
-                     + 4*B[[+-+, []]] # B[[]]
-                     + 4*q^2*B[[+-+, []]] # B[[[1], [2]]]
-                     + ((6*q^2+6)/q^2)*B[[+-+, []]] # B[[[1], [3]]]
-                    sage: v.f(3)  # indirect doctest
-                    6*B[[+++, []]] # B[[[1], [0]]]
-                     + 4*B[[++-, []]] # B[[]]
-                     + 4*B[[++-, []]] # B[[[1], [2]]]
-                     + 6*q^2*B[[++-, []]] # B[[[1], [3]]]
-                     + 6*B[[++-, []]] # B[[[1], [0]]]
-                     + 9*B[[+-+, []]] # B[[[1], [0]]]
-                     + 6*B[[+--, []]] # B[[]]
-                     + 6*B[[+--, []]] # B[[[1], [2]]]
-                     + 9*q^2*B[[+--, []]] # B[[[1], [3]]]
-                """
-                K_elt = [self._sets[k].K_on_basis(i, elt, 1) for k,elt in enumerate(b)]
-                mon = [self._sets[k].monomial(elt) for k,elt in enumerate(b)]
-                t = self.tensor_constructor(self._sets)
-                ret = self.zero()
-                for k,elt in enumerate(b):
-                    ret += t(*(mon[:k] + [self._sets[k].f_on_basis(i, elt)] + K_elt[k+1:]))
-                return ret
-
-            def K_on_basis(self, i, b, power=1):
-                r"""
-                Return the action of `K_i` on the basis element indexed by ``b``
-                to the power ``power``.
-
-                INPUT:
-
-                - ``i`` -- an element of the index set
-                - ``b`` -- an element of basis keys
-                - ``power`` -- (default: 1) the power of `K_i`
-
-                EXAMPLES::
-
-                    sage: from sage.algebras.quantum_groups.representations import \
-                    ....:  MinusculeRepresentation, AdjointRepresentation
-                    sage: R = ZZ['q'].fraction_field()
-                    sage: CM = crystals.Tableaux(['A',2], shape=[1])
-                    sage: VM = MinusculeRepresentation(R, CM)
-                    sage: CA = crystals.Tableaux(['A',2], shape=[2,1])
-                    sage: VA = AdjointRepresentation(R, CA)
-                    sage: v = tensor([sum(VM.basis()), VA.module_generator()]); v
-                    B[[[1]]] # B[[[1, 1], [2]]]
-                     + B[[[2]]] # B[[[1, 1], [2]]]
-                     + B[[[3]]] # B[[[1, 1], [2]]]
-                    sage: v.K(1)  # indirect doctest
-                    q^2*B[[[1]]] # B[[[1, 1], [2]]]
-                     + B[[[2]]] # B[[[1, 1], [2]]]
-                     + q*B[[[3]]] # B[[[1, 1], [2]]]
-                    sage: v.K(2, -1)  # indirect doctest
-                    1/q*B[[[1]]] # B[[[1, 1], [2]]]
-                     + 1/q^2*B[[[2]]] # B[[[1, 1], [2]]]
-                     + B[[[3]]] # B[[[1, 1], [2]]]
-                """
-                t = self.tensor_constructor(self._sets)
-                return t(*[self._sets[k].K_on_basis(i, elt, power) for k,elt in enumerate(b)])
 
     class ParentMethods:
         def _test_representation(self, tester=None, **options):

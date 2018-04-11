@@ -1779,7 +1779,7 @@ def bounded_vector_lifts( exponent_vector, m, bound ):
     2. for each ``j > 0``, the ``j``th entry is congruent to the ``j``th entry of ``exponent_vector`` modulo ``m``
     3. all entries, except possibly the first, are bounded in absolute value by ``bound``.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.rings.number_field.S_unit_solver import bounded_vector_lifts
         sage: bounded_vector_lifts((2,7), 16, 44)
@@ -2120,7 +2120,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
           eliminate as many mod `q` solutions as possible.
         - The authors acknowledge a helpful discussion with Norman Danner which helped formulate this code.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.rings.number_field.S_unit_solver import construct_complement_dictionaries
         sage: f = x^2 + 5
@@ -2355,7 +2355,7 @@ def compatible_classes(a, m0, m1):
         - For efficiency, the solutions are not computed.
         - A necessary and sufficient condition is that ``a`` and ``b`` are congruent modulo ``g = gcd(m0, m1)``
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.rings.number_field.S_unit_solver import compatible_classes
         sage: compatible_classes(2, 18, 27)
@@ -2461,7 +2461,7 @@ def compatible_vectors(a, m0, m1):
 
         - Exponent vectors must agree exactly in the 0th position in order to be compatible.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.rings.number_field.S_unit_solver import compatible_vectors
         sage: a = (3, 1, 8, 1)
@@ -2757,6 +2757,64 @@ def clean_sfs( sfs_list ):
             new_sfs.append( entry )
     return new_sfs
 
+def sieve_below_bound(K, S, bound = 10, bump = 10, split_primes_list=[]):
+    r"""
+    Return all solutions to the S-unit equation ``x + y = 1`` over K with exponents below the given bound.
+
+    INPUT:
+
+    - ``K`` -- a number field (an absolute extension of the rationals)
+    - ``S`` -- a list of finite primes of ``K``
+    - ``bound`` -- (default: 10) a positive integer upper bound for exponents, solutions with exponents having absolute value below this bound will be found
+    - ``bump`` -- (default: 10) a positive integer by which the minimum LCM will be increased if not enough split primes are found in sieving step
+    - ``split_primes_list`` -- (default: []) a list of rational primes that split completely in the extension K/Q, used for sieving.  For complete list of solutions should have lcm of {(p_i-1)} for primes p_i greater than bound
+
+    OUTPUT:
+
+    A list of lists ``[[ A_1, B_1, x_1, y_1], [A_2, B_2, x_2, y_2], ... [ A_n, B_n, x_n, y_n]]`` such that:
+
+    1. The first two entries are tuples ``A_i = (a_0, a_1, ... , a_t)`` and ``B_i = (b_0, b_1, ... , b_t)`` of exponents.
+    2. The last two entries are ``S``-units ``x_i`` and ``y_i`` in ``K`` with ``x_i + y_i = 1``.
+    3. If the default generators for the ``S``-units of ``K`` are ``(rho_0, rho_1, ... , rho_t)``, then these satisfy ``x_i = \prod(rho_i)^(a_i)`` and ``y_i = \prod(rho_i)^(b_i)``.
+
+    EXAMPLES::
+
+        sage: from sage.rings.number_field.S_unit_solver import solve_S_unit_equation
+        sage: K.<xi> = NumberField(x^2+x+1)
+        sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
+        sage: S=SUK.primes()
+        sage: sieve_below_bound(K, S, 10)
+        [[(5, -1), (4, -1), 1/3*xi + 2/3, -1/3*xi + 1/3],
+         [(2, 1), (4, 0), xi + 2, -xi - 1],
+         [(2, 0), (1, 1), xi, -xi + 1],
+         [(5, 0), (1, 0), -xi, xi + 1]]
+    """
+    S=list(S)
+    xi = K.gen()
+    SUK = UnitGroup(K, S=tuple(S))
+    initial_bound = bound
+
+    #split_primes_list = []
+    while len(split_primes_list) == 0:
+        try:
+            split_primes_list = split_primes_large_lcm(SUK, initial_bound)
+        except ValueError:
+            initial_bound += bump
+            print ("Couldn't find enough split primes. Bumping to ", initial_bound)
+
+    if not K.is_absolute():
+        raise ValueError("K must be an absolute extension.")
+
+    complement_exp_vec_dict = construct_complement_dictionaries(split_primes_list, SUK)
+
+    cs_list = compatible_systems(split_primes_list, complement_exp_vec_dict)
+
+    sfs_list = solutions_from_systems(SUK, bound, cs_list, split_primes_list)
+
+    s_unit_solutions = clean_sfs(sfs_list)
+
+    return s_unit_solutions
+
 def solve_S_unit_equation(K, S, prec=None):
     r"""
     Return all solutions to the S-unit equation ``x + y = 1`` over K.
@@ -2773,9 +2831,9 @@ def solve_S_unit_equation(K, S, prec=None):
 
     1. The first two entries are tuples ``A_i = (a_0, a_1, ... , a_t)`` and ``B_i = (b_0, b_1, ... , b_t)`` of exponents.
     2. The last two entries are ``S``-units ``x_i`` and ``y_i`` in ``K`` with ``x_i + y_i = 1``.
-    3. If the default generators for the ``S``-units of ``K`` are ``(rho_0, rho_1, ... , rho_t)``, then these satisfy ``x_i = \prod(rho_i)^(a_i)`` and ``y_i = \prod(rho_i)^(bx_i)``.
+    3. If the default generators for the ``S``-units of ``K`` are ``(rho_0, rho_1, ... , rho_t)``, then these satisfy ``x_i = \prod(rho_i)^(a_i)`` and ``y_i = \prod(rho_i)^(b_i)``.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.rings.number_field.S_unit_solver import solve_S_unit_equation
         sage: K.<xi> = NumberField(x^2+x+1)
@@ -2807,20 +2865,6 @@ def solve_S_unit_equation(K, S, prec=None):
 
     final_LLL_bound = max(all_LLL_bounds)
 
-    split_primes_list = []
-    bound = final_LLL_bound #or something like 200?
-    while len(split_primes_list) == 0:
-        try:
-            split_primes_list = split_primes_large_lcm(SUK, bound)
-        except ValueError:
-            bound += 200
-
-    complement_exp_vec_dict = construct_complement_dictionaries(split_primes_list, SUK)
-
-    cs_list = compatible_systems(split_primes_list, complement_exp_vec_dict)
-
-    sfs_list = solutions_from_systems(SUK, final_LLL_bound, cs_list, split_primes_list)
-
-    s_unit_solutions = clean_sfs(sfs_list)
+    s_unit_solutions = sieve_below_bound(K, S, final_LLL_bound)
 
     return s_unit_solutions

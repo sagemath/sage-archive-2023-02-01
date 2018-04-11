@@ -1711,6 +1711,11 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     can be sent to a set of free elements in ``NCSym`` is
                     also an embedding.
 
+                .. SEEALSO::
+
+                    :class:`NonCommutativeSymmetricFunctions` for a definition
+                    of `NCSym`.
+
                 EXAMPLES::
 
                     sage: N = NonCommutativeSymmetricFunctions(QQ)
@@ -1789,14 +1794,20 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             def to_fqsym(self):
                 r"""
-                Return the image of the complete non-commutative symmetric
-                function under the morphism `\iota : NSym \to FQSym`.
+                Return the image of the non-commutative symmetric
+                function ``self`` under the morphism
+                `\iota : NSym \to FQSym`.
 
-                This morphism is the algebra monomorphism `NSym \to FQSym`
-                that sends each Complete generator `S_n` to
-                `F_{[1, 2, \ldots, n]}`. It is the inclusion map,
-                if we regard both `NSym` and `FQSym` as rings of
+                This morphism is the injective algebra homomorphism
+                `NSym \to FQSym` that sends each Complete generator
+                `S_n` to `F_{[1, 2, \ldots, n]}`. It is the inclusion
+                map, if we regard both `NSym` and `FQSym` as rings of
                 noncommutative power series.
+
+                .. SEEALSO::
+
+                    :class:`FreeQuasisymmetricFunctions` for a definition
+                    of `FQSym`.
 
                 EXAMPLES::
 

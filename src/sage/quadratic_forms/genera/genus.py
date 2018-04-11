@@ -13,8 +13,9 @@ from __future__ import print_function
 from sage.misc.all import prod
 from sage.arith.all import LCM
 from sage.matrix.matrix_space import MatrixSpace
+from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import IntegerRing
-from sage.rings.rational_field import RationalField
+from sage.rings.rational_field import RationalField, QQ
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
 import copy
@@ -1836,3 +1837,123 @@ class GenusSymbol_global_ring(object):
         """
         r, s = self.signature_pair_of_matrix()
         return (-1)**s*prod([ G.determinant() for G in self._local_symbols ])
+
+
+    def discriminant_form(self):
+        r"""
+        Return the discriminant form associated to this genus.
+
+        EXAMPLES::
+
+            sage: from sage.quadratic_forms.genera.genus import GenusSymbol_global_ring
+            sage: A = matrix.diagonal(ZZ, [2,-4,6,8])
+            sage: GS = GenusSymbol_global_ring(A)
+            sage: GS.discriminant_form()
+            Finite quadratic module over Integer Ring with invariants (2, 2, 4, 24)
+            Gram matrix of the quadratic form with values in Q/2Z:
+            [ 1/2    0    0    0]
+            [   0  3/2    0    0]
+            [   0    0  7/4    0]
+            [   0    0    0 7/24]
+            sage: A = matrix.diagonal(ZZ, [1,-4,6,8])
+            sage: GS = GenusSymbol_global_ring(A)
+            sage: GS.discriminant_form()
+            Finite quadratic module over Integer Ring with invariants (2, 4, 24)
+            Gram matrix of the quadratic form with values in Q/Z:
+            [ 1/2    0    0]
+            [   0  3/4    0]
+            [   0    0 7/24]
+        """
+        from sage.modules.torsion_quadratic_module import TorsionQuadraticForm
+        qL = []
+        for gs in self._local_symbols:
+            p = gs._prime
+            for block in gs.symbol_tuple_list():
+                qL.append(_fqf_from_jordan_block(p, block))
+        q = matrix.block_diagonal(qL)
+        return TorsionQuadraticForm(q)
+
+def _fqf_from_jordan_block(p, block):
+    r"""
+    Return the gram matrix of the discriminant form of this block.
+
+    This is a helper for :meth:`TorsionQuadraticForm_from_genus`.
+    No input checks.
+
+    INPUT:
+
+    -``p`` -- a prime number
+    -``block`` -- a list of 3 integers or 5 integers if
+
+    EXAMPLES::
+
+        sage: from sage.quadratic_forms.genera.genus import _fqf_from_jordan_block
+        sage: block = [1, 3, 1]
+        sage: _fqf_from_jordan_block(5, block)
+        [4/5   0   0]
+        [  0 2/5   0]
+        [  0   0 2/5]
+        sage: block = [1, 4, 7, 1, 2]
+        sage: _fqf_from_jordan_block(2, block)
+        [  0 1/2   0   0]
+        [1/2   0   0   0]
+        [  0   0 1/2   0]
+        [  0   0   0 1/2]
+        """
+    from sage.quadratic_forms.genera.normal_form import _min_nonsquare
+    level = block[0]
+    rk = block[1]
+    det = block[2]
+    if p == 2:
+        o = block[3]
+        t = block[4]
+        U = matrix(QQ,2,[0,1,1,0])
+        V = matrix(QQ,2,[2,1,1,2])
+        W = matrix(QQ,1,[1])
+        if o == 0:
+            if det in [1, 7]:
+                qL = (rk // 2) * [U]
+            else:
+                qL = (rk//2 - 1)*[U] + [V]
+        if o == 1:
+            if rk % 2 == 1:
+                qL = max(0, (rk - 3) // 2) * [U]
+                if t*det % 8 in [3, 5]:
+                    qL += [V]
+                elif rk >= 3:
+                    qL += [U]
+                qL += [t * W]
+            else:
+                if det in [3, 5]:
+                    det = -1
+                else:
+                    det = 1
+                qL = max(0, (rk - 4) // 2) * [U]
+                if (det , t) == (1, 0):
+                    qL += [U, 1 * W, 7 * W]
+                if (det , t) == (1, 2):
+                    qL += [U, 1 * W, 1 * W]
+                if (det , t) == (1, 4):
+                    qL += [V, 1 * W, 3 * W]
+                if (det , t) == (1, 6):
+                    qL += [U, 7 * W, 7 * W]
+                if (det , t) == (-1, 0):
+                    qL += [V, 1 * W, 7 * W]
+                if (det , t) == (-1, 2):
+                    qL += [U, 3 * W, 7 * W]
+                if (det , t) == (-1, 4):
+                    qL += [U, 1 * W, 3 * W]
+                if (det , t) == (-1, 6):
+                    qL += [U, 1 * W, 5 * W]
+                # if the rank is 2 there is a U too much
+                if rk == 2:
+                    qL = qL[-2:]
+        q = matrix.block_diagonal(qL) / 2**level
+    if p != 2:
+        q = matrix.identity(QQ, rk)
+        d = 2**(rk % 2)
+        if Integer(d).kronecker(p) != det:
+            u = _min_nonsquare(p)
+            q[0,0] = u
+        q = q * (2 / p**level)
+    return q

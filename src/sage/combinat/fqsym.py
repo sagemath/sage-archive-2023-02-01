@@ -606,7 +606,8 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
         def coproduct_on_basis(self, x):
             r"""
-            Return the coproduct of `F_{\sigma}` for `\sigma` a permutation.
+            Return the coproduct of `F_{\sigma}` for `\sigma` a permutation
+            (here, `\sigma` is ``x``).
 
             EXAMPLES::
 
@@ -1133,6 +1134,45 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
             """
             Perm = self.basis().keys()
             return Perm([])
+
+        def coproduct_on_basis(self, x):
+            r"""
+            Return the coproduct of `\mathcal{M}_{\sigma}` for `\sigma`
+            a permutation (here, `\sigma` is ``x``).
+
+            This uses Theorem 3.1 in [AguSot05]_.
+
+            EXAMPLES::
+
+                sage: M = algebras.FQSym(QQ).M()
+                sage: x = M([1])
+                sage: ascii_art(M.coproduct(M.one()))  # indirect doctest
+                1 # 1
+
+                sage: ascii_art(M.coproduct(x))  # indirect doctest
+                1 # M    + M    # 1
+                     [1]    [1]
+
+                sage: M.coproduct(M([2, 1, 3]))
+                M[] # M[2, 1, 3] + M[2, 1, 3] # M[]
+                sage: M.coproduct(M([2, 3, 1]))
+                M[] # M[2, 3, 1] + M[1, 2] # M[1] + M[2, 3, 1] # M[]
+                sage: M.coproduct(M([3, 2, 1]))
+                M[] # M[3, 2, 1] + M[1] # M[2, 1] + M[2, 1] # M[1]
+                + M[3, 2, 1] # M[]
+                sage: M.coproduct(M([3, 4, 2, 1]))
+                M[] # M[3, 4, 2, 1] + M[1, 2] # M[2, 1] + M[2, 3, 1] # M[1]
+                 + M[3, 4, 2, 1] # M[]
+                sage: M.coproduct(M([3, 4, 1, 2]))
+                M[] # M[3, 4, 1, 2] + M[1, 2] # M[1, 2] + M[3, 4, 1, 2] # M[]
+            """
+            n = len(x)
+            if not n:
+                return self.one().tensor(self.one())
+            return sum(self(Word(x[:i]).standard_permutation()).tensor(
+                                self(Word(x[i:]).standard_permutation()))
+                        for i in range(n + 1)
+                        if (i == 0 or i == n or min(x[:i]) > max(x[i:])))
 
 class FQSymBases(Category_realization_of_parent):
     r"""

@@ -736,7 +736,7 @@ def reduction_step_real_case(place,B0,G,c7):
 
     - [Sma1998]_
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.rings.number_field.S_unit_solver import reduction_step_real_case
         sage: K.<a> = NumberField(x^3-2)
@@ -827,7 +827,7 @@ def reduction_step_complex_case(place,B0,G,g0,c7):
 
     See [Sma1998]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.rings.number_field.S_unit_solver import reduction_step_complex_case
         sage: K.<a> = NumberField([x^3-2])
@@ -1483,7 +1483,7 @@ def p_adic_LLL_bound(SUK,A, prec=None):
 
     A bound for the max of exponents in the case that extremal place is finite (see [Sma1995]_) as a real number
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.rings.number_field.S_unit_solver import p_adic_LLL_bound
         sage: K.<xi> = NumberField(x^3-3)

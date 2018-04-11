@@ -3550,9 +3550,31 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             ValueError: The chosen position is too large.
-        """
 
-        if face.dim() == 0:
+        It is possible to stack on unbounded faces::
+
+            sage: Q = Polyhedron(vertices=[[0,1],[1,0]],rays=[[1,1]])
+            sage: E = Q.faces(1)
+            sage: Q.stack(E[0],1/2).Vrepresentation()
+            (A vertex at (0, 1),
+             A vertex at (0, 2),
+             A vertex at (1, 0),
+             A ray in the direction (1, 1))
+            sage: Q.stack(E[1],1/2).Vrepresentation()
+            (A vertex at (0, 0),
+             A vertex at (0, 1),
+             A vertex at (1, 0),
+             A ray in the direction (1, 1))
+            sage: Q.stack(E[2],1/2).Vrepresentation()
+            (A vertex at (0, 1),
+             A vertex at (1, 0),
+             A ray in the direction (1, 1),
+             A vertex at (2, 0))
+        """
+        from sage.geometry.polyhedron.face import PolyhedronFace
+        if not isinstance(face,PolyhedronFace):
+            raise TypeError("{} should be a PolyhedronFace of {}".format(face,self))
+        elif face.dim() == 0:
             raise ValueError("Can not stack onto a vertex.")
 
         if position is None:
@@ -3563,8 +3585,11 @@ class Polyhedron_base(Element):
         barycenter = ZZ.one()*sum([v.vector() for v in face_vertices]) / n_vertices
 
         # Taking all facets that contain the face
-        face_star = set([facet for facet in self.Hrepresentation()
-            if all(facet.contains(x) and not facet.interior_contains(x) for x in face_vertices)])
+        if face.dim() == self.dim() - 1:
+            face_star = set([face.ambient_Hrepresentation()[0]])
+        else:
+            face_star = set([facet for facet in self.Hrepresentation()
+                             if all(facet.contains(x) and not facet.interior_contains(x) for x in face_vertices)])
 
         neighboring_facets = set()
         for facet in face_star:

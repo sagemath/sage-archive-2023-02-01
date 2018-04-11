@@ -275,7 +275,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
         sage: x * y == F.prec(x, y) + F.succ(x, y)
         True
 
-    The axioms of dendriform algebra hold::
+    The axioms of a dendriform algebra hold::
 
         sage: F.prec(F.succ(x, y), z) == F.succ(x, F.prec(y, z))
         True

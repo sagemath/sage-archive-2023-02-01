@@ -16,7 +16,7 @@ AUTHORS:
 
 - Alejandra Alvarado, Angelos Koutsianas, Beth Malmskog, Christopher Rasmussen, Christelle Vincent, Mckenzie West (2017-01-10): original version
 
-    
+
 """
 
 
@@ -1511,6 +1511,7 @@ def p_adic_LLL_bound(SUK,A, prec=None):
             while increase_precision:
                 local_prec *= 2
                 Log_p_Mus = [log_p(a,v,local_prec) for a in Mus]
+                Log_p_Mus = [embedding_to_Kp(a,v,prec) for a in Log_p_Mus]
                 m0_Kv_new, increase_precision = p_adic_LLL_bound_one_prime( v, m0_Kv_old, Mus, Log_p_Mus, m0, c3_func(SUK,local_prec), local_prec)
 
             while m0_Kv_new < m0_Kv_old:

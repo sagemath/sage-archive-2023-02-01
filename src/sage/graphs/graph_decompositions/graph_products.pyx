@@ -231,7 +231,7 @@ def is_cartesian_product(g, certificate = False, relabeling = False):
     H = g
 
     if not g.is_connected():
-        raise NotImplementedError("recognition of Cartesian product is not implemented for unconnected graphs")
+        raise NotImplementedError("recognition of Cartesian product is not implemented for disconnected graphs")
 
     # Of course the number of vertices of g can not be prime !
     if g.order() <= 3 or Integer(g.order()).is_prime():

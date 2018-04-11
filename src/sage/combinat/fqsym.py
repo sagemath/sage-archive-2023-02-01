@@ -168,6 +168,23 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
     its unity is `F_e`, where `e` is the identity
     permutation in `S_0`.
 
+    In Section 1.3 of [AguSot05]_, Aguiar and Sottile construct a
+    different basis of `FQSym`. Their basis, called the
+    *monomial basis* and denoted by `(\mathcal{M}_u)`,
+    is also indexed by permutations. It is connected to the
+    above F-basis by the relation
+
+    .. MATH::
+
+        F_u = \sum_v \mathcal{M}_v ,
+
+    where the sum ranges over all permutations `v` such that each
+    inversion of `u` is an inversion of `v`. (An *inversion* of a
+    permutation `w` means a pair `(i, j)` of positions satisfying
+    `i < j` and `w(i) > w(j)`.) The above relation yields a
+    unitriangular change-of-basis matrix, and thus can be used to
+    compute the `\mathcal{M}_u` by Mobius inversion.
+
     Another classical basis of `FQSym` is `(G_w)_{w \in S}`,
     where `G_w = F_{w^{-1}}`.
     This is just a relabeling of the basis `(F_w)_{w \in S}`,
@@ -876,6 +893,241 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
             EXAMPLES::
 
                 sage: A = algebras.FQSym(QQ).G()
+                sage: A.one_basis()
+                []
+            """
+            Perm = self.basis().keys()
+            return Perm([])
+
+    class M(FQSymBasis_abstract):
+        """
+        The M-basis of `FQSym`.
+
+        This is the monomial basis `(\mathcal{M}_w)`, with `w` ranging
+        over all permutations. See the documentation of :class:`FQSym`
+        for details.
+
+        EXAMPLES::
+
+            sage: FQSym = algebras.FQSym(QQ)
+            sage: M = FQSym.M(); M
+            Free Quasi-symmetric functions over Rational Field in the M basis
+
+            sage: M([3, 1, 2]).coproduct()
+            M[] # M[3, 1, 2] + M[1] # M[1, 2] + M[3, 1, 2] # M[]
+            sage: M([3, 2, 1]).coproduct()
+            M[] # M[3, 2, 1] + M[1] # M[2, 1] + M[2, 1] # M[1]
+             + M[3, 2, 1] # M[]
+
+            sage: M([1, 2]) * M([1])
+            M[1, 2, 3] + 2*M[1, 3, 2] + M[2, 3, 1] + M[3, 1, 2]
+
+        .. TODO::
+
+            Currently, the conversion of M to F bases is implemented
+            by inverting a unitriangular matrix. This works, but
+            there might be better ways -- it boils down to computing
+            the Mobius function of the weak order on the symmetric
+            group (more precisely, computing it on intervals whose
+            maximum is `w_0`).
+        """
+        _prefix = "M"
+        _basis_name = "M"
+
+        def __init__(self, alg):
+            """
+            Initialize ``self``.
+
+            EXAMPLES::
+
+                sage: M = algebras.FQSym(QQ).M()
+                sage: TestSuite(M).run()  # long time
+            """
+            FQSymBasis_abstract.__init__(self, alg)
+
+            F = self.realization_of().F()
+            phi = F.module_morphism(self._F_to_M_on_basis, codomain=self,
+                                    unitriangular="lower")
+            # check if really upper
+            phi.register_as_coercion()
+            (~phi).register_as_coercion()
+
+        def _element_constructor_(self, x):
+            r"""
+            Convert ``x`` into ``self``.
+
+            EXAMPLES::
+
+                sage: R = algebras.FQSym(QQ).M()
+                sage: x, y, z = R([1]), R([2,1]), R([3,2,1])
+                sage: R(x)
+                M[1]
+                sage: R(x+4*y)
+                M[1] + 4*M[2, 1]
+                sage: R(1)
+                M[]
+
+                sage: D = algebras.FQSym(ZZ).M()
+                sage: X, Y, Z = D([1]), D([2,1]), D([3,2,1])
+                sage: R(X-Y).parent()
+                Free Quasi-symmetric functions over Rational Field in the M basis
+
+                sage: R([1, 3, 2])
+                M[1, 3, 2]
+                sage: R(Permutation([1, 3, 2]))
+                M[1, 3, 2]
+                sage: R(SymmetricGroup(4)(Permutation([1,3,4,2])))
+                M[1, 3, 4, 2]
+
+                sage: RF = algebras.FQSym(QQ).F()
+                sage: R(RF([2, 3, 4, 1]))
+                M[2, 3, 4, 1] + M[2, 4, 3, 1] + M[3, 2, 4, 1] + M[3, 4, 2, 1]
+                 + M[4, 2, 3, 1] + M[4, 3, 2, 1]
+                sage: R(RF([3, 2, 4, 1]))
+                M[3, 2, 4, 1] + M[4, 2, 3, 1] + M[4, 3, 2, 1]
+                sage: DF = algebras.FQSym(ZZ).F()
+                sage: D(DF([2, 3, 4, 1]))
+                M[2, 3, 4, 1] + M[2, 4, 3, 1] + M[3, 2, 4, 1] + M[3, 4, 2, 1]
+                 + M[4, 2, 3, 1] + M[4, 3, 2, 1]
+                sage: R(DF([2, 3, 4, 1]))
+                M[2, 3, 4, 1] + M[2, 4, 3, 1] + M[3, 2, 4, 1] + M[3, 4, 2, 1]
+                 + M[4, 2, 3, 1] + M[4, 3, 2, 1]
+                sage: RF(R[2, 3, 4, 1])
+                F[2, 3, 4, 1] - F[2, 4, 3, 1] - F[3, 2, 4, 1] + F[4, 3, 2, 1]
+
+                sage: RG = algebras.FQSym(QQ).G()
+                sage: R(RG([4, 1, 2, 3]))
+                M[2, 3, 4, 1] + M[2, 4, 3, 1] + M[3, 2, 4, 1] + M[3, 4, 2, 1]
+                 + M[4, 2, 3, 1] + M[4, 3, 2, 1]
+                sage: R(RG([4, 2, 1, 3]))
+                M[3, 2, 4, 1] + M[4, 2, 3, 1] + M[4, 3, 2, 1]
+                sage: DG = algebras.FQSym(ZZ).G()
+                sage: D(DG([4, 1, 2, 3]))
+                M[2, 3, 4, 1] + M[2, 4, 3, 1] + M[3, 2, 4, 1] + M[3, 4, 2, 1]
+                 + M[4, 2, 3, 1] + M[4, 3, 2, 1]
+                sage: R(DG([4, 1, 2, 3]))
+                M[2, 3, 4, 1] + M[2, 4, 3, 1] + M[3, 2, 4, 1] + M[3, 4, 2, 1]
+                 + M[4, 2, 3, 1] + M[4, 3, 2, 1]
+                sage: RG(R[2, 3, 4, 1])
+                G[4, 1, 2, 3] - G[4, 1, 3, 2] - G[4, 2, 1, 3] + G[4, 3, 2, 1]
+            """
+            if isinstance(x, (list, tuple, PermutationGroupElement)):
+                x = Permutation(x)
+            try:
+                P = x.parent()
+                if isinstance(P, FreeQuasisymmetricFunctions.M):
+                    if P is self:
+                        return x
+                    return self.element_class(self, x.monomial_coefficients())
+            except AttributeError:
+                pass
+            return CombinatorialFreeModule._element_constructor_(self, x)
+
+        def __getitem__(self, r):
+            r"""
+            The default implementation of ``__getitem__`` interprets
+            the input as a tuple, which in case of permutations
+            is interpreted as cycle notation, even though the input
+            looks like a one-line notation.
+            We override this method to amend this.
+
+            EXAMPLES::
+
+                sage: M = algebras.FQSym(QQ).M()
+                sage: M[3, 2, 1]
+                M[3, 2, 1]
+                sage: M[1]
+                M[1]
+            """
+            if isinstance(r, tuple):
+                r = list(r)
+            elif r == 1:
+                r = [1]
+            return super(FreeQuasisymmetricFunctions.M, self).__getitem__(r)
+
+        def _F_to_M_on_basis(self, w):
+            r"""
+            Return `F_w` in terms of the M basis.
+
+            INPUT:
+
+            - ``w`` -- a permutation
+
+            OUTPUT:
+
+            - An element of the M basis
+
+            TESTS::
+
+                sage: FQSym = algebras.FQSym(ZZ)
+                sage: F = FQSym.F()
+                sage: M = FQSym.M()
+                sage: M(F[3, 2, 1] - 4 * F[4, 2, 1, 3])
+                M[3, 2, 1] - 4*M[4, 2, 1, 3] - 4*M[4, 3, 1, 2] - 4*M[4, 3, 2, 1]
+                sage: all(M(M._F_to_M_on_basis(w)) == F[w] for i in range(5)
+                ....:     for w in Permutations(i))
+                True
+                sage: F[3, 2, 1] == M[3, 2, 1]
+                True
+                sage: F[4, 2, 1, 3] == M[3, 2, 4, 1]
+                False
+            """
+            return self.sum_of_monomials(w.permutohedron_greater(side='left'))
+
+        def degree_on_basis(self, t):
+            """
+            Return the degree of a permutation in
+            the algebra of free quasi-symmetric functions.
+
+            This is the size of the permutation (i.e., the `n`
+            for which the permutation belongs to `S_n`).
+
+            EXAMPLES::
+
+                sage: A = algebras.FQSym(QQ).M()
+                sage: u = Permutation([2,1])
+                sage: A.degree_on_basis(u)
+                2
+            """
+            return len(t)
+
+        @cached_method
+        def an_element(self):
+            """
+            Return an element of ``self``.
+
+            EXAMPLES::
+
+                sage: A = algebras.FQSym(QQ).M()
+                sage: A.an_element()
+                M[1] + 2*M[1, 2] + 4*M[2, 1]
+            """
+            o = self([1])
+            return o + 2 * o * o
+
+        def some_elements(self):
+            """
+            Return some elements of the free quasi-symmetric functions.
+
+            EXAMPLES::
+
+                sage: A = algebras.FQSym(QQ).M()
+                sage: A.some_elements()
+                [M[], M[1], M[1, 2] + 2*M[2, 1], M[] + M[1, 2] + 2*M[2, 1]]
+            """
+            u = self.one()
+            o = self([1])
+            x = o * o
+            y = u + x
+            return [u, o, x, y]
+
+        def one_basis(self):
+            """
+            Return the index of the unit.
+
+            EXAMPLES::
+
+                sage: A = algebras.FQSym(QQ).M()
                 sage: A.one_basis()
                 []
             """

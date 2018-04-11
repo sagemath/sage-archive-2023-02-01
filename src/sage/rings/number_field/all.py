@@ -14,3 +14,4 @@ _lazy_import('sage.rings.number_field.totallyreal_rel', 'enumerate_totallyreal_f
 _lazy_import('sage.rings.number_field.totallyreal_rel', 'enumerate_totallyreal_fields_rel')
 
 from .unit_group import UnitGroup
+from .S_unit_solver import solve_S_unit_equation

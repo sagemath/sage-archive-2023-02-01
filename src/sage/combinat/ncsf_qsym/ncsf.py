@@ -582,6 +582,58 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 codom = on_basis([]).parent()
                 return self.module_morphism(on_basis, codomain=codom)
 
+            def to_ncsym_on_basis(self, I):
+                r"""
+                The image of the basis element indexed by ``I`` under
+                the map to `NCSym`.
+
+                This function is deprecated. Use the ``to_ncsym`` on the
+                corresponding element.
+
+                EXAMPLES::
+
+                    sage: R = NonCommutativeSymmetricFunctions(QQ).R()
+                    sage: R.to_ncsym_on_basis(Composition([2,1]))
+                    doctest:warning
+                    ...
+                    DeprecationWarning: This method is deprecated.
+                     Use to_ncsym on the corresponding element.
+                    See https://trac.sagemath.org/25141 for details.
+                    1/3*m{{1}, {2}, {3}} + 1/6*m{{1}, {2, 3}}
+                     + 2/3*m{{1, 2}, {3}} + 1/6*m{{1, 3}, {2}}
+                """
+                from sage.misc.superseded import deprecation
+                deprecation(25141, "This method is deprecated."
+                                   " Use to_ncsym on the corresponding element.")
+                return self.monomial(I).to_ncsym()
+
+            @lazy_attribute
+            def to_ncsym(self):
+                """
+                The image of the basis element indexed by ``I`` under
+                the map to `NCSym`.
+
+                This function is deprecated. Use the ``to_ncsym`` on the
+                corresponding element.
+
+                    sage: R = NonCommutativeSymmetricFunctions(QQ).ribbon()
+                    sage: R.to_ncsym
+                    doctest:warning
+                    ...
+                    DeprecationWarning: This method is deprecated.
+                     Use to_ncsym on the corresponding element.
+                    See https://trac.sagemath.org/25141 for details.
+                    Generic morphism:
+                      From: Non-Commutative Symmetric Functions over the Rational Field in the Ribbon basis
+                      To:   Symmetric functions in non-commuting variables over the Rational Field in the monomial basis
+                """
+                from sage.misc.superseded import deprecation
+                deprecation(25141, "This method is deprecated."
+                                   " Use to_ncsym on the corresponding element.")
+                from sage.combinat.ncsym.ncsym import SymmetricFunctionsNonCommutingVariables
+                codomain = SymmetricFunctionsNonCommutingVariables(self.base_ring()).monomial()
+                return self.module_morphism(self.to_ncsym_on_basis, codomain=codomain)
+
             def immaculate_function(self, xs):
                 r"""
                 Return the immaculate function corresponding to the

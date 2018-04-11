@@ -195,18 +195,18 @@ sdh_install() {
     local dest="$1"
 
     if [ -z "$src" ]; then
-        sdh_die "Error: no source file(s) for sdh_install_files given"
+        sdh_die "Error: no source file(s) for sdh_install given"
     fi
 
     if [ -z "$dest" ]; then
-        sdh_die "Error: destination for sdh_install_files not given"
+        sdh_die "Error: destination for sdh_install not given"
     fi
 
     # Prefix SAGE_DESTDIR to the destination for DESTDIR installs
     dest="${SAGE_DESTDIR}$dest"
 
     if [ -e "$dest" -a ! -d "$dest" ]; then
-        sdh_die "Error: destination $dest for sdh_install_files exists and is not a directory"
+        sdh_die "Error: destination $dest for sdh_install exists and is not a directory"
     fi
 
     local destdir="$dest"

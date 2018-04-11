@@ -95,6 +95,7 @@ List of Polyhedron methods
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.barycentric_subdivision` | constructs a geometric realization of the barycentric subdivision
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.dilation` |  scalar dilation
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.face_truncation` | truncates a specific face
+    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.stack` | stack a face of the polyhedron
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.lattice_polytope` | returns an encompassing lattice polytope.
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.polar` | returns the polar of a polytope (needs to be compact)
     :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.prism` | prism over a polyhedron (increases both the dimension of the polyhedron and the dimension of the ambient space)

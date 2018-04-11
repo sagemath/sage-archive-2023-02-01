@@ -1166,12 +1166,13 @@ class FQSymBases(Category_realization_of_parent):
                 sage: F = algebras.FQSym(QQ).F()
                 sage: F[3, 1, 2].to_wqsym()
                 M[{3}, {1}, {2}] + M[{3}, {1, 2}]
+                sage: G[2, 3, 1].to_wqsym()
+                M[{3}, {1}, {2}] + M[{3}, {1, 2}]
             """
             parent = self.parent()
             FQSym = parent.realization_of()
             G = FQSym.G()
             from sage.combinat.chas.wqsym import WordQuasisymmetricFunctions
-            #from sage.combinat.words.finite_word import word_to_ordered_set_partition
             M = WordQuasisymmetricFunctions(parent.base_ring()).M()
             def to_wqsym_on_G_basis(w):
                 # Return the image of `G_w` under the inclusion

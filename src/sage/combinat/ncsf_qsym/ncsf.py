@@ -1688,28 +1688,33 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             def to_ncsym(self):
                 r"""
-                Return the image of ``self`` in the symmetric functions
-                in non-commuting variables under the embedding `\mathcal{I}`
+                Return the image of ``self`` under the injective
+                algebra homomorphism `\kappa : NSym \to NCSym`
                 that fixes the symmetric functions.
 
+                As usual, `NCSym` denotes the ring of symmetric
+                functions in non-commuting variables.
                 Let `S_n` denote a generator of the complete basis.
-                The map to `NCSym` is defined by
+                The algebra homomorphism `\kappa : NSym \to NCSym`
+                is defined by
 
                 .. MATH::
 
                     S_n \mapsto \sum_{A \vdash [n]}
-                    \frac{\lambda(A)! \lambda(A)^!}{n!} \mathbf{m}_A
+                    \frac{\lambda(A)! \lambda(A)^!}{n!} \mathbf{m}_A .
 
-                and extended as an algebra homomorphism.
+                It has the property that the canonical maps
+                `\chi : NCSym \to Sym` and `\rho : NSym \to Sym`
+                satisfy `\chi \circ \kappa = \rho`.
 
                 .. NOTE::
 
                     A remark in [BRRZ08]_  makes it clear that the embedding
-                    of `NCSF` into `NCSym` that preserves the projection into
+                    of `NSym` into `NCSym` that preserves the projection into
                     the symmetric functions is not unique.  While this seems
-                    to be a natural embedding, any set of algebraic generators
-                    can be sent to a set of free elements in ``NCSym`` is
-                    also an embedding.
+                    to be a natural embedding, any free set of algebraic
+                    generators of `NSym` can be sent to a set of free elements
+                    in `NCSym` to form another embedding.
 
                 .. SEEALSO::
 
@@ -1754,8 +1759,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 TESTS:
 
-                Check that the image under `\mathcal{I}` fixes the
-                symmetric functions::
+                Check that `\chi \circ \kappa = \rho`::
 
                     sage: S = NonCommutativeSymmetricFunctions(QQ).S()
                     sage: m = SymmetricFunctionsNonCommutingVariables(QQ).monomial()
@@ -1779,13 +1783,13 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 S = P.realization_of().complete()
                 R = P.base_ring()
                 m = SymmetricFunctionsNonCommutingVariables(R).m()
-                P = SetPartitions()
+                SP = SetPartitions()
 
                 def on_basis(I):
                     if not I._list:
                         return m.one()
-                    c_num = lambda A: prod([factorial(i) for i in A.shape()], R.one())
-                    return prod(m.sum_of_terms([(P(A), R(c_num(A) / factorial(n)))
+                    c_num = lambda A: R(prod(factorial(i) for i in A.shape()))
+                    return prod(m.sum_of_terms([(SP(A), R(c_num(A) / factorial(n)))
                                                 for A in SetPartitions(n)], distinct=True)
                                 for n in I)
 

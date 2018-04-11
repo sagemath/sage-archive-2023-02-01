@@ -616,6 +616,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 This function is deprecated. Use the ``to_ncsym`` on the
                 corresponding element.
 
+                EXAMPLES::
+
                     sage: R = NonCommutativeSymmetricFunctions(QQ).ribbon()
                     sage: R.to_ncsym
                     doctest:warning

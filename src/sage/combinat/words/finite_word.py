@@ -870,6 +870,36 @@ class FiniteWord_class(Word_class):
         index = dict((b,a) for (a,b) in enumerate(ordered_alphabet))
         return [index[a] for a in self]
 
+    def to_ordered_set_partition(self):
+        r"""
+        Return the ordered set partition `(P_1, P_2, \ldots, P_k)`
+        of `\{1, 2, \ldots, n\}`, where `n` is the length of ``self``,
+        and where each block `P_i` is the set of positions at which
+        the `i`-th smallest letter occurring in ``self`` occurs in
+        ``self``.
+
+        EXAMPLES::
+
+            sage: w = Word('abbabaab')
+            sage: w.to_ordered_set_partition()
+            [{1, 4, 6, 7}, {8, 2, 3, 5}]
+            sage: Word([-10, 3, -10, 2]).to_ordered_set_partition()
+            [{1, 3}, {4}, {2}]
+            sage: Word([]).to_ordered_set_partition()
+            []
+            sage: Word('aaaaa').to_ordered_set_partition()
+            [{1, 2, 3, 4, 5}]
+        """
+        from sage.misc.all import uniq
+        n = len(self)
+        vals = sorted(uniq(self))
+        dc = {val: i for (i, val) in enumerate(vals)}
+        P = [[] for _ in vals]
+        for i, val in enumerate(self):
+            P[dc[val]].append(i+1)
+        from sage.combinat.set_partition_ordered import OrderedSetPartition
+        return OrderedSetPartition(P)
+
     # To fix : do not slice here ! (quite expensive in copy)
     def is_suffix(self, other):
         r"""

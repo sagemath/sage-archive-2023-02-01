@@ -153,7 +153,7 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
         s = self.base_ring().an_element()
         return [u, o, self([[1,2]]), o + self([[1],[2]]), u + s*o]
 
-class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
+class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
     r"""
     The word quasi-symmetric functions.
 
@@ -189,7 +189,7 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
     in this situation and is implemented using the latter indexing.
     The basis `(\mathbf{M}_P)_P` is called the *Monomial basis* and
     is implemented at
-    :class:`~sage.combinat.chas.wqsym.WordQuasisymmetricFunctions.M`.
+    :class:`~sage.combinat.chas.wqsym.WordQuasiSymmetricFunctions.M`.
 
     `WQSym` is endowed with a connected graded Hopf algebra structure (see
     Section 2.2 of [NoThWi08]_, Section 1.1 of [FoiMal14]_ and
@@ -265,6 +265,7 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
     TESTS::
 
+        sage: M = WordQuasiSymmetricFunctions(QQ).M()
         sage: a = M[OrderedSetPartition([[1]])]
         sage: b = M[OrderedSetPartitions(1)([[1]])]
         sage: c = M[[1]]
@@ -273,8 +274,8 @@ class WordQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
     .. TODO::
 
-        Dendriform structure.
-        Bergeron-Zabrocki/Menous-Novelli-Thibon basis.
+        - Dendriform structure.
+        - Bergeron-Zabrocki and Menous-Novelli-Thibon bases.
     """
     def __init__(self, R):
         """

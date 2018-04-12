@@ -95,7 +95,7 @@ lazy_import('sage.combinat.free_prelie_algebra', 'FreePreLieAlgebra', 'FreePreLi
 lazy_import('sage.combinat.free_dendriform_algebra', 'FreeDendriformAlgebra', 'FreeDendriform')
 lazy_import('sage.combinat.fqsym', 'FreeQuasisymmetricFunctions', 'FQSym')
 lazy_import('sage.combinat.fqsym', 'FreeQuasisymmetricFunctions', 'MalvenutoReutenauer')
-lazy_import('sage.combinat.chas.wqsym', 'WordQuasisymmetricFunctions', 'WQSym')
+lazy_import('sage.combinat.chas.wqsym', 'WordQuasiSymmetricFunctions', 'WQSym')
 lazy_import('sage.combinat.grossman_larson_algebras', 'GrossmanLarsonAlgebra', 'GrossmanLarson')
 lazy_import('sage.algebras.quantum_matrix_coordinate_algebra',
             'QuantumMatrixCoordinateAlgebra', 'QuantumMatrixCoordinate')

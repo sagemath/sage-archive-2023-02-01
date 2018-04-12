@@ -312,7 +312,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
         """
         return self.M()
 
-    _shorthands = tuple(['M', 'X', 'C'])
+    _shorthands = tuple(['M', 'X', 'C', 'Q'])
 
     class M(WQSymBasis_abstract):
         r"""
@@ -608,6 +608,120 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             return X._from_dict(cur, coerce=True)
 
     Cone = C
+
+    class Q(WQSymBasis_abstract):
+        r"""
+        The Q basis of `WQSym`.
+
+        We define a partial order `\leq` on the set of all ordered
+        set partitions as follows: `A \leq B` if and only if
+        `A` is strongly finer than `B` (see
+        :meth:`~sage.combinat.set_partition_ordered.OrderedSetPartition.is_strongly_finer`
+        for a definition of this).
+
+        The *Q basis* `(Q_P)_P` is a basis of `WQSym` indexed by ordered
+        set partitions, and is defined by
+
+        .. MATH::
+
+            Q_P = \sum M_W,
+
+        where the sum is over ordered set partitions `W` satisfying
+        `P \leq W`.
+
+        EXAMPLES::
+
+            sage: WQSym = algebras.WQSym(QQ)
+            sage: M = WQSym.M(); Q = WQSym.Q()
+            sage: Q
+            Word Quasi-symmetric functions over Rational Field in the Q basis
+
+            sage: Q(M[[2,3],[1,4]])
+            Q[{2, 3}, {1, 4}]
+            sage: Q(M[[1,2],[3,4]])
+            Q[{1, 2}, {3, 4}] - Q[{1, 2, 3, 4}]
+            sage: M(Q[[1,2],[3,4]])
+            M[{1, 2}, {3, 4}] + M[{1, 2, 3, 4}]
+            sage: M(Q[[2,3],[1],[4]])
+            M[{2, 3}, {1}, {4}] + M[{2, 3}, {1, 4}]
+            sage: M(Q[[3], [2, 5], [1, 4]])
+            M[{3}, {2, 5}, {1, 4}]
+            sage: M(Q[[1, 4], [2, 3], [5], [6]])
+            M[{1, 4}, {2, 3}, {5}, {6}] + M[{1, 4}, {2, 3}, {5, 6}]
+             + M[{1, 4}, {2, 3, 5}, {6}] + M[{1, 4}, {2, 3, 5, 6}]
+
+            sage: Q[[1, 3], [2]] * Q[[1], [2]]
+            Q[{1, 3}, {2}, {4}, {5}] + Q[{1, 3}, {4}, {2}, {5}]
+             + Q[{1, 3}, {4}, {5}, {2}] + Q[{4}, {1, 3}, {2}, {5}]
+             + Q[{4}, {1, 3}, {5}, {2}] + Q[{4}, {5}, {1, 3}, {2}]
+
+            sage: Q[[1, 3], [2]].coproduct()
+            Q[] # Q[{1, 3}, {2}] + Q[{1, 2}] # Q[{1}] + Q[{1, 3}, {2}] # Q[]
+
+        REFERENCES:
+
+        - Section 6 of [BerZab05]_
+        """
+        _prefix = "Q"
+        _basis_name = "Q"
+
+        def __init__(self, alg):
+            """
+            Initialize ``self``.
+
+            EXAMPLES::
+
+                sage: Q = algebras.WQSym(QQ).Q()
+                sage: TestSuite(C).run()  # long time
+            """
+            WQSymBasis_abstract.__init__(self, alg)
+
+            M = self.realization_of().M()
+            phi = self.module_morphism(self._Q_to_M, codomain=M, unitriangular="lower") # check triangular
+            phi.register_as_coercion()
+#            phi_inv = M.module_morphism(self._M_to_Q, codomain=self, unitriangular="lower") # check triangular
+#            phi_inv.register_as_coercion()
+            (~phi).register_as_coercion()
+
+        def some_elements(self):
+            """
+            Return some elements of the word quasi-symmetric functions
+            in the Q basis.
+
+            EXAMPLES::
+
+                sage: Q = algebras.WQSym(QQ).Q()
+                sage: Q.some_elements()
+                [Q[], Q[{1}], Q[{1, 2}], Q[] + 1/2*Q[{1}]]
+            """
+            u = self.one()
+            o = self([[1]])
+            s = self.base_ring().an_element()
+            return [u, o, self([[1,2]]), u + s*o]
+
+        def _Q_to_M(self, P):
+            """
+            Return the image of the basis element of ``self`` indexed
+            by ``P`` in the Monomial basis.
+
+            EXAMPLES::
+
+                sage: Q = algebras.WQSym(QQ).Q()
+                sage: OSP = Q.basis().keys()
+                sage: Q._Q_to_M(OSP([[2,3],[1,4]]))
+                M[{2, 3}, {1, 4}]
+                sage: Q._Q_to_M(OSP([[1,2],[3,4]]))
+                M[{1, 2}, {3, 4}] + M[{1, 2, 3, 4}]
+            """
+            M = self.realization_of().M()
+            if not P:
+                return M.one()
+
+            OSP = self.basis().keys()
+            R = M.base_ring()
+            one = R.one()
+            return M._from_dict({OSP(G): one for G in P.strongly_fatter()},
+                                coerce=False)
 
 class WQSymBases(Category_realization_of_parent):
     r"""

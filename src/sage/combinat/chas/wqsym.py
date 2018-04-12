@@ -191,6 +191,9 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
     is implemented at
     :class:`~sage.combinat.chas.wqsym.WordQuasiSymmetricFunctions.M`.
 
+    Other bases are the cone basis (aka C basis), the characteristic
+    basis (aka X basis), the Q basis and the Phi basis.
+
     `WQSym` is endowed with a connected graded Hopf algebra structure (see
     Section 2.2 of [NoThWi08]_, Section 1.1 of [FoiMal14]_ and
     Section 4.3.2 of [MeNoTh11]_) given by
@@ -312,7 +315,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
         """
         return self.M()
 
-    _shorthands = tuple(['M', 'X', 'C', 'Q'])
+    _shorthands = tuple(['M', 'X', 'C', 'Q', 'Phi'])
 
     class M(WQSymBasis_abstract):
         r"""
@@ -624,7 +627,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
         .. MATH::
 
-            Q_P = \sum M_W,
+            Q_P = \sum \mathbf{M}_W,
 
         where the sum is over ordered set partitions `W` satisfying
         `P \leq W`.
@@ -819,7 +822,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
         .. MATH::
 
-            \Phi_P = \sum M_W,
+            \Phi_P = \sum \mathbf{M}_W,
 
         where the sum is over ordered set partitions `W` satisfying
         `W \leq P`.

@@ -39,14 +39,11 @@ from __future__ import absolute_import
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.cartesian_product import cartesian_product
-
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
-
 from sage.sets.set import Set
 from sage.sets.family import Family
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
-
 from sage.rings.integer import Integer
 
 from sage.combinat.combinat import CombinatorialElement
@@ -55,11 +52,8 @@ from sage.combinat.partition import RegularPartitions_n
 from sage.combinat.words.words import Words
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.shuffle import ShuffleProduct, ShuffleProduct_overlapping
-
 from functools import reduce
-
-
-##### TODO: should ordered multiset partitions be stored as lists of sets or as lists of lists?
+from sage.calculus.var import var
 
 class OrderedMultisetPartition(CombinatorialElement):
     r"""
@@ -1251,23 +1245,25 @@ class OrderedMultisetPartitions_n(OrderedMultisetPartitions):
     def cardinality(self):
         """
         Return the number of ordered multiset partitions of `n`.
-
-        Do this by viewing an ordered multiset partition as a list of
-        *integer* partitions, each with distinct parts.
         """
-        # is there a nice formula? OEIS doesn't know the sequence of cardinalities
-        # though it knows the corresponding sequence for (strict) unordered multiset partitions.
-        nn = [1, 1, 2, 5]
-        if self.n > -1 and self.n <= 3:
-            return nn[self.n]
-        elif self.n > 3:
-            deg = 0
-            for alpha in Compositions(self.n):
-                tmp = cartesian_product([RegularPartitions_n(a, 2) for a in alpha])
-                deg += tmp.cardinality()
-            return deg
-        else:
-            return 0
+        # Dispense with the complex computation for small orders.
+        orders = {0:1, 1:1, 2:2, 3:5, 4:11, 5:25}
+        if self.n <= 5:
+            return orders[self.n]
+
+        # We view an ordered multiset partition as a list of 2-regular integer partitions.
+        #
+        # The 2-regular partitions have a nice generating function (see OEIS:A000009).
+        # Below, we take (products of) coefficients of polynomials to compute cardinality.
+        t = var('t')
+        def prod(lst): return reduce(lambda a,b: a*b, lst, 1)
+        partspoly = prod([1+t**k for k in range(1,self.n+1)]).coefficients()
+        def partspoly_coeff(d): return partspoly[d][0]
+        deg = 0
+        for alpha in Compositions(self.n):
+            deg += prod([partspoly_coeff(d) for d in alpha])
+        #orders[n] = deg
+        return deg
 
     def random_element(self):
         r"""

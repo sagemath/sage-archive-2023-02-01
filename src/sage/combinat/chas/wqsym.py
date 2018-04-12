@@ -807,6 +807,44 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             def union(X,Y): return X.union(Y)
             return self.sum_of_monomials(ShuffleProduct(x, yshift, K))
 
+        def coproduct_on_basis(self, x):
+            r"""
+            Return the coproduct of ``self`` on the basis element
+            indexed by the ordered set partition ``x``.
+
+            EXAMPLES::
+
+                sage: Q = algebras.WQSym(QQ).Q()
+
+                sage: Q.coproduct(Q.one())  # indirect doctest
+                Q[] # Q[]
+                sage: Q.coproduct( Q([[1]]) )  # indirect doctest
+                Q[] # Q[{1}] + Q[{1}] # Q[]
+                sage: Q.coproduct( Q([[1,2]]) )
+                Q[] # Q[{1, 2}] + Q[{1, 2}] # Q[]
+                sage: Q.coproduct( Q([[1], [2]]) )
+                Q[] # Q[{1}, {2}] + Q[{1}] # Q[{1}] + Q[{1}, {2}] # Q[]
+                sage: Q[[1,2],[3],[4]].coproduct()
+                Q[] # Q[{1, 2}, {3}, {4}] + Q[{1, 2}] # Q[{1}, {2}]
+                 + Q[{1, 2}, {3}] # Q[{1}] + Q[{1, 2}, {3}, {4}] # Q[]
+            """
+            # The coproduct on the Q basis satisfies the same formula
+            # as on the M basis. This is easily derived from the
+            # formula on the M basis.
+            if not len(x):
+                return self.one().tensor(self.one())
+            K = self.indices()
+            def standardize(P): # standardize an ordered set partition
+                base = sorted(sum((list(part) for part in P), []))
+                # base is the ground set of P, as a sorted list.
+                d = {val: i+1 for i,val in enumerate(base)}
+                # d is the unique order isomorphism from base to
+                # {1, 2, ..., |base|} (encoded as dict).
+                return K([[d[x] for x in part] for part in P])
+            T = self.tensor_square()
+            return T.sum_of_monomials((standardize(x[:i]), standardize(x[i:]))
+                                      for i in range(len(x) + 1))
+
     class Phi(WQSymBasis_abstract):
         r"""
         The Phi basis of `WQSym`.

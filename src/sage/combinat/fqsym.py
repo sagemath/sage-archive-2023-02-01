@@ -833,10 +833,10 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
             return len(t)
 
     class M(FQSymBasis_abstract):
-        """
+        r"""
         The M-basis of `FQSym`.
 
-        This is the monomial basis `(\mathcal{M}_w)`, with `w` ranging
+        This is the Monomial basis `(\mathcal{M}_w)`, with `w` ranging
         over all permutations. See the documentation of :class:`FQSym`
         for details.
 
@@ -844,7 +844,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
             sage: FQSym = algebras.FQSym(QQ)
             sage: M = FQSym.M(); M
-            Free Quasi-symmetric functions over Rational Field in the M basis
+            Free Quasi-symmetric functions over Rational Field in the Monomial basis
 
             sage: M([3, 1, 2]).coproduct()
             M[] # M[3, 1, 2] + M[1] # M[1, 2] + M[3, 1, 2] # M[]
@@ -865,7 +865,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
             maximum is `w_0`).
         """
         _prefix = "M"
-        _basis_name = "M"
+        _basis_name = "Monomial"
 
         def __init__(self, alg):
             """
@@ -903,7 +903,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
                 sage: D = algebras.FQSym(ZZ).M()
                 sage: X, Y, Z = D([1]), D([2,1]), D([3,2,1])
                 sage: R(X-Y).parent()
-                Free Quasi-symmetric functions over Rational Field in the M basis
+                Free Quasi-symmetric functions over Rational Field in the Monomial basis
 
                 sage: R([1, 3, 2])
                 M[1, 3, 2]

@@ -30,7 +30,7 @@ timed_run() {
     END=`date +%s`
     TOTAL=$((END-START))
     echo "Checking whether running \"$2\" was fast…"
-    [[ $TOTAL -lt $1 ]]
+    [ "$TOTAL" -lt "$1" ]
 }
 
 # Most setup should be done in well under 120 seconds but some CI machines tend

@@ -19,7 +19,7 @@ set -ex
 echo "Checking that Sage starts and can calculate 1+1…"
 # Calculate 1+1 (remove startup messages and leading & trailing whitespace)
 TWO=`docker run "$1" sage -c "'print(1+1)'" | tail -1 | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'`
-[[ "x$TWO" = "x2" ]]
+[ "x$TWO" = "x2" ]
 
 echo "Checking that some binaries that should be distributed with Sage are on the PATH…"
 # We could also run minimal tests on these but we don't yet.

@@ -1041,9 +1041,11 @@ cdef class BooleanFunction(SageObject):
 
     def algebraic_degree(self):
         r"""
-        Return the algebraic degree of this Boolean function, i.e. the degree of its
-        algebraic normal form. Note that the degree of a zero function is
-        defined to be equal to -1.
+        Return the algebraic degree of this Boolean function.
+
+        The algebraic degree of a Boolean function is defined as the degree
+        of its algebraic normal form. Note that the degree of the constant
+        zero function is defined to be equal to -1.
 
         EXAMPLES::
 

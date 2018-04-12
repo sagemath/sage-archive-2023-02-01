@@ -21,11 +21,11 @@ Shuffle product of words
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.combinat.words.word import Word_class
+from sage.combinat.words.word import Word_class, Word
 from sage.combinat.combinat import CombinatorialClass
 from sage.arith.all import binomial
 from sage.combinat.integer_vector import IntegerVectors
-from sage.combinat.composition import Compositions_n, Compositions
+from sage.combinat.composition import Compositions_n, Compositions, Composition
 from sage.misc.lazy_import import lazy_import
 
 class ShuffleProduct_w1w2(CombinatorialClass):
@@ -189,11 +189,13 @@ class ShuffleProduct_w1w2(CombinatorialClass):
         of `I` when shuffling two compositions `I` and `J`
         (cf. :trac:`15131`)::
 
-            sage: I = Composition([1, 1])
+            sage: I = Compositions(2)([1, 1])
             sage: J = Composition([2])
             sage: S = ShuffleProduct_w1w2(I, J)
             sage: S._proc([1,0,1])
             [1, 2, 1]
+            sage: S.list()
+            [[1, 1, 2], [1, 2, 1], [2, 1, 1]]
         """
         i1 = -1
         i2 = -1
@@ -210,8 +212,11 @@ class ShuffleProduct_w1w2(CombinatorialClass):
         except ValueError:
             # Special situation: the parent of w1 is too
             # restrictive to be cast on res.
-            if isinstance(self._w1.parent(), Compositions_n):
-                return Compositions(res)
+            if isinstance(self._w1, Composition):
+                return Composition(res)
+            elif isinstance(self._w1, Word_class):
+                return Word(res)
+            return res
 
     def __iter__(self):
         """

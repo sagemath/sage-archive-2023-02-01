@@ -1,12 +1,24 @@
 #!/usr/bin/env bash
 
-help_banner() {
-    . "$SAGE_LOCAL"/bin/sage-version.sh
-    echo "${SAGE_VERSION_FULL}"
+# Display the current version of Sage
+# usage: sage_version [-f]
+#   -f    display the full version banner including release date
+sage_version() {
+    if [ -f "$SAGE_LOCAL/bin/sage-version.sh" ]; then
+        . "$SAGE_LOCAL/bin/sage-version.sh"
+    else
+        . "$SAGE_ROOT/src/bin/sage-version.sh"
+    fi
+
+    if [ "$1" = "-f" ]; then
+        echo "${SAGE_VERSION_FULL}"
+    else
+        echo "${SAGE_VERSION}"
+    fi
 }
 
 usage() {
-    help_banner
+    sage_version -f
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
     echo
@@ -54,7 +66,7 @@ usage() {
 }
 
 usage_advanced() {
-    help_banner
+    sage_version -f
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
     echo
@@ -463,13 +475,12 @@ fi
 #####################################################################
 
 if [ "$1" = '-dumpversion' -o "$1" = '--dumpversion' ]; then
-        . "$SAGE_LOCAL"/bin/sage-version.sh
-        echo ${SAGE_VERSION}
+        sage_version
         exit 0
 fi
 
 if [ "$1" = '-v' -o "$1" = '-version' -o "$1" = '--version' ]; then
-        help_banner
+        sage_version -f
         exit 0
 fi
 

@@ -351,8 +351,8 @@ REFERENCES:
 
 .. [BB]
     Gavin Brown, Jaroslaw Buczynski:
-    Maps of toric varieties in Cox coordinates,
-    http://arxiv.org/abs/1004.4924
+    *Maps of toric varieties in Cox coordinates*,
+    :arxiv:`1004.4924`
 """
 
 #*****************************************************************************

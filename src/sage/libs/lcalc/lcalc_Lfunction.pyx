@@ -407,7 +407,7 @@ cdef class Lfunction_I(Lfunction):
         \Lambda(s) = Q^s \left( \prod_{j=1}^a \Gamma(\kappa_j s + \gamma_j) \right) L(s)
 
 
-    See (23) in http://arxiv.org/abs/math/0412181
+    See (23) in :arxiv:`math/0412181`
 
     INPUT:
 
@@ -544,7 +544,7 @@ cdef class Lfunction_D(Lfunction):
 
         \Lambda(s) = Q^s \left( \prod_{j=1}^a \Gamma(\kappa_j s + \gamma_j) \right) L(s)
 
-    See (23) in http://arxiv.org/abs/math/0412181
+    See (23) in :arxiv:`math/0412181`
 
     INPUT:
 
@@ -683,7 +683,7 @@ cdef class Lfunction_C:
 
         \Lambda(s) = Q^s \left( \prod_{j=1}^a \Gamma(\kappa_j s + \gamma_j) \right) L(s)
 
-    See (23) in http://arxiv.org/abs/math/0412181
+    See (23) in :arxiv:`math/0412181`
 
     INPUT:
 

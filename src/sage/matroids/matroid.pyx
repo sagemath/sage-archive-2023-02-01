@@ -7404,12 +7404,23 @@ cdef class Matroid(SageObject):
             T = T(a, b)
         return T
 
-    cpdef flat_cover(self):
+    cpdef flat_cover(self, solver=None, verbose=0):
         """
         Return a minimum-size cover of the nonbases by non-spanning flats.
 
         A *nonbasis* is a subset that has the size of a basis, yet is
         dependent. A *flat* is a closed set.
+
+        INPUT:
+
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve` of
+          the class :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of verbosity
+          of the LP solver. Set to 0 by default, which means quiet.
 
         .. SEEALSO::
 
@@ -7433,12 +7444,12 @@ cdef class Matroid(SageObject):
         for r in range(self.full_rank()):
             FF.extend(self.flats(r))
 
-        MIP = MixedIntegerLinearProgram(maximization=False)
+        MIP = MixedIntegerLinearProgram(maximization=False, solver=solver)
         f = MIP.new_variable(binary=True)
         MIP.set_objective(sum([f[F] for F in FF]))
         for N in NB:
             MIP.add_constraint(sum([f[F] for F in FF if len(F.intersection(N)) > self.rank(F)]), min=1)
-        opt = MIP.solve()
+        opt = MIP.solve(log=verbose)
 
         fsol = MIP.get_values(f)
         eps = 0.00000001

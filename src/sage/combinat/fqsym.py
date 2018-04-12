@@ -126,6 +126,26 @@ class FQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
             return self._coerce_map_via([target], R)
         return super(FQSymBasis_abstract, self)._coerce_map_from_(R)
 
+    @cached_method
+    def an_element(self):
+        """
+        Return an element of ``self``.
+
+        EXAMPLES::
+
+            sage: A = algebras.FQSym(QQ)
+            sage: F = A.F()
+            sage: F.an_element()
+            F[1] + 2*F[1, 2] + 2*F[2, 1]
+            sage: G = A.G()
+            sage: G.an_element()
+            G[1] + 2*G[1, 2] + 2*G[2, 1]
+            sage: M = A.M()
+            sage: M.an_element()
+            M[1] + 2*M[1, 2] + 4*M[2, 1]
+        """
+        o = self([1])
+        return o + 2 * o * o
 class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
     r"""
     The free quasi-symmetric functions.
@@ -444,50 +464,6 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
             """
             return len(t)
 
-        @cached_method
-        def an_element(self):
-            """
-            Return an element of ``self``.
-
-            EXAMPLES::
-
-                sage: A = algebras.FQSym(QQ).F()
-                sage: A.an_element()
-                F[1] + 2*F[1, 2] + 2*F[2, 1]
-            """
-            o = self([1])
-            return o + 2 * o * o
-
-        def some_elements(self):
-            """
-            Return some elements of the free quasi-symmetric functions.
-
-            EXAMPLES::
-
-                sage: A = algebras.FQSym(QQ).F()
-                sage: A.some_elements()
-                [F[], F[1], F[1, 2] + F[2, 1],
-                 F[] + F[1, 2] + F[2, 1]]
-            """
-            u = self.one()
-            o = self([1])
-            x = o * o
-            y = u + x
-            return [u, o, x, y]
-
-        def one_basis(self):
-            """
-            Return the index of the unit.
-
-            EXAMPLES::
-
-                sage: A = algebras.FQSym(QQ).F()
-                sage: A.one_basis()
-                []
-            """
-            Perm = self.basis().keys()
-            return Perm([])
-
         def product_on_basis(self, x, y):
             r"""
             Return the `*` associative product of two permutations.
@@ -629,8 +605,8 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
             if not len(x):
                 return self.one().tensor(self.one())
             return sum(self(Word(x[:i]).standard_permutation()).tensor(
-                                self(Word(x[i:]).standard_permutation()))
-                        for i in range(len(x) + 1))
+                                 self(Word(x[i:]).standard_permutation()))
+                       for i in range(len(x) + 1))
 
         class Element(FQSymBasis_abstract.Element):
             def to_symmetric_group_algebra(self, n=None):
@@ -856,50 +832,6 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
             """
             return len(t)
 
-        @cached_method
-        def an_element(self):
-            """
-            Return an element of ``self``.
-
-            EXAMPLES::
-
-                sage: A = algebras.FQSym(QQ).G()
-                sage: A.an_element()
-                G[1] + 2*G[1, 2] + 2*G[2, 1]
-            """
-            o = self([1])
-            return o + 2 * o * o
-
-        def some_elements(self):
-            """
-            Return some elements of the free quasi-symmetric functions.
-
-            EXAMPLES::
-
-                sage: A = algebras.FQSym(QQ).G()
-                sage: A.some_elements()
-                [G[], G[1], G[1, 2] + G[2, 1],
-                 G[] + G[1, 2] + G[2, 1]]
-            """
-            u = self.one()
-            o = self([1])
-            x = o * o
-            y = u + x
-            return [u, o, x, y]
-
-        def one_basis(self):
-            """
-            Return the index of the unit.
-
-            EXAMPLES::
-
-                sage: A = algebras.FQSym(QQ).G()
-                sage: A.one_basis()
-                []
-            """
-            Perm = self.basis().keys()
-            return Perm([])
-
     class M(FQSymBasis_abstract):
         """
         The M-basis of `FQSym`.
@@ -1092,49 +1024,6 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
             """
             return len(t)
 
-        @cached_method
-        def an_element(self):
-            """
-            Return an element of ``self``.
-
-            EXAMPLES::
-
-                sage: A = algebras.FQSym(QQ).M()
-                sage: A.an_element()
-                M[1] + 2*M[1, 2] + 4*M[2, 1]
-            """
-            o = self([1])
-            return o + 2 * o * o
-
-        def some_elements(self):
-            """
-            Return some elements of the free quasi-symmetric functions.
-
-            EXAMPLES::
-
-                sage: A = algebras.FQSym(QQ).M()
-                sage: A.some_elements()
-                [M[], M[1], M[1, 2] + 2*M[2, 1], M[] + M[1, 2] + 2*M[2, 1]]
-            """
-            u = self.one()
-            o = self([1])
-            x = o * o
-            y = u + x
-            return [u, o, x, y]
-
-        def one_basis(self):
-            """
-            Return the index of the unit.
-
-            EXAMPLES::
-
-                sage: A = algebras.FQSym(QQ).M()
-                sage: A.one_basis()
-                []
-            """
-            Perm = self.basis().keys()
-            return Perm([])
-
         def coproduct_on_basis(self, x):
             r"""
             Return the coproduct of `\mathcal{M}_{\sigma}` for `\sigma`
@@ -1171,8 +1060,8 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
                 return self.one().tensor(self.one())
             return sum(self(Word(x[:i]).standard_permutation()).tensor(
                                 self(Word(x[i:]).standard_permutation()))
-                        for i in range(n + 1)
-                        if (i == 0 or i == n or min(x[:i]) > max(x[i:])))
+                       for i in range(n + 1)
+                       if (i == 0 or i == n or min(x[:i]) > max(x[i:])))
 
 class FQSymBases(Category_realization_of_parent):
     r"""
@@ -1285,6 +1174,43 @@ class FQSymBases(Category_realization_of_parent):
                 False
             """
             return self.base_ring().is_zero()
+
+        def some_elements(self):
+            """
+            Return some elements of the free quasi-symmetric functions.
+
+            EXAMPLES::
+
+                sage: A = algebras.FQSym(QQ)
+                sage: F = A.F()
+                sage: F.some_elements()
+                [F[], F[1], F[1, 2] + F[2, 1], F[] + F[1, 2] + F[2, 1]]
+                sage: G = A.G()
+                sage: G.some_elements()
+                [G[], G[1], G[1, 2] + G[2, 1], G[] + G[1, 2] + G[2, 1]]
+                sage: M = A.M()
+                sage: M.some_elements()
+                [M[], M[1], M[1, 2] + 2*M[2, 1], M[] + M[1, 2] + 2*M[2, 1]]
+            """
+            u = self.one()
+            o = self([1])
+            x = o * o
+            y = u + x
+            return [u, o, x, y]
+
+        @cached_method
+        def one_basis(self):
+            """
+            Return the index of the unit.
+
+            EXAMPLES::
+
+                sage: A = algebras.FQSym(QQ).F()
+                sage: A.one_basis()
+                []
+            """
+            Perm = self.basis().keys()
+            return Perm([])
 
         @lazy_attribute
         def succ(self):

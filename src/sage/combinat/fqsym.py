@@ -1152,7 +1152,7 @@ class FQSymBases(Category_realization_of_parent):
 
             .. SEEALSO::
 
-                :class:`WordQuasisymmetricFunctions` for a
+                :class:`WordQuasiSymmetricFunctions` for a
                 definition of `WQSym`.
 
             EXAMPLES::
@@ -1172,8 +1172,8 @@ class FQSymBases(Category_realization_of_parent):
             parent = self.parent()
             FQSym = parent.realization_of()
             G = FQSym.G()
-            from sage.combinat.chas.wqsym import WordQuasisymmetricFunctions
-            M = WordQuasisymmetricFunctions(parent.base_ring()).M()
+            from sage.combinat.chas.wqsym import WordQuasiSymmetricFunctions
+            M = WordQuasiSymmetricFunctions(parent.base_ring()).M()
             def to_wqsym_on_G_basis(w):
                 # Return the image of `G_w` under the inclusion
                 # map `FQSym \to WQSym`.

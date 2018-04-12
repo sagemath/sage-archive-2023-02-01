@@ -31,9 +31,11 @@ import sage.rings.integer
 from sage.sets.set import Set, Set_generic
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
+from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.all import prod
 from sage.structure.parent import Parent
+from sage.structure.element import parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableArray
 from sage.structure.richcmp import richcmp
@@ -43,6 +45,7 @@ from sage.combinat.combinat import stirling_number2
 from sage.combinat.composition import Composition, Compositions
 import sage.combinat.permutation as permutation
 from functools import reduce
+from sage.categories.cartesian_product import cartesian_product
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class OrderedSetPartition(ClonableArray):
@@ -189,6 +192,41 @@ class OrderedSetPartition(ClonableArray):
         """
         return hash(tuple(self))
 
+    def base_set(self):
+        """
+        Return the base set of ``self``, which is the union of all parts
+        of ``self``.
+
+        EXAMPLES::
+
+            sage: OrderedSetPartition([[1], [2,3], [4]]).base_set()
+            {1, 2, 3, 4}
+            sage: OrderedSetPartition([[1,2,3,4]]).base_set()
+            {1, 2, 3, 4}
+            sage: OrderedSetPartition([]).base_set()
+            {}
+        """
+        return Set([e for p in self for e in p])
+
+    def base_set_cardinality(self):
+        """
+        Return the cardinality of the base set of ``self``, which is the sum
+        of the sizes of the parts of ``self``.
+
+        This is also known as the *size* (sometimes the *weight*) of
+        an ordered set partition.
+
+        EXAMPLES::
+
+            sage: OrderedSetPartition([[1], [2,3], [4]]).base_set_cardinality()
+            4
+            sage: OrderedSetPartition([[1,2,3,4]]).base_set_cardinality()
+            4
+        """
+        return sum(len(x) for x in self)
+
+    size = base_set_cardinality
+
     @combinatorial_map(name='to composition')
     def to_composition(self):
         r"""
@@ -206,6 +244,212 @@ class OrderedSetPartition(ClonableArray):
             [2, 1, 2]
         """
         return Composition([len(_) for _ in self])
+
+    @staticmethod
+    def sum(osps):
+        """
+        Return the concatenation of the given ordered set partitions
+        ``osps`` (provided they have no elements in common).
+
+        INPUT:
+
+        - ``osps`` -- a list (or iterable) of ordered set partitions
+
+        EXAMPLES::
+
+            sage: OrderedSetPartition.sum([OrderedSetPartition([[4, 1], [3]]), OrderedSetPartition([[7], [2]]), OrderedSetPartition([[5, 6]])])
+            [{1, 4}, {3}, {7}, {2}, {5, 6}]
+
+        Any iterable can be provided as input::
+
+            sage: Composition.sum([OrderedSetPartition([[2*i,2*i+1]]) for i in [4,1,3]])
+            [{8, 9}, {2, 3}, {6, 7}]
+
+        Empty inputs are handled gracefully::
+
+            sage: OrderedSetPartition.sum([]) == OrderedSetPartition([])
+            True
+
+        TESTS::
+
+            sage: A = OrderedSetPartitions(3)([[2], [1, 3]])
+            sage: B = OrderedSetPartitions([5])([[5]])
+            sage: C = OrderedSetPartition.sum([A, B]); C
+            [{2}, {1, 3}, {5}]
+            sage: C.parent()
+            Ordered set partitions
+        """
+        return OrderedSetPartitions()(sum((list(i) for i in osps), []))
+
+    def finer(self):
+        """
+        Return the set of ordered set partitions which are finer
+        than ``self``.
+
+        See :meth:`is_finer` for the definition of "finer".
+
+        EXAMPLES::
+
+            sage: C = OrderedSetPartition([[1, 3], [2]]).finer()
+            sage: C.cardinality()
+            3
+            sage: C.list()
+            [[{1}, {3}, {2}], [{3}, {1}, {2}], [{1, 3}, {2}]]
+
+            sage: OrderedSetPartition([]).finer()
+            {[]}
+
+            sage: W = OrderedSetPartition([[4, 9], [-1, 2]])
+            sage: W.finer().list()
+            [[{9}, {4}, {2}, {-1}],
+             [{9}, {4}, {-1}, {2}],
+             [{9}, {4}, {2, -1}],
+             [{4}, {9}, {2}, {-1}],
+             [{4}, {9}, {-1}, {2}],
+             [{4}, {9}, {2, -1}],
+             [{9, 4}, {2}, {-1}],
+             [{9, 4}, {-1}, {2}],
+             [{9, 4}, {2, -1}]]
+        """
+        par = parent(self)
+        if not self:
+            return FiniteEnumeratedSet([self])
+        else:
+            return FiniteEnumeratedSet([par(sum((list(i) for i in C), []))
+                    for C in cartesian_product([OrderedSetPartitions(X) for X in self])])
+
+    def is_finer(self, co2):
+        """
+        Return ``True`` if the ordered set partition ``self`` is finer
+        than the composition ``co2``; otherwise, return ``False``.
+
+        If `A` and `B` are two ordered set partitions of the same set,
+        then `A` is said to be *finer* than `B` if `B` can be obtained
+        from `A` by (repeatedly) merging consecutive parts.
+        In this case, we say that `B` is *fatter* than `A`.
+
+        EXAMPLES::
+
+            sage: A = OrderedSetPartition([[1, 3], [2]])
+            sage: B = OrderedSetPartition([[1], [3], [2]])
+            sage: A.is_finer(B)
+            False
+            sage: B.is_finer(A)
+            True
+            sage: OrderedSetPartition([[2], [5], [1], [4]]).is_finer(OrderedSetPartition([[2, 5], [1, 4]]))
+            True
+            sage: OrderedSetPartition([[5], [2], [1], [4]]).is_finer(OrderedSetPartition([[2, 5], [1, 4]]))
+            True
+            sage: OrderedSetPartition([[2], [1], [5], [4]]).is_finer(OrderedSetPartition([[2, 5], [1, 4]]))
+            False
+            sage: OrderedSetPartition([[2, 5, 1], [4]]).is_finer(OrderedSetPartition([[2, 5], [1, 4]]))
+            False
+        """
+        co1 = self
+        if co1.base_set() != co2.base_set():
+            raise ValueError("ordered set partitions self (= %s) and co2 (= %s) must be of the same set"%(self, co2))
+
+        sum1 = Set([])
+        sum2 = Set([])
+        i1 = 0
+        for j2 in co2:
+            sum2 += j2
+            while len(sum1) < len(sum2):
+                sum1 += co1[i1]
+                i1 += 1
+            if not sum1.issubset(sum2):
+                return False
+
+        return True
+
+    def fatten(self, grouping):
+        r"""
+        Return the ordered set partition fatter than ``self``, obtained
+        by grouping together consecutive parts according to ``grouping``.
+
+        See :meth:`finer` for the definition of "fatter".
+
+        INPUT:
+
+        - ``grouping`` -- a composition whose sum is the length of ``self``
+
+        EXAMPLES:
+
+        Let us start with the ordered set partition::
+
+            sage: c = OrderedSetPartition([[2, 5], [1], [3, 4]])
+
+        With ``grouping`` equal to `(1, \ldots, 1)`, `c` is left unchanged::
+
+            sage: c.fatten(Composition([1,1,1]))
+            [{2, 5}, {1}, {3, 4}]
+
+        With ``grouping`` equal to `(\ell)` where `\ell` is the length of
+        `c`, this yields the coarsest ordered set partition above `c`::
+
+            sage: c.fatten(Composition([3]))
+            [{1, 2, 3, 4, 5}]
+
+        Other values for ``grouping`` yield (all the) other ordered
+        set partitions coarser than `c`::
+
+            sage: c.fatten(Composition([2,1]))
+            [{1, 2, 5}, {3, 4}]
+            sage: c.fatten(Composition([1,2]))
+            [{2, 5}, {1, 3, 4}]
+
+        TESTS::
+
+            sage: OrderedSetPartition([]).fatten(Composition([]))
+            []
+            sage: c.fatten(Composition([2,1])).__class__ == c.__class__
+            True
+        """
+        result = [None] * len(grouping)
+        j = 0
+        for i in range(len(grouping)):
+            result[i] = sum(self[j:j+grouping[i]], Set([]))
+            j += grouping[i]
+        return parent(self)(result)
+
+    def fatter(self):
+        """
+        Return the set of ordered set partitions which are fatter
+        than ``self``.
+
+        See :meth:`finer` for the definition of "fatter".
+
+        EXAMPLES::
+
+            sage: C = OrderedSetPartition([[2, 5], [1], [3, 4]]).fatter()
+            sage: C.cardinality()
+            4
+            sage: sorted(C)
+            [[{1, 2, 3, 4, 5}],
+             [{1, 2, 5}, {3, 4}],
+             [{2, 5}, {1, 3, 4}],
+             [{2, 5}, {1}, {3, 4}]]
+
+            sage: OrderedSetPartition([[4, 9], [-1, 2]]).fatter().list()
+            [[{9, 4}, {2, -1}], [{9, 2, 4, -1}]]
+
+        Some extreme cases::
+
+            sage: list(OrderedSetPartition([[5]]).fatter())
+            [[{5}]]
+            sage: list(Composition([]).fatter())
+            [[]]
+            sage: sorted(OrderedSetPartition([[1], [2], [3], [4]]).fatter())
+            [[{1, 2, 3, 4}],
+             [{1, 2, 3}, {4}],
+             [{1, 2}, {3, 4}],
+             [{1, 2}, {3}, {4}],
+             [{1}, {2, 3, 4}],
+             [{1}, {2, 3}, {4}],
+             [{1}, {2}, {3, 4}],
+             [{1}, {2}, {3}, {4}]]
+        """
+        return Compositions(len(self)).map(self.fatten)
 
 class OrderedSetPartitions(UniqueRepresentation, Parent):
     """

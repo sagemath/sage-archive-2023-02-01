@@ -1,8 +1,8 @@
 # This file configures automatic builds of Sage on [GitLab](https://gitlab.com).
 # To make the build time not too excessive, we seed the build cache with
 # sagemath/sagemath-dev:develop. When basic SPKGs changed, this does not help
-# much and the full build might the set time limit in GitLab.  You can increase
-# that limit in Settings → CI/CD.
+# much and the full build might exceed the set time limit in GitLab.  You can
+# increase that limit in Settings → CI/CD.
 # You can also provision your own private more powerful runner in the same
 # place
 # https://docs.gitlab.com/ee/ci/docker/using_docker_build.html#use-docker-in-docker-executor;
@@ -18,6 +18,10 @@
 # At the moment there is no reliable way of passing the docker images to the
 # following stages without explicit pushing/pulling or similar:
 # https://gitlab.com/gitlab-org/gitlab-runner/issues/1107
+# The timings mentioned above are typical values. The shared runners provided
+# on gitlab.com are sometimes by a factor of two slower. It's unclear what is
+# the source of this slowdown. There is nothing different in the logs, so it's
+# probably just an overcommittment of virtual machines on hardware.
 
 image: docker:latest
 

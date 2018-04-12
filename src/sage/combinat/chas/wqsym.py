@@ -804,6 +804,175 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             def union(X,Y): return X.union(Y)
             return self.sum_of_monomials(ShuffleProduct(x, yshift, K))
 
+    class Phi(WQSymBasis_abstract):
+        r"""
+        The Phi basis of `WQSym`.
+
+        We define a partial order `\leq` on the set of all ordered
+        set partitions as follows: `A \leq B` if and only if
+        `A` is strongly finer than `B` (see
+        :meth:`~sage.combinat.set_partition_ordered.OrderedSetPartition.is_strongly_finer`
+        for a definition of this).
+
+        The *Phi basis* `(\Phi_P)_P` is a basis of `WQSym` indexed by ordered
+        set partitions, and is defined by
+
+        .. MATH::
+
+            \Phi_P = \sum M_W,
+
+        where the sum is over ordered set partitions `W` satisfying
+        `W \leq P`.
+
+        Novelli and Thibon introduced this basis in [NovThi06]_
+        Section 2.7.2, and called it the quasi-ribbon basis.
+        It later reappeared in [MeNoTh11]_ Section 4.3.2.
+
+        EXAMPLES::
+
+            sage: WQSym = algebras.WQSym(QQ)
+            sage: M = WQSym.M(); Phi = WQSym.Phi()
+            sage: Phi
+            Word Quasi-symmetric functions over Rational Field in the Phi basis
+
+            sage: Phi(M[[2,3],[1,4]])
+            Phi[{2}, {3}, {1}, {4}] - Phi[{2}, {3}, {1, 4}]
+             - Phi[{2, 3}, {1}, {4}] + Phi[{2, 3}, {1, 4}]
+            sage: Phi(M[[1,2],[3,4]])
+            Phi[{1}, {2}, {3}, {4}] - Phi[{1}, {2}, {3, 4}]
+             - Phi[{1, 2}, {3}, {4}] + Phi[{1, 2}, {3, 4}]
+            sage: M(Phi[[1,2],[3,4]])
+            M[{1}, {2}, {3}, {4}] + M[{1}, {2}, {3, 4}]
+             + M[{1, 2}, {3}, {4}] + M[{1, 2}, {3, 4}]
+            sage: M(Phi[[2,3],[1],[4]])
+            M[{2}, {3}, {1}, {4}] + M[{2, 3}, {1}, {4}]
+            sage: M(Phi[[3], [2, 5], [1, 4]])
+            M[{3}, {2}, {5}, {1}, {4}] + M[{3}, {2}, {5}, {1, 4}]
+             + M[{3}, {2, 5}, {1}, {4}] + M[{3}, {2, 5}, {1, 4}]
+            sage: M(Phi[[1, 4], [2, 3], [5], [6]])
+            M[{1}, {4}, {2}, {3}, {5}, {6}] + M[{1}, {4}, {2, 3}, {5}, {6}]
+             + M[{1, 4}, {2}, {3}, {5}, {6}] + M[{1, 4}, {2, 3}, {5}, {6}]
+
+            sage: Phi[[1]] * Phi[[1, 3], [2]]
+            Phi[{1, 2, 4}, {3}] + Phi[{2}, {1, 4}, {3}]
+             + Phi[{2, 4}, {1, 3}] + Phi[{2, 4}, {3}, {1}]
+            sage: Phi[[3, 5], [1, 4], [2]].coproduct()
+            Phi[] # Phi[{3, 5}, {1, 4}, {2}]
+             + Phi[{1}] # Phi[{4}, {1, 3}, {2}]
+             + Phi[{1, 2}] # Phi[{1, 3}, {2}]
+             + Phi[{2, 3}, {1}] # Phi[{2}, {1}]
+             + Phi[{2, 4}, {1, 3}] # Phi[{1}]
+             + Phi[{3, 5}, {1, 4}, {2}] # Phi[]
+
+        REFERENCES:
+
+        - Section 2.7.2 of [NovThi06]_
+        """
+        _prefix = "Phi"
+        _basis_name = "Phi"
+
+        def __init__(self, alg):
+            """
+            Initialize ``self``.
+
+            EXAMPLES::
+
+                sage: Phi = algebras.WQSym(QQ).Phi()
+                sage: TestSuite(Phi).run()  # long time
+            """
+            WQSymBasis_abstract.__init__(self, alg)
+
+            M = self.realization_of().M()
+            phi = self.module_morphism(self._Phi_to_M, codomain=M, unitriangular="lower")
+            phi.register_as_coercion()
+            phi_inv = M.module_morphism(self._M_to_Phi, codomain=self, unitriangular="lower")
+            phi_inv.register_as_coercion()
+
+        def some_elements(self):
+            """
+            Return some elements of the word quasi-symmetric functions
+            in the Phi basis.
+
+            EXAMPLES::
+
+                sage: Phi = algebras.WQSym(QQ).Phi()
+                sage: Phi.some_elements()
+                [Phi[], Phi[{1}], Phi[{1, 2}], Phi[] + 1/2*Phi[{1}]]
+            """
+            u = self.one()
+            o = self([[1]])
+            s = self.base_ring().an_element()
+            return [u, o, self([[1,2]]), u + s*o]
+
+        def _Phi_to_M(self, P):
+            """
+            Return the image of the basis element of ``self`` indexed
+            by ``P`` in the Monomial basis.
+
+            EXAMPLES::
+
+                sage: Phi = algebras.WQSym(QQ).Phi()
+                sage: OSP = Phi.basis().keys()
+                sage: Phi._Phi_to_M(OSP([[2,3],[1,4]]))
+                M[{2}, {3}, {1}, {4}] + M[{2}, {3}, {1, 4}]
+                 + M[{2, 3}, {1}, {4}] + M[{2, 3}, {1, 4}]
+                sage: Phi._Phi_to_M(OSP([[1,2],[3,4]]))
+                M[{1}, {2}, {3}, {4}] + M[{1}, {2}, {3, 4}]
+                 + M[{1, 2}, {3}, {4}] + M[{1, 2}, {3, 4}]
+            """
+            M = self.realization_of().M()
+            if not P:
+                return M.one()
+
+            OSP = self.basis().keys()
+            R = M.base_ring()
+            one = R.one()
+            return M._from_dict({OSP(G): one for G in P.strongly_finer()},
+                                coerce=False)
+
+        def _M_to_Phi(self, P):
+            """
+            Return the image of the basis element of the monomial
+            basis indexed by ``P`` in the Phi basis ``self``.
+
+            EXAMPLES::
+
+                sage: Phi = algebras.WQSym(QQ).Phi()
+                sage: M = algebras.WQSym(QQ).M()
+                sage: OSP = Phi.basis().keys()
+                sage: Phi._M_to_Phi(OSP([[2,3],[1,4]]))
+                Phi[{2}, {3}, {1}, {4}] - Phi[{2}, {3}, {1, 4}]
+                 - Phi[{2, 3}, {1}, {4}] + Phi[{2, 3}, {1, 4}]
+                sage: Phi._M_to_Phi(OSP([[1,2],[3,4]]))
+                Phi[{1}, {2}, {3}, {4}] - Phi[{1}, {2}, {3, 4}]
+                 - Phi[{1, 2}, {3}, {4}] + Phi[{1, 2}, {3, 4}]
+
+            TESTS::
+
+                sage: Phi = algebras.WQSym(QQ).Phi()
+                sage: M = algebras.WQSym(QQ).M()
+                sage: OSP4 = OrderedSetPartitions(4)
+                sage: all(M(Phi(M[P])) == M[P] for P in OSP4) # long time
+                True
+                sage: all(Phi(M(Phi[P])) == Phi[P] for P in OSP4) # long time
+                True
+            """
+            Phi = self
+            if not P:
+                return Phi.one()
+
+            OSP = self.basis().keys()
+            R = self.base_ring()
+            one = R.one()
+            lenP = len(P)
+            def sign(R): # the coefficient with which another
+                         # ordered set partition will appear
+                if len(R) % 2 == len(P) % 2:
+                    return one
+                return -one
+            return Phi._from_dict({OSP(G): sign(G) for G in P.strongly_finer()},
+                                  coerce=False)
+
 class WQSymBases(Category_realization_of_parent):
     r"""
     The category of bases of `WQSym`.

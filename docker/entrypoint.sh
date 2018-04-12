@@ -1,5 +1,5 @@
 #!/bin/bash
-if [ x"$1" = sage-jupyter ]; then
+if [ x"$1" = x"sage-jupyter" ]; then
     # If "sage-jupyter" is given as a first argument, we start a jupyter notebook
     # with reasonable default parameters for running it inside a container.
     shift

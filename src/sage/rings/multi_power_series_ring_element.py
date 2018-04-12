@@ -583,7 +583,7 @@ class MPowerSeries(PowerSeries):
             + O(t0, t1, t2)^{15}'
         """
         if self._prec == infinity:
-            return "%s" % self._value()
+            return "%s" % self._value()._latex_()
         return "%(val)s + O(%(gens)s)^{%(prec)s}" \
                %{'val':self._value()._latex_(),
                  'gens':', '.join(g._latex_() for g in self.parent().gens()),

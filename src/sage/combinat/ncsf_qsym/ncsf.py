@@ -1908,6 +1908,54 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 return F.linear_combination((on_basis(I), coeff)
                                             for I, coeff in S(self))
 
+            def to_fsym(self):
+                r"""
+                Return the image of ``self`` in the natural map to `FSym`.
+
+                There is a Hopf algebra morphism from `NSym`, which maps
+                the ribbon indexed by a composition `\alpha` to the sum
+                of tableaux whose descent composition is `\alpha`::
+
+                EXAMPLES::
+
+                    sage: N = NonCommutativeSymmetricFunctions(QQ)
+                    sage: R = N.ribbon()
+                    sage: x = 2*R[[]] + 2*R[1] + 3*R[2]
+                    sage: x.to_fsym()
+                    2*G[] + 2*G[1] + 3*G[12]
+                    sage: R[2,1].to_fsym()
+                    G[12|3]
+                    sage: R[1,2].to_fsym()
+                    G[13|2]
+                    sage: R[2,1,2].to_fsym()
+                    G[12|35|4] + G[125|3|4]
+                    sage: x = R.an_element(); x
+                    2*R[] + 2*R[1] + 3*R[1, 1]
+                    sage: x.to_fsym()
+                    2*G[] + 2*G[1] + 3*G[1|2]
+
+                    sage: y = N.Phi()[1,2]
+                    sage: y.to_fsym()
+                    -G[1|2|3] - G[12|3] + G[123] + G[13|2]
+
+                    sage: S = NonCommutativeSymmetricFunctions(QQ).S()
+                    sage: S[2].to_fsym()
+                    G[12]
+                    sage: S[2,1].to_fsym()
+                    G[12|3] + G[123]
+                """
+                from sage.combinat.chas.fsym import HopfAlgebraOfTableaux, descent_composition
+                from sage.combinat.tableau import StandardTableaux
+                G = HopfAlgebraOfTableaux(self.base_ring()).G()
+                R = self.parent().realization_of().ribbon()
+                ST = G._indices
+                def on_basis(alpha):
+                    return G.sum_of_monomials(ST(t) for t in StandardTableaux(alpha.size())
+                                              if descent_composition(t) == alpha)
+                return G.linear_combination((on_basis(alpha), coeff)
+                                            for alpha, coeff in R(self))
+
+
             def expand(self, n, alphabet='x'):
                 r"""
                 Expand the noncommutative symmetric function into an

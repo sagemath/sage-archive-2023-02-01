@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 
 help_banner() {
-    cat "$SAGE_ROOT/VERSION.txt"
-    echo
+    . "$SAGE_LOCAL"/bin/sage-version.sh
+    echo "${SAGE_VERSION_FULL}"
 }
 
 usage() {
     help_banner
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
+    echo
     echo "Optional arguments:"
     echo "  file.[sage|py|spyx] -- run given .sage, .py or .spyx file"
     echo "  -advanced           -- list all command line options"
@@ -56,6 +57,7 @@ usage_advanced() {
     help_banner
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
+    echo
     echo "Running Sage:"
     echo "  file.[sage|py|spyx] -- run given .sage, .py or .spyx file"
     echo "  -advanced           -- print this advanced help message"
@@ -467,8 +469,7 @@ if [ "$1" = '-dumpversion' -o "$1" = '--dumpversion' ]; then
 fi
 
 if [ "$1" = '-v' -o "$1" = '-version' -o "$1" = '--version' ]; then
-        . "$SAGE_LOCAL"/bin/sage-version.sh
-        echo "SageMath version ${SAGE_VERSION}, Release Date: ${SAGE_RELEASE_DATE}"
+        help_banner
         exit 0
 fi
 

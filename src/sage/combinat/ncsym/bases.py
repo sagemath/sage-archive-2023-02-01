@@ -618,7 +618,7 @@ class NCSymBases(Category_realization_of_parent):
 
             .. SEEALSO::
 
-                :class:`WordQuasisymmetricFunctions` for a
+                :class:`WordQuasiSymmetricFunctions` for a
                 definition of `WQSym`.
 
             EXAMPLES::
@@ -645,9 +645,9 @@ class NCSymBases(Category_realization_of_parent):
             R = parent.base_ring()
             one = R.one()
             m = NCSym.monomial()
-            from sage.combinat.chas.wqsym import WordQuasisymmetricFunctions
+            from sage.combinat.chas.wqsym import WordQuasiSymmetricFunctions
             from sage.combinat.set_partition_ordered import OrderedSetPartition
-            M = WordQuasisymmetricFunctions(R).M()
+            M = WordQuasiSymmetricFunctions(R).M()
             from itertools import permutations
             def to_wqsym_on_m_basis(A):
                 # Return the image of `\mathbf{m}_A` under the inclusion

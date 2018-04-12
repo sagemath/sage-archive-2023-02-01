@@ -24,7 +24,7 @@ from sage.categories.hopf_algebras import HopfAlgebras
 from sage.categories.realizations import Category_realization_of_parent
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.set_partition_ordered import OrderedSetPartitions
-from sage.combinat.shuffle import ShuffleProduct_overlapping
+from sage.combinat.shuffle import ShuffleProduct_overlapping, ShuffleProduct
 
 class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
     """
@@ -672,16 +672,15 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             EXAMPLES::
 
                 sage: Q = algebras.WQSym(QQ).Q()
-                sage: TestSuite(C).run()  # long time
+                sage: TestSuite(Q).run()  # long time
             """
             WQSymBasis_abstract.__init__(self, alg)
 
             M = self.realization_of().M()
-            phi = self.module_morphism(self._Q_to_M, codomain=M, unitriangular="lower") # check triangular
+            phi = self.module_morphism(self._Q_to_M, codomain=M, unitriangular="lower")
             phi.register_as_coercion()
-#            phi_inv = M.module_morphism(self._M_to_Q, codomain=self, unitriangular="lower") # check triangular
-#            phi_inv.register_as_coercion()
-            (~phi).register_as_coercion()
+            phi_inv = M.module_morphism(self._M_to_Q, codomain=self, unitriangular="lower")
+            phi_inv.register_as_coercion()
 
         def some_elements(self):
             """
@@ -722,6 +721,88 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             one = R.one()
             return M._from_dict({OSP(G): one for G in P.strongly_fatter()},
                                 coerce=False)
+
+        def _M_to_Q(self, P):
+            """
+            Return the image of the basis element of the monomial
+            basis indexed by ``P`` in the Q basis ``self``.
+
+            EXAMPLES::
+
+                sage: Q = algebras.WQSym(QQ).Q()
+                sage: M = algebras.WQSym(QQ).M()
+                sage: OSP = Q.basis().keys()
+                sage: Q._M_to_Q(OSP([[2,3],[1,4]]))
+                Q[{2, 3}, {1, 4}]
+                sage: Q._M_to_Q(OSP([[1,2],[3,4]]))
+                Q[{1, 2}, {3, 4}] - Q[{1, 2, 3, 4}]
+
+            TESTS::
+
+                sage: Q = algebras.WQSym(QQ).Q()
+                sage: M = algebras.WQSym(QQ).M()
+                sage: OSP4 = OrderedSetPartitions(4)
+                sage: all(M(Q(M[P])) == M[P] for P in OSP4) # long time
+                True
+                sage: all(Q(M(Q[P])) == Q[P] for P in OSP4) # long time
+                True
+            """
+            Q = self
+            if not P:
+                return Q.one()
+
+            OSP = self.basis().keys()
+            R = self.base_ring()
+            one = R.one()
+            lenP = len(P)
+            def sign(R): # the coefficient with which another
+                         # ordered set partition will appear
+                if len(R) % 2 == len(P) % 2:
+                    return one
+                return -one
+            return Q._from_dict({OSP(G): sign(G) for G in P.strongly_fatter()},
+                                coerce=False)
+
+        def product_on_basis(self, x, y):
+            r"""
+            Return the (associative) `*` product of the basis elements
+            of the Q basis ``self`` indexed by the ordered set partitions
+            `x` and `y`.
+
+            This is the shifted shuffle product of `x` and `y`.
+
+            EXAMPLES::
+
+                sage: A = algebras.WQSym(QQ).Q()
+                sage: x = OrderedSetPartition([[1],[2,3]])
+                sage: y = OrderedSetPartition([[1,2]])
+                sage: z = OrderedSetPartition([[1,2],[3]])
+                sage: A.product_on_basis(x, y)
+                Q[{1}, {2, 3}, {4, 5}] + Q[{1}, {4, 5}, {2, 3}]
+                 + Q[{4, 5}, {1}, {2, 3}]
+                sage: A.product_on_basis(x, z)
+                Q[{1}, {2, 3}, {4, 5}, {6}] + Q[{1}, {4, 5}, {2, 3}, {6}]
+                 + Q[{1}, {4, 5}, {6}, {2, 3}] + Q[{4, 5}, {1}, {2, 3}, {6}]
+                 + Q[{4, 5}, {1}, {6}, {2, 3}] + Q[{4, 5}, {6}, {1}, {2, 3}]
+                sage: A.product_on_basis(y, y)
+                Q[{1, 2}, {3, 4}] + Q[{3, 4}, {1, 2}]
+
+            TESTS::
+
+                sage: one = OrderedSetPartition([])
+                sage: all(A.product_on_basis(one, z) == A(z) == A.basis()[z] for z in OrderedSetPartitions(3))
+                True
+                sage: all(A.product_on_basis(z, one) == A(z) == A.basis()[z] for z in OrderedSetPartitions(3))
+                True
+            """
+            K = self.basis().keys()
+            if not x:
+                return self.monomial(y)
+            m = max(max(part) for part in x) # The degree of x
+            x = [set(part) for part in x]
+            yshift = [[val + m for val in part] for part in y]
+            def union(X,Y): return X.union(Y)
+            return self.sum_of_monomials(ShuffleProduct(x, yshift, K))
 
 class WQSymBases(Category_realization_of_parent):
     r"""

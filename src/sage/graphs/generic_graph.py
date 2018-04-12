@@ -20826,7 +20826,7 @@ class GenericGraph(GenericGraph_pyx):
                 col = edge_options['color']
                 if isinstance(col, (tuple, list)):
                     # convert RGB triples in hexadecimal
-                    col = str(to_hex(col, False))
+                    col = str(to_hex(col, keep_alpha=False))
 
                 dot_options.append('color = "%s"' % col)
 

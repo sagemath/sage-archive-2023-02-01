@@ -945,12 +945,12 @@ class DirichletCharacter(MultiplicativeGroupElement):
             zeta52^22 + zeta52^21 + zeta52^19 - zeta52^16 + zeta52^15 + zeta52^14 + zeta52^12 - zeta52^11 - zeta52^10 - zeta52^7 - zeta52^5 + zeta52^4
 
         Check that :trac:`25127` is fixed::
-        
+
             sage: G = DirichletGroup(1)
             sage: chi = G.one()
             sage: chi.gauss_sum()
             1
-            
+
 
         .. SEEALSO::
 
@@ -976,10 +976,9 @@ class DirichletCharacter(MultiplicativeGroupElement):
         zeta = zeta ** a
         g = L.zero()
         z = L.one()
-        g += L(chi(0))*z
-        for c in chi.values()[1:]:
-            z *= zeta
+        for c in chi.values():
             g += L(c)*z
+            z *= zeta
         return g
 
     def gauss_sum_numerical(self, prec=53, a=1):
@@ -1054,9 +1053,9 @@ class DirichletCharacter(MultiplicativeGroupElement):
         zeta = CC.zeta(G.modulus()) ** a
         g = CC.zero()
         z = CC.one()
-        for c in self.values()[1:]:
-            z *= zeta
+        for c in self.values():
             g += phi(c)*z
+            z *= zeta
         return g
 
     def jacobi_sum(self, char, check=True):
@@ -2054,7 +2053,7 @@ class DirichletGroupFactory(UniqueFactory):
             sage: DirichletGroup(-33)
             Traceback (most recent call last):
             ...
-            ValueError: modulus should be positive            
+            ValueError: modulus should be positive
         """
         modulus = rings.Integer(N)
         if modulus <= 0:

@@ -57,7 +57,7 @@ which return the current solution::
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Carlo Hamalainen <carlo.hamalainen@gmail.com>
-#       Copyright (C) 2015-2017 Sébastien Labbé <slabqc@gmail.com>
+#       Copyright (C) 2015-2018 Sébastien Labbé <slabqc@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -495,7 +495,7 @@ cdef class dancing_linksWrapper:
         while self.search():
             yield self.get_solution()
 
-    def one_solution(self, ncpus=1, column=None):
+    def one_solution(self, ncpus=None, column=None):
         r"""
         Return the first solution found after splitting the problem to
         allow parallel computation.
@@ -505,7 +505,7 @@ cdef class dancing_linksWrapper:
 
         INPUT:
 
-        - ``ncpus`` -- integer (default: ``1``), maximal number of
+        - ``ncpus`` -- integer (default: ``None``), maximal number of
           subprocesses to use at the same time
         - ``column`` -- integer (default: ``None``), the column used to split
           the problem, if ``None`` a random column is chosen
@@ -575,14 +575,14 @@ cdef class dancing_linksWrapper:
             if not val is None:
                 return val
 
-    def all_solutions(self, ncpus=1, column=None):
+    def all_solutions(self, ncpus=None, column=None):
         r"""
         Return all solutions found after splitting the problem to allow
         parallel computation.
 
         INPUT:
 
-        - ``ncpus`` -- integer (default: ``1``), maximal number of
+        - ``ncpus`` -- integer (default: ``None``), maximal number of
           subprocesses to use at the same time
         - ``column`` -- integer (default: ``None``), the column used to split
           the problem, if ``None`` a random column is chosen
@@ -600,8 +600,7 @@ cdef class dancing_linksWrapper:
             sage: [sorted(s) for s in S]
             [[0, 1], [2, 3], [4, 5]]
 
-        The computations can be made parallel by giving to ``ncpus`` a
-        value greater than ``1``::
+        Using parallel computations::
 
             sage: S = Subsets(range(4))
             sage: rows = map(list, S)
@@ -610,7 +609,7 @@ cdef class dancing_linksWrapper:
             Dancing links solver for 4 columns and 16 rows
             sage: dlx.number_of_solutions()
             15
-            sage: sorted([sorted(s) for s in dlx.all_solutions(ncpus=1)])
+            sage: sorted(sorted(s) for s in dlx.all_solutions(ncpus=2))
             [[1, 2, 3, 4],
              [1, 2, 10],
              [1, 3, 9],
@@ -664,14 +663,14 @@ cdef class dancing_linksWrapper:
             L.extend(val)
         return L
 
-    def _number_of_solutions_iterator(self, ncpus=1, column=None):
+    def _number_of_solutions_iterator(self, ncpus=None, column=None):
         r"""
         Return an iterator over the number of solutions using each row
         containing a ``1`` in the given ``column``.
 
         INPUT:
 
-        - ``ncpus`` -- integer (default: ``1``), maximal number of
+        - ``ncpus`` -- integer (default: ``None``), maximal number of
           subprocesses to use at the same time
         - ``column`` -- integer (default: ``None``), the column used to split
           the problem, if ``None`` a random column is chosen
@@ -715,16 +714,16 @@ cdef class dancing_linksWrapper:
         for ((args, kwds), val) in nb_sol(indices):
             yield args[0], val
 
-    def number_of_solutions(self, ncpus=1, column=None):
+    def number_of_solutions(self, ncpus=None, column=None):
         r"""
         Return the number of distinct solutions.
 
         INPUT:
 
-        - ``ncpus`` -- integer (default: ``1``), maximal number of
+        - ``ncpus`` -- integer (default: ``None``), maximal number of
           subprocesses to use at the same time. If `ncpus>1` the dancing
-          links problem is split into independent subproblems to
-          allow parallel computation.
+          links problem is split into independent subproblems to allow
+          parallel computation.
         - ``column`` -- integer (default: ``None``), the column used to split
           the problem, if ``None`` a random column is chosen (this argument
           is ignored if ``ncpus`` is ``1``)

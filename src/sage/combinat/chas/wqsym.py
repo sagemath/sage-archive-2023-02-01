@@ -5,6 +5,7 @@ Word Quasi-symmetric functions
 AUTHORS:
 
 - Travis Scrimshaw (2018-04-09): initial implementation
+- Darij Grinberg and Amy Pang (2018-04-12): further bases and methods
 """
 
 # ****************************************************************************
@@ -760,7 +761,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             lenP = len(P)
             def sign(R): # the coefficient with which another
                          # ordered set partition will appear
-                if len(R) % 2 == len(P) % 2:
+                if len(R) % 2 == lenP % 2:
                     return one
                 return -one
             return Q._from_dict({OSP(G): sign(G) for G in P.strongly_fatter()},
@@ -1013,6 +1014,215 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 return -one
             return Phi._from_dict({OSP(G): sign(G) for G in P.strongly_finer()},
                                   coerce=False)
+
+        def product_on_basis(self, x, y):
+            r"""
+            Return the (associative) `*` product of the basis elements
+            of the Phi basis ``self`` indexed by the ordered set partitions
+            `x` and `y`.
+
+            This is obtained by the following algorithm (going back to
+            [NovThi06]_):
+
+            Let `x` be an ordered set partition of `[m]`, and `y` an
+            ordered set partition of `[n]`.
+            Transform `x` into a list `u` of all the `m` elements of `[m]`
+            by writing out each block of `x` (in increasing order) and
+            putting bars between each two consecutive blocks; this is
+            called a barred permutation.
+            Do the same for `y`, but also shift each entry of the
+            resulting barred permutation by `m`. Let `v` be the barred
+            permutation of `[m+n] \setminus [m]` thus obtained.
+            Now, shuffle the two barred permutations `u` and `v`
+            (ignoring the bars) in all the `\binom{n+m}{n}` possible ways.
+            For each shuffle obtained, place bars between some entries
+            of the shuffle, according to the following rule:
+
+            * If two consecutive entries of the shuffle both come from
+              `u`, then place a bar between them if the corresponding
+              entries of `u` had a bar between them.
+
+            * If the first of two consecutive entries of the shuffle
+              comes from `v` and the second from `u`, then place a bar
+              between them.
+
+            This results in a barred permutation of `[m+n]`.
+            Transform it into an ordered set partition of `[m+n]`,
+            by treating the bars as dividers separating consecutive
+            blocks.
+
+            The product `\Phi_x \Phi_y` is the sum of `\Phi_p` with
+            `p` ranging over all ordered set partitions obtained this
+            way.
+
+            EXAMPLES::
+
+                sage: A = algebras.WQSym(QQ).Phi()
+                sage: x = OrderedSetPartition([[1],[2,3]])
+                sage: y = OrderedSetPartition([[1,2]])
+                sage: z = OrderedSetPartition([[1,2],[3]])
+                sage: A.product_on_basis(x, y)
+                Phi[{1}, {2, 3, 4, 5}] + Phi[{1}, {2, 4}, {3, 5}]
+                 + Phi[{1}, {2, 4, 5}, {3}] + Phi[{1, 4}, {2, 3, 5}]
+                 + Phi[{1, 4}, {2, 5}, {3}] + Phi[{1, 4, 5}, {2, 3}]
+                 + Phi[{4}, {1}, {2, 3, 5}] + Phi[{4}, {1}, {2, 5}, {3}]
+                 + Phi[{4}, {1, 5}, {2, 3}] + Phi[{4, 5}, {1}, {2, 3}]
+                sage: A.product_on_basis(x, z)
+                Phi[{1}, {2, 3, 4, 5}, {6}] + Phi[{1}, {2, 4}, {3, 5}, {6}]
+                 + Phi[{1}, {2, 4, 5}, {3, 6}] + Phi[{1}, {2, 4, 5}, {6}, {3}]
+                 + Phi[{1, 4}, {2, 3, 5}, {6}] + Phi[{1, 4}, {2, 5}, {3, 6}]
+                 + Phi[{1, 4}, {2, 5}, {6}, {3}] + Phi[{1, 4, 5}, {2, 3, 6}]
+                 + Phi[{1, 4, 5}, {2, 6}, {3}] + Phi[{1, 4, 5}, {6}, {2, 3}]
+                 + Phi[{4}, {1}, {2, 3, 5}, {6}]
+                 + Phi[{4}, {1}, {2, 5}, {3, 6}]
+                 + Phi[{4}, {1}, {2, 5}, {6}, {3}]
+                 + Phi[{4}, {1, 5}, {2, 3, 6}] + Phi[{4}, {1, 5}, {2, 6}, {3}]
+                 + Phi[{4}, {1, 5}, {6}, {2, 3}] + Phi[{4, 5}, {1}, {2, 3, 6}]
+                 + Phi[{4, 5}, {1}, {2, 6}, {3}] + Phi[{4, 5}, {1, 6}, {2, 3}]
+                 + Phi[{4, 5}, {6}, {1}, {2, 3}]
+                sage: A.product_on_basis(y, y)
+                Phi[{1, 2, 3, 4}] + Phi[{1, 3}, {2, 4}] + Phi[{1, 3, 4}, {2}]
+                 + Phi[{3}, {1, 2, 4}] + Phi[{3}, {1, 4}, {2}]
+                 + Phi[{3, 4}, {1, 2}]
+
+            TESTS::
+
+                sage: one = OrderedSetPartition([])
+                sage: all(A.product_on_basis(one, z) == A(z) == A.basis()[z] for z in OrderedSetPartitions(3))
+                True
+                sage: all(A.product_on_basis(z, one) == A(z) == A.basis()[z] for z in OrderedSetPartitions(3))
+                True
+                sage: M = algebras.WQSym(QQ).M()
+                sage: x = A[[2, 4], [1, 3]]
+                sage: y = A[[1, 3], [2]]
+                sage: A(M(x) * M(y)) == x * y
+                True
+                sage: A(M(x) ** 2) == x**2 # long time
+                True
+                sage: A(M(y) ** 2) == y**2
+                True
+            """
+            K = self.basis().keys()
+            if not x:
+                return self.monomial(y)
+            if not y:
+                return self.monomial(x)
+            xlist = [(j, (k == 0))
+                     for part in x
+                     for (k, j) in enumerate(sorted(part))]
+            # xlist is a list of the form
+            # [(e_1, s_1), (e_2, s_2), ..., (e_n, s_n)],
+            # where e_1, e_2, ..., e_n are the entries of the parts of
+            # x in the order in which they appear in x (reading each
+            # part from bottom to top), and where s_i = True if e_i is
+            # the smallest element of its part and False otherwise.
+            m = max(max(part) for part in x) # The degree of x
+            ylist = [(m + j, (k == 0))
+                     for part in y
+                     for (k, j) in enumerate(sorted(part))]
+            # ylist is like xlist, but for y instead of x, and with
+            # a shift by m.
+            def digest(s):
+                # Turn a shuffle of xlist with ylist into the appropriate
+                # ordered set partition.
+                s0 = [p[0] for p in s]
+                s1 = [p[1] for p in s]
+                N = len(s)
+                bars = [False] * N
+                for i in range(N-1):
+                    s0i = s0[i]
+                    s0i1 = s0[i+1]
+                    if s0i <= m and s0i1 <= m:
+                        bars[i+1] = s1[i+1]
+                    elif s0i > m and s0i1 > m:
+                        bars[i+1] = s1[i+1]
+                    elif s0i > m and s0i1 <= m:
+                        bars[i+1] = True
+                blocks = []
+                block = []
+                for i in range(N):
+                    if bars[i]:
+                        blocks.append(block)
+                        block = [s0[i]]
+                    else:
+                        block.append(s0[i])
+                blocks.append(block)
+                return K(blocks)
+            return self.sum_of_monomials(digest(s) for s in ShuffleProduct(xlist, ylist))
+
+        def coproduct_on_basis(self, x):
+            r"""
+            Return the coproduct of ``self`` on the basis element
+            indexed by the ordered set partition ``x``.
+
+            The coproduct of the basis element `\Phi_x` indexed by
+            an ordered set partition `x` of `[n]` can be computed by the
+            following formula ([NovThi06]_):
+
+            .. MATH::
+
+                \Delta \Phi_x
+                = \sum \Phi_y \otimes \Phi_z ,
+
+            where the sum ranges over all pairs `(y, z)` of ordered set
+            partitions `y` and `z` such that:
+
+            * `y` and `z` are ordered set partitions of two complementary
+              subsets of `[n]`;
+
+            * `x` is obtained either by concatenating `y` and `z`, or by
+              first concatenating `y` and `z` and then merging the two
+              "middle blocks" (i.e., the last block of `y` and the first
+              block of `z`); in the latter case, the maximum of the last
+              block of `y` has to be smaller than the minimum of the first
+              block of `z` (so that when merging these blocks, their
+              entries don't need to be sorted).
+
+            EXAMPLES::
+
+                sage: Phi = algebras.WQSym(QQ).Phi()
+
+                sage: Phi.coproduct(Phi.one())  # indirect doctest
+                Phi[] # Phi[]
+                sage: Phi.coproduct( Phi([[1]]) )  # indirect doctest
+                Phi[] # Phi[{1}] + Phi[{1}] # Phi[]
+                sage: Phi.coproduct( Phi([[1,2]]) )
+                Phi[] # Phi[{1, 2}] + Phi[{1}] # Phi[{1}] + Phi[{1, 2}] # Phi[]
+                sage: Phi.coproduct( Phi([[1], [2]]) )
+                Phi[] # Phi[{1}, {2}] + Phi[{1}] # Phi[{1}] + Phi[{1}, {2}] # Phi[]
+                sage: Phi[[1,2],[3],[4]].coproduct()
+                Phi[] # Phi[{1, 2}, {3}, {4}] + Phi[{1}] # Phi[{1}, {2}, {3}]
+                 + Phi[{1, 2}] # Phi[{1}, {2}] + Phi[{1, 2}, {3}] # Phi[{1}]
+                 + Phi[{1, 2}, {3}, {4}] # Phi[]
+
+            TESTS::
+
+                sage: M = algebras.WQSym(QQ).M()
+                sage: x = Phi[[2, 4], [6], [1, 3], [5, 7]]
+                sage: MM = M.tensor(M); AA = Phi.tensor(Phi)
+                sage: AA(M(x).coproduct()) == x.coproduct()
+                True
+            """
+            if not len(x):
+                return self.one().tensor(self.one())
+            K = self.indices()
+            def standardize(P): # standardize an ordered set partition
+                base = sorted(sum((list(part) for part in P), []))
+                # base is the ground set of P, as a sorted list.
+                d = {val: i+1 for i,val in enumerate(base)}
+                # d is the unique order isomorphism from base to
+                # {1, 2, ..., |base|} (encoded as dict).
+                return K([[d[x] for x in part] for part in P])
+            deconcatenates = [(x[:i], x[i:]) for i in range(len(x) + 1)]
+            for i in range(len(x)):
+                xi = sorted(x[i])
+                for j in range(1, len(xi)):
+                    left = K(list(x[:i]) + [xi[:j]])
+                    right = K([xi[j:]] + list(x[i+1:]))
+                    deconcatenates.append((left, right))
+            T = self.tensor_square()
+            return T.sum_of_monomials((standardize(left), standardize(right))
+                                      for (left, right) in deconcatenates)
 
 class WQSymBases(Category_realization_of_parent):
     r"""

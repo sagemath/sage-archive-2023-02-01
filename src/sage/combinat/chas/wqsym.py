@@ -64,6 +64,7 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
             sage: M.options.objects = "words"
             sage: elt
             M[1, 1, 2] + M[1, 1, 1] + M[2, 2, 1]
+            sage: M.options._reset()
         """
         return self._prefix + self.options._dispatch(self, '_repr_', 'objects', osp)
 
@@ -77,11 +78,11 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
         EXAMPLES::
 
             sage: M = WordQuasiSymmetricFunctions(QQ).M()
-            sage: elt = M[[1,2]]*M[[1]]; elt
+            sage: elt = M[[1,2]] * M[[1]]; elt
             M[{1, 2}, {3}] + M[{1, 2, 3}] + M[{3}, {1, 2}]
             sage: M.options.display = "tight";
             sage: elt
-            M[{1,2}, {3}] + M[{1,2,3}] + M[{3}, {1,2}]
+            M[{1,2},{3}] + M[{1,2,3}] + M[{3},{1,2}]
             sage: M.options.display = "compact";
             sage: elt
             M[12.3] + M[123] + M[3.12]
@@ -94,7 +95,7 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
         display = self.options.display
         disp = repr(osp)
         if display == 'tight':
-            disp = disp.replace(", ", ",").replace("},", "}, ")
+            disp = disp.replace(", ", ",")
             return disp
         elif display == 'compact':
             disp = disp.replace("}, ", ".").replace("}", "").replace("{", "")
@@ -411,22 +412,15 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
         dictionary.
 
         The ``options`` can be accessed as the method
-        :obj:`WordQuasiSymmetricFunctions.options` of :class:`WordQuasiSymmetricFunctions`
-        and related objects and classes of associated bases.
+        :obj:`WordQuasiSymmetricFunctions.options` of
+        :class:`WordQuasiSymmetricFunctions` or of any associated basis.
 
         @OPTIONS@
 
-        The options are:
-         * 'objects'  - values are 'compositions' (default) and 'words'
-
-         * 'display' - values are 'normal' (default), 'tight', and 'compact'
-
-        The 'words' representation of a basis element of WordQuasiSymmetricFunctions,
-        indexed by an ordered set partition `A`, is the packed word associated to `A`.
+        The ``'words'`` representation of a basis element of
+        :class:`WordQuasiSymmetricFunctions`, indexed by an ordered
+        set partition `A`, is the packed word associated to `A`.
         See :meth:`OrderedSetPartition.to_packed_word` for details.)
-
-        Options may be set at this parent level (WordQuasiSymmetricFunctions), or for
-        any basis of same. Options may be reset to default values via ``.options._reset()`.
 
         EXAMPLES::
 
@@ -436,7 +430,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             M[{1, 2}, {3}] + M[{1, 2, 3}] + M[{3}, {1, 2}]
             sage: M.options.display = "tight"
             sage: elt
-            M[{1,2}, {3}] + M[{1,2,3}] + M[{3}, {1,2}]
+            M[{1,2},{3}] + M[{1,2,3}] + M[{3},{1,2}]
             sage: M.options.display = "compact"
             sage: elt
             M[12.3] + M[123] + M[3.12]

@@ -2660,7 +2660,7 @@ class Polyhedron_base(Element):
 
 
         """
-	raise NotImplementedError("The backend should be 'normaliz'")
+        raise NotImplementedError("The backend should be 'normaliz'")
 
     def triangulate(self, engine='auto', connected=True, fine=False, regular=None, star=None):
         r"""
@@ -2669,9 +2669,9 @@ class Polyhedron_base(Element):
         INPUT:
 
         - ``engine`` -- either 'auto' (default), 'internal',
-          'TOPCOM', or 'normaliz'.  The 'internal' and 'TOPCOM' instruct 
-          this package to always use its own triangulation algorithms 
-          or TOPCOM's algorithms, respectively. By default ('auto'), 
+          'TOPCOM', or 'normaliz'.  The 'internal' and 'TOPCOM' instruct
+          this package to always use its own triangulation algorithms
+          or TOPCOM's algorithms, respectively. By default ('auto'),
           TOPCOM is used if it is available and internal routines otherwise.
 
         The remaining keyword parameters are passed through to the
@@ -2736,18 +2736,18 @@ class Polyhedron_base(Element):
             sage: P.triangulate(engine='normaliz')
             Traceback (most recent call last):
             ...
-            NotImplementedError("The backend should be 'normaliz'")
+            NotImplementedError: The backend should be 'normaliz'
 
-            sage: P = Polyhedron(vertices=[[0,0,1],[1,0,1],[0,1,1],[1,1,1]],backend='normaliz') # optional - pynormaliz
+            sage: P = Polyhedron(vertices=[[0,0,1],[1,0,1],[0,1,1],[1,1,1]],backend='normaliz')  # optional - pynormaliz
             sage: P.triangulate(engine='normaliz')  # optional - pynormaliz
             (<0,1,2>, <1,2,3>)
 
         The normaliz engine can triangulate pointed cones::
 
-            sage: C1 = Polyhedron(rays=[[0,0,1],[1,0,1],[0,1,1],[1,1,1]],backend='normaliz') # optional - pynormaliz
+            sage: C1 = Polyhedron(rays=[[0,0,1],[1,0,1],[0,1,1],[1,1,1]],backend='normaliz')  # optional - pynormaliz
             sage: C1.triangulate(engine='normaliz')  # optional - pynormaliz
             (<0,1,2>, <1,2,3>)
-            sage: C2 = Polyhedron(rays=[[1,0,1],[0,0,1],[0,1,1],[1,1,10/9]],backend='normaliz') # optional - pynormaliz
+            sage: C2 = Polyhedron(rays=[[1,0,1],[0,0,1],[0,1,1],[1,1,10/9]],backend='normaliz')  # optional - pynormaliz
             sage: C2.triangulate(engine='normaliz')  # optional - pynormaliz
             (<0,1,2>, <1,2,3>)
         """
@@ -2768,7 +2768,7 @@ class Polyhedron_base(Element):
                 return pc.triangulate()
             else:
                 return pc(self._triangulate_normaliz())
-        else: # From above, we have a pointed cone and the engine is normaliz
+        else:  # From above, we have a pointed cone and the engine is normaliz
             try:
                 pc = PointConfiguration((v.vector() for v in self.ray_generator()),
                                         connected=connected, fine=fine, regular=regular, star=star)
@@ -4474,7 +4474,7 @@ class Polyhedron_base(Element):
           * ``induced_rational``: Scaling of the Lebesgue measure for rational
                                   polytopes, such that the unit hypercube has volume 1
           * ``induced_lattice``: Scaling of the Lebesgue measure, such that the
-                                 hypercube has volume n!
+                                 volume of the hypercube is factorial(n).
 
         - ``engine`` -- string. The backend to use. Allowed values are:
 
@@ -4626,13 +4626,12 @@ class Polyhedron_base(Element):
             raise TypeError("The induced lattice measure can only be computed with the engine set to `auto`, `latte`, or `normaliz`")
         if engine == 'auto' and measure == 'induced_rational':
             # Enforce a default choice, change if a better engine is found.
-            if is_package_installed('pynormaliz'):
-                engine = 'normaliz'
-            elif is_package_installed('latte_int'):
+            if is_package_installed('latte_int'):
                 engine = 'latte'
+            elif is_package_installed('normaliz'):
+                engine = 'normaliz'
             else:
                 raise TypeError("The induced rational measure can only be computed with the optional packages `latte_int`, or `pynormaliz`")
-
 
         if engine == 'auto' and measure == 'induced_lattice':
             # Enforce a default choice, change if a better engine is found.

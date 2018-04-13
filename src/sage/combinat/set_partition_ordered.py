@@ -65,8 +65,8 @@ class OrderedSetPartition(ClonableArray):
     order.
 
     The number `T_n` of ordered set partitions of
-    `\{ 1, 2, ..., n \}` is the so-called `n`-th *Fubini number* (also
-    known as the `n`-th ordered Bell number; see
+    `\{ 1, 2, \ldots, n \}` is the so-called `n`-th *Fubini number*
+    (also known as the `n`-th ordered Bell number; see
     :wikipedia:`Ordered Bell number`). Its exponential generating
     function is
 
@@ -75,6 +75,12 @@ class OrderedSetPartition(ClonableArray):
         \sum_n {T_n \over n!} x^n = {1 \over 2-e^x}.
 
     (See sequence A000670 in OEIS.)
+
+    INPUT:
+
+    - ``parts`` -- the parts of the ordered set partition
+    - ``from_word`` -- (optional) allows the creation of an ordered set
+      partition from any finite word or iterable , e.g., a packed word
 
     EXAMPLES:
 
@@ -128,6 +134,16 @@ class OrderedSetPartition(ClonableArray):
         sage: s.parent()
         Ordered set partitions of {1, 2, 3, 4}
 
+    We can construct the ordered set partition from a word,
+    which we consider as packed::
+
+        sage: OrderedSetPartition([2,4,1,2])
+        [{3}, {1, 4}, {2}]
+        sage: OrderedSetPartition(from_word=[2,4,1,2])
+        [{3}, {1, 4}, {2}]
+        sage: OrderedSetPartition(from_word='bdab')
+        [{3}, {1, 4}, {2}]
+
     REFERENCES:
 
     :wikipedia:`Ordered_partition_of_a_set`
@@ -136,10 +152,6 @@ class OrderedSetPartition(ClonableArray):
     def __classcall_private__(cls, parts=None, from_word=None):
         """
         Create a set partition from ``parts`` with the appropriate parent.
-
-        Optional argument:
-         * from_word - allows the creation of an ordered set partition from
-                       any finite word or iterable , e.g., a packed word
 
         EXAMPLES::
 
@@ -151,16 +163,12 @@ class OrderedSetPartition(ClonableArray):
             [{2, 4}, {1, 3}]
             sage: s != t
             True
+            sage: OrderedSetPartition()
+            []
             sage: OrderedSetPartition([])
             []
             sage: OrderedSetPartition('')
             []
-            sage: OrderedSetPartition([2,4,1,2])
-            [{3}, {1, 4}, {2}]
-            sage: OrderedSetPartition(from_word=[2,4,1,2])
-            [{3}, {1, 4}, {2}]
-            sage: OrderedSetPartition(from_word='bdab')
-            [{3}, {1, 4}, {2}]
             sage: OrderedSetPartition('bdab') == OrderedSetPartition(from_word='bdab')
             True
             sage: OrderedSetPartition('bdab') == OrderedSetPartition(Word('bdab'))
@@ -169,6 +177,7 @@ class OrderedSetPartition(ClonableArray):
         # TODO: next six lines are likely too restrictive.
         #       In fact, what we need is for the underlying alphabet to be sortable.
         if parts is None and from_word is None:
+            P = OrderedSetPartitions([])
             return P.element_class(P, [])
         if from_word:
             return OrderedSetPartitions().from_finite_word(Words()(from_word))
@@ -191,14 +200,22 @@ class OrderedSetPartition(ClonableArray):
         self._base_set = reduce(lambda x,y: x.union(y), map(Set, s), Set([]))
         ClonableArray.__init__(self, parent, [Set(_) for _ in s])
 
+
     def _repr_(self):
-        # each block of `self` shall be printed as a sorted list
-        # we use `str` as a key.
-        parts = map(list,self)
-        for i in range(len(parts)):
-            parts[i] = sorted(parts[i], key=str)
-            parts[i] = str(parts[i]).replace("[","{").replace("]","}")
-        return "[" + ", ".join(parts) + "]"
+        """
+        Return a string representation of ``self``.
+
+        .. TODO::
+
+            Sort the repr output of Sage's :class:`Set` and remove
+            this method.
+
+        EXAMPLES::
+
+            sage: OrderedSetPartition([[1,3],[2,4]])
+            [{1, 3}, {2, 4}]
+        """
+        return '[' + ', '.join(('{' + repr(sorted(x))[1:-1] + '}' for x in self)) + ']'
 
     def check(self):
         """
@@ -228,13 +245,27 @@ class OrderedSetPartition(ClonableArray):
 
     def size(self):
         r"""
-        Return the cardinality of the set for which ``self`` is an ordered set partition.
+        Return the cardinality of the base set of ``self``.
+
+        EXAMPLES::
+
+            sage: OS = OrderedSetPartitions(4)
+            sage: s = OS([[1, 3], [2, 4]])
+            sage: s.size()
+            4
         """
         return sum(map(len, self))
 
     def length(self):
         r"""
         Return the number of parts of ``self``.
+
+        EXAMPLES::
+
+            sage: OS = OrderedSetPartitions(4)
+            sage: s = OS([[1, 3], [2, 4]])
+            sage: s.length()
+            2
         """
         return len(self)
 
@@ -259,20 +290,24 @@ class OrderedSetPartition(ClonableArray):
     @combinatorial_map(name='to packed word')
     def to_packed_word(self):
         r"""
-        Return the packed word on alphabet {1,2,3,...} corresponding to ``self``.
-        (Assumes there is a total order on the underlying set ``self._base_set``.)
+        Return the packed word on alphabet `\{1,2,3,\ldots}`
+        corresponding to ``self``.
 
-        A packed word on alphabet {1,2,3,...} is any word whose
+        A *packed word* on alphabet `\{1,2,3,\ldots\}` is any word whose
         maximum letter is the same as its total number of distinct letters.
-
-        Return the packed word with letters `(w_1, w_2, w_3, \ldots, w_n)`, where
-        `n` is ``self.size()``. The largest letter appearing is ``self.length()``.
-        Letter `w_i` is `j` if the `i`th smallest entry in ``self._base_set``
-        occurs in the `j`th block of ``self``.
+        Let `P` be an ordered set partition of a set `X`.
+        The corresponding packed word `w_1 w_2 \cdots w_n` is constructed
+        by having letter `w_i = j` if the `i`-th smallest entry in `X`
+        occurs in the `j`-th block of `P`.
 
         .. SEEALSO::
 
             :meth:`Word.to_ordered_set_partition`
+
+        .. WARNING::
+
+            This assumes there is a total order on the underlying
+            set (``self._base_set``).
 
         EXAMPLES::
 

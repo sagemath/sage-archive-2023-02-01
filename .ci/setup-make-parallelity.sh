@@ -19,14 +19,25 @@ set -ex
 # provision fewer vCPUs than shown in /proc/cpuinfo. Also, setting this value
 # too high can lead to RAM being insufficient, so it's best to set the NTHREADS
 # variable manually in your CI configuration.
-RAMTHREADS=$(( `grep MemTotal /proc/meminfo | awk '{ print $2 }'` / 1024 / 1024 / 2 ))
-CPUTHREADS=`grep -E '^processor' /proc/cpuinfo | wc -l`
-[ -z "$NTHREADS" ] && NTHREADS=$([ $RAMTHREADS -le $CPUTHREADS ] && echo "$RAMTHREADS" || echo "$CPUTHREADS") || true
+if [ -z "$NTHREADS" ]; then
+    CPUTHREADS=`grep -E '^processor' /proc/cpuinfo | wc -l`
+    RAMTHREADS=$(( `grep MemTotal /proc/meminfo | awk '{ print $2 }'` / 1024 / 1024 / 2 ))
+    if [ $RAMTHREADS = 0 ];then
+        RAMTHREADS=1;
+    fi
+    NTHREADS=$([ $RAMTHREADS -le $CPUTHREADS ] && echo "$RAMTHREADS" || echo "$CPUTHREADS")
+fi
 export NTHREADS="$NTHREADS"
+
 # Set -j and -l for make (though -l is probably stripped by Sage)
-[ -z "$MAKEOPTS" ] && MAKEOPTS="-j $NTHREADS -l $((NTHREADS-1)).8" || true
+if [ -z "$MAKEOPTS" ]; then
+    MAKEOPTS="-j $NTHREADS -l $((NTHREADS-1)).8"
+fi
 export MAKEOPTS="$MAKEOPTS"
+
 # Not all parts of Sage seem to honor MAKEOPTS, so the current way of telling
 # the system which concurrency to use, seems to be setting $MAKE.
-[ -z "$MAKE" ] && MAKE="make $MAKEOPTS" || true
+if [ -z "$MAKE" ];then
+    MAKE="make $MAKEOPTS"
+fi
 export MAKE="$MAKE"

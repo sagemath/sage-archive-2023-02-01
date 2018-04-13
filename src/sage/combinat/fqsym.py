@@ -23,7 +23,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.hopf_algebras import HopfAlgebras
-from sage.categories.realizations import Realizations, Category_realization_of_parent
+from sage.categories.realizations import Category_realization_of_parent
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.permutation import Permutations, Permutation
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
@@ -488,7 +488,6 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
                 sage: A.product_on_basis(x, x)
                 F[1, 2] + F[2, 1]
             """
-            n = len(x)
             basis = self.basis()
             return self.sum(basis[u] for u in x.shifted_shuffle(y))
 
@@ -1174,6 +1173,8 @@ class FQSymBases(Category_realization_of_parent):
             G = FQSym.G()
             from sage.combinat.chas.wqsym import WordQuasiSymmetricFunctions
             M = WordQuasiSymmetricFunctions(parent.base_ring()).M()
+            OSP = M.basis().keys()
+            from sage.combinat.words.finite_word import word_to_ordered_set_partition
             def to_wqsym_on_G_basis(w):
                 # Return the image of `G_w` under the inclusion
                 # map `FQSym \to WQSym`.
@@ -1181,8 +1182,8 @@ class FQSymBases(Category_realization_of_parent):
                 res = M.zero()
                 for comp in dc.finer():
                     v = w.destandardize(comp)
-                    res += M[v.to_ordered_set_partition()]
+                    res += M[OSP(word_to_ordered_set_partition(v))]
                 return res
-            return M.sum(coeff * to_wqsym_on_G_basis(w)
-                         for w, coeff in G(self))
+            return M.linear_combination((to_wqsym_on_G_basis(w), coeff)
+                                        for w, coeff in G(self))
 

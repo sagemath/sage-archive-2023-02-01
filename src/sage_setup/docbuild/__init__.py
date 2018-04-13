@@ -9,6 +9,33 @@ in a subprocess call to sphinx, see :func:`builder_helper`.
 * The builder can be configured in build_options.py
 * The sphinx subprocesses are configured in conf.py
 """
+# ****************************************************************************
+#       Copyright (C) 2008-2009 Mike Hansen <mhansen@gmail.com>
+#                     2009-2010 Mitesh Patel <qed777@gmail.com>
+#                     2009-2015 J. H. Palmieri <palmieri@math.washington.edu>
+#                     2009 Carl Witty <cwitty@newtonlabs.com>
+#                     2010-2017 Jeroen Demeyer <jdemeyer@cage.ugent.be>
+#                     2012 William Stein <wstein@gmail.com>
+#                     2012-2014 Nicolas M. Thiery <nthiery@users.sf.net>
+#                     2012-2015 André Apitzsch <andre.apitzsch@etit.tu-chemnitz.de>
+#                     2012 Florent Hivert <Florent.Hivert@univ-rouen.fr>
+#                     2013-2014 Volker Braun <vbraun.name@gmail.com>
+#                     2013 R. Andrew Ohana <andrew.ohana@gmail.com>
+#                     2015 Thierry Monteil <sage@lma.metelu.net>
+#                     2015 Marc Mezzarobba <marc@mezzarobba.net>
+#                     2015 Travis Scrimshaw <tscrim at ucdavis.edu>
+#                     2016-2017 Frédéric Chapoton <chapoton@math.univ-lyon1.fr>
+#                     2016 Erik M. Bray <erik.bray@lri.fr>
+#                     2017 Kwankyu Lee <ekwankyu@gmail.com>
+#                     2017 François Bissey <frp.bissey@gmail.com>
+#                     2018 Julian Rüth <julian.rueth@fsfe.org>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+# ****************************************************************************
 
 from __future__ import absolute_import
 from __future__ import print_function
@@ -106,6 +133,12 @@ def builder_helper(type):
         except Exception:
             if ABORT_ON_ERROR:
                 raise
+        except BaseException as e:
+            # We need to wrap a BaseException that is not an Exception in a
+            # regular Exception. Otherwise multiprocessing.Pool.get hangs, see
+            # #25161
+            if ABORT_ON_ERROR:
+                raise Exception(str(e), e)
 
         if "/latex" in output_dir:
             logger.warning("LaTeX file written to {}".format(output_dir))

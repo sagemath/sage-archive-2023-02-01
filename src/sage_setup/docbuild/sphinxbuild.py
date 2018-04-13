@@ -3,6 +3,22 @@ This is Sage's version of the sphinx-build script
 
 We redirect stdout to our own logger, and remove some unwanted chatter.
 """
+# ****************************************************************************
+#       Copyright (C) 2013-2014 Volker Braun <vbraun.name@gmail.com>
+#                     2013-2017 J. H. Palmieri <<palmieri@math.washington.edu>
+#                     2013-2017 Jeroen Demeyer <jdemeyer@cage.ugent.be>
+#                     2014      Christopher Schwan <cschwan@students.uni-mainz.de>
+#                     2014      Nicolas M. Thiéry <nthiery@users.sf.net>
+#                     2015      Marc Mezzarobba <marc@mezzarobba.net>
+#                     2015      André Apitzsch <andre.apitzsch@etit.tu-chemnitz.de>
+#                     2018      Julian Rüth <julian.rueth@fsfe.org>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+# ****************************************************************************
 
 import os, sys, re, sphinx
 

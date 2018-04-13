@@ -17,9 +17,11 @@ set -ex
 # Note that this value is incorrect for some CI providers (notably CircleCI:
 # https://circleci.com/docs/2.0/configuration-reference/#resource_class) which
 # provision fewer vCPUs than shown in /proc/cpuinfo. Also, setting this value
-# too high can lead to RAM being insufficient, so it's best to set this
+# too high can lead to RAM being insufficient, so it's best to set the NTHREADS
 # variable manually in your CI configuration.
-[ -z "$NTHREADS" ] && NTHREADS=`grep -E '^processor' /proc/cpuinfo | wc -l` || true
+RAMTHREADS=$(( `grep MemTotal /proc/meminfo | awk '{ print $2 }'` / 1024 / 1024 / 2 ))
+CPUTHREADS=`grep -E '^processor' /proc/cpuinfo | wc -l`
+[ -z "$NTHREADS" ] && NTHREADS=$([ $RAMTHREADS -le $CPUTHREADS ] && echo "$RAMTHREADS" || echo "$CPUTHREADS") || true
 export NTHREADS="$NTHREADS"
 # Set -j and -l for make (though -l is probably stripped by Sage)
 [ -z "$MAKEOPTS" ] && MAKEOPTS="-j $NTHREADS -l $((NTHREADS-1)).8" || true

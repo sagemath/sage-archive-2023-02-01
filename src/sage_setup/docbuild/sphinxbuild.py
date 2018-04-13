@@ -80,9 +80,20 @@ class SageSphinxLogger(object):
             re.compile('^build succeeded.'),
             re.compile('^checking consistency... done'),
             re.compile('^preparing documents... done'),
+            re.compile('^copying extra files... done'),
+            re.compile('^writing additional pages... search'),
+            re.compile('^Writing js search indexes...writing additional pages... .*'),
+            re.compile('^generating indices... .*'),
+            re.compile('^dumping search index in .* ... done'),
+            re.compile('^linking _static directory'),
+            re.compile('^copying static files... done'),
+            re.compile('^copying extra files... done'),
+            re.compile('^loading transations \[.*\]... done'),
             re.compile('^writing output... \[.*\] '),
+            re.compile('^copying images... \[.*\] '),
             re.compile('^reading sources... \[.*\] '),
             re.compile('language "hu" not supported'),
+            re.compile('^WARNING:$'),
             )
 
         # We fail whenever a line starts with "WARNING:", however, we ignore

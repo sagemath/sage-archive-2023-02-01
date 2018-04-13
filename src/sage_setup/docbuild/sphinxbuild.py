@@ -95,6 +95,7 @@ class SageSphinxLogger(object):
             re.compile('WARNING: .* is not referenced'),
             re.compile('WARNING: Build finished'),
             )
+        self._useless_chatter += self._ignored_warnings
 
         # replacements: pairs of regular expressions and their replacements,
         # to be applied to Sphinx output.
@@ -104,10 +105,12 @@ class SageSphinxLogger(object):
         if 'inventory' in sys.argv:
             # When building the inventory, ignore warnings about missing
             # citations and the search index.
-            self._useless_chatter += (
+            ignored = (
                 re.compile('WARNING: citation not found:'),
                 re.compile('WARNING: search index couldn\'t be loaded, but not all documents will be built: the index will be incomplete.')
                 )
+            self._ignored_warnings += ignored
+            self._useless_chatter += ignored
 
         # Regular expressions indicating a problem with docbuilding. Raise an
         # exception if any of these occur.

@@ -1304,6 +1304,9 @@ REFERENCES:
             *Kashiwara and Zelevinsky involutions in affine type A*.
             Pac. J. Math. 243(2):287-311 (2009).
 
+.. [JL2016] \M. Jones and L. Lapointe. *Pieri rules for Schur
+            functions in superspace*. Preprint, :arXiv:`1608.08577`
+
 .. [Joh1990] \D.L. Johnson. *Presentations of Groups*. Cambridge
              University Press. (1990).
 

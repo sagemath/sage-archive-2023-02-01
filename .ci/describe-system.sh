@@ -13,6 +13,7 @@
 set +e -x
 
 uname -a
+df -h
 cat /proc/cpuinfo
 cat /proc/meminfo
 docker info

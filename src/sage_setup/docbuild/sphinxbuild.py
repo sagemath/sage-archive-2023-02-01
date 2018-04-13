@@ -302,6 +302,3 @@ def runsphinx():
         sys.stderr = saved_stderr
         sys.stdout.flush()
         sys.stderr.flush()
-
-    if exception is not None:
-        raise exception

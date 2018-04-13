@@ -436,6 +436,24 @@ class AbstractSetPartition(ClonableArray):
             return ret
         return [self.parent()(union(s)) for s in SP]
 
+    def max_block_size(self):
+        r"""
+        The maximum block size of the diagram.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.diagram_algebras import PartitionDiagram, PartitionDiagrams
+            sage: pd = PartitionDiagram([[1,-3,-5],[2,4],[3,-1,-2],[5],[-4]])
+            sage: pd.max_block_size()
+            3
+            sage: [d.max_block_size() for d in PartitionDiagrams(2)]
+            [4, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1]
+            sage: [sp.max_block_size() for sp in SetPartitions(3)]
+            [3, 2, 2, 2, 1]
+        """
+        return max([len(block) for block in self])
+
+
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class SetPartition(AbstractSetPartition):
     """

@@ -31,7 +31,7 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.combinat.combinat import bell_number, catalan_number
 from sage.structure.global_options import GlobalOptions
-from sage.combinat.set_partition import SetPartitions, AbstractSetPartition, SetPartitions_set
+from sage.combinat.set_partition import SetPartitions, AbstractSetPartition
 from sage.combinat.partition import Partitions
 from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra_n
 from sage.combinat.permutation import Permutations
@@ -374,21 +374,6 @@ class AbstractPartitionDiagram(AbstractSetPartition):
             0
         """
         return ZZ(sum(1 for part in self._base_diagram if min(part) < 0 and max(part) > 0))
-
-    def max_block_size(self):
-        r"""
-        The maximum block size of the diagram.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.diagram_algebras import PartitionDiagram, PartitionDiagrams
-            sage: pd = PartitionDiagram([[1,-3,-5],[2,4],[3,-1,-2],[5],[-4]])
-            sage: pd.max_block_size()
-            3
-            sage: [d.max_block_size() for d in PartitionDiagrams(2)]
-            [4, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1]
-        """
-        return max([len(block) for block in self])
 
     def count_blocks_of_size(self, n):
         r"""
@@ -1209,8 +1194,12 @@ class PartitionDiagrams(AbstractPartitionDiagrams):
         EXAMPLES::
 
             sage: from sage.combinat.diagram_algebras import PartitionDiagrams
-            sage: list(PartitionDiagrams(1))
-            [{{-1, 1}}, {{-1}, {1}}]
+            sage: list(PartitionDiagrams(3/2))
+            [{{-2, -1, 1, 2}},
+             {{-2, -1, 2}, {1}},
+             {{-2, 2}, {-1, 1}},
+             {{-2, 1, 2}, {-1}},
+             {{-2, 2}, {-1}, {1}}]
             sage: list(PartitionDiagrams(2))
             [{{-2, -1, 1, 2}},
              {{-2, -1, 2}, {1}},
@@ -1323,8 +1312,10 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
         EXAMPLES::
 
             sage: from sage.combinat.diagram_algebras import BrauerDiagrams
-            sage: list(BrauerDiagrams(1))
-            [{{-1, 1}}]
+            sage: list(BrauerDiagrams(5/2))
+            [{{-3, 3}, {-2, 1}, {-1, 2}},
+             {{-3, 3}, {-2, 2}, {-1, 1}},
+             {{-3, 3}, {-2, -1}, {1, 2}}]
             sage: list(BrauerDiagrams(2))
             [{{-2, 1}, {-1, 2}}, {{-2, 2}, {-1, 1}}, {{-2, -1}, {1, 2}}]
         """
@@ -1536,14 +1527,10 @@ class TemperleyLiebDiagrams(AbstractPartitionDiagrams):
         EXAMPLES::
 
             sage: from sage.combinat.diagram_algebras import TemperleyLiebDiagrams
+            sage: list(TemperleyLiebDiagrams(5/2))
+            [{{-3, 3}, {-2, 2}, {-1, 1}}, {{-3, 3}, {-2, -1}, {1, 2}}]
             sage: list(TemperleyLiebDiagrams(2))
             [{{-2, 2}, {-1, 1}}, {{-2, -1}, {1, 2}}]
-            sage: list(TemperleyLiebDiagrams(3))
-            [{{-3, 1}, {-2, -1}, {2, 3}},
-             {{-3, 3}, {-2, 2}, {-1, 1}},
-             {{-3, 3}, {-2, -1}, {1, 2}},
-             {{-3, -2}, {-1, 1}, {2, 3}},
-             {{-3, -2}, {-1, 3}, {1, 2}}]
         """
         for p in BrauerDiagrams(self.order):
             if p.is_planar():
@@ -1624,8 +1611,12 @@ class PlanarDiagrams(AbstractPartitionDiagrams):
         EXAMPLES::
 
             sage: from sage.combinat.diagram_algebras import PlanarDiagrams
-            sage: list(PlanarDiagrams(1))
-            [{{-1, 1}}, {{-1}, {1}}]
+            sage: list(PlanarDiagrams(3/2))
+            [{{-2, -1, 1, 2}},
+             {{-2, -1, 2}, {1}},
+             {{-2, 2}, {-1, 1}},
+             {{-2, 1, 2}, {-1}},
+             {{-2, 2}, {-1}, {1}}]
             sage: list(PlanarDiagrams(2))
             [{{-2, -1, 1, 2}},
              {{-2, -1, 2}, {1}},
@@ -1708,8 +1699,11 @@ class IdealDiagrams(AbstractPartitionDiagrams):
         EXAMPLES::
 
             sage: from sage.combinat.diagram_algebras import IdealDiagrams
-            sage: list(IdealDiagrams(1))
-            [{{-1}, {1}}]
+            sage: list(IdealDiagrams(3/2))
+            [{{-2, -1, 1, 2}},
+            {{-2, -1, 2}, {1}},
+            {{-2, 1, 2}, {-1}},
+            {{-2, 2}, {-1}, {1}}]
             sage: list(IdealDiagrams(2))
             [{{-2, -1, 1, 2}},
              {{-2, -1, 2}, {1}},

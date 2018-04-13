@@ -118,7 +118,7 @@ class SageSphinxLogger(object):
             return
         for (old, new) in self.replacements:
             line = old.sub(new, line)
-        line = self._prefix + ' ' + line.strip() + '\n'
+        line = self._prefix + ' ' + line.rstrip() + '\n'
         if not self._color:
             line = self.ansi_color.sub('', line)
         self._stream.write(line)

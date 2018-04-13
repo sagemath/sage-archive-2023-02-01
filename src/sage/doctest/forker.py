@@ -1992,11 +1992,16 @@ class DocTestWorker(multiprocessing.Process):
             # parent process self.outtmpfile will not be closed yet, and can
             # still be accessed in save_result_output
             if hasattr(self.outtmpfile, 'delete'):
-                # On some platforms (notably Cygwin) tempfile.TemporaryFile
-                # is actually tempfile.NamedTemporaryFile with delete=True
-                # We don't want to delete the file here since the parent
-                # process is likely still using it, and will handle the
-                # deletion.  See https://trac.sagemath.org/ticket/25107
+                # On some platforms (notably Cygwin) tempfile.TemporaryFile is
+                # actually replaced by tempfile.NamedTemporaryFile with
+                # delete=True for this file
+                # This means that we end up with two NamedTemporaryFile
+                # instances--one on the parent process and one on the worker
+                # process.  Since NamedTemporaryFile automatically unlinks the
+                # file when it is closed, this can lead to an unhandled
+                # exception in the parent process if the child process closes
+                # this file first.  See https://trac.sagemath.org/ticket/25107#comment:14
+                # for more details.
                 self.outtmpfile.delete = False
 
             self.outtmpfile.close()

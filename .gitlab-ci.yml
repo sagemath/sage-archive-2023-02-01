@@ -7,8 +7,7 @@
 # place
 # https://docs.gitlab.com/ee/ci/docker/using_docker_build.html#use-docker-in-docker-executor;
 # or set up your favourite cloud service to provide an on-demand autoscale
-# runner. (Make sure to tag them as "do", otherwise the build step is not going
-# to run on them.)
+# runner.
 
 # As of early 2018 a run on GitLab CI takes about 35 minutes (with
 # build-from-latest.) We could probably save 10 minutes by not
@@ -83,11 +82,6 @@ build-from-latest: &build
     - .ci/build-docker.sh | tee gitlab-build-docker.log | .ci/head-tail.sh 3145728
     - .ci/push-gitlab.sh sagemath-dev
     - .ci/push-gitlab.sh sagemath
-  tags:
-    # We need enough disk space for the build to work.
-    # The do(=digitalocean) instances on gitlab.com should be the 4GB instances
-    # with 80GB of disk: https://www.digitalocean.com/pricing/
-    - do
   except:
     - master
     - develop

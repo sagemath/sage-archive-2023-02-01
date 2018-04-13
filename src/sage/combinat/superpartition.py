@@ -7,8 +7,8 @@ AUTHORS:
 
 A super partition of size ``n`` and fermionic sector ``m`` is a
 pair consisting of a strict partition of some integer `r` of 
-length ``m``(that may end in a `0`) and an integer partition of
-``n-r``.
+length ``m`` (that may end in a `0`) and an integer partition of
+``n-r`` .
 
 This module provides tools for manipulating super partitions.
 
@@ -17,7 +17,7 @@ super space.
 
 Super partitions may be input in two different formats: one as a pair
 consisiting of fermionic (strict partition) and a bosonic (partition) part
-and as a list of integer values where the negative entries come first
+and the other as a list of integer values where the negative entries come first
 and are listed in strict order followed by the positive values in weak
 order.
 
@@ -69,7 +69,6 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from six.moves import builtins
 from sage.combinat.partition import Partition, Partitions
-from sage.combinat.permutation import Permutations
 from sage.combinat.composition import Composition
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
@@ -608,7 +607,6 @@ class SuperPartition(CombinatorialElement):
         nsp=[list(la)+[0] for la in sp1.add_horizontal_border_strip(h)]
         sp1= sp1+[0]
         out=[]
-        rows_with_circle=[a[0] for a in circ_list]
         for elt in nsp:
             row_changed = [row1-row2 for row1,row2 in zip(elt,sp1)]
             new_sp = [elt,[(i[0]+1,elt[i[0]+1]) for i in circ_list \

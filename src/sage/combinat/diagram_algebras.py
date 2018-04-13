@@ -8,6 +8,7 @@ AUTHORS:
   partition, Brauer, Temperley--Lieb, and ideal partition algebras
 - Stephen Doty, Aaron Lauve, George H. Seelinger (2015): Implementation of
   ``*Diagram`` classes and other methods to improve diagram algebras.
+- Mike Zabrocki (2018): Implementation of individual element diagram classes
 """
 
 #*****************************************************************************
@@ -2886,6 +2887,82 @@ class PropagatingIdeal(SubPartitionAlgebra):
 # --> CHANGED 'identity' to 'identity_set_partition' for enhanced clarity.
 #########################################################################
 
+def is_planar(sp):
+    r"""
+    Return ``True`` if the diagram corresponding to the set partition ``sp``
+    is planar; otherwise, return ``False``.
+
+    EXAMPLES::
+
+        sage: import sage.combinat.diagram_algebras as da
+        sage: da.is_planar( da.to_set_partition([[1,-2],[2,-1]]))
+        False
+        sage: da.is_planar( da.to_set_partition([[1,-1],[2,-2]]))
+        True
+    """
+    #Singletons don't affect planarity
+    to_consider = [x for x in (list(_) for _ in sp) if len(x) > 1]
+    n = len(to_consider)
+
+    for i in range(n):
+        #Get the positive and negative entries of this part
+        ap = [x for x in to_consider[i] if x>0]
+        an = [abs(x) for x in to_consider[i] if x<0]
+
+        #Check if a includes numbers in both the top and bottom rows
+        if len(ap) > 0 and len(an) > 0:
+            for j in range(n):
+                if i == j:
+                    continue
+                #Get the positive and negative entries of this part
+                bp = [x for x in to_consider[j] if x>0]
+                bn = [abs(x) for x in to_consider[j] if x<0]
+
+                #Skip the ones that don't involve numbers in both
+                #the bottom and top rows
+                if not bn or not bp:
+                    continue
+
+                #Make sure that if min(bp) > max(ap)
+                #then min(bn) >  max(an)
+                if max(bp) > max(ap):
+                    if min(bn) < min(an):
+                        return False
+
+        #Go through the bottom and top rows
+        for row in [ap, an]:
+            if len(row) > 1:
+                row.sort()
+                for s in range(len(row)-1):
+                    if row[s] + 1 == row[s+1]:
+                        #No gap, continue on
+                        continue
+
+                    rng = list(range(row[s] + 1, row[s+1]))
+
+                    #Go through and make sure any parts that
+                    #contain numbers in this range are completely
+                    #contained in this range
+                    for j in range(n):
+                        if i == j:
+                            continue
+
+                        #Make sure we make the numbers negative again
+                        #if we are in the bottom row
+                        if row is ap:
+                            sr = set(rng)
+                        else:
+                            sr = set((-1*x for x in rng))
+
+                        sj = set(to_consider[j])
+                        intersection = sr.intersection(sj)
+                        if intersection:
+                            if sj != intersection:
+                                return False
+
+    return True
+
+
 def to_graph(sp):
     r"""
     Return a graph representing the set partition ``sp``.
@@ -3128,81 +3205,6 @@ def set_partition_composition(sp1, sp2):
             res.append( set((x[0] for x in new_cc)) )
 
     return (res, total_removed)
-
-def is_planar(sp):
-    r"""
-    Return ``True`` if the diagram corresponding to the set partition ``sp``
-    is planar; otherwise, return ``False``.
-
-    EXAMPLES::
-
-        sage: import sage.combinat.diagram_algebras as da
-        sage: da.is_planar( da.to_set_partition([[1,-2],[2,-1]]))
-        False
-        sage: da.is_planar( da.to_set_partition([[1,-1],[2,-2]]))
-        True
-    """
-    #Singletons don't affect planarity
-    to_consider = [x for x in (list(_) for _ in sp) if len(x) > 1]
-    n = len(to_consider)
-
-    for i in range(n):
-        #Get the positive and negative entries of this part
-        ap = [x for x in to_consider[i] if x>0]
-        an = [abs(x) for x in to_consider[i] if x<0]
-
-        #Check if a includes numbers in both the top and bottom rows
-        if len(ap) > 0 and len(an) > 0:
-            for j in range(n):
-                if i == j:
-                    continue
-                #Get the positive and negative entries of this part
-                bp = [x for x in to_consider[j] if x>0]
-                bn = [abs(x) for x in to_consider[j] if x<0]
-
-                #Skip the ones that don't involve numbers in both
-                #the bottom and top rows
-                if not bn or not bp:
-                    continue
-
-                #Make sure that if min(bp) > max(ap)
-                #then min(bn) >  max(an)
-                if max(bp) > max(ap):
-                    if min(bn) < min(an):
-                        return False
-
-        #Go through the bottom and top rows
-        for row in [ap, an]:
-            if len(row) > 1:
-                row.sort()
-                for s in range(len(row)-1):
-                    if row[s] + 1 == row[s+1]:
-                        #No gap, continue on
-                        continue
-
-                    rng = list(range(row[s] + 1, row[s+1]))
-
-                    #Go through and make sure any parts that
-                    #contain numbers in this range are completely
-                    #contained in this range
-                    for j in range(n):
-                        if i == j:
-                            continue
-
-                        #Make sure we make the numbers negative again
-                        #if we are in the bottom row
-                        if row is ap:
-                            sr = set(rng)
-                        else:
-                            sr = set((-1*x for x in rng))
-
-                        sj = set(to_consider[j])
-                        intersection = sr.intersection(sj)
-                        if intersection:
-                            if sj != intersection:
-                                return False
-
-    return True
 
 
 ##########################################################################

@@ -580,7 +580,7 @@ class MPowerSeries(PowerSeries):
             sage: f._latex_()
             '- t_{0}^{4} t_{1}^{3} t_{2}^{4} + 3 t_{0} t_{1}^{4} t_{2}^{7} +
             2 t_{1} t_{2}^{12} + 2 t_{0}^{7} t_{1}^{5} t_{2}^{2}
-            + O(t0, t1, t2)^{15}'
+            + O(t_{0}, t_{1}, t_{2})^{15}'
         """
         if self._prec == infinity:
             return "%s" % self._value()._latex_()

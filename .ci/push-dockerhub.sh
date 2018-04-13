@@ -17,11 +17,11 @@
 
 set -ex
 
-[[ -z "$DOCKER_TAG" ]] && (echo "Can not push untagged build."; exit 0)
+[ -z "$DOCKER_TAG" ] && (echo "Can not push untagged build."; exit 0)
 
 # Push the built images to the docker hub (and fail silently if
 # DOCKER_USER/SECRET_DOCKER_PASS have not been configured.)
-if [[ -z "$DOCKER_USER" || -z "$SECRET_DOCKER_PASS" ]]; then
+if [ -z "$DOCKER_USER" -o -z "$SECRET_DOCKER_PASS" ]; then
     echo "DOCKER_USER/SECRET_DOCKER_PASS variables have not been configured in your Continuous Integration setup. Not pushing built images to Docker Hub."
 else
   cat "$SECRET_DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin

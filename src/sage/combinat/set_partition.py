@@ -451,7 +451,7 @@ class AbstractSetPartition(ClonableArray):
             sage: [sp.max_block_size() for sp in SetPartitions(3)]
             [3, 2, 2, 2, 1]
         """
-        return max([len(block) for block in self])
+        return max(len(block) for block in self)
 
 
 @add_metaclass(InheritComparisonClasscallMetaclass)

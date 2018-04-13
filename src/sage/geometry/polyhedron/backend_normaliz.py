@@ -571,6 +571,133 @@ class Polyhedron_normaliz(Polyhedron_base):
         return self.parent().element_class._from_normaliz_cone(parent=self.parent(),
                                                                normaliz_cone=cone)
 
+    def ehrhart_series(self,variable='t'):
+        r"""
+        Return the Ehrhart series of a compact polyhedron.
+
+        INPUT:
+
+        - ``variable`` -- string (default: ``'t'``). 
+
+        OUTPUT:
+
+        A rational function.
+
+        EXAMPLES::
+
+            sage: S = Polyhedron(vertices = [[0,1],[1,0]],backend='normaliz') # optional - pynormaliz
+            sage: ES = S.ehrhart_series()  # optional - pynormaliz
+            sage: ES.numerator()
+            1
+            sage: ES.denominator().factor()  # optional - pynormaliz
+            (t + 1) * (t - 1)^2
+
+            sage: C = Polyhedron(vertices = [[0,0,0],[0,0,1],[0,1,0],[0,1,1],[1,0,0],[1,0,1],[1,1,0],[1,1,1]],backend='normaliz') # optional - pynormaliz
+            sage: ES = C.ehrhart_series()  # optional - pynormaliz
+            sage: ES.numerator()
+            t^2 + 4*t + 1
+            sage: ES.denominator().factor()  # optional - pynormaliz
+            (t + 1)^2 * (t - 1)^4 * (t^2 + 1) * (t^2 + t + 1)
+
+        The polyhedron should be compact::
+
+            sage: C = Polyhedron(backend='normaliz',rays=[[1,2],[2,1]])  #
+            optional - pynormaliz
+            sage: C.ehrhart_series()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Ehrhart series can only be computed for compact polyhedron.
+
+        .. SEEALSO: :meth:`~sage.geometry.polyhedron.backend_normaliz.hilbert_series`
+        """
+        import PyNormaliz
+        if self.is_empty():
+            return 0
+
+        if not self.is_compact():
+            raise NotImplementedError("Ehrhart series can only be computed for compact polyhedron.")
+
+        cone = self._normaliz_cone
+        e = PyNormaliz.NmzResult(cone, "EhrhartSeries")
+
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from sage.rings.fraction_field import FractionField
+        poly_ring = FractionField(PolynomialRing(ZZ,variable))
+        t = poly_ring.gens()[0]
+        es = sum([e[0][i]*t**i for i in range(len(e[0]))])
+        for expo in range(len(e[1])):
+            es = es / (1 - t**(expo+1))**e[1][expo]
+
+        # The shift:
+        es = es * t**e[2]
+
+        return es
+
+    def ehrhart_quasipolynomial(self,variable='t'):
+        r"""
+        Return the Ehrhart quasi-polynomial of a compact polyhedron.
+
+        INPUT:
+
+        - ``variable`` -- string (default: ``'t'``). 
+
+        OUTPUT:
+
+        If it is a polynomial, returns the polynomial. Otherwise, returns a 
+        tuple of rational polynomials whose length is the quasi-period of the
+        quasi-polynomial and each rational polynomial describes a residue class.
+
+        EXAMPLES::
+
+            sage: C = Polyhedron(vertices = [[0,0,0],[0,0,1],[0,1,0],[0,1,1],[1,0,0],[1,0,1],[1,1,0],[1,1,1]],backend='normaliz') # optional - pynormaliz
+            sage: C.ehrhart_quasipolynomial()  # optional - pynormaliz
+            t^3 + 3*t^2 + 3*t + 1
+
+            sage: P = Polyhedron(vertices=[[0,0],[3/2,0],[0,3/2],[1,1]],backend='normaliz')  # optional - pynormaliz
+            sage: P.ehrhart_quasipolynomial()  # optional - pynormaliz
+            (3/2*t^2 + 2*t + 1, 3/2*t^2 + 2*t + 1/2)
+            sage: P.ehrhart_quasipolynomial('x')  # optional - pynormaliz
+            (3/2*x^2 + 2*x + 1, 3/2*x^2 + 2*x + 1/2)
+
+        The polyhedron should be compact::
+
+            sage: C = Polyhedron(backend='normaliz',rays=[[1,2],[2,1]])  # optional - pynormaliz
+            sage: C.ehrhart_quasipolynomial()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Ehrhart quasi-polynomial can only be computed for compact polyhedron.
+
+        .. SEEALSO: :meth:`~sage.geometry.polyhedron.backend_normaliz.hilbert_series`
+            :meth:`~sage.geometry.polyhedron.backend_normaliz.ehrhart_series`
+        """
+        import PyNormaliz
+        if self.is_empty():
+            return 0
+
+        if not self.is_compact():
+            raise NotImplementedError("Ehrhart quasi-polynomial can only be computed for compact polyhedron.")
+
+        cone = self._normaliz_cone
+        # Normaliz needs to compute the EhrhartSeries first
+        assert PyNormaliz.NmzCompute(cone,"EhrhartSeries")
+        e = PyNormaliz.NmzResult(cone, "HilbertQuasiPolynomial")
+
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        poly_ring = PolynomialRing(QQ,variable)
+        t = poly_ring.gens()[0]
+        if len(e) == 2:
+            # It is a polynomial
+            es = sum([e[0][i]*t**i for i in range(len(e[0]))])
+            return es / ZZ(e[1])
+        else:
+            # It is a quasi-polynomial
+            polynomials = []
+            for p in e[:-1]:
+                es = sum([p[i]*t**i for i in range(len(p))]) / ZZ(e[-1])
+                polynomials += [es]
+
+        return tuple(polynomials)
+
     def hilbert_series(self,grading=None,variable='t'):
         r"""
         Return the Hilbert series of the polyhedron.
@@ -607,6 +734,8 @@ class Polyhedron_normaliz(Polyhedron_base):
             t^18 - t^17 + t^15 + t^10 - t^9 + t^8 + t^3 - t + 1
             sage: HS.denominator().factor()
             (-1) * (t + 1)^20 * (t - 1)^21
+        
+        .. SEEALSO: :meth:`~sage.geometry.polyhedron.backend_normaliz.ehrhart_series`
         """
         import PyNormaliz
         if self.is_empty():
@@ -999,9 +1128,9 @@ class Polyhedron_normaliz(Polyhedron_base):
         cone = self._normaliz_cone
         assert cone
         if self.lines():
-            raise(NotImplementedError, "Triangulation of non-compact not pointed polyhedron is not supported.")
+            raise NotImplementedError("Triangulation of non-compact not pointed polyhedron is not supported.")
         if len(self.vertices_list()) >= 2 and self.rays_list(): # A mix of polytope and cone
-            raise(NotImplementedError, "Triangulation of non-compact not pointed polyhedron is not supported.")
+            raise NotImplementedError("Triangulation of non-compact not pointed polyhedron is not supported.")
         
         data = self._get_nmzcone_data()
         # Recreates a pointed cone. This is a hack and should be fixed once

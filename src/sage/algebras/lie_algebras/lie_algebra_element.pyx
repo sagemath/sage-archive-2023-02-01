@@ -1255,10 +1255,6 @@ class FreeLieAlgebraElement(LieAlgebraElement):
 cdef class LieObject(SageObject):
     """
     Abstract base class for :class:`LieGenerator` and :class:`LieBracket`.
-
-    Objects of this class are currently being used as basis keys
-    for the free Lie algebra (i.e., they index elements of
-    a basis of the free Lie algebra).
     """
     cpdef tuple to_word(self):
         """
@@ -1282,10 +1278,6 @@ cdef class LieGenerator(LieObject):
     """
     A wrapper around an object so it can ducktype with and do
     comparison operations with :class:`LieBracket`.
-
-    Objects of this class are currently being used as keys
-    for the generators of a free Lie algebra (i.e., they index
-    the basis elements of degree `1`).
     """
     def __init__(self, name):
         """
@@ -1415,10 +1407,6 @@ cdef class LieGenerator(LieObject):
 cdef class LieBracket(LieObject):
     """
     An abstract Lie bracket (formally, just a binary tree).
-
-    Objects of this class are currently being used as keys
-    for the non-trivial basis elements of a free Lie algebra
-    (i.e., they index the basis elements of degree `> 1`).
     """
     def __init__(self, LieObject l, LieObject r):
         """
@@ -1637,7 +1625,7 @@ cdef class LieBracket(LieObject):
 
 cdef class GradedLieBracket(LieBracket):
     """
-    A Lie bracket (:class:`LieBracket`) in a graded Lie algebra.
+    A Lie bracket (:class:`LieBracket`) for a graded Lie algebra.
 
     Unlike the vanilla Lie bracket class, this also stores a
     degree, and uses it as a first criterion when comparing

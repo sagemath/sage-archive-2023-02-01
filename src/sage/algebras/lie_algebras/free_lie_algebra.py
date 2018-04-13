@@ -252,11 +252,11 @@ class FreeLieBasis_abstract(FinitelyGeneratedLieAlgebra, IndexedGenerators, Bind
 
         INPUT:
 
-        - ``l``, ``r`` -- two elements in a basis such that ``l < r``
+        - ``l``, ``r`` -- two keys of a basis such that ``l < r``
 
         OUTPUT:
 
-        A dictionary ``{b: c}`` where ``b`` is a basis element
+        A dictionary ``{b: c}`` where ``b`` is a basis key
         and ``c`` is the corresponding coefficient.
 
         EXAMPLES::
@@ -428,8 +428,10 @@ class FreeLieAlgebra(Parent, UniqueRepresentation):
         The free Lie algebra in the Hall basis.
 
         The basis keys are objects of class
+        :class:`~sage.algebras.lie_algebras.lie_algebra_element.LieObject`,
+        each of which is either a
         :class:`~sage.algebras.lie_algebras.lie_algebra_element.LieGenerator`
-        (in degree `1`) and
+        (in degree `1`) or a
         :class:`~sage.algebras.lie_algebras.lie_algebra_element.GradedLieBracket`
         (in degree `> 1`).
         """
@@ -557,11 +559,11 @@ class FreeLieAlgebra(Parent, UniqueRepresentation):
 
             INPUT:
 
-            - ``l``, ``r`` -- two elements in the Hall basis with ``l < r``
+            - ``l``, ``r`` -- two keys of the Hall basis with ``l < r``
 
             OUTPUT:
 
-            A dictionary ``{b: c}`` where ``b`` is a Hall basis element
+            A dictionary ``{b: c}`` where ``b`` is a Hall basis key
             and ``c`` is the corresponding coefficient.
 
             EXAMPLES::
@@ -622,8 +624,10 @@ class FreeLieAlgebra(Parent, UniqueRepresentation):
         The free Lie algebra in the Lyndon basis.
 
         The basis keys are objects of class
+        :class:`~sage.algebras.lie_algebras.lie_algebra_element.LieObject`,
+        each of which is either a
         :class:`~sage.algebras.lie_algebras.lie_algebra_element.LieGenerator`
-        (in degree `1`) and
+        (in degree `1`) or a
         :class:`~sage.algebras.lie_algebras.lie_algebra_element.LyndonBracket`
         (in degree `> 1`).
         """
@@ -643,14 +647,13 @@ class FreeLieAlgebra(Parent, UniqueRepresentation):
 
             INPUT:
 
-            - ``l``, ``r`` -- two elements in the Lyndon basis such
-              that ``l < r``.
+            - ``l``, ``r`` -- two keys of the Lyndon basis such
+              that ``l < r``
 
             OUTPUT:
 
-            A dictionary ``{b: c}`` where ``b`` is a Lyndon basis element
-            (more precisely, a basis key) and ``c`` is the corresponding
-            coefficient.
+            A dictionary ``{b: c}`` where ``b`` is a Lyndon basis key
+            and ``c`` is the corresponding coefficient.
 
             EXAMPLES::
 
@@ -916,7 +919,7 @@ def is_lyndon(w):
         elif w[i] == let:
             i += 1
         else:
-            # we found the first word in the lyndon factorization.
+            # we found the first word in the Lyndon factorization.
             return False
     return i == 0
 

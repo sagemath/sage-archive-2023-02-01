@@ -151,8 +151,8 @@ install: all
 	@echo "******************************************************************"
 
 list:
-	@$(MAKE) -q build/make/Makefile >&2
-	@$(MAKE) -s -f build/make/Makefile SAGE_SPKG_INST=local $@
+	@$(MAKE) --silent build/make/Makefile >&2
+	@$(MAKE) --silent -f build/make/Makefile SAGE_SPKG_INST=local $@
 
 .PHONY: default build install micro_release \
 	misc-clean bdist-clean distclean bootstrap-clean maintainer-clean \

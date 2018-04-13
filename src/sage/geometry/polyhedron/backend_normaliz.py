@@ -659,6 +659,18 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: P.ehrhart_quasipolynomial('x')  # optional - pynormaliz
             (3/2*x^2 + 2*x + 1, 3/2*x^2 + 2*x + 1/2)
 
+            sage: Q = Polyhedron(vertices = [[-1/3],[2/3]],backend='normaliz')  # optional - pynormaliz
+            sage: p0,p1,p2 = Q.ehrhart_quasipolynomial()  # optional - pynormaliz
+            sage: r0 = [p0(i) for i in range(15)]  # optional - pynormaliz
+            sage: r1 = [p1(i) for i in range(15)]  # optional - pynormaliz
+            sage: r2 = [p2(i) for i in range(15)]  # optional - pynormaliz
+            sage: result = [None]*15  # optional - pynormaliz
+            sage: result[::3] = r0[::3]  # optional - pynormaliz
+            sage: result[1::3] = r1[1::3]  # optional - pynormaliz
+            sage: result[2::3] = r2[2::3]  # optional - pynormaliz
+            sage: result == [(i*Q).integral_points_count() for i in range(15)]  # optional - pynormaliz
+            True
+
         The polyhedron should be compact::
 
             sage: C = Polyhedron(backend='normaliz',rays=[[1,2],[2,1]])  # optional - pynormaliz

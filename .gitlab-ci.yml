@@ -41,7 +41,7 @@ before_script:
   # So we roll our own which protects all variables that start with SECRET_
   - . .ci/protect-secrets.sh
   # Collect debug infos about the system we are running on
-  - sh .ci/describe-system.sh
+  - .ci/describe-system.sh
   # Set DOCKER_TAG according to the current branch/tag
   - . .ci/update-env.sh
   # Set MAKE and NTHREADS according to the machine we are running on
@@ -80,9 +80,9 @@ build-from-latest: &build
   script:
     - apk update && apk add coreutils
     # The output of the build can get larger than gitlab.com's limit; only print the first 3MB (and the last 80 lines.)
-    - sh .ci/build-docker.sh | tee gitlab-build-docker.log | .ci/head-tail.sh 3145728
-    - sh .ci/push-gitlab.sh sagemath-dev
-    - sh .ci/push-gitlab.sh sagemath
+    - .ci/build-docker.sh | tee gitlab-build-docker.log | .ci/head-tail.sh 3145728
+    - .ci/push-gitlab.sh sagemath-dev
+    - .ci/push-gitlab.sh sagemath
   tags:
     # We need enough disk space for the build to work.
     # The do(=digitalocean) instances on gitlab.com should be the 4GB instances

@@ -14,13 +14,11 @@ of the foliation is defined as the numbers of parameters.
 
 AUTHORS:
 
-- Eric Gourgoulhon,
 - Florentin Jaffredo
 
 """
 
 # *****************************************************************************
-#  Copyright (C) 2018 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #  Copyright (C) 2018 Florentin Jaffredo <florentin.jaffredo@polytechnique.edu>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -56,41 +54,41 @@ class Immersion(DifferentiableManifold, TopologicalImmersion):
     - ``n`` -- positive integer; dimension of the manifold
     - ``name`` -- string; name (symbol) given to the manifold
     - ``field`` -- field `K` on which the manifold is
-    defined; allowed values are
+      defined; allowed values are
 
-    - ``'real'`` or an object of type ``RealField`` (e.g., ``RR``) for
-       a manifold over `\RR`
-    - ``'complex'`` or an object of type ``ComplexField`` (e.g., ``CC``)
-       for a manifold over `\CC`
-    - an object in the category of topological fields (see
-    :class:`~sage.categories.fields.Fields` and
-    :class:`~sage.categories.topological_spaces.TopologicalSpaces`)
-    for other types of manifolds
+        - ``'real'`` or an object of type ``RealField`` (e.g., ``RR``) for
+           a manifold over `\RR`
+        - ``'complex'`` or an object of type ``ComplexField`` (e.g., ``CC``)
+           for a manifold over `\CC`
+        - an object in the category of topological fields (see
+          :class:`~sage.categories.fields.Fields` and
+          :class:`~sage.categories.topological_spaces.TopologicalSpaces`)
+          for other types of manifolds
 
     - ``structure`` -- manifold structure (see
-    :class:`~sage.manifolds.structure.TopologicalStructure` or
-    :class:`~sage.manifolds.structure.RealTopologicalStructure`)
+      :class:`~sage.manifolds.structure.TopologicalStructure` or
+      :class:`~sage.manifolds.structure.RealTopologicalStructure`)
     - ``ambient`` -- (default: ``None``) manifold of destination
-    of the immersion. If ``None``, set to ``self``
+      of the immersion. If ``None``, set to ``self``
     - ``base_manifold`` -- (default: ``None``) if not ``None``, must be a
-    topological manifold; the created object is then an open subset of
-    ``base_manifold``
+      topological manifold; the created object is then an open subset of
+      ``base_manifold``
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to
-    denote the manifold; if none are provided, it is set to ``name``
+      denote the manifold; if none are provided, it is set to ``name``
     - ``start_index`` -- (default: 0) integer; lower value of the range of
-    indices used for "indexed objects" on the manifold, e.g., coordinates
-    in a chart
+      indices used for "indexed objects" on the manifold, e.g., coordinates
+      in a chart
     - ``category`` -- (default: ``None``) to specify the category; if
-    ``None``, ``Manifolds(field)`` is assumed (see the category
-    :class:`~sage.categories.manifolds.Manifolds`)
+      ``None``, ``Manifolds(field)`` is assumed (see the category
+      :class:`~sage.categories.manifolds.Manifolds`)
     - ``unique_tag`` -- (default: ``None``) tag used to force the construction
-    of a new object when all the other arguments have been used previously
-    (without ``unique_tag``, the
-    :class:`~sage.structure.unique_representation.UniqueRepresentation`
-    behavior inherited from
-    :class:`~sage.manifolds.subset.ManifoldSubset`
-    would return the previously constructed object corresponding to these
-    arguments)
+      of a new object when all the other arguments have been used previously
+      (without ``unique_tag``, the
+      :class:`~sage.structure.unique_representation.UniqueRepresentation`
+      behavior inherited from
+      :class:`~sage.manifolds.subset.ManifoldSubset`
+      would return the previously constructed object corresponding to these
+      arguments)
 
     EXAMPLES:
 

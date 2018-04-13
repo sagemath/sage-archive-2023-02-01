@@ -1,7 +1,7 @@
 r"""
 This is Sage's version of the sphinx-build script
 
-We redirect stdout to our own logger, and remove some unwanted chatter.
+We redirect stdout and stderr to our own logger, and remove some unwanted chatter.
 """
 # ****************************************************************************
 #       Copyright (C) 2013-2014 Volker Braun <vbraun.name@gmail.com>
@@ -31,8 +31,8 @@ sphinx.util.console.term_width_line = term_width_line
 
 class SageSphinxLogger(object):
     r"""
-    This implements the file object interface to serve as sys.stdout
-    replacement.
+    This implements the file object interface to serve as
+    ``sys.stdout``/``sys.stderr`` replacement.
     """
     ansi_color = re.compile(r'\x1b\[[0-9;]*m')
     ansi_reset = re.compile(r'\x1b\[39;49;00m')
@@ -59,25 +59,41 @@ class SageSphinxLogger(object):
         self._error = None
 
     def _init_chatter(self):
-        # useless_chatter: regular expressions to be filtered from
-        # Sphinx output.
-        self.useless_chatter = (
+        # We drop any messages from the output that match these regular
+        # expressions. These just bloat the output and do not contain any
+        # information that we care about.
+        self._useless_chatter = (
             re.compile('^$'),
             re.compile('^Running Sphinx v'),
             re.compile('^loading intersphinx inventory from '),
+            re.compile('^loading pickled environment... done'),
+            re.compile('^loading cross citations... done \([0-9]* citations\).'),
             re.compile('^Compiling a sub-document'),
             re.compile('^updating environment: 0 added, 0 changed, 0 removed'),
             re.compile('^looking for now-outdated files... none found'),
             re.compile('^building \[.*\]: targets for 0 source files that are out of date'),
-            re.compile('^loading pickled environment... done'),
-            re.compile('^loading cross citations... done \([0-9]* citations\).'),
+            re.compile('^building \[.*\]: targets for 0 po files that are out of date'),
+            re.compile('^building \[.*\]: targets for 0 mo files that are out of date'),
+            re.copmile('^pickling environment... done'),
+            re.copmile('^dumping object inventory... done'),
+            # We still have "Build finished."
+            re.compile('^build succeeded.'),
+            re.copmile('^checking consistency... done'),
+            re.copmile('^preparing documents... done'),
+            re.compile('^writing output... \[.*\] '),
+            re.compile('^reading sources... \[.*\] '),
+            re.compile('language "hu" not supported'),
+            )
+
+        # We fail whenever a line starts with "WARNING:", however, we ignore
+        # these warnings, as they are not relevant.
+        self._ignored_warnings = (
             re.compile('WARNING: favicon file \'favicon.ico\' does not exist'),
             re.compile('WARNING: html_static_path entry .* does not exist'),
             re.compile('WARNING: while setting up extension'),
             re.compile('WARNING: Any IDs not assiend for figure node'),
             re.compile('WARNING: .* is not referenced'),
             re.compile('WARNING: Build finished'),
-            re.compile('language "hu" not supported'),
             )
 
         # replacements: pairs of regular expressions and their replacements,
@@ -88,7 +104,7 @@ class SageSphinxLogger(object):
         if 'inventory' in sys.argv:
             # When building the inventory, ignore warnings about missing
             # citations and the search index.
-            self.useless_chatter += (
+            self._useless_chatter += (
                 re.compile('WARNING: citation not found:'),
                 re.compile('WARNING: search index couldn\'t be loaded, but not all documents will be built: the index will be incomplete.')
                 )
@@ -119,7 +135,7 @@ class SageSphinxLogger(object):
             # swallow non-errors after an error occurred
             return True
         line = re.sub(self.ansi_color, '', line)
-        for regex in self.useless_chatter:
+        for regex in self._useless_chatter:
             if regex.search(line) is not None:
                 return True
         return False
@@ -143,10 +159,14 @@ class SageSphinxLogger(object):
         """
         if self._error:
             return  # we already have found an error
-        for regex in self._error_patterns:
-            if regex.search(line) is not None:
-                self._error = line
-                return
+        for error in self._error_patterns:
+            if error.search(line) is not None:
+                for ignored in self._ignored_warnings:
+                    if ignored.search(line) is not None:
+                        break
+                else:
+                    self._error = line
+                    return
 
     def _log_line(self, line):
         r"""
@@ -182,6 +202,7 @@ class SageSphinxLogger(object):
             [#25160   ] Exception: artificial exception
 
         """
+        self._check_errors(line)
         if self._filter_out(line):
             return
         for (old, new) in self.replacements:
@@ -191,7 +212,6 @@ class SageSphinxLogger(object):
             line = self.ansi_color.sub('', line)
         self._stream.write(line)
         self._stream.flush()
-        self._check_errors(line)
 
     def raise_errors(self):
         r"""

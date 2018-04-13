@@ -895,7 +895,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         """
 
         import PyNormaliz
-        # Trivial cases: polyhedron with 0 or 1 vertices
+        # Trivial cases: polyhedron with 0 vertices
         if self.n_vertices() == 0:
             return ((),(),())
         # Compute with normaliz
@@ -1007,20 +1007,24 @@ class Polyhedron_normaliz(Polyhedron_base):
         # Recreates a pointed cone. This is a hack and should be fixed once
         # Normaliz accepts compact polyhedron
         # For now, we lose the information about the volume?
-        if self.is_compact():
-            data['cone'] = data['vertices']
-        data.pop('vertices',None)
+        # if self.is_compact():
+        #     data['cone'] = data['vertices']
+        if not self.is_compact():
+            data.pop('vertices',None)
         data.pop('inhom_equations',None)
         data.pop('inhom_inequalities',None)
         cone = self._make_normaliz_cone(data)
-        if self.is_compact():
-            generators = [list(vector(ZZ,g)[:-1]) for g in self._cone_generators(cone)]
-        else:
-            generators = [list(vector(ZZ,g)) for g in self._cone_generators(cone)]
     
         nmz_triangulation = PyNormaliz.NmzResult(cone,"Triangulation")
         triang_indices = tuple(vector(ZZ,s[0]) for s in nmz_triangulation)
 
+        # Get the Normaliz ordering of generators
+        if self.is_compact():
+            generators = [list(vector(ZZ,g)[:-1]) for g in self._cone_generators(cone)]
+        else:
+            generators = [list(vector(ZZ,g)) for g in self._cone_generators(cone)]
+        
+        # Get the Sage ordering of generators
         if self.is_compact():
             poly_gen = self.vertices_list()
         else:

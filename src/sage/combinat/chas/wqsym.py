@@ -279,7 +279,6 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
     .. TODO::
 
         - Dendriform structure.
-        - Bergeron-Zabrocki and Menous-Novelli-Thibon bases.
     """
     def __init__(self, R):
         """

@@ -138,11 +138,11 @@ class SageSphinxLogger(object):
         # - undefined labels upon the first pass of the compilation: some
         #   cross links may legitimately not yet be resolvable at this point.
         if 'latex' not in sys.argv:
+            self._error_patterns += (re.compile('WARNING:'),)
             if 'multidoc_first_pass=1' in sys.argv:
-                # Catch all warnings except 'WARNING: undefined label'
-                self._error_patterns += (re.compile('WARNING: (?!undefined label)'),)
-            else:
-                self._error_patterns += (re.compile('WARNING:'),)
+                ignore = (re.compile('WARNING: undefined label'),)
+                self._ignored_warnings += ignore
+                self._useless_chatter += ignore
 
     def _filter_out(self, line):
         if self._error and self._is_stdout:

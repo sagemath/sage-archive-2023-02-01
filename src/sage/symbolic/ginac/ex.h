@@ -176,6 +176,7 @@ public:
 	bool find(const ex & pattern, lst & found) const;
 	bool match(const ex & pattern) const;
 	bool match(const ex & pattern, lst & repl_lst) const { return bp->match(pattern, repl_lst); }
+	bool match(const ex & pattern, exvector& vec) const;
 
 	// substitutions
 	ex subs(const exmap & m, unsigned options = 0) const

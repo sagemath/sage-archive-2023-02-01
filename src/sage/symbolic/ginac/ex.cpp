@@ -35,6 +35,7 @@
 #include "relational.h"
 #include "utils.h"
 #include "operators.h"
+#include "wildcard.h"
 
 #include <iostream>
 #include <stdexcept>
@@ -102,6 +103,21 @@ bool ex::match(const ex & pattern) const
 {
 	lst repl_lst;
 	return bp->match(pattern, repl_lst);
+}
+
+bool ex::match(const ex & pattern, exvector& vec) const
+{
+        lst l;
+        bool ret = bp->match(pattern, l);
+        if (not ret)
+                return ret;
+        vec.resize(l.nops());
+        for (auto rel : l) {
+                if (not is_exactly_a<wildcard>(rel.lhs()))
+                        throw std::runtime_error("no wildcard");
+                vec[ex_to<wildcard>(rel.lhs()).get_label()] = rel.rhs();
+        }
+        return ret;
 }
 
 /** Find all occurrences of a pattern. The found matches are appended to

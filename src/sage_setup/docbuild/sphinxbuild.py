@@ -88,11 +88,14 @@ class SageSphinxLogger(object):
             re.compile('^linking _static directory'),
             re.compile('^copying static files... done'),
             re.compile('^copying extra files... done'),
-            re.compile('^loading transations \[.*\]... done'),
+            re.compile('^loading translations \[.*\]... done'),
+            re.compile('^Compiling the master document'),
+            re.compile('^Saved pickle file: citations.pickle'),
             re.compile('^writing output... \[.*\] '),
             re.compile('^copying images... \[.*\] '),
             re.compile('^reading sources... \[.*\] '),
             re.compile('language "hu" not supported'),
+            re.compile('^$'),
             re.compile('^WARNING:$'),
             )
 
@@ -149,6 +152,7 @@ class SageSphinxLogger(object):
             # swallow non-errors after an error occurred
             return True
         line = re.sub(self.ansi_color, '', line)
+        line = line.strip()
         for regex in self._useless_chatter:
             if regex.search(line) is not None:
                 return True

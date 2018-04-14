@@ -9,18 +9,18 @@
 # or set up your favourite cloud service to provide an on-demand autoscale
 # runner.
 
-# As of early 2018 a run on GitLab CI takes about 35 minutes (with
-# build-from-latest.) We could probably save 10 minutes by not
-# building/pushing/testing that image for branches other than master/develop.
+# As of early 2018 a run on GitLab CI takes about 35 minutes. We could probably
+# save 10 minutes by not building/pushing/testing that image for branches other
+# than master/develop.
 # Note that most of the time during CI is spent with pulling and pushing of
-# docker images and copying files locally as part of the docker build.
-# At the moment there is no reliable way of passing the docker images to the
-# following stages without explicit pushing/pulling or similar:
+# docker images and copying files locally as part of the docker build.  At the
+# moment there is no reliable way of passing the docker images to the following
+# stages without explicit pushing/pulling or similar:
 # https://gitlab.com/gitlab-org/gitlab-runner/issues/1107
 # The timings mentioned above are typical values. The shared runners provided
-# on gitlab.com are sometimes by a factor of two slower. It's unclear what is
-# the source of this slowdown. There is nothing different in the logs, so it's
-# probably just an overcommittment of virtual machines on hardware.
+# on gitlab.com are sometimes much slower depending on the runner you are
+# scheduled on. Sometimes it's slower for no apparent reason, probably just an
+# overcommittment of virtual machines on hardware.
 
 image: docker:latest
 
@@ -87,8 +87,12 @@ build-from-latest: &build
     - develop
 
 # Build Sage and its documentation from a clean checkout of Sage.
-# Note that this takes a very long time. You probably want to run this on your
-# own gitlab-runner and increase the standard GitLab time limit for CI runs.
+# Note that this takes several hours. You probably want to run this on your own
+# gitlab-runner and increase the standard GitLab time limit for CI runs.
+# Some of the shared runners provided by GitLab for free do not have enough
+# disk space for this to work. If a build fails with "no space left on device",
+# you could just retry it and hope to be scheduled on a machine with more disk
+# space, or provision your own runner.
 build-from-clean:
   << : *build
   variables:

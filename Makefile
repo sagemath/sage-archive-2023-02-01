@@ -114,10 +114,10 @@ micro_release: bdist-clean sagelib-clean
 	find . -name . -o -prune ! -name src ! -name sage ! -name local ! -name VERSION.txt ! -name COPYING.txt ! -name build -exec rm -rf \{\} \;
 	cd src && find . -name . -o -prune ! -name sage ! -name bin ! -name doc -exec rm -rf \{\} \;
 	if command -v rdfind > /dev/null; then \
-		@echo "Hardlinking identical files."; \
+		echo "Hardlinking identical files."; \
 		rdfind -makeresultsfile false -makehardlinks true .; \
 	else \
-		@echo "rdfind not installed. Not hardlinking identical files."; \
+		echo "rdfind not installed. Not hardlinking identical files."; \
 	fi
 
 # Leaves everything that is needed to make the next "make" fast but removes

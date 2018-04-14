@@ -7,20 +7,34 @@
 # place
 # https://docs.gitlab.com/ee/ci/docker/using_docker_build.html#use-docker-in-docker-executor;
 # or set up your favourite cloud service to provide an on-demand autoscale
-# runner.
+# runner. More details below.
 
-# As of early 2018 a run on GitLab CI takes about 35 minutes. We could probably
-# save 10 minutes by not building/pushing/testing that image for branches other
+# As of early 2018 a run on GitLab CI takes about 45 minutes. We could probably
+# save 10 minutes by not building/pushing/testing dev images for branches other
 # than master/develop.
+
 # Note that most of the time during CI is spent with pulling and pushing of
 # docker images and copying files locally as part of the docker build.  At the
 # moment there is no reliable way of passing the docker images to the following
 # stages without explicit pushing/pulling or similar:
 # https://gitlab.com/gitlab-org/gitlab-runner/issues/1107
+
 # The timings mentioned above are typical values. The shared runners provided
 # on gitlab.com are sometimes much slower depending on the runner you are
 # scheduled on. Sometimes it's slower for no apparent reason, probably just an
 # overcommittment of virtual machines on hardware.
+
+# GitLab provides several flavours of shared runners (as of early 2018):
+# * runners tagged as "do" (digitalocean.com) provide about 60GB of HDD, two
+#   cores, but only 2GB of RAM. The RAM is often not sufficient to build the
+#   documentation.
+# * runners tagged as "gce" (Google Compute Engine) provide about 22GB of HDD,
+#   a single core, 4GB of RAM. Since we are relying on OverlayFS, the disk
+#   space is not sufficient to build sage from scratch.
+
+# If you want to provide your own runners, make sure to tag them as follows:
+# * "60hdd" (60GB of disk space are available) to make build-from-clean pass.
+# * "gce" (4GB of RAM are available) to make build-from-latest pass.
 
 image: docker:latest
 
@@ -85,6 +99,9 @@ build-from-latest: &build
   except:
     - master
     - develop
+  tags:
+    # 4GB of RAM are available
+    - gce
 
 # Build Sage and its documentation from a clean checkout of Sage.
 # Note that this takes several hours. You probably want to run this on your own
@@ -101,6 +118,11 @@ build-from-clean:
     - master
     - develop
   except: []
+  tags:
+    # 4 GB of RAM are available
+    - gce
+    # 60 GB of HDD are available
+    - 60hdd
 
 test-dev:
   stage: test

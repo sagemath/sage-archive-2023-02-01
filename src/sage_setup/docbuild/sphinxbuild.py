@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 This is Sage's version of the sphinx-build script
 

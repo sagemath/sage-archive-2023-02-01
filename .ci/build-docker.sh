@@ -19,12 +19,16 @@ set -ex
 # during docker build. See /docker/Dockerfile for more details.
 ARTIFACT_BASE=${ARTIFACT_BASE:-sagemath/sagemath-dev:develop}
 
-# Seed our cache with $ARTIFACT_BASE if it exists (otherwise take alpine which is tiny)
-(docker pull "$ARTIFACT_BASE" > /dev/null && docker tag "$ARTIFACT_BASE" cache) || \
-  (docker pull alpine > /dev/null && docker tag alpine cache)
+# Seed our cache with $ARTIFACT_BASE if it exists
+docker pull "$ARTIFACT_BASE" > /dev/null || true
 
 docker_build() {
-    time docker build -f docker/Dockerfile --cache-from cache --build-arg "MAKE=${MAKE}" --build-arg ARTIFACT_BASE=$ARTIFACT_BASE $@
+    # Docker's --cache-from does not really work with multi-stage builds: https://github.com/moby/moby/issues/34715
+    # We work around that by specifying all possible tags (docker does not
+    # fail anymore if a cache-from tag can not be found.)
+    time docker build -f docker/Dockerfile \
+--cache-from "$ARTIFACT_BASE" --cache-from build-time-dependencies --cache-from make-all --cache-from "$DOCKER_IMAGE_CLI" --cache-from "$DOCKER_IMAGE_DEV" \
+--build-arg "MAKE=${MAKE}" --build-arg ARTIFACT_BASE=$ARTIFACT_BASE $@
 }
 
 # We use a multi-stage build /docker/Dockerfile. For the caching to be
@@ -32,8 +36,8 @@ docker_build() {
 # the make-all target. (Just building the last target is not enough as
 # intermediate targets would be discarded from the cache and therefore the
 # caching would fail for our actual builds below.)
-docker_build --pull --target build-time-dependencies .
-docker_build --pull --tag make-all --target make-all .
+docker_build --pull --target build-time-dependencies --tag build-time-dependencies .
+docker_build --pull --target make-all --tag make-all .
 
 # Build the release image without build artifacts.
 docker_build --target sagemath --tag "$DOCKER_IMAGE_CLI" .

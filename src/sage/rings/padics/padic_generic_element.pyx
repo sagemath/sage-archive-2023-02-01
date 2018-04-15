@@ -732,6 +732,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             + 5^13 + 4*5^14 + 2*5^15 + 2*5^16 + 2*5^17 + 3*5^18 + O(5^20)
 
         This test was added in :trac:`24433`::
+
             sage: F = Qp(7)
             sage: F(4).gamma()
             6 + O(7^20)
@@ -749,7 +750,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             v = R.dwork_coeffs
         except AttributeError:
             v = None
-        if v is not None and len(v) < p*bd:
+        if v is not None and len(v) < p * bd:
             v = None
         if v is not None:
             for k in range(bd):
@@ -841,6 +842,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             1 + O(5^20)
 
         Check the cached version of `dwork_expansion` from :trac:`24433`::
+
             sage: p = next_prime(200)
             sage: F = Qp(p)
             sage: l1 = [F(a/(p-1)).gamma(algorithm='pari') for a in range(p-1)]

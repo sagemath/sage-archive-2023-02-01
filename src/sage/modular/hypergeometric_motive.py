@@ -987,7 +987,8 @@ class HypergeometricData(object):
         m = defaultdict(lambda: 0)
         for r in range(q-1):
             u = QQ((r, q-1))
-            if u in beta: m[r] = beta.count(u)
+            if u in beta:
+                m[r] = beta.count(u)
         M = self.M_value()
         D = -min(self.zigzag(x, flip_beta=True) for x in alpha + beta)
         # also: D = (self.weight() + 1 - m[0]) // 2

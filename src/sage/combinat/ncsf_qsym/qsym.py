@@ -619,7 +619,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         """
         return self.Monomial()
 
-    _shorthands = tuple(['M', 'F', 'E', 'dI', 'QS', 'phi', 'psi'])
+    _shorthands = tuple(['M', 'F', 'E', 'dI', 'QS', 'YQS', 'phi', 'psi'])
 
     def dual(self):
         r"""
@@ -2938,7 +2938,148 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                     for comp_content in Compositions(sum(comp_shape))),
                     distinct=True )
 
+        def dual(self):
+            r"""
+            The dual basis to the Quasisymmetric Schur basis.
+
+            The dual basis to the Quasisymmetric Schur basis is implemented
+            as `dual.
+
+            OUTPUT:
+
+            - The dual quasisymmetric Schur basis of the non-commutative symmetric functions.
+
+            EXAMPLES::
+
+                sage: QS = QuasiSymmetricFunctions(QQ).Quasisymmetric_Schur()
+                sage: QS.dual()
+                Non-Commutative Symmetric Functions over the Rational Field in the dual Quasisymmetric-Schur basis
+            """
+            return self.realization_of().dual().dualQuasisymmetric_Schur()
+
     QS = Quasisymmetric_Schur
+
+    class Young_Quasisymmetric_Schur(CombinatorialFreeModule, BindableClass):
+        r"""
+        The Hopf algebra of quasi-symmetric functions in the Young
+        Quasisymmetric Schur basis.
+
+        The basis of Young Quasisymmetric Schur functions is defined in
+        [QSCHUR]_ and in Definition 5.2.1 of [LMvW13]_.
+
+        This basis is related to the Quasisymmetric Schur basis ``QS`` by
+        ``QS(alpha.reversed()) == YQS(alpha).star_involution()`` .
+
+        EXAMPLES::
+
+            sage: QSym = QuasiSymmetricFunctions(QQ)
+            sage: YQS = QSym.YQS()
+            sage: F = QSym.F()
+            sage: QS = QSym.QS()
+            sage: F(YQS[1,2])
+            F[1, 2]
+            sage: all(QS(al.reversed())==YQS(al).star_involution() for al in Compositions(5))
+            True
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: YQS(s[2,1,1])
+            YQS[1, 1, 2] + YQS[1, 2, 1] + YQS[2, 1, 1]
+        """
+        def __init__(self, QSym):
+            r"""
+            EXAMPLES::
+
+                sage: QSym = QuasiSymmetricFunctions(QQ)
+                sage: F = QSym.Fundamental()
+                sage: YQS = QSym.Young_Quasisymmetric_Schur()
+                sage: YQS(F(YQS.an_element())) == YQS.an_element()
+                True
+                sage: F(YQS(F.an_element())) == F.an_element()
+                True
+                sage: M = QSym.Monomial()
+                sage: YQS(M(YQS.an_element())) == YQS.an_element()
+                True
+                sage: M(YQS(M.an_element())) == M.an_element()
+                True
+                sage: TestSuite(YQS).run() # long time
+            """
+            self._QS = QSym.QS()
+            self._M = QSym.M()
+            CombinatorialFreeModule.__init__(self, QSym.base_ring(), \
+                Compositions(), prefix='YQS', bracket=False, \
+                category=QSym.Bases())
+            self.module_morphism(self._to_monomial_on_basis, \
+                codomain=self._M, category=QSym.Bases()).register_as_coercion()
+            self._M.module_morphism(self._from_monomial_on_basis, \
+                codomain=self, category=QSym.Bases()).register_as_coercion()
+
+
+        def _realization_name(self):
+            r"""
+            Return a nicer name for ``self`` than what is inherited
+            from :mod:`sage.categories.sets_cat`.
+
+            EXAMPLES::
+
+                sage: QSym = QuasiSymmetricFunctions(QQ)
+                sage: QS = QSym.QS()
+                sage: QS._realization_name()
+                'Quasisymmetric Schur'
+            """
+            return "Young Quasisymmetric Schur"
+
+        @cached_method
+        def _to_monomial_on_basis(self, comp):
+            r"""
+            Expand the Young quasi-symmetric Schur function in the
+            Monomial basis.
+
+            INPUT:
+
+            - ``comp`` -- a composition
+
+            OUTPUT:
+
+            - a quasi-symmetric function in the Monomial basis
+
+            EXAMPLES::
+
+                sage: QSym = QuasiSymmetricFunctions(QQ)
+                sage: YQS = QSym.QS()
+                sage: YQS._to_monomial_on_basis(Composition([2]))
+                M[1, 1] + M[2]
+                sage: YQS._to_monomial_on_basis(Composition([1,3,1]))
+                2*M[1, 1, 1, 1, 1] + 2*M[1, 1, 2, 1] + M[1, 2, 1, 1] + M[1, 3, 1] + M[2, 1, 1, 1] + M[2, 2, 1]
+             """
+            return self._M(self._QS(comp.reversed())).star_involution()
+
+        @cached_method
+        def _from_monomial_on_basis(self, comp):
+            r"""
+
+            The expansion of the quasi-symmetric Schur function indexed
+            by ``comp_shape`` has coefficients which are given by the method
+            :meth:`~sage.combinat.ncsf_qsym.combinatorics.number_of_SSRCT`.
+
+            INPUT:
+
+            - ``comp`` -- a composition
+
+            OUTPUT:
+
+            - a quasi-symmetric function in the Young Quasisymmetric Schur basis
+
+            EXAMPLES::
+
+                sage: QSym = QuasiSymmetricFunctions(QQ)
+                sage: YQS = QSym.YQS()
+                sage: YQS._from_monomial_on_basis(Composition([2]))
+                -YQS[1, 1] + YQS[2]
+                sage: YQS._from_monomial_on_basis(Composition([1,3,1]))
+                YQS[1, 1, 1, 1, 1] - YQS[1, 2, 1, 1] - YQS[1, 2, 2] + YQS[1, 3, 1]
+            """
+            return self.sum(c*self(al.reversed()) for (al,c) in self._QS(self._M(comp.reversed())))
+
+    YQS = Young_Quasisymmetric_Schur
 
     class dualImmaculate(CombinatorialFreeModule, BindableClass):
         def __init__(self, QSym):

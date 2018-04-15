@@ -99,11 +99,11 @@ def LocalComponent(f, p, twist_factor=None):
             return PrimitivePrincipalSeries(f, p, twist_factor)
         if c == 0 and r == 1:
             return PrimitiveSpecial(f, p, twist_factor)
-    Xf = TypeSpace(f, p)
-    if Xf.is_minimal():
-        return PrimitiveSupercuspidal(f, p, twist_factor)
-    else:
+
+    if not f.minimal_twist(p)[0] == f:
         raise NotImplementedError( "Form %s is not %s-primitive" % (f, p) )
+
+    return PrimitiveSupercuspidal(f, p, twist_factor)
 
 class LocalComponentBase(SageObject):
     r"""

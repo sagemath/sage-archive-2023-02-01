@@ -116,7 +116,7 @@ long wildcard::calchash() const
 	return hashvalue;
 }
 
-bool wildcard::match(const ex & pattern, lst & repl_lst) const
+bool wildcard::match(const ex & pattern, exmap& map) const
 {
 	// Wildcards must match each other exactly (this is required for
 	// subs() to work properly because in the final step it substitutes

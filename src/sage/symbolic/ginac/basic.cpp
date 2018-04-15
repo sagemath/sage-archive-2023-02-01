@@ -296,8 +296,8 @@ void basic::set_epseq_from(size_t i, ex e)
  *  but e.has(x+y) is false. */
 bool basic::has(const ex & pattern, unsigned options) const
 {
-	lst repl_lst;
-	if (match(pattern, repl_lst))
+	exmap map;
+	if (match(pattern, map))
 		return true;
 	for (size_t i=0; i<nops(); i++)
 		if (op(i).has(pattern, options))
@@ -521,7 +521,7 @@ bool basic::contract_with(exvector::iterator /*unused*/, exvector::iterator /*un
 /** Check whether the expression matches a given pattern. For every wildcard
  *  object in the pattern, an expression of the form "wildcard == matching_expression"
  *  is added to repl_lst. */
-bool basic::match(const ex & pattern, lst & repl_lst) const
+bool basic::match(const ex & pattern, exmap& map) const
 {
 /*
 	Sweet sweet shapes, sweet sweet shapes,
@@ -544,11 +544,10 @@ bool basic::match(const ex & pattern, lst & repl_lst) const
 		// Wildcard matches anything, but check whether we already have found
 		// a match for that wildcard first (if so, the earlier match must be
 		// the same expression)
-		for (const auto & elem : repl_lst) {
-			if (elem.op(0).is_equal(pattern))
-				return is_equal(ex_to<basic>(elem.op(1)));
-		}
-		repl_lst.append(pattern == *this);
+                const auto& it = map.find(pattern);
+                if (it != map.end())
+		        return is_equal(ex_to<basic>(it->second));
+		map[pattern] = *this;
 		return true;
 	} 
 
@@ -571,7 +570,7 @@ bool basic::match(const ex & pattern, lst & repl_lst) const
 
         // Otherwise the subexpressions must match one-to-one
         for (size_t i=0; i<nops(); i++)
-                if (!op(i).match(pattern.sorted_op(i), repl_lst))
+                if (!op(i).match(pattern.sorted_op(i), map))
                         return false;
 
         // Looks similar enough, match found
@@ -592,9 +591,16 @@ ex basic::subs_one_level(const exmap & m, unsigned options) const
                                 return pair.second;
 	} else {
                 for (const auto & elem : m) {
-			lst repl_lst;
-			if (match(ex_to<basic>(elem.first), repl_lst))
-				return elem.second.subs(repl_lst, options | subs_options::no_pattern); // avoid infinite recursion when re-substituting the wildcards
+                        exmap map;
+			if (match(ex_to<basic>(elem.first), map)) {
+			        lst repl_lst;
+                                for (const auto& pair : map)
+                                        repl_lst.append(pair.first == pair.second);
+                                // avoid infinite recursion when
+                                // re-substituting the wildcards
+				return elem.second.subs(repl_lst,
+                                          options | subs_options::no_pattern);
+                        }
 		}
 	}
 

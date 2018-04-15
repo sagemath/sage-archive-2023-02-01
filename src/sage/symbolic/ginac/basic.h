@@ -207,7 +207,7 @@ public:
 
 	// pattern matching
 	virtual bool has(const ex & other, unsigned options = 0) const;
-	virtual bool match(const ex & pattern, lst & repl_lst) const;
+	virtual bool match(const ex & pattern, exmap& map) const;
 	virtual bool match_same_type(const basic & other) const;
 
 	virtual void do_print(const print_context & c, unsigned level) const;

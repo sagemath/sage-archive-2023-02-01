@@ -89,7 +89,7 @@ public:
 	ex eval(int level=0) const override;
 	ex to_rational(exmap & repl) const override;
 	ex to_polynomial(exmap & repl) const override;
-	bool match(const ex & pattern, lst & repl_lst) const override;
+	bool match(const ex & pattern, exmap& map) const override;
 	ex subs(const exmap & m, unsigned options = 0) const override;
 	ex conjugate() const override;
 	numeric calc_total_degree() const;

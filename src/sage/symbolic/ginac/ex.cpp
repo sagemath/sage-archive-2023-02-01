@@ -101,21 +101,30 @@ ex ex::diff(const symbol & s, unsigned nth) const
 /** Check whether expression matches a specified pattern. */
 bool ex::match(const ex & pattern) const
 {
-	lst repl_lst;
-	return bp->match(pattern, repl_lst);
+	exmap map;
+	return bp->match(pattern, map);
+}
+
+bool ex::match(const ex & pattern, lst & repl_lst) const
+{
+        exmap map;
+        bool ret = bp->match(pattern, map);
+        for (const auto& pair : map)
+                repl_lst.append(pair.first == pair.second);
+        return ret;
 }
 
 bool ex::match(const ex & pattern, exvector& vec) const
 {
-        lst l;
-        bool ret = bp->match(pattern, l);
+        exmap map;
+        bool ret = bp->match(pattern, map);
         if (not ret)
                 return ret;
-        vec.resize(l.nops());
-        for (auto rel : l) {
-                if (not is_exactly_a<wildcard>(rel.lhs()))
+        vec.resize(map.size());
+        for (const auto& pair : map) {
+                if (not is_exactly_a<wildcard>(pair.first))
                         throw std::runtime_error("no wildcard");
-                vec[ex_to<wildcard>(rel.lhs()).get_label()] = rel.rhs();
+                vec[ex_to<wildcard>(pair.first).get_label()] = pair.second;
         }
         return ret;
 }

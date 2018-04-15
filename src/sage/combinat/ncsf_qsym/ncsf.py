@@ -5234,17 +5234,17 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         def _from_complete_on_basis(self, comp):
             r"""
             Return the expansion of a complete basis element in the
-            dual Quasisymmetric-Schur basis.
+            dual Young Quasisymmetric-Schur basis.
 
             INPUT:
 
-            - ``comp_content`` -- a composition
+            - ``comp`` -- a composition
 
             OUTPUT:
 
-            - the expansion in the dual Quasisymmetric-Schur basis of
-              the basis element of the complete basis indexed by the
-              composition ``comp_content``
+            - the expansion in the dual Young Quasisymmetric-Schur basis of
+              the basis element in the complete basis indexed by the
+              composition ``comp``
 
             EXAMPLES::
 
@@ -5267,7 +5267,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             OUTPUT:
 
-            - the Quasisymmetric-Schur basis of the quasi-symmetric functions
+            - the Young Quasisymmetric-Schur basis of quasi-symmetric functions
 
             EXAMPLES::
 
@@ -5285,7 +5285,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         def to_symmetric_function_on_basis(self, I):
             r"""
-            The commutative image of a dual quasi-symmetric Schur element
+            The commutative image of a dual Young quasi-symmetric Schur element
 
             The commutative image of a basis element is obtained by sorting
             the indexing composition of the basis element.
@@ -5296,7 +5296,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             OUTPUT:
 
-            - The commutative image of the dual quasi-Schur basis element
+            - The commutative image of the dual Young quasi-Schur basis element
               indexed by ``I``. The result is the Schur symmetric function
               indexed by the partition obtained by sorting ``I``.
 

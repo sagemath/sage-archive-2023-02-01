@@ -60,6 +60,10 @@ REFERENCES:
 .. [BDHMN2017] Cristina Ballantine, Zajj Daugherty, Angela Hicks, Sarah Mason,
    Elizabeth Niese. *Quasisymmetric power sums*. :arxiv:`1710.11613`.
 
+.. [AHM2018] Edward Allen, Joshua Hallam, Sarah Mason, *Dual Immaculate
+   Quasisymmetric Functions Expand Positively into Young Quasisymmetric
+   Schur Functions*. :arxiv:`1606.03519`
+
 AUTHOR:
 
 - Jason Bandlow
@@ -2964,8 +2968,8 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         The Hopf algebra of quasi-symmetric functions in the Young
         Quasisymmetric Schur basis.
 
-        The basis of Young Quasisymmetric Schur functions is defined in
-        [QSCHUR]_ and in Definition 5.2.1 of [LMvW13]_.
+        The basis of Young Quasisymmetric Schur functions is from Definition
+        5.2.1 of [LMvW13]_.
 
         This basis is related to the Quasisymmetric Schur basis ``QS`` by
         ``QS(alpha.reversed()) == YQS(alpha).star_involution()`` .

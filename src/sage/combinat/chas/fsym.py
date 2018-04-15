@@ -393,51 +393,53 @@ class FreeSymmetricFunctions(UniqueRepresentation, Parent):
 
     The *free symmetric functions* is the combinatorial Hopf algebra
     defined using tableaux and denoted `FSym`.
+
+    EXAMPLES::
+
+    This Hopf algebra embeds as a Hopf-subalgebra of the Hopf algebra of
+    permutations: the basis element indexed by a tableau `t` is sent to
+    the sum of permutations whose `P`-tableau is `t`.
+
+    ::
+
+        sage: G = algebras.FSym(QQ).G()
+        sage: F = algebras.FQSym(QQ).F()
+        sage: G[[1,3],[2]]
+        G[13|2]
+        sage: G[[1,3],[2]].to_fqsym()
+        G[2, 1, 3] + G[3, 1, 2]
+        sage: F(G[[1,3],[2]])
+        F[2, 1, 3] + F[2, 3, 1]
+
+    This embedding is a Hopf algebra morphism::
+
+        sage: all(F(G[t1] * G[t2]) == F(G[t1]) * F(G[t2])
+        ....:     for t1 in StandardTableaux(2)
+        ....:     for t2 in StandardTableaux(3))
+        True
+
+        sage: FF = F.tensor_square()
+        sage: all(FF(G[t].coproduct()) == F(G[t]).coproduct()
+        ....:     for t in StandardTableaux(4))
+        True
+
+    There is a Hopf algebra map onto the Hopf algebra of symmetric
+    functions, which maps a tableau `t` to the Schur function indexed
+    by the shape of `t`::
+
+        sage: TG = algebras.FSym(QQ).G()
+        sage: t = StandardTableau([[1,3],[2,4],[5]])
+        sage: TG[t]
+        G[13|24|5]
+        sage: TG[t].to_symmetric_function()
+        s[2, 2, 1]
     """
     def __init__(self, base_ring):
         r"""
-        TESTS:
+        TESTS::
 
-        This Hopf algebra embeds as a Hopf-subalgebra of the Hopf algebra of
-        permutations: the basis element indexed by a tableau `t` is sent to
-        the sum of permutations whose `P`-tableau is `t`.
-
-        ::
-
-            sage: TG = algebras.FSym(QQ).G()
-            sage: F = algebras.FQSym(QQ).F()
-            sage: TG[[1,3],[2]]
-            G[13|2]
-            sage: TG[[1,3],[2]].to_fqsym()
-            G[2, 1, 3] + G[3, 1, 2]
-            sage: F(TG[[1,3],[2]].to_fqsym())
-            F[2, 1, 3] + F[2, 3, 1]
-
-        This embedding is a Hopf algebra morphism::
-
-            sage: all((TG[t1] * TG[t2]).to_fqsym() == TG[t1].to_fqsym() * TG[t2].to_fqsym()
-            ....:     for t1 in StandardTableaux(2)
-            ....:     for t2 in StandardTableaux(3))
-            True
-
-            sage: T2 = TG.tensor_square()
-            sage: phi = T2.module_morphism(
-            ....:               lambda x: tensor([TG[x[0]].to_fqsym(), TG[x[1]].to_fqsym()]),
-            ....:               codomain=F.tensor_square())
-            sage: all(phi(TG[t].coproduct()) == F(TG[t].to_fqsym()).coproduct()
-            ....:     for t in StandardTableaux(4))
-            True
-
-        There is a Hopf algebra map onto the Hopf algebra of symmetric
-        functions, which maps a tableau `t` to the Schur function indexed
-        by the shape of `t`::
-
-            sage: TG = algebras.FSym(QQ).G()
-            sage: t = StandardTableau([[1,3],[2,4],[5]])
-            sage: TG[t]
-            G[13|24|5]
-            sage: TG[t].to_symmetric_function()
-            s[2, 2, 1]
+            sage: FSym = algebras.FSym(QQ)
+            sage: TestSuite(FSym).run()
         """
         cat = GradedHopfAlgebras(base_ring).Connected()
         Parent.__init__(self, base=base_ring, category=cat.WithRealizations())
@@ -557,10 +559,10 @@ class FreeSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: G = FSym.G()
                 sage: t = StandardTableau([[1,2,5], [3,4]])
                 sage: G.coproduct_on_basis(t)
-                G[] # G[125|34] + G[1|2] # G[13|2] + G[12] # G[12|3]
-                 + G[12] # G[123] + G[1] # G[12|34] + G[1] # G[124|3]
-                 + G[123] # G[12] + G[13|2] # G[1|2] + G[13|2] # G[12]
-                 + G[12|34] # G[1] + G[134|2] # G[1] + G[125|34] # G[]
+                G[] # G[125|34] + G[1] # G[12|34] + G[1] # G[124|3]
+                 + G[1|2] # G[13|2] + G[12] # G[12|3] + G[12] # G[123]
+                 + G[12|34] # G[1] + G[123] # G[12] + G[125|34] # G[]
+                 + G[13|2] # G[1|2] + G[13|2] # G[12] + G[134|2] # G[1]
             """
             # we use the duality to compute this
             n = t.size()
@@ -592,11 +594,7 @@ class FreeSymmetricFunctions(UniqueRepresentation, Parent):
                 from sage.combinat.fqsym import FreeQuasisymmetricFunctions
                 R = self.parent().base_ring()
                 G = FreeQuasisymmetricFunctions(R).G()
-                P = G._indices
-                def on_basis(t):
-                    return G.sum_of_monomials(P(sigma) for sigma in Permutations(t.size())
-                                              if sigma.right_tableau() == t)
-                return G.linear_combination((on_basis(t), coeff) for t, coeff in self)
+                return G(self)
 
             def to_symmetric_function(self):
                 """
@@ -684,7 +682,7 @@ class FreeSymmetricFunctions_Dual(UniqueRepresentation, Parent):
         Elements of the algebra look like::
 
             sage: TF.an_element()
-            3*F[12] + 2*F[1] + 2*F[]
+            2*F[] + 2*F[1] + 3*F[12]
 
         TESTS::
 
@@ -813,7 +811,8 @@ class FreeSymmetricFunctions_Dual(UniqueRepresentation, Parent):
                 sage: TF = FSym.dual().F()
                 sage: t = StandardTableau([[1,2,5], [3,4]])
                 sage: TF.coproduct_on_basis(t)
-                F[] # F[125|34] + F[1] # F[134|2] + F[12] # F[123] + F[12|3] # F[12] + F[12|34] # F[1] + F[125|34] # F[]
+                F[] # F[125|34] + F[1] # F[134|2] + F[12] # F[123]
+                 + F[12|3] # F[12] + F[12|34] # F[1] + F[125|34] # F[]
             """
             terms = [(t.restrict(i), standardize(t.anti_restrict(i).rectify()))
                         for i in range(t.size()+1)]
@@ -899,8 +898,9 @@ We test that the diagram of morphisms is commutative::
     ....:     for sigma in Permutations(n):
     ....:          x = FQSym.F()[sigma]
     ....:          if QSym(FSymDual(x)) != QSym(x): return False
+    ....:     s = Sym.s()
     ....:     for mu in Partitions(n):
-    ....:          x = Sym.s()[mu]
+    ....:          x = s[mu]
     ....:          if QSym(FSymDual(x)) != QSym(x): return False
     ....:     return True
 

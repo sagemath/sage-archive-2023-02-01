@@ -46,7 +46,7 @@ class FQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
 
         EXAMPLES::
 
-            sage: TestSuite(algebras.FQSym(QQ).F()).run()
+            sage: TestSuite(algebras.FQSym(QQ).F()).run()  # long time
         """
         CombinatorialFreeModule.__init__(self, alg.base_ring(),
                                          Permutations(),
@@ -61,6 +61,8 @@ class FQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
         The things that coerce into ``self`` are
 
         - free quasi-symmetric functions over a base with
+          a coercion map into ``self.base_ring()``
+        - free symmetric functions over a base with
           a coercion map into ``self.base_ring()``
 
         EXAMPLES::
@@ -95,6 +97,18 @@ class FQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
              over Finite Field of size 7 in the F basis to
              Free Quasi-symmetric functions over Integer Ring in the F basis
 
+        Check that `FSym` bases coerce in::
+
+            sage: FSym = algebras.FSym(ZZ)
+            sage: TG = FSym.G()
+            sage: t = StandardTableau([[1,3],[2,4],[5]])
+            sage: F(TG[t])
+            F[2, 1, 5, 4, 3] + F[2, 5, 1, 4, 3] + F[2, 5, 4, 1, 3]
+             + F[5, 2, 1, 4, 3] + F[5, 2, 4, 1, 3]
+            sage: algebras.FQSym(QQ)(TG[t])
+            F[2, 1, 5, 4, 3] + F[2, 5, 1, 4, 3] + F[2, 5, 4, 1, 3]
+             + F[5, 2, 1, 4, 3] + F[5, 2, 4, 1, 3]
+
         TESTS::
 
             sage: F = algebras.FQSym(ZZ).F()
@@ -124,6 +138,22 @@ class FQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
             # Otherwise lift that basis up and then coerce over
             target = getattr(self.realization_of(), R._basis_name)()
             return self._coerce_map_via([target], R)
+
+        from sage.combinat.chas.fsym import FreeSymmetricFunctions, FSymBasis_abstract
+        if isinstance(R, FreeSymmetricFunctions.Fundamental):
+            if not self.base_ring().has_coerce_map_from(R.base_ring()):
+                return False
+            G = self.realization_of().G()
+            P = G._indices
+            def G_to_G_on_basis(t):
+                return G.sum_of_monomials(P(sigma) for sigma in Permutations(t.size())
+                                          if sigma.right_tableau() == t)
+            phi = R.module_morphism(G_to_G_on_basis, codomain=G)
+            if self is G:
+                return phi
+            else:
+                return self.coerce_map_from(G) * phi
+
         return super(FQSymBasis_abstract, self)._coerce_map_from_(R)
 
 class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):

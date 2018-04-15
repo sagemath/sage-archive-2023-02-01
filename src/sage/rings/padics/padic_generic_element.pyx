@@ -683,7 +683,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
     #    """
     #    raise NotImplementedError
 
-    def dwork_expansion(self, bd=20):
+    def dwork_expansion(self, bd=20, a=0):
         r"""
         Return the value of a function defined by Dwork.
 
@@ -692,6 +692,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         INPUT:
 
         - ``bd`` -- integer. Is a bound for precision, defaults to 20
+        - ``a``  -- integer. Offset parameter, defaults to 0
 
         OUTPUT:
 
@@ -706,6 +707,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
             The output is a `p`-adic integer from Dwork's expansion,
             used to compute the `p`-adic gamma function as in [RV]_
             section 6.2.
+            The coefficients of the expansion are now cached to speed up
+            multiple evaluation, as in the trace formula for hypergeometric
+            motives.
 
         REFERENCES:
 
@@ -726,21 +730,45 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: x.dwork_expansion()
             4 + 4*5 + 4*5^2 + 4*5^3 + 2*5^4 + 4*5^5 + 5^7 + 3*5^9 + 4*5^10 + 3*5^11 
             + 5^13 + 4*5^14 + 2*5^15 + 2*5^16 + 2*5^17 + 3*5^18 + O(5^20)
+
+        This test was added in :trac:`24433`::
+            sage: F = Qp(7)
+            sage: F(4).gamma()
+            6 + O(7^20)
+            sage: -F(1).dwork_expansion(a=3)
+            6 + 4*7^19 + O(7^20)
         """
         R = self.parent()
-        p = R.prime()
-        s = R.one().add_bigoh(bd)
-        t = s
-        u = [s]
-        for j in range(1, p):
-            u.append(u[j-1] / j)
-        for k in range(1, bd):
-            u[0] = ((u[-1] + u[0]) / k) >> 1
+        cdef int p = R.prime()
+        cdef int b = a
+        cdef int k
+
+        s = R.zero().add_bigoh(bd)
+        t = R.one().add_bigoh(bd)
+        try:
+            v = R.dwork_coeffs
+        except AttributeError:
+            v = None
+        if v is not None and len(v) < p*bd:
+            v = None
+        if v is not None:
+            for k in range(bd):
+                s += t * v[p*k+b]
+                t *= (self + k)
+        else:
+            u = [t]
+            v = []
             for j in range(1, p):
-                u[j] = (u[j-1] + u[j]) / (j + k * p )
-            t *= (self + k - 1)
-            s += t * (u[0] << k)
-        return R(-s)
+                u.append(u[j-1] / j)
+            for k in range(bd):
+                v += [x << k for x in u]
+                s += t * (u[a] << k)
+                t *= (self + k)
+                u[0] = ((u[-1] + u[0]) / (k+1)) >> 1
+                for j in range(1, p):
+                    u[j] = (u[j-1] + u[j]) / (j + (k+1) * p )
+            R.dwork_coeffs = v
+        return -s
 
     def gamma(self, algorithm='pari'):
         r"""
@@ -811,27 +839,31 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: Zp(5)(0).gamma()
             1 + O(5^20)
+
+        Check the cached version of `dwork_expansion` from :trac:`24433`::
+            sage: p = next_prime(200)
+            sage: F = Qp(p)
+            sage: l1 = [F(a/(p-1)).gamma(algorithm='pari') for a in range(p-1)]
+            sage: l2 = [F(a/(p-1)).gamma(algorithm='sage') for a in range(p-1)]
+            sage: all(l1[i] == l2[i] for i in range(p-1))
+            True
         """
         if self.valuation() < 0:
             raise ValueError('The p-adic gamma function only works '
                              'on elements of Zp')
         parent = self.parent()
-        if self.precision_absolute() is infinity:
+        n = self.precision_absolute()
+        if n is infinity:
             # Have to deal with exact zeros separately
             return parent(1)
         if algorithm == 'pari':
             return parent(self.__pari__().gamma())
         elif algorithm == 'sage':
-            from sage.misc.all import prod
             p = parent.prime()
-            n = self.precision_absolute()
             bd = n + 2*n//p
-            if self.is_padic_unit():
-                k = Integer(self.residue())  # leading coefficient of self, non-zero
-                x = (self-k) >> 1
-                return (-1)**(k+1)*x.dwork_expansion(bd)*prod(j + (x << 1) for j in range(1, k))
-            else:
-                return -(self >> 1).dwork_expansion(bd)
+            k = Integer(-self.residue(field=False)) # avoid GF(p) for efficiency
+            x = (self+k) >> 1
+            return -x.dwork_expansion(bd, a=k)
 
     @coerce_binop
     def gcd(self, other):

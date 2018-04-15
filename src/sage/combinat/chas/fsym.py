@@ -44,8 +44,6 @@ class FSymBasis_abstract(CombinatorialFreeModule, BindableClass):
     This must define two attributes:
 
     - ``_prefix`` -- the basis prefix
-    - ``_basis_name`` -- the name of the basis (must match one
-      of the names that the basis can be constructed from `FSym`)
     """
     def __init__(self, alg, graded=True):
         r"""
@@ -138,25 +136,25 @@ class FSymBasis_abstract(CombinatorialFreeModule, BindableClass):
             sage: G.has_coerce_map_from(PolynomialRing(ZZ, 3, 'x,y,z'))
             False
         """
-        # word quasi-symmetric functions in the same variables
+        # free symmetric functions in the same variables
         # over any base that coerces in:
         if isinstance(R, FSymBasis_abstract):
             if R.realization_of() == self.realization_of():
                 return True
             if not self.base_ring().has_coerce_map_from(R.base_ring()):
                 return False
-            if self._basis_name == R._basis_name: # The same basis
+            if self._realization_name() == R._realization_name(): # The same basis
                 def coerce_base_ring(self, x):
                     return self._from_dict(x.monomial_coefficients())
                 return coerce_base_ring
             # Otherwise lift that basis up and then coerce over
-            target = getattr(self.realization_of(), R._basis_name)()
+            target = getattr(self.realization_of(), R._realization_name())()
             return self._coerce_map_via([target], R)
         return super(FSymBasis_abstract, self)._coerce_map_from_(R)
 
     def some_elements(self):
-        """
-        Return some elements of the word quasi-symmetric functions.
+        r"""
+        Return some elements of ``self``.
 
         EXAMPLES::
 
@@ -181,8 +179,8 @@ class FSymBasis_abstract(CombinatorialFreeModule, BindableClass):
             sage: G = FSym.G()
             sage: G.zero()
             0
-            sage: G[[1],[2],[3],[4]]
-            G[1|2|3|4]
+            sage: G._repr_term(StandardTableau([[1],[2],[3],[4]]))
+            'G[1|2|3|4]'
             sage: G[[1,3,5],[2,4]]
             G[135|24]
         """
@@ -226,7 +224,7 @@ class FSymBases(Category_realization_of_parent):
                 Hopf algebra of standard tableaux over the Integer Ring
                  in the Fundamental basis
             """
-            return "{} in the {} basis".format(self.realization_of(), self._basis_name)
+            return "{} in the {} basis".format(self.realization_of(), self._realization_name())
 
         def __getitem__(self, key):
             r"""
@@ -505,7 +503,6 @@ class FreeSymmetricFunctions(UniqueRepresentation, Parent):
             sage: TestSuite(TG).run()
         """
         _prefix = "G"
-        _basis_name = "Fundamental"
 
         def dual_basis(self):
             r"""
@@ -691,7 +688,6 @@ class FreeSymmetricFunctions_Dual(UniqueRepresentation, Parent):
             sage: TestSuite(TF).run()
         """
         _prefix = "F"
-        _basis_name = "FundamentalDual"
 
         def _coerce_map_from_(self, R):
             r"""
@@ -717,6 +713,9 @@ class FreeSymmetricFunctions_Dual(UniqueRepresentation, Parent):
                 sage: SF = algebras.FQSym(QQ).F()
                 sage: TF(SF([3,1,4,5,2]))
                 F[134|25]
+                sage: SG = algebras.FQSym(QQ).G()
+                sage: TF(SG([3,1,4,5,2]))
+                F[125|34]
 
             This mapping is a Hopf algebra morphism::
 
@@ -742,6 +741,9 @@ class FreeSymmetricFunctions_Dual(UniqueRepresentation, Parent):
                 F[12|3] + F[13|2]
                 sage: TF(s[2,2,1])
                 F[12|34|5] + F[12|35|4] + F[13|24|5] + F[13|25|4] + F[14|25|3]
+                sage: h = Sym.h()
+                sage: TF(h[2,1])
+                F[12|3] + F[123] + F[13|2]
             """
             if hasattr(R, "realization_of"):
                 if not self.base_ring().has_coerce_map_from(R.base_ring()):
@@ -751,22 +753,20 @@ class FreeSymmetricFunctions_Dual(UniqueRepresentation, Parent):
                 from sage.combinat.fqsym import FreeQuasisymmetricFunctions
                 if isinstance(A, FreeQuasisymmetricFunctions):
                     F = A.F()
-                    def F_to_SF_on_basis(sigma):
-                        return self.monomial(sigma.right_tableau())
-                    phi = F.module_morphism(F_to_SF_on_basis, codomain=self)
                     if R is F:
-                        return phi
-                    return phi * F.coerce_map_from(R)
+                        def F_to_SF_on_basis(sigma):
+                            return self.monomial(sigma.right_tableau())
+                        return F.module_morphism(F_to_SF_on_basis, codomain=self)
+                    return self._coerce_map_via([F], R)
 
                 # Sym to FSym^*
                 if isinstance(A, SymmetricFunctions):
                     s = A.s()
-                    def s_to_F_on_basis(mu):
-                        return self.sum_of_monomials(StandardTableaux(mu))
-                    phi = s.module_morphism(s_to_F_on_basis, codomain=self)
                     if R is s:
-                        return phi
-                    return phi * s.coerce_map_from(R)
+                        def s_to_F_on_basis(mu):
+                            return self.sum_of_monomials(StandardTableaux(mu))
+                        return s.module_morphism(s_to_F_on_basis, codomain=self)
+                    return self._coerce_map_via([s], R)
             return super(FreeSymmetricFunctions_Dual.FundamentalDual, self)._coerce_map_from_(R)
 
         def dual_basis(self):
@@ -796,10 +796,11 @@ class FreeSymmetricFunctions_Dual(UniqueRepresentation, Parent):
             z = []
             n = t1.size()
             m = t2.size()
+            ST = self._indices
             for (I, J) in OrderedSetPartitions(range(1, n + m + 1), [n, m]):
                 tt1 = [[I[x-1] for x in row] for row in t1]
                 tt2 = [tuple([J[x-1] for x in row]) for row in t2]
-                z.append(StandardTableau(Tableau(tt1).slide_multiply(tt2)))
+                z.append(ST(Tableau(tt1).slide_multiply(tt2)))
             return self.sum_of_monomials(z)
 
         @cached_method
@@ -838,17 +839,52 @@ class FreeSymmetricFunctions_Dual(UniqueRepresentation, Parent):
     F = FundamentalDual
 
 ##### utility functions for tableaux
-
-# TODO: add these methods to tableaux!
 from sage.combinat.composition import Composition
 
 def standardize(t):
-    A = sorted(t.to_word())
-    std = {j:(i+1) for (i, j) in enumerate(A)}
-    return StandardTableau([[std[i] for i in row] for row in t])
+    r"""
+    Return the standard tableau corresponding to ``t`` with no
+    repeated entries.
 
+    .. NOTE::
+
+        This is an optimized version of :meth:`Tableau.standardization`
+        for computations in `FSym` by using the assumption of no
+        repeated entries in ``t``.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.chas.fsym import standardize
+        sage: t = Tableau([[1,1,3,5],[2,3,6],[3]])
+        sage: standardize(t)
+        sage: t = Tableau([[3,8,9,15],[5,10,12],[133]])
+        sage: standardize(t)
+        [[1, 3, 4, 7], [2, 5, 6], [8]]
+
+    Returns an equal tableau if already standard::
+
+        sage: t = Tableau([[1,3,4,5],[2,6,7],[8]])
+        sage: standardize(t)
+        [[1, 3, 4, 5], [2, 6, 7], [8]]
+        sage: standardize(t) == t
+        True
+    """
+    A = sorted(t.to_word())
+    std = {j: i + 1 for i, j in enumerate(A)}
+    ST = StandardTableaux()
+    return ST([[std[i] for i in row] for row in t])
 
 def ascent_set(t):
+    """
+    Return the ascent set of ``t``.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.chas.fsym import ascent_set
+        sage: t = StandardTableau([[1,3,4,7],[2,5,6],[8]])
+        sage: ascent_set(t)
+        [2, 3, 5, 6, 8]
+    """
     locations = {}
     for (i,row) in enumerate(t):
         for (j,entry) in enumerate(row):
@@ -863,47 +899,29 @@ def ascent_set(t):
     return sorted(ascents)
 
 def descent_set(t):
+    """
+    Return the descent set of ``t``.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.chas.fsym import descent_set
+        sage: t = StandardTableau([[1,3,4,7],[2,5,6],[8]])
+        sage: descent_set(t)
+        [1, 4, 7]
+    """
     ascents = set(ascent_set(t))
-    return [i for i in range(1,1+t.size()) if i not in ascents]
+    return [i for i in range(1, 1+t.size()) if i not in ascents]
 
 def descent_composition(t):
+    """
+    Return the descent composition of ``t``.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.chas.fsym import descent_composition
+        sage: t = StandardTableau([[1,3,4,7],[2,5,6],[8]])
+        sage: descent_composition(t)
+        [1, 3, 3, 1]
+    """
     return Composition(from_subset=(descent_set(t), t.size()))
 
-
-r"""
-There are various morphisms between the Hopf algebras below.
-We test that the diagram of morphisms is commutative::
-
-    sage: NSym = NonCommutativeSymmetricFunctions(QQ)
-    sage: QSym = QuasiSymmetricFunctions(QQ)
-    sage: FQSym = algebras.FQSym(QQ)
-    sage: FSym = algebras.FSym(QQ)
-    sage: FSymDual = FSym.dual()
-    sage: Sym = SymmetricFunctions(QQ)
-
-    sage: def go(composition):
-    ....:     x = NSym.a_realization()[composition]
-    ....:     if QSym(FQSym(x)) != QSym(Sym(x)): return False
-    ....:     if Sym(FSym(x)) != Sym(x): return False
-    ....:     if FQSym(FSym(x)) != FQSym(x): return False
-    ....:     if FSymDual(Sym(x)) != FSymDual(FQSym(x)): return False
-    ....:     return True
-
-    sage: go([2,1,2])
-    True
-    sage: all(all(go(comp) for comp in Compositions(n)) for n in range(5))
-    True
-
-    sage: def go2(n):
-    ....:     for sigma in Permutations(n):
-    ....:          x = FQSym.F()[sigma]
-    ....:          if QSym(FSymDual(x)) != QSym(x): return False
-    ....:     s = Sym.s()
-    ....:     for mu in Partitions(n):
-    ....:          x = s[mu]
-    ....:          if QSym(FSymDual(x)) != QSym(x): return False
-    ....:     return True
-
-    sage: all(go2(n) for n in range(6))
-    True
-"""

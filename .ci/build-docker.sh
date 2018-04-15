@@ -19,11 +19,12 @@ set -ex
 # during docker build. See /docker/Dockerfile for more details.
 ARTIFACT_BASE=${ARTIFACT_BASE:-sagemath/sagemath-dev:develop}
 
-# Seed our cache with $ARTIFACT_BASE if it exists
-docker pull "$ARTIFACT_BASE" > /dev/null || true
+# Seed our cache with $ARTIFACT_BASE if it exists (otherwise take alpine which is tiny)
+(docker pull "$ARTIFACT_BASE" > /dev/null && docker tag "$ARTIFACT_BASE" cache) || \
+  (docker pull alpine > /dev/null && docker tag alpine cache)
 
 docker_build() {
-    time docker build -f docker/Dockerfile --build-arg "MAKE=${MAKE}" --build-arg ARTIFACT_BASE=$ARTIFACT_BASE $@
+    time docker build -f docker/Dockerfile --cache-from cache --build-arg "MAKE=${MAKE}" --build-arg ARTIFACT_BASE=$ARTIFACT_BASE $@
 }
 
 # We use a multi-stage build /docker/Dockerfile. For the caching to be

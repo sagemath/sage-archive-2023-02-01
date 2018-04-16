@@ -308,7 +308,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
             sage: R.zero().degree()
             -1
 
-        TEST:
+        TESTS:
 
         Check output type (see :trac:`25182`)::
 

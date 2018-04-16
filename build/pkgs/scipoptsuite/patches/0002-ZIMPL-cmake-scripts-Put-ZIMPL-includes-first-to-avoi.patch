@@ -1,7 +1,7 @@
 From 656f9c88d52639af5109ca18c329bce6e0cea4da Mon Sep 17 00:00:00 2001
 From: Matthias Koeppe <mkoeppe@math.ucdavis.edu>
 Date: Thu, 5 Apr 2018 17:53:39 -0500
-Subject: [PATCH 2/2] ZIMPL cmake scripts: Put ZIMPL includes first to avoid
+Subject: [PATCH 2/3] ZIMPL cmake scripts: Put ZIMPL includes first to avoid
  clash of idxset.h with install soplex idxset.h
 
 ---

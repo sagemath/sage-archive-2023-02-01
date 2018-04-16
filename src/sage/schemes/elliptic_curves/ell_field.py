@@ -723,7 +723,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
                 if f.codomain() != L:
                     raise ValueError("embedding has wrong codomain")
             except AttributeError:
-                raise ValueError("invalid embedding: %s" % s)
+                raise ValueError("invalid embedding: {}".format(f))
             try:
                 jK = f.preimage(j)
             except Exception:
@@ -820,11 +820,11 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
                           minimum model where this exists.
 
         - ``check`` (default: True) does some partial checks that the
-                          input is valid (e.g., that the points
-                          defined by the kernel polynomial are
-                          torsion); however, invalid input can in some
-                          cases still pass, since that the points define
-                          a group is not checked.
+                          input is valid (e.g., that the kernel
+                          polynomial provided is valid); however,
+                          invalid input can in some cases still pass,
+                          since that the points define a group is not
+                          checked.
 
         OUTPUT:
 
@@ -859,21 +859,20 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             sage: phi = E.isogeny([14,27,4,1])
             Traceback (most recent call last):
             ...
-            ValueError: The polynomial does not define a finite subgroup of the elliptic curve.
+            ValueError: The polynomial x^3 + 4*x^2 + 27*x + 14 does not define a finite subgroup of Elliptic Curve defined by y^2 + x*y = x^3 + x + 2 over Finite Field of size 31.
 
-        An example in which we construct an invalid morphism, which
-        illustrates that the check for correctness of the input is not
-        sufficient. (See :trac:`11578`.)::
+        Until the checking of kernel polynomials was implemented in
+        :trac:`23222`, the following raised no error but returned an
+        invalid morphism.  See also :trac:`11578`::
 
             sage: R.<x> = QQ[]
             sage: K.<a> = NumberField(x^2-x-1)
             sage: E = EllipticCurve(K, [-13392, -1080432])
             sage: R.<x> = K[]
             sage: phi = E.isogeny( (x-564)*(x - 396/5*a + 348/5) )
-            sage: phi.codomain().conductor().norm().factor()
-            5^2 * 11^2 * 3271 * 15806939 * 4169267639351
-            sage: phi.domain().conductor().norm().factor()
-            11^2
+            Traceback (most recent call last):
+            ...
+            ValueError: The polynomial x^2 + (-396/5*a - 2472/5)*x + 223344/5*a - 196272/5 does not define a finite subgroup of Elliptic Curve defined by y^2 = x^3 + (-13392)*x + (-1080432) over Number Field in a with defining polynomial x^2 - x - 1.
         """
         try:
             return EllipticCurveIsogeny(self, kernel, codomain, degree, model, check=check)
@@ -1029,20 +1028,20 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             try:
                 l = rings.ZZ(l)
             except TypeError:
-                raise ValueError("%s is not prime."%l)
+                raise ValueError("{} is not prime.".format(l))
             if l.is_prime():
                 return isogenies_prime_degree(self, l)
             else:
-                raise ValueError("%s is not prime."%l)
+                raise ValueError("{} is not prime.".format(l))
 
         L = list(set(l))
         try:
-            L = [rings.ZZ(l) for l in L]
+            L = [rings.ZZ(ell) for ell in L]
         except TypeError:
-            raise ValueError("%s is not a list of primes."%l)
+            raise ValueError("{} is not a list of primes.".format(l))
 
         L.sort()
-        return sum([isogenies_prime_degree(self,l) for l in L],[])
+        return sum([isogenies_prime_degree(self,ell) for ell in L],[])
 
     def is_isogenous(self, other, field=None):
         """

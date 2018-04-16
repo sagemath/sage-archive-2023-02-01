@@ -1204,20 +1204,20 @@ def random_prime(n, proof=None, lbound=2):
     EXAMPLES::
 
         sage: random_prime(100000)
-        88237
+        30029
         sage: random_prime(2)
         2
 
     Here we generate a random prime between 100 and 200::
 
         sage: random_prime(200, lbound=100)
-        149
+        167
 
     If all we care about is finding a pseudo prime, then we can pass
     in ``proof=False`` ::
 
         sage: random_prime(200, proof=False, lbound=100)
-        149
+        197
 
     TESTS::
 
@@ -1243,7 +1243,6 @@ def random_prime(n, proof=None, lbound=2):
     """
     # since we don't want current_randstate to get
     # pulled when you say "from sage.arith.misc import *".
-    from sage.misc.randstate import current_randstate
     from sage.structure.proof.proof import get_flag
     proof = get_flag(proof, "arithmetic")
     n = ZZ(n)
@@ -1272,7 +1271,7 @@ def random_prime(n, proof=None, lbound=2):
         prime_test = is_prime
     else:
         prime_test = is_pseudoprime
-    randint = current_randstate().python_random().randint
+    randint = ZZ.random_element
     while True:
         # In order to ensure that the returned prime is chosen
         # uniformly from the set of primes it is necessary to
@@ -1282,7 +1281,7 @@ def random_prime(n, proof=None, lbound=2):
         # for example, return the first of a pair of twin primes.
         p = randint(lbound, n)
         if prime_test(p):
-            return ZZ(p)
+            return p
 
 
 def divisors(n):

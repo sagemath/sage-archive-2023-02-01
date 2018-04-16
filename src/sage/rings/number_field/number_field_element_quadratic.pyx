@@ -266,6 +266,22 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         else:
             NumberFieldElement_absolute._maxima_init_(self, I)
 
+    def _fricas_init_(self, I=None):
+        """
+        EXAMPLES::
+
+            sage: K.<a> = QuadraticField(-1)
+            sage: f = 1 + a
+            sage: f._fricas_init_()
+            '1+%i*1'
+        """
+        a = self.parent().gen()
+        if a**2 == -1:
+            x0, x1 = self
+            return str(x0) + "+" + "%i*" + str(x1)
+        else:
+            NumberFieldElement_absolute._fricas_init_(self, I)
+
     def _polymake_init_(self):
         """
         EXAMPLES::

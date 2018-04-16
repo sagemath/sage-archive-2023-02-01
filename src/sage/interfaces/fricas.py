@@ -245,6 +245,20 @@ class FriCAS(ExtraTabCompletion, Expect):
 
             sage: fricas == loads(dumps(fricas))                                # optional - fricas
             True
+
+        Check that :trac:`25174` is fixed::
+
+            sage: fricas(I)                                                     # optional - fricas
+            %i
+
+            sage: integrate(sin(x)*exp(I*x), x, -pi, 0, algorithm="fricas")     # optional - fricas
+            1/2*I*pi
+
+            sage: fricas(I*sin(x)).sage()                                       # optional - fricas
+            I*sin(x)
+
+            sage: fricas(I*x).sage()                                            # optional - fricas
+            I*x
         """
         eval_using_file_cutoff = 4096-5 # magic number from Expect._eval_line (there might be a bug)
         assert max(len(c) for c in FRICAS_INIT_CODE) < eval_using_file_cutoff
@@ -1022,7 +1036,7 @@ class FriCASElement(ExpectElement):
             return QQbar
 
         # now implement "functorial" types
-        if head == "OrderedCompletion":
+        if head == "OrderedCompletion" or head == "Complex":
             # this is a workaround, I don't know how translate this
             return SR
 
@@ -1121,7 +1135,9 @@ class FriCASElement(ExpectElement):
 
         """
         from sage.calculus.calculus import symbolic_expression_from_string
-        from sage.libs.pynac.pynac import symbol_table
+        from sage.libs.pynac.pynac import symbol_table, register_symbol
+        register_symbol(lambda x,y: x + (sage.symbolic.all.i)*y, {'fricas':'complex'})
+
         s = unparsed_InputForm
         replacements = [('pi()', 'pi '),
                         ('::Symbol', ' ')]
@@ -1310,6 +1326,10 @@ class FriCASElement(ExpectElement):
         if head == "Fraction":
             return P.new("numer(%s)" %self._name).sage()/P.new("denom(%s)" %self._name).sage()
 
+        if head == "Complex":
+            return (P.new("real(%s)" %self._name).sage() +
+                    P.new("imag(%s)" %self._name).sage()*(sage.symbolic.all.i))
+
         if head == "Factored":
             l = P.new('[[f.factor, f.exponent] for f in factors(%s)]' %self._name).sage()
             return Factorization([(p, e) for p,e in l])
@@ -1319,7 +1339,6 @@ class FriCASElement(ExpectElement):
             unparsed_InputForm = P.get_unparsed_InputForm(self._name)
         except RuntimeError as error:
             raise NotImplementedError("The translation of the FriCAS object\n\n%s\n\nto sage is not yet implemented:\n%s" %(self, error))
-
         if head == "Boolean":
             return unparsed_InputForm == "true"
 
@@ -1354,6 +1373,10 @@ class FriCASElement(ExpectElement):
 
         if head == "Polynomial":
             base_ring = self._get_sage_type(domain[1])
+            # Polynomial Complex is translated into SR
+            if base_ring is SR:
+                return self._sage_expression(unparsed_InputForm)
+
             # the following is a bad hack, we should be getting a list here
             vars = P.get_unparsed_InputForm("variables(%s)" %self._name)[1:-1]
             if vars == "":
@@ -1368,9 +1391,9 @@ class FriCASElement(ExpectElement):
                 return self._sage_expression(unparsed_InputForm)
 
         if head == "Expression":
-            # TODO: we also have Expression Complex Integer and the like
-            if str(domain[1].car()) == "Integer":
-                return self._sage_expression(unparsed_InputForm)
+            # we treat Expression Integer and Expression Complex
+            # Integer just the same
+            return self._sage_expression(unparsed_InputForm)
 
         if head == 'DistributedMultivariatePolynomial':
             base_ring = self._get_sage_type(domain[2])

@@ -214,7 +214,10 @@ class CharacterArtFactory(SageObject):
             ccc
         """
         if self.string_type is text_type and not isinstance(obj, text_type):
-            obj = binary_type(obj).decode('utf-8')
+            if isinstance(obj, binary_type):
+                obj = obj.decode('utf-8')
+            else:
+                obj = text_type(obj)
         if self.string_type is binary_type and not isinstance(obj, binary_type):
             obj = text_type(obj).encode('utf-8')
         return self.art_type(obj.splitlines(), baseline=baseline)

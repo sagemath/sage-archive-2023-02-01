@@ -29,13 +29,13 @@ from sage.combinat.shuffle import ShuffleProduct_overlapping, ShuffleProduct
 
 class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
     """
-    Abstract base class for bases of `WQSym`.
+    Abstract base class for bases of `W QSym`.
 
     This must define two attributes:
 
     - ``_prefix`` -- the basis prefix
     - ``_basis_name`` -- the name of the basis (must match one
-      of the names that the basis can be constructed from `WQSym`)
+      of the names that the basis can be constructed from `W QSym`)
     """
     def __init__(self, alg, graded=True):
         r"""
@@ -176,7 +176,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
     satisfying `\operatorname{pack}(w) = u`.
     The span of these power series `\mathbf{M}_u` is a subring of the
     ring of all noncommutative power series; it is called the ring of
-    word quasi-symmetric functions, and is denoted by `WQSym`.
+    word quasi-symmetric functions, and is denoted by `W QSym`.
 
     For each nonnegative integer `n`, there is a bijection between
     packed words of length `n` and ordered set partitions of
@@ -189,13 +189,13 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
     The basis element `\mathbf{M}_u` is also denoted as `\mathbf{M}_P`
     in this situation and is implemented using the latter indexing.
     The basis `(\mathbf{M}_P)_P` is called the *Monomial basis* and
-    is implemented at
-    :class:`~sage.combinat.chas.wqsym.WordQuasiSymmetricFunctions.M`.
+    is implemented as
+    :class:`~sage.combinat.chas.wqsym.WordQuasiSymmetricFunctions.Monomial`.
 
     Other bases are the cone basis (aka C basis), the characteristic
     basis (aka X basis), the Q basis and the Phi basis.
 
-    `WQSym` is endowed with a connected graded Hopf algebra structure (see
+    `W QSym` is endowed with a connected graded Hopf algebra structure (see
     Section 2.2 of [NoThWi08]_, Section 1.1 of [FoiMal14]_ and
     Section 4.3.2 of [MeNoTh11]_) given by
 
@@ -214,8 +214,9 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
     A rule for multiplying elements of the monomial basis relies on the
     *quasi-shuffle product* of two ordered set partitions.
     The quasi-shuffle product `\Box` is given by
-    :class:`~sage.combinat.shuffle.ShuffleProduct_overlapping` with ``+``
-    being the union of the sets. The product `\mathbf{M}_P \mathbf{M}_Q`
+    :class:`~sage.combinat.shuffle.ShuffleProduct_overlapping` with the
+    ``+`` operation in the overlapping of the shuffles being the
+    union of the sets.  The product `\mathbf{M}_P \mathbf{M}_Q`
     for two ordered set partitions `P` and `Q` of `[n]` and `[m]`
     is then given by
 
@@ -226,13 +227,14 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
     where `Q^+` means `Q` with all numbers shifted upwards by `n`.
 
-    Sometimes, `WQSym` is also denoted as `NCQSym`.
+    Sometimes, `W QSym` is also denoted as `NCQSym`.
 
     REFERENCES:
 
     - [FoiMal14]_
     - [MeNoTh11]_
     - [NoThWi08]_
+    - [BerZab05]_
 
     EXAMPLES::
 
@@ -317,14 +319,14 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
     _shorthands = tuple(['M', 'X', 'C', 'Q', 'Phi'])
 
-    class M(WQSymBasis_abstract):
+    class Monomial(WQSymBasis_abstract):
         r"""
-        The Monomial basis of `WQSym`.
+        The Monomial basis of `W QSym`.
 
         The family `(\mathbf{M}_u)`, as defined in
         :class:`~sage.combinat.chas.wqsym.WordQuasiSymmetricFunctions`
         with `u` ranging over all packed words, is a basis for the
-        free `R`-module `WQSym` and called the *Monomial basis*.
+        free `R`-module `W QSym` and called the *Monomial basis*.
         Here it is labelled using ordered set partitions.
 
         EXAMPLES::
@@ -414,13 +416,13 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             return T.sum_of_monomials((standardize(x[:i]), standardize(x[i:]))
                                       for i in range(len(x) + 1))
 
-    Monomial = M
+    M = Monomial
 
-    class X(WQSymBasis_abstract):
+    class Characteristic(WQSymBasis_abstract):
         r"""
-        The Characteristic basis of `WQSym`.
+        The Characteristic basis of `W QSym`.
 
-        The *Characteristic basis* is a graded basis `(X_P)` of `WQSym`,
+        The *Characteristic basis* is a graded basis `(X_P)` of `W QSym`,
         indexed by ordered set partitions `P`. It is defined by
 
         .. MATH::
@@ -476,13 +478,13 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             self.module_morphism(codomain=M, diagonal=sgn).register_as_coercion()
             M.module_morphism(codomain=self, diagonal=sgn).register_as_coercion()
 
-    Characteristic = X
+    X = Characteristic
 
-    class C(WQSymBasis_abstract):
+    class Cone(WQSymBasis_abstract):
         r"""
-        The Cone basis of `WQSym`.
+        The Cone basis of `W QSym`.
 
-        Let `(X_P)_P` denote the Characteristic basis of `WQSym`.
+        Let `(X_P)_P` denote the Characteristic basis of `W QSym`.
         Denote the quasi-shuffle of two ordered set partitions `A` and
         `B` by `A \Box B`. For an ordered set partition
         `P = (P_1, \ldots, P_{\ell})`, we form a list of ordered set
@@ -610,11 +612,11 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             # Return the result in the X basis
             return X._from_dict(cur, coerce=True)
 
-    Cone = C
+    C = Cone
 
-    class Q(WQSymBasis_abstract):
+    class StronglyCoarser(WQSymBasis_abstract):
         r"""
-        The Q basis of `WQSym`.
+        The Q basis of `W QSym`.
 
         We define a partial order `\leq` on the set of all ordered
         set partitions as follows: `A \leq B` if and only if
@@ -622,7 +624,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
         :meth:`~sage.combinat.set_partition_ordered.OrderedSetPartition.is_strongly_finer`
         for a definition of this).
 
-        The *Q basis* `(Q_P)_P` is a basis of `WQSym` indexed by ordered
+        The *Q basis* `(Q_P)_P` is a basis of `W QSym` indexed by ordered
         set partitions, and is defined by
 
         .. MATH::
@@ -845,9 +847,11 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             return T.sum_of_monomials((standardize(x[:i]), standardize(x[i:]))
                                       for i in range(len(x) + 1))
 
-    class Phi(WQSymBasis_abstract):
+    Q = StronglyCoarser
+
+    class StronglyFiner(WQSymBasis_abstract):
         r"""
-        The Phi basis of `WQSym`.
+        The Phi basis of `W QSym`.
 
         We define a partial order `\leq` on the set of all ordered
         set partitions as follows: `A \leq B` if and only if
@@ -855,7 +859,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
         :meth:`~sage.combinat.set_partition_ordered.OrderedSetPartition.is_strongly_finer`
         for a definition of this).
 
-        The *Phi basis* `(\Phi_P)_P` is a basis of `WQSym` indexed by ordered
+        The *Phi basis* `(\Phi_P)_P` is a basis of `W QSym` indexed by ordered
         set partitions, and is defined by
 
         .. MATH::
@@ -1223,9 +1227,11 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             return T.sum_of_monomials((standardize(left), standardize(right))
                                       for (left, right) in deconcatenates)
 
+    Phi = StronglyFiner
+
 class WQSymBases(Category_realization_of_parent):
     r"""
-    The category of bases of `WQSym`.
+    The category of bases of `W QSym`.
     """
     def __init__(self, base, graded):
         r"""
@@ -1233,7 +1239,7 @@ class WQSymBases(Category_realization_of_parent):
 
         INPUT:
 
-        - ``base`` -- an instance of `WQSym`
+        - ``base`` -- an instance of `W QSym`
         - ``graded`` -- boolean; if the basis is graded or filtered
 
         TESTS::
@@ -1302,7 +1308,7 @@ class WQSymBases(Category_realization_of_parent):
     class ParentMethods:
         def _repr_(self):
             """
-            Text representation of this basis of `WQSym`.
+            Text representation of this basis of `W QSym`.
 
             EXAMPLES::
 
@@ -1398,9 +1404,9 @@ class WQSymBases(Category_realization_of_parent):
             The projection of ``self`` to the ring `QSym` of
             quasisymmetric functions.
 
-            There is a canonical projection `\pi : WQSym \to QSym`
+            There is a canonical projection `\pi : W QSym \to QSym`
             that sends every element `\mathbf{M}_P` of the monomial
-            basis of `WQSym` to the monomial quasisymmetric function
+            basis of `W QSym` to the monomial quasisymmetric function
             `M_c`, where `c` is the composition whose parts are the
             sizes of the blocks of `P`.
             This `\pi` is a ring homomorphism.

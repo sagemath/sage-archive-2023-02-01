@@ -1,4 +1,4 @@
-cmake readline
+cmake readline bliss gmp mpir
 
 ----------
 All lines of this file are ignored except the first.

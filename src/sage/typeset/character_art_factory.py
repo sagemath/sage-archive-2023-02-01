@@ -122,15 +122,14 @@ class CharacterArtFactory(SageObject):
             return self.build_from_magic_method(obj, baseline)
         if baseline is None:
             baseline = 0
-        if isinstance(obj, (tuple, list, dict, set)):
-            if obj.__class__ is tuple:
-                return self.build_tuple(obj, baseline)
-            elif obj.__class__ is dict:
-                return self.build_dict(obj, baseline)
-            elif obj.__class__ is list:
-                return self.build_list(obj, baseline)
-            else:
-                return self.build_set(obj, baseline)
+        if isinstance(obj, tuple):
+            return self.build_tuple(obj, baseline)
+        elif isinstance(obj, dict):
+            return self.build_dict(obj, baseline)
+        elif isinstance(obj, list):
+            return self.build_list(obj, baseline)
+        elif isinstance(obj, set):
+            return self.build_set(obj, baseline)
         else:
             return self.build_from_string(obj, baseline)
 
@@ -462,4 +461,3 @@ class CharacterArtFactory(SageObject):
         elif "separator" in kwds:
             raise ValueError("cannot specify both 'sep' and 'separator'")
         return sep, kwds.pop("baseline", None), kwds.pop("sep_baseline", None)
-

@@ -5129,11 +5129,11 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         The
         :class:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.YoungQuasisymmetric_Schur`
-        functions are from Definition 5.2.1 of [LMvW13]_.  The dual basis in
-        the algebra of non-commutative symmetric functions are related by
+        functions are given in Definition 5.2.1 of [LMvW13]_.  The dual basis
+        in the algebra of non-commutative symmetric functions are related by
         an involution reversing the indexing composition of the complete
         expansion of a quasi-Schur basis element.  This basis has many of the
-        same properties as the quasisymmetric Schur basis and is related to
+        same properties as the Quasisymmetric Schur basis and is related to
         that basis by an algebraic transformation.
 
         EXAMPLES::
@@ -5166,6 +5166,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         def __init__(self, NCSF):
             r"""
+            Initialize ``self``.
+
             EXAMPLES::
 
                 sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
@@ -5177,23 +5179,20 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 True
                 sage: TestSuite(dYQS).run() # long time
             """
+            category = NCSF.Bases()
             CombinatorialFreeModule.__init__(self, NCSF.base_ring(), Compositions(),
                                              prefix='dYQS', bracket=False,
-                                             category=NCSF.Bases())
-            category = self.category()
-            self._S = self.realization_of().complete()
-            self._dQS = self.realization_of().dualQuasisymmetric_Schur()
-            to_S = self.module_morphism(
-                    on_basis = self._to_complete_on_basis,
-                    codomain = self._S,
-                    category = category)
-            to_S.register_as_coercion()
+                                             category=category)
 
-            from_S = self._S.module_morphism(
-                        on_basis = self._from_complete_on_basis,
-                        codomain = self,
-                        category = category)
-            from_S.register_as_coercion()
+            self._S = NCSF.complete()
+            self._dQS = NCSF.dualQuasisymmetric_Schur()
+            self.module_morphism(on_basis=self._to_complete_on_basis,
+                                 codomain=self._S,
+                                 category=category).register_as_coercion()
+
+            self._S.module_morphism(on_basis=self._from_complete_on_basis,
+                                    codomain=self,
+                                    category=category).register_as_coercion()
 
         def _realization_name(self):
             r"""
@@ -5206,7 +5205,6 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             """
             return "dual Young Quasisymmetric-Schur"
 
-        @cached_method
         def _to_complete_on_basis(self, comp):
             r"""
             The expansion of the dual Quasisymmetric-Schur basis element
@@ -5227,10 +5225,10 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: dYQS._to_complete_on_basis(Composition([1,3,1]))
                 S[1, 3, 1] - S[1, 4] - S[2, 3] + S[5]
             """
-            return self._S.sum(c*self._S(al.reversed()) for (al, c) in
-                self._dQS._to_complete_on_basis(comp.reversed()))
+            elt = self._dQS._to_complete_on_basis(comp.reversed())
+            return self._S._from_dict({al.reversed(): c for al, c in elt},
+                                      coerce=False, remove_zeros=False)
 
-        @cached_method
         def _from_complete_on_basis(self, comp):
             r"""
             Return the expansion of a complete basis element in the
@@ -5254,8 +5252,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: dYQS._from_complete_on_basis(Composition([2,1,1]))
                 dYQS[2, 1, 1] + dYQS[2, 2] + 2*dYQS[3, 1] + dYQS[4]
             """
-            return self.sum(c*self(al.reversed()) for (al, c) in \
-                self._dQS._from_complete_on_basis(comp.reversed()))
+            elt = self._dQS._from_complete_on_basis(comp.reversed())
+            return self._from_dict({al.reversed(): c for al, c in elt},
+                                   coerce=False, remove_zeros=False)
 
         def dual(self):
             r"""
@@ -5285,7 +5284,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         def to_symmetric_function_on_basis(self, I):
             r"""
-            The commutative image of a dual Young quasi-symmetric Schur element
+            The commutative image of a dual Young quasi-symmetric
+            Schur element.
 
             The commutative image of a basis element is obtained by sorting
             the indexing composition of the basis element.

@@ -2946,18 +2946,20 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             r"""
             The dual basis to the Quasisymmetric Schur basis.
 
-            The dual basis to the Quasisymmetric Schur basis is implemented
-            as `dual.
+            The dual basis to the Quasisymmetric Schur basis is
+            implemented as dual.
 
             OUTPUT:
 
-            - The dual quasisymmetric Schur basis of the non-commutative symmetric functions.
+            - the dual Quasisymmetric Schur basis of the
+              non-commutative symmetric functions
 
             EXAMPLES::
 
                 sage: QS = QuasiSymmetricFunctions(QQ).Quasisymmetric_Schur()
                 sage: QS.dual()
-                Non-Commutative Symmetric Functions over the Rational Field in the dual Quasisymmetric-Schur basis
+                Non-Commutative Symmetric Functions over the Rational Field
+                 in the dual Quasisymmetric-Schur basis
             """
             return self.realization_of().dual().dualQuasisymmetric_Schur()
 
@@ -2968,8 +2970,8 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         The Hopf algebra of quasi-symmetric functions in the Young
         Quasisymmetric Schur basis.
 
-        The basis of Young Quasisymmetric Schur functions is from Definition
-        5.2.1 of [LMvW13]_.
+        The basis of Young Quasisymmetric Schur functions is from
+        Definition 5.2.1 of [LMvW13]_.
 
         This basis is related to the Quasisymmetric Schur basis ``QS`` by
         ``QS(alpha.reversed()) == YQS(alpha).star_involution()`` .
@@ -2990,6 +2992,8 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         """
         def __init__(self, QSym):
             r"""
+            Initialize ``self``.
+
             EXAMPLES::
 
                 sage: QSym = QuasiSymmetricFunctions(QQ)
@@ -3008,13 +3012,13 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             """
             self._QS = QSym.QS()
             self._M = QSym.M()
-            CombinatorialFreeModule.__init__(self, QSym.base_ring(), \
-                Compositions(), prefix='YQS', bracket=False, \
-                category=QSym.Bases())
-            self.module_morphism(self._to_monomial_on_basis, \
-                codomain=self._M, category=QSym.Bases()).register_as_coercion()
-            self._M.module_morphism(self._from_monomial_on_basis, \
-                codomain=self, category=QSym.Bases()).register_as_coercion()
+            CombinatorialFreeModule.__init__(self, QSym.base_ring(),
+                                             Compositions(), prefix='YQS',
+                                             bracket=False, category=QSym.Bases())
+            self.module_morphism(self._to_monomial_on_basis,
+                                 codomain=self._M, category=QSym.Bases()).register_as_coercion()
+            self._M.module_morphism(self._from_monomial_on_basis,
+                                    codomain=self, category=QSym.Bases()).register_as_coercion()
 
 
         def _realization_name(self):
@@ -3054,12 +3058,11 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: YQS._to_monomial_on_basis(Composition([1,3,1]))
                 2*M[1, 1, 1, 1, 1] + 2*M[1, 1, 2, 1] + M[1, 2, 1, 1] + M[1, 3, 1] + M[2, 1, 1, 1] + M[2, 2, 1]
              """
-            return self._M(self._QS(comp.reversed())).star_involution()
+            return self._M(self._QS.monomial(comp.reversed())).star_involution()
 
         @cached_method
         def _from_monomial_on_basis(self, comp):
             r"""
-
             The expansion of the quasi-symmetric Schur function indexed
             by ``comp_shape`` has coefficients which are given by the method
             :meth:`~sage.combinat.ncsf_qsym.combinatorics.number_of_SSRCT`.
@@ -3081,7 +3084,9 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: YQS._from_monomial_on_basis(Composition([1,3,1]))
                 YQS[1, 1, 1, 1, 1] - YQS[1, 2, 1, 1] - YQS[1, 2, 2] + YQS[1, 3, 1]
             """
-            return self.sum(c*self(al.reversed()) for (al,c) in self._QS(self._M(comp.reversed())))
+            elt = self._QS(self._M.monomial(comp.reversed()))
+            return self._from_dict({al.reversed(): c for al,c in elt},
+                                   coerce=False, remove_zeros=False)
 
     YQS = Young_Quasisymmetric_Schur
 

@@ -466,6 +466,11 @@ class FiniteFieldFactory(UniqueFactory):
         sage: pushout(K,L) is L
         True
 
+    Check that trac:`25182` has been fixed::
+
+        sage: GF(next_prime(2^63)^6)
+        Finite Field in z6 of size 9223372036854775837^6
+
     """
     def create_key_and_extra_args(self, order, name=None, modulus=None, names=None,
                                   impl=None, proof=None, check_irreducible=True,

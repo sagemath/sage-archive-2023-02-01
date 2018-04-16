@@ -268,12 +268,25 @@ class CharacterArtFactory(SageObject):
         r"""
         Return an character art output of a set.
 
-        TESTS::
+        TESTS:
 
-            sage: ascii_art(set(DyckWords(3)))  # indirect doctest
+        When the constructor is passed a set, this method is called.  Since
+        iteration over sets is non-deterministic so too is the results of this
+        test::
+
+            sage: ascii_art(set(DyckWords(3)))  # indirect doctest random
             {                                   /\   }
             {  /\      /\/\              /\    /  \  }
             { /  \/\, /    \, /\/\/\, /\/  \, /    \ }
+
+        We can also call this method directly an pass an iterable that is not a
+        set, but still obtain the same output formatting::
+
+            sage: from sage.typeset.ascii_art import _ascii_art_factory as factory
+            sage: factory.build_set(sorted(set(DyckWords(3))))
+            {                                   /\   }
+            {            /\    /\      /\/\    /  \  }
+            { /\/\/\, /\/  \, /  \/\, /    \, /    \ }
         """
         comma = self.art_type([self.string_type(', ')], baseline=0)
         repr_elems = self.concatenate(s, comma)
@@ -287,12 +300,14 @@ class CharacterArtFactory(SageObject):
 
         TESTS::
 
-            sage: d = ascii_art({i:dw for i,dw in enumerate(DyckWords(3))})  # indirect doctest
-            sage: d
+            sage: from collections import OrderedDict
+            sage: d = OrderedDict(enumerate(DyckWords(3)))
+            sage: art = ascii_art(d)  # indirect doctest
+            sage: art
             {                                             /\   }
             {                /\      /\        /\/\      /  \  }
             { 0:/\/\/\, 1:/\/  \, 2:/  \/\, 3:/    \, 4:/    \ }
-            sage: d.get_breakpoints()
+            sage: art.get_breakpoints()
             [11, 21, 31, 41]
         """
         comma = self.art_type([self.string_type(', ')],

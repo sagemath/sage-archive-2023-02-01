@@ -94,7 +94,7 @@ TESTS::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
+from __future__ import print_function, absolute_import, division
 from six.moves import zip
 
 from sage.structure.sage_object import SageObject
@@ -230,7 +230,7 @@ class LabelledPermutation(SageObject):
             sage: len(iet.Permutation('1 2 3 4 5 6','1 2 3 4 5 6'))
             6
         """
-        return (len(self._intervals[0]) + len(self._intervals[1])) / 2
+        return (len(self._intervals[0]) + len(self._intervals[1])) // 2
 
     def length_top(self):
         r"""

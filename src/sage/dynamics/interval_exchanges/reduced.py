@@ -57,7 +57,7 @@ TESTS::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
+from __future__ import print_function, absolute_import, division
 from six.moves import range, zip
 
 from sage.structure.richcmp import richcmp_method, rich_to_bool
@@ -165,7 +165,7 @@ class ReducedPermutation(SageObject) :
             sage: len(p)
             3
         """
-        return (len(self._twin[0]) + len(self._twin[1])) / 2
+        return (len(self._twin[0]) + len(self._twin[1])) // 2
 
     def length_top(self):
         r"""

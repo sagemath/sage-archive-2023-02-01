@@ -4207,7 +4207,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         else:
             return PointCollection(irreducible, self.lattice())
 
-    def Hilbert_coefficients(self, point):
+    def Hilbert_coefficients(self, point, solver=None, verbose=0):
         r"""
         Return the expansion coefficients of ``point`` with respect to
         :meth:`Hilbert_basis`.
@@ -4217,6 +4217,15 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         - ``point`` -- a :meth:`~IntegralRayCollection.lattice` point
           in the cone, or something that can be converted to a
           point. For example, a list or tuple of integers.
+
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve` of
+          the class :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of verbosity
+          of the LP solver. Set to 0 by default, which means quiet.
 
         OUTPUT:
 
@@ -4272,13 +4281,12 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         basis = self.Hilbert_basis()
 
         from sage.numerical.mip import MixedIntegerLinearProgram
-        p = MixedIntegerLinearProgram(maximization=False)
+        p = MixedIntegerLinearProgram(maximization=False, solver=solver)
         p.set_objective(None)
         x = p.new_variable(integer=True, nonnegative=True)
-        x = [ x[i] for i in range(0,len(basis)) ]
-        for i in range(0,self.lattice_dim()):
-            p.add_constraint(sum(b[i]*x[j] for j,b in enumerate(basis)) == point[i])
-        p.solve()
+        for i in range(self.lattice_dim()):
+            p.add_constraint(p.sum(b[i]*x[j] for j,b in enumerate(basis)) == point[i])
+        p.solve(log=verbose)
 
         return vector(ZZ, p.get_values(x))
 

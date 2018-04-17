@@ -950,7 +950,9 @@ class Line(PrimitiveObject):
             sage: from sage.plot.plot3d.shapes2 import Line
             sage: L = Line([(cos(i),sin(i),i^2) for i in srange(0,10,.01)],color='red')
             sage: L.obj_repr(L.default_render_params())[0][0][0][2][:3]
-            ['v 0.99995 0.00999983 0.0001', 'v 1.00007 0.0102504 -0.0248984', 'v 1.02376 0.010195 -0.00750607']
+            ['v 0.99995 0.00999983 0.0001',
+             'v 1.02376 0.010195 -0.00750607',
+             'v 1.00007 0.0102504 -0.0248984']
         """
         T = render_params.transform
         if T is None:

@@ -18,6 +18,7 @@ from __future__ import print_function
 
 import os
 
+from sage.cpython.string import bytes_to_str
 from sage.misc.pager import pager
 from sage.misc.temporary_file import tmp_filename
 from sage.structure.sage_object import SageObject

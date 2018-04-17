@@ -125,11 +125,15 @@ $(INST)/.dummy:
 #
 #     $(inst_python2) $(inst_cython) $(inst_pari) | $(inst_pip)
 #
+# If some value in the dependencies list is not a package name (e.g. it is
+# the name of some arbitrary file, or it is the '|' symbol) then it is just
+# used verbatim.
+#
 # Positional arguments:
 #     $(1): package name
 pkg_deps = \
 	$(foreach dep,$(deps_$(1)),\
-        $(if $(findstring |,$(dep)),|,$$(inst_$(dep))))
+        $(if $(value inst_$(dep)),$$(inst_$(dep)),$(dep)))
 
 # ============================= normal packages ==============================
 # Generate build rules for 'normal' packages; this template is used to generate

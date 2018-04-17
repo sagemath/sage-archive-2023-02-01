@@ -1465,7 +1465,7 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
             Ind = [self._gens.index(g) for g in other._gens]
             if sorted(Ind)!=Ind:
                 return None
-            # OK, other merges into self. Now, chose the default dense implementation,
+            # OK, other merges into self. Now, choose the default dense implementation,
             # unless both functors refer to the sparse implementation
             if self._imple != other._imple:
                 return InfinitePolynomialFunctor(self._gens, self._order, 'dense')

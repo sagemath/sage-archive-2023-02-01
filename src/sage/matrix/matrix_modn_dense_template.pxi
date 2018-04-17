@@ -604,7 +604,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             [116 104 101]
             [114 101  33]
             sage: m._pickle()
-            ((1, ..., 'Hi there!'), 10)
+            ((1, ..., ...'Hi there!'), 10)
 
         .. todo::
 
@@ -674,22 +674,22 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         Now test all the bit-packing options::
 
             sage: A = matrix(Integers(1000), 2, 2)
-            sage: A._unpickle((1, True, '\x01\x02\xFF\x00'), 10)
+            sage: A._unpickle((1, True, b'\x01\x02\xFF\x00'), 10)
             sage: A
             [  1   2]
             [255   0]
 
             sage: A = matrix(Integers(1000), 1, 2)
-            sage: A._unpickle((4, True, '\x02\x01\x00\x00\x01\x00\x00\x00'), 10)
+            sage: A._unpickle((4, True, b'\x02\x01\x00\x00\x01\x00\x00\x00'), 10)
             sage: A
             [258   1]
-            sage: A._unpickle((4, False, '\x00\x00\x02\x01\x00\x00\x01\x03'), 10)
+            sage: A._unpickle((4, False, b'\x00\x00\x02\x01\x00\x00\x01\x03'), 10)
             sage: A
             [513 259]
-            sage: A._unpickle((8, True, '\x03\x01\x00\x00\x00\x00\x00\x00\x05\x00\x00\x00\x00\x00\x00\x00'), 10)
+            sage: A._unpickle((8, True, b'\x03\x01\x00\x00\x00\x00\x00\x00\x05\x00\x00\x00\x00\x00\x00\x00'), 10)
             sage: A
             [259   5]
-            sage: A._unpickle((8, False, '\x00\x00\x00\x00\x00\x00\x02\x08\x00\x00\x00\x00\x00\x00\x01\x04'), 10)
+            sage: A._unpickle((8, False, b'\x00\x00\x00\x00\x00\x00\x02\x08\x00\x00\x00\x00\x00\x00\x01\x04'), 10)
             sage: A
             [520 260]
 

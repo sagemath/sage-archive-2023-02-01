@@ -1629,7 +1629,7 @@ def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
     but eight bytes (if ``sizeof(long)==8``) in memory, and the pickle
     string will be six bytes, since we have two rows::
 
-        sage: s = 'Uq\x82\xa7\x8bh'
+        sage: s = b'Uq\x82\xa7\x8bh'
         sage: len(s)
         6
         sage: from sage.matrix.matrix_gfpn_dense import mtx_unpickle, Matrix_gfpn_dense  # optional: meataxe
@@ -1652,7 +1652,7 @@ def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
     in the following example, a string of length 16. Unpickling works, but
     results in a warning::
 
-        sage: t = 'Uq\x82\x00\x00\x00\x00\x00\xa7\x8bh\x00\x00\x00\x00\x00'
+        sage: t = b'Uq\x82\x00\x00\x00\x00\x00\xa7\x8bh\x00\x00\x00\x00\x00'
         sage: len(t)
         16
         sage: N == mtx_unpickle(MS, 2, 5, t, True)           # optional: meataxe
@@ -1665,7 +1665,7 @@ def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
     Unpickling would even work in the case that the machine creating
     the deprecated pickle had ``sizeof(long)==9``::
 
-        sage: t = 'Uq\x82\x00\x00\x00\x00\x00\x00\xa7\x8bh\x00\x00\x00\x00\x00\x00'
+        sage: t = b'Uq\x82\x00\x00\x00\x00\x00\x00\xa7\x8bh\x00\x00\x00\x00\x00\x00'
         sage: len(t)
         18
         sage: N == mtx_unpickle(MS, 2, 5, t, True)           # optional: meataxe
@@ -1673,7 +1673,7 @@ def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
 
     The data may be empty, which results in the zero matrix::
 
-        sage: mtx_unpickle(MS, 2, 5, '', True)               # optional: meataxe
+        sage: mtx_unpickle(MS, 2, 5, b'', True)              # optional: meataxe
         [0 0 0 0 0]
         [0 0 0 0 0]
 
@@ -1681,12 +1681,12 @@ def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
     of bytes in the pickle does not comply with either the old or the new
     pickle format (we test several code paths here)::
 
-        sage: t = 'Uq\x82\x00\x00\x00\x00\x00\xa7\x8bh\x00\x00\x00\x00\x00\x00'
+        sage: t = b'Uq\x82\x00\x00\x00\x00\x00\xa7\x8bh\x00\x00\x00\x00\x00\x00'
         sage: mtx_unpickle(MS, 2, 5, t, True)                # optional: meataxe
         Traceback (most recent call last):
         ...
         ValueError: Expected a pickle with 3*2 bytes, got 17 instead
-        sage: t = 'Uq\x82\x00\x00\x00\x00\x00\xa7\x8bh\x00\x00\x00\x00\x00\x00'
+        sage: t = b'Uq\x82\x00\x00\x00\x00\x00\xa7\x8bh\x00\x00\x00\x00\x00\x00'
         sage: mtx_unpickle(MS, 2, 5, t[:4], True)                # optional: meataxe
         Traceback (most recent call last):
         ...
@@ -1702,7 +1702,7 @@ def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
         Traceback (most recent call last):
         ...
         ValueError: Inconsistent dimensions in this matrix pickle
-        sage: mtx_unpickle(MatrixSpace(GF(19),0,5), 0, 5, '', True) # optional: meataxe
+        sage: mtx_unpickle(MatrixSpace(GF(19),0,5), 0, 5, b'', True) # optional: meataxe
         []
 
     """

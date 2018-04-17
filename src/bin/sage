@@ -991,9 +991,8 @@ if [ "$1" = '-gdb' -o "$1" = "--gdb" ]; then
         gdb -x "$SAGE_LOCAL/bin/sage-gdb-commands" \
             -args python "$SAGE_LOCAL/bin/sage-ipython" "$@" -i
     else
-        # Location of cython_debug directory
-        cygdb_dir="$SAGE_SRC/build/cythonized"
-        cygdb "$cygdb_dir" "$SAGE_SRC/sage" \
+        sage_dir=$(sage-python23 -c 'import os, sage; print(os.path.dirname(sage.__file__))')
+        cygdb "$sage_dir" "$SAGE_SRC/sage" \
             -- -x "$SAGE_LOCAL/bin/sage-gdb-commands" \
             -args python "$SAGE_LOCAL/bin/sage-ipython" "$@" -i
     fi

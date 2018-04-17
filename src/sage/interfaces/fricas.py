@@ -1136,7 +1136,8 @@ class FriCASElement(ExpectElement):
         """
         from sage.calculus.calculus import symbolic_expression_from_string
         from sage.libs.pynac.pynac import symbol_table, register_symbol
-        register_symbol(lambda x,y: x + (sage.symbolic.all.i)*y, {'fricas':'complex'})
+        from sage.symbolic.all import I
+        register_symbol(lambda x,y: x + y*I, {'fricas':'complex'})
 
         s = unparsed_InputForm
         replacements = [('pi()', 'pi '),
@@ -1293,6 +1294,7 @@ class FriCASElement(ExpectElement):
         from sage.rings.finite_rings.integer_mod_ring import Integers
         from sage.rings.real_mpfr import RealField
         from sage.symbolic.ring import SR
+        from sage.symbolic.all import I
         from sage.matrix.constructor import matrix
         from sage.structure.factorization import Factorization
         from sage.misc.sage_eval import sage_eval
@@ -1328,7 +1330,7 @@ class FriCASElement(ExpectElement):
 
         if head == "Complex":
             return (P.new("real(%s)" %self._name).sage() +
-                    P.new("imag(%s)" %self._name).sage()*(sage.symbolic.all.i))
+                    P.new("imag(%s)" %self._name).sage()*I)
 
         if head == "Factored":
             l = P.new('[[f.factor, f.exponent] for f in factors(%s)]' %self._name).sage()

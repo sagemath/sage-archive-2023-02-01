@@ -1,15 +1,15 @@
 r"""
-Topological Immersions
+Topological Submanifold
 
-Given a topological manifold M over the topological field K, an immersion
-of M is defined by a manifold N on the same field K of dimension smaller
-than M, and a continuous map \phi from N to M (also called immersion).
+Given a topological manifold M over the topological field K, a topological
+submanifold of M is defined by a manifold N on the same field K of dimension
+smaller than M and a topological immersion, i.e. a continuous map \phi from N
+to M which is locally a topological embedding (i.e. an homeomorphism onto its
+image).
 
-In addition, if \phi is an homeomorphism onto its image, then it's called
-a topological embedding. \phi can also depend on one or multiple parameters.
-as long as \phi remains injective in these parameters, it represent
-a foliation. The dimension of the foliation is defined as the numbers of
-parameters.
+\phi can also depend on one or multiple parameters. As long as \phi remains
+injective in these parameters, it represent a foliation. The dimension of
+the foliation is defined as the number of parameters.
 
 AUTHORS:
 
@@ -41,16 +41,17 @@ from sage.plot.plot3d.parametric_surface import ParametricSurface
 # Class
 
 
-class TopologicalImmersion(TopologicalManifold):
+class TopologicalSubmanifold(TopologicalManifold):
     r"""
-    Topological immersion of a topological manifold.
+    Topological Submanifold of a topological manifold.
 
-    Given a topological manifold M over the topological field K, an immersion
-    of M is defined by a manifold N on the same field K of dimension smaller
-    than M, and a continuous map \phi from N to M (also called immersion).
+    Given a topological manifold M over the topological field K, a topological
+    submanifold of M is defined by a manifold N on the same field K of dimension
+    smaller than M and a topological immersion, i.e. a continuous map \phi from
+    N to M which is locally a topological embedding (i.e. an homeomorphism onto
+    its image).
 
-    In addition, if \phi is an homeomorphism onto its image, then it's called
-    a topological embedding. \phi can also depend on one or multiple parameters.
+    \phi can also depend on one or multiple parameters.
     as long as \phi remains injective in these parameters, it represent
     a foliation. The dimension of the foliation is defined as the numbers of
     parameters.

@@ -2441,8 +2441,8 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
     from sage.rings.infinity import infinity
     from sage.manifolds.differentiable.manifold import DifferentiableManifold
     from sage.manifolds.differentiable.pseudo_riemannian import PseudoRiemannianManifold
-    from sage.manifolds.submanifold.topological_immersion import TopologicalImmersion
-    from sage.manifolds.submanifold.immersion import Immersion
+    from sage.manifolds.submanifold.topological_submanifold import TopologicalSubmanifold
+    from sage.manifolds.submanifold.differentiable_submanifold import DifferentiableSubmanifold
     from sage.manifolds.submanifold.pseudo_riemannian_submanifold import PseudoRiemannianSubmanifold
     # Some sanity checks
     if not isinstance(dim, (int, Integer)):
@@ -2461,10 +2461,10 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
                 raise TypeError("The parent manifold must be a manifold")
             if dim>ambient._dim:
                 raise ValueError("Embedded manifolds must be of smaller dimension than their parent")
-            return TopologicalImmersion(dim, name, field, structure, ambient,
-                                      latex_name=latex_name,
-                                      start_index=start_index,
-                                      unique_tag=getrandbits(128)*time())
+            return TopologicalSubmanifold(dim, name, field, structure, ambient,
+                                          latex_name=latex_name,
+                                          start_index=start_index,
+                                          unique_tag=getrandbits(128)*time())
         return TopologicalManifold(dim, name, field, structure,
                                    latex_name=latex_name,
                                    start_index=start_index,
@@ -2487,11 +2487,11 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
                 raise TypeError("The parent manifold must be a differentiable manifold")
             if dim>ambient._dim:
                 raise ValueError("Embedded manifolds must be of smaller dimension than their parent")
-            return Immersion(dim, name, field, structure, ambient,
-                                      diff_degree=diff_degree,
-                                      latex_name=latex_name,
-                                      start_index=start_index,
-                                      unique_tag=getrandbits(128)*time())
+            return DifferentiableSubmanifold(dim, name, field, structure, ambient,
+                                             diff_degree=diff_degree,
+                                             latex_name=latex_name,
+                                             start_index=start_index,
+                                             unique_tag=getrandbits(128)*time())
         return DifferentiableManifold(dim, name, field, structure,
                                       diff_degree=diff_degree,
                                       latex_name=latex_name,

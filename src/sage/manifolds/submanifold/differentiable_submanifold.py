@@ -1,16 +1,16 @@
 r"""
-Immersion of a differentiable manifold
+Differentiable submanifold of a differentiable manifold.
 
-Given a differentiable manifold M over the topological field K, an
-immersion of M is defined by a differentiable manifold N on the same
-field K of dimension smaller, and a differentiable map \phi from N to M
-(also called immersion).
+Given two differentiable manifolds N and M, an immersion \phi is a
+differentiable map from N to M such that its differential is everywhere
+injective.
 
-In addition, if the differential of \phi is everywhere injective,
-then it's called an embedding. \phi can also depend on one or
-multiple parameters. As long as the differential of \phi remains
-injective in these parameters, it represent a foliation. The dimension
-of the foliation is defined as the numbers of parameters.
+If in addition \phi is a topological embedding, then it is called an embedding.
+In this case, N is a differentiable submanifold of M
+
+\phi can also depend on one or multiple parameters. As long as the differential
+of \phi remains injective in these parameters, it represent a foliation.
+The dimension of the foliation is defined as the number of parameters.
 
 AUTHORS:
 
@@ -29,25 +29,26 @@ AUTHORS:
 # *****************************************************************************
 
 from sage.manifolds.differentiable.manifold import DifferentiableManifold
-from sage.manifolds.submanifold.topological_immersion import \
-    TopologicalImmersion
+from sage.manifolds.submanifold.topological_submanifold import \
+    TopologicalSubmanifold
 from sage.rings.infinity import infinity
 
 
-class Immersion(DifferentiableManifold, TopologicalImmersion):
+class DifferentiableSubmanifold(DifferentiableManifold, TopologicalSubmanifold):
     r"""
-    Immersion of a differentiable manifold.
+    Differentiable submanifold of a differentiable manifold.
 
-    Given a differentiable manifold M over the topological field K, an
-    immersion of M is defined by a differentiable manifold N on the same
-    field K of dimension smaller, and a differentiable map \phi from N to M
-    (also called immersion).
+    Given two differentiable manifolds N and M, an immersion \phi is a
+    differentiable map from N to M such that its differential is everywhere
+    injective.
 
-    In addition, if the differential of \phi is everywhere injective,
-    then it's called an embedding. \phi can also depend on one or
-    multiple parameters. As long as the differential of \phi remains
-    injective in these parameters, it represent a foliation. The dimension
-    of the foliation is defined as the numbers of parameters.
+    If in addition \phi is a topological embedding, then it is called an
+    embedding. In this case, N is a differentiable submanifold of M
+
+    \phi can also depend on one or multiple parameters. As long as the
+    differential of \phi remains injective in these parameters, it represent
+    a foliation. The dimension of the foliation is defined as the number of
+    parameters.
 
     INPUT:
 
@@ -154,10 +155,10 @@ class Immersion(DifferentiableManifold, TopologicalImmersion):
                                         latex_name=latex_name,
                                         start_index=start_index,
                                         category=category)
-        TopologicalImmersion.__init__(self, n, name, field, structure,
-                                      ambient=ambient,
-                                      base_manifold=base_manifold,
-                                      category=category)
+        TopologicalSubmanifold.__init__(self, n, name, field, structure,
+                                        ambient=ambient,
+                                        base_manifold=base_manifold,
+                                        category=category)
 
     def _repr_(self):
         r"""

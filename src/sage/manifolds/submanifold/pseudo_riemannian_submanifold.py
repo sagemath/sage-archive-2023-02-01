@@ -1,16 +1,8 @@
 r"""
-Pseudo-Riemannian Embedding of a pseudo-Riemannian manifold
+Pseudo-Riemannian submanifold of a differentiable manifold
 
-Given a differentiable manifold M over the topological field K, a
-pseudo-Riemannian Embedding of M is defined by a pseudo-Riemannian
-manifold N on the same field K of dimension smaller, and a
-differentiable map \phi (also called embedding) from N to M which
-differential is everywhere injective.
-
-\phi can also depend on one or multiple parameters. As long as the
-differential of \phi remains injective in these parameters, it
-represent a foliation. The dimension of the foliation is defined as the
-numbers of parameters.
+A pseudo-Riemannian submanifold of a differentiable manifold is a differentiable
+submanifold which is also pseudo-Riemannian.
 
 AUTHORS:
 
@@ -28,25 +20,20 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 # *****************************************************************************
 
-from sage.manifolds.differentiable.pseudo_riemannian import PseudoRiemannianManifold
-from sage.manifolds.submanifold.immersion import Immersion
+from sage.manifolds.differentiable.pseudo_riemannian import \
+    PseudoRiemannianManifold
+from sage.manifolds.submanifold.differentiable_submanifold import \
+    DifferentiableSubmanifold
 from sage.rings.infinity import infinity
 
 
-class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,Immersion):
+class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
+                                  DifferentiableSubmanifold):
     r"""
-    Pseudo-Riemannian Embedding of a pseudo-Riemannian manifold.
+    Pseudo-Riemannian submanifold of a differentiable manifold
 
-    Given a differentiable manifold M over the topological field K, a
-    pseudo-Riemannian Embedding of M is defined by a pseudo-Riemannian
-    manifold N on the same field K of dimension smaller, and a
-    differentiable map \phi (also called embedding) from N to M which
-    differential is everywhere injective.
-
-    \phi can also depend on one or multiple parameters. As long as the
-    differential of \phi remains injective in these parameters, it
-    represent a foliation. The dimension of the foliation is defined as the
-    numbers of parameters.
+    A pseudo-Riemannian submanifold of a differentiable manifold is a
+    differentiable submanifold which is also pseudo-Riemannian.
 
     INPUT:
 
@@ -130,6 +117,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,Immersion):
     .. SEEALSO::
 
         :mod:`sage.manifolds.manifold`
+        :mod:`sage.manifolds.submanifold.differentiable_submanifold`
    """
     def __init__(self, n, name, ambient=None, metric_name='g', signature=None,
                  base_manifold=None, diff_degree=infinity, latex_name=None,
@@ -156,10 +144,10 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,Immersion):
                                           metric_latex_name=metric_latex_name,
                                           start_index=start_index,
                                           category=category)
-        Immersion.__init__(self, n, name, self._field, self._structure,
-                           ambient = ambient, base_manifold=base_manifold,
-                           latex_name=latex_name, start_index=start_index,
-                           category=category)
+        DifferentiableSubmanifold.__init__(self, n, name, self._field, self._structure,
+                                           ambient = ambient, base_manifold=base_manifold,
+                                           latex_name=latex_name, start_index=start_index,
+                                           category=category)
 
     def _repr_(self):
         r"""

@@ -328,7 +328,8 @@ dnl In this case, GCC will be installed unless SAGE_INSTALL_GCC=no.
 dnl In the latter case, a warning is given.
 AC_DEFUN([SAGE_SHOULD_INSTALL_GCC], [
     if test x$SAGE_INSTALL_GCC = xexists; then
-        true  # Do nothing if already installed
+        # Already installed in Sage, but it should remain selected
+        need_to_install_gcc=yes
     elif test x$SAGE_INSTALL_GCC = xno; then
         AC_MSG_WARN([$1])
     else
@@ -343,7 +344,8 @@ dnl Use this macro to indicate that we MUST install GCC.
 dnl In this case, it is an error if SAGE_INSTALL_GCC=no.
 AC_DEFUN([SAGE_MUST_INSTALL_GCC], [
     if test x$SAGE_INSTALL_GCC = xexists; then
-        true  # Do nothing if already installed
+        # Already installed in Sage, but it should remain selected
+        need_to_install_gcc=yes
     elif test x$SAGE_INSTALL_GCC = xno; then
         AC_MSG_ERROR([SAGE_INSTALL_GCC is set to 'no', but $1])
     else

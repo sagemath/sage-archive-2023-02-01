@@ -1202,22 +1202,22 @@ cdef class Matrix_integer_dense(Matrix_dense):
         if dim != fmpz_mat_ncols(self._matrix):
             raise ValueError("not a square matrix")
 
-        cdef int s
-        cdef int diag = 0
-        cdef int zero = 0
-        cdef size_t i,j
-        cdef size_t N
+        cdef int s, diag, zero
+        cdef size_t i,j, N
         cdef fmpz_mat_t m
 
         try:
             fmpz_mat_init(m, dim, dim)
-            fmpz_mat_set(m, self._matrix)
 
-            # 1. check that m is non-negative
+            # 1. check that self._matrix is non-negative and set
+            #    m as a 0/1 matrix
+            zero = 0
+            diag = 0
             for i in range(dim):
                 for j in range(dim):
-                    s = fmpz_sgn(fmpz_mat_entry(m, i, j))
+                    s = fmpz_sgn(fmpz_mat_entry(self._matrix, i, j))
                     if s == 0:
+                        fmpz_zero(fmpz_mat_entry(m, i, j))
                         zero = 1
                     elif s == -1:
                         return False

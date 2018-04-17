@@ -122,6 +122,8 @@ import sage.matrix.matrix_space as matrix_space
 from .args cimport MatrixArgs_init
 
 
+from sage.cpython.string cimport char_to_str
+
 cdef long num = 1
 cdef bint little_endian = (<char*>(&num))[0]
 
@@ -2930,7 +2932,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
                 t += snprintf(t, ndigits+2, "%ld ", <long>self._entries[i])
 
             sig_off()
-            data = str(s)[:-1]
+            data = char_to_str(s)[:-1]
             sig_free(s)
         return data
 

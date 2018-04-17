@@ -40,6 +40,8 @@ import os
 #
 ####################
 
+from sage.cpython.string cimport str_to_bytes
+from sage.cpython.string import FS_ENCODING
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.finite_rings.integer_mod import IntegerMod_int
@@ -375,11 +377,17 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             [1 0]
             [0 1]
         """
-        if isinstance(parent, basestring): # load from file
+        if isinstance(parent, (bytes, str)): # load from file
             if not parent:
                 raise ValueError("Can not construct meataxe matrix from empty filename")
-            FILE = os.path.realpath(parent)
-            self.Data = MatLoad(FILE)
+
+            filename = os.path.realpath(parent)
+
+            if type(filename) is not bytes:
+                filename = str_to_bytes(filename, FS_ENCODING,
+                                        'surrogateescape')
+
+            self.Data = MatLoad(filename)
             FfSetField(self.Data.Field)
             B = GF(self.Data.Field, 'z')
             parent = MatrixSpace(B, self.Data.Nor, self.Data.Noc)

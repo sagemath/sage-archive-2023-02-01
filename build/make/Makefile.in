@@ -39,6 +39,11 @@ BLAS = @SAGE_BLAS@
 BUILT_PACKAGES = @SAGE_BUILT_PACKAGES@
 DUMMY_PACKAGES = @SAGE_DUMMY_PACKAGES@
 
+# Set to the path to Sage's GCC (if GCC is installed) to force rebuilds
+# of packages if GCC changed.
+# See m4/sage_spkg_collect.m4 and https://trac.sagemath.org/ticket/24703
+GCC_DEP = @SAGE_GCC_DEP@
+
 # Versions of all the packages, in the format
 #
 # vers_<pkgname> = <pkgvers>
@@ -128,9 +133,13 @@ $(INST)/.dummy:
 # the name of some arbitrary file, or it is the '|' symbol) then it is just
 # used verbatim.
 #
+# As a special case, also adds a special variable GCC_DEP for all packages
+# except for gcc itself.  See the definition of GCC_DEP above
+#
 # Positional arguments:
 #     $(1): package name
 pkg_deps = \
+	$(if $(filter gcc,$(1)),,$$(GCC_DEP))\
 	$(foreach dep,$(deps_$(1)),\
         $(if $(value inst_$(dep)),$$(inst_$(dep)),$(dep)))
 

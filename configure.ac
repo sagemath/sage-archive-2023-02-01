@@ -352,6 +352,23 @@ AC_DEFUN([SAGE_MUST_INSTALL_GCC], [
     fi
 ])
 
+dnl Test whether an existing GCC install in Sage exists and is broken
+dnl If so set SAGE_BROKEN_GCC=yes
+AC_DEFUN([SAGE_CHECK_BROKEN_GCC], [
+    SAGE_BROKEN_GCC=no
+    if test -n "$SAGE_LOCAL" -a -f "$SAGE_LOCAL/bin/gcc"; then
+        if test -x "$SAGE_LOCAL/bin/g++"; then
+            echo '#include <complex>' >conftest.cpp
+            echo 'auto inf = 1.0 / std::complex<double>();' >>conftest.cpp
+
+            if ! bash -c "source '$SAGE_SRC/bin/sage-env' && g++ -O3 -c -o conftest.o conftest.cpp"; then
+                SAGE_BROKEN_GCC=yes
+            fi
+            rm -f conftest.*
+        fi
+    fi
+])
+
 
 # By default, do not install GCC
 need_to_install_gcc=no
@@ -364,21 +381,14 @@ if test -f "$SAGE_LOCAL/bin/gcc"; then
 
     # Check whether it actually works...
     # See https://trac.sagemath.org/ticket/24599
-    if test -x "$SAGE_LOCAL/bin/g++"; then
-        echo '#include <complex>' >conftest.cpp
-        echo 'auto inf = 1.0 / std::complex<double>();' >>conftest.cpp
-
-        if ! bash -c "source '$SAGE_SRC/bin/sage-env' && g++ -O3 -c -o conftest.o conftest.cpp"; then
-            # Pretend that GCC is not installed: remove the gcc and g++
-            # binaries and remove the "installed" file such that GCC
-            # will be built as if it was never installed before.
-            rm -f "$SAGE_LOCAL"/bin/gcc
-            rm -f "$SAGE_LOCAL"/bin/g++
-            rm -f "$SAGE_SPKG_INST"/gcc-*
-            SAGE_INSTALL_GCC=yes
-            SAGE_MUST_INSTALL_GCC([installed g++ is broken])
-        fi
-        rm -f conftest.*
+    SAGE_CHECK_BROKEN_GCC()
+    if test x$SAGE_BROKEN_GCC = xyes; then
+        # Prentend that GCC is not installed.
+        # The gcc and g++ binaries as well as the "installed" file will
+        # be removed by make before installing any packages such that
+        # GCC will be built as if was never installed before.
+        SAGE_INSTALL_GCC=yes
+        SAGE_MUST_INSTALL_GCC([installed g++ is broken])
     fi
 elif test -n "$SAGE_INSTALL_GCC"; then
     # Check the value of the environment variable SAGE_INSTALL_GCC
@@ -743,6 +753,21 @@ AC_CONFIG_COMMANDS(mkdirs,
         SAGE_SHARE="$SAGE_LOCAL/share"
         SAGE_INST="$SAGE_SPKG_INST"
     ])
+
+dnl A stamp file indicating that an existing, broken GCC install should be
+dnl cleaned up by make.
+if test x$SAGE_BROKEN_GCC = xyes; then
+AC_CONFIG_COMMANDS([broken-gcc], [
+    # Re-run the check just in case, such as when re-running config.status
+    SAGE_CHECK_BROKEN_GCC()
+    if test x$SAGE_BROKEN_GCC = xyes; then
+        touch build/make/.clean-broken-gcc
+    fi
+], [
+    SAGE_LOCAL="$SAGE_LOCAL"
+    SAGE_SRC="$SAGE_SRC"
+])
+fi
 
 AC_OUTPUT()
 

@@ -661,7 +661,7 @@ class SuperPartition(ClonableArray):
 
         The notion of horizontal strip comes from the Pieri rule for the
         Schur-star basis of symmetric functions in super space (see
-        Theorem 7 from [JL16]_).
+        Theorem 7 from [JL2016]_).
 
         INPUT:
 
@@ -709,7 +709,7 @@ class SuperPartition(ClonableArray):
 
         The notion of horizontal strip comes from the Pieri rule for the
         Schur-star-bar basis of symmetric functions in super space (see
-        Theorem 10 from [JL16]_).
+        Theorem 10 from [JL2016]_).
 
         INPUT:
 

@@ -159,7 +159,7 @@ def EuropeMap(continental=False, year=2018):
 
     return G
 
-def USAMap(continental=False, year=2018):
+def USAMap(continental=False):
     """
     Return states of USA as a graph of common border.
 
@@ -172,7 +172,6 @@ def USAMap(continental=False, year=2018):
 
     - ``continental``, a Boolean -- if set, exclude Alaska
       and Hawaii
-    - ``year`` -- reserved for future use
 
     EXAMPLES:
 
@@ -238,9 +237,6 @@ def USAMap(continental=False, year=2018):
     "Wisconsin": ["Illinois", "Iowa", "Michigan", "Minnesota"],
     "Wyoming": ["Colorado", "Idaho", "Montana", "Nebraska", "South Dakota", "Utah"]
     }
-    if year != 2018:
-        raise ValueError("currently only year 2018 is implemented")
-
     if not continental:
         states['Alaska'] = []
         states['Hawaii'] = []

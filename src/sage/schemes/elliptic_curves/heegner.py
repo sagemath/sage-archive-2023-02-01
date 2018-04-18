@@ -5543,12 +5543,13 @@ class HeegnerQuatAlg(SageObject):
     def kolyvagin_point_on_curve(self, D, c, E, p, bound=10):
         r"""
         Compute image of the Kolyvagin divisor `P_c` in
-        `E(\GF{\ell^2}) / p E(\GF{\ell^2})`.  Note that
-        this image is by definition only well defined up to
-        scalars.   However, doing multiple computations
-        will always yield the same result, and working
-        modulo different `\ell` is compatible (since we
-        always chose the same generator for `\textrm{Gal}(K_c/K_1)`).
+        `E(\GF{\ell^2}) / p E(\GF{\ell^2})`.
+
+        Note that this image is by definition only well defined up to
+        scalars.  However, doing multiple computations will always
+        yield the same result, and working modulo different `\ell` is
+        compatible (since we always choose the same generator for
+        `\textrm{Gal}(K_c/K_1)`).
 
         INPUT:
 

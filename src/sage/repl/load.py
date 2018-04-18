@@ -209,6 +209,11 @@ def load(filename, globals, attach=False):
     if attach:
         from sage.repl.attach import add_attached_file
 
+    if isinstance(filename, bytes):
+        # For Python 3 in particular, convert bytes filenames to str since the
+        # rest of this functions operate on filename as a str
+        filename = bytes_to_str(filename, FS_ENCODING, 'surrogateescape')
+
     filename = os.path.expanduser(filename)
 
     if filename.lower().startswith(('http://', 'https://')):

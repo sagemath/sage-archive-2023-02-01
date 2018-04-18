@@ -154,7 +154,7 @@ def modern_uninstall(spkg_name, sage_local, files, verbose=False):
 
     print("Uninstalling existing '{0}'".format(spkg_name))
 
-    # Run the package's postrm script, if it exists.
+    # Run the package's prerm script, if it exists.
     # If an error occurs here we abort the uninstallation for now.
     # This means a prerm script actually has the ability to abort an
     # uninstallation, for example, if some manual intervention is needed

@@ -2487,8 +2487,7 @@ def compatible_system_lift( compatible_system, split_primes_list ):
     2. ``w[0] == wi[0]`` for all ``i``
     3. ``v[j] == vi[j]`` modulo ``qi - 1`` for all ``i`` and all ``j > 0``
     4. ``w[j] == wi[j]`` modulo ``qi - 1`` for all ``i`` and all `j > 0``
-    5. every entry of ``v`` and ``w`` is bounded by ``L/2`` in absolute value, where ``L`` is the
-      least common multiple of ``{qi - 1 : qi in split_primes_list }``
+    5. every entry of ``v`` and ``w`` is bounded by ``L/2`` in absolute value, where ``L`` is the least common multiple of ``{qi - 1 : qi in split_primes_list }``
 
     EXAMPLES::
 

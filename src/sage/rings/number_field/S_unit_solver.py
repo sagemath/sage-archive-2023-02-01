@@ -274,7 +274,7 @@ def mus(SUK,v):
 
 def possible_mu0s(SUK, v):
     r"""
-    Return a list `[\mu_0]` of all possible `\mu_0`s defined on pp. 824-825 of TCDF, [Sma1995]_
+    Return a list `[\mu_0]` of all possible `\mu_0` values defined on pp. 824-825 of TCDF, [Sma1995]_
 
     INPUT:
 
@@ -1481,8 +1481,7 @@ def split_primes_large_lcm(SUK, bound):
     - each prime `q` in `L` splits completely in `K`
     - if `Q` is a prime in `S` and `q` is the rational
       prime below `Q`, then `q` is **not** in `L`
-    - the value ``lcm { q - 1 : q in L }`` is greater than or equal
-       to ``2 * bound + 1`.
+    - the value ``lcm { q - 1 : q in L }`` is greater than or equal to ``2 * bound + 1``.
 
     .. NOTE::
 

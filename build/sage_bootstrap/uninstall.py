@@ -154,9 +154,25 @@ def modern_uninstall(spkg_name, sage_local, files, verbose=False):
 
     print("Uninstalling existing '{0}'".format(spkg_name))
 
-    # Run the package's postrm script, if it exists
-    # If an error occurs here we abort the uninstallation for now
-    run_spkg_script(spkg_name, spkg_scripts, 'prerm', 'pre-uninstall')
+    # Run the package's postrm script, if it exists.
+    # If an error occurs here we abort the uninstallation for now.
+    # This means a prerm script actually has the ability to abort an
+    # uninstallation, for example, if some manual intervention is needed
+    # to proceed.
+    try:
+        run_spkg_script(spkg_name, spkg_scripts, 'prerm', 'pre-uninstall')
+    except Exception as exc:
+        script_path = os.path.join(spkg_scripts, 'spkg-prerm')
+        print("Error: The pre-uninstall script for '{0}' failed; the "
+              "package will not be uninstalled, and some manual intervention "
+              "may be needed to repair the package's state before "
+              "uninstallation can proceed.  Check further up in this log "
+              "for more details, or the pre-uninstall script itself at "
+              "{1}.".format(spkg_name, script_path), file=sys.stderr)
+        if isinstance(exc, subprocess.CalledProcessError):
+            sys.exit(exc.returncode)
+        else:
+            sys.exit(1)
 
     def rmdir(dirname):
         if os.path.isdir(dirname):
@@ -168,6 +184,8 @@ def modern_uninstall(spkg_name, sage_local, files, verbose=False):
             print("Warning: Directory '{0}' not found".format(
                 cur_dir), file=sys.stderr)
 
+    # Remove the files; if a directory is empty after removing a file
+    # from it, remove the directory too.
     for filename in files:
         filename = pth.join(sage_local, filename)
         dirname = pth.dirname(filename)

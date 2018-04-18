@@ -1161,6 +1161,9 @@ class SignedPermutations(ColoredPermutations):
             sage: S = SignedPermutations(4)
             sage: S.long_element().length() == max(x.length() for x in S)
             True
+            sage: all(SignedPermutations(n).long_element().length() == n^2
+            ....:     for n in range(2,10))
+            True
         """
         if index_set is not None:
             return super(SignedPermutations, self).long_element()

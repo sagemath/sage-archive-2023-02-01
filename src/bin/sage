@@ -385,6 +385,35 @@ fi
 
 
 #####################################################################
+# Report information about the Sage environment
+#####################################################################
+
+if [ "$1" = '-dumpversion' -o "$1" = '--dumpversion' ]; then
+        sage_version
+        exit 0
+fi
+
+if [ "$1" = '-v' -o "$1" = '-version' -o "$1" = '--version' ]; then
+        sage_version -f
+        exit 0
+fi
+
+if [ "$1" = '-root'  -o "$1" = '--root' ]; then
+    echo "$SAGE_ROOT"
+    exit 0
+fi
+
+if [ $# -gt 0 ]; then
+  if [ "$1" = '-h' -o "$1" = '-?' -o "$1" = '-help' -o "$1" = '--help' ]; then
+     usage
+  fi
+  if [ "$1" = "-advanced" -o "$1" = "--advanced" ]; then
+     usage_advanced
+  fi
+fi
+
+
+#####################################################################
 # Source sage-env ($0 is the name of this "sage" script, so we can just
 # append -env to that). We redirect stdout to stderr, which is safer
 # for scripts.
@@ -396,15 +425,6 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-
-if [ $# -gt 0 ]; then
-  if [ "$1" = '-h' -o "$1" = '-?' -o "$1" = '-help' -o "$1" = '--help' ]; then
-     usage
-  fi
-  if [ "$1" = "-advanced" -o "$1" = "--advanced" ]; then
-     usage_advanced
-  fi
-fi
 
 # Prepare for running Sage, either interactively or non-interactively.
 sage_setup() {
@@ -468,25 +488,6 @@ fi
 
 if [ "$1" = '-cleaner' -o "$1" = '--cleaner' ]; then
     exec sage-cleaner
-fi
-
-#####################################################################
-# Report information about the Sage environment
-#####################################################################
-
-if [ "$1" = '-dumpversion' -o "$1" = '--dumpversion' ]; then
-        sage_version
-        exit 0
-fi
-
-if [ "$1" = '-v' -o "$1" = '-version' -o "$1" = '--version' ]; then
-        sage_version -f
-        exit 0
-fi
-
-if [ "$1" = '-root'  -o "$1" = '--root' ]; then
-    echo "$SAGE_ROOT"
-    exit 0
 fi
 
 #####################################################################

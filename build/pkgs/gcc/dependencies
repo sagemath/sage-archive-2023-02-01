@@ -1,4 +1,4 @@
-| $(MP_LIBRARY) mpfr mpc zlib xz
+_clean-broken-gcc | $(MP_LIBRARY) mpfr mpc zlib xz
 
 ------------------------------------------------------------------------
 NOTE: all dependencies of GCC must be order-only dependencies

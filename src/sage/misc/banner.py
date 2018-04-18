@@ -13,7 +13,7 @@ SageMath version and banner info
 #*****************************************************************************
 from __future__ import print_function
 
-from sage.env import (SAGE_VERSION, SAGE_DATE, SAGE_VERSION_FULL,
+from sage.env import (SAGE_VERSION, SAGE_DATE, SAGE_VERSION_BANNER,
                       SAGE_SRC, SAGE_BANNER)
 
 def version():
@@ -29,7 +29,7 @@ def version():
        sage: version()
        'SageMath version ..., Release Date: ...'
     """
-    return SAGE_VERSION_FULL
+    return SAGE_VERSION_BANNER
 
 
 def banner_text(full=True):

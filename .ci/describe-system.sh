@@ -16,4 +16,6 @@ uname -a
 df -h
 cat /proc/cpuinfo
 cat /proc/meminfo
+cat /proc/sys/vm/overcommit_memory
+cat /proc/sys/vm/overcommit_ratio
 docker info

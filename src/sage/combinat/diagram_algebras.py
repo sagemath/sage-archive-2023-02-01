@@ -1433,24 +1433,6 @@ class DiagramAlgebra(CombinatorialFreeModule):
         (composite_diagram, loops_removed) = d1.compose(d2)
         return self.term(composite_diagram, self._q**loops_removed)
 
-    @cached_method
-    def one_basis(self):
-        r"""
-        The following constructs the identity element of ``self``.
-
-        It is not called directly; instead one should use ``DA.one()`` if
-        ``DA`` is a defined diagram algebra.
-
-        EXAMPLES::
-
-            sage: import sage.combinat.diagram_algebras as da
-            sage: R.<x> = QQ[]
-            sage: D = da.DiagramAlgebra(2, x, R, 'P', da.PartitionDiagrams(2))
-            sage: D.one_basis()
-            {{-2, 2}, {-1, 1}}
-        """
-        return self._base_diagrams(identity_set_partition(self._k))
-
     def _latex_term(self, diagram):
         r"""
         Return `\LaTeX` representation of ``diagram`` to draw
@@ -1994,6 +1976,24 @@ class PartitionAlgebra(DiagramAlgebra):
             return None
         return super(PartitionAlgebra, self)._coerce_map_from_(R)
 
+    @cached_method
+    def one_basis(self):
+        r"""
+        The following constructs the identity element of ``self``.
+
+        It is not called directly; instead one should use ``DA.one()`` if
+        ``DA`` is a defined diagram algebra.
+
+        EXAMPLES::
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: R.<x> = QQ[]
+            sage: D = da.DiagramAlgebra(2, x, R, 'P', da.PartitionDiagrams(2))
+            sage: D.one_basis()
+            {{-2, 2}, {-1, 1}}
+        """
+        return self._base_diagrams(identity_set_partition(self._k))
+
     def orbit_basis(self):
         """
         Return the Orbit basis of ``self``.
@@ -2211,6 +2211,8 @@ class OrbitBasisOfPartitionAlgebra(DiagramAlgebra):
             sage: O2(P2([[1,2,-2],[-1]]))
             OP{{-2, -1, 1, 2}} + OP{{-2, 1, 2}, {-1}}
         """
+        if x in self.base_ring():
+            return x*self.one()
         if isinstance(x, (PartitionAlgebra.Element, SubPartitionAlgebra.Element)):
             return self._alg.to_orbit_basis(self._alg(x))
         d = self._alg._diag_to_Blst(x).diagram()
@@ -2246,6 +2248,7 @@ class OrbitBasisOfPartitionAlgebra(DiagramAlgebra):
         except:
             raise AssertionError("No known coercion from {} to {}".format(R,self._repr_()))
 
+    @cached_method
     def one(self):
         """
         Return the basis element `1` of the partition algebra in the Orbit basis.
@@ -2258,8 +2261,9 @@ class OrbitBasisOfPartitionAlgebra(DiagramAlgebra):
             sage: O2.one()
             OP{{-1, 1}, {-2, 2}} + OP{{-2, -1, 1, 2}}
         """
-        one = self._base_diagrams(identity_set_partition(self._k))
-        return self.sum_of_terms((d,1) for d in one.coarsenings())
+        id = self._base_diagrams(identity_set_partition(self._k))
+        brone = self.base_ring().one()
+        return self.sum_of_terms((d,brone) for d in id.coarsenings())
 
     def diagram_basis(self):
         """

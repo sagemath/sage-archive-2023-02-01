@@ -596,7 +596,7 @@ class FreeModuleTensor(ModuleElement):
             sage: w = - 3/4 * de[1] + de[2] ; w
             Linear form on the 2-dimensional vector space M over the Rational
              Field
-            sage: w.set_name('w', latex_name='\omega')
+            sage: w.set_name('w', latex_name='\\omega')
             sage: w.display()
             w = -3/4 e^1 + e^2
             sage: latex(w.display())  # display in the notebook

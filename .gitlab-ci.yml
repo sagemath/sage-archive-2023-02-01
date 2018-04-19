@@ -119,10 +119,8 @@ build-from-clean:
     - develop
   except: []
   tags:
-    # 4 GB of RAM are available
-    - gce
     # 60 GB of HDD are available
-    - 60hdd
+    - do
 
 test-dev:
   stage: test

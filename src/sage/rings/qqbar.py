@@ -537,6 +537,7 @@ from sage.arith.all import factor
 from . import infinity
 from sage.categories.action import Action
 
+from sage.structure.global_options import GlobalOptions
 
 CC = ComplexField()
 CIF = ComplexIntervalField()
@@ -547,6 +548,12 @@ class AlgebraicField_common(sage.rings.ring.Field):
     Common base class for the classes :class:`~AlgebraicRealField` and
     :class:`~AlgebraicField`.
     """
+
+    class options(GlobalOptions):
+        NAME = 'AlgebraicField'
+        display_format = dict(default='decimal',
+                              values=dict(decimal='Always display a decimal approximation',
+                                          radical='Display using radicals (if possible)'))
 
     def default_interval_prec(self):
         r"""
@@ -2904,6 +2911,11 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         """
         Returns the print representation of this number.
 
+        :class:`AlgebraicField_common`'s option display_format controls
+        whether irrational numbers will always be printed using a decimal
+        approximation (display_format = 'decimal'), or whether an attempt
+        will be made to print them as radicals (display_format = 'radical')
+
         EXAMPLES::
 
             sage: AA(22/7) # indirect doctest
@@ -2920,11 +2932,23 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             0.9324722294043558? + 0.3612416661871530?*I
             sage: AA(19).sqrt()
             4.358898943540674?
+            sage: AA.options.display_format = 'radical'
+            sage: AA(19).sqrt()
+            sqrt(19)
+            sage: QQbar.zeta(6)
+            1/2*I*sqrt(3) + 1/2
+            sage: AA.options.display_format = 'decimal'
         """
+        from sage.symbolic.ring import SR # Lazy to avoid cyclic dependency
+
         if isinstance(self._descr, ANRational):
             return repr(self._descr)
         if isinstance(self._descr, ANExtensionElement) and self._descr._generator is QQbar_I_generator:
             return repr(self._descr._value)
+        if self.parent().options.display_format == 'radical':
+            radical = self.radical_expression()
+            if radical.parent() is SR:
+                return repr(radical)
         if self.parent() is QQbar:
             return repr(CIF(self._value))
         else:
@@ -2950,13 +2974,22 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             0.9324722294043558? + 0.3612416661871530? \sqrt{-1}
             sage: latex(AA(19).sqrt())
             4.358898943540674?
+            sage: AA.options.display_format = 'radical'
+            sage: latex(AA(19).sqrt())
+            \sqrt{19}
+            sage: latex(QQbar.zeta(6))
+            \frac{1}{2} i \, \sqrt{3} + \frac{1}{2}
+            sage: AA.options.display_format = 'decimal'
         """
         from sage.misc.latex import latex
         if isinstance(self._descr, ANRational):
             return latex(self._descr._value)
         if isinstance(self._descr, ANExtensionElement) and self._descr._generator is QQbar_I_generator:
             return latex(self._descr._value)
-        return repr(self).replace('*I', r' \sqrt{-1}')
+        if self.parent().options.display_format == 'radical':
+            return latex(self.radical_expression()).replace('*I', r' \sqrt{-1}')
+        else:
+            return repr(self).replace('*I', r' \sqrt{-1}')
 
     def _sage_input_(self, sib, coerce):
         r"""

@@ -2923,6 +2923,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sqrt(19)
             sage: QQbar.zeta(6)
             1/2*I*sqrt(3) + 1/2
+            sage: AA.options.display_format = 'decimal'
         """
         from sage.symbolic.ring import SR # Lazy to avoid cyclic dependency
 
@@ -2964,6 +2965,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             \sqrt{19}
             sage: latex(QQbar.zeta(6))
             \frac{1}{2} i \, \sqrt{3} + \frac{1}{2}
+            sage: AA.options.display_format = 'decimal'
         """
         from sage.misc.latex import latex
         if isinstance(self._descr, ANRational):

@@ -44,7 +44,7 @@ from sage.structure.parent import Parent
 from sage.sets.set import Set
 from sage.sets.family import Family
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
-from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
 
 from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.composition import Compositions
@@ -197,7 +197,7 @@ class OrderedMultisetPartition(CombinatorialElement):
         """
         return Composition([sum(k) for k in self])
 
-    def support(self):
+    def letters(self):
         r"""
         Return a sorted list of distinct integers occurring within the blocks of ``self``.
 
@@ -231,14 +231,14 @@ class OrderedMultisetPartition(CombinatorialElement):
         else:
             return [(i+1) for _ in range(w[i]) for i in range(len(w))]
 
-    def max_support(self):
+    def max_letter(self):
         r"""
-        Return the maximum integer appearing in ``self.support()``.
+        Return the maximum integer appearing in ``self.letters()``.
         """
         if len(self) == 0:
             return 0
         else:
-            return max(self.support())
+            return max(self.letters())
 
     def size(self):
         """
@@ -296,10 +296,10 @@ class OrderedMultisetPartition(CombinatorialElement):
         """
         Count the number of instances `n_i` for each distinct positive integer `i`
         across all blocks of ``self``. Return as a list `[n_1, n_2, n_3, ..., n_k]`,
-        where `k` is the max letter in ``self.support()``.
+        where `k` is the max letter in ``self.letters()``.
 
         Alternatively, return as a dictionary, with keys being only the letters
-        in ``self.support()`` and values being their (positive) with positive frequency.
+        in ``self.letters()`` and values being their (positive) with positive frequency.
 
         EXAMPLES::
 
@@ -310,7 +310,7 @@ class OrderedMultisetPartition(CombinatorialElement):
             sage: OrderedMultisetPartition([]).weight() == []
             True
         """
-        a = [0 for _ in range(self.max_support())]
+        a = [0 for _ in range(self.max_letter())]
         for block in self:
             for i in block:
                 a[i-1] += 1
@@ -548,16 +548,17 @@ class OrderedMultisetPartition(CombinatorialElement):
         r"""
         A statistic on ordered multiset partitions, which we define via an example.
 
-            1.Sort each block in the list ``self`` as in ``self.minimaj_order()``
-                [{1,5,7}, {2,4}, {5,6}, {4,6,8}, {1,3}, {1,2,3}]
-                -->
-                [5,7,1 / 2,4 / 5,6 / 4,6,8 / 3,1 / 1,2,3]
-            2.Record the indices where descents in this word occur.
-                 [5, 7, 1, 2, 4, 5, 6, 4, 6, 8, 3, 1, 1, 2, 3]
-                  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
-                D = {2,             7,      10,11}
-            3.Compute the sum of the descents
-                minimaj = 2 + 7 + 10 + 11 = 30
+        1. Sort each block in the list ``self`` as in ``self.minimaj_order()``
+           - in:   [{1,5,7}, {2,4}, {5,6}, {4,6,8}, {1,3}, {1,2,3}]
+           - out:  [[5,7,1], [2,4], [5,6], [4,6,8], [3,1], [1,2,3]]
+
+        2. Record the indices where descents in this word occur.
+           - word:      [5, 7, 1 / 2, 4 / 5, 6 / 4, 6, 8 / 3, 1 / 1, 2, 3]
+           - indices:    1  2  3   4  5   6  7   8  9 10  11 12  13 14 15
+           - descents:  {   2,               7,       10, 11}
+
+        3. Compute the sum of the descents
+           - minimaj = 2 + 7 + 10 + 11 = 30
 
         See:
         [HRWxx] - arXiv:1509.07058
@@ -587,14 +588,16 @@ class OrderedMultisetPartition(CombinatorialElement):
         Returns a composition derived by concatenating the blocks of ``self`` after first ordering them
         in a prescribed order, which we define via an example.
 
-        Sort the blocks [B_1,...,B_k] of ``self`` from right to left via:
-            1.Sort the last block B_k in increasing order, call it the word W_k
-            2.If Blocks B_{i+1},...,B_k have been converted to words W_{i+1},..., W_k,
-              use the letters in B_i to make the unique word W_i that has a
-              factorization W_i=(u,v) satisfying:
-                * letters of u and v appear in increasing order, with v possibly empty
-                * letters in vu appear in increasing order
-                * v[-1] is the largest letter `a \in B_i` satisfying a <= W_{i+1}[0]
+        Sort the blocks `[B_1,...,B_k]` of ``self`` from right to left via:
+            
+        1. Sort the last block `B_k` in increasing order, call it the word `W_k`
+        
+        2. If blocks `B_{i+1}, \ldots, B_k` have been converted to words `W_{i+1}, \ldots, W_k`,
+           use the letters in `B_i` to make the unique word `W_i` that has a
+           factorization `W_i=(u,v)` satisfying:
+            - letters of `u` and `v` appear in increasing order, with `v` possibly empty
+            - letters in `vu` appear in increasing order
+            - ``v[-1]`` is the largest letter `a \in B_i` satisfying ``a <= W_{i+1}[0]``
 
         EXAMPLES::
 
@@ -629,18 +632,23 @@ class OrderedMultisetPartition(CombinatorialElement):
         r"""
         A statistic on ordered multiset partitions, which we define via an example.
 
-            1.Sort each block in the list ``self`` in descending order to create a word `w`:
-                [{3,4,5}, {2,3,4}, {1}, {4,5}] --> w = [5,4,3 / 4,3,2 / 1 / 5,4]
-            2.Create a sequence `v = [v0,v1,v2,...,v9]`  of length ``self.order()+1``, built recursively by:
-                v0=0
-                v_j = v_{j-1} + delta(j),
-                where delta(j) = 1 if j is the index of an end of a block, and zero otherwise.
-                      [5,4,3 / 4,3,2 / 1 / 5,4]
-                v = (0 0 0 1   1 1 2   3   3 4)
-            3.Compute the sum_j v_j restricted to descent positions: those j with w_j > w_{j+1}
-                      [5, 4, 3, 4, 3, 2, 1, 5, 4]
-                    (0 0, 0, 1, 1, 1, 2, 3, 3, 4)
-                maj =0+0 +0    +1 +1 +2    +3     = 7
+        1. Sort each block in the list ``self`` in descending order to create a word `w`,
+           keeping track of the original separation into blocks:
+           - in:  [{3,4,5}, {2,3,4}, {1}, {4,5}]
+           - out: [ 5,4,3 /  4,3,2 /  1 /  5,4] 
+
+        2. Create a sequence `v = (v_0, v_1, v_2, \ldots)`  of length ``self.order()+1``, 
+           built recursively by:
+           - `v_0 = 0`
+           - `v_j = v_{j-1} + \delta(j)`, where `\delta(j) = 1` if `j` is the index of 
+             an end of a block, and zero otherwise.
+              + in:    [ 5,4,3 /  4,3,2 /  1 /  5,4] 
+              + out: (0, 0,0,1,   1,1,2,   3,   3,4)
+
+        3. Compute the `\sum_j v_j` restricted to descent positions: those `j` with `w_j > w_{j+1}`:
+           - in:    [5, 4, 3, 4, 3, 2, 1, 5, 4]
+                  (0 0, 0, 1, 1, 1, 2, 3, 3, 4)
+           - maj :=  0 +0    +1 +1 +2    +3     = 7
 
         See:
         [Wil16] -  An extension of MacMahon's equidistribution theorem to ordered multiset partitions
@@ -799,14 +807,16 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
     subsets of positive integers (called blocks) with total sum of all integers
     appearing in all blocks equal to `n`.
 
-    Optional Keyword Arguments:
-    These filter all ordered multiset partitions down to those satisfying
-    certain prescribed statistics.
+    Valid keywords are:
     (See corresponding methods in see :class`OrderedMultisetPartition` for more details.)
-        weight     - a weak composition, gives the frequency of occurrences of each integer
-        length     - an integer, number of blocks in the partition
-        min_length - an integer, minimum number of blocks in the partition
-        max_length - an integer, maximum number of blocks in the partition
+    - ``length=k``     (integer `k`) specifies the number of blocks in the partition
+    - ``min_length=k`` (integer `k`) specifies minimum number of blocks in the partition
+    - ``max_length=k`` (integer `k`) specifies maximum number of blocks in the partition
+    - ``alphabet=S``  (iterable `S`) specifies allowable positive integers for use in the partition
+    - ``weight=C``     (weak composition `C`) specifies frequency of occurrences of each positive integer
+    - ``order=n``      (integer `n`) specifies the number of integers in the partition (=sum of cardinalities of its blocks)
+    - ``min_order=n``  (integer `n`) specifies minimum number of integers in the partition (=sum of cardinalities of its blocks)
+    - ``max_order=n``  (integer `n`) specifies maximum number of integers in the partition (=sum of cardinalities of its blocks)
 
     EXAMPLES:
 
@@ -877,20 +887,59 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         sage: OrderedMultisetPartitions(4, max_length=2).list()
         [[{1}, {3}], [{1}, {1,2}], [{2}, {2}], [{3}, {1}], [{1,2}, {1}], [{4}], [{1,3}]]
 
-    The option ``weight`` can also be used to constrain the ordered multiset partitions by the number of each
-    integer appearing. For example, the ordered multiset partitions of 4 of listed by
-    weight below::
+    The option ``alphabet`` constrains which integers appear across all blocks of 
+    the ordered multiset partition. For example, the ordered multiset partitions of 4 
+    are listed for different choices of alphabet below. Note that ``alphabet`` 
+    is allowed to be an integer or an iterable::
 
+        sage: OMPs = OrderedMultisetPartitions
+        sage: OMPs(4, alphabet=3).list()
+        [[{1}, {1}, {1}, {1}], [{1}, {1}, {2}], [{1}, {2}, {1}], [{1}, {3}], [{1}, {1,2}],
+         [{2}, {1}, {1}], [{2}, {2}], [{3}, {1}], [{1,2}, {1}], [{1,3}]]
+        sage: OMPs(4, alphabet=3) == OMPs(4, alphabet=[1,2,3])
+        True
+        sage: OMPs(4, alphabet=[3]).list()
+        []
+        sage: OMPs(4, alphabet=[1,3]).list()
+        [[{1}, {1}, {1}, {1}], [{1}, {3}], [{3}, {1}], [{1,3}]]
+        sage: OMPs(4, alphabet=[2]).list()
+        [[{2}, {2}]]
+        sage: OMPs(4, alphabet=[1,2]).list()
+        [[{1}, {1}, {1}, {1}], [{1}, {1}, {2}], [{1}, {2}, {1}], [{1}, {1,2}],
+         [{2}, {1}, {1}], [{2}, {2}], [{1,2}, {1}]]
+        sage: OMPs(4, alphabet=4).list() == OMPs(4).list()
+        True
+
+    The option ``weight`` can also be used to constrain the ordered multiset partitions. 
+    It is a refinement of ``alphabet`` in that it specifies the number of times each integer
+    appears. For example, the ordered multiset partitions of 4 are listed by weight below::
+
+        sage: OrderedMultisetPartitions(4, weight=[0,0,0,1]).list()
+        [[{4}]]
         sage: OrderedMultisetPartitions(4, weight=[1,0,1]).list()
         [[{1}, {3}], [{3}, {1}], [{1,3}]]
         sage: OrderedMultisetPartitions(4, weight=[0,2]).list()
         [[{2}, {2}]]
-        sage: OrderedMultisetPartitions(4, weight=[4]).list()
-        [[{1}, {1}, {1}, {1}]]
-        sage: OrderedMultisetPartitions(4, weight=[2,1]).list()
-        [[{1}, {1}, {2}], [{1}, {2}, {1}], [{1}, {1,2}], [{2}, {1}, {1}], [{1,2}, {1}]]
         sage: OrderedMultisetPartitions(4, weight=[0,1,1]).list()
         []
+        sage: OrderedMultisetPartitions(4, weight=[2,1]).list()
+        [[{1}, {1}, {2}], [{1}, {2}, {1}], [{1}, {1,2}], [{2}, {1}, {1}], [{1,2}, {1}]]
+        sage: OrderedMultisetPartitions(4, weight=[4]).list()
+        [[{1}, {1}, {1}, {1}]]
+
+    The ``order`` options are coarse versions of ``weight``. For example, the ordered 
+    multiset partitions of 4 are listed by order below::
+
+        sage: OrderedMultisetPartitions(4, order=1).list()
+        [[{4}]]
+        sage: OrderedMultisetPartitions(4, order=2).list()
+        [[{1}, {3}], [{2}, {2}], [{3}, {1}], [{1,3}]]
+        sage: OrderedMultisetPartitions(4, order=3).list()
+        [[{1}, {1}, {2}], [{1}, {2}, {1}], [{1}, {1,2}], [{2}, {1}, {1}], [{1,2}, {1}]]
+        sage: OrderedMultisetPartitions(4, order=4).list()
+        [[{1}, {1}, {1}, {1}]]
+        sage: OrderedMultisetPartitions(4, max_order=2).list()
+        [[{1}, {3}], [{2}, {2}], [{3}, {1}], [{4}], [{1,3}]]
 
     TESTS::
 
@@ -921,7 +970,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         else:
             is_infinite = False
             if len(kwargs) == 0:
-                if isinstance(n, (int,Integer)):
+                if n in ZZ:
                     return OrderedMultisetPartitions_n(n)
                 else:
                     raise ValueError("n must be an integer")
@@ -934,6 +983,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
                 def rename(): return name
                 F = Family(apply_strict_multiset_constraints(OrderedMultisetPartitions_n(n), kwargs))
                 F._repr_ = rename
+                F.constraints = dict(kwargs)
 
                 return F
 
@@ -976,7 +1026,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         """
         if len(lst) == 0:
             return self.element_class(self, [])
-        if isinstance(lst[0], (int, Integer)):
+        if lst[0] in ZZ:
             if 0 in lst:
                 return OrderedMultisetPartitions().from_zero_list(list(lst))
             else:
@@ -1002,7 +1052,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
                 return False
             if len(block) == 0 or (len(Set(block)) != len(list(block))):
                 return False
-            if not all([(isinstance(i, (int,Integer)) and i > 0) for i in block]):
+            if not all([(i in ZZ and i > 0) for i in block]):
                 return False
         return True
 
@@ -1056,7 +1106,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
             sage: OrderedMultisetPartitions().from_list([1,4,1,8])
             [{1}, {4}, {1}, {8}]
         """
-        if isinstance(lst, (list, tuple)) and (0 not in lst) and isinstance(lst[0], (int, Integer)):
+        if isinstance(lst, (list, tuple)) and (0 not in lst) and (lst[0] in ZZ):
             d = [[x] for x in lst]
             return self.element_class(self, d)
         else:
@@ -1095,9 +1145,10 @@ def apply_strict_multiset_constraints(n_or_OMPs, kwargs):
     Filter output of ``OrderedMultisetPartitions_n``,
     subject to passed constraints dictionary ``kwargs``.
 
-    Allowable keywords are: length, min_length, max_length, weight.
+    Allowable keywords are: 
+    length, min_length, max_length, alphabet, weight, order, min_order, max_order.
     """
-    if isinstance(n_or_OMPs, (int, Integer)):
+    if n_or_OMPs in ZZ:
         OMPs = OrderedMultisetPartitions_n(n_or_OMPs)
     else:
         OMPs = n_or_OMPs
@@ -1109,16 +1160,25 @@ def apply_strict_multiset_constraints(n_or_OMPs, kwargs):
             return co.length() >= tst
         if key == 'max_length':
             return co.length() <= tst
+        if key == 'alphabet':
+            if tst in ZZ:
+                tst = range(1,tst+1)
+            return set(tst).issuperset(set(co.letters()))
         if key == 'weight':
             t = len(tst)
             return co.weight()[:t] == list(tst)
+        if key == 'order':
+            return co.order() == tst
+        if key == 'min_order':
+            return co.order() >= tst
+        if key == 'max_order':
+            return co.order() <= tst
     def passes_tests(co):
         return all([pass_test(co, (key,tst)) for (key,tst) in kwargs.iteritems()])
 
     for co in OMPs:
         if passes_tests(co):
             yield co
-    #return [co for co in OMPs if passes_tests(co)]
 
 class OrderedMultisetPartitions_all(OrderedMultisetPartitions):
     """
@@ -1265,6 +1325,11 @@ class OrderedMultisetPartitions_n(OrderedMultisetPartitions):
         #orders[n] = deg
         return deg
 
+    def an_element(self):
+        r"""
+        Return a typical ``OrderedMultisetPartition``.
+        """
+        
     def random_element(self):
         r"""
         Return a random ``OrderedMultisetPartition`` with uniform probability.

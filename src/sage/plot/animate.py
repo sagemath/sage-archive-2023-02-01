@@ -118,6 +118,8 @@ import os
 import struct
 import zlib
 
+import six
+
 from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
 from sage.misc.temporary_file import tmp_dir, tmp_filename, graphics_filename
@@ -1527,12 +1529,15 @@ class APngAssembler(object):
                 b.append(int(h[:2], 16))
                 h = h[2:]
             elif h[0] == '.': # for chunk type
-                b.extend(ord(h[i]) for i in range(1,5))
+                b.extend(ord(h[i]) for i in range(1, 5))
                 h = h[5:]
             else: # for PNG magic
                 b.append(ord(h[0]))
                 h = h[1:]
-        return ''.join(map(chr,b))
+        if six.PY2:
+            return ''.join(map(chr, b))
+        else:
+            return bytes(b)
 
     @classmethod
     def _testData(cls, name, asFile):

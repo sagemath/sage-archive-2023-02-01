@@ -239,40 +239,6 @@ class AbstractPartitionDiagram(SetPartition):
         self._base_diagram = tuple(sorted(tuple(sorted(i)) for i in d))
         super(AbstractPartitionDiagram, self).__init__(parent, self._base_diagram)
 
-    # add options to class
-    class options(GlobalOptions):
-        r"""
-        Set and display the global options for Brauer diagram (algebras). If no
-        parameters are set, then the function returns a copy of the options
-        dictionary.
-
-        The ``options`` to diagram algebras can be accessed as the method
-        :obj:`BrauerAlgebra.options` of :class:`BrauerAlgebra` and
-        related classes.
-
-        @OPTIONS@
-
-        EXAMPLES::
-
-            sage: R.<q> = QQ[]
-            sage: BA = BrauerAlgebra(2, q)
-            sage: E = BA([[1,2],[-1,-2]])
-            sage: E
-            B{{-2, -1}, {1, 2}}
-            sage: BrauerAlgebra.options.display="compact"  # known bug (Trac #24323)
-            sage: E                                        # known bug (Trac #24323)
-            B[12/12;]
-            sage: BrauerAlgebra.options._reset()           # known bug (Trac #24323)
-        """
-        NAME = 'Brauer diagram'
-        module = 'sage.combinat.diagram_algebras'
-        option_class='AbstractPartitionDiagram'
-        display = dict(default="normal",
-                       description='Specifies how the Brauer diagrams should be printed',
-                       values=dict(normal="Using the normal representation",
-                                   compact="Using the compact representation"),
-                                   case_sensitive=False)
-
     def check(self):
         r"""
         Check the validity of the input for the diagram.
@@ -439,6 +405,57 @@ class BrauerDiagram(AbstractPartitionDiagram):
             sage: bd1 = da.BrauerDiagram(bd, ((-2,-1),(1,2)) )
         """
         super(BrauerDiagram, self).__init__(parent,d)
+
+    # add options to class
+    class options(GlobalOptions):
+        r"""
+        Set and display the global options for Brauer diagram (algebras). If no
+        parameters are set, then the function returns a copy of the options
+        dictionary.
+
+        The ``options`` to diagram algebras can be accessed as the method
+        :obj:`BrauerAlgebra.options` of :class:`BrauerAlgebra` and
+        related classes.
+
+        @OPTIONS@
+
+        The compact representation ``[A/B;pi]`` of the Brauer algebra diagram
+        (see [GL1996]_) has the following components:
+
+        - ``A`` -- is a list of pairs of positive elements (upper row) that 
+          are connected, 
+
+        - ``B`` -- is a list of pairs of negative elements (lower row) that
+          are connected, and
+
+        - ``pi`` --  is a permutation that is to be interpreted as the relative
+          order of the remaining elements in the top row and the bottom row.
+
+        EXAMPLES::
+
+            sage: R.<q> = QQ[]
+            sage: BA = BrauerAlgebra(2, q)
+            sage: E = BA([[1,2],[-1,-2]])
+            sage: E
+            B{{-2, -1}, {1, 2}}
+            sage: BA8 = BrauerAlgebra(8, q)
+            sage: BA8([[1,-4],[2,4],[3,8],[-7,-2],[5,7],[6,-1],[-3,-5],[-6,-8]])
+            B{{-8, -6}, {-7, -2}, {-5, -3}, {-4, 1}, {-1, 6}, {2, 4}, {3, 8}, {5, 7}}
+            sage: BrauerAlgebra.options.display = "compact"
+            sage: E
+            B[12/12;]
+            sage: B{{-8, -6}, {-7, -2}, {-5, -3}, {-4, 1}, {-1, 6}, {2, 4}, {3, 8}, {5, 7}}
+            B[24.38.57/35.27.68;21]
+            sage: BrauerAlgebra.options._reset()
+        """
+        NAME = 'Brauer diagram'
+        module = 'sage.combinat.diagram_algebras'
+        option_class='BrauerDiagram'
+        display = dict(default="normal",
+                       description='Specifies how the Brauer diagrams should be printed',
+                       values=dict(normal="Using the normal representation",
+                                   compact="Using the compact representation"),
+                                   case_sensitive=False)
 
     def check(self):
         r"""
@@ -859,7 +876,7 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
         sage: bd.options._reset()
     """
     Element = BrauerDiagram
-    options = AbstractPartitionDiagram.options
+    options = BrauerDiagram.options
 
     def __init__(self, order, category=None):
         r"""
@@ -1912,6 +1929,8 @@ class BrauerAlgebra(SubPartitionAlgebra):
         """
         SubPartitionAlgebra.__init__(self, k, q, base_ring, prefix, BrauerDiagrams(k))
 
+    options = BrauerDiagram.options
+
     def _repr_(self):
         """
         Return a string representation of ``self``.
@@ -2689,8 +2708,3 @@ def set_partition_composition(sp1, sp2):
 # END BORROWED CODE
 ##########################################################################
 
-# Deprecations from trac:18555. July 2016
-from sage.misc.superseded import deprecated_function_alias
-AbstractPartitionDiagram.global_options=deprecated_function_alias(18555, AbstractPartitionDiagram.options)
-BrauerDiagramOptions = deprecated_function_alias(18555, AbstractPartitionDiagram.options)
-BrauerDiagrams.global_options = deprecated_function_alias(18555, BrauerDiagrams.options)

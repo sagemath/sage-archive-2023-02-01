@@ -166,6 +166,7 @@ class TopologicalSubmanifold(TopologicalManifold):
             self._ambient = ambient
         self._immersed = False
         self._embedded = False
+        self._adapted_charts = None
 
     def _repr_(self):
         r"""
@@ -412,7 +413,7 @@ class TopologicalSubmanifold(TopologicalManifold):
                         for i in range(len(expr)):
                             expr[i] = expr[i].subs(substitutions)
                         chartMU.transition_map(chartMV, expr)
-
+        self._adapted_charts = res
         return res
 
     def plot(self, param, u, v, chart1=None, chart2=None, **kwargs):

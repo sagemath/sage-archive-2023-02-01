@@ -135,6 +135,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
              3-dimensional differentiable manifold M
 
         """
+
         PseudoRiemannianManifold.__init__(self, n, name=name,
                                           metric_name=metric_name,
                                           signature=signature,
@@ -148,6 +149,20 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                                            ambient = ambient, base_manifold=base_manifold,
                                            latex_name=latex_name, start_index=start_index,
                                            category=category)
+
+        self._difft = None          #done
+        self._gradt = None          #done
+        self._normal = None         #done
+        self._lapse = None          #done
+        self._shift = None          #done
+        self._gamma = None          #done
+        self._ambient_gamma = None  #done
+        self._K = None              #done
+        self._ambient_K = None      #done
+        self._ambient_g = None      #done
+
+        self._sgn = 1 if ambient._structure.name == "Riemannian" else -1
+
 
     def _repr_(self):
         r"""
@@ -169,3 +184,90 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                "in {}-dimensional differentiable " \
                "manifold {}".format(self._dim, self._name, self._ambient._dim,
                                     self._ambient._name)
+
+    def ambient_g(self):
+        if  not self._embedded or not isinstance(self._ambient,PseudoRiemannianManifold):
+            raise ValueError("Submanifold must be embedded in a pseudo-Riemnnian manifold")
+        if self._ambient_g is not None:
+            return self._ambient_g
+        self._ambient_g = self._ambient.metric()
+        return self._ambient_g
+
+    def gamma(self):
+        if self._gamma is not None:
+            return self._gamma
+        #self._gamma = PseudoRiemannianManifold.metric(self,r'\gamma_' + self._name)
+        self._gamma = self.metric()
+        self._gamma.set(self._immersion.pullback(self.ambient_g()))
+        return self._gamma
+
+    def difft(self):
+        if self._dim_foliation == 0:
+            raise ValueError("A foliation is needed to perform this calculation")
+        if self._difft is not None:
+            return self._difft
+        self._difft = self._t_inverse[self._var[0]].differential()
+        return self._difft
+
+    def gradt(self):
+        if self._dim_foliation == 0:
+            raise ValueError("A foliation is needed to perform this calculation")
+        if self._gradt is not None:
+            return self._gradt
+        self._gradt = self._ambient_g.inverse().contract(self.difft())
+        return self._gradt
+
+    def normal(self):
+        if self._normal is not None:
+            return self._normal
+        self._normal = self._sgn*self.lapse()*self.gradt()
+
+        # ne marche pas :
+        # product = self.ambient_g().contract(self._immersion.pushforward(self.atlas()[0].frame()[0]))
+        # for i in range(1,self._dim):
+        #     product = product.wedge(self.ambient_g().contract(self._immersion.pushforward(self.atlas()[0].frame()[i])))
+        # self._normal = product.hodge_dual(self.ambient_g())
+        return self._normal
+
+    def ambient_gamma(self):
+        if self._ambient_gamma is not None:
+            return self._ambient_gamma
+        self._ambient_gamma = self.ambient_g() + \
+                              self.ambient_g().contract(self.normal()) * \
+                              self.ambient_g().contract(self.normal())
+        return self._ambient_gamma
+
+    def lapse(self):
+        if self._dim_foliation == 0:
+            raise ValueError("A foliation is needed to perform this calculation")
+        if self._lapse is not None:
+            return self._lapse
+        self._lapse = 1/(self._sgn*self.ambient_g()(self.gradt(),self.gradt())).sqrt()
+        return self._lapse
+
+    def shift(self):
+        if self._dim_foliation == 0:
+            raise ValueError("A foliation is needed to perform this calculation")
+        if self._shift is not None:
+            return self._shift
+        self._shift = self._adapted_charts[0].frame()[self._dim]-self.lapse()*self.normal()
+        return self._shift
+
+    def ambient_K(self):
+        if self._ambient_K is not None:
+            return self._ambient_K
+        nab = self.ambient_g().connection('nabla', r'\nabla')
+        self._ambient_K = -self.ambient_g().contract(nab(self.normal()))-\
+                          nab(self.normal()).contract(self.normal()).contract(self.ambient_g())*\
+                          self.normal().contract(self.ambient_g())
+        return self._ambient_K
+
+    def K(self):
+        if self._K is not None:
+            return self._K
+        self._K = self._immersion.pullback(self.ambient_K())
+        return self._K
+
+
+
+

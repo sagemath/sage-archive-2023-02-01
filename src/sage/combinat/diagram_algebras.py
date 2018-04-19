@@ -444,7 +444,7 @@ class BrauerDiagram(AbstractPartitionDiagram):
             sage: BrauerAlgebra.options.display = "compact"
             sage: E
             B[12/12;]
-            sage: B{{-8, -6}, {-7, -2}, {-5, -3}, {-4, 1}, {-1, 6}, {2, 4}, {3, 8}, {5, 7}}
+            sage: BA8([[1,-4],[2,4],[3,8],[-7,-2],[5,7],[6,-1],[-3,-5],[-6,-8]])
             B[24.38.57/35.27.68;21]
             sage: BrauerAlgebra.options._reset()
         """

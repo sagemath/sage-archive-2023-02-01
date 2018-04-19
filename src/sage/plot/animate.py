@@ -1172,8 +1172,8 @@ class APngAssembler(object):
         TESTS::
 
             sage: from sage.plot.animate import APngAssembler
-            sage: from six import StringIO
-            sage: buf = StringIO()
+            sage: from io import BytesIO
+            sage: buf = BytesIO()
             sage: apng = APngAssembler(buf, 2)
             sage: fn = APngAssembler._testData("input1", True)
             sage: apng.add_frame(fn, delay=0x567, delay_denominator=0x1234)
@@ -1222,8 +1222,8 @@ class APngAssembler(object):
         TESTS::
 
             sage: from sage.plot.animate import APngAssembler
-            sage: from six import StringIO
-            sage: buf = StringIO()
+            sage: from io import BytesIO
+            sage: buf = BytesIO()
             sage: apng = APngAssembler(buf, 1)
             sage: fn = APngAssembler._testData("input1", True)
             sage: apng.set_default(fn)
@@ -1312,8 +1312,8 @@ class APngAssembler(object):
         TESTS::
 
             sage: from sage.plot.animate import APngAssembler
-            sage: from six import StringIO
-            sage: buf = StringIO()
+            sage: from io import BytesIO
+            sage: buf = BytesIO()
             sage: apng = APngAssembler(buf, 1)
             sage: apng._seqno()
             '\x00\x00\x00\x00'
@@ -1482,8 +1482,8 @@ class APngAssembler(object):
         TESTS::
 
             sage: from sage.plot.animate import APngAssembler
-            sage: from six import StringIO
-            sage: buf = StringIO()
+            sage: from io import BytesIO
+            sage: buf = BytesIO()
             sage: apng = APngAssembler(buf, 1)
             sage: buf.getvalue()
             '\x89PNG\r\n\x1a\n'
@@ -1628,8 +1628,8 @@ class APngAssembler(object):
             sage: APngAssembler._testCase1()
         """
         from sage.doctest.fixtures import trace_method
-        from six import StringIO
-        buf = StringIO()
+        from io import BytesIO
+        buf = BytesIO()
         apng = cls(buf, 2)
         if methodToTrace is not None:
             trace_method(apng, methodToTrace, **kwds)

@@ -264,35 +264,21 @@ class DocBuilder(object):
     # import the customized builder for object.inv files
     inventory = builder_helper('inventory')
 
-if NUM_THREADS > 1:
-    def build_many(target, args):
-        from multiprocessing import Pool
-        pool = Pool(NUM_THREADS, maxtasksperchild=1)
-        # map_async handles KeyboardInterrupt correctly. Plain map and
-        # apply_async does not, so don't use it.
-        x = pool.map_async(target, args, 1)
-        try:
-            ret = x.get(99999)
-            pool.close()
-            pool.join()
-        except Exception:
-            pool.terminate()
-            if ABORT_ON_ERROR:
-                raise
-        return ret
-else:
-    def build_many(target, args):
-        results = []
-
-        for arg in args:
-            try:
-                results.append(target(arg))
-            except Exception:
-                if ABORT_ON_ERROR:
-                    raise
-
-        return results
-
+def build_many(target, args):
+    from multiprocessing import Pool
+    pool = Pool(NUM_THREADS, maxtasksperchild=1)
+    # map_async handles KeyboardInterrupt correctly. Plain map and
+    # apply_async does not, so don't use it.
+    x = pool.map_async(target, args, 1)
+    try:
+        ret = x.get(99999)
+        pool.close()
+        pool.join()
+    except Exception:
+        pool.terminate()
+        if ABORT_ON_ERROR:
+            raise
+    return ret
 
 ##########################################
 #      Parallel Building Ref Manual      #

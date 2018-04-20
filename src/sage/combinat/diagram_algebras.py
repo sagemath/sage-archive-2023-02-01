@@ -1306,8 +1306,13 @@ class DiagramAlgebra(CombinatorialFreeModule):
             sage: sp = da.PartitionDiagrams(2)( [[1,2], [-1,-2]] )
             sage: D[sp]
             P{{-2, -1}, {1, 2}}
+            sage: D[[1,-1,2,-2]]
+            P{{-2, -1, 1, 2}}
         """
-        i = self._base_diagrams(i)
+        if isinstance(i, (list, tuple)) and all(a in ZZ for a in i):
+            i = self._base_diagrams([i])
+        else:
+            i = self._base_diagrams(i)
         if i in self.basis().keys():
             return self.basis()[i]
         raise ValueError("{0} is not an index of a basis element".format(i))

@@ -2937,6 +2937,8 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sqrt(19)
             sage: QQbar.zeta(6)
             1/2*I*sqrt(3) + 1/2
+            sage: QQbar.zeta(17)
+            0.9324722294043558? + 0.3612416661871530?*I
             sage: AA.options.display_format = 'decimal'
         """
         from sage.symbolic.ring import SR # Lazy to avoid cyclic dependency
@@ -2947,7 +2949,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             return repr(self._descr._value)
         if self.parent().options.display_format == 'radical':
             radical = self.radical_expression()
-            if radical.parent() is SR:
+            if radical is not self:
                 return repr(radical)
         if self.parent() is QQbar:
             return repr(CIF(self._value))
@@ -2979,6 +2981,8 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             \sqrt{19}
             sage: latex(QQbar.zeta(6))
             \frac{1}{2} i \, \sqrt{3} + \frac{1}{2}
+            sage: latex(QQbar.zeta(17))
+            0.9324722294043558? + 0.3612416661871530? \sqrt{-1}
             sage: AA.options.display_format = 'decimal'
         """
         from sage.misc.latex import latex
@@ -2987,9 +2991,10 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         if isinstance(self._descr, ANExtensionElement) and self._descr._generator is QQbar_I_generator:
             return latex(self._descr._value)
         if self.parent().options.display_format == 'radical':
-            return latex(self.radical_expression()).replace('*I', r' \sqrt{-1}')
-        else:
-            return repr(self).replace('*I', r' \sqrt{-1}')
+            radical = self.radical_expression()
+            if radical is not self:
+                return latex(radical)
+        return repr(self).replace('*I', r' \sqrt{-1}')
 
     def _sage_input_(self, sib, coerce):
         r"""

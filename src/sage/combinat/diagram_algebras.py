@@ -2344,6 +2344,37 @@ class OrbitBasis(DiagramAlgebra):
         return self._from_dict({d: one for d in PD(diag).coarsenings()},
                                coerce=False, remove_zeros=False)
 
+    def _product_on_basis(self, d1, d2):
+        r"""
+        Return the product `O_{d_1} O_{d_2}` of two elements in the Orbit basis.
+        
+        REFERENCES:
+
+        .. [BHxx] Georgia Benkart and Tom Halverson, *Partition algebras and the invariant theory...* 
+                  arXiv:1707.1410
+        """
+        ## According to Corollary 4.12 in [BHxx], product is zero unless the 
+        ## stacked diagrams "exactly match" in the middle.
+        q = self._q
+        k = self._k
+        PD = self._base_diagrams
+        def is_thru(block):
+            top = Set(block).intersection(Set(range(1,k+1))) 
+            bot = Set(block).intersection(Set(range(-k,0)))
+            return (not top.is_empty()) and (not bot.is_empty())
+
+        pi_1 = SetPartition([[-i for i in part if i<0] for part in d1 if len([-i for i in part if i<0])>0])
+        pi_2 = SetPartition([[i for i in part if i>0] for part in d2 if len([i for i in part if i>0])>0])
+        if pi_1 != pi_2:
+            return self.zero()
+        else:
+            D, removed = d1.compose(d2)
+            thruD = [block for block in D if is_thru(block)]
+            restD = [block for block in D if block not in thruD]
+            coarsenings = [SetPartitions()(thruD+list(d)) for d in restD.coarsenings()]
+            term_dict = {PD(d): prod([q-t for t in range(len(d),len(d)+removed)]) for d in coarsenings}
+            return self._from_dict(term_dict)
+            
     class Element(PartitionAlgebra.Element):
         def to_diagram_basis(self):
             """

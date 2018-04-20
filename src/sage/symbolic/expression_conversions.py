@@ -1036,7 +1036,7 @@ def algebraic(ex, field):
         sage: AA(-golden_ratio)
         -1.618033988749895?
         sage: QQbar((2*I)^(1/2))
-        1 + 1*I
+        I + 1
         sage: QQbar(e^(pi*I/3))
         0.50000000000000000? + 0.866025403784439?*I
 

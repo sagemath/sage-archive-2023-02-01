@@ -140,29 +140,29 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                                           metric_name=metric_name,
                                           signature=signature,
                                           base_manifold=base_manifold,
-                                          diff_degree = diff_degree,
+                                          diff_degree=diff_degree,
                                           latex_name=latex_name,
                                           metric_latex_name=metric_latex_name,
                                           start_index=start_index,
                                           category=category)
-        DifferentiableSubmanifold.__init__(self, n, name, self._field, self._structure,
-                                           ambient = ambient, base_manifold=base_manifold,
-                                           latex_name=latex_name, start_index=start_index,
+        DifferentiableSubmanifold.__init__(self, n, name, self._field,
+                                           self._structure, ambient=ambient,
+                                           base_manifold=base_manifold,
+                                           latex_name=latex_name,
+                                           start_index=start_index,
                                            category=category)
 
-        self._difft = None          #done
-        self._gradt = None          #done
-        self._normal = None         #done
-        self._lapse = None          #done
-        self._shift = None          #done
-        self._gamma = None          #done
-        self._ambient_gamma = None  #done
-        self._K = None              #done
-        self._ambient_K = None      #done
-        self._ambient_g = None      #done
-
+        self._difft = None
+        self._gradt = None
+        self._normal = None
+        self._lapse = None
+        self._shift = None
+        self._first_fundamental_form = None
+        self._ambient_first_fundamental_form = None
+        self._second_fundamental_form = None
+        self._ambient_second_fundamental_form = None
+        self._ambient_metric = None
         self._sgn = 1 if ambient._structure.name == "Riemannian" else -1
-
 
     def _repr_(self):
         r"""
@@ -178,96 +178,445 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
              3-dimensional differentiable manifold M'
 
         """
-        if self._ambient == None:
-            return super(PseudoRiemannianManifold,self).__repr__()
+        if self._ambient is None:
+            return super(PseudoRiemannianManifold, self).__repr__()
         return "{}-dimensional pseudo-Riemannian submanifold {} embedded " \
                "in {}-dimensional differentiable " \
                "manifold {}".format(self._dim, self._name, self._ambient._dim,
                                     self._ambient._name)
 
-    def ambient_g(self):
-        if  not self._embedded or not isinstance(self._ambient,PseudoRiemannianManifold):
-            raise ValueError("Submanifold must be embedded in a pseudo-Riemnnian manifold")
-        if self._ambient_g is not None:
-            return self._ambient_g
-        self._ambient_g = self._ambient.metric()
-        return self._ambient_g
+    def ambient_metric(self):
+        r"""
+        Return the metric of the ambient manifold.
 
-    def gamma(self):
-        if self._gamma is not None:
-            return self._gamma
-        #self._gamma = PseudoRiemannianManifold.metric(self,r'\gamma_' + self._name)
-        self._gamma = self.metric()
-        self._gamma.set(self._immersion.pullback(self.ambient_g()))
-        return self._gamma
+        The result is cached, so calling this method multiple times always
+        returns the same result at no additional cost.
+
+        OUTPUT:
+
+        - the metric of the ambient manifold
+
+        EXAMPLES:
+
+        A sphere embedded in euclidan space::
+
+            sage: M = Manifold(3,'M',structure = "Riemannian")
+            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
+            sage: r = var('r')
+            sage: assume(r>0)
+            sage: E.<x,y,z> = M.chart()
+            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
+            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
+            sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
+            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
+            ....:                 t_inverse = {r:phi_inv_r})
+            sage: N.declare_embedding()
+            sage: T = N.adapted_chart()
+            sage: g = M.metric('g')
+            sage: g[0,0],g[1,1],g[2,2]=1,1,1
+            sage: print(N.ambient_metric()[:])
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+        """
+        if not self._embedded or not isinstance(self._ambient,
+                                                PseudoRiemannianManifold):
+            raise ValueError("Submanifold must be "
+                             "embedded in a pseudo-Riemnnian manifold")
+        if self._ambient_metric is not None:
+            return self._ambient_metric
+        self._ambient_metric = self._ambient.metric()
+        return self._ambient_metric
+
+    def first_fundamental_form(self):
+        r"""
+        Return the first fundamental form of the submanifold.
+
+        The result is cached, so calling this method multiple times always
+        returns the same result at no additional cost.
+
+        EXAMPLES:
+
+        A sphere embedded in euclidan space::
+
+            sage: M = Manifold(3,'M',structure = "Riemannian")
+            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
+            sage: r = var('r')
+            sage: assume(r>0)
+            sage: E.<x,y,z> = M.chart()
+            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
+            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
+            sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
+            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
+            ....:                 t_inverse = {r:phi_inv_r})
+            sage: N.declare_embedding()
+            sage: T = N.adapted_chart()
+            sage: g = M.metric('g')
+            sage: g[0,0],g[1,1],g[2,2]=1,1,1
+            sage: print(N.first_fundamental_form()[:])
+            [          r^2             0]
+            [            0 r^2*sin(th)^2]
+
+        """
+        if self._first_fundamental_form is not None:
+            return self._first_fundamental_form
+        self._first_fundamental_form = self.metric()
+        self._first_fundamental_form\
+            .set(self._immersion.pullback(self.ambient_metric()))
+        return self._first_fundamental_form
+
+    induced_metric = first_fundamental_form
 
     def difft(self):
+        r"""
+        Return the differential of the first scalar field defining the
+        submanifold
+
+        The result is cached, so calling this method multiple times always
+        returns the same result at no additional cost.
+
+        EXAMPLES:
+
+        A sphere embedded in euclidan space::
+
+            sage: M = Manifold(3,'M',structure = "Riemannian")
+            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
+            sage: r = var('r')
+            sage: assume(r>0)
+            sage: E.<x,y,z> = M.chart()
+            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
+            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
+            sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
+            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
+            ....:                 t_inverse = {r:phi_inv_r})
+            sage: N.declare_embedding()
+            sage: T = N.adapted_chart()
+            sage: g = M.metric('g')
+            sage: g[0,0],g[1,1],g[2,2]=1,1,1
+            sage: print(N.difft().display())
+            x/sqrt(x^2 + y^2 + z^2) dx + y/sqrt(x^2 + y^2 + z^2) dy + z/sqrt(x^2 + y^2 + z^2) dz
+
+        """
         if self._dim_foliation == 0:
-            raise ValueError("A foliation is needed to perform this calculation")
+            raise ValueError("A foliation is needed to "
+                             "perform this calculation")
         if self._difft is not None:
             return self._difft
         self._difft = self._t_inverse[self._var[0]].differential()
         return self._difft
 
     def gradt(self):
+        r"""
+        Return the gradient of the first scalar field defining the
+        submanifold
+
+        The result is cached, so calling this method multiple times always
+        returns the same result at no additional cost.
+
+        EXAMPLES:
+
+        A sphere embedded in euclidan space::
+
+            sage: M = Manifold(3,'M',structure = "Riemannian")
+            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
+            sage: r = var('r')
+            sage: assume(r>0)
+            sage: E.<x,y,z> = M.chart()
+            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
+            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
+            sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
+            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
+            ....:                 t_inverse = {r:phi_inv_r})
+            sage: N.declare_embedding()
+            sage: T = N.adapted_chart()
+            sage: g = M.metric('g')
+            sage: g[0,0],g[1,1],g[2,2]=1,1,1
+            sage: print(N.gradt().display())
+            x/sqrt(x^2 + y^2 + z^2) d/dx + y/sqrt(x^2 + y^2 + z^2) d/dy + z/sqrt(x^2 + y^2 + z^2) d/dz
+
+        """
         if self._dim_foliation == 0:
-            raise ValueError("A foliation is needed to perform this calculation")
+            raise ValueError("A foliation is needed to perform "
+                             "this calculation")
         if self._gradt is not None:
             return self._gradt
-        self._gradt = self._ambient_g.inverse().contract(self.difft())
+        self._gradt = self.ambient_metric().inverse().contract(self.difft())
         return self._gradt
 
     def normal(self):
+        r"""
+        Return a normal unit vector to the submanifold.
+
+        For now, it can only do by computing gradt() first, i.e. a foliation
+        is needed to perform this computation, although it is possible to
+        proceed without, using the formula:
+
+        .. MATH::
+
+            n = \overrightarrow{*}(\mathrm{d}x_0\wedge\mathrm{d}x_1\wedge...\wedge\mathrm{d}x_{n-1})
+
+        where the star is the hodge dual operator and de wedge the product on
+        the exterior algebra.
+
+        This is not currently possible to implement in sagemanifold because the
+        tensors are defined on different domains, despite having the same
+        codomain, which should make the contraction possible
+
+
+        The result is cached, so calling this method multiple times always
+        returns the same result at no additional cost.
+
+        EXAMPLES:
+
+        A sphere embedded in euclidan space::
+
+            sage: M = Manifold(3,'M',structure = "Riemannian")
+            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
+            sage: r = var('r')
+            sage: assume(r>0)
+            sage: E.<x,y,z> = M.chart()
+            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
+            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
+            sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
+            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
+            ....:                 t_inverse = {r:phi_inv_r})
+            sage: N.declare_embedding()
+            sage: T = N.adapted_chart()
+            sage: g = M.metric('g')
+            sage: g[0,0],g[1,1],g[2,2]=1,1,1
+            sage: print(N.normal().display())
+            x/sqrt(x^2 + y^2 + z^2) d/dx + y/sqrt(x^2 + y^2 + z^2) d/dy + z/sqrt(x^2 + y^2 + z^2) d/dz
+
+        Or in spherical coordinates::
+
+            sage: print(N.normal().display(T[0].frame(),T[0]))
+            d/dr_M
+
+        .. TODO:
+
+            Implement normal() in a way that doesn't need a foliation.
+
+        """
         if self._normal is not None:
             return self._normal
         self._normal = self._sgn*self.lapse()*self.gradt()
-
-        # ne marche pas :
-        # product = self.ambient_g().contract(self._immersion.pushforward(self.atlas()[0].frame()[0]))
-        # for i in range(1,self._dim):
-        #     product = product.wedge(self.ambient_g().contract(self._immersion.pushforward(self.atlas()[0].frame()[i])))
-        # self._normal = product.hodge_dual(self.ambient_g())
         return self._normal
 
-    def ambient_gamma(self):
-        if self._ambient_gamma is not None:
-            return self._ambient_gamma
-        self._ambient_gamma = self.ambient_g() + \
-                              self.ambient_g().contract(self.normal()) * \
-                              self.ambient_g().contract(self.normal())
-        return self._ambient_gamma
+    def ambient_first_fundamental_form(self):
+        r"""
+        Return the first fundamental form of the submanifold as a tensor of the
+        ambient manifold.
+
+        The result is cached, so calling this method multiple times always
+        returns the same result at no additional cost.
+
+        EXAMPLES:
+
+        A sphere embedded in euclidan space::
+
+            sage: M = Manifold(3,'M',structure = "Riemannian")
+            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
+            sage: r = var('r')
+            sage: assume(r>0)
+            sage: E.<x,y,z> = M.chart()
+            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
+            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
+            sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
+            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
+            ....:                 t_inverse = {r:phi_inv_r})
+            sage: N.declare_embedding()
+            sage: T = N.adapted_chart()
+            sage: g = M.metric('g')
+            sage: g[0,0],g[1,1],g[2,2]=1,1,1
+            sage: print(N.ambient_first_fundamental_form().\
+            ....:   display(T[0].frame(),T[0]))
+            r_M^2 dth_M*dth_M + r_M^2*sin(th_M)^2 dph_M*dph_M + 2 dr_M*dr_M
+
+        """
+        if self._ambient_first_fundamental_form is not None:
+            return self._ambient_first_fundamental_form
+        self._ambient_first_fundamental_form = \
+            self.ambient_metric() \
+            + self.ambient_metric().contract(self.normal())\
+            * self.ambient_metric().contract(self.normal())
+        return self._ambient_first_fundamental_form
+
+    ambient_induced_metric = ambient_first_fundamental_form
 
     def lapse(self):
+        r"""
+        Return the lapse function of the foliation
+
+        The result is cached, so calling this method multiple times always
+        returns the same result at no additional cost.
+
+        EXAMPLES:
+
+        A sphere embedded in euclidan space::
+
+            sage: M = Manifold(3,'M',structure = "Riemannian")
+            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
+            sage: r = var('r')
+            sage: assume(r>0)
+            sage: E.<x,y,z> = M.chart()
+            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
+            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
+            sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
+            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
+            ....:                 t_inverse = {r:phi_inv_r})
+            sage: N.declare_embedding()
+            sage: T = N.adapted_chart()
+            sage: g = M.metric('g')
+            sage: g[0,0],g[1,1],g[2,2]=1,1,1
+            sage: print(N.lapse().display())
+            M --> R
+            (x, y, z) |--> 1
+            (th_M, ph_M, r_M) |--> 1
+
+        """
         if self._dim_foliation == 0:
-            raise ValueError("A foliation is needed to perform this calculation")
+            raise ValueError("A foliation is needed "
+                             "to perform this calculation")
         if self._lapse is not None:
             return self._lapse
-        self._lapse = 1/(self._sgn*self.ambient_g()(self.gradt(),self.gradt())).sqrt()
+        self._lapse = 1/(self._sgn * self.ambient_metric()(self.gradt(),
+                                                           self.gradt())).sqrt()
         return self._lapse
 
     def shift(self):
+        r"""
+        Return the shift function of the foliation
+
+        The result is cached, so calling this method multiple times always
+        returns the same result at no additional cost.
+
+        EXAMPLES:
+
+        A sphere embedded in euclidan space::
+
+            sage: M = Manifold(3,'M',structure = "Riemannian")
+            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
+            sage: r = var('r')
+            sage: assume(r>0)
+            sage: E.<x,y,z> = M.chart()
+            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
+            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
+            sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
+            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
+            ....:                 t_inverse = {r:phi_inv_r})
+            sage: N.declare_embedding()
+            sage: T = N.adapted_chart()
+            sage: g = M.metric('g')
+            sage: g[0,0],g[1,1],g[2,2]=1,1,1
+            sage: print(N.shift().display())
+            0
+
+        """
         if self._dim_foliation == 0:
-            raise ValueError("A foliation is needed to perform this calculation")
+            raise ValueError("A foliation is needed "
+                             "to perform this calculation")
         if self._shift is not None:
             return self._shift
-        self._shift = self._adapted_charts[0].frame()[self._dim]-self.lapse()*self.normal()
+        self._shift = self._adapted_charts[0].frame()[self._dim]\
+            - self.lapse() * self.normal()
         return self._shift
 
-    def ambient_K(self):
-        if self._ambient_K is not None:
-            return self._ambient_K
-        nab = self.ambient_g().connection('nabla', r'\nabla')
-        self._ambient_K = -self.ambient_g().contract(nab(self.normal()))-\
-                          nab(self.normal()).contract(self.normal()).contract(self.ambient_g())*\
-                          self.normal().contract(self.ambient_g())
-        return self._ambient_K
+    def ambient_second_fundamental_form(self):
+        r"""
+        Return the second fundamental form of the submanifold as a tensor of the
+        ambient manifold.
 
-    def K(self):
-        if self._K is not None:
-            return self._K
-        self._K = self._immersion.pullback(self.ambient_K())
-        return self._K
+        The result is cached, so calling this method multiple times always
+        returns the same result at no additional cost.
 
+        EXAMPLES:
 
+        A sphere embedded in euclidan space::
 
+            sage: M = Manifold(3,'M',structure = "Riemannian")
+            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
+            sage: r = var('r')
+            sage: assume(r>0)
+            sage: E.<x,y,z> = M.chart()
+            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
+            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
+            sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
+            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
+            ....:                 t_inverse = {r:phi_inv_r})
+            sage: N.declare_embedding()
+            sage: T = N.adapted_chart()
+            sage: g = M.metric('g')
+            sage: g[0,0],g[1,1],g[2,2]=1,1,1
+            sage: print(N.ambient_second_fundamental_form()\
+            ....:       .display(T[0].frame(),T[0])) #long time
+            -r_M dth_M*dth_M - r_M*sin(th_M)^2 dph_M*dph_M
 
+        """
+        if self._ambient_second_fundamental_form is not None:
+            return self._ambient_second_fundamental_form
+        nab = self.ambient_metric().connection('nabla', r'\nabla')
+        self._ambient_second_fundamental_form = \
+            -self.ambient_metric().contract(nab(self.normal())) \
+            - nab(self.normal()).contract(self.normal())\
+            .contract(self.ambient_metric())\
+            * self.normal().contract(self.ambient_metric())
+        return self._ambient_second_fundamental_form
+
+    ambient_extrinsic_curvature = ambient_second_fundamental_form
+
+    def second_fundamental_form(self):
+        r"""
+        Return the second fundamental form of the submanifold.
+
+        The result is cached, so calling this method multiple times always
+        returns the same result at no additional cost.
+
+        EXAMPLES:
+
+        A sphere embedded in euclidan space::
+
+            sage: M = Manifold(3,'M',structure = "Riemannian")
+            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
+            sage: r = var('r')
+            sage: assume(r>0)
+            sage: E.<x,y,z> = M.chart()
+            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
+            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
+            sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
+            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
+            ....:                 t_inverse = {r:phi_inv_r})
+            sage: N.declare_embedding()
+            sage: T = N.adapted_chart()
+            sage: g = M.metric('g')
+            sage: g[0,0],g[1,1],g[2,2]=1,1,1
+            sage: print(N.second_fundamental_form().display()) # long time
+            -r dth*dth - r*sin(th)^2 dph*dph
+
+        """
+        if self._second_fundamental_form is not None:
+            return self._second_fundamental_form
+        self._second_fundamental_form = \
+            self._immersion.pullback(self.ambient_second_fundamental_form())
+        return self._second_fundamental_form
+
+    extrinsic_curvature = second_fundamental_form

@@ -229,7 +229,7 @@ class AbstractPartitionDiagram(SetPartition):
         sage: pd4 = da.AbstractPartitionDiagram(pd, [[1,2],[3,4]])
         Traceback (most recent call last):
         ...
-        ValueError: this does not represent two rows of vertices
+        ValueError: this does not represent two rows of vertices of order 2
     """
     def __init__(self, parent, d):
         r"""
@@ -254,12 +254,19 @@ class AbstractPartitionDiagram(SetPartition):
             sage: pd2 = da.AbstractPartitionDiagram(pd, [[1,2],[3,4]]) # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: this does not represent two rows of vertices
+            ValueError: this does not represent two rows of vertices of order 2
+            sage: pd2 = da.AbstractPartitionDiagram(pd, [[1],[-1]]) # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: this does not represent two rows of vertices of order 2
         """
         if self._base_diagram:
-            tst = sorted(flatten(self._base_diagram))
-            if len(tst) % 2 or tst != list(range(-len(tst)//2,0)) + list(range(1,len(tst)//2+1)):
-                raise ValueError("this does not represent two rows of vertices")
+            tst = Set(flatten(self._base_diagram))
+            if tst != self.parent()._base_set:
+                raise ValueError("this does not represent two rows of vertices of order "\
+                    +str(self.parent().order))
+            #if len(tst) % 2 or tst != list(range(-len(tst)//2,0)) + list(range(1,len(tst)//2+1)):
+            #    raise ValueError("this does not represent two rows of vertices")
 
     def __eq__(self, other):
         r"""
@@ -714,6 +721,7 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
         Parent.__init__(self, category=category)
         self.diagram_func = diagram_func
         self.order = order
+        self._base_set = Set(range(1,self.order+1)) | Set(range(-self.order,0))
 
     def __iter__(self):
         r"""
@@ -1295,9 +1303,9 @@ class DiagramAlgebra(CombinatorialFreeModule):
 
         raise ValueError("invalid input of {0}".format(set_partition))
 
-    def __getitem__(self, i):
+    def __getitem__(self, d):
         """
-        Get the basis item of ``self`` indexed by ``i``.
+        Get the basis item of ``self`` indexed by ``d``.
 
         EXAMPLES::
 
@@ -1309,14 +1317,29 @@ class DiagramAlgebra(CombinatorialFreeModule):
             P{{-2, -1}, {1, 2}}
             sage: D[[1,-1,2,-2]]
             P{{-2, -1, 1, 2}}
+            sage: D3 = da.DiagramAlgebra(3, x, R, 'P', da.PartitionDiagrams(3))
+            sage: da.PartitionDiagrams(3)( [[1,2], [-1,-2]] )
+            Traceback (most recent call last):
+            ...
+            ValueError: this does not represent two rows of vertices of order 2
+            sage: D3[sp]
+            P{{-3, 3}, {-2, -1}, {1, 2}}
+            sage: D3[[1,-1,2,-2]]
+            P{{-3, 3}, {-2, -1, 1, 2}}
+            sage: D3[[1,2,-2]]
+            P{{-3}, {-2, 1, 2}, {-1}, {3}}
         """
-        if isinstance(i, (list, tuple)) and all(a in ZZ for a in i):
-            i = self._base_diagrams([i])
+        if isinstance(d, (list, tuple)) and all(a in ZZ for a in d):
+            #d = self._base_diagrams([i])
+            bool = pairing_is_possible([d], self._k)
+            d = self._base_diagrams(to_set_partition([d], self._k, through_strands=bool))
         else:
-            i = self._base_diagrams(i)
-        if i in self.basis().keys():
-            return self.basis()[i]
-        raise ValueError("{0} is not an index of a basis element".format(i))
+            #d = self._base_diagrams(d)
+            bool = pairing_is_possible(d, self._k)
+            d = self._base_diagrams(to_set_partition(d, self._k, through_strands=bool))
+        if d in self.basis().keys():
+            return self.basis()[d]
+        raise ValueError("{0} is not an index of a basis element".format(d))
 
     def _perm_to_Blst(self, w):
         """
@@ -1376,9 +1399,7 @@ class DiagramAlgebra(CombinatorialFreeModule):
             return self.one()
         if d[0] in ZZ:
             return self._perm_to_Blst(d)
-        d_support = flatten(map(list,d))
-        assert max(d_support) <= self._k
-        if all([-i in d_support for i in d_support]):
+        if pairing_is_possible(d, self._k):
             d = to_set_partition(d, self._k, through_strands=True)
         else:
             d = to_set_partition(d, self._k)
@@ -1877,11 +1898,6 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
             ValueError: {{-2, 1}, {-1, 2}} is not an index of a basis element
         """
         # coercion from basis keys
-        # TODO: fix bug in PartitionDiagrams that
-        #       treats ``{}`` as a valid ``PartitionDiagram`` of order ``self._k``
-        #sp = self._base_diagrams(x)
-        #if sp in self.basis().keys():
-        #   return self.basis()[sp]
         if self.basis().keys().is_parent_of(x):
             return self.basis()[x]
 
@@ -3289,6 +3305,30 @@ def propagating_number(sp):
         if min(part) < 0  and max(part) > 0:
             pn += 1
     return pn
+
+def pairing_is_possible(d, k):
+    r"""
+    Determine whether or not omitted nodes may be added in pairs `{i,-i}`.
+
+    INPUT:
+    - ``d`` -- a set partition of `X \subseteq {-k, \ldots, -2, -1, 1, 2, \ldots, k}`.
+
+    OUTPUT:
+    - ``True``  if there is a perfect matching on the nodes comprising the
+                complement of `X` of the form `{i, -i}`;
+    - ``False`` otherwise.
+
+    TESTS::
+
+        sage: import sage.combinat.diagram_algebras as da
+        sage: da.pairing_is_possible([[-1,3],[1,2,5],[-3],[-2,-5]], 7)
+        True
+        sage: da.pairing_is_possible([[-1,3],[1,2,5],[-3],[-2]], 7)
+        False
+    """
+    d_support = flatten(map(list,d))
+    assert max(d_support) <= k
+    return all([-i in d_support for i in d_support])
 
 def to_set_partition(l, k=None, through_strands=False):
     r"""

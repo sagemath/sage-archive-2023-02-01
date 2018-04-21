@@ -162,6 +162,7 @@ from sage.graphs.base.c_graph cimport CGraph
 from sage.ext.memory_allocator cimport MemoryAllocator
 
 from sage.graphs.base.static_sparse_graph cimport short_digraph, init_short_digraph, free_short_digraph, out_degree
+from sage.graphs.base.static_sparse_backend cimport simple_BFS
 
 cdef inline all_pairs_shortest_path_BFS(gg,
                                         unsigned short * predecessors,
@@ -898,100 +899,6 @@ def eccentricity(G, algorithm="standard"):
 ############
 # Diameter #
 ############
-
-cdef inline uint32_t simple_BFS(uint32_t n,
-                                uint32_t ** p_vertices,
-                                uint32_t source,
-                                uint32_t *distances,
-                                uint32_t *predecessors,
-                                uint32_t *waiting_list,
-                                bitset_t seen):
-    """
-    Perform a breadth first search (BFS) using the same method as in
-    sage.graphs.distances_all_pairs.all_pairs_shortest_path_BFS
-
-    Furthermore, the method returns the eccentricity of the source which is
-    either the last computed distance when all vertices are seen, or a very
-    large number (UINT32_MAX) when the graph is not connected.
-
-    INPUT:
-
-    - ``n`` -- number of vertices of the graph.
-
-    - ``p_vertices`` -- The outneighbors of vertex i are enumerated from
-      p_vertices[i] to p_vertices[i+1] - 1. If p_vertices[i] is equal to
-      p_vertices[i+1], then i has no outneighbours.  This data structure is well
-      documented in the module sage.graphs.base.static_sparse_graph
-
-    - ``source`` -- Starting node of the BFS.
-
-    - ``distances`` -- array of size ``n`` to store BFS distances from
-      ``source``. This method assumes that this array has already been
-      allocated. However, there is no need to initialize it.
-
-    - ``predecessors`` -- array of size ``n`` to store the first predecessor of
-      each vertex during the BFS search from ``source``. The predecessor of the
-      ``source`` is itself. This method assumes that this array has already
-      been allocated. However, it is possible to pass a ``NULL`` pointer in
-      which case the predecessors are not recorded. 
-
-    - ``waiting_list`` -- array of size ``n`` to store the order in which the
-      vertices are visited during the BFS search from ``source``. This method
-      assumes that this array has already been allocated. However, there is no
-      need to initialize it.
-
-    - ``seen`` -- bitset of size ``n`` that must be initialized before calling
-      this method (i.e., bitset_init(seen, n)). However, there is no need to
-      clear it.
-
-    """
-    cdef uint32_t v, u
-    cdef uint32_t waiting_beginning = 0
-    cdef uint32_t waiting_end = 0
-    cdef uint32_t * p_tmp
-    cdef uint32_t * end
-
-    # the source is seen
-    bitset_clear(seen)
-    bitset_add(seen, source)
-    distances[source] = 0
-    if predecessors!=NULL:
-        predecessors[source] = source
-
-    # and added to the queue
-    waiting_list[0] = source
-    waiting_beginning = 0
-    waiting_end = 0
-
-    # For as long as there are vertices left to explore
-    while waiting_beginning <= waiting_end:
-
-        # We pick the first one
-        v = waiting_list[waiting_beginning]
-        p_tmp = p_vertices[v]
-        end = p_vertices[v+1]
-
-        # and we iterate over all the outneighbors u of v
-        while p_tmp < end:
-            u = p_tmp[0]
-
-            # If we notice one of these neighbors is not seen yet, we set its
-            # parameters and add it to the queue to be explored later.
-            if not bitset_in(seen, u):
-                distances[u] = distances[v]+1
-                bitset_add(seen, u)
-                waiting_end += 1
-                waiting_list[waiting_end] = u
-                if predecessors!=NULL:
-                    predecessors[u] = v
-
-            p_tmp += 1
-
-        waiting_beginning += 1
-
-    # We return the eccentricity of the source
-    return distances[waiting_list[waiting_end]] if waiting_end==n-1 else UINT32_MAX
-
 
 cdef uint32_t diameter_lower_bound_2sweep(uint32_t n,
                                           uint32_t ** p_vertices,

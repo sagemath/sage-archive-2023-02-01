@@ -265,8 +265,6 @@ class AbstractPartitionDiagram(SetPartition):
             if tst != self.parent()._base_set:
                 raise ValueError("this does not represent two rows of vertices of order "\
                     +str(self.parent().order))
-            #if len(tst) % 2 or tst != list(range(-len(tst)//2,0)) + list(range(1,len(tst)//2+1)):
-            #    raise ValueError("this does not represent two rows of vertices")
 
     def __eq__(self, other):
         r"""
@@ -1330,11 +1328,9 @@ class DiagramAlgebra(CombinatorialFreeModule):
             P{{-3}, {-2, 1, 2}, {-1}, {3}}
         """
         if isinstance(d, (list, tuple)) and all(a in ZZ for a in d):
-            #d = self._base_diagrams([i])
             bool = pairing_is_possible([d], self._k)
             d = self._base_diagrams(to_set_partition([d], self._k, through_strands=bool))
         else:
-            #d = self._base_diagrams(d)
             bool = pairing_is_possible(d, self._k)
             d = self._base_diagrams(to_set_partition(d, self._k, through_strands=bool))
         if d in self.basis().keys():
@@ -2182,8 +2178,6 @@ class OrbitBasis(DiagramAlgebra):
         # TODO: should we add additional categories?
         category = alg.category()
         prefix = "O" + alg._prefix
-        # QUERY:
-        # will next line give a 'composition product' on basis? We don't want that.
         DiagramAlgebra.__init__(self, k, q, base_ring, prefix, diagrams, category)
         self._alg = alg
 

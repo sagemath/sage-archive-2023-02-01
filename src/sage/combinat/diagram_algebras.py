@@ -44,6 +44,7 @@ from sage.misc.flatten import flatten
 from sage.misc.misc_c import prod
 from sage.rings.all import ZZ
 
+import itertools
 
 def partition_diagrams(k):
     r"""
@@ -2344,37 +2345,115 @@ class OrbitBasis(DiagramAlgebra):
         return self._from_dict({d: one for d in PD(diag).coarsenings()},
                                coerce=False, remove_zeros=False)
 
-    def _product_on_basis(self, d1, d2):
+    def product_on_basis(self, d1, d2):
         r"""
-        Return the product `O_{d_1} O_{d_2}` of two elements in the Orbit basis.
-        
+        Return the product `O_{d_1} O_{d_2}` of two elements
+        in the Orbit basis ``self``.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: OP = PartitionAlgebra(2, x, R).orbit_basis()
+            sage: SP = OP.basis().keys()
+            sage: OP.product_on_basis(SP.an_element(), SP.an_element())
+            OP{{-2, -1, 1, 2}}
+            sage: o1 = OP.one(); o2 = OP([]); o3 = OP.an_element()
+            sage: o2 == o1
+            False
+            sage: o1 * o1 == o1
+            True
+            sage: o3 * o1 == o1 * o3 and o3 * o1 == o3
+            True
+            sage: o3 * o3
+            6*OP{{-2, -1, 1}, {2}} + 4*OP{{-2, -1, 1, 2}} + 4*OP{{-2, -1, 2}, {1}}
+
+        We compute Examples 4.5 in [BH2017]_::
+
+            sage: R.<x> = QQ[]
+            sage: P = PartitionAlgebra(3,x); O = P.orbit_basis()
+            sage: O[[1,2,3],[-1,-2,-3]] * O[[1,2,3],[-1,-2,-3]]
+            (x-2)*OP{{-3, -2, -1}, {1, 2, 3}} + (x-1)*OP{{-3, -2, -1, 1, 2, 3}}
+
+            sage: P = PartitionAlgebra(4,x); O = P.orbit_basis()
+            sage: O[[1],[-1],[2,3],[4,-2],[-3,-4]] * O[[1],[2,-2],[3,4],[-1,-3],[-4]]
+            (x^2-11*x+30)*OP{{-4}, {-3, -1}, {-2, 4}, {1}, {2, 3}}
+             + (x^2-9*x+20)*OP{{-4}, {-3, -1, 1}, {-2, 4}, {2, 3}}
+             + (x^2-9*x+20)*OP{{-4}, {-3, -1, 2, 3}, {-2, 4}, {1}}
+             + (x^2-9*x+20)*OP{{-4, 1}, {-3, -1}, {-2, 4}, {2, 3}}
+             + (x^2-7*x+12)*OP{{-4, 1}, {-3, -1, 2, 3}, {-2, 4}}
+             + (x^2-9*x+20)*OP{{-4, 2, 3}, {-3, -1}, {-2, 4}, {1}}
+             + (x^2-7*x+12)*OP{{-4, 2, 3}, {-3, -1, 1}, {-2, 4}}
+
+            sage: O[[1,-1],[2,-2],[3],[4,-3],[-4]] * O[[1,-2],[2],[3,-1],[4],[-3],[-4]]
+            (x-6)*OP{{-4}, {-3}, {-2, 1}, {-1, 4}, {2}, {3}}
+             + (x-5)*OP{{-4}, {-3, 3}, {-2, 1}, {-1, 4}, {2}}
+             + (x-5)*OP{{-4, 3}, {-3}, {-2, 1}, {-1, 4}, {2}}
+
+            sage: P = PartitionAlgebra(6,x); O = P.orbit_basis()
+            sage: (O[[1,-2,-3],[2,4],[3,5,-6],[6],[-1],[-4,-5]]
+            ....:  * O[[1,-2],[2,3],[4],[5],[6,-4,-5,-6],[-1,-3]])
+            0
+
+            sage: (O[[1,-2],[2,-3],[3,5],[4,-5],[6,-4],[-1],[-6]]
+            ....:  * O[[1,-2],[2,-1],[3,-4],[4,-6],[5,-3],[6,-5]])
+            OP{{-6, 6}, {-5}, {-4, 2}, {-3, 4}, {-2}, {-1, 1}, {3, 5}}
+
+        TESTS:
+
+        Check that multiplication agrees with the multiplication in the
+        partition algebra::
+
+            sage: R.<x> = QQ[]
+            sage: OP = PartitionAlgebra(2, x).orbit_basis()
+            sage: P = OP.diagram_basis()
+            sage: o1 = OP.one(); o2 = OP([]); o3 = OP.an_element()
+            sage: p1 = P(o1); p2 = P(o2); p3 = P(o3)
+            sage: (p2 * p3).to_orbit_basis() == o2 * o3
+            True
+            sage: (3*p3 * (p1 - 2*p2)).to_orbit_basis() == 3*o3 * (o1 - 2*o2)
+            True
+
+            sage: R.<x> = QQ[]
+            sage: P = PartitionAlgebra(2,x); O = P.orbit_basis()
+            sage: all(b * bp == OP(P(b) * P(bp)) for b in OP.basis() # long time
+            ....:     for bp in OP.basis())
+            True
+
         REFERENCES:
 
-        .. [BHxx] Georgia Benkart and Tom Halverson, *Partition algebras and the invariant theory...* 
-                  arXiv:1707.1410
+        - [BH2017]_
         """
-        ## According to Corollary 4.12 in [BHxx], product is zero unless the 
+        ## According to Corollary 4.12 in [BH2017]_, product is zero unless the
         ## stacked diagrams "exactly match" in the middle.
+        pi_1 = [frozenset([-i for i in part if i < 0]) for part in d1]
+        pi_2 = [frozenset([i for i in part if i > 0]) for part in d2]
+        if set([part for part in pi_1 if part]) != set([part for part in pi_2 if part]):
+            return self.zero()
+
         q = self._q
         k = self._k
+        R = q.parent()
         PD = self._base_diagrams
-        def is_thru(block):
-            top = Set(block).intersection(Set(range(1,k+1))) 
-            bot = Set(block).intersection(Set(range(-k,0)))
-            return (not top.is_empty()) and (not bot.is_empty())
+        def matchings(A, B):
+            for i in range(min(len(A), len(B))+1):
+                for X in itertools.combinations(A, i):
+                    restA = list(A.difference(X))
+                    for Y in itertools.combinations(B, i):
+                        restB = list(B.difference(Y))
+                        for sigma in Permutations(Y):
+                            yield [x.union(y) for x,y in zip(X, sigma)] + restA + restB
 
-        pi_1 = SetPartition([[-i for i in part if i<0] for part in d1 if len([-i for i in part if i<0])>0])
-        pi_2 = SetPartition([[i for i in part if i>0] for part in d2 if len([i for i in part if i>0])>0])
-        if pi_1 != pi_2:
-            return self.zero()
-        else:
-            D, removed = d1.compose(d2)
-            thruD = [block for block in D if is_thru(block)]
-            restD = [block for block in D if block not in thruD]
-            coarsenings = [SetPartitions()(thruD+list(d)) for d in restD.coarsenings()]
-            term_dict = {PD(d): prod([q-t for t in range(len(d),len(d)+removed)]) for d in coarsenings}
-            return self._from_dict(term_dict)
-            
+        D, removed = d1.compose(d2)
+        only_top = set([part for part in d1 if all(i > 0 for i in part)])
+        only_bottom = set([part for part in d2 if all(i < 0 for i in part)])
+        only_both = only_top.union(only_bottom)
+        restD = [P for P in D if P not in only_both]
+        term_dict = {PD(restD + X):
+                      R.prod(q - t for t in range(len(X)+len(restD),
+                                                  len(X)+len(restD)+removed))
+                     for X in matchings(only_top, only_bottom)}
+        return self._from_dict(term_dict)
+
     class Element(PartitionAlgebra.Element):
         def to_diagram_basis(self):
             """
@@ -2397,42 +2476,6 @@ class OrbitBasis(DiagramAlgebra):
                 True
             """
             return self.parent().to_diagram_basis(self)
-
-        def _mul_(self, other):
-            """
-            Return the product of two elements ``self`` and ``other``.
-
-            EXAMPLES::
-
-                sage: R.<x> = QQ[]
-                sage: OP = PartitionAlgebra(2, x, R).orbit_basis()
-                sage: o1 = OP.one(); o2 = OP([]); o3 = OP.an_element()
-                sage: o2 == o1
-                False
-                sage: o1 * o1 == o1
-                True
-                sage: o3 * o1 == o1 * o3 and o3 * o1 == o3
-                True
-                sage: o3 * o3
-                6*OP{{-2, -1, 1}, {2}} + 4*OP{{-2, -1, 1, 2}} + 4*OP{{-2, -1, 2}, {1}}
-
-            TESTS:
-
-            Check that multiplication agrees with the multiplication in the
-            partition algebra::
-
-                sage: R.<x> = QQ[]
-                sage: OP = PartitionAlgebra(2, x, R).orbit_basis()
-                sage: P = OP.diagram_basis()
-                sage: o1 = OP.one(); o2 = OP([]); o3 = OP.an_element()
-                sage: p1 = P(o1); p2 = P(o2); p3 = P(o3)
-                sage: (p2 * p3).to_orbit_basis() == o2 * o3
-                True
-                sage: (3*p3 * (p1 - 2*p2)).to_orbit_basis() == 3*o3 * (o1 - 2*o2)
-                True
-            """
-            P = self.parent()
-            return P(P._alg(self) * P._alg(other))
 
 class SubPartitionAlgebra(DiagramBasis):
     """

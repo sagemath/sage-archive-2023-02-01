@@ -150,8 +150,12 @@ install: all
 	@echo "from https://github.com/sagemath/binary-pkg"
 	@echo "******************************************************************"
 
+list:
+	@$(MAKE) --silent build/make/Makefile >&2
+	@$(MAKE) --silent -f build/make/Makefile SAGE_SPKG_INST=local $@
+
 .PHONY: default build install micro_release \
 	misc-clean bdist-clean distclean bootstrap-clean maintainer-clean \
 	test check testoptional testall testlong testoptionallong testallong \
 	ptest ptestoptional ptestall ptestlong ptestoptionallong ptestallong \
-	buildbot-python3
+	buildbot-python3 list

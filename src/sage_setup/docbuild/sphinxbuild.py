@@ -309,6 +309,11 @@ def runsphinx():
     try:
         sys.stdout = SageSphinxLogger(sys.stdout, os.path.basename(output_dir))
         sys.stderr = SageSphinxLogger(sys.stderr, os.path.basename(output_dir))
+        # Note that this call as of eraly 2018 leaks memory. So make sure that
+        # you don't call runsphinx() several times in a row. (i.e., you want to
+        # fork() somewhere before this call.)
+        # We don't use subprocess here, as we don't want to re-initialize Sage
+        # for every docbuild as this takes a while.
         sphinx.cmdline.main(sys.argv)
         sys.stderr.raise_errors()
         sys.stdout.raise_errors()

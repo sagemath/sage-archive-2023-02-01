@@ -265,6 +265,14 @@ class DocBuilder(object):
     inventory = builder_helper('inventory')
 
 def build_many(target, args):
+    # Pool() uses an actual fork() to run each new instance. This is important
+    # for performance reasons, i.e., don't use a forkserver when it becomes
+    # available with Python 3: Here, sage is already initialized which is quite
+    # costly, with a forkserver we would have to reinitialize it for every
+    # document we build. At the same time, don't serialize this by taking the
+    # pool (and thus the call to fork()) out completely: The call to Sphinx
+    # leaks memory, so we need to build each document in its own process to
+    # control the RAM usage.
     from multiprocessing import Pool
     pool = Pool(NUM_THREADS, maxtasksperchild=1)
     # map_async handles KeyboardInterrupt correctly. Plain map and

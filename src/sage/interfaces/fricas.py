@@ -1138,6 +1138,7 @@ class FriCASElement(ExpectElement):
         from sage.libs.pynac.pynac import symbol_table, register_symbol
         from sage.symbolic.all import I
         register_symbol(lambda x,y: x + y*I, {'fricas':'complex'})
+        register_symbol(lambda x: dilog(1-x), {'fricas':'dilog'})
 
         s = unparsed_InputForm
         replacements = [('pi()', 'pi '),

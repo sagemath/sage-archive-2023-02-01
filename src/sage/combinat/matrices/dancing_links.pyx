@@ -506,7 +506,9 @@ cdef class dancing_linksWrapper:
         INPUT:
 
         - ``ncpus`` -- integer (default: ``None``), maximal number of
-          subprocesses to use at the same time
+          subprocesses to use at the same time. If ``None``, it detects the
+          number of effective CPUs in the system using
+          :func:`sage.parallel.ncpus.ncpus()`.
         - ``column`` -- integer (default: ``None``), the column used to split
           the problem, if ``None`` a random column is chosen
 
@@ -522,7 +524,7 @@ cdef class dancing_linksWrapper:
             sage: sorted(d.one_solution())
             [0, 1]
 
-        Using parallel computations::
+        The number of CPUs can be specified as input::
 
             sage: solutions = [[0,1], [2,3], [4,5]]
             sage: sorted(d.one_solution(ncpus=2)) in solutions
@@ -583,7 +585,9 @@ cdef class dancing_linksWrapper:
         INPUT:
 
         - ``ncpus`` -- integer (default: ``None``), maximal number of
-          subprocesses to use at the same time
+          subprocesses to use at the same time. If ``None``, it detects the
+          number of effective CPUs in the system using
+          :func:`sage.parallel.ncpus.ncpus()`.
         - ``column`` -- integer (default: ``None``), the column used to split
           the problem, if ``None`` a random column is chosen
 
@@ -600,7 +604,7 @@ cdef class dancing_linksWrapper:
             sage: [sorted(s) for s in S]
             [[0, 1], [2, 3], [4, 5]]
 
-        Using parallel computations::
+        The number of CPUs can be specified as input::
 
             sage: S = Subsets(range(4))
             sage: rows = map(list, S)
@@ -671,7 +675,9 @@ cdef class dancing_linksWrapper:
         INPUT:
 
         - ``ncpus`` -- integer (default: ``None``), maximal number of
-          subprocesses to use at the same time
+          subprocesses to use at the same time. If ``None``, it detects the
+          number of effective CPUs in the system using
+          :func:`sage.parallel.ncpus.ncpus()`.
         - ``column`` -- integer (default: ``None``), the column used to split
           the problem, if ``None`` a random column is chosen
 
@@ -723,7 +729,9 @@ cdef class dancing_linksWrapper:
         - ``ncpus`` -- integer (default: ``None``), maximal number of
           subprocesses to use at the same time. If `ncpus>1` the dancing
           links problem is split into independent subproblems to allow
-          parallel computation.
+          parallel computation. If ``None``, it detects the number of
+          effective CPUs in the system using
+          :func:`sage.parallel.ncpus.ncpus()`.
         - ``column`` -- integer (default: ``None``), the column used to split
           the problem, if ``None`` a random column is chosen (this argument
           is ignored if ``ncpus`` is ``1``)
@@ -743,7 +751,7 @@ cdef class dancing_linksWrapper:
             sage: x.number_of_solutions()
             2
 
-        ::
+        The number of CPUs can be specified as input::
 
             sage: rows = [[0,1,2], [3,4,5], [0,1], [2,3,4,5], [0], [1,2,3,4,5]]
             sage: x = dlx_solver(rows)

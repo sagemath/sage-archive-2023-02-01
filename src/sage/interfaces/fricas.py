@@ -2,9 +2,8 @@ r"""
 Interface to FriCAS
 
 .. TODO::
-
-    - ``fricas(dilog(x))`` should be ``dilog(-(x-1))``, and some
-      more conversions in ``sage.functions`` are missing
+    - some conversions in ``sage.functions`` are still missing and
+      all should be checked and tested
 
 FriCAS is a free GPL-compatible (modified BSD license) general
 purpose computer algebra system based on Axiom.  The FriCAS

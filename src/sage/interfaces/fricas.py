@@ -1132,6 +1132,18 @@ class FriCASElement(ExpectElement):
             sage: fricas(s).sage()                                              # optional - fricas
             1/3840*n^10 - 5/2304*n^9 + 5/1152*n^8 + 31/5760*n^7 - 229/11520*n^6 - 5/2304*n^5 + 1/36*n^4 - 1/960*n^3 - 1/80*n^2
 
+
+        Check that :trac:`25224` is fixed::
+
+            sage: integrate(log(x)/(1-x),x,algorithm='fricas')                  # optional - fricas
+            dilog(-x + 1)
+            sage: fricas(dilog(-x + 1))                                         # optional - fricas
+            dilog(x)
+            sage: dilog._fricas_()(1.0)                                         # optional - fricas
+            1.6449340668_4822643647_24152
+            sage: dilog(1.0)
+            1.64493406684823
+
         """
         from sage.calculus.calculus import symbolic_expression_from_string
         from sage.libs.pynac.pynac import symbol_table, register_symbol

@@ -181,19 +181,8 @@ cdef class FractionFieldElement(FieldElement):
         try:
             g = self.__numerator.gcd(self.__denominator)
             if not g.is_unit():
-                num, _ = self.__numerator.quo_rem(g)
-                den, _ = self.__denominator.quo_rem(g)
-            else:
-                num = self.__numerator
-                den = self.__denominator
-            if not den.is_one() and den.is_unit():
-                try:
-                    num *= den.inverse_of_unit()
-                    den  = den.parent().one()
-                except Exception:
-                    pass
-            self.__numerator   = num
-            self.__denominator = den
+                self.__numerator //= g
+                self.__denominator //= g
             self._is_reduced = True
         except AttributeError:
             raise ArithmeticError("unable to reduce because lack of gcd or quo_rem algorithm")
@@ -201,6 +190,14 @@ cdef class FractionFieldElement(FieldElement):
             raise ArithmeticError("unable to reduce because gcd algorithm doesn't work on input")
         except NotImplementedError:
             raise ArithmeticError("unable to reduce because gcd algorithm not implemented on input")
+        if not self.__denominator.is_one() and self.__denominator.is_unit():
+            try:
+                inv = self.__denominator.inverse_of_unit()
+            except Exception:
+                pass
+            else:
+                self.__numerator *= inv
+                self.__denominator = self.__denominator.parent().one()
 
     def __copy__(self):
         """

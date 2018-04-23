@@ -470,9 +470,7 @@ class IdealDiagram(AbstractPartitionDiagram):
             Ideal diagrams of order 1
         """
         order = max(v for p in diag for v in p)
-        acls = IdealDiagrams(order)
-        d = (tuple(sorted(p)) for p in diag)
-        return acls(d)
+        return IdealDiagrams(order)(diag)
 
     def check(self):
         r"""
@@ -534,9 +532,8 @@ class PlanarDiagram(AbstractPartitionDiagram):
             Planar diagrams of order 1
         """
         order = max(v for p in diag for v in p)
-        acls = PlanarDiagrams(order)
-        d = (tuple(sorted(p)) for p in diag)
-        return acls(d)
+        PD = PlanarDiagrams(order)
+        return PD(diag)
 
     def check(self):
         r"""
@@ -593,9 +590,8 @@ class TemperleyLiebDiagram(AbstractPartitionDiagram):
             Temperley Lieb diagrams of order 1
         """
         order = max(v for p in diag for v in p)
-        acls = TemperleyLiebDiagrams(order)
-        d = (tuple(sorted(p)) for p in diag)
-        return acls(d)
+        TLD = TemperleyLiebDiagrams(order)
+        return TLD(diag)
 
     def check(self):
         r"""
@@ -660,9 +656,8 @@ class PartitionDiagram(AbstractPartitionDiagram):
             Partition diagrams of order 1
         """
         order = max(v for p in diag for v in p)
-        acls = PartitionDiagrams(order)
-        d = (tuple(sorted(p)) for p in diag)
-        return acls(d)
+        PD = PartitionDiagrams(order)
+        return PD(diag)
 
 class BrauerDiagram(AbstractPartitionDiagram):
     r"""
@@ -688,37 +683,24 @@ class BrauerDiagram(AbstractPartitionDiagram):
         sage: TestSuite(bd).run()
     """
     @staticmethod
-    def __classcall_private__(cls, arg1, arg2=None):
+    def __classcall_private__(cls, diag):
         """
         Normalize input to initialize diagram.
 
-        The input format should either be either that ``arg1`` is a
-        parent class and ``arg2`` is a diagram element (represented as a
-        list of lists of integers) or that ``arg1`` is a
-        list of lists.  In the case that ``arg1`` is just the list of lists
-        we choose the order of the diagram element to be the maximum value
-        in those lists and the parent will be ``BrauerDiagrams(order)``.
+        The order of the diagram element is the maximum value found in
+        the list of lists.
 
         EXAMPLES::
 
-            sage: from sage.combinat.diagram_algebras import BrauerDiagram, BrauerDiagrams
-            sage: BrauerDiagram([[1,-1]])
+            sage: from sage.combinat.diagram_algebras import BrauerDiagram
+            sage: bd = BrauerDiagram([[1,-1]]); bd
             {{-1, 1}}
-            sage: BrauerDiagram([[1,-1]]).parent()
+            sage: bd.parent()
             Brauer diagrams of order 1
-            sage: BrauerDiagram(BrauerDiagrams(1), [[1,-1]])
-            {{-1, 1}}
-            sage: BrauerDiagram(BrauerDiagrams(2), [[1,-1]]).parent()
-            Brauer diagrams of order 2
         """
-        if arg2 is None:
-            order = max(v for p in arg1 for v in p)
-            acls = BrauerDiagrams(order)
-            arg2 = arg1
-        else:
-            acls = arg1
-        d = (tuple(sorted(p)) for p in arg2)
-        return acls(d)
+        order = max(v for p in diag for v in p)
+        BD = BrauerDiagrams(order)
+        return BD(diag)
 
     def check(self):
         r"""

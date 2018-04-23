@@ -695,7 +695,10 @@ REFERENCES:
 
 .. [Cun1986] \W. H. Cunningham, Improved Bounds for Matroid Partition
              and Intersection Algorithms. SIAM Journal on Computing
-             1986 15:4, 948-957
+             1986 15:4, 948-957.
+
+.. [CW2005] \J. E. Cremona and M. Watkins. Computing isogenies of elliptic
+            curves. preprint, 2005.
 
 .. _ref-D:
 
@@ -1267,6 +1270,9 @@ REFERENCES:
 
 **I**
 
+.. [IJ1960] Igusa, Jun-ichi. *Arithmetic variety of moduli for genus two*.
+            Ann. of Math. (2) 72 1960 612--649.
+
 .. [IK2010] Kenji Iohara and Yoshiyuki Koga.
             *Representation Theory of the Virasoro Algebra*.
             Springer, (2010).
@@ -1501,6 +1507,9 @@ REFERENCES:
 .. [KT1986] \N. Kerzman and M. R. Trummer. "Numerical Conformal
             Mapping via the Szego kernel". Journal of Computational
             and Applied Mathematics, 14(1-2): 111--123, 1986.
+
+.. [KT2013] \K. Tsukazaki, Explicit Isogenies of Elliptic Curves,
+            PhD thesis, University of Warwick, 2013.
 
 .. [Kuh1987] \W. Kühnel, "Minimal triangulations of Kummer varieties",
              Abh. Math. Sem. Univ. Hamburg 57 (1987), 7-20.
@@ -1768,6 +1777,10 @@ REFERENCES:
 
 .. [McM1992] John McMillan. *Games, strategies, and managers*. Oxford
              University Press.
+
+.. [MJ1991] Mestre, Jean-Francois. *Construction de courbes de genre 2 a partir de
+            leurs modules*. Effective methods in algebraic geometry (Castiglioncello,
+            1990), 313--334, Progr. Math., 94, Birkhauser Boston, Boston, MA, 1991.
 
 .. [Mil1958] \J. W. Milnor, "The Steenrod algebra and its dual,"
              Ann. of Math. (2) 67 (1958), 150-171.
@@ -2430,6 +2443,9 @@ REFERENCES:
 .. [Wal1970] David W. Walkup, "The lower bound conjecture for 3- and
              4-manifolds", Acta Math. 125 (1970), 75-107.
 
+.. [Wam1999] van Wamelen, Paul. *Examples of genus two CM curves defined
+             over the rationals*. Math. Comp. 68 (1999), no. 225, 307--320.
+
 .. [Wan1998] Daqing Wan, "Dimension variation of classical and p-adic
              modular forms", Invent. Math. 133, (1998) 449-463.
 
@@ -2440,9 +2456,8 @@ REFERENCES:
 .. [Was1997] \L. C. Washington, *Cyclotomic Fields*, Springer-Verlag,
              GTM volume 83, 1997.
 
-.. [Watkins] Mark Watkins,
-   *Hypergeometric motives over Q and their L-functions*,
-   http://magma.maths.usyd.edu.au/~watkins/papers/known.pdf
+.. [Watkins] Mark Watkins, *Hypergeometric motives over Q and their
+             L-functions*, http://magma.maths.usyd.edu.au/~watkins/papers/known.pdf
 
 .. [Wat2003] Joel Watson. *Strategy: an introduction to game
              theory*. WW Norton, 2002.

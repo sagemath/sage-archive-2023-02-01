@@ -112,7 +112,7 @@ x_n]` containing `I` (that is, the ideals `J` satisfying `I \subset J
     sage: Q = P.quotient( sage.rings.ideal.FieldIdeal(P) )
     sage: I2 = ideal([Q(f) for f in I1.gens()])
     sage: for f in I2.groebner_basis():
-    ....:   f
+    ....:     f
     abar + dbar + 1
     bbar + 1
     cbar + 1

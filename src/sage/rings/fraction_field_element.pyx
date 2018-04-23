@@ -160,9 +160,12 @@ cdef class FractionFieldElement(FieldElement):
 
     cpdef reduce(self):
         """
-        Divides out the gcd of the numerator and denominator.
+        Reduce this fraction.
 
-        If the denominator becomes a unit, it becomes 1.
+        Divides out the gcd of the numerator and denominator. If the
+        denominator becomes a unit, it becomes 1. Additionally, depending on
+        the base ring, the leading coefficients of the numerator and the
+        denominator may be normalized to 1.
 
         Automatically called for exact rings, but because it may be
         numerically unstable for inexact rings it must be called manually
@@ -1032,7 +1035,7 @@ cdef class FractionFieldElement(FieldElement):
 cdef class FractionFieldElement_1poly_field(FractionFieldElement):
     """
     A fraction field element where the parent is the fraction field of a
-    univariate polynomial ring.
+    univariate polynomial ring over a field.
 
     Many of the functions here are included for coherence with number fields.
     """
@@ -1072,26 +1075,31 @@ cdef class FractionFieldElement_1poly_field(FractionFieldElement):
         L.sort()
         return L
 
-    cpdef normalize(self):
+    cpdef reduce(self):
         """
-        Picks a normalized representation of self.
+        Pick a normalized representation of self.
 
         In particular, for any a == b, after normalization they will have the
         same numerator and denominator.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        For univariate rational functions over a field, we have::
 
             sage: R.<x> = QQ[]
-            sage: s = (1 + x) / (2*x); s
-            (x + 1)/(2*x)
-            sage: s.normalize(); s
+            sage: (2 + 2*x) / (4*x) # indirect doctest
             (1/2*x + 1/2)/x
+
+        Compare with::
+
+            sage: R.<x> = ZZ[]
+            sage: (2 + 2*x) / (4*x)
+            (x + 1)/(2*x)
         """
-        self.reduce()
-        leading = self.__denominator.leading_coefficient()
-        if leading != 1:
-            self.__numerator /= leading
-            self.__denominator /= leading
+        super(self.__class__, self).reduce()
+        invlc = ~self.__denominator.leading_coefficient()
+        self.__denominator = self.__denominator.monic()
+        self.__numerator *= invlc
 
     def __hash__(self):
         """
@@ -1116,8 +1124,7 @@ cdef class FractionFieldElement_1poly_field(FractionFieldElement):
             1
         """
         # This is same algorithm as used for members of QQ
-        #cdef long n, d
-        self.normalize()
+        self.reduce()
         n = hash(self.__numerator)
         d = hash(self.__denominator)
         if d == 1:

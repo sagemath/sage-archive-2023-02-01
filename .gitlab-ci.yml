@@ -26,15 +26,14 @@
 
 # GitLab provides several flavours of shared runners (as of early 2018):
 # * runners tagged as "do" (digitalocean.com) provide about 60GB of HDD, two
-#   cores, but only 2GB of RAM. The RAM is often not sufficient to build the
-#   documentation.
+#   cores, but only 2GB of RAM. The RAM is sometimes not sufficient to build
+#   the documentation.
 # * runners tagged as "gce" (Google Compute Engine) provide about 22GB of HDD,
 #   a single core, 4GB of RAM. Since we are relying on OverlayFS, the disk
 #   space is not sufficient to build sage from scratch.
 
 # If you want to provide your own runners, make sure to tag them as follows:
-# * "60hdd" (60GB of disk space are available) to make build-from-clean pass.
-# * "gce" (4GB of RAM are available) to make build-from-latest pass.
+# * "do" (60GB of disk space are available) to make build-from-clean pass.
 
 image: docker:latest
 
@@ -99,9 +98,6 @@ build-from-latest: &build
   except:
     - master
     - develop
-  tags:
-    # 4GB of RAM are available
-    - gce
 
 # Build Sage and its documentation from a clean checkout of Sage.
 # Note that this takes several hours. You probably want to run this on your own

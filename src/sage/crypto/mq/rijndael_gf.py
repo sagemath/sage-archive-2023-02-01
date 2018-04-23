@@ -432,6 +432,7 @@ from sage.rings.integer import Integer
 from sage.structure.sage_object import SageObject
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.misc.sageinspect import sage_getargspec
 
 class RijndaelGF(SageObject):
 
@@ -2261,8 +2262,7 @@ class RijndaelGF(SageObject):
                 ...
                 ValueError: keyword 'algorithm' must be either 'encrypt' or 'decrypt'
             """
-            from inspect import getargspec
-            pc_args = getargspec(polynomial_constr)
+            pc_args = sage_getargspec(polynomial_constr)
             if pc_args[0][0] == 'self':
                 # Check number of defaulted arguments
                 if len(pc_args[3]) != len(pc_args[0]) - 3:

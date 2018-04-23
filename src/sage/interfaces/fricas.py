@@ -1148,6 +1148,7 @@ class FriCASElement(ExpectElement):
         from sage.calculus.calculus import symbolic_expression_from_string
         from sage.libs.pynac.pynac import symbol_table, register_symbol
         from sage.symbolic.all import I
+        from sage.functions.log import dilog
         register_symbol(lambda x,y: x + y*I, {'fricas':'complex'})
         register_symbol(lambda x: dilog(1-x), {'fricas':'dilog'})
 

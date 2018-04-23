@@ -34,11 +34,10 @@ Vincent Delecroix, Ben Hutz (July 2016): initial implementation
 
 from __future__ import absolute_import, print_function
 
-from sage.misc.cachefunc import cached_method
+import itertools, six
 
 from sage.categories.morphism import Morphism
-import six
-
+from sage.misc.cachefunc import cached_method
 from .polynomial_ring_constructor import PolynomialRing
 from .polynomial_ring import is_PolynomialRing
 from .multi_polynomial_ring_generic import is_MPolynomialRing
@@ -102,9 +101,9 @@ class FlatteningMorphism(Morphism):
             sage: R = ZZ['a']['a','b']
             sage: from sage.rings.polynomial.flatten import FlatteningMorphism
             sage: FlatteningMorphism(R)
-            Traceback (most recent call last):
-            ...
-            ValueError: clash in variable names
+            Flattening morphism:
+              From: Multivariate Polynomial Ring in a, b over Univariate Polynomial Ring in a over Integer Ring
+              To:   Multivariate Polynomial Ring in a, a0, b over Integer Ring
 
         ::
 
@@ -140,6 +139,18 @@ class FlatteningMorphism(Morphism):
             sage: f.domain(), f.codomain()
             (Univariate Polynomial Ring in z over Algebraic Field,
              Univariate Polynomial Ring in z over Algebraic Field)
+
+        TESTS::
+
+            sage: Pol = QQ['x']['x0']['x']
+            sage: fl = FlatteningMorphism(Pol)
+            sage: fl
+            Flattening morphism:
+              From: Univariate Polynomial Ring in x over Univariate Polynomial Ring in x0 over Univariate Polynomial Ring in x over Rational Field
+              To:   Multivariate Polynomial Ring in x, x0, x1 over Rational Field
+            sage: p = Pol([[[1,2],[3,4]],[[5,6],[7,8]]])
+            sage: fl.section()(fl(p)) == p
+            True
         """
         if not is_PolynomialRing(domain) and not is_MPolynomialRing(domain):
             raise ValueError("domain should be a polynomial ring")
@@ -151,12 +162,17 @@ class FlatteningMorphism(Morphism):
         while is_PolynomialRing(ring) or is_MPolynomialRing(ring):
             intermediate_rings.append(ring)
             v = ring.variable_names()
-            if any(vv in variables for vv in v):
-                raise ValueError("clash in variable names")
             variables.extend(reversed(v))
             ring = ring.base_ring()
         self._intermediate_rings = intermediate_rings
         variables.reverse()
+        for i, a in enumerate(variables):
+            if a in variables[:i]:
+                for index in itertools.count():
+                    b = a + str(index)
+                    if b not in variables: # not just variables[:i]!
+                        break
+                variables[i] = b
         if is_MPolynomialRing(domain):
             codomain = PolynomialRing(ring, variables, len(variables))
         else:
@@ -198,12 +214,12 @@ class FlatteningMorphism(Morphism):
             new_p = {}
             if is_PolynomialRing(ring):
                 for mon,pp in six.iteritems(p):
-                    assert pp.parent() == ring
+                    assert pp.parent() is ring
                     for i,j in six.iteritems(pp.dict()):
                         new_p[(i,)+(mon)] = j
             elif is_MPolynomialRing(ring):
                 for mon,pp in six.iteritems(p):
-                    assert pp.parent() == ring
+                    assert pp.parent() is ring
                     for mmon,q in six.iteritems(pp.dict()):
                         new_p[tuple(mmon)+mon] = q
             else:

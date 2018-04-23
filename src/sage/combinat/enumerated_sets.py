@@ -93,6 +93,7 @@ Subsets and set partitions
 - :ref:`sage.combinat.subsets_hereditary`
 - :ref:`sage.combinat.set_partition_ordered`
 - :ref:`sage.combinat.set_partition`
+- :ref:`sage.combinat.diagram_algebras`
 
 Trees
 -----

@@ -591,13 +591,13 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
             sage: t.element()
             t
             sage: type(t.element())
-            <type 'sage.rings.fraction_field_FpT.FpTElement'>
+            <... 'sage.rings.fraction_field_FpT.FpTElement'>
 
             sage: K.<t> = FunctionField(GF(131101))
             sage: t.element()
             t
             sage: type(t.element())
-            <class 'sage.rings.fraction_field_element.FractionFieldElement_1poly_field'>
+            <... 'sage.rings.fraction_field_element.FractionFieldElement_1poly_field'>
         """
         return self._x
 

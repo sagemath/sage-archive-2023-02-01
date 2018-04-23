@@ -290,8 +290,6 @@ cdef class FractionFieldElement(FieldElement):
             sage: R.<x> = QQ[]
             sage: a = 2*(x+1)^2 / (2*(x-1)^2); a
             (x^2 + 2*x + 1)/(x^2 - 2*x + 1)
-            sage: a.numerator().is_square()
-            False
             sage: a.is_square()
             True
             sage: (0/x).is_square()

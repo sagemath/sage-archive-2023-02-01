@@ -64,7 +64,7 @@ def automorphism_group_QQ_fixedpoints(rational_function, return_functions=False,
         sage: rational_function = (z^2 - 2*z - 2)/(-2*z^2 - 2*z + 1)
         sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import automorphism_group_QQ_fixedpoints
         sage: automorphism_group_QQ_fixedpoints(rational_function, True)
-          [z, 2/(2*z), -z - 1, -2*z/(2*z + 2), (-z - 1)/z, -1/(z + 1)]
+          [z, 1/z, -z - 1, -z/(z + 1), (-z - 1)/z, -1/(z + 1)]
 
     ::
 
@@ -342,8 +342,8 @@ def PGL_repn(rational_function):
         sage: f = ((2*z-1)/(3-z))
         sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import PGL_repn
         sage: PGL_repn(f)
-        [ 2 -1]
-        [-1  3]
+        [-2  1]
+        [ 1 -3]
     """
     if is_Matrix(rational_function):
         return rational_function
@@ -1452,7 +1452,7 @@ def automorphisms_fixing_pair(rational_function, pair, quad):
         sage: L = [[4, 1], [2, 1]]
         sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import automorphisms_fixing_pair
         sage: automorphisms_fixing_pair(f, L, False)
-        [(6*z + 6)/z, 4/(3*z + 3)]
+        [(6*z + 6)/z, 6/(z + 1)]
     """
     # define ground field and ambient function field
     if rational_function.parent().is_field():
@@ -1526,7 +1526,7 @@ def automorphism_group_FF_alg3(rational_function):
         sage: f = (3456*z^4)
         sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import automorphism_group_FF_alg3
         sage: automorphism_group_FF_alg3(f)
-        [z, 3/(3*z)]
+        [z, 1/z]
     """
     # define ground field and ambient function field
     if rational_function.parent().is_field():

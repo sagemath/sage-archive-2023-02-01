@@ -348,15 +348,40 @@ cdef class FractionFieldElement(FieldElement):
             sage: hash(R(1)/R(2))==hash(1/2)
             True
 
+        Check that :trac:`16268` is fixed::
+
+            sage: ku.<u> = FractionField(PolynomialRing(QQ,'u'))
+            sage: a = 27*u^2+81*u+243
+            sage: b = 27*u-81
+            sage: c = u^2 + 3*u + 9
+            sage: d = u-3
+            sage: s = a/b
+            sage: t = c/d
+            sage: s == t
+            True
+            sage: len(set([s,t]))
+            1
         """
-        if self._parent.is_exact():
-            try:
-                self.reduce()
-            except ArithmeticError:
-                pass
         if self.__denominator.is_one():
+            # Handle this case even over rings that don't support reduction, to
+            # avoid breaking existing code that carelessly mixes p and p/1
             return hash(self.__numerator)
-        raise NotImplementedError("Do not know how to hash elements of general fraction field")
+        if self._parent.is_exact():
+            # May fail; let the exception propagate then.
+            # (In contrast, over inexact rings, we hash unreduced fractions
+            # without complaining. This is not ideal, but there is code in Sage
+            # that uses dictionaries indexed by rational functions with
+            # floating-point coefficients, and since the equality test involves
+            # potentially inexact operations, there would be compatibility
+            # issues even if we didn't...)
+            self.reduce()
+        # Same algorithm as for elements of QQ
+        n = hash(self.__numerator)
+        d = hash(self.__denominator)
+        if d == 1:
+            return n
+        else:
+            return n ^ d
 
     def __call__(self, *x, **kwds):
         """
@@ -1100,37 +1125,6 @@ cdef class FractionFieldElement_1poly_field(FractionFieldElement):
         invlc = ~self.__denominator.leading_coefficient()
         self.__denominator = self.__denominator.monic()
         self.__numerator *= invlc
-
-    def __hash__(self):
-        """
-        This function hashes in a special way to ensure that elements of
-        a ring `R` and their images in a fraction field of `R` have the same
-        hash. This enables them to be used as keys interchangeably in a
-        dictionary (since ``==`` will claim them equal).
-
-        Ensure normalization is done before hashing the numerator and
-        denominator, fixing trac #16268::
-
-            sage: Ku.<u> = FractionField(PolynomialRing(QQ,'u'))
-            sage: a = 27*u^2+81*u+243
-            sage: b = 27*u-81
-            sage: c = u^2 + 3*u + 9
-            sage: d = u-3
-            sage: s = a/b
-            sage: t = c/d
-            sage: s==t
-            True
-            sage: len(Set([s,t]))
-            1
-        """
-        # This is same algorithm as used for members of QQ
-        self.reduce()
-        n = hash(self.__numerator)
-        d = hash(self.__denominator)
-        if d == 1:
-            return n
-        else:
-            return n ^ d
 
 def make_element(parent, numerator, denominator):
     """

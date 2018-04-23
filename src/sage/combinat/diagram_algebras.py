@@ -417,10 +417,6 @@ class AbstractPartitionDiagram(AbstractSetPartition):
         """
         return self._order
 
-    #@staticmethood
-    #def from_permutation(perm):
-    #    return self
-
     def is_planar(self):
         r"""
         Test if the diagram ``self`` is planar.
@@ -1023,7 +1019,11 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
 
             sage: import sage.combinat.diagram_algebras as da
             sage: pd = da.AbstractPartitionDiagrams("Partition", 2)
-            sage: TestSuite(pd).run() # long time
+            sage: pd.category()
+            Category of finite enumerated sets
+            sage: pd = da.AbstractPartitionDiagrams("Partition", 2, Sets().Finite())
+            sage: pd.category()
+            Category of finite sets
         """
         if category is None:
             category = FiniteEnumeratedSets()

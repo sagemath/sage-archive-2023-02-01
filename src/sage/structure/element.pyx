@@ -3091,7 +3091,7 @@ cdef class CommutativeRingElement(RingElement):
 
             sage: R.<x> = QQ[]
             sage: a = 2*(x+1)^2 / (2*(x-1)^2); a.sqrt()
-            (2*x + 2)/(2*x - 2)
+            (x + 1)/(x - 1)
             sage: sqrtx=(1/x).sqrt(name="y"); sqrtx
             y
             sage: sqrtx^2

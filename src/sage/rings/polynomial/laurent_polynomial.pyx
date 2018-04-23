@@ -1010,7 +1010,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             sage: f / x
             1 + x + 3*x^3
             sage: f / g
-            (3*x^11 + x^9 + x^8)/(-x^11 + x^9 - x^8 + 1)
+            (-3*x^11 - x^9 - x^8)/(x^11 - x^9 + x^8 - 1)
             sage: (x^-2 + x)*(x^-2 + 1) / ((x^5 + x^8)*(x + 2))
             (x^2 + 1)/(x^10 + 2*x^9)
             sage: (x^-2 + x)*(x^-2 + 1) / ((x^-5 + x^-8)*(x + 2))

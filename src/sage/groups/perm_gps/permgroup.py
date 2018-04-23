@@ -4058,10 +4058,10 @@ class PermutationGroup_generic(group.FiniteGroup):
 
             sage: G = SymmetricGroup(5)
             sage: G.molien_series()
-            1/(-x^15 + x^14 + x^13 - x^10 - x^9 - x^8 + x^7 + x^6 + x^5 - x^2 - x + 1)
+            -1/(x^15 - x^14 - x^13 + x^10 + x^9 + x^8 - x^7 - x^6 - x^5 + x^2 + x - 1)
             sage: G = SymmetricGroup(3)
             sage: G.molien_series()
-            1/(-x^6 + x^5 + x^4 - x^2 - x + 1)
+            -1/(x^6 - x^5 - x^4 + x^2 + x - 1)
 
         Some further tests (after :trac:`15817`)::
 
@@ -4138,7 +4138,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             (x^2 + 1)/(x^4 - x^3 - x + 1)
             sage: G = SymmetricGroup(3)
             sage: G.poincare_series(2,10)                              # optional - gap_packages
-            1/(-x + 1)
+            -1/(x - 1)
 
         AUTHORS:
 

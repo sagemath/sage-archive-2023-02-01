@@ -289,7 +289,7 @@ cdef class FractionFieldElement(FieldElement):
 
             sage: R.<x> = QQ[]
             sage: a = 2*(x+1)^2 / (2*(x-1)^2); a
-            (2*x^2 + 4*x + 2)/(2*x^2 - 4*x + 2)
+            (x^2 + 2*x + 1)/(x^2 - 2*x + 1)
             sage: a.numerator().is_square()
             False
             sage: a.is_square()
@@ -888,7 +888,7 @@ cdef class FractionFieldElement(FieldElement):
             sage: x = PolynomialRing(RationalField(),'x').gen()
             sage: f = (x^3 + x)/(x^2 - 2*x^3)
             sage: f
-            (x^2 + 1)/(-2*x^2 + x)
+            (-1/2*x^2 - 1/2)/(x^2 - 1/2*x)
             sage: f.valuation()
             -1
             sage: f.valuation(x^2+1)

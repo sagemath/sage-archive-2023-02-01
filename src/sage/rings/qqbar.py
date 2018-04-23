@@ -2941,8 +2941,6 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             0.9324722294043558? + 0.3612416661871530?*I
             sage: AA.options.display_format = 'decimal'
         """
-        from sage.symbolic.ring import SR # Lazy to avoid cyclic dependency
-
         if isinstance(self._descr, ANRational):
             return repr(self._descr)
         if isinstance(self._descr, ANExtensionElement) and self._descr._generator is QQbar_I_generator:

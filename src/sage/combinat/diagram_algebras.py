@@ -338,8 +338,17 @@ class AbstractPartitionDiagram(AbstractSetPartition):
     def set_partition(self):
         r"""
         Return the underlying implementation of the diagram as a set of sets.
+
+        EXAMPLES::
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: pd = da.AbstractPartitionDiagrams(da.partition_diagrams, 2)
+            sage: X = pd([[1,2],[-1,-2]]).set_partition(); X
+            {{-2, -1}, {1, 2}}
+            sage: X.parent()
+            Set partitions
         """
-        return SetPartitions()(Set(map(Set,self)))
+        return SetPartitions()(self)
 
     def compose(self, other):
         r"""
@@ -1651,11 +1660,9 @@ class DiagramAlgebra(CombinatorialFreeModule):
             P{{-3}, {-2, 1, 2}, {-1}, {3}}
         """
         if isinstance(d, (list, tuple)) and all(a in ZZ for a in d):
-            bool = pairing_is_possible([d], self._k)
-            d = self._base_diagrams(to_set_partition([d], self._k, through_strands=bool))
-        else:
-            bool = pairing_is_possible(d, self._k)
-            d = self._base_diagrams(to_set_partition(d, self._k, through_strands=bool))
+            d = [d]
+        can_pair = pairing_is_possible(d, self._k)
+        d = self._base_diagrams(to_set_partition(d, self._k, through_strands=can_pair))
         if d in self.basis().keys():
             return self.basis()[d]
         raise ValueError("{0} is not an index of a basis element".format(d))
@@ -1718,10 +1725,8 @@ class DiagramAlgebra(CombinatorialFreeModule):
             return self.one()
         if d[0] in ZZ:
             return self._perm_to_Blst(d)
-        if pairing_is_possible(d, self._k):
-            d = to_set_partition(d, self._k, through_strands=True)
-        else:
-            d = to_set_partition(d, self._k)
+        d = to_set_partition(d, self._k,
+                             through_strands=pairing_is_possible(d, self._k))
         return self[self._base_diagrams(d)]
 
     def order(self):
@@ -2611,9 +2616,9 @@ class OrbitBasis(DiagramAlgebra):
             OP{{-2, -1, 1, 2}} + OP{{-2, 2}, {-1, 1}}
         """
         PDs = self._base_diagrams
-        idk = PDs(identity_set_partition(self._k))
+        base = SetPartitions()(identity_set_partition(self._k))
         brone = self.base_ring().one()
-        return self._from_dict({PDs(d): brone for d in idk.set_partition().coarsenings()},
+        return self._from_dict({PDs(d): brone for d in base.coarsenings()},
                                coerce=False, remove_zeros=False)
 
     def diagram_basis(self):
@@ -3475,22 +3480,22 @@ def is_planar(sp):
         True
     """
     #Singletons don't affect planarity
-    to_consider = [x for x in (list(_) for _ in sp) if len(x) > 1]
+    to_consider = [x for x in map(list, sp) if len(x) > 1]
     n = len(to_consider)
 
     for i in range(n):
         #Get the positive and negative entries of this part
-        ap = [x for x in to_consider[i] if x>0]
-        an = [abs(x) for x in to_consider[i] if x<0]
+        ap = [x for x in to_consider[i] if x > 0]
+        an = [abs(x) for x in to_consider[i] if x < 0]
 
         #Check if a includes numbers in both the top and bottom rows
-        if len(ap) > 0 and len(an) > 0:
+        if ap and an:
             for j in range(n):
                 if i == j:
                     continue
                 #Get the positive and negative entries of this part
-                bp = [x for x in to_consider[j] if x>0]
-                bn = [abs(x) for x in to_consider[j] if x<0]
+                bp = [x for x in to_consider[j] if x > 0]
+                bn = [abs(x) for x in to_consider[j] if x < 0]
 
                 #Skip the ones that don't involve numbers in both
                 #the bottom and top rows
@@ -3606,8 +3611,8 @@ def pair_to_graph(sp1, sp2):
     #Add the first set partition to the graph
     for part in sp1:
         part_list = list(part)
-        if len(part_list) > 0:
-            g.add_vertex( (part_list[0],1) )
+        if part_list:
+            g.add_vertex( (part_list[0], 1) )
 
             #Add the edge to the second part of the graph
             if part_list[0] < 0:
@@ -3626,7 +3631,7 @@ def pair_to_graph(sp1, sp2):
     #Add the second set partition to the graph
     for part in sp2:
         part_list = list(part)
-        if len(part_list) > 0:
+        if part_list:
             g.add_vertex( (part_list[0], 2) )
         for i in range(1, len(part_list)):
             g.add_vertex( (part_list[i], 2) )
@@ -3659,27 +3664,32 @@ def propagating_number(sp):
 
 def pairing_is_possible(d, k):
     r"""
-    Determine whether or not omitted nodes may be added in pairs `{i,-i}`.
+    Determine whether or not omitted nodes in ``d`` may be added
+    in pairs `\{i,-i\}`.
 
     INPUT:
-    - ``d`` -- a set partition of `X \subseteq {-k, \ldots, -2, -1, 1, 2, \ldots, k}`.
+
+    - ``d`` -- a set partition of `X \subseteq
+      \{-k, \ldots, -2, -1, 1, 2, \ldots, k\}`
+    - ``k`` -- the maximum value for ``d``
 
     OUTPUT:
-    - ``True``  if there is a perfect matching on the nodes comprising the
-                complement of `X` of the form `{i, -i}`;
-    - ``False`` otherwise.
+
+    - boolean if there is a perfect matching on the nodes comprising the
+      complement of `X` of the form `\{i, -i\}`
 
     TESTS::
 
-        sage: import sage.combinat.diagram_algebras as da
-        sage: da.pairing_is_possible([[-1,3],[1,2,5],[-3],[-2,-5]], 7)
+        sage: from sage.combinat.diagram_algebras import pairing_is_possible
+        sage: pairing_is_possible([[-1,3],[1,2,5],[-3],[-2,-5]], 7)
         True
-        sage: da.pairing_is_possible([[-1,3],[1,2,5],[-3],[-2]], 7)
+        sage: pairing_is_possible([[-1,3],[1,2,5],[-3],[-2]], 7)
         False
     """
-    d_support = flatten(map(list,d))
-    assert max(d_support) <= k
-    return all([-i in d_support for i in d_support])
+    d_support = set(sum(map(list, d), []))
+    if max(d_support) > k:
+        return False
+    return all(-i in d_support for i in d_support)
 
 def to_set_partition(l, k=None, through_strands=False):
     r"""
@@ -3720,7 +3730,6 @@ def to_set_partition(l, k=None, through_strands=False):
         for singleton in to_be_added:
             sp.append(set([singleton]))
 
-
     return sp
 
 def to_Brauer_partition(l, k=None):
@@ -3749,23 +3758,23 @@ def to_Brauer_partition(l, k=None):
     for i in L:
         L2.append(list(i))
     for i in L2:
-        if len(i) >= 3:
-            raise ValueError("blocks must have size at most 2, but {0} has {1}".format(i, len(i)))
+        if len(i) > 2:
+            raise ValueError("blocks must have size at most 2, but {} has {}".format(i, len(i)))
         if len(i) == 2:
             paired.append(i)
         if len(i) == 1:
             not_paired.append(i)
     if any(i[0] in j or -1*i[0] in j for i in not_paired for j in paired):
-        raise ValueError("unable to convert {0} to a Brauer partition due to the invalid block {1}".format(l, i))
+        raise ValueError("unable to convert {} to a Brauer partition due to the invalid block {}".format(l, i))
     for i in not_paired:
-        if [-1*i[0]] in not_paired:
-            not_paired.remove([-1*i[0]])
-        paired.append([i[0], -1*i[0]])
+        if [-i[0]] in not_paired:
+            not_paired.remove([-i[0]])
+        paired.append([i[0], -i[0]])
     return to_set_partition(paired)
 
 def identity_set_partition(k):
-    """
-    Return the identity set partition `\{\{1, -1\}, \ldots, \{k, -k\}\}`
+    r"""
+    Return the identity set partition `\{\{1, -1\}, \ldots, \{k, -k\}\}`.
 
     EXAMPLES::
 

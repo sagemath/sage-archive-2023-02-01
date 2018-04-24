@@ -183,7 +183,7 @@ class FlatteningMorphism(Morphism):
 
     def _call_(self, p):
         r"""
-        Evaluate an flattening morphism.
+        Evaluate a flattening morphism.
 
         EXAMPLES::
 

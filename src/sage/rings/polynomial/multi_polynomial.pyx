@@ -1845,17 +1845,18 @@ cdef class MPolynomial(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             NotImplementedError: GCD is not implemented for multivariate polynomials over Gaussian Integers in Number Field in I with defining polynomial x^2 + 1
+
+        TESTS::
+
+            sage: Pol = QQ['x']['x','y']
+            sage: Pol.one().gcd(1)
+            1
         """
-        variables = self._parent.variable_names_recursive()
-        if len(variables) > self._parent.ngens():
-            base = self._parent._mpoly_base_ring()
-            d1 = self._mpoly_dict_recursive()
-            d2 = other._mpoly_dict_recursive()
-            ring = PolynomialRing(base, variables)
-            try:
-                return self._parent(ring(d1).gcd(ring(d2)))
-            except (AttributeError, NotImplementedError):
-                pass
+        flatten = self._parent.flattening_morphism()
+        tgt = flatten.codomain()
+        if tgt is not self._parent and tgt._has_singular:
+            g = flatten(self).gcd(flatten(other))
+            return flatten.section()(g)
 
         try:
             self._parent._singular_().set_ring()

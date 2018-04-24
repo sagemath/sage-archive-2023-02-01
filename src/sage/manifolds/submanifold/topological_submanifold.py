@@ -167,6 +167,7 @@ class TopologicalSubmanifold(TopologicalManifold):
         self._immersed = False
         self._embedded = False
         self._adapted_charts = None
+        self._subs = None
 
     def _repr_(self):
         r"""
@@ -365,6 +366,7 @@ class TopologicalSubmanifold(TopologicalManifold):
             raise TypeError("index must be a string")
 
         res = []
+        self._subs = []
 
         # All possible expressions for the immersion
         domains = self._immersion._coord_expression.keys()
@@ -389,6 +391,7 @@ class TopologicalSubmanifold(TopologicalManifold):
                     if isinstance(_a, Expression):
                         assume(_a.subs(subs))
 
+                self._subs.append(subs)
                 res.append(chart)
                 self._immersion.add_expr(domain[0], chart,
                                          list(domain[0][:]) + self._var)

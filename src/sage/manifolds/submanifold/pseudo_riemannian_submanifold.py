@@ -615,8 +615,17 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         """
         if self._second_fundamental_form is not None:
             return self._second_fundamental_form
-        self._second_fundamental_form = \
-            self._immersion.pullback(self.ambient_second_fundamental_form())
+        #self._second_fundamental_form = \
+        #    self._immersion.pullback(self.ambient_second_fundamental_form())
+
+        inverse_subs = {v: k for k, v in self._subs[0].items()}
+        resu = self._immersion._domain.vector_field_module().tensor((0, 2), name='K',
+                               latex_name='K', sym=[(0,1)],antisym=[])
+        for i in self.irange():
+            for j in self.irange():
+                resu[i,j] = self.ambient_extrinsic_curvature()[self._adapted_charts[0].frame(), [i, j]].expr(self._adapted_charts[0]).subs(inverse_subs)
+
+        self._second_fundamental_form =  resu
         return self._second_fundamental_form
 
     extrinsic_curvature = second_fundamental_form

@@ -3140,7 +3140,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         ::
 
-            sage: R.<x> = K[]
+            sage: R.<x> = QQ[]
             sage: f = x^2 + 1
             sage: f.change_ring(QQ.embeddings(CC)[0])
             x^2 + 1.00000000000000

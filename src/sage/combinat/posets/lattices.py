@@ -3661,7 +3661,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
           * ``(True, list)`` where `list` is a nested list showing the
             decomposition; for example ``list[1][0]`` is a lower part of
             upper part of the lattice when decomposed twise.
-          * ``(False, M)`` where ``M`` is a minimally interval non-dismantlable
+          * ``(False, M)`` where `M` is a minimally interval non-dismantlable
             sublattice of the lattice.
 
         EXAMPLES::
@@ -3684,8 +3684,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         .. SEEALSO::
 
-        - Stronger properties: :meth:`is_join_semidistributive`,
-          :meth:`is_meet_semidistributive`
+            - Stronger properties: :meth:`is_join_semidistributive`,
+              :meth:`is_meet_semidistributive`
 
         TESTS::
 

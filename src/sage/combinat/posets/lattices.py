@@ -3635,7 +3635,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         return (True, [self[e] for e in cert])
 
     def is_interval_dismantlable(self, certificate=False):
-       """
+        """
         Return ``True`` if the lattice is interval dismantlable, and
         ``False`` otherwise.
 
@@ -3706,7 +3706,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                     if len(sl) < 5 or len(sl) == H.order():
                         continue
                     L_ = L.sublattice([L._vertex_to_element(v) for v in sl])
-                    if not is_interval_dismantlable(L_):
+                    if not L_.is_interval_dismantlable():
                         L = L_
                         break
                 else:

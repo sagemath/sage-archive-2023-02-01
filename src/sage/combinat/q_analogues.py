@@ -882,7 +882,7 @@ def q_stirling_number2(n, k, q=None):
 
         sage: from sage.combinat.q_analogues import q_stirling_number2
         sage: q_stirling_number2(4,2)
-        q^3 + 3*q^2 + 4*q + 3
+        q^3 + 3*q^2 + 3*q
 
         sage: all(stirling_number2(6,k) == q_stirling_number2(6,k)(1)
         ....:     for k in range(7))

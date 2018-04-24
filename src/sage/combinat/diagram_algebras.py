@@ -263,10 +263,10 @@ class AbstractPartitionDiagram(AbstractSetPartition):
             ValueError: {{-1}, {1}} does not represent two rows of vertices of order 2
         """
         if self._base_diagram:
-            tst = Set(flatten(self._base_diagram))
-            if tst != self.parent()._base_set:
-                raise ValueError("{0} does not represent two rows of vertices of order {1}".format(
-                    str(self), str(self.parent().order)))
+            tst = frozenset(flatten(self._base_diagram))
+            if tst != self.parent()._set:
+                raise ValueError("{} does not represent two rows of vertices of order {}".format(
+                                     self, self.parent().order))
 
     def __eq__(self, other):
         r"""
@@ -1035,11 +1035,12 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
         Parent.__init__(self, category=category)
         self.order = order
         if order in ZZ:
-            self._base_set = Set(range(1,self.order+1)) | Set(range(-self.order,0))
+            base_set = frozenset(list(range(1,order+1)) + list(range(-order,0)))
         else:
             #order is a half-integer.
-            self._base_set = (Set(range(1,ZZ(ZZ(1)/ZZ(2) + self.order)+1))
-                              | Set(range(ZZ(-ZZ(1)/ZZ(2) - self.order),0)))
+            base_set = frozenset(list(range(1,ZZ(ZZ(1)/ZZ(2) + order)+1))
+                                 + list(range(ZZ(-ZZ(1)/ZZ(2) - order),0)))
+        self._set = base_set
 
     def _repr_(self):
         r"""

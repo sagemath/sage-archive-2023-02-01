@@ -583,6 +583,22 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             self([2*one,0,2*one]), # an element with non-trivial content
         ]
 
+    @cached_method
+    def flattening_morphism(self):
+        r"""
+        Return the flattening morphism of this polynomial ring
+
+        EXAMPLES::
+
+            sage: QQ['a','b']['x'].flattening_morphism()
+            Flattening morphism:
+              From: Univariate Polynomial Ring in x over Multivariate Polynomial Ring in a, b over Rational Field
+              To:   Multivariate Polynomial Ring in a, b, x over Rational Field
+
+        """
+        from .flatten import FlatteningMorphism
+        return FlatteningMorphism(self)
+
     def construction(self):
         return categories.pushout.PolynomialFunctor(self.variable_name(), sparse=self.__is_sparse), self.base_ring()
 

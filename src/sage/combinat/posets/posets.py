@@ -3319,7 +3319,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         There are various competing definitions for graded
         posets (see :wikipedia:`Graded_poset`). This definition is from
         section 3.1 of Richard Stanley's *Enumerative Combinatorics,
-        Vol. 1* [EnumComb1]_.
+        Vol. 1* [EnumComb1]_. Some sources call these posets *tiered*.
 
         Every graded poset is ranked. The converse is true
         for bounded posets, including lattices.

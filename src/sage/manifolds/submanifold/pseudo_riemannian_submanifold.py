@@ -37,7 +37,7 @@ Here b is the hyperbola semi major axis, and t is the parameter of the
 foliation.
 
 One must then define the embedding, as well as the inverse embedding and the
-inverse conserning the foliation parameter::
+inverse concerning the foliation parameter::
 
     sage: phi = N.diff_map(M,{(C,E):[b*cosh(rh)+t,
     ....:                            b*sinh(rh)*sin(th)*cos(ph),
@@ -346,7 +346,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         EXAMPLES:
 
-        A sphere embedded in euclidan space::
+        A sphere embedded in euclidian space::
 
             sage: M = Manifold(3,'M',structure = "Riemannian")
             sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
@@ -372,7 +372,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         if not self._embedded or not isinstance(self._ambient,
                                                 PseudoRiemannianManifold):
             raise ValueError("Submanifold must be "
-                             "embedded in a pseudo-Riemnnian manifold")
+                             "embedded in a pseudo-Riemannian manifold")
         if self._ambient_metric is not None:
             return self._ambient_metric
         self._ambient_metric = self._ambient.metric()
@@ -387,7 +387,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         EXAMPLES:
 
-        A sphere embedded in euclidan space::
+        A sphere embedded in euclidian space::
 
             sage: M = Manifold(3,'M',structure = "Riemannian")
             sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
@@ -429,7 +429,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         EXAMPLES:
 
-        A sphere embedded in euclidan space::
+        A sphere embedded in euclidian space::
 
             sage: M = Manifold(3,'M',structure = "Riemannian")
             sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
@@ -524,7 +524,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         EXAMPLES:
 
-        A sphere embedded in euclidan space::
+        A sphere embedded in euclidian space::
 
             sage: M = Manifold(3,'M',structure = "Riemannian")
             sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
@@ -570,7 +570,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         EXAMPLES:
 
-        A sphere embedded in euclidan space::
+        A sphere embedded in euclidian space::
 
             sage: M = Manifold(3,'M',structure = "Riemannian")
             sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
@@ -612,7 +612,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         EXAMPLES:
 
-        A sphere embedded in euclidan space::
+        A sphere embedded in euclidian space::
 
             sage: M = Manifold(3,'M',structure = "Riemannian")
             sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
@@ -695,7 +695,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         EXAMPLES:
 
-        A sphere embedded in euclidan space::
+        A sphere embedded in euclidian space::
 
             sage: M = Manifold(3,'M',structure = "Riemannian")
             sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
@@ -763,17 +763,17 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         """
         if self._second_fundamental_form is not None:
             return self._second_fundamental_form
-        #self._second_fundamental_form = \
+        # self._second_fundamental_form = \
         #    self._immersion.pullback(self.ambient_second_fundamental_form())
 
         inverse_subs = {v: k for k, v in self._subs[0].items()}
         resu = self._immersion._domain.vector_field_module().tensor((0, 2), name='K',
-                               latex_name='K', sym=[(0,1)],antisym=[])
+                               latex_name='K', sym=[(0, 1)], antisym=[])
         for i in self.irange():
             for j in self.irange():
-                resu[i,j] = self.ambient_extrinsic_curvature()[self._adapted_charts[0].frame(), [i, j]].expr(self._adapted_charts[0]).subs(inverse_subs)
+                resu[i, j] = self.ambient_extrinsic_curvature()[self._adapted_charts[0].frame(), [i, j]].expr(self._adapted_charts[0]).subs(inverse_subs)
 
-        self._second_fundamental_form =  resu
+        self._second_fundamental_form = resu
         return self._second_fundamental_form
 
     extrinsic_curvature = second_fundamental_form

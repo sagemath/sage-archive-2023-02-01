@@ -4,6 +4,154 @@ Pseudo-Riemannian submanifold of a differentiable manifold
 A pseudo-Riemannian submanifold of a differentiable manifold is a differentiable
 submanifold which is also pseudo-Riemannian.
 
+An actual limitation of this implementation is that a foliation is required to
+perform nearly all the calculations (except the induced metric). This is because
+the normal vector is easily computed with a foliation, but otherwise requires
+some operations which are not yet implemented in Sage (contraction over
+different domains).
+
+To correctly compute the normal vector, the submanifold must be declared either
+Riemannian or Lorentzian.
+
+
+The following example explains how to compute the various quantities associated
+with the hyperbolic slicing of the Minkowski space.
+
+The manifolds must first be declared::
+
+    sage: M = Manifold(4,'M',structure = "Lorentzian")
+    sage: N = Manifold(3,'N',ambient = M,structure = "Riemannian")
+
+Because the slice considered are spacelike hypersurface, they are Riemannian,
+despite being embedded in a Lorentzian manifold.
+
+Let's continue with chart declaration and various free variables::
+
+    sage: E.<w,x,y,z> = M.chart()
+    sage: C.<rh,th,ph> = N.chart(r'rh:(0,+oo):\rho th:(0,pi):\theta ph:(-pi,pi):\phi')
+    sage: b = var('b',domain = 'real')
+    sage: assume(b>0)
+    sage: t = var('t',domain = 'real')
+
+Here b is the hyperbola semi major axis, and t is the parameter of the
+foliation.
+
+One must then define the embedding, as well as the inverse embedding and the
+inverse conserning the foliation parameter::
+
+    sage: phi = N.diff_map(M,{(C,E):[b*cosh(rh)+t,
+    ....:                            b*sinh(rh)*sin(th)*cos(ph),
+    ....:                            b*sinh(rh)*sin(th)*sin(ph),
+    ....:                            b*sinh(rh)*cos(th)]})
+    sage: phi_inv = M.diff_map(N,{(E,C):[log(sqrt(x**2+y**2+z**2+b**2)\
+    ....:                      /b+sqrt((x**2+y**2+z**2+b**2)/b^2-1)),
+    ....:                      arccos(z/(b*sqrt((x**2+y**2+z**2+b**2)/b^2-1))),
+    ....:                      atan2(y,x)]})
+    sage: phi_inv_t = M.scalar_field({E:w-sqrt(x**2+y**2+z**2+b**2)})
+
+One can check that the inverse is correct with::
+
+    sage: (phi*phi_inv).display()
+    M --> M
+   (w, x, y, z) |--> ((b^2 + x^2 + y^2 + z^2 + sqrt(b^2 + x^2 + y^2 + z^2)*(t + sqrt(x^2 + y^2 + z^2)) + sqrt(x^2 + y^2 + z^2)*t)/(sqrt(b^2 + x^2 + y^2 + z^2) + sqrt(x^2 + y^2 + z^2)), x, y, z)
+
+The first parameter cannot be evaluated yet, because the inverse for t is not
+taken into account. To prove that it is correct, one can temporarily inject it
+in the result::
+
+    sage: assume(w-t>0)
+    sage: (phi*phi_inv).expr()[0].subs({b**2:(w-t)**2-x**2-y**2-z**2})\
+    ....:           .simplify().expand().simplify_full()
+    w
+    sage: forget(w-t>0)
+
+The immersion can then be declared::
+
+    sage: N.set_immersion(phi,phi_inverse = phi_inv,var = t,t_inverse = {t:phi_inv_t})
+
+This line doesn't do any calculation yet. It just check the coherence of the
+arguments, but not the inverse, the user is trusted on this point. The user can
+also declare that his immersion is in fact an embedding::
+
+    sage: N.declare_embedding()
+
+Don't forget to specify the metric of the Minkowski space::
+
+    sage: g = M.metric('g')
+    sage: g[0,0], g[1,1], g[2,2], g[3,3]=-1, 1, 1, 1
+
+With this the declaration of our manifolds is finished, and calculation can be
+performed.
+
+The first step is always to find a chart adapted to the foliation. This is done
+by the method "adapted_chart"::
+
+    sage: T = N.adapted_chart(); T
+    [Chart (M, (rh_M, th_M, ph_M, t_M))]
+
+T now contains the new charts defined on M. By default, the name of a variable
+will be the name of the variable in the submanifold chart indexed by the name
+of the manifold.
+
+One can check that the coordinates
+changes have been defined correctly::
+
+    sage: len(M.coord_changes())
+    2
+
+Let's now compute some quantities:
+
+The induced metric (or first fundamental form)::
+
+    sage: N.induced_metric()[:]
+    [                     b^2                        0                        0]
+    [                       0           b^2*sinh(rh)^2                        0]
+    [                       0                        0 b^2*sin(th)^2*sinh(rh)^2]
+
+The normal vector::
+
+    sage: N.normal().display()
+    sqrt(b^2 + x^2 + y^2 + z^2)/b d/dw + x/b d/dx + y/b d/dy + z/b d/dz
+
+Check that the hypersurface is indeed spacelike::
+
+    sage: N.ambient_metric()(N.normal(),N.normal()).display()
+    M --> R
+    (w, x, y, z) |--> -1
+    (rh_M, th_M, ph_M, t_M) |--> -1
+
+Lapse function::
+
+    sage: N.lapse().display()
+    M --> R
+    (w, x, y, z) |--> sqrt(b^2 + x^2 + y^2 + z^2)/b
+    (rh_M, th_M, ph_M, t_M) |--> cosh(rh_M)
+
+Shift vector::
+
+    sage: N.shift().display()
+    -(x^2 + y^2 + z^2)/b^2 d/dw - sqrt(b^2 + x^2 + y^2 + z^2)*x/b^2 d/dx - sqrt(b^2 + x^2 + y^2 + z^2)*y/b^2 d/dy - sqrt(b^2 + x^2 + y^2 + z^2)*z/b^2 d/dz
+
+The extrinsic curvature (second fundamental form) as a tensor of the ambient
+manifold:
+
+    sage: N.ambient_extrinsic_curvature()[:]
+    [           -(x^2 + y^2 + z^2)/b^3 sqrt(b^2 + x^2 + y^2 + z^2)*x/b^3 sqrt(b^2 + x^2 + y^2 + z^2)*y/b^3 sqrt(b^2 + x^2 + y^2 + z^2)*z/b^3]
+    [sqrt(b^2 + x^2 + y^2 + z^2)*x/b^3                  -(b^2 + x^2)/b^3                          -x*y/b^3                          -x*z/b^3]
+    [sqrt(b^2 + x^2 + y^2 + z^2)*y/b^3                          -x*y/b^3                  -(b^2 + y^2)/b^3                          -y*z/b^3]
+    [sqrt(b^2 + x^2 + y^2 + z^2)*z/b^3                          -x*z/b^3                          -y*z/b^3                  -(b^2 + z^2)/b^3]
+
+The extrinsic curvature (second fundamental form) as a tensor of the
+submanifold (can be quite long because of all the simplifications, about 50
+seconds)::
+
+    sage: N.extrinsic_curvature()[:] # long time
+    [                     -b                       0                       0]
+    [                      0           -b*sinh(rh)^2                       0]
+    [                      0                       0 -b*sin(th)^2*sinh(rh)^2]
+
+
+
 AUTHORS:
 
 - Florentin Jaffredo

@@ -2568,7 +2568,9 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         a vector of the same size of ``self`` and ``right``.
 
         This product is performed under the assumption that the basis
-        vectors are orthonormal.
+        vectors are orthonormal. See the method
+        :meth:`~sage.manifolds.differentiable.vectorfield.VectorField.cross_product`
+        of vector fields for more general cases.
 
         EXAMPLES::
 
@@ -2912,6 +2914,14 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             ValueError: Unable to determine ordered variable names for Symbolic Ring
             sage: vector(SR, [x*y, y*z, z*x]).div([x, y, z])
             x + y + z
+
+        .. SEEALSO::
+
+            :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.divergence`
+            of vector fields on Euclidean spaces (and more generally
+            pseudo-Riemannian manifolds), in particular for computing the
+            divergence in curvilinear coordinates.
+
         """
         if variables is None:
             variables = self._variables()
@@ -2958,6 +2968,14 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: R.<x,y> = QQ[]
             sage: vector([-y, x]).curl()
             2
+
+        .. SEEALSO::
+
+            :meth:`~sage.manifolds.differentiable.vectorfield.VectorField.curl`
+            of vector fields on Euclidean spaces (and more generally
+            pseudo-Riemannian manifolds), in particular for computing the curl
+            in curvilinear coordinates.
+
         """
         if len(self) == 3:
             if variables is None:

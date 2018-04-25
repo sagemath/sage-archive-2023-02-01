@@ -381,14 +381,14 @@ class TopologicalSubmanifold(TopologicalManifold):
         if index == "":
             postscript = "_" + self._ambient._name
 
-        if latex_index == "":
+        latex_postscript = latex_index
+        if latex_postscript == "":
             latex_postscript = "_" + self._ambient._latex_()
-
 
         for domain in domains:
             name = " ".join([domain[0][i]._repr_()+postscript+":{"
-                             +domain[0][i]._latex_()+"}"+latex_postscript
-                             for i in self.irange()])+ " "\
+                             + domain[0][i]._latex_()+"}"+latex_postscript
+                             for i in self.irange()]) + " "\
                    + " ".join(v._repr_()+postscript for v in self._var)
             chart = domain[1]._domain.chart(name)
             if chart not in res:

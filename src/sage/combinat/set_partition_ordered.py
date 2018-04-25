@@ -30,17 +30,19 @@ from sage.arith.all import factorial
 import sage.rings.integer
 from sage.sets.set import Set, Set_generic
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.all import prod
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableArray
+from sage.structure.richcmp import richcmp
+from sage.rings.integer_ring import ZZ
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.combinat import stirling_number2
 from sage.combinat.composition import Composition, Compositions
 import sage.combinat.permutation as permutation
 from functools import reduce
-
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class OrderedSetPartition(ClonableArray):
@@ -173,6 +175,20 @@ class OrderedSetPartition(ClonableArray):
         """
         assert self in self.parent()
 
+    def _hash_(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: OS = OrderedSetPartitions(4)
+            sage: s = OS([[1, 3], [2, 4]])
+            sage: OSP = OrderedSetPartitions()
+            sage: hash(s) == hash(OSP(s))
+            True
+        """
+        return hash(tuple(self))
+
     @combinatorial_map(name='to composition')
     def to_composition(self):
         r"""
@@ -194,6 +210,9 @@ class OrderedSetPartition(ClonableArray):
 class OrderedSetPartitions(UniqueRepresentation, Parent):
     """
     Return the combinatorial class of ordered set partitions of ``s``.
+
+    The optional argument ``c``, if specified, restricts the parts of
+    the partition to have certain sizes (the entries of ``c``).
 
     EXAMPLES::
 
@@ -246,7 +265,7 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
          [{'a', 'c', 't'}]]
     """
     @staticmethod
-    def __classcall_private__(cls, s, c=None):
+    def __classcall_private__(cls, s=None, c=None):
         """
         Choose the correct parent based upon input.
 
@@ -257,6 +276,10 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
             sage: OrderedSetPartitions(4, [1, 2, 1])
             Ordered set partitions of {1, 2, 3, 4} into parts of size [1, 2, 1]
         """
+        if s is None:
+            if c is not None:
+                raise NotImplementedError("cannot specify 'c' without specifying 's'")
+            return OrderedSetPartitions_all()
         if isinstance(s, (int, sage.rings.integer.Integer)):
             if s < 0:
                 raise ValueError("s must be non-negative")
@@ -296,9 +319,7 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
             [{1, 3}, {2, 4}]
         """
         if isinstance(s, OrderedSetPartition):
-            if s.parent() == self:
-                return s
-            raise ValueError("Cannot convert %s into an element of %s"%(s, self))
+            raise ValueError("cannot convert %s into an element of %s"%(s, self))
         return self.element_class(self, list(s))
 
     Element = OrderedSetPartition
@@ -579,11 +600,139 @@ class OrderedSetPartitions_scomp(OrderedSetPartitions):
         for j in range(l):
             p += [j + 1] * comp[j]
 
-        for x in permutation.Permutations(p):
+        from sage.combinat.permutation import Permutations_mset
+        for x in Permutations_mset(p):
             res = permutation.to_standard(x).inverse()
             res = [lset[x - 1] for x in res]
             yield self.element_class(self, [Set(res[dcomp[i]+1:dcomp[i+1]+1])
                                             for i in range(l)])
+
+class OrderedSetPartitions_all(OrderedSetPartitions):
+    r"""
+    Ordered set partitions of `\{1, \ldots, n\}` for all
+    `n \in \ZZ_{\geq 0}`.
+    """
+    def __init__(self):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: OS = OrderedSetPartitions()
+            sage: TestSuite(OS).run()  # long time
+        """
+        Parent.__init__(self, category=InfiniteEnumeratedSets())
+
+    def __iter__(self):
+        """
+        Iterate over ``self``.
+
+        EXAMPLES::
+
+            sage: it = iter(OrderedSetPartitions())
+            sage: [next(it) for _ in range(10)]
+            [[], [{1}], [{1}, {2}], [{2}, {1}], [{1, 2}],
+             [{1}, {2}, {3}], [{1}, {3}, {2}], [{2}, {1}, {3}],
+             [{3}, {1}, {2}], [{2}, {3}, {1}]]
+        """
+        n = 0
+        while True:
+            for X in OrderedSetPartitions(n):
+                yield self.element_class(self, list(X))
+            n += 1
+
+    def _element_constructor_(self, s):
+        """
+        Construct an element of ``self`` from ``s``.
+
+        EXAMPLES::
+
+            sage: OS = OrderedSetPartitions()
+            sage: OS([[1,3],[2,4]])
+            [{1, 3}, {2, 4}]
+        """
+        if isinstance(s, OrderedSetPartition):
+            gset = s.parent()._set
+            if gset == frozenset(range(1,len(gset)+1)):
+                return self.element_class(self, list(s))
+            raise ValueError("cannot convert %s into an element of %s"%(s, self))
+        return self.element_class(self, list(s))
+
+    def __contains__(self, x):
+        """
+        TESTS::
+
+            sage: OS = OrderedSetPartitions([1,2,3,4])
+            sage: AOS = OrderedSetPartitions()
+            sage: all(sp in AOS for sp in OS)
+            True
+            sage: [[1,3],[4],[5,2]] in AOS
+            True
+            sage: [[1,4],[3]] in AOS
+            False
+            sage: [[1,3],[4,2],[2,5]] in AOS
+            False
+        """
+        if isinstance(x, OrderedSetPartition):
+            if x.parent() is self:
+                return True
+            gset = x.parent()._set
+            return gset == frozenset(range(1, len(gset)+1))
+
+        # x must be a list or a tuple
+        if not isinstance(x, (list, tuple)):
+            return False
+
+        # Check to make sure each element of the list is a set
+        if any(not isinstance(s, (set, frozenset, list, tuple, Set_generic))
+               for s in x):
+            return False
+        if not all(isinstance(s, (set, frozenset, Set_generic)) or len(s) == len(set(s)) for s in x):
+            return False
+        X = set(reduce(lambda A,B: A.union(B), x, set()))
+        return len(X) == sum(len(s) for s in x) and X == set(range(1,len(X)+1))
+        
+    def _coerce_map_from_(self, X):
+        """
+        Return ``True`` if there is a coercion map from ``X``.
+
+        EXAMPLES::
+        
+            sage: OSP = OrderedSetPartitions()
+            sage: OSP._coerce_map_from_(OrderedSetPartitions(3))
+            True
+            sage: OSP._coerce_map_from_(OrderedSetPartitions(['a','b']))
+            False
+        """
+        if X is self:
+            return True
+        if isinstance(X, OrderedSetPartitions):
+            return X._set == frozenset(range(1,len(X._set)+1))
+        return super(OrderedSetPartitions_all, self)._coerce_map_from_(X)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: OrderedSetPartitions()
+            Ordered set partitions
+        """
+        return "Ordered set partitions"
+
+    class Element(OrderedSetPartition):
+        def _richcmp_(left, right, op):
+            """
+            TESTS::
+
+                sage: OSP = OrderedSetPartitions()
+                sage: el1 = OSP([[1,3], [4], [2]])
+                sage: el2 = OSP([[3,1], [2], [4]])
+                sage: el1 == el1, el2 == el2, el1 == el2    # indirect doctest
+                (True, True, False)
+                sage: el1 <= el2, el1 >= el2, el2 <= el1    # indirect doctest
+                (False, True, True)
+            """
+            return richcmp([sorted(s) for s in left], [sorted(s) for s in right], op)
 
 ##########################################################
 # Deprecations

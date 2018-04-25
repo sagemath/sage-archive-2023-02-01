@@ -1307,10 +1307,10 @@ class PeriodicSolitonCellularAutomata(SolitonCellularAutomata):
 
     REFERENCES:
 
-    - [YT2002]_
-    - [YT2003]_
     - [KTT2006]_
     - [KS2006]_
+    - [YT2002]_
+    - [YYT2003]_
     """
     def evolve(self, carrier_capacity=None, carrier_index=None, number=None):
         r"""

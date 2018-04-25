@@ -732,10 +732,10 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: G = algebras.FQSym(QQ).F()
+                sage: G = algebras.FQSym(QQ).G()
                 sage: G[3, 2, 1]
                 G[3, 2, 1]
-                sage: F[1]
+                sage: G[1]
                 G[1]
             """
             if isinstance(r, tuple):

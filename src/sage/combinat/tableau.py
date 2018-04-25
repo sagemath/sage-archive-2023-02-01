@@ -4154,7 +4154,7 @@ class Tableau(ClonableList):
             sage: A = a.hillman_grassl(); A
             [[2, 2, 4], [2, 3, 4], [3, 5]]
             sage: A.parent(), a.parent()
-            (Weak rpps, Tableaux)
+            (Weak Reverse Plane Partitions, Tableaux)
         """
         from sage.combinat.hillman_grassl import (hillman_grassl,
                                                   WeakReversePlanePartition)
@@ -4266,7 +4266,7 @@ class Tableau(ClonableList):
             sage: A = a.sulzgruber_correspondence(); A
             [[0, 1, 4], [1, 5, 5], [3, 6]]
             sage: A.parent(), a.parent()
-            (Weak rpps, Tableaux)
+            (Weak Reverse Plane Partitions, Tableaux)
 
             sage: a = Tableau([[1, 3], [0, 1]])
             sage: a.sulzgruber_correspondence()

@@ -130,7 +130,8 @@ Lapse function::
 Shift vector::
 
     sage: N.shift().display()
-    -(x^2 + y^2 + z^2)/b^2 d/dw - sqrt(b^2 + x^2 + y^2 + z^2)*x/b^2 d/dx - sqrt(b^2 + x^2 + y^2 + z^2)*y/b^2 d/dy - sqrt(b^2 + x^2 + y^2 + z^2)*z/b^2 d/dz
+    -(x^2 + y^2 + z^2)/b^2 d/dw - sqrt(b^2 + x^2 + y^2 + z^2)*x/b^2 d/dx -
+     sqrt(b^2 + x^2 + y^2 + z^2)*y/b^2 d/dy - sqrt(b^2 + x^2 + y^2 + z^2)*z/b^2 d/dz
 
 The extrinsic curvature (second fundamental form) as a tensor of the ambient
 manifold:
@@ -387,6 +388,10 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
 
+        OUTPUT:
+
+        - (0,2) tensor field on the submanifold equal to the induced metric
+
         EXAMPLES:
 
         A sphere embedded in euclidian space::
@@ -430,6 +435,10 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
 
+        OUTPUT:
+
+        - 1-form field on the ambient manifold.
+
         EXAMPLES:
 
         A sphere embedded in euclidian space::
@@ -471,6 +480,10 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
+
+        OUTPUT:
+
+        - vector field on the ambient manifold.
 
         EXAMPLES:
 
@@ -529,6 +542,10 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
 
+        OUTPUT:
+
+        - vector field on the ambient manifold.
+
         EXAMPLES:
 
         A sphere embedded in euclidian space::
@@ -576,6 +593,11 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
 
+        OUTPUT:
+
+        - (0,2) tensor field on the ambient manifold describing the induced
+          metric before projection on the submanifold
+
         EXAMPLES:
 
         A sphere embedded in euclidian space::
@@ -618,6 +640,10 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
+
+        OUTPUT:
+
+        - scalar field on the ambient manifold equal to the lapse function
 
         EXAMPLES:
 
@@ -662,6 +688,10 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
 
+        OUTPUT:
+
+        - shift vector field on the ambient manifold.
+
         EXAMPLES:
 
         A sphere embedded in euclidan space::
@@ -703,6 +733,11 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
+
+        OUTPUT:
+
+        - (0,2) tensor field on the ambient manifold equal to the extrinsic
+          curvature before projection on the submanifold
 
         EXAMPLES:
 
@@ -748,6 +783,10 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
+
+        OUTPUT:
+
+        - (0,2) tensor field on the submanifold equal to the extrinsic curvature
 
         EXAMPLES:
 
@@ -803,6 +842,11 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
 
+        OUTPUT:
+
+        - the (1,1) tensor field on the ambient manifold corresponding to the
+          projector along the normal of the submanifold
+
         EXAMPLES:
 
         A sphere embedded in euclidan space::
@@ -844,7 +888,16 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
     def project(self, tensor):
         r"""
-        Return the projector on the submanifold.
+        Return the projection of a tensor on the submanifold.
+
+        INPUT:
+
+        - ``tensor`` -- any tensor field to be projected on the manifold
+
+        OUTPUT:
+
+        - tensor field on the ambient manifold, projection of the input tensor
+          along the normal of the submanifold.
 
         EXAMPLES:
 
@@ -882,9 +935,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         resu = tensor.copy()
         resu.set_name(tensor._name + "_" + self._name,
                       r"{" + tensor._latex_() + r"}_" + self._latex_())
-        for i in range(tensor.tensor_rank()):
-            try:
-                resu = self.projector().contract(1, resu, i)
-            except TypeError:
-                resu = self.projector().contract(0, resu, i)
+        for i in range(tensor.tensor_type()[0]):
+            resu = self.projector().contract(1, resu, i)
+        for i in range(tensor.tensor_type()[1]):
+            resu = self.projector().contract(0, resu, i)
         return resu

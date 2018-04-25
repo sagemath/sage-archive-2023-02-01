@@ -53,7 +53,7 @@ One can check that the inverse is correct with::
 
     sage: (phi*phi_inv).display()
     M --> M
-   (w, x, y, z) |--> ((b^2 + x^2 + y^2 + z^2 + sqrt(b^2 + x^2 + y^2 + z^2)*(t + sqrt(x^2 + y^2 + z^2)) + sqrt(x^2 + y^2 + z^2)*t)/(sqrt(b^2 + x^2 + y^2 + z^2) + sqrt(x^2 + y^2 + z^2)), x, y, z)
+    (w, x, y, z) |--> ((b^2 + x^2 + y^2 + z^2 + sqrt(b^2 + x^2 + y^2 + z^2)*(t + sqrt(x^2 + y^2 + z^2)) + sqrt(x^2 + y^2 + z^2)*t)/(sqrt(b^2 + x^2 + y^2 + z^2) + sqrt(x^2 + y^2 + z^2)), x, y, z)
 
 The first parameter cannot be evaluated yet, because the inverse for t is not
 taken into account. To prove that it is correct, one can temporarily inject it
@@ -123,18 +123,18 @@ Check that the hypersurface is indeed spacelike::
 Lapse function::
 
     sage: N.lapse().display()
-    M --> R
-    (w, x, y, z) |--> sqrt(b^2 + x^2 + y^2 + z^2)/b
-    (rh_M, th_M, ph_M, t_M) |--> cosh(rh_M)
+    N: M --> R
+       (w, x, y, z) |--> sqrt(b^2 + x^2 + y^2 + z^2)/b
+       (rh_M, th_M, ph_M, t_M) |--> cosh(rh_M)
 
 Shift vector::
 
     sage: N.shift().display()
-    -(x^2 + y^2 + z^2)/b^2 d/dw - sqrt(b^2 + x^2 + y^2 + z^2)*x/b^2 d/dx -
-     sqrt(b^2 + x^2 + y^2 + z^2)*y/b^2 d/dy - sqrt(b^2 + x^2 + y^2 + z^2)*z/b^2 d/dz
+    beta = -(x^2 + y^2 + z^2)/b^2 d/dw - sqrt(b^2 + x^2 + y^2 + z^2)*x/b^2 d/dx
+     - sqrt(b^2 + x^2 + y^2 + z^2)*y/b^2 d/dy - sqrt(b^2 + x^2 + y^2 + z^2)*z/b^2 d/dz
 
 The extrinsic curvature (second fundamental form) as a tensor of the ambient
-manifold:
+manifold::
 
     sage: N.ambient_extrinsic_curvature()[:]
     [           -(x^2 + y^2 + z^2)/b^3 sqrt(b^2 + x^2 + y^2 + z^2)*x/b^3 sqrt(b^2 + x^2 + y^2 + z^2)*y/b^3 sqrt(b^2 + x^2 + y^2 + z^2)*z/b^3]
@@ -460,7 +460,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: g = M.metric('g')
             sage: g[0,0],g[1,1],g[2,2]=1,1,1
             sage: print(N.difft().display())
-            x/sqrt(x^2 + y^2 + z^2) dx + y/sqrt(x^2 + y^2 + z^2) dy + z/sqrt(x^2 + y^2 + z^2) dz
+            dr = x/sqrt(x^2 + y^2 + z^2) dx + y/sqrt(x^2 + y^2 + z^2) dy + z/sqrt(x^2 + y^2 + z^2) dz
 
         """
         if self._dim_foliation == 0:
@@ -506,7 +506,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: g = M.metric('g')
             sage: g[0,0],g[1,1],g[2,2]=1,1,1
             sage: print(N.gradt().display())
-            x/sqrt(x^2 + y^2 + z^2) d/dx + y/sqrt(x^2 + y^2 + z^2) d/dy + z/sqrt(x^2 + y^2 + z^2) d/dz
+            grad_r = x/sqrt(x^2 + y^2 + z^2) d/dx + y/sqrt(x^2 + y^2 + z^2) d/dy
+             + z/sqrt(x^2 + y^2 + z^2) d/dz
 
         """
         if self._dim_foliation == 0:
@@ -620,14 +621,14 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: g[0,0],g[1,1],g[2,2]=1,1,1
             sage: print(N.ambient_first_fundamental_form().\
             ....:   display(T[0].frame(),T[0]))
-            r_M^2 dth_M*dth_M + r_M^2*sin(th_M)^2 dph_M*dph_M + 2 dr_M*dr_M
+            gamma = r_M^2 dth_M*dth_M + r_M^2*sin(th_M)^2 dph_M*dph_M
 
         """
         if self._ambient_first_fundamental_form is not None:
             return self._ambient_first_fundamental_form
         self._ambient_first_fundamental_form = \
-            self.ambient_metric() \
-            + self.ambient_metric().contract(self.normal())\
+            self.ambient_metric() -self._sgn\
+            * self.ambient_metric().contract(self.normal())\
             * self.ambient_metric().contract(self.normal())
         self._ambient_first_fundamental_form.set_name("gamma",r"\gamma")
         return self._ambient_first_fundamental_form
@@ -666,9 +667,9 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: g = M.metric('g')
             sage: g[0,0],g[1,1],g[2,2]=1,1,1
             sage: print(N.lapse().display())
-            M --> R
-            (x, y, z) |--> 1
-            (th_M, ph_M, r_M) |--> 1
+            N: M --> R
+               (x, y, z) |--> 1
+               (th_M, ph_M, r_M) |--> 1
 
         """
         if self._dim_foliation == 0:
@@ -713,7 +714,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: g = M.metric('g')
             sage: g[0,0],g[1,1],g[2,2]=1,1,1
             sage: print(N.shift().display())
-            0
+            beta = 0
 
         """
         if self._dim_foliation == 0:
@@ -761,7 +762,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: g[0,0],g[1,1],g[2,2]=1,1,1
             sage: print(N.ambient_second_fundamental_form()\
             ....:       .display(T[0].frame(),T[0])) #long time
-            -r_M dth_M*dth_M - r_M*sin(th_M)^2 dph_M*dph_M
+            K = -r_M dth_M*dth_M - r_M*sin(th_M)^2 dph_M*dph_M
 
         """
         if self._ambient_second_fundamental_form is not None:
@@ -809,7 +810,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: g = M.metric('g')
             sage: g[0,0],g[1,1],g[2,2]=1,1,1
             sage: print(N.second_fundamental_form().display()) # long time
-            -r dth*dth - r*sin(th)^2 dph*dph
+            K = -r dth*dth - r*sin(th)^2 dph*dph
 
         """
         if self._second_fundamental_form is not None:
@@ -881,7 +882,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         """
         if self._projector is not None:
             return self._projector
-        self._projector = self._ambient_first_fundamental_form.up(
+        self._projector = self.ambient_first_fundamental_form().up(
             self.ambient_metric(), pos=0)
         self._projector.set_name("gamma", r"\overrightarrow{\gamma}")
         return self._projector

@@ -1014,6 +1014,13 @@ REFERENCES:
             Theory, Version 13.1.2.*. http://www.gambit-project.org
             (2014).
 
+.. [Gans1981] Emden R. Gansner,
+             *The Hillman-Grassl Correspondence and the
+             Enumeration of Reverse Plane Partitions*,
+             Journal of Combinatorial Theory, Series A
+             30 (1981), pp. 71--89.
+             :doi:`10.1016/0097-3165(81)90041-8`
+
 .. [Gar2015] \V. Garg *Introduction to Lattice Theory with Computer
              Science Applications* (2015), Wiley.
 
@@ -1203,6 +1210,16 @@ REFERENCES:
 
 .. [Hoc] Winfried Hochstaettler, "About the Tic-Tac-Toe Matroid",
          preprint.
+
+.. [Hopkins2017] Sam Hopkins,
+                 *RSK via local transformations*,
+                 http://web.mit.edu/~shopkins/docs/rsk.pdf
+
+.. [HilGra1976] \A. P. Hillman, R. M. Grassl,
+                *Reverse plane partitions and tableau hook numbers*,
+                Journal of Combinatorial Theory, Series A 21 (1976),
+                pp. 216--221.
+                :doi:`10.1016/0097-3165(76)90065-0`
 
 .. [HN2006] Florent Hivert and Janvier Nzeutchap. *Dual Graded Graphs
             in Combinatorial Hopf Algebras*.
@@ -1912,6 +1929,12 @@ REFERENCES:
 
 **P**
 
+.. [Pak2002] Igor Pak,
+             *Hook length formula and geometric combinatorics*,
+             Seminaire Lotharingien de Combinatoire, 46 (2001),
+             B46f,
+             https://eudml.org/doc/121696
+
 .. [PALP] Maximilian Kreuzer, Harald Skarke: "PALP: A Package for
           Analyzing Lattice Polytopes with Applications to Toric
           Geometry" omput.Phys.Commun. 157 (2004) 87-106
@@ -2103,6 +2126,9 @@ REFERENCES:
              Combinatorial Theory, Series A Volume 45 (1987),
              pp. 62-103.
 
+.. [Sag2001] Bruce E. Sagan.  *The Symmetric Group*,
+             2nd edition, New York 2001.
+
 .. [Sch1996] \E. Schaefer. A simplified data encryption
              algorithm. Cryptologia, 20(1):77--84, 1996.
 
@@ -2236,6 +2262,11 @@ REFERENCES:
                Cambridge University Press (2011).
                http://math.mit.edu/~rstan/ec/ec1/
 
+.. [EnumComb2] Stanley, Richard P.
+               *Enumerative Combinatorics, volume 2*.
+               Cambridge University Press (1999).
+               http://math.mit.edu/~rstan/ec/
+
 .. [Stan2009] Richard Stanley,
               *Promotion and evacuation*,
               Electron. J. Combin. 16 (2009), no. 2, Special volume in honor of
@@ -2297,6 +2328,10 @@ REFERENCES:
 
 .. [sudoku:wikipedia]  "Near worst case",
                        :wikipedia:`Algorithmics_of_sudoku`
+
+.. [Sulzgr2017] Robin Sulzgruber,
+                *Inserting rim-hooks into reverse plane partitions*,
+                :arxiv:`1710.09695v1`.
 
 .. [SV2000] \J. Stern and S. Vaudenay,
             *CS-Cipher*; in

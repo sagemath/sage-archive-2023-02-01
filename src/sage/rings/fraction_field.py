@@ -829,9 +829,14 @@ class FractionField_generic(ring.Field):
             z
             sage: (x*z).gcd(0)
             z
+            sage: C.zero().gcd(0)
+            0
         """
         if g.is_zero():
-            return f.monic()
+            if f.is_zero():
+                return f
+            else:
+                return f.monic()
         Pol = f.parent()
         Num = Pol.change_ring(self.base())
         f1 = Num(f.numerator())

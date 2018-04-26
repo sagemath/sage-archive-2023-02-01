@@ -48,7 +48,8 @@ Test deprecations::
 
 from __future__ import absolute_import, print_function
 
-from sage.misc.persist import _base_dumps, _base_save
+from sage.misc.persist import (_base_dumps, _base_save,
+                               register_unpickle_override, make_None)
 
 from sage.misc.lazy_import import LazyImport
 richcmp = LazyImport('sage.structure.richcmp', 'richcmp', deprecation=23103)
@@ -71,12 +72,13 @@ dumps = LazyImport('sage.misc.persist', 'dumps')
 save = LazyImport('sage.misc.persist', 'save')
 load = LazyImport('sage.misc.persist', 'load')
 unpickle_all = LazyImport('sage.misc.persist', 'unpickle_all')
-make_None = LazyImport('sage.misc.persist', 'make_None')
 unpickle_global = LazyImport('sage.misc.persist', 'unpickle_global')
 unpickle_override = LazyImport('sage.misc.persist', 'unpickle_override')
-register_unpickle_override = LazyImport('sage.misc.persist',
-                                        'register_unpickle_override',
-                                        at_startup=True)
+
+
+# Generators is no longer used (#21382)
+register_unpickle_override('sage.structure.generators', 'make_list_gens',
+                           make_None)
 
 
 cdef class SageObject:

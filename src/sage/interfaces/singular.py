@@ -1687,19 +1687,21 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
            choose an appropriate conversion strategy
         """
         # TODO: Refactor imports to move this to the top
-        from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict
+        from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
         from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
-        from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-        from sage.rings.polynomial.polydict import PolyDict,ETuple
+        from sage.rings.polynomial.polydict import ETuple
         from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
-        from sage.rings.quotient_ring import QuotientRing_generic
-        from sage.rings.quotient_ring_element import QuotientRingElement
+        from sage.rings.quotient_ring import is_QuotientRing
 
         ring_is_fine = False
         if R is None:
             ring_is_fine = True
             R = self.sage_global_ring()
+
+        if is_QuotientRing(R):
+            p = self.sage_poly(R.ambient(), kcache)
+            return R(p)
 
         sage_repr = {}
         k = R.base_ring()
@@ -1747,7 +1749,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
               for i in range(coeff_start, 2 * coeff_start):
                   singular_poly_list[i] = singular_poly_list[i].replace('(','').replace(')','')
 
-        if isinstance(R,(MPolynomialRing_polydict,QuotientRing_generic)) and (ring_is_fine or can_convert_to_singular(R)):
+        if is_MPolynomialRing(R) and (ring_is_fine or can_convert_to_singular(R)):
             # we need to lookup the index of a given variable represented
             # through a string
             var_dict = dict(zip(R.variable_names(),range(R.ngens())))
@@ -1776,11 +1778,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
                         kcache[elem] = k( elem )
                     sage_repr[ETuple(exp,ngens)]= kcache[elem]
 
-            p = MPolynomial_polydict(R,PolyDict(sage_repr,force_int_exponents=False,force_etuples=False))
-            if isinstance(R, MPolynomialRing_polydict):
-                return p
-            else:
-                return QuotientRingElement(R,p,reduce=False)
+            return R(sage_repr)
 
         elif is_PolynomialRing(R) and (ring_is_fine or can_convert_to_singular(R)):
 

@@ -898,6 +898,11 @@ if [ -d "$SAGE_DESTDIR" ]; then
     rm -rf "$SAGE_DESTDIR"
 fi
 
+# At this stage the path in $SAGE_DESTDIR no longer exists, so the variable
+# should be unset
+unset SAGE_DESTDIR
+unset SAGE_DESTDIR_LOCAL
+
 # Run the post-install script, if any
 if [ -f spkg-postinst ]; then
     time $SAGE_SUDO ./spkg-postinst

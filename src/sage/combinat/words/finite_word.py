@@ -801,7 +801,8 @@ class FiniteWord_class(Word_class):
 
     def is_empty(self):
         r"""
-        Return ``True`` if the length of ``self`` is zero, and ``False`` otherwise.
+        Return ``True`` if the length of ``self`` is zero,
+        and ``False`` otherwise.
 
         EXAMPLES::
 
@@ -810,7 +811,7 @@ class FiniteWord_class(Word_class):
             sage: Word('a').is_empty()
             False
         """
-        return self.length()==0
+        return self.length() == 0
 
     def is_finite(self):
         r"""
@@ -827,8 +828,9 @@ class FiniteWord_class(Word_class):
 
     def to_integer_word(self):
         r"""
-        Return a word defined over the integers ``[0,1,...,self.length()-1]``
-        whose letters are in the same relative order in the parent.
+        Return a word over the alphabet ``[0,1,...,self.length()-1]``
+        whose letters are in the same relative order as the letters
+        of ``self`` in the parent.
 
         EXAMPLES::
 
@@ -877,6 +879,8 @@ class FiniteWord_class(Word_class):
         and where each block `P_i` is the set of positions at which
         the `i`-th smallest letter occurring in ``self`` occurs in
         ``self``.
+
+        (Positions are `1`-based.)
 
         EXAMPLES::
 
@@ -7233,6 +7237,7 @@ def word_to_ordered_set_partition(w):
     `(P_1, P_2, \ldots, P_k)` of `\{1, 2, \ldots, n\}`, where
     each block `P_i` is the set of positions at which the `i`-th
     smallest letter occurring in `w` occurs in `w`.
+    (Positions are `1`-based.)
 
     This is the same functionality that
     :meth:`~sage.combinat.words.finite_word.FiniteWord_class.to_ordered_set_partition`
@@ -7257,9 +7262,8 @@ def word_to_ordered_set_partition(w):
         sage: word_to_ordered_set_partition([])
         []
     """
-    from sage.misc.all import uniq
     n = len(w)
-    vals = sorted(uniq(w))
+    vals = sorted(set(w))
     dc = {val: i for (i, val) in enumerate(vals)}
     P = [[] for _ in vals]
     for i, val in enumerate(w):

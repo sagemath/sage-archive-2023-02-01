@@ -347,6 +347,13 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
 
+        INPUT:
+
+        - ``recache`` -- (default: ``False``) if True, the cached value will be
+          ignored and all the functions this function depends on will be
+          reevaluated (potentially long). Use only after a modification of the
+          submanifold
+
         OUTPUT:
 
         - the metric of the ambient manifold
@@ -392,6 +399,13 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
+
+        INPUT:
+
+        - ``recache`` -- (default: ``False``) if True, the cached value will be
+          ignored and all the functions this function depends on will be
+          reevaluated (potentially long). Use only after a modification of the
+          submanifold
 
         OUTPUT:
 
@@ -440,6 +454,13 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
 
+        INPUT:
+
+        - ``recache`` -- (default: ``False``) if True, the cached value will be
+          ignored and all the functions this function depends on will be
+          reevaluated (potentially long). Use only after a modification of the
+          submanifold
+
         OUTPUT:
 
         - 1-form field on the ambient manifold.
@@ -485,6 +506,13 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
+
+        INPUT:
+
+        - ``recache`` -- (default: ``False``) if True, the cached value will be
+          ignored and all the functions this function depends on will be
+          reevaluated (potentially long). Use only after a modification of the
+          submanifold
 
         OUTPUT:
 
@@ -549,6 +577,13 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
 
+        INPUT:
+
+        - ``recache`` -- (default: ``False``) if True, the cached value will be
+          ignored and all the functions this function depends on will be
+          reevaluated (potentially long). Use only after a modification of the
+          submanifold
+
         OUTPUT:
 
         - vector field on the ambient manifold.
@@ -600,6 +635,13 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
 
+        INPUT:
+
+        - ``recache`` -- (default: ``False``) if True, the cached value will be
+          ignored and all the functions this function depends on will be
+          reevaluated (potentially long). Use only after a modification of the
+          submanifold
+
         OUTPUT:
 
         - (0,2) tensor field on the ambient manifold describing the induced
@@ -650,6 +692,13 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
 
+        INPUT:
+
+        - ``recache`` -- (default: ``False``) if True, the cached value will be
+          ignored and all the functions this function depends on will be
+          reevaluated (potentially long). Use only after a modification of the
+          submanifold
+
         OUTPUT:
 
         - scalar field on the ambient manifold equal to the lapse function
@@ -697,6 +746,13 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
 
+        INPUT:
+
+        - ``recache`` -- (default: ``False``) if True, the cached value will be
+          ignored and all the functions this function depends on will be
+          reevaluated (potentially long). Use only after a modification of the
+          submanifold
+
         OUTPUT:
 
         - shift vector field on the ambient manifold.
@@ -742,6 +798,13 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
+
+        INPUT:
+
+        - ``recache`` -- (default: ``False``) if True, the cached value will be
+          ignored and all the functions this function depends on will be
+          reevaluated (potentially long). Use only after a modification of the
+          submanifold
 
         OUTPUT:
 
@@ -795,6 +858,13 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
 
+        INPUT:
+
+        - ``recache`` -- (default: ``False``) if True, the cached value will be
+          ignored and all the functions this function depends on will be
+          reevaluated (potentially long). Use only after a modification of the
+          submanifold
+
         OUTPUT:
 
         - (0,2) tensor field on the submanifold equal to the extrinsic curvature
@@ -846,6 +916,13 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
+
+        INPUT:
+
+        - ``recache`` -- (default: ``False``) if True, the cached value will be
+          ignored and all the functions this function depends on will be
+          reevaluated (potentially long). Use only after a modification of the
+          submanifold
 
         OUTPUT:
 
@@ -956,6 +1033,13 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
 
+        INPUT:
+
+        - ``recache`` -- (default: ``False``) if True, the cached value will be
+          ignored and all the functions this function depends on will be
+          reevaluated (potentially long). Use only after a modification of the
+          submanifold
+
         OUTPUT:
 
         - scalar field on the submanifold equal to the Gauss curvature
@@ -1003,6 +1087,13 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
+
+        INPUT:
+
+        - ``recache`` -- (default: ``False``) if True, the cached value will be
+          ignored and all the functions this function depends on will be
+          reevaluated (potentially long). Use only after a modification of the
+          submanifold
 
         OUTPUT:
 
@@ -1061,6 +1152,13 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
 
+        INPUT:
+
+        - ``recache`` -- (default: ``False``) if True, the cached value will be
+          ignored and all the functions this function depends on will be
+          reevaluated (potentially long). Use only after a modification of the
+          submanifold
+
         OUTPUT:
 
         - list of scalar field on the submanifold equal to the principal
@@ -1113,6 +1211,13 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
 
+        INPUT:
+
+        - ``recache`` -- (default: ``False``) if True, the cached value will be
+          ignored and all the functions this function depends on will be
+          reevaluated (potentially long). Use only after a modification of the
+          submanifold
+
         OUTPUT:
 
         - scalar field on the submanifold equal to the mean curvature
@@ -1154,6 +1259,13 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
+
+        INPUT:
+
+        - ``recache`` -- (default: ``False``) if True, the cached value will be
+          ignored and all the functions this function depends on will be
+          reevaluated (potentially long). Use only after a modification of the
+          submanifold
 
         OUTPUT:
 

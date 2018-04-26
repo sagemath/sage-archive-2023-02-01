@@ -1,5 +1,5 @@
 r"""
-Poirier-Reutenauer Hopf algebra of standard tableau
+Poirier-Reutenauer Hopf algebra of standard tableaux
 
 AUTHORS:
 
@@ -20,21 +20,16 @@ AUTHORS:
 from sage.misc.bindable_class import BindableClass
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.misc_c import prod
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.functions.other import factorial
 
-from sage.categories.rings import Rings
-from sage.categories.tensor import tensor
 from sage.categories.realizations import Category_realization_of_parent
 from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
 from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
 
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.combinat.tableau import Tableau, StandardTableau, StandardTableaux
+from sage.combinat.tableau import Tableau, StandardTableaux
 from sage.combinat.set_partition_ordered import OrderedSetPartitions
-from sage.combinat.permutation import Permutations
 from sage.combinat.sf.sf import SymmetricFunctions
 
 class FSymBasis_abstract(CombinatorialFreeModule, BindableClass):
@@ -843,8 +838,8 @@ from sage.combinat.composition import Composition
 
 def standardize(t):
     r"""
-    Return the standard tableau corresponding to ``t`` with no
-    repeated entries.
+    Return the standard tableau corresponding to a given
+    semistandard tableau ``t`` with no repeated entries.
 
     .. NOTE::
 
@@ -855,8 +850,9 @@ def standardize(t):
     EXAMPLES::
 
         sage: from sage.combinat.chas.fsym import standardize
-        sage: t = Tableau([[1,1,3,5],[2,3,6],[3]])
+        sage: t = Tableau([[1,3,5,7],[2,4,8],[9]])
         sage: standardize(t)
+        [[1, 3, 5, 6], [2, 4, 7], [8]]
         sage: t = Tableau([[3,8,9,15],[5,10,12],[133]])
         sage: standardize(t)
         [[1, 3, 4, 7], [2, 5, 6], [8]]

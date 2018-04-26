@@ -139,7 +139,7 @@ class FQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
             target = getattr(self.realization_of(), R._basis_name)()
             return self._coerce_map_via([target], R)
 
-        from sage.combinat.chas.fsym import FreeSymmetricFunctions, FSymBasis_abstract
+        from sage.combinat.chas.fsym import FreeSymmetricFunctions
         if isinstance(R, FreeSymmetricFunctions.Fundamental):
             if not self.base_ring().has_coerce_map_from(R.base_ring()):
                 return False

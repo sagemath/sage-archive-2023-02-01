@@ -80,7 +80,7 @@ class FSymBasis_abstract(CombinatorialFreeModule, BindableClass):
 
         The things that coerce into ``self`` are
 
-        - word quasi-symmetric functions over a base with
+        - elements of the algebra `FSym` over a base with
           a coercion map into ``self.base_ring()``
 
         EXAMPLES::
@@ -89,13 +89,13 @@ class FSymBasis_abstract(CombinatorialFreeModule, BindableClass):
             Hopf algebra of standard tableaux over the Finite Field of size 7
              in the Fundamental basis
 
-        Elements of the word quasi-symmetric functions canonically coerce in::
+        Elements of `FSym` canonically coerce in::
 
             sage: x, y = G([[1]]), G([[1,3],[2]])
             sage: G.coerce(x + y) == x + y
             True
 
-        The word quasi-symmetric functions over `\ZZ` coerces in,
+        Elements of `FSym` over `\ZZ` coerce in,
         since `\ZZ` coerces to `\GF{7}`::
 
             sage: H = algebras.FSym(ZZ).G()
@@ -105,8 +105,8 @@ class FSymBasis_abstract(CombinatorialFreeModule, BindableClass):
             sage: z.parent() is G
             True
 
-        However, `\GF{7}` does not coerce to `\ZZ`, so word
-        quasi-symmetric functions over `\GF{7}` does not coerce
+        However, `\GF{7}` does not coerce to `\ZZ`, so the
+        elements of `FSym` `\GF{7}` do not coerce
         to the same algebra over `\ZZ`::
 
             sage: H.coerce(y)
@@ -691,7 +691,7 @@ class FreeSymmetricFunctions_Dual(UniqueRepresentation, Parent):
 
             The things that coerce into ``self`` are
 
-            - word quasi-symmetric functions over a base with
+            - elements of the algebra `FSym^*` over a base with
               a coercion map into ``self.base_ring()``
             - symmetric functions over a base with a coercion
               map into ``self.base_ring()``
@@ -865,14 +865,20 @@ def standardize(t):
         sage: standardize(t) == t
         True
     """
-    A = sorted(t.to_word())
+    A = sorted(sum(t, ()))
     std = {j: i + 1 for i, j in enumerate(A)}
     ST = StandardTableaux()
     return ST([[std[i] for i in row] for row in t])
 
 def ascent_set(t):
     """
-    Return the ascent set of ``t``.
+    Return the ascent set of a standard tableau ``t``
+    (encoded as a sorted list).
+
+    The *ascent set* of a standard tableau `t` is defined as
+    the set of all entries `i` of `t` such that the number `i+1`
+    either appears to the right of `i` or appears in a row above
+    `i` or does not appear in `t` at all.
 
     EXAMPLES::
 
@@ -880,23 +886,40 @@ def ascent_set(t):
         sage: t = StandardTableau([[1,3,4,7],[2,5,6],[8]])
         sage: ascent_set(t)
         [2, 3, 5, 6, 8]
+        sage: ascent_set(StandardTableau([]))
+        []
+        sage: ascent_set(StandardTableau([[1, 2, 3]]))
+        [1, 2, 3]
+        sage: ascent_set(StandardTableau([[1, 2, 4], [3]]))
+        [1, 3, 4]
+        sage: ascent_set([[1, 3, 5], [2, 4]])
+        [2, 4, 5]
     """
-    locations = {}
-    for (i,row) in enumerate(t):
-        for (j,entry) in enumerate(row):
-            locations[entry] = (i,j)
-    ascents = [t.size()]
-    for i in range(1,t.size()):
+    row_locations = {}
+    for (i, row) in enumerate(t):
+        for entry in row:
+            row_locations[entry] = i
+    n = len(row_locations)
+    if n == 0:
+        return []
+    ascents = [n]
+    for i in range(1, n):
         # ascent means i+1 appears to the right or above
-        x, y = locations[i]
-        u, v = locations[i+1]
+        x = row_locations[i]
+        u = row_locations[i+1]
         if u <= x:
             ascents.append(i)
     return sorted(ascents)
 
 def descent_set(t):
     """
-    Return the descent set of ``t``.
+    Return the descent set of a standard tableau ``t``
+    (encoded as a sorted list).
+
+    The *descent set* of a standard tableau `t` is defined as
+    the set of all entries `i` of `t` such that the number `i+1`
+    appears either to the left of `i` or in a row below `i` in
+    `t`.
 
     EXAMPLES::
 
@@ -904,13 +927,26 @@ def descent_set(t):
         sage: t = StandardTableau([[1,3,4,7],[2,5,6],[8]])
         sage: descent_set(t)
         [1, 4, 7]
+        sage: descent_set(StandardTableau([]))
+        []
+        sage: descent_set(StandardTableau([[1, 2, 3]]))
+        []
+        sage: descent_set(StandardTableau([[1, 2, 4], [3]]))
+        [2]
+        sage: descent_set([[1, 3, 5], [2, 4]])
+        [1, 3]
     """
     ascents = set(ascent_set(t))
-    return [i for i in range(1, 1+t.size()) if i not in ascents]
+    n = sum(len(row) for row in t)
+    return [i for i in range(1, n) if i not in ascents]
 
 def descent_composition(t):
     """
-    Return the descent composition of ``t``.
+    Return the descent composition of a standard tableau ``t``.
+
+    This is the composition of the size of `t` whose partial
+    sums are the elements of the descent set of ``t`` (see
+    :meth:`descent_set`).
 
     EXAMPLES::
 
@@ -918,6 +954,9 @@ def descent_composition(t):
         sage: t = StandardTableau([[1,3,4,7],[2,5,6],[8]])
         sage: descent_composition(t)
         [1, 3, 3, 1]
+        sage: descent_composition([[1, 3, 5], [2, 4]])
+        [1, 2, 2]
     """
-    return Composition(from_subset=(descent_set(t), t.size()))
+    n = sum(len(row) for row in t)
+    return Composition(from_subset=(descent_set(t), n))
 

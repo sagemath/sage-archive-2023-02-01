@@ -174,6 +174,7 @@ from sage.manifolds.differentiable.pseudo_riemannian import \
 from sage.manifolds.submanifold.differentiable_submanifold import \
     DifferentiableSubmanifold
 from sage.rings.infinity import infinity
+from sage.matrix.constructor import matrix
 
 
 class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
@@ -312,6 +313,10 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         self._ambient_second_fundamental_form = None
         self._ambient_metric = None
         self._projector = None
+        self._gauss_curvature = None
+        self._principal_directions = None
+        self._principal_curvatures = None
+        self._shape_operator = None
         self._sgn = 1 if ambient._structure.name == "Riemannian" else -1
 
     def _repr_(self):
@@ -335,7 +340,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                "manifold {}".format(self._dim, self._name, self._ambient._dim,
                                     self._ambient._name)
 
-    def ambient_metric(self):
+    def ambient_metric(self, recache = False):
         r"""
         Return the metric of the ambient manifold.
 
@@ -375,13 +380,13 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                                                 PseudoRiemannianManifold):
             raise ValueError("Submanifold must be "
                              "embedded in a pseudo-Riemannian manifold")
-        if self._ambient_metric is not None:
+        if self._ambient_metric is not None and not recache:
             return self._ambient_metric
         self._ambient_metric = self._ambient.metric()
         self._ambient_metric.set_name("g",r"g")
         return self._ambient_metric
 
-    def first_fundamental_form(self):
+    def first_fundamental_form(self, recache = False):
         r"""
         Return the first fundamental form of the submanifold.
 
@@ -417,17 +422,17 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             [            0 r^2*sin(th)^2]
 
         """
-        if self._first_fundamental_form is not None:
+        if self._first_fundamental_form is not None and not recache:
             return self._first_fundamental_form
         self._first_fundamental_form = self.metric()
         self._first_fundamental_form\
-            .set(self._immersion.pullback(self.ambient_metric()))
+            .set(self._immersion.pullback(self.ambient_metric(recache)))
         self._first_fundamental_form.set_name("gamma",r"\gamma")
         return self._first_fundamental_form
 
     induced_metric = first_fundamental_form
 
-    def difft(self):
+    def difft(self, recache = False):
         r"""
         Return the differential of the first scalar field defining the
         submanifold
@@ -466,14 +471,14 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         if self._dim_foliation == 0:
             raise ValueError("A foliation is needed to "
                              "perform this calculation")
-        if self._difft is not None:
+        if self._difft is not None and not recache:
             return self._difft
         self._difft = self._t_inverse[self._var[0]].differential()
         self._difft.set_name("d" + self._var[0]._repr_(),
                              r"\mathrm{d}" + self._var[0]._latex_())
         return self._difft
 
-    def gradt(self):
+    def gradt(self, recache = False):
         r"""
         Return the gradient of the first scalar field defining the
         submanifold
@@ -513,14 +518,15 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         if self._dim_foliation == 0:
             raise ValueError("A foliation is needed to perform "
                              "this calculation")
-        if self._gradt is not None:
+        if self._gradt is not None and not recache:
             return self._gradt
-        self._gradt = self.ambient_metric().inverse().contract(self.difft())
+        self._gradt = self.ambient_metric(recache).inverse()\
+            .contract(self.difft(recache))
         self._gradt.set_name("grad_" + self._var[0]._repr_(),
                              r"\nabla " + self._var[0]._latex_())
         return self._gradt
 
-    def normal(self):
+    def normal(self, recache = False):
         r"""
         Return a normal unit vector to the submanifold.
 
@@ -580,13 +586,13 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             Implement normal() in a way that doesn't need a foliation.
 
         """
-        if self._normal is not None:
+        if self._normal is not None and not recache:
             return self._normal
-        self._normal = self._sgn*self.lapse()*self.gradt()
+        self._normal = self._sgn*self.lapse(recache)*self.gradt(recache)
         self._gradt.set_name("n",r"n")
         return self._normal
 
-    def ambient_first_fundamental_form(self):
+    def ambient_first_fundamental_form(self, recache = False):
         r"""
         Return the first fundamental form of the submanifold as a tensor of the
         ambient manifold.
@@ -624,8 +630,10 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             gamma = r_M^2 dth_M*dth_M + r_M^2*sin(th_M)^2 dph_M*dph_M
 
         """
-        if self._ambient_first_fundamental_form is not None:
+        if self._ambient_first_fundamental_form is not None and not recache:
             return self._ambient_first_fundamental_form
+        self.ambient_metric(recache)
+        self.normal(recache)
         self._ambient_first_fundamental_form = \
             self.ambient_metric() -self._sgn\
             * self.ambient_metric().contract(self.normal())\
@@ -635,7 +643,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
     ambient_induced_metric = ambient_first_fundamental_form
 
-    def lapse(self):
+    def lapse(self, recache = False):
         r"""
         Return the lapse function of the foliation
 
@@ -675,14 +683,14 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         if self._dim_foliation == 0:
             raise ValueError("A foliation is needed "
                              "to perform this calculation")
-        if self._lapse is not None:
+        if self._lapse is not None and not recache:
             return self._lapse
-        self._lapse = 1/(self._sgn * self.ambient_metric()(self.gradt(),
-                                                           self.gradt())).sqrt()
+        self._lapse = 1 / (self._sgn * self.ambient_metric(recache)(
+            self.gradt(recache), self.gradt(recache))).sqrt()
         self._lapse.set_name("N", r"N")
         return self._lapse
 
-    def shift(self):
+    def shift(self, recache = False):
         r"""
         Return the shift function of the foliation
 
@@ -720,14 +728,14 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         if self._dim_foliation == 0:
             raise ValueError("A foliation is needed "
                              "to perform this calculation")
-        if self._shift is not None:
+        if self._shift is not None and not recache:
             return self._shift
         self._shift = self._adapted_charts[0].frame()[self._dim]\
-            - self.lapse() * self.normal()
+            - self.lapse(recache) * self.normal(recache)
         self._shift.set_name("beta",r"\beta")
         return self._shift
 
-    def ambient_second_fundamental_form(self):
+    def ambient_second_fundamental_form(self, recache = False):
         r"""
         Return the second fundamental form of the submanifold as a tensor of the
         ambient manifold.
@@ -765,9 +773,11 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             K = -r_M dth_M*dth_M - r_M*sin(th_M)^2 dph_M*dph_M
 
         """
-        if self._ambient_second_fundamental_form is not None:
+        if self._ambient_second_fundamental_form is not None and not recache:
             return self._ambient_second_fundamental_form
         nab = self.ambient_metric().connection('nabla', r'\nabla')
+        self.ambient_metric(recache)
+        self.normal(recache)
         self._ambient_second_fundamental_form = \
             -self.ambient_metric().contract(nab(self.normal())) \
             - nab(self.normal()).contract(self.normal())\
@@ -778,7 +788,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
     ambient_extrinsic_curvature = ambient_second_fundamental_form
 
-    def second_fundamental_form(self):
+    def second_fundamental_form(self, recache = False):
         r"""
         Return the second fundamental form of the submanifold.
 
@@ -813,18 +823,12 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             K = -r dth*dth - r*sin(th)^2 dph*dph
 
         """
-        if self._second_fundamental_form is not None:
+        if self._second_fundamental_form is not None and not recache:
             return self._second_fundamental_form
-        # self._second_fundamental_form = \
-        #    self._immersion.pullback(self.ambient_second_fundamental_form())
-
         inverse_subs = {v: k for k, v in self._subs[0].items()}
-        resu = self._immersion._domain.vector_field_module().tensor((0, 2),
-                                                                    name='K',
-                                                                    latex_name='K',
-                                                                    sym=[
-                                                                        (0, 1)],
-                                                                    antisym=[])
+        resu = self._immersion._domain.vector_field_module()\
+            .tensor((0, 2), name='K', latex_name='K', sym=[(0, 1)], antisym=[])
+        self.ambient_extrinsic_curvature(recache)
         for i in self.irange():
             for j in self.irange():
                 resu[i, j] = self.ambient_extrinsic_curvature()[
@@ -836,7 +840,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
     extrinsic_curvature = second_fundamental_form
 
-    def projector(self):
+    def projector(self, recache = False):
         r"""
         Return the projector on the submanifold.
 
@@ -880,10 +884,10 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             0
 
         """
-        if self._projector is not None:
+        if self._projector is not None and not recache:
             return self._projector
-        self._projector = self.ambient_first_fundamental_form().up(
-            self.ambient_metric(), pos=0)
+        self._projector = self.ambient_first_fundamental_form(recache).up(
+            self.ambient_metric(recache), pos=0)
         self._projector.set_name("gamma", r"\overrightarrow{\gamma}")
         return self._projector
 
@@ -941,3 +945,247 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         for i in range(tensor.tensor_type()[1]):
             resu = self.projector().contract(0, resu, i)
         return resu
+
+    def gauss_curvature(self, recache = False):
+        r"""
+        Return the gauss curvature of the submanifold.
+
+        The Gauss curvature is the product or the principal curvatures, or
+        equivalently the determinant of the projection operator.
+
+        The result is cached, so calling this method multiple times always
+        returns the same result at no additional cost.
+
+        OUTPUT:
+
+        - scalar field on the submanifold equal to the Gauss curvature
+
+        EXAMPLES:
+
+        A sphere embedded in euclidan space::
+
+            sage: M = Manifold(3,'M',structure = "Riemannian")
+            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
+            sage: r = var('r')
+            sage: assume(r>0)
+            sage: E.<x,y,z> = M.chart()
+            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
+            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
+            sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
+            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
+            ....:                 t_inverse = {r:phi_inv_r})
+            sage: N.declare_embedding()
+            sage: T = N.adapted_chart()
+            sage: g = M.metric('g')
+            sage: g[0,0],g[1,1],g[2,2]=1,1,1
+            sage: print(N.gauss_curvature().display())
+            N --> R
+            (th, ph) |--> r^(-2)
+
+        """
+        if self._gauss_curvature is not None and not recache:
+            return self._gauss_curvature
+        a = self.shape_operator(recache)
+        e = matrix([[a[i, j].expr() for i in self.irange()] for j in
+                    self.irange()]).determinant()
+        self._gauss_curvature = self.scalar_field({self.default_chart():e})
+        return self._gauss_curvature
+
+    def principal_directions(self, recache = False):
+        r"""
+        Return the principal directions of the submanifold.
+
+        The principal directions are the eigenvectors of the projection
+        operator. The result is formatted as a list of couples
+        (eigenvector, eigenvalue).
+
+        The result is cached, so calling this method multiple times always
+        returns the same result at no additional cost.
+
+        OUTPUT:
+
+        - List of couples  (vectorfields,scalarfield) representing the
+          principal directions and the principal curvature associated
+
+        EXAMPLES:
+
+        A sphere embedded in euclidan space::
+
+            sage: M = Manifold(3,'M',structure = "Riemannian")
+            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
+            sage: r = var('r')
+            sage: assume(r>0)
+            sage: E.<x,y,z> = M.chart()
+            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
+            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
+            sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
+            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
+            ....:                 t_inverse = {r:phi_inv_r})
+            sage: N.declare_embedding()
+            sage: T = N.adapted_chart()
+            sage: g = M.metric('g')
+            sage: g[0,0],g[1,1],g[2,2]=1,1,1
+            sage: print(N.principal_directions()[0][0].display())
+            e_0 = d/dth
+
+        """
+        if self._principal_directions is not None and not recache:
+            return self._principal_directions
+        a = self.shape_operator(recache)
+        pr_d = matrix(
+            [[a[i, j].expr() for i in self.irange()] for j in
+             self.irange()]).eigenvectors_right()
+        self._principal_directions=[]
+        v = self.vector_field()
+        counter = self.irange()
+        for eigen_space in pr_d:
+            for eigen_vector in eigen_space[1]:
+                v[self.default_frame(),:] = eigen_vector
+                self._principal_directions.append((v.copy(),eigen_space[0]))
+                self._principal_directions[-1][0].set_name(
+                    "e_%i" % counter.next())
+        return self._principal_directions
+
+    def principal_curvatures(self, recache = False):
+        r"""
+        Return the principal curvatures of the submanifold.
+
+        The principal curvatures are the eigenvalues of the projection operator.
+        The resulting scalarfield are named "k_i" with i index of the
+        submanifold.
+
+        The result is cached, so calling this method multiple times always
+        returns the same result at no additional cost.
+
+        OUTPUT:
+
+        - list of scalar field on the submanifold equal to the principal
+          curvatures
+
+        EXAMPLES:
+
+        A sphere embedded in euclidan space::
+
+            sage: M = Manifold(3,'M',structure = "Riemannian")
+            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
+            sage: r = var('r')
+            sage: assume(r>0)
+            sage: E.<x,y,z> = M.chart()
+            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
+            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
+            sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
+            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
+            ....:                 t_inverse = {r:phi_inv_r})
+            sage: N.declare_embedding()
+            sage: T = N.adapted_chart()
+            sage: g = M.metric('g')
+            sage: g[0,0],g[1,1],g[2,2]=1,1,1
+            sage: print(N.principal_curvatures()[0].display())
+            k_0: N --> R
+               (th, ph) |--> -1/r
+        """
+        if self._principal_curvatures is not None and not recache:
+            return self._principal_curvatures
+        a = self.shape_operator(recache)
+        self._principal_curvatures = matrix(
+            [[a[i, j].expr() for i in self.irange()] for j in
+             self.irange()]).eigenvalues()
+        counter = self.irange()
+        for i in range(self._dim):
+            self._principal_curvatures[i] = self.scalar_field(
+                {self.default_chart(): self._principal_curvatures[i]},
+                name="k_%i" % counter.next())
+        return self._principal_curvatures
+
+    def mean_curvature(self, recache = False):
+        r"""
+        Return the mean curvature of the submanifold.
+
+        The mean curvature is the arithmetic mean of the principal curvatures,
+        or equivalently the trace of the projection operator.
+
+        The result is cached, so calling this method multiple times always
+        returns the same result at no additional cost.
+
+        OUTPUT:
+
+        - scalar field on the submanifold equal to the mean curvature
+
+        EXAMPLES:
+
+        A sphere embedded in euclidan space::
+
+            sage: M = Manifold(3,'M',structure = "Riemannian")
+            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
+            sage: r = var('r')
+            sage: assume(r>0)
+            sage: E.<x,y,z> = M.chart()
+            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
+            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
+            sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
+            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
+            ....:                 t_inverse = {r:phi_inv_r})
+            sage: N.declare_embedding()
+            sage: T = N.adapted_chart()
+            sage: g = M.metric('g')
+            sage: g[0,0],g[1,1],g[2,2]=1,1,1
+            sage: print(N.mean_curvature().display())
+            N --> R
+            (th, ph) |--> -1/r
+
+
+        """
+        return sum(self.principal_curvatures(recache)) / self._dim
+
+    def shape_operator(self, recache = False):
+        r"""
+        Return the shape opeator of the submanifold.
+
+        The shape operator is equal to the second fundamental form with one of
+        the indices upped.
+
+        The result is cached, so calling this method multiple times always
+        returns the same result at no additional cost.
+
+        OUTPUT:
+
+        - (1,1) tensor field on the submanifold equal to the shape operator
+
+        EXAMPLES:
+
+        A sphere embedded in euclidan space::
+
+            sage: M = Manifold(3,'M',structure = "Riemannian")
+            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
+            sage: r = var('r')
+            sage: assume(r>0)
+            sage: E.<x,y,z> = M.chart()
+            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
+            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
+            sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
+            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
+            ....:                 t_inverse = {r:phi_inv_r})
+            sage: N.declare_embedding()
+            sage: T = N.adapted_chart()
+            sage: g = M.metric('g')
+            sage: g[0,0],g[1,1],g[2,2]=1,1,1
+            sage: print(N.shape_operator()[:])
+            [-1/r    0]
+            [   0 -1/r]
+
+        """
+        if self._shape_operator is not None and not recache:
+            return self._shape_operator
+        self._shape_operator = self.second_fundamental_form(recache).contract(
+            self.induced_metric(recache).inverse())
+        return self._shape_operator

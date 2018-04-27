@@ -559,9 +559,9 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         r"""
         Return a normal unit vector to the submanifold.
 
-        For now, it can only do by computing gradt() first, i.e. a foliation
-        is needed to perform this computation, although it is possible to
-        proceed without, using the formula:
+        If a foliation is defined, it is used to compute the gradient and then
+        the normal vector. If not, the normal vector is computed using the
+        following formula:
 
         .. MATH::
 
@@ -569,11 +569,6 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         where the star is the hodge dual operator and de wedge the product on
         the exterior algebra.
-
-        This is not currently possible to implement in sagemanifold because the
-        tensors are defined on different domains, despite having the same
-        codomain, which should make the contraction possible
-
 
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
@@ -617,9 +612,6 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: print(N.normal().display(T[0].frame(),T[0]))
             d/dr_M
 
-        .. TODO:
-
-            Implement normal() in a way that doesn't need a foliation.
 
         """
         if self._normal is not None and not recache:
@@ -646,7 +638,6 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             self._normal = self._normal / self._normal.norm(
                 self.ambient_metric().along(self._immersion))
             return self._normal
-
 
     def ambient_first_fundamental_form(self, recache = False):
         r"""
@@ -920,10 +911,11 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         resu = self._immersion._domain.vector_field_module()\
             .tensor((0, 2), name='K', latex_name='K', sym=[(0, 1)], antisym=[])
         self.ambient_extrinsic_curvature(recache)
+        r = list(self._ambient.irange())
         for i in self.irange():
             for j in self.irange():
                 resu[i, j] = self.ambient_extrinsic_curvature()[
-                    self._adapted_charts[0].frame(), [i, j]].expr(
+                    self._adapted_charts[0].frame(), [r[i], r[j]]].expr(
                     self._adapted_charts[0]).subs(inverse_subs)
 
         self._second_fundamental_form = resu

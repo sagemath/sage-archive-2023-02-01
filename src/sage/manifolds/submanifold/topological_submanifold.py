@@ -379,7 +379,7 @@ class TopologicalSubmanifold(TopologicalManifold):
             if chart not in res:
 
                 # Construct restrictions on coordinates:
-                subs = {domain[0][i]: chart[i] for i in self.irange()}
+                subs = {domain[0][i]: chart[:][i] for i in range(self._dim)}
                 for rest in domain[0]._restrictions:
                     chart.add_restrictions(rest.subs(subs))
                 for _a in assumptions(*domain[0][:]):

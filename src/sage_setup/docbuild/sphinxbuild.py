@@ -220,16 +220,16 @@ class SageSphinxLogger(object):
             [#25160   ] Exception: artificial exception
 
         """
+        skip_this_line = self._filter_out(line):
         self._check_errors(line)
-        if self._filter_out(line):
-            return
         for (old, new) in self.replacements:
             line = old.sub(new, line)
         line = self._prefix + ' ' + line.rstrip() + '\n'
         if not self._color:
             line = self.ansi_color.sub('', line)
-        self._stream.write(line)
-        self._stream.flush()
+        if not skip_this_line:
+            self._stream.write(line)
+            self._stream.flush()
 
     def raise_errors(self):
         r"""

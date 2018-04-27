@@ -380,9 +380,11 @@ class TopologicalSubmanifold(TopologicalManifold):
 
                 # Construct restrictions on coordinates:
                 subs = {domain[0][i]: chart[:][i] for i in range(self._dim)}
+                for i in range(len(self._var)):
+                    subs[self._var[i]] = chart[:][self._dim+i]
                 for rest in domain[0]._restrictions:
                     chart.add_restrictions(rest.subs(subs))
-                for _a in assumptions(*domain[0][:]):
+                for _a in assumptions(*(domain[0][:]+tuple(self._var))):
                     if isinstance(_a, Expression):
                         assume(_a.subs(subs))
 
@@ -392,8 +394,8 @@ class TopologicalSubmanifold(TopologicalManifold):
                 self._immersion_inv.add_expr(chart, domain[0],
                                              chart[:][0:self._dim])
                 for i in range(len(self._var)):
-                    self._t_inverse[self._var[i]].add_expr(chart[self._dim:][i],
-                                                           chart=chart)
+                    self._t_inverse[self._var[i]].add_expr(
+                        chart[:][self._dim:][i], chart=chart)
 
         for (chartNV, chartMV) in self._immersion._coord_expression:
             for (chartNU, chartMU) in self._immersion._coord_expression:

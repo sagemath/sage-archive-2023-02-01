@@ -410,8 +410,8 @@ class TopologicalSubmanifold(TopologicalManifold):
                 self._immersion_inv.add_expr(chart, domain[0],
                                              chart[:][0:self._dim])
                 for i in range(len(self._var)):
-                    self._t_inverse[self._var[i]].add_expr(chart[self._dim:][i],
-                                                           chart=chart)
+                    self._t_inverse[self._var[i]].add_expr(
+                        chart[:][self._dim:][i], chart=chart)
 
         for (chartNV, chartMV) in self._immersion._coord_expression:
             for (chartNU, chartMU) in self._immersion._coord_expression:
@@ -429,6 +429,7 @@ class TopologicalSubmanifold(TopologicalManifold):
                                          for v in self._var}
                         for i in range(len(expr)):
                             expr[i] = expr[i].subs(substitutions)
+
                         chartMU.transition_map(chartMV, expr)
         self._adapted_charts = res
         return res

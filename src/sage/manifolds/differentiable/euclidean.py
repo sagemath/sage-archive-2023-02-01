@@ -4,33 +4,29 @@ Euclidean Spaces
 An *Euclidean space of dimension* `n` is an affine space `E`, whose associated
 vector space is a `n`-dimensional vector space over `\RR` and is equipped with
 a positive definite symmetric bilinear form, called the *scalar product* or
-*dot product* [Ber1987]_. An Euclidean space of dimension `n` can also be viewed as a
-Riemannian manifold that is diffeomorphic to `\RR^n` and that has a flat
-metric `g`. The Euclidean scalar product is then that defined by the Riemannian
-metric `g`.
+*dot product* [Ber1987]_. An Euclidean space of dimension `n` can also be
+viewed as a Riemannian manifold that is diffeomorphic to `\RR^n` and that
+has a flat metric `g`. The Euclidean scalar product is then that defined
+by the Riemannian metric `g`.
 
 The current implementation of Euclidean spaces is based on the second point of
-view. This allows for the introduction of various coordinate systems, besides
-the Cartesian ones. Standard curvilinear systems (planar, spherical and
-cylindrical coordinates) are predefined for 2-dimensional and 3-dimensional
-Euclidean spaces, along with the corresponding transition maps between them.
-Another benefit of such an implementation is the direct use of methods for
-vector calculus already implemented at the level of Riemannian manifolds
-(see e.g. the methods
+view. This allows for the introduction of various coordinate systems in
+addition to the usual the Cartesian systems. Standard curvilinear systems
+(planar, spherical and cylindrical coordinates) are predefined for
+2-dimensional and 3-dimensional Euclidean spaces, along with the corresponding
+transition maps between them. Another benefit of such an implementation is
+the direct use of methods for vector calculus already implemented at the
+level of Riemannian manifolds (see, e.g., the methods
 :meth:`~sage.manifolds.differentiable.vectorfield.VectorField.cross_product`
 and
-:meth:`~sage.manifolds.differentiable.vectorfield.VectorField.curl`, as well
-as the module :mod:`~sage.manifolds.operators`).
+:meth:`~sage.manifolds.differentiable.vectorfield.VectorField.curl`,
+as well as the module :mod:`~sage.manifolds.operators`).
 
 Euclidean spaces are implemented via the following classes:
 
-- :class:`EuclideanSpaceGeneric`, which inherits from
-  :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`
-  (in agreement with the Riemannian manifold point of view mentioned above)
-- :class:`EuclideanPlane`, which inherits from :class:`EuclideanSpaceGeneric`
-  (case `n=2`)
-- :class:`Euclidean3dimSpace`, which inherits from
-  :class:`EuclideanSpaceGeneric` (case `n=3`)
+- :class:`EuclideanSpace` for generic values `n`,
+- :class:`EuclideanPlane` for `n = 2`,
+- :class:`Euclidean3dimSpace` for `n = 3`.
 
 The user interface is provided by the generic function :func:`EuclideanSpace`.
 
@@ -38,10 +34,10 @@ The user interface is provided by the generic function :func:`EuclideanSpace`.
 
 .. RUBRIC:: Example 1: the Euclidean plane
 
-We start by declaring the Euclidean plane ``E``, with ``(x,y)`` as
+We start by declaring the Euclidean plane ``E``, with ``(x, y)`` as
 Cartesian coordinates::
 
-    sage: E.<x,y> = EuclideanSpace(2)
+    sage: E.<x,y> = EuclideanSpace()
     sage: E
     Euclidean plane E^2
     sage: dim(E)
@@ -356,7 +352,7 @@ from sage.manifolds.differentiable.pseudo_riemannian import \
 
 ###############################################################################
 
-class EuclideanSpaceGeneric(PseudoRiemannianManifold):
+class EuclideanSpace(PseudoRiemannianManifold):
     r"""
     Euclidean space.
 
@@ -365,12 +361,9 @@ class EuclideanSpaceGeneric(PseudoRiemannianManifold):
     is equipped with a positive definite symmetric bilinear form, called
     the *scalar product* or *dot product*.
 
-    The class :class:`EuclideanSpaceGeneric` inherits from
-    :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`
-    since an Euclidean space of dimension `n` can be viewed as a Riemannian
-    manifold that is diffeomorphic to `\RR^n` and that has a flat metric `g`.
-    The Euclidean scalar product is the one defined by the Riemannian metric
-    `g`.
+    Euclidean space of dimension `n` can be viewed as a Riemannian manifold
+    that is diffeomorphic to `\RR^n` and that has a flat metric `g`. The
+    Euclidean scalar product is the one defined by the Riemannian metric `g`.
 
     INPUT:
 
@@ -380,14 +373,28 @@ class EuclideanSpaceGeneric(PseudoRiemannianManifold):
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to
       denote the space; if ``None``, it is set to ``'\mathbb{E}^{n}'`` if
       ``name`` is  ``None`` and to ``name`` otherwise
-    - ``coordinates`` -- (default: ``'Cartesian'``) type of coordinates to
-      be initialized at the Euclidean space creation
-    - ``symbols`` -- (default: ``None``) string defining the coordinate text
-      symbols and LaTeX symbols, with the same conventions as the argument
-      ``coordinates`` in
-      :class:`~sage.manifolds.differentiable.chart.RealDiffChart`; if ``None``,
-      the symbols will be automatically generated, depending on the value
-      of ``coordinates``
+    - ``coordinates`` -- (default: ``'Cartesian'``) string describing the
+      type of coordinates to be initialized at the Euclidean space
+      creation; allowed values are
+
+      - ``'Cartesian'`` (canonical coordinates on `\RR^n`)
+      - ``'polar'`` for ``n=2`` only (see
+        :meth:`~sage.manifolds.differentiable.euclidean.EuclideanPlane.polar_coordinates`)
+      - ``'spherical'`` for ``n=3`` only (see
+        :meth:`~sage.manifolds.differentiable.euclidean.Euclidean3dimSpace.spherical_coordinates`)
+      - ``'cylindrical'`` for ``n=3`` only (see
+        :meth:`~sage.manifolds.differentiable.euclidean.Euclidean3dimSpace.cylindrical_coordinates`)
+
+    - ``symbols`` -- (default: ``None``) string defining the coordinate
+      text symbols and LaTeX symbols, with the same conventions as the
+      argument ``coordinates`` in
+      :class:`~sage.manifolds.differentiable.chart.RealDiffChart`, namely
+      ``symbols`` is a string of coordinate fields separated by a blank
+      space, where each field contains the coordinate's text symbol and
+      possibly the coordinate's LaTeX symbol (when the latter is different
+      from the text symbol), both symbols being separated by a colon
+      (``:``); if ``None``, the symbols will be automatically generated
+      according to the value of ``coordinates``
     - ``metric_name`` -- (default: ``'g'``) string; name (symbol) given to the
       Euclidean metric tensor
     - ``metric_latex_name`` -- (default: ``None``) string; LaTeX symbol to
@@ -396,30 +403,139 @@ class EuclideanSpaceGeneric(PseudoRiemannianManifold):
     - ``start_index`` -- (default: 1) integer; lower value of the range of
       indices used for "indexed objects" in the Euclidean space, e.g.
       coordinates of a chart
-    - ``ambient`` -- (default: ``None``) if not ``None``, must be an
-      Euclidean space; the created object is then an open subset of ``ambient``
-    - ``category`` -- (default: ``None``) to specify the category; if ``None``,
-      ``Manifolds(RR).Differentiable()`` (or ``Manifolds(RR).Smooth()``
-      if ``diff_degree`` = ``infinity``) is assumed (see the category
-      :class:`~sage.categories.manifolds.Manifolds`)
     - ``names`` -- (default: ``None``) unused argument, except if
       ``symbols`` is not provided; it must then be a tuple containing
       the coordinate symbols (this is guaranteed if the shortcut operator
       ``<,>`` is used)
-    - ``init_coord_methods`` -- (default: ``None``) dictionary of methods
-      to initialize the various type of coordinates, with each key being a
-      string describing the type of coordinates; to be used by derived classes
-      only
-    - ``unique_tag`` -- (default: ``None``) tag used to force the construction
-      of a new object when all the other arguments have been used previously
-      (without ``unique_tag``, the
-      :class:`~sage.structure.unique_representation.UniqueRepresentation`
-      behavior inherited from
-      :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`
-      would return the previously constructed object corresponding to these
-      arguments)
+
+    If ``names`` is specified, then ``n`` does not have to be specified.
 
     EXAMPLES:
+
+    Constructing a 2-dimensional Euclidean space::
+
+        sage: E = EuclideanSpace(2); E
+        Euclidean plane E^2
+
+    Each call to :class:`EuclideanSpace` creates a different object::
+
+        sage: E1 = EuclideanSpace(2)
+        sage: E1 is E
+        False
+        sage: E1 == E
+        False
+
+    The LaTeX symbol of the Euclidean space is by default `\mathbb{E}^n`,
+    where `n` is the dimension::
+
+        sage: latex(E)
+        \mathbb{E}^{2}
+
+    But both the name and LaTeX names of the Euclidean space can be
+    customized::
+
+        sage: F = EuclideanSpace(2, name='F', latex_name=r'\mathcal{F}'); F
+        Euclidean plane F
+        sage: latex(F)
+        \mathcal{F}
+
+    By default, an Euclidean space is created with a single coordinate chart:
+    that of Cartesian coordinates::
+
+        sage: E.atlas()
+        [Chart (E^2, (x, y))]
+        sage: E.cartesian_coordinates()
+        Chart (E^2, (x, y))
+        sage: E.default_chart() is E.cartesian_coordinates()
+        True
+
+    The coordinate variables can be initialized, as the Python variables
+    ``x`` and ``y``, by::
+
+        sage: x, y = E.cartesian_coordinates()[:]
+
+    However, it is possible to both construct the Euclidean space and
+    initialize the coordinate variables in a single stage, thanks to
+    SageMath operator ``<,>``::
+
+        sage: E.<x,y> = EuclideanSpace()
+
+    The coordinate symbols can be customized::
+
+        sage: E.<X,Y> = EuclideanSpace()
+        sage: E.cartesian_coordinates()
+        Chart (E^2, (X, Y))
+
+    By default, the LaTeX symbols of the coordinates coincide with the text
+    ones::
+
+        sage: latex(X+Y)
+        X + Y
+
+    However, it is possible to customize them, via the argument ``symbols``,
+    which must be a string, usually prefixed by ``r`` (for *raw* string, in
+    order to allow for the backslash character of LaTeX expressions). This
+    string contains the coordinate fields separated by a blank space; each
+    field contains the coordinate's text symbol and possibly the coordinate's
+    LaTeX symbol (when the latter is different from the text symbol), both
+    symbols being separated by a colon (``:``)::
+
+        sage: E.<xi,ze> = EuclideanSpace(symbols=r"xi:\xi ze:\zeta")
+        sage: E.cartesian_coordinates()
+        Chart (E^2, (xi, ze))
+        sage: latex(xi+ze)
+        {\xi} + {\zeta}
+
+    Thanks to the argument ``coordinates``, an Euclidean space can be
+    constructed with curvilinear coordinates initialized instead of the
+    Cartesian ones::
+
+        sage: E.<r,ph> = EuclideanSpace(coordinates='polar')
+        sage: E.atlas()   # no Cartesian coordinates have been constructed
+        [Chart (E^2, (r, ph))]
+        sage: polar = E.polar_coordinates(); polar
+        Chart (E^2, (r, ph))
+        sage: E.default_chart() is polar
+        True
+        sage: latex(r+ph)
+        {\phi} + r
+
+    The Cartesian coordinates, along with the transition maps to and from
+    the curvilinear coordinates, can be constructed at any time by::
+
+        sage: cartesian.<x,y> = E.cartesian_coordinates()
+        sage: E.atlas()  # both polar and Cartesian coordinates now exist
+        [Chart (E^2, (r, ph)), Chart (E^2, (x, y))]
+
+    The transition maps have been initialized by the command
+    ``E.cartesian_coordinates()``::
+
+        sage: E.coord_change(polar, cartesian).display()
+        x = r*cos(ph)
+        y = r*sin(ph)
+        sage: E.coord_change(cartesian, polar).display()
+        r = sqrt(x^2 + y^2)
+        ph = arctan2(y, x)
+
+    The default name of the Euclidean metric tensor is `g`::
+
+        sage: E.metric()
+        Riemannian metric g on the Euclidean plane E^2
+        sage: latex(_)
+        g
+
+    But this can be customized::
+
+        sage: E = EuclideanSpace(2, metric_name='h')
+        sage: E.metric()
+        Riemannian metric h on the Euclidean plane E^2
+        sage: latex(_)
+        h
+        sage: E = EuclideanSpace(2, metric_latex_name=r'\mathbf{g}')
+        sage: E.metric()
+        Riemannian metric g on the Euclidean plane E^2
+        sage: latex(_)
+        \mathbf{g}
 
     A 4-dimensional Euclidean space::
 
@@ -428,21 +544,15 @@ class EuclideanSpaceGeneric(PseudoRiemannianManifold):
         sage: latex(E)
         \mathbb{E}^{4}
 
-    ``E`` belongs to the class :class:`EuclideanSpaceGeneric` (actually to
-    a dynamically generated subclass of it via SageMath's category framework)::
-
-        sage: type(E)
-        <class 'sage.manifolds.differentiable.euclidean.EuclideanSpaceGeneric_with_category'>
-
-    ``E`` is a real smooth manifold of dimension 4::
+    ``E`` is a real smooth manifold of dimension `4`::
 
         sage: E.category()
         Category of smooth manifolds over Real Field with 53 bits of precision
         sage: dim(E)
         4
 
-    It is endowed with a default coordinate chart, which is that of Cartesian
-    coordinates `(x_1,x_2,x_3,x_4)`::
+    It is endowed with a default coordinate chart, which is that of
+    Cartesian coordinates `(x_1,x_2,x_3,x_4)`::
 
         sage: E.atlas()
         [Chart (E^4, (x1, x2, x3, x4))]
@@ -460,13 +570,126 @@ class EuclideanSpaceGeneric(PseudoRiemannianManifold):
         g = dx1*dx1 + dx2*dx2 + dx3*dx3 + dx4*dx4
 
     """
+    @staticmethod
+    def __classcall_private__(cls, n=None, name=None, latex_name=None,
+                              coordinates='Cartesian', symbols=None,
+                              metric_name='g', metric_latex_name=None,
+                              start_index=1, names=None, unique_tag=None):
+        r"""
+        Determine the correct class to return based upon the input.
+
+        TESTS::
+
+            sage: E2.<x,y> = EuclideanSpace(); E2
+            Euclidean plane E^2
+            sage: type(E2)
+            <class 'sage.manifolds.differentiable.euclidean.EuclideanPlane_with_category'>
+
+            sage: E3.<x,t,p> = EuclideanSpace(coordinates='spherical'); E3
+            Euclidean space E^3
+            sage: type(E3)
+            <class 'sage.manifolds.differentiable.euclidean.Euclidean3dimSpace_with_category'>
+            sage: E3.default_frame()._latex_indices
+            (x, {\theta}, {\phi})
+        """
+        if n is None:
+            if names is None:
+                raise ValueError("either n or names must be specified")
+            n = len(names)
+
+        # Parse names into symbols
+        if names is not None and symbols is None:
+            if n == 2:
+                names = list(names)
+                symbols = ''
+                for x in names:
+                    symbols += x + ' '
+                symbols = symbols[:-1]
+                if coordinates == 'polar':
+                    if names[1] in ['p', 'ph', 'phi']:
+                        names[1] += ':\\phi'
+                    elif names[1] in ['t', 'th', 'theta']:
+                        names[1] += ':\\theta'
+            elif n == 3:
+                names = list(names)
+                # We add the LaTeX symbols when relevant:
+                if coordinates == 'spherical':
+                    if names[1] in ['t', 'th', 'theta']:
+                        names[1] = names[1] + ':\\theta'
+                    if names[2] in ['p', 'ph', 'phi']:
+                        names[2] = names[2] + ':\\phi'
+                elif coordinates == 'cylindrical':
+                    if names[0] in ['rh', 'rho']:
+                        names[0] = names[0] + ':\\rho'
+                    if names[1] in ['p', 'ph', 'phi']:
+                        names[1] = names[1] + ':\\phi'
+
+            symbols = ''
+            for x in names:
+                symbols += x + ' '
+            symbols = symbols[:-1]
+
+        # Technical bit for UniqueRepresentation
+        from sage.misc.prandom import getrandbits
+        from time import time
+        if unique_tag is None:
+            unique_tag = getrandbits(128)*time()
+
+        if n == 2:
+            return EuclideanPlane(name=name, latex_name=latex_name,
+                                  coordinates=coordinates, symbols=symbols,
+                                  metric_name=metric_name,
+                                  metric_latex_name=metric_latex_name,
+                                  start_index=start_index,
+                                  unique_tag=unique_tag)
+        if n == 3:
+            return Euclidean3dimSpace(name=name, latex_name=latex_name,
+                                      coordinates=coordinates, symbols=symbols,
+                                      metric_name=metric_name,
+                                      metric_latex_name=metric_latex_name,
+                                      start_index=start_index,
+                                      unique_tag=unique_tag)
+
+        return super(cls, EuclideanSpace).__classcall__(cls,
+                                     n, name=name, latex_name=latex_name,
+                                     coordinates=coordinates, symbols=symbols,
+                                     metric_name=metric_name,
+                                     metric_latex_name=metric_latex_name,
+                                     start_index=start_index,
+                                     unique_tag=unique_tag)
+
     def __init__(self, n, name=None, latex_name=None,
                  coordinates='Cartesian', symbols=None, metric_name='g',
                  metric_latex_name=None, start_index=1, ambient=None,
-                 category=None, names=None, init_coord_methods=None,
+                 category=None, init_coord_methods=None,
                  unique_tag=None):
         r"""
         Construct an Euclidean space.
+
+        INPUT:
+
+        This class also takes the following input:
+
+        - ``ambient`` -- (default: ``None``) if not ``None``, must be
+          an Euclidean space; the created object is then an open subset
+          of ``ambient``
+        - ``category`` -- (default: ``None``) to specify the category;
+          if ``None``, ``Manifolds(RR).Differentiable()`` (or
+          ``Manifolds(RR).Smooth()`` if ``diff_degree`` = ``infinity``)
+          is assumed (see the category
+          :class:`~sage.categories.manifolds.Manifolds`)
+        - ``init_coord_methods`` -- (default: ``None``) dictionary of
+          methods to initialize the various type of coordinates, with each
+          key being a string describing the type of coordinates; to be
+          used by derived classes only
+        - ``unique_tag`` -- (default: ``None``) tag used to force the
+          construction of a new object when all the other arguments have
+          been used previously (without ``unique_tag``, the
+          :class:`~sage.structure.unique_representation.UniqueRepresentation`
+          behavior inherited from
+          :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`
+          would return the previously constructed object corresponding
+          to these arguments)
 
         TESTS::
 
@@ -487,11 +710,6 @@ class EuclideanSpaceGeneric(PseudoRiemannianManifold):
                                           metric_latex_name=metric_latex_name,
                                           start_index=start_index,
                                           category=category)
-        if names is not None and symbols is None:
-            symbols = ''
-            for x in names:
-                symbols += x + ' '
-            symbols = symbols[:-1]
         if symbols is None:
             if n == 1:
                 if coordinates == 'Cartesian':
@@ -528,8 +746,7 @@ class EuclideanSpaceGeneric(PseudoRiemannianManifold):
             4-dimensional Euclidean space E^4
 
         """
-        return "{}-dimensional Euclidean space {}".format(self._dim,
-                                                          self._name)
+        return "{}-dimensional Euclidean space {}".format(self._dim, self._name)
 
     def _first_ngens(self, n):
         r"""
@@ -538,7 +755,8 @@ class EuclideanSpaceGeneric(PseudoRiemannianManifold):
         This is useful only for the use of Sage preparser::
 
             sage: preparse("E.<x,y,z> = EuclideanSpace(3)")
-            "E = EuclideanSpace(Integer(3), names=('x', 'y', 'z',)); (x, y, z,) = E._first_ngens(3)"
+            "E = EuclideanSpace(Integer(3), names=('x', 'y', 'z',));
+             (x, y, z,) = E._first_ngens(3)"
 
         TESTS::
 
@@ -636,8 +854,7 @@ class EuclideanSpaceGeneric(PseudoRiemannianManifold):
 
         OUTPUT:
 
-        - instance of
-          :class:`~sage.manifolds.differentiable.vectorframe.CoordFrame`
+        - :class:`~sage.manifolds.differentiable.vectorframe.CoordFrame`
 
         EXAMPLES::
 
@@ -795,7 +1012,7 @@ class EuclideanSpaceGeneric(PseudoRiemannianManifold):
         name = kwargs.get('name')
         latex_name = kwargs.get('latex_name')
         dest_map = kwargs.get('dest_map')
-        resu = super(EuclideanSpaceGeneric, self).vector_field(name=name,
+        resu = super(EuclideanSpace, self).vector_field(name=name,
                                       latex_name=latex_name, dest_map=dest_map)
         if args:
             # Some components are to be initialized
@@ -823,7 +1040,7 @@ class EuclideanSpaceGeneric(PseudoRiemannianManifold):
 
 ###############################################################################
 
-class EuclideanPlane(EuclideanSpaceGeneric):
+class EuclideanPlane(EuclideanSpace):
     r"""
     Euclidean plane.
 
@@ -834,7 +1051,7 @@ class EuclideanPlane(EuclideanSpaceGeneric):
 
     The class :class:`EuclideanPlane` inherits from
     :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`
-    (via :class:`EuclideanSpaceGeneric`) since an Euclidean plane can be viewed
+    (via :class:`EuclideanSpace`) since an Euclidean plane can be viewed
     as a Riemannian manifold that is diffeomorphic to `\RR^2` and that has a
     flat metric `g`. The Euclidean scalar product is the one defined by the
     Riemannian metric `g`.
@@ -895,14 +1112,8 @@ class EuclideanPlane(EuclideanSpaceGeneric):
 
     One creates an Euclidean plane ``E`` with::
 
-        sage: E.<x,y> = EuclideanSpace(2); E
+        sage: E.<x,y> = EuclideanSpace(); E
         Euclidean plane E^2
-
-    ``E`` belongs to the class :class:`EuclideanPlane` (actually to a
-    dynamically generated subclass of it via SageMath's category framework)::
-
-        sage: type(E)
-        <class 'sage.manifolds.differentiable.euclidean.EuclideanPlane_with_category'>
 
     ``E`` is a real smooth manifold of dimension 2::
 
@@ -911,8 +1122,8 @@ class EuclideanPlane(EuclideanSpaceGeneric):
         sage: dim(E)
         2
 
-    It is endowed with a default coordinate chart, which is that of Cartesian
-    coordinates `(x,y)`::
+    It is endowed with a default coordinate chart, which is that
+    of Cartesian coordinates `(x,y)`::
 
         sage: E.atlas()
         [Chart (E^2, (x, y))]
@@ -951,8 +1162,7 @@ class EuclideanPlane(EuclideanSpaceGeneric):
     """
     def __init__(self, name=None, latex_name=None, coordinates='Cartesian',
                  symbols=None, metric_name='g', metric_latex_name=None,
-                 start_index=1, ambient=None, category=None, names=None,
-                 unique_tag=None):
+                 start_index=1, ambient=None, category=None, unique_tag=None):
         r"""
         Construct an Euclidean plane.
 
@@ -967,16 +1177,6 @@ class EuclideanPlane(EuclideanSpaceGeneric):
         """
         if coordinates not in ['Cartesian', 'polar']:
             raise TypeError("unkown coordinate type")
-        if names is not None and symbols is None:
-            symbols = ''
-            for x in names:
-                symbols += x + ' '
-            symbols = symbols[:-1]
-            if coordinates == 'polar':
-                if names[1] in ['p', 'ph', 'phi']:
-                    symbols += ':\\phi'
-                elif names[1] in ['t', 'th', 'theta']:
-                    symbols += ':\\theta'
         if symbols is None:
             if coordinates == 'Cartesian':
                 symbols = 'x y'
@@ -986,15 +1186,15 @@ class EuclideanPlane(EuclideanSpaceGeneric):
         self._polar_frame = None  # orthonormal frame associated to polar coord
         init_coord_methods = {'Cartesian': self._init_cartesian,
                               'polar': self._init_polar}
-        EuclideanSpaceGeneric.__init__(self, 2, name=name,
-                                       latex_name=latex_name,
-                                       coordinates=coordinates,
-                                       symbols=symbols,
-                                       metric_name=metric_name,
-                                       metric_latex_name=metric_latex_name,
-                                       start_index=start_index,
-                                       ambient=ambient, category=category,
-                                       init_coord_methods=init_coord_methods)
+        EuclideanSpace.__init__(self, 2, name=name,
+                                latex_name=latex_name,
+                                coordinates=coordinates,
+                                symbols=symbols,
+                                metric_name=metric_name,
+                                metric_latex_name=metric_latex_name,
+                                start_index=start_index,
+                                ambient=ambient, category=category,
+                                init_coord_methods=init_coord_methods)
         if coordinates == 'polar':
             # The default frame is the polar coordinate frame; we change it
             # to the orthornomal polar frame
@@ -1051,7 +1251,7 @@ class EuclideanPlane(EuclideanSpaceGeneric):
         # Orthonormal frame associated with polar coordinates:
         to_orthonormal = self.automorphism_field()
         to_orthonormal[frame, i1, i1, chart] = 1
-        to_orthonormal[frame, i2, i2, chart] = 1/r
+        to_orthonormal[frame, i2, i2, chart] = 1 / r
         oframe = frame.new_frame(to_orthonormal, 'e',
                                  indices=(str(r), str(ph)),
                                  latex_indices=(latex(r), latex(ph)))
@@ -1197,8 +1397,8 @@ class EuclideanPlane(EuclideanSpaceGeneric):
             sage: u,v
             (u, v)
 
-        The command ``cartesian.<u,v> = E.cartesian_coordinates()`` is actually
-        a shortcut for::
+        The command ``cartesian.<u,v> = E.cartesian_coordinates()`` is
+        actually a shortcut for::
 
             sage: cartesian = E.cartesian_coordinates(symbols='u v')
             sage: u, v = cartesian[:]
@@ -1257,7 +1457,7 @@ class EuclideanPlane(EuclideanSpaceGeneric):
             sage: E.coord_change(E.cartesian_coordinates(),
             ....:                E.polar_coordinates()).display()
             r = sqrt(x^2 + y^2)
-            ph = arctan2(y, x)
+            ph = arctan(y/x)
 
         The coordinate variables are returned by the square bracket operator::
 
@@ -1351,14 +1551,14 @@ class EuclideanPlane(EuclideanSpaceGeneric):
 
         """
         if self._polar_frame is None:
-            self.polar_coordinates()  # creates the polar chart and the
-                                      # associated orthonormal frame
+            # create the polar chart and the associated orthonormal frame
+            self.polar_coordinates()
         return self._polar_frame
 
 
 ###############################################################################
 
-class Euclidean3dimSpace(EuclideanSpaceGeneric):
+class Euclidean3dimSpace(EuclideanSpace):
     r"""
     3-dimensional Euclidean space.
 
@@ -1369,7 +1569,7 @@ class Euclidean3dimSpace(EuclideanSpaceGeneric):
 
     The class :class:`Euclidean3dimSpace` inherits from
     :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`
-    (via :class:`EuclideanSpaceGeneric`) since a 3-dimensional Euclidean space
+    (via :class:`EuclideanSpace`) since a 3-dimensional Euclidean space
     can be viewed as a Riemannian manifold that is diffeomorphic to `\RR^3` and
     that has a flat metric `g`. The Euclidean scalar product is the one defined
     by the Riemannian metric `g`.
@@ -1383,7 +1583,8 @@ class Euclidean3dimSpace(EuclideanSpaceGeneric):
       ``name`` is  ``None`` and to ``name`` otherwise
     - ``coordinates`` -- (default: ``'Cartesian'``) string describing the type
       of coordinates to be initialized at the Euclidean 3-space creation;
-      allowed values are ``'Cartesian'`` (see :meth:`cartesian_coordinates`), ``'spherical'`` (see :meth:`spherical_coordinates`) and ``'cylindrical'``
+      allowed values are ``'Cartesian'`` (see :meth:`cartesian_coordinates`),
+      ``'spherical'`` (see :meth:`spherical_coordinates`) and ``'cylindrical'``
       (see :meth:`cylindrical_coordinates`)
     - ``symbols`` -- (default: ``None``) string defining the coordinate text
       symbols and LaTeX symbols, with the same conventions as the argument
@@ -1489,8 +1690,7 @@ class Euclidean3dimSpace(EuclideanSpaceGeneric):
     """
     def __init__(self, name=None, latex_name=None, coordinates='Cartesian',
                  symbols=None, metric_name='g', metric_latex_name=None,
-                 start_index=1, ambient=None, category=None, names=None,
-                 unique_tag=None):
+                 start_index=1, ambient=None, category=None, unique_tag=None):
         r"""
         Construct an Euclidean 3-space.
 
@@ -1505,24 +1705,6 @@ class Euclidean3dimSpace(EuclideanSpaceGeneric):
         """
         if coordinates not in ['Cartesian', 'spherical', 'cylindrical']:
             raise TypeError("unkown coordinate type")
-        if names is not None and symbols is None:
-            # We add the LaTeX symbols when relevant:
-            if coordinates == 'spherical':
-                names = list(names)
-                if names[1] in ['t', 'th', 'theta']:
-                    names[1] = names[1] + ':\\theta'
-                if names[2] in ['p', 'ph', 'phi']:
-                    names[2] = names[2] + ':\\phi'
-            elif coordinates == 'cylindrical':
-                names = list(names)
-                if names[0] in ['rh', 'rho']:
-                    names[0] = names[0] + ':\\rho'
-                if names[1] in ['p', 'ph', 'phi']:
-                    names[1] = names[1] + ':\\phi'
-            symbols = ''
-            for x in names:
-                symbols += x + ' '
-            symbols = symbols[:-1]
         if symbols is None:
             if coordinates == 'Cartesian':
                 symbols = 'x y z'
@@ -1537,15 +1719,15 @@ class Euclidean3dimSpace(EuclideanSpaceGeneric):
         init_coord_methods = {'Cartesian': self._init_cartesian,
                               'spherical': self._init_spherical,
                               'cylindrical': self._init_cylindrical}
-        EuclideanSpaceGeneric.__init__(self, 3, name=name,
-                                       latex_name=latex_name,
-                                       coordinates=coordinates,
-                                       symbols=symbols,
-                                       metric_name=metric_name,
-                                       metric_latex_name=metric_latex_name,
-                                       start_index=start_index,
-                                       ambient=ambient, category=category,
-                                       init_coord_methods=init_coord_methods)
+        EuclideanSpace.__init__(self, 3, name=name,
+                                latex_name=latex_name,
+                                coordinates=coordinates,
+                                symbols=symbols,
+                                metric_name=metric_name,
+                                metric_latex_name=metric_latex_name,
+                                start_index=start_index,
+                                ambient=ambient, category=category,
+                                init_coord_methods=init_coord_methods)
         if coordinates == 'spherical':
             # The default frame is the spherical coordinate frame; we change it
             # to the orthornomal spherical frame
@@ -1590,8 +1772,8 @@ class Euclidean3dimSpace(EuclideanSpaceGeneric):
         """
         coords = symbols.split()  # list of strings, one per coordinate
         # Adding the coordinate ranges:
-        coordinates = coords[0] + ':(0,+oo) ' + coords[1] + ':(0,pi) ' + \
-                      coords[2] + ':(0,2*pi)'
+        coordinates = (coords[0] + ':(0,+oo) ' + coords[1] + ':(0,pi) '
+                       + coords[2] + ':(0,2*pi)')
         chart = self.chart(coordinates=coordinates)
         self._spherical_chart = chart
         frame = chart.frame()
@@ -1634,8 +1816,8 @@ class Euclidean3dimSpace(EuclideanSpaceGeneric):
         """
         coords = symbols.split()  # list of strings, one per coordinate
         # Adding the coordinate ranges:
-        coordinates = coords[0] + ':(0,+oo) ' + coords[1] + ':(0,2*pi) ' +  \
-                      coords[2]
+        coordinates = (coords[0] + ':(0,+oo) ' + coords[1] + ':(0,2*pi) '
+                       + coords[2])
         chart = self.chart(coordinates=coordinates)
         self._cylindrical_chart = chart
         frame = chart.frame()
@@ -1653,7 +1835,7 @@ class Euclidean3dimSpace(EuclideanSpaceGeneric):
         # Orthonormal frame associated with cylindrical coordinates:
         to_orthonormal = self.automorphism_field()
         to_orthonormal[frame, i1, i1, chart] = 1
-        to_orthonormal[frame, i2, i2, chart] = 1/rh
+        to_orthonormal[frame, i2, i2, chart] = 1 / rh
         to_orthonormal[frame, i3, i3, chart] = 1
         oframe = frame.new_frame(to_orthonormal, 'e',
                                  indices=(str(rh), str(ph), str(z)),
@@ -1673,20 +1855,23 @@ class Euclidean3dimSpace(EuclideanSpaceGeneric):
             [Chart (E^3, (x, y, z)), Chart (E^3, (r, th, ph))]
             sage: E.coord_changes()  # no transition map has been defined yet
             {}
-            sage: E._transition_spherical_cartesian()
-            sage: len(E.coord_changes())  # 2 transition maps have been created
+            sage: E._transition_spherical_cartesian()  # long time
+
+        2 transition maps have been created::
+
+            sage: len(E.coord_changes())  # long time
             2
 
         Tests of the change-of-frame formulas::
 
-            sage: spher = E.spherical_coordinates()
-            sage: spher_f = E.spherical_frame()
-            sage: cart_f = E.cartesian_frame()
-            sage: E.change_of_frame(cart_f, spher_f)[:,spher]
+            sage: spher = E.spherical_coordinates()  # long time
+            sage: spher_f = E.spherical_frame()  # long time
+            sage: cart_f = E.cartesian_frame()  # long time
+            sage: E.change_of_frame(cart_f, spher_f)[:,spher]  # long time
             [cos(ph)*sin(th) cos(ph)*cos(th)        -sin(ph)]
             [sin(ph)*sin(th) cos(th)*sin(ph)         cos(ph)]
             [        cos(th)        -sin(th)               0]
-            sage: E.change_of_frame(spher_f, cart_f)[:,spher]
+            sage: E.change_of_frame(spher_f, cart_f)[:,spher]  # long time
             [cos(ph)*sin(th) sin(ph)*sin(th)         cos(th)]
             [cos(ph)*cos(th) cos(th)*sin(ph)        -sin(th)]
             [       -sin(ph)         cos(ph)               0]
@@ -1748,20 +1933,23 @@ class Euclidean3dimSpace(EuclideanSpaceGeneric):
             [Chart (E^3, (x, y, z)), Chart (E^3, (r, ph, z))]
             sage: E.coord_changes() # no transition map has been defined yet
             {}
-            sage: E._transition_cylindrical_cartesian()
-            sage: len(E.coord_changes())  # 2 transition maps have been created
+            sage: E._transition_cylindrical_cartesian()  # long time
+
+        2 transition maps have been created::
+
+            sage: len(E.coord_changes())  # long time
             2
 
         Tests of the change-of-frame formulas::
 
-            sage: cylind = E.cylindrical_coordinates()
-            sage: cylind_f = E.cylindrical_frame()
-            sage: cart_f= E.cartesian_frame()
-            sage: E.change_of_frame(cart_f, cylind_f)[:,cylind]
+            sage: cylind = E.cylindrical_coordinates()  # long time
+            sage: cylind_f = E.cylindrical_frame()  # long time
+            sage: cart_f= E.cartesian_frame()  # long time
+            sage: E.change_of_frame(cart_f, cylind_f)[:,cylind]  # long time
             [ cos(ph) -sin(ph)        0]
             [ sin(ph)  cos(ph)        0]
             [       0        0        1]
-            sage: E.change_of_frame(cylind_f, cart_f)[:,cylind]
+            sage: E.change_of_frame(cylind_f, cart_f)[:,cylind]  # long time
             [ cos(ph)  sin(ph)        0]
             [-sin(ph)  cos(ph)        0]
             [       0        0        1]
@@ -1773,7 +1961,7 @@ class Euclidean3dimSpace(EuclideanSpaceGeneric):
         x, y, z = chart_cart[:]
         rh, ph, z = chart_cylind[:]
         cylind_to_cart = chart_cylind.transition_map(chart_cart,
-                                                   [rh*cos(ph), rh*sin(ph), z])
+                                                     [rh*cos(ph), rh*sin(ph), z])
         cylind_to_cart.set_inverse(sqrt(x**2+y**2), atan2(y, x), z)
         # Automorphism Cartesian frame --> orthonormal cylindrical frame:
         oframe = self._cylindrical_frame
@@ -1822,20 +2010,23 @@ class Euclidean3dimSpace(EuclideanSpaceGeneric):
             [Chart (E^3, (r, ph, z)), Chart (E^3, (r, th, ph))]
             sage: E.coord_changes()  # no transition map has been defined yet
             {}
-            sage: E._transition_spherical_cylindrical()
-            sage: len(E.coord_changes())  # 2 transition maps have been created
+            sage: E._transition_spherical_cylindrical()  # long time
+
+        2 transition maps have been created::
+
+            sage: len(E.coord_changes())  # long time
             2
 
         Tests of the change-of-frame formulas::
 
-            sage: spher = E.spherical_coordinates()
-            sage: spher_f = E.spherical_frame()
-            sage: cylind_f = E.cylindrical_frame()
-            sage: E.change_of_frame(cylind_f, spher_f)[:, spher]
+            sage: spher = E.spherical_coordinates()  # long time
+            sage: spher_f = E.spherical_frame()  # long time
+            sage: cylind_f = E.cylindrical_frame()  # long time
+            sage: E.change_of_frame(cylind_f, spher_f)[:, spher]  # long time
             [ sin(th)  cos(th)        0]
             [       0        0        1]
             [ cos(th) -sin(th)        0]
-            sage: E.change_of_frame(spher_f, cylind_f)[:, spher]
+            sage: E.change_of_frame(spher_f, cylind_f)[:, spher]  # long time
             [ sin(th)        0  cos(th)]
             [ cos(th)        0 -sin(th)]
             [       0        1        0]
@@ -2008,7 +2199,7 @@ class Euclidean3dimSpace(EuclideanSpaceGeneric):
             ....:                E.spherical_coordinates()).display()
             r = sqrt(x^2 + y^2 + z^2)
             th = arctan2(sqrt(x^2 + y^2), z)
-            ph = arctan2(y, x)
+            ph = arctan(y/x)
 
         The coordinate variables are returned by the square bracket operator::
 
@@ -2073,8 +2264,7 @@ class Euclidean3dimSpace(EuclideanSpaceGeneric):
 
         OUTPUT:
 
-        - instance of
-          :class:`~sage.manifolds.differentiable.vectorframe.VectorFrame`
+        - :class:`~sage.manifolds.differentiable.vectorframe.VectorFrame`
 
         EXAMPLES::
 
@@ -2110,8 +2300,8 @@ class Euclidean3dimSpace(EuclideanSpaceGeneric):
 
         """
         if self._spherical_frame is None:
-            self.spherical_coordinates()  # creates the spherical chart and the
-                                          # associated orthonormal frame
+            # create the spherical chart and the associated orthonormal frame
+            self.spherical_coordinates()
         return self._spherical_frame
 
     def cylindrical_coordinates(self, symbols=None, names=None):
@@ -2157,7 +2347,7 @@ class Euclidean3dimSpace(EuclideanSpaceGeneric):
             sage: E.coord_change(E.cartesian_coordinates(),
             ....:                E.cylindrical_coordinates()).display()
             rh = sqrt(x^2 + y^2)
-            ph = arctan2(y, x)
+            ph = arctan(y/x)
             z = z
 
         The coordinate variables are returned by the square bracket operator::
@@ -2223,8 +2413,7 @@ class Euclidean3dimSpace(EuclideanSpaceGeneric):
 
         OUTPUT:
 
-        - instance of
-          :class:`~sage.manifolds.differentiable.vectorframe.VectorFrame`
+        - :class:`~sage.manifolds.differentiable.vectorframe.VectorFrame`
 
         EXAMPLES::
 
@@ -2260,8 +2449,8 @@ class Euclidean3dimSpace(EuclideanSpaceGeneric):
 
         """
         if self._cylindrical_frame is None:
-            self.cylindrical_coordinates()  # creates the cylindrical chart and
-                                            # the associated orthonormal frame
+            # create the cylindrical chart and the associated orthonormal frame
+            self.cylindrical_coordinates()
         return self._cylindrical_frame
 
     def scalar_triple_product(self, name=None, latex_name=None):
@@ -2274,7 +2463,7 @@ class Euclidean3dimSpace(EuclideanSpaceGeneric):
 
         .. MATH::
 
-            \epsilon(u,v,w) = u\cdot(v\times w)
+            \epsilon(u,v,w) = u \cdot (v \times w).
 
         The scalar triple product operator $\epsilon$ is a *3-form*, i.e. a
         field of fully antisymmetric trilinear forms; it is also called the
@@ -2344,216 +2533,4 @@ class Euclidean3dimSpace(EuclideanSpaceGeneric):
         eps.set_name(name=name, latex_name=latex_name)
         return eps
 
-###############################################################################
 
-def EuclideanSpace(n, name=None, latex_name=None, coordinates='Cartesian',
-                   symbols=None, metric_name='g', metric_latex_name=None,
-                   start_index=1, names=None):
-    r"""
-    Construct an Euclidean space.
-
-    An *Euclidean space of dimension* `n` is an affine space `E`, whose
-    associated vector space is a `n`-dimensional vector space over `\RR` and
-    is equipped with a positive definite symmetric bilinear form, called
-    the *scalar product* or *dot product*.
-
-    INPUT:
-
-        - ``n`` -- positive integer; dimension of the Euclidean space
-        - ``name`` -- (default: ``None``) string; name (symbol) given to the
-          Euclidean space; if ``None``, the name will be set to ``'E^n'``
-        - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to
-          denote the Euclidean space; if ``None``, it is set to
-          ``'\mathbb{E}^{n}'`` if ``name`` is  ``None`` and to ``name``
-          otherwise
-        - ``coordinates`` -- (default: ``'Cartesian'``) string describing the
-          type of coordinates to be initialized at the Euclidean space
-          creation; allowed values are
-
-          - ``'Cartesian'`` (canonical coordinates on `\RR^n`)
-          - ``'polar'`` for ``n=2`` only (see
-            :meth:`~sage.manifolds.differentiable.euclidean.EuclideanPlane.polar_coordinates`)
-          - ``'spherical'`` for ``n=3`` only (see
-            :meth:`~sage.manifolds.differentiable.euclidean.Euclidean3dimSpace.spherical_coordinates`)
-          - ``'cylindrical'`` for ``n=3`` only (see
-            :meth:`~sage.manifolds.differentiable.euclidean.Euclidean3dimSpace.cylindrical_coordinates`)
-
-        - ``symbols`` -- (default: ``None``) string defining the coordinate
-          text symbols and LaTeX symbols, with the same conventions as the
-          argument ``coordinates`` in
-          :class:`~sage.manifolds.differentiable.chart.RealDiffChart`, namely
-          ``symbols`` is a string of coordinate fields separated by a blank
-          space, where each field contains the coordinate's text symbol and
-          possibly the coordinate's LaTeX symbol (when the latter is different
-          from the text symbol), both symbols being separated by a colon
-          (``:``); if ``None``, the symbols will be automatically generated
-          according to the value of ``coordinates``
-        - ``metric_name`` -- (default: ``'g'``) string; name (symbol) given to
-          the Euclidean metric tensor
-        - ``metric_latex_name`` -- (default: ``None``) string; LaTeX symbol to
-          denote the Euclidean metric tensor; if none is provided, it is set to
-          ``metric_name``
-        - ``start_index`` -- (default: 1) integer; lower value of the range of
-          indices used for "indexed objects" in the Euclidean space, e.g.
-          coordinates of a chart
-        - ``names`` -- (default: ``None``) unused argument, except if
-          ``symbols`` is not provided; it must then be a tuple containing
-          the coordinate symbols (this is guaranteed if the shortcut operator
-          ``<,>`` is used)
-
-    OUTPUT:
-
-    - an Euclidean space, as an instance of :class:`EuclideanSpaceGeneric` or
-      one of its subclasses: :class:`EuclideanPlane` (case ``n=2``) and
-      :class:`Euclidean3dimSpace` (case ``n=3``)
-
-    EXAMPLES:
-
-    Constructing a 2-dimensional Euclidean space::
-
-        sage: E = EuclideanSpace(2); E
-        Euclidean plane E^2
-
-    Each call to :func:`EuclideanSpace` creates a different object::
-
-        sage: E1 = EuclideanSpace(2)
-        sage: E1 is E
-        False
-        sage: E1 == E
-        False
-
-    The LaTeX symbol of the Euclidean space is by default `\mathbb{E}^n`,
-    where `n` is the dimension::
-
-        sage: latex(E)
-        \mathbb{E}^{2}
-
-    But both the name and LaTeX names of the Euclidean space can be
-    customized::
-
-        sage: F = EuclideanSpace(2, name='F', latex_name=r'\mathcal{F}'); F
-        Euclidean plane F
-        sage: latex(F)
-        \mathcal{F}
-
-    By default, an Euclidean space is created with a single coordinate chart:
-    that of Cartesian coordinates::
-
-        sage: E.atlas()
-        [Chart (E^2, (x, y))]
-        sage: E.cartesian_coordinates()
-        Chart (E^2, (x, y))
-        sage: E.default_chart() is E.cartesian_coordinates()
-        True
-
-    The coordinate variables can be initialized, as the Python variables ``x``
-    and ``y``, by::
-
-        sage: x, y = E.cartesian_coordinates()[:]
-
-    However, it is possible to both construct the Euclidean space and
-    initialize the coordinate variables in a single stage, thanks to
-    SageMath operator ``<,>``::
-
-        sage: E.<x,y> = EuclideanSpace(2)
-
-    The coordinate symbols can be customized::
-
-        sage: E.<X,Y> = EuclideanSpace(2)
-        sage: E.cartesian_coordinates()
-        Chart (E^2, (X, Y))
-
-    By default, the LaTeX symbols of the coordinates coincide with the text
-    ones::
-
-        sage: latex(X+Y)
-        X + Y
-
-    However, it is possible to customize them, via the argument ``symbols``,
-    which must be a string, usually prefixed by ``r`` (for *raw* string, in
-    order to allow for the backslash character of LaTeX expressions). This
-    string contains the coordinate fields separated by a blank space; each
-    field contains the coordinate's text symbol and possibly the coordinate's
-    LaTeX symbol (when the latter is different from the text symbol), both
-    symbols being separated by a colon (``:``)::
-
-        sage: E.<xi,ze> = EuclideanSpace(2, symbols=r"xi:\xi ze:\zeta")
-        sage: E.cartesian_coordinates()
-        Chart (E^2, (xi, ze))
-        sage: latex(xi+ze)
-        {\xi} + {\zeta}
-
-    Thanks to the argument ``coordinates``, an Euclidean space can be
-    constructed with curvilinear coordinates initialized instead of the
-    Cartesian ones::
-
-        sage: E.<r,ph> = EuclideanSpace(2, coordinates='polar')
-        sage: E.atlas()   # no Cartesian coordinates have been constructed
-        [Chart (E^2, (r, ph))]
-        sage: polar = E.polar_coordinates(); polar
-        Chart (E^2, (r, ph))
-        sage: E.default_chart() is polar
-        True
-        sage: latex(r+ph)
-        {\phi} + r
-
-    The Cartesian coordinates, along with the transition maps to and from
-    the curvilinear coordinates, can be constructed at any time by::
-
-        sage: cartesian.<x,y> = E.cartesian_coordinates()
-        sage: E.atlas()  # both polar and Cartesian coordinates now exist
-        [Chart (E^2, (r, ph)), Chart (E^2, (x, y))]
-
-    The transition maps have been initialized by the command
-    ``E.cartesian_coordinates()``::
-
-        sage: E.coord_change(polar, cartesian).display()
-        x = r*cos(ph)
-        y = r*sin(ph)
-        sage: E.coord_change(cartesian, polar).display()
-        r = sqrt(x^2 + y^2)
-        ph = arctan2(y, x)
-
-    The default name of the Euclidean metric tensor is `g`::
-
-        sage: E.metric()
-        Riemannian metric g on the Euclidean plane E^2
-        sage: latex(_)
-        g
-
-    But this can be customized::
-
-        sage: E = EuclideanSpace(2, metric_name='h')
-        sage: E.metric()
-        Riemannian metric h on the Euclidean plane E^2
-        sage: latex(_)
-        h
-        sage: E = EuclideanSpace(2, metric_latex_name=r'\mathbf{g}')
-        sage: E.metric()
-        Riemannian metric g on the Euclidean plane E^2
-        sage: latex(_)
-        \mathbf{g}
-
-    """
-    from sage.misc.prandom import getrandbits
-    from time import time
-    if n == 2:
-        return EuclideanPlane(name=name, latex_name=latex_name,
-                              coordinates=coordinates, symbols=symbols,
-                              metric_name=metric_name,
-                              metric_latex_name=metric_latex_name,
-                              start_index=start_index, names=names,
-                              unique_tag=getrandbits(128)*time())
-    if n == 3:
-        return Euclidean3dimSpace(name=name, latex_name=latex_name,
-                                  coordinates=coordinates, symbols=symbols,
-                                  metric_name=metric_name,
-                                  metric_latex_name=metric_latex_name,
-                                  start_index=start_index, names=names,
-                                  unique_tag=getrandbits(128)*time())
-    return EuclideanSpaceGeneric(n, name=name, latex_name=latex_name,
-                              coordinates=coordinates, symbols=symbols,
-                              metric_name=metric_name,
-                              metric_latex_name=metric_latex_name,
-                              start_index=start_index, names=names,
-                              unique_tag=getrandbits(128)*time())

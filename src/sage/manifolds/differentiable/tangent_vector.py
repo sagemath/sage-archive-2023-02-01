@@ -104,8 +104,8 @@ class TangentVector(FiniteRankFreeModuleElement):
             'Tangent vector v at Point p on the 2-dimensional differentiable manifold M'
 
         """
-        from sage.manifolds.differentiable.euclidean import EuclideanSpaceGeneric
-        if isinstance(self._point.parent(), EuclideanSpaceGeneric):
+        from sage.manifolds.differentiable.euclidean import EuclideanSpace
+        if isinstance(self._point.parent(), EuclideanSpace):
             desc = "Vector"
         else:
             desc = "Tangent vector"

@@ -175,6 +175,7 @@ from sage.manifolds.submanifold.differentiable_submanifold import \
     DifferentiableSubmanifold
 from sage.rings.infinity import infinity
 from sage.matrix.constructor import matrix
+from sage.functions.other import factorial
 
 
 class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
@@ -623,9 +624,29 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         """
         if self._normal is not None and not recache:
             return self._normal
-        self._normal = self._sgn*self.lapse(recache)*self.gradt(recache)
-        self._gradt.set_name("n",r"n")
-        return self._normal
+        if self._dim_foliation != 0:    # case foliation
+            self._normal = self._sgn*self.lapse(recache)*self.gradt(recache)
+            self._normal.set_name("n",r"n")
+            return self._normal
+        else:                           # case no foliation
+            eps = self.ambient_metric(recache).volume_form(self._dim).along(
+                self._immersion)
+            args = list(range(self._dim)) + [eps] + list(range(self._dim))
+            r = self.irange()
+            n_form = self._immersion.pushforward(
+                self.frames()[0][r.next()]).down(
+                self.ambient_metric().along(self._immersion))
+            for i in r:
+                n_form = n_form.wedge(self._immersion.pushforward(
+                    self.frames()[0][i]).down(
+                        self.ambient_metric().along(self._immersion)))
+            self._normal = (
+                        n_form.contract(*args) / factorial(self._dim)).contract(
+                self.ambient_metric().inverse().along(self._immersion))
+            self._normal = self._normal / self._normal.norm(
+                self.ambient_metric().along(self._immersion))
+            return self._normal
+
 
     def ambient_first_fundamental_form(self, recache = False):
         r"""

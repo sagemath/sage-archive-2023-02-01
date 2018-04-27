@@ -390,7 +390,7 @@ class TopologicalSubmanifold(TopologicalManifold):
                 self._immersion.add_expr(domain[0], chart,
                                          list(domain[0][:]) + self._var)
                 self._immersion_inv.add_expr(chart, domain[0],
-                                             chart[0:self._dim])
+                                             chart[:][0:self._dim])
                 for i in range(len(self._var)):
                     self._t_inverse[self._var[i]].add_expr(chart[self._dim:][i],
                                                            chart=chart)

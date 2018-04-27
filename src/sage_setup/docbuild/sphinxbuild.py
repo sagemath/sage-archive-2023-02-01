@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 This is Sage's version of the sphinx-build script
 
@@ -172,7 +173,7 @@ class SageSphinxLogger(object):
             sage: logger.raise_errors()
             Traceback (most recent call last):
             ...
-            OSError: [doctestin] Segmentation fault!
+            OSError: Segmentation fault!
 
         """
         if self._error:
@@ -220,7 +221,7 @@ class SageSphinxLogger(object):
             [#25160   ] Exception: artificial exception
 
         """
-        skip_this_line = self._filter_out(line):
+        skip_this_line = self._filter_out(line)
         self._check_errors(line)
         for (old, new) in self.replacements:
             line = old.sub(new, line)
@@ -246,7 +247,7 @@ class SageSphinxLogger(object):
             sage: logger.raise_errors()
             Traceback (most recent call last):
             ...
-            OSError: [doctestin] This is a SEVERE error
+            OSError: This is a SEVERE error
 
         """
         if self._error:

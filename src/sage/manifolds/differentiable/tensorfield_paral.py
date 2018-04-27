@@ -1868,3 +1868,109 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             for ind, val in comp._comp.items():
                 comp_resu._comp[ind] = val(point)
         return resu
+
+    def along(self, mapping):
+        r"""
+        Return the tensor field deduced from ``self`` via a differentiable map,
+        the codomain of which is included in the domain of ``self``.
+
+        More precisely, if ``self`` is a tensor field `t` on `M` and if
+        `\Phi: U \rightarrow M` is a differentiable map from some
+        differentiable manifold `U` to `M`, the returned object is
+        a tensor field `\tilde t` along `U` with values on `M` such that
+
+        .. MATH::
+
+           \forall p \in U,\  \tilde t(p) = t(\Phi(p)).
+
+        INPUT:
+
+        - ``mapping`` -- differentiable map `\Phi: U \rightarrow M`
+
+        OUTPUT:
+
+        - tensor field `\tilde t` along `U` defined above.
+
+        EXAMPLES:
+
+        Let us consider the map `\Phi` between the interval `U=(0,2\pi)` and
+        the Euclidean plane `M=\RR^2` defining the lemniscate of Gerono::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: R.<t> = RealLine()
+            sage: phi = M.curve({X: [sin(t), sin(2*t)/2]}, (t, 0, 2*pi),
+            ....:               name='phi')
+
+        and a vector field on `M`::
+
+            sage: v = M.vector_field('v')
+            sage: v[:] = -y , x
+
+        We have then::
+
+            sage: vU = v.along(phi); vU
+            Vector field v along the Real interval (0, 2*pi) with values on
+             the 2-dimensional differentiable manifold M
+            sage: vU.display()
+            v = -cos(t)*sin(t) d/dx + sin(t) d/dy
+            sage: vU.parent()
+            Free module X((0, 2*pi),phi) of vector fields along the Real
+             interval (0, 2*pi) mapped into the 2-dimensional differentiable
+             manifold M
+            sage: vU.parent() is phi.tangent_vector_field().parent()
+            True
+
+        Case of a tensor field of type ``(0,2)``::
+
+            sage: a = M.tensor_field(0, 2)
+            sage: a[0,0], a[0,1], a[1,1] = x+y, x*y, x^2-y^2
+            sage: aU = a.along(phi); aU
+            Tensor field of type (0,2) along the Real interval (0, 2*pi) with
+             values on the 2-dimensional differentiable manifold M
+            sage: aU.display()
+            (cos(t) + 1)*sin(t) dx*dx + cos(t)*sin(t)^2 dx*dy + sin(t)^4 dy*dy
+            sage: aU.parent()
+            Free module T^(0,2)((0, 2*pi),phi) of type-(0,2) tensors fields
+             along the Real interval (0, 2*pi) mapped into the 2-dimensional
+             differentiable manifold M
+
+        """
+        dom = self._domain
+        if self._ambient_domain is not dom:
+            raise ValueError("{} is not a tensor field ".format(self) +
+                             "with values in the {}".format(dom))
+        if mapping.codomain().is_subset(dom):
+            rmapping = mapping
+        else:
+            rmapping = None
+            for doms, rest in mapping._restrictions.items():
+                if doms[1].is_subset(dom):
+                    rmapping = rest
+                    break
+            else:
+                raise ValueError("the codomain of {} is not ".format(mapping) +
+                                 "included in the domain of {}".format(self))
+        dom_resu = rmapping.domain()
+        vmodule = dom_resu.vector_field_module(dest_map=rmapping)
+        resu = vmodule.tensor(self._tensor_type, name=self._name,
+                              latex_name=self._latex_name, sym=self._sym,
+                              antisym=self._antisym)
+        for frame, comp in self._components.items():
+            comp_resu = resu.add_comp(frame.along(rmapping))
+            for ind, val in comp._comp.items():
+                val_resu = dom_resu.scalar_field()
+                for chart2, func2 in val._express.items():
+                    for chart1 in dom_resu.atlas():
+                        if (chart1, chart2) in rmapping._coord_expression:
+                            phi = rmapping._coord_expression[(chart1, chart2)]
+                            # X2 coordinates expressed in terms of X1 ones via
+                            # phi:
+                            coord2_1 = phi(*(chart1._xx))
+                            val_resu.add_expr(func2(*coord2_1), chart=chart1)
+                if not val_resu._express:
+                    raise ValueError("no pair of charts has been found to " +
+                                     "set the value of the component " +
+                                     "{} in the {}".format(ind, frame))
+                comp_resu._comp[ind] = val_resu
+        return resu

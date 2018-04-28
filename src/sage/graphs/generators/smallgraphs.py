@@ -2697,6 +2697,52 @@ def GoldnerHararyGraph():
 
     return Graph(edge_dict, pos = pos, name="Goldner-Harary graph")
 
+def GolombGraph():
+    r"""
+    Return the Golomb graph.
+
+    See :wikipedia:`Golomb_graph` for more information.
+
+    EXAMPLES:
+
+    The Golomb graph is a planar and Hamiltonian graph with 10 vertices 
+    and 18 edges. It has chromatic number 4, diameter 3, radius 2 and 
+    girth 3. It can be drawn in the plane as a unit distance graph. ::
+        sage: G = graphs.GolombGraph(); G
+        Golomb graph: Graph on 10 vertices
+        sage: pos = G.get_pos()
+        sage: dist2 = lambda u,v:(u[0]-v[0])**2 + (u[1]-v[1])**2
+        sage: all(dist2(pos[u], pos[v]) == 1 for u, v in G.edge_iterator(labels=None))
+        True
+
+    """
+    from sage.functions.other import sqrt
+    from sage.rings.integer import Integer
+    def ratlit(numerator, denominator):
+        return Integer(numerator)/Integer(denominator)    
+    edge_dict = {
+        0: [1,2,3],
+        1: [2,5],
+        2: [7],
+        3: [4,8,9],
+        4: [5,9],
+        5: [6,9],
+        6: [7,9],
+        7: [8,9],
+        8: [9]}
+    pos_dict = {
+        0: [ratlit(1,6), ratlit(1,6)*sqrt(11)],
+        1: [ratlit(1,12)*sqrt(33) - ratlit(1,12), -sqrt(ratlit(1,72)*sqrt(33) + ratlit(7,72))],
+        2: [-ratlit(1,12)*sqrt(33) - ratlit(1,12), -sqrt(-ratlit(1,72)*sqrt(33) + ratlit(7,72))],
+        3: [1, 0],
+        4: [ratlit(1,2), -ratlit(1,2)*sqrt(3)],
+        5: [-ratlit(1,2), -ratlit(1,2)*sqrt(3)],
+        6: [-1, 0],
+        7: [-ratlit(1,2), ratlit(1,2)*sqrt(3)],
+        8: [ratlit(1,2), ratlit(1,2)*sqrt(3)],
+        9: [0, 0]}
+    return Graph(edge_dict, pos=pos_dict, name="Golomb graph")
+
 def GrayGraph(embedding=1):
     r"""
     Return the Gray graph.

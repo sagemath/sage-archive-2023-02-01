@@ -2237,7 +2237,7 @@ def test_trivial_matrices_inverse(ring, sparse=True, implementation=None, checkr
 # Fix unpickling Matrix_modn_dense and Matrix_integer_2x2
 from sage.matrix.matrix_modn_dense_double import Matrix_modn_dense_double
 from sage.matrix.matrix_integer_dense import Matrix_integer_dense
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 def _MatrixSpace_ZZ_2x2():
     from sage.rings.integer_ring import ZZ
     return MatrixSpace(ZZ,2)

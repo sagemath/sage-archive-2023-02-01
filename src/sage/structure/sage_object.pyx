@@ -83,6 +83,9 @@ register_unpickle_override('sage.structure.generators', 'make_list_gens',
                            make_None)
 
 
+__all__ = ['SageObject']
+
+
 cdef class SageObject:
     """
     Base class for all (user-visible) objects in Sage

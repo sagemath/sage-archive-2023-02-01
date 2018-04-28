@@ -26,7 +26,7 @@ from sage.modular.cusps import Cusp
 from sage.rings.all import Infinity, ZZ
 from sage.rings.integer cimport Integer
 from sage.structure.element cimport Element
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 from sage.structure.richcmp cimport richcmp_not_equal, richcmp
 
 

@@ -398,7 +398,7 @@ class SchemeHomset_points_abelian_variety_field(SchemeHomset_points_projective_f
         return self
 
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.schemes.generic.homset',
                            'SchemeHomsetModule_abelian_variety_coordinates_field',
                            SchemeHomset_points_abelian_variety_field)

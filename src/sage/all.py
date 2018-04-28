@@ -258,15 +258,16 @@ def quit_sage(verbose=True):
     symmetrica.end()
 
 
-sage.structure.sage_object.register_unpickle_override('sage.categories.category', 'Sets', Sets)
-sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'HeckeModules', HeckeModules)
-sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'Objects', Objects)
-sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'Rings', Rings)
-sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'Fields', Fields)
-sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'VectorSpaces', VectorSpaces)
-sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'Schemes_over_base', sage.categories.schemes.Schemes_over_base)
-sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'ModularAbelianVarieties', ModularAbelianVarieties)
-sage.structure.sage_object.register_unpickle_override('sage.libs.pari.gen_py', 'pari', pari)
+from sage.misc.persist import register_unpickle_override
+register_unpickle_override('sage.categories.category', 'Sets', Sets)
+register_unpickle_override('sage.categories.category_types', 'HeckeModules', HeckeModules)
+register_unpickle_override('sage.categories.category_types', 'Objects', Objects)
+register_unpickle_override('sage.categories.category_types', 'Rings', Rings)
+register_unpickle_override('sage.categories.category_types', 'Fields', Fields)
+register_unpickle_override('sage.categories.category_types', 'VectorSpaces', VectorSpaces)
+register_unpickle_override('sage.categories.category_types', 'Schemes_over_base', sage.categories.schemes.Schemes_over_base)
+register_unpickle_override('sage.categories.category_types', 'ModularAbelianVarieties', ModularAbelianVarieties)
+register_unpickle_override('sage.libs.pari.gen_py', 'pari', pari)
 
 # Cache the contents of star imports.
 sage.misc.lazy_import.save_cache_file()

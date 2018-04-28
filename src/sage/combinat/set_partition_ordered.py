@@ -1329,6 +1329,6 @@ class SplitNK(OrderedSetPartitions_scomp):
         k = state['_k']
         OrderedSetPartitions_scomp.__init__(self, range(state['_n']), (k,n-k))
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override("sage.combinat.split_nk", "SplitNK_nk", SplitNK)
 

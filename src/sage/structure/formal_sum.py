@@ -478,5 +478,5 @@ formal_sums = FormalSums()
 # Formal sums now derives from UniqueRepresentation, which makes the
 # factory function unnecessary. This is why the name was changed from
 # class FormalSums_generic to class FormalSums.
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.structure.formal_sum', 'FormalSums_generic', FormalSums)

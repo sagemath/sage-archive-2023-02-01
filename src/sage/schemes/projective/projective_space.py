@@ -1853,7 +1853,7 @@ class ProjectiveSpace_rational_field(ProjectiveSpace_field):
 
 
 #fix the pickles from moving projective_space.py
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.schemes.generic.projective_space',
                            'ProjectiveSpace_field',
                            ProjectiveSpace_field)

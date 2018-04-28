@@ -3745,29 +3745,41 @@ def MoserSpindle():
         sage: G.girth()
         3
 
-    The Moser spindle has chromatic number 4 and its automorphism group is
-    isomorphic to the dihedral group `D_4`. ::
+    The Moser spindle can be drawn in the plane as a unit distance graph, 
+    has chromatic number 4, and its automorphism group is isomorphic to 
+    the dihedral group `D_4`. ::
 
+        sage: pos = G.get_pos()
+        sage: all(sum((ui-vi)**2 for ui, vi in zip(pos[u], pos[v])) == 1 for u, v in G.edge_iterator(labels=None))
+        True
         sage: G.chromatic_number()
         4
         sage: ag = G.automorphism_group()
         sage: ag.is_isomorphic(DihedralGroup(4))
         True
     """
+    from sage.functions.other import sqrt
+    from sage.rings.integer import Integer
+    def ratlit(numerator, denominator):
+        return Integer(numerator)/Integer(denominator)  
     edge_dict = {
-        0: [1,4,5,6],
-        1: [2,5],
-        2: [3,5],
-        3: [4,6],
+        0: [1, 4, 6], 
+        1: [2, 5], 
+        2: [3, 5], 
+        3: [4, 5, 6], 
         4: [6]}
     pos_dict = {
-        0: [0, 2],
-        1: [-1.90211303259031, 0.618033988749895],
-        2: [-1.17557050458495, -1.61803398874989],
-        3: [1.17557050458495, -1.61803398874989],
-        4: [1.90211303259031, 0.618033988749895],
-        5: [1, 0],
-        6: [-1, 0]}
+        0: [ ratlit(1,2), 0],
+        1: [-ratlit(1,2), 0],
+        2: [-ratlit(1,12)*sqrt(33) - ratlit(1,4),
+             ratlit(1,2)*sqrt( ratlit(1,6)*sqrt(33) + ratlit(17,6))],
+        3: [0, ratlit(1,2)*sqrt(11)],
+        4: [ ratlit(1,12)*sqrt(33) + ratlit(1,4),
+             ratlit(1,2)*sqrt( ratlit(1,6)*sqrt(33) + ratlit(17,6))],
+        5: [ ratlit(1,12)*sqrt(33) - ratlit(1,4),
+             ratlit(1,2)*sqrt(-ratlit(1,6)*sqrt(33) + ratlit(17,6))],
+        6: [-ratlit(1,12)*sqrt(33) + ratlit(1,4),
+             ratlit(1,2)*sqrt(-ratlit(1,6)*sqrt(33) + ratlit(17,6))]}
     return Graph(edge_dict, pos=pos_dict, name="Moser spindle")
 
 

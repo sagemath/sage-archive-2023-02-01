@@ -780,7 +780,7 @@ cdef uint32_t * c_eccentricity_bounding(G) except NULL:
         cpt += 1
 
         # Compute the exact eccentricity of v
-        LB[v] = simple_BFS(n, sd.neighbors, v, distances, NULL, waiting_list, seen)
+        LB[v] = simple_BFS(sd, v, distances, NULL, waiting_list, seen)
 
         if LB[v]==UINT32_MAX:
             # The graph is not connected. We set maximum value and exit.
@@ -900,8 +900,7 @@ def eccentricity(G, algorithm="standard"):
 # Diameter #
 ############
 
-cdef uint32_t diameter_lower_bound_2sweep(uint32_t n,
-                                          uint32_t ** p_vertices,
+cdef uint32_t diameter_lower_bound_2sweep(short_digraph g,
                                           uint32_t source,
                                           uint32_t * distances,
                                           uint32_t * predecessors,
@@ -953,7 +952,7 @@ cdef uint32_t diameter_lower_bound_2sweep(uint32_t n,
     cdef uint32_t LB, i, k, tmp
 
     # We do a first BFS from source and get the eccentricity of source
-    LB = simple_BFS(n, p_vertices, source, distances, NULL, waiting_list, seen)
+    LB = simple_BFS(g, source, distances, NULL, waiting_list, seen)
 
     # If the eccentricity of the source is infinite (very large number), the
     # graph is not connected and so its diameter is infinite.
@@ -961,15 +960,14 @@ cdef uint32_t diameter_lower_bound_2sweep(uint32_t n,
         return UINT32_MAX
 
     # Then we perform a second BFS from the last visited vertex
-    source = waiting_list[n-1]
-    LB = simple_BFS(n, p_vertices, source, distances, predecessors, waiting_list, seen)
+    source = waiting_list[g.n-1]
+    LB = simple_BFS(g, source, distances, predecessors, waiting_list, seen)
 
     # We return the computed lower bound
     return LB
 
 
-cdef tuple diameter_lower_bound_multi_sweep(uint32_t n,
-                                            uint32_t ** p_vertices,
+cdef tuple diameter_lower_bound_multi_sweep(short_digraph g,
                                             uint32_t source):
     """
     Lower bound on the diameter using multi-sweep.
@@ -1001,7 +999,7 @@ cdef tuple diameter_lower_bound_multi_sweep(uint32_t n,
     """
     # The while loop below might not be entered so we have to make sure that
     # s and d which are returned are initialized.
-    cdef uint32_t LB, tmp, s = 0, m, d = 0
+    cdef uint32_t LB, tmp, s = 0, m, d = 0, n=g.n
 
     # Allocate some arrays and a bitset
     cdef bitset_t seen
@@ -1017,7 +1015,7 @@ cdef tuple diameter_lower_bound_multi_sweep(uint32_t n,
     # We perform a first 2sweep call from source. If the returned value is a
     # very large number, the graph is not connected and so the diameter is
     # infinite.
-    tmp = diameter_lower_bound_2sweep(n, p_vertices, source, distances, predecessors, waiting_list, seen)
+    tmp = diameter_lower_bound_2sweep(g, source, distances, predecessors, waiting_list, seen)
     if tmp==UINT32_MAX:
         sig_free(distances)
         bitset_free(seen)
@@ -1042,7 +1040,7 @@ cdef tuple diameter_lower_bound_multi_sweep(uint32_t n,
             m = predecessors[m]
 
         # We perform a new 2sweep call from m
-        tmp = diameter_lower_bound_2sweep(n, p_vertices, m, distances, predecessors, waiting_list, seen)
+        tmp = diameter_lower_bound_2sweep(g, m, distances, predecessors, waiting_list, seen)
 
     sig_free(distances)
     bitset_free(seen)
@@ -1050,8 +1048,7 @@ cdef tuple diameter_lower_bound_multi_sweep(uint32_t n,
     return (LB, s, m, d)
 
 
-cdef uint32_t diameter_iFUB(uint32_t n,
-                            uint32_t ** p_vertices,
+cdef uint32_t diameter_iFUB(short_digraph g,
                             uint32_t source):
     """
     Computes the diameter of the input Graph using the iFUB algorithm.
@@ -1075,10 +1072,10 @@ cdef uint32_t diameter_iFUB(uint32_t n,
     - ``source`` -- Starting node of the first BFS.
 
     """
-    cdef uint32_t i, LB, s, m, d
+    cdef uint32_t i, LB, s, m, d, n=g.n
 
     # We select a vertex m with low eccentricity using multi-sweep
-    LB, s, m, d = diameter_lower_bound_multi_sweep(n, p_vertices, source)
+    LB, s, m, d = diameter_lower_bound_multi_sweep(g, source)
 
     # If the lower bound is a very large number, it means that the graph is not
     # connected and so the diameter is infinite.
@@ -1101,7 +1098,7 @@ cdef uint32_t diameter_iFUB(uint32_t n,
     # We order the vertices by decreasing layers. This is the inverse order of a
     # BFS from m, and so the inverse order of array waiting_list. Distances are
     # stored in array layer.
-    LB = simple_BFS(n, p_vertices, m, layer, NULL, waiting_list, seen)
+    LB = simple_BFS(g, m, layer, NULL, waiting_list, seen)
     for i from 0 <= i < n:
         order[i] = waiting_list[n-i-1]
 
@@ -1127,7 +1124,7 @@ cdef uint32_t diameter_iFUB(uint32_t n,
     # eccentricity already found.
     i = 0
     while (2*layer[order[i]])>LB and i<n:
-        tmp = simple_BFS(n, p_vertices, order[i], distances, NULL, waiting_list, seen)
+        tmp = simple_BFS(g, order[i], distances, NULL, waiting_list, seen)
         i += 1
 
         # We update the lower bound
@@ -1288,16 +1285,16 @@ def diameter(G, algorithm='iFUB', source=None):
             bitset_free(seen)
             raise MemoryError()
         
-        LB = diameter_lower_bound_2sweep(n, sd.neighbors, isource, tab, NULL, tab+n, seen)
+        LB = diameter_lower_bound_2sweep(sd, isource, tab, NULL, tab+n, seen)
 
         bitset_free(seen)
         sig_free(tab)
 
     elif algorithm=='multi-sweep':
-        LB = diameter_lower_bound_multi_sweep(n, sd.neighbors, isource)[0]
+        LB = diameter_lower_bound_multi_sweep(sd, isource)[0]
 
     else: # algorithm=='iFUB'
-        LB = diameter_iFUB(n, sd.neighbors, isource)
+        LB = diameter_iFUB(sd, isource)
 
 
     free_short_digraph(sd)

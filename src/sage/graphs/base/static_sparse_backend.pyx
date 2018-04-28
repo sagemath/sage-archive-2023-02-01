@@ -1115,8 +1115,7 @@ def _run_it_on_static_instead(f):
     return same_function_on_static_version
 
 
-cdef inline uint32_t simple_BFS(uint32_t n,
-                                uint32_t ** p_vertices,
+cdef inline uint32_t simple_BFS(short_digraph g,
                                 uint32_t source,
                                 uint32_t *distances,
                                 uint32_t *predecessors,
@@ -1132,12 +1131,7 @@ cdef inline uint32_t simple_BFS(uint32_t n,
 
     INPUT:
 
-    - ``n`` -- number of vertices of the graph.
-
-    - ``p_vertices`` -- The outneighbors of vertex i are enumerated from
-      p_vertices[i] to p_vertices[i+1] - 1. If p_vertices[i] is equal to
-      p_vertices[i+1], then i has no outneighbours.  This data structure is well
-      documented in the module sage.graphs.base.static_sparse_graph
+    - ``g`` (short_digraph) -- The input graph.
 
     - ``source`` -- Starting node of the BFS.
 
@@ -1166,6 +1160,9 @@ cdef inline uint32_t simple_BFS(uint32_t n,
     cdef uint32_t waiting_end = 0
     cdef uint32_t * p_tmp
     cdef uint32_t * end
+    cdef uint32_t n = g.n
+    cdef uint32_t ** p_vertices = g.neighbors
+
 
     # the source is seen
     bitset_clear(seen)

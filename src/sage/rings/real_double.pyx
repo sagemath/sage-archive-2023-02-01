@@ -1141,7 +1141,7 @@ cdef class RealDoubleElement(FieldElement):
         EXAMPLES::
 
             sage: print(RDF(-2/3))
-            -0.666666666667
+            -0.6666666666666666
             sage: print(RDF(oo))
             +infinity
         """
@@ -1156,7 +1156,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: a = RDF('4.5'); a.str()
             '4.5'
             sage: a = RDF('49203480923840.2923904823048'); a.str()
-            '4.92034809238e+13'
+            '49203480923840.29'
             sage: a = RDF(1)/RDF(0); a.str()
             '+infinity'
             sage: a = -RDF(1)/RDF(0); a.str()
@@ -2905,10 +2905,13 @@ cdef double_repr(double x):
         return "-infinity"
     return "NaN"
 
+
 cdef double_str(double x):
     """
     Convert a double to an informal string.
+
+    Originally different from ``double_repr`` in that it invoked
+    ``float.__str__``, but now we use ``float.__repr__`` for both
+    ``str()`` and ``repr()``.  See :trac:`25247`.
     """
-    if gsl_finite(x):
-        return str(x)
     return double_repr(x)

@@ -1009,7 +1009,7 @@ cdef class ComplexDoubleElement(FieldElement):
         EXAMPLES::
 
             sage: print(CDF(0, 2/3))
-            0.666666666667*I
+            0.6666666666666666*I
             sage: a = CDF(2,-3)
             sage: print(a)  # indirect doctest
             2.0 - 3.0*I
@@ -1109,7 +1109,7 @@ cdef class ComplexDoubleElement(FieldElement):
             '1.0 + 2.0i'
             sage: z = CDF(1,2)^100
             sage: z._latex_()
-            '-6.44316469099 \\times 10^{34} - 6.11324130776 \\times 10^{34}i'
+            '-6.443164690985956 \\times 10^{34} - 6.113241307762409 \\times 10^{34}i'
         """
         import re
         s = str(self).replace('*I', 'i')

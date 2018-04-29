@@ -1244,6 +1244,41 @@ class Genus_Symbol_p_adic_ring(object):
             return self._symbol
 
 
+    def gram_matrix(self, check=True):
+        r"""
+        Return a gram matrix of a representative of this local genus.
+
+        INPUT:
+
+        - check (default: ``True``) -- double check the result
+
+        EXAMPLES::
+
+            sage: from sage.quadratic_forms.genera.genus import p_adic_symbol
+            sage: from sage.quadratic_forms.genera.genus import Genus_Symbol_p_adic_ring
+            sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
+            sage: p = 2
+            sage: G2 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2));
+            sage: G2.gram_matrix()
+            [2 0|0|0]
+            [0 6|0|0]
+            [---+-+-]
+            [0 0|4|0]
+            [---+-+-]
+            [0 0|0|8]
+        """
+        G = []
+        p = self._prime
+        symbol = self.symbol_tuple_list()
+        for block in symbol:
+            G.append(_gram_from_jordan_block(p, block))
+        G = matrix.block_diagonal(G)
+        # check calculation
+        if check:
+            symG = p_adic_symbol(G, p, symbol[-1][0])
+            assert Genus_Symbol_p_adic_ring(p, symG) == self, "oops"
+        return G
+
 
     def symbol_tuple_list(self):
         """
@@ -1869,32 +1904,46 @@ class GenusSymbol_global_ring(object):
         for gs in self._local_symbols:
             p = gs._prime
             for block in gs.symbol_tuple_list():
-                qL.append(_fqf_from_jordan_block(p, block))
+                qL.append(_gram_from_jordan_block(p, block, True))
         q = matrix.block_diagonal(qL)
         return TorsionQuadraticForm(q)
 
-def _fqf_from_jordan_block(p, block):
+def _gram_from_jordan_block(p, block, discr_form=False):
     r"""
-    Return the gram matrix of the discriminant form of this block.
+    Return the gram matrix of this jordan block.
 
-    This is a helper for :meth:`TorsionQuadraticForm_from_genus`.
+    This is a helper for :meth:`discriminant_form` and :meth:`gram_matrix`.
     No input checks.
 
     INPUT:
 
     -``p`` -- a prime number
-    -``block`` -- a list of 3 integers or 5 integers if
+    -``block`` -- a list of 3 integers or 5 integers if `p` is `2`
 
     EXAMPLES::
 
-        sage: from sage.quadratic_forms.genera.genus import _fqf_from_jordan_block
+        sage: from sage.quadratic_forms.genera.genus import _gram_from_jordan_block
         sage: block = [1, 3, 1]
-        sage: _fqf_from_jordan_block(5, block)
+        sage: _gram_from_jordan_block(5, block)
+        [5 0 0]
+        [0 5 0]
+        [0 0 5]
+        sage: block = [1, 4, 7, 1, 2]
+        sage: _gram_from_jordan_block(2, block)
+        [0 2 0 0]
+        [2 0 0 0]
+        [0 0 2 0]
+        [0 0 0 2]
+
+    For the discriminant form we obtain::
+
+        sage: block = [1, 3, 1]
+        sage: _gram_from_jordan_block(5, block, True)
         [4/5   0   0]
         [  0 2/5   0]
         [  0   0 2/5]
         sage: block = [1, 4, 7, 1, 2]
-        sage: _fqf_from_jordan_block(2, block)
+        sage: _gram_from_jordan_block(2, block, True)
         [  0 1/2   0   0]
         [1/2   0   0   0]
         [  0   0 1/2   0]
@@ -1948,12 +1997,22 @@ def _fqf_from_jordan_block(p, block):
                 # if the rank is 2 there is a U too much
                 if rk == 2:
                     qL = qL[-2:]
-        q = matrix.block_diagonal(qL) / 2**level
-    if p != 2:
+        q = matrix.block_diagonal(qL)
+        if discr_form:
+            q = q / 2**level
+        else:
+            q = q * 2**level
+    if p != 2 and discr_form:
         q = matrix.identity(QQ, rk)
         d = 2**(rk % 2)
         if Integer(d).kronecker(p) != det:
             u = _min_nonsquare(p)
             q[0,0] = u
         q = q * (2 / p**level)
+    if p != 2 and not discr_form:
+        q = matrix.identity(QQ, rk)
+        if det != 1:
+            u = _min_nonsquare(p)
+            q[0,0] = u
+        q = q * p**level
     return q

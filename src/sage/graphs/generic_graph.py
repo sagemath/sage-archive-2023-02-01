@@ -12555,7 +12555,7 @@ class GenericGraph(GenericGraph_pyx):
             True
             sage: g.set_vertices(dict((v, 'v%d'%v) for v in g.vertices()))
             sage: h = g.subgraph([3..5])
-            sage: h.get_pos().keys()
+            sage: sorted(h.get_pos().keys())
             [3, 4, 5]
             sage: h.get_vertices()
             {3: 'v3', 4: 'v4', 5: 'v5'}
@@ -12688,7 +12688,7 @@ class GenericGraph(GenericGraph_pyx):
             True
             sage: g.set_vertices(dict((v, 'v%d'%v) for v in g.vertices()))
             sage: h = g._subgraph_by_adding([3..5])
-            sage: h.get_pos().keys()
+            sage: sorted(h.get_pos().keys())
             [3, 4, 5]
             sage: h.get_vertices()
             {3: 'v3', 4: 'v4', 5: 'v5'}
@@ -12842,7 +12842,7 @@ class GenericGraph(GenericGraph_pyx):
             True
             sage: g.set_vertices(dict((v, 'v%d'%v) for v in g.vertices()))
             sage: h = g._subgraph_by_deleting([3..5])
-            sage: h.get_pos().keys()
+            sage: sorted(h.get_pos().keys())
             [3, 4, 5]
             sage: h.get_vertices()
             {3: 'v3', 4: 'v4', 5: 'v5'}
@@ -18837,7 +18837,7 @@ class GenericGraph(GenericGraph_pyx):
         We check what happens when several labels have the same color::
 
             sage: result = G._color_by_label({1: "blue", 2: "blue", 3: "green"})
-            sage: result.keys()
+            sage: sorted(result)
             ['blue', 'green']
             sage: len(result['blue'])
             48

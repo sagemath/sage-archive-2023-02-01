@@ -235,8 +235,8 @@ def construct_skeleton(database):
 
         sage: G = SQLDatabase(GraphDatabase().__dblocation__, False)
         sage: from sage.databases.sql_db import construct_skeleton
-        sage: construct_skeleton(G).keys()
-        [u'aut_grp', u'degrees', u'spectrum', u'misc', u'graph_data']
+        sage: sorted(construct_skeleton(G))
+        [u'aut_grp', u'degrees', u'graph_data', u'misc', u'spectrum']
     """
     skeleton = {}
     cur = database.__connection__.cursor()

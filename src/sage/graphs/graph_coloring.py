@@ -53,6 +53,7 @@ Methods
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
+from six import itervalues
 from six.moves import range
 
 from copy import copy
@@ -266,7 +267,7 @@ def first_coloring(G, n=0, hex_colors=False):
             if hex_colors:
                 return C
             else:
-                return C.values()
+                return list(itervalues(C))
 
 def number_of_n_colorings(G,n):
     r"""

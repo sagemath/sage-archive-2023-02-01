@@ -14686,7 +14686,7 @@ class GenericGraph(GenericGraph_pyx):
             if len(e) == 1:
                 v, = e.values()
                 return v # return single value
-            return e.values()
+            return list(itervalues(e))
 
     def radius(self, by_weight=False, algorithm=None, weight_function=None,
                check_weight=True):

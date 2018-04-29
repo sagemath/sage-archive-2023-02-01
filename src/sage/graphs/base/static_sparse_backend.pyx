@@ -1131,7 +1131,7 @@ cdef inline uint32_t simple_BFS(short_digraph g,
 
     INPUT:
 
-    - ``g`` (short_digraph) -- The input graph.
+    - ``g`` -- a short_digraph.
 
     - ``source`` -- Starting node of the BFS.
 

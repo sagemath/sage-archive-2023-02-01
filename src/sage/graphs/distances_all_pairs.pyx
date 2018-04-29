@@ -919,12 +919,7 @@ cdef uint32_t diameter_lower_bound_2sweep(short_digraph g,
 
     INPUT:
 
-    - ``n`` -- number of vertices of the graph.
-
-    - ``p_vertices`` -- The outneighbors of vertex i are enumerated from
-      p_vertices[i] to p_vertices[i+1] - 1. If p_vertices[i] is equal to
-      p_vertices[i+1], then i has no outneighbours.  This data structure is well
-      documented in the module sage.graphs.base.static_sparse_graph
+    - ``g`` -- a short_digraph.
 
     - ``source`` -- Starting node of the BFS.
 
@@ -987,19 +982,14 @@ cdef tuple diameter_lower_bound_multi_sweep(short_digraph g,
 
     INPUT:
 
-    - ``n`` -- number of vertices of the graph.
-
-    - ``p_vertices`` -- The outneighbors of vertex i are enumerated from
-      p_vertices[i] to p_vertices[i+1] - 1. If p_vertices[i] is equal to
-      p_vertices[i+1], then i has no outneighbours.  This data structure is well
-      documented in the module sage.graphs.base.static_sparse_graph
+    - ``g`` -- a short_digraph.
 
     - ``source`` -- Starting node of the BFS.
 
     """
     # The while loop below might not be entered so we have to make sure that
     # s and d which are returned are initialized.
-    cdef uint32_t LB, tmp, s = 0, m, d = 0, n=g.n
+    cdef uint32_t LB, tmp, s = 0, m, d = 0, n = g.n
 
     # Allocate some arrays and a bitset
     cdef bitset_t seen
@@ -1062,17 +1052,12 @@ cdef uint32_t diameter_iFUB(short_digraph g,
 
     INPUT:
 
-    - ``n`` -- number of vertices of the graph.
-
-    - ``p_vertices`` -- The outneighbors of vertex i are enumerated from
-      p_vertices[i] to p_vertices[i+1] - 1. If p_vertices[i] is equal to
-      p_vertices[i+1], then i has no outneighbours.  This data structure is well
-      documented in the module sage.graphs.base.static_sparse_graph
+    - ``g`` -- a short_digraph.
 
     - ``source`` -- Starting node of the first BFS.
 
     """
-    cdef uint32_t i, LB, s, m, d, n=g.n
+    cdef uint32_t i, LB, s, m, d, n = g.n
 
     # We select a vertex m with low eccentricity using multi-sweep
     LB, s, m, d = diameter_lower_bound_multi_sweep(g, source)

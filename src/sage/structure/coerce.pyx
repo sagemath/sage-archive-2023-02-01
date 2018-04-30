@@ -89,7 +89,7 @@ try:
 except ImportError:
     div = object()  # Unique object not equal to anything else
 
-from .richcmp cimport rich_to_bool
+from .richcmp cimport rich_to_bool, revop
 from .sage_object cimport SageObject
 from .parent cimport Set_PythonType, Parent_richcmp_element_without_coercion
 from .element cimport bin_op_exception, parent, Element
@@ -115,7 +115,7 @@ cpdef py_scalar_parent(py_type):
         sage: from sage.structure.coerce import py_scalar_parent
         sage: py_scalar_parent(int)
         Integer Ring
-        sage: py_scalar_parent(long)
+        sage: py_scalar_parent(long)  # py2
         Integer Ring
         sage: py_scalar_parent(float)
         Real Double Field
@@ -337,7 +337,8 @@ cpdef bint is_numpy_type(t):
         sage: 1 + object()
         Traceback (most recent call last):
         ...
-        TypeError: unsupported operand parent(s) for +: 'Integer Ring' and '<... 'object'>'
+        TypeError: unsupported operand parent(s) for +: 'Integer Ring' and
+        '<type 'object'>'
     """
     if not isinstance(t, type):
         return False
@@ -425,13 +426,13 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         sage: numpy.uint8('2') + 3
         5
         sage: type(_)
-        <... 'numpy.int32'>  # 32-bit
-        <... 'numpy.int64'>  # 64-bit
+        <type 'numpy.int32'>  # 32-bit
+        <type 'numpy.int64'>  # 64-bit
 
         sage: numpy.int8('12') + 1/3
         12.333333333333334
         sage: type(_)
-        <... 'numpy.float64'>
+        <type 'numpy.float64'>
 
     AUTHOR:
 
@@ -742,12 +743,12 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             Right operand is numeric, will attempt coercion in both directions.
             Unknown result parent.
             sage: parent(R100(1) + float(1))
-            <... 'float'>
+            <type 'float'>
             sage: cm.explain(QQ, float, operator.add)
             Right operand is numeric, will attempt coercion in both directions.
             Unknown result parent.
             sage: parent(QQ(1) + float(1))
-            <... 'float'>
+            <type 'float'>
 
         Special care is taken to deal with division::
 
@@ -844,7 +845,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: res
             Finite Field of size 7
             sage: f = steps[1]; type(f)
-            <... 'sage.rings.finite_rings.integer_mod.Integer_to_IntegerMod'>
+            <type 'sage.rings.finite_rings.integer_mod.Integer_to_IntegerMod'>
             sage: f(100)
             2
         """
@@ -951,9 +952,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm.common_parent(ZZT, QQT, RDF)
             Power Series Ring in T over Real Double Field
             sage: cm.common_parent(4r, 5r)
-            <... 'int'>
+            <type 'int'>
             sage: cm.common_parent(int, float, ZZ)
-            <... 'float'>
+            <type 'float'>
             sage: real_fields = [RealField(prec) for prec in [10,20..100]]
             sage: cm.common_parent(*real_fields)
             Real Field with 10 bits of precision
@@ -1195,12 +1196,12 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
             sage: x, y = cm.canonical_coercion(int(5), 10)
             sage: type(x), type(y)
-            (<... 'sage.rings.integer.Integer'>, <... 'sage.rings.integer.Integer'>)
+            (<type 'sage.rings.integer.Integer'>, <type 'sage.rings.integer.Integer'>)
 
 
             sage: x, y = cm.canonical_coercion(int(5), complex(3))
             sage: type(x), type(y)
-            (<... 'complex'>, <... 'complex'>)
+            (<type 'complex'>, <type 'complex'>)
 
             sage: class MyClass:
             ....:     def _sage_(self):
@@ -1209,7 +1210,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: a, b
             (13, 1/3)
             sage: type(a)
-            <... 'sage.rings.rational.Rational'>
+            <type 'sage.rings.rational.Rational'>
 
         We also make an exception for 0, even if $\ZZ$ does not map in::
 
@@ -1679,7 +1680,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 R = Real Double Field
                 S = Univariate Polynomial Ring in x over Integer Ring
                 (should be Univariate Polynomial Ring in x over Integer Ring, Rational Field)
-                action = Right scalar multiplication by Rational Field on Univariate Polynomial Ring in x over Integer Ring (<... 'sage.structure.coerce_actions.RightModuleAction'>)
+                action = Right scalar multiplication by Rational Field on
+                Univariate Polynomial Ring in x over Integer Ring (<type 'sage.structure.coerce_actions.RightModuleAction'>)
         """
         if action is None:
             return action
@@ -1901,14 +1903,13 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: richcmp(int(1), float(2), op_GE)
             False
 
-        If there is no coercion, compare types::
+        If there is no coercion, only comparisons for equality make
+        sense::
 
             sage: x = QQ.one(); y = GF(2).one()
             sage: richcmp(x, y, op_EQ)
             False
             sage: richcmp(x, y, op_NE)
-            True
-            sage: richcmp(x, y, op_LT if cmp(type(x), type(y)) == -1 else op_GT)
             True
 
         We support non-Sage types with the usual Python convention::
@@ -1934,7 +1935,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         # x.__richcmp__ would already have been called)
         if y_is_Element:
             if (<Element>y)._parent.get_flag(Parent_richcmp_element_without_coercion):
-                return Py_TYPE(y).tp_richcompare(x, y, op)
+                return Py_TYPE(y).tp_richcompare(y, x, revop(op))
 
         # Coerce to a common parent
         try:
@@ -1954,21 +1955,10 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         # operation (<= becomes >=).
         # This only makes sense when y is not a Sage Element, otherwise
         # we would end up trying the same coercion again.
-        cdef int revop
         if not y_is_Element and Py_TYPE(y).tp_richcompare:
-            revop = (5 - op) ^ 1
-            res = Py_TYPE(y).tp_richcompare(y, x, revop)
+            res = Py_TYPE(y).tp_richcompare(y, x, revop(op))
             if res is not NotImplemented:
                 return res
-
-        # If types are not equal: compare types
-        # avoiding call to cmp() for compatibility with python3
-        cdef type tx = type(x)
-        cdef type ty = type(y)
-        if tx < ty:
-            return rich_to_bool(op, -1)
-        elif tx > ty:
-            return rich_to_bool(op, 1)
 
         # Final attempt: compare by id()
         if (<unsigned long><PyObject*>x) >= (<unsigned long><PyObject*>y):
@@ -1991,11 +1981,11 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             ...
             RuntimeError: There is a bug in the coercion code in Sage.
             Both x (='f(a)') and y (='g(b)') are supposed to have identical parents but they don't.
-            In fact, x has parent '<... 'str'>'
-            whereas y has parent '<... 'str'>'
-            Original elements 'a' (parent <... 'str'>) and 'b' (parent <... 'str'>) and maps
-            <... 'str'> 'f'
-            <... 'str'> 'g'
+            In fact, x has parent '<type 'str'>'
+            whereas y has parent '<type 'str'>'
+            Original elements 'a' (parent <type 'str'>) and 'b' (parent <type 'str'>) and maps
+            <type 'str'> 'f'
+            <type 'str'> 'g'
         """
         raise RuntimeError("""There is a bug in the coercion code in Sage.
 Both x (=%r) and y (=%r) are supposed to have identical parents but they don't.

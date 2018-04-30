@@ -379,7 +379,7 @@ class Hypergeometric(BuiltinFunction):
                 hypergeometric([c + 1 for c in a], [c + 1 for c in b], z))
 
     class EvaluationMethods(object):
-        def _fast_float_(cls, self, *args):
+        def _fast_float_(self, *args):
             """
             Do not support the old ``fast_float``.
 
@@ -398,7 +398,7 @@ class Hypergeometric(BuiltinFunction):
             """
             raise NotImplementedError
 
-        def _fast_callable_(cls, self, a, b, z, etb):
+        def _fast_callable_(self, a, b, z, etb):
             """
             Override the ``fast_callable`` method.
 
@@ -425,7 +425,7 @@ class Hypergeometric(BuiltinFunction):
             """
             return etb.call(self, *map(etb.var, etb._vars))
 
-        def sorted_parameters(cls, self, a, b, z):
+        def sorted_parameters(self, a, b, z):
             """
             Return with parameters sorted in a canonical order.
 
@@ -437,7 +437,7 @@ class Hypergeometric(BuiltinFunction):
             """
             return hypergeometric(sorted(a), sorted(b), z)
 
-        def eliminate_parameters(cls, self, a, b, z):
+        def eliminate_parameters(self, a, b, z):
             """
             Eliminate repeated parameters by pairwise cancellation of identical
             terms in ``a`` and ``b``.
@@ -470,7 +470,7 @@ class Hypergeometric(BuiltinFunction):
                 return hypergeometric(aa, bb, z)
             return self
 
-        def is_termwise_finite(cls, self, a, b, z):
+        def is_termwise_finite(self, a, b, z):
             """
             Determine whether all terms of ``self`` are finite. Any infinite
             terms or ambiguous terms beyond the first zero, if one exists,
@@ -518,7 +518,7 @@ class Hypergeometric(BuiltinFunction):
                     return False
             return True
 
-        def is_terminating(cls, self, a, b, z):
+        def is_terminating(self, a, b, z):
             r"""
             Determine whether the series represented by self terminates
             after a finite number of terms, i.e. whether any of the
@@ -543,7 +543,7 @@ class Hypergeometric(BuiltinFunction):
                     return self.is_termwise_finite()
             return False
 
-        def is_absolutely_convergent(cls, self, a, b, z):
+        def is_absolutely_convergent(self, a, b, z):
             r"""
             Determine whether ``self`` converges absolutely as an infinite
             series. ``False`` is returned if not all terms are finite.
@@ -625,7 +625,7 @@ class Hypergeometric(BuiltinFunction):
                         return True
             return False
 
-        def terms(cls, self, a, b, z, n=None):
+        def terms(self, a, b, z, n=None):
             """
             Generate the terms of ``self`` (optionally only ``n`` terms).
 
@@ -654,7 +654,7 @@ class Hypergeometric(BuiltinFunction):
                 t /= k
                 k += 1
 
-        def deflated(cls, self, a, b, z):
+        def deflated(self, a, b, z):
             r"""
             Rewrite as a linear combination of functions of strictly lower
             degree by eliminating all parameters ``a[i]`` and ``b[j]`` such
@@ -689,7 +689,7 @@ class Hypergeometric(BuiltinFunction):
             """
             return sum(map(prod, self._deflated()))
 
-        def _deflated(cls, self, a, b, z):
+        def _deflated(self, a, b, z):
             """
             Private helper to return list of deflated terms.
             
@@ -1010,7 +1010,7 @@ class Hypergeometric_M(BuiltinFunction):
                                   'with respect to parameters')
 
     class EvaluationMethods(object):
-        def generalized(cls, self, a, b, z):
+        def generalized(self, a, b, z):
             """
             Return as a generalized hypergeometric function
 
@@ -1112,7 +1112,7 @@ class Hypergeometric_U(BuiltinFunction):
                                   'with respect to parameters')
 
     class EvaluationMethods(object):
-        def generalized(cls, self, a, b, z):
+        def generalized(self, a, b, z):
             """
             Return in terms of the generalized hypergeometric function
 

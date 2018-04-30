@@ -1231,7 +1231,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: R.macaulay_resultant(flist)
             -u2*u4*u6 + u1*u5*u6 + u2*u3*u7 - u0*u5*u7 - u1*u3*u8 + u0*u4*u8
 
-        The following example is by Patrick Ingram(arxiv:1310.4114)::
+        The following example is by Patrick Ingram (:arxiv:`1310.4114`)::
 
             sage: U = PolynomialRing(ZZ,'y',2); y0,y1 = U.gens()
             sage: R = PolynomialRing(U,'x',3); x0,x1,x2 = R.gens()

@@ -61,7 +61,7 @@ def is_gale_ryser(r,s):
     If, given a binary matrix, these two vectors are easy to compute,
     the Gale-Ryser theorem lets us decide whether, given two
     non-negative vectors `r,s`, there exists a binary matrix
-    whose row/colum sums vectors are `r` and `s`.
+    whose row/column sums vectors are `r` and `s`.
 
     This functions answers accordingly.
 

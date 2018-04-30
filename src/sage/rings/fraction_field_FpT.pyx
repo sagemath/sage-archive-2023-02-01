@@ -17,7 +17,7 @@ from sage.rings.integer cimport Integer
 from sage.rings.polynomial.polynomial_zmod_flint cimport Polynomial_zmod_flint, get_cparent
 import sage.algebras.algebra
 
-from sage.rings.finite_rings.integer_mod cimport jacobi_int, mod_inverse_int, mod_pow_int
+from sage.rings.finite_rings.integer_mod cimport mod_inverse_int
 
 class FpT(FractionField_1poly_field):
     """

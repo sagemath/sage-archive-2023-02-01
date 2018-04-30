@@ -1093,7 +1093,7 @@ class DiffScalarField(ScalarField):
 
         Gradient of a scalar field in the Euclidean plane::
 
-            sage: M.<x,y> = EuclideanSpace(2)
+            sage: M.<x,y> = EuclideanSpace()
             sage: f = M.scalar_field(cos(x*y), name='f')
             sage: v = f.gradient(); v
             Vector field grad(f) on the Euclidean plane E^2
@@ -1104,7 +1104,7 @@ class DiffScalarField(ScalarField):
 
         Gradient in polar coordinates::
 
-            sage: M.<r,phi> = EuclideanSpace(2, coordinates='polar')
+            sage: M.<r,phi> = EuclideanSpace(coordinates='polar')
             sage: f = M.scalar_field(r*cos(phi), name='f')
             sage: f.gradient().display()
             grad(f) = cos(phi) e_r - sin(phi) e_phi
@@ -1191,7 +1191,7 @@ class DiffScalarField(ScalarField):
 
         Laplacian of a scalar field on the Euclidean plane::
 
-            sage: M.<x,y> = EuclideanSpace(2)
+            sage: M.<x,y> = EuclideanSpace()
             sage: f = M.scalar_field(function('F')(x,y), name='f')
             sage: s = f.laplacian(); s
             Scalar field Delta(f) on the Euclidean plane E^2

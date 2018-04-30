@@ -1011,7 +1011,7 @@ class VectorField(MultivectorField):
 
         Curl of a vector field in the Euclidean 3-space::
 
-            sage: M.<x,y,z> = EuclideanSpace(3)
+            sage: M.<x,y,z> = EuclideanSpace()
             sage: v = M.vector_field(-y, x, 0, name='v')
             sage: v.display()
             v = -y e_x + x e_y
@@ -1102,7 +1102,7 @@ class VectorField(MultivectorField):
 
         Scalar product in the Euclidean plane::
 
-            sage: M.<x,y> = EuclideanSpace(2)
+            sage: M.<x,y> = EuclideanSpace()
             sage: u = M.vector_field(x, y, name='u')
             sage: v = M.vector_field(y, x, name='v')
             sage: s = u.dot_product(v); s
@@ -1188,7 +1188,7 @@ class VectorField(MultivectorField):
 
         Norm in the Euclidean plane::
 
-            sage: M.<x,y> = EuclideanSpace(2)
+            sage: M.<x,y> = EuclideanSpace()
             sage: v = M.vector_field(-y, x, name='v')
             sage: s = v.norm(); s
             Scalar field |v| on the Euclidean plane E^2
@@ -1276,7 +1276,7 @@ class VectorField(MultivectorField):
 
         Cross product in the Euclidean 3-space::
 
-            sage: M.<x,y,z> = EuclideanSpace(3)
+            sage: M.<x,y,z> = EuclideanSpace()
             sage: u = M.vector_field(-y, x, 0, name='u')
             sage: v = M.vector_field(x, y, 0, name='v')
             sage: w = u.cross_product(v); w

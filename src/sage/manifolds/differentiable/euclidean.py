@@ -28,7 +28,7 @@ Euclidean spaces are implemented via the following classes:
 - :class:`EuclideanPlane` for `n = 2`,
 - :class:`Euclidean3dimSpace` for `n = 3`.
 
-The user interface is provided by the generic function :func:`EuclideanSpace`.
+The user interface is provided by :class:`EuclideanSpace`.
 
 .. _EuclideanSpace_example1:
 
@@ -245,7 +245,7 @@ The divergence of the vector field ``v``::
 We start by declaring the 3-dimensional Euclidean space ``E``, with
 ``(x,y,z)`` as Cartesian coordinates::
 
-    sage: E.<x,y,z> = EuclideanSpace(3)
+    sage: E.<x,y,z> = EuclideanSpace()
     sage: E
     Euclidean space E^3
 
@@ -460,7 +460,10 @@ class EuclideanSpace(PseudoRiemannianManifold):
 
         sage: E.<x,y> = EuclideanSpace()
 
-    The coordinate symbols can be customized::
+    Note that providing the dimension as an argument of ``EuclideanSpace`` is
+    not necessary in that case, since it can be deduced from the number of
+    coordinates within ``<,>``. Besides, the coordinate symbols can be
+    customized::
 
         sage: E.<X,Y> = EuclideanSpace()
         sage: E.cartesian_coordinates()
@@ -585,12 +588,12 @@ class EuclideanSpace(PseudoRiemannianManifold):
             sage: type(E2)
             <class 'sage.manifolds.differentiable.euclidean.EuclideanPlane_with_category'>
 
-            sage: E3.<x,t,p> = EuclideanSpace(coordinates='spherical'); E3
+            sage: E3.<r,t,p> = EuclideanSpace(coordinates='spherical'); E3
             Euclidean space E^3
             sage: type(E3)
             <class 'sage.manifolds.differentiable.euclidean.Euclidean3dimSpace_with_category'>
             sage: E3.default_frame()._latex_indices
-            (x, {\theta}, {\phi})
+            (r, {\theta}, {\phi})
         """
         if n is None:
             if names is None:
@@ -754,8 +757,8 @@ class EuclideanSpace(PseudoRiemannianManifold):
 
         This is useful only for the use of Sage preparser::
 
-            sage: preparse("E.<x,y,z> = EuclideanSpace(3)")
-            "E = EuclideanSpace(Integer(3), names=('x', 'y', 'z',));
+            sage: preparse("E.<x,y,z> = EuclideanSpace()")
+            "E = EuclideanSpace(names=('x', 'y', 'z',));
              (x, y, z,) = E._first_ngens(3)"
 
         TESTS::
@@ -763,7 +766,7 @@ class EuclideanSpace(PseudoRiemannianManifold):
             sage: E = EuclideanSpace(2)
             sage: E._first_ngens(2)
             (x, y)
-            sage: E.<u,v> = EuclideanSpace(2)
+            sage: E.<u,v> = EuclideanSpace()
             sage: E._first_ngens(2)
             (u, v)
 
@@ -919,7 +922,7 @@ class EuclideanSpace(PseudoRiemannianManifold):
 
         A vector field in the Euclidean plane::
 
-            sage: E.<x,y> = EuclideanSpace(2)
+            sage: E.<x,y> = EuclideanSpace()
             sage: v = E.vector_field(x*y, x+y)
             sage: v.display()
             x*y e_x + (x + y) e_y
@@ -1457,7 +1460,7 @@ class EuclideanPlane(EuclideanSpace):
             sage: E.coord_change(E.cartesian_coordinates(),
             ....:                E.polar_coordinates()).display()
             r = sqrt(x^2 + y^2)
-            ph = arctan(y/x)
+            ph = arctan2(y, x)
 
         The coordinate variables are returned by the square bracket operator::
 
@@ -2199,7 +2202,7 @@ class Euclidean3dimSpace(EuclideanSpace):
             ....:                E.spherical_coordinates()).display()
             r = sqrt(x^2 + y^2 + z^2)
             th = arctan2(sqrt(x^2 + y^2), z)
-            ph = arctan(y/x)
+            ph = arctan2(y, x)
 
         The coordinate variables are returned by the square bracket operator::
 
@@ -2347,7 +2350,7 @@ class Euclidean3dimSpace(EuclideanSpace):
             sage: E.coord_change(E.cartesian_coordinates(),
             ....:                E.cylindrical_coordinates()).display()
             rh = sqrt(x^2 + y^2)
-            ph = arctan(y/x)
+            ph = arctan2(y, x)
             z = z
 
         The coordinate variables are returned by the square bracket operator::
@@ -2484,7 +2487,7 @@ class Euclidean3dimSpace(EuclideanSpace):
 
         EXAMPLES::
 
-            sage: E.<x,y,z> = EuclideanSpace(3)
+            sage: E.<x,y,z> = EuclideanSpace()
             sage: triple_product = E.scalar_triple_product()
             sage: triple_product
             3-form epsilon on the Euclidean space E^3

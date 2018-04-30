@@ -78,7 +78,7 @@ def grad(scalar):
 
     Gradient of a scalar field in the Euclidean plane::
 
-        sage: E.<x,y> = EuclideanSpace(2)
+        sage: E.<x,y> = EuclideanSpace()
         sage: f = E.scalar_field(sin(x*y), name='f')
         sage: from sage.manifolds.operators import grad
         sage: grad(f)
@@ -149,7 +149,7 @@ def div(tensor):
 
     Divergence of a vector field in the Euclidean plane::
 
-        sage: E.<x,y> = EuclideanSpace(2)
+        sage: E.<x,y> = EuclideanSpace()
         sage: v = E.vector_field(cos(x*y), sin(x*y), name='v')
         sage: v.display()
         v = cos(x*y) e_x + sin(x*y) e_y
@@ -218,7 +218,7 @@ def curl(vector):
 
     Curl of a vector field in the Euclidean 3-space::
 
-        sage: E.<x,y,z> = EuclideanSpace(3)
+        sage: E.<x,y,z> = EuclideanSpace()
         sage: v = E.vector_field(sin(y), sin(x), 0, name='v')
         sage: v.display()
         v = sin(y) e_x + sin(x) e_y
@@ -271,7 +271,7 @@ def laplacian(field):
 
     Laplacian of a scalar field on the Euclidean plane::
 
-        sage: E.<x,y> = EuclideanSpace(2)
+        sage: E.<x,y> = EuclideanSpace()
         sage: f = E.scalar_field(sin(x*y), name='f')
         sage: from sage.manifolds.operators import laplacian
         sage: Df = laplacian(f); Df

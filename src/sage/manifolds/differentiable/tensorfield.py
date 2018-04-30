@@ -3427,7 +3427,7 @@ class TensorField(ModuleElement):
 
         Divergence of a vector field in the Euclidean plane::
 
-            sage: M.<x,y> = EuclideanSpace(2)
+            sage: M.<x,y> = EuclideanSpace()
             sage: v = M.vector_field(x, y, name='v')
             sage: s = v.divergence(); s
             Scalar field div(v) on the Euclidean plane E^2
@@ -3559,7 +3559,7 @@ class TensorField(ModuleElement):
 
         Laplacian of a vector field in the Euclidean plane::
 
-            sage: M.<x,y> = EuclideanSpace(2)
+            sage: M.<x,y> = EuclideanSpace()
             sage: v = M.vector_field(x^3 + y^2, x*y, name='v')
             sage: Dv = v.laplacian(); Dv
             Vector field Delta(v) on the Euclidean plane E^2

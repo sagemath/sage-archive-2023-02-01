@@ -72,7 +72,9 @@ from sage.misc.sage_eval import sage_eval
 from sage.misc.abstract_method import abstract_method
 from sage.misc.latex import latex
 from sage.arith.power cimport generic_power
+from sage.arith.misc import crt
 from sage.arith.long cimport pyobject_to_long
+from sage.misc.mrange import cartesian_product_iterator
 from sage.structure.factorization import Factorization
 from sage.structure.richcmp cimport (richcmp, richcmp_item,
         rich_to_bool, rich_to_bool_sgn)
@@ -7451,7 +7453,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
              (1.00000000000000, 7),
              (0.500000000000000 - 0.866025403784439*I, 5),
              (0.500000000000000 + 0.866025403784439*I, 5)]
+
+        Test that some large finite rings can be handled (:trac:`13825`)::
+
+            sage: R.<x> = IntegerModRing(20000009)[]
+            sage: eq = x^6+x-17
+            sage: eq.roots(multiplicities=False)
+            [3109038, 17207405]
         """
+        from sage.rings.finite_rings.finite_field_constructor import GF
         K = self._parent.base_ring()
         # If the base ring has a method _roots_univariate_polynomial,
         # try to use it. An exception is raised if the method does not
@@ -7675,7 +7685,24 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 if multiplicities:
                     raise NotImplementedError("root finding with multiplicities for this polynomial not implemented (try the multiplicities=False option)")
                 else:
-                    return [a for a in K if not self(a)]
+                    # handling via the chinese remainders theorem if one can
+                    N = K.cardinality()
+                    if N.is_squarefree():
+                        primes = N.prime_divisors()
+                        residue_roots = []
+                        for p in primes:
+                            local_self = self.change_ring(GF(p))
+                            local_roots = local_self.roots(multiplicities=False)
+                            residue_roots.append([a.lift()
+                                                  for a in local_roots])
+                        result = []
+                        for res in cartesian_product_iterator(residue_roots):
+                            candidate = crt(list(res), list(primes))
+                            if not self(candidate):
+                                result.append(candidate)
+                        return result
+                    else:
+                        return [a for a in K if not self(a)]
 
             raise NotImplementedError("root finding for this polynomial not implemented")
 

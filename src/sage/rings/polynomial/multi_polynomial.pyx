@@ -1367,6 +1367,68 @@ cdef class MPolynomial(CommutativeRingElement):
 
         return M
 
+    def discriminant(self,variable):
+        """
+        Returns the discriminant of self with respect to the given variable.
+
+        INPUT:
+
+          - ``variable`` - The variable with respect to which we compute
+              the discriminant
+
+        OUTPUT:
+
+          - An element of the base ring of the polynomial ring.
+
+
+        EXAMPLES::
+
+            sage: R.<x,y,z>=QQ[]
+            sage: f=4*x*y^2 + 1/4*x*y*z + 3/2*x*z^2 - 1/2*z^2
+            sage: f.discriminant(x)
+            1
+            sage: f.discriminant(y)
+            -383/16*x^2*z^2 + 8*x*z^2
+            sage: f.discriminant(z)
+            -383/16*x^2*y^2 + 8*x*y^2
+
+        Note that, unlike the univariate case, the result lives in
+        the same ring as the polynomial::
+
+            sage: R.<x,y>=QQ[]
+            sage: f=x^5*y+3*x^2*y^2-2*x+y-1
+            sage: f.discriminant(y)
+            x^10 + 2*x^5 + 24*x^3 + 12*x^2 + 1
+            sage: f.polynomial(y).discriminant()
+            x^10 + 2*x^5 + 24*x^3 + 12*x^2 + 1
+            sage: f.discriminant(y).parent()==f.polynomial(y).discriminant().parent()
+            False
+
+        TESTS:
+
+        Test polynomials over QQbar (:trac:`25265`)::
+
+            sage: R.<x,y>=QQbar[]
+            sage: f=x^5*y+3*x^2*y^2-2*x+y-1
+            sage: f.discriminant(y)
+            x^10 + 2*x^5 + 24*x^3 + 12*x^2 + 1
+
+        AUTHOR:
+            Miguel Marco
+        """
+        if self.is_zero():
+            return self.parent().zero()
+        n = self.degree(variable)
+        d = self.derivative(variable)
+        k = d.degree(variable)
+
+        r = n % 4
+        u = -1 # (-1)**(n*(n-1)/2)
+        if r == 0 or r == 1:
+            u = 1
+        an = self.coefficient(variable**n)**(n - k - 2)
+        return self.parent()(u * self.resultant(d, variable) * an)
+
     def macaulay_resultant(self, *args):
         r"""
         This is an implementation of the Macaulay Resultant. It computes

@@ -216,6 +216,13 @@ def function(s, *args, **kwds):
     In Sage 4.0, you need to use :meth:`substitute_function` to
     replace all occurrences of a function with another::
 
+        sage: var('a, b')
+        (a, b)
+        sage: cr = function('cr')
+        sage: f = cr(a)
+        sage: g = f.diff(a).integral(b)
+        sage: g
+        b*diff(cr(a), a)
         sage: g.substitute_function(cr, cos)
         -b*sin(a)
 

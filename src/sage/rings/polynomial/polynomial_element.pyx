@@ -7084,7 +7084,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             ...
             NotImplementedError: root finding with multiplicities for this polynomial not implemented (try the multiplicities=False option)
             sage: p.roots(multiplicities=False)
-            [1, 5]
+            [5, 1]
             sage: R = Integers(9)
             sage: A = PolynomialRing(R, 'y')
             sage: y = A.gen()

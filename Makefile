@@ -15,6 +15,9 @@ all: base-toolchain
 build: base-toolchain
 	$(MAKE) all-build
 
+start: base-toolchain
+	$(MAKE) build-start
+
 sageruntime: base-toolchain
 	$(MAKE) all-sageruntime
 

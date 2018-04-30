@@ -24,7 +24,7 @@ STARTED = $(SAGE_LOCAL)/etc/sage-started.txt
 
 # Tell make not to look for files with these names:
 .PHONY: all all-sage all-toolchain all-build all-sageruntime \
-	all-start start base toolchain toolchain-deps base-toolchain \
+	all-start build-start base toolchain toolchain-deps base-toolchain \
 	sagelib \
 	doc doc-html doc-html-jsmath doc-html-mathjax doc-pdf \
 	doc-clean doc-src-clean doc-output-clean \
@@ -94,7 +94,7 @@ all-sageruntime: toolchain-deps
 
 # Start Sage at least once to check that it works
 # (i.e. when we just installed Sage for the first time).
-start: all-build
+build-start: all-build
 	$(MAKE) '$(STARTED)'
 
 # We make this depend on all standard packages because running

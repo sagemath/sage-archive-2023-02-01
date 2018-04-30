@@ -322,6 +322,7 @@ from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.graphs.dot2tex_utils import have_dot2tex
+from sage.rings.all import QQ, NN, ZZ, IntegerModRing
 
 class Partition(CombinatorialElement):
     r"""
@@ -1999,11 +2000,7 @@ class Partition(CombinatorialElement):
         p = list(self)
         if p == []:
             return self
-        l = len(p)
-        conj = [l] * p[-1]
-        for i in range(l - 1, 0, -1):
-            conj.extend([i] * (p[i - 1] - p[i]))
-        return Partition(conj)
+        return Partition(conjugate(p))
 
     def suter_diagonal_slide(self, n, exp=1):
         r"""
@@ -2210,7 +2207,7 @@ class Partition(CombinatorialElement):
         """
         return self.conjugate().initial_tableau().conjugate()
 
-    def garnir_tableau(self,*cell):
+    def garnir_tableau(self, *cell):
         r"""
         Return the Garnir tableau of shape ``self`` corresponding to the cell
         ``cell``. If ``cell`` `= (a,c)` then `(a+1,c)` must belong to the
@@ -2238,7 +2235,7 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: g=Partition([5,3,3,2]).garnir_tableau((0,2)); g.pp()
+            sage: g = Partition([5,3,3,2]).garnir_tableau((0,2)); g.pp()
               1  2  6  7  8
               3  4  5
               9 10 11
@@ -2267,18 +2264,18 @@ class Partition(CombinatorialElement):
             - :meth:`top_garnir_tableau`
         """
         try:
-            (row,col)=cell
+            (row, col) = cell
         except ValueError:
-            (row,col)=cell[0]
+            (row, col) = cell[0]
 
-        if row+1>=len(self) or col>=self[row+1]:
+        if row + 1 >= len(self) or col >= self[row+1]:
             raise ValueError('(row+1, col) must be inside the diagram')
         g=self.initial_tableau().to_list()
         a=g[row][col]
         g[row][col:] = list(range(a+col+1,g[row+1][col]+1))
         g[row+1][:col+1] = list(range(a,a+col+1))
         g=tableau.Tableau(g)
-        g._garnir_cell=(row,col)
+        g._garnir_cell = (row, col)
         return g
 
     def top_garnir_tableau(self,e,cell):
@@ -3333,6 +3330,358 @@ class Partition(CombinatorialElement):
 
         return beta[multicharge[0]] - sum(beta[i]**2 - beta[i] * beta[Ie(i+1)]
                                           for i in range(e))
+
+    def contents_tableau(self, multicharge=(0,)):
+        """
+        Return the tableau which has ``(k,r,c)``-th cell equal to the
+        content ``multicharge[k] - r + c`` of the cell.
+
+        EXAMPLES::
+
+            sage: Partition([2,1]).contents_tableau()
+            [[0, 1], [-1]]
+            sage: Partition([3,2,1,1]).contents_tableau().pp()
+                0  1  2
+                -1  0
+                -2
+                -3
+            sage: Partition([3,2,1,1]).contents_tableau([ IntegerModRing(3)(0)] ).pp()
+                0  1  2
+                2  0
+                1
+                0
+        """
+        return tableau.Tableau([[multicharge[0]-r+c for c in range(self[r])]
+                                for r in range(len(self))])
+
+    def conormal_cells(self, e, multicharge=(0,), i=None, direction='up'):
+        r"""
+        Return a dictionary of the cells of ``self`` which are conormal.
+        If no residue ``i`` is specified then a list of length ``e``
+        is returned which gives the conormal cells for ``0 <= i < e``.
+
+        Following [Kleshchev09]_, the *conormal* cells are computed by
+        reading up (or down) the rows of the partition and marking all
+        of the addable and removable cells of `e`-residue `i` and then
+        recursively removing all adjacent pairs of removable and addable
+        cells (in that order) from this list. The addable `i`-cells that
+        remain at the end of the this process are the conormal `i`-cells.
+
+        When computing conormal cells you can either read the cells in order
+        from top to bottom (this corresponds to labelling the simple modules
+        of the symmetric group by regular partitions) or from bottom to top
+        (corresponding to labelling the simples by restricted partitions).
+        By default we read down the partition but this can be changed by
+        setting ``direction = 'up'``.
+
+        EXAMPLES::
+
+            sage: Partition([5,4,4,3,2]).conormal_cells(3)
+            {0: [(1, 4)], 1: [(5, 0), (4, 2)]}
+            sage: Partition([5,4,4,3,2]).conormal_cells(3, i=0)
+            [(1, 4)]
+            sage: Partition([5,4,4,3,2]).conormal_cells(3, i=1)
+            [(5, 0), (4, 2)]
+            sage: Partition([5,4,4,3,2]).conormal_cells(3, direction='down')
+            {0: [(1, 4), (3, 3)], 2: [(0, 5)]}
+        """
+        # kludge to allow multicharge to be an optional argument
+        if multicharge in ZZ:
+            i = multicharge
+            multicharge = (0,)
+
+        from collections import defaultdict
+        # We use a dictionary for the conormal nodes as the indexing set is Z when e=0
+        conormals = defaultdict(list)   # the conormal cells of each residue
+        carry = defaultdict(int)        # a tally of #(removable cells) - #(addable cells)
+
+        # determine if we read up or down the partition
+        rows = list(range(len(self)+1))
+        if direction == 'up':
+            rows.reverse()
+
+        Ie = IntegerModRing(e)
+        multicharge = [Ie(m) for m in multicharge]  # adding multicharge[0] works mod e
+        # work through the rows
+        for row in rows:
+            if row == len(self): # addable cell at bottom of partition
+                res = multicharge[0] - row
+                if carry[res] == 0:
+                    conormals[res].append((row, 0))
+                else:
+                    carry[res] += 1
+            else:
+                res = multicharge[0] + self[row] - row - 1
+                if row == len(self)-1 or self[row] > self[row+1]: # removable cell
+                    carry[res] -= 1
+                if row == 0 or self[row-1] > self[row]:               #addable cell
+                    if carry[res+1] >= 0:
+                        conormals[res+1].append((row, self[row]))
+                    else:
+                        carry[res+1] += 1
+
+        # finally return the result
+        return dict(conormals) if i is None else conormals[i]
+
+    def cogood_cells(self, e, multicharge=(0,), i=None, direction='up'):
+        r"""
+        Return a list of the cells of ``self`` that are cogood.
+        If no residue ``i`` is specified then the cogood cells of each
+        residue are returned (if they exist).
+
+        The cogood `i`-cell is the 'last' conormal `i`-cell. As with the
+        conormal cells we can choose to read either up or down the partition.
+
+        EXAMPLES::
+
+            sage: Partition([5,4,4,3,2]).cogood_cells(3)
+            {0: (1, 4), 1: (4, 2)}
+            sage: Partition([5,4,4,3,2]).cogood_cells(3,0)
+            (1, 4)
+            sage: Partition([5,4,4,3,2]).cogood_cells(3,1)
+            (4, 2)
+            sage: Partition([5,4,4,3,2]).cogood_cells(4,direction='down')
+            {1: (0, 5), 2: (4, 2), 3: (1, 4)}
+            sage: Partition([5,4,4,3,2]).cogood_cells(4,0,direction='down')
+            sage: Partition([5,4,4,3,2]).cogood_cells(4,2,direction='down')
+            (4, 2)
+        """
+        # kludge to allow multicharge to be an optional argument
+        if multicharge in ZZ:
+            i = multicharge
+            multicharge = (0,)
+
+        conormal_cells = self.conormal_cells(e, multicharge, i, direction)
+        if i is None:
+            return {i: conormal_cells[i][-1] for i in conormal_cells}
+        elif not conormal_cells:
+            return None
+        else:
+            return conormal_cells[-1]
+
+    def normal_cells(self, e, multicharge=(0,), i=None, direction='up'):
+        r"""
+        Return a dictionary of the cells of the partition which are normal.
+        If no residue ``i`` is specified then a list of length ``e``
+        is returned which gives the normal cells for ``0 <= i < e``.
+
+        Following [Kleshchev09]_, the *normal* cells are computed by
+        reading up (or down) the rows of the partition and marking all
+        of the addable and removable cells of `e`-residue `i` and then
+        recursively removing all adjacent pairs of removable and
+        addable cells (in that order) from this list. The removable
+        `i`-cells that remain at the end of the this process are the
+        normal `i`-cells.
+
+        When computing normal cells you can either read the cells in order
+        from top to bottom (this corresponds to labelling the simple modules
+        of the symmetric group by regular partitions) or from bottom to top
+        (corresponding to labelling the simples by restricted partitions).
+        By default we read down the partition but this can be changed by
+        setting ``direction = 'up'``.
+
+        EXAMPLES::
+
+            sage: Partition([5,4,4,3,2]).normal_cells(3)
+            {1: [(2, 3), (0, 4)]}
+            sage: Partition([5,4,4,3,2]).normal_cells(3, i=1)
+            [(2, 3), (0, 4)]
+            sage: Partition([5,4,4,3,2]).normal_cells(3, direction='down')
+            {0: [(4, 1)], 2: [(3, 2)]}
+            sage: Partition([5,4,4,3,2]).normal_cells(3, 2, direction='down')
+            [(3, 2)]
+        """
+        # kludge to allow multicharge to be an optional argument
+        if multicharge in ZZ:
+            i = multicharge
+            multicharge = (0,)
+
+        from collections import defaultdict
+        # We use a dictionary for the normal nodes as the indexing set is Z when e=0
+        normals = defaultdict(list)     # the normal cells of each residue
+        carry = defaultdict(int)        # a tally of #(removable cells)-#(addable cells)
+
+        # determine if we read up or down the partition
+        rows = list(range(len(self)+1))
+        if direction == 'down':
+            rows.reverse()
+
+        Ie = IntegerModRing(e)
+        multicharge = [Ie(m) for m in multicharge]  # adding multicharge[0] works mod e
+        # work through the rows
+        for row in rows:
+            if row == len(self): # addable cell at bottom of partition
+                carry[multicharge[0]-row] += 1
+            else:
+                res = multicharge[0] + self[row] - row - 1
+                if row == len(self) - 1 or self[row] > self[row+1]: # removable cell
+                    if carry[res] == 0:
+                        normals[res].insert(0, (row, self[row]-1))
+                    else:
+                        carry[res] -= 1
+                if row == 0 or self[row-1] > self[row]:              # addable cell
+                  carry[res+1] += 1
+
+        # finally return the result
+        return dict(normals) if i is None else normals[i]
+
+    def good_cells(self, e, multicharge=(0,), i=None, direction='up'):
+        """
+        Return a list of the cells of ``self`` that are good.
+        If no residue ``i`` is specified then the good cells of each
+        residue are returned (if they exist).
+
+        The good `i`-cell is the 'first' normal `i`-cell. As with the normal
+        cells we can choose to read either up or down the partition.
+
+        EXAMPLES::
+
+            sage: Partition([5,4,4,3,2]).good_cells(3)
+            {1: (2, 3)}
+            sage: Partition([5,4,4,3,2]).good_cells(3, 1)
+            (2, 3)
+            sage: Partition([5,4,4,3,2]).good_cells(4, direction='down')
+            {1: (2, 3)}
+            sage: Partition([5,4,4,3,2]).good_cells(4, 0, direction='down')
+            sage: Partition([5,4,4,3,2]).good_cells(4, 1, direction='down')
+            (2, 3)
+        """
+        # kludge to allow multicharge to be an optional argument
+        if multicharge in ZZ:
+            i = multicharge
+            multicharge = (0,)
+
+        normal_cells = self.normal_cells(e, multicharge, i, direction)
+        if i is None:
+            return {i: normal_cells[i][0] for i in normal_cells}
+        elif not normal_cells:
+            return None
+        else:
+            return normal_cells[0]
+
+    def good_residue_sequence(self, e, multicharge=(0,), direction='up'):
+        """
+        Return a sequence of good nodes from the empty partition
+        to ``self``, or ``None`` if no such sequence exists.
+
+        EXAMPLES::
+
+            sage: Partition([5,4,4,3,2]).good_residue_sequence(3)
+            [0, 2, 1, 1, 0, 2, 0, 2, 1, 1, 0, 2, 0, 2, 2, 0, 1, 1]
+            sage: Partition([5,4,4,3,2]).good_residue_sequence(3, direction='down')
+            [0, 1, 2, 2, 0, 1, 0, 2, 1, 2, 0, 1, 0, 2, 1, 2, 1, 0]
+        """
+        if not self:
+            return []
+
+        good_cells = self.good_cells(e, multicharge, direction=direction)
+        if not good_cells:
+            return None
+
+        res = good_cells.keys()[0]
+        r,c = good_cells[res]
+        good_seq = self.remove_cell(r,c).good_residue_sequence(e, multicharge, direction)
+        if good_seq is None:
+            return None
+        good_seq.append( IntegerModRing(e)(res) )
+        return good_seq
+
+    def good_cell_sequence(self, e, multicharge=(0,), direction='up'):
+        """
+        Return a sequence of good nodes from the empty partition
+        to ``self``, or ``None`` if no such sequence exists.
+
+        EXAMPLES::
+
+            sage: Partition([5,4,4,3,2]).good_cell_sequence(3)
+            [(0, 0), (1, 0), (0, 1), (2, 0), (1, 1), (0, 2),
+             (3, 0), (2, 1), (1, 2), (3, 1), (0, 3), (1, 3),
+             (2, 2), (3, 2), (4, 0), (4, 1), (0, 4), (2, 3)]
+            sage: Partition([5,4,4,3,2]).good_cell_sequence(3, direction='down')
+            [(0, 0), (0, 1), (1, 0), (0, 2), (1, 1), (2, 0),
+             (0, 3), (2, 1), (1, 2), (1, 3), (3, 0), (3, 1),
+             (2, 2), (4, 0), (2, 3), (3, 2), (0, 4), (4, 1)]
+        """
+        if not self:
+            return []
+
+        good_cells = self.good_cells(e, multicharge, direction=direction)
+        if not good_cells:
+            return None
+
+        cell = good_cells.values()[0]
+        good_seq = self.remove_cell(*cell).good_cell_sequence(e, multicharge, direction)
+        if good_seq is None:
+            return None
+        good_seq.append(cell)
+        return good_seq
+
+    def mullineux_conjugate(self, e, multicharge=(0,), direction='up'):
+        """
+        Return the partition tuple which is the Mullineux conjugate of this
+        partition tuple, or ``None`` if no such partition tuple exists.
+
+        EXAMPLES::
+
+            sage: Partition([5,4,4,3,2]).mullineux_conjugate(3, [0])
+
+        """
+        if not self:
+            return _Partitions([])
+        good_cells = self.good_cells(e, multicharge, direction=direction)
+        if not good_cells:
+            return None
+        try:
+            r,c = good_cells.values()[0]
+            mu = self.remove_cell(r, c).mullineux_conjugate(e, multicharge, direction)
+            # add back on a cogood cell of residue -residue(k,r,c)
+            return mu.add_cell(*mu.cogood_cell(e, muticharge=multicharge,
+                                               i=r-c-multicharge[0],
+                                               direction=direction))
+        except (TypeError, AttributeError):  # if this fails then there is no conjugate
+            return None
+
+    def is_restricted(self, e, multicharge=(0,)):
+        """
+        Return ``True`` is this is an ``e``-restricted partition.
+
+        An `e`-restricted partition is a partition such that the
+        difference of consecutive parts is always strictly less
+        than `e`, where partitions are considered to have an infinite
+        number of `0` parts. I.e., the last part must be strictly
+        less than `e`.
+
+        EXAMPLES::
+
+          sage: Partition([4,3,3,2]).is_restricted(2)
+          False
+          sage: Partition([4,3,3,2]).is_restricted(3)
+          True
+          sage: Partition([4,3,3,2]).is_restricted(4)
+          True
+          sage: Partition([4]).is_restricted(4)
+          False
+        """
+        return (not self
+                or ( self[-1] < e and all(self[r]-self[r+1] < e for r in range(len(self)-1)) ))
+
+    def is_regular(self, e, multicharge=(0,)):
+        """
+        Return ``True`` is this is an ``e``-regular partition.
+
+        A partition is `e`-regular if it does not have `e` equal
+        non-zero parts.
+
+        EXAMPLES::
+
+          sage: Partition([4,3,3,3]).is_regular(2)
+          False
+          sage: Partition([4,3,3,3]).is_regular(3)
+          False
+          sage: Partition([4,3,3,3]).is_regular(4)
+          True
+        """
+        return all(self[r] > self[r+e-1] for r in range(len(self)-e+1))
 
     def conjugacy_class_size(self):
         """
@@ -4784,8 +5133,8 @@ class Partitions(UniqueRepresentation, Parent):
 
     Valid keywords are: ``starting``, ``ending``, ``min_part``,
     ``max_part``, ``max_length``, ``min_length``, ``length``,
-    ``max_slope``, ``min_slope``, ``inner``, ``outer``, ``parts_in``
-    and ``regular``. They have the following meanings:
+    ``max_slope``, ``min_slope``, ``inner``, ``outer``, ``parts_in``,
+    ``regular``, and ``restricted``. They have the following meanings:
 
     - ``starting=p`` specifies that the partitions should all be less
       than or equal to `p` in lex order. This argument cannot be combined
@@ -4823,14 +5172,17 @@ class Partitions(UniqueRepresentation, Parent):
       and can only be combined with the ``max_length`` or ``max_part``, but
       not both, keywords if `n` is not specified
 
+    - ``restricted=ell`` specifies that the partitions are `\ell`-restricted,
+      and cannot be combined with any other keywords
+
     The ``max_*`` versions, along with ``inner`` and ``ending``, work
     analogously.
 
-    Right now, the ``parts_in``, ``starting``, ``ending``, and ``regular``
-    keyword arguments are mutually exclusive, both of each other and of other
-    keyword arguments. If you specify, say, ``parts_in``, all other
-    keyword arguments will be ignored; ``starting``, ``ending``, and
-    ``regular`` work the same way.
+    Right now, the ``parts_in``, ``starting``, ``ending``, ``regular``, and
+    ``restricted`` keyword arguments are mutually exclusive, both of each
+    other and of other keyword arguments. If you specify, say, ``parts_in``,
+    all other keyword arguments will be ignored; ``starting``, ``ending``,
+    ``regular``, and ``restricted`` work the same way.
 
     EXAMPLES:
 
@@ -4918,6 +5270,13 @@ class Partitions(UniqueRepresentation, Parent):
         4-Regular 3-Bounded Partitions
         sage: Partitions(3, regular=4)
         4-Regular Partitions of the integer 3
+
+    Some examples using the ``restricted`` keyword::
+
+        sage: Partitions(restricted=4)
+        4-Restricted Partitions
+        sage: Partitions(3, restricted=4)
+        4-Restricted Partitions of the integer 3
 
     Here are some further examples using various constraints::
 
@@ -5094,6 +5453,8 @@ class Partitions(UniqueRepresentation, Parent):
                         return Partitions_all_bounded(kwargs['max_part'])
                     if 'regular' in kwargs:
                         return RegularPartitions_all(kwargs['regular'])
+                    if 'restricted' in kwargs:
+                        return RestrictedPartitions_all(kwargs['restricted'])
                 elif len(kwargs) == 2:
                     if 'regular' in kwargs:
                         if kwargs['regular'] < 1 or kwargs['regular'] not in ZZ:
@@ -5129,6 +5490,8 @@ class Partitions(UniqueRepresentation, Parent):
                 return Partitions_ending(n, kwargs['ending'])
             elif 'regular' in kwargs:
                 return RegularPartitions_n(n, kwargs['regular'])
+            elif 'restricted' in kwargs:
+                return RestrictedPartitions_n(n, kwargs['restricted'])
 
             # FIXME: should inherit from IntegerListLex, and implement repr, or _name as a lazy attribute
             kwargs['name'] = "Partitions of the integer %s satisfying constraints %s"%(n, ", ".join( ["%s=%s"%(key, kwargs[key]) for key in sorted(kwargs)] ))
@@ -7700,6 +8063,12 @@ def RestrictedPartitions(n, S, k=None):
 
     Wraps GAP's ``RestrictedPartitions``.
 
+    .. NOTE::
+
+        This is more generic than, and should not be confused with
+        :class:`~sage.combinat.partition.RestrictedPartitions_generic`
+        and subclasses.
+
     EXAMPLES::
 
         sage: from sage.combinat.partition import RestrictedPartitions
@@ -7840,6 +8209,270 @@ class RestrictedPartitions_nsk(CombinatorialClass):
         else:
             ans=gap.eval("NrRestrictedPartitions(%s,%s,%s)"%(ZZ(n),S,ZZ(k)))
         return ZZ(ans)
+
+class RestrictedPartitions_generic(Partitions):
+    r"""
+    Base class for `\ell`-restricted partitions.
+
+    Let `\ell` be a positive integer. A partition `\lambda` is
+    `\ell`-*restricted* if `\lambda_i - \lambda_{i+1} < \ell` for all `i`,
+    including rows of length 0.
+
+    .. NOTE::
+
+        This is conjugate to the notion of `\ell`-*regular* partitions,
+        where the multiplicity of any parts is at most `\ell`.
+
+    INPUT:
+
+    - ``ell`` -- the positive integer `\ell`
+    - ``is_infinite`` -- boolean; if the subset of `\ell`-restricted
+      partitions is infinite
+    """
+    def __init__(self, ell, is_infinite=False):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(restricted=2)
+            sage: TestSuite(P).run()
+        """
+        self._ell = ell
+        Partitions.__init__(self, is_infinite)
+
+    def ell(self):
+        r"""
+        Return the value `\ell`.
+
+        EXAMPLES::
+
+            sage: P = Partitions(restricted=2)
+            sage: P.ell()
+            2
+        """
+        return self._ell
+
+    def __contains__(self, x):
+        """
+        TESTS::
+
+            sage: P = Partitions(restricted=3)
+            sage: [5] in P
+            False
+            sage: [2] in P
+            True
+            sage: [] in P
+            True
+            sage: [3, 3, 3, 3, 2, 2] in P
+            True
+            sage: [3, 3, 3, 1] in P
+            True
+            sage: [8, 3, 3, 1] in P
+            False
+            sage: [2, 0, 0, 0, 0, 0] in P
+            True
+            sage: Partition([4,2,2,1]) in P
+            True
+            sage: Partition([4,2,2,2]) in P
+            True
+            sage: Partition([6,6,6,6,4,3,2]) in P
+            True
+            sage: Partition([7,6,6,2]) in P
+            False
+            sage: Partition([6,5]) in P
+            False
+            sage: Partition([10,1]) in P
+            False
+            sage: Partition([3,3] + [1]*10) in P
+            True
+        """
+        if not Partitions.__contains__(self, x):
+            return False
+        if x == []:
+            return True
+        return (all(x[i] - x[i+1] < self._ell for i in range(len(x)-1))
+                and x[-1] < self._ell)
+
+    def _fast_iterator(self, n, max_part):
+        """
+        A fast (recursive) iterator which returns a list.
+
+        EXAMPLES::
+
+            sage: P = Partitions(restricted=3)
+            sage: list(P._fast_iterator(5, 5))
+            [[3, 2], [3, 1, 1], [2, 2, 1], [2, 1, 1, 1], [1, 1, 1, 1, 1]]
+            sage: list(P._fast_iterator(5, 2))
+            [[2, 2, 1], [2, 1, 1, 1], [1, 1, 1, 1, 1]]
+
+        TESTS::
+
+            sage: for n in range(10):
+            ....:     for ell in range(2, n):
+            ....:         Pres = Partitions(n, restricted=ell)
+            ....:         Preg = Partitions(n, regular=ell)
+            ....:         assert set(Pres) == set(p.conjugate() for p in Preg)
+        """
+        if n == 0:
+            yield []
+            return
+
+        if n < max_part:
+            max_part = n
+
+        for i in range(max_part, 0, -1):
+            for p in self._fast_iterator(n-i, i):
+                if (p and i - p[0] >= self._ell) or (not p and i >= self._ell):
+                    break
+                yield [i] + p
+
+class RestrictedPartitions_all(RestrictedPartitions_generic):
+    r"""
+    The class of all `\ell`-restricted partitions.
+
+    INPUT:
+
+    - ``ell`` -- the positive integer `\ell`
+
+    .. SEEALSO::
+
+        :class:`~sage.combinat.partition.RestrictedPartitions_generic`
+    """
+    def __init__(self, ell):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(restricted=4)
+            sage: TestSuite(P).run()
+        """
+        RestrictedPartitions_generic.__init__(self, ell, True)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: from sage.combinat.partition import RestrictedPartitions_all
+            sage: RestrictedPartitions_all(3)
+            3-Restricted Partitions
+        """
+        return "{}-Restricted Partitions".format(self._ell)
+
+    def __iter__(self):
+        """
+        Iterate over ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(restricted=3)
+            sage: it = P.__iter__()
+            sage: [next(it) for x in range(10)]
+            [[], [1], [2], [1, 1], [2, 1], [1, 1, 1],
+             [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1]]
+        """
+        n = 0
+        while True:
+            for p in self._fast_iterator(n, n):
+                yield self.element_class(self, p)
+            n += 1
+
+class RestrictedPartitions_n(RestrictedPartitions_generic, Partitions_n):
+    r"""
+    The class of `\ell`-restricted partitions of `n`.
+
+    INPUT:
+
+    - ``n`` -- the integer `n` to partition
+    - ``ell`` -- the integer `\ell`
+
+    .. SEEALSO::
+
+        :class:`~sage.combinat.partition.RestrictedPartitions_generic`
+    """
+    def __init__(self, n, ell):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(5, restricted=3)
+            sage: TestSuite(P).run()
+        """
+        RestrictedPartitions_generic.__init__(self, ell)
+        Partitions_n.__init__(self, n)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: from sage.combinat.partition import RestrictedPartitions_n
+            sage: RestrictedPartitions_n(3, 5)
+            5-Restricted Partitions of the integer 3
+        """
+        return "{}-Restricted Partitions of the integer {}".format(self._ell, self.n)
+
+    def __contains__(self, x):
+        """
+        TESTS::
+
+            sage: P = Partitions(5, regular=3)
+            sage: [3, 1, 1] in P
+            True
+            sage: [3, 2, 1] in P
+            False
+        """
+        return RestrictedPartitions_generic.__contains__(self, x) and sum(x) == self.n
+
+    def __iter__(self):
+        """
+        Iterate over ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(5, restricted=3)
+            sage: list(P)
+            [[3, 2], [3, 1, 1], [2, 2, 1], [2, 1, 1, 1], [1, 1, 1, 1, 1]]
+        """
+        for p in self._fast_iterator(self.n, self.n):
+            yield self.element_class(self, p)
+
+    def cardinality(self):
+        """
+        Return the cardinality of ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(5, restricted=3)
+            sage: P.cardinality()
+            5
+            sage: P = Partitions(5, restricted=6)
+            sage: P.cardinality()
+            7
+            sage: P.cardinality() == Partitions(5).cardinality()
+            True
+        """
+        if self._ell > self.n:
+            return Partitions_n.cardinality(self)
+        return ZZ.sum(ZZ.one() for x in self)
+
+    def _an_element_(self):
+        """
+        Return an element of ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(5, restricted=3)
+            sage: P.an_element()
+            [2, 1, 1, 1]
+
+            sage: Partitions(0, restricted=3).an_element()
+            []
+            sage: Partitions(1, restricted=3).an_element()
+            [1]
+        """
+        return self.element_class(self, Partitions_n._an_element_(self).conjugate())
 
 
 #########################################################################
@@ -8026,6 +8659,31 @@ def number_of_partitions_length(n, k, algorithm='hybrid'):
         # Fall back to GAP
 
     return ZZ(gap.eval( "NrPartitions({},{})".format(ZZ(n), ZZ(k)) ))
+
+
+##########
+## Helper functions
+
+def conjugate(p):
+    """
+    Return the conjugate partition associated to the partition ``p``
+    as a list.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.partition import conjugate
+        sage: conjugate([2,2])
+        [2, 2]
+        sage: conjugate([6,3,1])
+        [3, 2, 2, 1, 1, 1]
+    """
+    l = len(p)
+    if l == 0:
+        return []
+    conj = [l] * p[-1]
+    for j in range(l - 1, 0, -1):
+        conj.extend([j] * (p[j - 1] - p[j]))
+    return conj
 
 
 ##########

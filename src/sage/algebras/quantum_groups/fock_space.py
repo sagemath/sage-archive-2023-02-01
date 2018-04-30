@@ -143,7 +143,7 @@ class FockSpace(Parent, UniqueRepresentation):
     bar involution is the unique semi-linear map satisfying
 
     - `q \mapsto q^{-1}`,
-    - `\overline{| \emptyset \rangle} = | \emptyset \rangle}`, and
+    - `\overline{| \emptyset \rangle} = | \emptyset \rangle`, and
     - `\overline{f_i | \lambda \rangle} = f_i \overline{| \lambda \rangle}`.
 
     We then define the *canonical basis* or *(lower) global crystal basis*
@@ -176,11 +176,11 @@ class FockSpace(Parent, UniqueRepresentation):
     There are three bases currently implemented:
 
     - The natural basis:
-      :class:~sage.algebras.quantum_groups.fock_space.FockSpace.F`.
+      :class:`~sage.algebras.quantum_groups.fock_space.FockSpace.F`.
     - The approximation basis that comes from LLT(-type) algorithms:
-      :class:~sage.algebras.quantum_groups.fock_space.FockSpace.A`.
+      :class:`~sage.algebras.quantum_groups.fock_space.FockSpace.A`.
     - The lower global crystal basis:
-      :class:~sage.algebras.quantum_groups.fock_space.FockSpace.G`.
+      :class:`~sage.algebras.quantum_groups.fock_space.FockSpace.G`.
 
     .. TODO::
 
@@ -213,7 +213,7 @@ class FockSpace(Parent, UniqueRepresentation):
         [q*|3, 2, 1> + q^2*|3, 1, 1, 1> + q^2*|2, 2, 2> + q^3*|2, 1, 1, 1, 1>,
          |3, 2, 1> + q*|3, 1, 1, 1> + q*|2, 2, 2> + q^2*|2, 1, 1, 1, 1>,
          |3, 2, 1> + q*|3, 1, 1, 1> + q*|2, 2, 2> + q^2*|2, 1, 1, 1, 1>]
-        sage: [x.hi(i) for i in range(3)]
+        sage: [x.h_inverse(i) for i in range(3)]
         [1/q*|3, 2, 1> + |3, 1, 1, 1> + |2, 2, 2> + q*|2, 1, 1, 1, 1>,
          |3, 2, 1> + q*|3, 1, 1, 1> + q*|2, 2, 2> + q^2*|2, 1, 1, 1, 1>,
          |3, 2, 1> + q*|3, 1, 1, 1> + q*|2, 2, 2> + q^2*|2, 1, 1, 1, 1>]
@@ -280,8 +280,8 @@ class FockSpace(Parent, UniqueRepresentation):
 
     For level `0`, the truncated Fock space of [GW1999]_
     is implemented. This can be used to improve the speed
-    of the computation of the lower global crystal basis
-    proved the truncation is not too small::
+    of the computation of the lower global crystal basis,
+    provided the truncation is not too small::
 
         sage: FS = FockSpace(2)
         sage: F = FS.natural()
@@ -517,7 +517,7 @@ class FockSpace(Parent, UniqueRepresentation):
         The natural basis of the Fock space.
 
         This is the basis indexed by partitions. This has an action
-        of the quantum group `U_q(\widetilde{\mathfrak{sl}}_n)`
+        of the quantum group `U_q(\widehat{\mathfrak{sl}}_n)`
         described in
         :class:`~sage.algebras.quantum_groups.fock_space.FockSpace`.
 
@@ -548,9 +548,9 @@ class FockSpace(Parent, UniqueRepresentation):
             sage: x.f(0,1,3)
             |4, 3, 1> + q*|4, 2, 1, 1> + q*|3, 3, 2>
              + q^2*|3, 2, 2, 1> + q^4*|2, 1>
-            sage: x.hi(2)
+            sage: x.h_inverse(2)
             q^2*|3, 1, 1> + q^4*|>
-            sage: x.hi(0)
+            sage: x.h_inverse(0)
             1/q*|3, 1, 1> + q^3*|>
             sage: x.d()
             1/q*|3, 1, 1> + q^4*|>
@@ -702,11 +702,11 @@ class FockSpace(Parent, UniqueRepresentation):
             for x in self.some_elements():
                 for i in I:
                     for j in I:
-                        tester.assertEqual(x.hi(j).f(i).h(j), q**-al[i].scalar(ac[j]) * x.f(i))
-                        tester.assertEqual(x.hi(j).e(i).h(j), q**al[i].scalar(ac[j]) * x.e(i))
+                        tester.assertEqual(x.h_inverse(j).f(i).h(j), q**-al[i].scalar(ac[j]) * x.f(i))
+                        tester.assertEqual(x.h_inverse(j).e(i).h(j), q**al[i].scalar(ac[j]) * x.e(i))
                         if i == j:
                             tester.assertEqual(x.f(i).e(i) - x.e(i).f(i),
-                                               (x.h(i) - x.hi(i)) / (q - q**-1))
+                                               (x.h(i) - x.h_inverse(i)) / (q - q**-1))
                             continue
                         tester.assertEqual(x.f(j).e(i) - x.e(i).f(j), zero)
                         aij = A[i,j]
@@ -944,29 +944,29 @@ class FockSpace(Parent, UniqueRepresentation):
                         d[la] *= q**(len(P._addable(la, i)) - len(P._removable(la, i)))
                 return P._from_dict(d, coerce=False)
 
-            def hi(self, *data):
+            def h_inverse(self, *data):
                 r"""
                 Apply the action of `h_i^{-1}` on ``self``.
 
                 EXAMPLES::
 
                     sage: F = FockSpace(2)
-                    sage: F[2,1,1].hi(0)
+                    sage: F[2,1,1].h_inverse(0)
                     1/q*|2, 1, 1>
-                    sage: F[2,1,1].hi(1)
+                    sage: F[2,1,1].h_inverse(1)
                     |2, 1, 1>
-                    sage: F[2,1,1].hi(0, 0)
+                    sage: F[2,1,1].h_inverse(0, 0)
                     1/q^2*|2, 1, 1>
 
                     sage: F = FockSpace(4, [2,0,1])
                     sage: elt = F[[2,1],[1],[2]]
-                    sage: elt.hi(0)
+                    sage: elt.h_inverse(0)
                     1/q^2*|[2, 1], [1], [2]>
-                    sage: elt.hi(1)
+                    sage: elt.h_inverse(1)
                     |[2, 1], [1], [2]>
-                    sage: elt.hi(2)
+                    sage: elt.h_inverse(2)
                     |[2, 1], [1], [2]>
-                    sage: elt.hi(3)
+                    sage: elt.h_inverse(3)
                     1/q*|[2, 1], [1], [2]>
                 """
                 P = self.parent()
@@ -1610,18 +1610,18 @@ class FockSpaceTruncated(FockSpace):
     r"""
     This is the Fock space given by partitions of length no more than `k`.
 
-    This can be formed as the quotient `\mathcal{F} / \mathcak{F}_k`,
+    This can be formed as the quotient `\mathcal{F} / \mathcal{F}_k`,
     where `\mathcal{F}_k` is the submodule spanned by all diagrams
     of length (strictly) more than `k`.
 
     We have three bases:
 
     - The natural basis indexed by trucated `n`-regular partitions:
-      :class:~sage.algebras.quantum_groups.fock_space.FockSpaceTruncated.F`.
+      :class:`~sage.algebras.quantum_groups.fock_space.FockSpaceTruncated.F`.
     - The approximation basis that comes from LLT(-type) algorithms:
-      :class:~sage.algebras.quantum_groups.fock_space.FockSpaceTruncated.A`.
+      :class:`~sage.algebras.quantum_groups.fock_space.FockSpaceTruncated.A`.
     - The lower global crystal basis:
-      :class:~sage.algebras.quantum_groups.fock_space.FockSpaceTruncated.G`.
+      :class:`~sage.algebras.quantum_groups.fock_space.FockSpaceTruncated.G`.
 
     .. SEEALSO::
 

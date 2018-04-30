@@ -79,7 +79,7 @@ from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import Tenso
 from sage.combinat.crystals.kirillov_reshetikhin import KirillovReshetikhinCrystal as KirillovReshetikhin
 from sage.combinat.rigged_configurations.rc_crystal import CrystalOfRiggedConfigurations as RiggedConfigurations
 from sage.combinat.shifted_primed_tableau import ShiftedPrimedTableaux_shape as ShiftedPrimedTableaux
-from sage.combinat.partition_kleshchev import KleshchevPartitions_all as KleshchevPartitions
+from sage.combinat.partition_kleshchev import KleshchevPartitions
 
 from sage.combinat.crystals.induced_structure import InducedCrystal as Induced
 

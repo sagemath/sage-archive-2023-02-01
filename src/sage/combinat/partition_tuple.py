@@ -1820,14 +1820,14 @@ class PartitionTuples(UniqueRepresentation, Parent):
         if mu == [] or mu == () or mu == [[]]:
             if mu not in self:
                 raise ValueError('{} is not a {}'.format(mu, self))
-            return self.element_class(self, [Partition([])])
+            return self.element_class(self, [_Partitions([])])
 
         # As partitions are 1-tuples of partitions we need to treat them separately
         try:
-            mu = [Partition(mu)]
+            mu = [_Partitions(mu)]
         except ValueError:
             try:
-                mu = [Partition(nu) for nu in mu]
+                mu = [_Partitions(nu) for nu in mu]
             except ValueError:
                 raise ValueError('{} is not a {}'.format(mu, self))
 

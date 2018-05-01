@@ -47,7 +47,7 @@ cdef class ObjWrapper(object):
 
     def __richcmp__(ObjWrapper self, ObjWrapper other, int op):
         r"""
-        Comparison wrapped libGAP_Obj.
+        Comparison wrapped Obj.
 
         INPUT:
 
@@ -68,8 +68,8 @@ cdef class ObjWrapper(object):
             True
         """
         cdef result
-        cdef libGAP_Obj self_value = self.value
-        cdef libGAP_Obj other_value = other.value
+        cdef Obj self_value = self.value
+        cdef Obj other_value = other.value
         if op == Py_LT:
             return self_value < other_value
         elif op == Py_LE:
@@ -99,7 +99,7 @@ cdef class ObjWrapper(object):
         return <int>(self.value)
 
 
-cdef ObjWrapper wrap_obj(libGAP_Obj obj):
+cdef ObjWrapper wrap_obj(Obj obj):
     """
     Constructor function for :class:`ObjWrapper`
     """
@@ -118,7 +118,7 @@ cpdef get_owned_objects():
     return owned_objects_refcount
 
 
-cdef void reference_obj(libGAP_Obj obj):
+cdef void reference_obj(Obj obj):
     """
     Reference ``obj``
     """
@@ -130,7 +130,7 @@ cdef void reference_obj(libGAP_Obj obj):
         owned_objects_refcount[wrapped] = 1
 
 
-cdef void dereference_obj(libGAP_Obj obj):
+cdef void dereference_obj(Obj obj):
     """
     Reference ``obj``
     """
@@ -147,7 +147,7 @@ cdef void gasman_callback():
     """
     global owned_objects_refcount
     for obj in owned_objects_refcount:
-        libGAP_MARK_BAG((<ObjWrapper>obj).value)
+        MARK_BAG((<ObjWrapper>obj).value)
 
 
 
@@ -260,7 +260,7 @@ cdef initialize():
     # Prepare global GAP variable to hold temporary GAP objects
     global reference_holder
     libgap_enter()
-    reference_holder = libGAP_GVarName("$SAGE_libgap_reference_holder")
+    reference_holder = GVarName("$SAGE_libgap_reference_holder")
     libgap_exit()
 
     # Finished!
@@ -279,7 +279,7 @@ cdef initialize():
 ### Evaluate string in GAP #################################################
 ############################################################################
 
-cdef libGAP_Obj gap_eval(str gap_string) except? NULL:
+cdef Obj gap_eval(str gap_string) except? NULL:
     r"""
     Evaluate a string in GAP.
 
@@ -324,7 +324,7 @@ cdef libGAP_Obj gap_eval(str gap_string) except? NULL:
         ValueError: libGAP: Entered a critical block twice
     """
     initialize()
-    cdef libGAP_ExecStatus status
+    cdef ExecStatus status
 
     # Careful: We need to keep a reference to the bytes object here
     # so that Cython doesn't dereference it before libGAP is done with
@@ -335,31 +335,31 @@ cdef libGAP_Obj gap_eval(str gap_string) except? NULL:
             sig_on()
             libgap_enter()
             libgap_start_interaction(cmd)
-            status = libGAP_ReadEvalCommand(libGAP_BottomLVars, NULL)
-            if status != libGAP_STATUS_END:
+            status = ReadEvalCommand(BottomLVars, NULL)
+            if status != STATUS_END:
                 libgap_call_error_handler()
             sig_off()
         except RuntimeError as msg:
             raise ValueError('libGAP: '+str(msg).strip())
 
-        if libGAP_Symbol != libGAP_S_SEMICOLON:
+        if Symbol != S_SEMICOLON:
             raise ValueError('did not end with semicolon')
-        libGAP_GetSymbol()
-        if libGAP_Symbol != libGAP_S_EOF:
+        GetSymbol()
+        if Symbol != S_EOF:
             raise ValueError('can only evaluate a single statement')
 
     finally:
         libgap_finish_interaction()
         libgap_exit()
 
-    if libGAP_ReadEvalResult != NULL:
+    if ReadEvalResult != NULL:
         libgap_enter()
-        libGAP_AssGVar(libGAP_Last3, libGAP_VAL_GVAR(libGAP_Last2))
-        libGAP_AssGVar(libGAP_Last2, libGAP_VAL_GVAR(libGAP_Last))
-        libGAP_AssGVar(libGAP_Last, libGAP_ReadEvalResult)
+        AssGVar(Last3, VAL_GVAR(Last2))
+        AssGVar(Last2, VAL_GVAR(Last))
+        AssGVar(Last, ReadEvalResult)
         libgap_exit()
 
-    return libGAP_ReadEvalResult   # may be NULL, thats ok
+    return ReadEvalResult   # may be NULL, thats ok
 
 
 ############################################################################
@@ -370,9 +370,9 @@ cdef libGAP_Obj gap_eval(str gap_string) except? NULL:
 # get deleted this works by assigning it to a global variable. This is
 # very simple, but you can't use it to keep two objects alive. Be
 # careful.
-cdef libGAP_UInt reference_holder
+cdef UInt reference_holder
 
-cdef void hold_reference(libGAP_Obj obj):
+cdef void hold_reference(Obj obj):
     """
     Hold a reference (inside the GAP kernel) to obj
 
@@ -383,7 +383,7 @@ cdef void hold_reference(libGAP_Obj obj):
     """
     libgap_enter()
     global reference_holder
-    libGAP_AssGVar(reference_holder, obj)
+    AssGVar(reference_holder, obj)
     libgap_exit()
 
 
@@ -410,14 +410,14 @@ cdef void error_handler(char* msg):
 ### Debug functions ########################################################
 ############################################################################
 
-cdef inline void DEBUG_CHECK(libGAP_Obj obj):
+cdef inline void DEBUG_CHECK(Obj obj):
     """
     Check that ``obj`` is valid.
 
     This function is only useful for debugging.
     """
     libgap_enter()
-    libGAP_CheckMasterPointers()
+    CheckMasterPointers()
     libgap_exit()
     if obj == NULL:
         print('DEBUG_CHECK: Null pointer!')
@@ -431,11 +431,11 @@ cpdef memory_usage():
 
     See :meth:`~sage.libs.gap.libgap.Gap.mem` for details.
     """
-    cdef size_t SizeMptrsArea = libGAP_OldBags - libGAP_MptrBags
-    cdef size_t SizeOldBagsArea = libGAP_YoungBags - libGAP_OldBags
-    cdef size_t SizeYoungBagsArea = libGAP_AllocBags - libGAP_YoungBags
-    cdef size_t SizeAllocationArea = libGAP_StopBags - libGAP_AllocBags
-    cdef size_t SizeUnavailableArea = libGAP_EndBags - libGAP_StopBags
+    cdef size_t SizeMptrsArea = OldBags - MptrBags
+    cdef size_t SizeOldBagsArea = YoungBags - OldBags
+    cdef size_t SizeYoungBagsArea = AllocBags - YoungBags
+    cdef size_t SizeAllocationArea = StopBags - AllocBags
+    cdef size_t SizeUnavailableArea = EndBags - StopBags
     return (SizeMptrsArea, SizeOldBagsArea, SizeYoungBagsArea, SizeAllocationArea, SizeUnavailableArea)
 
 
@@ -514,7 +514,7 @@ def command(command_string):
         rec( a := 1, b := 2 )
     """
     initialize()
-    cdef libGAP_ExecStatus status
+    cdef ExecStatus status
 
     cmd = str_to_bytes(command_string + ';\n')
     try:
@@ -522,20 +522,20 @@ def command(command_string):
         libgap_start_interaction(cmd)
         try:
             sig_on()
-            status = libGAP_ReadEvalCommand(libGAP_BottomLVars, NULL)
-            if status != libGAP_STATUS_END:
+            status = ReadEvalCommand(BottomLVars, NULL)
+            if status != STATUS_END:
                 libgap_call_error_handler()
             sig_off()
         except RuntimeError as msg:
             raise ValueError('libGAP: '+str(msg).strip())
 
-        assert libGAP_Symbol == libGAP_S_SEMICOLON, 'Did not end with semicolon?'
-        libGAP_GetSymbol()
-        if libGAP_Symbol != libGAP_S_EOF:
+        assert Symbol == S_SEMICOLON, 'Did not end with semicolon?'
+        GetSymbol()
+        if Symbol != S_EOF:
             raise ValueError('command() expects a single statement.')
 
-        if libGAP_ReadEvalResult:
-            libGAP_ViewObjHandler(libGAP_ReadEvalResult)
+        if ReadEvalResult:
+            ViewObjHandler(ReadEvalResult)
             s = char_to_str(libgap_get_output())
             print('Output follows...')
             print(s.strip())
@@ -546,12 +546,12 @@ def command(command_string):
         libgap_exit()
         libgap_finish_interaction()
 
-    DEBUG_CHECK(libGAP_ReadEvalResult)
+    DEBUG_CHECK(ReadEvalResult)
 
-    if libGAP_ReadEvalResult != NULL:
+    if ReadEvalResult != NULL:
         libgap_enter()
-        libGAP_AssGVar(libGAP_Last3, libGAP_VAL_GVAR(libGAP_Last2))
-        libGAP_AssGVar(libGAP_Last2, libGAP_VAL_GVAR(libGAP_Last))
-        libGAP_AssGVar(libGAP_Last, libGAP_ReadEvalResult)
+        AssGVar(Last3, VAL_GVAR(Last2))
+        AssGVar(Last2, VAL_GVAR(Last))
+        AssGVar(Last, ReadEvalResult)
         libgap_exit()
 

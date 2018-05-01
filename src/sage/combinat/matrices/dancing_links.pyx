@@ -16,10 +16,14 @@ The number of solutions::
     sage: x.number_of_solutions()
     3
 
-We recreate the dancing links object and we find all solutions::
+Iterate over the solutions::
 
-    sage: x = dlx_solver(rows)
     sage: sorted(x.solutions_iterator())
+    [[0, 1], [2, 3], [4, 5]]
+
+All solutions (computed in parallel)::
+
+    sage: sorted(sorted(s) for s in x.all_solutions())
     [[0, 1], [2, 3], [4, 5]]
 
 Return the first solution found when the computation is done in parallel::
@@ -54,6 +58,14 @@ which return the current solution::
     [4, 5]
     sage: x.search()
     0
+
+There is also a method ``reinitialize`` to reinitialize the algorithm::
+
+    sage: x.reinitialize()
+    sage: x.search()
+    1
+    sage: x.get_solution()
+    [0, 1]
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Carlo Hamalainen <carlo.hamalainen@gmail.com>
@@ -77,6 +89,7 @@ cdef extern from "dancing_links_c.h":
         vector[int] solution
         int number_of_columns()
         void add_rows(vector[vector[int]] rows)
+        int search_is_started()
         int search()
 
 
@@ -97,11 +110,24 @@ cdef class dancing_linksWrapper:
         """
         Initialize our wrapper (self._x) as an actual C++ object.
 
-        We must pass a list of rows at start up. There are no methods
-        for resetting the list of rows, so this class acts as a one-time
-        executor of the C++ code.
+        We must pass a list of rows at start up.
 
-        TESTS::
+        EXAMPLES::
+
+            sage: from sage.combinat.matrices.dancing_links import dlx_solver
+            sage: rows = [[0,1,2]]
+            sage: rows+= [[0,2]]
+            sage: rows+= [[1]]
+            sage: rows+= [[3]]
+            sage: x = dlx_solver(rows)
+            sage: x
+            Dancing links solver for 4 columns and 4 rows
+            sage: x.search()
+            1
+            sage: x.get_solution()
+            [3, 0]
+
+        ::
 
             sage: rows = [[0,1,2], [1, 2]]
             sage: from sage.combinat.matrices.dancing_links import dlx_solver
@@ -110,8 +136,76 @@ cdef class dancing_linksWrapper:
             Dancing links solver for 3 columns and 2 rows
             sage: type(x)
             <... 'sage.combinat.matrices.dancing_links.dancing_linksWrapper'>
+
+        TESTS:
+
+        The following example would crash in Sage's debug version
+        from :trac:`13864` prior to the fix from :trac:`13882`::
+
+            sage: from sage.combinat.matrices.dancing_links import dlx_solver
+            sage: x = dlx_solver([])
+            sage: x.get_solution()
+            []
+
         """
-        self._init_rows(rows)
+        self._rows = [row for row in rows]
+        self.reinitialize()
+
+    def reinitialize(self):
+        r"""
+        (Re)initialization of the search algorithm
+
+        This adds the rows to the instance of dancing_links.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.matrices.dancing_links import dlx_solver
+            sage: rows = [[0,1,2], [3,4,5], [0,1], [2,3,4,5], [0], [1,2,3,4,5]]
+            sage: x = dlx_solver(rows)
+            sage: x.get_solution() if x.search() else None
+            [0, 1]
+            sage: x.get_solution() if x.search() else None
+            [2, 3]
+
+        Reinitialization of the algorithm::
+
+            sage: x.reinitialize()
+            sage: x.get_solution() if x.search() else None
+            [0, 1]
+            sage: x.get_solution() if x.search() else None
+            [2, 3]
+            sage: x.get_solution() if x.search() else None
+            [4, 5]
+            sage: x.get_solution() if x.search() else None
+
+        Reinitialization works after solutions are exhausted::
+
+            sage: x.reinitialize()
+            sage: x.get_solution() if x.search() else None
+            [0, 1]
+            sage: x.get_solution() if x.search() else None
+            [2, 3]
+            sage: x.get_solution() if x.search() else None
+            [4, 5]
+            sage: x.get_solution() if x.search() else None
+
+        """
+        sig_on()
+        self._x = dancing_links()
+        sig_off()
+
+        cdef vector[int] v
+        cdef vector[vector[int]] vv
+
+        for row in self._rows:
+            v.clear()
+            for x in row:
+                v.push_back(x)
+            vv.push_back(v)
+
+        sig_on()
+        self._x.add_rows(vv)
+        sig_off()
 
     def __repr__(self):
         """
@@ -208,92 +302,6 @@ cdef class dancing_linksWrapper:
         """
         return PyObject_RichCompare(left._rows, right._rows, op)
 
-    def _init_rows(self, rows):
-        """
-        Initialize our instance of dancing_links with the given rows.
-
-        This is for internal use by dlx_solver only.
-
-        TESTS:
-
-        This doctest tests ``_init_rows`` vicariously! ::
-
-            sage: from sage.combinat.matrices.dancing_links import dlx_solver
-            sage: rows = [[0,1,2]]
-            sage: rows+= [[0,2]]
-            sage: rows+= [[1]]
-            sage: rows+= [[3]]
-            sage: x = dlx_solver(rows)
-            sage: print(x.search())
-            1
-
-        The following example would crash in Sage's debug version
-        from :trac:`13864` prior to the fix from :trac:`13882`::
-
-            sage: from sage.combinat.matrices.dancing_links import dlx_solver
-            sage: x = dlx_solver([])          # indirect doctest
-            sage: x.get_solution()
-            []
-
-        """
-        cdef vector[int] v
-        cdef vector[vector[int]] vv
-
-        self._rows = [row for row in rows]
-
-        for row in self._rows:
-            v.clear()
-
-            for x in row:
-                v.push_back(x)
-
-            vv.push_back(v)
-
-        sig_on()
-        self._x.add_rows(vv)
-        sig_off()
-
-    def reinitialize(self):
-        r"""
-        Reinitialization of the search algorithm
-
-        EXAMPLES::
-
-            sage: from sage.combinat.matrices.dancing_links import dlx_solver
-            sage: rows = [[0,1,2], [3,4,5], [0,1], [2,3,4,5], [0], [1,2,3,4,5]]
-            sage: x = dlx_solver(rows)
-            sage: x.get_solution() if x.search() else None
-            [0, 1]
-            sage: x.get_solution() if x.search() else None
-            [2, 3]
-
-        Reinitialization of the algorithm::
-
-            sage: x.reinitialize()
-            sage: x.get_solution() if x.search() else None
-            [0, 1]
-            sage: x.get_solution() if x.search() else None
-            [2, 3]
-            sage: x.get_solution() if x.search() else None
-            [4, 5]
-            sage: x.get_solution() if x.search() else None
-
-        Reinitialization works after solutions are exhausted::
-
-            sage: x.reinitialize()
-            sage: x.get_solution() if x.search() else None
-            [0, 1]
-            sage: x.get_solution() if x.search() else None
-            [2, 3]
-            sage: x.get_solution() if x.search() else None
-            [4, 5]
-            sage: x.get_solution() if x.search() else None
-
-        """
-        sig_on()
-        self._x = dancing_links()
-        sig_off()
-        self._init_rows(self._rows)
 
     def get_solution(self):
         """
@@ -517,11 +525,6 @@ cdef class dancing_linksWrapper:
         r"""
         Return an iterator of the solutions.
 
-        .. WARNING::
-
-            This function can be used only once. To iterate through the
-            solutions another time, one needs to reinitalize the dlx solver.
-
         EXAMPLES::
 
             sage: from sage.combinat.matrices.dancing_links import dlx_solver
@@ -530,15 +533,16 @@ cdef class dancing_linksWrapper:
             sage: list(d.solutions_iterator())
             [[0, 1], [2, 3], [4, 5]]
 
-        As warned above, one need to reinitalize it to iterate a second
-        time::
+        TESTS:
 
-            sage: list(d.solutions_iterator())
-            []
-            sage: d.reinitalize()
+        The algorithm is automatically reinitialized if needed, for example
+        when iterating the solutions a second time (:trac:`25125`)::
+
             sage: list(d.solutions_iterator())
             [[0, 1], [2, 3], [4, 5]]
         """
+        if self._x.search_is_started():
+            self.reinitialize()
         while self.search():
             yield self.get_solution()
 
@@ -762,27 +766,14 @@ cdef class dancing_linksWrapper:
 
         TESTS:
 
-        Solutions of a dlx solver can be iterated through only once. The
-        second call to the function gives wrong result if the algorithm is
-        not first reinitalized::
+        The algorithm is automatically reinitialized if needed, for example
+        when counting the number of solutions a second time (:trac:`25125`)::
 
             sage: rows = [[0,1,2], [3,4,5], [0,1], [2,3,4,5], [0], [1,2,3,4,5]]
             sage: x = dlx_solver(rows)
             sage: x.number_of_solutions(ncpus=1)
             3
             sage: x.number_of_solutions(ncpus=1)
-            0
-            sage: x.reinitalize()
-            sage: x.number_of_solutions(ncpus=1)
-            3
-
-        No need to reinitialize when using more than one cpus, because the
-        problem is split into two, thus temporarily creating new
-        independent dlx_solver::
-
-            sage: x.number_of_solutions(ncpus=2)
-            3
-            sage: x.number_of_solutions(ncpus=2)
             3
 
         Works with empty rows::
@@ -794,6 +785,8 @@ cdef class dancing_linksWrapper:
         """
         cdef int N = 0
         if ncpus == 1:
+            if self._x.search_is_started():
+                self.reinitialize()
             while self.search():
                 N += 1
             return N

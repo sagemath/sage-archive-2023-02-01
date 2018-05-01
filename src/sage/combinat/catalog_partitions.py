@@ -2,17 +2,17 @@ r"""
 Enumerated sets of partitions, tableaux, ...
 ============================================
 
-Quickref
---------
-
-Catalog
--------
+Partitions
+----------
 
 - :ref:`sage.combinat.partition`
 - :ref:`sage.combinat.skew_partition`
 - :ref:`sage.combinat.partition_tuple`
 - :ref:`sage.combinat.partition_kleshchev`
 - :ref:`sage.combinat.core`
+
+Tableaux
+--------
 
 - :ref:`sage.combinat.tableau`
 - :ref:`sage.combinat.tableau_tuple`
@@ -23,6 +23,9 @@ Catalog
 - :ref:`sage.combinat.shifted_primed_tableau`
 
 - :ref:`sage.combinat.tableau_residues`
+
+RSK
+---
 
 - :ref:`sage.combinat.rsk`
 - :ref:`sage.combinat.growth`

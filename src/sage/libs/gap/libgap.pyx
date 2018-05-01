@@ -163,7 +163,7 @@ Using the libGAP C library from Cython
 .. TODO:: Update the following text
 
 The lower-case ``libgap_foobar`` functions are ones that we added to
-make the libGAP C shared library. The ``libGAP_foobar`` methods are
+make the libGAP C shared library. The ``foobar`` methods are
 the original GAP methods simply prefixed with the string
 ``libGAP_``. The latter were originally not designed to be in a
 library, so some care needs to be taken to call them.

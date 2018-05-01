@@ -13,6 +13,7 @@ from sage.rings.all import NN, ZZ, IntegerModRing
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 
+from collections import defaultdict
 
 #--------------------------------------------------
 # Kleshchev partition - element classes
@@ -52,8 +53,6 @@ class KleshchevPartition(Partition):
             sage: KP([5,4,4,3,2]).conormal_cells()
             {0: [(1, 4), (3, 3)], 2: [(0, 5)]}
         """
-
-        from collections import defaultdict
         # We use a dictionary for the conormal nodes as the indexing set is Z when e=0
         conormals = defaultdict(list)   # the conormal cells of each residue
         carry = defaultdict(int)        # a tally of #(removable cells) - #(addable cells)
@@ -152,7 +151,6 @@ class KleshchevPartition(Partition):
             sage: KP([5,4,4,3,2]).normal_cells(2)
             [(3, 2)]
         """
-        from collections import defaultdict
         # We use a dictionary for the normal nodes as the indexing set is Z when e=0
         normals = defaultdict(list)     # the normal cells of each residue
         carry = defaultdict(int)        # a tally of #(removable cells)-#(addable cells)
@@ -229,14 +227,11 @@ class KleshchevPartition(Partition):
             return []
 
         good_cells = self.good_cells()
-        if not good_cells:
-            return None
+        assert good_cells
 
-        res = sorted(good_cells.keys())[0]
+        res = sorted(good_cells)[0]
         r,c = good_cells[res]
         good_seq = type(self)(self.parent(), self.remove_cell(r,c)).good_residue_sequence()
-        if good_seq is None:
-            return None
         good_seq.append( self.parent()._index_set(res) )
         return good_seq
 
@@ -262,13 +257,10 @@ class KleshchevPartition(Partition):
             return []
 
         good_cells = self.good_cells()
-        if not good_cells:
-            return None
+        assert good_cells
 
-        cell = sorted(good_cells.values())[0]
+        cell = good_cells[sorted(good_cells)[0]]
         good_seq = type(self)(self.parent(), self.remove_cell(*cell)).good_cell_sequence()
-        if good_seq is None:
-            return None
         good_seq.append(cell)
         return good_seq
 
@@ -365,7 +357,7 @@ class KleshchevPartitionTuple(PartitionTuple):
 
         EXAMPLES::
 
-            sage: KP = KleshchevPartitions(3, [0,1], convention='left regular')
+            sage: KP = KleshchevPartitions(3, [0,1], convention="left regular")
             sage: KP([[4, 2], [5, 3, 1]]).conormal_cells()
             {0: [(1, 2, 1), (1, 1, 3), (1, 0, 5)],
             1: [(1, 3, 0), (0, 2, 0), (0, 1, 2), (0, 0, 4)]}
@@ -373,39 +365,40 @@ class KleshchevPartitionTuple(PartitionTuple):
             [(1, 3, 0), (0, 2, 0), (0, 1, 2), (0, 0, 4)]
             sage: KP([[4, 2], [5, 3, 1]]).conormal_cells(2)
             []
-            sage: KP = KleshchevPartitions(3, [0,1], convention='right restricted')
+            sage: KP = KleshchevPartitions(3, [0,1], convention="right restricted")
             sage: KP([[4, 2], [5, 3, 1]]).conormal_cells(0)
             [(1, 0, 5), (1, 1, 3), (1, 2, 1)]
         """
-        from collections import defaultdict
         # We use a dictionary for the conormal nodes as the indexing set is Z when e=0
         conormals = defaultdict(list)   # the conormal cells of each residue
         carry = defaultdict(int)        # a tally of #(removable cells)-#(addable cells)
 
+        part_lens = [len(part) for part in self]  # so we don't repeatedly call these
         # the indices for the rows ending in addable nodes
         KP = self.parent()
         if KP._convention[0] == 'L':
-            rows = [(k,r) for k,part in enumerate(self) for r in range(len(part)+1)]
+            rows = [(k,r) for k,ell in enumerate(part_lens) for r in range(ell+1)]
         else:
-            rows = [(k,r) for k,part in reversed(list(enumerate(self))) for r in range(len(part)+1)]
+            rows = [(k,r) for k,ell in reversed(list(enumerate(part_lens))) for r in range(ell+1)]
         if KP._convention[1] == 'G':
             rows.reverse()
 
         for row in rows:
             k,r = row
-            if r == len(self[k]): # addable cell at bottom of a component
+            if r == part_lens[k]: # addable cell at bottom of a component
                 res = KP._multicharge[k] - r
                 if carry[res] == 0:
                     conormals[res].append((k, r, 0))
                 else:
                     carry[res] += 1
             else:
-                res = KP._multicharge[k] + self[k][r] - r - 1
-                if r == len(self[k]) - 1 or self[k][r] > self[k][r+1]: # removable cell
+                part = self[k]
+                res = KP._multicharge[k] + (part[r] - r - 1)
+                if r == part_lens[k] - 1 or part[r] > part[r+1]: # removable cell
                     carry[res] -= 1
-                if r == 0 or self[k][r-1] > self[k][r]:                # addable cell
+                if r == 0 or part[r-1] > part[r]:                # addable cell
                     if carry[res+1] == 0:
-                        conormals[res+1].append((k, r, self[k][r]))
+                        conormals[res+1].append((k, r, part[r]))
                     else:
                         carry[res+1] += 1
 
@@ -425,15 +418,18 @@ class KleshchevPartitionTuple(PartitionTuple):
 
         EXAMPLES::
 
-            sage: pt = KleshchevPartitions(3, [0,1])([[4, 2], [5, 3, 1]])
+            sage: KP = KleshchevPartitions(3, [0,1])
+            sage: pt = KP([[4, 2], [5, 3, 1]])
             sage: pt.cogood_cells()
             {0: (1, 2, 1), 1: (1, 3, 0)}
             sage: pt.cogood_cells(0)
             (1, 2, 1)
-            sage: pt = KleshchevPartitions(4, [0,1], convention='left regular')([[4, 2], [5, 3, 1]])
+            sage: KP = KleshchevPartitions(4, [0,1], convention="left regular")
+            sage: pt = KP([[5, 2, 2], [6, 1, 1]])
             sage: pt.cogood_cells()
-            {1: (0, 0, 5), 2: (1, 3, 0), 3: (0, 1, 4)}
-            sage: pt.cogood_cells(0)
+            {1: (0, 0, 5), 2: (1, 3, 0)}
+            sage: pt.cogood_cells(0) is None
+            True
             sage: pt.cogood_cells(1) is None
             False
         """
@@ -468,40 +464,47 @@ class KleshchevPartitionTuple(PartitionTuple):
 
         EXAMPLES::
 
-            sage: KP=KleshchevPartitions(3, [0,1])
+            sage: KP = KleshchevPartitions(3, [0,1], convention="left restricted")
             sage: KP([[4, 2], [5, 3, 1]]).normal_cells()
-            {0: [(1, 2, 1)], 2: [(1, 1, 2)]}
+            {2: [(1, 0, 4), (1, 1, 2), (1, 2, 0)]}
             sage: KP([[4, 2], [5, 3, 1]]).normal_cells(1)
             []
-            sage: KP=KleshchevPartitions(3, [0,1], convention='left regular')
+            sage: KP = KleshchevPartitions(3, [0,1], convention="left regular")
             sage: KP([[4, 2], [5, 3, 1]]).normal_cells()
-            {1: [(0, 0, 4)]}
+            {0: [(0, 1, 1), (0, 0, 3)], 2: [(1, 2, 0), (1, 1, 2), (1, 0, 4)]}
+            sage: KP = KleshchevPartitions(3, [0,1], convention="right regular")
+            sage: KP([[4, 2], [5, 3, 1]]).normal_cells()
+            {2: [(1, 2, 0), (1, 1, 2), (1, 0, 4)]}
+            sage: KP = KleshchevPartitions(3, [0,1], convention="right restricted")
+            sage: KP([[4, 2], [5, 3, 1]]).normal_cells()
+            {0: [(0, 0, 3), (0, 1, 1)], 2: [(1, 0, 4), (1, 1, 2), (1, 2, 0)]}
         """
-        from collections import defaultdict
         # We use a dictionary for the normal nodes as the indexing set is Z when e=0
         normals = defaultdict(list)     # the normal cells of each residue
         carry = defaultdict(int)        # a tally of #(removable cells)-#(addable cells)
 
+        part_lens = [len(part) for part in self]  # so we don't repeatedly call these
         KP = self.parent()
-        if KP._convention[0] == 'R':
-            rows = [(k,r) for k,part in enumerate(self) for r in range(len(part)+1)]
+        if KP._convention[0] == 'L':
+            rows = [(k,r) for k,ell in enumerate(part_lens) for r in range(ell+1)]
         else:
-            rows = [(k,r) for k,part in reversed(list(enumerate(self))) for r in range(len(part)+1)]
+            rows = [(k,r) for k,ell in reversed(list(enumerate(part_lens))) for r in range(ell+1)]
         if KP._convention[1] == 'S':
             rows.reverse()
 
         for row in rows:
             k,r = row
-            if r == len(self[k]): # addable cell at bottom of a component
+            if r == part_lens[k]: # addable cell at bottom of a component
                 carry[KP._multicharge[k]-r] += 1
             else:
-                res = KP._multicharge[k] + self[k][r] - r - 1
-                if r == len(self[k])-1 or self[k][r] > self[k][r+1]: # removable cell
+                part = self[k]
+                res = KP._multicharge[k] + (part[r] - r - 1)
+                if r == part_lens[k]-1 or part[r] > part[r+1]: # removable cell
                     if carry[res] == 0:
-                        normals[res].insert(0, (k, r, self[k][r]-1))
+                        normals[res].insert(0, (k, r, part[r]-1))
                     else:
                         carry[res] -= 1
-                if r == 0 or self[k][r-1] > self[k][r]:               #addable cell
+                if r == 0 or part[r-1] > part[r]:               #addable cell
                     carry[res+1] += 1
 
         # finally return the result
@@ -521,16 +524,16 @@ class KleshchevPartitionTuple(PartitionTuple):
 
         EXAMPLES::
 
-            sage: KP=KleshchevPartitions(3,[0,1])
+            sage: KP = KleshchevPartitions(3, [0,1])
             sage: pt = KP([[4, 2], [5, 3, 1]])
             sage: pt.good_cells()
-            {0: (1, 2, 1), 2: (1, 1, 2)}
-            sage: pt.good_cells(0)
-            (1, 2, 1)
-            sage: KP=KleshchevPartitions(4,[0,1], convention='left regular')
-            sage: pt = KP([[4, 2], [5, 3, 1]])
+            {2: (1, 0, 4)}
+            sage: pt.good_cells(2)
+            (1, 0, 4)
+            sage: KP = KleshchevPartitions(4, [0,1], convention="left regular")
+            sage: pt = KP([[5, 2, 2], [6, 2, 1]])
             sage: pt.good_cells()
-            {0: (1, 2, 1), 2: (0, 1, 3)}
+            {0: (0, 0, 4), 2: (1, 0, 5), 3: (0, 2, 1)}
             sage: pt.good_cells(1) is None
             True
         """
@@ -544,64 +547,44 @@ class KleshchevPartitionTuple(PartitionTuple):
 
     def good_residue_sequence(self):
         """
-        Return a sequence of good nodes from the empty partition to ``self``,
-        or ``None`` if no such sequence exists.
+        Return a sequence of good nodes from the empty partition to ``self``.
 
         EXAMPLES::
 
-            sage: KP=KleshchevPartitions(3,[0,1])
+            sage: KP = KleshchevPartitions(3, [0,1])
             sage: KP([[4, 2], [5, 3, 1]]).good_residue_sequence()
-            [1, 2, 0, 1, 0, 2, 0, 1, 2, 1, 2, 2, 2, 0, 0]
+            [0, 1, 2, 1, 2, 0, 1, 0, 2, 2, 0, 1, 0, 2, 2]
         """
         if self.size() == 0:
             return []
         good_cells = self.good_cells()
-        if not good_cells:
-            return None
+        assert good_cells
 
         res = sorted(good_cells.keys())[0]
         k,r,c = good_cells[res]
         good_seq = type(self)(self.parent(), self.remove_cell(k,r,c)).good_residue_sequence()
-        if good_seq is None:
-            return None
         good_seq.append( self.parent()._index_set(res) )
         return good_seq
 
     def good_cell_sequence(self):
         """
-        Return a sequence of good nodes from the empty partition to this
-        partition, or ``None`` if no such sequence exists.
+        Return a sequence of good nodes from the empty partition to ``self``.
 
         EXAMPLES::
 
-            sage: KP=KleshchevPartitions(3,[0,1])
+            sage: KP = KleshchevPartitions(3,[0,1])
             sage: KP([[4, 2], [5, 3, 1]]).good_cell_sequence()
-            [(1, 0, 0),
-             (1, 0, 1),
-             (0, 0, 0),
-             (1, 1, 0),
-             (0, 0, 1),
-             (1, 1, 1),
-             (1, 0, 2),
-             (1, 0, 3),
-             (0, 1, 0),
-             (0, 0, 2),
-             (1, 2, 0),
-             (1, 1, 2),
-             (1, 0, 4),
-             (0, 1, 1),
-             (0, 0, 3)]
+            [(0, 0, 0), (1, 0, 0), (1, 0, 1), (0, 0, 1), (0, 1, 0),
+             (1, 1, 0), (1, 1, 1), (1, 0, 2), (1, 2, 0), (0, 0, 2),
+             (0, 1, 1), (1, 0, 3), (0, 0, 3), (1, 1, 2), (1, 0, 4)]
         """
         if self.size() == 0:
             return []
         good_cells = self.good_cells()
-        if not good_cells:
-            return None
+        assert good_cells
 
-        cell = sorted(good_cells.values())[0]
+        cell = good_cells[sorted(good_cells)[0]]
         good_seq = type(self)(self.parent(), self.remove_cell(*cell)).good_cell_sequence()
-        if good_seq is None:
-            return None
         good_seq.append(cell)
         return good_seq
 
@@ -612,7 +595,7 @@ class KleshchevPartitionTuple(PartitionTuple):
 
         EXAMPLES::
 
-            sage: KP=KleshchevPartitions(3,[0,1])
+            sage: KP = KleshchevPartitions(3, [0,1])
             sage: KP([[4, 2], [5, 3, 1]]).mullineux_conjugate()
 
         """
@@ -620,8 +603,7 @@ class KleshchevPartitionTuple(PartitionTuple):
             return self
 
         good_cells = self.good_cells()
-        if not good_cells:
-            return None
+        assert good_cells
 
         k,r,c = sorted(good_cells.values())[0]
         mu = type(self)(self.parent(), self.remove_cell(k,r,c)).mullineux_conjugate()
@@ -629,7 +611,7 @@ class KleshchevPartitionTuple(PartitionTuple):
         return type(self)(self.parent(), mu.add_cell(*mu.cogood_cells( r-c-self.parent()._multicharge[k])))
 
     def is_regular(self):
-        """
+        r"""
         Return ``True`` if ``self`` is a `e`-regular partition tuple.
 
         A partition tuple is `e`-regular if we can get to the
@@ -638,11 +620,11 @@ class KleshchevPartitionTuple(PartitionTuple):
 
         EXAMPLES::
 
-            sage: KP = KleshchevPartitions(2, [0,2], convention='right restricted')
-            sage: KP([[2,1,1], [3,2]]).is_regular()
+            sage: KP = KleshchevPartitions(2, [0,2], convention="right restricted")
+            sage: KP([[3,2,1], [2,1,1]]).is_regular()
             False
-            sage: KP = KleshchevPartitions(3, [0,2], convention='right restricted')
-            sage: KP([[3,1,1], [3,2]]).is_regular()
+            sage: KP = KleshchevPartitions(4, [0,2], convention="right restricted")
+            sage: KP([[3,2,1], [2,1,1]]).is_regular()
             True
             sage: KP([[], []]).is_regular()
             True
@@ -662,11 +644,11 @@ class KleshchevPartitionTuple(PartitionTuple):
 
         EXAMPLES::
 
-            sage: KP = KleshchevPartitions(2, [0,2], convention='left regular')
-            sage: KP([[3,2,1], [3,1,1]]).is_restricted()
+            sage: KP = KleshchevPartitions(2, [0,2], convention="left regular")
+            sage: KP([[3,2,1], [3,1]]).is_restricted()
             False
-            sage: KP = KleshchevPartitions(3, [0,2], convention='left regular')
-            sage: KP([[3,2,1], [3,1,1]]).is_restricted()
+            sage: KP = KleshchevPartitions(3, [0,2], convention="left regular")
+            sage: KP([[3,2,1], [3,1]]).is_restricted()
             True
             sage: KP([[], []]).is_restricted()
             True
@@ -690,7 +672,7 @@ class KleshchevCrystalMixin(object):
 
         EXAMPLES::
 
-            sage: C = crystals.KleshchevPartitions(3, [0,2], convention='left regular')
+            sage: C = crystals.KleshchevPartitions(3, [0,2], convention="left regular")
             sage: x = C([[5,4,1],[3,2,1,1]])
             sage: [x.epsilon(i) for i in C.index_set()]
             [0, 3, 0]
@@ -699,7 +681,7 @@ class KleshchevCrystalMixin(object):
         return len(self.normal_cells(i))
 
     def phi(self, i):
-        r""", convention='left regular'
+        r"""
         Return the Kashiwara crystal operator `\varphi_i` applied to ``self``.
 
         INPUT:
@@ -708,7 +690,7 @@ class KleshchevCrystalMixin(object):
 
         EXAMPLES::
 
-            sage: C = crystals.KleshchevPartitions(3, [0,2], convention='left regular')
+            sage: C = crystals.KleshchevPartitions(3, [0,2], convention="left regular")
             sage: x = C([[5,4,1],[3,2,1,1]])
             sage: [x.phi(i) for i in C.index_set()]
             [3, 2, 0]
@@ -722,7 +704,7 @@ class KleshchevCrystalMixin(object):
 
         EXAMPLES::
 
-            sage: C = crystals.KleshchevPartitions(3, [0,2], convention='left regular')
+            sage: C = crystals.KleshchevPartitions(3, [0,2], convention="left regular")
             sage: x = C([[5,4,1],[3,2,1,1]])
             sage: x.Epsilon()
             3*Lambda[1]
@@ -739,7 +721,7 @@ class KleshchevCrystalMixin(object):
 
         EXAMPLES::
 
-            sage: C = crystals.KleshchevPartitions(3, [0,2], convention='left regular')
+            sage: C = crystals.KleshchevPartitions(3, [0,2], convention="left regular")
             sage: x = C([[5,4,1],[3,2,1,1]])
             sage: x.Phi()
             3*Lambda[0] + 2*Lambda[1]
@@ -756,12 +738,26 @@ class KleshchevCrystalMixin(object):
 
         EXAMPLES::
 
-            sage: C = crystals.KleshchevPartitions(3, [0,2], convention='left regular')
-            sage: x = C([[5,4,1],[3,2,1,1]])
+            sage: C = crystals.KleshchevPartitions(3, [0,2], convention="left regular")
+            sage: x = C([[5,4,1], [3,2,1,1]])
             sage: x.weight()
             3*Lambda[0] - Lambda[1] - 5*delta
             sage: x.Phi() - x.Epsilon()
             3*Lambda[0] - Lambda[1]
+
+            sage: C = crystals.KleshchevPartitions(3, [0,2], convention="right regular")
+            sage: y = C([[5,1,1], [4,2,2,1,1]])
+            sage: y.weight()
+            6*Lambda[0] - 4*Lambda[1] - 4*delta
+            sage: y.Phi() - y.Epsilon()
+            6*Lambda[0] - 4*Lambda[1]
+
+            sage: C = crystals.KleshchevPartitions(3, [0,2], convention="left regular")
+            sage: y = C([[5,1,1], [4,2,2,1,1]])
+            sage: y.weight()
+            6*Lambda[0] - 4*Lambda[1] - 4*delta
+            sage: y.Phi() - y.Epsilon()
+            6*Lambda[0] - 4*Lambda[1]
         """
         WLR = self.parent().weight_lattice_realization()
         alpha = WLR.simple_roots()
@@ -785,7 +781,7 @@ class KleshchevPartitionCrystal(KleshchevPartition, KleshchevCrystalMixin):
 
         EXAMPLES::
 
-            sage: C = crystals.KleshchevPartitions(3, convention='left regular')
+            sage: C = crystals.KleshchevPartitions(3, convention="left regular")
             sage: x = C([5,4,1])
             sage: x.e(0)
             sage: x.e(1)
@@ -810,13 +806,13 @@ class KleshchevPartitionCrystal(KleshchevPartition, KleshchevCrystalMixin):
 
         EXAMPLES::
 
-            sage: C = crystals.KleshchevPartitions(3, convention='left regular')
+            sage: C = crystals.KleshchevPartitions(3, convention="left regular")
             sage: x = C([5,4,1])
             sage: x.f(0)
-            [5, 4, 1, 1]
+            [5, 5, 1]
             sage: x.f(1)
             sage: x.f(2)
-            [6, 4, 1]
+            [5, 4, 2]
         """
         P = self.parent()
         cell = self.cogood_cells(i)
@@ -844,7 +840,7 @@ class KleshchevPartitionTupleCrystal(KleshchevPartitionTuple, KleshchevCrystalMi
 
         EXAMPLES::
 
-            sage: C = crystals.KleshchevPartitions(3, [0,2], convention='left regular')
+            sage: C = crystals.KleshchevPartitions(3, [0,2], convention="left regular")
             sage: x = C([[5,4,1],[3,2,1,1]])
             sage: x.e(0)
             sage: x.e(1)
@@ -869,7 +865,7 @@ class KleshchevPartitionTupleCrystal(KleshchevPartitionTuple, KleshchevCrystalMi
 
         EXAMPLES::
 
-            sage: C = crystals.KleshchevPartitions(3, [0,2], convention='left regular')
+            sage: C = crystals.KleshchevPartitions(3, [0,2], convention="left regular")
             sage: x = C([[5,4,1],[3,2,1,1]])
             sage: x.f(0)
             ([5, 5, 1], [3, 2, 1, 1])
@@ -907,41 +903,39 @@ class KleshchevPartitions(PartitionTuples):
         sage: KleshchevPartitions(5,[3,2,1],1,convention='LS')[:]
         [([], [], [1]), ([], [1], []), ([1], [], [])]
         sage: KleshchevPartitions(5,[3,2,1],3)[:]
-        [([], [], [2, 1]),
-        ([1], [], [1, 1]),
-        ([], [], [1, 1, 1]),
-        ([], [1], [2]),
-        ([], [], [3]),
-        ([1], [], [2]),
-        ([2], [], [1]),
-        ([], [1], [1, 1]),
-        ([], [1, 1], [1]),
-        ([], [2], [1]),
-        ([1], [2], []),
-        ([], [3], []),
-        ([1], [1], [1]),
-        ([1, 1], [1], []),
-        ([2], [1], []),
-        ([3], [], [])]
-        sage: KleshchevPartitions(5,[3,2,1],3,convention="LS")[:]
+        [([], [], [1, 1, 1]),
+         ([], [], [2, 1]),
+         ([], [1], [2]),
+         ([], [], [3]),
+         ([], [1], [1, 1]),
+         ([], [1, 1], [1]),
+         ([], [2], [1]),
+         ([1], [2], []),
+         ([], [3], []),
+         ([1], [], [1, 1]),
+         ([1], [], [2]),
+         ([1], [1], [1]),
+         ([1, 1], [1], []),
+         ([3], [], []),
+         ([2], [], [1]),
+         ([2], [1], [])]
+        sage: KleshchevPartitions(5,[3,2,1],3,convention="left regular")[:]
         [([], [1], [1, 1]),
-        ([1], [], [1, 1]),
-        ([], [], [1, 1, 1]),
-        ([], [1, 1], [1]),
-        ([], [1], [2]),
-        ([1], [1], [1]),
-        ([1, 1], [], [1]),
-        ([2], [], [1]),
-        ([], [1, 1, 1], []),
-        ([], [1, 1], [1]),
-        ([1], [1, 1], []),
-        ([1, 1], [1], []),
-        ([1], [2], []),
-        ([2], [1], []),
-        ([1, 1, 1], [], []),
-        ([1, 1], [1], []),
-        ([2, 1], [], []),
-        ([3], [], [])]
+         ([1], [], [1, 1]),
+         ([], [], [1, 1, 1]),
+         ([], [1], [2]),
+         ([1], [1], [1]),
+         ([1, 1], [], [1]),
+         ([2], [], [1]),
+         ([], [1, 1, 1], []),
+         ([], [1, 1], [1]),
+         ([1], [1, 1], []),
+         ([1], [2], []),
+         ([2], [1], []),
+         ([1, 1, 1], [], []),
+         ([1, 1], [1], []),
+         ([2, 1], [], []),
+         ([3], [], [])]
 
     REFERENCES:
 
@@ -951,11 +945,11 @@ class KleshchevPartitions(PartitionTuples):
     """
     @staticmethod
     def __classcall_private__(cls, e, multicharge=(0,), size=None,
-            convention='left restricted'):
+            convention="left restricted"):
         r"""
         This is a factory class which returns the appropriate parent based on
         the values of `level` and `size`.
-        
+
         EXAMPLES::
 
             sage: KleshchevPartitions(5, [3,2,1], 1, convention='RS')[:]
@@ -972,9 +966,9 @@ class KleshchevPartitions(PartitionTuples):
 
         convention = convention.upper()
         if 'S' in convention:
-            convention = convention[0]+'S'
+            convention = convention[0] + 'S'
         elif 'G' in convention:
-            convention = convention[0]+'G'
+            convention = convention[0] + 'G'
         if convention not in ['RG','LG', 'RS', 'LS']:
             raise ValueError('invalid convention')
 
@@ -997,7 +991,7 @@ class KleshchevPartitions_all(KleshchevPartitions):
 
     Consider a partition tuple `\mu` with multicharge `r`.
     We define `e_i(\mu)` as the partition tuple obtained after the
-    deletion of the `i`-:meth:`good cell <PartitionTuple.good_cell>` 
+    deletion of the `i`-:meth:`good cell <PartitionTuple.good_cell>`
     to `\mu` and `0` if there is no `i`-good cell. We define `f_i(\mu)`
     as the partition tuple obtained by the addition of the
     `i`-:meth:`cogood cell <PartitionTuple.cogood_cell>` to `\mu`
@@ -1026,7 +1020,7 @@ class KleshchevPartitions_all(KleshchevPartitions):
 
     We first do an example of a level 1 crystal::
 
-        sage: C = crystals.KleshchevPartitions(3, [0], convention='left restricted')
+        sage: C = crystals.KleshchevPartitions(3, [0], convention="left restricted")
         sage: C
         Kleshchev partitions with e=3
         sage: mg = C.highest_weight_vector()
@@ -1040,17 +1034,15 @@ class KleshchevPartitions_all(KleshchevPartitions):
         [1, 1, 1, 1]
         sage: mg.f_string([0,1,2,0])
         [2, 2]
-        sage: S = C.subcrystal(max_depth=5)
-        sage: G = C.digraph(subset=S)
+        sage: GC = C.subcrystal(max_depth=5).digraph()
         sage: B = crystals.LSPaths(['A',2,1], [1,0,0])
-        sage: SB = B.subcrystal(max_depth=5)
-        sage: GB = B.digraph(subset=SB)
-        sage: G.is_isomorphic(GB, edge_labels=True)
+        sage: GB = B.subcrystal(max_depth=5).digraph()
+        sage: GC.is_isomorphic(GB, edge_labels=True)
         True
 
     Now a higher level crystal::
 
-        sage: C = crystals.KleshchevPartitions(3, [0,2], convention='RS')
+        sage: C = crystals.KleshchevPartitions(3, [0,2], convention="right restricted")
         sage: mg = C.highest_weight_vector()
         sage: mg
         ([], [])
@@ -1064,18 +1056,16 @@ class KleshchevPartitions_all(KleshchevPartitions):
         ([1, 1, 1, 1], [])
         sage: mg.f_string([2,0,1,0])
         ([2], [2])
-        sage: S = C.subcrystal(max_depth=3)
-        sage: G = C.digraph(subset=S)
+        sage: GC = C.subcrystal(max_depth=5).digraph()
         sage: B = crystals.LSPaths(['A',2,1], [1,0,1])
-        sage: SB = B.subcrystal(max_depth=3)
-        sage: GB = B.digraph(subset=SB)
-        sage: G.is_isomorphic(GB, edge_labels=True)
+        sage: GB = B.subcrystal(max_depth=5).digraph()
+        sage: GC.is_isomorphic(GB, edge_labels=True)
         True
 
     The ordering of the residues gives a different representation of the
     higher level crystals (but it is still isomorphic)::
 
-        sage: C2 = crystals.KleshchevPartitions(3, [2,0], convention='RS')
+        sage: C2 = crystals.KleshchevPartitions(3, [2,0], convention="right restricted")
         sage: mg2 = C2.highest_weight_vector()
         sage: mg2.f_string([0,1,2,0])
         ([2], [2])
@@ -1083,9 +1073,25 @@ class KleshchevPartitions_all(KleshchevPartitions):
         ([1, 1, 1], [1])
         sage: mg2.f_string([2,0,1,0])
         ([2, 1], [1])
-        sage: S2 = C2.subcrystal(max_depth=5)
-        sage: G2 = C2.digraph(subset=S)
-        sage: G.is_isomorphic(G2, edge_labels=True)
+        sage: GC2 = C2.subcrystal(max_depth=5).digraph()
+        sage: GC.is_isomorphic(GC2, edge_labels=True)
+        True
+
+    TESTS:
+
+    We check that all conventions give isomorphic crystals::
+
+        sage: CLS = crystals.KleshchevPartitions(3, [2,0], convention="left restricted")
+        sage: CRS = crystals.KleshchevPartitions(3, [2,0], convention="right restricted")
+        sage: CLG = crystals.KleshchevPartitions(3, [2,0], convention="left regular")
+        sage: CRG = crystals.KleshchevPartitions(3, [2,0], convention="right regular")
+        sage: C = [CLS, CRS, CLG, CRG]
+        sage: G = [B.subcrystal(max_depth=6).digraph() for B in C]
+        sage: G[0].is_isomorphic(G[1], edge_labels=True)
+        True
+        sage: G[0].is_isomorphic(G[2], edge_labels=True)
+        True
+        sage: G[0].is_isomorphic(G[3], edge_labels=True)
         True
 
     REFERENCES:
@@ -1119,6 +1125,11 @@ class KleshchevPartitions_all(KleshchevPartitions):
             sage: K = KleshchevPartitions(4, [2])
             sage: TestSuite(K).run()  # long time
             sage: K = KleshchevPartitions(4, [0,2,1])
+            sage: TestSuite(K).run()  # long time
+
+            sage: K = KleshchevPartitions(0, [2])
+            sage: TestSuite(K).run()
+            sage: K = KleshchevPartitions(0, [0,2,1])
             sage: TestSuite(K).run()  # long time
         """
         if e not in NN or e == 1:
@@ -1218,7 +1229,7 @@ class KleshchevPartitions_all(KleshchevPartitions):
         while True:
             for mu in KleshchevPartitions_size(self._e, self._multicharge,
                                                size, self._convention):
-                yield self(mu)
+                yield self.element_class(self, list(mu))
             size += 1
 
     def _an_element_(self):
@@ -1248,6 +1259,30 @@ class KleshchevPartitions_size(KleshchevPartitions):
             sage: TestSuite(K).run()
             sage: K = KleshchevPartitions(4, [0,2,1], 4)
             sage: TestSuite(K).run()
+            sage: K = KleshchevPartitions(0, 2)
+            sage: TestSuite(K).run()
+            sage: K = KleshchevPartitions(0, [0,2,1], 4)
+            sage: TestSuite(K).run()
+
+        We verify that we obtain the same size for all conventions
+        and that the result is equal to the number of elements in
+        the crystal at the corresponding depth::
+
+            sage: B = crystals.LSPaths(['A',2,1], [1,0,1])
+            sage: nd4 = (B.subcrystal(max_depth=4).cardinality()
+            ....:        - B.subcrystal(max_depth=3).cardinality())
+            sage: K = KleshchevPartitions(3, [0,2], 4, convention='RS')
+            sage: K.cardinality() == nd4
+            True
+            sage: K = KleshchevPartitions(3, [0,2], 4, convention='RG')
+            sage: K.cardinality() == nd4
+            True
+            sage: K = KleshchevPartitions(3, [0,2], 4, convention='LS')
+            sage: K.cardinality() == nd4
+            True
+            sage: K = KleshchevPartitions(3, [0,2], 4, convention='LG')
+            sage: K.cardinality() == nd4
+            True
         """
         self._level = len(multicharge)
         if self._level == 1:
@@ -1266,7 +1301,6 @@ class KleshchevPartitions_size(KleshchevPartitions):
         self._multicharge = tuple(self._I(m) for m in multicharge)
         self._convention = convention
 
-
     def _repr_(self):
         """
         EXAMPLES::
@@ -1278,7 +1312,7 @@ class KleshchevPartitions_size(KleshchevPartitions):
             return 'Kleshchev partitions with e=%s and size %s' % (self._e, self._size)
         else:
             return 'Kleshchev partitions with e=%s and multicharge=(%s) and size %s' % (
-                        self._e,','.join('%s'%m for m in self._multicharge), self._size) 
+                        self._e,','.join('%s'%m for m in self._multicharge), self._size)
 
     def __contains__(self, mu):
         """
@@ -1359,7 +1393,7 @@ class KleshchevPartitions_size(KleshchevPartitions):
             return
 
         # For higher levels we have to recursively construct the restricted partitions
-        # by adding on co-good nodes to smaller restricted partition. To avoid over 
+        # by adding on co-good nodes to smaller restricted partition. To avoid over
         # counting we return a new restricted partition only if we added on its lowest
         # good node.
         for mu in KleshchevPartitions_size(self._e, self._multicharge,
@@ -1369,7 +1403,7 @@ class KleshchevPartitions_size(KleshchevPartitions):
                 if cell is not None:
                     nu = self.element_class(self, mu.add_cell(*cell))
                     good_cells = nu.good_cells().values()
-                    if self._convention[1]=="S":
+                    if self._convention[1] == "S":
                         if all(cell >= c for c in good_cells if c is not None):
                             yield nu
                     else:
@@ -1392,7 +1426,7 @@ class KleshchevPartitions_size(KleshchevPartitions):
             sage: KleshchevPartitions(3, [0], 3)[:]
             [[2, 1], [1, 1, 1]]
             sage: KleshchevPartitions(3, [0,0], 3)[:]
-            [([1], [2]), ([], [2, 1]), ([1], [1, 1]), ([], [1, 1, 1])]
+            [([1], [2]), ([1], [1, 1]), ([], [2, 1]), ([], [1, 1, 1])]
         """
         if self.level() == 1:
             return self.__iter__level_one
@@ -1419,7 +1453,6 @@ class KleshchevPartitions_size(KleshchevPartitions):
 #--------------------------------------------------
 
 def a_good_cell(kpt, multicharge, convention):
-    from collections import defaultdict
     # We use a dictionary for the normal nodes as the indexing set is Z when e=0
     carry = defaultdict(int)        # a tally of #(removable cells)-#(addable cells)
     ret = None

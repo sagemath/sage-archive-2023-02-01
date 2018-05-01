@@ -1042,7 +1042,7 @@ class ProjectiveSpace_ring(AmbientSpace):
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: E = EllipticCurve(QQ,[-1, 0])
             sage: P.Lattes_map(E, 2)
-            Dyamical System of Projective Space of dimension 1 over Rational Field
+            Dynamical System of Projective Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (x : y) to
                     (x^4 + 2*x^2*y^2 + y^4 : 4*x^3*y - 4*x*y^3)
         """

@@ -180,7 +180,7 @@ if os.path.exists(sage.misc.lazy_import_cache.get_cache_file()):
 ########################################################################
 
 from Cython.Build.Dependencies import default_create_extension
-from sage_setup.util import stable_uniq
+from sage_setup.util import stable_uniq, have_module
 
 # Do not put all, but only the most common libraries and their headers
 # (that are likely to change on an upgrade) here:
@@ -224,6 +224,7 @@ class sage_build_cython(Command):
         self.force = None
 
         self.cython_directives = None
+        self.compile_time_env = None
 
         self.build_lib = None
         self.cythonized_files = None
@@ -285,6 +286,11 @@ class sage_build_cython(Command):
             fast_getattr=True,
             profile=self.profile,
         )
+        self.compile_time_env = dict(
+            PY_VERSION_HEX=sys.hexversion,
+            PY_MAJOR_VERSION=sys.version_info[0],
+            HAVE_GMPY2=have_module("gmpy2"),
+        )
 
         # We check the Cython version and some relevant configuration
         # options from the earlier build to see if we need to force a
@@ -295,6 +301,7 @@ class sage_build_cython(Command):
             'version': Cython.__version__,
             'debug': self.debug,
             'directives': self.cython_directives,
+            'compile_time_env': self.compile_time_env,
         }, sort_keys=True)
 
         # Read an already written version file if it exists and compare to the
@@ -351,16 +358,14 @@ class sage_build_cython(Command):
 
         log.info("Updating Cython code....")
         t = time.time()
-        # We use [:] to change the list in-place because the same list
-        # object is pointed to from different places.
-        self.extensions[:] = cythonize(
+        extensions = cythonize(
             self.extensions,
             nthreads=self.parallel,
             build_dir=self.build_dir,
             force=self.force,
             aliases=cython_aliases(),
             compiler_directives=self.cython_directives,
-            compile_time_env={'PY_VERSION_HEX':sys.hexversion},
+            compile_time_env=self.compile_time_env,
             create_extension=self.create_extension,
             # Debugging
             gdb_debug=self.debug,
@@ -369,6 +374,13 @@ class sage_build_cython(Command):
             # use reliably: http://trac.sagemath.org/ticket/17851
             cache=False,
             )
+
+        # Filter out extensions with skip_build=True
+        extensions = [ext for ext in extensions if not getattr(ext, "skip_build", False)]
+
+        # We use [:] to change the list in-place because the same list
+        # object is pointed to from different places.
+        self.extensions[:] = extensions
 
         log.info("Finished Cythonizing, time: %.2f seconds." % (time.time() - t))
 
@@ -746,9 +758,6 @@ class sage_build_ext(build_ext):
         depends = sources + ext.depends
         if not (self.force or newer_group(depends, ext_filename, 'newer')):
             log.debug("skipping '%s' extension (up-to-date)", ext.name)
-            need_to_compile = False
-        elif getattr(ext, "skip_build", False):
-            log.debug("skipping '%s' extension (optional)", ext.name)
             need_to_compile = False
         else:
             log.info("building '%s' extension", ext.name)

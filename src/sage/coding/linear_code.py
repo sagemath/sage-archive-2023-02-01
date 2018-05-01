@@ -310,16 +310,17 @@ def _explain_constructor(cl):
     r"""
     Internal function for use error messages when constructing encoders and decoders.
 
-    EXAMPLES:
-    sage: from sage.coding.linear_code import _explain_constructor, LinearCodeSyndromeDecoder
-    sage: cl = LinearCodeSyndromeDecoder
-    sage: _explain_constructor(cl)
-    "The constructor requires no arguments.\nIt takes the optional arguments ['maximum_error_weight'].\nSee the documentation of sage.coding.linear_code.LinearCodeSyndromeDecoder for more details."
+    EXAMPLES::
 
-    sage: from sage.coding.information_set_decoder import LinearCodeInformationSetDecoder
-    sage: cl = LinearCodeInformationSetDecoder
-    sage: _explain_constructor(cl)
-    "The constructor requires the arguments ['number_errors'].\nIt takes the optional arguments ['algorithm'].\nIt accepts unspecified arguments as well.\nSee the documentation of sage.coding.information_set_decoder.LinearCodeInformationSetDecoder for more details."
+        sage: from sage.coding.linear_code import _explain_constructor, LinearCodeSyndromeDecoder
+        sage: cl = LinearCodeSyndromeDecoder
+        sage: _explain_constructor(cl)
+        "The constructor requires no arguments.\nIt takes the optional arguments ['maximum_error_weight'].\nSee the documentation of sage.coding.linear_code.LinearCodeSyndromeDecoder for more details."
+
+        sage: from sage.coding.information_set_decoder import LinearCodeInformationSetDecoder
+        sage: cl = LinearCodeInformationSetDecoder
+        sage: _explain_constructor(cl)
+        "The constructor requires the arguments ['number_errors'].\nIt takes the optional arguments ['algorithm'].\nIt accepts unspecified arguments as well.\nSee the documentation of sage.coding.information_set_decoder.LinearCodeInformationSetDecoder for more details."
     """
     import inspect
     if inspect.isclass(cl):
@@ -1317,7 +1318,7 @@ class AbstractLinearCode(Module):
     @cached_method
     def covering_radius(self):
         r"""
-        Return the minimimal integer `r` such that any element in the ambient space of ``self`` has distance at most `r` to a codeword of ``self``.
+        Return the minimal integer `r` such that any element in the ambient space of ``self`` has distance at most `r` to a codeword of ``self``.
 
         This method requires the optional GAP package Guava.
 
@@ -1469,7 +1470,7 @@ class AbstractLinearCode(Module):
             sage: C.decoder('Try')
             Traceback (most recent call last):
             ...
-            ValueError: There is no Decoder named 'Try'. The known Decoders are: ['InformationSet', 'Syndrome', 'NearestNeighbor']
+            ValueError: There is no Decoder named 'Try'. The known Decoders are: ['InformationSet', 'NearestNeighbor', 'Syndrome']
 
         Some decoders take extra arguments. If the user forgets to supply these,
         the error message attempts to be helpful::
@@ -1491,10 +1492,14 @@ class AbstractLinearCode(Module):
             try:
                 return decClass(self, *args, **kwargs)
             except TypeError:
-                raise ValueError("Constructing the {0} decoder failed, possibly due to missing or incorrect parameters.\n{1}"\
-                                     .format(decoder_name, _explain_constructor(decClass)))
+                raise ValueError(
+                        "Constructing the {0} decoder failed, possibly due "
+                        "to missing or incorrect parameters.\n{1}".format(
+                            decoder_name, _explain_constructor(decClass)))
         else:
-            raise ValueError("There is no Decoder named '%s'. The known Decoders are: %s" % (decoder_name, self.decoders_available()))
+            raise ValueError(
+                    "There is no Decoder named '{0}'. The known Decoders are: "
+                    "{1}".format(decoder_name, self.decoders_available()))
 
     def decoders_available(self, classes=False):
         r"""
@@ -1512,7 +1517,7 @@ class AbstractLinearCode(Module):
 
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
-            sage: sorted(C.decoders_available())
+            sage: C.decoders_available()
             ['InformationSet', 'NearestNeighbor', 'Syndrome']
 
             sage: dictionary = C.decoders_available(True)
@@ -1523,7 +1528,8 @@ class AbstractLinearCode(Module):
         """
         if classes:
             return copy(self._registered_decoders)
-        return self._registered_decoders.keys()
+
+        return sorted(self._registered_decoders)
 
     def divisor(self):
         r"""
@@ -1554,7 +1560,7 @@ class AbstractLinearCode(Module):
         A linear code `C` over a field is called *projective* when its dual `Cd`
         has minimum weight `\geq 3`, i.e. when no two coordinate positions of
         `C` are linearly independent (cf. definition 3 from [BS2011]_ or 9.8.1 from
-        [BH12]).
+        [BH12]_).
 
         EXAMPLES::
 
@@ -1901,10 +1907,14 @@ class AbstractLinearCode(Module):
             try:
                 return encClass(self, *args, **kwargs)
             except TypeError:
-                raise ValueError("Constructing the {0} encoder failed, possibly due to missing or incorrect parameters.\n{1}"\
-                                     .format(encoder_name, _explain_constructor(encClass)))
+                raise ValueError(
+                        "Constructing the {0} encoder failed, possibly due "
+                        "to missing or incorrect parameters.\n{1}".format(
+                            encoder_name, _explain_constructor(encClass)))
         else:
-            raise ValueError("There is no Encoder named '%s'. The known Encoders are: %s" % (encoder_name, self.encoders_available()))
+            raise ValueError(
+                    "There is no Encoder named '{0}'. The known Encoders are: "
+                    "{1}".format(encoder_name, self.encoders_available()))
 
     def encoders_available(self, classes=False):
         r"""
@@ -1922,7 +1932,7 @@ class AbstractLinearCode(Module):
 
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
-            sage: sorted(C.encoders_available())
+            sage: C.encoders_available()
             ['GeneratorMatrix', 'Systematic']
             sage: dictionary = C.encoders_available(True)
             sage: sorted(dictionary.items())
@@ -1931,7 +1941,8 @@ class AbstractLinearCode(Module):
         """
         if classes:
             return copy(self._registered_encoders)
-        return self._registered_encoders.keys()
+
+        return sorted(self._registered_encoders)
 
     def extended_code(self):
         r"""

@@ -23,8 +23,8 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
     cdef inline bint get_flag(self, int flag):
         return self.flags & flag
 
-    cpdef bint is_coercion_cached(self, domain)
-    cpdef bint is_conversion_cached(self, domain)
+    cpdef bint _is_coercion_cached(self, domain)
+    cpdef bint _is_conversion_cached(self, domain)
     cpdef register_coercion(self, mor)
     cpdef register_action(self, action)
     cpdef register_conversion(self, mor)
@@ -48,6 +48,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
     cpdef convert_map_from(self, S)
     cpdef _internal_convert_map_from(self, S)
     cpdef _convert_map_from_(self, S)
+    cdef convert_method_map(self, S, method_name)
 
     # returns the Action by/on self on/by S
     # corresponding to op and self_on_left

@@ -1281,6 +1281,62 @@ class ImplicitSuffixTree(SageObject):
         else:
             raise TypeError("not an integer or None: %s" %s)
 
+
+    def LZ_decomposition(self):
+        r"""
+        Return a list of index of the begining of the block of the Lempel-Ziv
+        decomposition of ``self.word``
+
+        The *Lempel-Ziv decomposition* is the factorisation `u_1...u_k` of a
+        word `w=x_1...x_n` such that `u_i` is the longest prefix of `u_i...u_k`
+        that has an occurence starting before `u_i` or a letter if this prefix
+        is empty.
+
+        OUTPUT:
+
+        Return a list ``iB`` of index such that the blocks of the decomposition
+        are ``self.word()[iB[k]:iB[k+1]]``
+
+        EXAMPLES::
+
+            sage: w = Word('abababb')
+            sage: T = w.suffix_tree()
+            sage: T.LZ_decomposition()
+            [0, 1, 2, 6, 7]
+            sage: w = Word('abaababacabba')
+            sage: T = w.suffix_tree()
+            sage: T.LZ_decomposition()
+            [0, 1, 2, 3, 6, 8, 9, 11, 13]
+            sage: w = Word([0, 0, 0, 1, 1, 0, 1])
+            sage: T = w.suffix_tree()
+            sage: T.LZ_decomposition()
+            [0, 1, 3, 4, 5, 7]
+            sage: w = Word('0000100101')
+            sage: T = w.suffix_tree()
+            sage: T.LZ_decomposition()
+            [0, 1, 4, 5, 9, 10]
+        """
+        iB = [0]
+        i = 0
+        w = self.word()
+        while i < len(w):
+            l = 0
+            ((x, y), successor) = self._find_transition(0, w[i])
+            x = x-1
+            while x < i+l:
+                if y == None:
+                    l = len(w)-i
+                else:
+                    l += y-x
+                if i+l >= len(w):
+                    l = len(w)-i
+                    break
+                ((x, y), successor) = self._find_transition(successor, w[i+l])
+                x = x-1
+            i += max(1, l)
+            iB.append(i)
+        return iB
+
     #####
     # Miscellaneous methods
     #####

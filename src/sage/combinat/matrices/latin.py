@@ -192,7 +192,7 @@ class LatinSquare:
         elif len(args) == 1 and isinstance(args[0], Matrix_integer_dense):
             self.square = args[0]
         else:
-            raise NotImplemented
+            raise TypeError("bad input for latin square")
 
     def dumps(self):
         """
@@ -1198,7 +1198,7 @@ class LatinSquare:
                 # If this is an empty cell of self then we do nothing.
                 if self[r, c] < 0: continue
 
-                for e in uniq(valsrow.keys() + valscol.keys()):
+                for e in uniq(list(valsrow) + list(valscol)):
                     # These should be constants
                     c_OFFSET  = e + c*n
                     r_OFFSET  = e + r*n + n*n
@@ -1536,7 +1536,8 @@ def isotopism(p):
             return x
 
     # Not sure what we got!
-    raise NotImplemented
+    raise TypeError("unable to convert {!r} to isotopism".format(p))
+
 
 def cells_map_as_square(cells_map, n):
     """

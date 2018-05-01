@@ -290,7 +290,7 @@ def difference_quotient(
     """
     html('<h2>Difference Quotient</h2>')
     html('<div style="white-space: normal;">\
-         <a href="http://en.wikipedia.org/wiki/Difference_quotient" target="_blank">\
+         <a href="https://en.wikipedia.org/wiki/Difference_quotient" target="_blank">\
          Wikipedia article about difference quotient</a></div>'
          )
 

@@ -212,7 +212,7 @@ cdef class Matrix_complex_ball_dense(Matrix_dense):
 
             sage: A = Mat(CBF, 2); A
             Full MatrixSpace of 2 by 2 dense matrices over
-            Complex ball field with 53 bits precision
+            Complex ball field with 53 bits of precision
             sage: A(range(4))
             [                0 1.000000000000000]
             [2.000000000000000 3.000000000000000]
@@ -232,18 +232,18 @@ cdef class Matrix_complex_ball_dense(Matrix_dense):
             sage: v = matrix(CBF, 1, 10^5, range(10^5))
             sage: v.parent()
             Full MatrixSpace of 1 by 100000 dense matrices over
-            Complex ball field with 53 bits precision
+            Complex ball field with 53 bits of precision
 
         TESTS::
 
             sage: MatrixSpace(CBF, 0, 0).one()
             []
             sage: Matrix(CBF, 0, 100)
-            0 x 100 dense matrix over Complex ball field with 53 bits precision
-            (use the '.str()' method to see the entries)
+            0 x 100 dense matrix over Complex ball field with 53 bits
+            of precision (use the '.str()' method to see the entries)
             sage: Matrix(CBF, 100, 0)
-            100 x 0 dense matrix over Complex ball field with 53 bits precision
-            (use the '.str()' method to see the entries)
+            100 x 0 dense matrix over Complex ball field with 53 bits
+            of precision (use the '.str()' method to see the entries)
         """
         cdef Py_ssize_t i, j, k
         cdef bint is_list

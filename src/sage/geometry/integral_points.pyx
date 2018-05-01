@@ -851,7 +851,7 @@ cdef class Inequality_int:
     - ``b`` -- integer
 
     - ``max_abs_coordinates`` -- the maximum of the coordinates that
-      one wants to evalate the coordinates on; used for overflow
+      one wants to evaluate the coordinates on; used for overflow
       checking
 
     OUTPUT:

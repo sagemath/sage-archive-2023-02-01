@@ -630,7 +630,6 @@ def latex_extra_preamble():
         \newcommand{\RDF}{\Bold{R}}
         \newcommand{\RIF}{\Bold{I} \Bold{R}}
         \newcommand{\RLF}{\Bold{R}}
-        \newcommand{\CFF}{\Bold{CFF}}
         \newcommand{\Bold}[1]{\mathbf{#1}}
         <BLANKLINE>
     """
@@ -1010,7 +1009,7 @@ class Latex(LatexCall):
         EXAMPLES::
 
             sage: s = 2
-            sage: sage.misc.latex.Latex()._latex_preparse('\sage{s}', locals())
+            sage: sage.misc.latex.Latex()._latex_preparse(r'\sage{s}', locals())
             '2'
         """
         i0 = -1

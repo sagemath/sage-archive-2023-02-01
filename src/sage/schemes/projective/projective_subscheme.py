@@ -1040,7 +1040,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         the ambient projective space of `X`. The elimination ideal `I = J' \cap K[u_{ij}]`
         is a principal ideal, let `R` be its generator. The Chow form is obtained by
         writing `R` as a polynomial in Plucker coordinates (i.e. bracket polynomials).
-        [DalbecSturmfels].
+        [DalbecSturmfels]_.
 
         OUTPUT: a homogeneous polynomial.
 

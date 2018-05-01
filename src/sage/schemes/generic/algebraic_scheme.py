@@ -20,7 +20,7 @@ You still can create a projective space as a toric variety if you wish.
 In the following, we call the corresponding subschemes affine
 algebraic schemes, projective algebraic schemes, or toric algebraic
 schemes. In the future other ambient spaces, perhaps by means of
-gluing relations, may be intoduced.
+gluing relations, may be introduced.
 
 Generally, polynomials `p_0, p_1, \dots, p_n` define an ideal
 `I=\left<p_0, p_1, \dots, p_n\right>`. In the projective and toric case, the
@@ -1287,7 +1287,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         * the defining polynomials of the algebraic scheme. Note that
           some authors do not include these in the definition of the
           Jacobian ideal. An example of a reference that does include
-          the defining equations is [LazarsfeldJacobian].
+          the defining equations is [LazarsfeldJacobian]_.
 
         OUTPUT:
 

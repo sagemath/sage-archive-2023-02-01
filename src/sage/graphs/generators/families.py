@@ -17,7 +17,7 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 ###########################################################################
-from __future__ import print_function
+from __future__ import print_function, division
 import six
 from six.moves import range
 
@@ -119,7 +119,7 @@ def KneserGraph(n,k):
 
     from sage.combinat.subset import Subsets
     S = Subsets(n,k)
-    if k>n/2:
+    if 2 * k > n:
         g.add_vertices(S)
 
     s0 = S.underlying_set()    # {1,2,...,n}
@@ -1322,9 +1322,9 @@ def GeneralizedPetersenGraph(n,k):
 
     - Anders Jonsson (2009-10-15)
     """
-    if (n < 3):
+    if n < 3:
             raise ValueError("n must be larger than 2")
-    if (k < 1 or k>((n-1)/2)):
+    if k < 1 or k > (n - 1) // 2:
             raise ValueError("k must be in 1<= k <=floor((n-1)/2)")
     pos_dict = {}
     G = Graph()
@@ -2478,24 +2478,22 @@ def WheelGraph(n):
     """
     Returns a Wheel graph with n nodes.
 
-    A Wheel graph is a basic structure where one node is connected to
-    all other nodes and those (outer) nodes are connected cyclically.
+    A Wheel graph is a basic structure where one node is connected to all other
+    nodes and those (outer) nodes are connected cyclically.
 
-    This constructor depends on NetworkX numeric labels.
+    PLOTTING: Upon construction, the position dictionary is filled to override
+    the spring-layout algorithm. By convention, each wheel graph will be
+    displayed with the first (0) node in the center, the second node at the top,
+    and the rest following in a counterclockwise manner.
 
-    PLOTTING: Upon construction, the position dictionary is filled to
-    override the spring-layout algorithm. By convention, each wheel
-    graph will be displayed with the first (0) node in the center, the
-    second node at the top, and the rest following in a
-    counterclockwise manner.
+    With the wheel graph, we see that it doesn't take a very large n at all for
+    the spring-layout to give a counter-intuitive display. (See Graphics Array
+    examples below).
 
-    With the wheel graph, we see that it doesn't take a very large n at
-    all for the spring-layout to give a counter-intuitive display. (See
-    Graphics Array examples below).
+    EXAMPLES:
 
-    EXAMPLES: We view many wheel graphs with a Sage Graphics Array,
-    first with this constructor (i.e., the position dictionary
-    filled)::
+    We view many wheel graphs with a Sage Graphics Array, first with this
+    constructor (i.e., the position dictionary filled)::
 
         sage: g = []
         sage: j = []
@@ -2539,15 +2537,16 @@ def WheelGraph(n):
         sage: spring23.show() # long time
         sage: posdict23.show() # long time
     """
-    pos_dict = {}
-    pos_dict[0] = (0,0)
-    for i in range(1,n):
-        x = float(cos((pi/2) + ((2*pi)/(n-1))*(i-1)))
-        y = float(sin((pi/2) + ((2*pi)/(n-1))*(i-1)))
-        pos_dict[i] = (x,y)
-    import networkx
-    G = networkx.wheel_graph(n)
-    return Graph(G, pos=pos_dict, name="Wheel graph")
+    from sage.graphs.generators.basic import CycleGraph
+    if n < 4:
+        G = CycleGraph(n)
+    else:
+        G = CycleGraph(n-1)
+        G.relabel(perm=list(range(1, n)), inplace=True)
+        G.add_edges([(0, i) for i in range(1, n)])
+        G._pos[0] = (0, 0)
+    G.name("Wheel graph")
+    return G
 
 def WindmillGraph(k, n):
     r"""
@@ -3163,7 +3162,7 @@ def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
     # build L, L_i and the design
     m = int((n**d-1)/(n-1) + 1) #from m = p + 1, p = (n^d-1) / (n-1)
     L = CompleteGraph(m)
-    L.delete_edges([(2*x, 2*x + 1) for x in range(m/2)])
+    L.delete_edges([(2 * x, 2 * x + 1) for x in range(m // 2)])
     L_i = [L.edges_incident(x, labels=False) for x in range(m)]
     Design = ProjectiveGeometryDesign(d, d-1, GF(n, 'a'), point_coordinates=False)
     projBlocks = Design.blocks()

@@ -32,18 +32,23 @@ For more information about active vertices, see the documentation for the
 method :meth:`realloc <sage.graphs.base.c_graph.CGraph.realloc>`.
 """
 
-#**************************************************************************
-#        Copyright (C) 2008-9 Robert L. Miller <rlmillster@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2008-9 Robert L. Miller <rlmillster@gmail.com>
 #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
-#**************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from __future__ import print_function, absolute_import, division
 
 include "sage/data_structures/bitset.pxi"
 
 from sage.rings.integer cimport Integer
-from sage.misc.long cimport pyobject_to_long
+from sage.arith.long cimport pyobject_to_long
+
 
 cdef class CGraph:
     """

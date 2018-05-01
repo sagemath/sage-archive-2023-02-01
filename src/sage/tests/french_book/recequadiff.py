@@ -393,7 +393,7 @@ Sage example in ./recequadiff.tex, line 1265::
 
   sage: from sympy import rsolve_hyper
   sage: n = Symbol('n', integer=True)
-  sage: rsolve_hyper([-2,1],2**(n+2),n)
+  sage: rsolve_hyper([-2,1],2**(n+2),n)  # known bug (Trac #24334)
   2**n*C0 + 2**(n + 2)*(C0 + n/2)
 
 """

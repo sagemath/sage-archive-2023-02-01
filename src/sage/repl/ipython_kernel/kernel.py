@@ -157,7 +157,7 @@ class SageKernel(IPythonKernel):
             },
             {
                 'text': "Matplotlib",
-                'url': "http://matplotlib.org/contents.html",
+                'url': "https://matplotlib.org/contents.html",
             },
             {
                 'text': "Markdown",

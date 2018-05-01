@@ -68,7 +68,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
     EXAMPLES:
 
-    A homomorphism between two free modules over `\ZZ` is contructed
+    A homomorphism between two free modules over `\ZZ` is constructed
     as an element of the corresponding hom-set, by means of the function
     ``__call__``::
 
@@ -128,7 +128,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
         sage: phi.codomain()
         Rank-2 free module N over the Integer Ring
         sage: type(phi.domain)
-        <type 'sage.misc.constant_function.ConstantFunction'>
+        <... 'sage.misc.constant_function.ConstantFunction'>
 
     The matrix of the homomorphism with respect to a pair of bases is
     returned by the method :meth:`matrix`::

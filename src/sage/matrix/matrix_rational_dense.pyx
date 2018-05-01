@@ -982,6 +982,10 @@ cdef class Matrix_rational_dense(Matrix_dense):
         """
         Return the characteristic polynomial of this matrix.
 
+        .. NOTE::
+
+            The characteristic polynomial is defined as `\det(xI-A)`.
+
         INPUT:
 
 
@@ -1782,7 +1786,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
     def _echelonize_multimodular(self, height_guess=None, proof=None):
         """
-        Echelonize self using mutlimodular recomposition
+        Echelonize ``self`` using multimodular recomposition.
 
         REFERENCE:
 

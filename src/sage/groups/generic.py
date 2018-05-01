@@ -109,7 +109,7 @@ Some examples in the group of points of an elliptic curve over a finite field:
 
 from copy import copy
 
-import sage.misc.all as misc
+from sage.misc.all import prod
 import sage.rings.integer_ring as integer_ring
 import sage.rings.integer
 from sage.arith.srange import xsrange
@@ -121,7 +121,10 @@ from sage.arith.srange import xsrange
 multiplication_names = ( 'multiplication', 'times', 'product', '*')
 addition_names       = ( 'addition', 'plus', 'sum', '+')
 
+
+# deprecation(24256)
 from sage.structure.element import generic_power as power
+
 
 def multiple(a, n, operation='*', identity=None, inverse=None, op=None):
     r"""
@@ -426,7 +429,7 @@ def bsgs(a, b, bounds, operation='*', identity=None, inverse=None, op=None):
         sage: F.<a> = GF(37^5)
         sage: E = EllipticCurve(F, [1,1])
         sage: P = E.lift_x(a); P
-        (a : 9*a^4 + 22*a^3 + 23*a^2 + 30 : 1)
+        (a : 28*a^4 + 15*a^3 + 14*a^2 + 7 : 1)
 
     This will return a multiple of the order of P::
 
@@ -1156,7 +1159,7 @@ def order_from_multiple(P, m, plist=None, factorization=None, check=True,
             L2 = L[k:]
             # recursive calls
             o1 = _order_from_multiple_helper(
-                multiple(Q, misc.prod([p**e for p,e in L2]), operation),
+                multiple(Q, prod([p**e for p,e in L2]), operation),
                 L1,
                 sum_left)
             o2 = _order_from_multiple_helper(

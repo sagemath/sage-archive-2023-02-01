@@ -363,7 +363,7 @@ class LatticePolygon_PPL_class(LatticePolytope_PPL_class):
 
     def sub_polytopes(self):
         """
-        Returns a list of all lattice sub-polygons up to isomorphsm.
+        Return a list of all lattice sub-polygons up to isomorphism.
 
         OUTPUT:
 

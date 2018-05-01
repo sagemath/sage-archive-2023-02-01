@@ -11,10 +11,14 @@ default: all
 
 build: all-build
 
+# The --stop flag below is just a random flag to induce graceful
+# breakage with non-GNU versions of make.
+# See https://trac.sagemath.org/ticket/24617
+
 # Defer unknown targets to build/make/Makefile
 %::
 	@if [ -x relocate-once.py ]; then ./relocate-once.py; fi
-	$(MAKE) build/make/Makefile
+	$(MAKE) build/make/Makefile --stop
 	+build/bin/sage-logger \
 		"cd build/make && ./install '$@'" logs/install.log
 
@@ -36,6 +40,13 @@ build/make/Makefile: configure build/make/deps build/pkgs/*/*
 		else \
 			echo "Since 'SAGE_PORT' is set, we will try to build anyway."; \
 		fi; )
+
+# This is used to monitor progress towards Python 3 and prevent
+# regressions. The target "build" should be upgraded to reflect the
+# level of Python 3 support that is known to work.
+buildbot-python3: configure
+	./configure --with-python=3
+	$(MAKE) build
 
 # Preemptively download all standard upstream source tarballs.
 download:
@@ -142,4 +153,5 @@ install: all
 .PHONY: default build install micro_release \
 	misc-clean bdist-clean distclean bootstrap-clean maintainer-clean \
 	test check testoptional testall testlong testoptionallong testallong \
-	ptest ptestoptional ptestall ptestlong ptestoptionallong ptestallong
+	ptest ptestoptional ptestall ptestlong ptestoptionallong ptestallong \
+	buildbot-python3

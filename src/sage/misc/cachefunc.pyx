@@ -502,7 +502,7 @@ cdef frozenset special_method_names = frozenset(['__abs__', '__add__',
 def _cached_function_unpickle(module, name, cache=None):
     """
     Unpickle the cache function ``name`` defined in ``module``.
-    
+
     This function loads ``name`` from ``module`` (it does not restore the code
     of the actual function when it was pickled.) The cache is restored from
     ``cache`` if present.
@@ -1265,9 +1265,7 @@ cdef class CachedFunction(object):
             sage: g.cache
             {}
         """
-        cdef cache = self.cache
-        for key in cache.keys():
-            del cache[key]
+        self.cache.clear()
 
     def precompute(self, arglist, num_processes=1):
         """
@@ -1690,7 +1688,7 @@ class CachedMethodPickle(object):
             if isinstance(CM, CachedMethodCallerNoArgs):
                 CM.cache = self._cache
             else:
-                for k,v in self._cache:
+                for k, v in self._cache:
                     CM.cache[k] = v
         return CM(*args,**kwds)
 
@@ -1729,7 +1727,7 @@ class CachedMethodPickle(object):
             if isinstance(CM, CachedMethodCallerNoArgs):
                 CM.cache = self._cache
             else:
-                for k,v in self._cache:
+                for k, v in self._cache:
                     CM.cache[k] = v
         return getattr(CM,s)
 
@@ -2564,7 +2562,7 @@ cdef class GloballyCachedMethodCaller(CachedMethodCaller):
 
             sage: class MyParent(Parent):
             ....:     pass
-            sage: class MyElement:
+            sage: class MyElement(object):
             ....:     def __init__(self, x):
             ....:         self.x = x
             ....:     def parent(self):
@@ -2574,7 +2572,7 @@ cdef class GloballyCachedMethodCaller(CachedMethodCaller):
             ....:         return self.x^2
             sage: a = MyElement(2)
             sage: a.f.get_key()
-            (<__main__.MyElement instance at 0x...>, ((), ()))
+            (<__main__.MyElement object at 0x...>, ((), ()))
             sage: a.f.get_key()[0] is a
             True
         """
@@ -2693,7 +2691,7 @@ cdef class CachedMethod(object):
         """
         EXAMPLES::
 
-            sage: class Foo:
+            sage: class Foo(object):
             ....:     def __init__(self, x):
             ....:         self._x = x
             ....:     @cached_method
@@ -2732,15 +2730,15 @@ cdef class CachedMethod(object):
 
         The cached method ``f0`` accepts no arguments, which allows
         for an improved way of caching: By an attribute of the cached
-        method itsel. This cache is *only* available in that way, i.e.,
+        method itself. This cache is *only* available in that way, i.e.,
         it is not additionally stored as an attribute of ``a``::
 
             sage: type(a.f0)
             <type 'sage.misc.cachefunc.CachedMethodCallerNoArgs'>
             sage: a.f0.cache
             4
-            sage: sorted(dir(a))
-            ['__doc__', '__init__', '__module__', '_cache__f', '_x', 'f', 'f0']
+            sage: sorted(n for n in dir(a) if not n.startswith('__'))
+            ['_cache__f', '_x', 'f', 'f0']
 
         The cached method has its name and module set::
 
@@ -3475,7 +3473,7 @@ class FileCache(object):
             sage: I.sort(); I
             [(((), ()), 1), (((1,), (('a', 1),)), 3), (((1, 2), ()), 2)]
         """
-        return [(k,self[k]) for k in self]
+        return [(k, self[k]) for k in self]
 
     def values(self):
         """
@@ -3537,6 +3535,32 @@ class FileCache(object):
             if f[-9:] == '.key.sobj':
                 K.append(load(f))
         return K
+
+    def clear(self):
+        """
+        Clear all key, value pairs from self and unlink the associated files
+        from the file cache.
+
+        EXAMPLES::
+
+            sage: from sage.misc.cachefunc import FileCache
+            sage: dir = tmp_dir()
+            sage: FC1 = FileCache(dir, memory_cache=False, prefix='foo')
+            sage: FC2 = FileCache(dir, memory_cache=False, prefix='foo')
+            sage: k1 = ((), (('a', 1),))
+            sage: t1 = randint(0, 1000)
+            sage: k2 = ((), (('b', 1),))
+            sage: t2 = randint(0, 1000)
+            sage: FC1[k1] = t1
+            sage: FC2[k2] = t2
+            sage: FC2.clear()
+            sage: k1 in FC1
+            False
+            sage: k2 in FC1
+            False
+        """
+        for k in self:
+            del self[k]
 
     def _filename(self, key):
         """
@@ -3615,7 +3639,7 @@ class FileCache(object):
 
         f = self._filename(key) + '.sobj'
         try:
-            k,v = load(f)
+            k, v = load(f)
         except IOError:
             raise KeyError(key)
         if k != key:

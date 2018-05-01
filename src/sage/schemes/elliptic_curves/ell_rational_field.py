@@ -95,8 +95,8 @@ from sage.misc.all import verbose
 from sage.functions.log import log
 
 import sage.matrix.all as matrix
-from   sage.libs.pari.all import pari, PariError
-from sage.functions.other import gamma_inc
+from sage.libs.pari.all import pari
+from sage.functions.gamma import gamma_inc
 from math import sqrt
 from sage.interfaces.all import gp
 from sage.misc.cachefunc import cached_method
@@ -604,7 +604,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E = EllipticCurve([0, 0, 1, -1, 0])
             sage: e = E.pari_curve()
             sage: type(e)
-            <type 'cypari2.gen.Gen'>
+            <... 'cypari2.gen.Gen'>
             sage: e.type()
             't_VEC'
             sage: e.ellan(10)
@@ -900,7 +900,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: v = e.aplist(13); v
             [-2, -3, -2, -1, -5, -2]
             sage: type(v[0])
-            <type 'sage.rings.integer.Integer'>
+            <... 'sage.rings.integer.Integer'>
             sage: type(e.aplist(13, python_ints=True)[0])
             <... 'int'>
         """
@@ -1581,7 +1581,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         by ``max_Delta``. This computation can be run on curves with very large
         conductor (so long as the conductor is known or quickly computable)
         when `\Delta` is not too large (see below).
-        Uses Bober's rank bounding method as described in [Bob13].
+        Uses Bober's rank bounding method as described in [Bob13]_.
 
         INPUT:
 
@@ -2685,10 +2685,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             0.6555158376972852
 
         IMPLEMENTATION:
-            Call the corresponding mwrank C++ library function.  Note that
-            the formula in the [CPS] paper is given for number fields.  It's
-            only the implementation in Sage that restricts to the rational
-            field.
+
+        Call the corresponding mwrank C++ library function.  Note that
+        the formula in the [CPS]_ paper is given for number fields.  It is
+        only the implementation in Sage that restricts to the rational
+        field.
         """
         if not self.is_minimal():
             raise RuntimeError("curve must be minimal.")
@@ -2770,14 +2771,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         -  ``verbose (bool)`` - (default: ``False``)
 
-           If ``True``, report on each point as found together with linear
-           relations between the points found and the saturation process.
+           If ``True``, report on the saturation process.
 
            If ``False``, just return the result.
 
         -  ``rank_bound (bool)`` - (default: ``None``)
 
-           If provided, stop searching for points once we find this many
+           If provided, stop saturating once we find this many
            independent nontorsion points.
 
         OUTPUT: points (list) - list of independent points which generate
@@ -2790,19 +2790,19 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
            the running time to increase by a factor of approximately
            4.5 (=exp(1.5)).
 
-        IMPLEMENTATION: Uses Michael Stoll's ratpoints library.
+        IMPLEMENTATION: Uses Michael Stoll's ratpoints module in PARI/GP.
 
         EXAMPLES::
 
             sage: E = EllipticCurve('389a1')
             sage: E.point_search(5, verbose=False)
-            [(-1 : 1 : 1), (-3/4 : 7/8 : 1)]
+            [(-1 : 1 : 1), (0 : 0 : 1)]
 
         Increasing the height_limit takes longer, but finds no more
         points::
 
             sage: E.point_search(10, verbose=False)
-            [(-1 : 1 : 1), (-3/4 : 7/8 : 1)]
+            [(-1 : 1 : 1), (0 : 0 : 1)]
 
         In fact this curve has rank 2 so no more than 2 points will ever be
         output, but we are not using this fact.
@@ -2810,7 +2810,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         ::
 
             sage: E.saturation(_)
-            ([(-1 : 1 : 1), (-3/4 : 7/8 : 1)], 1, 0.152460177943144)
+            ([(-1 : 1 : 1), (0 : 0 : 1)], 1, 0.152460177943144)
 
         What this shows is that if the rank is 2 then the points listed do
         generate the Mordell-Weil group (mod torsion). Finally,
@@ -2824,32 +2824,19 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             sage: E.point_search(5, verbose=False, rank_bound=1)
             [(-2 : 0 : 1)]
-
         """
-        from sage.libs.ratpoints import ratpoints
-        from sage.functions.all import exp
-        from sage.arith.all import GCD
-        H = exp(float(height_limit)) # max(|p|,|q|) <= H, if x = p/q coprime
-        coeffs = [16*self.b6(), 8*self.b4(), self.b2(), 1]
+        # Convert logarithmic height to height
+        # max(|p|,|q|) <= H, if x = p/q coprime
+        H = pari.exp(height_limit).floor()
+
         points = []
-        a1 = self.a1()
-        a3 = self.a3()
-        new_H = H*2 # since we change the x-coord by 2 below
-        for X,Y,Z in ratpoints(coeffs, new_H, verbose):
-            if Z == 0: continue
-            z = 2*Z
-            x = X/2
-            y = (Y/z - a1*x - a3*z)/2
-            d = GCD((x,y,z))
-            x = x/d
-            if max(x.numerator().abs(), x.denominator().abs()) <= H:
-                y = y/d
-                z = z/d
-                points.append(self((x,y,z)))
-                if rank_bound is not None:
-                    points = self.saturation(points, verbose=verbose)[0]
-                    if len(points) == rank_bound:
-                        break
+        for x, y in self.pari_curve().ellratpoints(H):
+            P = self((x, y, 1))
+            points.append(P)
+            if rank_bound is not None:
+                points = self.saturation(points, verbose=verbose)[0]
+                if len(points) >= rank_bound:
+                    return points
         if rank_bound is None:
             points = self.saturation(points, verbose=verbose)[0]
         return points
@@ -4058,12 +4045,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: e.torsion_order()
             5
             sage: type(e.torsion_order())
-            <type 'sage.rings.integer.Integer'>
+            <... 'sage.rings.integer.Integer'>
             sage: e = EllipticCurve([1,2,3,4,5])
             sage: e.torsion_order()
             1
             sage: type(e.torsion_order())
-            <type 'sage.rings.integer.Integer'>
+            <... 'sage.rings.integer.Integer'>
         """
         try:
             return self.__torsion_order
@@ -4247,7 +4234,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: EllipticCurve('389a1').root_number()
             1
             sage: type(EllipticCurve('389a1').root_number())
-            <type 'sage.rings.integer.Integer'>
+            <... 'sage.rings.integer.Integer'>
 
             sage: E = EllipticCurve('100a1')
             sage: E.root_number(2)
@@ -4978,7 +4965,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 #     The following function can be implemented once composition of
 #     isogenies has been implemented.
 #
-#     def contruct_isogeny(self, other):
+#     def construct_isogeny(self, other):
 #         """
 #         Return an isogeny from self to other if the two curves are in
 #         the same isogeny class.
@@ -5759,15 +5746,29 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             sage: E = EllipticCurve([0, 0, 1, -7, 6])
             sage: xset = E.integral_x_coords_in_interval(-100,100)
-            sage: xlist = list(xset); xlist.sort(); xlist
+            sage: sorted(xset)
             [-3, -2, -1, 0, 1, 2, 3, 4, 8, 11, 14, 21, 37, 52, 93]
+            sage: xset = E.integral_x_coords_in_interval(-100, 0)
+            sage: sorted(xset)
+            [-3, -2, -1, 0]
+
+        TESTS:
+
+        The bug reported on :trac:`22719` is now fixed::
+
+            sage: E = EllipticCurve("141d1")
+            sage: E.integral_points()
+            [(0 : 0 : 1), (2 : 1 : 1)]
         """
-        from sage.libs.ratpoints import ratpoints
-        xmin=Integer(xmin)
-        xmax=Integer(xmax)
-        coeffs = self.division_polynomial(2).coefficients(sparse=False)
-        H = max(xmin.abs(), xmax.abs())
-        return set([x for x,y,z in ratpoints(coeffs, H, max_x_denom=1, intervals=[[xmin,xmax]]) if z])
+        xmin = pari(xmin)
+        xmax = pari(xmax)
+        H = max(1, abs(xmin), abs(xmax))
+        S = set()
+        for pt in self.pari_curve().ellratpoints([H, 1]):
+            x = pt[0]
+            if xmin <= x <= xmax:
+                S.add(ZZ(x))
+        return S
 
     prove_BSD = BSD.prove_BSD
 
@@ -5873,14 +5874,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             ....:     assert 4*n^6+4*n^2 in [P[0] for P in EllipticCurve([0,0,0,2,n^2]).integral_points()]
 
 
-        .. note::
+        .. NOTE::
 
-           This function uses the algorithm given in [Co1]_.
-
-        REFERENCES:
-
-        .. [Co1] \H. Cohen, Number Theory, Vol. I: Tools and
-           Diophantine Equations.  GTM 239, Springer, 2007.
+           This function uses the algorithm given in [Coh2007I]_.
 
         AUTHORS:
 
@@ -6007,7 +6003,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             print("e1,e2,e3: ", e1, e2, e3)
             sys.stdout.flush()
 
-        # Algorithm presented in [Co1]
+        # Algorithm presented in [Coh2007I]
         h_E = self.height()
         w1, w2 = self.period_lattice().basis()
         mu = R(disc).abs().log() / 6
@@ -6267,7 +6263,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: [len(e.S_integral_points([2], both_signs=False)) for e in cremona_curves([11..100])] # long time (17s on sage.math, 2011)
             [2, 0, 2, 3, 3, 1, 3, 1, 3, 5, 3, 5, 4, 1, 1, 2, 2, 2, 3, 1, 2, 1, 0, 1, 3, 3, 1, 1, 5, 3, 4, 2, 1, 1, 5, 3, 2, 2, 1, 1, 1, 0, 1, 3, 0, 1, 0, 1, 1, 3, 7, 1, 3, 3, 3, 1, 1, 2, 3, 1, 2, 3, 1, 2, 1, 3, 3, 1, 1, 1, 0, 1, 3, 3, 1, 1, 7, 1, 0, 1, 1, 0, 1, 2, 0, 3, 1, 2, 1, 3, 1, 2, 2, 4, 5, 3, 2, 1, 1, 6, 1, 0, 1, 3, 1, 3, 3, 1, 1, 1, 1, 1, 3, 1, 5, 1, 2, 4, 1, 1, 1, 1, 1, 0, 1, 0, 2, 2, 0, 0, 1, 0, 1, 1, 6, 1, 0, 1, 1, 0, 4, 3, 1, 2, 1, 2, 3, 1, 1, 1, 1, 8, 3, 1, 2, 1, 2, 0, 8, 2, 0, 6, 2, 3, 1, 1, 1, 3, 1, 3, 2, 1, 3, 1, 2, 1, 6, 9, 3, 3, 1, 1, 2, 3, 1, 1, 5, 5, 1, 1, 0, 1, 1, 2, 3, 1, 1, 2, 3, 1, 3, 1, 1, 1, 1, 0, 0, 1, 3, 3, 1, 3, 1, 1, 2, 2, 0, 0, 6, 1, 0, 1, 1, 1, 1, 3, 1, 2, 6, 3, 1, 2, 2, 1, 1, 1, 1, 7, 5, 4, 3, 3, 1, 1, 1, 1, 1, 1, 8, 5, 1, 1, 3, 3, 1, 1, 3, 3, 1, 1, 2, 3, 6, 1, 1, 7, 3, 3, 4, 5, 9, 6, 1, 0, 7, 1, 1, 3, 1, 1, 2, 3, 1, 2, 1, 1, 1, 1, 1, 1, 1, 7, 8, 2, 3, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1]
 
-        An example from [PZGH]::
+        An example from [PZGH]_::
 
             sage: E = EllipticCurve([0,0,0,-172,505])
             sage: E.rank(), len(E.S_integral_points([3,5,7]))  # long time (5s on sage.math, 2011)
@@ -6290,9 +6286,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         REFERENCES:
 
-        - [PZGH] Petho A., Zimmer H.G., Gebel J. and Herrmann E.,
-          Computing all S-integral points on elliptic curves
-          Math. Proc. Camb. Phil. Soc. (1999), 127, 383-402
+        .. [PZGH] Petho A., Zimmer H.G., Gebel J. and Herrmann E.,
+           Computing all S-integral points on elliptic curves
+           Math. Proc. Camb. Phil. Soc. (1999), 127, 383-402
 
         - Some parts of this implementation are partially based on the
           function integral_points()

@@ -66,9 +66,10 @@ def _check_trac_number(trac_number):
     try:
         trac_number = trac_number.__index__()
     except Exception:
-        raise TypeError('%r is not a valid trac issue number'%trac_number)
+        raise TypeError('%r is not a valid trac issue number' % trac_number)
     if trac_number <= 0:
-        raise ValueError('%r is not a valid trac issue number'%trac_number)
+        raise ValueError('%r is not a valid trac issue number' % trac_number)
+
 
 def deprecation(trac_number, message, stacklevel=4):
     r"""
@@ -100,6 +101,7 @@ def deprecation(trac_number, message, stacklevel=4):
     """
     warning(trac_number, message, DeprecationWarning, stacklevel)
 
+
 def warning(trac_number, message, warning_class=Warning, stacklevel=3):
     r"""
     Issue a warning.
@@ -126,7 +128,7 @@ def warning(trac_number, message, warning_class=Warning, stacklevel=3):
         ....:         FutureWarning)
         sage: foo()
         doctest:...: FutureWarning: The syntax will change in future.
-        See http://trac.sagemath.org/99999 for details.
+        See https://trac.sagemath.org/99999 for details.
 
     .. SEEALSO::
 
@@ -136,10 +138,15 @@ def warning(trac_number, message, warning_class=Warning, stacklevel=3):
     """
     _check_trac_number(trac_number)
     message += '\n'
-    message += 'See http://trac.sagemath.org/'+ str(trac_number) + ' for details.'
+    if trac_number < 24800:  # to avoid changing all previous doctests
+        message += 'See http://trac.sagemath.org/'+ str(trac_number) + ' for details.'
+    else:
+        message += 'See https://trac.sagemath.org/'+ str(trac_number) + ' for details.'
+        
     # Stack level 3 to get the line number of the code which called
     # the deprecated function which called this function.
     warn(message, warning_class, stacklevel)
+
 
 def experimental_warning(trac_number, message, stacklevel=4):
     r"""
@@ -165,7 +172,7 @@ def experimental_warning(trac_number, message, stacklevel=4):
         sage: foo()
         doctest:...: FutureWarning: This function is experimental and
         might change in future.
-        See http://trac.sagemath.org/66666 for details.
+        See https://trac.sagemath.org/66666 for details.
 
     .. SEEALSO::
 
@@ -199,7 +206,7 @@ class experimental(object):
             doctest:...: FutureWarning: This class/method/function is
             marked as experimental. It, its functionality or its
             interface might change without a formal deprecation.
-            See http://trac.sagemath.org/79997 for details.
+            See https://trac.sagemath.org/79997 for details.
             (7,) {'what': 'Hello'}
 
         ::
@@ -212,7 +219,7 @@ class experimental(object):
             doctest:...: FutureWarning: This class/method/function is
             marked as experimental. It, its functionality or its
             interface might change without a formal deprecation.
-            See http://trac.sagemath.org/99999 for details.
+            See https://trac.sagemath.org/99999 for details.
             piep (99,) {}
 
         TESTS:
@@ -227,7 +234,7 @@ class experimental(object):
             doctest:...: FutureWarning: This class/method/function is
             marked as experimental. It, its functionality or its
             interface might change without a formal deprecation.
-            See http://trac.sagemath.org/88888 for details.
+            See https://trac.sagemath.org/88888 for details.
             I'm A
 
         .. SEEALSO::
@@ -261,7 +268,7 @@ class experimental(object):
             doctest:...: FutureWarning: This class/method/function is
             marked as experimental. It, its functionality or its
             interface might change without a formal deprecation.
-            See http://trac.sagemath.org/99399 for details.
+            See https://trac.sagemath.org/99399 for details.
             (3,) {'what': 'Hello'}
         """
         from sage.misc.decorators import sage_wraps
@@ -420,7 +427,7 @@ class DeprecatedFunctionAlias(object):
         else:
             return self.func(self.instance, *args, **kwds)
 
-    def __get__(self, inst, cls = None):
+    def __get__(self, inst, cls=None):
         """
         TESTS::
 

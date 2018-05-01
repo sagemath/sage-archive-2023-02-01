@@ -137,28 +137,26 @@ cdef class Ring(ParentWithGens):
     Test agaings another bug fixed in :trac:`9944`::
 
         sage: QQ['x'].category()
-        Join of Category of euclidean domains
-             and Category of commutative algebras over
-                 (number fields and quotient fields and metric spaces)
+        Join of Category of euclidean domains and Category of commutative algebras over
+        (number fields and quotient fields and metric spaces) and Category of infinite sets
         sage: QQ['x','y'].category()
-        Join of Category of unique factorization domains
-             and Category of commutative algebras over
-                 (number fields and quotient fields and metric spaces)
+        Join of Category of unique factorization domains and Category of commutative algebras over
+        (number fields and quotient fields and metric spaces) and Category of infinite sets
         sage: PolynomialRing(MatrixSpace(QQ,2),'x').category()
-        Category of algebras over (finite dimensional algebras with basis over
-         (number fields and quotient fields and metric spaces) and infinite sets)
+        Category of infinite algebras over (finite dimensional algebras with basis over
+        (number fields and quotient fields and metric spaces) and infinite sets)
         sage: PolynomialRing(SteenrodAlgebra(2),'x').category()
-        Category of algebras over graded hopf algebras with basis over Finite Field of size 2
+        Category of infinite algebras over graded hopf algebras with basis over Finite Field of size 2
 
-     TESTS::
+    TESTS::
 
-         sage: Zp(7)._repr_option('element_is_atomic')
-         False
-         sage: QQ._repr_option('element_is_atomic')
-         True
-         sage: CDF._repr_option('element_is_atomic')
-         False
-     """
+        sage: Zp(7)._repr_option('element_is_atomic')
+        False
+        sage: QQ._repr_option('element_is_atomic')
+        True
+        sage: CDF._repr_option('element_is_atomic')
+        False
+    """
     def __init__(self, base, names=None, normalize=True, category = None):
         """
         Initialize ``self``.
@@ -1182,11 +1180,11 @@ cdef class Ring(ParentWithGens):
         ring class by a random integer::
 
             sage: R = sage.rings.ring.Ring(ZZ); R
-            <type 'sage.rings.ring.Ring'>
+            <sage.rings.ring.Ring object at ...>
             sage: R.random_element()
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: cannot construct elements of <sage.rings.ring.Ring object at ...>
         """
         return self(randint(-bound,bound))
 
@@ -1703,7 +1701,7 @@ cdef class IntegralDomain(CommutativeRing):
             sage: R.is_field()
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: cannot construct elements of <sage.rings.ring.IntegralDomain object at ...>
         """
         if self.is_finite():
             return True
@@ -2263,7 +2261,7 @@ cdef class Algebra(Ring):
         EXAMPLES::
 
             sage: A = Algebra(ZZ); A
-            <type 'sage.rings.ring.Algebra'>
+            <sage.rings.ring.Algebra object at ...>
         """
         # This is a low-level class. For performance, we trust that the category
         # is fine, if it is provided. If it isn't, we use the category of Algebras(base_ring).
@@ -2283,7 +2281,7 @@ cdef class Algebra(Ring):
         EXAMPLES::
 
             sage: A = Algebra(ZZ); A
-            <type 'sage.rings.ring.Algebra'>
+            <sage.rings.ring.Algebra object at ...>
             sage: A.characteristic()
             0
             sage: A = Algebra(GF(7^3, 'a'))
@@ -2362,10 +2360,10 @@ cdef class CommutativeAlgebra(CommutativeRing):
 
         EXAMPLES::
 
-            sage: sage.rings.ring.CommutativeAlgebra(QQ) # indirect doctest
-            <type 'sage.rings.ring.CommutativeAlgebra'>
+            sage: sage.rings.ring.CommutativeAlgebra(QQ)
+            <sage.rings.ring.CommutativeAlgebra object at ...>
 
-            sage: sage.rings.ring.CommutativeAlgebra(QuaternionAlgebra(QQ,-1,-1)) # indirect doctest
+            sage: sage.rings.ring.CommutativeAlgebra(QuaternionAlgebra(QQ,-1,-1))
             Traceback (most recent call last):
             ...
             TypeError: base ring must be a commutative ring

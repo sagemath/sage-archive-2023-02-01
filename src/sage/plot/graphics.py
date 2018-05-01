@@ -1549,7 +1549,7 @@ class Graphics(WithEqualityById, SageObject):
 
           - ``"default"`` -- Uses matplotlib's internal text rendering
             engine called Mathtext ( see
-            http://matplotlib.org/users/mathtext.html ). If you have
+            https://matplotlib.org/users/mathtext.html ). If you have
             modified the default matplotlib settings, for instance via
             a matplotlibrc file, then this option will not change any of
             those settings.
@@ -2457,6 +2457,7 @@ class Graphics(WithEqualityById, SageObject):
                    axes_pad=None, ticks_integer=None,
                    tick_formatter=None, ticks=None, title=None,
                    title_pos=None, base=None, scale=None,
+                   stylesheet='classic',
                    typeset='default'):
         r"""
         Return a matplotlib figure object representing the graphic
@@ -2525,6 +2526,11 @@ class Graphics(WithEqualityById, SageObject):
         """
         if not isinstance(ticks, (list, tuple)):
             ticks = (ticks, None)
+
+        import matplotlib.pyplot as plt
+        if stylesheet not in plt.style.available:
+            stylesheet = 'classic'
+        plt.style.use(stylesheet)
 
         from sage.symbolic.ring import SR
         if not isinstance(tick_formatter, (list, tuple)):  # make sure both formatters typeset or both don't
@@ -3159,7 +3165,7 @@ class Graphics(WithEqualityById, SageObject):
                 if latex_implementations[0] == "pdflatex":
                     # use pdflatex and set font encoding as per
                     # matplotlib documentation:
-                    # http://matplotlib.org/users/pgf.html#pgf-tutorial
+                    # https://matplotlib.org/users/pgf.html#pgf-tutorial
                     pgf_options= {"pgf.texsystem": "pdflatex",
                                   "pgf.preamble": [
                                       r"\usepackage[utf8x]{inputenc}",

@@ -621,7 +621,7 @@ class RijndaelGF(SageObject):
         r"""
         Returns the string representation of ``self``.
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(5, 8)
@@ -2306,6 +2306,7 @@ class RijndaelGF(SageObject):
               `\GF{2^8}`.
 
             EXAMPLES::
+
                 sage: from sage.crypto.mq.rijndael_gf import \
                 ....: RijndaelGF
                 sage: rgf = RijndaelGF(4, 4)

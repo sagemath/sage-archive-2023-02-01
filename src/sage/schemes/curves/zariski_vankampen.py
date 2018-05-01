@@ -286,8 +286,9 @@ def followstrand(f, x0, x1, y0a, prec=53):
         else:
             points = contpath_mp(deg, coefs, yr, yi, prec)
         return points
-    except:
+    except Exception:
         return followstrand(f, x0, x1, y0a, 2*prec)
+
 
 @parallel
 def braid_in_segment(f, x0, x1):

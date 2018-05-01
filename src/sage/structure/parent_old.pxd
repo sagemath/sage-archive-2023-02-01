@@ -9,7 +9,7 @@
 #*****************************************************************************
 
 cimport sage.structure.parent as parent
-from sage.structure.coerce_dict cimport MonoDict
+from sage.structure.coerce_dict cimport MonoDict, TripleDict
 
 
 cdef class Parent(parent.Parent):
@@ -17,13 +17,6 @@ cdef class Parent(parent.Parent):
     # returns a Morphism from S to self, or None
     cpdef coerce_map_from_c(self, S)
     cdef coerce_map_from_c_impl(self, S)
-
-    # returns the Action by/on self on/by S
-    # corresponding to op and self_on_left
-    cpdef get_action_c(self, S, op, bint self_on_left)
-    cdef get_action_c_impl(self, S, op, bint self_on_left)
-
-
 
     cdef public MonoDict _has_coerce_map_from
 

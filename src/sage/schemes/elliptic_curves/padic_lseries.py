@@ -110,6 +110,7 @@ class pAdicLseries(SageObject):
     The `p`-adic L-series of an elliptic curve.
 
     EXAMPLES:
+
     An ordinary example::
 
         sage: e = EllipticCurve('389a')
@@ -211,11 +212,10 @@ class pAdicLseries(SageObject):
 
         EXAMPLES::
 
-        sage: E = EllipticCurve('11a1')
-        sage: lp = E.padic_lseries(5)
-        sage: lp.modular_symbol(1/7,sign=-1)  #indirect doctest
-        -1/2
-
+            sage: E = EllipticCurve('11a1')
+            sage: lp = E.padic_lseries(5)
+            sage: lp.modular_symbol(1/7,sign=-1)  #indirect doctest
+            -1/2
         """
         self._negative_modular_symbol = self._E.modular_symbol(sign=-1, implementation="sage", normalize=self._normalize)
 
@@ -468,9 +468,11 @@ class pAdicLseries(SageObject):
         just the unit root.
 
         INPUT:
+
         -  ``prec`` - positive integer, the `p`-adic precision of the root.
 
         EXAMPLES:
+
         Consider the elliptic curve 37a::
 
             sage: E = EllipticCurve('37a')
@@ -790,9 +792,10 @@ class pAdicLseriesOrdinary(pAdicLseries):
           Teichmueller character on the group of roots of unity in
           `\ZZ_p^\times`)
 
-        ALIAS: power_series is identical to series.
+        :meth:`power_series` is identical to ``series``.
 
         EXAMPLES:
+
         We compute some `p`-adic L-functions associated to the elliptic
         curve 11a::
 

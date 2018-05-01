@@ -194,7 +194,7 @@ import operator
 from sage.misc.cachefunc import cached_method
 
 from sage.misc.randstate import current_randstate
-from sage.misc.long cimport pyobject_to_long
+from sage.arith.long cimport pyobject_to_long
 import sage.misc.weak_dict
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
@@ -674,15 +674,10 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                 return False
             return self._base.has_coerce_map_from(S.base())
 
-    cdef _coerce_c_impl(self, rhs):
+    cdef _convert(self, other):
         r"""
         Canonical conversion of elements from other domains to
         this boolean polynomial ring.
-
-        NOTE:
-
-        Inspite of its name, we use this method for conversion,
-        not coercion.
 
         EXAMPLES:
 
@@ -806,7 +801,6 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         cdef BooleanPolynomial p
         # we check for other PolyBoRi types first since this conversion
         # is used by the PolyBoRi python code often
-        other = rhs
         if isinstance(other, BooleSet):
             other = new_BP_from_PBSet(other.ring(), (<BooleSet>other)._pbset)
 
@@ -937,7 +931,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         cdef int i
 
         try:
-            return self._coerce_c_impl(other)
+            return self._convert(other)
         except TypeError:
             pass
 
@@ -1008,7 +1002,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             i = int(other)
         except Exception:
             try:    # last chance: try Sage's conversions over GF(2), Trac #13284
-                return self._coerce_c_impl(self.cover_ring()(other))
+                return self._convert(self.cover_ring()(other))
             except Exception:
                 raise TypeError("cannot convert %s to BooleanPolynomial" % (type(other)))
 
@@ -1837,7 +1831,7 @@ def get_var_mapping(ring, other):
     return var_mapping
 
 
-class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
+class BooleanMonomialMonoid(UniqueRepresentation, Monoid_class):
     """
     Construct a boolean monomial monoid given a boolean polynomial
     ring.
@@ -1890,7 +1884,7 @@ class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
         cdef BooleanMonomial m
         self._ring = polring
         from sage.categories.monoids import Monoids
-        Parent.__init__(self, GF(2), names=polring._names, category=Monoids())
+        Parent.__init__(self, GF(2), names=polring._names, category=Monoids().Commutative())
 
         m = new_BM(self, polring)
         m._pbmonom = PBMonom(polring._pbring)
@@ -3144,7 +3138,6 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: x != False
             True
         """
-        from builtins import zip
         for lm, rm in zip(left, right):
             if lm != rm:
                 return richcmp_not_equal(lm, rm, op)
@@ -3796,7 +3789,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: h = g.univariate_polynomial(); h
             1
             sage: h.parent()
-            Univariate Polynomial Ring in x over Finite Field of size 2 (using NTL)
+            Univariate Polynomial Ring in x over Finite Field of size 2 (using GF2X)
         """
         if not self.is_univariate():
             raise ValueError("polynomial must involve at most one variable")
@@ -6416,7 +6409,7 @@ cdef class ReductionStrategy:
 
         - ``leading_terms`` - all leading terms of generators
 
-        - ``minimial_leading_terms`` - the reduced set of leading terms
+        - ``minimal_leading_terms`` - the reduced set of leading terms
 
         - ``monomials`` -
 

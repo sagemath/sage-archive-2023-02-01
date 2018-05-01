@@ -22,7 +22,7 @@ from sage.arith.srange import srange
 from sage.structure.coerce cimport is_numpy_type, py_scalar_parent
 from sage.structure.element cimport Vector
 from sage.structure.sequence import Sequence
-from sage.misc.long cimport pyobject_to_long
+from sage.arith.long cimport pyobject_to_long
 
 
 class MatrixFactory(object):

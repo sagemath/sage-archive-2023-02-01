@@ -1144,7 +1144,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         """
         K = FractionField(self.domain().base_ring())
         if K not in _NumberFields:
-            raise("must be over a number field or a number field order")
+            raise TypeError("must be over a number field or a number field order")
         return max([K(c).local_height(v, prec=prec) for c in self])
 
     def local_height_arch(self, i, prec=None):
@@ -1178,11 +1178,11 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         """
         K = FractionField(self.domain().base_ring())
         if K not in _NumberFields:
-            raise("must be over a number field or a number field order")
+            raise TypeError("must be over a number field or a number field order")
         if K == QQ:
-            return max([K(c).local_height_arch(prec=prec) for c in self])
+            return max(K(c).local_height_arch(prec=prec) for c in self)
         else:
-            return max([K(c).local_height_arch(i, prec=prec) for c in self])
+            return max(K(c).local_height_arch(i, prec=prec) for c in self)
 
     def multiplier(self, f, n, check=True):
         r"""

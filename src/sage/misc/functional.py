@@ -727,6 +727,27 @@ def integral(x, *args, **kwds):
         sage: y = (x^2)*exp(x) / (1 + exp(x))^2
         sage: _ = integrate(y, x, -1000, 1000)
 
+    When SymPy cannot solve an integral it gives it back, so we must
+    be able to convert SymPy's ``Integral`` (:trac:`14723`)::
+
+        sage: x, y, z = var('x,y,z')
+        sage: f = function('f')
+        sage: integrate(f(x), x, algorithm='sympy')
+        integrate(f(x), x)
+        sage: integrate(f(x), x, 0, 1,algorithm='sympy')
+        integrate(f(x), x, 0, 1)
+        sage: integrate(integrate(integrate(f(x,y,z), x, algorithm='sympy'), y, algorithm='sympy'), z, algorithm='sympy')
+        integrate(integrate(integrate(f(x, y, z), x), y), z)
+        sage: integrate(sin(x)*tan(x)/(1-cos(x)), x, algorithm='sympy')
+        -integrate(sin(x)*tan(x)/(cos(x) - 1), x)
+        sage: _ = var('a,b,x')
+        sage: integrate(sin(x)*tan(x)/(1-cos(x)), x, a, b, algorithm='sympy')
+        -integrate(sin(x)*tan(x)/(cos(x) - 1), x, a, b)
+        sage: import sympy
+        sage: x, y, z = sympy.symbols('x y z')
+        sage: f = sympy.Function('f')
+        sage: SR(sympy.Integral(f(x,y,z), x, y, z))
+        integrate(integrate(integrate(f(x, y, z), x), y), z)
     """
     if hasattr(x, 'integral'):
         return x.integral(*args, **kwds)

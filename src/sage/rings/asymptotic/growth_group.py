@@ -1463,9 +1463,6 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
             sage: P3 = MonomialGrowthGroup(ZZ, SR.var('x'))
             sage: P1 is P2 and P2 is P3
             True
-            sage: P4 = MonomialGrowthGroup(ZZ, buffer('xylophone', 0, 1))
-            sage: P1 is P4
-            True
             sage: P5 = MonomialGrowthGroup(ZZ, 'x ')
             sage: P1 is P5
             True

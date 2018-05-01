@@ -661,7 +661,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
                 yield line.strip()
             except GeneratorExit:
                 proc.close(force=True)
-                raise StopIteration
+                return
 
         if verbose:
             print("#######################")

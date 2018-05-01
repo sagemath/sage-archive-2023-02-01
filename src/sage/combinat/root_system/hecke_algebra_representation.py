@@ -84,7 +84,7 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
        Hecke group algebras as quotients of affine Hecke algebras at level 0,
        Journal of Combinatorial Theory, Series A 116 (2009) 844-863 ( arXiv:0804.3781 [math.RT] )
     """
-    def __init__(self, domain, on_basis, cartan_type, q1, q2, q=1, side="right"):
+    def __init__(self, domain, on_basis, cartan_type, q1, q2, q=ZZ.one(), side="right"):
         r"""
         TESTS::
 
@@ -467,7 +467,7 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
         # Check the quadratic relation
         for i in cartan_type.index_set():
             for x in elements:
-                tester.assert_(Ti(Ti(x,i,-q2),i,-q1).is_zero())
+                tester.assertTrue(Ti(Ti(x,i,-q2),i,-q1).is_zero())
         G = cartan_type.coxeter_diagram()
         # Check the braid relation
         for (i, j) in Subsets(cartan_type.index_set(), 2):
@@ -823,7 +823,7 @@ class CherednikOperatorsEigenvectors(UniqueRepresentation, SageObject):
             sage: KW = W.algebra(K)
             sage: rho = KW.demazure_lusztig_operators(q1, q2, affine=True)
             sage: E = CherednikOperatorsEigenvectors(rho); E
-            <class 'sage.combinat.root_system.hecke_algebra_representation.CherednikOperatorsEigenvectors'>
+            <sage.combinat.root_system.hecke_algebra_representation.CherednikOperatorsEigenvectors object at ...>
             sage: E.keys()
             Weyl Group of type ['B', 3] (as a matrix group acting on the ambient space)
             sage: E.domain()

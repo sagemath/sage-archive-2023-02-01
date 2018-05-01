@@ -45,6 +45,14 @@ cdef class LieAlgebraElement(IndexedFreeModuleElement):
             sage: y*x
             x*y - z
 
+        Check that actions work::
+
+            sage: L = lie_algebras.VirasoroAlgebra(QQ)
+            sage: d = L.basis()
+            sage: M = L.chargeless_representation(1/2, 3/4)
+            sage: d[-5] * M.basis()[10]
+            -47/4*v[5]
+
         TESTS::
 
             sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'): {'z':1}})
@@ -73,21 +81,6 @@ cdef class LieAlgebraElement(IndexedFreeModuleElement):
             right = (<LieAlgebraElement> right).lift()
         return left * right
 
-    #def _im_gens_(self, codomain, im_gens):
-    #    """
-    #    Return the image of ``self`` in ``codomain`` under the map that sends
-    #    the images of the generators of the parent of ``self`` to the
-    #    tuple of elements of ``im_gens``.
-    #
-    #    EXAMPLES::
-    #    """
-    #    s = codomain.zero()
-    #    if not self: # If we are 0
-    #        return s
-    #    names = self.parent().variable_names()
-    #    return codomain.sum(c * t._im_gens_(codomain, im_gens, names)
-    #                        for t, c in self._monomial_coefficients.iteritems())
-
     cpdef lift(self):
         """
         Lift ``self`` to the universal enveloping algebra.
@@ -111,7 +104,7 @@ cdef class LieAlgebraElement(IndexedFreeModuleElement):
             sage: x * y
             b2*b3
             sage: y * x
-            b2*b3 - b0
+            b2*b3 + b0
 
             sage: L = lie_algebras.regular_vector_fields(QQ)
             sage: L.an_element()
@@ -464,7 +457,9 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
             [((2,3), 1), ((1,2), 1), ((1,3), 1),
              ((1,2,3), 1), ((1,3,2), 1), ((), 2)]
         """
-        return self.value.monomial_coefficients(copy=False).iteritems()
+        cdef dict d = self.value.monomial_coefficients(copy=False)
+        yield from d.iteritems()
+
 
 # TODO: Also used for vectors, find a better name
 cdef class LieAlgebraMatrixWrapper(LieAlgebraElementWrapper):

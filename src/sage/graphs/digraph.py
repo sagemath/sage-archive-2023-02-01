@@ -998,7 +998,7 @@ class DiGraph(GenericGraph):
         Immutable graphs yield immutable graphs (:trac:`17005`)::
 
             sage: DiGraph([[1, 2]], immutable=True).to_undirected()._backend
-            <type 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
+            <sage.graphs.base.static_sparse_backend.StaticSparseBackend object at ...>
         """
         if sparse is not None:
             if data_structure is not None:
@@ -1649,9 +1649,11 @@ class DiGraph(GenericGraph):
                         print("Adding a constraint on circuit : {}".format(certificate))
 
                     edges = zip(certificate, certificate[1:] + [certificate[0]])
-                    p.add_constraint( p.sum( b[u,v] for u,v in edges), min=1)
+                    p.add_constraint(p.sum(b[u, v] for u, v in edges), min=1)
 
                     # Is there another edge disjoint circuit ?
+                    # for python3, we need to recreate the zip iterator
+                    edges = zip(certificate, certificate[1:] + [certificate[0]])
                     h.delete_edges(edges)
                     isok, certificate = h.is_directed_acyclic(certificate=True)
 
@@ -1662,8 +1664,8 @@ class DiGraph(GenericGraph):
 
             else:
                 # listing the edges contained in the MFAS
-                return [(u,v) for u,v in self.edges(labels=False)
-                        if p.get_values(b[u,v]) > .5]
+                return [(u, v) for u, v in self.edges(labels=False)
+                        if p.get_values(b[u, v]) > .5]
 
         ######################################
         # Ordering-based MILP Implementation #

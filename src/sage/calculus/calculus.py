@@ -368,14 +368,7 @@ Check that the problem with Taylor expansions of the gamma function
 (:trac:`9217`) is fixed::
 
     sage: taylor(gamma(1/3+x),x,0,3)
-    -1/432*((72*euler_gamma^3 + 36*euler_gamma^2*(sqrt(3)*pi + 9*log(3)) +
-    27*pi^2*log(3) + 243*log(3)^3 + 18*euler_gamma*(6*sqrt(3)*pi*log(3) + pi^2
-    + 27*log(3)^2 + 12*psi(1, 1/3)) + 324*log(3)*psi(1, 1/3) + sqrt(3)*(pi^3 +
-    9*pi*(9*log(3)^2 + 4*psi(1, 1/3))))*gamma(1/3) - 72*psi(2,
-    1/3)*gamma(1/3))*x^3 + 1/24*(6*sqrt(3)*pi*log(3) + 12*euler_gamma^2 + pi^2
-    + 4*euler_gamma*(sqrt(3)*pi + 9*log(3)) + 27*log(3)^2 + 12*psi(1,
-    1/3))*x^2*gamma(1/3) - 1/6*(6*euler_gamma + sqrt(3)*pi +
-    9*log(3))*x*gamma(1/3) + gamma(1/3)
+    -1/432*((72*euler_gamma^3 + 36*euler_gamma^2*(sqrt(3)*pi + 9*log(3)) + ...
     sage: [f[0].n() for f in _.coefficients()]  # numerical coefficients to make comparison easier; Maple 12 gives same answer
     [2.6789385347..., -8.3905259853..., 26.662447494..., -80.683148377...]
 

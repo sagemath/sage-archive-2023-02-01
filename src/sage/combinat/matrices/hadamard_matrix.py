@@ -584,7 +584,7 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
       Strongly regular graphs with parameters `(4m^4,2m^4+m^2,m^4+m^2,m^4+m^2)` exist for all `m>1`,
       European Journal of Combinatorics,
       Volume 31, Issue 6, August 2010, Pages 1553-1559,
-      http://dx.doi.org/10.1016/j.ejc.2009.07.009.
+      :doi:`10.1016/j.ejc.2009.07.009`
     """
     if existence and (n,e) in _rshcd_cache:
         return _rshcd_cache[n,e]
@@ -745,7 +745,7 @@ def RSHCD_324(e):
 
 def _helper_payley_matrix(n, zero_position=True):
     r"""
-    Return the marix constructed in Lemma 1.19 page 291 of [SWW72]_.
+    Return the matrix constructed in Lemma 1.19 page 291 of [SWW72]_.
 
     This function return a `n^2` matrix `M` whose rows/columns are indexed by
     the element of a finite field on `n` elements `x_1,...,x_n`. The value

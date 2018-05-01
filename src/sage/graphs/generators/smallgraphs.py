@@ -4861,7 +4861,7 @@ def JankoKharaghaniGraph(v):
     .. [JK02] Janko, Kharaghani,
        A block negacyclic Bush-type Hadamard matrix and two strongly regular graphs.
        J. Combin. Theory Ser. A 98 (2002), no. 1, 118--126.
-       http://dx.doi.org/10.1006/jcta.2001.3231
+       :doi:`10.1006/jcta.2001.3231`
 
     .. [GM87] Gibbons, Mathon,
        Construction methods for Bhaskar Rao and related designs,
@@ -4902,7 +4902,7 @@ def JankoKharaghaniGraph(v):
     q = m*t+1
     K = GF(q,'alpha')
     a = K.primitive_element()
-    Ci= [[K(0)]] + map(set,[[a**(k*j+i) for j in range(t)] for i in range(m)])
+    Ci= [[K(0)]] + [set(a**(k*j+i) for j in range(t)) for i in range(m)]
     Kelem_to_Ci = {v:i for i,s in enumerate(Ci) for v in s} # maps v to [0,...,12]
 
     W = ([[0]+ [1]*(len(K))] +

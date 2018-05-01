@@ -237,24 +237,22 @@ def CycleGraph(n):
     r"""
     Returns a cycle graph with n nodes.
 
-    A cycle graph is a basic structure which is also typically called
-    an n-gon.
+    A cycle graph is a basic structure which is also typically called an
+    `n`-gon.
 
-    PLOTTING: Upon construction, the position dictionary is filled to
-    override the spring-layout algorithm. By convention, each cycle
-    graph will be displayed with the first (0) node at the top, with
-    the rest following in a counterclockwise manner.
+    PLOTTING: Upon construction, the position dictionary is filled to override
+    the spring-layout algorithm. By convention, each cycle graph will be
+    displayed with the first (0) node at the top, with the rest following in a
+    counterclockwise manner.
 
-    The cycle graph is a good opportunity to compare efficiency of
-    filling a position dictionary vs. using the spring-layout algorithm
-    for plotting. Because the cycle graph is very symmetric, the
-    resulting plots should be similar (in cases of small n).
+    The cycle graph is a good opportunity to compare efficiency of filling a
+    position dictionary vs. using the spring-layout algorithm for
+    plotting. Because the cycle graph is very symmetric, the resulting plots
+    should be similar (in cases of small `n`).
 
-    Filling the position dictionary in advance adds O(n) to the
-    constructor.
+    Filling the position dictionary in advance adds `O(n)` to the constructor.
 
-    EXAMPLES: Compare plotting using the predefined layout and
-    networkx::
+    EXAMPLES: Compare plotting using the predefined layout and networkx::
 
         sage: import networkx
         sage: n = networkx.cycle_graph(23)
@@ -263,9 +261,8 @@ def CycleGraph(n):
         sage: spring23.show() # long time
         sage: posdict23.show() # long time
 
-    We next view many cycle graphs as a Sage graphics array. First we
-    use the ``CycleGraph`` constructor, which fills in the
-    position dictionary::
+    We next view many cycle graphs as a Sage graphics array. First we use the
+    ``CycleGraph`` constructor, which fills in the position dictionary::
 
         sage: g = []
         sage: j = []
@@ -295,14 +292,33 @@ def CycleGraph(n):
         ....:     j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
+
+    TESTS:
+
+    The input parameter must be a positive integer::
+
+        sage: G = graphs.CycleGraph(-1)
+        Traceback (most recent call last):
+        ...
+        ValueError: parameter n must be a positive integer
     """
-    pos_dict = {}
-    for i in range(n):
-        x = float(cos((pi/2) + ((2*pi)/n)*i))
-        y = float(sin((pi/2) + ((2*pi)/n)*i))
-        pos_dict[i] = (x, y)
-    G = graph.Graph(n, pos=pos_dict, name="Cycle graph")
-    G.add_cycle(list(range(n)))
+    if n < 0:
+        raise ValueError("parameter n must be a positive integer")
+
+    G = Graph(n, name="Cycle graph")
+    if n == 1:
+        G.set_pos({0:(0, 0)})
+    elif n == 2:
+        G.add_edge(0, 1)
+        G.set_pos({0:(0, 1), 1:(0, -1)})
+    else:
+        pos_dict = {}
+        for i in range(n):
+            x = float(cos((pi/2) + ((2*pi)/n)*i))
+            y = float(sin((pi/2) + ((2*pi)/n)*i))
+            pos_dict[i] = (x, y)
+        G.set_pos(pos_dict)
+        G.add_cycle(list(range(n)))
     return G
 
 def CompleteGraph(n):

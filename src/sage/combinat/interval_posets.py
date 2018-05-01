@@ -973,7 +973,7 @@ class TamariIntervalPoset(Element):
         return TamariIntervalPoset(N - 1, new_covers, check=False)
 
     def insertion(self, i):
-        """
+        r"""
         Return the Tamari insertion of an integer `i` into the
         interval-poset ``self``.
 
@@ -2290,10 +2290,11 @@ class TamariIntervalPoset(Element):
 
     def is_new(self):
         """
-        Return ``True`` if ``self`` is a new Tamari interval.
+        Return whether ``self`` is a new Tamari interval.
 
         Here 'new' means that the interval is not contained in any
         facet of the associahedron.
+        This condition is invariant under complementation.
 
         They have been considered in section 9 of [ChapTamari08]_.
 
@@ -2315,7 +2316,7 @@ class TamariIntervalPoset(Element):
 
     def is_simple(self):
         """
-        Return ``True`` if ``self`` is a simple Tamari interval.
+        Return whether ``self`` is a simple Tamari interval.
 
         Here 'simple' means that the interval contains a unique binary tree.
 
@@ -2338,9 +2339,10 @@ class TamariIntervalPoset(Element):
 
     def is_synchronized(self):
         """
-        Return ``True`` if ``self`` is a synchronized Tamari interval.
+        Return whether ``self`` is a synchronized Tamari interval.
 
         This means that the upper and lower binary trees have the same canopee.
+        This condition is invariant under complementation.
 
         This has been considered in [FPR15]_. The numbers of
         synchronized intervals are given by the sequence :oeis:`A000139`.
@@ -2356,12 +2358,14 @@ class TamariIntervalPoset(Element):
         return down.canopee() == up.canopee()
 
     def is_modern(self):
-        """
-        Return ``True`` if ``self`` is a modern Tamari interval.
+        r"""
+        Return whether ``self`` is a modern Tamari interval.
 
         This is defined by exclusion of a simple pattern in the Hasse diagram,
         namely there is no configuration ``y --> x <-- z``
         with `1 \leq y < x < z \leq n`.
+
+        This condition is invariant under complementation.
 
         .. SEEALSO:: :meth:`is_new`
 
@@ -2379,12 +2383,14 @@ class TamariIntervalPoset(Element):
         return True
 
     def is_exceptional(self):
-        """
-        Return ``True`` if ``self`` is an exceptional Tamari interval.
+        r"""
+        Return whether ``self`` is an exceptional Tamari interval.
 
         This is defined by exclusion of a simple pattern in the Hasse diagram,
         namely there is no configuration ``y <-- x --> z``
         with `1 \leq y < x < z \leq n`.
+
+        This condition is invariant under complementation.
 
         EXAMPLES::
 
@@ -2399,6 +2405,42 @@ class TamariIntervalPoset(Element):
             if min(nx) < x and max(nx) > x:
                 return False
         return True
+
+    def is_dexter(self):
+        r"""
+        Return whether ``self`` is a dexter Tamari interval.
+
+        This is defined by an exclusion pattern in the Hasse diagram.
+        See the code for the exact description.
+
+        This condition is not invariant under complementation.
+
+        EXAMPLES::
+
+            sage: len([T for T in TamariIntervalPosets(3) if T.is_dexter()])
+            12
+        """
+        G = self.poset().hasse_diagram()
+        for x in G:
+            nx = list(G.neighbors_out(x))
+            nx.append(x)
+            y = min(nx)
+            if y < x and any(z > x for z in G.neighbors_out(y)):
+                return False
+        return True
+
+    def is_connected(self):
+        """
+        Return whether ``self`` is a connected Tamari interval.
+
+        This means that the Hasse diagram is connected.
+
+        EXAMPLES::
+
+            sage: len([T for T in TamariIntervalPosets(3) if T.is_connected()])
+            8
+        """
+        return self.poset().is_connected()
 
 
 # Abstract class to serve as a Factory ; no instances are created.
@@ -2450,9 +2492,8 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
         return TamariIntervalPosets_size(Integer(n))
 
     # add options to class
-    options = GlobalOptions('TamariIntervalPosets',
-        module='sage.combinat.interval_posets',
-        doc=r"""
+    class options(GlobalOptions):
+        r"""
         Set and display the options for Tamari interval-posets. If no
         parameters are set, then the function returns a copy of the options
         dictionary.
@@ -2460,42 +2501,44 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
         The ``options`` to Tamari interval-posets can be accessed as the method
         :meth:`TamariIntervalPosets.options` of :class:`TamariIntervalPosets`
         and related parent classes.
-        """,
-        end_doc=r"""
+
+        @OPTIONS@
+
         EXAMPLES::
 
-            sage: ip = TamariIntervalPoset(4,[(2,4),(3,4),(2,1),(3,1)])
-            sage: ip.latex_options.color_decreasing
-            'red'
-            sage: TamariIntervalPosets.options.latex_color_decreasing='green'
-            sage: ip.latex_options.color_decreasing
-            'green'
-            sage: TamariIntervalPosets.options._reset()
-            sage: ip.latex_options.color_decreasing
-            'red'
-        """,
-        latex_tikz_scale=dict(default=1,
+            sage: TIP = TamariIntervalPosets
+            sage: TIP.options.latex_color_decreasing
+            red
+            sage: TIP.options.latex_color_decreasing='green'
+            sage: TIP.options.latex_color_decreasing
+            green
+            sage: TIP.options._reset()
+            sage: TIP.options.latex_color_decreasing
+            red
+        """
+        NAME = 'TamariIntervalPosets'
+        module = 'sage.combinat.interval_posets'
+        latex_tikz_scale = dict(default=1,
                               description='the default value for the tikz scale when latexed',
-                              checker=lambda x: True),  # More trouble than it's worth to check
-        latex_line_width_scalar=dict(default=0.5,
+                              checker=lambda x: True)  # More trouble than it's worth to check
+        latex_line_width_scalar = dict(default=0.5,
                                      description='the default value for the line width as a'
                                                  'multiple of the tikz scale when latexed',
-                                     checker=lambda x: True),  # More trouble than it's worth to check
-        latex_color_decreasing=dict(default="red",
+                                     checker=lambda x: True)  # More trouble than it's worth to check
+        latex_color_decreasing = dict(default="red",
                                     description='the default color of decreasing relations when latexed',
-                                    checker=lambda x: True),  # More trouble than it's worth to check
-        latex_color_increasing=dict(default="blue",
+                                    checker=lambda x: True)  # More trouble than it's worth to check
+        latex_color_increasing = dict(default="blue",
                                     description='the default color of increasing relations when latexed',
-                                    checker=lambda x: True),  # More trouble than it's worth to check
-        latex_hspace=dict(default=1,
+                                    checker=lambda x: True)  # More trouble than it's worth to check
+        latex_hspace = dict(default=1,
                           description='the default difference between horizontal'
                                       ' coordinates of vertices when latexed',
-                          checker=lambda x: True),  # More trouble than it's worth to check
-        latex_vspace=dict(default=1,
+                          checker=lambda x: True)  # More trouble than it's worth to check
+        latex_vspace = dict(default=1,
                           description='the default difference between vertical'
                                       ' coordinates of vertices when latexed',
                           checker=lambda x: True)   # More trouble than it's worth to check
-    )
 
     @staticmethod
     def check_poset(poset):
@@ -2647,7 +2690,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
     @staticmethod
     def initial_forest(element):
         r"""
-        Return the inital forest of a binary tree, an interval-poset or
+        Return the initial forest of a binary tree, an interval-poset or
         a Dyck word.
 
         An initial forest is an interval-poset corresponding to an initial
@@ -2934,7 +2977,8 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
         color_b = graph.incoming_edges('b')[0][2]
 
         embedding = graph.get_embedding()
-        graph0 = DiGraph([e for e in graph.edges() if e[2] == color_a],
+        graph0 = DiGraph([e for e in graph.edges(sort=False)
+                          if e[2] == color_a],
                          format='list_of_edges')
         restricted_embedding = {u: [v for v in embedding[u]
                                     if v in graph0.neighbors_in(u) or
@@ -3228,23 +3272,23 @@ class TamariIntervalPosets_size(TamariIntervalPosets):
         """
         n = self._size
         if n <= 1:
-            yield TamariIntervalPoset(n, [])
+            yield TamariIntervalPoset(n, [], check=False)
             return
 
         for tip in TamariIntervalPosets(n - 1):
-            new_tip = TamariIntervalPoset(n, tip._cover_relations)
+            new_tip = TamariIntervalPoset(n, tip._cover_relations, check=False)
             yield new_tip  # we have added an extra vertex but no relations
 
             # adding a decreasing relation n>>m2 with m2<n and no
             # increasing relations
             for m2 in range(n - 1, 0, -1):
                 if new_tip.le(n - 1, m2):
-                    yield TamariIntervalPoset(n, new_tip._cover_relations + ((n, m2),))
+                    yield TamariIntervalPoset(n, new_tip._cover_relations + ((n, m2),), check=False)
 
             for m in range(n - 1, 0, -1):
                 # adding an increasing relation m>>n
                 if not new_tip.le(m, n):
-                    new_tip = TamariIntervalPoset(n, new_tip._cover_relations + ((m, n),))
+                    new_tip = TamariIntervalPoset(n, new_tip._cover_relations + ((m, n),), check=False)
                     yield new_tip
                 else:
                     continue
@@ -3252,7 +3296,7 @@ class TamariIntervalPosets_size(TamariIntervalPosets):
                 # further adding a decreasing relation n>>m2 with m2<m
                 for m2 in range(m - 1, 0, -1):
                     if new_tip.le(n - 1, m2):
-                        yield TamariIntervalPoset(n, new_tip._cover_relations + ((n, m2),))
+                        yield TamariIntervalPoset(n, new_tip._cover_relations + ((n, m2),), check=False)
 
     def random_element(self):
         """

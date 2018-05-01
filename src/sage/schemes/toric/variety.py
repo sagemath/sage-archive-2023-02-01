@@ -1111,7 +1111,7 @@ class ToricVariety_field(AmbientSpace):
             sage: R = toric_varieties.A1().coordinate_ring();  R
             Multivariate Polynomial Ring in z over Rational Field
             sage: type(R)
-            <type 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomialRing_libsingular'>
+            <... 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomialRing_libsingular'>
         """
         if "_coordinate_ring" not in self.__dict__:
             names = self.variable_names()

@@ -22,7 +22,8 @@ which can be found at http://www.math.lsa.umich.edu/~jrs/maple.html
 #*****************************************************************************
 from __future__ import print_function
 
-import sage.combinat.partition
+from sage.combinat.partition import _Partitions
+from sage.combinat.partitions import ZS1_iterator
 from sage.rings.polynomial.polynomial_ring import polygen
 from sage.rings.integer_ring import ZZ
 
@@ -42,8 +43,8 @@ def KostkaFoulkesPolynomial(mu, nu, t=None):
     OUTPUT:
 
     - the Koskta-Foulkes polynomial indexed by partitions ``mu`` and ``nu`` and
-      evaluated at the parameter ``t``.  If ``t`` is ``None`` the resulting polynomial
-      is in the polynomial ring `ZZ['t']`.
+      evaluated at the parameter ``t``.  If ``t`` is ``None`` the resulting
+      polynomial is in the polynomial ring `\ZZ['t']`.
 
     EXAMPLES::
 
@@ -59,9 +60,9 @@ def KostkaFoulkesPolynomial(mu, nu, t=None):
         sage: KostkaFoulkesPolynomial([2,2],[2,1,1],q)
         q
     """
-    if mu not in sage.combinat.partition.Partitions_all():
+    if mu not in _Partitions:
         raise ValueError("mu must be a partition")
-    if nu not in sage.combinat.partition.Partitions_all():
+    if nu not in _Partitions:
         raise ValueError("nu must be a partition")
 
     if sum(mu) != sum(nu):
@@ -106,21 +107,21 @@ def kfpoly(mu, nu, t=None):
     if t is None:
         t = polygen(ZZ, 't')
 
-    nuc = sage.combinat.partition.Partition(nu).conjugate()
+    nuc = _Partitions(nu).conjugate()
 
     f = lambda x: weight(x, t) if x[0] == nuc else 0
 
-    res = sum([f(rg) for rg in riggings(mu)])
+    res = sum(f(rg) for rg in riggings(mu))
     return res
 
 def schur_to_hl(mu, t=None):
     r"""
-    Returns a dictionary corresponding to `s_\mu` in Hall-Littlewood `P` basis.
+    Return a dictionary corresponding to `s_\mu` in Hall-Littlewood `P` basis.
 
     INPUT:
 
     - ``mu`` -- a partition
-    - ``t`` -- an optional parameter (default : the generator from `\mathbb{Z}['t']` )
+    - ``t`` -- an optional parameter (default: the generator from `\ZZ['t']` )
 
     OUTPUT:
 
@@ -180,7 +181,7 @@ def schur_to_hl(mu, t=None):
 
     res = {}
     for rg in riggings(mu):
-        res[ rg[0] ] = res.get(rg[0], 0) + weight(rg, t)
+        res[rg[0]] = res.get(rg[0], 0) + weight(rg, t)
 
     d = {}
     for key in res:
@@ -188,9 +189,8 @@ def schur_to_hl(mu, t=None):
     return d
 
 def riggings(part):
-    """
-    Generate all possible rigging sequences for a fixed
-    sage.combinat.partition.
+    r"""
+    Generate all possible rigging sequences for a fixed partition ``part``.
 
     INPUT:
 
@@ -198,7 +198,7 @@ def riggings(part):
 
     OUTPUT:
 
-    - returns a list of riggings associated to the partition ``part``
+    - a list of riggings associated to the partition ``part``
 
     EXAMPLES::
 
@@ -225,18 +225,14 @@ def riggings(part):
     sa = 0
     for i in sorted(part):
         sa += i
-        new_res = []
-        for nu in res:
-            new_res += [ [new]+nu for new in compat(sa, nu[0], nu[1])]
-        res = new_res
-
+        res = [[new] + nu for nu in res for new in compat(sa, nu[0], nu[1])]
 
     return [x[:l] for x in res]
 
 def compat(n, mu, nu):
     r"""
-    Generate all possible partitions of `n` that can precede `\mu,\nu` in a
-    rigging sequence.
+    Generate all possible partitions of `n` that can precede `\mu, \nu`
+    in a rigging sequence.
 
     INPUT:
 
@@ -265,35 +261,30 @@ def compat(n, mu, nu):
         sage: compat(4, [2], [])
         [[4]]
     """
-    sp = [p.conjugate() for p in sage.combinat.partition.Partitions_n(n)]
-    l = max( len(mu), len(nu))
+    l = max(len(mu), len(nu))
     mmu = list(mu) + [0]*(l-len(mu))
     nnu = list(nu) + [0]*(l-len(nu))
 
     bd = []
     sa = 0
     for i in range(l):
-        sa += 2*mmu[i]-nnu[i]
+        sa += 2*mmu[i] - nnu[i]
         bd.append(sa)
 
-    i = 0
-    len_sp = len(sp)
-    while i < len_sp and not dom(sp[i],bd):
-        i += 1
+    for la in ZS1_iterator(n):
+        if dom(la, bd):
+            return [x.conjugate() for x in _Partitions(la).dominated_partitions()]
 
-    if i >= len(sp):
-        return sage.combinat.partition.Partition([])
-    else:
-        return [x.conjugate() for x in sp[i].conjugate().dominated_partitions()]
+    return [] # _Partitions([])
 
-def dom(mu, snu):
+def dom(mup, snu):
     """
-    Returns True if ``sum(mu[:i+1]) >= snu[i]`` for all 0 <= i < len(snu);
-    otherwise, it returns False.
+    Return ``True`` if ``sum(mu[:i+1]) >= snu[i]`` for all
+    ``0 <= i < len(snu)``; otherwise, it returns ``False``.
 
     INPUT:
 
-    - ``mu`` -- a partition
+    - ``mup`` -- a partition conjugate to ``mu``
     - ``snu`` -- a sequence of positive integers
 
     OUTPUT:
@@ -312,23 +303,35 @@ def dom(mu, snu):
         sage: dom([3,2,1],[4,4,4])
         False
     """
+    if not mup: # mup is empty:
+        return not snu # True if and only if snu is empty
+
     l = len(snu)
-    mmu = list(mu)+[0]*l
-    sa = 0
-    for i in range(l):
-        sa += mmu[i]
-        if sa < snu[i]:
-            return False
-    return True
+    lmup = len(mup)
+    # Special case for the largest columns
+    if any((k+1)*lmup < snu[k] for k in range(min(mup[-1],l))):
+        return False
+
+    pos = mup[-1]
+    sa = mup[-1] * lmup
+    for i in range(lmup-1, 0, -1):
+        for k in range(mup[i-1] - mup[i]):
+            if pos >= l: # We've reached the end of snu
+                return True
+            sa += i
+            if sa < snu[pos]:
+                return False
+            pos += 1
+    return all(sa >= snu[j] for j in range(pos,l))
 
 def weight(rg, t=None):
-    """
-    Returns the weight of a rigging.
+    r"""
+    Return the weight of a rigging.
 
     INPUT:
 
     - ``rg`` -- a rigging, a list of partitions
-    - ``t`` -- an optional parameter, (default : uses the generator from `ZZ['t']`)
+    - ``t`` -- an optional parameter, (default: the generator from `\ZZ['t']`)
 
     OUTPUT:
 
@@ -359,13 +362,15 @@ def weight(rg, t=None):
     nu = rg + [ [] ]
     l = 1 + max( map(len, nu) )
     nu = [ list(mu) + [0]*l for mu in nu ]
-    res = t**int(sum(i*(i-1)/2 for i in rg[-1]))
+    res = t**int(sum(i * (i-1) // 2 for i in rg[-1]))
     for k in range(1, len(nu)-1):
         sa = 0
-        for i in range( max( len(rg[k]), len(rg[k-1])) ):
-            sa += nu[k-1][i]-2*nu[k][i]+nu[k+1][i]
-            if nu[k][i]-nu[k][i+1]+sa >= 0:
-                res *= q_binomial(nu[k][i]-nu[k][i+1]+sa, sa, t)
-            mu = nu[k-1][i]-nu[k][i]
-            res *= t**int((mu*(mu-1)/2))
+        mid = nu[k]
+        for i in range( max(len(rg[k]), len(rg[k-1])) ):
+            sa += nu[k-1][i] - 2*mid[i] + nu[k+1][i]
+            if mid[i] - mid[i+1] + sa >= 0:
+                res *= q_binomial(mid[i]-mid[i+1]+sa, sa, t)
+            mu = nu[k-1][i] - mid[i]
+            res *= t**int(mu * (mu-1) // 2)
     return res
+

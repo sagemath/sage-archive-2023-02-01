@@ -28,7 +28,7 @@ from six import add_metaclass
 
 from sage.arith.all import factorial
 import sage.rings.integer
-from sage.sets.set import Set, is_Set
+from sage.sets.set import Set, Set_generic
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.all import prod
@@ -65,7 +65,7 @@ class OrderedSetPartition(ClonableArray):
     known as the `n`-th ordered Bell number; see
     :wikipedia:`Ordered Bell number`). Its exponential generating
     function is
-    
+
     .. MATH::
 
         \sum_n {T_n \over n!} x^n = {1 \over 2-e^x}.
@@ -324,7 +324,7 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
         #is a set
         u = Set([])
         for s in x:
-            if not isinstance(s, (set, frozenset)) and not is_Set(s):
+            if not isinstance(s, (set, frozenset, Set_generic)):
                 return False
             u = u.union(s)
 
@@ -596,12 +596,12 @@ class SplitNK(OrderedSetPartitions_scomp):
 
         TESTS::
 
-            sage: loads("x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\xd1+.\xc8\xc9,"
-            ....:   "\x89\xcf\xcb\xe6\n\x061\xfc\xbcA\xccBF\xcd\xc6B\xa6\xda"
-            ....:   "Bf\x8dP\xa6\xf8\xbcB\x16\x88\x96\xa2\xcc\xbc\xf4b\xbd\xcc"
-            ....:   "\xbc\x92\xd4\xf4\xd4\"\xae\xdc\xc4\xec\xd4x\x18\xa7\x905"
-            ....:   "\x94\xd1\xb45\xa8\x90\r\xa8>\xbb\x90=\x03\xc85\x02r9J\x93"
-            ....:   "\xf4\x00\xb4\xc6%f")
+            sage: loads(b"x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\xd1+.\xc8\xc9,"
+            ....:   b"\x89\xcf\xcb\xe6\n\x061\xfc\xbcA\xccBF\xcd\xc6B\xa6\xda"
+            ....:   b"Bf\x8dP\xa6\xf8\xbcB\x16\x88\x96\xa2\xcc\xbc\xf4b\xbd\xcc"
+            ....:   b"\xbc\x92\xd4\xf4\xd4\"\xae\xdc\xc4\xec\xd4x\x18\xa7\x905"
+            ....:   b"\x94\xd1\xb45\xa8\x90\r\xa8>\xbb\x90=\x03\xc85\x02r9J\x93"
+            ....:   b"\xf4\x00\xb4\xc6%f")
             Ordered set partitions of {0, 1, 2, 3, 4} into parts of size [2, 3]
         """
         self.__class__ = OrderedSetPartitions_scomp

@@ -93,7 +93,7 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
         ....:        color='green') + line3d([(0,1,0), (1,0,2)])
         Graphics3d Object
 
-    A Dodecahedral complex of 5 tetrahedrons (a more elaborate example
+    A Dodecahedral complex of 5 tetrahedra (a more elaborate example
     from Peter Jipsen)::
 
         sage: def tetra(col):
@@ -117,10 +117,10 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
 
         sage: mypoints = [vector([1,2,3]), vector([4,5,6])]
         sage: type(mypoints[0])
-        <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
+        <... 'sage.modules.vector_integer_dense.Vector_integer_dense'>
         sage: L = line3d(mypoints)
         sage: type(mypoints[0])
-        <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
+        <... 'sage.modules.vector_integer_dense.Vector_integer_dense'>
 
     The copies are converted to a list, so we can pass in immutable objects too::
 

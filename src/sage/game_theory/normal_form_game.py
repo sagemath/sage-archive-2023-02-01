@@ -217,7 +217,7 @@ When obtaining Nash equilibrium the following algorithms are
 currently available:
 
 * ``'lp'``: A solver for constant sum 2 player games using linear
-  programming. This contructs a
+  programming. This constructs a
   :mod:`MixedIntegerLinearProgram <sage.numerical.MILP>` using the
   solver which was passed in with ``solver`` to solve the linear
   programming representation of the game. See
@@ -2107,7 +2107,7 @@ class NormalFormGame(SageObject, MutableMapping):
                         M[strategy1][support2[strategy_pair2]] -\
                         M[strategy1][support2[strategy_pair2 - 1]]
             # Coefficients of linear system that ensure the vector is
-            # a probability vecotor. ie. sum to 1
+            # a probability vector. ie. sum to 1
             linearsystem[-1, strategy1] = 1
         # Create rhs of linear systems
         linearsystem_rhs = vector([0 for i in range(len(support2))] + [1])

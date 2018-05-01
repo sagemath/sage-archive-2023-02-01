@@ -1403,7 +1403,7 @@ def generate_dense_graphs_edge_addition(int n, bint loops, G = None, depth = Non
 # Dense graphs: adding vertices
 
 # This implements an augmentation scheme as follows:
-# * Seed objects are graphs with one verticex and no edges.
+# * Seed objects are graphs with one vertex and no edges.
 # * Augmentations consist of adding a single vertex connected to some subset of
 #   the previous vertices.
 

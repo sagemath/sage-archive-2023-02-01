@@ -672,12 +672,12 @@ class ToricDivisor_generic(Divisor_generic):
             sage: vector(D)        # syntactic sugar
             (0, 1, 1, 0, 0, 0)
             sage: type( vector(D) )
-            <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
+            <... 'sage.modules.vector_integer_dense.Vector_integer_dense'>
             sage: D_QQ = dP6.divisor((0,1,1,0,0,0), base_ring=QQ);
             sage: vector(D_QQ)
             (0, 1, 1, 0, 0, 0)
             sage: type( vector(D_QQ) )
-            <type 'sage.modules.vector_rational_dense.Vector_rational_dense'>
+            <... 'sage.modules.vector_rational_dense.Vector_rational_dense'>
 
         The vector representation is a suitable input for :func:`ToricDivisor` ::
 
@@ -742,7 +742,7 @@ class ToricDivisor_generic(Divisor_generic):
 
         OUTPUT:
 
-        - an interger or a rational number.
+        - an integer or a rational number.
 
         EXAMPLES::
 

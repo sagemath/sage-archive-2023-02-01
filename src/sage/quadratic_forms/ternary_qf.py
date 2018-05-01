@@ -32,8 +32,7 @@ from sage.rings.all import ZZ
 from sage.arith.all import gcd, inverse_mod, kronecker_symbol
 from sage.quadratic_forms.quadratic_form import QuadraticForm
 from sage.matrix.constructor import matrix, identity_matrix
-from sage.matrix.matrix import Matrix, is_Matrix
-from sage.structure.element import is_Vector
+from sage.structure.element import is_Vector, is_Matrix
 from sage.quadratic_forms.ternary import _reduced_ternary_form_eisenstein_with_matrix
 from sage.quadratic_forms.ternary import _reduced_ternary_form_eisenstein_without_matrix, _find_zeros_mod_p_odd, _find_zeros_mod_p_2, _find_p_neighbor_from_vec, _basic_lemma
 from sage.quadratic_forms.ternary import _find_all_ternary_qf_by_level_disc, _find_a_ternary_qf_by_level_disc

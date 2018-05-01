@@ -31,6 +31,7 @@ import sage.modules.free_module
 import sage.misc.latex
 import sage.rings.integer
 
+from sage.arith.power cimport generic_power
 from sage.misc.misc import verbose, get_verbose
 from sage.structure.sequence import Sequence
 
@@ -868,6 +869,19 @@ cdef class Matrix(sage.structure.element.Matrix):
             ...
             IndexError: row indices must be integers
 
+        Check that submatrices with a specified implementation have the
+        same implementation::
+
+            sage: M = MatrixSpace(GF(2), 3, 3, implementation='generic')
+            sage: m = M(range(9))
+            sage: type(m)
+            <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
+            sage: parent(m)
+            Full MatrixSpace of 3 by 3 dense matrices over Finite Field of size 2 (using Matrix_generic_dense)
+            sage: type(m[:2,:2])
+            <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
+            sage: parent(m[:2,:2])
+            Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 2 (using Matrix_generic_dense)
         """
         cdef list row_list
         cdef list col_list
@@ -1636,7 +1650,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         tester = self._tester(**options)
         # Test to make sure the returned matrix is a copy
-        tester.assert_(self.change_ring(self.base_ring()) is not self)
+        tester.assertTrue(self.change_ring(self.base_ring()) is not self)
 
     def _matrix_(self, R=None):
         """
@@ -5273,11 +5287,11 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         if not self.is_square():
             raise ArithmeticError("self must be a square matrix")
-        if self.nrows()==0:
+        if self.nrows() == 0:
             return self
 
         A = self.augment(self.parent().identity_matrix())
-        B = A.echelon_form()
+        A.echelonize()
 
         # Now we want to make sure that B is of the form [I|X], in
         # which case X is the inverse of self. We can simply look at
@@ -5299,13 +5313,27 @@ cdef class Matrix(sage.structure.element.Matrix):
         # behavior.
 
         if self.base_ring().is_exact():
-            if B[self._nrows-1, self._ncols-1] != 1:
+            if A[self._nrows-1, self._ncols-1] != 1:
                 raise ZeroDivisionError("input matrix must be nonsingular")
         else:
-            if not B[self._nrows-1, self._ncols-1]:
+            if not A[self._nrows-1, self._ncols-1]:
                 raise ZeroDivisionError("input matrix must be nonsingular")
 
-        return B.matrix_from_columns(list(xrange(self._ncols, 2 * self._ncols)))
+        if self.is_sparse():
+            return self.build_inverse_from_augmented_sparse(A)
+
+        return A.matrix_from_columns(list(xrange(self._ncols, 2 * self._ncols)))
+
+    cdef build_inverse_from_augmented_sparse(self, A):
+        # We can directly use the dict entries of A
+        cdef Py_ssize_t i, nrows
+        cdef dict data = <dict> A._dict()
+        nrows = self._nrows
+        # We can modify data because A is local to this function
+        for i in range(nrows):
+            del data[i,i]
+        data = {(r,c-nrows): data[r,c] for (r,c) in data}
+        return self._parent(data)
 
     def __pos__(self):
         """
@@ -5371,7 +5399,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         if isinstance(n, Expression):
             from sage.matrix.matrix2 import _matrix_power_symbolic
             return _matrix_power_symbolic(self, n)
-        return sage.structure.element.generic_power_c(self, n, None)
+        return generic_power(self, n)
 
     ###################################################
     # Comparison

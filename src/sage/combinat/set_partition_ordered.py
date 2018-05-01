@@ -78,9 +78,10 @@ class OrderedSetPartition(ClonableArray):
 
     INPUT:
 
-    - ``parts`` -- the parts of the ordered set partition
-    - ``from_word`` -- (optional) allows the creation of an ordered set
-      partition from any finite word or iterable , e.g., a packed word
+    - ``parts`` -- an object or iterable that defines an ordered set partition
+      (e.g., a list of pairwise disjoint sets) or a packed word (e.g., a list
+      of letters on some alphabet). If there is ambiguity and if the input should
+      be treated as a packed word, the keyword ``from_word`` should be used.
 
     EXAMPLES:
 
@@ -174,13 +175,12 @@ class OrderedSetPartition(ClonableArray):
             sage: OrderedSetPartition('bdab') == OrderedSetPartition(Word('bdab'))
             True
         """
-        # TODO: next six lines are likely too restrictive.
-        #       In fact, what we need is for the underlying alphabet to be sortable.
         if parts is None and from_word is None:
             P = OrderedSetPartitions([])
             return P.element_class(P, [])
         if from_word:
             return OrderedSetPartitions().from_finite_word(Words()(from_word))
+        # if `parts` looks like a sequence of "letters" then treat it like a word.
         if parts in Words() or (len(parts) > 0 and isinstance(parts[0], (str, int, Integer))):
             return OrderedSetPartitions().from_finite_word(Words()(parts))
         else:

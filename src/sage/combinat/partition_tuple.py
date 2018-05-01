@@ -1694,53 +1694,6 @@ class PartitionTuple(CombinatorialElement):
         return sum(beta[r] for r in beta) - sum(beta[r]**2 - beta[r] * beta.get(Ie(r+1),0)
                                                 for r in beta)
 
-    def is_regular(self, e, multicharge):
-        """
-        Return ``True`` if ``self`` is a `e`-regular partition tuple.
-
-        A partition tuple is `e`-regular if we can get to the
-        empty partition tuple by successively removing a sequence
-        of good cells in the down direction.
-
-        EXAMPLES::
-
-            sage: PartitionTuple([[3,1,1], [3,2]]).is_regular(2, [0,2])
-            False
-            sage: PartitionTuple([[3,1,1], [3,2]]).is_regular(3, [0,2])
-            True
-            sage: PartitionTuple([[], []]).is_regular(3, [0,2])
-            True
-        """
-        if self.size() == 0:
-            return True
-        for cell in self.good_cells(e, multicharge, direction='up').values():
-            return self.remove_cell(*cell).is_regular(e, multicharge)
-        return False
-
-    def is_restricted(self, e, multicharge):
-        """
-        Return ``True`` if ``self`` is an `e`-restricted partition tuple.
-
-        A partition tuple is `e`-restricted if we can get to the
-        empty partition tuple by successively removing a sequence
-        of good cells in the up direction.
-
-        EXAMPLES::
-
-            sage: PartitionTuple([[3,2,1], [3,1,1]]).is_restricted(2, [0,2])
-            False
-            sage: PartitionTuple([[3,2,1], [3,1,1]]).is_restricted(3, [0,2])
-            True
-            sage: PartitionTuple([[], []]).is_restricted(3, [0,2])
-            True
-        """
-        if self.size() == 0:
-            return True
-        for cell in self.good_cells(e, multicharge, direction='down').values():
-            return self.remove_cell(*cell).is_restricted(e, multicharge)
-        return False
-
-
 #--------------------------------------------------
 # Partition tuples - parent classes
 #--------------------------------------------------

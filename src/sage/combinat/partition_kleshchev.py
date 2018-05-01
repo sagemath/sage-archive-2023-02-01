@@ -203,7 +203,7 @@ class KleshchevPartition(Partition):
         """
         normal_cells = self.normal_cells(i)
         if i is None:
-            return {i: normal_cells[i][0] for i in normal_cells}
+            return {j: normal_cells[j][0] for j in normal_cells}
         elif not normal_cells:
             return None
         else:
@@ -291,6 +291,54 @@ class KleshchevPartition(Partition):
             return mu.add_cell(*mu.cogood_cell( r-c-self.parent()._multicharge[0]) )
         except (TypeError, AttributeError):  # if this fails then there is no conjugate
             return None
+
+    def is_regular(self):
+        """
+        Return ``True`` if ``self`` is a `e`-regular partition tuple.
+
+        A partition tuple is `e`-regular if we can get to the
+        empty partition tuple by successively removing a sequence
+        of good cells in the down direction.
+
+        EXAMPLES::
+
+            sage: KP = KleshchevPartitions(2)
+            sage: KP([2,1,1]).is_regular()
+            False
+            sage: KP = KleshchevPartitions(3)
+            sage: KP([2,1,1]).is_regular()
+            True
+            sage: KP([]).is_regular()
+            True
+        """
+        if self.size() == 0:
+            return True
+        KP = self.parent()
+        return super(KleshchevPartition, self).is_regular(KP._e, KP._multicharge)
+
+    def is_restricted(self):
+        """
+        Return ``True`` if ``self`` is an `e`-restricted partition tuple.
+
+        A partition tuple is `e`-restricted if we can get to the
+        empty partition tuple by successively removing a sequence
+        of good cells in the up direction.
+
+        EXAMPLES::
+
+            sage: KP = KleshchevPartitions(2, convention='regular')
+            sage: KP([3,1]).is_restricted()
+            False
+            sage: KP = KleshchevPartitions(3, convention='regular')
+            sage: KP([3,1]).is_restricted()
+            True
+            sage: KP([]).is_restricted()
+            True
+        """
+        if self.size() == 0:
+            return True
+        KP = self.parent()
+        return super(KleshchevPartition, self).is_restricted(KP._e, KP._multicharge)
 
 class KleshchevPartitionTuple(PartitionTuple):
     def conormal_cells(self, i=None):
@@ -562,6 +610,54 @@ class KleshchevPartitionTuple(PartitionTuple):
             return mu.add_cell(*mu.cogood_cell( r-c-self.parent()._multicharge[k]))
         except (TypeError, AttributeError):  # if this fails then there is no conjugate
             return None
+
+    def is_regular(self):
+        """
+        Return ``True`` if ``self`` is a `e`-regular partition tuple.
+
+        A partition tuple is `e`-regular if we can get to the
+        empty partition tuple by successively removing a sequence
+        of good cells in the down direction.
+
+        EXAMPLES::
+
+            sage: KP = KleshchevPartitions(2, [0,2], convention='right restricted')
+            sage: KP([[2,1,1], [3,2]]).is_regular()
+            False
+            sage: KP = KleshchevPartitions(3, [0,2], convention='right restricted')
+            sage: KP([[3,1,1], [3,2]]).is_regular()
+            True
+            sage: KP([[], []]).is_regular()
+            True
+        """
+        if self.size() == 0:
+            return True
+        KP = self.parent()
+        return is_regular(self.to_list(), KP._multicharge, KP._convention)
+
+    def is_restricted(self):
+        """
+        Return ``True`` if ``self`` is an `e`-restricted partition tuple.
+
+        A partition tuple is `e`-restricted if we can get to the
+        empty partition tuple by successively removing a sequence
+        of good cells in the up direction.
+
+        EXAMPLES::
+
+            sage: KP = KleshchevPartitions(2, [0,2], convention='left regular')
+            sage: KP([[3,2,1], [3,1,1]]).is_restricted()
+            False
+            sage: KP = KleshchevPartitions(3, [0,2], convention='left regular')
+            sage: KP([[3,2,1], [3,1,1]]).is_restricted()
+            True
+            sage: KP([[], []]).is_restricted()
+            True
+        """
+        if self.size() == 0:
+            return True
+        KP = self.parent()
+        return is_restricted(self.to_list(), KP._multicharge, KP._convention)
 
 class CrystalMixin(object):
     """
@@ -1185,24 +1281,19 @@ class KleshchevPartitions_size(KleshchevPartitions):
             True
         """
         if isinstance(mu, (KleshchevPartition, KleshchevPartitionTuple)):
-            return (mu.level() == self._level
-                    and mu.size() == self._size)
-            #if self._convention == 'RS':
-            #    return self.element_class(self, mu).is_regular(self._e, self._multicharge)
-            #else:
-            #    return self.element_class(self, mu).is_restricted(self._e, self._multicharge)
+            if not (mu.level() == self._level and mu.size() == self._size):
+                return False
+            mu = self.element_class(self, list(mu))
+            if self._convention[1] == 'G':
+                return mu.is_regular()
+            else:
+                return mu.is_restricted()
 
         try:
             mu = self.element_class(self, mu)
         except ValueError:
             return False
-        if mu.level() != self._level or mu.size() != self._size:
-            return False
-        return True
-        #if self._convention == 'RS':
-        #    return mu.is_regular(self._e, self._multicharge)
-        #else:
-        #    return mu.is_restricted(self._e, self._multicharge)
+        return mu in self
 
     def __iter__level_one(self):
         r"""
@@ -1302,3 +1393,103 @@ class KleshchevPartitions_size(KleshchevPartitions):
         return self[0]
 
     Element = KleshchevPartitionTuple
+
+#--------------------------------------------------
+# helper functions
+#--------------------------------------------------
+
+def a_good_cell(kpt, multicharge, convention):
+    from collections import defaultdict
+    # We use a dictionary for the normal nodes as the indexing set is Z when e=0
+    carry = defaultdict(int)        # a tally of #(removable cells)-#(addable cells)
+    ret = None
+
+    if convention[0] == 'L':
+        rows = [(k,r) for k,part in enumerate(kpt) for r in range(len(part)+1)]
+    else:
+        rows = [(k,r) for k,part in reversed(list(enumerate(kpt))) for r in range(len(part)+1)]
+    if convention[1] == 'S':
+        rows.reverse()
+
+    for row in rows:
+        k,r = row
+        if r == len(kpt[k]): # addable cell at bottom of a component
+            carry[multicharge[k]-r] += 1
+        else:
+            res = multicharge[k] + kpt[k][r] - r - 1
+            if r == len(kpt[k])-1 or kpt[k][r] > kpt[k][r+1]: # removable cell
+                if carry[res] == 0:
+                    ret = (k, r, kpt[k][r]-1)
+                else:   
+                    carry[res] -= 1
+            if r == 0 or kpt[k][r-1] > kpt[k][r]:               #addable cell
+                carry[res+1] += 1
+
+    # finally return the result
+    return ret
+
+def is_regular(kpt, multicharge, convention):
+    """
+    Return ``True`` if ``kpt`` is a ``multicharge``-regular partition tuple.
+
+    A partition tuple is `e`-regular if we can get to the
+    empty partition tuple by successively removing a sequence
+    of good cells in the down direction.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.partition_kleshchev import is_regular
+        sage: I2 = IntegerModRing(2)
+        sage: is_regular([[3,1,1], [3,2]], [I2(0),I2(2)], 'LS')
+        False
+        sage: I3 = IntegerModRing(3)
+        sage: is_regular([[3,1,1], [3,2]], [I3(0),I3(2)], 'LS')
+        True
+        sage: is_regular([[], []], [I3(0),I3(2)], 'LS')
+        True
+    """
+    if all(part == [] for part in kpt):
+        return True
+    convention = convention[0] + 'G'
+    cell = a_good_cell(kpt, multicharge, convention)
+    while cell is not None:
+        k,r,c = cell
+        if kpt[k][r] == 1:
+            kpt[k].pop()
+        else:
+            kpt[k][r] -= 1
+        cell = a_good_cell(kpt, multicharge, convention)
+    return all(part == [] for part in kpt)
+
+def is_restricted(kpt, multicharge, convention):
+    """
+    Return ``True`` if ``kpt`` is an ``multicharge``-restricted partition tuple.
+
+    A partition tuple is `e`-restricted if we can get to the
+    empty partition tuple by successively removing a sequence
+    of good cells in the up direction.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.partition_kleshchev import is_restricted
+        sage: I2 = IntegerModRing(2)
+        sage: is_restricted([[3,2,1], [3,1,1]], [I2(0),I2(2)], 'RS')
+        False
+        sage: I3 = IntegerModRing(3)
+        sage: is_restricted([[3,2,1], [3,1,1]], [I3(0),I3(2)], 'RS')
+        True
+        sage: is_restricted([[], []], [I3(0),I3(2)], 'RS')
+        True
+    """
+    if all(part == [] for part in kpt):
+        return True
+    convention = convention[0] + 'S'
+    cell = a_good_cell(kpt, multicharge, convention)
+    while cell is not None:
+        k,r,c = cell
+        if kpt[k][r] == 1:
+            kpt[k].pop()
+        else:
+            kpt[k][r] -= 1
+        cell = a_good_cell(kpt, multicharge, convention)
+    return all(part == [] for part in kpt)

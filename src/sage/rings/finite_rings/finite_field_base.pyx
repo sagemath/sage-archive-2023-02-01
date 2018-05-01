@@ -557,8 +557,13 @@ cdef class FiniteField(Field):
     def zeta(self, n=None):
         """
         Return an element of multiplicative order ``n`` in this finite
-        field, if there is one.  Raises a ``ValueError`` if there
-        is not.
+        field. If there is no such element, raise ``ValueError``.
+
+        .. WARNING::
+
+            In general, this returns an arbitrary element of the correct
+            order. There are no compatibility guarantees:
+            ``F.zeta(9)^3`` may not be equal to ``F.zeta(3)``.
 
         EXAMPLES::
 

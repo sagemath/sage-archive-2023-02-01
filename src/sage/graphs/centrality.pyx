@@ -26,6 +26,9 @@ from sage.graphs.base.static_sparse_graph cimport *
 from sage.libs.gmp.mpq cimport *
 from sage.rings.rational cimport Rational
 from sage.ext.memory_allocator cimport MemoryAllocator
+from sage.graphs.base.static_sparse_backend cimport simple_BFS
+import random
+from sage.graphs.base.boost_graph import shortest_paths
 
 ctypedef fused numerical_type:
     mpq_t
@@ -831,7 +834,7 @@ def centrality_closeness_random_k(G, int k=1):
 
     INPUT:
 
-    - ``G`` a Sage Graph
+    - ``G`` a undirected Graph
 
     - ``k`` (integer, default: 1): The number of random nodes need to be choosen
 
@@ -851,136 +854,96 @@ def centrality_closeness_random_k(G, int k=1):
 
         sage: from sage.graphs.centrality import centrality_closeness_random_k
         sage: G = Graph('Ihe\\n@GUA')
-        sage: centrality_closeness_random_k(G,3)
-        [(0, 0.6),
-         (1, 0.6),
-         (2, 0.6428571428571429),
-         (3, 0.6923076923076923),
-         (4, 0.75),
-         (5, 0.6428571428571429),
-         (6, 1.0),
-         (7, 0.6),
-         (8, 0.5),
-         (9, 0.6)]
-
-
-        sage: from sage.graphs.centrality import centrality_closeness_random_k
-        sage: G = Graph('Ihe\\n@GUA')
         sage: centrality_closeness_random_k(G,11)
         'k value need to be less than number of nodes'
 
     """
-    
-    cdef MemoryAllocator mem = MemoryAllocator()
-    cdef short_digraph sd
-    # Copying the whole graph to obtain the list of neighbors quicker than by
-    # calling out_neighbors. This data structure is well documented in the
-    # module sage.graphs.base.static_sparse_graph
-    init_short_digraph(sd, G)
-    
-    cdef int n = sd.n
-    cdef int i,u,qstart, qend, v
+
+    if G.is_directed():
+        return "G should be undirected Graph."
+
+    cdef MemoryAllocator mem = MemoryAllocator()    
+    cdef int n = G.order()
+    cdef int i,j,u,qstart, qend, v
     
     cdef int *queue = <int*> mem.malloc(n * sizeof(int))
     cdef int *randomk = <int*> mem.malloc(k * sizeof(int))
 
     # Vertices whose neighbors have been explored
-    cdef short *seen = <short*> mem.malloc(n * sizeof(short)) 
-    
+    cdef bitset_t seen
     # Vertices which are randomly selected 
-    cdef short *seen_random_vertices = <short*> mem.malloc(n * sizeof(short)) 
-    
-    cdef long long int *distance = <long long int*> mem.malloc(n * sizeof(long long int))
-    cdef double closeness_centrality, sum
-    cdef double *sum_array = <double*> mem.malloc(n * sizeof(double))
+    cdef short *seen_random_vertices = <short*> mem.malloc(n * sizeof(short))
+
+    cdef uint32_t * distance = <uint32_t *>mem.malloc(n * sizeof(uint32_t))
+    cdef uint32_t * waiting_list = <uint32_t *>mem.malloc(n * sizeof(uint32_t))
+    cdef double closeness_centrality, farness
+    cdef double *partial_farness = <double*> mem.malloc(n * sizeof(double))
     cdef double *closeness_centrality_array = <double*> mem.malloc(n * sizeof(double))
     cdef uint32_t *p_tmp
     cdef bint weighted = G.weighted()
+    cdef short_digraph sd
 
     if k > n:
         return "k value need to be less than number of nodes"
 
+    # Initialize
     l = []
     for i in range(n):
         l.append(i)
         seen_random_vertices[i] = 0
-        sum_array[i] = 0
+        partial_farness[i] = 0
 
-    # Shuffle the verices
+    # Shuffle the vertices
     random.shuffle(l)
 
-    # Take the top k random verices and mark them
+    # Take the top k random vertices and mark them
     for i in range(0,k):
         randomk[i] = l[i]
         seen_random_vertices[randomk[i]] = 1
 
     if weighted:
+        # For all random nodes take as a source then run Dijstra and
+        # calculate closeness centrality for those random vertices.
         for i in range(k):
-            distances = shortest_paths(G,randomk[i], algorithm=None)
+            distances = shortest_paths(G,randomk[i], algorithm='Dijstra')
             distances = distances[0]
             for vertex in distances:
-                sum += float(distances[vertex])
-                sum_array[vertex] = float(distances[vertex])
+                farness += float(distances[vertex])
+                partial_farness[vertex] = float(distances[vertex])
 
-            closeness_centrality_array[randomk[i]] = (n - 1) / sum
+            closeness_centrality_array[randomk[i]] = (n - 1) / farness
 
+        # Estimate the closeness centrality for remaining n-k vertices.
         for i in range(n):
             if not seen_random_vertices[i]:
-                closeness_centrality_array[i] = k / sum_array[i]
+                closeness_centrality_array[i] = k / partial_farness[i]
 
 
     # G is Unweighted graph
     else:
+
+        # Copying the whole graph to obtain the list of neighbors quicker than
+        # by calling out_neighbors. This data structure is well documented in
+        # the module sage.graphs.base.static_sparse_graph
+        init_short_digraph(sd, G)
+
         # Run BFS for random k vertices
         for i in range(k):
 
-            # initialize
+            # Initialize
+            bitset_init(seen, n)
+            farness = 0
+
+            simple_BFS(sd, randomk[i], distance, NULL,waiting_list,seen)
+            
             for j in range(n):
-                seen[j] = 0
-                distance[j] = 0
-            sum = 0
+                farness += distance[j]
+                partial_farness[j] += distance[j]
+            closeness_centrality_array[randomk[i]] = (n - 1) / farness
 
-            # Push source in queue
-            queue[0] = randomk[i]
-
-            # Mark source as seen
-            seen[queue[0]] = 1
-
-            qstart = 0
-            qend   = 1
-
-            # It is a BFS. The graph is explored layer by layer.
-            while qstart<qend:
-
-                # Looking for all non-discovered neighbors of some vertex of the
-                u = queue[qstart]
-
-                # List the neighbors of u
-                p_tmp = sd.neighbors[u]
-
-                # Traverse though all the neighbor vertices of u
-                while p_tmp<sd.neighbors[u+1]:
-
-                    v = p_tmp[0]
-                    p_tmp += 1
-
-                    # If the neighbors is 
-                    if not seen[v]:
-                        seen[v] = 1
-                        queue[qend] = v
-                        qend += 1
-
-                        # Update the distances
-                        distance[v] = distance[u] + 1
-                        sum += distance[v]
-                        sum_array[v] += distance[v]
-
-                qstart += 1
-
-            closeness_centrality_array[randomk[i]] = (n - 1) / sum
-
+        # Estimate the closeness centrality for remaining n-k vertices.
         for i in range(n):
             if not seen_random_vertices[i]:
-                closeness_centrality_array[i] = k / sum_array[i]
+                closeness_centrality_array[i] = k / partial_farness[i]
 
     return [(i,closeness_centrality_array[i]) for i in range(n)]

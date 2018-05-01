@@ -313,7 +313,7 @@ class KleshchevPartition(Partition):
             sage: KP([]).is_regular()
             True
         """
-        if self.size() == 0:
+        if self.size() == 0 or self.parent()._e == 0:
             return True
         KP = self.parent()
         return super(KleshchevPartition, self).is_regular(KP._e, KP._multicharge)
@@ -337,7 +337,7 @@ class KleshchevPartition(Partition):
             sage: KP([]).is_restricted()
             True
         """
-        if self.size() == 0:
+        if self.size() == 0 or self.parent()._e == 0:
             return True
         KP = self.parent()
         return super(KleshchevPartition, self).is_restricted(KP._e, KP._multicharge)
@@ -1329,16 +1329,15 @@ class KleshchevPartitions_size(KleshchevPartitions):
         """
         if self._size == 0:
             yield self.element_class(self, [])
-        elif self._convention[1] == 'G':
-            # For level one restriction, with convention being up, means that
-            # the partition is `e`-regular, which means that no non-zero part
-            # appears with multiplicity greater or equal to e.
-            for mu in Partitions(self._size, regular=self._e):
-                yield self.element_class(self, list(mu))
         else:
-            # For level one restriction simply means that the difference of
-            # consecutive parts is always less than e
-            for mu in Partitions(self._size, restricted=self._e):
+            if self._e == 0:
+                P = Partitions(self._size)
+            elif self._convention[1] == 'G':
+                P = Partitions(self._size, regular=self._e)
+            else:
+                P = Partitions(self._size, restricted=self._e)
+
+            for mu in P:
                 yield self.element_class(self, list(mu))
 
     def __iter__higher_levels(self):

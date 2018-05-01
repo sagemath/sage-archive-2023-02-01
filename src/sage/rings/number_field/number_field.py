@@ -31,7 +31,7 @@ AUTHORS:
 
 - John Jones (2017-07): improve check for is_galois(), add is_abelian(), building on work in patch by Chris Wuthrich
 
-- Anna Haensch (2018-03): added function ``quadratic_defect()``
+- Anna Haensch (2018-03): added :meth:``quadratic_defect``
 
 .. note::
 
@@ -2262,79 +2262,77 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         return not self.is_absolute()
 
 
-    def quadratic_defect(self,a,p):
+    def quadratic_defect(self, a, p):
         r"""
         Return the valuation of the quadratic defect of `a` at `p`.
-        This is an implementation of Algorithm 3.1.3 from Kirschmer's
-        "Definite quadratic and hermitian forms with small class number."
 
-        REFERENCE::
+        INPUT:
 
-        [Kir2016]_
+        - ``a`` an element of ``self``
+        - ``p`` a prime ideal
+
+        ALGORITHM:
+
+        This is an implementation of Algorithm 3.1.3 from [Kir2016]_
 
         EXAMPLES::
-        
-            sage: K.<a>=NumberField(x^2+2)
-            sage: p=K.primes_above(2)[0]
-            sage: K.quadratic_defect(5,p)
-            4
-            sage: K.quadratic_defect(0,p)
-            +Infinity
-            sage: K.quadratic_defect(a,p)
-            1
 
+            sage: K.<a> = NumberField(x^2 + 2)
+            sage: p = K.primes_above(2)[0]
+            sage: K.quadratic_defect(5, p)
+            4
+            sage: K.quadratic_defect(0, p)
+            +Infinity
+            sage: K.quadratic_defect(a, p)
+            1
+            sage: K.<a> = CyclotomicField(5)
+            sage: p = K.primes_above(2)[0]
+            sage: K.quadratic_defect(5, p)
+            +Infinity
         """
         from sage.rings.all import PolynomialRing
-        from sage.calculus.var import var
         if not a in self:
-            raise TypeError(str(a)+" must be an element of "+str(self))
+            raise TypeError(str(a) + " must be an element of " + str(self))
         if not self == QQ and not p.parent() == self.ideal_monoid():
-            raise TypeError(str(p)+" is not a prime ideal in "
-            +str(self.ideal_monoid()))
+            raise TypeError(str(p) + " is not a prime ideal in "
+             + str(self.ideal_monoid()))
         if not p.is_prime():
-            raise TypeError(str(p)+" must be prime")
+            raise ValueError(str(p) + " must be prime")
         if a.is_zero():
-            d = Infinity
-        else:
-            v = self(a).valuation(p)
-            if v % 2 == 1:
-                d = v
-            else:
-                for g in p.gens():
-                    if g.valuation(p) == 1:
-                        pi = g
-                        break
-                a = self(a)/(pi**v)
-                F = p.residue_field()
-                q = F.reduction_map()
-                # The non-dyadic case
-                if self(2).valuation(p) == 0:
-                    if q(a).is_square() == True:
-                        d = Infinity
-                    else:
-                        d = v
-                # The dyadic case
-                else:
-                    for s in F:
-                        if (s**2)*F(a)==1:
-                            break
-                    a = self(s**2)*a
-                    u = self(4).valuation(p)
-                    w = (a-1).valuation(p)
-                    x = var('x')
-                    R = PolynomialRing(F,x)
-                    f=R(x**2+x)
-                    while w < u and w % 2==0:
-                        s = self((q((a-1)/pi**w))**(1/2))
-                        a = a/(1+s*(pi**(w/2)))**2
-                        w = (a-1).valuation(p)
-                    if w < u and w % 2 ==1:
-                        d = v+w
-                    if w == u and (f+F((a-1)/4)).is_irreducible():
-                        d = v+w
-                    else:
-                        d = Infinity
-        return d
+            return Infinity
+        v = self(a).valuation(p)
+        if v % 2 == 1:
+            return v
+        # compute uniformizer pi
+        for g in p.gens():
+            if g.valuation(p) == 1:
+                pi = g
+                break
+        a = self(a) / pi**v
+        F = p.residue_field()
+        q = F.reduction_map()
+        # The non-dyadic case
+        if self(2).valuation(p) == 0:
+            if q(a).is_square():
+                return Infinity
+            return v
+        # The dyadic case
+        s = self(F.lift((1/F(a)).sqrt()))
+        a = self(s**2) * a
+        u = self(4).valuation(p)
+        w = (a - 1).valuation(p)
+        R = PolynomialRing(F, 'x')
+        x = R.gen()
+        f = R(x**2 + x)
+        while w < u and w % 2 == 0:
+            s = self(q((a - 1) / pi**w)**(1/2))
+            a = a / (1 + s*(pi**(w/2)))**2
+            w = (a - 1).valuation(p)
+        if w < u and w % 2 ==1:
+            return v + w
+        if w == u and (f + F((a-1) / 4)).is_irreducible():
+            return v + w
+        return Infinity
 
     @cached_method
     def absolute_field(self, names):

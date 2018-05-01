@@ -974,7 +974,7 @@ class PartitionTuple(CombinatorialElement):
     def content_tableau(self,multicharge):
         """
         Return the tableau which has (k,r,c)th entry equal to the content
-        ``multicharge[k]-r+c of this cell.
+        ``multicharge[k]-r+c`` of this cell.
 
         As with the content function, by setting the ``multicharge``
         appropriately the tableau containing the residues is returned.
@@ -2806,8 +2806,3 @@ class RegularPartitionTuples_level_size(RegularPartitionTuples):
                 mu[0] = [1]
                 mu[-1] = [self._size-1]
         return self.element_class(self, mu)
-
-# Deprecations from trac:18555. July 2016
-from sage.misc.superseded import deprecated_function_alias
-PartitionTuples.global_options=deprecated_function_alias(18555, PartitionTuples.options)
-

@@ -8419,12 +8419,3 @@ register_unpickle_override('sage.combinat.partition', 'OrderedPartitions_nk', Or
 register_unpickle_override('sage.combinat.partition', 'PartitionsInBox_hw', PartitionsInBox)
 register_unpickle_override('sage.combinat.partition', 'PartitionsGreatestLE_nk', PartitionsGreatestLE)
 register_unpickle_override('sage.combinat.partition', 'PartitionsGreatestEQ_nk', PartitionsGreatestEQ)
-
-# Deprecations from trac:18555. July 2016
-from sage.misc.superseded import deprecated_function_alias
-Partitions.global_options=deprecated_function_alias(18555, Partitions.options)
-PartitionOptions = deprecated_function_alias(18555, Partitions.options)
-Partitions_with_constraints.global_options = deprecated_function_alias(18555, Partitions_with_constraints.options)
-PartitionsGreatestLE.global_options = deprecated_function_alias(18555, PartitionsGreatestLE.options)
-PartitionsGreatestEQ.global_options = deprecated_function_alias(18555, PartitionsGreatestEQ.options)
-RestrictedPartitions_nsk.global_options = deprecated_function_alias(18555, RestrictedPartitions_nsk.options)

@@ -9242,22 +9242,20 @@ class NumberField_absolute(NumberField_generic):
             raise ValueError("Non-prime ideal P (=%s) in hilbert_symbol" % P)
         return pari(self).nfhilbert(a, b, P.pari_prime())
 
-    def hilbert_conductor_inverse(self, S, b, check=True, proof=False):
+    def hilbert_conductor_inverse(self, S, b, check=True):
         """
-        Returns an element that has negative Hilbert symbol with respect
-        to `b` number and a given set of places.
+        Return `a` such that the hilbert conductor of `a` and `b` is `S`.
 
         The function is algorithm 3.4.1 in Markus Kirschmer's "Definite quadratic
         and hermitian forms with small class number.
 
         INPUT:
 
-        - ``S`` -- a list of rational primes including the infinite place as -1.
-        - ``b`` -- a non-zero rational number whihch is a non-square locally
-                at every prime in S.
-        - ``check`` -- bool (default: ``True``) perform additional checks on input
-          and output
-        - ``proof`` -- bool (default: ``False``) whether or not to
+        - ``S`` -- a list of places (or prime ideals)
+        - ``b`` -- a non-zero rational number which is a non-square locally
+          at every place in S.
+        - ``check`` -- bool (default: ``True``) perform additional checks on
+          the input and confirm the output
 
         OUTPUT:
 
@@ -9337,14 +9335,14 @@ class NumberField_absolute(NumberField_generic):
         for sigma in self.real_places():
             if sigma(b) < 0 and sigma not in S:
                 L.append(sigma)
-        Cl = self.class_group(proof=proof)
-        U = self.unit_group(proof=proof).gens()
+        Cl = self.class_group(proof=False)
+        U = self.unit_group(proof=False).gens()
         SL = S + L
         # the finite places in SL
         P = [p for p in SL if p.parent() is self.ideal_monoid()]
 
-        # This constructs the vector v in the algorithm. This is the vector
-        # that we are searching for. It represents the case when the Hilbert
+        # v is the vector that we are searching for.
+        # It represents the case when the Hilbert
         # symbol is negative for all primes in S and positive
         # at all primes in S'
         # For technical reasons, a Hilbert symbol of -1 is

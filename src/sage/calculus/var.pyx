@@ -198,37 +198,6 @@ def function(s, *args, **kwds):
 
     EXAMPLES:
 
-    In Sage 4.0, basic arithmetic with unevaluated functions is no
-    longer supported::
-
-        sage: x = var('x')
-        sage: f = function('f')
-        sage: 2*f
-        Traceback (most recent call last):
-        ...
-        TypeError: unsupported operand parent(s) for *: 'Integer Ring' and '<class 'sage.symbolic.function_factory.NewSymbolicFunction'>'
-
-    You now need to evaluate the function in order to do the arithmetic::
-
-        sage: 2*f(x)
-        2*f(x)
-
-    In Sage 4.0, you need to use :meth:`substitute_function` to
-    replace all occurrences of a function with another::
-
-        sage: var('a, b')
-        (a, b)
-        sage: cr = function('cr')
-        sage: f = cr(a)
-        sage: g = f.diff(a).integral(b)
-        sage: g
-        b*diff(cr(a), a)
-        sage: g.substitute_function(cr, cos)
-        -b*sin(a)
-
-        sage: g.substitute_function(cr, (sin(x) + cos(x)).function(x))
-        b*(cos(a) - sin(a))
-
     We create a formal function called supersin ::
 
         sage: function('supersin')
@@ -285,7 +254,6 @@ def function(s, *args, **kwds):
 
     Defining custom methods for automatic or numeric evaluation, derivation,
     conjugation, etc. is supported::
-
 
         sage: def ev(self, x): return 2*x
         sage: foo = function("foo", nargs=1, eval_func=ev)
@@ -359,6 +327,37 @@ def function(s, *args, **kwds):
         args: (x, x)
         kwds: {'diff_param': 1}
         2*x
+
+    Since Sage 4.0, basic arithmetic with unevaluated functions is no
+    longer supported::
+
+        sage: x = var('x')
+        sage: f = function('f')
+        sage: 2*f
+        Traceback (most recent call last):
+        ...
+        TypeError: unsupported operand parent(s) for *: 'Integer Ring' and '<class 'sage.symbolic.function_factory.NewSymbolicFunction'>'
+
+    You now need to evaluate the function in order to do the arithmetic::
+
+        sage: 2*f(x)
+        2*f(x)
+
+    Since Sage 4.0, you need to use :meth:`substitute_function` to
+    replace all occurrences of a function with another::
+
+        sage: var('a, b')
+        (a, b)
+        sage: cr = function('cr')
+        sage: f = cr(a)
+        sage: g = f.diff(a).integral(b)
+        sage: g
+        b*diff(cr(a), a)
+        sage: g.substitute_function(cr, cos)
+        -b*sin(a)
+
+        sage: g.substitute_function(cr, (sin(x) + cos(x)).function(x))
+        b*(cos(a) - sin(a))
 
     TESTS:
 

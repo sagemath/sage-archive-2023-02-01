@@ -1198,6 +1198,10 @@ class RationalField(Singleton, number_field_base.NumberField):
         - ``a`` an element of ``self``
         - ``p`` a prime ideal or a prime number
 
+        REFERENCE::
+
+        [Kir2016]_
+
         EXAMPLES::
 
             sage: QQ.quadratic_defect(0, 7)

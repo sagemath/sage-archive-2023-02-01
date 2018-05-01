@@ -1329,14 +1329,14 @@ class KleshchevPartitions_size(KleshchevPartitions):
         """
         if self._size == 0:
             yield self.element_class(self, [])
-        elif self._convention == 'RG':
+        elif self._convention[1] == 'G':
             # For level one restriction, with convention being up, means that
             # the partition is `e`-regular, which means that no non-zero part
             # appears with multiplicity greater or equal to e.
             for mu in Partitions(self._size, regular=self._e):
                 yield self.element_class(self, list(mu))
         else:
-            # For level one restriction simply means that the difference of 
+            # For level one restriction simply means that the difference of
             # consecutive parts is always less than e
             for mu in Partitions(self._size, restricted=self._e):
                 yield self.element_class(self, list(mu))
@@ -1369,9 +1369,13 @@ class KleshchevPartitions_size(KleshchevPartitions):
             for cell in mu.cogood_cells().values():
                 if cell is not None:
                     nu = self.element_class(self, mu.add_cell(*cell))
-                    if all(cell <= c for c in nu.good_cells().values()
-                           if c is not None):
-                        yield nu
+                    good_cells = nu.good_cells().values()
+                    if self._convention[1]=="S":
+                        if all(cell >= c for c in good_cells if c is not None):
+                            yield nu
+                    else:
+                        if all(cell <= c for c in good_cells if c is not None):
+                            yield nu
 
     @lazy_attribute
     def __iter__(self):

@@ -632,7 +632,7 @@ class KleshchevPartitionTuple(PartitionTuple):
         if self.size() == 0:
             return True
         KP = self.parent()
-        return is_regular(self.to_list(), KP._multicharge, KP._convention)
+        return _is_regular(self.to_list(), KP._multicharge, KP._convention)
 
     def is_restricted(self):
         """
@@ -656,7 +656,7 @@ class KleshchevPartitionTuple(PartitionTuple):
         if self.size() == 0:
             return True
         KP = self.parent()
-        return is_restricted(self.to_list(), KP._multicharge, KP._convention)
+        return _is_restricted(self.to_list(), KP._multicharge, KP._convention)
 
 class KleshchevCrystalMixin(object):
     """
@@ -939,9 +939,7 @@ class KleshchevPartitions(PartitionTuples):
 
     REFERENCES:
 
-    .. [Kleshchev09] Alexander Kleshchev.
-       *Representation theory of symmetric groups and related Hecke algebras*.
-       :arxiv:`0909.4844`.
+    - [Kle2009]_
     """
     @staticmethod
     def __classcall_private__(cls, e, multicharge=(0,), size=None,
@@ -1096,26 +1094,11 @@ class KleshchevPartitions_all(KleshchevPartitions):
 
     REFERENCES:
 
-    .. [Ariki2001] Susumu Ariki. On the classification of simple modules for
-       cyclotomic Hecke algebras of type `G(m,1,n)` and Kleshchev
-       multipartitions. Osaka J. Math. **38** (2001). :arxiv:`9908004v2`.
-
-    .. [Vazirani2002] Monica Vazirani. *Parameterizing Hecek algebra modules:
-       Bernstein-Zelevinsky multisegments, Kleshchev multipartitions, and
-       crystal graphs*. Transform. Groups **7** (2002). pp. 267-303.
-       :arxiv:`0107052v1`, :doi:`10.1007/s00031-002-0014-1`.
-
-    .. [TingleyLN] Peter Tingley. Explicit `\widehat{\mathfrak{sl}}_n` crystal
-       maps between cylindric plane partitions, multi-partitions, and
-       multi-segments. Lecture notes.
-       http://webpages.math.luc.edu/~ptingley/lecturenotes/explicit_bijections.pdf
-
-    .. [Tingley2007] Peter Tingley. Three combinatorial models for
-       `\widehat{\mathfrak{sl}}_n` crystals, with applications to cylindric
-       plane partitions. International Mathematics Research Notices. (2007).
-       :arxiv:`0702062v3`.
+    - [Ariki2001]_
+    - [Tingley2007]_
+    - [TingleyLN]_
+    - [Vazirani2002]_
     """
-
     def __init__(self, e, multicharge, convention):
         r"""
         Initializes classes of PartitionTuples.
@@ -1216,21 +1199,73 @@ class KleshchevPartitions_all(KleshchevPartitions):
 
         EXAMPLES::
 
-            sage: KleshchevPartitions(2,[0,1],size=0)[:]
-            [([], [])]
-            sage: KleshchevPartitions(2,[0,1],size=1)[:]
-            [([1], []), ([], [1])]
-            sage: KleshchevPartitions(2,[0,1],size=2)[:]
-            [([1], [1]), ([], [1, 1])]
-            sage: KleshchevPartitions(3,[0,1,2],size=2)[:]
-            [([1], [1], []), ([1], [], [1]), ([], [1, 1], []), ([], [1], [1]), ([], [], [2]), ([], [], [1, 1])]
+            sage: it = iter(KleshchevPartitions(2))
+            sage: [next(it) for _ in range(10)]
+            [[], [1], [1, 1], [2, 1], [1, 1, 1], [2, 1, 1],
+             [1, 1, 1, 1], [2, 2, 1], [2, 1, 1, 1], [1, 1, 1, 1, 1]]
+            sage: it = iter(KleshchevPartitions(2, convention='LG'))
+            sage: [next(it) for _ in range(10)]
+            [[], [1], [2], [3], [2, 1], [4], [3, 1], [5], [4, 1], [3, 2]]
+
+            sage: it = iter(KleshchevPartitions(2, [0,1], convention='LS'))
+            sage: [next(it) for _ in range(10)]
+            [([], []), ([1], []), ([], [1]), ([1], [1]), ([], [1, 1]),
+             ([1], [1, 1]), ([1, 1], [1]), ([], [2, 1]),
+             ([], [1, 1, 1]), ([1], [1, 1, 1])]
+            sage: it = iter(KleshchevPartitions(2, [0,1], convention='RS'))
+            sage: [next(it) for _ in range(10)]
+            [([], []), ([1], []), ([], [1]), ([1, 1], []), ([1], [1]),
+             ([1, 1, 1], []), ([2, 1], []), ([1], [1, 1]),
+             ([1, 1], [1]), ([1, 1, 1, 1], [])]
+            sage: it = iter(KleshchevPartitions(2, [0,1], convention='LG'))
+            sage: [next(it) for _ in range(10)]
+            [([], []), ([1], []), ([], [1]), ([2], []), ([1], [1]),
+             ([3], []), ([2, 1], []), ([1], [2]), ([2], [1]), ([4], [])]
+            sage: it = iter(KleshchevPartitions(2, [0,1], convention='RG'))
+            sage: [next(it) for _ in range(10)]
+            [([], []), ([1], []), ([], [1]), ([1], [1]), ([], [2]),
+             ([1], [2]), ([2], [1]), ([], [2, 1]), ([], [3]), ([1], [3])]
+
+            sage: it = iter(KleshchevPartitions(3, [0,1,2]))
+            sage: [next(it) for _ in range(10)]
+            [([], [], []), ([1], [], []), ([], [1], []), ([], [], [1]),
+             ([1], [1], []), ([1], [], [1]), ([], [1, 1], []),
+             ([], [1], [1]), ([], [], [2]), ([], [], [1, 1])]
         """
-        size = 0
-        while True:
-            for mu in KleshchevPartitions_size(self._e, self._multicharge,
-                                               size, self._convention):
+        # This is a modified form of what appears in the fixed size code
+        if self._level == 1:
+            if self._e == 0:
+                P = Partitions()
+            elif self._convention[1] == 'G':
+                P = Partitions(regular=self._e)
+            else:
+                P = Partitions(restricted=self._e)
+
+            for mu in P:
                 yield self.element_class(self, list(mu))
-            size += 1
+        else:
+            next_level = [self.element_class(self, [[]]*len(self._multicharge))]
+            while True:
+                cur = next_level
+                next_level = []
+                for mu in cur:
+                    yield mu
+                    mu_list = mu.to_list()
+                    for cell in mu.cogood_cells().values():
+                        data = [list(p) for p in mu_list]
+                        k,r,c = cell
+                        if c == 0:
+                            data[k].append(1)
+                        else:
+                            data[k][r] += 1
+                        nu = self.element_class(self, data)
+                        good_cells = nu.good_cells().values()
+                        if self._convention[1] == "S":
+                            if all(cell >= c for c in good_cells):
+                                next_level.append(nu)
+                        else:
+                            if all(cell <= c for c in good_cells):
+                                next_level.append(nu)
 
     def _an_element_(self):
         """
@@ -1352,13 +1387,13 @@ class KleshchevPartitions_size(KleshchevPartitions):
 
         EXAMPLES::
 
-            sage: KleshchevPartitions(2,0)[:] #indirect doctest
+            sage: KleshchevPartitions(2,0)[:]  # indirect doctest
             [[]]
-            sage: KleshchevPartitions(2,1)[:] #indirect doctest
+            sage: KleshchevPartitions(2,1)[:]  # indirect doctest
             [[1]]
-            sage: KleshchevPartitions(2,2)[:] #indirect doctest
+            sage: KleshchevPartitions(2,2)[:]  # indirect doctest
             [[1, 1]]
-            sage: KleshchevPartitions(3,2)[:] #indirect doctest
+            sage: KleshchevPartitions(3,2)[:]  # indirect doctest
             [[2], [1, 1]]
         """
         if self._size == 0:
@@ -1381,11 +1416,11 @@ class KleshchevPartitions_size(KleshchevPartitions):
 
         EXAMPLES::
 
-            sage: KleshchevPartitions(2,[0,0],1)[:] #indirect doctest
+            sage: KleshchevPartitions(2,[0,0],1)[:]  # indirect doctest
             [([], [1])]
-            sage: KleshchevPartitions(2,[0,0],2)[:] #indirect doctest
+            sage: KleshchevPartitions(2,[0,0],2)[:]  # indirect doctest
             [([1], [1]), ([], [1, 1])]
-            sage: KleshchevPartitions(3,[0,0],2)[:] #indirect doctest
+            sage: KleshchevPartitions(3,[0,0],2)[:]  # indirect doctest
             [([1], [1]), ([], [2]), ([], [1, 1])]
         """
         if self._size == 0:
@@ -1399,16 +1434,22 @@ class KleshchevPartitions_size(KleshchevPartitions):
         for mu in KleshchevPartitions_size(self._e, self._multicharge,
                                            size=self._size-1,
                                            convention=self._convention):
+            mu_list = mu.to_list()
             for cell in mu.cogood_cells().values():
-                if cell is not None:
-                    nu = self.element_class(self, mu.add_cell(*cell))
-                    good_cells = nu.good_cells().values()
-                    if self._convention[1] == "S":
-                        if all(cell >= c for c in good_cells if c is not None):
-                            yield nu
-                    else:
-                        if all(cell <= c for c in good_cells if c is not None):
-                            yield nu
+                data = [list(p) for p in mu_list]
+                k,r,c = cell
+                if c == 0:
+                    data[k].append(1)
+                else:
+                    data[k][r] += 1
+                nu = self.element_class(self, data)
+                good_cells = nu.good_cells().values()
+                if self._convention[1] == "S":
+                    if all(cell >= c for c in good_cells):
+                        yield nu
+                else:
+                    if all(cell <= c for c in good_cells):
+                        yield nu
 
     @lazy_attribute
     def __iter__(self):
@@ -1427,6 +1468,15 @@ class KleshchevPartitions_size(KleshchevPartitions):
             [[2, 1], [1, 1, 1]]
             sage: KleshchevPartitions(3, [0,0], 3)[:]
             [([1], [2]), ([1], [1, 1]), ([], [2, 1]), ([], [1, 1, 1])]
+            sage: KleshchevPartitions(2, [0,1], size=0)[:]
+            [([], [])]
+            sage: KleshchevPartitions(2, [0,1], size=1)[:]
+            [([1], []), ([], [1])]
+            sage: KleshchevPartitions(2, [0,1], size=2)[:]
+            [([1], [1]), ([], [1, 1])]
+            sage: KleshchevPartitions(3, [0,1,2], size=2)[:]
+            [([1], [1], []), ([1], [], [1]), ([], [1, 1], []),
+             ([], [1], [1]), ([], [], [2]), ([], [], [1, 1])]
         """
         if self.level() == 1:
             return self.__iter__level_one
@@ -1453,6 +1503,28 @@ class KleshchevPartitions_size(KleshchevPartitions):
 #--------------------------------------------------
 
 def a_good_cell(kpt, multicharge, convention):
+    """
+    Return a good cell from ``kpt`` considered as a Kleshchev partition
+    with ``multicharge`` under ``convention``.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.partition_kleshchev import a_good_cell
+        sage: I2 = IntegerModRing(2)
+        sage: a_good_cell([[3,2,1], [3,1,1]], [I2(0),I2(2)], 'RS')
+        (1, 2, 0)
+        sage: a_good_cell([[3,1,1], [3,2]], [I2(0),I2(2)], 'LG')
+        (1, 1, 1)
+        sage: I3 = IntegerModRing(3)
+        sage: a_good_cell([[3,2,1], [3,1,1]], [I3(0),I3(2)], 'RS')
+        (0, 2, 0)
+        sage: a_good_cell([[3,1,1], [3,2]], [I3(0),I3(2)], 'LG')
+        (1, 0, 2)
+        sage: a_good_cell([[], []], [I3(0),I3(2)], 'RS') is None
+        True
+        sage: a_good_cell([[1,1], []], [I3(0),I3(2)], 'LS') is None
+        True
+    """
     # We use a dictionary for the normal nodes as the indexing set is Z when e=0
     carry = defaultdict(int)        # a tally of #(removable cells)-#(addable cells)
     ret = None
@@ -1481,24 +1553,21 @@ def a_good_cell(kpt, multicharge, convention):
     # finally return the result
     return ret
 
-def is_regular(kpt, multicharge, convention):
+def _is_regular(kpt, multicharge, convention):
     """
-    Return ``True`` if ``kpt`` is a ``multicharge``-regular partition tuple.
-
-    A partition tuple is `e`-regular if we can get to the
-    empty partition tuple by successively removing a sequence
-    of good cells in the down direction.
+    Return ``True`` if ``kpt`` is a ``multicharge``-regular
+    Kleshchev partition.
 
     EXAMPLES::
 
-        sage: from sage.combinat.partition_kleshchev import is_regular
+        sage: from sage.combinat.partition_kleshchev import _is_regular
         sage: I2 = IntegerModRing(2)
-        sage: is_regular([[3,1,1], [3,2]], [I2(0),I2(2)], 'LS')
+        sage: _is_regular([[3,1,1], [3,2]], [I2(0),I2(2)], 'LS')
         False
         sage: I3 = IntegerModRing(3)
-        sage: is_regular([[3,1,1], [3,2]], [I3(0),I3(2)], 'LS')
+        sage: _is_regular([[3,1,1], [3,2]], [I3(0),I3(2)], 'LS')
         True
-        sage: is_regular([[], []], [I3(0),I3(2)], 'LS')
+        sage: _is_regular([[], []], [I3(0),I3(2)], 'LS')
         True
     """
     if all(part == [] for part in kpt):
@@ -1514,24 +1583,21 @@ def is_regular(kpt, multicharge, convention):
         cell = a_good_cell(kpt, multicharge, convention)
     return all(part == [] for part in kpt)
 
-def is_restricted(kpt, multicharge, convention):
+def _is_restricted(kpt, multicharge, convention):
     """
-    Return ``True`` if ``kpt`` is an ``multicharge``-restricted partition tuple.
-
-    A partition tuple is `e`-restricted if we can get to the
-    empty partition tuple by successively removing a sequence
-    of good cells in the up direction.
+    Return ``True`` if ``kpt`` is an ``multicharge``-restricted
+    Kleshchev partition.
 
     EXAMPLES::
 
-        sage: from sage.combinat.partition_kleshchev import is_restricted
+        sage: from sage.combinat.partition_kleshchev import _is_restricted
         sage: I2 = IntegerModRing(2)
-        sage: is_restricted([[3,2,1], [3,1,1]], [I2(0),I2(2)], 'RS')
+        sage: _is_restricted([[3,2,1], [3,1,1]], [I2(0),I2(2)], 'RG')
         False
         sage: I3 = IntegerModRing(3)
-        sage: is_restricted([[3,2,1], [3,1,1]], [I3(0),I3(2)], 'RS')
+        sage: _is_restricted([[3,2,1], [3,1,1]], [I3(0),I3(2)], 'RG')
         True
-        sage: is_restricted([[], []], [I3(0),I3(2)], 'RS')
+        sage: _is_restricted([[], []], [I3(0),I3(2)], 'RG')
         True
     """
     if all(part == [] for part in kpt):

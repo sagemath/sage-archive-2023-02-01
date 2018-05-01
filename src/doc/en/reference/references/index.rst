@@ -114,6 +114,12 @@ REFERENCES:
             Mathematical Society 364 (2012),
             1509-1528. :arxiv:`1009.1655`
 
+
+.. [Ariki2001] Susumu Ariki. *On the classification of simple modules for
+			   cyclotomic Hecke algebras of type* `G(m,1,n)` *and Kleshchev
+			   multipartitions*. Osaka J. Math. **38** (2001).
+			   :arxiv:`9908004v2`.
+
 .. [AS-Bessel] \F. W. J. Olver: 9. Bessel Functions of Integer Order,
                in Abramowitz and Stegun: Handbook of Mathematical
                Functions. http://people.math.sfu.ca/~cbm/aands/page_355.htm
@@ -1399,6 +1405,10 @@ REFERENCES:
             Sci. Publ., Hackensack, NJ, 2008. Preprint version:
             :arxiv:`0710.1835`
 
+.. [Kle2009] Alexander Kleshchev. *Representation theory of symmetric
+			 groups and related Hecke algebras*.
+			 :arxiv:`0909.4844`.
+
 .. [KLLRSY2014] \E. B. Kavun, M. M. Lauridsen, G. Leander, C. Rechberger,
                 \P. Schwabe, and T. Yalcin, *Prost v1*; CAESAR Competition, (2014).
 
@@ -2352,6 +2362,17 @@ REFERENCES:
            Integrating ODEs by using the Taylor Series Method
            (http://www.unizar.es/acz/05Publicaciones/Monografias/MonografiasPublicadas/Monografia36/IndMonogr36.htm)
 
+.. [TingleyLN] Peter Tingley. *Explicit* `\widehat{\mathfrak{sl}}_n` *crystal
+			   maps between cylindric plane partitions, multi-partitions, and
+			   multi-segments*. Lecture notes.
+			   http://webpages.math.luc.edu/~ptingley/lecturenotes/explicit_bijections.pdf
+
+.. [Tingley2007] Peter Tingley. *Three combinatorial models for*
+				 `\widehat{\mathfrak{sl}}_n` *crystals, with applications
+				 to cylindric plane partitions*.
+				 International Mathematics Research Notices. (2007).
+				 :arxiv:`0702062v3`.
+
 .. [TOPCOM] \J. Rambau, TOPCOM
             <http://www.rambau.wm.uni-bayreuth.de/TOPCOM/>.
 
@@ -2384,6 +2405,12 @@ REFERENCES:
              :doi:`10.1007/978-3-0348-8495-2`
 
 .. [Vat2008] \D. Vatne, *The mutation class of `D_n` quivers*, :arxiv:`0810.4789v1`.
+
+.. [Vazirani2002] Monica Vazirani. *Parameterizing Hecek algebra modules:
+				  Bernstein-Zelevinsky multisegments, Kleshchev
+				  multipartitions, and crystal graphs*. Transform. Groups
+				  **7** (2002). pp. 267-303. :arxiv:`0107052v1`,
+				  :doi:`10.1007/s00031-002-0014-1`.
 
 .. [VB1996] \E. Viterbo, E. Biglieri. *Computing the Voronoi Cell of a
             Lattice: The Diamond-Cutting Algorithm*. IEEE Transactions

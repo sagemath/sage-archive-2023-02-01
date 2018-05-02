@@ -946,4 +946,5 @@ def centrality_closeness_random_k(G, int k=1):
             if not seen_random_vertices[i]:
                 closeness_centrality_array[i] = k / partial_farness[i]
 
-    return [(i,closeness_centrality_array[i]) for i in range(n)]
+    cdef list int_to_vertex = G.vertices()
+    return [(int_to_vertex[i],closeness_centrality_array[i]) for i in range(n)]

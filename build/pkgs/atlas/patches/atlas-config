@@ -39,7 +39,7 @@ def unthrottle_posix(pid):
             f.write('performance')
 
     def signal_handler(signum, frame):
-        print('Signal hanadler called with signal', signum)
+        print('Signal handler called with signal', signum)
         for cpu, governor in zip(cpus, scaling_governor):
             with open(cpu, 'w') as f:
                 f.write(governor)

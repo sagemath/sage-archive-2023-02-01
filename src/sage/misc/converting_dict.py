@@ -186,6 +186,7 @@ class KeyConvertingDict(dict):
     def has_key(self, key):
         r"""
         Deprecated; present just for the sake of compatibility.
+
         Use ``key in self`` instead.
 
         INPUT:
@@ -198,10 +199,15 @@ class KeyConvertingDict(dict):
             sage: d = KeyConvertingDict(int)
             sage: d[3] = 42
             sage: d.has_key("3")
+            doctest:warning...:
+            DeprecationWarning: has_key is deprecated, use in instead
+            See https://trac.sagemath.org/25281 for details.
             True
             sage: d.has_key(4)
             False
         """
+        from sage.misc.superseded import deprecation
+        deprecation(25281, "has_key is deprecated, use in instead")
         return key in self
 
     def pop(self, key, *args):

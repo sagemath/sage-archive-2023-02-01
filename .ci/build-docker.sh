@@ -19,25 +19,25 @@ set -ex
 # during docker build. See /docker/Dockerfile for more details.
 ARTIFACT_BASE=${ARTIFACT_BASE:-sagemath/sagemath-dev:develop}
 
-# Seed our cache with $ARTIFACT_BASE if it exists
+# Seed our cache with $ARTIFACT_BASE if it exists.
 docker pull "$ARTIFACT_BASE" > /dev/null || true
 
 docker_build() {
     # Docker's --cache-from does not really work with multi-stage builds: https://github.com/moby/moby/issues/34715
-    # We work around that by specifying all possible tags (docker does not
-    # fail anymore if a cache-from tag can not be found.)
+    # So we just have to rely on the local cache.
     time docker build -f docker/Dockerfile \
---cache-from "$ARTIFACT_BASE" --cache-from build-time-dependencies --cache-from make-all --cache-from "$DOCKER_IMAGE_CLI" --cache-from "$DOCKER_IMAGE_DEV" \
 --build-arg "MAKEOPTS=${MAKEOPTS}" --build-arg "SAGE_NUM_THREADS=${SAGE_NUM_THREADS}" --build-arg ARTIFACT_BASE=$ARTIFACT_BASE $@
 }
 
 # We use a multi-stage build /docker/Dockerfile. For the caching to be
-# effective, we populate the cache by building the build-time-dependencies and
-# the make-all target. (Just building the last target is not enough as
-# intermediate targets would be discarded from the cache and therefore the
-# caching would fail for our actual builds below.)
-docker_build --pull --target build-time-dependencies --tag build-time-dependencies .
-docker_build --pull --target make-all --tag make-all .
+# effective, we populate the cache by building the run/build-time-dependencies
+# and the make-all target. (Just building the last target is not enough as
+# intermediate targets could be discarded from the cache [depending on the
+# docker version] and therefore the caching would fail for our actual builds
+# below.)
+docker_build --target run-time-dependencies --tag run-time-dependencies:$DOCKER_TAG .
+docker_build --target build-time-dependencies --tag build-time-dependencies:$DOCKER_TAG .
+docker_build --target make-all --tag make-all:$DOCKER_TAG .
 
 # Build the release image without build artifacts.
 docker_build --target sagemath --tag "$DOCKER_IMAGE_CLI" .

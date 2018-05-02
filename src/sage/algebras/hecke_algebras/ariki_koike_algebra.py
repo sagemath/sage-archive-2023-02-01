@@ -60,6 +60,7 @@ from sage.categories.rings import Rings
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.permutation import Permutations
 from sage.sets.family import Family
+from sage.data_structures.blas_dict import iaxpy
 
 class ArikiKoikeAlgebra(CombinatorialFreeModule):
     r"""
@@ -581,7 +582,8 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
 
         if sum(L2) == 0:
             # Compute and return the product of T1 and T2, whilst fixing L
-            return self._product_LTwTv(L1, T1, T2)
+            return self._from_dict(self._product_LTwTv(L1, T1, T2),
+                                   remove_zeros=False, coerce=False)
 
         # If T1 is trivial then we just have L1*L2*T2 we only need to rewrite
         # all of the "large" powers that appear in L1*L2. Unfortunately, this
@@ -596,7 +598,7 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
                     Lsmall[i] = s
                 else:
                     Lbig[i] = s
-            if Lbig == list(self._zero_tuple):
+            if tuple(Lbig) == self._zero_tuple:
                 # if no big powers we only need to combine Lsmall and T2
                 return self.monomial((tuple(Lsmall), T2))
 
@@ -631,6 +633,10 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
         - ``w`` -- the permutation ``w``
         - ``v`` -- the permutation ``v``
 
+        OUTPUT:
+
+        The corresponding element represented as a ``dict``.
+
         The main point of this method is that it computes the product
         `L T_w T_v` and returns it as a linear combination of standard
         basis elements. That is, terms of the form `L T_x`. The monomial
@@ -656,36 +662,32 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
 
             sage: H = algebras.ArikiKoike(5, 4)
             sage: P4 = Permutations(4)
-            sage: H._product_LTwTv((0, 3, 2, 4), P4([1,3,2,4]), P4([1,3,2,4]))
+            sage: H._from_dict( H._product_LTwTv((0, 3, 2, 4), P4([1,3,2,4]), P4([1,3,2,4])) )
             q*L2^3*L3^2*L4^4 - (1-q)*L2^3*L3^2*L4^4*T[2]
-            sage: H._product_LTwTv((0, 3, 2, 4), P4([1,3,2,4]), P4([1,3,4,2]))
+            sage: H._from_dict( H._product_LTwTv((0, 3, 2, 4), P4([1,3,2,4]), P4([1,3,4,2])) )
             q*L2^3*L3^2*L4^4*T[3] - (1-q)*L2^3*L3^2*L4^4*T[2,3]
-            sage: H._product_LTwTv((0, 3, 2, 4), P4([1,4,3,2]), P4([1,4,3,2]))
+            sage: H._from_dict( H._product_LTwTv((0, 3, 2, 4), P4([1,4,3,2]), P4([1,4,3,2])) )
             q^3*L2^3*L3^2*L4^4 - (q^2-q^3)*L2^3*L3^2*L4^4*T[3]
              - (q^2-q^3)*L2^3*L3^2*L4^4*T[2]
              + (q-2*q^2+q^3)*L2^3*L3^2*L4^4*T[2,3]
              + (q-2*q^2+q^3)*L2^3*L3^2*L4^4*T[3,2]
              - (1-2*q+2*q^2-q^3)*L2^3*L3^2*L4^4*T[3,2,3]
         """
-        Lwv = self.monomial( (L, v) )
+        ret = {v: self.base_ring().one()}
         qm1 = self._q - self.base_ring().one()
-        # TODO: Do not use elements of self but just a dictionary
-        #   given by the permutations and the blas_dict methods.
-        #   We can then add the L portion at the end to each term.
         for i in w.reduced_word()[::-1]:
-            Lwvi = self.zero() # start from 0
-            for (v,c) in Lwv:
+            temp = {} # start from 0
+            for p in ret:
+                c = ret[p]
                 # We have to flip the side due to Sage's 
                 # convention for multiplying permutations
-                vi = v[1].apply_simple_reflection(i, side="right")
-                if v[1].has_descent(i, side="right"):
-                    Lwvi += self._from_dict({v: c * qm1, (v[0], vi): c * self._q},
-                                            remove_zeros=False)
+                pi = p.apply_simple_reflection(i, side="right")
+                if p.has_descent(i, side="right"):
+                    iaxpy(1, {p: c * qm1, pi: c * self._q}, temp)
                 else:
-                    Lwvi += self._from_dict({(v[0], vi): c},
-                                            remove_zeros=False)
-            Lwv = Lwvi
-        return Lwv
+                    iaxpy(1, {pi: c}, temp)
+            ret = temp
+        return {(L, p): ret[p] for p in ret}
 
     def _product_Tw_L(self, w, L):
         r"""
@@ -726,19 +728,21 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
             sage: H._product_Tw_L(P4([1,3,2,4]), (2,3,1,3))
             (1-q)*L1^2*L2*L3^3*L4^3 + L1^2*L2*L3^3*L4^3*T[2] + (1-q)*L1^2*L2^2*L3^2*L4^3
         """
-        wL = self.monomial( (L, self._one_perm) ) # initialise to L: this is what we will eventually return
+        # initialize wL to L: this is what we will eventually return
+        wL = {(L, self._one_perm): self.base_ring().one()}
         q = self._q
         one = q.parent().one()
         for i in w.reduced_word()[::-1]:
-            iL = self.zero() # this will become T_i * L, written in standard form
-            for (lv, c) in wL:
+            iL = {} # this will become T_i * L, written in standard form
+            for lv in wL:
+                c = wL[lv]
                 L = list(lv[0]) # make a copy
                 v = lv[1]
                 a, b = L[i-1], L[i]
                 L[i-1], L[i] = L[i], L[i-1] # swap L_i=L[i-1] and L_{i+1}=L[i]
-                # the term L_1^{a_1}...L_i^{a_{i+1}}L_{i+1}^{a_i}...L_n^{a_n} T_i T_v
+                # the term L_1^{a_1} ... L_i^{a_{i+1}} L_{i+1}^{a_i} ... L_n^{a_n} T_i T_v
                 # always appears
-                iL += c * self._product_LTwTv(tuple(L), self._Pn.simple_reflections()[i], v) # need T_i*T_v
+                iaxpy(c, self._product_LTwTv(tuple(L), self._Pn.simple_reflections()[i], v), iL) # need T_i*T_v
 
                 if a < b:
                     Ls = [ list(L) for k in range(b-a) ] # make copies of L
@@ -746,16 +750,18 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
                         Ls[k][i-1] = a + k
                         Ls[k][i] = b - k
                     c *= (q - one)
-                    iL += self.sum_of_terms( ((tuple(l), v), c) for l in Ls )
+                    iaxpy(1, {(tuple(l), v): c for l in Ls}, iL)
+
                 elif a > b:
                     Ls = [ list(L) for k in range(a-b) ] # make copies of L
                     for k in range(a-b):
                         Ls[k][i-1] = b + k
                         Ls[k][i] = a - k
                     c *= (one - q)
-                    iL += self.sum_of_terms( ((tuple(l), v), c) for l in Ls )
+                    iaxpy(1, {(tuple(l), v): c for l in Ls}, iL)
+
             wL = iL # replace wL with iL and repeat
-        return wL
+        return self._from_dict(wL, remove_zeros=False, coerce=False)
 
     @cached_method
     def _Li_power(self, i, m):

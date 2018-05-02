@@ -50,7 +50,7 @@ cdef class SymbolicRing(CommutativeRing):
 
             sage: isinstance(SR, sage.symbolic.ring.SymbolicRing)
             True
-            sage: TestSuite(SR).run()
+            sage: TestSuite(SR).run(skip=['_test_divides'])
 
         """
         if base_ring is None:

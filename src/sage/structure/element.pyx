@@ -2891,7 +2891,12 @@ cdef class CommutativeRingElement(RingElement):
             except (AttributeError, NotImplementedError):
                 pass
 
-            return (x % self) == 0
+            try:
+                return (x % self).is_zero()
+            except (TypeError, NotImplementedError):
+                pass
+
+            raise NotImplementedError
 
         else:
             #Different parents, use coercion

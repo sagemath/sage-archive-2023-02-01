@@ -271,20 +271,44 @@ class KleshchevPartition(Partition):
 
         EXAMPLES::
 
-            sage: KleshchevPartitions(3, convention='regular')([5,4,4,3,2]).mullineux_conjugate()
+            sage: KP = KleshchevPartitions(3, convention='regular')
+            sage: KP([5,4,4,3,2]).mullineux_conjugate()
             [9, 7, 1, 1]
-            sage: KleshchevPartitions(3, convention='restricted')([5,4,4,3,2]).mullineux_conjugate()
+            sage: KP = KleshchevPartitions(3, convention='restricted')
+            sage: KP([5,4,4,3,2]).mullineux_conjugate()
             [3, 2, 2, 2, 2, 2, 2, 1, 1, 1]
+            sage: KP = KleshchevPartitions(3, [2], convention='regular')
+            sage: mc = KP([5,4,4,3,2]).mullineux_conjugate(); mc
+            [9, 7, 1, 1]
+            sage: mc.parent().multicharge()
+            (1,)
+            sage: KP = KleshchevPartitions(3, [2], convention='restricted')
+            sage: mc = KP([5,4,4,3,2]).mullineux_conjugate(); mc
+            [3, 2, 2, 2, 2, 2, 2, 1, 1, 1]
+            sage: mc.parent().multicharge()
+            (1,)
         """
+        P = self.parent()
         if not self:
-            return self
+            size = None
+            if isinstance(P, KleshchevPartitions_size):
+                size = P._size
+            KP = KleshchevPartitions(P._e, [-c for c in P._multicharge],
+                                     size=size, convention=P._convention)
+            return KP.element_class(KP, [])
+
         good_cells = self.good_cells()
         assert good_cells
 
         r,c = sorted(good_cells.values())[0]
-        mu = type(self)(self.parent(), self.remove_cell(r, c)).mullineux_conjugate()
+        # This is technically wrong when the parent has a fixed size because
+        #   the resulting Kleshchev partition after removing a cell has abs
+        #   smaller size. However, this is useful to avoid constructing
+        #   transient parents.
+        mu = P.element_class(P, self.remove_cell(r, c)).mullineux_conjugate()
         # add back on a cogood cell of residue -residue(k,r,c)
-        return type(self)(self.parent(), mu.add_cell(*mu.cogood_cells( r-c-self.parent()._multicharge[0]) ))
+        KP = mu.parent()
+        return KP.element_class(KP, mu.add_cell(*mu.cogood_cells( r-c-self.parent()._multicharge[0]) ))
 
     def is_regular(self):
         """
@@ -596,19 +620,32 @@ class KleshchevPartitionTuple(PartitionTuple):
         EXAMPLES::
 
             sage: KP = KleshchevPartitions(3, [0,1])
-            sage: KP([[4, 2], [5, 3, 1]]).mullineux_conjugate()
-
+            sage: mc = KP([[4, 2], [5, 3, 1]]).mullineux_conjugate(); mc
+            ([2, 2, 1, 1], [3, 2, 2, 1, 1])
+            sage: mc.parent()
+            Kleshchev partitions with e=3 and multicharge=(0,2)
         """
+        P = self.parent()
         if self.size() == 0:
-            return self
+            size = None
+            if isinstance(P, KleshchevPartitions_size):
+                size = P._size
+            KP = KleshchevPartitions(P._e, [-c for c in P._multicharge],
+                                     size=size, convention=P._convention)
+            return KP.element_class(KP, [[]]*P._level)
 
         good_cells = self.good_cells()
         assert good_cells
 
         k,r,c = sorted(good_cells.values())[0]
-        mu = type(self)(self.parent(), self.remove_cell(k,r,c)).mullineux_conjugate()
+        # This is technically wrong when the parent has a fixed size because
+        #   the resulting Kleshchev partition after removing a cell has abs
+        #   smaller size. However, this is useful to avoid constructing
+        #   transient parents.
+        mu = P.element_class(P, self.remove_cell(k,r,c)).mullineux_conjugate()
         # add back on a cogood cell of residue -residue(k,r,c)
-        return type(self)(self.parent(), mu.add_cell(*mu.cogood_cells( r-c-self.parent()._multicharge[k])))
+        KP = mu.parent()
+        return KP.element_class(KP, mu.add_cell(*mu.cogood_cells( r-c-self.parent()._multicharge[k])))
 
     def is_regular(self):
         r"""
@@ -898,11 +935,11 @@ class KleshchevPartitions(PartitionTuples):
 
     EXAMPLES::
 
-        sage: KleshchevPartitions(5,[3,2,1],1,convention='RS')[:]
+        sage: KleshchevPartitions(5, [3,2,1], 1, convention='RS')[:]
         [([], [], [1]), ([], [1], []), ([1], [], [])]
-        sage: KleshchevPartitions(5,[3,2,1],1,convention='LS')[:]
+        sage: KleshchevPartitions(5, [3,2,1], 1, convention='LS')[:]
         [([], [], [1]), ([], [1], []), ([1], [], [])]
-        sage: KleshchevPartitions(5,[3,2,1],3)[:]
+        sage: KleshchevPartitions(5, [3,2,1], 3)[:]
         [([], [], [1, 1, 1]),
          ([], [], [2, 1]),
          ([], [1], [2]),
@@ -919,7 +956,7 @@ class KleshchevPartitions(PartitionTuples):
          ([3], [], []),
          ([2], [], [1]),
          ([2], [1], [])]
-        sage: KleshchevPartitions(5,[3,2,1],3,convention="left regular")[:]
+        sage: KleshchevPartitions(5, [3,2,1], 3, convention="left regular")[:]
         [([], [1], [1, 1]),
          ([1], [], [1, 1]),
          ([], [], [1, 1, 1]),
@@ -974,6 +1011,53 @@ class KleshchevPartitions(PartitionTuples):
             return KleshchevPartitions_all(e, multicharge, convention)
         else:
             return KleshchevPartitions_size(e, multicharge, size, convention)
+
+    def multicharge(self):
+        """
+        Return the multicharge of ``self``.
+
+        EXAMPLES::
+        
+            sage: KP = KleshchevPartitions(6, [2])
+            sage: KP.multicharge()
+            (2,)
+            sage: KP = KleshchevPartitions(5, [3,0,1], 1, convention='LS')
+            sage: KP.multicharge()
+            (3, 0, 1)
+            """
+        return self._multicharge
+
+    def convention(self):
+        """
+        Return the convention of ``self``.
+
+        EXAMPLES::
+        
+            sage: KP = KleshchevPartitions(4)
+            sage: KP.convention()
+            'restricted'
+            sage: KP = KleshchevPartitions(6, [4], 3, convention="right regular")
+            sage: KP.convention()
+            'regular'
+            sage: KP = KleshchevPartitions(5, [3,0,1], 1)
+            sage: KP.convention()
+            'left restricted'
+            sage: KP = KleshchevPartitions(5, [3,0,1], 1, convention='right regular')
+            sage: KP.convention()
+            'right regular'
+        """
+        if self._convention[1] == 'S':
+            convention = "restricted"
+        else:
+            convention = "regular"
+
+        if self._level == 1:
+            return convention
+
+        if self._convention[0] == 'R':
+            return "right " + convention
+        else:
+            return "left " + convention
 
 class KleshchevPartitions_all(KleshchevPartitions):
     r"""
@@ -1502,27 +1586,27 @@ class KleshchevPartitions_size(KleshchevPartitions):
 # helper functions
 #--------------------------------------------------
 
-def a_good_cell(kpt, multicharge, convention):
+def _a_good_cell(kpt, multicharge, convention):
     """
     Return a good cell from ``kpt`` considered as a Kleshchev partition
     with ``multicharge`` under ``convention``.
 
     EXAMPLES::
 
-        sage: from sage.combinat.partition_kleshchev import a_good_cell
+        sage: from sage.combinat.partition_kleshchev import _a_good_cell
         sage: I2 = IntegerModRing(2)
-        sage: a_good_cell([[3,2,1], [3,1,1]], [I2(0),I2(2)], 'RS')
+        sage: _a_good_cell([[3,2,1], [3,1,1]], [I2(0),I2(2)], 'RS')
         (1, 2, 0)
-        sage: a_good_cell([[3,1,1], [3,2]], [I2(0),I2(2)], 'LG')
+        sage: _a_good_cell([[3,1,1], [3,2]], [I2(0),I2(2)], 'LG')
         (1, 1, 1)
         sage: I3 = IntegerModRing(3)
-        sage: a_good_cell([[3,2,1], [3,1,1]], [I3(0),I3(2)], 'RS')
+        sage: _a_good_cell([[3,2,1], [3,1,1]], [I3(0),I3(2)], 'RS')
         (0, 2, 0)
-        sage: a_good_cell([[3,1,1], [3,2]], [I3(0),I3(2)], 'LG')
+        sage: _a_good_cell([[3,1,1], [3,2]], [I3(0),I3(2)], 'LG')
         (1, 0, 2)
-        sage: a_good_cell([[], []], [I3(0),I3(2)], 'RS') is None
+        sage: _a_good_cell([[], []], [I3(0),I3(2)], 'RS') is None
         True
-        sage: a_good_cell([[1,1], []], [I3(0),I3(2)], 'LS') is None
+        sage: _a_good_cell([[1,1], []], [I3(0),I3(2)], 'LS') is None
         True
     """
     # We use a dictionary for the normal nodes as the indexing set is Z when e=0
@@ -1573,14 +1657,14 @@ def _is_regular(kpt, multicharge, convention):
     if all(part == [] for part in kpt):
         return True
     convention = convention[0] + 'G'
-    cell = a_good_cell(kpt, multicharge, convention)
+    cell = _a_good_cell(kpt, multicharge, convention)
     while cell is not None:
         k,r,c = cell
         if kpt[k][r] == 1:
             kpt[k].pop()
         else:
             kpt[k][r] -= 1
-        cell = a_good_cell(kpt, multicharge, convention)
+        cell = _a_good_cell(kpt, multicharge, convention)
     return all(part == [] for part in kpt)
 
 def _is_restricted(kpt, multicharge, convention):
@@ -1603,12 +1687,12 @@ def _is_restricted(kpt, multicharge, convention):
     if all(part == [] for part in kpt):
         return True
     convention = convention[0] + 'S'
-    cell = a_good_cell(kpt, multicharge, convention)
+    cell = _a_good_cell(kpt, multicharge, convention)
     while cell is not None:
         k,r,c = cell
         if kpt[k][r] == 1:
             kpt[k].pop()
         else:
             kpt[k][r] -= 1
-        cell = a_good_cell(kpt, multicharge, convention)
+        cell = _a_good_cell(kpt, multicharge, convention)
     return all(part == [] for part in kpt)

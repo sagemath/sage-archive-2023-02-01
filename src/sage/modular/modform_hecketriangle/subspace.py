@@ -249,8 +249,12 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
             sage: from sage.modular.modform_hecketriangle.space import ModularForms
             sage: MF = ModularForms(n=6, k=20, ep=1)
             sage: subspace = MF.subspace([MF.Delta()*MF.E4()^2, MF.gen(0)])
+            sage: subspace.change_ring(QQ)
+            Subspace of dimension 2 of ModularForms(n=6, k=20, ep=1) over Rational Field
             sage: subspace.change_ring(CC)
-            Subspace of dimension 2 of ModularForms(n=6, k=20, ep=1) over Complex Field with 53 bits of precision
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
 
         return self.__class__.__base__(self._ambient_space.change_ring(new_base_ring), self._basis, check=False)

@@ -215,7 +215,9 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
             sage: F(BaseFacade(ZZ))
             Subspace of dimension 1 of CuspForms(n=4, k=12, ep=1) over Integer Ring
             sage: F(BaseFacade(CC))
-            Subspace of dimension 1 of CuspForms(n=4, k=12, ep=1) over Complex Field with 53 bits of precision
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
             sage: F(CC)
             ModularFormsRing(n=4) over Complex Field with 53 bits of precision
 
@@ -226,7 +228,9 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
             sage: F(BaseFacade(ZZ))
             Subspace of dimension 1 of ModularForms(n=4, k=0, ep=1) over Integer Ring
             sage: F(CC)
-            Subspace of dimension 1 of ModularForms(n=4, k=0, ep=1) over Complex Field with 53 bits of precision
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
 
         ambient_space = self._ambient_space_functor(R)

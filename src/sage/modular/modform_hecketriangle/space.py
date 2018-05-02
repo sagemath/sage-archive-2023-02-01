@@ -1029,7 +1029,7 @@ class ZeroForm(FormsSpace_abstract, Module, UniqueRepresentation):
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.space import ZeroForm
-            sage: MF = ZeroForm(6, CC, 3, -1)
+            sage: MF = ZeroForm(6, QQ, 3, -1)
             sage: el = MF(0)
             sage: el
             O(q^5)
@@ -1037,7 +1037,7 @@ class ZeroForm(FormsSpace_abstract, Module, UniqueRepresentation):
             sage: vec
             ()
             sage: vec.parent()
-            Vector space of dimension 0 over Fraction Field of Univariate Polynomial Ring in d over Complex Field with 53 bits of precision
+            Vector space of dimension 0 over Fraction Field of Univariate Polynomial Ring in d over Rational Field
             sage: vec.parent() == MF.module()
             True
         """

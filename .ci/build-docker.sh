@@ -28,7 +28,7 @@ docker_build() {
     # fail anymore if a cache-from tag can not be found.)
     time docker build -f docker/Dockerfile \
 --cache-from "$ARTIFACT_BASE" --cache-from build-time-dependencies --cache-from make-all --cache-from "$DOCKER_IMAGE_CLI" --cache-from "$DOCKER_IMAGE_DEV" \
---build-arg "MAKE=${MAKE}" --build-arg ARTIFACT_BASE=$ARTIFACT_BASE $@
+--build-arg "MAKEOPTS=${MAKEOPTS}" --build-arg "SAGE_NUM_THREADS=${SAGE_NUM_THREADS}" --build-arg ARTIFACT_BASE=$ARTIFACT_BASE $@
 }
 
 # We use a multi-stage build /docker/Dockerfile. For the caching to be

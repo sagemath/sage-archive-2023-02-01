@@ -28,16 +28,10 @@ if [ -z "$NTHREADS" ]; then
     NTHREADS=$([ $RAMTHREADS -le $CPUTHREADS ] && echo "$RAMTHREADS" || echo "$CPUTHREADS")
 fi
 export NTHREADS="$NTHREADS"
+export SAGE_NUM_THREADS="$NTHREADS"
 
 # Set -j and -l for make (though -l is probably stripped by Sage)
 if [ -z "$MAKEOPTS" ]; then
     MAKEOPTS="-j $NTHREADS -l $((NTHREADS-1)).8"
 fi
 export MAKEOPTS="$MAKEOPTS"
-
-# Not all parts of Sage seem to honor MAKEOPTS, so the current way of telling
-# the system which concurrency to use, seems to be setting $MAKE.
-if [ -z "$MAKE" ];then
-    MAKE="make $MAKEOPTS"
-fi
-export MAKE="$MAKE"

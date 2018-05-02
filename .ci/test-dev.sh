@@ -26,7 +26,7 @@ IMAGE="$1"
 # Runs $IMAGE with args and check that it terminates with a zero exit code in at most limit seconds.
 timed_run() {
     START=`date +%s`
-    docker run -e MAKE="$MAKE" "$IMAGE" "$2"
+    docker run -e MAKEOPTS="$MAKEOPTS" -e SAGE_NUM_THREADS="$SAGE_NUM_THREADS" "$IMAGE" "$2"
     END=`date +%s`
     TOTAL=$((END-START))
     echo "Checking whether running \"$2\" was fast…"

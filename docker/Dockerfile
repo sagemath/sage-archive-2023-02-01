@@ -32,11 +32,11 @@
 # takes about five minutes but you don't have to go through the sadly frequent #
 # rebuilds the whole Sage distribution...                                      #
 # To build Sage, run this command from your sage/ directory:                   #
-# $ docker build --build-arg MAKE="make -j4" --build-arg ARTIFACT_BASE="sagemath/sagemath-dev:develop" -f docker/Dockerfile --target=make-build --tag sage .
+# $ docker build --build-arg MAKEOPTS="-j4" --build-arg SAGE_NUM_THREADS="4" --build-arg ARTIFACT_BASE="sagemath/sagemath-dev:develop" -f docker/Dockerfile --target=make-build --tag sage .
 # To run Sage:                                                                 #
 # $ docker run -it sage                                                        #
 # To run doctests:                                                             #
-# $ docker run -e "MAKE=make -j4" -it sage sage -tp src/sage                   #
+# $ docker run -e "MAKEOPTS=-j4" -e "SAGE_NUM_THREADS=4" -it sage sage -tp src/sage
 # Make sure that you always have the latest develop branch merged into your    #
 # local branch for this to work.                                               #
 ################################################################################
@@ -160,11 +160,13 @@ ENV SAGE_FAT_BINARY yes
 # Just to be sure Sage doesn't try to build its own GCC (even though
 # it shouldn't with a recent GCC package from the system and with gfortran)
 ENV SAGE_INSTALL_GCC no
-# Make everything in the build use multiple cores (setting this variable causes
-# trouble for some packages outside Sage but it still seems to be they way Sage
-# is doing this.)
-ARG MAKE="make -j2"
-ENV MAKE $MAKE
+# Set MAKEOPTS and SAGE_NUM_THREADS to build things in parallel during the
+# docker build. Note that these do not leak into the sagemath and sagemath-dev
+# images.
+ARG MAKEOPTS="-j2"
+ENV MAKEOPTS $MAKEOPTS
+ARG SAGE_NUM_THREADS="2"
+ENV SAGE_NUM_THREADS $SAGE_NUM_THREADS
 RUN make build
 
 ################################################################################

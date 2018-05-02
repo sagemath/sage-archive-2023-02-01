@@ -1,10 +1,11 @@
-"""
+# -*- coding: utf-8 -*-
+r"""
 Ariki-Koike Algebras
 
-The **Ariki-Koike algebras** were introduced by Ariki and Koike [AK94]_ as
-a natural generalisation of the Iwahori-Hecke algebras of types `A` and `B`
+The *Ariki-Koike algebras* were introduced by Ariki and Koike [AK94]_ as
+a natural generalization of the Iwahori-Hecke algebras of types `A` and `B`
 (see class:`~sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra`).
-Soon afterwards,  Brou\'e and Malle defined analogues of the Hecke
+Soon afterwards,  Broué and Malle defined analogues of the Hecke
 algebras for all complex reflection groups
 
 Fix non-negative integers `r` an `n`. The Ariki-Koike algebras are
@@ -27,24 +28,18 @@ the Ariki-Koike algebra `H_n(q, u_1, \ldots, u_r)` is the unital associative
 AUTHORS:
 
 - Travis Scrimshaw (2016-04): initial version
+- Andrew Mathas (2016-07): improved multiplication code
 
 REFERENCES:
 
-.. [AK94] Susumu Ariki and Kazuhiko Koike.
-   *A Hecke algebra of* `(\ZZ / r\ZZ) \wr \mathfrak{S}_n`
-   *and construction of its irreducible representations*.
-   Advances in Mathematics **106**, (1994) pp. 216-243.
-
-.. [BM93] \M. Brou\'e and G. Malle, *Zyklotomische Heckealgebren*,
-   Asterisque, **212** (1993), 119-89.
-
-.. [MM98] Gunter Malle and Andrew Mathas.
-   *Symmetric cyclotomic Hecke algebras*
-   J. Algebra. **205** (1998) pp. 275-293.
+- [AK1994]_
+- [BM1993]_
+- [MM1998]_
 """
 
 #*****************************************************************************
-#  Copyright (C) 2016-2018 Travis Scrimshaw <tcsrims at gmail.com>
+#  Copyright (C) 2016-2018 Travis Scrimshaw <tcscrims at gmail.com>
+#                2016-2018 Andrew Mathas <andrew.mathas at sydney.edu.au>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -53,13 +48,13 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import, print_function, division
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.categories.algebras import Algebras
 from sage.categories.rings import Rings
 from sage.combinat.free_module import CombinatorialFreeModule
@@ -85,9 +80,11 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
             T_i T_j & = T_j T_i \qquad \text{if } |i - j| \geq 2, \\
             T_i T_{i+1} T_i = T_{i+1} T_i T_{i+1} \qquad \text{for } 1 \leq i < n.
         \end{aligned}
-
-    Thus the Ariki-Koike algebra is a deformation of the group algebra of
-    the complex reflection group `G(r, 1, n) = \ZZ / r\ZZ \wr \mathfrak{S}_n`.
+        
+    The parameter `q` is called the *Hecke parameter* and the parameters
+    `u_0, \ldots, u_{r-1}` are called the *cyclotomic parameters*.
+    Thus, the Ariki-Koike algebra is a deformation of the group algebra of the
+    complex reflection group `G(r, 1, n) = \ZZ / r\ZZ \wr \mathfrak{S}_n`.
 
     Next, we define **Jucys-Murphy elements**
 
@@ -95,10 +92,15 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
 
         L_i = q^{-1} T_{i-1} \cdots T_1 T_0 T_1 \cdots T_{i-1}
 
-    for `1 \leq i \leq n`. (Note: these element different by a power of `q` from
-    the corresponding elements in [AK94]_, however, these elements are more
-    commonly used because they lead to nicer representation theoretic
-    formulas). Ariki and Koike [AK94]_ showed that `H_{r,n}(q, u)` is a free
+    for `1 \leq i \leq n`.
+    
+    .. NOTE::
+    
+        These element different by a power of `q` from the corresponding
+        elements in [AK1994]_, however, these elements are more commonly
+        used because they lead to nicer representation theoretic formulas.
+
+    Ariki and Koike [AK1994]_ showed that `H_{r,n}(q, u)` is a free
     `R`-module with a basis given by
 
     .. MATH::
@@ -202,7 +204,6 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
         sage: J = [s0, s3*s0*s3, s2*s3*s0*s3*s2, s1*s2*s3*s0*s3*s2*s1]
         sage: all(Ji^3 == A.one() for Ji in J)
         True
-
     """
     @staticmethod
     def __classcall_private__(cls, r, n, q=None, u=None, R=None):
@@ -405,33 +406,37 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
         """
         return (self._zero_tuple, self._one_perm)
 
-    def q(self):
-        """
-        Return the variable `q`.
+    def hecke_parameter(self):
+        r"""
+        Return the Hecke parameter `q` of ``self``.
 
         EXAMPLES::
 
             sage: H = algebras.ArikiKoike(5, 3)
-            sage: H.q()
+            sage: H.hecke_parameter()
             q
         """
         return self._q
 
-    def u(self):
-        """
-        Return the variables `u`.
+    q = hecke_parameter
+
+    def cyclotomic_parameters(self):
+        r"""
+        Return the cyclotomic parameters `u` of ``self``.
 
         EXAMPLES::
 
             sage: H = algebras.ArikiKoike(5, 3)
-            sage: H.u()
+            sage: H.cyclotomic_parameters()
             (u0, u1, u2, u3, u4)
         """
         return self._u
 
+    u = cyclotomic_parameters
+
     def T(self, i=None):
-        """
-        Return the generator(s) `T_i`.
+        r"""
+        Return the generator(s) `T_i` of ``self`.
 
         INPUT:
 
@@ -452,7 +457,7 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
         return G['T%s'%i]
 
     def L(self, i=None):
-        """
+        r"""
         Return the generator(s) `L_i`.
 
         INPUT:
@@ -486,7 +491,7 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
         return G['L%s'%i]
 
     def dimension(self):
-        """
+        r"""
         Return the dimension of ``self``.
 
         The dimension of `H_{r,n}(q, u)` is `r^n n!`.
@@ -507,7 +512,7 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
         return self._r**self._n * factorial(self._n)
 
     def some_elements(self):
-        """
+        r"""
         Return a list of elements of ``self``.
 
         EXAMPLES::
@@ -522,7 +527,7 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
 
     @cached_method
     def product_on_basis(self, m1, m2):
-        """
+        r"""
         Return the product of the basis elements indexed by ``m1`` and ``m2``.
 
         EXAMPLES::
@@ -662,7 +667,7 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
              + (q-2*q^2+q^3)*L2^3*L3^2*L4^4*T[3,2]
              - (1-2*q+2*q^2-q^3)*L2^3*L3^2*L4^4*T[3,2,3]
         """
-        Lwv = self.monomial( (tuple(L), v) )
+        Lwv = self.monomial( (L, v) )
         qm1 = self._q - self.base_ring().one()
         # TODO: Do not use elements of self but just a dictionary
         #   given by the permutations and the blas_dict methods.
@@ -688,8 +693,8 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
         `T_w L` as a linear combination of terms of the form `L_v T_v`.
 
         To do this we write `w = s_{i_1} \cdots s_{i_k}` and then push each
-        `T_{i_a}` past `L` using Lemma 3.2 of [MM98]_ (cf. Lemma 3.3 and
-        Proposition 3.4 of [AK94]_), which says
+        `T_{i_a}` past `L` using Lemma 3.2 of [MM1998]_ (cf. Lemma 3.3 and
+        Proposition 3.4 of [AK1994]_), which says
 
         .. MATH::
 
@@ -733,7 +738,7 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
                 L[i-1], L[i] = L[i], L[i-1] # swap L_i=L[i-1] and L_{i+1}=L[i]
                 # the term L_1^{a_1}...L_i^{a_{i+1}}L_{i+1}^{a_i}...L_n^{a_n} T_i T_v
                 # always appears
-                iL += c * self._product_LTwTv(L, self._Pn.simple_reflections()[i], v) # need T_i*T_v
+                iL += c * self._product_LTwTv(tuple(L), self._Pn.simple_reflections()[i], v) # need T_i*T_v
 
                 if a < b:
                     Ls = [ list(L) for k in range(b-a) ] # make copies of L
@@ -757,7 +762,7 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
         r"""
         Return `L_i^m`, where `m \geq 0`.
 
-        To compute `L_i^m` we use Corollary 3.4 of [MM98]_ which says that
+        To compute `L_i^m` we use Corollary 3.4 of [MM1998]_ which says that
 
         .. MATH::
 
@@ -817,14 +822,14 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
 
         # now left with the case i = 1 and m >= r
         if m > self._r:
-            return self.monomial((Ltuple(0,1), self._one_perm)) * self._Li_power(i,m-1)
+            return self.monomial((Ltuple(0, 1), self._one_perm)) * self._Li_power(i,m-1)
 
         z = PolynomialRing(self.base_ring(), 'DUMMY').gen()
         p = list(prod(z - val for val in self._u))[:-1]
         zero = self.base_ring().zero()
-        return self._from_dict({(Ltuple(0,exp), self._one_perm): -coeff
+        return self._from_dict({(Ltuple(0, exp), self._one_perm): -coeff
                                 for exp,coeff in enumerate(p) if coeff != zero},
-                               remove_zeros=False)
+                               remove_zeros=False, coerce=False)
 
     @cached_method
     def inverse_T(self, i):

@@ -90,6 +90,11 @@ REFERENCES:
              *The modular branching rule for affine Hecke algebras of type A*.
              Adv. Math. 228:481-526, 2011.
 
+.. [AK1994] Susumu Ariki and Kazuhiko Koike.
+            *A Hecke algebra of* `(\ZZ / r\ZZ) \wr \mathfrak{S}_n`
+            *and construction of its irreducible representations*.
+            Advances in Mathematics **106**, (1994) pp. 216-243.
+
 .. [Aki1980] \J. Akiyama. and G. Exoo and F. Harary. Covering and packing in
              graphs. III: Cyclic and acyclic invariants. Mathematical Institute
              of the Slovak Academy of Sciences. Mathematica Slovaca vol 30, n 4,
@@ -424,6 +429,9 @@ REFERENCES:
 .. [BM1940] Becker, M. F., and Saunders MacLane. The minimum number of
             generators for inseparable algebraic extensions. Bulletin of the
             American Mathematical Society 46, no. 2 (1940): 182-186.
+
+.. [BM1993] \M. Broué and G. Malle, *Zyklotomische Heckealgebren*,
+            Asterisque, **212** (1993), 119-89.
 
 .. [BM2008] John Adrian Bondy and U.S.R. Murty, "Graph theory", Volume
             244 of Graduate Texts in Mathematics, 2nd edition, Springer, 2008.
@@ -1995,6 +2003,10 @@ REFERENCES:
              maps", C. R. Acad. Sci. Paris, projet de Note, 2003
              Systèmes dynamiques/Dynamical
              Systems. :arxiv:`math/0304469v1`
+
+.. [MM1998] Gunter Malle and Andrew Mathas.
+            *Symmetric cyclotomic Hecke algebras* J. Algebra.
+            **205** (1998) pp. 275-293.
 
 .. [MM2015] \J. Matherne and \G. Muller, *Computing upper cluster algebras*,
             Int. Math. Res. Not. IMRN, 2015, 3121-3149.

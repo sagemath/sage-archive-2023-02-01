@@ -176,6 +176,31 @@ FROM make-build as make-all
 RUN make
 
 ################################################################################
+# Image with a full build of sage, ready to release, i.e., with stripped       #
+# binaries and some extras to run the jupyter notebook.                        #
+################################################################################
+FROM make-all as make-release
+RUN sage -pip install terminado "notebook>=5" "ipykernel>=4.6"
+RUN sage -i gap_jupyter singular_jupyter pari_jupyter
+RUN make micro_release
+
+################################################################################
+# A releasable (relatively small) image which contains a copy of sage without  #
+# temporary build artifacts which is set up to start the command line          #
+# interface if no parameters are passed in.                                    #
+################################################################################
+FROM run-time-dependencies as sagemath
+ARG SAGE_ROOT=/home/sage/sage
+COPY --chown=sage:sage --from=make-release $SAGE_ROOT/ $SAGE_ROOT/
+# Put scripts to start gap, gp, maxima, ... in /usr/bin
+WORKDIR $SAGE_ROOT
+RUN sudo sage --nodotsage -c "install_scripts('/usr/bin')"
+COPY ./docker/entrypoint.sh /usr/local/bin/sage-entrypoint
+ENTRYPOINT ["/usr/local/bin/sage-entrypoint"]
+EXPOSE 8888
+CMD ["sage"]
+
+################################################################################
 # Image with a full build of sage and its documentation but everything         #
 # stripped that can be quickly rebuild by make.                                #
 ################################################################################
@@ -222,28 +247,3 @@ RUN if [ x"$ARTIFACT_BASE" != x"source-clean" ]; then \
 COPY ./docker/entrypoint-dev.sh /usr/local/bin/sage-entrypoint
 ENTRYPOINT ["/usr/local/bin/sage-entrypoint"]
 CMD ["bash"]
-
-################################################################################
-# Image with a full build of sage, ready to release, i.e., with stripped       #
-# binaries and some extras to run the jupyter notebook.                        #
-################################################################################
-FROM make-all as make-release
-RUN sage -pip install terminado "notebook>=5" "ipykernel>=4.6"
-RUN sage -i gap_jupyter singular_jupyter pari_jupyter
-RUN make micro_release
-
-################################################################################
-# A releasable (relatively small) image which contains a copy of sage without  #
-# temporary build artifacts which is set up to start the command line          #
-# interface if no parameters are passed in.                                    #
-################################################################################
-FROM run-time-dependencies as sagemath
-ARG SAGE_ROOT=/home/sage/sage
-COPY --chown=sage:sage --from=make-release $SAGE_ROOT/ $SAGE_ROOT/
-# Put scripts to start gap, gp, maxima, ... in /usr/bin
-WORKDIR $SAGE_ROOT
-RUN sudo sage --nodotsage -c "install_scripts('/usr/bin')"
-COPY ./docker/entrypoint.sh /usr/local/bin/sage-entrypoint
-ENTRYPOINT ["/usr/local/bin/sage-entrypoint"]
-EXPOSE 8888
-CMD ["sage"]

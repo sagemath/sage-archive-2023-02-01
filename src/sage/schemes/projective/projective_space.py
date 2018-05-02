@@ -1035,7 +1035,7 @@ class ProjectiveSpace_ring(AmbientSpace):
 
         - ``m`` -- an integer.
 
-        OUTPUT: an dynamical system on this projective space.
+        OUTPUT: a dynamical system on this projective space.
 
         Examples::
 

@@ -11,9 +11,9 @@ algebras for all complex reflection groups
 Fix non-negative integers `r` an `n`. The Ariki-Koike algebras are
 deformations of the group algebra of the complex reflection group
 `G(r, 1, n) = \ZZ / r\ZZ \wr \mathfrak{S}_n`. If `R` is a ring containing a
-*Hecke parameter* `q` and *cyclotomic parameters* `u_1, \ldots, i_r` then
+*Hecke parameter* `q` and *cyclotomic parameters* `u_0, \ldots, u_{r-1}` then
 the Ariki-Koike algebra `H_n(q, u_1, \ldots, u_r)` is the unital associative
-`r`-algebra with generators `L_1, T_1, \ldots, T_{n-1}` an relations:
+`r`-algebra with generators `T_0, T_1, \ldots, T_{n-1}` an relations:
 
 .. MATH::
 
@@ -81,22 +81,22 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
             T_i T_j & = T_j T_i \qquad \text{if } |i - j| \geq 2, \\
             T_i T_{i+1} T_i = T_{i+1} T_i T_{i+1} \qquad \text{for } 1 \leq i < n.
         \end{aligned}
-        
+
     The parameter `q` is called the *Hecke parameter* and the parameters
     `u_0, \ldots, u_{r-1}` are called the *cyclotomic parameters*.
     Thus, the Ariki-Koike algebra is a deformation of the group algebra of the
     complex reflection group `G(r, 1, n) = \ZZ / r\ZZ \wr \mathfrak{S}_n`.
 
-    Next, we define **Jucys-Murphy elements**
+    Next, we define *Jucys-Murphy elements*
 
     .. MATH::
 
         L_i = q^{-1} T_{i-1} \cdots T_1 T_0 T_1 \cdots T_{i-1}
 
     for `1 \leq i \leq n`.
-    
+
     .. NOTE::
-    
+
         These element different by a power of `q` from the corresponding
         elements in [AK1994]_, however, these elements are more commonly
         used because they lead to nicer representation theoretic formulas.
@@ -106,7 +106,7 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
 
     .. MATH::
 
-        \{L_1^c_i \cdots L_n^c_n T_w \mid w \in S_n, 0 \leq c_i < r\}.
+        \{ L_1^c_i \cdots L_n^c_n T_w | w \in S_n, 0 \leq c_i < r \}.
 
     In particular, we have `\dim H_{r,n}(q,u) = r^n n! = |G(r, 1, n)|`.
     Moreover, we have `L_i L_j = L_i L_j` for all `1 \leq i, j \leq n`.
@@ -118,11 +118,11 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
     extended affine Hecke algebra of type `A_{n-1}^{(1)}` by
     `\prod_{i=0}^{r-1} (X_1 - u_i)`.
 
-    Since the Ariki-Koike algebra is a quotient of the group algebra
-    of the braid group of `G(r, 1, n)`, we can recover the
-    group algebra of `G(r, 1, n)` as follows. Consider
-    `u = (1, \zeta_r, \ldots, \zeta_r^{r-1})`, where `\zeta_r` is
-    a primitive `r`-th root of unity, then we have
+    Since the Ariki-Koike algebra is a quotient of the group
+    algebra of the braid group of `G(r, 1, n)`, we can recover
+    the group algebra of `G(r, 1, n)` as follows. Consider
+    `u = (1, \zeta_r, \ldots, \zeta_r^{r-1})`, where `\zeta_r`
+    is a primitive `r`-th root of unity, then we have
 
     .. MATH::
 
@@ -137,8 +137,8 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
       the variables ``u``
     - ``u`` -- (optional) the variables `u_1, \ldots, u_r`; the
       default is the generators of `\ZZ[u_1, \ldots, u_r]`
-    - ``R`` -- (optional) a commutative ring containing ``q`` and ``u``; the
-      default is the parent of `q` and `u_1, \ldots, u_r`
+    - ``R`` -- (optional) a commutative ring containing ``q`` and ``u``;
+      the default is the parent of `q` and `u_1, \ldots, u_r`
 
     EXAMPLES:
 
@@ -154,7 +154,7 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
         -(q-q^2)*L2*L3*T[2] + q*L1*L2*T[2,1] - (1-q)*L1*L2*T[2,1,2]
         sage: L1^3
         u0*u1*u2 + ((-u0*u1-u0*u2-u1*u2))*L1 + ((u0+u1+u2))*L1^2
-        sage: L3 * L2 * L1 
+        sage: L3 * L2 * L1
         L1*L2*L3
         sage: u = H.u()
         sage: q = H.q()
@@ -191,7 +191,8 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
         sage: L2^3
         1 - (q^-1-1)*T[1] - (q^-1-1)*L1*L2^2*T[1] - (q^-1-1)*L1^2*L2*T[1]
 
-    Next, we take `q = 1` to obtain the group algebra of `G(r, 1, n)`::
+    Next, we additionally take `q = 1` to obtain the group algebra
+    of `G(r, 1, n)`::
 
         sage: F = CyclotomicField(3)
         sage: zeta3 = F.gen()
@@ -287,7 +288,7 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
         self._assign_names(self.algebra_generators().keys())
 
     def _repr_(self):
-        """ 
+        """
         Return a string representation of ``self``.
 
         EXAMPLES::
@@ -357,7 +358,7 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
 
     @cached_method
     def algebra_generators(self):
-        """
+        r"""
         Return the algebra generators of ``self``.
 
         EXAMPLES::
@@ -383,7 +384,7 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
 
     @cached_method
     def gens(self):
-        """
+        r"""
         Return the generators of ``self``.
 
         EXAMPLES::
@@ -396,7 +397,7 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
 
     @cached_method
     def one_basis(self):
-        """
+        r"""
         Return the index of the basis element of `1`.
 
         EXAMPLES::
@@ -520,7 +521,8 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
 
             sage: H = algebras.ArikiKoike(4, 3)
             sage: H.some_elements()
-            [2 + 2*T[2] + 3*T[1], T[2] + T[1] + L3 + L2 + L1,
+            [2 + 2*T[2] + 3*T[1],
+             T[2] + T[1] + L3 + L2 + L1,
              L1, L2, L3, T[1], T[2]]
         """
         G = self.algebra_generators()
@@ -570,11 +572,11 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
             sage: (x * L3) * L3 == x * (L3 * L3)
             True
         """
-        # Although it is tempting to make this recursive some care must be taken
-        # here to ensure that the various "helper" methods" return linear
-        # combinations of "standard" basis elements of the form (L,w), where
-        # L is an n-tuple and w is a permutation because otherwise we may end up
-        # in an infinite loop...
+        # Although it is tempting to make this recursive, some care must be
+        #   taken here to ensure that the various "helper" methods return
+        #   linear combinations of "standard" basis elements of the form
+        #   (L,w), where L is an n-tuple and w is a permutation because
+        #   otherwise we may end up in an infinite loop...
 
         # Product is of the form L1*T1*L2*T2: separate the L's and permutations
         L1,T1 = m1
@@ -607,7 +609,7 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
             # the left as soon as we can. For efficiency, we multiply the
             # "big" powers in the order L_n^N L_{n-1}^N...L_1^N as this
             # way we have to expand few powers the of the Lk's later.
-            return (self.monomial((tuple(Lsmall), self._one_perm)) 
+            return (self.monomial((tuple(Lsmall), self._one_perm))
                     * prod(self._Li_power(i+1, Lbig[i])
                            for i in reversed(range(self._n)) if Lbig[i] > 0)
                     * self.monomial((self._zero_tuple, T2))
@@ -627,16 +629,6 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
         Return the product `L * T_w * Tv` as a linear combinations of
         terms of the form `L*T_x`.
 
-        INPUT:
-
-        - ``L`` -- an `n`-tuple
-        - ``w`` -- the permutation ``w``
-        - ``v`` -- the permutation ``v``
-
-        OUTPUT:
-
-        The corresponding element represented as a ``dict``.
-
         The main point of this method is that it computes the product
         `L T_w T_v` and returns it as a linear combination of standard
         basis elements. That is, terms of the form `L T_x`. The monomial
@@ -653,10 +645,22 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
             \end{cases}
 
         This observation is used to rewrite the product `L T_w T_v`
-        as a linear combination of standard basis elements. 
+        as a linear combination of standard basis elements.
 
-        This method is not intended to be called directly and, instead,
-        is used by :meth:`product_on_basis`.
+        .. WARNING::
+
+            This method is not intended to be called directly and, instead,
+            is used by :meth:`product_on_basis`.
+
+        INPUT:
+
+        - ``L`` -- an `n`-tuple
+        - ``w`` -- the permutation ``w``
+        - ``v`` -- the permutation ``v``
+
+        OUTPUT:
+
+        The corresponding element represented as a ``dict``.
 
         EXAMPLES::
 
@@ -675,11 +679,11 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
         """
         ret = {v: self.base_ring().one()}
         qm1 = self._q - self.base_ring().one()
-        for i in w.reduced_word()[::-1]:
+        for i in reversed(w.reduced_word()):
             temp = {} # start from 0
             for p in ret:
                 c = ret[p]
-                # We have to flip the side due to Sage's 
+                # We have to flip the side due to Sage's
                 # convention for multiplying permutations
                 pi = p.apply_simple_reflection(i, side="right")
                 if p.has_descent(i, side="right"):
@@ -778,8 +782,8 @@ class ArikiKoikeAlgebra(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: H = algebras.ArikiKoike(3, 3)
-            sage: for i in range(1,4): 
-            ....:     for m in range(4): 
+            sage: for i in range(1,4):
+            ....:     for m in range(4):
             ....:         print('L_{}^{} = {}'.format(i,m,H._Li_power(i,m)))
             L_1^0 = 1
             L_1^1 = L1

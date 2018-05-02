@@ -9246,12 +9246,14 @@ class NumberField_absolute(NumberField_generic):
         """
         Return `a` such that the hilbert conductor of `a` and `b` is `S`.
 
-        The function is algorithm 3.4.1 in Markus Kirschmer's "Definite quadratic
-        and hermitian forms with small class number.
+        The function is algorithm 3.4.1 _[Kir2016].
+        We note that class and unit groups are computed using the generalized
+        Riemann hypothesis. If it is false, this may result in an infinite loop.
+        Nevertheless, if the algorithm terminates the output is correct.
 
         INPUT:
 
-        - ``S`` -- a list of places (or prime ideals)
+        - ``S`` -- a list of places (or prime ideals) of even cardinality
         - ``b`` -- a non-zero rational number which is a non-square locally
           at every place in S.
         - ``check`` -- bool (default: ``True``) perform additional checks on
@@ -9259,8 +9261,8 @@ class NumberField_absolute(NumberField_generic):
 
         OUTPUT:
 
-        - An integer that has negative Hilbert symbol (*,b)_p for
-        every p in ``S``.
+        - an element `a` that has negative Hilbert symbol `(a,b)_p` for
+          every (finite and infinite) place `p` in `S`.
 
         EXAMPLES::
 
@@ -9275,12 +9277,15 @@ class NumberField_absolute(NumberField_generic):
             sage: S = [K.primes_above(2)[0], K.primes_above(11)[0]]
             sage: K.hilbert_conductor_inverse(S, a + 5)
             -a^9 + a^2
-            sage: k.<b> = K.maximal_totally_real_subfield()[0]
+            sage: k.<c> = K.maximal_totally_real_subfield()[0]
             sage: S = [k.primes_above(3)[0], k.primes_above(5)[0]]
             sage: S += k.real_places()[:2]
-            sage: s = k.hilbert_conductor_inverse(S, 5 + b + b^9 )
-            sage: [k.hilbert_symbol(s, 5 + b + b^9, p) for p in S]
+            sage: b = 5 + b + b^9
+            sage: a = k.hilbert_conductor_inverse(S, c)
+            sage: [k.hilbert_symbol(s, a, p) for p in S]
             [-1, -1, -1, -1]
+            sage: k.hilbert_conductor(a, b).norm()
+            15
 
         TESTS::
 

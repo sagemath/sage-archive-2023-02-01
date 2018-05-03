@@ -32,7 +32,6 @@ Finite dimensional algebras
    sage/algebras/finite_dimensional_algebras/finite_dimensional_algebra_element
    sage/algebras/finite_dimensional_algebras/finite_dimensional_algebra_ideal
    sage/algebras/finite_dimensional_algebras/finite_dimensional_algebra_morphism
-   sage/algebras/cellular_basis
 
 Named associative algebras
 --------------------------
@@ -73,6 +72,7 @@ Various associative algebras
    :maxdepth: 2
 
    sage/algebras/associated_graded
+   sage/algebras/cellular_basis
    sage/algebras/commutative_dga
    sage/algebras/q_system
 

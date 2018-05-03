@@ -33,7 +33,7 @@ jobs:
             . .ci/protect-secrets.sh
             # Collect debug infos about the system we are running on
             .ci/describe-system.sh
-            # Set MAKE and NTHREADS according to the machine we are running on
+            # Set MAKEOPTS and SAGE_NUM_THREADS 
             . .ci/setup-make-parallelity.sh
 
             # Set DOCKER_TAG according to the current branch/tag

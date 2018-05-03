@@ -173,6 +173,14 @@ RUN make build
 # Image with a full build of sage and its documentation.                       #
 ################################################################################
 FROM make-build as make-all
+# The docbuild needs quite some RAM (as of May 2018). It sometimes calls
+# os.fork() to spawn an external program which then exceeds easily the
+# overcommit limit of the system (no RAM is actually used, but this limit is
+# very low because there is not even swap on most CI systems.)
+ARG MAKEOPTS_DOCBUILD=$MAKEOPTS
+ENV MAKEOPTS_DOCBUILD $MAKEOPTS_DOCBUILD
+ARG SAGE_NUM_THREADS_DOCBUILD=$SAGE_NUM_THREADS
+ENV SAGE_NUM_THREADS_DOCBUILD $SAGE_NUM_THREADS_DOCBUILD
 RUN make
 
 ################################################################################

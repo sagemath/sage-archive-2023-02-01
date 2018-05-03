@@ -874,7 +874,7 @@ def centrality_closeness_random_k(G, int k=1):
     if G.is_directed():
         raise ValueError("G should be undirected Graph.")
 
-    cdef MemoryAllocator mem = MemoryAllocator()    
+    cdef MemoryAllocator mem = MemoryAllocator()
     cdef int n = G.order()
     cdef int i, j
 
@@ -918,7 +918,7 @@ def centrality_closeness_random_k(G, int k=1):
         # calculate closeness centrality for those random vertices.
         for i in range(k):
             farness = 0
-            distances = shortest_paths(G,int_to_vertex[randomk[i]], algorithm='Dijkstra')
+            distances = shortest_paths(G, int_to_vertex[randomk[i]], algorithm='Dijkstra')
             distances = distances[0]
             for vertex in distances:
                 farness += float(distances[vertex])

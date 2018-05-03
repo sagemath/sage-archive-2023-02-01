@@ -73,9 +73,10 @@ REFERENCES:
 .. [Aj1996] \M. Ajtai. Generating hard instances of lattice problems
             (extended abstract). STOC, pp. 99--108, ACM, 1996.
 
-.. [AK1994] \S. Ariki and K. Koike
-            *A Hecke algebra of `(\mathbb{Z}/r\mathbb{Z})\wr\mathfrak{S}_n` and construction of its irreducible representations.*
-            Adv. Math. *106* (1994), 216–243.
+.. [AK1994] \S. Ariki and K. Koike.
+            *A Hecke algebra of* `(\mathbb{Z}/r\mathbb{Z})\wr\mathfrak{S}_n`
+			*and construction of its irreducible representations.*
+            Adv. Math. **106** (1994), 216–243.
 
 .. [AJL2011] \S. Ariki, N. Jacon, and C. Lecouvey.
              *The modular branching rule for affine Hecke algebras of type A*.
@@ -102,7 +103,7 @@ REFERENCES:
             Steenrod algebra," Proc. Cambridge Philos. Soc. 76 (1974),
             45-52.
 
-.. [AM2000]  \S. Ariki and A. Mathas
+.. [AM2000]  \S. Ariki and A. Mathas.
             *The number of simple modules of the Hecke algebras of type G(r,1,n)*.
             Math. Z. 233 (2000), no. 3, 601–623.
 
@@ -121,14 +122,13 @@ REFERENCES:
             Mathematical Society 364 (2012),
             1509-1528. :arxiv:`1009.1655`
 
-.. [Ariki1996] \S. Ariki
-   *On the decomposition numbers of the Hecke algebra of G(m,1,n)*.
-   J. Math. Kyoto Univ. **36** (1996), no. 4, 789–808.
+.. [Ariki1996] \S. Ariki. *On the decomposition numbers of the Hecke
+               algebra of* `G(m,1,n)`. J. Math. Kyoto Univ. **36** (1996),
+               no. 4, 789–808.
 
-.. [Ariki2001] \S. Ariki
-   *On the classification of simple modules for cyclotomic Hecke algebras of
-   type G(m,1,n) and Kleshchev multipartitions*.
-   Osaka J. Math. **38** (2001), 827–837.
+.. [Ariki2001] \S. Ariki. *On the classification of simple modules for
+               cyclotomic Hecke algebras of type* `G(m,1,n)` *and Kleshchev
+			   multipartitions*. Osaka J. Math. **38** (2001), 827–837.
 
 .. [AS-Bessel] \F. W. J. Olver: 9. Bessel Functions of Integer Order,
                in Abramowitz and Stegun: Handbook of Mathematical
@@ -356,13 +356,13 @@ REFERENCES:
             affine semigroup. Uni. Iaggelonicae Acta Math. 39, (2001),
             59-70
 
-.. [BK2008] \J. Brundan and A. Kleshchev
+.. [BK2008] \J. Brundan and A. Kleshchev.
             *Blocks of cyclotomic Hecke algebras and Khovanov-Lauda algebras*.
             Invent. Math. *178* (2009), no. 3, 451–484.
 
-.. [BK2009]  \J. Brundan and A. Kleshchev
-          *Graded decomposition numbers for cyclotomic Hecke algebras*.
-          Adv. Math. **222** (2009), 1883–1942.
+.. [BK2009] \J. Brundan and A. Kleshchev.
+            *Graded decomposition numbers for cyclotomic Hecke algebras*.
+            Adv. Math. **222** (2009), 1883–1942.
 
 .. [BKK2000]  Georgia Benkart, Seok-Jin Kang, Masaki Kashiwara.
               *Crystal bases for the quantum superalgebra* `U_q(\mathfrak{gl}(m,n))`,
@@ -469,8 +469,8 @@ REFERENCES:
              Discrete Applied Mathematics
              http://www.sciencedirect.com/science/article/pii/0166218X9200169M
 
-.. [Bru1998] \J. Brundan
-             *Modular branching rules and the Mullineux map for Hecke algebras of type `A`*. 
+.. [Bru1998] \J. Brundan. *Modular branching rules and the Mullineux map
+             for Hecke algebras of type* `A`.
              Proc. London Math. Soc. (3) **77** (1998), 551–581.
 
 .. [Bruin-Molnar] \N. Bruin and A. Molnar, *Minimal models for rational
@@ -1427,9 +1427,8 @@ REFERENCES:
             Sci. Publ., Hackensack, NJ, 2008. Preprint version:
             :arxiv:`0710.1835`
 
-.. [Kle1995] \A. Kleshchev
-        *Branching rules for modular representations of symmetric groups. I*.
-        J. Algebra **178** (1995), 493–511
+.. [Kle1995] \A. Kleshchev. *Branching rules for modular representations of
+             symmetric groups. I*. J. Algebra **178** (1995), 493–511.
 
 .. [Kle2009] \A. Kleshchev.
              *Representation theory of symmetric groups and related Hecke algebras*.
@@ -1661,9 +1660,9 @@ REFERENCES:
              -- a new family of hypertrees", Discrete & Computational
              Geometry, 2010, Volume 44, Number 3, Pages 622-636
 
-.. [LLT1996] \A. Lascoux, B. Leclerc and J-Y. Thibon
-         *Hecke algebras at roots of unity and crystal bases of quantum affine algebras*.
-         Comm. Math. Phys. *181* (1996), 205–263.
+.. [LLT1996] \A. Lascoux, B. Leclerc and J-Y. Thibon. *Hecke algebras at
+             roots of unity and crystal bases of quantum affine algebras*.
+             Comm. Math. Phys. **181** (1996), 205–263.
 
 .. [Lod1995] Jean-Louis Loday. *Cup-product for Leibniz cohomology and
              dual Leibniz algebras*. Math. Scand., pp. 189--196
@@ -1794,10 +1793,10 @@ REFERENCES:
              Decoding." IEEE Trans. on Information Theory, vol. 15(1),
              pp. 122-127, Jan 1969.
 
-.. [Mat2015]  \A. Mathas, Andrew
-              *Cyclotomic quiver Hecke algebras of type A*,
-              in "Modular representation theory of finite and p-adic groups", 165–266, 
-              Lect. Notes Ser. Inst. Math. Sci. Natl. Univ. Singap., *30*, World Sci. Publ., Hackensack, NJ, 2015.
+.. [Mat2015]  \A. Mathas. *Cyclotomic quiver Hecke algebras of type A*,
+              in "Modular representation theory of finite and p-adic groups",
+			  165–266, Lect. Notes Ser. Inst. Math. Sci. Natl. Univ. Singap.,
+			  **30**, World Sci. Publ., Hackensack, NJ, 2015.
 
 .. [MatroidDatabase] `Database of Matroids <http://www-imai.is.s.u-tokyo.ac.jp/~ymatsu/matroid/index.html>`_
 

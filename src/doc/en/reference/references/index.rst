@@ -433,6 +433,10 @@ REFERENCES:
 .. [BM1993] \M. Broué and G. Malle, *Zyklotomische Heckealgebren*,
             Asterisque, **212** (1993), 119-89.
 
+.. [BM1997] K. Bremke and G. Malle,
+            *Reduced words and a length function for* `G(e,1,n)`.
+            Indag. Mathem., N.S., **8** (1997), no. 4, 453-469.
+
 .. [BM2008] John Adrian Bondy and U.S.R. Murty, "Graph theory", Volume
             244 of Graduate Texts in Mathematics, 2nd edition, Springer, 2008.
 

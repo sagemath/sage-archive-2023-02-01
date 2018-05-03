@@ -1361,8 +1361,10 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
                                       antisym=self._antisym,
                                       specific_type=type(self))
                 for frame in self._components:
-                    for sframe in subdomain._covering_frames:
-                        if sframe in frame._subframes:
+                    for sframe in subdomain._frames:
+                        if (sframe.domain() is subdomain and
+                                sframe.destination_map() is dest_map and
+                                sframe in frame._subframes):
                             comp_store = self._components[frame]._comp
                             scomp = resu._new_comp(sframe)
                             scomp_store = scomp._comp

@@ -114,10 +114,6 @@ REFERENCES:
              *MacMahon's partition analysis: the Omega package*,
              European J. Combin. 22 (2001), no. 7, 887--904.
 
-.. [Ariki1996] Susumu Ariki.
-               *On the decomposition numbers of the Hecke algebra of*
-               `G(m,1,n)`. J. Math. Kyoto Univ. **36** (1996). pp 789--808.
-
 .. [Ar2006] \D. Armstrong. *Generalized noncrossing partitions and
             combinatorics of Coxeter groups*. Mem. Amer. Math. Soc., 2006.
 
@@ -1655,7 +1651,7 @@ REFERENCES:
 
 .. [LLT1996] Alain Lascoux, Bernard Leclerc, and Jean-Yves Thibon.
              *Hecke algebras at roots of unity and crystal bases of
-             quantum affine algebras*. Commun. Math. Phys.
+             quantum affine algebras*. Comm. Math. Phys.
              **181** (1996), pp 205-263.
 
 .. [LLYCL2005] \H. J. Lee, S. J. Lee, J. H. Yoon, D. H. Cheon, and J. I. Lee,
@@ -1677,10 +1673,6 @@ REFERENCES:
 .. [LMR2010] \N. Linial, R. Meshulam and M. Rosenthal, "Sum complexes
              -- a new family of hypertrees", Discrete & Computational
              Geometry, 2010, Volume 44, Number 3, Pages 622-636
-
-.. [LLT1996] \A. Lascoux, B. Leclerc and J-Y. Thibon. *Hecke algebras at
-             roots of unity and crystal bases of quantum affine algebras*.
-             Comm. Math. Phys. **181** (1996), 205–263.
 
 .. [Lod1995] Jean-Louis Loday. *Cup-product for Leibniz cohomology and
              dual Leibniz algebras*. Math. Scand., pp. 189--196

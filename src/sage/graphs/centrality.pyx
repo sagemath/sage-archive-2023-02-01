@@ -27,8 +27,8 @@ from sage.libs.gmp.mpq cimport *
 from sage.rings.rational cimport Rational
 from sage.ext.memory_allocator cimport MemoryAllocator
 from sage.graphs.base.static_sparse_backend cimport simple_BFS
-import random
 from sage.graphs.base.boost_graph import shortest_paths
+import random
 
 ctypedef fused numerical_type:
     mpq_t
@@ -850,41 +850,50 @@ def centrality_closeness_random_k(G, int k=1):
        https://arxiv.org/pdf/1409.0035
 
 
-    EXAMPLES::
+    TESTS:
 
         sage: from sage.graphs.centrality import centrality_closeness_random_k
         sage: G = Graph('Ihe\\n@GUA')
         sage: centrality_closeness_random_k(G,11)
-        'k value need to be less than number of nodes'
+        Traceback (most recent call last):
+        ...
+        ValueError: k value need to be less than number of nodes.
+
+        sage: import random
+        sage: n = 20
+        sage: m = random.randint(1, n*(n-1))
+        sage: k = random.randint(1, n)
+        sage: g = digraphs.RandomDirectedGNM(n,m)
+        sage: centrality_closeness_random_k(g,4)
+        Traceback (most recent call last):
+        ...
+        ValueError: G should be undirected Graph.
 
     """
 
     if G.is_directed():
-        return "G should be undirected Graph."
+        raise ValueError("G should be undirected Graph.")
 
     cdef MemoryAllocator mem = MemoryAllocator()    
     cdef int n = G.order()
-    cdef int i,j,u,qstart, qend, v
-    
-    cdef int *queue = <int*> mem.malloc(n * sizeof(int))
-    cdef int *randomk = <int*> mem.malloc(k * sizeof(int))
+    cdef int i, j
 
     # Vertices whose neighbors have been explored
     cdef bitset_t seen
+
     # Vertices which are randomly selected 
     cdef short *seen_random_vertices = <short*> mem.malloc(n * sizeof(short))
 
+    cdef int *randomk = <int*> mem.malloc(k * sizeof(int))
     cdef uint32_t * distance = <uint32_t *>mem.malloc(n * sizeof(uint32_t))
     cdef uint32_t * waiting_list = <uint32_t *>mem.malloc(n * sizeof(uint32_t))
-    cdef double closeness_centrality, farness
     cdef double *partial_farness = <double*> mem.malloc(n * sizeof(double))
     cdef double *closeness_centrality_array = <double*> mem.malloc(n * sizeof(double))
-    cdef uint32_t *p_tmp
-    cdef bint weighted = G.weighted()
+    cdef double farness
     cdef short_digraph sd
 
     if k > n:
-        return "k value need to be less than number of nodes"
+        raise ValueError("k value need to be less than number of nodes.")
 
     # Initialize
     l = []
@@ -901,15 +910,19 @@ def centrality_closeness_random_k(G, int k=1):
         randomk[i] = l[i]
         seen_random_vertices[randomk[i]] = 1
 
-    if weighted:
+    cdef list int_to_vertex = G.vertices()
+    vertex_to_int = {int_to_vertex[i]:i for i in range(n)}
+
+    if G.weighted():
         # For all random nodes take as a source then run Dijstra and
         # calculate closeness centrality for those random vertices.
         for i in range(k):
-            distances = shortest_paths(G,randomk[i], algorithm='Dijstra')
+            farness = 0
+            distances = shortest_paths(G,int_to_vertex[randomk[i]], algorithm='Dijkstra')
             distances = distances[0]
             for vertex in distances:
                 farness += float(distances[vertex])
-                partial_farness[vertex] = float(distances[vertex])
+                partial_farness[vertex_to_int[vertex]] += float(distances[vertex])
 
             closeness_centrality_array[randomk[i]] = (n - 1) / farness
 
@@ -926,15 +939,16 @@ def centrality_closeness_random_k(G, int k=1):
         # by calling out_neighbors. This data structure is well documented in
         # the module sage.graphs.base.static_sparse_graph
         init_short_digraph(sd, G)
+        bitset_init(seen, n)
 
         # Run BFS for random k vertices
         for i in range(k):
 
             # Initialize
-            bitset_init(seen, n)
+            bitset_clear(seen)
             farness = 0
 
-            simple_BFS(sd, randomk[i], distance, NULL,waiting_list,seen)
+            simple_BFS(sd, randomk[i], distance, NULL, waiting_list, seen)
             
             for j in range(n):
                 farness += distance[j]
@@ -946,5 +960,4 @@ def centrality_closeness_random_k(G, int k=1):
             if not seen_random_vertices[i]:
                 closeness_centrality_array[i] = k / partial_farness[i]
 
-    cdef list int_to_vertex = G.vertices()
-    return [(int_to_vertex[i],closeness_centrality_array[i]) for i in range(n)]
+    return [(int_to_vertex[i], closeness_centrality_array[i]) for i in range(n)]

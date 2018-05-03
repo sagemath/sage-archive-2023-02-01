@@ -32,6 +32,7 @@ Finite dimensional algebras
    sage/algebras/finite_dimensional_algebras/finite_dimensional_algebra_element
    sage/algebras/finite_dimensional_algebras/finite_dimensional_algebra_ideal
    sage/algebras/finite_dimensional_algebras/finite_dimensional_algebra_morphism
+   sage/algebras/cellular_basis
 
 Named associative algebras
 --------------------------

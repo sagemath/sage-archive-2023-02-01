@@ -1,5 +1,96 @@
 r""" 
-Cellular Algebra Basis
+Cellular Basis
+==============
+
+Cellular algebras are a class of algebras introduced by Graham and Lehrer
+[GrLe1996]_. The :class:`CellularBasis` class provides a general framework for
+implementing cellular algebras and their the cell modules and simple modules.
+
+Let `R` be a commutative ring. A `R`-algebra `A` is a *cellular
+algebra* if it has a *cell datum*, which is a tuple `(\Lambda, i, M, C)` where
+`\Lambda` is finite poset with order `\ge`, if `\mu\in\Lambda` then `T(\mu)` is
+a finite set and
+
+.. MATH::
+
+    C\colon\coprod_{\mu\in\Lambda}T(\mu)\times
+      T(\mu)\longrightarrow A;(\mu,s,t)\mapsto c^\mu_{st} 
+      \text{ is an injective map}
+
+such that:
+
+* The set `\{c^\mu_{st}\mid \mu\in\Lambda, s,t\in T(\mu)\}` is a basis of `A`
+* If $a\in A$ and `\mu\in\Lambda, s,t\in T(\mu)` then:
+
+  .. MATH::
+
+    a c^\mu_{st} = \sum_{u\in T(\mu)}r_a(s,u) c^\mu_{ut}  \pmod{A^{>\mu}}
+
+  where `A^{>\mu}` is spanned by `\{c^\nu_{ab}|\nu>\mu\text{ and }a,b\in
+  T(\nu)\}`.abs Moreover, the scalar `r_a(s,u)` depends only on `a`, `s` and
+  `u` and, in particular, is independent of `t`.
+
+* The map `\iota\colon A\longrightarrow A; c^\mu_{st}\mapsto c^\mu_{ts}` is an
+  algebra anti-isomorphism
+
+A *cellular  basis* for `A` is any basis of the form
+`\{c^\mu_{st}\mid \mu\in\Lambda, s,t\in T(\mu)\}`\}`.
+
+Note that the scalars `r_a(s,u)\in R` depend only if `a`, `s` and `u` and, in
+particular, they do not depend on `t`. It follows from the definition of a cell
+datum that `A^{>\mu}` is a two-sided ideal of `A`. More importantly, if
+`\mu\in\Lambda` then the
+:class:`~sage.modules.with_basis.cell_module.CellModule` `C^\mu` is the free
+`R`-module with basis `\{c^\mu_s\mid \mu\in\Lambda, s\in T(\mu)\}`\}` and with
+`A`-action:
+
+.. MATH::
+
+    a c^\mu_{s} = \sum_{u\in T(\mu)}r_a(s,u) c^\mu_{u},
+
+where the scalars `r_a(s,u)` are those appearing in the definition of the cell
+datum. It follows from the cellular basis axioms that that `C^\mu` comes
+equipped with a bilinear form `\langle\ ,\ \rangle` that is determined by:
+
+.. MATH::
+
+    c^\mu_{st}c^\mu_u = \langle c^\mu_{s},c^\mu_t\rangle c^\mu_u
+
+The *radical* of `C^\mu` is the `A`-submodule
+`\text{rad}C^\mu=\{x\in C^\mu|\langle x,y\rangle=0\}`. Hence, 
+`D^\mu=C^\mu/\text{rad}C^\mu` is also an `A`-module. It is not difficult to
+show that `\{ D^\mu\mid D^\mu\ne0\}` is a complete set of pairwise
+non-isomorphic `A`-modules. Hence, a cell datum for `A` gives an explicit
+construction of the irreducible `A`-modules. The module 
+:meth:`~sage.modules.with_basis.cell_module.CellModule.simple_module()` `D^\mu` 
+is either zero or absolutely irreducible.
+
+EXAMPLES::
+
+    We compute a cellular basis and do some basic computations::
+
+        sage: S = SymmetricGroupAlgebra(QQ, 3)
+        sage: C = S.cellular_basis()
+        sage: C
+        Cellular basis of Symmetric group algebra of order 3
+         over Rational Field
+
+.. SEEALSO::
+
+    :class:`~sage.modules.with_basis.cell_module.CellModule`
+
+AUTHOR:
+
+    - Travis Scrimshaw (2015-11-5): Initial version
+
+REFERENCES:
+
+    - [GrLe1996]_
+    - [KX1998]_
+    - [Mat1999]_
+    - :wikipedia:`Cellular_algebra`
+    - http://webusers.imj-prg.fr/~bernhard.keller/ictp2006/lecturenotes/xi.pdf
+
 """
 
 #*****************************************************************************
@@ -19,7 +110,8 @@ from sage.categories.algebras import Algebras
 
 class CellularBasis(CombinatorialFreeModule):
     r"""
-    The cellular basis of an algebra.
+    The cellular basis of a cellular algebra, in the sense of Graham and Lehrer
+    [GrLe1996]_.
 
     INPUT:
 

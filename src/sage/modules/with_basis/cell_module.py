@@ -37,10 +37,26 @@ class CellModule(CombinatorialFreeModule):
     INPUT:
 
     - ``A`` -- a cellular algebra
-    - ``la`` -- an element of the cellular poset of ``A``
+    - ``mu`` -- an element of the cellular poset of ``A``
+
+    .. SEEALSO::
+
+        :class:`~sage.algebras.cellular_basis.CellularBasis`
+
+    AUTHOR:
+
+        - Travis Scrimshaw (2015-11-5): Initial version
+
+    REFERENCES:
+
+        - [GrLe1996]_
+        - [KX1998]_
+        - [Mat1999]_
+        - :wikipedia:`Cellular_algebra`
+        - http://webusers.imj-prg.fr/~bernhard.keller/ictp2006/lecturenotes/xi.pdf
     """
     @staticmethod
-    def __classcall_private__(cls, A, la, **kwds):
+    def __classcall_private__(cls, A, mu, **kwds):
         """
         Normalize input to ensure a unique representation.
 
@@ -52,11 +68,11 @@ class CellModule(CombinatorialFreeModule):
             sage: W1 is W2
             True
         """
-        la = A.cell_poset()(la)
+        mu = A.cell_poset()(mu)
         kwds['prefix'] = kwds.get('prefix', 'W')
-        return super(CellModule, cls).__classcall__(cls, A, la, **kwds)
+        return super(CellModule, cls).__classcall__(cls, A, mu, **kwds)
 
-    def __init__(self, A, la, **kwds):
+    def __init__(self, A, mu, **kwds):
         r"""
         Initialize ``self``.
 
@@ -67,10 +83,10 @@ class CellModule(CombinatorialFreeModule):
             sage: TestSuite(W).run()
         """
         self._algebra = A
-        self._la = la
+        self._la = mu
         cat = ModulesWithBasis(A.base_ring()).FiniteDimensional()
         CombinatorialFreeModule.__init__(self, A.base_ring(),
-                                         A.cell_module_indices(la),
+                                         A.cell_module_indices(mu),
                                          category=cat, **kwds)
 
     def _repr_(self):
@@ -127,8 +143,8 @@ class CellModule(CombinatorialFreeModule):
             sage: C = S.cellular_basis()
             sage: W = S.cell_module([2,1])
             sage: s = StandardTableaux([2,1])([[1,2],[3]])
-            sage: la = Partition([2,1])
-            sage: W._action_basis((la, s, s), s)
+            sage: mu = Partition([2,1])
+            sage: W._action_basis((mu, s, s), s)
             W[[1, 2], [3]]
         """
         t = self.basis().keys()[0]

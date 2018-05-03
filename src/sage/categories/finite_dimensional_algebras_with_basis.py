@@ -1090,34 +1090,45 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         r"""
         Cellular algebras.
 
-        A *cellular algebra* is an algebra `A` over a commutative ring `R`
-        with *cell datum* `(\Lambda, i, M, C)`:
+        Let `R` be a commutative ring. A `R`-algebra `A` is a *cellular
+        algebra* if it has a *cell datum*, which is a tuple `(\Lambda, i, M, C)` where
+        `\Lambda` is finite poset with order `\ge`, if `\mu\in\Lambda` then `T(\mu)` is
+        a finite set and
 
-        - `\Lambda` a finite poset called the *cellular poset*,
-        - `i` an `R`-linear anti-involution called the *cellular involution*,
-        - for every `\lambda \in \Lambda`, the *cell* `M(\lambda)` is a
-          finite set,
-        - `C = (C_{st}^{\lambda} | \lambda \in \Lambda, s,t \in M(\lambda))`
-          is a basis for `A`,
+        .. MATH::
 
-        and satisfies the following conditions
+            C\colon\coprod_{\mu\in\Lambda}T(\mu)\times
+              T(\mu)\longrightarrow A;(\mu,s,t)\mapsto c^\mu_{st} 
+              \text{ is an injective map}
 
-        1. `i(C^{\lambda}_{st}) = C^{\lambda}_{ts}`, and
-        2. for every `\lambda \in \Lambda`, `s,t \in M(\lambda)`,
-           and `a \in A`, we have
+        such that:
 
-           .. MATH::
+        * The set `\{c^\mu_{st}\mid \mu\in\Lambda, s,t\in T(\mu)\}` is a basis of `A`
+        * If $a\in A$ and `\mu\in\Lambda, s,t\in T(\mu)` then:
 
-               a C^{\lambda}_{st} = \sum_{u \ in M(\lambda) r_a(u, s)
-               C_{ut}^{\lambda} +
-               \sum_{\substack{\mu < \lambda \\ xy \in M(\mu)}} R C^{\mu}_{xy}.
+          .. MATH::
 
-        Note that in particular, `r_a(u, s)` in Condition 2 do not
+            a c^\mu_{st} = \sum_{u\in T(\mu)}r_a(s,u) c^\mu_{ut}  \pmod{A^{>\mu}}
+
+          where `A^{>\mu}` is spanned by `\{c^\nu_{ab}|\nu>\mu\text{ and }a,b\in
+          T(\nu)\}`.abs Moreover, the scalar `r_a(s,u)` depends only on `a`, `s` and
+          `u` and, in particular, is independent of `t`.
+
+        * The map `\iota\colon A\longrightarrow A; c^\mu_{st}\mapsto c^\mu_{ts}` is an
+          algebra anti-isomorphism
+
+        A *cellular  basis* for `A` is any basis of the form
+        `\{c^\mu_{st}\mid \mu\in\Lambda, s,t\in T(\mu)\}`\}`.
+
+        Note that in particular, the scalars `r_a(u, s)` in Condition 2 do not
         depend on `t`.
 
         REFERENCES:
 
-        - :wikipedia:`Cellular_algebras`
+        - [GrLe1996]_
+        - [KX1998]_
+        - [Mat1999]_
+        - :wikipedia:`Cellular_algebra`
         - http://webusers.imj-prg.fr/~bernhard.keller/ictp2006/lecturenotes/xi.pdf
         """
         class ParentMethods:
@@ -1136,24 +1147,24 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 B = cell_basis.basis()
                 K = B.keys()
                 P = self.cell_poset()
-                for la in P:
-                    C = self.cell_module_indices(la)
+                for mu in P:
+                    C = self.cell_module_indices(mu)
                     for s in C:
                         t = C[0]
                         vals = []
-                        basis_elt = B[(la, s, t)]
+                        basis_elt = B[(mu, s, t)]
                         for a in B:
                             elt = a * basis_elt
-                            tester.assertTrue( all(P.lt(i[0], la) or i[2] == t
+                            tester.assertTrue( all(P.lt(i[0], mu) or i[2] == t
                                                    for i in elt.support()) )
-                            vals.append([elt[(la, u, t)] for u in C])
+                            vals.append([elt[(mu, u, t)] for u in C])
                         for t in C[1:]:
-                            basis_elt = B[(la, s, t)]
+                            basis_elt = B[(mu, s, t)]
                             for i,a in enumerate(B):
                                 elt = a * basis_elt
-                                tester.assertTrue( all(P.lt(i[0], la) or i[2] == t
+                                tester.assertTrue( all(P.lt(i[0], mu) or i[2] == t
                                                        for i in elt.support()) )
-                                tester.assertEqual(vals[i], [elt[(la, u, t)]
+                                tester.assertEqual(vals[i], [elt[(mu, u, t)]
                                                              for u in C])
 
             @abstract_method
@@ -1169,10 +1180,10 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 """
 
             @abstract_method
-            def cell_module_indices(self, la):
+            def cell_module_indices(self, mu):
                 """
                 Return the indices of the cell module of ``self``
-                indexed by ``la`` .
+                indexed by ``mu`` .
 
                 This is the finite set `M(\lambda)`.
 
@@ -1205,10 +1216,10 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 EXAMPLES::
 
                     sage: S = SymmetricGroupAlgebra(QQ, 3)
-                    sage: la = Partition([2,1])
+                    sage: mu = Partition([2,1])
                     sage: s = StandardTableau([[1,2],[3]])
                     sage: t = StandardTableau([[1,3],[2]])
-                    sage: S._from_cellular_index((la, s, t))
+                    sage: S._from_cellular_index((mu, s, t))
                     1/4*[1, 3, 2] - 1/4*[2, 3, 1] + 1/4*[3, 1, 2]
                      - 1/4*[3, 2, 1]
                 """
@@ -1269,9 +1280,9 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 from sage.algebras.cellular_basis import CellularBasis
                 return CellularBasis(self)
 
-            def cell_module(self, la, **kwds):
+            def cell_module(self, mu, **kwds):
                 """
-                Return the cell module indexed by ``la``.
+                Return the cell module indexed by ``mu``.
 
                 EXAMPLES::
 
@@ -1281,7 +1292,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                      Symmetric group algebra of order 3 over Rational Field
                 """
                 from sage.modules.with_basis.cell_module import CellModule
-                return CellModule(self.cellular_basis(), la, **kwds)
+                return CellModule(self.cellular_basis(), mu, **kwds)
 
             @cached_method
             def simple_module_parameterization(self):
@@ -1298,8 +1309,8 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     sage: S.simple_module_parameterization()
                     ([4], [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1])
                 """
-                return tuple([la for la in self.cell_poset()
-                              if self.cell_module(la).nonzero_bilinear_form()])
+                return tuple([mu for mu in self.cell_poset()
+                              if self.cell_module(mu).nonzero_bilinear_form()])
 
         class ElementMethods:
             def cellular_involution(self):
@@ -1356,10 +1367,10 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                         ret = ret.product(A.cell_poset())
                     return ret
 
-                def cell_module_indices(self, la):
+                def cell_module_indices(self, mu):
                     """
                     Return the indices of the cell module of ``self``
-                    indexed by ``la`` .
+                    indexed by ``mu`` .
 
                     This is the finite set `M(\lambda)`.
 
@@ -1374,7 +1385,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     """
                     from sage.categories.cartesian_product import cartesian_product
                     return cartesian_product([self._sets[i].cell_module_indices(x)
-                                              for i,x in enumerate(la)])
+                                              for i,x in enumerate(mu)])
 
                 @lazy_attribute
                 def cellular_involution(self):
@@ -1449,15 +1460,15 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     B = self.cellular_basis()
                     M = temp.monomial_coefficients(copy=False)
                     def convert_index(i):
-                        la = []
+                        mu = []
                         s = []
                         t = []
                         for a,b,c in i:
-                            la.append(a)
+                            mu.append(a)
                             s.append(b)
                             t.append(c)
-                        C = self.cell_module_indices(la)
-                        return (tuple(la), C(s), C(t))
+                        C = self.cell_module_indices(mu)
+                        return (tuple(mu), C(s), C(t))
                     return B._from_dict({convert_index(i): M[i] for i in M},
                                         remove_zeros=False)
 

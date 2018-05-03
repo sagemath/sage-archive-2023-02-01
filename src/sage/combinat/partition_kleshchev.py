@@ -1,5 +1,79 @@
 r"""
 Kleshchev partitions
+====================
+
+A partition (tuple) `\mu` is Kleshchev if it can be recursively
+obtained by adding a sequence of good nodes to the empty
+:class:`PartitionTuple` of the same :meth:`~PartitionTuple.level`
+and *multicharge*. In this way, the set of Kleshchev multipartitions becomes a
+realisation of a Kashiwara crystal :mod:`sage.combinat.crystals.crystals` for a
+irreducible integral highest weight representation of `U_q(\widehat{\mathfrak{sl}}_e)`.
+
+The Kleshchev multipartitions first appeared in the work of Ariki and Mathas
+[AM2000]_ where it was shown that they index the irreducible representations of
+the cyclotomic Hecke algebras of type `A` [AK1994]_. Soon afterwards Ariki
+[Ariki2001]_ showed that the set of Kleshchev multipartitions naturally label
+the irreducible representations of these algebras.  As a far reaching generalisation of these
+ideas the Ariki-Brundan-Kleshchev categorification theorem [Ariki1996]_
+[BK2009]_ says that these algebras categorify the irreducible integral highest
+weight representations of the quantum group `U_q(\widehat{\mathfrak{sl}}_e)`
+of the affine special linear group. In this categorification Under this
+categorification, `q` corresponds to the grading shift on the cyclotomic Hecke
+algebras, where the grading from the Brundan-Kleshchev graded isomorphism
+theorem to the *KLR algebras* of type `A` [BK2008]_.
+
+The group algebras of the symmetric group in characteristic `p` are an important
+special case of the cyclotomic Hecke algebras of type `A`. In this case,
+depending on your prefer convention, the set of Kleshchev partitions is the set
+of *`p`-regular* or *`p`-restricted* :class:`class
+sage.combinat.partition.Partitions`. In this case, Kleshchev [Kle1995]_ proved
+that the *modular branching rules* were given by adding and removing *good
+nodes*; see :meth:`~KleshchevPartition.good_cells`. Lascoux, Leclerc and Thibon
+[LLT1996]_ noticed that Kleshchev's branching rules coincided with Kashiwara's
+crystal operators for the fundamental representation of `L(\Lambda_0)` of
+`U_q(\widehat{\mathfrak{sl}}_p)` and their celebrated *LLT conjecture* said
+that decomposition matrices of the
+:class:`sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra` of the
+symmetric group should be computable using the canonical basis of
+`L(\Lambda_0)`. This was proved and generalised to all cyclolotimc Hecke
+algebras of type `A` by Ariki [Ariki1996]_ and then further generalised to the
+graded setting by Brundan and Kleshchev [BK2009]_
+
+The main class for accessing Kleshchev partition (tuples) in **sage** is
+:class:`~KleshchevPartitions`. Unfortunately, just as with the symmetric group,
+different authors use different conventions when defining Kleshchev partitions,
+which depends on whether you read components from left to right, or right to
+left, and whether you read the nodes in the partition in each component from
+top to bottom or bottom to top. The :class:`~KleshchevPartitions` class
+supports these four different conventions::
+
+    sage: KleshchevPartitions(2, [0,0], size=2, convention='left regular')[:]
+    [([1], [1]), ([2], [])]
+    sage: KleshchevPartitions(2, [0,0], size=2, convention='left restricted')[:]
+    [([1], [1]), ([], [1, 1])]
+    sage: KleshchevPartitions(2, [0,0], size=2, convention='right regular')[:]
+    [([1], [1]), ([], [2])]
+    sage: KleshchevPartitions(2, [0,0], size=2, convention='right restricted')[:]
+    [([1], [1]), ([1, 1], [])]
+
+By default, the ``left restricted`` convention is used. As a shorthand, ``LG``,
+``LS``, ``RG`` and ``RS``, respectively, can be used to specify the
+``convention`` With the ``left`` convention the partition tuples should be
+ordered with the most dominant partitions in the partition tuple on the left
+and with the ``right`` convention the most dominant partition is on the right.
+
+The :class:`~KleshchevPartitions` class can automatically convert between
+these four different conventions::
+
+    sage: KPlg = KleshchevPartitions(2, [0,0], size=2, convention='left regular')
+    sage: KPls = KleshchevPartitions(2, [0,0], size=2, convention='left restricted')
+    sage: [KPlg(mu) for mu in KPls] # indirect doc test
+    [([1], [1]), ([2], [])]
+
+AUTHORS:
+
+- Andrew Mathas and Travis Scrimshaw (2018-05-1): Initial version
+
 """
 from __future__ import print_function, absolute_import
 
@@ -19,6 +93,10 @@ from collections import defaultdict
 # Kleshchev partition - element classes
 #--------------------------------------------------
 class KleshchevPartition(Partition):
+    r"""
+    Abstract base class for Kleshchev partitions. See
+    :class:`~KleshchevPartitions`.
+    """
 
     def conormal_cells(self, i=None):
         r"""
@@ -26,7 +104,7 @@ class KleshchevPartition(Partition):
         If no residue ``i`` is specified then a list of length ``e``
         is returned which gives the conormal cells for ``0 <= i < e``.
 
-        Following [Kleshchev09]_, the *conormal* cells are computed by
+        Following [Kle1995]_, the *conormal* cells are computed by
         reading up (or down) the rows of the partition and marking all
         of the addable and removable cells of `e`-residue `i` and then
         recursively removing all adjacent pairs of removable and addable
@@ -60,7 +138,7 @@ class KleshchevPartition(Partition):
         # determine if we read up or down the partition
         KP = self.parent()
         rows = list(range(len(self)+1))
-        if KP._convention[1]=='G':
+        if KP._convention[1] == 'G':
             rows.reverse()
 
         # work through the rows
@@ -91,7 +169,8 @@ class KleshchevPartition(Partition):
         residue are returned (if they exist).
 
         The cogood `i`-cell is the 'last' conormal `i`-cell. As with the
-        conormal cells we can choose to read either up or down the partition.
+        conormal cells we can choose to read either up or down the partition as
+        specified by :meth:`~KleshchevPartitions.convention`.  .
 
         EXAMPLES::
 
@@ -114,8 +193,8 @@ class KleshchevPartition(Partition):
             return {i: conormal_cells[i][-1] for i in conormal_cells}
         elif not conormal_cells:
             return None
-        else:
-            return conormal_cells[-1]
+
+        return conormal_cells[-1]
 
     def normal_cells(self, i=None):
         r"""
@@ -123,7 +202,7 @@ class KleshchevPartition(Partition):
         If no residue ``i`` is specified then a list of length ``e``
         is returned which gives the normal cells for ``0 <= i < e``.
 
-        Following [Kleshchev09]_, the *normal* cells are computed by
+        Following [Kle1995]_, the *normal* cells are computed by
         reading up (or down) the rows of the partition and marking all
         of the addable and removable cells of `e`-residue `i` and then
         recursively removing all adjacent pairs of removable and
@@ -173,7 +252,7 @@ class KleshchevPartition(Partition):
                     else:
                         carry[res] -= 1
                 if row == 0 or self[row-1] > self[row]:              # addable cell
-                  carry[res+1] += 1
+                    carry[res+1] += 1
 
         # finally return the result
         return dict(normals) if i is None else normals[i]
@@ -185,7 +264,8 @@ class KleshchevPartition(Partition):
         residue are returned (if they exist).
 
         The good `i`-cell is the 'first' normal `i`-cell. As with the normal
-        cells we can choose to read either up or down the partition.
+        cells we can choose to read either up or down the partition as
+        specified by :meth:`~KleshchevPartitions.convention`.  .
 
         EXAMPLES::
 
@@ -206,8 +286,8 @@ class KleshchevPartition(Partition):
             return {j: normal_cells[j][0] for j in normal_cells}
         elif not normal_cells:
             return None
-        else:
-            return normal_cells[0]
+
+        return normal_cells[0]
 
     def good_residue_sequence(self):
         """
@@ -230,9 +310,9 @@ class KleshchevPartition(Partition):
         assert good_cells
 
         res = sorted(good_cells)[0]
-        r,c = good_cells[res]
+        r, c = good_cells[res]
         good_seq = type(self)(self.parent(), self.remove_cell(r,c)).good_residue_sequence()
-        good_seq.append( self.parent()._index_set(res) )
+        good_seq.append(self.parent()._index_set(res))
         return good_seq
 
     def good_cell_sequence(self):
@@ -265,9 +345,14 @@ class KleshchevPartition(Partition):
         return good_seq
 
     def mullineux_conjugate(self):
-        """
-        Return the partition tuple which is the Mullineux conjugate of this
-        partition tuple, or ``None`` if no such partition tuple exists.
+        r"""
+        Return the partition tuple that is the Mullineux conjugate of ``self``.
+
+        It follows from results in [BK2009]_, [Mat2015]_ that if `\nu` is the
+        Mullineux conjugate of the Kleshchev partition tuple `\mu` then the
+        simple module `D^\nu =(D^\mu)^{\text{sgn}}` is obtained from `D^\mu` by
+        twisting by the `\text{sgn}`-automorphism with is the Iwahori-Hecke algebra
+        analogue of tensoring with the one dimensional sign representation.
 
         EXAMPLES::
 
@@ -287,6 +372,7 @@ class KleshchevPartition(Partition):
             [3, 2, 2, 2, 2, 2, 2, 1, 1, 1]
             sage: mc.parent().multicharge()
             (1,)
+
         """
         P = self.parent()
         if not self:
@@ -300,7 +386,7 @@ class KleshchevPartition(Partition):
         good_cells = self.good_cells()
         assert good_cells
 
-        r,c = sorted(good_cells.values())[0]
+        r, c = sorted(good_cells.values())[0]
         # This is technically wrong when the parent has a fixed size because
         #   the resulting Kleshchev partition after removing a cell has abs
         #   smaller size. However, this is useful to avoid constructing
@@ -314,9 +400,11 @@ class KleshchevPartition(Partition):
         """
         Return ``True`` if ``self`` is a `e`-regular partition tuple.
 
-        A partition tuple is `e`-regular if we can get to the
-        empty partition tuple by successively removing a sequence
-        of good cells in the down direction.
+        A partition tuple is `e`-regular if we can get to the empty partition
+        tuple by successively removing a sequence of good cells in the down
+        direction. Equivalently, all partitions are `0`-regular and if `e>0`
+        then a partition is `e`-regular if no `e` non-zero parts of ``self``
+        are equal.
 
         EXAMPLES::
 
@@ -338,9 +426,12 @@ class KleshchevPartition(Partition):
         """
         Return ``True`` if ``self`` is an `e`-restricted partition tuple.
 
-        A partition tuple is `e`-restricted if we can get to the
-        empty partition tuple by successively removing a sequence
-        of good cells in the up direction.
+        A partition tuple is `e`-restricted if we can get to the empty
+        partition tuple by successively removing a sequence of good cells in
+        the up direction. Equivalently, all partitions are `0`-restricted and
+        if `e>0` then a partition is `e`-restricted if the difference of
+        successive parts of ``self`` are always strictly less than `e`.
+
 
         EXAMPLES::
 
@@ -359,13 +450,18 @@ class KleshchevPartition(Partition):
         return super(KleshchevPartition, self).is_restricted(KP._e, KP._multicharge)
 
 class KleshchevPartitionTuple(PartitionTuple):
+    r"""
+    Abstract base class for Kleshchev partition tuples. See
+    :class:`~KleshchevPartitions`.
+    """
+
     def conormal_cells(self, i=None):
         r"""
         Return a dictionary of the cells of the partition that are conormal.
         If no residue ``i`` is specified then a list of length ``e``
         is returned which gives the conormal cells for ``0 <= i < e``.
 
-        Following [Kleshchev09]_, the *conormal* cells are computed by
+        Following [Kle1995]_, the *conormal* cells are computed by
         reading up (or down) the rows of the partition and marking all
         of the addable and removable cells of `e`-residue `i` and then
         recursively removing all adjacent pairs of removable and addable
@@ -438,7 +534,8 @@ class KleshchevPartitionTuple(PartitionTuple):
         residue are returned (if they exist).
 
         The cogood `i`-cell is the 'last' conormal `i`-cell. As with the
-        conormal cells we can choose to read either up or down the partition.
+        conormal cells we can choose to read either up or down the partition
+        as specified by :meth:`~KleshchevPartitions.convention`.
 
         EXAMPLES::
 
@@ -462,8 +559,8 @@ class KleshchevPartitionTuple(PartitionTuple):
             return {j: conormal_cells[j][-1] for j in conormal_cells}
         elif not conormal_cells:
             return None
-        else:
-            return conormal_cells[-1]
+
+        return conormal_cells[-1]
 
     def normal_cells(self, i=None):
         r"""
@@ -471,7 +568,7 @@ class KleshchevPartitionTuple(PartitionTuple):
         are normal. If no residue ``i`` is specified then a list of length
         ``e`` is returned which gives the normal cells for ``0 <= i < e``.
 
-        Following [Kleshchev09]_, the *normal* cells are computed by
+        Following [Kle1995]_, the *normal* cells are computed by
         reading up (or down) the rows of the partition and marking all
         of the addable and removable cells of `e`-residue `i` and then
         recursively removing all adjacent pairs of removable and
@@ -534,8 +631,8 @@ class KleshchevPartitionTuple(PartitionTuple):
         # finally return the result
         if i is None:
             return dict(normals)    # change the defaultdict into a dict
-        else:
-            return normals[i]
+
+        return normals[i]
 
     def good_cells(self, i=None):
         r"""
@@ -543,8 +640,9 @@ class KleshchevPartitionTuple(PartitionTuple):
         If no residue ``i`` is specified then the good cells of each
         residue are returned (if they exist).
 
-        The good `i`-cell is the 'first' normal `i`-cell. As with the
-        normal cells we can choose to read either up or down the partition.
+        The good `i`-cell is the 'first' normal `i`-cell. As with the normal
+        cells we can choose to read either up or down the partition as specified
+        by :meth:`~KleshchevPartitions.convention`.
 
         EXAMPLES::
 
@@ -566,8 +664,8 @@ class KleshchevPartitionTuple(PartitionTuple):
             return {j: normal_cells[j][0] for j in normal_cells}
         elif not normal_cells:
             return None
-        else:
-            return normal_cells[0]
+
+        return normal_cells[0]
 
     def good_residue_sequence(self):
         """
@@ -585,7 +683,7 @@ class KleshchevPartitionTuple(PartitionTuple):
         assert good_cells
 
         res = sorted(good_cells.keys())[0]
-        k,r,c = good_cells[res]
+        k, r, c = good_cells[res]
         good_seq = type(self)(self.parent(), self.remove_cell(k,r,c)).good_residue_sequence()
         good_seq.append( self.parent()._index_set(res) )
         return good_seq
@@ -613,9 +711,14 @@ class KleshchevPartitionTuple(PartitionTuple):
         return good_seq
 
     def mullineux_conjugate(self):
-        """
-        Return the partition tuple which is the Mullineux conjugate of
-        ``self``, or ``None`` if no such partition tuple exists.
+        r"""
+        Return the partition that is the Mullineux conjugate of ``self``.
+
+        It follows from results in [Kle2009]_ [Bru1998]_ that if `\nu` is the
+        Mullineux conjugate of the Kleshchev partition tuple `\mu` then the
+        simple module `D^\nu =(D^\mu)^{\text{sgn}}` is obtained from `D^\mu` by
+        twisting by the `\text{sgn}`-automorphism with is the Hecke algebra
+        analogue of tensoring with the one dimensional sign representation.
 
         EXAMPLES::
 
@@ -624,6 +727,7 @@ class KleshchevPartitionTuple(PartitionTuple):
             ([2, 2, 1, 1], [3, 2, 2, 1, 1])
             sage: mc.parent()
             Kleshchev partitions with e=3 and multicharge=(0,2)
+
         """
         P = self.parent()
         if self.size() == 0:
@@ -929,13 +1033,43 @@ class KleshchevPartitions(PartitionTuples):
     """
     Kleshchev partitions
 
-    A partition (tuple) `\mu` is restricted if it can be recursively
+    A partition (tuple) `\mu` is Kleshchev if it can be recursively
     obtained by adding a sequence of good nodes to the empty
-    :class:`PartitionTuple` of the same :meth:`~PartitionTuple.level`.
+    :class:`PartitionTuple` of the same :meth:`~PartitionTuple.level`
+    and multicharge.
+
+    There are four different conventions that are used in the literature for
+    Kleshchev partitions, depending on whether we read partitions from top
+    to bottom (regular) or bottom to top (restricted) and whether we read
+    partition tuples from left to right or right to left. All of these
+    conventions are supported::
+
+        sage: KleshchevPartitions(2, [0,0], size=2, convention='left regular')[:]
+        [([1], [1]), ([2], [])]
+        sage: KleshchevPartitions(2, [0,0], size=2, convention='left restricted')[:]
+        [([1], [1]), ([], [1, 1])]
+        sage: KleshchevPartitions(2, [0,0], size=2, convention='right regular')[:]
+        [([1], [1]), ([], [2])]
+        sage: KleshchevPartitions(2, [0,0], size=2, convention='right restricted')[:]
+        [([1], [1]), ([1, 1], [])]
+
+    By default, the `left restricted` convention is used. As a shorthand, `LG`,
+    `LS`, `RG` and `RS`, respectively, can be used to specify the `convention`.
+    With the `left` convention the partition tuples should be ordered with the
+    most dominant partitions in the partition tuple on the left and with the
+    `right` convention the most dominant partition is on the right.
+
+    The :class:`~KleshchevPartitions` class will automatically convert between
+    these four different conventions:
+
+        sage: KPlg = KleshchevPartitions(2, [0,0], size=2, convention='left regular')
+        sage: KPls = KleshchevPartitions(2, [0,0], size=2, convention='left restricted')
+        sage: [KPlg(mu) for mu in KPls]
+        [([1], [1]), ([2], [])]
 
     EXAMPLES::
 
-        sage: KleshchevPartitions(5, [3,2,1], 1, convention='RS')[:]
+        sage: KleshchevPartitions(5,[3,2,1],1, convention='RS')[:]
         [([], [], [1]), ([], [1], []), ([1], [], [])]
         sage: KleshchevPartitions(5, [3,2,1], 1, convention='LS')[:]
         [([], [], [1]), ([], [1], []), ([1], [], [])]
@@ -976,6 +1110,9 @@ class KleshchevPartitions(PartitionTuples):
 
     REFERENCES:
 
+    - [AM2000]_
+    - [Ariki2001]_
+    - [BK2009]_
     - [Kle2009]_
     """
     @staticmethod
@@ -1009,15 +1146,15 @@ class KleshchevPartitions(PartitionTuples):
 
         if size is None:
             return KleshchevPartitions_all(e, multicharge, convention)
-        else:
-            return KleshchevPartitions_size(e, multicharge, size, convention)
+
+        return KleshchevPartitions_size(e, multicharge, size, convention)
 
     def multicharge(self):
         """
         Return the multicharge of ``self``.
 
         EXAMPLES::
-        
+
             sage: KP = KleshchevPartitions(6, [2])
             sage: KP.multicharge()
             (2,)
@@ -1032,7 +1169,7 @@ class KleshchevPartitions(PartitionTuples):
         Return the convention of ``self``.
 
         EXAMPLES::
-        
+
             sage: KP = KleshchevPartitions(4)
             sage: KP.convention()
             'restricted'
@@ -1056,8 +1193,40 @@ class KleshchevPartitions(PartitionTuples):
 
         if self._convention[0] == 'R':
             return "right " + convention
-        else:
-            return "left " + convention
+
+        return "left " + convention
+
+    def _element_constructor_(self, mu):
+        r'''
+        Return `mu` as an element of :class:`~KleshchevPartitions`, or raise an
+        error if `mu` is not a Kleshchev partition (tulpe).
+
+        The main purpose of the element constructor code is to allow automatic
+        conversion between the four possible conventions for Kleshchev
+        partitions.
+
+        EXAMPLES::
+
+            sage: KPlg = KleshchevPartitions(2, [0,0], size=2, convention='left regular')
+            sage: KPls = KleshchevPartitions(2, [0,0], size=2, convention='left restricted')
+            sage: [KPlg(mu) for mu in KPls] # indirect doc test
+            [([1], [1]), ([2], [])]
+
+        '''
+        if isinstance(mu, (KleshchevPartition, KleshchevPartitionTuple)):
+            KPmu = mu.parent()
+            if KPmu == self:
+                return mu
+
+            if KPmu._level != self._level or KPmu._e != self._e:
+                raise ValueError('%s is not an element of %s'%(mu, self))
+
+            if KPmu._convention[1] != self._convention[1]:
+                mu = [nu.conjugate() for nu in mu]
+                if self._level>1 and KPmu._convention[0] == self._convention[0]:
+                    mu = mu[::-1]
+
+        return super(KleshchevPartitions, self)._element_constructor_(mu)
 
 class KleshchevPartitions_all(KleshchevPartitions):
     r"""
@@ -1178,6 +1347,7 @@ class KleshchevPartitions_all(KleshchevPartitions):
 
     REFERENCES:
 
+    - [Ariki1996]_
     - [Ariki2001]_
     - [Tingley2007]_
     - [TingleyLN]_
@@ -1241,8 +1411,8 @@ class KleshchevPartitions_all(KleshchevPartitions):
         """
         if self._level == 1:
             return 'Kleshchev partitions with e=%s' % (self._e)
-        else:
-            return 'Kleshchev partitions with e=%s and multicharge=(%s)' % (
+
+        return 'Kleshchev partitions with e=%s and multicharge=(%s)' % (
                         self._e,','.join('%s'%m for m in self._multicharge))
 
     def __contains__(self, mu):
@@ -1268,8 +1438,8 @@ class KleshchevPartitions_all(KleshchevPartitions):
             mu = self.element_class(self, list(mu))
             if self._convention[1] == 'G':
                 return mu.is_regular()
-            else:
-                return mu.is_restricted()
+
+            return mu.is_restricted()
 
         try:
             mu = self.element_class(self, mu)
@@ -1355,8 +1525,6 @@ class KleshchevPartitions_all(KleshchevPartitions):
         """
         Return a generic element.
 
-        FIXME: This is a test of the wrong class!
-
         EXAMPLES::
 
             sage: KleshchevPartitions(3, [0,0,0,0], size=4).an_element()
@@ -1376,11 +1544,17 @@ class KleshchevPartitions_size(KleshchevPartitions):
 
             sage: K = KleshchevPartitions(4, 2)
             sage: TestSuite(K).run()
-            sage: K = KleshchevPartitions(4, [0,2,1], 4)
+            sage: K = KleshchevPartitions(4, 4, convention='left regular')
             sage: TestSuite(K).run()
-            sage: K = KleshchevPartitions(0, 2)
+            sage: K = KleshchevPartitions(4, 4, convention='left restricted')
             sage: TestSuite(K).run()
-            sage: K = KleshchevPartitions(0, [0,2,1], 4)
+            sage: K = KleshchevPartitions(4, [0,2,1], 4, convention='left regular')
+            sage: TestSuite(K).run()
+            sage: K = KleshchevPartitions(0, 2, convention='right restricted')
+            sage: TestSuite(K).run()
+            sage: K = KleshchevPartitions(0, [0,2,1], 4, convention='left restricted')
+            sage: TestSuite(K).run()
+            sage: K = KleshchevPartitions(0, [0,2,1], 4, convention='left regular')
             sage: TestSuite(K).run()
 
         We verify that we obtain the same size for all conventions
@@ -1429,9 +1603,10 @@ class KleshchevPartitions_size(KleshchevPartitions):
         """
         if self._level == 1:
             return 'Kleshchev partitions with e=%s and size %s' % (self._e, self._size)
-        else:
-            return 'Kleshchev partitions with e=%s and multicharge=(%s) and size %s' % (
-                        self._e,','.join('%s'%m for m in self._multicharge), self._size)
+
+        return 'Kleshchev partitions with e=%s and multicharge=(%s) and size %s' % (
+            self._e,','.join('%s'%m for m in self._multicharge), self._size
+        )
 
     def __contains__(self, mu):
         """
@@ -1443,9 +1618,9 @@ class KleshchevPartitions_size(KleshchevPartitions):
             False
             sage: PartitionTuple([[3,2],[],[],[],[2]]) in KleshchevPartitions(5,[0,0,0,0,0],7)
             False
-            sage: PartitionTuple([[2,1],[],[1,1],[],[2]]) in KleshchevPartitions(5,[0,0,0,0,0],7)
+            sage: PartitionTuple([[2,1],[],[1,1],[],[2]]) in KleshchevPartitions(5,[0,0,0,0,0],7, convention='RG')
             False
-            sage: PartitionTuple([[2,1],[],[1,1],[],[3]]) in KleshchevPartitions(2,[0,0,0,0,0],9)
+            sage: PartitionTuple([[2,1],[],[1,1],[],[3]]) in KleshchevPartitions(2,[0,0,0,0,0],9, convention='RS')
             False
             sage: all(mu in PartitionTuples(3,8) for mu in KleshchevPartitions(0,[0,0,0],8))
             True
@@ -1456,8 +1631,8 @@ class KleshchevPartitions_size(KleshchevPartitions):
             mu = self.element_class(self, list(mu))
             if self._convention[1] == 'G':
                 return mu.is_regular()
-            else:
-                return mu.is_restricted()
+
+            return mu.is_restricted()
 
         try:
             mu = self.element_class(self, mu)
@@ -1564,8 +1739,8 @@ class KleshchevPartitions_size(KleshchevPartitions):
         """
         if self.level() == 1:
             return self.__iter__level_one
-        else:
-            return self.__iter__higher_levels
+
+        return self.__iter__higher_levels
 
     def _an_element_(self):
         """

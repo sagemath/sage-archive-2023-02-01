@@ -51,8 +51,16 @@ fi
 # On CI machines with their virtual CPUs, it seems to be quite beneficial to
 # overcommit on CPU usage. We only need to make sure that we do not exceed RAM
 # (as there is no swap.)
-export SAGE_NUM_THREADS=$RAMTHREADS
-export SAGE_NUM_THREADS_DOCBUILD=$RAMTHREADS_DOCBUILD
+if [ $CPUTHREADS -lt $RAMTHREADS ]; then
+    export SAGE_NUM_THREADS=$((CPUTHREADS + 1))
+else
+    export SAGE_NUM_THREADS=$RAMTHREADS
+fi
+if [ $CPUTHREADS_DOCBUILD -lt $RAMTHREADS_DOCBUILD ]; then
+    export SAGE_NUM_THREADS_DOCBUILD=$((CPUTHREADS_DOCBUILD + 1))
+else
+    export SAGE_NUM_THREADS_DOCBUILD=$RAMTHREADS_DOCBUILD
+fi
 # Set -j and -l for make (though -l is probably ignored by Sage)
-export MAKEOPTS="-j $RAMTHREADS -l $((CPUTHREADS-1)).8"
-export MAKEOPTS_DOCBUILD="-j $RAMTHREADS_DOCBUILD -l $((CPUTHREADS_DOCBUILD-1)).8"
+export MAKEOPTS="-j $SAGE_NUM_THREADS -l $((CPUTHREADS - 1)).8"
+export MAKEOPTS_DOCBUILD="-j $SAGE_NUM_THREADS_DOCBUILD -l $((CPUTHREADS_DOCBUILD - 1)).8"

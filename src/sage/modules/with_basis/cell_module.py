@@ -2,11 +2,14 @@ r"""
 Cell Modules
 """
 #*****************************************************************************
-#  Copyright (C) 2015 Travis Scrimshaw <tscrimsh at umn.edu>
+#       Copyright (C) 2015-2018 Travis Scrimshaw <tcscrims at gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#******************************************************************************
+#*****************************************************************************
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
@@ -43,17 +46,17 @@ class CellModule(CombinatorialFreeModule):
 
         :class:`~sage.algebras.cellular_basis.CellularBasis`
 
-    AUTHOR:
+    AUTHORS:
 
-        - Travis Scrimshaw (2015-11-5): Initial version
+    - Travis Scrimshaw (2015-11-5): Initial version
 
     REFERENCES:
 
-        - [GrLe1996]_
-        - [KX1998]_
-        - [Mat1999]_
-        - :wikipedia:`Cellular_algebra`
-        - http://webusers.imj-prg.fr/~bernhard.keller/ictp2006/lecturenotes/xi.pdf
+    - [GrLe1996]_
+    - [KX1998]_
+    - [Mat1999]_
+    - :wikipedia:`Cellular_algebra`
+    - http://webusers.imj-prg.fr/~bernhard.keller/ictp2006/lecturenotes/xi.pdf
     """
     @staticmethod
     def __classcall_private__(cls, A, mu, **kwds):

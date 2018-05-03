@@ -1090,38 +1090,46 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         r"""
         Cellular algebras.
 
-        Let `R` be a commutative ring. A `R`-algebra `A` is a *cellular
-        algebra* if it has a *cell datum*, which is a tuple `(\Lambda, i, M, C)` where
-        `\Lambda` is finite poset with order `\ge`, if `\mu\in\Lambda` then `T(\mu)` is
-        a finite set and
+        Let `R` be a commutative ring. A `R`-algebra `A` is a
+        *cellular algebra* if it has a *cell datum*, which is
+        a tuple `(\Lambda, i, M, C)`, where `\Lambda` is finite
+        poset with order `\ge`, if `\mu \in \Lambda` then `T(\mu)`
+        is a finite set and
 
         .. MATH::
 
-            C\colon\coprod_{\mu\in\Lambda}T(\mu)\times
-              T(\mu)\longrightarrow A;(\mu,s,t)\mapsto c^\mu_{st} 
+            C \colon \coprod_{\mu\in\Lambda}T(\mu) \times T(\mu)
+              \longrightarrow A; (\mu,s,t) \mapsto c^\mu_{st}
               \text{ is an injective map}
 
-        such that:
+        such that the following holds:
 
-        * The set `\{c^\mu_{st}\mid \mu\in\Lambda, s,t\in T(\mu)\}` is a basis of `A`
-        * If $a\in A$ and `\mu\in\Lambda, s,t\in T(\mu)` then:
+        * The set `\{c^\mu_{st}\mid \mu\in\Lambda, s,t\in T(\mu)\}` is a
+          basis of `A`.
+        * If `a \in A` and `\mu\in\Lambda, s,t \in T(\mu)` then:
 
           .. MATH::
 
-            a c^\mu_{st} = \sum_{u\in T(\mu)}r_a(s,u) c^\mu_{ut}  \pmod{A^{>\mu}}
+              a c^\mu_{st} = \sum_{u\in T(\mu)} r_a(s,u) c^\mu_{ut}
+              \pmod{A^{>\mu}},
 
-          where `A^{>\mu}` is spanned by `\{c^\nu_{ab}|\nu>\mu\text{ and }a,b\in
-          T(\nu)\}`.abs Moreover, the scalar `r_a(s,u)` depends only on `a`, `s` and
+          where `A^{>\mu}` is spanned by
+
+          .. MATH::
+
+              `\{c^\nu_{ab} | \nu > \mu\text{ and } a,b \in T(\nu)\}`.
+
+          Moreover, the scalar `r_a(s,u)` depends only on `a`, `s` and
           `u` and, in particular, is independent of `t`.
 
-        * The map `\iota\colon A\longrightarrow A; c^\mu_{st}\mapsto c^\mu_{ts}` is an
-          algebra anti-isomorphism
+        * The map `\iota \colon A \longrightarrow A; c^\mu_{st} \mapsto
+          c^\mu_{ts}` is an algebra anti-isomorphism.
 
         A *cellular  basis* for `A` is any basis of the form
-        `\{c^\mu_{st}\mid \mu\in\Lambda, s,t\in T(\mu)\}`\}`.
+        `\{c^\mu_{st} \mid \mu \in \Lambda, s,t \in T(\mu)\}`.
 
-        Note that in particular, the scalars `r_a(u, s)` in Condition 2 do not
-        depend on `t`.
+        Note that in particular, the scalars `r_a(u, s)` in the second
+        condition do not depend on `t`.
 
         REFERENCES:
 

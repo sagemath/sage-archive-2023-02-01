@@ -1525,11 +1525,11 @@ REFERENCES:
               International Mathematics Research Notices. Vol. 2014, No. 2,
               pp. 512-550 (2012)
 
-.. [KX1998] \S. König and C. Xi
-             *On the structure of cellular algebras*.
-             Algebras and modules, II (Geiranger, 1996), 365–386,
-             CMS Conf. Proc., **24**, Amer. Math. Soc., Providence, RI, 1998.
-             :mathscinet:`MR1648638`
+.. [KX1998] \S. König and C. Xi.
+            *On the structure of cellular algebras*.
+            Algebras and modules, II (Geiranger, 1996), 365–386,
+            CMS Conf. Proc., **24**, Amer. Math. Soc., Providence, RI, 1998.
+            :mathscinet:`MR1648638`
 
 .. [KZ2003] \M. Kontsevich, A. Zorich "Connected components of the
             moduli space of Abelian differentials with prescripebd
@@ -1731,7 +1731,7 @@ REFERENCES:
              modules over the Virasoro Lie algebra*.
              Invent. Math. **107(2)** (1992), pp. 225-234.
 
-.. [Mat1999] \A. Mathas, Andrew
+.. [Mat1999] \A. Mathas.
              *Iwahori-Hecke algebras and Schur algebras of the symmetric group*.
              University Lecture Series, **15**. American Mathematical Society,
              Providence, RI, 1999. xiv+188 pp. ISBN: 0-8218-1926-7

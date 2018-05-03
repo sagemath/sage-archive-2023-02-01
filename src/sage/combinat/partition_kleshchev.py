@@ -771,7 +771,7 @@ class KleshchevPartitionTuple(PartitionTuple):
         r"""
         Return the partition that is the Mullineux conjugate of ``self``.
 
-        It follows from results in [Kle2009]_ [Bru1998]_ that if `\nu` is the
+        It follows from results in [Kle1996]_ [Bru1998]_ that if `\nu` is the
         Mullineux conjugate of the Kleshchev partition tuple `\mu` then the
         simple module `D^\nu =(D^\mu)^{\text{sgn}}` is obtained from `D^\mu`
         by twisting by the `\text{sgn}`-automorphism with is the Hecke algebra

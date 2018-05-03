@@ -75,8 +75,9 @@ REFERENCES:
 
 .. [AK1994] \S. Ariki and K. Koike.
             *A Hecke algebra of* `(\mathbb{Z}/r\mathbb{Z})\wr\mathfrak{S}_n`
-			*and construction of its irreducible representations.*
+            *and construction of its irreducible representations.*
             Adv. Math. **106** (1994), 216–243.
+            mathscinet:`MR1279219`
 
 .. [AJL2011] \S. Ariki, N. Jacon, and C. Lecouvey.
              *The modular branching rule for affine Hecke algebras of type A*.
@@ -106,6 +107,7 @@ REFERENCES:
 .. [AM2000]  \S. Ariki and A. Mathas.
             *The number of simple modules of the Hecke algebras of type G(r,1,n)*.
             Math. Z. 233 (2000), no. 3, 601–623.
+            :mathscinet:`MR1750939`
 
 .. [Ap1997] \T. Apostol, Modular functions and Dirichlet series in
             number theory, Springer, 1997 (2nd ed), section 3.7--3.9.
@@ -124,11 +126,12 @@ REFERENCES:
 
 .. [Ariki1996] \S. Ariki. *On the decomposition numbers of the Hecke
                algebra of* `G(m,1,n)`. J. Math. Kyoto Univ. **36** (1996),
-               no. 4, 789–808.
+               no. 4, 789–808. :mathscinet:`MR1443748`
 
 .. [Ariki2001] \S. Ariki. *On the classification of simple modules for
                cyclotomic Hecke algebras of type* `G(m,1,n)` *and Kleshchev
-			   multipartitions*. Osaka J. Math. **38** (2001), 827–837.
+               multipartitions*. Osaka J. Math. **38** (2001), 827–837.
+               :mathscinet:`MR1864465`
 
 .. [AS-Bessel] \F. W. J. Olver: 9. Bessel Functions of Integer Order,
                in Abramowitz and Stegun: Handbook of Mathematical
@@ -359,10 +362,12 @@ REFERENCES:
 .. [BK2008] \J. Brundan and A. Kleshchev.
             *Blocks of cyclotomic Hecke algebras and Khovanov-Lauda algebras*.
             Invent. Math. *178* (2009), no. 3, 451–484.
+            :mathscinet:`MR2551762`
 
 .. [BK2009] \J. Brundan and A. Kleshchev.
             *Graded decomposition numbers for cyclotomic Hecke algebras*.
             Adv. Math. **222** (2009), 1883–1942.
+            :mathscinet:`MR2562768`
 
 .. [BKK2000]  Georgia Benkart, Seok-Jin Kang, Masaki Kashiwara.
               *Crystal bases for the quantum superalgebra* `U_q(\mathfrak{gl}(m,n))`,
@@ -472,6 +477,7 @@ REFERENCES:
 .. [Bru1998] \J. Brundan. *Modular branching rules and the Mullineux map
              for Hecke algebras of type* `A`.
              Proc. London Math. Soc. (3) **77** (1998), 551–581.
+             :mathscinet:`MR1643413`
 
 .. [Bruin-Molnar] \N. Bruin and A. Molnar, *Minimal models for rational
             functions in a dynamical setting*,
@@ -1439,6 +1445,10 @@ REFERENCES:
 .. [Kle1995] \A. Kleshchev. *Branching rules for modular representations of
              symmetric groups. I*. J. Algebra **178** (1995), 493–511.
 
+.. [Kle1996] \A. Kleshchev, *Branching rules for modular representations of symmetric groups III:
+              Some corollaries and a problem of Mullineux*, J. London Math. Soc. 54 (1996) 25–38.
+              :mathscinet:`MR1395065`
+
 .. [Kle2009] \A. Kleshchev.
              *Representation theory of symmetric groups and related Hecke algebras*.
              Bull. Amer. Math. Soc. **47** (2010), 419–481. :arxiv:`0909.4844`.
@@ -1653,6 +1663,7 @@ REFERENCES:
              *Hecke algebras at roots of unity and crystal bases of
              quantum affine algebras*. Comm. Math. Phys.
              **181** (1996), pp 205-263.
+             :mathscinet:`MR1410572`
 
 .. [LLYCL2005] \H. J. Lee, S. J. Lee, J. H. Yoon, D. H. Cheon, and J. I. Lee,
                *The SEED Encryption Algorithm*; in
@@ -1805,8 +1816,9 @@ REFERENCES:
 
 .. [Mat2015]  \A. Mathas. *Cyclotomic quiver Hecke algebras of type A*,
               in "Modular representation theory of finite and p-adic groups",
-			  165–266, Lect. Notes Ser. Inst. Math. Sci. Natl. Univ. Singap.,
-			  **30**, World Sci. Publ., Hackensack, NJ, 2015.
+              165–266, Lect. Notes Ser. Inst. Math. Sci. Natl. Univ. Singap.,
+              **30**, World Sci. Publ., Hackensack, NJ, 2015.
+              :mathscinet:`MR3495747`
 
 .. [MatroidDatabase] `Database of Matroids <http://www-imai.is.s.u-tokyo.ac.jp/~ymatsu/matroid/index.html>`_
 

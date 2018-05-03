@@ -4698,6 +4698,12 @@ cdef class MPolynomial_libsingular(MPolynomial):
             1
             sage: x.gcd(R.change_ring(GF(3)).gen())
             x
+
+            sage: Pol.<x,y,z> = ZZ[]
+            sage: p = x*y - 5*y^2 + x*z - z^2 + z
+            sage: q = -3*x^2*y^7*z + 2*x*y^6*z^3 + 2*x^2*y^3*z^4 + x^2*y^5 - 7*x*y^5*z
+            sage: (21^3*p^2*q).gcd(35^2*p*q^2) == -49*p*q
+            True
         """
         cdef MPolynomial_libsingular _right
         cdef poly *_res
@@ -4716,16 +4722,8 @@ cdef class MPolynomial_libsingular(MPolynomial):
             raise TypeError("algorithm %s not supported" % algorithm)
 
         if _ring.cf.type != n_unknown:
-            if _ring.cf.type == n_Z:
-                P = self._parent.change_ring(RationalField())
-                res = P(self).gcd(P(right))
-                coef = GCD_list(self.coefficients() + right.coefficients())
-                return self._parent(coef*res)
-
-            #TODO:
             if _ring.cf.type == n_Znm or _ring.cf.type == n_Zn or _ring.cf.type == n_Z2m :
                 raise NotImplementedError("GCD over rings not implemented.")
-            #raise NotImplementedError("GCD over rings not implemented.")
 
         if self._parent._base.is_finite() and self._parent._base.characteristic() > 1<<29:
             raise NotImplementedError("GCD of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented.")
@@ -4781,6 +4779,13 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: f = (a^2+a)*x^2*y + (a^4+a^3+a)*y + a^5
             sage: f.lcm(x^4)
             (a^2 + a)*x^6*y + (a^3 + a - 1)*x^4*y + (-a)*x^4
+
+        TESTS::
+
+            sage: Pol.<x,y,z> = ZZ[]
+            sage: p = -x*y + x*z + 54*x - 2
+            sage: (5*p^2).lcm(3*p) == 15*p^2
+            True
         """
         cdef ring *_ring = self._parent_ring
         cdef poly *ret
@@ -4790,14 +4795,8 @@ cdef class MPolynomial_libsingular(MPolynomial):
         if _ring!=currRing: rChangeCurrRing(_ring)
 
         if _ring.cf.type != n_unknown:
-            if _ring.cf.type == n_Z:
-                P = self.parent().change_ring(RationalField())
-                py_gcd = P(self).gcd(P(g))
-                py_prod = P(self*g)
-                return self.parent(py_prod//py_gcd)
-            else:
-                if _ring.cf.type == n_Znm or _ring.cf.type == n_Zn or _ring.cf.type == n_Z2m :
-                    raise TypeError("LCM over non-integral domains not available.")
+            if _ring.cf.type == n_Znm or _ring.cf.type == n_Zn or _ring.cf.type == n_Z2m :
+                raise TypeError("LCM over non-integral domains not available.")
 
         if self._parent is not g._parent:
             _g = self._parent._coerce_c(g)

@@ -2433,8 +2433,32 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
             return OP(self)
 
 class OrbitBasis(DiagramAlgebra):
-    """
+    r"""
     The orbit basis of the partition algebra.
+
+    Let `d_\pi` represent the diagram basis element indexed by the
+    partition `\pi`, then (see equations (2.14), (2.17) and (2.18) of [BH2017]_)
+
+    .. MATH::
+
+        d_\pi = \sum_{\tau \geq \pi} o_\tau,
+
+    where the sum is over all partitions `\tau` which are coarser than `\pi`
+    and `o_\tau` is the orbit basis element indexed by the partition `\tau`.
+
+    If `\mu_{2k}(\pi,\tau)` represents the mobius function of the partition
+    lattice, then
+
+    .. MATH::
+
+        o_\pi = \sum_{\tau \geq \pi} \mu_{2k}(\pi, \tau) d_\tau.
+
+    If `\tau` is a partition of `\ell` blocks and the `i^{th}` block of
+    `\tau` is a union of `b_i` blocks of `\pi`, then
+
+    .. MATH::
+
+        \mu_{2k}(\pi, \tau) = \prod_{i=1}^\ell (-1)^{b_i-1} (b_i-1)! .
 
     EXAMPLES::
 
@@ -2690,7 +2714,7 @@ class OrbitBasis(DiagramAlgebra):
 
     def product_on_basis(self, d1, d2):
         r"""
-        Return the product `O_{d_1} O_{d_2}` of two elements
+        Return the product `o_{d_1} o_{d_2}` of two elements
         in the orbit basis ``self``.
 
         EXAMPLES::

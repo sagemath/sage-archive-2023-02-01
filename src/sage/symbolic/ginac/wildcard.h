@@ -24,6 +24,7 @@
 #define __GINAC_WILDCARD_H__
 
 #include "ex.h"
+#include "symbol.h"
 
 namespace GiNaC {
 
@@ -41,6 +42,8 @@ public:
 
 	// functions overriding virtual functions from base classes
 public:
+        bool operator==(const wildcard& other) const
+            { return label == other.label; }
 	bool match(const ex & pattern, exmap& map) const override;
 
 protected:
@@ -72,6 +75,14 @@ inline ex wild(unsigned label = 0)
 
 /** Check whether x has a wildcard anywhere as a subexpression. */
 bool haswild(const ex & x);
+
+struct wildhasher {
+        std::size_t operator()(const wildcard& w) const
+            { return w.get_label(); }
+};
+using wildset = std::unordered_set<wildcard,wildhasher>;
+
+symbolset substitute(const wildset& w, const exmap& m);
 
 } // namespace GiNaC
 

@@ -490,6 +490,22 @@ std::unordered_set<unsigned> ex::functions() const
         return the_set;
 }
 
+static void collect_wilds(const ex& e, wildset& wilds)
+{
+	if (is_exactly_a<wildcard>(e))
+		wilds.insert(ex_to<wildcard>(e));
+	else
+		for (size_t i=0; i < e.nops(); i++)
+                        collect_wilds(e.op(i), wilds);
+}
+
+wildset ex::wilds() const
+{
+        wildset the_set;
+        collect_wilds(*this, the_set);
+	return the_set;
+}
+
 ex ex::sorted_op(size_t i) const
 {
 	if (is_a<expairseq>(*this))

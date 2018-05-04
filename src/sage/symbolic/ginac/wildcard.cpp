@@ -134,4 +134,23 @@ bool haswild(const ex & x)
 	return false;
 }
 
+symbolset substitute(const wildset& w, const exmap& m)
+{
+        symbolset s;
+        for (const auto& pair : m) {
+                if (not is_exactly_a<wildcard>(pair.first))
+                        throw (std::runtime_error(""));
+                const auto& it = w.find(ex_to<wildcard>(pair.first));
+                if (it != w.end()) {
+                        const ex& e = pair.second;
+                        if (is_exactly_a<symbol>(e))
+                                s.insert(ex_to<symbol>(e));
+                        else
+                                for (const symbol& sym : e.symbols())
+                                       s.insert(sym);
+                }
+        }
+        return s;
+}
+
 } // namespace GiNaC

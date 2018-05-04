@@ -74,6 +74,9 @@ class const_postorder_iterator;
 class symbol;
 struct symbolhasher;
 using symbolset = std::unordered_set<symbol,symbolhasher>;
+class wildcard;
+struct wildhasher;
+using wildset = std::unordered_set<wildcard,wildhasher>;
 using expairvec = std::vector<std::pair<ex,ex>>;
 using ocvector = std::vector<numeric>;
 using power_ocvector_map = std::map<ex, ocvector, GiNaC::ex_is_less>;
@@ -155,6 +158,7 @@ public:
         symbolset symbols() const;
         symbolset free_symbols() const;
         std::unordered_set<unsigned> functions() const;
+        wildset wilds() const;
 	const ex op(size_t i) const { return bp->op(i); }
 	ex sorted_op(size_t i) const;
 	ex operator[](const ex & index) const { return (*bp)[index]; }
